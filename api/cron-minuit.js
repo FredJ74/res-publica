@@ -4887,6 +4887,11 @@ const PNJ_PAR_DEFAUT_POSTE = {
   // douanes, port-sainte-marie), meme convention que commissaire/directeurs -- reutilise le nom
   // deja affiche plutot que d'en inventer un second.
   chef_douanes:            'Pascal Paguevite (PNJ)',
+  // PROCUREUR (12 octobre 2026) : Saad est deja dans la salle d'audience du tribunal de
+  // Luthecia (data.js) -- meme convention que les autres, on reutilise le nom deja affiche
+  // plutot que d'en inventer un second. Le poste est NATIONAL, donc il passe par
+  // CASCADE_NATIONALE et jamais par la boucle par ville.
+  procureur:               'Procureur Saad',
   // Commandant du Port (lot logistique portuaire, 25 aout 2026) : deja en poste dans data.js
   // (persons de administration_portuaire, port-sainte-marie), meme convention. A la difference
   // de chef_douanes, capitaine_port n'est PAS dans POSTES_UNIQUES_A_MASQUER (plateau-
@@ -4900,10 +4905,15 @@ const PNJ_PAR_DEFAUT_POSTE = {
 // UN JUGE PAR TRIBUNAL (arbitrage GD du 20 septembre 2026). Le juge a quitte
 // CASCADE_NATIONALE : il n'existe plus de juge national. Les trois noms ci-dessous ne
 // sont PAS inventes -- ce sont les juges PNJ deja presents dans data.js, chacun dans le
-// tribunal de sa ville (Juge Fontaine a Luthecia, Mireille Sedlex a Port-Sainte-Marie,
-// Gerard Bretellewood a Montrouge). Meme idiome que les directeurs d'entrepot.
+// tribunal de sa ville. Meme idiome que les directeurs d'entrepot.
+//
+// LUTHECIA CHANGE DE TITULAIRE LE 12 OCTOBRE 2026. C'etait « Juge Fontaine » ; or Honore
+// Cozetoujours est declare dans la MEME salle d'audience depuis le 1er octobre, avec le meme
+// `job: 'juge'` -- il y avait deux juges PNJ dans la piece et un seul au registre. Honore prend
+// le siege, Fontaine disparait du dispositif institutionnel. Renommer ICI est indispensable :
+// sans quoi le cron restaurerait Fontaine des que le poste redeviendrait vacant.
 const PNJ_JUGE_PAR_VILLE = {
-  capitale: 'Juge Fontaine',
+  capitale: 'Honoré Cozetoujours (PNJ)',
   ville_a:  'Mireille Sedlex (PNJ)',
   ville_b:  'Gérard Bretellewood (PNJ)'
 };
@@ -4952,7 +4962,11 @@ const CASCADE_NATIONALE = [
   { posteId: 'directeur_tabac_alcools', nommePar: 'min_fin' },
   { posteId: 'directeur_raffinerie',    nommePar: 'min_fin' },
   { posteId: 'chef_douanes',            nommePar: 'min_int' },
-  { posteId: 'capitaine_port',          nommePar: 'min_fin' }
+  { posteId: 'capitaine_port',          nommePar: 'min_fin' },
+  // LE PARQUET (12 octobre 2026). National, nomme par le Ministre de la Justice -- il entre donc
+  // dans la cascade APRES min_just, qui le precede deja dans cette liste. Sans ce filet, le
+  // poste resterait vacant et aucune plainte ne trouverait d'autorite pour la traiter.
+  { posteId: 'procureur',               nommePar: 'min_just' }
 ];
 
 // =====================

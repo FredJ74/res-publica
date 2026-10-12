@@ -102,8 +102,20 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # doit etre ecrit par generer_infractions.py depuis plateau-core.js, pas copie depuis la base, car
 # copier un miroir fige sa derive au lieu de la detecter.
 # LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 12 octobre 2026 par la requete citee.
-TABLES_ATTENDUES = 296    # 292 -> 296 le 12 octobre 2026 au soir : les quatre tables du code penal
-EMPREINTE_LISTE = "f7a1842925362acacd4b87317a653c82"   # md5(string_agg(relname,',' order by relname collate "C"))
+# 296 -> 298 le 12 octobre 2026, nuit : LES DEUX TABLES DE LA CHRONOLOGIE JUDICIAIRE.
+# `dossiers_judiciaires_actes` porte les faits dates d'un dossier -- plainte, enquete, non-lieu,
+# poursuites, saisine, abandon, requalification, relaxe, condamnation -- et elle est APPEND-ONLY
+# a trois verrous : aucun GRANT client, aucune policy, et un declencheur qui refuse UPDATE et
+# DELETE meme a service_role. `dossiers_judiciaires_actes_types` est sa liste blanche, et c'est
+# une TABLE et non une contrainte CHECK pour que les couches futures (temoins, audience, appel,
+# execution de peine) s'y ajoutent par une ligne.
+# LA PREMIERE EST CLASSEE C, LA SECONDE A. Semer un acte judiciaire fabriquerait un fait de
+# procedure que personne n'a pose, et la table etant append-only il serait ineffacable ; mais
+# sans le registre des TYPES, chaque acte fait LEVER la transaction qui le pose -- donc plus
+# aucun jugement possible dans un monde neuf.
+# LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 12 octobre 2026 par la requete citee.
+TABLES_ATTENDUES = 298    # 296 -> 298 le 12 octobre 2026, nuit : la chronologie judiciaire
+EMPREINTE_LISTE = "ea094171ef6758642930c10dfd12728f"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

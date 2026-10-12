@@ -13,6 +13,12 @@
    "sous": "libelle"
   },
   {
+   "empreinte": "9bbc0fa3c5116f400a0fc8d98455bd32",
+   "genre": "FUNCTION",
+   "objet": "affaire_transmettre(text,text,text,jsonb)",
+   "sous": ""
+  },
+  {
    "empreinte": "fa7609a076729e2e174a76b317e105b1",
    "genre": "FUNCTION",
    "objet": "detention_clore_evasion()",
@@ -79,6 +85,12 @@
    "sous": ""
   },
   {
+   "empreinte": "9826e0b3b7c227627f43c7cc00926393",
+   "genre": "FUNCTION",
+   "objet": "dossier_acte_consigner(text,text,text,text,text,text,text,text,jsonb)",
+   "sous": ""
+  },
+  {
    "empreinte": "3423fcb4303d475323ea7644fa650645",
    "genre": "FUNCTION",
    "objet": "infraction_canonique(text)",
@@ -97,6 +109,24 @@
    "sous": ""
   },
   {
+   "empreinte": "bc4bc1c5707f5866969685db621c59df",
+   "genre": "FUNCTION",
+   "objet": "juge_de_la_ville(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "6def1636ad7410e30fa53d6b55f75685",
+   "genre": "FUNCTION",
+   "objet": "juge_dossiers()",
+   "sous": ""
+  },
+  {
+   "empreinte": "72b61075b0004cc192b4f471ddf7ecd3",
+   "genre": "FUNCTION",
+   "objet": "juge_suite_apres_abandon(text,text)",
+   "sous": ""
+  },
+  {
    "empreinte": "522899316d943d7fb3c97695ba87b765",
    "genre": "FUNCTION",
    "objet": "justice_peine_calcul(text,text,text,text)",
@@ -109,15 +139,93 @@
    "sous": ""
   },
   {
-   "empreinte": "fc3096cbf3544cc143d6a712e3763908",
+   "empreinte": "5a81a792500c4271b19253af81953f3b",
+   "genre": "FUNCTION",
+   "objet": "justice_relaxer(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "f35ab860f55d6c78cbe5b2d734e356b7",
    "genre": "FUNCTION",
    "objet": "justice_rendre_sentence(text,text,text,integer,integer)",
    "sous": ""
   },
   {
-   "empreinte": "ef8e84c9d2a64260986568273a55dceb",
+   "empreinte": "7347c5288bddab4ae7667d3f51b5ee02",
    "genre": "FUNCTION",
-   "objet": "plainte_deposer(text,text)",
+   "objet": "parquet_abandonner(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "4a7c63d714aab5bfb1c9125d11fe913e",
+   "genre": "FUNCTION",
+   "objet": "parquet_dossiers()",
+   "sous": ""
+  },
+  {
+   "empreinte": "4fa5a915e71eae980b0cb2508d187ed5",
+   "genre": "FUNCTION",
+   "objet": "parquet_garde(text,text[])",
+   "sous": ""
+  },
+  {
+   "empreinte": "327381ae55fd93c3d4b3dee0f46cf918",
+   "genre": "FUNCTION",
+   "objet": "parquet_moi()",
+   "sous": ""
+  },
+  {
+   "empreinte": "873599eaf69773ea13335359153db705",
+   "genre": "FUNCTION",
+   "objet": "parquet_non_lieu(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "5badecee8f7bb10de2081855dd036e1e",
+   "genre": "FUNCTION",
+   "objet": "parquet_poursuivre(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "30f10eba6461b2927f5f2a1ef6f2efc2",
+   "genre": "FUNCTION",
+   "objet": "parquet_site_competent(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "e1fa38ab4b9705e958e507c94e46299a",
+   "genre": "FUNCTION",
+   "objet": "plainte_defendre(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "0f45fa2816756b1db8a429dd4733c2a6",
+   "genre": "FUNCTION",
+   "objet": "plainte_deposer(text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "c943cd48fb61dec86b8a75dc7661c439",
+   "genre": "FUNCTION",
+   "objet": "plainte_traiter(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "28a7a6cb2d6922f3e99226bec427b3cd",
+   "genre": "FUNCTION",
+   "objet": "plaintes_epingler_verdict()",
+   "sous": ""
+  },
+  {
+   "empreinte": "6cda84f695055d147804ef6fd86f5a0b",
+   "genre": "TABLE",
+   "objet": "dossiers_judiciaires_actes",
+   "sous": ""
+  },
+  {
+   "empreinte": "a2355c0117c5e0ed1ffd5e38692b992f",
+   "genre": "TABLE",
+   "objet": "dossiers_judiciaires_actes_types",
    "sous": ""
   },
   {
@@ -163,6 +271,18 @@
    "genre": "p",
    "nom": "detentions_pkey",
    "tbl": "detentions"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "dossiers_judiciaires_actes_pkey",
+   "tbl": "dossiers_judiciaires_actes"
+  },
+  {
+   "empreinte": "5b0a358ef24a2c28ccb3eb13564302ec",
+   "genre": "p",
+   "nom": "dossiers_judiciaires_actes_types_pkey",
+   "tbl": "dossiers_judiciaires_actes_types"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -231,10 +351,28 @@
    "tbl": "vols_en_attente"
   },
   {
+   "empreinte": "f8712dabff8c698e8289c269f721a4ec",
+   "genre": "u",
+   "nom": "dossiers_actes_un_rang_par_affaire",
+   "tbl": "dossiers_judiciaires_actes"
+  },
+  {
    "empreinte": "853b81e60fdd5f0a184a8b38944ce73d",
    "genre": "u",
    "nom": "impacts_indices_attente_id_unique",
    "tbl": "impacts_indices_attente"
+  },
+  {
+   "empreinte": "e13ef630426a76f2b31cb33682b537a3",
+   "genre": "c",
+   "nom": "dossiers_judiciaires_actes_rang_check",
+   "tbl": "dossiers_judiciaires_actes"
+  },
+  {
+   "empreinte": "2fd7a69973eab5ef86dab4dfb3fe065f",
+   "genre": "c",
+   "nom": "dossiers_judiciaires_actes_types_pose_par_check",
+   "tbl": "dossiers_judiciaires_actes_types"
   },
   {
    "empreinte": "60724236afb6b1e508f06ca7c5851ead",
@@ -277,6 +415,24 @@
    "genre": "c",
    "nom": "infractions_empreinte_seul_check",
    "tbl": "infractions_empreinte"
+  },
+  {
+   "empreinte": "e5b95be9580926ede90eacadb36a7357",
+   "genre": "f",
+   "nom": "dossiers_judiciaires_actes_qualif_apres_fkey",
+   "tbl": "dossiers_judiciaires_actes"
+  },
+  {
+   "empreinte": "16c189a1491c94a5b6e4c3c68fc2dfee",
+   "genre": "f",
+   "nom": "dossiers_judiciaires_actes_qualif_avant_fkey",
+   "tbl": "dossiers_judiciaires_actes"
+  },
+  {
+   "empreinte": "9c232968c0500c5ad8576a732becc9a2",
+   "genre": "f",
+   "nom": "dossiers_judiciaires_actes_type_fkey",
+   "tbl": "dossiers_judiciaires_actes"
   },
   {
    "empreinte": "1bd20deacb6d439be92a843db7874b02",
@@ -630,6 +786,30 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "dossier_acte_consigner(text,text,text,text,text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "dossier_acte_consigner(text,text,text,text,text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "dossiers_actes_append_only()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "dossiers_actes_append_only()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "enquete_garde_a_vue(text,text,text)",
@@ -770,6 +950,60 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "juge_de_la_ville(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "juge_de_la_ville(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "juge_de_la_ville(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "juge_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "juge_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "juge_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "juge_suite_apres_abandon(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "juge_suite_apres_abandon(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "juge_suite_apres_abandon(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "justice_condamner(text,jsonb)",
    "privileges": "EXECUTE"
   },
@@ -872,6 +1106,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "justice_relaxer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_relaxer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_relaxer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "justice_rendre_sentence(text,text,text,integer,integer)",
    "privileges": "EXECUTE"
   },
@@ -890,19 +1142,151 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "plainte_classer_ministere(text)",
+   "objet": "parquet_abandonner(text,text)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "plainte_classer_ministere(text)",
+   "objet": "parquet_abandonner(text,text)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
-   "objet": "plainte_classer_ministere(text)",
+   "objet": "parquet_abandonner(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "parquet_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "parquet_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "parquet_dossiers()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "parquet_enqueter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "parquet_enqueter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "parquet_enqueter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "parquet_garde(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "parquet_garde(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "parquet_moi()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "parquet_moi()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "parquet_moi()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "parquet_non_lieu(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "parquet_non_lieu(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "parquet_non_lieu(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "parquet_poursuivre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "parquet_poursuivre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "parquet_poursuivre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "parquet_site_competent(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "parquet_site_competent(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "parquet_transmettre_juge(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "parquet_transmettre_juge(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "parquet_transmettre_juge(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -926,19 +1310,19 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "plainte_deposer(text,text)",
+   "objet": "plainte_deposer(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "plainte_deposer(text,text)",
+   "objet": "plainte_deposer(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
-   "objet": "plainte_deposer(text,text)",
+   "objet": "plainte_deposer(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1161,6 +1545,30 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "detentions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "dossiers_judiciaires_actes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "dossiers_judiciaires_actes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "dossiers_judiciaires_actes_types",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "dossiers_judiciaires_actes_types",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -1480,14 +1888,14 @@
  ],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "3c8fbefddafa5669e77ba3db05a8d664",
-  "20_fonctions.sql": "061ec2e9f054a66b5b03d94a52b5a40e",
-  "30_contraintes.sql": "64bd14cfb7d1150cb709750e581bd4c4",
-  "35_index.sql": "0850c863067c951a3b0c01715f4cb4b0",
-  "50_triggers.sql": "7b95a9186e50c0580ad72c9b27e471fd",
-  "60_rls-policies.sql": "21c40d6d97eef7be36c4d0a7eb4cc2c9",
-  "70_droits.sql": "49b1796c84153839811ced6981fdfa19",
-  "80_commentaires.sql": "de0441e8c9b7181ab16cc0bd9d8b474a"
+  "10_tables.sql": "867b5fd682194ac52df5f47ca28ff83e",
+  "20_fonctions.sql": "4e9eb8702c689d154bb9f90bd3e5b877",
+  "30_contraintes.sql": "87df8b970de06009f7da61af564a8b68",
+  "35_index.sql": "71907b7595b2576eb2278281e7161454",
+  "50_triggers.sql": "f8eaddd9042c3d87e9c30f97f08dd664",
+  "60_rls-policies.sql": "83945dd9ff74533c794a6ab15abf9542",
+  "70_droits.sql": "6b1b4f02e175d656af5a601f734b5ded",
+  "80_commentaires.sql": "74713e7b234e883e33f5422721d154be"
  },
  "fonctions": [
   {
@@ -1506,7 +1914,7 @@
    "signature": "affaire_statut(text)"
   },
   {
-   "empreinte": "18d77c6635383efacfdb124b4ee24288",
+   "empreinte": "8dbd4273fac62093662676fffa29ca3d",
    "security_definer": true,
    "signature": "affaire_transmettre(text,text,text,jsonb)"
   },
@@ -1591,6 +1999,16 @@
    "signature": "detentions_pnj_liberer_echues()"
   },
   {
+   "empreinte": "603064a3bbcf73749670c8149ff3b1dc",
+   "security_definer": true,
+   "signature": "dossier_acte_consigner(text,text,text,text,text,text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "396c620122005e5616d938a2e7aae812",
+   "security_definer": false,
+   "signature": "dossiers_actes_append_only()"
+  },
+  {
    "empreinte": "d5adf09c00e85faaff9a8e0c4a23fb13",
    "security_definer": true,
    "signature": "enquete_garde_a_vue(text,text,text)"
@@ -1631,6 +2049,21 @@
    "signature": "infractions_empreinte_reelle()"
   },
   {
+   "empreinte": "0d90565e311d5722519f9ca0b8e186ad",
+   "security_definer": true,
+   "signature": "juge_de_la_ville(text)"
+  },
+  {
+   "empreinte": "8b776d98d02589e37d8838d967fe6521",
+   "security_definer": true,
+   "signature": "juge_dossiers()"
+  },
+  {
+   "empreinte": "320796efcb0e2d6e488fb118ca309fec",
+   "security_definer": true,
+   "signature": "juge_suite_apres_abandon(text,text)"
+  },
+  {
    "empreinte": "f82a56326e4d5bc9810ddaa8eb143335",
    "security_definer": true,
    "signature": "justice_condamner(text,jsonb)"
@@ -1661,24 +2094,69 @@
    "signature": "justice_recherches(text)"
   },
   {
-   "empreinte": "3fdd404f53b116e329fe4d57f082655f",
+   "empreinte": "060dd6e86e031914bd2b3a11307bda75",
+   "security_definer": true,
+   "signature": "justice_relaxer(text,text)"
+  },
+  {
+   "empreinte": "d648d9983d7a90d11e6c3609eb403bb2",
    "security_definer": true,
    "signature": "justice_rendre_sentence(text,text,text,integer,integer)"
   },
   {
-   "empreinte": "5addae1f30aefe186e66c39164b8f299",
+   "empreinte": "bde430b1411664c31cbaa367cb759658",
    "security_definer": true,
-   "signature": "plainte_classer_ministere(text)"
+   "signature": "parquet_abandonner(text,text)"
   },
   {
-   "empreinte": "c56bac065f88b07b1286f0a0be2d5c5b",
+   "empreinte": "569882fbb88492e7997edc66a60888fd",
+   "security_definer": true,
+   "signature": "parquet_dossiers()"
+  },
+  {
+   "empreinte": "074aac1290b5f7ff86bb8715d61de930",
+   "security_definer": true,
+   "signature": "parquet_enqueter(text)"
+  },
+  {
+   "empreinte": "c5e646f2a80019faff5f13af48e3eb2c",
+   "security_definer": true,
+   "signature": "parquet_garde(text,text[])"
+  },
+  {
+   "empreinte": "ffb06c0d13cd31df235ca38dadf83eef",
+   "security_definer": true,
+   "signature": "parquet_moi()"
+  },
+  {
+   "empreinte": "e4bab64623785329471ec89f4396ba07",
+   "security_definer": true,
+   "signature": "parquet_non_lieu(text,text)"
+  },
+  {
+   "empreinte": "309f844867063b61e0ced7a79157f991",
+   "security_definer": true,
+   "signature": "parquet_poursuivre(text,text)"
+  },
+  {
+   "empreinte": "3b1b118c973a737d8df970c7f6d44e1a",
+   "security_definer": true,
+   "signature": "parquet_site_competent(text,text)"
+  },
+  {
+   "empreinte": "4622602a6fc89bb8e3fd1449d71ae43f",
+   "security_definer": true,
+   "signature": "parquet_transmettre_juge(text)"
+  },
+  {
+   "empreinte": "68f09aae54a308dbff0ba7c24f5f9d3a",
    "security_definer": true,
    "signature": "plainte_defendre(text,text)"
   },
   {
-   "empreinte": "5766c472c1f6af5935a4733ce799d2cb",
+   "empreinte": "b48e2aabd181d967b6e83ec3cee7d57c",
    "security_definer": true,
-   "signature": "plainte_deposer(text,text)"
+   "signature": "plainte_deposer(text,text,text)"
   },
   {
    "empreinte": "9c18207b569e147baa42e8a78f1895a9",
@@ -1686,12 +2164,12 @@
    "signature": "plainte_instruire_interne(text,text,text,text,text)"
   },
   {
-   "empreinte": "b6bdd6b193a5b036049897bfebfef141",
+   "empreinte": "87809b22ab81d3145faf097ab5b0dd13",
    "security_definer": true,
    "signature": "plainte_traiter(text,text)"
   },
   {
-   "empreinte": "a78d4ae892dfbf6249edca88157cf523",
+   "empreinte": "3d53e6eee3e5cb5dca0d1e03917b1109",
    "security_definer": true,
    "signature": "plaintes_epingler_verdict()"
   },
@@ -1738,6 +2216,10 @@
  ],
  "index_autonomes": [
   {
+   "empreinte": "462a0027ce3aef4cd3315398fdd0a2b9",
+   "nom": "dossiers_actes_par_affaire"
+  },
+  {
    "empreinte": "73cb7caf141b2306372a0a82aa9a8b05",
    "nom": "idx_actions_tracables_pays"
   },
@@ -1750,6 +2232,9 @@
   "actions_tracables_pkey",
   "demandes_grace_pkey",
   "detentions_pkey",
+  "dossiers_actes_un_rang_par_affaire",
+  "dossiers_judiciaires_actes_pkey",
+  "dossiers_judiciaires_actes_types_pkey",
   "impacts_indices_attente_id_unique",
   "impacts_indices_attente_pkey",
   "infractions_alias_pkey",
@@ -1944,6 +2429,16 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "dossiers_judiciaires_actes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "dossiers_judiciaires_actes_types"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "impacts_indices_attente"
   },
   {
@@ -2019,6 +2514,18 @@
    "nom": "detentions"
   },
   {
+   "colonnes": 12,
+   "empreinte_catalogue": "9c696de40b304efc671f6e9e11697aee",
+   "empreinte_texte": "48e0dfb6fbaa03394dc1690d4eaec11d",
+   "nom": "dossiers_judiciaires_actes"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "b0cc4a40b9e121f3a726985a7286fc94",
+   "empreinte_texte": "e6833c3af08fd542e18576e66f0c40cc",
+   "nom": "dossiers_judiciaires_actes_types"
+  },
+  {
    "colonnes": 8,
    "empreinte_catalogue": "2dc8d53d5fa5425bfd33967073789fdf",
    "empreinte_texte": "e3c1fb371af0fd280ffba1ceea48b26d",
@@ -2086,6 +2593,12 @@
   }
  ],
  "triggers": [
+  {
+   "empreinte": "779a79f8677c90cfaae46d8981e60bd1",
+   "fonction": "dossiers_actes_append_only()",
+   "nom": "trg_dossiers_actes_append_only",
+   "tbl": "dossiers_judiciaires_actes"
+  },
   {
    "empreinte": "3668193290c443c692f7d8d7a6bbb223",
    "fonction": "plaintes_epingler_verdict()",

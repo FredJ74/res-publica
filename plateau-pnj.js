@@ -1217,7 +1217,7 @@ function envoyerQuestion(enc) {
 // api/_pnj-referents.js, et la table pnj_referents en base. Le banc
 // .scratch/banc_referents_personnalites.py les compare et echoue si l'une diverge.
 const PNJ_REFERENTS = ['marc_hantile', 'martial_bouterin', 'gaspard_ferriere', 
-                       'procureur_saad', 'juge_fontaine', 'president_laroche', 
+                       'procureur_saad', 'honore_cozetoujours', 'president_laroche', 
                        'raoul_toufaud', 'caporal_alouche', 'eve_toahemarch', 
                        'jean_lou_zeure', 'alain_bordage', 'marcel_ancre', 'pat_hounette', 
                        'alfredo_mifassole', 'pascal_hamar', 'lucas_tenaire', 'laurent_barre',

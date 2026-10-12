@@ -8298,94 +8298,26 @@ function appliquerAllegement(secteur) {
   addJournalEntry('Allegement fiscal accorde au secteur : ' + secteur, 'event-info');
 }
 
-async function ouvrirModalAffaires(mode, pa, cost) {
-  const titre = mode === 'annuler' ? 'Classer une plainte' : 'Gestion judiciaire';
-  document.getElementById('postes-modal-title').textContent = titre;
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
-  document.getElementById('modal-postes').classList.add('open');
-
-  if (typeof sbLoadPlaintes === 'function') {
-    try { state.plaintesEnCours = await sbLoadPlaintes(state.country); } catch(e) {}
-  }
-  // LE STATUT FILTRE ICI N'EXISTAIT PLUS (10 octobre 2026). Cette liste cherchait `'pending'`,
-  // le statut de l'ancien pipeline de plaintes NEUTRALISE LE 15 SEPTEMBRE 2026 : plus aucune
-  // affaire ne le porte, donc l'ecran du Ministre de la Justice etait STRUCTURELLEMENT VIDE
-  // depuis cette date. Le libelle de l'ordre dit la regle -- `annuler_poursuites` : « Classer une
-  // plainte en cours AVANT JUGEMENT » -- et le statut d'une affaire en cours est « deposee ».
-  // Aucune regle nouvelle : on repointe un filtre sur le nom que le statut porte reellement.
-  const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];
-  const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];
-
-  let html = '<div style="padding:1rem">';
-  const liste = mode === 'annuler' ? affaires : condamnes;
-  if (liste.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en cours.</div>';
-  } else {
-    liste.forEach((a) => {
-      const refId = a.id || a.nom; // prisonniers n'ont pas forcement d'id, fallback sur le nom
-      html += '<div style="padding:.5rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
-      html += '<div style="font-size:.82rem;color:#c0b090">' + (a.cible||a.nom||'Inconnu') + ' <span style="font-size:.68rem;color:#5a4030">— ' + (a.motif||a.raison||'') + '</span></div>';
-      html += '<button onclick="annulerAffaire(&quot;' + refId + '&quot;,\'' + mode + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.2rem .5rem;border:1px solid #8a3020;background:transparent;color:#cc4a3a;cursor:pointer">Annuler</button>';
-      html += '</div>';
-    });
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-}
-
-async function annulerAffaire(refId, mode, pa, cost) {
-  document.getElementById('modal-postes').classList.remove('open');
-  if (mode === 'annuler') {
-    const affaire = (state.plaintesEnCours||[]).find(p => p.id === refId);
-    if (affaire) {
-      const r = await deduireCoutOrdre({ pa, cost });
-      if (!r.ok) { signalerRefusCout(r); return; }
-      const pays = state.country || 'republic';
-      const cout = 250;
-      // Meme correctif d'autorite ministerielle que ci-dessus (audit du 17 septembre 2026).
-      const rMin = await sbCaisseMinistereMouvement(pays, 'gouvernement-min_just', cout, null, false);
-      if (!rMin || rMin.ok !== true) {
-        showToast(rMin && rMin.raison === 'solde_insuffisant' ? 'Caisse insuffisante' : 'Action impossible',
-          rMin && rMin.raison === 'solde_insuffisant'
-            ? 'La caisse du gouvernement ne peut pas couvrir les frais de dossier (' + cout + ' FR).'
-            : 'Réservé au Ministre de la Justice en exercice.', false);
-        return;
-      }
-
-      // LE CLASSEMENT EST UNE PORTE, ET L'ANCIENNE ECRITURE ETAIT REFUSEE A TOUS LES COUPS
-      // (10 octobre 2026). `sbSavePlainte` est un upsert sur `plaintes_en_cours`, dont la policy
-      // d'UPDATE n'a que deux branches : autorite judiciaire de la ville, ou affaire qui me
-      // concerne. Le Ministre de la Justice n'est ni l'une ni l'autre -- mesure faite, l'UPDATE
-      // touchait ZERO ligne. Les 250 FR quittaient la caisse du gouvernement et la plainte
-      // restait ouverte, a chaque classement, depuis toujours.
-      //
-      // L'ORDRE DES DEUX ACTES EST CONSERVE A DESSEIN. Le mouvement de caisse porte DEJA la
-      // verification d'autorite ministerielle ; le deplacer apres le classement permettrait a un
-      // ministre de classer gratuitement quand la caisse est vide. Les frais restent donc
-      // prelevables avant -- et si la porte refuse, on le DIT, au lieu de l'avaler.
-      const vClass = (typeof sbRpc === 'function')
-        ? await sbRpc('plainte_classer_ministere', { p_affaire_id: affaire.id })
-            .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-        : null;
-      if (!vClass || vClass.ok !== true) {
-        const motifRefus = vClass?.raison === 'affaire_non_classable'
-            ? 'Cette affaire n\'est plus en cours avant jugement (' + (vClass.statut || 'statut inconnu') + ').'
-          : vClass?.raison === 'autorite_refusee' ? 'Réservé au Ministre de la Justice en exercice.'
-          : vClass?.raison === 'hors_juridiction' ? 'Cette affaire ne relève pas de vos juridictions.'
-          : vClass?.raison === 'affaire_absente' ? "Cette affaire n'existe plus au greffe."
-          : "Le greffe n'a pas enregistré le classement.";
-        showToast('Classement non enregistré',
-          motifRefus + ' Les frais de dossier (' + cout + ' FR) ont déjà été prélevés : signalez-le.', false);
-        addJournalEntry('Classement refusé par le greffe alors que les ' + cout + ' FR de frais étaient prélevés.', 'event-bad');
-        return;
-      }
-      const iAff = (state.plaintesEnCours || []).findIndex(p => p && p.id === affaire.id);
-      if (iAff >= 0 && vClass.affaire) state.plaintesEnCours[iAff] = vClass.affaire;
-      showToast('Plainte classée', 'La procédure a été classée. -' + cout + ' FR.', false, true);
-      addJournalEntry('Classement d\'une plainte par le Ministre de la Justice (-' + cout + ' FR).', 'event-info');
-    }
-  }
-}
+// LE CLASSEMENT MINISTERIEL A ETE SUPPRIME (12 octobre 2026) -- CENT DIX LIGNES RETIREES ICI.
+//
+// `ouvrirModalAffaires('annuler', ...)` et `annulerAffaire` servaient l'ordre
+// `annuler_poursuites` du bureau du Ministre de la Justice : il classait n'importe quelle plainte
+// du pays, contre 2 PA et 250 FR preleves a la caisse du gouvernement, par la porte
+// `plainte_classer_ministere`.
+//
+// L'OPPORTUNITE DES POURSUITES APPARTIENT DESORMAIS AU PARQUET, et a lui seul. Le Ministre garde
+// ce qui est a lui, et c'est deja beaucoup : il NOMME et REVOQUE le Procureur, par le systeme
+// generique des postes nommes. Faire pression sur lui reste entierement possible -- c'est une
+// interaction humaine, et le jeu code les pouvoirs institutionnels, pas l'obeissance.
+//
+// LES TROIS MOITIES SONT PARTIES ENSEMBLE : l'ordre (data.js), sa route (plateau-router.js), sa
+// porte serveur et sa ligne de cout. Il ne reste aucun chemin par lequel le Ministre pourrait
+// contourner le Procureur.
+//
+// L'AUTRE MODE DE CETTE FONCTION N'EXISTAIT DEJA PLUS. `ouvrirModalAffaires` acceptait un mode
+// autre que 'annuler' -- une « Gestion judiciaire » listant les prisonniers -- mais aucun ordre
+// ne l'appelait : les deux routes du routeur passaient toutes deux 'annuler'. Le mode mort part
+// avec le reste.
 
 function ouvrirModalNommerDirecteurPharma() {
   if (state.poste?.id !== 'min_fin') {

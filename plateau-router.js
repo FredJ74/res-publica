@@ -507,7 +507,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // pa/cost etaient omis ici alors que la route jumelle 'plainte' (plus bas) les transmet :
   // deduireCoutOrdre({pa: undefined, cost: undefined}) ne prelevait donc jamais rien.
   if (fn === 'porter_plainte')          { ouvrirPorterPlainte(pa, cost); return; }
-  if (fn === 'rendre_sentence')         { ouvrirRendreSentence(pa, cost); return; }
+  // LE JUGE NE VOIT PLUS QUE CE DONT IL EST SAISI (12 octobre 2026). `ouvrirRendreSentence`
+  // listait les affaires au statut `deposee` -- celui de l'ancienne chaine, que plus aucune porte
+  // ne pose : l'ecran etait devenu structurellement vide. `ouvrirDossiersJuge` lit le role au
+  // serveur (`juge_dossiers`), qui ne rend que les affaires regulierement saisies.
+  if (fn === 'rendre_sentence')         { ouvrirDossiersJuge(pa, cost); return; }
+  // L'ECRAN DU PARQUET. Zero PA : c'est un ecran de decision, pas un acte.
+  if (fn === 'parquet')                 { ouvrirParquet(); return; }
   if (fn === 'etat_civil') { ouvrirEtatCivil(); return; }
   if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(pa, cost); return; }
   if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(pa, cost); return; }
@@ -577,7 +583,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'ouvrir_enquete') { ouvrirChoixTypeCibleFiscale('ouvrir_enquete', 'Ouvrir une enquête sur'); return; }
   if (fn === 'proposer_grace') { ouvrirProposerGrace(pa, cost); return; }
   if (fn === 'gestion_qhs') { ouvrirGestionQHS(); return; }
-  if (fn === 'annuler_poursuites') { ouvrirModalAffaires('annuler', pa, cost); return; }
+  // LES DEUX ROUTES DU CLASSEMENT MINISTERIEL SONT SUPPRIMEES (12 octobre 2026). L'ordre
+  // `annuler_poursuites` permettait au Ministre de la Justice de classer n'importe quelle
+  // plainte du pays ; l'opportunite des poursuites appartient desormais au parquet. Les deux
+  // routes pointaient la MEME fonction avec le MEME mode, et `annuler_poursuites_cible` n'etait
+  // declare par aucun ordre.
   if (fn === 'nommer_juge') { ouvrirModalNommerJuge(); return; }
   if (fn === 'revoquer_juge') { ouvrirModalRevoquerJuge(pa, cost); return; }
   if (fn === 'nommer_chef_douanes') { ouvrirModalNommerChefDouanes(); return; }
@@ -739,7 +749,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acte_rachat_entreprise_preemption') { doActeRachatEntreprisePreemption(pa, cost); return; }
   if (fn === 'interdire_manif')         { ouvrirInterdireManif(pa, cost); return; }
   if (fn === 'reprimer_manif')          { ouvrirReprimerManif(pa, cost); return; }
-  if (fn === 'annuler_poursuites_cible'){ ouvrirModalAffaires('annuler', pa, cost); return; }
   if (fn === 'ouvrir_enquete_cible')    { ouvrirModalCibleRepertoire('ouvrir_enquete', 'Ouvrir une enquete sur'); return; }
   if (fn === 'nommer_juge_cible')       { ouvrirModalNommerJuge(); return; }
   if (fn === 'cessez_le_feu_empire')    { ouvrirModalEmpireCible('cessez_le_feu', 'Negocier un cessez-le-feu avec'); return; }

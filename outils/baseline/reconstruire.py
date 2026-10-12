@@ -560,7 +560,16 @@ def controles_du_monde(cat):
     # sentinelle du miroir. LES QUATRE SONT SOUS RLS SANS AUCUNE POLICY ET SANS AUCUN GRANT
     # CLIENT : le navigateur detient deja le canon et le propose a l'ecran, mais c'est le serveur
     # qui VALIDE contre son miroir. Le compte des tables sans policy passe de 133 a 137.
-    att("tables creees", len(cat.tables), 291)
+    # 293 dans la nuit du 12 octobre 2026 : +2, LA CHRONOLOGIE JUDICIAIRE.
+    # `dossiers_judiciaires_actes` porte les FAITS dates d'un dossier -- plainte deposee, enquete
+    # diligentee, non-lieu, poursuites engagees, saisine du juge, abandon, requalification,
+    # relaxe, condamnation -- et elle est APPEND-ONLY par TROIS verrous : aucun GRANT client,
+    # aucune policy, et un declencheur BEFORE UPDATE OR DELETE qui LEVE, donc opposable a
+    # service_role comme a une fonction SECURITY DEFINER. `dossiers_judiciaires_actes_types` est
+    # sa liste blanche, et c'est une TABLE et non une contrainte CHECK pour que les couches
+    # futures -- temoins, audience, appel, execution de peine -- s'y ajoutent par une LIGNE au
+    # lieu d'une migration de contrainte. Le compte des tables sans policy passe de 137 a 139.
+    att("tables creees", len(cat.tables), 293)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -687,8 +696,21 @@ def controles_du_monde(cat):
     # `justice_rendre_sentence` ne compte pour rien dans cet ecart : son ancienne surcharge
     # (jsonb, text) a ete SUPPRIMEE et une nouvelle creee a sa place -- un remplacement, pas un
     # ajout. La preuve P1 de la migration verifie qu'il n'en reste qu'une.
-    att("signatures de fonction creees", cat.n_fonctions, 794)
-    att("noms de fonction distincts", len(cat.fonctions), 790,
+    # 808 dans la nuit du 12 octobre 2026 : +14 pour le parquet, et aucune surcharge de plus
+    # (+14 noms distincts aussi). CE QUI EST NEUF : `dossier_acte_consigner` (la seule ecriture de
+    # la chronologie, et elle LEVE au lieu de rendre un refus -- ses onze appelants sont tous en
+    # PERFORM et jetaient le refus en silence), `dossiers_actes_append_only` (le declencheur),
+    # `parquet_site_competent`, `parquet_moi`, `juge_de_la_ville`, `parquet_garde` (identite +
+    # pays + statut + PRESENCE PHYSIQUE, une seule porte partagee par les cinq actes du
+    # Procureur), `parquet_dossiers`, `parquet_enqueter`, `parquet_non_lieu`,
+    # `parquet_poursuivre`, `parquet_transmettre_juge`, `parquet_abandonner`,
+    # `juge_suite_apres_abandon`, `justice_relaxer`, `juge_dossiers`.
+    # NE COMPTENT POUR RIEN DANS L'ECART : `plainte_deposer` et `justice_rendre_sentence` ont ete
+    # DROPPEES puis recreees avec une autre signature -- des remplacements, pas des ajouts --
+    # et `plainte_classer_ministere` a ete SUPPRIMEE sans remplacement, ce qui retire une unite
+    # que les quinze creations compensent.
+    att("signatures de fonction creees", cat.n_fonctions, 808)
+    att("noms de fonction distincts", len(cat.fonctions), 804,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -760,7 +782,13 @@ def controles_du_monde(cat):
     # interdit qu'un alias se resolve sur lui-meme -- une boucle de resolution -- et le CHECK
     # `seul` de la sentinelle garantit qu'il n'y a jamais qu'UNE empreinte posee, sinon le
     # controle du miroir comparerait a une ligne au hasard.
-    att("contraintes posees", len(cat.contraintes), 543)
+    # 551 dans la nuit du 12 octobre 2026 : +8 pour la chronologie judiciaire. Six sur
+    # `dossiers_judiciaires_actes` -- sa cle primaire, l'UNIQUE (affaire, rang) qui interdit deux
+    # actes au meme rang, et les quatre cles etrangeres vers le registre des types et vers
+    # `infractions` pour la qualification avant et apres -- et deux sur le registre des types, sa
+    # cle primaire et le CHECK de son champ `pose_par`. L'ordre des actes est donc STRUCTUREL :
+    # now() est CONSTANT dans une transaction, un tri par date serait indecidable.
+    att("contraintes posees", len(cat.contraintes), 551)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -810,7 +838,10 @@ def controles_du_monde(cat):
     # index d'idempotence sur `requete`, un pour l'inscription et un pour le jalon accompli. Les
     # deux derniers sont des index de LECTURE : les jalons par cursus et par rang, les inscriptions
     # par personnage et par statut.
-    att("index autonomes crees", len(cat.index), 179)
+    # 180 dans la nuit du 12 octobre 2026 : +1, dossiers_actes_par_affaire. La chronologie se lit
+    # TOUJOURS dossier par dossier, dans l'ordre des rangs : c'est la seule lecture que le parquet
+    # et le juge font de cette table.
+    att("index autonomes crees", len(cat.index), 180)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
@@ -836,7 +867,12 @@ def controles_du_monde(cat):
     # pour devenir « protestataire qualifie ». Il garde la VERITE et non la porte : pour les
     # organisations POLITIQUES et les seules ecritures CLIENTES, on n'entre dans un parti que si
     # son chef l'a voulu.
-    att("declencheurs crees", len(cat.triggers), 44)
+    # 45 dans la nuit du 12 octobre 2026 : +1, le declencheur d'append-only de
+    # `dossiers_judiciaires_actes`. Il est le TROISIEME verrou, et le seul qui tienne contre
+    # service_role et contre une fonction SECURITY DEFINER : les deux autres -- pas de GRANT, pas
+    # de policy -- ne ferment que les roles soumis a la RLS. Une chronologie qu'une porte pourrait
+    # reecrire ne serait pas une chronologie.
+    att("declencheurs crees", len(cat.triggers), 45)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.
@@ -875,8 +911,21 @@ def controles_du_monde(cat):
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,
         "les 3 villes de Republia, 5 indices chacune")
-    att("titulaires PNJ seedes", cat.lignes.get("titulaires_pnj", 0), 15,
-        "15 titulaires, dont 3 juges municipaux distincts, sans le juge national")
+    # 15 -> 18 dans la nuit du 12 octobre 2026, et les TROIS lignes n'ont pas la meme origine.
+    # UNE vient de ce chantier : `republic_procureur`, le Procureur de la Republique, pose par la
+    # migration 20261012091457 -- un poste NATIONAL, city NULL, nomme par le Ministre de la
+    # Justice. LES DEUX AUTRES N'ONT ETE POSEES PAR AUCUNE MIGRATION : le commissaire de la
+    # capitale (Raoul Toufaud) et le directeur d'entrepot de la capitale (Marcel Silo) ont ete
+    # CREES PAR LA PASSE DE MINUIT REELLE du 12 octobre 2026 a 01 h 59, qui a trouve ces deux
+    # postes vacants et y a mis un PNJ. Le seed les reprend parce qu'il est EXTRAIT de la base --
+    # et c'est le fait a retenir : ce fichier grossit tout seul chaque fois que la cascade
+    # nocturne pourvoit un poste de plus. Les douze premieres lignes datent de la meme mecanique,
+    # le 14 septembre, et les deux juges de province du 21 : la table n'a jamais ete ecrite a la
+    # main. Le juge de la capitale, enfin, a CHANGE DE NOM et pas de ligne -- Honore
+    # Cozetoujours remplace Juge Fontaine (migration 20261012091457 egalement).
+    att("titulaires PNJ seedes", cat.lignes.get("titulaires_pnj", 0), 18,
+        "18 titulaires : 3 juges municipaux distincts, le Procureur national, et les deux postes "
+        "pourvus par la passe de minuit du 12 octobre")
     att("entrepots seedes", cat.lignes.get("batiments_etat", 0), 3,
         "les 3 entrepots logistiques, 17 matieres chacun -- leur tresorerie a quitte le blob "
         "le 8 octobre 2026 pour une vraie caisse, seedee avec les autres")

@@ -153,31 +153,32 @@ att('et le jet restant est nomme comme un reste, renvoye au chantier judiciaire'
     corpsDef.indexOf('RESTE ASSUME') >= 0 && corpsDef.indexOf('chantier judiciaire') >= 0);
 
 print('');
-print('4. CLASSEMENT MINISTERIEL : UNE PORTE, ET UN ECRAN QUI N EST PLUS VIDE');
-var bAnn = sansCommentaires(bloc('plateau-politique.js', 'annulerAffaire'));
-att('la porte est appelee une fois',
-    compte(bAnn, /sbRpc\('plainte_classer_ministere'/g) === 1,
-    compte(bAnn, /sbRpc\('plainte_classer_ministere'/g) + ' appel(s)');
-att("plus aucune pose locale du statut « annulee »",
-    bAnn.indexOf("affaire.status = 'annulee'") < 0);
-att("l'etat local recopie l'affaire arretee par le serveur",
-    bAnn.indexOf('state.plaintesEnCours[iAff] = vClass.affaire') >= 0);
-att('le verdict est lu, et un refus ARRETE la fonction',
-    bAnn.indexOf('vClass.ok !== true') >= 0
-    && bAnn.indexOf('vClass.ok !== true') < bAnn.indexOf("showToast('Plainte classée'"));
-att('un refus DIT que les frais ont deja ete preleves',
-    bAnn.indexOf('ont déjà été prélevés') >= 0);
-// L'ORDRE DES DEUX ACTES EST CONSERVE A DESSEIN : le mouvement de caisse porte DEJA la
-// verification d'autorite ministerielle. Le deplacer apres le classement permettrait a un
-// ministre de classer gratuitement quand la caisse est vide.
-att('le mouvement de caisse precede toujours la porte',
-    bAnn.indexOf('sbCaisseMinistereMouvement(') >= 0
-    && bAnn.indexOf('sbCaisseMinistereMouvement(') < bAnn.indexOf("sbRpc('plainte_classer_ministere'"));
-var bModal = sansCommentaires(bloc('plateau-politique.js', 'ouvrirModalAffaires'));
-att("la liste ne filtre plus un statut que plus aucune affaire ne porte",
-    bModal.indexOf("p.status === 'pending'") < 0);
-att('elle filtre le statut reel d une affaire en cours avant jugement',
-    bModal.indexOf("p.status === 'deposee'") >= 0);
+print('4. LE CLASSEMENT MINISTERIEL A DISPARU, ET AVEC LUI SES TROIS MOITIES');
+// CETTE SECTION EPROUVAIT UNE PORTE QUI N'EXISTE PLUS (reecrite le 12 octobre 2026 au soir).
+// Elle verifiait que `annulerAffaire` appelait bien `plainte_classer_ministere`, lisait son
+// verdict et prelevait les frais dans le bon ordre. Tout cela etait exact -- et tout cela est
+// supprime : l'opportunite des poursuites appartient au PARQUET, et le Ministre de la Justice ne
+// classe plus aucune plainte. Il nomme et revoque le Procureur, c'est tout.
+//
+// Ce que la section mesure maintenant, c'est l'ABSENCE -- et sur les trois moitiés a la fois,
+// parce qu'une seule qui survivrait serait un contournement du parquet.
+var politique = readFile('/Users/fredericjasseron/ResPublica/plateau-politique.js');
+var routeur   = readFile('/Users/fredericjasseron/ResPublica/plateau-router.js');
+var donnees   = readFile('/Users/fredericjasseron/ResPublica/data.js');
+att('la fonction de classement n existe plus',
+    politique.indexOf('async function annulerAffaire(') < 0);
+att('l ecran qui la servait n existe plus non plus',
+    politique.indexOf('async function ouvrirModalAffaires(') < 0);
+att('plus aucun appel a la porte ministerielle dans le navigateur',
+    sansCommentaires(politique).indexOf("sbRpc('plainte_classer_ministere'") < 0);
+att('les deux routes de l ordre ont disparu du routeur',
+    sansCommentaires(routeur).indexOf("fn === 'annuler_poursuites'") < 0
+    && sansCommentaires(routeur).indexOf("fn === 'annuler_poursuites_cible'") < 0);
+att('et l ordre lui-meme a quitte le canon',
+    sansCommentaires(donnees).indexOf("fn:'annuler_poursuites'") < 0);
+// ET CE QUI LE REMPLACE EST BIEN UN ECRAN DE PARQUET, pas un second chemin ministeriel.
+att('le Ministre ne garde que la nomination du Procureur',
+    donnees.indexOf("procureur:   { label: 'Procureur de la Republique', nommePar: 'min_just'") >= 0);
 
 print('');
 if (ko === 0) print('LES ' + attendus + ' EPREUVES SONT VERTES.');

@@ -399,7 +399,11 @@ function openPlainteModal(pa, cost) {
   const modalHtml = `
     <div style="padding:1rem">
       <div style="font-size:.85rem;color:#8a8060;font-style:italic;margin-bottom:1rem">
-        Vous deposez une plainte. Un resultat vous sera communique par mail dans 24h.
+        <!-- LA PROMESSE DE 24 H A ETE RETIREE (12 octobre 2026) : elle datait du temps ou le
+             depot declenchait une instruction automatique. Une plainte arrive maintenant AU
+             PARQUET, et c'est le Procureur qui decide -- quand il decide. -->
+        Vous deposez une plainte. Elle sera transmise au parquet, qui decidera s'il y a lieu de
+        poursuivre. Votre declaration ne vaut pas preuve.
       </div>
       <div style="margin-bottom:1rem">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.5rem">CONTRE</div>
@@ -409,6 +413,23 @@ function openPlainteModal(pa, cost) {
         </label>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:.68rem;letter-spacing:.1em;color:#5a4a20;margin-bottom:.4rem">OU CONTRE UNE PERSONNE DE MON REPERTOIRE :</div>
         ${contactsSection}
+      </div>
+      <div style="margin-bottom:1rem">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">GRAVITE QUE VOUS ALLEGUEZ</div>
+        <!-- LE PREMIER DES TROIS NIVEAUX DE QUALIFICATION, et c'est une DECLARATION : elle
+             n'engage rien. Le parquet qualifiera ce qu'il veut, et le juge aussi. Les quatre
+             valeurs sont les categories du code penal, validees au serveur -- aucune n'est
+             inventee ici. -->
+        <select id="plainte-categorie" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:'Crimson Pro',serif;font-size:.85rem;outline:none">
+          <option value="">Je ne me prononce pas</option>
+          <option value="delit_mineur">Delit mineur</option>
+          <option value="delit_grave">Delit grave</option>
+          <option value="crime">Crime</option>
+          <option value="crime_etat">Crime d'Etat</option>
+        </select>
+        <div style="font-size:.7rem;color:#5a4a20;font-style:italic;margin-top:.3rem">
+          Ce que vous indiquez ici est votre appreciation, pas une accusation retenue.
+        </div>
       </div>
       <div style="margin-bottom:1rem">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">MOTIF</div>
@@ -448,9 +469,11 @@ function openPlainteModal(pa, cost) {
 async function soumettrePlaynte() {
   const cible = document.querySelector('input[name="plainte-cible"]:checked')?.value || 'X';
   const motif = document.getElementById('plainte-motif')?.value?.trim() || 'Motif non precise';
+  const categorie = document.getElementById('plainte-categorie')?.value || null;
 
   if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
-  const rows = await sbRpc('plainte_deposer', { p_cible: cible, p_motif: motif }).catch(() => null);
+  const rows = await sbRpc('plainte_deposer',
+    { p_cible: cible, p_motif: motif, p_categorie: categorie || null }).catch(() => null);
   const res = Array.isArray(rows) ? rows[0] : rows;
 
   if (!res || res.ok !== true) {
@@ -464,7 +487,8 @@ async function soumettrePlaynte() {
       fonds_insuffisants: 'Vous n\'avez pas les fonds pour deposer une plainte. Aucun dossier n\'a ete ouvert.',
       cout_indetermine: 'Le cout du depot de plainte n\'est pas declare au serveur. Signalez-le.',
       ordre_inconnu: 'Le cout du depot de plainte n\'est pas declare au serveur. Signalez-le.',
-      cout_non_declare: 'Le cout du depot de plainte ne correspond pas a ce que le serveur declare. Signalez-le.'
+      cout_non_declare: 'Le cout du depot de plainte ne correspond pas a ce que le serveur declare. Signalez-le.',
+      categorie_inconnue: 'La gravite indiquee n\'est pas reconnue.'
     };
     showToast('Plainte refusee', (res && messages[res.raison]) || "La plainte n'a pas pu etre enregistree.", false);
     return;
@@ -488,17 +512,19 @@ async function soumettrePlaynte() {
 
   document.getElementById('modal-postes').classList.remove('open');
 
-  const commissaire = res.commissaire || 'le commissaire';
-  if (res.decision === 'transmise_commissaire') {
-    addJournalEntry('Plainte deposee contre ' + cible + '. Motif : ' + motif + '. Dossier transmis a ' + commissaire + '.', 'event-info');
-    showToast('Plainte enregistree', 'Dossier transmis a ' + commissaire + ', qui decidera de la suite.', true);
-  } else if (res.decision === 'enquete_ouverte') {
-    addJournalEntry('Plainte contre ' + cible + ' : ' + commissaire + ' a ouvert une enquete. ' + cible + ' est place(e) en garde a vue.', 'event-good');
-    showToast('Enquete ouverte', commissaire + ' a retenu des elements a charge contre ' + cible + '.', true);
-  } else {
-    addJournalEntry('Plainte contre ' + cible + ' : classee sans suite par ' + commissaire + ', faute d\'elements a charge.', 'event-info');
-    showToast('Plainte classee', commissaire + ' n\'a retenu aucun element a charge.', false);
-  }
+  // LES TROIS ISSUES IMMEDIATES ONT DISPARU (12 octobre 2026), parce qu'il n'y en a plus aucune.
+  // La porte rendait `transmise_commissaire`, `enquete_ouverte` ou `classee` : avec un
+  // commissaire PNJ, le depot d'une plainte declenchait IMMEDIATEMENT une enquete et pouvait
+  // placer la personne visee en garde a vue pour deux jours. Le dossier arrive maintenant AU
+  // PARQUET et y attend une decision du Procureur -- qui est une personne, pas un automate.
+  //
+  // IL N'Y A DONC RIEN A ANNONCER D'AUTRE QUE LE DEPOT. Promettre une suite serait mentir sur ce
+  // que le jeu fait.
+  addJournalEntry('Plainte deposee contre ' + cible + '. Motif : ' + motif
+    + '. Dossier transmis au parquet.', 'event-info');
+  showToast('Plainte enregistree',
+    'Le dossier est au parquet. Le Procureur de la Republique decidera s\'il y a lieu de poursuivre.',
+    true);
 }
 
 // Verifie si une accusation repose sur une action reellement tracee (ex: torture au QHS).
@@ -628,9 +654,12 @@ async function ouvrirDossiersPlaintes() {
   const ville = state.poste?.city || state.currentCity;
   const toutes = (typeof sbLoadPlaintes === 'function')
     ? await sbLoadPlaintes(state.country).catch(() => []) : [];
-  // sbLoadPlaintes rend le contenu de data ; on ne garde que les dossiers de SA ville encore
-  // ouverts. Le serveur revalide de toute facon la juridiction a la decision.
-  const dossiers = (toutes || []).filter(p => p.status === 'deposee' && (p.city === ville || !p.city));
+  // LE COMMISSAIRE NE VOIT PLUS QUE CE QUE LE PARQUET LUI A ORDONNE (12 octobre 2026 au soir).
+  // Ce filtre cherchait `deposee`, le seul statut vivant de l'ancienne chaine -- plus aucune
+  // porte ne le pose, donc l'ecran serait devenu structurellement vide. Le statut qui l'interesse
+  // est desormais `enquete` : celui d'un dossier ou le Procureur a DILIGENTE une enquete. La
+  // police accomplit l'acte, elle ne decide ni de l'ouvrir ni de classer.
+  const dossiers = (toutes || []).filter(p => p.status === 'enquete' && (p.city === ville || !p.city));
 
   // Acces au volet contre-espionnage, greffe sur l'ecran existant du
   // commissaire : aucun ordre nouveau, aucune entree au miroir des couts.
@@ -651,9 +680,17 @@ async function ouvrirDossiersPlaintes() {
       '<span style="font-size:.7rem;color:#5a4030">Jour ' + (p.jour || '?') + '</span></div>' +
       '<div style="font-size:.76rem;color:#8a8060;margin:.1rem 0 .45rem">Plaignant : ' + (p.auteur || 'inconnu') + '</div>' +
       '<div style="font-size:.82rem;color:#c0b090;font-family:Crimson Pro,serif;margin-bottom:.55rem">' + (p.motif || '') + '</div>' +
+      // « CLASSER SANS SUITE » A ETE RETIRE AU COMMISSAIRE (12 octobre 2026 au soir).
+      // L'opportunite des poursuites appartient au parquet ; la porte refuse desormais cette
+      // decision explicitement (`classement_reserve_au_parquet`), et laisser le bouton
+      // reviendrait a offrir un acte dont on sait qu'il sera refuse.
+      //
+      // IL NE RESTE QUE L'ACTE D'ENQUETE, et le libelle le dit : le Procureur l'a ordonne, la
+      // police l'accomplit.
+      '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.4rem">' +
+      'Le parquet a diligente une enquete sur ce dossier.</div>' +
       '<div style="display:flex;gap:.5rem">' +
-      '<button onclick="deciderDossierPlainte(\'' + id + '\',\'enqueter\')" style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.09em;padding:.4rem .9rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ouvrir une enquete</button>' +
-      '<button onclick="deciderDossierPlainte(\'' + id + '\',\'classer\')" style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.09em;padding:.4rem .9rem;border:1px solid #3a2a10;background:transparent;color:#9a8a68;cursor:pointer">Classer sans suite</button>' +
+      '<button onclick="deciderDossierPlainte(\'' + id + '\',\'enqueter\')" style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.09em;padding:.4rem .9rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Accomplir l\'acte d\'enquete</button>' +
       '</div></div>';
   });
   html += '</div>';
@@ -669,7 +706,11 @@ async function deciderDossierPlainte(id, decision) {
       autorite_insuffisante: 'Reserve au commissaire.',
       hors_juridiction: 'Ce dossier ne releve pas de votre ville.',
       dossier_deja_instruit: 'Ce dossier a deja ete instruit.',
-      dossier_introuvable: 'Dossier introuvable.'
+      dossier_introuvable: 'Dossier introuvable.',
+      // LES TROIS REFUS DE LA NOUVELLE REGLE, nommes pour que le commissaire sache pourquoi.
+      classement_reserve_au_parquet: "Classer une plainte releve du parquet, plus du commissariat.",
+      enquete_non_diligentee: "Le parquet n'a pas ordonne d'enquete sur ce dossier.",
+      enquete_deja_accomplie: "L'acte d'enquete a deja ete accompli sur ce dossier."
     };
     showToast('Decision refusee', (r && messages[r.raison]) || "La decision n'a pas pu etre enregistree.", false);
     return;
@@ -1596,7 +1637,19 @@ async function ouvrirPorterPlainte(pa, cost) {
 // 4 resultats selon le jet : reussite critique (classe l'affaire), reussite simple
 // (circonstance attenuante), echec simple (rien), echec critique >90 (aggravation).
 async function doDefense(pa, cost) {
-  const affaire = (state.plaintesEnCours || []).find(p => p.cible === state.char?.name && p.status === 'deposee');
+  // L'ACCUSE SE DEFEND TANT QU'AUCUNE AUTORITE N'A AGI, et c'est `au_parquet` (12 octobre 2026,
+  // nuit). CE FILTRE A ETE ECRIT DEUX FOIS DANS LA MEME PASSE, et la premiere version etait
+  // trop large : elle prenait les CINQ statuts vivants du parquet, en lisant l'ancien
+  // `status === 'deposee'` comme « une affaire en cours contre moi ». C'est faux. L'ancienne
+  // chaine avait DEUX statuts vivants avant jugement -- `deposee` et `enquete_ouverte` -- et la
+  // porte serveur n'acceptait que le premier : on ne pouvait DEJA PAS se defendre une fois
+  // l'enquete ouverte. Elargir aurait donc cree un pouvoir que la regle ne donnait pas, ce qui
+  // est un arbitrage de game design et non une migration. Un statut pour un statut.
+  // LA DECISION VIT AU SERVEUR, pas ici : `plainte_defendre` refuse `affaire_non_defendable` sur
+  // tout autre statut (registre 20261012102519). Ce filtre ne sert qu'a ne pas proposer un ordre
+  // payant pour un refus certain.
+  const affaire = (state.plaintesEnCours || []).find(
+    p => p.cible === state.char?.name && p.status === 'au_parquet');
   if (!affaire) {
     showToast('Aucune affaire', "Vous n'avez aucune affaire en attente de jugement pour le moment.", false);
     return;
@@ -2461,53 +2514,21 @@ async function confirmerFalsification(docId, pa, cost) {
   }
 }
 
-async function ouvrirRendreSentence(pa, cost) {
-  document.getElementById('postes-modal-title').textContent = 'Rendre la sentence';
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
-  document.getElementById('modal-postes').classList.add('open');
-
-  // Charger depuis Supabase pour voir TOUTES les affaires transmises, par n'importe quel commissariat
-  if (typeof sbLoadPlaintes === 'function') {
-    try {
-      const toutes = await sbLoadPlaintes(state.country);
-      state.plaintesEnCours = toutes;
-    } catch(e) {}
-  }
-  const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];
-
-  let html = '<div style="padding:1rem">';
-  if (affaires.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en attente de jugement.</div>';
-  } else {
-    affaires.forEach((a) => {
-      html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.6rem">';
-      html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A;margin-bottom:.3rem">Affaire : ' + a.cible + '</div>';
-      html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.6rem">' + a.motif + '</div>';
-      if (a.circonstanceAttenuante) {
-        html += '<div style="font-size:.7rem;color:#6a9a6a;margin-bottom:.4rem;font-style:italic">✓ Défense réussie : circonstance atténuante (-1 jour si prison)</div>';
-      }
-      if (a.aggravation) {
-        html += '<div style="font-size:.7rem;color:#cc4444;margin-bottom:.4rem;font-style:italic">⚠ Défense ratée de façon flagrante : aggravation (+2 jours si prison)</div>';
-      }
-      // LE JUGE QUALIFIE AVANT DE PRONONCER (12 octobre 2026). Les cinq boutons ne declenchent
-      // plus la sanction : ils ouvrent l'ecran de QUALIFICATION, parce qu'une peine n'existe pas
-      // sans infraction. La duree ne vient plus d'ici -- « Prison (max 7 jours) » annoncait un
-      // plafond qui n'existait nulle part, et la peine valait 3 jours en dur.
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">SENTENCE</div>';
-      html += '<div style="display:flex;flex-direction:column;gap:.3rem">';
-      html += '<button onclick="ouvrirQualificationSentence(&quot;' + a.id + '&quot;,\'amende\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a4a20;background:#0a0d05;color:#6a9a6a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amende</button>';
-      html += '<button onclick="ouvrirQualificationSentence(&quot;' + a.id + '&quot;,\'prison\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #3a2a10;background:#0a0d05;color:#9a8a4a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Prison</button>';
-      html += '<button onclick="ouvrirQualificationSentence(&quot;' + a.id + '&quot;,\'amenagement\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #2a3a4a;background:#0a0d05;color:#6a8aaa;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Amenagement de peine (pointage commissariat)</button>';
-      html += '<button onclick="ouvrirQualificationSentence(&quot;' + a.id + '&quot;,\'qhs\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #4a1a10;background:#0a0d05;color:#9a4a3a;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">Envoi au QHS</button>';
-      if ((a.motif || '').toLowerCase().includes('tortur')) {
-        html += '<button onclick="ouvrirQualificationSentence(&quot;' + a.id + '&quot;,\'torture\',' + pa + ',' + cost + ')" style="text-align:left;padding:.4rem .7rem;border:1px solid #6a1010;background:#150505;color:#cc4444;cursor:pointer;font-family:Crimson Pro,serif;font-size:.82rem">⚖ Sanction torture (prison + popularité à zéro, cumulable)</button>';
-      }
-      html += '</div></div>';
-    });
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-}
+// `ouvrirRendreSentence` A ETE SUPPRIMEE (12 octobre 2026 au soir) -- QUARANTE LIGNES RETIREES.
+//
+// Elle listait les affaires au statut `deposee` et offrait les cinq sanctions directement. Deux
+// raisons de la retirer, et la premiere suffit :
+//
+//   1. PLUS AUCUNE PORTE NE POSE LE STATUT `deposee`. Depuis la chaine du parquet, une affaire
+//      passe par `au_parquet`, `enquete`, `poursuites`, `saisie`... L'ecran etait donc devenu
+//      STRUCTURELLEMENT VIDE -- le meme defaut que celui du Ministre de la Justice, qui filtrait
+//      `pending` depuis le 15 septembre et n'affichait plus rien.
+//   2. ET IL PERMETTAIT DE JUGER SANS SAISINE. Le juge y voyait toutes les affaires de sa ville,
+//      que le parquet l'en ait saisi ou non. `juge_dossiers` ne rend que celles dont il est
+//      regulierement saisi, et la porte refuse le reste.
+//
+// `ouvrirDossiersJuge` la remplace, et les cinq sanctions passent par l'ecran de qualification du
+// bareme, livre le matin meme.
 
 // LA QUALIFICATION, PUIS LA MODULATION -- LES DEUX ECRANS QUI MANQUAIENT (12 octobre 2026)
 // =====================================================================================
@@ -13382,4 +13403,367 @@ async function demissionnerEmploiBNE() {
   const offre = OFFRES_EMPLOI_BNE[emploiActuel.offreId];
   showToast('Démission effective', 'Vous ne travaillez plus comme ' + (offre?.label || emploiActuel.offreId) + '.', true);
   addJournalEntry('Démission du poste : ' + (offre?.label || emploiActuel.offreId) + '.', 'event-info');
+}
+
+// =====================================================================================
+// LE PARQUET ET LE JUGE — LES DEUX ECRANS DE LA CHAINE PROCEDURALE (12 octobre 2026)
+// =====================================================================================
+//
+// SOBRES PAR CHOIX. Ce ne sont pas des tableaux de bord : ce sont des listes de dossiers et, sur
+// chacun, les actes que l'etat procedural autorise reellement. Le serveur decide de tout ce qui
+// compte -- la competence, la presence physique, le statut, la qualification, les bornes de peine
+// -- et l'ecran ne fait que proposer ce qu'il annonce lui-meme comme possible.
+//
+// AUCUN DES DEUX N'INTERPRETE QUOI QUE CE SOIT. Ils affichent des faits dates : qui a depose,
+// qui a diligente, qui a poursuivi, qui a abandonne, qui a juge. Jamais « le Procureur traine »,
+// jamais « la plainte semble douteuse ». La presse et les joueurs liront la chronologie.
+
+// LE LIBELLE D'UN STATUT, pour l'affichage seul. La liste est fermee et correspond exactement
+// aux statuts que les portes serveur posent -- aucun n'est invente ici.
+const JUSTICE_STATUTS = {
+  au_parquet:      'Au parquet',
+  enquete:         'Enquete diligentee',
+  non_lieu:        'Non-lieu',
+  poursuites:      'Poursuites engagees',
+  saisie:          'Juge saisi',
+  abandon_demande: 'Abandon du parquet — decision du juge attendue',
+  abandonnee:      'Poursuites abandonnees',
+  arret:           'Procedure arretee par le juge',
+  relaxe:          'Relaxe',
+  jugee:           'Jugee',
+  // Statuts de l'ancienne chaine, conserves pour relire un dossier anterieur sans l'afficher
+  // comme inconnu. Aucune porte ne les pose plus.
+  deposee:         'Deposee (ancien circuit)',
+  classee:         'Classee (ancien circuit)',
+  enquete_ouverte: 'Enquete ouverte (ancien circuit)',
+  annulee:         'Classee par le ministere (ancien circuit)'
+};
+function justiceLibelleStatut(s) { return JUSTICE_STATUTS[s] || (s || 'inconnu'); }
+
+// LA CHRONOLOGIE, RENDUE TELLE QUELLE. Les libelles viennent du SERVEUR (table des types), donc
+// l'ecran n'a aucun vocabulaire judiciaire a lui.
+function justiceChronologieHtml(actes) {
+  if (!Array.isArray(actes) || actes.length === 0) {
+    return '<div style="font-size:.72rem;color:#5a4030;font-style:italic">Aucun acte consigne.</div>';
+  }
+  let h = '<div style="display:flex;flex-direction:column;gap:.15rem;margin-top:.4rem">';
+  actes.forEach(a => {
+    h += '<div style="font-size:.7rem;color:#8a8060;display:flex;gap:.4rem">'
+      + '<span style="color:#5a4030;min-width:1.4em">' + a.rang + '.</span>'
+      + '<span style="color:#c0b090">' + (a.libelle || a.type) + '</span>';
+    if (a.acteur) h += '<span style="color:#6a5a30">— ' + a.acteur + (a.poste ? ' (' + a.poste + ')' : '') + '</span>';
+    if (a.qualif_avant && a.qualif_apres && a.qualif_avant !== a.qualif_apres) {
+      h += '<span style="color:#aa7a30">' + a.qualif_avant + ' → ' + a.qualif_apres + '</span>';
+    } else if (a.qualif_apres) {
+      h += '<span style="color:#8a6a20">' + a.qualif_apres + '</span>';
+    }
+    h += '</div>';
+  });
+  return h + '</div>';
+}
+
+// LES TROIS NIVEAUX DE QUALIFICATION, TOUJOURS AFFICHES ENSEMBLE quand ils existent. C'est la
+// regle du cahier des charges : la categorie alleguee par le plaignant, celle retenue par le
+// parquet, celle du juge -- et aucune n'efface l'autre.
+function justiceQualificationsHtml(d) {
+  let h = '';
+  if (d.categorie_alleguee) {
+    h += '<div style="font-size:.7rem;color:#6a5a30">Categorie alleguee par le plaignant : <span style="color:#8a8060">'
+      + d.categorie_alleguee + '</span></div>';
+  }
+  if (d.qualification_parquet) {
+    h += '<div style="font-size:.7rem;color:#6a5a30">Qualification du parquet : <span style="color:#C9A84C">'
+      + (d.qualification_parquet_libelle || '') + ' ' + d.qualification_parquet + '</span></div>';
+  }
+  if (d.qualification_finale) {
+    h += '<div style="font-size:.7rem;color:#6a5a30">Qualification retenue au jugement : <span style="color:#E8C97A">'
+      + (d.qualification_libelle || '') + ' ' + d.qualification_finale + '</span></div>';
+  }
+  return h;
+}
+
+// ---------------------------------------------------------------------- L'ECRAN DU PARQUET
+async function ouvrirParquet() {
+  document.getElementById('postes-modal-title').textContent = 'Dossiers du parquet';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;color:#8a8060;font-style:italic">Lecture des dossiers...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('parquet_dossiers').then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem;font-size:.82rem;color:#cc6a44">'
+      + (r && r.raison === 'pas_procureur'
+          ? "Reserve au Procureur de la Republique en exercice."
+          : "Les dossiers du parquet n'ont pas pu etre lus.")
+      + '</div>';
+    return;
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-bottom:.7rem">'
+       + 'Chacun de vos actes exige votre presence dans le tribunal de la ville de l\'affaire. '
+       + 'Le parquet est national ; la competence se deplace.</div>';
+  const dossiers = r.dossiers || [];
+  if (dossiers.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucun dossier au parquet.</div>';
+  }
+  dossiers.forEach(x => {
+    const d = x.dossier || {};
+    const st = d.status || '';
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.6rem">';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">'
+         + (d.cible || '?') + '</div>';
+    html += '<div style="font-size:.72rem;color:#8a6a20;font-family:Bebas Neue,sans-serif;letter-spacing:.06em">'
+         + justiceLibelleStatut(st) + ' · ' + (x.ville || '') + '</div>';
+    // LE TEXTE DU PLAIGNANT EST PRESENTE COMME UNE DECLARATION, toujours.
+    html += '<div style="font-size:.74rem;color:#8a8060;font-style:italic;margin:.35rem 0">'
+         + (d.auteur ? d.auteur + ' declare : ' : 'Declare : ') + '&laquo;&nbsp;'
+         + (d.motif || '(non precise)') + '&nbsp;&raquo;</div>';
+    html += justiceQualificationsHtml(d);
+    html += justiceChronologieHtml(x.actes);
+
+    if (x.present !== true) {
+      html += '<div style="font-size:.72rem;color:#aa7a30;font-style:italic;margin-top:.5rem">'
+           + 'Vous n\'etes pas dans le tribunal de ' + (x.ville || 'cette ville')
+           + ' : aucun acte n\'est possible sur ce dossier d\'ou vous etes.</div>';
+    } else {
+      const a = JSON.stringify(x.id).replace(/"/g, '&quot;');
+      html += '<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem">';
+      if (st === 'au_parquet') {
+        html += '<button onclick="parquetEnqueter(' + a + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a3a4a;background:transparent;color:#6a8aaa;cursor:pointer">Diligenter une enquete</button>';
+      }
+      if (st === 'au_parquet' || st === 'enquete') {
+        html += '<button onclick="parquetNonLieu(' + a + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer">Prononcer un non-lieu</button>';
+        html += '<button onclick="parquetChoisirQualification(' + a + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager les poursuites</button>';
+      }
+      if (st === 'poursuites') {
+        html += '<button onclick="parquetSaisirJuge(' + a + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Saisir le juge</button>';
+      }
+      if (st === 'poursuites' || st === 'saisie') {
+        html += '<button onclick="parquetAbandonner(' + a + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #6a3010;background:transparent;color:#aa6a30;cursor:pointer">Abandonner les poursuites</button>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// LES MESSAGES DE REFUS SONT NOMMES, TOUS. Un refus mal dit laisse croire a une panne, et le
+// joueur ne sait pas s'il doit se deplacer, attendre, ou abandonner.
+const PARQUET_REFUS = {
+  pas_procureur:       "Reserve au Procureur de la Republique en exercice.",
+  affaire_absente:     "Ce dossier n'existe plus au greffe.",
+  hors_juridiction:    "Ce dossier ne releve pas de votre pays.",
+  statut_incompatible: "L'etat de ce dossier ne permet plus cet acte.",
+  statut_a_change:     "L'etat de ce dossier vient de changer : relisez-le avant d'agir.",
+  presence_requise:    "Vous devez etre dans le tribunal de la ville de l'affaire.",
+  ville_inconnue:      "La ville de ce dossier n'est pas reconnue.",
+  infraction_inconnue: "Cette infraction n'est pas au catalogue penal.",
+  decision_invalide:   "Decision non reconnue."
+};
+async function parquetActe(nomRpc, params, messageSucces) {
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc(nomRpc, params).then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    showToast('Acte refuse',
+      (r && PARQUET_REFUS[r.raison]) || "L'acte n'a pas pu etre enregistre.", false);
+    return null;
+  }
+  showToast('Acte enregistre', messageSucces(r), true);
+  await ouvrirParquet();
+  return r;
+}
+
+function parquetEnqueter(id) {
+  return parquetActe('parquet_enqueter', { p_affaire_id: id },
+    () => 'Enquete diligentee. La police peut desormais accomplir l\'acte.');
+}
+function parquetSaisirJuge(id) {
+  return parquetActe('parquet_transmettre_juge', { p_affaire_id: id },
+    () => 'Le juge est saisi.');
+}
+
+// LE MOTIF EST UNE DECLARATION DU PROCUREUR, pas une conclusion du serveur -- et l'ecran le dit.
+function parquetNonLieu(id) {
+  const motif = prompt("Non-lieu — motif que vous declarez (facultatif).\n\n"
+    + "Ce que vous ecrivez est votre declaration. Un non-lieu ne dit ni que la plainte etait "
+    + "mensongere, ni que la personne visee est innocente : il dit que vous ne poursuivez pas.");
+  if (motif === null) return Promise.resolve(null);
+  return parquetActe('parquet_non_lieu', { p_affaire_id: id, p_motif: motif || null },
+    () => 'Non-lieu prononce.');
+}
+function parquetAbandonner(id) {
+  const motif = prompt("Abandon des poursuites — motif que vous declarez (facultatif).\n\n"
+    + "Si le juge est deja saisi, votre abandon ne met pas fin a la procedure : c'est lui qui "
+    + "decidera de l'arreter ou de la poursuivre.");
+  if (motif === null) return Promise.resolve(null);
+  return parquetActe('parquet_abandonner', { p_affaire_id: id, p_motif: motif || null },
+    r => r.apres_saisine === true
+      ? 'Abandon declare. Le juge decidera de la suite.'
+      : 'Poursuites abandonnees : la procedure s\'arrete.');
+}
+
+// LA QUALIFICATION DU PARQUET. Meme liste que celle du juge -- `infractionsCanoniques()`, batie
+// sur le canon du navigateur -- et meme validation serveur : `infraction_canonique` est fail
+// closed et refuse aussi un nom de categorie.
+function parquetChoisirQualification(id) {
+  const liste = infractionsCanoniques();
+  document.getElementById('postes-modal-title').textContent = 'Engager les poursuites';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.76rem;color:#8a8060;font-style:italic;margin-bottom:.8rem;padding:.5rem;background:#0f0d05;border:1px solid #2a2010">'
+       + 'Choisissez l\'infraction sous laquelle vous engagez les poursuites. Elle peut differer '
+       + 'de ce que le plaignant a allegue — et le juge pourra la requalifier.</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:.25rem;max-height:46vh;overflow-y:auto">';
+  liste.forEach(i => {
+    html += '<button onclick="parquetPoursuivre(' + JSON.stringify(id).replace(/"/g, '&quot;')
+         + ',\'' + i.id + '\')"'
+         + ' style="text-align:left;padding:.45rem .7rem;border:1px solid #2a2010;background:#0f0d05;color:#c0b090;cursor:pointer;font-family:Crimson Pro,serif;font-size:.8rem;display:flex;justify-content:space-between;gap:.6rem">'
+         + '<span><span style="color:#E8C97A">' + i.libelle + '</span>'
+         + ' <span style="color:#6a5a30;font-size:.72rem">' + i.id + '</span></span>'
+         + '<span style="font-family:Bebas Neue,sans-serif;font-size:.72rem;color:#8a6a20;white-space:nowrap">ref. ' + i.jours + ' j</span>'
+         + '</button>';
+  });
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+function parquetPoursuivre(id, infraction) {
+  return parquetActe('parquet_poursuivre', { p_affaire_id: id, p_infraction: infraction },
+    r => 'Poursuites engagees sous : ' + (r.libelle || r.qualification) + '.');
+}
+
+// ---------------------------------------------------------------------- L'ECRAN DU JUGE
+// IL NE MONTRE QUE CE DONT LE JUGE EST SAISI. Un dossier encore au parquet n'y figure pas : le
+// serveur ne le rend meme pas.
+async function ouvrirDossiersJuge(pa, cost) {
+  document.getElementById('postes-modal-title').textContent = 'Affaires dont vous etes saisi';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;color:#8a8060;font-style:italic">Lecture du role...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('juge_dossiers').then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1rem;font-size:.82rem;color:#cc6a44">'
+      + (r && r.raison === 'pas_juge' ? "Reserve au juge en exercice." : "Le role n'a pas pu etre lu.")
+      + '</div>';
+    return;
+  }
+
+  let html = '<div style="padding:1rem">';
+  const dossiers = r.dossiers || [];
+  if (dossiers.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire ne vous est actuellement soumise. '
+         + 'Une affaire ne vous parvient que si le parquet vous en a saisi.</div>';
+  }
+  dossiers.forEach(x => {
+    const d = x.dossier || {};
+    const st = d.status || '';
+    const a = JSON.stringify(x.id).replace(/"/g, '&quot;');
+    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.6rem">';
+    html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">'
+         + (d.cible || '?') + '</div>';
+    html += '<div style="font-size:.72rem;color:#8a6a20;font-family:Bebas Neue,sans-serif;letter-spacing:.06em">'
+         + justiceLibelleStatut(st) + '</div>';
+    html += '<div style="font-size:.74rem;color:#8a8060;font-style:italic;margin:.35rem 0">'
+         + (d.auteur ? d.auteur + ' declare : ' : 'Declare : ') + '&laquo;&nbsp;'
+         + (d.motif || '(non precise)') + '&nbsp;&raquo;</div>';
+    html += justiceQualificationsHtml(d);
+    // LES DEUX DRAPEAUX DE DEFENSE RESTENT INFORMATIFS, et c'est assume : ils ne modulent plus
+    // automatiquement la peine, parce qu'un -1 ou un +2 applique par-dessus la plage du bareme
+    // en sortirait. Le juge les voit et en tient compte comme il l'entend.
+    if (d.circonstanceAttenuante) {
+      html += '<div style="font-size:.7rem;color:#6a9a6a;font-style:italic">Defense reussie : circonstance attenuante declaree.</div>';
+    }
+    if (d.aggravation) {
+      html += '<div style="font-size:.7rem;color:#cc4444;font-style:italic">Defense ratee de facon flagrante : aggravation declaree.</div>';
+    }
+    html += justiceChronologieHtml(x.actes);
+
+    html += '<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem">';
+    if (st === 'abandon_demande') {
+      // LE PARQUET S'EST RETIRE : les deux decisions sont offertes, et elles sont DEUX FAITS
+      // distincts dans la chronologie.
+      html += '<div style="font-size:.72rem;color:#aa7a30;font-style:italic;width:100%;margin-bottom:.2rem">'
+           + 'Le parquet a abandonne les poursuites. A vous de decider.</div>';
+      html += '<button onclick="jugeSuiteAbandon(' + a + ',\'arret\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #6a3010;background:transparent;color:#aa6a30;cursor:pointer">Accepter l\'arret</button>';
+      html += '<button onclick="jugeSuiteAbandon(' + a + ',\'poursuivre\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Poursuivre malgre l\'abandon</button>';
+    } else if (st === 'saisie') {
+      html += '<button onclick="jugeRelaxer(' + a + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer">Relaxer</button>';
+      // LA CONDAMNATION REUTILISE L'ECRAN DU BAREME livre le 12 octobre au matin : qualification
+      // canonique, puis modulation dans la plage que le serveur annonce.
+      html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'prison\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a2a10;background:transparent;color:#9a8a4a;cursor:pointer">Condamner — prison</button>';
+      html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'amende\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer">Condamner — amende</button>';
+      html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'amenagement\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a3a4a;background:transparent;color:#6a8aaa;cursor:pointer">Condamner — amenagement</button>';
+      // LE QHS ET LA TORTURE RESTENT OFFERTS, et il fallait y veiller : ce sont deux mecaniques
+      // ARBITREES qui existaient avant cette passe, et les perdre en changeant d'ecran aurait
+      // ete une regression silencieuse. Leur duree est IMPOSEE par le serveur -- 30 jours, et
+      // 3 x (n+1) pour la torture, dont il compte lui-meme le cumul. La garde « la personne doit
+      // etre deja detenue » est verifiee par `appliquerSentence`, inchangee.
+      //
+      // LA TORTURE RESTE CONDITIONNEE AU MOTIF, exactement comme avant : l'ancien ecran ne
+      // l'offrait que si le motif mentionnait la torture. Aucune regle n'est elargie ici.
+      html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'qhs\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a1a10;background:transparent;color:#9a4a3a;cursor:pointer">Condamner — envoi au QHS</button>';
+      if ((d.motif || '').toLowerCase().includes('tortur')) {
+        html += '<button onclick="ouvrirQualificationSentence(' + a + ',\'torture\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #6a1010;background:#150505;color:#cc4444;cursor:pointer">⚖ Sanction torture</button>';
+      }
+    }
+    html += '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+const JUGE_REFUS = {
+  pas_juge:                 "Reserve au juge en exercice.",
+  pas_juge_de_cette_ville:  "Vous n'etes pas le juge de la ville de cette affaire.",
+  affaire_absente:          "Ce dossier n'existe plus au greffe.",
+  affaire_non_saisie:       "Vous n'etes pas saisi de cette affaire.",
+  statut_incompatible:      "L'etat de ce dossier ne permet plus cette decision.",
+  statut_a_change:          "L'etat de ce dossier vient de changer : relisez-le avant de decider.",
+  jugement_deja_rendu:      "Un jugement a deja ete rendu sur cette affaire.",
+  infraction_inconnue:      "Cette infraction n'est pas au catalogue penal.",
+  decision_invalide:        "Decision non reconnue."
+};
+async function jugeSuiteAbandon(id, decision) {
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('juge_suite_apres_abandon', { p_affaire_id: id, p_decision: decision })
+        .then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    showToast('Decision refusee', (r && JUGE_REFUS[r.raison]) || "La decision n'a pas pu etre enregistree.", false);
+    return;
+  }
+  showToast('Decision enregistree', decision === 'arret'
+    ? 'Vous avez accepte l\'arret de la procedure.'
+    : 'Vous poursuivez la procedure malgre l\'abandon du parquet.', true);
+  await ouvrirDossiersJuge(0, 0);
+}
+
+// LA RELAXE EST UN VERDICT, et l'ecran le dit avant de la demander. Elle porte une qualification
+// -- par defaut celle du parquet -- et elle clot la premiere instance.
+async function jugeRelaxer(id) {
+  if (!confirm("Relaxer entierement la personne poursuivie ?\n\n"
+    + "La relaxe est un jugement, pas une absence de peine. Elle clot l'affaire en premiere "
+    + "instance et reste inscrite a la chronologie.")) return;
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('justice_relaxer', { p_affaire_id: id })
+        .then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    showToast('Relaxe refusee', (r && JUGE_REFUS[r.raison]) || "La relaxe n'a pas pu etre enregistree.", false);
+    return;
+  }
+  showToast('Relaxe prononcee', (r.libelle || r.infraction) + ' : relaxe.', true, true);
+  if (typeof addExternalEvent === 'function') {
+    addExternalEvent('JUGEMENT : relaxe prononcee par ' + r.juge + '.');
+  }
+  await ouvrirDossiersJuge(0, 0);
 }

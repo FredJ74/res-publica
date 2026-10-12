@@ -54,6 +54,28 @@ CREATE TABLE public.detentions (
   provenance text
 );
 
+CREATE TABLE public.dossiers_judiciaires_actes (
+  id text NOT NULL,
+  affaire text NOT NULL,
+  pays text NOT NULL,
+  ville text,
+  rang integer NOT NULL,
+  type text NOT NULL,
+  acteur text,
+  acteur_poste text,
+  qualif_avant text,
+  qualif_apres text,
+  donnees jsonb,
+  fait_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.dossiers_judiciaires_actes_types (
+  type text NOT NULL,
+  libelle text NOT NULL,
+  pose_par text NOT NULL,
+  note text
+);
+
 CREATE TABLE public.impacts_indices_attente (
   id text NOT NULL,
   victime text NOT NULL,

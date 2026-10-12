@@ -4,6 +4,13 @@
 -- Une transaction annulee, aucune donnee residuelle, verdict leve en EXCEPTION. Voir le fichier 1
 -- pour la raison du decoupage en trois (limite de transport du canal SQL).
 --
+-- RELU DANS LA NUIT DU 12 OCTOBRE 2026 (tranche du parquet). Le statut d'une affaire ouverte
+-- n'est plus `deposee` mais `au_parquet` : c'est la seule chose qui change ici, et elle change
+-- partout -- le decor comme les trois assertions qui exigent qu'un refus ne fasse rien bouger.
+-- La porte `plainte_defendre` a suivi le meme chemin par la migration 20261012102519 : elle
+-- gardait sur un statut que plus aucune porte ne produisait, donc se defendre etait devenu
+-- impossible sur tout dossier. Ce banc est ce qui l'a fait voir.
+--
 -- CE QU'IL ETABLIT. `plainte_defendre` remplace l'upsert du blob entier par l'accuse, et c'est
 -- ici qu'on trouve LE DEFAUT LE PLUS GRAVE DU CYCLE -- plus grave que ce que l'audit disait.
 --
@@ -65,6 +72,10 @@ BEGIN
   PERFORM set_config('role', 'authenticated', true);
   v_refuse := false;
   BEGIN
+    -- `deposee` EST CONSERVE DANS LES ECRITURES CLIENTES REFAITES A L'IDENTIQUE : c'est le
+    -- statut que l'ancien chemin posait, et le refus porte sur le PRIVILEGE, pas sur le
+    -- contenu. Les decors, eux, sont passes a `au_parquet` -- la porte garde desormais
+    -- dessus.
     INSERT INTO public.plaintes_en_cours (id, country, city, data)
     VALUES ('affaire-' || (extract(epoch from clock_timestamp()) * 1000)::bigint, 'republic', 'ville_a',
             '{"cible":"May","motif":"Vol aggrave","jour":1,"status":"deposee"}');
@@ -92,9 +103,9 @@ BEGIN
   UPDATE public.personnages_donnees SET poste = NULL WHERE name = 'Ben';
   INSERT INTO public.plaintes_en_cours (id, country, city, data) VALUES
     (AFF, 'republic', 'ville_a',
-     '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"deposee"}'),
+     '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"au_parquet"}'),
     (AUTRE, 'republic', 'ville_a',
-     '{"id":"aff-may","country":"republic","city":"ville_a","cible":"May","motif":"Vol","jour":1,"status":"deposee"}');
+     '{"id":"aff-may","country":"republic","city":"ville_a","cible":"May","motif":"Vol","jour":1,"status":"au_parquet"}');
 
   -- ------------------------------------------------- 3. LES REFUS NOMMES
   PERFORM set_config('request.jwt.claims', BEN, true);
@@ -111,7 +122,7 @@ BEGIN
     THEN ko := ko || ('5 on se defend sur l affaire d un autre : ' || v::text); END IF;
   PERFORM set_config('role', 'postgres', true);
   SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = AUTRE;
-  n := n + 1; IF d ->> 'status' <> 'deposee'
+  n := n + 1; IF d ->> 'status' <> 'au_parquet'
     THEN ko := ko || '6 l affaire d un autre a bouge malgre le refus'; END IF;
 
   -- ------------------------------------------------- 4. LES QUATRE ISSUES, LUES EN BASE
@@ -121,12 +132,12 @@ BEGIN
   SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = AFF;
   n := n + 1; IF NOT (v ->> 'ok' = 'true' AND (d -> 'circonstanceAttenuante') = 'true'::jsonb)
     THEN ko := ko || ('7 la circonstance attenuante n est pas EN BASE : ' || d::text); END IF;
-  n := n + 1; IF d ->> 'status' <> 'deposee'
+  n := n + 1; IF d ->> 'status' <> 'au_parquet'
     THEN ko := ko || '8 une reussite simple a clos l affaire'; END IF;
   n := n + 1; IF d ->> 'defendue_par' <> 'Ben' THEN ko := ko || '9 le defenseur n est pas nomme'; END IF;
 
   -- LE CUMUL RESTE POSSIBLE, et c'est la regle existante : les trois issues qui ne classent pas
-  -- laissent l'affaire « deposee », et l'ordre est payant a chaque tentative.
+  -- laissent l'affaire au parquet, et l'ordre est payant a chaque tentative.
   PERFORM set_config('role', 'authenticated', true);
   PERFORM public.plainte_defendre(AFF, 'aggravation');
   PERFORM set_config('role', 'postgres', true);
@@ -136,7 +147,7 @@ BEGIN
 
   -- L'ECHEC SIMPLE N'AJOUTE AUCUN DRAPEAU.
   UPDATE public.plaintes_en_cours SET data =
-    '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"deposee"}'
+    '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"au_parquet"}'
    WHERE id = AFF;
   PERFORM set_config('role', 'authenticated', true);
   PERFORM public.plainte_defendre(AFF, 'infructueuse');
@@ -170,7 +181,7 @@ BEGIN
   -- l'echec. La defense n'est donc plus seulement annulee apres coup, elle est refusee d'entree.
   PERFORM set_config('role', 'postgres', true);
   UPDATE public.plaintes_en_cours SET data =
-    '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"deposee"}'
+    '{"id":"aff-ben","country":"republic","city":"ville_a","cible":"Ben","motif":"Vol","jour":1,"status":"au_parquet"}'
    WHERE id = AFF;
   PERFORM set_config('role', 'authenticated', true);
   v_refuse := false;
@@ -209,7 +220,7 @@ BEGIN
   SELECT data::jsonb INTO d FROM public.plaintes_en_cours WHERE id = AFF;
   n := n + 1; IF (d -> 'circonstanceAttenuante') <> 'true'::jsonb
     THEN ko := ko || ('16 la porte n inscrit pas ce que l ancien chemin perdait : ' || d::text); END IF;
-  n := n + 1; IF NOT v_refuse OR (d ->> 'status' <> 'deposee') OR (d ? 'aggravation') THEN
+  n := n + 1; IF NOT v_refuse OR (d ->> 'status' <> 'au_parquet') OR (d ? 'aggravation') THEN
     ko := ko || ('17 L ECRITURE CLIENTE EN BLOC APRES LA PORTE EST ENCORE POSSIBLE : refus de '
       || 'privilege ' || v_refuse::text || ', dossier ' || d::text);
   END IF;

@@ -16,6 +16,8 @@
 ALTER TABLE public.actions_tracables ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.demandes_grace ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.detentions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.dossiers_judiciaires_actes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.dossiers_judiciaires_actes_types ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.impacts_indices_attente ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infractions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infractions_alias ENABLE ROW LEVEL SECURITY;

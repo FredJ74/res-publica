@@ -203,13 +203,28 @@ att('pnjEstGamma reconnait les deux familles gamma, et elles seules',
     && codePnj.indexOf('PNJ_TITULAIRES_DE_POSTE_NOMS') >= 0);
 att('la liste des titulaires de poste est declaree dans data.js',
     dataJs.indexOf('const PNJ_TITULAIRES_DE_POSTE_NOMS') >= 0);
-att('elle porte quinze noms -- la copie du registre en base',
+// DIX-HUIT, ET PLUS QUINZE (rectifie le 12 octobre 2026 au soir). Cette epreuve attendait 15
+// noms parce que la liste en portait 15 -- mais le registre `titulaires_pnj` en contenait
+// DIX-SEPT : le releve qui avait servi a l'ecrire etait TRONQUE. Manquaient `Raoul Toufaud (PNJ)`
+// (commissaire de la capitale) et `Marcel Silo (PNJ)` (directeur de l'entrepot de la capitale) --
+// donc deux PNJ de famille gamma a qui l'ordre generique « Neutraliser » restait offert, ce que
+// ce lot-ci devait precisement fermer. Les deux sont ajoutes.
+// S'y ajoutent les deux mouvements du soir : `Juge Fontaine` quitte le registre (Honore
+// Cozetoujours prend le siege de Luthecia) et `Procureur Saad` y entre avec le poste de
+// procureur, qui n'existait pas. 17 - 1 + 1 + 1 = 18.
+att('elle porte dix-huit noms -- la copie du registre en base',
     (function () {
       var i = dataJs.indexOf('const PNJ_TITULAIRES_DE_POSTE_NOMS');
       var bloc = dataJs.slice(i, dataJs.indexOf('];', i));
-      return compte(bloc, /\n  ['"]/g) === 15;
+      return compte(bloc, /\n  ['"]/g) === 18;
     })(),
     'liste de taille inattendue');
+att('et les deux titulaires oublies y figurent desormais',
+    dataJs.indexOf("'Raoul Toufaud (PNJ)'") >= 0 && dataJs.indexOf("'Marcel Silo (PNJ)'") >= 0);
+att('Honore et Saad y sont, Fontaine n y est plus',
+    dataJs.indexOf("'Honoré Cozetoujours (PNJ)',") >= 0
+    && dataJs.indexOf("'Procureur Saad',") >= 0
+    && codeSeul(dataJs).indexOf("'Juge Fontaine'") < 0);
 // ET LA MECANIQUE INSTITUTIONNELLE DE L ASSEMBLEE N EST PAS TOUCHEE : un depute garde une entree,
 // NOMMEE COMME TELLE, vers la meme porte serveur qu avant.
 att('un depute PNJ garde une entree distincte, nommee Assemblee',

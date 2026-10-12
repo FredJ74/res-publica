@@ -51,8 +51,10 @@ BEGIN
   SELECT count(*) INTO c FROM public.plaintes_en_cours;
   n := n + 1; IF c <> 1 THEN ko := ko || ('4 une transmission, ' || c || ' ligne(s)'); END IF;
   SELECT data::jsonb INTO d FROM public.plaintes_en_cours;
-  n := n + 1; IF d ->> 'status' <> 'deposee'
-    THEN ko := ko || ('5 l affaire ne nait pas deposee : ' || coalesce(d ->> 'status', 'NULL')); END IF;
+  -- `au_parquet` ET PLUS `deposee` (12 octobre 2026, nuit). La police TRANSMET : elle ne saisit
+  -- pas le tribunal et ne decide pas des poursuites. C'est le Procureur qui recoit.
+  n := n + 1; IF d ->> 'status' <> 'au_parquet'
+    THEN ko := ko || ('5 l affaire ne nait pas au parquet : ' || coalesce(d ->> 'status', 'NULL')); END IF;
   n := n + 1; IF d ->> 'transmise_par' <> 'Ben'
     THEN ko := ko || '6 le transmetteur n est pas nomme par le serveur'; END IF;
   -- LE PAYS ET LE JOUR NE SONT PAS DICTES : le client ne les envoie meme plus.

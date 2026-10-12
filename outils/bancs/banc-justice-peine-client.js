@@ -35,6 +35,8 @@ var corpsPlainte  = bloc(justice, 'async function soumettrePlaynte(', '\n// ');
 var corpsQualif   = bloc(justice, 'function ouvrirQualificationSentence(', '\n// LA PLAGE EST CELLE DU SERVEUR');
 var corpsModul    = bloc(justice, 'async function ouvrirModulationSentence(', '\n// LE PRONONCE RELIT');
 var corpsPrononce = bloc(justice, 'async function prononcerSentence(', '\nasync function appliquerSentence(');
+var corpsJuge     = bloc(justice, 'async function ouvrirDossiersJuge(', '\nconst JUGE_REFUS');
+var corpsParquet  = bloc(justice, 'async function ouvrirParquet(', '\n// LES MESSAGES DE REFUS');
 
 print('');
 print('1. LA DUREE N EST PLUS COMPOSEE PAR LE NAVIGATEUR');
@@ -72,8 +74,20 @@ att('appliquerSentence recoit les valeurs du serveur en parametres',
 
 print('');
 print('3. LE JUGE QUALIFIE AVANT DE PRONONCER');
-att('les cinq boutons ouvrent la qualification, plus la sanction',
-    compte(justice, /ouvrirQualificationSentence\(&quot;/g) === 5);
+// LES CINQ SANCTIONS SONT TOUJOURS LA, mais l'ecran a change (12 octobre 2026 au soir).
+// `ouvrirRendreSentence`, qui portait les cinq boutons et listait un statut mort (`deposee`), a
+// ete remplacee par `ouvrirDossiersJuge`, qui lit le role au serveur. Les boutons y appellent
+// donc `ouvrirQualificationSentence(' + a + ', ...)` et plus `(&quot;...&quot;, ...)`. L'epreuve
+// porte sur LE NOMBRE DE GENRES OFFERTS, pas sur la forme de l'appel -- c'est ce qui compte :
+// perdre le QHS ou la torture en changeant d'ecran aurait ete une regression silencieuse.
+att('les cinq genres de sanction sont tous offerts au juge',
+    ['prison', 'amende', 'amenagement', 'qhs', 'torture'].every(function (g) {
+      return corpsJuge.indexOf("ouvrirQualificationSentence(' + a + '," + String.fromCharCode(92, 39) + g) >= 0;
+    }),
+    'longueur du bloc du juge : ' + corpsJuge.length);
+att('et ils passent tous par l ecran de qualification du bareme',
+    compte(corpsJuge, /ouvrirQualificationSentence\(' \+ a \+ '/g) === 5,
+    compte(corpsJuge, /ouvrirQualificationSentence\(' \+ a \+ '/g) + ' appel(s)');
 att('aucun bouton n appelle plus directement appliquerSentence',
     codeSeul(justice).indexOf('appliquerSentence(&quot;') < 0);
 att('la liste des infractions est construite depuis le canon du navigateur',

@@ -1115,9 +1115,26 @@ function enterRoom(buildingId, roomId, tabEl) {
 //
 // Martial Bouterin conserve EXACTEMENT ses deux libelles d'origine, au caractere pres : ils ont
 // simplement demenage de ce fichier vers sa fiche.
+// LA LISTE AJUSTEE EST CELLE QUI EST AFFICHEE, PAS CELLE DU GABARIT (12 octobre 2026).
+//
+// CE DEFAUT ETAIT GENERIQUE ET SILENCIEUX. Cette fonction lisait `BUILDINGS[b].rooms[r].persons`
+// -- le gabarit partage par les quatre empires. Mais `persons` d'un buildingContext REMPLACE la
+// liste de la PREMIERE piece du batiment, et `roomOverrides[piece].persons` remplace celle de
+// n'importe quelle piece (personnesNormalesDeLaPiece, plateau-multijoueur.js). Partout ou un
+// empire surcharge le casting, le titre dynamique mutait donc un objet que personne n'affichait :
+// le PNJ gardait son libelle de titulaire alors qu'un joueur tenait le poste.
+//
+// C'est exactement le cas du Tribunal de Luthecia, ou la surcharge existe depuis le 1er octobre.
+// Le correctif est GENERIQUE : on ajuste la liste REELLE, d'ou qu'elle vienne.
+//
+// LE REPLI SUR LE GABARIT EST CONSERVE, et il a une raison : le banc de ce mecanisme ne charge
+// que data.js et ce fichier, donc `personnesNormalesDeLaPiece` n'y existe pas. Sans ce repli, le
+// banc mesurerait l'absence de la fonction au lieu du comportement.
 async function ajusterTitrePnjDePoste(buildingId, roomId) {
-  const room = BUILDINGS[buildingId]?.rooms?.[roomId];
-  const porteurs = (room?.persons || []).filter(
+  const liste = (typeof personnesNormalesDeLaPiece === 'function')
+    ? personnesNormalesDeLaPiece(buildingId, roomId)
+    : (BUILDINGS[buildingId]?.rooms?.[roomId]?.persons || []);
+  const porteurs = (liste || []).filter(
     p => p.job && p.roleSiPnjTitulaire && p.roleSiPjTitulaire);
   if (porteurs.length === 0) return;
   if (typeof getTitulaireActuel !== 'function') return;
@@ -1132,7 +1149,7 @@ async function ajusterTitrePnjDePoste(buildingId, roomId) {
       ? porteur.roleSiPjTitulaire
       : porteur.roleSiPnjTitulaire;
   }
-  if (typeof renderPersonsList === 'function') renderPersonsList(room.persons || []);
+  if (typeof renderPersonsList === 'function') renderPersonsList(liste || []);
 }
 
 async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {

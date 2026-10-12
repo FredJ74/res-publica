@@ -327,7 +327,9 @@ TU NE DONNES AUCUN PRIX CHIFFRÉ : tu dis « pas cher », « moins cher qu'en vi
     style: `forte en voix, chaleureuse, tutoiement immédiat ; parler populaire, exclamations, fierté ouvrière assumée` },
   'journaliste_blanc':             { nom: "Journaliste Blanc", role: "Correspondant parlementaire (PNJ)", lieu: "Assemblee Nationale" },
   'journalistes_accredites':       { nom: "Journalistes accredites", role: "PNJ - Presse nationale", lieu: "Palais du Gouvernement" },
-  'juge_fontaine':                 { nom: "Juge Fontaine", role: "Presidente du Tribunal (PNJ)", lieu: "Tribunal de la Capitale" },
+  // HONORE REMPLACE FONTAINE (12 octobre 2026) : il est le titulaire PNJ du tribunal de Luthecia
+  // au registre serveur, et il etait deja dans la salle d'audience. Le slug change avec lui.
+  'honore_cozetoujours':           { nom: "Honore Cozetoujours", role: "President du Tribunal", lieu: "Tribunal de Luthecia" },
   'juge_local':                    { nom: "Juge Local", role: "President du Tribunal Municipal", lieu: "Tribunal Municipal" },
   'julien':                        { nom: "Julien", role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republica" },
   'justin_verre':                  { nom: "Justin Verre", role: "Tenancier de Buvette" },

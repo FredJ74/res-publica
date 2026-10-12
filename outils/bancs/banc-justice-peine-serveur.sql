@@ -20,7 +20,7 @@
 --   8. une peine au-dessus de la borne haute est refusee ;
 --   9. une peine dans la plage est acceptee, et c'est la valeur VALIDEE qui est archivee ;
 --  10. le libelle de la peine est COMPOSE par le serveur ;
---  11. un second jugement sur la meme affaire est refuse ;
+--  11. un second jugement sur la meme affaire est refuse (par la saisine, desormais) ;
 --  12. l'accuse et le motif de l'affaire ne peuvent plus etre reecrits au jugement ;
 --  13. le motif ALLEGUE et la qualification FINALE coexistent, sans que l'un efface l'autre ;
 --  14. un non-juge est refuse ;
@@ -32,9 +32,25 @@
 --  20. la plage PROPOSEE a l'ecran est exactement celle que la porte applique ;
 --  21. les motifs du jugement portent la duree validee -- plus de repli a 3 jours ;
 --  22. un client ne peut pas lire le catalogue des infractions directement.
+--  23. une affaire dont le tribunal n'est pas SAISI ne peut pas etre jugee.
+--
+-- RELU ET ADAPTE DANS LA NUIT DU 12 OCTOBRE 2026, apres la tranche du parquet. Trois epreuves
+-- disaient encore l'ancien monde, et une s'est AMELIOREE au passage :
+--   . le decor du jugement posait un dossier `deposee` et jugeait dessus. Il n'y a plus de
+--     jugement sans SAISINE : le decor pose desormais `saisie`, et l'epreuve 23 verifie que le
+--     meme dossier reste injugeable tant qu'il est `au_parquet`.
+--   . E14 et E15 attendaient `autorite_refusee`. La garde n'est plus `affaire_autorite_de` --
+--     qui acceptait AUSSI le commissaire -- mais `juge_de_la_ville`, liee a auth.uid() : elle ne
+--     rend rien du tout a un non-juge comme a un juge d'ailleurs, et le refus s'appelle
+--     `pas_juge_de_cette_ville`. Le refus est le meme, son nom est plus exact.
+--   . E3 n'a plus besoin de poser son dossier a la main. Sa premiere version redeposait une
+--     plainte et n'obtenait pas de refus parce que le commissaire PNJ instruisait IMMEDIATEMENT
+--     au depot, donc le premier dossier n'etait plus `deposee` a la ligne suivante. Le depot
+--     n'instruit plus rien : le dossier reste `au_parquet` et l'anti-spam mord pour de vrai.
+--     L'epreuve joue donc deux depots REELS, ce qui prouve les deux faits d'un coup.
 --
 -- Usage : coller ce fichier dans un execute_sql. Il doit finir sur
---   ERROR: banc peine : LES 22 EPREUVES SONT VERTES. -- rien ne doit rester
+--   ERROR: banc peine : LES 23 EPREUVES SONT VERTES. -- rien ne doit rester
 
 BEGIN;
 CREATE OR REPLACE FUNCTION pg_temp.je_suis(p_uuid text) RETURNS void LANGUAGE plpgsql AS $f$
@@ -94,26 +110,31 @@ BEGIN
     ko:=ko+1; e:=e||E'\nE4 plainte d un non-victime refusee';
   END IF;
 
-  n := n + 1;   -- E3 : LE DOUBLON NE COUTE RIEN. Refuse AVANT le paiement.
+  n := n + 1;   -- E3 : LE DOUBLON NE COUTE RIEN, ET IL MORD POUR DE VRAI DEPUIS LE PARQUET.
   --
-  -- LE DOSSIER EN COURS EST POSE A LA MAIN, ET C'EST LA PREMIERE VERSION DE CETTE EPREUVE QUI
-  -- L'A APPRIS. Elle redeposait simplement une plainte contre la meme cible et attendait un
-  -- refus -- qui n'est pas venu. La raison n'est pas un defaut : l'anti-spam ne mord que tant
-  -- que le dossier porte le statut `deposee`, et dans une ville SANS commissaire joueur le
-  -- commissaire PNJ instruit IMMEDIATEMENT au depot, donc le premier dossier etait deja
-  -- `classee` a la ligne suivante. La garde est donc beaucoup plus etroite qu'elle n'en a
-  -- l'air -- fait rapporte, non corrige : changer sa portee serait un arbitrage.
-  INSERT INTO public.plaintes_en_cours (id, country, city, data)
-  VALUES ('banc-doublon', 'republic', 'capitale', jsonb_build_object(
-    'id', 'banc-doublon', 'auteur', LEE, 'cible', 'Ben', 'motif', 'Dossier encore ouvert',
-    'jour', 1, 'city', 'capitale', 'country', 'republic', 'status', 'deposee')::text);
+  -- DEUX DEPOTS REELS, ET C'EST NOUVEAU. La premiere version de cette epreuve posait le dossier
+  -- « en cours » A LA MAIN parce qu'un redepot n'etait PAS refuse : l'anti-spam ne mordait que
+  -- sur le statut `deposee`, et dans une ville sans commissaire joueur le commissaire PNJ
+  -- instruisait IMMEDIATEMENT au depot -- le premier dossier n'etait donc plus `deposee` a la
+  -- ligne suivante. Le depot n'instruit plus rien du tout : il laisse le dossier AU PARQUET, qui
+  -- est un statut vivant. L'epreuve joue donc la vraie sequence, et prouve les deux faits
+  -- ensemble : le dossier arrive `au_parquet`, et un second depot est refuse sans rien couter.
+  PERFORM pg_temp.je_suis(LEE_U);
+  v := public.plainte_deposer('Ben', 'Dossier encore ouvert');
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v->>'ok')::boolean,false) IS NOT TRUE
+     OR coalesce(v->>'statut','') <> 'au_parquet'
+     OR (SELECT (p.data::jsonb) ->> 'status' FROM public.plaintes_en_cours p
+          WHERE p.id = v->>'id') <> 'au_parquet' THEN
+    ko:=ko+1; e:=e||E'\nE3a le depot n instruit plus, et arrive au parquet : '||v::text;
+  END IF;
   SELECT pa INTO v_pa_av FROM public.personnages_donnees WHERE name = LEE;
   PERFORM pg_temp.je_suis(LEE_U);
   v := public.plainte_deposer('Ben', 'Encore lui');
   PERFORM pg_temp.je_suis_le_serveur();
   SELECT pa INTO v_pa_ap FROM public.personnages_donnees WHERE name = LEE;
   IF coalesce(v->>'raison','') <> 'plainte_deja_en_cours' OR v_pa_av <> v_pa_ap THEN
-    ko:=ko+1; e:=e||E'\nE3 doublon : '||v::text||' / PA '||v_pa_av||'->'||v_pa_ap;
+    ko:=ko+1; e:=e||E'\nE3b doublon : '||v::text||' / PA '||v_pa_av||'->'||v_pa_ap;
   END IF;
 
   n := n + 1;   -- E2 : PAIEMENT IMPOSSIBLE -> AUCUN DOSSIER. C'est le defaut ferme : le dossier
@@ -131,12 +152,31 @@ BEGIN
   END IF;
 
   -- ========================================================================================
-  -- DECOR DU JUGEMENT : une affaire deposee dans la capitale, contre Lee.
+  -- DECOR DU JUGEMENT : une affaire de la capitale contre Lee, DONT LE TRIBUNAL EST SAISI.
+  --
+  -- LE STATUT EST POSE ICI, ET C'EST ASSUME. Jouer la chaine entiere -- depot, qualification du
+  -- parquet, poursuites, saisine -- demanderait un Procureur present dans le tribunal de la
+  -- capitale, et c'est l'office de `banc-parquet-serveur.sql`, qui le fait sur 32 epreuves. Ce
+  -- banc-ci eprouve LE BAREME, pas le chemin : il part de l'etat ou le juge est regulierement
+  -- saisi. L'epreuve 23 ci-dessous verifie tout de meme qu'il n'y a pas de jugement AVANT.
   v_aff := 'banc-affaire-1';
   INSERT INTO public.plaintes_en_cours (id, country, city, data)
   VALUES (v_aff, 'republic', 'capitale', jsonb_build_object(
     'id', v_aff, 'auteur', TIERS, 'cible', LEE, 'motif', 'Il a tue mon chien',
-    'jour', 1, 'city', 'capitale', 'country', 'republic', 'status', 'deposee')::text);
+    'jour', 1, 'city', 'capitale', 'country', 'republic', 'status', 'au_parquet')::text);
+
+  n := n + 1;   -- E23 : ON NE JUGE QUE CE DONT ON EST SAISI. Le dossier est encore au parquet.
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_rendre_sentence(v_aff, 'assassiner_mains', 'prison', 8, 0);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce(v->>'raison','') <> 'affaire_non_saisie'
+     OR coalesce(v->>'statut','') <> 'au_parquet' THEN
+    ko:=ko+1; e:=e||E'\nE23 jugement sans saisine : '||v::text; END IF;
+
+  -- LE PARQUET SAISIT. A partir d'ici, le tribunal est regulierement saisi.
+  UPDATE public.plaintes_en_cours
+     SET data = (data::jsonb || jsonb_build_object('status', 'saisie'))::text
+   WHERE id = v_aff;
 
   n := n + 1;   -- E5 : INFRACTION INCONNUE REFUSEE.
   PERFORM pg_temp.je_suis(JUGE_U);
@@ -177,7 +217,11 @@ BEGIN
   PERFORM pg_temp.je_suis(LEE_U);
   v := public.justice_rendre_sentence(v_aff, 'assassiner_mains', 'prison', 8, 0);
   PERFORM pg_temp.je_suis_le_serveur();
-  IF coalesce(v->>'raison','') <> 'autorite_refusee' THEN
+  -- LE REFUS NE S'APPELLE PLUS `autorite_refusee`. L'ancienne garde, `affaire_autorite_de`,
+  -- acceptait aussi le COMMISSAIRE de la ville : juger n'a jamais ete son office. La nouvelle,
+  -- `juge_de_la_ville`, est liee a auth.uid() et ne rend rien a qui n'est pas LE juge de CETTE
+  -- ville -- d'ou `pas_juge_de_cette_ville`. Meme refus, nom plus exact.
+  IF coalesce(v->>'raison','') <> 'pas_juge_de_cette_ville' THEN
     ko:=ko+1; e:=e||E'\nE14 non-juge accepte : '||v::text; END IF;
 
   n := n + 1;   -- E15 : UN JUGE D'UNE AUTRE VILLE EST REFUSE. Marsault devient juge de ville_a
@@ -189,7 +233,7 @@ BEGIN
   PERFORM pg_temp.je_suis(JUGE_U);
   v := public.justice_rendre_sentence(v_aff, 'assassiner_mains', 'prison', 8, 0);
   PERFORM pg_temp.je_suis_le_serveur();
-  IF coalesce(v->>'raison','') <> 'autorite_refusee' THEN
+  IF coalesce(v->>'raison','') <> 'pas_juge_de_cette_ville' THEN
     ko:=ko+1; e:=e||E'\nE15 juge hors juridiction accepte : '||v::text; END IF;
   UPDATE public.postes_attribues SET city = 'capitale' WHERE id = 'banc-poste-juge-cap';
   UPDATE public.personnages_donnees
@@ -276,11 +320,20 @@ BEGIN
     ko:=ko+1; e:=e||E'\nE13 historique de qualification : '||v_data::text; END IF;
 
   n := n + 1;   -- E11 : UN SECOND JUGEMENT EST REFUSE.
+  --
+  -- LE REFUS A CHANGE DE NOM, ET LE BANC L'A APPRIS A LA PREMIERE EXECUTION DU 12 OCTOBRE AU
+  -- SOIR. Il attendait `affaire_deja_jugee`, qui est le refus porte par l'existence de la ligne
+  -- de jugement. Depuis la saisine, une garde ARRIVE AVANT : un dossier juge porte le statut
+  -- `jugee`, donc il n'est plus `saisie`, donc on n'en est plus saisi. `affaire_deja_jugee` n'est
+  -- pas mort pour autant -- il garde le cas d'un dossier reste `saisie` avec un jugement deja
+  -- inscrit -- mais ce n'est pas le chemin ordinaire. L'epreuve asserte ce que la porte fait
+  -- VRAIMENT, statut compris, et la protection est la meme : UNE seule ligne de jugement.
   PERFORM pg_temp.je_suis(JUGE_U);
   v := public.justice_rendre_sentence(v_aff, 'vol', 'prison', 1, 0);
   PERFORM pg_temp.je_suis_le_serveur();
   SELECT count(*) INTO v_n FROM public.jugements WHERE id = 'jug-' || v_aff;
-  IF coalesce(v->>'raison','') <> 'affaire_deja_jugee' OR v_n <> 1 THEN
+  IF coalesce(v->>'raison','') <> 'affaire_non_saisie'
+     OR coalesce(v->>'statut','') <> 'jugee' OR v_n <> 1 THEN
     ko:=ko+1; e:=e||E'\nE11 double jugement : '||v::text||' / '||v_n||' ligne(s)'; END IF;
 
   n := n + 1;   -- E22 : UN CLIENT NE LIT PAS LE CATALOGUE DIRECTEMENT.

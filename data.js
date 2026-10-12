@@ -417,7 +417,32 @@ const WORLD = {
           //
           // Ajoutes EN FIN DE LISTE pour ne pas deplacer les deux personnages locaux a l'ecran, et
           // avec les champs exacts du gabarit -- aucun contenu nouveau n'est ecrit ici.
-          persons: [{"name": "Honoré Cozetoujours (PNJ)", "role": "Juge en chef", "rel": "neutral", "job": "juge"}, {"name": "Maître Plaidoyer (PNJ)", "role": "Avocat commis d'office", "rel": "neutral", "job": "avocat"}, {"name": "Juge Fontaine", "role": "Presidente du Tribunal (PNJ)", "rel": "neutral", "job": "juge"}, {"name": "Procureur Saad", "role": "Ministere public (PNJ)", "rel": "neutral", "job": "procureur"}]
+          // LE CASTING JUDICIAIRE DE LUTHECIA (refondu le 12 octobre 2026).
+          //
+          // JUGE FONTAINE A DISPARU, et il y avait une raison imparable : elle et Honore
+          // Cozetoujours portaient TOUS DEUX `job: 'juge'` dans la MEME piece, alors qu'il n'y a
+          // qu'un siege. Le registre serveur (`titulaires_pnj`) n'en declarait qu'un seul, et
+          // c'etait Fontaine ; c'est desormais Honore, qui etait deja la.
+          //
+          // LES DEUX TITRES DYNAMIQUES. `roleSiPnjTitulaire` / `roleSiPjTitulaire` sont le
+          // mecanisme GENERIQUE deja employe par le President, le Commandant et Martial
+          // Bouterin : `ajusterTitrePnjDePoste` (plateau-navigation.js) interroge le registre a
+          // l'entree dans la piece et applique le bon libelle. Aucun code propre au Tribunal.
+          // Le PNJ ne disparait jamais quand un joueur prend le poste -- il change de fonction,
+          // et c'est ce que `resteApresPourvoi` garantit.
+          //
+          // MAITRE PLAIDOYER N'EST PAS TOUCHE : l'avocat est une couche a venir, et sa seule
+          // presence ici est deja une reference existante.
+          persons: [{"name": "Honoré Cozetoujours (PNJ)", "role": "Président du Tribunal", "rel": "neutral", "job": "juge",
+                     "resteApresPourvoi": true,
+                     "roleSiPnjTitulaire": "Président du Tribunal",
+                     "roleSiPjTitulaire":  "Vice-président du Tribunal",
+                     "posteCity": "capitale"},
+                    {"name": "Maître Plaidoyer (PNJ)", "role": "Avocat commis d'office", "rel": "neutral", "job": "avocat"},
+                    {"name": "Procureur Saad", "role": "Procureur de la République", "rel": "neutral", "job": "procureur",
+                     "resteApresPourvoi": true,
+                     "roleSiPnjTitulaire": "Procureur de la République",
+                     "roleSiPjTitulaire":  "Substitut du Procureur"}]
         },
         'banque-privee': {
           name: "Banque Privée Helvetia",
@@ -2600,7 +2625,12 @@ const BUILDINGS = {
                    photoUrl:'images/luthecia-palais-gouvernement-mathilde-garde.webp',
                    photoPos:'50% 20%'}],
         orders: [
-          {fn:'annuler_poursuites',   label:'Classer une plainte',          pa:2, cost:0,   type:'grey',    icon:'ti-file-x',         successRate:70,  requiresPost:'min_just', desc:'Classer une plainte en cours avant jugement. Cree une dette politique. Coute a la caisse du gouvernement.'},
+          // « CLASSER UNE PLAINTE » A ETE RETIRE AU MINISTRE (12 octobre 2026). L'ordre
+          // `annuler_poursuites` appelait `plainte_classer_ministere`, qui lui permettait de
+          // classer n'importe quelle plainte du pays. L'opportunite des poursuites appartient
+          // desormais au PARQUET, et a lui seul. Le Ministre garde ce qui est a lui : il NOMME
+          // et REVOQUE le Procureur, par le systeme generique des postes nommes. Faire pression
+          // sur lui reste possible -- c'est une interaction humaine, pas une porte serveur.
           {fn:'ouvrir_enquete',       label:'Ouvrir une enquete',           pa:2, cost:0,   type:'legal',   icon:'ti-search',         successRate:90,  requiresPost:'min_just', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Coute a la caisse du gouvernement.'},
           {fn:'proposer_grace',      label:'Proposer une grace',           pa:2, cost:0,   type:'legal',   icon:'ti-heart-handshake',successRate:100, requiresPost:'min_just', desc:'Recommander une grace au President — qui devra valider.'},
           {fn:'gerer_juges',          label:'Gérer les juges',              pa:1, cost:0,   type:'legal',   icon:'ti-gavel',          successRate:100, requiresPost:'min_just', desc:'Magistrat en fonction, candidatures reçues, nomination et révocation.'},
@@ -3065,12 +3095,33 @@ const BUILDINGS = {
         imageBg: "linear-gradient(135deg,#1a1408,#24180a)",
         desc: "La salle d'audience principale. Solennelle et intimidante.",
         imageUrl: "images/tribunal-salle-audience.webp",
-        persons: [
-          {name:'Juge Fontaine',  role:'Presidente du Tribunal (PNJ)', rel:'neutral', job:'juge'},
-          {name:'Procureur Saad', role:'Ministere public (PNJ)', rel:'neutral', job:'procureur'}
-        ],
+        // AUCUN CASTING DANS LE GABARIT, ET C'EST LA REGLE DU PROJET (12 octobre 2026).
+        // « Les empires partagent les mecaniques, jamais le casting : un PNJ n'est jamais
+        // partage. » Cette liste portait pourtant DEUX noms de Republia -- Juge Fontaine et
+        // Procureur Saad -- dans un gabarit utilise par les quatre empires.
+        //
+        // ET ELLE N'ETAIT AFFICHEE NULLE PART. `salle_audience` est la PREMIERE piece du
+        // batiment, donc `persons` du buildingContext la REMPLACE entierement
+        // (personnesNormalesDeLaPiece, plateau-multijoueur.js) -- et les quatre empires
+        // declarent le leur : Honore Cozetoujours a Luthecia, El Juez Manchado a Ciudad Roja,
+        // Camarade Juge Pravdine a Novomirsk, Cheikh Al-Verdict a Al Madina. La liste du gabarit
+        // etait donc du contenu mort, et du contenu mort portant un nom d'empire.
+        //
+        // Les ORDRES, eux, restent ici : ce sont les mecaniques, et elles sont bien communes.
+        persons: [],
         orders: [
-          {fn:'plainte',   label:'Consulter les affaires en cours', pa:1, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir le statut des affaires en cours : en attente de traitement, enquete en cours, transmise au tribunal, jugee.'},
+          {fn:'plainte',   label:'Consulter les affaires en cours', pa:1, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir le statut des affaires en cours : au parquet, enquete, poursuites, saisine du juge, non-lieu, relaxe, jugee.'},
+          // LE PARQUET (12 octobre 2026). Ecran institutionnel du Procureur de la Republique :
+          // ses dossiers, et les cinq actes qu'il peut poser sur chacun. Zero PA, comme tous les
+          // ecrans de decision du projet -- `deduireCoutOrdre` n'appelle `payer_ordre` que si
+          // `pa > 0 || cost > 0`, donc il ne traverse jamais le miroir des couts. Ce sont les
+          // ACTES qui pourraient couter, pas le fait de les lire ; aucun n'a de cout arbitre.
+          {fn:'parquet',   label:'Dossiers du parquet',   pa:0, cost:0,   type:'legal',   icon:'ti-scale-outline', successRate:100, requiresPost:'procureur', desc:'Reserve au Procureur de la Republique. Diligenter une enquete, prononcer un non-lieu, engager ou abandonner les poursuites, saisir le juge. Chaque acte exige votre presence dans le tribunal de la ville de l\'affaire.'},
+          // RENDRE LA SENTENCE MANQUAIT AU TRIBUNAL DE LA CAPITALE, et ce n'etait pas un choix :
+          // l'ordre n'etait declare que dans `tribunal-local`, celui des deux autres villes. Le
+          // juge de Luthecia n'avait donc aucun bouton pour juger les affaires de Luthecia.
+          // Defaut preexistant, corrige ici parce que la chaine du parquet s'y termine.
+          {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire dont le parquet vous a saisi. Requalification, relaxe ou condamnation ; la peine est bornee par le bareme.'},
           {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:50, desc:'Taux : 50% de base + CHA - malus si preuve reelle contre vous. Reussite eclatante = affaire classee ; reussite simple = circonstance attenuante ; echec flagrant = aggravation.'}
         ]
       },
@@ -4602,6 +4653,11 @@ const BUILDINGS = {
         orders: [
           {fn:'plainte',   label:'Consulter les affaires', pa:0, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir les affaires transmises par la police, en attente de jugement.'},
           {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:50, desc:'Taux : 50% de base + CHA - malus si preuve reelle contre vous. Reussite eclatante = affaire classee ; reussite simple = circonstance attenuante ; echec flagrant = aggravation.'},
+          // LE PARQUET SE DEPLACE (12 octobre 2026). Le Procureur est NATIONAL mais chacun de
+          // ses actes exige sa presence dans le tribunal de la ville de l'affaire : l'ecran est
+          // donc dans les trois tribunaux, et c'est la porte serveur qui refuse quand il n'est
+          // pas au bon endroit.
+          {fn:'parquet',   label:'Dossiers du parquet',   pa:0, cost:0,   type:'legal',   icon:'ti-scale-outline', successRate:100, requiresPost:'procureur', desc:'Reserve au Procureur de la Republique. Diligenter une enquete, prononcer un non-lieu, engager ou abandonner les poursuites, saisir le juge. Chaque acte exige votre presence dans le tribunal de la ville de l\'affaire.'},
           {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire transmise par le commissariat. Amende, prison, amenagement ou QHS.'},
           {fn:'acte_officiel_juge', label:'Delivrer un acte officiel', pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'juge', desc:'Rechercher une personne et lui delivrer l\'extrait d\'etat-civil/succession correspondant.'}
         ]
@@ -7369,9 +7425,20 @@ const CYCLES_ELECTORAUX = {};
 // POURQUOI CETTE LISTE EXISTE ICI. La classe d'une famille vit en base
 // (`pnj_familles_classes.classe`), et le navigateur n'a pas de resolveur job -> famille. La
 // famille `depute` se reconnait sans liste, par le siege (`assembleeSiegeParNomPnj`). La famille
-// `titulaire_poste` se reconnait par le NOM, et ces quinze noms sont la copie de
+// `titulaire_poste` se reconnait par le NOM, et ces DIX-HUIT noms sont la copie de
 // `titulaires_pnj.nom_pnj`. Le banc des interactions PNJ confronte cette copie au registre en
 // base : toute divergence rougit, dans un sens comme dans l'autre.
+//
+// ELLE EN PORTAIT QUINZE, ET LE REGISTRE EN AVAIT DIX-SEPT (rectifie le 12 octobre 2026). Le
+// releve qui avait servi a l'ecrire etait TRONQUE : il manquait `Raoul Toufaud (PNJ)`, le
+// commissaire de la capitale, et `Marcel Silo (PNJ)`, le directeur de l'entrepot de la capitale.
+// Consequence reelle et non theorique : ces deux PNJ de famille gamma n'etaient pas reconnus
+// comme tels par `pnjEstGamma`, donc l'ordre generique « Neutraliser » leur restait offert --
+// exactement ce que le lot du matin devait fermer. Les deux sont ajoutes.
+//
+// ET DEUX CHANGEMENTS DU SOIR : `Juge Fontaine` quitte le registre -- Honore Cozetoujours est
+// desormais le titulaire PNJ du tribunal de Luthecia -- et `Procureur Saad` y entre avec le
+// poste de procureur, qui n'existait pas.
 const PNJ_TITULAIRES_DE_POSTE_NOMS = [
   'Marcel Ancre (PNJ)',
   'Pascal Paguevite (PNJ)',
@@ -7379,9 +7446,12 @@ const PNJ_TITULAIRES_DE_POSTE_NOMS = [
   'Bernard Piluler (PNJ)',
   'Gustave Baril (PNJ)',
   'Fernand Cendrier (PNJ)',
-  'Juge Fontaine',
+  'Honoré Cozetoujours (PNJ)',
+  'Procureur Saad',
   'Mireille Sedlex (PNJ)',
   'Gérard Bretellewood (PNJ)',
+  'Raoul Toufaud (PNJ)',
+  'Marcel Silo (PNJ)',
   "Le Ministre des Affaires Étrangères (PNJ)",
   'Le Ministre des Finances (PNJ)',
   "Le Ministre de l'Information (PNJ)",
@@ -8071,6 +8141,12 @@ const POSTES_NOMMES_EXCLUSIFS = {
   // municipal, et le maire n'a aucune autorite sur le juge de sa ville. C'est ce que
   // distingue autoriteScope, qui vaut 'ville' par defaut pour tous les autres postes.
   juge:        { label: 'Juge',        nommePar: 'min_just', scope: 'ville', autoriteScope: 'pays', compatibles: ['depute'] },
+  // UN SEUL PROCUREUR POUR TOUT REPUBLIA (12 octobre 2026). `scope: 'pays'` : une seule ligne
+  // dans `postes_attribues`, et `city` nulle. Nomme par le Ministre de la Justice, comme le juge
+  // -- c'est desormais la SEULE prerogative judiciaire du ministre, qui ne peut plus classer une
+  // plainte lui-meme. La competence territoriale ne se partage pas, elle se DEPLACE : chaque
+  // acte du parquet exige la presence du Procureur dans le tribunal de la ville de l'affaire.
+  procureur:   { label: 'Procureur de la Republique', nommePar: 'min_just', scope: 'pays', autoriteScope: 'pays', compatibles: ['depute'] },
   commissaire: { label: 'Commissaire', nommePar: 'maire',    scope: 'ville', compatibles: ['depute'] },
   commandant:  { label: 'Commandant de la Caserne', nommePar: 'min_def', scope: 'pays', compatibles: ['depute'] },
   pm:          { label: 'Premier Ministre',              nommePar: 'president', scope: 'pays', compatibles: ['depute'] },

@@ -520,6 +520,15 @@ export const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
       "depute"
     ]
   },
+  "procureur": {
+    "label": "Procureur de la Republique",
+    "nommePar": "min_just",
+    "scope": "pays",
+    "autoriteScope": "pays",
+    "compatibles": [
+      "depute"
+    ]
+  },
   "commissaire": {
     "label": "Commissaire",
     "nommePar": "maire",
