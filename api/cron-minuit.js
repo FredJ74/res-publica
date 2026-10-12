@@ -6322,6 +6322,29 @@ export default async function handler(req, res) {
       return r || { ok: false, raison: 'rpc_indisponible' };
     });
 
+    // 5c. DELAIS DE JUGEMENT DE PREMIERE INSTANCE ARRIVES A ECHEANCE (12 octobre 2026, nuit).
+    //
+    //    QUINZE JOURS A COMPTER DU PV D'AUDITION pour obtenir un jugement de premiere instance.
+    //    Passe ce delai, les charges sont abandonnees : aucun joueur ne doit rester inculpe
+    //    indefiniment parce que le parquet ou le tribunal n'est tenu par personne.
+    //
+    //    CETTE PASSE NE CREE PAS LA REGLE, ELLE L'INSCRIT. La garde commune du parquet et les
+    //    portes du juge lisent l'echeance elles-memes : un dossier perime est deja intouchable
+    //    avant que cette tache ne tourne. Ce qu'elle apporte, c'est la CLOTURE -- le statut, la
+    //    consignation a la chronologie, et le retrait de l'avis de recherche de l'acte clos.
+    //
+    //    IDEMPOTENCE : l'UPDATE ne trouve que les dossiers encore vivants dont l'echeance est
+    //    depassee, et il est en compare-and-swap sur le statut. Un second passage n'en trouve
+    //    aucun, et un jugement rendu dans la meme seconde gagne contre l'expiration.
+    const delaisJudiciaires = await tacheQuotidienne('delais_judiciaires', async () => {
+      const rows = await sbRpc('justice_delais_echus', {}, HEADERS_SERVICE);
+      const r = Array.isArray(rows) ? rows[0] : rows;
+      if (!r || r.ok !== true) {
+        signalerEchec('delais_judiciaires', (r && r.raison) || 'verdict_absent');
+      }
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // 6. Resolution atomique des compromis arrives a echeance (permis + pret, ensemble)
     const compromisResolus = await resoudreCompromisExpires();
 
@@ -6555,7 +6578,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, payePolice, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, payePolice, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

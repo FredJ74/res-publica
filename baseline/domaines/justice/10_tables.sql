@@ -54,6 +54,18 @@ CREATE TABLE public.detentions (
   provenance text
 );
 
+CREATE TABLE public.dossiers_auditions (
+  id text NOT NULL,
+  affaire text NOT NULL,
+  pays text NOT NULL,
+  ville text,
+  personne text NOT NULL,
+  declaration text,
+  refus boolean DEFAULT false NOT NULL,
+  jour_pv integer NOT NULL,
+  fait_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.dossiers_judiciaires_actes (
   id text NOT NULL,
   affaire text NOT NULL,

@@ -216,6 +216,49 @@ function ouvrirInfoDetachement(nomEncode, roleEncode) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// ===========================================================================
+// STATUTS JUDICIAIRES PUBLICS — RECHERCHE / INCULPE (12 octobre 2026, nuit)
+// ===========================================================================
+// DEUX FAITS, ET RIEN D'AUTRE. Le serveur dit qui, dans CETTE piece, est recherche et qui est
+// inculpe. Il ne dit pas pourquoi, ni de quoi, ni depuis quand : ce sont des faits publics
+// locaux, pas un dossier consultable.
+//
+// AUCUNE REACTION N'EST CODEE. Ni popularite, ni influence, ni refus de service, ni rumeur. Les
+// joueurs qui lisent ces mentions en font ce qu'ils veulent -- c'est tout le principe.
+//
+// LA PORTE NE PREND AUCUN PARAMETRE, et c'est volontaire cote serveur : elle lit la presence de
+// l'appelant et ne rend que les personnes de sa piece. Ce navigateur ne peut donc pas s'en
+// servir pour savoir qui est recherche ailleurs.
+//
+// LES DEUX STATUTS SONT CUMULABLES, et l'affichage le montre : un joueur inculpe dans une
+// affaire et recherche dans une autre porte les deux mentions.
+let RP_STATUTS_JUDICIAIRES = {};
+
+async function rafraichirStatutsJudiciaires() {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('justice_statuts_publics', {})
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v || v.ok !== true || !Array.isArray(v.statuts)) return;
+  const table = {};
+  v.statuts.forEach(s => { if (s && s.nom) table[s.nom] = s; });
+  RP_STATUTS_JUDICIAIRES = table;
+}
+
+// Les mentions d'une personne. Rend une chaine vide quand elle n'en porte aucune : une personne
+// sans mention ne doit pas occuper une ligne de plus dans la carte.
+function marqueursJudiciairesHtml(nom) {
+  const s = RP_STATUTS_JUDICIAIRES[nom];
+  if (!s) return '';
+  let h = '';
+  if (s.recherche === true) {
+    h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.12em;color:#cc2020">RECHERCHE</div>';
+  }
+  if (s.inculpe === true) {
+    h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.12em;color:#cc8a40">INCULPE</div>';
+  }
+  return h;
+}
+
 function renderPersonsList(persons, targetId) {
   targetId = targetId || 'persons-list';
   persons = [...(persons || [])]; // mutable copy
@@ -244,7 +287,14 @@ function renderPersonsList(persons, targetId) {
     '<div>' +
     '<div class="person-name" style="color:#C9A84C">' + char.name + ' <span style="font-size:.8rem;color:#6a5a20">(Vous)</span></div>' +
     marqueurMutinHtml(char.name) +
-    (state.recherche?.length > 0 ? '<div style="font-size:.82rem;color:#cc2020;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;animation:blink 1s infinite">⚠ RECHERCHÉ</div>' : '') +
+    // SA PROPRE MENTION VIENT DE LA MEME PORTE QUE CELLE DES AUTRES (12 octobre 2026, nuit). Elle
+    // se lisait auparavant de `state.recherche`, le tableau local : il ignore la SUSPENSION par
+    // affaire -- un joueur dont l'audition est faite restait affiche « RECHERCHE » a ses propres
+    // yeux alors que plus personne d'autre ne le voyait ainsi. Repli sur le tableau local quand
+    // la porte n'a pas encore repondu, pour ne jamais effacer une mention par un simple delai.
+    (RP_STATUTS_JUDICIAIRES[char.name]
+       ? marqueursJudiciairesHtml(char.name)
+       : (state.recherche?.length > 0 ? '<div style="font-size:.82rem;color:#cc2020;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;animation:blink 1s infinite">⚠ RECHERCHÉ</div>' : '')) +
     '<div class="person-role">' + (state.poste?.name || ar?.name || 'Citoyen') + '</div>' +
     '</div></div>' : '';
 
@@ -457,6 +507,9 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
   targetId = targetId || 'persons-list';
   const moi = state.char?.name;
   try {
+    // Les statuts judiciaires sont relus EN MEME TEMPS que la presence : ils ne valent que pour
+    // cette piece, et une table perimee afficherait une mention sur quelqu'un qui est parti.
+    await rafraichirStatutsJudiciaires();
     const presents = await sbGetPresencesInRoom(state.country, state.currentCity, buildingId, roomId);
     // Si on a change de piece/scene entre temps (pour la rue, on verifie le noeud actuel)
     if (buildingId === 'rue-centrale') {
@@ -484,6 +537,7 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
       return '<div class="person-card vrai-joueur-card" onclick="openPnjModal(\'' + enc + '\')" style="border-left:2px solid ' + empireCol + '" title="Interagir">' +
       avatarHtml +
       '<div><div class="person-name" style="color:#f0ead6">' + p.name + ' <span style="font-size:.8rem;color:' + empireCol + '">[JOUEUR]</span></div>' +
+      marqueursJudiciairesHtml(p.name) +
       '<div class="person-role">Présent ici</div></div></div>';
     };
 

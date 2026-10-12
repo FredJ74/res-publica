@@ -569,7 +569,15 @@ def controles_du_monde(cat):
     # sa liste blanche, et c'est une TABLE et non une contrainte CHECK pour que les couches
     # futures -- temoins, audience, appel, execution de peine -- s'y ajoutent par une LIGNE au
     # lieu d'une migration de contrainte. Le compte des tables sans policy passe de 137 a 139.
-    att("tables creees", len(cat.tables), 293)
+    # 294 l'apres-midi du 12 octobre 2026 : +1, `dossiers_auditions`, LES PROCES-VERBAUX
+    # D'AUDITION. Un fait par dossier et par personne : ce que la personne mise en cause a declare,
+    # VERBATIM, ou son refus explicite de repondre -- et le refus est une reponse procedurale
+    # valide, sans aucun malus. C'EST CE PV QUI FAIT COURIR LE DELAI DE JUGEMENT, et non
+    # l'arrestation. APPEND-ONLY par les trois memes verrous que la chronologie, et le premier --
+    # l'absence de GRANT client -- A DU ETRE ECRIT : une table neuve nait avec ALL accorde a anon
+    # et authenticated par le defaut de la plateforme. Le compte des tables sans policy passe de
+    # 139 a 140.
+    att("tables creees", len(cat.tables), 294)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -709,8 +717,17 @@ def controles_du_monde(cat):
     # DROPPEES puis recreees avec une autre signature -- des remplacements, pas des ajouts --
     # et `plainte_classer_ministere` a ete SUPPRIMEE sans remplacement, ce qui retire une unite
     # que les quinze creations compensent.
-    att("signatures de fonction creees", cat.n_fonctions, 808)
-    att("noms de fonction distincts", len(cat.fonctions), 804,
+    # 817 l'apres-midi du 12 octobre 2026 : +9 pour le Tribunal, et aucune surcharge de plus
+    # (+9 noms distincts aussi). CE QUI EST NEUF : `pv_audition_realiser` (la porte de l'audition,
+    # et elle appartient A L'ACCUSE -- donc elle ne depend d'aucun poste institutionnel occupe),
+    # `dossiers_auditions_append_only` (le declencheur), `affaire_infraction_de` (l'ordre de
+    # preseance des trois qualifications, a un seul endroit), `justice_delai_jugement_jours` et
+    # `justice_seuil_procedure_simplifiee_jours` (les deux constantes de game design, declarees
+    # une fois), `affaire_delai_expire`, `justice_affaires_vivantes_avec_pv`,
+    # `justice_statuts_publics` (sans aucun parametre, volontairement : un nom en entree en aurait
+    # fait un scanner national) et `justice_delais_echus`.
+    att("signatures de fonction creees", cat.n_fonctions, 817)
+    att("noms de fonction distincts", len(cat.fonctions), 813,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -788,7 +805,12 @@ def controles_du_monde(cat):
     # `infractions` pour la qualification avant et apres -- et deux sur le registre des types, sa
     # cle primaire et le CHECK de son champ `pose_par`. L'ordre des actes est donc STRUCTUREL :
     # now() est CONSTANT dans une transaction, un tri par date serait indecidable.
-    att("contraintes posees", len(cat.contraintes), 551)
+    # 554 l'apres-midi du 12 octobre 2026 : +3 sur `dossiers_auditions` -- sa cle primaire,
+    # l'UNIQUE (affaire, personne) qui interdit une seconde audition, et le CHECK
+    # `declaration_ou_refus` qui rend LE PV VIDE STRUCTURELLEMENT IMPOSSIBLE : une declaration ou
+    # un refus, jamais les deux ni aucun des deux. Le silence n'est pas une reponse procedurale,
+    # et ce n'est pas la politesse d'une porte qui doit le dire.
+    att("contraintes posees", len(cat.contraintes), 554)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -841,7 +863,10 @@ def controles_du_monde(cat):
     # 180 dans la nuit du 12 octobre 2026 : +1, dossiers_actes_par_affaire. La chronologie se lit
     # TOUJOURS dossier par dossier, dans l'ordre des rangs : c'est la seule lecture que le parquet
     # et le juge font de cette table.
-    att("index autonomes crees", len(cat.index), 180)
+    # 181 l'apres-midi du 12 octobre 2026 : +1, dossiers_auditions_par_personne. Les deux seules
+    # lectures de cette table sont « les PV de cette personne » et « le PV de ce dossier » : la
+    # derivation du statut INCULPE passe par la premiere, a chaque composition de liste de piece.
+    att("index autonomes crees", len(cat.index), 181)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
@@ -872,7 +897,9 @@ def controles_du_monde(cat):
     # service_role et contre une fonction SECURITY DEFINER : les deux autres -- pas de GRANT, pas
     # de policy -- ne ferment que les roles soumis a la RLS. Une chronologie qu'une porte pourrait
     # reecrire ne serait pas une chronologie.
-    att("declencheurs crees", len(cat.triggers), 45)
+    # 46 l'apres-midi du 12 octobre 2026 : +1, l'append-only de `dossiers_auditions`. Troisieme
+    # verrou, et le seul opposable a service_role et aux fonctions SECURITY DEFINER.
+    att("declencheurs crees", len(cat.triggers), 46)
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.

@@ -11,8 +11,17 @@
 -- aucune regle d'echappement n'a ete reimplementee.
 --
 -- JUSTIFICATION DU SEED (chantier 2C)
--- 16 titulaires. DECISION GD ACQUISE : les postes institutionnels destines a
--- des PNJ sont occupes par ces PNJ dans un monde neuf.
+-- 18 titulaires. DECISION GD ACQUISE : les postes institutionnels destines a
+-- des PNJ sont occupes par ces PNJ dans un monde neuf. LE COMPTE EST RELEVE,
+-- PAS DECIDE, et il bouge tout seul : aucune ligne de cette table n'a jamais
+-- ete ecrite a la main. Les douze premieres viennent de la passe de minuit
+-- du 14 septembre 2026, les deux juges de province de celle du 21, et le
+-- commissaire de la capitale (Raoul Toufaud) et le directeur d'entrepot de
+-- la capitale (Marcel Silo) de celle du 12 octobre a 01 h 59, qui a trouve
+-- ces deux postes vacants. La dix-huitieme est la seule posee par une
+-- migration : le Procureur de la Republique (20261012091457). Chaque fois
+-- que la cascade nocturne pourvoit un poste de plus, ce seed grossit -- et
+-- c'est pour cela que le compte est tenu ici et non suppose.
 --
 -- ARBITRAGE DE GAME DESIGN
 -- Filtrer : ne garder que les lignes PNJ, jamais un titulaire PJ herite de

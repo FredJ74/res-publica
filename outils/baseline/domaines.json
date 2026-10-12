@@ -86,7 +86,7 @@
       ],
       [
         "justice",
-        "^(justice_|plainte_|plaintes_|detention|detentions_|qhs_|geoles_|affaire_|commissaire_|enquete_|arrestation_|police_|presidence_gracier|fraude_electorale|infraction_|infractions_|parquet_|juge_|dossier_acte_|dossiers_actes_)"
+        "^(justice_|plainte_|plaintes_|detention|detentions_|qhs_|geoles_|affaire_|commissaire_|enquete_|arrestation_|police_|presidence_gracier|fraude_electorale|infraction_|infractions_|parquet_|juge_|dossier_acte_|dossiers_actes_|dossiers_auditions_|pv_audition_)"
       ],
       [
         "sport",

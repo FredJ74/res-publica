@@ -1632,6 +1632,130 @@ async function ouvrirPorterPlainte(pa, cost) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// ===========================================================================
+// LE PV D'AUDITION — LA PORTE DE SORTIE DE L'ARRESTATION (12 octobre 2026, nuit)
+// ===========================================================================
+// POURQUOI CET ECRAN EXISTE. Une arrestation ouvre une detention ; rien ne la refermait si
+// aucun Procureur ni aucun juge n'etait joue. Le PV appartient a L'ACCUSE -- c'est lui qui parle
+// ou qui refuse de parler -- donc il ne depend d'aucun poste institutionnel occupe. C'est tout
+// l'interet : la protection temporelle ne peut pas etre bloquee par une institution vide.
+//
+// LE REFUS EST UNE REPONSE. Il n'est ni un aveu, ni une faute, et il n'emporte aucun malus :
+// l'ecran le presente a egalite avec la declaration, et pas comme un pis-aller. Le joueur peut
+// ecrire ce qu'il veut dans le champ libre -- « je ne parlerai qu'en presence de mon avocat »
+// est une declaration comme une autre. Rien ne la lit, rien ne la juge, aucune IA ne la recoit.
+//
+// AUCUNE DECISION N'EST PRISE ICI. L'ecran transmet un texte ou un refus ; le serveur inscrit le
+// PV, ouvre le delai de jugement et libere la detention d'avant jugement s'il y en a une.
+
+// Les affaires VIVANTES ou le joueur courant est mis en cause. Le statut et le PV viennent du
+// dossier tel que le serveur le rend : cet ecran ne deduit rien.
+const JUSTICE_STATUTS_VIVANTS = ['au_parquet', 'enquete', 'poursuites', 'saisie', 'abandon_demande'];
+function mesAffairesEnCause() {
+  return (state.plaintesEnCours || []).filter(
+    p => p && p.cible === state.char?.name && JUSTICE_STATUTS_VIVANTS.indexOf(p.status) >= 0);
+}
+
+function justiceSituationHtml() {
+  const affaires = mesAffairesEnCause();
+  if (affaires.length === 0) return '';
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
+  let h = '<div style="border:1px solid #4a2a10;background:#120a05;padding:1rem;margin-bottom:.8rem">';
+  h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#cc8a40;margin-bottom:.6rem">SITUATION JUDICIAIRE</div>';
+  affaires.forEach(a => {
+    const aPv = !!a.pv_le;
+    h += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0">';
+    h += '<div style="font-size:.82rem;color:#e0d5b8">' + ech(a.motif || 'Affaire') + '</div>';
+    h += '<div style="font-size:.72rem;color:#8a8060;margin:.15rem 0 .4rem">'
+       + (typeof justiceLibelleStatut === 'function' ? ech(justiceLibelleStatut(a.status)) : ech(a.status))
+       + (a.city ? ' · ' + ech(a.city) : '') + '</div>';
+    if (aPv) {
+      // LE DELAI EST AFFICHE TEL QUE LE SERVEUR L'A INSCRIT. Le navigateur ne le recalcule pas :
+      // il ne connait ni le jour de jeu du pays ni la regle des quinze jours.
+      h += '<div style="font-size:.74rem;color:#6a9a6a">Audition faite'
+         + (a.pv_refus ? ' (refus de repondre)' : '')
+         + '. Jugement attendu avant le jour ' + ech(a.delai_jugement_jour) + '.</div>';
+    } else {
+      h += '<div style="font-size:.74rem;color:#9a7a40;margin-bottom:.4rem">Votre audition n\'a pas encore eu lieu. '
+         + 'Tant qu\'elle n\'est pas faite, aucun delai ne court en votre faveur.</div>';
+      h += '<button onclick="ouvrirPvAudition(\'' + ech(a.id) + '\')" '
+         + 'style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;padding:.35rem .9rem;'
+         + 'border:1px solid #6a4a20;background:transparent;color:#C9A84C;cursor:pointer">Faire ma declaration</button>';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+function ouvrirPvAudition(affaireId) {
+  const a = mesAffairesEnCause().find(x => x.id === affaireId);
+  if (!a) { showToast('Affaire introuvable', "Cette affaire n'est plus en cours.", false); return; }
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
+  document.getElementById('postes-modal-title').textContent = 'Proces-verbal d\'audition';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;max-width:560px">' +
+    '<div style="font-size:.82rem;color:#e0d5b8;margin-bottom:.3rem">' + ech(a.motif || 'Affaire') + '</div>' +
+    '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.8rem;line-height:1.5">' +
+      'Vous pouvez faire une declaration, ou refuser de repondre. <strong style="color:#c0b090">Le refus est une ' +
+      'reponse valide</strong> : il n\'est ni un aveu ni une faute, et il n\'entraine aucune consequence ' +
+      'automatique. Dans les deux cas, votre audition sera consideree comme accomplie et le delai de jugement ' +
+      'commencera a courir.' +
+    '</div>' +
+    '<textarea id="pv-declaration" rows="6" maxlength="2000" placeholder="Votre declaration, telle qu\'elle sera consignee au dossier..." ' +
+      'style="width:100%;background:#0a0805;border:1px solid #2a2010;color:#c0b090;padding:.5rem;' +
+      'font-family:Crimson Pro,serif;font-size:.84rem;resize:vertical"></textarea>' +
+    '<div style="display:flex;gap:.5rem;margin-top:.8rem;flex-wrap:wrap">' +
+      '<button onclick="soumettrePvAudition(\'' + ech(a.id) + '\',false)" ' +
+        'style="font-family:Bebas Neue,sans-serif;font-size:.76rem;letter-spacing:.1em;padding:.45rem 1rem;' +
+        'border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer">Consigner ma declaration</button>' +
+      '<button onclick="soumettrePvAudition(\'' + ech(a.id) + '\',true)" ' +
+        'style="font-family:Bebas Neue,sans-serif;font-size:.76rem;letter-spacing:.1em;padding:.45rem 1rem;' +
+        'border:1px solid #4a3a20;background:transparent;color:#9a8a60;cursor:pointer">Refuser de repondre</button>' +
+    '</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+const PV_REFUS = {
+  acteur_non_authentifie: "Votre personnage n'a pas pu etre identifie.",
+  reponse_absente:        "Ecrivez une declaration, ou choisissez explicitement de refuser de repondre.",
+  affaire_absente:        "Cette affaire n'existe plus au greffe.",
+  pas_mon_affaire:        "Vous n'etes pas la personne mise en cause dans cette affaire.",
+  affaire_close:          "Cette affaire est close : il n'y a plus d'audition a faire.",
+  audition_deja_realisee: "Votre audition a deja ete consignee pour cette affaire.",
+  statut_a_change:        "Le dossier a bouge pendant votre saisie. Rouvrez-le et recommencez."
+};
+
+async function soumettrePvAudition(affaireId, refus) {
+  const champ = document.getElementById('pv-declaration');
+  const texte = refus ? null : (champ ? champ.value : '');
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('pv_audition_realiser', {
+    p_affaire_id: affaireId, p_declaration: texte, p_refus: !!refus
+  }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!v || v.ok !== true) {
+    showToast('Audition non consignee', PV_REFUS[v?.raison] || "Le greffe n'a pas enregistre votre audition.", false);
+    return;
+  }
+  // L'ETAT LOCAL RECOPIE CE QUE LE SERVEUR A ARRETE, il ne le compose pas.
+  const i = (state.plaintesEnCours || []).findIndex(p => p && p.id === affaireId);
+  if (i >= 0) {
+    state.plaintesEnCours[i] = Object.assign({}, state.plaintesEnCours[i], {
+      pv_le: 'consigne', pv_refus: !!refus,
+      pv_jour: v.jour_pv, delai_jugement_jour: v.delai_jugement_jour
+    });
+  }
+  if (v.libere === true && typeof state !== 'undefined') state.estEmprisonne = null;
+  showToast('Audition consignee',
+    (refus ? 'Votre refus de repondre a ete consigne au dossier.' : 'Votre declaration a ete consignee au dossier.')
+    + (v.libere === true ? ' Vous etes libere.' : '')
+    + ' Un jugement de premiere instance doit intervenir avant le jour ' + v.delai_jugement_jour + '.', true);
+  addJournalEntry('Audition consignee' + (refus ? ' (refus de repondre)' : '')
+    + ' — delai de jugement jusqu\'au jour ' + v.delai_jugement_jour + '.', 'event-neutral');
+  updateUI();
+}
+
 // SE DEFENDRE — formule validée avec Fred :
 // Taux = 50 (base) + (CHA-8)*3 (bonus/malus charisme) - 35 si preuve reelle contre l'accuse.
 // 4 resultats selon le jet : reussite critique (classe l'affaire), reussite simple
@@ -1648,10 +1772,29 @@ async function doDefense(pa, cost) {
   // LA DECISION VIT AU SERVEUR, pas ici : `plainte_defendre` refuse `affaire_non_defendable` sur
   // tout autre statut (registre 20261012102519). Ce filtre ne sert qu'a ne pas proposer un ordre
   // payant pour un refus certain.
-  const affaire = (state.plaintesEnCours || []).find(
-    p => p.cible === state.char?.name && p.status === 'au_parquet');
+  // LA PROCEDURE SIMPLIFIEE A UN DOMAINE (12 octobre 2026, nuit) : une infraction CANONIQUE sur
+  // le dossier, dont la peine de prison de REFERENCE est au plus de 2 jours. Une affaire a
+  // 3 jours ou plus suit la vraie chaine judiciaire et ne peut plus etre close ici, meme par une
+  // reussite eclatante. ET LA DEFENSE EST DEFINITIVE : une seule par affaire.
+  //
+  // LA DECISION EST AU SERVEUR, pas ici : `plainte_defendre` refuse
+  // `procedure_simplifiee_reservee_aux_peines_courtes`, `infraction_non_determinee` et
+  // `defense_deja_plaidee`. Ce filtre ne sert qu'a ne pas faire payer 2 PA et 300 FR pour un
+  // refus certain -- il ne fabrique aucune regle.
+  const eligibles = (state.plaintesEnCours || []).filter(
+    p => p.cible === state.char?.name && p.status === 'au_parquet' && !p.defense_le);
+  const affaire = eligibles.find(p => {
+    const inf = p.qualification_finale || p.qualification_parquet || p.infraction_constatee;
+    if (!inf || typeof getPeineParActe !== 'function') return false;
+    const ref = getPeineParActe(inf, false);
+    return !!ref && typeof ref.jours === 'number' && ref.jours <= 2;
+  });
   if (!affaire) {
-    showToast('Aucune affaire', "Vous n'avez aucune affaire en attente de jugement pour le moment.", false);
+    const motif = eligibles.length === 0
+      ? "Vous n'avez aucune affaire ouverte dans laquelle vous pourriez encore plaider."
+      : "Les faits qui vous sont reproches sont trop graves pour la procedure simplifiee : "
+        + "cette affaire sera jugee par le tribunal.";
+    showToast('Aucune affaire', motif, false);
     return;
   }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -1726,6 +1869,14 @@ async function doDefense(pa, cost) {
         ? 'Cette affaire a déjà été jugée ou classée. Votre défense n\'a pas été enregistrée.'
       : vDef?.raison === 'pas_mon_affaire' ? "Vous n'êtes pas la personne mise en cause dans cette affaire."
       : vDef?.raison === 'affaire_absente' ? "Cette affaire n'existe plus au greffe."
+      : vDef?.raison === 'procedure_simplifiee_reservee_aux_peines_courtes'
+        ? "Les faits reproches sont trop graves pour la procedure simplifiee : cette affaire sera jugee par le tribunal."
+      : vDef?.raison === 'infraction_non_determinee'
+        ? "Aucune infraction precise n'est encore retenue contre vous : il n'y a rien a plaider en procedure simplifiee."
+      : vDef?.raison === 'infraction_hors_catalogue'
+        ? "L'infraction retenue n'est pas au code penal. Signalez-le."
+      : vDef?.raison === 'defense_deja_plaidee'
+        ? "Vous avez deja plaide dans cette affaire. La procedure simplifiee est definitive."
       : "Le greffe n'a pas enregistré votre défense, alors que les frais ont été prélevés. Signalez-le.";
     showToast('Défense non enregistrée', motifRefus, false);
     addJournalEntry('Défense plaidée (jet ' + roll + '/' + taux + '%) mais NON enregistrée par le greffe.', 'event-bad');

@@ -10,11 +10,13 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 18 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 20 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   actions_tracables_pkey  (contrainte actions_tracables_pkey)
 --   demandes_grace_pkey  (contrainte demandes_grace_pkey)
 --   detentions_pkey  (contrainte detentions_pkey)
 --   dossiers_actes_un_rang_par_affaire  (contrainte dossiers_actes_un_rang_par_affaire)
+--   dossiers_auditions_pkey  (contrainte dossiers_auditions_pkey)
+--   dossiers_auditions_un_pv_par_affaire_et_personne  (contrainte dossiers_auditions_un_pv_par_affaire_et_personne)
 --   dossiers_judiciaires_actes_pkey  (contrainte dossiers_judiciaires_actes_pkey)
 --   dossiers_judiciaires_actes_types_pkey  (contrainte dossiers_judiciaires_actes_types_pkey)
 --   impacts_indices_attente_id_unique  (contrainte impacts_indices_attente_id_unique)
@@ -32,5 +34,6 @@
 
 -- Index autonomes :
 CREATE INDEX dossiers_actes_par_affaire ON public.dossiers_judiciaires_actes USING btree (affaire, rang);
+CREATE INDEX dossiers_auditions_par_personne ON public.dossiers_auditions USING btree (personne, affaire);
 CREATE INDEX idx_actions_tracables_pays ON public.actions_tracables USING btree (country, city);
 CREATE INDEX jugements_accuse_actifs ON public.jugements USING btree (accuse) WHERE (executee = false);

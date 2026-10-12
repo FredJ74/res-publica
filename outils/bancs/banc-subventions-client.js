@@ -211,8 +211,13 @@ att('le cron appelle subventions_expirer',
     && CRON.indexOf("sbRpc('subventions_expirer'") >= 0);
 att('avec les entetes de service -- un cron n est pas un joueur',
     /sbRpc\('subventions_expirer',[^)]*HEADERS_SERVICE\)/.test(CRON));
+// L'ASSERTION PORTAIT SUR UN VOISINAGE, ET LE VOISIN A CHANGE (12 octobre 2026). Elle exigeait
+// la chaine « subventionsExpirees, compromisResolus » : la tache d'expiration des delais
+// judiciaires s'est intercalee entre les deux, et le banc est tombe pour une raison qui n'etait
+// pas la sienne. Ce qui compte est que la variable FIGURE dans le corps de la reponse -- une
+// tache absente du rapport est une tache qu'on ne verra pas echouer -- pas qui la precede.
 att('et la tache est rapportee dans le corps de la passe',
-    CRON.indexOf('subventionsExpirees, compromisResolus') >= 0,
+    /const corps = \{[^;]*\bsubventionsExpirees\b/.test(CRON),
     'une tache absente du rapport est une tache qu on ne verra pas echouer');
 att('elle tourne APRES la cascade municipale, qui alimente l enveloppe',
     CRON.indexOf("tacheQuotidienne('budgets_municipaux'")

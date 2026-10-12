@@ -114,8 +114,13 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # sans le registre des TYPES, chaque acte fait LEVER la transaction qui le pose -- donc plus
 # aucun jugement possible dans un monde neuf.
 # LES DEUX VALEURS CI-DESSOUS SONT RELEVEES EN BASE le 12 octobre 2026 par la requete citee.
-TABLES_ATTENDUES = 298    # 296 -> 298 le 12 octobre 2026, nuit : la chronologie judiciaire
-EMPREINTE_LISTE = "ea094171ef6758642930c10dfd12728f"   # md5(string_agg(relname,',' order by relname collate "C"))
+# 298 -> 299 le 12 octobre 2026, nuit : `dossiers_auditions`, LES PROCES-VERBAUX D'AUDITION.
+# Un fait par dossier et par personne : ce qu'elle a declare, verbatim, ou son refus explicite de
+# repondre. CLASSEE C, et c'est le meme raisonnement que pour la chronologie : semer un PV
+# fabriquerait une declaration que personne n'a faite, et la table etant append-only elle serait
+# ineffacable.
+TABLES_ATTENDUES = 299    # 298 -> 299 le 12 octobre 2026, nuit : les proces-verbaux d'audition
+EMPREINTE_LISTE = "2981a23c55778667b01c04949a40aeee"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

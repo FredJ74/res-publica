@@ -446,6 +446,12 @@ function switchSelfTab(tab, el) {
 
     let html = '<div style="padding:1.2rem;max-width:600px">';
 
+    // SITUATION JUDICIAIRE, EN TETE DE L'ONGLET (12 octobre 2026, nuit). Un joueur arrete n'a
+    // aucune autre porte : il ne peut pas se deplacer, donc l'audition ne peut pas vivre dans un
+    // batiment. Elle vit sur sa propre fiche, qui reste atteignable en detention. Le bloc
+    // n'apparait QUE s'il est mis en cause dans une affaire vivante -- sinon il n'existe pas.
+    if (typeof justiceSituationHtml === 'function') html += justiceSituationHtml();
+
     // Ordre Dormir
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
     html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';

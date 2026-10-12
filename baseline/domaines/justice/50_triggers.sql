@@ -10,5 +10,6 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE TRIGGER trg_dossiers_auditions_append_only BEFORE DELETE OR UPDATE ON dossiers_auditions FOR EACH ROW EXECUTE FUNCTION dossiers_auditions_append_only();
 CREATE TRIGGER trg_dossiers_actes_append_only BEFORE DELETE OR UPDATE ON dossiers_judiciaires_actes FOR EACH ROW EXECUTE FUNCTION dossiers_actes_append_only();
 CREATE TRIGGER trg_plaintes_epingler_verdict BEFORE UPDATE ON plaintes_en_cours FOR EACH ROW EXECUTE FUNCTION plaintes_epingler_verdict();
