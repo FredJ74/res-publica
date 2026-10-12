@@ -86,7 +86,7 @@
       ],
       [
         "justice",
-        "^(justice_|plainte_|plaintes_|detention|detentions_|qhs_|geoles_|affaire_|commissaire_|enquete_|arrestation_|police_|presidence_gracier|fraude_electorale|infraction_|infractions_|parquet_|juge_|dossier_acte_|dossiers_actes_|dossiers_auditions_|pv_audition_)"
+        "^(justice_|plainte_|plaintes_|detention|detentions_|qhs_|geoles_|affaire_|commissaire_|enquete_|arrestation_|police_|presidence_gracier|fraude_electorale|infraction_|infractions_|parquet_|juge_|dossier_acte_|dossiers_actes_|dossiers_auditions_|pv_audition_|avocat_|avocats_|defense_|defenses_|temoin_|temoins_|audience_|audition_)"
       ],
       [
         "sport",
@@ -209,6 +209,10 @@
       "souvenir_accueil_tirer": [
         "personnage et presence",
         "tire la fuite d'un souvenir d'accueil : souvenirs_accueil est classee personnage et presence en 2C, et le SCANDALE qui en decoule nomme un personnage"
+      ],
+      "recherche_retirer_par_id": [
+        "justice",
+        "retrait d'UNE SEULE entree de l'avis de recherche, par son identifiant : meme raison que recherche_inscrire et recherche_retirer, et c'est la porte que la cloture d'une affaire appelle pour n'eteindre que la recherche de non-presentation qui en depend"
       ]
     }
   },

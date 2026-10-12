@@ -18,6 +18,7 @@ ALTER TABLE public.actes_nocturnes_mecanismes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_actions_tribunal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_journal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.administrateurs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.administrateurs_invitations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ambassades_ouvertes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cron_journal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.etats_urgence ENABLE ROW LEVEL SECURITY;

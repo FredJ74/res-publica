@@ -56,6 +56,14 @@ CREATE TABLE public.administrateurs (
   cree_le timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.administrateurs_invitations (
+  email text NOT NULL,
+  note text,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL,
+  consommee_le timestamp with time zone,
+  consommee_par uuid
+);
+
 CREATE TABLE public.ambassades_ouvertes (
   id text NOT NULL,
   pays_hote text NOT NULL,

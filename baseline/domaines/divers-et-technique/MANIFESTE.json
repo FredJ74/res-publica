@@ -81,6 +81,12 @@
    "tbl": "administrateurs"
   },
   {
+   "empreinte": "3ffed38f7ff76adc736bcaa34a088c33",
+   "genre": "p",
+   "nom": "administrateurs_invitations_pk",
+   "tbl": "administrateurs_invitations"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "ambassades_ouvertes_pkey",
@@ -145,6 +151,18 @@
    "genre": "c",
    "nom": "admin_actions_tribunal_poste",
    "tbl": "admin_actions_tribunal"
+  },
+  {
+   "empreinte": "213873b81c7ebee6541c6cfd6ddb19e1",
+   "genre": "c",
+   "nom": "administrateurs_invitations_consommation",
+   "tbl": "administrateurs_invitations"
+  },
+  {
+   "empreinte": "a4e0e6241499324c1ed3ffcb91520b98",
+   "genre": "c",
+   "nom": "administrateurs_invitations_minuscules",
+   "tbl": "administrateurs_invitations"
   },
   {
    "empreinte": "db5c575c6264ef9076bce4f38125d799",
@@ -306,6 +324,18 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "administrateurs_invitations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "administrateurs_invitations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "ambassades_ouvertes",
@@ -441,12 +471,12 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "1aedc993b840c55901fddd190f4f413b",
-  "30_contraintes.sql": "e6c6a32fe4520d5bc1a3f1f16f44214c",
-  "35_index.sql": "4bf937bfe70466f9a18ee51b7454cfff",
+  "10_tables.sql": "a76aef348318e54583a1ac0938d76759",
+  "30_contraintes.sql": "2cfe772a5bd19b58fddfae5a8e995118",
+  "35_index.sql": "f5353cdc1ae617db358fd3f27df60ed8",
   "50_triggers.sql": "f193002b8e488dd94777990af0582f7e",
-  "60_rls-policies.sql": "127d896bc7a75206905f39b0aa9f90d6",
-  "70_droits.sql": "51f0bc4d9427a81faee941719cc18272",
+  "60_rls-policies.sql": "2e15cfd84fa88375e6f8b16f59e2b301",
+  "70_droits.sql": "080c1bb041faba82a5d6ef430034c6c6",
   "80_commentaires.sql": "959279d927075057f92d423016b18182"
  },
  "fonctions": [],
@@ -481,6 +511,7 @@
   "actes_nocturnes_pkey",
   "admin_actions_tribunal_pk",
   "admin_journal_pk",
+  "administrateurs_invitations_pk",
   "administrateurs_pk",
   "ambassades_ouvertes_pkey",
   "cron_journal_pkey",
@@ -608,6 +639,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "administrateurs_invitations"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "ambassades_ouvertes"
   },
   {
@@ -696,6 +732,12 @@
    "empreinte_catalogue": "52d141974289f7037918da1aa5f6fab5",
    "empreinte_texte": "e8140fa5e65e307436b6061c53f04e6d",
    "nom": "administrateurs"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "0b5190c2e94bbd0efe97262eec92efc6",
+   "empreinte_texte": "d3e97de9e582a1620fdc09ad18e7993c",
+   "nom": "administrateurs_invitations"
   },
   {
    "colonnes": 5,

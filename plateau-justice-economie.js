@@ -1684,6 +1684,16 @@ function justiceSituationHtml() {
          + 'style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;padding:.35rem .9rem;'
          + 'border:1px solid #6a4a20;background:transparent;color:#C9A84C;cursor:pointer">Faire ma declaration</button>';
     }
+    // CONSTITUER SA DEFENSE (12 octobre 2026, soir). Le bouton n'apparait qu'a partir des
+    // POURSUITES : avant, il n'y a pas encore d'accusation a defendre, et la porte serveur refuse
+    // `poursuites_non_engagees`. Ce filtre ne fabrique aucune regle -- il evite un refus certain.
+    if (a.status === 'poursuites' || a.status === 'saisie' || a.status === 'abandon_demande') {
+      h += '<div style="margin-top:.4rem">'
+         + '<button onclick="ouvrirChoixAvocat(\'' + ech(a.id) + '\')" '
+         + 'style="font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;padding:.35rem .9rem;'
+         + 'border:1px solid #4a3a20;background:transparent;color:#c0a060;cursor:pointer">'
+         + (a.audience_ouverte_le ? 'Ma defense' : 'Constituer ma defense') + '</button></div>';
+    }
     h += '</div>';
   });
   // LA FENETRE D'APPEL. Elle dure DEUX JOURS, et la peine court pendant ce temps : l'appel n'est
@@ -14228,4 +14238,526 @@ async function jugeRelaxer(id) {
     addExternalEvent('JUGEMENT : relaxe prononcee par ' + r.juge + '.');
   }
   await ouvrirDossiersJuge(0, 0);
+}
+
+// ===========================================================================================
+// LE BARREAU, LES TEMOINS ET L'AUDIENCE -- COTE NAVIGATEUR (12 octobre 2026, soir)
+// ===========================================================================================
+//
+// CES ECRANS NE DECIDENT RIEN. Chacun appelle une porte serveur et affiche ce qu'elle rend. Les
+// gardes -- qualification d'avocat, poursuites engagees, audience ouverte, presence au greffe ou
+// au commissariat, titularite d'un poste, premier acceptant -- vivent TOUTES au serveur. Ce qui
+// est ici relève de l'ergonomie : ne pas proposer un bouton dont le refus est certain, et dire la
+// vraie raison quand le serveur refuse.
+//
+// AUCUN JUGEMENT HUMAIN N'EST CODE. Pas de « demander la relaxe », pas de « plaider » avec un
+// effet, pas de score de credibilite, pas de malus parce qu'un temoin refuse. Ce qui se dit entre
+// humains se dira dans le chat d'audience, qui n'est pas de cette tranche.
+
+const JUSTICE_REFUS = {
+  acteur_non_authentifie: "Votre personnage n'est pas reconnu par le serveur.",
+  affaire_absente: "Cette affaire n'existe plus au greffe.",
+  affaire_close: "Cette affaire est close : la procedure est terminee.",
+  pas_mon_affaire: "Vous n'etes pas partie a cette affaire.",
+  pas_mon_dossier: "Vous n'etes pas l'avocat retenu pour cette affaire.",
+  autorite_refusee: "Vous n'avez pas qualite pour cet acte.",
+  qualification_avocat_requise: "Vous n'avez pas la qualification professionnelle d'avocat.",
+  tarification_absente: "Indiquez une tarification : c'est elle qui vous inscrit a la liste.",
+  tarification_trop_longue: "Tarification trop longue (200 caracteres au plus).",
+  poursuites_non_engagees: "Vous n'etes pas encore poursuivi : il n'y a rien a defendre.",
+  audience_ouverte: "L'audience est ouverte : la defense est verrouillee jusqu'au jugement.",
+  audience_non_ouverte: "L'audience n'est pas ouverte.",
+  audience_deja_ouverte: "L'audience de cette affaire est deja ouverte.",
+  avocat_deja_retenu: "Un avocat a deja ete retenu pour cette defense.",
+  aucun_avocat_designe: "Choisissez au moins un avocat.",
+  aucune_demande_envoyee: "Aucune demande n'a pu etre envoyee.",
+  demande_absente: "Cette demande n'existe plus.",
+  demande_close: "Cette demande n'est plus en attente.",
+  pas_ma_demande: "Cette demande ne vous est pas adressee.",
+  aucune_defense_constituee: "Aucun avocat n'est retenu pour cette affaire.",
+  defense_deja_rompue: "Cette defense a deja ete rompue.",
+  presence_au_greffe_requise: "Le dossier ne se consulte qu'au greffe du tribunal competent.",
+  presence_au_commissariat_requise: "Presentez-vous au commissariat de la ville du tribunal competent.",
+  greffe_indetermine: "Aucun greffe competent pour cette ville.",
+  commissariat_indetermine: "Aucun commissariat competent pour cette ville.",
+  reponse_absente: "Il faut deposer un texte, ou refuser explicitement.",
+  audition_deja_realisee: "Vous avez deja ete entendu dans cette affaire.",
+  aucune_citation_vivante: "Vous n'etes pas cite comme temoin dans cette affaire.",
+  citation_deja_close: "Cette citation est deja close.",
+  temoin_manquant: "Indiquez le nom du temoin.",
+  temoin_introuvable: "Aucun personnage de ce nom.",
+  temoin_deja_cite: "Ce temoin est deja cite dans cette affaire.",
+  le_prevenu_n_est_pas_temoin: "La personne mise en cause ne peut pas etre son propre temoin.",
+  pas_soi_meme: "Vous ne pouvez pas vous citer vous-meme.",
+  pas_juge_de_cette_ville: "Vous n'etes pas le juge de cette ville.",
+  affaire_non_saisie: "Vous n'etes pas saisi de cette affaire.",
+  delai_de_jugement_expire: "Le delai de jugement est expire : la procedure est eteinte.",
+  personne_manquante: "Indiquez la personne concernee.",
+  ouverture_non_appliquee: "L'ouverture n'a pas ete enregistree. Signalez-le.",
+  statut_a_change: "L'etat du dossier a change entre-temps. Rouvrez l'ecran."
+};
+function justiceRefus(v, defaut) {
+  const r = v && v.raison;
+  return (r && JUSTICE_REFUS[r]) || defaut || "Le serveur a refuse cette action.";
+}
+function justiceEch(t) {
+  return (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
+}
+function justiceOuvrirModale(titre, html) {
+  document.getElementById('postes-modal-title').textContent = titre;
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+const JUSTICE_BTN = 'font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;'
+  + 'padding:.4rem .9rem;border:1px solid #4a3a20;background:transparent;color:#c0a060;cursor:pointer';
+const JUSTICE_BTN_OK = 'font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.1em;'
+  + 'padding:.4rem .9rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer';
+const JUSTICE_CHAMP = 'width:100%;background:#0a0805;border:1px solid #2a2010;color:#c0b090;'
+  + 'padding:.45rem;font-family:Crimson Pro,serif;font-size:.84rem';
+
+// -------------------------------------------------------------------------------------------
+// LE PREVENU CONSTITUE SA DEFENSE
+// -------------------------------------------------------------------------------------------
+// PLUSIEURS AVOCATS A LA FOIS, ET AUTANT DE FOIS QU'IL VEUT tant qu'aucun n'a accepte : des cases
+// a cocher, pas un choix unique. LA LISTE NE PORTE QUE DEUX INFORMATIONS -- l'identite et la
+// tarification publiee. La caracteristique mecanique de l'avocat n'est pas filtree ici : le
+// serveur ne l'envoie pas, et sa table ne la contient pas.
+async function ouvrirChoixAvocat(affaireId) {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('justice_avocats_disponibles', { p_affaire_id: affaireId })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Defense', justiceRefus(v), false); return; }
+
+  const avocats = Array.isArray(v.avocats) ? v.avocats : [];
+  const demandes = Array.isArray(v.demandes) ? v.demandes : [];
+  let h = '<div style="padding:1rem;max-width:620px">';
+  if (v.avocat_retenu) {
+    h += '<div style="font-size:.84rem;color:#6a9a6a;margin-bottom:.6rem">Votre defense est assuree par <strong>'
+       + justiceEch(v.avocat_retenu) + '</strong>.</div>';
+    if (v.audience_ouverte === true) {
+      h += '<div style="font-size:.76rem;color:#9a7a40">L\'audience est ouverte : vous ne pouvez plus changer d\'avocat.</div>';
+    } else {
+      h += '<div style="display:flex;gap:.5rem;flex-wrap:wrap"><button style="' + JUSTICE_BTN + '" '
+         + 'onclick="defenseRompre(\'' + justiceEch(affaireId) + '\')">Revoquer mon avocat</button></div>';
+    }
+    h += '</div>';
+    justiceOuvrirModale('Ma defense', h);
+    return;
+  }
+  h += '<div style="font-size:.76rem;color:#8a8060;margin-bottom:.8rem;line-height:1.5">'
+     + 'Vous pouvez solliciter <strong style="color:#c0b090">plusieurs avocats a la fois</strong>, et recommencer '
+     + 'tant qu\'aucun n\'a accepte. <strong style="color:#c0b090">Le premier qui accepte</strong> obtient le '
+     + 'dossier ; les autres demandes tombent. La tarification affichee est celle que l\'avocat publie : '
+     + 'HG n\'en preleve rien et n\'impose rien. Ce que vous reglez, et comment, se decide entre vous. '
+     + 'A defaut d\'avocat, un commis d\'office vous est attribue.'
+     + '</div>';
+  if (avocats.length === 0) {
+    h += '<div style="font-size:.78rem;color:#9a7a40">Aucun avocat n\'est inscrit au barreau pour le moment. '
+       + 'Un avocat commis d\'office plaidera pour vous.</div>';
+  } else {
+    h += '<div style="display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem">';
+    avocats.forEach((a, i) => {
+      const dej = demandes.find(d => d.avocat === a.nom && d.etat === 'en_attente');
+      h += '<label style="display:flex;gap:.5rem;align-items:baseline;font-size:.82rem;color:#e0d5b8">'
+         + '<input type="checkbox" class="avocat-choix" value="' + justiceEch(a.nom) + '"'
+         + (dej ? ' disabled' : '') + '>'
+         + '<span>' + justiceEch(a.nom) + '</span>'
+         + '<span style="font-size:.74rem;color:#9a8a60">— ' + justiceEch(a.tarification) + '</span>'
+         + (dej ? '<span style="font-size:.7rem;color:#6a9a6a">demande en attente</span>' : '')
+         + '</label>';
+    });
+    h += '</div>';
+    h += '<div style="display:flex;gap:.5rem;flex-wrap:wrap"><button style="' + JUSTICE_BTN_OK + '" '
+       + 'onclick="defenseDemander(\'' + justiceEch(affaireId) + '\')">Solliciter les avocats coches</button></div>';
+  }
+  if (demandes.length > 0) {
+    h += '<div style="margin-top:1rem;border-top:1px solid #2a1a0a;padding-top:.6rem">'
+       + '<div style="font-size:.7rem;letter-spacing:.12em;color:#8a7040;font-family:Bebas Neue,sans-serif">MES DEMANDES</div>';
+    demandes.forEach(d => {
+      h += '<div style="font-size:.76rem;color:#8a8060">' + justiceEch(d.avocat) + ' — ' + justiceEch(d.etat) + '</div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+  justiceOuvrirModale('Constituer ma defense', h);
+}
+
+async function defenseDemander(affaireId) {
+  const choisis = Array.from(document.querySelectorAll('.avocat-choix:checked')).map(c => c.value);
+  if (choisis.length === 0) { showToast('Defense', 'Cochez au moins un avocat.', false); return; }
+  const v = await sbRpc('defense_demander', { p_affaire_id: affaireId, p_avocats: choisis })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Defense', justiceRefus(v), false); return; }
+  const n = Array.isArray(v.envoyees) ? v.envoyees.length : 0;
+  showToast('Demandes envoyees', n + (n > 1 ? ' avocats ont ete sollicites.' : ' avocat a ete sollicite.')
+    + ' Le premier qui accepte obtiendra le dossier.', true);
+  addJournalEntry('Defense : ' + n + ' avocat(s) sollicite(s).', 'event-neutral');
+  await ouvrirChoixAvocat(affaireId);
+}
+
+async function defenseRompre(affaireId) {
+  const v = await sbRpc('defense_rompre', { p_affaire_id: affaireId })
+    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Defense', justiceRefus(v), false); return; }
+  showToast('Defense rompue', v.par === 'avocat'
+    ? 'Vous avez abandonne cette defense. Vous n\'avez plus acces au dossier.'
+    : 'Votre avocat est revoque. Vous pouvez en solliciter d\'autres.', true);
+  addJournalEntry('Defense rompue (' + justiceEch(v.par) + ').', 'event-neutral');
+  document.getElementById('modal-postes')?.classList.remove('open');
+}
+
+// -------------------------------------------------------------------------------------------
+// L'AVOCAT : SON INSCRIPTION AU BARREAU, ET LES DEFENSES QU'ON LUI PROPOSE
+// -------------------------------------------------------------------------------------------
+async function ouvrirAvocatBarreau() {
+  if (typeof sbRpc !== 'function') return;
+  const [t, d] = await Promise.all([
+    sbRpc('avocat_ma_tarification', {}).then(r => Array.isArray(r) ? r[0] : r).catch(() => null),
+    sbRpc('defense_mes_demandes', {}).then(r => Array.isArray(r) ? r[0] : r).catch(() => null)
+  ]);
+  let h = '<div style="padding:1rem;max-width:620px">';
+  if (!t || t.qualifie !== true) {
+    h += '<div style="font-size:.8rem;color:#9a7a40;line-height:1.5">Vous n\'avez pas la qualification '
+       + 'professionnelle d\'avocat. Le barreau n\'est ouvert qu\'a ceux qui la detiennent.</div></div>';
+    justiceOuvrirModale('Barreau', h);
+    return;
+  }
+  h += '<div style="font-size:.7rem;letter-spacing:.12em;color:#8a7040;font-family:Bebas Neue,sans-serif">MA TARIFICATION</div>'
+     + '<div style="font-size:.74rem;color:#8a8060;margin:.3rem 0 .5rem;line-height:1.5">'
+     + 'Champ libre. « 500 FR », « gratuit », « selon affaire », « a negocier » : ce que vous voulez. '
+     + 'HG ne preleve rien et ne verifie rien — il affiche. <strong style="color:#c0b090">C\'est elle qui vous '
+     + 'inscrit a la liste</strong> des avocats que les prevenus peuvent solliciter.</div>'
+     + '<input id="avocat-tarif" type="text" maxlength="200" style="' + JUSTICE_CHAMP + '" value="'
+     + justiceEch(t.tarification || '') + '" placeholder="500 FR / gratuit / selon affaire...">'
+     + '<div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">'
+     + '<button style="' + JUSTICE_BTN_OK + '" onclick="avocatPublierTarif()">Publier ma tarification</button>'
+     + (t.tarification ? '<button style="' + JUSTICE_BTN + '" onclick="avocatRetirerTarif()">Me retirer de la liste</button>' : '')
+     + '</div>';
+
+  const dem = (d && Array.isArray(d.demandes)) ? d.demandes : [];
+  h += '<div style="margin-top:1.2rem;border-top:1px solid #2a1a0a;padding-top:.6rem">'
+     + '<div style="font-size:.7rem;letter-spacing:.12em;color:#8a7040;font-family:Bebas Neue,sans-serif">DEFENSES PROPOSEES</div>';
+  if (dem.length === 0) {
+    h += '<div style="font-size:.76rem;color:#5a4030;font-style:italic;margin-top:.3rem">Aucune demande en attente.</div>';
+  } else {
+    h += '<div style="font-size:.72rem;color:#8a8060;margin:.3rem 0 .5rem">Vous ne voyez pas encore le dossier : '
+       + 'il ne s\'ouvrira qu\'apres votre acceptation, et uniquement au greffe du tribunal competent.</div>';
+    dem.forEach(x => {
+      h += '<div style="border-top:1px solid #1a1208;padding:.4rem 0">'
+         + '<div style="font-size:.82rem;color:#e0d5b8">' + justiceEch(x.prevenu) + '</div>'
+         + '<div style="font-size:.72rem;color:#8a8060">' + justiceEch(x.affaire)
+         + (x.ville ? ' · ' + justiceEch(x.ville) : '') + '</div>'
+         + '<div style="display:flex;gap:.5rem;margin-top:.3rem;flex-wrap:wrap">'
+         + '<button style="' + JUSTICE_BTN_OK + '" onclick="defenseRepondre(' + Number(x.rang) + ',true)">Accepter</button>'
+         + '<button style="' + JUSTICE_BTN + '" onclick="defenseRepondre(' + Number(x.rang) + ',false)">Refuser</button>'
+         + '</div></div>';
+    });
+  }
+  h += '</div>';
+
+  const mes = (d && Array.isArray(d.defenses)) ? d.defenses : [];
+  if (mes.length > 0) {
+    h += '<div style="margin-top:1rem;border-top:1px solid #2a1a0a;padding-top:.6rem">'
+       + '<div style="font-size:.7rem;letter-spacing:.12em;color:#8a7040;font-family:Bebas Neue,sans-serif">MES CLIENTS</div>';
+    mes.forEach(x => {
+      h += '<div style="font-size:.78rem;color:#8a8060;margin-top:.3rem">' + justiceEch(x.prevenu)
+         + ' — ' + justiceEch(x.affaire) + (x.ville ? ' · ' + justiceEch(x.ville) : '')
+         + (x.audience_ouverte === true ? ' · audience ouverte' : '') + '</div>';
+    });
+    h += '<div style="font-size:.72rem;color:#5a4030;margin-top:.3rem">Le dossier se consulte au greffe.</div></div>';
+  }
+  h += '</div>';
+  justiceOuvrirModale('Mon inscription au barreau', h);
+}
+
+async function avocatPublierTarif() {
+  const champ = document.getElementById('avocat-tarif');
+  const v = await sbRpc('avocat_publier_tarification', { p_tarification: champ ? champ.value : '' })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Barreau', justiceRefus(v), false); return; }
+  showToast('Tarification publiee', 'Vous apparaissez desormais dans la liste des avocats.', true);
+  await ouvrirAvocatBarreau();
+}
+async function avocatRetirerTarif() {
+  const v = await sbRpc('avocat_retirer_tarification', {})
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Barreau', justiceRefus(v), false); return; }
+  showToast('Retire de la liste', 'Vous n\'apparaissez plus dans la liste des avocats.', true);
+  await ouvrirAvocatBarreau();
+}
+async function defenseRepondre(rang, accepte) {
+  const v = await sbRpc('defense_repondre', { p_rang: rang, p_accepte: !!accepte })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Defense', justiceRefus(v), false); return; }
+  if (v.accepte === true) {
+    showToast('Defense acceptee', 'Vous defendez ' + justiceEch(v.prevenu)
+      + '. Le dossier complet se consulte au greffe du tribunal competent.', true);
+    addJournalEntry('Defense acceptee — ' + justiceEch(v.prevenu) + '.', 'event-good');
+  } else {
+    showToast('Defense refusee', 'Vous avez decline cette defense.', true);
+  }
+  await ouvrirAvocatBarreau();
+}
+
+// -------------------------------------------------------------------------------------------
+// L'AVOCAT AU GREFFE : LE DOSSIER COMPLET
+// -------------------------------------------------------------------------------------------
+// LE SERVEUR EXIGE SA PRESENCE ICI, et c'est lui qui refuse. L'ecran ne fait que lire.
+async function ouvrirAvocatDossiers() {
+  if (typeof sbRpc !== 'function') return;
+  const d = await sbRpc('defense_mes_demandes', {}).then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  const mes = (d && Array.isArray(d.defenses)) ? d.defenses : [];
+  let h = '<div style="padding:1rem;max-width:680px">';
+  if (mes.length === 0) {
+    h += '<div style="font-size:.8rem;color:#9a7a40">Vous n\'assurez aucune defense. Les demandes se repondent '
+       + 'depuis « Mon inscription au barreau ».</div></div>';
+    justiceOuvrirModale('Dossiers de mes clients', h);
+    return;
+  }
+  mes.forEach(x => {
+    h += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0">'
+       + '<div style="font-size:.84rem;color:#e0d5b8">' + justiceEch(x.prevenu) + '</div>'
+       + '<div style="font-size:.72rem;color:#8a8060">' + justiceEch(x.affaire)
+       + (x.ville ? ' · ' + justiceEch(x.ville) : '') + '</div>'
+       + '<div style="display:flex;gap:.5rem;margin-top:.3rem;flex-wrap:wrap">'
+       + '<button style="' + JUSTICE_BTN_OK + '" onclick="avocatOuvrirDossier(\'' + justiceEch(x.affaire) + '\')">Consulter le dossier</button>'
+       + '</div></div>';
+  });
+  h += '</div>';
+  justiceOuvrirModale('Dossiers de mes clients', h);
+}
+
+async function avocatOuvrirDossier(affaireId) {
+  const v = await sbRpc('avocat_dossier', { p_affaire_id: affaireId })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Dossier', justiceRefus(v), false); return; }
+  const ligne = (k, val) => val == null || val === ''
+    ? '' : '<div style="font-size:.76rem;color:#8a8060"><span style="color:#5a4030">' + k + ' : </span>' + justiceEch(val) + '</div>';
+  let h = '<div style="padding:1rem;max-width:700px">'
+    + '<div style="font-size:.86rem;color:#e0d5b8;margin-bottom:.4rem">' + justiceEch(v.prevenu) + '</div>'
+    + ligne('Affaire', v.affaire) + ligne('Ville', v.ville) + ligne('Etat', v.statut)
+    + ligne('Plaignant', v.plaignant) + ligne('Motif allegue', v.motif)
+    + ligne('Categorie alleguee', v.categorie_alleguee)
+    + ligne('Jour du depot', v.jour_depot)
+    + ligne('Qualification constatee', v.qualification_constatee)
+    + ligne('Qualification du parquet', v.qualification_parquet)
+    + ligne('Qualification retenue', v.qualification_finale)
+    + ligne('Jugement attendu avant le jour', v.delai_jugement_jour)
+    + (v.audience_ouverte === true ? '<div style="font-size:.76rem;color:#9a7a40">Audience ouverte.</div>' : '');
+
+  const a = v.audition;
+  h += '<div style="margin-top:.8rem;border-top:1px solid #2a1a0a;padding-top:.5rem">'
+     + '<div style="font-size:.7rem;letter-spacing:.12em;color:#8a7040;font-family:Bebas Neue,sans-serif">AUDITION DU PREVENU</div>';
+  if (!a || !a.personne) {
+    h += '<div style="font-size:.76rem;color:#5a4030;font-style:italic">Aucune audition au dossier.</div>';
+  } else {
+    h += ligne('Jour', a.jour)
+       + (a.pv_a_libere_une_detention === true
+          ? '<div style="font-size:.74rem;color:#9a8a60">Ce proces-verbal a leve une detention : le prevenu etait retenu au moment de son audition.</div>'
+          : '')
+       + (a.refus === true
+          ? '<div style="font-size:.78rem;color:#9a8a60">Refus de repondre, consigne comme tel.</div>'
+          : '<div style="font-size:.82rem;color:#c0b090;white-space:pre-wrap;background:#0a0805;border:1px solid #2a2010;padding:.5rem;margin-top:.3rem">'
+            + justiceEch(a.declaration || '') + '</div>');
+  }
+  h += '</div>';
+
+  h += '<div style="margin-top:.8rem;border-top:1px solid #2a1a0a;padding-top:.5rem">'
+     + '<div style="font-size:.7rem;letter-spacing:.12em;color:#8a7040;font-family:Bebas Neue,sans-serif">CHRONOLOGIE</div>'
+     + (typeof justiceChronologieHtml === 'function' ? justiceChronologieHtml(v.actes) : '')
+     + '</div>';
+
+  if (v.audience_ouverte !== true) {
+    h += '<div style="margin-top:.9rem;border-top:1px solid #2a1a0a;padding-top:.5rem">'
+       + '<div style="font-size:.7rem;letter-spacing:.12em;color:#8a7040;font-family:Bebas Neue,sans-serif">CITER UN TEMOIN</div>'
+       + '<div style="font-size:.72rem;color:#8a8060;margin:.2rem 0 .4rem">N\'importe quel personnage joueur, de '
+       + 'n\'importe quel empire. Il sera convoque au commissariat de la ville du tribunal competent.</div>'
+       + '<input id="temoin-nom" type="text" maxlength="80" style="' + JUSTICE_CHAMP + '" placeholder="Nom exact du temoin">'
+       + '<div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">'
+       + '<button style="' + JUSTICE_BTN_OK + '" onclick="temoinCiter(\'' + justiceEch(v.affaire) + '\')">Citer ce temoin</button>'
+       + '</div></div>';
+  }
+  h += '</div>';
+  justiceOuvrirModale('Dossier — ' + justiceEch(v.prevenu), h);
+}
+
+async function temoinCiter(affaireId) {
+  const champ = document.getElementById('temoin-nom');
+  const v = await sbRpc('temoin_citer', { p_affaire_id: affaireId, p_temoin: champ ? champ.value : '' })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Citation', justiceRefus(v), false); return; }
+  showToast('Temoin cite', justiceEch(v.temoin) + ' est convoque au commissariat de '
+    + justiceEch(v.affaire ? '' : '') + 'la ville competente. Echeance : jour ' + v.echeance_jour + '.', true);
+  addJournalEntry('Temoin cite : ' + justiceEch(v.temoin) + '.', 'event-neutral');
+  if (champ) champ.value = '';
+}
+
+// -------------------------------------------------------------------------------------------
+// LE TEMOIN : SES CONVOCATIONS, PUIS SA DEPOSITION AU COMMISSARIAT
+// -------------------------------------------------------------------------------------------
+async function ouvrirTemoinsConvocations() {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('temoin_mes_convocations', {}).then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Convocations', justiceRefus(v), false); return; }
+  const c = Array.isArray(v.convocations) ? v.convocations : [];
+  let h = '<div style="padding:1rem;max-width:620px">';
+  if (c.length === 0) {
+    h += '<div style="font-size:.8rem;color:#8a8060">Vous n\'etes cite comme temoin dans aucune affaire.</div>';
+  } else {
+    h += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">'
+       + 'Presentez-vous au commissariat indique. Vous pourrez y <strong style="color:#c0b090">deposer</strong> ou '
+       + '<strong style="color:#c0b090">refuser de temoigner</strong> : le refus est une reponse valide, consignee '
+       + 'comme telle. Deux convocations successives sont emises ; apres la seconde echeance, vous serez recherche '
+       + 'pour non-presentation — et rien d\'autre.</div>';
+    c.forEach(x => {
+      h += '<div style="border-top:1px solid #2a1a0a;padding:.45rem 0">'
+         + '<div style="font-size:.8rem;color:#e0d5b8">' + justiceEch(x.affaire) + '</div>'
+         + '<div style="font-size:.74rem;color:#8a8060">Convocation ' + justiceEch(x.convocation)
+         + ' · echeance jour ' + justiceEch(x.echeance_jour)
+         + ' · jour courant ' + justiceEch(x.jour_courant) + '</div>'
+         + '<div style="font-size:.74rem;color:' + (x.etat === 'recherche' ? '#c0564b' : '#8a8060') + '">'
+         + (x.etat === 'recherche' ? 'Vous etes recherche pour non-presentation.' : 'Convocation en cours.')
+         + '</div>'
+         + '<div style="font-size:.74rem;color:#9a8a60">Commissariat de ' + justiceEch(x.ville) + '</div>'
+         + (x.sur_place === true
+            ? '<div style="display:flex;gap:.5rem;margin-top:.3rem;flex-wrap:wrap"><button style="' + JUSTICE_BTN_OK
+              + '" onclick="ouvrirTemoinDeposition(\'' + justiceEch(x.affaire) + '\')">Temoigner maintenant</button></div>'
+            : '<div style="font-size:.72rem;color:#5a4030">Vous n\'y etes pas : rendez-vous sur place pour deposer.</div>')
+         + '</div>';
+    });
+  }
+  h += '</div>';
+  justiceOuvrirModale('Mes convocations de temoin', h);
+}
+
+// L'ECRAN DU COMMISSARIAT. S'il n'a qu'une seule convocation ouverte sur place, on l'ouvre
+// directement ; sinon on lui fait choisir. Le serveur refuse de toute facon s'il n'est pas au bon
+// commissariat, ou s'il n'est pas cite.
+async function ouvrirTemoinDepositionDepuisCommissariat() {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('temoin_mes_convocations', {}).then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Temoignage', justiceRefus(v), false); return; }
+  const ici = (Array.isArray(v.convocations) ? v.convocations : []).filter(x => x.sur_place === true);
+  if (ici.length === 0) {
+    showToast('Aucune convocation ici',
+      'Vous n\'etes cite dans aucune affaire relevant de ce commissariat.', false);
+    return;
+  }
+  if (ici.length === 1) { ouvrirTemoinDeposition(ici[0].affaire); return; }
+  let h = '<div style="padding:1rem;max-width:560px">'
+    + '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.5rem">Plusieurs affaires vous convoquent ici.</div>';
+  ici.forEach(x => {
+    h += '<div style="border-top:1px solid #2a1a0a;padding:.4rem 0">'
+       + '<div style="font-size:.8rem;color:#e0d5b8">' + justiceEch(x.affaire) + '</div>'
+       + '<button style="' + JUSTICE_BTN_OK + ';margin-top:.3rem" onclick="ouvrirTemoinDeposition(\''
+       + justiceEch(x.affaire) + '\')">Temoigner dans cette affaire</button></div>';
+  });
+  h += '</div>';
+  justiceOuvrirModale('Temoigner', h);
+}
+
+function ouvrirTemoinDeposition(affaireId) {
+  const h = '<div style="padding:1rem;max-width:560px">'
+    + '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">'
+    + 'Votre deposition sera consignee <strong style="color:#c0b090">mot pour mot</strong>, telle que vous '
+    + 'l\'ecrivez. Personne ne l\'interprete, ne la note, ni n\'en juge la sincerite. '
+    + '<strong style="color:#c0b090">Refuser de temoigner est une reponse valide</strong> : elle est enregistree '
+    + 'comme un fait, et n\'entraine par elle-meme aucune sanction. Dans les deux cas, votre convocation est '
+    + 'satisfaite.</div>'
+    + '<textarea id="temoin-declaration" rows="7" maxlength="4000" placeholder="Votre deposition, telle qu\'elle sera consignee au dossier..." '
+    + 'style="' + JUSTICE_CHAMP + ';resize:vertical"></textarea>'
+    + '<div style="display:flex;gap:.5rem;margin-top:.8rem;flex-wrap:wrap">'
+    + '<button style="' + JUSTICE_BTN_OK + '" onclick="temoinDeposer(\'' + justiceEch(affaireId) + '\',false)">Deposer</button>'
+    + '<button style="' + JUSTICE_BTN + '" onclick="temoinDeposer(\'' + justiceEch(affaireId) + '\',true)">Refuser de temoigner</button>'
+    + '</div></div>';
+  justiceOuvrirModale('Temoignage', h);
+}
+
+async function temoinDeposer(affaireId, refus) {
+  const champ = document.getElementById('temoin-declaration');
+  const texte = refus ? null : (champ ? champ.value : '');
+  const v = await sbRpc('temoin_deposer', {
+    p_affaire_id: affaireId, p_declaration: texte, p_refus: !!refus
+  }).then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (!v || v.ok !== true) { showToast('Temoignage non consigne', justiceRefus(v), false); return; }
+  if (v.libere === true && typeof state !== 'undefined') state.estEmprisonne = null;
+  showToast(refus ? 'Refus consigne' : 'Deposition consignee',
+    (refus ? 'Votre refus de temoigner est consigne au dossier.' : 'Votre deposition est consignee au dossier.')
+    + ' Votre convocation est satisfaite.' + (v.libere === true ? ' Vous etes libere.' : ''), true);
+  addJournalEntry((refus ? 'Refus de temoigner consigne' : 'Deposition de temoin consignee') + '.', 'event-neutral');
+  updateUI();
+}
+
+// -------------------------------------------------------------------------------------------
+// LE JUGE : TENIR L'AUDIENCE
+// -------------------------------------------------------------------------------------------
+// TROIS POUVOIRS, ET RIEN DE PLUS : ouvrir l'audience, citer un temoin, donner ou retirer la
+// parole. Le chat n'est pas de cette tranche ; le droit d'ecrire, lui, est deja serveur-autoritaire.
+async function ouvrirAudienceJuge() {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('juge_dossiers', {}).then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Audience', justiceRefus(v, "Vous n'etes pas juge."), false); return; }
+  const dossiers = Array.isArray(v.dossiers) ? v.dossiers : [];
+  let h = '<div style="padding:1rem;max-width:680px">'
+    + '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">'
+    + 'Ouvrir l\'audience <strong style="color:#c0b090">verrouille la defense</strong> : le prevenu ne peut plus '
+    + 'revoquer son avocat, l\'avocat ne peut plus abandonner, et il ne peut plus citer de temoin.</div>';
+  if (dossiers.length === 0) {
+    h += '<div style="font-size:.8rem;color:#8a8060">Aucun dossier dont vous soyez saisi.</div>';
+  }
+  dossiers.forEach(d => {
+    const dos = d.dossier || {};
+    const ouverte = !!dos.audience_ouverte_le;
+    h += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0">'
+       + '<div style="font-size:.82rem;color:#e0d5b8">' + justiceEch(dos.motif || d.id) + '</div>'
+       + '<div style="font-size:.72rem;color:#8a8060">' + justiceEch(d.id)
+       + ' · ' + justiceEch(dos.status || '') + ' · mis en cause : ' + justiceEch(dos.cible || '?') + '</div>'
+       + '<div style="display:flex;gap:.5rem;margin-top:.35rem;flex-wrap:wrap">'
+       + (ouverte
+          ? '<span style="font-size:.74rem;color:#6a9a6a">Audience ouverte (jour ' + justiceEch(dos.audience_ouverte_jour) + ')</span>'
+          : '<button style="' + JUSTICE_BTN_OK + '" onclick="audienceOuvrir(\'' + justiceEch(d.id) + '\')">Ouvrir l\'audience</button>')
+       + '</div>'
+       + '<div style="margin-top:.4rem">'
+       + '<input id="aud-nom-' + justiceEch(d.id) + '" type="text" maxlength="80" style="' + JUSTICE_CHAMP + '" placeholder="Nom exact de la personne">'
+       + '<div style="display:flex;gap:.5rem;margin-top:.35rem;flex-wrap:wrap">'
+       + '<button style="' + JUSTICE_BTN + '" onclick="temoinCiterDepuisAudience(\'' + justiceEch(d.id) + '\')">Citer comme temoin</button>'
+       + (ouverte
+          ? '<button style="' + JUSTICE_BTN + '" onclick="audienceParole(\'' + justiceEch(d.id) + '\',true)">Donner la parole</button>'
+            + '<button style="' + JUSTICE_BTN + '" onclick="audienceParole(\'' + justiceEch(d.id) + '\',false)">Retirer la parole</button>'
+          : '')
+       + '</div></div></div>';
+  });
+  h += '</div>';
+  justiceOuvrirModale('Tenir l\'audience', h);
+}
+
+async function audienceOuvrir(affaireId) {
+  const v = await sbRpc('justice_audience_ouvrir', { p_affaire_id: affaireId })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Audience', justiceRefus(v), false); return; }
+  showToast('Audience ouverte', 'La defense est verrouillee jusqu\'au jugement.', true);
+  addJournalEntry('Audience ouverte — ' + justiceEch(affaireId) + '.', 'event-neutral');
+  await ouvrirAudienceJuge();
+}
+
+async function temoinCiterDepuisAudience(affaireId) {
+  const champ = document.getElementById('aud-nom-' + affaireId);
+  const v = await sbRpc('temoin_citer', { p_affaire_id: affaireId, p_temoin: champ ? champ.value : '' })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Citation', justiceRefus(v), false); return; }
+  showToast('Temoin cite', justiceEch(v.temoin) + ' est convoque. Echeance : jour ' + v.echeance_jour + '.', true);
+  addJournalEntry('Temoin cite : ' + justiceEch(v.temoin) + '.', 'event-neutral');
+  await ouvrirAudienceJuge();
+}
+
+async function audienceParole(affaireId, donner) {
+  const champ = document.getElementById('aud-nom-' + affaireId);
+  const v = await sbRpc('justice_audience_parole', {
+    p_affaire_id: affaireId, p_personne: champ ? champ.value : '', p_donner: !!donner
+  }).then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) { showToast('Parole', justiceRefus(v), false); return; }
+  showToast(donner ? 'Parole donnee' : 'Parole retiree',
+    justiceEch(v.personne) + (v.peut_ecrire === true ? ' peut desormais s\'exprimer a l\'audience.'
+                                                     : ' ne peut plus s\'exprimer a l\'audience.'), true);
 }

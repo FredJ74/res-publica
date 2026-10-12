@@ -135,8 +135,23 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # LES DEUX AUTRES SONT C, et il n'y a pas d'hesitation : un monde neuf doit naitre avec une
 # administration VIDE -- donc fermee -- et un audit VIDE. Semer un compte administrateur
 # reviendrait a publier un identifiant d'autorite dans le depot.
-TABLES_ATTENDUES = 305
-EMPREINTE_LISTE = "897787a075a4eff21a70faf86db8f702"   # md5(string_agg(relname,',' order by relname collate "C"))
+#
+# 12 OCTOBRE 2026, LE SOIR -- SIX TABLES DE PLUS, 305 -> 311 : `administrateurs_invitations`,
+# `justice_barreau_qualifications`, `avocats_barreau`, `defenses_demandes`, `temoins_citations` et
+# `audience_paroles`.
+# UNE SEULE EST CLASSEE A : `justice_barreau_qualifications`, la liste blanche des qualifications
+# qui ouvrent la profession d'avocat -- un registre d'autorite, du meme genre que
+# `actes_nocturnes_mecanismes`. Elle est pourtant en `structure_seule` et non en `seed_complet`,
+# parce qu'elle est VIDE EN BASE : le cursus universitaire de l'avocat n'est pas arbitre, et la
+# consigne interdit d'inventer un diplome. Le jour ou elle portera une ligne, elle passera en
+# `seed_complet`.
+# `administrateurs_invitations` EST C malgre sa ligne : une invitation NOMME UNE PERSONNE REELLE
+# et appartient a ce deploiement-ci, pas au socle d'un monde. Meme raison que `administrateurs`,
+# dont elle est la porte d'entree.
+# LES QUATRE AUTRES SONT C sans hesitation : un monde neuf nait sans affaire, donc sans barreau
+# publie, sans demande de defense, sans temoin cite et sans parole accordee.
+TABLES_ATTENDUES = 311
+EMPREINTE_LISTE = "60643af980cdb12cccdad0c81cf40f24"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

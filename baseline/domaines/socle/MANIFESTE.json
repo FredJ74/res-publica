@@ -25,7 +25,7 @@
    "sous": ""
   },
   {
-   "empreinte": "cfab7efc61bdca666603d336f7f3240d",
+   "empreinte": "722e2e1fcb1bbec3057053a21236bd3a",
    "genre": "FUNCTION",
    "objet": "admin_moi()",
    "sous": ""
@@ -1308,11 +1308,11 @@
   }
  ],
  "fichiers": {
-  "20_fonctions.sql": "dcca0fc610c6f060f5df4f97330ec995",
+  "20_fonctions.sql": "30ef281adcf38d7456009577a704c624",
   "35_index.sql": "979e289e07e5c9a8d148804a11565bb4",
   "60_rls-policies.sql": "beda15c776207e86bb1413175c09e63c",
   "70_droits.sql": "d9a19efd39b2493a7ddff2073f976e0d",
-  "80_commentaires.sql": "b77097a8d19897beddd94e3d2b17f19e",
+  "80_commentaires.sql": "dfca656c92b7194fa01929c7547f4b71",
   "85_default-privileges.sql": "08c91ea43f00d793104cf8fd36a10cd6"
  },
  "fonctions": [
@@ -1352,7 +1352,7 @@
    "signature": "admin_journal_append_only()"
   },
   {
-   "empreinte": "25be003834610005374856d9bda5a27f",
+   "empreinte": "a1dec07d09a2620c318074a8d50ec06b",
    "security_definer": true,
    "signature": "admin_moi()"
   },
@@ -1362,7 +1362,7 @@
    "signature": "admin_pnj_titulaire(text,text,text)"
   },
   {
-   "empreinte": "7a2a376c50867deacff17c9d384394cd",
+   "empreinte": "d293a9d1903de87483cdbaff8f997f6c",
    "security_definer": true,
    "signature": "admin_se_declarer(text)"
   },

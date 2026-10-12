@@ -19,6 +19,12 @@
    "sous": "jour_pv"
   },
   {
+   "empreinte": "4762d071da952e9416e5e86ed48f24f1",
+   "genre": "COLUMN",
+   "objet": "dossiers_auditions",
+   "sous": "qualite"
+  },
+  {
    "empreinte": "2fe3bdbcffe4a362d929b71bafbcc117",
    "genre": "COLUMN",
    "objet": "dossiers_auditions",
@@ -55,6 +61,12 @@
    "sous": "echeance"
   },
   {
+   "empreinte": "94ac62a94542a434b4bd6b32cfa21ceb",
+   "genre": "FUNCTION",
+   "objet": "affaire_audience_ouverte(jsonb)",
+   "sous": ""
+  },
+  {
    "empreinte": "69482d71708c1dfe4930b28bc6f21699",
    "genre": "FUNCTION",
    "objet": "affaire_delai_expire(jsonb,text)",
@@ -70,6 +82,30 @@
    "empreinte": "59d1a60e68a73bab78e050e135d39ada",
    "genre": "FUNCTION",
    "objet": "affaire_transmettre(text,text,text,jsonb)",
+   "sous": ""
+  },
+  {
+   "empreinte": "b21aa2c5d1c246dee41c0b02e464c06e",
+   "genre": "FUNCTION",
+   "objet": "audience_peut_ecrire(text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "aecd8feb1040097ff30d15709ab4f6a7",
+   "genre": "FUNCTION",
+   "objet": "audition_consigner_interne(text,text,text,text,text,text,boolean,integer,boolean)",
+   "sous": ""
+  },
+  {
+   "empreinte": "cffcaffbbc41123f1c585754c9abf244",
+   "genre": "FUNCTION",
+   "objet": "avocat_est_qualifie(text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "870f12be5fee05c4f221608e481b2ce9",
+   "genre": "FUNCTION",
+   "objet": "defense_avocat_de(text)",
    "sous": ""
   },
   {
@@ -469,6 +505,12 @@
    "sous": ""
   },
   {
+   "empreinte": "b214a6195e7ace49339ebb59b3234142",
+   "genre": "TABLE",
+   "objet": "justice_barreau_qualifications",
+   "sous": ""
+  },
+  {
    "empreinte": "709c3c501491bcf78122260d4aab24ac",
    "genre": "TABLE",
    "objet": "justice_indemnites",
@@ -487,6 +529,24 @@
    "genre": "p",
    "nom": "actions_tracables_pkey",
    "tbl": "actions_tracables"
+  },
+  {
+   "empreinte": "a6719eac69f4f6b4f6d88bcbf337e580",
+   "genre": "p",
+   "nom": "audience_paroles_pk",
+   "tbl": "audience_paroles"
+  },
+  {
+   "empreinte": "d0048a40677af9509f92e1c49045c9cd",
+   "genre": "p",
+   "nom": "avocats_barreau_pk",
+   "tbl": "avocats_barreau"
+  },
+  {
+   "empreinte": "12ceaed22c8d5b170ea81a1217c166da",
+   "genre": "p",
+   "nom": "defenses_demandes_pk",
+   "tbl": "defenses_demandes"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -561,6 +621,12 @@
    "tbl": "justice_avocats_commis"
   },
   {
+   "empreinte": "8f815bff2cc2bdeb253f865e194706d6",
+   "genre": "p",
+   "nom": "justice_barreau_qualifications_pk",
+   "tbl": "justice_barreau_qualifications"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "justice_indemnites_pkey",
@@ -597,6 +663,12 @@
    "tbl": "signalements_police"
   },
   {
+   "empreinte": "12ceaed22c8d5b170ea81a1217c166da",
+   "genre": "p",
+   "nom": "temoins_citations_pk",
+   "tbl": "temoins_citations"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "vols_en_attente_pkey",
@@ -621,9 +693,45 @@
    "tbl": "impacts_indices_attente"
   },
   {
+   "empreinte": "023507898768223f228ae3c044e31475",
+   "genre": "u",
+   "nom": "temoins_citations_une_par_affaire",
+   "tbl": "temoins_citations"
+  },
+  {
+   "empreinte": "0f28b56416a27c3be28580c845cc223d",
+   "genre": "c",
+   "nom": "avocats_barreau_tarification_bornee",
+   "tbl": "avocats_barreau"
+  },
+  {
+   "empreinte": "6c1674ddc85c2e5db4852afcb91244a9",
+   "genre": "c",
+   "nom": "avocats_barreau_tarification_non_vide",
+   "tbl": "avocats_barreau"
+  },
+  {
+   "empreinte": "ca96595f8907770220911a6d58f252a1",
+   "genre": "c",
+   "nom": "defenses_demandes_etat",
+   "tbl": "defenses_demandes"
+  },
+  {
+   "empreinte": "38dc0546f61ea2b699de01ed130d15ee",
+   "genre": "c",
+   "nom": "defenses_demandes_pas_soi_meme",
+   "tbl": "defenses_demandes"
+  },
+  {
    "empreinte": "27fbbbab52da4a42151452ec89e97942",
    "genre": "c",
    "nom": "dossiers_auditions_declaration_ou_refus",
+   "tbl": "dossiers_auditions"
+  },
+  {
+   "empreinte": "888c97e3dd6970880a2bf54a982ee1c0",
+   "genre": "c",
+   "nom": "dossiers_auditions_qualite",
    "tbl": "dossiers_auditions"
   },
   {
@@ -633,7 +741,7 @@
    "tbl": "dossiers_judiciaires_actes"
   },
   {
-   "empreinte": "a92ae4d4d61b6a87595d0386f9a3adcb",
+   "empreinte": "023544678ee6fb26ab09e11658622622",
    "genre": "c",
    "nom": "dossiers_judiciaires_actes_types_pose_par_check",
    "tbl": "dossiers_judiciaires_actes_types"
@@ -741,6 +849,36 @@
    "tbl": "signalements_police"
   },
   {
+   "empreinte": "a3b5944a0e8ba518cb54b5ababa740dd",
+   "genre": "c",
+   "nom": "temoins_citations_cloture",
+   "tbl": "temoins_citations"
+  },
+  {
+   "empreinte": "97f5d053bb3479d71969a3a257b53a86",
+   "genre": "c",
+   "nom": "temoins_citations_etat",
+   "tbl": "temoins_citations"
+  },
+  {
+   "empreinte": "309878fcf7c6120dd83f2546c1e4d7e4",
+   "genre": "c",
+   "nom": "temoins_citations_issue",
+   "tbl": "temoins_citations"
+  },
+  {
+   "empreinte": "680458ed0f4f5eeff4cc496fd9157d98",
+   "genre": "c",
+   "nom": "temoins_citations_qualite",
+   "tbl": "temoins_citations"
+  },
+  {
+   "empreinte": "cfdcfa2b577c1273fd374e94fd89f3db",
+   "genre": "c",
+   "nom": "temoins_citations_rang_convocation",
+   "tbl": "temoins_citations"
+  },
+  {
    "empreinte": "e5b95be9580926ede90eacadb36a7357",
    "genre": "f",
    "nom": "dossiers_judiciaires_actes_qualif_apres_fkey",
@@ -773,6 +911,18 @@
  ],
  "domaine": "justice",
  "droits": [
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "affaire_audience_ouverte(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "affaire_audience_ouverte(jsonb)",
+   "privileges": "EXECUTE"
+  },
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
@@ -900,6 +1050,114 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "audience_peut_ecrire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "audience_peut_ecrire(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "audition_consigner_interne(text,text,text,text,text,text,boolean,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "audition_consigner_interne(text,text,text,text,text,text,boolean,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "avocat_dossier(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "avocat_dossier(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "avocat_dossier(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "avocat_est_qualifie(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "avocat_est_qualifie(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "avocat_ma_tarification()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "avocat_ma_tarification()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "avocat_ma_tarification()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "avocat_publier_tarification(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "avocat_publier_tarification(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "avocat_publier_tarification(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "avocat_retirer_tarification()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "avocat_retirer_tarification()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "avocat_retirer_tarification()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "commissaire_enqueter(text)",
@@ -915,6 +1173,90 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "commissaire_enqueter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "defense_avocat_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "defense_avocat_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "defense_demander(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "defense_demander(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "defense_demander(text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "defense_mes_demandes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "defense_mes_demandes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "defense_mes_demandes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "defense_repondre(bigint,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "defense_repondre(bigint,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "defense_repondre(bigint,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "defense_rompre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "defense_rompre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "defense_rompre(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1422,6 +1764,42 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_audience_ouvrir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_audience_ouvrir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_audience_ouvrir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_audience_parole(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_audience_parole(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_audience_parole(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "justice_avocat_commis(text,text)",
@@ -1431,6 +1809,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "justice_avocat_commis(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_avocats_disponibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_avocats_disponibles(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_avocats_disponibles(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1485,6 +1881,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "justice_defense_taux(integer,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_delai_convocation_temoin_jours()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_delai_convocation_temoin_jours()",
    "privileges": "EXECUTE"
   },
   {
@@ -1551,6 +1959,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "justice_fenetre_appel_jours()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_greffe_competent(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_greffe_competent(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -2018,6 +2438,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "plaintes_temoins_sur_cloture()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "plaintes_temoins_sur_cloture()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "police_autorite_de_perimetre(text,text)",
    "privileges": "EXECUTE"
   },
@@ -2206,6 +2638,120 @@
    "genre": "FUNCTION",
    "objet": "recherche_retirer(text[],text,text)",
    "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "recherche_retirer_par_id(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "recherche_retirer_par_id(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "temoin_citer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "temoin_citer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "temoin_citer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "temoin_commissariat_competent(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "temoin_commissariat_competent(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "temoin_deposer(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "temoin_deposer(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "temoin_deposer(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "temoin_mes_convocations()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "temoin_mes_convocations()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "temoin_mes_convocations()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "temoins_citations_eteindre_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "temoins_citations_eteindre_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "temoins_convocations_echues()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "temoins_convocations_echues()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "defenses_demandes_rang_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "defenses_demandes_rang_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
   },
   {
    "beneficiaire": "anon",
@@ -2229,6 +2775,18 @@
    "beneficiaire": "service_role",
    "genre": "SEQUENCE",
    "objet": "justice_indemnites_rang_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "temoins_citations_rang_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "temoins_citations_rang_seq",
    "privileges": "SELECT, UPDATE, USAGE"
   },
   {
@@ -2256,6 +2814,42 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "audience_paroles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "audience_paroles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "avocats_barreau",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "avocats_barreau",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "defenses_demandes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "defenses_demandes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "demandes_grace",
@@ -2426,6 +3020,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "TABLE",
+   "objet": "justice_barreau_qualifications",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "justice_barreau_qualifications",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
    "objet": "justice_indemnites",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
@@ -2523,6 +3129,18 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "signalements_police",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "temoins_citations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "temoins_citations",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -2674,17 +3292,22 @@
  ],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "b0a547e4b80922ca88b1db3bfb48534e",
-  "20_fonctions-1.sql": "5e9f5c476630dc7f8e9c3e3721fcbf19",
-  "20_fonctions-2.sql": "2d7ae84330321b3f0042f930c4084e5c",
-  "30_contraintes.sql": "0917a3919478db4c7775333abef39c95",
-  "35_index.sql": "6ef1570f8f4edfe07ad23ba4a18d3fdd",
-  "50_triggers.sql": "231f16723141904057fa211faa92ce32",
-  "60_rls-policies.sql": "66e62bfb3aa806c20681f6d53cd6d157",
-  "70_droits.sql": "37ffb52705f50ad37e3771fd23f90477",
-  "80_commentaires.sql": "93c8e3f21a020268eead3b6870383bf5"
+  "10_tables.sql": "b686b8929b671e65c7aaa97789c2a04d",
+  "20_fonctions-1.sql": "104d6366b15b773d94ffbf6fbb179994",
+  "20_fonctions-2.sql": "4a40576f9db4061ffde894d45a164ade",
+  "30_contraintes.sql": "8dea6925c9f0324dafd1d44821a15962",
+  "35_index.sql": "46973305dd0b6f13465cf684c373e346",
+  "50_triggers.sql": "54b5ee0df68ac9e26c90202302521b3d",
+  "60_rls-policies.sql": "fedb524ddbd6d9d41d2baa70e2db814a",
+  "70_droits.sql": "9391172bb45e391d606a303f47886aa0",
+  "80_commentaires.sql": "c5cbb8c2dbd7c0a65374e4be6eb1b0a3"
  },
  "fonctions": [
+  {
+   "empreinte": "a02a8c0681c9b8adf1678506614bfa4c",
+   "security_definer": false,
+   "signature": "affaire_audience_ouverte(jsonb)"
+  },
   {
    "empreinte": "e6c55e478efa75ced6726a8d11b4f567",
    "security_definer": true,
@@ -2721,9 +3344,69 @@
    "signature": "arrestation_urgence(text,text)"
   },
   {
+   "empreinte": "5cc35626aa62c905fb6253a58a8cf63f",
+   "security_definer": true,
+   "signature": "audience_peut_ecrire(text,text)"
+  },
+  {
+   "empreinte": "1a177b2c16f2146c04a30e91af051d8a",
+   "security_definer": true,
+   "signature": "audition_consigner_interne(text,text,text,text,text,text,boolean,integer,boolean)"
+  },
+  {
+   "empreinte": "97e93f9a2886bac4932834e2c4de0e6f",
+   "security_definer": true,
+   "signature": "avocat_dossier(text)"
+  },
+  {
+   "empreinte": "3fed43e59ed49ba96d06a3086825fa47",
+   "security_definer": true,
+   "signature": "avocat_est_qualifie(text)"
+  },
+  {
+   "empreinte": "d08330bdfd022b052c026fa5c2f16260",
+   "security_definer": true,
+   "signature": "avocat_ma_tarification()"
+  },
+  {
+   "empreinte": "7ef90f877e5f67cec79731daec1a3c47",
+   "security_definer": true,
+   "signature": "avocat_publier_tarification(text)"
+  },
+  {
+   "empreinte": "eec30f8320a8912447c8466ae01dc6c8",
+   "security_definer": true,
+   "signature": "avocat_retirer_tarification()"
+  },
+  {
    "empreinte": "b9c71045fb37b6723323ae66e654d3d0",
    "security_definer": true,
    "signature": "commissaire_enqueter(text)"
+  },
+  {
+   "empreinte": "0662671af5e504baeade3cb7bd70bf97",
+   "security_definer": true,
+   "signature": "defense_avocat_de(text)"
+  },
+  {
+   "empreinte": "c457c4894ed4eee56ee815c4c9530ae1",
+   "security_definer": true,
+   "signature": "defense_demander(text,text[])"
+  },
+  {
+   "empreinte": "ec08fb400431fc9b6b161fe15ffe9365",
+   "security_definer": true,
+   "signature": "defense_mes_demandes()"
+  },
+  {
+   "empreinte": "b60ab831feeec01934678718bc42084d",
+   "security_definer": true,
+   "signature": "defense_repondre(bigint,boolean)"
+  },
+  {
+   "empreinte": "ec07404a1a326393ca590640733d28a9",
+   "security_definer": true,
+   "signature": "defense_rompre(text)"
   },
   {
    "empreinte": "426848ceb892a05c1f79719e411d35eb",
@@ -2886,9 +3569,24 @@
    "signature": "justice_appel_ouvrir(text)"
   },
   {
+   "empreinte": "2fe308aadd4fc0b927b1119ee86fd2b9",
+   "security_definer": true,
+   "signature": "justice_audience_ouvrir(text)"
+  },
+  {
+   "empreinte": "c24aca6568cbac7c5158c8217e1eff7f",
+   "security_definer": true,
+   "signature": "justice_audience_parole(text,text,boolean)"
+  },
+  {
    "empreinte": "7232dd90ff54f6d5dd470d211fc3f195",
    "security_definer": true,
    "signature": "justice_avocat_commis(text,text)"
+  },
+  {
+   "empreinte": "ddb4ee85dd8bdf29541a2a6afb7f2905",
+   "security_definer": true,
+   "signature": "justice_avocats_disponibles(text)"
   },
   {
    "empreinte": "d741bd29db7cad9d50a73461678cdca0",
@@ -2909,6 +3607,11 @@
    "empreinte": "891a2f1dae30f023634677ee8f0a2e26",
    "security_definer": false,
    "signature": "justice_defense_taux(integer,integer,boolean)"
+  },
+  {
+   "empreinte": "e3eb1674f45591b1d03c747af3e01f5d",
+   "security_definer": false,
+   "signature": "justice_delai_convocation_temoin_jours()"
   },
   {
    "empreinte": "6bbdb64b3d7b4c46e50a6eb00a16f674",
@@ -2934,6 +3637,11 @@
    "empreinte": "83433abd500de0c01d5bc7000e1b3d21",
    "security_definer": false,
    "signature": "justice_fenetre_appel_jours()"
+  },
+  {
+   "empreinte": "fd65cae76ac597fffaff5966569f8d41",
+   "security_definer": true,
+   "signature": "justice_greffe_competent(text,text)"
   },
   {
    "empreinte": "be93b1977fb2a6be2dbbe71457cd1d48",
@@ -3086,6 +3794,11 @@
    "signature": "plaintes_epingler_verdict()"
   },
   {
+   "empreinte": "cd8bbe6923cf58b3fcaac964ef60758e",
+   "security_definer": true,
+   "signature": "plaintes_temoins_sur_cloture()"
+  },
+  {
    "empreinte": "59dba7065321f51fca9e31e64b85d91e",
    "security_definer": true,
    "signature": "police_autorite_de_perimetre(text,text)"
@@ -3126,7 +3839,7 @@
    "signature": "presidence_gracier(text,integer)"
   },
   {
-   "empreinte": "dd0bac69c3d3986b4df7da1fe9eef6b1",
+   "empreinte": "2cade3ab49991c04ab3396dafaa4bafb",
    "security_definer": true,
    "signature": "pv_audition_realiser(text,text,boolean)"
   },
@@ -3144,9 +3857,52 @@
    "empreinte": "7bc90e8afcfb7f0f01ac9a12faacfd74",
    "security_definer": true,
    "signature": "recherche_retirer(text[],text,text)"
+  },
+  {
+   "empreinte": "c3afc6facf423dd084a6b5bdae512d3d",
+   "security_definer": true,
+   "signature": "recherche_retirer_par_id(text,text)"
+  },
+  {
+   "empreinte": "be28eac042aed2149c8f550e0691be80",
+   "security_definer": true,
+   "signature": "temoin_citer(text,text)"
+  },
+  {
+   "empreinte": "60ff53600dbdf2aaa49721d94d984229",
+   "security_definer": true,
+   "signature": "temoin_commissariat_competent(text,text)"
+  },
+  {
+   "empreinte": "f1f7b376f58a44d909fc0ce5effc9fbe",
+   "security_definer": true,
+   "signature": "temoin_deposer(text,text,boolean)"
+  },
+  {
+   "empreinte": "8928b192203c8b17ef53a85442c462e7",
+   "security_definer": true,
+   "signature": "temoin_mes_convocations()"
+  },
+  {
+   "empreinte": "8a13f55f1eac955528ce8fffce3eb04f",
+   "security_definer": true,
+   "signature": "temoins_citations_eteindre_interne(text)"
+  },
+  {
+   "empreinte": "a926c91448e44c6e4238bd2fde95ad39",
+   "security_definer": true,
+   "signature": "temoins_convocations_echues()"
   }
  ],
  "index_autonomes": [
+  {
+   "empreinte": "da98122caf0bd22d7eaa2dc4738c6a22",
+   "nom": "defenses_un_avocat_retenu_par_affaire"
+  },
+  {
+   "empreinte": "6bdf742a98399cee9297aa1a02dcef25",
+   "nom": "defenses_une_demande_vivante_par_couple"
+  },
   {
    "empreinte": "462a0027ce3aef4cd3315398fdd0a2b9",
    "nom": "dossiers_actes_par_affaire"
@@ -3178,6 +3934,9 @@
  ],
  "index_portes": [
   "actions_tracables_pkey",
+  "audience_paroles_pk",
+  "avocats_barreau_pk",
+  "defenses_demandes_pk",
   "demandes_grace_pkey",
   "detentions_pkey",
   "dossiers_actes_un_rang_par_affaire",
@@ -3193,12 +3952,15 @@
   "infractions_pkey",
   "jugements_pkey",
   "justice_avocats_commis_pk",
+  "justice_barreau_qualifications_pk",
   "justice_indemnites_pkey",
   "niveaux_prison_pkey",
   "plaintes_en_cours_pkey",
   "prisonniers_qhs_pkey",
   "rumeurs_actives_pkey",
   "signalements_police_pkey",
+  "temoins_citations_pk",
+  "temoins_citations_une_par_affaire",
   "vols_en_attente_pkey"
  ],
  "ordre": [
@@ -3373,6 +4135,21 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "audience_paroles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "avocats_barreau"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "defenses_demandes"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "demandes_grace"
   },
   {
@@ -3433,6 +4210,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "justice_barreau_qualifications"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "justice_indemnites"
   },
   {
@@ -3463,14 +4245,29 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "temoins_citations"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "vols_en_attente"
   }
  ],
  "sequences": [
   {
+   "nom": "defenses_demandes_rang_seq",
+   "possedee": true,
+   "tbl": "defenses_demandes"
+  },
+  {
    "nom": "justice_indemnites_rang_seq",
    "possedee": true,
    "tbl": "justice_indemnites"
+  },
+  {
+   "nom": "temoins_citations_rang_seq",
+   "possedee": true,
+   "tbl": "temoins_citations"
   }
  ],
  "sequences_autonomes": [],
@@ -3480,6 +4277,24 @@
    "empreinte_catalogue": "0e8f08f4bed76cc2942577db82ecd7fa",
    "empreinte_texte": "cf447b3b26bf88d48707eedb61d0b084",
    "nom": "actions_tracables"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "d3bcaed02be332631ea4643c615b7599",
+   "empreinte_texte": "755839db55dd069d83c7ffb4649963f9",
+   "nom": "audience_paroles"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "9f5e6118eb2771987a858f1784cd3417",
+   "empreinte_texte": "04970be51f84e592588189a51ae36675",
+   "nom": "avocats_barreau"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "177fb2b9739365181accaa52d805156a",
+   "empreinte_texte": "98df61ee04e58d33486e43dd378b57eb",
+   "nom": "defenses_demandes"
   },
   {
    "colonnes": 4,
@@ -3494,9 +4309,9 @@
    "nom": "detentions"
   },
   {
-   "colonnes": 9,
-   "empreinte_catalogue": "5f4e11319e3c743a8e6d677c656f996e",
-   "empreinte_texte": "8302cc140da59302579c8e7a546fb508",
+   "colonnes": 10,
+   "empreinte_catalogue": "eefd06d297882c6966e58b82dcb7c37c",
+   "empreinte_texte": "4c0667acfdf91ec301de623a963212ed",
    "nom": "dossiers_auditions"
   },
   {
@@ -3554,6 +4369,12 @@
    "nom": "justice_avocats_commis"
   },
   {
+   "colonnes": 2,
+   "empreinte_catalogue": "5628de5ddd8a4cc990bbbcc46b0318fc",
+   "empreinte_texte": "102be3031a00e99e106527cf0783096f",
+   "nom": "justice_barreau_qualifications"
+  },
+  {
    "colonnes": 13,
    "empreinte_catalogue": "578c4bb2114383bb32f0366a26b6461f",
    "empreinte_texte": "53b69f49987a74383aeb7ab618d8d428",
@@ -3590,6 +4411,12 @@
    "nom": "signalements_police"
   },
   {
+   "colonnes": 13,
+   "empreinte_catalogue": "f8bfb531abe44b883d9ff79f26237044",
+   "empreinte_texte": "03d37ef0fdff0ebd2a4148df35fe571f",
+   "nom": "temoins_citations"
+  },
+  {
    "colonnes": 8,
    "empreinte_catalogue": "7d3e92003ea77953bbc3128e720567f4",
    "empreinte_texte": "f7b0788cfaea3f86bb661b5955a2baaf",
@@ -3613,6 +4440,12 @@
    "empreinte": "3668193290c443c692f7d8d7a6bbb223",
    "fonction": "plaintes_epingler_verdict()",
    "nom": "trg_plaintes_epingler_verdict",
+   "tbl": "plaintes_en_cours"
+  },
+  {
+   "empreinte": "39c7e5559edf1150e83f2a8b3f350ddf",
+   "fonction": "plaintes_temoins_sur_cloture()",
+   "nom": "trg_plaintes_temoins_sur_cloture",
    "tbl": "plaintes_en_cours"
   }
  ],

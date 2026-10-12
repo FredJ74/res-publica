@@ -106,8 +106,10 @@ att('elle le fait en identite SERVEUR',
 att('son verdict est consomme, jamais suppose',
     bloc(cron, "tacheQuotidienne('delais_judiciaires'", 'return r ||')
       .indexOf("signalerEchec('delais_judiciaires'") >= 0);
+// Mesure la PRESENCE dans le corps, pas l'adjacence a son voisin : la passe des convocations de
+// temoins s'est inseree entre les deux le 12 octobre, et l'adjacence n'a jamais rien prouve.
 att('et il remonte dans le corps de la reponse',
-    cron.indexOf('delaisJudiciaires, compromisResolus') >= 0);
+    /const corps = \{[^;]*\bdelaisJudiciaires\b/.test(cron));
 
 // ---------------------------------------------------------------- §A : AUCUN CRIME
 att('« Se defendre » exclut les crimes, et pas seulement les peines longues',

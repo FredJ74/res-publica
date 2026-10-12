@@ -189,8 +189,18 @@ BEGIN
    WHERE id = 'republic_gouvernement-min_just';
   PERFORM pg_temp.je_suis(JUGE_U);
   PERFORM public.justice_rendre_sentence(A2, 'assassiner_mains', 'prison', 8, 0);
+  -- L'APPEL EST INTERJETE PAR LE CONDAMNE, ET LE DECOR L'AVAIT OUBLIE. Jusqu'au 12 octobre 2026
+  -- au soir, cette ligne appelait `justice_appel_ouvrir` SANS changer d'identite : c'est donc le
+  -- juge qui interjetait appel de son propre jugement. Le resultat n'etait pas verifie, et le
+  -- refus passait inapercu jusqu'a T15 -- qui tombait quatre epreuves plus loin, sur une affaire
+  -- restee `jugee`. Le refus etait le bon : depuis que l'autorite du parquet se lit par
+  -- `parquet_moi()`, un juge n'est plus confondu avec un procureur. Le decor est corrige, et le
+  -- resultat est desormais MESURE ici, la ou il est produit.
+  PERFORM pg_temp.je_suis(LEE_U);
   v := public.justice_appel_ouvrir(A2);
   PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v->>'ok')::boolean,false) IS NOT TRUE OR (v->>'qualite') <> 'condamne' THEN
+    ko:=ko+1; e:=e||E'\nT14b l appel du condamne sur la seconde affaire : '||v::text; END IF;
   UPDATE public.personnages_donnees SET day = coalesce(day,1) + 2 WHERE name = LEE;
 
   n := n + 1;   -- T15 : RELAXE EN APPEL -> DEUX JOURS INDUS, LIBERATION IMMEDIATE.

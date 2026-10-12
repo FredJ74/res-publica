@@ -1,4 +1,4 @@
--- BANC DE LA PROCEDURE SIMPLIFIEE (12 octobre 2026) -- 22 epreuves
+-- BANC DE LA PROCEDURE SIMPLIFIEE (12 octobre 2026) -- 23 epreuves
 --
 -- CE BANC NE COMMITE RIEN. Il ouvre des dossiers, fait plaider Ben, et se termine par un
 -- RAISE EXCEPTION INCONDITIONNEL qui annule tout.
@@ -9,7 +9,7 @@
 -- calcule est celui de la formule arbitree.
 --
 -- Usage : coller ce fichier dans un execute_sql. Il doit finir sur
---   ERROR: banc defense : LES 22 EPREUVES SONT VERTES. -- rien ne doit rester
+--   ERROR: banc defense : LES 23 EPREUVES SONT VERTES. -- rien ne doit rester
 --
 -- PIEGE DE DECOR : Ben doit etre LIBRE au depart. Une peine en cours empeche d'en ouvrir une
 -- seconde (garde de `detention_ouvrir_interne`) et l'epreuve de l'execution immediate echouerait
@@ -230,6 +230,18 @@ BEGIN
   IF v_relaxes = 0 OR v_reductions = 0 THEN
     ko := ko + 1; e := e || E'\nT22 : une issue est inatteignable (relaxe=' || v_relaxes
                            || ' reduction=' || v_reductions || ')'; END IF;
+
+  -- ------------------------------------- T23 : LA PONDERATION EST FIGEE A 50 / 50
+  --
+  -- ARBITRAGE VALIDE LE 12 OCTOBRE 2026, ET CETTE EPREUVE EST LA POUR QU'IL NE BOUGE PLUS.
+  -- Sur une defense reussie : une fois sur deux la relaxe pleine, une fois sur deux la reduction
+  -- maximale autorisee -- le bas de la fourchette du catalogue, mesure par T16 (amende de
+  -- reference 500 ramenee a 250) et borne par le plancher carceral d'un jour de T16. La valeur
+  -- vit dans `justice_defense_part_relaxe()` et dans elle seule : aucun appelant ne la recopie.
+  n := n + 1;
+  IF public.justice_defense_part_relaxe() <> 50 THEN
+    ko := ko + 1; e := e || E'\nT23 : la part de relaxe vaut '
+                           || public.justice_defense_part_relaxe() || ' au lieu de 50'; END IF;
 
   IF ko > 0 THEN RAISE EXCEPTION 'banc defense : % EPREUVE(S) ROUGE(S) sur % --%', ko, n, e; END IF;
   RAISE EXCEPTION 'banc defense : LES % EPREUVES SONT VERTES.', n;

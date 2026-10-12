@@ -6345,6 +6345,27 @@ export default async function handler(req, res) {
       return r || { ok: false, raison: 'rpc_indisponible' };
     });
 
+    // 5d. LES CONVOCATIONS DE TEMOIN ECHUES (12 octobre 2026, soir). Deux jours pour se
+    //     presenter ; a l'echeance, une SECONDE convocation de deux jours ; a la seconde
+    //     echeance, la RECHERCHE pour non-presentation -- et rien d'autre. Aucune amende, aucune
+    //     mesure sociale, aucune lecture de l'absence.
+    //
+    //     APRES `delais_judiciaires`, ET CE N'EST PAS INDIFFERENT : une affaire qui expire cette
+    //     nuit eteint ses citations par le declencheur de cloture. Les traiter ensuite evite
+    //     d'ouvrir une recherche sur une citation qui vient de mourir.
+    //
+    //     IDEMPOTENCE : chaque transition est en compare-and-swap sur l'etat et le rang de
+    //     convocation, et la nouvelle echeance est posee dans le meme UPDATE. Un second passage
+    //     le meme jour ne trouve plus rien a echoir.
+    const convocationsTemoins = await tacheQuotidienne('convocations_temoins', async () => {
+      const rows = await sbRpc('temoins_convocations_echues', {}, HEADERS_SERVICE);
+      const r = Array.isArray(rows) ? rows[0] : rows;
+      if (!r || r.ok !== true) {
+        signalerEchec('convocations_temoins', (r && r.raison) || 'verdict_absent');
+      }
+      return r || { ok: false, raison: 'rpc_indisponible' };
+    });
+
     // 6. Resolution atomique des compromis arrives a echeance (permis + pret, ensemble)
     const compromisResolus = await resoudreCompromisExpires();
 
@@ -6578,7 +6599,7 @@ export default async function handler(req, res) {
     // alerter -- un console.error, non. Le corps reste identique par ailleurs : tout ce qui a
     // abouti est conserve et documente, rien n'est annule. Le rejeu qui suivra est sur, chaque
     // tache financiere portant desormais son marqueur de journee (voir tacheQuotidienne).
-    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, payePolice, affectationsExpirees, candidaturesRelancees };
+    const corps = { ok: ECHECS_PASSE.length === 0, traites: results.length, details: results, echecs: ECHECS_PASSE, nbEchecs: ECHECS_PASSE.length, detentionsLiberees, cascadeAutoPourvoi, mailsSupprimes: mailsSuppres, fuites, taxeFonciere, loyersLots, cascadeMunicipale, subventionsExpirees, delaisJudiciaires, convocationsTemoins, compromisResolus, compromisEntreprisesResolus, achatsDirectsManques, permis, chantiers, prets, pretsHelvetia, blocusExpires, effetsBlocus, effetsGrevesOrdinaires, effetsGreveGenerale, livraisons, exportationsPort, production, conflitsBNE, investissements, placementsNationaux, placementsHelvetia, creancesHelvetia, preemptions, successionsResolues, caissesFretArrivees, caissesFretMisesEnVente, cotisationsOrganisations, licencesSportives, arrivagePoissonCriee, candidaturesPostesExpirees, votesConfianceResolus, consequencesCensure, effortDeGuerre, journalDuJour, detentionsPnj, cellulesRenseignement, collecteAgents, rapportsCellules, payeDouane, payePolice, affectationsExpirees, candidaturesRelancees };
     if (ECHECS_PASSE.length > 0) {
       console.error('[cron-minuit] PASSE INCOMPLETE : ' + ECHECS_PASSE.length + ' etape(s) en echec -> ' + ECHECS_PASSE.map(e => e.etape).join(', '));
       await journaliserCron('_passe', jourPasse, 'echec',

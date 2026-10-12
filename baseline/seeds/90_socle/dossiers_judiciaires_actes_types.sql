@@ -4,7 +4,7 @@
 -- Domaine    : justice
 -- Categorie  : A (socle generique)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 19
+-- Lignes     : 26
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -25,7 +25,12 @@
 -- types : les treize du parquet, plus le PV d'audition, l'abandon des
 -- charges pour delai expire et la defense en procedure simplifiee --
 -- l'ACCUSE est devenu un auteur d'acte ce jour-la, et le CHECK de `pose_par`
--- a du s'ouvrir pour l'accueillir. Compte RELEVE EN BASE.
+-- a du s'ouvrir pour l'accueillir. VINGT-SIX le soir du meme jour : SEPT
+-- types de plus, et le CHECK de `pose_par` s'est ouvert une seconde fois,
+-- a `avocat` et a `temoin`. Deux pour la defense -- constituee et rompue --
+-- et cinq pour les temoins : la citation, la seconde convocation, la
+-- deposition, la recherche pour non-presentation et l'extinction de la
+-- citation a la cloture de l'affaire. Compte RELEVE EN BASE.
 --
 -- ARBITRAGE DE GAME DESIGN
 -- SEED INDISPENSABLE, et pas par confort : sans ses lignes, chaque acte de
@@ -39,6 +44,8 @@ INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, no
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('appel_ouvert', 'Appel interjete', 'accuse', 'Le condamne ou le Procureur a interjete appel dans la fenetre de deux jours. Un seul appel par affaire : le premier qui le declenche l''ouvre. L''acte nomme QUI l''a declenche, et rien de plus -- ni motif, ni qualite de la demande.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('charges_abandonnees_delai', 'Charges abandonnees -- delai de jugement expire', 'serveur', 'Le delai de jugement de premiere instance a expire sans jugement. Ce n''est ni une relaxe ni un non-lieu : c''est la cloture d''une procedure qui n''a pas abouti dans le temps imparti.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('condamnation', 'Condamnation prononcee', 'juge', 'Porte la qualification finale et la peine validee par le bareme serveur.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('defense_constituee', 'Defense constituee -- avocat retenu', 'avocat', 'Pose par l''avocat qui accepte la defense.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('defense_rompue', 'Defense rompue -- revocation ou abandon', 'avocat', 'Pose par celui qui rompt : l''avocat qui abandonne, ou le prevenu qui revoque. L''acte lui-meme porte son auteur reel dans `acteur` et `acteur_poste`.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('defense_simplifiee', 'Defense plaidee (procedure simplifiee)', 'accuse', 'La personne mise en cause a plaide sa defense sur une affaire dont la peine de reference est courte. L''acte consigne le FAIT et son issue ; il ne juge ni la sincerite ni la qualite de la plaidoirie. Une seule fois par affaire : la procedure simplifiee est definitive.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('enquete_acte_police', 'Acte d''enquete accompli par la police', 'police', 'Le parquet ordonne, la police accomplit. L''acte lui-meme reste celui qui existait.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('enquete_diligentee', 'Enquete diligentee par le parquet', 'parquet', NULL);
@@ -53,3 +60,8 @@ INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, no
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('pv_audition', 'Proces-verbal d''audition', 'accuse', 'La declaration de la personne mise en cause, ou son refus explicite de repondre. Le refus est une reponse procedurale valide : il n''est ni un aveu, ni une faute, et n''emporte aucun malus. Le texte est consigne VERBATIM et n''est lu par aucune IA.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('relaxe', 'Relaxe prononcee', 'juge', 'Un verdict, pas une absence de peine.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('requalification', 'Requalification des faits par le juge', 'juge', 'Porte la qualification AVANT et APRES. Elle n''efface pas celle du parquet : les deux coexistent, et c''est la raison d''etre des colonnes qualif_avant / qualif_apres.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('temoin_citation_eteinte', 'Citation de temoin eteinte -- affaire close', 'serveur', 'Posee a la cloture definitive de l''affaire.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('temoin_cite', 'Temoin cite a comparaitre', 'juge', 'Pose par l''autorite qui cite : avocat, parquet, juge, ou plaignant au moment du depot. L''acte porte sa qualite reelle dans `acteur_poste`.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('temoin_convocation_renouvelee', 'Seconde convocation d''un temoin', 'serveur', 'Posee par la passe de minuit a l''echeance de la premiere convocation.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('temoin_deposition', 'Deposition de temoin', 'temoin', 'La deposition ou le refus de temoigner, consignes verbatim. Aucune interpretation.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('temoin_recherche', 'Temoin recherche -- non-presentation', 'serveur', 'Posee par la passe de minuit a l''echeance de la seconde convocation. Seule consequence automatique de l''absence.');

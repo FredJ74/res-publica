@@ -3124,18 +3124,41 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'plainte',   label:'Consulter les affaires en cours', pa:1, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir le statut des affaires en cours : au parquet, enquete, poursuites, saisine du juge, non-lieu, relaxe, jugee.'},
-          // LE PARQUET (12 octobre 2026). Ecran institutionnel du Procureur de la Republique :
-          // ses dossiers, et les cinq actes qu'il peut poser sur chacun. Zero PA, comme tous les
-          // ecrans de decision du projet -- `deduireCoutOrdre` n'appelle `payer_ordre` que si
-          // `pa > 0 || cost > 0`, donc il ne traverse jamais le miroir des couts. Ce sont les
-          // ACTES qui pourraient couter, pas le fait de les lire ; aucun n'a de cout arbitre.
-          {fn:'parquet',   label:'Dossiers du parquet',   pa:0, cost:0,   type:'legal',   icon:'ti-scale-outline', successRate:100, requiresPost:'procureur', desc:'Reserve au Procureur de la Republique. Diligenter une enquete, prononcer un non-lieu, engager ou abandonner les poursuites, saisir le juge. Chaque acte exige votre presence dans le tribunal de la ville de l\'affaire.'},
-          // RENDRE LA SENTENCE MANQUAIT AU TRIBUNAL DE LA CAPITALE, et ce n'etait pas un choix :
-          // l'ordre n'etait declare que dans `tribunal-local`, celui des deux autres villes. Le
-          // juge de Luthecia n'avait donc aucun bouton pour juger les affaires de Luthecia.
-          // Defaut preexistant, corrige ici parce que la chaine du parquet s'y termine.
+          // LES PREROGATIVES DES MAGISTRATS ONT DEMENAGE (12 octobre 2026, soir). Elles vivaient
+          // ici, dans la salle d'audience -- c'est-a-dire dans la piece ou se tiennent le public
+          // et le prevenu. Elles sont desormais dans le BUREAU DES MAGISTRATS, le lieu de
+          // travail du Procureur et du President du Tribunal. Rien ne change au serveur : la
+          // presence qu'il exige porte sur le BATIMENT, pas sur la piece.
+          // Ce qui RESTE ici : consulter les affaires -- tout le monde le peut -- et se defendre,
+          // qui est l'acte du prevenu, pas celui d'un magistrat.
+          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:65, desc:'Procedure simplifiee, reservee aux faits les plus legers (2 jours de reference au plus, hors crime). Un avocat commis d\'office plaide pour vous ; le tribunal tranche sur le champ. Le jugement est definitif et sans appel.'},
+          {fn:'temoins_mes_convocations', label:'Mes convocations de temoin', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, desc:'Les affaires ou vous avez ete cite comme temoin : le commissariat ou vous presenter, et l\'echeance.'}
+        ]
+      },
+      // ---- BUREAU DES MAGISTRATS (12 octobre 2026) ----
+      // LE LIEU DE TRAVAIL DU PROCUREUR ET DU PRESIDENT DU TRIBUNAL. C'est ici qu'un PJ devenu
+      // magistrat trouve ses prerogatives, au lieu de les chercher dans la salle d'audience.
+      // AUCUNE LOGIQUE METIER N'EST DUPLIQUEE : ces boutons ouvrent les memes ecrans, qui
+      // appellent les memes portes serveur, avec les memes gardes -- statut du dossier, delai,
+      // juridiction, presence physique. `requiresPost` ne fait que GRISER ce qui n'est pas de la
+      // fonction du joueur ; c'est le serveur qui refuse, pas l'ecran.
+      // MEME PIECE ET MEME IMAGE DANS LES TROIS TRIBUNAUX : la declaration est dans le gabarit,
+      // pas recopiee par ville.
+      bureau_magistrats: {
+        name: "Bureau des magistrats",
+        image: "⚖️",
+        imageBg: "linear-gradient(135deg,#17120a,#201808)",
+        desc: "Le bureau que se partagent le Procureur de la Republique et le President du Tribunal. Dossiers empiles, code penal annote, et le drapeau gris de Republia dans un coin.",
+        imageUrl: "images/tribunal-bureau-magistrats.webp",
+        persons: [],
+        orders: [
+          // ZERO PA, comme tous les ecrans de decision du projet : `deduireCoutOrdre` n'appelle
+          // `payer_ordre` que si `pa > 0 || cost > 0`, donc aucun ne traverse le miroir des
+          // couts. Ce sont les ACTES qui pourraient couter, pas le fait de les lire.
+          {fn:'parquet',   label:'Dossiers du parquet',   pa:0, cost:0,   type:'legal',   icon:'ti-scale-outline', successRate:100, requiresPost:'procureur', desc:'Reserve au Procureur de la Republique. Diligenter une enquete, prononcer un non-lieu, engager ou abandonner les poursuites, saisir le juge, citer un temoin. Chaque acte exige votre presence dans le tribunal de la ville de l\'affaire.'},
           {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire dont le parquet vous a saisi. Requalification, relaxe ou condamnation ; la peine est bornee par le bareme.'},
-          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:50, desc:'Taux : 50% de base + CHA - malus si preuve reelle contre vous. Reussite eclatante = affaire classee ; reussite simple = circonstance attenuante ; echec flagrant = aggravation.'}
+          {fn:'audience_juge', label:'Tenir l\'audience', pa:0, cost:0, type:'legal', icon:'ti-podium', successRate:100, requiresPost:'juge', desc:'Ouvrir l\'audience d\'une affaire dont vous etes saisi, citer un temoin, et donner ou retirer la parole. L\'ouverture verrouille la defense : plus de revocation ni de changement d\'avocat.'},
+          {fn:'acte_officiel_juge', label:'Delivrer un acte officiel', pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'juge', desc:'Rechercher une personne et lui delivrer l\'extrait d\'etat-civil/succession correspondant.'}
         ]
       },
       greffe: {
@@ -3150,7 +3173,12 @@ const BUILDINGS = {
         orders: [
           {fn:'archives',       label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive', successRate:100},
           {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Liste : fausse identite, faux casier vierge, faux permis construire, faux contrat. Cree un objet en inventaire.'},
-          {fn:'demander_juge_instruction', label:'Demander à parler à un juge', pa:1, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Présenter votre dossier d\'enquête à un juge.'}
+          {fn:'demander_juge_instruction', label:'Demander à parler à un juge', pa:1, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Présenter votre dossier d\'enquête à un juge.'},
+          // L'AVOCAT TRAVAILLE AU GREFFE, ET NULLE PART AILLEURS (12 octobre 2026, soir). Le
+          // dossier complet de son client ne se lit QUE la : la porte serveur exige sa presence
+          // physique dans ce greffe, celui du tribunal competent pour l'affaire.
+          {fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\'avocat dont la defense a ete acceptee. Le dossier complet de l\'affaire, et la citation de temoins jusqu\'a l\'ouverture de l\'audience.'},
+          {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'}
         ]
       }
     }
@@ -3405,7 +3433,12 @@ const BUILDINGS = {
           {fn:'plainte_police',   label:'Porter plainte',         pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100, desc:'Ouvre un dossier transmis au commissaire de la ville. C\'est lui qui decide de classer ou d\'enqueter.'},
           {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Archives judiciaires et detentions passees, consultables par tous. Ne contient aucune information policiere operationnelle.'},
           {fn:'arreter',          label:"Arrestation d'urgence",  pa:3, cost:0,   type:'legal',   icon:'ti-handcuffs', successRate:100, requiresPost:['president','min_int','min_just','commissaire'], desc:'Pouvoir extrajudiciaire : place immediatement une personne en detention 1 jour, sans condamnation. Securite +1, indice social -1 dans la ville.'},
-          {fn:'se_justifier',     label:'Se justifier (convocation)', pa:1, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation. Une seule tentative : 50% + (CHA+DUP)/2. Echec = 1 jour de detention. Confiscation dans tous les cas.'}
+          {fn:'se_justifier',     label:'Se justifier (convocation)', pa:1, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation. Une seule tentative : 50% + (CHA+DUP)/2. Echec = 1 jour de detention. Confiscation dans tous les cas.'},
+          // LE TEMOIN SE PRESENTE AU COMMISSARIAT, et c'est la qu'il depose (12 octobre 2026,
+          // soir). L'ordre est le MEME dans les deux gabarits de commissariat ; c'est la porte
+          // serveur qui verifie que c'est bien le commissariat de la ville du tribunal COMPETENT
+          // pour l'affaire -- une affaire de Montrouge ne se depose pas a Luthecia.
+          {fn:'temoin_deposition', label:'Temoigner (convocation)', pa:0, cost:0, type:'legal', icon:'ti-message-2', successRate:100, desc:'Vous avez ete cite comme temoin : deposer librement, ou refuser de temoigner. Le refus est une reponse valide, enregistree comme telle. Votre texte est consigne mot pour mot.'}
         ]
       },
       prison: {
@@ -4618,7 +4651,12 @@ const BUILDINGS = {
           {fn:'recruter_policier',      label:'Recruter un policier', pa:1, cost:0, type:'legal', icon:'ti-user-plus',   successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
           {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
           {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'commissaire', desc:'Intervention des forces de l\'ordre dans VOTRE ville : blocus, encadrement, quartier sensible, dispersion.'},
-          {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',  pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
+          {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',  pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'},
+          // LE TEMOIN SE PRESENTE AU COMMISSARIAT, et c'est la qu'il depose (12 octobre 2026,
+          // soir). L'ordre est le MEME dans les deux gabarits de commissariat ; c'est la porte
+          // serveur qui verifie que c'est bien le commissariat de la ville du tribunal COMPETENT
+          // pour l'affaire -- une affaire de Montrouge ne se depose pas a Luthecia.
+          {fn:'temoin_deposition', label:'Temoigner (convocation)', pa:0, cost:0, type:'legal', icon:'ti-message-2', successRate:100, desc:'Vous avez ete cite comme temoin : deposer librement, ou refuser de temoigner. Le refus est une reponse valide, enregistree comme telle. Votre texte est consigne mot pour mot.'}
         ]
       },
       // Salle ajoutee le 2026-08-16, orders raccordes le 26 aout 2026 (lot "ordres carceraux
@@ -4665,14 +4703,47 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'plainte',   label:'Consulter les affaires', pa:0, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir les affaires transmises par la police, en attente de jugement.'},
-          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:50, desc:'Taux : 50% de base + CHA - malus si preuve reelle contre vous. Reussite eclatante = affaire classee ; reussite simple = circonstance attenuante ; echec flagrant = aggravation.'},
-          // LE PARQUET SE DEPLACE (12 octobre 2026). Le Procureur est NATIONAL mais chacun de
-          // ses actes exige sa presence dans le tribunal de la ville de l'affaire : l'ecran est
-          // donc dans les trois tribunaux, et c'est la porte serveur qui refuse quand il n'est
-          // pas au bon endroit.
-          {fn:'parquet',   label:'Dossiers du parquet',   pa:0, cost:0,   type:'legal',   icon:'ti-scale-outline', successRate:100, requiresPost:'procureur', desc:'Reserve au Procureur de la Republique. Diligenter une enquete, prononcer un non-lieu, engager ou abandonner les poursuites, saisir le juge. Chaque acte exige votre presence dans le tribunal de la ville de l\'affaire.'},
-          {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire transmise par le commissariat. Amende, prison, amenagement ou QHS.'},
+          // LES PREROGATIVES DES MAGISTRATS ONT DEMENAGE AU BUREAU DES MAGISTRATS (12 octobre
+          // 2026, soir), exactement comme dans le tribunal de la capitale. La presence qu'exige
+          // le serveur porte sur le BATIMENT : rien ne change pour lui.
+          {fn:'defense',   label:'Se defendre',           pa:2, cost:300, type:'legal',   icon:'ti-shield',  successRate:65, desc:'Procedure simplifiee, reservee aux faits les plus legers (2 jours de reference au plus, hors crime). Un avocat commis d\'office plaide pour vous ; le tribunal tranche sur le champ. Le jugement est definitif et sans appel.'},
+          {fn:'temoins_mes_convocations', label:'Mes convocations de temoin', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, desc:'Les affaires ou vous avez ete cite comme temoin : le commissariat ou vous presenter, et l\'echeance.'}
+        ]
+      },
+      // ---- BUREAU DES MAGISTRATS -- MEME PIECE, MEME IMAGE QU'A LA CAPITALE ----
+      // La declaration est volontairement IDENTIQUE a celle du gabarit `tribunal` : le cahier des
+      // charges demande la meme piece et le meme asset dans les trois villes.
+      bureau_magistrats: {
+        name: "Bureau des magistrats",
+        image: "⚖️",
+        imageBg: "linear-gradient(135deg,#17120a,#201808)",
+        desc: "Le bureau que se partagent le Procureur de la Republique et le President du Tribunal. Dossiers empiles, code penal annote, et le drapeau gris de Republia dans un coin.",
+        imageUrl: "images/tribunal-bureau-magistrats.webp",
+        persons: [],
+        orders: [
+          {fn:'parquet',   label:'Dossiers du parquet',   pa:0, cost:0,   type:'legal',   icon:'ti-scale-outline', successRate:100, requiresPost:'procureur', desc:'Reserve au Procureur de la Republique. Diligenter une enquete, prononcer un non-lieu, engager ou abandonner les poursuites, saisir le juge, citer un temoin. Chaque acte exige votre presence dans le tribunal de la ville de l\'affaire.'},
+          {fn:'rendre_sentence', label:'Rendre la sentence', pa:2, cost:0, type:'legal', icon:'ti-scale', successRate:100, requiresPost:'juge', desc:'Juger une affaire dont le parquet vous a saisi. Requalification, relaxe ou condamnation ; la peine est bornee par le bareme.'},
+          {fn:'audience_juge', label:'Tenir l\'audience', pa:0, cost:0, type:'legal', icon:'ti-podium', successRate:100, requiresPost:'juge', desc:'Ouvrir l\'audience d\'une affaire dont vous etes saisi, citer un temoin, et donner ou retirer la parole. L\'ouverture verrouille la defense : plus de revocation ni de changement d\'avocat.'},
           {fn:'acte_officiel_juge', label:'Delivrer un acte officiel', pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'juge', desc:'Rechercher une personne et lui delivrer l\'extrait d\'etat-civil/succession correspondant.'}
+        ]
+      },
+      // ---- GREFFE LOCAL (12 octobre 2026, soir) ----
+      // LES DEUX TRIBUNAUX DE PROVINCE N'AVAIENT PAS DE GREFFE, et c'etait un trou : le dossier
+      // d'un avocat ne se lit QUE au greffe du tribunal COMPETENT. Sans cette piece, la defense
+      // d'une affaire de Montrouge ou de Port-Sainte-Marie etait illisible -- deux affaires sur
+      // trois. La piece porte le MEME nom de cle que celle de la capitale, `greffe`, parce que
+      // c'est ce nom unique que `justice_greffe_competent` rend pour les deux batiments.
+      greffe: {
+        name: "Greffe",
+        image: "📋",
+        imageBg: "linear-gradient(135deg,#141008,#1c1608)",
+        desc: "Le greffe du tribunal municipal. Plus petit que celui de la capitale, aussi poussiereux.",
+        imageUrl: "images/tribunal-greffe.webp",
+        persons: [],
+        orders: [
+          {fn:'archives',       label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive', successRate:100},
+          {fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\'avocat dont la defense a ete acceptee. Le dossier complet de l\'affaire, et la citation de temoins jusqu\'a l\'ouverture de l\'audience.'},
+          {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'}
         ]
       }
     }

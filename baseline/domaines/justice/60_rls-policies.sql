@@ -14,6 +14,9 @@
 -- fermee a tout role soumis a la RLS : c'est un etat VOULU, pas un oubli.
 
 ALTER TABLE public.actions_tracables ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audience_paroles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.avocats_barreau ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.defenses_demandes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.demandes_grace ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.detentions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dossiers_auditions ENABLE ROW LEVEL SECURITY;
@@ -26,12 +29,14 @@ ALTER TABLE public.infractions_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infractions_empreinte ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jugements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.justice_avocats_commis ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.justice_barreau_qualifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.justice_indemnites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.niveaux_prison ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.plaintes_en_cours ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prisonniers_qhs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rumeurs_actives ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.signalements_police ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.temoins_citations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vols_en_attente ENABLE ROW LEVEL SECURITY;
 
 -- actions_tracables

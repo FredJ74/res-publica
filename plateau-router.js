@@ -724,6 +724,15 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); return; }
   if (fn === 'plainte') { ouvrirPorterPlainte(pa, cost); return; }
   if (fn === 'defense') { doDefense(pa, cost); return; }
+  // LE BARREAU, LES TEMOINS ET L'AUDIENCE (12 octobre 2026, soir). Six routes, zero decision :
+  // chacune ouvre un ecran qui appelle une porte serveur. Les gardes -- qualification d'avocat,
+  // poursuites engagees, audience ouverte, presence au greffe ou au commissariat, titularite du
+  // poste de juge -- vivent toutes au serveur, et c'est lui qui refuse.
+  if (fn === 'avocat_barreau') { ouvrirAvocatBarreau(); return; }
+  if (fn === 'avocat_dossiers') { ouvrirAvocatDossiers(); return; }
+  if (fn === 'temoins_mes_convocations') { ouvrirTemoinsConvocations(); return; }
+  if (fn === 'temoin_deposition') { ouvrirTemoinDepositionDepuisCommissariat(); return; }
+  if (fn === 'audience_juge') { ouvrirAudienceJuge(); return; }
   // Doublon 'projet_loi' SUPPRIME (chantier Assemblee, 10 septembre 2026). Cette seconde route
   // etait inatteignable -- le test identique plus haut dans cette meme fonction fait return avant.
   // Elle pointait sur ouvrirDeposerProjet(), desormais retiree de plateau-politique.js. Meme

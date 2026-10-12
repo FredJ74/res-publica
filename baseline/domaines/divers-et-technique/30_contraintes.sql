@@ -16,6 +16,7 @@ ALTER TABLE public.actes_nocturnes_mecanismes ADD CONSTRAINT actes_nocturnes_mec
 ALTER TABLE public.admin_actions_tribunal ADD CONSTRAINT admin_actions_tribunal_pk PRIMARY KEY (poste, action);
 ALTER TABLE public.admin_journal ADD CONSTRAINT admin_journal_pk PRIMARY KEY (rang);
 ALTER TABLE public.administrateurs ADD CONSTRAINT administrateurs_pk PRIMARY KEY (user_id);
+ALTER TABLE public.administrateurs_invitations ADD CONSTRAINT administrateurs_invitations_pk PRIMARY KEY (email);
 ALTER TABLE public.ambassades_ouvertes ADD CONSTRAINT ambassades_ouvertes_pkey PRIMARY KEY (id);
 ALTER TABLE public.cron_journal ADD CONSTRAINT cron_journal_pkey PRIMARY KEY (id);
 ALTER TABLE public.etats_urgence ADD CONSTRAINT etats_urgence_pkey PRIMARY KEY (country);
@@ -29,6 +30,8 @@ ALTER TABLE public.actes_nocturnes ADD CONSTRAINT actes_nocturnes_pays_non_vide 
 ALTER TABLE public.actes_nocturnes ADD CONSTRAINT actes_nocturnes_sujet_non_vide CHECK ((btrim(sujet) <> ''::text));
 ALTER TABLE public.actes_nocturnes_mecanismes ADD CONSTRAINT actes_nocturnes_mecanismes_slug CHECK ((mecanisme ~ '^[a-z][a-z0-9_]{2,59}$'::text));
 ALTER TABLE public.admin_actions_tribunal ADD CONSTRAINT admin_actions_tribunal_poste CHECK ((poste = ANY (ARRAY['procureur'::text, 'juge'::text])));
+ALTER TABLE public.administrateurs_invitations ADD CONSTRAINT administrateurs_invitations_consommation CHECK ((((consommee_le IS NULL) AND (consommee_par IS NULL)) OR ((consommee_le IS NOT NULL) AND (consommee_par IS NOT NULL))));
+ALTER TABLE public.administrateurs_invitations ADD CONSTRAINT administrateurs_invitations_minuscules CHECK ((email = lower(email)));
 ALTER TABLE public.cron_journal ADD CONSTRAINT cron_journal_statut_check CHECK ((statut = ANY (ARRAY['demarree'::text, 'ok'::text, 'echec'::text, 'ignoree'::text])));
 
 -- CLES ETRANGERES

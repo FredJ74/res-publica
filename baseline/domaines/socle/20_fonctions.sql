@@ -231,7 +231,16 @@ AS $function$
     'administrateur', public.est_administrateur(),
     'libelle', (SELECT a.libelle FROM public.administrateurs a
                  WHERE a.user_id = auth.uid() AND a.actif),
-    'bootstrap_ouvert', NOT EXISTS (SELECT 1 FROM public.administrateurs));
+    -- L'APPELANT N'APPREND RIEN SUR LES AUTRES. Vrai seulement s'il a LUI-MEME une invitation
+    -- non consommee, sur une adresse confirmee. Un compte sans invitation lit `false` et ne
+    -- distingue donc pas une administration constituee d'une administration vide.
+    'invitation_ouverte', EXISTS (
+       SELECT 1 FROM auth.users u
+         JOIN public.administrateurs_invitations i ON i.email = lower(btrim(u.email))
+        WHERE u.id = auth.uid()
+          AND coalesce(u.is_anonymous, false) IS FALSE
+          AND u.email_confirmed_at IS NOT NULL
+          AND i.consommee_le IS NULL));
 $function$;
 
 -- admin_pnj_titulaire(text,text,text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
@@ -259,42 +268,57 @@ CREATE OR REPLACE FUNCTION public.admin_se_declarer(p_libelle text)
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_uid uuid; v_u record; v_n integer;
+DECLARE v_uid uuid; v_u record; v_email text; v_n integer; v_lib text;
 BEGIN
   v_uid := auth.uid();
   IF v_uid IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'aucune_session');
   END IF;
-  -- LA PORTE EST FERMEE DES QU'UN ADMINISTRATEUR EXISTE. Definitivement : il n'y a pas de
-  -- deuxieme declaration, et donc pas de fenetre a guetter.
-  IF EXISTS (SELECT 1 FROM public.administrateurs) THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'administration_deja_constituee');
-  END IF;
-  -- UNE IDENTITE REELLE, PAS UN ANONYME. Les comptes joueurs sont anonymes (chantier B) : aucun
-  -- d'eux ne peut franchir cette ligne.
-  SELECT u.email, u.is_anonymous INTO v_u FROM auth.users u WHERE u.id = v_uid;
+  v_lib := coalesce(nullif(btrim(coalesce(p_libelle, '')), ''), 'Administration');
+
+  -- UNE IDENTITE REELLE ET CONFIRMEE, PAS UN ANONYME. Les comptes joueurs sont anonymes
+  -- (chantier B) : aucun d'eux ne peut franchir cette ligne. Et la confirmation est ce qui
+  -- prouve que l'appelant tient la boite de l'adresse invitee.
+  SELECT u.email, u.is_anonymous, u.email_confirmed_at INTO v_u
+    FROM auth.users u WHERE u.id = v_uid;
   IF NOT FOUND OR coalesce(v_u.is_anonymous, false) IS TRUE
      OR coalesce(btrim(coalesce(v_u.email, '')), '') = '' THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'compte_sans_identite_reelle');
   END IF;
-  -- « CE N'EST PAS LE COMPTE JOUEUR. » Un compte qui porte un personnage ne peut pas devenir
-  -- administrateur : c'est la separation demandee, et elle est verifiee, pas supposee.
+  IF v_u.email_confirmed_at IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'adresse_non_confirmee');
+  END IF;
+  v_email := lower(btrim(v_u.email));
+
+  -- « CE N'EST PAS LE COMPTE JOUEUR. » Verifie, pas suppose.
   IF EXISTS (SELECT 1 FROM public.personnages_donnees d WHERE d.user_id = v_uid) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'compte_porte_un_personnage');
   END IF;
 
+  -- L'INVITATION EST LA SEULE PORTE, et elle se consomme par COMPARE-AND-SWAP : deux onglets
+  -- simultanes ne peuvent pas la prendre tous les deux.
+  IF NOT EXISTS (SELECT 1 FROM public.administrateurs_invitations i WHERE i.email = v_email) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'aucune_invitation');
+  END IF;
+  UPDATE public.administrateurs_invitations
+     SET consommee_le = now(), consommee_par = v_uid
+   WHERE email = v_email AND consommee_le IS NULL;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n <> 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'invitation_deja_consommee');
+  END IF;
+
   INSERT INTO public.administrateurs (user_id, libelle)
-  VALUES (v_uid, coalesce(nullif(btrim(coalesce(p_libelle, '')), ''), 'Administration'))
+  VALUES (v_uid, v_lib)
   ON CONFLICT (user_id) DO NOTHING;
   GET DIAGNOSTICS v_n = ROW_COUNT;
   IF v_n <> 1 THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'administration_deja_constituee');
+    RETURN jsonb_build_object('ok', false, 'raison', 'administrateur_deja_inscrit');
   END IF;
 
   INSERT INTO public.admin_journal (admin_user_id, admin_libelle, action, ok, resultat)
-  VALUES (v_uid, coalesce(nullif(btrim(coalesce(p_libelle, '')), ''), 'Administration'),
-          'declaration_premier_administrateur', true,
-          jsonb_build_object('email', v_u.email));
+  VALUES (v_uid, v_lib, 'declaration_premier_administrateur', true,
+          jsonb_build_object('email', v_email, 'invitation', v_email));
   RETURN jsonb_build_object('ok', true, 'administrateur', true);
 END $function$;
 

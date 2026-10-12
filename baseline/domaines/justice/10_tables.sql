@@ -23,6 +23,32 @@ CREATE TABLE public.actions_tracables (
   decouvert boolean DEFAULT false
 );
 
+CREATE TABLE public.audience_paroles (
+  affaire text NOT NULL,
+  personne text NOT NULL,
+  accordee_le timestamp with time zone DEFAULT now() NOT NULL,
+  accordee_par text NOT NULL,
+  retiree_le timestamp with time zone
+);
+
+CREATE TABLE public.avocats_barreau (
+  nom text NOT NULL,
+  pays text NOT NULL,
+  tarification text NOT NULL,
+  maj_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.defenses_demandes (
+  rang bigserial NOT NULL,
+  affaire text NOT NULL,
+  pays text NOT NULL,
+  prevenu text NOT NULL,
+  avocat text NOT NULL,
+  demande_le timestamp with time zone DEFAULT now() NOT NULL,
+  etat text DEFAULT 'en_attente'::text NOT NULL,
+  repondu_le timestamp with time zone
+);
+
 CREATE TABLE public.demandes_grace (
   id text NOT NULL,
   statut text DEFAULT 'attente'::text,
@@ -63,7 +89,8 @@ CREATE TABLE public.dossiers_auditions (
   declaration text,
   refus boolean DEFAULT false NOT NULL,
   jour_pv integer NOT NULL,
-  fait_le timestamp with time zone DEFAULT now() NOT NULL
+  fait_le timestamp with time zone DEFAULT now() NOT NULL,
+  qualite text DEFAULT 'prevenu'::text NOT NULL
 );
 
 CREATE TABLE public.dossiers_judiciaires_actes (
@@ -150,6 +177,11 @@ CREATE TABLE public.justice_avocats_commis (
   cha integer NOT NULL
 );
 
+CREATE TABLE public.justice_barreau_qualifications (
+  qualification text NOT NULL,
+  note text
+);
+
 CREATE TABLE public.justice_indemnites (
   id text NOT NULL,
   pays text NOT NULL,
@@ -206,6 +238,22 @@ CREATE TABLE public.signalements_police (
   echeance timestamp with time zone NOT NULL,
   resolu_le timestamp with time zone,
   issue text
+);
+
+CREATE TABLE public.temoins_citations (
+  rang bigserial NOT NULL,
+  affaire text NOT NULL,
+  pays text NOT NULL,
+  ville text,
+  temoin text NOT NULL,
+  cite_par text NOT NULL,
+  cite_par_qualite text NOT NULL,
+  cite_le timestamp with time zone DEFAULT now() NOT NULL,
+  convocation_rang integer DEFAULT 1 NOT NULL,
+  echeance_jour integer NOT NULL,
+  etat text DEFAULT 'convoquee'::text NOT NULL,
+  issue text,
+  clos_le timestamp with time zone
 );
 
 CREATE TABLE public.vols_en_attente (

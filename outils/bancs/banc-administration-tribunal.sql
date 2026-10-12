@@ -1,4 +1,4 @@
--- BANC DU SOCLE D'ADMINISTRATION ET DE L'INCARNATION (12 octobre 2026) -- 25 epreuves
+-- BANC DU SOCLE D'ADMINISTRATION ET DE L'INCARNATION (12 octobre 2026) -- 29 epreuves
 --
 -- CE BANC NE COMMITE RIEN. Il cree un administrateur de banc, joue la chaine judiciaire entiere
 -- par incarnation de Saad puis d'Honore, nomme des PJ sur les deux postes pour verifier que
@@ -16,14 +16,17 @@
 --      etaient cassees en production. T20 le mesure sur un vrai Procureur PJ.
 --
 -- Usage : coller ce fichier dans un execute_sql. Il doit finir sur
---   ERROR: banc administration : LES 25 EPREUVES SONT VERTES. -- rien ne doit rester
+--   ERROR: banc administration : LES 29 EPREUVES SONT VERTES. -- rien ne doit rester
 --
 -- DEUX PIEGES DE DECOR, pour qui le rejoue :
 --   . un poste doit etre INSCRIT dans `postes_attribues` AVANT d'etre pose sur une fiche, sinon
 --     `trg_personnages_attester_poste` refuse l'ecriture -- c'est la garde qu'on veut laisser en
 --     place, pas contourner ;
 --   . le Procureur PJ de T20 doit etre PHYSIQUEMENT dans le tribunal de la capitale, sinon son
---     refus viendrait de la presence et non de l'arite qu'on veut mesurer.
+--     refus viendrait de la presence et non de l'arite qu'on veut mesurer ;
+--   . T27 et T28 ecrivent dans `auth.users`. C'est volontaire et sans danger : la transaction est
+--     annulee, et il n'y a aucune autre facon d'eprouver qu'un compte REEL, CONFIRME et NON INVITE
+--     se fait refuser -- tous les comptes joueurs etant anonymes, ils se font refuser plus tot.
 
 BEGIN;
 CREATE OR REPLACE FUNCTION pg_temp.je_suis(p_uuid text) RETURNS void LANGUAGE plpgsql AS $f$
@@ -44,6 +47,8 @@ DO $banc$
 DECLARE
   ADMIN_U text := 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
   INCONNU text := '99999999-8888-7777-6666-555555555555';
+  PIRATE_U text := '11111111-2222-3333-4444-555555555555';
+  INVITE_U text := '22222222-3333-4444-5555-666666666666';
   MARS_U text := 'a5a55fc8-64fa-4406-b617-76439d1d4aac'; MARS text := 'Marsault';
   LEE_U  text := 'ea4a2a0c-a192-4e10-8cff-d5db9b1cceb6'; LEE  text := 'Lee Capene';
   BEN    text := 'Ben';
@@ -293,12 +298,83 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN v_leve := true; END;
   IF NOT v_leve THEN ko := ko + 1; e := e || E'\nT24 : l''audit prive s''efface'; END IF;
 
-  -- --------- T25 : LA DECLARATION DU PREMIER COMPTE EST FERMEE DES QU'UN ADMIN EXISTE
-  n := n + 1;
+  -- --------- T25 A T29 : LA DECLARATION DU PREMIER COMPTE NE S'AUTO-PROMEUT JAMAIS
+  --
+  -- CES CINQ EPREUVES ONT ETE RECALIBREES LE 12 OCTOBRE 2026 AU SOIR, et elles mesurent desormais
+  -- l'inverse de ce que mesurait l'ancienne T25. L'ancienne version eprouvait une fenetre : la
+  -- declaration etait ouverte TANT QUE la table des administrateurs etait vide, et fermee des
+  -- qu'une ligne y figurait. La securite dependait donc de la VITESSE de provisionnement -- entre
+  -- le deploiement et la premiere declaration, n'importe quel compte confirme pouvait prendre la
+  -- place. La condition « la table est vide » a ete RETIREE de `admin_se_declarer` : la seule
+  -- porte est desormais une INVITATION NOMMEE, posee par migration, sur une adresse confirmee, et
+  -- consommee par compare-and-swap. Il n'y a plus de fenetre a courir.
+  n := n + 1;   -- T25 : UN COMPTE QUI N'EXISTE PAS N'EST PAS UN ADMINISTRATEUR EN DEVENIR.
   PERFORM pg_temp.je_suis(INCONNU);
   v := public.admin_se_declarer('Pirate');
-  IF (v ->> 'raison') IS DISTINCT FROM 'administration_deja_constituee' THEN
-    ko := ko + 1; e := e || E'\nT25 : un second administrateur peut se declarer -- ' || v::text; END IF;
+  IF (v ->> 'raison') IS DISTINCT FROM 'compte_sans_identite_reelle' THEN
+    ko := ko + 1; e := e || E'\nT25 : un compte inconnu se declare -- ' || v::text; END IF;
+
+  n := n + 1;   -- T26 : UN COMPTE JOUEUR NE SE PROMEUT PAS, ET LE REFUS NE DOIT RIEN A LA
+                --       PRESENCE D'UN ADMINISTRATEUR DEJA INSCRIT : la table est VIDEE d'abord.
+                --       C'est tout le §A.2 -- la fenetre de revendication n'existe plus.
+  PERFORM pg_temp.je_suis_le_serveur();
+  DELETE FROM public.administrateurs;
+  PERFORM pg_temp.je_suis(MARS_U);
+  v := public.admin_se_declarer('Moi, le joueur');
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT FALSE
+     OR (v ->> 'raison') IN ('administration_deja_constituee') THEN
+    ko := ko + 1; e := e || E'\nT26 : un compte joueur se promeut, administration vide -- ' || v::text; END IF;
+
+  n := n + 1;   -- T27 : UN COMPTE REEL ET CONFIRME, MAIS NON INVITE, EST REFUSE -- toujours
+                --       l'administration vide. C'est le cas du passant qui a devine l'URL.
+  PERFORM pg_temp.je_suis_le_serveur();
+  INSERT INTO auth.users (id, email, email_confirmed_at, is_anonymous)
+  VALUES (PIRATE_U::uuid, 'pirate-de-banc@example.invalid', now(), false);
+  PERFORM pg_temp.je_suis(PIRATE_U);
+  v := public.admin_se_declarer('Pirate confirme');
+  IF (v ->> 'raison') IS DISTINCT FROM 'aucune_invitation' THEN
+    ko := ko + 1; e := e || E'\nT27 : un compte confirme non invite se declare -- ' || v::text; END IF;
+
+  n := n + 1;   -- T28 : L'INVITE, LUI, PASSE -- UNE FOIS. La seconde tentative trouve
+                --       l'invitation consommee : deux onglets ne la prennent pas tous les deux.
+  PERFORM pg_temp.je_suis_le_serveur();
+  INSERT INTO auth.users (id, email, email_confirmed_at, is_anonymous)
+  VALUES (INVITE_U::uuid, 'invite-de-banc@example.invalid', now(), false);
+  INSERT INTO public.administrateurs_invitations (email, note)
+  VALUES ('invite-de-banc@example.invalid', 'banc');
+  PERFORM pg_temp.je_suis(INVITE_U);
+  v := public.admin_se_declarer('Invite');
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nT28 : l''invite ne peut pas se declarer -- ' || v::text; END IF;
+  v := public.admin_se_declarer('Invite, deuxieme fois');
+  IF (v ->> 'raison') NOT IN ('invitation_deja_consommee', 'administrateur_deja_inscrit') THEN
+    ko := ko + 1; e := e || E'\nT28 : l''invitation se consomme deux fois -- ' || v::text; END IF;
+
+  n := n + 1;   -- T29 : L'UNIQUE INVITATION DE PROVISIONNEMENT EST NOMMEE, POSEE PAR MIGRATION,
+                --       ET LE REGISTRE EST FERME AUX CLIENTS. L'etape restante est bornee : une
+                --       seule adresse, et personne ne peut s'en ajouter une.
+  PERFORM pg_temp.je_suis_le_serveur();
+  SELECT count(*) INTO v_n FROM public.administrateurs_invitations
+   WHERE consommee_le IS NULL AND email <> 'invite-de-banc@example.invalid';
+  IF v_n <> 1 THEN
+    ko := ko + 1; e := e || E'\nT29 : ' || v_n || ' invitation(s) de provisionnement en attente au lieu d''une'; END IF;
+  v_leve := false;
+  BEGIN
+    PERFORM set_config('role', 'authenticated', true);
+    PERFORM count(*) FROM public.administrateurs_invitations;
+  EXCEPTION WHEN insufficient_privilege THEN v_leve := true; END;
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF NOT v_leve THEN
+    ko := ko + 1; e := e || E'\nT29 : un client lit le registre des invitations'; END IF;
+  v_leve := false;
+  BEGIN
+    PERFORM pg_temp.je_suis(PIRATE_U);
+    INSERT INTO public.administrateurs_invitations (email) VALUES ('pirate-de-banc@example.invalid');
+  EXCEPTION WHEN insufficient_privilege THEN v_leve := true;
+           WHEN OTHERS THEN v_leve := true; END;
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF NOT v_leve THEN
+    ko := ko + 1; e := e || E'\nT29 : un client s''invite lui-meme'; END IF;
 
   PERFORM pg_temp.je_suis_le_serveur();
   IF ko > 0 THEN RAISE EXCEPTION 'banc administration : % EPREUVE(S) ROUGE(S) sur % --%', ko, n, e; END IF;
