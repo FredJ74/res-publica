@@ -41,19 +41,11 @@ Après audit et validation du game designer le 13 octobre 2026, l'ordre obsolèt
 
 **Aucun changement** au contingent et à la réserve des compagnies, à la mobilisation nationale, ni à la réquisition civile de 24 citoyens ajoutés à une section existante pendant la mobilisation. Les ordres étudiants `recruter_etud` restent intacts.
 
-## 5. La seconde carrière : le bouton est visible, la mécanique n'existe pas
+## 5. Université — seconde carrière (principes confirmés, cursus à arbitrer)
 
-« Suivre une formation » **existe et se voit** dans l'amphithéâtre, **désactivé pour de vrai** par
-trois verrous indépendants : le drapeau générique `bientot` (clic inerte, un toast et rien
-d'autre), **aucune route** dans `plateau-router.js`, et **absence du miroir des coûts** — ce qui
-ferait refuser `ordre_inconnu` même à un appel forcé. Son infobulle dit mot pour mot ce que
-l'arbitrage demande.
+L'ordre **« Suivre une formation »** permet à un PJ de développer **une seconde carrière sans effacer la première**. Cette reconversion n'est possible **qu'une seule fois dans la vie du personnage**. La formation s'étale sur **deux mois**, en alternant **cours et stages**. **Manquer un cours repousse la fin de la formation**. Le contenu précis des cours et stages, leur calendrier et les cursus offerts restent à définir avec le game designer, un arbitrage à la fois.
 
-**Ce qui manque n'est pas du code, c'est un catalogue.** `universite_cursus` compte **zéro
-ligne** : le socle des cursus existe depuis le 12 octobre, et il est **vide exprès**. Tant
-qu'aucun cursus n'est écrit, `universite_inscrire` ne peut que répondre `cursus_inconnu`. Les
-cursus, leurs durées, leurs jalons et les carrières qu'ils délivrent sont un arbitrage de game
-design, et **la tranche n'en a inventé aucun**.
+État technique audité : le bouton est visible mais désactivé (`bientot`), aucune route active, aucun coût d'ordre déclaré. Le socle `universite_cursus` existe mais son catalogue est vide volontairement ; ne pas inventer de cursus ni activer le bouton avant ces arbitrages.
 
 ## 6. Les arbitrages explicitement non rouverts
 
