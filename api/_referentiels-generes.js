@@ -161,6 +161,12 @@ export const RESSOURCES_ECONOMIE_SERVEUR = {
     "prixAchatFournisseur": 1.5,
     "source": "livraison"
   },
+  "laitages": {
+    "plafond": 150,
+    "prixBase": 3,
+    "prixAchatFournisseur": 1.5,
+    "source": "livraison"
+  },
   "poisson": {
     "plafond": 125,
     "prixBase": 4,
