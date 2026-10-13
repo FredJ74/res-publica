@@ -1908,6 +1908,13 @@ async function commercePjFicheProduit(referenceId) {
     // L'achat dans son propre commerce est autorise : le bouton n'est jamais masque.
     html += commercePjBouton("commercePjAcheter('" + referenceId + "','" + nouvelleCleAchat() + "')",
       tCommercePJ('commercepj.boutique.acheter'), true);
+    // Consommation immédiate uniquement dans les fonds exerçant la restauration.
+    // La transaction serveur conserve le paiement, la fiscalité et le stock commun.
+    if ((f.typesAutorises || []).includes('bar-restauration') && r.recette_id &&
+        ['encas','encas-a-emporter','plat-simple','plat-elabore','menu-gastronomique','aliment-prepare'].includes(r.generique_id)) {
+      html += commercePjBouton("commercePjConsommerSurPlace('" + referenceId + "','" + nouvelleCleAchat() + "')",
+        'Consommer sur place', false);
+    }
   }
   html += '<div style="margin-top:.9rem">' +
     commercePjBouton('commercePjEcranBoutique()', tCommercePJ('commercepj.retour.boutique')) + '</div>';
@@ -1936,6 +1943,26 @@ async function commercePjAcheter(referenceId, requete) {
   commercePjEcranBoutique();
 }
 
+
+// Achat et consommation atomiques : aucune livraison dans l'inventaire.
+async function commercePjConsommerSurPlace(referenceId, requete) {
+  const ctx = await commercePjContexte();
+  const r = await sbRpcVerdict('consommer_sur_place_commerce', {
+    p_requete: requete, p_acheteur: state.char.name,
+    p_fonds_id: ctx.fondsId, p_reference_id: referenceId
+  });
+  if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
+  if (r.rejeu === true) { commercePjEcranBoutique(); return; }
+  const e = r.effets || {};
+  const bonus = [Number(e.hp) ? '+' + e.hp + ' Santé' : '',
+                 Number(e.moral) ? '+' + e.moral + ' Moral' : ''].filter(Boolean).join(' · ');
+  showToast('Consommé sur place',
+    commercePjMontant(r.montant) + ' ' + commercePjDevise() + (bonus ? ' — ' + bonus : ''), true);
+  if (typeof addJournalEntry === 'function') addJournalEntry('Consommation sur place : ' + (bonus || 'aucun bonus') + '.', 'event-good');
+  if (typeof chargerPersonnage === 'function') { try { await chargerPersonnage(); } catch(e) {} }
+  if (typeof updateUI === 'function') updateUI();
+  commercePjEcranBoutique();
+}
 
 // Atelier de decoration — generation uniquement via Edge Function authentifiee.
 let RP_CPJ_DECOR_FONDS = null;
