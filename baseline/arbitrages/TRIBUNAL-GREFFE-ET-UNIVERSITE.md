@@ -27,15 +27,13 @@ livré est décrit dans `baseline/CONTROLE-GLOBAL.json`, section
 
 **Statut technique :** casting validé et signatures des greffes mises à jour dans Supabase ; intégration visuelle des PNJ non vérifiée.
 
-## 3. L'énigme du portrait a changé de nom, pas de registre
+## 3. Énigme du Musée — passage au greffe du Tribunal (CONFIRMÉ)
 
-Le portrait du tribunal nommait **« Juge Fontaine »**, qui n'existe plus dans aucun référentiel
-depuis le 12 octobre. Il nomme désormais **Juge Honoré Cozetoujours**, le juge PNJ réellement
-titulaire à Luthécia — c'est le seul changement exigé par l'audit.
+L'énigme du Musée de Luthécia (portraits disparus, parcelle B-127, succession Pierre Thibault, coffre bancaire, clé du débarras, Gérard Poinçon) **est conservée intégralement** : sept indices, conditions, progression et révélation inchangés.
 
-**Ce qui n'a pas été fait, et qui est signalé** : les **répliques** de l'énigme n'ont pas été
-réécrites. Elles sont dans le registre d'un autre personnage. Les adapter serait de l'écriture,
-donc un arbitrage d'auteur, pas une correction.
+Le passage judiciaire se fait déjà par l'ordre **« Demander à parler au juge » au greffe**, relié à `doDemanderJugeInstruction` dans `plateau-enigme-portrait.js`. Il vérifie les archives et les témoignages puis, si le dossier est complet, le juge Honoré Cozetoujours autorise l'ouverture du coffre. **Aucun nouveau bouton ni déplacement de l'action**.
+
+L'identité de Fontaine a été remplacée par Honoré Cozetoujours ; les trois répliques sont encore les formulations originales. Leur réécriture stylistique reste facultative et n'est pas arbitrée. Ne pas les modifier sans nouvelle décision explicite.
 
 ## 4. Un bouton trompeur par homonymie, hors des deux périmètres
 
