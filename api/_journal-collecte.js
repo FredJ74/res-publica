@@ -975,7 +975,7 @@ async function collecterIndicateursPopulation(pays) {
   const rows = await sbGet('personnages', `country=eq.${encodeURIComponent(pays)}&select=current_city&limit=2000`);
   const liste = rows || [];
   const parVille = {};
-  Object.keys(NOMS_VILLES[pays] || {}).forEach(villeId => {
+  Object.keys(VILLES_SERVEUR[pays] || {}).forEach(villeId => {
     parVille[resoudreNomVille(pays, villeId)] = 0;
   });
   liste.forEach(r => {
