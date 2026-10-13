@@ -716,6 +716,13 @@ function ordresCommerceDuLocal(buildingId, roomId, ville) {
       desc:  tCommercePJ('commercepj.ordre.gererAide')
     }));
   }
+  if (moi && titulaire === moi) {
+    ordres.push(Object.assign({}, base, {
+      fn: 'commerce_personnaliser', icon: 'ti-sparkles',
+      label: 'Option Commerce — Personnaliser mon local',
+      desc: 'Décorer l’intérieur du commerce par IA (gratuit pendant la bêta).'
+    }));
+  }
   return ordres;
 }
 
@@ -1927,4 +1934,22 @@ async function commercePjAcheter(referenceId, requete) {
   if (typeof verifierObjetsRecus === 'function') { try { await verifierObjetsRecus(); } catch (e) {} }
   if (typeof updateUI === 'function') updateUI();
   commercePjEcranBoutique();
+}
+
+
+// Atelier IA : seul le titulaire peut ouvrir la personnalisation.
+async function commercePjOuvrirAtelier() {
+  commercePjChargement('Option Commerce — Décoration');
+  const ctx = await commercePjContexte();
+  if (!ctx.fonds || !ctx.jeSuisProprietaire) {
+    commercePjModale('Option Commerce', '<p style="padding:1rem">Seul le propriétaire du commerce peut personnaliser ce local.</p>');
+    return;
+  }
+  const html = '<div style="padding:1rem;line-height:1.6">' +
+    '<h3>Atelier de décoration</h3>' +
+    '<p>Décrivez votre intérieur idéal. Les murs, ouvertures et proportions du local seront conservés.</p>' +
+    '<textarea id="cpj-decoration-demande" maxlength="1500" rows="5" style="width:100%;box-sizing:border-box;background:#17140f;color:#f1e5cd;padding:.7rem" placeholder="Ambiance, mobilier, matériaux, enseigne, éclairage..."></textarea>' +
+    '<p id="cpj-decoration-retour" aria-live="polite">La génération OpenAI sera disponible après activation du service sécurisé.</p>' +
+    '<button disabled title="Service en cours de configuration">Générer mon intérieur</button></div>';
+  commercePjModale('Option Commerce — Décoration', html);
 }
