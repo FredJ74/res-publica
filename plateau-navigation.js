@@ -864,6 +864,21 @@ function enterRoom(buildingId, roomId, tabEl) {
   } else {
     pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
+  if (typeof commercePjFondsIci === 'function') {
+    const fondsId = commercePjFondsIci();
+    if (fondsId) {
+      const roomAtRequest = roomId, buildingAtRequest = buildingId;
+      fetch(SUPABASE_URL + '/rest/v1/commerce_decors?fonds_id=eq.' +
+        encodeURIComponent(fondsId) + '&select=image_path', { headers: sbEnTetes() })
+        .then(r => r.ok ? r.json() : [])
+        .then(rows => {
+          const path = rows[0]?.image_path;
+          if (!path || state.currentRoom !== roomAtRequest || state.currentBuilding !== buildingAtRequest) return;
+          const url = SUPABASE_URL + '/storage/v1/object/public/commerce-decors/' + encodeURIComponent(path);
+          pieceImg.style.backgroundImage = 'url("' + url + '")';
+        }).catch(() => {});
+    }
+  }
   // Enseigne : appelee pour TOUTE piece, y compris non declaree -- c'est elle
   // qui retire l'enseigne de la piece precedente. Ne jamais la conditionner a
   // varianteImg, sinon une enseigne resterait affichee en changeant de piece.
