@@ -73,3 +73,10 @@ Trois points sont **déjà arbitrés** et ont été laissés intacts, pour mémo
 ### Formation médicale — arbitrage complémentaire
 - **Aucun échec de mission de stage** : le joueur accomplit les objectifs à son rythme, sans test éliminatoire ni risque de devoir recommencer après un échec.
 - **Piste technique proposée, non encore arbitrée** pour l'accueil d'un patient : dialogue immersif avec un PNJ, puis action contextuelle explicite « Recueillir le motif de consultation » ; validation automatique de l'objectif, sans interprétation obligatoire du dialogue par l'IA ni création d'un simulateur médical.
+
+
+### Délégation de réalisation — parcours de médecin
+- **Validé par le game designer** : pour l'accueil d'un patient, dialogue immersif avec PNJ et action contextuelle explicite permettant de constater l'objectif ; validation automatique sans analyse obligatoire du dialogue par IA.
+- Le responsable technique est autorisé à **concevoir et implémenter l'intégralité de la procédure de missions médicales**, y compris consignes du maître de stage, dialogues et réactions des PNJ, objectifs et progression, sans multiplier les micro-arbitrages.
+- Préserver : aucun échec, pas de blocage par l'absence d'un maître de stage PJ, deux lieux (EHPAD de Luthécia et dispensaire de Port-Sainte-Marie), une mission par semaine après la première semaine, simplicité et réutilisation des systèmes existants.
+- Avant implémentation, auditer les interfaces et mécanismes existants ; ne pas annoncer comme déployé ce qui ne l'est pas.
