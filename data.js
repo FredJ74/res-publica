@@ -5616,7 +5616,9 @@ const BUILDINGS = {
           {name:'Soldat Nguyen (PNJ)',    role:'PNJ - Soldat', rel:'neutral', job:'soldat'}
         ],
         orders: [
-          {fn:'recruter_etud',     label:'Recruter pour un groupe',     pa:2, cost:0, type:'grey',  icon:'ti-user-plus',     successRate:65,  desc:'Constituer une milice ou un groupe arme.'}
+          // L'ancien ordre « Recruter pour un groupe » est supprimé après audit (13 octobre 2026) :
+          // il appelait par erreur le recrutement syndical, sans mécanique militaire propre.
+          // Mobilisation nationale et réquisition civile restent accessibles au ministère.
         ]
       }
     }
