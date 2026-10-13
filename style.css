@@ -721,6 +721,8 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    applique). background-color et background-repeat passent donc egalement en !important, par
    coherence avec background-size/background-position deja necessairement !important pour la
    meme raison. */
+/* Décors de commerces personnalisés : image entière, sans recadrage sur petits écrans. */
+.piece-image[data-commerce-decor="1"]{background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;background-color:var(--bg)!important}
 .piece-image[data-musee="1"]{min-height:460px;background-size:100% 100%, contain!important;background-position:center!important;background-repeat:no-repeat!important;background-color:var(--bg)!important}
 .piece-emoji{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:6rem;opacity:.12;pointer-events:none}
 /* Enseigne d'une piece a variantes (voir plateau-variantes-pieces.js). Position,
