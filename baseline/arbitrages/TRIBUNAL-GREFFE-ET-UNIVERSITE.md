@@ -9,24 +9,15 @@ livré est décrit dans `baseline/CONTROLE-GLOBAL.json`, section
 
 ---
 
-## 1. L'extrait de domiciliation n'a pas d'ossature générale
+## 1. Extrait officiel de domiciliation — ARBITRAGE VALIDÉ LE 13 OCTOBRE 2026
 
-**Ce qui est livré.** Une organisation constituée par la porte `syndicat_etudiant_domicilier`
-reçoit un **extrait de domiciliation** dans l'inventaire de son fondateur, daté et figé. Le
-duplicata (`organisation_extrait_duplicata`, 75 FR + 1 PA → caisse du Tribunal) est réservé au
-**président ou au secrétaire** de l'organisation, et il exige qu'un **original** existe
-(`donnees->>'motif' = 'constitution'`).
+**Décision de game design :** toutes les organisations, sans exception de catégorie, reçoivent à leur constitution **un extrait officiel unique de domiciliation**. L'original est remis dans l'inventaire du fondateur. Le document atteste la constitution et la domiciliation, sans conférer de fonction dirigeante à son détenteur.
 
-**Le blocage, précisément.** Les organisations créées par l'ancien chemin client n'ont **ni
-président ni secrétaire nommés dans leur blob**, et **aucun extrait original**. Elles n'ont donc
-pas de duplicata, et c'est cohérent : on ne peut pas délivrer la copie d'un acte qui n'a jamais
-existé. Mais cela veut dire que **l'extrait de domiciliation n'est pas une mécanique du jeu** :
-c'est une mécanique des syndicats étudiants.
+**Duplicata :** seul le **président ou le trésorier** de l'organisation peut demander un double, **au greffe du tribunal de la ville de domiciliation**, pour **75 FR et 1 PA**. Le duplicata reproduit un original existant, il ne constitue pas une nouvelle organisation et ne modifie pas sa domiciliation.
 
-**La décision attendue.** Faut-il un extrait de domiciliation pour **toute** organisation, et donc
-une porte de constitution unique qui l'émette et nomme ses dirigeants ? Si oui, c'est un chantier
-« organisations » et non un chantier « greffe ». **Rien n'a été bricolé** : la fondation minimale
-propre est en place pour ce qui passe par la porte neuve, et le reste est consigné ici.
+**Écart avec l'existant :** la porte actuelle `syndicat_etudiant_domicilier` émet déjà un extrait original, mais la règle n'est pas générale. La porte `organisation_extrait_duplicata` autorise actuellement le président **ou le secrétaire** : remplacer le secrétaire par le **trésorier**. Les organisations créées par l'ancien chemin client n'ont pas forcément de dirigeants normalisés ni d'extrait original. Il faut auditer les voies de constitution et prévoir un traitement cohérent des organisations préexistantes sans fabriquer silencieusement de faux originaux.
+
+**Statut technique :** arbitrage enregistré ; implémentation transversale et vérifications restent à faire. Ne pas déclarer le chantier clos.
 
 ## 2. Le greffier n'a de nom que dans la capitale
 
