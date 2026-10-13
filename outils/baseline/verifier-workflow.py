@@ -11,7 +11,7 @@ processus deja reparti de travers -- un .sql pose a la racine, une migration san
 horodatage, un baseline edite a la main. Rien de tout cela ne se voit dans un
 controle de fidelite.
 
-HUIT INVARIANTS, qui echouent independamment.
+NEUF INVARIANTS, qui echouent independamment.
 
   1. AUCUN .sql A LA RACINE          c'est la dispersion qui a rendu l'histoire
                                      illisible : 184 fichiers sans ordre ni
@@ -330,6 +330,52 @@ def main():
     r.verif("fichiers citant encore l'ancien chemin", len(sorted(set(morts))), 0)
     for f in sorted(set(morts))[:6]:
         r.anomalie("chemin historique encore cite dans %s" % f)
+
+    # ----------------------- 9. le deploiement reste deployable (13 octobre 2026)
+    #
+    # POURQUOI CET INVARIANT EXISTE. Le 11 octobre 2026 a 18 h 50, la planification du cron de
+    # l'Assemblee est passee de "0 21 * * 3" a "0 21,22 * * 1,3" -- DEUX declenchements le meme
+    # jour, pour couvrir l'heure d'ete et l'heure d'hiver. Le plan Vercel du projet n'autorise
+    # qu'UNE invocation par jour et par tache : VERCEL A REFUSE LE DEPLOIEMENT, et il l'a refuse
+    # pour tous les commits suivants. Dix-sept commits ont ete pousses sans jamais etre deployes,
+    # pendant DEUX JOURS, et rien dans le depot ne le disait -- `git push` reussissait, les bancs
+    # etaient verts, la production servait un build vieux de deux jours.
+    #
+    # CE QUE LA MESURE DIT, ET CE QU'ELLE NE DIT PAS. Elle ne valide pas une syntaxe cron : elle
+    # verifie les DEUX limites du plan, les seules qui font refuser un deploiement entier --
+    # deux taches au plus, et une invocation par jour chacune. Un champ minute ou heure qui porte
+    # une virgule, un pas (`*/2`), un intervalle (`21-22`) ou une etoile declare plus d'une
+    # invocation par jour : c'est exactement ce qui a casse. Les champs de JOUR, eux, sont libres
+    # -- "0 21 * * 3" etait accepte, et il n'y a aucune raison d'interdire une tache hebdomadaire.
+    r.famille("9. LE DEPLOIEMENT RESTE DEPLOYABLE")
+    MAX_CRONS = 2
+    conf = os.path.join(RACINE, "vercel.json")
+    if not os.path.exists(conf):
+        r.verif("vercel.json present", 0, 1)
+        r.anomalie("vercel.json est absent : la configuration de deploiement n'est plus versionnee")
+    else:
+        crons = json.load(open(conf, encoding="utf-8")).get("crons") or []
+        r.note("taches cron declarees                         %d / %d au plus"
+               % (len(crons), MAX_CRONS))
+        if len(crons) > MAX_CRONS:
+            r.anomalie("%d taches cron pour %d autorisees par le plan : le deploiement sera "
+                       "refuse en entier, pas seulement la tache de trop"
+                       % (len(crons), MAX_CRONS))
+        multiples = []
+        for c in crons:
+            champs = str(c.get("schedule", "")).split()
+            if len(champs) != 5:
+                multiples.append("%s : planification illisible (%r)"
+                                 % (c.get("path"), c.get("schedule")))
+                continue
+            minute, heure = champs[0], champs[1]
+            if any(ch in minute + heure for ch in (",", "/", "-")) or "*" in minute + heure:
+                multiples.append("%s : %r declare plus d'une invocation par jour"
+                                 % (c.get("path"), c.get("schedule")))
+        r.verif("planifications a plus d'une invocation par jour", len(multiples), 0)
+        for m in multiples:
+            r.anomalie("%s -- le plan n'en autorise qu'une, et Vercel refuse TOUT le "
+                       "deploiement, silencieusement du point de vue du depot" % m)
 
     # ----------------------------------------------------------------- verdict
     print("\n" + "=" * 72)

@@ -11,11 +11,28 @@
 // (elections, loyers, prets, detentions) une seconde fois chaque mercredi soir.
 //
 // PLANIFICATION — voir vercel.json :
-//     { "path": "/api/cron-assemblee", "schedule": "0 21 * * 3" }
-// Vercel Cron planifie en UTC. 21:00 UTC = 22:00 Paris en heure d'HIVER (CET, UTC+1) et 23:00
-// Paris en heure d'ETE (CEST, UTC+2). C'est exactement la meme approximation que celle deja
-// retenue par cron-minuit.js ("0 23 * * *", cale sur minuit d'hiver) : le projet assume une
-// derive d'une heure sur la moitie de l'annee plutot que deux planifications concurrentes.
+//     { "path": "/api/cron-assemblee", "schedule": "0 22 * * *" }
+//
+// UNE SEULE INVOCATION PAR JOUR, ET CE N'EST PAS UN CHOIX DE CONFORT (13 octobre 2026).
+// Le 11 octobre a 18 h 50, la planification est passee de "0 21 * * 3" a "0 21,22 * * 1,3" --
+// DEUX declenchements le meme jour, pour couvrir l'heure d'ete ET l'heure d'hiver. VERCEL A
+// REFUSE LE DEPLOIEMENT A PARTIR DE CE COMMIT : le plan Hobby n'autorise qu'un declenchement
+// par jour et par tache, et le statut GitHub de chaque commit suivant portait « Deployment
+// failed. » avec un lien vers la page « Usage & Pricing for Cron Jobs ». Dix-sept commits ont
+// ainsi ete pousses sans jamais etre deployes, pendant deux jours, SANS QUE RIEN NE L'INDIQUE
+// dans le jeu. La lecon tient en une phrase : une planification qui depasse le plan ne casse
+// pas le cron, elle casse TOUT LE DEPLOIEMENT.
+//
+// POURQUOI 22:00 UTC, ET POURQUOI CHAQUE JOUR. Les deux echeances arbitrees sont le LUNDI
+// 23:00 Paris (depouillement de la presidence) et le MERCREDI 22:00 Paris (cloture de la
+// seance). En UTC, elles valent 21:00 / 20:00 l'ete et 22:00 / 21:00 l'hiver. A 22:00 UTC, le
+// cron passe donc TOUJOURS APRES l'echeance, dans les deux saisons -- jamais avant. C'est le
+// point qui compte : un declenchement TARDIF ne fait que retarder le depouillement, tandis
+// qu'un declenchement TROP TOT se fait refuser `pas_encore_echu` et PERD la semaine entiere.
+// Et il tourne tous les jours parce que c'est la forme la plus robuste : un jour saute, le
+// lendemain rattrape. Les six jours sans echeance ne font rien du tout -- les deux portes
+// refusent `aucun_scrutin_ouvert` et ne trouvent aucune session due, ce qui est le cas NORMAL.
+//
 // L'IMPRECISION EST SANS CONSEQUENCE SUR L'EQUITE : c'est la RPC qui compare now() a cloture_ts,
 // donc un declenchement tardif ne fait que retarder le depouillement, jamais fausser le resultat.
 // Un vote arrive apres cloture_ts est refuse par assemblee_voter meme si le cron n'a pas encore
@@ -152,10 +169,11 @@ export default async function handler(req, res) {
   try {
     // ---- 0 bis. DEPOUILLEMENT DE L'ELECTION PRESIDENTIELLE (arbitrage du 11 octobre 2026) ----
     //
-    // LE LUNDI A 23 HEURES DE PARIS, ET C'EST POURQUOI CE CRON TOURNE AUSSI LE LUNDI. L'horaire
-    // Vercel est en UTC : 21h00 UTC vaut 23h00 de Paris en heure d'ete, 22h00 UTC en heure
-    // d'hiver. Les DEUX passes sont donc declarees, et la seconde ne fait rien quand la premiere
-    // a deja depouille -- la porte refuse un scrutin qui n'est plus ouvert.
+    // LE LUNDI A 23 HEURES DE PARIS, ET C'EST POURQUOI CE CRON TOURNE TOUS LES JOURS. L'horaire
+    // Vercel est en UTC : 23h00 de Paris vaut 21h00 UTC en heure d'ete et 22h00 UTC en heure
+    // d'hiver. Declarer les DEUX heures le meme jour a fait REFUSER le deploiement par Vercel
+    // (plan Hobby : une invocation par jour) ; une invocation quotidienne a 22h00 UTC passe
+    // apres l'echeance dans les deux saisons, et un jour manque est rattrape le lendemain.
     //
     // LA PORTE DECIDE, PAS CE FICHIER. Elle refuse avant l'echeance (`pas_encore_echu`) et quand
     // il n'y a pas de scrutin (`aucun_scrutin_ouvert`) : ces deux refus sont le cas NORMAL six
