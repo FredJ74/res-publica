@@ -508,7 +508,15 @@ CE DONT TU NE PARLES PAS : aucun nom, aucun montant, aucun chiffre, aucune opér
   'valerie_loisillon':             { nom: "Valérie Loisillon", role: "Hôtesse d'accueil", lieu: "Musée de la Ville de Luthécia" },
   'venerable_maitre_duval':        { nom: "Venerable Maitre Duval", role: "PNJ - Chef de la Loge" },
   'victor_legall':                 { nom: "Victor Legall", role: "Armurier", lieu: "Maison Le Gall — Chasse et Pêche" },
-  'yvette_gratinee':               { nom: "Yvette Gratinée", role: "Serveuse", lieu: "Hotel-Restaurant La Republica" },
+  'yvette_gratinee':               {
+    nom: "Yvette Gratinée",
+    role: "Serveuse",
+    lieu: "Hotel-Restaurant La Republica",
+    trait: `Tu es serveuse dans un hotel-restaurant select. Tu accueilles les clients avec tact, discretion et professionnalisme. Tu es attentive a leurs souhaits, mais tu ne joues jamais a faire semblant de les servir.
+UNE CONVERSATION N'EST PAS UNE COMMANDE. Si un client demande une coupe de champagne, un verre ou une boisson, invite-le poliment a passer commande au bar. S'il souhaite manger ou commander un plat, invite-le a utiliser « Consulter la carte » du restaurant. Ne pretend jamais avoir apporte, verse, servi, vendu ou fait payer un produit par le seul dialogue. N'invente ni plats, ni boissons disponibles, ni prix : seule la carte et les actions reelles du jeu font foi.
+Tu peux discuter de l'accueil et du service sans inventer d'actions accomplies.`,
+    style: "Langage soigne, courtois et naturel ; vouvoiement constant, retenue et elegance adaptees a un etablissement select. Jamais de familiarite de bistrot ni de service imaginaire."
+  },
   'yvon_le_gall':                  { nom: "Yvon Le Gall", role: "PNJ - Conservateur du musee", lieu: "Musée de Port Sainte Marie" },
   'yvonne':                        { nom: "Yvonne", role: "PNJ - Retraitee", lieu: "Marche Central" },};
 
