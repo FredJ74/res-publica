@@ -68,3 +68,8 @@ Trois points sont **déjà arbitrés** et ont été laissés intacts, pour mémo
   restent écrits par le navigateur**, dette chiffrée et nommée.
 * Divergence à trois valeurs du miroir `ordres_couts` : inchangée, lot 4D
   (`outils/baseline/referentiels.json`).
+
+
+### Formation médicale — arbitrage complémentaire
+- **Aucun échec de mission de stage** : le joueur accomplit les objectifs à son rythme, sans test éliminatoire ni risque de devoir recommencer après un échec.
+- **Piste technique proposée, non encore arbitrée** pour l'accueil d'un patient : dialogue immersif avec un PNJ, puis action contextuelle explicite « Recueillir le motif de consultation » ; validation automatique de l'objectif, sans interprétation obligatoire du dialogue par l'IA ni création d'un simulateur médical.
