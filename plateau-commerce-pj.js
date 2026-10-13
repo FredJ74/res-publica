@@ -1937,7 +1937,45 @@ async function commercePjAcheter(referenceId, requete) {
 }
 
 
-// Atelier IA : seul le titulaire peut ouvrir la personnalisation.
+// Atelier de decoration — generation uniquement via Edge Function authentifiee.
+let RP_CPJ_DECOR_FONDS = null;
+let RP_CPJ_DECOR_PREVIEW = null;
+let RP_CPJ_DECOR_RETOUCHES = 0;
+const RP_CPJ_DECOR_BUCKET = SUPABASE_URL + '/storage/v1/object/public/commerce-decors/';
+function commercePjDecorUrl(path) {
+  return RP_CPJ_DECOR_BUCKET + String(path || '').split('/').map(encodeURIComponent).join('/');
+}
+async function commercePjDecorAppel(action, extra) {
+  if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession();
+  const jeton = (typeof rpAuthJeton === 'function') ? rpAuthJeton() : null;
+  if (!jeton) throw new Error('Connexion requise pour personnaliser le commerce.');
+  const res = await fetch(SUPABASE_URL + '/functions/v1/commerce-decoration', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+jeton},
+    body:JSON.stringify(Object.assign({fondsId:RP_CPJ_DECOR_FONDS,action:action},extra||{}))
+  });
+  const data = await res.json().catch(function(){return {};});
+  if (!res.ok || !data.ok) throw new Error(data.error || 'La génération a échoué.');
+  return data;
+}
+async function commercePjDecorImageOriginale() {
+  const el = document.getElementById('piece-image');
+  const bg = el && el.style.background || '';
+  const match = bg.match(/url\(["']?([^"')]+)["']?\)/);
+  if (!match) throw new Error('Image du local introuvable.');
+  const url = new URL(match[1], location.href);
+  if (url.origin !== location.origin) throw new Error('Image originale externe non prise en charge.');
+  const res = await fetch(url.href);
+  if (!res.ok) throw new Error('Impossible de charger le décor original.');
+  const blob = await res.blob();
+  if (blob.size > 7000000) throw new Error('Image originale trop volumineuse.');
+  return await new Promise(function(resolve,reject){
+    const reader = new FileReader();
+    reader.onload = function(){resolve(reader.result);};
+    reader.onerror = function(){reject(new Error('Lecture image impossible.'));};
+    reader.readAsDataURL(blob);
+  });
+}
 async function commercePjOuvrirAtelier() {
   commercePjChargement('Option Commerce — Décoration');
   const ctx = await commercePjContexte();
@@ -1945,11 +1983,55 @@ async function commercePjOuvrirAtelier() {
     commercePjModale('Option Commerce', '<p style="padding:1rem">Seul le propriétaire du commerce peut personnaliser ce local.</p>');
     return;
   }
+  RP_CPJ_DECOR_FONDS = ctx.fondsId;
+  RP_CPJ_DECOR_PREVIEW = null;
+  RP_CPJ_DECOR_RETOUCHES = 0;
   const html = '<div style="padding:1rem;line-height:1.6">' +
-    '<h3>Atelier de décoration</h3>' +
-    '<p>Décrivez votre intérieur idéal. Les murs, ouvertures et proportions du local seront conservés.</p>' +
+    '<h3>Atelier de décoration — bêta gratuite</h3>' +
+    '<p>Décrivez votre intérieur. Les murs, portes, fenêtres et proportions seront conservés.</p>' +
     '<textarea id="cpj-decoration-demande" maxlength="1500" rows="5" style="width:100%;box-sizing:border-box;background:#17140f;color:#f1e5cd;padding:.7rem" placeholder="Ambiance, mobilier, matériaux, enseigne, éclairage..."></textarea>' +
-    '<p id="cpj-decoration-retour" aria-live="polite">La génération OpenAI sera disponible après activation du service sécurisé.</p>' +
-    '<button disabled title="Service en cours de configuration">Générer mon intérieur</button></div>';
+    '<div id="cpj-decoration-image" style="margin:.8rem 0"></div>' +
+    '<p id="cpj-decoration-retour" aria-live="polite">Une première génération et deux retouches par projet.</p>' +
+    '<button id="cpj-decoration-generer" onclick="commercePjDecorGenerer()">Générer mon intérieur</button> ' +
+    '<button id="cpj-decoration-valider" style="display:none" onclick="commercePjDecorValider()">Valider ce décor</button></div>';
   commercePjModale('Option Commerce — Décoration', html);
+}
+function commercePjDecorMessage(msg) {
+  const el = document.getElementById('cpj-decoration-retour');
+  if (el) el.textContent = msg;
+}
+async function commercePjDecorGenerer() {
+  const champ=document.getElementById('cpj-decoration-demande');
+  const bouton=document.getElementById('cpj-decoration-generer');
+  const prompt=(champ && champ.value || '').trim();
+  if(prompt.length<10){commercePjDecorMessage('Décrivez votre souhait en quelques phrases.');return;}
+  if(!bouton)return;
+  bouton.disabled=true;
+  commercePjDecorMessage('OpenAI prépare votre décor. Patientez…');
+  try {
+    const retouche=!!RP_CPJ_DECOR_PREVIEW;
+    const payload={prompt:prompt};
+    if(!retouche)payload.baseImage=await commercePjDecorImageOriginale();
+    const result=await commercePjDecorAppel(retouche?'retouch':'start',payload);
+    RP_CPJ_DECOR_PREVIEW=result.path;
+    RP_CPJ_DECOR_RETOUCHES=result.retouches||0;
+    const image=document.getElementById('cpj-decoration-image');
+    if(image){image.textContent='';const img=document.createElement('img');img.src=commercePjDecorUrl(result.path);img.alt='Aperçu du décor';img.style.cssText='width:100%;max-height:350px;object-fit:contain';image.appendChild(img);}
+    const valider=document.getElementById('cpj-decoration-valider');
+    if(valider)valider.style.display='';
+    bouton.textContent='Demander une retouche ('+RP_CPJ_DECOR_RETOUCHES+'/2)';
+    bouton.disabled=RP_CPJ_DECOR_RETOUCHES>=2;
+    commercePjDecorMessage('Aperçu prêt. Vous pouvez valider ou décrire une modification.');
+  } catch(e){commercePjDecorMessage(e.message||'Erreur de génération.');bouton.disabled=false;}
+}
+async function commercePjDecorValider() {
+  const btn=document.getElementById('cpj-decoration-valider');
+  if(!btn||!RP_CPJ_DECOR_PREVIEW)return;
+  btn.disabled=true;
+  try {
+    const r=await commercePjDecorAppel('finalize');
+    commercePjDecorMessage('Décor enregistré ! Il sera visible lors de la prochaine entrée dans le local.');
+    const gen=document.getElementById('cpj-decoration-generer');
+    if(gen)gen.disabled=true;
+  }catch(e){commercePjDecorMessage(e.message||'Erreur d’enregistrement.');btn.disabled=false;}
 }
