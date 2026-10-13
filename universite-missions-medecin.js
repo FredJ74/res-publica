@@ -41,14 +41,14 @@
       consigne: 'Une consultation imprevue arrive. Accueillez la personne, recueillez son motif et transmettez son dossier.',
       reaction: 'Merci de m’avoir pris en charge si rapidement.' }
   ]);
-  function missionPourSemaine(semaine) {
+  function consigneMaitreDeStage(semaine) {\n    const mission = missionPourSemaine(semaine);\n    if (!mission) return null;\n    return { titre: mission.titre, texte: mission.consigne, objectif: mission.objectif, action: mission.action };\n  }\n  function reactionPatient(missionId, action) {\n    const mission = missions.find(m => m.id === missionId);\n    if (!mission || mission.action !== action) return null;\n    return mission.reaction;\n  }\n  function missionPourSemaine(semaine) {
     return missions.find(m => m.semaine === semaine) || null;
   }
   function objectifAtteint(missionId, action) {
     const mission = missions.find(m => m.id === missionId);
     return !!mission && mission.action === action;
   }
-  const catalogue = Object.freeze({ missions, missionPourSemaine, objectifAtteint });
+  const catalogue = Object.freeze({ missions, missionPourSemaine, objectifAtteint, consigneMaitreDeStage, reactionPatient });
   if (typeof module !== 'undefined' && module.exports) module.exports = catalogue;
   else root.UNIVERSITE_MISSIONS_MEDECIN = catalogue;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
