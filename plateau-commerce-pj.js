@@ -1340,7 +1340,7 @@ async function commercePjNouvelleReference() {
 // toutes deux consomment la meme ressource serveur produits_exotiques.
 function commercePjLibelleMatiereRecette(cle, rec) {
   if (cle !== 'produits_exotiques') return commercePjLibelleMatiere(cle);
-  if (rec && rec.recette_id === 'chocolat_generique') return 'Cacao (produits exotiques)';
+  if (rec && (rec.recette_id === 'chocolat_generique' || rec.recette_id === 'chocolat_chaud_generique')) return 'Cacao (produits exotiques)';
   if (rec && /fruit|jus/i.test(String(rec.recette_id || ''))) return 'Fruits exotiques (produits exotiques)';
   return commercePjLibelleMatiere(cle);
 }
