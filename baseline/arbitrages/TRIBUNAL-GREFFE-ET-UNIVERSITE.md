@@ -35,19 +35,11 @@ Le passage judiciaire se fait déjà par l'ordre **« Demander à parler au juge
 
 L'identité de Fontaine a été remplacée par Honoré Cozetoujours ; les trois répliques sont encore les formulations originales. Leur réécriture stylistique reste facultative et n'est pas arbitrée. Ne pas les modifier sans nouvelle décision explicite.
 
-## 4. Un bouton trompeur par homonymie, hors des deux périmètres
+## 4. Quartier des Troupes — ordre « Recruter pour un groupe » (CLOS)
 
-Le **Quartier des Troupes de la Caserne** déclare l'ordre `fn:'recruter_etud'` sous le libellé
-**« Recruter pour un groupe »**, description « Constituer une milice ou un groupe armé ».
+Après audit et validation du game designer le 13 octobre 2026, l'ordre obsolète a été **retiré de `data.js`** (commit `e963a8d`). Il utilisait à tort `fn:'recruter_etud'` et lançait le recrutement syndical ; il n'existait aucune mécanique militaire autonome pour ce bouton.
 
-C'est **le même identifiant** que « Recruter des militants » de l'Université. Depuis que la porte
-serveur des militants exige une adhésion syndicale, **cliquer ce bouton à la Caserne exécute le
-recrutement de militants et refuse avec « Adhésion requise »**.
-
-**Ni corrigé ni touché** : la Caserne n'est ni le Tribunal ni l'Université, et le cahier des
-charges dit de ne pas ouvrir d'autre chantier. La décision attendue est simple à formuler et
-n'est pas la nôtre : soit l'ordre de la Caserne est **supprimé** (il n'a jamais eu de mécanique
-propre), soit il reçoit **son propre identifiant** et sa propre porte.
+**Aucun changement** au contingent et à la réserve des compagnies, à la mobilisation nationale, ni à la réquisition civile de 24 citoyens ajoutés à une section existante pendant la mobilisation. Les ordres étudiants `recruter_etud` restent intacts.
 
 ## 5. La seconde carrière : le bouton est visible, la mécanique n'existe pas
 
