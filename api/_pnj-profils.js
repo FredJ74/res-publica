@@ -499,7 +499,86 @@ function blocRegardsAssemblee(regards) {
   return l.join('\n');
 }
 
-function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards) {
+// ---------------------------------------------------------------------------------------------
+// LE SIXIEME CANAL -- OU EN EST LA VISITE D'ACCUEIL (13 octobre 2026)
+// ---------------------------------------------------------------------------------------------
+// UN SEUL PNJ LE RECOIT : Jeremy, qui conduit la visite. Pour les 214 autres profils, l'appel
+// n'est meme pas emis (voir api/chat.js). Il est de la sixieme nature, et c'est pour cela qu'il
+// ne se melange a aucun des cinq autres :
+//   . contexte public        -> un fait du monde (qui est en face) ;
+//   . memoire sociale        -> une relation (vous vous connaissez) ;
+//   . memoire pedagogique    -> un historique d'explications ;
+//   . memoire des mandats    -> une histoire nationale ;
+//   . regards de l'Assemblee -> une observation locale ;
+//   . etape de la visite     -> OU EN EST CE JOUEUR-CI dans son accueil.
+//
+// LE SERVEUR DIT L'ETAPE, LE DEPOT DIT LA CONSIGNE. `quete_accueil_contexte()` (registre 713)
+// rend l'identifiant d'etape, lu sur la fiche du joueur connecte. La PHRASE d'objectif, elle,
+// est un MIROIR de QUETE_ACCUEIL_OBJECTIFS (plateau-quete-accueil.js) : c'est exactement le
+// texte que « Mes Objectifs » affiche deja au joueur, donc la consigne qu'il a sous les yeux.
+// Rien n'est reformule ici -- et le banc outils/bancs/banc-dialogue-pnj-republia.js compare les
+// deux tables, clef par clef et phrase par phrase, pour qu'une derive se voie.
+//
+// POURQUOI UN MIROIR ET PAS UNE TABLE EN BASE. Ce texte n'est pas une donnee de jeu : c'est la
+// formulation d'une consigne d'interface, qui vit avec l'ecran qui l'affiche. Une table en base
+// en ferait une seconde source de verite a seeder, a classer et a surveiller, pour la meme
+// vingtaine de phrases. Le miroir, lui, est verifie hors ligne a chaque banc.
+const QUETE_ACCUEIL_OBJECTIFS = {
+  non_commencee: "Rendez-vous au Palais présidentiel.",
+  garde_en_cours: "Présentez-vous à l'Hôtel de Ville.",
+  guide_carrefour: "Rendez-vous à l'Hôtel de Ville.",
+  guide_hdv: "Rendez-vous à l'Hôtel de Ville.",
+  attente_entree_mairie: "Entrez à l'Hôtel de Ville et parlez au secrétaire Petit.",
+  jeremy_groupe: "Suivez Jérémy dans la salle des élections.",
+  guide_salle_elections: "Rendez-vous dans la salle des élections.",
+  guide_sortie: "Sortez de l'Hôtel de Ville avec Jérémy.",
+  attente_gauche_dispensaire: "Suivez Jérémy sur la gauche.",
+  attente_entree_dispensaire: "Rendez-vous au dispensaire avec Jérémy.",
+  attente_fiche_personnage: "Consultez votre fiche personnage.",
+  attente_hotel: "Rendez-vous à l'hôtel-restaurant.",
+  attente_bar: "Réservez une chambre à l'hôtel-restaurant.",
+  attente_bar_apres_chambre: "Allez faire un tour au bar avec Jérémy.",
+  attente_offre_verre: "Offrez un verre à Jérémy au bar.",
+  guide_stade: "Rendez-vous au stade.",
+  stade_attente_action: "Découvrez le stade.",
+  stade_apres_action: "Découvrez le stade.",
+  stade_libre_minuteur: "Découvrez le stade.",
+  attente_depart_jeremy: "Ajoutez Jérémy à vos contacts.",
+  proposition_carriere: "Dites à Jérémy ce que vous aimeriez devenir."
+};
+
+function blocQueteAccueil(contexte) {
+  if (!contexte || typeof contexte !== 'object' || contexte.ok !== true) return null;
+  const etape = (typeof contexte.etape === 'string') ? contexte.etape.slice(0, 60) : null;
+
+  // LA VISITE EST FINIE, ET IL DOIT LE SAVOIR. Sans cette branche, Jeremy continuerait a guider
+  // quelqu'un qui n'a plus besoin de lui -- ou, pire, inventerait une etape suivante.
+  if (!etape || contexte.visite_en_cours !== true) {
+    return "OU EN EST LA VISITE : elle est terminee. Tu ne guides plus ce joueur, et tu n'as plus"
+      + " d'etape a lui donner. S'il te demande la suite, dis-lui simplement qu'il est libre de"
+      + " continuer a decouvrir la ville comme il l'entend.";
+  }
+
+  const objectif = Object.prototype.hasOwnProperty.call(QUETE_ACCUEIL_OBJECTIFS, etape)
+    ? QUETE_ACCUEIL_OBJECTIFS[etape] : null;
+
+  // UNE ETAPE SANS CONSIGNE N'EN INVENTE PAS. Plusieurs etapes de la quete n'attendent aucune
+  // action precise (les etapes de carriere, par exemple) : le texte d'origine disait exactement
+  // quoi en faire, et il est repris tel quel.
+  if (!objectif) {
+    return "OU EN EST LA VISITE : le joueur en est a l'etape « " + etape + " », qui n'attend"
+      + " aucune action precise de sa part. S'il demande quoi faire, dis-lui simplement qu'il est"
+      + " libre de continuer a decouvrir la ville.";
+  }
+
+  return "OU EN EST LA VISITE : le joueur en est actuellement a l'etape « " + etape + " »."
+    + " Ce qu'il doit faire maintenant : " + objectif
+    + " Si le joueur demande ou il en est, ce qu'il doit faire, ou comment continuer -- sous"
+    + " n'importe quelle formulation -- redis-lui precisement cette etape-la, avec tes mots,"
+    + " sans inventer une autre consigne ni une autre destination.";
+}
+
+function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards, visite) {
   const p = TOUS_PROFILS[profilId];
   if (!p) return null;
   const rel = blocRelation(relation);
@@ -507,6 +586,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
   const pub = blocContextePublic(contextePublic);
   const mem = blocMemoireDesMandats(mandats);
   const reg = blocRegardsAssemblee(regards);
+  const vis = blocQueteAccueil(visite);
   return [
     p.identite,
     '',
@@ -522,6 +602,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
     ...(ped ? [ped, ''] : []),
     ...(mem ? [mem, ''] : []),
     ...(reg ? [reg, ''] : []),
+    ...(vis ? [vis, ''] : []),
     "REGLES ABSOLUES :",
     "- Si une question porte sur un point qui n'est pas dans ce que tu sais, dis simplement que tu n'as pas cette information ou que ce n'est pas de ton ressort. N'invente JAMAIS une regle.",
     // L'IDENTITE ETAIT CODEE EN DUR ICI (« Tu es Martial Bouterin »), dans un bloc pourtant applique
@@ -544,4 +625,5 @@ function maxTokensProfil(profilId) {
   return (TOUS_PROFILS[profilId] && TOUS_PROFILS[profilId].maxTokens) || 300;
 }
 
-export { PROFILS, TOUS_PROFILS, construirePromptSysteme, profilExiste, maxTokensProfil, LANGUES, LANGUE_DEFAUT };
+export { PROFILS, TOUS_PROFILS, construirePromptSysteme, profilExiste, maxTokensProfil,
+         LANGUES, LANGUE_DEFAUT, QUETE_ACCUEIL_OBJECTIFS };

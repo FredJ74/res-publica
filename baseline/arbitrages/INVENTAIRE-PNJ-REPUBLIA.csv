@@ -1,0 +1,245 @@
+ville;batiment;piece;nom;identifiant_profil;fonction;job;classe;origine;type_conversationnel;deepseek;personnalite_serveur;connaissances;raison_si_muet
+capitale;(suit le joueur);(groupe);Jérémy;jeremy;Stagiaire pistonne - Hotel de Ville;stagiaire;aucune famille (decor);quete d accueil;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;agence-grobras-securite;(employe une fois embauche);Albert Hagarde;albert_hagarde;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Anatole Crocs;anatole_crocs;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Brigitte Ronde;brigitte_ronde;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Firmin Poigné;firmin_poigne;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Ginette Molosse;ginette_molosse;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Gérard Menvussa;gerard_menvussa;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Josette Cadenas;josette_cadenas;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Léon Tourniquet;leon_tourniquet;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Marcel Mordu;marcel_mordu;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Rachel Barrage;rachel_barrage;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Roger Croquignol;roger_croquignol;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;agence-grobras-securite;(employe une fois embauche);Sylvain Guérite;sylvain_guerite;Agent de securite / maitre-chien;agent_securite;aucune famille (decor);pnj_candidats_catalogue (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;armurerie;magasin;Roger Détente;roger_detente;Armurier;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;armurerie;magasin;Simone Calibre;simone_calibre;Assistante;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;assemblee;accueil_assemblee;Garde Republicain;garde_republicain;PNJ - Securite;garde;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;assemblee;accueil_assemblee;Hotesse Accueil;hotesse_accueil;PNJ - Accueil;hotesse_accueil;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;assemblee;accueil_assemblee;Renée Toitout;renee_toitout;PNJ - Agente d'entretien;femme_menage;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;assemblee;couloirs;Journaliste Blanc;journaliste_blanc;Correspondant parlementaire (PNJ);journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;assemblee;couloirs;Lobbyiste Perrin;lobbyiste_perrin;Lobbyiste (PNJ);lobbyiste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;assemblee;hemicycle;Gérard Pichon;gerard_pichon;Depute;depute;gamma (depute);assemblee_sieges (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;assemblee;hemicycle;Loïc Kermeur;loic_kermeur;Depute;depute;gamma (depute);assemblee_sieges (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;assemblee;hemicycle;Maëlle Leroux;maelle_leroux;Depute;depute;gamma (depute);assemblee_sieges (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;assemblee;hemicycle;Nathalie Charron;nathalie_charron;Depute;depute;gamma (depute);assemblee_sieges (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;assemblee;hemicycle;President Laroche;president_laroche;Depute;depute;gamma (depute);assemblee_sieges (base);DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;assemblee;hemicycle;Sophie Maréchal;sophie_marechal;Depute;depute;gamma (depute);assemblee_sieges (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;assemblee;hemicycle;Yann Legall;yann_legall;Depute;depute;gamma (depute);assemblee_sieges (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;assemblee;hemicycle;Élodie Vasseur;elodie_vasseur;Depute;depute;gamma (depute);assemblee_sieges (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;assemblee;hemicycle;Étienne Vauclerc;etienne_vauclerc;Depute;depute;gamma (depute);assemblee_sieges (base);MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;assemblee;salle_archives_assemblee;Archiviste Parlementaire;archiviste_parlementaire;PNJ - Archiviste de l'Assemblee;archiviste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;banque-nationale;accueil_banque;Laurent Barre;laurent_barre;PNJ - Directeur d'agence;directeur;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;referent (corpus de domaine);
+capitale;banque-privee;bureau_prive;Hans Von Discret;hans_von_discret;Directeur;banquier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;banque-privee;bureau_prive;Ursula Offshore;ursula_offshore;Conseillère en optimisation fiscale;conseiller;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;bureau-national-emploi;accueil;Jean-Lou Zeure;jean_lou_zeure;Ancien Maire de Luthécia;citoyen;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;referent (corpus de domaine);
+capitale;centre-affaires;grobras_securite;Gaston Grobras;gaston_grobras;Directeur d'agence de sécurité;directeur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-affaires;grobras_securite;Sandra Pelle;sandra_pelle;Secrétaire de Grobras Sécurité;secretaire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-affaires;hall;Gretta Délieu;gretta_delieu;Hôtesse d'accueil;hotesse;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;centre-affaires;hall;Harry Cover;harry_cover;Détective privé;inspecteur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-affaires;hall;Moshe Maychan;moshe_maychan;Assassin;criminel;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-affaires;tribune_republia;Correspondant Local;correspondant_local;PNJ - Journaliste;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-artisanal;travees;Céd' Labone;ced_labone;Dealer;criminel;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-artisanal;travees;Henrico Stot;henrico_stot;Sécurité;agent_securite;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-artisanal;travees;Sabri Coledur;sabri_coledur;Mécanicien;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-commercial;hall;Edgar Simore;edgar_simore;Magicien saltimbanque;artiste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-commercial;hall;Francisca Brel;francisca_brel;Voleuse;criminel;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-multinodal-luthecia;hall_douanes;Inspecteur Prosper Tampon;inspecteur_prosper_tampon;Inspecteur des douanes;douanier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-multinodal-luthecia;hall_gare;Gaston Retard;gaston_retard;Chef de gare;chef_gare;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;centre-multinodal-luthecia;hall_gare;Mireille Guichet;mireille_guichet;Hôtesse d'accueil;hotesse;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;clinique-privee;reception_clinique;Docteur Bistouri;docteur_bistouri;Chirurgien;medecin;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;clinique-privee;reception_clinique;Sophie Stiquay;sophie_stiquay;Infirmière;infirmier;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;commissariat;accueil_police;Gardien de la Paix;gardien_de_la_paix;Agent d'accueil;gardien_paix;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;commissariat;bureau_commissaire;Brigitte Menottes;brigitte_menottes;Inspectrice;inspecteur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;commissariat;bureau_commissaire;Raoul Toufaud;raoul_toufaud;Commissaire Central;commissaire;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;commissariat;prison;Gardien Dubois;gardien_dubois;PNJ - Gardien de cellule;gardien;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;commissariat;prison;Tristan Cabane;tristan_cabane;Detenu;detenu;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;dispensaire-public;ehpad_tilleuls;Jeanine Dubois;jeanine_dubois;Ancienne institutrice;pensionnaire_ehpad;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;dispensaire-public;ehpad_tilleuls;Louis Chevillard;louis_chevillard;Policier en retraite;pensionnaire_ehpad;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;dispensaire-public;ehpad_tilleuls;Noël Chauchay;noel_chauchay;Agriculteur à la retraite;pensionnaire_ehpad;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;dispensaire-public;salle_attente;Anne Tibiotique;anne_tibiotique;Infirmière;infirmier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;dispensaire-public;salle_attente;Docteur Aspirine;docteur_aspirine;Généraliste;medecin;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;entrepot-logistique-luthecia;bureau_direction;Marcel Silo;marcel_silo;Directeur de l'Entrepôt Logistique;directeur_entrepot;gamma (titulaire de poste);piece de data.js;MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;hotel-republica;accueil;Isidore Trébien;isidore_trebien;Bagagiste;bagagiste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;accueil;Nathalie Ondor;nathalie_ondor;Réceptionniste;hotelier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;bar;Marc Hantile;marc_hantile;Lobbyiste — Conseil en affaires et économie;lobbyiste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;hotel-republica;bar;Marco (Barman);marco_barman;PNJ - Barman;barman;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;bar;beatrice;escort_beatrice;Escort — Agence Roxane Velours;escort;aucune famille (decor);escorts_catalogue (base);DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;bar;jean_philippe;escort_jean_philippe;Escort — Agence Roxane Velours;escort;aucune famille (decor);escorts_catalogue (base);DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;bar;julien;escort_julien;Escort — Agence Roxane Velours;escort;aucune famille (decor);escorts_catalogue (base);DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;bar;natacha;escort_natacha;Escort — Agence Roxane Velours;escort;aucune famille (decor);escorts_catalogue (base);DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;bar;rodolphe;escort_rodolphe;Escort — Agence Roxane Velours;escort;aucune famille (decor);escorts_catalogue (base);DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;bar;roxane;escort_roxane;Escort — Agence Roxane Velours;escort;aucune famille (decor);escorts_catalogue (base);DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;bar;veronique;escort_veronique;Escort — Agence Roxane Velours;escort;aucune famille (decor);escorts_catalogue (base);DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;restaurant;Gaston Sauceblanche;gaston_sauceblanche;Maitre d'hotel;serveur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;restaurant;Jean Dupont;jean_dupont;Depute - Parti du Centre;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;restaurant;Marie Leblanc;marie_leblanc;Journaliste - La Tribune;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;restaurant;Régis Gondasse;regis_gondasse;Sommelier;serveur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;hotel-republica;restaurant;Yvette Gratinée;yvette_gratinee;Serveuse;serveur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;la-tribune;accueil_tribune;Gustave Encre;gustave_encre;Imprimeur;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;la-tribune;accueil_tribune;Jodie Moitout;jodie_moitout;Journaliste micro-trottoir;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;la-tribune;accueil_tribune;Rosalie Caractère;rosalie_caractere;Libraire;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;la-tribune;redaction;Marie Leblanc;marie_leblanc;Journaliste d'investigation;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;la-tribune;redaction;Romain Castel;romain_castel;PNJ - Redacteur en chef;redacteur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;loge-maconnique;bureau_venerable;Venerable Maitre Duval;venerable_maitre_duval;PNJ - Chef de la Loge;venerable;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;loge-maconnique;hall_loge;Frere Gardien;frere_gardien;PNJ - Membre de la Loge;membre_loge;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;loge-maconnique;portail;Frère Jacques D'Equerre;frere_jacques_d_equerre;Grand Maître;loge;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;loge-maconnique;portail;Frère Maurice Compas;frere_maurice_compas;Trésorier;loge;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;mairie-capitale;bureau_maire;Le Maire de Luthecia;le_maire_de_luthecia;Maire de la Capitale;maire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;mairie-capitale;hall_mairie;Hotesse Objets Trouves;hotesse_objets_trouves;PNJ - Service des objets trouves;hotesse_objets_trouves;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;mairie-capitale;hall_mairie;Le Maire;le_maire;Maire de Luthecia;maire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;mairie-capitale;hall_mairie;Secretaire Municipal Petit;secretaire_municipal_petit;PNJ - Secretariat general;secretaire;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;mairie-capitale;salle_archives;Christophe Bouquin;christophe_bouquin;Archiviste Municipal;archiviste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;mairie-capitale;salle_elections;Responsable Electoral;responsable_electoral;PNJ - Commission electorale;responsable_election;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;marche;marche_ext;Ginette Légume;ginette_legume;Maraîchère;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;marche;marche_ext;Jean-Pierre Bidoche;jean_pierre_bidoche;Boucher;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;marche;marche_ext;Jodie Moitout;jodie_moitout;Journaliste micro-trottoir;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;musee-ville-luthecia;hall;Gérard Poinçon;gerard_poincon;Gardien du musée;gardien_musee;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;musee-ville-luthecia;hall;Valérie Loisillon;valerie_loisillon;Hôtesse d'accueil;hotesse;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;office-notarial;accueil_notaire;Alain Dex;alain_dex;Secrétaire;secretaire_notaire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;office-notarial;accueil_notaire;Claire Delhune;claire_delhune;Clerc de notaire;clerc_notaire;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;office-notarial;archives_notariales;Archiviste Notarial;archiviste_notarial;PNJ - Gardien des Archives;archiviste_notaire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;office-notarial;bureau_contrats;Notaire Fontenelle;notaire_fontenelle;Notaire Officiel;notaire;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;office-notarial;bureau_successions;Claire Delhune;claire_delhune;Clerc de notaire;clerc_notaire;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;palais-gouvernement;archives_gouv;Archiviste Legrand;archiviste_legrand;PNJ - Archiviste en chef;archiviste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;palais-gouvernement;bureau_min_ae;Jean-Jacques Carlin;jean_jacques_carlin;PNJ - Ministre des Affaires Etrangeres;min_ae;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;palais-gouvernement;bureau_min_def;Martial Bouterin;martial_bouterin;PNJ - Ministre de la Defense;min_def;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;palais-gouvernement;bureau_min_fin;Alain Théret;alain_theret;PNJ - Ministre des Finances;min_fin;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;palais-gouvernement;bureau_min_info;Marie-Eve Beaulieu;marie_eve_beaulieu;PNJ - Ministre de l'Information;min_info;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;palais-gouvernement;bureau_min_int;Yvan Danltat;yvan_danltat;PNJ - Ministre de l'Interieur;min_int;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;palais-gouvernement;bureau_min_just;Mathilde Garde;mathilde_garde;PNJ - Ministre de la Justice;min_just;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;palais-gouvernement;bureaux;Éric Stricted;eric_stricted;PNJ - Chef de cabinet du Premier ministre;chef_cabinet;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;palais-gouvernement;hall;Garde Republicain;garde_republicain;PNJ - Securite du Palais du Gouvernement;garde;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;palais-gouvernement;hall;Secretaire Dupuis;secretaire_dupuis;PNJ - Accueil officiel;secretaire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;palais-gouvernement;salle_presse;Corinne Tite-Déclaz;corinne_tite_declaz;PNJ - Porte-parole du Gouvernement;porteparole;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;palais-gouvernement;salle_presse;Journalistes accrédités;journalistes_accredites;PNJ - Presse nationale accréditée;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;palais-presidentiel;accueil_elysee;Garde Republicain;garde_republicain;PNJ - Securite presidentielle;garde;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;palais-presidentiel;accueil_elysee;Gérard Tamponneau;gerard_tamponneau;PNJ - Chef du protocole presidentiel;protocole;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;palais-presidentiel;bureau_president;Huguette Papier;huguette_papier;PNJ - Secretaire general de la presidence;secretaire_general;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;palais-presidentiel;bureau_president;Le Président;le_president;PNJ - Président de la République;president;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;palais-presidentiel;salle_presse_elysee;Porte-parole presidentiel;porte_parole_presidentiel;PNJ - Porte-parole de la presidence;porteparole;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;palais-presidentiel;salle_reception;Gérard Tamponneau;gerard_tamponneau;PNJ - Chef du protocole presidentiel;protocole;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;parc-botanique-national;parc / serre;Maxence Monfils;maxence_monfils;Enfant;enfant;aucune famille (decor);carte speciale;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;parc-botanique-national;parc;Florian Grès;florian_gres;Jardinier;jardinier;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;parc-botanique-national;serre;Jean-Pierre Ciseaux;jean_pierre_ciseaux;Conservateur;conservateur;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+capitale;place-formulaire-liberte;place;Pat Hounette;pat_hounette;Dealer;criminel;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;referent (corpus de domaine);
+capitale;quartier-ambassades;accueil_ambassades;Agent de Sécurité;agent_de_securite;PNJ - Sécurité;agent_securite;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;quartier-ambassades;accueil_ambassades;Hôtesse d'Accueil;hotesse_d_accueil;PNJ - Accueil;hotesse;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;stade;buvette;Jean Fourtout;jean_fourtout;Vendeur de Produits Dérivés;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;stade;buvette;Justin Verre;justin_verre;Tenancier de Buvette;serveur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;stade;guichet_paris;Ricardo Pif;ricardo_pif;Bookmaker Officiel;bookmaker;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;stade;siege_supporters;Alfredo Mifassole;alfredo_mifassole;Meneur des Supporters;meneur_supporters;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;stade;terrain;Jean-Pierre Taclojnou;jean_pierre_taclojnou;Entraineur;entraineur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;stade;terrain;Michel Parlotte;michel_parlotte;Journaliste Sportif;commentateur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;stade;vestiaires;Alphonse Toudroit;alphonse_toudroit;Entraineur Adjoint;entraineur_adjoint;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;tabernacle-impots;nef_principale;Enfant de chœur Lacroix;enfant_de_ch_ur_lacroix;PNJ - Distributeur de formulaires;clerc;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;tabernacle-impots;nef_principale;Père Ception;pere_ception;Grand Prêtre du Papyrusisme;grand_pretre;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;tabernacle-impots;sacristie;Père Ception;pere_ception;Grand Prêtre du Papyrusisme;grand_pretre;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;tribunal;greffe;Greffier Petit;greffier_petit;PNJ - Greffe;greffier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;tribunal;salle_audience;Honoré Cozetoujours;honore_cozetoujours;Président du Tribunal;juge;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;tribunal;salle_audience;Maître Plaidoyer;maitre_plaidoyer;Avocat commis d'office;avocat;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;tribunal;salle_audience;Procureur Saad;procureur_saad;Procureur de la République;procureur;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+capitale;universite;amphi;Assistante Mémoire;assistante_memoire;Assistante;professeur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;universite;amphi;Professeur Charabia;professeur_charabia;Doyen;professeur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+capitale;usine-pharmaceutique-luthecia;bureau_direction;Bernard Piluler;bernard_piluler;Directeur de l'Usine Pharmaceutique;directeur_pharma;gamma (titulaire de poste);piece de data.js;MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+ville_a;banque-locale;bureau_directeur;Marie Le Roux;marie_le_roux;Directrice de la banque de Port-Sainte-Marie;directeur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;banque-locale;guichet;Guichetier;guichetier;Employe bancaire;banquier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;bar-des-pecheurs;salle_bar;Jean-Lou Demer;jean_lou_demer;Vieux marin, habitué du bar;;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;bar-des-pecheurs;salle_bar;Marin Dulac;marin_dulac;Patron du bar;barman;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;bar-des-pecheurs;salle_bar;René Seigne;rene_seigne;Habitué du bar — Informateur;;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;capitaine-sauvage;salle_principale;Marine Leroux;marine_leroux;Serveuse;serveur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;centre-affaires;hall;Gretta Délieu;gretta_delieu;Hôtesse d'accueil;hotesse;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+ville_a;centre-affaires;hall;Harry Cover;harry_cover;Détective privé;inspecteur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;centre-affaires;hall;Moshe Maychan;moshe_maychan;Assassin;criminel;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;centre-affaires;tribune_republia;Correspondant Local;correspondant_local;PNJ - Journaliste;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;centre-artisanal;travees;Céd' Labone;ced_labone;Dealer;criminel;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;centre-artisanal;travees;Henrico Stot;henrico_stot;Sécurité;agent_securite;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;centre-artisanal;travees;Sabri Coledur;sabri_coledur;Mécanicien;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;centre-commercial;hall;Edgar Simore;edgar_simore;Magicien saltimbanque;artiste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;centre-commercial;hall;Francisca Brel;francisca_brel;Voleuse;criminel;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;centre-multinodal-port-sainte-marie;hall_gare_psm;Chef de Gare Local;chef_de_gare_local;Chef de gare;chef_gare;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;chantier-naval;bureau;Pierrick Le Roux;pierrick_le_roux;PNJ - Chef d'entreprise du Chantier Naval;chef_entreprise;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;chasse-peche-psm;boutique;Victor Legall;victor_legall;Armurier;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;commissariat-local;accueil_loc;Brigadier Local;brigadier_local;Officier de garde;policier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;commissariat-local;bureau_commissaire;Martial Morvan;martial_morvan;Commissaire de Port-Sainte-Marie;commissaire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;commissariat-local;geoles;Loïc Karamel;loic_karamel;Prisonnier — Contrebandier;detenu;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;dispensaire-public-v;attente;Betty Dine;betty_dine;Infirmière;infirmier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;dispensaire-public-v;attente;Corinne Titgoute;corinne_titgoute;Accueil du Dispensaire des Marins Mariannais;hotesse;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;ecole-marine;hall;Maxime Bonvent;maxime_bonvent;Directeur de l'École de Marine Mariannaise;directeur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;entrepot-logistique-psm;bureau_direction;Yvon Paletier;yvon_paletier;Directeur de l'Entrepôt Logistique;directeur_entrepot;aucune famille (decor);piece de data.js;MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+ville_a;hotel-port;hall_port;Jeanine Debré;jeanine_debre;Gérante;hotelier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;imprimerie-librairie;accueil_imprimerie;Annie Talique-Legall;annie_talique_legall;PNJ - Proprietaire imprimerie;imprimeur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;imprimerie-librairie;atelier;Ouvrier typographe;ouvrier_typographe;PNJ - Typographe;typographe;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;mairie;accueil_mairie;Secretaire Municipal;secretaire_municipal;PNJ - Administration;secretaire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;mairie;bureau_maire_local;Le Maire;le_maire;Maire de la ville;maire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;marche-psm;etals;Bastien Leroux;bastien_leroux;Vendeur de souvenirs;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;marche-psm;etals;Mireille Legall;mireille_legall;Marchande de poisson;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;hall;Marcel Kermeur;marcel_kermeur;PNJ - Guide benevole du musee;guide;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;hall;Soizic Le Gall;soizic_le_gall;PNJ - Accueil du musee;hotesse;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;hall;Yvon Le Gall;yvon_le_gall;PNJ - Conservateur du musee;conservateur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;salle_criminels;Marcel Kermeur;marcel_kermeur;PNJ - Guide benevole du musee;guide;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;salle_entrepreneurs;Marcel Kermeur;marcel_kermeur;PNJ - Guide benevole du musee;guide;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;salle_honneur_militaire;Marcel Kermeur;marcel_kermeur;PNJ - Guide benevole du musee;guide;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;salle_maires;Marcel Kermeur;marcel_kermeur;PNJ - Guide benevole du musee;guide;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;salle_organisations;Marcel Kermeur;marcel_kermeur;PNJ - Guide benevole du musee;guide;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;salle_personnalites;Marcel Kermeur;marcel_kermeur;PNJ - Guide benevole du musee;guide;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;salle_plumes;Marcel Kermeur;marcel_kermeur;PNJ - Guide benevole du musee;guide;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;salle_scandales;Marcel Kermeur;marcel_kermeur;PNJ - Guide benevole du musee;guide;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;musee-port-sainte-marie;salle_unions;Marcel Kermeur;marcel_kermeur;PNJ - Guide benevole du musee;guide;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;notre-dame-mer;nef;Père Iscope;pere_iscope;Prêtre de Port-Sainte-Marie;pretre;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;pole-tabac-alcools-psm;bureau_direction;Fernand Cendrier;fernand_cendrier;Directeur du Pôle Tabac & Alcools;directeur_tabac_alcools;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;port-plaisance-psm;capitainerie;Patrice Lecap;patrice_lecap;Chef de la capitainerie;;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;port-sainte-marie;administration_portuaire;Ginette Conteneur;ginette_conteneur;Agente de fret;agent_fret;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;port-sainte-marie;administration_portuaire;Marcel Ancre;marcel_ancre;Commandant de Port;capitaine_port;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+ville_a;port-sainte-marie;bureau_syndical_dockers;Dédé le Docker;dede_le_docker;Docker syndiqué;docker;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;port-sainte-marie;bureau_syndical_dockers;Étienne Dantafasse;etienne_dantafasse;Président du Syndicat des Dockers de Port-Sainte-Marie;;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;port-sainte-marie;douanes;Pascal Paguevite;pascal_paguevite;Chef des Douanes;chef_douanes;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;port-sainte-marie;quai_principal;Alain Bordage;alain_bordage;Employé de la compagnie maritime;agent_maritime;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+ville_a;stade;buvette;Tenancier de Buvette;tenancier_de_buvette;PNJ - Buvette;serveur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;stade;guichet_paris;Bookmaker Officiel;bookmaker_officiel;PNJ - Paris Sportifs;bookmaker;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;stade;siege_supporters;Pascal Hamar;pascal_hamar;Chef des Supporters — Négociant en poisson;meneur_supporters;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+ville_a;stade;terrain;Maurice Éhault;maurice_ehault;Entraineur;entraineur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;stade;vestiaires;Thibault Gosse;thibault_gosse;Entraineur Adjoint;entraineur_adjoint;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;tribunal-local;salle_audience_locale;Maître Ali Bihanbéton;maitre_ali_bihanbeton;Avocat commis d'office;avocat;aucune famille (decor);piece de data.js;MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+ville_a;tribunal-local;salle_audience_locale;Mireille Sedlex;mireille_sedlex;Juge de Port-Sainte-Marie;juge;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_a;zone-production;zone_recolte;Guy Tarembois;guy_tarembois;PNJ - Proprietaire de la Scierie;proprietaire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;armurerie;magasin;Gerard (Armurier);gerard_armurier;PNJ - Vendeur;armurier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;banque-locale;guichet;Guichetier;guichetier;Employe bancaire;banquier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;centre-affaires;hall;Gretta Délieu;gretta_delieu;Hôtesse d'accueil;hotesse;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+ville_b;centre-affaires;hall;Harry Cover;harry_cover;Détective privé;inspecteur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;centre-affaires;hall;Moshe Maychan;moshe_maychan;Assassin;criminel;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;centre-affaires;tribune_republia;Correspondant Local;correspondant_local;PNJ - Journaliste;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;centre-artisanal;travees;Céd' Labone;ced_labone;Dealer;criminel;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;centre-artisanal;travees;Henrico Stot;henrico_stot;Sécurité;agent_securite;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;centre-artisanal;travees;Sabri Coledur;sabri_coledur;Mécanicien;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;centre-commercial;hall;Edgar Simore;edgar_simore;Magicien saltimbanque;artiste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;centre-commercial;hall;Francisca Brel;francisca_brel;Voleuse;criminel;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;centre-multinodal-montrouge;hall_gare_montrouge;Chef de Gare Syndiqué;chef_de_gare_syndique;Chef de gare;chef_gare;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;centre-multinodal-montrouge;hall_gare_montrouge;Délégué Syndical;delegue_syndical;Délégué permanent;syndicaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;commissariat-local;accueil_loc;Brigadier Local;brigadier_local;Officier de garde;policier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;dispensaire-public-v;attente;Agnès Thésie;agnes_thesie;Infirmière;infirmier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;eglise-montrouge;salle;Abbé Tonnière;abbe_tonniere;Prêtre de Montrouge;pretre;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;entrepot-logistique-montrouge;bureau_direction;Norbert Charton;norbert_charton;Directeur de l'Entrepôt Logistique;directeur_entrepot;aucune famille (decor);piece de data.js;MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+ville_b;hotel-mineur;hall_mineur;Receptionniste;receptionniste;Accueil;hotelier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;la-tribune;accueil_tribune;Rédacteur Calame;redacteur_calame;Rédacteur en chef;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;la-tribune;redaction;Marie Leblanc;marie_leblanc;Journaliste d'investigation;journaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;la-tribune;redaction;Romain Castel;romain_castel;PNJ - Redacteur en chef;redacteur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;loge-maconnique;bureau_venerable;Venerable Maitre Duval;venerable_maitre_duval;PNJ - Chef de la Loge;venerable;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;loge-maconnique;hall_loge;Frere Gardien;frere_gardien;PNJ - Membre de la Loge;membre_loge;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;loge-maconnique;portail;Le Portier;le_portier;PNJ - Gardien de la Loge;portier;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
+ville_b;mairie;accueil_mairie;Secretaire Municipal;secretaire_municipal;PNJ - Administration;secretaire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;mairie;bureau_maire_local;Le Maire;le_maire;Maire de la ville;maire;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;mairie;salle_archives;Archiviste Municipal;archiviste_municipal;PNJ - Archives;archiviste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;mairie;salle_elections;Responsable Electoral;responsable_electoral;PNJ - Commission electorale;responsable_election;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;marche;marche_ext;Josette Betterave;josette_betterave;Marchande;commercant;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;raffinerie-montrouge;bureau_direction;Gustave Baril;gustave_baril;Directeur de la Raffinerie;directeur_raffinerie;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;siege-syndical;bureau_syndical;Delegue Morel;delegue_morel;Secretaire general du syndicat;syndicaliste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;stade;buvette;Tenancier de Buvette;tenancier_de_buvette;PNJ - Buvette;serveur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;stade;guichet_paris;Bookmaker Officiel;bookmaker_officiel;PNJ - Paris Sportifs;bookmaker;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;stade;siege_supporters;Lucas Ténaire;lucas_tenaire;Chef des Supporters — Cheminot syndicaliste;meneur_supporters;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
+ville_b;stade;terrain;Jean-Philippe Hervitmonfute;jean_philippe_hervitmonfute;Entraineur;entraineur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;stade;terrain;Émilie Charbon;emilie_charbon;Journaliste Sportive;commentateur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;stade;vestiaires;Gérard Bricoleau;gerard_bricoleau;Entraineur Adjoint;entraineur_adjoint;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;tribunal-local;salle_audience_locale;Gérard Bretellewood;gerard_bretellewood;Juge de Montrouge;juge;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;metier et lieu;
+ville_b;tribunal-local;salle_audience_locale;Maître Henri Nossant;maitre_henri_nossant;Avocat commis d'office;avocat;aucune famille (decor);piece de data.js;MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+ville_b;usine-principale;direction_usine;Directeur Fabre;directeur_fabre;Directeur usine;directeur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;

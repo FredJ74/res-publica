@@ -1157,7 +1157,7 @@ function openPnjModal(encodedPnj) {
   document.getElementById('pnj-actions').innerHTML = actionBtns +
     (isPJ
       ? '<div style="margin-top:.6rem;font-size:.7rem;color:#6a5a30;font-style:italic">C\'est un vrai joueur — utilisez "Parler" (chat en temps réel) ou le mail (asynchrone). L\'IA ne répond jamais à sa place.</div>'
-      : '<div style="display:flex;gap:.4rem;margin-top:.5rem">' +
+      : '<div id="pnj-zone-question" style="display:flex;gap:.4rem;margin-top:.5rem">' +
         // UN VRAI TEXTAREA (12 octobre 2026) : l'ancien <input type="text"> d'une seule ligne
         // tronquait visuellement toute question un peu longue. Trois lignes visibles,
         // redimensionnable verticalement, retour a la ligne automatique. `handlePnjKey` est
@@ -1389,7 +1389,16 @@ async function reponsePnjServeur(profil, message, historique) {
     let raison = 'HTTP ' + resp.status;
     try { const e = await resp.clone().json(); if (e?.error) raison += ' — ' + e.error; } catch (x) {}
     console.warn('[PNJ] dialogue serveur indisponible (' + raison + ')');
-    throw new Error(raison);
+    // UNE PANNE QUI SE REPARE TOUTE SEULE N'EST PAS UNE PANNE DEFINITIVE, et confondre les deux
+    // fait mentir l'ecran (13 octobre 2026). Un 400 signifie que la REQUETE est irrecevable --
+    // en pratique : ce PNJ n'a pas de profil de dialogue cote serveur. Reessayer dans dix
+    // secondes, dans dix minutes ou demain donnera exactement le meme refus. Dire « reessayez »
+    // a ce joueur-la, c'est lui promettre quelque chose qui n'arrivera jamais, et c'est
+    // precisement ce qu'un testeur decrit comme « ce personnage n'est pas connecte ».
+    // Un 401, un 502, un delai depasse ou une coupure reseau, eux, se reparent.
+    const err = new Error(raison);
+    err.definitif = (resp.status === 400);
+    throw err;
   }
   const data = await resp.json();
   return data?.reponse || null;
@@ -1405,8 +1414,6 @@ async function talkToPnj(encodedPnj, action) {
   const speech = document.getElementById('pnj-speech');
   speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
 
-  const char = state.char;
-  const co = COUNTRIES[state.country];
 
   // Gestion speciale loge
   if (pnj.job === 'portier' && action === 'bonjour') {
@@ -1765,159 +1772,35 @@ function verifierSuccesMaxence(cle) {
     }
   }
 
-  // Actions predefinies
-  const actionMap = {
-    'bonjour':       'vous salue a son arrivee',
-    'information':   'lui demande des informations sur la situation politique locale',
-    'alliance':      'lui propose une alliance politique discrete',
-    'confrontation': 'le confronte directement en lui reprochant ses actions'
-  };
-  const actionDesc = actionMap[action] || `lui pose la question suivante : "${action}"`;
-  const isQuestion = !actionMap[action];
-
-  // Si c'est un journaliste, générer une réaction au forum
-  const pnjKey = pnj.name?.replace(' (PNJ)', '').trim();
-  const isJournaliste = pnj.job === 'journaliste' || pnj.job === 'redacteur';
-  if (isJournaliste && !action) {
-    const reaction = await genererReactionJournaliste();
-    if (reaction) {
-      const speech = document.getElementById('pnj-speech');
-      if (speech) speech.textContent = reaction.texte;
-      return;
-    }
-  }
-
-  // Fiche personnalité du PNJ (+ profil enrichi facultatif, meme cle — voir PNJ_PROFILS)
-  const perso = PNJ_PERSONALITIES[pnjKey];
-  const profil = (typeof PNJ_PROFILS !== 'undefined') ? PNJ_PROFILS[pnjKey] : null;
-  const empireStyle = EMPIRE_STYLES[state.country] || EMPIRE_STYLES.republic;
-
-  // Récupérer les derniers posts du forum local pour le contexte
-  const recentPosts = (FORUM_TOPICS[typeof idForumLocal === 'function' ? idForumLocal() : 'local'] || []).slice(0, 2).map(t =>
-    `"${t.title}" (par ${t.author})`).join(', ');
-  const forumContext = recentPosts ? `Actualité du forum local : ${recentPosts}.` : '';
-
-  // Événements politiques
-  const politicalContext = state.poste
-    ? `Le joueur occupe le poste de ${state.poste.name}.`
-    : 'Le joueur n\'a pas de poste officiel.';
-  const recherchéContext = state.recherche?.length > 0
-    ? 'ATTENTION : le joueur est recherché par les autorités.'
-    : '';
-
-  const autresJoueursPresents = (window._vraisJoueursPresents || []).map(p => p.name).filter(Boolean);
-  const autresJoueursTexte = autresJoueursPresents.length > 0
-    ? `D'autres personnes sont egalement presentes dans la piece en ce moment : ${autresJoueursPresents.join(', ')}. Tu peux naturellement faire reference a leur presence si c'est pertinent dans ta reponse.`
-    : '';
-
-  const lieuBatiment = BUILDINGS[state.currentBuilding]?.name || '';
-  const lieuPiece = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom]?.name || '';
-  const lieuTexte = lieuBatiment ? (lieuBatiment + (lieuPiece ? ' (' + lieuPiece + ')' : '')) : '';
-
-  // Marcel Ancre (lot logistique portuaire, 25 aout 2026, §16) : talkToPnj() n'injecte par
-  // defaut AUCUNE donnee economique dynamique (audit confirme) -- laisser le modele improviser
-  // des chiffres reels aurait garanti des inventions. Ici, les faits reels sont calcules AVANT
-  // le prompt (etat.port/caisse du port, meme source que ouvrirConsulterPort,
-  // plateau-justice-economie.js) et injectes comme des faits enonces, jamais laisses au modele.
-  // Volontairement PAS de diagnostic "deficitaire/equilibre/excedentaire" : aucun suivi recettes/
-  // depenses fiable n'existe encore (seul le solde instantane est connu) -- l'instruction dans le
-  // prompt lui interdit explicitement d'en deduire un. Architecture prete pour un futur suivi.
-  let contextePortMarcelAncre = '';
-  if (pnjKey === 'Marcel Ancre' && state.country === 'republic' && typeof getEtatPort === 'function') {
-    const port = await getEtatPort().catch(() => null);
-    if (port) {
-      const stockTxt = (typeof RESSOURCES_PORT_IMPORTEES !== 'undefined' ? RESSOURCES_PORT_IMPORTEES : [])
-        .filter(cle => (port.stock?.[cle] || 0) > 0)
-        .map(cle => (RESSOURCES_ECONOMIE[cle]?.label || cle) + ' : ' + Math.round(port.stock[cle]))
-        .join(', ') || 'aucun stock institutionnel en attente de répartition';
-      const caissePort = typeof chargerCaisseBatiment === 'function'
-        ? await chargerCaisseBatiment('republic', BUILDING_ID_PORT).catch(() => ({ solde: 0 }))
-        : { solde: 0 };
-      const arrivagesTxt = (port.arrivages || []).slice(0, 3)
-        .map(a => (RESSOURCES_ECONOMIE[a.resource]?.label || a.resource) + ' +' + Math.round(a.qte))
-        .join(', ') || 'aucun arrivage récent enregistré';
-      const exportsTxt = Object.entries(typeof EXPORTATIONS_PORT_INFOS !== 'undefined' ? EXPORTATIONS_PORT_INFOS : {})
-        .map(([cle, infos]) => {
-          const exp = port.exportations?.[cle];
-          return exp ? (infos.label + ' vers ' + infos.destination + ' : ' + Math.round(exp.envoye) + '/' + exp.contrat + ' (' + exp.satisfactionPct + '%)') : null;
-        }).filter(Boolean).join(' ; ') || 'aucune exportation enregistrée pour l\'instant';
-      contextePortMarcelAncre = `Faits réels et actuels sur la situation du port, à utiliser tels quels sans jamais en inventer d'autres : solde de la caisse du port ${Math.round(caissePort.solde || 0)} FR ; stock institutionnel en attente de répartition : ${stockTxt} ; arrivages récents : ${arrivagesTxt} ; exportations : ${exportsTxt}. Tu ne disposes d'AUCUN suivi fiable des recettes/dépenses passées : ne dis JAMAIS que le port est "déficitaire", "équilibré" ou "excédentaire" — contente-toi d'énoncer les faits ci-dessus.`;
-    }
-  }
-
-  // LA CONSTRUCTION DE CE PROMPT NE DOIT PLUS POUVOIR CASSER LE DIALOGUE.
-  // Il n'est plus envoye nulle part depuis le passage au dialogue serveur (voir plus
-  // bas) : c'est du texte de reference. Or il s'execute encore, et il est long. Une
-  // seule erreur dedans -- une fiche a la forme inattendue, une constante renommee --
-  // etait levee AVANT le try/catch du dialogue et laissait le joueur bloque sur
-  // « En train de repondre... », sans message et sans requete reseau. C'est exactement
-  // ce qui est arrive aux trois PNJ de la caserne le 29 septembre 2026.
-  // On isole donc la construction : si elle echoue, on le dit en console et la
-  // conversation continue normalement. Aucune autre ligne ne lit `prompt`.
-  let prompt = '';
-  try {
-  prompt = `Tu joues un personnage dans Res Publica, un jeu de rôle politique parodique et satirique.
-L'empire est ${co?.n} (${empireStyle.tone}).
-La religion locale est ${empireStyle.religion}. Le chef suprême est ${empireStyle.leader}.
-
-Ton personnage : ${pnj.name?.replace(' (PNJ)', '')}, ${pnj.role}.
-${perso ? `Ta personnalité : ${perso.trait}` : `Tu es un PNJ typique de ${co?.n}.`}
-${perso ? `Ton style : ${perso.style}` : ''}
-${traitsLisibles(profil) ? `Traits de caractère : ${traitsLisibles(profil)}.` : ''}
-${profil?.savoirs ? `Ce que tu sais réellement : ${profil.savoirs}` : ''}
-${profil?.fonctionPedagogique ? `Tu es chargé d'expliquer au joueur : ${profil.fonctionPedagogique}` : ''}
-${profil?.secrets ? `Tu connais ceci mais ne le révèle JAMAIS spontanément, seulement si on insiste beaucoup ou qu'on te corrompt : ${profil.secrets}` : ''}
-${profil?.objectifs ? `Ta motivation personnelle : ${profil.objectifs}` : ''}
-${profil?.rumeurs ? `Rumeurs que tu peux relayer, informations imparfaites : ${profil.rumeurs}` : ''}
-${contextePortMarcelAncre}
-Relation avec le joueur : ${pnj.rel === 'ally' ? 'allié de confiance' : pnj.rel === 'enemy' ? 'ennemi déclaré' : 'neutre'}.
-${lieuTexte ? `Lieu actuel : vous vous trouvez tous les deux à ${lieuTexte}. N'évoque jamais un autre établissement (mairie, commissariat, tribunal...) comme si vous y étiez actuellement.` : ''}
-${(pnj.name || '').replace(' (PNJ)', '').trim() === 'Maxence Monfils' ? `Contexte special : tu es un enfant d'une dizaine d'annees, curieux, insaisissable et un peu mysterieux. Tu passes ton temps a observer des insectes et des plantes avec ta loupe. Tu vouvoies ou tutoies selon ton humeur (tu es un enfant, pas tenu a la politesse formelle). Tu ne reponds JAMAIS de facon claire ou directe aux questions ; reste evasif, enigmatique, parfois carrement hors sujet, sans jamais mentir grossierement ni etre desagreable. Tu ne dis jamais explicitement que tu es recherche par des organisations environnementales ni que tu arraches des ailes d'insectes, mais tu peux le suggerer de facon detournee et innocente si on te pose une question qui s'en approche. Reponds en 1 a 2 phrases maximum, jamais plus.` : ''}
-${(pnj.name || '').replace(' (PNJ)', '').trim() === 'Jérémy' ? (() => {
-  const ordresIci = (BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom]?.orders || [])
-    .map(o => '- ' + o.label + (o.desc ? ' : ' + o.desc : ''))
-    .join('\n');
-  // OU EN EST LA QUETE (audit du 14 septembre 2026). Jusqu'ici, le contexte envoye a l'IA ne
-  // contenait AUCUNE information sur la quete d'accueil : ni l'etape, ni l'objectif en cours.
-  // Jeremy, dont c'est pourtant la seule raison d'etre, repondait donc a toute question du type
-  // « on fait quoi maintenant ? » sans savoir qu'une quete etait en cours -- il improvisait a
-  // partir du lieu, ce que le joueur percevait comme des reponses hors sujet.
-  // On ne lui donne que ce que le jeu sait deja : l'etape, et la phrase d'objectif deja
-  // affichee dans « Mes Objectifs ». Aucun texte nouveau, aucune regle de jeu modifiee.
-  const etapeJeremy = state.char?.queteAccueil?.etape || null;
-  const objectifJeremy = (typeof queteAccueilObjectifActuel === 'function')
-    ? queteAccueilObjectifActuel() : null;
-  const etapeQueteJeremy = objectifJeremy
-    ? `Ou en est la visite : le joueur en est actuellement a l'etape "${etapeJeremy}". Ce qu'il doit faire maintenant : ${objectifJeremy}\n`
-      + `Si le joueur demande ou il en est, ce qu'il doit faire, ou comment continuer -- sous n'importe quelle formulation -- redis-lui precisement cette etape-la, avec tes mots, sans inventer une autre consigne ni une autre destination.`
-    : (etapeJeremy ? `Ou en est la visite : le joueur en est a l'etape "${etapeJeremy}", qui n'attend aucune action precise de sa part. S'il demande quoi faire, dis-lui simplement qu'il est libre de continuer a decouvrir la ville.` : '');
-  return `Contexte special : tu es actuellement en train de faire visiter la ville a ce nouveau joueur, dans le cadre de son accueil. Tu es un peu maladroit mais serviable et honnete. Tu vouvoies TOUJOURS le joueur, sans exception.
-IMPORTANT : fie-toi UNIQUEMENT au "Lieu actuel" indique plus haut pour savoir ou vous etes reellement. Ne dis JAMAIS que vous etes encore a l'Hotel de Ville, ou a un autre endroit deja visite plus tot dans la visite, si le lieu actuel indique autre chose. Si AUCUN lieu actuel n'est indique plus haut (vous etes dans la rue, pas dans un batiment), ne devine JAMAIS un nom de lieu precis (n'invente jamais "Place de la Concorde" ou autre) : dis simplement que vous etes ensemble dans la rue et propose de consulter le bouton PLAN, en haut de l'ecran, pour s'orienter.
-Si on te demande un chemin ou une direction vers un lieu que vous n'avez pas encore visite, reponds de facon coherente avec la vraie geographie de Luthecia. Ne donne jamais d'indication de trajet inventee ou incoherente, et ne mentionne jamais d'activites illegales ou de corruption ; si tu n'es pas sur, propose plutot de consulter le bouton PLAN en haut de l'ecran.
-${ordresIci ? 'Voici les actions reellement disponibles dans la piece ou vous vous trouvez, utilise-les pour donner des reponses precises et concretes si le joueur te pose une question sur le fonctionnement d\'un lieu ou d\'un mecanisme du jeu :\n' + ordresIci : ''}
-${etapeQueteJeremy}`;
-})() : ''}
-${autresJoueursTexte}
-
-Le joueur : ${char?.name || 'Inconnu'}.
-${politicalContext} ${recherchéContext}
-${forumContext}
-
-${isQuestion ? `Le joueur te pose cette question : "${action}". Réponds en restant dans ton personnage.` : `Le joueur ${actionDesc}.`}
-
-RÈGLES ABSOLUES :
-- 2 phrases maximum, jamais plus
-- Reste dans ton personnage parodique
-- Reste physiquement à l'endroit indiqué ci-dessus, n'évoque aucun autre lieu comme si tu y étais actuellement
-- La seule monnaie existante dans cet univers est désignée par le code ${empireStyle.currency} ; n'utilise JAMAIS l'Euro, le Dollar, ni aucune devise du monde réel
-- Jamais de vrais noms de dieux ou religions réelles
-- Réponds UNIQUEMENT avec ta réplique, sans guillemets ni introduction`;
-  } catch (ePrompt) {
-    console.warn('[PNJ] prompt de reference non construit pour '
-      + (pnj.name || '?') + ' : ' + (ePrompt && ePrompt.message)
-      + ' — le dialogue serveur continue.');
-  }
-
+  // LE BLOC DE PROMPT DU NAVIGATEUR EST SUPPRIME (13 octobre 2026), ET IL ETAIT DANGEREUX.
+  //
+  // CE QUI ETAIT LA. Cent cinquante lignes qui assemblaient un prompt systeme complet --
+  // personnalite, savoirs, lieu, forum local, autres joueurs presents, etat du port pour Marcel
+  // Ancre, etape de quete pour Jeremy -- et qui N'ETAIT ENVOYE NULLE PART depuis le passage au
+  // dialogue serveur du 29 septembre 2026. Le commentaire d'alors le disait : « il reste pour
+  // l'instant comme reference lisible du perimetre de chaque PNJ ».
+  //
+  // POURQUOI IL PART QUAND MEME. Une reference ne doit pas s'EXECUTER. Celle-ci lisait
+  // `FORUM_TOPICS` -- une table de `forum.js` -- HORS de tout try/catch : le jour ou l'ordre de
+  // chargement de plateau.html change, ou ou forum.js echoue, une ReferenceError est levee AVANT
+  // l'appel reseau, et TOUS les PNJ du jeu deviennent muets en laissant le joueur bloque sur
+  // « En train de repondre... ». C'est exactement le defaut du 29 septembre 2026 -- une
+  // TypeError sur `traits.join` -- qui avait rendu trois PNJ de la caserne muets sans qu'aucune
+  // requete ne parte. Le banc outils/bancs/banc-dialogue-pnj-republia.js mesure desormais ce
+  // chemin pour les 171 PNJ de Republia, et c'est lui qui a retrouve la trace de celui-ci.
+  //
+  // ELLE COUTAIT AUSSI UN ALLER-RETOUR RESEAU POUR RIEN : la branche de Marcel Ancre appelait
+  // `getEtatPort()` et `chargerCaisseBatiment()` a CHAQUE replique, pour un texte jete aussitot.
+  //
+  // OU VIT LA REFERENCE MAINTENANT. Dans `api/_pnj-personnalites.js` (les PNJ ordinaires et les
+  // fiches riches), `api/_pnj-referents.js` (les referents) et `api/_pnj-profils.js` (l'assemblage
+  // et les bibles de domaine). C'est la que le prompt est reellement construit, c'est la qu'il
+  // faut lire ce qu'un PNJ sait, et c'est la seule copie -- donc la seule qui ne puisse pas
+  // mentir. Le navigateur, lui, n'envoie qu'un identifiant, une langue et un message.
+  //
+  // LE BLOC DU JOURNALISTE EST PARTI AVEC, et il etait mort depuis plus longtemps encore : sa
+  // condition etait `isJournaliste && !action`, alors que `talkToPnj` rend la main des sa
+  // deuxieme ligne quand `action` est vide. Elle ne pouvait jamais etre vraie.
   // Récupérer l'historique de la conversation du jour
   const pnjKey2 = pnj.name?.replace(' (PNJ)', '').trim();
   const convKey = 'conv_' + (pnjKey2||'pnj') + '_day' + (state.day||1);
@@ -1977,7 +1860,32 @@ RÈGLES ABSOLUES :
     // mal clique, ou que le PNJ n'avait rien a dire. On affiche desormais un message
     // clair, qui ne nomme AUCUN detail technique : ni fournisseur, ni HTTP, ni quota.
     console.warn('[PNJ] dialogue indisponible pour ' + (pnj.name || '?') + ' : ' + (e && e.message));
-    speech.textContent = 'Discussion impossible momentanément. Veuillez réessayer dans quelques instants.';
+    // DEUX MESSAGES, PARCE QU'IL Y A DEUX SITUATIONS, et une seule invite a reessayer.
+    // Aucun des deux ne nomme un detail technique : ni fournisseur, ni HTTP, ni quota, ni profil.
+    // Aucun des deux n'est une replique de PNJ non plus -- une panne ne se deguise pas en
+    // personnage (29 septembre 2026), et une absence de dialogue ne se deguise pas en panne.
+    speech.textContent = (e && e.definitif === true)
+      ? 'Ce personnage n\'engage pas de conversation.'
+      : 'Discussion impossible momentanément. Veuillez réessayer dans quelques instants.';
+    // ET L'INTERFACE CESSE D'INVITER A ECRIRE (13 octobre 2026). C'est la regle de l'arbitrage :
+    // « un joueur ne doit pas etre invite a lancer une conversation libre vers un PNJ qui ne peut
+    // materiellement jamais repondre ». Un refus DEFINITIF -- ce PNJ n'a pas de profil de
+    // dialogue -- retire donc la boite de question et le bouton d'envoi, au lieu de laisser le
+    // joueur taper trois questions pour recevoir trois fois le meme refus.
+    //
+    // LA DECOUVERTE NE COUTE RIEN. `openPnjModal` envoie deja un « bonjour » a l'ouverture de la
+    // fiche : c'est cette replique-la qui revele l'absence de profil, sans aucun appel reseau
+    // supplementaire. Et le navigateur n'a PAS besoin de connaitre la liste des profils serveur :
+    // il l'apprend du serveur, qui seul la detient. Un miroir de 216 identifiants cote client
+    // aurait derive des la premiere fiche ajoutee.
+    //
+    // RIEN N'EST RETIRE SUR UNE PANNE PASSAGERE : un 502 ou un reseau coupe laisse la boite en
+    // place, parce que la question aura un sens dans trente secondes.
+    if (e && e.definitif === true) {
+      const zoneQ = document.getElementById('pnj-zone-question');
+      if (zoneQ) zoneQ.innerHTML = '<div style="font-size:.72rem;color:#6a5a30;font-style:italic">'
+        + 'Cette personne ne tient pas de conversation. Les autres actions restent disponibles.</div>';
+    }
   }
 }
 

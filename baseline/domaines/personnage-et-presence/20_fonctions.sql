@@ -1894,6 +1894,39 @@ BEGIN
   RETURN OLD;
 END; $function$;
 
+-- quete_accueil_contexte() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.quete_accueil_contexte()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_q jsonb; v_etape text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  SELECT quete_accueil INTO v_q FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_q IS NULL OR jsonb_typeof(v_q) <> 'object' THEN
+    RETURN jsonb_build_object('ok', true, 'etape', NULL, 'visite_en_cours', false);
+  END IF;
+  v_etape := nullif(btrim(coalesce(v_q ->> 'etape', '')), '');
+
+  -- LES TROIS ETATS TERMINAUX SONT NOMMES, PAS DEVINES. `carriere_terminee`,
+  -- `quete_terminee_sans_aide` et `refusee` sont les trois valeurs que le client ecrit quand la
+  -- visite est finie ou refusee ; toute autre valeur est une visite en cours. Nommer l'inverse --
+  -- la liste des etapes vivantes -- aurait fait mentir cette porte a chaque etape ajoutee.
+  RETURN jsonb_build_object(
+    'ok', true,
+    'etape', v_etape,
+    'visite_en_cours',
+      v_etape IS NOT NULL
+      AND v_etape NOT IN ('carriere_terminee', 'quete_terminee_sans_aide', 'refusee'));
+END;
+$function$;
+
 -- referent_pedagogie_contexte(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.referent_pedagogie_contexte(p_referent_id text)
  RETURNS jsonb

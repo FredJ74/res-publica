@@ -1064,6 +1064,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "quete_accueil_contexte()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "quete_accueil_contexte()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "quete_accueil_contexte()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "referent_pedagogie_contexte(text)",
    "privileges": "EXECUTE"
   },
@@ -2044,13 +2062,13 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "d566e996751096dc8274fcad6de3ae59",
-  "20_fonctions.sql": "5d407d004b2a07490e62b9b1814ece93",
+  "20_fonctions.sql": "c8073245874f1c00fc47a7764f87354d",
   "30_contraintes.sql": "e44e4568f45b4d5f77867ad9e6e385db",
   "35_index.sql": "c39f88873aa18751777e33552ec8830d",
   "40_vues.sql": "b59ee62583b183cae707bb385db72570",
   "50_triggers.sql": "5bf60588e847e0893b8fc78b79437ecc",
   "60_rls-policies.sql": "e3ea354131587a713876db85347fcfab",
-  "70_droits.sql": "6e41424b7e9d88723d9f2d8494533110",
+  "70_droits.sql": "1ff0f7a6a5e16c1916b8086410d874e8",
   "80_commentaires.sql": "0497386836a0fda49fd2b24aa686c4b7"
  },
  "fonctions": [
@@ -2233,6 +2251,11 @@
    "empreinte": "f2d2d22b6883dfcfbbc99a919641d06a",
    "security_definer": true,
    "signature": "personnages_vue_supprimer()"
+  },
+  {
+   "empreinte": "27a43d9507d445d4470b03c48f474f82",
+   "security_definer": true,
+   "signature": "quete_accueil_contexte()"
   },
   {
    "empreinte": "1085cb072ea58b706e59ec35cf8cdc14",

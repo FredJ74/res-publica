@@ -827,8 +827,12 @@ def controles_du_monde(cat):
     # document, les trois extraits (le mien, celui d'une enquete, le duplicata de
     # domiciliation), la copie d'un dossier, les deux corruptions du greffier, la denonciation
     # automatique qui suit un echec, et la domiciliation d'un syndicat etudiant.
-    att("signatures de fonction creees", cat.n_fonctions, 905)
-    att("noms de fonction distincts", len(cat.fonctions), 901,
+    # 906 LE 13 OCTOBRE 2026 AU SOIR : +1, `quete_accueil_contexte()`. Elle rend au serveur de
+    # dialogue l'etape de la visite d'accueil du joueur connecte -- le sixieme canal de contexte
+    # de /api/chat, et le seul qui dise OU EN EST CE JOUEUR-CI. Sans elle, Jeremy guidait une
+    # visite dont il ne connaissait pas l'etape ; avec elle, il la redit sans l'inventer.
+    att("signatures de fonction creees", cat.n_fonctions, 906)
+    att("noms de fonction distincts", len(cat.fonctions), 902,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue

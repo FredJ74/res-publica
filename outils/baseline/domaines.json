@@ -122,7 +122,8 @@
       ]
     ],
     "surcharges": {
-    "organisation_extrait_duplicata": ["justice", "emet un duplicata d'extrait de domiciliation : sa table est documents_officiels, classee justice. Le prefixe `organisations_` du domaine « personnage et presence » ne l'attrape pas -- il porte un s"],
+    "quete_accueil_contexte": ["personnage et presence", "rend au serveur de dialogue l'etape de la visite d'accueil du joueur connecte. Sa table est `personnages_donnees` -- la colonne `quete_accueil` --, que la classification range en « personnage et presence » : la fonction suit sa table. Aucun prefixe ne l'attrape, et `quete_` serait un mauvais prefixe a creer : les quetes ordinaires vivent ailleurs"],
+       "organisation_extrait_duplicata": ["justice", "emet un duplicata d'extrait de domiciliation : sa table est documents_officiels, classee justice. Le prefixe `organisations_` du domaine « personnage et presence » ne l'attrape pas -- il porte un s"],
     "syndicat_etudiant_domicilier": ["personnage et presence", "ecrit une ligne d'organisations, table classee « personnage et presence » : la fonction suit sa table, meme si les 150 FR qu'elle encaisse vont a la caisse du Tribunal"],
    
       "approvisionner_chantier": [

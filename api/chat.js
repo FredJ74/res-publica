@@ -82,7 +82,10 @@ const CORPS_RPC = {
   // Les regards de l'agente d'entretien ne prennent qu'une FENETRE en jours -- jamais un pays, ni
   // un batiment, ni un nom : la porte relit le pays de l'acteur en base et ne regarde que
   // l'Assemblee. Lui laisser choisir ferait de Renee une informatrice universelle.
-  assemblee_regards:            () => ({ p_jours: 7 })
+  assemblee_regards:            () => ({ p_jours: 7 }),
+  // L'etape de la visite d'accueil ne prend AUCUN parametre non plus : la porte relit la fiche
+  // du joueur connecte. Lui passer un nom laisserait lire la visite de quelqu'un d'autre.
+  quete_accueil_contexte:       () => ({})
 };
 
 async function lireMemoire(rpc, profilId, jeton) {
@@ -153,6 +156,26 @@ const regardsAssemblee = (profilId, jeton) =>
     ? lireMemoire('assemblee_regards', null, jeton)
     : Promise.resolve(null);
 
+// LE SIXIEME CANAL — OU EN EST LA VISITE D'ACCUEIL (13 octobre 2026)
+// ---------------------------------------------------------------------------
+// UN SEUL PNJ LE RECOIT, et c'est le guide : Jeremy conduit la quete d'accueil, il est le
+// premier PNJ qu'une nouvelle joueuse rencontre et celui a qui elle parle le plus. Pour les 214
+// autres profils, l'appel n'est pas emis -- ce n'est pas un filtrage d'affichage, c'est un
+// aller-retour reseau qui n'a pas lieu.
+//
+// IL EST DE LA SIXIEME NATURE : les cinq autres canaux disent le monde, une relation, un
+// historique d'explications, une histoire nationale ou une observation locale. Celui-ci dit OU
+// EN EST CE JOUEUR-CI. Les confondre effacerait une distinction de game design.
+//
+// LA PORTE NE REND QUE L'ETAPE, jamais la consigne : la phrase d'objectif est un miroir de
+// QUETE_ACCUEIL_OBJECTIFS, cote depot (api/_pnj-profils.js). Le serveur dit ou on en est ; il
+// n'invente pas quoi faire.
+const VISITE_D_ACCUEIL = 'jeremy';
+const etapeDeLaVisite = (profilId, jeton) =>
+  profilId === VISITE_D_ACCUEIL
+    ? lireMemoire('quete_accueil_contexte', null, jeton)
+    : Promise.resolve(null);
+
 // QUI EST EN FACE : son nom et sa fonction officielle. C'est le seul des trois canaux qui ne
 // depend pas du PNJ : il est le meme pour tous, et presque tous le recoivent. Il echoue en
 // silence comme les deux autres -- sans lui, le prompt est rigoureusement celui d'avant.
@@ -176,21 +199,23 @@ export default async function handler(req, res) {
   const utilisateur = await joueurAuthentifie(req);
   if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
 
-  // LES CINQ lectures partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait
+  // LES SIX lectures partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait
   // quatre allers-retours reseau a chaque replique. Un PNJ n'a jamais les deux memoires -- un
   // social n'est pas referent, un referent ne se lie pas --, le contexte public les concerne
   // tous, et les deux derniers n'en concernent QU'UN CHACUN : la memoire des mandats pour
   // Huguette Papier, les regards de l'Assemblee pour Renee Toitout. Pour tous les autres profils,
-  // ces deux appels ne sont pas emis du tout.
-  const [relation, pedagogie, contextePublic, mandats, regards] = await Promise.all([
+  // ces trois appels ne sont pas emis du tout -- le troisieme etant l'etape de la
+  // visite d'accueil, qui n'appartient qu'a Jeremy.
+  const [relation, pedagogie, contextePublic, mandats, regards, visite] = await Promise.all([
     relationSociale(req.body.profil, utilisateur.jeton),
     memoirePedagogique(req.body.profil, utilisateur.jeton),
     contextePublicJoueur(utilisateur.jeton),
     memoireDesMandats(req.body.profil, utilisateur.jeton),
-    regardsAssemblee(req.body.profil, utilisateur.jeton)
+    regardsAssemblee(req.body.profil, utilisateur.jeton),
+    etapeDeLaVisite(req.body.profil, utilisateur.jeton)
   ]);
   const systeme = construirePromptSysteme(
-    req.body.profil, req.body.lang, relation, pedagogie, contextePublic, mandats, regards);
+    req.body.profil, req.body.lang, relation, pedagogie, contextePublic, mandats, regards, visite);
   if (!systeme) return res.status(400).json({ error: 'Profil inconnu.' });
 
   const messages = [];

@@ -286,9 +286,15 @@ att('et la porte ne recoit QU UNE fenetre en jours -- ni pays, ni batiment, ni n
     contient(CHAT, 'assemblee_regards:            () => ({ p_jours: 7 })'));
 att('le canal est lu sous le JETON DU JOUEUR, jamais sous une cle de service',
     contient(CHAT, "lireMemoire('assemblee_regards', null, jeton)"));
-// Les cinq canaux restent distincts : aucun ne se substitue a un autre.
-att('les cinq canaux partent ensemble et restent distincts',
-    contient(CHAT, 'const [relation, pedagogie, contextePublic, mandats, regards]'));
+// LES CANAUX RESTENT DISTINCTS, ET ILS SONT SIX DEPUIS LE 13 OCTOBRE 2026 : le sixieme est
+// l'ETAPE DE LA VISITE d'accueil, et il n'appartient qu'a Jeremy -- comme les regards de
+// l'Assemblee n'appartiennent qu'a Renee. Aucun ne se substitue a un autre, et ils partent
+// ENSEMBLE : les enchainer ajouterait cinq allers-retours a chaque replique.
+att('les six canaux partent ensemble et restent distincts',
+    contient(CHAT, 'const [relation, pedagogie, contextePublic, mandats, regards, visite]'));
+att('et le sixieme n est demande que pour Jeremy, pas pour Renee',
+    contient(CHAT, "const VISITE_D_ACCUEIL = 'jeremy';")
+    && contient(CHAT, 'profilId === VISITE_D_ACCUEIL'));
 
 print('');
 print('AUCUN DE CES PNJ NE RECOIT UN POUVOIR NI UNE JAUGE');

@@ -47,6 +47,11 @@ ROUTEUR = os.path.join(RACINE, "plateau-router.js")
 DATA = os.path.join(RACINE, "data.js")
 BANC_SUBVENTIONS = os.path.join(RACINE, "outils", "bancs", "banc-subventions-client.js")
 BANC_GREFFE = os.path.join(RACINE, "outils", "bancs", "banc-greffe-documents-client.js")
+BANC_PNJ = os.path.join(RACINE, "outils", "bancs", "banc-dialogue-pnj-republia.js")
+PNJ = os.path.join(RACINE, "plateau-pnj.js")
+PERSONNALITES = os.path.join(RACINE, "api", "_pnj-personnalites.js")
+PROFILS_PNJ = os.path.join(RACINE, "api", "_pnj-profils.js")
+CHAT = os.path.join(RACINE, "api", "chat.js")
 LANCEUR = os.path.join(RACINE, "outils", "bancs", "lancer-banc.py")
 
 # (nom, chaine cherchee, remplacement, fragment de l'epreuve qui DOIT tomber)
@@ -658,6 +663,84 @@ REGRESSIONS_GREFFE_ORGAS = [
      "l ecran des syndicats ne refuse aucun local deja occupe"),
 ]
 
+
+
+# =============================================================================================
+# DIALOGUE DES PNJ DE REPUBLIA -- TRANCHE DU 13 OCTOBRE 2026
+# =============================================================================================
+# CE CHAPITRE EXISTE PARCE QUE LE DEFAUT S'EST PRODUIT DEUX FOIS. Le 29 septembre 2026, une
+# TypeError levee AVANT le try/catch du dialogue a rendu trois PNJ de la caserne muets, en
+# laissant le joueur bloque sur « En train de repondre... » -- sans qu'aucune requete ne parte et
+# sans qu'aucun banc ne s'allume. Le 13 octobre, le meme bloc lisait encore `FORUM_TOPICS` hors
+# de toute protection : il suffisait d'un changement d'ordre de chargement pour que les 171 PNJ
+# de Republia se taisent ensemble. Chaque regression ci-dessous remet un de ces defauts.
+
+REGRESSIONS_PNJ_PERSONNALITES = [
+    ("Jeremy redevient muet -- le guide de la quete d'accueil",
+     "  'jeremy': {\n    nom: \"Jérémy\",",
+     "  'jeremy_desactive': {\n    nom: \"Jérémy\",",
+     "Jérémy a un profil serveur"),
+    ("Maxence redevient muet",
+     "  'maxence_monfils': {\n    nom: \"Maxence Monfils\",",
+     "  'maxence_desactive': {\n    nom: \"Maxence Monfils\",",
+     "Maxence Monfils a un profil serveur"),
+]
+
+REGRESSIONS_PNJ_CLIENT = [
+    ("une lecture hors try/catch remet tous les PNJ en panne silencieuse",
+     # L'ANCRE EST LA PREMIERE LIGNE PROPRE A `talkToPnj`. Celle du spinner apparait DEUX fois
+     # -- openPnjModal la pose aussi -- et une ancre non unique ne prouve rien.
+     "  // Gestion speciale loge\n  if (pnj.job === 'portier' && action === 'bonjour') {",
+     "  const __mort = TABLE_QUI_N_EXISTE_PAS['x'];\n"
+     "  // Gestion speciale loge\n  if (pnj.job === 'portier' && action === 'bonjour') {",
+     "aucun PNJ ne leve une exception dans le chemin de dialogue"),
+    ("un refus definitif promet de nouveau de reessayer",
+     # L'apostrophe de « n'engage » est ECHAPPEE dans le source JavaScript : l'ancre doit
+     # porter la barre oblique inverse, sinon elle ne trouve rien.
+     "      ? 'Ce personnage n\\'engage pas de conversation.'",
+     "      ? 'Discussion impossible momentanément. Veuillez réessayer dans quelques instants.'",
+     "les deux messages de panne sont DIFFERENTS"),
+    ("l'ecran invite encore a ecrire a un PNJ qui ne repondra jamais",
+     "    if (e && e.definitif === true) {\n      const zoneQ = document.getElementById('pnj-zone-question');",
+     "    if (false) {\n      const zoneQ = document.getElementById('pnj-zone-question');",
+     "un refus DEFINITIF retire la boite de question"),
+    ("une panne passagere efface la boite de question",
+     "    if (e && e.definitif === true) {\n      const zoneQ = document.getElementById('pnj-zone-question');",
+     "    if (true) {\n      const zoneQ = document.getElementById('pnj-zone-question');",
+     "une panne PASSAGERE laisse la boite de question en place"),
+    ("le navigateur se remet a construire un prompt systeme",
+     "    const texteServeur = await reponsePnjServeur(profilServeur, action, recentHistory);",
+     "    const __p = 'Tu joues un personnage dans Res Publica';\n"
+     "    const texteServeur = await reponsePnjServeur(profilServeur, action + __p, recentHistory);",
+     "elle ne contient aucun prompt systeme et aucune cle"),
+]
+
+REGRESSIONS_PNJ_PROFILS = [
+    ("le miroir des objectifs de la visite derive d'une phrase",
+     'attente_offre_verre: "Offrez un verre à Jérémy au bar.",',
+     'attente_offre_verre: "Offrez donc un verre a Jeremy, au bar.",',
+     "et la MEME phrase pour chacune"),
+    ("une etape disparait du miroir serveur",
+     '  guide_stade: "Rendez-vous au stade.",\n',
+     '',
+     "les memes etapes, dans les deux tables"),
+    ("le prompt systeme cesse de placer le bloc de la visite",
+     "    ...(vis ? [vis, ''] : []),\n",
+     '',
+     "le prompt systeme sait placer ce bloc"),
+]
+
+REGRESSIONS_PNJ_CHAT = [
+    ("le sixieme canal est demande pour TOUS les PNJ",
+     "  profilId === VISITE_D_ACCUEIL\n    ? lireMemoire('quete_accueil_contexte', null, jeton)\n    : Promise.resolve(null);",
+     "  lireMemoire('quete_accueil_contexte', null, jeton);",
+     "elle n est demandee que pour le profil jeremy"),
+    ("la porte de la visite recoit un nom de joueur",
+     "  quete_accueil_contexte:       () => ({})",
+     "  quete_accueil_contexte:       (profilId) => ({ p_nom: profilId })",
+     "la porte quete_accueil_contexte est declaree sans parametre"),
+]
+
 def main():
     echecs = []
     serie("DETENTION", BANC_DETENTION, JUSTICE, REGRESSIONS, echecs)
@@ -704,6 +787,15 @@ def main():
     serie("GREFFE ET UNIVERSITE -- organisations", BANC_GREFFE, ORGANISATIONS,
           REGRESSIONS_GREFFE_ORGAS, echecs,
           lanceur=lancer_substitution("plateau-organisations-quetes.js"))
+    serie("DIALOGUE PNJ -- personnalites serveur", BANC_PNJ, PERSONNALITES,
+          REGRESSIONS_PNJ_PERSONNALITES, echecs,
+          lanceur=lancer_substitution("api/_pnj-personnalites.js"))
+    serie("DIALOGUE PNJ -- navigateur", BANC_PNJ, PNJ,
+          REGRESSIONS_PNJ_CLIENT, echecs, lanceur=lancer_substitution("plateau-pnj.js"))
+    serie("DIALOGUE PNJ -- assemblage du prompt", BANC_PNJ, PROFILS_PNJ,
+          REGRESSIONS_PNJ_PROFILS, echecs, lanceur=lancer_substitution("api/_pnj-profils.js"))
+    serie("DIALOGUE PNJ -- endpoint", BANC_PNJ, CHAT,
+          REGRESSIONS_PNJ_CHAT, echecs, lanceur=lancer_substitution("api/chat.js"))
     total = (len(REGRESSIONS) + len(REGRESSIONS_VOTE) + len(REGRESSIONS_DESERTION)
              + len(REGRESSIONS_COTISATIONS) + len(REGRESSIONS_SUCCESSIONS)
              + len(REGRESSIONS_IMPOTS) + len(REGRESSIONS_TOURNEE)
@@ -716,7 +808,9 @@ def main():
              + len(REGRESSIONS_SUBVENTIONS_CRON)
              + len(REGRESSIONS_GREFFE_DATA) + len(REGRESSIONS_GREFFE_ROUTEUR)
              + len(REGRESSIONS_GREFFE_JUSTICE) + len(REGRESSIONS_GREFFE_POLITIQUE)
-             + len(REGRESSIONS_GREFFE_ORGAS))
+             + len(REGRESSIONS_GREFFE_ORGAS)
+             + len(REGRESSIONS_PNJ_PERSONNALITES) + len(REGRESSIONS_PNJ_CLIENT)
+             + len(REGRESSIONS_PNJ_PROFILS) + len(REGRESSIONS_PNJ_CHAT))
     if echecs:
         print("ECHEC : %d contre-epreuve(s) en defaut." % len(echecs))
         for e in echecs:
