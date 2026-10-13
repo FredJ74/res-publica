@@ -21,11 +21,11 @@ livré est décrit dans `baseline/CONTROLE-GLOBAL.json`, section
 
 ## 2. Greffiers nommés dans les trois tribunaux — ARBITRAGE VALIDÉ
 
-**Décision :** chaque tribunal de Républia doit avoir son **propre greffier PNJ nommé** : Luthécia (Greffier Petit, existant), Port-Sainte-Marie et Montrouge (deux greffiers distincts à nommer). Le greffier n'est **jamais un poste accessible aux PJ** ; conserver la contrainte `postes_attribues_jamais_greffier`.
+**Décision :** chaque tribunal de Républia doit avoir son **propre greffier PNJ nommé** : Luthécia (Greffier Petit, existant), Port-Sainte-Marie (**Greffier Leroux**) et Montrouge (**Greffier Richard**). Le greffier n'est **jamais un poste accessible aux PJ** ; conserver la contrainte `postes_attribues_jamais_greffier`.
 
-**État actuel :** `greffes_tribunaux` possède trois lignes, mais les deux greffes locaux ont `greffier_pnj = NULL` et utilisent la signature générique du greffe. Les noms et personnages des deux greffiers restent à définir avec le game designer, avant toute création de PNJ ou image.
+**État actuel :** `greffes_tribunaux` possède trois lignes, mais les deux greffes locaux ont `greffier_pnj = NULL` et utilisent la signature générique du greffe. Les noms ont été choisis par le game designer et inscrits dans `greffes_tribunaux` en production ; aucune nouvelle image n'a été générée. La présence physique de ces personnages dans les salles reste à contrôler.
 
-**Statut technique :** décision enregistrée, casting et implémentation non réalisés.
+**Statut technique :** casting validé et signatures des greffes mises à jour dans Supabase ; intégration visuelle des PNJ non vérifiée.
 
 ## 3. L'énigme du portrait a changé de nom, pas de registre
 
