@@ -1945,6 +1945,27 @@ const RP_CPJ_DECOR_BUCKET = SUPABASE_URL + '/storage/v1/object/public/commerce-d
 function commercePjDecorUrl(path) {
   return RP_CPJ_DECOR_BUCKET + String(path || '').split('/').map(encodeURIComponent).join('/');
 }
+function commercePjDecorPleinEcran() {
+  if (!RP_CPJ_DECOR_PREVIEW) return;
+  const fond = document.createElement('div');
+  fond.id = 'cpj-decor-plein-ecran';
+  fond.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.96);display:flex;align-items:center;justify-content:center;padding:3rem 1rem 1rem;box-sizing:border-box';
+  const image = document.createElement('img');
+  image.src = commercePjDecorUrl(RP_CPJ_DECOR_PREVIEW);
+  image.alt = 'Décoration du commerce en grand';
+  image.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain';
+  const fermer = document.createElement('button');
+  fermer.type = 'button';
+  fermer.textContent = '✕ Fermer';
+  fermer.style.cssText = 'position:absolute;top:12px;right:16px;padding:.6rem 1rem;cursor:pointer;z-index:1';
+  const fermerVue = function() { document.removeEventListener('keydown', touche); fond.remove(); };
+  const touche = function(e) { if (e.key === 'Escape') fermerVue(); };
+  fermer.onclick = fermerVue;
+  fond.onclick = function(e) { if (e.target === fond) fermerVue(); };
+  document.addEventListener('keydown', touche);
+  fond.append(image, fermer);
+  document.body.appendChild(fond);
+}
 async function commercePjDecorAppel(action, extra) {
   if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession();
   const jeton = (typeof rpAuthJeton === 'function') ? rpAuthJeton() : null;
@@ -2010,6 +2031,7 @@ function commercePjDecorMode(mode) {
     '<p id="cpj-decoration-libre">Décrivez votre intérieur. Les murs, portes, fenêtres et proportions seront conservés.</p>' +
     '<textarea id="cpj-decoration-demande" maxlength="1500" rows="5" style="width:100%;box-sizing:border-box;background:#17140f;color:#f1e5cd;padding:.7rem" placeholder="Ambiance, mobilier, matériaux, enseigne, éclairage..."></textarea>' +
     '<div id="cpj-decoration-image" style="margin:.8rem 0"></div>' +
+    '<button type="button" id="cpj-decoration-plein-ecran" style="display:none" onclick="commercePjDecorPleinEcran()">Visualiser en plein écran</button> ' +
     '<p id="cpj-decoration-retour" aria-live="polite">Une première génération et deux retouches par projet.</p>' +
     '<button id="cpj-decoration-generer" onclick="commercePjDecorGenerer()">Générer mon intérieur</button> ' +
     '<button id="cpj-decoration-valider" style="display:none" onclick="commercePjDecorValider()">Valider ce décor</button> ' +
@@ -2081,6 +2103,8 @@ async function commercePjDecorGenerer() {
     RP_CPJ_DECOR_RETOUCHES=result.retouches||0;
     const image=document.getElementById('cpj-decoration-image');
     if(image){image.textContent='';const img=document.createElement('img');img.src=commercePjDecorUrl(result.path);img.alt='Aperçu du décor';img.style.cssText='width:100%;max-height:350px;object-fit:contain';image.appendChild(img);}
+    const pleinEcran=document.getElementById('cpj-decoration-plein-ecran');
+    if(pleinEcran)pleinEcran.style.display='';
     const valider=document.getElementById('cpj-decoration-valider');
     if(valider)valider.style.display='';
     bouton.textContent='Demander une retouche ('+RP_CPJ_DECOR_RETOUCHES+'/2)';
