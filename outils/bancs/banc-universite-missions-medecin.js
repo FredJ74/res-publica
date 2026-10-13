@@ -1,6 +1,6 @@
 // Banc du catalogue des missions medicales, sans dependance serveur.
 const assert = require('node:assert/strict');
-const { missions, missionPourSemaine, objectifAtteint } = require('../../universite-missions-medecin.js');
+const { missions, missionPourSemaine, objectifAtteint, consigneMaitreDeStage, reactionPatient } = require('../../universite-missions-medecin.js');
 assert.equal(missions.length, 7);
 assert.deepEqual(missions.map(m => m.semaine), [2,3,4,5,6,7,8]);
 assert.equal(new Set(missions.map(m => m.id)).size, 7);
@@ -11,8 +11,8 @@ assert.equal(missionPourSemaine(9), null);
 for (const m of missions) {
   assert.equal(missionPourSemaine(m.semaine)?.id, m.id);
   assert(m.consigne && m.objectif && m.reaction && m.action);
-  assert.equal(objectifAtteint(m.id, m.action), true);
+  assert.equal(objectifAtteint(m.id, m.action), true);\n  assert.equal(consigneMaitreDeStage(m.semaine).texte, m.consigne);\n  assert.equal(reactionPatient(m.id, m.action), m.reaction);\n  assert.equal(reactionPatient(m.id, 'action_incorrecte'), null);
   assert.equal(objectifAtteint(m.id, 'action_incorrecte'), false);
 }
-assert.equal(objectifAtteint('mission_inconnue', 'action_incorrecte'), false);
+assert.equal(objectifAtteint('mission_inconnue', 'action_incorrecte'), false);\nassert.equal(consigneMaitreDeStage(1), null);\nassert.equal(reactionPatient('mission_inconnue', 'action_incorrecte'), null);
 console.log('Catalogue medical : 7 missions coherentes.');
