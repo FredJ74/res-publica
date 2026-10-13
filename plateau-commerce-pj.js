@@ -1976,6 +1976,14 @@ async function commercePjDecorImageOriginale() {
     reader.readAsDataURL(blob);
   });
 }
+const RP_CPJ_DECOR_QUESTIONS = [
+  ['Quelle ambiance imaginez-vous ?', 'Ex. chaleureuse et traditionnelle, moderne et épurée, luxueuse…'],
+  ['Quelles couleurs et matières aimez-vous ?', 'Ex. bois foncé, marbre clair, cuivre, vert profond…'],
+  ['Quel mobilier ou équipement doit être mis en valeur ?', 'Ex. comptoir vitré, étagères, tables, présentoirs…'],
+  ['Un dernier détail pour rendre le lieu unique ?', 'Ex. luminaires suspendus, plantes, enseigne peinte…']
+];
+let RP_CPJ_DECOR_GUIDE_ETAPE = 0;
+let RP_CPJ_DECOR_GUIDE_REPONSES = [];
 async function commercePjOuvrirAtelier() {
   commercePjChargement('Option Commerce — Décoration');
   const ctx = await commercePjContexte();
@@ -1986,15 +1994,71 @@ async function commercePjOuvrirAtelier() {
   RP_CPJ_DECOR_FONDS = ctx.fondsId;
   RP_CPJ_DECOR_PREVIEW = null;
   RP_CPJ_DECOR_RETOUCHES = 0;
+  commercePjModale('Option Commerce — Décoration',
+    '<div style="padding:1rem;line-height:1.7"><h3>Imaginons votre commerce</h3>' +
+    '<p>Comment souhaitez-vous créer votre décor ? Les murs, portes, fenêtres et proportions seront préservés.</p>' +
+    '<button onclick="commercePjDecorMode(\'libre\')">Création libre</button> ' +
+    '<button onclick="commercePjDecorMode(\'guide\')">Aidez-moi à imaginer mon commerce</button>' +
+    '<p>Atelier gratuit pendant la bêta.</p></div>');
+}
+function commercePjDecorMode(mode) {
+  RP_CPJ_DECOR_GUIDE_ETAPE = 0;
+  RP_CPJ_DECOR_GUIDE_REPONSES = [];
   const html = '<div style="padding:1rem;line-height:1.6">' +
     '<h3>Atelier de décoration — bêta gratuite</h3>' +
-    '<p>Décrivez votre intérieur. Les murs, portes, fenêtres et proportions seront conservés.</p>' +
+    '<div id="cpj-decoration-guide"></div>' +
+    '<p id="cpj-decoration-libre">Décrivez votre intérieur. Les murs, portes, fenêtres et proportions seront conservés.</p>' +
     '<textarea id="cpj-decoration-demande" maxlength="1500" rows="5" style="width:100%;box-sizing:border-box;background:#17140f;color:#f1e5cd;padding:.7rem" placeholder="Ambiance, mobilier, matériaux, enseigne, éclairage..."></textarea>' +
     '<div id="cpj-decoration-image" style="margin:.8rem 0"></div>' +
     '<p id="cpj-decoration-retour" aria-live="polite">Une première génération et deux retouches par projet.</p>' +
     '<button id="cpj-decoration-generer" onclick="commercePjDecorGenerer()">Générer mon intérieur</button> ' +
-    '<button id="cpj-decoration-valider" style="display:none" onclick="commercePjDecorValider()">Valider ce décor</button></div>';
+    '<button id="cpj-decoration-valider" style="display:none" onclick="commercePjDecorValider()">Valider ce décor</button> ' +
+    '<button onclick="commercePjOuvrirAtelier()">Changer de mode</button></div>';
   commercePjModale('Option Commerce — Décoration', html);
+  if (mode === 'guide') commercePjDecorQuestion();
+}
+function commercePjDecorQuestion() {
+  const zone = document.getElementById('cpj-decoration-guide');
+  const libre = document.getElementById('cpj-decoration-libre');
+  const champ = document.getElementById('cpj-decoration-demande');
+  const generer = document.getElementById('cpj-decoration-generer');
+  if (!zone || !champ) return;
+  if (RP_CPJ_DECOR_GUIDE_ETAPE >= RP_CPJ_DECOR_QUESTIONS.length) {
+    zone.textContent = 'Voici la description préparée avec vos réponses. Vous pouvez la modifier avant de générer.';
+    champ.value = RP_CPJ_DECOR_GUIDE_REPONSES.map(function(rep,i) {
+      return RP_CPJ_DECOR_QUESTIONS[i][0] + ' ' + (rep || 'Sans préférence particulière.');
+    }).join(' ');
+    champ.style.display = '';
+    if (generer) generer.style.display = '';
+    return;
+  }
+  const q = RP_CPJ_DECOR_QUESTIONS[RP_CPJ_DECOR_GUIDE_ETAPE];
+  zone.textContent = '';
+  const titre = document.createElement('p');
+  titre.textContent = 'Question ' + (RP_CPJ_DECOR_GUIDE_ETAPE + 1) + '/4 — ' + q[0];
+  const reponse = document.createElement('input');
+  reponse.type = 'text';
+  reponse.maxLength = 250;
+  reponse.placeholder = q[1];
+  reponse.style.cssText = 'width:100%;box-sizing:border-box;padding:.7rem;margin-bottom:.6rem';
+  const suivant = document.createElement('button');
+  suivant.textContent = 'Continuer';
+  suivant.onclick = function() {
+    RP_CPJ_DECOR_GUIDE_REPONSES.push(reponse.value.trim());
+    RP_CPJ_DECOR_GUIDE_ETAPE++;
+    commercePjDecorQuestion();
+  };
+  const passer = document.createElement('button');
+  passer.textContent = 'Je ne sais pas';
+  passer.onclick = function() {
+    RP_CPJ_DECOR_GUIDE_REPONSES.push('');
+    RP_CPJ_DECOR_GUIDE_ETAPE++;
+    commercePjDecorQuestion();
+  };
+  zone.append(titre,reponse,suivant,document.createTextNode(' '),passer);
+  if (libre) libre.style.display = 'none';
+  champ.style.display = 'none';
+  if (generer) generer.style.display = 'none';
 }
 function commercePjDecorMessage(msg) {
   const el = document.getElementById('cpj-decoration-retour');
