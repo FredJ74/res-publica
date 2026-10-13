@@ -80,3 +80,11 @@ Trois points sont **déjà arbitrés** et ont été laissés intacts, pour mémo
 - Le responsable technique est autorisé à **concevoir et implémenter l'intégralité de la procédure de missions médicales**, y compris consignes du maître de stage, dialogues et réactions des PNJ, objectifs et progression, sans multiplier les micro-arbitrages.
 - Préserver : aucun échec, pas de blocage par l'absence d'un maître de stage PJ, deux lieux (EHPAD de Luthécia et dispensaire de Port-Sainte-Marie), une mission par semaine après la première semaine, simplicité et réutilisation des systèmes existants.
 - Avant implémentation, auditer les interfaces et mécanismes existants ; ne pas annoncer comme déployé ce qui ne l'est pas.
+
+
+### Audit de raccordement technique — 13 octobre 2026
+- Arbre GitHub inspecté : le socle universitaire est déjà matérialisé par les migrations archivées `20261011223728_universite_socle_cursus_et_qualifications.sql` et `20261012205443_universite_delivre_une_seconde_carriere_pas_un_diplome.sql`. Il comporte des catalogues de cursus et jalons, des inscriptions, et des fonctions serveur ; **ce socle ne constitue pas encore un parcours jouable**.
+- `plateau-router.js` maintient explicitement `suivre_formation` sans route. Le banc `outils/bancs/banc-universite-et-pnj-client.js` vérifie la suppression de l'ancien système de formation ; ne pas le ressusciter.
+- `plateau-pnj.js` possède déjà des interactions scriptées avec les pensionnaires de l'EHPAD pour l'énigme du portrait ; **ne pas modifier ni détourner ces déclencheurs**. Prévoir des actions contextuelles distinctes pour les missions médicales.
+- **Point d'architecture à traiter avant activation** : le socle historique ouvre les jalons par semaine et impose une échéance, tandis que le game design actuel exige des cours lundi/mercredi/vendredi avec calendrier glissant et décalage réel après absence. Une simple insertion de lignes de catalogue ne satisferait pas cette règle. Il faut adapter les portes serveur et leurs tests avant de rendre le bouton actif.
+- Statut : **audit initial documenté, aucune implémentation ni mise en production des missions médicales revendiquée**.
