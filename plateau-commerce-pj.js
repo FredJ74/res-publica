@@ -1329,11 +1329,20 @@ async function commercePjNouvelleReference() {
   commercePjModale(tCommercePJ('commercepj.titre.reference'), html);
 }
 
+// Les appellations Cacao / Fruits exotiques sont uniquement visuelles :
+// toutes deux consomment la meme ressource serveur produits_exotiques.
+function commercePjLibelleMatiereRecette(cle, rec) {
+  if (cle !== 'produits_exotiques') return commercePjLibelleMatiere(cle);
+  if (rec && rec.recette_id === 'chocolat_generique') return 'Cacao (produits exotiques)';
+  if (rec && /fruit|jus/i.test(String(rec.recette_id || ''))) return 'Fruits exotiques (produits exotiques)';
+  return commercePjLibelleMatiere(cle);
+}
+
 // Rendu lisible d'une recette systeme : jamais d'identifiant, jamais de JSON.
 function commercePjRecetteLisible(rec) {
   const mats = rec.materiaux || {};
   const parts = Object.keys(mats).map(function (m) {
-    return mats[m] + ' × ' + commercePjLibelleMatiere(m);
+    return mats[m] + ' × ' + commercePjLibelleMatiereRecette(m, rec);
   });
   if (Number(rec.pa) > 0) parts.push(rec.pa + ' ' + tCommercePJ('commercepj.recette.pa'));
   let h = '<div style="font-size:.8rem;color:#8a8060;line-height:1.5">';
