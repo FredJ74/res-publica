@@ -367,6 +367,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // Point d'entree UNIQUE de la verticale commerce PJ (C5) : l'ecran decide
   // lui-meme s'il montre la gestion, la boutique ou l'installation.
   if (fn === 'commerce_pj')              { ouvrirCommercePJ(); return; }
+  if (fn === 'commerce_personnaliser') { commercePjOuvrirAtelier(); return; }
   // EQUIPEMENTS DE BUREAU (4 octobre 2026) : interface d'attente, sans aucune
   // mecanique. Sortie immediate, AVANT tout debit -- l'ordre est a 0 PA / 0 FR
   // et n'a rien a faire savoir au serveur. Voir plateau-equipements.js.
