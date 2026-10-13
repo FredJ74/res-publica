@@ -2015,6 +2015,17 @@ async function commercePjOuvrirAtelier() {
   RP_CPJ_DECOR_FONDS = ctx.fondsId;
   RP_CPJ_DECOR_PREVIEW = null;
   RP_CPJ_DECOR_RETOUCHES = 0;
+  try {
+    const lignes = await sbGet('commerce_decors',
+      'select=preview_path,retouches&fonds_id=eq.' + encodeURIComponent(ctx.fondsId));
+    const decor = Array.isArray(lignes) ? lignes[0] : null;
+    if (decor && decor.preview_path) {
+      RP_CPJ_DECOR_PREVIEW = decor.preview_path;
+      RP_CPJ_DECOR_RETOUCHES = Math.max(0, Number(decor.retouches) || 0);
+    }
+  } catch (e) {
+    console.warn('Récupération du décor provisoire impossible', e);
+  }
   commercePjModale('Option Commerce — Décoration',
     '<div style="padding:1rem;line-height:1.7"><h3>Imaginons votre commerce</h3>' +
     '<p>Comment souhaitez-vous créer votre décor ? Les murs, portes, fenêtres et proportions seront préservés.</p>' +
@@ -2037,6 +2048,26 @@ function commercePjDecorMode(mode) {
     '<button id="cpj-decoration-valider" style="display:none" onclick="commercePjDecorValider()">Valider ce décor</button> ' +
     '<button onclick="commercePjOuvrirAtelier()">Changer de mode</button></div>';
   commercePjModale('Option Commerce — Décoration', html);
+  if (RP_CPJ_DECOR_PREVIEW) {
+    const zone = document.getElementById('cpj-decoration-image');
+    if (zone) {
+      const img = document.createElement('img');
+      img.src = commercePjDecorUrl(RP_CPJ_DECOR_PREVIEW);
+      img.alt = 'Décor provisoire retrouvé';
+      img.style.cssText = 'width:100%;max-height:350px;object-fit:contain';
+      zone.appendChild(img);
+    }
+    const grand = document.getElementById('cpj-decoration-plein-ecran');
+    if (grand) grand.style.display = '';
+    const valider = document.getElementById('cpj-decoration-valider');
+    if (valider) valider.style.display = '';
+    const generer = document.getElementById('cpj-decoration-generer');
+    if (generer) {
+      generer.textContent = 'Demander une retouche (' + RP_CPJ_DECOR_RETOUCHES + '/2)';
+      generer.disabled = RP_CPJ_DECOR_RETOUCHES >= 2;
+    }
+    commercePjDecorMessage('Création précédente retrouvée. Vous pouvez la visualiser, la valider ou demander une retouche.');
+  }
   if (mode === 'guide') commercePjDecorQuestion();
 }
 function commercePjDecorQuestion() {
