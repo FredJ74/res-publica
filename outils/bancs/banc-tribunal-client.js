@@ -12,6 +12,7 @@ var multi     = readFile('/Users/fredericjasseron/ResPublica/plateau-multijoueur
 var cron      = readFile('/Users/fredericjasseron/ResPublica/api/cron-minuit.js');
 var pnj       = readFile('/Users/fredericjasseron/ResPublica/plateau-pnj.js');
 var donnees   = readFile('/Users/fredericjasseron/ResPublica/data.js');
+var routeur   = readFile('/Users/fredericjasseron/ResPublica/plateau-router.js');
 
 var ko = 0, attendus = 0;
 function att(n, c, detail) {
@@ -27,6 +28,7 @@ function bloc(t, debut, fin) {
   var i = t.indexOf(debut); if (i < 0) return '';
   var j = t.indexOf(fin, i); return j < 0 ? t.slice(i) : t.slice(i, j);
 }
+function compte(t, re) { return (t.match(re) || []).length; }
 
 print('BANC TRIBUNAL -- COTE NAVIGATEUR');
 print('');
@@ -191,6 +193,36 @@ att('et l ecran dit qu aucune demarche n est possible -- le prelevement est auto
 att('le repeint de la fiche ne se rappelle pas lui-meme',
     perso.indexOf('window._indemnitesRelues') >= 0
     && perso.indexOf('window._indemnitesRelues = false;') >= 0);
+
+print('');
+print('LA LISTE DES AFFAIRES N EST PLUS REMPLIE PAR UN ECRAN SANS RAPPORT');
+// CHAPITRE AJOUTE LE 13 OCTOBRE 2026. `state.plaintesEnCours` n'est jamais persistee, et elle
+// n'etait remplie QUE par `ouvrirPorterPlainte` -- l'ordre « Consulter les affaires en cours »
+// d'une salle d'audience. Consequence mesuree : la SITUATION JUDICIAIRE sur la fiche du joueur
+// (PV d'audition, delai, consentement, appel) et les DEUX ecrans de sentence du juge etaient
+// vides jusqu'a ce clic, et les deux fonctions de sentence rendaient la main en silence sur
+// `if (!affaire) return;`. Le meme ecran affichait en outre le TEXTE LIBRE du plaignant, sans
+// l'echapper, a tout joueur de la ville -- ce que l'arbitrage du greffe interdit.
+att('l ecran fuyant n existe plus, ni sa fonction ni ses deux routes',
+    codeSeul(justice).indexOf('function ouvrirPorterPlainte(') < 0
+    && codeSeul(routeur).indexOf('ouvrirPorterPlainte') < 0);
+att('et son ordre a quitte les deux salles d audience',
+    codeSeul(donnees).indexOf("fn:'plainte',") < 0);
+att('le role du juge est recopie depuis le serveur, dans les DEUX ecrans',
+    codeSeul(justice).indexOf('function justiceMemoriserDossiers(') > 0
+    && compte(justice, /\n  justiceMemoriserDossiers\(dossiers\);/g) === 2);
+att('et cette copie va du serveur vers le local, jamais l inverse',
+    bloc(justice, 'function justiceMemoriserDossiers(', '\nasync function rafraichirMesAffairesJudiciaires')
+      .indexOf('d.dossier') > 0);
+att('la fiche du joueur relit ses propres affaires au serveur',
+    codeSeul(justice).indexOf('async function rafraichirMesAffairesJudiciaires(') > 0
+    && codeSeul(perso).indexOf('rafraichirMesAffairesJudiciaires()') > 0);
+att('les six statuts morts de l ancien ecran ont disparu avec lui',
+    codeSeul(justice).indexOf("done:      { texte:") < 0
+    && codeSeul(justice).indexOf("Traitée (issue non enregistrée)") < 0);
+att('plus aucun ecran n injecte le texte libre d un plaignant sans l echapper',
+    codeSeul(justice).indexOf("if (a.motif) html +=") < 0
+    && codeSeul(justice).indexOf("if (e.motif) html +=") < 0);
 
 print('');
 if (ko === 0) print('LES ' + attendus + ' EPREUVES SONT VERTES.');

@@ -7109,12 +7109,19 @@ async function executerOrdreEmpire(action, empireId, empireName, pa, cost) {
 }
 
 // Juge PNJ par defaut, tant qu'aucun PJ n'a ete nomme — regle les affaires sur des criteres parodiques
-const JUGE_PNJ_DEFAUT = { republic: 'Juge Sévère Lapeine' };
-
-async function getJugeActuel(pays) {
-  const titulaire = await getTitulaireActuel('juge', null, pays);
-  return titulaire?.nom || JUGE_PNJ_DEFAUT[pays] || 'Juge (poste vacant)';
-}
+// `getJugeActuel` ET `JUGE_PNJ_DEFAUT` SUPPRIMEES le 13 octobre 2026 (audit du tribunal).
+//
+// DEUX DEFAUTS DANS SIX LIGNES. La fonction n'avait AUCUN appelant -- mesure faite sur tout le
+// depot -- et son repli nommait « Juge Sévère Lapeine », un magistrat qui n'existe dans AUCUN
+// referentiel du jeu : ni `titulaires_pnj`, ni `postes_attribues`, ni le casting de Republia.
+// Elle interrogeait de surcroit `getTitulaireActuel('juge', null, pays)` avec une ville NULLE,
+// alors que le juge est un poste de VILLE depuis l'arbitrage du 20 septembre 2026 -- un juge par
+// tribunal, trois a Republia. Elle aurait donc rendu, au mieux, le premier juge trouve.
+//
+// LE VRAI RESOLVEUR EST AU SERVEUR : `justice_juge_titulaire(pays, ville)`, appelee par toutes
+// les portes judiciaires. Cote navigateur, `getTitulaireActuel('juge', ville, pays)` suffit, et
+// elle rend `null` quand le siege est vacant -- ce qui est une information, pas un trou a
+// combler par un nom invente.
 
 async function ouvrirProposerGrace(pa, cost) {
   if (state.poste?.id !== 'min_just') { showToast('Réservé au Ministre de la Justice', '', false); return; }

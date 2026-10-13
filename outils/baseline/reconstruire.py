@@ -922,7 +922,14 @@ def controles_du_monde(cat):
     # `carrieres_acquises`, posee sur le PERSONNAGE SEUL -- c'est elle, et non une condition dans
     # un corps de fonction, qui interdit une troisieme carriere -- et les deux CHECK du chat
     # judiciaire : un message vide ne s'ecrit pas, et une qualite hors des cinq reconnues non plus.
-    att("contraintes posees", len(cat.contraintes), 605)
+    # 606 le 13 octobre 2026 : +1. `infractions_delit_exige_bareme_propre`, et c'est une contrainte
+    # qui existe pour EMPECHER UN BAREME D'ETRE INVENTE. L'arbitrage des categories penales dit
+    # « DELIT » : les deux categories existantes -- delit mineur, delit grave -- portent chacune une
+    # gravite deja arbitree, donc en choisir une aurait prononce une gravite que l'arbitrage n'a pas
+    # prononcee. La categorie `delit` est donc nee avec les DEUX NOMBRES du delit mineur, et cette
+    # contrainte garantit que personne ne les herite jamais : une infraction sans bareme propre ne
+    # peut pas la porter. Le generateur du code penal refuse la meme chose, de son cote.
+    att("contraintes posees", len(cat.contraintes), 606)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de

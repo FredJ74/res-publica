@@ -198,10 +198,18 @@ const SCHOOLS = [
 // Origine sociale = d'ou vient-il. Etudes = quel parcours scolaire il a recu. Nature profonde =
 // qui il est. Carriere = ce qu'il sait faire professionnellement. Les quatre ne se recouvrent pas.
 //
-// LE CAPITAL EN FRANCS A ETE RETIRE DE LA NATURE, ET C'EST LE POINT DE CETTE REFONTE. Un trait de
-// caractere ne fait pas une fortune : `argBonus` vaut 0 pour les NEUF, et le capital initial reste
-// alimente par l'origine sociale et la carriere. La structure mecanique, elle, ne bouge pas :
-// +2 / +2 / -2, exactement les memes six caracteristiques qu'avant.
+// LA NATURE N'A PLUS QU'UNE SEULE CONSEQUENCE MECANIQUE : +2 / +2 / -2 sur trois caracteristiques.
+// RIEN D'AUTRE. Le capital en francs est parti le 12 octobre 2026 -- un trait de caractere ne fait
+// pas une fortune -- et les trois bonus de ressources (`infBonus`, `popBonus`, `disBonus`) sont
+// partis le 13. Ils ne decrivaient pas une inclination : ils PRONONCAIENT un jugement collectif
+// avant le premier tour de jeu. « Idealiste +25 POP » decidait que le peuple aime les idealistes ;
+// « Transgressif -15 POP » qu'il meprise les transgressifs ; « Manipulateur +20 DIS » qu'un
+// manipulateur est ne discret. Ce sont des reactions humaines, et Human Gambit ne les code pas :
+// la popularite, l'influence et la discretion se GAGNENT en jouant. Les quatre champs sont donc
+// RETIRES de la structure, pas mis a zero -- un champ a zero invite a le remplir.
+//
+// CE QUI N'A PAS BOUGE : le +2 / +2 / -2, exactement les memes six caracteristiques qu'avant, et
+// le capital initial, toujours alimente par l'origine sociale et la carriere.
 //
 // LES NEUF NOMS DECRIVENT UNE INCLINATION, JAMAIS UN COMPORTEMENT OBLIGATOIRE NI UN METIER. Un
 // criminel peut etre legaliste, un avocat transgressif, un officier idealiste, un homme d'affaires
@@ -211,17 +219,17 @@ const SCHOOLS = [
 // LES IDENTIFIANTS TECHNIQUES SONT INCHANGES, et c'est volontaire : les neuf anciennes natures se
 // retrouvent une a une dans les neuf nouvelles, AVEC EXACTEMENT LES MEMES BONUS ET MALUS. Aucune
 // fiche existante n'a donc a etre migree, et aucun id mort ne traine. Seuls le nom, la description
-// et l'icone changent -- plus le capital, qui disparait.
+// et l'icone changent -- plus les quatre champs retires ci-dessus.
 const ARCHETYPES = [
-  {id:'politician',    icon:'ti-speakerphone',   name:'Ambitieux',    bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, argBonus:0, infBonus:15, popBonus:20,  disBonus:-10, desc:"Convaincre, entreprendre, conquerir des positions. Le pouvoir et la reussite l'attirent."},
-  {id:'authoritarian', icon:'ti-sword',          name:'Autoritaire',  bonuses:{VOL:2,PER:2}, malus:{ENT:-2}, argBonus:0, infBonus:20, popBonus:5,   disBonus:5,   desc:"Discipline, resistance, rapport de force. Il croit volontiers a l'ordre et a l'autorite."},
-  {id:'oligarch',      icon:'ti-chess',          name:'Calculateur',  bonuses:{INT:2,DUP:2}, malus:{CHA:-2}, argBonus:0, infBonus:10, popBonus:-5,  disBonus:5,   desc:"Raisonnement froid, interet, anticipation, manoeuvre."},
-  {id:'informer',      icon:'ti-eye-search',     name:'Curieux',      bonuses:{PER:2,INT:2}, malus:{VOL:-2}, argBonus:0, infBonus:5,  popBonus:15,  disBonus:-5,  desc:"Observer, comprendre, chercher l'information."},
-  {id:'legalist',      icon:'ti-scale',          name:'Legaliste',    bonuses:{INT:2,VOL:2}, malus:{CHA:-2}, argBonus:0, infBonus:15, popBonus:5,   disBonus:10,  desc:"Regles, textes, procedures, rigueur -- et connaissance de leurs limites."},
-  {id:'believer',      icon:'ti-flame',          name:'Idealiste',    bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, argBonus:0, infBonus:10, popBonus:25,  disBonus:0,   desc:"Convictions, mobilisation, engagement."},
-  {id:'shadow',        icon:'ti-user-question',  name:'Manipulateur', bonuses:{DUP:2,PER:2}, malus:{CHA:-2}, argBonus:0, infBonus:5,  popBonus:-10, disBonus:20,  desc:"Dissimulation, influence indirecte, infiltration, double jeu."},
-  {id:'anticapitalist',icon:'ti-users-group',    name:'Solidaire',    bonuses:{CHA:2,VOL:2}, malus:{INT:-2}, argBonus:0, infBonus:10, popBonus:20,  disBonus:-5,  desc:"Loyaute collective, engagement, resistance, entraide."},
-  {id:'criminal',      icon:'ti-lock-open',      name:'Transgressif', bonuses:{DUP:2,VOL:2}, malus:{ENT:-2}, argBonus:0, infBonus:5,  popBonus:-15, disBonus:15,  desc:"Gout du risque, refus des regles, determination."}
+  {id:'politician',    icon:'ti-speakerphone',   name:'Ambitieux',    bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, desc:"Convaincre, entreprendre, conquerir des positions. Le pouvoir et la reussite l'attirent."},
+  {id:'authoritarian', icon:'ti-sword',          name:'Autoritaire',  bonuses:{VOL:2,PER:2}, malus:{ENT:-2}, desc:"Discipline, resistance, rapport de force. Il croit volontiers a l'ordre et a l'autorite."},
+  {id:'oligarch',      icon:'ti-chess',          name:'Calculateur',  bonuses:{INT:2,DUP:2}, malus:{CHA:-2}, desc:"Raisonnement froid, interet, anticipation, manoeuvre."},
+  {id:'informer',      icon:'ti-eye-search',     name:'Curieux',      bonuses:{PER:2,INT:2}, malus:{VOL:-2}, desc:"Observer, comprendre, chercher l'information."},
+  {id:'legalist',      icon:'ti-scale',          name:'Legaliste',    bonuses:{INT:2,VOL:2}, malus:{CHA:-2}, desc:"Regles, textes, procedures, rigueur -- et connaissance de leurs limites."},
+  {id:'believer',      icon:'ti-flame',          name:'Idealiste',    bonuses:{CHA:2,ENT:2}, malus:{DUP:-2}, desc:"Convictions, mobilisation, engagement."},
+  {id:'shadow',        icon:'ti-user-question',  name:'Manipulateur', bonuses:{DUP:2,PER:2}, malus:{CHA:-2}, desc:"Dissimulation, influence indirecte, infiltration, double jeu."},
+  {id:'anticapitalist',icon:'ti-users-group',    name:'Solidaire',    bonuses:{CHA:2,VOL:2}, malus:{INT:-2}, desc:"Loyaute collective, engagement, resistance, entraide."},
+  {id:'criminal',      icon:'ti-lock-open',      name:'Transgressif', bonuses:{DUP:2,VOL:2}, malus:{ENT:-2}, desc:"Gout du risque, refus des regles, determination."}
 ];
 
 // Consolidation 18->10 (bêta, arbitrage joueur) : chaque carrière fusionnée garde l'id interne
@@ -918,7 +926,7 @@ const WORLD = {
             // que Tristan Cabane (BUILDINGS['commissariat'].prison, Luthecia) -- job:'detenu'
             // deja utilise la, aucun nouveau job cree. Purement narratif, ne remplace pas les
             // vrais detenus affiches dynamiquement (voir sbGetDetenusActifs, plateau-navigation.js).
-            // Les mecaniques de detention (se_rebeller/tentative_evasion/requete_avocat)
+            // Les mecaniques de detention (se_rebeller/tentative_evasion)
             // fonctionnent desormais ici aussi (lot "ordres carceraux hors Luthecia", 26 aout
             // 2026) : herite les orders du template partage BUILDINGS['commissariat-local'].
             // rooms.geoles, ce roomOverride ne touchant que imageUrl/persons. PSM uniquement --
@@ -3137,7 +3145,6 @@ const BUILDINGS = {
         // Les ORDRES, eux, restent ici : ce sont les mecaniques, et elles sont bien communes.
         persons: [],
         orders: [
-          {fn:'plainte',   label:'Consulter les affaires en cours', pa:1, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir le statut des affaires en cours : au parquet, enquete, poursuites, saisine du juge, non-lieu, relaxe, jugee.'},
           // LES PREROGATIVES DES MAGISTRATS ONT DEMENAGE (12 octobre 2026, soir). Elles vivaient
           // ici, dans la salle d'audience -- c'est-a-dire dans la piece ou se tiennent le public
           // et le prevenu. Elles sont desormais dans le BUREAU DES MAGISTRATS, le lieu de
@@ -3467,7 +3474,6 @@ const BUILDINGS = {
           {name:'Tristan Cabane (PNJ)', role:'Detenu', rel:'neutral', job:'detenu', photoUrl:'images/commissariat-tristan-cabane.webp', photoPos:'50% 15%'}
         ],
         orders: [
-          {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},
           {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
         ]
@@ -4683,9 +4689,12 @@ const BUILDINGS = {
       // Luthecia (BUILDINGS['commissariat'].rooms.prison, plateau-justice-economie.js,
       // plateau-router.js) -- aucun handler duplique, partages tels quels via ce meme template
       // (commissariat-local) entre Montrouge et PSM, meme principe que les orders policiers
-      // d'accueil_loc ci-dessus. Les fonctions elles-memes (doSeRebeller/doTentativeEvasion/
-      // doRequeteAvocat) agissent deja sur state.estEmprisonne, l'etat carceral REEL du
-      // personnage courant, jamais sur un batiment/une ville supposee.
+      // d'accueil_loc ci-dessus. Les fonctions elles-memes (doSeRebeller/doTentativeEvasion)
+      // agissent deja sur state.estEmprisonne, l'etat carceral REEL du personnage courant,
+      // jamais sur un batiment/une ville supposee.
+      // « Requerir un avocat » RETIRE des trois lieux de detention le 13 octobre 2026 : la
+      // reduction de peine etait tiree au hasard. La defense par un avocat reel se joue au
+      // Tribunal.
       geoles: {
         name: "Geôles",
         imageBg: "linear-gradient(135deg,#0f1018,#151822)",
@@ -4693,7 +4702,6 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-commissariat-geoles.jpg",
         persons: [],
         orders: [
-          {fn:'requete_avocat',  label:'Requérir les services d\'un avocat', pa:1, cost:0,    type:'legal',   icon:'ti-scale',      successRate:100, desc:'Contacte votre avocat. Reduit les risques de condamnation.'},
           {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
         ]
@@ -4719,7 +4727,6 @@ const BUILDINGS = {
           {name:'Juge Local (PNJ)', role:'President du Tribunal Municipal', rel:'neutral', job:'juge'}
         ],
         orders: [
-          {fn:'plainte',   label:'Consulter les affaires', pa:0, cost:0,   type:'legal',   icon:'ti-gavel',   successRate:100, desc:'Voir les affaires transmises par la police, en attente de jugement.'},
           // LES PREROGATIVES DES MAGISTRATS ONT DEMENAGE AU BUREAU DES MAGISTRATS (12 octobre
           // 2026, soir), exactement comme dans le tribunal de la capitale. La presence qu'exige
           // le serveur porte sur le BATIMENT : rien ne change pour lui.
@@ -5978,7 +5985,6 @@ const BUILDINGS = {
           {name:'Patrick Coule (PNJ)', role:'PNJ - Gardien de couloir', rel:'neutral', job:'gardien_qhs'}
         ],
         orders: [
-          {fn:'requete_avocat',     label:'Requérir un avocat',          pa:1, cost:0,    type:'legal',   icon:'ti-scale',    successRate:100, desc:'Contacter votre defenseur. Reduit risques de condamnation.'},
           {fn:'greve_faim',         label:'Greve de la faim',            pa:0, cost:0,    type:'legal',   icon:'ti-ban',      successRate:100, desc:'-5 HP/jour mais +POP et pression politique.'},
           {fn:'corrompre_gardien',  label:'Corrompre un gardien',        pa:2, cost:800,  type:'illegal', icon:'ti-coins',    successRate:20,  desc:'Tres difficile. Obtenir des privileges ou informations.'},
           {fn:'tentative_evasion',  label:'Tenter de s\'evader',        pa:3, cost:0,    type:'illegal', icon:'ti-run',      successRate:10,   desc:'Quasi impossible, une tentative par jour. Echec = peine aggravee de 7 jours.'}
@@ -8320,7 +8326,6 @@ Object.assign(ORDER_EFFECTS, {
   incendier:          {dis:-10,          successRate:30},
   tentative_evasion:  {dis:-5,           successRate:15},
   se_rebeller:        {moral:5,          successRate:30},
-  requete_avocat:     {inf:2,            successRate:100},
   imprimer_tracts:    {pop:5,  inf:3,    successRate:100},
   conference_presse:  {pop:15, inf:10,   successRate:100},
   annonce_officielle: {pop:5,  inf:5,    successRate:100},

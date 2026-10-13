@@ -256,15 +256,27 @@ REGRESSIONS = [
      "  if (false) {",
      "competence refusee : AUCUNE sanction appliquee"),
 
-    ("chaine de l'avocat -- le verdict de la reduction n'est plus lu",
-     "  if (!vAvocat || vAvocat.ok !== true) {",
-     "  if (false) {",
-     "verdict refuse : le refus est dit"),
+    # Les DEUX contre-epreuves de la chaine de l'avocat ont ete RETIREES le 13 octobre 2026 : la
+    # requete d'avocat en cellule a ete supprimee (un d100 decidait si une plaidoirie avait
+    # convaincu un juge). Il n'y a plus de code a regresser. Le verrou qui remplace ces deux
+    # mesures est le chapitre 8 du banc : il rougit si la mecanique renait.
+    #
+    # La contre-epreuve de ce verrou est faite ICI, en sens INVERSE : au lieu de casser un
+    # correctif, on fait RENAITRE la mecanique supprimee et on exige que le banc la voie.
+    ("verrou de l avocat -- le handler supprime est reinjecte",
+     "function doGreveFaim() {",
+     "function confirmerRequeteAvocat(pa, cost) { return pa + cost; }\nfunction doGreveFaim() {",
+     "aucun handler doRequeteAvocat / confirmerRequeteAvocat"),
 
-    ("chaine de l'avocat -- la reduction redevient calculee par le navigateur",
-     "      state.estEmprisonne.jourFin = vAvocat.jour_fin;\n      state.estEmprisonne.jours = vAvocat.jours;",
-     "      state.estEmprisonne.jourFin = 99;\n      state.estEmprisonne.jours = 99;",
-     "la nouvelle peine est celle du serveur"),
+    ("verrou de l avocat -- l appel a la porte serveur est reinjecte",
+     "function doGreveFaim() {\n",
+     "function doGreveFaim() {\n  sbRpc('detention_reduire_peine', {});\n",
+     "aucun appel a la porte serveur detention_reduire_peine"),
+
+    ("verrou de l avocat -- le drapeau avocatUtilise est reinjecte",
+     "function doGreveFaim() {\n",
+     "function doGreveFaim() {\n  state.estEmprisonne.avocatUtilise = true;\n",
+     "aucun drapeau avocatUtilise"),
 
     ("chaine de l'evasion -- le verdict de la cloture n'est plus lu",
      "    if (!vEvasion || vEvasion.ok !== true) {",
@@ -308,30 +320,27 @@ REGRESSIONS_PLAINTES_JUSTICE = [
      "  if (false) {",
      "le verdict est lu AVANT toute annonce"),
 
+    # LES DEUX ANCRAGES ONT ETE REFAITS le 13 octobre 2026. Ils nommaient `issue =
+    # 'reussite_critique'` et `state.plaintesEnCours[i]`, deux ecritures disparues quand la
+    # formule de la procedure simplifiee est passee au serveur (12 octobre) : les contre-epreuves
+    # ne prouvaient donc plus rien depuis ce jour-la, en silence. Une contre-epreuve dont
+    # l'ancrage a disparu est une contre-epreuve morte.
     ("defense -- le statut de l'affaire redevient pose en memoire",
-     "    issue = 'reussite_critique';",
-     "    affaire.status = 'jugee';\n    issue = 'reussite_critique';",
+     "  const avocat = vDef.avocat || \"l'avocat commis d'office\";",
+     "  affaire.status = 'jugee';\n  const avocat = vDef.avocat || \"l'avocat commis d'office\";",
      "plus aucune pose locale du statut"),
 
     ("defense -- l'affaire ne recopie plus l'etat arrete par le serveur",
-     "    if (i >= 0) state.plaintesEnCours[i] = vDef.affaire;",
-     "    void i;",
+     "    if (pos >= 0) state.plaintesEnCours[pos] = vDef.affaire;",
+     "    void pos;",
      "l'affaire recopie l'etat arrete par le serveur"),
 ]
 
-REGRESSIONS_PLAINTES_POLITIQUE = [
-    ("classement -- le verdict de la porte n'est plus lu",
-     "      if (!vClass || vClass.ok !== true) {",
-     "      if (false) {",
-     "le verdict est lu, et un refus ARRETE la fonction"),
-
-    ("classement -- l'ecran du ministre redevient structurellement vide",
-     "  const affaires = state.plaintesEnCours?.filter(p => p.status === 'deposee') || [];\n"
-     "  const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];",
-     "  const affaires = state.plaintesEnCours?.filter(p => p.status === 'pending') || [];\n"
-     "  const condamnes = state.prisonniers?.filter(p => p.jourFin > state.day) || [];",
-     "elle filtre le statut reel d une affaire en cours avant jugement"),
-]
+# SERIE « CYCLE D'UNE AFFAIRE -- politique » SUPPRIMEE le 13 octobre 2026. Ses deux
+# contre-epreuves mesuraient le CLASSEMENT MINISTERIEL (`plainte_classer_ministere`,
+# `ouvrirModalAffaires('annuler')`), supprime le 12 octobre : l'opportunite des poursuites
+# appartient au parquet. Les deux epreuves correspondantes ont quitte `banc-cycle-plaintes.js`
+# le meme jour, mais la serie est restee -- et elle echouait depuis, sur « ancrage introuvable ».
 
 REGRESSIONS_PLAINTES_SUPABASE = [
     ("cycle -- l'upsert du blob entier revient dans supabase.js",
@@ -562,8 +571,6 @@ def main():
     serie("MUTATION DE PROPRIETE D'UN TERRAIN", BANC_TERRAIN, PNJ, REGRESSIONS_TERRAIN, echecs)
     serie("CYCLE D'UNE AFFAIRE -- justice", BANC_PLAINTES, JUSTICE,
           REGRESSIONS_PLAINTES_JUSTICE, echecs, lanceur=lancer_cible("plateau-justice-economie.js"))
-    serie("CYCLE D'UNE AFFAIRE -- politique", BANC_PLAINTES, POLITIQUE,
-          REGRESSIONS_PLAINTES_POLITIQUE, echecs, lanceur=lancer_cible("plateau-politique.js"))
     serie("CYCLE D'UNE AFFAIRE -- supabase", BANC_PLAINTES, SUPABASE,
           REGRESSIONS_PLAINTES_SUPABASE, echecs, lanceur=lancer_cible("supabase.js"))
     serie("ETAT D'UN TERRAIN -- supabase", BANC_TERRAIN_ETAT, SUPABASE,
@@ -587,7 +594,7 @@ def main():
              + len(REGRESSIONS_COTISATIONS) + len(REGRESSIONS_SUCCESSIONS)
              + len(REGRESSIONS_IMPOTS) + len(REGRESSIONS_TOURNEE)
              + len(REGRESSIONS_TERRAIN) + len(REGRESSIONS_PLAINTES_JUSTICE)
-             + len(REGRESSIONS_PLAINTES_POLITIQUE) + len(REGRESSIONS_PLAINTES_SUPABASE)
+             + len(REGRESSIONS_PLAINTES_SUPABASE)
              + len(REGRESSIONS_TERRAIN_SUPABASE) + len(REGRESSIONS_TERRAIN_JUSTICE)
              + len(REGRESSIONS_TERRAIN_PERSONNAGE)
              + len(REGRESSIONS_SUBVENTIONS_ORGA) + len(REGRESSIONS_SUBVENTIONS_POLITIQUE)

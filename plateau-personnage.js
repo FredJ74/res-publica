@@ -452,14 +452,29 @@ function switchSelfTab(tab, el) {
     // batiment. Elle vit sur sa propre fiche, qui reste atteignable en detention. Le bloc
     // n'apparait QUE s'il est mis en cause dans une affaire vivante -- sinon il n'existe pas.
     if (typeof justiceSituationHtml === 'function') html += justiceSituationHtml();
-    // LES INDEMNITES SONT RELUES A L'OUVERTURE DE L'ONGLET, puis le bloc est repeint. L'etat
-    // local ne les devine pas : c'est le serveur qui tient le du, le paye et le reste.
+    // LES INDEMNITES ET MES AFFAIRES SONT RELUES A L'OUVERTURE DE L'ONGLET, puis le bloc est
+    // repeint. L'etat local ne les devine pas : c'est le serveur qui tient le du, le paye et le
+    // reste, et c'est lui qui tient l'etat des affaires ou je suis mis en cause.
+    //
+    // LES AFFAIRES ONT ETE AJOUTEES A CETTE RELECTURE LE 13 OCTOBRE 2026, et c'etait un trou
+    // beant : `state.plaintesEnCours` n'etait remplie QUE par l'ecran « Consulter les affaires
+    // en cours » d'une salle d'audience, et elle n'est jamais persistee. Un joueur mis en cause
+    // ne voyait donc ni son PV d'audition a faire, ni son delai de jugement, ni le consentement
+    // a une audience anticipee, ni son droit d'appel -- tant qu'il n'etait pas alle cliquer sur
+    // un ordre sans rapport, dans un batiment ou un detenu ne peut meme pas se rendre. La RLS
+    // n'accorde que les affaires ou il est la personne visee ou le plaignant : cette lecture ne
+    // lui apprend rien qu'il ne soit en droit de savoir.
+    //
     // LE REPEINT NE SE RAPPELLE PAS LUI-MEME. `switchSelfTab('actions')` repasse ici, donc sans
     // ce drapeau la relecture et le repeint s'appelleraient a l'infini. Il est remis a zero a la
     // fermeture de la fiche, pour que la prochaine ouverture relise bien.
     if (typeof rafraichirMesIndemnites === 'function' && !window._indemnitesRelues) {
       window._indemnitesRelues = true;
-      rafraichirMesIndemnites().then(() => {
+      Promise.all([
+        rafraichirMesIndemnites(),
+        (typeof rafraichirMesAffairesJudiciaires === 'function')
+          ? rafraichirMesAffairesJudiciaires() : Promise.resolve()
+      ]).then(() => {
         if (document.getElementById('vue-self')?.classList.contains('active')) {
           const tabs = document.querySelectorAll('#vue-self .piece-tab');
           switchSelfTab('actions', tabs[SELF_ONGLETS.indexOf('actions')] || tabs[0] || null);

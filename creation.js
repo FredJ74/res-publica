@@ -543,7 +543,8 @@ function selSchool(id){
 // litteral, il portait un accent grave autour d'un nom de champ -- qui refermait la chaine. Une
 // explication ne doit jamais vivre dans la chaine qu'elle explique.
 function renderArch(){
-  const cur=COUNTRIES[G.country]?.cur||'FR';
+  // `cur` RETIRE le 13 octobre 2026 : plus aucun montant ne s'affiche ici, la nature n'apportant
+  // ni capital ni ressource.
   document.getElementById('arch-grid').innerHTML=ARCHETYPES.map(a=>`
     <div class="oc ${G.archetype===a.id?'sel':''}" onclick="selArch('${a.id}')">
       <div class="checkmark"><i class="ti ti-check"></i></div>
@@ -784,15 +785,22 @@ function totalArg(){
   const sc=SCHOOLS.find(x=>x.id===G.school);
   const ar=ARCHETYPES.find(x=>x.id===G.archetype);
   const ca=CAREERS.find(x=>x.id===G.career);
-  return (or?.arg||0)+(sc?.argBonus||0)+(ar?.argBonus||0)+(ca?.argBonus||0);
+  // `ar` (la nature) N'EST PLUS SOMMEE : la nature ne porte plus de capital depuis le 12 octobre
+  // 2026, et son champ a ete RETIRE de la structure le 13. Le capital vient de l'origine sociale,
+  // de l'ecole et de la carriere -- trois choses qui s'achetent ou se gagnent, pas un caractere.
+  return (or?.arg||0)+(sc?.argBonus||0)+(ca?.argBonus||0);
 }
+// LA NATURE NE DONNE PLUS NI POPULARITE, NI INFLUENCE, NI DISCRETION (13 octobre 2026).
+//
+// Cette fonction lisait `ar.infBonus`, `ar.popBonus` et `ar.disBonus` : un Idealiste commencait a
+// 35 POP et un Transgressif a -5 ramenes a 10 (les deux cas que l'arbitrage nomme), un
+// Manipulateur a 100 DIS. Le jeu decidait donc, AVANT le premier tour, ce que le pays pense de
+// votre caractere. C'est une reaction humaine, et elle appartient aux joueurs.
+//
+// LES TROIS RESSOURCES PARTENT DONC DU MEME SOCLE POUR LES NEUF NATURES. La nature garde son
+// unique consequence mecanique : +2 / +2 / -2 sur trois caracteristiques.
 function resources(){
-  const ar=ARCHETYPES.find(x=>x.id===G.archetype);
-  return{
-    inf:Math.min(100,10+(ar?.infBonus||0)),
-    pop:Math.min(100,10+(ar?.popBonus||0)),
-    dis:Math.min(100,80+(ar?.disBonus||0))
-  };
+  return { inf:10, pop:10, dis:80 };
 }
 
 function renderReview(){

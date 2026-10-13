@@ -1273,7 +1273,7 @@
   "30_contraintes.sql": "e245cb94106514a1015a47ad452a509d",
   "35_index.sql": "6d12103196b5434748c11d96cbbb7e4b",
   "50_triggers.sql": "2a891665182eb72f051767fa755e8cc2",
-  "60_rls-policies.sql": "3eaf79a8204cc1b5a3d7296f6bc728da",
+  "60_rls-policies.sql": "f15135372ac8a04b832678d3f1a4cd72",
   "70_droits.sql": "03da62361d2622b3db06212cce3049de",
   "80_commentaires.sql": "cb9314670b33b7585e440be9ef6e1f84"
  },
@@ -1568,8 +1568,8 @@
    "tbl": "calomnies_actes"
   },
   {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "17cb08726f1b437907f555ff5c55bb64",
+   "empreinte": "6d5cf9e58a92c98939420eeb1f87a833",
+   "empreinte_avec_roles": "7de87e4473b8d9d6c6b413e29457a9e0",
    "nom": "chronique_nationale_ecriture_acteur",
    "tbl": "chronique_nationale"
   },

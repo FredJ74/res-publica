@@ -35,7 +35,7 @@ CREATE POLICY calomnies_actes_lecture ON public.calomnies_actes FOR SELECT TO PU
 
 -- chronique_nationale
 CREATE POLICY chronique_nationale_ecriture_acteur ON public.chronique_nationale FOR INSERT TO authenticated
-  WITH CHECK (acteur_identifie());
+  WITH CHECK (acteur_identifie() AND NOT fait_judiciaire_declare(type));
 CREATE POLICY chronique_nationale_lecture_publique ON public.chronique_nationale FOR SELECT TO PUBLIC
   USING (true);
 

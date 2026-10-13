@@ -2029,7 +2029,10 @@ function ouvrirDetailDetention(idx) {
   // cette table — **le registre carcéral affichait donc « En cours » pour un gracié**. Le défaut
   // était bien « le registre déclare détenu un personnage libre », et il avait deux moitiés : la
   // ligne jamais close, et le libellé jamais écrit. Celle-ci est l'autre moitié.
-  const modeFinLabels = { purgee: 'Peine purgée', anticipee_avocat: 'Libération anticipée (avocat)',
+  // `anticipee_avocat` RETIRE le 13 octobre 2026 : la requete d'avocat tiree au hasard
+  // n'existe plus, aucune porte ne produit plus ce mode, et `detentions` n'en porte aucune
+  // ligne. Un libelle sans producteur est un faux document.
+  const modeFinLabels = { purgee: 'Peine purgée',
     evasion: 'Évasion', transfert_qhs: 'Transfert au QHS',
     grace_presidentielle: 'Grâce présidentielle',
     poursuites_eteintes: 'Poursuites éteintes (démobilisation)',
@@ -2037,7 +2040,7 @@ function ouvrirDetailDetention(idx) {
   // « Libération » ou « Fin effective » : seuls les modes qui rendent réellement la liberté de
   // circuler sont une libération. L'incorporation n'en est pas une — l'intéressé part à la
   // caserne, il ne rentre pas chez lui — pas plus que l'évasion ou le transfert au QHS.
-  const estUneLiberation = { purgee: true, anticipee_avocat: true, evasion: false,
+  const estUneLiberation = { purgee: true, evasion: false,
     transfert_qhs: false, grace_presidentielle: true, poursuites_eteintes: true,
     incorporation: false };
   let statutTexte, statutCouleur;

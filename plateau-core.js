@@ -318,7 +318,22 @@ const BONUS_ARCHETYPE_FAUSSE_RUMEUR = {
   // tous les autres archetypes : 0
 };
 
+// LA CINQUIEME CATEGORIE, « delit », A ETE AJOUTEE LE 13 OCTOBRE 2026 (arbitrage valide des
+// categories penales). L'arbitrage classe dix infractions qui n'en avaient aucune : trois en
+// CRIME (assassinat, tentative d'assassinat, tentative d'empoisonnement) et sept en DELIT
+// (diffamation, violation du couvre-feu, corruption de fonctionnaire, hooliganisme, achat d'arme
+// non enregistree, possession d'objets prohibes au controle douanier, non-presentation a
+// convocation). Il dit « DELIT », pas « delit mineur » ni « delit grave » : les deux categories
+// existantes portent chacune une gravite deja arbitree, et en choisir une serait prononcer une
+// gravite que l'arbitrage n'a pas prononcee.
+//
+// SES DEUX NOMBRES NE SONT PAS UN NOUVEAU BAREME : ce sont ceux de `delit_mineur`, le socle du
+// delit deja arbitre. Aucune valeur neuve n'entre donc dans l'echelle des peines -- l'arbitrage
+// interdit explicitement de la rebalancer -- et surtout AUCUNE INFRACTION N'EN HERITE : les dix
+// classees portent toutes leur bareme propre dans PEINES_ACTES, et une contrainte en base
+// l'exige. Donner a `delit` un bareme generique distinct demanderait un arbitrage.
 const PEINES = {
+  delit:          { jours: 2,  label: 'Delit',           amendeBase: 500  },
   delit_mineur:   { jours: 2,  label: 'Delit mineur',   amendeBase: 500  },
   delit_grave:    { jours: 4,  label: 'Delit grave',     amendeBase: 1500 },
   crime:          { jours: 8,  label: 'Crime',           amendeBase: 5000 },
@@ -334,28 +349,38 @@ const BATIMENTS_CENTRES_POUVOIR = [
 ];
 const MALUS_CENTRE_POUVOIR = 30;
 
+// LE CHAMP `categorie` EST APPARU ICI LE 13 OCTOBRE 2026, et il ne pouvait pas vivre ailleurs.
+// La categorie penale d'une infraction etait lue dans ACTES_ILLEGAUX[acte].type -- mais cette
+// table-la decrit ce que la POLICE peut decouvrir (`detectRate`), et y declarer une infraction
+// pour lui donner une categorie l'aurait rendue detectable par la meme occasion : un effet de
+// bord de game design pour une simple qualification juridique. Le bareme propre porte donc sa
+// propre categorie, et le generateur la prefere a celle d'ACTES_ILLEGAUX quand elle est presente.
+// Les baremes propres SANS `categorie` gardent exactement ce qu'ils avaient : `vol` reste
+// `delit_mineur` par ACTES_ILLEGAUX, les quatre actes violents restent `crime`, et
+// `justification_rejetee` reste SANS CATEGORIE -- son audit est en cours, et lui en attribuer une
+// serait decider a sa place.
 const PEINES_ACTES = {
   republic: {
-    violation_couvre_feu:     { jours: 1, amende: 200,  label: 'Violation du couvre-feu' },
+    violation_couvre_feu:     { jours: 1, amende: 200,  label: 'Violation du couvre-feu', categorie: 'delit' },
     vol:                      { jours: 1, amende: 500,  label: 'Vol' },
-    achat_arme_illegal:       { jours: 1, amende: 500,  label: "Achat d'arme non enregistree" },
-    possession_illegale_douane: { jours: 1, amende: 500, label: "Possession d'objets prohibes au controle douanier" },
-    diffamation:              { jours: 1, amende: 500,  label: 'Diffamation' },
-    tentative_assassinat:     { jours: 2, amende: 1500, label: "Tentative d'assassinat" },
-    assassinat:               { jours: 2, amende: 1500, label: 'Assassinat' },
-    tentative_empoisonnement: { jours: 2, amende: 2000, label: "Tentative d'empoisonnement" },
+    achat_arme_illegal:       { jours: 1, amende: 500,  label: "Achat d'arme non enregistree", categorie: 'delit' },
+    possession_illegale_douane: { jours: 1, amende: 500, label: "Possession d'objets prohibes au controle douanier", categorie: 'delit' },
+    diffamation:              { jours: 1, amende: 500,  label: 'Diffamation', categorie: 'delit' },
+    tentative_assassinat:     { jours: 2, amende: 1500, label: "Tentative d'assassinat", categorie: 'crime' },
+    assassinat:               { jours: 2, amende: 1500, label: 'Assassinat', categorie: 'crime' },
+    tentative_empoisonnement: { jours: 2, amende: 2000, label: "Tentative d'empoisonnement", categorie: 'crime' },
     empoisonnement:           { jours: 2, amende: 2000, label: 'Empoisonnement' },
     acheter_bombe_illegale:   { jours: 2, amende: 2000, label: "Achat d'explosifs non enregistres" },
     utiliser_explosifs:       { jours: 2, amende: 2000, label: "Usage d'explosifs" },
     incendier:                { jours: 2, amende: 2000, label: 'Incendie volontaire' },
-    hooliganisme:             { jours: 1, amende: 500,  label: 'Trouble a l\'ordre public (hooliganisme)' },
-    corruption_fonctionnaire: { jours: 1, amende: 1000, label: 'Corruption de fonctionnaire' },
+    hooliganisme:             { jours: 1, amende: 500,  label: 'Trouble a l\'ordre public (hooliganisme)', categorie: 'delit' },
+    corruption_fonctionnaire: { jours: 1, amende: 1000, label: 'Corruption de fonctionnaire', categorie: 'delit' },
     // Chantier Assemblee (10 septembre 2026) — circuit des marchandises interdites.
     // §42 : echec d'une justification = 1 jour. §41 : non-presentation sous 36 h = 2 jours.
     // Amendes a 0 : le cahier des charges ne prevoit AUCUNE amende sur ce circuit, seulement de
     // la detention et la confiscation. Ne pas en inventer une.
     justification_rejetee:       { jours: 1, amende: 0, label: 'Justification rejetée (marchandise interdite)' },
-    non_presentation_convocation:{ jours: 2, amende: 0, label: 'Non-présentation à convocation' }
+    non_presentation_convocation:{ jours: 2, amende: 0, label: 'Non-présentation à convocation', categorie: 'delit' }
   }
 };
 

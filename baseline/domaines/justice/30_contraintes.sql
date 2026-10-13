@@ -57,6 +57,7 @@ ALTER TABLE public.dossiers_auditions ADD CONSTRAINT dossiers_auditions_qualite 
 ALTER TABLE public.dossiers_judiciaires_actes ADD CONSTRAINT dossiers_judiciaires_actes_rang_check CHECK ((rang >= 1));
 ALTER TABLE public.dossiers_judiciaires_actes_types ADD CONSTRAINT dossiers_judiciaires_actes_types_pose_par_check CHECK ((pose_par = ANY (ARRAY['plaignant'::text, 'police'::text, 'parquet'::text, 'juge'::text, 'accuse'::text, 'avocat'::text, 'temoin'::text, 'serveur'::text])));
 ALTER TABLE public.infractions ADD CONSTRAINT infractions_amende_reference_check CHECK ((amende_reference >= 0));
+ALTER TABLE public.infractions ADD CONSTRAINT infractions_delit_exige_bareme_propre CHECK (((categorie <> 'delit'::text) OR bareme_propre));
 ALTER TABLE public.infractions ADD CONSTRAINT infractions_detect_rate_check CHECK (((detect_rate IS NULL) OR ((detect_rate >= 0) AND (detect_rate <= 100))));
 ALTER TABLE public.infractions ADD CONSTRAINT infractions_jours_reference_check CHECK ((jours_reference >= 1));
 ALTER TABLE public.infractions_alias ADD CONSTRAINT infractions_alias_pas_sur_soi CHECK ((alias <> canonique));

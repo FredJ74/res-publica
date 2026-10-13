@@ -163,12 +163,6 @@
    "sous": ""
   },
   {
-   "empreinte": "a604cf8f80d79ae28afbc3888876fbc3",
-   "genre": "FUNCTION",
-   "objet": "detention_reduire_peine(boolean)",
-   "sous": ""
-  },
-  {
    "empreinte": "d12e5e8c902f5830b66ac9f13a5d68a7",
    "genre": "FUNCTION",
    "objet": "detention_transferer_qhs(text,integer,text,jsonb)",
@@ -762,6 +756,12 @@
    "empreinte": "60724236afb6b1e508f06ca7c5851ead",
    "genre": "c",
    "nom": "infractions_amende_reference_check",
+   "tbl": "infractions"
+  },
+  {
+   "empreinte": "551147e1e97ca7d844c4eec4a1601227",
+   "genre": "c",
+   "nom": "infractions_delit_exige_bareme_propre",
    "tbl": "infractions"
   },
   {
@@ -1484,24 +1484,6 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "detention_reduire_peine(boolean)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "postgres",
-   "genre": "FUNCTION",
-   "objet": "detention_reduire_peine(boolean)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "service_role",
-   "genre": "FUNCTION",
-   "objet": "detention_reduire_peine(boolean)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
    "objet": "detention_transferer_qhs(text,integer,text,jsonb)",
    "privileges": "EXECUTE"
   },
@@ -1593,6 +1575,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "enquete_garde_a_vue(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fait_judiciaire_declare(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fait_judiciaire_declare(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fait_judiciaire_declare(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -3507,12 +3507,6 @@
   },
   {
    "beneficiaire": "authenticated",
-   "colonne": "reduction_jours",
-   "privileges": "SELECT",
-   "tbl": "detentions"
-  },
-  {
-   "beneficiaire": "authenticated",
    "colonne": "reliquat_jours",
    "privileges": "SELECT",
    "tbl": "detentions"
@@ -3526,15 +3520,15 @@
  ],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "f9b229291cb6e6fdd4fc4fe9de3216e5",
-  "20_fonctions-1.sql": "bd0a22780e44fa8ff3d83e5e37e54b31",
-  "20_fonctions-2.sql": "b82a8906876b3a4b88b1be26548cf8cc",
-  "30_contraintes.sql": "dcf427f8ff90c5692a7e41ee39c1fcb0",
+  "10_tables.sql": "a312fabaf19c51c3d7fcdf16aaafc22b",
+  "20_fonctions-1.sql": "253bca619be1a46b9be232e1cde455f6",
+  "20_fonctions-2.sql": "65b6200039d405cb85e8aebdf05d143e",
+  "30_contraintes.sql": "6823b90f68af3f7b64d71338623fbc25",
   "35_index.sql": "94f2d6f8dfc8438ddb779b41cc3129ea",
   "50_triggers.sql": "a31312c6ab15296c804223bd8ae9bdb3",
-  "60_rls-policies.sql": "8ae668316c94ae04d7d89087e3424e2d",
-  "70_droits.sql": "af5549ffefb4c4aea814690ca9c2a373",
-  "80_commentaires.sql": "20645606ef92066eaf5515b9e675807c"
+  "60_rls-policies.sql": "e74bed348b86f7ae63273a5b37a0d7c7",
+  "70_droits.sql": "598b0e789f11d9563af55e4c078557ee",
+  "80_commentaires.sql": "028925491cf7a2f2ff425e970ac469f8"
  },
  "fonctions": [
   {
@@ -3713,11 +3707,6 @@
    "signature": "detention_qhs_poser_interne(text,text,text)"
   },
   {
-   "empreinte": "ed6fdf08413922f2273669abea2964e7",
-   "security_definer": true,
-   "signature": "detention_reduire_peine(boolean)"
-  },
-  {
    "empreinte": "be553e6c1a115f9530c5611153f57076",
    "security_definer": true,
    "signature": "detention_transferer_qhs(text,integer,text,jsonb)"
@@ -3751,6 +3740,11 @@
    "empreinte": "d5adf09c00e85faaff9a8e0c4a23fb13",
    "security_definer": true,
    "signature": "enquete_garde_a_vue(text,text,text)"
+  },
+  {
+   "empreinte": "e2b3ee6905cef1ba2e72088f27a58e80",
+   "security_definer": true,
+   "signature": "fait_judiciaire_declare(text)"
   },
   {
    "empreinte": "e96c4c3eb069ad29770cc8ecc260b210",
@@ -4370,9 +4364,9 @@
    "tbl": "niveaux_prison"
   },
   {
-   "empreinte": "c976d517a98be0806c0f7d73585b7214",
-   "empreinte_avec_roles": "42cc87c601d6cd77ec9ee82d3f800e68",
-   "nom": "affaire lue par les parties, l autorite, ou publique une fois j",
+   "empreinte": "2dfb3ca78dc57af0c00a568638ddaf81",
+   "empreinte_avec_roles": "2012710826b6a4338ed20daef67e4465",
+   "nom": "affaire lue par ses parties et par l autorite de sa ville",
    "tbl": "plaintes_en_cours"
   },
   {
@@ -4623,9 +4617,9 @@
    "nom": "demandes_grace"
   },
   {
-   "colonnes": 21,
-   "empreinte_catalogue": "a92d4cfe971153b23f97dea9eeb5b69f",
-   "empreinte_texte": "babdae7b24365a4515d125426df0c902",
+   "colonnes": 20,
+   "empreinte_catalogue": "74ad8d1e6030262d78b7b6cf9c13f33b",
+   "empreinte_texte": "d0788d27d5b90830503a8c1cd04ffa24",
    "nom": "detentions"
   },
   {

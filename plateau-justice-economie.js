@@ -417,11 +417,13 @@ function openPlainteModal(pa, cost) {
       <div style="margin-bottom:1rem">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">GRAVITE QUE VOUS ALLEGUEZ</div>
         <!-- LE PREMIER DES TROIS NIVEAUX DE QUALIFICATION, et c'est une DECLARATION : elle
-             n'engage rien. Le parquet qualifiera ce qu'il veut, et le juge aussi. Les quatre
+             n'engage rien. Le parquet qualifiera ce qu'il veut, et le juge aussi. Les CINQ
              valeurs sont les categories du code penal, validees au serveur -- aucune n'est
-             inventee ici. -->
+             inventee ici. « Delit » est entre le 13 octobre 2026 avec la cinquieme categorie :
+             un plaignant peut alleguer un delit sans se prononcer sur sa gravite. -->
         <select id="plainte-categorie" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:'Crimson Pro',serif;font-size:.85rem;outline:none">
           <option value="">Je ne me prononce pas</option>
+          <option value="delit">Delit</option>
           <option value="delit_mineur">Delit mineur</option>
           <option value="delit_grave">Delit grave</option>
           <option value="crime">Crime</option>
@@ -1595,74 +1597,71 @@ function ouvrirDetailJugement(idx) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async function ouvrirPorterPlainte(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
-  document.getElementById('postes-modal-title').textContent = 'Affaires en cours — ' + ville;
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Chargement...</div>';
-  document.getElementById('modal-postes').classList.add('open');
+// `ouvrirPorterPlainte` SUPPRIMEE le 13 octobre 2026, et avec elle l'ordre « Consulter les
+// affaires en cours » des deux salles d'audience.
+//
+// TROIS DEFAUTS DANS UN SEUL ECRAN, ET ILS ETAIENT LIES.
+//
+// 1. IL DISAIT CE QUE LE GREFFE INTERDIT DE DIRE. Il affichait `a.motif` -- le TEXTE LIBRE du
+//    plaignant -- pour toutes les affaires de la ville. L'arbitrage du greffe est explicite :
+//    le registre public nomme la personne visee, la categorie generale, l'etat de la procedure
+//    et les temoins cites, et RIEN d'autre. Le motif, l'identite du plaignant, les preuves et
+//    les PV vivent dans le dossier de l'avocat, derriere une porte qui exige d'etre l'avocat
+//    retenu. L'ecran arbitre existe depuis le 12 octobre : `ouvrirAffairesPubliques`, au GREFFE.
+//
+// 2. IL INJECTAIT CE TEXTE SANS L'ECHAPPER. `html += ... + a.motif` : du HTML ecrit par un autre
+//    joueur, pose tel quel dans `innerHTML`. Les ecrans refaits depuis passent tous par
+//    `justiceEch` / `escapeHtmlText`.
+//
+// 3. IL ETAIT LA SEULE SOURCE DE `state.plaintesEnCours`, ET C'EST LE PLUS GRAVE. Cette liste
+//    n'est jamais persistee ; elle etait remplie ICI et nulle part ailleurs. Donc la SITUATION
+//    JUDICIAIRE du joueur sur sa propre fiche -- PV d'audition, delai de jugement, consentement
+//    a une audience anticipee, appel, procedure simplifiee -- et les deux ecrans de sentence du
+//    juge restaient VIDES jusqu'a ce qu'on aille cliquer, dans une salle d'audience, sur un
+//    ordre sans rapport. Les deux chemins ont desormais leur propre lecture, nommee et locale a
+//    ce qui en a besoin : `rafraichirMesAffairesJudiciaires` pour la fiche du joueur,
+//    `justiceMemoriserDossiers` pour le role du juge.
+//
+// Ses libelles de statut nommaient par ailleurs SIX statuts morts (`pending`, `classee`,
+// `transmise`, `done`, `deposee`, `annulee`) qu'aucune porte ne pose plus depuis le parquet.
 
-  // Charger depuis Supabase pour voir les affaires de TOUS les joueurs de la ville, pas juste les siennes
-  if (typeof sbLoadPlaintes === 'function') {
-    try {
-      const toutes = await sbLoadPlaintes(state.country);
-      state.plaintesEnCours = toutes;
-    } catch(e) {}
-  }
-  const affaires = (state.plaintesEnCours || []).filter(p => p.city === state.currentCity);
-  // Note : les enquetes en cours (state.enquetesEnCours) ne sont pour l'instant pas partagees
-  // via Supabase — elles ne remontent donc que si VOUS etes a l'origine de la plainte qui a
-  // ouvert l'enquete, pas celles des autres joueurs. A corriger dans un futur passage.
-  const enquetes = (state.enquetesEnCours || []).filter(e => e.status === 'pending');
+// LE ROLE DU JUGE EST AU SERVEUR ; L'ETAT LOCAL N'EN EST QU'UNE COPIE.
+//
+// `ouvrirQualificationSentence` et `appliquerSentence` ont besoin de l'AFFAIRE -- la personne
+// visee, la ville, le motif declare, la reference des faits -- et elles la cherchaient dans
+// `state.plaintesEnCours`. Quand la liste etait vide, les deux fonctions faisaient
+// `if (!affaire) return;` : le juge cliquait « Condamner » et RIEN ne se passait, sans un mot.
+//
+// Cette fonction recopie donc ce que le serveur vient de rendre, et seulement cela. Le sens de
+// la copie compte : serveur -> local, jamais l'inverse. Aucun ecran ne lit la liste pour savoir
+// de quoi il est saisi -- c'est `juge_dossiers` qui le dit.
+function justiceMemoriserDossiers(dossiers) {
+  if (!Array.isArray(dossiers)) return;
+  if (!Array.isArray(state.plaintesEnCours)) state.plaintesEnCours = [];
+  dossiers.forEach(function (d) {
+    if (!d || !d.id || !d.dossier || typeof d.dossier !== 'object') return;
+    const affaire = Object.assign({}, d.dossier, { id: d.id });
+    const i = state.plaintesEnCours.findIndex(function (p) { return p && p.id === d.id; });
+    if (i >= 0) state.plaintesEnCours[i] = affaire; else state.plaintesEnCours.push(affaire);
+  });
+}
 
-  // 'done' est conserve pour les plaintes anterieures au correctif : c'etait le statut unique
-  // pose par traiterPlaintes() pour les TROIS issues, sans qu'on puisse retrouver laquelle. Les
-  // plaintes traitees depuis portent classee / enquete / transmise. 'annulee' est pose par
-  // annulerAffaire() (plateau-politique.js) et n'etait pas traduit : le registre affichait le
-  // code brut.
-  const LIBELLES_STATUT = {
-    pending:   { texte: 'En attente de traitement', col: '#8a7040' },
-    classee:   { texte: 'Classée sans suite',       col: '#5a5040' },
-    enquete:   { texte: 'Enquête ouverte',          col: '#8a5a2a' },
-    transmise: { texte: 'Garde à vue — transmise au tribunal', col: '#C9A84C' },
-    done:      { texte: 'Traitée (issue non enregistrée)', col: '#5a5040' },
-    deposee:   { texte: 'Transmise au tribunal — en attente de jugement', col: '#C9A84C' },
-    jugee:     { texte: 'Jugée',                    col: '#6a8a4a' },
-    annulee:   { texte: 'Poursuites abandonnées',   col: '#7a4a4a' }
-  };
-
-  let html = '<div style="padding:1rem">';
-
-  if (affaires.length === 0 && enquetes.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire en cours pour le moment.</div>';
-  } else {
-    affaires.forEach(a => {
-      const statut = LIBELLES_STATUT[a.status] || { texte: a.status || 'Autre', col: '#8a8060' };
-      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
-      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + (a.cible || 'Affaire') + '</div>';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em;color:' + statut.col + '">' + statut.texte + '</div>';
-      html += '</div>';
-      if (a.motif) html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + a.motif + '</div>';
-      // a.day pour les plaintes (soumettrePlaynte), a.jour pour les affaires transmises au
-      // tribunal (transmettreAffaireAuTribunal) : le registre n'affichait que a.jour, donc
-      // « Jour undefined » sur toute plainte non encore transmise.
-      html += '<div style="font-size:.85rem;color:#9a8a68;margin-top:.3rem">Jour ' + (a.jour ?? a.day ?? '?') + '</div>';
-      html += '</div>';
-    });
-    enquetes.forEach(e => {
-      html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
-      html += '<div style="font-family:Playfair Display,serif;font-size:.82rem;color:#c0b090">' + (e.cible || 'Affaire') + '</div>';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.06em;color:#8a5a2a">Enquête en cours</div>';
-      html += '</div>';
-      if (e.motif) html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + e.motif + '</div>';
-      html += '</div>';
-    });
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
+// MES AFFAIRES, LUES SUR MA PROPRE FICHE.
+//
+// La RLS de `plaintes_en_cours` n'accorde a un joueur ordinaire que les affaires ou il est la
+// personne visee ou le plaignant (`affaire_me_concerne`). Cette lecture ne lui apprend donc rien
+// qu'il ne soit en droit de savoir, et c'est elle qui rend atteignables le PV d'audition, le
+// delai de jugement, le consentement a une audience anticipee et l'appel.
+async function rafraichirMesAffairesJudiciaires() {
+  if (typeof sbLoadPlaintes !== 'function') return;
+  const miennes = await sbLoadPlaintes(state.country).catch(function () { return null; });
+  if (!Array.isArray(miennes)) return;
+  if (!Array.isArray(state.plaintesEnCours)) state.plaintesEnCours = [];
+  miennes.forEach(function (a) {
+    if (!a || !a.id) return;
+    const i = state.plaintesEnCours.findIndex(function (p) { return p && p.id === a.id; });
+    if (i >= 0) state.plaintesEnCours[i] = a; else state.plaintesEnCours.push(a);
+  });
 }
 
 // ===========================================================================
@@ -2165,8 +2164,17 @@ async function doDefense(pa, cost) {
     // un jet. Une categorie ABSENTE ferme aussi la porte : on ne peut pas affirmer qu'une
     // infraction sans categorie n'est pas un crime. Le serveur refuse
     // `procedure_simplifiee_exclut_les_crimes` ; ce filtre evite de payer l'ordre pour rien.
-    const cat = (typeof ACTES_ILLEGAUX !== 'undefined' && ACTES_ILLEGAUX[inf])
-      ? ACTES_ILLEGAUX[inf].type : null;
+    // LA CATEGORIE SE LIT D'ABORD SUR LE BAREME PROPRE (13 octobre 2026), exactement comme le
+    // serveur et le generateur la resolvent. Avant cette date, ce filtre ne regardait que
+    // ACTES_ILLEGAUX -- la table de ce que la POLICE peut decouvrir -- donc les onze infractions
+    // qui n'ont qu'un bareme propre n'avaient jamais de categorie ici, et les sept delits que
+    // l'arbitrage vient de classer seraient restes fermes au navigateur alors que le serveur les
+    // accepte desormais. Le refus serveur reste la verite ; ce filtre evite de payer pour rien.
+    const pays = state.country || 'republic';
+    const propre = (typeof PEINES_ACTES !== 'undefined') ? PEINES_ACTES[pays]?.[inf] : null;
+    const cat = propre?.categorie
+      || ((typeof ACTES_ILLEGAUX !== 'undefined' && ACTES_ILLEGAUX[inf])
+            ? ACTES_ILLEGAUX[inf].type : null);
     return !!cat && cat !== 'crime';
   });
   if (!affaire) {
@@ -2311,100 +2319,18 @@ function doSeReposer(fn) {
   }
 }
 
-function doRequeteAvocat(pa, cost) {
-  if (!state.estEmprisonne) {
-    showToast('Inutile', "Vous n'êtes pas emprisonné(e) actuellement.", false);
-    return;
-  }
-  if (state.estEmprisonne.avocatUtilise) {
-    showToast('Déjà fait', 'Vous avez déjà consulté un avocat pour cette peine.', false);
-    return;
-  }
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cout = 800;
-
-  document.getElementById('postes-modal-title').textContent = 'Requérir un avocat';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.8rem;color:#a09070;line-height:1.7;font-style:italic;margin-bottom:1rem">Un avocat commis peut plaider un vice de procédure et faire réduire votre peine. Ses services ne sont pas gratuits, et le succès n\'est pas garanti. Une seule tentative par peine.</div>';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem;background:#0a0805;border:1px solid #2a2010;margin-bottom:.8rem">';
-  html += '<span style="font-size:.75rem;color:#6a5a30">Honoraires</span>';
-  html += '<span style="font-family:Bebas Neue,sans-serif;font-size:1rem;color:#C9A84C">' + cout.toLocaleString('fr-FR') + ' ' + cur + '</span>';
-  html += '</div>';
-  html += '<button onclick="confirmerRequeteAvocat(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Engager l\'avocat</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-async function confirmerRequeteAvocat(pa, cost) {
-  document.getElementById('modal-postes').classList.remove('open');
-  if (!state.estEmprisonne || state.estEmprisonne.avocatUtilise) return;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cout = 800;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
-  const rAvocat = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!rAvocat.ok) { signalerRefusCout(rAvocat); return; }
-
-  state.arg -= cout;
-
-  // LA PLAIDOIRIE EST TIREE ICI, LA REDUCTION EST APPLIQUEE LA-BAS (chantier 5, 9 octobre 2026).
-  //
-  // CE QUI SE PASSAIT. Le patch de `detentions` etait avale, et quand la peine tombait a zero la
-  // liberation se reduisait a `state.estEmprisonne = null` EN MEMOIRE : un joueur libere par son
-  // avocat qui fermait son onglet restait incarcere en base. C'est exactement le defaut de la
-  // chaine 11, que l'inventaire des ecritures n'avait pas vu ici.
-  //
-  // Et `avocatUtilise` n'etait pas une garde : pose dans state, il ne touchait la base qu'a la
-  // sauvegarde suivante, donc un rechargement bien place rendait une seconde requete possible.
-  // C'est le serveur qui refuse desormais la seconde, et la porte consomme l'avocat dans les
-  // DEUX cas -- requete acceptee ou refusee -- comme la regle d'origine le voulait.
-  //
-  // LE TIRAGE RESTE ICI, et c'est assume : il lit la DUP EFFECTIVE du joueur, valeur qui vit dans
-  // l'etat client. Le descendre exigerait d'en recopier le calcul cote serveur, donc de creer la
-  // divergence que ce chantier supprime partout ailleurs. Ce que la porte reprend, c'est le
-  // MONTANT de la reduction -- moitie du reliquat arrondie au superieur, plancher d'un jour --
-  // que le navigateur ne dicte plus.
-  const dup = getStatEffective('DUP');
-  const taux = Math.min(85, 40 + Math.floor(dup * 1.5));
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const acceptee = roll <= taux;
-
-  const vAvocat = (typeof sbRpc === 'function')
-    ? await sbRpc('detention_reduire_peine', { p_requete_acceptee: acceptee })
-        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-    : null;
-  if (!vAvocat || vAvocat.ok !== true) {
-    // VERDICT CONSOMME : sans ecriture, aucune reduction n'est annoncee. Les 800 FR et le PA sont
-    // deja partis -- `deduireCoutOrdre` est le point d'execution irreversible de l'ordre, par
-    // doctrine du projet -- mais le jeu ne pretend pas que l'avocat a plaide.
-    showToast('Requête non déposée', vAvocat?.raison === 'avocat_deja_utilise'
-      ? 'Votre avocat est déjà intervenu pour cette peine.'
-      : 'Le greffe n\'a pas enregistré la requête de votre avocat.', false);
-    updateUI();
-    return;
-  }
-  state.estEmprisonne.avocatUtilise = true;
-
-  if (vAvocat.acceptee === true) {
-    const reduction = Number(vAvocat.reduction || 0);
-    addMailNotification('Cabinet juridique', 'Réduction obtenue', 'Votre avocat a plaidé un vice de procédure. Votre peine est réduite de ' + reduction + ' jour(s).');
-    if (vAvocat.libere === true) {
-      state.estEmprisonne = null;
-      showToast('Libéré(e) !', 'La réduction de peine vous rend votre liberté.', true, true);
-      addJournalEntry('Vous êtes libéré(e) suite à la réduction de peine obtenue par votre avocat.', 'event-good');
-    } else {
-      state.estEmprisonne.jourFin = vAvocat.jour_fin;
-      state.estEmprisonne.jours = vAvocat.jours;
-      showToast('Réduction obtenue !', '-' + reduction + ' jour(s) de détention.', true, true);
-      addJournalEntry('Votre avocat obtient une réduction de peine de ' + reduction + ' jour(s). -' + cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
-    }
-  } else {
-    addMailNotification('Cabinet juridique', 'Requête rejetée', 'Le juge a rejeté la demande de votre avocat. Aucune réduction de peine.');
-    showToast('Requête rejetée', "Le juge n'accorde aucune réduction.", false);
-    addJournalEntry('La requête de votre avocat est rejetée. -' + cout.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-bad');
-  }
-  updateUI();
-}
+// doRequeteAvocat / confirmerRequeteAvocat SUPPRIMEES le 13 octobre 2026 (arbitrage valide).
+//
+// CE QUI EST PARTI, ET POURQUOI. La requete d'avocat en cellule tirait un d100 contre
+// `Math.min(85, 40 + DUP*1.5)` et le serveur enregistrait le verdict du de : un JET decidait si
+// une plaidoirie avait convaincu un juge. C'est exactement ce que Human Gambit refuse de coder.
+// Sont partis avec elle : l'ordre `requete_avocat` (trois lieux de detention), son entree
+// ORDER_EFFECTS, sa route, ses 800 FR d'honoraires inventes, le drapeau `avocatUtilise` et la
+// porte serveur `detention_reduire_peine` avec sa colonne `detentions.reduction_jours`.
+//
+// CE QUI RESTE. La defense par un avocat REEL -- un joueur habilite au barreau -- vit dans ce
+// meme fichier : `ouvrirAvocatsDisponibles`, la demande de defense, le dossier de l'avocat,
+// l'audience. Un avocat peut y plaider ; c'est le JUGE qui decide, et il est humain.
 
 function doGreveFaim() {
   state.hp = Math.max(1, state.hp - 5);
@@ -14176,6 +14102,7 @@ async function ouvrirDossiersJuge(pa, cost) {
 
   let html = '<div style="padding:1rem">';
   const dossiers = r.dossiers || [];
+  justiceMemoriserDossiers(dossiers);
   if (dossiers.length === 0) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune affaire ne vous est actuellement soumise. '
          + 'Une affaire ne vous parvient que si le parquet vous en a saisi.</div>';
@@ -14777,6 +14704,7 @@ async function ouvrirAudienceJuge() {
   const v = await sbRpc('juge_dossiers', {}).then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
   if (!v || v.ok !== true) { showToast('Audience', justiceRefus(v, "Vous n'etes pas juge."), false); return; }
   const dossiers = Array.isArray(v.dossiers) ? v.dossiers : [];
+  justiceMemoriserDossiers(dossiers);
   let h = '<div style="padding:1rem;max-width:680px">'
     + '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">'
     + 'Fixez d\'abord le <strong style="color:#c0b090">jour du proces</strong> : au minimum trois jours apres '
@@ -14988,7 +14916,7 @@ async function ouvrirAffairesPubliques() {
     .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
   if (!v || v.ok !== true) { showToast('Greffe', justiceRefus(v), false); return; }
   const affaires = Array.isArray(v.affaires) ? v.affaires : [];
-  const CATEGORIES = { delit_mineur: 'Delit mineur', delit_grave: 'Delit grave',
+  const CATEGORIES = { delit: 'Delit', delit_mineur: 'Delit mineur', delit_grave: 'Delit grave',
                        crime: 'Crime', crime_etat: "Crime d'Etat" };
   const STATUTS = { au_parquet: 'Au parquet', enquete: 'Enquete en cours',
                     poursuites: 'Poursuites engagees', saisie: 'Juge saisi',

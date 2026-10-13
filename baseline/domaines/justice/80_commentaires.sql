@@ -68,12 +68,6 @@ COMMENT ON FUNCTION public.detention_qhs_poser_interne(text,text,text) IS 'SEUL 
 detention_qhs -- ce dernier en OBJET et non en chaine, forme que pa_repos_nocturne exige pour
 appliquer le plafond de PA -- puis inscrit au registre du QHS une seule fois. Non appelable
 depuis le reseau.';
-COMMENT ON FUNCTION public.detention_reduire_peine(boolean) IS 'Applique la requete de l''avocat sur SA PROPRE peine, en une transaction : consomme l''avocat
-(dans les deux cas, requete acceptee ou refusee), et si elle est acceptee reduit la peine de la
-moitie du reliquat arrondie au superieur, en cloturant par anticipee_avocat si le terme est
-atteint. Le MONTANT de la reduction est calcule ici, pas recu ; seul le resultat de la plaidoirie
-vient de l''appelant, parce qu''il depend de valeurs qui vivent dans l''etat client. Verdicts :
-acteur_non_authentifie, non_detenu, avocat_deja_utilise, peine_sans_terme, puis ok.';
 COMMENT ON FUNCTION public.detention_transferer_qhs(text,integer,text,jsonb) IS 'Bascule SA PROPRE detention en cours vers le quartier de haute securite : clot l''ancienne ligne
 par transfert_qhs, en ouvre une nouvelle qui la cite via detention_precedente_id, et pose le
 drapeau QHS -- en une transaction. N''est PAS idempotente a dessein : un second appel est une

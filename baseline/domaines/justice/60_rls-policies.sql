@@ -88,8 +88,8 @@ CREATE POLICY niveaux_prison_maj_acteur ON public.niveaux_prison FOR UPDATE TO a
   WITH CHECK (acteur_identifie());
 
 -- plaintes_en_cours
-CREATE POLICY "affaire lue par les parties, l autorite, ou publique une fois j" ON public.plaintes_en_cours FOR SELECT TO authenticated
-  USING (affaire_statut(data) = 'jugee'::text OR affaire_autorite_de(city) OR mon_poste_est_dans('min_just'::text, country) OR mon_poste_est_dans('min_int'::text, country) OR affaire_me_concerne(data));
+CREATE POLICY "affaire lue par ses parties et par l autorite de sa ville" ON public.plaintes_en_cours FOR SELECT TO authenticated
+  USING (affaire_autorite_de(city) OR mon_poste_est_dans('min_just'::text, country) OR mon_poste_est_dans('min_int'::text, country) OR affaire_me_concerne(data));
 
 -- prisonniers_qhs
 CREATE POLICY prisonniers_qhs_insertion_soi ON public.prisonniers_qhs FOR INSERT TO anon, authenticated

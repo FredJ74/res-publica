@@ -1,4 +1,9 @@
--- BANC DE LA PROCEDURE SIMPLIFIEE (12 octobre 2026) -- 23 epreuves
+-- BANC DE LA PROCEDURE SIMPLIFIEE (12 octobre 2026) -- 35 epreuves
+--
+-- DOUZE EPREUVES AJOUTEES LE 13 OCTOBRE 2026 (T24 a T26) : l'arbitrage des categories penales
+-- classe trois infractions en CRIME et sept en DELIT, et c'est ici que la consequence se
+-- mesure -- les trois sont refusees PARCE QUE crimes, les sept sont reellement plaidees, et
+-- `justification_rejetee` reste dehors faute de categorie.
 --
 -- CE BANC NE COMMITE RIEN. Il ouvre des dossiers, fait plaider Ben, et se termine par un
 -- RAISE EXCEPTION INCONDITIONNEL qui annule tout.
@@ -9,7 +14,7 @@
 -- calcule est celui de la formule arbitree.
 --
 -- Usage : coller ce fichier dans un execute_sql. Il doit finir sur
---   ERROR: banc defense : LES 23 EPREUVES SONT VERTES. -- rien ne doit rester
+--   ERROR: banc defense : LES 35 EPREUVES SONT VERTES. -- rien ne doit rester
 --
 -- PIEGE DE DECOR : Ben doit etre LIBRE au depart. Une peine en cours empeche d'en ouvrir une
 -- seconde (garde de `detention_ouvrir_interne`) et l'epreuve de l'execution immediate echouerait
@@ -33,12 +38,21 @@ GRANT EXECUTE ON FUNCTION pg_temp.je_suis_le_serveur() TO PUBLIC;
 DO $banc$
 DECLARE
   BEN_U text := 'bafc96b1-1628-4ae2-93d2-78d89f8ac5b5'; BEN text := 'Ben';
+  LEE_U text := 'ea4a2a0c-a192-4e10-8cff-d5db9b1cceb6'; LEE text := 'Lee Capene';
   MARS  text := 'Marsault';
   v jsonb; n integer := 0; ko integer := 0; e text := '';
   v_cha integer; v_stats jsonb; v_jour integer; v_n integer; v_s text;
   i integer; v_relaxes integer := 0; v_reductions integer := 0;
+  v_inf text; v_id text;
 BEGIN
   PERFORM pg_temp.je_suis_le_serveur();
+
+  -- LEE EST LE DEUXIEME PREVENU DU BANC (13 octobre 2026). Les sept delits de T25 plaident pour
+  -- de vrai -- donc chacun ouvre une detention immediate -- et Ben, dont les vingt-trois
+  -- premieres epreuves mesurent la peine au jour pres, ne doit pas en porter la trace. Un decor
+  -- nomme ce qu'il exige : Lee part libre, lui aussi.
+  UPDATE public.personnages_donnees SET est_emprisonne = NULL, excommunie = NULL WHERE name = LEE;
+  DELETE FROM public.detentions WHERE nom = LEE;
 
   -- DECOR. Ben est libre, non excommunie, CHA 13 pour que la formule soit lisible : avec un
   -- avocat a 16, le taux doit valoir exactement 65.
@@ -242,6 +256,74 @@ BEGIN
   IF public.justice_defense_part_relaxe() <> 50 THEN
     ko := ko + 1; e := e || E'\nT23 : la part de relaxe vaut '
                            || public.justice_defense_part_relaxe() || ' au lieu de 50'; END IF;
+
+  -- ---------------- T24 : LES TROIS CRIMES DE L'ARBITRAGE NE PASSENT JAMAIS PAR LA PROCEDURE
+  --
+  -- ARBITRAGE VALIDE DU 13 OCTOBRE 2026. `assassinat`, `tentative_assassinat` et
+  -- `tentative_empoisonnement` portaient DEUX JOURS de reference -- sous le seuil -- et AUCUNE
+  -- categorie. Ils etaient donc arretes par le cote ferme du filtre (« categorie absente »), pas
+  -- par ce qu'ils sont. Depuis leur classement en CRIME, c'est leur nature qui les arrete, et
+  -- cette epreuve exige que le motif du refus soit celui-la.
+  FOREACH v_inf IN ARRAY ARRAY['assassinat','tentative_assassinat','tentative_empoisonnement'] LOOP
+    n := n + 1;
+    v_id := 'banc-def-crime-' || v_inf;
+    INSERT INTO public.plaintes_en_cours (id, country, city, data) VALUES (v_id, 'republic', 'capitale',
+      jsonb_build_object('status', 'au_parquet', 'cible', BEN, 'plaignant', MARS, 'motif', 'Banc',
+        'infraction_constatee', v_inf, 'country', 'republic', 'city', 'capitale')::text);
+    PERFORM pg_temp.je_suis(BEN_U);
+    v := public.plainte_defendre(v_id);
+    PERFORM pg_temp.je_suis_le_serveur();
+    IF (v ->> 'raison') IS DISTINCT FROM 'procedure_simplifiee_exclut_les_crimes'
+       OR (v ->> 'categorie') IS DISTINCT FROM 'crime' THEN
+      ko := ko + 1; e := e || E'\nT24 : ' || v_inf || ' n''est pas arrete comme crime -- ' || v::text;
+    END IF;
+  END LOOP;
+
+  -- ---------------- T25 : LES SEPT DELITS DE L'ARBITRAGE ENTRENT DANS LA PROCEDURE
+  --
+  -- LA CONTRE-MESURE DE T24. Une epreuve qui ne compterait que des refus serait verte le jour ou
+  -- la procedure simplifiee refuserait TOUT. Les sept delits doivent passer la garde de categorie
+  -- et la garde de duree : le refus, s'il vient, doit venir d'AUTRE CHOSE -- et ici il ne vient
+  -- pas du tout, la defense est reellement plaidee.
+  FOREACH v_inf IN ARRAY ARRAY['diffamation','violation_couvre_feu','corruption_fonctionnaire',
+                               'hooliganisme','achat_arme_illegal','possession_illegale_douane',
+                               'non_presentation_convocation'] LOOP
+    n := n + 1;
+    v_id := 'banc-def-delit-' || v_inf;
+    INSERT INTO public.plaintes_en_cours (id, country, city, data) VALUES (v_id, 'republic', 'capitale',
+      jsonb_build_object('status', 'au_parquet', 'cible', LEE, 'plaignant', MARS, 'motif', 'Banc',
+        'infraction_constatee', v_inf, 'country', 'republic', 'city', 'capitale')::text);
+    PERFORM pg_temp.je_suis(LEE_U);
+    v := public.plainte_defendre(v_id);
+    PERFORM pg_temp.je_suis_le_serveur();
+    IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+      ko := ko + 1; e := e || E'\nT25 : ' || v_inf || ' est refuse en procedure simplifiee -- ' || v::text;
+    END IF;
+    -- Lee doit redevenir libre : la defense execute la peine immediatement, et une detention en
+    -- cours empecherait la suivante de s'ouvrir. Le decor nomme ce qu'il exige.
+    PERFORM public.detention_clore_interne(LEE, 'purgee');
+    UPDATE public.personnages_donnees SET est_emprisonne = NULL WHERE name = LEE;
+  END LOOP;
+
+  -- ---------------- T26 : `justification_rejetee` RESTE DEHORS, ET SANS CATEGORIE
+  --
+  -- ELLE N'EST PAS DANS L'ARBITRAGE, et son audit est en cours. Tant qu'aucune categorie ne lui
+  -- est donnee, le filtre la laisse du cote ferme -- c'est le bon cote. L'epreuve fixe cet etat
+  -- pour qu'une categorie ne lui arrive pas par distraction.
+  n := n + 1;
+  IF (SELECT categorie FROM public.infractions WHERE id = 'justification_rejetee') IS NOT NULL THEN
+    ko := ko + 1; e := e || E'\nT26 : justification_rejetee a recu une categorie';
+  END IF;
+  n := n + 1;
+  INSERT INTO public.plaintes_en_cours (id, country, city, data) VALUES ('banc-def-jr', 'republic', 'capitale',
+    jsonb_build_object('status', 'au_parquet', 'cible', BEN, 'plaignant', MARS, 'motif', 'Banc',
+      'infraction_constatee', 'justification_rejetee', 'country', 'republic', 'city', 'capitale')::text);
+  PERFORM pg_temp.je_suis(BEN_U);
+  v := public.plainte_defendre('banc-def-jr');
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, true) IS NOT FALSE THEN
+    ko := ko + 1; e := e || E'\nT26 : une infraction sans categorie est plaidable -- ' || v::text;
+  END IF;
 
   IF ko > 0 THEN RAISE EXCEPTION 'banc defense : % EPREUVE(S) ROUGE(S) sur % --%', ko, n, e; END IF;
   RAISE EXCEPTION 'banc defense : LES % EPREUVES SONT VERTES.', n;

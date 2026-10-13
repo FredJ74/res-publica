@@ -1123,59 +1123,6 @@ BEGIN
   END IF;
 END; $function$;
 
--- detention_reduire_peine(boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.detention_reduire_peine(p_requete_acceptee boolean)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE v_moi text; v_jour integer; v_peine jsonb; v_det record;
-        v_fin integer; v_restants integer; v_reduction integer; v_nouveau integer;
-        v_jours integer; v_libere boolean; v_r jsonb;
-BEGIN
-  v_moi := public.mon_personnage();
-  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
-  SELECT coalesce(day,1), est_emprisonne INTO v_jour, v_peine
-    FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
-  IF v_peine IS NULL OR jsonb_typeof(v_peine) <> 'object' THEN
-    RETURN jsonb_build_object('ok',false,'raison','non_detenu'); END IF;
-  IF coalesce((v_peine->>'avocatUtilise')::boolean,false) THEN
-    RETURN jsonb_build_object('ok',false,'raison','avocat_deja_utilise'); END IF;
-  -- L'AVOCAT EST CONSOMME MEME QUAND LE JUGE REFUSE. Regle d'origine, rendue fiable.
-  IF NOT coalesce(p_requete_acceptee, false) THEN
-    UPDATE public.personnages_donnees
-       SET est_emprisonne = v_peine || jsonb_build_object('avocatUtilise', true)
-     WHERE name = v_moi;
-    RETURN jsonb_build_object('ok',true,'acceptee',false,'reduction',0,'libere',false);
-  END IF;
-  SELECT * INTO v_det FROM public.detention_active(v_moi);
-  v_fin := coalesce((v_peine->>'jourFin')::integer, v_det.jour_fin);
-  IF v_fin IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','peine_sans_terme'); END IF;
-  -- Transcription exacte du calcul du navigateur, aux memes bornes.
-  v_restants  := greatest(1, v_fin - v_jour);
-  v_reduction := greatest(1, ceil(v_restants / 2.0)::integer);
-  v_nouveau   := greatest(v_jour, v_fin - v_reduction);
-  v_jours     := greatest(0, v_restants - v_reduction);
-  v_libere    := v_jours <= 0 OR v_jour >= v_nouveau;
-  -- La reduction ne reecrit JAMAIS motifs[].jours : elle vit a part, dans reduction_jours.
-  IF v_det.id IS NOT NULL THEN
-    UPDATE public.detentions SET reduction_jours = v_reduction, jour_fin = v_nouveau
-     WHERE id = v_det.id AND mode_fin IS NULL;
-  END IF;
-  IF v_libere THEN
-    v_r := public.detention_clore_interne(v_moi, 'anticipee_avocat');
-  ELSE
-    UPDATE public.personnages_donnees
-       SET est_emprisonne = v_peine || jsonb_build_object('jourFin', v_nouveau, 'jours', v_jours,
-                                                          'avocatUtilise', true)
-     WHERE name = v_moi;
-    v_r := jsonb_build_object('detention_id', v_det.id);
-  END IF;
-  RETURN v_r || jsonb_build_object('ok',true,'acceptee',true,'reduction',v_reduction,
-                                   'jour_fin',v_nouveau,'jours',v_jours,'libere',v_libere);
-END; $function$;
-
 -- detention_transferer_qhs(text,integer,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.detention_transferer_qhs(p_raison text, p_jours integer, p_city text DEFAULT NULL::text, p_motifs jsonb DEFAULT NULL::jsonb)
  RETURNS jsonb
@@ -1407,6 +1354,17 @@ BEGIN
              'garde_a_vue');
   RETURN v_res;
 END; $function$;
+
+-- fait_judiciaire_declare(text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.fait_judiciaire_declare(p_type text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT EXISTS (SELECT 1 FROM public.justice_faits_publics f
+                  WHERE f.chronique_type = p_type);
+$function$;
 
 -- fraude_electorale_sanctionner(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.fraude_electorale_sanctionner(p_fraude_id text, p_ville text)
@@ -3040,4 +2998,56 @@ BEGIN
     'amende_defaut', CASE WHEN p_genre = 'amende' THEN (v_b ->> 'amende_reference')::integer
                           ELSE 0 END);
 END;
+$function$;
+
+-- justice_peine_proposer(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.justice_peine_proposer(p_affaire_id text, p_infraction text, p_genre text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_brut text; v_a jsonb; v_ville text; v_pays text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+
+  SELECT p.data, p.city, p.country INTO v_brut, v_ville, v_pays
+    FROM public.plaintes_en_cours p WHERE p.id = p_affaire_id;
+  IF v_brut IS NULL OR left(btrim(v_brut), 1) <> '{' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_absente'); END IF;
+  v_a := v_brut::jsonb;
+
+  -- MEME REGLE D'AUTORITE QUE LA PORTE D'ENREGISTREMENT, lue en base : juge ou commissaire DE LA
+  -- VILLE de l'affaire. Un ecran qui s'ouvrirait sans elle promettrait une competence absente.
+  IF NOT public.affaire_autorite_de(v_ville) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'autorite_refusee', 'ville', v_ville); END IF;
+  IF coalesce(v_a ->> 'status', '') = 'jugee' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'affaire_deja_jugee'); END IF;
+
+  RETURN public.justice_peine_calcul(p_infraction, p_genre, v_a ->> 'cible', v_pays)
+         || jsonb_build_object('affaire', p_affaire_id,
+                               'accuse', v_a ->> 'cible',
+                               'motif_allegue', v_a ->> 'motif');
+END;
+$function$;
+
+-- justice_preuve_reelle(text,text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.justice_preuve_reelle(p_pays text, p_accuse text, p_infraction text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  -- L'EXPIRATION SE LIT SUR L'HORLOGE QUI A ECRIT LA TRACE : `actions_tracables.jour` et
+  -- `jour_expiration` sont poses depuis le `day` de la fiche de l'auteur, jamais depuis
+  -- l'horloge partagee du pays. Les melanger donnerait des traces perimees ou eternelles.
+  SELECT EXISTS (
+    SELECT 1 FROM public.actions_tracables t
+     WHERE t.country IS NOT DISTINCT FROM p_pays
+       AND t.auteur = p_accuse
+       AND t.type_action = p_infraction
+       AND coalesce(t.jour_expiration, 0)
+           >= coalesce((SELECT d.day FROM public.personnages_donnees d WHERE d.name = p_accuse), 1));
 $function$;

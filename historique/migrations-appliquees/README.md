@@ -29,6 +29,17 @@ résumé **dans leur propre en-tête**, la source à lire. Cette lacune est
 documentaire, pas une incertitude sur ce qui a été appliqué — le registre
 Supabase, lui, est complet.
 
+> **Recompté le 13 octobre 2026** : **166 fichiers**, dont **116 portent un
+> en-tête d'empreinte** et sont vérifiés par l'outil ci-dessous. Les cinq
+> dernières sont la tranche autonome du 13 octobre (registres **701 à 705**) :
+> la suppression de la requête d'avocat tirée au hasard, les catégories pénales
+> des dix infractions qui n'en avaient pas, la fermeture du dossier d'une
+> affaire jugée, et les deux migrations de la garde judiciaire du journal — la
+> seconde corrigeant la première **dans l'heure**, parce qu'une policy RLS lit
+> avec les droits de l'appelant et que le registre des faits judiciaires est
+> fermé au client. Les deux sont archivées : une archive qui cacherait un
+> correctif se lirait comme une vérité.
+>
 > **Recompté le 10 octobre 2026, au soir** : 60 → **83 fichiers**, la purge des
 > chantiers 5 et 6 ayant ajouté les registres **600 à 623**. Ces 24 en-têtes
 > portent, comme les seize précédents, le md5 et la longueur du corps relus

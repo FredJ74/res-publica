@@ -506,7 +506,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_archives_tribunal') { ouvrirArchivesTribunal(); return; }
   // pa/cost etaient omis ici alors que la route jumelle 'plainte' (plus bas) les transmet :
   // deduireCoutOrdre({pa: undefined, cost: undefined}) ne prelevait donc jamais rien.
-  if (fn === 'porter_plainte')          { ouvrirPorterPlainte(pa, cost); return; }
+  // Route 'porter_plainte' SUPPRIMEE le 13 octobre 2026 : AUCUN ordre ne la declarait, dans
+  // aucune piece de data.js -- un chemin mort. Porter plainte passe par `plainte_police`, au
+  // commissariat, qui appelle la porte serveur `plainte_deposer`.
   // LE JUGE NE VOIT PLUS QUE CE DONT IL EST SAISI (12 octobre 2026). `ouvrirRendreSentence`
   // listait les affaires au statut `deposee` -- celui de l'ancienne chaine, que plus aucune porte
   // ne pose : l'ecran etait devenu structurellement vide. `ouvrirDossiersJuge` lit le role au
@@ -555,7 +557,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'corrompre_journaliste') { ouvrirCorrompreJournaliste(pa, cost); return; }
   if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }
   if (fn === 'se_reposer' || fn === 'se_nourrir') { doSeReposer(fn); return; }
-  if (fn === 'requete_avocat') { doRequeteAvocat(pa, cost); return; }
+  // Route 'requete_avocat' SUPPRIMEE le 13 octobre 2026 (arbitrage valide). La requete
+  // reduisait la peine sur un TIRAGE -- `Math.min(85, 40 + DUP*1.5)` contre un d100 -- donc un
+  // de decidait si une plaidoirie etait bonne. Human Gambit ne code pas les reactions
+  // humaines. L'ordre, ses trois declarations dans data.js, son entree ORDER_EFFECTS, ses deux
+  // handlers et la porte serveur `detention_reduire_peine` sont partis avec elle. La defense
+  // par un avocat REEL -- barreau, tarification, defense retenue, dossier, commission d'office
+  // -- n'est pas concernee : elle passe par le Tribunal, pas par la cellule.
   if (fn === 'greve_faim') { doGreveFaim(); return; }
   if (fn === 'tentative_evasion') { doTentativeEvasion(pa, cost); return; }
   if (fn === 'visiter_prisonnier') { ouvrirVisiterPrisonnier(pa, cost); return; }
@@ -722,7 +730,11 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'dissoudre_assemblee') { doDissoudreAssemblee(pa, cost); return; }
   if (fn === 'negocier') { showToast('Ordre contact', 'Utilisez les ordres contact en cliquant sur le personnage cible.', false); return; }
   if (fn === 'parler_pnj') { showToast('Ordre contact', 'Cliquez directement sur le personnage pour interagir.', false); return; }
-  if (fn === 'plainte') { ouvrirPorterPlainte(pa, cost); return; }
+  // Route 'plainte' SUPPRIMEE le 13 octobre 2026 avec son ecran. Elle servait « Consulter les
+  // affaires en cours » dans les deux salles d'audience : un doublon du registre public du
+  // GREFFE qui disait, lui, le texte de la plainte. Les trois lieux du tribunal sont
+  // distincts -- le greffe consulte, le bureau des magistrats exerce, la salle d'audience
+  // juge -- et la consultation appartient au greffe : `greffe_affaires` / `greffe_archives`.
   if (fn === 'defense') { doDefense(pa, cost); return; }
   // LE BARREAU, LES TEMOINS ET L'AUDIENCE (12 octobre 2026, soir). Six routes, zero decision :
   // chacune ouvre un ecran qui appelle une porte serveur. Les gardes -- qualification d'avocat,

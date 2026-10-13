@@ -104,8 +104,12 @@ Object.keys(ids).forEach(function (id) {
   var propre = (PEINES_ACTES.republic || {})[id];
   sortie.push({
     id: id,
+    // LE BAREME PROPRE GAGNE SUR ACTES_ILLEGAUX, y compris pour la categorie (13 octobre 2026).
+    // Meme ordre de priorite que getPeineParActe pour la duree et l'amende : PEINES_ACTES
+    // d'abord. Un bareme propre sans `categorie` retombe sur ACTES_ILLEGAUX, donc rien de ce qui
+    // existait ne bouge.
     libelle: p.label,
-    categorie: acte ? acte.type : null,
+    categorie: (propre && propre.categorie) ? propre.categorie : (acte ? acte.type : null),
     jours_reference: p.jours,
     amende_reference: p.amende,
     detect_rate: acte ? acte.detectRate : null,
@@ -154,6 +158,14 @@ def extraire():
             sys.exit(1)
         if i['categorie'] is not None and i['categorie'] not in [c['id'] for c in d['categories']]:
             print('REFUS : %s porte la categorie inconnue %r' % (i['id'], i['categorie']))
+            sys.exit(1)
+        # REFUS SYMETRIQUE DE LA CONTRAINTE EN BASE (13 octobre 2026). La categorie `delit` existe
+        # pour porter le mot de l'arbitrage, PAS un bareme generique : ses deux nombres sont ceux
+        # de `delit_mineur`, et aucune infraction ne doit en heriter. Une infraction sans bareme
+        # propre qui la porterait heriterait d'un bareme que personne n'a arbitre.
+        if i['categorie'] == 'delit' and not i['bareme_propre']:
+            print('REFUS : %s porte la categorie `delit` SANS bareme propre -- elle en heriterait'
+                  % i['id'])
             sys.exit(1)
     return d
 

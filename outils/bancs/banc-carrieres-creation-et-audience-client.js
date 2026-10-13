@@ -49,13 +49,30 @@ function litCatalogue(nom) {
 print('BANC CARRIERES / NATURE / CONSEILLER / AUDIENCE -- COTE NAVIGATEUR');
 print('');
 
-print('1. LA NATURE PROFONDE N\'APPORTE PLUS DE CAPITAL');
+print('1. LA NATURE PROFONDE N\'A PLUS QU\'UNE SEULE CONSEQUENCE MECANIQUE');
 var natures = litCatalogue('ARCHETYPES');
 att('les neuf natures sont toujours neuf', natures && natures.length === 9,
     natures ? natures.length : 'illisible');
-att('et AUCUNE n\'apporte le moindre franc',
-    natures.every(function (a) { return a.argBonus === 0; }),
-    natures.filter(function (a) { return a.argBonus !== 0; }).map(function (a) { return a.id; }).join(', '));
+// LES QUATRE CHAMPS SONT RETIRES, PAS MIS A ZERO (13 octobre 2026). `argBonus` etait deja a 0
+// pour les neuf ; `infBonus`, `popBonus` et `disBonus` donnaient une popularite, une influence et
+// une discretion de depart par caractere -- « Idealiste +25 POP », « Transgressif -15 POP » --
+// donc un jugement collectif prononce avant le premier tour de jeu. L'epreuve mesure l'ABSENCE
+// des champs eux-memes : un champ a zero invite a le remplir.
+att('aucune nature ne porte plus argBonus / infBonus / popBonus / disBonus',
+    natures.every(function (a) {
+      return a.argBonus === undefined && a.infBonus === undefined
+          && a.popBonus === undefined && a.disBonus === undefined; }),
+    natures.filter(function (a) {
+      return a.argBonus !== undefined || a.infBonus !== undefined
+          || a.popBonus !== undefined || a.disBonus !== undefined;
+    }).map(function (a) { return a.id; }).join(', '));
+// LA CONTRE-MESURE : la seule consequence qui RESTE doit rester. Les trois ressources de depart
+// sont les memes pour les neuf natures, et elles ne lisent plus la nature du tout.
+att('les trois ressources de depart ne lisent plus la nature',
+    /function resources\(\)\s*\{\s*return \{ inf:10, pop:10, dis:80 \};\s*\}/.test(creation),
+    'resources() lit encore la nature ou a change de forme');
+att('et le capital initial ne somme plus la nature',
+    codeSeul(creation).indexOf('(ar?.argBonus||0)') < 0);
 att('la structure mecanique est intacte : +2 / +2 / -2',
     natures.every(function (a) {
       var p = Object.keys(a.bonuses).map(function (k) { return a.bonuses[k]; });

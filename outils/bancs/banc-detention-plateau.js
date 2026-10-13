@@ -6,7 +6,10 @@
 // CINQ CHAINES ETAIENT A L'INVENTAIRE (9 a 13 de AUDIT-CHANTIER-5-ECRITURES-PLATEAU.md) ; DEUX
 // AUTRES sont apparues en les fermant -- la reduction de peine obtenue par l'avocat et l'evasion
 // reussie -- portant exactement le defaut de la chaine 11 : une liberation qui ne se persiste pas.
-// Elles sont au chapitre 7.
+//
+// LA REDUCTION DE PEINE PAR L'AVOCAT A ETE SUPPRIMEE le 13 octobre 2026 : elle tirait un d100
+// pour decider si une plaidoirie avait convaincu un juge. Ses quatre epreuves ont disparu avec
+// elle, et le chapitre 8 a pris leur place -- un VERROU qui rougit si la mecanique renait.
 //
 // CE QUE CE BANC ETABLIT. Chacune de ces chaines enchainait de deux a quatre ecritures
 // independantes, toutes avalees, puis annoncait son resultat sans condition. Le banc verifie les
@@ -91,7 +94,6 @@ eval(bloc('verifierLiberationPrisonniers'));
 eval(bloc('doSeRebeller'));
 eval(bloc('placerAuQHS'));
 eval(bloc('appliquerSentence'));
-eval(bloc('confirmerRequeteAvocat'));
 eval(bloc('doTentativeEvasion'));
 // prolongerDetentionActive est extraite SOUS UN AUTRE NOM pour les deux premiers chapitres, parce
 // que appliquerSentence et placerAuQHS ont besoin d'une version pilotable.
@@ -303,50 +305,10 @@ att('torture refusee : la condamnation n est pas comptee au cumul', TRACE_APPELE
 PROLONGER_OK = true;
 
 print('');
-print('7. L AVOCAT ET L EVASION : DEUX CHAINES QUE L INVENTAIRE AVAIT MANQUEES');
+print('7. L EVASION : UNE CHAINE QUE L INVENTAIRE AVAIT MANQUEE');
 // LE TIRAGE EST MAITRISE, sinon ces epreuves seraient aleatoires : Math.random est remplace.
 var TIRAGE = 0;
 Math.random = function () { return TIRAGE; };
-
-neuf({ arg: 5000, estEmprisonne: { detentionId: 'det-1', jourFin: 12, jours: 11 } });
-VOL = 30; TIRAGE = 0;            // roll = 1, la plaidoirie est acceptee
-REPONSES['detention_reduire_peine'] = [{ ok: true, acceptee: true, reduction: 6, jour_fin: 6, jours: 5, libere: false }];
-sync(confirmerRequeteAvocat(1, 0));
-att('la porte detention_reduire_peine est appelee', rpcDe('detention_reduire_peine').length === 1);
-att('aucune ecriture cliente sur detentions', ecrituresSur('detentions').length === 0);
-att('le resultat de la plaidoirie est transmis, pas le montant',
-    rpcDe('detention_reduire_peine')[0].args.p_requete_acceptee === true
-    && rpcDe('detention_reduire_peine')[0].args.p_reduction === undefined);
-att('la nouvelle peine est celle du serveur',
-    state.estEmprisonne.jourFin === 6 && state.estEmprisonne.jours === 5);
-att('et l avocat est marque consomme', state.estEmprisonne.avocatUtilise === true);
-att('la reduction est annoncee', TOASTS.join(' | ').indexOf('Réduction obtenue') >= 0);
-
-neuf({ arg: 5000, estEmprisonne: { detentionId: 'det-1', jourFin: 2, jours: 1 } });
-VOL = 30; TIRAGE = 0;
-REPONSES['detention_reduire_peine'] = [{ ok: true, acceptee: true, reduction: 1, jour_fin: 1, jours: 0, libere: true }];
-sync(confirmerRequeteAvocat(1, 0));
-att('reduction liberatrice : le detenu est libre', state.estEmprisonne === null);
-att('et la liberation est annoncee', TOASTS.join(' | ').indexOf('Libéré(e) !') >= 0);
-
-neuf({ arg: 5000, estEmprisonne: { detentionId: 'det-1', jourFin: 12, jours: 11 } });
-VOL = 0; TIRAGE = 0.999;         // roll = 100, la plaidoirie est refusee
-REPONSES['detention_reduire_peine'] = [{ ok: true, acceptee: false, reduction: 0, libere: false }];
-sync(confirmerRequeteAvocat(1, 0));
-att('requete refusee : la porte est quand meme appelee, pour consommer l avocat',
-    rpcDe('detention_reduire_peine').length === 1
-    && rpcDe('detention_reduire_peine')[0].args.p_requete_acceptee === false);
-att('requete refusee : la peine ne bouge pas',
-    state.estEmprisonne.jourFin === 12 && state.estEmprisonne.jours === 11);
-att('requete refusee : aucune reduction annoncee', TOASTS.join(' | ').indexOf('Réduction obtenue') < 0);
-
-neuf({ arg: 5000, estEmprisonne: { detentionId: 'det-1', jourFin: 12, jours: 11 } });
-VOL = 30; TIRAGE = 0;
-REPONSES['detention_reduire_peine'] = [{ ok: false, raison: 'avocat_deja_utilise' }];
-sync(confirmerRequeteAvocat(1, 0));
-att('verdict refuse : aucune reduction annoncee', TOASTS.join(' | ').indexOf('Réduction obtenue') < 0);
-att('verdict refuse : la peine reste intacte', state.estEmprisonne.jourFin === 12);
-att('verdict refuse : le refus est dit', TOASTS.join(' | ').indexOf('Requête non déposée') >= 0);
 
 neuf({ estEmprisonne: { detentionId: 'det-1', jourFin: 9, jours: 8 } });
 VOL = 30; TIRAGE = 0; BONUS_DESERTEUR = 90;
@@ -371,6 +333,48 @@ att('verdict refuse : aucune evasion annoncee', TOASTS.join(' | ').indexOf('Evas
 att('verdict refuse : le detenu reste detenu', state.estEmprisonne !== null);
 att('verdict refuse : aucun avis de recherche emis', RECHERCHES.length === 0);
 att('verdict refuse : le refus est dit', TOASTS.join(' | ').indexOf('Evasion manquee') >= 0);
+
+print('');
+print('8. NON-REGRESSION : LA REQUETE D AVOCAT TIREE AU HASARD NE DOIT PAS RENAITRE');
+// Chapitre ajoute le 13 octobre 2026, le jour ou la mecanique a ete supprimee. Son role n'est pas
+// d'eprouver un comportement : c'est un VERROU. La requete reduisait la peine sur un d100 contre
+// `Math.min(85, 40 + DUP*1.5)` -- un de decidait si une plaidoirie avait convaincu un juge. Si
+// l'ordre, la route, le handler ou la porte serveur revenaient par un copier-coller, ce chapitre
+// rougit. La mesure porte sur le CODE : `codeSeul` retire les commentaires, sinon ce sont les
+// commentaires qui expliquent la suppression qui feraient echouer les epreuves.
+function codeSeul(t) {
+  var sansBlocs = t.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/<!--[\s\S]*?-->/g, ' ');
+  return sansBlocs.split('\n').filter(function (l) { return !/^\s*\/\//.test(l); }).join('\n');
+}
+var RACINE = '/Users/fredericjasseron/ResPublica/';
+var jsData    = codeSeul(readFile(RACINE + 'data.js'));
+var jsRouter  = codeSeul(readFile(RACINE + 'plateau-router.js'));
+var jsJustice = codeSeul(src);
+var jsComm    = codeSeul(readFile(RACINE + 'plateau-communication.js'));
+
+att('aucun ordre requete_avocat dans data.js', jsData.indexOf('requete_avocat') < 0);
+att('aucune route requete_avocat', jsRouter.indexOf('requete_avocat') < 0);
+att('aucun handler doRequeteAvocat / confirmerRequeteAvocat',
+    jsJustice.indexOf('RequeteAvocat') < 0 && jsRouter.indexOf('RequeteAvocat') < 0);
+att('aucun appel a la porte serveur detention_reduire_peine',
+    jsJustice.indexOf('detention_reduire_peine') < 0 && jsRouter.indexOf('detention_reduire_peine') < 0
+    && jsData.indexOf('detention_reduire_peine') < 0);
+att('aucun drapeau avocatUtilise',
+    jsJustice.indexOf('avocatUtilise') < 0 && jsData.indexOf('avocatUtilise') < 0);
+att('aucun mode de cloture anticipee_avocat affiche',
+    jsComm.indexOf('anticipee_avocat') < 0);
+att('aucun honoraire de 800 FR invente en cellule',
+    jsJustice.indexOf("cout = 800") < 0);
+
+// LA CONTRE-MESURE DE CE VERROU : les vraies mecaniques de l'avocat doivent SURVIVRE. Un banc qui
+// se contenterait de compter des absences serait vert le jour ou quelqu'un supprimerait le
+// barreau par exces de zele.
+att('le barreau et la defense restent branches cote navigateur',
+    jsJustice.indexOf('justice_avocats_disponibles') > 0
+    && jsJustice.indexOf('avocat_dossier') > 0
+    && jsJustice.indexOf('defense_demander') > 0);
+att('et la commission d office de la procedure simplifiee reste la',
+    jsJustice.indexOf('avocat_commis') > 0 || jsData.indexOf('avocat_commis') > 0);
 
 print('');
 if (ko === 0) print('LES ' + attendus + ' EPREUVES SONT VERTES.');

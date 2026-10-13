@@ -84,7 +84,6 @@ CREATE TABLE public.detentions (
   ville_condamnation text,
   jour_fin_effective integer,
   mode_fin text,
-  reduction_jours integer,
   detention_precedente_id text,
   reliquat_jours integer,
   date_fin_effective timestamp with time zone,

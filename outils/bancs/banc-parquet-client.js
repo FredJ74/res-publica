@@ -60,6 +60,23 @@ att('sa seule survivance est le dialogue de l enigme, laissee intacte',
     readFile('/Users/fredericjasseron/ResPublica/plateau-enigme-portrait.js')
       .indexOf('Juge Fontaine') >= 0);
 
+// DEUXIEME JUGE FANTOME, TROUVE LE 13 OCTOBRE 2026 ET RETIRE LE MEME JOUR. `getJugeActuel(pays)`
+// repliait sur `JUGE_PNJ_DEFAUT = { republic: 'Juge Sévère Lapeine' }` -- un magistrat absent de
+// TOUT referentiel du jeu : ni titulaires_pnj, ni postes_attribues, ni le casting. La fonction
+// n'avait aucun appelant, et elle interrogeait le poste avec une ville NULLE alors que le juge
+// est un poste de VILLE depuis le 20 septembre. Les deux epreuves mesurent son absence, et la
+// troisieme exige que le resolveur legitime, lui, reste la.
+att('Severe Lapeine n existe plus nulle part',
+    codeSeul(politique).indexOf('Lapeine') < 0 && codeSeul(donnees).indexOf('Lapeine') < 0
+    && codeSeul(justice).indexOf('Lapeine') < 0 && codeSeul(cron).indexOf('Lapeine') < 0);
+att('et getJugeActuel, qui le nommait sans appelant, a disparu',
+    codeSeul(politique).indexOf('getJugeActuel') < 0
+    && codeSeul(justice).indexOf('getJugeActuel') < 0
+    && codeSeul(routeur).indexOf('getJugeActuel') < 0
+    && codeSeul(navigation).indexOf('getJugeActuel') < 0);
+att('le resolveur legitime du titulaire reste branche',
+    codeSeul(politique).indexOf('getTitulaireActuel(') > 0);
+
 print('');
 print('2. LES DEUX TITRES DYNAMIQUES DU TRIBUNAL');
 var casting = bloc(donnees, '"name": "Honoré Cozetoujours (PNJ)"', '"job": "procureur"');

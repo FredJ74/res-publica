@@ -103,9 +103,6 @@ GRANT EXECUTE ON FUNCTION public.detention_prolonger_soi(jsonb,boolean) TO postg
 GRANT EXECUTE ON FUNCTION public.detention_prolonger_soi(jsonb,boolean) TO service_role;
 GRANT EXECUTE ON FUNCTION public.detention_qhs_poser_interne(text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.detention_qhs_poser_interne(text,text,text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.detention_reduire_peine(boolean) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.detention_reduire_peine(boolean) TO postgres;
-GRANT EXECUTE ON FUNCTION public.detention_reduire_peine(boolean) TO service_role;
 GRANT EXECUTE ON FUNCTION public.detention_transferer_qhs(text,integer,text,jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.detention_transferer_qhs(text,integer,text,jsonb) TO postgres;
 GRANT EXECUTE ON FUNCTION public.detention_transferer_qhs(text,integer,text,jsonb) TO service_role;
@@ -122,6 +119,9 @@ GRANT EXECUTE ON FUNCTION public.dossiers_auditions_append_only() TO service_rol
 GRANT EXECUTE ON FUNCTION public.enquete_garde_a_vue(text,text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.enquete_garde_a_vue(text,text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.enquete_garde_a_vue(text,text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.fait_judiciaire_declare(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.fait_judiciaire_declare(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.fait_judiciaire_declare(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.fraude_electorale_sanctionner(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.fraude_electorale_sanctionner(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.fraude_electorale_sanctionner(text,text) TO service_role;
@@ -461,8 +461,6 @@ GRANT SELECT (nom) ON TABLE public.detentions TO authenticated;
 GRANT SELECT (provenance) ON TABLE public.detentions TO authenticated;
 -- DROIT AU NIVEAU COLONNE : invisible dans relacl, a ne jamais oublier
 GRANT SELECT (raison) ON TABLE public.detentions TO authenticated;
--- DROIT AU NIVEAU COLONNE : invisible dans relacl, a ne jamais oublier
-GRANT SELECT (reduction_jours) ON TABLE public.detentions TO authenticated;
 -- DROIT AU NIVEAU COLONNE : invisible dans relacl, a ne jamais oublier
 GRANT SELECT (reliquat_jours) ON TABLE public.detentions TO authenticated;
 -- DROIT AU NIVEAU COLONNE : invisible dans relacl, a ne jamais oublier
