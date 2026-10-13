@@ -757,7 +757,17 @@ const TYPES_CHRONIQUE = {
   justice_appel:               { domaine: 'justice',        poidsBase: 'secondaire',  cransPJ: 2 },
   justice_jugement_appel:      { domaine: 'justice',        poidsBase: 'important',   cransPJ: 1 },
   justice_audience_fixee:      { domaine: 'justice',        poidsBase: 'secondaire',  cransPJ: 2 },
-  justice_audience:            { domaine: 'justice',        poidsBase: 'secondaire',  cransPJ: 2 }
+  justice_audience:            { domaine: 'justice',        poidsBase: 'secondaire',  cransPJ: 2 },
+
+  // LE JUGE OUVRE L'ENQUETE MALGRE LE NON-LIEU DU PARQUET (13 octobre 2026). Le type est entre au
+  // registre `justice_faits_publics` avec la migration qui cree cette decision ; sans sa ligne ICI,
+  // la collecte l'aurait JETE EN SILENCE -- exactement le defaut constate le 12 septembre pour la
+  // fuite et le scandale, et c'est pour ne pas le reproduire que ce raccord est pose dans la meme
+  // tranche. Poids `important`, et pour la meme raison que le non-lieu et la poursuite maintenue
+  // apres abandon : un juge qui passe outre le parquet est un fait politique autant que judiciaire.
+  // Ce qui est publie reste la DECISION du juge -- jamais la culpabilite de la personne visee.
+  justice_enquete_ouverte_par_le_juge:
+                               { domaine: 'justice',        poidsBase: 'important',   cransPJ: 1 }
 };
 
 // Phrase attribuee d'un scandale : ce qui est etabli est la PUBLICATION de la mise en cause, jamais

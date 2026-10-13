@@ -173,9 +173,13 @@ BEGIN
      OR coalesce(v->>'statut','') <> 'au_parquet' THEN
     ko:=ko+1; e:=e||E'\nE23 jugement sans saisine : '||v::text; END IF;
 
-  -- LE PARQUET SAISIT. A partir d'ici, le tribunal est regulierement saisi.
+  -- LE PARQUET SAISIT, ET L'AUDIENCE A EU LIEU. A partir d'ici, le tribunal est regulierement
+  -- saisi ET le proces s'est tenu -- sans quoi le verrou du 13 octobre 2026 refuserait tout
+  -- jugement de procedure complete, et ce banc-ci n'eprouve pas la chaine de l'audience mais le
+  -- BAREME. C'est la PRESENCE de `audience_ouverte_le` que `affaire_audience_ouverte` lit.
   UPDATE public.plaintes_en_cours
-     SET data = (data::jsonb || jsonb_build_object('status', 'saisie'))::text
+     SET data = (data::jsonb || jsonb_build_object('status', 'saisie',
+                   'audience_ouverte_le', '2026-10-13T10:00:00Z'))::text
    WHERE id = v_aff;
 
   n := n + 1;   -- E5 : INFRACTION INCONNUE REFUSEE.

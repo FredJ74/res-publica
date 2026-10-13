@@ -12,17 +12,16 @@
 --
 -- JUSTIFICATION DU SEED (chantier 2C)
 -- CE QU'UNE CARRIERE OUVRE, NOMME. Sept habilitations professionnelles :
--- avocat, juge, procureur, commissaire, militaire, medecine,
--- communication. Declarees et non deduites -- ajouter une correspondance
--- est une LIGNE, pas une migration de code. Seules les correspondances
--- CERTAINES y figurent : celles arbitrees (la carriere JUSTICE) et celles
--- que le code etablissait deja ailleurs (aQualificationMilitaire,
--- QUALIFICATIONS_PAR_CARRIERE).
+-- avocat, juge, procureur, commissaire, militaire, medecine, communication.
+-- Declarees et non deduites -- ajouter une correspondance est une LIGNE, pas
+-- une migration de code. Seules les correspondances CERTAINES y figurent :
+-- celles arbitrees (JUSTICE) et celles que le code etablissait deja ailleurs
+-- (`aQualificationMilitaire`, `QUALIFICATIONS_PAR_CARRIERE`).
 --
 -- ARBITRAGE DE GAME DESIGN
--- SEED INDISPENSABLE : sans ces lignes, habilitation_ouverte rend false
--- pour tout le monde -- fail closed -- et aucune fonction specialisee
--- n'est accessible dans un monde neuf.
+-- SEED INDISPENSABLE : sans ces lignes, `habilitation_ouverte` rend false
+-- pour tout le monde -- fail closed -- et aucune fonction specialisee n'est
+-- accessible dans un monde neuf.
 -- ============================================================================
 
 INSERT INTO public.habilitations (id, libelle, note) VALUES ('avocat', 'Exercer comme avocat', 'Exiger la carriere JUSTICE : arbitrage du 12 octobre 2026. Remplace le registre vide justice_barreau_qualifications.');

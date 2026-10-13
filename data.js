@@ -3202,7 +3202,17 @@ const BUILDINGS = {
           {fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\'avocat dont la defense a ete acceptee. Le dossier complet de l\'affaire, et la citation de temoins jusqu\'a l\'ouverture de l\'audience.'},
           {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'},
           {fn:'greffe_affaires', label:'Affaires en cours', pa:0, cost:0, type:'legal', icon:'ti-folders', successRate:100, desc:'Le registre public : qui est poursuivi, pour quelle categorie d\'infraction, ou en est la procedure, et quels temoins sont cites. Le contenu des dossiers n\'est pas public.'},
-          {fn:'greffe_archives', label:'Archives du greffe', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'L\'histoire procedurale des affaires closes : la suite des actes, du depot au jugement.'}
+          {fn:'greffe_archives', label:'Archives du greffe', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'L\'histoire procedurale des affaires closes : la suite des actes, du depot au jugement.'},
+          // LE GREFFE DELIVRE DES DOCUMENTS (13 octobre 2026). Cinq ordres, et cinq portes
+          // serveur : `casier_mon_extrait`, `casier_extrait_enquete`, `orga_extrait_duplicata`,
+          // `greffe_corrompre_dossier`, `greffe_corrompre_faux_casier`. Chacune verifie la
+          // PRESENCE au greffe, l'autorite, paie par `payer_ordre` et emet un OBJET
+          // D'INVENTAIRE ordinaire. Le navigateur n'en fabrique aucun.
+          {fn:'casier_mon_extrait', label:'Demander mon extrait de casier', pa:1, cost:100, type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Un extrait de VOTRE casier judiciaire, date et fige -- il ne se met jamais a jour. 100 FR de frais de greffe, verses a la caisse du Tribunal. Aucune enquete n\'est requise : c\'est votre casier.'},
+          {fn:'casier_extrait_enquete', label:'Extrait de casier (enquete)', pa:1, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:'Reserve au Juge, au Commissaire et au Procureur, et seulement sur une personne visee par une affaire VIVANTE dont ils sont l\'autorite. Les 100 FR sont payes par la caisse de votre institution, jamais par vous ; 1 PA reste a votre charge.'},
+          {fn:'orga_extrait_duplicata', label:'Duplicata d\'un extrait de domiciliation', pa:1, cost:75, type:'legal', icon:'ti-building-community', successRate:100, desc:'Reserve au President ou au Secretaire de l\'organisation, et seulement si un extrait original existe. 75 FR de frais de greffe a la caisse du Tribunal.'},
+          {fn:'greffe_corrompre_dossier', label:'Corrompre le greffier — copie d\'un dossier', pa:3, cost:300, type:'illegal', icon:'ti-folder-x', successRate:75, tauxFixe:true, desc:'Une copie INTEGRALE et authentique d\'un dossier de CE tribunal, en cours ou archive. 300 FR et 3 PA preleves a la TENTATIVE. Decouvert : aucun document, et le greffier vous denonce.'},
+          {fn:'greffe_corrompre_faux_casier', label:'Corrompre le greffier — faux casier vierge', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:75, tauxFixe:true, desc:'Un extrait de casier affirmant un casier VIERGE, pour n\'importe quel PJ. Le vrai casier n\'est jamais modifie. Le casier etant national, n\'importe lequel des trois greffes suffit. 300 FR et 3 PA preleves a la TENTATIVE. Decouvert : aucun document, et le greffier vous denonce.'}
         ]
       }
     }
@@ -3655,21 +3665,51 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'donner_conf',    label:'Donner une conference',  pa:2, cost:0,   type:'legal', icon:'ti-microphone',  successRate:100, desc:'Soutenir un candidat en campagne (3 electeurs convertis) OU sensibiliser sur un theme (+2 indice, utilisable hors campagne).'},
-          {fn:'recruter_etud',  label:'Recruter des militants', pa:2, cost:0,   type:'grey',  icon:'ti-users-group', successRate:100, desc:'Reserve aux membres d\'un syndicat etudiant actif. 1/jour, plafond 2 militants par joueur. Prepare les manifestations.'}
+          {fn:'recruter_etud',  label:'Recruter des militants', pa:2, cost:0,   type:'grey',  icon:'ti-users-group', successRate:100, desc:'Reserve aux membres d\'un syndicat actif -- la garde est au SERVEUR depuis le 13 octobre 2026, comme le plafond de 2 par joueur et la limite d\'un recrutement par jour de jeu.'},
+          // « SUIVRE UNE FORMATION » EST VISIBLE ET DESACTIVE (13 octobre 2026).
+          //
+          // ELLE NE L'ETAIT PAS : l'ordre `se_former` a ete SUPPRIME le 12 octobre avec tout
+          // l'ancien systeme de formation, et aucun bouton ne l'avait remplace. Le socle des
+          // cursus universitaires existe au serveur depuis cette date -- `universite_inscrire`,
+          // mais son CATALOGUE EST VIDE, expres : les cursus, leurs durees et leurs prix
+          // restent a arbitrer. Un joueur ne voyait donc rien du tout, alors que la seconde
+          // carriere est une promesse du jeu.
+          //
+          // LE BOUTON EST DECLARE AVEC `bientot`, le drapeau generique ajoute le meme jour dans
+          // `renderRoomActions` : il s'affiche grise, son infobulle dit pourquoi, et son clic
+          // n'appelle AUCUNE porte. La desactivation est REELLE et non cosmetique, et elle l'est
+          // a trois niveaux : (1) le clic n'appelle rien, (2) aucune route n'existe pour cet
+          // ordre, (3) `payer_ordre` refuserait `ordre_inconnu` -- `suivre_formation` n'est pas
+          // au miroir des couts, et ne doit pas y entrer tant qu'il ne coute rien.
+          {fn:'suivre_formation', label:'Suivre une formation', pa:0, cost:0, type:'legal', icon:'ti-school', successRate:100,
+           bientot:'Bientôt disponible : cet ordre permettra d\'acquérir une seconde carrière.',
+           desc:'Bientôt disponible : cet ordre permettra d\'acquérir une seconde carrière.'}
         ]
       },
+      // LA SALLE DE REUNION N'EST PLUS UN LOCAL A LOUER (13 octobre 2026).
+      //
+      // ELLE L'ETAIT : `isLocationRoom`, 180 FR/jour, +4 POP / +4 INF / +2 DIS, UN SEUL
+      // locataire -- et « Gerer mon local » n'offrait aucune resiliation. Une salle de reunion
+      // universitaire privatisee a vie par un joueur n'est plus une salle de reunion.
+      //
+      // ELLE DEVIENT le lieu de DOMICILIATION des syndicats etudiants, PLUSIEURS a la fois et
+      // sans exclusivite. Deux familles d'ordres y vivent, et deux seulement : domicilier ou
+      // gerer un syndicat etudiant, et recruter des militants.
+      //
+      // LE VERROU N'EST PAS CE RETRAIT. `locations_actives` accorde INSERT a `authenticated` :
+      // retirer le bouton ne fermerait rien. C'est une CONTRAINTE CHECK sur la table --
+      // `locations_actives_salle_reunion_non_louable` -- qui refuse desormais tout bail sur
+      // cette piece, dans les quatre empires.
       salle_reunion: {
-        name: "Salle de Réunion — Local à louer",
+        name: "Salle de Réunion",
         imageBg: "linear-gradient(135deg,#080d18,#0f1520)",
-        desc: "📋 À LOUER — Salle de réunion équipée, tableau blanc, projecteur. Idéal pour réunions politiques, formations militantes ou conférences discrètes.",
+        desc: "La salle de réunion de l'université. Les syndicats étudiants y sont domiciliés — plusieurs à la fois, et aucun ne la privatise. Elle ne se loue pas.",
         imageUrl: "https://images.unsplash.com/photo-1517502884422-41eaead166d4?w=1200&q=80",
-        isLocationRoom: true,
-        locationData: { prix: 180, bonusPOP: 4, bonusINF: 4, bonusDIS: 2, label: 'Salle de Réunion', tier: 2 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer cette salle (180 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+4 POP +4 INF +2 DIS. Recrutement militant facilité.'},
-          {fn:'recruter_etud', label:'Recruter des militants', pa:2, cost:0, type:'grey', icon:'ti-users', successRate:100, desc:'Reserve aux membres d\'un syndicat etudiant actif. 1/jour, plafond 2 militants par joueur. Prepare les manifestations.'},
-          {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
+          {fn:'syndicat_etudiant_creer', label:'Domicilier un syndicat étudiant', pa:2, cost:150, type:'legal', icon:'ti-flag', successRate:100, desc:'150 FR de FRAIS DE GREFFE -- verses a la caisse du Tribunal -- et 2 PA. Aucun loyer, aucun cout recurrent. N\'importe quel PJ peut en fonder un, sans etre inscrit a l\'universite, et plusieurs syndicats sont domicilies ici en meme temps. La constitution vous delivre un EXTRAIT DE DOMICILIATION dans votre inventaire.'},
+          {fn:'syndicat_etudiant_gerer', label:'Gérer un syndicat étudiant', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Les syndicats etudiants domicilies ici : adherer, gerer les membres, demander un duplicata de l\'extrait de domiciliation.'},
+          {fn:'recruter_etud', label:'Recruter des militants', pa:2, cost:0, type:'grey', icon:'ti-users', successRate:100, desc:'Reserve aux membres d\'un syndicat actif -- la garde est au SERVEUR depuis le 13 octobre 2026, comme le plafond de 2 par joueur et la limite d\'un recrutement par jour de jeu.'}
         ]
       }
     }
@@ -4770,7 +4810,17 @@ const BUILDINGS = {
           {fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\'avocat dont la defense a ete acceptee. Le dossier complet de l\'affaire, et la citation de temoins jusqu\'a l\'ouverture de l\'audience.'},
           {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'},
           {fn:'greffe_affaires', label:'Affaires en cours', pa:0, cost:0, type:'legal', icon:'ti-folders', successRate:100, desc:'Le registre public : qui est poursuivi, pour quelle categorie d\'infraction, ou en est la procedure, et quels temoins sont cites. Le contenu des dossiers n\'est pas public.'},
-          {fn:'greffe_archives', label:'Archives du greffe', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'L\'histoire procedurale des affaires closes : la suite des actes, du depot au jugement.'}
+          {fn:'greffe_archives', label:'Archives du greffe', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'L\'histoire procedurale des affaires closes : la suite des actes, du depot au jugement.'},
+          // LE GREFFE DELIVRE DES DOCUMENTS (13 octobre 2026). Cinq ordres, et cinq portes
+          // serveur : `casier_mon_extrait`, `casier_extrait_enquete`, `orga_extrait_duplicata`,
+          // `greffe_corrompre_dossier`, `greffe_corrompre_faux_casier`. Chacune verifie la
+          // PRESENCE au greffe, l'autorite, paie par `payer_ordre` et emet un OBJET
+          // D'INVENTAIRE ordinaire. Le navigateur n'en fabrique aucun.
+          {fn:'casier_mon_extrait', label:'Demander mon extrait de casier', pa:1, cost:100, type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Un extrait de VOTRE casier judiciaire, date et fige -- il ne se met jamais a jour. 100 FR de frais de greffe, verses a la caisse du Tribunal. Aucune enquete n\'est requise : c\'est votre casier.'},
+          {fn:'casier_extrait_enquete', label:'Extrait de casier (enquete)', pa:1, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:'Reserve au Juge, au Commissaire et au Procureur, et seulement sur une personne visee par une affaire VIVANTE dont ils sont l\'autorite. Les 100 FR sont payes par la caisse de votre institution, jamais par vous ; 1 PA reste a votre charge.'},
+          {fn:'orga_extrait_duplicata', label:'Duplicata d\'un extrait de domiciliation', pa:1, cost:75, type:'legal', icon:'ti-building-community', successRate:100, desc:'Reserve au President ou au Secretaire de l\'organisation, et seulement si un extrait original existe. 75 FR de frais de greffe a la caisse du Tribunal.'},
+          {fn:'greffe_corrompre_dossier', label:'Corrompre le greffier — copie d\'un dossier', pa:3, cost:300, type:'illegal', icon:'ti-folder-x', successRate:75, tauxFixe:true, desc:'Une copie INTEGRALE et authentique d\'un dossier de CE tribunal, en cours ou archive. 300 FR et 3 PA preleves a la TENTATIVE. Decouvert : aucun document, et le greffier vous denonce.'},
+          {fn:'greffe_corrompre_faux_casier', label:'Corrompre le greffier — faux casier vierge', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:75, tauxFixe:true, desc:'Un extrait de casier affirmant un casier VIERGE, pour n\'importe quel PJ. Le vrai casier n\'est jamais modifie. Le casier etant national, n\'importe lequel des trois greffes suffit. 300 FR et 3 PA preleves a la TENTATIVE. Decouvert : aucun document, et le greffier vous denonce.'}
         ]
       }
     }
@@ -7500,9 +7550,17 @@ const ORGANISATIONS_DEF = {
 // aussi supprime le meme jour.
 
 // Documents falsifiables au greffe du Tribunal (voir ouvrirFalsifierDocument)
+//
+// `faux_casier` A QUITTE CETTE LISTE LE 13 OCTOBRE 2026. Son entree promettait d'« effacer vos
+// antecedents judiciaires dans les archives » et ne touchait RIEN : l'ordre poussait un objet
+// `{type:'document_falsifie', legal:false}` dans l'inventaire du navigateur, un faux qui
+// s'annonce comme tel et qui ne produisait aucun effet. Le faux casier vierge existe desormais
+// pour de vrai, au meme prix (3 PA + 300 FR) et au meme endroit -- le greffe --, par la porte
+// serveur `greffe_corrompre_faux_casier` : il porte la vraie identite du PJ visee, la vraie date
+// de fabrication, ne modifie jamais le casier reel, et RIEN dans ce que son porteur voit ne dit
+// « FAUX ». Les quatre autres documents de cette liste sont inchanges.
 const DOCUMENTS_FALSIFIABLES = [
   { id:'fausse_identite',   name:'Fausse identite',          desc:'Change votre nom affiche dans le jeu temporairement.',     icon:'ti-id-badge' },
-  { id:'faux_casier',       name:'Faux casier judiciaire vierge', desc:'Efface vos antecedents judiciaires dans les archives.', icon:'ti-file-x' },
   { id:'faux_permis',       name:'Faux permis de construire', desc:'Permet de construire sans passer par la mairie.',          icon:'ti-building' },
   { id:'faux_contrat',      name:'Faux contrat commercial',   desc:'Legitime une transaction illegale ou un transfert.',       icon:'ti-file-text' },
   { id:'fausse_convocation',name:'Fausse convocation officielle', desc:'Attire un PJ dans un lieu de votre choix.',           icon:'ti-mail' }

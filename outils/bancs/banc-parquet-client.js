@@ -34,7 +34,7 @@ function bloc(t, d, f) {
 }
 
 print('');
-print('1. JUGE FONTAINE N EST PLUS UNE AUTORITE JUDICIAIRE');
+print('1. JUGE FONTAINE N EST PLUS UNE AUTORITE JUDICIAIRE, NI MEME UNE VOIX');
 att('son nom ne subsiste dans AUCUN code de data.js, seulement dans deux commentaires',
     codeSeul(donnees).indexOf('Juge Fontaine') < 0,
     compte(donnees, /Juge Fontaine/g) + ' occurrence(s) au total');
@@ -52,13 +52,17 @@ att('elle a quitte les personnalites',
 att('elle a quitte la liste des referents du navigateur',
     codeSeul(pnj).indexOf("'juge_fontaine'") < 0
     && pnj.indexOf("'honore_cozetoujours'") >= 0);
-// LA SEULE SURVIVANCE EST NARRATIVE, ET ELLE EST DELIBEREMENT NON TOUCHEE : l'enigme du portrait
-// fait parler « Juge Fontaine » pour autoriser l'ouverture d'un coffre. Remplacer ce dialogue par
-// Honore serait une decision de game design -- son caractere est a l'oppose -- donc le cahier des
-// charges demandait de SIGNALER avant de muter. C'est signale, et rien n'est mute.
-att('sa seule survivance est le dialogue de l enigme, laissee intacte',
-    readFile('/Users/fredericjasseron/ResPublica/plateau-enigme-portrait.js')
-      .indexOf('Juge Fontaine') >= 0);
+// LA DERNIERE SURVIVANCE EST TOMBEE LE 13 OCTOBRE 2026. L'enigme du portrait faisait parler
+// « Juge Fontaine » pour autoriser l'ouverture d'un coffre a la Banque Nationale : non pas un
+// decor historique, mais une DECISION ACTUELLE rendue par un magistrat qui n'existait plus dans
+// aucun referentiel. Le titulaire PNJ du tribunal de Luthecia est Honore Cozetoujours, et c'est
+// desormais lui qui tient ce greffe. Les trois repliques sont inchangees -- adapter leur registre
+// au caractere d'Honore est une decision narrative, signalee et non prise.
+att('le dialogue de l enigme nomme desormais le juge de Luthecia',
+    codeSeul(readFile('/Users/fredericjasseron/ResPublica/plateau-enigme-portrait.js'))
+      .indexOf('Juge Fontaine') < 0
+    && readFile('/Users/fredericjasseron/ResPublica/plateau-enigme-portrait.js')
+      .indexOf('Juge Honoré Cozetoujours') >= 0);
 
 // DEUXIEME JUGE FANTOME, TROUVE LE 13 OCTOBRE 2026 ET RETIRE LE MEME JOUR. `getJugeActuel(pays)`
 // repliait sur `JUGE_PNJ_DEFAUT = { republic: 'Juge Sévère Lapeine' }` -- un magistrat absent de

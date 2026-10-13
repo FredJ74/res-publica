@@ -20,9 +20,11 @@ ALTER TABLE public.avocats_barreau ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.defenses_demandes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.demandes_grace ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.detentions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documents_officiels ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dossiers_auditions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dossiers_judiciaires_actes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dossiers_judiciaires_actes_types ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.greffes_tribunaux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.impacts_indices_attente ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infractions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infractions_alias ENABLE ROW LEVEL SECURITY;
@@ -73,8 +75,6 @@ CREATE POLICY impacts_lecture_victime ON public.impacts_indices_attente FOR SELE
   USING (victime = mon_personnage());
 
 -- jugements
-CREATE POLICY jugements_insertion_juge ON public.jugements FOR INSERT TO authenticated
-  WITH CHECK (affaire_autorite_de(city));
 CREATE POLICY jugements_lecture ON public.jugements FOR SELECT TO anon, authenticated
   USING (true);
 
@@ -89,7 +89,7 @@ CREATE POLICY niveaux_prison_maj_acteur ON public.niveaux_prison FOR UPDATE TO a
 
 -- plaintes_en_cours
 CREATE POLICY "affaire lue par ses parties et par l autorite de sa ville" ON public.plaintes_en_cours FOR SELECT TO authenticated
-  USING (affaire_autorite_de(city) OR mon_poste_est_dans('min_just'::text, country) OR mon_poste_est_dans('min_int'::text, country) OR affaire_me_concerne(data));
+  USING (affaire_autorite_de(city) OR affaire_me_concerne(data));
 
 -- prisonniers_qhs
 CREATE POLICY prisonniers_qhs_insertion_soi ON public.prisonniers_qhs FOR INSERT TO anon, authenticated

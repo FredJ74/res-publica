@@ -1142,6 +1142,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "syndicat_etudiant_domicilier(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "syndicat_etudiant_domicilier(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "syndicat_etudiant_domicilier(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "tournee_cloturer(text,boolean)",
    "privileges": "EXECUTE"
   },
@@ -2026,13 +2044,13 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "d566e996751096dc8274fcad6de3ae59",
-  "20_fonctions.sql": "70ecf342abd9e01111a2710178ded840",
+  "20_fonctions.sql": "5d407d004b2a07490e62b9b1814ece93",
   "30_contraintes.sql": "e44e4568f45b4d5f77867ad9e6e385db",
   "35_index.sql": "c39f88873aa18751777e33552ec8830d",
   "40_vues.sql": "b59ee62583b183cae707bb385db72570",
   "50_triggers.sql": "5bf60588e847e0893b8fc78b79437ecc",
   "60_rls-policies.sql": "e3ea354131587a713876db85347fcfab",
-  "70_droits.sql": "643c9c9bc06ba755673163dcd9865c3b",
+  "70_droits.sql": "6e41424b7e9d88723d9f2d8494533110",
   "80_commentaires.sql": "0497386836a0fda49fd2b24aa686c4b7"
  },
  "fonctions": [
@@ -2240,6 +2258,11 @@
    "empreinte": "d9a7dadfac1e0fa61033d9f7741b4df8",
    "security_definer": true,
    "signature": "succession_regler(text)"
+  },
+  {
+   "empreinte": "e9017e23430df12d2ceb291f50e0d542",
+   "security_definer": true,
+   "signature": "syndicat_etudiant_domicilier(text,text)"
   },
   {
    "empreinte": "3ab55ed0fe18113871a9ac5d9d5b24cd",

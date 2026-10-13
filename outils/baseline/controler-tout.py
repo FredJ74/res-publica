@@ -66,6 +66,8 @@ CONTROLES = [
     ("le baseline est fidele au catalogue", [os.path.join(ICI, "verifier-baseline.py")]),
     ("l'autorite tient", [os.path.join(ICI, "verifier-autorite.py")]),
     ("les referentiels concordent", [os.path.join(ICI, "verifier-referentiels.py")]),
+    ("les faits publics atteignent le Journal",
+     [os.path.join(ICI, "verifier-faits-publics.py")]),
     ("les fonctions concordent", [os.path.join(ICI, "verifier-fonctions.py")]),
     ("le monde neuf est propre", [os.path.join(ICI, "verifier-monde-neuf.py")]),
     ("l'assemblage se tient", [os.path.join(ICI, "assembler.py")]),

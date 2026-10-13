@@ -25,5 +25,6 @@ ALTER TABLE public.villes ADD CONSTRAINT villes_pkey PRIMARY KEY (pays, ville);
 ALTER TABLE public.villes_empreinte ADD CONSTRAINT villes_empreinte_pkey PRIMARY KEY (seul);
 
 -- CONTRAINTES DE VALIDATION
+ALTER TABLE public.locations_actives ADD CONSTRAINT locations_actives_salle_reunion_non_louable CHECK ((id !~~ '%:universite:salle_reunion:%'::text));
 ALTER TABLE public.logements_demandes ADD CONSTRAINT logements_demandes_statut_check CHECK ((statut = ANY (ARRAY['en_attente'::text, 'attribuee'::text, 'annulee'::text])));
 ALTER TABLE public.villes_empreinte ADD CONSTRAINT villes_empreinte_seul_check CHECK (seul);

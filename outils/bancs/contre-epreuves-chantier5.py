@@ -3,9 +3,15 @@
 """Contre-epreuves de banc-detention-plateau.js.
 
 POURQUOI CE FICHIER EXISTE. Un banc qui passe AUSSI sans le correctif ne prouve rien. Chacune des
-seize regressions ci-dessous reinjecte, dans une COPIE de plateau-justice-economie.js, exactement
-le defaut que le lot du 9 octobre 2026 a ferme -- puis relance le banc sur cette copie et exige
-qu'il ROUGISSE, en nommant l'epreuve qui doit tomber.
+regressions ci-dessous reinjecte, dans une COPIE d'un fichier de production, exactement le defaut
+qu'un lot a ferme -- puis relance le banc sur cette copie et exige qu'il ROUGISSE, en nommant
+l'epreuve qui doit tomber. Le fichier a grossi lot par lot : detention (9 octobre), subventions
+municipales (10 octobre), greffe et universite (13 octobre).
+
+DEUX FACONS DE SUBSTITUER UN FICHIER, selon le banc. Un banc a SOURCES recoit la copie dans sa
+liste de sources ; un banc qui lit lui-meme le depot par readFile recoit une TABLE DE
+SUBSTITUTION (`lancer_substitution`). Se tromper de lanceur donne un banc qui reste vert sur une
+regression reelle -- et c'est exactement ce que ce fichier existe pour interdire.
 
 Le fichier de production n'est jamais modifie : la copie vit dans le repertoire temporaire.
 
@@ -40,6 +46,7 @@ ORGANISATIONS = os.path.join(RACINE, "plateau-organisations-quetes.js")
 ROUTEUR = os.path.join(RACINE, "plateau-router.js")
 DATA = os.path.join(RACINE, "data.js")
 BANC_SUBVENTIONS = os.path.join(RACINE, "outils", "bancs", "banc-subventions-client.js")
+BANC_GREFFE = os.path.join(RACINE, "outils", "bancs", "banc-greffe-documents-client.js")
 LANCEUR = os.path.join(RACINE, "outils", "bancs", "lancer-banc.py")
 
 # (nom, chaine cherchee, remplacement, fragment de l'epreuve qui DOIT tomber)
@@ -446,6 +453,24 @@ def lancer_cible(nom_fichier):
     return lanceur
 
 
+def lancer_substitution(nom_fichier):
+    """Fabrique un lanceur pour un banc qui lit LUI-MEME les fichiers du depot, par readFile.
+    Un tel banc n'a pas de source a substituer : on lui passe donc une TABLE DE SUBSTITUTION, et
+    il remplace ce seul fichier par la copie patchee. Sans cela, le banc relirait la production
+    et resterait vert : la contre-epreuve ne prouverait rien."""
+    def lanceur(banc, chemin_source):
+        with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as f:
+            f.write("var SUBSTITUTIONS = { %r: %r };\n" % (nom_fichier, chemin_source))
+            decor = f.name
+        try:
+            r = subprocess.run([sys.executable, LANCEUR, banc, decor],
+                               capture_output=True, text=True)
+            return r.returncode, r.stdout + r.stderr
+        finally:
+            os.unlink(decor)
+    return lanceur
+
+
 def serie(titre, banc, source, regressions, echecs, lanceur=None):
     lanceur = lanceur or lancer
     texte = open(source, encoding="utf-8").read()
@@ -557,6 +582,82 @@ REGRESSIONS_SUBVENTIONS_CRON = [
 ]
 
 
+
+
+# =============================================================================================
+# GREFFE ET UNIVERSITE -- TRANCHE DU 13 OCTOBRE 2026
+# =============================================================================================
+# CHAQUE REGRESSION REMET UN DEFAUT QUE LA TRANCHE A FERME, et nomme l'epreuve qui doit le voir.
+# Les quatre premieres portent sur le CATALOGUE (data.js) : c'est la que vivaient le faux casier
+# fabrique par le navigateur et la salle de reunion louable. Les suivantes portent sur les
+# ECRANS : un handler qui ecrit l'inventaire lui-meme, une fiche qui revelerait l'authenticite
+# d'un document, un bouton differe qu'on peut encore cliquer, un taux illegal que l'ecran module
+# alors que le serveur le tient fixe, et une exclusivite de local reintroduite cote client.
+
+REGRESSIONS_GREFFE_DATA = [
+    ("le navigateur refabrique un faux casier",
+     "id:'fausse_identite'",
+     "id:'faux_casier', nom:'Faux casier vierge', cout:300}, {id:'fausse_identite'",
+     "le faux casier a quitte DOCUMENTS_FALSIFIABLES"),
+    ("la salle de reunion redevient un local a louer",
+     "salle_reunion: {",
+     "salle_reunion: { isLocationRoom:true,",
+     "elle n est plus declaree comme un local a louer"),
+    ("« Suivre une formation » perd son drapeau `bientot`",
+     "bientot:'Bient\u00f4t disponible",
+     "inactif:'Bient\u00f4t disponible",
+     "il porte le drapeau generique `bientot`"),
+    ("les frais de greffe de la domiciliation disparaissent",
+     "{fn:'syndicat_etudiant_creer', label:'Domicilier un syndicat \u00e9tudiant', pa:2, cost:150,",
+     "{fn:'syndicat_etudiant_creer', label:'Domicilier un syndicat \u00e9tudiant', pa:2, cost:0,",
+     "la domiciliation coute 2 PA et 150 FR"),
+]
+
+REGRESSIONS_GREFFE_ROUTEUR = [
+    ("une route mene a l'ordre differe",
+     "  if (fn === 'casier_mon_extrait')",
+     "  if (fn === 'suivre_formation') { showToast('Formation', 'x'); return; }\n"
+     "  if (fn === 'casier_mon_extrait')",
+     "AUCUNE route ne mene a cet ordre"),
+]
+
+REGRESSIONS_GREFFE_JUSTICE = [
+    ("un handler du greffe ecrit l'objet lui-meme",
+     "async function doCasierMonExtrait() {",
+     "async function doCasierMonExtrait() {\n"
+     "  state.inventory.push({ name: 'Extrait de casier', type: 'document_officiel' });",
+     "doCasierMonExtrait n ecrit rien dans l inventaire"),
+    ("la fiche d'un document revele son authenticite",
+     "function documentOfficielHtml(item) {",
+     "function documentOfficielHtml(item) {\n"
+     "  if (item.authentique === false) { return '<p>FAUX</p>'; }",
+     "la fiche d un document ne lit aucune authenticite"),
+]
+
+REGRESSIONS_GREFFE_POLITIQUE = [
+    ("un ordre differe redevient cliquable",
+     "needsBientot || needsPost",
+     "needsPost",
+     "un ordre `bientot` est GRISE"),
+    ("l'ecran module un taux que le serveur tient fixe",
+     "o.type === 'illegal' && !o.tauxFixe",
+     "o.type === 'illegal'",
+     "le moteur de rendu respecte aussi le taux FIXE du serveur"),
+]
+
+REGRESSIONS_GREFFE_ORGAS = [
+    ("le navigateur ecrit l'organisation a la place de la porte",
+     "async function confirmerSyndicatEtudiantCreer() {",
+     "async function confirmerSyndicatEtudiantCreer() {\n"
+     "  state.organisations.push({ id: 'x', type: 'syndicale' });",
+     "la creation d un syndicat etudiant passe par la porte serveur, et par elle seule"),
+    ("l'ecran reintroduit une exclusivite de local",
+     "function ouvrirSyndicatsEtudiants() {",
+     "function ouvrirSyndicatsEtudiants() {\n"
+     "  if (state.dejaUn) { showToast('Local d\u00e9j\u00e0 occup\u00e9', 'x'); return; }",
+     "l ecran des syndicats ne refuse aucun local deja occupe"),
+]
+
 def main():
     echecs = []
     serie("DETENTION", BANC_DETENTION, JUSTICE, REGRESSIONS, echecs)
@@ -590,6 +691,19 @@ def main():
           REGRESSIONS_SUBVENTIONS_ROUTEUR, echecs, lanceur=lancer_cible("plateau-router.js"))
     serie("SUBVENTIONS MUNICIPALES -- cron", BANC_SUBVENTIONS, CRON,
           REGRESSIONS_SUBVENTIONS_CRON, echecs, lanceur=lancer_cible("api/cron-minuit.js"))
+    serie("GREFFE ET UNIVERSITE -- catalogue", BANC_GREFFE, DATA,
+          REGRESSIONS_GREFFE_DATA, echecs, lanceur=lancer_substitution("data.js"))
+    serie("GREFFE ET UNIVERSITE -- routeur", BANC_GREFFE, ROUTEUR,
+          REGRESSIONS_GREFFE_ROUTEUR, echecs, lanceur=lancer_substitution("plateau-router.js"))
+    serie("GREFFE ET UNIVERSITE -- justice", BANC_GREFFE, JUSTICE,
+          REGRESSIONS_GREFFE_JUSTICE, echecs,
+          lanceur=lancer_substitution("plateau-justice-economie.js"))
+    serie("GREFFE ET UNIVERSITE -- politique", BANC_GREFFE, POLITIQUE,
+          REGRESSIONS_GREFFE_POLITIQUE, echecs,
+          lanceur=lancer_substitution("plateau-politique.js"))
+    serie("GREFFE ET UNIVERSITE -- organisations", BANC_GREFFE, ORGANISATIONS,
+          REGRESSIONS_GREFFE_ORGAS, echecs,
+          lanceur=lancer_substitution("plateau-organisations-quetes.js"))
     total = (len(REGRESSIONS) + len(REGRESSIONS_VOTE) + len(REGRESSIONS_DESERTION)
              + len(REGRESSIONS_COTISATIONS) + len(REGRESSIONS_SUCCESSIONS)
              + len(REGRESSIONS_IMPOTS) + len(REGRESSIONS_TOURNEE)
@@ -599,7 +713,10 @@ def main():
              + len(REGRESSIONS_TERRAIN_PERSONNAGE)
              + len(REGRESSIONS_SUBVENTIONS_ORGA) + len(REGRESSIONS_SUBVENTIONS_POLITIQUE)
              + len(REGRESSIONS_SUBVENTIONS_SUPABASE) + len(REGRESSIONS_SUBVENTIONS_ROUTEUR)
-             + len(REGRESSIONS_SUBVENTIONS_CRON))
+             + len(REGRESSIONS_SUBVENTIONS_CRON)
+             + len(REGRESSIONS_GREFFE_DATA) + len(REGRESSIONS_GREFFE_ROUTEUR)
+             + len(REGRESSIONS_GREFFE_JUSTICE) + len(REGRESSIONS_GREFFE_POLITIQUE)
+             + len(REGRESSIONS_GREFFE_ORGAS))
     if echecs:
         print("ECHEC : %d contre-epreuve(s) en defaut." % len(echecs))
         for e in echecs:

@@ -528,6 +528,24 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'lois_votees_an')     { ouvrirLoisVoteesAN(); return; }
   if (fn === 'demandes_naturalisation') { ouvrirDemandesNaturalisation(); return; }
   if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(pa, cost); return; }
+  // ===========================================================================================
+  // LES CINQ DOCUMENTS DU GREFFE ET LES DEUX ORDRES DE L'UNIVERSITE (13 octobre 2026)
+  // ===========================================================================================
+  // CES SEPT ORDRES SONT ROUTES ICI, DONC AVANT `deduireCoutOrdre`, ET C'EST VOULU. Chaque
+  // porte serveur appelle `payer_ordre` ELLE-MEME, dans la meme transaction que son effet :
+  // le document emis, la caisse creditee, le syndicat ecrit. Un prelevement cote navigateur en
+  // plus prelverait deux fois. C'est le meme patron que `plainte_police`.
+  if (fn === 'casier_mon_extrait')           { doCasierMonExtrait(); return; }
+  if (fn === 'casier_extrait_enquete')       { ouvrirCasierExtraitEnquete(); return; }
+  if (fn === 'orga_extrait_duplicata')       { ouvrirExtraitDuplicata(); return; }
+  if (fn === 'greffe_corrompre_dossier')     { ouvrirGreffeCorrompreDossier(); return; }
+  if (fn === 'greffe_corrompre_faux_casier') { ouvrirGreffeCorrompreFauxCasier(); return; }
+  if (fn === 'syndicat_etudiant_creer')      { ouvrirSyndicatEtudiantCreer(); return; }
+  if (fn === 'syndicat_etudiant_gerer')      { ouvrirSyndicatsEtudiants(); return; }
+  // `suivre_formation` N'A PAS DE ROUTE, ET C'EST LA MOITIE DE SA DESACTIVATION. L'ordre est
+  // declare avec `bientot` : son bouton est grise et son clic n'appelle rien. S'il etait
+  // malgre tout appele, il tomberait sur le chemin generique -- qui refuserait, l'ordre
+  // n'etant pas au miroir des couts (`ordre_inconnu`). Trois verrous, aucun effet.
   if (fn === 'fiscal' || fn === 'gestion_budget') { ouvrirGestionBudget(); return; }
   if (fn === 'proposer_treve')        { ouvrirProposerTreve(pa, cost); return; }
   if (fn === 'prier')                { doPrier(pa, cost); return; }

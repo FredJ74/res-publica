@@ -614,8 +614,23 @@ function enigme1AfficherArticlePresse(idx) {
 }
 
 // =====================
-// GREFFE — demande d'audience au juge (Juge Fontaine, deja presente au Tribunal)
+// GREFFE — demande d'audience au juge
 // =====================
+//
+// LE JUGE DE L'ENIGME EST LE JUGE DE LUTHECIA (13 octobre 2026). Ce dialogue faisait parler
+// « Juge Fontaine », qui a quitte TOUS les referentiels du jeu le 12 octobre : ni
+// `titulaires_pnj`, ni la cascade du cron, ni les referents, ni les personnalites ne la
+// connaissent plus. Le titulaire PNJ du tribunal de Luthecia est Honore Cozetoujours, et c'est
+// lui qui tient ce greffe.
+//
+// CE N'ETAIT PAS UN DECOR HISTORIQUE. La scene n'evoque pas un magistrat d'autrefois : elle
+// fait rendre une DECISION ACTUELLE -- l'autorisation d'ouvrir un coffre a la Banque Nationale --
+// par le juge en fonction. Un nom qui ne correspond a aucun magistrat existant rendait la scene
+// incoherente avec le reste du jeu, ou le joueur peut lire qui est le juge de sa ville.
+//
+// SEULE L'IDENTITE CHANGE. Les trois repliques sont celles qui existaient, mot pour mot : les
+// adapter au caractere propre d'Honore Cozetoujours est une decision narrative, pas technique,
+// et elle est SIGNALEE au rapport plutot que prise ici.
 
 async function doDemanderJugeInstruction(pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
@@ -628,7 +643,7 @@ async function doDemanderJugeInstruction(pa, cost) {
   const toutOk = archivesOk && ehpadOk;
 
   let html = '<div style="padding:1.2rem">';
-  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.05em;margin-bottom:.6rem">Juge Fontaine</div>';
+  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.05em;margin-bottom:.6rem">Juge Honoré Cozetoujours</div>';
 
   if (toutOk) {
     if (state.char.enigme1 && !state.char.enigme1.autorisationCoffre) {

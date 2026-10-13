@@ -23,6 +23,13 @@
 --   . lire une table du socle exige d'etre le SERVEUR. Un `je_suis(...)` oublie avant un SELECT
 --     fait echouer le banc sur un refus de privilege -- qui est la bonne reponse, mais pas celle
 --     qu'on mesurait.
+--
+-- T21 A CHANGE DE SUJET LE 13 OCTOBRE 2026, ET C'EST LE BANC QUI AVAIT TORT. Elle exigeait
+-- encore qu'un plaignant cite un temoin par `temoin_citer` tant que son dossier dormait au
+-- parquet. La migration 20261012205024 a SUPPRIME cette branche : le plaignant cite ses temoins
+-- AU DEPOT, par un parametre de `plainte_deposer`, et jamais ailleurs. L'epreuve mesure donc la
+-- porte fermee, et la citation du depot est posee comme DECOR par la porte interne que le depot
+-- appelle lui-meme. Un banc perime ne defend pas une regle : il defend un souvenir.
 
 BEGIN;
 CREATE OR REPLACE FUNCTION pg_temp.je_suis(p_uuid text) RETURNS void LANGUAGE plpgsql AS $f$
@@ -280,17 +287,38 @@ BEGIN
   IF (v ->> 'raison') IS DISTINCT FROM 'le_prevenu_n_est_pas_temoin' THEN
     ko := ko + 1; e := e || E'\nT20 : le prevenu est cite comme temoin -- ' || v::text; END IF;
 
-  -- ------------ T21 : LE PLAIGNANT CITE AU MOMENT DU DEPOT, ET PAS APRES
+  -- ------------ T21 : LE PLAIGNANT NE CITE PLUS PAR CETTE PORTE -- IL CITE AU DEPOT
+  --
+  -- CETTE EPREUVE A CHANGE DE SUJET LE 13 OCTOBRE 2026, ET C'EST LE SERVEUR QUI AVAIT RAISON.
+  -- Elle exigeait encore qu'un plaignant puisse citer un temoin par `temoin_citer` tant que son
+  -- dossier dormait au parquet. La migration 20261012205024 a SUPPRIME cette branche : le droit
+  -- de citer n'est plus une FENETRE de plusieurs jours, c'est un INSTANT -- les temoins du
+  -- plaignant sont un PARAMETRE de `plainte_deposer`, cites dans la meme transaction que la
+  -- plainte, et il n'existe aucune autre porte. L'epreuve mesure donc la porte FERMEE, des deux
+  -- cotes : sur son propre dossier comme sur celui d'un autre. L'AUTRE MOITIE est mesuree par
+  -- banc-parcours-judiciaires -- P8.1 (les deux temoins cites au depot) et P8.2 (le meme refus
+  -- une seconde plus tard). Aucun banc ne doit exiger d'un serveur ce qu'un arbitrage lui a
+  -- retire : un banc perime ne defend pas une regle, il defend un souvenir.
   n := n + 1;
   PERFORM pg_temp.je_suis(PHIL_U);
   v := public.temoin_citer('banc-av-2', LEE);
+  IF (v ->> 'raison') IS DISTINCT FROM 'autorite_refusee' THEN
+    ko := ko + 1; e := e || E'\nT21 : le plaignant cite encore par temoin_citer -- ' || v::text; END IF;
+  v := public.temoin_citer('banc-av-1', LEE);
+  IF (v ->> 'raison') IS DISTINCT FROM 'autorite_refusee' THEN
+    ko := ko + 1; e := e || E'\nT21 : le plaignant cite sur le dossier d''un autre -- ' || v::text; END IF;
+  -- LE DECOR DE LA SUITE PASSE PAR LA PORTE INTERNE DU DEPOT, celle que `plainte_deposer` appelle
+  -- elle-meme. `banc-av-2` est un decor INSERE : elle n'a jamais pu etre deposee, donc sa
+  -- citation de depot doit etre posee comme le depot la poserait. Ce qui suit -- T22 a T26 --
+  -- mesure la convocation, la deposition verbatim et la satisfaction de la citation, jamais le
+  -- droit de citer, qui vient d'etre mesure ci-dessus.
+  PERFORM pg_temp.je_suis_le_serveur();
+  v := public.temoin_citer_interne('banc-av-2', 'republic', 'ville_b', LEE, PHIL, 'plaignant',
+                                   public.jour_de_jeu_pays('republic'));
   IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE
      OR (v ->> 'qualite') IS DISTINCT FROM 'plaignant'
      OR (v ->> 'commissariat') IS DISTINCT FROM 'commissariat-local' THEN
-    ko := ko + 1; e := e || E'\nT21 : le plaignant ne cite pas au depot -- ' || v::text; END IF;
-  v := public.temoin_citer('banc-av-1', LEE);
-  IF (v ->> 'raison') IS DISTINCT FROM 'autorite_refusee' THEN
-    ko := ko + 1; e := e || E'\nT21 : le plaignant cite apres le depot -- ' || v::text; END IF;
+    ko := ko + 1; e := e || E'\nT21 : le decor de la citation du depot a echoue -- ' || v::text; END IF;
 
   -- ------------- T22 : LE TEMOIN VOIT SON OBLIGATION, PAS LE DOSSIER
   n := n + 1;

@@ -238,13 +238,19 @@ att('les archives montrent la SUITE des actes, pas leur contenu',
 
 print('');
 print('8. LE JOURNAL CONNAIT LES FAITS JUDICIAIRES');
-att('les douze types judiciaires sont mappes -- sinon ils seraient jetes en silence',
+// TREIZE DEPUIS LE 13 OCTOBRE 2026, et le treizieme est arrive avec la decision qu'il publie :
+// `justice_enquete_ouverte_par_le_juge`, le juge qui ouvre l'enquete malgre le non-lieu du
+// parquet. Un type absent de TYPES_CHRONIQUE est JETE EN SILENCE par la collecte -- c'est
+// arrive a la fuite et au scandale le 12 septembre 2026 -- donc cette liste doit grandir avec
+// le registre `justice_faits_publics`, et jamais apres lui.
+att('les treize types judiciaires sont mappes -- sinon ils seraient jetes en silence',
     ['justice_non_lieu','justice_poursuites','justice_abandon_parquet','justice_poursuite_maintenue',
      'justice_arret','justice_requalification','justice_condamnation','justice_relaxe',
-     'justice_appel','justice_jugement_appel','justice_audience_fixee','justice_audience']
-      .every(function (t) { return new RegExp('\\n\\s*' + t + ':\\s*\\{').test(collecte); }));
+     'justice_appel','justice_jugement_appel','justice_audience_fixee','justice_audience',
+     'justice_enquete_ouverte_par_le_juge']
+      .every(function (t) { return new RegExp('\\n\\s*' + t + ':(\\s|$)').test(collecte); }));
 att('et ils sont tous du domaine justice',
-    compte(collecte, /justice_[a-z_]+:\s*\{ domaine: 'justice'/g) === 12);
+    compte(collecte, /justice_[a-z_]+:\s*\{ domaine: 'justice'/g) === 13);
 
 print('');
 if (ko === 0) print('LES ' + attendus + ' EPREUVES SONT VERTES.');

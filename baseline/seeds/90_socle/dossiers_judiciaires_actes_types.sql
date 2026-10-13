@@ -4,7 +4,7 @@
 -- Domaine    : justice
 -- Categorie  : A (socle generique)
 -- Strategie  : seed_complet (classification du chantier 2C)
--- Lignes     : 30
+-- Lignes     : 31
 --
 -- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
 -- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
@@ -19,22 +19,13 @@
 -- actes_nocturnes_mecanismes : aucune fonction ne l'ecrit, chaque entree est
 -- une migration. `dossier_acte_consigner` LEVE sur un type absent -- le
 -- refus propre qu'elle rendait avant etait jete par ses onze appelants, tous
--- en PERFORM, et creusait un trou silencieux dans la chronologie. DIX-NEUF
+-- en PERFORM, et creusait un trou silencieux dans la chronologie. TRENTE
 -- types au 12 octobre 2026 -- les trois derniers sont l'appel interjete, le
 -- jugement d'appel et l'indemnisation pour detention executee a tort. SEIZE
 -- types : les treize du parquet, plus le PV d'audition, l'abandon des
 -- charges pour delai expire et la defense en procedure simplifiee --
 -- l'ACCUSE est devenu un auteur d'acte ce jour-la, et le CHECK de `pose_par`
--- a du s'ouvrir pour l'accueillir. VINGT-SIX le soir du meme jour : SEPT
--- types de plus, et le CHECK de `pose_par` s'est ouvert une seconde fois,
--- a `avocat` et a `temoin`. Deux pour la defense -- constituee et rompue --
--- et cinq pour les temoins : la citation, la seconde convocation, la
--- deposition, la recherche pour non-presentation et l'extinction de la
--- citation a la cloture de l'affaire. TRENTE la nuit suivante : QUATRE
--- types de plus pour l'audience -- le jour fixe, le consentement du
--- prevenu a une date anticipee, son retrait, et l'ouverture du proces,
--- qui CONSTATE qui etait present sans en tirer aucune consequence.
--- Compte RELEVE EN BASE.
+-- a du s'ouvrir pour l'accueillir. Compte RELEVE EN BASE.
 --
 -- ARBITRAGE DE GAME DESIGN
 -- SEED INDISPENSABLE, et pas par confort : sans ses lignes, chaque acte de
@@ -59,6 +50,7 @@ INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, no
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('enquete_diligentee', 'Enquete diligentee par le parquet', 'parquet', NULL);
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('indemnisation', 'Indemnisation pour detention executee a tort', 'serveur', 'Des jours de prison ont ete purges au-dela de la peine devenue definitive. L''acte consigne le NOMBRE de jours indus et le montant du. Ce n''est pas un jugement de valeur sur la premiere decision : c''est une difference arithmetique entre ce qui a ete execute et ce qui etait du.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('juge_arret_accepte', 'Le juge accepte l''arret de la procedure', 'juge', 'Suite a un abandon du parquet apres saisine.');
+INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('juge_enquete_ouverte', 'Le juge ouvre une enquete malgre le non-lieu du parquet', 'juge', 'Pose par le juge de la ville de l''affaire sur un dossier que le parquet a clos par un non-lieu. Fait DISTINCT du non-lieu : les deux coexistent dans la chronologie. Il ouvre une enquete et rien de plus -- il ne poursuit pas, ne qualifie pas et ne se saisit pas.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('juge_poursuite_maintenue', 'Le juge poursuit malgre l''abandon du parquet', 'juge', 'Suite a un abandon du parquet apres saisine. Fait DISTINCT de l''abandon : les deux coexistent dans la chronologie.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('juge_saisi', 'Juge saisi', 'parquet', NULL);
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('jugement_appel', 'Jugement d''appel', 'juge', 'Le second examen, par le MEME juge, et il est DEFINITIF. Il peut confirmer, alleger, aggraver, relaxer ou requalifier dans les memes bornes que la premiere instance. Le premier jugement reste au registre.');

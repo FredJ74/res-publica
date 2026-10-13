@@ -90,6 +90,25 @@ CREATE TABLE public.detentions (
   provenance text
 );
 
+CREATE TABLE public.documents_officiels (
+  id text NOT NULL,
+  genre text NOT NULL,
+  genre_apparent text NOT NULL,
+  authentique boolean NOT NULL,
+  pays text NOT NULL,
+  tribunal_ville text,
+  sujet text,
+  organisation text,
+  affaire text,
+  porteur text NOT NULL,
+  emis_par text NOT NULL,
+  demande_par text NOT NULL,
+  emis_le timestamp with time zone DEFAULT now() NOT NULL,
+  emis_jour integer NOT NULL,
+  contenu jsonb NOT NULL,
+  donnees jsonb
+);
+
 CREATE TABLE public.dossiers_auditions (
   id text NOT NULL,
   affaire text NOT NULL,
@@ -123,6 +142,12 @@ CREATE TABLE public.dossiers_judiciaires_actes_types (
   libelle text NOT NULL,
   pose_par text NOT NULL,
   note text
+);
+
+CREATE TABLE public.greffes_tribunaux (
+  pays text NOT NULL,
+  ville text NOT NULL,
+  greffier_pnj text
 );
 
 CREATE TABLE public.impacts_indices_attente (

@@ -2194,6 +2194,125 @@ BEGIN
     'fiscalite', to_jsonb(v_fisc), 'cloturee', v_cloturee, 'echecs', to_jsonb(v_echecs));
 END; $function$;
 
+-- syndicat_etudiant_domicilier(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.syndicat_etudiant_domicilier(p_nom text, p_desc text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  -- L'ECHELLE DES GRADES SYNDICAUX, RECOPIEE DE `ORGANISATIONS_DEF.syndicale.grades` (data.js).
+  -- Le serveur ne peut pas importer data.js -- aucun module, aucun export -- et un syndicat
+  -- etudiant doit avoir la MEME echelle que les autres syndicats. La copie est donc assumee et
+  -- signalee au rapport comme une ressaisie a tenir en phase.
+  c_grades constant jsonb := jsonb_build_object(
+    'republic', jsonb_build_array('Adherent', 'Secretaire General Adjoint', 'Secretaire General', 'Confederal'),
+    'narco',    jsonb_build_array('Afilado', 'Delegado', 'Secretario', 'Comandante Sindical'),
+    'soviet',   jsonb_build_array('Camarade de base', 'Delegue', 'Secretaire de cellule', 'Premier Secretaire'),
+    'khalija',  jsonb_build_array('Affilie', 'Delegue du Souk', 'Secretaire de la Guilde', 'Grand Intendant'));
+  v_moi text; v_pays text; v_ville text; v_inv jsonb; v_nom text; v_desc text;
+  v_jour integer; v_paye jsonb; v_doc jsonb; v_caisse text; v_id text;
+  v_grades jsonb; v_grade text; v_blob jsonb; v_contenu jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  v_nom  := nullif(btrim(coalesce(p_nom, '')), '');
+  v_desc := nullif(btrim(coalesce(p_desc, '')), '');
+  IF v_nom IS NULL OR length(v_nom) < 2 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'nom_requis');
+  END IF;
+  IF length(v_nom) > 80 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'nom_trop_long', 'maximum', 80);
+  END IF;
+
+  SELECT country, current_city, coalesce(inventory, '[]'::jsonb)
+    INTO v_pays, v_ville, v_inv
+    FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_pays IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
+  END IF;
+
+  -- LA PRESENCE DANS LA SALLE DE REUNION, ET LA REGLE DE LOCALISATION UNIQUE DU JEU.
+  IF NOT public.acteur_present_sur_site(v_moi, v_pays, v_ville, 'universite', 'salle_reunion') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'presence_en_salle_de_reunion_requise',
+                              'site', 'universite', 'piece', 'salle_reunion');
+  END IF;
+  IF public.inventaire_place_restante(v_inv) < 1 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'inventaire_plein');
+  END IF;
+
+  -- AUCUNE EXCLUSIVITE : on ne verifie PAS qu'une organisation occupe deja ce local. C'est tout
+  -- le changement de nature de la piece -- plusieurs syndicats y sont domicilies a la fois.
+  v_caisse := v_pays || '_tribunal_' || coalesce(v_ville, 'capitale');
+  IF NOT EXISTS (SELECT 1 FROM public.caisses_batiments WHERE id = v_caisse) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_du_tribunal_introuvable',
+                              'caisse', v_caisse);
+  END IF;
+
+  v_paye := public.payer_ordre(v_moi, 'syndicat_etudiant_creer', 2, 150);
+  IF coalesce((v_paye ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paye; END IF;
+
+  -- LES 150 FR SONT DES FRAIS DE GREFFE : ils entrent dans la caisse du tribunal.
+  PERFORM public.caisse_institution_mouvement(v_caisse, 150, true);
+
+  v_jour   := coalesce(public.jour_de_jeu_pays(v_pays), 1);
+  v_grades := coalesce(c_grades -> v_pays, c_grades -> 'republic');
+  v_grade  := v_grades ->> (jsonb_array_length(v_grades) - 1);
+  v_id     := 'orga_syndet_' || replace(gen_random_uuid()::text, '-', '');
+
+  v_blob := jsonb_build_object(
+    'id', v_id, 'type', 'syndicale', 'nom', v_nom, 'desc', coalesce(v_desc, ''),
+    'fondateur', v_moi, 'chef', v_moi,
+    -- LA FONDATION MINIMALE DE L'OSSATURE, et rien de plus : deux cles, aucune prerogative.
+    'president', v_moi, 'secretaire', NULL, 'tresorier', NULL,
+    'country', v_pays, 'country_origine', v_pays,
+    'creeLe', v_jour,
+    'membres', jsonb_build_array(jsonb_build_object(
+      'nom', v_moi, 'grade', v_grade, 'gradeIdx', jsonb_array_length(v_grades) - 1,
+      'rejointLe', v_jour)),
+    'demandesAdhesion', '[]'::jsonb,
+    'bonusLocaux', jsonb_build_object('pop', 0, 'inf', 0, 'dis', 0),
+    'caisse', 0, 'influence', 50,
+    'localId', 'universite:salle_reunion',
+    'visible', true,
+    -- CE QUI DISTINGUE UN SYNDICAT ETUDIANT D'UN AUTRE SYNDICAT : sa domiciliation, et ce
+    -- drapeau. Aucune prerogative n'y est attachee.
+    'syndicat_etudiant', true,
+    'domicilie_le_jour', v_jour,
+    'frais_de_greffe', 150);
+
+  INSERT INTO public.organisations (id, country_origine, data)
+  VALUES (v_id, v_pays, v_blob::text);
+
+  v_contenu := jsonb_build_object(
+    'organisation', v_id, 'nom', v_nom, 'type', 'syndicale', 'syndicat_etudiant', true,
+    'pays', v_pays, 'ville', v_ville,
+    'domicile', 'universite:salle_reunion',
+    'domicile_libelle', 'Salle de reunion de l''Universite',
+    'president', v_moi, 'fondateur', v_moi,
+    'constituee_le_jour', v_jour, 'frais_de_greffe', 150);
+
+  v_doc := public.document_officiel_emettre(
+    'domiciliation_extrait', 'domiciliation_extrait', true,
+    v_pays, v_ville, NULL, v_id, NULL, v_moi, v_moi, v_jour,
+    'Extrait de domiciliation — ' || v_nom,
+    'Delivre par le greffe au jour ' || v_jour || ' a la constitution. Document FIGE : il dit la '
+      || 'domiciliation telle qu''elle etait a cette date.',
+    'ti-building-community', v_contenu,
+    jsonb_build_object('motif', 'constitution'));
+  IF coalesce((v_doc ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    RAISE EXCEPTION 'syndicat_etudiant_domicilier : emission refusee (%)', v_doc ->> 'raison';
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'organisation', v_id, 'nom', v_nom,
+    'document', v_doc ->> 'document', 'jour', v_jour, 'ville', v_ville,
+    'grade', v_grade, 'frais_de_greffe', 150);
+END;
+$function$;
+
 -- tournee_cloturer(text,boolean) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.tournee_cloturer(p_tournee_id text, p_servie boolean)
  RETURNS jsonb

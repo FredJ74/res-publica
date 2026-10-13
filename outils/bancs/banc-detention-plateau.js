@@ -246,9 +246,33 @@ PROLONGER_OK = true;
 
 print('');
 print('6. SENTENCE : RIEN N EST ANNONCE QUI NE SOIT ECRIT');
+// LE DOSSIER DU DECOR PORTE `audience_ouverte_le`, ET CE N'EST PAS UN DETAIL. Depuis le verrou
+// du 13 octobre 2026, `appliquerSentence` refuse AVANT toute consequence un dossier dont
+// l'audience n'a pas ete ouverte -- comme il refuse deja une competence absente. Un decor sans
+// cette cle ferait echouer tout le chapitre pour la mauvaise raison ; et l'absence de la cle est
+// MESUREE pour elle-meme, juste en dessous.
 var affaire = { id: 'plainte-1', country: 'republic', city: 'capitale', cible: 'Marsault',
-                motif: 'Vol aggrave', status: 'deposee', jour: 1 };
+                motif: 'Vol aggrave', status: 'deposee', jour: 1,
+                audience_ouverte_le: '2026-10-13T10:00:00Z' };
 function affaireNeuve() { var a = {}; for (var k in affaire) a[k] = affaire[k]; return a; }
+function affaireSansAudience() { var a = affaireNeuve(); delete a.audience_ouverte_le; return a; }
+
+// LE PROCES AVANT LE VERDICT, COTE NAVIGATEUR. Le verrou vit au SERVEUR -- sur les quatre portes
+// de jugement --, et ce pre-controle est au meme endroit et pour la meme raison que celui
+// d'autorite : sans lui, la sanction tomberait par `justice_condamner`, qui est appelee AVANT
+// l'archivage, et le magistrat lirait « la sanction est tombee, signalez-le » pour une regle
+// qu'il pouvait respecter.
+neuf(); DETENU = true; COUT_OK = true;
+state.plaintesEnCours = [affaireSansAudience()];
+REPONSES['affaire_autorite_de'] = true;
+sync(appliquerSentence('plainte-1', 'qhs', 1, 0));
+att('audience non ouverte : la porte du greffe n est PAS appelee', rpcDe('justice_rendre_sentence').length === 0);
+att('audience non ouverte : AUCUNE sanction appliquee', TRACES.indexOf('prolonge') < 0);
+att('audience non ouverte : le PA n est meme pas preleve', TRACES.indexOf('refus_cout') < 0 && RPC.length === 1);
+att('audience non ouverte : le refus est dit, et il dit quoi faire',
+    TOASTS.join(' | ').indexOf('Audience non ouverte') >= 0
+    && TOASTS.join(' | ').indexOf("ouvrez-la dans votre salle") >= 0);
+att("audience non ouverte : l affaire reste au role", state.plaintesEnCours[0].status === 'deposee');
 
 // LA COMPETENCE EST VERIFIEE AVANT TOUTE CONSEQUENCE : sans cela, un magistrat incompetent
 // voyait sa sanction appliquee puis son archivage refuse, et l'affaire restait rejugeable --

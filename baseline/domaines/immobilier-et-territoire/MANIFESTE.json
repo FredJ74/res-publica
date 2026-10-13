@@ -87,6 +87,12 @@
    "tbl": "villes_empreinte"
   },
   {
+   "empreinte": "661cdca3474a8dc260e6b3506c6fb62c",
+   "genre": "c",
+   "nom": "locations_actives_salle_reunion_non_louable",
+   "tbl": "locations_actives"
+  },
+  {
    "empreinte": "5a9af6f22060a8f14db38df5a2c3b5e4",
    "genre": "c",
    "nom": "logements_demandes_statut_check",
@@ -845,7 +851,7 @@
  "fichiers": {
   "10_tables.sql": "66b1fea54fa7c394f1b301c5738dc9a4",
   "20_fonctions.sql": "e29e93dca0732cc18251fdcc03ef0783",
-  "30_contraintes.sql": "a5a5bf05e55f51602249819fcb875cd2",
+  "30_contraintes.sql": "85fea615dc27bd1380864b18bf5a0844",
   "35_index.sql": "3d319f664a45b587249753e4ef607bed",
   "50_triggers.sql": "17584ddfdfa26f9d3ab4f91524e61d22",
   "60_rls-policies.sql": "d75e548ae702eda3a2c074c1f8afeef5",

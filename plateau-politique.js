@@ -4126,6 +4126,20 @@ function renderRoomActions(room, buildingId, roomId) {
         else needsPost = posteId !== reqPost;
       }
     }
+    // DEUX DRAPEAUX DECLARATIFS AJOUTES LE 13 OCTOBRE 2026, et ils ne nomment aucun ordre.
+    //
+    // `bientot` : UN ORDRE VISIBLE ET DESACTIVE. Le besoin est celui de « Suivre une formation »
+    // a l'universite -- une promesse du jeu dont le systeme existe au serveur mais dont le
+    // catalogue n'est pas arbitre. Un ordre qui porte `bientot` s'affiche GRISE, son infobulle
+    // dit exactement pourquoi, et son clic n'appelle AUCUNE porte. Ce n'est pas un grisage
+    // cosmetique : il n'y a ni route, ni ligne au miroir des couts, donc aucun chemin de
+    // substitution -- `payer_ordre` refuserait `ordre_inconnu`.
+    //
+    // DECLARATIF, comme `requiresRole` : aucun `o.fn` n'est nomme ici, donc le prochain ordre
+    // differe n'aura pas besoin d'une ligne de plus dans ce fichier.
+    let needsBientot = false;
+    const bientotTooltip = typeof o.bientot === 'string' ? o.bientot : '';
+    if (o.bientot) needsBientot = true;
     // Verifier requiresSquatteurs (negocier_squatteurs) : le flag existe dans data.js depuis
     // le debut mais n'etait lu par aucun code -- le bouton restait affiche/cliquable meme sans
     // squatteur reel sur le terrain (bug remonte avant Phase L). terrainOrdreDisponible()
@@ -4276,8 +4290,14 @@ function renderRoomActions(room, buildingId, roomId) {
       paDisplay = '';
     }
     // Appliquer malus ISN sur les actes illegaux
+    //
+    // `tauxFixe` (13 octobre 2026) : SAUF quand le taux est tenu par le SERVEUR. Les deux ordres
+    // de corruption du greffier ont un jet FIXE -- 25 % de decouverte, la valeur du precedent
+    // `doCorrompreFonctionnairePermis` --, que l'ISN ne module pas. Afficher un taux module
+    // alors que le serveur en applique un autre serait un mensonge a l'ecran, et c'est
+    // exactement le genre d'ecart que ce depot traque.
     let tauxAffiche = o.successRate || 70;
-    if (o.type === 'illegal') {
+    if (o.type === 'illegal' && !o.tauxFixe) {
       tauxAffiche = Math.max(5, tauxAffiche - getMalusISN());
     }
     // "gratuit" retire (20 aout 2026) : trompeur des qu'une action a un cout reel differe (ex.
@@ -4316,7 +4336,11 @@ function renderRoomActions(room, buildingId, roomId) {
     const tooltip = tooltipParts.join(' | ');
 
     let onclickFn = '';
-    if (needsPost) {
+    if (needsBientot) {
+      // CE CLIC N'APPELLE RIEN. Pas de doOrder, donc pas de deduireCoutOrdre, donc aucun PA et
+      // aucun FR : la desactivation est reelle, et elle passe avant toutes les autres gardes.
+      onclickFn = "showToast('Bientôt disponible', " + JSON.stringify(bientotTooltip) + ", false)";
+    } else if (needsPost) {
       // Message explicatif avec le poste requis
       const postesNoms = {
         president: 'Président de la République',
@@ -4374,9 +4398,9 @@ function renderRoomActions(room, buildingId, roomId) {
     }
 
     const gainBadge = gainStr ? '<span class="action-gain">' + gainStr + '</span>' : '';
-    const blockedCls = (needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsPoliceIndisponible || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre || needsRoleLocal) ? ' blocked' : '';
+    const blockedCls = (needsBientot || needsPost || needsSquat || needsCadavre || needsChefSyndicat || needsPoliceIndisponible || needsLicenceIndisponible || needsSuiteIndisponible || needsElectionIndisponible || needsPatientChambre || needsRoleLocal) ? ' blocked' : '';
     const coutJoint = [costDisplay, paDisplay].filter(Boolean).join(' · ');
-    const tooltipFinal = needsPoliceIndisponible ? policeTooltip.replace(/"/g, '&quot;') : (needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : (needsRoleLocal ? roleLocalTooltip.replace(/"/g, '&quot;') : tooltip)))));
+    const tooltipFinal = needsBientot ? bientotTooltip.replace(/"/g, '&quot;') : (needsPoliceIndisponible ? policeTooltip.replace(/"/g, '&quot;') : (needsLicenceIndisponible ? licenceTooltip.replace(/"/g, '&quot;') : (needsSuiteIndisponible ? suiteTooltip.replace(/"/g, '&quot;') : (needsElectionIndisponible ? electionTooltip.replace(/"/g, '&quot;') : (needsPatientChambre ? patientChambreTooltip.replace(/"/g, '&quot;') : (needsRoleLocal ? roleLocalTooltip.replace(/"/g, '&quot;') : tooltip))))));
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 

@@ -20,5 +20,6 @@ ALTER TABLE public.postes_nommes_regles_empreinte ADD CONSTRAINT postes_nommes_r
 ALTER TABLE public.titulaires_pnj ADD CONSTRAINT titulaires_pnj_pkey PRIMARY KEY (id);
 
 -- CONTRAINTES DE VALIDATION
+ALTER TABLE public.postes_attribues ADD CONSTRAINT postes_attribues_jamais_greffier CHECK ((poste_id <> 'greffier'::text));
 ALTER TABLE public.postes_nommes_regles ADD CONSTRAINT postes_nommes_regles_scope_check CHECK ((scope = ANY (ARRAY['pays'::text, 'ville'::text])));
 ALTER TABLE public.postes_nommes_regles_empreinte ADD CONSTRAINT postes_nommes_regles_empreinte_seul_check CHECK (seul);

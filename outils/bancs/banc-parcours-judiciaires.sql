@@ -40,7 +40,7 @@
 -- d'eux-memes (l'abandon du parquet, l'affaire des temoins) ont donc gagne leur acte final.
 --
 -- Usage : coller ce fichier dans un execute_sql. Il doit finir sur
---   ERROR: banc parcours : LES 65 EPREUVES SONT VERTES. -- rien ne doit rester
+--   ERROR: banc parcours : LES 75 EPREUVES SONT VERTES. -- rien ne doit rester
 --
 -- LE DECOR NOMME CE QU'IL EXIGE. Cinq joueurs, et chacun a UN role : Phileas est le juge (il est
 -- deplace de ville en ville, un siege a la fois), Lee est le Procureur de la Republique (un seul
@@ -135,7 +135,11 @@ DECLARE
   PREV_U text := 'bafc96b1-1628-4ae2-93d2-78d89f8ac5b5'; PREV text := 'Ben';
   v jsonb; n integer := 0; ko integer := 0; e text := '';
   v_n integer; v_s text; v_jour integer; v_rang bigint; v_av text;
+  -- LE JOUR COURANT, A PART. `v_jour` sert aussi de compteur de jours indus en P6 : le
+  -- verrou d'audience ne doit pas l'ecraser au passage.
+  v_auj integer;
   a1 text; a2 text; a3 text; a4 text; a5 text; a6 text; a7 text; a8 text; a9 text; a10 text;
+  a11 text;
 BEGIN
   PERFORM pg_temp.je_suis_le_serveur();
 
@@ -386,6 +390,13 @@ BEGIN
 
 
   -- ============================================================ P3 : LA RELAXE (ville_a)
+  --
+  -- BEN SORT D'ABORD DE LA PRISON DU PARCOURS 2. La peine prononcee en P2.13 est une peine de
+  -- PRISON, et `justice_rendre_sentence` ouvre vraiment la detention : la ligne de `detentions`
+  -- survit au parcours. Sans cette remise a zero, P3.4 compterait la detention du VOL et
+  -- accuserait la relaxe de la FAUSSE RUMEUR -- exactement le genre de mensonge qu'un banc doit
+  -- s'interdire. Les parcours 4 a 11 font deja cette remise a zero ; le parcours 3 l'oubliait.
+  PERFORM pg_temp.libere(PREV);
   PERFORM pg_temp.au_commissariat(PLAI, 'ville_a');
   PERFORM pg_temp.je_suis(PLAI_U);
   v := public.plainte_deposer(PREV, 'Il a diffuse une rumeur a mon sujet au port', 'delit');
@@ -413,6 +424,35 @@ BEGIN
   IF v_s IS DISTINCT FROM 'saisie' THEN
     ko := ko + 1; e := e || E'\nP3.2 : la saisine a PSM a echoue -- ' || coalesce(v_s,'(nul)'); END IF;
 
+  n := n + 1;   -- P3.2b : AUCUN VERDICT AVANT QUE LE PROCES AIT EU LIEU (ville_a).
+  --
+  -- LE VERROU D'AUDIENCE DU 13 OCTOBRE 2026, MESURE DES DEUX COTES. D'abord le REFUS : l'affaire
+  -- est regulierement saisie, le juge est bien celui de sa ville, et le jugement est pourtant
+  -- refuse -- l'audience n'a pas ete ouverte. Ensuite l'ACCEPTATION, apres la chaine reelle :
+  -- le prevenu CONSENT a etre juge aujourd'hui, le juge fixe ce jour-la, puis il ouvre
+  -- l'audience depuis sa salle. Rien n'est pose a la main dans le dossier.
+  v_auj := public.jour_de_jeu_pays('republic');
+  PERFORM pg_temp.siege_juge(JUGE, 'ville_a');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_relaxer(a3, 'fausse_rumeur');
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF (v ->> 'raison') IS DISTINCT FROM 'audience_non_ouverte' THEN
+    ko := ko + 1; e := e || E'\nP3.2b : un verdict est rendu sans audience ouverte -- ' || v::text; END IF;
+  PERFORM pg_temp.je_suis(PREV_U);
+  v := public.justice_audience_consentir(a3, v_auj);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP3.2b : le prevenu ne peut pas consentir -- ' || v::text; END IF;
+  PERFORM pg_temp.siege_juge(JUGE, 'ville_a');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_audience_fixer(a3, v_auj);
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP3.2b : le jour consenti est refuse -- ' || v::text; END IF;
+  v := public.justice_audience_ouvrir(a3);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP3.2b : l''audience ne s''ouvre pas -- ' || v::text; END IF;
+
   n := n + 1;   -- P3.3 : LE JUGE DE PSM RELAXE, ET LA RELAXE EST UN VERDICT.
   PERFORM pg_temp.siege_juge(JUGE, 'ville_a');
   PERFORM pg_temp.je_suis(JUGE_U);
@@ -425,6 +465,11 @@ BEGIN
   IF v_n <> 1 THEN ko := ko + 1; e := e || E'\nP3.3 : la relaxe n''est pas a la chronologie'; END IF;
 
   n := n + 1;   -- P3.4 : UNE RELAXE N'OUVRE AUCUNE DETENTION.
+  --
+  -- LE COMPTE EST GLOBAL, ET C'EST VOLONTAIRE : le prevenu est sorti de prison a l'entree du
+  -- parcours, donc toute ligne de `detentions` a son nom ne peut venir que de la relaxe qui
+  -- vient d'etre prononcee. Mesurer `affaire = a3` aurait laisse passer une detention ouverte
+  -- sans affaire.
   SELECT count(*) INTO v_n FROM public.detentions WHERE nom = PREV;
   IF v_n <> 0 THEN ko := ko + 1; e := e || E'\nP3.4 : une relaxe a incarcere (' || v_n || ')'; END IF;
 
@@ -501,6 +546,35 @@ BEGIN
   PERFORM public.parquet_poursuivre(a5, 'tentative_assassinat');
   PERFORM public.parquet_transmettre_juge(a5);
   PERFORM pg_temp.je_suis_le_serveur();
+  n := n + 1;   -- P5.1b : AUCUN VERDICT AVANT QUE LE PROCES AIT EU LIEU (capitale).
+  --
+  -- LE VERROU D'AUDIENCE DU 13 OCTOBRE 2026, MESURE DES DEUX COTES. D'abord le REFUS : l'affaire
+  -- est regulierement saisie, le juge est bien celui de sa ville, et le jugement est pourtant
+  -- refuse -- l'audience n'a pas ete ouverte. Ensuite l'ACCEPTATION, apres la chaine reelle :
+  -- le prevenu CONSENT a etre juge aujourd'hui, le juge fixe ce jour-la, puis il ouvre
+  -- l'audience depuis sa salle. Rien n'est pose a la main dans le dossier.
+  v_auj := public.jour_de_jeu_pays('republic');
+  PERFORM pg_temp.siege_juge(JUGE, 'capitale');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_rendre_sentence(a5, 'tentative_assassinat', 'prison', 3, 0);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF (v ->> 'raison') IS DISTINCT FROM 'audience_non_ouverte' THEN
+    ko := ko + 1; e := e || E'\nP5.1b : un verdict est rendu sans audience ouverte -- ' || v::text; END IF;
+  PERFORM pg_temp.je_suis(PREV_U);
+  v := public.justice_audience_consentir(a5, v_auj);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP5.1b : le prevenu ne peut pas consentir -- ' || v::text; END IF;
+  PERFORM pg_temp.siege_juge(JUGE, 'capitale');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_audience_fixer(a5, v_auj);
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP5.1b : le jour consenti est refuse -- ' || v::text; END IF;
+  v := public.justice_audience_ouvrir(a5);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP5.1b : l''audience ne s''ouvre pas -- ' || v::text; END IF;
+
   PERFORM pg_temp.siege_juge(JUGE, 'capitale');
   PERFORM pg_temp.je_suis(JUGE_U);
   v := public.justice_rendre_sentence(a5, 'tentative_assassinat', 'prison', 99, 0);
@@ -541,6 +615,35 @@ BEGIN
   PERFORM public.parquet_poursuivre(a6, 'corruption_fonctionnaire');
   PERFORM public.parquet_transmettre_juge(a6);
   PERFORM pg_temp.je_suis_le_serveur();
+  n := n + 1;   -- P6.0b : AUCUN VERDICT AVANT QUE LE PROCES AIT EU LIEU (ville_a).
+  --
+  -- LE VERROU D'AUDIENCE DU 13 OCTOBRE 2026, MESURE DES DEUX COTES. D'abord le REFUS : l'affaire
+  -- est regulierement saisie, le juge est bien celui de sa ville, et le jugement est pourtant
+  -- refuse -- l'audience n'a pas ete ouverte. Ensuite l'ACCEPTATION, apres la chaine reelle :
+  -- le prevenu CONSENT a etre juge aujourd'hui, le juge fixe ce jour-la, puis il ouvre
+  -- l'audience depuis sa salle. Rien n'est pose a la main dans le dossier.
+  v_auj := public.jour_de_jeu_pays('republic');
+  PERFORM pg_temp.siege_juge(JUGE, 'ville_a');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_rendre_sentence(a6, 'corruption_fonctionnaire', 'prison', 1, 0);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF (v ->> 'raison') IS DISTINCT FROM 'audience_non_ouverte' THEN
+    ko := ko + 1; e := e || E'\nP6.0b : un verdict est rendu sans audience ouverte -- ' || v::text; END IF;
+  PERFORM pg_temp.je_suis(PREV_U);
+  v := public.justice_audience_consentir(a6, v_auj);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP6.0b : le prevenu ne peut pas consentir -- ' || v::text; END IF;
+  PERFORM pg_temp.siege_juge(JUGE, 'ville_a');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_audience_fixer(a6, v_auj);
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP6.0b : le jour consenti est refuse -- ' || v::text; END IF;
+  v := public.justice_audience_ouvrir(a6);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP6.0b : l''audience ne s''ouvre pas -- ' || v::text; END IF;
+
   PERFORM pg_temp.siege_juge(JUGE, 'ville_a');
   PERFORM pg_temp.je_suis(JUGE_U);
   v := public.justice_rendre_sentence(a6, 'corruption_fonctionnaire', 'prison', 1, 0);
@@ -566,19 +669,18 @@ BEGIN
     ko := ko + 1; e := e || E'\nP6.3 : l''appel n''est pas ouvert -- ' || coalesce(v_s,'(nul)')
                          || ' ' || v::text; END IF;
 
-  n := n + 1;   -- P6.4 : UN SEUL APPEL PAR AFFAIRE.
+  n := n + 1;   -- P6.4 : UN SEUL APPEL PAR AFFAIRE, ET LE REFUS DIT POURQUOI.
   --
-  -- LE MOTIF RENDU EST CELUI DU STATUT, ET C'EST UN FAIT RELEVE, PAS UN DEFAUT. Une fois l'appel
-  -- ouvert, l'affaire est en statut `appel` : la porte ne trouve plus de jugement de PREMIERE
-  -- INSTANCE a appeler et refuse sous ce motif, avant meme d'arriver a son garde-fou
-  -- `appel_deja_interjete`. Le second appel est donc bien impossible -- par deux chemins. Le
-  -- libelle du refus est le seul reproche qu'on puisse lui faire, et il est SIGNALE au rapport
-  -- plutot que change ici : renommer un motif de refus touche aux messages du navigateur.
+  -- LA DETTE DU 12 OCTOBRE EST PAYEE. La porte controlait le STATUT avant l'unicite : une
+  -- affaire en appel n'etant ni `jugee` ni `relaxe`, elle repondait
+  -- `pas_de_jugement_de_premiere_instance` -- un refus juste sous un motif mensonger. L'ordre
+  -- des gardes est desormais definitif / unicite / statut, et l'epreuve exige LE motif exact :
+  -- un banc qui accepte deux motifs ne mesure plus lequel la porte rend.
   PERFORM pg_temp.je_suis(PREV_U);
   v := public.justice_appel_ouvrir(a6);
   PERFORM pg_temp.je_suis_le_serveur();
   IF coalesce((v ->> 'ok')::boolean, true) IS NOT FALSE
-     OR (v ->> 'raison') NOT IN ('appel_deja_interjete', 'pas_de_jugement_de_premiere_instance') THEN
+     OR (v ->> 'raison') IS DISTINCT FROM 'appel_deja_interjete' THEN
     ko := ko + 1; e := e || E'\nP6.4 : un second appel est possible -- ' || v::text; END IF;
 
   n := n + 1;   -- P6.5 : LE MEME JUGE REEXAMINE, ET SA DECISION EST DEFINITIVE.
@@ -634,6 +736,35 @@ BEGIN
    WHERE affaire = a7 AND type IN ('abandon_poursuites','juge_poursuite_maintenue');
   IF v_n < 2 THEN
     ko := ko + 1; e := e || E'\nP7.2 : les deux faits ne coexistent pas (' || v_n || ')'; END IF;
+
+  n := n + 1;   -- P7.2b : AUCUN VERDICT AVANT QUE LE PROCES AIT EU LIEU (ville_b).
+  --
+  -- LE VERROU D'AUDIENCE DU 13 OCTOBRE 2026, MESURE DES DEUX COTES. D'abord le REFUS : l'affaire
+  -- est regulierement saisie, le juge est bien celui de sa ville, et le jugement est pourtant
+  -- refuse -- l'audience n'a pas ete ouverte. Ensuite l'ACCEPTATION, apres la chaine reelle :
+  -- le prevenu CONSENT a etre juge aujourd'hui, le juge fixe ce jour-la, puis il ouvre
+  -- l'audience depuis sa salle. Rien n'est pose a la main dans le dossier.
+  v_auj := public.jour_de_jeu_pays('republic');
+  PERFORM pg_temp.siege_juge(JUGE, 'ville_b');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_relaxer(a7, 'hooliganisme');
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF (v ->> 'raison') IS DISTINCT FROM 'audience_non_ouverte' THEN
+    ko := ko + 1; e := e || E'\nP7.2b : un verdict est rendu sans audience ouverte -- ' || v::text; END IF;
+  PERFORM pg_temp.je_suis(PREV_U);
+  v := public.justice_audience_consentir(a7, v_auj);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP7.2b : le prevenu ne peut pas consentir -- ' || v::text; END IF;
+  PERFORM pg_temp.siege_juge(JUGE, 'ville_b');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_audience_fixer(a7, v_auj);
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP7.2b : le jour consenti est refuse -- ' || v::text; END IF;
+  v := public.justice_audience_ouvrir(a7);
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nP7.2b : l''audience ne s''ouvre pas -- ' || v::text; END IF;
 
   n := n + 1;   -- P7.3 : ET LE JUGE QUI A CHOISI DE POURSUIVRE VA JUSQU'AU VERDICT.
   -- CE N'EST PAS DU CONFORT DE BANC : un plaignant ne peut pas avoir DEUX affaires vivantes
@@ -972,6 +1103,112 @@ BEGIN
     ko := ko + 1; e := e || E'\nF6 : un fait ordinaire est refuse au navigateur';
   END;
   PERFORM pg_temp.je_suis_le_serveur();
+
+  -- ============================================================ LA PORTE DEROBEE DU VERDICT
+  --
+  -- `justice_condamner(cible, entree)` n'exigeait que le POSTE de juge : ni affaire, ni statut,
+  -- ni audience, ni bareme -- et son entree est un jsonb LIBRE dont la peine est la SOMME de ce
+  -- que le navigateur ecrit dans `motifs`. C'est elle que le chemin judiciaire appelle EN
+  -- PREMIER : la sanction tombe par cette porte, `justice_rendre_sentence` ne fait qu'archiver.
+  -- Verrouiller l'archivage sans verrouiller la sanction n'aurait verrouille rien du tout.
+
+  n := n + 1;   -- F7 : UNE CONDAMNATION QUI NE NOMME AUCUNE AFFAIRE EST REFUSEE.
+  PERFORM pg_temp.siege_juge(JUGE, 'capitale');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_condamner(PREV, jsonb_build_object(
+         'type', 'condamnation', 'country', 'republic',
+         'motifs', jsonb_build_array(jsonb_build_object('type', 'Invente', 'jours', 30))));
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF (v ->> 'raison') IS DISTINCT FROM 'condamnation_sans_affaire' THEN
+    ko := ko + 1; e := e || E'\nF7 : une condamnation hors affaire est acceptee -- ' || v::text; END IF;
+  IF EXISTS (SELECT 1 FROM public.jugements j WHERE j.accuse = PREV AND j.motif = 'Invente') THEN
+    ko := ko + 1; e := e || E'\nF7 : la condamnation inventee a laisse une ligne au registre'; END IF;
+
+  n := n + 1;   -- F8 : UNE CONDAMNATION SUR UNE AFFAIRE CLOSE EST REFUSEE.
+  --
+  -- LE JUGE SIEGE A PORT-SAINTE-MARIE, parce que l'affaire a3 y a ete jugee. L'ORDRE DES GARDES
+  -- EST CELUI DE LA PORTE : affaire nommee, affaire existante, COMPETENCE du juge, identite de
+  -- la cible, puis STATUT. Juger a3 depuis Luthecia aurait rendu `pas_juge_de_cette_ville` -- un
+  -- refus juste, mais qui ne mesure pas le verrou que cette epreuve-ci nomme. Le statut est
+  -- mesure par F8, la competence par F12 : chacune sur son propre decor.
+  PERFORM pg_temp.siege_juge(JUGE, 'ville_a');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_condamner(PREV, jsonb_build_object(
+         'type', 'condamnation', 'affaire_id', a3, 'country', 'republic',
+         'motifs', jsonb_build_array(jsonb_build_object('type', 'Invente', 'jours', 30))));
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF (v ->> 'raison') IS DISTINCT FROM 'affaire_non_saisie' THEN
+    ko := ko + 1; e := e || E'\nF8 : une affaire relaxee se recondamne -- ' || v::text; END IF;
+
+  n := n + 1;   -- F9 : LE MANDAT DU DESERTEUR RESTE OUVERT. Il porte `type` 'militaire', il ne juge
+                --      rien et n'attache aucune peine : le verrou ne le concerne pas.
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_condamner(PREV, jsonb_build_object(
+         'acte', 'desertion', 'type', 'militaire', 'country', 'republic',
+         'origine', 'banc_parcours'));
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nF9 : le mandat du deserteur est refuse -- ' || v::text; END IF;
+
+  -- UNE ONZIEME AFFAIRE, POUR MESURER LE COTE QUI PASSE. Toutes les precedentes sont closes : un
+  -- depot est donc possible (`plainte_deja_en_cours` ne s'oppose qu'aux affaires vivantes).
+  PERFORM pg_temp.libere(PREV);
+  PERFORM pg_temp.au_commissariat(PLAI, 'capitale');
+  PERFORM pg_temp.je_suis(PLAI_U);
+  v := public.plainte_deposer(PREV, 'Vol d''un manteau au marche de Luthecia', 'delit');
+  PERFORM pg_temp.je_suis_le_serveur();
+  a11 := v ->> 'id';
+  IF a11 IS NULL THEN RAISE EXCEPTION 'DECOR ROMPU -- le depot du parcours 11 est refuse : %', v::text; END IF;
+  PERFORM pg_temp.parquet_au_tribunal(PROC, 'capitale');
+  PERFORM pg_temp.je_suis(PROC_U);
+  PERFORM public.parquet_poursuivre(a11, 'vol');
+  PERFORM public.parquet_transmettre_juge(a11);
+  PERFORM pg_temp.je_suis_le_serveur();
+
+  n := n + 1;   -- F10 : SAISIE MAIS SANS AUDIENCE OUVERTE, LA PORTE DEROBEE REFUSE AUSSI.
+  PERFORM pg_temp.siege_juge(JUGE, 'capitale');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_condamner(PREV, jsonb_build_object(
+         'type', 'condamnation', 'affaire_id', a11, 'country', 'republic',
+         'motifs', jsonb_build_array(jsonb_build_object('type', 'Vol', 'jours', 1))));
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF (v ->> 'raison') IS DISTINCT FROM 'audience_non_ouverte' THEN
+    ko := ko + 1; e := e || E'\nF10 : la sanction tombe sans audience -- ' || v::text; END IF;
+
+  n := n + 1;   -- F11 : L'AUDIENCE OUVERTE, LA MEME DEMANDE PASSE -- ET LA CIBLE DOIT ETRE CELLE
+                --       DU DOSSIER. Les trois cotes du verrou sont mesures sur la meme affaire.
+  v_auj := public.jour_de_jeu_pays('republic');
+  PERFORM pg_temp.je_suis(PREV_U);
+  PERFORM public.justice_audience_consentir(a11, v_auj);
+  PERFORM pg_temp.je_suis_le_serveur();
+  PERFORM pg_temp.siege_juge(JUGE, 'capitale');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  PERFORM public.justice_audience_fixer(a11, v_auj);
+  v := public.justice_audience_ouvrir(a11);
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nF11 : l''audience de la onzieme affaire ne s''ouvre pas -- ' || v::text; END IF;
+  v := public.justice_condamner(PLAI, jsonb_build_object(
+         'type', 'condamnation', 'affaire_id', a11, 'country', 'republic',
+         'motifs', jsonb_build_array(jsonb_build_object('type', 'Vol', 'jours', 1))));
+  IF (v ->> 'raison') IS DISTINCT FROM 'cible_etrangere_a_l_affaire' THEN
+    ko := ko + 1; e := e || E'\nF11 : le juge condamne une personne etrangere au dossier -- ' || v::text; END IF;
+  v := public.justice_condamner(PREV, jsonb_build_object(
+         'type', 'condamnation', 'affaire_id', a11, 'country', 'republic',
+         'motifs', jsonb_build_array(jsonb_build_object('type', 'Vol', 'jours', 1))));
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF coalesce((v ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    ko := ko + 1; e := e || E'\nF11 : l''audience ouverte, la sanction est refusee -- ' || v::text; END IF;
+
+  n := n + 1;   -- F12 : ET LE JUGE D'UNE AUTRE VILLE N'EMPRUNTE PAS LA PORTE DEROBEE. C'est la
+                --       regle d'autorite des trois autres portes, qui manquait a celle-ci.
+  PERFORM pg_temp.siege_juge(JUGE, 'ville_b');
+  PERFORM pg_temp.je_suis(JUGE_U);
+  v := public.justice_condamner(PREV, jsonb_build_object(
+         'type', 'condamnation', 'affaire_id', a11, 'country', 'republic',
+         'motifs', jsonb_build_array(jsonb_build_object('type', 'Vol', 'jours', 1))));
+  PERFORM pg_temp.je_suis_le_serveur();
+  IF (v ->> 'raison') IS DISTINCT FROM 'pas_juge_de_cette_ville' THEN
+    ko := ko + 1; e := e || E'\nF12 : le juge de Montrouge condamne a Luthecia -- ' || v::text; END IF;
 
   IF ko > 0 THEN RAISE EXCEPTION 'banc parcours : % EPREUVE(S) ROUGE(S) sur % --%', ko, n, e; END IF;
   RAISE EXCEPTION 'banc parcours : LES % EPREUVES SONT VERTES.', n;

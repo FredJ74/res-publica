@@ -11,16 +11,15 @@
 -- aucune regle d'echappement n'a ete reimplementee.
 --
 -- JUSTIFICATION DU SEED (chantier 2C)
--- QUELLE FAMILLE OUVRE QUELLE HABILITATION. Sept lignes : JUSTICE ouvre
--- les quatre fonctions judiciaires, ARMEE ouvre le commandement,
--- PROFESSIONS INTELLECTUELLES la medecine, MEDIAS la communication.
--- L'union des carrieres d'un personnage -- une, ou deux au plus -- donne
--- ses habilitations.
+-- QUELLE FAMILLE OUVRE QUELLE HABILITATION. Sept lignes : JUSTICE ouvre les
+-- quatre fonctions judiciaires, ARMEE ouvre le commandement, PROFESSIONS
+-- INTELLECTUELLES la medecine, MEDIAS la communication. L'union des
+-- carrieres d'un personnage -- une, ou deux -- donne ses habilitations.
 --
 -- ARBITRAGE DE GAME DESIGN
--- SEED INDISPENSABLE, pour la meme raison que habilitations : c'est la
--- table qui dit ce que chaque carriere permet, et un monde neuf doit
--- naitre avec.
+-- SEED INDISPENSABLE, pour la meme raison que `habilitations` : c'est la
+-- table qui dit ce que chaque carriere permet, et un monde neuf doit naitre
+-- avec.
 -- ============================================================================
 
 INSERT INTO public.habilitations_carrieres (habilitation, carriere) VALUES ('avocat', 'magistrat');

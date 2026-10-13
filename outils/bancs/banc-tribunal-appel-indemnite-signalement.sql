@@ -58,10 +58,17 @@ BEGIN
      SET poste = jsonb_build_object('id','juge','city','capitale','name','Juge') WHERE name = JUGE;
 
   -- Un dossier SAISI contre Lee, qualifie assassiner_mains (8 j de reference, plage [4,12]).
+  -- L'AUDIENCE EST OUVERTE DANS LE DECOR (verrou du 13 octobre 2026). Depuis ce verrou, aucune
+  -- condamnation ni relaxe de procedure COMPLETE ne se rend avant que le proces ait eu lieu. Ce
+  -- banc-ci n'eprouve pas la chaine de l'audience -- `banc-parcours-judiciaires` le fait, des
+  -- deux cotes -- mais il ne peut plus l'ignorer : la cle `audience_ouverte_le` est donc posee au
+  -- decor, exactement comme le statut l'est. C'est la PRESENCE de cette cle que
+  -- `affaire_audience_ouverte` lit.
   INSERT INTO public.plaintes_en_cours (id, country, city, data) VALUES
     (A1, 'republic', 'capitale', jsonb_build_object('id', A1, 'auteur', TIERS, 'cible', LEE,
       'motif', 'Il a tue mon chien', 'jour', v_jour, 'city', 'capitale', 'country', 'republic',
-      'status', 'saisie', 'qualification_parquet', 'assassiner_mains')::text);
+      'status', 'saisie', 'qualification_parquet', 'assassiner_mains',
+      'audience_ouverte_le', '2026-10-13T10:00:00Z')::text);
 
   -- =========================================================== L'EXECUTION IMMEDIATE
   n := n + 1;   -- T1 : LA SENTENCE OUVRE LA DETENTION ELLE-MEME. Sans commissaire joueur.
@@ -107,18 +114,17 @@ BEGIN
      OR (v_d->>'status') <> 'appel' THEN
     ko:=ko+1; e:=e||E'\nT6 appel du condamne : '||v::text||' / '||v_d::text; END IF;
 
-  n := n + 1;   -- T7 : UN SEUL APPEL PAR AFFAIRE, ET IL EST REFUSE DEUX FOIS.
+  n := n + 1;   -- T7 : UN SEUL APPEL PAR AFFAIRE, ET LE REFUS NOMME L'UNICITE.
   --
-  -- DEUX REFUS SONT ACCEPTES ICI, ET C'EST MESURE. Une fois l'appel ouvert, le dossier porte le
-  -- statut `appel` : la garde du STATUT se declenche donc AVANT celle de l'unicite, et le refus
-  -- s'appelle `pas_de_jugement_de_premiere_instance`. L'unicite reste garantie -- par la garde du
-  -- statut, par le test de `appel_ouvert_le`, et par le compare-and-swap de l'ecriture -- mais le
-  -- NOM du refus depend de l'ordre des gardes. L'epreuve verifie ce qui compte : qu'un second
-  -- appel ne passe pas. Le libelle exact est note comme une dette d'ergonomie, pas de securite.
+  -- UN SEUL MOTIF EST ACCEPTE DEPUIS LE 13 OCTOBRE 2026. La garde de l'UNICITE passe desormais
+  -- AVANT celle du statut : le refus s'appelle `appel_deja_interjete`, et il dit la vraie raison.
+  -- Avant, le dossier etant en statut `appel`, c'est la garde du STATUT qui repondait --
+  -- `pas_de_jugement_de_premiere_instance`, sur une affaire qui en avait un. La dette
+  -- d'ergonomie nommee ici le 12 octobre est payee ; l'epreuve exige le motif exact.
   PERFORM pg_temp.je_suis(LEE_U);
   v := public.justice_appel_ouvrir(A1);
   PERFORM pg_temp.je_suis_le_serveur();
-  IF coalesce(v->>'raison','') NOT IN ('appel_deja_interjete', 'pas_de_jugement_de_premiere_instance')
+  IF coalesce(v->>'raison','') IS DISTINCT FROM 'appel_deja_interjete'
      OR coalesce((v->>'ok')::boolean, false) IS NOT FALSE THEN
     ko:=ko+1; e:=e||E'\nT7 second appel accepte : '||v::text; END IF;
 
@@ -183,7 +189,8 @@ BEGIN
   INSERT INTO public.plaintes_en_cours (id, country, city, data) VALUES
     (A2, 'republic', 'capitale', jsonb_build_object('id', A2, 'auteur', TIERS, 'cible', LEE,
       'motif', 'Encore', 'jour', v_jour, 'city', 'capitale', 'country', 'republic',
-      'status', 'saisie', 'qualification_parquet', 'assassiner_mains')::text);
+      'status', 'saisie', 'qualification_parquet', 'assassiner_mains',
+      'audience_ouverte_le', '2026-10-13T10:00:00Z')::text);
   -- La caisse de la Justice est dotee largement : elle doit payer l'integralite.
   UPDATE public.caisses_batiments SET data = jsonb_build_object('solde', 50000)
    WHERE id = 'republic_gouvernement-min_just';

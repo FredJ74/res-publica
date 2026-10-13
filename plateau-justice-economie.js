@@ -1957,6 +1957,10 @@ const APPEL_REFUS = {
   affaire_absente:                     "Cette affaire n'existe plus au greffe.",
   appel_exclu_procedure_simplifiee:    "Cette affaire a ete reglee en procedure simplifiee : elle est definitive.",
   pas_de_jugement_de_premiere_instance:"Aucun jugement de premiere instance n'a ete rendu.",
+  // LE REFUS DU SECOND APPEL DIT ENFIN LA VERITE (13 octobre 2026). La porte repondait
+  // « aucun jugement de premiere instance » a un condamne dont l'appel avait DEJA ete juge :
+  // le refus etait juste et son motif mensonger. Les deux etats sont desormais nommes.
+  jugement_d_appel_definitif:          "L'appel de cette affaire a deja ete juge, et ce jugement est definitif.",
   appel_deja_interjete:                "Un appel a deja ete interjete dans cette affaire.",
   autorite_refusee:                    "Seul le condamne ou le Procureur peut interjeter appel.",
   fenetre_appel_fermee:                "La fenetre d'appel de deux jours est fermee.",
@@ -2042,6 +2046,10 @@ const APPEL_JUGE_REFUS = {
   infraction_inconnue:     "Cette infraction n'est pas au code penal.",
   peine_hors_bornes:       "La peine demandee sort des bornes du bareme.",
   amende_hors_bornes:      "L'amende demandee sort des bornes du bareme.",
+  // Le verrou d'audience du 13 octobre 2026 vaut aussi pour le second examen, qui est un
+  // jugement complet. Aucune seconde audience n'est exigee : c'est celle de la premiere
+  // instance, dont la cle reste sur le dossier, qui est lue.
+  audience_non_ouverte:    "L'audience de cette affaire n'a jamais ete ouverte : aucun jugement complet ne peut etre rendu.",
   statut_a_change:         "Le dossier a bouge pendant votre decision."
 };
 
@@ -3177,6 +3185,26 @@ async function appliquerSentence(affaireId, type, infraction, joursServeur, amen
     return;
   }
 
+  // ===========================================================================================
+  // LE PROCES AVANT LE VERDICT (13 octobre 2026)
+  // ===========================================================================================
+  // LE VERROU EST AU SERVEUR, sur les quatre portes de jugement -- `justice_rendre_sentence`,
+  // `justice_relaxer`, `justice_appel_juger` et `justice_condamner`, qui toutes refusent
+  // `audience_non_ouverte`. Ce pre-controle n'EST PAS le verrou : il est au meme endroit et pour
+  // la meme raison que celui d'autorite juste au-dessus. Sans lui, la sanction tomberait par
+  // `justice_condamner`, ou serait refusee apres que les PA ont ete preleves, et le magistrat
+  // lirait « la sanction est tombee, signalez-le » pour une regle qu'il pouvait respecter.
+  //
+  // LA CLE EST CELLE DU SERVEUR, RECOPIEE : `audience_ouverte_le` vient du dossier rendu par
+  // `juge_dossiers` (justiceMemoriserDossiers). L'ecran ne la deduit ni ne la fabrique ; si elle
+  // manque localement, la porte refusera de toute facon.
+  if (!affaire.audience_ouverte_le) {
+    showToast('Audience non ouverte',
+      "Le procès n'a pas eu lieu. Fixez le jour de l'audience, puis ouvrez-la dans votre salle "
+      + "d'audience le jour venu. Aucune condamnation ni relaxe avant cela.", false);
+    return;
+  }
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   // L'AFFAIRE N'EST PLUS MARQUEE « JUGEE » ICI (9 octobre 2026). Cette ecriture avalee visait a
@@ -3376,6 +3404,8 @@ async function appliquerSentence(affaireId, type, infraction, joursServeur, amen
       : vSentence?.raison === 'amende_hors_bornes'
         ? 'Le greffe refuse ce montant : le barème autorise ' + vSentence.amende_min + ' à '
           + vSentence.amende_max + ' FR.'
+      : vSentence?.raison === 'audience_non_ouverte'
+        ? "Le greffe refuse : l'audience de cette affaire n'est pas ouverte. Aucun jugement complet ne se rend avant le procès."
       : vSentence?.raison === 'infraction_inconnue'
         ? "Cette infraction n'est pas au catalogue du serveur. Aucun jugement n'a été enregistré."
       : "Le greffe n'a pas enregistré la sentence, alors que la sanction a été appliquée. Signalez-le.";
@@ -14153,7 +14183,30 @@ async function ouvrirDossiersJuge(pa, cost) {
            + 'Le parquet a abandonne les poursuites. A vous de decider.</div>';
       html += '<button onclick="jugeSuiteAbandon(' + a + ',\'arret\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #6a3010;background:transparent;color:#aa6a30;cursor:pointer">Accepter l\'arret</button>';
       html += '<button onclick="jugeSuiteAbandon(' + a + ',\'poursuivre\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Poursuivre malgre l\'abandon</button>';
+    } else if (st === 'non_lieu') {
+      // LE NON-LIEU N'EST PLUS SANS RECOURS (13 octobre 2026). Le juge de la ville peut ouvrir une
+      // enquete sur un dossier que le parquet a clos. Il ne poursuit pas, il ne qualifie pas et il
+      // ne se saisit pas : l'affaire repasse en enquete, et la chaine qui suit est celle qui
+      // existait. Les deux decisions coexistent -- l'ecran dit la premiere avant d'offrir la
+      // seconde.
+      html += '<div style="font-size:.72rem;color:#aa7a30;font-style:italic;width:100%;margin-bottom:.2rem">'
+           + 'Le parquet a prononce un non-lieu'
+           + (d.non_lieu_par ? ' (' + d.non_lieu_par + ')' : '')
+           + (d.non_lieu_motif_declare ? ' : &laquo;&nbsp;' + d.non_lieu_motif_declare + '&nbsp;&raquo;' : '')
+           + '. Vous pouvez ouvrir une enquete malgre ce non-lieu, qui restera au dossier.</div>';
+      html += '<button onclick="jugeOuvrirEnqueteMalgreNonLieu(' + a + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ouvrir une enquete malgre le non-lieu</button>';
     } else if (st === 'saisie') {
+      // LE PROCES AVANT LE VERDICT (13 octobre 2026). Les boutons restent offerts -- le verrou
+      // vit au serveur, sur les quatre portes de jugement -- mais l'ecran DIT ce qui manque,
+      // plutot que de laisser le magistrat decouvrir le refus apres avoir choisi sa peine.
+      if (!d.audience_ouverte_le) {
+        html += '<div style="font-size:.72rem;color:#aa7a30;font-style:italic;width:100%;margin-bottom:.2rem">'
+             + (d.audience_jour
+                ? 'Proces fixe au jour ' + d.audience_jour + ' : il reste a OUVRIR l\'audience, '
+                  + 'depuis votre salle d\'audience, le jour venu.'
+                : 'Aucun jour de proces n\'est fixe.')
+             + ' Aucune condamnation ni relaxe avant l\'ouverture de l\'audience.</div>';
+      }
       html += '<button onclick="jugeRelaxer(' + a + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a4a20;background:transparent;color:#6a9a6a;cursor:pointer">Relaxer</button>';
       // LA CONDAMNATION REUTILISE L'ECRAN DU BAREME livre le 12 octobre au matin : qualification
       // canonique, puis modulation dans la plage que le serveur annonce.
@@ -14188,6 +14241,11 @@ const JUGE_REFUS = {
   statut_a_change:          "L'etat de ce dossier vient de changer : relisez-le avant de decider.",
   jugement_deja_rendu:      "Un jugement a deja ete rendu sur cette affaire.",
   infraction_inconnue:      "Cette infraction n'est pas au catalogue penal.",
+  // LE VERROU D'AUDIENCE (13 octobre 2026). Il vit au serveur -- sur les quatre portes de
+  // jugement -- et l'ecran ne fait que le nommer. Un dossier dont le proces n'a pas eu lieu ne
+  // se juge pas, et le magistrat doit lire POURQUOI plutot qu'un refus muet.
+  audience_non_ouverte:     "Le proces n'a pas eu lieu : fixez le jour de l'audience, puis ouvrez-la dans votre salle d'audience. Aucun jugement complet avant.",
+  delai_de_jugement_expire: "Le delai de jugement de cette affaire a expire.",
   decision_invalide:        "Decision non reconnue."
 };
 async function jugeSuiteAbandon(id, decision) {
@@ -14202,6 +14260,37 @@ async function jugeSuiteAbandon(id, decision) {
   showToast('Decision enregistree', decision === 'arret'
     ? 'Vous avez accepte l\'arret de la procedure.'
     : 'Vous poursuivez la procedure malgre l\'abandon du parquet.', true);
+  await ouvrirDossiersJuge(0, 0);
+}
+
+// LE JUGE OUVRE L'ENQUETE MALGRE LE NON-LIEU DU PARQUET (13 octobre 2026).
+//
+// CET ECRAN NE DECIDE RIEN. La porte `juge_ouvrir_enquete_malgre_non_lieu` verifie l'autorite de
+// ville, le statut contredit et le delai de jugement, puis consigne un acte DISTINCT de celui du
+// parquet. Le non-lieu reste au dossier et a la chronologie : il n'est pas efface, et le journal
+// apprend la reouverture comme il avait appris le non-lieu.
+//
+// LE MOTIF EST LE TEXTE DU JUGE, pas une conclusion du serveur -- comme le motif du non-lieu
+// etait celui du Procureur. Il est facultatif.
+async function jugeOuvrirEnqueteMalgreNonLieu(id) {
+  const motif = prompt("Ouvrir une enquete malgre le non-lieu du parquet.\n\n"
+    + "Le non-lieu restera au dossier : votre decision s'y ajoute, elle ne l'efface pas. "
+    + "Vous ouvrez une enquete, et rien de plus -- vous ne poursuivez pas et ne vous saisissez pas.\n\n"
+    + "Motif (facultatif) :");
+  if (motif === null) return;
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('juge_ouvrir_enquete_malgre_non_lieu', { p_affaire_id: id, p_motif: motif || null })
+        .then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
+    : null;
+  if (!r || r.ok !== true) {
+    showToast('Enquete non ouverte', (r && JUGE_REFUS[r.raison])
+      || "L'enquete n'a pas pu etre ouverte.", false);
+    return;
+  }
+  showToast('Enquete ouverte', 'Le dossier repasse en enquete malgre le non-lieu du parquet.', true, true);
+  if (typeof addExternalEvent === 'function') {
+    addExternalEvent('JUSTICE : le juge a ouvert une enquete malgre le non-lieu du parquet.');
+  }
   await ouvrirDossiersJuge(0, 0);
 }
 
@@ -15002,4 +15091,391 @@ async function ouvrirAudienceDepuisLaSalle() {
      + '<button style="' + JUSTICE_BTN + ';margin-top:.35rem" onclick="ouvrirChatAudience(document.getElementById(\'audience-id\').value.trim())">Assister a cette affaire</button>'
      + '</div></div>';
   justiceOuvrirModale('Salle d\'audience', h);
+}
+
+// ===========================================================================================
+// LES DOCUMENTS DU GREFFE -- COTE NAVIGATEUR (13 octobre 2026)
+// ===========================================================================================
+//
+// CES CINQ ECRANS NE FABRIQUENT RIEN. Chaque porte serveur -- `casier_mon_extrait`,
+// `casier_extrait_enquete`, `orga_extrait_duplicata`, `greffe_corrompre_dossier`,
+// `greffe_corrompre_faux_casier` -- verifie la PRESENCE au greffe, l'autorite, paie par
+// `payer_ordre`, deplace les caisses, et ECRIT l'objet dans l'inventaire. Le navigateur envoie
+// une intention et affiche un verdict.
+//
+// AUCUN PRELEVEMENT CLIENT. Les cinq ordres sont routes avant `deduireCoutOrdre` : un second
+// prelevement ici prelverait deux fois.
+//
+// AUCUNE MECANIQUE SPECIALE SUR LES DOCUMENTS : pas de vente, pas de chantage, pas de
+// divulgation. Ils se donnent, s'abandonnent et se detruisent par les boutons GENERIQUES de la
+// fiche d'objet, comme n'importe quel autre objet.
+
+const GREFFE_REFUS = {
+  acteur_non_authentifie:        "Votre personnage n'est pas reconnu par le serveur.",
+  personnage_introuvable:        "Votre personnage n'a pas ete retrouve.",
+  greffe_indetermine:            "Aucun greffe competent pour cette ville.",
+  presence_au_greffe_requise:    "Il faut etre au greffe du tribunal competent.",
+  inventaire_plein:              "Votre inventaire est plein : le greffe n'a rien a vous remettre.",
+  caisse_du_tribunal_introuvable:"La caisse de ce tribunal est introuvable. Signalez-le.",
+  caisse_institution_introuvable:"La caisse de votre institution est introuvable. Signalez-le.",
+  caisse_institution_insuffisante:"La caisse de votre institution n'a pas les 100 FR. Rien n'a ete preleve.",
+  autorite_refusee:              "Reserve au Juge, au Commissaire et au Procureur.",
+  aucune_enquete_sur_cette_personne: "Aucune affaire vivante dont vous etes l'autorite ne vise cette personne.",
+  personne_manquante:            "Indiquez la personne concernee.",
+  personne_introuvable:          "Cette personne n'existe pas.",
+  affaire_absente:               "Ce dossier n'existe pas au greffe.",
+  organisation_introuvable:      "Cette organisation n'existe pas.",
+  reserve_au_president_ou_au_secretaire: "Reserve au President ou au Secretaire de l'organisation.",
+  aucun_extrait_original:        "Aucun extrait original n'a ete delivre pour cette organisation : il n'y a pas de duplicata a tirer.",
+  pa_insuffisants:               "Vous n'avez pas assez de PA.",
+  fonds_insuffisants:            "Vous n'avez pas assez d'argent.",
+  ordre_inconnu:                 "Cet ordre n'est pas declare au miroir des couts. Signalez-le.",
+  cout_non_declare:              "Le cout annonce n'est pas celui que le serveur connait. Signalez-le."
+};
+function greffeRefus(v, defaut) {
+  const r = v && v.raison;
+  return (r && GREFFE_REFUS[r]) || defaut || "Le greffe a refuse cette demande.";
+}
+
+// L'INVENTAIRE RENDU PAR LA BASE FAIT AUTORITE. Les portes du greffe ecrivent l'objet
+// DIRECTEMENT sur la ligne du personnage, dans la meme transaction que le paiement : ce
+// navigateur ne doit donc rien fabriquer ni deviner, il RELIT. Meme principe que le commerce PJ,
+// qui recopie l'inventaire rendu par sa transaction plutot que de le recalculer.
+//
+// Une lecture qui echoue ne casse rien : l'objet EST en base, et le prochain chargement de la
+// fiche le montrera. On ne simule jamais un objet qu'on n'a pas lu.
+async function rafraichirInventaireDepuisServeur() {
+  if (typeof sbGet !== 'function' || !state.char?.name) return false;
+  const rows = await sbGet('personnages',
+    'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
+  const inv = (Array.isArray(rows) && rows[0] && Array.isArray(rows[0].inventory))
+    ? rows[0].inventory : null;
+  if (!inv) return false;
+  state.inventory = inv;
+  if (typeof renderInventory === 'function') renderInventory();
+  return true;
+}
+
+// LA MISE EN PAGE D'UN DOCUMENT. Elle ne decide rien : elle lit le `contenu` FIGE que le greffe
+// a ecrit dans l'objet, et elle ne relit jamais la base -- un extrait date ne vaudrait rien s'il
+// se mettait a jour. Les trois especes visibles ont chacune leur presentation.
+function documentOfficielHtml(item) {
+  const c = (item && item.contenu) || {};
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
+  const cadre = 'border:1px solid #2a2010;background:#0c0b05;padding:.7rem';
+  let h = '<div style="' + cadre + '">';
+  h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">'
+     + 'PIECE DELIVREE PAR LE GREFFE</div>';
+  h += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">'
+     + 'Emis par ' + ech(item.emis_par || 'le greffe')
+     + (item.emis_jour != null ? ' — jour ' + ech(item.emis_jour) : '')
+     + (item.tribunal ? ' — tribunal de ' + ech(item.tribunal) : '')
+     + '</div>';
+
+  if (item.genre === 'casier_extrait') {
+    h += '<div style="font-size:.82rem;color:#e0d5b8;margin-bottom:.3rem">Casier judiciaire de '
+       + ech(c.personne || item.sujet || '?') + '</div>';
+    const liste = Array.isArray(c.condamnations) ? c.condamnations : [];
+    if (c.vierge === true || liste.length === 0) {
+      h += '<div style="font-size:.82rem;color:#6a9a6a;font-style:italic">Aucune condamnation inscrite. Casier vierge.</div>';
+    } else {
+      h += '<div style="display:flex;flex-direction:column;gap:.25rem">';
+      liste.forEach(function (l) {
+        h += '<div style="font-size:.78rem;color:#c0b090">'
+           + '<span style="color:#5a4030">jour ' + ech(l.jour) + '</span> — '
+           + ech(l.libelle || l.infraction)
+           + (l.peine ? ' : ' + ech(l.peine) : '')
+           + (l.ville ? ' <span style="color:#6a5a30">(' + ech(l.ville) + ')</span>' : '')
+           + (l.instance === 'appel' ? ' <span style="color:#aa7a30">[appel]</span>' : '')
+           + '</div>';
+      });
+      h += '</div>';
+    }
+  } else if (item.genre === 'domiciliation_extrait') {
+    h += '<div style="font-size:.82rem;color:#e0d5b8;margin-bottom:.3rem">'
+       + ech(c.nom || '?') + (c.duplicata ? ' <span style="color:#aa7a30">(duplicata)</span>' : '') + '</div>';
+    h += '<div style="font-size:.78rem;color:#c0b090;line-height:1.6">'
+       + 'Domiciliation : ' + ech(c.domicile_libelle || c.domicile || '?') + '<br>'
+       + 'Ville : ' + ech(c.ville || '?') + '<br>'
+       + 'President : ' + ech(c.president || '?') + '<br>'
+       + 'Constituee le jour ' + ech(c.constituee_le_jour) + '<br>'
+       + 'Frais de greffe acquittes : ' + ech(c.frais_de_greffe) + ' FR'
+       + '</div>';
+  } else if (item.genre === 'dossier_copie') {
+    h += '<div style="font-size:.82rem;color:#e0d5b8;margin-bottom:.3rem">Dossier '
+       + ech(c.affaire || item.affaire || '?') + '</div>';
+    h += '<div style="font-size:.78rem;color:#c0b090;line-height:1.6">'
+       + 'Mis en cause : ' + ech(c.prevenu || '?') + '<br>'
+       + 'Plaignant : ' + ech(c.plaignant || '?') + '<br>'
+       + 'Etat de la procedure : ' + ech(c.statut || '?') + '<br>'
+       + 'Qualification du parquet : ' + ech(c.qualification_parquet || '—') + '<br>'
+       + 'Qualification retenue : ' + ech(c.qualification_finale || '—')
+       + '</div>';
+    if (c.motif) {
+      h += '<div style="font-size:.78rem;color:#9a8a68;font-style:italic;margin-top:.4rem">'
+         + '&laquo;&nbsp;' + ech(c.motif) + '&nbsp;&raquo;</div>';
+    }
+    const actes = Array.isArray(c.actes) ? c.actes : [];
+    if (actes.length > 0) {
+      h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin:.5rem 0 .2rem">CHRONOLOGIE</div>';
+      h += '<div style="display:flex;flex-direction:column;gap:.15rem">';
+      actes.forEach(function (a) {
+        h += '<div style="font-size:.74rem;color:#8a8060">' + ech(a.rang) + '. '
+           + ech(a.libelle || a.type)
+           + (a.acteur ? ' <span style="color:#6a5a30">— ' + ech(a.acteur) + '</span>' : '')
+           + '</div>';
+      });
+      h += '</div>';
+    }
+    const temoignages = Array.isArray(c.temoignages) ? c.temoignages : [];
+    if (c.audition || temoignages.length > 0) {
+      h += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:#8a6a20;margin:.5rem 0 .2rem">DECLARATIONS</div>';
+      if (c.audition) {
+        h += '<div style="font-size:.74rem;color:#a0a080">' + ech(c.audition.personne) + ' : '
+           + (c.audition.refus ? '<span style="color:#8a8060;font-style:italic">a refuse de repondre</span>'
+                               : '&laquo;&nbsp;' + ech(c.audition.declaration) + '&nbsp;&raquo;') + '</div>';
+      }
+      temoignages.forEach(function (t) {
+        h += '<div style="font-size:.74rem;color:#a0a080">' + ech(t.personne) + ' : '
+           + (t.refus ? '<span style="color:#8a8060;font-style:italic">a refuse de temoigner</span>'
+                      : '&laquo;&nbsp;' + ech(t.declaration) + '&nbsp;&raquo;') + '</div>';
+      });
+    }
+  }
+
+  h += '<div style="font-size:.7rem;color:#5a4030;font-style:italic;margin-top:.5rem">'
+     + 'Cette piece dit l\'etat des registres au jour de sa delivrance. Elle ne se met pas a jour.'
+     + '</div>';
+  h += '</div>';
+  return h;
+}
+
+// MON PROPRE EXTRAIT DE CASIER. Aucune enquete, aucune autorite : c'est son casier.
+async function doCasierMonExtrait() {
+  if (typeof sbRpc !== 'function') return;
+  const v = await sbRpc('casier_mon_extrait', {})
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) {
+    showToast('Extrait non delivre', greffeRefus(v), false);
+    return;
+  }
+  await rafraichirInventaireDepuisServeur();
+  showToast('Extrait delivre',
+    (v.vierge === true
+      ? 'Votre casier est vierge. '
+      : 'Votre casier porte ' + (v.condamnations || 0) + ' condamnation(s). ')
+    + 'L\'extrait est dans votre inventaire — 100 FR de frais de greffe.', true);
+  addJournalEntry('Extrait de casier judiciaire delivre par le greffe.', 'event-neutral');
+  updateUI();
+}
+
+// L'EXTRAIT D'UN AUTRE, DANS UNE ENQUETE. L'ecran ne verifie NI l'autorite NI l'enquete : la
+// porte serveur les verifie, et son refus est nomme. Il demande seulement le nom.
+function ouvrirCasierExtraitEnquete() {
+  document.getElementById('postes-modal-title').textContent = 'Extrait de casier — enquete';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">'
+    + '<div style="font-size:.78rem;color:#8a8060;line-height:1.6;margin-bottom:.8rem">'
+    + 'Reserve au Juge et au Commissaire de la ville d\'une affaire VIVANTE qui vise cette '
+    + 'personne, et au Procureur de la Republique. Les 100 FR sont payes par la caisse de votre '
+    + 'institution ; 1 PA reste a votre charge. L\'extrait est date et fige.'
+    + '</div>'
+    + '<input id="greffe-casier-nom" type="text" maxlength="80" placeholder="Nom exact de la personne" '
+    + 'style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;'
+    + 'font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box">'
+    + '<button onclick="confirmerCasierExtraitEnquete()" style="margin-top:.6rem;'
+    + 'font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;padding:.4rem .8rem;'
+    + 'border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Demander l\'extrait</button>'
+    + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerCasierExtraitEnquete() {
+  const nom = (document.getElementById('greffe-casier-nom')?.value || '').trim();
+  if (!nom) { showToast('Personne requise', 'Indiquez le nom exact.', false); return; }
+  document.getElementById('modal-postes').classList.remove('open');
+  const v = await sbRpc('casier_extrait_enquete', { p_personne: nom })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) {
+    showToast('Extrait non delivre', greffeRefus(v), false);
+    return;
+  }
+  await rafraichirInventaireDepuisServeur();
+  showToast('Extrait delivre',
+    nom + ' : ' + (v.vierge === true ? 'casier vierge' : (v.condamnations || 0) + ' condamnation(s)')
+    + '. 100 FR preleves sur la caisse de votre institution.', true);
+  addJournalEntry('Extrait de casier de ' + nom + ' verse au dossier d\'enquete.', 'event-neutral');
+  updateUI();
+}
+
+// LE DUPLICATA D'UN EXTRAIT DE DOMICILIATION. L'ecran propose les organisations dont le joueur
+// est PRESIDENT ou SECRETAIRE -- la meme regle que la porte, qui la reverifie.
+function ouvrirExtraitDuplicata() {
+  const moi = state.char?.name;
+  const miennes = (state.organisations || []).filter(o => o && (o.president === moi || o.secretaire === moi));
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;line-height:1.6;margin-bottom:.8rem">'
+       + 'Un duplicata ne se tire que d\'un extrait ORIGINAL, c\'est-a-dire d\'une organisation '
+       + 'dont la constitution a donne lieu a des frais de greffe. 75 FR et 1 PA.'
+       + '</div>';
+  if (miennes.length === 0) {
+    html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic">'
+         + 'Vous n\'etes President ni Secretaire d\'aucune organisation.</div>';
+  } else {
+    miennes.forEach(o => {
+      const id = JSON.stringify(o.id).replace(/"/g, '&quot;');
+      html += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0">'
+           + '<div style="font-size:.82rem;color:#e0d5b8">'
+           + (typeof escapeHtmlText === 'function' ? escapeHtmlText(o.nom || o.id) : (o.nom || o.id))
+           + '</div>'
+           + '<button onclick="confirmerExtraitDuplicata(' + id + ')" style="margin-top:.3rem;'
+           + 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;'
+           + 'border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">'
+           + 'Tirer un duplicata (75 FR · 1 PA)</button></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Duplicata d\'un extrait de domiciliation';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerExtraitDuplicata(orgaId) {
+  document.getElementById('modal-postes').classList.remove('open');
+  // LA PORTE S'APPELLE `organisation_extrait_duplicata`, PAS COMME L'ORDRE. L'ordre du
+  // catalogue, sa route et sa ligne du miroir des couts s'appellent `orga_extrait_duplicata`
+  // -- c'est ce nom-la que la porte declare a `payer_ordre`. La FONCTION, elle, porte le nom
+  // long, et appeler l'ordre a sa place rendait un 404 PostgREST affiche « Acces refuse ».
+  // C'est l'invariant 13 du controle d'autorite qui l'a vu, pas un essai a l'ecran.
+  const v = await sbRpc('organisation_extrait_duplicata', { p_organisation_id: orgaId })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) {
+    showToast('Duplicata non delivre', greffeRefus(v), false);
+    return;
+  }
+  await rafraichirInventaireDepuisServeur();
+  showToast('Duplicata delivre',
+    'Le duplicata est dans votre inventaire — 75 FR de frais de greffe.', true);
+  updateUI();
+}
+
+// CORROMPRE LE GREFFIER -- COPIE D'UN DOSSIER. L'ecran liste les affaires du REGISTRE PUBLIC du
+// greffe, qui ne dit que qui est poursuivi, pour quelle categorie et ou en est la procedure : le
+// joueur choisit donc un dossier qu'il a le droit de SAVOIR exister, et c'est le greffier
+// corrompu qui lui en donne le CONTENU.
+async function ouvrirGreffeCorrompreDossier() {
+  document.getElementById('postes-modal-title').textContent = 'Corrompre le greffier — copie d\'un dossier';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;color:#8a8060;font-style:italic">Lecture du registre public...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  // DEUX REGISTRES PUBLICS, PARCE QUE L'ARBITRAGE DIT « EN COURS OU ARCHIVEE » : le role des
+  // affaires vivantes et les archives des affaires closes. Les deux rendent le meme gabarit --
+  // `affaire`, `prevenu`, `categorie`, `statut` -- et ne disent RIEN du contenu des dossiers.
+  const [vVives, vClos] = await Promise.all([
+    sbRpc('justice_affaires_publiques', {}).then(r => Array.isArray(r) ? r[0] : r).catch(() => null),
+    sbRpc('justice_archives_greffe', { p_affaire_id: null }).then(r => Array.isArray(r) ? r[0] : r).catch(() => null)
+  ]);
+  const affaires = []
+    .concat((vVives && Array.isArray(vVives.affaires)) ? vVives.affaires : [])
+    .concat((vClos && Array.isArray(vClos.affaires)) ? vClos.affaires : [])
+    .filter((a, i, t) => a && a.affaire && t.findIndex(x => x.affaire === a.affaire) === i);
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#cc6a44;line-height:1.6;margin-bottom:.8rem">'
+       + 'ACTE ILLEGAL. 300 FR et 3 PA sont preleves A LA TENTATIVE, reussie ou non. Si la '
+       + 'corruption est decouverte, vous n\'obtenez rien et le greffier vous denonce : vous '
+       + 'passez sous avis de recherche pour corruption de fonctionnaire. Le dossier doit etre '
+       + 'celui de CE tribunal.'
+       + '</div>';
+  if (affaires.length === 0) {
+    html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic">'
+         + 'Le registre public ne montre aucune affaire ici.</div>';
+  } else {
+    affaires.forEach(a => {
+      const id = JSON.stringify(a.affaire).replace(/"/g, '&quot;');
+      const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
+      html += '<div style="border-top:1px solid #2a1a0a;padding:.5rem 0">'
+           + '<div style="font-size:.82rem;color:#e0d5b8">' + ech(a.prevenu || '?') + '</div>'
+           + '<div style="font-size:.72rem;color:#8a8060">' + ech(a.statut || '') + ' · '
+           + ech(a.categorie || '') + '</div>'
+           + '<button onclick="confirmerGreffeCorrompreDossier(' + id + ')" style="margin-top:.3rem;'
+           + 'font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;'
+           + 'border:1px solid #6a2a20;background:transparent;color:#cc6a44;cursor:pointer">'
+           + 'Corrompre le greffier (300 FR · 3 PA)</button></div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerGreffeCorrompreDossier(affaireId) {
+  document.getElementById('modal-postes').classList.remove('open');
+  const v = await sbRpc('greffe_corrompre_dossier', { p_affaire_id: affaireId })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) {
+    showToast('Demarche impossible', greffeRefus(v), false);
+    return;
+  }
+  await rafraichirInventaireDepuisServeur();
+  if (v.decouvert === true) {
+    showToast('Corruption decouverte !',
+      'Le greffier vous denonce. Aucun document, et vous etes desormais recherche(e) pour '
+      + 'corruption de fonctionnaire.', false, true);
+    addJournalEntry('Corruption du greffier DECOUVERTE : avis de recherche.', 'event-bad');
+  } else {
+    showToast('Copie obtenue',
+      'La copie integrale du dossier est dans votre inventaire. Elle est authentique, datee, '
+      + 'et figee a aujourd\'hui.', true, true);
+    addJournalEntry('Copie d\'un dossier judiciaire obtenue au greffe.', 'event-bad');
+  }
+  updateUI();
+}
+
+// CORROMPRE LE GREFFIER -- FAUX CASIER VIERGE. Pour n'importe quel PJ. Le casier etant national,
+// n'importe lequel des trois greffes suffit.
+function ouvrirGreffeCorrompreFauxCasier() {
+  document.getElementById('postes-modal-title').textContent = 'Corrompre le greffier — faux casier vierge';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">'
+    + '<div style="font-size:.78rem;color:#cc6a44;line-height:1.6;margin-bottom:.8rem">'
+    + 'ACTE ILLEGAL. 300 FR et 3 PA sont preleves A LA TENTATIVE, reussie ou non. Si la '
+    + 'corruption est decouverte, vous n\'obtenez rien et le greffier vous denonce. Le document '
+    + 'affirme un casier VIERGE au nom de la personne indiquee ; le casier REEL n\'est jamais '
+    + 'modifie — ce qui est inscrit aux registres y reste.'
+    + '</div>'
+    + '<input id="greffe-faux-nom" type="text" maxlength="80" placeholder="Nom exact de la personne" '
+    + 'style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;'
+    + 'font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box">'
+    + '<button onclick="confirmerGreffeCorrompreFauxCasier()" style="margin-top:.6rem;'
+    + 'font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;padding:.4rem .8rem;'
+    + 'border:1px solid #6a2a20;background:transparent;color:#cc6a44;cursor:pointer">'
+    + 'Corrompre le greffier (300 FR · 3 PA)</button>'
+    + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerGreffeCorrompreFauxCasier() {
+  const nom = (document.getElementById('greffe-faux-nom')?.value || '').trim();
+  if (!nom) { showToast('Personne requise', 'Indiquez le nom exact.', false); return; }
+  document.getElementById('modal-postes').classList.remove('open');
+  const v = await sbRpc('greffe_corrompre_faux_casier', { p_personne: nom })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) {
+    showToast('Demarche impossible', greffeRefus(v), false);
+    return;
+  }
+  await rafraichirInventaireDepuisServeur();
+  if (v.decouvert === true) {
+    showToast('Corruption decouverte !',
+      'Le greffier vous denonce. Aucun document, et vous etes desormais recherche(e) pour '
+      + 'corruption de fonctionnaire.', false, true);
+    addJournalEntry('Corruption du greffier DECOUVERTE : avis de recherche.', 'event-bad');
+  } else {
+    showToast('Document obtenu',
+      'L\'extrait est dans votre inventaire. Rien, sur la piece, ne le distingue d\'un vrai.',
+      true, true);
+    addJournalEntry('Faux casier vierge obtenu au greffe.', 'event-bad');
+  }
+  updateUI();
 }

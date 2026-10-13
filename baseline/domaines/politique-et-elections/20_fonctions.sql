@@ -1118,7 +1118,7 @@ AS $function$
 DECLARE
   c_plafond constant integer := 2;
   v_moi text; v_prof record; v_id text; v_nom text; v_pay jsonb; v_pays text;
-  v_deja integer; v_pa integer; v_cost integer;
+  v_deja integer; v_pa integer; v_cost integer; v_jour integer; v_syndicat boolean;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN
@@ -1132,6 +1132,31 @@ BEGIN
 
   SELECT COALESCE(country, 'republic') INTO v_pays
     FROM public.personnages_donnees WHERE name = v_moi;
+
+  -- L'ADHESION, AU SERVEUR. Meme predicat que celui du navigateur : un syndicat de mon pays dont
+  -- je suis membre.
+  SELECT EXISTS (
+    SELECT 1 FROM public.organisations o
+     WHERE left(btrim(coalesce(o.data, '')), 1) = '{'
+       AND (o.data::jsonb ->> 'type') = 'syndicale'
+       AND coalesce(o.data::jsonb ->> 'country', o.country_origine) = v_pays
+       AND EXISTS (SELECT 1 FROM jsonb_array_elements(
+                     CASE WHEN jsonb_typeof(o.data::jsonb -> 'membres') = 'array'
+                          THEN o.data::jsonb -> 'membres' ELSE '[]'::jsonb END) m
+                    WHERE m ->> 'nom' = v_moi))
+    INTO v_syndicat;
+  IF NOT coalesce(v_syndicat, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'adhesion_syndicale_requise'); END IF;
+
+  -- UN SEUL RECRUTEMENT PAR JOUR DE JEU, ET PAR JOUEUR. La trace est le registre historique,
+  -- qui porte desormais le JOUR DE JEU -- l'ancienne cle `jour` y ecrivait un horodatage en
+  -- millisecondes, qui ne permettait aucune comparaison de journee.
+  v_jour := coalesce(public.jour_de_jeu_pays(v_pays), 1);
+  IF EXISTS (SELECT 1 FROM public.militants_recrutes r
+              WHERE r.recruteur = v_moi AND r.country = v_pays
+                AND (r.data ->> 'jour_de_jeu')::integer = v_jour) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'recrutement_du_jour_deja_fait',
+      'jour', v_jour); END IF;
 
   -- PLAFOND COMPTE AU SERVEUR, sur le socle qui fait autorite.
   SELECT count(*) INTO v_deja FROM public.pnj_membres m
@@ -1175,15 +1200,17 @@ BEGIN
       organisation_id = EXCLUDED.organisation_id, grade = EXCLUDED.grade;
 
   -- Le registre historique est CONSERVE : sbGetMesMilitants le lit encore, et on ne retire pas une
-  -- structure dont un lecteur vivant depend.
+  -- structure dont un lecteur vivant depend. Il porte desormais le JOUR DE JEU, qui est la trace
+  -- sur laquelle la garde quotidienne s'appuie.
   INSERT INTO public.militants_recrutes (id, country, recruteur, data)
   VALUES (v_id, v_pays, v_moi, jsonb_build_object('nom', v_nom, 'pnj_id', v_id,
-            'jour', (extract(epoch from now()) * 1000)::bigint))
+            'jour', (extract(epoch from now()) * 1000)::bigint,
+            'jour_de_jeu', v_jour))
   ON CONFLICT (id) DO NOTHING;
 
   RETURN jsonb_build_object('ok', true, 'pnj_id', v_id, 'nom', v_nom, 'metier', 'militant',
     'caracteristiques', public.pnj_metier_profil('militant'),
-    'paiement', v_pay, 'militants', v_deja + 1, 'plafond', c_plafond);
+    'paiement', v_pay, 'militants', v_deja + 1, 'plafond', c_plafond, 'jour', v_jour);
 END; $function$;
 
 -- poste_accepter_nomination(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp

@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 30 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 32 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   actions_tracables_pkey  (contrainte actions_tracables_pkey)
 --   audience_messages_pkey  (contrainte audience_messages_pkey)
 --   audience_paroles_pk  (contrainte audience_paroles_pk)
@@ -18,11 +18,13 @@
 --   defenses_demandes_pk  (contrainte defenses_demandes_pk)
 --   demandes_grace_pkey  (contrainte demandes_grace_pkey)
 --   detentions_pkey  (contrainte detentions_pkey)
+--   documents_officiels_pkey  (contrainte documents_officiels_pkey)
 --   dossiers_actes_un_rang_par_affaire  (contrainte dossiers_actes_un_rang_par_affaire)
 --   dossiers_auditions_pkey  (contrainte dossiers_auditions_pkey)
 --   dossiers_auditions_un_pv_par_affaire_et_personne  (contrainte dossiers_auditions_un_pv_par_affaire_et_personne)
 --   dossiers_judiciaires_actes_pkey  (contrainte dossiers_judiciaires_actes_pkey)
 --   dossiers_judiciaires_actes_types_pkey  (contrainte dossiers_judiciaires_actes_types_pkey)
+--   greffes_tribunaux_pkey  (contrainte greffes_tribunaux_pkey)
 --   impacts_indices_attente_id_unique  (contrainte impacts_indices_attente_id_unique)
 --   impacts_indices_attente_pkey  (contrainte impacts_indices_attente_pkey)
 --   infractions_alias_pkey  (contrainte infractions_alias_pkey)
@@ -46,6 +48,7 @@
 CREATE INDEX audience_messages_par_affaire ON public.audience_messages USING btree (affaire, rang);
 CREATE UNIQUE INDEX defenses_un_avocat_retenu_par_affaire ON public.defenses_demandes USING btree (affaire) WHERE (etat = 'acceptee'::text);
 CREATE UNIQUE INDEX defenses_une_demande_vivante_par_couple ON public.defenses_demandes USING btree (affaire, avocat) WHERE (etat = 'en_attente'::text);
+CREATE INDEX documents_officiels_porteur_idx ON public.documents_officiels USING btree (porteur);
 CREATE INDEX dossiers_actes_par_affaire ON public.dossiers_judiciaires_actes USING btree (affaire, rang);
 CREATE INDEX dossiers_auditions_par_personne ON public.dossiers_auditions USING btree (personne, affaire);
 CREATE INDEX idx_actions_tracables_pays ON public.actions_tracables USING btree (country, city);

@@ -18,9 +18,11 @@ ALTER TABLE public.avocats_barreau ADD CONSTRAINT avocats_barreau_pk PRIMARY KEY
 ALTER TABLE public.defenses_demandes ADD CONSTRAINT defenses_demandes_pk PRIMARY KEY (rang);
 ALTER TABLE public.demandes_grace ADD CONSTRAINT demandes_grace_pkey PRIMARY KEY (id);
 ALTER TABLE public.detentions ADD CONSTRAINT detentions_pkey PRIMARY KEY (id);
+ALTER TABLE public.documents_officiels ADD CONSTRAINT documents_officiels_pkey PRIMARY KEY (id);
 ALTER TABLE public.dossiers_auditions ADD CONSTRAINT dossiers_auditions_pkey PRIMARY KEY (id);
 ALTER TABLE public.dossiers_judiciaires_actes ADD CONSTRAINT dossiers_judiciaires_actes_pkey PRIMARY KEY (id);
 ALTER TABLE public.dossiers_judiciaires_actes_types ADD CONSTRAINT dossiers_judiciaires_actes_types_pkey PRIMARY KEY (type);
+ALTER TABLE public.greffes_tribunaux ADD CONSTRAINT greffes_tribunaux_pkey PRIMARY KEY (pays, ville);
 ALTER TABLE public.impacts_indices_attente ADD CONSTRAINT impacts_indices_attente_pkey PRIMARY KEY (id);
 ALTER TABLE public.infractions ADD CONSTRAINT infractions_pkey PRIMARY KEY (id);
 ALTER TABLE public.infractions_alias ADD CONSTRAINT infractions_alias_pkey PRIMARY KEY (alias);
@@ -52,6 +54,9 @@ ALTER TABLE public.avocats_barreau ADD CONSTRAINT avocats_barreau_tarification_b
 ALTER TABLE public.avocats_barreau ADD CONSTRAINT avocats_barreau_tarification_non_vide CHECK ((btrim(tarification) <> ''::text));
 ALTER TABLE public.defenses_demandes ADD CONSTRAINT defenses_demandes_etat CHECK ((etat = ANY (ARRAY['en_attente'::text, 'acceptee'::text, 'refusee'::text, 'caduque'::text, 'revoquee'::text, 'abandonnee'::text])));
 ALTER TABLE public.defenses_demandes ADD CONSTRAINT defenses_demandes_pas_soi_meme CHECK ((prevenu <> avocat));
+ALTER TABLE public.documents_officiels ADD CONSTRAINT documents_officiels_apparence_declaree CHECK ((genre_apparent = ANY (ARRAY['casier_extrait'::text, 'dossier_copie'::text, 'domiciliation_extrait'::text])));
+ALTER TABLE public.documents_officiels ADD CONSTRAINT documents_officiels_faux_est_un_faux CHECK (((genre = 'casier_faux'::text) = (authentique = false)));
+ALTER TABLE public.documents_officiels ADD CONSTRAINT documents_officiels_genre_declare CHECK ((genre = ANY (ARRAY['casier_extrait'::text, 'casier_faux'::text, 'dossier_copie'::text, 'domiciliation_extrait'::text])));
 ALTER TABLE public.dossiers_auditions ADD CONSTRAINT dossiers_auditions_declaration_ou_refus CHECK ((((refus IS TRUE) AND (declaration IS NULL)) OR ((refus IS FALSE) AND (declaration IS NOT NULL) AND (btrim(declaration) <> ''::text))));
 ALTER TABLE public.dossiers_auditions ADD CONSTRAINT dossiers_auditions_qualite CHECK ((qualite = ANY (ARRAY['prevenu'::text, 'temoin'::text])));
 ALTER TABLE public.dossiers_judiciaires_actes ADD CONSTRAINT dossiers_judiciaires_actes_rang_check CHECK ((rang >= 1));

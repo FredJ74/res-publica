@@ -223,6 +223,17 @@ BEGIN
    WHERE affaire = v_a2 AND type IN ('abandon_poursuites','juge_poursuite_maintenue');
   IF v_n <> 2 THEN ko:=ko+1; e:=e||E'\nT15b : '||v_n||' au lieu de 2'; END IF;
 
+  -- L'AUDIENCE EST OUVERTE ICI (verrou du 13 octobre 2026). Depuis ce verrou, aucune
+  -- condamnation ni relaxe de procedure COMPLETE ne se rend avant que le proces ait eu lieu. Ce
+  -- banc-ci eprouve LE PARQUET et le bareme, pas la chaine de l'audience -- elle est eprouvee
+  -- des deux cotes par `banc-parcours-judiciaires`. La cle est donc posee au decor, par le
+  -- serveur, exactement comme le statut l'a ete : c'est sa PRESENCE que
+  -- `affaire_audience_ouverte` lit.
+  UPDATE public.plaintes_en_cours
+     SET data = (data::jsonb || jsonb_build_object(
+                   'audience_ouverte_le', '2026-10-13T10:00:00Z'))::text
+   WHERE id = v_a2;
+
   n := n + 1;   -- T19 : peine hors bornes refusee (assassiner_mains = 8 j -> [4,12]).
   PERFORM pg_temp.je_suis(JUGE_U);
   v := public.justice_rendre_sentence(v_a2, 'assassiner_mains', 'prison', 13, 0);
@@ -271,7 +282,7 @@ BEGIN
 
   v_a2 := 'banc-aff-5';
   INSERT INTO public.plaintes_en_cours (id, country, city, data) VALUES (v_a2, 'republic', 'capitale',
-    jsonb_build_object('id',v_a2,'auteur',BEN,'cible',FLIC,'motif','Incendie','status','saisie','qualification_parquet','incendier','city','capitale','country','republic','jour',1)::text);
+    jsonb_build_object('id',v_a2,'auteur',BEN,'cible',FLIC,'motif','Incendie','status','saisie','qualification_parquet','incendier','city','capitale','country','republic','jour',1,'audience_ouverte_le','2026-10-13T10:00:00Z')::text);
   n := n + 1;   -- T17 : la relaxe est un VERDICT -- peine NULL, jamais zero.
   PERFORM pg_temp.je_suis(JUGE_U);
   v := public.justice_relaxer(v_a2);

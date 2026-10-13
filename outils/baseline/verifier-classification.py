@@ -161,8 +161,19 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # `audience_messages` est C : un monde neuf nait sans proces, donc sans debats.
 # ET `justice_barreau_qualifications` A DISPARU : l'abstraction d'attente du barreau, posee vide
 # le 12 octobre au soir faute d'arbitrage, est SUPPRIMEE -- la carriere JUSTICE qualifie desormais.
-TABLES_ATTENDUES = 317
-EMPREINTE_LISTE = "75f5f86ab69bb8ab641b2073cff28c3c"   # md5(string_agg(relname,',' order by relname collate "C"))
+# 13 OCTOBRE 2026 -- DEUX TABLES DE PLUS, 317 -> 319, TOUTES DEUX DU GREFFE.
+# `documents_officiels` est C, et c'est une CONSEQUENCE, pas un choix de rangement : l'objet
+# d'inventaire d'un document est une copie figee posee sur la ligne du personnage, et la vue
+# `personnages` accorde UPDATE au client -- il est donc forgeable. L'authenticite ne peut vivre
+# que dans un registre ferme a tout droit client, dont un faux ne peut pas produire
+# l'identifiant. Un monde neuf nait sans aucun document emis : y semer un extrait, ou pire un
+# faux, serait inventer un acte de greffe que personne n'a demande.
+# `greffes_tribunaux` est A et SEEDEE : trois lignes, un greffe par ville, et le greffier y est
+# un PNJ PERMANENT -- `postes_attribues_jamais_greffier` interdit en base d'en faire un poste de
+# PJ. Sans ces trois lignes, `greffe_signataire` ne trouve rien a signer et aucun document ne
+# peut etre emis dans un monde neuf.
+TABLES_ATTENDUES = 319
+EMPREINTE_LISTE = "bc283117c2e555ce1b0e40a6e35f6a68"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

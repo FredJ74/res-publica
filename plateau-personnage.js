@@ -3267,9 +3267,24 @@ async function ouvrirDetailObjetInventaire(idx) {
     if (fiche) ficheHtml = ficheOfficielleHtml(fiche);
   }
 
+  // UN DOCUMENT OFFICIEL SE LIT (13 octobre 2026). Extrait de casier, copie de dossier, extrait
+  // de domiciliation : le contenu est FIGE dans l'objet au moment de la delivrance, et c'est
+  // celui-la qui s'affiche -- jamais une relecture de la base, sans quoi un extrait date ne
+  // vaudrait rien. Le rendu est entierement delegue a `documentOfficielHtml`, qui ne decide rien
+  // non plus : elle met en page ce que le greffe a ecrit.
+  //
+  // ET IL NE DIT PAS S'IL EST AUTHENTIQUE, parce que l'objet ne le sait pas : la provenance vit
+  // dans `documents_officiels`, une table sans aucun droit client. Un faux casier s'affiche donc
+  // exactement comme un vrai -- c'est la regle.
+  let documentHtml = '';
+  if (item.type === 'document_officiel' && typeof documentOfficielHtml === 'function') {
+    documentHtml = documentOfficielHtml(item);
+  }
+
   let html = '<div style="padding:1rem">';
   html += imageHtml;
   html += '<div style="font-size:.85rem;color:#a0a080;line-height:1.6;margin-bottom:.8rem">' + (item.desc || '') + legal + '</div>';
+  if (documentHtml) html += documentHtml + '<div style="height:.8rem"></div>';
   if (ficheHtml) html += ficheHtml + '<div style="height:.8rem"></div>';
 
   html += '<div style="display:flex;flex-direction:column;gap:.4rem">';

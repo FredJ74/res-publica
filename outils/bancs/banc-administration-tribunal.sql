@@ -64,16 +64,25 @@ BEGIN
   DELETE FROM public.detentions WHERE nom = BEN;
   INSERT INTO public.administrateurs (user_id, libelle) VALUES (ADMIN_U::uuid, 'Banc');
 
+  -- L'AUDIENCE EST OUVERTE DANS LE DECOR (verrou du 13 octobre 2026). Depuis ce verrou, aucune
+  -- condamnation ni relaxe de procedure COMPLETE ne se rend avant que le proces ait eu lieu. Ce
+  -- banc-ci n'eprouve pas la chaine de l'audience -- `banc-parcours-judiciaires` le fait, des
+  -- deux cotes -- mais il ne peut plus l'ignorer : la cle `audience_ouverte_le` est donc posee au
+  -- decor, exactement comme le statut l'est. C'est la PRESENCE de cette cle que
+  -- `affaire_audience_ouverte` lit.
   INSERT INTO public.plaintes_en_cours (id, country, city, data) VALUES
     ('banc-adm-1', 'republic', 'capitale', jsonb_build_object('status', 'au_parquet',
       'cible', BEN, 'plaignant', MARS, 'motif', 'Vol', 'infraction_constatee', 'vol',
-      'country', 'republic', 'city', 'capitale')::text),
+      'country', 'republic', 'city', 'capitale',
+      'audience_ouverte_le', '2026-10-13T10:00:00Z')::text),
     ('banc-adm-2', 'republic', 'ville_b', jsonb_build_object('status', 'au_parquet',
       'cible', BEN, 'plaignant', MARS, 'motif', 'Vol', 'infraction_constatee', 'vol',
-      'country', 'republic', 'city', 'ville_b')::text),
+      'country', 'republic', 'city', 'ville_b',
+      'audience_ouverte_le', '2026-10-13T10:00:00Z')::text),
     ('banc-adm-3', 'republic', 'capitale', jsonb_build_object('status', 'au_parquet',
       'cible', BEN, 'plaignant', MARS, 'motif', 'Vol', 'infraction_constatee', 'vol',
-      'country', 'republic', 'city', 'capitale')::text);
+      'country', 'republic', 'city', 'capitale',
+      'audience_ouverte_le', '2026-10-13T10:00:00Z')::text);
 
   -- ------------------------------------- T1 : UN JOUEUR ORDINAIRE N'EST PAS ADMINISTRATEUR
   n := n + 1;

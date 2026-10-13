@@ -3484,7 +3484,13 @@ async function doRecruterMilitants(pa, cost) {
     const motifs = {
       plafond_militants: 'Vous avez déjà 2 militants recrutés (maximum).',
       paiement_refuse: pa + ' PA requis.',
-      acteur_non_authentifie: 'Votre personnage n\'est pas identifié.'
+      acteur_non_authentifie: 'Votre personnage n\'est pas identifié.',
+      // LES DEUX REFUS DESCENDUS AU SERVEUR LE 13 OCTOBRE 2026. Les deux gardes existaient
+      // deja -- l'ordre les annonce dans sa description -- mais elles ne vivaient que dans ce
+      // navigateur. Les pre-controles ci-dessus sont CONSERVES : ils evitent un appel dont le
+      // refus est certain, ils ne remplacent pas la garde.
+      adhesion_syndicale_requise: 'Il faut être membre d\'un syndicat actif pour recruter des militants.',
+      recrutement_du_jour_deja_fait: 'Un seul recrutement de militant par jour de jeu.'
     };
     showToast('Recrutement impossible',
       motifs[r && r.raison] || 'Personne n\'a voulu s\'engager.', false);
@@ -9878,4 +9884,148 @@ async function recalculerPuissanceApresRetraitGreveGenerale(ggId) {
 
   const palier = palierGreveGenerale(adherentsUniques);
   await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { puissance_niveau: palier ? palier.niveau : 1 }).catch(() => {});
+}
+
+// ===========================================================================================
+// LES SYNDICATS ETUDIANTS DE LA SALLE DE REUNION (13 octobre 2026)
+// ===========================================================================================
+//
+// DEUX ECRANS, ET ILS NE DECIDENT RIEN. `syndicat_etudiant_domicilier` verifie la PRESENCE dans
+// la salle, paie 150 FR de frais de greffe a la caisse du Tribunal par `payer_ordre`, ecrit le
+// syndicat et DELIVRE l'extrait de domiciliation -- le tout dans une seule transaction. Le
+// navigateur envoie un nom et affiche un verdict.
+//
+// AUCUNE EXCLUSIVITE. La porte ne verifie PAS si le local est deja occupe : plusieurs syndicats
+// sont domicilies ici en meme temps, et c'est la nature nouvelle de la piece. C'est l'inverse
+// exact de `confirmerCreationOrga`, le chemin des locaux loues, qui refuse sur `localId` -- et
+// ce chemin-la n'est plus atteignable ici, la salle n'etant plus louable.
+//
+// AUCUNE PREROGATIVE NOUVELLE. Un syndicat etudiant est un syndicat : les ecrans de membres,
+// d'adhesion et d'ordres sont CEUX QUI EXISTENT, reutilises tels quels.
+
+const SYNDICAT_ETUDIANT_LOCAL = 'universite:salle_reunion';
+
+const SYNDICAT_REFUS = {
+  acteur_non_authentifie: "Votre personnage n'est pas reconnu par le serveur.",
+  personnage_introuvable: "Votre personnage n'a pas ete retrouve.",
+  nom_requis:             "Donnez un nom a votre syndicat (deux caracteres au moins).",
+  nom_trop_long:          "Nom trop long (80 caracteres au plus).",
+  presence_en_salle_de_reunion_requise: "Il faut etre dans la salle de reunion de l'universite.",
+  inventaire_plein:       "Votre inventaire est plein : le greffe n'aurait pas ou vous remettre l'extrait.",
+  caisse_du_tribunal_introuvable: "La caisse du tribunal est introuvable. Signalez-le.",
+  pa_insuffisants:        "Vous n'avez pas assez de PA (2 requis).",
+  fonds_insuffisants:     "Vous n'avez pas les 150 FR de frais de greffe.",
+  ordre_inconnu:          "Cet ordre n'est pas declare au miroir des couts. Signalez-le.",
+  cout_non_declare:       "Le cout annonce n'est pas celui que le serveur connait. Signalez-le."
+};
+
+function ouvrirSyndicatEtudiantCreer() {
+  document.getElementById('postes-modal-title').textContent = 'Domicilier un syndicat etudiant';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">'
+    + '<div style="font-size:.78rem;color:#8a8060;line-height:1.6;margin-bottom:.8rem">'
+    + '150 FR de <strong style="color:#c0b090">frais de greffe</strong> — verses a la caisse du '
+    + 'Tribunal — et 2 PA. Aucun loyer, aucun cout recurrent, aucune exclusivite : plusieurs '
+    + 'syndicats sont domicilies dans cette salle. La constitution vous delivre un '
+    + '<strong style="color:#c0b090">extrait de domiciliation</strong> dans votre inventaire.'
+    + '</div>'
+    + '<input id="syndet-nom" type="text" maxlength="80" placeholder="Nom du syndicat" '
+    + 'style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;'
+    + 'font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.4rem">'
+    + '<textarea id="syndet-desc" maxlength="300" rows="3" placeholder="Objet du syndicat (facultatif)" '
+    + 'style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;'
+    + 'font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;resize:vertical"></textarea>'
+    + '<button onclick="confirmerSyndicatEtudiantCreer()" style="margin-top:.6rem;'
+    + 'font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;padding:.4rem .8rem;'
+    + 'border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">'
+    + 'Domicilier (150 FR · 2 PA)</button>'
+    + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerSyndicatEtudiantCreer() {
+  const nom = (document.getElementById('syndet-nom')?.value || '').trim();
+  const desc = (document.getElementById('syndet-desc')?.value || '').trim();
+  if (!nom || nom.length < 2) { showToast('Nom requis', 'Donnez un nom a votre syndicat.', false); return; }
+  if (typeof sbRpc !== 'function') return;
+  document.getElementById('modal-postes').classList.remove('open');
+  const v = await sbRpc('syndicat_etudiant_domicilier', { p_nom: nom, p_desc: desc || null })
+    .then(r => Array.isArray(r) ? r[0] : r).catch(() => null);
+  if (!v || v.ok !== true) {
+    const r = v && v.raison;
+    showToast('Domiciliation refusee',
+      (r && SYNDICAT_REFUS[r]) || "Le greffe n'a pas enregistre la domiciliation.", false);
+    return;
+  }
+  // LA BASE FAIT AUTORITE SUR LES DEUX ECRITURES : le syndicat et l'extrait. On relit.
+  if (typeof chargerOrganisations === 'function') await chargerOrganisations().catch(() => {});
+  if (typeof rafraichirInventaireDepuisServeur === 'function') await rafraichirInventaireDepuisServeur();
+  showToast('Syndicat domicilie',
+    nom + ' est domicilie a la salle de reunion. L\'extrait de domiciliation est dans votre '
+    + 'inventaire — 150 FR de frais de greffe.', true, true);
+  addJournalEntry('Syndicat etudiant domicilie : ' + nom + '.', 'event-good');
+  updateUI();
+  ouvrirSyndicatsEtudiants();
+}
+
+// LES SYNDICATS DOMICILIES ICI. L'ecran REUTILISE les fonctions qui existent -- gestion des
+// membres, demande d'adhesion, ordres d'organisation -- et n'en ajoute aucune. Le duplicata de
+// l'extrait, lui, passe par la porte du GREFFE : il se demande au tribunal, pas ici.
+function ouvrirSyndicatsEtudiants() {
+  const moi = state.char?.name;
+  const ici = (state.organisations || []).filter(o => o && o.localId === SYNDICAT_ETUDIANT_LOCAL);
+  const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(t) : String(t == null ? '' : t);
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;line-height:1.6;margin-bottom:.8rem">'
+       + 'Les syndicats etudiants domicilies dans cette salle. Elle n\'est louable par personne, '
+       + 'et aucun syndicat ne la privatise.'
+       + '</div>';
+  if (ici.length === 0) {
+    html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic">'
+         + 'Aucun syndicat n\'est domicilie ici pour l\'instant.</div>';
+  }
+  ici.forEach(o => {
+    const id = JSON.stringify(o.id).replace(/"/g, '&quot;');
+    const membres = Array.isArray(o.membres) ? o.membres : [];
+    const suisMembre = membres.some(m => m && m.nom === moi);
+    const suisDirigeant = (o.president === moi || o.secretaire === moi || o.chef === moi);
+    html += '<div style="border-top:1px solid #2a1a0a;padding:.6rem 0">'
+         + '<div style="font-size:.84rem;color:#E8C97A">' + ech(o.nom || o.id) + '</div>'
+         + '<div style="font-size:.72rem;color:#8a8060">'
+         + membres.length + ' membre(s)'
+         + (o.president ? ' · President : ' + ech(o.president) : '')
+         + (o.secretaire ? ' · Secretaire : ' + ech(o.secretaire) : '')
+         + '</div>';
+    if (o.desc) {
+      html += '<div style="font-size:.76rem;color:#9a8a68;font-style:italic;margin-top:.2rem">'
+           + ech(o.desc) + '</div>';
+    }
+    html += '<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.4rem">';
+    if (!suisMembre) {
+      html += '<button onclick="demanderAdhesion(' + id + ')" style="font-family:Bebas Neue,sans-serif;'
+           + 'font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #4a6aaa;'
+           + 'background:transparent;color:#6a8aca;cursor:pointer">Demander a adherer</button>';
+    } else {
+      html += '<button onclick="ouvrirGestionMembres(' + id + ')" style="font-family:Bebas Neue,sans-serif;'
+           + 'font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a2a10;'
+           + 'background:transparent;color:#9a8a4a;cursor:pointer">Membres</button>';
+      html += '<button onclick="ouvrirOrdresOrga(' + id + ')" style="font-family:Bebas Neue,sans-serif;'
+           + 'font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #3a2a10;'
+           + 'background:transparent;color:#9a8a4a;cursor:pointer">Ordres</button>';
+    }
+    if (suisDirigeant) {
+      html += '<button onclick="ouvrirDemandesAdhesion(' + id + ')" style="font-family:Bebas Neue,sans-serif;'
+           + 'font-size:.72rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #8a6a20;'
+           + 'background:transparent;color:#C9A84C;cursor:pointer">Demandes d\'adhesion</button>';
+    }
+    html += '</div></div>';
+  });
+  html += '<div style="font-size:.72rem;color:#5a4030;font-style:italic;margin-top:.8rem">'
+       + 'Le duplicata de l\'extrait de domiciliation se demande au GREFFE du tribunal, par le '
+       + 'President ou le Secretaire.</div>';
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Syndicats etudiants';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
 }

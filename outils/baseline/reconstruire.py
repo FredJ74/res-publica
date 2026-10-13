@@ -623,7 +623,14 @@ def controles_du_monde(cat):
     # judiciaire, append-only ; `justice_faits_publics` dit quels actes sont publics et avec quelle
     # phrase. ET `justice_barreau_qualifications` EST SUPPRIMEE : garder une table vide qui ne dit
     # plus rien serait garder un mensonge en place parce qu'il existe.
-    att("tables creees", len(cat.tables), 312)
+    # 314 LE 13 OCTOBRE 2026 : +2, les deux tables du greffe. `documents_officiels` est le
+    # REGISTRE DES DOCUMENTS OFFICIELS, ferme a tout droit client : l'objet pose dans
+    # l'inventaire est une copie figee, et la vue `personnages` laisse le navigateur mettre a
+    # jour sa ligne -- l'authenticite ne peut donc vivre que dans une table dont un faux ne
+    # peut pas produire l'identifiant. `greffes_tribunaux` nomme le greffier de chacun des
+    # trois tribunaux, et c'est un PNJ PERMANENT : la contrainte
+    # `postes_attribues_jamais_greffier` interdit en base d'en faire un poste de PJ.
+    att("tables creees", len(cat.tables), 314)
     att("vues creees", len(cat.vues), 2)
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
@@ -815,8 +822,13 @@ def controles_du_monde(cat):
     # pour le greffe public et le Journal, une pour la citation interne partagee par les deux
     # portes de citation, et `sans_commentaires` -- l'outil qui empeche une preuve negative de
     # mesurer le commentaire qui explique l'interdiction.
-    att("signatures de fonction creees", cat.n_fonctions, 893)
-    att("noms de fonction distincts", len(cat.fonctions), 889,
+    # 905 LE 13 OCTOBRE 2026 : +12. Une pour le juge qui ouvre l'enquete malgre le non-lieu du
+    # parquet, et onze pour le greffe : le signataire, le contenu du casier, l'emission d'un
+    # document, les trois extraits (le mien, celui d'une enquete, le duplicata de
+    # domiciliation), la copie d'un dossier, les deux corruptions du greffier, la denonciation
+    # automatique qui suit un echec, et la domiciliation d'un syndicat etudiant.
+    att("signatures de fonction creees", cat.n_fonctions, 905)
+    att("noms de fonction distincts", len(cat.fonctions), 901,
         "4 fonctions sont surchargees : moins de noms que de signatures")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
@@ -929,7 +941,15 @@ def controles_du_monde(cat):
     # prononcee. La categorie `delit` est donc nee avec les DEUX NOMBRES du delit mineur, et cette
     # contrainte garantit que personne ne les herite jamais : une infraction sans bareme propre ne
     # peut pas la porter. Le generateur du code penal refuse la meme chose, de son cote.
-    att("contraintes posees", len(cat.contraintes), 606)
+    # 613 le 13 octobre 2026 au soir : +7. Deux cles primaires (les deux tables du greffe),
+    # une cle etrangere, et QUATRE CHECK QUI SONT DU FOND, PAS DE LA PLOMBERIE :
+    # `documents_officiels_faux_est_un_faux` lie le genre a l'authenticite -- un faux casier
+    # est le SEUL genre qui puisse etre inauthentique, et il ne peut pas etre autre chose ;
+    # `documents_officiels_apparence_declaree` interdit qu'un document MONTRE qu'il est un
+    # faux ; `postes_attribues_jamais_greffier` interdit au greffe d'etre un poste de PJ ; et
+    # `locations_actives_salle_reunion_non_louable` interdit de relouer la salle de reunion de
+    # l'universite -- la regle n'est pas « le bouton est parti », elle est en base.
+    att("contraintes posees", len(cat.contraintes), 613)
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -994,7 +1014,10 @@ def controles_du_monde(cat):
     # rend structurellement impossibles deux avocats retenus sur la meme defense : le premier qui
     # accepte gagne, et la base le garantit sans qu'aucune relecture n'ait a tenir contre la
     # concurrence. `defenses_une_demande_vivante_par_couple` tue le double clic.
-    att("index autonomes crees", len(cat.index), 186)
+    # 187 le 13 octobre 2026 : +1, `documents_officiels_porteur` -- l'inventaire d'un
+    # personnage se relit par son porteur, et cette lecture a lieu a chaque ouverture de fiche
+    # d'objet.
+    att("index autonomes crees", len(cat.index), 187)
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
@@ -1077,7 +1100,15 @@ def controles_du_monde(cat):
     # compagnies_militaires rejoint donc les tables a RLS active SANS AUCUNE POLICY -- l'etat
     # cible, pas un oubli. S'il remontait a 283 sans migration, ce serait la fuite qui serait
     # revenue.
-    att("policies creees", len(cat.policies), 282)
+    # 281 le 13 octobre 2026, ET C'EST ENCORE UNE BAISSE VOULUE : `jugements_insertion_juge`
+    # est SUPPRIMEE. Elle laissait un juge INSERER lui-meme une ligne de jugement par
+    # PostgREST, sans affaire, sans statut et sans audience -- c'est-a-dire contourner le
+    # verrou pose le meme jour dans les quatre portes du verdict. Les deux tables neuves du
+    # greffe naissent avec la RLS ACTIVE ET AUCUNE POLICY, l'etat cible : `documents_officiels`
+    # est la seule chose qu'un faux ne puisse pas fabriquer, et une policy de lecture, meme
+    # etroite, en ferait un oracle d'authenticite. S'il remontait a 282 sans migration, ce
+    # serait l'ecriture directe des jugements qui serait revenue.
+    att("policies creees", len(cat.policies), 281)
     # 32 le 10 octobre 2026 : +1, purges_residus_bancs_id_seq -- la cle bigserial de l'archive
     # des purges.
     # 34 l'apres-midi du 12 octobre 2026 : +1, la sequence de `justice_indemnites.rang`. Elle

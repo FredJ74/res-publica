@@ -12,17 +12,17 @@
 --
 -- JUSTIFICATION DU SEED (chantier 2C)
 -- LES DIX FAMILLES PROFESSIONNELLES, miroir serveur de CAREERS (data.js).
--- C'est le registre que lisent carrieres_de, habilitations_carrieres et
--- universite_cursus : sans lui, aucune verification de carriere n'est
+-- C'est le registre que lisent `carrieres_de`, `habilitations_carrieres` et
+-- `universite_cursus` : sans lui, aucune verification de carriere n'est
 -- possible au serveur, et un personnage redevient le couteau suisse
--- professionnel que le lot du 12 octobre 2026 ferme. Registre d'autorite
--- -- aucune fonction ne l'ecrit, chaque ligne est une migration.
+-- professionnel que ce lot ferme. Registre d'autorite -- aucune fonction ne
+-- l'ecrit, chaque ligne est une migration.
 --
 -- ARBITRAGE DE GAME DESIGN
 -- SEED INDISPENSABLE. Un monde neuf doit naitre avec ses dix carrieres :
--- elles sont le vocabulaire de la creation de personnage ET la condition
--- de toutes les fonctions specialisees. Une table vide fermerait le poste
--- de juge, de procureur, de commissaire, de commandant, et le barreau.
+-- elles sont le vocabulaire de la creation de personnage ET la condition de
+-- toutes les fonctions specialisees. Une table vide fermerait le poste de
+-- juge, de procureur, de commissaire, de commandant et le barreau.
 -- ============================================================================
 
 INSERT INTO public.carrieres (id, libelle, ordre) VALUES ('business', 'Affaires — Homme d''affaires / Lobbyiste', '2');
