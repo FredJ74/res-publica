@@ -864,6 +864,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   } else {
     pieceImg.style.background = room.imageBg || 'linear-gradient(135deg,#0a0a07,#0f0d08)';
   }
+  // Le décor personnalisé doit rester entier, quelle que soit la taille d'écran.
+  // Toujours réinitialiser l'attribut lors d'un changement de pièce.
+  pieceImg.removeAttribute('data-commerce-decor');
   if (typeof commercePjFondsIci === 'function') {
     const fondsId = commercePjFondsIci();
     if (fondsId) {
@@ -875,6 +878,7 @@ function enterRoom(buildingId, roomId, tabEl) {
           const path = rows[0]?.image_path;
           if (!path || state.currentRoom !== roomAtRequest || state.currentBuilding !== buildingAtRequest) return;
           const url = SUPABASE_URL + '/storage/v1/object/public/commerce-decors/' + encodeURIComponent(path);
+          pieceImg.setAttribute('data-commerce-decor', '1');
           pieceImg.style.backgroundImage = 'url("' + url + '")';
         }).catch(() => {});
     }
