@@ -8034,6 +8034,7 @@ const CHARBON_PLAFOND = 400;
 const RESSOURCES_ECONOMIE = {
   // --- Matieres premieres (livrees) ---
   cereales:     { label: 'Céréales & légumes', icon: 'ti-wheat',  prixBase: 3,  prixAchatFournisseur: 1.5, plafond: 150, source: 'livraison' },
+  laitages:     { label: 'Laitages', icon: 'ti-milk', prixBase: 3, prixAchatFournisseur: 1.5, plafond: 150, source: 'livraison' },
   poisson:      { label: 'Poisson',      icon: 'ti-fish',        prixBase: 4,  prixAchatFournisseur: 2,   plafond: 125, source: 'livraison' },
   viande:       { label: 'Viande',       icon: 'ti-meat',        prixBase: 5,  prixAchatFournisseur: 2.5, plafond: 125, source: 'livraison' },
   bois:         { label: 'Bois',         icon: 'ti-trees',       prixBase: 5,  prixAchatFournisseur: 2.5, plafond: 750, source: 'livraison' },
