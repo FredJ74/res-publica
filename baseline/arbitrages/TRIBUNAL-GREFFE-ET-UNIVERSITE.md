@@ -19,16 +19,13 @@ livré est décrit dans `baseline/CONTROLE-GLOBAL.json`, section
 
 **Statut technique :** arbitrage enregistré ; implémentation transversale et vérifications restent à faire. Ne pas déclarer le chantier clos.
 
-## 2. Le greffier n'a de nom que dans la capitale
+## 2. Greffiers nommés dans les trois tribunaux — ARBITRAGE VALIDÉ
 
-`greffes_tribunaux` porte trois lignes. Une seule nomme son greffier : **`Greffier Petit`**, à
-Luthécia. Les deux greffes locaux ont `greffier_pnj = NULL`, et `greffe_signataire` replie alors
-sur **« Greffe du tribunal de Port-Sainte-Marie »** / **« … de Montrouge »** — un document est
-donc **toujours signé**, jamais anonyme.
+**Décision :** chaque tribunal de Républia doit avoir son **propre greffier PNJ nommé** : Luthécia (Greffier Petit, existant), Port-Sainte-Marie et Montrouge (deux greffiers distincts à nommer). Le greffier n'est **jamais un poste accessible aux PJ** ; conserver la contrainte `postes_attribues_jamais_greffier`.
 
-**La décision attendue est un casting**, pas une mécanique : faut-il deux greffiers nommés de
-plus ? La règle de fond est déjà verrouillée en base — le greffe **n'est jamais un poste de PJ**,
-`postes_attribues_jamais_greffier` l'interdit.
+**État actuel :** `greffes_tribunaux` possède trois lignes, mais les deux greffes locaux ont `greffier_pnj = NULL` et utilisent la signature générique du greffe. Les noms et personnages des deux greffiers restent à définir avec le game designer, avant toute création de PNJ ou image.
+
+**Statut technique :** décision enregistrée, casting et implémentation non réalisés.
 
 ## 3. L'énigme du portrait a changé de nom, pas de registre
 
