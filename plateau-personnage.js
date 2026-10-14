@@ -3388,6 +3388,9 @@ async function consommerAliment(idx) {
   // La transaction RPC a deja persiste l'inventaire et les PA. Ne pas renvoyer
   // un etat de personnage potentiellement obsolete qui pourrait les ecraser.
   updateUI();
+  // L'inventaire ouvert garde son ancien HTML tant que l'onglet n'est pas reconstruit.
+  // Rafraichir l'onglet sans fermer le panneau, apres confirmation du serveur.
+  if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
   } finally {
     consommationAlimentEnCours = false;
   }
