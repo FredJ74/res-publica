@@ -3376,8 +3376,9 @@ async function consommerAliment(idx) {
     addJournalEntry('Vous avez consommé "' + item.name + '". +1 PA.', 'event-good');
   }
 
+  // La transaction RPC a deja persiste l'inventaire et les PA. Ne pas renvoyer
+  // un etat de personnage potentiellement obsolete qui pourrait les ecraser.
   updateUI();
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 }
 
 // =====================
