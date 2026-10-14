@@ -3293,7 +3293,7 @@ async function ouvrirDetailObjetInventaire(idx) {
   // de la protection "objet de quete" (manger son propre repas n'est jamais un transfert).
   // AUCUN indice de fraicheur/age ici (peremption volontairement invisible avant consommation,
   // regle de design validee) -- le libelle reste neutre, identique quel que soit l'etat reel.
-  if (item.familleProduitMarche === 'aliment') {
+  if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> Consommer</button>';
   }
 
@@ -3344,17 +3344,7 @@ const DUREE_FRAICHEUR_ALIMENT_MS = 7 * 24 * 60 * 60 * 1000;
 // pour la premiere fois, jamais expose auparavant) -- voir DUREE_FRAICHEUR_ALIMENT_MS ci-dessus.
 async function consommerAliment(idx) {
   const item = state.inventory[idx];
-  if (!item || item.familleProduitMarche !== 'aliment') return;
-
-  // Garde-fou horodatage (demande explicite) : un dateAchat absent/invalide ne doit JAMAIS etre
-  // traite implicitement comme "frais" -- echec toujours FERME. Refus propre, message technique
-  // neutre (jamais un indice de fraicheur), objet CONSERVE en inventaire (aucun retrait tant que
-  // la consommation n'a pas reellement pu etre evaluee).
-  if (typeof item.dateAchat !== 'number' || !Number.isFinite(item.dateAchat)) {
-    document.getElementById('modal-postes')?.classList.remove('open');
-    showToast('Consommation impossible', 'Cet objet ne peut pas être consommé pour le moment (donnée technique manquante).', false);
-    return;
-  }
+  if (!item || !(item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id))) return;
 
   document.getElementById('modal-postes')?.classList.remove('open');
   // Le retrait passe par l'entonnoir serveur (chantier C, 14 septembre 2026). Il reste le
@@ -3375,7 +3365,7 @@ async function consommerAliment(idx) {
   // ne le lui dit pas encore.
   const perime = (typeof r.aliment_frais === 'boolean')
     ? !r.aliment_frais
-    : (Date.now() - item.dateAchat) > DUREE_FRAICHEUR_ALIMENT_MS;
+    : true;
   if (typeof r.pa === 'number') state.pa = r.pa;
 
   if (perime) {
