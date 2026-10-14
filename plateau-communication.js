@@ -876,6 +876,49 @@ async function distribuerTractElectoralPNJ(pnjName, encodedPnj) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Action collective : les quantites et la liste de PNJ sont determinees par Supabase.
+let tractCollectifEnCours = false;
+async function ouvrirTractageCollectifStade() {
+  if (state.currentBuilding !== 'stade') return;
+  if (typeof syncCyclesDepuisSupabase === 'function') await syncCyclesDepuisSupabase().catch(() => {});
+  const choix = typeof tractsElectorauxDistribuablesIci === 'function' ? tractsElectorauxDistribuablesIci() : [];
+  const entrees = choix.flatMap(o => o.scrutins.map(sc => ({tract:o.tract,scrutin:sc})));
+  if (!entrees.length) {
+    showToast('Aucun scrutin ouvert', 'Aucun tract electoral utilisable ici actuellement.', false);
+    return;
+  }
+  window._tractageCollectifChoix = entrees;
+  document.getElementById('postes-modal-title').textContent = 'Tractage collectif au stade';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem"><p>Une tentative par PNJ eligible, dans la limite des tracts et PA disponibles. Chaque tentative coute 1 tract et 1 PA, reussie ou non.</p>'
+    + entrees.map((e,i) => '<button type="button" onclick="confirmerTractageCollectifStade('+i+')" style="display:block;width:100%;padding:.65rem;margin:.4rem 0;background:#151107;border:1px solid #6a5a20;color:#e0d8c0;cursor:pointer">'
+      + (e.tract.tractType==='contre'?'Contre ':'Pour ') + (typeof escapeHtml==='function'?escapeHtml(e.tract.cible):e.tract.cible)
+      + ' — ' + e.scrutin.libelle + ' (' + e.tract.quantite + ' tracts)</button>').join('') + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+async function confirmerTractageCollectifStade(index) {
+  if (tractCollectifEnCours) return;
+  const e = window._tractageCollectifChoix?.[index];
+  if (!e || state.currentBuilding !== 'stade') return;
+  if (typeof sbTractsElectorauxDistribuerCollectif !== 'function') return;
+  tractCollectifEnCours = true;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  try {
+    const req='tract-groupe-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
+    const sens=e.tract.tractType==='contre'?'contre':'pour';
+    let res=await sbTractsElectorauxDistribuerCollectif(req,state.char.name,e.scrutin.cycleId,e.tract.cible,sens).catch(()=>null);
+    if (!res) res=await sbTractsElectorauxDistribuerCollectif(req,state.char.name,e.scrutin.cycleId,e.tract.cible,sens).catch(()=>null);
+    if (!res?.ok) {
+      showToast('Distribution impossible',MOTIFS_REFUS_TRACT_ELECTORAL[res?.raison] || res?.raison || 'Le serveur ne confirme pas la distribution.',false);
+      return;
+    }
+    if (Array.isArray(res.inventory)) state.inventory=res.inventory;
+    if (typeof res.pa==='number') state.pa=res.pa;
+    if (typeof chargerEffetsTractsPNJ==='function') await chargerEffetsTractsPNJ(state.country);
+    showToast('Tractage collectif termine',res.essais+' tentatives, '+res.reussites+' reussites. '+res.essais+' tracts et PA consommes.',true);
+    updateUI();
+  } finally { tractCollectifEnCours=false; }
+}
+
 let tractElectoralEnCours = false;
 async function confirmerDistribuerTractElectoral(indexEntree) {
   if (tractElectoralEnCours) return;
