@@ -55,7 +55,7 @@ async function openCharSheet() {
       </div>
       <div class="cs-section">
         <div class="cs-title">Ressources</div>
-        <div class="cs-stat-row"><span class="cs-stat-name">Argent total</span><span class="cs-stat-val">${state.arg.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
+        <div class="cs-stat-row"><span class="cs-stat-name">Argent total</span><span class="cs-stat-val">${((Number(state.liquide)||0) + (typeof resumeFortune === 'function' ? Number(resumeFortune().comptes)||0 : Number(totalComptesBancaires())||0)).toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Liquide</span><span class="cs-stat-val">${state.liquide.toLocaleString('fr-FR')}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">En banque</span><span class="cs-stat-val">${(typeof resumeFortune === 'function' ? resumeFortune().comptes : totalComptesBancaires()).toLocaleString('fr-FR')}</span></div>
         <div class="cs-stat-row"><span class="cs-stat-name">Placements</span><span class="cs-stat-val">${totalPlacements.toLocaleString('fr-FR')} ${co?.cur||'FR'}</span></div>
