@@ -1019,6 +1019,24 @@ async function commercePjEcranGestion(ctx) {
       commercePjEchapper(tCommercePJ('commercepj.matiere.maxAide', { plafond: plafondMat })) + '</div>';
   }
 
+  // --- COMMERCE PREMIUM : VITRINE DE PAIEMENT, NON ACTIVEE -----------------
+  // Aucune API de paiement, aucun droit premium ni generation d'image ne sont
+  // declenches par ce bloc. Les boutons restent volontairement desactives.
+  h += '<section class="cpj-premium" aria-label="Commerce Premium" ' +
+    'style="margin:18px 0;padding:16px;border:1px solid var(--border-color, #8b7961);border-radius:10px">' +
+    '<div class="cpj-titre">Commerce Premium <span style="font-size:.75em;font-weight:normal">— prochainement</span></div>' +
+    '<p>Améliorez ce commerce : <strong>3 types d’activités</strong> au lieu de 2, ' +
+    '<strong>10 articles</strong> au lieu de 4 et <strong>une personnalisation visuelle incluse</strong>.</p>' +
+    '<p><strong>4,99 €</strong> · Achat lié au fonds de commerce. ' +
+    'Transmis lors de la vente du commerce ; perdu en cas de résiliation du bail.</p>' +
+    '<button type="button" disabled aria-disabled="true" title="Paiement non activé" ' +
+    'style="opacity:.55;cursor:not-allowed">Activer Commerce Premium — 4,99 € (bientôt)</button>' +
+    '<p style="margin-top:12px">Nouvelle génération d’image : <strong>0,99 €</strong> par image.</p>' +
+    '<button type="button" disabled aria-disabled="true" title="Paiement non activé" ' +
+    'style="opacity:.55;cursor:not-allowed">Commander une nouvelle image — 0,99 € (bientôt)</button>' +
+    '<p class="cpj-note">Aucun paiement ne peut être effectué pour le moment.</p>' +
+    '</section>';
+
   // --- TOUCHES DE L'ECRAN -------------------------------------------------
   h += '<div class="cpj-barre">';
   if (mesTypes.length) {
