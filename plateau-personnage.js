@@ -600,7 +600,7 @@ function switchSelfTab(tab, el) {
 
     // Objets
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem">';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.5rem">OBJETS (' + items.length + ')</div>';
+    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;margin-bottom:.5rem">OBJETS (' + items.reduce((n, item) => n + (Number(item.quantite ?? item.qty) > 0 ? Number(item.quantite ?? item.qty) : 1), 0) + ' unités · ' + items.length + ' lignes)</div>';
     if (items.length === 0) {
       html += '<div style="font-size:.8rem;color:#9a8a68;font-style:italic">Aucun objet en votre possession.</div>';
     } else {
