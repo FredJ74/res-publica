@@ -3363,12 +3363,17 @@ async function consommerAliment(idx) {
   // qu'avant (7 jours, +1 PA frais, -1 PA perime). Le client ne fait plus que dire ce qui s'est
   // passe -- et se rabat sur son propre calcul pour le SEUL affichage si le serveur, plus ancien,
   // ne le lui dit pas encore.
-  const perime = (typeof r.aliment_frais === 'boolean')
-    ? !r.aliment_frais
-    : true;
+  // Ne jamais annoncer une intoxication sans confirmation de fraicheur par le serveur.
+  // En cas de reponse ancienne/incomplete, la consommation a eu lieu mais son
+  // effet reste inconnu : ne pas inventer un malus.
+  const fraicheurConnue = typeof r.aliment_frais === 'boolean';
+  const perime = fraicheurConnue && !r.aliment_frais;
   if (typeof r.pa === 'number') state.pa = r.pa;
 
-  if (perime) {
+  if (!fraicheurConnue) {
+    showToast('Aliment consommé', 'Consommation enregistrée. Effet sur les PA non confirmé par le serveur.', true);
+    addJournalEntry('Vous avez consommé "' + item.name + '". Effet sur les PA non confirmé.', 'event-info');
+  } else if (perime) {
     showToast('Intoxication alimentaire', 'Votre ' + item.name + ' avait plus de 7 jours : il était périmé et vous rend malade. -1 PA.', false);
     addJournalEntry('Vous avez consommé "' + item.name + '" — périmé, -1 PA.', 'event-bad');
   } else {
