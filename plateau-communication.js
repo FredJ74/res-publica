@@ -916,10 +916,10 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
 
   // Tentative reellement effectuee (reussite ou echec) : 1 PA et 1 tract consommes, jamais plus
   // (un rejeu renvoie le meme resultat et n'est traite qu'une fois ici).
-  if (typeof deduireCoutOrdre === 'function') await deduireCoutOrdre({ pa: 1, cost: 0 });
-  tract.quantite -= 1;
-  if (tract.quantite <= 0) state.inventory = state.inventory.filter(i => i !== tract);
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  // Le serveur a deja debite le PA et l'unite de tract atomiquement avec le resultat.
+  // Ne jamais redebiter localement ni sauvegarder un ancien inventaire par-dessus.
+  if (Array.isArray(res.inventory)) state.inventory = res.inventory;
+  if (typeof res.pa === 'number') state.pa = res.pa;
 
   const pnjName = ctx.pnjName;
   if (res.reussi) {
