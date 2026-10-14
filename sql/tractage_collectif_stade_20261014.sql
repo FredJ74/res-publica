@@ -220,6 +220,9 @@ BEGIN
  IF coalesce(array_length(v_list,1),0)=0 THEN
   RETURN public.assemblee_requete_clore(p_requete,jsonb_build_object('ok',false,'raison','aucune_cible'));
  END IF;
+ IF coalesce(v_p.pa,0) < least(v_qty,coalesce(array_length(v_list,1),0)) THEN
+  RETURN public.assemblee_requete_clore(p_requete,jsonb_build_object('ok',false,'raison','pa_insuffisants'));
+ END IF;
  FOREACH v_n IN ARRAY v_list LOOP
   EXIT WHEN v_attempts>=v_max;
   v_r:=public.tracts_electoraux_distribuer_collectif_interne(
