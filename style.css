@@ -2017,3 +2017,16 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
   .seblex-fil{max-height:32vh}
   .seblex-bouton{min-width:100%}
 }
+
+/* Lisibilite transversale : texte fonctionnel des modales, sans agrandir les icones ni
+   les titres decoratifs. Les anciens textes inline a .68-.75rem deviennent lisibles. */
+#modal-postes .modal-box :is(p, label, button, select, input, textarea, td, th, li),
+#modal-postes .modal-box [style*="font-size:.7rem"],
+#modal-postes .modal-box [style*="font-size:.75rem"] {
+  font-size: max(.82rem, 12px) !important;
+  line-height: 1.4;
+}
+#modal-postes .modal-box :is(button, input, select, textarea):focus-visible {
+  outline: 2px solid #c9a84c;
+  outline-offset: 2px;
+}
