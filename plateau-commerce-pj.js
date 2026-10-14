@@ -1034,7 +1034,13 @@ async function commercePjEcranGestion(ctx) {
     '<p style="margin-top:12px">Nouvelle génération d’image : <strong>0,99 €</strong> par image.</p>' +
     '<button type="button" disabled aria-disabled="true" title="Paiement non activé" ' +
     'style="opacity:.55;cursor:not-allowed">Commander une nouvelle image — 0,99 € (bientôt)</button>' +
-    '<p class="cpj-note">Aucun paiement ne peut être effectué pour le moment.</p>' +
+    '<div style="margin-top:14px"><label for="cpj-code-promo"><strong>Code promotionnel</strong></label>' +
+    '<p class="cpj-note">Un code à usage unique pourra offrir soit Commerce Premium (4,99 €), ' +
+    'soit une nouvelle génération d’image (0,99 €), selon le droit associé au code.</p>' +
+    '<input id="cpj-code-promo" type="text" autocomplete="off" disabled aria-disabled="true" ' +
+    'placeholder="Saisir un code promotionnel" style="max-width:260px;width:100%;margin-right:8px" />' +
+    '<button type="button" disabled aria-disabled="true" title="Codes promotionnels non activés">Utiliser le code (bientôt)</button></div>' +
+    '<p class="cpj-note">Aucun paiement ni code promotionnel ne peut être utilisé pour le moment.</p>' +
     '</section>';
 
   // --- TOUCHES DE L'ECRAN -------------------------------------------------
