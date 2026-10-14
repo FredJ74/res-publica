@@ -67,6 +67,13 @@ async function sbTransportRest(methode, table, filtres, corps, preferResolution)
   if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
     await rpAuthAssurerSession().catch(() => null);
   }
+  // Une écriture REST ne doit jamais partir sous la clé anon lorsqu'une session
+  // joueur n'a pas pu être restaurée. Les lectures publiques restent possibles.
+  // Ne pas réessayer automatiquement une écriture : elle pourrait être non idempotente.
+  if (methode !== 'GET' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
+    return { etat: 'session_perdue', raison: 'session_perdue', http: null,
+             code: null, message: null, envoyee: false, donnees: null };
+  }
 
   const url = `${SUPABASE_URL}/rest/v1/${table}` + (filtres ? `?${filtres}` : '');
   const prefer = preferResolution
