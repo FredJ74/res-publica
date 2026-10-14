@@ -894,12 +894,7 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
     showToast('PA insuffisants', MOTIFS_REFUS_TRACT_ELECTORAL.pa_insuffisants, false);
     return;
   }
-  // Le serveur lit la position, les PA et l'inventaire ENREGISTRES du joueur : on les ecrit d'abord.
-  const sauve = await sbSavePersonnage(state).catch(() => null);
-  if (!sauve) {
-    showToast('Action impossible', 'Votre position n\'a pas pu être enregistrée. Aucun tract n\'a été utilisé.', false);
-    return;
-  }
+  // La base est la source de verite pour les ressources et la position.
   const sens = tract.tractType === 'contre' ? 'contre' : 'pour';
   const requete = 'tract-el-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
   const vol = volontePnjElectorale(ctx.encodedPnj);
