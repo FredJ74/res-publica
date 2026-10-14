@@ -2041,3 +2041,26 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
   outline: 2px solid #c9a84c;
   outline-offset: 2px;
 }
+
+/* Finitions mobiles des fenetres de gestion : garder les commandes utilisables
+   sans agrandir les illustrations ni modifier les panneaux institutionnels. */
+@media (max-width: 600px) {
+  #modal-postes .modal-box,
+  #modal-forum .modal-box,
+  #modal-resolution .modal-box {
+    max-width: calc(100vw - 20px);
+    box-sizing: border-box;
+  }
+  #modal-postes .modal-box :is(input, select, textarea),
+  #modal-forum .modal-box :is(input, select, textarea),
+  #modal-resolution .modal-box :is(input, select, textarea) {
+    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+  #modal-postes .modal-box :is(button, input, select, textarea):focus-visible,
+  #modal-forum .modal-box :is(button, input, select, textarea):focus-visible,
+  #modal-resolution .modal-box :is(button, input, select, textarea):focus-visible {
+    outline-offset: -2px;
+  }
+}
