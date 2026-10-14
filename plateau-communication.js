@@ -918,7 +918,6 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
   // (un rejeu renvoie le meme resultat et n'est traite qu'une fois ici).
   // Le serveur a deja debite le PA et l'unite de tract atomiquement avec le resultat.
   // Ne jamais redebiter localement ni sauvegarder un ancien inventaire par-dessus.
-  tractElectoralEnCours = false;
   if (Array.isArray(res.inventory)) state.inventory = res.inventory;
   if (typeof res.pa === 'number') state.pa = res.pa;
 
