@@ -2030,3 +2030,14 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
   outline: 2px solid #c9a84c;
   outline-offset: 2px;
 }
+
+/* Complements de lisibilite : champs et actions des fenetres Forum et Resolution.
+   Perimetre volontairement limite aux controles, sans modifier les titres et icones. */
+:is(#modal-forum, #modal-resolution) :is(button, input, select, textarea, label) {
+  font-size: max(.82rem, 12px);
+  line-height: 1.4;
+}
+:is(#modal-forum, #modal-resolution) :is(button, input, select, textarea):focus-visible {
+  outline: 2px solid #c9a84c;
+  outline-offset: 2px;
+}
