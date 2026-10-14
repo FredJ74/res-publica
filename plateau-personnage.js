@@ -3342,10 +3342,14 @@ const DUREE_FRAICHEUR_ALIMENT_MS = 7 * 24 * 60 * 60 * 1000;
 // toujours present et de la bonne famille avant d'agir (l'inventaire a pu changer entre
 // l'ouverture du detail et le clic). Peremption jamais annoncee avant ce moment (age calcule ici
 // pour la premiere fois, jamais expose auparavant) -- voir DUREE_FRAICHEUR_ALIMENT_MS ci-dessus.
+let consommationAlimentEnCours = false;
 async function consommerAliment(idx) {
+  if (consommationAlimentEnCours) return;
   const item = state.inventory[idx];
   if (!item || !(item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id))) return;
 
+  consommationAlimentEnCours = true;
+  try {
   document.getElementById('modal-postes')?.classList.remove('open');
   // Le retrait passe par l'entonnoir serveur (chantier C, 14 septembre 2026). Il reste le
   // PREMIER geste avant tout effet, donc la protection contre le double-clic demeure : c'est
@@ -3384,6 +3388,9 @@ async function consommerAliment(idx) {
   // La transaction RPC a deja persiste l'inventaire et les PA. Ne pas renvoyer
   // un etat de personnage potentiellement obsolete qui pourrait les ecraser.
   updateUI();
+  } finally {
+    consommationAlimentEnCours = false;
+  }
 }
 
 // =====================
