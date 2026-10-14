@@ -88,3 +88,45 @@ Trois points sont **déjà arbitrés** et ont été laissés intacts, pour mémo
 - `plateau-pnj.js` possède déjà des interactions scriptées avec les pensionnaires de l'EHPAD pour l'énigme du portrait ; **ne pas modifier ni détourner ces déclencheurs**. Prévoir des actions contextuelles distinctes pour les missions médicales.
 - **Point d'architecture à traiter avant activation** : le socle historique ouvre les jalons par semaine et impose une échéance, tandis que le game design actuel exige des cours lundi/mercredi/vendredi avec calendrier glissant et décalage réel après absence. Une simple insertion de lignes de catalogue ne satisferait pas cette règle. Il faut adapter les portes serveur et leurs tests avant de rendre le bouton actif.
 - Statut : **audit initial documenté, aucune implémentation ni mise en production des missions médicales revendiquée**.
+
+
+## 8. Préparation des quatre formations — 14 octobre 2026
+
+### Décisions confirmées
+- L'inscription à l'Université est **gratuite en FR et en euros**. La seconde carrière n'est pas premium : mêmes débouchés pour tous les joueurs.
+- Le bouton **« Suivre le cours »** (à distinguer de l'entrée générale « Suivre une formation ») ouvre **la fenêtre de discussion avec le professeur**. Le professeur **entame lui-même** la séance par un message lié au module du jour.
+- Dialogue libre possible dans cette fenêtre uniquement après clic sur « Suivre le cours », et seulement pendant la séance concernée. Réponses IA facultatives, courtes et sobres ; un scénario d'ouverture déterministe fonctionne sans IA.
+- La validation de présence et les 6 PA doivent être pilotés côté serveur et ne jamais dépendre de l'analyse d'une réponse IA. Empêcher les doubles validations et respecter le calendrier glissant.
+- Le game designer délègue la préparation des parcours **médecine, économie, droit et militaire** ; il n'autorise pas à modifier silencieusement les règles communes déjà validées.
+
+### Proposition de parcours — contenu préparatoire, à confronter aux carrières et bâtiments existants avant activation
+
+| Semaine | Médecine (lieu de stage) | Économie (mission proposée) | Droit (mission proposée) | Militaire (mission proposée) |
+| --- | --- | --- | --- | --- |
+| 1 | Cours introductifs à l'Université, sans stage | Cours : prix, échanges, comptabilité | Cours : institutions, procédure, preuves | Cours : hiérarchie, logistique, sécurité |
+| 2 | EHPAD Luthécia : écouter le patient | Luthécia : relever les besoins d'un commerce | Tribunal Luthécia : accueillir un justiciable | Caserne : rencontrer l'instructeur et identifier les équipements |
+| 3 | EHPAD : observer les symptômes | Luthécia : établir un inventaire de produits | Tribunal : classer des pièces d'un dossier fictif | Caserne : préparer une dotation logistique |
+| 4 | EHPAD : assurer le suivi | Luthécia : comparer coûts et recettes | Tribunal : reconstituer la chronologie d'une affaire fictive | Caserne : transmettre un ordre d'exercice |
+| 5 | Dispensaire Port-Sainte-Marie : accueillir un patient | Port-Sainte-Marie : rencontrer un acteur du port | Tribunal de Port-Sainte-Marie : recevoir une demande | Deuxième ville : rencontrer un responsable de section |
+| 6 | Dispensaire : consigner une première évaluation | Port-Sainte-Marie : préparer un budget d'activité | Deuxième tribunal : vérifier les pièces requises | Deuxième ville : contrôler un ravitaillement |
+| 7 | Dispensaire : expliquer la prise en charge | Port-Sainte-Marie : proposer une solution à une rupture de stock | Deuxième tribunal : rédiger une note de synthèse | Deuxième ville : préparer un compte rendu de manœuvre |
+| 8 | Dispensaire : transmettre le dossier | Port-Sainte-Marie : présenter un bilan à son maître de stage | Deuxième tribunal : transmettre un dossier complet | Deuxième ville : remettre un rapport de fin de stage |
+
+Les missions médicales ci-dessus correspondent aux identifiants déjà déclarés dans `universite-missions-medecin.js`. Les trois autres colonnes sont **des propositions de design**, pas des missions codées ni des validations acquises.
+
+### Schéma de séance commun proposé
+1. Le moteur vérifie la séance disponible, le lieu, l'inscription et l'absence de validation préalable.
+2. « Suivre le cours » ouvre la conversation ; le professeur présente le sujet et propose une interaction pédagogique scénarisée.
+3. Le joueur peut dialoguer librement (DeepSeek facultatif) ; les échanges ne commandent ni PA ni réussite.
+4. Une action explicite « Terminer le cours » valide **une seule fois** le module et débite **6 PA côté serveur**, avec contrôle atomique et anti-rejeu.
+5. Le prochain cours suit l'intervalle validé, même en cas de retard ; pas de rattrapage instantané.
+
+### Garde-fous d'implémentation
+- **Ne pas activer** l'ordre universitaire sur cette seule préparation. Le socle serveur à jalons hebdomadaires doit d'abord être adapté aux modules datés glissants et testé.
+- Les missions de stage doivent vérifier **personnage inscrit, carrière, semaine, bâtiment, ville, maître de stage et objectif**, sans faire confiance à un simple clic côté client.
+- Un maître de stage PNJ doit garantir la progression même en l'absence de PJ ; validation automatique, pas d'échec éliminatoire.
+- Aucun stage n'accorde les pouvoirs du métier avant obtention effective de la seconde carrière.
+- Préserver les dialogues/indices existants de l'EHPAD, les ordres militaires et les mécanismes judiciaires.
+- **Vérifier les quatre familles de carrières réelles et les bâtiments des trois villes** avant d'insérer les cursus : « économie », « droit » et « militaire » sont ici des intitulés de travail, pas des identifiants serveur attestés.
+- Établir des tests : accès gratuit, anti-double débit, hors calendrier, cours manqué, glissement, hors bâtiment, dialogue IA indisponible, stage sans maître PJ, absence de troisième carrière.
+- Aucun catalogue actif ni migration de production n'est revendiqué dans ce document.
