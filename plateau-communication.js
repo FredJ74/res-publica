@@ -875,7 +875,9 @@ async function distribuerTractElectoralPNJ(pnjName, encodedPnj) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+let tractElectoralEnCours = false;
 async function confirmerDistribuerTractElectoral(indexEntree) {
+  if (tractElectoralEnCours) return;
   document.getElementById('modal-postes')?.classList.remove('open');
   const ctx = window._tractsElectorauxChoix;
   const e = ctx?.entrees?.[indexEntree];
@@ -895,6 +897,8 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
     return;
   }
   // La base est la source de verite pour les ressources et la position.
+  tractElectoralEnCours = true;
+  try {
   const sens = tract.tractType === 'contre' ? 'contre' : 'pour';
   const requete = 'tract-el-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
   const vol = volontePnjElectorale(ctx.encodedPnj);
@@ -913,6 +917,7 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
   // (un rejeu renvoie le meme resultat et n'est traite qu'une fois ici).
   // Le serveur a deja debite le PA et l'unite de tract atomiquement avec le resultat.
   // Ne jamais redebiter localement ni sauvegarder un ancien inventaire par-dessus.
+  tractElectoralEnCours = false;
   if (Array.isArray(res.inventory)) state.inventory = res.inventory;
   if (typeof res.pa === 'number') state.pa = res.pa;
 
@@ -932,6 +937,7 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
   }
   if (typeof verifierProgressionCarriere === 'function') verifierProgressionCarriere('politique', !!res.reussi);
   updateUI();
+  } finally { tractElectoralEnCours = false; }
 }
 
 function distribuerTractCalomnieuxPNJ(pnjName, encodedPnj) {
