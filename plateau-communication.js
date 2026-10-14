@@ -841,7 +841,8 @@ const MOTIFS_REFUS_TRACT_ELECTORAL = {
   deja_vote: 'Ce PNJ a déjà participé à ce tour du scrutin.',
   tract_absent: 'Ce tract ne figure pas dans votre inventaire enregistré.',
   scrutin_non_concerne: 'Les tracts ne concernent que la présidentielle, les municipales et les législatives.',
-  pa_insuffisants: 'Il faut 1 PA pour distribuer un tract.'
+  pa_insuffisants: 'Il faut 1 PA pour distribuer un tract.',
+  pnj_absent_ou_non_verifiable: 'La présence de ce PNJ ne peut pas être vérifiée dans cette pièce. Aucun tract ni PA dépensé.'
 };
 
 async function distribuerTractElectoralPNJ(pnjName, encodedPnj) {
