@@ -618,7 +618,7 @@ function switchSelfTab(tab, el) {
           html += '</div>';
         }
         html += '<div style="flex:1;min-width:0">';
-        html += '<div style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + '</div>';
+        html += '<div style="font-size:.8rem;color:#c0b090;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + ((Number(item.quantite ?? item.qty) > 1) ? ' × ' + Number(item.quantite ?? item.qty) : '') + '</div>';
         html += '<div style="font-size:.85rem;color:#9a8a68">' + (item.legal !== undefined ? (item.legal ? 'Légal' : 'Non enregistré') : '') + (item.usageUnique ? ' · Usage unique' : '') + '</div>';
         html += '</div>';
         html += '<button onclick="event.stopPropagation();jeterObjetInventaire(' + i + ')" style="font-size:.85rem;color:#a0905a;background:transparent;border:none;cursor:pointer;padding:.2rem .4rem;flex-shrink:0">Déposer</button>';
