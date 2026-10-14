@@ -11,8 +11,13 @@ assert.equal(missionPourSemaine(9), null);
 for (const m of missions) {
   assert.equal(missionPourSemaine(m.semaine)?.id, m.id);
   assert(m.consigne && m.objectif && m.reaction && m.action);
-  assert.equal(objectifAtteint(m.id, m.action), true);\n  assert.equal(consigneMaitreDeStage(m.semaine).texte, m.consigne);\n  assert.equal(reactionPatient(m.id, m.action), m.reaction);\n  assert.equal(reactionPatient(m.id, 'action_incorrecte'), null);
+  assert.equal(objectifAtteint(m.id, m.action), true);
+  assert.equal(consigneMaitreDeStage(m.semaine).texte, m.consigne);
+  assert.equal(reactionPatient(m.id, m.action), m.reaction);
+  assert.equal(reactionPatient(m.id, 'action_incorrecte'), null);
   assert.equal(objectifAtteint(m.id, 'action_incorrecte'), false);
 }
-assert.equal(objectifAtteint('mission_inconnue', 'action_incorrecte'), false);\nassert.equal(consigneMaitreDeStage(1), null);\nassert.equal(reactionPatient('mission_inconnue', 'action_incorrecte'), null);
+assert.equal(objectifAtteint('mission_inconnue', 'action_incorrecte'), false);
+assert.equal(consigneMaitreDeStage(1), null);
+assert.equal(reactionPatient('mission_inconnue', 'action_incorrecte'), null);
 console.log('Catalogue medical : 7 missions coherentes.');
