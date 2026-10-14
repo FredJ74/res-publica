@@ -441,7 +441,13 @@ function renderPersonsList(persons, targetId) {
   const monGroupeHtml = (groupeHtml + miensHtml)
     ? '<div class="presence-groupe">' + groupeHtml + miensHtml + '</div>' : '';
 
-  const finalContent = selfCard + monGroupeHtml + autresAccompagnantsHtml + simuleCards + personCards;
+  // Au stade, la campagne collective concerne les PNJ de la piece uniquement.
+  const actionTractsStade = targetId === 'persons-list' && state.currentBuilding === 'stade'
+    && typeof tractsElectorauxDistribuablesIci === 'function'
+    && tractsElectorauxDistribuablesIci().length > 0
+    ? '<button type="button" onclick="ouvrirTractageCollectifStade()" style="width:100%;padding:.55rem;margin:.5rem 0;border:1px solid #c9a84c;background:#151107;color:#e0d8c0;font-size:.9rem;cursor:pointer">Distribuer des tracts collectivement (1 PA par PNJ)</button>'
+    : '';
+  const finalContent = selfCard + actionTractsStade + monGroupeHtml + autresAccompagnantsHtml + simuleCards + personCards;
   document.getElementById(targetId).innerHTML = finalContent ||
     '<div class="person-empty">Personne d\'autre ici</div>';
 
