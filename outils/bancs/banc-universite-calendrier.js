@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');
+const {PROGRAMME,prochaineEcheance}=require('../../universite-calendrier.js');
+assert.equal(PROGRAMME.filter(x=>x.genre==='cours').length,17);
+assert.equal(PROGRAMME.filter(x=>x.genre==='stage').length,7);
+assert.equal(PROGRAMME.length,24);
+assert.deepEqual(PROGRAMME.slice(0,3).map(x=>x.jourOffset),[0,2,4]);
+assert.deepEqual(PROGRAMME.slice(3,6).map(x=>x.jourOffset),[7,9,10]);
+const debut='2026-10-19T08:00:00.000Z';
+assert.equal(prochaineEcheance(debut,{}).module.id,'cours_01');
+assert.equal(prochaineEcheance(debut,{'cours_01':'2026-10-22T08:00:00.000Z'}).ouvreLe,'2026-10-24T08:00:00.000Z');
+assert.throws(()=>prochaineEcheance(debut,{'cours_01':'2026-10-18T08:00:00.000Z'}));
+console.log('Calendrier: 17 cours, 7 stages et décalage vérifiés.');
