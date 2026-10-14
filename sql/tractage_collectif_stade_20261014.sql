@@ -182,6 +182,12 @@ END;
 $function$
 
 
+CREATE OR REPLACE FUNCTION public.tractage_collectif_identifiant(p_requete text,p_nom text,p_num integer)
+RETURNS text LANGUAGE sql IMMUTABLE SET search_path='public','pg_temp'
+AS $helper$
+ SELECT md5(p_requete || ':' || p_nom || ':' || p_num::text)
+$helper$;
+
 CREATE OR REPLACE FUNCTION public.tracts_electoraux_distribuer_collectif(p_requete text, p_joueur text, p_cycle_id text, p_candidat text, p_sens text)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -226,7 +232,7 @@ BEGIN
  FOREACH v_n IN ARRAY v_list LOOP
   EXIT WHEN v_attempts>=v_max;
   v_r:=public.tracts_electoraux_distribuer_collectif_interne(
-   md5(p_requete || ':' || v_n || ':' || v_attempts::text),
+   public.tractage_collectif_identifiant(p_requete,v_n,v_attempts),
    p_joueur,p_cycle_id,p_candidat,p_sens,v_n,NULL,now());
   IF coalesce((v_r->>'ok')::boolean,false) THEN
    v_attempts:=v_attempts+1;
