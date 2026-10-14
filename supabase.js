@@ -4256,6 +4256,15 @@ async function sbTractsElectorauxDistribuer(requete, joueur, cycleId, candidat, 
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
+// Tractage collectif au stade : le serveur selectionne et verrouille les PNJ cibles.
+async function sbTractsElectorauxDistribuerCollectif(requete, joueur, cycleId, candidat, sens) {
+  const rows = await sbRpc('tracts_electoraux_distribuer_collectif', {
+    p_requete: requete, p_joueur: joueur, p_cycle_id: cycleId,
+    p_candidat: candidat, p_sens: sens
+  });
+  return rows == null ? null : (Array.isArray(rows) ? rows[0] : rows);
+}
+
 // Mouvement atomique d'une caisse de batiments_etat (12 septembre 2026,
 // migration_caisses_batiments_etat.sql) : lecture, calcul et ecriture en une seule instruction sous
 // verrou de ligne. Remplace le couple sbGetBatimentEtat/sbSetBatimentEtat pour les mouvements
