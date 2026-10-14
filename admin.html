@@ -115,6 +115,27 @@
   </div>
 
   <div id="adm-panneau" hidden>
+    <section class="adm-bloc" aria-label="Codes promotionnels">
+      <h2>Codes promotionnels — préparation</h2>
+      <p class="adm-detail">Chaque code est nominatif, expire à la date choisie et ne peut être utilisé qu'une fois. La génération reste désactivée tant que le contrôle serveur n'est pas prêt.</p>
+      <fieldset disabled style="border:1px solid var(--bord);border-radius:8px;padding:14px;margin:12px 0">
+        <legend>Générer un code</legend>
+        <label>Personnage bénéficiaire (nom exact)
+          <input type="text" placeholder="Nom du personnage" autocomplete="off">
+        </label>
+        <label>Prestation offerte
+          <select>
+            <option value="premium">Commerce Premium — 4,99 €</option>
+            <option value="image">Nouvelle génération d'image — 0,99 €</option>
+          </select>
+        </label>
+        <label>Date d'expiration
+          <input type="date">
+        </label>
+        <button type="button">Générer le code (bientôt)</button>
+      </fieldset>
+      <p class="adm-refus">Aucun code ne peut encore être émis ni utilisé.</p>
+    </section>
     <div id="adm-contenu"></div>
   </div>
 </main>
