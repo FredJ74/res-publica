@@ -41,7 +41,17 @@
       consigne: 'Une consultation imprevue arrive. Accueillez la personne, recueillez son motif et transmettez son dossier.',
       reaction: 'Merci de m’avoir pris en charge si rapidement.' }
   ]);
-  function consigneMaitreDeStage(semaine) {\n    const mission = missionPourSemaine(semaine);\n    if (!mission) return null;\n    return { titre: mission.titre, texte: mission.consigne, objectif: mission.objectif, action: mission.action };\n  }\n  function reactionPatient(missionId, action) {\n    const mission = missions.find(m => m.id === missionId);\n    if (!mission || mission.action !== action) return null;\n    return mission.reaction;\n  }\n  function missionPourSemaine(semaine) {
+  function consigneMaitreDeStage(semaine) {
+    const mission = missionPourSemaine(semaine);
+    if (!mission) return null;
+    return { titre: mission.titre, texte: mission.consigne, objectif: mission.objectif, action: mission.action };
+  }
+  function reactionPatient(missionId, action) {
+    const mission = missions.find(m => m.id === missionId);
+    if (!mission || mission.action !== action) return null;
+    return mission.reaction;
+  }
+  function missionPourSemaine(semaine) {
     return missions.find(m => m.semaine === semaine) || null;
   }
   function objectifAtteint(missionId, action) {
