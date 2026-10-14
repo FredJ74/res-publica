@@ -885,7 +885,7 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
     showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false);
     return;
   }
-  if (typeof sbTractsElectorauxDistribuer !== 'function' || typeof sbSavePersonnage !== 'function' || !state.char?.name) {
+  if (typeof sbTractsElectorauxDistribuer !== 'function' || !state.char?.name) {
     showToast('Action impossible', 'La distribution ne peut pas être effectuée pour le moment.', false);
     return;
   }
