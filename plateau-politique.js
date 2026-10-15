@@ -4471,23 +4471,49 @@ function ouvrirMenuOrdresTribune(index) {
   const corps = document.getElementById('postes-body');
   titre.textContent = groupes[index] || 'Ordres de la rédaction';
   corps.innerHTML = '';
+
+  // Les longues descriptions ne doivent plus former un pave illisible :
+  // une carte par ordre, un resume lisible, les conditions completes sur demande.
+  const resumes = {
+    deposer_petite_annonce: 'Publier une annonce dans La Tribune pendant 3 jours.',
+    publicite_premium: 'Commander une publicité illustrée pour votre activité.',
+    produire_fuite: 'Faire apparaître une trace compromettante sur une personne.',
+    fabriquer_scandale: 'Accuser publiquement un personnage et tenter de nuire à sa réputation.',
+    interview: 'Accorder une interview pour gagner en popularité.',
+    article: 'Proposer un article favorable à la cible de votre choix.',
+    corrompre_journaliste: 'Influencer la couverture d’une affaire judiciaire du jour.',
+    etouffer: 'Rendre plus difficile une campagne de presse favorable à une cible pendant 7 jours.'
+  };
   const liste = document.createElement('div');
-  liste.style.cssText = 'display:flex;flex-direction:column;gap:.65rem;padding:1rem;';
+  liste.style.cssText = 'display:grid;grid-template-columns:1fr;gap:1rem;padding:1.15rem;max-height:min(68vh,680px);overflow-y:auto;box-sizing:border-box;';
   entries.forEach(({o, html}) => {
+    const carte = document.createElement('section');
+    carte.style.cssText = 'background:#17140d;border:1px solid #5b4825;border-radius:8px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.7rem;';
     const wrapper = document.createElement('div');
     wrapper.innerHTML = html;
     const bouton = wrapper.firstElementChild;
     if (!bouton) return;
-    bouton.style.cssText += ';width:100%;text-align:left;min-height:2.5rem;';
-    // Fermer seulement si le bouton est actif ; les actions ouvrent ensuite leur propre dialogue.
+    bouton.style.cssText += ';width:100%;text-align:left;min-height:3rem;padding:.7rem .9rem;font-size:1rem;line-height:1.45;white-space:normal;border-radius:5px;';
     if (!bouton.disabled) bouton.addEventListener('click', () => document.getElementById('modal-postes').classList.remove('open'), {capture:true});
-    liste.appendChild(bouton);
-    if (o.desc) {
-      const desc = document.createElement('div');
-      desc.style.cssText = 'color:#a89870;font-size:.76rem;margin-top:-.4rem;padding:0 .35rem .3rem;';
-      desc.textContent = o.desc;
-      liste.appendChild(desc);
+    carte.appendChild(bouton);
+    const resume = document.createElement('p');
+    resume.style.cssText = 'margin:0;color:#e4d5b5;font-size:.96rem;line-height:1.55;font-family:Georgia,serif;';
+    resume.textContent = resumes[o.fn] || o.desc || '';
+    carte.appendChild(resume);
+    if (o.desc && resumes[o.fn]) {
+      const details = document.createElement('details');
+      details.style.cssText = 'border-top:1px solid #41351f;padding-top:.55rem;color:#c7b793;font-size:.9rem;line-height:1.6;';
+      const summary = document.createElement('summary');
+      summary.style.cssText = 'cursor:pointer;color:#d8b96e;font-size:.88rem;letter-spacing:.02em;padding:.25rem 0;';
+      summary.textContent = 'Voir les conditions et les conséquences';
+      const contenu = document.createElement('p');
+      contenu.style.cssText = 'margin:.65rem 0 .15rem;white-space:normal;';
+      contenu.textContent = o.desc;
+      details.appendChild(summary);
+      details.appendChild(contenu);
+      carte.appendChild(details);
     }
+    liste.appendChild(carte);
   });
   corps.appendChild(liste);
   document.getElementById('modal-postes').classList.add('open');
