@@ -442,7 +442,8 @@ function switchSelfTab(tab, el) {
     };
     const confort = confortMap[state.currentBuilding] || { label: 'Lieu ordinaire', moral: 1, paBonus: 0, icon: 'ti-home' };
 
-    const dejaDormi = state.dernierDormir === (state.day || 1);
+    // L'affichage ne prejuge pas du verdict serveur : un cache local peut etre perime.
+    const dejaDormi = false;
     const salaire = calculerSalaireDormir();
 
     let html = '<div style="padding:1.2rem;max-width:600px">';
@@ -3124,10 +3125,7 @@ async function doDormirChambre() {
   // clic sur Dormir apres un sommeil deja reussi (reservation legitimement consommee par ce
   // premier sommeil) affichait a tort "chambre non reservee", laissant croire qu'il fallait
   // payer une nouvelle chambre pour apprendre la vraie raison (deja dormi aujourd'hui).
-  if (state.dernierDormir === (state.day || 1)) {
-    showToast('Deja dormi', 'Vous avez deja dormi aujourd\'hui. Attendez demain.', false);
-    return;
-  }
+  // doDormir() verifie le droit au repos directement aupres du serveur.
   const reservation = state.char?.reservationHotel;
   if (!reservation || reservation.buildingId !== state.currentBuilding) {
     showToast('Chambre non reservee', 'Vous n\'avez pas reserve la chambre. Vous devez passer l\'ordre Dormir a partir de votre fiche personnage.', false);
