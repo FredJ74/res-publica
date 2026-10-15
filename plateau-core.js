@@ -1723,7 +1723,9 @@ function applyCharToState(char) {
   state.char = char;
   state.country = char.country;
   state.currentCity = char.currentCity || 'capitale';
-  state.arg = char.arg || 4250;
+  // Zero est un solde reel, comme zero PA : les valeurs initiales ne valent
+  // que pour un champ absent, jamais pour une ressource epuisee.
+  state.arg = char.arg ?? 4250;
   if (char.poste) state.poste = char.poste;
   if (char.posteDepute) state.posteDepute = char.posteDepute;
   // Lot 2 (hydratation financiere, chantier fiscalite/Helvetia) : le recalcul 15%/85% de
@@ -1737,9 +1739,9 @@ function applyCharToState(char) {
   // (charges par loadCharacter(), pas ici, cette fonction reste synchrone). Le 15%/85% ne
   // subsiste que comme repartition INITIALE, une seule fois, a la creation d'un personnage
   // (creation.js) -- jamais recalcule ensuite.
-  state.inf = char.resources?.inf || 25;
-  state.pop = char.resources?.pop || 30;
-  state.dis = char.resources?.dis || 85;
+  state.inf = char.resources?.inf ?? 25;
+  state.pop = char.resources?.pop ?? 30;
+  state.dis = char.resources?.dis ?? 85;
   // Restauration des PA depuis le cache local (audit du 20 aout 2026) : state.pa restait bloque
   // a la valeur par defaut du litteral d'etat initial (999, plateau-core.js:324) le temps que la
   // synchronisation Supabase asynchrone (loadCharacter -> sbLoadPersonnage) ecrase la valeur --
