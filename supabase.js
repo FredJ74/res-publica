@@ -5664,6 +5664,13 @@ async function sbGetPresseEditionsArchives(journalId, limite, decalage) {
   return { editions: rows.slice(0, n), encore: rows.length > n };
 }
 
+// Index compact des parutions de La Tribune : les anciennes ne gardent que les
+// editions marquees par un fait concernant un PJ, sans transferer les images du journal.
+async function sbGetArchivesTribuneIndex() {
+  return await sbGet('archives_tribune_index',
+    'select=id,date_edition,titre,contient_pj&order=date_edition.desc&limit=1000');
+}
+
 // LECTURE D'UN NUMERO. Passe par la RPC journal_edition_lire (migration
 // presse_lot2_kiosque_lecture_edition) plutot que par PostgREST, pour UNE raison : l'index
 // d'images. Le renderer resout `image.ref_id` en cherchant le fait cite dans faits_sources et
