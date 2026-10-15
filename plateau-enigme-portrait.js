@@ -580,22 +580,110 @@ const ENIGME1_ARCHIVES_PRESSE = [
   }
 ];
 
-function doConsulterArchivesPresse() {
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.8rem">Articles archivés de L\'Autruche Entravée.</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
-  ENIGME1_ARCHIVES_PRESSE.forEach(function(a, i) {
-    html += '<div onclick="enigme1AfficherArticlePresse(' + i + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
-    html += '<div style="display:flex;justify-content:space-between"><span style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090">' + a.titre + '</span><span style="font-size:.7rem;color:#5a4030">' + a.annee + '</span></div>';
-    html += '<div style="font-size:.72rem;color:#6a5a30">Par ' + a.auteur + '</div>';
-    html += '</div>';
+let _archivesTribuneCache = [];
+let _archivesTribuneOnglet = 'recentes';
+
+function archivesTribuneEchapper(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function archivesTribuneDateParis() {
+  return new Intl.DateTimeFormat('en-CA', {timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+}
+function archivesTribuneLimite() {
+  const d = new Date(archivesTribuneDateParis() + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() - 30);
+  return d.toISOString().slice(0,10);
+}
+async function doConsulterArchivesPresse() {
+  document.getElementById('postes-modal-title').textContent = "Archives de La Tribune de Républia";
+  document.getElementById('postes-body').innerHTML =
+    '<p style="padding:1.2rem;color:#e4d5b5;font-size:1rem">Consultation du catalogue des parutions…</p>';
+  document.getElementById('modal-postes').classList.add('open');
+  _archivesTribuneCache = typeof sbGetArchivesTribuneIndex === 'function'
+    ? await sbGetArchivesTribuneIndex().catch(() => null) : null;
+  archivesTribuneAfficher();
+}
+function archivesTribuneChangerOnglet(onglet) {
+  _archivesTribuneOnglet = onglet === 'anciennes' ? 'anciennes' : 'recentes';
+  archivesTribuneAfficher();
+}
+function archivesTribuneAfficher() {
+  const corps = document.getElementById('postes-body');
+  const ancienne = _archivesTribuneOnglet === 'anciennes';
+  const limite = archivesTribuneLimite();
+  let html = '<div style="padding:1.15rem;max-height:70vh;overflow-y:auto;color:#e5d7b8;font-size:1rem;line-height:1.55">';
+  html += '<div style="display:flex;gap:.65rem;flex-wrap:wrap;margin-bottom:1rem">';
+  ['recentes','anciennes'].forEach(o => {
+    html += '<button class="pnj-action-btn" style="padding:.7rem 1rem;font-size:1rem;'+(o===_archivesTribuneOnglet?'border-color:#d2b568;color:#f4d788;':'')+'" onclick="archivesTribuneChangerOnglet(\''+o+'\')">'+(o==='recentes'?'Parutions récentes':'Anciennes parutions')+'</button>';
   });
   html += '</div>';
-  html += '</div>';
-
-  document.getElementById('postes-modal-title').textContent = "Archives de L'Autruche Entravée";
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  if (ancienne) {
+    html += '<p style="color:#c7b793;margin:.4rem 0 1rem">Éditions historiques et parutions ayant marqué la vie des personnages joueurs.</p>';
+    html += '<input id="archives-tribune-recherche" type="search" placeholder="Rechercher un titre, une année ou un mot…" oninput="archivesTribuneFiltrer()" style="width:100%;padding:.8rem;background:#19150d;border:1px solid #78613b;color:#f0e5cb;font-size:1rem;box-sizing:border-box;margin-bottom:1rem">';
+  } else {
+    html += '<p style="color:#c7b793;margin:.4rem 0 1rem">Toutes les éditions publiées au cours des 30 derniers jours.</p>';
+  }
+  html += '<div id="archives-tribune-liste" style="display:grid;gap:.65rem"></div></div>';
+  corps.innerHTML = html;
+  archivesTribuneFiltrer();
+}
+function archivesTribuneFiltrer() {
+  const zone = document.getElementById('archives-tribune-liste');
+  if (!zone) return;
+  const ancienne = _archivesTribuneOnglet === 'anciennes';
+  const limite = archivesTribuneLimite();
+  const q = (document.getElementById('archives-tribune-recherche')?.value || '').trim().toLocaleLowerCase('fr');
+  if (_archivesTribuneCache === null) {
+    zone.textContent = 'Catalogue temporairement indisponible. Réessayez ultérieurement.';
+    return;
+  }
+  const lignes = (_archivesTribuneCache || []).filter(e =>
+    ancienne ? e.date_edition < limite && e.contient_pj : e.date_edition >= limite);
+  const historiques = ancienne ? ENIGME1_ARCHIVES_PRESSE.map((a,i) => ({
+    historique:i, date_edition:String(a.annee)+'-01-01', titre:a.titre, auteur:a.auteur
+  })) : [];
+  const resultats = lignes.concat(historiques).filter(e =>
+    !q || [e.titre,e.date_edition,e.auteur].some(s=>String(s||'').toLocaleLowerCase('fr').includes(q)))
+    .sort((a,b)=>b.date_edition.localeCompare(a.date_edition));
+  zone.innerHTML = resultats.map(e => {
+    const action = e.historique !== undefined
+      ? 'enigme1AfficherArticlePresse('+e.historique+')'
+      : 'archivesTribuneOuvrirEdition('+JSON.stringify(e.id)+')';
+    return '<button class="pnj-action-btn" onclick="'+archivesTribuneEchapper(action)+'" style="text-align:left;white-space:normal;padding:1rem;background:#17140d;border:1px solid #5b4825;border-radius:6px;line-height:1.5">'
+      +'<span style="display:block;color:#d3b56c;font-size:.86rem;margin-bottom:.3rem">'+archivesTribuneEchapper(e.date_edition.slice(0,4))+' · '+archivesTribuneEchapper(e.date_edition)+'</span>'
+      +'<span style="font-size:1.02rem;color:#f0e2c4">'+archivesTribuneEchapper(e.titre)+'</span></button>';
+  }).join('') || '<p style="color:#b4a17c">Aucune parution trouvée.</p>';
+}
+async function archivesTribuneOuvrirEdition(id) {
+  const corps = document.getElementById('postes-body');
+  corps.innerHTML = '<p style="padding:1.2rem">Ouverture du numéro…</p>';
+  const edition = typeof sbLirePresseEdition === 'function'
+    ? await sbLirePresseEdition(id).catch(() => null) : null;
+  if (!edition) {
+    corps.innerHTML = '<p style="padding:1.2rem">Impossible de lire cette édition.</p><button class="pnj-action-btn" onclick="archivesTribuneAfficher()">Retour aux archives</button>';
+    return;
+  }
+  const contenu = edition.edition || edition;
+  let html = '<div style="padding:1.3rem;max-height:70vh;overflow:auto;color:#e6d8bb;font-size:1rem;line-height:1.65">';
+  html += '<button class="pnj-action-btn" onclick="archivesTribuneAfficher()" style="margin-bottom:1rem">← Retour aux archives</button>';
+  html += '<h3 style="color:#d8b96e;font-size:1.4rem">La Tribune de Républia — '+archivesTribuneEchapper(contenu.date_edition||'')+'</h3>';
+  const pages = [contenu.une,contenu.double_page_centrale,contenu.page_economie_societe];
+  let nb = 0;
+  pages.forEach(p => {
+    if (!p || typeof p !== 'object') return;
+    const sujets = Array.isArray(p.sujets) ? p.sujets : [];
+    sujets.forEach(s => {
+      nb++;
+      html += '<article style="border-top:1px solid #51432c;padding:1rem 0"><h4 style="font-size:1.12rem;color:#e7c77e;margin:.1rem 0 .5rem">'+archivesTribuneEchapper(s.titre||'Article')+'</h4>';
+      for(const key of ['chapeau','texte','contenu']) {
+        if (typeof s[key] === 'string') html += '<p style="white-space:pre-wrap;margin:.45rem 0">'+archivesTribuneEchapper(s[key])+'</p>';
+      }
+      html += '</article>';
+    });
+  });
+  if (!nb) html += '<p>Cette édition ne comporte aucun article consultable dans ce format.</p>';
+  corps.innerHTML = html+'</div>';
 }
 
 function enigme1AfficherArticlePresse(idx) {
