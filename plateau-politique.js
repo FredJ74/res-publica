@@ -4425,6 +4425,33 @@ function renderRoomActions(room, buildingId, roomId) {
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
+  // Redactions de La Tribune : trois menus, sans changer les ordres ni leurs handlers.
+  const redactionTribune = state.country === 'republic' &&
+    ((buildingId === 'la-tribune' && roomId === 'redaction' && state.currentCity === 'capitale') ||
+     (buildingId === 'centre-affaires' && roomId === 'tribune_republia' &&
+      ['ville_a','ville_b'].includes(state.currentCity)));
+  if (redactionTribune) {
+    const groupes = [
+      { titre: 'Petites annonces/Publicité', icon: 'ti-ad', fns: ['deposer_petite_annonce','publicite_premium'] },
+      { titre: "Proposition d'articles", icon: 'ti-pencil', fns: ['produire_fuite','interview','article','fabriquer_scandale'] },
+      { titre: 'Collusion journalistique', icon: 'ti-eye-off', fns: ['corrompre_journaliste','etouffer'] }
+    ];
+    window._tribuneOrdresGroupes = {};
+    const utilises = new Set();
+    const menus = groupes.map((g, index) => {
+      const entries = allOrders.map((o, i) => ({ o, html: buttons[i] }))
+        .filter(x => g.fns.includes(x.o.fn));
+      entries.forEach(x => utilises.add(x.o.fn));
+      window._tribuneOrdresGroupes[index] = entries;
+      return '<button class="action-btn legal" onclick="ouvrirMenuOrdresTribune(' + index +
+        ')" title="' + g.titre.replace(/"/g,'&quot;') + '"><i class="ti ' + g.icon +
+        '"></i> ' + g.titre + ' <span class="pa-cost">▾</span></button>';
+    });
+    const horsGroupes = allOrders.map((o, i) => ({ o, html: buttons[i] }))
+      .filter(x => !utilises.has(x.o.fn)).map(x => x.html);
+    buttons.splice(0, buttons.length, ...menus, ...horsGroupes);
+  }
+
   // Bouton generique "Ecouter l'audioguide" : apparait pour toute salle ayant un audioUrl,
   // sans passer par room.orders/doOrder (pas un ordre codable, juste un lecteur audio).
   if (room.audioUrl) {
@@ -4434,6 +4461,34 @@ function renderRoomActions(room, buildingId, roomId) {
 
   document.getElementById('actions-row-bat').innerHTML = buttons.join('') ||
     '<div style="font-size:.75rem;color:#9a8a68;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
+}
+
+function ouvrirMenuOrdresTribune(index) {
+  const groupes = ['Petites annonces/Publicité', "Proposition d'articles", 'Collusion journalistique'];
+  const entries = window._tribuneOrdresGroupes?.[index] || [];
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  titre.textContent = groupes[index] || 'Ordres de la rédaction';
+  corps.innerHTML = '';
+  const liste = document.createElement('div');
+  liste.style.cssText = 'display:flex;flex-direction:column;gap:.65rem;padding:1rem;';
+  entries.forEach(({o, html}) => {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    const bouton = wrapper.firstElementChild;
+    if (!bouton) return;
+    bouton.style.cssText += ';width:100%;text-align:left;min-height:2.5rem;';
+    bouton.addEventListener('click', () => document.getElementById('modal-postes').classList.remove('open'));
+    liste.appendChild(bouton);
+    if (o.desc) {
+      const desc = document.createElement('div');
+      desc.style.cssText = 'color:#a89870;font-size:.76rem;margin-top:-.4rem;padding:0 .35rem .3rem;';
+      desc.textContent = o.desc;
+      liste.appendChild(desc);
+    }
+  });
+  corps.appendChild(liste);
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 function ouvrirAudioguide(url, nomSalle) {
