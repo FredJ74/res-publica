@@ -3557,6 +3557,7 @@ const BUILDINGS = {
           {name:'Marie Leblanc', role:'Journaliste d\'investigation', rel:'enemy', job:'journaliste'}
         ],
         orders: [
+          {fn:'publicite_premium', label:'Publicité premium', pa:0, cost:0, type:'legal', icon:'ti-speakerphone', successRate:100, desc:'Créer gratuitement pendant la bêta une pleine page publicitaire pour 5 ou 10 éditions.'},
           {fn:'consulter_archives_presse', label:'Consulter les archives de presse', pa:0, cost:0, type:'legal', icon:'ti-news', successRate:100, desc:'Articles archivés publiés par le journal au fil des décennies.'},
           // Mecanique refondue le 12 septembre 2026 : plus de rumeur inventee, plus d'effet INF/POP
           // fictif, plus de detection judiciaire du commanditaire (secret des sources). 2 PA.
