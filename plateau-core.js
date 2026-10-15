@@ -1073,6 +1073,10 @@ function rpOublierIdentiteCourante() {
   state.char = null;
   state.currentBuilding = null;
   state.currentRoom = null;
+  // Le verrou de sommeil et le jour de jeu appartiennent au personnage, pas a la session.
+  // Ne jamais conserver ceux du compte precedent lors d'un changement d'identite.
+  state.dernierDormir = 0;
+  state.day = 1;
   // Le repli est a un coup par chargement de page : un changement de compte le rearme, sans
   // quoi la bascule vers le nouveau compte ne se ferait pas.
   REPLI_COMPTE_TENTE = false;
