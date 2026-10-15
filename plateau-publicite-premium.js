@@ -1,8 +1,8 @@
 // Publicite premium presse : atelier beta. Aucun paiement n'est demande.
 function ouvrirPublicitePremium() {
   const modal=document.getElementById('modal-postes');
-  const titre=document.getElementById('modal-postes-title');
-  const corps=document.getElementById('modal-postes-body');
+  const titre=document.getElementById('postes-modal-title');
+  const corps=document.getElementById('postes-body');
   if(!modal||!corps)return;
   if(titre)titre.textContent='Publicité premium — La Tribune de Républia';
   corps.innerHTML='<div style="padding:1rem;max-width:680px;margin:auto">'+
