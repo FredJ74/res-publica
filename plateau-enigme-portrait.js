@@ -588,7 +588,9 @@ function archivesTribuneEchapper(s) {
     ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function archivesTribuneDateParis() {
-  return new Intl.DateTimeFormat('en-CA', {timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  const parts = new Intl.DateTimeFormat('fr-FR', {timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const get = type => parts.find(p => p.type === type)?.value || '';
+  return get('year') + '-' + get('month') + '-' + get('day');
 }
 function archivesTribuneLimite() {
   const d = new Date(archivesTribuneDateParis() + 'T12:00:00Z');
