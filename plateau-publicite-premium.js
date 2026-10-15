@@ -68,7 +68,8 @@ async function publicitePremiumTelecharger(url){
   const objectUrl=URL.createObjectURL(blob);
   const link=document.createElement('a');
   link.href=objectUrl;
-  link.download='human-gambit-publicite-'+Date.now()+'.png';
+  const extension=blob.type==='image/jpeg'?'jpg':blob.type==='image/webp'?'webp':'png';
+  link.download='human-gambit-publicite-'+Date.now()+'.'+extension;
   document.body.appendChild(link);
   link.click();
   link.remove();
