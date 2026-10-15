@@ -2092,7 +2092,11 @@ function commercePjDecorMode(mode) {
     '<div id="cpj-decoration-guide"></div>' +
     '<p id="cpj-decoration-libre">Décrivez votre intérieur. Les murs, portes, fenêtres et proportions seront conservés.</p>' +
     '<textarea id="cpj-decoration-demande" maxlength="1500" rows="5" style="width:100%;box-sizing:border-box;background:#17140f;color:#f1e5cd;padding:.7rem" placeholder="Ambiance, mobilier, matériaux, enseigne, éclairage..."></textarea>' +
+    '<label>Images de référence (5 maximum, PNG/JPEG/WebP, 5 Mo chacune)</label>' +
+    '<input id="cpj-decoration-sources" type="file" accept="image/png,image/jpeg,image/webp" multiple style="display:block;margin:.5rem 0 1rem">' +
+    '<label style="display:block;margin:.5rem 0"><input type="checkbox" id="cpj-decoration-droits"> Je confirme disposer des droits nécessaires sur les images fournies, y compris les autorisations des personnes représentées, et accepte leur conservation privée pour la traçabilité.</label>' +
     '<div id="cpj-decoration-image" style="margin:.8rem 0"></div>' +
+    '<button type="button" onclick="commercePjDecorTelecharger()" style="margin:.5rem 0">Télécharger cette version</button> ' +
     '<button type="button" id="cpj-decoration-plein-ecran" style="display:none" onclick="commercePjDecorPleinEcran()">Visualiser en plein écran</button> ' +
     '<p id="cpj-decoration-retour" aria-live="polite">Une première génération et deux retouches par projet.</p>' +
     '<button id="cpj-decoration-generer" onclick="commercePjDecorGenerer()">Générer mon intérieur</button> ' +
@@ -2179,7 +2183,19 @@ async function commercePjDecorGenerer() {
   try {
     const retouche=!!RP_CPJ_DECOR_PREVIEW;
     const payload={prompt:prompt};
-    if(!retouche)payload.baseImage=await commercePjDecorImageOriginale();
+    if(!retouche){
+      const files=Array.from(document.getElementById('cpj-decoration-sources')?.files||[]);
+      if(files.length>5)throw Error('Cinq images maximum.');
+      if(files.length){
+        if(!document.getElementById('cpj-decoration-droits')?.checked)throw Error('Veuillez accepter les conditions des images fournies.');
+        await commercePjDecorAppel('consent');
+        for(const file of files){
+          const base64=await publicitePremiumFichierBase64(file);
+          await commercePjDecorAppel('upload_source',{filename:file.name,mime:file.type,base64});
+        }
+      }
+      payload.baseImage=await commercePjDecorImageOriginale();
+    }
     const result=await commercePjDecorAppel(retouche?'retouch':'start',payload);
     RP_CPJ_DECOR_PREVIEW=result.path;
     RP_CPJ_DECOR_RETOUCHES=result.retouches||0;
@@ -2204,4 +2220,18 @@ async function commercePjDecorValider() {
     const gen=document.getElementById('cpj-decoration-generer');
     if(gen)gen.disabled=true;
   }catch(e){commercePjDecorMessage(e.message||'Erreur d’enregistrement.');btn.disabled=false;}
+}
+
+async function commercePjDecorTelecharger(){
+ const path=RP_CPJ_DECOR_PREVIEW;
+ if(!path){commercePjDecorMessage('Aucun aperçu à télécharger.');return;}
+ try{
+  const url=commercePjDecorUrl(path);
+  const res=await fetch(url);
+  if(!res.ok)throw Error('Image indisponible');
+  const objectUrl=URL.createObjectURL(await res.blob());
+  const a=document.createElement('a');a.href=objectUrl;a.download='human-gambit-commerce-'+Date.now()+'.png';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(objectUrl),10000);
+ }catch(e){commercePjDecorMessage(e.message||'Téléchargement impossible.');}
 }
