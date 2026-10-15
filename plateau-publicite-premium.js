@@ -53,7 +53,25 @@ async function publicitePremiumAction(id,action){
   const url=SUPABASE_URL+'/storage/v1/object/public/publicites-premium/'+data.path.split('/').map(encodeURIComponent).join('/');
   const remaining=2-data.retouches;
   retour.innerHTML='<img src="'+url+'" alt="Aperçu publicitaire" style="display:block;max-width:100%;max-height:600px;margin:1rem auto">'+
+   '<button type="button" onclick="publicitePremiumTelecharger(\''+url+'\')">Télécharger cette version</button> '+
    (remaining>0?'<button type="button" onclick="publicitePremiumAction(\''+id+'\',\'retouch\')">Retoucher ('+remaining+' restante(s))</button> ':'')+
    '<button type="button" onclick="publicitePremiumAction(\''+id+'\',\'finalize\')">Valider et programmer</button>';
  }catch(e){retour.textContent='Erreur : '+e.message;}
+}
+
+// Telechargement de chaque apercu sans validation ni cout supplementaire.
+async function publicitePremiumTelecharger(url){
+ try{
+  const response=await fetch(url);
+  if(!response.ok)throw new Error('Image indisponible');
+  const blob=await response.blob();
+  const objectUrl=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=objectUrl;
+  link.download='human-gambit-publicite-'+Date.now()+'.png';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(objectUrl),10000);
+ }catch(error){alert('Téléchargement impossible : '+error.message);}
 }
