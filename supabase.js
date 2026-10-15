@@ -572,7 +572,20 @@ function sbPayloadPersonnage(charState) {
 function sbEnfilerEcriturePersonnage(charState, data) {
   // `data` est fige ici, de facon synchrone (avant tout await) -- voir le commentaire de
   // sbSaveQueue plus haut. La file ne retarde que l'ECRITURE, jamais cette capture.
-  const tache = sbSaveQueue.then(() => sbEcrirePersonnage(data)).then((resultat) => {
+  const tache = sbSaveQueue.then(() => {
+    // POSITION : une sauvegarde ancienne ne doit jamais republier une ancienne salle.
+    // Les autres champs restent le snapshot original (notamment les deltas de POP).
+    // La position est lue au MOMENT de l'ecriture, apres les taches precedentes.
+    // On ne la prend que si ce personnage est toujours le personnage actif.
+    if (typeof state !== 'undefined' && state.char?.name === data.name
+        && state.personnageChargeDepuisServeur !== false) {
+      data.country = state.country || data.country;
+      data.current_city = state.currentCity || data.current_city;
+      data.current_building = state.currentBuilding || null;
+      data.current_room = state.currentRoom || null;
+    }
+    return sbEcrirePersonnage(data);
+  }).then((resultat) => {
     // Ecriture refusee (sbUpdate/sbInsert renvoient null) : le delta de POP de cette sauvegarde
     // n'a pas ete applique -- il est reporte sur la suivante (voir ressourcesAvecBasePop).
     if (!resultat) { reporterDeltaPopNonEcrit(charState, data.resources); return resultat; }
