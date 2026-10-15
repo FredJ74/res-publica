@@ -7109,7 +7109,7 @@ const ROOM_IMAGES_EMPIRE = {
       'bureau_min_def':   'images/bureau-min-def-republic.webp'
     },
     'mairie-capitale': {
-      'hall_mairie':      'images/mairie-luthecia.webp',
+      'hall_mairie':      'images/mairie-luthecia.webp?v=d8217489',
       'bureau_maire':     'images/bureau-maire-luthecia.webp',
       'salle_elections':  'images/salle-elections-luthecia.webp'
     },
