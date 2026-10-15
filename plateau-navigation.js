@@ -890,6 +890,18 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Plan de l'open space : pose ses zones cliquables, et retire celles de la
   // piece precedente. Meme emplacement et meme contrat que la zone de l'enigme.
   if (typeof openSpaceInjecterZones === 'function') openSpaceInjecterZones(buildingId, roomId, state.currentCity);
+  // Luthécia : la partie gauche de l'accueil de L'Autruche mène à la rédaction.
+  // La zone est retirée à chaque changement de pièce, comme celles de l'open space.
+  pieceImg.querySelectorAll('.tribune-redaction-zone').forEach(el => el.remove());
+  if (state.country === 'republic' && state.currentCity === 'capitale' && buildingId === 'la-tribune' && roomId === 'accueil_tribune') {
+    const acces = document.createElement('div');
+    acces.className = 'tribune-redaction-zone';
+    acces.title = 'Entrer dans la salle de rédaction';
+    acces.setAttribute('aria-label', 'Entrer dans la salle de rédaction');
+    acces.style.cssText = 'position:absolute;left:0;top:0;width:35%;height:100%;z-index:2;cursor:pointer;';
+    acces.addEventListener('click', () => enterRoom('la-tribune', 'redaction', null));
+    pieceImg.appendChild(acces);
+  }
   if (typeof enigme1InjecterZoneCliquable === 'function') enigme1InjecterZoneCliquable(buildingId, roomId);
   if (typeof enigme1VerifierDebarras === 'function') enigme1VerifierDebarras(buildingId, roomId);
   // Supprimer ancien emoji si present
