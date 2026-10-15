@@ -47,3 +47,10 @@ Ces écarts sont **globaux**, antérieurs ou postérieurs à la migration munici
 ## Point d'attention
 
 L'archivage de la migration et la documentation ont déjà été committés, **avant** le réalignement du baseline. Cela s'écarte de la règle du commit atomique du workflow. Ne pas masquer cet historique : le prochain commit doit contenir le baseline réellement réextrait et les vérifications associées.
+
+## Dernière tentative de clôture dans Codex
+
+Voir [`CLOTURE-NOMINATIONS-20261015.md`](CLOTURE-NOMINATIONS-20261015.md) :
+contrôles locaux relancés et plantage du vérificateur de workflow corrigé,
+mais ni accès au catalogue Supabase ni essais authentifiés disponibles dans
+cette session. Aucune réextraction n'est revendiquée. Le ticket #1 doit rester ouvert.

@@ -215,7 +215,7 @@ def main():
             # reconnaissait que `DO $$` et declarait « applicable tel quel » six bancs du
             # 10 octobre 2026 qui s'annulaient PARFAITEMENT -- une regle trop etroite accuse le
             # code correct, et c'est la pire sorte de faux positif.
-            blocs  = len(re.findall(r"(?mi)^\s*DO\s*\$[A-Za-z_][A-Za-z0-9_]*\$|(?mi)^\s*DO\s*\$\$", nu))
+            blocs  = len(re.findall(r"^\s*DO\s*(?:\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$)", nu, flags=re.M | re.I))
             raises = len(re.findall(r"(?i)RAISE\s+EXCEPTION", nu))
             # ET L'ENVELOPPE `BEGIN; ... ROLLBACK;` EST UNE GARANTIE PLUS FORTE QUE LE BLOC DO :
             # elle annule TOUT, y compris les ordres nus du decor. Un banc qui la porte n'a plus

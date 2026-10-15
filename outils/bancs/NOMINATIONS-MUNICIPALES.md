@@ -86,34 +86,28 @@ confidentielle par ce lot. Les contrôles retirent le pouvoir de gestion et de
 décision, pas la visibilité de noms qui étaient déjà publics. Les écritures
 sensibles sont contrôlées côté serveur, indépendamment des boutons.
 
-## Passage de relais à ChatGPT
+## Suite après application : ne pas rejouer la migration
 
-1. Relire la migration et vérifier ses prérequis et l'ancre du patch sur la
-   définition actuelle de `batiment_etat_sous_cle_ecrire`. Faire une lecture des
-   titulaires, candidatures et données financières avant application pour
-   vérifier ensuite leur absence de mutation.
-2. L'appliquer via `apply_migration`, en conservant sa trace dans le registre.
-3. Relire et exécuter **en une seule transaction**
-   `outils/bancs/banc-nominations-municipales.sql` avec le compte technique.
-   Ce banc crée trois utilisateurs anonymes de test et leurs personnages,
-   remplace temporairement les registres municipaux dans sa transaction et
-   teste les vraies RPC sous identité `authenticated`, sans désactiver de
-   trigger. Ne pas le découper et ne jamais remplacer sa fin par `COMMIT`.
-   Le succès attendu est l'exception finale :
-   `banc nominations : LES 155 EPREUVES SONT VERTES -- transaction annulee`.
-   Elle annule tout le banc. Toute autre erreur est un échec à diagnostiquer.
-   Ce résultat a été **observé le 15 octobre 2026**, après correction de l'ambiguïté de variable `poste` dans le banc SQL.
-4. Comparer les données métier avant/après migration : aucun poste ou dossier
-   existant ne doit avoir été changé par l'application elle-même. Vérifier
-   également l'idempotence de la migration en transaction annulée.
-5. Réextraire le baseline selon `WORKFLOW-SUPABASE.md`, revoir les droits et le
-   diff, puis archiver la migration appliquée. Mettre à jour les observations
-   de `outils/baseline/referentiels.json` à partir des mesures réelles.
-   L'empreinte cible du générateur `postes_nommes_regles` est
-   `694f117ace57b0b1` (18 règles). Ne pas présenter cette valeur comme mesurée
-   en base avant application. Les autres anciennes divergences restent hors lot.
-6. Rejouer les contrôles ci-dessous, puis les essais authentifiés maire/adjoint
-   dans le jeu. Confirmer le transfert en base avant de clore le chantier.
+Les étapes d'application, le banc de 155 épreuves et la comparaison d'intégrité
+ont déjà été validés par ChatGPT/Supabase le 15 octobre 2026, registre
+`20261015212703`. La migration est archivée. Ne pas les recommencer sans nécessité.
+
+Restent à effectuer par un agent disposant des accès techniques :
+
+1. Les quatre exports complets et le contrôle global du catalogue, avec les
+   requêtes **existantes** de `outils/baseline/requetes.py`.
+2. Le rendu du baseline et des seeds, la revue objet par objet du diff et les
+   mesures réelles de concordance. L'empreinte **locale cible** du référentiel
+   des postes est `694f117ace57b0b1` (18 règles) ; elle ne constitue pas une
+   nouvelle mesure Supabase. Ne pas remplacer une observation datée par cette
+   valeur calculée hors base.
+3. Les contrôles du workflow et les essais authentifiés de l'application,
+   avec des comptes de test autorisés ou un environnement isolé. Aucun poste
+   ni personnage de joueur réel ne doit être modifié pour ces essais.
+
+La reprise détaillée est dans `REPRISE-BASELINE-20261015.md`. Le dernier bilan
+Codex, les diagnostics et les accès manquants figurent dans
+[`CLOTURE-NOMINATIONS-20261015.md`](CLOTURE-NOMINATIONS-20261015.md).
 
 ## Vérifications exécutées dans Codex
 
@@ -137,11 +131,11 @@ python3 outils/payload-vercel.py --garde
   composant avec des données simulées, pas une session de jeu authentifiée.
 - Syntaxe des fichiers JS et grammaires SQL/PLpgSQL de la migration, du patch
   composé sur le baseline et du banc, sans exécuter de SQL.
-- Le contrôleur global reste à **8/12** : défaut préexistant de regex dans
-  `verifier-workflow.py`, RPC `tracts_electoraux_distribuer_collectif` absente,
-  divergences de référentiels et de fonctions économiques déjà connues. Le
-  transfert ajoute une divergence **attendue tant que la migration est en
-  attente** entre le référentiel client et les observations de la base ; elle
-  ne doit être masquée ni présentée comme résolue.
+- Le contrôleur global termine après correction de la regex et reste à **8/12** :
+  deux SQL hors workflow, RPC `tracts_electoraux_distribuer_collectif` absente du
+  baseline, divergences de référentiels et de fonctions économiques. Le
+  transfert laisse une divergence entre le référentiel client et les anciennes
+  observations de la base, faute de réextraction après application ; elle ne
+  doit être masquée ni présentée comme résolue.
 
 La migration est appliquee, mais le baseline doit encore etre reextrait. Voir `outils/bancs/REPRISE-BASELINE-20261015.md`.
