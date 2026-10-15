@@ -636,7 +636,7 @@ function archivesTribuneFiltrer() {
   const ancienne = _archivesTribuneOnglet === 'anciennes';
   const limite = archivesTribuneLimite();
   const q = (document.getElementById('archives-tribune-recherche')?.value || '').trim().toLocaleLowerCase('fr');
-  if (_archivesTribuneCache === null) {
+  if (_archivesTribuneCache === null && !ancienne) {
     zone.textContent = 'Catalogue temporairement indisponible. Réessayez ultérieurement.';
     return;
   }
@@ -648,14 +648,18 @@ function archivesTribuneFiltrer() {
   const resultats = lignes.concat(historiques).filter(e =>
     !q || [e.titre,e.date_edition,e.auteur].some(s=>String(s||'').toLocaleLowerCase('fr').includes(q)))
     .sort((a,b)=>b.date_edition.localeCompare(a.date_edition));
-  zone.innerHTML = resultats.map(e => {
+  // Les indices du musee sont embarques : une panne du catalogue distant ne
+  // doit pas interdire leur lecture. On distingue l'indisponibilite du vide.
+  const avertissement = _archivesTribuneCache === null
+    ? '<p style="color:#b4a17c">Catalogue temporairement indisponible. Les éditions historiques restent consultables.</p>' : '';
+  zone.innerHTML = avertissement + (resultats.map(e => {
     const action = e.historique !== undefined
       ? 'enigme1AfficherArticlePresse('+e.historique+')'
       : 'archivesTribuneOuvrirEdition('+JSON.stringify(e.id)+')';
     return '<button class="pnj-action-btn" onclick="'+archivesTribuneEchapper(action)+'" style="text-align:left;white-space:normal;padding:1rem;background:#17140d;border:1px solid #5b4825;border-radius:6px;line-height:1.5">'
       +'<span style="display:block;color:#d3b56c;font-size:.86rem;margin-bottom:.3rem">'+archivesTribuneEchapper(e.date_edition.slice(0,4))+' · '+archivesTribuneEchapper(e.date_edition)+'</span>'
       +'<span style="font-size:1.02rem;color:#f0e2c4">'+archivesTribuneEchapper(e.titre)+'</span></button>';
-  }).join('') || '<p style="color:#b4a17c">Aucune parution trouvée.</p>';
+  }).join('') || '<p style="color:#b4a17c">Aucune parution trouvée.</p>');
 }
 async function archivesTribuneOuvrirEdition(id) {
   const corps = document.getElementById('postes-body');

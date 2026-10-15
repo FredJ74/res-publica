@@ -5667,8 +5667,16 @@ async function sbGetPresseEditionsArchives(journalId, limite, decalage) {
 // Index compact des parutions de La Tribune : les anciennes ne gardent que les
 // editions marquees par un fait concernant un PJ, sans transferer les images du journal.
 async function sbGetArchivesTribuneIndex() {
-  return await sbGet('archives_tribune_index',
-    'select=id,date_edition,titre,contient_pj&order=date_edition.desc&limit=1000');
+  const editions = [];
+  // Le plafond PostgREST porte sur CHAQUE reponse, pas sur toute l'histoire.
+  // Un tri stable evite de perdre une edition partageant la date d'une autre.
+  for (let offset = 0; ; offset += 1000) {
+    const page = await sbGet('archives_tribune_index',
+      'select=id,date_edition,titre,contient_pj&order=date_edition.desc,id.asc&limit=1000&offset=' + offset);
+    if (!Array.isArray(page)) return null; // pas de catalogue partiel annonce complet
+    editions.push(...page);
+    if (page.length < 1000) return editions;
+  }
 }
 
 // LECTURE D'UN NUMERO. Passe par la RPC journal_edition_lire (migration
