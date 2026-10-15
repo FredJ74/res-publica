@@ -2097,6 +2097,7 @@ function commercePjDecorMode(mode) {
     '<label style="display:block;margin:.5rem 0"><input type="checkbox" id="cpj-decoration-droits"> Je confirme disposer des droits nécessaires sur les images fournies, y compris les autorisations des personnes représentées, et accepte leur conservation privée pour la traçabilité.</label>' +
     '<div id="cpj-decoration-image" style="margin:.8rem 0"></div>' +
     '<button type="button" onclick="commercePjDecorTelecharger()" style="margin:.5rem 0">Télécharger cette version</button> ' +
+    '<button type="button" onclick="commercePjDecorVersions()">Toutes mes versions</button><div id="cpj-decoration-versions"></div>' +
     '<button type="button" id="cpj-decoration-plein-ecran" style="display:none" onclick="commercePjDecorPleinEcran()">Visualiser en plein écran</button> ' +
     '<p id="cpj-decoration-retour" aria-live="polite">Une première génération et deux retouches par projet.</p>' +
     '<button id="cpj-decoration-generer" onclick="commercePjDecorGenerer()">Générer mon intérieur</button> ' +
@@ -2234,4 +2235,18 @@ async function commercePjDecorTelecharger(){
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(objectUrl),10000);
  }catch(e){commercePjDecorMessage(e.message||'Téléchargement impossible.');}
+}
+
+async function commercePjDecorVersions(){
+ const zone=document.getElementById('cpj-decoration-versions');if(!zone)return;
+ try{
+  const data=await commercePjDecorAppel('versions');
+  zone.textContent='';
+  for(const [i,v] of data.versions.entries()){
+   const b=document.createElement('button');b.type='button';
+   b.textContent='Télécharger version '+(data.versions.length-i);
+   b.onclick=()=>publicitePremiumTelecharger(commercePjDecorUrl(v.image_path));
+   zone.append(b);
+  }
+ }catch(e){zone.textContent=e.message;}
 }
