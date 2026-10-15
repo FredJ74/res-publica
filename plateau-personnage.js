@@ -2100,10 +2100,22 @@ function signalerRefusSalaire(r) {
 
 async function doDormir() {
   const today = state.day || 1;
-  if (state.dernierDormir === today) {
-    showToast('Deja dormi', 'Vous avez deja dormi aujourd\'hui. Attendez demain.', false);
+  // Le serveur tranche AVANT tout effet (sante, salaire, jour, journal).
+  // Sa RPC applique une garde par jour reel Europe/Paris et credite les PA atomiquement.
+  // Ne jamais utiliser state.day / localStorage pour autoriser ou refuser le repos.
+  if (typeof sbRpc !== 'function' || !state.char?.name) {
+    showToast('Sommeil indisponible', 'Connexion au serveur requise. Reessayez.', false);
     return false;
   }
+  const rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: state.char.name }).catch(() => null);
+  const vRepos = Array.isArray(rRepos) ? rRepos[0] : rRepos;
+  if (!vRepos || vRepos.ok !== true || typeof vRepos.pa !== 'number') {
+    const deja = vRepos?.raison === 'deja_repose_aujourdhui' || vRepos?.raison === 'deja_dormi_aujourdhui' || vRepos?.raison === 'deja_percu_aujourdhui';
+    showToast(deja ? 'Deja dormi' : 'Sommeil indisponible',
+      deja ? 'Vous avez deja dormi aujourd\'hui. Attendez demain.' : 'Le serveur n\'a pas confirme le repos. Reessayez ou contactez le support.', false);
+    return false;
+  }
+  state.pa = vRepos.pa;
 
   // Logements sociaux de Montrouge (18 aout 2026) : bonus MORAL/SANTE UNIQUEMENT si le bail
   // est actif ET que Dormir est passe physiquement dans ce meme appartement -- n'a AUCUN effet
@@ -2272,9 +2284,7 @@ async function doDormir() {
   // reel, avec un bonus differe que seul le serveur comptabilise, et une garde d'un repos par
   // jour : ni state.day ni dernier_dormir, que le client ecrit, ne peuvent plus servir d'horloge.
   // Le client recopie le solde arrete par le serveur ; il ne le calcule plus.
-  const rRepos = (typeof sbRpc === 'function' && state.char?.name)
-    ? await sbRpc('pa_repos_nocturne', { p_acteur: state.char.name }).catch(() => null) : null;
-  const vRepos = Array.isArray(rRepos) ? rRepos[0] : rRepos;
+  // PA deja attribues par la RPC serveur au debut de doDormir().
   if (vRepos && typeof vRepos.pa === 'number') {
     state.pa = vRepos.pa;
     if (vRepos.bonus_consomme) {
