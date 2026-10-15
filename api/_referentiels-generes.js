@@ -633,7 +633,7 @@ export const POSTES_NOMMES_EXCLUSIFS_SERVEUR = {
   },
   "directeur_entrepot": {
     "label": "Directeur de l'Entrepôt Logistique",
-    "nommePar": "maire_adjoint",
+    "nommePar": "maire",
     "scope": "ville",
     "compatibles": [
       "depute"

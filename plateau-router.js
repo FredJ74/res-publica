@@ -463,6 +463,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // REGROUPEMENTS UX de l'Hotel de Ville (16 septembre 2026) : un bouton par POSTE plutot qu'un
   // bouton par ACTION. Les anciens ordres n'existent plus dans data.js, mais leurs handlers sont
   // intacts -- c'est l'ecran de regroupement qui les appelle, avec leurs couts d'origine.
+  if (fn === 'nominations_municipales') { ouvrirNominationsMunicipales(); return; }
   if (fn === 'entrepot_direction')     { ouvrirGestionPosteNomme('directeur_entrepot'); return; }
   if (fn === 'maire_adjoint_gestion')  { ouvrirGestionPosteNomme('maire_adjoint'); return; }
   if (fn === 'commissaire_gestion')    { ouvrirGestionPosteNomme('commissaire'); return; }

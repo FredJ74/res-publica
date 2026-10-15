@@ -258,7 +258,9 @@ function exigerPoste(posteAttendu, message) {
 // Variante pour les postes nommes, dont l'autorite depend du poste vise et non d'un titre fixe :
 // elle rejoue exactement le controle du chemin normal (autoriteCouvre contre regle.nommePar).
 function exigerAutoriteSurPosteNomme(regle, verbe) {
-  if (regle && autoriteCouvre(state.poste?.id || '', regle.nommePar)) return true;
+  const villeAutorite = regle && (regle.autoriteScope || regle.scope) === 'ville';
+  if (regle && autoriteCouvre(state.poste?.id || '', regle.nommePar)
+      && (!villeAutorite || state.poste?.city === state.currentCity)) return true;
   showToast('Accès refusé', 'Seul(e) le/la ' + ((regle && regle.nommePar) || '?') + ' peut ' + verbe + ' ce poste.', false);
   return false;
 }
@@ -5829,10 +5831,44 @@ async function consulterAnnuaireDeputes() {
 // GENERIQUE PAR CONSTRUCTION : la ville vient de POSTES_NOMMES_EXCLUSIFS[posteId].scope et de
 // state.currentCity. Luthecia, Montrouge et Port-Sainte-Marie empruntent le meme chemin.
 const ACTIONS_POSTE_NOMME = {
-  commissaire:        { candidatures: null, nommer: 3, revoquer: 1 },
-  maire_adjoint:      { candidatures: 1,    nommer: null, revoquer: 1 },
-  directeur_entrepot: { candidatures: 1,    nommer: 3,    revoquer: 1 }
+  commissaire: {
+    candidatures: null,
+    nommer: {fn:'nommer_commissaire', label:'Nommer le commissaire', pa:3, cost:0},
+    revoquer: {fn:'revoquer_commissaire', label:'Révoquer le commissaire', pa:1, cost:0}
+  },
+  maire_adjoint: {
+    candidatures: {fn:'gerer_candidature_maire_adjoint', label:'Étudier les candidatures à la fonction de maire adjoint', pa:1, cost:0},
+    nommer: null,
+    revoquer: {fn:'revoquer_maire_adjoint', label:'Révoquer le maire adjoint', pa:1, cost:0}
+  },
+  directeur_entrepot: {
+    candidatures: {fn:'gerer_candidature_directeur_entrepot', label:'Étudier les candidatures à la direction de l’entrepôt', pa:1, cost:0},
+    nommer: {fn:'nommer_directeur_entrepot', label:'Nommer la direction de l’entrepôt', pa:3, cost:0},
+    revoquer: {fn:'revoquer_directeur_entrepot', label:'Révoquer la direction de l’entrepôt', pa:1, cost:0}
+  }
 };
+
+// L'ouverture du menu est gratuite. Chaque acte facture son propre ordre declare,
+// jamais le nom du menu de regroupement depose dans state._ordreEnCours.
+function coutActionPosteNomme(posteId, action, pa, cost) {
+  const actions = ACTIONS_POSTE_NOMME[posteId];
+  const ordre = actions?.[action] || (action === 'candidatures' ? actions?.nommer : null);
+  return ordre ? { fn: ordre.fn, pa: ordre.pa, cost: ordre.cost } : { pa, cost };
+}
+
+// Un seul point d'entree municipal, puis les dossiers et actions du moteur existant.
+const POSTES_NOMINATIONS_MUNICIPALES = ['commissaire', 'maire_adjoint', 'directeur_entrepot'];
+
+function ouvrirNominationsMunicipales() {
+  if (!exigerAutoriteSurPosteNomme(POSTES_NOMMES_EXCLUSIFS.maire_adjoint, 'gérer les nominations municipales')) return;
+  document.getElementById('postes-modal-title').textContent = 'Nominations';
+  const libelles = ['Commissaire de police', 'Maire adjoint', "Directeur de l’entrepôt logistique"];
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;display:flex;flex-direction:column;gap:.6rem">'
+    + POSTES_NOMINATIONS_MUNICIPALES.map((posteId, i) =>
+      '<button onclick="ouvrirGestionPosteNomme(\'' + posteId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.7rem;border:1px solid #8a7a40;background:transparent;color:#c0b090;cursor:pointer;text-align:left">'
+      + libelles[i] + '</button>').join('') + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
 
 async function ouvrirGestionPosteNomme(posteId) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
@@ -5841,10 +5877,7 @@ async function ouvrirGestionPosteNomme(posteId) {
 
   // Meme garde d'autorite que chacun des anciens ordres, verifiee ici une fois pour toutes --
   // les handlers appeles ensuite la revalident chacun de leur cote, et le serveur aussi.
-  if (!autoriteCouvre(state.poste?.id || '', regle.nommePar)) {
-    showToast('Acces refuse', 'Seul(e) le/la ' + regle.nommePar + ' peut gerer ce poste.', false);
-    return;
-  }
+  if (!exigerAutoriteSurPosteNomme(regle, 'gerer')) return;
 
   const ville = regle.scope === 'ville' ? (state.currentCity || null) : null;
   const villeNom = ville ? (WORLD[state.country]?.[ville]?.name || ville) : null;
@@ -5875,17 +5908,18 @@ async function ouvrirGestionPosteNomme(posteId) {
     + 'padding:.55rem;border:1px solid ' + couleur + ';background:transparent;color:' + couleur + ';cursor:pointer;text-align:left">'
     + libelle + (cout ? ' <span style="opacity:.7">(' + cout + ' PA)</span>' : '') + '</button>';
 
-  if (actions.candidatures !== null) {
-    html += bouton("ouvrirGestionCandidatures(['" + posteId + "']," + actions.candidatures + ",0)",
-                   'Gerer les candidatures recues', actions.candidatures, '#8a7a40');
+  const coutCandidature = actions.candidatures ?? actions.nommer;
+  if (coutCandidature !== null) {
+    html += bouton("ouvrirGestionCandidatures(['" + posteId + "']," + coutCandidature.pa + ",0)",
+                   'Gerer les candidatures recues', coutCandidature.pa, '#8a7a40');
   }
   if (actions.nommer !== null) {
-    html += bouton("ouvrirNominerPosteNomme('" + posteId + "'," + actions.nommer + ",0)",
-                   titulaire ? 'Nommer quelqu\'un d\'autre' : 'Nommer un titulaire', actions.nommer, '#8a7a40');
+    html += bouton("ouvrirNominerPosteNomme('" + posteId + "'," + actions.nommer.pa + ",0)",
+                   titulaire ? 'Nommer quelqu\'un d\'autre' : 'Nommer un titulaire', actions.nommer.pa, '#8a7a40');
   }
   if (actions.revoquer !== null && titulaire) {
-    html += bouton("ouvrirRevoquerPosteNomme('" + posteId + "'," + actions.revoquer + ",0)",
-                   'Revoquer le titulaire', actions.revoquer, '#8a3a2a');
+    html += bouton("ouvrirRevoquerPosteNomme('" + posteId + "'," + actions.revoquer.pa + ",0)",
+                   'Revoquer le titulaire', actions.revoquer.pa, '#8a3a2a');
   }
   html += '</div></div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -5899,10 +5933,7 @@ async function ouvrirRevoquerPosteNomme(posteId, pa, cost) {
   // un maire pouvait nommer un commissaire (deja corrige le 8 aout, startsWith) mais jamais le
   // revoquer. startsWith couvre aussi bien 'maire' que 'president'/'pm'/etc (correspondance exacte
   // pour ces derniers, qui n'ont pas de variante).
-  if (!autoriteCouvre(state.poste?.id || '', regle.nommePar)) {
-    showToast('Acces refuse', 'Seul(e) le/la ' + regle.nommePar + ' peut revoquer ce poste.', false);
-    return;
-  }
+  if (!exigerAutoriteSurPosteNomme(regle, 'revoquer')) return;
 
   const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
   const villeNom = villeCourante ? (WORLD[state.country]?.[villeCourante]?.name || villeCourante) : null;
@@ -5950,10 +5981,11 @@ async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, c
   }
 
   document.getElementById('modal-postes').classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
+  const r = await deduireCoutOrdre(coutActionPosteNomme(posteId, 'revoquer', pa, cost));
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  if (estPJ) {
+  if (estPJ || POSTES_NOMINATIONS_MUNICIPALES.includes(posteId)) {
+    // PJ et PNJ municipaux passent par la meme porte : un DELETE client est refuse par la RLS.
     // REVOCATION SERVEUR (15 septembre 2026). L'ecriture directe de la fiche d'autrui est refusee
     // depuis le chantier B (trigger de la vue, 403 avale par le .catch) : cette revocation ne
     // revoquait donc plus personne. La RPC revalide l'autorite, la protection de 3 jours, et
@@ -5966,7 +5998,7 @@ async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, c
       return;
     }
     const revoqueurNom = state.char?.name || 'Anonyme';
-    if (typeof sbSendMail === 'function') {
+    if (estPJ && typeof sbSendMail === 'function') {
       const h = String(state.hour || 8).padStart(2,'0');
       const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
       await sbSendMail(revoqueurNom, nomTitulaire, 'Revocation de poste',
@@ -6018,6 +6050,7 @@ async function listerHabitantsEligibles(posteId) {
 async function ouvrirNominerPosteNomme(posteId, pa, cost) {
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   if (!regle) return;
+  if (!exigerAutoriteSurPosteNomme(regle, 'nommer à')) return;
 
   document.getElementById('postes-modal-title').textContent = 'Nommer un ' + regle.label.toLowerCase();
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;color:#8a8060;font-style:italic">Recherche des habitants éligibles...</div>';
@@ -6104,7 +6137,7 @@ async function envoyerNominationPosteNomme(posteId, pa, cost) {
   // facades : un seul point de verite, et aucune facade ne peut plus oublier la regle.
   const paNomination = (pa === undefined || pa === null || !isFinite(Number(pa)))
     ? COUT_PA_NOMINATION_DEFAUT : Number(pa);
-  const r = await deduireCoutOrdre({ pa: paNomination, cost: cost || 0 });
+  const r = await deduireCoutOrdre(coutActionPosteNomme(posteId, 'nommer', paNomination, cost || 0));
   if (!r.ok) { signalerRefusCout(r); return; }
 
   document.getElementById('modal-postes').classList.remove('open');
@@ -6295,6 +6328,7 @@ document.querySelectorAll('.modal-overlay:not(#modal-quete-accueil)').forEach(m 
 // nommerDepuisCandidature) doivent pouvoir reagir a un blocage par protection sans se contenter
 // d'un effet de bord silencieux.
 async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
+  if (!exigerAutoriteSurPosteNomme(POSTES_NOMMES_EXCLUSIFS[posteId], 'nommer à')) return { ok: false, raison: 'autorite_insuffisante' };
   document.getElementById('modal-pnj')?.classList.remove('open');
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId];
   const villeDuPoste = regle?.scope === 'ville' ? state.currentCity : null;
@@ -6376,6 +6410,7 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
 // 48h, reconcilie l'autorite au passage (aucun effet si elle n'a pas change), et ne montre plus
 // jamais une candidature deja traitee (poste deja pourvu entretemps).
 async function ouvrirGestionCandidatures(posteIds, pa, cost) {
+  if (!posteIds.length || !posteIds.every(id => exigerAutoriteSurPosteNomme(POSTES_NOMMES_EXCLUSIFS[id], 'étudier les candidatures à'))) return;
   document.getElementById('postes-modal-title').textContent = 'Gestion des candidatures';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
   document.getElementById('modal-postes').classList.add('open');
@@ -6426,8 +6461,9 @@ async function ouvrirGestionCandidatures(posteIds, pa, cost) {
 }
 
 async function nommerDepuisCandidature(posteId, posteName, candidatNom, pa, cost) {
+  if (!exigerAutoriteSurPosteNomme(POSTES_NOMMES_EXCLUSIFS[posteId], 'nommer à')) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
+  const r = await deduireCoutOrdre(coutActionPosteNomme(posteId, 'candidatures', pa, cost));
   if (!r.ok) { signalerRefusCout(r); return; }
   await accepterCandidaturePoste(posteId, posteName, candidatNom);
 }
@@ -8520,13 +8556,8 @@ function ouvrirModalNommerCommissaire() {
   ouvrirNominerPosteNomme('commissaire');
 }
 
-// Transfert complet au Maire Adjoint le 10 aout 2026 (plus partage avec le Maire) : verification
-// stricte, contrairement au startsWith('maire') d'avant qui aurait aussi laisse passer le Maire.
+// La facade historique reste utilisable, avec l'autorite et la ville du moteur commun.
 function ouvrirModalNommerDirecteurEntrepot(pa, cost) {
-  if (state.poste?.id !== 'maire_adjoint') {
-    showToast('Accès refusé', "Seul le Maire Adjoint peut nommer un directeur d'entrepôt.", false);
-    return;
-  }
   ouvrirNominerPosteNomme('directeur_entrepot', pa, cost);
 }
 

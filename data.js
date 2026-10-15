@@ -3848,8 +3848,7 @@ const BUILDINGS = {
           {fn:'repartition_budget_local', label:'Repartir le budget municipal', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Repartir les recettes fiscales locales entre Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal. Applique chaque nuit, credite directement leur caisse reelle.'},
           {fn:'subvention_proposer', label:'Proposer une subvention', pa:2, cost:0, type:'legal', icon:'ti-gift',          successRate:100, requiresPost:'maire', desc:'Proposer un montant de l\'enveloppe municipale « Subventions » a une organisation eligible de la commune. Elle a trois jours pour accepter ou refuser ; les fonds restent reserves jusque-la.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Deploiement de forces de l\'ordre supplementaires. Preleve sur budget mairie.'},
-          {fn:'commissaire_gestion', label:'Commissaire', pa:0, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Titulaire actuel, nomination et révocation du commissaire de cette ville — regroupés en un seul écran.'},
-          {fn:'maire_adjoint_gestion', label:'Maire adjoint', pa:0, cost:0, type:'legal', icon:'ti-user-cog', successRate:100, requiresPost:'maire', desc:'Titulaire actuel, candidatures reçues et révocation — regroupés en un seul écran.'}
+          {fn:'nominations_municipales', label:'Nominations', pa:0, cost:0, type:'legal', icon:'ti-user-cog', successRate:100, requiresPost:'maire', desc:'Commissaire de police, maire adjoint et directeur de l’entrepôt logistique : titulaires, candidatures, nominations et révocations.'}
         ]
       },
       bureau_maire_adjoint: {
@@ -3862,11 +3861,7 @@ const BUILDINGS = {
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
-          {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
-          // REGROUPEMENT UX (16 septembre 2026) : les trois actions Entrepôt tiennent derrière un
-          // seul bouton. Aucune règle ne change -- l'écran qui s'ouvre propose exactement les
-          // mêmes actions, avec leurs coûts, leurs autorités et leurs effets d'origine.
-          {fn:'entrepot_direction', label:'Entrepôt', pa:0, cost:0, type:'legal', icon:'ti-building-warehouse', successRate:100, requiresPost:'maire_adjoint', desc:"Gérer la direction de l'Entrepôt Logistique de cette ville : candidatures, nomination, révocation."}
+          {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
         ]
       },
       salle_elections: {
@@ -4414,8 +4409,7 @@ const BUILDINGS = {
           {fn:'repartition_budget_local', label:'Répartir le budget municipal', pa:2, cost:0, type:'legal', icon:'ti-chart-pie',    successRate:100, requiresPost:'maire', desc:'Repartir les recettes fiscales locales entre Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal. Applique chaque nuit, credite directement leur caisse reelle.'},
           {fn:'subvention_proposer', label:'Proposer une subvention', pa:2, cost:0, type:'legal', icon:'ti-gift',          successRate:100, requiresPost:'maire', desc:'Proposer un montant de l\'enveloppe municipale « Subventions » a une organisation eligible de la commune. Elle a trois jours pour accepter ou refuser ; les fonds restent reserves jusque-la.'},
           {fn:'campagne_securite',     label:'Lancer une campagne de securite',pa:2, cost:500, type:'legal', icon:'ti-shield',     successRate:80,  requiresPost:'maire', desc:'+10 ISN local. Preleve sur budget mairie.'},
-          {fn:'commissaire_gestion', label:'Commissaire', pa:0, cost:0, type:'legal', icon:'ti-shield-lock', successRate:100, requiresPost:'maire', desc:'Titulaire actuel, nomination et révocation du commissaire de cette ville — regroupés en un seul écran.'},
-          {fn:'maire_adjoint_gestion', label:'Maire adjoint', pa:0, cost:0, type:'legal', icon:'ti-user-cog', successRate:100, requiresPost:'maire', desc:'Titulaire actuel, candidatures reçues et révocation — regroupés en un seul écran.'}
+          {fn:'nominations_municipales', label:'Nominations', pa:0, cost:0, type:'legal', icon:'ti-user-cog', successRate:100, requiresPost:'maire', desc:'Commissaire de police, maire adjoint et directeur de l’entrepôt logistique : titulaires, candidatures, nominations et révocations.'}
         ]
       },
       bureau_maire_adjoint: {
@@ -4429,11 +4423,7 @@ const BUILDINGS = {
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
-          {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'},
-          // REGROUPEMENT UX (16 septembre 2026) : les trois actions Entrepôt tiennent derrière un
-          // seul bouton. Aucune règle ne change -- l'écran qui s'ouvre propose exactement les
-          // mêmes actions, avec leurs coûts, leurs autorités et leurs effets d'origine.
-          {fn:'entrepot_direction', label:'Entrepôt', pa:0, cost:0, type:'legal', icon:'ti-building-warehouse', successRate:100, requiresPost:'maire_adjoint', desc:"Gérer la direction de l'Entrepôt Logistique de cette ville : candidatures, nomination, révocation."}
+          {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
         ]
       }
     }
@@ -8343,12 +8333,9 @@ const POSTES_NOMMES_EXCLUSIFS = {
   directeur_tabac_alcools: { label: 'Directeur du Pôle Tabac & Alcools',   nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
   directeur_raffinerie:    { label: 'Directeur de la Raffinerie',          nommePar: 'min_fin', scope: 'pays', compatibles: ['depute'] },
 
-  // Directeur de l'entrepot logistique — nomme par le Maire ADJOINT depuis le 10 aout 2026
-  // (transfert complet de la prerogative, voir maire_adjoint ci-dessous), portee locale, un
-  // titulaire distinct par ville. Meme mecanique que le commissaire. Ne change rien au
-  // remplissage PNJ automatique du cron (verifierPostesVacantsEtAutoPourvoir, api/cron-minuit.js),
-  // qui a sa propre boucle par ville cablee sur estOccupe('maire', ville), independante de ce champ.
-  directeur_entrepot:      { label: "Directeur de l'Entrepôt Logistique",  nommePar: 'maire_adjoint', scope: 'ville', compatibles: ['depute'] },
+  // Direction de l'entrepot : nomination municipale par le maire de la ville,
+  // comme le commissaire et l'adjoint. Les autres pouvoirs de l'adjoint restent inchanges.
+  directeur_entrepot:      { label: "Directeur de l'Entrepôt Logistique",  nommePar: 'maire', scope: 'ville', compatibles: ['depute'] },
 
   // Maire Adjoint (10 aout 2026) — nomme par le Maire, portee locale. Pas de repli PNJ
   // automatique dans la cascade du cron (deliberement pas construit, reflexion a venir sur une
