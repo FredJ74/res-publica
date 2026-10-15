@@ -4479,7 +4479,8 @@ function ouvrirMenuOrdresTribune(index) {
     const bouton = wrapper.firstElementChild;
     if (!bouton) return;
     bouton.style.cssText += ';width:100%;text-align:left;min-height:2.5rem;';
-    bouton.addEventListener('click', () => document.getElementById('modal-postes').classList.remove('open'), {capture:true});
+    // Fermer seulement si le bouton est actif ; les actions ouvrent ensuite leur propre dialogue.
+    if (!bouton.disabled) bouton.addEventListener('click', () => document.getElementById('modal-postes').classList.remove('open'), {capture:true});
     liste.appendChild(bouton);
     if (o.desc) {
       const desc = document.createElement('div');
