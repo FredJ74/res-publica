@@ -723,7 +723,7 @@ const WORLD = {
               imageBg: "linear-gradient(135deg,#0f1810,#142014)",
               imageUrl: "images/port-sainte-marie-mairie-salle-elections.webp",
               desc: "La salle où sont gérés les scrutins et candidatures officielles de la ville.",
-              persons: [],
+              persons: [{name:'Loïc Legall (PNJ)', role:'Responsable électoral de Port-Sainte-Marie', rel:'neutral', job:'responsable_election'}],
               orders: [
                 {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
                 {fn:'voter_election',       label:'Voter',                      pa:0, cost:0,    type:'legal',   icon:'ti-checkbox',      successRate:100, desc:'Presidentielle, legislatives, municipales : accès direct au vote si un scrutin est ouvert.'},
@@ -1267,7 +1267,7 @@ const WORLD = {
               desc: "La salle où sont gérés les scrutins et candidatures officielles de la ville.",
               imageUrl: "images/montrouge/montrouge-mairie-salle-elections.jpg",
               persons: [
-                {name:'Responsable Electoral (PNJ)', role:'PNJ - Commission electorale', rel:'neutral', job:'responsable_election'}
+                {name:'Patricia Vapeur (PNJ)', role:'Responsable électorale de Montrouge', rel:'neutral', job:'responsable_election'}
               ],
               orders: [
                 {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
@@ -3870,7 +3870,7 @@ const BUILDINGS = {
         desc: "La salle ou sont geres les scrutins et candidatures officielles de la ville.",
         imageUrl: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&q=80",
         persons: [
-          {name:'Responsable Electoral (PNJ)', role:'PNJ - Commission electorale', rel:'neutral', job:'responsable_election'}
+          {name:'Jean Registre (PNJ)', role:'Responsable électoral de Luthécia', rel:'neutral', job:'responsable_election'}
         ],
         orders: [
           {fn:'consulter_elections',  label:'Voir les candidats',         pa:0, cost:0,    type:'legal',   icon:'ti-list',          successRate:100, desc:'Liste des candidats declares et sondages.'},
