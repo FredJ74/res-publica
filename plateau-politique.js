@@ -4443,13 +4443,14 @@ function renderRoomActions(room, buildingId, roomId) {
         .filter(x => g.fns.includes(x.o.fn));
       entries.forEach(x => utilises.add(x.o.fn));
       window._tribuneOrdresGroupes[index] = entries;
+      if (!entries.length) return '';
       return '<button class="action-btn legal" onclick="ouvrirMenuOrdresTribune(' + index +
         ')" title="' + g.titre.replace(/"/g,'&quot;') + '"><i class="ti ' + g.icon +
         '"></i> ' + g.titre + ' <span class="pa-cost">▾</span></button>';
     });
     const horsGroupes = allOrders.map((o, i) => ({ o, html: buttons[i] }))
       .filter(x => !utilises.has(x.o.fn)).map(x => x.html);
-    buttons.splice(0, buttons.length, ...menus, ...horsGroupes);
+    buttons.splice(0, buttons.length, ...menus.filter(Boolean), ...horsGroupes);
   }
 
   // Bouton generique "Ecouter l'audioguide" : apparait pour toute salle ayant un audioUrl,
