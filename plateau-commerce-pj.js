@@ -1946,6 +1946,32 @@ async function commercePjFicheProduit(referenceId) {
   commercePjModale(tCommercePJ('commercepj.titre.produit'), html);
 }
 
+let RP_CPJ_ETAT_VERSION = 0;
+async function commercePjActualiserPersonnage() {
+  if (typeof sbGet !== 'function' || !state.char?.name) return false;
+  const version = ++RP_CPJ_ETAT_VERSION;
+  const nom = state.char.name, pays = state.country;
+  const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  if (!uid) return false;
+  try {
+    // Lecture minimale : ne pas recharger l'inventaire avant son drainage, ni
+    // recalculer un solde a partir du prix ou des bonus annonces.
+    const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(nom)
+      + '&country=eq.' + encodeURIComponent(pays)
+      + '&select=user_id,arg,liquide,hp,moral,pa&limit=2');
+    if (version !== RP_CPJ_ETAT_VERSION || !Array.isArray(rows) || rows.length !== 1 || rows[0].user_id !== uid
+        || state.char?.name !== nom || state.country !== pays || rpAuthUid() !== uid) return false;
+    for (const champ of ['arg','liquide','hp','moral','pa']) {
+      const valeur = rows[0][champ];
+      if (typeof valeur === 'number' && Number.isFinite(valeur)) {
+        state[champ] = valeur;
+        if (champ === 'arg' || champ === 'pa') state.char[champ] = valeur;
+      }
+    }
+    return true;
+  } catch (e) { return false; }
+}
+
 // L'achat n'envoie QUE : cle de requete, acteur, fonds, reference, quantite.
 // Ni prix, ni objet, ni montant. La livraison passe par le sas existant.
 async function commercePjAcheter(referenceId, requete) {
@@ -1953,6 +1979,8 @@ async function commercePjAcheter(referenceId, requete) {
   const qte = Math.max(1, Math.floor(Number((document.getElementById('cpj-qte') || {}).value) || 1));
   const r = await sbAcheterProduitCommerce(requete, state.char.name, ctx.fondsId, referenceId, qte);
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
+  await commercePjActualiserPersonnage();
+  if (typeof updateUI === 'function') updateUI();
   if (r.rejeu === true) { commercePjEcranBoutique(); return; }
   showToast(tCommercePJ('commercepj.fiche.achete'),
     commercePjMontant(r.montant) + ' ' + commercePjDevise() + ' — ' + tCommercePJ('commercepj.fiche.recu'), true, true);
@@ -1976,6 +2004,8 @@ async function commercePjConsommerSurPlace(referenceId, requete) {
     p_fonds_id: ctx.fondsId, p_reference_id: referenceId
   });
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
+  await commercePjActualiserPersonnage();
+  if (typeof updateUI === 'function') updateUI();
   if (r.rejeu === true) { commercePjEcranBoutique(); return; }
   const e = r.effets || {};
   const bonus = [Number(e.hp) ? '+' + e.hp + ' Santé' : '',
@@ -1983,8 +2013,6 @@ async function commercePjConsommerSurPlace(referenceId, requete) {
   showToast('Consommé sur place',
     commercePjMontant(r.montant) + ' ' + commercePjDevise() + (bonus ? ' — ' + bonus : ''), true);
   if (typeof addJournalEntry === 'function') addJournalEntry('Consommation sur place : ' + (bonus || 'aucun bonus') + '.', 'event-good');
-  if (typeof chargerPersonnage === 'function') { try { await chargerPersonnage(); } catch(e) {} }
-  if (typeof updateUI === 'function') updateUI();
   commercePjEcranBoutique();
 }
 
