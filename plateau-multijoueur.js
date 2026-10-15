@@ -269,8 +269,6 @@ function renderPersonsList(persons, targetId) {
   // des sieges (depute si le siege est libre, assistant parlementaire s'il est tenu par un PJ) --
   // ce qu'une liste statique ne peut pas exprimer. No-op hors de l'hemicycle.
   if (typeof appliquerDeputesAssemblee === 'function') persons = appliquerDeputesAssemblee(persons);
-  const relCol = r => r === 'ally' ? '#4a8a4a' : r === 'enemy' ? '#8a3a2a' : '#6a6040';
-  const relTxt = r => r === 'ally' ? 'Allie' : r === 'enemy' ? 'Hostile' : 'Neutre';
 
   const char = state.char;
   const ar = ARCHETYPES.find(x => x.id === char?.archetype);
@@ -361,7 +359,6 @@ function renderPersonsList(persons, targetId) {
       '<div class="person-name">' + p.name + '</div>' +
       marqueurMutinHtml(p.name) +
       '<div class="person-role">' + p.role + '</div>' +
-      '<div class="person-rel" style="color:' + relCol(p.rel) + ';font-size:.78rem">' + relTxt(p.rel) + '</div>' +
       '</div></div>';
   };
 
