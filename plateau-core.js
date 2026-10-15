@@ -494,10 +494,10 @@ const EMPIRE_STYLES = {
 
 const JOURNALISTES_PNJ = {
   republic: {
-    name: 'Gustave Encre',
+    name: 'Jodie Moitout',
     journal: "L'Autruche Entravée",
-    trait: "Journaliste d'investigation alcoolique. Déterre les scandales par accident en cherchant ses clés. A une source dans chaque ministère mais ne sait plus lequel.",
-    style: "cynique désabusé, métaphores journalistiques épuisées, boit du café tiède depuis 1987"
+    trait: "Journaliste micro-trottoir et référente presse. Cherche des informations et interroge les habitants ; explique le travail de la rédaction.",
+    style: "curieuse, enthousiaste, incisive, humour satirique et questions directes"
   },
   narco: {
     name: 'El Editor',
