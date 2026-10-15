@@ -44,9 +44,10 @@ import re
 import subprocess
 import sys
 import tempfile
+import shutil
 
 RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-JSC = "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc"
+JSC = os.environ.get('HG_JSC', "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc")
 
 # Ce que le navigateur ou Node donnent, et que jsc ne donne pas. `process.env` est VIDE a
 # dessein : les modules de api/ exercent ainsi leurs replis, dont l'absence de cle service.
@@ -99,8 +100,12 @@ def main():
     if len(sys.argv) < 2:
         print(__doc__)
         return 2
-    if not os.path.exists(JSC):
-        raise SystemExit("lancer-banc : JavaScriptCore introuvable a %s" % JSC)
+    if os.path.exists(JSC):
+        moteur = [JSC]
+    elif 'HG_JSC' not in os.environ and shutil.which('node'):
+        moteur = [shutil.which('node'), os.path.join(RACINE, 'outils', 'bancs', 'shell-node.cjs')]
+    else:
+        raise SystemExit("lancer-banc : moteur JS introuvable (%s ; Node absent ou HG_JSC invalide)" % JSC)
     banc = sys.argv[1]
     chemin_banc = banc if os.path.isabs(banc) else os.path.join(RACINE, banc)
     sources = sys.argv[2:]
@@ -121,7 +126,7 @@ def main():
         fh.write("\n".join(morceaux))
         tmp = fh.name
     try:
-        p = subprocess.run([JSC, tmp], capture_output=True, text=True)
+        p = subprocess.run(moteur + [tmp], capture_output=True, text=True)
         sys.stdout.write(p.stdout)
         if p.stderr.strip():
             sys.stderr.write(p.stderr)

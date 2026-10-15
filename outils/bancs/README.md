@@ -6,6 +6,27 @@ une copie : le texte évalué est celui qui part en production.
 
 ## Lancer un banc
 
+Pour tous les bancs client et serveur JavaScript, y compris les bancs Node
+universitaires, municipaux et les modules partagés :
+
+```bash
+python3 outils/bancs/controler-client.py --rapport /tmp/human-gambit-bancs
+```
+
+Python 3 et Node sont requis. Les bancs historiques conservent leur contrôle de
+verdict et utilisent JavaScriptCore sur macOS, ou `shell-node.cjs` quand ce
+moteur est absent. `HG_JSC` permet de désigner explicitement un autre binaire ;
+un chemin explicite invalide échoue. L'adaptateur Node fournit seulement les
+primitives de shell attendues (`readFile`, `print`, drainage des promesses) et
+résout les anciens chemins absolus du dépôt vers le checkout courant. Il ne
+remplace aucune fonction testée. Validé sous Node 24 dans l'environnement cloud.
+
+Le lanceur global rend un code non nul dès qu'un banc échoue ou dépasse son
+délai. Les logs et les codes de sortie sont conservés avec `--rapport`. Il
+n'exécute aucun SQL et ne constitue pas une validation authentifiée en production.
+Les bancs natifs peuvent aussi être lancés avec `node --test` ; le banc de
+continuité municipale demande en plus `--experimental-vm-modules`.
+
 **Un seul nom suffit, et c'est nouveau.**
 
 ```bash
