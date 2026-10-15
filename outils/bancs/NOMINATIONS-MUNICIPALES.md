@@ -144,4 +144,4 @@ python3 outils/payload-vercel.py --garde
   attente** entre le référentiel client et les observations de la base ; elle
   ne doit être masquée ni présentée comme résolue.
 
-Le baseline n'a pas été édité pour simuler une application qui n'a pas eu lieu.
+La migration est appliquee, mais le baseline doit encore etre reextrait. Voir `outils/bancs/REPRISE-BASELINE-20261015.md`.
