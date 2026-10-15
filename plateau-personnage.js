@@ -2109,7 +2109,7 @@ async function doDormir() {
   }
   const rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: state.char.name }).catch(() => null);
   const vRepos = Array.isArray(rRepos) ? rRepos[0] : rRepos;
-  if (!vRepos || vRepos.ok !== true || typeof vRepos.pa !== 'number') {
+  if (!vRepos || vRepos.ok === false || typeof vRepos.pa !== 'number') {
     const deja = vRepos?.raison === 'deja_repose_aujourdhui' || vRepos?.raison === 'deja_dormi_aujourdhui' || vRepos?.raison === 'deja_percu_aujourdhui';
     showToast(deja ? 'Deja dormi' : 'Sommeil indisponible',
       deja ? 'Vous avez deja dormi aujourd\'hui. Attendez demain.' : 'Le serveur n\'a pas confirme le repos. Reessayez ou contactez le support.', false);
