@@ -34,7 +34,7 @@ async function publicitePremiumEnregistrerBrouillon(){
   if(!nom||(instructions.length<10&&!document.getElementById('pub-premium-affiche')?.files?.length)){if(retour)retour.textContent='Connectez votre personnage et décrivez la publicité (10 caractères minimum).';return;}
   if(retour)retour.textContent='Enregistrement du projet...';
   try{
-    const res=await fetch(SUPABASE_URL+'/rest/v1/rpc/publicite_premium_creer_beta',{method:'POST',headers:sbEnTetes(),body:JSON.stringify({p_personnage:nom,p_formule:formule,p_instructions:instructions,p_assistance:assistance})});
+    const res=await fetch(SUPABASE_URL+'/rest/v1/rpc/publicite_premium_creer_beta',{method:'POST',headers:sbEnTetes(),body:JSON.stringify({p_personnage:nom,p_formule:formule,p_instructions:instructions||'Affiche personnelle importée sans génération IA.',p_assistance:assistance})});
     if(!res.ok)throw new Error('Enregistrement refusé ('+res.status+').');
     const id=await res.json();
     await publicitePremiumPreparerImages(String(id));
@@ -52,7 +52,7 @@ async function publicitePremiumAction(id,action){
   const data=await res.json();
   if(!res.ok||!data.ok)throw Error(data.error||'Opération impossible');
   if(action==='finalize'){
-   retour.textContent='Publicité validée et programmée du '+data.premiere_parution+' au '+data.derniere_parution+'.';
+   retour.innerHTML=`Publicité validée et programmée du ${data.premiere_parution} au ${data.derniere_parution}. <button type="button" onclick="publicitePremiumVersions('${id}')">Télécharger mes versions</button><div id="pub-premium-versions"></div>`;
    return;
   }
   publicitePremiumAfficherApercu(id,data);
