@@ -484,7 +484,7 @@ const WORLD = {
         'la-tribune': {
           name: "L'Autruche Entravée",
           desc: "Le journal d'investigation de Républia.",
-          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "images/jodie-moitout.webp", "photoPos": "62% 20%"}],
+          persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste", "photoUrl": "images/la-tribune-accueil.webp", "photoPos": "84% 34%"}, {"name": "Rosalie Caractère (PNJ)", "role": "Libraire", "rel": "neutral", "job": "journaliste", "photoUrl": "images/la-tribune-accueil.webp", "photoPos": "50% 36%"}, {"name": "Jodie Moitout (PNJ)", "role": "Journaliste micro-trottoir", "rel": "neutral", "job": "journaliste", "photoUrl": "images/jodie-moitout.webp", "photoPos": "62% 20%"}],
           // Tracts calomnieux (24 aout 2026) : ajoute UNIQUEMENT a l'accueil de La Tribune de
           // Luthecia (republic/capitale) via roomOverrides.orders, fusion additive (voir
           // allOrders, plateau-politique.js) -- les 4 ordres de base (se_renseigner/
