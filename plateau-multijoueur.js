@@ -320,7 +320,7 @@ function renderPersonsList(persons, targetId) {
         '<div>' +
         '<div class="person-name">' + p.name + '</div>' +
         '<div class="person-role">' + p.role + '</div>' +
-        '<div class="person-rel" style="color:#8a3a2a;font-size:.78rem">⚠ Décédé</div>' +
+        '<div class="person-rel" style="color:#8a3a2a;font-size:.78rem">⚠ Dans le coma</div>' +
         '</div></div>';
     }
 
