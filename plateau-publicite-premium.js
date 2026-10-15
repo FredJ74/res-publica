@@ -31,7 +31,11 @@ async function publicitePremiumEnregistrerBrouillon(){
   const instructions=document.getElementById('pub-premium-texte')?.value.trim()||'';
   const formule=document.getElementById('pub-premium-formule')?.value;
   const assistance=document.getElementById('pub-premium-assistance')?.checked===true;
-  if(!nom||(instructions.length<10&&!document.getElementById('pub-premium-affiche')?.files?.length)){if(retour)retour.textContent='Connectez votre personnage et décrivez la publicité (10 caractères minimum).';return;}
+  if(!nom||(instructions.length<10&&!document.getElementById('pub-premium-affiche')?.files?.length)){if(retour)retour.textContent='Connectez votre personnage et décrivez la publicité (10 caractères minimum), ou importez votre affiche finale.';return;}
+  const sources=Array.from(document.getElementById('pub-premium-sources')?.files||[]);
+  const affiche=document.getElementById('pub-premium-affiche')?.files?.[0];
+  if(sources.length>5){if(retour)retour.textContent='Cinq images de référence maximum.';return;}
+  if((sources.length||affiche)&&!document.getElementById('pub-premium-droits')?.checked){if(retour)retour.textContent='Veuillez accepter les conditions relatives aux images fournies.';return;}
   if(retour)retour.textContent='Enregistrement du projet...';
   try{
     const res=await fetch(SUPABASE_URL+'/rest/v1/rpc/publicite_premium_creer_beta',{method:'POST',headers:sbEnTetes(),body:JSON.stringify({p_personnage:nom,p_formule:formule,p_instructions:instructions||'Affiche personnelle importée sans génération IA.',p_assistance:assistance})});
