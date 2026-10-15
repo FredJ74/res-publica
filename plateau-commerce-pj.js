@@ -2230,8 +2230,10 @@ async function commercePjDecorTelecharger(){
   const url=commercePjDecorUrl(path);
   const res=await fetch(url);
   if(!res.ok)throw Error('Image indisponible');
-  const objectUrl=URL.createObjectURL(await res.blob());
-  const a=document.createElement('a');a.href=objectUrl;a.download='human-gambit-commerce-'+Date.now()+'.png';
+  const blob=await res.blob();
+  const objectUrl=URL.createObjectURL(blob);
+  const extension=blob.type==='image/jpeg'?'jpg':blob.type==='image/webp'?'webp':'png';
+  const a=document.createElement('a');a.href=objectUrl;a.download='human-gambit-commerce-'+Date.now()+'.'+extension;
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(objectUrl),10000);
  }catch(e){commercePjDecorMessage(e.message||'Téléchargement impossible.');}
