@@ -217,6 +217,10 @@
       "recherche_retirer_par_id": [
         "justice",
         "retrait d'UNE SEULE entree de l'avis de recherche, par son identifiant : meme raison que recherche_inscrire et recherche_retirer, et c'est la porte que la cloture d'une affaire appelle pour n'eteindre que la recherche de non-presentation qui en depend"
+      ],
+      "candidature_entrepot_modification_autorisee": [
+        "politique et elections",
+        "Protège les candidatures de direction d'entrepôt : les dossiers municipaux relèvent du domaine politique et élections."
       ]
     }
   },
