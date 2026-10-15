@@ -31,7 +31,7 @@ async function publicitePremiumEnregistrerBrouillon(){
   const instructions=document.getElementById('pub-premium-texte')?.value.trim()||'';
   const formule=document.getElementById('pub-premium-formule')?.value;
   const assistance=document.getElementById('pub-premium-assistance')?.checked===true;
-  if(!nom||instructions.length<10){if(retour)retour.textContent='Connectez votre personnage et décrivez la publicité (10 caractères minimum).';return;}
+  if(!nom||(instructions.length<10&&!document.getElementById('pub-premium-affiche')?.files?.length)){if(retour)retour.textContent='Connectez votre personnage et décrivez la publicité (10 caractères minimum).';return;}
   if(retour)retour.textContent='Enregistrement du projet...';
   try{
     const res=await fetch(SUPABASE_URL+'/rest/v1/rpc/publicite_premium_creer_beta',{method:'POST',headers:sbEnTetes(),body:JSON.stringify({p_personnage:nom,p_formule:formule,p_instructions:instructions,p_assistance:assistance})});
@@ -113,4 +113,17 @@ function publicitePremiumAfficherApercu(id,data){
  (remaining>0?`<button type="button" onclick="publicitePremiumAction('${id}','retouch')">Retoucher (${remaining} restante(s))</button> `:'')+
  `<button type="button" onclick="publicitePremiumAction('${id}','finalize')">Valider et programmer</button>`;
 
+}
+
+async function publicitePremiumVersions(id){
+ const zone=document.getElementById('pub-premium-versions');if(!zone)return;
+ try{
+  const data=await publicitePremiumAppeler(id,'versions');
+  zone.textContent='';
+  for(const [i,v] of data.versions.entries()){
+   const url=SUPABASE_URL+'/storage/v1/object/public/publicites-premium/'+v.image_path.split('/').map(encodeURIComponent).join('/');
+   const b=document.createElement('button');b.type='button';b.textContent='Télécharger version '+(data.versions.length-i);
+   b.onclick=()=>publicitePremiumTelecharger(url);zone.append(b);
+  }
+ }catch(e){zone.textContent=e.message;}
 }
