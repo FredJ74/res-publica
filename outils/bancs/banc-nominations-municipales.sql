@@ -36,7 +36,7 @@ DECLARE
   suffixe text := substr(gen_random_uuid()::text, 1, 8);
   maire text := 'BancMaire-' || suffixe; adjoint text := 'BancAdjoint-' || suffixe;
   candidat text := 'BancCandidat-' || suffixe;
-  ville text; poste text; r jsonb; proposition text; n integer := 0;
+  ville text; v_poste_id text; r jsonb; proposition text; n integer := 0;
   dossier jsonb; dossiers jsonb; falsifie jsonb; cle text; id_blob text := 'republic_national_candidatures_postes';
   instant numeric := extract(epoch FROM now()) * 1000;
   tarif record; fixture record; pa_avant integer;
@@ -74,54 +74,54 @@ BEGIN
     VALUES ('republic_maire_adjoint_'||ville,'republic','maire_adjoint',ville,adjoint,'banc',now()-interval '8 days');
     UPDATE public.personnages_donnees SET poste=jsonb_build_object('id','maire_adjoint','city',ville) WHERE name=adjoint;
 
-    FOREACH poste IN ARRAY ARRAY['commissaire','maire_adjoint','directeur_entrepot'] LOOP
+    FOREACH v_poste_id IN ARRAY ARRAY['commissaire','maire_adjoint','directeur_entrepot'] LOOP
       -- L'adjoint ne peut ni nommer PJ/PNJ ni attribuer une candidature ni revoquer.
       PERFORM pg_temp.identite(u_adjoint);
-      r:=public.poste_nommer(poste,ville,'BancPNJ-'||suffixe);
-      PERFORM pg_temp.verifier(r->>'raison'='autorite_insuffisante',ville||'/'||poste||' nomination adjoint'); n:=n+1;
-      r:=public.poste_attribuer_candidature(poste,ville,candidat);
-      PERFORM pg_temp.verifier(r->>'raison'='autorite_insuffisante',ville||'/'||poste||' candidature adjoint'); n:=n+1;
-      r:=public.poste_revoquer(poste,ville);
-      PERFORM pg_temp.verifier(r->>'raison'='autorite_insuffisante',ville||'/'||poste||' revocation adjoint'); n:=n+1;
+      r:=public.poste_nommer(v_poste_id,ville,'BancPNJ-'||suffixe);
+      PERFORM pg_temp.verifier(r->>'raison'='autorite_insuffisante',ville||'/'||v_poste_id||' nomination adjoint'); n:=n+1;
+      r:=public.poste_attribuer_candidature(v_poste_id,ville,candidat);
+      PERFORM pg_temp.verifier(r->>'raison'='autorite_insuffisante',ville||'/'||v_poste_id||' candidature adjoint'); n:=n+1;
+      r:=public.poste_revoquer(v_poste_id,ville);
+      PERFORM pg_temp.verifier(r->>'raison'='autorite_insuffisante',ville||'/'||v_poste_id||' revocation adjoint'); n:=n+1;
 
       -- Le maire reste territorial ; un appel direct visant une autre ville echoue.
       PERFORM pg_temp.identite(u_maire);
-      r:=public.poste_nommer(poste,'autre-ville','BancPNJ-'||suffixe);
-      PERFORM pg_temp.verifier(r->>'raison'='autorite_insuffisante',poste||' maire hors territoire'); n:=n+1;
+      r:=public.poste_nommer(v_poste_id,'autre-ville','BancPNJ-'||suffixe);
+      PERFORM pg_temp.verifier(r->>'raison'='autorite_insuffisante',v_poste_id||' maire hors territoire'); n:=n+1;
 
       -- Un maire revoque le PNJ par la porte, pas par DELETE depuis un client.
       -- La suppression de l'ancien adjoint est testee puis son role de fixture est restaure.
-      r:=public.poste_revoquer(poste,ville);
-      PERFORM pg_temp.verifier((r->>'ok')::boolean,poste||' revocation initiale'); n:=n+1;
-      r:=public.poste_nommer(poste,ville,'BancPNJ-'||suffixe);
-      PERFORM pg_temp.verifier(r->>'decision'='pnj_en_fonction',poste||' nomination PNJ'); n:=n+1;
-      r:=public.poste_revoquer(poste,ville);
-      PERFORM pg_temp.verifier(r->>'decision'='pnj_revoque',poste||' revocation PNJ'); n:=n+1;
+      r:=public.poste_revoquer(v_poste_id,ville);
+      PERFORM pg_temp.verifier((r->>'ok')::boolean,v_poste_id||' revocation initiale'); n:=n+1;
+      r:=public.poste_nommer(v_poste_id,ville,'BancPNJ-'||suffixe);
+      PERFORM pg_temp.verifier(r->>'decision'='pnj_en_fonction',v_poste_id||' nomination PNJ'); n:=n+1;
+      r:=public.poste_revoquer(v_poste_id,ville);
+      PERFORM pg_temp.verifier(r->>'decision'='pnj_revoque',v_poste_id||' revocation PNJ'); n:=n+1;
 
       -- Proposition PJ : pas de fonction effective avant l'acceptation du destinataire.
-      r:=public.poste_nommer(poste,ville,candidat); proposition:=r->>'id';
-      PERFORM pg_temp.verifier(r->>'decision'='proposition_envoyee' AND proposition IS NOT NULL,poste||' proposition PJ'); n:=n+1;
+      r:=public.poste_nommer(v_poste_id,ville,candidat); proposition:=r->>'id';
+      PERFORM pg_temp.verifier(r->>'decision'='proposition_envoyee' AND proposition IS NOT NULL,v_poste_id||' proposition PJ'); n:=n+1;
       PERFORM pg_temp.identite(u_candidat);
       r:=public.poste_accepter_nomination(proposition);
-      PERFORM pg_temp.verifier((r->>'ok')::boolean AND r->>'titulaire'=candidat,poste||' acceptation PJ'); n:=n+1;
+      PERFORM pg_temp.verifier((r->>'ok')::boolean AND r->>'titulaire'=candidat,v_poste_id||' acceptation PJ'); n:=n+1;
       PERFORM pg_temp.identite(u_maire);
-      r:=public.poste_revoquer(poste,ville);
-      PERFORM pg_temp.verifier(r->>'raison'='titulaire_protege',poste||' protection serveur existante'); n:=n+1;
+      r:=public.poste_revoquer(v_poste_id,ville);
+      PERFORM pg_temp.verifier(r->>'raison'='titulaire_protege',v_poste_id||' protection serveur existante'); n:=n+1;
       PERFORM pg_temp.serveur();
       UPDATE public.postes_attribues SET depuis=now()-interval '8 days'
-        WHERE id='republic_'||poste||'_'||ville;
+        WHERE id='republic_'||v_poste_id||'_'||ville;
       PERFORM pg_temp.identite(u_maire);
-      r:=public.poste_revoquer(poste,ville);
-      PERFORM pg_temp.verifier(r->>'decision'='revoque',poste||' revocation PJ'); n:=n+1;
-      r:=public.poste_attribuer_candidature(poste,ville,candidat);
-      PERFORM pg_temp.verifier((r->>'ok')::boolean AND r->>'titulaire'=candidat,poste||' attribution candidature'); n:=n+1;
+      r:=public.poste_revoquer(v_poste_id,ville);
+      PERFORM pg_temp.verifier(r->>'decision'='revoque',v_poste_id||' revocation PJ'); n:=n+1;
+      r:=public.poste_attribuer_candidature(v_poste_id,ville,candidat);
+      PERFORM pg_temp.verifier((r->>'ok')::boolean AND r->>'titulaire'=candidat,v_poste_id||' attribution candidature'); n:=n+1;
       PERFORM pg_temp.serveur();
       UPDATE public.postes_attribues SET depuis=now()-interval '8 days'
-        WHERE id='republic_'||poste||'_'||ville;
-      PERFORM pg_temp.identite(u_maire); r:=public.poste_revoquer(poste,ville);
-      PERFORM pg_temp.verifier((r->>'ok')::boolean,poste||' remise a zero de la fixture'); n:=n+1;
+        WHERE id='republic_'||v_poste_id||'_'||ville;
+      PERFORM pg_temp.identite(u_maire); r:=public.poste_revoquer(v_poste_id,ville);
+      PERFORM pg_temp.verifier((r->>'ok')::boolean,v_poste_id||' remise a zero de la fixture'); n:=n+1;
       PERFORM pg_temp.serveur();
-      IF poste='maire_adjoint' THEN
+      IF v_poste_id='maire_adjoint' THEN
         INSERT INTO public.postes_attribues(id,country,poste_id,city,titulaire,source,depuis)
         VALUES ('republic_maire_adjoint_'||ville,'republic','maire_adjoint',ville,adjoint,'banc',now()-interval '8 days');
         UPDATE public.personnages_donnees SET poste=jsonb_build_object('id','maire_adjoint','city',ville) WHERE name=adjoint;
