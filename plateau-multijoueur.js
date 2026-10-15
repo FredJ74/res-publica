@@ -305,7 +305,7 @@ function renderPersonsList(persons, targetId) {
     const empireCol = COUNTRIES[state.country]?.col || '#C9A84C';
     const avatarHtml = p.photoUrl
       ? '<div class="person-avatar" style="overflow:hidden;border-color:' + (av.color || empireCol) + '">' +
-        '<img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover;object-position:' + (p.photoPos || '50% 15%') + '"/>' +
+        '<img src="' + p.photoUrl + '" style="width:100%;height:100%;object-fit:cover;object-position:' + (p.photoPos || '50% 15%') + ';transform:scale(' + (p.photoZoom || 1) + ');transform-origin:' + (p.photoPos || '50% 50%') + '"/>' +
         '</div>'
       : '<div class="person-avatar"><i class="ti ' + av.icon + '" style="font-size:.75rem;color:' + (av.color || '#8a8060') + '"></i></div>';
 
