@@ -85,7 +85,7 @@ test('les autres villes et le visuel de l’adjoint restent inchanges',()=>{
  assert.equal(adj.imageUrl,'images/bureau-maire.webp');assert.equal(adj.persons.length,0);
  assert.equal(j.run("WORLD.republic.ville_a.buildingContext?.['mairie-capitale']"),undefined);
  assert.equal(j.run("WORLD.republic.ville_b.buildingContext?.['mairie-capitale']"),undefined);
- assert.equal(j.run("ROOM_IMAGES_EMPIRE.republic['mairie-capitale'].bureau_maire"),'images/bureau-maire-luthecia.webp');
+ assert.equal(j.run("ROOM_IMAGES_EMPIRE.republic['mairie-capitale'].bureau_maire"),'images/bureau-maire-luthecia.webp?v=fe878010');
 });
 test('lecture ambigue, cycle malforme et attribution orpheline sont refuses',async()=>{
  await assert.rejects(lireTitulaireMunicipal('maire','republic','capitale',async()=>[{},{}]));

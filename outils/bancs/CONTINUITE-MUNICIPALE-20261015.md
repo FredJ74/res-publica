@@ -68,18 +68,24 @@ complètent les bancs fonctionnels.
 
 ## Vérifications restantes et image
 
-Le fichier `bureau-maire-luthecia-corrige.webp` et son ZIP ne sont pas présents
-dans les pièces jointes accessibles à cette session. Le seul ZIP accessible est
-l'ancien `mairie-luthecia-pour-codex.zip`, destiné à l'accueil. Il n'est pas utilisé
-pour le bureau. L'image actuelle `images/bureau-maire-luthecia.webp` est conservée.
-À réception du bon fichier, seule la référence
-`ROOM_IMAGES_EMPIRE.republic['mairie-capitale'].bureau_maire` doit changer si le
-nom du fichier change. Le visuel partagé `images/bureau-maire.webp`, utilisé
-notamment par l'adjoint, ne doit pas être remplacé.
+Le ZIP corrigé a été reçu après le premier commit. Son unique fichier
+`bureau-maire-luthecia-corrige.webp` remplace, sans réencodage ni retouche,
+`images/bureau-maire-luthecia.webp` : WebP, **1507 × 1044**, 338 810 octets.
+L'empreinte SHA-256 du fichier installé est identique à celle de l'entrée ZIP :
+`fe87801072da9c1ae3f80258355ab9909979cd4cd2ddd63a5061e4baca9bbc73`.
+Seule la référence de ce bureau est versionnée avec `?v=fe878010`, car les
+images sont servies avec un cache immutable d'un an. Le visuel de l'adjoint et
+les visuels des autres villes restent inchangés.
+
+Le composant de décor a été contrôlé dans Chromium avec le fragment de rendu
+réel de `plateau-navigation.js`, `data.js` et `style.css` : chargement et décodage
+HTTP local, dimensions attendues, centrage et mode `cover` inchangés, captures
+aux largeurs 1440 et 390 pixels. Ce contrôle isolé ne constitue pas un parcours
+authentifié du jeu. Les 24 tests de continuité ont été relancés avec succès.
 
 Aucun connecteur Supabase n'est exposé à cette session et aucun accès de test
 authentifié utilisable n'est disponible. L'audit des données vivantes et les
 transitions réelles avec un compte de test restent à réaliser. Aucune modification
 SQL, migration, réextraction ou réouverture du chantier baseline n'est nécessaire
-pour ce correctif applicatif. Le remplacement visuel et la validation en situation
-réelle restent **non terminés**.
+pour ce correctif applicatif. Le remplacement visuel est terminé ; la validation des PNJ en situation
+réelle reste **non terminée**.
