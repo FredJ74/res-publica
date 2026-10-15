@@ -111,7 +111,8 @@ function publicitePremiumAfficherApercu(id,data){
  retour.innerHTML=`<img src="${url}" alt="Aperçu publicitaire" style="display:block;max-width:100%;max-height:600px;margin:1rem auto">`+
  `<button type="button" onclick="publicitePremiumTelecharger('${url}')">Télécharger cette version</button> `+
  (remaining>0?`<button type="button" onclick="publicitePremiumAction('${id}','retouch')">Retoucher (${remaining} restante(s))</button> `:'')+
- `<button type="button" onclick="publicitePremiumAction('${id}','finalize')">Valider et programmer</button>`;
+ `<button type="button" onclick="publicitePremiumAction('${id}','finalize')">Valider et programmer</button> `+
+ `<button type="button" onclick="publicitePremiumVersions('${id}')">Toutes mes versions</button><div id="pub-premium-versions"></div>`;
 
 }
 
