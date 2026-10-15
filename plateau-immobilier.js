@@ -264,13 +264,8 @@ function definitionOrdreDansPiece(buildingId, roomId, fn) {
   if (!b) return null;
   const ctx = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId) : null;
   const room = (b.rooms && b.rooms[roomId]) || (ctx && ctx.roomsExtra && ctx.roomsExtra[roomId]);
-  const exclus = (ctx && ctx.roomOverrides && ctx.roomOverrides[roomId] && ctx.roomOverrides[roomId].excludeOrders) || [];
-  if (exclus.indexOf(fn) !== -1) return null;
-  const sources = []
-    .concat((room && room.orders) || [])
-    .concat((ctx && ctx.orders) || [])
-    .concat((ctx && ctx.roomOverrides && ctx.roomOverrides[roomId] && ctx.roomOverrides[roomId].orders) || []);
-  return sources.find(function (o) { return o && o.fn === fn; }) || null;
+  return ordresDeclaresDeLaPiece(room, ctx, roomId)
+    .find(function (o) { return o.fn === fn; }) || null;
 }
 
 // Libelles des refus, volontairement neutres : ils disent le role requis, jamais QUI le detient

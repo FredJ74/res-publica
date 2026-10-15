@@ -4028,7 +4028,6 @@ async function afficherJournalDuJour(force) {
 // ROOM ACTIONS
 // =====================
 function renderRoomActions(room, buildingId, roomId) {
-  const orders = room.orders || [];
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
 
   document.getElementById('action-context-bat').textContent =
@@ -4038,23 +4037,8 @@ function renderRoomActions(room, buildingId, roomId) {
   const world = WORLD[state.country];
   const city = world?.[state.currentCity];
   const ctx = city?.buildingContext?.[buildingId];
-  const ctxOrders = (ctx?.orders || []);
-  // Ordres specifiques a CETTE room, pour une ville donnee, sur un batiment generique partage
-  // par plusieurs villes (ex. 'mairie') -- ctxOrders ci-dessus s'applique a TOUTES les rooms du
-  // batiment, ce qui ne convient pas quand seule une room precise doit recevoir un ordre propre
-  // a une ville (ex. bureau_maire_adjoint de Montrouge, logements sociaux, 18 aout 2026).
-  // roomOverrides ne servait jusqu'ici qu'a name/imageUrl/persons (voir plateau-navigation.js) --
-  // extension purement additive : absent pour tous les roomOverrides existants, donc aucun
-  // changement de comportement ailleurs.
-  const ctxRoomOrders = (ctx?.roomOverrides?.[roomId]?.orders || []);
-
-  // Exclusion additive minimale (lot plafonds/Marche, 21 aout 2026) : permet a un roomOverride
-  // propre a UNE ville de masquer un fn herite du template de base PARTAGE (ex. se_nourrir au
-  // Marche de Luthecia, herite de BUILDINGS['marche'], egalement utilise tel quel a Montrouge/
-  // Khalija) sans jamais toucher au template lui-meme ni dupliquer la room. Absent partout
-  // ailleurs (aucun roomOverride existant ne declare excludeOrders) : zero changement de
-  // comportement pour tout le reste du jeu.
-  const ctxExcludeOrders = (ctx?.roomOverrides?.[roomId]?.excludeOrders || []);
+  // La meme fusion statique sert a l'affichage et a la garde d'execution.
+  const ordresDeclares = ordresDeclaresDeLaPiece(room, ctx, roomId);
 
   // QUATRIEME SOURCE (C6, 29 septembre 2026) : des ordres DERIVES DE L'ETAT, et
   // non plus seulement declares dans data.js. Un local ne sait pas ce qu'il
@@ -4101,8 +4085,7 @@ function renderRoomActions(room, buildingId, roomId) {
   dynOrders.forEach(d => { (d.masque || []).forEach(fn => dynMasque.push(fn)); });
 
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
-  const allOrders = [...orders, ...ctxOrders, ...ctxRoomOrders]
-    .filter(o => !ctxExcludeOrders.includes(o.fn))
+  const allOrders = ordresDeclares
     .filter(o => !dynMasque.includes(o.fn))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
     .concat(dynOrders);
@@ -5773,9 +5756,9 @@ async function consulterAnnuaireDeputes() {
     }
   } catch (e) { occupation = []; }
 
-  const VILLES = { capitale: 'Luthécia', ville_a: 'Montrouge', ville_b: 'Port-Sainte-Marie' };
-  const nomVille = (v) => (typeof CITY_LABELS !== 'undefined' && CITY_LABELS[v])
-    || VILLES[v] || v;
+  // Meme referentiel territorial que les mairies et les caisses. Une liste
+  // locale inversait Port-Sainte-Marie et Montrouge et naturalisait les empires.
+  const nomVille = (v) => villeNom(country, v) || v;
 
   let html = '<div style="padding:1rem">';
   if (occupation.length === 0) {

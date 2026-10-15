@@ -170,6 +170,17 @@ function villesDe(pays) {
   return t ? Object.keys(t).map(id => ({ id, nom: t[id].nom, capitale: t[id].capitale })) : [];
 }
 
+// Definition statique commune au rendu et aux gardes d'execution. Le gabarit
+// reste partage ; les ajouts/exclusions appartiennent au contexte pays/ville.
+// Ni droits, ni couts, ni jets ne sont recalcules. Les ordres derives de l'etat
+// restent traites par leur registre existant dans renderRoomActions.
+function ordresDeclaresDeLaPiece(piece, contexte, pieceId) {
+  const surcharge = contexte?.roomOverrides?.[pieceId];
+  const exclus = surcharge?.excludeOrders || [];
+  return [].concat(piece?.orders || [], contexte?.orders || [], surcharge?.orders || [])
+    .filter(ordre => ordre && !exclus.includes(ordre.fn));
+}
+
 // Rééquilibrage (bêta) : la richesse et la puissance statistique ne progressent plus
 // systématiquement dans le même sens sur un même choix -- chaque origine a désormais un net de
 // caractéristiques différent, corrélé négativement avec son capital (voir artefact "Refonte de
