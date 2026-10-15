@@ -154,3 +154,31 @@ faire exécuter des commandes au game designer.
    trois villes ; conserver les preuves sans tokens et nettoyer les fixtures.
 4. Relancer les contrôles, mettre à jour le ticket et ne le fermer que si ses
    critères sont remplis. Le présent bilan ne constitue pas cette clôture.
+
+## Vérifications directes complémentaires — ChatGPT / Supabase (15 octobre 2026)
+
+Le canal Supabase `execute_sql` est accessible dans cette session, contrairement
+à la session Codex. Les **quatre requêtes SQL d'export canoniques** extraites de
+`outils/baseline/requetes.py` ont été exécutées en lecture seule et ont renvoyé
+leurs résultats : `export_structure`, `export_fonctions`, `export_logique`,
+`export_droits`. **Attention :** ces résultats n'ont pas été matérialisés en
+fichiers d'export ni passés à `rendre.py` : ne pas déclarer le baseline régénéré.
+
+Relecture directe de `public.postes_nommes_regles` :
+
+| poste_id | nomme_par | scope | autorite_scope |
+|---|---|---|---|
+| commissaire | maire | ville | ville |
+| directeur_entrepot | maire | ville | ville |
+| maire_adjoint | maire | ville | ville |
+
+Le registre `supabase_migrations.schema_migrations` contient exactement une
+entrée de version `20261015212703`. Le catalogue `public` contient 326 tables
+ordinaires et 918 fonctions à la date du relevé. La fonction
+`tracts_electoraux_distribuer_collectif(text,text,text,text,text)` est présente,
+empreinte `03d6bf60c9c74e50b713060e50aaeccb` ; son absence du baseline est
+bien un retard de représentation, pas une absence en production.
+
+**Reste bloquant :** transfert intégral des quatre sorties vers un espace où
+`rendre.py` et les contrôles peuvent s'exécuter, plus essais authentifiés sur
+comptes municipaux de test. Ne pas fermer le ticket #1.
