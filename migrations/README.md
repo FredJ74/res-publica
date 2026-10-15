@@ -10,16 +10,17 @@ L'horodatage est celui du moment où la migration est écrite, en UTC. Il donne
 l'ordre d'application, et il doit être **postérieur au point de coupe du
 baseline** — `baseline/CONTROLE-GLOBAL.json`, clé `releve_le`.
 
-## Migration en attente : nominations municipales (15 octobre 2026)
+## Migration appliquée : nominations municipales (15 octobre 2026)
 
 `20261015210718_nominations_municipales_au_maire.sql` transfere au maire la
 nomination du directeur d'entrepot, declare les tarifs des actions municipales
 et ferme les modifications administratives du dossier d'entrepot par un adjoint.
 
-**Non appliquee**, sur instruction du game designer. ChatGPT doit la verifier
-et l'appliquer via son connecteur Supabase ; Codex n'a execute ni la migration
-ni le banc SQL. Le baseline reste donc inchange et l'ensemble du chantier
-reste ouvert jusqu'aux controles serveur et a sa reextraction.
+**Appliquee** via le connecteur Supabase le 15 octobre 2026, registre `20261015212703`.
+Le banc SQL a reussi ses 155 epreuves dans une transaction annulee. Les empreintes
+metier (postes, PNJ, candidatures) sont restees inchangees. Migration archivee dans
+`historique/migrations-appliquees/`. La reextraction du baseline reste a faire :
+le baseline etait deja en retard sur d'autres changements de la base.
 
 Le passage de relais, les dependances et les commandes de controle sont dans
 [`../outils/bancs/NOMINATIONS-MUNICIPALES.md`](../outils/bancs/NOMINATIONS-MUNICIPALES.md).
