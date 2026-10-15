@@ -32,6 +32,28 @@ async function publicitePremiumEnregistrerBrouillon(){
     const res=await fetch(SUPABASE_URL+'/rest/v1/rpc/publicite_premium_creer_beta',{method:'POST',headers:sbEnTetes(),body:JSON.stringify({p_personnage:nom,p_formule:formule,p_instructions:instructions,p_assistance:assistance})});
     if(!res.ok)throw new Error('Enregistrement refusé ('+res.status+').');
     const id=await res.json();
-    if(retour)retour.textContent='Projet enregistré (référence '+String(id).slice(0,8)+'). La génération et la diffusion seront accessibles après raccordement de l’atelier IA.';
+    if(retour)retour.innerHTML='Projet enregistré. <button type="button" onclick="publicitePremiumAction(\''+String(id)+'\',\'generate\')">Générer mon aperçu</button>';
   }catch(e){if(retour)retour.textContent=e.message||'Enregistrement impossible.';}
+}
+
+async function publicitePremiumAction(id,action){
+ const retour=document.getElementById('pub-premium-retour');
+ if(!retour)return;
+ let prompt='';
+ if(action==='retouch'){prompt=window.prompt('Décrivez les modifications souhaitées (2 retouches maximum) :')||'';if(prompt.trim().length<10)return;}
+ retour.textContent='Traitement en cours, veuillez patienter...';
+ try{
+  const res=await fetch(SUPABASE_URL+'/functions/v1/publicite-premium',{method:'POST',headers:sbEnTetes(),body:JSON.stringify({id,action,prompt})});
+  const data=await res.json();
+  if(!res.ok||!data.ok)throw Error(data.error||'Opération impossible');
+  if(action==='finalize'){
+   retour.textContent='Publicité validée et programmée du '+data.premiere_parution+' au '+data.derniere_parution+'.';
+   return;
+  }
+  const url=SUPABASE_URL+'/storage/v1/object/public/publicites-premium/'+data.path.split('/').map(encodeURIComponent).join('/');
+  const remaining=2-data.retouches;
+  retour.innerHTML='<img src="'+url+'" alt="Aperçu publicitaire" style="display:block;max-width:100%;max-height:600px;margin:1rem auto">'+
+   (remaining>0?'<button type="button" onclick="publicitePremiumAction(\''+id+'\',\'retouch\')">Retoucher ('+remaining+' restante(s))</button> ':'')+
+   '<button type="button" onclick="publicitePremiumAction(\''+id+'\',\'finalize\')">Valider et programmer</button>';
+ }catch(e){retour.textContent='Erreur : '+e.message;}
 }
