@@ -2173,13 +2173,16 @@ function commercePjDecorMessage(msg) {
   const el = document.getElementById('cpj-decoration-retour');
   if (el) el.textContent = msg;
 }
+let RP_CPJ_DECOR_GENERATION_EN_COURS = false;
 async function commercePjDecorGenerer() {
+  if(RP_CPJ_DECOR_GENERATION_EN_COURS)return;
   const champ=document.getElementById('cpj-decoration-demande');
   const bouton=document.getElementById('cpj-decoration-generer');
   const prompt=(champ && champ.value || '').trim();
   if(prompt.length<10){commercePjDecorMessage('Décrivez votre souhait en quelques phrases.');return;}
   if(!bouton)return;
   bouton.disabled=true;
+  RP_CPJ_DECOR_GENERATION_EN_COURS=true;
   commercePjDecorMessage('OpenAI prépare votre décor. Patientez…');
   try {
     const retouche=!!RP_CPJ_DECOR_PREVIEW;
@@ -2210,6 +2213,7 @@ async function commercePjDecorGenerer() {
     bouton.disabled=RP_CPJ_DECOR_RETOUCHES>=2;
     commercePjDecorMessage('Aperçu prêt. Vous pouvez valider ou décrire une modification.');
   } catch(e){commercePjDecorMessage(e.message||'Erreur de génération.');bouton.disabled=false;}
+  finally{RP_CPJ_DECOR_GENERATION_EN_COURS=false;}
 }
 async function commercePjDecorValider() {
   const btn=document.getElementById('cpj-decoration-valider');
