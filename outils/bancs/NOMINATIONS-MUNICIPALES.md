@@ -1,16 +1,17 @@
 # Nominations municipales — application et contrôles
 
-## État : en attente de la base
+## État : migration appliquée ; baseline et validation en jeu en attente
 
-Le code est préparé pour `main`. La migration et le banc SQL **n'ont pas été
-exécutés**, conformément à la consigne du game designer. Les validations SQL
-locales portent uniquement sur les grammaires SQL et PL/pgSQL (pglast), sans
-connexion ni application. Le chantier n'est pas terminé.
+Le code est sur `main`. ChatGPT a applique la migration via Supabase (registre
+`20261015212703`) et execute le banc SQL : **155 epreuves vertes**, annulees
+volontairement par l'exception finale. Les empreintes des postes attribues,
+titulaires PNJ et candidatures etaient identiques avant et apres. Les tarifs et
+les droits sur la fonction interne ont ete controles. Le baseline n'a pas encore
+ete reextrait et les essais authentifies en jeu restent a effectuer.
 
-Migration : `migrations/20261015210718_nominations_municipales_au_maire.sql`.
-Le changement serveur doit être appliqué avant de considérer le nouveau parcours
-comme utilisable en partie. Le serveur actuellement déployé peut encore accorder
-l'autorité d'entrepôt à l'adjoint et refuser le maire jusqu'à cette application.
+Migration archivée : `historique/migrations-appliquees/20261015210718_nominations_municipales_au_maire.sql`.
+Le changement serveur est applique : la règle d'entrepôt attribue maintenant
+l'autorité au maire. Les essais authentifiés en jeu restent à confirmer.
 
 ## Périmètre audité
 
@@ -101,7 +102,7 @@ sensibles sont contrôlées côté serveur, indépendamment des boutons.
    Le succès attendu est l'exception finale :
    `banc nominations : LES 155 EPREUVES SONT VERTES -- transaction annulee`.
    Elle annule tout le banc. Toute autre erreur est un échec à diagnostiquer.
-   Ce résultat est **attendu, pas encore observé**.
+   Ce résultat a été **observé le 15 octobre 2026**, après correction de l'ambiguïté de variable `poste` dans le banc SQL.
 4. Comparer les données métier avant/après migration : aucun poste ou dossier
    existant ne doit avoir été changé par l'application elle-même. Vérifier
    également l'idempotence de la migration en transaction annulée.
