@@ -166,6 +166,12 @@ async function rafraichirTitulairesPostesElectifs() {
     });
     window._titulairesPostes = cache;
   } catch(e) {}
+  // Le tick de presence existant (30 s) actualise aussi les deux secretariats,
+  // sans nouveau timer ni requete supplementaire dans les autres lieux.
+  if (typeof personnesNormalesDeLaPiece === 'function' && typeof ajusterTitrePnjDePoste === 'function'
+      && personnesNormalesDeLaPiece(state.currentBuilding, state.currentRoom).some(p => p.posteLectureFraiche)) {
+    await ajusterTitrePnjDePoste(state.currentBuilding, state.currentRoom);
+  }
 }
 
 // MUTINERIE — IDENTIFICATION VISUELLE (23 septembre 2026).

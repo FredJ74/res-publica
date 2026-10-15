@@ -349,6 +349,23 @@ const WORLD = {
       districts: ['centre','quartier-nord','quartier-sud'],
       buildings: ['palais-presidentiel','hotel-republica','palais-gouvernement','assemblee','tribunal','banque-nationale','banque-privee','clinique-privee','dispensaire-public','commissariat','la-tribune','loge-maconnique','universite','armurerie','marche','mairie-capitale','tabernacle-impots','centre-multinodal-luthecia','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-1','terrain-a-batir-2','terrain-a-batir-3','terrain-a-batir-4','terrain-a-batir-5','office-notarial','stade','quartier-ambassades','place-formulaire-liberte','musee-ville-luthecia','musee-national-republia','parc-botanique-national','entrepot-logistique-luthecia','usine-pharmaceutique-luthecia','bureau-national-emploi'],
       buildingContext: {
+        // Presence permanente, distincte du titulaire enregistre en base.
+        'mairie-capitale': {
+          roomOverrides: {
+            bureau_maire: {
+              persons: [{name:'Le Maire de Luthecia (PNJ)', role:'Personnel permanent de la mairie', rel:'neutral', job:'maire',
+                resteApresPourvoi:true, nonRecrutable:true, postePays:'republic', posteCity:'capitale', posteLectureFraiche:true,
+                roleSiPnjTitulaire:'Maire de Luthécia', roleSiPjTitulaire:'Secrétaire général de la mairie',
+                roleSiTitulaireInconnu:'Personnel permanent de la mairie — fonction non vérifiée'}]
+            },
+            bureau_maire_adjoint: {
+              persons: [{name:'Le Maire Adjoint de Luthecia (PNJ)', role:'Personnel permanent de la mairie', rel:'neutral', job:'maire_adjoint',
+                resteApresPourvoi:true, nonRecrutable:true, postePays:'republic', posteCity:'capitale', posteLectureFraiche:true,
+                roleSiPnjTitulaire:'Maire adjoint de Luthécia', roleSiPjTitulaire:'Secrétaire du maire adjoint',
+                roleSiTitulaireInconnu:'Personnel permanent de la mairie — fonction non vérifiée'}]
+            }
+          }
+        },
         'stade': {
           name: "Stade Gourgeot — Olympique de Luthécia",
           desc: "L'antre du club le plus titré de Republia. Ambiance electrique les soirs de match.",

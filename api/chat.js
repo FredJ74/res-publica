@@ -23,6 +23,8 @@
 
 import { construirePromptSysteme, profilExiste, maxTokensProfil } from './_pnj-profils.js';
 import { appelDeepSeek, joueurAuthentifie } from './_deepseek.js';
+import { sbTransport } from './_supabase.js';
+import { PROFILS_MUNICIPAUX_LUTHECIA, lireTitulaireMunicipal, contexteMunicipal } from '../continuite-municipale.mjs';
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
 const ALLOWED_ROLES = ['user', 'assistant'];
@@ -181,6 +183,23 @@ const etapeDeLaVisite = (profilId, jeton) =>
 // silence comme les deux autres -- sans lui, le prompt est rigoureusement celui d'avant.
 const contextePublicJoueur = (jeton) => lireMemoire('pnj_contexte_public', null, jeton);
 
+// Le navigateur ne fournit jamais la fonction du PNJ : lecture sous le jeton
+// authentifie du joueur, avec le meme resolveur que la carte de presence.
+async function lireFonctionMunicipale(profilId, jeton) {
+  const profil = PROFILS_MUNICIPAUX_LUTHECIA[profilId];
+  if (!profil) return null;
+  try {
+    const titulaire = await lireTitulaireMunicipal(profil.poste, 'republic', 'capitale', async (table, filtre) => {
+      const r = await sbTransport('GET', table, filtre, undefined, {jeton});
+      if (r.etat !== 'ok') throw new Error('Registre municipal indisponible');
+      return r.donnees;
+    });
+    return contexteMunicipal(profilId, titulaire, true);
+  } catch (e) {
+    return contexteMunicipal(profilId, null, false);
+  }
+}
+
 export default async function handler(req, res) {
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) {
@@ -206,16 +225,17 @@ export default async function handler(req, res) {
   // Huguette Papier, les regards de l'Assemblee pour Renee Toitout. Pour tous les autres profils,
   // ces trois appels ne sont pas emis du tout -- le troisieme etant l'etape de la
   // visite d'accueil, qui n'appartient qu'a Jeremy.
-  const [relation, pedagogie, contextePublic, mandats, regards, visite] = await Promise.all([
+  const [relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale] = await Promise.all([
     relationSociale(req.body.profil, utilisateur.jeton),
     memoirePedagogique(req.body.profil, utilisateur.jeton),
     contextePublicJoueur(utilisateur.jeton),
     memoireDesMandats(req.body.profil, utilisateur.jeton),
     regardsAssemblee(req.body.profil, utilisateur.jeton),
-    etapeDeLaVisite(req.body.profil, utilisateur.jeton)
+    etapeDeLaVisite(req.body.profil, utilisateur.jeton),
+    lireFonctionMunicipale(req.body.profil, utilisateur.jeton)
   ]);
   const systeme = construirePromptSysteme(
-    req.body.profil, req.body.lang, relation, pedagogie, contextePublic, mandats, regards, visite);
+    req.body.profil, req.body.lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale);
   if (!systeme) return res.status(400).json({ error: 'Profil inconnu.' });
 
   const messages = [];

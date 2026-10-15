@@ -335,6 +335,7 @@ TU NE DONNES AUCUN PRIX CHIFFRÉ : tu dis « pas cher », « moins cher qu'en vi
   'justin_verre':                  { nom: "Justin Verre", role: "Tenancier de Buvette" },
   'le_maire':                      { nom: "Le Maire", role: "Maire de Luthecia", lieu: "Hotel de Ville de Luthecia" },
   'le_maire_de_luthecia':          { nom: "Le Maire de Luthecia", role: "Maire de la Capitale", lieu: "Hotel de Ville de Luthecia" },
+  'le_maire_adjoint_de_luthecia': { nom: "Le Maire Adjoint de Luthecia", role: "Maire adjoint de Luthécia", lieu: "Bureau du maire adjoint, Hôtel de Ville de Luthécia" },
   // LES TROIS FICHES MINCES DES MINISTRES ONT ETE RETIREES ICI (11 octobre 2026).
   // `le_ministre_de_la_justice`, `le_ministre_des_affaires_etrangeres` et
   // `le_ministre_des_finances` portaient un nom generique et aucun savoir. Les cinq ministres

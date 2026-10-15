@@ -602,7 +602,7 @@ function blocQueteAccueil(contexte) {
     + " sans inventer une autre consigne ni une autre destination.";
 }
 
-function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards, visite) {
+function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePublic, mandats, regards, visite, fonctionMunicipale) {
   const p = TOUS_PROFILS[profilId];
   if (!p) return null;
   const rel = blocRelation(relation);
@@ -612,7 +612,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
   const reg = blocRegardsAssemblee(regards);
   const vis = blocQueteAccueil(visite);
   return [
-    p.identite,
+    fonctionMunicipale?.identite || p.identite,
     '',
     'CARACTERE : ' + p.caractere,
     '',
@@ -620,6 +620,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
     p.savoir,
     '',
     'LIMITES : ' + p.limites,
+    ...(fonctionMunicipale ? ['FONCTION MUNICIPALE ACTUELLE : ' + fonctionMunicipale.limites] : []),
     '',
     ...(pub ? [pub, ''] : []),
     ...(rel ? [rel, ''] : []),

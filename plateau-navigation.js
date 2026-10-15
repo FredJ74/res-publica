@@ -1057,9 +1057,6 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (typeof verifierSurveillancePolicePJ === 'function') {
     verifierSurveillancePolicePJ(buildingId, roomId, null);
   }
-  if (typeof verifierPresenceMaireLuthecia === 'function') {
-    verifierPresenceMaireLuthecia(buildingId, roomId);
-  }
 
   // Rafraichir l'etat reel du terrain depuis Supabase (proprietaire, construction, permis) —
   // corrige le bug ou un rafraichissement de page laissait croire qu'un terrain deja achete
@@ -1161,7 +1158,10 @@ function enterRoom(buildingId, roomId, tabEl) {
 // LE REPLI SUR LE GABARIT EST CONSERVE, et il a une raison : le banc de ce mecanisme ne charge
 // que data.js et ce fichier, donc `personnesNormalesDeLaPiece` n'y existe pas. Sans ce repli, le
 // banc mesurerait l'absence de la fonction au lieu du comportement.
-async function ajusterTitrePnjDePoste(buildingId, roomId) {
+let RP_TITRES_PNJ_VERSION = 0;
+async function ajusterTitrePnjDePoste(buildingId, roomId, redessiner = true) {
+  const version = ++RP_TITRES_PNJ_VERSION;
+  const paysEntree = state.country, villeEntree = state.currentCity;
   const liste = (typeof personnesNormalesDeLaPiece === 'function')
     ? personnesNormalesDeLaPiece(buildingId, roomId)
     : (BUILDINGS[buildingId]?.rooms?.[roomId]?.persons || []);
@@ -1173,14 +1173,22 @@ async function ajusterTitrePnjDePoste(buildingId, roomId) {
   for (const porteur of porteurs) {
     let titulaire = null;
     try {
-      titulaire = await getTitulaireActuel(porteur.job, porteur.posteCity || null);
-    } catch (e) { continue; }           // en cas de doute, on ne touche a rien
-    if (state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
+      titulaire = porteur.posteLectureFraiche
+        ? await getTitulaireActuel(porteur.job, porteur.posteCity, porteur.postePays, {lectureFraiche:true})
+        : await getTitulaireActuel(porteur.job, porteur.posteCity || null);
+    } catch (e) {
+      if (version !== RP_TITRES_PNJ_VERSION || state.country !== paysEntree || state.currentCity !== villeEntree
+          || state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
+      if (porteur.roleSiTitulaireInconnu) porteur.role = porteur.roleSiTitulaireInconnu;
+      continue;
+    }
+    if (version !== RP_TITRES_PNJ_VERSION || state.country !== paysEntree || state.currentCity !== villeEntree
+        || state.currentRoom !== roomId || state.currentBuilding !== buildingId) return;
     porteur.role = (titulaire && titulaire.estPJ)
       ? porteur.roleSiPjTitulaire
       : porteur.roleSiPnjTitulaire;
   }
-  if (typeof renderPersonsList === 'function') renderPersonsList(liste || []);
+  if (redessiner && typeof renderPersonsList === 'function') renderPersonsList(liste || []);
 }
 
 async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
