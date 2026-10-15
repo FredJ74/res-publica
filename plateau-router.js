@@ -14,6 +14,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // modifier 268 signatures. Les handlers qui facturent apres une confirmation
   // differee (modale) peuvent le passer explicitement via l'option `fn`.
   if (typeof state !== 'undefined') state._ordreEnCours = fn;
+  if (fn === 'publicite_premium') { ouvrirPublicitePremium(); return; }
   if (typeof queteAccueilNotifierOrdre === 'function') queteAccueilNotifierOrdre(fn);
   successRate = successRate || 70;
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
