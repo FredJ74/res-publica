@@ -3540,6 +3540,16 @@ function construireHtmlJournalDuJour(edition, options) {
   liens.push('<span class="journal-action-link" onclick="presseAfficherArchivesTitres()">Archives</span>');
   html += `<div class="tribune-pied-retour">${liens.join('<span class="tribune-pied-sep">·</span>')}</div>`;
 
+  // Publicites premium : pages independantes apres le contenu editorial.
+  const annonces = Array.isArray(options?.publicitesPremium) ? options.publicitesPremium : [];
+  for (const annonce of annonces) {
+    if (!annonce?.image_path || !/^[a-zA-Z0-9_/-]+\\.png$/.test(annonce.image_path)) continue;
+    const src = SUPABASE_URL + '/storage/v1/object/public/publicites-premium/' + annonce.image_path.split('/').map(encodeURIComponent).join('/');
+    html += '<section class="tribune-publicite-premium" style="break-before:page;margin:2rem auto;max-width:760px;text-align:center">' +
+      '<div style="font-size:.85rem;opacity:.75;margin-bottom:.5rem">PUBLICITÉ</div>' +
+      '<img loading="lazy" alt="Publicité premium" src="' + src + '" style="display:block;width:100%;height:auto;aspect-ratio:2/3;object-fit:contain">' +
+      '</section>';
+  }
   html += `</div></div>`;
   return html;
 }
@@ -3828,7 +3838,18 @@ async function _presseLireEdition(editionId, retour, titreModale) {
     return null;
   }
 
-  _presseCorps(construireHtmlJournalDuJour(edition, { retour }));
+  // Lecture datee : les campagnes ne sont jamais injectees dans le texte editorial.
+  let publicitesPremium = [];
+  if (edition.journal?.id && edition.date_edition && typeof sbEnTetes === 'function') {
+    try {
+      const response = await fetch(SUPABASE_URL + '/rest/v1/rpc/publicites_premium_pages_edition', {
+        method:'POST', headers:sbEnTetes(),
+        body:JSON.stringify({p_pays:edition.journal.pays || 'republic',p_journal_id:edition.journal.id,p_date:edition.date_edition})
+      });
+      if (response.ok) publicitesPremium = await response.json();
+    } catch (error) { console.warn('Publicites premium indisponibles',error); }
+  }
+  _presseCorps(construireHtmlJournalDuJour(edition, { retour, publicitesPremium }));
   // Hierarchie visuelle unique (correctif UX du 4 septembre 2026) : uniquement quand un vrai
   // numero s'affiche, .tribune-fronton devient LE seul en-tete visuel et recoit la poignee de
   // deplacement. Jamais pour le kiosque, les archives ou un message de repli.
