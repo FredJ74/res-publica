@@ -4494,6 +4494,10 @@ function ouvrirMenuOrdresTribune(index) {
     const bouton = wrapper.firstElementChild;
     if (!bouton) return;
     bouton.style.cssText += ';width:100%;text-align:left;min-height:3rem;padding:.7rem .9rem;font-size:1rem;line-height:1.45;white-space:normal;border-radius:5px;';
+    // Couleur de navigation uniforme dans les menus de la Tribune, quelle que soit
+    // la nature juridique de l'ordre. Le type reel et son traitement restent inchanges.
+    bouton.classList.remove('grey', 'illegal');
+    bouton.classList.add('legal');
     if (!bouton.disabled) bouton.addEventListener('click', () => document.getElementById('modal-postes').classList.remove('open'), {capture:true});
     carte.appendChild(bouton);
     const resume = document.createElement('p');
