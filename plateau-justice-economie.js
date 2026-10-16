@@ -1455,7 +1455,15 @@ async function placerAuQHS(pays, jours, raison, villeRetour) {
 // le jour de reference est celui de la colonne `day`, pas state.day. La fonction devient donc
 // asynchrone, et ses deux appelants (plateau-core, plateau-personnage) l'attendent.
 async function verifierLiberationPrisonniers() {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   if (!state.estEmprisonne) return;
+  const detentionInitiale = state.estEmprisonne;
   // Compte les jours reellement passes en detention comme deserteur : c'est ce compteur qui
   // alimente le bonus d'evasion (+10/jour, plafond +50). Pose ici parce que c'est l'unique
   // passage quotidien deja garanti pour un detenu (runMidnightUpdate et doDormir).
@@ -1467,6 +1475,7 @@ async function verifierLiberationPrisonniers() {
     // VERDICT CONSOMME : tant que la base n'a pas libere, le jeu n'annonce pas de liberation et
     // ne rend pas la circulation. « peine_non_purgee » signifie que la colonne `day` de la fiche
     // n'a pas encore atteint le terme -- l'etat local etait en avance, il le reste.
+    if (!retourActif() || state.estEmprisonne !== detentionInitiale) return;
     if (!vFin || vFin.ok !== true) return;
 
     const sortaitDuQHS = vFin.sortait_du_qhs === true;

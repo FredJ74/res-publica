@@ -691,7 +691,7 @@ function assembleePeutDeposer() {
 // tous les handlers en fail-closed, pour que le joueur ne confonde jamais "refuse" et "casse".
 function assembleeIndisponible(detail) {
   showToast('Assemblée indisponible',
-    detail || 'Le registre parlementaire est momentanément injoignable. Aucune action n\'a été effectuée, rien n\'a été débité.',
+    detail || 'Le registre parlementaire est momentanément injoignable. Le résultat de la demande est inconnu ; vérifiez le registre avant de réessayer.',
     false);
 }
 
@@ -759,7 +759,8 @@ function assembleeMessageRefus(res) {
 //   2. UN SEUL CLIC A LA FOIS : un second clic pendant qu'une action est en vol est ignore.
 //   3. REPONSE PERDUE : le MEME identifiant de requete est rejoue une fois. Si la premiere
 //      transaction a abouti, le serveur renvoie son resultat sans rien refaire ; sinon il
-//      l'execute. Jamais de double effet, jamais d'effet serveur ignore par le client.
+//      l'execute. Cela exige un contrat idempotent serveur pour CHAQUE porte appelee ;
+//      le wrapper seul ne prouve pas l'absence de double effet apres perte de reponse.
 let _assembleeActionEnVol = false;
 
 function assembleeNouvelleRequete() {
@@ -789,20 +790,30 @@ function assembleeAppliquerEtatServeur(res) {
 }
 
 // appel(requete) doit renvoyer le resultat de la RPC (null si injoignable).
-// Renvoie { ok, res, enVol } -- res=null : rien n'a ete enregistre, rien n'a ete debite.
+// Renvoie { ok, res, enVol } -- res=null : resultat inconnu, aucun effet local presume.
 async function assembleeActionServeur(appel) {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   if (_assembleeActionEnVol) return { ok: false, res: null, enVol: true };
   _assembleeActionEnVol = true;
   try {
     if (typeof sbSavePersonnage === 'function') {
       try { await sbSavePersonnage(state); } catch (e) {}
     }
+    if (!retourActif()) return { ok: false, res: null, contexteModifie: true };
     const requete = assembleeNouvelleRequete();
     let res = null;
     try { res = await appel(requete); } catch (e) { res = null; }
+    if (!retourActif()) return { ok: false, res: null, contexteModifie: true };
     if (res === null || res === undefined) {
       try { res = await appel(requete); } catch (e) { res = null; }
     }
+    if (!retourActif()) return { ok: false, res: null, contexteModifie: true };
     if (res === null || res === undefined) return { ok: false, res: null };
 
     assembleeAppliquerEtatServeur(res);
@@ -2094,6 +2105,13 @@ async function ouvrirDetailProposition(propId) {
 // state.posteDepute n'est JAMAIS lu ici (§48) : c'est le serveur qui verifie l'occupation reelle
 // d'un siege. Rien ne dependrait donc d'un 'depute' present dans state.poste, qui n'y est jamais.
 async function verserIndemniteParlementaire() {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   if (typeof sbAssembleeVerserIndemnite !== 'function') return;
   if (!state.char?.name) return;
   if ((state.country || 'republic') !== 'republic') return;
@@ -2101,6 +2119,7 @@ async function verserIndemniteParlementaire() {
   // Montant FIXE et credit cote serveur (liquide + arg) : le client recopie le solde renvoye, il
   // ne credite plus rien lui-meme (option A, 11 septembre 2026).
   const r = await assembleeActionServeur(() => sbAssembleeVerserIndemnite(state.char.name));
+  if (!retourActif()) return;
   const res = r.res;
   if (!res || !res.ok) return;   // pas depute, deja verse, ou RPC absente : silencieux
 

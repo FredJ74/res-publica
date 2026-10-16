@@ -139,6 +139,7 @@ function milDetail(raison) {
 // compteurs du jour. Ils survivent a un reaffichage pour ne pas faire perdre au
 // joueur une selection de 24 lignes a cause d'un transfert.
 let RP_MIL_ETAT = null;
+let RP_MIL_LECTURE = 0;
 let RP_MIL_MANGER = new Set();
 let RP_MIL_DORMIR = new Set();
 let RP_MIL_TENTE  = new Set();
@@ -220,8 +221,17 @@ function milMessage(texte, ok) {
 // POINT D'ENTREE
 // ---------------------------------------------------------------------------
 async function ouvrirTerminalSection() {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   milMachine('<div class="mil-vide">' + milEch(tMil('mil.chargement')) + '</div>');
+  const version = ++RP_MIL_LECTURE;
   const r = await sbMilitaireTerminalSection();
+  if (!retourActif() || version !== RP_MIL_LECTURE) return;
   if (!r || r.ok !== true) {
     milMachine('<div class="mil-vide mil-msg-ko">' + milEch(milRefus(r)) + '</div>');
     return;
@@ -234,7 +244,16 @@ async function ouvrirTerminalSection() {
 // panneau ouvert : une action ne doit pas coûter au joueur son travail de
 // selection sur 24 lignes.
 async function milRafraichir(message, ok) {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
+  const version = ++RP_MIL_LECTURE;
   const r = await sbMilitaireTerminalSection();
+  if (!retourActif() || version !== RP_MIL_LECTURE) return;
   if (r && r.ok === true) RP_MIL_ETAT = r;
   milRendre();
   if (message) milMessage(message, ok !== false);
@@ -489,8 +508,16 @@ function milCompteRendu(r) {
 }
 
 async function milOrdonnerManger() {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   if (!RP_MIL_MANGER.size) { milMessage(tMil('mil.aucuneSelection'), false); return; }
   const r = await sbMilitaireTerminalManger(nouvelleCleMilitaire(), Array.from(RP_MIL_MANGER));
+  if (!retourActif()) return;
   if (!r || r.ok !== true) { milMessage(milRefus(r), false); return; }
   RP_MIL_MANGER.clear();
   if (typeof addJournalEntry === 'function') addJournalEntry('Ordre : manger — ' + milCompteRendu(r));
@@ -498,9 +525,17 @@ async function milOrdonnerManger() {
 }
 
 async function milOrdonnerDormir() {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   if (!RP_MIL_DORMIR.size) { milMessage(tMil('mil.aucuneSelection'), false); return; }
   const r = await sbMilitaireTerminalDormir(nouvelleCleMilitaire(),
               Array.from(RP_MIL_DORMIR), Array.from(RP_MIL_TENTE));
+  if (!retourActif()) return;
   if (!r || r.ok !== true) { milMessage(milRefus(r), false); return; }
   RP_MIL_DORMIR.clear(); RP_MIL_TENTE.clear();
   if (typeof addJournalEntry === 'function') addJournalEntry('Ordre : dormir — ' + milCompteRendu(r));
@@ -508,7 +543,15 @@ async function milOrdonnerDormir() {
 }
 
 async function milRejoindre(matricule) {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   const r = await sbMilitaireTerminalRejoindre(nouvelleCleMilitaire(), [matricule]);
+  if (!retourActif()) return;
   if (!r || r.ok !== true) { milMessage(milRefus(r), false); return; }
   const cr = milCompteRendu(r);
   if (typeof addJournalEntry === 'function') addJournalEntry('Ordre : rejoindre — ' + cr);

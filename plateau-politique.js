@@ -306,8 +306,16 @@ async function reconcilierAutoriteCandidature(dossier) {
 // Candidature a un poste dont l'autorite de nomination est un PNJ : le serveur tranche seul.
 // Le client ne pose JAMAIS le poste lui-meme -- il recopie ce que la RPC a arrete.
 async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
   const rows = await sbRpc('poste_postuler', { p_poste: posteId, p_city: villeCourante || null }).catch(() => null);
+  if (!retourActif()) return;
   const v = Array.isArray(rows) ? rows[0] : rows;
   if (!v || v.ok !== true) {
     const motifs = {

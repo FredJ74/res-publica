@@ -2100,6 +2100,13 @@ function signalerRefusSalaire(r) {
 }
 
 async function doDormir() {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   const today = state.day || 1;
   // Le serveur tranche AVANT tout effet (sante, salaire, jour, journal).
   // Sa RPC applique une garde par jour reel Europe/Paris et credite les PA atomiquement.
@@ -2109,6 +2116,7 @@ async function doDormir() {
     return false;
   }
   const rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: state.char.name }).catch(() => null);
+  if (!retourActif()) return false;
   const vRepos = Array.isArray(rRepos) ? rRepos[0] : rRepos;
   if (!vRepos || vRepos.ok === false || typeof vRepos.pa !== 'number') {
     const deja = vRepos?.raison === 'deja_repose_aujourdhui' || vRepos?.raison === 'deja_dormi_aujourdhui' || vRepos?.raison === 'deja_percu_aujourdhui';
@@ -2186,6 +2194,7 @@ async function doDormir() {
   state.gradeMilitaire = null;
   if (typeof sbMilitaireSoldePercevoir === 'function') {
     const rSolde = await sbMilitaireSoldePercevoir().catch(() => null);
+    if (!retourActif()) return false;
     if (rSolde && rSolde.ok === true) {
       state.gradeMilitaire = rSolde.grade || null;
       if (typeof rSolde.liquide === 'number') state.liquide = rSolde.liquide;
@@ -2239,6 +2248,7 @@ async function doDormir() {
   let salaire = 0;
   if (typeof sbRpc === 'function' && state.char?.name) {
     const rSal = await sbRpc('salaire_civil_percevoir', {}).catch(() => null);
+    if (!retourActif()) return false;
     const r = Array.isArray(rSal) ? rSal[0] : rSal;
     if (r && r.ok === true) {
       salaire = Number(r.montant || 0);
@@ -2267,6 +2277,7 @@ async function doDormir() {
   // Non bloquant : une Assemblee injoignable ne doit jamais empecher un joueur de dormir.
   if (typeof verserIndemniteParlementaire === 'function') {
     await verserIndemniteParlementaire().catch(() => {});
+    if (!retourActif()) return false;
   }
   // Moral de base (correctif du 23 aout 2026) : constante unique, plus aucun bonus lie a la
   // simple presence dans un hotel (voir commentaire plus haut) -- seul doDormirChambre() ajoute
@@ -2379,6 +2390,7 @@ async function doDormir() {
     // Attendue depuis le 9 octobre 2026 : la liberation est prononcee par le serveur
     // (detention_clore_purgee), et checkArrestationAuReveil lit state.estEmprisonne juste apres.
     await verifierLiberationPrisonniers();
+    if (!retourActif()) return false;
     verifierDecouverteCrimesPasses();
     checkArrestationAuReveil();
     verifierProgressionHospitalisation();
@@ -2395,6 +2407,7 @@ async function doDormir() {
     console.warn('doDormir: erreur non bloquante dans les effets secondaires du sommeil (le sommeil lui-meme reste acquis)', e);
   }
 
+  if (!retourActif()) return false;
   // Rafraichir la vue
   switchSelfTab('actions', null);
 
@@ -2410,7 +2423,7 @@ async function doDormir() {
     console.warn('doDormir: echec de la sauvegarde Supabase finale (dernierDormir/journal restent corrects localement, seront re-synchronises a la prochaine sauvegarde reussie)', e);
   }
 
-  return true;
+  return retourActif();
 }
 
 // =====================
@@ -2754,6 +2767,13 @@ const PHRASES_SOPHIE_STIQUAY_SOIN_CLINIQUE = [
 // COMMUN aux 3 (une seule cle state.char.stats.soinPublicJour, jamais scopee par batiment) : un
 // joueur ne peut pas repeter le soin public dans une autre ville le meme jour.
 async function doSoinPublic(pa, cost) {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   // CHANTIER C / PHASE 2 (13 septembre 2026). Le navigateur verifiait lui-meme la limite
   // quotidienne, le stock medical et les fonds, puis decrementait le stock de la structure et
   // s'accordait ses gains. recevoir_soin refait tout au serveur, sous verrou : marqueur du jour
@@ -2765,12 +2785,14 @@ async function doSoinPublic(pa, cost) {
   if (!cfg || cfg.financement !== 'institution') { showToast('Indisponible', '', false); return; }
 
   const r = await deduireCoutOrdre({ pa, cost: 0, fn: 'soin_public' });
+  if (!retourActif()) return;
   if (!r.ok) { signalerRefusCout(r); return; }
 
   const rows = await sbRpc('recevoir_soin', {
     p_acteur: state.char?.name, p_pays: state.country || 'republic',
     p_ville: state.currentCity || 'capitale', p_batiment: buildingId,
     p_type: 'public', p_cout: cost });
+  if (!retourActif()) return;
   const v = Array.isArray(rows) ? rows[0] : rows;
   if (!v || v.ok !== true) {
     const raison = (v && v.raison) || 'indisponible';
@@ -2795,6 +2817,13 @@ async function doSoinPublic(pa, cost) {
 
 
 async function doSoinCliniquePrivee(pa, cost) {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   // CHANTIER C / PHASE 2 (13 septembre 2026). Meme bascule que le soin public, plus la
   // taxation : le navigateur calculait la taxe locale et nationale ET la persistait lui-meme
   // dans les budgets. appliquer_taxe_transaction, appelee par recevoir_soin, le fait desormais
@@ -2802,12 +2831,14 @@ async function doSoinCliniquePrivee(pa, cost) {
   if (!state.char) return;
 
   const r = await deduireCoutOrdre({ pa, cost: 0, fn: 'soins' });
+  if (!retourActif()) return;
   if (!r.ok) { signalerRefusCout(r); return; }
 
   const rows = await sbRpc('recevoir_soin', {
     p_acteur: state.char?.name, p_pays: state.country || 'republic',
     p_ville: state.currentCity || 'capitale', p_batiment: 'clinique-privee',
     p_type: 'clinique', p_cout: cost });
+  if (!retourActif()) return;
   const v = Array.isArray(rows) ? rows[0] : rows;
   if (!v || v.ok !== true) {
     const raison = (v && v.raison) || 'indisponible';
@@ -3119,6 +3150,13 @@ async function doServiceEtage(pa) {
 }
 
 async function doDormirChambre() {
+  const personnageInitial = state.char, paysInitial = state.country;
+  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+
   // Priorite du message (correctif du 27 aout 2026) : la garde "deja dormi" doit toujours
   // s'evaluer AVANT la verification de reservation -- reprend exactement la meme condition que
   // la garde equivalente de doDormir() (state.dernierDormir === state.day). Sans cela, un second
@@ -3147,6 +3185,7 @@ async function doDormirChambre() {
     return;
   }
   const reussi = await doDormir();
+  if (!retourActif()) return;
   if (reussi) {
     // Plafonne a PA_MAX (Lot 1) : doDormir() a deja plafonne sa propre recuperation, mais ce
     // bonus de chambre s'applique dans un second temps, en dehors de doDormir() -- sans ce
@@ -3157,6 +3196,7 @@ async function doDormirChambre() {
     const rCh = (typeof sbRpc === 'function' && state.char?.name)
       ? await sbRpc('pa_bonus_chambre', { p_acteur: state.char.name,
                                           p_batiment: state.currentBuilding }).catch(() => null) : null;
+    if (!retourActif()) return;
     const vCh = Array.isArray(rCh) ? rCh[0] : rCh;
     if (vCh && typeof vCh.pa === 'number') state.pa = vCh.pa;
     state.moral = Math.min(100, (state.moral || 0) + reservation.bonus.moral);
