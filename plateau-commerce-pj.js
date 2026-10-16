@@ -2190,11 +2190,11 @@ async function commercePjOuvrirAtelier() {
 function commercePjDecorMode(mode) {
   RP_CPJ_DECOR_GUIDE_ETAPE = 0;
   RP_CPJ_DECOR_GUIDE_REPONSES = [];
-  const html = '<div style="padding:1rem;line-height:1.6">' +
-    '<h3>Atelier de décoration — bêta gratuite</h3>' +
+  const html = '<div style="padding:1.3rem;line-height:1.6;background:#151A21;color:#dce4ee">' +
+    '<h3 style="font-family:Georgia,serif;color:#e5c477;text-align:center;font-size:1.45rem">Atelier de décoration — bêta gratuite</h3>' +
     '<div id="cpj-decoration-guide"></div>' +
     '<p id="cpj-decoration-libre">Décrivez votre intérieur. Les murs, portes, fenêtres et proportions seront conservés.</p>' +
-    '<textarea id="cpj-decoration-demande" maxlength="1500" rows="5" style="width:100%;box-sizing:border-box;background:#17140f;color:#f1e5cd;padding:.7rem" placeholder="Ambiance, mobilier, matériaux, enseigne, éclairage..."></textarea>' +
+    '<textarea id="cpj-decoration-demande" maxlength="1500" rows="5" style="width:100%;box-sizing:border-box;background:#252d38;color:#e5eaf1;border:1px solid #617087;border-radius:6px;padding:.7rem" placeholder="Ambiance, mobilier, matériaux, enseigne, éclairage..."></textarea>' +
     '<label>Images de référence (5 maximum, PNG/JPEG/WebP, 5 Mo chacune)</label>' +
     '<input id="cpj-decoration-sources" type="file" accept="image/png,image/jpeg,image/webp" multiple style="display:block;margin:.5rem 0 1rem">' +
     '<label style="display:block;margin:.5rem 0"><input type="checkbox" id="cpj-decoration-droits"> Je confirme disposer des droits nécessaires sur les images fournies, y compris les autorisations des personnes représentées, et accepte leur conservation privée pour la traçabilité.</label>' +
@@ -2202,7 +2202,9 @@ function commercePjDecorMode(mode) {
     '<button type="button" onclick="commercePjDecorTelecharger()" style="margin:.5rem 0">Télécharger cette version</button> ' +
     '<button type="button" onclick="commercePjDecorVersions()">Toutes mes versions</button><div id="cpj-decoration-versions"></div>' +
     '<button type="button" id="cpj-decoration-plein-ecran" style="display:none" onclick="commercePjDecorPleinEcran()">Visualiser en plein écran</button> ' +
+    '<p id="cpj-decoration-avertissement" role="alert" style="color:#e5c477;font-weight:700"></p>' +
     '<p id="cpj-decoration-retour" aria-live="polite">Une première génération et deux retouches par projet.</p>' +
+    '<button id="cpj-decoration-recommencer" style="display:none;background:#394656;color:#e5c477;border:1px solid #b99a57;padding:.7rem;border-radius:6px" onclick="commercePjDecorRecommencer()">Nouvelle génération — gratuite pendant la bêta (0,99 € ensuite)</button> ' +
     '<button id="cpj-decoration-generer" onclick="commercePjDecorGenerer()">Générer mon intérieur</button> ' +
     '<button id="cpj-decoration-valider" style="display:none" onclick="commercePjDecorValider()">Valider ce décor</button> ' +
     '<button onclick="commercePjOuvrirAtelier()">Changer de mode</button></div>';
@@ -2224,6 +2226,10 @@ function commercePjDecorMode(mode) {
     if (generer) {
       generer.textContent = 'Demander une retouche (' + RP_CPJ_DECOR_RETOUCHES + '/2)';
       generer.disabled = RP_CPJ_DECOR_RETOUCHES >= 2;
+      if (RP_CPJ_DECOR_RETOUCHES >= 2) generer.style.display = 'none';
+      const recommencer = document.getElementById('cpj-decoration-recommencer');
+      if (recommencer && RP_CPJ_DECOR_RETOUCHES >= 2) recommencer.style.display = '';
+      commercePjDecorAvertissement();
     }
     commercePjDecorMessage('Création précédente retrouvée. Vous pouvez la visualiser, la valider ou demander une retouche.');
   }
@@ -2276,6 +2282,28 @@ function commercePjDecorMessage(msg) {
   const el = document.getElementById('cpj-decoration-retour');
   if (el) el.textContent = msg;
 }
+function commercePjDecorAvertissement() {
+  const el = document.getElementById('cpj-decoration-avertissement');
+  if (!el) return;
+  el.textContent = RP_CPJ_DECOR_PREVIEW && RP_CPJ_DECOR_RETOUCHES === 1
+    ? 'Attention : il ne vous reste qu’une seule retouche comprise. Si elle ne vous convient pas, une nouvelle génération sera nécessaire (gratuite pendant la bêta, puis 0,99 €).'
+    : RP_CPJ_DECOR_PREVIEW && RP_CPJ_DECOR_RETOUCHES >= 2
+      ? 'Vos deux retouches sont épuisées. Vous pouvez conserver cette version ou recommencer une nouvelle génération.'
+      : '';
+}
+async function commercePjDecorRecommencer() {
+  if (RP_CPJ_DECOR_GENERATION_EN_COURS) return;
+  if (!window.confirm('Recommencer une génération ? Gratuit pendant la bêta ; après la bêta, une nouvelle génération coûtera 0,99 €. Vos versions précédentes resteront accessibles.')) return;
+  RP_CPJ_DECOR_GENERATION_EN_COURS = true;
+  try {
+    await commercePjDecorAppel('restart');
+    RP_CPJ_DECOR_PREVIEW = null;
+    RP_CPJ_DECOR_RETOUCHES = 0;
+    commercePjDecorMode('libre');
+    commercePjDecorMessage('Nouveau projet prêt. Décrivez votre décoration pour lancer une génération gratuite pendant la bêta.');
+  } catch(e) { commercePjDecorMessage(e.message || 'Impossible de recommencer.'); }
+  finally { RP_CPJ_DECOR_GENERATION_EN_COURS = false; }
+}
 let RP_CPJ_DECOR_GENERATION_EN_COURS = false;
 async function commercePjDecorGenerer() {
   if(RP_CPJ_DECOR_GENERATION_EN_COURS)return;
@@ -2314,6 +2342,10 @@ async function commercePjDecorGenerer() {
     if(valider)valider.style.display='';
     bouton.textContent='Demander une retouche ('+RP_CPJ_DECOR_RETOUCHES+'/2)';
     bouton.disabled=RP_CPJ_DECOR_RETOUCHES>=2;
+    if (RP_CPJ_DECOR_RETOUCHES>=2) bouton.style.display='none';
+    const recommencer=document.getElementById('cpj-decoration-recommencer');
+    if(recommencer && RP_CPJ_DECOR_RETOUCHES>=2) recommencer.style.display='';
+    commercePjDecorAvertissement();
     commercePjDecorMessage('Aperçu prêt. Vous pouvez valider ou décrire une modification.');
   } catch(e){commercePjDecorMessage(e.message||'Erreur de génération.');bouton.disabled=false;}
   finally{RP_CPJ_DECOR_GENERATION_EN_COURS=false;}
