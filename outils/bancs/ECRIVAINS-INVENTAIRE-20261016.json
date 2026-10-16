@@ -1,0 +1,832 @@
+{
+  "nature": "Sources archivees, ne certifie ni tous les ecrivains reels ni les verrous vivants",
+  "fonctions_baseline": [
+    {
+      "fonction": "assemblee_reveiller_depute",
+      "source": "baseline/domaines/assemblee/20_fonctions-1.sql",
+      "ligne": 2847,
+      "md5_corps_archive": "8f2e43daef93292687f52650c56db0d7",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 21,
+          "texte": "SELECT * INTO v_perso FROM public.personnages WHERE name = p_nom FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 26,
+          "texte": "SELECT * INTO v_siege FROM public.assemblee_sieges WHERE id = p_siege_id FOR UPDATE;"
+        }
+      ],
+      "via_vue": true
+    },
+    {
+      "fonction": "acheter_a_entrepot",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 14,
+      "md5_corps_archive": "2c1b7ed9b73d5296b2cae631ff99fcd4",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 29,
+          "texte": "FROM public.batiments_etat WHERE id = v_id FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 41,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 47,
+          "texte": "WHERE personnage = p_acteur AND banque = 'nationale' FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "acheter_a_la_criee",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 157,
+      "md5_corps_archive": "3e8ad8e8a8670b692253e522fc6b45d6",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 23,
+          "texte": "SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 31,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 34,
+          "texte": "WHERE personnage = p_acteur AND banque = 'nationale' FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "acheter_produit_manufacture",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 528,
+      "md5_corps_archive": "87cac12c47fb6e4ef0755688f15ebb27",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 19,
+          "texte": "SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 28,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 37,
+          "texte": "WHERE personnage = p_acteur AND banque = 'nationale' FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "acheter_vente_directe_usine",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 594,
+      "md5_corps_archive": "38dba6b37e7ad0ebbe7e4699c1fc4afc",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 22,
+          "texte": "FROM public.batiments_etat WHERE id = v_id FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 30,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 33,
+          "texte": "WHERE personnage = p_acteur AND banque = 'nationale' FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "commerce_apporter_matiere",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 1072,
+      "md5_corps_archive": "c6f18bdffdf638eef430479656301f78",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 41,
+          "texte": "SELECT data INTO v_data FROM public.entreprises WHERE id = p_entreprise FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 52,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "vendre_materiaux_chantier",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 961,
+      "md5_corps_archive": "454957349e1b59a60f4313b9f60eebe8",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 41,
+          "texte": "SELECT * INTO v_pj FROM personnages WHERE name = p_vendeur FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 44,
+          "texte": "SELECT * INTO v_terrain FROM terrains_etat WHERE id = v_terrain_id FOR UPDATE;"
+        }
+      ],
+      "via_vue": true
+    },
+    {
+      "fonction": "vendre_matiere_a_usine",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 1102,
+      "md5_corps_archive": "5dd055b578ddad4f25d6251927690843",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 47,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 54,
+          "texte": "SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "vendre_ressource_medicale",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 1202,
+      "md5_corps_archive": "5c0d096911fe8883b0e0d36689c7aa22",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 32,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 39,
+          "texte": "SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 65,
+          "texte": "FROM public.caisses_batiments WHERE id = v_caisse_id FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "fonds_matiere_apporter",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 1506,
+      "md5_corps_archive": "2e6618d88bf8b55da89849b12c24d7a7",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 38,
+          "texte": "SELECT data INTO v_data FROM public.entreprises WHERE id = p_fonds_id FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 64,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "document_officiel_emettre",
+      "source": "baseline/domaines/justice/20_fonctions-1.sql",
+      "ligne": 1447,
+      "md5_corps_archive": "eb70c1a9b66d1dbcb60cee509655a2c5",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 10,
+          "texte": "FROM public.personnages_donnees WHERE name = p_porteur FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "militaire_equiper_accessoire",
+      "source": "baseline/domaines/militaire/20_fonctions-2.sql",
+      "ligne": 1288,
+      "md5_corps_archive": "9d47a4d07cc4413dc1d78334e112ffa7",
+      "ecritures_inventory": 2,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 34,
+          "texte": "INTO v_inv FROM public.personnages_donnees WHERE name = g.o_moi FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 51,
+          "texte": "ORDER BY p.id LIMIT 1 FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "militaire_gilet_absorber",
+      "source": "baseline/domaines/militaire/20_fonctions-2.sql",
+      "ligne": 1432,
+      "md5_corps_archive": "c9c7bb59b19a66e99c89db551b8d10ab",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 12,
+          "texte": "INTO v_inv FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 38,
+          "texte": "ORDER BY p.id LIMIT 1 FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "militaire_ordre_collectif",
+      "source": "baseline/domaines/militaire/20_fonctions-2.sql",
+      "ligne": 1934,
+      "md5_corps_archive": "89da6c0c8af20b2d1904fd6fcc2de067",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 27,
+          "texte": "SELECT data INTO v_data FROM public.compagnies_militaires WHERE id = p_compagnie_id FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 106,
+          "texte": "INTO v_inv FROM public.personnages_donnees WHERE name = v_leader FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "militaire_ration_consommer",
+      "source": "baseline/domaines/militaire/20_fonctions-2.sql",
+      "ligne": 2395,
+      "md5_corps_archive": "3c12b1cf440c5dc4ad6fb8a82e347e72",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 24,
+          "texte": "FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "militaire_rations_retirer",
+      "source": "baseline/domaines/militaire/20_fonctions-2.sql",
+      "ligne": 2463,
+      "md5_corps_archive": "6879dd41eb36a389a320f70d9acddd6d",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 19,
+          "texte": "INTO v_pays, v_bat, v_inv FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 28,
+          "texte": "SELECT data INTO v_data FROM public.budgets_nationaux WHERE id = v_pays FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "militaire_retrait",
+      "source": "baseline/domaines/militaire/20_fonctions-2.sql",
+      "ligne": 2804,
+      "md5_corps_archive": "535508c2c3003309b4c2bfac776cf331",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 47,
+          "texte": "SELECT * INTO v_pj FROM public.personnages WHERE name = p_lieutenant FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "militaire_subtiliser_tenter",
+      "source": "baseline/domaines/militaire/20_fonctions-3.sql",
+      "ligne": 86,
+      "md5_corps_archive": "1beb8dac38360e6433f9e151a71e7601",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 19,
+          "texte": "SELECT * INTO v_pj FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "militaire_terminal_transferer",
+      "source": "baseline/domaines/militaire/20_fonctions-3.sql",
+      "ligne": 642,
+      "md5_corps_archive": "89eccb4a6f030d9e0aff62041b8770b1",
+      "ecritures_inventory": 2,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 41,
+          "texte": "INTO v_inv FROM public.personnages_donnees WHERE name = g.o_moi FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 92,
+          "texte": "ORDER BY p.id FOR UPDATE"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "militaire_trousse_retirer",
+      "source": "baseline/domaines/militaire/20_fonctions-3.sql",
+      "ligne": 763,
+      "md5_corps_archive": "f6e4a10c5730a65a51c3bc671f121594",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 17,
+          "texte": "FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 28,
+          "texte": "SELECT data INTO v_data FROM public.budgets_nationaux WHERE id = v_pays FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "militaire_trousse_utiliser",
+      "source": "baseline/domaines/militaire/20_fonctions-3.sql",
+      "ligne": 827,
+      "md5_corps_archive": "bed9030f15d727021d841fd3c1e97a6b",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 19,
+          "texte": "INTO v_inv, v_sec FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 45,
+          "texte": "SELECT coalesce(pa, 0) INTO v_pa_avant FROM public.personnages_donnees WHERE name = v_cible FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "personnages_vue_modifier",
+      "source": "baseline/domaines/personnage-et-presence/20_fonctions.sql",
+      "ligne": 1772,
+      "md5_corps_archive": "442089ea9dafd4a7f934d92752f30377",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 20,
+          "texte": "SELECT * INTO v_canon FROM public.personnages_donnees WHERE id = OLD.id FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "inventaire_abandonner",
+      "source": "baseline/domaines/socle/20_fonctions.sql",
+      "ligne": 729,
+      "md5_corps_archive": "8f4b94001d17daac98a7296fc11d1a53",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 16,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "inventaire_confisquer",
+      "source": "baseline/domaines/socle/20_fonctions.sql",
+      "ligne": 786,
+      "md5_corps_archive": "8aa5bde1ef31df82acc948172478a9d7",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 16,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "inventaire_consommer",
+      "source": "baseline/domaines/socle/20_fonctions.sql",
+      "ligne": 840,
+      "md5_corps_archive": "930a29e9a98bfbcf9306c1d6ec4d474c",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 14,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "inventaire_detruire",
+      "source": "baseline/domaines/socle/20_fonctions.sql",
+      "ligne": 891,
+      "md5_corps_archive": "7c871fa52f2cf1dfb3c8754f1db69a5f",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 12,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "inventaire_donner",
+      "source": "baseline/domaines/socle/20_fonctions.sql",
+      "ligne": 915,
+      "md5_corps_archive": "75b5f9861fea553950541c60e4079617",
+      "ecritures_inventory": 1,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 20,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "inventaire_remettre",
+      "source": "baseline/domaines/socle/20_fonctions.sql",
+      "ligne": 1020,
+      "md5_corps_archive": "b8034baccf8b6a4b765071aebbb95e71",
+      "ecritures_inventory": 2,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 16,
+          "texte": "FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    },
+    {
+      "fonction": "pnj_objet_transferer",
+      "source": "baseline/domaines/socle-PNJ/20_fonctions.sql",
+      "ligne": 1360,
+      "md5_corps_archive": "8b2e87cb2e3fb4323f843a0489ad7cd4",
+      "ecritures_inventory": 2,
+      "lignes_verrouillage_a_lire": [
+        {
+          "ligne_relative": 19,
+          "texte": "FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 31,
+          "texte": "WHERE pnj_id = p_pnj ORDER BY id OFFSET p_index LIMIT 1 FOR UPDATE;"
+        },
+        {
+          "ligne_relative": 40,
+          "texte": "FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;"
+        }
+      ],
+      "via_vue": false
+    }
+  ],
+  "nombre_fonctions_baseline": 29,
+  "ecritures_baseline": 33,
+  "points_client": [
+    {
+      "source": "supabase.js",
+      "ligne": 269,
+      "texte": "function sbAdopterInventaireServeur(reponse) {"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 275,
+      "texte": "state.inventory = reponse.inventory;"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 524,
+      "texte": "inventory:        charState.inventory || [],"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 849,
+      "texte": "inventory:     inventaireVersionne ? inventaire.inventory : (r.inventory || []),"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 850,
+      "texte": "_inventaireBase: sbEmpreinteInventaire(inventaireVersionne ? inventaire.inventory : (r.inventory || [])),"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 1969,
+      "texte": "inventory: state._inventaireVersionne || Number.isSafeInteger(state._inventaireRevision) ? undefined : (state.inventory || []),"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 3163,
+      "texte": "p_acteur: acteur, p_revision: revision, p_inventory: inventory"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 1578,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 1734,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 1890,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 1994,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(lignes[0]); else state.inventory = lignes[0].inventory; }"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 2142,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 2414,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 3393,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 7098,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-commerce-pj.js",
+      "ligne": 1990,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(rows[0]); else state.inventory = rows[0].inventory; }"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 495,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 603,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 644,
+      "texte": "if (!sbAdopterInventaireServeur(v)) return false;"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 645,
+      "texte": "} else state.inventory = v.inventory;"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 937,
+      "texte": "if (Array.isArray(res.inventory)) { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(res); else state.inventory=res.inventory; }"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 987,
+      "texte": "if (Array.isArray(res.inventory)) { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(res); else state.inventory = res.inventory; }"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 1097,
+      "texte": "if (tract.quantite <= 0) state.inventory = state.inventory.filter(i => i !== tract);"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 1132,
+      "texte": "state.inventory = (state.inventory || []).filter(i => i.type !== 'tract_calomnieux');"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 1679,
+      "texte": "if (stack.qty <= 0) state.inventory = state.inventory.filter(i => i !== stack);"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 564,
+      "texte": "inventory: [],"
+    },
+    {
+      "source": "plateau-divers.js",
+      "ligne": 935,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-divers.js",
+      "ligne": 1225,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r); else state.inventory = r.inventory || []; }"
+    },
+    {
+      "source": "plateau-divers.js",
+      "ligne": 1231,
+      "texte": "return { ok: true, objet: r.objet || item, inventory: state.inventory, objetId: r.objet_id || null,"
+    },
+    {
+      "source": "plateau-effort-guerre.js",
+      "ligne": 852,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(lignes[0]); else state.inventory = lignes[0].inventory; }"
+    },
+    {
+      "source": "plateau-effort-guerre.js",
+      "ligne": 874,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-enigme-portrait.js",
+      "ligne": 780,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-enigme-portrait.js",
+      "ligne": 909,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-etat-civil.js",
+      "ligne": 310,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-etat-civil.js",
+      "ligne": 427,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-immobilier.js",
+      "ligne": 933,
+      "texte": "if (!state.inventory) state.inventory = [];       // repli si le module n'est pas charge"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 2954,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 5907,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6013,
+      "texte": "if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6018,
+      "texte": "else { if (!state.inventory) state.inventory = []; state.inventory.push({ ...lot, qty: n }); }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6290,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6654,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6911,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10276,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10641,
+      "texte": "state.inventory = state.inventory.filter(i => i !== itemActuel);"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10662,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10681,
+      "texte": "else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...objetSansQty, qty: qte }); }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10723,
+      "texte": "else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...ligne.objet, qty: ligne.quantite }); }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11279,
+      "texte": "else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...ligne.objet, qty: qte }); }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11387,
+      "texte": "else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...l.objet, qty: l.quantite }); }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11459,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r); else state.inventory = r.inventory || state.inventory || []; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13005,
+      "texte": "if (ligne.qty <= 0) state.inventory = state.inventory.filter(function (i) { return i !== ligne; });"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 15169,
+      "texte": "? rows[0].inventory : null;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 15172,
+      "texte": "if (!sbAdopterInventaireServeur(rows[0])) return false;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 15173,
+      "texte": "} else state.inventory = inv;"
+    },
+    {
+      "source": "plateau-navigation.js",
+      "ligne": 2717,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-organisations-quetes.js",
+      "ligne": 9095,
+      "texte": "if (!state.inventory) state.inventory = [];"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2898,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 4122,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; }"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 4156,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; }"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 4189,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; }"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 4234,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; }"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 11803,
+      "texte": "if (Array.isArray(l[0].inventory)) { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; } if (state.char) state.char.inventory = state.inventory; }"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 12127,
+      "texte": "{ if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(lignes[0]); else state.inventory = lignes[0].inventory; }"
+    }
+  ],
+  "a_verifier": "Comparer aux catalogues reels, y compris nouvelles fonctions, SQL dynamique, triggers et Edge Functions."
+}

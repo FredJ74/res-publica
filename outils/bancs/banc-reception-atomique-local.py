@@ -101,6 +101,19 @@ def main():
   finally: conn.close()
  with ThreadPoolExecutor(max_workers=2) as pool: rr=list(pool.map(concurrent,[0,1]))
  assert all(x['ok'] for x in rr) and sum(not x['rejeu'] for x in rr)==1 and len(etat()['inventory'])==1;ok('deux connexions/onglets concurrents, un seul ajout')
+ reset();envoyer({'name':'A'},id='a');envoyer({'name':'B'},id='b');barriere=threading.Barrier(2)
+ def differents(i):
+  conn=psycopg2.connect(uri);conn.autocommit=True
+  try:
+   with conn.cursor() as z:contexte(z);barriere.wait(timeout=10);return recevoir(id='a' if i==0 else 'b',cursor=z)
+  finally:conn.close()
+ with ThreadPoolExecutor(max_workers=2) as pool:rr=list(pool.map(differents,[0,1]))
+ assert sum(x['ok'] for x in rr)==1 and compte('objets_recus')==1 and len(etat()['inventory'])==1
+ q.execute('SELECT id FROM objets_recus');restant=q.fetchone()[0]
+ assert recevoir(rev=etat()['revision'],id=restant)['ok'] and len(etat()['inventory'])==2
+ ok('deux livraisons distinctes concurrentes : conflit de revision sans perte, reprise explicite valide')
+ # Les contre-epreuves suivantes ont besoin d'une seule livraison confirmee.
+ reset();envoyer({'name':'Concurrent'});recevoir()
  # Le client garde la revision avec son snapshot. Un autre onglet ne peut la rebaser.
  q.execute("SELECT inventaire_sauver_revision('Alice',0,'[]')");assert q.fetchone()[0]['raison']=='inventaire_perime';assert len(etat()['inventory'])==1;ok('ancienne sauvegarde RPC refusee apres reception')
  q.execute('SET ROLE authenticated');contexte(path='/personnages')
