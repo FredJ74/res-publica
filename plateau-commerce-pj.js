@@ -844,10 +844,6 @@ async function commercePjEcranGestion(ctx) {
   h += '<div class="cpj-solde"><small>' +
     commercePjEchapper(tCommercePJ('commercepj.caisse.solde')) + '</small>' +
     commercePjMontant(f.caisse || 0) + ' ' + cur + '</div>';
-  if (mesPa !== null) {
-    h += '<div class="cpj-solde"><small>' +
-      commercePjEchapper(tCommercePJ('commercepj.caisse.vosPa')) + '</small>' + mesPa + '</div>';
-  }
   h += '<div class="cpj-caisse-actions">';
   h += '<input id="cpj-caisse-montant" class="cpj-champ" type="number" min="1" step="1" value="100" ' +
     'aria-label="' + commercePjEchapper(tCommercePJ('commercepj.caisse.montant')) + '"><em>' + cur + '</em>';
