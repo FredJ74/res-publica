@@ -1,5 +1,7 @@
 -- Lecture seule pour l'agent disposant du connecteur Supabase.
 -- Aucune creation, aucune ecriture, aucun appel de fonction metier.
+BEGIN;
+SET TRANSACTION READ ONLY;
 SELECT n.nspname, p.proname, pg_get_function_identity_arguments(p.oid) AS arguments,
        pg_get_function_result(p.oid) AS resultat, p.prosecdef AS security_definer,
        p.proconfig, p.proacl,
@@ -27,3 +29,4 @@ WHERE d.classid='pg_proc'::regclass AND d.refclassid='pg_class'::regclass
 -- L'absence dans pg_depend ne prouve pas l'absence de dependance PL/pgSQL :
 -- lire aussi le corps des fonctions. Les Edge Functions se controlent via
 -- leur inventaire et leurs sources de deploiement, pas uniquement pg_proc.
+ROLLBACK;

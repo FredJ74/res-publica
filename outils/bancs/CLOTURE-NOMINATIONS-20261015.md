@@ -84,6 +84,11 @@ de la base ou attente de test n'a été modifiée pour faire disparaître un éc
 
 ## Qualification des diagnostics restants
 
+Note du 16 octobre : les deux SQL ci-dessous ont depuis été archivés sans
+modification dans `historique/sql-hors-registre/`. Ce classement documentaire
+ne les déclare pas appliqués ; voir le README de ce dossier. Le diagnostic qui
+suit décrit la situation mesurée le 15 octobre.
+
 - **SQL hors workflow, préexistants** :
   `sql/catalogue_pnj_statiques_republia_20261014.sql` et
   `sql/tractage_collectif_stade_20261014.sql`. Le premier contient des données
