@@ -490,10 +490,18 @@ function sauvegarderOrga(orga) {
 }
 
 // Charge toutes les organisations depuis Supabase au demarrage (remplace l'ancien state.orgasEmpire local perdu au rafraichissement)
+let RP_ORGANISATIONS_LECTURE = 0;
 async function chargerOrganisations() {
   if (typeof sbLoadOrganisations !== 'function') return;
+  const version = ++RP_ORGANISATIONS_LECTURE, personnage = state.char;
+  const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
   try {
     const orgas = await sbLoadOrganisations();
+    if (version !== RP_ORGANISATIONS_LECTURE || state.char !== personnage
+        || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)
+        || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) return;
+    if (!Array.isArray(orgas)) throw new Error('organisations_lecture_indisponible');
     state.organisations = orgas;
     if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations();
     // Rafraichir l'affichage si la fiche est ouverte sur l'onglet organisations

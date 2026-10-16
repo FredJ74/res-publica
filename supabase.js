@@ -2492,8 +2492,14 @@ async function sbSaveOrganisation(orga) {
 
 async function sbLoadOrganisations() {
   const rows = await sbGet('organisations', 'select=*');
-  if (!rows) return [];
-  return rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
+  if (!Array.isArray(rows)) throw new Error('organisations_lecture_indisponible');
+  return rows.map(r => {
+    const data = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      throw new Error('organisation_donnees_invalides');
+    }
+    return data;
+  });
 }
 
 // Lecture FRAICHE d'une seule organisation (17 aout 2026, publication au nom d'une organisation)
