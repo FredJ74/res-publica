@@ -16,7 +16,9 @@ DECLARE
 
 $bloc$;
   v_ancre constant text := '  IF v_gen.individualise THEN';
-  v_trace constant text := '  -- HG debit deplace avant livraison (20261016070541).';
+  v_trace constant text := $trace$  -- HG debit deplace avant livraison (20261016070541).
+
+$trace$;
   v_md5_autorises constant text[] := ARRAY[
     '19f6cb294da782dbbf962028a1e315de', -- archive, seulement pour le banc local
     '19a5c3c718d4109b98fe94a8eb5ebf30'  -- observation Supabase transmise, source a relire

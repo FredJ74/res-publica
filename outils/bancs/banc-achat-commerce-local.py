@@ -78,6 +78,11 @@ def main():
     debut = source.index('CREATE OR REPLACE FUNCTION public.acheter_produit_commerce(')
     fin = source.index('$function$;', debut) + len('$function$;')
     cur.execute(source[debut:fin])
+    cur.execute('CREATE ROLE fixture_joueur NOLOGIN')
+    cur.execute('REVOKE ALL ON FUNCTION acheter_produit_commerce(text,text,text,text,integer) FROM PUBLIC')
+    cur.execute('GRANT EXECUTE ON FUNCTION acheter_produit_commerce(text,text,text,text,integer) TO fixture_joueur')
+    cur.execute("SELECT proacl,proowner,proconfig,prosecdef,pg_get_function_identity_arguments(oid) FROM pg_proc WHERE oid='acheter_produit_commerce(text,text,text,text,integer)'::regprocedure")
+    attributs_avant=cur.fetchone()
     fonds = {'version':2,'statut':'actif','proprietaire':'Vendeur',
         'implantation':{'country':'republic','city':'capitale'},'caisse':0,
         'references':{'ref':{'active':True,'prixVente':10,'generique_id':'produit','nom':'Produit'}},
@@ -104,6 +109,10 @@ def main():
     assert quantite('objets_recus') == 1, 'Le defaut historique doit etre reproduit avant correction'
     print('REPRODUCTION : ancienne definition, debit refuse mais une livraison creee.')
     reset()
+    nominal_avant=achat()
+    cur.execute('SELECT data FROM objets_recus ORDER BY id');livraisons_avant=cur.fetchall()
+    cur.execute("SELECT data FROM entreprises WHERE id='fonds-a'");fonds_avant=cur.fetchone()[0]
+    reset()
     migration=(RACINE/'migrations/20261016070541_achat_commerce_debit_avant_livraison.sql').read_text()
     # Aucun coefficient, filtre ni effet n'a change : seul ce bloc est deplace.
     bloc = "IF NOT public.mouvement_titulaire(p_acheteur, -v_montant) THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants');\n  END IF;"
@@ -116,6 +125,8 @@ def main():
     nouveau=nouveau.replace('  -- HG debit deplace avant livraison (20261016070541).','')
     assert normaliser(ancien.replace(bloc,'')) == normaliser(nouveau.replace(bloc,'')), 'Autre regle modifiee'
     cur.execute(migration);cur.execute(migration)
+    cur.execute("SELECT proacl,proowner,proconfig,prosecdef,pg_get_function_identity_arguments(oid) FROM pg_proc WHERE oid='acheter_produit_commerce(text,text,text,text,integer)'::regprocedure")
+    assert cur.fetchone()==attributs_avant
     print('OK : migration compilee et rejouee dans PostgreSQL local jetable.')
     cur.execute('UPDATE reglages_test SET refuser_debit=true')
     assert achat()['ok'] is False
@@ -130,6 +141,12 @@ def main():
     cur.execute("SELECT arg FROM personnages WHERE name='Temoin'");assert cur.fetchone()[0]==90
     assert quantite('objets_recus') == 1
     print('OK : achat nominal et rejeu, un seul debit et une seule livraison.')
+    # Les sequences ne sont pas transactionnelles : l'id technique de vente peut differer.
+    reset();nominal_apres=achat()
+    assert {k:v for k,v in nominal_avant.items() if k!='venteId'} == {k:v for k,v in nominal_apres.items() if k!='venteId'}
+    cur.execute('SELECT data FROM objets_recus ORDER BY id');assert cur.fetchall()==livraisons_avant
+    cur.execute("SELECT data FROM entreprises WHERE id='fonds-a'");assert cur.fetchone()[0]==fonds_avant
+    print('OK : verdict nominal (hors sequence), objets et fonds strictement identiques avant/apres.')
     reset();cur.execute('UPDATE reglages_test SET erreur_fiche=true')
     try:
         achat()
@@ -156,6 +173,27 @@ def main():
     assert quantite('objets_recus')==1 and quantite('ventes_snapshots')==1
     cur.execute("SELECT arg FROM personnages WHERE name='Temoin'");assert cur.fetchone()[0]==0
     print('OK : deux connexions, deux commerces, un solde commun : une vente et une livraison.')
+    reset();barriere=threading.Barrier(2)
+    def meme_requete(_):
+        c=psycopg2.connect(uri);c.autocommit=True
+        try:
+            with c.cursor() as q:
+                barriere.wait(timeout=10)
+                q.execute("SELECT acheter_produit_commerce('achat-double-001','Temoin','fonds-a','ref',1)")
+                return q.fetchone()[0]
+        except psycopg2.Error as e:
+            # Anti-doublon historique par UNIQUE : le perdant peut lever une erreur plutot
+            # que retourner rejeu=true. La transaction perdante doit etre totalement annulee.
+            assert e.pgcode=='23505'
+            return {'erreur_unique':True}
+        finally: c.close()
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        doubles=list(pool.map(meme_requete,[0,1]))
+    assert any(r.get('ok') for r in doubles)
+    assert quantite('objets_recus')==1 and quantite('ventes_snapshots')==1
+    cur.execute("SELECT arg FROM personnages WHERE name='Temoin'");assert cur.fetchone()[0]==90
+    cur.execute("SELECT data->'stockReferences'->>'ref' FROM entreprises WHERE id='fonds-a'");assert cur.fetchone()[0]=='4'
+    print('OK : double soumission concurrente, une seule livraison/vente/debit ; refus UNIQUE ou rejeu historique conserve.')
     reset()
     cur.execute("CREATE OR REPLACE FUNCTION appliquer_taxe_transaction(text,text,integer) RETURNS jsonb LANGUAGE sql AS $$ SELECT jsonb_build_object('net',$3-3,'taxeLocale',1,'taxeNationale',2) $$")
     r=achat()
@@ -200,7 +238,7 @@ def main():
         assert 'definition_a_reexaminer' in str(e)
     print('OK : une definition serveur differente est refusee par la garde.')
     connexion.close()
-    print('10 groupes de scenarios PostgreSQL locaux reussis ; aucune connexion Supabase ni joueur reel.')
+    print('12 groupes de scenarios PostgreSQL locaux reussis ; aucune connexion Supabase ni joueur reel.')
 
 if __name__ == '__main__':
     main()

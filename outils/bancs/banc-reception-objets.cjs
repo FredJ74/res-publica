@@ -49,3 +49,22 @@ test('une panne libere le poll et ne modifie pas la file via un repli',async()=>
  const c=jeu();c.sbGetObjetsRecus=async()=>{throw Error('reseau');};await c.verifierObjetsRecus();
  c.sbGetObjetsRecus=async()=>[{id:'objet-1',objet:{name:'Livre'}}];await c.verifierObjetsRecus();assert.equal(c.state.inventory.length,1);
 });
+test('deux onglets : seul celui qui obtient la ligne supprimee ajoute un objet',async()=>{
+ const a=jeu(),b=jeu();let existe=true;
+ const supprimer=async()=>{const donnees=existe?[{id:'objet-1'}]:[];existe=false;return {ok:true,donnees};};
+ for(const c of [a,b]){c.sbDeleteVerdict=supprimer;c.sbSupprimerObjetRecu=c.reclamerReel;}
+ await Promise.all([a.verifierObjetsRecus(),b.verifierObjetsRecus()]);
+ assert.equal(a.state.inventory.length+b.state.inventory.length,1);
+});
+test('don de tracts tardif : pas de lot dans le nouveau personnage',async()=>{
+ const c=jeu();c.sbGetObjetsRecus=async()=>[{id:'don-tracts-fixture'}];let resolve;
+ c.sbTractsReclamerDon=()=>new Promise(r=>resolve=r);c.recevoirLotTracts=()=>assert.fail('Mauvais acteur');
+ const p=c.verifierObjetsRecus();await new Promise(r=>setImmediate(r));c.state.char={name:'Bob'};
+ resolve({objet:{quantite:10}});await p;
+});
+test('carte postale : contenu et expediteur restent confidentiels a la reception',async()=>{
+ const c=jeu(),messages=[];c.sbGetObjetsRecus=async()=>[{id:'carte',expediteur:'IdentiteSecrete',objet:{name:'Secret',familleProduitMarche:'carte_postale',message:'TexteSecret'}}];
+ c.showToast=(...args)=>messages.push(args.join(' '));c.addJournalEntry=m=>messages.push(m);
+ await c.verifierObjetsRecus();assert.equal(c.state.inventory.length,1);
+ assert.ok(messages.length>0);assert.ok(messages.every(m=>!m.includes('IdentiteSecrete')&&!m.includes('TexteSecret')));
+});

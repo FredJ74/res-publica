@@ -5,6 +5,7 @@ SET TRANSACTION READ ONLY;
 SELECT n.nspname, p.proname, pg_get_function_identity_arguments(p.oid) AS arguments,
        pg_get_function_result(p.oid) AS resultat, p.prosecdef AS security_definer,
        p.proconfig, p.proacl,
+       md5(p.prosrc) AS md5_corps,
        has_function_privilege('anon',p.oid,'EXECUTE') AS anon_execute,
        has_function_privilege('authenticated',p.oid,'EXECUTE') AS authenticated_execute,
        pg_get_functiondef(p.oid) AS definition
