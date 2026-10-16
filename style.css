@@ -2064,3 +2064,38 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
     outline-offset: -2px;
   }
 }
+
+
+/* Gestion commerciale : déclinaison ardoise et or de l'option Commerce.
+   Surcharge visuelle uniquement, sans modifier les opérations de caisse. */
+#modal-postes .modal-box.cpj-machine{
+  background:linear-gradient(155deg,#303b4a,#202a36 65%,#19222e);
+  border-color:#a98d56;
+}
+.cpj-fronton{border-bottom-color:rgba(229,196,119,.28)}
+.cpj-plaque{background:#252f3d;border-color:#a98d56;color:#e5c477;text-shadow:none}
+.cpj-grilles{background:repeating-linear-gradient(90deg,rgba(229,196,119,.24) 0 2px,transparent 2px 5px);box-shadow:none}
+.cpj-enseigne{color:#e5c477;text-shadow:none}
+.cpj-eteindre{background:#293645;color:#e5c477;border-color:#a98d56;box-shadow:none}
+.cpj-eteindre:active{background:#405168}
+.cpj-socle{border-top-color:#a98d56;background:repeating-linear-gradient(90deg,rgba(229,196,119,.15) 0 3px,transparent 3px 9px)}
+.cpj-ecran{
+  background:linear-gradient(155deg,#151a21,#1b2531 65%,#151c26);
+  border-color:#53647a;box-shadow:inset 0 0 18px rgba(0,0,0,.4);
+  color:#e2e9f1;
+}
+.cpj-ecran::after{background:none}
+.cpj-titre{color:#e5c477;border-bottom-color:rgba(229,196,119,.4)}
+.cpj-note,.cpj-solde small,.cpj-grille.cpj-entetes,.cpj-cell em{color:#aab8c8}
+.cpj-vide,.cpj-sous,.cpj-num.cpj-zero{color:#95a5b8}
+.cpj-solde,.cpj-nom,.cpj-num{color:#e5c477}
+.cpj-grille{border-bottom-color:rgba(153,176,198,.22)}
+.cpj-grille.cpj-entetes{border-bottom-color:rgba(229,196,119,.4)}
+.cpj-chip{color:#e5c477;background:#263342;border-color:#697e94}
+.cpj-champ{color:#e2e9f1;background:#1b2531;border-color:#667c94;border-radius:5px}
+.cpj-champ:focus{background:#253347;border-color:#e5c477;box-shadow:0 0 0 1px rgba(229,196,119,.3)}
+.cpj-champ:disabled{color:#8494a7;border-color:#415367}
+.cpj-touche{color:#e5c477;background:#344354;border-color:#b99a57;border-radius:5px}
+.cpj-touche:hover:not(:disabled){background:#455a70;color:#ffe2a0}
+.cpj-touche:disabled{color:#8190a0;border-color:#526173}
+.cpj-touche.cpj-primaire{border-color:#e5c477;color:#ffe2a0}
