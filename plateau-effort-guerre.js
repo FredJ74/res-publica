@@ -849,7 +849,7 @@ async function confirmerRetraitMilitaire(produit) {
     const lignes = await sbGet('personnages',
       'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(function () { return null; });
     if (lignes && lignes[0] && Array.isArray(lignes[0].inventory)) {
-      state.inventory = lignes[0].inventory;
+      { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(lignes[0]); else state.inventory = lignes[0].inventory; }
       if (state.char) state.char.inventory = state.inventory;
       if (typeof renderInventory === 'function') renderInventory();
     }

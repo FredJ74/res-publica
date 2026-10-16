@@ -11800,7 +11800,7 @@ async function rafraichirApresRound(batailleId) {
       '&select=pa,current_city,current_building,current_room,inventory').catch(() => null);
     if (l && l[0]) {
       state.pa = l[0].pa;
-      if (Array.isArray(l[0].inventory)) { state.inventory = l[0].inventory; if (state.char) state.char.inventory = state.inventory; }
+      if (Array.isArray(l[0].inventory)) { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; } if (state.char) state.char.inventory = state.inventory; }
       if (l[0].current_room !== state.currentRoom || l[0].current_building !== state.currentBuilding) {
         state.currentCity = l[0].current_city;
         if (typeof enterBuilding === 'function') enterBuilding(l[0].current_building, true);
@@ -12124,7 +12124,7 @@ async function equiperSoldat(compagnieId, sectionId, matricule, objetId, sens) {
     const lignes = await sbGet('personnages',
       'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(function () { return null; });
     if (lignes && lignes[0] && Array.isArray(lignes[0].inventory)) {
-      state.inventory = lignes[0].inventory;
+      { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(lignes[0]); else state.inventory = lignes[0].inventory; }
       if (state.char) state.char.inventory = state.inventory;
       if (typeof renderInventory === 'function') renderInventory();
     }

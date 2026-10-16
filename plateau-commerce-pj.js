@@ -1987,7 +1987,7 @@ async function commercePjActualiserPersonnage(options = {}) {
       }
     }
     if (options.inventaire && Array.isArray(rows[0].inventory)) {
-      state.inventory = rows[0].inventory;
+      { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(rows[0]); else state.inventory = rows[0].inventory; }
       if (typeof renderInventory === 'function') renderInventory();
     }
     return true;

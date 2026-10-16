@@ -2895,7 +2895,7 @@ async function vendreRessourceMedicaleStructure(buildingId, pays, ville, ressour
   if (!v || v.ok !== true) {
     return { ok: false, raison: (v && v.raison) || 'indisponible', placeRestante: v && v.placeRestante };
   }
-  state.inventory = v.inventory || state.inventory;
+  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
   state.arg = v.arg; state.liquide = v.liquide;
   if (state.char) state.char.arg = state.arg;
   if (typeof renderInventory === 'function') renderInventory();
@@ -4119,7 +4119,7 @@ async function confirmerSoinTrousse(cibleEncodee) {
   if (typeof sbGet === 'function' && state.char?.name) {
     const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
     if (l && l[0] && Array.isArray(l[0].inventory)) {
-      state.inventory = l[0].inventory;
+      { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; }
       if (state.char) state.char.inventory = state.inventory;
       if (typeof renderInventory === 'function') renderInventory();
     }
@@ -4153,7 +4153,7 @@ async function doConsommerRationCombat() {
   if (typeof sbGet === 'function' && state.char?.name) {
     const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
     if (l && l[0] && Array.isArray(l[0].inventory)) {
-      state.inventory = l[0].inventory;
+      { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; }
       if (state.char) state.char.inventory = state.inventory;
       if (typeof renderInventory === 'function') renderInventory();
     }
@@ -4186,7 +4186,7 @@ async function doRetirerTrousse() {
   if (typeof sbGet === 'function' && state.char?.name) {
     const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
     if (l && l[0] && Array.isArray(l[0].inventory)) {
-      state.inventory = l[0].inventory;
+      { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; }
       if (state.char) state.char.inventory = state.inventory;
       if (typeof renderInventory === 'function') renderInventory();
     }
@@ -4231,7 +4231,7 @@ async function doRetirerRations() {
   if (typeof sbGet === 'function' && state.char?.name) {
     const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
     if (l && l[0] && Array.isArray(l[0].inventory)) {
-      state.inventory = l[0].inventory;
+      { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; }
       if (state.char) state.char.inventory = state.inventory;
       if (typeof renderInventory === 'function') renderInventory();
     }

@@ -1222,7 +1222,7 @@ async function removeFromInventory(idx, motif, options) {
   }
 
   // L'inventaire du serveur fait foi, y compris sur ce que le client croyait retirer.
-  state.inventory = r.inventory || [];
+  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r); else state.inventory = r.inventory || []; }
   if (typeof renderInventory === 'function') renderInventory();
   if (typeof updateUI === 'function') updateUI();
   // `pa` et `aliment_frais` : effets que le SERVEUR a appliques dans la meme transaction que le

@@ -129,7 +129,10 @@ function sbVerdictRest(env) {
 }
 
 async function sbGetVerdict(table, filters = '') {
-  return sbVerdictRest(await sbTransportRest('GET', table, filters));
+  const origine = sbContexteInventaire();
+  const env = await sbTransportRest('GET', table, filters);
+  if (env.etat === 'ok') sbMarquerInventaires(env.donnees, origine);
+  return sbVerdictRest(env);
 }
 async function sbInsertVerdict(table, data, preferResolution) {
   return sbVerdictRest(await sbTransportRest('POST', table, '', data, preferResolution));
@@ -242,9 +245,45 @@ function sbRelancerSiReseau(env) {
   return env;
 }
 
+// Une reponse d'inventaire garde son contexte jusqu'au point d'adoption, pas seulement au fetch.
+const RP_INVENTAIRE_ORIGINE = Symbol('inventaireOrigine');
+function sbEmpreinteInventaire(inventory) {
+  const trier = v => Array.isArray(v) ? v.map(trier)
+    : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().map(k => [k,trier(v[k])])) : v;
+  return JSON.stringify(trier(inventory));
+}
+function sbContexteInventaire() {
+  return { personnage: typeof state !== 'undefined' ? state.char : null,
+    generation: typeof state !== 'undefined' ? (state._inventaireGeneration || 0) : 0,
+    uid: typeof rpAuthUid === 'function' ? rpAuthUid() : null,
+    jeton: typeof rpAuthJeton === 'function' ? rpAuthJeton() : null };
+}
+function sbMarquerInventaires(donnees, origine) {
+  const lignes = Array.isArray(donnees) ? donnees : [donnees];
+  for (const ligne of lignes) if (ligne && typeof ligne === 'object' && Array.isArray(ligne.inventory)) {
+    // Les spreads conservent ce symbole ; JSON.stringify ne le transmet jamais.
+    ligne[RP_INVENTAIRE_ORIGINE] = origine;
+  }
+  return donnees;
+}
+function sbAdopterInventaireServeur(reponse) {
+  if (typeof state === 'undefined' || !Array.isArray(reponse?.inventory)) return false;
+  const o = reponse[RP_INVENTAIRE_ORIGINE], courant = sbContexteInventaire();
+  if (o && (o.personnage !== courant.personnage || o.generation !== courant.generation
+      || o.uid !== courant.uid || o.jeton !== courant.jeton)) return false;
+  if (!o && state._inventaireVersionne) return false;
+  state.inventory = reponse.inventory;
+  state._inventaireGeneration = courant.generation + 1;
+  state._inventaireBase = sbEmpreinteInventaire(reponse.inventory);
+  state._inventaireRevision = Number.isSafeInteger(reponse.revision) ? reponse.revision : null;
+  if (Number.isSafeInteger(reponse.revision)) state._inventaireVersionne = true;
+  return true;
+}
+
 async function sbGet(table, filters = '') {
+  const origine = sbContexteInventaire();
   const env = sbRelancerSiReseau(await sbTransportRest('GET', table, filters));
-  return env.etat === 'ok' ? env.donnees : null;
+  return env.etat === 'ok' ? sbMarquerInventaires(env.donnees, origine) : null;
 }
 
 // preferResolution (optionnel, Lot 4 -- cartes postales, 23 aout 2026) : ajoute
@@ -577,13 +616,32 @@ function sbEnfilerEcriturePersonnage(charState, data) {
   // Le figer vraiment, comme il sera serialise sur le reseau, avant la file.
   data = JSON.parse(JSON.stringify(data));
   const personnage = charState.char;
+  const revisionInventaire = charState._inventaireRevision;
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
   const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
   const contexteActif = () => charState.char === personnage && charState.char?.name === data.name
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uid)
     && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jeton);
-  const tache = sbSaveQueue.then(() => {
+  const tache = sbSaveQueue.then(async () => {
     if (!contexteActif()) return null;
+    // La revision appartient au snapshot capture, jamais a une relecture au depart reseau.
+    if (Number.isSafeInteger(revisionInventaire)) {
+      const v = await sbInventaireSauverRevision(data.name, revisionInventaire, data.inventory);
+      if (!contexteActif()) return null;
+      if (!v?.ok || !Array.isArray(v.inventory) || !Number.isSafeInteger(v.revision)) {
+        charState._inventaireConflit = true;
+        return null;
+      }
+      if (!Number.isSafeInteger(charState._inventaireRevision) || v.revision >= charState._inventaireRevision) {
+        charState._inventaireGeneration = (charState._inventaireGeneration || 0) + 1;
+        charState._inventaireRevision = v.revision;
+        charState._inventaireBase = sbEmpreinteInventaire(v.inventory);
+        charState._inventaireConflit = false;
+      }
+      delete data.inventory; // le PATCH de fiche ne possede plus l'inventaire
+    } else if (charState._inventaireVersionne) {
+      delete data.inventory; // ancienne RPC sans revision : aucune sauvegarde complete aveugle
+    }
     // POSITION : une sauvegarde ancienne ne doit jamais republier une ancienne salle.
     // Les autres champs restent le snapshot original (notamment les deltas de POP).
     // La position est lue au MOMENT de l'ecriture, apres les taches precedentes.
@@ -741,6 +799,10 @@ async function sbLoadPersonnage(name) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(name)}`);
   if (!rows || rows.length === 0) return null;
   const r = rows[0];
+  const inventaire = r.user_id && typeof rpAuthUid === 'function' && rpAuthUid() === r.user_id
+    ? await sbInventaireReceptionEtat(name).catch(() => null) : null;
+  const inventaireVersionne = inventaire?.ok && inventaire.contrat === 1
+    && Array.isArray(inventaire.inventory) && Number.isSafeInteger(inventaire.revision);
   return {
     updatedAt: r.updated_at || null,
     // PROPRIETAIRE DE LA FICHE (21 septembre 2026). Cette colonne etait la, dans la reponse, et
@@ -784,7 +846,12 @@ async function sbLoadPersonnage(name) {
     currentCity:   r.current_city,
     currentBuilding: r.current_building,
     currentRoom:   r.current_room || null,
-    inventory:     r.inventory || [],
+    inventory:     inventaireVersionne ? inventaire.inventory : (r.inventory || []),
+    _inventaireBase: sbEmpreinteInventaire(inventaireVersionne ? inventaire.inventory : (r.inventory || [])),
+    _inventaireRevision: inventaireVersionne ? inventaire.revision : null,
+    _inventaireVersionne: !!inventaireVersionne,
+    _inventaireGeneration: 0,
+    _inventaireConflit: false,
     informateurs:  r.informateurs || [],
     contacts:      r.contacts || [],
     historiqueCrimes: r.historique_crimes || [],
@@ -1899,7 +1966,7 @@ function sbSauvegardeUrgenceDechargement() {
   if (state.personnageChargeDepuisServeur === false) return;
   if (!state._dernierUpdatedAtConnu) return;
   const body = JSON.stringify({
-    inventory: state.inventory || [],
+    inventory: state._inventaireVersionne || Number.isSafeInteger(state._inventaireRevision) ? undefined : (state.inventory || []),
     arg: state.arg || 0,
     liquide: state.liquide || 0,
     banque: state.banque || 0,
@@ -3080,6 +3147,26 @@ async function sbGetObjetsRecus(nom) {
     try { return { id: r.id, expediteur: r.expediteur, objet: JSON.parse(r.data) }; }
     catch(e) { return null; }
   }).filter(Boolean);
+}
+
+// Contrat v1, prepare par reception_objets_atomique. Aucun repli DELETE si absent.
+async function sbGetLivraisonsEnAttente(nom) {
+  const rows = await sbGet('objets_recus', `destinataire=eq.${encodeURIComponent(nom)}&select=id&order=created_at.asc,id.asc`);
+  if (!Array.isArray(rows)) throw new Error('livraisons_lecture_indisponible');
+  return rows;
+}
+async function sbInventaireReceptionEtat(acteur) {
+  return verdictRpc(await sbRpc('inventaire_reception_etat', { p_acteur: acteur }));
+}
+async function sbInventaireSauverRevision(acteur, revision, inventory) {
+  return verdictRpc(await sbRpc('inventaire_sauver_revision', {
+    p_acteur: acteur, p_revision: revision, p_inventory: inventory
+  }));
+}
+async function sbInventaireReclamerLivraison(acteur, id, revision) {
+  return verdictRpc(await sbRpc('inventaire_reclamer_livraison', {
+    p_acteur: acteur, p_id: id, p_revision: revision
+  }));
 }
 
 async function sbSupprimerObjetRecu(objetId, destinataire) {
@@ -5157,8 +5244,9 @@ async function sbTransportRpc(fn, params, options) {
 // sans jeton n'est plus EMISE -- la ou elle recevait de toute facon un 401 puis `null`.
 // Les appelants qui veulent savoir POURQUOI passent par sbRpcVerdict ou sbTransportRpc.
 async function sbRpc(fn, params, options) {
+  const origine = sbContexteInventaire();
   const env = await sbTransportRpc(fn, params, options);
-  return env.etat === 'ok' ? env.donnees : null;
+  return env.etat === 'ok' ? sbMarquerInventaires(env.donnees, origine) : null;
 }
 
 // VERDICT STRUCTURE. Meme forme que ce que rendent les RPC metier -- { ok, raison, ... } -- de
@@ -5166,8 +5254,9 @@ async function sbRpc(fn, params, options) {
 // transport. `transport` n'est present que sur un echec technique : c'est la matiere du
 // diagnostic (statut HTTP, code PostgREST/PostgreSQL), jamais du texte a montrer au joueur.
 async function sbRpcVerdict(fn, params, options) {
+  const origine = sbContexteInventaire();
   const env = await sbTransportRpc(fn, params, options);
-  if (env.etat === 'ok') return verdictRpc(env.donnees);
+  if (env.etat === 'ok') return verdictRpc(sbMarquerInventaires(env.donnees, origine));
   return {
     ok: false,
     raison: env.raison,

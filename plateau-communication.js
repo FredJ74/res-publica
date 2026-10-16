@@ -616,11 +616,12 @@ async function confirmerImprimerTractsCalomnieux(pa, cost) {
   if (typeof checkDetection === 'function') checkDetection('imprimer_tracts_calomnieux', 'success');
 }
 
-// Verifie les objets recus (dons d'un autre joueur, reellement persistes via
-// sbDonnerObjetJoueur) et les ajoute a l'inventaire local. Meme rythme que les mails.
+// Verifie les objets recus : la base ajoute l'objet ET supprime la livraison atomiquement.
+// Aucun repli vers DELETE + ajout local si la migration n'est pas deployee.
 const RP_OBJETS_RECUS_EN_COURS = new Set();
 async function verifierObjetsRecus() {
-  if (typeof sbGetObjetsRecus !== 'function' || !state.char?.name) return;
+  if (!state.char?.name || state.personnageChargeDepuisServeur === false
+      || typeof sbInventaireReceptionEtat !== 'function') return;
   const personnage = state.char, nom = personnage.name, pays = state.country;
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
   const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
@@ -630,74 +631,76 @@ async function verifierObjetsRecus() {
   const cle = JSON.stringify([uid, nom, pays]);
   if (RP_OBJETS_RECUS_EN_COURS.has(cle)) return;
   RP_OBJETS_RECUS_EN_COURS.add(cle);
+  const empreinte = typeof sbEmpreinteInventaire === 'function' ? sbEmpreinteInventaire : JSON.stringify;
+  const valide = v => v?.ok === true && v.contrat === 1 && Array.isArray(v.inventory)
+    && Number.isSafeInteger(v.revision) && v.revision >= 0;
+  const conflit = () => {
+    state._inventaireConflit = true;
+    if (typeof showToast === 'function') showToast('Inventaire à synchroniser',
+      'Des modifications concurrentes empêchent la synchronisation. Les livraisons restent protégées côté serveur.', false);
+  };
+  const adopter = v => {
+    if (typeof sbAdopterInventaireServeur === 'function') {
+      if (!sbAdopterInventaireServeur(v)) return false;
+    } else state.inventory = v.inventory;
+    state._inventaireVersionne = true;
+    state._inventaireRevision = v.revision;
+    state._inventaireBase = empreinte(v.inventory);
+    state._inventaireConflit = false;
+    if (typeof renderInventory === 'function') renderInventory();
+    return true;
+  };
   try {
-    const objets = await sbGetObjetsRecus(nom);
+    const avant = empreinte(state.inventory || []), base = state._inventaireBase;
+    const etat = await sbInventaireReceptionEtat(nom);
     if (!actif()) return;
-    if (!objets || objets.length === 0) return;
-
-    for (const { id, expediteur, objet } of objets) {
+    if (!valide(etat)) {
+      if (typeof showToast === 'function') showToast('Réception indisponible',
+        'Le serveur n’a pas confirmé le service de réception. Aucun objet n’est retiré de la file.', false);
+      return;
+    }
+    if (empreinte(state.inventory || []) !== avant) return;
+    if (Number.isSafeInteger(state._inventaireRevision) && etat.revision < state._inventaireRevision) return;
+    const serveur = empreinte(etat.inventory);
+    if (avant === serveur || avant === base) {
+      if (!adopter(etat)) return; // aucun ajout local non sauvegarde n'est ecrase
+    } else if (serveur === base) {
+      // Ajouts legacy locaux : sauvegarde CAS AVANT de reclamer, jamais de fusion devinee.
+      state._inventaireRevision = etat.revision;
+      const sauve = await sbSavePersonnage(state);
       if (!actif()) return;
-      // Don de tracts (11 septembre 2026) : reclamation exclusive (tracts_reclamer_don) AVANT
-      // l'ajout -- un second onglet ou un second passage ne peut pas le recevoir deux fois.
-      if (typeof id === 'string' && id.indexOf('don-tracts-') === 0) {
-        const recu = typeof sbTractsReclamerDon === 'function' ? await sbTractsReclamerDon(id, nom).catch(() => null) : null;
-        if (!actif()) return;
-        if (!recu) continue;
-        recevoirLotTracts(recu.objet);
-        if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-        if (typeof showToast === 'function') showToast('Tracts reçus !', recu.expediteur + ' vous a donné ' + recu.objet.quantite + ' × "' + recu.objet.name + '".', true, true);
-        if (typeof addJournalEntry === 'function') addJournalEntry(recu.expediteur + ' vous a donné ' + recu.objet.quantite + ' × "' + recu.objet.name + '".', 'event-good');
-        continue;
+      if (!sauve || state._inventaireConflit) { conflit(); return; }
+      if (empreinte(state.inventory || []) !== avant) return;
+    } else { conflit(); return; }
+    const objets = await sbGetLivraisonsEnAttente(nom);
+    if (!actif()) return;
+    for (const {id} of objets) {
+      if (!actif()) return;
+      const snapshot = empreinte(state.inventory), revision = state._inventaireRevision;
+      const recu = await sbInventaireReclamerLivraison(nom, id, revision);
+      if (!actif()) return;
+      if (empreinte(state.inventory) !== snapshot) { conflit(); return; }
+      if (!valide(recu)) {
+        // Une reponse perdue ne vaut pas un echec : le prochain poll relit le registre.
+        if (recu?.raison === 'inventaire_perime') conflit();
+        return;
       }
-      // Lot 1.5.4 : RECEPTION AUTOMATIQUE. L'objet n'a pas ete choisi par le joueur -- document
-      // administratif, don recu hors ligne, restitution -- il ne doit donc jamais etre perdu ni
-      // rester indefiniment en attente parce que l'inventaire est plein. Il entre quitte a faire
-      // passer son destinataire en Surcharge, et la ligne objets_recus est alors normalement
-      // supprimee juste en dessous. Avant ce lot, addToInventory renvoyait 0 au-dela de 100 et
-      // l'objet restait bloque dans la file, invisible.
-      // DUPLICATION D'OBJET CORRIGEE (17 septembre 2026, audit des frontieres d'autorite).
-      // Avant : l'objet etait ajoute a l'inventaire PUIS sbSupprimerObjetRecu etait appele avec un
-      // .catch(() => {}) decoratif -- or sbDelete ne leve jamais, il rend null. Si la suppression
-      // echouait, la ligne restait en base et ce poll (toutes les 2 minutes) redonnait le meme
-      // objet indefiniment.
-      // Desormais : on RECLAME d'abord la ligne, exactement comme le fait deja le don de tracts
-      // juste au-dessus (sbTractsReclamerDon). L'objet n'entre en inventaire que si la reclamation
-      // est confirmee ; sinon rien n'est ajoute et la ligne sera reproposee au prochain passage.
-      // ATTENTION : cette reclamation reste distincte de la sauvegarde de l'inventaire.
-      // Une interruption APRES suppression peut encore perdre l'objet. La correction atomique
-      // necessite le contrat serveur reel ; ces gardes client ne la remplacent pas.
-      // Le repli addToInventory peut refuser : dans ce cas on garde l'ordre
-      // historique (ajouter puis supprimer) pour ne pas perdre l'objet sur un inventaire plein.
-      const receptionAutomatique = typeof recevoirObjetAutomatique === 'function';
-      let qteAjoutee = 0;
-      if (receptionAutomatique) {
-        const reclame = (typeof sbSupprimerObjetRecu === 'function') ? await sbSupprimerObjetRecu(id, nom) : null;
-        if (!actif()) return;
-        if (!reclame) continue;                       // non reclame : rien n'entre, on reessaiera
-        qteAjoutee = recevoirObjetAutomatique(objet);
+      if (recu.revision < state._inventaireRevision) return;
+      if (!adopter(recu)) return;
+      if (recu.rejeu || !recu.objet) continue;
+      const objet = recu.objet, expediteur = recu.expediteur;
+      if (objet.familleProduitMarche === 'carte_postale') {
+        if (typeof showToast === 'function') showToast('Courrier reçu', 'Une carte postale est arrivée dans votre inventaire.', true, true);
+        if (typeof addJournalEntry === 'function') addJournalEntry('Vous avez reçu une carte postale. Elle a été placée dans votre inventaire.', 'event-good');
       } else {
-        qteAjoutee = (typeof addToInventory === 'function') ? addToInventory(objet) : 0;
+        const tracts = typeof id === 'string' && id.startsWith('don-tracts-');
+        const message = expediteur + ' vous a donné ' + (tracts ? objet.quantite + ' × ' : '') + '"' + objet.name + '".';
+        if (typeof showToast === 'function') showToast(tracts ? 'Tracts reçus !' : 'Objet reçu !', message, true, true);
+        if (typeof addJournalEntry === 'function') addJournalEntry(message, 'event-good');
       }
-      if (qteAjoutee > 0) {
-        if (!receptionAutomatique && typeof sbSupprimerObjetRecu === 'function') await sbSupprimerObjetRecu(id, nom);
-        if (!actif()) return;
-        // Carte postale (Lot 4, 23 aout 2026) : message fixe, jamais de nom d'expediteur ni de
-        // contenu du message a l'arrivee (point 10 du cahier des charges) -- l'expediteur et le
-        // texte ne sont reveles qu'a la lecture volontaire (lireCartePostale, plateau-
-        // personnage.js). Aucun Moral ici : le seul declencheur de Moral est la premiere lecture.
-        if (objet.familleProduitMarche === 'carte_postale') {
-          if (typeof showToast === 'function') showToast('Courrier reçu', 'Une carte postale est arrivée dans votre inventaire.', true, true);
-          if (typeof addJournalEntry === 'function') addJournalEntry('Vous avez reçu une carte postale. Elle a été placée dans votre inventaire.', 'event-good');
-        } else {
-          if (typeof showToast === 'function') showToast('Objet reçu !', expediteur + ' vous a donné "' + objet.name + '".', true, true);
-          if (typeof addJournalEntry === 'function') addJournalEntry(expediteur + ' vous a donné "' + objet.name + '".', 'event-good');
-        }
-      }
-      // Si l'inventaire est plein (qteAjoutee === 0), l'objet reste en attente en base et
-      // sera propose de nouveau au prochain passage, une fois de la place liberee.
     }
   } catch(e) {
-    console.warn('Reception des objets interrompue ; resultat a verifier avant toute reprise.');
+    console.warn('Réception interrompue ; le prochain passage relira l’inventaire serveur.');
   } finally {
     RP_OBJETS_RECUS_EN_COURS.delete(cle);
   }
@@ -931,7 +934,7 @@ async function confirmerTractageCollectifStade(index) {
       showToast('Distribution impossible',MOTIFS_REFUS_TRACT_ELECTORAL[res?.raison] || res?.raison || 'Le serveur ne confirme pas la distribution.',false);
       return;
     }
-    if (Array.isArray(res.inventory)) state.inventory=res.inventory;
+    if (Array.isArray(res.inventory)) { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(res); else state.inventory=res.inventory; }
     if (typeof res.pa==='number') state.pa=res.pa;
     if (typeof chargerEffetsTractsPNJ==='function') await chargerEffetsTractsPNJ(state.country);
     showToast('Tractage collectif termine',res.essais+' tentatives, '+res.reussites+' reussites. '+res.essais+' tracts et PA consommes.',true);
@@ -981,7 +984,7 @@ async function confirmerDistribuerTractElectoral(indexEntree) {
   // (un rejeu renvoie le meme resultat et n'est traite qu'une fois ici).
   // Le serveur a deja debite le PA et l'unite de tract atomiquement avec le resultat.
   // Ne jamais redebiter localement ni sauvegarder un ancien inventaire par-dessus.
-  if (Array.isArray(res.inventory)) state.inventory = res.inventory;
+  if (Array.isArray(res.inventory)) { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(res); else state.inventory = res.inventory; }
   if (typeof res.pa === 'number') state.pa = res.pa;
 
   const pnjName = ctx.pnjName;

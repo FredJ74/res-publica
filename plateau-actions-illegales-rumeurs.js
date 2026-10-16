@@ -1991,7 +1991,7 @@ async function confirmerSubtilisationExplosif() {
       const lignes = await sbGet('personnages',
         'name=eq.' + encodeURIComponent(state.char.name) + '&select=inventory').catch(() => null);
       if (lignes && lignes[0] && Array.isArray(lignes[0].inventory)) {
-        state.inventory = lignes[0].inventory;
+        { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(lignes[0]); else state.inventory = lignes[0].inventory; }
         if (state.char) state.char.inventory = state.inventory;
         if (typeof renderInventory === 'function') renderInventory();
       }
@@ -3390,7 +3390,7 @@ async function commerceApporterMatiere(entrepriseId, matiere, qte, mode) {
              // l'ecran ne pourrait que dire « interdit » sans dire par quoi.
              loi: v && v.loi };
   }
-  state.inventory = v.inventory || state.inventory;
+  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
   state.arg = v.arg; state.liquide = v.liquide;
   if (state.char) state.char.arg = state.arg;
   if (typeof renderInventory === 'function') renderInventory();

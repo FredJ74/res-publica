@@ -5904,7 +5904,7 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
   }
 
   // On recopie l'etat arrete par le serveur, jamais un calcul local.
-  state.inventory = v.inventory || state.inventory;
+  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
   state.liquide = v.liquide;
   state.arg = v.arg;
   if (state.char) state.char.arg = state.arg;
@@ -6287,7 +6287,7 @@ async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
     showToast('Achat impossible', libelles[raison] || ('Achat refusé (' + raison + ').'), false);
     return;
   }
-  state.inventory = v.inventory || state.inventory;
+  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
   state.liquide = v.liquide; state.arg = v.arg;
   if (state.char) state.char.arg = state.arg;
   if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
@@ -6651,7 +6651,7 @@ async function vendreMatierePremiereUsine(buildingId, pays, ville, matiere, qte)
   if (!v || v.ok !== true) return { ok: false, raison: (v && v.raison) || 'indisponible',
                                     placeRestante: v && v.placeRestante };
 
-  state.inventory = v.inventory || state.inventory;
+  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
   state.arg = v.arg; state.liquide = v.liquide;
   if (state.char) state.char.arg = state.arg;
   if (typeof renderInventory === 'function') renderInventory();
@@ -6908,7 +6908,7 @@ async function confirmerAchatArmoireSouvenirs() {
     document.getElementById('modal-postes')?.classList.remove('open');
     return;
   }
-  state.inventory = v.inventory || state.inventory;
+  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
   state.liquide = v.liquide; state.arg = v.arg;
   if (state.char) state.char.arg = state.arg;
   if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
@@ -10273,7 +10273,7 @@ async function confirmerAcheterCriee(pa, cost) {
     showToast('Achat impossible', libelles[raison] || ('Achat refusé (' + raison + ').'), false);
     return;
   }
-  state.inventory = v.inventory || state.inventory;
+  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
   state.liquide = v.liquide; state.arg = v.arg;
   if (state.char) state.char.arg = state.arg;
   if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
@@ -10659,7 +10659,7 @@ async function deposerDansCaisseFret(caisseId) {
   if (!nouvelleLigne) {
     const rendu = { ...objetSansQty };
     if (qte > 1) rendu.qty = qte;
-    state.inventory = state.inventory || [];
+    { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; }
     state.inventory.push(rendu);
     if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
     updateUI();
@@ -10678,7 +10678,7 @@ async function deposerDansCaisseFret(caisseId) {
     if (totalContenuFret(lignesApres) > CAPACITE_MAX_CAISSE_FRET) {
       if (typeof sbUpdate === 'function') await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(nouvelleLigne.id), { quantite: 0 }).catch(() => {});
       if (typeof addToInventory === 'function') addToInventory({ ...objetSansQty, qty: qte });
-      else { state.inventory = state.inventory || []; state.inventory.push({ ...objetSansQty, qty: qte }); }
+      else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...objetSansQty, qty: qte }); }
       if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
       updateUI();
       showToast('Dépôt annulé', 'La caisse a atteint sa capacité maximale entre-temps (dépôt concurrent). Votre marchandise a été restituée.', false);
@@ -10720,7 +10720,7 @@ async function reprendreDeCaisseFret(caisseId, contenuId) {
   if (!maj || maj.length === 0) { showToast('Conflit', 'Cette ligne vient d\'être modifiée. Réessayez.', false); return; }
 
   if (typeof addToInventory === 'function') addToInventory({ ...ligne.objet, qty: ligne.quantite });
-  else { state.inventory = state.inventory || []; state.inventory.push({ ...ligne.objet, qty: ligne.quantite }); }
+  else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...ligne.objet, qty: ligne.quantite }); }
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
   updateUI();
   showToast('Repris', ligne.quantite + ' × ' + (ligne.objet?.name || '') + ' repris(e) dans votre inventaire.', true, true);
@@ -11276,7 +11276,7 @@ async function retirerDeCaisseFret(caisseId, contenuId, pa) {
   }
 
   if (typeof addToInventory === 'function') addToInventory({ ...ligne.objet, qty: qte });
-  else { state.inventory = state.inventory || []; state.inventory.push({ ...ligne.objet, qty: qte }); }
+  else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...ligne.objet, qty: qte }); }
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
 
   // Passage a 'videe' si le contenu total de la caisse atteint 0 -- transition evenementielle
@@ -11384,7 +11384,7 @@ async function acheterLotNonReclameeFret(caisseId) {
   if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(caisse.pays_destination, caisse.building_destination, prix).catch(() => {});
   for (const l of disponibles) {
     if (typeof addToInventory === 'function') addToInventory({ ...l.objet, qty: l.quantite });
-    else { state.inventory = state.inventory || []; state.inventory.push({ ...l.objet, qty: l.quantite }); }
+    else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...l.objet, qty: l.quantite }); }
     if (typeof sbUpdate === 'function') await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(l.id), { quantite: 0 }).catch(() => {});
   }
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
@@ -11456,7 +11456,7 @@ async function confisquerObjets(objetsConnus) {
   // etre mimee cote client -- l'objet reapparaitrait au prochain chargement, et la peine aurait
   // ete appliquee pour une confiscation qui n'existe pas.
   if (!r || r.ok !== true) return '';
-  state.inventory = r.inventory || state.inventory || [];
+  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r); else state.inventory = r.inventory || state.inventory || []; }
   if (typeof renderInventory === 'function') renderInventory();
   return r.noms || '';
 }
@@ -15168,7 +15168,9 @@ async function rafraichirInventaireDepuisServeur() {
   const inv = (Array.isArray(rows) && rows[0] && Array.isArray(rows[0].inventory))
     ? rows[0].inventory : null;
   if (!inv) return false;
-  state.inventory = inv;
+  if (typeof sbAdopterInventaireServeur === 'function') {
+    if (!sbAdopterInventaireServeur(rows[0])) return false;
+  } else state.inventory = inv;
   if (typeof renderInventory === 'function') renderInventory();
   return true;
 }
