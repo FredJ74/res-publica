@@ -363,6 +363,13 @@ const WORLD = {
         // Presence permanente, distincte du titulaire enregistre en base.
         'mairie-capitale': {
           roomOverrides: {
+            hall_mairie: {
+              // Le maire permanent reste dans son bureau ; gabarit des autres mairies intact.
+              persons: [
+                {name:'Secretaire Municipal Petit', role:'PNJ - Secretariat general', rel:'neutral', job:'secretaire', photoUrl:'images/secretaire-petit-mairie.webp'},
+                {name:'Hotesse Objets Trouves (PNJ)', role:'PNJ - Service des objets trouves', rel:'neutral', job:'hotesse_objets_trouves', photoUrl:'images/hotesse-objets-trouves-mairie.webp'}
+              ]
+            },
             bureau_maire: {
               persons: [{name:'Le Maire de Luthecia (PNJ)', role:'Personnel permanent de la mairie', rel:'neutral', job:'maire',
                 resteApresPourvoi:true, nonRecrutable:true, postePays:'republic', posteCity:'capitale', posteLectureFraiche:true,

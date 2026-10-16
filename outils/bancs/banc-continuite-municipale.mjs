@@ -33,11 +33,23 @@ function plateau() {
   vm.runInContext(fs.readFileSync(filename,'utf8'),ctx,{filename,importModuleDynamically:s=>import(new URL(s,pathToFileURL(filename)))});
  }
  ctx.renderPersonsList=liste=>rendus.push(liste);
+ ctx.personnesReellesDeLaPiece=ctx.personnesNormalesDeLaPiece;
  ctx.getBuildingContext=()=>vm.runInContext("WORLD[state.country]?.[state.currentCity]?.buildingContext?.['mairie-capitale']",ctx);
  ctx.personnesNormalesDeLaPiece=(b,r)=>ctx.getBuildingContext()?.roomOverrides?.[r]?.persons
    ||vm.runInContext(`BUILDINGS['${b}'].rooms['${r}'].persons`,ctx);
  return {ctx,rendus,run:s=>vm.runInContext(s,ctx)};
 }
+test('accueil de Luthécia : seul le maire est retiré, bureau et gabarit partagés préservés',()=>{
+ const j=plateau();
+ const origine=j.run("BUILDINGS['mairie-capitale'].rooms.hall_mairie.persons");
+ const accueil=j.ctx.personnesReellesDeLaPiece('mairie-capitale','hall_mairie');
+ assert.deepEqual(JSON.parse(JSON.stringify(accueil)),JSON.parse(JSON.stringify(origine.filter(p=>p.job!=='maire'))));
+ assert.equal(accueil.some(p=>p.job==='maire'),false);
+ assert.equal(j.ctx.personnesReellesDeLaPiece('mairie-capitale','bureau_maire').filter(p=>p.job==='maire').length,1);
+ assert.equal(origine.filter(p=>p.job==='maire').length,1);
+ assert.equal(j.run("WORLD.republic.ville_a.buildingContext?.['mairie-capitale']"),undefined);
+ assert.equal(j.run("WORLD.republic.ville_b.buildingContext?.['mairie-capitale']"),undefined);
+});
 for(const [poste,piece,role] of [['maire','bureau_maire','Secrétaire général de la mairie'],['maire_adjoint','bureau_maire_adjoint','Secrétaire du maire adjoint']]){
  test(`${poste} : PNJ -> PJ -> vacance, meme personne, meme historique`,async()=>{
   const j=plateau();j.ctx.state.currentRoom=piece;
