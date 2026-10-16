@@ -2161,12 +2161,31 @@ async function commercePjOuvrirAtelier() {
   } catch (e) {
     console.warn('Récupération du décor provisoire impossible', e);
   }
-  commercePjModale('Option Commerce — Décoration',
-    '<div style="padding:1rem;line-height:1.7"><h3>Imaginons votre commerce</h3>' +
-    '<p>Comment souhaitez-vous créer votre décor ? Les murs, portes, fenêtres et proportions seront préservés.</p>' +
-    '<button onclick="commercePjDecorMode(\'libre\')">Création libre</button> ' +
-    '<button onclick="commercePjDecorMode(\'guide\')">Aidez-moi à imaginer mon commerce</button>' +
-    '<p>Atelier gratuit pendant la bêta.</p></div>');
+  // Présentation premium : le choix reste libre pendant la bêta.
+  // Le contrôle d'un futur paiement Stripe devra être effectué côté serveur
+  // avant d'autoriser l'atelier, jamais par une simple condition d'interface.
+  const carteStyle = 'flex:1 1 235px;min-width:0;background:#252D38;border:1px solid #48576a;border-radius:10px;padding:1.05rem;display:flex;flex-direction:column;gap:.65rem';
+  const boutonStyle = 'width:100%;padding:.78rem .6rem;border:1px solid #B99A57;border-radius:6px;background:#394656;color:#E5C477;font-weight:700;cursor:pointer;font-size:.91rem';
+  const html = '<div style="padding:1.5rem;background:#151A21;color:#e0e6ed;line-height:1.55">' +
+    '<div style="text-align:center;color:#E5C477;font-family:Playfair Display,Georgia,serif;font-size:1.55rem;margin-bottom:.5rem">Personnalisez votre commerce</div>' +
+    '<p style="text-align:center;color:#c8d2de;max-width:600px;margin:0 auto 1.3rem">Donnez une identité unique à votre commerce. Les murs, portes, fenêtres et proportions seront préservés.</p>' +
+    '<div style="display:flex;gap:1rem;flex-wrap:wrap">' +
+      '<section style="' + carteStyle + '">' +
+        '<div aria-hidden="true" style="height:100px;border-radius:6px;background:linear-gradient(145deg,#314455,#1c2835);display:flex;align-items:center;justify-content:center;font-size:3.2rem">🏬</div>' +
+        '<h3 style="margin:0;color:#E5C477;font-family:Playfair Display,Georgia,serif;font-size:1.2rem">Création libre</h3>' +
+        '<p style="margin:0 0 auto;color:#c8d2de;font-size:.88rem">Imaginez vous-même l’ambiance, les matériaux et le mobilier de votre commerce.</p>' +
+        '<button type="button" style="' + boutonStyle + '" onclick="commercePjDecorMode(\'libre\')">Créer ma décoration →</button>' +
+      '</section>' +
+      '<section style="' + carteStyle + '">' +
+        '<div aria-hidden="true" style="height:100px;border-radius:6px;background:linear-gradient(145deg,#3b4350,#202b38);display:flex;align-items:center;justify-content:center;font-size:3.2rem">🎨</div>' +
+        '<h3 style="margin:0;color:#E5C477;font-family:Playfair Display,Georgia,serif;font-size:1.2rem">Aidez-moi à imaginer mon commerce</h3>' +
+        '<p style="margin:0 0 auto;color:#c8d2de;font-size:.88rem">Répondez à quelques questions pour élaborer une proposition personnalisée.</p>' +
+        '<button type="button" style="' + boutonStyle + ';background:transparent" onclick="commercePjDecorMode(\'guide\')">Lancer l’atelier d’aide →</button>' +
+      '</section>' +
+    '</div>' +
+    '<p style="text-align:center;color:#aab5c3;font-size:.78rem;margin:1rem 0 0">Atelier gratuit pendant la bêta · Une génération et deux retouches par projet.</p>' +
+  '</div>';
+  commercePjModale('Option Commerce — Décoration', html);
 }
 function commercePjDecorMode(mode) {
   RP_CPJ_DECOR_GUIDE_ETAPE = 0;
