@@ -697,11 +697,6 @@ function ordresCommerceDuLocal(buildingId, roomId, ville) {
       masque: ['louer_local', 'commerce_pj']
     }),
     Object.assign({}, base, {
-      fn: 'produire_commerce', icon: 'ti-hammer',
-      label: tCommercePJ('commercepj.ordre.produire'),
-      desc:  tCommercePJ('commercepj.ordre.produireAide')
-    }),
-    Object.assign({}, base, {
       fn: 'vendre_matiere_commerce', icon: 'ti-package-export',
       label: tCommercePJ('commercepj.ordre.matieres'),
       desc:  tCommercePJ('commercepj.ordre.matieresAide')
@@ -1509,7 +1504,7 @@ async function commercePjProduire(referenceId, requete, origine) {
   await commercePjActualiserPersonnage();
   if (!commercePjTransactionActive(tx)) return;
   if (typeof updateUI === 'function') updateUI();
-  if (r.rejeu === true) { if (origine === 'publique') commercePjEcranTravail(); else commercePjEcranArticles(); return; }
+  if (r.rejeu === true) { if (origine === 'publique') commercePjEcranBoutique(); else commercePjEcranArticles(); return; }
   if (r.rejeu !== true && typeof addJournalEntry === 'function') {
     addJournalEntry('Fabrication : ' + r.quantite + ' unité(s)'
       + (r.salaire > 0 ? (' — salaire ' + commercePjMontant(r.salaire) + ' ' + commercePjDevise()) : '')
@@ -1519,7 +1514,7 @@ async function commercePjProduire(referenceId, requete, origine) {
   showToast(tCommercePJ('commercepj.produire.fait'),
     r.quantite + ' ' + tCommercePJ('commercepj.recette.unites') +
     (r.salaire > 0 ? (' · +' + commercePjMontant(r.salaire) + ' ' + commercePjDevise()) : ''), true);
-  if (origine === 'publique') commercePjEcranTravail();
+  if (origine === 'publique') commercePjEcranBoutique();
   else commercePjEcranArticles();
   });
 }
@@ -1561,8 +1556,7 @@ async function commercePjEcranPublic(ctx) {
     commercePjEchapper(tCommercePJ('commercepj.boutique.tenu')) + ' ' +
     commercePjEchapper(String(f.proprietaire || '').replace(/^pj:/, '')) + '</div>';
 
-  [['commercePjEcranBoutique()',           'commercepj.public.boutique', 'commercepj.public.boutiqueAide', 'ti-shopping-cart'],
-   ['commercePjEcranTravail()',            'commercepj.public.produire', 'commercepj.public.produireAide', 'ti-hammer'],
+  [['commercePjEcranBoutique()',           'commercepj.ordre.produits', 'commercepj.ordre.produitsAide', 'ti-shopping-cart'],
    ['commercePjEcranMatieresPubliques()',  'commercepj.public.matieres', 'commercepj.public.matieresAide', 'ti-package']
   ].forEach(function (e) {
     html += '<div onclick="' + e[0] + '" style="border:1px solid #2a2620;padding:.8rem .9rem;margin-bottom:.6rem;cursor:pointer">' +
@@ -1590,33 +1584,62 @@ async function commercePjEcranBoutique(ctx) {
   if (!ctx || !ctx.fonds) ctx = await commercePjContexte();
   const f = ctx.fonds, cur = commercePjDevise();
   const refs = f.references || {}, stocks = f.stockReferences || {};
+  const maxis = (f.parametres || {}).stockMaxReferences || {};
+  const stockMat = f.stockMatieres || {};
   const actives = Object.keys(refs).filter(function (id) { return refs[id] && refs[id].active === true; });
+  // Lecture des recettes pour les seuls produits affiches. Le serveur reste
+  // l'unique autorite pour les couts et pour l'execution de la fabrication.
+  const recettes = await commercePjRecettesDesReferences(Object.fromEntries(
+    actives.map(function (id) { return [id, refs[id]]; })));
+  const salaireParPa = commercePjValeurPa();
 
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-family:Playfair Display,serif;font-size:1.05rem;color:#E8C97A;margin-bottom:.9rem">' +
+  let html = '<div style="padding:1rem;background:#151A21;color:#e0e6ed">';
+  html += '<div style="font-family:Playfair Display,serif;font-size:1.12rem;color:#E5C477;margin-bottom:.9rem">' +
     commercePjEchapper(f.enseigne || '—') + '</div>';
-
   if (!actives.length) {
-    html += '<p style="color:#8a8060;font-size:.85rem;font-style:italic">' +
+    html += '<p style="color:#aab5c3;font-size:.85rem;font-style:italic">' +
       commercePjEchapper(tCommercePJ('commercepj.boutique.aucun')) + '</p>';
   }
   actives.forEach(function (id) {
     const r = refs[id], stock = Math.max(0, Number(stocks[id]) || 0);
-    html += '<div style="border:1px solid #2a2620;padding:.7rem .8rem;margin-bottom:.6rem">';
+    const rec = recettes[id];
+    html += '<div style="background:#252D38;border:1px solid #394656;border-radius:9px;padding:.85rem;margin-bottom:.65rem">';
     html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.6rem">' +
-      '<b style="color:#e0d8c0;font-size:.95rem">' + commercePjEchapper(r.nom || '—') + '</b>' +
-      '<span style="color:#E8C97A;white-space:nowrap">' + commercePjMontant(r.prixVente) + ' ' + cur + '</span></div>';
-    html += commercePjLigne(tCommercePJ('commercepj.ref.stock'), stock);
-    if (stock <= 0) {
-      html += '<div style="font-size:.76rem;color:#8c6a3a;margin-top:.25rem">' +
-        commercePjEchapper(tCommercePJ('commercepj.ref.rupture')) + '</div>';
+      '<b style="color:#E5C477;font-size:.95rem">' + commercePjEchapper(r.nom || '—') + '</b>' +
+      '<span style="color:#E5C477;white-space:nowrap">' + commercePjMontant(r.prixVente) + ' ' + cur + '</span></div>';
+    html += '<div style="font-size:.78rem;color:#aab5c3;margin-top:.3rem">' +
+      commercePjEchapper(tCommercePJ('commercepj.ref.stock')) + ' : ' + stock + '</div>';
+    if (rec) {
+      html += '<div style="font-size:.8rem;color:#c8d2de;margin-top:.55rem">' +
+        commercePjRecetteLisible(rec) + '</div>';
+      const salaire = salaireParPa === null ? null : Math.max(0, Number(rec.pa) || 0) * salaireParPa;
+      if (salaire !== null) html += '<div style="font-size:.78rem;color:#9ec5a5;margin-top:.3rem">' +
+        commercePjEchapper(tCommercePJ('commercepj.travail.salaire')) + ' : ' +
+        commercePjMontant(salaire) + ' ' + cur + '</div>';
     }
-    html += '<div style="margin-top:.5rem">' +
-      commercePjBouton("commercePjFicheProduit('" + id + "')",
-        tCommercePJ('commercepj.boutique.acheter'), true, stock <= 0) + '</div>';
-    html += '</div>';
+    if (stock <= 0) html += '<div style="font-size:.76rem;color:#d0a66a;margin-top:.3rem">' +
+      commercePjEchapper(tCommercePJ('commercepj.ref.rupture')) + '</div>';
+    const achatAction = "commercePjFicheProduit('" + id + "')";
+    html += '<div style="display:flex;justify-content:flex-end;gap:.5rem;flex-wrap:wrap;margin-top:.65rem">' +
+      '<button ' + (stock <= 0 ? 'disabled ' : 'onclick="' + achatAction + '" ') +
+      'style="padding:.5rem .9rem;border:1px solid #526176;border-radius:5px;background:#394656;color:#f2f4f6;' +
+      'cursor:' + (stock <= 0 ? 'default;opacity:.45' : 'pointer') + '">' +
+      commercePjEchapper(tCommercePJ('commercepj.boutique.acheter')) + '</button>';
+    if (rec) {
+      const maxi = Math.max(0, Number(maxis[id]) || 0);
+      const lotTient = maxi === 0 || stock + Number(rec.portions) <= maxi;
+      const matieresOk = Object.keys(rec.materiaux || {}).every(function (m) {
+        return (Number(stockMat[m]) || 0) >= (Number(rec.materiaux[m]) || 0);
+      });
+      const productionImpossible = !lotTient || !matieresOk;
+      const produireAction = "commercePjProduire('" + id + "','" + nouvelleCleProduction() + "','publique')";
+      html += '<button ' + (productionImpossible ? 'disabled ' : 'onclick="' + produireAction + '" ') +
+        'style="padding:.5rem .9rem;border:1px solid #B99A57;border-radius:5px;background:transparent;color:#E5C477;' +
+        'cursor:' + (productionImpossible ? 'default;opacity:.45' : 'pointer') + '">' +
+        commercePjEchapper(tCommercePJ('commercepj.ref.produire')) + '</button>';
+    }
+    html += '</div></div>';
   });
-
   html += '<div style="margin-top:.9rem">' +
     commercePjBouton('commercePjEcranPublic()', tCommercePJ('commercepj.public.retour')) + '</div>';
   html += '</div>';
