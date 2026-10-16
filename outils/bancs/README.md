@@ -6,6 +6,17 @@ une copie : le texte évalué est celui qui part en production.
 
 ## Lancer un banc
 
+Le banc transactionnel d'achat dispose d'un environnement PostgreSQL local
+jetable distinct de Supabase : `banc-achat-commerce-local.py --local-jetable`.
+Ses dépendances optionnelles sont dans `requirements-postgres-local.txt`.
+Il n'accepte aucune URL de base et ignore les identifiants de production.
+Il charge la vraie fonction archivée puis la migration préparée, avec des
+services annexes de test. Il prouve le défaut avant correction, le refus de
+débit sans livraison, l'achat/rejeu, le rollback après erreur et deux achats
+sur deux connexions. Il ne prouve ni les RLS ni l'authentification Supabase.
+La migration reste **non appliquée en production** jusqu'à vérification du
+catalogue réel et application par un agent selon `WORKFLOW-SUPABASE.md`.
+
 Pour tous les bancs client et serveur JavaScript, y compris les bancs Node
 universitaires, municipaux et les modules partagés :
 
