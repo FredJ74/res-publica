@@ -1582,7 +1582,11 @@ async function commercePjEcranBoutique(ctx) {
   const refs = f.references || {}, stocks = f.stockReferences || {};
   const maxis = (f.parametres || {}).stockMaxReferences || {};
   const stockMat = f.stockMatieres || {};
-  const actives = Object.keys(refs).filter(function (id) { return refs[id] && refs[id].active === true; });
+  // Le propriétaire retrouve toutes ses références, même retirées de la vente.
+  // Les visiteurs ne voient que le catalogue commercial actif.
+  const actives = Object.keys(refs).filter(function (id) {
+    return refs[id] && (ctx.jeSuisProprietaire || refs[id].active === true);
+  });
   // Lecture des recettes pour les seuls produits affiches. Le serveur reste
   // l'unique autorite pour les couts et pour l'execution de la fabrication.
   const recettes = await commercePjRecettesDesReferences(Object.fromEntries(
@@ -1599,6 +1603,7 @@ async function commercePjEcranBoutique(ctx) {
   actives.forEach(function (id) {
     const r = refs[id], stock = Math.max(0, Number(stocks[id]) || 0);
     const rec = recettes[id];
+    const enVente = r.active === true;
     html += '<div style="background:#252D38;border:1px solid #394656;border-radius:9px;padding:.85rem;margin-bottom:.65rem">';
     html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.6rem">' +
       '<b style="color:#E5C477;font-size:.95rem">' + commercePjEchapper(r.nom || '—') + '</b>' +
@@ -1614,13 +1619,14 @@ async function commercePjEcranBoutique(ctx) {
         commercePjEchapper(tCommercePJ('commercepj.travail.salaire')) + ' : ' +
         commercePjMontant(salaire) + ' ' + cur + '</div>';
     }
+    if (!enVente) html += '<div style="font-size:.76rem;color:#d0a66a;margin-top:.3rem">Retiré de la vente — visible par le propriétaire</div>';
     if (stock <= 0) html += '<div style="font-size:.76rem;color:#d0a66a;margin-top:.3rem">' +
       commercePjEchapper(tCommercePJ('commercepj.ref.rupture')) + '</div>';
     const achatAction = "commercePjFicheProduit('" + id + "')";
     html += '<div style="display:flex;justify-content:flex-end;gap:.5rem;flex-wrap:wrap;margin-top:.65rem">' +
-      '<button ' + (stock <= 0 ? 'disabled ' : 'onclick="' + achatAction + '" ') +
+      '<button ' + ((stock <= 0 || !enVente) ? 'disabled ' : 'onclick="' + achatAction + '" ') +
       'style="padding:.5rem .9rem;border:1px solid #526176;border-radius:5px;background:#394656;color:#f2f4f6;' +
-      'cursor:' + (stock <= 0 ? 'default;opacity:.45' : 'pointer') + '">' +
+      'cursor:' + ((stock <= 0 || !enVente) ? 'default;opacity:.45' : 'pointer') + '">' +
       commercePjEchapper(tCommercePJ('commercepj.boutique.acheter')) + '</button>';
     if (rec) {
       const maxi = Math.max(0, Number(maxis[id]) || 0);
