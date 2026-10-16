@@ -4600,23 +4600,31 @@ async function confirmerInvestir(pa, cost) {
 // Rafraichit liquide/arg/comptesBancaires/placementsBancaires depuis Supabase apres une
 // operation Helvetia -- les RPC mutent server-side, jamais localement par soustraction (meme
 // doctrine que confirmerInvestir/Placement Banque nationale ci-dessus).
+let RP_HELVETIA_VERSION = 0;
 async function rafraichirRuntimeHelvetia() {
-  if (!state.char?.name) return;
-  if (typeof sbLoadPersonnage === 'function') {
-    const frais = await sbLoadPersonnage(state.char.name).catch(() => null);
-    if (frais) {
-      if (typeof frais.liquide === 'number') state.liquide = frais.liquide;
-      if (typeof frais.arg === 'number') state.arg = frais.arg;
-      if (state.char) state.char.arg = state.arg;
+  const nom = state.char?.name, pays = state.country;
+  const version = ++RP_HELVETIA_VERSION;
+  const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  if (!nom) return;
+  const [frais, comptes, placements] = await Promise.all([
+    typeof sbLoadPersonnage === 'function' ? sbLoadPersonnage(nom).catch(() => null) : null,
+    typeof sbGetComptesBancaires === 'function' ? sbGetComptesBancaires(nom).catch(() => null) : null,
+    typeof sbGetPlacementsBancaires === 'function' ? sbGetPlacementsBancaires(nom).catch(() => null) : null
+  ]);
+  if (version !== RP_HELVETIA_VERSION || state.char?.name !== nom || state.country !== pays
+      || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)
+      || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) return;
+  for (const champ of ['arg','liquide']) {
+    if (typeof frais?.[champ] === 'number' && Number.isFinite(frais[champ])) {
+      state[champ] = frais[champ];
+      if (champ === 'arg') state.char.arg = frais.arg;
     }
   }
-  if (typeof sbGetComptesBancaires === 'function') {
-    const comptes = await sbGetComptesBancaires(state.char.name).catch(() => null);
-    if (comptes && typeof construireMapComptesBancaires === 'function') state.comptesBancaires = construireMapComptesBancaires(comptes);
+  if (Array.isArray(comptes) && typeof construireMapComptesBancaires === 'function') {
+    state.comptesBancaires = construireMapComptesBancaires(comptes);
   }
-  if (typeof sbGetPlacementsBancaires === 'function') {
-    state.placementsBancaires = await sbGetPlacementsBancaires(state.char.name).catch(() => state.placementsBancaires || []);
-  }
+  if (Array.isArray(placements)) state.placementsBancaires = placements;
 }
 
 // Point d'entree unique Helvetia (route par gerer_finances ET compte_offshore quand

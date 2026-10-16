@@ -1205,13 +1205,13 @@ function loadCharacter() {
         // sont charges dans la MEME phase async que sbLoadPersonnage (Promise.all), comme
         // demande -- jamais un second aller-retour reseau separe, jamais une donnee bancaire
         // exposee au reste du jeu avant que le personnage lui-meme ne le soit. Chaque fetch a
-        // son propre .catch(()=>[]) : une panne reseau sur les comptes/placements ne doit
+        // son propre .catch(()=>null) : une panne ne vaut pas une liste vide et ne doit
         // jamais faire echouer le chargement du personnage lui-meme (deja protege par le
         // .catch() global de la chaine plus bas).
         Promise.all([
           sbLoadPersonnage(char.name),
-          (typeof sbGetComptesBancaires === 'function' ? sbGetComptesBancaires(char.name).catch(() => []) : Promise.resolve([])),
-          (typeof sbGetPlacementsBancaires === 'function' ? sbGetPlacementsBancaires(char.name).catch(() => []) : Promise.resolve([]))
+          (typeof sbGetComptesBancaires === 'function' ? sbGetComptesBancaires(char.name).catch(() => null) : Promise.resolve(null)),
+          (typeof sbGetPlacementsBancaires === 'function' ? sbGetPlacementsBancaires(char.name).catch(() => null) : Promise.resolve(null))
         ]).then(([sbState, comptesRows, placementsRows]) => {
           // Instrumentation : prouve que le .then a bien ete atteint (un rejet de
           // sbLoadPersonnage -- seul des trois a n'avoir pas son propre .catch -- le sauterait).
@@ -1291,8 +1291,8 @@ function loadCharacter() {
 
           // Applique quel que soit l'issue de sbState (rare, sbState absent) : ne jamais perdre
           // une donnee bancaire reellement recuperee.
-          state.comptesBancaires = construireMapComptesBancaires(comptesRows);
-          state.placementsBancaires = placementsRows || [];
+          if (Array.isArray(comptesRows)) state.comptesBancaires = construireMapComptesBancaires(comptesRows);
+          if (Array.isArray(placementsRows)) state.placementsBancaires = placementsRows;
           if (sbState) {
             // La position (bâtiment/pièce/ville/pays) locale est toujours écrite immédiatement et de
             // façon fiable dès qu'on change de pièce ou de ville (voir enterRoom/confirmerTransport).

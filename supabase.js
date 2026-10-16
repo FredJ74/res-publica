@@ -4992,12 +4992,14 @@ async function sbUpdatePret(id, patch) {
 // =====================
 async function sbGetComptesBancaires(personnage) {
   const rows = await sbGet('comptes_bancaires', `personnage=eq.${encodeURIComponent(personnage)}`);
-  return rows || [];
+  if (!Array.isArray(rows)) throw new Error('comptes_bancaires_indisponibles');
+  return rows;
 }
 
 async function sbGetPlacementsBancaires(personnage) {
   const rows = await sbGet('placements_bancaires', `personnage=eq.${encodeURIComponent(personnage)}`);
-  return rows || [];
+  if (!Array.isArray(rows)) throw new Error('placements_bancaires_indisponibles');
+  return rows;
 }
 
 // Le compte Banque nationale d'un personnage neuf. Le solde n'est plus transmis : la RPC relit
