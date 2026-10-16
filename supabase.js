@@ -3075,8 +3075,13 @@ async function sbGetObjetsRecus(nom) {
   }).filter(Boolean);
 }
 
-async function sbSupprimerObjetRecu(objetId) {
-  return sbDelete('objets_recus', `id=eq.${encodeURIComponent(objetId)}`);
+async function sbSupprimerObjetRecu(objetId, destinataire) {
+  if (!objetId || !destinataire) return null;
+  const v = await sbDeleteVerdict('objets_recus',
+    `id=eq.${encodeURIComponent(objetId)}&destinataire=eq.${encodeURIComponent(destinataire)}`);
+  // Un 2xx, y compris DELETE zero ligne, ne prouve pas la possession de la livraison.
+  return v.ok && Array.isArray(v.donnees) && v.donnees.length === 1
+    && v.donnees[0].id === objetId ? v.donnees[0] : null;
 }
 
 // =====================

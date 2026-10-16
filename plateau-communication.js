@@ -618,17 +618,30 @@ async function confirmerImprimerTractsCalomnieux(pa, cost) {
 
 // Verifie les objets recus (dons d'un autre joueur, reellement persistes via
 // sbDonnerObjetJoueur) et les ajoute a l'inventaire local. Meme rythme que les mails.
+const RP_OBJETS_RECUS_EN_COURS = new Set();
 async function verifierObjetsRecus() {
   if (typeof sbGetObjetsRecus !== 'function' || !state.char?.name) return;
+  const personnage = state.char, nom = personnage.name, pays = state.country;
+  const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const actif = () => state.char === personnage && state.country === pays
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uid)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jeton);
+  const cle = JSON.stringify([uid, nom, pays]);
+  if (RP_OBJETS_RECUS_EN_COURS.has(cle)) return;
+  RP_OBJETS_RECUS_EN_COURS.add(cle);
   try {
-    const objets = await sbGetObjetsRecus(state.char.name);
+    const objets = await sbGetObjetsRecus(nom);
+    if (!actif()) return;
     if (!objets || objets.length === 0) return;
 
     for (const { id, expediteur, objet } of objets) {
+      if (!actif()) return;
       // Don de tracts (11 septembre 2026) : reclamation exclusive (tracts_reclamer_don) AVANT
       // l'ajout -- un second onglet ou un second passage ne peut pas le recevoir deux fois.
       if (typeof id === 'string' && id.indexOf('don-tracts-') === 0) {
-        const recu = typeof sbTractsReclamerDon === 'function' ? await sbTractsReclamerDon(id, state.char.name).catch(() => null) : null;
+        const recu = typeof sbTractsReclamerDon === 'function' ? await sbTractsReclamerDon(id, nom).catch(() => null) : null;
+        if (!actif()) return;
         if (!recu) continue;
         recevoirLotTracts(recu.objet);
         if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
@@ -650,21 +663,24 @@ async function verifierObjetsRecus() {
       // Desormais : on RECLAME d'abord la ligne, exactement comme le fait deja le don de tracts
       // juste au-dessus (sbTractsReclamerDon). L'objet n'entre en inventaire que si la reclamation
       // est confirmee ; sinon rien n'est ajoute et la ligne sera reproposee au prochain passage.
-      // La reception automatique n'echoue jamais faute de place (recevoirObjetAutomatique fait
-      // entrer l'objet quitte a passer en Surcharge), donc reclamer d'abord ne peut pas perdre
-      // l'objet. Le repli addToInventory, lui, peut refuser : dans ce cas on garde l'ordre
+      // ATTENTION : cette reclamation reste distincte de la sauvegarde de l'inventaire.
+      // Une interruption APRES suppression peut encore perdre l'objet. La correction atomique
+      // necessite le contrat serveur reel ; ces gardes client ne la remplacent pas.
+      // Le repli addToInventory peut refuser : dans ce cas on garde l'ordre
       // historique (ajouter puis supprimer) pour ne pas perdre l'objet sur un inventaire plein.
       const receptionAutomatique = typeof recevoirObjetAutomatique === 'function';
       let qteAjoutee = 0;
       if (receptionAutomatique) {
-        const reclame = (typeof sbSupprimerObjetRecu === 'function') ? await sbSupprimerObjetRecu(id) : null;
+        const reclame = (typeof sbSupprimerObjetRecu === 'function') ? await sbSupprimerObjetRecu(id, nom) : null;
+        if (!actif()) return;
         if (!reclame) continue;                       // non reclame : rien n'entre, on reessaiera
         qteAjoutee = recevoirObjetAutomatique(objet);
       } else {
         qteAjoutee = (typeof addToInventory === 'function') ? addToInventory(objet) : 0;
       }
       if (qteAjoutee > 0) {
-        if (!receptionAutomatique && typeof sbSupprimerObjetRecu === 'function') await sbSupprimerObjetRecu(id);
+        if (!receptionAutomatique && typeof sbSupprimerObjetRecu === 'function') await sbSupprimerObjetRecu(id, nom);
+        if (!actif()) return;
         // Carte postale (Lot 4, 23 aout 2026) : message fixe, jamais de nom d'expediteur ni de
         // contenu du message a l'arrivee (point 10 du cahier des charges) -- l'expediteur et le
         // texte ne sont reveles qu'a la lecture volontaire (lireCartePostale, plateau-
@@ -680,7 +696,11 @@ async function verifierObjetsRecus() {
       // Si l'inventaire est plein (qteAjoutee === 0), l'objet reste en attente en base et
       // sera propose de nouveau au prochain passage, une fois de la place liberee.
     }
-  } catch(e) {}
+  } catch(e) {
+    console.warn('Reception des objets interrompue ; resultat a verifier avant toute reprise.');
+  } finally {
+    RP_OBJETS_RECUS_EN_COURS.delete(cle);
+  }
 }
 
 // Lots de tracts transmissibles a un PJ : ordinaires ET calomnieux (11 septembre 2026). Les tracts
