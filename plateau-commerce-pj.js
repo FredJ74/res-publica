@@ -1163,27 +1163,24 @@ async function commercePjSauverPrixRef(referenceId) {
 // numeraire) et les branche ici. Rien n'est calcule : le montant part tel quel,
 // le serveur decide, et l'ecran applique le delta exact qu'il annonce.
 async function commercePjCaisseMouvement(sens) {
+  return commercePjTransaction('caisse', async (tx) => {
   const champ = document.getElementById('cpj-caisse-montant');
   const montant = Math.max(0, Math.floor(Number(champ && champ.value) || 0));
   if (montant <= 0) {
     commercePjMessage('caisse', commercePjRefus({ raison: 'montant_invalide' }), false); return; }
   const ctx = await commercePjContexte();
+  if (!commercePjTransactionActive(tx)) return;
   const r = (sens === 'apport')
     ? await sbAlimenterCaisseFonds(state.char.name, ctx.fondsId, montant)
     : await sbRetirerCaisseFonds(state.char.name, ctx.fondsId, montant);
   // UN REFUS RESTE DANS LE TERMINAL, comme tous les autres depuis C8 : il s'ecrit
   // sous la caisse, et l'ecran n'a pas besoin d'etre redessine puisque rien n'a
   // bouge -- le montant saisi reste donc a l'ecran, corrigeable.
+  if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { commercePjMessage('caisse', commercePjRefus(r), false); return; }
 
-  // LE PATRIMOINE SUIT LE MOUVEMENT, il ne se recalcule pas. Le serveur a deja
-  // ecrit `arg` et `liquide` : on applique le meme delta au miroir local, comme
-  // le fait deja le salaire de production.
-  const delta = (sens === 'apport') ? -montant : montant;
-  if (typeof state !== 'undefined') {
-    state.arg     = (Number(state.arg) || 0)     + delta;
-    state.liquide = (Number(state.liquide) || 0) + delta;
-  }
+  await commercePjActualiserPersonnage();
+  if (!commercePjTransactionActive(tx)) return;
   if (typeof updateUI === 'function') updateUI();
   const titre = tCommercePJ(sens === 'apport' ? 'commercepj.caisse.apportFait'
                                               : 'commercepj.caisse.preleveFait');
@@ -1194,6 +1191,7 @@ async function commercePjCaisseMouvement(sens) {
   if (typeof addJournalEntry === 'function') addJournalEntry(titre + ' : ' + sous, 'event-good');
   RP_CPJ_MESSAGES.caisse = { texte: '✓ ' + sous, ok: true };
   await commercePjEcranGestion();
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1232,29 +1230,24 @@ function commercePjResumeLots(referenceId) {
 }
 
 async function commercePjProduireLots(referenceId) {
+  return commercePjTransaction('production-lots', async (tx) => {
   const champ = document.getElementById('cpj-lots-' + referenceId);
   const lots  = Math.max(1, Math.min(99, Math.floor(Number(champ && champ.value) || 1)));
   commercePjMessage(referenceId, tCommercePJ('commercepj.prod.enCours'), true);
   const ctx = await commercePjContexte();
+  if (!commercePjTransactionActive(tx)) return;
   // UNE SEULE CLE POUR TOUTE LA COMMANDE : un double clic rejoue la meme cle et ne
   // produit donc pas une seconde fois les memes lots.
   const r = await sbFondsReferenceProduireLots(nouvelleCleProduction(), state.char.name,
                                                ctx.fondsId, referenceId, lots);
   // PAS DE MODALE SUR UN REFUS. Le motif s'ecrit sous la ligne, avec les chiffres
   // que le serveur a opposes -- matiere manquante, capacite, PA, caisse.
+  if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { commercePjMessage(referenceId, commercePjRefus(r), false); return; }
-  if (r.rejeu === true) { await commercePjEcranGestion(); return; }
-
-  // L'ECRAN SUIT CE QUE LE SERVEUR A DEJA ECRIT : ni PA ni salaire ne sont
-  // recalcules ici, on applique ce que la transaction rend.
-  if (typeof state !== 'undefined') {
-    if (typeof r.paRestants === 'number') state.pa = r.paRestants;
-    if (Number(r.salaire) > 0) {
-      state.arg     = (Number(state.arg) || 0)     + Number(r.salaire);
-      state.liquide = (Number(state.liquide) || 0) + Number(r.salaire);
-    }
-  }
+  await commercePjActualiserPersonnage();
+  if (!commercePjTransactionActive(tx)) return;
   if (typeof updateUI === 'function') updateUI();
+  if (r.rejeu === true) { await commercePjEcranGestion(); return; }
   const compte = r.quantite + ' ' + tCommercePJ('commercepj.recette.unites') +
     (Number(r.salaire) > 0
       ? (' · ' + commercePjMontant(r.salaire) + ' ' + commercePjDevise() + ' ' +
@@ -1265,6 +1258,7 @@ async function commercePjProduireLots(referenceId) {
   }
   RP_CPJ_MESSAGES[referenceId] = { texte: '✓ ' + compte, ok: true };
   await commercePjEcranGestion();
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1287,25 +1281,22 @@ function commercePjApercuMatiere(matiere) {
 }
 
 async function commercePjApporterDepuisTerminal(matiere, mode) {
+  return commercePjTransaction('matiere-terminal', async (tx) => {
   const champ = document.getElementById('cpj-appro-' + matiere);
   const qte   = Math.max(0, Math.floor(Number(champ && champ.value) || 0));
   if (qte <= 0) {
     commercePjMessage('mat-' + matiere, commercePjRefus({ raison: 'quantite_invalide' }), false); return; }
   commercePjMessage('mat-' + matiere, tCommercePJ('commercepj.prod.enCours'), true);
   const ctx = await commercePjContexte();
+  if (!commercePjTransactionActive(tx)) return;
   const r = await sbFondsMatiereApporter(nouvelleCleApport(), state.char.name,
                                          ctx.fondsId, matiere, qte, mode);
+  if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { commercePjMessage('mat-' + matiere, commercePjRefus(r), false); return; }
 
-  // L'inventaire rendu par la transaction fait autorite : on ne le recalcule pas.
-  if (r.inventory && typeof state !== 'undefined') {
-    state.inventory = r.inventory;
-    if (typeof renderInventory === 'function') renderInventory();
-  }
-  if (Number(r.montant) > 0 && typeof state !== 'undefined') {
-    state.arg     = (Number(state.arg) || 0)     + Number(r.montant);
-    state.liquide = (Number(state.liquide) || 0) + Number(r.montant);
-  }
+  await commercePjActualiserPersonnage({inventaire:true});
+  if (!commercePjTransactionActive(tx)) return;
+  if (r.rejeu === true) { await commercePjEcranGestion(); return; }
   if (typeof updateUI === 'function') updateUI();
 
   let compte = commercePjLibelleMatiere(matiere) + ' × ' + r.quantite;
@@ -1321,6 +1312,7 @@ async function commercePjApporterDepuisTerminal(matiere, mode) {
   if (typeof addJournalEntry === 'function') addJournalEntry(titre + ' : ' + compte);
   RP_CPJ_MESSAGES['mat-' + matiere] = { texte: '✓ ' + compte, ok: true };
   await commercePjEcranGestion();
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1508,9 +1500,16 @@ async function commercePjCreerReference(generiqueId, recetteId) {
 // 1 lot. `origine` ne sert toujours qu'a choisir l'ecran de retour, et seule la
 // valeur 'publique' est encore emise ; l'autre branche reste un repli inoffensif.
 async function commercePjProduire(referenceId, requete, origine) {
+  return commercePjTransaction('production', async (tx) => {
   const ctx = await commercePjContexte();
+  if (!commercePjTransactionActive(tx)) return;
   const r = await sbFondsReferenceProduire(requete, state.char.name, ctx.fondsId, referenceId);
+  if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
+  await commercePjActualiserPersonnage();
+  if (!commercePjTransactionActive(tx)) return;
+  if (typeof updateUI === 'function') updateUI();
+  if (r.rejeu === true) { if (origine === 'publique') commercePjEcranTravail(); else commercePjEcranArticles(); return; }
   if (r.rejeu !== true && typeof addJournalEntry === 'function') {
     addJournalEntry('Fabrication : ' + r.quantite + ' unité(s)'
       + (r.salaire > 0 ? (' — salaire ' + commercePjMontant(r.salaire) + ' ' + commercePjDevise()) : '')
@@ -1520,19 +1519,9 @@ async function commercePjProduire(referenceId, requete, origine) {
   showToast(tCommercePJ('commercepj.produire.fait'),
     r.quantite + ' ' + tCommercePJ('commercepj.recette.unites') +
     (r.salaire > 0 ? (' · +' + commercePjMontant(r.salaire) + ' ' + commercePjDevise()) : ''), true);
-  // L'ECRAN SUIT CE QUE LE SERVEUR A DEJA ECRIT. On ne recalcule rien : `paRestants`
-  // et `salaire` viennent de la transaction elle-meme. Un rejeu ne rend pas ces
-  // champs et ne touche donc a rien -- c'est voulu, il n'a rien preleve ni verse.
-  if (r.rejeu !== true && typeof state !== 'undefined') {
-    if (typeof r.paRestants === 'number') state.pa = r.paRestants;
-    if (r.salaire > 0) {
-      state.arg     = (Number(state.arg) || 0)     + Number(r.salaire);
-      state.liquide = (Number(state.liquide) || 0) + Number(r.salaire);
-    }
-  }
-  if (typeof updateUI === 'function') updateUI();
   if (origine === 'publique') commercePjEcranTravail();
   else commercePjEcranArticles();
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1861,11 +1850,16 @@ function commercePjQuantiteInventaire(cle) {
 }
 
 async function commercePjApporter(matiere, requete, mode) {
+  return commercePjTransaction('matiere', async (tx) => {
   const ctx = await commercePjContexte();
+  if (!commercePjTransactionActive(tx)) return;
   const qte = Math.max(1, Math.floor(Number((document.getElementById('cpj-appro-qte') || {}).value) || 1));
   const r = await sbFondsMatiereApporter(requete, state.char.name, ctx.fondsId, matiere, qte, mode);
+  if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
-  if (r.inventory) { state.inventory = r.inventory; if (typeof renderInventory === 'function') renderInventory(); }
+  await commercePjActualiserPersonnage({inventaire:true});
+  if (!commercePjTransactionActive(tx)) return;
+  if (r.rejeu === true) { commercePjEcranMatieresPubliques(); return; }
   if (typeof updateUI === 'function') updateUI();
   const titre = (mode === 'don') ? tCommercePJ('commercepj.appro.donne') : tCommercePJ('commercepj.appro.vendu');
   let sous = commercePjLibelleMatiere(matiere) + ' × ' + r.quantite;
@@ -1876,6 +1870,7 @@ async function commercePjApporter(matiere, requete, mode) {
   showToast(titre, sous, true);
   if (typeof addJournalEntry === 'function') addJournalEntry(titre + ' : ' + sous);
   commercePjEcranMatieresPubliques();
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1947,26 +1942,53 @@ async function commercePjFicheProduit(referenceId) {
 }
 
 let RP_CPJ_ETAT_VERSION = 0;
-async function commercePjActualiserPersonnage() {
+const RP_CPJ_TRANSACTIONS = new Set();
+function commercePjTransactionActive(tx) {
+  return state.char?.name === tx.nom && state.country === tx.pays
+    && state.currentCity === tx.ville && state.currentBuilding === tx.batiment && state.currentRoom === tx.piece
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === tx.uid)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === tx.jeton);
+}
+async function commercePjTransaction(action, executer) {
+  const tx = {nom:state.char?.name,pays:state.country,ville:state.currentCity,
+    batiment:state.currentBuilding,piece:state.currentRoom,
+    uid:typeof rpAuthUid === 'function' ? rpAuthUid() : null,
+    jeton:typeof rpAuthJeton === 'function' ? rpAuthJeton() : null};
+  const cle = JSON.stringify([action,tx.nom,tx.pays,tx.ville,tx.batiment,tx.piece,tx.uid]);
+  if (RP_CPJ_TRANSACTIONS.has(cle)) return;
+  RP_CPJ_TRANSACTIONS.add(cle);
+  try { return await executer(tx); }
+  catch (e) {
+    if (commercePjTransactionActive(tx)) showToast('Réponse indisponible',
+      'Vérifiez l’état du commerce avant de réessayer.', false);
+  } finally { RP_CPJ_TRANSACTIONS.delete(cle); }
+}
+async function commercePjActualiserPersonnage(options = {}) {
   if (typeof sbGet !== 'function' || !state.char?.name) return false;
   const version = ++RP_CPJ_ETAT_VERSION;
   const nom = state.char.name, pays = state.country;
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
   if (!uid) return false;
   try {
     // Lecture minimale : ne pas recharger l'inventaire avant son drainage, ni
     // recalculer un solde a partir du prix ou des bonus annonces.
     const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(nom)
       + '&country=eq.' + encodeURIComponent(pays)
-      + '&select=user_id,arg,liquide,hp,moral,pa&limit=2');
+      + '&select=user_id,arg,liquide,hp,moral,pa' + (options.inventaire ? ',inventory' : '') + '&limit=2');
     if (version !== RP_CPJ_ETAT_VERSION || !Array.isArray(rows) || rows.length !== 1 || rows[0].user_id !== uid
-        || state.char?.name !== nom || state.country !== pays || rpAuthUid() !== uid) return false;
+        || state.char?.name !== nom || state.country !== pays || rpAuthUid() !== uid
+        || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) return false;
     for (const champ of ['arg','liquide','hp','moral','pa']) {
       const valeur = rows[0][champ];
       if (typeof valeur === 'number' && Number.isFinite(valeur)) {
         state[champ] = valeur;
         if (champ === 'arg' || champ === 'pa') state.char[champ] = valeur;
       }
+    }
+    if (options.inventaire && Array.isArray(rows[0].inventory)) {
+      state.inventory = rows[0].inventory;
+      if (typeof renderInventory === 'function') renderInventory();
     }
     return true;
   } catch (e) { return false; }
@@ -1975,11 +1997,15 @@ async function commercePjActualiserPersonnage() {
 // L'achat n'envoie QUE : cle de requete, acteur, fonds, reference, quantite.
 // Ni prix, ni objet, ni montant. La livraison passe par le sas existant.
 async function commercePjAcheter(referenceId, requete) {
+  return commercePjTransaction('achat', async (tx) => {
   const ctx = await commercePjContexte();
+  if (!commercePjTransactionActive(tx)) return;
   const qte = Math.max(1, Math.floor(Number((document.getElementById('cpj-qte') || {}).value) || 1));
   const r = await sbAcheterProduitCommerce(requete, state.char.name, ctx.fondsId, referenceId, qte);
+  if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
   await commercePjActualiserPersonnage();
+  if (!commercePjTransactionActive(tx)) return;
   if (typeof updateUI === 'function') updateUI();
   if (r.rejeu === true) { commercePjEcranBoutique(); return; }
   showToast(tCommercePJ('commercepj.fiche.achete'),
@@ -1993,18 +2019,23 @@ async function commercePjAcheter(referenceId, requete) {
   if (typeof verifierObjetsRecus === 'function') { try { await verifierObjetsRecus(); } catch (e) {} }
   if (typeof updateUI === 'function') updateUI();
   commercePjEcranBoutique();
+  });
 }
 
 
 // Achat et consommation atomiques : aucune livraison dans l'inventaire.
 async function commercePjConsommerSurPlace(referenceId, requete) {
+  return commercePjTransaction('consommation', async (tx) => {
   const ctx = await commercePjContexte();
+  if (!commercePjTransactionActive(tx)) return;
   const r = await sbRpcVerdict('consommer_sur_place_commerce', {
     p_requete: requete, p_acheteur: state.char.name,
     p_fonds_id: ctx.fondsId, p_reference_id: referenceId
   });
+  if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
   await commercePjActualiserPersonnage();
+  if (!commercePjTransactionActive(tx)) return;
   if (typeof updateUI === 'function') updateUI();
   if (r.rejeu === true) { commercePjEcranBoutique(); return; }
   const e = r.effets || {};
@@ -2014,6 +2045,7 @@ async function commercePjConsommerSurPlace(referenceId, requete) {
     commercePjMontant(r.montant) + ' ' + commercePjDevise() + (bonus ? ' — ' + bonus : ''), true);
   if (typeof addJournalEntry === 'function') addJournalEntry('Consommation sur place : ' + (bonus || 'aucun bonus') + '.', 'event-good');
   commercePjEcranBoutique();
+  });
 }
 
 // Atelier de decoration — generation uniquement via Edge Function authentifiee.
