@@ -1556,8 +1556,7 @@ async function commercePjEcranPublic(ctx) {
     commercePjEchapper(tCommercePJ('commercepj.boutique.tenu')) + ' ' +
     commercePjEchapper(String(f.proprietaire || '').replace(/^pj:/, '')) + '</div>';
 
-  [['commercePjEcranBoutique()',           'commercepj.public.boutique', 'commercepj.public.boutiqueAide', 'ti-shopping-cart'],
-   ['commercePjEcranTravail()',            'commercepj.public.produire', 'commercepj.public.produireAide', 'ti-hammer'],
+  [['commercePjEcranBoutique()',           'commercepj.ordre.produits', 'commercepj.ordre.produitsAide', 'ti-shopping-cart'],
    ['commercePjEcranMatieresPubliques()',  'commercepj.public.matieres', 'commercepj.public.matieresAide', 'ti-package']
   ].forEach(function (e) {
     html += '<div onclick="' + e[0] + '" style="border:1px solid #2a2620;padding:.8rem .9rem;margin-bottom:.6rem;cursor:pointer">' +
