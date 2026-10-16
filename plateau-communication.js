@@ -674,10 +674,10 @@ async function verifierObjetsRecus() {
     } else { conflit(); return; }
     const objets = await sbGetLivraisonsEnAttente(nom);
     if (!actif()) return;
-    for (const {id} of objets) {
+    for (const {id, reception_token} of objets) {
       if (!actif()) return;
       const snapshot = empreinte(state.inventory), revision = state._inventaireRevision;
-      const recu = await sbInventaireReclamerLivraison(nom, id, revision);
+      const recu = await sbInventaireReclamerLivraison(nom, id, reception_token, revision);
       if (!actif()) return;
       if (empreinte(state.inventory) !== snapshot) { conflit(); return; }
       if (!valide(recu)) {

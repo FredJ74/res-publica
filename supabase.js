@@ -3151,7 +3151,7 @@ async function sbGetObjetsRecus(nom) {
 
 // Contrat v1, prepare par reception_objets_atomique. Aucun repli DELETE si absent.
 async function sbGetLivraisonsEnAttente(nom) {
-  const rows = await sbGet('objets_recus', `destinataire=eq.${encodeURIComponent(nom)}&select=id&order=created_at.asc,id.asc`);
+  const rows = await sbGet('objets_recus', `destinataire=eq.${encodeURIComponent(nom)}&select=id,reception_token&order=created_at.asc,id.asc`);
   if (!Array.isArray(rows)) throw new Error('livraisons_lecture_indisponible');
   return rows;
 }
@@ -3163,9 +3163,9 @@ async function sbInventaireSauverRevision(acteur, revision, inventory) {
     p_acteur: acteur, p_revision: revision, p_inventory: inventory
   }));
 }
-async function sbInventaireReclamerLivraison(acteur, id, revision) {
+async function sbInventaireReclamerLivraison(acteur, id, jeton, revision) {
   return verdictRpc(await sbRpc('inventaire_reclamer_livraison', {
-    p_acteur: acteur, p_id: id, p_revision: revision
+    p_acteur: acteur, p_id: id, p_jeton: jeton, p_revision: revision
   }));
 }
 

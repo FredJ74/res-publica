@@ -5,9 +5,9 @@ DECLARE r record;
 BEGIN
   FOR r IN SELECT * FROM (VALUES
     ('public.inventaire_revision_garder()','b5a289fa6f6a6bab6b8cd9bddfc4f86d'),
-    ('public.inventaire_reception_etat(text)','d005d1b1dfd96855a39120ff285c0181'),
+    ('public.inventaire_reception_etat(text)','9b24e1da4500bd7b2711d028f1358fe3'),
     ('public.inventaire_sauver_revision(text,bigint,jsonb)','29f14a3dcf61822af6baf74b3e220330'),
-    ('public.inventaire_reclamer_livraison(text,text,bigint)','bc1d451dd3ab45695676aea7e1885230')
+    ('public.inventaire_reclamer_livraison(text,text,uuid,bigint)','951585fb6bcb1e80bf6affa2fc5a6d8a')
   ) x(signature,empreinte) LOOP
     IF to_regprocedure(r.signature) IS NOT NULL AND NOT EXISTS
       (SELECT 1 FROM pg_proc WHERE oid=to_regprocedure(r.signature)
@@ -22,8 +22,17 @@ BEGIN
   END IF;
   IF to_regclass('public.inventaire_livraisons_recues') IS NOT NULL AND
     (SELECT count(*) FROM pg_attribute WHERE attrelid=to_regclass('public.inventaire_livraisons_recues')
-      AND attnum>0 AND NOT attisdropped) <> 3 THEN
+      AND attnum>0 AND NOT attisdropped) <> 4 THEN
     RAISE EXCEPTION 'reception_registre_schema_inconnu';
+  END IF;
+  IF to_regclass('public.inventaire_livraisons_recues') IS NOT NULL THEN
+    FOR r IN SELECT * FROM (VALUES ('jeton','uuid'),('id','text'),('destinataire','text'),
+      ('recue_le','timestamptz')) x(colonne,ty) LOOP
+      IF NOT EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid=to_regclass('public.inventaire_livraisons_recues')
+        AND attname=r.colonne AND atttypid=r.ty::regtype AND attnotnull AND NOT attisdropped) THEN
+        RAISE EXCEPTION 'reception_registre_schema_inconnu';
+      END IF;
+    END LOOP;
   END IF;
 END;
 $versions$;
@@ -64,19 +73,33 @@ BEGIN
     AND attname='inventory_revision' AND NOT attisdropped AND (atttypid<>'bigint'::regtype OR NOT attnotnull)) THEN
     RAISE EXCEPTION 'reception_revision_schema_inconnu';
   END IF;
+  IF EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid='public.objets_recus'::regclass
+    AND attname='reception_token' AND NOT attisdropped
+    AND (atttypid<>'uuid'::regtype OR NOT attnotnull
+      OR col_description(attrelid,attnum) IS DISTINCT FROM 'HG reception atomique v1')) THEN
+    RAISE EXCEPTION 'reception_jeton_schema_inconnu';
+  END IF;
   -- Le gardien doit etre le dernier BEFORE UPDATE ; aucun declencheur inconnu apres lui.
   IF EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.personnages_donnees'::regclass
     AND NOT tgisinternal AND tgenabled<>'D' AND tgtype & 2=2 AND tgtype & 16=16
     AND tgname>'zzzz_hg_inventory_revision') THEN
     RAISE EXCEPTION 'reception_ordre_triggers_a_reexaminer';
   END IF;
+  IF EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.personnages_donnees'::regclass
+    AND tgname='zzzz_hg_inventory_revision' AND (tgtype<>19 OR tgenabled<>'O'
+      OR tgfoid IS DISTINCT FROM to_regprocedure('public.inventaire_revision_garder()'))) THEN
+    RAISE EXCEPTION 'reception_trigger_inconnu';
+  END IF;
 END;
 $schema$;
 
+ALTER TABLE public.objets_recus ADD COLUMN IF NOT EXISTS reception_token uuid NOT NULL DEFAULT gen_random_uuid();
+COMMENT ON COLUMN public.objets_recus.reception_token IS 'HG reception atomique v1';
+CREATE UNIQUE INDEX IF NOT EXISTS objets_recus_reception_token_uidx ON public.objets_recus(reception_token);
 ALTER TABLE public.personnages_donnees ADD COLUMN IF NOT EXISTS inventory_revision bigint NOT NULL DEFAULT 0;
 COMMENT ON COLUMN public.personnages_donnees.inventory_revision IS 'HG reception atomique v1';
 CREATE TABLE IF NOT EXISTS public.inventaire_livraisons_recues (
-  id text PRIMARY KEY, destinataire text NOT NULL, recue_le timestamptz NOT NULL DEFAULT now()
+  jeton uuid PRIMARY KEY, id text NOT NULL, destinataire text NOT NULL, recue_le timestamptz NOT NULL DEFAULT now()
 );
 COMMENT ON TABLE public.inventaire_livraisons_recues IS 'HG reception atomique v1';
 ALTER TABLE public.inventaire_livraisons_recues ENABLE ROW LEVEL SECURITY;
@@ -106,6 +129,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $function$
 DECLARE v public.personnages_donnees%rowtype;
 BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'acteur_non_authentifie' USING ERRCODE='42501'; END IF;
+  PERFORM public.exiger_acteur(p_acteur);
   SELECT * INTO v FROM public.personnages_donnees WHERE name=p_acteur FOR UPDATE;
   IF NOT FOUND OR v.user_id IS DISTINCT FROM auth.uid() THEN
     RAISE EXCEPTION 'personnage_non_possede' USING ERRCODE='42501';
@@ -142,7 +166,7 @@ BEGIN
 END;
 $function$;
 
-CREATE OR REPLACE FUNCTION public.inventaire_reclamer_livraison(p_acteur text,p_id text,p_revision bigint) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.inventaire_reclamer_livraison(p_acteur text,p_id text,p_jeton uuid,p_revision bigint) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $function$
 DECLARE
   v public.personnages_donnees%rowtype; l public.objets_recus%rowtype;
@@ -150,10 +174,10 @@ DECLARE
 BEGIN
   PERFORM public.inventaire_reception_etat(p_acteur);
   SELECT * INTO v FROM public.personnages_donnees WHERE name=p_acteur;
-  IF EXISTS(SELECT 1 FROM public.inventaire_livraisons_recues WHERE id=p_id AND destinataire=p_acteur) THEN
+  IF EXISTS(SELECT 1 FROM public.inventaire_livraisons_recues WHERE jeton=p_jeton AND id=p_id AND destinataire=p_acteur) THEN
     RETURN jsonb_build_object('ok',true,'contrat',1,'rejeu',true,'inventory',v.inventory,'revision',v.inventory_revision);
   END IF;
-  SELECT * INTO l FROM public.objets_recus WHERE id=p_id FOR UPDATE;
+  SELECT * INTO l FROM public.objets_recus WHERE id=p_id AND reception_token=p_jeton FOR UPDATE;
   IF NOT FOUND OR l.destinataire IS DISTINCT FROM p_acteur THEN
     RETURN jsonb_build_object('ok',false,'raison','livraison_absente');
   END IF;
@@ -200,18 +224,18 @@ BEGIN
   IF v.inventory IS DISTINCT FROM inv THEN
     RAISE EXCEPTION 'inventaire_ecriture_non_appliquee';
   END IF;
-  INSERT INTO public.inventaire_livraisons_recues(id,destinataire) VALUES(p_id,p_acteur);
-  DELETE FROM public.objets_recus WHERE id=p_id AND destinataire=p_acteur;
+  INSERT INTO public.inventaire_livraisons_recues(jeton,id,destinataire) VALUES(p_jeton,p_id,p_acteur);
+  DELETE FROM public.objets_recus WHERE id=p_id AND reception_token=p_jeton AND destinataire=p_acteur;
   RETURN jsonb_build_object('ok',true,'contrat',1,'rejeu',false,'inventory',v.inventory,
     'revision',v.inventory_revision,'objet',o,'expediteur',l.expediteur);
 END;
 $function$;
 
 REVOKE ALL ON FUNCTION public.inventaire_reception_etat(text),
- public.inventaire_sauver_revision(text,bigint,jsonb),public.inventaire_reclamer_livraison(text,text,bigint)
+ public.inventaire_sauver_revision(text,bigint,jsonb),public.inventaire_reclamer_livraison(text,text,uuid,bigint)
  FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.inventaire_reception_etat(text),
- public.inventaire_sauver_revision(text,bigint,jsonb),public.inventaire_reclamer_livraison(text,text,bigint)
+ public.inventaire_sauver_revision(text,bigint,jsonb),public.inventaire_reclamer_livraison(text,text,uuid,bigint)
  TO authenticated;
 -- Anciennes pages : aucune suppression sans insertion atomique ; pas de purge des files.
 REVOKE DELETE ON public.objets_recus FROM PUBLIC,anon,authenticated;
@@ -221,6 +245,11 @@ BEGIN
  IF has_table_privilege('authenticated','public.objets_recus','DELETE')
     OR has_function_privilege('authenticated','public.tracts_reclamer_don(text,text)','EXECUTE') THEN
    RAISE EXCEPTION 'reception_ancien_circuit_encore_accessible';
+ END IF;
+ IF NOT EXISTS(SELECT 1 FROM pg_index WHERE indrelid='public.objets_recus'::regclass
+   AND indisunique AND indisvalid AND indpred IS NULL AND indnkeyatts=1
+   AND indkey[0]=(SELECT attnum FROM pg_attribute WHERE attrelid=indrelid AND attname='reception_token')) THEN
+   RAISE EXCEPTION 'reception_jeton_non_unique';
  END IF;
 END;
 $droits$;

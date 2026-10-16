@@ -9,7 +9,7 @@ FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
 JOIN pg_attribute a ON a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
 LEFT JOIN pg_attrdef d ON d.adrelid=c.oid AND d.adnum=a.attnum
 WHERE n.nspname='public' AND c.relname IN
- ('personnages','personnages_donnees','objets_recus','organisations','ventes_snapshots')
+ ('personnages','personnages_donnees','objets_recus','organisations','ventes_snapshots','inventaire_livraisons_recues')
 ORDER BY c.relname,a.attnum;
 
 SELECT c.oid::regclass AS relation,t.tgname,t.tgenabled,pg_get_triggerdef(t.oid,true) AS definition
@@ -19,7 +19,7 @@ WHERE NOT t.tgisinternal AND c.relnamespace='public'::regnamespace
 
 SELECT schemaname,tablename,policyname,roles,cmd,qual,with_check FROM pg_policies
 WHERE schemaname='public' AND tablename IN
- ('personnages','personnages_donnees','objets_recus','organisations','ventes_snapshots');
+ ('personnages','personnages_donnees','objets_recus','organisations','ventes_snapshots','inventaire_livraisons_recues');
 
 SELECT conrelid::regclass AS relation,conname,pg_get_constraintdef(oid,true) AS definition
 FROM pg_constraint WHERE conrelid IN

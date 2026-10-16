@@ -10,8 +10,8 @@ function jeu(){
  c.serveur={inventory:[],revision:0,queue:[{id:'objet-1',objet:{name:'Livre',qty:1},expediteur:'Donneur'}]};
  const copier=x=>JSON.parse(JSON.stringify(x));
  c.etat=()=>c.sbMarquerInventaires({ok:true,contrat:1,inventory:copier(c.serveur.inventory),revision:c.serveur.revision},c.sbContexteInventaire());
- c.sbInventaireReceptionEtat=async()=>c.etat();c.sbGetLivraisonsEnAttente=async()=>c.serveur.queue.map(o=>({id:o.id}));
- c.sbInventaireReclamerLivraison=async(n,id,rev)=>{
+ c.sbInventaireReceptionEtat=async()=>c.etat();c.sbGetLivraisonsEnAttente=async()=>c.serveur.queue.map(o=>({id:o.id,reception_token:'jeton-fixture'}));
+ c.sbInventaireReclamerLivraison=async(n,id,jeton,rev)=>{
   assert.equal(n,'Alice');assert.equal(rev,c.serveur.revision);const i=c.serveur.queue.findIndex(o=>o.id===id);
   if(i<0)return {...c.etat(),rejeu:true};
   const r=c.serveur.queue.splice(i,1)[0];c.serveur.inventory.push(r.objet);c.serveur.revision++;

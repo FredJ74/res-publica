@@ -19,6 +19,7 @@ ALTER TABLE objets_recus ENABLE ROW LEVEL SECURITY;
 CREATE POLICY fixture_proprietaire ON objets_recus TO authenticated USING(destinataire='Alice');
 GRANT USAGE ON SCHEMA public,auth TO authenticated;
 GRANT SELECT,UPDATE ON personnages_donnees TO authenticated;
+GRANT SELECT,UPDATE ON personnages TO authenticated;
 GRANT SELECT,DELETE ON objets_recus TO authenticated;
 CREATE FUNCTION tracts_reclamer_don(text,text) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$;
 CREATE FUNCTION exiger_acteur(text) RETURNS void LANGUAGE plpgsql AS $$ BEGIN
@@ -40,28 +41,36 @@ def main():
    for m in re.finditer(r'CREATE OR REPLACE FUNCTION public\.'+re.escape(nom)+r'\([\s\S]*?\$function\$;',f.read_text()):
     q.execute(m[0]);return
   raise AssertionError(nom)
- for nom in ['inventaire_ajouter','inventaire_place_restante','inventaire_localiser','inventaire_objet_protege','inventaire_quantite','inventaire_retirer','inventaire_retirer_position','helvetia_inventaire_sortie','inventaire_detruire','inventaire_consommer']:
+ for nom in ['est_appel_serveur','est_mon_personnage','exiger_acteur','inventaire_ajouter','inventaire_place_restante','inventaire_localiser','inventaire_objet_protege','inventaire_quantite','inventaire_retirer','inventaire_retirer_position','helvetia_inventaire_sortie','inventaire_detruire','inventaire_consommer']:
   charger(nom)
  n=0
+ tokens={}
  def ok(message):
   nonlocal n;n+=1;print('OK',n,message)
  def reset(inv=None):
+  tokens.clear()
   q.execute('TRUNCATE personnages_donnees,objets_recus,inventaire_livraisons_recues')
   q.execute('INSERT INTO personnages_donnees(name,user_id,inventory) VALUES (%s,%s,%s),(%s,%s,%s)',('Alice',UID,json.dumps(inv or []),'Bob','22222222-2222-2222-2222-222222222222','[]'))
   contexte()
  def envoyer(obj,id='livraison-1',dest='Alice',chaine=True):
   # data jsonb contenant une chaine JSON : format existant de nombreux producteurs.
   data=json.dumps(json.dumps(obj)) if chaine else json.dumps(obj)
-  q.execute('INSERT INTO objets_recus VALUES(%s,%s,%s,%s)',(id,dest,'Donneur',data))
+  q.execute('INSERT INTO objets_recus(id,destinataire,expediteur,data) VALUES(%s,%s,%s,%s) RETURNING reception_token',(id,dest,'Donneur',data));tokens[id]=q.fetchone()[0]
  def etat(cursor=q):
   cursor.execute("SELECT inventaire_reception_etat('Alice')");return cursor.fetchone()[0]
  def recevoir(rev=0,id='livraison-1',cursor=q):
-  cursor.execute("SELECT inventaire_reclamer_livraison('Alice',%s,%s)",(id,rev));return cursor.fetchone()[0]
+  cursor.execute("SELECT inventaire_reclamer_livraison('Alice',%s,%s,%s)",(id,tokens.get(id),rev));return cursor.fetchone()[0]
  def compte(table):
   assert table in ['objets_recus','inventaire_livraisons_recues'];q.execute('SELECT count(*) FROM '+table);return q.fetchone()[0]
  reset();objet={'name':'Chocolat','familleProduitMarche':'aliment','dateAchat':1792150000000,'provenance':{'fondsId':'fixture'},'photo':'x','origineQuete':'quete-fixture'}
  envoyer(objet);r=recevoir();assert r['inventory']==[objet] and compte('objets_recus')==0 and compte('inventaire_livraisons_recues')==1
  assert recevoir()['rejeu'] and etat()['inventory']==[objet];ok('reception puis repetitions, metadonnees alimentaires/quete intactes')
+ reset();envoyer({'name':'Premier'});ancien=tokens['livraison-1'];recevoir()
+ envoyer({'name':'Second'})
+ q.execute("SELECT inventaire_reclamer_livraison('Alice','livraison-1',%s,0)",(ancien,))
+ assert q.fetchone()[0]['rejeu'] and compte('objets_recus')==1 and len(etat()['inventory'])==1
+ assert len(recevoir(rev=etat()['revision'])['inventory'])==2
+ ok('ID de file reutilise : nouveau jeton livre, ancienne demande rejouee sans toucher la nouvelle livraison')
  reset();envoyer({'name':'Document','texte':'integral'},chaine=False);assert recevoir()['inventory'][0]['texte']=='integral';ok('data JSON objet et document integral')
  reset([{'name':'Sac','stackable':True,'stackKey':'fer','qty':99,'meta':'conservee'}]);envoyer({'name':'Fer','stackable':True,'stackKey':'fer','qty':5});r=recevoir();assert r['inventory'][0]['qty']==104 and r['inventory'][0]['meta']=='conservee';ok('empilement au-dela du plafond : surcharge preservee')
  reset();envoyer({'name':'Arme','exemplaire':{'id':'unique'},'encombrement':2});assert recevoir()['inventory'][0]['exemplaire']=={'id':'unique'};ok('exemplaire individualise')
@@ -97,6 +106,11 @@ def main():
  q.execute('SET ROLE authenticated');contexte(path='/personnages')
  q.execute("UPDATE personnages_donnees SET inventory='[]', inventory_revision=0 WHERE name='Alice'")
  q.execute('RESET ROLE');assert len(etat()['inventory'])==1 and etat()['revision']==1;ok('ancien PATCH REST conserve inventaire et revision, meme avec revision falsifiee')
+ q.execute("CREATE FUNCTION fixture_vue_modifier() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$ BEGIN UPDATE public.personnages_donnees SET inventory=NEW.inventory WHERE name=OLD.name;RETURN NEW;END $$")
+ q.execute('CREATE TRIGGER fixture_vue INSTEAD OF UPDATE ON personnages FOR EACH ROW EXECUTE FUNCTION fixture_vue_modifier()')
+ q.execute('SET ROLE authenticated');contexte(path='/personnages');q.execute("UPDATE personnages SET inventory='[]' WHERE name='Alice'")
+ q.execute('RESET ROLE');assert len(etat()['inventory'])==1 and etat()['revision']==1
+ ok('ancien PATCH sur vue avec trigger INSTEAD OF SECURITY DEFINER : inventaire conserve')
  q.execute('SET ROLE authenticated');contexte(path='/rpc/inventaire_sauver_revision')
  q.execute("SELECT inventaire_sauver_revision('Alice',1,%s)",(json.dumps(etat()['inventory']+[{'name':'Ajout local'}]),))
  assert q.fetchone()[0]['ok'];q.execute('RESET ROLE');assert etat()['revision']==2
@@ -125,6 +139,12 @@ def main():
  q.execute("SELECT inventaire_ajouter(inventory,'materiau',2,'fixture') FROM personnages_donnees WHERE name='Alice'")
  assert q.fetchone()[0][0]['origineQuete']=='jean_lou'
  ok('helpers existants ajouter et place restante conservent le nouvel objet et ses metadonnees')
+ reset();envoyer({'name':'Colis secret','type':'colis_secret_pat','origineQuete':'pat'});recevoir()
+ q.execute("SELECT inventaire_detruire('Alice',0,'{\"name\":\"Colis secret\",\"type\":\"colis_secret_pat\"}',1)")
+ assert q.fetchone()[0]['raison']=='objet_protege' and len(etat()['inventory'])==1
+ ok('objet de quete recu puis protege par le vrai helper archive de sortie')
+ reset([{'name':'Objet '+str(i)} for i in range(100)]);envoyer({'name':'Reception au-dela du plafond'})
+ assert len(recevoir()['inventory'])==101;ok('inventaire plein : reception automatique sans perte ni refus de capacite')
  q.execute('BEGIN');q.execute('ALTER TABLE inventaire_livraisons_recues ADD COLUMN inconnue text')
  try:q.execute(sql);raise AssertionError('Schema inconnu attendu')
  except psycopg2.Error as e:assert 'reception_registre_schema_inconnu' in str(e)
