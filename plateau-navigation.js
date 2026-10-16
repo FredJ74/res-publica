@@ -271,6 +271,8 @@ function batimentHospitalisation() {
 }
 
 function enterBuilding(buildingId, skipAutoRoom) {
+  // Nettoyer toute infobulle de survol héritée de la vue précédente.
+  if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   const b = BUILDINGS[buildingId];
   if (!b) return;
 
@@ -588,6 +590,8 @@ function renderOngletsPieces(buildingId, roomActifId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  // Nettoyer toute infobulle de survol héritée de la vue précédente.
+  if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   // Position AVANT le changement : le raccordement d'entree en a besoin pour faire reculer un
   // joueur refoule, et elle n'existe plus une fois state.currentRoom ecrase.
   const _zonePrecedente = { buildingId: state.currentBuilding, roomId: state.currentRoom };
@@ -1424,6 +1428,8 @@ function checkZoneEmbarquementAcces(buildingId, roomId) {
 }
 
 function sortirBatiment() {
+  // Nettoyer toute infobulle de survol héritée de la vue précédente.
+  if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   if (state.estEmprisonne) {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
     return;
