@@ -172,10 +172,12 @@ function classerEchecFournisseur(r) {
 // client sur parole : le jeton porte par l'en-tete Authorization est presente a
 // Supabase, qui seul peut dire s'il est valide et a qui il appartient. Un jeton
 // absent, expire ou forge echoue ici, AVANT le moindre appel paye.
-async function joueurAuthentifie(req) {
+async function joueurAuthentifie(req, options = {}) {
+  // Options facultatives : les autres API conservent leur contrat historique.
+  const refuser = (cause, http = null) => { options.onEchec?.(cause, http); return null; };
   const brut = req.headers.authorization || req.headers.Authorization || '';
   const jeton = brut.startsWith('Bearer ') ? brut.slice(7).trim() : '';
-  if (!jeton) return null;
+  if (!jeton) return refuser('jeton_absent');
 
   // Meme repli que tout le reste du dossier api/ : ces deux valeurs ne sont pas
   // configurees dans l'environnement Vercel, et n'ont rien de secret -- l'URL du
@@ -183,19 +185,20 @@ async function joueurAuthentifie(req) {
   // chaque navigateur.
   const url = process.env.SUPABASE_URL || 'https://jxpwoosmmhohoihxpbuc.supabase.co';
   const anon = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cHdvb3NtbWhvaG9paHhwYnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMjYyMDgsImV4cCI6MjA5NjYwMjIwOH0._NQsIrCS0U7czXAOIoNxs6omqj7whAq9FB572c4qflw';
-  if (!url || !anon) return null;
-  if (jeton === anon) return null;   // la cle anon n'est pas une identite de joueur
+  if (!url || !anon) return refuser('configuration_absente');
+  if (jeton === anon) return refuser('jeton_anonyme');   // la cle anon n'est pas une identite de joueur
 
   try {
     const r = await fetch(url.replace(/\/$/, '') + '/auth/v1/user', {
       method: 'GET',
-      headers: { 'apikey': anon, 'Authorization': 'Bearer ' + jeton }
+      headers: { 'apikey': anon, 'Authorization': 'Bearer ' + jeton },
+      ...(options.signal ? { signal: options.signal } : {})
     });
-    if (!r.ok) return null;
+    if (!r.ok) return refuser('http', r.status);
     const u = await r.json();
-    return (u && u.id) ? { id: u.id, jeton } : null;
+    return (u && u.id) ? { id: u.id, jeton } : refuser('reponse_invalide');
   } catch (e) {
-    return null;
+    return refuser(e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'delai_depasse' : 'reseau_ou_format');
   }
 }
 

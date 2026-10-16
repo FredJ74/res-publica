@@ -22,12 +22,19 @@
 // LA CLE D'API N'EST JAMAIS TRANSMISE AU NAVIGATEUR, ni journalisee, ni renvoyee dans une erreur.
 
 import { construirePromptSysteme, profilExiste, maxTokensProfil } from './_pnj-profils.js';
-import { appelDeepSeek, joueurAuthentifie } from './_deepseek.js';
+import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
 import { sbTransport } from './_supabase.js';
 import { PROFILS_MUNICIPAUX_LUTHECIA, lireTitulaireMunicipal, contexteMunicipal } from '../continuite-municipale.mjs';
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
 const ALLOWED_ROLES = ['user', 'assistant'];
+// Vercel borne TOUTE la requete a 30 s, pas seulement le fournisseur.
+const BUDGET_CHAT_MS = 27000;
+const BUDGET_LECTURES_MS = 3000;
+function journalChat(etape, cause, http = null) {
+  // Aucun jeton, texte de conversation, prompt, identite ou detail fournisseur.
+  console.error('[chat]', { etape, cause, http });
+}
 
 // Garde-fous minimaux mais reels : un message de joueur tient tres largement en 1000 caracteres,
 // et six echanges suffisent a une conversation de PNJ. Borner ici, c'est borner le cout.
@@ -100,12 +107,14 @@ async function lireMemoire(rpc, profilId, jeton) {
       // CHAQUE CANAL A SA PROPRE SIGNATURE. Le contexte public n'en a AUCUNE : il ne porte pas
       // d'identifiant de PNJ, parce qu'il ne parle pas du PNJ mais de l'APPELANT, que le serveur
       // reconnait par son jeton. Un `?:` a deux branches ne pouvait pas l'exprimer.
-      body: JSON.stringify(CORPS_RPC[rpc] ? CORPS_RPC[rpc](profilId) : { p_referent_id: profilId })
+      body: JSON.stringify(CORPS_RPC[rpc] ? CORPS_RPC[rpc](profilId) : { p_referent_id: profilId }),
+      signal: AbortSignal.timeout(BUDGET_LECTURES_MS)
     });
-    if (!r.ok) return null;
+    if (!r.ok) { journalChat('contexte', 'http', r.status); return null; }
     const d = await r.json();
     return (d && d.ok === true) ? d : null;
   } catch (e) {
+    journalChat('contexte', e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'delai_depasse' : 'reseau_ou_format');
     return null;
   }
 }
@@ -189,13 +198,15 @@ async function lireFonctionMunicipale(profilId, jeton) {
   const profil = PROFILS_MUNICIPAUX_LUTHECIA[profilId];
   if (!profil) return null;
   try {
+    const signal = AbortSignal.timeout(BUDGET_LECTURES_MS);
     const titulaire = await lireTitulaireMunicipal(profil.poste, 'republic', 'capitale', async (table, filtre) => {
-      const r = await sbTransport('GET', table, filtre, undefined, {jeton});
+      const r = await sbTransport('GET', table, filtre, undefined, {jeton, signal});
       if (r.etat !== 'ok') throw new Error('Registre municipal indisponible');
       return r.donnees;
     });
     return contexteMunicipal(profilId, titulaire, true);
   } catch (e) {
+    journalChat('registre_municipal', 'indisponible');
     return contexteMunicipal(profilId, null, false);
   }
 }
@@ -215,7 +226,11 @@ export default async function handler(req, res) {
   const erreur = validerPayload(req.body);
   if (erreur) return res.status(400).json({ error: erreur });
 
-  const utilisateur = await joueurAuthentifie(req);
+  const debut = Date.now();
+  const utilisateur = await joueurAuthentifie(req, {
+    signal: AbortSignal.timeout(4000),
+    onEchec: (cause, http) => journalChat('authentification', cause, http)
+  });
   if (!utilisateur) return res.status(401).json({ error: 'Authentification requise.' });
 
   // LES SIX lectures partent ENSEMBLE : elles sont independantes, et les enchainer ajouterait
@@ -246,9 +261,13 @@ export default async function handler(req, res) {
     systeme,
     messages,
     maxTokens: maxTokensProfil(req.body.profil),
-    timeoutMs: 30000
+    timeoutMs: Math.max(1, BUDGET_CHAT_MS - (Date.now() - debut))
   });
 
-  if (!r.ok) return res.status(502).json({ error: 'Le PNJ est momentanément indisponible.' });
+  if (!r.ok) {
+    const diagnostic = classerEchecFournisseur(r);
+    journalChat('fournisseur', diagnostic?.cause || 'inconnu', r.http || null);
+    return res.status(502).json({ error: 'Le PNJ est momentanément indisponible.' });
+  }
   return res.status(200).json({ reponse: r.texte });
 }

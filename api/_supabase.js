@@ -142,6 +142,7 @@ export async function sbTransport(methode, table, filtres, corps, options) {
   const url = `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/${table}` + (filtres ? `?${filtres}` : '');
   const prefer = o.prefer ? `return=representation,${o.prefer}` : 'return=representation';
   const init = { method: methode, headers: { ...sbEnTetes(o), 'Prefer': prefer } };
+  if (o.signal) init.signal = o.signal;
   if (corps !== undefined) init.body = JSON.stringify(corps);
   return envoyer(url, init, methode + ' ' + table);
 }
