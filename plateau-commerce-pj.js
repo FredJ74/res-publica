@@ -1362,7 +1362,7 @@ function commercePjRecetteLisible(rec) {
   const parts = Object.keys(mats).map(function (m) {
     return mats[m] + ' × ' + commercePjLibelleMatiereRecette(m, rec);
   });
-  if (Number(rec.pa) > 0) parts.push(rec.pa + ' ' + tCommercePJ('commercepj.recette.pa'));
+  if (Number(rec.pa) > 0) parts.push(rec.pa + ' PA');
   let h = '<div style="font-size:.8rem;color:#8a8060;line-height:1.5">';
   h += '<div>' + commercePjEchapper(tCommercePJ('commercepj.recette.necessite')) + ' : ' +
        commercePjEchapper(parts.join(' · ') || '—') + '</div>';
@@ -1608,7 +1608,8 @@ async function commercePjEcranBoutique(ctx) {
       '<b style="color:#E5C477;font-size:.95rem">' + commercePjEchapper(r.nom || '—') + '</b>' +
       '<span style="color:#E5C477;white-space:nowrap">' + commercePjMontant(r.prixVente) + ' ' + cur + '</span></div>';
     html += '<div style="font-size:.78rem;color:#aab5c3;margin-top:.3rem">' +
-      commercePjEchapper(tCommercePJ('commercepj.ref.stock')) + ' : ' + stock + '</div>';
+      commercePjEchapper(tCommercePJ('commercepj.ref.stock')) + ' : ' + stock + ' / ' +
+      (Number(maxis[id]) > 0 ? Number(maxis[id]) : '∞') + '</div>';
     if (rec) {
       html += '<div style="font-size:.8rem;color:#c8d2de;margin-top:.55rem">' +
         commercePjRecetteLisible(rec) + '</div>';
