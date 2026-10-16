@@ -6,8 +6,8 @@ BEGIN
   FOR r IN SELECT * FROM (VALUES
     ('public.inventaire_revision_garder()','b5a289fa6f6a6bab6b8cd9bddfc4f86d'),
     ('public.inventaire_reception_etat(text)','9b24e1da4500bd7b2711d028f1358fe3'),
-    ('public.inventaire_sauver_revision(text,bigint,jsonb)','29f14a3dcf61822af6baf74b3e220330'),
-    ('public.inventaire_reclamer_livraison(text,text,uuid,bigint)','951585fb6bcb1e80bf6affa2fc5a6d8a')
+    ('public.inventaire_sauver_revision(text,bigint,jsonb)','bdc5fd7ac5a06229cfa392a63fe44d38'),
+    ('public.inventaire_reclamer_livraison(text,text,uuid,bigint)','f3e0490939e190e84abbdf99dbd35f35')
   ) x(signature,empreinte) LOOP
     IF to_regprocedure(r.signature) IS NOT NULL AND NOT EXISTS
       (SELECT 1 FROM pg_proc WHERE oid=to_regprocedure(r.signature)
@@ -158,6 +158,7 @@ BEGIN
     END IF;
     UPDATE public.personnages_donnees SET inventory=p_inventory WHERE name=p_acteur
       RETURNING * INTO v;
+    SELECT * INTO v FROM public.personnages_donnees WHERE name=p_acteur;
     IF v.inventory IS DISTINCT FROM p_inventory OR v.inventory_revision IS DISTINCT FROM p_revision+1 THEN
       RAISE EXCEPTION 'inventaire_ecriture_non_appliquee';
     END IF;
@@ -226,6 +227,13 @@ BEGIN
   END IF;
   INSERT INTO public.inventaire_livraisons_recues(jeton,id,destinataire) VALUES(p_jeton,p_id,p_acteur);
   DELETE FROM public.objets_recus WHERE id=p_id AND reception_token=p_jeton AND destinataire=p_acteur;
+  -- Relire APRES les triggers, pas seulement le tuple capture par UPDATE RETURNING.
+  SELECT * INTO v FROM public.personnages_donnees WHERE name=p_acteur;
+  IF v.inventory IS DISTINCT FROM inv
+     OR EXISTS(SELECT 1 FROM public.objets_recus WHERE reception_token=p_jeton)
+     OR NOT EXISTS(SELECT 1 FROM public.inventaire_livraisons_recues WHERE jeton=p_jeton AND destinataire=p_acteur) THEN
+    RAISE EXCEPTION 'reception_postcondition_invalide';
+  END IF;
   RETURN jsonb_build_object('ok',true,'contrat',1,'rejeu',false,'inventory',v.inventory,
     'revision',v.inventory_revision,'objet',o,'expediteur',l.expediteur);
 END;

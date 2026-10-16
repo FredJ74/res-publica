@@ -92,6 +92,12 @@ def main():
  except psycopg2.Error as e: assert 'erreur_apres_insertion' in str(e)
  assert etat()['inventory']==[] and compte('objets_recus')==1 and compte('inventaire_livraisons_recues')==0
  q.execute('DROP TRIGGER fixture_erreur ON objets_recus');ok('erreur apres insertion : rollback inventaire, revision, recu et livraison')
+ q.execute("CREATE FUNCTION fixture_after_delete() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN UPDATE public.personnages_donnees SET inventory='[]' WHERE name=OLD.destinataire;RETURN OLD;END $$")
+ q.execute('CREATE TRIGGER fixture_after AFTER DELETE ON objets_recus FOR EACH ROW EXECUTE FUNCTION fixture_after_delete()')
+ try:recevoir();raise AssertionError('Postcondition attendue')
+ except psycopg2.Error as e:assert 'reception_postcondition_invalide' in str(e)
+ assert compte('objets_recus')==1 and etat()['inventory']==[] and compte('inventaire_livraisons_recues')==0
+ q.execute('DROP TRIGGER fixture_after ON objets_recus');ok('trigger AFTER incompatible : postcondition invalide, rollback integral sans perte')
  recevoir();assert recevoir()['rejeu'] and len(etat()['inventory'])==1;ok('reponse perdue apres commit : repetition sans second ajout')
  reset();envoyer({'name':'Concurrent'});barriere=threading.Barrier(2)
  def concurrent(_):
