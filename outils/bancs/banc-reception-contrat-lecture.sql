@@ -40,6 +40,14 @@ FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prokind='f'
  AND (p.proname LIKE 'inventaire\_%' ESCAPE '\'
       OR p.proname IN ('tracts_reclamer_don','personnages_vue_modifier',
        'personnages_fusionner_pop','mon_personnage','exiger_acteur','mouvement_titulaire',
-       'acheter_produit_commerce','donner_objet_joueur'))
+       'acheter_produit_commerce','donner_objet_joueur')
+      OR p.prosrc ~ 'inventory[[:space:]]*=')
 ORDER BY p.proname,arguments;
+
+SELECT grantee,table_name,privilege_type FROM information_schema.role_table_grants
+WHERE table_schema='public' AND table_name IN
+ ('personnages','personnages_donnees','objets_recus','inventaire_livraisons_recues');
+SELECT grantee,table_name,column_name,privilege_type FROM information_schema.column_privileges
+WHERE table_schema='public' AND table_name IN ('personnages','personnages_donnees');
+SELECT pg_get_viewdef(to_regclass('public.personnages'),true) AS definition_vue;
 ROLLBACK;

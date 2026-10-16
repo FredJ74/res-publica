@@ -27,6 +27,8 @@ jobs:
         run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
       - name: Achat sur PostgreSQL local, sans identifiant Supabase
         run: python3 outils/bancs/banc-achat-commerce-local.py --local-jetable
+      - name: Réception atomique sur PostgreSQL local, sans identifiant Supabase
+        run: python3 outils/bancs/banc-reception-atomique-local.py --local-jetable
       - name: Conserver les résultats des bancs
         if: always()
         uses: actions/upload-artifact@v4
