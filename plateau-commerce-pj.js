@@ -873,9 +873,8 @@ async function commercePjEcranGestion(ctx) {
       const rec = RP_CPJ_RECETTES[id] || null;
 
       let etat;
-      if (r.active !== true)   etat = tCommercePJ('commercepj.ref.retire');
-      else if (stock <= 0)     etat = tCommercePJ('commercepj.ref.rupture');
-      else                     etat = tCommercePJ('commercepj.ref.enVente');
+      if (stock <= 0) etat = tCommercePJ('commercepj.ref.rupture');
+      else etat = tCommercePJ('commercepj.ref.enVente');
       // LE PLAFOND DE PRIX VIENT DU SERVEUR et n'est jamais recalcule ici : c'est
       // une politique de pays. On l'annonce a cote du champ plutot que de laisser
       // le proprietaire decouvrir un refus.
@@ -908,9 +907,6 @@ async function commercePjEcranGestion(ctx) {
         h += '<em class="cpj-etiq">' +
           commercePjEchapper(tCommercePJ('commercepj.recette.aucune')) + '</em>';
       }
-      h += commercePjTouche("commercePjActiver('" + id + "'," + (r.active === true ? 'false' : 'true') + ")",
-             r.active === true ? tCommercePJ('commercepj.ref.retirer')
-                               : tCommercePJ('commercepj.ref.mettreEnVente'));
       h += '</span>';
       if (rec) h += '<span class="cpj-resume" id="cpj-resume-' + id + '"></span>';
       h += '<span class="cpj-msg" id="cpj-msg-' + id + '"></span>';
@@ -1585,7 +1581,7 @@ async function commercePjEcranBoutique(ctx) {
   // Le propriétaire retrouve toutes ses références, même retirées de la vente.
   // Les visiteurs ne voient que le catalogue commercial actif.
   const actives = Object.keys(refs).filter(function (id) {
-    return refs[id] && (ctx.jeSuisProprietaire || refs[id].active === true);
+    return !!refs[id];
   });
   // Lecture des recettes pour les seuls produits affiches. Le serveur reste
   // l'unique autorite pour les couts et pour l'execution de la fabrication.
@@ -1603,7 +1599,7 @@ async function commercePjEcranBoutique(ctx) {
   actives.forEach(function (id) {
     const r = refs[id], stock = Math.max(0, Number(stocks[id]) || 0);
     const rec = recettes[id];
-    const enVente = r.active === true;
+    const enVente = true;
     html += '<div style="background:#252D38;border:1px solid #394656;border-radius:9px;padding:.85rem;margin-bottom:.65rem">';
     html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.6rem">' +
       '<b style="color:#E5C477;font-size:.95rem">' + commercePjEchapper(r.nom || '—') + '</b>' +
@@ -1619,7 +1615,7 @@ async function commercePjEcranBoutique(ctx) {
         commercePjEchapper(tCommercePJ('commercepj.travail.salaire')) + ' : ' +
         commercePjMontant(salaire) + ' ' + cur + '</div>';
     }
-    if (!enVente) html += '<div style="font-size:.76rem;color:#d0a66a;margin-top:.3rem">Retiré de la vente — visible par le propriétaire</div>';
+
     if (stock <= 0) html += '<div style="font-size:.76rem;color:#d0a66a;margin-top:.3rem">' +
       commercePjEchapper(tCommercePJ('commercepj.ref.rupture')) + '</div>';
     const achatAction = "commercePjFicheProduit('" + id + "')";
