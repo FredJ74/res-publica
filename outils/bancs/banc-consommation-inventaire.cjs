@@ -61,3 +61,9 @@ test('un refus libere le verrou pour une nouvelle tentative autorisee',async()=>
  await ctx.consommerAliment(0);await ctx.consommerAliment(0);
  assert.equal(appels.filter(a=>a[0]==='rpc').length,2);assert.equal(ctx.state.pa,4);
 });
+test('consommation confirmee apres changement de personnage : aucun inventaire ni PA copie sur le nouveau',async()=>{
+ let resolve;const {ctx,inventory}=plateau(()=>new Promise(r=>resolve=r));
+ const p=ctx.consommerAliment(0);ctx.state.char={name:'Autre'};
+ resolve({ok:true,inventory:[],pa:4,aliment_frais:true});await p;
+ assert.equal(ctx.state.inventory,inventory);assert.equal(ctx.state.pa,3);
+});

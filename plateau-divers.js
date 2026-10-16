@@ -1182,6 +1182,9 @@ async function removeFromInventory(idx, motif, options) {
 
   const acteur = state.char?.name;
   if (!acteur) return { ok: false, raison: 'acteur_non_authentifie' };
+  const pays = state.country;
+  const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
   const signature = signatureObjetInventaire(item);
   const qte = opts.qte || 1;
 
@@ -1201,6 +1204,14 @@ async function removeFromInventory(idx, motif, options) {
     }
   } catch (e) {
     r = null;
+  }
+
+  // La transaction peut avoir reussi pour l'ancien personnage. Elle ne donne
+  // aucun droit d'appliquer son inventaire ou ses effets au personnage courant.
+  if (state.char?.name !== acteur || state.country !== pays
+      || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)
+      || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) {
+    return {ok:false, raison:'contexte_modifie', operationConfirmee:r?.ok === true, objet:item};
   }
 
   // FAIL-CLOSED : sbRpc renvoie null si la fonction n'existe pas encore ou si l'appel echoue.
@@ -1225,6 +1236,7 @@ async function removeFromInventory(idx, motif, options) {
 // Message unique des refus de sortie, pour que les 32 anciens sites ne reinventent pas chacun
 // leur formulation -- et surtout pour que le motif reel du serveur soit toujours dit au joueur.
 function messageRefusSortieInventaire(raison) {
+  if (raison === 'contexte_modifie') return 'Le personnage a changé. Vérifiez l’inventaire du personnage précédent.';
   if (raison === 'objet_protege') {
     return 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.';
   }
