@@ -1,5 +1,10 @@
 # Audit serveur / client — 16 octobre 2026
 
+> Suite : [sécurisation des transactions](SECURISATION-TRANSACTIONS-20261016.md).
+> La préparation de migration d'achat décrite ici a été révisée pour préserver
+> le corps installé, dont des ajouts alimentaires signalés depuis Supabase.
+> Elle reste non appliquée ; ce rapport conserve le bilan historique de l'audit.
+
 Human Gambit, `FredJ74/res-publica`, `main`. Départ propre à `767d329e`.
 Date de lecture : Europe/Paris. Aucun changement utilisateur non commité.
 
