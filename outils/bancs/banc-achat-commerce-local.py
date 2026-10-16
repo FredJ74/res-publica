@@ -33,7 +33,10 @@ CREATE TABLE ventes_snapshots (id bigserial PRIMARY KEY,requete text UNIQUE,jour
  types jsonb,quantite integer,prix_unitaire numeric,montant_total numeric,fiche_officielle jsonb);
 CREATE TABLE reglages_test (refuser_debit boolean,erreur_fiche boolean,ralentir boolean);
 INSERT INTO reglages_test VALUES (false,false,false);
-CREATE FUNCTION exiger_acteur(text) RETURNS void LANGUAGE plpgsql AS $$ BEGIN END $$;
+CREATE FUNCTION exiger_acteur(text) RETURNS void LANGUAGE plpgsql AS $$
+ BEGIN
+  IF $1 <> 'Temoin' THEN RAISE EXCEPTION 'acteur_non_autorise_fixture'; END IF;
+ END $$;
 CREATE FUNCTION fonds_acteur_present(text,jsonb) RETURNS boolean LANGUAGE sql AS $$ SELECT true $$;
 CREATE FUNCTION fonds_generiques_accessibles(text) RETURNS TABLE(generique_id text,famille text)
  LANGUAGE sql AS $$ SELECT 'produit'::text,'commerce'::text $$;
@@ -107,7 +110,10 @@ def main():
     def normaliser(corps):
         return re.sub(r'\s+', ' ', re.sub(r'--[^\n]*', '', corps)).strip()
     ancien=source[debut:fin].split('AS $function$',1)[1].split('$function$;',1)[0]
-    nouveau=migration.split('AS $function$',1)[1].split('$function$;',1)[0]
+    cur.execute(migration)
+    cur.execute("SELECT prosrc FROM pg_proc WHERE oid='acheter_produit_commerce(text,text,text,text,integer)'::regprocedure")
+    nouveau=cur.fetchone()[0]
+    nouveau=nouveau.replace('  -- HG debit deplace avant livraison (20261016070541).','')
     assert normaliser(ancien.replace(bloc,'')) == normaliser(nouveau.replace(bloc,'')), 'Autre regle modifiee'
     cur.execute(migration);cur.execute(migration)
     print('OK : migration compilee et rejouee dans PostgreSQL local jetable.')
@@ -150,6 +156,41 @@ def main():
     assert quantite('objets_recus')==1 and quantite('ventes_snapshots')==1
     cur.execute("SELECT arg FROM personnages WHERE name='Temoin'");assert cur.fetchone()[0]==0
     print('OK : deux connexions, deux commerces, un solde commun : une vente et une livraison.')
+    reset()
+    cur.execute("CREATE OR REPLACE FUNCTION appliquer_taxe_transaction(text,text,integer) RETURNS jsonb LANGUAGE sql AS $$ SELECT jsonb_build_object('net',$3-3,'taxeLocale',1,'taxeNationale',2) $$")
+    r=achat()
+    assert r['net']==7 and r['taxeLocale']==1 and r['taxeNationale']==2
+    cur.execute("SELECT data->>'caisse',data->'stockReferences'->>'ref' FROM entreprises WHERE id='fonds-a'")
+    assert cur.fetchone()==('7','4')
+    print('OK : stock decremente une fois et fiscalite de fixture transmise sans modification.')
+    reset()
+    try:
+        cur.execute("SELECT acheter_produit_commerce('achat-interdit-001','Intrus','fonds-a','ref',1)")
+        raise AssertionError('Refus acteur attendu')
+    except psycopg2.Error as e:
+        assert 'acteur_non_autorise_fixture' in str(e)
+    assert quantite('objets_recus')==0 and quantite('ventes_snapshots')==0
+    print('OK : refus du service autorite de fixture conserve ; aucune preuve RLS distante.')
+
+    # Variante SYNTHETIQUE explicite : elle n'est pas la definition reelle Supabase.
+    # Son hash n'est ajoute qu'a une copie en memoire du SQL pour eprouver le transformateur.
+    # Le fichier de migration et l'observation transmise ne sont jamais falsifies.
+    alimentaire=source[debut:fin].replace("'icon',         'ti-package',", "'familleProduitMarche', 'aliment_fixture', 'dateAchat', '2026-10-16',\n    'icon',         'ti-package',")
+    cur.execute(alimentaire)
+    cur.execute("SELECT md5(prosrc) FROM pg_proc WHERE oid='acheter_produit_commerce(text,text,text,text,integer)'::regprocedure")
+    hash_fixture=cur.fetchone()[0]
+    try:
+        cur.execute(migration)
+        raise AssertionError('Variante inconnue doit etre refusee')
+    except psycopg2.Error as e:
+        assert 'definition_a_reexaminer' in str(e)
+    migration_fixture=migration.replace("'19f6cb294da782dbbf962028a1e315de'", "'"+hash_fixture+"'")
+    cur.execute(migration_fixture);cur.execute(migration_fixture)
+    reset();assert achat()['ok'] is True
+    cur.execute('SELECT data FROM objets_recus')
+    livre=json.loads(cur.fetchone()[0])
+    assert livre['familleProduitMarche']=='aliment_fixture' and livre['dateAchat']=='2026-10-16'
+    print('OK : metadonnees alimentaires SYNTHETIQUES conservees, variante inconnue refusee par le vrai SQL.')
     # La garde doit refuser une definition inconnue plutot que l'ecraser.
     cur.execute("CREATE OR REPLACE FUNCTION acheter_produit_commerce(p_requete text,p_acheteur text,p_fonds_id text,p_reference_id text,p_quantite integer) RETURNS jsonb LANGUAGE sql AS $$ SELECT '{}'::jsonb $$")
     try:
@@ -159,7 +200,7 @@ def main():
         assert 'definition_a_reexaminer' in str(e)
     print('OK : une definition serveur differente est refusee par la garde.')
     connexion.close()
-    print('7 scenarios PostgreSQL locaux reussis ; aucune connexion Supabase ni joueur reel.')
+    print('10 groupes de scenarios PostgreSQL locaux reussis ; aucune connexion Supabase ni joueur reel.')
 
 if __name__ == '__main__':
     main()
