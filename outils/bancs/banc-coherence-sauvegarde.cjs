@@ -80,3 +80,13 @@ test('deconnexion puis reconnexion du meme compte : une ancienne sauvegarde en f
  c.sbEcrirePersonnage=async()=>assert.fail('Ancienne session');
  const p=c.sbSavePersonnage(c.state);jeton='nouvelle-session';await p;
 });
+test('rehydratation du meme nom : un ancien snapshot en file ne repart pas',async()=>{
+ const c=contexte();let n=0;c.sbEcrirePersonnage=async()=>{n++;return [{}];};
+ const p=c.sbSavePersonnage(c.state);c.state.char={name:'Alice',arg:900};await p;assert.equal(n,0);
+});
+test('rehydratation du meme nom : une ancienne confirmation ne certifie pas la nouvelle fiche',async()=>{
+ const c=contexte();let resolve;c.sbEcrirePersonnage=()=>new Promise(r=>resolve=r);
+ const p=c.sbSavePersonnage(c.state);await new Promise(r=>setImmediate(r));c.state.char={name:'Alice',arg:900};
+ resolve([{updated_at:'2026-10-16T09:00:00Z'}]);await p;
+ assert.equal(c.state._dernierUpdatedAtConnu,'2026-10-16T01:00:00Z');
+});

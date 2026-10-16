@@ -576,9 +576,10 @@ function sbEnfilerEcriturePersonnage(charState, data) {
   // Le payload contenait encore les tableaux/objets du state par reference.
   // Le figer vraiment, comme il sera serialise sur le reseau, avant la file.
   data = JSON.parse(JSON.stringify(data));
+  const personnage = charState.char;
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
   const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
-  const contexteActif = () => charState.char?.name === data.name
+  const contexteActif = () => charState.char === personnage && charState.char?.name === data.name
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uid)
     && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jeton);
   const tache = sbSaveQueue.then(() => {
