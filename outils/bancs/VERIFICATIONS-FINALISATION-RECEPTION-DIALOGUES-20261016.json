@@ -1,0 +1,461 @@
+{
+  "date_utc": "2026-10-16",
+  "base_git": "6b3705e6e26ca797efb3cda74201891a6ca09880",
+  "commit_code": "99dc7cfa5012efe8e4f66143951cd90364f8447c",
+  "verdict": "CHANTIER NON TERMINÉ EN PRODUCTION",
+  "migration": {
+    "fichier": "migrations/20261016131932_reception_objets_atomique.sql",
+    "sha256": "188aa2dbaf27b1255d04e3c328ad0a57bfeff28b93b6e9b521847d44261686c2",
+    "appliquee_dans_cette_session": false,
+    "etat_production_verifie": false
+  },
+  "dialogues": {
+    "cause_production_identifiee": false,
+    "defaut_budget_corrige": true,
+    "diagnostics_serveur_ajoutes": true,
+    "conversation_reelle_verifiee": false
+  },
+  "acces": {
+    "outils_supabase": false,
+    "outils_vercel": false,
+    "secrets_declares": false,
+    "http_sites_requis": "CONNECT 403 du proxy, avant accès aux services",
+    "donnees_reelles_modifiees": false
+  },
+  "tests": {
+    "bancs_client": [
+      {
+        "banc": "banc-administration-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.236
+      },
+      {
+        "banc": "banc-annuaire-territoires.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.227
+      },
+      {
+        "banc": "banc-api-supabase.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.104
+      },
+      {
+        "banc": "banc-appro-chantier.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.135
+      },
+      {
+        "banc": "banc-archives-musee.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.25
+      },
+      {
+        "banc": "banc-assemblee-hall.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.183
+      },
+      {
+        "banc": "banc-avis-de-recherche.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.183
+      },
+      {
+        "banc": "banc-barreau-temoins-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.158
+      },
+      {
+        "banc": "banc-calendrier-electoral.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.107
+      },
+      {
+        "banc": "banc-calendrier-succession.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.276
+      },
+      {
+        "banc": "banc-candidatures-nocturnes.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.145
+      },
+      {
+        "banc": "banc-carrieres-creation-et-audience-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.134
+      },
+      {
+        "banc": "banc-chaines-17-a-20.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.115
+      },
+      {
+        "banc": "banc-chantier-progression-serveur.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.099
+      },
+      {
+        "banc": "banc-chat-disponibilite.mjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.286
+      },
+      {
+        "banc": "banc-coherence-banques.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.201
+      },
+      {
+        "banc": "banc-coherence-organisations.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.239
+      },
+      {
+        "banc": "banc-coherence-sauvegarde.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.219
+      },
+      {
+        "banc": "banc-commerce-etat-client.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.176
+      },
+      {
+        "banc": "banc-commerce-transactions.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.256
+      },
+      {
+        "banc": "banc-compromis-nocturnes.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.138
+      },
+      {
+        "banc": "banc-conference-presse-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.118
+      },
+      {
+        "banc": "banc-consommation-inventaire.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.212
+      },
+      {
+        "banc": "banc-contexte-public-dialogue.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.159
+      },
+      {
+        "banc": "banc-continuite-municipale.mjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 1.12
+      },
+      {
+        "banc": "banc-cotisations-organisations.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.182
+      },
+      {
+        "banc": "banc-cycle-plaintes.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.159
+      },
+      {
+        "banc": "banc-desertion-liberation.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.115
+      },
+      {
+        "banc": "banc-detention-plateau.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.132
+      },
+      {
+        "banc": "banc-dialogue-pnj-republia.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.159
+      },
+      {
+        "banc": "banc-etat-terrain.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.158
+      },
+      {
+        "banc": "banc-greffe-documents-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.162
+      },
+      {
+        "banc": "banc-greve-generale.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.153
+      },
+      {
+        "banc": "banc-hydratation-personnage.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.282
+      },
+      {
+        "banc": "banc-justice-peine-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.151
+      },
+      {
+        "banc": "banc-mail-systeme.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.143
+      },
+      {
+        "banc": "banc-memoire-mandats-dialogue.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.123
+      },
+      {
+        "banc": "banc-mutation-terrain.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.119
+      },
+      {
+        "banc": "banc-nominations-municipales.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 1.871
+      },
+      {
+        "banc": "banc-ordre-de-bataille-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.11
+      },
+      {
+        "banc": "banc-ordres-territoires.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.232
+      },
+      {
+        "banc": "banc-palais-gouvernement.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.2
+      },
+      {
+        "banc": "banc-parquet-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.197
+      },
+      {
+        "banc": "banc-patcher-blob.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.11
+      },
+      {
+        "banc": "banc-preemptions.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.144
+      },
+      {
+        "banc": "banc-presidence-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.159
+      },
+      {
+        "banc": "banc-prets-bancaires.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.165
+      },
+      {
+        "banc": "banc-quatrieme-passe-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.14
+      },
+      {
+        "banc": "banc-reception-objets.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.333
+      },
+      {
+        "banc": "banc-referent-commandant.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.123
+      },
+      {
+        "banc": "banc-referents-palais.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.11
+      },
+      {
+        "banc": "banc-retours-acteur.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.302
+      },
+      {
+        "banc": "banc-seance-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.131
+      },
+      {
+        "banc": "banc-solde-personnage.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.103
+      },
+      {
+        "banc": "banc-souvenirs-et-achat-direct.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.143
+      },
+      {
+        "banc": "banc-subventions-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.118
+      },
+      {
+        "banc": "banc-successions-reglement.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.164
+      },
+      {
+        "banc": "banc-taux-imposition.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.102
+      },
+      {
+        "banc": "banc-taxe-fonciere.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.155
+      },
+      {
+        "banc": "banc-titre-pnj-de-poste.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.127
+      },
+      {
+        "banc": "banc-tournee-cloture.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.132
+      },
+      {
+        "banc": "banc-transport-rest.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.102
+      },
+      {
+        "banc": "banc-tribunal-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.176
+      },
+      {
+        "banc": "banc-universite-calendrier.js",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.125
+      },
+      {
+        "banc": "banc-universite-et-pnj-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.197
+      },
+      {
+        "banc": "banc-universite-missions-autres.js",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.139
+      },
+      {
+        "banc": "banc-universite-missions-medecin.js",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.106
+      },
+      {
+        "banc": "banc-urbanisme-nature-refusee.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.15
+      },
+      {
+        "banc": "banc-vote-electoral.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.107
+      }
+    ],
+    "nouveaux_tests_chat": 25,
+    "tests_node": 286,
+    "groupes_postgresql_reception": 31,
+    "contre_epreuves": 90,
+    "syntaxe_node_fichiers": 85,
+    "syntaxe_javascriptcore": "non validée : JSC absent et adaptateur incompatible avec ce script",
+    "workflow": {
+      "reussis": 9,
+      "total": 12,
+      "echecs": [
+        "autorite",
+        "referentiels",
+        "fonctions"
+      ]
+    },
+    "tests_authentifies_supabase": false,
+    "tests_fournisseur_reel": false,
+    "ci_distante_observee": false
+  }
+}
