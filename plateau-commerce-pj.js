@@ -2164,14 +2164,14 @@ async function commercePjOuvrirAtelier() {
   // Présentation premium : le choix reste libre pendant la bêta.
   // Le contrôle d'un futur paiement Stripe devra être effectué côté serveur
   // avant d'autoriser l'atelier, jamais par une simple condition d'interface.
-  const carteStyle = 'flex:1 1 235px;min-width:0;background:#252D38;border:1px solid #48576a;border-radius:10px;padding:1.05rem;display:flex;flex-direction:column;gap:.65rem';
+  const carteStyle = 'flex:1 1 195px;min-width:0;background:#252D38;border:1px solid #48576a;border-radius:10px;padding:1.05rem;display:flex;flex-direction:column;gap:.55rem';
   const boutonStyle = 'width:100%;padding:.78rem .6rem;border:1px solid #B99A57;border-radius:6px;background:#394656;color:#E5C477;font-weight:700;cursor:pointer;font-size:.91rem';
   const html = '<div style="padding:1.5rem;background:#151A21;color:#e0e6ed;line-height:1.55">' +
     '<div style="text-align:center;color:#E5C477;font-family:Playfair Display,Georgia,serif;font-size:1.55rem;margin-bottom:.5rem">Personnalisez votre commerce</div>' +
     '<p style="text-align:center;color:#c8d2de;max-width:600px;margin:0 auto 1.3rem">Donnez une identité unique à votre commerce. Les murs, portes, fenêtres et proportions seront préservés.</p>' +
-    '<div style="display:flex;gap:1rem;flex-wrap:wrap">' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,195px),1fr));gap:.8rem">' +
       '<section style="' + carteStyle + '">' +
-        '<div aria-hidden="true" style="height:100px;border-radius:6px;background:linear-gradient(145deg,#314455,#1c2835);display:flex;align-items:center;justify-content:center;font-size:3.2rem">🏬</div>' +
+        '<div aria-hidden="true" style="height:70px;border-radius:6px;background:linear-gradient(145deg,#314455,#1c2835);display:flex;align-items:center;justify-content:center;font-size:3.2rem">🏬</div>' +
         '<h3 style="margin:0;color:#E5C477;font-family:Playfair Display,Georgia,serif;font-size:1.2rem">Création libre</h3>' +
         '<p style="margin:0 0 auto;color:#c8d2de;font-size:.88rem">Imaginez vous-même l’ambiance, les matériaux et le mobilier de votre commerce.</p>' +
         '<button type="button" style="' + boutonStyle + '" onclick="commercePjDecorMode(\'libre\')">Créer ma décoration →</button>' +
@@ -2190,24 +2190,35 @@ async function commercePjOuvrirAtelier() {
 function commercePjDecorMode(mode) {
   RP_CPJ_DECOR_GUIDE_ETAPE = 0;
   RP_CPJ_DECOR_GUIDE_REPONSES = [];
-  const html = '<div style="padding:1.3rem;line-height:1.6;background:#151A21;color:#dce4ee">' +
-    '<h3 style="font-family:Georgia,serif;color:#e5c477;text-align:center;font-size:1.45rem">Atelier de décoration — bêta gratuite</h3>' +
-    '<div id="cpj-decoration-guide"></div>' +
-    '<p id="cpj-decoration-libre">Décrivez votre intérieur. Les murs, portes, fenêtres et proportions seront conservés.</p>' +
-    '<textarea id="cpj-decoration-demande" maxlength="1500" rows="5" style="width:100%;box-sizing:border-box;background:#252d38;color:#e5eaf1;border:1px solid #617087;border-radius:6px;padding:.7rem" placeholder="Ambiance, mobilier, matériaux, enseigne, éclairage..."></textarea>' +
-    '<label>Images de référence (5 maximum, PNG/JPEG/WebP, 5 Mo chacune)</label>' +
-    '<input id="cpj-decoration-sources" type="file" accept="image/png,image/jpeg,image/webp" multiple style="display:block;margin:.5rem 0 1rem">' +
-    '<label style="display:block;margin:.5rem 0"><input type="checkbox" id="cpj-decoration-droits"> Je confirme disposer des droits nécessaires sur les images fournies, y compris les autorisations des personnes représentées, et accepte leur conservation privée pour la traçabilité.</label>' +
-    '<div id="cpj-decoration-image" style="margin:.8rem 0"></div>' +
-    '<button type="button" onclick="commercePjDecorTelecharger()" style="margin:.5rem 0">Télécharger cette version</button> ' +
-    '<button type="button" onclick="commercePjDecorVersions()">Toutes mes versions</button><div id="cpj-decoration-versions"></div>' +
-    '<button type="button" id="cpj-decoration-plein-ecran" style="display:none" onclick="commercePjDecorPleinEcran()">Visualiser en plein écran</button> ' +
-    '<p id="cpj-decoration-avertissement" role="alert" style="color:#e5c477;font-weight:700"></p>' +
-    '<p id="cpj-decoration-retour" aria-live="polite">Une première génération et deux retouches par projet.</p>' +
-    '<button id="cpj-decoration-recommencer" style="display:none;background:#394656;color:#e5c477;border:1px solid #b99a57;padding:.7rem;border-radius:6px" onclick="commercePjDecorRecommencer()">Nouvelle génération — gratuite pendant la bêta (0,99 € ensuite)</button> ' +
-    '<button id="cpj-decoration-generer" onclick="commercePjDecorGenerer()">Générer mon intérieur</button> ' +
-    '<button id="cpj-decoration-valider" style="display:none" onclick="commercePjDecorValider()">Valider ce décor</button> ' +
-    '<button onclick="commercePjOuvrirAtelier()">Changer de mode</button></div>';
+  const field = 'width:100%;box-sizing:border-box;background:#1b2531;color:#e5eaf1;border:1px solid #5d7085;border-radius:8px;padding:.85rem;font:inherit';
+  const button = 'background:#394656;color:#e5c477;border:1px solid #b99a57;border-radius:7px;padding:.7rem 1rem;font-weight:700;cursor:pointer';
+  const html = '<div class="cpj-decor-atelier" style="padding:1.2rem;line-height:1.6;background:#151a21;color:#dce4ee;box-sizing:border-box">' +
+    '<header style="text-align:center;margin-bottom:1.2rem"><h3 style="font-family:Georgia,serif;color:#e5c477;font-size:1.55rem;margin:.15rem 0">Imaginez votre décoration</h3><p style="color:#bfcbd8;margin:.5rem 0">Un intérieur à votre image, sans modifier l’architecture du local.</p><small style="color:#e5c477">Atelier gratuit pendant la bêta</small></header>' +
+    '<section style="background:#252d38;border:1px solid #48576a;border-radius:10px;padding:1rem;margin-bottom:1rem">' +
+      '<div id="cpj-decoration-guide"></div>' +
+      '<label for="cpj-decoration-demande" id="cpj-decoration-libre" style="display:block;color:#e5c477;font-weight:700;margin-bottom:.55rem">Décrivez l’ambiance souhaitée</label>' +
+      '<textarea id="cpj-decoration-demande" maxlength="1500" rows="5" style="' + field + ';resize:vertical" placeholder="Ambiance, mobilier, matériaux, enseigne, éclairage..."></textarea>' +
+      '<div style="margin-top:1rem"><label for="cpj-decoration-sources" style="display:block;color:#e5c477;font-weight:700">Images de référence <small style="color:#bdc8d5;font-weight:400">(facultatif, 5 maximum, 5 Mo chacune)</small></label>' +
+      '<input id="cpj-decoration-sources" type="file" accept="image/png,image/jpeg,image/webp" multiple style="display:block;width:100%;max-width:100%;box-sizing:border-box;margin:.65rem 0;color:#dce4ee">' +
+      '<label style="display:flex;gap:.6rem;align-items:flex-start;color:#c5d0dc;font-size:.82rem;line-height:1.5"><input type="checkbox" id="cpj-decoration-droits" style="margin-top:.3rem;accent-color:#e5c477;flex-shrink:0"><span>Je confirme disposer des droits nécessaires sur les images fournies, y compris les autorisations des personnes représentées, et accepte leur conservation privée pour la traçabilité.</span></label></div>' +
+    '</section>' +
+    '<section style="background:#252d38;border:1px solid #48576a;border-radius:10px;padding:1rem;margin-bottom:1rem">' +
+      '<h4 style="font-family:Georgia,serif;color:#e5c477;margin:0 0 .7rem;font-size:1.2rem">Aperçu de votre commerce</h4>' +
+      '<div id="cpj-decoration-image" style="background:#1b2531;border:1px solid #46576a;border-radius:8px;min-height:90px;display:flex;justify-content:center;align-items:center;overflow:hidden;padding:.35rem;color:#9baabd">Votre décoration apparaîtra ici</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.85rem">' +
+        '<button type="button" onclick="commercePjDecorTelecharger()" style="' + button + '">Télécharger</button>' +
+        '<button type="button" onclick="commercePjDecorVersions()" style="' + button + '">Mes versions</button>' +
+        '<button type="button" id="cpj-decoration-plein-ecran" style="display:none;' + button + '" onclick="commercePjDecorPleinEcran()">Plein écran</button>' +
+      '</div><div id="cpj-decoration-versions" style="margin-top:.5rem"></div>' +
+    '</section>' +
+    '<div id="cpj-decoration-avertissement" role="alert" style="color:#e5c477;font-weight:700;margin:.7rem 0"></div>' +
+    '<p id="cpj-decoration-retour" aria-live="polite" style="color:#c8d2de;font-size:.87rem">Une génération et deux retouches comprises par projet.</p>' +
+    '<div style="display:flex;gap:.65rem;flex-wrap:wrap">' +
+      '<button id="cpj-decoration-recommencer" style="display:none;' + button + '" onclick="commercePjDecorRecommencer()">Nouvelle génération — gratuite pendant la bêta</button>' +
+      '<button id="cpj-decoration-generer" style="' + button + ';flex:1 1 180px" onclick="commercePjDecorGenerer()">Générer mon intérieur</button>' +
+      '<button id="cpj-decoration-valider" style="display:none;' + button + ';background:#705a2f;color:#fff0ca" onclick="commercePjDecorValider()">Valider ce décor</button>' +
+      '<button style="' + button + ';background:transparent" onclick="commercePjOuvrirAtelier()">Changer de mode</button>' +
+    '</div></div>';
   commercePjModale('Option Commerce — Décoration', html);
   if (RP_CPJ_DECOR_PREVIEW) {
     const zone = document.getElementById('cpj-decoration-image');
@@ -2216,6 +2227,7 @@ function commercePjDecorMode(mode) {
       img.src = commercePjDecorUrl(RP_CPJ_DECOR_PREVIEW);
       img.alt = 'Décor provisoire retrouvé';
       img.style.cssText = 'width:100%;max-height:350px;object-fit:contain';
+      zone.textContent = '';
       zone.appendChild(img);
     }
     const grand = document.getElementById('cpj-decoration-plein-ecran');
@@ -2258,8 +2270,9 @@ function commercePjDecorQuestion() {
   reponse.type = 'text';
   reponse.maxLength = 250;
   reponse.placeholder = q[1];
-  reponse.style.cssText = 'width:100%;box-sizing:border-box;padding:.7rem;margin-bottom:.6rem';
+  reponse.style.cssText = 'width:100%;box-sizing:border-box;padding:.8rem;margin-bottom:.7rem;background:#1b2531;color:#e5eaf1;border:1px solid #5d7085;border-radius:7px';
   const suivant = document.createElement('button');
+  suivant.style.cssText='background:#394656;color:#e5c477;border:1px solid #b99a57;border-radius:7px;padding:.65rem 1rem;cursor:pointer';
   suivant.textContent = 'Continuer';
   suivant.onclick = function() {
     RP_CPJ_DECOR_GUIDE_REPONSES.push(reponse.value.trim());
@@ -2267,6 +2280,7 @@ function commercePjDecorQuestion() {
     commercePjDecorQuestion();
   };
   const passer = document.createElement('button');
+  passer.style.cssText='background:transparent;color:#e5c477;border:1px solid #b99a57;border-radius:7px;padding:.65rem 1rem;cursor:pointer';
   passer.textContent = 'Je ne sais pas';
   passer.onclick = function() {
     RP_CPJ_DECOR_GUIDE_REPONSES.push('');
