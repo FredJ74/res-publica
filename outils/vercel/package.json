@@ -1,0 +1,12 @@
+{
+  "name": "human-gambit-vercel-regression",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Constructeur Vercel reserve aux bancs, exclu du deploiement du jeu",
+  "scripts": {
+    "test": "node --experimental-vm-modules --test ../bancs/banc-vercel-bundle.cjs"
+  },
+  "devDependencies": {
+    "@vercel/node": "5.3.25"
+  }
+}

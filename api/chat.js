@@ -24,7 +24,7 @@
 import { construirePromptSysteme, profilExiste, maxTokensProfil } from './_pnj-profils.js';
 import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
 import { sbTransport } from './_supabase.js';
-import { PROFILS_MUNICIPAUX_LUTHECIA, lireTitulaireMunicipal, contexteMunicipal } from '../continuite-municipale.mjs';
+import { PROFILS_MUNICIPAUX_LUTHECIA, lireTitulaireMunicipal, contexteMunicipal } from '../continuite-municipale.js';
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
 const ALLOWED_ROLES = ['user', 'assistant'];
