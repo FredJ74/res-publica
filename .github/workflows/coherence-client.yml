@@ -1,0 +1,35 @@
+name: Cohérence client et transactions locales
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  bancs-hors-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Bancs JavaScript, transports simulés
+        run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
+      - name: Dépendances du PostgreSQL jetable
+        run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - name: Achat sur PostgreSQL local, sans identifiant Supabase
+        run: python3 outils/bancs/banc-achat-commerce-local.py --local-jetable
+      - name: Conserver les résultats des bancs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bancs-client
+          path: /tmp/hg-bancs

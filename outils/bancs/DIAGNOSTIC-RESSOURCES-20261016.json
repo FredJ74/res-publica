@@ -1,0 +1,182 @@
+{
+  "nature": "Audit local uniquement ; aucune mesure de Supabase et aucun tarif modifie.",
+  "grille": {
+    "cas": 109,
+    "divergences": 109,
+    "referenceDeclaree": 103,
+    "divergencesHorsLaitages": 103,
+    "casLaitages": [
+      [
+        "laitages",
+        0
+      ],
+      [
+        "laitages",
+        1
+      ],
+      [
+        "laitages",
+        50
+      ],
+      [
+        "laitages",
+        1000
+      ],
+      [
+        "laitages",
+        100000
+      ],
+      [
+        "laitages",
+        -5
+      ]
+    ]
+  },
+  "ressources": {
+    "canon": [
+      "cereales",
+      "laitages",
+      "poisson",
+      "viande",
+      "bois",
+      "charbon",
+      "petrole",
+      "minerai",
+      "metal",
+      "plantes",
+      "fruits_legumes",
+      "produits_exotiques",
+      "textile",
+      "medicaments",
+      "alcool",
+      "tabac",
+      "carburant",
+      "desinfectant"
+    ],
+    "ordreGenerateur": [
+      "cereales",
+      "poisson",
+      "viande",
+      "bois",
+      "charbon",
+      "petrole",
+      "minerai",
+      "metal",
+      "plantes",
+      "textile",
+      "fruits_legumes",
+      "produits_exotiques",
+      "medicaments",
+      "alcool",
+      "tabac",
+      "carburant",
+      "desinfectant"
+    ],
+    "ordreArtefact": [
+      "cereales",
+      "laitages",
+      "poisson",
+      "viande",
+      "bois",
+      "charbon",
+      "petrole",
+      "minerai",
+      "metal",
+      "plantes",
+      "textile",
+      "fruits_legumes",
+      "produits_exotiques",
+      "medicaments",
+      "alcool",
+      "tabac",
+      "carburant",
+      "desinfectant"
+    ],
+    "absentesDeLOrdre": [
+      "laitages"
+    ],
+    "indicesDecales": [
+      {
+        "cle": "poisson",
+        "indexDeclare": 1,
+        "indexArtefact": 2
+      },
+      {
+        "cle": "viande",
+        "indexDeclare": 2,
+        "indexArtefact": 3
+      },
+      {
+        "cle": "bois",
+        "indexDeclare": 3,
+        "indexArtefact": 4
+      },
+      {
+        "cle": "charbon",
+        "indexDeclare": 4,
+        "indexArtefact": 5
+      },
+      {
+        "cle": "petrole",
+        "indexDeclare": 5,
+        "indexArtefact": 6
+      },
+      {
+        "cle": "minerai",
+        "indexDeclare": 6,
+        "indexArtefact": 7
+      },
+      {
+        "cle": "metal",
+        "indexDeclare": 7,
+        "indexArtefact": 8
+      },
+      {
+        "cle": "plantes",
+        "indexDeclare": 8,
+        "indexArtefact": 9
+      },
+      {
+        "cle": "textile",
+        "indexDeclare": 9,
+        "indexArtefact": 10
+      },
+      {
+        "cle": "fruits_legumes",
+        "indexDeclare": 10,
+        "indexArtefact": 11
+      },
+      {
+        "cle": "produits_exotiques",
+        "indexDeclare": 11,
+        "indexArtefact": 12
+      },
+      {
+        "cle": "medicaments",
+        "indexDeclare": 12,
+        "indexArtefact": 13
+      },
+      {
+        "cle": "alcool",
+        "indexDeclare": 13,
+        "indexArtefact": 14
+      },
+      {
+        "cle": "tabac",
+        "indexDeclare": 14,
+        "indexArtefact": 15
+      },
+      {
+        "cle": "carburant",
+        "indexDeclare": 15,
+        "indexArtefact": 16
+      },
+      {
+        "cle": "desinfectant",
+        "indexDeclare": 16,
+        "indexArtefact": 17
+      }
+    ]
+  },
+  "prudence": "Le Journal et le prix fixe des entrepots sont deux usages distincts. Ne pas aligner leurs tarifs sans contrat editorial valide."
+}
