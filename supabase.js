@@ -474,9 +474,9 @@ function sbPayloadPersonnage(charState) {
     arg:              charState.arg || 0,
     liquide:          charState.liquide || 0,
     banque:           charState.banque || 0,
-    hp:               charState.hp || 100,
+    hp:               charState.hp ?? 100,
     pa:               (typeof charState.pa === 'number') ? charState.pa : 10,
-    moral:            charState.moral || 75,
+    moral:            charState.moral ?? 75,
     poste:            charState.poste || null,
     poste_depute:     charState.posteDepute || null,
     current_city:     charState.currentCity || 'capitale',
@@ -573,7 +573,16 @@ function sbPayloadPersonnage(charState) {
 function sbEnfilerEcriturePersonnage(charState, data) {
   // `data` est fige ici, de facon synchrone (avant tout await) -- voir le commentaire de
   // sbSaveQueue plus haut. La file ne retarde que l'ECRITURE, jamais cette capture.
+  // Le payload contenait encore les tableaux/objets du state par reference.
+  // Le figer vraiment, comme il sera serialise sur le reseau, avant la file.
+  data = JSON.parse(JSON.stringify(data));
+  const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const contexteActif = () => charState.char?.name === data.name
+    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uid)
+    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jeton);
   const tache = sbSaveQueue.then(() => {
+    if (!contexteActif()) return null;
     // POSITION : une sauvegarde ancienne ne doit jamais republier une ancienne salle.
     // Les autres champs restent le snapshot original (notamment les deltas de POP).
     // La position est lue au MOMENT de l'ecriture, apres les taches precedentes.
@@ -587,6 +596,7 @@ function sbEnfilerEcriturePersonnage(charState, data) {
     }
     return sbEcrirePersonnage(data);
   }).then((resultat) => {
+    if (!contexteActif()) return resultat;
     // Ecriture refusee (sbUpdate/sbInsert renvoient null) : le delta de POP de cette sauvegarde
     // n'a pas ete applique -- il est reporte sur la suivante (voir ressourcesAvecBasePop).
     if (!resultat) { reporterDeltaPopNonEcrit(charState, data.resources); return resultat; }
@@ -594,9 +604,10 @@ function sbEnfilerEcriturePersonnage(charState, data) {
     // ecriture reussit, cette session SAIT que le updated_at serveur vaut desormais celui
     // qu'elle vient d'ecrire -- utilise par sbVerifierEtSauvegarderPersonnage ci-dessous pour
     // detecter qu'UNE AUTRE session/onglet a ecrit depuis, avant de republier aveuglement.
-    charState._dernierUpdatedAtConnu = data.updated_at;
+    const ligne = Array.isArray(resultat) ? resultat[0] : resultat;
+    charState._dernierUpdatedAtConnu = typeof ligne?.updated_at === 'string' ? ligne.updated_at : null;
     return resultat;
-  }, (err) => { reporterDeltaPopNonEcrit(charState, data.resources); throw err; });
+  }, (err) => { if (contexteActif()) reporterDeltaPopNonEcrit(charState, data.resources); throw err; });
   sbSaveQueue = tache.catch(() => {}); // ne bloque jamais la file suite a un echec
   return tache;
 }
@@ -631,20 +642,25 @@ async function sbCreerPersonnageInitial(charState) {
 // updated_at actuellement en base correspond bien a ce que cette session a vu au dernier
 // chargement/ecriture reussi (state._dernierUpdatedAtConnu). Si un ecart est detecte (une autre
 // session/onglet, ou une correction serveur directe, a ecrit entretemps), le filet de securite
-// n'ecrase PAS cette fois -- il aligne juste son repere sur la valeur serveur constatee, pour ne
-// pas rester bloque indefiniment si cette session redevient legitimement active. Fail-open par
-// defaut (repere absent = pas encore de base de comparaison = on sauvegarde normalement),
-// exactement comme la garde de bootstrap ci-dessus.
+// n'ecrase PAS et ne copie pas la date sans les donnees. Un rechargement reel
+// ou une sauvegarde explicite confirmee peut etablir un nouveau repere. Panne,
+// date inconnue et changement d'identite interdisent cette sauvegarde periodique.
 async function sbVerifierEtSauvegarderPersonnage(charState) {
-  if (!charState.char?.name) return;
+  const nom = charState.char?.name, pays = charState.country;
+  const repere = charState._dernierUpdatedAtConnu;
+  const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  if (!nom || !repere || charState.personnageChargeDepuisServeur === false) return;
   try {
-    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(charState.char.name)}&select=updated_at`);
-    const updatedAtServeur = rows?.[0]?.updated_at || null;
-    if (charState._dernierUpdatedAtConnu && updatedAtServeur && updatedAtServeur !== charState._dernierUpdatedAtConnu) {
-      charState._dernierUpdatedAtConnu = updatedAtServeur;
-      return;
-    }
-  } catch (e) {}
+    const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=updated_at`);
+    if (!Array.isArray(rows) || rows.length !== 1 || rows[0].updated_at !== repere
+        || charState.char?.name !== nom || charState.country !== pays
+        || charState._dernierUpdatedAtConnu !== repere
+        || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)
+        || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) return;
+    // Ne jamais adopter une date sans adopter l'etat correspondant : autrement,
+    // un onglet perime sauvegarderait son vieux contenu au tick suivant.
+  } catch (e) { return; }
   return sbSavePersonnage(charState);
 }
 
@@ -755,7 +771,7 @@ async function sbLoadPersonnage(name) {
     country:       r.country,
     inf:           r.resources?.inf || 0,
     pop:           r.resources?.pop || 0,
-    dis:           r.resources?.dis || 50,
+    dis:           r.resources?.dis ?? 50,
     arg:           r.arg,
     liquide:       r.liquide,
     banque:        r.banque,
@@ -1880,22 +1896,25 @@ function sbSauvegardeUrgenceDechargement() {
   if (sbSaveTimer) { clearTimeout(sbSaveTimer); sbSaveTimer = null; }
   if (!state?.char?.name) return;
   if (state.personnageChargeDepuisServeur === false) return;
+  if (!state._dernierUpdatedAtConnu) return;
   const body = JSON.stringify({
     inventory: state.inventory || [],
     arg: state.arg || 0,
     liquide: state.liquide || 0,
     banque: state.banque || 0,
     pa: (typeof state.pa === 'number') ? state.pa : 10,
-    hp: state.hp || 100,
-    moral: state.moral || 75,
-    resources: ressourcesAvecBasePop(state, { inf: state.inf || 0, pop: state.pop || 0, dis: state.dis || 50 }),
+    hp: state.hp ?? 100,
+    moral: state.moral ?? 75,
+    resources: ressourcesAvecBasePop(state, { inf: state.inf ?? 0, pop: state.pop ?? 0, dis: state.dis ?? 50 }),
     country: state.country || 'republic',
     current_city: state.currentCity || 'capitale',
     current_building: state.currentBuilding || null,
     current_room: state.currentRoom || null
   });
   try {
-    fetch(`${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(state.char.name)}`, {
+    // Fermer un onglet oublie ne doit pas republier ses soldes sur un etat
+    // serveur modifie depuis. Ce repli ne rebase jamais un ancien snapshot.
+    fetch(`${SUPABASE_URL}/rest/v1/personnages?name=eq.${encodeURIComponent(state.char.name)}&updated_at=eq.${encodeURIComponent(state._dernierUpdatedAtConnu)}`, {
       method: 'PATCH',
       headers: sbEnTetes(),
       body,
