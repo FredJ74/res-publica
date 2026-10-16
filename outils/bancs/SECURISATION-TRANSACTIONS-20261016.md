@@ -1,5 +1,10 @@
 # Sécurisation Supabase et transactions critiques — 16 octobre 2026
 
+> Suite : [réception atomique préparée](RECEPTION-ATOMIQUE-20261016.md).
+> La mission suivante indique que la migration d'achat a été appliquée et vérifiée
+> en production par le canal externe. Elle n'est pas rejouée. Le bilan ci-dessous
+> décrit la session antérieure ; la nouvelle migration de réception reste non appliquée.
+
 **CHANTIER NON TERMINÉ en production.** Départ : `3065b20b` sur `main`, après
 récupération du distant. La correction du maire PNJ est incluse et préservée.
 Aucun connecteur Supabase ni variable d'accès Supabase n'est disponible dans

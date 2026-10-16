@@ -1,0 +1,592 @@
+{
+  "date": "2026-10-16 Europe/Paris",
+  "base_git": "4307890586761154391f6cce21bf77527919a680",
+  "code_verifie": "5a3ac99e143c9697200aab3d8d5c3c7679b105f6",
+  "migration": {
+    "fichier": "migrations/20261016131932_reception_objets_atomique.sql",
+    "sha256": "188aa2dbaf27b1255d04e3c328ad0a57bfeff28b93b6e9b521847d44261686c2",
+    "appliquee_supabase": false,
+    "registre_supabase_verifie": false
+  },
+  "migration_achat_preexistante": {
+    "statut_transmis_par_utilisateur": "appliquee et verifiee en production",
+    "rejouee_en_production": false,
+    "reverification_dans_cette_session": false
+  },
+  "bancs_client": [
+    {
+      "banc": "banc-administration-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.179
+    },
+    {
+      "banc": "banc-annuaire-territoires.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.195
+    },
+    {
+      "banc": "banc-api-supabase.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.08
+    },
+    {
+      "banc": "banc-appro-chantier.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.101
+    },
+    {
+      "banc": "banc-archives-musee.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.181
+    },
+    {
+      "banc": "banc-assemblee-hall.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.158
+    },
+    {
+      "banc": "banc-avis-de-recherche.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.14
+    },
+    {
+      "banc": "banc-barreau-temoins-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.154
+    },
+    {
+      "banc": "banc-calendrier-electoral.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.101
+    },
+    {
+      "banc": "banc-calendrier-succession.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.224
+    },
+    {
+      "banc": "banc-candidatures-nocturnes.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.148
+    },
+    {
+      "banc": "banc-carrieres-creation-et-audience-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.122
+    },
+    {
+      "banc": "banc-chaines-17-a-20.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.156
+    },
+    {
+      "banc": "banc-chantier-progression-serveur.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.095
+    },
+    {
+      "banc": "banc-coherence-banques.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.208
+    },
+    {
+      "banc": "banc-coherence-organisations.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.222
+    },
+    {
+      "banc": "banc-coherence-sauvegarde.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.199
+    },
+    {
+      "banc": "banc-commerce-etat-client.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.162
+    },
+    {
+      "banc": "banc-commerce-transactions.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.223
+    },
+    {
+      "banc": "banc-compromis-nocturnes.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.174
+    },
+    {
+      "banc": "banc-conference-presse-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.131
+    },
+    {
+      "banc": "banc-consommation-inventaire.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.165
+    },
+    {
+      "banc": "banc-contexte-public-dialogue.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.151
+    },
+    {
+      "banc": "banc-continuite-municipale.mjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 1.357
+    },
+    {
+      "banc": "banc-cotisations-organisations.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.209
+    },
+    {
+      "banc": "banc-cycle-plaintes.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.44
+    },
+    {
+      "banc": "banc-desertion-liberation.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.13
+    },
+    {
+      "banc": "banc-detention-plateau.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.122
+    },
+    {
+      "banc": "banc-dialogue-pnj-republia.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.172
+    },
+    {
+      "banc": "banc-etat-terrain.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.141
+    },
+    {
+      "banc": "banc-greffe-documents-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.141
+    },
+    {
+      "banc": "banc-greve-generale.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.135
+    },
+    {
+      "banc": "banc-hydratation-personnage.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.246
+    },
+    {
+      "banc": "banc-justice-peine-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.127
+    },
+    {
+      "banc": "banc-mail-systeme.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.153
+    },
+    {
+      "banc": "banc-memoire-mandats-dialogue.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.113
+    },
+    {
+      "banc": "banc-mutation-terrain.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.1
+    },
+    {
+      "banc": "banc-nominations-municipales.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 1.598
+    },
+    {
+      "banc": "banc-ordre-de-bataille-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.088
+    },
+    {
+      "banc": "banc-ordres-territoires.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.197
+    },
+    {
+      "banc": "banc-palais-gouvernement.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.213
+    },
+    {
+      "banc": "banc-parquet-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.186
+    },
+    {
+      "banc": "banc-patcher-blob.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.089
+    },
+    {
+      "banc": "banc-preemptions.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.135
+    },
+    {
+      "banc": "banc-presidence-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.138
+    },
+    {
+      "banc": "banc-prets-bancaires.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.173
+    },
+    {
+      "banc": "banc-quatrieme-passe-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.168
+    },
+    {
+      "banc": "banc-reception-objets.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.292
+    },
+    {
+      "banc": "banc-referent-commandant.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.103
+    },
+    {
+      "banc": "banc-referents-palais.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.105
+    },
+    {
+      "banc": "banc-retours-acteur.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.245
+    },
+    {
+      "banc": "banc-seance-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.119
+    },
+    {
+      "banc": "banc-solde-personnage.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.093
+    },
+    {
+      "banc": "banc-souvenirs-et-achat-direct.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.141
+    },
+    {
+      "banc": "banc-subventions-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.103
+    },
+    {
+      "banc": "banc-successions-reglement.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.138
+    },
+    {
+      "banc": "banc-taux-imposition.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.137
+    },
+    {
+      "banc": "banc-taxe-fonciere.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.157
+    },
+    {
+      "banc": "banc-titre-pnj-de-poste.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.138
+    },
+    {
+      "banc": "banc-tournee-cloture.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.123
+    },
+    {
+      "banc": "banc-transport-rest.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.093
+    },
+    {
+      "banc": "banc-tribunal-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.164
+    },
+    {
+      "banc": "banc-universite-calendrier.js",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.11
+    },
+    {
+      "banc": "banc-universite-et-pnj-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.19
+    },
+    {
+      "banc": "banc-universite-missions-autres.js",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.115
+    },
+    {
+      "banc": "banc-universite-missions-medecin.js",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.103
+    },
+    {
+      "banc": "banc-urbanisme-nature-refusee.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.132
+    },
+    {
+      "banc": "banc-vote-electoral.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.08
+    }
+  ],
+  "totaux": {
+    "bancs_client": 68,
+    "bancs_client_echoues": 0,
+    "epreuves_historiques": 2193,
+    "tests_node": 261,
+    "tests_client_reception": 20,
+    "contre_epreuves": 90,
+    "groupes_postgresql_reception": 31
+  },
+  "preuves_postgresql": {
+    "moteur": "pgserver isole, aucune URL externe acceptee",
+    "migration_reelle_du_depot": true,
+    "rejeu_ddl": true,
+    "schema": "fixtures schema des tables/vue, auth.uid via GUC de fixture, trigger INSTEAD OF de fixture",
+    "fonctions_archivees_chargees": [
+      "est_appel_serveur",
+      "est_mon_personnage",
+      "exiger_acteur",
+      "inventaire_ajouter",
+      "inventaire_place_restante",
+      "inventaire_localiser",
+      "inventaire_objet_protege",
+      "inventaire_quantite",
+      "inventaire_retirer",
+      "inventaire_retirer_position",
+      "helvetia_inventaire_sortie",
+      "inventaire_detruire",
+      "inventaire_consommer"
+    ],
+    "scenarios": [
+      "OK migration, garde de versions et rejeu DDL (aucun acte metier).",
+      "OK 1 reception puis repetitions, metadonnees alimentaires/quete intactes",
+      "OK 2 ID de file reutilise : nouveau jeton livre, ancienne demande rejouee sans toucher la nouvelle livraison",
+      "OK 3 data JSON objet et document integral",
+      "OK 4 empilement au-dela du plafond : surcharge preservee",
+      "OK 5 exemplaire individualise",
+      "OK 6 fusion des quantites de tracts",
+      "OK 7 tracts de quete non fusionnes",
+      "OK 8 carte postale complete, confidentialite des notifications testee en JS",
+      "OK 9 livraison d autrui refusee",
+      "OK 10 autre compte et absence de UID refuses par controle reel SQL (UID de fixture)",
+      "OK 11 interruption avant commit : deux operations annulees",
+      "OK 12 erreur apres insertion : rollback inventaire, revision, recu et livraison",
+      "OK 13 trigger AFTER incompatible : postcondition invalide, rollback integral sans perte",
+      "OK 14 reponse perdue apres commit : repetition sans second ajout",
+      "OK 15 deux connexions/onglets concurrents, un seul ajout",
+      "OK 16 deux livraisons distinctes concurrentes : conflit de revision sans perte, reprise explicite valide",
+      "OK 17 ancienne sauvegarde RPC refusee apres reception",
+      "OK 18 ancien PATCH REST conserve inventaire et revision, meme avec revision falsifiee",
+      "OK 19 ancien PATCH sur vue avec trigger INSTEAD OF SECURITY DEFINER : inventaire conserve",
+      "OK 20 sauvegarde CAS authentifiee sous contexte RPC conserve les ajouts legacy",
+      "OK 21 anciennes reclamations DELETE et tracts bloquees pour authenticated",
+      "OK 22 fonction inventaire_detruire archivee compatible, revision incrementee",
+      "OK 23 contexte PostgREST incompatible : rollback, jamais suppression seule",
+      "OK 24 reception sous role authenticated et chemin RPC, acces SQL effectif sans donnee reelle",
+      "OK 25 aliment recu consommable par la vraie fonction archivee, effet PA inchange",
+      "OK 26 helpers existants ajouter et place restante conservent le nouvel objet et ses metadonnees",
+      "OK 27 objet de quete recu puis protege par le vrai helper archive de sortie",
+      "OK 28 inventaire plein : reception automatique sans perte ni refus de capacite",
+      "OK 29 derive du schema de recus refusee",
+      "OK 30 format inconnu : aucune purge et aucune livraison perdue",
+      "OK 31 definition modifiee refusee par la migration",
+      "31 groupes de scenarios locaux reussis ; aucun acces Supabase"
+    ]
+  },
+  "syntaxique": {
+    "node_racine_api": 84,
+    "erreurs_node": 0,
+    "python_ast": [
+      "outils/auditer-ecrivains-inventaire.py",
+      "outils/bancs/banc-reception-atomique-local.py"
+    ],
+    "sql_pglast": [
+      "migration reception",
+      "requete catalogue reception"
+    ]
+  },
+  "workflow": {
+    "controles": [
+      {
+        "outil": "verifier-workflow.py",
+        "resultat": "OK"
+      },
+      {
+        "outil": "verifier-classification.py",
+        "resultat": "OK"
+      },
+      {
+        "outil": "verifier-baseline.py",
+        "resultat": "OK"
+      },
+      {
+        "outil": "verifier-autorite.py",
+        "resultat": "ECHEC"
+      },
+      {
+        "outil": "verifier-referentiels.py",
+        "resultat": "ECHEC"
+      },
+      {
+        "outil": "verifier-faits-publics.py",
+        "resultat": "OK"
+      },
+      {
+        "outil": "verifier-fonctions.py",
+        "resultat": "ECHEC"
+      },
+      {
+        "outil": "verifier-monde-neuf.py",
+        "resultat": "OK"
+      },
+      {
+        "outil": "assembler.py",
+        "resultat": "OK"
+      },
+      {
+        "outil": "reconstruire.py",
+        "resultat": "OK"
+      },
+      {
+        "outil": "verifier.py communication",
+        "resultat": "OK"
+      },
+      {
+        "outil": "verifier-archive-registre.py",
+        "resultat": "OK"
+      }
+    ],
+    "verts": 9,
+    "rouges": 3,
+    "adaptation_locale": "venv pglast et adaptateur Node pour chemins JavaScriptCore macOS, assertions inchangees",
+    "diagnostics_conserves": [
+      "tractage collectif absent du baseline",
+      "referentiels divergents, dont 17 ressources contre 18",
+      "prix Journal : 109 divergences contre 103 declarees"
+    ]
+  },
+  "cartographie_archivee": {
+    "fonctions": 29,
+    "affectations_inventory": 33,
+    "source": "outils/bancs/ECRIVAINS-INVENTAIRE-20261016.json",
+    "exhaustivite_serveur_vivant": false
+  },
+  "supabase": {
+    "lectures_reelles": [],
+    "migrations_appliquees_cette_session": [],
+    "tests_authentifies_reels": [],
+    "donnees_joueurs_consultees": false
+  },
+  "baseline_modifie": false,
+  "achat_migration_modifiee": false,
+  "dependances_deploiement": [
+    "Le client laisse les livraisons en file si la migration n est pas deployee ; aucun repli destructif",
+    "Verifier corps/signatures/ACL/RLS et heritages reels par le catalogue",
+    "Verifier GUC PostgREST role et request.path dans un environnement authentifie isole",
+    "Confronter tous les ecrivains vivants et verrous au manifeste archive avant application",
+    "Deploiement MCP enregistre et controles de donnees puis reextraction selon workflow, hors de cette mission"
+  ],
+  "risques_residuels": [
+    "Conflits entre modifications locales non confirmees et serveur : blocage explicite, aucune fusion automatique",
+    "Emission de certains dons/vols ou effets economiques legacy non rendus atomiques par la reception",
+    "RLS et ecrivains plus recents/dynamiques/Edge Functions non certifies sans acces reel",
+    "Contraintes des autres domaines et trois controles rouges preexistants non resolus"
+  ],
+  "github_actions_distant": "non observe",
+  "verdict": "PREPARATION LOCALE TESTEE ; RECEPTION ATOMIQUE NON DEPLOYEE EN PRODUCTION"
+}
