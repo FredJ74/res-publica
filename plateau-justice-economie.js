@@ -12760,7 +12760,21 @@ async function conclureArrestationJudiciaire() {
   if (!i || interceptionJudiciaireOccupee) return;
   interceptionJudiciaireOccupee = true;
   try {
-    const r = await executerCondamnationRecherchee(state.char.name, i.eligible, i.recherche, i.ville);
+    const verdict = (typeof sbRpc === 'function' && i.rencontreId)
+      ? await sbRpc('police_reddition_resoudre', {p_rencontre:i.rencontreId})
+          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+      : null;
+    if (!verdict || verdict.ok !== true || !verdict.detention_id) {
+      showToast('Arrestation non confirmée', verdict?.raison || 'Détention serveur non confirmée.', false);
+      return;
+    }
+    const jours = Number(verdict.jours || 0);
+    state.estEmprisonne = {
+      raison: verdict.motif || 'Condamnation', jours,
+      jourFin: (state.day || 1) + jours,
+      detentionId: verdict.detention_id, city: i.ville, country: state.country
+    };
+    const r = {detentionId:verdict.detention_id};
     if (!r || r.echec || !r.detentionId) {
       showToast('Arrestation non confirmée', 'Le serveur n’a pas confirmé la détention.', false);
       return;
