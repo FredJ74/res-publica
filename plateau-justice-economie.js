@@ -11571,8 +11571,8 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
   const zoneSurveillee = { pays, ville, batiment: buildingId || null,
     piece: roomId || null, rue: rueNoeudId || null };
   const presents = enRue
-    ? effectifs.policiers.filter(p => p.rueNoeudId === rueNoeudId)
-    : effectifs.policiers.filter(p => p.buildingId === buildingId && p.roomId === roomId);
+    ? effectifs.policiers.filter(p => p.rueNoeudId === rueNoeudId && Number(p.pa ?? 12) > 0)
+    : effectifs.policiers.filter(p => p.buildingId === buildingId && p.roomId === roomId && Number(p.pa ?? 12) > 0);
   if (presents.length === 0) return;
 
   let perGroupe = calculerPerGroupePolice(presents);
