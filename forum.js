@@ -410,7 +410,7 @@ function openForum_module(forumId) {
     // (mailView!=='compose') ne protegeait jamais un brouillon de sujet/reponse FORUM en cours
     // (etat porte par forumView, jamais par mailView) -- rendu complet uniquement si aucun
     // editeur n'est actuellement affiche, sinon seuls titre+sidebar sont rafraichis.
-    loadForumTopicsFromSB(forumId).then(() => {
+    if (lectureForumNecessaire(forumId)) loadForumTopicsFromSB(forumId).then(() => {
       if (!forumEstEnCompositionActuellement()) renderForumModal();
       else rafraichirVoyantsEtCompteursForum();
     }).catch(() => {});
@@ -660,7 +660,7 @@ function toggleCategorieForum(cat) {
     // ouverture effective de CE forum (revu le 22 aout 2026), a marquer comme telle.
     if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(currentForumId);
     // Meme correctif que ci-dessus (26 aout 2026) : rendu complet uniquement hors composition.
-    loadForumTopicsFromSB(currentForumId).then(() => {
+    if (lectureForumNecessaire(currentForumId)) loadForumTopicsFromSB(currentForumId).then(() => {
       if (!forumEstEnCompositionActuellement()) renderForumModal();
       else rafraichirVoyantsEtCompteursForum();
     }).catch(() => {});
@@ -769,8 +769,8 @@ function switchForum(id) {
   // autres.
   if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(id);
   // Meme correctif que ci-dessus (26 aout 2026) : rendu complet uniquement hors composition.
-  loadForumTopicsFromSB(id).then(() => {
-    if (!forumEstEnCompositionActuellement()) renderForumModal();
+  if (lectureForumNecessaire(id)) loadForumTopicsFromSB(id).then(() => {
+    if (currentForumId === id && !forumEstEnCompositionActuellement()) renderForumModal();
     else rafraichirVoyantsEtCompteursForum();
   }).catch(() => {});
 }
@@ -850,12 +850,14 @@ function renderTopicList() {
       </button>` : ''}
     </div>
     ${topics.length === 0
-      ? (FORUM_LECTURE_ECHOUEE[currentForumId]
+      ? (FORUM_LECTURE_EN_COURS[currentForumId] || !FORUM_LECTURE_TERMINEE[currentForumId]
+          ? `<div class="forum-empty">Chargement des sujets depuis le serveur…</div>`
+          : FORUM_LECTURE_ECHOUEE[currentForumId]
           // PANNE, PAS VIDE. Dire « aucun sujet » ici serait une affirmation fausse sur le
           // contenu du forum -- et c'est exactement ce qui s'est produit en production.
           ? `<div class="forum-empty">Les sujets de cette rubrique n'ont pas pu être chargés.
-             Ce n'est pas qu'elle est vide : la connexion au serveur a échoué.
-             Rechargez la page dans un instant.</div>`
+             Ce n'est pas qu'elle est vide : la lecture du serveur a échoué ou a dépassé 12 secondes.
+             <button class="forum-new-btn" onclick="rechargerForumActuel()">Réessayer</button></div>`
           : `<div class="forum-empty">Aucun sujet. ${peutCreerSujet ? 'Soyez le premier à en créer un !' : "Seul le Président peut s'exprimer ici."}</div>`)
       : `<div class="forum-topics-list">
           <div class="forum-topics-header">
@@ -2364,17 +2366,51 @@ let currentMailId = null;
 // effet, et le rendu affichait « Aucun sujet. Soyez le premier a en creer un ! ». C'est arrive
 // en production. On retient donc l'etat de la derniere lecture par rubrique, et le rendu le lit.
 const FORUM_LECTURE_ECHOUEE = {};
+const FORUM_LECTURE_EN_COURS = {};
+const FORUM_LECTURE_TERMINEE = {};
+const FORUM_DERNIERE_LECTURE = {};
+const FORUM_CACHE_DUREE_MS = 30000;
+
+function lectureForumNecessaire(id) {
+  return !FORUM_LECTURE_EN_COURS[id] &&
+    (!FORUM_DERNIERE_LECTURE[id] || Date.now() - FORUM_DERNIERE_LECTURE[id] > FORUM_CACHE_DUREE_MS);
+}
+
+
+function rechargerForumActuel() {
+  if (!currentForumId || FORUM_LECTURE_EN_COURS[currentForumId]) return;
+  const id = currentForumId;
+  loadForumTopicsFromSB(id).then(() => {
+    if (currentForumId === id && !forumEstEnCompositionActuellement()) renderForumModal();
+    else rafraichirVoyantsEtCompteursForum();
+  });
+}
+
 
 async function loadForumTopicsFromSB(forumId) {
-  if (typeof sbLoadForumTopicsVerdict !== 'function') return;
+  if (typeof sbLoadForumTopicsVerdict !== 'function') {
+    FORUM_LECTURE_ECHOUEE[forumId] = 'fonction_indisponible';
+    FORUM_LECTURE_TERMINEE[forumId] = true;
+    return;
+  }
+  if (FORUM_LECTURE_EN_COURS[forumId]) return;
+  FORUM_LECTURE_EN_COURS[forumId] = true;
+  const debutLectureForum = Date.now();
+  delete FORUM_LECTURE_TERMINEE[forumId];
   try {
-    const v = await sbLoadForumTopicsVerdict(forumId);
+    // Le transport peut rester suspendu (session / réseau). Ne jamais bloquer
+    // l'interface indéfiniment : le résultat tardif est ignoré pour cette lecture.
+    const v = await Promise.race([
+      sbLoadForumTopicsVerdict(forumId),
+      new Promise(resolve => setTimeout(() => resolve({ ok: false, raison: 'delai_depasse' }), 12000))
+    ]);
     if (!v.ok) {
       FORUM_LECTURE_ECHOUEE[forumId] = v.raison || 'transport_indisponible';
       console.error('loadForumTopicsFromSB: lecture indisponible (' + FORUM_LECTURE_ECHOUEE[forumId] + ')');
       return;
     }
     delete FORUM_LECTURE_ECHOUEE[forumId];
+    FORUM_DERNIERE_LECTURE[forumId] = Date.now();
     const rows = v.donnees;
     if (rows.length === 0) return;
     // Fusionner avec les topics locaux existants
@@ -2400,7 +2436,20 @@ async function loadForumTopicsFromSB(forumId) {
     });
     // Trier par activite la plus recente (dernier post), pas par date de creation
     FORUM_TOPICS[forumId].sort((a, b) => parseGameTime(b.lastPostTime || b.time) - parseGameTime(a.lastPostTime || a.time));
-  } catch(e) { console.warn('loadForumTopicsFromSB error', e); }
+  } catch(e) {
+    FORUM_LECTURE_ECHOUEE[forumId] = 'exception_lecture';
+    console.warn('loadForumTopicsFromSB error', e);
+  } finally {
+    delete FORUM_LECTURE_EN_COURS[forumId];
+    FORUM_LECTURE_TERMINEE[forumId] = true;
+    console.info('[Forum] Lecture ' + forumId + ' : ' + Math.round(Date.now() - debutLectureForum) + ' ms' + (FORUM_LECTURE_ECHOUEE[forumId] ? ' (échec)' : ''));
+    // La lecture doit toujours terminer son propre affichage : une autre ouverture
+    // peut avoir vu la requête déjà en cours et ne pas avoir enregistré de callback.
+    if (currentForumId === forumId && forumView === 'list' &&
+        document.getElementById('modal-forum')?.classList.contains('open')) {
+      renderForumModal();
+    }
+  }
 }
 
 async function loadForumPostsFromSB(topicId) {
