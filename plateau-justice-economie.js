@@ -12791,6 +12791,9 @@ async function choisirInterceptionJudiciaire(choix) {
   if (choix === 'rendre') { await conclureArrestationJudiciaire(); return; }
   if (choix === 'fuir' && !i.fuiteEchouee) {
     if (typeof sbRpc !== 'function' || !i.rencontreId) return;
+    if (!i.rueNoeudId && typeof sortirBatiment !== 'function') {
+      showToast('Fuite impossible','Sortie indisponible.',false); return;
+    }
     interceptionJudiciaireOccupee = true;
     let fuite;
     try {
@@ -12832,7 +12835,10 @@ async function choisirInterceptionJudiciaire(choix) {
     if (typeof sbRpc !== 'function') {
       showToast('Combat indisponible', 'Serveur inaccessible.', false); return;
     }
-    if (!i.rencontreId) i.rencontreId = 'interception-' + Date.now() + '-' + Math.floor(Math.random()*1e9);
+    if (!i.rencontreId) {
+      showToast('Combat indisponible', 'Aucune rencontre validée par le serveur.', false);
+      return;
+    }
     if (!i.round) i.round = 1;
     const verdict = await sbRpc('police_combat_resoudre', {
       p_rencontre: i.rencontreId,
