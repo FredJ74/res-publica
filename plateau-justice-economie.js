@@ -11556,6 +11556,9 @@ async function verifierSurveillancePolicePJ(buildingId, roomId, rueNoeudId) {
   }
 }
 async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId) {
+  // Une interception en cours prime sur tout nouveau contrôle de police.
+  // Sinon des déplacements/rendus successifs pouvaient empiler contrôle et arrestation.
+  if (interceptionJudiciaire) { afficherInterceptionJudiciaire(); return; }
   if (state.estEmprisonne) return; // deja incarcere, rien a controler
   const pays = state.country || 'republic';
   const ville = state.currentCity;
