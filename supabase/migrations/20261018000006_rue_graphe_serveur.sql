@@ -26,7 +26,6 @@ INSERT INTO public.rue_noeuds_serveur(country,city,noeud,voisins) VALUES
 ('republic','capitale','luthecia-tabernacle-impots',ARRAY['luthecia-palais-presidentiel','luthecia-armurerie']::text[]),
 ('republic','ville_a','psm-carrefour-musee',ARRAY['psm-ecole-phare','psm-eglise-cimetiere','psm-tribunal-banque','psm-carrefour-artisanal-scierie']::text[]),
 ('republic','ville_a','psm-carrefour-artisanal-scierie',ARRAY['psm-ecole-phare','psm-eglise-cimetiere','psm-tribunal-banque','psm-carrefour-artisanal-scierie']::text[]),
-('republic','ville_a','psm-carrefour-artisanal-scierie',ARRAY['psm-centre-multimodal','psm-carrefour-musee','psm-pole-tabac-entrepot']::text[]),
 ('republic','ville_a','psm-centre-multimodal',ARRAY['psm-carrefour-artisanal-scierie','psm-ecole-phare']::text[]),
 ('republic','ville_a','psm-ecole-phare',ARRAY['psm-carrefour-musee','psm-centre-multimodal','psm-dispensaire-port-plaisance']::text[]),
 ('republic','ville_a','psm-dispensaire-port-plaisance',ARRAY['psm-ecole-phare','psm-tribunal-banque']::text[]),
