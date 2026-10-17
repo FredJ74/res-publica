@@ -1277,8 +1277,8 @@ async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
       const g = await sbGardeControle(buildingId, roomId);
       if (g && g.intervention === true && typeof verifierArrestationRecherchePolice === 'function') {
         showToast('Garde republicaine', 'Les gardes du poste vous ont reconnu(e).', false, true);
-        // Une reconnaissance par la Garde ne contourne pas le jet de detection.
-        await verifierSurveillancePolicePJ(buildingId, roomId, null).catch(() => {});
+        // Le jet de surveillance est deja lance a l'entree dans cette piece.
+        // Ne pas le relancer ici : un seul jet par rencontre avec le garde.
       }
     } catch (e) { /* une Garde qui n'a pas pu se prononcer ne bloque jamais la navigation */ }
   }
