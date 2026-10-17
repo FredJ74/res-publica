@@ -1108,9 +1108,19 @@ function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
   afficherNoeudRue(pays, noeudDepart, depuisNoeud);
 }
 
-function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
+async function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
   if (!noeud) return;
+  if (pays === 'republic') {
+    if (typeof sbRpc !== 'function') return;
+    const position = await sbRpc('rue_position_enregistrer', {p_noeud: noeudId})
+      .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    if (position?.ok !== true) {
+      if (typeof showToast === 'function') showToast('Déplacement refusé',
+        position?.raison || 'Position serveur inaccessible.', false);
+      return;
+    }
+  }
   rueCentraleNoeudActuel = noeudId;
   rueCentraleDepuisNoeud = depuisNoeudId || null;
   if (typeof state !== 'undefined' && state.currentCity) {
