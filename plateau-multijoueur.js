@@ -2177,8 +2177,13 @@ function afficherVueConversation() {
   document.getElementById('chat-piece-body').innerHTML = html;
 
   _chatDernierMessage = null;
+  if (_chatInterval) clearInterval(_chatInterval);
   rafraichirConversationActuelle(true);
-  _chatInterval = setInterval(() => rafraichirConversationActuelle(false), 4000);
+  _chatInterval = setInterval(() => {
+    if (!document.hidden && document.getElementById('chat-messages-zone')) {
+      rafraichirConversationActuelle(false);
+    }
+  }, 8000);
 }
 
 async function quitterSalonActuelChat() {
@@ -2189,8 +2194,10 @@ async function quitterSalonActuelChat() {
   retourListeConversations();
 }
 
+let _chatLectureEnCours = false;
 async function rafraichirConversationActuelle(reset) {
-  if (!_conversationActuelle || typeof sbGetMessagesConversation !== 'function') return;
+  if (!_conversationActuelle || typeof sbGetMessagesConversation !== 'function' || _chatLectureEnCours) return;
+  _chatLectureEnCours = true;
   try {
     const messages = await sbGetMessagesConversation(_conversationActuelle.id, reset ? null : _chatDernierMessage);
     const moi = state.char?.name;
@@ -2217,6 +2224,7 @@ async function rafraichirConversationActuelle(reset) {
     if (typeof sbMarquerConversationLue === 'function') sbMarquerConversationLue(_conversationActuelle.id, moi).catch(() => {});
     verifierNotificationChat();
   } catch(e) { console.warn('rafraichirConversationActuelle error', e); }
+  finally { _chatLectureEnCours = false; }
 }
 
 async function envoyerMessageConversation() {
@@ -2252,10 +2260,23 @@ async function verifierNotificationChat() {
   } catch(e) {}
 }
 
+let _chatNotifEnCours = false;
+async function verifierNotificationChatSansChevauchement() {
+  if (document.hidden || _chatNotifEnCours) return;
+  _chatNotifEnCours = true;
+  try { await verifierNotificationChat(); }
+  finally { _chatNotifEnCours = false; }
+}
 function demarrerPollingNotificationChat() {
   if (_chatNotifInterval) return;
-  verifierNotificationChat();
-  _chatNotifInterval = setInterval(verifierNotificationChat, 15000);
+  verifierNotificationChatSansChevauchement();
+  _chatNotifInterval = setInterval(verifierNotificationChatSansChevauchement, 30000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      verifierNotificationChatSansChevauchement();
+      if (_conversationActuelle && document.getElementById('chat-messages-zone')) rafraichirConversationActuelle(false);
+    }
+  });
 }
 
 // =====================================================================
