@@ -2369,17 +2369,16 @@ const FORUM_LECTURE_ECHOUEE = {};
 const FORUM_LECTURE_EN_COURS = {};
 const FORUM_LECTURE_TERMINEE = {};
 const FORUM_DERNIERE_LECTURE = {};
-const FORUM_LECTURES_ACTIVES = {};
 const FORUM_CACHE_DUREE_MS = 30000;
 
 function lectureForumNecessaire(id) {
-  return !FORUM_LECTURES_ACTIVES[id] &&
+  return !FORUM_LECTURE_EN_COURS[id] &&
     (!FORUM_DERNIERE_LECTURE[id] || Date.now() - FORUM_DERNIERE_LECTURE[id] > FORUM_CACHE_DUREE_MS);
 }
 
 
 function rechargerForumActuel() {
-  if (!currentForumId || FORUM_LECTURES_ACTIVES[currentForumId]) return;
+  if (!currentForumId || FORUM_LECTURE_EN_COURS[currentForumId]) return;
   const id = currentForumId;
   loadForumTopicsFromSB(id).then(() => {
     if (currentForumId === id && !forumEstEnCompositionActuellement()) renderForumModal();
@@ -2394,7 +2393,7 @@ async function loadForumTopicsFromSB(forumId) {
     FORUM_LECTURE_TERMINEE[forumId] = true;
     return;
   }
-  if (FORUM_LECTURES_ACTIVES[forumId]) return FORUM_LECTURES_ACTIVES[forumId];
+  if (FORUM_LECTURE_EN_COURS[forumId]) return;
   FORUM_LECTURE_EN_COURS[forumId] = true;
   delete FORUM_LECTURE_TERMINEE[forumId];
   try {
