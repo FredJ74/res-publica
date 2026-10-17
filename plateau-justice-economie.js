@@ -11563,6 +11563,11 @@ async function verifierSurveillancePolicePJ(buildingId, roomId, rueNoeudId) {
   const tirage = Math.floor(Math.random() * 100) + 1;
   if (tirage <= chanceDetection) return; // PJ passe inapercu, aucune trace, silence total
 
+  // Une personne recherchee ne peut etre interpellee qu'apres ce jet de detection.
+  if (pays === 'republic' && typeof verifierArrestationRecherchePolice === 'function') {
+    const intervention = await verifierArrestationRecherchePolice({ detecte: true });
+    if (intervention === true) return;
+  }
   const volGroupe = calculerVolGroupePolice(presents);
   resoudreControlePoliceAutomatique(perGroupe, volGroupe);
 }
@@ -12665,13 +12670,14 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
 // effet ici, exactement comme pour la chasse a l'homme. Les anciennes entrees plates (actes
 // auto-detectes, sans `type`) ne sont pas concernees -- elles suivent leur propre mecanisme deja
 // existant (checkArrestationAuDeplacement/checkArrestationAuReveil), inchange.
-async function verifierArrestationRecherchePolice() {
+async function verifierArrestationRecherchePolice(options = {}) {
+  if ((state.country || 'republic') === 'republic' && options.detecte !== true) return false;
   if (state.estEmprisonne || !state.char?.name) return;
   if (typeof sbGet !== 'function') return;
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(state.char.name)}&select=recherche`).catch(() => []);
   const rechercheActuelle = rows?.[0]?.recherche || [];
   const eligible = rechercheActuelle.find(r => r.type === 'condamnation' && (!r.country || r.country === state.country));
-  if (!eligible) return;
+  if (!eligible) return false;
   // Re-verification apres l'attente reseau ci-dessus : l'etat a pu changer entre-temps (deja
   // emprisonne par ailleurs) -- ne jamais arreter dans un contexte devenu incoherent.
   if (state.estEmprisonne) return;
@@ -12708,6 +12714,7 @@ async function verifierArrestationRecherchePolice() {
       resultatHtml: construireResultatArrestationHtml(motifsAffiches, ville, state.country)
     });
   }
+  return true;
 }
 
 async function chargerNiveauPrison(pays, ville) {
