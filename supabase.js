@@ -1213,19 +1213,13 @@ async function sbFermerBatiment(fermeture) {
     console.error('[batiments_fermes] duree_jours requise pour une fermeture universelle');
     return null;
   }
-  const parties = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit'
-  }).formatToParts(new Date());
-  const parts = Object.fromEntries(parties.map(p => [p.type, p.value]));
-  const dateDebut = `${parts.year}-${parts.month}-${parts.day}`;
-  const dateFin = new Date(dateDebut + 'T12:00:00Z');
-  dateFin.setUTCDate(dateFin.getUTCDate() + duree);
   const { duree_jours, ...donnees } = fermeture;
   return sbInsert('batiments_fermes', {
     ...donnees,
-    // Colonne legacy obligatoire conservée temporairement, mais non lue si date présente.
-    jour_fin: Number.isInteger(donnees.jour_fin) ? donnees.jour_fin : 0,
-    date_fin_universelle: dateFin.toISOString().slice(0, 10)
+    duree_jours: duree,
+    // La date_fin_universelle est calculée par le trigger PostgreSQL.
+    // Ce champ legacy reste seulement pour compatibilité du schéma.
+    jour_fin: Number.isInteger(donnees.jour_fin) ? donnees.jour_fin : 0
   });
 }
 
