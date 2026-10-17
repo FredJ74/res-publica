@@ -12813,8 +12813,10 @@ async function choisirInterceptionJudiciaire(choix) {
       showToast('Combat indisponible', 'Serveur inaccessible.', false); return;
     }
     if (!i.rencontreId) i.rencontreId = 'interception-' + Date.now() + '-' + Math.floor(Math.random()*1e9);
+    if (!i.round) i.round = 1;
     const verdict = await sbRpc('police_combat_resoudre', {
       p_rencontre: i.rencontreId,
+      p_round: i.round,
       p_rue: i.rueNoeudId || null,
       p_batiment: i.rueNoeudId ? null : (i.zone?.batiment || state.currentBuilding),
       p_piece: i.rueNoeudId ? null : (i.zone?.piece || state.currentRoom)
@@ -12824,6 +12826,7 @@ async function choisirInterceptionJudiciaire(choix) {
         (verdict?.raison || 'erreur réseau') + '.', false);
       return;
     }
+    i.round += 1;
     state.pa = Math.max(0, Number(verdict.pa || 0));
     if (typeof updateUI === 'function') updateUI();
     if (verdict.police_neutralisee) {
