@@ -785,12 +785,8 @@ window.addEventListener('DOMContentLoaded', () => {
       .catch(e => { rpDiagId('session', 'EXCEPTION : ' + (e && e.message)); });
   }
   loadCharacter();
-  // Restaurer dernierDormir depuis localStorage
-  try {
-    const dormirData = JSON.parse(localStorage.getItem('respublica_dormir_' + (state.char?.name || 'default')) || '{}');
-    if (dormirData.dernierDormir) state.dernierDormir = dormirData.dernierDormir;
-    if (dormirData.day) state.day = Math.max(state.day, dormirData.day);
-  } catch(e) {}
+  // La garde quotidienne du sommeil est serveur : ne jamais restaurer
+  // un jour personnel depuis un ancien cache localStorage.
   if (!state.currentCity) state.currentCity = 'capitale';
   if (!state.country) state.country = 'republic';
 
@@ -2275,7 +2271,7 @@ function syncRealTime() {
   const frTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
   state.hour = frTime.getHours();
   state.minute = frTime.getMinutes();
-  state.day = state.day || 1; // Le jour de jeu est incremente a minuit
+  state.day = state.day || 1; // Compteur historique : jamais avancé par Dormir.
 }
 
 // Horloge de la barre superieure (#game-time, plateau.html) -- element UNIQUE partage par toutes

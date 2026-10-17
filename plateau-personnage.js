@@ -2107,7 +2107,6 @@ async function doDormir() {
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
     && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
 
-  const today = state.day || 1;
   // Le serveur tranche AVANT tout effet (sante, salaire, jour, journal).
   // Sa RPC applique une garde par jour reel Europe/Paris et credite les PA atomiquement.
   // Ne jamais utiliser state.day / localStorage pour autoriser ou refuser le repos.
@@ -2179,14 +2178,14 @@ async function doDormir() {
   // celui-ci. Le paiement d'une chambre a lieu exclusivement a la reservation (voir
   // doReserverChambreHotel), plus jamais ici.
   state.salaireTouche = true;
-  state.day = today + 1;
-  state.dernierDormir = state.day; // Bloque le jour suivant
+  // Dormir n'avance jamais le calendrier : minuit est universel.
+  // Le dernier repos est contrôlé par la RPC serveur, non par un compteur personnel.
   state.douanePassee = false;
   // LA REMISE A ZERO DU BONUS DE FORMATION A ETE RETIREE (12 octobre 2026) : l'ancien systeme
   // `se_former` qui posait `state.char.bonusFormation` est supprime, donc il n'y a plus rien a
   // expirer au sommeil. Un champ residuel sur une fiche ancienne est inoffensif : plus aucune
   // formule ne le lit.
-  localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
+  // Plus de persistance locale d'une journée fictive à chaque sommeil.
   // SOLDE MILITAIRE D'ABORD (phase 2). Elle est versee par la caserne, pas creee par le client.
   // Son retour nous dit AUSSI quel grade militaire le serveur reconnait -- c'est lui qui fait foi,
   // pas state.poste, puisqu'un soldat PJ n'a aucun poste. calculerSalaireDormir() lit ensuite
@@ -2331,8 +2330,7 @@ async function doDormir() {
   // collecterRevenusConstructions, awaited sans .catch -- les autres etaient deja proteges ou
   // purement synchrones, mais tout aussi capables de faire avorter la fonction si l'un d'eux
   // levait une exception) faisait avorter doDormir() AVANT le sbSavePersonnage final plus bas :
-  // dernierDormir (deja marque et persiste independamment en localStorage des la ligne ~1583,
-  // BIEN avant ce bloc) restait alors correct, mais l'entree de journal "Vous dormez..." ajoutee
+  // Le repos etait deja valide atomiquement par la RPC serveur, mais l'entree de journal "Vous dormez..." ajoutee
   // juste au-dessus (en memoire uniquement a ce stade) n'atteignait jamais Supabase -- observe en
   // production comme "deja dormi" au prochain essai, sans aucune entree de sommeil correspondante
   // dans le journal apres un rafraichissement. Ce bloc garantit desormais que la fonction atteint
@@ -2412,15 +2410,15 @@ async function doDormir() {
   switchSelfTab('actions', null);
 
   // Sauvegarde Supabase immediate et bloquante (contourne le debounce de 3s de
-  // sbAutoSave) : le sommeil touche l'argent et les verrous anti-double-salaire
-  // (dernierDormir/salaireTouche), donc on ecrit tout de suite sur Supabase avant
+  // sbAutoSave) : le sommeil touche le journal et les effets secondaires.
+  // La garde anti-double-repos est exclusivement serveur, donc on ecrit tout de suite avant
   // qu'un rafraichissement ou changement d'appareil ne puisse survenir entre-temps. Protege par
   // le meme correctif atomicite : un echec reseau ici ne doit pas non plus faire perdre le
   // constat que le sommeil a bien eu lieu.
   try {
     if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state);
   } catch (e) {
-    console.warn('doDormir: echec de la sauvegarde Supabase finale (dernierDormir/journal restent corrects localement, seront re-synchronises a la prochaine sauvegarde reussie)', e);
+    console.warn('doDormir: echec de la sauvegarde Supabase finale (repos deja valide par le serveur ; journal local a resynchroniser)', e);
   }
 
   return retourActif();
@@ -3157,13 +3155,8 @@ async function doDormirChambre() {
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
     && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
 
-  // Priorite du message (correctif du 27 aout 2026) : la garde "deja dormi" doit toujours
-  // s'evaluer AVANT la verification de reservation -- reprend exactement la meme condition que
-  // la garde equivalente de doDormir() (state.dernierDormir === state.day). Sans cela, un second
-  // clic sur Dormir apres un sommeil deja reussi (reservation legitimement consommee par ce
-  // premier sommeil) affichait a tort "chambre non reservee", laissant croire qu'il fallait
-  // payer une nouvelle chambre pour apprendre la vraie raison (deja dormi aujourd'hui).
-  // doDormir() verifie le droit au repos directement aupres du serveur.
+  // Le repos quotidien est validé par doDormir() auprès du serveur.
+  // La réservation est contrôlée ici pour le bonus hôtelier uniquement.
   const reservation = state.char?.reservationHotel;
   if (!reservation || reservation.buildingId !== state.currentBuilding) {
     showToast('Chambre non reservee', 'Vous n\'avez pas reserve la chambre. Vous devez passer l\'ordre Dormir a partir de votre fiche personnage.', false);
