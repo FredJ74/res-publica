@@ -12670,6 +12670,41 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
 // effet ici, exactement comme pour la chasse a l'homme. Les anciennes entrees plates (actes
 // auto-detectes, sans `type`) ne sont pas concernees -- elles suivent leur propre mecanisme deja
 // existant (checkArrestationAuDeplacement/checkArrestationAuReveil), inchange.
+// Interception : dialogue via le composant modal partage et sa charte courante.
+let _arrestationPoliceEnCours = null;
+function ouvrirChoixArrestationPolice(sansFuite = false) {
+  if (!_arrestationPoliceEnCours) return;
+  const titre = document.getElementById('postes-modal-title');
+  const corps = document.getElementById('postes-body');
+  const modal = document.getElementById('modal-postes');
+  if (!titre || !corps || !modal) return;
+  titre.textContent = 'Tentative d’arrestation';
+  corps.innerHTML = '<div class="police-arrestation-choix">' +
+    '<p>Une patrouille vous a reconnu(e). Que faites-vous ?</p>' +
+    '<div class="modal-actions">' +
+    '<button type="button" onclick="confirmerRedditionPolice()">Se rendre</button>' +
+    '<button type="button" onclick="combattreArrestationPolice()">Combattre</button>' +
+    (sansFuite ? '' : '<button type="button" onclick="fuirArrestationPolice()">Fuir</button>') +
+    '</div></div>';
+  modal.classList.add('open');
+}
+async function confirmerRedditionPolice() {
+  if (!_arrestationPoliceEnCours) return;
+  _arrestationPoliceEnCours = null;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  await verifierArrestationRecherchePolice({ detecte: true, confirmer: true });
+}
+// Tant que les combats et la fuite physique ne sont pas raccordes, ne jamais
+// simuler une victoire ni emprisonner le joueur sans resolution.
+function combattreArrestationPolice() {
+  if (!_arrestationPoliceEnCours) return;
+  showToast('Combat policier', 'Le combat contre la patrouille doit encore etre raccorde au systeme militaire.', false);
+}
+function fuirArrestationPolice() {
+  if (!_arrestationPoliceEnCours) return;
+  showToast('Fuite policiere', 'Le deplacement de fuite doit encore etre raccorde a la navigation.', false);
+}
+
 async function verifierArrestationRecherchePolice(options = {}) {
   if ((state.country || 'republic') === 'republic' && options.detecte !== true) return false;
   if (state.estEmprisonne || !state.char?.name) return;
@@ -12682,6 +12717,13 @@ async function verifierArrestationRecherchePolice(options = {}) {
   // emprisonne par ailleurs) -- ne jamais arreter dans un contexte devenu incoherent.
   if (state.estEmprisonne) return;
 
+  // Le joueur choisit : jamais d'incarceration automatique apres detection.
+  if ((state.country || 'republic') === 'republic' && options.confirmer !== true) {
+    if (_arrestationPoliceEnCours) return true;
+    _arrestationPoliceEnCours = { eligible, rechercheActuelle, ville: state.currentCity };
+    ouvrirChoixArrestationPolice();
+    return true;
+  }
   const ville = state.currentCity;
   const { joursTotal } = await executerCondamnationRecherchee(state.char.name, eligible, rechercheActuelle, ville);
 
