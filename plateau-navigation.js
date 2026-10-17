@@ -1010,9 +1010,7 @@ function enterRoom(buildingId, roomId, tabEl) {
         // reverifie elle-meme (deja emprisonne ?) avant d'agir ; son eventuelle teleportation
         // declenche un nouvel enterRoom dont state.estEmprisonne desormais actif empechera toute
         // nouvelle arrestation en cascade.
-        if (typeof verifierArrestationRecherchePolice === 'function') {
-          verifierArrestationRecherchePolice().catch(() => {});
-        }
+        // L'arrestation est raccordee au jet de detection de la surveillance policiere.
       }
       if (detenus) {
         // isPJ:true (meme forme que les vrais joueurs presents ailleurs, plateau-multijoueur.js)
@@ -1279,7 +1277,8 @@ async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
       const g = await sbGardeControle(buildingId, roomId);
       if (g && g.intervention === true && typeof verifierArrestationRecherchePolice === 'function') {
         showToast('Garde republicaine', 'Les gardes du poste vous ont reconnu(e).', false, true);
-        await verifierArrestationRecherchePolice().catch(() => {});
+        // Une reconnaissance par la Garde ne contourne pas le jet de detection.
+        await verifierSurveillancePolicePJ(buildingId, roomId, null).catch(() => {});
       }
     } catch (e) { /* une Garde qui n'a pas pu se prononcer ne bloque jamais la navigation */ }
   }
