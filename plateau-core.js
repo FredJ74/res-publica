@@ -1046,7 +1046,9 @@ window.addEventListener('DOMContentLoaded', () => {
 // sans date gardent temporairement leur compteur, jusqu'à migration des producteurs.
 function fermetureEncoreActive(r) {
   if (r.date_fin_universelle) {
-    const jour = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    const parties = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+    const parts = Object.fromEntries(parties.map(p => [p.type, p.value]));
+    const jour = `${parts.year}-${parts.month}-${parts.day}`;
     // Ne pas rouvrir par défaut si l'horloge n'est pas disponible.
     return !jour || jour < r.date_fin_universelle;
   }
