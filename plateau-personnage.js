@@ -2107,7 +2107,6 @@ async function doDormir() {
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
     && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
 
-  const today = state.day || 1;
   // Le serveur tranche AVANT tout effet (sante, salaire, jour, journal).
   // Sa RPC applique une garde par jour reel Europe/Paris et credite les PA atomiquement.
   // Ne jamais utiliser state.day / localStorage pour autoriser ou refuser le repos.
@@ -2179,14 +2178,14 @@ async function doDormir() {
   // celui-ci. Le paiement d'une chambre a lieu exclusivement a la reservation (voir
   // doReserverChambreHotel), plus jamais ici.
   state.salaireTouche = true;
-  state.day = today + 1;
-  state.dernierDormir = state.day; // Bloque le jour suivant
+  // Dormir n'avance jamais le calendrier : minuit est universel.
+  // Le dernier repos est contrôlé par la RPC serveur, non par un compteur personnel.
   state.douanePassee = false;
   // LA REMISE A ZERO DU BONUS DE FORMATION A ETE RETIREE (12 octobre 2026) : l'ancien systeme
   // `se_former` qui posait `state.char.bonusFormation` est supprime, donc il n'y a plus rien a
   // expirer au sommeil. Un champ residuel sur une fiche ancienne est inoffensif : plus aucune
   // formule ne le lit.
-  localStorage.setItem('respublica_dormir_' + (state.char?.name || 'default'), JSON.stringify({dernierDormir: state.dernierDormir, day: state.day}));
+  // Plus de persistance locale d'une journée fictive à chaque sommeil.
   // SOLDE MILITAIRE D'ABORD (phase 2). Elle est versee par la caserne, pas creee par le client.
   // Son retour nous dit AUSSI quel grade militaire le serveur reconnait -- c'est lui qui fait foi,
   // pas state.poste, puisqu'un soldat PJ n'a aucun poste. calculerSalaireDormir() lit ensuite
