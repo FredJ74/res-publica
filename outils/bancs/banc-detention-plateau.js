@@ -66,6 +66,9 @@ function tracerActionPourRumeur() {}
 function endommagerGrillePrison() { return Promise.resolve(true); }
 function sbSavePersonnage() { return Promise.resolve(true); }
 function formatDateHeureJeu() { return 'Jour 1'; }
+// L'horloge universelle est fournie par plateau-core.js en production.
+// Ce banc extrait uniquement les fonctions judiciaires : il doit simuler cette dépendance.
+function jourPartageISO() { return '2026-10-17'; }
 var document = { getElementById: function () { return { classList: { remove: function () {} }, innerHTML: '' }; } };
 
 var COUT_OK = true;
