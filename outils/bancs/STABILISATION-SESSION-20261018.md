@@ -2,7 +2,7 @@
 
 ## Verdict
 
-**CHANTIER PARTIELLEMENT CORRIGÉ ; CLÔTURE ET DÉPLOIEMENT NON VÉRIFIÉS.** Les corrections indépendantes ci-dessous sont testées localement et destinées à `main`. Aucun test authentifié en production, aucune migration appliquée, aucune donnée de joueur modifiée. La branche financière `codex/reconstruction-finances-atomiques` (`a3e48c0fab31a8e20b26af37bce5fc01eecff91e`) reste séparée : sa protection financière globale n'est pas livrée par ce lot.
+**CHANTIER PARTIELLEMENT CORRIGÉ ; CLÔTURE ET DÉPLOIEMENT NON VÉRIFIÉS.** Les corrections indépendantes ci-dessous sont testées localement et intégrées à `main`. Aucun test authentifié en production, aucune migration appliquée, aucune donnée de joueur modifiée. La branche financière `codex/reconstruction-finances-atomiques` (`a3e48c0fab31a8e20b26af37bce5fc01eecff91e`) reste séparée : sa protection financière globale n'est pas livrée par ce lot.
 
 Point de départ vérifié : `origin/main` à `e1cff10998d70d6cd6de90cb007f32b05c1863ea`. Branche de réalisation : `codex/stabilisation-session-20261018`. Les optimisations récentes, corrections commerciales et policières de main sont préservées.
 
@@ -90,3 +90,7 @@ Aucun accès utilisable au catalogue Supabase ou à Vercel n'est exposé dans ce
 Aucune migration n'a été appliquée. Les deux migrations civiles déplacées sont strictement inchangées ; leur présence Git ne renseigne pas leur application réelle. Les migrations financières restent non déployées.
 
 Après disponibilité des accès techniques : lire le catalogue et les versions réellement actives, réconcilier les quatre RPC et référentiels ; valider la chaîne policière PR 40 ; corriger le contrat de vente automatique si l'écart serveur est confirmé ; observer Preview puis Production ; réaliser des parcours authentifiés isolés (repos/rechargement, commerce/matières, soins, nourriture, tracts, Jodie, interception). Aucun de ces contrôles n'est délégué au game designer et aucune réussite n'est présumée.
+
+## Intégration Git effectivement vérifiée
+
+Push sans forçage de `e1cff10` vers `dffed23951ada08cb6199ce90d18cc416e69c5e5` accepté sur `main`. La lecture distante `git ls-remote` confirme ce SHA sur `main` et sur la branche de sauvegarde. Le présent complément documentaire est ajouté ensuite ; il ne modifie aucun code testé. Aucun état de build GitHub Actions ou Vercel n’a pu être observé. **Code intégré et sauvegardé sur GitHub ; déploiement et essais authentifiés non vérifiés.**
