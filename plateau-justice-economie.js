@@ -2406,7 +2406,7 @@ async function doTentativeEvasion(pa, cost) {
     return;
   }
 
-  const jourActuel = state.day || 1;
+  const jourActuel = jourPartageISO();
   if (state.estEmprisonne.dernierJourEvasion === jourActuel) {
     showToast('Trop tôt', 'Une seule tentative d\'évasion par jour.', false);
     return;
@@ -6187,7 +6187,7 @@ async function verifierSalaireDirecteurEntrepot() {
   if (state.poste?.id !== 'directeur_entrepot') return;
   const buildingId = getBuildingIdDirecteurEntrepot();
   if (!buildingId) return;
-  const jour = state.day || 1;
+  const jour = jourPartageISO();
   if (!state.char) return;
   if (state.char.dernierSalaireDirecteurEntrepotJour === jour) return;
 
@@ -7149,7 +7149,7 @@ async function verifierSalaireDirecteur() {
   const posteId = state.poste?.id;
   const cfg = DIRECTEUR_USINE_INFO[posteId];
   if (!cfg) return;
-  const jour = state.day || 1;
+  const jour = jourPartageISO();
   if (!state.char) return;
   if (state.char.dernierSalaireDirecteurJour === jour) return;
 
@@ -9692,7 +9692,7 @@ async function payerEffectifsPoliceQuotidien(pays, ville) {
   // differents (jour 3 et jour 47) payaient chacun la solde du meme jour reel, vidant la caisse
   // du commissariat autant de fois qu'il y avait de joueurs connectes. jourPartageISO() est la
   // meme date que celle du cron serveur (jourCourantISO), au caractere pres.
-  const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : (state.day || 1);
+  const jour = jourPartageISO();
   if (effectifs.dernierPaiementJour === jour) return;
 
   const buildingIdCaisse = getBuildingIdCommissariat(ville);
@@ -9953,7 +9953,7 @@ async function payerEffectifsDouaneQuotidien(pays) {
   const effectifs = await chargerEffectifsDouane(pays);
   if (!effectifs.douaniers.length) return;
   // Meme correctif que payerEffectifsPoliceQuotidien : marqueur partage compare a un compteur prive.
-  const jour = (typeof jourPartageISO === 'function') ? jourPartageISO() : (state.day || 1);
+  const jour = jourPartageISO();
   if (effectifs.dernierPaiementJour === jour) return;
 
   const coutTotal = effectifs.douaniers.reduce((s, d) => s + coutJournalierDouanier(d), 0);
