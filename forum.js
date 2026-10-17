@@ -850,12 +850,14 @@ function renderTopicList() {
       </button>` : ''}
     </div>
     ${topics.length === 0
-      ? (FORUM_LECTURE_ECHOUEE[currentForumId]
+      ? (FORUM_LECTURE_EN_COURS[currentForumId] || !FORUM_LECTURE_TERMINEE[currentForumId]
+          ? `<div class="forum-empty">Chargement des sujets depuis le serveur…</div>`
+          : FORUM_LECTURE_ECHOUEE[currentForumId]
           // PANNE, PAS VIDE. Dire « aucun sujet » ici serait une affirmation fausse sur le
           // contenu du forum -- et c'est exactement ce qui s'est produit en production.
           ? `<div class="forum-empty">Les sujets de cette rubrique n'ont pas pu être chargés.
              Ce n'est pas qu'elle est vide : la connexion au serveur a échoué.
-             Rechargez la page dans un instant.</div>`
+             <button class="forum-new-btn" onclick="rechargerForumActuel()">Réessayer</button></div>`
           : `<div class="forum-empty">Aucun sujet. ${peutCreerSujet ? 'Soyez le premier à en créer un !' : "Seul le Président peut s'exprimer ici."}</div>`)
       : `<div class="forum-topics-list">
           <div class="forum-topics-header">
@@ -2364,9 +2366,26 @@ let currentMailId = null;
 // effet, et le rendu affichait « Aucun sujet. Soyez le premier a en creer un ! ». C'est arrive
 // en production. On retient donc l'etat de la derniere lecture par rubrique, et le rendu le lit.
 const FORUM_LECTURE_ECHOUEE = {};
+const FORUM_LECTURE_EN_COURS = {};
+const FORUM_LECTURE_TERMINEE = {};
+
+function rechargerForumActuel() {
+  if (!currentForumId || FORUM_LECTURE_EN_COURS[currentForumId]) return;
+  const id = currentForumId;
+  loadForumTopicsFromSB(id).then(() => {
+    if (currentForumId === id && !forumEstEnCompositionActuellement()) renderForumModal();
+    else rafraichirVoyantsEtCompteursForum();
+  });
+}
+
 
 async function loadForumTopicsFromSB(forumId) {
-  if (typeof sbLoadForumTopicsVerdict !== 'function') return;
+  if (typeof sbLoadForumTopicsVerdict !== 'function') {
+    FORUM_LECTURE_ECHOUEE[forumId] = 'fonction_indisponible';
+    FORUM_LECTURE_TERMINEE[forumId] = true;
+    return;
+  }
+  FORUM_LECTURE_EN_COURS[forumId] = true;
   try {
     const v = await sbLoadForumTopicsVerdict(forumId);
     if (!v.ok) {
@@ -2400,7 +2419,13 @@ async function loadForumTopicsFromSB(forumId) {
     });
     // Trier par activite la plus recente (dernier post), pas par date de creation
     FORUM_TOPICS[forumId].sort((a, b) => parseGameTime(b.lastPostTime || b.time) - parseGameTime(a.lastPostTime || a.time));
-  } catch(e) { console.warn('loadForumTopicsFromSB error', e); }
+  } catch(e) {
+    FORUM_LECTURE_ECHOUEE[forumId] = 'exception_lecture';
+    console.warn('loadForumTopicsFromSB error', e);
+  } finally {
+    delete FORUM_LECTURE_EN_COURS[forumId];
+    FORUM_LECTURE_TERMINEE[forumId] = true;
+  }
 }
 
 async function loadForumPostsFromSB(topicId) {
