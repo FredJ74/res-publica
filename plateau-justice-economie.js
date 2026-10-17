@@ -11562,7 +11562,7 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
   if (!ville) return;
 
   const effectifs = await chargerEffectifsPolice(pays, ville).catch(() => null);
-  if (!effectifs || !effectifs.policiers.length) return;
+  if (!effectifs || !Array.isArray(effectifs.policiers) || !effectifs.policiers.length) return;
 
   const enRue = !!rueNoeudId;
   const zoneSurveillee = { pays, ville, batiment: buildingId || null,
