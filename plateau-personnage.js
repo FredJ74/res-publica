@@ -2646,7 +2646,7 @@ async function doCentreAntiPoison(pa) {
     showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false);
     return;
   }
-  const today = state.day || 1;
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   if (!state.centreAntiPoisonToday || state.centreAntiPoisonToday.jour !== today) {
     state.centreAntiPoisonToday = { jour: today, tentatives: 0 };
   }
