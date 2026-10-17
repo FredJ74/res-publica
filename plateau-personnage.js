@@ -2337,8 +2337,21 @@ async function doDormir() {
   // TOUJOURS son enregistrement final ci-dessous, quel que soit le sort d'un effet secondaire --
   // ordre et logique individuelle de chaque appel strictement inchanges.
   try {
-    // Les échéances institutionnelles et contractuelles ne dépendent pas de Dormir.
-    // Leur traitement doit être assuré par les tâches serveur, indépendamment des connexions.
+    // Payer les loyers des locations actives
+    payerLocations();
+    // collecterRevenusConstructions() RETIREE ici le 20 septembre 2026 (arbitrage GD) : le
+    // rendement forfaitaire des murs et ses bonus INF/POP/DIS sont supprimes. Un local prive ne
+    // rapporte que s'il est reellement loue -- et les loyers reels sont deja preleves ailleurs
+    // (prelever_loyer_bail, cron serveur). Rien ne la remplace.
+    // NOTE : les loyers des lots subdivises sont desormais preleves par le cron serveur
+    // (preleverLoyersLots, api/cron-minuit.js) — pas ici, pour ne pas defavoriser le
+    // proprietaire si le locataire ne se connecte jamais.
+    // Payer les escorts actives
+    payerEscorts();
+    payerEmployes();
+    // Regeneration quotidienne des grilles de prison de la ville courante (puise sur la
+    // caisse du commissariat, s'arrete des que le budget est insuffisant)
+    if (typeof regenererGrillesPrison === 'function') regenererGrillesPrison(state.country, state.currentCity).catch(() => {});
     // L'ENTRETIEN DES POLICIERS N'EST PLUS DECLENCHE ICI (27 septembre 2026, lot 3).
     // Meme raison que les douaniers ci-dessous, plus une fuite propre a la police : le debit
     // partait du sommeil de N'IMPORTE QUEL joueur present dans la ville, alors que l'ECRITURE
