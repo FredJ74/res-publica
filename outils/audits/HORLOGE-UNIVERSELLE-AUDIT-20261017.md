@@ -1,0 +1,30 @@
+# Audit transversal — horloge universelle de Human Gambit
+
+## Invariant fondateur validé
+**Un seul temps réel commun à toute la société**, tous les PJ, PNJ, villes, empires et systèmes. À 16 h à Luthécia, il est 16 h partout dans le monde fictif. Les délais et événements doivent être ancrés sur des instants réels communs, indépendants de la connexion et du personnage. Le fuseau Europe/Paris est actuellement utilisé comme convention d'affichage et de calendrier dans le code ; il ne crée pas de fuseaux propres aux empires.
+
+## Constats établis dans le dépôt (lecture seule)
+- `plateau-core.js` vers 538 : `HORLOGE_PA_ACTIVE = false`. L'ancienne fonction `advanceTime(pa)` est encore présente, mais désactivée ; elle ne doit jamais redevenir une horloge concurrente.
+- `syncRealTime()` vers 2228 synchronise heure/minute sur le temps réel mais **ne synchronise pas `state.day`** : `state.day = state.day || 1`.
+- `runMidnightUpdate()` vers 2441 incrémente `state.day++` lors d'un passage à minuit du client ; `dormirData.day` peut également modifier ce compteur (vers 792). Cela laisse subsister des jours de personnage différents.
+- `jourPartageISO()` vers 2200 est déjà une primitive commune basée sur la date réelle Europe/Paris. Plusieurs commentaires du code reconnaissent explicitement le danger des compteurs personnels dans des tables partagées.
+- Relevé statique partiel des références à `state.day` : 52 dans `plateau-organisations-quetes.js`, 23 dans `plateau-core.js`, 7 dans `plateau-multijoueur.js`. Les occurrences incluent commentaires, métadonnées et vrais calculs ; **ne pas les remplacer en bloc**.
+
+## Risques fonctionnels à traiter par domaines
+1. **Football et santé sportive** : `calculerContributionEquipe` (vers 2488), `tenterBlessureLive` (vers 2726), `estIndisponiblePourSport` (vers 3901), `doTenueMatch` et entraînements (vers 3896–3995) comparent/écrivent `jusquauJour` avec un jour privé.
+2. **Bâtiments** : fermeture évaluée par `jour_fin > state.day` (`plateau-core.js` vers 1021–1027), susceptible de diverger selon le PJ.
+3. **Criminalité** : expiration des traces de hooliganisme (`plateau-organisations-quetes.js` vers 1232), recherche d'actions traçables (vers 393).
+4. **Organisations** : cooldowns et limites quotidiennes des actions syndicales (vers 3400–3490), adhésions et historique ; élections et finances des clubs/supporters (vers 7889–8004, 8462, 8690).
+5. **Économie et administrations** : historique des budgets, décisions et événements datés en jours personnels.
+6. **Multijoueur** : délais et expirations `expireJour` (`plateau-multijoueur.js` vers 1240), qui doivent être communs.
+
+## Doctrine de correction
+- Pour les nouveaux délais : instant UTC stocké côté serveur (ou date civile canonique dérivée du même instant) et comparaison avec l'heure réelle serveur.
+- Pour les règles « par jour » : une même date civile du référentiel du jeu pour tous ; ne pas utiliser un compteur lié au PJ.
+- Préserver l'historique et les anciennes données : **ne pas interpréter un ancien numéro de jour comme un timestamp** ; définir une migration/compatibilité explicite, système par système.
+- Ne pas confondre durée réelle et compteur de PA : le sommeil peut reconstituer des PA, mais ne doit jamais avancer le temps.
+- Les traitements collectifs à échéance doivent pouvoir tourner sans joueur connecté, avec exécution idempotente côté serveur.
+- Audit puis corrections séparées, tests de non-régression ; ne pas toucher au chantier financier isolé de Codex.
+
+## Prochaines vérifications
+Retracer le schéma Supabase des blessures, fermetures et traces, puis la gestion des transitions de minuit et des champs historiques avant tout correctif de production. Étendre l'inventaire des références temporelles aux autres fichiers du dépôt et aux crons.
