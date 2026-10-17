@@ -1003,24 +1003,24 @@ async function checkDetection(fn, resultType) {
   }
 }
 
+// Republia : l'interception exige un policier physiquement present.
+// Les controles aleatoires historiques ne peuvent plus creer une arrestation.
+// Les autres empires conservent provisoirement leur comportement existant.
 function checkArrestationAuDeplacement() {
+  if (state.country === 'republic') return;
   if (!state.recherche || state.recherche.length === 0) return;
   const pire = state.recherche.reduce((max, r) => {
     const pMax = getPeineParActe(max.acte, false);
     const pR = getPeineParActe(r.acte, false);
     return pR.jours > pMax.jours ? r : max;
   }, state.recherche[0]);
-
   const roll = Math.floor(Math.random() * 100) + 1;
   const tauxInter = Math.max(5, 30 - Math.floor(state.dis / 5));
-
-  if (roll <= tauxInter) {
-    ouvrirModalArrestation(pire.acte);
-  }
+  if (roll <= tauxInter) ouvrirModalArrestation(pire.acte);
 }
 
 function checkArrestationAuReveil() {
-  // Chance reduite d'arrestation pendant la nuit
+  if (state.country === 'republic') return;
   if (!state.recherche || state.recherche.length === 0) return;
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll <= 10) {
