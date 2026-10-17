@@ -62,3 +62,19 @@ Dans `plateau-core.js` ~2433–2515, `runMidnightUpdate()` incrémente `state.da
 5. Proposer corrections atomiques et tests de frontières 23:59 / 00:00, déconnexion, multi-PJ, changement heure été/hiver et rattrapage d'une nuit manquée.
 
 **Statut : inventaire et diagnostic, pas de correctif déployé.** Ne pas interférer avec la branche de reconstruction financière de Codex.
+
+## Décisions du game designer — obligations et sommeil (17 octobre 2026)
+- Une seule journée civile commune, changement à minuit ; les jours d'emprisonnement, de fermeture des bâtiments, de blessure, d'empoisonnement et de régénération sont comptés en **passages de journée**, non en tranches glissantes de 24 h.
+- **Charges autonomes** : loyers et échéances de prêts sont prélevés chaque journée, sans connexion, après minuit ; la minute précise d'exécution importe peu. Les obligations ne sont pas annulées par l'absence.
+- **Bénéfices conditionnels et non reportables** : les PA, le revenu universel et le salaire de poste/fonction ne sont accordés que lorsque le PJ passe l'ordre `Dormir` pour cette journée. Un seul bénéfice par journée ; une journée sans sommeil est définitivement perdue. Dormir le mardi ne permet pas de rattraper le lundi.
+- L'architecture serveur doit dissocier le traitement autonome des charges et la transaction volontaire de sommeil. Ne pas automatiser le versement des salaires ni la récupération des PA au passage de minuit.
+- Vérifier les mécanismes existants avant migration, particulièrement la détention qui utilise actuellement un calcul `debutTs + jours × 24 h`, incompatible avec le nombre de changements de journée.
+
+## Anomalies de code confirmées par lecture du dépôt
+- `api/cron-minuit.js` ~713–735 : libération de secours à partir d'une durée horaire glissante ; audit prioritaire des voies de libération et du QHS.
+- `plateau-core.js` ~1015–1029 : statut de fermeture comparé à `state.day` local, potentiellement différent selon le PJ.
+- `plateau-core.js` ~788–792 : `dernierDormir` et `day` rechargés du localStorage ; vérifier l'autorité serveur de la limite quotidienne de sommeil.
+- `plateau-core.js` ~2433–2510 : une partie de la passe de minuit dépend encore du navigateur connecté ; inventorier les effets avant suppression.
+- Vérifier le déclenchement réel du cron autour de minuit Europe/Paris, les changements d'heure et le rattrapage des journées manquées.
+
+**État : diagnostic uniquement ; aucune migration ni correction de production appliquée.**
