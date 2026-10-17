@@ -31,3 +31,10 @@
 - L'animation visuelle des matchs reste **hors périmètre**, à reprendre seulement lorsque le jeu sera entièrement codé.
 - Ne pas remplacer le live par un calcul instantané ; préserver les résultats, classements, indices et phases finales.
 - Point de vigilance technique : le code comporte un rattrapage automatique si personne n'était connecté pendant les 30 minutes ; le moteur serveur devra préserver une reprise sûre après panne, sans simuler une semaine entière.
+
+## Optimisation de transition (PR #19, non déployée)
+- Tick live navigateur de 20 s : activé seulement le dimanche 19h45–21h00 Europe/Paris.
+- Tick de cycle : une fois au chargement, une fois par jour hors dimanche, 5 min le dimanche ; l'ouverture du panneau du championnat force toujours une vérification.
+- **Important** : cette étape ne centralise pas encore le moteur ; le serveur doit prendre le relais avant de retirer entièrement les écritures du navigateur.
+- La vérification périodique n'est pas une garantie d'exécution sans joueur connecté ; c'est la centralisation serveur qui apportera cette garantie.
+- Les événements du live et le verrou d'immobilisation doivent être testés pendant une fenêtre réelle avant fusion.
