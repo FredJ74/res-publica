@@ -12698,6 +12698,8 @@ function afficherInterceptionJudiciaire() {
   const titre = document.getElementById('postes-modal-title');
   const body = document.getElementById('postes-body');
   if (!modal || !titre || !body) return;
+  // Un dossier ouvert ne peut pas disparaître par un changement de fenêtre :
+  // l'interception est conservée et réaffichée à la prochaine vérification.
   titre.textContent = 'INTERCEPTION POLICIÈRE';
   const btn = (action, label) => '<button type="button" class="ibtn" onclick="choisirInterceptionJudiciaire(&quot;' + action + '&quot;)">' + label + '</button>';
   body.innerHTML = '<div class="hg-interception" style="padding:1.1rem;display:grid;gap:.8rem">' +
@@ -12748,7 +12750,7 @@ async function choisirInterceptionJudiciaire(choix) {
   if (!i || interceptionJudiciaireOccupee) return;
   if (choix === 'rendre') { await conclureArrestationJudiciaire(); return; }
   if (choix === 'fuir' && !i.fuiteEchouee) {
-    const vol = getStatEffective('VOL');
+    const vol = Number(state.char?.stats?.VOL ?? 13);
     const adversaire = calculerVolGroupePolice(i.policiers);
     const reussite = Math.floor(Math.random()*100)+1 <= calculerChancePJ(vol + calculerDisEffective()/2, adversaire);
     if (!reussite) { i.fuiteEchouee = true; afficherInterceptionJudiciaire(); return; }
@@ -12784,7 +12786,7 @@ async function choisirInterceptionJudiciaire(choix) {
     const adversaires = i.policiers;
     const paPJ = Math.max(0,Number(state.pa||0));
     if (!paPJ) { interceptionJudiciaireOccupee = false; await conclureArrestationJudiciaire(); return; }
-    const volPJ = getStatEffective('VOL');
+    const volPJ = Number(state.char?.stats?.VOL ?? 13);
     const volPolice = calculerVolGroupePolice(adversaires);
     // Même graduation de dommages que le moteur militaire : critique 100 %, partielle
     // 75/50 %, échec 0 %. Aucun point de vie n'intervient dans l'arrestation.
@@ -12798,7 +12800,11 @@ async function choisirInterceptionJudiciaire(choix) {
       : jetPolice <= chancePolice ? 'partielle_2' : 'echec';
     const multiplicateurs = {critique:0,partielle_1:0.25,partielle_2:0.5,echec:1};
     state.pa = Math.max(0,Math.floor(paPJ*multiplicateurs[degrePolice]));
-    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state);
+    if (typeof sbSavePersonnage !== 'function') {
+      showToast('Combat indisponible','Sauvegarde des PA impossible.',false);
+      return;
+    }
+    await sbSavePersonnage(state);
     if (typeof updateUI === 'function') updateUI();
     if (succesPJ) {
       // Neutralisation locale de l'opposition ; le PJ reste physiquement sur place.
@@ -12834,7 +12840,10 @@ async function verifierArrestationRecherchePolice(options = {}) {
   // emprisonne par ailleurs) -- ne jamais arreter dans un contexte devenu incoherent.
   if (state.estEmprisonne) return;
 
-  if (interceptionJudiciaire) return true;
+  if (interceptionJudiciaire) {
+    afficherInterceptionJudiciaire();
+    return true;
+  }
   // La détection doit encore concerner la zone où le PJ se trouve : l'appel serveur
   // peut revenir après un changement de ville, de bâtiment ou de pièce.
   if (options.zone && (state.currentCity !== options.zone.ville ||
