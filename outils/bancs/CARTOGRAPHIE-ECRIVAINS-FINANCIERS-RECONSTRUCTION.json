@@ -1,0 +1,2148 @@
+{
+  "nature": "Candidats statiques, faux positifs possibles, SQL dynamique et serveur vivant non certifies",
+  "nombre_fonctions_candidates": 117,
+  "fonctions_sql": [
+    {
+      "fonction": "assemblee_crediter_caisse",
+      "source": "baseline/domaines/assemblee/20_fonctions-1.sql",
+      "ligne": 371,
+      "md5_source_archivee": "66f257e0c4abc4effc16eb052f35ba1d",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "assemblee_crediter_joueur",
+      "source": "baseline/domaines/assemblee/20_fonctions-1.sql",
+      "ligne": 406,
+      "md5_source_archivee": "8b9b0a81a287dab2c942dde4e603d852",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "assemblee_debiter_caisse_plafonne",
+      "source": "baseline/domaines/assemblee/20_fonctions-1.sql",
+      "ligne": 489,
+      "md5_source_archivee": "d0cb69803b7c6fd417d4a40a97bc9704",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "assemblee_debiter_joueur",
+      "source": "baseline/domaines/assemblee/20_fonctions-1.sql",
+      "ligne": 528,
+      "md5_source_archivee": "2074e89a2f92a804d15ea61988166944",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "assemblee_sanctionner",
+      "source": "baseline/domaines/assemblee/20_fonctions-1.sql",
+      "ligne": 2943,
+      "md5_source_archivee": "82e01eb4b498e695d62d6aa5946df7ca",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "accepter_accord_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 14,
+      "md5_source_archivee": "3a530ffb89368bbc7b053354a6cadbd9",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "banque_nationale_mouvement",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 45,
+      "md5_source_archivee": "68a481b4a393e5f60652fb39a22d2016",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "compromis_expire_resoudre",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 111,
+      "md5_source_archivee": "d3e35ecf0edb0b1c2a6858f5ad6f1b81",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "compte_bancaire_initial",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 250,
+      "md5_source_archivee": "1e0cd32c034a96f1dfd2605764a4c1b8",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "creer_placement_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 283,
+      "md5_source_archivee": "aa177188b4b2f074936334d18d526786",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "creer_placement_national",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 368,
+      "md5_source_archivee": "f15dfe9f32729dbabdd5faa982c89f91",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "creer_pret_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 485,
+      "md5_source_archivee": "7b9ce809cd497b0517a0b4bf603badb3",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "deposer_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 550,
+      "md5_source_archivee": "da0c91516befaf577d012f6439b6ed0c",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "deposer_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 625,
+      "md5_source_archivee": "f5afaa279a4ac0ba2062818aa8f00bc9",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "fermer_compte_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 668,
+      "md5_source_archivee": "8e6b28c146d2a55521585659ecc6b67f",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "finaliser_achat_bien_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 765,
+      "md5_source_archivee": "66ba59fc0a36d73ad8fdf6f5f6c5746e",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "helvetia_assurer_liquidite",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 863,
+      "md5_source_archivee": "c9266530c5077a7365c4b5ab2676231f",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "helvetia_crediter_destination",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 927,
+      "md5_source_archivee": "ad07b4b77f2a2614c81e40f6488ac96f",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "helvetia_debiter_fonds_ordinaires",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 947,
+      "md5_source_archivee": "55ce3acdce6940c964652869f88ab493",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "helvetia_debiter_source",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 986,
+      "md5_source_archivee": "67ae8c5590b1c5f200992bb08e59fcdc",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "ouvrir_compte_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 1099,
+      "md5_source_archivee": "8e69306fea7bd939738af46599fd1222",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "regler_creances_helvetia_quotidien",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 1194,
+      "md5_source_archivee": "b0d4c14b02bfed14380c753afb26e8ab",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "rembourser_pret_helvetia_integral",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 1280,
+      "md5_source_archivee": "95dda77b7fd42a1cb1a34b01ca287ded",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "resoudre_compromis_helvetia_expire",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 1377,
+      "md5_source_archivee": "0c5f8b1b4153da885dd3b657187f972b",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "resoudre_placement_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 1462,
+      "md5_source_archivee": "2fdd8098dbc15519b70b3d7b9fde0257",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "resoudre_placement_national",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 1601,
+      "md5_source_archivee": "5730a8645753113198334af7f296dfef",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "retirer_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 1729,
+      "md5_source_archivee": "bf41a527d266f92e2e87c6884e2620bb",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "retirer_helvetia",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 1772,
+      "md5_source_archivee": "06f2c75904a3c29ff38d5742b026f286",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "traiter_prets_helvetia_quotidien",
+      "source": "baseline/domaines/banque/20_fonctions.sql",
+      "ligne": 1880,
+      "md5_source_archivee": "f7885747da341c61e4065bba69ff2644",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "acheter_a_entrepot",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 14,
+      "md5_source_archivee": "2c1b7ed9b73d5296b2cae631ff99fcd4",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "acheter_a_la_criee",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 157,
+      "md5_source_archivee": "3e8ad8e8a8670b692253e522fc6b45d6",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "acheter_produit_commerce",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 255,
+      "md5_source_archivee": "19f6cb294da782dbbf962028a1e315de",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "acheter_produit_manufacture",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 528,
+      "md5_source_archivee": "87cac12c47fb6e4ef0755688f15ebb27",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "acheter_vente_directe_usine",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 594,
+      "md5_source_archivee": "38dba6b37e7ad0ebbe7e4699c1fc4afc",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "approvisionner_chantier",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 684,
+      "md5_source_archivee": "aed6d3286a5c348ea4f17d414259739e",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "chantier_lancer",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 819,
+      "md5_source_archivee": "f7e9fbfc8c0b0e722659f7c870354159",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "chantier_travailler",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 887,
+      "md5_source_archivee": "f20ec50e8dddd7586eb67ff7fb13c6ca",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "chantier_verser",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 991,
+      "md5_source_archivee": "3675b46e3e997575a173766f0e02c6f4",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "commerce_apporter_matiere",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 1072,
+      "md5_source_archivee": "c6f18bdffdf638eef430479656301f78",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "commerce_produire",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 1370,
+      "md5_source_archivee": "ec54dda4bec2c0da19d923f3d10e3e4c",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "commerce_vendre_produit",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 1533,
+      "md5_source_archivee": "0faf68e13fd68cbd331cbbc5ffa526f4",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "creer_fonds_commerce",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 1683,
+      "md5_source_archivee": "b9f8d7f49bac391a9ed13157174f6456",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "entrepot_commander",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 1960,
+      "md5_source_archivee": "6d2946e8986de108129b37c243993067",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "entrepot_reverser",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 2257,
+      "md5_source_archivee": "8ca55dc36287e77283d0bd0fd2724aea",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "entreprise_acte_rachat",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 2445,
+      "md5_source_archivee": "1064dde49c94a441e630778df743c1fa",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "entreprise_assurer_existence",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 2513,
+      "md5_source_archivee": "08948ac37424ec8e39b3d7f33e0fd758",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "entreprise_mouvement_fiscal",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 2652,
+      "md5_source_archivee": "7d4db84f50ed9a16714786231cfd8366",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "entreprise_preempter",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 2685,
+      "md5_source_archivee": "fd9caafdae2a684a3a3007fcf2cba52f",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "entreprise_signer_compromis",
+      "source": "baseline/domaines/economie/20_fonctions-1.sql",
+      "ligne": 2760,
+      "md5_source_archivee": "e7f9236c7489b20d40359806ffd40fe4",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "fret_dedouaner",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 156,
+      "md5_source_archivee": "e08d9d960b8055f9ffdf97cdb4dd1110",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "payer_ordre",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 352,
+      "md5_source_archivee": "92234a6b14ff176d2c2c2236f705683e",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "produire_en_usine",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 464,
+      "md5_source_archivee": "3a1e1d9d10148183fc2d9d8b99c28370",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "recevoir_soin",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 556,
+      "md5_source_archivee": "9982595c4f0520341f093ccd93d5f4b3",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "restituer_reliquats_chantier",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 778,
+      "md5_source_archivee": "656ea6a8449721caa5bde98c58dc7a99",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "vendre_fonds_commerce",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 902,
+      "md5_source_archivee": "cb3c22d94317435bafb6cb0e2ab80de7",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "vendre_materiaux_chantier",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 961,
+      "md5_source_archivee": "454957349e1b59a60f4313b9f60eebe8",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "vendre_matiere_a_usine",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 1102,
+      "md5_source_archivee": "5dd055b578ddad4f25d6251927690843",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "vendre_ressource_medicale",
+      "source": "baseline/domaines/economie/20_fonctions-2.sql",
+      "ligne": 1202,
+      "md5_source_archivee": "5c0d096911fe8883b0e0d36689c7aa22",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "alimenter_caisse_fonds",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 14,
+      "md5_source_archivee": "a8885aa99f118cb09ac458ee8819d955",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "appliquer_taxe_transaction",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 72,
+      "md5_source_archivee": "b37d3da16b0f09361de80b97145d13ab",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "caisse_client_mouvement",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 753,
+      "md5_source_archivee": "23a0c91ea57311f4f034e0ffc1782acd",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "caisse_institution_mouvement",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 866,
+      "md5_source_archivee": "97f9f66ce715e5462818db2fd191f9a4",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "caisse_institution_mouvement_plafonne",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 931,
+      "md5_source_archivee": "a6f29180929920cb16f5e416a6cad006",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "caisse_ministere_mouvement",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 982,
+      "md5_source_archivee": "0b7248d4a100e8ddc08443d7b4e4b7b0",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "debiter_fonds_ordinaires",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 1189,
+      "md5_source_archivee": "a8a9bf8288c52edaf1b85f97bedb272e",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "fonds_crediter_atteste",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 1359,
+      "md5_source_archivee": "9f9980f2fb59c2d51843c8dc0bf1e6f5",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "fonds_matiere_apporter",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 1506,
+      "md5_source_archivee": "2e6618d88bf8b55da89849b12c24d7a7",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "fonds_reference_produire_lots",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 2047,
+      "md5_source_archivee": "6de469569b9b2aa3dc6fb378784d766e",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "fonds_rembourser",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 2270,
+      "md5_source_archivee": "d0a8de598dbec4be7b84f5a08f61bc5b",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "percevoir_salaire_directeur",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 2618,
+      "md5_source_archivee": "3231083b5bf3969ecb3333fd07e47074",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "preemption_mensualite_prelever",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 2681,
+      "md5_source_archivee": "f871b0fbfc335df7a32c7e9317fdafe2",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "recette_municipale",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 2748,
+      "md5_source_archivee": "1a0ee027dc0a9b0b77524f9d5c2d061c",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "redressement_fiscal_appliquer",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 2791,
+      "md5_source_archivee": "169dbfb32916e31eaff4ee045376c1a4",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "retirer_caisse_fonds",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 2885,
+      "md5_source_archivee": "c44ef8970b500aca397181741dd7ea98",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "salaire_civil_percevoir",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 2967,
+      "md5_source_archivee": "933747deb9b99ec5cb024928a1897edf",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "salaire_religieux_percevoir",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 3068,
+      "md5_source_archivee": "fdadd68a3410ae12830a4a1a7f554666",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "subvention_caisse_crediter",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-1.sql",
+      "ligne": 3233,
+      "md5_source_archivee": "6f03de783a377822fafc5129ef0e78b2",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "subvention_citoyen_verser",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-2.sql",
+      "ligne": 14,
+      "md5_source_archivee": "2b4964d169c516e18d22edfc0d14ed09",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "subvention_proposer",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-2.sql",
+      "ligne": 228,
+      "md5_source_archivee": "5ecb069a6c969a83ec1492e51875a1da",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "taux_imposition_fixer",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-2.sql",
+      "ligne": 483,
+      "md5_source_archivee": "407e477f28f61d6cc223a23a59cb56b6",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "taxe_fonciere_prelever",
+      "source": "baseline/domaines/finances-publiques/20_fonctions-2.sql",
+      "ligne": 559,
+      "md5_source_archivee": "1560180ebacfefcb1c756cf9b03101a2",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "batiment_caisse_mouvement",
+      "source": "baseline/domaines/immobilier-et-territoire/20_fonctions.sql",
+      "ligne": 174,
+      "md5_source_archivee": "bc7211b58b6a22c02f7dd69ecbc45f95",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "eviction_indemniser",
+      "source": "baseline/domaines/immobilier-et-territoire/20_fonctions.sql",
+      "ligne": 581,
+      "md5_source_archivee": "1251a4e8712eeb9d2afbdc2fc0d25115",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "prelever_loyer_bail",
+      "source": "baseline/domaines/immobilier-et-territoire/20_fonctions.sql",
+      "ligne": 683,
+      "md5_source_archivee": "ddd1f687b157f6b88cbd52a033556a2d",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "casier_extrait_enquete",
+      "source": "baseline/domaines/justice/20_fonctions-1.sql",
+      "ligne": 547,
+      "md5_source_archivee": "f0f15e15c2a834082200dc1ae00117c9",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "fraude_electorale_sanctionner",
+      "source": "baseline/domaines/justice/20_fonctions-1.sql",
+      "ligne": 1736,
+      "md5_source_archivee": "ae38dbf1f3853fb62b6641f768c915e4",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "justice_indemnite_naitre",
+      "source": "baseline/domaines/justice/20_fonctions-2.sql",
+      "ligne": 474,
+      "md5_source_archivee": "65e859cd80e5520bf30b96f27147a972",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "justice_indemnites_payer_depuis_finances",
+      "source": "baseline/domaines/justice/20_fonctions-2.sql",
+      "ligne": 544,
+      "md5_source_archivee": "bd7606f3ecd141861dbd3e32a330a8db",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "police_payer_effectifs",
+      "source": "baseline/domaines/justice/20_fonctions-2.sql",
+      "ligne": 2187,
+      "md5_source_archivee": "e2f8315b7b4197c96950db6a1cde6e39",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "qhs_pouvoir",
+      "source": "baseline/domaines/justice/20_fonctions-2.sql",
+      "ligne": 2552,
+      "md5_source_archivee": "805f6ad97d8b848f0b1c98c3d74a1308",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "caserne_reverser_au_ministere",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "ligne": 495,
+      "md5_source_archivee": "5f86e02a1a1296963f7d118c4dd7deea",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "caserne_virement_journalier_fixer",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "ligne": 642,
+      "md5_source_archivee": "8bfa67d2688a6c8d35c9b32648aa5b13",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "effort_produire_lot",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "ligne": 782,
+      "md5_source_archivee": "fb57ce3c07530d4a081c2b69ae87bc57",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "effort_ravitailler",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "ligne": 908,
+      "md5_source_archivee": "d6b74cb7a279ea9b31098b772061ae8b",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "garde_renfort_national",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "ligne": 1083,
+      "md5_source_archivee": "57ec7acd127df96234ea32ae13a7c538",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "garde_republicaine_creer",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "ligne": 1217,
+      "md5_source_archivee": "582539ba108556a93011017c1c8c6057",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "militaire_solde_percevoir",
+      "source": "baseline/domaines/militaire/20_fonctions-3.sql",
+      "ligne": 14,
+      "md5_source_archivee": "c549451741ba498a818fc797f7df6f26",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "cotisation_renouveler",
+      "source": "baseline/domaines/personnage-et-presence/20_fonctions.sql",
+      "ligne": 160,
+      "md5_source_archivee": "067fb32469d8e3679619de2d7f221e7a",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "don_argent_deposer",
+      "source": "baseline/domaines/personnage-et-presence/20_fonctions.sql",
+      "ligne": 292,
+      "md5_source_archivee": "ec8cbf84f0a82678cc21353e4e4602ee",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "personnages_vue_inserer",
+      "source": "baseline/domaines/personnage-et-presence/20_fonctions.sql",
+      "ligne": 1713,
+      "md5_source_archivee": "7e73f05642d493a6d07fa69b68c43a06",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "personnages_vue_modifier",
+      "source": "baseline/domaines/personnage-et-presence/20_fonctions.sql",
+      "ligne": 1772,
+      "md5_source_archivee": "442089ea9dafd4a7f934d92752f30377",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "succession_regler",
+      "source": "baseline/domaines/personnage-et-presence/20_fonctions.sql",
+      "ligne": 2091,
+      "md5_source_archivee": "3da95e25ac0241c7226c8e041834539a",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "syndicat_etudiant_domicilier",
+      "source": "baseline/domaines/personnage-et-presence/20_fonctions.sql",
+      "ligne": 2231,
+      "md5_source_archivee": "cbaf584a0f02a40e7485fa8204ad2348",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "communication_officielle_publier",
+      "source": "baseline/domaines/politique-et-elections/20_fonctions.sql",
+      "ligne": 364,
+      "md5_source_archivee": "f5a4c73e348cf57c63607df6e16bd1fa",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "corruption_presse_tenter",
+      "source": "baseline/domaines/presse/20_fonctions.sql",
+      "ligne": 248,
+      "md5_source_archivee": "f1b042e26cf029e6d7433a898b9040ac",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "imprimerie_cession_finaliser",
+      "source": "baseline/domaines/presse/20_fonctions.sql",
+      "ligne": 485,
+      "md5_source_archivee": "b960c4317c0ad28af187fe08207ad2c2",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "imprimerie_produire_tracts",
+      "source": "baseline/domaines/presse/20_fonctions.sql",
+      "ligne": 569,
+      "md5_source_archivee": "daf547bb0d6f734d560b71aabd81e153",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "scandale_tenter",
+      "source": "baseline/domaines/presse/20_fonctions.sql",
+      "ligne": 1167,
+      "md5_source_archivee": "3ee3445c57f4c97fb373126a7c3cf346",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "agent_coordinateur_port",
+      "source": "baseline/domaines/renseignement/20_fonctions.sql",
+      "ligne": 240,
+      "md5_source_archivee": "4415b54bb81645b6d24bc39ca30ec5ca",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "cellule_renseignement_creer",
+      "source": "baseline/domaines/renseignement/20_fonctions.sql",
+      "ligne": 953,
+      "md5_source_archivee": "deb3d91ec7e118e81ddceb508693146d",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "douane_payer_effectifs",
+      "source": "baseline/domaines/renseignement/20_fonctions.sql",
+      "ligne": 1572,
+      "md5_source_archivee": "6d524dd5fe99c20595a382bfdb38112b",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "mouvement_titulaire",
+      "source": "baseline/domaines/socle/20_fonctions.sql",
+      "ligne": 1252,
+      "md5_source_archivee": "a0d485d025fb28a64326d049170ce4bc",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "pnj_argent_transferer",
+      "source": "baseline/domaines/socle-PNJ/20_fonctions.sql",
+      "ligne": 24,
+      "md5_source_archivee": "4262969b286428c5606b8f2be1995ea2",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "pnj_mourir",
+      "source": "baseline/domaines/socle-PNJ/20_fonctions.sql",
+      "ligne": 1293,
+      "md5_source_archivee": "6ede82e19ada38aebf57cb4e46ca04dd",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "football_pari_engager",
+      "source": "baseline/domaines/sport/20_fonctions.sql",
+      "ligne": 721,
+      "md5_source_archivee": "3646c0b20ac6bb19886baafa8aa5c839",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "football_paris_resoudre",
+      "source": "baseline/domaines/sport/20_fonctions.sql",
+      "ligne": 801,
+      "md5_source_archivee": "a37d0c2247de280332e7529e22ebadaa",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    },
+    {
+      "fonction": "football_primes_match",
+      "source": "baseline/domaines/sport/20_fonctions.sql",
+      "ligne": 915,
+      "md5_source_archivee": "5399e4ba69e4b32fdf8c866034ee08d6",
+      "a_examiner": "contreparties, identite, verrous, reprises, droits et ecrivains JSON/dynamiques"
+    }
+  ],
+  "nombre_points_js": 264,
+  "points_js": [
+    {
+      "source": "api/_bible-militaire.js",
+      "ligne": 313,
+      "texte": "- Aucun arriere de solde : ce qui n'a pas pu etre verse n'est pas reporte."
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 208,
+      "texte": "return await sbUpdate('prets', `id=eq.${encodeURIComponent(id)}`, patch);"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 338,
+      "texte": "await sbUpdate('batiments_etat', `id=eq.${encodeURIComponent(id)}`, { data: JSON.stringify(fusion), updated_at: new Date().toISOString() });"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 340,
+      "texte": "await sbInsert('batiments_etat', { id, country, city, building_id: buildingId, data: JSON.stringify(fusion) });"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 1843,
+      "texte": "const caisse = (caisseRows && caisseRows[0] && caisseRows[0].data) || { solde: 0 };"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 1844,
+      "texte": "caisse.solde = Math.max(0, (Number(caisse.solde) || 0) + npc.montant);"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 1846,
+      "texte": "await sbUpdate('caisses_batiments', `id=eq.${encodeURIComponent(caisseKey)}`, { data: caisse, updated_at: new Date().toISOString() }).catch(() => {});"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 1848,
+      "texte": "await sbInsert('caisses_batiments', { id: caisseKey, data: caisse, updated_at: new Date().toISOString() }).catch(() => {});"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 2036,
+      "texte": "const revendique = await sbUpdate('prets', cibleRevendication,"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 2060,
+      "texte": "// national). Debiter arg seul laissait liquide > arg : le joueur remboursait a l'ecran"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 2063,
+      "texte": "arg: emprunteur.arg - aPayer,"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 2064,
+      "texte": "liquide: Math.max(0, (emprunteur.liquide || 0) - aPayer)"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 2121,
+      "texte": "arg: Math.max(0, (emprunteur.arg || 0) - fraisRappel),"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 2122,
+      "texte": "liquide: Math.max(0, (emprunteur.liquide || 0) - fraisRappel),"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 3559,
+      "texte": "await sbUpdate('batiments_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 4762,
+      "texte": "patch.arg = (perso.arg || 0) - LICENCE_SPORTIVE_MONTANT;"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 5343,
+      "texte": "await sbUpdate('personnages', `name=eq.${encodeURIComponent(inv.joueur)}`, { arg: (demandeur.arg || 0) + montantFinal });"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 5487,
+      "texte": "await sbUpdate('caisses_fret', `id=eq.${encodeURIComponent(c.id)}`, {"
+    },
+    {
+      "source": "api/cron-minuit.js",
+      "ligne": 5516,
+      "texte": "await sbUpdate('caisses_fret', `id=eq.${encodeURIComponent(c.id)}`, {"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 115,
+      "texte": "state.arg = Math.max(0, state.arg - amende);"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 122,
+      "texte": "state.arg = Math.max(0, state.arg - perte);"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 128,
+      "texte": "state.arg = Math.max(0, state.arg - amende);"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 1802,
+      "texte": "state.arg -= cout;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 2699,
+      "texte": "state.arg -= inf.cout;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 2740,
+      "texte": "state.arg -= config.cout;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 3345,
+      "texte": "state.arg = v.arg; state.liquide = v.liquide;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 3347,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 3360,
+      "texte": "state.arg = v.arg; state.liquide = v.liquide; state.pa = v.pa;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 3361,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 3394,
+      "texte": "state.arg = v.arg; state.liquide = v.liquide;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 3395,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6436,
+      "texte": "state.arg = r.arg; state.liquide = r.liquide;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6437,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6566,
+      "texte": "state.arg = rRachat.arg; state.liquide = rRachat.liquide; state.pa = rRachat.pa;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6567,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6654,
+      "texte": "state.arg = Number(rf.arg); state.liquide = Number(rf.liquide);"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6655,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6687,
+      "texte": "r = { ok: true, prix: def.prix, solde: solde };"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6698,
+      "texte": "state.arg = Number(rf2.arg); state.liquide = Number(rf2.liquide);"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6699,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6729,
+      "texte": "state.arg = Number(rf3.arg); state.liquide = Number(rf3.liquide);"
+    },
+    {
+      "source": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 6730,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-assemblee.js",
+      "ligne": 775,
+      "texte": "if (typeof res.liquide === 'number') state.liquide = res.liquide;"
+    },
+    {
+      "source": "plateau-assemblee.js",
+      "ligne": 776,
+      "texte": "if (typeof res.arg === 'number') { state.arg = res.arg; if (state.char) state.char.arg = res.arg; }"
+    },
+    {
+      "source": "plateau-assemblee.js",
+      "ligne": 778,
+      "texte": "state.comptesBancaires.nationale.solde = res.solde_national;"
+    },
+    {
+      "source": "plateau-assemblee.js",
+      "ligne": 1888,
+      "texte": "else state.arg = Math.max(0, (state.arg || 0) - paye);"
+    },
+    {
+      "source": "plateau-chantiers.js",
+      "ligne": 918,
+      "texte": "// A 100 % de progression reelle, le chantier de construction se solde : le batiment existe, le"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 350,
+      "texte": "state.pa = r.pa; state.arg = r.arg; state.liquide = r.liquide;"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 351,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 1564,
+      "texte": "state.arg = (state.arg || 0) + total;"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 1565,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 1656,
+      "texte": "state.arg = Math.max(0, (state.arg || 0) - montant);"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 2835,
+      "texte": "else state.arg = Math.max(0, state.arg - PETITE_ANNONCE_COUT_FR);"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 2873,
+      "texte": "const placementsActifs = (state.placementsBancaires || []).filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 2970,
+      "texte": "state.liquide = Number(v.liquide);"
+    },
+    {
+      "source": "plateau-communication.js",
+      "ligne": 2973,
+      "texte": "{ id: v.compte, solde: Number(v.solde) });"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 457,
+      "texte": "presidence: { solde: 50000, coutOrdre: 500 },"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 458,
+      "texte": "min_int:    { solde: 30000, coutOrdre: 400 },"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 459,
+      "texte": "min_fin:    { solde: 25000, coutOrdre: 300 },"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 460,
+      "texte": "min_just:   { solde: 20000, coutOrdre: 350 },"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 461,
+      "texte": "min_def:    { solde: 40000, coutOrdre: 600 },"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 462,
+      "texte": "min_info:   { solde: 15000, coutOrdre: 250 },"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 463,
+      "texte": "min_ae:     { solde: 20000, coutOrdre: 300 },"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 464,
+      "texte": "assemblee:  { solde: 35000, coutOrdre: 200 },"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 465,
+      "texte": "tribunal:   { solde: 20000, coutOrdre: 400 },"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 466,
+      "texte": "commissariat:{ solde: 25000, coutOrdre: 350 },"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 467,
+      "texte": "mairie:     { solde: 30000, coutOrdre: 250 }"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 551,
+      "texte": "arg: 4250, liquide: 500, banque: 3750,"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 553,
+      "texte": "// (cle = banque : 'nationale'/'helvetia') et placementsBancaires (tableau) sont peuples par"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 810,
+      "texte": "state.char.arg = state.arg || 0;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 1255,
+      "texte": "const ficheMasquee = !!(sbState && sbState.arg === null"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 1256,
+      "texte": "&& sbState.liquide === null"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 1257,
+      "texte": "&& sbState.banque === null);"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 1346,
+      "texte": "// la bonne valeur. Meme remede que pour arg : re-synchroniser char.pa AVANT le second"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 1350,
+      "texte": "state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 1572,
+      "texte": "pa: fiche.pa, arg: fiche.arg, liquide: fiche.liquide,"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 1728,
+      "texte": "state.arg = char.arg ?? 4250;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 1836,
+      "texte": "// Consequence reelle : une depense ou un revenu legacy (ex. state.arg -= 1000 sans toucher aux"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 1865,
+      "texte": "return { liquide, comptes, placements, poches, arg: state.arg || 0, ecart: (state.arg || 0) - poches };"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 1998,
+      "texte": "// reecrire individuellement les ~95 sites qui font encore state.arg -= X en direct dans leur"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2051,
+      "texte": "state.liquide = Number(r.liquide);"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2052,
+      "texte": "state.arg = Number(r.arg);"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2054,
+      "texte": "state.comptesBancaires.nationale.solde = Number(r.solde_national);"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2056,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2069,
+      "texte": "// ce qui empechait d'activer le verrou arg/liquide : un remboursement local serait ecrase, et le"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2087,
+      "texte": "state.liquide = Number(r.liquide);"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2088,
+      "texte": "state.arg = Number(r.arg);"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2089,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2094,
+      "texte": "if (typeof r.arg === 'number') { state.arg = Number(r.arg); if (state.char) state.char.arg = state.arg; }"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2095,
+      "texte": "if (typeof r.liquide === 'number') state.liquide = Number(r.liquide);"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2112,
+      "texte": "state.liquide = (state.liquide || 0) + montant;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2113,
+      "texte": "state.arg = (state.arg || 0) + montant;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2114,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2279,
+      "texte": "if (typeof r.liquide === 'number') state.liquide = r.liquide;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2280,
+      "texte": "if (typeof r.arg === 'number') {"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2281,
+      "texte": "state.arg = r.arg;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2282,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2285,
+      "texte": "state.comptesBancaires.nationale.solde = r.solde_national;"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2400,
+      "texte": "state.arg = Math.max(0, (state.arg || 0) - cost);"
+    },
+    {
+      "source": "plateau-core.js",
+      "ligne": 2536,
+      "texte": "state.char.arg         = state.arg || 0;"
+    },
+    {
+      "source": "plateau-entrepots.js",
+      "ligne": 141,
+      "texte": "caisse: (caisseEnt && typeof caisseEnt.solde === 'number') ? caisseEnt.solde : null,"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 80,
+      "texte": "state.arg -= montant;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 133,
+      "texte": "state.arg += montant; // Rembourser"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 285,
+      "texte": "// deux defauts de son cru : elle creditait le vendeur par `state.arg += prix` -- un credit"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 526,
+      "texte": "if (typeof res.paiement.liquide === 'number') state.liquide = res.paiement.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 527,
+      "texte": "if (typeof res.paiement.arg === 'number') state.arg = res.paiement.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 939,
+      "texte": "b.solde -= montant;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 1229,
+      "texte": "state.arg -= cout;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 1297,
+      "texte": "if (amende > 0) state.arg = Math.max(0, state.arg - amende);"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 2310,
+      "texte": "if (!paiement) state.arg = (state.arg || 0) - cost;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 2328,
+      "texte": "state.arg -= cost;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 2501,
+      "texte": "state.arg = Math.max(0, (state.arg || 0) - 500);"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 2631,
+      "texte": "if (!state.budgets[inst]) state.budgets[inst] = { solde: 10000, coutOrdre: 300 };"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 2647,
+      "texte": "b.solde -= b.coutOrdre;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 2703,
+      "texte": "budgetMairie.solde -= cost;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4236,
+      "texte": "// d'autorite). Avant : le navigateur se debitait lui-meme (state.arg -= montant) PUIS inserait"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4262,
+      "texte": "if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4263,
+      "texte": "if (typeof r.liquide === 'number') state.liquide = r.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4277,
+      "texte": "state.arg -= montant;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4285,
+      "texte": "state.arg += montant;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4404,
+      "texte": "state.arg -= cost;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4417,
+      "texte": "state.arg -= cost;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4429,
+      "texte": "state.arg -= cost;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4481,
+      "texte": "state.arg -= cost;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4516,
+      "texte": "const placementsActifs = (state.placementsBancaires || []).filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4630,
+      "texte": "if (champ === 'arg') state.char.arg = frais.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4659,
+      "texte": "const placementActif = (state.placementsBancaires || []).find(p => p.banque === 'helvetia' && p.statut === 'actif');"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 4991,
+      "texte": "state.arg -= cost;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 5908,
+      "texte": "state.liquide = v.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 5909,
+      "texte": "state.arg = v.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 5910,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 5912,
+      "texte": "state.comptesBancaires.nationale.solde = v.solde_national;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6057,
+      "texte": "else state.arg = (state.arg || 0) + montantPaye;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6179,
+      "texte": "state.arg = v.arg; state.liquide = v.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6180,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6291,
+      "texte": "state.liquide = v.liquide; state.arg = v.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6292,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6294,
+      "texte": "state.comptesBancaires.nationale.solde = v.solde_national;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6363,
+      "texte": "// QUANTITE PRODUITE et SE VERSAIT SON PROPRE SALAIRE (state.arg += c.salairePA), tout en"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6394,
+      "texte": "state.arg = v.arg; state.liquide = v.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6395,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6655,
+      "texte": "state.arg = v.arg; state.liquide = v.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6656,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6912,
+      "texte": "state.liquide = v.liquide; state.arg = v.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6913,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 6915,
+      "texte": "state.comptesBancaires.nationale.solde = v.solde_national;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 7141,
+      "texte": "state.arg = v.arg; state.liquide = v.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 7142,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 7326,
+      "texte": "// AVANT : le proprietaire se debitait lui-meme (state.arg -= indemnite), puis tentait de crediter"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 7356,
+      "texte": "if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 7357,
+      "texte": "if (typeof r.liquide === 'number') state.liquide = r.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 7573,
+      "texte": "state.arg -= lot.loyer;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 7768,
+      "texte": "state.arg = rLancement.arg; state.liquide = rLancement.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 7769,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 7865,
+      "texte": "state.arg = rVersement.arg; state.liquide = rVersement.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 7866,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 8692,
+      "texte": "else state.arg = (state.arg || 0) + montant;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 9322,
+      "texte": "//   - un credit LOCAL        (state.arg += montantVerse), donc non atteste."
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10097,
+      "texte": "const caissePort = await chargerCaisseBatiment('republic', BUILDING_ID_PORT).catch(() => ({ solde: 0 }));"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10277,
+      "texte": "state.liquide = v.liquide; state.arg = v.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10278,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10280,
+      "texte": "state.comptesBancaires.nationale.solde = v.solde_national;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10537,
+      "texte": "const rows = typeof sbInsert === 'function' ? await sbInsert('caisses_fret', caisse).catch(() => null) : null;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10649,
+      "texte": "? await sbInsert('contenu_caisses_fret', {"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10679,
+      "texte": "if (typeof sbUpdate === 'function') await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(nouvelleLigne.id), { quantite: 0 }).catch(() => {});"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10718,
+      "texte": "? await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(contenuId) + '&quantite=eq.' + ligne.quantite, { quantite: 0 }).catch(() => null)"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10737,
+      "texte": "if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { chargeurs_autorises: liste }).catch(() => {});"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10746,
+      "texte": "if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { chargeurs_autorises: liste }).catch(() => {});"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 10954,
+      "texte": "await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(l.id) + '&quantite=eq.' + l.quantite, { quantite: 0 }).catch(() => {});"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11035,
+      "texte": "const maj = typeof sbUpdate === 'function' ? await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId) + '&leader=eq.' + encodeURIComponent(moi) + '&statut=eq.ouverte', {"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11084,
+      "texte": "const maj = await sbUpdate('caisses_fret',"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11231,
+      "texte": "if (typeof rDed.arg === 'number') { state.arg = rDed.arg; if (state.char) state.char.arg = rDed.arg; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11232,
+      "texte": "if (typeof rDed.liquide === 'number') state.liquide = rDed.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11271,
+      "texte": "? await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(contenuId) + '&quantite=eq.' + ligne.quantite, { quantite: nouvelleQte }).catch(() => null)"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11286,
+      "texte": "await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { statut: 'videe' }).catch(() => {});"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11302,
+      "texte": "if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { receptionnaires_autorises: liste }).catch(() => {});"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11311,
+      "texte": "if (typeof sbUpdate === 'function') await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { receptionnaires_autorises: liste }).catch(() => {});"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11380,
+      "texte": "const maj = typeof sbUpdate === 'function' ? await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId) + '&statut=eq.a_vendre', { statut: 'vendue' }).catch(() => null) : null;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11383,
+      "texte": "state.arg -= prix;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11388,
+      "texte": "if (typeof sbUpdate === 'function') await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(l.id), { quantite: 0 }).catch(() => {});"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 11887,
+      "texte": "o.solde = (r && r.ok) ? Number(r.solde || 0) : null;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 12887,
+      "texte": "state.pa = rTravail.pa; state.arg = rTravail.arg; state.liquide = rTravail.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 12888,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13007,
+      "texte": "state.arg = (state.arg || 0) + Number(verdict.montant || 0);"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13253,
+      "texte": "if (typeof sbGetCaisseBatiment !== 'function') return { key, solde: 0 };"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13255,
+      "texte": "return data ? { key, ...data } : { key, solde: 0 };"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13277,
+      "texte": "return (r && r.ok) ? r.solde : null;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13359,
+      "texte": "else state.arg = (state.arg || 0) + montant;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13440,
+      "texte": "state.liquide = r.liquide;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13441,
+      "texte": "state.arg = r.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13442,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13444,
+      "texte": "state.comptesBancaires.nationale.solde = r.solde_national;"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13483,
+      "texte": "if (typeof r.arg === 'number') { state.arg = Number(r.arg); if (state.char) state.char.arg = state.arg; }"
+    },
+    {
+      "source": "plateau-justice-economie.js",
+      "ligne": 13484,
+      "texte": "if (typeof r.liquide === 'number') state.liquide = Number(r.liquide);"
+    },
+    {
+      "source": "plateau-multijoueur.js",
+      "ligne": 62,
+      "texte": "state.arg -= tarif;"
+    },
+    {
+      "source": "plateau-multijoueur.js",
+      "ligne": 965,
+      "texte": "state.arg -= escort.tarif;"
+    },
+    {
+      "source": "plateau-multijoueur.js",
+      "ligne": 1195,
+      "texte": "state.arg -= cout;"
+    },
+    {
+      "source": "plateau-multijoueur.js",
+      "ligne": 1265,
+      "texte": "state.arg -= emp.cout;"
+    },
+    {
+      "source": "plateau-multijoueur.js",
+      "ligne": 1920,
+      "texte": "const bonus = { for: 0, hp: 0, pop: 0, inf: 0, dis: 0, moral: 0, arg: 0 };"
+    },
+    {
+      "source": "plateau-organisations-quetes.js",
+      "ligne": 360,
+      "texte": "state.arg = (state.arg || 0) + montantCompensation;"
+    },
+    {
+      "source": "plateau-organisations-quetes.js",
+      "ligne": 368,
+      "texte": "state.arg = (state.arg || 0) + montantCompensation;"
+    },
+    {
+      "source": "plateau-organisations-quetes.js",
+      "ligne": 374,
+      "texte": "state.arg = (state.arg || 0) + montant;"
+    },
+    {
+      "source": "plateau-organisations-quetes.js",
+      "ligne": 9305,
+      "texte": "if (typeof rPari.arg === 'number') { state.arg = Number(rPari.arg); if (state.char) state.char.arg = state.arg; }"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 410,
+      "texte": "// creation monetaire cliente (state.arg += salaire) sans debiter aucune caisse. Les soldes"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 581,
+      "texte": ": { liquide: state.liquide||0, comptes: totalComptesBancaires(), placements: 0,"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 582,
+      "texte": "poches: (state.liquide||0) + totalComptesBancaires(), arg: state.arg||0, ecart: 0 };"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 758,
+      "texte": "return state.personnageChargeDepuisServeur === true && typeof state.liquide === 'number';"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2200,
+      "texte": "if (typeof rSolde.liquide === 'number') state.liquide = rSolde.liquide;"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2201,
+      "texte": "if (typeof rSolde.arg === 'number') { state.arg = rSolde.arg; if (state.char) state.char.arg = state.arg; }"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2220,
+      "texte": "// CE QUI SE PASSAIT ICI. `state.arg += salaire` avec un montant lu dans SALAIRES[] par le"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2256,
+      "texte": "state.arg = Number(r.arg);"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2257,
+      "texte": "state.liquide = Number(r.liquide);"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2258,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2260,
+      "texte": "if (typeof r.arg === 'number') state.arg = r.arg;"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2261,
+      "texte": "if (typeof r.liquide === 'number') state.liquide = r.liquide;"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2262,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2808,
+      "texte": "state.hp = v.hp; state.pa = v.pa; state.liquide = v.liquide; state.arg = v.arg;"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2809,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2854,
+      "texte": "state.hp = v.hp; state.pa = v.pa; state.liquide = v.liquide; state.arg = v.arg;"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2855,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2899,
+      "texte": "state.arg = v.arg; state.liquide = v.liquide;"
+    },
+    {
+      "source": "plateau-personnage.js",
+      "ligne": 2900,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-pnj.js",
+      "ligne": 2690,
+      "texte": "if (!paiement) state.arg = Math.max(0, (state.arg || 0) - cost);"
+    },
+    {
+      "source": "plateau-pnj.js",
+      "ligne": 2922,
+      "texte": "// exact que l'ancien `state.arg -= cost` qu'elle remplace."
+    },
+    {
+      "source": "plateau-pnj.js",
+      "ligne": 3725,
+      "texte": "state.arg -= montant;"
+    },
+    {
+      "source": "plateau-pnj.js",
+      "ligne": 3945,
+      "texte": "state.arg -= cout;"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 3005,
+      "texte": "state.arg = Number(rSanction.arg_contestataire);"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 3006,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 3107,
+      "texte": "state.arg -= cout;"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 5587,
+      "texte": "state.arg -= cout;"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 6774,
+      "texte": "state.arg -= cout;"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 7498,
+      "texte": "state.arg -= preleve;"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 7661,
+      "texte": "if (idCible === state.char?.name) { state.arg = (state.arg||0) + montantReel; updateUI(); }"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 7814,
+      "texte": "const caisseMinFin = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'gouvernement-min_fin') : { solde: 0 };"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 7859,
+      "texte": "state.arg = (state.arg || 0) + montantVerse;"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 7860,
+      "texte": "if (state.char) state.char.arg = state.arg;"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 9434,
+      "texte": "budgetPresidence.solde -= budgetPresidence.coutOrdre;"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 10217,
+      "texte": "const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, buildingId) : { solde: 0 };"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 12452,
+      "texte": "? await chargerCaisseBatiment(pays, source) : { solde: 0 };"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 12728,
+      "texte": "const caisseCaserne = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, 'caserne-militaire').catch(() => ({ solde: 0 })) : { solde: 0 };"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 13799,
+      "texte": "? await chargerCaisseBatiment(pays, 'caserne-militaire').catch(() => ({ solde: 0 })) : { solde: 0 };"
+    },
+    {
+      "source": "plateau-politique.js",
+      "ligne": 13902,
+      "texte": "+ ' FR (solde : ' + Number(r.solde || 0).toLocaleString('fr-FR') + ' FR).'"
+    },
+    {
+      "source": "plateau-router.js",
+      "ligne": 925,
+      "texte": "if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }"
+    },
+    {
+      "source": "plateau-router.js",
+      "ligne": 926,
+      "texte": "if (typeof r.liquide === 'number') state.liquide = r.liquide;"
+    },
+    {
+      "source": "plateau-router.js",
+      "ligne": 949,
+      "texte": "else state.arg = Math.min(9999999, state.arg + deltaArg);"
+    },
+    {
+      "source": "plateau-router.js",
+      "ligne": 953,
+      "texte": "state.liquide = (state.liquide || 0) - preleveLiquide;"
+    },
+    {
+      "source": "plateau-router.js",
+      "ligne": 954,
+      "texte": "state.arg = Math.min(9999999, Math.max(0, state.arg + deltaArg));"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 513,
+      "texte": "arg:              charState.arg || 0,"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 514,
+      "texte": "liquide:          charState.liquide || 0,"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 515,
+      "texte": "banque:           charState.banque || 0,"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 838,
+      "texte": "arg:           r.arg,"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 839,
+      "texte": "liquide:       r.liquide,"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 840,
+      "texte": "banque:        r.banque,"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 1441,
+      "texte": "//     await sbUpdate('personnages', `name=eq.${nom}`, { arg: argActuel + montant });"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 1483,
+      "texte": "const v = await sbUpdateVerdict('personnages', cible + garde, { arg: Math.round(nouveauSolde) })"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 1497,
+      "texte": "return { ok: true, solde: Math.round(nouveauSolde) };"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 1559,
+      "texte": "if (argActuel < montant) return { ok: false, raison: 'fonds_insuffisants', solde: argActuel };"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 1970,
+      "texte": "arg: state.arg || 0,"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 1971,
+      "texte": "liquide: state.liquide || 0,"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 1972,
+      "texte": "banque: state.banque || 0,"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 2478,
+      "texte": "return sbUpdate('dons_en_attente', `id=eq.${donId}`, { traite: true });"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 5073,
+      "texte": "return await sbInsert('prets', pret);"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 5082,
+      "texte": "return await sbUpdate('prets', `id=eq.${encodeURIComponent(id)}`, patch);"
+    },
+    {
+      "source": "supabase.js",
+      "ligne": 6390,
+      "texte": "// bouton n'est pas un ordre, elle passe par debiter_fonds_ordinaires. Plus aucun `state.arg -=`."
+    }
+  ]
+}

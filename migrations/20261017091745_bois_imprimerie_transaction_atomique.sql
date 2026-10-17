@@ -1,6 +1,17 @@
 -- NON DEPLOYEE. Requiert aussi le contrat inventaire atomique prepare le 16 octobre.
 -- Bois : prix du canon * 1,10, plafond PNJ 10 ; aucune valeur fournie par le vendeur.
 BEGIN;
+DO $definitions_preparees$
+DECLARE r record; p pg_proc%rowtype;
+BEGIN
+ FOR r IN SELECT * FROM (VALUES ('hg_fin_bois_vendre(uuid,text,jsonb)','d50796fc356d27414b67131aa5da8125')) t(signature,empreinte) LOOP
+  SELECT * INTO p FROM pg_proc WHERE oid=to_regprocedure('public.'||r.signature);
+  IF FOUND AND (md5(p.prosrc)<>r.empreinte OR p.proconfig IS DISTINCT FROM ARRAY['search_path=public, pg_temp']) THEN
+   RAISE EXCEPTION 'definition financiere preexistante non examinee : %',r.signature;
+  END IF;
+ END LOOP;
+END;
+$definitions_preparees$;
 DO $preconditions$
 BEGIN
  IF to_regprocedure('public.inventaire_sauver_revision(text,bigint,jsonb)') IS NULL

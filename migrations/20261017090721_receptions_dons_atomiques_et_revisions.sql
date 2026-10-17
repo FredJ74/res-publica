@@ -1,5 +1,18 @@
 -- NON DEPLOYEE. Depend de 20261017090342. Aucun raccordement partiel en production.
 BEGIN;
+DO $definitions_preparees$
+DECLARE r record; p pg_proc%rowtype;
+BEGIN
+ FOR r IN SELECT * FROM (VALUES ('hg_fin_revision()','84136e597ca59fecf0ee6a3ea808b9d6'),
+('hg_fin_etat(text)','564fb7824872946e33f2286a06f64fd7'),
+('hg_fin_dons_recevoir(uuid,text,jsonb)','bda01a34e6a43db3dd1e2803b159bc83')) t(signature,empreinte) LOOP
+  SELECT * INTO p FROM pg_proc WHERE oid=to_regprocedure('public.'||r.signature);
+  IF FOUND AND (md5(p.prosrc)<>r.empreinte OR p.proconfig IS DISTINCT FROM ARRAY['search_path=public, pg_temp']) THEN
+   RAISE EXCEPTION 'definition financiere preexistante non examinee : %',r.signature;
+  END IF;
+ END LOOP;
+END;
+$definitions_preparees$;
 ALTER TABLE public.personnages_donnees ADD COLUMN IF NOT EXISTS revision_financiere bigint NOT NULL DEFAULT 0;
 CREATE OR REPLACE FUNCTION public.hg_fin_revision() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $function$

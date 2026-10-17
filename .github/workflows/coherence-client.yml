@@ -2,7 +2,7 @@ name: Cohérence client et transactions locales
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/reconstruction-finances-atomiques]
   pull_request:
     branches: [main]
 
@@ -31,6 +31,12 @@ jobs:
         run: python3 outils/bancs/banc-achat-commerce-local.py --local-jetable
       - name: Réception atomique sur PostgreSQL local, sans identifiant Supabase
         run: python3 outils/bancs/banc-reception-atomique-local.py --local-jetable
+      - name: Reconstruction financiere sur PostgreSQL local uniquement
+        run: python3 outils/bancs/banc-reconstruction-finances-local.py
+      - name: Contre-epreuves des protections financieres reconstruites
+        run: python3 outils/bancs/contre-epreuves-reconstruction-finances.py
+      - name: Contre-epreuves historiques
+        run: python3 outils/bancs/contre-epreuves-chantier5.py
       - name: Conserver les résultats des bancs
         if: always()
         uses: actions/upload-artifact@v4

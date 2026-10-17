@@ -1,6 +1,18 @@
 -- NON DEPLOYEE. Catalogue vivant et audit des donnees obligatoires avant application.
 -- Montants en FRANCS, jamais *100 ni /100. Aucun arrondi des donnees historiques.
 BEGIN;
+DO $definitions_preparees$
+DECLARE r record; p pg_proc%rowtype;
+BEGIN
+ FOR r IN SELECT * FROM (VALUES ('hg_fr_lire(jsonb)','f9e4cc564ef65fe4154aa66f340af0f1'),
+('hg_fr_texte(numeric)','4fbe7b3cbb99dfb09c933d2231ddd63e')) t(signature,empreinte) LOOP
+  SELECT * INTO p FROM pg_proc WHERE oid=to_regprocedure('public.'||r.signature);
+  IF FOUND AND (md5(p.prosrc)<>r.empreinte OR p.proconfig IS DISTINCT FROM ARRAY['search_path=public, pg_temp']) THEN
+   RAISE EXCEPTION 'definition financiere preexistante non examinee : %',r.signature;
+  END IF;
+ END LOOP;
+END;
+$definitions_preparees$;
 DO $garde$
 BEGIN
  IF EXISTS (SELECT 1 FROM pg_event_trigger WHERE evtenabled <> 'D') THEN
