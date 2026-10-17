@@ -81,7 +81,10 @@ BEGIN
  END LOOP;
  -- Allocation historique conservee : la reception ancienne incrementait arg seul.
  UPDATE public.personnages_donnees SET arg=coalesce(arg,0)+v_total WHERE name=p_personnage AND v_total<>0;
- v_corps:=v_corps;
+ IF (SELECT arg FROM public.personnages_donnees WHERE name=p_personnage)
+  IS DISTINCT FROM coalesce((v_etat->>'arg')::numeric,0)+v_total THEN
+  RAISE EXCEPTION 'don_credit_non_applique';
+ END IF;
  INSERT INTO public.hg_fin_requetes(utilisateur,requete,personnage,corps,resultat)
  VALUES(auth.uid(),p_requete,p_personnage,v_corps,jsonb_build_object('montant',public.hg_fr_texte(v_total),'nombre',v_nombre));
  RETURN jsonb_build_object('ok',true,'resultat',jsonb_build_object('montant',public.hg_fr_texte(v_total),'nombre',v_nombre),

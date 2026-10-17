@@ -296,6 +296,55 @@ with tempfile.TemporaryDirectory(prefix='hg-finances-') as tmp:
     assert scalar("SELECT bio FROM personnages_donnees WHERE name='Alice'")=='profil valide'
     assert scalar('SELECT count(*) FROM hg_fin_actes_en_cours')==0
     ok('sauvegarde : credit serveur preserve, profil autorise, marqueur et GUC non falsifiables')
+    q.execute(table('objets_recus'));q.execute(table('batiments_etat'));q.execute(table('ressources_economie'))
+    q.execute('ALTER TABLE objets_recus ENABLE ROW LEVEL SECURITY; ALTER TABLE objets_recus ADD PRIMARY KEY(id); CREATE UNIQUE INDEX fixture_personnage_nom ON personnages_donnees(name)')
+    q.execute(fonction('tracts_reclamer_don'))
+    q.execute((ROOT/'migrations/20261016131932_reception_objets_atomique.sql').read_text())
+    for n in ['mon_personnage','batiment_caisse_mouvement','batiment_etat_lire']:q.execute(fonction(n))
+    q.execute("INSERT INTO ressources_economie(cle,prix_base) VALUES('bois',5)")
+    q.execute("INSERT INTO batiments_etat(id,country,city,building_id,data) VALUES('republic_capitale_la-tribune','republic','capitale','la-tribune','{\"imprimerie\":{\"stockBois\":0,\"caisse\":100}}')")
+    q.execute("UPDATE personnages_donnees SET current_city='capitale',current_building='la-tribune',current_room='accueil_tribune',inventory='[{\"stackKey\":\"bois\",\"qty\":20}]',arg=0,liquide=0 WHERE name='Alice'")
+    bois=(ROOT/'migrations/20261017091745_bois_imprimerie_transaction_atomique.sql').read_text()
+    q.execute(bois);q.execute(bois)
+    def vendre(qte,key):
+        return scalar('SELECT hg_fin_bois_vendre(%s::uuid,%s,%s::jsonb)',(f'00000000-0000-0000-0000-{key:012d}','Alice',json.dumps(qte)))
+    auth();q.execute("SELECT set_config('request.path','/rpc/hg_fin_bois_vendre',false)")
+    r=vendre(3,200);assert r['resultat']=={'quantite':3,'montant':'16.50','prix_unitaire':'5.50'}
+    assert r['etat']['liquide']=='16.50' and r['inventory'][0]['qty']==17
+    assert vendre(3,200)['rejeu']
+    q.execute('RESET ROLE')
+    d=scalar("SELECT batiment_etat_lire(data) FROM batiments_etat")['imprimerie']
+    assert d=={'stockBois':3,'caisse':83.5},d
+    ok('bois : 3 unites a 5.50 FR, inventaire/stock/caisse/credit et recu atomiques')
+    auth();r=vendre(17,201);assert r['resultat']['quantite']==7 and r['resultat']['montant']=='38.50'
+    assert r['inventory'][0]['qty']==10
+    q.execute('RESET ROLE');d=scalar("SELECT batiment_etat_lire(data) FROM batiments_etat")['imprimerie']
+    assert d=={'stockBois':10,'caisse':45},d
+    auth()
+    try:vendre(1,202)
+    except psycopg2.Error as e:assert 'capacite_insuffisante' in str(e)
+    else:raise AssertionError('depassement plafond bois')
+    q.execute('RESET ROLE');ok('bois : vente partielle historique conservee et plafond PNJ infranchissable')
+    q.execute("UPDATE batiments_etat SET data='{\"imprimerie\":{\"stockBois\":0,\"caisse\":100}}'")
+    q.execute("CREATE FUNCTION fixture_bois_fail() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN IF NEW.arg<>OLD.arg THEN RAISE EXCEPTION 'panne_credit_bois'; END IF; RETURN NEW; END$$; CREATE TRIGGER fixture_bois_fail BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION fixture_bois_fail()")
+    auth()
+    try:vendre(1,203)
+    except psycopg2.Error as e:assert 'panne_credit_bois' in str(e),str(e)
+    else:raise AssertionError('panne bois non injectee')
+    q.execute('RESET ROLE');assert scalar("SELECT inventory->0->>'qty' FROM personnages_donnees WHERE name='Alice'")=='10'
+    assert scalar("SELECT batiment_etat_lire(data)->'imprimerie'->>'caisse' FROM batiments_etat")=='100'
+    assert scalar("SELECT count(*) FROM hg_fin_requetes WHERE requete='00000000-0000-0000-0000-000000000203'")==0
+    q.execute('DROP TRIGGER fixture_bois_fail ON personnages_donnees')
+    ok('bois : panne au credit apres caisse et retrait inventaire annule toutes les contreparties')
+    auth()
+    try:vendre(1.5,204)
+    except psycopg2.Error:pass
+    else:raise AssertionError('quantite bois fractionnaire acceptee')
+    q.execute('RESET ROLE');q.execute("UPDATE personnages_donnees SET current_room='redaction' WHERE name='Alice'");auth()
+    try:vendre(1,204)
+    except psycopg2.Error as e:assert e.pgcode=='42501'
+    else:raise AssertionError('vente bois hors atelier')
+    q.execute('RESET ROLE');ok('bois : quantites entieres et presence reelle obligatoire')
     print(f'{groups}/{groups} groupes PostgreSQL reussis')
     cn.close()
     server.cleanup()

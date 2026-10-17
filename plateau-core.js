@@ -1803,7 +1803,7 @@ function applyCharToState(char) {
 
   const cur = co?.cur || 'FR';
   const argEl = document.getElementById('r-arg');
-  if (argEl) argEl.textContent = state.arg.toLocaleString('fr-FR') + ' ' + cur;
+  if (argEl) argEl.textContent = (state.liquide ?? 0).toLocaleString('fr-FR') + ' ' + cur;
 }
 
 // =====================
@@ -2546,7 +2546,7 @@ function updateUI() {
   }
   document.getElementById('r-pa').textContent   = TEST_MODE ? '∞' : state.pa;
   document.getElementById('b-pa').style.width   = TEST_MODE ? '100%' : (Math.min(state.pa, PA_MAX) / PA_MAX * 100) + '%';
-  document.getElementById('r-arg').textContent  = state.arg.toLocaleString('fr-FR') + ' ' + cur;
+  document.getElementById('r-arg').textContent  = (state.liquide ?? 0).toLocaleString('fr-FR') + ' ' + cur;
   document.getElementById('r-inf').textContent  = state.inf;
   document.getElementById('b-inf').style.width  = state.inf + '%';
   document.getElementById('r-pop').textContent  = state.pop;
