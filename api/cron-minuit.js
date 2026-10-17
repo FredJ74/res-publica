@@ -732,7 +732,7 @@ async function purgerVieuxMails() {
 //    plutot que d'inventer une echeance.
 // Il n'arrive jamais AVANT le client : il libere a la duree reelle, que le client, lui, peut
 // atteindre plus tot en jouant. C'est un filet, pas une autorite concurrente.
-const MS_PAR_JOUR_DETENTION = 24 * 60 * 60 * 1000;
+// Les peines sont désormais comparées par dates civiles Europe/Paris.
 
 function lireJsonPersonnageServeur(valeur) {
   if (!valeur) return null;
@@ -768,8 +768,11 @@ async function libererDetentionsEchuesServeur() {
       continue;
     }
 
-    const echeance = debutTs + jours * MS_PAR_JOUR_DETENTION;
-    if (maintenant < echeance) continue;
+    // La peine est un nombre de passages de minuit communs, pas une duree glissante.
+    // La date d'ancrage est celle de debutTs, en Europe/Paris, quelle que soit la ville.
+    const jourDebut = jourParisISO(new Date(debutTs));
+    const jourFin = decalerJourISO(jourDebut, Math.ceil(jours));
+    if (jourParisISO(new Date(maintenant)) < jourFin) continue;
 
     // Une AUTRE ligne de detention encore ouverte veut dire que ce detenu doit rester detenu pour
     // un motif que cette peine-ci ne couvre pas. On ne libere pas : on signale.
