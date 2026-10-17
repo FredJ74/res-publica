@@ -12727,12 +12727,10 @@ async function conclureArrestationJudiciaire() {
     const nomVille = (typeof WORLD !== 'undefined' && WORLD[state.country]?.[i.ville]?.name) || i.ville;
     addJournalEntry('Vous êtes arrêté(e) et conduit(e) à la prison de ' + nomVille + '.', 'event-bad');
     addExternalEvent(state.char.name + ' a été arrêté(e) après une interception policière.', 'local');
-    const cellule = typeof getBuildingIdCommissariatNavigation === 'function' ? getBuildingIdCommissariatNavigation(i.ville) : 'commissariat';
-    state.currentBuilding = cellule;
-    state.currentRoom = cellule === 'commissariat' ? 'prison' : 'geoles';
-    if (typeof enterBuilding === 'function') {
-      enterBuilding(state.currentBuilding, true);
-      if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, state.currentRoom, null);
+    // Utiliser le transport carcéral commun : il connaît les cellules de chaque ville.
+    // Le trajet manuel commissariat/prison était incorrect hors de Luthécia.
+    if (state.estEmprisonne && typeof teleporterVersCellule === 'function') {
+      teleporterVersCellule(state.estEmprisonne);
     }
     if (typeof updateUI === 'function') updateUI();
     if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
@@ -12750,7 +12748,7 @@ async function choisirInterceptionJudiciaire(choix) {
   if (!i || interceptionJudiciaireOccupee) return;
   if (choix === 'rendre') { await conclureArrestationJudiciaire(); return; }
   if (choix === 'fuir' && !i.fuiteEchouee) {
-    const vol = Number(state.char?.stats?.VOL ?? 13);
+    const vol = getStatEffective('VOL');
     const adversaire = calculerVolGroupePolice(i.policiers);
     const reussite = Math.floor(Math.random()*100)+1 <= calculerChancePJ(vol + calculerDisEffective()/2, adversaire);
     if (!reussite) { i.fuiteEchouee = true; afficherInterceptionJudiciaire(); return; }
@@ -12786,7 +12784,7 @@ async function choisirInterceptionJudiciaire(choix) {
     const adversaires = i.policiers;
     const paPJ = Math.max(0,Number(state.pa||0));
     if (!paPJ) { interceptionJudiciaireOccupee = false; await conclureArrestationJudiciaire(); return; }
-    const volPJ = Number(state.char?.stats?.VOL ?? 13);
+    const volPJ = getStatEffective('VOL');
     const volPolice = calculerVolGroupePolice(adversaires);
     // Même graduation de dommages que le moteur militaire : critique 100 %, partielle
     // 75/50 %, échec 0 %. Aucun point de vie n'intervient dans l'arrestation.
