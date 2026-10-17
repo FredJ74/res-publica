@@ -163,23 +163,98 @@ const CLUBS_SPORTIFS = [
 
 // Duplique de RESSOURCES_ECONOMIE (data.js, plafond+prixBase seulement) et de sa formule
 // getPrixRessource (data.js:5825) -- stock eleve = prix bas, stock faible = prix haut.
+// Projection du canon data.js, controlee par verifier-referentiels.py.
 const RESSOURCES_ECONOMIE = {
-  cereales:    { plafond: 150, prixBase: 1.5 },
-  poisson:     { plafond: 125, prixBase: 2 },
-  viande:      { plafond: 125, prixBase: 2.5 },
-  bois:        { plafond: 750, prixBase: 2.5 },
-  charbon:     { plafond: 400, prixBase: 3.5 },
-  petrole:     { plafond: 200, prixBase: 4 },
-  minerai:     { plafond: 500, prixBase: 5 },
-  metal:       { plafond: 200, prixBase: 7.5 },
-  plantes:     { plafond: 300, prixBase: 3 },
-  fruits_legumes:     { plafond: 150, prixBase: 2 },
-  produits_exotiques: { plafond: 125, prixBase: 3 },
-  medicaments: { plafond: 100, prixBase: 11 },
-  alcool:      { plafond: 100, prixBase: 7 },
-  tabac:       { plafond: 100, prixBase: 9 },
-  carburant:   { plafond: 100, prixBase: 10 },
-  desinfectant: { plafond: 100, prixBase: 9 }
+  "cereales": {
+    "plafond": 150,
+    "prixBase": 3,
+    "prixAchatFournisseur": 1.5
+  },
+  "laitages": {
+    "plafond": 150,
+    "prixBase": 3,
+    "prixAchatFournisseur": 1.5
+  },
+  "poisson": {
+    "plafond": 125,
+    "prixBase": 4,
+    "prixAchatFournisseur": 2
+  },
+  "viande": {
+    "plafond": 125,
+    "prixBase": 5,
+    "prixAchatFournisseur": 2.5
+  },
+  "bois": {
+    "plafond": 750,
+    "prixBase": 5,
+    "prixAchatFournisseur": 2.5
+  },
+  "charbon": {
+    "plafond": 400,
+    "prixBase": 7,
+    "prixAchatFournisseur": 3.5
+  },
+  "petrole": {
+    "plafond": 200,
+    "prixBase": 8,
+    "prixAchatFournisseur": 4
+  },
+  "minerai": {
+    "plafond": 500,
+    "prixBase": 10,
+    "prixAchatFournisseur": 5
+  },
+  "metal": {
+    "plafond": 200,
+    "prixBase": 15,
+    "prixAchatFournisseur": 7.5
+  },
+  "plantes": {
+    "plafond": 300,
+    "prixBase": 6,
+    "prixAchatFournisseur": 3
+  },
+  "fruits_legumes": {
+    "plafond": 150,
+    "prixBase": 4,
+    "prixAchatFournisseur": 2
+  },
+  "produits_exotiques": {
+    "plafond": 125,
+    "prixBase": 6,
+    "prixAchatFournisseur": 3
+  },
+  "textile": {
+    "plafond": 125,
+    "prixBase": 5,
+    "prixAchatFournisseur": 2.5
+  },
+  "medicaments": {
+    "plafond": 100,
+    "prixBase": 22,
+    "prixAchatFournisseur": 11
+  },
+  "alcool": {
+    "plafond": 100,
+    "prixBase": 14,
+    "prixAchatFournisseur": 7
+  },
+  "tabac": {
+    "plafond": 100,
+    "prixBase": 18,
+    "prixAchatFournisseur": 9
+  },
+  "carburant": {
+    "plafond": 100,
+    "prixBase": 20,
+    "prixAchatFournisseur": 10
+  },
+  "desinfectant": {
+    "plafond": 100,
+    "prixBase": 18,
+    "prixAchatFournisseur": 9
+  }
 };
 
 function getPrixRessource(cle, quantiteEnStock) {

@@ -18,7 +18,7 @@
    ]
   },
   "ressources_economie": {
-   "_role": "les 17 matieres et leurs prix",
+   "_role": "les 18 matieres et leurs prix",
    "canon": {
     "fichier": "data.js",
     "expression": "RESSOURCES_ECONOMIE"
@@ -260,13 +260,7 @@
   }
  },
  "_divergences": "Les divergences DEJA constatees par l'audit 4A sont declarees ici avec le lot qui les ferme. Le controle les rapporte sans echouer -- sinon il serait rouge le jour de sa naissance et ne pourrait pas etre fusionne. Il echoue en revanche sur toute divergence NON declaree, et aussi sur une divergence declaree qui aurait disparu : c'est ce second refus qui empeche la liste de pourrir. Meme mecanique que en_attente_d_application dans autorite.json, et c'est elle qui a trouve le GRANT a PUBLIC oublie au chantier 3.",
- "divergences_connues": {
-  "ressources_economie/api/_journal-collecte.js": {
-   "constat": "prixBase vaut prixAchatFournisseur, soit la moitie de la vraie valeur, sur les 16 entrees ; textile absent. Bug documente dans api/cron-minuit.js:2484 et non corrige.",
-   "ferme_par": "lot 4D",
-   "arbitrage_requis": "corriger double les prix publies par le Journal depuis des semaines"
-  }
- },
+ "divergences_connues": {},
  "_copies_generees": "Cinq copies ne sont plus ressaisies a la main : elles vivent dans api/_referentiels-generes.js, produit par outils/generateurs/generer_referentiels_serveur.py. Cet axe continue de les comparer a data.js -- un artefact genere qu'on ne verifierait plus parce qu'il est genere serait exactement l'angle mort qu'on vient de fermer ailleurs. Le TROISIEME axe verifie en plus que l'artefact du disque est bien ce que rend le generateur.",
  "_referentiels_supprimes": {
   "_commentaire": "Referentiels RETIRES de ce controle parce que leur canon n'existe plus. On les garde nommes ici plutot que de les effacer : un controle qui perd une ligne sans dire pourquoi laisse croire qu'elle n'a jamais existe.",
