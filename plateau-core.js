@@ -897,8 +897,23 @@ window.addEventListener('DOMContentLoaded', () => {
     catch (e) { console.warn('[Football live] Tick indisponible', e); }
     finally { footballLiveEnCours = false; }
   }
-  setTimeout(tickFootballSansChevauchement, 500);
-  setInterval(tickFootballSansChevauchement, 20000);
+  // Le direct sportif n'existe que le dimanche soir (heure Europe/Paris).
+  // Fenetre volontairement large : avant-match, 30 min de phases, et retard raisonnable.
+  // Hors fenetre, le tick saisonnier (5 min) garde la reprise des journees en retard.
+  function estFenetreFootballLive(date = new Date()) {
+    const parties = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Paris', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    }).formatToParts(date);
+    const valeur = type => parties.find(p => p.type === type)?.value;
+    const minute = Number(valeur('hour')) * 60 + Number(valeur('minute'));
+    return valeur('weekday') === 'Sun' && minute >= 19 * 60 + 45 && minute <= 21 * 60;
+  }
+  async function tickFootballSelonCalendrier() {
+    if (!estFenetreFootballLive()) return;
+    await tickFootballSansChevauchement();
+  }
+  setTimeout(tickFootballSelonCalendrier, 500);
+  setInterval(tickFootballSelonCalendrier, 20000);
   setTimeout(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 3000);
   setInterval(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 300000);
 
