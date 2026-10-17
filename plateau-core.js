@@ -880,18 +880,18 @@ window.addEventListener('DOMContentLoaded', () => {
     catch (e) { console.warn('[Championnat] Verification indisponible', e); }
     finally { verificationSaisonEnCours = false; }
   }
-  // En semaine, une verification horaire suffit pour l'initialisation, les transitions
-  // et la reprise apres incident. Le dimanche, cadence historique de 5 min conservee.
-  // L'ouverture manuelle du championnat continue de forcer une lecture fraiche.
+  // Le calendrier sportif est une échéance, pas un traitement de fond permanent.
+  // Une passe au chargement puis une passe quotidienne de secours assurent
+  // l'initialisation et la reprise, y compris après un dimanche sans joueurs.
+  // Le dimanche soir, conserver la cadence de 5 minutes pour les transitions.
   function estDimancheParis(date = new Date()) {
     return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', weekday: 'short' }).format(date) === 'Sun';
   }
   let derniereVerificationSaisonMs = 0;
   async function verifierSaisonSelonCalendrier() {
     const maintenant = Date.now();
-    const delai = estDimancheParis() ? 300000 : 3600000;
-    if (maintenant - derniereVerificationSaisonMs < delai) return;
-    if (verificationSaisonEnCours) return;
+    const delai = estDimancheParis() ? 300000 : 86400000;
+    if (maintenant - derniereVerificationSaisonMs < delai || verificationSaisonEnCours) return;
     derniereVerificationSaisonMs = maintenant;
     await verifierSaisonSansChevauchement();
   }
