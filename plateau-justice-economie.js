@@ -12790,10 +12790,18 @@ async function choisirInterceptionJudiciaire(choix) {
   if (!i || interceptionJudiciaireOccupee) return;
   if (choix === 'rendre') { await conclureArrestationJudiciaire(); return; }
   if (choix === 'fuir' && !i.fuiteEchouee) {
-    const vol = getStatEffective('VOL');
-    const adversaire = calculerVolGroupePolice(i.policiers);
-    const reussite = Math.floor(Math.random()*100)+1 <= calculerChancePJ(vol + calculerDisEffective()/2, adversaire);
-    if (!reussite) { i.fuiteEchouee = true; afficherInterceptionJudiciaire(); return; }
+    if (typeof sbRpc !== 'function' || !i.rencontreId) return;
+    interceptionJudiciaireOccupee = true;
+    let fuite;
+    try {
+      fuite = await sbRpc('police_fuite_resoudre', {p_rencontre:i.rencontreId})
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    } finally { interceptionJudiciaireOccupee = false; }
+    if (!fuite || fuite.ok !== true) {
+      showToast('Fuite indisponible', fuite?.raison || 'Réponse serveur absente.', false);
+      return;
+    }
+    if (!fuite.reussite) { i.fuiteEchouee = true; afficherInterceptionJudiciaire(); return; }
     // Un succès impose un déplacement physique. Si aucune destination valide n'existe,
     // l'interception reste ouverte ; une simple fermeture de fenêtre n'est pas une fuite.
     if (i.rueNoeudId) {
