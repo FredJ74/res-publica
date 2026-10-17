@@ -111,7 +111,7 @@ BEGIN
  END LOOP;
  v_police := jsonb_set(v_police,'{policiers}',v_modifie,true);
  v_etat := jsonb_set(v_etat,'{effectifsPolice}',v_police,true);
- UPDATE public.batiments_etat SET data=v_etat::text,updated_at=now()
+ UPDATE public.batiments_etat SET data=v_etat,updated_at=now()
  WHERE id=v_bat.id;
  UPDATE public.personnages_donnees SET pa=v_pj_pa WHERE id=v_pj.id;
  SELECT count(*) INTO v_recherches FROM jsonb_array_elements(v_actifs) x
