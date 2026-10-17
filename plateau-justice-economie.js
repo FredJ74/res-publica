@@ -12859,7 +12859,7 @@ async function verifierArrestationRecherchePolice(options = {}) {
   const rechercheRows = await sbRpc('justice_recherches', { p_nom: state.char.name }).catch(() => null);
   if (!Array.isArray(rechercheRows)) return false; // panne serveur : ne pas inventer une absence de recherche
   const rechercheActuelle = rechercheRows.map(function (r) {
-    return Object.assign({}, r.data || {}, { id: r.id, country: r.country,
+    return Object.assign({}, r.data || {}, { id: r.id, type: 'condamnation', country: r.country,
                                              ville_condamnation: r.ville_condamnation });
   });
   const eligible = rechercheActuelle.find(r => r.type === 'condamnation' && (!r.country || r.country === state.country));
