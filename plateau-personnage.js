@@ -2330,8 +2330,7 @@ async function doDormir() {
   // collecterRevenusConstructions, awaited sans .catch -- les autres etaient deja proteges ou
   // purement synchrones, mais tout aussi capables de faire avorter la fonction si l'un d'eux
   // levait une exception) faisait avorter doDormir() AVANT le sbSavePersonnage final plus bas :
-  // dernierDormir (deja marque et persiste independamment en localStorage des la ligne ~1583,
-  // BIEN avant ce bloc) restait alors correct, mais l'entree de journal "Vous dormez..." ajoutee
+  // Le repos etait deja valide atomiquement par la RPC serveur, mais l'entree de journal "Vous dormez..." ajoutee
   // juste au-dessus (en memoire uniquement a ce stade) n'atteignait jamais Supabase -- observe en
   // production comme "deja dormi" au prochain essai, sans aucune entree de sommeil correspondante
   // dans le journal apres un rafraichissement. Ce bloc garantit desormais que la fonction atteint
@@ -2411,15 +2410,15 @@ async function doDormir() {
   switchSelfTab('actions', null);
 
   // Sauvegarde Supabase immediate et bloquante (contourne le debounce de 3s de
-  // sbAutoSave) : le sommeil touche l'argent et les verrous anti-double-salaire
-  // (dernierDormir/salaireTouche), donc on ecrit tout de suite sur Supabase avant
+  // sbAutoSave) : le sommeil touche le journal et les effets secondaires.
+  // La garde anti-double-repos est exclusivement serveur, donc on ecrit tout de suite avant
   // qu'un rafraichissement ou changement d'appareil ne puisse survenir entre-temps. Protege par
   // le meme correctif atomicite : un echec reseau ici ne doit pas non plus faire perdre le
   // constat que le sommeil a bien eu lieu.
   try {
     if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state);
   } catch (e) {
-    console.warn('doDormir: echec de la sauvegarde Supabase finale (dernierDormir/journal restent corrects localement, seront re-synchronises a la prochaine sauvegarde reussie)', e);
+    console.warn('doDormir: echec de la sauvegarde Supabase finale (repos deja valide par le serveur ; journal local a resynchroniser)', e);
   }
 
   return retourActif();
