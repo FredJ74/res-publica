@@ -2815,7 +2815,7 @@ async function doSoinPublic(pa, cost) {
   state.hp = v.hp; state.pa = v.pa; state.liquide = v.liquide; state.arg = v.arg;
   if (state.char) state.char.arg = state.arg;
   if (!state.char.stats) state.char.stats = {};
-  state.char.stats.soinPublicJour = state.day || 1;
+  state.char.stats.soinPublicJour = dateCivileParisMedicale();
   updateUI();
   const phrase = PHRASES_INFIRMIERE_SOIN_PUBLIC[Math.floor(Math.random() * PHRASES_INFIRMIERE_SOIN_PUBLIC.length)];
   showToast('Soins reçus', '+' + v.gain_hp + ' Santé, +' + v.gain_pa + ' PA. « ' + phrase + ' »', true, true);
@@ -2861,7 +2861,7 @@ async function doSoinCliniquePrivee(pa, cost) {
   state.hp = v.hp; state.pa = v.pa; state.liquide = v.liquide; state.arg = v.arg;
   if (state.char) state.char.arg = state.arg;
   if (!state.char.stats) state.char.stats = {};
-  state.char.stats.soinCliniqueJour = state.day || 1;
+  state.char.stats.soinCliniqueJour = dateCivileParisMedicale();
   updateUI();
   const phraseSophie = PHRASES_SOPHIE_STIQUAY_SOIN_CLINIQUE[Math.floor(Math.random() * PHRASES_SOPHIE_STIQUAY_SOIN_CLINIQUE.length)];
   showToast('Soins reçus', '+' + v.gain_hp + ' Santé, +' + v.gain_pa + ' PA. « ' + phraseSophie + ' »', true, true);
