@@ -1982,7 +1982,7 @@ async function confirmerDivorce(pa, cost) {
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2, '0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : dateCivileParisMedicale() + ' · ' + h + 'h';
     sbSendMail(nom, conjoint, 'Divorce', nom + ' a demandé le divorce devant notaire. Votre mariage est désormais dissous.', time).catch(() => {});
   }
 }
@@ -2517,7 +2517,7 @@ async function doTransfertCliniquePrivee(pa, cost) {
       city: 'capitale',
       country: state.country || 'republic',
       locataire: patient,
-      depuis: state.day || 1,
+      depuis: dateCivileParisMedicale(),
       visible: true,
       prix: 0,
       chambreClinique: true,
@@ -3762,7 +3762,7 @@ async function donnerObjetAJoueur(idx) {
   // Notifier le destinataire par mail reel
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : dateCivileParisMedicale() + ' · ' + h + 'h';
     sbSendMail(state.char?.name || 'Anonyme', cible, 'Objet reçu',
       (state.char?.name || 'Quelqu\'un') + ' vous a remis : "' + item.name + '". ' + (item.desc || ''), time).catch(() => {});
   }
