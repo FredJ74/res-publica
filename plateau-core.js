@@ -1138,7 +1138,7 @@ function rpOublierIdentiteCourante() {
   // Le verrou de sommeil et le jour de jeu appartiennent au personnage, pas a la session.
   // Ne jamais conserver ceux du compte precedent lors d'un changement d'identite.
   state.dernierDormir = 0;
-  state.day = 1;
+  // Aucun jour personnel à réinitialiser.
   // Le repli est a un coup par chargement de page : un changement de compte le rearme, sans
   // quoi la bascule vers le nouveau compte ne se ferait pas.
   REPLI_COMPTE_TENTE = false;
@@ -2921,7 +2921,7 @@ function addJournalEntry(text, cls) {
   // defaut faute d'etre resynchronisee vers state.char avant sauvegarde).
   if (state.char) {
     if (!Array.isArray(state.char.journal)) state.char.journal = [];
-    state.char.journal.unshift({ day: state.day, hour: state.hour, text, cls: cls || '', ts });
+    state.char.journal.unshift({ date: jourPartageISO(), hour: state.hour, text, cls: cls || '', ts });
     if (state.char.journal.length > 120) state.char.journal.length = 120;
   }
 
