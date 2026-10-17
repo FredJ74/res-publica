@@ -1151,9 +1151,10 @@ async function confirmerSeJustifier(pa, cost) {
 //      une sanction par convocation, jamais moins (§41).
 function traiterConvocations() {
   if (!state.convocations) return;
-  const echue = (typeof assembleeConvocationEchue === 'function')
-    ? state.convocations.find(c => assembleeConvocationEchue(c))
-    : state.convocations.find(c => !c.traitee && state.day > c.jourLimite);
+  // Sans la fonction canonique de calcul d'echeance, ne jamais condamner
+  // sur la base d'un ancien compteur personnel devenu obsolète.
+  if (typeof assembleeConvocationEchue !== 'function') return;
+  const echue = state.convocations.find(c => assembleeConvocationEchue(c));
   if (!echue) return;
 
   echue.traitee = true;
