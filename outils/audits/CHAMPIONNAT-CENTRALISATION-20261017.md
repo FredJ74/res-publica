@@ -24,3 +24,10 @@
 - PostgreSQL reste intermittent : pas de migration ni de bascule de production avant accès fiable et tests réels.
 
 **Statut : préparation technique uniquement. Aucune fonctionnalité de production modifiée.**
+
+## Arbitrage utilisateur confirmé le 17/10/2026
+- Le championnat est inactif en semaine ; échéance le dimanche vers 20 h, heure française (horaire exact à confirmer dans le code).
+- **Conserver intégralement le déroulement existant de 30 minutes** : échauffement 5 minutes, première mi-temps 10 minutes, pause 5 minutes, seconde mi-temps 10 minutes.
+- L'animation visuelle des matchs reste **hors périmètre**, à reprendre seulement lorsque le jeu sera entièrement codé.
+- Ne pas remplacer le live par un calcul instantané ; préserver les résultats, classements, indices et phases finales.
+- Point de vigilance technique : le code comporte un rattrapage automatique si personne n'était connecté pendant les 30 minutes ; le moteur serveur devra préserver une reprise sûre après panne, sans simuler une semaine entière.
