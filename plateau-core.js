@@ -880,8 +880,23 @@ window.addEventListener('DOMContentLoaded', () => {
     catch (e) { console.warn('[Championnat] Verification indisponible', e); }
     finally { verificationSaisonEnCours = false; }
   }
-  setTimeout(verifierSaisonSansChevauchement, 2500);
-  setInterval(verifierSaisonSansChevauchement, 300000);
+  // En semaine, une verification horaire suffit pour l'initialisation, les transitions
+  // et la reprise apres incident. Le dimanche, cadence historique de 5 min conservee.
+  // L'ouverture manuelle du championnat continue de forcer une lecture fraiche.
+  function estDimancheParis(date = new Date()) {
+    return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', weekday: 'short' }).format(date) === 'Sun';
+  }
+  let derniereVerificationSaisonMs = 0;
+  async function verifierSaisonSelonCalendrier() {
+    const maintenant = Date.now();
+    const delai = estDimancheParis() ? 300000 : 3600000;
+    if (maintenant - derniereVerificationSaisonMs < delai) return;
+    if (verificationSaisonEnCours) return;
+    derniereVerificationSaisonMs = maintenant;
+    await verifierSaisonSansChevauchement();
+  }
+  setTimeout(verifierSaisonSelonCalendrier, 2500);
+  setInterval(verifierSaisonSelonCalendrier, 300000);
 
   // Football live (chantier "match reel 30 minutes", 28 aout 2026) : tick dedie, plus rapide (20s),
   // pour la progression des matchs de saison reguliere en fenetre echauffement/mt1/mitemps/mt2,
