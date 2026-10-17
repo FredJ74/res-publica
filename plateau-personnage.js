@@ -2057,7 +2057,7 @@ function declencherHospitalisation(palier) {
     ? { totale: 3, partielle: 2, echec_partiel: 1 }
     : { totale: 6, partielle: 4, echec_partiel: 2 };
   const duree = dureeParPalier[palier] || (lieu === 'clinique' ? 1 : 2);
-  const dateParis = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const dateParis = dateCivileParisMedicale();
   const [annee, mois, jour] = dateParis.split('-').map(Number);
   const dateFinParis = new Date(Date.UTC(annee, mois - 1, jour + duree)).toISOString().slice(0, 10);
   state.hospitalisation = { jourDebut: state.day || 1, palier: palier || 'partielle', lieu, jourFin: (state.day || 1) + duree, dateFinParis };
@@ -2644,12 +2644,18 @@ function rejoindreChambreClinique(nomPatient) {
   if (typeof enterRoom === 'function') enterRoom('clinique-privee', loc.roomId, null);
 }
 
+function dateCivileParisMedicale() {
+  const morceaux = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  const valeur = type => morceaux.find(p => p.type === type)?.value;
+  return valeur('year') + '-' + valeur('month') + '-' + valeur('day');
+}
+
 async function doCentreAntiPoison(pa) {
   if (!state.empoisonnement?.actif) {
     showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false);
     return;
   }
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const today = dateCivileParisMedicale();
   if (!state.centreAntiPoisonToday || state.centreAntiPoisonToday.jour !== today) {
     state.centreAntiPoisonToday = { jour: today, tentatives: 0 };
   }
@@ -3210,7 +3216,7 @@ async function doDormirChambre() {
 function verifierProgressionHospitalisation() {
   if (!state.hospitalisation) return;
   const dateFinParis = state.hospitalisation.dateFinParis;
-  const aujourdhuiParis = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const aujourdhuiParis = dateCivileParisMedicale();
   const jourFin = state.hospitalisation.jourFin || ((state.hospitalisation.jourDebut || state.day || 1) + 1);
   const sortieAutorisee = dateFinParis ? aujourdhuiParis >= dateFinParis : (state.day || 1) >= jourFin;
   if (sortieAutorisee) {
