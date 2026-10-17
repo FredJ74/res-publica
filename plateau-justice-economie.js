@@ -11589,7 +11589,8 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
     : null;
   if (pays === 'republic' && detection?.ok === true && detection.detecte === true) {
     if (state.country !== zoneSurveillee.pays || state.currentCity !== zoneSurveillee.ville ||
-        state.currentBuilding !== zoneSurveillee.batiment || state.currentRoom !== zoneSurveillee.piece) return;
+        (enRue ? (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== zoneSurveillee.rue) :
+          (state.currentBuilding !== zoneSurveillee.batiment || state.currentRoom !== zoneSurveillee.piece))) return;
     const intervention = await verifierArrestationRecherchePolice({
       detecte: true, rencontreId: detection.rencontre, policiers: presents, rueNoeudId,
       zone: zoneSurveillee
