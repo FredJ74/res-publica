@@ -1041,7 +1041,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // Les fermetures reposent exclusivement sur la date civile Europe/Paris.
 function fermetureEncoreActive(r) {
   if (!r.date_fin_universelle) return false;
-  return jourParisISO() < r.date_fin_universelle;
+  return jourPartageISO() < r.date_fin_universelle;
 }
 
 async function chargerBatimentsFermes() {
