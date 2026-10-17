@@ -1969,13 +1969,13 @@ function commercePjTransactionActive(tx) {
   return state.char?.name === tx.nom && state.country === tx.pays
     && state.currentCity === tx.ville && state.currentBuilding === tx.batiment && state.currentRoom === tx.piece
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === tx.uid)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === tx.jeton);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === tx.jeton);
 }
 async function commercePjTransaction(action, executer) {
   const tx = {nom:state.char?.name,pays:state.country,ville:state.currentCity,
     batiment:state.currentBuilding,piece:state.currentRoom,
     uid:typeof rpAuthUid === 'function' ? rpAuthUid() : null,
-    jeton:typeof rpAuthJeton === 'function' ? rpAuthJeton() : null};
+    jeton:(typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null))};
   const cle = JSON.stringify([action,tx.nom,tx.pays,tx.ville,tx.batiment,tx.piece,tx.uid]);
   if (RP_CPJ_TRANSACTIONS.has(cle)) return;
   RP_CPJ_TRANSACTIONS.add(cle);
@@ -1990,7 +1990,7 @@ async function commercePjActualiserPersonnage(options = {}) {
   const version = ++RP_CPJ_ETAT_VERSION;
   const nom = state.char.name, pays = state.country;
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jeton = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   if (!uid) return false;
   try {
     // Lecture minimale : ne pas recharger l'inventaire avant son drainage, ni
@@ -2000,7 +2000,7 @@ async function commercePjActualiserPersonnage(options = {}) {
       + '&select=user_id,arg,liquide,hp,moral,pa' + (options.inventaire ? ',inventory' : '') + '&limit=2');
     if (version !== RP_CPJ_ETAT_VERSION || !Array.isArray(rows) || rows.length !== 1 || rows[0].user_id !== uid
         || state.char?.name !== nom || state.country !== pays || rpAuthUid() !== uid
-        || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) return false;
+        || (typeof rpAuthJeton === 'function' && (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) !== jeton)) return false;
     for (const champ of ['arg','liquide','hp','moral','pa']) {
       const valeur = rows[0][champ];
       if (typeof valeur === 'number' && Number.isFinite(valeur)) {

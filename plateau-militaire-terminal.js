@@ -223,10 +223,10 @@ function milMessage(texte, ok) {
 async function ouvrirTerminalSection() {
   const personnageInitial = state.char, paysInitial = state.country;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   milMachine('<div class="mil-vide">' + milEch(tMil('mil.chargement')) + '</div>');
   const version = ++RP_MIL_LECTURE;
@@ -246,10 +246,10 @@ async function ouvrirTerminalSection() {
 async function milRafraichir(message, ok) {
   const personnageInitial = state.char, paysInitial = state.country;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   const version = ++RP_MIL_LECTURE;
   const r = await sbMilitaireTerminalSection();
@@ -510,10 +510,10 @@ function milCompteRendu(r) {
 async function milOrdonnerManger() {
   const personnageInitial = state.char, paysInitial = state.country;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   if (!RP_MIL_MANGER.size) { milMessage(tMil('mil.aucuneSelection'), false); return; }
   const r = await sbMilitaireTerminalManger(nouvelleCleMilitaire(), Array.from(RP_MIL_MANGER));
@@ -527,10 +527,10 @@ async function milOrdonnerManger() {
 async function milOrdonnerDormir() {
   const personnageInitial = state.char, paysInitial = state.country;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   if (!RP_MIL_DORMIR.size) { milMessage(tMil('mil.aucuneSelection'), false); return; }
   const r = await sbMilitaireTerminalDormir(nouvelleCleMilitaire(),
@@ -545,10 +545,10 @@ async function milOrdonnerDormir() {
 async function milRejoindre(matricule) {
   const personnageInitial = state.char, paysInitial = state.country;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   const r = await sbMilitaireTerminalRejoindre(nouvelleCleMilitaire(), [matricule]);
   if (!retourActif()) return;

@@ -2106,11 +2106,12 @@ function signalerRefusSalaire(r) {
 async function doDormir() {
   const personnageInitial = state.char, paysInitial = state.country;
   const paInitialRepos = state.pa;
+  const nomInitialRepos = personnageInitial?.name;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
-  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
+  const retourActif = () => state.char === personnageInitial && state.char?.name === nomInitialRepos && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   // Le serveur tranche AVANT tout effet (sante, salaire, jour, journal).
   // Sa RPC applique une garde par jour reel Europe/Paris et credite les PA atomiquement.
@@ -2119,13 +2120,13 @@ async function doDormir() {
     showToast('Sommeil indisponible', 'Connexion au serveur requise. Reessayez.', false);
     return false;
   }
-  let rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: state.char.name }).catch(() => null);
+  let rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: nomInitialRepos }).catch(() => null);
   if (!retourActif()) return false;
   if (!rRepos) {
     // Cette RPC SEULE est rejouable : verrou et garde journaliere cote serveur.
     // Ne jamais rejouer les soins, salaires ou autres suites clientes du sommeil.
     if (typeof noterIncidentSession === 'function') noterIncidentSession('repos_reponse_absente', 'Réponse au repos perdue ; vérification du marqueur serveur.');
-    rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: state.char.name }).catch(() => null);
+    rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: nomInitialRepos }).catch(() => null);
   }
   if (!retourActif()) return false;
   const vRepos = Array.isArray(rRepos) ? rRepos[0] : rRepos;
@@ -2791,10 +2792,10 @@ const PHRASES_SOPHIE_STIQUAY_SOIN_CLINIQUE = [
 async function doSoinPublic(pa, cost) {
   const personnageInitial = state.char, paysInitial = state.country;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   // CHANTIER C / PHASE 2 (13 septembre 2026). Le navigateur verifiait lui-meme la limite
   // quotidienne, le stock medical et les fonds, puis decrementait le stock de la structure et
@@ -2841,10 +2842,10 @@ async function doSoinPublic(pa, cost) {
 async function doSoinCliniquePrivee(pa, cost) {
   const personnageInitial = state.char, paysInitial = state.country;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   // CHANTIER C / PHASE 2 (13 septembre 2026). Meme bascule que le soin public, plus la
   // taxation : le navigateur calculait la taxe locale et nationale ET la persistait lui-meme
@@ -3174,10 +3175,10 @@ async function doServiceEtage(pa) {
 async function doDormirChambre() {
   const personnageInitial = state.char, paysInitial = state.country;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   // Le repos quotidien est validé par doDormir() auprès du serveur.
   // La réservation est contrôlée ici pour le bonus hôtelier uniquement.

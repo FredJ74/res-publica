@@ -63,3 +63,24 @@ test('HTTP 200 sans JSON exploitable : aucun faux verdict ni rejeu automatique, 
  const r=await c.sbTransportRpc('pa_repos_nocturne',{p_acteur:'Alice'});
  assert.equal(r.etat,'reponse_invalide');assert.equal(r.envoyee,true);assert.equal(n,1);assert.equal(traces[0][0],'rpc_reponse_invalide');
 });
+function jetonSession(id,nonce){return ['header',Buffer.from(JSON.stringify({session_id:id,nonce})).toString('base64url'),'signature'].join('.');}
+test('renouvellement JWT de la meme session : le repos confirme reste applicable',async()=>{
+ const c=sommeil();c.atob=s=>Buffer.from(s,'base64').toString('binary');
+ vm.runInContext(fs.readFileSync(path.join(root,'auth.js'),'utf8'),c);
+ c.localStorage={getItem:()=>null};
+ vm.runInContext('RP_AUTH_SESSION='+JSON.stringify({access_token:jetonSession('connexion-1','ancien'),expire_le:Date.now()-1,user:{id:'uid'}}),c);
+ assert.equal(c.rpAuthJeton(),null);assert.equal(c.rpAuthSessionIdentifiant(),'session:connexion-1');
+ c.sbRpc=async()=>{
+  vm.runInContext('RP_AUTH_SESSION='+JSON.stringify({access_token:jetonSession('connexion-1','nouveau'),expire_le:Date.now()+3600000,user:{id:'uid'}}),c);
+  return {ok:false,raison:'deja_repose',pa:17};
+ };
+ await c.doDormir();assert.equal(c.state.pa,17);
+});
+test('nouvelle connexion meme compte : ancienne reponse toujours ignoree',async()=>{
+ const c=sommeil();c.atob=s=>Buffer.from(s,'base64').toString('binary');c.localStorage={getItem:()=>null};
+ vm.runInContext(fs.readFileSync(path.join(root,'auth.js'),'utf8'),c);
+ const session=id=>({access_token:jetonSession(id,'n'),expire_le:Date.now()+3600000,user:{id:'uid'}});
+ vm.runInContext('RP_AUTH_SESSION='+JSON.stringify(session('connexion-1')),c);
+ c.sbRpc=async()=>{vm.runInContext('RP_AUTH_SESSION='+JSON.stringify(session('connexion-2')),c);return {ok:false,raison:'deja_repose',pa:17};};
+ await c.doDormir();assert.equal(c.state.pa,5);assert.equal(c.messages.length,0);
+});

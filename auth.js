@@ -299,6 +299,21 @@ function rpAuthUid() {
   return (RP_AUTH_SESSION && RP_AUTH_SESSION.user) ? RP_AUTH_SESSION.user.id : null;
 }
 
+// Identite d'une session de connexion, stable pendant le renouvellement du JWT.
+// Lecture pour les gardes d'interface uniquement : l'authentification reste assuree par GoTrue.
+function rpAuthSessionIdentifiant() {
+  if (!RP_AUTH_SESSION) RP_AUTH_SESSION = rpAuthLireStockage();
+  const token = RP_AUTH_SESSION?.access_token;
+  if (!token) return null;
+  try {
+    const morceau = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    const claims = JSON.parse(atob(morceau.padEnd(Math.ceil(morceau.length/4)*4,'=')));
+    if (typeof claims.session_id === 'string' && claims.session_id.length > 0 && claims.session_id.length <= 128) return 'session:' + claims.session_id;
+  } catch (_) {}
+  // Anciens jetons opaques : garder la protection stricte, sans supposer une continuite.
+  return token;
+}
+
 function rpAuthEstAuthentifie() { return !!rpAuthJeton(); }
 
 /** Le compte est-il encore anonyme (donc lie au seul navigateur) ? */

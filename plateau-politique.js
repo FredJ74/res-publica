@@ -308,10 +308,10 @@ async function reconcilierAutoriteCandidature(dossier) {
 async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
   const personnageInitial = state.char, paysInitial = state.country;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   if (typeof sbRpc !== 'function') { showToast('Indisponible', 'Service momentanement indisponible.', false); return; }
   const rows = await sbRpc('poste_postuler', { p_poste: posteId, p_city: villeCourante || null }).catch(() => null);

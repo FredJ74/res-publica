@@ -256,7 +256,7 @@ function sbContexteInventaire() {
   return { personnage: typeof state !== 'undefined' ? state.char : null,
     generation: typeof state !== 'undefined' ? (state._inventaireGeneration || 0) : 0,
     uid: typeof rpAuthUid === 'function' ? rpAuthUid() : null,
-    jeton: typeof rpAuthJeton === 'function' ? rpAuthJeton() : null };
+    jeton: (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) };
 }
 function sbMarquerInventaires(donnees, origine) {
   const lignes = Array.isArray(donnees) ? donnees : [donnees];

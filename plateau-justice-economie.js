@@ -1458,10 +1458,10 @@ async function placerAuQHS(pays, jours, raison, villeRetour) {
 async function verifierLiberationPrisonniers() {
   const personnageInitial = state.char, paysInitial = state.country;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
     && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || rpAuthJeton() === jetonInitial);
+    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
 
   if (!state.estEmprisonne) return;
   const detentionInitiale = state.estEmprisonne;
@@ -4617,7 +4617,7 @@ async function rafraichirRuntimeHelvetia() {
   const nom = state.char?.name, pays = state.country;
   const version = ++RP_HELVETIA_VERSION;
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+  const jeton = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
   if (!nom) return;
   const [frais, comptes, placements] = await Promise.all([
     typeof sbLoadPersonnage === 'function' ? sbLoadPersonnage(nom).catch(() => null) : null,
@@ -4626,7 +4626,7 @@ async function rafraichirRuntimeHelvetia() {
   ]);
   if (version !== RP_HELVETIA_VERSION || state.char?.name !== nom || state.country !== pays
       || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)
-      || (typeof rpAuthJeton === 'function' && rpAuthJeton() !== jeton)) return;
+      || (typeof rpAuthJeton === 'function' && (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) !== jeton)) return;
   for (const champ of ['arg','liquide']) {
     if (typeof frais?.[champ] === 'number' && Number.isFinite(frais[champ])) {
       state[champ] = frais[champ];
