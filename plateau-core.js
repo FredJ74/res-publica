@@ -2944,7 +2944,7 @@ function restaurerJournal(char) {
     // entry.ts n'existe que pour les entrees creees apres l'introduction de l'horodatage reel
     // (18 aout 2026) -- repli honnete sur "Jour X" pour les entrees anciennes, sans rien inventer.
     const h = String(entry.hour ?? 0).padStart(2, '0');
-    const horodatage = formaterHorodatageJournal(entry.ts) || `Jour ${entry.day} · ${h}h00`;
+    const horodatage = formaterHorodatageJournal(entry.ts) || (entry.date ? `${entry.date} · ${h}h00` : 'Date indisponible');
     const div = document.createElement('div');
     div.className = 'journal-entry';
     div.innerHTML = `<span class="journal-time">${horodatage}</span>
