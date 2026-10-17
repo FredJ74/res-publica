@@ -410,7 +410,7 @@ function openForum_module(forumId) {
     // (mailView!=='compose') ne protegeait jamais un brouillon de sujet/reponse FORUM en cours
     // (etat porte par forumView, jamais par mailView) -- rendu complet uniquement si aucun
     // editeur n'est actuellement affiche, sinon seuls titre+sidebar sont rafraichis.
-    loadForumTopicsFromSB(forumId).then(() => {
+    if (lectureForumNecessaire(forumId)) loadForumTopicsFromSB(forumId).then(() => {
       if (!forumEstEnCompositionActuellement()) renderForumModal();
       else rafraichirVoyantsEtCompteursForum();
     }).catch(() => {});
@@ -660,7 +660,7 @@ function toggleCategorieForum(cat) {
     // ouverture effective de CE forum (revu le 22 aout 2026), a marquer comme telle.
     if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(currentForumId);
     // Meme correctif que ci-dessus (26 aout 2026) : rendu complet uniquement hors composition.
-    loadForumTopicsFromSB(currentForumId).then(() => {
+    if (lectureForumNecessaire(currentForumId)) loadForumTopicsFromSB(currentForumId).then(() => {
       if (!forumEstEnCompositionActuellement()) renderForumModal();
       else rafraichirVoyantsEtCompteursForum();
     }).catch(() => {});
@@ -769,7 +769,7 @@ function switchForum(id) {
   // autres.
   if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(id);
   // Meme correctif que ci-dessus (26 aout 2026) : rendu complet uniquement hors composition.
-  loadForumTopicsFromSB(id).then(() => {
+  if (lectureForumNecessaire(id)) loadForumTopicsFromSB(id).then(() => {
     if (!forumEstEnCompositionActuellement()) renderForumModal();
     else rafraichirVoyantsEtCompteursForum();
   }).catch(() => {});
@@ -2368,9 +2368,18 @@ let currentMailId = null;
 const FORUM_LECTURE_ECHOUEE = {};
 const FORUM_LECTURE_EN_COURS = {};
 const FORUM_LECTURE_TERMINEE = {};
+const FORUM_DERNIERE_LECTURE = {};
+const FORUM_LECTURES_ACTIVES = {};
+const FORUM_CACHE_DUREE_MS = 30000;
+
+function lectureForumNecessaire(id) {
+  return !FORUM_LECTURES_ACTIVES[id] &&
+    (!FORUM_DERNIERE_LECTURE[id] || Date.now() - FORUM_DERNIERE_LECTURE[id] > FORUM_CACHE_DUREE_MS);
+}
+
 
 function rechargerForumActuel() {
-  if (!currentForumId || FORUM_LECTURE_EN_COURS[currentForumId]) return;
+  if (!currentForumId || FORUM_LECTURES_ACTIVES[currentForumId]) return;
   const id = currentForumId;
   loadForumTopicsFromSB(id).then(() => {
     if (currentForumId === id && !forumEstEnCompositionActuellement()) renderForumModal();
@@ -2385,6 +2394,7 @@ async function loadForumTopicsFromSB(forumId) {
     FORUM_LECTURE_TERMINEE[forumId] = true;
     return;
   }
+  if (FORUM_LECTURES_ACTIVES[forumId]) return FORUM_LECTURES_ACTIVES[forumId];
   FORUM_LECTURE_EN_COURS[forumId] = true;
   delete FORUM_LECTURE_TERMINEE[forumId];
   try {
@@ -2395,6 +2405,7 @@ async function loadForumTopicsFromSB(forumId) {
       return;
     }
     delete FORUM_LECTURE_ECHOUEE[forumId];
+    FORUM_DERNIERE_LECTURE[forumId] = Date.now();
     const rows = v.donnees;
     if (rows.length === 0) return;
     // Fusionner avec les topics locaux existants
