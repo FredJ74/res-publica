@@ -12813,7 +12813,11 @@ async function choisirInterceptionJudiciaire(choix) {
       if (!voisins.length || typeof afficherNoeudRue !== 'function') {
         showToast('Fuite impossible', 'Aucun segment de rue accessible.', false); return;
       }
-      const destination = voisins[Math.floor(Math.random()*voisins.length)];
+      const destination = fuite.destination;
+      if (!destination || !voisins.includes(destination)) {
+        showToast('Déplacement non confirmé', 'Destination serveur incohérente.', false);
+        return;
+      }
       interceptionJudiciaire = null;
       document.getElementById('modal-postes')?.classList.remove('open');
       afficherNoeudRue(state.country,destination,i.rueNoeudId);
