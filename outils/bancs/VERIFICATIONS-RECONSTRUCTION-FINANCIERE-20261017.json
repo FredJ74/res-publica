@@ -1,0 +1,602 @@
+{
+  "date_utc": "2026-10-17T09:30:05.831720+00:00",
+  "commit_code_teste": "1c9910308dc2bb37aabf70aecedc2174d0f30b88",
+  "main_integre": "2d65db30d6fc3e6237e8114511c220190fa6d04a",
+  "verdict": "NON TERMINE — NON PRET POUR DEPLOIEMENT",
+  "client": {
+    "reussis": 73,
+    "total": 73,
+    "bancs": [
+      {
+        "banc": "banc-administration-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.162
+      },
+      {
+        "banc": "banc-annuaire-territoires.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.224
+      },
+      {
+        "banc": "banc-api-supabase.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.073
+      },
+      {
+        "banc": "banc-appro-chantier.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.089
+      },
+      {
+        "banc": "banc-archives-musee.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.166
+      },
+      {
+        "banc": "banc-assemblee-hall.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.153
+      },
+      {
+        "banc": "banc-avis-de-recherche.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.104
+      },
+      {
+        "banc": "banc-barreau-temoins-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.09
+      },
+      {
+        "banc": "banc-calendrier-electoral.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.07
+      },
+      {
+        "banc": "banc-calendrier-succession.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.17
+      },
+      {
+        "banc": "banc-candidatures-nocturnes.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.097
+      },
+      {
+        "banc": "banc-carrieres-creation-et-audience-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.084
+      },
+      {
+        "banc": "banc-chaines-17-a-20.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.086
+      },
+      {
+        "banc": "banc-chantier-progression-serveur.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.068
+      },
+      {
+        "banc": "banc-chat-disponibilite.mjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.178
+      },
+      {
+        "banc": "banc-coherence-banques.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.14
+      },
+      {
+        "banc": "banc-coherence-organisations.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.159
+      },
+      {
+        "banc": "banc-coherence-sauvegarde.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.151
+      },
+      {
+        "banc": "banc-commerce-etat-client.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.113
+      },
+      {
+        "banc": "banc-commerce-transactions.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.16
+      },
+      {
+        "banc": "banc-compromis-nocturnes.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.12
+      },
+      {
+        "banc": "banc-conference-presse-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.076
+      },
+      {
+        "banc": "banc-consommation-inventaire.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.129
+      },
+      {
+        "banc": "banc-contexte-public-dialogue.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.08
+      },
+      {
+        "banc": "banc-continuite-municipale.mjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.684
+      },
+      {
+        "banc": "banc-cotisations-organisations.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.1
+      },
+      {
+        "banc": "banc-cycle-plaintes.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.094
+      },
+      {
+        "banc": "banc-desertion-liberation.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.077
+      },
+      {
+        "banc": "banc-detention-plateau.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.086
+      },
+      {
+        "banc": "banc-dialogue-pnj-republia.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.106
+      },
+      {
+        "banc": "banc-etat-terrain.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.103
+      },
+      {
+        "banc": "banc-finances-transport.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.108
+      },
+      {
+        "banc": "banc-greffe-documents-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.113
+      },
+      {
+        "banc": "banc-greve-generale.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.097
+      },
+      {
+        "banc": "banc-hydratation-personnage.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.183
+      },
+      {
+        "banc": "banc-justice-peine-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.083
+      },
+      {
+        "banc": "banc-mail-systeme.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.128
+      },
+      {
+        "banc": "banc-memoire-mandats-dialogue.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.089
+      },
+      {
+        "banc": "banc-monnaie-exacte.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.089
+      },
+      {
+        "banc": "banc-mutation-terrain.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.068
+      },
+      {
+        "banc": "banc-nominations-municipales.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 1.041
+      },
+      {
+        "banc": "banc-ordre-de-bataille-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.064
+      },
+      {
+        "banc": "banc-ordres-territoires.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.151
+      },
+      {
+        "banc": "banc-palais-gouvernement.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.137
+      },
+      {
+        "banc": "banc-parquet-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.145
+      },
+      {
+        "banc": "banc-patcher-blob.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.087
+      },
+      {
+        "banc": "banc-portrait-liquide.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.121
+      },
+      {
+        "banc": "banc-preemptions.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.108
+      },
+      {
+        "banc": "banc-presidence-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.092
+      },
+      {
+        "banc": "banc-prets-bancaires.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.098
+      },
+      {
+        "banc": "banc-quatrieme-passe-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.083
+      },
+      {
+        "banc": "banc-reception-objets.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.183
+      },
+      {
+        "banc": "banc-referent-commandant.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.083
+      },
+      {
+        "banc": "banc-referents-palais.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.076
+      },
+      {
+        "banc": "banc-retours-acteur.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.15
+      },
+      {
+        "banc": "banc-seance-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.082
+      },
+      {
+        "banc": "banc-solde-personnage.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.062
+      },
+      {
+        "banc": "banc-souvenirs-et-achat-direct.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.098
+      },
+      {
+        "banc": "banc-subventions-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.071
+      },
+      {
+        "banc": "banc-successions-reglement.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.096
+      },
+      {
+        "banc": "banc-taux-imposition.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.061
+      },
+      {
+        "banc": "banc-taxe-fonciere.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.093
+      },
+      {
+        "banc": "banc-titre-pnj-de-poste.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.08
+      },
+      {
+        "banc": "banc-tournee-cloture.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.074
+      },
+      {
+        "banc": "banc-transport-rest.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.059
+      },
+      {
+        "banc": "banc-tribunal-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.104
+      },
+      {
+        "banc": "banc-universite-calendrier.js",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.068
+      },
+      {
+        "banc": "banc-universite-et-pnj-client.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.115
+      },
+      {
+        "banc": "banc-universite-missions-autres.js",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.073
+      },
+      {
+        "banc": "banc-universite-missions-medecin.js",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 0.077
+      },
+      {
+        "banc": "banc-urbanisme-nature-refusee.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.09
+      },
+      {
+        "banc": "banc-vercel-bundle.cjs",
+        "code": 0,
+        "moteur": "Node natif",
+        "secondes": 3.469
+      },
+      {
+        "banc": "banc-vote-electoral.js",
+        "code": 0,
+        "moteur": "lanceur historique",
+        "secondes": 0.056
+      }
+    ]
+  },
+  "postgresql_reconstruction": {
+    "reussis": 29,
+    "total": 29,
+    "nature": "PostgreSQL local jetable; auth et services annexes en fixture, pas un test Supabase authentifie",
+    "sortie": "/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000\n  return Path(self.user_runtime_dir)\nOK precision rejouable, NULL, soldes, vue, droits, commentaires et trigger conserves\nOK fractions de centime refusees sans arrondi, chaine obligatoire, ecriture via vraie vue\nOK historique hors centime bloque toute conversion, rollback conserve donnees et vue\nOK loyer banque prioritaire, arg preserve, autres banques exclues, rejeu sans debit\nOK loyer complement liquide exact apres epuisement du compte national\nOK fonds totaux insuffisants : aucun debit ni credit, avertissement conserve\nOK total exactement egal et solde nul\nOK panne apres credit : rollback recette, banque, liquide et marqueur\nOK deux connexions concurrentes : un seul prelevement et une seule contrepartie\nOK loyer reserve au serveur, aucune invocation directe du navigateur\nOK dons : credit et marqueurs atomiques, centimes, rejeu meme UUID et nouvelle tentative\nOK dons : acteur/propriete/corps controles, refus integral et droits directs fermes\nOK dons : panne entre marquage et credit annule aussi marqueur et recu\nOK dons : deux connexions, deux intentions, un seul credit du meme don\nOK reponse tardive : recu immuable et photographie serveur actualisee apres credit\nOK Helvetia ouverture : capital conserve, recu rejouable\nOK Helvetia depot et retrait fractionnaires : toutes contreparties et rejeux\nOK Helvetia refus : chiffres binaires, sous-centime et fonds insuffisants sans recu partiel\nOK Helvetia pret : panne apres paiement PA et reserve annule toutes contreparties\nOK Helvetia pret et remboursement : dette, capital, PA et non-repetition\nOK Helvetia placement, fermeture et accord : centimes, etats et majoration unique\nOK Helvetia acces territorial et fermeture des anciennes RPC directes\nOK sauvegarde : credit serveur preserve, profil autorise, marqueur et GUC non falsifiables\nOK bois : 3 unites a 5.50 FR, inventaire/stock/caisse/credit et recu atomiques\nOK bois : vente partielle historique conservee et plafond PNJ infranchissable\nOK bois : panne au credit apres caisse et retrait inventaire annule toutes les contreparties\nOK bois : quantites entieres et presence reelle obligatoire\nOK revision : un mouvement de compte seul invalide aussi la photographie financiere\nOK DDL : dependance inconnue et definition serveur differente refusent toute bascule\n29/29 groupes PostgreSQL reussis\n"
+  },
+  "postgresql_regressions": {
+    "achat_commerce": 12,
+    "reception_objets": 31,
+    "nature": "Bancs locaux existants, services annexes simules"
+  },
+  "contre_epreuves_reconstruction": [
+    {
+      "cas": "fraction de centime acceptee",
+      "regression_detectee": true,
+      "code": 1
+    },
+    {
+      "cas": "loyer repaye le meme jour",
+      "regression_detectee": true,
+      "code": 1
+    },
+    {
+      "cas": "loyer preleve malgre fonds insuffisants",
+      "regression_detectee": true,
+      "code": 1
+    },
+    {
+      "cas": "liquide prioritaire au lieu de banque",
+      "regression_detectee": true,
+      "code": 1
+    },
+    {
+      "cas": "corps de don modifiable apres confirmation",
+      "regression_detectee": true,
+      "code": 1
+    },
+    {
+      "cas": "credit du don perdu apres marquage",
+      "regression_detectee": true,
+      "code": 1
+    },
+    {
+      "cas": "ancienne sauvegarde autorisee a toucher les soldes",
+      "regression_detectee": true,
+      "code": 1
+    },
+    {
+      "cas": "bois rachete au mauvais prix",
+      "regression_detectee": true,
+      "code": 1
+    },
+    {
+      "cas": "bois non retire de inventaire",
+      "regression_detectee": true,
+      "code": 1
+    }
+  ],
+  "contre_epreuves_historiques": {
+    "reussis": 90,
+    "total": 90
+  },
+  "workflow": {
+    "reussis": 10,
+    "total": 12,
+    "controles": [
+      {
+        "controle": "le processus tient",
+        "outil": "verifier-workflow.py",
+        "reussi": true
+      },
+      {
+        "controle": "la classification est entiere",
+        "outil": "verifier-classification.py",
+        "reussi": true
+      },
+      {
+        "controle": "le baseline est fidele au catalogue",
+        "outil": "verifier-baseline.py",
+        "reussi": true
+      },
+      {
+        "controle": "l'autorite tient",
+        "outil": "verifier-autorite.py",
+        "reussi": false
+      },
+      {
+        "controle": "les referentiels concordent",
+        "outil": "verifier-referentiels.py",
+        "reussi": false
+      },
+      {
+        "controle": "les faits publics atteignent le Journal",
+        "outil": "verifier-faits-publics.py",
+        "reussi": true
+      },
+      {
+        "controle": "les fonctions concordent",
+        "outil": "verifier-fonctions.py",
+        "reussi": true
+      },
+      {
+        "controle": "le monde neuf est propre",
+        "outil": "verifier-monde-neuf.py",
+        "reussi": true
+      },
+      {
+        "controle": "l'assemblage se tient",
+        "outil": "assembler.py",
+        "reussi": true
+      },
+      {
+        "controle": "la reconstruction passe",
+        "outil": "reconstruire.py",
+        "reussi": true
+      },
+      {
+        "controle": "non-regression du pilote 2B",
+        "outil": "verifier.py",
+        "reussi": true
+      },
+      {
+        "controle": "non-regression de l'archive 2D",
+        "outil": "verifier-archive-registre.py",
+        "reussi": true
+      }
+    ],
+    "sortie_complete": "CONTROLE D'ENSEMBLE DU BASELINE -- 12 controles\n========================================================================\n  le processus tient                     verifier-workflow.py           OK \n      | GARDE-FOU DU WORKFLOW SUPABASE\n      | \n      | 1. AUCUN .sql A LA RACINE\n      |   --------------------------------------------------------------------\n      |   fichiers .sql a la racine du depot                    0 / 0        OK \n      |   c'est la dispersion de 184 fichiers ici qui avait rendu l'histoire illisible\n      | \n      | 2. ARCHIVE DES SQL DE LA RACINE\n      |   --------------------------------------------------------------------\n      |   migrations historiques archivees                    184 / 184      OK \n      |   fichiers non appliques archives                       3 / 3        OK \n      |   archives au nom inattendu                             0 / 0        OK \n      | \n      | 3. MIGRATIONS FUTURES : NOMMAGE\n      |   --------------------------------------------------------------------\n      |   migrations au nom non conforme                        0 / 0        OK \n      |   horodatages en double                                 0 / 0        OK \n      |   8 migration(s) en attente d'application ou deja appliquee(s)\n      | \n      | 4. MIGRATIONS POSTERIEURES AU POINT DE COUPE\n      |   --------------------------------------------------------------------\n      |   point de coupe du baseline : 2026-10-13T17:41:36.000139\n      |   migrations anterieures au point de coupe              0 / 0        OK \n      | \n      | 5. SQL DANS SES TROIS MAISONS\n      |   --------------------------------------------------------------------\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-administration-tribunal.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-assemblee-regards.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-avocat-et-temoins.sql\n      |   outils/bancs/     6 blocs DO, 6 RAISE, 0 ordre(s) nu(s)  banc-budget-cascade.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-carrieres-et-audience.sql\n      |   outils/bancs/     1 blocs DO, 4 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-caserne-autorites.sql\n      |   outils/bancs/     1 blocs DO, 3 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-conference-de-presse.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-credit-tournee.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-1.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-2.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-3.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-defense-simplifiee.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-etat-terrain-1.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-etat-terrain-2.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-garde-republicaine.sql\n      |   outils/bancs/     1 blocs DO, 4 RAISE, 17 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-greffe-et-universite.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-justice-peine-serveur.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-palais-contexte-et-eligibilite.sql\n      |   outils/bancs/     1 blocs DO, 13 RAISE, 25 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-parcours-judiciaires.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-parquet-serveur.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-election.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-memoire.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-suspension-partis.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-quatrieme-passe.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-quete-accueil-contexte.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-renouvellement-legislature.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-seance-parole-discipline.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-seance-protestation-suspension.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-secretaires-referents.sql\n      |   outils/bancs/     1 blocs DO, 4 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-1.sql\n      |   outils/bancs/     1 blocs DO, 3 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-2.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-3.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-succession-sans-vacance.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunal-appel-indemnite-signalement.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunal-pv-et-delai.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunes-officielles.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-universite-socle.sql\n      |   outils/bancs/     3 blocs DO, 13 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  contre-epreuves-subventions.sql\n      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-nominations-municipales.sql\n      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-FINANCIER-RECONSTRUCTION-LECTURE.sql\n      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-dependances-coherence-lecture.sql\n      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-reception-contrat-lecture.sql\n      |   fichiers .sql hors des trois maisons                  0 / 0        OK \n      |   baseline/       237 fichiers  l'etat canonique, genere -- jamais edite a la main\n      |   historique/     903 fichiers  l'archive documentaire, non rejouable\n      |   migrations/       8 fichiers  les evolutions futures, une par fichier horodate\n      | \n      | 6. LE PROCESSUS EST ECRIT\n      |   --------------------------------------------------------------------\n      |   WORKFLOW-SUPABASE.md present                          1 / 1        OK \n      |   longueur du processus, en lignes                    575 / 575      OK \n      |   README renvoyant au processus                         4 / 4        OK \n      | \n      | 7. UN SEUL OUTIL PAR RESPONSABILITE\n      |   --------------------------------------------------------------------\n      |   controle global                verifier-baseline.py       OK \n      |   reconstruction                 reconstruire.py            OK \n      |   rendu des seeds                seeds.py                   OK \n      |   rendu du schema                rendre.py                  OK \n      |   requetes d'introspection       requetes.py                OK \n      | \n      | 8. AUCUN SCRIPT TECHNIQUE A LA RACINE\n      |   --------------------------------------------------------------------\n      |   fichiers .py a la racine du depot                     0 / 0        OK \n      |   correctifs ponctuels archives                       342 / 342      OK \n      |   generateurs dans outils/generateurs                  13 / 13       OK \n      |   generateurs restes dans .scratch                      0 / 0        OK \n      |   fichiers citant encore l'ancien chemin                0 / 0        OK \n      | \n      | 9. LE DEPLOIEMENT RESTE DEPLOYABLE\n      |   --------------------------------------------------------------------\n      |   taches cron declarees                         2 / 2 au plus\n      |   planifications a plus d'une invocation par jour        0 / 0        OK \n      | \n      | ========================================================================\n      |   1. AUCUN .sql A LA RACINE                            CONFORME\n      |   2. ARCHIVE DES SQL DE LA RACINE                      CONFORME\n      |   3. MIGRATIONS FUTURES : NOMMAGE                      CONFORME\n      |   4. MIGRATIONS POSTERIEURES AU POINT DE COUPE         CONFORME\n      |   5. SQL DANS SES TROIS MAISONS                        CONFORME\n      |   6. LE PROCESSUS EST ECRIT                            CONFORME\n      |   7. UN SEUL OUTIL PAR RESPONSABILITE                  CONFORME\n      |   8. AUCUN SCRIPT TECHNIQUE A LA RACINE                CONFORME\n      |   9. LE DEPLOIEMENT RESTE DEPLOYABLE                   CONFORME\n      | \n      | CONFORME : le processus tient. Aucun .sql a la racine, l'archive est\n      |            complete, les migrations sont nommees et posterieures au\n      |            point de coupe, et chaque responsabilite a un seul outil.\n\n  la classification est entiere          verifier-classification.py     OK \n      | 1. nombre de tables classees        : 319 / 319  OK\n      | 2. tables classees deux fois        : 0  OK\n      | 3. empreinte de la liste des tables : bc283117c2e555ce1b0e40a6e35f6a68  OK\n      | 4. tables D sans justification de separation : 0 / 21  OK\n      | 5. tables en seed sans justification : 0 / 99  OK\n      | 6. tables d'etat vivant en seed complet : 0  OK\n      | 7. categories/strategies hors vocabulaire : 0  OK\n      | \n      | Repartition  A=66  B=22  C=210  D=21\n      | Tables entrant dans le seed : 99  (1954 lignes actuelles cumulees)\n      | \n      | CONFORME : la classification couvre exactement le catalogue, sans trou ni doublon.\n\n  le baseline est fidele au catalogue    verifier-baseline.py           OK \n      | BASELINE COMPLET -- CONTROLE DE COMPLETUDE ET DE FIDELITE\n      | base relevee le 2026-10-13T17:41:36.000139   |   17 domaines rendus\n      | \n      | 1. STRUCTURE                                    baseline / base\n      |   ------------------------------------------------------------------------\n      |   tables                                              314 / 314          OK \n      |   colonnes                                           2437 / 2437         OK \n      |   contraintes                                         613 / 613          OK \n      |   index autonomes                                     187 / 187          OK \n      |   index portes par une contrainte                     328 / 328          OK \n      |   sequences (possedees + autonomes)                    38 / 38           OK \n      |     dont autonomes, creees explicitement                3 / 3            OK \n      |   \n      |   reconciliation catalogue = baseline + ecarte deliberement :\n      |     tables                     314 rendus +   5 ecartes =   319 / 319   OK \n      |     contraintes                613 rendus +   2 ecartes =   615 / 615   OK \n      |     commentaires               367 rendus +   3 ecartes =   370 / 370   OK \n      |     colonnes                  2437 rendues +  31 ecartees + 73 de vues =  2541 / 2541  OK \n      |   \n      |   empreinte des colonnes                     557fdb28dafbce0653c743ef42f433b5 OK \n      |   empreinte des contraintes                  919703d923080aa8aa3d82b7989bddbd OK \n      |   empreinte des index autonomes              5f7dc3739818cac782693d8ee8ad6551 OK \n      | \n      | 2. LOGIQUE SERVEUR                              baseline / base\n      |   ------------------------------------------------------------------------\n      |   fonctions                                           906 / 906          OK \n      |   vues                                                  2 / 2            OK \n      |   declencheurs                                         51 / 51           OK \n      |   fonctions presentes dans 2 domaines                   0 / 0            OK \n      |   \n      |   empreinte des fonctions                    3552d36194c2e81d46ea0151d64d22ec OK \n      |   empreinte des vues                         be98d3a7391c4a235e78282204fd29d4 OK \n      |   empreinte des declencheurs                 0a736eb256de01a3bb8bb54b861c0ae5 OK \n      |   \n      |   definitions relues depuis les fichiers              906 / 906          OK \n      |   corps de table relus depuis les fichiers            314 / 314          OK \n      | \n      | 3. SECURITE                                     baseline / base\n      |   ------------------------------------------------------------------------\n      |   fonctions SECURITY DEFINER                          777 / 777          OK \n      |   fonctions SECURITY INVOKER                          129 / 129          OK \n      |   tables avec RLS active                              314 / 314          OK \n      |   policies                                            281 / 281          OK \n      |   lignes de droits                                   3574 / 3574         OK \n      |   droits au niveau colonne                             19 / 19           OK \n      |   privileges par defaut inventories                     7 / 7            OK \n      |   empreinte des privileges par defaut        859cd268d66ac0f43411ad776e6af7cc OK \n      |   defaut des fonctions ferme aux roles clients            1 / 1            OK \n      |   tables RLS active sans policy                       160 / 160          OK \n      |   tables sans aucune RLS                                0 / 0            OK \n      |   \n      |   empreinte des policies                     4ca6b1b4338922470f49093220197b96 OK \n      |   empreinte des policies avec roles          e6badaba663bd3ebfaeba51519856b83 OK \n      |   empreinte des droits                       ad8cdeb7b7ceee0ed9a1bc1285d80000 OK \n      |   empreinte des commentaires                 e762ba59ee15a8c405a353ec1042b228 OK \n      | \n      | 4. SEEDS -- application de la classification 2C\n      |   ------------------------------------------------------------------------\n      |   hors_baseline                5 tables  | 0 recreee(s) a tort OK \n      |   reconstruction_explicite    17 tables  | 0 structure(s) manquante(s) OK \n      |   seed_complet                76 tables  | 0 structure(s) manquante(s) OK \n      |   seed_filtre                  6 tables  | 0 structure(s) manquante(s) OK \n      |   structure_seule            215 tables  | 0 structure(s) manquante(s) OK \n      |   \n      |   tables de la surface de seed couvertes               99 / 99           OK \n      |   seeds sur une table hors surface                      0 / 0            OK \n      |   fichiers TODO contenant des donnees                   0 / 0            OK \n      |   tables dont le nombre de lignes diverge               0 / 0            OK \n      | \n      |   90_socle             47 tables   506 lignes d'INSERT\n      |   91_empire            21 tables   182 lignes d'INSERT\n      |   92_mixte             14 tables   409 lignes d'INSERT\n      |   95_a-regenerer        8 tables     0 lignes d'INSERT\n      |   99_a-construire       9 tables     0 lignes d'INSERT\n      |   \n      |   fichiers de seed conformes a leur empreinte           99 / 99           OK \n      | \n      | INTEGRITE DES FICHIERS\n      |   ------------------------------------------------------------------------\n      |   fichiers conformes a leur empreinte                 138 / 138          OK \n      |   fichiers non declares au manifeste                    0 / 0            OK \n      | \n      | ============================================================================\n      |   1. STRUCTURE                                         CONFORME\n      |   2. LOGIQUE SERVEUR                                   CONFORME\n      |   3. SECURITE                                          CONFORME\n      |   4. SEEDS -- application de la classification 2C      CONFORME\n      |   INTEGRITE DES FICHIERS                               CONFORME\n      | \n      | CONFORME : le baseline couvre exactement le catalogue du point de coupe,\n      |            sans objet oublie et sans difference masquee.\n\n  l'autorite tient                       verifier-autorite.py           ECHEC\n      | CONTROLE DE L'ARCHITECTURE D'AUTORITE\n      |   72 fichiers de navigateur, 60 tables mutees, 3 acces PostgREST bruts\n      |   316 relations et 906 fonctions portant un droit, 281 policies, 902 definitions\n      |   declaration : 73 tables, 0 invariants en attente d'application\n      | \n      | FAMILLE 1 -- LE CODE DU NAVIGATEUR\n      |   ----------------------------------------------------------------------\n      |    1. aucune mutation cliente hors surface declaree        0 ecarts OK \n      |    2. aucun acces PostgREST brut non recense               0 ecarts OK \n      |    3. identite passee a une RPC toujours verifiee au serveur 0 ecarts OK \n      | \n      | FAMILLE 2 -- L'ETAT DE LA BASE, LU DANS LE BASELINE\n      |   ----------------------------------------------------------------------\n      |    4. aucun privilege de maintenance aux roles clients     0 ecarts OK \n      |    5. anon n'ecrit nulle part, aucun setval pour un client 0 ecarts OK \n      |    6. aucun droit d'ecriture hors surface declaree         0 ecarts OK \n      |    7. aucune policy d'ecriture totalement permissive       0 ecarts OK \n      |    8. aucune table du baseline sans RLS                    0 ecarts OK \n      |    9. aucune fonction de declencheur appelable par un client 0 ecarts OK \n      |   10. aucune fonction mutante client-appelable sans garde  0 ecarts OK \n      |   11. aucune fonction mutante appelable par anon           0 ecarts OK \n      | \n      | FAMILLE 3 -- LES PORTES SERVEUR ET LES MIGRATIONS PREPAREES\n      |   ----------------------------------------------------------------------\n      |   12. les migrations en attente ne nomment rien d'inconnu  0 ecarts OK \n      |   13. toute RPC appelee par le navigateur existe           4 ecarts ECHEC\n      |       - inventaire_reception_etat : aucune fonction de ce nom dans le baseline — supabase.js:3172\n      |       - inventaire_reclamer_livraison : aucune fonction de ce nom dans le baseline — supabase.js:3180\n      |       - inventaire_sauver_revision : aucune fonction de ce nom dans le baseline — supabase.js:3175\n      |       - tracts_electoraux_distribuer_collectif : aucune fonction de ce nom dans le baseline — supabase.js:4407\n      | \n      | ========================================================================\n      | ECHEC : 1 invariant(s) en ecart sans migration declaree\n      |   - invariant 13 : toute RPC appelee par le navigateur existe (4 ecarts)\n\n  les referentiels concordent            verifier-referentiels.py       ECHEC\n      | CONTROLE DES REFERENTIELS RECOPIES  (axe data.js / navigateur  ->  api/)\n      |   moteur : /System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc\n      |   6 referentiels declares, 0 divergence(s) connue(s)\n      | \n      |   clubs_sportifs             canon : 12 entree(s)\n      |       api/_referentiels-generes.js                  12 entree(s)   0 ecart(s)  OK\n      |       api/_journal-collecte.js                      12 entree(s)   0 ecart(s)  OK\n      | \n      |   empires                    canon : 4 entree(s)\n      |       api/_journal-collecte.js                       4 entree(s)   0 ecart(s)  OK\n      | \n      |   greve_paliers              canon : 5 entree(s)\n      |       api/_referentiels-generes.js                   5 entree(s)   0 ecart(s)  OK\n      | \n      |   postes_nommes              canon : 18 entree(s)\n      |       api/_referentiels-generes.js                  18 entree(s)   0 ecart(s)  OK\n      | \n      |   recettes_militaires        canon : 8 entree(s)\n      |       api/_referentiels-generes.js                   8 entree(s)   0 ecart(s)  OK\n      | \n      |   ressources_economie        canon : 18 entree(s)\n      |       api/_referentiels-generes.js                  18 entree(s)   0 ecart(s)  OK\n      |       api/_journal-collecte.js                      18 entree(s)   0 ecart(s)  OK\n      | \n      | --------------------------------------------------------------------------\n      | SECOND AXE : data.js  ->  BASE, par empreinte\n      |   mesure de la base datee du 2026-10-08 (lecture seule, non rejouee ici)\n      |   infractions               39 lignes  a7463ab07be5b9ab  recalculee\n      |   ordres_couts           DERIVE DE data.js : 79ecb2f9d4bf71f5 != 20e52d8f9bbe8e3f\n      |   pa_bonus_differes         10 lignes  1c02ca809fdb9b8b  recalculee\n      |   postes_nommes_regles   DERIVE DE data.js : 694f117ace57b0b1 != 6c0c7aa0d29bf852\n      |   ressources_economie       17 lignes  2c2a88b3833ca978  NON RECALCULABLE (aucun generateur)\n      |   villes                    12 lignes  d41051aa8bcafadd  recalculee\n      | \n      |   generes mais surveilles par aucune table <miroir>_empreinte :\n      |     clubs_football         2c2f8d0fe578a8bb  (rien ne la confronte en base)\n      |     miroirs_chantiers      6f16826f81bad98a  (rien ne la confronte en base)\n      |     miroirs_entreprises    e2b15dda50c9a640  (rien ne la confronte en base)\n      |     offres_emploi_bne      2cf0edcba2fa05fc  (rien ne la confronte en base)\n      |     postes_electifs        2390eb52a42ae6a6  (rien ne la confronte en base)\n      | \n      | --------------------------------------------------------------------------\n      | TROISIEME AXE : l'artefact serveur genere\n      |   24 constantes generees, importees par 3 module(s) de api/\n      |     _journal-collecte.js          1 constante(s)\n      |     conseiller-creation.js        4 constante(s)\n      |     cron-minuit.js               20 constante(s)\n      |   regeneration identique au fichier du disque  (empreinte ca2826514f403b41)\n      |   tous les noms importes sont exportes, aucun n'est redeclare localement\n      | \n      | ==========================================================================\n      | ECHEC : 5 probleme(s) sur l'axe des empreintes\n      |   - empreintes/ordres_couts : le generateur rend 79ecb2f9d4bf71f5, la declaration annonce 20e52d8f9bbe8e3f. data.js a bouge depuis la mesure : le miroir est a regenerer, et la declaration a reprendre.\n      |   - empreintes/postes_nommes_regles : le generateur rend 694f117ace57b0b1, la declaration annonce 6c0c7aa0d29bf852. data.js a bouge depuis la mesure : le miroir est a regenerer, et la declaration a reprendre.\n      |   - divergences_empreintes/ordres_couts/base ne correspond a aucun miroir declare\n      |   - divergences_empreintes/ordres_couts/posee ne correspond a aucun miroir declare\n      |   - divergences_empreintes/postes_nommes_regles/posee ne correspond a aucun miroir declare\n\n  les faits publics atteignent le Journal verifier-faits-publics.py      OK \n      | CONTROLE DU RACCORD REGISTRE DES FAITS PUBLICS -> COLLECTE DE PRESSE\n      | ========================================================================\n      |   actes declares publics au registre      : 13\n      |   types acceptes par la collecte          : 31\n      |   types judiciaires jetes en silence      : 0  OK\n      |   types `justice_` acceptes hors registre : 0  OK\n      | ========================================================================\n      | CONFORME : les 13 faits judiciaires publics ont tous leur ligne de collecte,\n      | et la collecte n'accepte aucun type judiciaire hors registre.\n\n  les fonctions concordent               verifier-fonctions.py          OK \n      | CONCORDANCE DES FONCTIONS RECOPIEES -- chantier 7\n      | ========================================================================\n      | \n      | EXHAUSTIVITE\n      |   --------------------------------------------------------------------\n      |   copies declarees                               55\n      |   copies ecartees, nommees                       21\n      |   copies trouvees dans le depot et non declarees  0\n      | \n      | CHANTIERS\n      |   --------------------------------------------------------------------\n      |   seuilDeuxTiersServeur -> seuilDeuxTiers                  concorde (10 cas)\n      |   progressionAtteintDeuxTiersServeur -> progressionAtteintDeuxTiers concorde (96 cas)\n      |   chantierTermineServeur -> chantierTermine                concorde (96 cas)\n      |   numeroJourChantierServeur -> numeroJourChantier          concorde (96 cas)\n      |   capaciteHeuresJourServeur -> capaciteHeuresJourChantier  concorde (96 cas)\n      |   fractionTravailServeur -> (function (ch, h) { return fractionTravail(Math.max(0, Number(ch && ch.heuresFaites) || 0) + Math.max(0, Number(h) || 0), capaciteHeuresJourChantier(ch)); }) concorde (192 cas)\n      |   fractionMateriauxServeur -> fractionMateriaux            concorde (20 cas)\n      |   materiauxDuJourServeur -> materiauxDuJourConstruction    concorde (7 cas)\n      |   materiauxDuJourReamenagementServeur -> materiauxDuJourReamenagement concorde (96 cas)\n      |   besoinMateriauxJourServeur -> besoinMateriauxJourChantier concorde (192 cas)\n      |   reliquatNPCServeur -> reliquatNPC                        concorde (192 cas)\n      |   progressionMaxFinanceeServeur -> progressionMaxFinancee  concorde (72 cas)\n      |   planifierApprovisionnementServeur -> planifierApprovisionnement concorde (54 cas)\n      |   lotsLivrablesDepuisPlanServeur -> lotsLivrablesDepuisPlan concorde (4 cas)\n      |   appliquerVerrouPlanServeur -> (function (ch, j) { var m = appliquerVerrouPlan(ch, j); return (m !== ch && m && m.planVerrouille === true) ? true : false; }) concorde (96 cas)\n      | \n      | ECONOMIE\n      |   --------------------------------------------------------------------\n      |   getPrixRessourceServeur -> getPrixRessource              concorde (109 cas)\n      |   getPrixRessource -> getPrixRessource                     divergence declaree tenue (1/109 cas)\n      |   palierGreveOrdinaireServeur -> palierGreveOrdinaire      concorde (10 cas)\n      |   niveauGreveGeneraleServeur -> palierGreveGenerale        homonyme, les deux symboles existent\n      |   chargerBudgetNationalServeur -> chargerBudgetNational    homonyme, les deux symboles existent\n      |   villesDeServeur -> villesDe                              homonyme, les deux symboles existent\n      | \n      | ELECTIONS\n      |   --------------------------------------------------------------------\n      |   partiesHeureParis -> partiesHeureParis                   concorde (6 cas)\n      |   instantHeureParis -> instantHeureParis                   concorde (5 cas)\n      |   dateCalendairePlusJours -> dateCalendairePlusJours       concorde (24 cas)\n      |   lundiSemaineParis -> lundiSemaineParis                   concorde (6 cas)\n      |   datesScrutinSemaine -> datesScrutinSemaine               concorde (6 cas)\n      |   calendrierPremierTour -> calendrierPremierTour           concorde (6 cas)\n      |   calendrierTourSuivant -> calendrierTourSuivant           concorde (6 cas)\n      |   lundiMinuitParisApresSemaines -> lundiMinuitParisApresSemaines concorde (18 cas)\n      |   construireNouveauCycleElectoral -> construireNouveauCycleElectoral concorde (5 cas)\n      |   calculerScoresBaseCycle -> calculerScoresBaseCycle       concorde (16 cas)\n      |   resoudreScrutinSimple -> resoudreScrutinSimple           concorde (16 cas)\n      |   resoudreScrutinDepute -> resoudreScrutinDepute           concorde (16 cas)\n      |   departageCandidats -> departageCandidats                 concorde (5 cas)\n      |   appliquerEffetsTracts -> appliquerEffetsTracts           concorde (16 cas)\n      | \n      | GOUVERNEMENT\n      |   --------------------------------------------------------------------\n      |   echeanceEffectiveServeur -> echeanceEffective            concorde (6 cas)\n      | \n      | MILITAIRE\n      |   --------------------------------------------------------------------\n      |   paTravailMilitaireServeur -> paTravailMilitaire          concorde (10 cas)\n      |   coutRevientLotMilitaireServeur -> coutRevientLotMilitaire concorde (10 cas)\n      |   ressourcesMilitairesEligiblesServeur -> ressourcesMilitairesEligibles concorde (1 cas)\n      | \n      | URBANISME\n      |   --------------------------------------------------------------------\n      |   permisEnInstructionServeur -> permisEnInstruction        concorde (11 cas)\n      |   dureeInstructionPermisServeur -> dureeInstructionPermis  concorde (11 cas)\n      |   joursInstructionFaitsServeur -> joursInstructionFaits    concorde (11 cas)\n      |   instructionAcheveeServeur -> instructionAchevee          concorde (11 cas)\n      |   verdictAccordTaciteServeur -> verdictAccordTacite        concorde (36 cas)\n      |   terrainSuspenduServeur -> terrainSuspenduAdministrativement concorde (36 cas)\n      |   construireDocumentUrbanismeServeur -> construireDocumentUrbanisme concorde (33 cas)\n      |   libelleAccordTaciteServeur -> libelleEvenementUrbanisme  divergence declaree tenue (3/4 cas)\n      |   texteAccordTaciteServeur -> texteDocumentUrbanisme       divergence declaree tenue (4/4 cas)\n      | \n      | EPINGLEES PAR EMPREINTE DE TEXTE\n      |   --------------------------------------------------------------------\n      |   urbanisme/archiver                                       epinglee\n      |   elections/attacher-effets-tracts                         epinglee\n      |   successions/personnage-existe                            epinglee\n      |   successions/etape-suivante                               epinglee\n      |   indices/modifier-indice-ville                            epinglee\n      |   nocturne/desertions                                      epinglee\n      |   nocturne/expulsions-ambassadeurs                         epinglee\n      | \n      | CONSTANTES PORTANT LE MEME NOM DES DEUX COTES\n      |   --------------------------------------------------------------------\n      |   FUSEAU_ELECTORAL                                         egales\n      |   CANDIDATURES_MIN_MS                                      egales\n      |   REPARTITION_PORT_DEFAUT                                  egales\n      | \n      | ========================================================================\n      | LES FONCTIONS CONCORDENT.\n      | 55 copies declarees, dont 42 comparees sur 1882 cas executes des deux cotes.\n\n  le monde neuf est propre               verifier-monde-neuf.py         OK \n      | CONTROLE DU MONDE NEUF\n      |   99 fichiers de seed, 1098 lignes de donnees examinees\n      |   6 motifs d'artefact, 12 vestiges recherches, 3 exceptions declarees\n      | \n      | 1. ARTEFACTS DE BETA\n      |   ----------------------------------------------------------------------\n      |   occurrences non declarees : 0  OK \n      | \n      | 2. VESTIGES CANONISES\n      |   ----------------------------------------------------------------------\n      |   occurrences non declarees : 0  OK \n      | \n      | FAUX POSITIFS, DECLARES ET ADMIS : 1\n      |     . 91_empire/renseignement_couvertures.sql:22 — nom de couverture authored « Nabil Ben Azzouz » : le motif zz y est un faux positif, consigne au chantier 2E\n      | \n      | ========================================================================\n      | CONFORME : aucune donnee de bêta et aucun vestige dans les seeds.\n      |            Le monde neuf ne herite ni des artefacts de la bêta, ni des\n      |            objets que l'audit a declares vestiges.\n\n  l'assemblage se tient                  assembler.py                   OK \n      | ASSEMBLAGE STATIQUE DU BASELINE\n      |   17 domaines | 314 tables | 38 sequences | 902 fonctions distinctes | 2 vues\n      | \n      | 1. cles etrangeres examinees            : 64\n      |    vers une table ecartee               : 0 OK \n      |    vers une table introuvable           : 0 OK \n      | \n      | 2. declencheurs sans leur fonction      : 0 OK \n      | \n      | 3. appels a une fonction absente        : 0 OK \n      | \n      | 4. defauts nextval sans leur sequence   : 0 OK \n      | \n      | 5. references a un artefact hors baseline\n      |    non declarees                        : 0 OK \n      |    declarees dans DIFFERENCES-DELIBEREES : 1\n      |      . socle/20_fonctions.sql : reference a sauvegarde_beta_20260913 (schema de sauvegarde de la beta)\n      | \n      | 6. corps de fonction citant une table ecartee : 0 OK \n      | \n      | 7. ordre des phases\n      |    table        (10) avant contrainte   (30) OK \n      |    table        (10) avant index        (35) OK \n      |    table        (10) avant vue          (40) OK \n      |    fonction     (20) avant contrainte   (30) OK \n      |    fonction     (20) avant index        (35) OK \n      |    fonction     (20) avant vue          (40) OK \n      |    fonction     (20) avant trigger      (50) OK \n      |    fonction     (20) avant policy       (60) OK \n      |    table        (10) avant policy       (60) OK \n      |    sequence     (10) avant table        (10) OK \n      | \n      | 8. dependances vers un autre schema (declarees, non recreees) : 2\n      |    auth.uid                           utilise par personnage-et-presence\n      |    auth.users                         utilise par personnage-et-presence\n      | \n      | 9. assemblage des seeds\n      |    tables peuplees par un seed         : 82\n      |    tables en attente (TODO, sans donnee) : 17\n      |    seeds dont une cle etrangere vise une table non peuplee : 1 A SIGNALER\n      |    tables a cle etrangere sur elles-memes : 2\n      | \n      | ============================================================================\n      | A SIGNALER (non bloquant pour l'assemblage) : 2\n      |   . socle/20_fonctions.sql : reference a sauvegarde_beta_20260913 (schema de sauvegarde de la beta)\n      |   . seed de journaux : cle etrangere vers personnages_donnees, qui n'est pas peuplee. L'INSERT ne passera que si la colonne est nulle sur toutes les lignes seedees.\n      | \n      | ASSEMBLAGE COHERENT : chaque ordre trouve, a sa phase, tout ce dont il depend.\n\n  la reconstruction passe                reconstruire.py                OK \n      | RECONSTRUCTION DU BASELINE -- chantier 2F\n      |   analyseur : pglast v8.6, grammaire de PostgreSQL 18.6\n      |   production : PostgreSQL 17.6 -- meme version majeure\n      | \n      | 1. ASSEMBLAGE\n      |   ----------------------------------------------------------------------\n      |   220 fichiers assembles, 3143489 octets, 17 domaines\n      |   ordre : phases 10 > 20 > 30 > 35 > 40 > 50 > 60 > 70 > 80 > 85, puis les seeds 90_socle > 91_empire > 92_mixte\n      | \n      | 2. GRAMMAIRE REELLE DE POSTGRESQL\n      |   ----------------------------------------------------------------------\n      |   ordres analyses                      : 7773\n      |   refuses par l'analyseur              : 0  OK \n      | \n      | 3. SIMULATION DU CATALOGUE, DANS L'ORDRE D'APPLICATION\n      |   ----------------------------------------------------------------------\n      |   dependances manquantes a leur rang   : 0  OK \n      | \n      |   dependances externes rencontrees : 4\n      |     auth.uid               utilisee par 2 fichier(s)\n      |     auth.users             utilisee par 1 fichier(s)\n      |     pg_catalog.extract     utilisee par 1 fichier(s)\n      |     pg_catalog.timezone    utilisee par 2 fichier(s)\n      | \n      | 4. LE MONDE OBTENU\n      |   ----------------------------------------------------------------------\n      |   tables creees                         314 / 314    OK   \n      |   vues creees                             2 / 2      OK   \n      |   signatures de fonction creees         906 / 906    OK   \n      |   noms de fonction distincts            902 / 902    OK   4 fonctions sont surchargees : moins de noms que de signatures\n      |   contraintes posees                    613 / 613    OK   \n      |   index autonomes crees                 187 / 187    OK   \n      |   declencheurs crees                     51 / 51     OK   \n      |   policies creees                       281 / 281    OK   \n      |   sequences disponibles                  38 / 38     OK   \n      |   indices de ville seedes                 3 / 3      OK   les 3 villes de Republia, 5 indices chacune\n      |   titulaires PNJ seedes                  18 / 18     OK   18 titulaires : 3 juges municipaux distincts, le Procureur national, et les deux postes pourvus par la passe de minuit du 12 octobre\n      |   entrepots seedes                        3 / 3      OK   les 3 entrepots logistiques, 17 matieres chacun -- leur tresorerie a quitte le blob le 8 octobre 2026 pour une vraie caisse, seedee avec les autres\n      |   PNJ de socle seedes                     0 / 0      OK   un monde neuf n'herite d'aucun PNJ : ils naissent des mecanismes\n      |   soldats seedes                          0 / 0      OK   aucun soldat au premier jour\n      |   possessions de PNJ seedees              0 / 0      OK   aucune possession heritee\n      |   compagnies militaires seedees           0 / 0      OK   0 compagnie et 0 section au premier jour -- arbitrage du 5 octobre 2026\n      |   organisations seedees                   0 / 0      OK   les loges attendent le mecanisme de rattachement du chef\n      |   lignes de rp_transitions                0 / 0      OK   table volontairement vide : rp_transition_active() rend FALSE sur cle absente\n      |   caisses de batiment seedees            44 / 44     OK   les 44 dotations financieres arbitrees, ecrites depuis le tableau\n      |   lignes de repartition budgetaire seedees     28 / 28     OK   10 nationales (9/100 x 9 + Assemblee 19/100), Caserne 65/100, Douanes 35/100, QHS 0/100, 3 tribunaux a 1/3, 3 x 3 municipales a 40/40/20, et 3 subventions a 0/100\n      |   versements budgetaires seedes           0 / 0      OK   journal des versements reels : un monde neuf nait sans historique, sinon le premier minuit croirait avoir deja verse\n      |   compteur de recettes municipales seede      0 / 0      OK   mesure du jour, jamais une tresorerie : un monde neuf nait sans recette percue\n      | \n      |   1097 lignes seedees au total, dans 82 tables\n      | \n      | ==========================================================================\n      | RECONSTRUCTION VALIDEE sur les deux epreuves praticables ici :\n      |   . les 7773 ordres du baseline sont acceptes par la grammaire de PostgreSQL 17 ;\n      |   . appliques dans l'ordre des phases, chacun trouve ses dependances ;\n      |   . le monde obtenu est celui qu'attendent les arbitrages de game design.\n      | \n      | RESTE A FAIRE, ET CE N'EST PAS COUVERT ICI : appliquer reellement ce\n      | script sur un moteur PostgreSQL. Aucun n'est joignable depuis cette\n      | machine, et la production est interdite en ecriture.\n\n  non-regression du pilote 2B            verifier.py                    OK \n      | STRUCTURE                            rendu / base\n      |   tables                                 10 / 10      OK \n      |   colonnes                               84 / 84      OK \n      |   contraintes                            11 / 11      OK \n      |   index autonomes                         1 / 1       OK \n      |   fonctions                              16 / 16      OK \n      |   triggers                                5 / 5       OK \n      |   policies                               24 / 24      OK \n      |   tables avec RLS active                 10 / 10      OK \n      |   lignes de droits                       78 / 78      OK \n      |   droits au niveau colonne                0 / 0       OK \n      | \n      | SECURITE\n      |   fonctions SECURITY DEFINER             16 / 16      OK \n      |   fonctions SECURITY INVOKER              0 / 0       OK \n      |   tables RLS active sans policy           2 / 2       OK \n      | \n      | FIDELITE DES DEFINITIONS\n      |   empreinte globale des fonctions    8fb07ae0943888902f4cc39a3c0b2f4c  OK \n      |   definitions de fonctions conformes     16 / 16     OK \n      | \n      | INTEGRITE DES FICHIERS\n      |   10_tables.sql            df63a8ee1cf6eba96116250c1f3df90f OK \n      |   20_fonctions.sql         72f497d5fb029bb62565e11360bb7529 OK \n      |   30_contraintes.sql       ffb3cb7d3394aec0ce27100db5a00323 OK \n      |   35_index.sql             b559c9228e86ca7adf8f1da94fa01f5a OK \n      |   50_triggers.sql          c5cf681c1026e8216ef862b99fa3f01b OK \n      |   60_rls-policies.sql      7b2500087e51a183ef6bd439f4474a9b OK \n      |   70_droits.sql            e2373296b26179a6d73ebb63b32af663 OK \n      |   80_commentaires.sql      0204fa2a12a22705ee75d1a4c021a4ea OK \n      | \n      | CONFORME : le domaine communication est fidele au catalogue.\n\n  non-regression de l'archive 2D         verifier-archive-registre.py   OK \n      | Fichiers .sql trouves      : 539 (attendu 539)\n      | Versions distinctes        : 539\n      | Doublons de version        : 0\n      | Empreinte globale          : 9e74c0eb5adbddc8b61de2b1532cbef0 (attendu 9e74c0eb5adbddc8b61de2b1532cbef0)\n      | Empreinte des noms         : b764e9b6141d4e1a17a3d4b016cf3c56 (attendu b764e9b6141d4e1a17a3d4b016cf3c56)\n      | Repartition par categorie  : DDL=393, DML=32, MIXTE=114, AUTRE=0\n      | \n      | CONFORME : les 539 entrees archivees correspondent exactement au registre.\n\n========================================================================\nECHEC : 2 controle(s) sur 12\n  - l'autorite tient (verifier-autorite.py)\n  - les referentiels concordent (verifier-referentiels.py)\n\nLe detail de chaque echec est au-dessus. Rien n'a ete corrige :\nces outils rapportent, ils ne reparent pas.\n"
+  },
+  "syntaxe_api": {
+    "reussis": 23,
+    "total": 23,
+    "moteur": "Node via adaptateur externe des anciens lanceurs JSC"
+  },
+  "supabase": {
+    "catalogue_verifie": false,
+    "tests_authentifies": false,
+    "migrations_appliquees": [],
+    "donnees_reelles_modifiees": false,
+    "blocage": "Aucun connecteur catalogue ni identifiant de lecture configure; GET OpenAPI avec cle publique existante refuse par proxy HTTPS : Tunnel connection failed: 403 Forbidden."
+  },
+  "raccordement_ui_financier": false,
+  "finance_fusionnee_dans_main": false,
+  "production_verifiee": false,
+  "bloquants_implementation": [
+    "Prets classiques et echeances cron",
+    "Fret et controles douaniers",
+    "Ateliers/production et ecritures JSON/caisse annexes",
+    "Revue des successions et droits historiques",
+    "Raccordement general des sauvegardes et des ecrans aux actes serveur"
+  ],
+  "phases_suivantes": "Commerce, navigation et extension alimentaire non engages : precondition financiere non satisfaite."
+}

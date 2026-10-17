@@ -2091,57 +2091,57 @@
     },
     {
       "source": "supabase.js",
-      "ligne": 1441,
+      "ligne": 1454,
       "texte": "//     await sbUpdate('personnages', `name=eq.${nom}`, { arg: argActuel + montant });"
     },
     {
       "source": "supabase.js",
-      "ligne": 1483,
+      "ligne": 1496,
       "texte": "const v = await sbUpdateVerdict('personnages', cible + garde, { arg: Math.round(nouveauSolde) })"
     },
     {
       "source": "supabase.js",
-      "ligne": 1497,
+      "ligne": 1510,
       "texte": "return { ok: true, solde: Math.round(nouveauSolde) };"
     },
     {
       "source": "supabase.js",
-      "ligne": 1559,
+      "ligne": 1572,
       "texte": "if (argActuel < montant) return { ok: false, raison: 'fonds_insuffisants', solde: argActuel };"
     },
     {
       "source": "supabase.js",
-      "ligne": 1970,
+      "ligne": 1983,
       "texte": "arg: state.arg || 0,"
     },
     {
       "source": "supabase.js",
-      "ligne": 1971,
+      "ligne": 1984,
       "texte": "liquide: state.liquide || 0,"
     },
     {
       "source": "supabase.js",
-      "ligne": 1972,
+      "ligne": 1985,
       "texte": "banque: state.banque || 0,"
     },
     {
       "source": "supabase.js",
-      "ligne": 2478,
+      "ligne": 2491,
       "texte": "return sbUpdate('dons_en_attente', `id=eq.${donId}`, { traite: true });"
     },
     {
       "source": "supabase.js",
-      "ligne": 5073,
+      "ligne": 5086,
       "texte": "return await sbInsert('prets', pret);"
     },
     {
       "source": "supabase.js",
-      "ligne": 5082,
+      "ligne": 5095,
       "texte": "return await sbUpdate('prets', `id=eq.${encodeURIComponent(id)}`, patch);"
     },
     {
       "source": "supabase.js",
-      "ligne": 6390,
+      "ligne": 6403,
       "texte": "// bouton n'est pas un ordre, elle passe par debiter_fonds_ordinaires. Plus aucun `state.arg -=`."
     }
   ]
