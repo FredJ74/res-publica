@@ -840,23 +840,31 @@ window.addEventListener('DOMContentLoaded', () => {
   // voyants du 21 aout 2026 -- ce polling redevient un filet de sécurité en arrière-plan, la
   // réactivité réelle vient désormais des déclenchements immédiats à l'ouverture de la
   // messagerie, à la lecture d'un mail et au retour sur l'onglet, voir forum.js/plus haut).
-  verifierNouveauxMails();
-  setInterval(verifierNouveauxMails, 60000);
+  // Lectures non critiques : une seule requête par fonction et pause onglet masqué.
+  const lecturesFondEnCours = new Set();
+  function lancerLectureFond(nom, fn) {
+    if (document.hidden || lecturesFondEnCours.has(nom) || typeof fn !== 'function') return;
+    lecturesFondEnCours.add(nom);
+    Promise.resolve().then(fn).catch(e => console.warn('[Fond] ' + nom, e))
+      .finally(() => lecturesFondEnCours.delete(nom));
+  }
+  lancerLectureFond('mails', verifierNouveauxMails);
+  setInterval(() => lancerLectureFond('mails', verifierNouveauxMails), 60000);
 
   // Voyant d'activité forum (17 août 2026) — même cadence que la vérification des mails, même
   // raison de réduction
   if (typeof verifierActiviteForumNonVue === 'function') {
-    verifierActiviteForumNonVue();
-    setInterval(verifierActiviteForumNonVue, 60000);
+    lancerLectureFond('forum', verifierActiviteForumNonVue);
+    setInterval(() => lancerLectureFond('forum', verifierActiviteForumNonVue), 60000);
   }
 
   // Vérification des objets reçus (dons d'un autre joueur) toutes les 2 minutes
-  verifierObjetsRecus();
-  setInterval(verifierObjetsRecus, 120000);
+  lancerLectureFond('objets', verifierObjetsRecus);
+  setInterval(() => lancerLectureFond('objets', verifierObjetsRecus), 120000);
 
   // Batiments fermes (incendie/explosifs) — au chargement puis toutes les 2 minutes
   setTimeout(() => chargerBatimentsFermes(), 1000);
-  setInterval(chargerBatimentsFermes, 120000);
+  setInterval(() => lancerLectureFond('batimentsFermes', chargerBatimentsFermes), 120000);
 
   // Championnat sportif — verifie/avance la saison au chargement puis toutes les 5 minutes
   // (n'importe quel joueur connecte peut declencher le rattrapage, l'etat est partage sur Supabase).
@@ -888,7 +896,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => recupererVolsEnAttente(), 2200);
   setTimeout(() => recupererImpactsEnAttente(), 2400);
   setTimeout(() => verifierLancementQuete(), 2600);
-  setInterval(chargerEvenementsPartages, 90000);
+  setInterval(() => lancerLectureFond('evenements', chargerEvenementsPartages), 90000);
   setInterval(recupererDonsEnAttente, 90000);
   setInterval(recupererVolsEnAttente, 90000);
   setInterval(recupererImpactsEnAttente, 90000);
