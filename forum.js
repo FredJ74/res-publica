@@ -2395,7 +2395,12 @@ async function loadForumTopicsFromSB(forumId) {
     }
     delete FORUM_LECTURE_ECHOUEE[forumId];
     const rows = v.donnees;
-    if (rows.length === 0) return;
+    if (rows.length === 0) {
+      // Une lecture reussie mais vide ne doit pas laisser d'anciens sujets locaux
+      // presenter un etat errone comme etant la verite du serveur.
+      FORUM_TOPICS[forumId] = [];
+      return;
+    }
     // Fusionner avec les topics locaux existants
     if (!FORUM_TOPICS[forumId]) FORUM_TOPICS[forumId] = [];
     rows.forEach(row => {
