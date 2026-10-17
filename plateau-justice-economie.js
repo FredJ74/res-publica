@@ -11580,7 +11580,7 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
 
   // Une personne recherchee ne peut etre interpellee qu'apres ce jet de detection.
   if (pays === 'republic' && typeof verifierArrestationRecherchePolice === 'function') {
-    const intervention = await verifierArrestationRecherchePolice({ detecte: true });
+    const intervention = await verifierArrestationRecherchePolice({ detecte: true, policiers: presents, rueNoeudId });
     if (intervention === true) return;
   }
   const volGroupe = calculerVolGroupePolice(presents);
@@ -12685,6 +12685,127 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
 // effet ici, exactement comme pour la chasse a l'homme. Les anciennes entrees plates (actes
 // auto-detectes, sans `type`) ne sont pas concernees -- elles suivent leur propre mecanisme deja
 // existant (checkArrestationAuDeplacement/checkArrestationAuReveil), inchange.
+// Interception judiciaire : un seul dossier actif, issu exclusivement de justice_recherches.
+// La detention n'est executee qu'apres reddition ou neutralisation en combat.
+let interceptionJudiciaire = null;
+let interceptionJudiciaireOccupee = false;
+
+function afficherInterceptionJudiciaire() {
+  const i = interceptionJudiciaire;
+  if (!i) return;
+  const modal = document.getElementById('modal-postes');
+  const titre = document.getElementById('postes-modal-title');
+  const body = document.getElementById('postes-body');
+  if (!modal || !titre || !body) return;
+  titre.textContent = 'INTERCEPTION POLICIÈRE';
+  const btn = (action, label) => '<button type="button" class="ibtn" onclick="choisirInterceptionJudiciaire(\\'' + action + '\\')">' + label + '</button>';
+  body.innerHTML = '<div class="hg-interception" style="padding:1.1rem;display:grid;gap:.8rem">' +
+    '<p>Vous avez été reconnu(e). Une condamnation est en attente d’exécution.</p>' +
+    '<p>Vos PA : <strong>' + Math.max(0, Number(state.pa || 0)) + '</strong>' +
+    ' · Forces de l’ordre encore en état : <strong>' + i.policiers.length + '</strong></p>' +
+    (i.fuiteEchouee ? '<p>Votre tentative de fuite a échoué : vous devez vous rendre ou combattre.</p>' : '') +
+    '<div style="display:grid;gap:.5rem">' + btn('rendre','Se rendre') +
+    btn('combattre','Combattre') + (i.fuiteEchouee ? '' : btn('fuir','Fuir')) + '</div></div>';
+  modal.classList.add('open');
+}
+
+async function conclureArrestationJudiciaire() {
+  const i = interceptionJudiciaire;
+  if (!i || interceptionJudiciaireOccupee) return;
+  interceptionJudiciaireOccupee = true;
+  try {
+    const r = await executerCondamnationRecherchee(state.char.name, i.eligible, i.recherche, i.ville);
+    if (!r || r.echec || !r.detentionId) {
+      showToast('Arrestation non confirmée', 'Le serveur n’a pas confirmé la détention.', false);
+      return;
+    }
+    interceptionJudiciaire = null;
+    document.getElementById('modal-postes')?.classList.remove('open');
+    const nomVille = (typeof WORLD !== 'undefined' && WORLD[state.country]?.[i.ville]?.name) || i.ville;
+    addJournalEntry('Vous êtes arrêté(e) et conduit(e) à la prison de ' + nomVille + '.', 'event-bad');
+    addExternalEvent(state.char.name + ' a été arrêté(e) après une interception policière.', 'local');
+    const cellule = typeof getBuildingIdCommissariatNavigation === 'function' ? getBuildingIdCommissariatNavigation(i.ville) : 'commissariat';
+    state.currentBuilding = cellule;
+    state.currentRoom = cellule === 'commissariat' ? 'prison' : 'geoles';
+    if (typeof enterBuilding === 'function') {
+      enterBuilding(state.currentBuilding, true);
+      if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, state.currentRoom, null);
+    }
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
+      ouvrirResolutionSpectaculaire({type:'arrestation',succes:true,titre:'VOUS ÊTES EN ÉTAT D’ARRESTATION',
+        resultatHtml:construireResultatArrestationHtml(i.eligible.motifs || [],i.ville,state.country)});
+    }
+  } finally {
+    interceptionJudiciaireOccupee = false;
+    if (interceptionJudiciaire) afficherInterceptionJudiciaire();
+  }
+}
+
+async function choisirInterceptionJudiciaire(choix) {
+  const i = interceptionJudiciaire;
+  if (!i || interceptionJudiciaireOccupee) return;
+  if (choix === 'rendre') { await conclureArrestationJudiciaire(); return; }
+  if (choix === 'fuir' && !i.fuiteEchouee) {
+    const vol = getStatEffective('VOL');
+    const adversaire = calculerVolGroupePolice(i.policiers);
+    const reussite = Math.floor(Math.random()*100)+1 <= calculerChancePJ(vol + calculerDisEffective()/2, adversaire);
+    if (!reussite) { i.fuiteEchouee = true; afficherInterceptionJudiciaire(); return; }
+    // Un succès impose un déplacement physique. Si aucune destination valide n'existe,
+    // l'interception reste ouverte ; une simple fermeture de fenêtre n'est pas une fuite.
+    if (i.rueNoeudId) {
+      const noeud = typeof RUE_CENTRALE_NOEUDS !== 'undefined' ? RUE_CENTRALE_NOEUDS[state.country]?.[i.rueNoeudId] : null;
+      const voisins = [noeud?.liens?.gauche, noeud?.liens?.droite].filter(Boolean);
+      if (!voisins.length || typeof afficherNoeudRue !== 'function') {
+        showToast('Fuite impossible', 'Aucun segment de rue accessible.', false); return;
+      }
+      const destination = voisins[Math.floor(Math.random()*voisins.length)];
+      interceptionJudiciaire = null;
+      document.getElementById('modal-postes')?.classList.remove('open');
+      afficherNoeudRue(state.country,destination,i.rueNoeudId);
+    } else {
+      if (typeof sortirBatiment !== 'function') { showToast('Fuite impossible','Sortie indisponible.',false); return; }
+      interceptionJudiciaire = null;
+      document.getElementById('modal-postes')?.classList.remove('open');
+      sortirBatiment();
+    }
+    addJournalEntry('Vous avez échappé à une interception policière.', 'event-info');
+    return;
+  }
+  if (choix !== 'combattre') return;
+  // La rébellion est commise dès le choix de résister, même si le PJ perd.
+  interceptionJudiciaireOccupee = true;
+  try {
+    const inscrit = await inscrireRecherche({acte:'rebellion',type:'delit_grave',jour:state.day,country:state.country});
+    if (!inscrit) { showToast('Combat indisponible','Impossible d’enregistrer la rébellion.',false); return; }
+    // Résolution par PA, jamais par HP. Un groupe se combat collectivement.
+    // Les policiers isolés sont affrontés successivement, avec une nouvelle décision.
+    const adversaires = i.policiers;
+    const paPJ = Math.max(0,Number(state.pa||0));
+    if (!paPJ) { interceptionJudiciaireOccupee = false; await conclureArrestationJudiciaire(); return; }
+    const volPJ = getStatEffective('VOL');
+    const volPolice = calculerVolGroupePolice(adversaires);
+    const succesPJ = Math.floor(Math.random()*100)+1 <= calculerChancePJ(volPJ,volPolice);
+    const pertePJ = succesPJ ? 1 : Math.min(paPJ,Math.max(1,adversaires.length));
+    state.pa = Math.max(0,paPJ-pertePJ);
+    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state);
+    if (typeof updateUI === 'function') updateUI();
+    if (succesPJ) {
+      // Neutralisation locale de l'opposition ; le PJ reste physiquement sur place.
+      i.policiers = [];
+      interceptionJudiciaire = null;
+      document.getElementById('modal-postes')?.classList.remove('open');
+      showToast('Police neutralisée','Vous restez sur place et demeurez recherché(e).',true);
+    } else if (state.pa <= 0) {
+      interceptionJudiciaireOccupee = false;
+      await conclureArrestationJudiciaire();
+    } else {
+      i.fuiteEchouee = true;
+      showToast('Combat en cours','Vous avez perdu des PA. Vous pouvez vous rendre ou poursuivre le combat.',false);
+    }
+  } finally { interceptionJudiciaireOccupee = false; if (interceptionJudiciaire) afficherInterceptionJudiciaire(); }
+}
+
 async function verifierArrestationRecherchePolice(options = {}) {
   if ((state.country || 'republic') === 'republic' && options.detecte !== true) return false;
   if (state.estEmprisonne || !state.char?.name) return;
@@ -12703,38 +12824,11 @@ async function verifierArrestationRecherchePolice(options = {}) {
   // emprisonne par ailleurs) -- ne jamais arreter dans un contexte devenu incoherent.
   if (state.estEmprisonne) return;
 
-  const ville = state.currentCity;
-  const { joursTotal } = await executerCondamnationRecherchee(state.char.name, eligible, rechercheActuelle, ville);
-
-  const nomVille = (typeof WORLD !== 'undefined' && WORLD[state.country]?.[ville]?.name) || ville;
-  showToast('Arrêté(e) !', 'Une condamnation en attente d\'exécution vous rattrape.', false, true);
-  addJournalEntry('Vous croisez une patrouille de police : une condamnation en attente d\'execution vous concernant est reconnue. Conduit(e) a la prison de ' + nomVille + '. Peine totale a purger : ' + joursTotal + ' jour(s).', 'event-bad');
-  addExternalEvent(state.char.name + ' a ete arrete(e) suite a une condamnation en attente d\'execution.', 'local');
-
-  // Teleportation vers la prison/geoles de CETTE ville (meme logique multivilles que
-  // procederArrestation, lot "ordres carceraux hors Luthecia").
-  const buildingIdCellule = (typeof getBuildingIdCommissariatNavigation === 'function') ? getBuildingIdCommissariatNavigation(ville) : 'commissariat';
-  const roomIdCellule = (buildingIdCellule === 'commissariat') ? 'prison' : 'geoles';
-  state.currentBuilding = buildingIdCellule;
-  state.currentRoom = roomIdCellule;
-  if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
-    enterBuilding(buildingIdCellule, true);
-    if (typeof enterRoom === 'function') enterRoom(buildingIdCellule, roomIdCellule, null);
-  }
-  if (typeof updateUI === 'function') updateUI();
-
-  // Resolution spectaculaire, appelee APRES persistance + teleportation (§8) -- meme motifs que
-  // ceux reellement utilises par executerCondamnationRecherchee ci-dessus (entree.motifs pour une
-  // condamnation enrichie, sinon un motif unique reconstruit a l'identique de sa propre logique).
-  if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
-    const motifsAffiches = (eligible.type === 'condamnation' && eligible.motifs?.length) ? eligible.motifs : [{ type: eligible.acte || 'Avis de recherche', jours: joursTotal }];
-    ouvrirResolutionSpectaculaire({
-      type: 'arrestation',
-      succes: true,
-      titre: 'VOUS ÊTES EN ÉTAT D\'ARRESTATION',
-      resultatHtml: construireResultatArrestationHtml(motifsAffiches, ville, state.country)
-    });
-  }
+  if (interceptionJudiciaire) return true;
+  interceptionJudiciaire = { eligible, recherche: rechercheActuelle,
+    ville: state.currentCity, policiers: options.policiers || [{stats:{VOL:12}}],
+    rueNoeudId: options.rueNoeudId || null, fuiteEchouee: false };
+  afficherInterceptionJudiciaire();
   return true;
 }
 
