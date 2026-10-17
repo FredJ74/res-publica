@@ -12673,9 +12673,15 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
 async function verifierArrestationRecherchePolice(options = {}) {
   if ((state.country || 'republic') === 'republic' && options.detecte !== true) return false;
   if (state.estEmprisonne || !state.char?.name) return;
-  if (typeof sbGet !== 'function') return;
-  const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(state.char.name)}&select=recherche`).catch(() => []);
-  const rechercheActuelle = rows?.[0]?.recherche || [];
+  // Source canonique unique : avis de recherche judiciaires exposes par le serveur.
+  // Ne jamais relire le champ historique personnages.recherche depuis le client.
+  if (typeof sbRpc !== 'function') return false;
+  const rechercheRows = await sbRpc('justice_recherches', { p_nom: state.char.name }).catch(() => null);
+  if (!Array.isArray(rechercheRows)) return false; // panne serveur : ne pas inventer une absence de recherche
+  const rechercheActuelle = rechercheRows.map(function (r) {
+    return Object.assign({}, r.data || {}, { id: r.id, country: r.country,
+                                             ville_condamnation: r.ville_condamnation });
+  });
   const eligible = rechercheActuelle.find(r => r.type === 'condamnation' && (!r.country || r.country === state.country));
   if (!eligible) return false;
   // Re-verification apres l'attente reseau ci-dessus : l'etat a pu changer entre-temps (deja
