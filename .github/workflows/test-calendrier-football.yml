@@ -1,0 +1,23 @@
+name: Tests calendrier football
+on:
+  pull_request:
+    paths:
+      - 'plateau-core.js'
+      - 'outils/bancs/test-calendrier-polling-football.mjs'
+      - '.github/workflows/test-calendrier-football.yml'
+  push:
+    branches:
+      - architecture/championnat-centralisation-preparation-20261017
+    paths:
+      - 'plateau-core.js'
+      - 'outils/bancs/test-calendrier-polling-football.mjs'
+      - '.github/workflows/test-calendrier-football.yml'
+jobs:
+  calendrier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test outils/bancs/test-calendrier-polling-football.mjs
