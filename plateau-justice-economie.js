@@ -893,7 +893,7 @@ async function transmettreAffaireAuTribunal(cible, motif, city, factRef) {
 
   // Publier sur le forum tribunal local (visible de tous, transparence judiciaire)
   if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
-  const timeAffaire = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
+  const timeAffaire = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
   FORUM_TOPICS[forumKey].unshift({
     // L'IDENTIFIANT DU SUJET DE FORUM N'EST PAS CELUI DE L'AFFAIRE, et il porte desormais un
     // prefixe qui le dit. Les deux se nommaient `'affaire-' + Date.now()`, ce qui laissait croire
@@ -2857,7 +2857,7 @@ async function soumettreConte(idx, pa, cost) {
   const ville = WORLD[state.country]?.[state.currentCity]?.name || 'la ville';
   const forumKey = 'tribunal_' + state.currentCity;
   if (!FORUM_TOPICS[forumKey]) FORUM_TOPICS[forumKey] = [];
-  const timeContestation = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + state.day;
+  const timeContestation = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
   FORUM_TOPICS[forumKey].unshift({
     id: 'contestation-' + Date.now(),
     title: '[CONTESTATION] ' + e.nom,
@@ -3442,7 +3442,7 @@ async function appliquerSentence(affaireId, type, infraction, joursServeur, amen
     + ' (' + (vSentence.infraction_libelle || '') + ') (Juge : ' + vSentence.juge + ')');
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
     sbSendMail('Tribunal', affaire.cible, 'Resultat de votre affaire',
       'La sentence a ete rendue : ' + peineOfficielle
       + ' (qualification retenue : ' + (vSentence.infraction_libelle || vSentence.infraction) + ')',
@@ -4248,7 +4248,7 @@ async function confirmerDonPnj(encodedPnj) {
     const nomCourt = pnj.name.replace(' (PNJ)','');
     const expediteur = state.char?.name || 'Anonyme';
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
     const r = (typeof sbDonArgentDeposer === 'function')
       ? await sbDonArgentDeposer(nomCourt, montant) : null;
     if (!r || r.ok !== true) {
@@ -13822,7 +13822,7 @@ async function postulerOffreEmploiBNE(offreId) {
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2, '0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
     await sbSendMail('Bureau National de l\'Emploi', pjNom, 'Deux postes en même temps ?', corps, time).catch(() => {});
   }
   document.getElementById('modal-postes')?.classList.remove('open');
