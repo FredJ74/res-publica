@@ -2352,9 +2352,8 @@ async function doDormir() {
     // Payer les escorts actives
     payerEscorts();
     payerEmployes();
-    // Regeneration quotidienne des grilles de prison de la ville courante (puise sur la
-    // caisse du commissariat, s'arrete des que le budget est insuffisant)
-    if (typeof regenererGrillesPrison === 'function') regenererGrillesPrison(state.country, state.currentCity).catch(() => {});
+    // Les grilles de prison ne sont plus entretenues au sommeil d'un PJ.
+    // Leur régénération doit être exécutée par une tâche quotidienne serveur dédiée.
     // L'ENTRETIEN DES POLICIERS N'EST PLUS DECLENCHE ICI (27 septembre 2026, lot 3).
     // Meme raison que les douaniers ci-dessous, plus une fuite propre a la police : le debit
     // partait du sommeil de N'IMPORTE QUEL joueur present dans la ville, alors que l'ECRITURE

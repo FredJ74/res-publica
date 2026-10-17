@@ -9344,9 +9344,6 @@ const TAUX_TAXE_DEFAUT = 5; // %, local et national
 // le commit ba75c1e). Les trois familles territoriales quittent la cle nationale par l'arbitrage
 // du 7 octobre, ce qui ferme la question pour de bon.
 
-const COUT_REPARATION_GRILLE = 200; // FR par point regenere
-const REGEN_GRILLE_PAR_JOUR = 4; // points vises par jour, plafonne par le budget dispo
-
 // A3 (lot caisses locales, 16 aout 2026) : cette fonction (et Dispensaire/Tribunal ci-dessous)
 // n'identifie QUE des caisses (verifie exhaustivement : tous les appelants s'en servent comme
 // cle de caisses_batiments -- subvention, financement communal, paiement d'enquete/filature,
@@ -12729,21 +12726,6 @@ async function endommagerGrillePrison(pays, ville, degats) {
   if (typeof sbSaveNiveauPrison === 'function') await sbSaveNiveauPrison(n.key, { niveau: n.niveau }).catch(() => {});
   await verifierSeuilsGrillePrison(pays, ville, n.niveau);
   return n.niveau;
-}
-
-// Regeneration quotidienne : puise sur la caisse du commissariat de la ville, s'arrete
-// des que le budget ne suffit plus (jamais de regeneration a credit).
-async function regenererGrillesPrison(pays, ville) {
-  const n = await chargerNiveauPrison(pays, ville);
-  if (n.niveau >= 100) return;
-  const pointsVises = Math.min(REGEN_GRILLE_PAR_JOUR, 100 - n.niveau);
-  const coutVise = pointsVises * COUT_REPARATION_GRILLE;
-  const buildingId = getBuildingIdCommissariat(ville);
-  const montantVerse = await debiterCaisseBatimentPlafonne(pays, buildingId, coutVise);
-  const pointsReels = Math.floor(montantVerse / COUT_REPARATION_GRILLE);
-  if (pointsReels <= 0) return;
-  n.niveau = Math.min(100, n.niveau + pointsReels);
-  if (typeof sbSaveNiveauPrison === 'function') await sbSaveNiveauPrison(n.key, { niveau: n.niveau }).catch(() => {});
 }
 
 async function verifierSeuilsGrillePrison(pays, ville, niveau) {
