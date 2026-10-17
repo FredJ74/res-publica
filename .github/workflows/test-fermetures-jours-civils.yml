@@ -1,0 +1,21 @@
+name: Tests fermetures calendrier universel
+on:
+  pull_request:
+    paths:
+      - 'plateau-core.js'
+      - 'supabase.js'
+      - 'supabase/migrations/20261017190000_fermetures_date_universelle.sql'
+      - 'outils/bancs/test-fermetures-jours-civils.mjs'
+      - '.github/workflows/test-fermetures-jours-civils.yml'
+  push:
+    branches:
+      - 'correctif/fermetures-calendrier-universel-20261017'
+jobs:
+  fermetures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test outils/bancs/test-fermetures-jours-civils.mjs
