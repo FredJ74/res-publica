@@ -52,3 +52,10 @@ Le football n'est pas un minijeu autonome : il relie des clubs et leurs préside
 - Établir des tests de référence : aucun PJ, PJ titulaire, supporters, boycott, interdiction ministérielle, blessures, résultat nul, primes, pari, playoffs, changement d'heure, panne et reprise.
 
 **Conclusion provisoire :** la centralisation est justifiée, mais elle doit être conçue comme une extraction d'un système sociopolitique complet, et non comme le déplacement d'une simple simulation de score.
+
+## Arbitrage explicite — horloge universelle (17 octobre 2026)
+**Règle impérative :** une seule horloge, le temps réel commun à tous les PJ, PNJ, villes et empires. À 16 h à Luthécia, il est également 16 h à Sovarka et partout ailleurs dans l'univers du jeu. Aucun fuseau horaire local fictif, aucune horloge personnelle et aucun calendrier temporel dépendant du PJ connecté.
+
+**Dette technique constatée :** `calculerContributionEquipe` utilise `state.day || 1` pour évaluer `blessure_sportive.jusquauJour`. Il faut retracer le stockage, l'attribution et la guérison des blessures avant de corriger la comparaison, sans interpréter `state.day` comme une règle de game design. La correction doit s'appuyer sur un instant/date canonique du serveur, commun à tous, et préserver la durée d'indisponibilité voulue.
+
+**Portée de l'audit :** rechercher d'autres dépendances à `state.day` ou aux heures locales du navigateur dans les systèmes collectifs. Les heures de présentation peuvent être affichées dans le référentiel commun du jeu, sans modifier l'instant réel sous-jacent.
