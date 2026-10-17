@@ -12846,10 +12846,8 @@ async function verifierArrestationRecherchePolice(options = {}) {
   // emprisonne par ailleurs) -- ne jamais arreter dans un contexte devenu incoherent.
   if (state.estEmprisonne) return;
 
-  if (interceptionJudiciaire) {
-    afficherInterceptionJudiciaire();
-    return true;
-  }
+  // Un retour serveur tardif ne doit jamais réafficher une interception depuis
+  // une ancienne pièce ou une ancienne ville, même si une autre est déjà ouverte.
   // La détection doit encore concerner la zone où le PJ se trouve : l'appel serveur
   // peut revenir après un changement de ville, de bâtiment ou de pièce.
   if (options.zone && (state.country !== options.zone.pays ||
@@ -12857,6 +12855,10 @@ async function verifierArrestationRecherchePolice(options = {}) {
       (options.zone.rue ? (typeof rueCentraleNoeudActuel !== 'undefined' &&
         rueCentraleNoeudActuel !== options.zone.rue) :
         (state.currentBuilding !== options.zone.batiment || state.currentRoom !== options.zone.piece)))) return false;
+  if (interceptionJudiciaire) {
+    afficherInterceptionJudiciaire();
+    return true;
+  }
   interceptionJudiciaire = { eligible, recherche: rechercheActuelle,
     ville: state.currentCity, policiers: options.policiers || [{stats:{VOL:12}}],
     rueNoeudId: options.rueNoeudId || null, fuiteEchouee: false };
