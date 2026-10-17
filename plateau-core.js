@@ -880,8 +880,23 @@ window.addEventListener('DOMContentLoaded', () => {
     catch (e) { console.warn('[Championnat] Verification indisponible', e); }
     finally { verificationSaisonEnCours = false; }
   }
-  setTimeout(verifierSaisonSansChevauchement, 2500);
-  setInterval(verifierSaisonSansChevauchement, 300000);
+  // Le calendrier sportif est une échéance, pas un traitement de fond permanent.
+  // Une passe au chargement puis une passe quotidienne de secours assurent
+  // l'initialisation et la reprise, y compris après un dimanche sans joueurs.
+  // Le dimanche soir, conserver la cadence de 5 minutes pour les transitions.
+  function estDimancheParis(date = new Date()) {
+    return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', weekday: 'short' }).format(date) === 'Sun';
+  }
+  let derniereVerificationSaisonMs = 0;
+  async function verifierSaisonSelonCalendrier() {
+    const maintenant = Date.now();
+    const delai = estDimancheParis() ? 300000 : 86400000;
+    if (maintenant - derniereVerificationSaisonMs < delai || verificationSaisonEnCours) return;
+    derniereVerificationSaisonMs = maintenant;
+    await verifierSaisonSansChevauchement();
+  }
+  setTimeout(verifierSaisonSelonCalendrier, 2500);
+  setInterval(verifierSaisonSelonCalendrier, 300000);
 
   // Football live (chantier "match reel 30 minutes", 28 aout 2026) : tick dedie, plus rapide (20s),
   // pour la progression des matchs de saison reguliere en fenetre echauffement/mt1/mitemps/mt2,
@@ -897,8 +912,23 @@ window.addEventListener('DOMContentLoaded', () => {
     catch (e) { console.warn('[Football live] Tick indisponible', e); }
     finally { footballLiveEnCours = false; }
   }
-  setTimeout(tickFootballSansChevauchement, 500);
-  setInterval(tickFootballSansChevauchement, 20000);
+  // Le direct sportif n'existe que le dimanche soir (heure Europe/Paris).
+  // Fenetre volontairement large : avant-match, 30 min de phases, et retard raisonnable.
+  // Hors fenetre, le tick saisonnier (5 min) garde la reprise des journees en retard.
+  function estFenetreFootballLive(date = new Date()) {
+    const parties = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Paris', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    }).formatToParts(date);
+    const valeur = type => parties.find(p => p.type === type)?.value;
+    const minute = Number(valeur('hour')) * 60 + Number(valeur('minute'));
+    return valeur('weekday') === 'Sun' && minute >= 19 * 60 + 45 && minute <= 21 * 60;
+  }
+  async function tickFootballSelonCalendrier() {
+    if (!estFenetreFootballLive()) return;
+    await tickFootballSansChevauchement();
+  }
+  setTimeout(tickFootballSelonCalendrier, 500);
+  setInterval(tickFootballSelonCalendrier, 20000);
   setTimeout(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 3000);
   setInterval(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 300000);
 
