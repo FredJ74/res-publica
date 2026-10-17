@@ -48,7 +48,9 @@ function bloc(fichier, nom) {
   var i = src.indexOf('async function ' + nom + '(');
   if (i < 0) i = src.indexOf('function ' + nom + '(');
   if (i < 0) throw new Error('introuvable : ' + nom + ' dans ' + fichier);
-  var j = src.indexOf('{', i), p = 0, k = j;
+  // Sauter les accolades des paramètres par défaut (ex. options = {}).
+  // Sinon le bloc se termine avant même le corps de la fonction.
+  var j = src.indexOf('{', src.indexOf(')', i)), p = 0, k = j;
   while (k < src.length) { if (src[k] === '{') p++; else if (src[k] === '}') { p--; if (!p) break; } k++; }
   return src.slice(i, k + 1);
 }
