@@ -12832,7 +12832,20 @@ async function choisirInterceptionJudiciaire(choix) {
       document.getElementById('modal-postes')?.classList.remove('open');
       showToast('Police neutralisée', 'Vous restez sur place et demeurez recherché(e).', true);
     } else if (verdict.arrestation) {
-      arreter = true;
+      if (!verdict.detention_id) {
+        showToast('Arrestation non confirmée', 'Détention non enregistrée par le serveur.', false);
+        return;
+      }
+      const jours = Number(verdict.jours || 0);
+      state.estEmprisonne = { raison: verdict.motif || 'Condamnation', jours,
+        jourFin: (state.day || 1) + jours, detentionId: verdict.detention_id,
+        city: i.ville, country: state.country };
+      interceptionJudiciaire = null;
+      document.getElementById('modal-postes')?.classList.remove('open');
+      if (typeof teleporterVersCellule === 'function') teleporterVersCellule(state.estEmprisonne);
+      addJournalEntry('Vous êtes arrêté(e) et conduit(e) en prison.', 'event-bad');
+      if (typeof updateUI === 'function') updateUI();
+      return;
     } else {
       i.fuiteEchouee = true;
       // L'état affiché provient du verdict serveur, pas d'une victoire locale.
