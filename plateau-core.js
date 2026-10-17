@@ -1046,7 +1046,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // sans date gardent temporairement leur compteur, jusqu'à migration des producteurs.
 function fermetureEncoreActive(r) {
   if (r.date_fin_universelle) {
-    const jour = (typeof dateReelleParisStr === 'function') ? dateReelleParisStr() : null;
+    const jour = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
     // Ne pas rouvrir par défaut si l'horloge n'est pas disponible.
     return !jour || jour < r.date_fin_universelle;
   }
