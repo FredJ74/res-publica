@@ -2290,18 +2290,9 @@ function advanceTime(pa) {
   // Chaque PA consomme environ 30 minutes de temps de jeu -- gate desormais uniquement par
   // HORLOGE_PA_ACTIVE (Lot 2A), plus du tout par TEST_MODE : cette mecanique reste inerte tant
   // que HORLOGE_PA_ACTIVE est a false, quel que soit l'etat de TEST_MODE.
-  if (HORLOGE_PA_ACTIVE && pa > 0) {
-    state.minute = (state.minute || 0) + (pa * 30);
-    while (state.minute >= 60) {
-      state.minute -= 60;
-      state.hour = (state.hour + 1) % 24;
-      if (state.hour === 0) {
-        state.day = (state.day || 1) + 1;
-        state.midnightDone = false;
-      }
-    }
-    updateClock();
-  }
+  // Les PA n'avancent jamais l'heure civile ni le jour universel.
+  // L'ancienne simulation locale est désactivée définitivement.
+  return;
 }
 
 // =====================
