@@ -11565,6 +11565,8 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
   if (!effectifs || !effectifs.policiers.length) return;
 
   const enRue = !!rueNoeudId;
+  const zoneSurveillee = { pays, ville, batiment: buildingId || null,
+    piece: roomId || null, rue: rueNoeudId || null };
   const presents = enRue
     ? effectifs.policiers.filter(p => p.rueNoeudId === rueNoeudId)
     : effectifs.policiers.filter(p => p.buildingId === buildingId && p.roomId === roomId);
@@ -11577,11 +11579,17 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
   const chanceDetection = calculerChancePJ(disEff, perGroupe);
   const tirage = Math.floor(Math.random() * 100) + 1;
   if (tirage <= chanceDetection) return; // PJ passe inapercu, aucune trace, silence total
+  // Le chargement des effectifs est asynchrone : ne jamais intercepter dans une autre zone.
+  if (state.country !== zoneSurveillee.pays || state.currentCity !== zoneSurveillee.ville ||
+      (enRue && (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== zoneSurveillee.rue)) ||
+      (!enRue && (state.currentBuilding !== zoneSurveillee.batiment ||
+                   state.currentRoom !== zoneSurveillee.piece))) return;
 
   // Une personne recherchee ne peut etre interpellee qu'apres ce jet de detection.
   if (pays === 'republic' && typeof verifierArrestationRecherchePolice === 'function') {
     const intervention = await verifierArrestationRecherchePolice({ detecte: true, policiers: presents, rueNoeudId,
-      zone: { ville: state.currentCity, batiment: state.currentBuilding, piece: state.currentRoom } });
+      zone: { pays: zoneSurveillee.pays, ville: zoneSurveillee.ville,
+        batiment: zoneSurveillee.batiment, piece: zoneSurveillee.piece, rue: zoneSurveillee.rue } });
     if (intervention === true) return;
   }
   const volGroupe = calculerVolGroupePolice(presents);
@@ -12844,8 +12852,11 @@ async function verifierArrestationRecherchePolice(options = {}) {
   }
   // La détection doit encore concerner la zone où le PJ se trouve : l'appel serveur
   // peut revenir après un changement de ville, de bâtiment ou de pièce.
-  if (options.zone && (state.currentCity !== options.zone.ville ||
-      state.currentBuilding !== options.zone.batiment || state.currentRoom !== options.zone.piece)) return false;
+  if (options.zone && (state.country !== options.zone.pays ||
+      state.currentCity !== options.zone.ville ||
+      (options.zone.rue ? (typeof rueCentraleNoeudActuel !== 'undefined' &&
+        rueCentraleNoeudActuel !== options.zone.rue) :
+        (state.currentBuilding !== options.zone.batiment || state.currentRoom !== options.zone.piece)))) return false;
   interceptionJudiciaire = { eligible, recherche: rechercheActuelle,
     ville: state.currentCity, policiers: options.policiers || [{stats:{VOL:12}}],
     rueNoeudId: options.rueNoeudId || null, fuiteEchouee: false };
