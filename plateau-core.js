@@ -2271,7 +2271,7 @@ function syncRealTime() {
   const frTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
   state.hour = frTime.getHours();
   state.minute = frTime.getMinutes();
-  state.day = state.day || 1; // Compteur historique : jamais avancé par Dormir.
+  // Ne pas recalculer un compteur personnel : seule la date civile est commune.
 }
 
 // Horloge de la barre superieure (#game-time, plateau.html) -- element UNIQUE partage par toutes
