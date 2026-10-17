@@ -2099,3 +2099,23 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .cpj-touche:hover:not(:disabled){background:#455a70;color:#ffe2a0}
 .cpj-touche:disabled{color:#8190a0;border-color:#526173}
 .cpj-touche.cpj-primaire{border-color:#e5c477;color:#ffe2a0}
+
+/* Forum — harmonie avec les panneaux ardoise/or de la bêta.
+   Portée limitée à la fenêtre du forum : aucun impact sur les autres modales. */
+#modal-forum .modal-box,
+#modal-forum .forum-layout,
+#modal-forum .forum-main { background:#171e26; color:#e2e5e9; }
+#modal-forum .modal-header,
+#modal-forum .forum-header-bar { background:#202b36; border-color:#394653; }
+#modal-forum .forum-sidebar { background:#19232d; border-color:#394653; }
+#modal-forum .forum-nav-item { border-bottom-color:#2b3743; }
+#modal-forum .forum-nav-item:hover { background:#273543; }
+#modal-forum .forum-nav-item.active { background:#303e4b; border-left-color:#d3ae61; }
+#modal-forum .forum-nav-name { color:#e4e7ea; }
+#modal-forum .forum-nav-count,
+#modal-forum .forum-subtitle { color:#a9b6c3; }
+#modal-forum .forum-title-main,
+#modal-forum .modal-title { color:#e0ba6b; }
+#modal-forum .forum-new-btn { border-color:#aa8848; color:#e0ba6b; }
+#modal-forum .forum-new-btn:hover { background:#aa8848; color:#101820; }
+#modal-forum .forum-empty { color:#bdc7d0; }
