@@ -2495,7 +2495,8 @@ async function runMidnightUpdate() {
     if (state.char.dernierMinuitParis === jourParis) return;
     state.char.dernierMinuitParis = jourParis;
   }
-  state.day++;
+  // Minuit ne doit plus avancer un compteur de jours propre au personnage.
+  // La date civile Europe/Paris est l'unique référence temporelle.
   state.salaireTouche = false;
   // Traiter les plaintes et enquetes en cours
   traiterPlaintes();
