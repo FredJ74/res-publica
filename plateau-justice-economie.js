@@ -11580,7 +11580,8 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
 
   // Une personne recherchee ne peut etre interpellee qu'apres ce jet de detection.
   if (pays === 'republic' && typeof verifierArrestationRecherchePolice === 'function') {
-    const intervention = await verifierArrestationRecherchePolice({ detecte: true, policiers: presents, rueNoeudId });
+    const intervention = await verifierArrestationRecherchePolice({ detecte: true, policiers: presents, rueNoeudId,
+      zone: { ville: state.currentCity, batiment: state.currentBuilding, piece: state.currentRoom } });
     if (intervention === true) return;
   }
   const volGroupe = calculerVolGroupePolice(presents);
@@ -12776,7 +12777,7 @@ async function choisirInterceptionJudiciaire(choix) {
   // La rébellion est commise dès le choix de résister, même si le PJ perd.
   interceptionJudiciaireOccupee = true;
   try {
-    const inscrit = await inscrireRecherche({acte:'rebellion',type:'delit_grave',jour:state.day,country:state.country});
+    const inscrit = await inscrireRecherche({acte:'rebellion',type:'delit_grave',jour:state.day,country:state.country,ville:state.currentCity});
     if (!inscrit) { showToast('Combat indisponible','Impossible d’enregistrer la rébellion.',false); return; }
     // Résolution par PA, jamais par HP. Un groupe se combat collectivement.
     // Les policiers isolés sont affrontés successivement, avec une nouvelle décision.
@@ -12785,9 +12786,18 @@ async function choisirInterceptionJudiciaire(choix) {
     if (!paPJ) { interceptionJudiciaireOccupee = false; await conclureArrestationJudiciaire(); return; }
     const volPJ = getStatEffective('VOL');
     const volPolice = calculerVolGroupePolice(adversaires);
-    const succesPJ = Math.floor(Math.random()*100)+1 <= calculerChancePJ(volPJ,volPolice);
-    const pertePJ = succesPJ ? 1 : Math.min(paPJ,Math.max(1,adversaires.length));
-    state.pa = Math.max(0,paPJ-pertePJ);
+    // Même graduation de dommages que le moteur militaire : critique 100 %, partielle
+    // 75/50 %, échec 0 %. Aucun point de vie n'intervient dans l'arrestation.
+    const jetPJ = Math.floor(Math.random()*100)+1;
+    const chancePJ = calculerChancePJ(volPJ,volPolice);
+    const succesPJ = jetPJ <= chancePJ;
+    const jetPolice = Math.floor(Math.random()*100)+1;
+    const chancePolice = calculerChancePJ(volPolice,volPJ);
+    const degrePolice = jetPolice <= chancePolice/4 ? 'critique'
+      : jetPolice <= chancePolice/2 ? 'partielle_1'
+      : jetPolice <= chancePolice ? 'partielle_2' : 'echec';
+    const multiplicateurs = {critique:0,partielle_1:0.25,partielle_2:0.5,echec:1};
+    state.pa = Math.max(0,Math.floor(paPJ*multiplicateurs[degrePolice]));
     if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state);
     if (typeof updateUI === 'function') updateUI();
     if (succesPJ) {
@@ -12818,13 +12828,17 @@ async function verifierArrestationRecherchePolice(options = {}) {
     return Object.assign({}, r.data || {}, { id: r.id, country: r.country,
                                              ville_condamnation: r.ville_condamnation });
   });
-  const eligible = rechercheActuelle.find(r => r.type === 'condamnation' && (!r.country || r.country === state.country));
+  const eligible = rechercheActuelle.find(r => (!r.type || r.type === 'condamnation') && (!r.country || r.country === state.country));
   if (!eligible) return false;
   // Re-verification apres l'attente reseau ci-dessus : l'etat a pu changer entre-temps (deja
   // emprisonne par ailleurs) -- ne jamais arreter dans un contexte devenu incoherent.
   if (state.estEmprisonne) return;
 
   if (interceptionJudiciaire) return true;
+  // La détection doit encore concerner la zone où le PJ se trouve : l'appel serveur
+  // peut revenir après un changement de ville, de bâtiment ou de pièce.
+  if (options.zone && (state.currentCity !== options.zone.ville ||
+      state.currentBuilding !== options.zone.batiment || state.currentRoom !== options.zone.piece)) return false;
   interceptionJudiciaire = { eligible, recherche: rechercheActuelle,
     ville: state.currentCity, policiers: options.policiers || [{stats:{VOL:12}}],
     rueNoeudId: options.rueNoeudId || null, fuiteEchouee: false };
