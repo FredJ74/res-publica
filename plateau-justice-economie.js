@@ -12698,7 +12698,7 @@ function afficherInterceptionJudiciaire() {
   const body = document.getElementById('postes-body');
   if (!modal || !titre || !body) return;
   titre.textContent = 'INTERCEPTION POLICIÈRE';
-  const btn = (action, label) => '<button type="button" class="ibtn" onclick="choisirInterceptionJudiciaire(\\'' + action + '\\')">' + label + '</button>';
+  const btn = (action, label) => '<button type="button" class="ibtn" onclick="choisirInterceptionJudiciaire(&quot;' + action + '&quot;)">' + label + '</button>';
   body.innerHTML = '<div class="hg-interception" style="padding:1.1rem;display:grid;gap:.8rem">' +
     '<p>Vous avez été reconnu(e). Une condamnation est en attente d’exécution.</p>' +
     '<p>Vos PA : <strong>' + Math.max(0, Number(state.pa || 0)) + '</strong>' +
