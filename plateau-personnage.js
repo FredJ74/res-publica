@@ -2057,7 +2057,10 @@ function declencherHospitalisation(palier) {
     ? { totale: 3, partielle: 2, echec_partiel: 1 }
     : { totale: 6, partielle: 4, echec_partiel: 2 };
   const duree = dureeParPalier[palier] || (lieu === 'clinique' ? 1 : 2);
-  state.hospitalisation = { jourDebut: state.day || 1, palier: palier || 'partielle', lieu, jourFin: (state.day || 1) + duree };
+  const dateParis = dateCivileParisMedicale();
+  const [annee, mois, jour] = dateParis.split('-').map(Number);
+  const dateFinParis = new Date(Date.UTC(annee, mois - 1, jour + duree)).toISOString().slice(0, 10);
+  state.hospitalisation = { jourDebut: state.day || 1, palier: palier || 'partielle', lieu, jourFin: (state.day || 1) + duree, dateFinParis };
   state.pa = 0;
   // §19 — BUG CORRIGE (chantier Neutraliser, 10 septembre 2026) : l'hospitalisation n'etait
   // ecrite que dans state, jamais persistee. Un F5 rendait immediatement au joueur ses PA, ses
@@ -2641,12 +2644,18 @@ function rejoindreChambreClinique(nomPatient) {
   if (typeof enterRoom === 'function') enterRoom('clinique-privee', loc.roomId, null);
 }
 
+function dateCivileParisMedicale() {
+  const morceaux = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  const valeur = type => morceaux.find(p => p.type === type)?.value;
+  return valeur('year') + '-' + valeur('month') + '-' + valeur('day');
+}
+
 async function doCentreAntiPoison(pa) {
   if (!state.empoisonnement?.actif) {
     showToast('Rien a traiter', 'Vous n\'etes pas empoisonne(e).', false);
     return;
   }
-  const today = state.day || 1;
+  const today = dateCivileParisMedicale();
   if (!state.centreAntiPoisonToday || state.centreAntiPoisonToday.jour !== today) {
     state.centreAntiPoisonToday = { jour: today, tentatives: 0 };
   }
@@ -3206,8 +3215,11 @@ async function doDormirChambre() {
 
 function verifierProgressionHospitalisation() {
   if (!state.hospitalisation) return;
+  const dateFinParis = state.hospitalisation.dateFinParis;
+  const aujourdhuiParis = dateCivileParisMedicale();
   const jourFin = state.hospitalisation.jourFin || ((state.hospitalisation.jourDebut || state.day || 1) + 1);
-  if ((state.day || 1) >= jourFin) {
+  const sortieAutorisee = dateFinParis ? aujourdhuiParis >= dateFinParis : (state.day || 1) >= jourFin;
+  if (sortieAutorisee) {
     // Liberation de la chambre clinique, uniquement ici (fin reelle de l'hospitalisation) --
     // jamais sur un refresh/une navigation interne/une visite, voir libererChambreCliniquePatient.
     if (state.hospitalisation.lieu === 'clinique' && typeof libererChambreCliniquePatient === 'function') {
@@ -3223,7 +3235,9 @@ function verifierProgressionHospitalisation() {
     addJournalEntry('Vous êtes complètement rétabli(e) de votre agression.', 'event-good');
     return;
   }
-  const joursRestants = jourFin - (state.day || 1);
+  const joursRestants = dateFinParis
+    ? Math.max(0, Math.round((Date.parse(dateFinParis + 'T00:00:00Z') - Date.parse(aujourdhuiParis + 'T00:00:00Z')) / 86400000))
+    : jourFin - (state.day || 1);
   state.pa = 0;
   showToast('En convalescence', 'Encore ' + joursRestants + ' jour(s) avant votre rétablissement complet. Déplacement impossible, sauf transfert vers une clinique privée.', false);
   addJournalEntry('Convalescence en cours (' + state.hospitalisation.lieu + '). Encore ' + joursRestants + ' jour(s).', 'event-info');
