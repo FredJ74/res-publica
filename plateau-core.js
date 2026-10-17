@@ -1861,7 +1861,7 @@ function applyCharToState(char) {
 
   const cur = co?.cur || 'FR';
   const argEl = document.getElementById('r-arg');
-  if (argEl) argEl.textContent = state.arg.toLocaleString('fr-FR') + ' ' + cur;
+  if (argEl) argEl.textContent = (state.liquide ?? 0).toLocaleString('fr-FR') + ' ' + cur;
 }
 
 // =====================
@@ -2596,7 +2596,7 @@ function updateUI() {
   }
   document.getElementById('r-pa').textContent   = TEST_MODE ? '∞' : state.pa;
   document.getElementById('b-pa').style.width   = TEST_MODE ? '100%' : (Math.min(state.pa, PA_MAX) / PA_MAX * 100) + '%';
-  document.getElementById('r-arg').textContent  = state.arg.toLocaleString('fr-FR') + ' ' + cur;
+  document.getElementById('r-arg').textContent  = (state.liquide ?? 0).toLocaleString('fr-FR') + ' ' + cur;
   document.getElementById('r-inf').textContent  = state.inf;
   document.getElementById('b-inf').style.width  = state.inf + '%';
   document.getElementById('r-pop').textContent  = state.pop;
@@ -2656,7 +2656,44 @@ function updateLocationDisplay() {
 // =====================
 // TOAST & JOURNAL
 // =====================
+// Historique borne en memoire de cette session, sans payload reseau ni secret.
+let RP_INCIDENTS_SESSION = [];
+let RP_INCIDENTS_SCOPE = null;
+function incidentsSessionCourante() {
+  const scope = (typeof rpAuthUid === 'function' ? rpAuthUid() : '') + ':' + (state.char?.name || '');
+  if (scope !== RP_INCIDENTS_SCOPE) { RP_INCIDENTS_SCOPE = scope; RP_INCIDENTS_SESSION = []; }
+  return RP_INCIDENTS_SESSION;
+}
+function noterIncidentSession(code, titre) {
+  const liste = incidentsSessionCourante();
+  liste.unshift({ heure: new Date().toLocaleTimeString('fr-FR'),
+    code: String(code || 'notification').replace(/[^a-z0-9_-]/gi, '').slice(0,64),
+    titre: String(titre || 'Notification').slice(0,160) });
+  liste.splice(30);
+  const bouton = document.getElementById('incidents-session');
+  if (bouton) { bouton.hidden = false; bouton.textContent = 'Incidents (' + liste.length + ')'; }
+}
+function ouvrirIncidentsSession() {
+  const liste = incidentsSessionCourante();
+  const titre = document.getElementById('postes-modal-title'), corps = document.getElementById('postes-body');
+  if (!titre || !corps) return;
+  titre.textContent = 'Incidents de cette session';
+  corps.replaceChildren();
+  const aide = document.createElement('p');
+  aide.textContent = 'Les dernières notifications sont conservées ici pendant cette session. Une réponse absente ne signifie pas que l’action a échoué.';
+  corps.appendChild(aide);
+  for (const incident of liste) {
+    const ligne = document.createElement('p');
+    ligne.textContent = incident.heure + ' — ' + incident.titre + ' [' + incident.code + ']';
+    corps.appendChild(ligne);
+  }
+  if (!liste.length) { const vide = document.createElement('p'); vide.textContent = 'Aucun incident enregistré pour ce personnage.'; corps.appendChild(vide); }
+  document.querySelector('#modal-postes .modal-box')?.classList.remove('cpj-machine', 'mil-machine');
+  document.getElementById('modal-postes')?.classList.add('open');
+}
+
 function showToast(result, msg, success, isCrit) {
+  if (success === false) noterIncidentSession('notification', result);
   const t = document.getElementById('result-toast');
   t.className = isCrit ? 'toast-crit' : success ? 'toast-success' : 'toast-fail';
   document.getElementById('toast-result').textContent = result;

@@ -1264,6 +1264,11 @@ function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
 }
 
 function afficherTooltipRue(e, nom, type) {
+  // Un mousemove deja en file ne doit pas ressusciter la bulle apres entree.
+  if (document.getElementById('vue-batiment')?.classList.contains('active')) {
+    masquerTooltipRue();
+    return;
+  }
   let tip = document.getElementById('rc-tooltip');
   if (!tip) {
     tip = document.createElement('div');
@@ -1278,7 +1283,7 @@ function afficherTooltipRue(e, nom, type) {
 }
 
 function masquerTooltipRue() {
-  document.getElementById('rc-tooltip')?.classList.remove('visible');
+  document.getElementById('rc-tooltip')?.remove();
 }
 
 // Deplacement d'un noeud de rue a l'autre (fondu, sans zoom — mouvement lateral/longitudinal)

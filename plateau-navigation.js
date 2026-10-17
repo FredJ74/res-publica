@@ -135,6 +135,9 @@ function showBuildingTooltip(data) {
 }
 
 function hideBuildingTooltip() {
+  // La rue centrale possede sa propre infobulle, montee sous body.
+  // La disparition de sa scene ne declenche pas toujours mouseleave.
+  if (typeof masquerTooltipRue === 'function') masquerTooltipRue();
   const el = document.getElementById('building-hover-tooltip');
   if (el) el.classList.remove('visible');
 }
@@ -145,6 +148,7 @@ function hideBuildingTooltip() {
 // `batimentQuitte` (optionnel) : le batiment dont on vient de sortir. Il permet de DEDUIRE de la
 // carte le trottoir correspondant, au lieu de dependre d'une memoire locale (voir plus bas).
 function showVueRue(batimentQuitte) {
+  hideBuildingTooltip();
   document.getElementById('vue-rue').classList.add('active');
   document.getElementById('vue-batiment').classList.remove('active');
   state.currentBuilding = null;

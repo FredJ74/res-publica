@@ -2119,3 +2119,27 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 #modal-forum .forum-new-btn { border-color:#aa8848; color:#e0ba6b; }
 #modal-forum .forum-new-btn:hover { background:#aa8848; color:#101820; }
 #modal-forum .forum-empty { color:#bdc7d0; }
+
+/* Discret tant qu'aucun incident n'a ete enregistre ; meme palette que les controles communs. */
+#incidents-session{position:fixed;bottom:12px;right:12px;z-index:250;background:var(--bg2);color:var(--gold);border:1px solid var(--border2);padding:.45rem .7rem;font-size:.82rem;cursor:pointer}
+#incidents-session[hidden]{display:none}
+
+/* Meme charte ardoise/or que le terminal Commerce : coque commune, pas de troisieme theme. */
+.modal-box{background:#202a36;border-color:#a98d56;color:#e2e9f1;max-height:90vh;max-height:90dvh;overscroll-behavior:contain}
+.modal-header{background:#202a36;border-bottom-color:#53647a}
+.modal-title,.modal-close{color:#e5c477}
+.modal-body{overflow-wrap:anywhere}
+.modal-box :is(input:not([type=checkbox]):not([type=radio]),select,textarea){box-sizing:border-box;max-width:100%}
+.cpj-dialogue{padding:.8rem;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere}
+.cpj-dialogue :is(button,input,select,textarea){font-size:max(.85rem,13px)!important;line-height:1.45;min-height:36px}
+.cpj-dialogue :is(button,input,select,textarea):focus-visible{outline:2px solid #e5c477;outline-offset:2px}
+.compte-mot-de-passe{display:grid;gap:.65rem;margin-top:.7rem}
+.compte-mot-de-passe label{display:grid;gap:.3rem}
+.compte-mot-de-passe :is(input,button){padding:.6rem;background:#1b2531;color:#e2e9f1;border:1px solid #a98d56;font:inherit}
+@media(max-height:600px){.modal-overlay{padding:8px;box-sizing:border-box}.modal-box{max-height:calc(100dvh - 16px)}}
+/* Controles metier ordinaires : meme traitement que .cpj-champ/.cpj-touche.
+   Les machines Commerce et Militaire conservent leurs propres composants. */
+.modal-box:not(.cpj-machine):not(.mil-machine) .modal-body :is(input:not([type=checkbox]):not([type=radio]),select,textarea){background:#1b2531!important;color:#e2e9f1!important;border:1px solid #667c94!important;border-radius:5px}
+.modal-box:not(.cpj-machine):not(.mil-machine) .modal-body button{background:#344354!important;color:#e5c477!important;border:1px solid #b99a57!important;border-radius:5px;min-height:36px}
+.modal-box:not(.cpj-machine):not(.mil-machine) .modal-body button:disabled{color:#8190a0!important;border-color:#526173!important}
+.modal-box .modal-body :is(button,input,select,textarea):focus-visible{outline:2px solid #e5c477;outline-offset:2px}

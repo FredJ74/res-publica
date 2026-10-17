@@ -813,7 +813,8 @@ async function rafraichirSecuriteDuCompte() {
       + '<div style="font-size:.82rem;color:#8ab88a;margin-top:.3rem"><i class="ti ti-shield-check"></i> '
       + '<strong>Compte sécurisé.</strong> Vous pouvez retrouver ce personnage depuis n\'importe quel appareil.</div>'
       + '<div style="font-size:.74rem;color:#7a7060;margin-top:.25rem">Adresse confirmée : '
-      + escapeHtmlText(etat.email) + '</div>';
+      + escapeHtmlText(etat.email) + '</div>'
+      + '<button type="button" onclick="ouvrirChangementMotDePasse()" style="' + SECU_BOUTON + ';margin-top:.6rem">Changer mon mot de passe</button>';
     return;
   }
 
@@ -2088,8 +2089,8 @@ const MOTIFS_REFUS_SALAIRE = {
 
 function signalerRefusSalaire(r) {
   if (!r) {
-    showToast('Salaire non versé', "L'appel au serveur n'a pas abouti : votre salaire n'a pas été traité. "
-      + 'Rien ne vous a été prélevé. Réessayez demain, ou rechargez la page si cela persiste.', false);
+    showToast('Salaire non versé', "L'appel au serveur n'a pas abouti : le versement de votre salaire n'a pas pu être confirmé. "
+      + 'Ne relancez pas une opération financière sur cette seule notification. Rechargez votre fiche pour relire les soldes.', false);
     console.warn('[salaire] appel a salaire_civil_percevoir non abouti — aucun versement, aucun prelevement.');
     return;
   }
@@ -2104,6 +2105,7 @@ function signalerRefusSalaire(r) {
 
 async function doDormir() {
   const personnageInitial = state.char, paysInitial = state.country;
+  const paInitialRepos = state.pa;
   const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
   const jetonInitial = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
   const retourActif = () => state.char === personnageInitial && state.country === paysInitial
@@ -2117,16 +2119,31 @@ async function doDormir() {
     showToast('Sommeil indisponible', 'Connexion au serveur requise. Reessayez.', false);
     return false;
   }
-  const rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: state.char.name }).catch(() => null);
+  let rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: state.char.name }).catch(() => null);
+  if (!retourActif()) return false;
+  if (!rRepos) {
+    // Cette RPC SEULE est rejouable : verrou et garde journaliere cote serveur.
+    // Ne jamais rejouer les soins, salaires ou autres suites clientes du sommeil.
+    if (typeof noterIncidentSession === 'function') noterIncidentSession('repos_reponse_absente', 'Réponse au repos perdue ; vérification du marqueur serveur.');
+    rRepos = await sbRpc('pa_repos_nocturne', { p_acteur: state.char.name }).catch(() => null);
+  }
   if (!retourActif()) return false;
   const vRepos = Array.isArray(rRepos) ? rRepos[0] : rRepos;
-  if (!vRepos || vRepos.ok === false || typeof vRepos.pa !== 'number') {
-    const deja = vRepos?.raison === 'deja_repose_aujourdhui' || vRepos?.raison === 'deja_dormi_aujourdhui' || vRepos?.raison === 'deja_percu_aujourdhui';
-    showToast(deja ? 'Deja dormi' : 'Sommeil indisponible',
-      deja ? 'Vous avez deja dormi aujourd\'hui. Attendez demain.' : 'Le serveur n\'a pas confirme le repos. Reessayez ou contactez le support.', false);
+  const reposDejaEnregistre = ['deja_repose', 'deja_repose_aujourdhui', 'deja_dormi_aujourdhui', 'deja_percu_aujourdhui'].includes(vRepos?.raison);
+  if (reposDejaEnregistre && typeof vRepos.pa === 'number') {
+    if (state.pa === paInitialRepos) state.pa = vRepos.pa;
+    updateUI();
+    showToast('Repos déjà enregistré', 'Le serveur confirme votre repos. Aucun nouveau repos ni salaire ne sera déclenché.', true);
+    // false interdit notamment un second bonus de chambre dans doDormirChambreClinique.
     return false;
   }
-  state.pa = vRepos.pa;
+  if (!vRepos || vRepos.ok === false || typeof vRepos.pa !== 'number') {
+    const deja = reposDejaEnregistre;
+    showToast(deja ? 'Deja dormi' : 'Sommeil indisponible',
+      deja ? 'Vous avez deja dormi aujourd\'hui. Attendez demain.' : 'La réponse au repos n’a pas été reçue. Il peut avoir été enregistré ; aucun effet supplémentaire n’a été appliqué.', false);
+    return false;
+  }
+  if (state.pa === paInitialRepos) state.pa = vRepos.pa;
 
   // Logements sociaux de Montrouge (18 aout 2026) : bonus MORAL/SANTE UNIQUEMENT si le bail
   // est actif ET que Dormir est passe physiquement dans ce meme appartement -- n'a AUCUN effet
@@ -2300,7 +2317,7 @@ async function doDormir() {
   // Le client recopie le solde arrete par le serveur ; il ne le calcule plus.
   // PA deja attribues par la RPC serveur au debut de doDormir().
   if (vRepos && typeof vRepos.pa === 'number') {
-    state.pa = vRepos.pa;
+    // Ne pas reappliquer le compteur pris AVANT les autres await du reveil.
     if (vRepos.bonus_consomme) {
       addJournalEntry('Bonus de repas applique : +' + vRepos.bonus_consomme + ' PA.', 'event-good');
     }
@@ -4291,4 +4308,35 @@ async function doObserverJumelles() {
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
   addJournalEntry('Observation aux jumelles : ' + (contacts.length ? contacts.length + ' contact(s) repéré(s).' : 'rien de notable.'), 'event-info');
+}
+
+
+function ouvrirChangementMotDePasse() {
+  const bloc = document.getElementById('bloc-securite-compte');
+  if (!bloc) return;
+  bloc.innerHTML = SECU_TITRE + '<form id="form-mot-de-passe" class="compte-mot-de-passe">'
+    + '<label>Nouveau mot de passe<input id="compte-mdp-nouveau" type="password" autocomplete="new-password" minlength="8" required></label>'
+    + '<label>Confirmer le mot de passe<input id="compte-mdp-confirmation" type="password" autocomplete="new-password" minlength="8" required></label>'
+    + '<p id="compte-mdp-message" role="status"></p>'
+    + '<button type="submit">Enregistrer</button> <button type="button" onclick="rafraichirSecuriteDuCompte()">Annuler</button></form>';
+  const form = document.getElementById('form-mot-de-passe');
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const a = form.querySelector('#compte-mdp-nouveau'), b = form.querySelector('#compte-mdp-confirmation');
+    const message = form.querySelector('#compte-mdp-message'), bouton = form.querySelector('[type="submit"]');
+    if (bouton.disabled) return;
+    if (a.value !== b.value) { message.textContent = 'Les mots de passe ne correspondent pas.'; return; }
+    bouton.disabled = true;
+    const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+    let r;
+    try { r = await rpAuthChangerMotDePasse(a.value); }
+    catch (_) { r = {ok:false,raison:'confirmation_absente'}; }
+    a.value = ''; b.value = '';
+    if (!form.isConnected || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)) return;
+    bouton.disabled = false;
+    message.textContent = r?.ok ? 'Mot de passe modifié.'
+      : r?.raison === 'confirmation_absente' ? 'Confirmation non reçue. La modification peut avoir été enregistrée ; ne la répétez pas automatiquement.'
+      : r?.raison === 'mot_de_passe_trop_court' ? 'Choisissez au moins 8 caractères.'
+      : 'Modification refusée. Reconnectez-vous à votre compte puis réessayez.';
+  });
 }

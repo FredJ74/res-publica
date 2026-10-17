@@ -519,3 +519,27 @@ async function rpAuthRattacherPersonnage(nom) {
   const d = await res.json().catch(() => null);
   return d || { ok: false, raison: 'reponse_illisible' };
 }
+
+// Changement du secret via GoTrue uniquement. Aucune copie du mot de passe en cache ou journal.
+async function rpAuthChangerMotDePasse(motDePasse) {
+  if (typeof motDePasse !== 'string' || motDePasse.length < 8) return {ok:false,raison:'mot_de_passe_trop_court'};
+  if (!rpAuthJeton()) return {ok:false,raison:'aucune_session'};
+  const uid = rpAuthUid(), jeton = rpAuthJeton();
+  const etat = await rpAuthEtatCompte().catch(() => null);
+  if (rpAuthUid() !== uid || rpAuthJeton() !== jeton) return {ok:false,raison:'session_changee'};
+  if (!etat?.ok || etat.anonyme || !etat.confirmee) return {ok:false,raison:'compte_non_confirme'};
+  if (!uid || !jeton) return {ok:false,raison:'aucune_session'};
+  try {
+    const r = await fetch(RP_AUTH_URL + '/user', {
+      method:'PUT', headers:{'Content-Type':'application/json',apikey:rpAuthCleAnon(),Authorization:'Bearer '+jeton},
+      body:JSON.stringify({password:motDePasse})
+    });
+    if (rpAuthUid() !== uid || rpAuthJeton() !== jeton) return {ok:false,raison:'session_changee'};
+    if (!r.ok) {
+      // Les erreurs fournisseur restent cote service; aucune reponse brute contenant un compte.
+      const d = await r.json().catch(() => ({}));
+      return {ok:false,raison: d.code === 'reauthentication_needed' ? 'reconnexion_requise' : 'modification_refusee'};
+    }
+    return {ok:true};
+  } catch (_) { return {ok:false,raison:'confirmation_absente'}; }
+}
