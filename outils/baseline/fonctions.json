@@ -562,8 +562,8 @@
    "symbole_canon": "getPrixRessource",
    "mecanisme": "divergence_declaree",
    "grille": "PRIX",
-   "cas_divergents_attendus": 103,
-   "_pourquoi": "SECONDE COPIE, dans le module de collecte du Journal, et LES 103 CAS DE LA GRILLE DIVERGENT. Ce n'est pas la FONCTION qui derive -- son texte ne differe du canon que par un `null` au lieu de 0 sur une cle inconnue, ce qui est volontaire (le Journal distingue « pas de prix » de « prix nul ») -- c'est sa DONNEE : ce module porte sa propre table RESSOURCES_ECONOMIE, et elle diverge du canon de 33 ecarts, dont des prix de base DE MOITIE (bois 2,5 contre 5, alcool 7 contre 14) et une matiere absente (textile). Cette divergence est deja declaree dans referentiels.json et attribuee au LOT 4D : elle n'appartient pas a ce chantier-ci, qui ne touche pas aux referentiels. Elle est reportee ici parce que c'est elle qui fait diverger la fonction, et pour que la mesure soit la meme des deux cotes du depot. QUAND LE LOT 4D FERMERA LA TABLE, ce compte tombera a 1 et le controle rougira en annoncant une declaration perimee : c'est le signal attendu, et c'est a ce moment-la qu'on ramenera cette ligne a 1."
+   "cas_divergents_attendus": 1,
+   "_pourquoi": "Table du Journal realignee sur les 18 ressources du canon. Seule divergence fonctionnelle maintenue : null au lieu de 0 pour une ressource inconnue, afin de distinguer absence de prix et prix nul. Le controle execute les deux implementations."
   },
   {
    "cle": "economie/palier-greve-ordinaire",

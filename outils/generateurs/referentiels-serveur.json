@@ -88,6 +88,7 @@
       "_note": "le serveur n'a besoin ni de label ni de icon : 33 usages dans le cron, tous sur ces quatre champs",
       "ordre_des_cles": [
         "cereales",
+        "laitages",
         "poisson",
         "viande",
         "bois",
