@@ -785,12 +785,8 @@ window.addEventListener('DOMContentLoaded', () => {
       .catch(e => { rpDiagId('session', 'EXCEPTION : ' + (e && e.message)); });
   }
   loadCharacter();
-  // Restaurer dernierDormir depuis localStorage
-  try {
-    const dormirData = JSON.parse(localStorage.getItem('respublica_dormir_' + (state.char?.name || 'default')) || '{}');
-    if (dormirData.dernierDormir) state.dernierDormir = dormirData.dernierDormir;
-    if (dormirData.day) state.day = Math.max(state.day, dormirData.day);
-  } catch(e) {}
+  // La garde quotidienne du sommeil est serveur : ne jamais restaurer
+  // un jour personnel depuis un ancien cache localStorage.
   if (!state.currentCity) state.currentCity = 'capitale';
   if (!state.country) state.country = 'republic';
 
