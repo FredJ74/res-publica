@@ -11578,23 +11578,35 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
   let perGroupe = calculerPerGroupePolice(presents);
   if (enRue) perGroupe -= DILUTION_RUE_PER_POLICE; // dilution rue uniquement, jamais en piece
 
+  // La recherche et le jet de detection sont exclusivement arbitres par le serveur.
+  // Aucune interception judiciaire n'est autorisee sur un tirage du navigateur.
+  const detection = (pays === 'republic' && typeof sbRpc === 'function')
+    ? await sbRpc('police_detection_verifier', {
+        p_batiment: enRue ? null : buildingId,
+        p_piece: enRue ? null : roomId,
+        p_rue: rueNoeudId || null
+      }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (pays === 'republic' && detection?.ok === true && detection.detecte === true) {
+    if (state.country !== zoneSurveillee.pays || state.currentCity !== zoneSurveillee.ville ||
+        state.currentBuilding !== zoneSurveillee.batiment || state.currentRoom !== zoneSurveillee.piece) return;
+    const intervention = await verifierArrestationRecherchePolice({
+      detecte: true, rencontreId: detection.rencontre, policiers: presents, rueNoeudId,
+      zone: zoneSurveillee
+    });
+    if (intervention === true) return;
+  }
+  if (pays === 'republic' && detection?.raison !== 'non_recherche') return;
   const disEff = calculerDisEffective();
   const chanceDetection = calculerChancePJ(disEff, perGroupe);
   const tirage = Math.floor(Math.random() * 100) + 1;
-  if (tirage <= chanceDetection) return; // PJ passe inapercu, aucune trace, silence total
+  if (tirage <= chanceDetection) return;
   // Le chargement des effectifs est asynchrone : ne jamais intercepter dans une autre zone.
   if (state.country !== zoneSurveillee.pays || state.currentCity !== zoneSurveillee.ville ||
       (enRue && (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== zoneSurveillee.rue)) ||
       (!enRue && (state.currentBuilding !== zoneSurveillee.batiment ||
                    state.currentRoom !== zoneSurveillee.piece))) return;
 
-  // Une personne recherchee ne peut etre interpellee qu'apres ce jet de detection.
-  if (pays === 'republic' && typeof verifierArrestationRecherchePolice === 'function') {
-    const intervention = await verifierArrestationRecherchePolice({ detecte: true, policiers: presents, rueNoeudId,
-      zone: { pays: zoneSurveillee.pays, ville: zoneSurveillee.ville,
-        batiment: zoneSurveillee.batiment, piece: zoneSurveillee.piece, rue: zoneSurveillee.rue } });
-    if (intervention === true) return;
-  }
   const volGroupe = calculerVolGroupePolice(presents);
   resoudreControlePoliceAutomatique(perGroupe, volGroupe);
 }
@@ -12899,7 +12911,8 @@ async function verifierArrestationRecherchePolice(options = {}) {
     zone: options.zone || { pays: state.country, ville: state.currentCity,
       batiment: state.currentBuilding, piece: state.currentRoom,
       rue: options.rueNoeudId || null },
-    rueNoeudId: options.rueNoeudId || null, fuiteEchouee: false };
+    rueNoeudId: options.rueNoeudId || null, rencontreId: options.rencontreId || null,
+    fuiteEchouee: false };
   afficherInterceptionJudiciaire();
   return true;
 }
