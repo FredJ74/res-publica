@@ -12840,7 +12840,7 @@ async function verifierArrestationRecherchePolice(options = {}) {
     return Object.assign({}, r.data || {}, { id: r.id, country: r.country,
                                              ville_condamnation: r.ville_condamnation });
   });
-  const eligible = rechercheActuelle.find(r => (!r.type || r.type === 'condamnation') && (!r.country || r.country === state.country));
+  const eligible = rechercheActuelle.find(r => r.type === 'condamnation' && (!r.country || r.country === state.country));
   if (!eligible) return false;
   // Re-verification apres l'attente reseau ci-dessus : l'etat a pu changer entre-temps (deja
   // emprisonne par ailleurs) -- ne jamais arreter dans un contexte devenu incoherent.
