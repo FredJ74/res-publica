@@ -38,3 +38,10 @@
 - **Important** : cette étape ne centralise pas encore le moteur ; le serveur doit prendre le relais avant de retirer entièrement les écritures du navigateur.
 - La vérification périodique n'est pas une garantie d'exécution sans joueur connecté ; c'est la centralisation serveur qui apportera cette garantie.
 - Les événements du live et le verrou d'immobilisation doivent être testés pendant une fenêtre réelle avant fusion.
+
+## Règle de game design confirmée — autonomie totale (17/10/2026)
+- Les journées de championnat doivent se dérouler à l'heure prévue, même si **aucun PJ n'est connecté**.
+- La présence des PJ offre des interactions et peut influer sur les paramètres sportifs, mais ne conditionne jamais le démarrage, la progression ou la clôture d'une rencontre.
+- La programmation serveur doit être autonome, avec reprise après incident et rattrapage idempotent ; un simple filtrage du polling navigateur ne satisfait **pas** cette règle.
+- L'animation visuelle reste reportée à la fin du développement du jeu.
+- **Critère bloquant avant fusion de la PR** : démontrer par tests qu'une journée complète est jouée et publiée sans session navigateur, avec effets uniques.
