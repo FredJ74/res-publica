@@ -856,7 +856,7 @@ function renderTopicList() {
           // PANNE, PAS VIDE. Dire « aucun sujet » ici serait une affirmation fausse sur le
           // contenu du forum -- et c'est exactement ce qui s'est produit en production.
           ? `<div class="forum-empty">Les sujets de cette rubrique n'ont pas pu être chargés.
-             Ce n'est pas qu'elle est vide : la connexion au serveur a échoué.
+             Ce n'est pas qu'elle est vide : la lecture du serveur a échoué ou a dépassé 12 secondes.
              <button class="forum-new-btn" onclick="rechargerForumActuel()">Réessayer</button></div>`
           : `<div class="forum-empty">Aucun sujet. ${peutCreerSujet ? 'Soyez le premier à en créer un !' : "Seul le Président peut s'exprimer ici."}</div>`)
       : `<div class="forum-topics-list">
@@ -2398,7 +2398,12 @@ async function loadForumTopicsFromSB(forumId) {
   const debutLectureForum = Date.now();
   delete FORUM_LECTURE_TERMINEE[forumId];
   try {
-    const v = await sbLoadForumTopicsVerdict(forumId);
+    // Le transport peut rester suspendu (session / réseau). Ne jamais bloquer
+    // l'interface indéfiniment : le résultat tardif est ignoré pour cette lecture.
+    const v = await Promise.race([
+      sbLoadForumTopicsVerdict(forumId),
+      new Promise(resolve => setTimeout(() => resolve({ ok: false, raison: 'delai_depasse' }), 12000))
+    ]);
     if (!v.ok) {
       FORUM_LECTURE_ECHOUEE[forumId] = v.raison || 'transport_indisponible';
       console.error('loadForumTopicsFromSB: lecture indisponible (' + FORUM_LECTURE_ECHOUEE[forumId] + ')');
@@ -2438,6 +2443,12 @@ async function loadForumTopicsFromSB(forumId) {
     delete FORUM_LECTURE_EN_COURS[forumId];
     FORUM_LECTURE_TERMINEE[forumId] = true;
     console.info('[Forum] Lecture ' + forumId + ' : ' + Math.round(Date.now() - debutLectureForum) + ' ms' + (FORUM_LECTURE_ECHOUEE[forumId] ? ' (échec)' : ''));
+    // La lecture doit toujours terminer son propre affichage : une autre ouverture
+    // peut avoir vu la requête déjà en cours et ne pas avoir enregistré de callback.
+    if (currentForumId === forumId && forumView === 'list' &&
+        document.getElementById('modal-forum')?.classList.contains('open')) {
+      renderForumModal();
+    }
   }
 }
 
