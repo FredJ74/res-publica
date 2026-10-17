@@ -65,15 +65,13 @@ att('aucun state.recherche = ... .filter',
     partout(/state\.recherche\s*=\s*\(?state\.recherche/g) + ' occurrence(s)');
 att("aucun sbUpdate('personnages', ..., { recherche",
     partout(/\{\s*recherche:\s*/g) === 0, partout(/\{\s*recherche:\s*/g) + ' occurrence(s)');
-// IL RESTE UNE RELECTURE, ET ELLE EST LEGITIME : verifierArrestationRecherchePolice lit la
-// colonne pour decider si une condamnation en attente rattrape le joueur. Lire l'etat
-// AUTORITAIRE plutot que le cache local est exactement ce qu'on veut. Ce qu'on refuse, c'est
-// une relecture SUIVIE D'UNE REECRITURE -- et cette fonction n'ecrit pas la colonne.
-att('la seule relecture restante ne reecrit pas la colonne',
-    partout(/select=recherche/g) === 1
+// La detection policiere lit desormais la meme source canonique que la chasse a l'homme :
+// justice_recherches. Aucune relecture directe de personnages.recherche n'est admise.
+att('aucune relecture directe de la colonne recherche ; RPC judiciaire canonique',
+    partout(/select=recherche/g) === 0
     && bloc('plateau-justice-economie.js', 'verifierArrestationRecherchePolice')
-         .indexOf('recherche:') < 0,
-    partout(/select=recherche/g) + ' relecture(s)');
+         .indexOf("sbRpc('justice_recherches'") >= 0,
+    partout(/select=recherche/g) + ' relecture(s) directes');
 
 print('');
 print('2. LES DEUX PORTES SONT LES SEULS CHEMINS, ET ELLES SONT NOMMEES');
