@@ -870,8 +870,18 @@ window.addEventListener('DOMContentLoaded', () => {
   // (n'importe quel joueur connecte peut declencher le rattrapage, l'etat est partage sur Supabase).
   // Reste responsable du cycle de vie de la saison (init, transition/progression des phases
   // finales) -- voir verifierEtJouerJournees.
-  setTimeout(() => { if (typeof verifierEtJouerJournees === 'function') verifierEtJouerJournees(); }, 2500);
-  setInterval(() => { if (typeof verifierEtJouerJournees === 'function') verifierEtJouerJournees(); }, 300000);
+  // Le championnat est partagé : ne jamais lancer deux ticks identiques simultanément.
+  // On conserve la cadence et les écritures CAS existantes, même en onglet masqué.
+  let verificationSaisonEnCours = false;
+  async function verifierSaisonSansChevauchement() {
+    if (verificationSaisonEnCours || typeof verifierEtJouerJournees !== 'function') return;
+    verificationSaisonEnCours = true;
+    try { await verifierEtJouerJournees(); }
+    catch (e) { console.warn('[Championnat] Verification indisponible', e); }
+    finally { verificationSaisonEnCours = false; }
+  }
+  setTimeout(verifierSaisonSansChevauchement, 2500);
+  setInterval(verifierSaisonSansChevauchement, 300000);
 
   // Football live (chantier "match reel 30 minutes", 28 aout 2026) : tick dedie, plus rapide (20s),
   // pour la progression des matchs de saison reguliere en fenetre echauffement/mt1/mitemps/mt2,
@@ -879,8 +889,16 @@ window.addEventListener('DOMContentLoaded', () => {
   // reouverture du live -- separe du tick 5 minutes ci-dessus, beaucoup trop grossier pour un
   // evenement de 30 minutes. Premier appel quasi immediat (500ms) pour qu'un refresh/une
   // reconnexion en pleine fenetre de match retrouve le verrou sans delai de 5 minutes.
-  setTimeout(() => { if (typeof tickFootballLive === 'function') tickFootballLive(); }, 500);
-  setInterval(() => { if (typeof tickFootballLive === 'function') tickFootballLive(); }, 20000);
+  let footballLiveEnCours = false;
+  async function tickFootballSansChevauchement() {
+    if (footballLiveEnCours || typeof tickFootballLive !== 'function') return;
+    footballLiveEnCours = true;
+    try { await tickFootballLive(); }
+    catch (e) { console.warn('[Football live] Tick indisponible', e); }
+    finally { footballLiveEnCours = false; }
+  }
+  setTimeout(tickFootballSansChevauchement, 500);
+  setInterval(tickFootballSansChevauchement, 20000);
   setTimeout(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 3000);
   setInterval(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 300000);
 
