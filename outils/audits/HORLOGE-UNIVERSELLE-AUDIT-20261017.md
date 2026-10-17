@@ -78,3 +78,11 @@ Dans `plateau-core.js` ~2433–2515, `runMidnightUpdate()` incrémente `state.da
 - Vérifier le déclenchement réel du cron autour de minuit Europe/Paris, les changements d'heure et le rattrapage des journées manquées.
 
 **État : diagnostic uniquement ; aucune migration ni correction de production appliquée.**
+
+## Audit du sommeil — examen direct de `plateau-personnage.js`
+- `doDormir()` vers 2102–2129 appelle **d'abord** la RPC serveur `pa_repos_nocturne`, dont le commentaire annonce une garde par date réelle Europe/Paris et l'attribution atomique des PA. C'est une protection existante importante : ne pas la supprimer.
+- **Anomalie locale certaine :** après le succès serveur, vers 2181–2189, `doDormir()` fait `state.day = today + 1`, `state.dernierDormir = state.day` et écrit ce jour personnel dans localStorage. Or l'ordre Dormir ne doit **jamais** faire changer de journée ; seule l'horloge universelle franchit minuit. Cette anomalie contamine les autres fonctions qui lisent `state.day` (blessures, bâtiments, organisations). Correction à planifier avec migration des lecteurs de ce compteur, pas par suppression isolée.
+- `salaire_civil_percevoir` est appelée pendant `doDormir()` (vers 2240) ; `verserIndemniteParlementaire` aussi (vers 2260). Solde militaire `sbMilitaireSoldePercevoir` appelée après le repos. Confirmer par audit des RPC que toutes les rémunérations et le revenu universel ont des gardes par date réelle et **aucun rattrapage**.
+- `doDormirChambre()` vers 3152 appelle `doDormir()` et n'accorde le bonus de chambre qu'en cas de succès ; vérifier l'atomicité du bonus en cas de déconnexion.
+- **Point à investiguer :** `doDormir()` applique aussi des effets d'empoisonnement et de régénération PV au moment du sommeil. Selon la règle fondatrice, le **décompte des journées d'indisponibilité** ne peut pas dépendre du sommeil. Il faut distinguer récupération liée au sommeil et progression quotidienne autonome de l'état médical, sans modifier les effets sans audit complet.
+- **Vérification indispensable :** lire la définition SQL effective de `pa_repos_nocturne` et des RPC de salaire/revenu universel avant de qualifier les garanties de production ; les commentaires JavaScript ne suffisent pas.
