@@ -12804,50 +12804,47 @@ async function choisirInterceptionJudiciaire(choix) {
     return;
   }
   if (choix !== 'combattre') return;
-  // La rébellion est commise dès le choix de résister, même si le PJ perd.
+  // Un seul ordre serveur : validation du PJ, de la condamnation, de la présence
+  // des policiers, jets militaires, PA des deux camps et rébellion atomiques.
   interceptionJudiciaireOccupee = true;
+  let arreter = false;
   try {
-    const inscrit = await inscrireRecherche({acte:'rebellion',type:'delit_grave',jour:state.day,country:state.country,ville:state.currentCity});
-    if (!inscrit) { showToast('Combat indisponible','Impossible d’enregistrer la rébellion.',false); return; }
-    // Résolution par PA, jamais par HP. Un groupe se combat collectivement.
-    // Les policiers isolés sont affrontés successivement, avec une nouvelle décision.
-    const adversaires = i.policiers;
-    const paPJ = Math.max(0,Number(state.pa||0));
-    if (!paPJ) { interceptionJudiciaireOccupee = false; await conclureArrestationJudiciaire(); return; }
-    const volPJ = getStatEffective('VOL');
-    const volPolice = calculerVolGroupePolice(adversaires);
-    // Même graduation de dommages que le moteur militaire : critique 100 %, partielle
-    // 75/50 %, échec 0 %. Aucun point de vie n'intervient dans l'arrestation.
-    const jetPJ = Math.floor(Math.random()*100)+1;
-    const chancePJ = calculerChancePJ(volPJ,volPolice);
-    const succesPJ = jetPJ <= chancePJ;
-    const jetPolice = Math.floor(Math.random()*100)+1;
-    const chancePolice = calculerChancePJ(volPolice,volPJ);
-    const degrePolice = jetPolice <= chancePolice/4 ? 'critique'
-      : jetPolice <= chancePolice/2 ? 'partielle_1'
-      : jetPolice <= chancePolice ? 'partielle_2' : 'echec';
-    const multiplicateurs = {critique:0,partielle_1:0.25,partielle_2:0.5,echec:1};
-    state.pa = Math.max(0,Math.floor(paPJ*multiplicateurs[degrePolice]));
-    if (typeof sbSavePersonnage !== 'function') {
-      showToast('Combat indisponible','Sauvegarde des PA impossible.',false);
+    if (typeof sbRpc !== 'function') {
+      showToast('Combat indisponible', 'Serveur inaccessible.', false); return;
+    }
+    if (!i.rencontreId) i.rencontreId = 'interception-' + Date.now() + '-' + Math.floor(Math.random()*1e9);
+    const verdict = await sbRpc('police_combat_resoudre', {
+      p_rencontre: i.rencontreId,
+      p_rue: i.rueNoeudId || null,
+      p_batiment: i.rueNoeudId ? null : (i.zone?.batiment || state.currentBuilding),
+      p_piece: i.rueNoeudId ? null : (i.zone?.piece || state.currentRoom)
+    }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    if (!verdict || verdict.ok !== true) {
+      showToast('Combat indisponible', 'Le serveur a refusé ce combat : ' +
+        (verdict?.raison || 'erreur réseau') + '.', false);
       return;
     }
-    await sbSavePersonnage(state);
+    state.pa = Math.max(0, Number(verdict.pa || 0));
     if (typeof updateUI === 'function') updateUI();
-    if (succesPJ) {
-      // Neutralisation locale de l'opposition ; le PJ reste physiquement sur place.
+    if (verdict.police_neutralisee) {
       i.policiers = [];
       interceptionJudiciaire = null;
       document.getElementById('modal-postes')?.classList.remove('open');
-      showToast('Police neutralisée','Vous restez sur place et demeurez recherché(e).',true);
-    } else if (state.pa <= 0) {
-      interceptionJudiciaireOccupee = false;
-      await conclureArrestationJudiciaire();
+      showToast('Police neutralisée', 'Vous restez sur place et demeurez recherché(e).', true);
+    } else if (verdict.arrestation) {
+      arreter = true;
     } else {
       i.fuiteEchouee = true;
-      showToast('Combat en cours','Vous avez perdu des PA. Vous pouvez vous rendre ou poursuivre le combat.',false);
+      // L'état affiché provient du verdict serveur, pas d'une victoire locale.
+      i.policiers = Array.from({length: Number(verdict.policiers_restants || 0)},
+        (_, n) => i.policiers[n] || {stats:{VOL:12,PER:12}});
+      showToast('Combat en cours', 'Le combat a été enregistré. Vous pouvez vous rendre ou continuer.', false);
     }
-  } finally { interceptionJudiciaireOccupee = false; if (interceptionJudiciaire) afficherInterceptionJudiciaire(); }
+  } finally {
+    interceptionJudiciaireOccupee = false;
+    if (interceptionJudiciaire && !arreter) afficherInterceptionJudiciaire();
+  }
+  if (arreter) await conclureArrestationJudiciaire();
 }
 
 async function verifierArrestationRecherchePolice(options = {}) {
