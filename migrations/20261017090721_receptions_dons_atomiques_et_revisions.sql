@@ -3,11 +3,12 @@ BEGIN;
 DO $definitions_preparees$
 DECLARE r record; p pg_proc%rowtype;
 BEGIN
- FOR r IN SELECT * FROM (VALUES ('hg_fin_revision()','84136e597ca59fecf0ee6a3ea808b9d6'),
+ FOR r IN SELECT * FROM (VALUES ('hg_fin_revision()','bd0ee429d85664ee44f28014170ab7d5'),
+('hg_fin_revision_compte()','f3816134a2f95d5d74c0ec3019f15947'),
 ('hg_fin_etat(text)','564fb7824872946e33f2286a06f64fd7'),
 ('hg_fin_dons_recevoir(uuid,text,jsonb)','bda01a34e6a43db3dd1e2803b159bc83')) t(signature,empreinte) LOOP
   SELECT * INTO p FROM pg_proc WHERE oid=to_regprocedure('public.'||r.signature);
-  IF FOUND AND (md5(p.prosrc)<>r.empreinte OR p.proconfig IS DISTINCT FROM ARRAY['search_path=public, pg_temp']) THEN
+  IF FOUND AND (md5(p.prosrc)<>r.empreinte OR p.proowner::regrole::text NOT IN ('postgres','supabase_admin') OR p.proconfig IS DISTINCT FROM ARRAY['search_path=public, pg_temp']) THEN
    RAISE EXCEPTION 'definition financiere preexistante non examinee : %',r.signature;
   END IF;
  END LOOP;
@@ -19,7 +20,8 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $function$
 BEGIN
  IF (NEW.arg,NEW.liquide,NEW.banque) IS DISTINCT FROM (OLD.arg,OLD.liquide,OLD.banque) THEN
   NEW.revision_financiere:=OLD.revision_financiere+1;
- ELSE NEW.revision_financiere:=OLD.revision_financiere; END IF;
+ ELSE NEW.revision_financiere:=OLD.revision_financiere
+   + CASE WHEN NEW.revision_financiere=OLD.revision_financiere+1 THEN 1 ELSE 0 END; END IF;
  RETURN NEW;
 END;
 $function$;
@@ -27,6 +29,44 @@ DROP TRIGGER IF EXISTS hg_fin_revision ON public.personnages_donnees;
 CREATE TRIGGER hg_fin_revision BEFORE UPDATE ON public.personnages_donnees
 FOR EACH ROW EXECUTE FUNCTION public.hg_fin_revision();
 
+-- Les mouvements de comptes seuls (placements notamment) changent aussi la revision.
+-- La colonne canonique n'est jamais accordee aux roles clients.
+CREATE OR REPLACE FUNCTION public.hg_fin_revision_compte() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $function$
+DECLARE noms text[]:='{}';nom text;
+BEGIN
+ IF TG_OP<>'INSERT' THEN noms:=array_append(noms,OLD.personnage); END IF;
+ IF TG_OP<>'DELETE' THEN noms:=array_append(noms,NEW.personnage); END IF;
+ IF TG_OP='UPDATE' AND (NEW.solde,NEW.personnage,NEW.pays,NEW.banque)
+  IS NOT DISTINCT FROM (OLD.solde,OLD.personnage,OLD.pays,OLD.banque) THEN RETURN NULL; END IF;
+ FOR nom IN SELECT DISTINCT x FROM unnest(noms) x WHERE x IS NOT NULL ORDER BY x LOOP
+  UPDATE public.personnages_donnees SET revision_financiere=revision_financiere+1 WHERE name=nom;
+ END LOOP;
+ RETURN NULL;
+END;
+$function$;
+DROP TRIGGER IF EXISTS hg_fin_revision_compte ON public.comptes_bancaires;
+CREATE TRIGGER hg_fin_revision_compte AFTER INSERT OR UPDATE OR DELETE ON public.comptes_bancaires
+ FOR EACH ROW EXECUTE FUNCTION public.hg_fin_revision_compte();
+REVOKE ALL ON FUNCTION public.hg_fin_revision_compte() FROM PUBLIC,anon,authenticated;
+
+DO $registre_prive$
+DECLARE r record;
+BEGIN
+ IF to_regclass('public.hg_fin_requetes') IS NOT NULL THEN
+  IF obj_description(to_regclass('public.hg_fin_requetes'),'pg_class') IS DISTINCT FROM 'HG recus financiers prives v1'
+   OR (SELECT relkind FROM pg_class WHERE oid=to_regclass('public.hg_fin_requetes'))<>'r'
+   OR (SELECT count(*) FROM pg_attribute WHERE attrelid=to_regclass('public.hg_fin_requetes') AND attnum>0 AND NOT attisdropped)<>6 THEN
+   RAISE EXCEPTION 'registre financier preexistant inconnu: hg_fin_requetes';
+  END IF;
+  FOR r IN SELECT * FROM (VALUES ('utilisateur','uuid'),('requete','uuid'),('personnage','text'),('corps','jsonb'),('resultat','jsonb'),('cree_le','timestamp with time zone')) t(col,typ) LOOP
+   IF NOT EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid=to_regclass('public.hg_fin_requetes') AND attname=r.col AND atttypid=to_regtype(r.typ) AND attnotnull AND NOT attisdropped) THEN
+    RAISE EXCEPTION 'colonne de registre financier incompatible: %',r.col;
+   END IF;
+  END LOOP;
+ END IF;
+END;
+$registre_prive$;
 CREATE TABLE IF NOT EXISTS public.hg_fin_requetes (
  utilisateur uuid NOT NULL,
  requete uuid NOT NULL,
@@ -39,6 +79,15 @@ CREATE TABLE IF NOT EXISTS public.hg_fin_requetes (
 COMMENT ON TABLE public.hg_fin_requetes IS 'HG recus financiers prives v1';
 ALTER TABLE public.hg_fin_requetes ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.hg_fin_requetes FROM PUBLIC,anon,authenticated;
+DO $droits_registre$
+BEGIN
+ IF has_table_privilege('authenticated','public.hg_fin_requetes','SELECT,INSERT,UPDATE,DELETE')
+ OR has_any_column_privilege('authenticated','public.hg_fin_requetes','SELECT,INSERT,UPDATE')
+ OR has_table_privilege('anon','public.hg_fin_requetes','SELECT,INSERT,UPDATE,DELETE') THEN
+  RAISE EXCEPTION 'registre financier: droits clients residuels';
+ END IF;
+END;
+$droits_registre$;
 -- Les recus ne sont jamais modifiables par le navigateur, meme celui du proprietaire.
 CREATE OR REPLACE FUNCTION public.hg_fin_etat(p_personnage text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $function$

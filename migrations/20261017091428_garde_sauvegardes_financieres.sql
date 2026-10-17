@@ -1,6 +1,23 @@
 -- NON DEPLOYEE. ACTIVATION INTERDITE tant que tous les circuits legacy ne sont pas raccordes.
 -- Le refus leve une exception : aucune contrepartie SQL n'est conservee sans son mouvement.
 BEGIN;
+DO $registre_prive$
+DECLARE r record;
+BEGIN
+ IF to_regclass('public.hg_fin_actes_en_cours') IS NOT NULL THEN
+  IF obj_description(to_regclass('public.hg_fin_actes_en_cours'),'pg_class') IS DISTINCT FROM 'HG autorisation financiere transactionnelle v1'
+   OR (SELECT relkind FROM pg_class WHERE oid=to_regclass('public.hg_fin_actes_en_cours'))<>'r'
+   OR (SELECT count(*) FROM pg_attribute WHERE attrelid=to_regclass('public.hg_fin_actes_en_cours') AND attnum>0 AND NOT attisdropped)<>2 THEN
+   RAISE EXCEPTION 'registre financier preexistant inconnu: hg_fin_actes_en_cours';
+  END IF;
+  FOR r IN SELECT * FROM (VALUES ('transaction_id','bigint'),('personnage','text')) t(col,typ) LOOP
+   IF NOT EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid=to_regclass('public.hg_fin_actes_en_cours') AND attname=r.col AND atttypid=to_regtype(r.typ) AND attnotnull AND NOT attisdropped) THEN
+    RAISE EXCEPTION 'colonne de registre financier incompatible: %',r.col;
+   END IF;
+  END LOOP;
+ END IF;
+END;
+$registre_prive$;
 CREATE TABLE IF NOT EXISTS public.hg_fin_actes_en_cours (
  transaction_id bigint NOT NULL, personnage text NOT NULL,
  PRIMARY KEY(transaction_id,personnage)
@@ -8,6 +25,15 @@ CREATE TABLE IF NOT EXISTS public.hg_fin_actes_en_cours (
 COMMENT ON TABLE public.hg_fin_actes_en_cours IS 'HG autorisation financiere transactionnelle v1';
 ALTER TABLE public.hg_fin_actes_en_cours ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.hg_fin_actes_en_cours FROM PUBLIC,anon,authenticated;
+DO $droits_registre$
+BEGIN
+ IF has_table_privilege('authenticated','public.hg_fin_actes_en_cours','SELECT,INSERT,UPDATE,DELETE')
+ OR has_any_column_privilege('authenticated','public.hg_fin_actes_en_cours','SELECT,INSERT,UPDATE')
+ OR has_table_privilege('anon','public.hg_fin_actes_en_cours','SELECT,INSERT,UPDATE,DELETE') THEN
+  RAISE EXCEPTION 'registre financier: droits clients residuels';
+ END IF;
+END;
+$droits_registre$;
 DO $garde$
 DECLARE p pg_proc%rowtype;
 BEGIN

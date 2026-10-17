@@ -7,12 +7,14 @@ BEGIN
  FOR r IN SELECT * FROM (VALUES ('hg_fr_lire(jsonb)','f9e4cc564ef65fe4154aa66f340af0f1'),
 ('hg_fr_texte(numeric)','4fbe7b3cbb99dfb09c933d2231ddd63e')) t(signature,empreinte) LOOP
   SELECT * INTO p FROM pg_proc WHERE oid=to_regprocedure('public.'||r.signature);
-  IF FOUND AND (md5(p.prosrc)<>r.empreinte OR p.proconfig IS DISTINCT FROM ARRAY['search_path=public, pg_temp']) THEN
+  IF FOUND AND (md5(p.prosrc)<>r.empreinte OR p.proowner::regrole::text NOT IN ('postgres','supabase_admin') OR p.proconfig IS DISTINCT FROM ARRAY['search_path=public, pg_temp']) THEN
    RAISE EXCEPTION 'definition financiere preexistante non examinee : %',r.signature;
   END IF;
  END LOOP;
 END;
 $definitions_preparees$;
+CREATE TEMP TABLE hg_precision_controle(i integer) ON COMMIT DROP;
+CREATE DOMAIN pg_temp.hg_centime_attendu AS numeric CHECK (VALUE IS NULL OR (VALUE::text NOT IN ('NaN','Infinity','-Infinity') AND VALUE=trunc(VALUE,2)));
 DO $garde$
 BEGIN
  IF EXISTS (SELECT 1 FROM pg_event_trigger WHERE evtenabled <> 'D') THEN
@@ -21,7 +23,10 @@ BEGIN
  IF to_regtype('public.hg_francs_exacts') IS NOT NULL THEN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_constraint c ON c.contypid=t.oid
    WHERE t.oid='public.hg_francs_exacts'::regtype AND t.typtype='d'
-   AND t.typbasetype='numeric'::regtype AND c.conname='hg_francs_centime'
+   AND t.typbasetype='numeric'::regtype AND t.typtypmod=-1 AND NOT t.typnotnull
+   AND c.conname='hg_francs_centime' AND c.convalidated
+   AND (SELECT count(*) FROM pg_constraint z WHERE z.contypid=t.oid)=1
+   AND pg_get_constraintdef(c.oid)= (SELECT pg_get_constraintdef(z.oid) FROM pg_constraint z WHERE z.contypid='pg_temp.hg_centime_attendu'::regtype)
    AND obj_description(t.oid,'pg_type')='HG francs exacts v1') THEN
    RAISE EXCEPTION 'precision: domaine preexistant incompatible';
   END IF;
@@ -33,6 +38,7 @@ BEGIN
  END IF;
 END;
 $garde$;
+DROP DOMAIN pg_temp.hg_centime_attendu;
 
 CREATE OR REPLACE FUNCTION public.hg_fr_lire(p_montant jsonb)
 RETURNS numeric LANGUAGE plpgsql IMMUTABLE SET search_path=public,pg_temp AS $function$

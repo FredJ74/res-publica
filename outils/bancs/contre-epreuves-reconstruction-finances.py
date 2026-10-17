@@ -7,7 +7,7 @@ import hashlib,json,re,shutil,subprocess,sys,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 CAS=[
- ('fraction de centime acceptee','20261017090342_precision_monetaire_reconstruction.sql','VALUE=trunc(VALUE,2)','true','centime invalide accepte'),
+ ('fraction de centime acceptee','20261017090342_precision_monetaire_reconstruction.sql','VALUE=trunc(VALUE,2)));\n  COMMENT','true));\n  COMMENT','centime invalide accepte'),
  ('loyer repaye le meme jour','20261017090621_loyers_banque_prioritaire_atomiques.sql',"IF (v_data ->> 'jourPaiement') = v_jour THEN","IF false THEN",'AssertionError'),
  ('loyer preleve malgre fonds insuffisants','20261017090621_loyers_banque_prioritaire_atomiques.sql','IF v_banque + greatest(0,coalesce(v_liquide,0)) < v_prix THEN','IF false THEN','AssertionError'),
  ('liquide prioritaire au lieu de banque','20261017090621_loyers_banque_prioritaire_atomiques.sql','v_debit_banque:=least(v_prix,v_banque);','v_debit_banque:=greatest(0,v_prix-greatest(0,coalesce(v_liquide,0)));','AssertionError'),
@@ -29,6 +29,10 @@ for nom,fichier,avant,apres,erreur in CAS:
   for corps in re.findall(r'AS \$function\$(.*?)\$function\$;',s,re.S):
    if avant in corps:
     modifie=modifie.replace(hashlib.md5(corps.encode()).hexdigest(),hashlib.md5(corps.replace(avant,apres).encode()).hexdigest())
+  if nom=='fraction de centime acceptee':
+   # Aligner aussi la reference DDL de la COPIE : l'assertion doit atteindre
+   # l'ecriture 5.505, au lieu de mourir au simple rejeu de la migration.
+   modifie=modifie.replace("CREATE DOMAIN pg_temp.hg_centime_attendu AS numeric CHECK (VALUE IS NULL OR (VALUE::text NOT IN ('NaN','Infinity','-Infinity') AND VALUE=trunc(VALUE,2)));", "CREATE DOMAIN pg_temp.hg_centime_attendu AS numeric CHECK (VALUE IS NULL OR (VALUE::text NOT IN ('NaN','Infinity','-Infinity') AND true));")
   p.write_text(modifie)
   proc=subprocess.run([sys.executable,str(d/'outils/bancs'/bench)],capture_output=True,text=True,timeout=90)
   sortie=proc.stdout+proc.stderr;ok=proc.returncode!=0 and erreur in sortie

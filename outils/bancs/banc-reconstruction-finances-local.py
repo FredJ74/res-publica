@@ -345,6 +345,25 @@ with tempfile.TemporaryDirectory(prefix='hg-finances-') as tmp:
     except psycopg2.Error as e:assert e.pgcode=='42501'
     else:raise AssertionError('vente bois hors atelier')
     q.execute('RESET ROLE');ok('bois : quantites entieres et presence reelle obligatoire')
+    rev=scalar("SELECT revision_financiere FROM personnages_donnees WHERE name='Alice'")
+    q.execute("UPDATE comptes_bancaires SET solde=solde+0.01 WHERE personnage='Alice' AND banque='helvetia'")
+    assert scalar("SELECT revision_financiere FROM personnages_donnees WHERE name='Alice'")==rev+1
+    ok('revision : un mouvement de compte seul invalide aussi la photographie financiere')
+    q.execute('CREATE VIEW fixture_dependance AS SELECT name,liquide FROM personnages')
+    try:q.execute(migration)
+    except psycopg2.Error as e:
+        assert e.pgcode=='2BP01',str(e)
+        q.execute('ROLLBACK')
+    else:raise AssertionError('dependance de vue detruite sans examen')
+    assert scalar('SELECT count(*) FROM fixture_dependance')==2
+    q.execute('DROP VIEW fixture_dependance')
+    q.execute("CREATE OR REPLACE FUNCTION hg_fr_lire(p_montant jsonb) RETURNS numeric LANGUAGE plpgsql IMMUTABLE SET search_path=public,pg_temp AS $$BEGIN RETURN 0; END$$")
+    try:q.execute(migration)
+    except psycopg2.Error as e:
+        assert 'definition financiere preexistante non examinee' in str(e)
+        q.execute('ROLLBACK')
+    else:raise AssertionError('definition serveur inconnue ecrasee')
+    ok('DDL : dependance inconnue et definition serveur differente refusent toute bascule')
     print(f'{groups}/{groups} groupes PostgreSQL reussis')
     cn.close()
     server.cleanup()

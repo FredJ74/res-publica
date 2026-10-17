@@ -6,7 +6,7 @@ DECLARE r record; p pg_proc%rowtype;
 BEGIN
  FOR r IN SELECT * FROM (VALUES ('hg_fin_bois_vendre(uuid,text,jsonb)','d50796fc356d27414b67131aa5da8125')) t(signature,empreinte) LOOP
   SELECT * INTO p FROM pg_proc WHERE oid=to_regprocedure('public.'||r.signature);
-  IF FOUND AND (md5(p.prosrc)<>r.empreinte OR p.proconfig IS DISTINCT FROM ARRAY['search_path=public, pg_temp']) THEN
+  IF FOUND AND (md5(p.prosrc)<>r.empreinte OR p.proowner::regrole::text NOT IN ('postgres','supabase_admin') OR p.proconfig IS DISTINCT FROM ARRAY['search_path=public, pg_temp']) THEN
    RAISE EXCEPTION 'definition financiere preexistante non examinee : %',r.signature;
   END IF;
  END LOOP;
