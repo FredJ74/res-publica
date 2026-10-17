@@ -12880,6 +12880,9 @@ async function verifierArrestationRecherchePolice(options = {}) {
   }
   interceptionJudiciaire = { eligible, recherche: rechercheActuelle,
     ville: state.currentCity, policiers: options.policiers || [{stats:{VOL:12}}],
+    zone: options.zone || { pays: state.country, ville: state.currentCity,
+      batiment: state.currentBuilding, piece: state.currentRoom,
+      rue: options.rueNoeudId || null },
     rueNoeudId: options.rueNoeudId || null, fuiteEchouee: false };
   afficherInterceptionJudiciaire();
   return true;
