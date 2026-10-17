@@ -11540,7 +11540,22 @@ function calculerDisEffective() {
 // le joueur local agissant (son propre inventaire, son propre etat). Le controle direct du
 // commissaire sur un autre PJ (complexite multi-joueur reelle : pas de canal live vers le
 // client cible) est explicitement HORS PERIMETRE de ce lot et traite separement.
+// Une entree physique ne doit pas produire plusieurs jets concurrents.
+// La garde et la police partagent ce meme point d'entree.
+const surveillancesPoliceEnCours = new Set();
 async function verifierSurveillancePolicePJ(buildingId, roomId, rueNoeudId) {
+  if (state.estEmprisonne) return;
+  const cleRencontre = [state.country || 'republic', state.currentCity || '',
+    rueNoeudId ? 'rue' : 'piece', rueNoeudId || buildingId || '', roomId || ''].join(':');
+  if (surveillancesPoliceEnCours.has(cleRencontre)) return;
+  surveillancesPoliceEnCours.add(cleRencontre);
+  try {
+    return await verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId);
+  } finally {
+    surveillancesPoliceEnCours.delete(cleRencontre);
+  }
+}
+async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId) {
   if (state.estEmprisonne) return; // deja incarcere, rien a controler
   const pays = state.country || 'republic';
   const ville = state.currentCity;
