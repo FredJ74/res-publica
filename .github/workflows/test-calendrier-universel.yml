@@ -1,0 +1,19 @@
+name: Contrat calendrier universel
+on:
+  pull_request:
+    paths:
+      - 'api/_calendrier-universel.mjs'
+      - 'outils/bancs/test-calendrier-universel.mjs'
+      - '.github/workflows/test-calendrier-universel.yml'
+  push:
+    branches:
+      - 'correctif/horloge-universelle-gardes-20261017'
+jobs:
+  calendrier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test outils/bancs/test-calendrier-universel.mjs
