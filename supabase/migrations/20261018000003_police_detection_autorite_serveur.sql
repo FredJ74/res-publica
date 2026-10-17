@@ -38,7 +38,7 @@ BEGIN
  v_count:=v_count+1; v_per:=v_per+coalesce((v_agent->'stats'->>'PER')::numeric,12);
  END IF; END LOOP;
  IF v_count=0 THEN RETURN jsonb_build_object('ok',false,'raison','aucun_policier_present'); END IF;
- v_per:=v_per/v_count+(v_count-1)*2;
+ v_per:=v_per/v_count+(v_count-1);
  v_dis:=8+coalesce((v_pj.resources->>'dis')::numeric,0)/10;
  v_chance:=greatest(10,least(90,50+5*(v_dis-v_per)));
  IF random()*100 < v_chance THEN RETURN jsonb_build_object('ok',true,'detecte',false); END IF;
