@@ -1,0 +1,56 @@
+-- Graphe de rue canonique, extrait des scènes Républia.
+CREATE TABLE IF NOT EXISTS public.rue_noeuds_serveur (
+ country text NOT NULL,city text NOT NULL,noeud text NOT NULL,
+ voisins text[] NOT NULL DEFAULT '{}',
+ PRIMARY KEY(country,city,noeud)
+);
+ALTER TABLE public.rue_noeuds_serveur ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.rue_noeuds_serveur FROM PUBLIC,anon,authenticated;
+INSERT INTO public.rue_noeuds_serveur(country,city,noeud,voisins) VALUES
+('republic','capitale','luthecia-palais-presidentiel',ARRAY['luthecia-tabernacle-impots','luthecia-imprimerie']::text[]),
+('republic','capitale','luthecia-hotel-de-ville',ARRAY['luthecia-imprimerie','luthecia-loge']::text[]),
+('republic','capitale','luthecia-loge',ARRAY['luthecia-hotel-de-ville','luthecia-entrepot-logistique']::text[]),
+('republic','capitale','luthecia-imprimerie',ARRAY['luthecia-palais-presidentiel','luthecia-hotel-de-ville','luthecia-intersection-stade-commercial']::text[]),
+('republic','capitale','luthecia-intersection-stade-commercial',ARRAY['luthecia-centre-commercial','luthecia-stade-multimodal','luthecia-musees','luthecia-imprimerie']::text[]),
+('republic','capitale','luthecia-musees',ARRAY['luthecia-quartier-ambassades','luthecia-intersection-stade-commercial']::text[]),
+('republic','capitale','luthecia-quartier-ambassades',ARRAY['luthecia-bureau-emploi','luthecia-usine-pharmaceutique','luthecia-musees']::text[]),
+('republic','capitale','luthecia-stade-multimodal',ARRAY['luthecia-centre-multimodal','luthecia-intersection-stade-commercial']::text[]),
+('republic','capitale','luthecia-usine-pharmaceutique',ARRAY['luthecia-quartier-ambassades','luthecia-centre-multimodal']::text[]),
+('republic','capitale','luthecia-entrepot-logistique',ARRAY['luthecia-centre-multimodal','luthecia-loge']::text[]),
+('republic','capitale','luthecia-centre-multimodal',ARRAY['luthecia-usine-pharmaceutique','luthecia-entrepot-logistique','luthecia-stade-multimodal']::text[]),
+('republic','capitale','luthecia-centre-commercial',ARRAY['luthecia-terrains-artisanal','luthecia-intersection-stade-commercial']::text[]),
+('republic','capitale','luthecia-bureau-emploi',ARRAY['luthecia-quartier-ambassades','luthecia-terrains-artisanal']::text[]),
+('republic','capitale','luthecia-terrains-artisanal',ARRAY['luthecia-armurerie','luthecia-bureau-emploi','luthecia-centre-commercial']::text[]),
+('republic','capitale','luthecia-terrains-lots',ARRAY['luthecia-terrains-artisanal']::text[]),
+('republic','capitale','luthecia-armurerie',ARRAY['luthecia-tabernacle-impots','luthecia-terrains-artisanal']::text[]),
+('republic','capitale','luthecia-tabernacle-impots',ARRAY['luthecia-palais-presidentiel','luthecia-armurerie']::text[]),
+('republic','ville_a','psm-carrefour-musee',ARRAY['psm-ecole-phare','psm-eglise-cimetiere','psm-tribunal-banque','psm-carrefour-artisanal-scierie']::text[]),
+('republic','ville_a','psm-carrefour-artisanal-scierie',ARRAY['psm-ecole-phare','psm-eglise-cimetiere','psm-tribunal-banque','psm-carrefour-artisanal-scierie']::text[]),
+('republic','ville_a','psm-carrefour-artisanal-scierie',ARRAY['psm-centre-multimodal','psm-carrefour-musee','psm-pole-tabac-entrepot']::text[]),
+('republic','ville_a','psm-centre-multimodal',ARRAY['psm-carrefour-artisanal-scierie','psm-ecole-phare']::text[]),
+('republic','ville_a','psm-ecole-phare',ARRAY['psm-carrefour-musee','psm-centre-multimodal','psm-dispensaire-port-plaisance']::text[]),
+('republic','ville_a','psm-dispensaire-port-plaisance',ARRAY['psm-ecole-phare','psm-tribunal-banque']::text[]),
+('republic','ville_a','psm-tribunal-banque',ARRAY['psm-dispensaire-port-plaisance','psm-bar-imprimerie-commissariat','psm-carrefour-musee']::text[]),
+('republic','ville_a','psm-bar-imprimerie-commissariat',ARRAY['psm-tribunal-banque','psm-marche-resto-chasse']::text[]),
+('republic','ville_a','psm-marche-resto-chasse',ARRAY['psm-bar-imprimerie-commissariat','psm-hotel-mairie-place']::text[]),
+('republic','ville_a','psm-hotel-mairie-place',ARRAY['psm-marche-resto-chasse','psm-eglise-cimetiere']::text[]),
+('republic','ville_a','psm-eglise-cimetiere',ARRAY['psm-chantier-naval','psm-hotel-mairie-place','psm-carrefour-musee']::text[]),
+('republic','ville_a','psm-chantier-naval',ARRAY['psm-terrains-vente','psm-eglise-cimetiere']::text[]),
+('republic','ville_a','psm-terrains-vente',ARRAY['psm-pole-tabac-entrepot','psm-chantier-naval']::text[]),
+('republic','ville_a','psm-pole-tabac-entrepot',ARRAY['psm-carrefour-artisanal-scierie','psm-terrains-vente']::text[]),
+('republic','ville_a','psm-terrains-lots',ARRAY['psm-terrains-vente']::text[]),
+('republic','ville_b','montrouge-vue-1',ARRAY['montrouge-vue-5','montrouge-vue-6']::text[]),
+('republic','ville_b','montrouge-vue-2',ARRAY['montrouge-vue-5','montrouge-vue-3']::text[]),
+('republic','ville_b','montrouge-vue-3',ARRAY['montrouge-vue-2','montrouge-vue-4','montrouge-vue-13']::text[]),
+('republic','ville_b','montrouge-vue-4',ARRAY['montrouge-vue-12','montrouge-vue-3']::text[]),
+('republic','ville_b','montrouge-vue-5',ARRAY['montrouge-vue-1','montrouge-vue-2']::text[]),
+('republic','ville_b','montrouge-vue-6',ARRAY['montrouge-vue-1','montrouge-vue-7']::text[]),
+('republic','ville_b','montrouge-vue-7',ARRAY['montrouge-vue-6','montrouge-vue-8']::text[]),
+('republic','ville_b','montrouge-vue-8',ARRAY['montrouge-vue-7','montrouge-vue-9']::text[]),
+('republic','ville_b','montrouge-vue-9',ARRAY['montrouge-vue-8','montrouge-vue-10']::text[]),
+('republic','ville_b','montrouge-vue-10',ARRAY['montrouge-vue-9','montrouge-vue-11']::text[]),
+('republic','ville_b','montrouge-vue-11',ARRAY['montrouge-vue-10','montrouge-vue-12']::text[]),
+('republic','ville_b','montrouge-vue-12',ARRAY['montrouge-vue-11','montrouge-vue-4']::text[]),
+('republic','ville_b','montrouge-vue-13',ARRAY['montrouge-vue-3']::text[])
+ON CONFLICT(country,city,noeud) DO UPDATE SET voisins=excluded.voisins;
+ALTER TABLE public.personnages_donnees ADD COLUMN IF NOT EXISTS current_street text;
