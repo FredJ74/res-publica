@@ -28,3 +28,11 @@
 
 ## Prochaines vérifications
 Retracer le schéma Supabase des blessures, fermetures et traces, puis la gestion des transitions de minuit et des champs historiques avant tout correctif de production. Étendre l'inventaire des références temporelles aux autres fichiers du dépôt et aux crons.
+
+## Précision fondatrice — passage de journée à minuit pile (17 octobre 2026)
+- L'horloge réelle universelle détermine **une journée civile commune** : chaque journée se termine à 00:00 et la suivante commence immédiatement, simultanément pour tous les PJ/PNJ, villes et empires.
+- Le franchissement de minuit est un événement fonctionnel qui remet à zéro les quotas « une fois par jour » (notamment l'ordre **Dormir**) et fait progresser le décompte des jours d'indisponibilité : blessures, emprisonnement, empoisonnement, régénération après neutralisation, etc.
+- **Ne pas substituer** à cette règle des fenêtres glissantes de 24 h depuis l'action, la connexion ou le dernier sommeil. Exemple : dormir à 23:50 puis de nouveau après 00:00 est compatible avec le quota journalier, sous réserve des autres conditions métier.
+- Chaque mécanisme doit préciser si son échéance est un **nombre de passages de minuit** ou une durée exacte en heures/minutes ; ne pas transformer l'un en l'autre sans arbitrage.
+- Exigence technique : une même date canonique pour tous, passage de minuit traité côté serveur, idempotent et rattrapable après panne/absence de connexion. Les interfaces peuvent se rafraîchir ensuite ; elles ne créent pas elles-mêmes la nouvelle journée.
+- La migration des anciens champs `jusquauJour`, `dernierJour`, `expireJour`, `state.day` doit préserver le nombre de passages de minuit restant lorsque cela est déterminable ; sinon signaler les cas ambigus au game designer.
