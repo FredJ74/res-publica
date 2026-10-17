@@ -2395,6 +2395,7 @@ async function loadForumTopicsFromSB(forumId) {
   }
   if (FORUM_LECTURE_EN_COURS[forumId]) return;
   FORUM_LECTURE_EN_COURS[forumId] = true;
+  const debutLectureForum = performance.now();
   delete FORUM_LECTURE_TERMINEE[forumId];
   try {
     const v = await sbLoadForumTopicsVerdict(forumId);
@@ -2436,6 +2437,7 @@ async function loadForumTopicsFromSB(forumId) {
   } finally {
     delete FORUM_LECTURE_EN_COURS[forumId];
     FORUM_LECTURE_TERMINEE[forumId] = true;
+    console.info('[Forum] Lecture ' + forumId + ' : ' + Math.round(performance.now() - debutLectureForum) + ' ms' + (FORUM_LECTURE_ECHOUEE[forumId] ? ' (échec)' : ''));
   }
 }
 
