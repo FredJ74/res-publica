@@ -1468,7 +1468,9 @@ async function verifierLiberationPrisonniers() {
   // alimente le bonus d'evasion (+10/jour, plafond +50). Pose ici parce que c'est l'unique
   // passage quotidien deja garanti pour un detenu (runMidnightUpdate et doDormir).
   if (typeof incrementerDetentionDeserteur === 'function') incrementerDetentionDeserteur();
-  if (state.day >= state.estEmprisonne.jourFin) {
+  // Le serveur compare la date universelle de fin de peine : aucun compteur de PJ
+  // ne peut anticiper ou retarder une liberation.
+  {
     if (typeof sbRpc !== 'function') return;
     const vFin = await sbRpc('detention_clore_purgee', {})
       .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
