@@ -27,8 +27,8 @@ BEGIN
   END IF;
   SELECT * INTO v_det FROM public.detention_active(v_moi);
   -- Fail-closed si l'ancre est absente : aucune libération devinée.
-  IF coalesce(v_peine->>'debutTs','') !~ '^[0-9]+(\\.[0-9]+)?$'
-     OR coalesce(v_peine->>'jours','') !~ '^[0-9]+(\\.[0-9]+)?$' THEN
+  IF coalesce(v_peine->>'debutTs','') !~ '^[0-9]+(\.[0-9]+)?$'
+     OR coalesce(v_peine->>'jours','') !~ '^[0-9]+(\.[0-9]+)?$' THEN
     RETURN jsonb_build_object('ok',false,'raison','ancre_calendaire_absente');
   END IF;
   v_debut_ts := (v_peine->>'debutTs')::numeric;
