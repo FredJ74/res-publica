@@ -12569,7 +12569,26 @@ async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, vi
   // primitive canonique et clot la condamnation dans le meme mouvement ; rejouee, elle ne cree
   // pas de seconde peine.
   if (nom === state.char?.name) {
-    // Flagrant delit sur soi-meme : chemin direct conserve, aucune autorite en jeu.
+    // Condamnation judiciaire : le serveur ouvre la détention ET marque le jugement
+    // exécuté dans une seule transaction, sans exiger que le condamné soit commissaire.
+    if (entree.type === 'condamnation' && entree.id) {
+      const verdict = typeof sbRpc === 'function'
+        ? await sbRpc('justice_executer_condamnation_soi', { p_jugement_id: entree.id })
+            .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+        : null;
+      if (!verdict || verdict.ok !== true || !verdict.detention_id) {
+        return { motif, joursTotal: 0, detentionId: null, echec: true };
+      }
+      joursTotal = Number(verdict.jours || joursTotal);
+      state.estEmprisonne = {
+        raison: verdict.motif || motif, jours: joursTotal,
+        jourFin: (state.day || 1) + joursTotal,
+        detentionId: verdict.detention_id, city: ville,
+        country: state.country
+      };
+      return { motif: verdict.motif || motif, joursTotal, detentionId: verdict.detention_id };
+    }
+    // Flagrant délit distinct d'un jugement : conserver le chemin existant.
     const detentionId = (typeof enregistrerDetention === 'function')
       ? await enregistrerDetention(nom, motif, (state.day || 1) + joursTotal, undefined, ville, extra) : null;
     return { motif, joursTotal, detentionId };
