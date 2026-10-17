@@ -192,6 +192,88 @@ with tempfile.TemporaryDirectory(prefix='hg-finances-') as tmp:
     r=appel(['1','2']);assert r['etat']['arg']=='2110.00' and r['resultat']['montant']=='8.75'
     q.execute('RESET ROLE')
     ok('reponse tardive : recu immuable et photographie serveur actualisee apres credit')
+    # Helvetia : vraies fonctions financieres et vrai payer_ordre ; services annexes
+    # de memoire politique/transition simules, aucune banque ni don de production.
+    for t in ['caisses_batiments','bnr_refinancements_helvetia','ordres_couts','ordres_couts_inconnus','ordres_couts_ecarts','presidence_memoire_ordres','fiche_hausses_observees','indices_villes']:
+        q.execute(table(t))
+    for n in ['est_mon_personnage','exiger_acteur','payer_ordre','helvetia_assurer_liquidite','helvetia_debiter_source','helvetia_crediter_destination','helvetia_ie_national','helvetia_taux_refinancement_bnr']:
+        q.execute(fonction(n))
+    q.execute("CREATE FUNCTION rp_transition_active(text) RETURNS boolean LANGUAGE sql AS $$SELECT false$$")
+    banque_source=(ROOT/'baseline/domaines/banque/20_fonctions.sql').read_text()
+    for n in ['ouvrir_compte_helvetia','deposer_helvetia','retirer_helvetia','fermer_compte_helvetia','creer_placement_helvetia','creer_pret_helvetia','rembourser_pret_helvetia_integral','accepter_accord_helvetia']:
+        for f in re.findall(r'CREATE OR REPLACE FUNCTION public\.'+re.escape(n)+r'\(.*?\$function\$;',banque_source,re.S):q.execute(f)
+    q.execute("INSERT INTO ordres_couts(fn,pa,cost) VALUES('gerer_finances',0,0),('compte_offshore',0,0),('emprunter_prive',1,0)")
+    q.execute("INSERT INTO caisses_batiments(id,data) VALUES('republic_banque-privee','{\"solde\":500000}')")
+    q.execute("TRUNCATE comptes_bancaires; UPDATE personnages_donnees SET arg=30000,liquide=30000,pa=10,current_building='banque-privee',current_room='bureau_prive' WHERE name='Alice'")
+    helv=(ROOT/'migrations/20261017091047_helvetia_requetes_atomiques.sql').read_text()
+    q.execute(helv);q.execute(helv)
+    def helvetia(op,args,key):
+        return scalar('SELECT hg_fin_helvetia(%s::uuid,%s,%s,%s::jsonb)',(f'00000000-0000-0000-0000-{key:012d}','Alice',op,json.dumps(args)))
+    auth()
+    r=helvetia('ouvrir',{},100)
+    assert r['etat']['liquide']=='20000.00'
+    assert r['etat']['comptes'][0]['solde']=='10000.00'
+    assert helvetia('ouvrir',{},100)['rejeu']
+    ok('Helvetia ouverture : capital conserve, recu rejouable')
+    r=helvetia('deposer',{'montant':'5.50','source':'liquide'},101)
+    assert r['etat']['liquide']=='19994.50' and r['etat']['comptes'][0]['solde']=='10005.50'
+    assert helvetia('deposer',{'montant':'5.50','source':'liquide'},101)['rejeu']
+    r=helvetia('retirer',{'montant':'5.50','destination':'liquide'},102)
+    assert r['etat']['liquide']=='20000.00' and r['etat']['comptes'][0]['solde']=='10000.00'
+    assert helvetia('retirer',{'montant':'5.50','destination':'liquide'},102)['rejeu']
+    ok('Helvetia depot et retrait fractionnaires : toutes contreparties et rejeux')
+    for montant in ['5.505',5.5,'999999.00']:
+        try:helvetia('deposer',{'montant':montant,'source':'liquide'},103)
+        except psycopg2.Error:pass
+        else:raise AssertionError('montant Helvetia invalide accepte')
+    q.execute('RESET ROLE')
+    assert scalar("SELECT liquide FROM personnages_donnees WHERE name='Alice'")==20000
+    assert scalar("SELECT count(*) FROM hg_fin_requetes WHERE requete='00000000-0000-0000-0000-000000000103'")==0
+    ok('Helvetia refus : chiffres binaires, sous-centime et fonds insuffisants sans recu partiel')
+    q.execute("CREATE FUNCTION fixture_pret_fail() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne_creation_pret'; END$$; CREATE TRIGGER fixture_pret_fail BEFORE INSERT ON prets FOR EACH ROW EXECUTE FUNCTION fixture_pret_fail()")
+    auth()
+    try:helvetia('emprunter',{'montant':'1000.00','duree':5},104)
+    except psycopg2.Error as e:assert 'panne_creation_pret' in str(e),str(e)
+    else:raise AssertionError('panne pret non injectee')
+    q.execute('RESET ROLE')
+    assert scalar("SELECT pa FROM personnages_donnees WHERE name='Alice'")==10
+    assert scalar("SELECT solde FROM comptes_bancaires WHERE banque='helvetia'")==10000
+    assert scalar("SELECT (data->>'solde')::numeric FROM caisses_batiments WHERE id='republic_banque-privee'")==500000
+    q.execute('DROP TRIGGER fixture_pret_fail ON prets')
+    ok('Helvetia pret : panne apres paiement PA et reserve annule toutes contreparties')
+    auth()
+    r=helvetia('emprunter',{'montant':'1000.00','duree':5},104);id_pret=r['resultat']['id']
+    assert helvetia('emprunter',{'montant':'1000.00','duree':5},104)['rejeu']
+    assert r['etat']['comptes'][0]['solde']=='11000.00'
+    q.execute('RESET ROLE');assert scalar("SELECT pa FROM personnages_donnees WHERE name='Alice'")==9
+    assert scalar('SELECT montant_restant FROM prets WHERE id=%s',(id_pret,))==1120
+    auth();r=helvetia('rembourser',{'pret_id':id_pret,'sources':[{'type':'liquide','montant':'1120.00'}]},105)
+    assert helvetia('rembourser',{'pret_id':id_pret,'sources':[{'type':'liquide','montant':'1120.00'}]},105)['rejeu']
+    assert r['etat']['liquide']=='18880.00'
+    q.execute('RESET ROLE');assert scalar('SELECT montant_restant FROM prets WHERE id=%s',(id_pret,))==0
+    ok('Helvetia pret et remboursement : dette, capital, PA et non-repetition')
+    auth();r=helvetia('placer',{'montant':'500.50','type':'declare'},106)
+    assert r['etat']['comptes'][0]['solde']=='10499.50'
+    assert helvetia('placer',{'montant':'500.50','type':'declare'},106)['rejeu']
+    q.execute('RESET ROLE');assert scalar('SELECT montant FROM placements_bancaires')==__import__('decimal').Decimal('500.50')
+    auth();r=helvetia('fermer',{'destination':'liquide'},107)
+    assert r['etat']['comptes'][0]['solde']=='0.00' and helvetia('fermer',{'destination':'liquide'},107)['rejeu']
+    q.execute('RESET ROLE')
+    q.execute("UPDATE prets SET statut='contentieux',montant_restant=1120,proposition_en_attente=true,accord_actif=false WHERE id=%s",(id_pret,))
+    auth();r=helvetia('accord',{'pret_id':id_pret},108)
+    assert helvetia('accord',{'pret_id':id_pret},108)['rejeu']
+    q.execute('RESET ROLE');assert scalar('SELECT montant_restant FROM prets WHERE id=%s',(id_pret,))==1344
+    ok('Helvetia placement, fermeture et accord : centimes, etats et majoration unique')
+    auth()
+    try:scalar("SELECT ouvrir_compte_helvetia('Alice')")
+    except psycopg2.Error as e:assert e.pgcode=='42501'
+    else:raise AssertionError('ancien circuit direct encore autorise')
+    q.execute('RESET ROLE')
+    q.execute("UPDATE personnages_donnees SET current_room='ailleurs' WHERE name='Alice'");auth()
+    try:helvetia('ouvrir',{},109)
+    except psycopg2.Error as e:assert e.pgcode=='42501'
+    else:raise AssertionError('Helvetia accessible hors bureau')
+    q.execute('RESET ROLE');ok('Helvetia acces territorial et fermeture des anciennes RPC directes')
     print(f'{groups}/{groups} groupes PostgreSQL reussis')
     cn.close()
     server.cleanup()
