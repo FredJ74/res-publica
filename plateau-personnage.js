@@ -1982,7 +1982,7 @@ async function confirmerDivorce(pa, cost) {
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2, '0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : dateCivileParisMedicale() + ' · ' + h + 'h';
     sbSendMail(nom, conjoint, 'Divorce', nom + ' a demandé le divorce devant notaire. Votre mariage est désormais dissous.', time).catch(() => {});
   }
 }
@@ -2060,7 +2060,7 @@ function declencherHospitalisation(palier) {
   const dateParis = dateCivileParisMedicale();
   const [annee, mois, jour] = dateParis.split('-').map(Number);
   const dateFinParis = new Date(Date.UTC(annee, mois - 1, jour + duree)).toISOString().slice(0, 10);
-  state.hospitalisation = { jourDebut: state.day || 1, palier: palier || 'partielle', lieu, jourFin: (state.day || 1) + duree, dateFinParis };
+  state.hospitalisation = { palier: palier || 'partielle', lieu, dateDebutParis: dateParis, dateFinParis };
   state.pa = 0;
   // §19 — BUG CORRIGE (chantier Neutraliser, 10 septembre 2026) : l'hospitalisation n'etait
   // ecrite que dans state, jamais persistee. Un F5 rendait immediatement au joueur ses PA, ses
@@ -2517,7 +2517,7 @@ async function doTransfertCliniquePrivee(pa, cost) {
       city: 'capitale',
       country: state.country || 'republic',
       locataire: patient,
-      depuis: state.day || 1,
+      depuis: dateCivileParisMedicale(),
       visible: true,
       prix: 0,
       chambreClinique: true,
@@ -3217,9 +3217,13 @@ function verifierProgressionHospitalisation() {
   if (!state.hospitalisation) return;
   const dateFinParis = state.hospitalisation.dateFinParis;
   const aujourdhuiParis = dateCivileParisMedicale();
-  const jourFin = state.hospitalisation.jourFin || ((state.hospitalisation.jourDebut || state.day || 1) + 1);
-  const sortieAutorisee = dateFinParis ? aujourdhuiParis >= dateFinParis : (state.day || 1) >= jourFin;
-  if (sortieAutorisee) {
+  // Une hospitalisation dépourvue de date civile n'est pas levée sur un compteur privé.
+  if (!dateFinParis) {
+    state.pa = 0;
+    showToast('Convalescence', 'Date de sortie à régulariser.', false);
+    return;
+  }
+  if (aujourdhuiParis >= dateFinParis) {
     // Liberation de la chambre clinique, uniquement ici (fin reelle de l'hospitalisation) --
     // jamais sur un refresh/une navigation interne/une visite, voir libererChambreCliniquePatient.
     if (state.hospitalisation.lieu === 'clinique' && typeof libererChambreCliniquePatient === 'function') {
@@ -3235,9 +3239,7 @@ function verifierProgressionHospitalisation() {
     addJournalEntry('Vous êtes complètement rétabli(e) de votre agression.', 'event-good');
     return;
   }
-  const joursRestants = dateFinParis
-    ? Math.max(0, Math.round((Date.parse(dateFinParis + 'T00:00:00Z') - Date.parse(aujourdhuiParis + 'T00:00:00Z')) / 86400000))
-    : jourFin - (state.day || 1);
+  const joursRestants = Math.max(0, Math.round((Date.parse(dateFinParis + 'T00:00:00Z') - Date.parse(aujourdhuiParis + 'T00:00:00Z')) / 86400000));
   state.pa = 0;
   showToast('En convalescence', 'Encore ' + joursRestants + ' jour(s) avant votre rétablissement complet. Déplacement impossible, sauf transfert vers une clinique privée.', false);
   addJournalEntry('Convalescence en cours (' + state.hospitalisation.lieu + '). Encore ' + joursRestants + ' jour(s).', 'event-info');
@@ -3760,7 +3762,7 @@ async function donnerObjetAJoueur(idx) {
   // Notifier le destinataire par mail reel
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
+    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : dateCivileParisMedicale() + ' · ' + h + 'h';
     sbSendMail(state.char?.name || 'Anonyme', cible, 'Objet reçu',
       (state.char?.name || 'Quelqu\'un') + ' vous a remis : "' + item.name + '". ' + (item.desc || ''), time).catch(() => {});
   }

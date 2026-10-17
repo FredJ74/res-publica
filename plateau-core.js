@@ -1038,17 +1038,10 @@ window.addEventListener('DOMContentLoaded', () => {
   }, 300);
 });
 
-// Les nouvelles fermetures utilisent une date civile commune. Les lignes historiques
-// sans date gardent temporairement leur compteur, jusqu'à migration des producteurs.
+// Les fermetures reposent exclusivement sur la date civile Europe/Paris.
 function fermetureEncoreActive(r) {
-  if (r.date_fin_universelle) {
-    const parties = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-    const parts = Object.fromEntries(parties.map(p => [p.type, p.value]));
-    const jour = `${parts.year}-${parts.month}-${parts.day}`;
-    // Ne pas rouvrir par défaut si l'horloge n'est pas disponible.
-    return !jour || jour < r.date_fin_universelle;
-  }
-  return r.jour_fin > (state.day || 1);
+  if (!r.date_fin_universelle) return false;
+  return jourPartageISO() < r.date_fin_universelle;
 }
 
 async function chargerBatimentsFermes() {
@@ -1145,7 +1138,7 @@ function rpOublierIdentiteCourante() {
   // Le verrou de sommeil et le jour de jeu appartiennent au personnage, pas a la session.
   // Ne jamais conserver ceux du compte precedent lors d'un changement d'identite.
   state.dernierDormir = 0;
-  state.day = 1;
+  // Aucun jour personnel à réinitialiser.
   // Le repli est a un coup par chargement de page : un changement de compte le rearme, sans
   // quoi la bascule vers le nouveau compte ne se ferait pas.
   REPLI_COMPTE_TENTE = false;
@@ -2271,7 +2264,7 @@ function syncRealTime() {
   const frTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
   state.hour = frTime.getHours();
   state.minute = frTime.getMinutes();
-  state.day = state.day || 1; // Compteur historique : jamais avancé par Dormir.
+  // Ne pas recalculer un compteur personnel : seule la date civile est commune.
 }
 
 // Horloge de la barre superieure (#game-time, plateau.html) -- element UNIQUE partage par toutes
@@ -2290,18 +2283,9 @@ function advanceTime(pa) {
   // Chaque PA consomme environ 30 minutes de temps de jeu -- gate desormais uniquement par
   // HORLOGE_PA_ACTIVE (Lot 2A), plus du tout par TEST_MODE : cette mecanique reste inerte tant
   // que HORLOGE_PA_ACTIVE est a false, quel que soit l'etat de TEST_MODE.
-  if (HORLOGE_PA_ACTIVE && pa > 0) {
-    state.minute = (state.minute || 0) + (pa * 30);
-    while (state.minute >= 60) {
-      state.minute -= 60;
-      state.hour = (state.hour + 1) % 24;
-      if (state.hour === 0) {
-        state.day = (state.day || 1) + 1;
-        state.midnightDone = false;
-      }
-    }
-    updateClock();
-  }
+  // Les PA n'avancent jamais l'heure civile ni le jour universel.
+  // L'ancienne simulation locale est désactivée définitivement.
+  return;
 }
 
 // =====================
@@ -2495,7 +2479,8 @@ async function runMidnightUpdate() {
     if (state.char.dernierMinuitParis === jourParis) return;
     state.char.dernierMinuitParis = jourParis;
   }
-  state.day++;
+  // Minuit ne doit plus avancer un compteur de jours propre au personnage.
+  // La date civile Europe/Paris est l'unique référence temporelle.
   state.salaireTouche = false;
   // Traiter les plaintes et enquetes en cours
   traiterPlaintes();
@@ -2936,7 +2921,7 @@ function addJournalEntry(text, cls) {
   // defaut faute d'etre resynchronisee vers state.char avant sauvegarde).
   if (state.char) {
     if (!Array.isArray(state.char.journal)) state.char.journal = [];
-    state.char.journal.unshift({ day: state.day, hour: state.hour, text, cls: cls || '', ts });
+    state.char.journal.unshift({ date: jourPartageISO(), hour: state.hour, text, cls: cls || '', ts });
     if (state.char.journal.length > 120) state.char.journal.length = 120;
   }
 
@@ -2959,7 +2944,7 @@ function restaurerJournal(char) {
     // entry.ts n'existe que pour les entrees creees apres l'introduction de l'horodatage reel
     // (18 aout 2026) -- repli honnete sur "Jour X" pour les entrees anciennes, sans rien inventer.
     const h = String(entry.hour ?? 0).padStart(2, '0');
-    const horodatage = formaterHorodatageJournal(entry.ts) || `Jour ${entry.day} · ${h}h00`;
+    const horodatage = formaterHorodatageJournal(entry.ts) || (entry.date ? `${entry.date} · ${h}h00` : 'Date indisponible');
     const div = document.createElement('div');
     div.className = 'journal-entry';
     div.innerHTML = `<span class="journal-time">${horodatage}</span>
