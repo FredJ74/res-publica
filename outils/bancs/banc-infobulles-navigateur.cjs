@@ -10,9 +10,9 @@ async function navigateur(ancien,largeur){
  // Ancien composant exact : il ne nettoyait que la bulle de minimap, pas celle de body.
  const ancienMasquage="function hideBuildingTooltip() { const el=document.getElementById('building-hover-tooltip'); if(el)el.classList.remove('visible'); }";
  const js=(ancien?ancienMasquage:extraire(lire('plateau-navigation.js'),['hideBuildingTooltip']))+'\n'+extraire(lire('plateau-rue-centrale.js'),['afficherTooltipRue','masquerTooltipRue'])+'\n'+extraire(lire('plateau-commerce-pj.js'),['commercePjModale']);
- const page=`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"><div id="vue-rue" class="active"></div><div id="vue-batiment"></div><div id="building-hover-tooltip"></div><div id="modal-postes" class="modal-overlay open"><div class="modal-box"><div class="modal-header"><div class="modal-title">Vendre ou donner des matières</div><button>Fermer</button></div><div id="postes-body" class="modal-body"><div class="cpj-ecran cpj-dialogue"><p>Choix de quantité</p><input style="width:100%" value="10"><button>Donner</button><button>Vendre</button><div style="height:800px"></div><button id="action-finale">Confirmer</button></div></div></div></div><script>${js}
-commercePjModale('Donner ou vendre des matières',document.getElementById('postes-body').innerHTML);
-const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}try{
+ const page=`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"><div id="vue-rue" class="active"></div><div id="vue-batiment"></div><div id="building-hover-tooltip"></div><div id="modal-postes" class="modal-overlay"><div class="modal-box"><div class="modal-header"><div class="modal-title">Vendre ou donner des matières</div><button>Fermer</button></div><div id="postes-body" class="modal-body"><div class="cpj-ecran cpj-dialogue"><p>Choix de quantité</p><input style="width:100%" value="10"><button>Donner</button><button>Vendre</button><div style="height:800px"></div><button id="action-finale">Confirmer</button></div></div></div></div><script>${js}
+commercePjModale('Donner ou vendre des matières',document.getElementById('postes-body').innerHTML);document.getElementById('modal-postes').classList.remove('open');
+const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}(async()=>{try{
  afficherTooltipRue({pageX:20,pageY:20},"CENTRE D’AFFAIRES");exiger(!!document.getElementById('rc-tooltip'),'infobulle rue disponible');
  for(let i=0;i<3;i++){
   hideBuildingTooltip();document.getElementById('vue-batiment').classList.add('active');
@@ -21,11 +21,16 @@ const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}try{
   document.getElementById('modal-postes').classList.toggle('open');hideBuildingTooltip();
  }
  document.getElementById('vue-batiment').classList.remove('active');afficherTooltipRue({pageX:20,pageY:20},'Rue');exiger(!!document.querySelector('#rc-tooltip.visible'),'bulle legitime masquee');hideBuildingTooltip();
- document.getElementById('modal-postes').classList.add('open');
+ const source=document.createElement('div');document.body.appendChild(source);
+ afficherTooltipRue({pageX:10,pageY:10,currentTarget:source},'Source detruite');source.remove();
+ await Promise.resolve();exiger(!document.getElementById('rc-tooltip'),'bulle orpheline apres destruction');
+ afficherTooltipRue({pageX:10,pageY:10},'Rue avant modale');
+ document.getElementById('modal-postes').classList.add('open');await Promise.resolve();
+ exiger(!document.getElementById('rc-tooltip'),'bulle derriere modale persistante');
  const box=document.querySelector('.modal-box');exiger(box.getBoundingClientRect().width<=innerWidth,'debordement horizontal');
  box.scrollTop=box.scrollHeight;const bouton=document.getElementById('action-finale').getBoundingClientRect();exiger(bouton.top>=0&&bouton.bottom<=innerHeight,'action inaccessible apres defilement');
  document.body.dataset.verdict='OK';
-}catch(e){document.body.dataset.verdict='ECHEC';document.body.dataset.erreur=e.message;}</script>`;
+}catch(e){document.body.dataset.verdict='ECHEC';document.body.dataset.erreur=e.message;}})();</script>`;
  const serveur=http.createServer((req,res)=>{res.setHeader('Content-Type',req.url==='/style.css'?'text/css':'text/html');res.end(req.url==='/style.css'?fs.readFileSync(path.join(root,'style.css')):page);});
  await new Promise(r=>serveur.listen(0,'127.0.0.1',r));
  try{

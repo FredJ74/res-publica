@@ -55,3 +55,11 @@ test('historique : borne de 30 entrees, separation par personnage, aucune persis
  assert.equal(c.incidentsSessionCourante().length,30);assert.equal(c.incidentsSessionCourante()[0].titre,'Notification 39');
  c.state.char={name:'Bob'};assert.equal(c.incidentsSessionCourante().length,0);
 });
+test('HTTP 200 sans JSON exploitable : aucun faux verdict ni rejeu automatique, incident conserve',async()=>{
+ const traces=[];let n=0;
+ const c=vm.createContext({console,rpAuthJeton:()=> 'test-session',noterIncidentSession:(...x)=>traces.push(x),
+  fetch:async()=>{n++;return {ok:true,status:200,json:async()=>{throw Error('corps tronque');}};}});
+ vm.runInContext(fs.readFileSync(path.join(root,'supabase.js'),'utf8'),c);
+ const r=await c.sbTransportRpc('pa_repos_nocturne',{p_acteur:'Alice'});
+ assert.equal(r.etat,'reponse_invalide');assert.equal(r.envoyee,true);assert.equal(n,1);assert.equal(traces[0][0],'rpc_reponse_invalide');
+});

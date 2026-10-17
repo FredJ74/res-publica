@@ -5241,7 +5241,8 @@ async function sbTransportRpc(fn, params, options) {
       body: JSON.stringify(params || {})
     });
   } catch (e) {
-    console.error('sbRpc reseau (' + fn + ')', e && e.message);
+    console.error('sbRpc reseau (' + fn + ')');
+    if (typeof noterIncidentSession === 'function') noterIncidentSession('rpc_reponse_absente', fn + ' : confirmation réseau absente, résultat indéterminé.');
     return { etat: 'reseau', raison: 'reseau_indisponible', http: null, code: null,
              message: (e && e.message) || null, envoyee: true };
   }
@@ -5250,7 +5251,8 @@ async function sbTransportRpc(fn, params, options) {
     const texte = await res.text().catch(() => '');
     let code = null;
     try { code = (JSON.parse(texte) || {}).code || null; } catch (e) {}
-    console.error('sbRpc error (' + fn + ') http ' + res.status, texte);
+    console.error('sbRpc error (' + fn + ') http ' + res.status, code);
+    if (typeof noterIncidentSession === 'function') noterIncidentSession('rpc_http_' + res.status, fn + ' : réponse HTTP ' + res.status + (code ? ' (' + code + ')' : ''));
     // 401 = le serveur a refuse l'IDENTITE, pas la regle du jeu : jeton expire pendant le vol,
     // ou fonction non accordee au porteur de la requete. Le joueur doit se reconnecter, et
     // surtout ne pas lire que « rien n'a ete modifie » -- ce qui est vrai mais n'explique rien.
@@ -5262,7 +5264,14 @@ async function sbTransportRpc(fn, params, options) {
              message: texte, envoyee: true };
   }
 
-  return { etat: 'ok', donnees: await res.json(), http: res.status, code: null, envoyee: true };
+  try {
+    return { etat: 'ok', donnees: await res.json(), http: res.status, code: null, envoyee: true };
+  } catch (_) {
+    // HTTP reussi ne prouve pas que le navigateur a recu le verdict metier.
+    if (typeof noterIncidentSession === 'function') noterIncidentSession('rpc_reponse_invalide', fn + ' : réponse inexploitable, résultat indéterminé.');
+    return { etat:'reponse_invalide', raison:'transport_indisponible', http:res.status,
+      code:null, message:null, envoyee:true };
+  }
 }
 
 // CONTRAT HISTORIQUE, INCHANGE. 300 sites d'appel lisent sbRpc depuis trois ans : 2xx -> corps

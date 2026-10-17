@@ -1275,6 +1275,20 @@ function afficherTooltipRue(e, nom, type) {
     tip.id = 'rc-tooltip';
     tip.className = 'rc-tooltip';
     document.body.appendChild(tip);
+    const origine = e.currentTarget;
+    // La scene peut disparaitre sans mouseleave (transition ou ouverture de modale).
+    // Un seul observateur pendant la vie de la bulle, debranche a sa fermeture.
+    const surveillance = new MutationObserver(() => {
+      if (!tip.isConnected) { surveillance.disconnect(); return; }
+      if ((origine && !origine.isConnected)
+          || document.getElementById('vue-batiment')?.classList.contains('active')
+          || document.querySelector('.modal-overlay.open')) {
+        surveillance.disconnect();
+        tip.remove();
+      }
+    });
+    tip._surveillanceRue = surveillance;
+    surveillance.observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   }
   tip.textContent = (type === 'a-venir' ? 'Fermé : ' : 'Entrer dans : ') + nom;
   tip.style.left = (e.pageX + 16) + 'px';
@@ -1283,7 +1297,9 @@ function afficherTooltipRue(e, nom, type) {
 }
 
 function masquerTooltipRue() {
-  document.getElementById('rc-tooltip')?.remove();
+  const tip = document.getElementById('rc-tooltip');
+  tip?._surveillanceRue?.disconnect();
+  tip?.remove();
 }
 
 // Deplacement d'un noeud de rue a l'autre (fondu, sans zoom — mouvement lateral/longitudinal)
