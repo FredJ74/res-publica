@@ -65,6 +65,7 @@ BEGIN
  IF (v_paiement->>'ok')::boolean IS DISTINCT FROM true THEN
   RAISE EXCEPTION 'ordre_refuse: %',v_paiement->>'raison';
  END IF;
+ INSERT INTO public.hg_fin_actes_en_cours(transaction_id,personnage) VALUES(txid_current(),p_personnage);
  CASE p_operation
  WHEN 'ouvrir' THEN SELECT to_jsonb(r) INTO v_resultat FROM public.ouvrir_compte_helvetia(p_personnage) r;
  WHEN 'deposer' THEN SELECT to_jsonb(r) INTO v_resultat FROM public.deposer_helvetia(p_personnage,v_montant,p_arguments->>'source') r;
@@ -75,6 +76,7 @@ BEGIN
  WHEN 'rembourser' THEN SELECT to_jsonb(r) INTO v_resultat FROM public.rembourser_pret_helvetia_integral(p_personnage,p_arguments->>'pret_id',p_arguments->'sources') r;
  WHEN 'accord' THEN SELECT to_jsonb(r) INTO v_resultat FROM public.accepter_accord_helvetia(p_personnage,p_arguments->>'pret_id') r;
  END CASE;
+ DELETE FROM public.hg_fin_actes_en_cours WHERE transaction_id=txid_current() AND personnage=p_personnage;
  IF v_resultat IS NULL OR v_resultat->'ok'='false'::jsonb THEN RAISE EXCEPTION 'operation_helvetia_refusee'; END IF;
  -- Toute erreur levee apres le paiement annule aussi les PA et toutes les contreparties.
  -- Aucun montant numeric issu des anciennes fonctions ne traverse le transport JSON.

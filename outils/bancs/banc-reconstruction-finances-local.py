@@ -207,6 +207,8 @@ with tempfile.TemporaryDirectory(prefix='hg-finances-') as tmp:
     q.execute("TRUNCATE comptes_bancaires; UPDATE personnages_donnees SET arg=30000,liquide=30000,pa=10,current_building='banque-privee',current_room='bureau_prive' WHERE name='Alice'")
     helv=(ROOT/'migrations/20261017091047_helvetia_requetes_atomiques.sql').read_text()
     q.execute(helv);q.execute(helv)
+    garde=(ROOT/'migrations/20261017091428_garde_sauvegardes_financieres.sql').read_text()
+    q.execute(garde);q.execute(garde)
     def helvetia(op,args,key):
         return scalar('SELECT hg_fin_helvetia(%s::uuid,%s,%s,%s::jsonb)',(f'00000000-0000-0000-0000-{key:012d}','Alice',op,json.dumps(args)))
     auth()
@@ -274,6 +276,26 @@ with tempfile.TemporaryDirectory(prefix='hg-finances-') as tmp:
     except psycopg2.Error as e:assert e.pgcode=='42501'
     else:raise AssertionError('Helvetia accessible hors bureau')
     q.execute('RESET ROLE');ok('Helvetia acces territorial et fermeture des anciennes RPC directes')
+    q.execute("GRANT UPDATE ON personnages TO authenticated")
+    q.execute("UPDATE personnages_donnees SET liquide=liquide+2000 WHERE name='Alice'")
+    vrai=scalar("SELECT liquide FROM personnages_donnees WHERE name='Alice'")
+    auth()
+    try:q.execute("UPDATE personnages SET liquide=0 WHERE name='Alice'")
+    except psycopg2.Error as e:assert e.pgcode=='42501' and 'transaction_financiere_requise' in str(e)
+    else:raise AssertionError('ancienne sauvegarde a ecrase le solde')
+    q.execute("UPDATE personnages SET bio='profil valide' WHERE name='Alice'")
+    try:q.execute("INSERT INTO hg_fin_actes_en_cours VALUES(txid_current(),'Alice')")
+    except psycopg2.Error as e:assert e.pgcode=='42501'
+    else:raise AssertionError('marqueur prive falsifiable')
+    q.execute("SELECT set_config('hg.finances_interne','on',false)")
+    try:q.execute("UPDATE personnages SET liquide=0 WHERE name='Alice'")
+    except psycopg2.Error as e:assert e.pgcode=='42501'
+    else:raise AssertionError('GUC falsifie contourne le controle')
+    q.execute('RESET ROLE')
+    assert scalar("SELECT liquide FROM personnages_donnees WHERE name='Alice'")==vrai
+    assert scalar("SELECT bio FROM personnages_donnees WHERE name='Alice'")=='profil valide'
+    assert scalar('SELECT count(*) FROM hg_fin_actes_en_cours')==0
+    ok('sauvegarde : credit serveur preserve, profil autorise, marqueur et GUC non falsifiables')
     print(f'{groups}/{groups} groupes PostgreSQL reussis')
     cn.close()
     server.cleanup()
