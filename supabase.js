@@ -910,9 +910,22 @@ async function sbLoadForumTopics(forumId) {
 // rien dans la chaine ne permettait de le savoir -- `if (!rows || rows.length === 0) return;`
 // repondait la meme chose aux deux situations.
 async function sbLoadForumTopicsVerdict(forumId) {
-  const v = await sbGetVerdict('forum_topics', `forum_id=eq.${forumId}&order=created_at.desc`);
-  if (!v.ok) return v;
-  return { ok: true, donnees: Array.isArray(v.donnees) ? v.donnees : [] };
+  // Lecture seule : borne indépendante du transport générique, sans toucher aux écritures.
+  // AbortController arrête effectivement la requête, contrairement à Promise.race.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    const url = SUPABASE_URL + '/rest/v1/forum_topics?forum_id=eq.' +
+      encodeURIComponent(forumId) + '&order=created_at.desc';
+    const response = await fetch(url, { method: 'GET', headers: sbEnTetes(), signal: controller.signal });
+    if (!response.ok) return { ok: false, raison: 'http_' + response.status };
+    const rows = await response.json();
+    return { ok: true, donnees: Array.isArray(rows) ? rows : [] };
+  } catch (e) {
+    return { ok: false, raison: controller.signal.aborted ? 'delai_depasse' : 'reseau_indisponible' };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function sbLoadForumPosts(topicId) {
