@@ -2438,6 +2438,12 @@ async function loadForumTopicsFromSB(forumId) {
     delete FORUM_LECTURE_EN_COURS[forumId];
     FORUM_LECTURE_TERMINEE[forumId] = true;
     console.info('[Forum] Lecture ' + forumId + ' : ' + Math.round(Date.now() - debutLectureForum) + ' ms' + (FORUM_LECTURE_ECHOUEE[forumId] ? ' (échec)' : ''));
+    // La lecture doit toujours terminer son propre affichage : une autre ouverture
+    // peut avoir vu la requête déjà en cours et ne pas avoir enregistré de callback.
+    if (currentForumId === forumId && forumView === 'list' &&
+        document.getElementById('modal-forum')?.classList.contains('open')) {
+      renderForumModal();
+    }
   }
 }
 
