@@ -132,6 +132,66 @@ with tempfile.TemporaryDirectory(prefix='hg-finances-') as tmp:
     else:raise AssertionError('RPC serveur accessible au navigateur')
     q.execute('RESET ROLE')
     ok('loyer reserve au serveur, aucune invocation directe du navigateur')
+    dons_migration=(ROOT/'migrations/20261017090721_receptions_dons_atomiques_et_revisions.sql').read_text()
+    q.execute(dons_migration);q.execute(dons_migration)
+    q.execute("INSERT INTO dons_en_attente(id,destinataire,montant) VALUES(1,'Alice',5.50),(2,'Alice',3.25),(3,'Bob',100),(4,'Alice',1.25)")
+    uid='00000000-0000-0000-0000-000000000001'
+    def auth():
+        q.execute('SET ROLE authenticated');q.execute("SELECT set_config('hg.uid',%s,false)",(uid,))
+    def appel(ids,key='00000000-0000-0000-0000-000000000010',nom='Alice'):
+        return scalar('SELECT hg_fin_dons_recevoir(%s::uuid,%s,%s::jsonb)',(key,nom,json.dumps(ids)))
+    q.execute("UPDATE personnages_donnees SET arg=100 WHERE name='Alice'");auth()
+    r=appel(['1','2']);assert r['resultat']=={'montant':'8.75','nombre':2}
+    assert r['etat']['arg']=='108.75'
+    assert isinstance(r['etat']['revision'],str)
+    r2=appel(['2','1']);assert r2['rejeu'] and r2['resultat']==r['resultat']
+    r3=appel(['1','2'],'00000000-0000-0000-0000-000000000011')
+    assert r3['resultat']=={'montant':'0.00','nombre':0}
+    ok('dons : credit et marqueurs atomiques, centimes, rejeu meme UUID et nouvelle tentative')
+    try:appel(['1'])
+    except psycopg2.Error as e:assert e.pgcode=='22023'
+    else:raise AssertionError('meme UUID accepte un autre corps')
+    try:appel(['4','3'],'00000000-0000-0000-0000-000000000012')
+    except psycopg2.Error as e:assert e.pgcode=='42501'
+    else:raise AssertionError('don etranger accepte')
+    try:appel(['3'],'00000000-0000-0000-0000-000000000013','Bob')
+    except psycopg2.Error as e:assert e.pgcode=='42501'
+    else:raise AssertionError('personnage etranger accepte')
+    try:scalar('SELECT * FROM hg_fin_requetes')
+    except psycopg2.Error as e:assert e.pgcode=='42501'
+    else:raise AssertionError('recus exposes')
+    try:q.execute('UPDATE dons_en_attente SET traite=true WHERE id=4')
+    except psycopg2.Error as e:assert e.pgcode=='42501'
+    else:raise AssertionError('marquage direct autorise')
+    q.execute('RESET ROLE')
+    assert scalar('SELECT traite FROM dons_en_attente WHERE id=4') is False
+    ok('dons : acteur/propriete/corps controles, refus integral et droits directs fermes')
+    q.execute("CREATE FUNCTION fixture_don_fail() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN IF NEW.arg<>OLD.arg THEN RAISE EXCEPTION 'panne_credit_don'; END IF; RETURN NEW; END$$; CREATE TRIGGER fixture_don_fail BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION fixture_don_fail()")
+    auth()
+    try:appel(['4'],'00000000-0000-0000-0000-000000000014')
+    except psycopg2.Error as e:assert 'panne_credit_don' in str(e)
+    else:raise AssertionError('panne don non injectee')
+    q.execute('RESET ROLE')
+    assert scalar('SELECT traite FROM dons_en_attente WHERE id=4') is False
+    assert scalar("SELECT count(*) FROM hg_fin_requetes WHERE requete='00000000-0000-0000-0000-000000000014'")==0
+    q.execute('DROP TRIGGER fixture_don_fail ON personnages_donnees')
+    ok('dons : panne entre marquage et credit annule aussi marqueur et recu')
+    def don_concurrent(i):
+        c=psycopg2.connect(server.get_uri());c.autocommit=True
+        with c.cursor() as cur:
+            cur.execute('SET ROLE authenticated');cur.execute("SELECT set_config('hg.uid',%s,false)",(uid,))
+            cur.execute('SELECT hg_fin_dons_recevoir(%s::uuid,%s,%s::jsonb)',('00000000-0000-0000-0000-00000000001'+str(5+i),'Alice','["4"]'))
+            result=cur.fetchone()[0]
+        c.close();return result
+    with ThreadPoolExecutor(max_workers=2) as pool:result=list(pool.map(don_concurrent,range(2)))
+    assert sum(int(r['resultat']['nombre']) for r in result)==1
+    assert scalar("SELECT arg FROM personnages_donnees WHERE name='Alice'")==110
+    ok('dons : deux connexions, deux intentions, un seul credit du meme don')
+    # Un ancien recu conserve son resultat, mais transporte un etat ACTUEL.
+    q.execute("UPDATE personnages_donnees SET arg=arg+2000 WHERE name='Alice'");auth()
+    r=appel(['1','2']);assert r['etat']['arg']=='2110.00' and r['resultat']['montant']=='8.75'
+    q.execute('RESET ROLE')
+    ok('reponse tardive : recu immuable et photographie serveur actualisee apres credit')
     print(f'{groups}/{groups} groupes PostgreSQL reussis')
     cn.close()
     server.cleanup()
