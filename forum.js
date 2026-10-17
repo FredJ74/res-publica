@@ -770,7 +770,7 @@ function switchForum(id) {
   if (typeof marquerForumRubriqueVisitee === 'function') marquerForumRubriqueVisitee(id);
   // Meme correctif que ci-dessus (26 aout 2026) : rendu complet uniquement hors composition.
   if (lectureForumNecessaire(id)) loadForumTopicsFromSB(id).then(() => {
-    if (!forumEstEnCompositionActuellement()) renderForumModal();
+    if (currentForumId === id && !forumEstEnCompositionActuellement()) renderForumModal();
     else rafraichirVoyantsEtCompteursForum();
   }).catch(() => {});
 }
@@ -2395,7 +2395,7 @@ async function loadForumTopicsFromSB(forumId) {
   }
   if (FORUM_LECTURE_EN_COURS[forumId]) return;
   FORUM_LECTURE_EN_COURS[forumId] = true;
-  const debutLectureForum = performance.now();
+  const debutLectureForum = Date.now();
   delete FORUM_LECTURE_TERMINEE[forumId];
   try {
     const v = await sbLoadForumTopicsVerdict(forumId);
@@ -2437,7 +2437,7 @@ async function loadForumTopicsFromSB(forumId) {
   } finally {
     delete FORUM_LECTURE_EN_COURS[forumId];
     FORUM_LECTURE_TERMINEE[forumId] = true;
-    console.info('[Forum] Lecture ' + forumId + ' : ' + Math.round(performance.now() - debutLectureForum) + ' ms' + (FORUM_LECTURE_ECHOUEE[forumId] ? ' (échec)' : ''));
+    console.info('[Forum] Lecture ' + forumId + ' : ' + Math.round(Date.now() - debutLectureForum) + ' ms' + (FORUM_LECTURE_ECHOUEE[forumId] ? ' (échec)' : ''));
   }
 }
 
