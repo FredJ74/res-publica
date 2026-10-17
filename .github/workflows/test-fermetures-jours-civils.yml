@@ -4,7 +4,7 @@ on:
     paths:
       - 'plateau-core.js'
       - 'supabase.js'
-      - 'supabase/migrations/20261017190000_fermetures_date_universelle.sql'
+      - 'migrations/20261017190000_fermetures_date_universelle.sql'
       - 'outils/bancs/test-fermetures-jours-civils.mjs'
       - '.github/workflows/test-fermetures-jours-civils.yml'
   push:
