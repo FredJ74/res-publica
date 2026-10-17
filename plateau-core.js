@@ -1042,19 +1042,32 @@ window.addEventListener('DOMContentLoaded', () => {
   }, 300);
 });
 
+// Les nouvelles fermetures utilisent une date civile commune. Les lignes historiques
+// sans date gardent temporairement leur compteur, jusqu'à migration des producteurs.
+function fermetureEncoreActive(r) {
+  if (r.date_fin_universelle) {
+    const parties = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+    const parts = Object.fromEntries(parties.map(p => [p.type, p.value]));
+    const jour = `${parts.year}-${parts.month}-${parts.day}`;
+    // Ne pas rouvrir par défaut si l'horloge n'est pas disponible.
+    return !jour || jour < r.date_fin_universelle;
+  }
+  return r.jour_fin > (state.day || 1);
+}
+
 async function chargerBatimentsFermes() {
   if (typeof sbChargerBatimentsFermes !== 'function') return;
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   try {
     const rows = await sbChargerBatimentsFermes(pays, ville);
-    state.batimentsFermesCache = (rows || []).filter(r => r.jour_fin > (state.day || 1));
+    state.batimentsFermesCache = (rows || []).filter(fermetureEncoreActive);
   } catch(e) {}
 }
 
 function batimentEstFerme(buildingId) {
   const ferme = (state.batimentsFermesCache || []).find(r =>
-    r.batiment_id === buildingId && r.pays === (state.country||'republic') && r.ville === (state.currentCity||'capitale') && r.jour_fin > (state.day||1)
+    r.batiment_id === buildingId && r.pays === (state.country||'republic') && r.ville === (state.currentCity||'capitale') && fermetureEncoreActive(r)
   );
   return ferme || null;
 }

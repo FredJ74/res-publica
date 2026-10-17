@@ -2196,11 +2196,17 @@ async function confirmerIncendier() {
   else if (roll <= taux) joursFermeture = 1;
 
   if (joursFermeture > 0) {
-    const jourFin = state.day + joursFermeture;
-    const fermeture = { pays: state.country, ville: state.currentCity, batiment_id: buildingId, jour_fin: jourFin, motif: 'incendie', auteur: state.char?.name || 'Anonyme' };
-    if (typeof sbFermerBatiment === 'function') sbFermerBatiment(fermeture).catch(() => {});
-    if (!state.batimentsFermesCache) state.batimentsFermesCache = [];
-    state.batimentsFermesCache.push(fermeture);
+    const fermeture = { pays: state.country, ville: state.currentCity, batiment_id: buildingId, duree_jours: joursFermeture, motif: 'incendie', auteur: state.char?.name || 'Anonyme' };
+    // La base fixe la date de réouverture, sans dépendre du compteur personnel.
+    if (typeof sbFermerBatiment === 'function') {
+      const enregistrement = await sbFermerBatiment(fermeture).catch(() => null);
+      if (enregistrement) {
+        // Recharger la date calculée par la base plutôt que simuler une fermeture locale.
+        if (typeof chargerBatimentsFermes === 'function') await chargerBatimentsFermes();
+      } else {
+        console.error('[batiments_fermes] Echec enregistrement fermeture incendie');
+      }
+    }
 
     addExternalEvent('INCENDIE : ' + b.name + ' ravagé par les flammes. Fermé ' + joursFermeture + ' jour(s).');
     showToast('Incendie déclenché', b.name + ' fermé ' + joursFermeture + ' jour(s).', true, true);
@@ -2279,11 +2285,17 @@ async function confirmerUtiliserExplosifs() {
   const autresPresents = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
 
   if (reussi) {
-    const jourFin = state.day + 5;
-    const fermeture = { pays: state.country, ville: state.currentCity, batiment_id: buildingId, jour_fin: jourFin, motif: 'explosifs', auteur: state.char?.name || 'Anonyme' };
-    if (typeof sbFermerBatiment === 'function') sbFermerBatiment(fermeture).catch(() => {});
-    if (!state.batimentsFermesCache) state.batimentsFermesCache = [];
-    state.batimentsFermesCache.push(fermeture);
+    const fermeture = { pays: state.country, ville: state.currentCity, batiment_id: buildingId, duree_jours: 5, motif: 'explosifs', auteur: state.char?.name || 'Anonyme' };
+    // La base fixe la date de réouverture, sans dépendre du compteur personnel.
+    if (typeof sbFermerBatiment === 'function') {
+      const enregistrement = await sbFermerBatiment(fermeture).catch(() => null);
+      if (enregistrement) {
+        // Recharger la date calculée par la base plutôt que simuler une fermeture locale.
+        if (typeof chargerBatimentsFermes === 'function') await chargerBatimentsFermes();
+      } else {
+        console.error('[batiments_fermes] Echec enregistrement fermeture explosifs');
+      }
+    }
 
     // Victimes : toutes les personnes reelles presentes dans la piece, sauf l'auteur
     for (const p of autresPresents) {

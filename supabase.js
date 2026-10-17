@@ -1205,8 +1205,22 @@ async function sbConsulterRegistreArmes(pays, city) {
 // =====================
 // BATIMENTS FERMES (incendie / explosifs)
 // =====================
+// La durée d'une fermeture est comptée en jours civils communs, jamais en
+// "jour_fin" relatif au personnage qui déclenche l'incendie.
 async function sbFermerBatiment(fermeture) {
-  return sbInsert('batiments_fermes', fermeture);
+  const duree = Number(fermeture?.duree_jours);
+  if (!Number.isSafeInteger(duree) || duree < 1 || duree > 36500) {
+    console.error('[batiments_fermes] duree_jours requise pour une fermeture universelle');
+    return null;
+  }
+  const { duree_jours, ...donnees } = fermeture;
+  return sbInsert('batiments_fermes', {
+    ...donnees,
+    duree_jours: duree,
+    // La date_fin_universelle est calculée par le trigger PostgreSQL.
+    // Ce champ legacy reste seulement pour compatibilité du schéma.
+    jour_fin: Number.isInteger(donnees.jour_fin) ? donnees.jour_fin : 0
+  });
 }
 
 async function sbChargerBatimentsFermes(pays, ville) {
