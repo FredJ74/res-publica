@@ -3087,19 +3087,32 @@ async function repondreInvitationSociale(id, accepte, nomInviteur) {
   state._invitationSocialeCourante = null;
 }
 
+// Un seul sondage social par session, sans requêtes superposées et sans onglet masqué.
+// Les réponses restent persistées en base : une reconnexion récupère les invitations.
+const RP_SOCIAL_POLL_MS = 12000;
+const RP_SOCIAL_POLL_EN_COURS = new Set();
+function lancerVerificationSociale(nom) {
+  if (document.hidden || RP_SOCIAL_POLL_EN_COURS.has(nom)) return;
+  const verification = window[nom];
+  if (typeof verification !== 'function') return;
+  RP_SOCIAL_POLL_EN_COURS.add(nom);
+  Promise.resolve().then(() => verification()).catch(e => {
+    console.warn('[Social] Verification indisponible : ' + nom, e);
+  }).finally(() => RP_SOCIAL_POLL_EN_COURS.delete(nom));
+}
 function demarrerPollingInvitationsDiner() {
   if (window._dinerPollingActif) return;
   window._dinerPollingActif = true;
-  setInterval(() => { if (typeof verifierInvitationsSocialesRecues === 'function') verifierInvitationsSocialesRecues(); }, 4000);
-  setInterval(() => { if (typeof verifierReponseInvitationSociale === 'function') verifierReponseInvitationSociale(); }, 4000);
-  // Lot tournees (20 aout 2026) : deux boucles dediees, memes cadence/mecanisme que les 2
-  // ci-dessus mais sur les tables tournees/invitations_diner.tournee_id -- source de verite
-  // toujours en base (jamais un state local), donc une tournee en attente survit naturellement
-  // a un refresh/reconnexion (la boucle offreur la retrouve au prochain tick).
-  setInterval(() => { if (typeof verifierTourneesRecues === 'function') verifierTourneesRecues(); }, 4000);
-  setInterval(() => { if (typeof verifierTourneesActivesOffreur === 'function') verifierTourneesActivesOffreur(); }, 4000);
+  const verifier = () => {
+    lancerVerificationSociale('verifierInvitationsSocialesRecues');
+    lancerVerificationSociale('verifierReponseInvitationSociale');
+    lancerVerificationSociale('verifierTourneesRecues');
+    lancerVerificationSociale('verifierTourneesActivesOffreur');
+  };
+  setInterval(verifier, RP_SOCIAL_POLL_MS);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) verifier(); });
+  verifier();
 }
-
 
 function ouvrirModalFabriquerKompromat(nomAgent) {
   const pjContacts = (state.contacts || []).filter(c => c.isPJ || c.type === 'pj');
