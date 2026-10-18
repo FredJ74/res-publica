@@ -2585,9 +2585,12 @@ async function ouvrirInterviewJodie(pa, cost) {
 // partagent le meme comportement reseau (jamais de logique dupliquee par action).
 async function jodieAppelApi(payload) {
   try {
+    if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession();
+    const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+    if (!jeton) return {ok:false,status:401,error:'Connexion requise.'};
     const resp = await fetch('/api/journal-interview', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization':'Bearer '+jeton },
       body: JSON.stringify(payload)
     });
     const data = await resp.json().catch(() => null);
@@ -2725,19 +2728,18 @@ async function jodieTerminerEtPublier() {
   it.chargement = false;
   it.soumission = false;
 
-  // status 409 = deja publiee/en cours (idempotence serveur) : traite comme un succes silencieux
-  // plutot qu'une erreur a reessayer indefiniment.
-  const dejaPubliee = data && data.status === 409;
+  // Un verrou de publication (409) n'est pas la preuve d'un article persiste.
+  const dejaPubliee = data?.ok === true && data.dejaPubliee === true;
 
   if (!dejaPubliee && (!data || !data.ok)) {
-    it.erreur = "Jodie n'arrive pas à finaliser son article pour le moment (problème réseau). Vous pouvez réessayer -- vos réponses sont conservées.";
+    it.erreur = "Jodie n'arrive pas à finaliser son article pour le moment (problème réseau). Vos réponses sont conservées ; la publication reste à confirmer.";
     it.etapeErreur = 'article';
     jodieRenderInterviewModal();
     return;
   }
 
-  it.articleTitre = dejaPubliee ? null : data.titre;
-  it.articleTexte = dejaPubliee ? null : data.texte;
+  it.articleTitre = data.titre || it.articleTitre;
+  it.articleTexte = data.texte || it.articleTexte;
   it.articlePublie = true;
 
   if (dejaPubliee) {

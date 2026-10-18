@@ -10,11 +10,8 @@
 //      (personnage, interviewId) d'un autre joueur pour publier UN ARTICLE EN SON NOM. Corrigé :
 //      interviews_jodie passe en RLS verrouillée (zéro policy, comme renseignements_connus) --
 //      voir migration_interviews_jodie.sql. Seul ce endpoint (service_role) y accède désormais.
-//      Limite assumée, déjà documentée ailleurs dans ce projet (api/upload-org-avatar.js, api/
-//      renseignements.js) : "personnage" reste une déclaration du client, aucune authentification
-//      joueur réelle n'existe ici -- ce que ce lot garantit réellement, c'est qu'on ne peut plus
-//      DÉCOUVRIR l'identifiant d'une interview appartenant à quelqu'un d'autre par une simple
-//      lecture, ni publier un contenu qui ne correspond pas à un échange réellement témoin.
+//      Chaque appel exige maintenant une session GoTrue et verifie le proprietaire du
+//      personnage avant tout acces a une interview, appel IA ou ecriture.
 //
 //   2. FALSIFICATION DU CONTENU : le client envoyait questions/reponses directement au moment de
 //      la publication, sans lien avec un échange réellement suivi côté serveur -- un client
@@ -40,7 +37,7 @@
 // citations directes d'une interview doit appliquer exactement la meme logique guillemets/parole,
 // sous peine d'avoir deux definitions divergentes de ce qu'est une parole rapportee.
 import { extraireCitations, normaliserPourCitation } from './_journal-generation.js';
-import { appelDeepSeek } from './_deepseek.js';
+import { appelDeepSeek, joueurAuthentifie } from './_deepseek.js';
 
 const ALLOWED_ORIGIN = 'https://res-publica.vercel.app';
 
@@ -403,8 +400,16 @@ async function handlePublier(body) {
     { publie: true },
     SB_HEADERS_SERVICE
   );
-  if (!reclamation.ok || !reclamation.rows || reclamation.rows.length === 0) {
-    return { status: 409, json: { error: 'Cette interview a déjà été publiée ou est en cours de publication.' } };
+  if (!reclamation.ok) return { status: 502, json: { error: 'Publication non confirmee.' } };
+  if (!reclamation.rows || reclamation.rows.length === 0) {
+    const existantes = await sbGet('interviews_jodie',
+      `id=eq.${encodeURIComponent(interviewId)}&personnage=eq.${encodeURIComponent(personnage)}`, SB_HEADERS_SERVICE);
+    const existante = existantes?.[0];
+    if (existante?.publie && existante.article_titre && existante.article_texte && existante.publie_le) {
+      return { status: 200, json: { ok: true, dejaPubliee: true, statut: 'en_attente',
+        titre: existante.article_titre, texte: existante.article_texte } };
+    }
+    return { status: 409, json: { error: 'Publication en cours ou non confirmee ; vos reponses restent conservees.' } };
   }
   const row = reclamation.rows[0];
 
@@ -478,9 +483,14 @@ async function handlePublier(body) {
   // c'est desormais la SEULE source de verite pour "les 4 dernieres interviews publiees" -- une
   // generation ulterieure la relit directement, sans dependre d'une file separee ni du succes de
   // la publication immediate ci-dessous.
-  await sbUpdate('interviews_jodie', `id=eq.${encodeURIComponent(interviewId)}`, {
+  const sauvegarde = await sbUpdate('interviews_jodie', `id=eq.${encodeURIComponent(interviewId)}`, {
     article_titre: titre, article_texte: corps, article_ville: perso.current_city || null, publie_le: maintenant
-  }, SB_HEADERS_SERVICE).catch(() => {});
+  }, SB_HEADERS_SERVICE).catch(() => null);
+  if (!sauvegarde?.ok || !sauvegarde.rows?.length) {
+    // Ne pas deverrouiller une publication dont la reponse a pu etre perdue apres commit.
+    // Une repetition relit l'article persiste au lieu d'annoncer un succes sur le seul verrou.
+    return { status: 502, json: { error: 'Article non confirme ; les reponses de l entretien sont conservees.' } };
+  }
 
   const entreeCompacte = { nom: personnage, titre, texte: corps, photo_url: perso.photo_url || null, publie_le: maintenant };
   // Bonus de visibilite immediate si une edition est deja publiee aujourd'hui -- jamais bloquant :
@@ -496,7 +506,7 @@ export default async function handler(req, res) {
   const origin = req.headers.origin;
   if (origin === ALLOWED_ORIGIN) res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -506,6 +516,13 @@ export default async function handler(req, res) {
 
   const body = req.body;
   if (!body || typeof body !== 'object' || Array.isArray(body)) return res.status(400).json({ error: 'Corps de requête invalide.' });
+  if (!validerChamp(body.personnage, MAX_LONGUEUR_NOM)) return res.status(400).json({error:'Personnage invalide.'});
+  const utilisateur = await joueurAuthentifie(req, {signal:AbortSignal.timeout(8000)});
+  if (!utilisateur) return res.status(401).json({error:'Connexion requise.'});
+  const proprietaires = await sbGet('personnages_donnees',
+    `name=eq.${encodeURIComponent(body.personnage)}&user_id=eq.${encodeURIComponent(utilisateur.id)}&select=name&limit=1`, SB_HEADERS_SERVICE).catch(()=>null);
+  if (!proprietaires) return res.status(503).json({error:'Verification du personnage indisponible.'});
+  if (!proprietaires.length) return res.status(403).json({error:'Personnage non autorise.'});
 
   let resultat;
   try {
