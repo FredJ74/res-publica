@@ -2143,3 +2143,23 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .modal-box:not(.cpj-machine):not(.mil-machine) .modal-body button{background:#344354!important;color:#e5c477!important;border:1px solid #b99a57!important;border-radius:5px;min-height:36px}
 .modal-box:not(.cpj-machine):not(.mil-machine) .modal-body button:disabled{color:#8190a0!important;border-color:#526173!important}
 .modal-box .modal-body :is(button,input,select,textarea):focus-visible{outline:2px solid #e5c477;outline-offset:2px}
+
+/* Création de personnage — charte ardoise et or, sans changement de mécanique.
+   Limité aux étapes 1 à 9 : l'accueil illustré conserve son identité. */
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9){color:#e2e9f1;background:radial-gradient(ellipse at 50% 0%,#263442 0%,#171e26 64%,#121820 100%);box-sizing:border-box}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .sh{max-width:820px;padding:1.2rem 1rem;border-bottom:1px solid rgba(229,196,119,.25);margin-bottom:1.6rem}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .sn{color:#c5aa70}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .st{color:#e5c477}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .sd{color:#b3c0cd}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(.oc,.cc,.rcard,.pool,.pup){background:#202b36;border-color:#53647a;color:#e2e9f1;border-radius:7px;box-shadow:0 6px 20px rgba(0,0,0,.14)}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(.oc,.cc).sel{border-color:#e5c477;background:#303e4b}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(.oc,.cc):hover:not(.locked){border-color:#c8a45d}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(.oname,.flbl){color:#e5c477}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(.odesc,.infomsg,.phint){color:#b9c5d1}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(.finp,input:not([type=checkbox]):not([type=radio]),textarea,select){background:#1b2531;color:#e2e9f1;border-color:#667c94;border-radius:5px}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) :is(.finp,input,textarea,select):focus-visible{outline:2px solid #e5c477;outline-offset:2px}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .nbtn{background:#344354;color:#e5c477;border:1px solid #b99a57;border-radius:5px;min-height:40px}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .nbtn:hover:not(:disabled){background:#455a70;color:#ffe2a0}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .nbtn:disabled{color:#8190a0;border-color:#526173}
+:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .dot.act{background:#e5c477}
+@media(max-width:600px){:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9){padding:1.4rem .8rem}:is(#s1,#s2,#s3,#s4,#s5,#s6,#s7,#s8,#s9) .st{font-size:1.65rem}}
