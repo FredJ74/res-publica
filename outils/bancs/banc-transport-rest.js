@@ -32,6 +32,10 @@ eval(src.slice(src.indexOf('const RP_INVENTAIRE_ORIGINE ='), src.indexOf('async 
 eval(bloc('sbGetVerdict')); eval(bloc('sbRelancerSiReseau'));
 // sbGet utilise une table des lectures concurrentes, egalement requise dans ce banc.
 var sbLecturesEnCours = new Map(); // eval(const) est lexical et invisible aux eval suivants
+var sbLecturesRecentes = new Map();
+var SB_ANTI_RAFALE_MS = 1500;
+var SB_ANTI_RAFALE_TABLES = new Set(['championnat', 'evenements_globaux', 'assemblee_propositions']);
+eval(bloc('sbInvaliderLecturesRecentes'));
 eval(bloc('sbGet')); eval(bloc('sbInsert')); eval(bloc('sbUpsert'));
 eval(bloc('sbDelete'));
 
