@@ -12806,9 +12806,7 @@ async function choisirInterceptionJudiciaire(choix) {
   if (choix === 'rendre') { await conclureArrestationJudiciaire(); return; }
   if (choix === 'fuir' && !i.fuiteEchouee) {
     if (typeof sbRpc !== 'function' || !i.rencontreId) return;
-    if (!i.rueNoeudId && typeof sortirBatiment !== 'function') {
-      showToast('Fuite impossible','Sortie indisponible.',false); return;
-    }
+    // La sortie est resolue et persistee par le serveur, sans sortirBatiment().
     interceptionJudiciaireOccupee = true;
     let fuite;
     try {
