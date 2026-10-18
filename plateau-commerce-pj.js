@@ -500,7 +500,7 @@ async function commercePjContexte() {
   const proprio = fonds && fonds.proprietaire;
   return {
     bailId: bailId, bail: bail, fondsId: bail && bail.fondsId, fonds: fonds, moi: moi,
-    jeLoue: !!(bail && bail.locataire === moi),
+    jeLoue: !!(bail && String(bail.locataire || '').replace(/^pj:/, '') === moi),
     jeSuisProprietaire: !!(proprio && (proprio === moi || proprio === 'pj:' + moi))
   };
 }
@@ -679,11 +679,18 @@ function ordresCommerceDuLocal(buildingId, roomId, ville) {
   if (!bail.fondsId) {
     // Local loue mais sans fonds : seul le titulaire peut en installer un.
     if (!moi || titulaire !== moi) return [];
-    return [Object.assign({}, base, {
-      fn: 'commerce_pj', icon: 'ti-building-store',
-      label: tCommercePJ('commercepj.ordre.installer'),
-      desc:  tCommercePJ('commercepj.ordre.installerAide')
-    })];
+    return [
+      Object.assign({}, base, {
+        fn: 'commerce_pj', icon: 'ti-building-store',
+        label: tCommercePJ('commercepj.ordre.installer'),
+        desc: tCommercePJ('commercepj.ordre.installerAide')
+      }),
+      Object.assign({}, base, {
+        fn: 'commerce_personnaliser', icon: 'ti-sparkles',
+        label: 'Option Commerce — Personnaliser mon local',
+        desc: 'Gratuit en bêta. Installez d’abord votre commerce dans ce local pour accéder à la décoration.'
+      })
+    ];
   }
 
   // COMMERCE ACTIF. Le socle economique d'abord, dans l'ordre ou on s'en sert :
@@ -2153,8 +2160,15 @@ async function commercePjOuvrirAtelier() {
   if (commercePjEstBureau(state.currentBuilding, state.currentRoom)) return;
   commercePjChargement('Option Commerce — Décoration');
   const ctx = await commercePjContexte();
+  if (!ctx.fonds && ctx.jeLoue) {
+    commercePjModale('Option Commerce',
+      '<div style="padding:1.2rem"><p>Vous avez loué ce local, mais aucun commerce n’y est encore installé.</p>' +
+      '<p>La personnalisation est gratuite pendant la bêta et sera disponible dès la création du commerce.</p>' +
+      commercePjBouton('ouvrirCommercePJ()', 'Installer mon commerce', true) + '</div>');
+    return;
+  }
   if (!ctx.fonds || !ctx.jeSuisProprietaire) {
-    commercePjModale('Option Commerce', '<p style="padding:1rem">Seul le propriétaire du commerce peut personnaliser ce local.</p>');
+    commercePjModale('Option Commerce', '<p style="padding:1rem">Seul le titulaire du commerce peut personnaliser ce local.</p>');
     return;
   }
   RP_CPJ_DECOR_FONDS = ctx.fondsId;
