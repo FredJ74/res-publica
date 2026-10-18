@@ -1489,28 +1489,44 @@ async function sortirBatiment() {
       showToast('Sortie indisponible', 'Connexion serveur indisponible.', false);
       return;
     }
-    let sortie = null;
-    try {
-      const resultat = await sbRpc('rue_sortie_batiment_lire', {});
-      sortie = Array.isArray(resultat) ? resultat[0] : resultat;
-    } catch (erreur) {
-      console.warn('Lecture de sortie refusée :', erreur);
+    // Les erreurs réseau momentanées ne doivent pas piéger un joueur dans un bâtiment.
+    // La position n'est modifiée localement qu'après confirmation serveur.
+    async function lireSortieAvecRelance() {
+      for (let tentative = 0; tentative < 3; tentative++) {
+        try {
+          const resultat = await sbRpc('rue_sortie_batiment_lire', {});
+          const v = Array.isArray(resultat) ? resultat[0] : resultat;
+          if (v?.ok || v?.raison === 'pas_dans_un_batiment') return v;
+        } catch (e) { console.warn('Lecture sortie, tentative ' + (tentative + 1), e); }
+      }
+      return null;
     }
-    if (sortie?.ok !== true || !sortie.noeud) {
-      showToast('Sortie impossible', sortie?.raison || 'Impossible de lire la sortie autorisée du bâtiment.', false);
-      return;
-    }
-    const noeudSortie = sortie.noeud;
-    let confirmation = null;
-    try {
-      const resultat = await sbRpc('rue_position_enregistrer', { p_noeud: noeudSortie });
-      confirmation = Array.isArray(resultat) ? resultat[0] : resultat;
-    } catch (erreur) {
-      console.warn('Confirmation de sortie refusée :', erreur);
-    }
-    if (confirmation?.ok !== true) {
-      showToast('Sortie refusée', confirmation?.raison || 'Le serveur n’a pas confirmé la sortie du bâtiment.', false);
-      return;
+    const sortie = await lireSortieAvecRelance();
+    if (!sortie?.ok || !sortie.noeud) {
+      // Après une confirmation précédente perdue, le serveur peut déjà avoir sorti le PJ.
+      if (sortie?.raison !== 'pas_dans_un_batiment') {
+        showToast('Sortie impossible', sortie?.raison || 'Connexion momentanément indisponible. Réessayez.', false);
+        return;
+      }
+    } else {
+      let confirmation = null;
+      for (let tentative = 0; tentative < 3; tentative++) {
+        try {
+          const resultat = await sbRpc('rue_position_enregistrer', { p_noeud: sortie.noeud });
+          confirmation = Array.isArray(resultat) ? resultat[0] : resultat;
+          if (confirmation?.ok) break;
+          // Un refus métier n'est pas une erreur réseau : ne pas le contourner.
+          if (confirmation?.raison && confirmation.raison !== 'erreur_reseau') break;
+        } catch (erreur) { console.warn('Confirmation sortie, tentative ' + (tentative + 1), erreur); }
+      }
+      if (confirmation?.ok !== true) {
+        // Vérifier si le premier appel a été appliqué malgré la perte de réponse.
+        const etat = await lireSortieAvecRelance();
+        if (etat?.raison !== 'pas_dans_un_batiment') {
+          showToast('Sortie refusée', confirmation?.raison || 'Le serveur n’a pas confirmé la sortie. Réessayez.', false);
+          return;
+        }
+      }
     }
   }
 
