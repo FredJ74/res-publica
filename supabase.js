@@ -280,10 +280,28 @@ function sbAdopterInventaireServeur(reponse) {
   return true;
 }
 
+// Fusionne uniquement les lectures GET strictement simultanees. Pas de cache persistant :
+// une lecture suivante retrouve toujours les donnees fraiches, et les mutations restent intactes.
+const sbLecturesEnCours = new Map();
 async function sbGet(table, filters = '') {
   const origine = sbContexteInventaire();
-  const env = sbRelancerSiReseau(await sbTransportRest('GET', table, filters));
-  return env.etat === 'ok' ? sbMarquerInventaires(env.donnees, origine) : null;
+  // La session fait partie de la cle : ne jamais partager une reponse entre comptes.
+  const identite = (typeof rpAuthJeton === 'function' && rpAuthJeton()) || '';
+  const cle = JSON.stringify([identite, table, filters]);
+  let lecture = sbLecturesEnCours.get(cle);
+  if (!lecture) {
+    lecture = (async () => {
+      const env = sbRelancerSiReseau(await sbTransportRest('GET', table, filters));
+      return env.etat === 'ok' ? env.donnees : null;
+    })();
+    sbLecturesEnCours.set(cle, lecture);
+    // Suppression meme en cas de rejet ; aucune valeur ne reste en cache.
+    void lecture.finally(() => {
+      if (sbLecturesEnCours.get(cle) === lecture) sbLecturesEnCours.delete(cle);
+    }).catch(() => {});
+  }
+  const donnees = await lecture;
+  return donnees === null ? null : sbMarquerInventaires(donnees, origine);
 }
 
 // preferResolution (optionnel, Lot 4 -- cartes postales, 23 aout 2026) : ajoute
