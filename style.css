@@ -748,6 +748,9 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    Ne touche QUE les pieces qui declarent un ancrage : aucune autre piece du jeu
    ne porte cet attribut, donc aucun autre fond n'est deplace d'un pixel. */
 .piece-image[data-ancrage="haut"]{background-position:center top!important}
+/* Une decoration Premium remplace le fond de devanture : elle doit retrouver son
+   centrage horizontal ET vertical, meme si la devanture d'origine est ancree en haut. */
+.piece-image[data-commerce-decor="1"][data-ancrage="haut"]{background-position:center center!important}
 .piece-ambiance{position:relative;z-index:1;padding:1.2rem;width:100%}
 .piece-nom{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--gold-light);margin-bottom:.2rem}
 .piece-desc{font-size:.82rem;color:#c0b090;font-style:italic;line-height:1.5}
