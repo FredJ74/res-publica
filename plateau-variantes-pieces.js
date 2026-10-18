@@ -1173,8 +1173,19 @@ function varianteAppliquerEnseigne(buildingId, roomId, ville) {
     : null;
 
   const poser = function (valeur) {
-    varianteDessinerEnseigne(cadre, decl,
-      varianteNormaliserEnseigne(valeur, decl.enseigne.mode));
+    const contenu = varianteNormaliserEnseigne(valeur, decl.enseigne.mode);
+    varianteDessinerEnseigne(cadre, decl, contenu);
+    // Le nom du fonds doit etre lisible dans le bandeau meme si l'image
+    // personnalisee ne comporte plus le fronton de la vitrine d'origine.
+    if (contenu && contenu.mode === 'texte' && contenu.texte) {
+      Promise.resolve().then(function () {
+        if (varianteJetonCourant !== jeton) return;
+        const titre = document.getElementById('piece-nom');
+        if (!titre) return;
+        const nom = String(contenu.texte).trim();
+        if (nom && !titre.textContent.includes(nom)) titre.textContent += ' — ' + nom;
+      });
+    }
   };
 
   if (brut && typeof brut.then === 'function') {
