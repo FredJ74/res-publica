@@ -291,14 +291,16 @@ async function sbGet(table, filters = '') {
   let lecture = sbLecturesEnCours.get(cle);
   if (!lecture) {
     lecture = (async () => {
-      const env = sbRelancerSiReseau(await sbTransportRest('GET', table, filters));
-      return env.etat === 'ok' ? env.donnees : null;
+      try {
+        const env = sbRelancerSiReseau(await sbTransportRest('GET', table, filters));
+        return env.etat === 'ok' ? env.donnees : null;
+      } finally {
+        // Liberer avant la resolution de la promesse : une lecture ulterieure
+        // ne doit jamais recevoir une ancienne reponse, meme dans le meme tick.
+        if (sbLecturesEnCours.get(cle) === lecture) sbLecturesEnCours.delete(cle);
+      }
     })();
     sbLecturesEnCours.set(cle, lecture);
-    // Suppression meme en cas de rejet ; aucune valeur ne reste en cache.
-    void lecture.finally(() => {
-      if (sbLecturesEnCours.get(cle) === lecture) sbLecturesEnCours.delete(cle);
-    }).catch(() => {});
   }
   const donnees = await lecture;
   return donnees === null ? null : sbMarquerInventaires(donnees, origine);
