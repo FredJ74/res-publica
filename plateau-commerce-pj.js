@@ -1369,9 +1369,21 @@ function commercePjLibelleMatiereRecette(cle, rec) {
 // Materiaux intermediaires : contrat des trois recettes electroniques.
 // Le moteur serveur conserve seul l'autorite sur les consommations et les couts.
 function commercePjIntermediaires(rec) {
-  if (rec.recette_id === 'ordinateur_complet_commerce') return { 'composants-electroniques': 2 };
-  if (rec.recette_id === 'telephone_cellulaire_commerce') return { 'composants-electroniques': 1 };
-  return rec.intermediaires || {};
+  // Repli pour la signature RPC historique : elle ne renvoie pas encore
+  // "intermediaires", bien que le serveur en assure le decompte.
+  const quantites = {
+    'ordinateur_complet_commerce': 2,
+    'telephone_cellulaire_commerce': 1,
+    'box_internet_commerce': 1,
+    'camera_surveillance_commerce': 1,
+    'imprimante_papier_commerce': 1,
+    'imprimante_3d_commerce': 2,
+    'peripherique_stockage_commerce': 1,
+    'peripherique_reseau_commerce': 2,
+    'jeu_video_commerce': 1
+  };
+  const nombre = quantites[rec.recette_id];
+  return nombre ? { 'composants-electroniques': nombre } : (rec.intermediaires || {});
 }
 function commercePjStockIntermediaire(fonds, cle) {
   const refs = fonds.references || {}, stocks = fonds.stockReferences || {};
