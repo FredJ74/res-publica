@@ -1663,6 +1663,11 @@ async function commercePjEcranBoutique(ctx) {
       const lotTient = maxi === 0 || stock + Number(rec.portions) <= maxi;
       const matieresOk = Object.keys(rec.materiaux || {}).every(function (m) {
         return (Number(stockMat[m]) || 0) >= (Number(rec.materiaux[m]) || 0);
+      }) && Object.keys(commercePjIntermediaires(rec)).every(function (m) {
+        const besoin = Number(commercePjIntermediaires(rec)[m]) || 0;
+        return Object.keys(refs).some(function (refId) {
+          return refs[refId]?.generique_id === m && (Number(stocks[refId]) || 0) >= besoin;
+        });
       });
       const productionImpossible = !lotTient || !matieresOk;
       const produireAction = "commercePjProduire('" + id + "','" + nouvelleCleProduction() + "','publique')";
