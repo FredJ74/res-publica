@@ -23,6 +23,11 @@ on:
   workflow_dispatch: {}
     # Pour relancer la mesure à la main depuis l'onglet « Actions », sans attendre un push.
 
+# Annuler seulement les executions perimees d'une meme PR ; main reste integral.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   mesurer-le-payload:
     runs-on: ubuntu-latest
