@@ -29,7 +29,10 @@ function rep(statut, corps) {
 eval(bloc('sbTransportRest')); eval(bloc('sbVerdictRest'));
 // Le transport conserve maintenant le contexte des inventaires jusqu'a leur adoption.
 eval(src.slice(src.indexOf('const RP_INVENTAIRE_ORIGINE ='), src.indexOf('async function sbGet(table,')));
-eval(bloc('sbGetVerdict')); eval(bloc('sbRelancerSiReseau')); eval(bloc('sbGet')); eval(bloc('sbInsert')); eval(bloc('sbUpsert'));
+eval(bloc('sbGetVerdict')); eval(bloc('sbRelancerSiReseau'));
+// sbGet utilise une table des lectures concurrentes, egalement requise dans ce banc.
+eval(src.slice(src.indexOf('const sbLecturesEnCours ='), src.indexOf('async function sbGet(table,')));
+eval(bloc('sbGet')); eval(bloc('sbInsert')); eval(bloc('sbUpsert'));
 eval(bloc('sbDelete'));
 
 var ko = 0, attendus = 0;
