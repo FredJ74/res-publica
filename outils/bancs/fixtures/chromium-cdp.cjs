@@ -1,8 +1,26 @@
 // Cycle de vie du navigateur de banc, sans service externe ni donnees de jeu.
 const fs = require('node:fs'), path = require('node:path');
 const { spawn } = require('node:child_process');
+const http = require('node:http');
 const { performance } = require('node:perf_hooks');
 const attendre = ms => new Promise(r => setTimeout(r, ms));
+// CDP est local : ignorer tout proxy HTTP configure sur les runners CI.
+function lireVersionLocale(port, delai) {
+  return new Promise((resolve, reject) => {
+    const req = http.get({hostname:'127.0.0.1',port,path:'/json/version',agent:false,timeout:delai}, res => {
+      let corps='';
+      res.setEncoding('utf8');
+      res.on('data', bloc => { corps+=bloc; if(corps.length>65536) req.destroy(new Error('Reponse DevTools trop volumineuse')); });
+      res.on('end', () => {
+        if(res.statusCode!==200) return reject(new Error('DevTools HTTP '+res.statusCode));
+        try { resolve(JSON.parse(corps)); } catch(e) { reject(e); }
+      });
+      res.on('error',reject);
+    });
+    req.on('timeout',()=>req.destroy(new Error('Delai HTTP DevTools')));
+    req.on('error',reject);
+  });
+}
 function erreur(code, message, logs) {
   return Object.assign(new Error(`${message}${logs ? '\nChromium (fin des journaux) : '+logs : ''}`), { code });
 }
@@ -48,11 +66,7 @@ async function lancerChromium({ executable, profil, delaiDemarrage = 20000, spaw
       if (!port) port=Number(logs.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)\//)?.[1]);
       if (port>0 && port<=65535) {
         try {
-          const response=await fetch(`http://127.0.0.1:${port}/json/version`, {
-            signal:AbortSignal.timeout(Math.max(1, Math.min(500, Math.ceil(limite-performance.now()))))
-          });
-          if (!response.ok) throw Error('DevTools HTTP '+response.status);
-          const version=await response.json();
+          const version=await lireVersionLocale(port,Math.max(1, Math.min(1500, Math.ceil(limite-performance.now()))));
           if (!version.webSocketDebuggerUrl?.startsWith(`ws://127.0.0.1:${port}/devtools/browser/`)) throw Error('DevTools pas encore pret');
           controlerProcessus();
           return { port, arreter, controlerProcessus, logs:()=>logs, initialisationMs:Math.round(performance.now()-debut) };
