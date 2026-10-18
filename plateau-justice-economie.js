@@ -8671,32 +8671,36 @@ async function confirmerPretBancaire(typeBanque, typePret, pa) {
   // et immobilier n'ont aucun plafond de montant.
   // Desormais : la dette doit exister en base AVANT que le capital ne soit verse. Sinon rien
   // n'est credite, les PA de l'ordre sont rendus et l'echec est dit.
-  const detteCreee = (typeof sbCreerPret === 'function') ? await sbCreerPret(pret) : null;
-  if (!detteCreee) {
+  // Contrat et versement sont atomiques et idempotents sur le serveur.
+  // Aucun enregistrement direct de dette, aucun crédit local anticipé.
+  const resultat = (typeof sbRpc === 'function')
+    ? await sbRpc('pret_national_contracter', {
+        p_montant: montant, p_duree_jours: duree, p_type_pret: typePret,
+        p_building_id: state.currentBuilding || 'non_specifie'
+      }).catch(() => null)
+    : null;
+  const versement = Array.isArray(resultat) ? resultat[0] : resultat;
+  if (!versement?.ok) {
     if (r.paPreleves && typeof sbRpc === 'function' && state.char?.name) {
       await sbRpc('pa_crediter_atteste', {
         p_acteur: state.char.name, p_source: 'remboursement_ordre',
-        p_reference: 'pret-echec-' + pret.id,
-        p_ordre: ordreEmprunt
+        p_reference: 'pret-echec-' + pret.id, p_ordre: ordreEmprunt
       }).then(rows => { const v = Array.isArray(rows) ? rows[0] : rows;
-                        if (v && typeof v.pa === 'number') state.pa = v.pa; }).catch(() => {});
+        if (v && typeof v.pa === 'number') state.pa = v.pa; }).catch(() => {});
     }
+    showToast('Prêt impossible', versement?.raison || 'Le serveur n’a pas confirmé le contrat et le versement.', false);
     updateUI();
-    showToast('Prêt impossible', 'Le contrat n\'a pas pu être enregistré. Aucun capital n\'a été versé.', false);
     return;
   }
-
-  // ARGENT REELLEMENT DEPENSABLE. Crediter state.arg seul gonflait l'affichage sans rien changer
-  // au pouvoir d'achat : debiterFondsOrdinaires() -- garde amont de la quasi-totalite des ordres
-  // du jeu -- ne sait depenser que state.liquide + le solde du compte national. L'emprunteur
-  // voyait donc son capital augmenter puis se faisait refuser tout achat pour fonds insuffisants.
-  // crediterFondsOrdinaires() incremente les deux, comme tout autre credit du jeu.
-  if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montant);
-  else state.arg = (state.arg || 0) + montant;
+  state.arg = Number(versement.arg);
+  state.liquide = Number(versement.liquide);
+  if (state.char) state.char.arg = state.arg;
+  const compteNational = (state.comptesBancaires || []).find(c => c.banque === 'nationale');
+  if (compteNational && versement.solde_banque != null) compteNational.solde = Number(versement.solde_banque);
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
-  showToast('Prêt accordé !', '+' + montant.toLocaleString('fr-FR') + ' ' + cur + '. Mensualité : ' + mensualite.toLocaleString('fr-FR') + ' ' + cur + '/jour sur ' + duree + ' jours.', true, true);
-  addJournalEntry('Prêt ' + infosType.label.toLowerCase() + ' de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' contracté (taux ' + taux.toFixed(1) + '%) — ' + (typeBanque === 'privee' ? 'Banque Privée' : 'Banque Nationale') + '.', 'event-info');
+  showToast('Prêt accordé !', '+' + montant.toLocaleString('fr-FR') + ' ' + cur + ' versés sur votre compte.', true, true);
+  addJournalEntry('Prêt de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' contracté et versé.', 'event-info');
 }
 
 // Prelevement quotidien des prets en cours (appele au reveil, doDormir)
