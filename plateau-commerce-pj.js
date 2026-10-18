@@ -478,6 +478,15 @@ function commercePjLigne(label, valeur) {
 // ---------------------------------------------------------------------------
 // Le bail est le seul lien. On ne recopie jamais les donnees du fonds dans le
 // batiment, et on ne devine jamais un fonds depuis une piece.
+// Les bureaux loués du centre d'affaires ne sont pas des commerces.
+// Cette distinction s'applique aux ordres dynamiques ET aux entrées directes.
+function commercePjEstBureau(buildingId, roomId) {
+  return buildingId === 'centre-affaires' &&
+    ['bureau_prestige', 'bureau_standard', 'open_space',
+     'open_space_poste_1', 'open_space_poste_2',
+     'open_space_poste_3', 'open_space_poste_4'].includes(roomId);
+}
+
 async function commercePjContexte() {
   const pays = state.country, ville = state.currentCity;
   const batiment = state.currentBuilding, piece = state.currentRoom;
@@ -502,6 +511,7 @@ async function commercePjContexte() {
 // Un seul ordre sur le local. L'ecran decide : local libre, installation, gestion
 // ou boutique. Le joueur n'a pas a savoir lequel choisir.
 async function ouvrirCommercePJ() {
+  if (commercePjEstBureau(state.currentBuilding, state.currentRoom)) return;
   commercePjChargement(tCommercePJ('commercepj.titre.boutique'));
   const ctx = await commercePjContexte();
   if (ctx.fonds && ctx.jeSuisProprietaire) return commercePjEcranGestion(ctx);
@@ -656,6 +666,7 @@ function commercePjFondsIci() {
 //   bail avec fonds        -> le parcours commercant complet, et « Louer ce local »
 //                             est MASQUE : il est loue, et exploite.
 function ordresCommerceDuLocal(buildingId, roomId, ville) {
+  if (commercePjEstBureau(buildingId, roomId)) return [];
   if (typeof getLocationPourRoom !== 'function') return [];
   let bail = null;
   try { bail = getLocationPourRoom(buildingId, roomId, ville); } catch (e) { return []; }
@@ -2139,6 +2150,7 @@ const RP_CPJ_DECOR_QUESTIONS = [
 let RP_CPJ_DECOR_GUIDE_ETAPE = 0;
 let RP_CPJ_DECOR_GUIDE_REPONSES = [];
 async function commercePjOuvrirAtelier() {
+  if (commercePjEstBureau(state.currentBuilding, state.currentRoom)) return;
   commercePjChargement('Option Commerce — Décoration');
   const ctx = await commercePjContexte();
   if (!ctx.fonds || !ctx.jeSuisProprietaire) {
