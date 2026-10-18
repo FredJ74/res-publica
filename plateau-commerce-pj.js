@@ -483,8 +483,8 @@ function commercePjLigne(label, valeur) {
 function commercePjEstBureau(buildingId, roomId) {
   return buildingId === 'centre-affaires' &&
     ['bureau_prestige', 'bureau_standard', 'open_space',
-     'open_space_poste_1', 'open_space_poste_2',
-     'open_space_poste_3', 'open_space_poste_4'].includes(roomId);
+     'open_space_a', 'open_space_b',
+     'open_space_c', 'open_space_d'].includes(roomId);
 }
 
 async function commercePjContexte() {
