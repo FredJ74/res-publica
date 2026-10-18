@@ -7859,6 +7859,24 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
       state.arg = (state.arg || 0) + montantVerse;
       if (state.char) state.char.arg = state.arg;
     }
+  } else if (typeCible === 'entreprise') {
+    // Debit ministeriel, credit du fonds et preuve de favoritisme dans UNE transaction.
+    const requete = 'subv-ent-' + Date.now() + '-' + Math.random().toString(36).slice(2, 12);
+    const rows = await sbRpc('subvention_entreprise_verser', {
+      p_entreprise: idCible, p_montant: montant, p_requete: requete
+    }).catch(() => null);
+    const resultat = Array.isArray(rows) ? rows[0] : rows;
+    if (!resultat || resultat.ok !== true) {
+      showToast('Subvention non confirmée',
+        'Aucun versement confirmé pour ce commerce. Ne recommencez pas avant de vérifier le solde.', false);
+      return;
+    }
+    montantVerse = Number(resultat.verse || 0);
+    // Auteur et proprietaire sont consignes cote serveur, meme si c'est le meme PJ.
+    if (resultat.conflitInterets === true) {
+      addJournalEntry('Conflit d’intérêts public : le ministre subventionne son propre commerce (' +
+        nomCible + ', ' + montantVerse + ' FR).', 'event-info');
+    }
   } else {
     montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant) : 0;
     if (montantVerse <= 0) { showToast('Caisse insuffisante', 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.', false); return; }
