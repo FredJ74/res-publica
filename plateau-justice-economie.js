@@ -11556,6 +11556,8 @@ async function verifierSurveillancePolicePJ(buildingId, roomId, rueNoeudId) {
   }
 }
 async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId) {
+  // Après rechargement, restaurer la rencontre serveur avant tout nouveau jet de détection.
+  if (!interceptionJudiciaire && await reprendreInterceptionJudiciaireServeur()) return;
   // Une interception en cours prime sur tout nouveau contrôle de police.
   // Sinon des déplacements/rendus successifs pouvaient empiler contrôle et arrestation.
   if (interceptionJudiciaire) { afficherInterceptionJudiciaire(); return; }
@@ -12757,6 +12759,39 @@ function interceptionJudiciaireBloqueDeplacement() {
 function marquerInterceptionIncertaine(i) {
   i.reponseIncertaine = true;
   afficherInterceptionJudiciaire();
+}
+// Une reprise de connexion est une lecture du dossier serveur, jamais une nouvelle détection.
+async function reprendreInterceptionJudiciaireServeur() {
+  if (typeof sbRpc !== 'function' || !state.char?.name || interceptionJudiciaireOccupee) return false;
+  const contexte = contexteInterceptionJudiciaire();
+  let reprise;
+  try {
+    const rows = await sbRpc('police_reprise_lire', {});
+    reprise = Array.isArray(rows) ? rows[0] : rows;
+  } catch (_) { return false; }
+  if (!contexteInterceptionJudiciaireValide(contexte) || reprise?.ok !== true) return false;
+  if (reprise.active !== true || !reprise.rencontre) return false;
+  if (reprise.country !== state.country || reprise.city !== state.currentCity) return false;
+  const rue = reprise.street || null;
+  if (rue ? (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== rue) :
+    (reprise.building !== state.currentBuilding || reprise.room !== state.currentRoom)) return false;
+  if (interceptionJudiciaire?.rencontreId === reprise.rencontre) return true;
+  if (interceptionJudiciaire) return false;
+  const verdict = reprise.dernier_verdict;
+  const round = Number(reprise.dernier_round || 0);
+  // Une conséquence terminale enregistrée ne doit pas ouvrir un nouveau combat.
+  if (verdict?.detention_id || verdict?.arrestation || verdict?.police_neutralisee ||
+      (verdict?.reussite === true)) return false;
+  interceptionJudiciaire = {
+    contexte, rencontreId: reprise.rencontre, ville: reprise.city,
+    policiers: Array.from({length:Math.max(1,Number(verdict?.policiers_restants || 1))},()=>({})),
+    zone:{pays:reprise.country,ville:reprise.city,batiment:reprise.building,
+      piece:reprise.room,rue}, rueNoeudId:rue,
+    round:round>0?round+1:1, fuiteEchouee:!!reprise.fuite_tentee,
+    reponseIncertaine: false
+  };
+  afficherInterceptionJudiciaire();
+  return true;
 }
 
 
