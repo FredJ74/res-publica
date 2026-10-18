@@ -1129,6 +1129,19 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
         'Quittez le bâtiment pour rejoindre la rue.', false);
       return;
     }
+    // Position vierge : seul le serveur peut valider le départ officiel.
+    // Pas de déplacement local ni de restauration depuis le cache.
+    if (!position.street && !position.building) {
+      const departOfficiel = {
+        capitale: 'luthecia-palais-presidentiel',
+        ville_a: 'psm-centre-multimodal',
+        ville_b: 'montrouge-vue-3'
+      }[state.currentCity];
+      if (departOfficiel && RUE_CENTRALE_NOEUDS[pays]?.[departOfficiel]) {
+        await afficherNoeudRue(pays, departOfficiel, null);
+        return;
+      }
+    }
     if (typeof showToast === 'function') showToast('Position non initialisee',
       'Aucun segment de rue confirme par le serveur.', false);
     return;
