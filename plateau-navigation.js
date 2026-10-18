@@ -890,6 +890,16 @@ function enterRoom(buildingId, roomId, tabEl) {
           const url = SUPABASE_URL + '/storage/v1/object/public/commerce-decors/' + encodeURIComponent(path);
           pieceImg.setAttribute('data-commerce-decor', '1');
           pieceImg.style.backgroundImage = 'url("' + url + '")';
+          // La decouverte asynchrone du decor bascule cover -> contain :
+          // recalculer la position de l'enseigne sur le NOUVEAU fond.
+          const enseigne = pieceImg.querySelector('.piece-enseigne');
+          const decl = typeof varianteDePiece === 'function'
+            ? varianteDePiece(buildingId, roomId, state.currentCity) : null;
+          if (enseigne && decl?.enseigne && typeof variantePositionnerEnseigne === 'function') {
+            variantePositionnerEnseigne(pieceImg, decl.enseigne,
+              decl.images?.[varianteEtatPiece(buildingId, roomId, state.currentCity)],
+              enseigne, decl.ancrage);
+          }
         }).catch(() => {});
     }
   }
