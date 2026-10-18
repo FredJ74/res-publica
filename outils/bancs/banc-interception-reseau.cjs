@@ -64,8 +64,8 @@ for(const cas of ['non_recherche','non_detecte','detecte','absent','sans_pa'])te
  c.calculerPerGroupePolice=()=>12;c.calculerVolGroupePolice=()=>12;c.calculerDisEffective=()=>8;c.calculerChancePJ=()=>90;c.resoudreControlePoliceAutomatique=()=>{};
  c.sbRpc=async(f)=>{appels.push(f);if(f==='justice_recherches')return [{id:'j',country:'republic',data:{motifs:[]}}];return cas==='non_recherche'?{ok:false,raison:'non_recherche'}:{ok:true,detecte:cas==='detecte',rencontre:'police-rencontre'};};
  await c.verifierSurveillancePolicePJUnique('mairie','accueil');assert.equal(!!c.dossier(),cas==='detecte');
- if(cas==='absent'||cas==='sans_pa')assert.equal(appels.length,0);
- if(cas==='detecte')assert.deepEqual(appels,['police_detection_verifier','justice_recherches']);
+ if(cas==='absent'||cas==='sans_pa')assert.deepEqual(appels,['police_reprise_lire']);
+ if(cas==='detecte')assert.deepEqual(appels,['police_reprise_lire','police_detection_verifier','justice_recherches']);
 });
 test('restauration de rue : lecture de position seule, aucun ordre de mouvement',async()=>{
  const c=contexte();let appels=[];c.sbRpc=async(f)=>{appels.push(f);return {ok:true,country:'republic',city:'capitale',street:'destination',building:null};};
