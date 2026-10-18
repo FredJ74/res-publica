@@ -1135,10 +1135,10 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
   await afficherNoeudRue(pays, noeudDepart, depuisNoeud);
 }
 
-async function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
+async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfirmee = false) {
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
   if (!noeud) return;
-  if (pays === 'republic') {
+  if (pays === 'republic' && !positionDejaConfirmee) {
     if (typeof sbRpc !== 'function') return;
     const position = await sbRpc('rue_position_enregistrer', {p_noeud: noeudId})
       .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
