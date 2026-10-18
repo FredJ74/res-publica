@@ -41,6 +41,10 @@ jobs:
         run: python3 outils/bancs/banc-achat-commerce-local.py --local-jetable
       - name: Réception atomique sur PostgreSQL local, sans identifiant Supabase
         run: python3 outils/bancs/banc-reception-atomique-local.py --local-jetable
+      - name: Assemblage electronique sur PostgreSQL local
+        run: python3 outils/bancs/banc-assemblage-electronique-local.py
+      - name: Publications Jodie sur PostgreSQL local
+        run: python3 outils/bancs/banc-jodie-publications-local.py
       - name: Conserver les résultats des bancs
         if: always()
         uses: actions/upload-artifact@v4
