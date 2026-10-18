@@ -323,6 +323,7 @@ let forumActiviteCache = {};
 let forumActiviteCurseur = { topics: null, posts: null };
 let forumActiviteCurseurEtabli = false;
 let mailView = 'inbox'; // 'inbox' | 'compose' | 'read'
+let mailRubrique = 'recus'; // 'recus' | 'envoyes' | 'archives' — navigation de la boite mail
 let mailDefaultTo = ''; // Destinataire pré-rempli depuis répertoire PJ
 let editingPostId = null;
 let editingTopicId = null;
@@ -697,6 +698,14 @@ function renderForumSidebar() {
         <div class="forum-nav-count">${unreadCount > 0 ? `<span style="color:#C9A84C">${unreadCount} non lu(s)</span>` : 'Aucun message'}</div>
       </div>
     </div>
+    ${forumView === 'mail' ? `
+      <div class="forum-mail-rubriques" aria-label="Rubriques de la boîte mail">
+        ${[['recus','ti-inbox','Mails reçus'],['envoyes','ti-send','Mails envoyés'],['archives','ti-archive','Mails archivés']].map(([id,icone,nom]) => `
+          <button type="button" class="forum-mail-rubrique ${mailRubrique === id ? 'active' : ''}"
+            aria-current="${mailRubrique === id ? 'page' : 'false'}" onclick="selectionnerRubriqueMail('${id}')">
+            <i class="ti ${icone}"></i> ${nom}
+          </button>`).join('')}
+      </div>` : ''}
     ${renderCategorieHeader('intra', 'ti-flag', 'Forums nationaux')}
     ${renderCategorieHeader('inter', 'ti-world', 'Forums internationaux')}
     ${renderCategorieHeader('prive', 'ti-lock', 'Forums privés')}
@@ -775,9 +784,17 @@ function switchForum(id) {
   }).catch(() => {});
 }
 
+function selectionnerRubriqueMail(rubrique) {
+  if (!['recus','envoyes','archives'].includes(rubrique)) return;
+  mailRubrique = rubrique;
+  mailView = 'inbox';
+  renderForumModal();
+}
+
 function switchToMail() {
   forumView = 'mail';
   mailView = 'inbox';
+  mailRubrique = 'recus';
   renderForumModal();
   // Correctif du 26 aout 2026 : rendu complet (pour que la boite de reception se peuple bien une
   // fois chargee) uniquement hors composition -- sinon un brouillon (forum OU mail) sur lequel le
@@ -2286,11 +2303,7 @@ function renderMailInbox() {
   const mails = allMails.filter(m => !m.archived);
   const archives = allMails.filter(m => m.archived);
   const received = trierMailsRecents(mailsRecusVisibles());
-  // m.fromReal (17 aout 2026) : un mail organisationnel a m.from = nom de l'organisation, pas
-  // le personnage reel -- sans ce critere, l'expediteur reel ne verrait jamais son propre envoi
-  // dans "Envoyes".
   const sent = mails.filter(m => m.from === myName || m.fromReal === myName);
-
   return `
     <div class="forum-header-bar">
       <div class="forum-title-main"><i class="ti ti-mail"></i> Boîte Mail</div>
@@ -2298,13 +2311,38 @@ function renderMailInbox() {
         <i class="ti ti-pencil-plus"></i> Nouveau mail
       </button>
     </div>
-    <!-- LE SCROLL MANQUAIT ICI (22 septembre 2026). .forum-main porte overflow:hidden, et
-         c'est .forum-topics-list -- deja utilisee par les listes de sujets -- qui porte le
-         defilement (flex:1;overflow-y:auto). La boite aux lettres n'en avait aucune : tout ce
-         qui depassait la hauteur du panneau etait purement coupe, sans barre de defilement, et
-         les derniers messages devenaient inatteignables. On reutilise la classe existante,
-         aucune regle CSS nouvelle, aucune autre rubrique touchee. -->
     <div class="forum-topics-list">
+    ${mailRubrique === 'envoyes' ? `
+    <div>
+      <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
+        MESSAGES ENVOYÉS (${sent.length})
+      </div>
+      ${sent.length === 0
+        ? `<div class="forum-empty">Aucun message envoyé.</div>`
+        : sent.map(m => `
+          <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer">
+            <div style="display:flex;justify-content:space-between">
+              <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Envoyé en tant qu\'organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
+              <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
+            </div>
+            <div style="font-size:.72rem;color:#6a5a30">À : ${escapeHtmlText(m.to)}</div>
+          </div>`).join('')}
+    </div>
+    ` : mailRubrique === 'archives' ? `
+    <div style="margin-top:.8rem">
+      <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#6a5a30;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
+        <i class="ti ti-archive"></i> ARCHIVES (${archives.length})
+      </div>
+      ${archives.length ? archives.map(m => `
+        <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;opacity:.75">
+          <div style="display:flex;justify-content:space-between">
+            <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
+            <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
+          </div>
+          <div style="font-size:.72rem;color:#6a5a30">${(m.from === myName || m.fromReal === myName) ? 'À : ' + escapeHtmlText(m.to) : 'De : ' + escapeHtmlText(m.from)}</div>
+        </div>`).join('') : '<div class="forum-empty">Aucun message archivé.</div>'}
+    </div>
+    ` : `
     <div style="margin-bottom:.8rem">
       <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
         MESSAGES REÇUS (${received.length})
@@ -2322,35 +2360,7 @@ function renderMailInbox() {
             <div style="font-size:.72rem;color:#6a5a30">De : ${escapeHtmlText(m.from)}${m.fromIsOrg ? ' <i class="ti ti-shield" style="font-size:.65rem;color:#8a8060" title="Organisation"></i>' : ''}</div>
           </div>`).join('')}
     </div>
-    <div>
-      <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#8a6a20;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
-        MESSAGES ENVOYÉS (${sent.length})
-      </div>
-      ${sent.length === 0
-        ? `<div class="forum-empty">Aucun message envoyé.</div>`
-        : sent.map(m => `
-          <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer">
-            <div style="display:flex;justify-content:space-between">
-              <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Envoyé en tant qu\'organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
-              <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
-            </div>
-            <div style="font-size:.72rem;color:#6a5a30">À : ${escapeHtmlText(m.to)}</div>
-          </div>`).join('')}
-    </div>
-    ${archives.length > 0 ? `
-    <div style="margin-top:.8rem">
-      <div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.15em;color:#6a5a30;padding:.4rem 0;border-bottom:1px solid #2a2010;margin-bottom:.4rem">
-        <i class="ti ti-archive"></i> ARCHIVES (${archives.length}) — conservées indéfiniment
-      </div>
-      ${archives.map(m => `
-        <div onclick="readMail('${m.id}')" style="padding:.6rem .8rem;border-bottom:1px solid #1a1810;cursor:pointer;opacity:.75">
-          <div style="display:flex;justify-content:space-between">
-            <div style="font-size:.82rem;color:#8a8060">${m.fromIsOrg ? '<i class="ti ti-shield" style="font-size:.65rem" title="Organisation"></i> ' : ''}${escapeHtmlText(m.subject)}</div>
-            <div style="font-size:.68rem;color:var(--text3)">${formatDateAffichage(m.time)}</div>
-          </div>
-          <div style="font-size:.72rem;color:#6a5a30">${(m.from === myName || m.fromReal === myName) ? 'À : ' + escapeHtmlText(m.to) : 'De : ' + escapeHtmlText(m.from)}</div>
-        </div>`).join('')}
-    </div>` : ''}
+    `}
     </div>
   `;
 }
