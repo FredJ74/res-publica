@@ -734,6 +734,15 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
    nowrap tient l'enseigne sur une ligne, le JS reduisant la police jusqu'a ce
    qu'un nom long y entre. pointer-events:none : une enseigne ne doit jamais
    intercepter un clic destine a l'image (zone cliquable de l'enigme du musee). */
+/* Decor personnalise : l'enseigne est un vrai bandeau, centre, independant
+   des coordonnees de la vitrine d'origine. */
+.piece-image[data-commerce-decor="1"] .piece-enseigne{
+  background:linear-gradient(90deg,rgba(12,16,23,.94),rgba(30,37,45,.93),rgba(12,16,23,.94));
+  border:1px solid rgba(229,196,119,.6);border-radius:5px;
+  box-shadow:0 3px 10px rgba(0,0,0,.35);
+  color:#f5e3b0!important;text-shadow:0 1px 2px #000!important;
+  box-sizing:border-box;padding:3px 8px;
+}
 .piece-enseigne{position:absolute;z-index:1;display:flex;align-items:center;
   white-space:nowrap;overflow:hidden;line-height:1;pointer-events:none}
 /* Ancrage vertical d'une piece a variantes. Meme motif et meme raison que
