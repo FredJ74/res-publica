@@ -387,7 +387,7 @@ function goTo(n){
   document.getElementById(ids[n]).classList.add('active');
   window.scrollTo(0,0);
   if(n===1) renderCountry();
-  if(n===2){ renderOrigin(); conseillerOuvrirSiBesoin(); }
+  if(n===2) renderOrigin();
   if(n===3) renderSchool();
   if(n===4) renderArch();
   if(n===5) renderCareer();
