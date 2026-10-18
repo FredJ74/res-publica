@@ -1119,13 +1119,14 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     if (position.street && !position.building) {
       if (!RUE_CENTRALE_NOEUDS[pays]?.[position.street]) return;
       const orientation = position.street === noeudDepart ? depuisNoeud : null;
-      await afficherNoeudRue(pays, position.street, orientation);
+      await afficherNoeudRue(pays, position.street, orientation, true);
       return;
     }
     if (position.building) {
-      // Sortie de batiment : la primitive de deplacement controle la sortie.
-      // Aucune position locale ne peut remplacer la position serveur.
-      await afficherNoeudRue(pays, noeudDepart, depuisNoeud);
+      // La restauration d'une scene ne constitue pas un ordre de sortie.
+      // L'utilisateur doit quitter le batiment par une action explicite.
+      if (typeof showToast === 'function') showToast('Position dans un bâtiment',
+        'Quittez le bâtiment pour rejoindre la rue.', false);
       return;
     }
     if (typeof showToast === 'function') showToast('Position non initialisee',
