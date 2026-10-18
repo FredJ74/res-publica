@@ -75,3 +75,14 @@ Validation : **10 passages consécutifs du banc ciblé, 30/30 scénarios réussi
 La correction ne touche que les bancs et leur documentation : aucun jeu, donnée, migration ou paramètre Supabase/Vercel modifié. La validation distante relève de la prochaine exécution de la PR 42, pas d'une réussite locale supposée équivalente.
 
 Après les dix répétitions ciblées : `python3 outils/bancs/controler-client.py --rapport /tmp/hg-chromium-complet` : **75/75 bancs réussis**, aucun SQL exécuté.
+
+## Vérification complémentaire — 18 octobre 2026
+
+Contrôle effectué depuis l'intégration connectée à Supabase (projet `jxpwoosmmhohoihxpbuc`) et GitHub :
+
+- Les quatre workflows du commit `21f6a2791120740998a04670dc4019cd98b121b3` sont **réussis** : cohérence client, garde payload, détention et fermetures calendrier.
+- La PR 42 est toujours ouverte en brouillon et **non fusionnable en l'état** avec `main` après les intégrations ultérieures. Ne pas forcer la fusion : rebaser ou reporter les changements sur le `main` courant puis relancer les tests.
+- Le catalogue vivant des fonctions publiques contient `tracts_electoraux_distribuer_collectif(p_requete text, p_joueur text, p_cycle_id text, p_candidat text, p_sens text)`.
+- Le même catalogue **ne contient pas** `inventaire_reception_etat`, `inventaire_reclamer_livraison`, `inventaire_sauver_revision`. Leur présence dans `migrations/20261016131932_reception_objets_atomique.sql` n'est donc pas une preuve de déploiement. L'écart Authority est réel pour ces trois RPC ; ne pas modifier la base sans audit de dépendances et procédure de migration.
+- Les tables `public.ordres_couts` et `public.postes_nommes_regles` existent ; cela ne résout pas les deux divergences d'empreintes Referential, qui nécessitent une comparaison des données et du générateur.
+- Aucun déploiement de production ni migration n'a été déclenché par cette vérification.
