@@ -7597,7 +7597,7 @@ async function ouvrirCiblageFiscalType(action, typeCible, titre) {
       html += '<div style="font-size:.85rem;color:#e0d5b8">Armurerie de ' + nomVille + '</div></div>';
     });
   } else if (typeCible === 'organisation') {
-    const orgas = (state.organisations || []).filter(o => o.country === pays);
+    const orgas = (state.organisations || []).filter(o => o.country === pays && o.visible !== false && o.type !== 'criminelle');
     if (orgas.length === 0) html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune organisation connue pour l\'instant.</div>';
     orgas.forEach(o => {
       html += '<div onclick="executerOrdreFiscalCible(\'' + action + '\',\'organisation\',\'' + o.id + '\')" style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.3rem;cursor:pointer">';
