@@ -11564,7 +11564,9 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
   const ville = state.currentCity;
   if (!ville) return;
 
+  const contexteDetection = contexteInterceptionJudiciaire();
   const effectifs = await chargerEffectifsPolice(pays, ville).catch(() => null);
+  if (!contexteInterceptionJudiciaireValide(contexteDetection)) return;
   if (!effectifs || !Array.isArray(effectifs.policiers) || !effectifs.policiers.length) return;
 
   const enRue = !!rueNoeudId;
@@ -11587,6 +11589,7 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
         p_rue: rueNoeudId || null
       }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
     : null;
+  if (!contexteInterceptionJudiciaireValide(contexteDetection)) return;
   if (pays === 'republic' && detection?.ok === true && detection.detecte === true) {
     if (state.country !== zoneSurveillee.pays || state.currentCity !== zoneSurveillee.ville ||
         (enRue ? (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== zoneSurveillee.rue) :
@@ -12734,9 +12737,37 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
 let interceptionJudiciaire = null;
 let interceptionJudiciaireOccupee = false;
 
+// Une reponse policiere ne doit jamais affecter un autre personnage/une autre connexion.
+function contexteInterceptionJudiciaire() {
+  return {personnage:state.char, nom:state.char?.name, pays:state.country,
+    uid:typeof rpAuthUid==='function'?rpAuthUid():null,
+    session:typeof rpAuthSessionIdentifiant==='function'?rpAuthSessionIdentifiant():null};
+}
+function contexteInterceptionJudiciaireValide(c, i) {
+  return state.char===c.personnage && state.char?.name===c.nom && state.country===c.pays &&
+    (typeof rpAuthUid!=='function'||rpAuthUid()===c.uid) &&
+    (typeof rpAuthSessionIdentifiant!=='function'||rpAuthSessionIdentifiant()===c.session) &&
+    (!i||interceptionJudiciaire===i);
+}
+function interceptionJudiciaireBloqueDeplacement() {
+  if (!interceptionJudiciaire && !interceptionJudiciaireOccupee) return false;
+  if (interceptionJudiciaire) afficherInterceptionJudiciaire();
+  return !!interceptionJudiciaire || interceptionJudiciaireOccupee;
+}
+function marquerInterceptionIncertaine(i) {
+  i.reponseIncertaine = true;
+  afficherInterceptionJudiciaire();
+}
+
+
 function afficherInterceptionJudiciaire() {
   const i = interceptionJudiciaire;
   if (!i) return;
+  if (i.contexte && !contexteInterceptionJudiciaireValide(i.contexte,i)) {
+    interceptionJudiciaire = null;
+    document.getElementById('modal-postes')?.classList.remove('open');
+    return;
+  }
   const modal = document.getElementById('modal-postes');
   const titre = document.getElementById('postes-modal-title');
   const body = document.getElementById('postes-body');
@@ -12744,7 +12775,7 @@ function afficherInterceptionJudiciaire() {
   // Un dossier ouvert ne peut pas disparaître par un changement de fenêtre :
   // l'interception est conservée et réaffichée à la prochaine vérification.
   titre.textContent = 'INTERCEPTION POLICIÈRE';
-  const btn = (action, label) => '<button type="button" class="ibtn" onclick="choisirInterceptionJudiciaire(&quot;' + action + '&quot;)">' + label + '</button>';
+  const btn = (action, label) => '<button '+(interceptionJudiciaireOccupee?'disabled aria-disabled="true" ':'')+'type="button" class="ibtn" onclick="choisirInterceptionJudiciaire(&quot;' + action + '&quot;)">' + label + '</button>';
   body.innerHTML = '<div class="hg-interception" style="padding:1.1rem;display:grid;gap:.8rem">' +
     '<p>Vous avez été reconnu(e). Une condamnation est en attente d’exécution.</p>' +
     '<p>Vos PA : <strong>' + Math.max(0, Number(state.pa || 0)) + '</strong>' +
@@ -12758,18 +12789,22 @@ function afficherInterceptionJudiciaire() {
 
 async function conclureArrestationJudiciaire() {
   const i = interceptionJudiciaire;
-  if (!i || interceptionJudiciaireOccupee) return;
+  if (!i || interceptionJudiciaireOccupee || i.reponseIncertaine) return;
+  const contexte = contexteInterceptionJudiciaire();
   interceptionJudiciaireOccupee = true;
+  afficherInterceptionJudiciaire();
   try {
     const verdict = (typeof sbRpc === 'function' && i.rencontreId)
       ? await sbRpc('police_reddition_resoudre', {p_rencontre:i.rencontreId})
           .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
       : null;
+    if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
     if (!verdict) {
-      i.reponseIncertaine = true;
+      marquerInterceptionIncertaine(i);
       showToast('Réponse réseau perdue', 'Ne relancez pas la reddition : reconnectez-vous pour retrouver la décision serveur.', false);
       return;
     }
+    if (verdict.ok === true && !verdict.detention_id) marquerInterceptionIncertaine(i);
     if (verdict.ok !== true || !verdict.detention_id) {
       showToast('Arrestation non confirmée', verdict?.raison || 'Détention serveur non confirmée.', false);
       return;
@@ -12813,22 +12848,26 @@ async function choisirInterceptionJudiciaire(choix) {
     showToast('Synchronisation nécessaire', 'Rechargez le jeu avant toute nouvelle décision policière.', false);
     return;
   }
+  const contexte = contexteInterceptionJudiciaire();
   if (choix === 'rendre') { await conclureArrestationJudiciaire(); return; }
   if (choix === 'fuir' && !i.fuiteEchouee) {
     if (typeof sbRpc !== 'function' || !i.rencontreId) return;
     // La sortie est resolue et persistee par le serveur, sans sortirBatiment().
     interceptionJudiciaireOccupee = true;
+    afficherInterceptionJudiciaire();
     let fuite;
     try {
       fuite = await sbRpc('police_fuite_resoudre', {p_rencontre:i.rencontreId})
         .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
     } finally { interceptionJudiciaireOccupee = false; }
+    if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
     if (!fuite) {
-      i.reponseIncertaine = true;
+      marquerInterceptionIncertaine(i);
       showToast('Réponse réseau perdue', 'Ne rejouez pas la fuite : rechargez pour retrouver la position serveur.', false);
       return;
     }
     if (fuite.ok !== true) {
+      afficherInterceptionJudiciaire();
       showToast('Fuite indisponible', fuite?.raison || 'Réponse serveur absente.', false);
       return;
     }
@@ -12843,8 +12882,7 @@ async function choisirInterceptionJudiciaire(choix) {
         typeof afficherNoeudRue !== 'function') {
       showToast('Position à resynchroniser',
         'La fuite est enregistrée ; rechargez la position serveur.', false);
-      interceptionJudiciaire = null;
-      document.getElementById('modal-postes')?.classList.remove('open');
+      marquerInterceptionIncertaine(i);
       return;
     }
     const origine = i.rueNoeudId || null;
@@ -12860,6 +12898,7 @@ async function choisirInterceptionJudiciaire(choix) {
   // Un seul ordre serveur : validation du PJ, de la condamnation, de la présence
   // des policiers, jets militaires, PA des deux camps et rébellion atomiques.
   interceptionJudiciaireOccupee = true;
+  afficherInterceptionJudiciaire();
   let arreter = false;
   try {
     if (typeof sbRpc !== 'function') {
@@ -12877,8 +12916,9 @@ async function choisirInterceptionJudiciaire(choix) {
       p_batiment: i.rueNoeudId ? null : (i.zone?.batiment || state.currentBuilding),
       p_piece: i.rueNoeudId ? null : (i.zone?.piece || state.currentRoom)
     }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
     if (!verdict) {
-      i.reponseIncertaine = true;
+      marquerInterceptionIncertaine(i);
       showToast('Réponse réseau perdue', 'Ne rejouez pas ce round : rechargez pour synchroniser le combat.', false);
       return;
     }
@@ -12887,16 +12927,23 @@ async function choisirInterceptionJudiciaire(choix) {
         (verdict?.raison || 'erreur réseau') + '.', false);
       return;
     }
+    if (!Number.isInteger(verdict.pa) || verdict.pa < 0 ||
+        !Number.isInteger(verdict.policiers_restants) || verdict.policiers_restants < 0) {
+      marquerInterceptionIncertaine(i);
+      showToast('Synchronisation nécessaire', 'Etat de combat incomplet ; aucune consequence locale inventee.', false);
+      return;
+    }
     i.round += 1;
     state.pa = Math.max(0, Number(verdict.pa || 0));
     if (typeof updateUI === 'function') updateUI();
-    if (verdict.police_neutralisee) {
+    if (verdict.police_neutralisee && !verdict.arrestation) {
       i.policiers = [];
       interceptionJudiciaire = null;
       document.getElementById('modal-postes')?.classList.remove('open');
       showToast('Police neutralisée', 'Vous restez sur place et demeurez recherché(e).', true);
     } else if (verdict.arrestation) {
       if (!verdict.detention_id) {
+        marquerInterceptionIncertaine(i);
         showToast('Arrestation non confirmée', 'Détention non enregistrée par le serveur.', false);
         return;
       }
@@ -12914,7 +12961,7 @@ async function choisirInterceptionJudiciaire(choix) {
       i.fuiteEchouee = true;
       // L'état affiché provient du verdict serveur, pas d'une victoire locale.
       i.policiers = Array.from({length: Number(verdict.policiers_restants || 0)},
-        (_, n) => i.policiers[n] || {stats:{VOL:12,PER:12}});
+        (_, n) => i.policiers[n] || {});
       showToast('Combat en cours', 'Le combat a été enregistré. Vous pouvez vous rendre ou continuer.', false);
     }
   } finally {
@@ -12930,7 +12977,9 @@ async function verifierArrestationRecherchePolice(options = {}) {
   // Source canonique unique : avis de recherche judiciaires exposes par le serveur.
   // Ne jamais relire le champ historique personnages.recherche depuis le client.
   if (typeof sbRpc !== 'function') return false;
+  const contexteRecherche = contexteInterceptionJudiciaire();
   const rechercheRows = await sbRpc('justice_recherches', { p_nom: state.char.name }).catch(() => null);
+  if (!contexteInterceptionJudiciaireValide(contexteRecherche)) return false;
   if (!Array.isArray(rechercheRows)) return false; // panne serveur : ne pas inventer une absence de recherche
   const rechercheActuelle = rechercheRows.map(function (r) {
     return Object.assign({}, r.data || {}, { id: r.id, type: 'condamnation', country: r.country,
@@ -12955,7 +13004,7 @@ async function verifierArrestationRecherchePolice(options = {}) {
     afficherInterceptionJudiciaire();
     return true;
   }
-  interceptionJudiciaire = { eligible, recherche: rechercheActuelle,
+  interceptionJudiciaire = { contexte: contexteRecherche, eligible, recherche: rechercheActuelle,
     ville: state.currentCity, policiers: options.policiers || [{stats:{VOL:12}}],
     zone: options.zone || { pays: state.country, ville: state.currentCity,
       batiment: state.currentBuilding, piece: state.currentRoom,

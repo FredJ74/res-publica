@@ -1137,6 +1137,7 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
 }
 
 async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfirmee = false) {
+  if (!positionDejaConfirmee && typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
   if (!noeud) return;
   if (pays === 'republic' && !positionDejaConfirmee) {

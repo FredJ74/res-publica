@@ -275,6 +275,7 @@ function batimentHospitalisation() {
 }
 
 function enterBuilding(buildingId, skipAutoRoom) {
+  if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   const b = BUILDINGS[buildingId];
@@ -594,6 +595,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   // Position AVANT le changement : le raccordement d'entree en a besoin pour faire reculer un
@@ -1431,6 +1433,7 @@ function checkZoneEmbarquementAcces(buildingId, roomId) {
 }
 
 function sortirBatiment() {
+  if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   if (state.estEmprisonne) {
