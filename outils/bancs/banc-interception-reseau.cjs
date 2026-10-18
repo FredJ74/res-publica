@@ -9,14 +9,28 @@ function contexte(){
  teleporterVersCellule:d=>{c.transfert=d;},afficherNoeudRue:async(...args)=>{c.navigation=args;}});
  vm.runInContext('let interceptionJudiciaire=null,interceptionJudiciaireOccupee=false;'+fonctions('plateau-justice-economie.js',[
  'contexteInterceptionJudiciaire','contexteInterceptionJudiciaireValide','interceptionJudiciaireBloqueDeplacement','marquerInterceptionIncertaine',
- 'afficherInterceptionJudiciaire','conclureArrestationJudiciaire','choisirInterceptionJudiciaire','verifierArrestationRecherchePolice',
+ 'afficherInterceptionJudiciaire','recupererVerdictInterception','ordreInterceptionAvecReprise','conclureArrestationJudiciaire','choisirInterceptionJudiciaire','verifierArrestationRecherchePolice',
  'verifierSurveillancePolicePJUnique','calculerPerGroupePolice','calculerVolGroupePolice']),c);
  vm.runInContext(`interceptionJudiciaire={rencontreId:'police-rencontre',ville:'capitale',eligible:{},policiers:[{},{}],zone:{batiment:'mairie',piece:'accueil'}};`,c);
  c.dossier=()=>vm.runInContext('interceptionJudiciaire',c);c.html=()=>elements.get('postes-body').innerHTML;return c;
 }
 for(const action of ['rendre','fuir','combattre'])test(`${action} : double clic, perte de reponse et appel direct ne rejouent jamais l'acte`,async()=>{
  const c=contexte();let n=0,resolve;c.sbRpc=()=>{n++;return new Promise(r=>resolve=r);};const a=c.choisirInterceptionJudiciaire(action);await c.choisirInterceptionJudiciaire(action);assert.equal(n,1);assert.match(c.html(),/disabled/);resolve(null);await a;
- assert.equal(c.dossier().reponseIncertaine,true);assert.doesNotMatch(c.html(),/onclick=/);await c.conclureArrestationJudiciaire();await c.choisirInterceptionJudiciaire(action);assert.equal(n,1);assert.equal(c.transfert,undefined);
+ assert.equal(c.dossier().reponseIncertaine,true);assert.doesNotMatch(c.html(),/onclick=/);await c.conclureArrestationJudiciaire();await c.choisirInterceptionJudiciaire(action);assert.equal(n,2);assert.equal(c.transfert,undefined);
+});
+for(const action of ['rendre','fuir','combattre'])test(`${action} : relecture du reçu après perte de réponse sans rejouer l'action`,async()=>{
+ const c=contexte();const appels=[];
+ c.sbRpc=async(nom,parametres)=>{
+  appels.push([nom,parametres]);
+  if(nom==='police_action_resultat_lire')return {ok:true,trouve:true,verdict:action==='rendre'?{ok:true,detention_id:'d',jours:2}:action==='fuir'?{ok:true,reussite:true,destination:'destination'}:{ok:true,pa:10,policiers_restants:1,arrestation:false,police_neutralisee:false}};
+  throw Error('connexion perdue');
+ };
+ await c.choisirInterceptionJudiciaire(action);
+ assert.equal(appels.length,2);assert.equal(appels[1][0],'police_action_resultat_lire');
+ assert.equal(appels[1][1].p_action,action==='rendre'?'reddition':action==='fuir'?'fuite':'combat');
+ if(action==='rendre')assert.equal(c.transfert.detentionId,'d');
+ if(action==='fuir')assert.equal(c.navigation[1],'destination');
+ if(action==='combattre')assert.equal(c.state.pa,10);
 });
 test('reddition : detention confirmee avant transfert',async()=>{const c=contexte();c.sbRpc=async()=>({ok:true,detention_id:'d',jours:2});await c.choisirInterceptionJudiciaire('rendre');assert.equal(c.transfert.detentionId,'d');assert.equal(c.dossier(),null);});
 test('reddition incomplete ne libere pas la navigation',async()=>{const c=contexte();c.sbRpc=async()=>({ok:true});await c.choisirInterceptionJudiciaire('rendre');assert.equal(c.dossier().reponseIncertaine,true);assert.equal(c.transfert,undefined);});
