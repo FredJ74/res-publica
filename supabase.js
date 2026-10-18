@@ -75,6 +75,7 @@ async function sbTransportRest(methode, table, filtres, corps, preferResolution)
              code: null, message: null, envoyee: false, donnees: null };
   }
 
+  if (methode !== 'GET' && typeof sbInvaliderLecturesRecentes === 'function') sbInvaliderLecturesRecentes();
   const url = `${SUPABASE_URL}/rest/v1/${table}` + (filtres ? `?${filtres}` : '');
   const prefer = preferResolution
     ? `return=representation,resolution=${preferResolution}`
@@ -282,17 +283,29 @@ function sbAdopterInventaireServeur(reponse) {
 
 // Fusionne uniquement les lectures GET strictement simultanees. Pas de cache persistant :
 // une lecture suivante retrouve toujours les donnees fraiches, et les mutations restent intactes.
+const sbLecturesRecentes = new Map();
+const SB_ANTI_RAFALE_MS = 1500;
+const SB_ANTI_RAFALE_TABLES = new Set(['championnat', 'evenements_globaux', 'assemblee_propositions']);
+function sbInvaliderLecturesRecentes() { sbLecturesRecentes.clear(); }
 const sbLecturesEnCours = new Map();
 async function sbGet(table, filters = '') {
   const origine = sbContexteInventaire();
   // La session fait partie de la cle : ne jamais partager une reponse entre comptes.
   const identite = (typeof rpAuthJeton === 'function' && rpAuthJeton()) || '';
   const cle = JSON.stringify([identite, table, filters]);
+  const antiRafale = SB_ANTI_RAFALE_TABLES.has(table);
+  const recente = antiRafale ? sbLecturesRecentes.get(cle) : null;
+  if (recente && Date.now() - recente.date < SB_ANTI_RAFALE_MS) return sbMarquerInventaires(recente.donnees, origine);
+  if (recente) sbLecturesRecentes.delete(cle);
   let lecture = sbLecturesEnCours.get(cle);
   if (!lecture) {
     lecture = (async () => {
       try {
         const env = sbRelancerSiReseau(await sbTransportRest('GET', table, filters));
+        if (antiRafale && env.etat === 'ok' && Array.isArray(env.donnees)) {
+          if (sbLecturesRecentes.size >= 100) sbLecturesRecentes.clear();
+          sbLecturesRecentes.set(cle, { date: Date.now(), donnees: env.donnees });
+        }
         return env.etat === 'ok' ? env.donnees : null;
       } finally {
         // Liberer avant la resolution de la promesse : une lecture ulterieure

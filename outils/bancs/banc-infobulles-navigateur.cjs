@@ -37,7 +37,7 @@ const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}(async()=>{try{
   const port=serveur.address().port;
   const executable=process.env.HG_CHROMIUM||['/usr/bin/chromium','/usr/bin/google-chrome','/usr/bin/google-chrome-stable'].find(p=>fs.existsSync(p));
   if(!executable)throw Error('Chromium requis pour cette verification');
-  const p=spawn(executable,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+profil,'about:blank'],{detached:true,env:{...process.env,XDG_CONFIG_HOME:profil,XDG_CACHE_HOME:profil}});
+  const p=spawn(executable,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--disable-dev-shm-usage','--disable-software-rasterizer','--no-zygote','--disable-extensions','--remote-debugging-port=0','--user-data-dir='+profil,'about:blank'],{detached:true,env:{...process.env,XDG_CONFIG_HOME:profil,XDG_CACHE_HOME:profil}});
   let logs='';p.stderr.on('data',b=>logs+=b);p.stdout.resume();
   let ws;
   try{
@@ -49,7 +49,7 @@ const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}(async()=>{try{
     const fichier=path.join(profil,'DevToolsActivePort');
     if(fs.existsSync(fichier)){
      const contenu=fs.readFileSync(fichier,'utf8');
-     const port=Number(contenu.split('\\n')[0]);
+     const port=Number(contenu.trim().split(/\s+/)[0]);
      if(Number.isInteger(port)&&port>0&&port<65536)portCDP=String(port);
     }
     if(!portCDP)portCDP=logs.match(/ws:\/\/127\.0\.0\.1:(\d+)/)?.[1]||null;
