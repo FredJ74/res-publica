@@ -116,16 +116,15 @@ att('et elle annonce la seconde carriere unique a vie',
 
 print('');
 print('3. LE CONSEILLER CONSEILLE, IL NE CREE PAS');
-att('l\'ecran du CHOIX DE L\'EMPIRE n\'est pas touche : le conseiller est pose APRES lui',
-    index.indexOf('<div id="modal-conseiller"') > index.indexOf('<div id="s1" class="screen">')
-    && index.indexOf('<div id="modal-conseiller"') < index.indexOf('<!-- SCREEN 2: ORIGIN -->'));
-att('les deux chemins sont immediatement visibles',
-    index.indexOf('onclick="conseillerPasser()"') >= 0
-    && index.indexOf('onclick="conseillerDemander()"') >= 0);
-att('il s\'ouvre une seule fois, a la sortie de l\'empire',
-    creation.indexOf('conseillerOuvrirSiBesoin()') >= 0
-    && bloc(creation, 'function conseillerOuvrirSiBesoin(', 'function conseillerPasser(')
-         .indexOf('G.conseillerVu') >= 0);
+att('le conseiller expérimental n\'interrompt plus le choix du personnage',
+    index.indexOf('<div id="modal-conseiller"') < 0
+    && index.indexOf('<!-- SCREEN 2: ORIGIN -->') > index.indexOf('<div id="s1" class="screen">'));
+att('aucun bouton de conseiller n\'est visible',
+    index.indexOf('onclick="conseillerPasser()"') < 0
+    && index.indexOf('onclick="conseillerDemander()"') < 0);
+att('la navigation vers l\'origine n\'ouvre plus le conseiller',
+    bloc(creation, 'function goTo(', 'function rafraichirEcranCreationApresChangementLangue(')
+      .indexOf('conseillerOuvrirSiBesoin()') < 0);
 att('la proposition vit dans G.conseil, et N\'ECRIT AUCUN des quatre choix',
     bloc(creation, 'async function conseillerDemander(', 'function echapperConseil(')
       .indexOf('G.conseil=prop') >= 0
