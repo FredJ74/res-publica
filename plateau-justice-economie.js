@@ -11556,33 +11556,58 @@ async function verifierSurveillancePolicePJ(buildingId, roomId, rueNoeudId) {
   }
 }
 async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId) {
+  // Une interception en cours prime sur tout nouveau contrôle de police.
+  // Sinon des déplacements/rendus successifs pouvaient empiler contrôle et arrestation.
+  if (interceptionJudiciaire) { afficherInterceptionJudiciaire(); return; }
   if (state.estEmprisonne) return; // deja incarcere, rien a controler
   const pays = state.country || 'republic';
   const ville = state.currentCity;
   if (!ville) return;
 
   const effectifs = await chargerEffectifsPolice(pays, ville).catch(() => null);
-  if (!effectifs || !effectifs.policiers.length) return;
+  if (!effectifs || !Array.isArray(effectifs.policiers) || !effectifs.policiers.length) return;
 
   const enRue = !!rueNoeudId;
+  const zoneSurveillee = { pays, ville, batiment: buildingId || null,
+    piece: roomId || null, rue: rueNoeudId || null };
   const presents = enRue
-    ? effectifs.policiers.filter(p => p.rueNoeudId === rueNoeudId)
-    : effectifs.policiers.filter(p => p.buildingId === buildingId && p.roomId === roomId);
+    ? effectifs.policiers.filter(p => p.rueNoeudId === rueNoeudId && Number(p.pa ?? 12) > 0)
+    : effectifs.policiers.filter(p => p.buildingId === buildingId && p.roomId === roomId && Number(p.pa ?? 12) > 0);
   if (presents.length === 0) return;
 
   let perGroupe = calculerPerGroupePolice(presents);
   if (enRue) perGroupe -= DILUTION_RUE_PER_POLICE; // dilution rue uniquement, jamais en piece
 
+  // La recherche et le jet de detection sont exclusivement arbitres par le serveur.
+  // Aucune interception judiciaire n'est autorisee sur un tirage du navigateur.
+  const detection = (pays === 'republic' && typeof sbRpc === 'function')
+    ? await sbRpc('police_detection_verifier', {
+        p_batiment: enRue ? null : buildingId,
+        p_piece: enRue ? null : roomId,
+        p_rue: rueNoeudId || null
+      }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+    : null;
+  if (pays === 'republic' && detection?.ok === true && detection.detecte === true) {
+    if (state.country !== zoneSurveillee.pays || state.currentCity !== zoneSurveillee.ville ||
+        (enRue ? (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== zoneSurveillee.rue) :
+          (state.currentBuilding !== zoneSurveillee.batiment || state.currentRoom !== zoneSurveillee.piece))) return;
+    const intervention = await verifierArrestationRecherchePolice({
+      detecte: true, rencontreId: detection.rencontre, policiers: presents, rueNoeudId,
+      zone: zoneSurveillee
+    });
+    if (intervention === true) return;
+  }
+  if (pays === 'republic' && detection?.raison !== 'non_recherche') return;
   const disEff = calculerDisEffective();
   const chanceDetection = calculerChancePJ(disEff, perGroupe);
   const tirage = Math.floor(Math.random() * 100) + 1;
-  if (tirage <= chanceDetection) return; // PJ passe inapercu, aucune trace, silence total
+  if (tirage <= chanceDetection) return;
+  // Le chargement des effectifs est asynchrone : ne jamais intercepter dans une autre zone.
+  if (state.country !== zoneSurveillee.pays || state.currentCity !== zoneSurveillee.ville ||
+      (enRue && (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== zoneSurveillee.rue)) ||
+      (!enRue && (state.currentBuilding !== zoneSurveillee.batiment ||
+                   state.currentRoom !== zoneSurveillee.piece))) return;
 
-  // Une personne recherchee ne peut etre interpellee qu'apres ce jet de detection.
-  if (pays === 'republic' && typeof verifierArrestationRecherchePolice === 'function') {
-    const intervention = await verifierArrestationRecherchePolice({ detecte: true });
-    if (intervention === true) return;
-  }
   const volGroupe = calculerVolGroupePolice(presents);
   resoudreControlePoliceAutomatique(perGroupe, volGroupe);
 }
@@ -12557,7 +12582,26 @@ async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, vi
   // primitive canonique et clot la condamnation dans le meme mouvement ; rejouee, elle ne cree
   // pas de seconde peine.
   if (nom === state.char?.name) {
-    // Flagrant delit sur soi-meme : chemin direct conserve, aucune autorite en jeu.
+    // Condamnation judiciaire : le serveur ouvre la détention ET marque le jugement
+    // exécuté dans une seule transaction, sans exiger que le condamné soit commissaire.
+    if (entree.type === 'condamnation' && entree.id) {
+      const verdict = typeof sbRpc === 'function'
+        ? await sbRpc('justice_executer_condamnation_soi', { p_jugement_id: entree.id })
+            .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+        : null;
+      if (!verdict || verdict.ok !== true || !verdict.detention_id) {
+        return { motif, joursTotal: 0, detentionId: null, echec: true };
+      }
+      joursTotal = Number(verdict.jours || joursTotal);
+      state.estEmprisonne = {
+        raison: verdict.motif || motif, jours: joursTotal,
+        jourFin: (state.day || 1) + joursTotal,
+        detentionId: verdict.detention_id, city: ville,
+        country: state.country
+      };
+      return { motif: verdict.motif || motif, joursTotal, detentionId: verdict.detention_id };
+    }
+    // Flagrant délit distinct d'un jugement : conserver le chemin existant.
     const detentionId = (typeof enregistrerDetention === 'function')
       ? await enregistrerDetention(nom, motif, (state.day || 1) + joursTotal, undefined, ville, extra) : null;
     return { motif, joursTotal, detentionId };
@@ -12685,6 +12729,183 @@ async function confirmerOrganiserChasseHomme(pa, cost) {
 // effet ici, exactement comme pour la chasse a l'homme. Les anciennes entrees plates (actes
 // auto-detectes, sans `type`) ne sont pas concernees -- elles suivent leur propre mecanisme deja
 // existant (checkArrestationAuDeplacement/checkArrestationAuReveil), inchange.
+// Interception judiciaire : un seul dossier actif, issu exclusivement de justice_recherches.
+// La detention n'est executee qu'apres reddition ou neutralisation en combat.
+let interceptionJudiciaire = null;
+let interceptionJudiciaireOccupee = false;
+
+function afficherInterceptionJudiciaire() {
+  const i = interceptionJudiciaire;
+  if (!i) return;
+  const modal = document.getElementById('modal-postes');
+  const titre = document.getElementById('postes-modal-title');
+  const body = document.getElementById('postes-body');
+  if (!modal || !titre || !body) return;
+  // Un dossier ouvert ne peut pas disparaître par un changement de fenêtre :
+  // l'interception est conservée et réaffichée à la prochaine vérification.
+  titre.textContent = 'INTERCEPTION POLICIÈRE';
+  const btn = (action, label) => '<button type="button" class="ibtn" onclick="choisirInterceptionJudiciaire(&quot;' + action + '&quot;)">' + label + '</button>';
+  body.innerHTML = '<div class="hg-interception" style="padding:1.1rem;display:grid;gap:.8rem">' +
+    '<p>Vous avez été reconnu(e). Une condamnation est en attente d’exécution.</p>' +
+    '<p>Vos PA : <strong>' + Math.max(0, Number(state.pa || 0)) + '</strong>' +
+    ' · Forces de l’ordre encore en état : <strong>' + i.policiers.length + '</strong></p>' +
+    (i.fuiteEchouee ? '<p>Votre tentative de fuite a échoué : vous devez vous rendre ou combattre.</p>' : '') +
+    '<div style="display:grid;gap:.5rem">' + btn('rendre','Se rendre') +
+    btn('combattre','Combattre') + (i.fuiteEchouee ? '' : btn('fuir','Fuir')) + '</div></div>';
+  modal.classList.add('open');
+}
+
+async function conclureArrestationJudiciaire() {
+  const i = interceptionJudiciaire;
+  if (!i || interceptionJudiciaireOccupee) return;
+  interceptionJudiciaireOccupee = true;
+  try {
+    const verdict = (typeof sbRpc === 'function' && i.rencontreId)
+      ? await sbRpc('police_reddition_resoudre', {p_rencontre:i.rencontreId})
+          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+      : null;
+    if (!verdict || verdict.ok !== true || !verdict.detention_id) {
+      showToast('Arrestation non confirmée', verdict?.raison || 'Détention serveur non confirmée.', false);
+      return;
+    }
+    const jours = Number(verdict.jours || 0);
+    state.estEmprisonne = {
+      raison: verdict.motif || 'Condamnation', jours,
+      jourFin: (state.day || 1) + jours,
+      detentionId: verdict.detention_id, city: i.ville, country: state.country
+    };
+    const r = {detentionId:verdict.detention_id};
+    if (!r || r.echec || !r.detentionId) {
+      showToast('Arrestation non confirmée', 'Le serveur n’a pas confirmé la détention.', false);
+      return;
+    }
+    interceptionJudiciaire = null;
+    document.getElementById('modal-postes')?.classList.remove('open');
+    const nomVille = (typeof WORLD !== 'undefined' && WORLD[state.country]?.[i.ville]?.name) || i.ville;
+    addJournalEntry('Vous êtes arrêté(e) et conduit(e) à la prison de ' + nomVille + '.', 'event-bad');
+    addExternalEvent(state.char.name + ' a été arrêté(e) après une interception policière.', 'local');
+    // Utiliser le transport carcéral commun : il connaît les cellules de chaque ville.
+    // Le trajet manuel commissariat/prison était incorrect hors de Luthécia.
+    if (state.estEmprisonne && typeof teleporterVersCellule === 'function') {
+      teleporterVersCellule(state.estEmprisonne);
+    }
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
+      ouvrirResolutionSpectaculaire({type:'arrestation',succes:true,titre:'VOUS ÊTES EN ÉTAT D’ARRESTATION',
+        resultatHtml:construireResultatArrestationHtml(i.eligible.motifs || [],i.ville,state.country)});
+    }
+  } finally {
+    interceptionJudiciaireOccupee = false;
+    if (interceptionJudiciaire) afficherInterceptionJudiciaire();
+  }
+}
+
+async function choisirInterceptionJudiciaire(choix) {
+  const i = interceptionJudiciaire;
+  if (!i || interceptionJudiciaireOccupee) return;
+  if (choix === 'rendre') { await conclureArrestationJudiciaire(); return; }
+  if (choix === 'fuir' && !i.fuiteEchouee) {
+    if (typeof sbRpc !== 'function' || !i.rencontreId) return;
+    if (!i.rueNoeudId && typeof sortirBatiment !== 'function') {
+      showToast('Fuite impossible','Sortie indisponible.',false); return;
+    }
+    interceptionJudiciaireOccupee = true;
+    let fuite;
+    try {
+      fuite = await sbRpc('police_fuite_resoudre', {p_rencontre:i.rencontreId})
+        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    } finally { interceptionJudiciaireOccupee = false; }
+    if (!fuite || fuite.ok !== true) {
+      showToast('Fuite indisponible', fuite?.raison || 'Réponse serveur absente.', false);
+      return;
+    }
+    if (!fuite.reussite) { i.fuiteEchouee = true; afficherInterceptionJudiciaire(); return; }
+    // Un succès impose un déplacement physique. Si aucune destination valide n'existe,
+    // l'interception reste ouverte ; une simple fermeture de fenêtre n'est pas une fuite.
+    // Le RPC a DEJA deplace le personnage et clos la rencontre en base.
+    // Ne pas rejouer sortirBatiment() ou rue_position_enregistrer() : le
+    // navigateur ne fait que representer la destination confirmee.
+    const destination = fuite.destination;
+    if (!destination || !RUE_CENTRALE_NOEUDS?.[state.country]?.[destination] ||
+        typeof afficherNoeudRue !== 'function') {
+      showToast('Position à resynchroniser',
+        'La fuite est enregistrée ; rechargez la position serveur.', false);
+      interceptionJudiciaire = null;
+      document.getElementById('modal-postes')?.classList.remove('open');
+      return;
+    }
+    const origine = i.rueNoeudId || null;
+    interceptionJudiciaire = null;
+    document.getElementById('modal-postes')?.classList.remove('open');
+    state.currentBuilding = null;
+    state.currentRoom = null;
+    await afficherNoeudRue(state.country, destination, origine, true);
+    addJournalEntry('Vous avez échappé à une interception policière.', 'event-info');
+    return;
+  }
+  if (choix !== 'combattre') return;
+  // Un seul ordre serveur : validation du PJ, de la condamnation, de la présence
+  // des policiers, jets militaires, PA des deux camps et rébellion atomiques.
+  interceptionJudiciaireOccupee = true;
+  let arreter = false;
+  try {
+    if (typeof sbRpc !== 'function') {
+      showToast('Combat indisponible', 'Serveur inaccessible.', false); return;
+    }
+    if (!i.rencontreId) {
+      showToast('Combat indisponible', 'Aucune rencontre validée par le serveur.', false);
+      return;
+    }
+    if (!i.round) i.round = 1;
+    const verdict = await sbRpc('police_combat_resoudre', {
+      p_rencontre: i.rencontreId,
+      p_round: i.round,
+      p_rue: i.rueNoeudId || null,
+      p_batiment: i.rueNoeudId ? null : (i.zone?.batiment || state.currentBuilding),
+      p_piece: i.rueNoeudId ? null : (i.zone?.piece || state.currentRoom)
+    }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    if (!verdict || verdict.ok !== true) {
+      showToast('Combat indisponible', 'Le serveur a refusé ce combat : ' +
+        (verdict?.raison || 'erreur réseau') + '.', false);
+      return;
+    }
+    i.round += 1;
+    state.pa = Math.max(0, Number(verdict.pa || 0));
+    if (typeof updateUI === 'function') updateUI();
+    if (verdict.police_neutralisee) {
+      i.policiers = [];
+      interceptionJudiciaire = null;
+      document.getElementById('modal-postes')?.classList.remove('open');
+      showToast('Police neutralisée', 'Vous restez sur place et demeurez recherché(e).', true);
+    } else if (verdict.arrestation) {
+      if (!verdict.detention_id) {
+        showToast('Arrestation non confirmée', 'Détention non enregistrée par le serveur.', false);
+        return;
+      }
+      const jours = Number(verdict.jours || 0);
+      state.estEmprisonne = { raison: verdict.motif || 'Condamnation', jours,
+        jourFin: (state.day || 1) + jours, detentionId: verdict.detention_id,
+        city: i.ville, country: state.country };
+      interceptionJudiciaire = null;
+      document.getElementById('modal-postes')?.classList.remove('open');
+      if (typeof teleporterVersCellule === 'function') teleporterVersCellule(state.estEmprisonne);
+      addJournalEntry('Vous êtes arrêté(e) et conduit(e) en prison.', 'event-bad');
+      if (typeof updateUI === 'function') updateUI();
+      return;
+    } else {
+      i.fuiteEchouee = true;
+      // L'état affiché provient du verdict serveur, pas d'une victoire locale.
+      i.policiers = Array.from({length: Number(verdict.policiers_restants || 0)},
+        (_, n) => i.policiers[n] || {stats:{VOL:12,PER:12}});
+      showToast('Combat en cours', 'Le combat a été enregistré. Vous pouvez vous rendre ou continuer.', false);
+    }
+  } finally {
+    interceptionJudiciaireOccupee = false;
+    if (interceptionJudiciaire && !arreter) afficherInterceptionJudiciaire();
+  }
+  if (arreter) await conclureArrestationJudiciaire();
+}
+
 async function verifierArrestationRecherchePolice(options = {}) {
   if ((state.country || 'republic') === 'republic' && options.detecte !== true) return false;
   if (state.estEmprisonne || !state.char?.name) return;
@@ -12694,7 +12915,7 @@ async function verifierArrestationRecherchePolice(options = {}) {
   const rechercheRows = await sbRpc('justice_recherches', { p_nom: state.char.name }).catch(() => null);
   if (!Array.isArray(rechercheRows)) return false; // panne serveur : ne pas inventer une absence de recherche
   const rechercheActuelle = rechercheRows.map(function (r) {
-    return Object.assign({}, r.data || {}, { id: r.id, country: r.country,
+    return Object.assign({}, r.data || {}, { id: r.id, type: 'condamnation', country: r.country,
                                              ville_condamnation: r.ville_condamnation });
   });
   const eligible = rechercheActuelle.find(r => r.type === 'condamnation' && (!r.country || r.country === state.country));
@@ -12703,38 +12924,27 @@ async function verifierArrestationRecherchePolice(options = {}) {
   // emprisonne par ailleurs) -- ne jamais arreter dans un contexte devenu incoherent.
   if (state.estEmprisonne) return;
 
-  const ville = state.currentCity;
-  const { joursTotal } = await executerCondamnationRecherchee(state.char.name, eligible, rechercheActuelle, ville);
-
-  const nomVille = (typeof WORLD !== 'undefined' && WORLD[state.country]?.[ville]?.name) || ville;
-  showToast('Arrêté(e) !', 'Une condamnation en attente d\'exécution vous rattrape.', false, true);
-  addJournalEntry('Vous croisez une patrouille de police : une condamnation en attente d\'execution vous concernant est reconnue. Conduit(e) a la prison de ' + nomVille + '. Peine totale a purger : ' + joursTotal + ' jour(s).', 'event-bad');
-  addExternalEvent(state.char.name + ' a ete arrete(e) suite a une condamnation en attente d\'execution.', 'local');
-
-  // Teleportation vers la prison/geoles de CETTE ville (meme logique multivilles que
-  // procederArrestation, lot "ordres carceraux hors Luthecia").
-  const buildingIdCellule = (typeof getBuildingIdCommissariatNavigation === 'function') ? getBuildingIdCommissariatNavigation(ville) : 'commissariat';
-  const roomIdCellule = (buildingIdCellule === 'commissariat') ? 'prison' : 'geoles';
-  state.currentBuilding = buildingIdCellule;
-  state.currentRoom = roomIdCellule;
-  if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
-    enterBuilding(buildingIdCellule, true);
-    if (typeof enterRoom === 'function') enterRoom(buildingIdCellule, roomIdCellule, null);
+  // Un retour serveur tardif ne doit jamais réafficher une interception depuis
+  // une ancienne pièce ou une ancienne ville, même si une autre est déjà ouverte.
+  // La détection doit encore concerner la zone où le PJ se trouve : l'appel serveur
+  // peut revenir après un changement de ville, de bâtiment ou de pièce.
+  if (options.zone && (state.country !== options.zone.pays ||
+      state.currentCity !== options.zone.ville ||
+      (options.zone.rue ? (typeof rueCentraleNoeudActuel !== 'undefined' &&
+        rueCentraleNoeudActuel !== options.zone.rue) :
+        (state.currentBuilding !== options.zone.batiment || state.currentRoom !== options.zone.piece)))) return false;
+  if (interceptionJudiciaire) {
+    afficherInterceptionJudiciaire();
+    return true;
   }
-  if (typeof updateUI === 'function') updateUI();
-
-  // Resolution spectaculaire, appelee APRES persistance + teleportation (§8) -- meme motifs que
-  // ceux reellement utilises par executerCondamnationRecherchee ci-dessus (entree.motifs pour une
-  // condamnation enrichie, sinon un motif unique reconstruit a l'identique de sa propre logique).
-  if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
-    const motifsAffiches = (eligible.type === 'condamnation' && eligible.motifs?.length) ? eligible.motifs : [{ type: eligible.acte || 'Avis de recherche', jours: joursTotal }];
-    ouvrirResolutionSpectaculaire({
-      type: 'arrestation',
-      succes: true,
-      titre: 'VOUS ÊTES EN ÉTAT D\'ARRESTATION',
-      resultatHtml: construireResultatArrestationHtml(motifsAffiches, ville, state.country)
-    });
-  }
+  interceptionJudiciaire = { eligible, recherche: rechercheActuelle,
+    ville: state.currentCity, policiers: options.policiers || [{stats:{VOL:12}}],
+    zone: options.zone || { pays: state.country, ville: state.currentCity,
+      batiment: state.currentBuilding, piece: state.currentRoom,
+      rue: options.rueNoeudId || null },
+    rueNoeudId: options.rueNoeudId || null, rencontreId: options.rencontreId || null,
+    fuiteEchouee: false };
+  afficherInterceptionJudiciaire();
   return true;
 }
 
