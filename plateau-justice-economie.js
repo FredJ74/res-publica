@@ -12822,26 +12822,24 @@ async function choisirInterceptionJudiciaire(choix) {
     if (!fuite.reussite) { i.fuiteEchouee = true; afficherInterceptionJudiciaire(); return; }
     // Un succès impose un déplacement physique. Si aucune destination valide n'existe,
     // l'interception reste ouverte ; une simple fermeture de fenêtre n'est pas une fuite.
-    if (i.rueNoeudId) {
-      const noeud = typeof RUE_CENTRALE_NOEUDS !== 'undefined' ? RUE_CENTRALE_NOEUDS[state.country]?.[i.rueNoeudId] : null;
-      const voisins = [noeud?.liens?.gauche, noeud?.liens?.droite].filter(Boolean);
-      if (!voisins.length || typeof afficherNoeudRue !== 'function') {
-        showToast('Fuite impossible', 'Aucun segment de rue accessible.', false); return;
-      }
-      const destination = fuite.destination;
-      if (!destination || !voisins.includes(destination)) {
-        showToast('Déplacement non confirmé', 'Destination serveur incohérente.', false);
-        return;
-      }
+    // Le RPC a DEJA deplace le personnage et clos la rencontre en base.
+    // Ne pas rejouer sortirBatiment() ou rue_position_enregistrer() : le
+    // navigateur ne fait que representer la destination confirmee.
+    const destination = fuite.destination;
+    if (!destination || !RUE_CENTRALE_NOEUDS?.[state.country]?.[destination] ||
+        typeof afficherNoeudRue !== 'function') {
+      showToast('Position à resynchroniser',
+        'La fuite est enregistrée ; rechargez la position serveur.', false);
       interceptionJudiciaire = null;
       document.getElementById('modal-postes')?.classList.remove('open');
-      afficherNoeudRue(state.country,destination,i.rueNoeudId);
-    } else {
-      if (typeof sortirBatiment !== 'function') { showToast('Fuite impossible','Sortie indisponible.',false); return; }
-      interceptionJudiciaire = null;
-      document.getElementById('modal-postes')?.classList.remove('open');
-      sortirBatiment();
+      return;
     }
+    const origine = i.rueNoeudId || null;
+    interceptionJudiciaire = null;
+    document.getElementById('modal-postes')?.classList.remove('open');
+    state.currentBuilding = null;
+    state.currentRoom = null;
+    await afficherNoeudRue(state.country, destination, origine, true);
     addJournalEntry('Vous avez échappé à une interception policière.', 'event-info');
     return;
   }
