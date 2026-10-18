@@ -55,3 +55,33 @@ GRANT EXECUTE ON FUNCTION public.police_reprise_lire(text) TO authenticated;
 -- Faire enregistrer chaque verdict dans cette table dans la même transaction
 -- que ses effets (reddition, fuite, combat), et relire le reçu avant les gardes
 -- de rencontre expirée/détention ; tests PostgreSQL concurrence + reconnexion.
+
+-- Consultation exacte d'un résultat, indispensable pour une répétition idempotente.
+-- Cette procédure est en lecture seule et ne rejoue jamais l'action.
+CREATE OR REPLACE FUNCTION public.police_action_resultat_lire(
+  p_rencontre text, p_action text, p_round integer DEFAULT 0
+) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public','pg_temp'
+AS $$
+DECLARE v_nom text; v_verdict jsonb;
+BEGIN
+  v_nom := public.mon_personnage();
+  IF v_nom IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
+  IF p_rencontre IS NULL OR length(p_rencontre) NOT BETWEEN 8 AND 120
+     OR p_action NOT IN ('reddition','fuite','combat')
+     OR p_round IS NULL OR
+       (p_action='combat' AND p_round NOT BETWEEN 1 AND 100) OR
+       (p_action<>'combat' AND p_round<>0) THEN
+    RETURN jsonb_build_object('ok',false,'raison','parametres_invalides');
+  END IF;
+  SELECT verdict INTO v_verdict FROM public.police_action_receipts
+   WHERE personnage=v_nom AND rencontre=p_rencontre
+     AND action=p_action AND round_key=p_round;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok',true,'trouve',false); END IF;
+  RETURN jsonb_build_object('ok',true,'trouve',true,'verdict',v_verdict);
+END;
+$$;
+REVOKE ALL ON FUNCTION public.police_action_resultat_lire(text,text,integer)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.police_action_resultat_lire(text,text,integer)
+  TO authenticated;
