@@ -1067,7 +1067,7 @@ function variantePositionnerEnseigne(cadre, conf, url, el, ancrage) {
     // Placer l'enseigne dans son propre bandeau superieur, centree dans le cadre.
     const decorPremium = cadre.getAttribute('data-commerce-decor') === '1';
     const px = decorPremium
-      ? { gauche: cadre.clientWidth * .15, haut: Math.max(8, cadre.clientHeight * .035),
+      ? { gauche: cadre.clientWidth * .15, haut: Math.max(8, cadre.clientHeight * .145),
           largeur: cadre.clientWidth * .70, hauteur: Math.max(36, cadre.clientHeight * .085) }
       : varianteZoneEnPixels(conf.zone, cadre, taille, ancrage);
     if (!px) { el.style.display = 'none'; return; }
