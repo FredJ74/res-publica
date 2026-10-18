@@ -1366,11 +1366,27 @@ function commercePjLibelleMatiereRecette(cle, rec) {
   return commercePjLibelleMatiere(cle);
 }
 
+// Materiaux intermediaires : contrat des trois recettes electroniques.
+// Le moteur serveur conserve seul l'autorite sur les consommations et les couts.
+function commercePjIntermediaires(rec) {
+  if (rec.recette_id === 'ordinateur_complet_commerce') return { 'composants-electroniques': 2 };
+  if (rec.recette_id === 'telephone_cellulaire_commerce') return { 'composants-electroniques': 1 };
+  return rec.intermediaires || {};
+}
+function commercePjStockIntermediaire(fonds, cle) {
+  const refs = fonds.references || {}, stocks = fonds.stockReferences || {};
+  return Object.keys(refs).filter(id => refs[id]?.generique_id === cle)
+    .reduce((n,id) => n + Math.max(0,Number(stocks[id]) || 0),0);
+}
+
 // Rendu lisible d'une recette systeme : jamais d'identifiant, jamais de JSON.
 function commercePjRecetteLisible(rec) {
   const mats = rec.materiaux || {};
   const parts = Object.keys(mats).map(function (m) {
     return mats[m] + ' × ' + commercePjLibelleMatiereRecette(m, rec);
+  });
+  Object.keys(commercePjIntermediaires(rec)).forEach(function (m) {
+    parts.push(commercePjIntermediaires(rec)[m] + ' × Composants électroniques (stock fabriqué)');
   });
   if (Number(rec.pa) > 0) parts.push(rec.pa + ' PA');
   let h = '<div style="font-size:.8rem;color:#8a8060;line-height:1.5">';
@@ -1719,6 +1735,13 @@ async function commercePjEcranTravail(ctx) {
     Object.keys(rec.materiaux || {}).forEach(function (m) {
       if ((Number(stockMat[m]) || 0) < (Number(rec.materiaux[m]) || 0)) matieresOk = false;
     });
+    Object.keys(commercePjIntermediaires(rec)).forEach(function (m) {
+      const besoin = Number(commercePjIntermediaires(rec)[m]) || 0;
+      const possede = Object.keys(refs).some(function (refId) {
+        return refs[refId]?.generique_id === m && (Number(stocks[refId]) || 0) >= besoin;
+      });
+      if (!possede) matieresOk = false;
+    });
 
     html += '<div style="border:1px solid #2a2620;padding:.7rem .8rem;margin-bottom:.6rem">';
     html += '<div style="color:#e0d8c0;font-size:.95rem;margin-bottom:.1rem">' +
@@ -1743,6 +1766,12 @@ async function commercePjEcranTravail(ctx) {
     Object.keys(rec.materiaux || {}).forEach(function (m) {
       const a = Math.max(0, Number(stockMat[m]) || 0), b = Number(rec.materiaux[m]) || 0;
       html += commercePjLigne(commercePjLibelleMatiere(m),
+        '<span style="color:' + (a >= b ? '#6fa07a' : '#a05a4a') + '">' + a + ' / ' + b + '</span>');
+    });
+
+    Object.keys(commercePjIntermediaires(rec)).forEach(function (m) {
+      const a = commercePjStockIntermediaire(f,m), b = Number(commercePjIntermediaires(rec)[m]) || 0;
+      html += commercePjLigne('Composants électroniques',
         '<span style="color:' + (a >= b ? '#6fa07a' : '#a05a4a') + '">' + a + ' / ' + b + '</span>');
     });
 
