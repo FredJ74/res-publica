@@ -947,6 +947,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
   setInterval(() => {
+    // Un onglet masque ne doit pas renouveler les presences ni recharger les vues.
+    // La sauvegarde de securite en fin de boucle reste active.
+    if (!document.hidden) {
     if (typeof sbUpdatePresence === 'function' && state.char?.name && state.currentBuilding && state.currentRoom) {
       sbUpdatePresence(state.char.name, state.country, state.currentCity, state.currentBuilding, state.currentRoom, typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : []).catch(() => {});
     }
@@ -970,6 +973,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (typeof camionRafraichirContexte === 'function') {
       camionRafraichirContexte().catch(() => {});
     }
+    } // fin des rafraichissements visuels : suspendus en onglet masque
     // Sauvegarde automatique periodique -- filet de securite pour rattraper tout gain
     // (INF, HP, etc.) qu'une fonction particuliere aurait omis de sauvegarder elle-meme.
     // Correctif du 25 aout 2026 (bug production confirme par instrumentation : un onglet
