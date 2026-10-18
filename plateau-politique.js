@@ -7836,6 +7836,7 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   // poste min_fin cote serveur, et incremente au lieu de reecrire. Les autres beneficiaires
   // (club, entreprise, organisation) gardent leur chemin, qui fonctionne.
   let montantVerse = 0;
+  let conflitInteretsSubvention = false;
   if (typeCible === 'citoyen') {
     const rows = await sbRpc('subvention_citoyen_verser',
       { p_beneficiaire: idCible, p_montant: montant }).catch(() => null);
@@ -7873,6 +7874,7 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
     }
     montantVerse = Number(resultat.verse || 0);
     // Auteur et proprietaire sont consignes cote serveur, meme si c'est le meme PJ.
+    conflitInteretsSubvention = resultat.conflitInterets === true;
     if (resultat.conflitInterets === true) {
       addJournalEntry('Conflit d’intérêts public : le ministre subventionne son propre commerce (' +
         nomCible + ', ' + montantVerse + ' FR).', 'event-info');
@@ -7901,6 +7903,12 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
   if (typeCible === 'citoyen' && typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', idCible, 'Subvention accordée', 'Vous avez reçu une subvention de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' du Ministre des Finances.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
 
+  // Une organisation economique est juridiquement distincte du fonds commercial.
+  // Sa subvention est publique et le lien ministre/chef ne doit pas etre escamote.
+  if (typeCible === 'organisation') {
+    const orgaSub = (state.organisations || []).find(o => o.id === idCible);
+    conflitInteretsSubvention = !!(orgaSub && orgaSub.chef === state.char?.name);
+  }
   // TRACABILITE PUBLIQUE (Lot 4.3). Le moteur ne demande aucune justification et n'empeche ni le
   // favoritisme ni la corruption -- c'est assume. Mais l'acte doit etre PUBLIC : beneficiaire,
   // montant, auteur, date. Jusqu'ici il ne laissait qu'un toast, un mail prive et une entree de
@@ -7911,7 +7919,8 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
   // tout type non declare, d'ou la declaration faite dans api/_journal-collecte.js.
   const auteurNom = state.char?.name || 'Le Ministre des Finances';
   const libelleSub = 'Subvention publique de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur +
-                     ' accordée à ' + nomCible + ' par ' + auteurNom + '.';
+                     ' accordée à ' + nomCible + ' par ' + auteurNom +
+                     (conflitInteretsSubvention ? ' (bénéficiaire dirigé ou possédé par le ministre)' : '') + '.';
   addExternalEvent('💰 ' + libelleSub);
   if (typeof sbEnregistrerEvenementPublic === 'function') {
     await sbEnregistrerEvenementPublic(pays, 'subvention_publique', {
