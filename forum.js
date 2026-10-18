@@ -306,7 +306,7 @@ const FORUM_VUES_COMPOSITION = ['compose-canvas', 'edit-post', 'new-topic', 'rep
 // #forum-main -- un rafraichissement en arriere-plan ne doit alors JAMAIS reconstruire
 // #forum-main, sous peine de le detruire silencieusement.
 function forumEstEnCompositionActuellement() {
-  return FORUM_VUES_COMPOSITION.includes(forumView) || mailView === 'compose';
+  return FORUM_VUES_COMPOSITION.includes(forumView) || ['compose','jodie-interview','jodie-preview'].includes(mailView);
 }
 let forumCategorieActive = null; // 'intra' | 'inter' | 'prive' | null (rien de deplie)
 let forumSousGroupeOuvert = false; // accordeon imbrique pour 'Institutionnels'
@@ -2481,12 +2481,20 @@ async function loadForumPostsFromSB(topicId) {
   } catch(e) { console.warn('loadForumPostsFromSB error', e); }
 }
 
+let mailLectureSequence = 0;
 async function loadMailsFromSB() {
   if (typeof sbGetMailsFor !== 'function') return;
   const name = state.char?.name;
   if (!name) return;
+  const personnage = state.char;
+  const sequence = ++mailLectureSequence;
+  const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const session = typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : null;
   try {
     const rows = await sbGetMailsFor(name);
+    if (sequence !== mailLectureSequence || state.char !== personnage || state.char?.name !== name ||
+        (typeof rpAuthUid === 'function' && rpAuthUid() !== uid) ||
+        (typeof rpAuthSessionIdentifiant === 'function' && rpAuthSessionIdentifiant() !== session)) return;
     // Lecture refusee ou en panne : le cache reste sur son etat precedent, et c'est voulu --
     // mieux vaut une boite figee qu'une boite videe. Le 401 observe en production vient d'une
     // session absente (role anon), pas de la messagerie : voir le rapport du 22 septembre.

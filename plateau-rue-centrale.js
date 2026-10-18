@@ -1125,8 +1125,7 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     if (position.building) {
       // La restauration d'une scene ne constitue pas un ordre de sortie.
       // L'utilisateur doit quitter le batiment par une action explicite.
-      if (typeof showToast === 'function') showToast('Position dans un bâtiment',
-        'Quittez le bâtiment pour rejoindre la rue.', false);
+      // Position normale : restaurer la scene n'est ni une erreur ni un ordre de sortie.
       return;
     }
     // Position vierge : seul le serveur peut valider le départ officiel.
