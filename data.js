@@ -339,7 +339,6 @@ function bureauxOpenSpaceCentreAffaires() {
       sortieVers: { buildingId: 'centre-affaires', roomId: 'open_space', city: 'capitale' },
       persons: [],
       orders: [
-        {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
         {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
         {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
         ORDRE_EQUIPEMENTS
