@@ -1484,12 +1484,23 @@ async function sortirBatiment() {
   // Confirmer la sortie sur le serveur AVANT d'effacer le bâtiment local.
   // Le serveur vérifie que le noeud est une sortie autorisée de ce bâtiment.
   if (state.country === 'republic' && typeof RUE_CENTRALE_NOEUDS !== 'undefined') {
-    const noeudSortie = (typeof noeudRueDuBatiment === 'function')
-      ? noeudRueDuBatiment(state.country, batimentQuitte) : null;
-    if (!noeudSortie || typeof sbRpc !== 'function') {
-      showToast('Sortie indisponible', 'Impossible de confirmer le segment de rue de ce bâtiment.', false);
+    // Le référentiel serveur, et non les zones graphiques, détermine la sortie.
+    if (typeof sbRpc !== 'function') {
+      showToast('Sortie indisponible', 'Connexion serveur indisponible.', false);
       return;
     }
+    let sortie = null;
+    try {
+      const resultat = await sbRpc('rue_sortie_batiment_lire', {});
+      sortie = Array.isArray(resultat) ? resultat[0] : resultat;
+    } catch (erreur) {
+      console.warn('Lecture de sortie refusée :', erreur);
+    }
+    if (sortie?.ok !== true || !sortie.noeud) {
+      showToast('Sortie impossible', sortie?.raison || 'Impossible de lire la sortie autorisée du bâtiment.', false);
+      return;
+    }
+    const noeudSortie = sortie.noeud;
     let confirmation = null;
     try {
       const resultat = await sbRpc('rue_position_enregistrer', { p_noeud: noeudSortie });
