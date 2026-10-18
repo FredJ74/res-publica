@@ -1432,7 +1432,7 @@ function checkZoneEmbarquementAcces(buildingId, roomId) {
   return true;
 }
 
-function sortirBatiment() {
+async function sortirBatiment() {
   if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
@@ -1480,6 +1480,28 @@ function sortirBatiment() {
   }
 
   const retourVersTerrainsMontrouge = typeof TERRAINS_PAR_VILLE !== 'undefined' && TERRAINS_PAR_VILLE.ville_b.includes(batimentQuitte);
+
+  // Confirmer la sortie sur le serveur AVANT d'effacer le bâtiment local.
+  // Le serveur vérifie que le noeud est une sortie autorisée de ce bâtiment.
+  if (state.country === 'republic' && typeof RUE_CENTRALE_NOEUDS !== 'undefined') {
+    const noeudSortie = (typeof noeudRueDuBatiment === 'function')
+      ? noeudRueDuBatiment(state.country, batimentQuitte) : null;
+    if (!noeudSortie || typeof sbRpc !== 'function') {
+      showToast('Sortie indisponible', 'Impossible de confirmer le segment de rue de ce bâtiment.', false);
+      return;
+    }
+    let confirmation = null;
+    try {
+      const resultat = await sbRpc('rue_position_enregistrer', { p_noeud: noeudSortie });
+      confirmation = Array.isArray(resultat) ? resultat[0] : resultat;
+    } catch (erreur) {
+      console.warn('Confirmation de sortie refusée :', erreur);
+    }
+    if (confirmation?.ok !== true) {
+      showToast('Sortie refusée', confirmation?.raison || 'Le serveur n’a pas confirmé la sortie du bâtiment.', false);
+      return;
+    }
+  }
 
   state.douanePassee = false;
   state.currentBuilding = null;
