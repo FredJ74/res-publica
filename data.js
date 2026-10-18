@@ -339,7 +339,6 @@ function bureauxOpenSpaceCentreAffaires() {
       sortieVers: { buildingId: 'centre-affaires', roomId: 'open_space', city: 'capitale' },
       persons: [],
       orders: [
-        {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
         {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
         {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
         ORDRE_EQUIPEMENTS
@@ -4246,7 +4245,6 @@ const BUILDINGS = {
         locationData: { prix: 1000, bonusPOP: 3, bonusINF: 12, bonusDIS: 8, label: 'Bureau Prestige', tier: 1 },
         persons: [],
         orders: [
-          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (1000 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 INF +8 DIS +3 POP. Le bureau qui impressionne.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
           ORDRE_EQUIPEMENTS
@@ -4261,7 +4259,6 @@ const BUILDINGS = {
         locationData: { prix: 500, bonusPOP: 1, bonusINF: 6, bonusDIS: 5, label: 'Bureau Standard', tier: 2 },
         persons: [],
         orders: [
-          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (500 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+6 INF +5 DIS +1 POP.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
           ORDRE_EQUIPEMENTS
@@ -4276,7 +4273,6 @@ const BUILDINGS = {
         locationData: { prix: 200, bonusPOP: 2, bonusINF: 3, bonusDIS: 1, label: 'Open Space', tier: 3 },
         persons: [],
         orders: [
-          {fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},
           {fn:'louer_local', label:'Louer ce local (200 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+3 INF +2 POP +1 DIS.'},
           {fn:'gerer_local', label:'Gérer mon local', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100},
           ORDRE_EQUIPEMENTS
