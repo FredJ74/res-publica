@@ -80,7 +80,15 @@ const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}(async()=>{try{
  }finally{serveur.closeAllConnections();await new Promise(r=>serveur.close(r));fs.rmSync(profil,{recursive:true,force:true,maxRetries:3});}
 }
 test('reproduction Chromium de la bulle persistante avec les anciens composants',async()=>{
- const html=await navigateur(true,1280);assert.match(html,/data-verdict="ECHEC"/);assert.match(html,/data-erreur="ancienne bulle persistante"/);
+ // Les runners GitHub peuvent échouer ponctuellement au premier lancement de Chromium.
+ // Ne rejouer que l'échec d'amorçage : une régression fonctionnelle ne doit jamais être masquée.
+ let html;
+ try { html=await navigateur(true,1280); }
+ catch (e) {
+  if (!String(e?.message||e).includes('Demarrage Chromium non confirme')) throw e;
+  html=await navigateur(true,1280);
+ }
+ assert.match(html,/data-verdict="ECHEC"/);assert.match(html,/data-erreur="ancienne bulle persistante"/);
 });
 for(const w of [1280,390])test(`Chromium ${w}px : transitions, modal, evenement tardif et defilement`,async()=>{
  assert.match(await navigateur(false,w),/data-verdict="OK"/);
