@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+# Annuler seulement les executions perimees d'une meme PR ; main reste integral.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   bancs-hors-production:
     runs-on: ubuntu-latest
@@ -21,6 +26,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Syntaxe des fonctions API, sans appel distant
+        run: python3 outils/bancs/verifier-syntaxe-api.py
+      - name: Calendrier sur main (PR couvertes par les controles dedies)
+        if: github.event_name == 'push'
+        run: node --test outils/bancs/test-*.mjs
       - name: Constructeur Vercel épinglé pour la régression de chargement
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Bancs JavaScript, transports simulés
