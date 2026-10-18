@@ -49,7 +49,7 @@ const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}(async()=>{try{
     const fichier=path.join(profil,'DevToolsActivePort');
     if(fs.existsSync(fichier)){
      const contenu=fs.readFileSync(fichier,'utf8');
-     const port=Number(contenu.split('\\n')[0]);
+     const port=Number(contenu.trim().split(/\s+/)[0]);
      if(Number.isInteger(port)&&port>0&&port<65536)portCDP=String(port);
     }
     if(!portCDP)portCDP=logs.match(/ws:\/\/127\.0\.0\.1:(\d+)/)?.[1]||null;
