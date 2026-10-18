@@ -2553,7 +2553,7 @@ const BUILDINGS = {
         name: "Salle de Presse",
         imageBg: "linear-gradient(135deg,#0f0f18,#181820)",
         desc: "La salle de presse officielle du gouvernement. Microphones, cameras, journalistes accrédités.",
-        imageUrl: "images/Luthecia palais gouvernement salle presse.png",
+        imageUrl: "images/Luthecia%20palais%20gouvernement%20salle%20presse.png?v=20261018-2",
         persons: [
           // CORINNE TITE-DECLAZ (11 octobre 2026) remplace le « Porte-parole (PNJ) » anonyme. Meme
           // logique que le Porte-parole presidentiel livre la veille : referente de la COMMUNICATION
