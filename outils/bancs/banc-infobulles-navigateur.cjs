@@ -38,14 +38,16 @@ const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}(async()=>{try{
   const executable=process.env.HG_CHROMIUM||['/usr/bin/chromium','/usr/bin/google-chrome','/usr/bin/google-chrome-stable'].find(p=>fs.existsSync(p));
   if(!executable)throw Error('Chromium requis pour cette verification');
   const p=spawn(executable,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--disable-dev-shm-usage','--disable-software-rasterizer','--no-zygote','--disable-extensions','--remote-debugging-port=0','--user-data-dir='+profil,'about:blank'],{detached:true,env:{...process.env,XDG_CONFIG_HOME:profil,XDG_CACHE_HOME:profil}});
-  let logs='';p.stderr.on('data',b=>logs+=b);p.stdout.resume();
+  let logs='';let termine=false;let codeSortie=null;
+  p.once('exit',code=>{termine=true;codeSortie=code;});
+  p.stderr.on('data',b=>logs+=b);p.stdout.resume();
   let ws;
   try{
    const attendre=ms=>new Promise(r=>setTimeout(r,ms));
    // Chromium peut publier son port avant le message stderr (ou sans ce message).
    // Attendre son fichier de readiness plutot que dependre des logs D-Bus/stderr.
    let portCDP=null;
-   for(let i=0;i<300&&!portCDP;i++){
+   for(let i=0;i<400&&!portCDP;i++){
     const fichier=path.join(profil,'DevToolsActivePort');
     if(fs.existsSync(fichier)){
      const contenu=fs.readFileSync(fichier,'utf8');
@@ -53,9 +55,10 @@ const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}(async()=>{try{
      if(Number.isInteger(port)&&port>0&&port<65536)portCDP=String(port);
     }
     if(!portCDP)portCDP=logs.match(/ws:\/\/127\.0\.0\.1:(\d+)/)?.[1]||null;
+    if(termine)break;
     if(!portCDP)await attendre(50);
    }
-   if(!portCDP)throw Error('Demarrage Chromium non confirme : '+logs.slice(-500));
+   if(!portCDP)throw Error('Demarrage Chromium non confirme (exit='+codeSortie+') : '+logs.slice(-500));
    const pages=await fetch('http://127.0.0.1:'+portCDP+'/json/list').then(r=>r.json());
    ws=new WebSocket(pages.find(p=>p.type==='page').webSocketDebuggerUrl);
    await new Promise((r,j)=>{ws.onopen=r;ws.onerror=j;});
@@ -77,7 +80,15 @@ const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}(async()=>{try{
  }finally{serveur.closeAllConnections();await new Promise(r=>serveur.close(r));fs.rmSync(profil,{recursive:true,force:true,maxRetries:3});}
 }
 test('reproduction Chromium de la bulle persistante avec les anciens composants',async()=>{
- const html=await navigateur(true,1280);assert.match(html,/data-verdict="ECHEC"/);assert.match(html,/data-erreur="ancienne bulle persistante"/);
+ // Les runners GitHub peuvent échouer ponctuellement au premier lancement de Chromium.
+ // Ne rejouer que l'échec d'amorçage : une régression fonctionnelle ne doit jamais être masquée.
+ let html;
+ try { html=await navigateur(true,1280); }
+ catch (e) {
+  if (!String(e?.message||e).includes('Demarrage Chromium non confirme')) throw e;
+  html=await navigateur(true,1280);
+ }
+ assert.match(html,/data-verdict="ECHEC"/);assert.match(html,/data-erreur="ancienne bulle persistante"/);
 });
 for(const w of [1280,390])test(`Chromium ${w}px : transitions, modal, evenement tardif et defilement`,async()=>{
  assert.match(await navigateur(false,w),/data-verdict="OK"/);
