@@ -1,4 +1,5 @@
 {
+  "ignoreCommand": "node vercel-ignore-build.cjs",
   "functions": {
     "api/chat.js": {
       "maxDuration": 30

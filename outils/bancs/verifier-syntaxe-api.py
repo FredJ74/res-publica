@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Verifie la syntaxe des modules ES de api/ avec l'analyseur de JavaScriptCore.
+"""Verifie la syntaxe des modules ES de api/ : JavaScriptCore ou Node en CI.
 
 POURQUOI CE N'EST PAS DIRECT. api/*.js sont des MODULES ES : ils portent `import` et
 `export`, que `checkSyntax` de jsc refuse en forme script. Il faut donc transformer chaque
@@ -13,6 +13,9 @@ survit, et que le nombre de lignes est PRESERVE -- un import multi-lignes rempla
 seule ligne decalerait tous les numeros de ligne, et une erreur signalee ligne 240 ne serait
 pas a la ligne 240 du vrai fichier. Sans cette garantie, le diagnostic ment.
 
+Sans JavaScriptCore, Node analyse les modules ORIGINAUX via --check --input-type=module.
+Cette analyse syntaxique ne charge ni leurs imports ni les services distants.
+
 Usage :
     python3 outils/bancs/verifier-syntaxe-api.py              # tous les api/*.js
     python3 outils/bancs/verifier-syntaxe-api.py api/chat.js  # un seul
@@ -22,6 +25,7 @@ Code de sortie 0 si tout passe.
 import glob
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -57,6 +61,10 @@ def forme_script(src):
 
 def verifier(chemin):
     src = open(chemin, encoding="utf-8").read()
+    if not os.path.exists(JSC):
+        p = subprocess.run([shutil.which('node'), '--check', '--input-type=module'],
+                           input=src, capture_output=True, text=True)
+        return p.returncode == 0, (p.stderr or p.stdout).strip()
     script = forme_script(src)
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as fh:
         fh.write(script)
@@ -75,11 +83,11 @@ def verifier(chemin):
 
 
 def main():
-    if not os.path.exists(JSC):
-        raise SystemExit("verifier-syntaxe-api : JavaScriptCore introuvable")
+    if not os.path.exists(JSC) and not shutil.which("node"):
+        raise SystemExit("verifier-syntaxe-api : JavaScriptCore et Node introuvables")
     cibles = sys.argv[1:] or sorted(glob.glob(os.path.join(RACINE, "api", "*.js")))
     pbs = 0
-    print("SYNTAXE DES MODULES api/ -- analyseur de JavaScriptCore")
+    print("SYNTAXE DES MODULES api/ -- " + ("JavaScriptCore" if os.path.exists(JSC) else "Node, modules originaux"))
     print("=" * 70)
     for c in cibles:
         ok, sortie = verifier(c)

@@ -325,11 +325,13 @@ def axe_empreintes(decl, echecs):
             if calculee != attendue:
                 echecs.append(
                     "empreintes/%s : le generateur rend %s, la declaration annonce %s. "
-                    "data.js a bouge depuis la mesure : le miroir est a regenerer, "
+                    "data.js a bouge depuis la mesure : le catalogue vivant est a verifier, "
                     "et la declaration a reprendre." % (nom, calculee, attendue))
                 print("  %-22s DERIVE DE data.js : %s != %s" % (nom, calculee, attendue))
-                continue
-            marque = "recalculee"
+                # Garder l'echec de derive, mais examiner aussi la mesure historique.
+                # Son miroir existe toujours : ne pas inventer des cles orphelines
+                # simplement parce que le generateur a evolue.
+            marque = "recalculee" if calculee == attendue else "DECLARATION PERIMEE (mesure historique)"
         else:
             marque = "NON RECALCULABLE (aucun generateur)"
 
