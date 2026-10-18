@@ -15,7 +15,7 @@ function contexte(){
  c.dossier=()=>vm.runInContext('interceptionJudiciaire',c);c.html=()=>elements.get('postes-body').innerHTML;return c;
 }
 for(const action of ['rendre','fuir','combattre'])test(`${action} : double clic, perte de reponse et appel direct ne rejouent jamais l'acte`,async()=>{
- const c=contexte();let n=0,resolve;c.sbRpc=()=>{n++;return new Promise(r=>resolve=r);};const a=c.choisirInterceptionJudiciaire(action);await c.choisirInterceptionJudiciaire(action);assert.equal(n,1);assert.match(c.html(),/disabled/);resolve(null);await a;
+ const c=contexte();let n=0,resolve;c.sbRpc=()=>{n++;return n===1?new Promise(r=>resolve=r):Promise.resolve({ok:true,trouve:false});};const a=c.choisirInterceptionJudiciaire(action);await c.choisirInterceptionJudiciaire(action);assert.equal(n,1);assert.match(c.html(),/disabled/);resolve(null);await a;
  assert.equal(c.dossier().reponseIncertaine,true);assert.doesNotMatch(c.html(),/onclick=/);await c.conclureArrestationJudiciaire();await c.choisirInterceptionJudiciaire(action);assert.equal(n,2);assert.equal(c.transfert,undefined);
 });
 for(const action of ['rendre','fuir','combattre'])test(`${action} : relecture du reçu après perte de réponse sans rejouer l'action`,async()=>{
