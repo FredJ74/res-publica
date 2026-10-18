@@ -1103,14 +1103,51 @@ function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
   return null;
 }
 
-function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
-  rueCentraleNoeudActuel = noeudDepart;
-  afficherNoeudRue(pays, noeudDepart, depuisNoeud);
+async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
+  if (pays === 'republic') {
+    // Une reconnexion ne reprend jamais une position provenant du localStorage.
+    // Le cache ne sert qu'a choisir l'orientation de la scene, pas le lieu.
+    if (typeof sbRpc !== 'function') return;
+    const position = await sbRpc('rue_position_lire', {})
+      .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    if (position?.ok !== true || position.country !== pays ||
+        position.city !== state.currentCity) {
+      if (typeof showToast === 'function') showToast('Position indisponible',
+        'Impossible de restaurer la position depuis le serveur.', false);
+      return;
+    }
+    if (position.street && !position.building) {
+      if (!RUE_CENTRALE_NOEUDS[pays]?.[position.street]) return;
+      const orientation = position.street === noeudDepart ? depuisNoeud : null;
+      await afficherNoeudRue(pays, position.street, orientation);
+      return;
+    }
+    if (position.building) {
+      // Sortie de batiment : la primitive de deplacement controle la sortie.
+      // Aucune position locale ne peut remplacer la position serveur.
+      await afficherNoeudRue(pays, noeudDepart, depuisNoeud);
+      return;
+    }
+    if (typeof showToast === 'function') showToast('Position non initialisee',
+      'Aucun segment de rue confirme par le serveur.', false);
+    return;
+  }
+  await afficherNoeudRue(pays, noeudDepart, depuisNoeud);
 }
 
-function afficherNoeudRue(pays, noeudId, depuisNoeudId) {
+async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfirmee = false) {
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
   if (!noeud) return;
+  if (pays === 'republic' && !positionDejaConfirmee) {
+    if (typeof sbRpc !== 'function') return;
+    const position = await sbRpc('rue_position_enregistrer', {p_noeud: noeudId})
+      .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    if (position?.ok !== true) {
+      if (typeof showToast === 'function') showToast('Déplacement refusé',
+        position?.raison || 'Position serveur inaccessible.', false);
+      return;
+    }
+  }
   rueCentraleNoeudActuel = noeudId;
   rueCentraleDepuisNoeud = depuisNoeudId || null;
   if (typeof state !== 'undefined' && state.currentCity) {
