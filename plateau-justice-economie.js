@@ -12749,9 +12749,10 @@ function afficherInterceptionJudiciaire() {
     '<p>Vous avez été reconnu(e). Une condamnation est en attente d’exécution.</p>' +
     '<p>Vos PA : <strong>' + Math.max(0, Number(state.pa || 0)) + '</strong>' +
     ' · Forces de l’ordre encore en état : <strong>' + i.policiers.length + '</strong></p>' +
-    (i.fuiteEchouee ? '<p>Votre tentative de fuite a échoué : vous devez vous rendre ou combattre.</p>' : '') +
-    '<div style="display:grid;gap:.5rem">' + btn('rendre','Se rendre') +
-    btn('combattre','Combattre') + (i.fuiteEchouee ? '' : btn('fuir','Fuir')) + '</div></div>';
+    (i.reponseIncertaine ? '<p>La réponse du serveur a été perdue. Rechargez le jeu pour retrouver la situation confirmée, sans répéter votre action.</p>' :
+      (i.fuiteEchouee ? '<p>Votre tentative de fuite a échoué : vous devez vous rendre ou combattre.</p>' : '')) +
+    (i.reponseIncertaine ? '' : '<div style="display:grid;gap:.5rem">' + btn('rendre','Se rendre') +
+    btn('combattre','Combattre') + (i.fuiteEchouee ? '' : btn('fuir','Fuir')) + '</div>') + '</div>';
   modal.classList.add('open');
 }
 
