@@ -60,3 +60,17 @@ Après accès technique rétabli : relever le catalogue vivant et le registre ; 
 Les 20 cas de la mission ne sont donc **pas tous validés côté serveur** : les comportements de reprise réelle, concurrence inter-sessions, détention restaurée et expiration demeurent à vérifier/corriger. Cette absence de preuve interdit la fusion, la sortie du brouillon et une annonce de mise en production.
 
 Aucune donnée réelle modifiée. Aucune migration appliquée. Aucune fusion de main ou de PR 40. Aucun déploiement annoncé.
+
+## Vérification vivante complémentaire — session ChatGPT du 18 octobre
+
+Les accès GitHub, Supabase et Vercel ont été rétablis **dans cette session**, sans changement de configuration par Codex. Vérifications directes :
+
+- GitHub PR 46 : ouverte, brouillon, fusionnable, HEAD `89c9e9aee9acb77d0b466bbbc2c8dd8c4e3cb00f` ; trois workflows GitHub Actions de ce commit réussis.
+- Supabase `jxpwoosmmhohoihxpbuc` : projet `ACTIVE_HEALTHY`. Les définitions **vivantes** de `police_combat_resoudre`, `police_detection_verifier`, `police_fuite_resoudre`, `police_reddition_resoudre`, `rue_position_lire` et `rue_position_enregistrer` ont été lues.
+- La définition vivante du combat insère `(personnage, rencontre, round_key)` sans enregistrer de verdict ; l'index primaire unique protège contre la réexécution mais ne restitue pas le résultat. Le test de détention et d'expiration précède l'insertion, ce qui empêche la reprise fiable d'un round terminal.
+- `police_combat_rounds` contient uniquement `personnage`, `rencontre`, `round_key`, `created_at`. `police_interceptions` ne possède ni colonne de reçu ni colonne de round courant. Les deux tables possèdent une clé primaire composite ; aucune politique RLS n'a été renvoyée pour elles dans le relevé.
+- `police_fuite_resoudre` marque `fuite_tentee` puis déplace le PJ et expire la rencontre en cas de réussite ; `police_reddition_resoudre` exécute la condamnation puis expire la rencontre. Aucune des deux procédures ne conserve un verdict consultable après perte de réponse.
+- `rue_position_lire` ne renvoie que pays, ville, bâtiment, pièce et rue. `rue_position_enregistrer` refuse les déplacements si une interception active existe.
+- Vercel : déploiement **preview** du commit `89c9e9a` en état `READY` ; **aucun déploiement production ni fusion confirmé**.
+
+**Conclusion** : le blocage d'accès est levé, mais les défauts serveur sont désormais établis sur les procédures réellement installées. Il faut un reçu immuable transactionnel et une API de reprise authentifiée, puis des tests d'idempotence et de concurrence. Ne pas fusionner avant cette étape. Aucun changement de données ni de schéma n'a été réalisé lors de cette vérification.
