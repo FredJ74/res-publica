@@ -28,7 +28,8 @@ async function lancerChromium({ executable, profil, delaiDemarrage = 20000, spaw
   let logs = '', fin = null, erreurSpawn = null, ferme = false;
   const p = spawnImpl(executable, ['--headless','--no-sandbox','--disable-gpu','--disable-background-networking',
     '--remote-debugging-port=0','--user-data-dir='+profil,'about:blank'],
-    { detached:true, env:{...process.env,XDG_CONFIG_HOME:profil,XDG_CACHE_HOME:profil} });
+    { detached:true, env:{...process.env,XDG_CONFIG_HOME:profil,XDG_CACHE_HOME:profil,
+      DBUS_SESSION_BUS_ADDRESS:'', DBUS_SYSTEM_BUS_ADDRESS:''} });
   p.stderr.on('data', b => { logs = (logs + b).slice(-8000); });
   p.stdout.resume();
   p.on('error', e => { erreurSpawn = e; });
