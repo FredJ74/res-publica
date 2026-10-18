@@ -737,9 +737,8 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 /* Decor personnalise : l'enseigne est un vrai bandeau, centre, independant
    des coordonnees de la vitrine d'origine. */
 .piece-image[data-commerce-decor="1"] .piece-enseigne{
-  background:linear-gradient(90deg,rgba(12,16,23,.94),rgba(30,37,45,.93),rgba(12,16,23,.94));
-  border:1px solid rgba(229,196,119,.6);border-radius:5px;
-  box-shadow:0 3px 10px rgba(0,0,0,.35);
+  /* Le decor genere contient deja son cartouche d'enseigne : ne pas le recouvrir. */
+  background:transparent;border:0;box-shadow:none;
   color:#f5e3b0!important;text-shadow:0 1px 2px #000!important;
   box-sizing:border-box;padding:3px 8px;
 }
