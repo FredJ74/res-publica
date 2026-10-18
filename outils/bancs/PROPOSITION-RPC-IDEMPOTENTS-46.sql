@@ -139,6 +139,7 @@ BEGIN
  v_nom:=public.mon_personnage();
  IF v_nom IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
  SELECT * INTO v_pj FROM public.personnages_donnees WHERE name=v_nom FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','personnage_absent'); END IF;
  SELECT verdict INTO v_receipt FROM public.police_action_receipts WHERE personnage=v_nom AND rencontre=p_rencontre AND action='fuite' AND round_key=0;
  IF FOUND THEN RETURN v_receipt; END IF;
  SELECT * INTO v_i FROM public.police_interceptions WHERE personnage=v_nom AND rencontre=p_rencontre AND expires_at>now() FOR UPDATE;
