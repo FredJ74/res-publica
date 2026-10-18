@@ -37,7 +37,7 @@ const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}(async()=>{try{
   const port=serveur.address().port;
   const executable=process.env.HG_CHROMIUM||['/usr/bin/chromium','/usr/bin/google-chrome','/usr/bin/google-chrome-stable'].find(p=>fs.existsSync(p));
   if(!executable)throw Error('Chromium requis pour cette verification');
-  const p=spawn(executable,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+profil,'about:blank'],{detached:true,env:{...process.env,XDG_CONFIG_HOME:profil,XDG_CACHE_HOME:profil}});
+  const p=spawn(executable,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--disable-dev-shm-usage','--disable-software-rasterizer','--no-zygote','--disable-extensions','--remote-debugging-port=0','--user-data-dir='+profil,'about:blank'],{detached:true,env:{...process.env,XDG_CONFIG_HOME:profil,XDG_CACHE_HOME:profil}});
   let logs='';p.stderr.on('data',b=>logs+=b);p.stdout.resume();
   let ws;
   try{
