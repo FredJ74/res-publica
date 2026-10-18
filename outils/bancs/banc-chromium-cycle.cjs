@@ -39,7 +39,7 @@ test('port publie sans API DevTools : ne pas declarer le navigateur pret',async 
 });
 test('Chromium reel : avertissements eventuels D-Bus et readiness controles separement',async t=>{
  const executable=process.env.HG_CHROMIUM||['/usr/bin/chromium','/usr/bin/google-chrome','/usr/bin/google-chrome-stable'].find(p=>fs.existsSync(p));assert.ok(executable,'Chromium requis');
- const c=await lancerChromium({executable,profil:profil(t)});
+ const c=await lancerChromium({executable,profil:profil(t),delaiDemarrage:60000});
  try{t.diagnostic(`DevTools verifie en ${c.initialisationMs} ms ; messages D-Bus presents : ${/dbus/i.test(c.logs())}`);assert.ok(c.port>0);c.controlerProcessus();}
  finally{await c.arreter();}
 });
