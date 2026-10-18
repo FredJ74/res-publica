@@ -12787,6 +12787,27 @@ function afficherInterceptionJudiciaire() {
   modal.classList.add('open');
 }
 
+// Lecture seule : après une réponse perdue, rechercher le verdict commis sans rejouer l'ordre.
+async function recupererVerdictInterception(rencontre, action, round = 0) {
+  if (typeof sbRpc !== 'function' || !rencontre) return null;
+  try {
+    const rows = await sbRpc('police_action_resultat_lire', {
+      p_rencontre: rencontre, p_action: action, p_round: round
+    });
+    const reponse = Array.isArray(rows) ? rows[0] : rows;
+    return reponse?.ok === true && reponse.trouve === true &&
+      reponse.verdict && typeof reponse.verdict === 'object' ? reponse.verdict : null;
+  } catch (_) { return null; }
+}
+async function ordreInterceptionAvecReprise(nomRpc, parametres, action, round = 0) {
+  let verdict = null;
+  try {
+    const rows = await sbRpc(nomRpc, parametres);
+    verdict = Array.isArray(rows) ? rows[0] : rows;
+  } catch (_) { /* Réponse incertaine : ne jamais réexécuter l'action. */ }
+  return verdict || await recupererVerdictInterception(parametres.p_rencontre, action, round);
+}
+
 async function conclureArrestationJudiciaire() {
   const i = interceptionJudiciaire;
   if (!i || interceptionJudiciaireOccupee || i.reponseIncertaine) return;
@@ -12795,8 +12816,8 @@ async function conclureArrestationJudiciaire() {
   afficherInterceptionJudiciaire();
   try {
     const verdict = (typeof sbRpc === 'function' && i.rencontreId)
-      ? await sbRpc('police_reddition_resoudre', {p_rencontre:i.rencontreId})
-          .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
+      ? await ordreInterceptionAvecReprise('police_reddition_resoudre',
+          {p_rencontre:i.rencontreId}, 'reddition')
       : null;
     if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
     if (!verdict) {
@@ -12857,8 +12878,8 @@ async function choisirInterceptionJudiciaire(choix) {
     afficherInterceptionJudiciaire();
     let fuite;
     try {
-      fuite = await sbRpc('police_fuite_resoudre', {p_rencontre:i.rencontreId})
-        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+      fuite = await ordreInterceptionAvecReprise('police_fuite_resoudre',
+        {p_rencontre:i.rencontreId}, 'fuite');
     } finally { interceptionJudiciaireOccupee = false; }
     if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
     if (!fuite) {
@@ -12909,13 +12930,13 @@ async function choisirInterceptionJudiciaire(choix) {
       return;
     }
     if (!i.round) i.round = 1;
-    const verdict = await sbRpc('police_combat_resoudre', {
+    const verdict = await ordreInterceptionAvecReprise('police_combat_resoudre', {
       p_rencontre: i.rencontreId,
       p_round: i.round,
       p_rue: i.rueNoeudId || null,
       p_batiment: i.rueNoeudId ? null : (i.zone?.batiment || state.currentBuilding),
       p_piece: i.rueNoeudId ? null : (i.zone?.piece || state.currentRoom)
-    }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    }, 'combat', i.round);
     if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
     if (!verdict) {
       marquerInterceptionIncertaine(i);
