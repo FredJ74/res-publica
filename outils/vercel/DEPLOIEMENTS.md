@@ -55,3 +55,23 @@ Faits observés : main de départ `8db174f8b85c32a91d5d76d6907c20ef38c26fa3`, au
 Résultats locaux : **74/74 bancs client**, dont bundle des API ; **22/22 tests ciblés de déploiement/diagnostic** ; **5/5 tests calendrier** ; **90/90 contre-épreuves** ; **23 modules API** syntaxiquement valides ; payload **313,1 Mo / 330 Mo**. Contrôle global **10/12**, Authority et Referential rouges pour les raisons précises ci-dessus. Aucun déploiement de test déclenché par commande CLI. La sauvegarde de la branche pour la PR peut naturellement créer sa Preview via l'intégration Git ; aucun push de test supplémentaire n'est requis.
 
 Les quatre YAML modifiés sont analysés avec succès. Les tests SQL locaux des pipelines restent inchangés. Aucun achat, inventaire, solde, règle économique ou donnée de production modifié. Aucun paramètre distant, forfait ou protection de sécurité modifié. Les PR existantes ne sont pas fusionnées.
+
+## Suivi PR 42 — démarrage Chromium des bancs
+
+Le banc `banc-infobulles-navigateur.cjs` attendait uniquement le texte stderr « DevTools listening » pendant cinq secondes. Il ne distinguait pas une initialisation lente, une sortie de Chromium et une assertion du scénario. La fragilité de cette condition est confirmée dans le code ; la panne intermittente sur les runners GitHub Actions n'a pas été reproduite localement.
+
+Le lanceur partagé de banc `fixtures/chromium-cdp.cjs` :
+
+- recherche le fichier Chromium `DevToolsActivePort`, avec stderr comme solution secondaire, puis vérifie `/json/version` sur loopback ; une simple annonce de port ne suffit pas ;
+- accorde jusqu'à vingt secondes à l'initialisation, avec requêtes HTTP bornées et surveillance des événements error/exit du processus ;
+- distingue lancement impossible (`HG_CHROMIUM_SPAWN`), sortie prématurée (`HG_CHROMIUM_EXIT`), délai d'initialisation (`HG_CHROMIUM_TIMEOUT`), transport CDP et absence de verdict du scénario ;
+- borne les journaux conservés, ferme le groupe de processus (SIGTERM puis SIGKILL si nécessaire), attend la fermeture et permet ensuite de supprimer le profil ;
+- conserve les trois scénarios originaux, dont la contre-épreuve de l'ancienne infobulle. Aucun retry d'un scénario échoué ni succès de substitution.
+
+Le banc principal borne aussi la découverte de page, l'ouverture WebSocket et l'attente du verdict, puis libère requêtes CDP, socket, serveur HTTP et profil, y compris lors d'une erreur. La création du profil intervient après l'extraction des composants pour éviter un répertoire orphelin si cette extraction échoue.
+
+Validation : **10 passages consécutifs du banc ciblé, 30/30 scénarios réussis**. Le nouveau banc de cycle de vie couvre notamment une initialisation volontairement supérieure à cinq secondes sans annonce stderr (fichier d'abord incomplet), le processus arrêté avant DevTools, l'exécutable absent, un processus ignorant SIGTERM, un port sans API et Chromium réel. Ces six cas passent. Sur Chromium réel local, l'API répond alors que les journaux contiennent bien des messages D-Bus : ils sont non bloquants dans cet essai, et ne justifient pas l'installation d'un service D-Bus ou l'effacement des diagnostics. Cela ne permet pas d'attribuer chaque incident distant à la même cause.
+
+La correction ne touche que les bancs et leur documentation : aucun jeu, donnée, migration ou paramètre Supabase/Vercel modifié. La validation distante relève de la prochaine exécution de la PR 42, pas d'une réussite locale supposée équivalente.
+
+Après les dix répétitions ciblées : `python3 outils/bancs/controler-client.py --rapport /tmp/hg-chromium-complet` : **75/75 bancs réussis**, aucun SQL exécuté.
