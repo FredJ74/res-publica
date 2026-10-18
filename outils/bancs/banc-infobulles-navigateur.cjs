@@ -42,8 +42,19 @@ const erreurs=[];function exiger(c,m){if(!c)throw Error(m);}(async()=>{try{
   let ws;
   try{
    const attendre=ms=>new Promise(r=>setTimeout(r,ms));
-   for(let i=0;i<100&&!logs.includes('DevTools listening');i++)await attendre(50);
-   const portCDP=logs.match(/ws:\/\/127\.0\.0\.1:(\d+)/)?.[1];
+   // Chromium peut publier son port avant le message stderr (ou sans ce message).
+   // Attendre son fichier de readiness plutot que dependre des logs D-Bus/stderr.
+   let portCDP=null;
+   for(let i=0;i<300&&!portCDP;i++){
+    const fichier=path.join(profil,'DevToolsActivePort');
+    if(fs.existsSync(fichier)){
+     const contenu=fs.readFileSync(fichier,'utf8');
+     const port=Number(contenu.split('\\n')[0]);
+     if(Number.isInteger(port)&&port>0&&port<65536)portCDP=String(port);
+    }
+    if(!portCDP)portCDP=logs.match(/ws:\/\/127\.0\.0\.1:(\d+)/)?.[1]||null;
+    if(!portCDP)await attendre(50);
+   }
    if(!portCDP)throw Error('Demarrage Chromium non confirme : '+logs.slice(-500));
    const pages=await fetch('http://127.0.0.1:'+portCDP+'/json/list').then(r=>r.json());
    ws=new WebSocket(pages.find(p=>p.type==='page').webSocketDebuggerUrl);
