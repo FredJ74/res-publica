@@ -9,7 +9,7 @@ function contexte(){
  teleporterVersCellule:d=>{c.transfert=d;},afficherNoeudRue:async(...args)=>{c.navigation=args;}});
  vm.runInContext('let interceptionJudiciaire=null,interceptionJudiciaireOccupee=false;'+fonctions('plateau-justice-economie.js',[
  'contexteInterceptionJudiciaire','contexteInterceptionJudiciaireValide','interceptionJudiciaireBloqueDeplacement','marquerInterceptionIncertaine',
- 'afficherInterceptionJudiciaire','recupererVerdictInterception','ordreInterceptionAvecReprise','conclureArrestationJudiciaire','choisirInterceptionJudiciaire','verifierArrestationRecherchePolice',
+ 'afficherInterceptionJudiciaire','reprendreInterceptionJudiciaireServeur','recupererVerdictInterception','ordreInterceptionAvecReprise','conclureArrestationJudiciaire','choisirInterceptionJudiciaire','verifierArrestationRecherchePolice',
  'verifierSurveillancePolicePJUnique','calculerPerGroupePolice','calculerVolGroupePolice']),c);
  vm.runInContext(`interceptionJudiciaire={rencontreId:'police-rencontre',ville:'capitale',eligible:{},policiers:[{},{}],zone:{batiment:'mairie',piece:'accueil'}};`,c);
  c.dossier=()=>vm.runInContext('interceptionJudiciaire',c);c.html=()=>elements.get('postes-body').innerHTML;return c;
@@ -31,6 +31,19 @@ for(const action of ['rendre','fuir','combattre'])test(`${action} : relecture du
  if(action==='rendre')assert.equal(c.transfert.detentionId,'d');
  if(action==='fuir')assert.equal(c.navigation[1],'destination');
  if(action==='combattre')assert.equal(c.state.pa,10);
+});
+test('reconnexion : rencontre active restauree en lecture seule sans nouvelle detection',async()=>{
+ const c=contexte();vm.runInContext('interceptionJudiciaire=null',c);const appels=[];
+ c.sbRpc=async(nom)=>{appels.push(nom);return {ok:true,active:true,rencontre:'police-rencontre',country:'republic',city:'capitale',building:'mairie',room:'accueil',street:null,dernier_round:2,dernier_verdict:{ok:true,policiers_restants:1},fuite_tentee:true};};
+ assert.equal(await c.reprendreInterceptionJudiciaireServeur(),true);
+ assert.deepEqual(appels,['police_reprise_lire']);assert.equal(c.dossier().round,3);
+ assert.equal(c.dossier().fuiteEchouee,true);assert.equal(c.interceptionJudiciaireBloqueDeplacement(),true);
+});
+test('reconnexion : aucun dossier si verdict terminal ou rencontre inactive',async()=>{
+ for(const reponse of [{ok:true,active:false},{ok:true,active:true,rencontre:'police-rencontre',country:'republic',city:'capitale',building:'mairie',room:'accueil',dernier_verdict:{arrestation:true}}]){
+  const c=contexte();vm.runInContext('interceptionJudiciaire=null',c);c.sbRpc=async()=>reponse;
+  assert.equal(await c.reprendreInterceptionJudiciaireServeur(),false);assert.equal(c.dossier(),null);
+ }
 });
 test('reddition : detention confirmee avant transfert',async()=>{const c=contexte();c.sbRpc=async()=>({ok:true,detention_id:'d',jours:2});await c.choisirInterceptionJudiciaire('rendre');assert.equal(c.transfert.detentionId,'d');assert.equal(c.dossier(),null);});
 test('reddition incomplete ne libere pas la navigation',async()=>{const c=contexte();c.sbRpc=async()=>({ok:true});await c.choisirInterceptionJudiciaire('rendre');assert.equal(c.dossier().reponseIncertaine,true);assert.equal(c.transfert,undefined);});
