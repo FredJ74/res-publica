@@ -213,9 +213,10 @@ BEGIN
    RETURN jsonb_build_object('ok',false,'raison','rencontre_invalide');
  END IF;
  SELECT * INTO v_pj FROM public.personnages_donnees WHERE name=v_nom FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','joueur_indisponible'); END IF;
  SELECT verdict INTO v_receipt FROM public.police_action_receipts WHERE personnage=v_nom AND rencontre=p_rencontre AND action='combat' AND round_key=p_round;
  IF FOUND THEN RETURN v_receipt; END IF;
- IF NOT FOUND OR v_pj.country <> 'republic' OR v_pj.current_city IS NULL
+ IF v_pj.country <> 'republic' OR v_pj.current_city IS NULL
     OR v_pj.est_emprisonne IS NOT NULL AND v_pj.est_emprisonne <> 'null'::jsonb THEN
    RETURN jsonb_build_object('ok',false,'raison','joueur_indisponible');
  END IF;
