@@ -12764,7 +12764,12 @@ async function conclureArrestationJudiciaire() {
       ? await sbRpc('police_reddition_resoudre', {p_rencontre:i.rencontreId})
           .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
       : null;
-    if (!verdict || verdict.ok !== true || !verdict.detention_id) {
+    if (!verdict) {
+      i.reponseIncertaine = true;
+      showToast('Réponse réseau perdue', 'Ne relancez pas la reddition : reconnectez-vous pour retrouver la décision serveur.', false);
+      return;
+    }
+    if (verdict.ok !== true || !verdict.detention_id) {
       showToast('Arrestation non confirmée', verdict?.raison || 'Détention serveur non confirmée.', false);
       return;
     }
@@ -12803,6 +12808,10 @@ async function conclureArrestationJudiciaire() {
 async function choisirInterceptionJudiciaire(choix) {
   const i = interceptionJudiciaire;
   if (!i || interceptionJudiciaireOccupee) return;
+  if (i.reponseIncertaine) {
+    showToast('Synchronisation nécessaire', 'Rechargez le jeu avant toute nouvelle décision policière.', false);
+    return;
+  }
   if (choix === 'rendre') { await conclureArrestationJudiciaire(); return; }
   if (choix === 'fuir' && !i.fuiteEchouee) {
     if (typeof sbRpc !== 'function' || !i.rencontreId) return;
@@ -12813,7 +12822,12 @@ async function choisirInterceptionJudiciaire(choix) {
       fuite = await sbRpc('police_fuite_resoudre', {p_rencontre:i.rencontreId})
         .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
     } finally { interceptionJudiciaireOccupee = false; }
-    if (!fuite || fuite.ok !== true) {
+    if (!fuite) {
+      i.reponseIncertaine = true;
+      showToast('Réponse réseau perdue', 'Ne rejouez pas la fuite : rechargez pour retrouver la position serveur.', false);
+      return;
+    }
+    if (fuite.ok !== true) {
       showToast('Fuite indisponible', fuite?.raison || 'Réponse serveur absente.', false);
       return;
     }
@@ -12862,7 +12876,12 @@ async function choisirInterceptionJudiciaire(choix) {
       p_batiment: i.rueNoeudId ? null : (i.zone?.batiment || state.currentBuilding),
       p_piece: i.rueNoeudId ? null : (i.zone?.piece || state.currentRoom)
     }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
-    if (!verdict || verdict.ok !== true) {
+    if (!verdict) {
+      i.reponseIncertaine = true;
+      showToast('Réponse réseau perdue', 'Ne rejouez pas ce round : rechargez pour synchroniser le combat.', false);
+      return;
+    }
+    if (verdict.ok !== true) {
       showToast('Combat indisponible', 'Le serveur a refusé ce combat : ' +
         (verdict?.raison || 'erreur réseau') + '.', false);
       return;
