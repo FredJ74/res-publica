@@ -1062,7 +1062,14 @@ function variantePositionnerEnseigne(cadre, conf, url, el, ancrage) {
   Promise.all([varianteTailleNaturelle(url), enseignePolicesPretes()]).then(function (r) {
     const taille = r[0];
     if (!el.isConnected) return;
-    const px = varianteZoneEnPixels(conf.zone, cadre, taille, ancrage);
+    // Le decor Premium est affiche en "contain" et non en "cover" :
+    // ses coordonnees ne peuvent pas reprendre celles de la vitrine d'origine.
+    // Placer l'enseigne dans son propre bandeau superieur, centree dans le cadre.
+    const decorPremium = cadre.getAttribute('data-commerce-decor') === '1';
+    const px = decorPremium
+      ? { gauche: cadre.clientWidth * .15, haut: Math.max(8, cadre.clientHeight * .035),
+          largeur: cadre.clientWidth * .70, hauteur: Math.max(36, cadre.clientHeight * .085) }
+      : varianteZoneEnPixels(conf.zone, cadre, taille, ancrage);
     if (!px) { el.style.display = 'none'; return; }
 
     const t = conf.texte || {};
