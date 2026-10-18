@@ -655,8 +655,11 @@ async function verifierObjetsRecus() {
     const etat = await sbInventaireReceptionEtat(nom);
     if (!actif()) return;
     if (!valide(etat)) {
-      if (typeof showToast === 'function') showToast('Réception indisponible',
-        'Le serveur n’a pas confirmé le service de réception. Aucun objet n’est retiré de la file.', false);
+      // Service de reception indisponible : ce poll automatique n'est pas une
+      // action demandee par le joueur. Ne jamais l'assaillir d'une erreur
+      // recurrente ; conserver toutes les livraisons en file cote serveur.
+      // Les erreurs restent visibles en console pour le diagnostic technique.
+      console.warn('[reception] contrat serveur absent ou invalide : aucun objet reclame', etat?.raison || 'RPC indisponible');
       return;
     }
     if (empreinte(state.inventory || []) !== avant) return;
