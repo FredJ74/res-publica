@@ -500,7 +500,7 @@ async function commercePjContexte() {
   const proprio = fonds && fonds.proprietaire;
   return {
     bailId: bailId, bail: bail, fondsId: bail && bail.fondsId, fonds: fonds, moi: moi,
-    jeLoue: !!(bail && bail.locataire === moi),
+    jeLoue: !!(bail && String(bail.locataire || '').replace(/^pj:/, '') === moi),
     jeSuisProprietaire: !!(proprio && (proprio === moi || proprio === 'pj:' + moi))
   };
 }
