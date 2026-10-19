@@ -8062,9 +8062,27 @@ async function voterElection(orgaId, candidatNom) {
 
 // Fait avancer toutes les elections en cours (candidatures -> vote -> depouillement).
 // Appelee par n'importe quel joueur au chargement, comme le championnat.
-function verifierElectionsOrganisations() {
-  (state.organisations || []).forEach(orga => {
-    if (!orga.election?.enCours) return;
+function annoncerDirectionElection(orga,vainqueur,ancienChef) {
+        addExternalEvent('🗳 ' + vainqueur + ' remporte l\'élection à la présidence de "' + orga.nom + '".');
+        if (orga.visible && typeof sbEnregistrerEvenementPublic === 'function') {
+          sbEnregistrerEvenementPublic(orga.country, 'organisation_chef_change', {
+            personnages: [vainqueur, ancienChef].filter(Boolean),
+            libelle: vainqueur + ' remporte l\'élection à la présidence de "' + orga.nom + '".',
+            data: { orga_id: orga.id, type: orga.type, nom: orga.nom, nouveau_chef: vainqueur, ancien_chef: ancienChef },
+            sourceRef: orga.id
+          }).catch(() => {});
+        }
+}
+
+async function verifierElectionsOrganisations() {
+  for(const orga of (state.organisations || [])) {
+    if (!orga.election?.enCours) continue;
+    const serveur=await organisationEssayerCommande(orga.id,'avancer_election',{});
+    if(serveur!==null){
+      const fraiche=getOrgaById(orga.id);
+      if(serveur&&fraiche?.chef&&fraiche.chef!==orga.chef)annoncerDirectionElection(fraiche,fraiche.chef,orga.chef);
+      continue;
+    }
     const jour = state.day || 1;
 
     if (orga.election.phase === 'candidatures' && jour >= orga.election.dateFinCandidatures) {
@@ -8089,21 +8107,13 @@ function verifierElectionsOrganisations() {
         const grades = def?.grades?.[orga.country] || [];
         const membre = orga.membres.find(m => m.nom === vainqueur);
         if (membre && grades.length) { membre.grade = grades[grades.length - 1]; membre.gradeIdx = grades.length - 1; }
-        addExternalEvent('🗳 ' + vainqueur + ' remporte l\'élection à la présidence de "' + orga.nom + '".');
-        if (orga.visible && typeof sbEnregistrerEvenementPublic === 'function') {
-          sbEnregistrerEvenementPublic(orga.country, 'organisation_chef_change', {
-            personnages: [vainqueur, ancienChef].filter(Boolean),
-            libelle: vainqueur + ' remporte l\'élection à la présidence de "' + orga.nom + '".',
-            data: { orga_id: orga.id, type: orga.type, nom: orga.nom, nouveau_chef: vainqueur, ancien_chef: ancienChef },
-            sourceRef: orga.id
-          }).catch(() => {});
-        }
+        annoncerDirectionElection(orga,vainqueur,ancienChef);
       }
 
       orga.election = { enCours: false, phase: null, derniereElection: jour, candidats: [], votes: {} };
       sauvegarderOrga(orga);
     }
-  });
+  }
 }
 
 // Rendu generique de l'organigramme d'une organisation (chef/membres/election en cours),

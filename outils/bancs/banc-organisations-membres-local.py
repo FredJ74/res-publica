@@ -13,6 +13,7 @@ def main():
  q.execute("CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$SELECT nullif(current_setting('hg.acteur',true),'')$$")
  q.execute((r/'migrations/20261019094425_organisations_commandes_administratives.sql').read_text())
  m=(r/'migrations/20261019130213_organisations_adhesions_grades.sql').read_text();q.execute(m);q.execute(m)
+ election_sql=(r/'migrations/20261019133500_organisations_progression_elections.sql').read_text();q.execute(election_sql);q.execute(election_sql)
  regles=json.loads(subprocess.check_output(['node','-e',"console.log(JSON.stringify(require('./outils/generateurs/generer_organisations_regles.cjs').regles()))"],cwd=r))
  def acteur(nom):q.execute("SELECT set_config('hg.acteur',%s,false)",(nom,))
  def creer(id,typ='politique',pays='republic',secret=False):
@@ -77,6 +78,25 @@ def main():
  try:acte('rollback','promouvoir',{'nom':'Bob'});raise AssertionError('anon interdit')
  except psycopg2.Error:pass
  q.execute('RESET ROLE');n+=1
+ # Progression electorale depuis les echeances serveur, sans frais nouveaux.
+ creer('election');acteur('Charlie')
+ def election(candidats,votes,phase='candidatures'):
+  e={'enCours':True,'phase':phase,'dateFinCandidatures':4,'dateFinVote':7,'candidats':[{'nom':nom} for nom in candidats],'votes':votes}
+  q.execute("UPDATE organisations SET data=(data::jsonb||%s::jsonb)::text WHERE id='election'",(json.dumps({'chef':'Alice','membres':[{'nom':'Alice','gradeIdx':3},{'nom':'Bob','gradeIdx':0}],'election':e}),))
+ election(['Bob','Alice'],{'Alice':'Bob','Bob':'Alice'})
+ assert acte('election','avancer_election')['ok'];assert lire('election')['election']['phase']=='vote';assert lire('election')['chef']=='Alice';n+=1
+ q.execute("UPDATE personnages_donnees SET day=7 WHERE name='Charlie'")
+ assert acte('election','avancer_election',key='orgcmd-depouiller-000001')['ok'];d=lire('election')
+ assert d['chef']=='Bob' and d['membres'][1]['gradeIdx']==3 and d['election']['enCours'] is False and d['election']['derniereElection']==7;n+=1
+ assert acte('election','avancer_election',key='orgcmd-depouiller-000001')['rejeu'];assert lire('election')['caisse']==2050.5;n+=1
+ election(['Alice','Bob'],{})
+ assert acte('election','avancer_election',key='orgcmd-zero-voix-0001')['ok'];assert lire('election')['chef']=='Alice';n+=1
+ election([],{})
+ assert acte('election','avancer_election',key='orgcmd-zero-candidat')['ok'];assert lire('election')['chef']=='Alice';assert lire('election')['election']['enCours'] is False;n+=1
+ election(['Bob'],{'Alice':'Bob'})
+ q.execute("CREATE TRIGGER panne BEFORE INSERT ON organisation_commandes_recus FOR EACH ROW EXECUTE FUNCTION panne()")
+ refus('election','avancer_election',key='orgcmd-election-annulee',motif='panne_fixture');assert lire('election')['election']['phase']=='candidatures';q.execute('DROP TRIGGER panne ON organisation_commandes_recus');n+=1
+ refus('election','avancer_election',{'chef':'Charlie'},key='orgcmd-election-injection',motif='champs_interdits');n+=1
  print(f'{n}/{n} groupes membres SQL reussis ; aucun Supabase.')
  c.close();serveur.cleanup()
 if __name__=='__main__':main()

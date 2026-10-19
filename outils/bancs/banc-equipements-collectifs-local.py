@@ -153,5 +153,15 @@ def main():
  fail("SELECT organisation_commande_administrative('orgcmd-dissolution-000001','o1','dissoudre','{}')",motif='foreign key')
  assert len(etat()['objets'])>0
  assert call("SELECT count(*) FROM organisation_commandes_recus WHERE requete='orgcmd-dissolution-000001'")==0;n+=1
+ # Progression atomique compatible avec la garde municipale/organisation et les biens persistants.
+ q.execute((R/'migrations/20261019130213_organisations_adhesions_grades.sql').read_text())
+ q.execute((R/'migrations/20261019133500_organisations_progression_elections.sql').read_text())
+ q.execute("SELECT set_config('hg.acteur','Alice',false)")
+ election={'enCours':True,'phase':'candidatures','dateFinCandidatures':5,'dateFinVote':6,'candidats':[{'nom':'Alice'},{'nom':'Bob'}],'votes':{'Bob':'Alice'}}
+ q.execute("UPDATE organisations SET data=jsonb_set(data::jsonb,'{election}',%s::jsonb)::text WHERE id='o1'",(json.dumps(election),))
+ total=call("SELECT count(*) FROM organisation_objets WHERE organisation='o1'")
+ assert call("SELECT organisation_commande_membres('orgcmd-election-equipee','o1','avancer_election','{}')")['ok']
+ assert len(etat()['objets'])==total
+ q.execute("SELECT set_config('hg.acteur','Bob',false)");fail("SELECT organisation_equipements_etat('o1')",motif='representation');n+=1
  c.close();serveur.cleanup();print(f'{n}/{n} groupes SQL collectifs reussis ; paiement commun et tables jetables, aucun Supabase.')
 if __name__=='__main__':main()
