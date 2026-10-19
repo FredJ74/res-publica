@@ -291,7 +291,8 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [60, 80],  nom: 'Lot 4 (1850 m²)', type: 'batiment', buildingId: 'terrain-a-batir-4' },
         { xPct: [80, 100], nom: 'Lot 5 (2750 m²)', type: 'batiment', buildingId: 'terrain-a-batir-5' }
       ],
-      liens: { gauche: null, droite: null, toutDroit: null, arriere: 'luthecia-terrains-artisanal' }
+      liens: { gauche: null, droite: null, toutDroit: null, arriere: 'luthecia-terrains-artisanal' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
 
     'luthecia-armurerie': {
@@ -581,7 +582,8 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [48, 58], nom: 'Lot 10 (1500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-10' },
         { xPct: [78, 92], nom: 'Lot 11 (1500 m²)', type: 'batiment', buildingId: 'terrain-a-batir-11' }
       ],
-      liens: { arriere: 'psm-terrains-vente' }
+      liens: { arriere: 'psm-terrains-vente' },
+      flechesStyle: { arriere: 'bottom:10px; left:50%; transform:translateX(-50%);' }
     },
 
     // ---- CASERNE / QHS — scenes a noeud unique, un seul batiment chacune, accessibles
