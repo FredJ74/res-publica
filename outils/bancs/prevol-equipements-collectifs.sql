@@ -1,7 +1,8 @@
 -- Lecture seule : diagnostic pour l'agent disposant du connecteur autorise.
 -- Ce fichier N'APPLIQUE AUCUNE migration. Aucun nom ni solde individuel extrait.
 -- Completer avec les quatre extractions canoniques de WORKFLOW-SUPABASE.md.
-BEGIN TRANSACTION READ ONLY;
+BEGIN;
+SET TRANSACTION READ ONLY;
 SET LOCAL statement_timeout = '20s';
 SELECT current_database() AS base, current_setting('server_version') AS postgres;
 
