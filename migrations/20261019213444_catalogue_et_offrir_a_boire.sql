@@ -11,7 +11,7 @@ DO $prevol$ BEGIN
   RAISE EXCEPTION 'precondition_definition_differente: commerce_produire'; END IF;
 END $prevol$;
 DO $prevol$ BEGIN
- IF coalesce(md5((SELECT prosrc FROM pg_proc WHERE oid=to_regprocedure('public.fonds_reference_produire_lots(text,text,text,text,integer)'))), 'absent') NOT IN ('ab95c733be25d3da5c3c2874c100557f') THEN
+ IF coalesce(md5((SELECT prosrc FROM pg_proc WHERE oid=to_regprocedure('public.fonds_reference_produire_lots(text,text,text,text,integer)'))), 'absent') NOT IN ('ab95c733be25d3da5c3c2874c100557f','f74eb7dc6f1cb4c5c5e6ea86149c5b60') THEN
   RAISE EXCEPTION 'precondition_definition_differente: fonds_reference_produire_lots'; END IF;
 END $prevol$;
 DO $prevol$ BEGIN
