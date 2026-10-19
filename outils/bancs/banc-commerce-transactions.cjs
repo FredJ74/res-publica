@@ -17,7 +17,7 @@ function plateau(rpc=async()=>({ok:true,montant:10,salaire:10,quantite:1,prixUni
   state:{char:{name:'Alice'},country:'republic',currentCity:'capitale',currentBuilding:'commerce',currentRoom:'boutique',arg:1000,liquide:1000,pa:8,inventory:[{name:'Personnel'}]},
   document:{getElementById:id=>id==='cpj-payeur-collectif'?null:({value:'1',innerHTML:''})},rpAuthUid:()=> 'uid-alice'});
  vm.runInContext(code,c);
- c.commercePjContexte=async()=>({fondsId:'fonds'});
+ c.commercePjContexte=async()=>({fondsId:'fonds',jeSuisProprietaire:true});
  c.sbGet=async()=>[{user_id:'uid-alice',arg:300,liquide:200,pa:5,hp:70,moral:60,inventory:[{name:'Inventaire actuel'}]}];
  for(const n of ['sbAlimenterCaisseFonds','sbRetirerCaisseFonds','sbFondsReferenceProduireLots','sbFondsReferenceProduire','sbFondsMatiereApporter','sbAcheterProduitCommerce','sbRpcVerdict'])
   c[n]=async(...a)=>{appels.push(['rpc',n,...a]);return rpc(...a);};
@@ -53,3 +53,5 @@ test('reconnexion du meme compte pendant un achat : aucun effet de l’ancienne 
  resolve({ok:true,montant:10,quantite:1});await p;
  assert.equal(c.state.arg,1000);assert.equal(appels.filter(a=>a[0]==='toast').length,0);
 });
+
+test('un client ne peut pas utiliser le chemin historique de production',async()=>{const {c,appels}=plateau();c.commercePjContexte=async()=>({fondsId:'fonds',jeSuisProprietaire:false});await c.commercePjProduire('ref','prod-test-000001','publique');assert.equal(appels.filter(a=>a[0]==='rpc').length,0);assert.equal(c.state.arg,1000);});

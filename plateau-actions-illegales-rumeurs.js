@@ -1494,6 +1494,8 @@ async function ouvrirModalAcheterArme() {
       html += '<button onclick="confirmerAchatArmeIllegal(\'' + arme.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.06em;padding:.4rem;border:1px solid #8a3a3a;background:transparent;color:#cc6a6a;cursor:pointer" onmouseover="this.style.background=\'#1a0a0a\'" onmouseout="this.style.background=\'transparent\'">Marché noir — ' + prixIllegal.toLocaleString('fr-FR') + ' ' + cur + '</button>';
     }
     html += '</div>';
+    html += '<button ' + (commercePeutProduire(data) ? 'onclick="confirmerProduction(\''+arme.id+'\')"' : 'disabled') + '>Produire</button>';
+    html += '<button onclick="ouvrirFicheArmeCommerce(\''+arme.id+'\')">Fiche produit</button>';
     html += '</div></div>';
   });
 
@@ -1503,6 +1505,20 @@ async function ouvrirModalAcheterArme() {
 
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+async function ouvrirFicheArmeCommerce(id) {
+  const c=contexteNavigationRue();
+  const data=await chargerArmurerieLocale();
+  const base=(ARMES_CATALOGUE[c.pays]||ARMES_CATALOGUE.republic).find(a=>a.id===id);
+  if(!data||!base||!contexteNavigationRueValide(c)) return;
+  const arme=resoudreArmeAffichage(base,c.ville);
+  const fiche=await sbObjetFicheOfficielle({type:'arme',sousType:arme.type,bonus:arme.bonus});
+  if(!contexteNavigationRueValide(c)) return;
+  document.getElementById('postes-modal-title').textContent='Fiche produit';
+  document.getElementById('postes-body').innerHTML='<div style="padding:1rem;background:#151A21;color:#e0e6ed">'+
+    ficheCommercialeHtml({nom:arme.name,description:arme.desc,prix:data.parametres.prixVente[id],stock:data.stockProduits[id]||0,devise:COUNTRIES[c.pays]?.cur})+
+    ficheOfficielleHtml(fiche)+'<button onclick="ouvrirModalAcheterArme()">Retour aux produits</button></div>';
 }
 
 async function confirmerAchatArme(armeId) {
@@ -4966,6 +4982,7 @@ async function produireRecetteCommerce(commerceType, pays, ville, buildingId, ro
   // prix auto d'un commerce PNJ. Le navigateur n'arrete plus aucun de ces chiffres.
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!data) return { ok: false, raison: 'introuvable' };
+  if (!commercePeutProduire(data)) return {ok:false, raison:'production_non_autorisee'};
   const r = await commerceProduire(data.id, recetteId, 'produire_commerce');
   if (!r.ok) return { ok: false, raison: r.raison };
   if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
@@ -5095,6 +5112,20 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
 // ni notion de legalite. Ouvre le PA/cost de l'ordre de salle (browsing), chaque "Commander"
 // est ensuite une transaction FR independante (meme principe que confirmerAchatEntrepot :
 // un seul PA pour parcourir la salle, chaque ligne a son propre cout).
+function actionsCatalogueCommerceHtml(data, commerceType, buildingId, roomId, id) {
+  const recette=resoudreProduitCommerce(id);
+  const stock=data.stockProduits[id]||0;
+  const commander=['restaurant','bar','cafe','brasserie','hotel_restaurant','buvette'].includes(commerceType);
+  const args=[commerceType,buildingId,roomId||'',id].map(v=>"'"+v+"'").join(',');
+  const peutProduire=commercePeutProduire(data)&&recetteAutoriseePourCommerce(recette,data);
+  const style='padding:.45rem .7rem;border:1px solid #526176;border-radius:5px;background:#394656;color:#f2f4f6;';
+  const bouton=(action,label,actif)=>'<button '+(actif?'onclick="'+action+'"':'disabled')+' style="'+style+(actif?'cursor:pointer':'opacity:.45')+'">'+label+'</button>';
+  return '<div style="display:flex;gap:.4rem;flex-wrap:wrap">'+
+    bouton('doCommanderProduitCommerceUI('+args+')',commander?'Commander':'Acheter',stock>0)+
+    bouton('doProduireRecetteCommerceUI('+args+')','Produire',peutProduire)+
+    bouton('ouvrirFicheProduitCommerce('+args+')','Fiche produit',true)+'</div>';
+}
+
 async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, cost) {
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false); return; }
@@ -5104,12 +5135,12 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
   const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
   if (!data) { showToast('Indisponible', '', false); return; }
 
-  document.getElementById('postes-modal-title').textContent = 'Carte';
-  let html = '<div style="padding:1rem">';
+  document.getElementById('postes-modal-title').textContent = commerceType === 'marche' ? 'Produits' : 'Carte';
+  let html = '<div style="padding:1rem;background:#151A21;color:#e0e6ed">';
   const carte = data.carte || [];
   const carteValide = carte.filter(id => resoudreProduitCommerce(id));
   if (carteValide.length === 0) {
-    html += '<div style="font-size:.9rem;color:#8a8060">Aucun produit disponible pour le moment.</div>';
+    html += '<div style="font-size:.9rem;color:#aab5c3">Aucun produit disponible pour le moment.</div>';
   }
   carteValide.forEach(id => {
     const recette = resoudreProduitCommerce(id);
@@ -5118,30 +5149,15 @@ async function doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, co
     const composition = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
     const effetsTxt = Object.entries(recette.effets || {}).map(([k, v]) => (v > 0 ? '+' : '') + v + ' ' + k.toUpperCase()).join(', ');
     const enRupture = stock <= 0;
-    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
+    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #394656;background:#252D38;border-radius:9px;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
     if (recette.image) html += '<img src="' + recette.image + '" style="width:56px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0" />';
     html += '<div style="flex:1">';
-    html += '<b style="font-size:.93rem;color:#c0b090">' + recette.label + '</b><br>';
-    html += '<span style="font-size:.82rem;color:#8a8060">' + composition + '</span><br>';
+    html += '<b style="font-size:.93rem;color:#E5C477">' + recette.label + '</b><br>';
+    html += '<span style="font-size:.82rem;color:#aab5c3">' + composition + '</span><br>';
     if (effetsTxt) html += '<span style="font-size:.82rem;color:#6ab858">' + effetsTxt + '</span><br>';
     html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
     html += '</div>';
-    // Libelle du bouton personnalisable par recette (lot mini-finition marche, 22 aout 2026) --
-    // meme pattern deja utilise par prixFixe/buildingsAutorises/villesAutorisees/paysAutorises :
-    // un attribut optionnel propre a la recette, jamais un id hardcode ici ni dans
-    // commanderProduitCommerce() (logique metier intacte, seul l'intitule change). Absent partout
-    // sauf sur 'sandwich' -- comportement inchange pour tous les autres commerces/recettes.
-    const libelleAction = recette.labelAction || 'Commander';
-    // Zone d'action : le bouton historique est CONSERVE A L'IDENTIQUE (meme handler,
-    // meme libelle, meme comportement), et la fiche officielle s'ajoute A COTE dans une
-    // colonne. Aucun clic existant n'est deplace ni detourne -- la ligne produit
-    // elle-meme n'a jamais eu de onclick, il n'y a donc rien a recouvrir.
-    html += '<div style="display:flex;flex-direction:column;gap:.3rem;flex-shrink:0">';
-    html += enRupture
-      ? '<span style="font-size:.8rem;color:#5a5040;text-align:center">Rupture</span>'
-      : '<button onclick="doCommanderProduitCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">' + libelleAction + '</button>';
-    html += '<button onclick="ouvrirFicheProduitCommerce(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" title="Fiche officielle" style="padding:.25rem .6rem;border:1px solid #3a3a5a;background:transparent;color:#8a8aca;cursor:pointer;font-size:.72rem"><i class="ti ti-certificate" style="font-size:.78rem"></i> Fiche</button>';
-    html += '</div>';
+    html += actionsCatalogueCommerceHtml(data, commerceType, buildingId, roomId, id);
     html += '</div>';
   });
   html += '</div>';
@@ -5197,7 +5213,7 @@ async function ouvrirFicheProduitCommerce(commerceType, buildingId, roomId, rece
   const nomLieu = (typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingId])
     ? (BUILDINGS[buildingId].shortName || BUILDINGS[buildingId].name) : buildingId;
 
-  let html = '<div style="padding:1rem">';
+  let html = '<div style="padding:1rem;background:#151A21;color:#e0e6ed">';
   if (recette.image) html += '<img src="' + recette.image + '" style="width:100%;border-radius:4px;margin-bottom:.8rem;max-height:200px;object-fit:cover"/>';
   html += typeof ficheCommercialeHtml === 'function'
     ? ficheCommercialeHtml({
@@ -5239,9 +5255,7 @@ function doFaireAchatsCommerceGenerique(pa, cost) {
 }
 
 async function doFaireAchatsCommerce(commerceType, buildingId, roomId, pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false); return; }
-  afficherCategoriesAchatsMarche(commerceType, buildingId, roomId);
+  return doConsulterCarteCommerce(commerceType, buildingId, roomId, pa, cost);
 }
 
 function afficherCategoriesAchatsMarche(commerceType, buildingId, roomId) {
@@ -5280,9 +5294,7 @@ async function afficherCategorieAchatsMarche(commerceType, buildingId, roomId, f
     html += '<b style="font-size:.93rem;color:#c0b090">' + recette.label + '</b><br>';
     html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
     html += '</div>';
-    html += enRupture
-      ? '<span style="font-size:.8rem;color:#5a5040;flex-shrink:0">Rupture</span>'
-      : '<button onclick="doCommanderAchatCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\',\'' + famille + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">Acheter</button>';
+    html += actionsCatalogueCommerceHtml(data, commerceType, buildingId, roomId, id);
     html += '</div>';
   });
   html += '</div>';
@@ -5464,184 +5476,95 @@ function doOffrirTourneeGenerique(pa, cost) {
   ouvrirModalOffrirTourneeBoisson(c.type, c.buildingId, c.roomId);
 }
 
+// Meme carte, memes invitations et meme machine a etats. Le contrat serveur est requis :
+// ne jamais annoncer la nouvelle regle tout en executant une ancienne vente cote client.
+let RP_TOURNEE_INTENTION = null;
 async function ouvrirModalOffrirTourneeBoisson(commerceType, buildingId, roomId) {
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
-  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
+  const contexte = contexteNavigationRue();
+  const contrat = await sbRpcVerdict('tournee_contrat_lire', {}, {encoreValide:()=>contexteNavigationRueValide(contexte)});
+  if (!contexteNavigationRueValide(contexte)) return;
+  if (contrat?.ok !== true || contrat.version !== 1) {
+    showToast('Offrir à boire indisponible', 'Le service de tournée sécurisé n’est pas encore disponible. Aucun paiement effectué.', false); return;
+  }
+  const data = await chargerCommerce(commerceType, contexte.pays, contexte.ville, buildingId, roomId);
+  if (!contexteNavigationRueValide(contexte)) return;
   if (!data) { showToast('Indisponible', '', false); return; }
-
-  document.getElementById('postes-modal-title').textContent = '🍷 Offrir une tournée';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Choisissez la boisson offerte à toute la tournée. Une seule boisson pour l\'ensemble des invités.</div>';
-  const carte = data.carte || [];
-  const boissons = carte.filter(id => RECETTES_ALIMENTAIRES[id]?.categorie === 'boisson');
-  if (boissons.length === 0) {
-    html += '<div style="font-size:.9rem;color:#8a8060">Aucune boisson disponible pour le moment.</div>';
-  }
-  boissons.forEach(id => {
-    const recette = RECETTES_ALIMENTAIRES[id];
+  document.getElementById('postes-modal-title').textContent = 'Offrir à boire';
+  let html = '<div style="padding:1rem;background:#151A21;color:#e0e6ed"><p>1 PA par ordre · 25 FR par verre effectivement servi, votre verre compris.</p>';
+  (data.carte || []).filter(id=>RECETTES_ALIMENTAIRES[id]?.categorie==='boisson').forEach(id=>{
     const stock = data.stockProduits[id] || 0;
-    const prix = data.parametres.prixVente[id];
-    const enRupture = stock <= 0;
-    html += '<div style="display:flex;gap:.7rem;padding:.6rem;border:1px solid #2a2010;margin-bottom:.5rem;align-items:center;' + (enRupture ? 'opacity:.5' : '') + '">';
-    html += '<div style="flex:1">';
-    html += '<b style="font-size:.93rem;color:#c0b090">' + recette.label + '</b><br>';
-    html += '<span style="font-size:.85rem;color:#C9A84C">' + (prix != null ? prix.toLocaleString('fr-FR') + ' FR/pers.' : 'Prix non défini') + ' — Stock : ' + stock + '</span>';
-    html += '</div>';
-    html += enRupture
-      ? '<span style="font-size:.8rem;color:#5a5040;flex-shrink:0">Rupture</span>'
-      : '<button onclick="ouvrirModalOffrirTourneeCibles(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="flex-shrink:0;padding:.4rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem">Choisir</button>';
-    html += '</div>';
+    html += '<div style="padding:.7rem;border:1px solid #394656;border-radius:9px;margin-bottom:.5rem">' + ficheEchapper(RECETTES_ALIMENTAIRES[id].label) + ' — Stock : ' + stock;
+    html += '<button ' + (stock>0 ? 'onclick="ouvrirModalOffrirTourneeCibles(\''+commerceType+'\',\''+buildingId+'\',\''+(roomId||'')+'\',\''+id+'\')"' : 'disabled') + '>Choisir</button></div>';
   });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('postes-body').innerHTML=html+'</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
-
-// Etape 2/3 : selection multiple des cibles (PJ presents, PNJ presents, PNJ du groupe -- memes 3
-// sources qu'ouvrirModalInvitationSociale, plateau-pnj.js) + precontroles de lancement en lecture
-// seule (section 4 du cahier des charges) : la selection proposee est plafonnee par le pire cas
-// (M+1 boissons, tout le monde accepte), jamais une reservation -- argent/stock sont entierement
-// relus a la resolution (resoudreTournee ci-dessous), independamment de ce qui est calcule ici.
 async function ouvrirModalOffrirTourneeCibles(commerceType, buildingId, roomId, recetteId) {
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
-  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
-  const recette = RECETTES_ALIMENTAIRES[recetteId];
-  if (!data || !recette) { showToast('Indisponible', '', false); return; }
-  const stock = data.stockProduits[recetteId] || 0;
-  const prix = data.parametres.prixVente[recetteId];
-  if (prix == null) { showToast('Prix non défini', '', false); return; }
-
-  const presentsPJ = (window._vraisJoueursPresents || []).filter(p => p.name !== state.char?.name).map(p => ({ name: p.name, kind: 'pj', rel: '' }));
-  const roomActuelle = BUILDINGS[buildingId]?.rooms?.[roomId];
-  const presentsPNJ = (roomActuelle?.persons || []).filter(p => !p.isPJ).map(p => ({ name: p.name.replace(' (PNJ)', ''), kind: 'pnj', rel: p.rel || 'neutral' }));
-  const monGroupePNJ = typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : [];
-  const presentsMonGroupe = monGroupePNJ
-    .filter(g => !presentsPNJ.some(pp => pp.name === g.nom))
-    .map(g => ({ name: g.nom, kind: 'groupe', rel: '' }));
-  const presents = [...presentsPJ, ...presentsPNJ, ...presentsMonGroupe];
-
-  if (presents.length === 0) {
-    showToast('Personne à inviter', 'Aucun autre joueur ou PNJ n\'est présent dans cette pièce pour l\'instant.', false);
-    return;
-  }
-
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const maxParStock = Math.max(0, stock - 1);
-  const maxParArgent = Math.max(0, Math.floor((state.arg || 0) / prix) - 1);
-  const maxSelectable = Math.min(presents.length, maxParStock, maxParArgent);
-
-  document.getElementById('postes-modal-title').textContent = '🍷 Offrir une tournée — ' + recette.label;
-  let html = '<div style="padding:.8rem 1rem">';
-  if (maxSelectable <= 0) {
-    html += '<div style="font-size:.88rem;color:#cc6644;font-style:italic">Vous ne pouvez inviter personne pour l\'instant : il faut au moins ' + (2 * prix).toLocaleString('fr-FR') + ' ' + cur + ' et 2 ' + recette.label + ' en stock (vous compris) pour lancer une tournée.</div>';
-    html += '</div>';
-    document.getElementById('postes-body').innerHTML = html;
-    document.getElementById('modal-postes').classList.add('open');
-    return;
-  }
-  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">' + prix.toLocaleString('fr-FR') + ' ' + cur + ' par personne (vous compris), à votre charge. Le coût réel n\'est prélevé qu\'à la fin, uniquement pour ceux qui auront réellement accepté. Sélectionnez jusqu\'à ' + maxSelectable + ' invité(s).</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem">';
-  presents.forEach(p => {
-    html += '<label style="display:flex;align-items:center;gap:.5rem;font-size:.9rem;color:#c0b090"><input type="checkbox" class="tournee-cible" value="' + p.name.replace(/"/g, '') + '|' + p.kind + '|' + p.rel + '"/> ' + p.name + (p.kind !== 'pj' ? ' <span style="color:#5a4a30;font-size:.8rem">(PNJ)</span>' : '') + '</label>';
-  });
-  html += '</div>';
-  html += '<button onclick="confirmerOffrirTourneeUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + recetteId + '\',' + maxSelectable + ')" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.9rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">OFFRIR LA TOURNÉE</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
+  const contexte=contexteNavigationRue();
+  const data=await chargerCommerce(commerceType,contexte.pays,contexte.ville,buildingId,roomId);
+  if (!contexteNavigationRueValide(contexte)) return;
+  if (!data || !RECETTES_ALIMENTAIRES[recetteId]) return;
+  RP_TOURNEE_INTENTION={contexte,entreprise:data.id,recette:recetteId,enCours:false};
+  const presents=[...new Set((window._vraisJoueursPresents||[]).map(p=>p.name).filter(n=>n&&n!==contexte.nom))];
+  document.getElementById('postes-modal-title').textContent='Offrir à boire — invités';
+  let html='<div style="padding:1rem;background:#151A21;color:#e0e6ed"><p>Chaque invité répond individuellement. Vous buvez automatiquement votre verre.</p><p>Avec au moins un acceptant : +5 Santé, +2 INF, +2 ENT pour chacun, sans cumul. Si tous refusent : vous payez 25 FR et 1 PA, et perdez 5 Moral.</p>';
+  presents.forEach(n=>{html+='<label style="display:block;margin:.5rem"><input type="checkbox" class="tournee-cible" value="'+ficheEchapper(n)+'"> '+ficheEchapper(n)+'</label>';});
+  html+='<button '+(!presents.length?'disabled ':'')+'onclick="confirmerOffrirTourneeUI()">Inviter · 1 PA à la résolution</button></div>';
+  document.getElementById('postes-body').innerHTML=html;
   document.getElementById('modal-postes').classList.add('open');
 }
+async function confirmerOffrirTourneeUI() {
+  const intention=RP_TOURNEE_INTENTION;
+  if (!intention || intention.enCours || !contexteNavigationRueValide(intention.contexte)) return;
+  const invites=[...new Set(Array.from(document.querySelectorAll('.tournee-cible:checked')).map(el=>el.value))].sort();
+  if (!invites.length) { showToast('Aucun invité', 'Sélectionnez au moins un PJ présent.', false); return; }
+  const charge={p_entreprise:intention.entreprise,p_recette:intention.recette,p_invites:invites};
+  // Persiste uniquement la cle de cet acte et son intention dans l'onglet : une reponse
+  // perdue puis un rechargement rejouent la meme requete, sans seconde tournee.
+  const signature=JSON.stringify([intention.contexte.uid,intention.contexte.nom,charge]);
+  if(intention.signature&&intention.signature!==signature){showToast('Ordre à vérifier','Conservez la sélection initiale pour vérifier cet ordre avant d’en proposer un autre.',false);return;}
+  const cleCache='respublica_tournee_intention:'+signature;
+  let precedente=null;
+  try { precedente=JSON.parse(sessionStorage.getItem(cleCache)); } catch (_) {}
+  const id=intention.id || (precedente?.signature===signature ? precedente.id : 'tournee-'+crypto.randomUUID());
+  intention.id=id;intention.signature=signature;
+  try { sessionStorage.setItem(cleCache,JSON.stringify({signature,id})); } catch (_) {}
+  intention.enCours=true;
+  try {
+    const v=await sbRpcVerdict('tournee_creer',{p_id:id,...charge},{encoreValide:()=>contexteNavigationRueValide(intention.contexte)});
+    if (!contexteNavigationRueValide(intention.contexte)) return;
+    if (v?.ok !== true) { showToast('Invitation non confirmée', 'Aucun succès confirmé. Réessayez la même sélection pour vérifier cet ordre sans le doubler.', false); return; }
+    try { sessionStorage.removeItem(cleCache); } catch (_) {}
+    document.getElementById('modal-postes')?.classList.remove('open');
+    showToast('Invitations envoyées','Chaque invité peut accepter ou refuser pendant cinq minutes.',true);
+    addJournalEntry('Offrir à boire : invitations envoyées.', 'event-info');
+    RP_TOURNEE_INTENTION=null;
+  } catch (_) {
+    if(contexteNavigationRueValide(intention.contexte)) showToast('Invitation non confirmée','Réessayez la même sélection pour vérifier cet ordre sans le doubler.',false);
+  } finally { intention.enCours=false; }
+}
 
-// Etape 3/3 : lancement. Precontrole final (relu, pas celui fige a l'ouverture de la modale) puis
-// creation persistante (tournees + invitations_diner.tournee_id pour les cibles PJ). Les PNJ sont
-// resolus immediatement (memes probabilites que l'ancien systeme : 95% groupe, 85/60/20 selon
-// rel allie/neutre/ennemi) et figes dans pnj_resultats -- AUCUN bonus ni paiement a cet instant,
-// pour eux comme pour les PJ (correction obligatoire de l'asymetrie de l'ancien systeme : les
-// effets n'arrivent qu'a la resolution reussie, cf. resoudreTournee).
-async function confirmerOffrirTourneeUI(commerceType, buildingId, roomId, recetteId, maxSelectable) {
-  const cibles = Array.from(document.querySelectorAll('.tournee-cible:checked')).map(el => {
-    const [name, kind, rel] = el.value.split('|');
-    return { name, kind, rel };
-  });
-  if (cibles.length === 0) { showToast('Aucune cible sélectionnée', 'Sélectionnez au moins une personne à inviter.', false); return; }
-  if (cibles.length > maxSelectable) {
-    showToast('Sélection trop large', 'Vous ne pouvez inviter que ' + maxSelectable + ' personne(s) au maximum pour l\'instant (fonds/stock).', false);
+// Le serveur clot ET vend en une seule transaction. Aucun delta financier/stat local.
+async function resoudreTourneeBoire(tournee) {
+  const c=contexteNavigationRue();
+  let v=await sbRpcVerdict('tournee_cloturer',{p_tournee_id:tournee.id,p_servie:true},{encoreValide:()=>contexteNavigationRueValide(c)});
+  if (!contexteNavigationRueValide(c)) return;
+  if((!v||v.transport||typeof v.ok!=='boolean')&&typeof sbGetTournee==='function'){
+    const actuel=await sbGetTournee(tournee.id).catch(()=>null);
+    if(!contexteNavigationRueValide(c)) return;
+    if(actuel?.contrat==='boire_v1'&&actuel.offreur===c.nom&&actuel.resultat) v=actuel.resultat;
+  }
+  if(!v){showToast('Service non confirmé','La réponse est incertaine. Aucun nouveau paiement n’est lancé.',false);return;}
+  if (v.ok!==true) {
+    if(v.raison!=='reponses_en_attente') showToast('Tournée non servie','Le serveur n’a pas confirmé le service. Aucun succès annoncé.',false);
     return;
   }
-
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
-  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
-  const recette = RECETTES_ALIMENTAIRES[recetteId];
-  if (!data || !recette) { showToast('Indisponible', '', false); return; }
-  const stock = data.stockProduits[recetteId] || 0;
-  const prix = data.parametres.prixVente[recetteId];
-  if (prix == null) { showToast('Prix non défini', '', false); return; }
-
-  const M = cibles.length;
-  const besoinArgent = (M + 1) * prix;
-  const besoinStock = M + 1;
-  if ((state.arg || 0) < besoinArgent) {
-    showToast('Fonds insuffisants', besoinArgent.toLocaleString('fr-FR') + ' FR nécessaires au maximum (si tout le monde accepte).', false);
-    return;
-  }
-  if (stock < besoinStock) {
-    showToast('Stock insuffisant', besoinStock + ' ' + recette.label + ' nécessaires au maximum, ' + stock + ' en stock.', false);
-    return;
-  }
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-
-  const pnjResultats = cibles.filter(c => c.kind !== 'pj').map(c => {
-    const chance = c.kind === 'groupe' ? 95 : (c.rel === 'ally' ? 85 : c.rel === 'enemy' ? 20 : 60);
-    const roll = Math.floor(Math.random() * 100) + 1;
-    return { nom: c.name, accepte: roll <= chance };
-  });
-  const ciblesPJ = cibles.filter(c => c.kind === 'pj');
-
-  const tourneeId = 'tournee-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-  const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
-
-  if (typeof sbCreerTournee !== 'function') { showToast('Indisponible', '', false); return; }
-  const tourneeCreee = await sbCreerTournee({
-    id: tourneeId,
-    country: pays,
-    ville,
-    offreur: state.char?.name,
-    building_id: buildingId,
-    room_id: roomId || null,
-    commerce_type: commerceType,
-    recette_id: recetteId,
-    prix_unitaire_reference: prix,
-    pnj_resultats: pnjResultats,
-    statut: 'en_attente',
-    pa_debite: false,
-    expires_at: expiresAt
-  }).catch(() => null);
-
-  if (!tourneeCreee) {
-    showToast('Erreur', 'Impossible de créer la tournée pour l\'instant. Réessayez.', false);
-    return;
-  }
-
-  if (ciblesPJ.length > 0 && typeof sbCreerInvitationsTournee === 'function') {
-    await sbCreerInvitationsTournee(ciblesPJ.map(c => ({
-      inviteur: state.char?.name, invite: c.name, country: pays, city: ville,
-      building_id: buildingId, room_id: roomId || null,
-      statut: 'attente', cout: prix, type: 'tournee_boisson', tournee_id: tourneeId
-    }))).catch(() => {});
-  }
-
-  showToast('Tournée lancée', 'En attente de la réponse de vos invités (5 min maximum)...', true);
-  addJournalEntry('Tournée offerte (' + recette.label + ') à ' + M + ' personne(s).', 'event-info');
-
-  // Si aucune cible PJ (donc rien a attendre, les PNJ sont deja tous resolus), tenter une
-  // resolution immediate plutot que d'attendre le prochain tick de polling (confort, pas une
-  // dependance : le polling periodique la resoudrait de toute facon dans les secondes suivantes).
-  if (ciblesPJ.length === 0 && typeof verifierTourneesActivesOffreur === 'function') {
-    verifierTourneesActivesOffreur();
-  }
+  await commercePjActualiserPersonnage({social:true});
+  if (!contexteNavigationRueValide(c)) return;
+  updateUI();
+  if(v.rejeu) return;
+  showToast('Boissons servies',v.seul?'Vous buvez seul : 25 FR, 1 PA, −5 Moral.':v.verres+' verres servis : '+v.total+' FR, 1 PA. +5 Santé, +2 INF, +2 ENT par participant.',true);
+  addJournalEntry('Offrir à boire : '+v.verres+' verre(s), '+v.total+' FR.', 'event-info');
 }
 
 // crediterTourneeInviteAcceptant A ETE SUPPRIMEE (chantier 5, chaine 6, 10 octobre 2026).
@@ -5671,6 +5594,7 @@ async function confirmerOffrirTourneeUI(commerceType, buildingId, roomId, recett
 // d'une reprise apres crash (pa_debite=true) : le plafond calcule au lancement n'est jamais
 // reutilise tel quel.
 async function resoudreTournee(tournee) {
+  if(tournee.contrat==='boire_v1') return resoudreTourneeBoire(tournee);
   const invitationsPJ = await sbGetInvitationsTournee(tournee.id);
   const pjAcceptants = invitationsPJ.filter(r => r.statut === 'acceptee');
   const pnjAcceptants = (tournee.pnj_resultats || []).filter(p => p.accepte);
@@ -5801,6 +5725,12 @@ async function verifierTourneesActivesOffreur() {
   try { tournees = await sbGetTourneesActivesOffreur(state.char.name); } catch (e) { return; }
 
   for (const t of tournees) {
+    if(t.contrat==='boire_v1') {
+      if(window._tourneeResolutionEnCours) continue;
+      window._tourneeResolutionEnCours=true;
+      try { await resoudreTournee(t); } finally { window._tourneeResolutionEnCours=false; }
+      continue;
+    }
     if (t.statut === 'en_attente') {
       const invitationsPJ = await sbGetInvitationsTournee(t.id).catch(() => []);
       const expiree = t.expires_at && new Date(t.expires_at).getTime() <= Date.now();
@@ -5829,15 +5759,37 @@ async function verifierTourneesActivesOffreur() {
 // de l'asymetrie de l'ancien systeme, les bonus n'arrivent qu'a la resolution par l'offreur.
 async function verifierTourneesRecues() {
   if (!state.char?.name || typeof sbGetInvitationsTourneeRecues !== 'function') return;
-  if (state._tourneeModalOuvert) return;
-  let rows = [];
-  try { rows = await sbGetInvitationsTourneeRecues(state.char.name); } catch (e) { return; }
-  if (!rows || rows.length === 0) return;
-  const invitation = rows[0];
-  const tournee = typeof sbGetTournee === 'function' ? await sbGetTournee(invitation.tournee_id).catch(() => null) : null;
-  if (!tournee) return;
+  if (state._tourneeModalOuvert) {
+    if(document.getElementById('modal-postes')?.classList.contains('open')) return;
+    state._tourneeModalOuvert=false;state._tourneeAffichee=null;
+  }
+  const contexte=contexteNavigationRue();
+  let rows=[];
+  try { rows=await sbGetInvitationsTourneeRecues(contexte.nom); } catch (_) { return; }
+  if(!contexteNavigationRueValide(contexte)||!Array.isArray(rows)) return;
+  let invitation=null,tournee=null;
+  for(const ligne of rows){
+    const t=await sbGetTournee(ligne.tournee_id).catch(()=>null);
+    if(!contexteNavigationRueValide(contexte)) return;
+    if(!t) continue;
+    if(ligne.statut==='acceptee'){
+      if(t.contrat==='boire_v1'&&t.resultat){
+        const relu=await commercePjActualiserPersonnage({social:true});
+        if(!contexteNavigationRueValide(contexte)) return;
+        if(relu){
+          updateUI();
+          await sbRpcVerdict('tournee_repondre',{p_invitation:ligne.id,p_accepte:null},{encoreValide:()=>contexteNavigationRueValide(contexte)});
+          if(!contexteNavigationRueValide(contexte)) return;
+        }
+      }
+      continue;
+    }
+    if(ligne.statut==='attente'&&(!t.contrat||t.statut==='en_attente')) {invitation=ligne;tournee=t;break;}
+  }
+  if(!invitation||!tournee) return;
   const recette = RECETTES_ALIMENTAIRES[tournee.recette_id];
 
+  state._tourneeAffichee = tournee;
   state._tourneeModalOuvert = true;
   document.getElementById('postes-modal-title').textContent = '🍷 Tournée offerte';
   document.getElementById('postes-body').innerHTML =
@@ -5850,53 +5802,31 @@ async function verifierTourneesRecues() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+let RP_TOURNEE_REPONSES = new Set();
 async function repondreTournee(id, accepte) {
-  document.getElementById('modal-postes')?.classList.remove('open');
-  state._tourneeModalOuvert = false;
-  if (typeof sbRepondreInvitationDiner === 'function') await sbRepondreInvitationDiner(id, accepte, null).catch(() => {});
-  showToast(
-    accepte ? 'Invitation acceptée' : 'Invitation déclinée',
-    accepte ? 'Vous rejoignez la tournée. Elle sera servie une fois que tout le monde aura répondu (ou à expiration).' : 'Vous avez décliné la tournée.',
-    accepte, false
-  );
-  addJournalEntry(accepte ? 'Vous avez accepté une tournée offerte.' : 'Vous avez décliné une tournée offerte.', accepte ? 'event-good' : 'event-info');
+  if(RP_TOURNEE_REPONSES.has(id)) return;
+  const c=contexteNavigationRue();
+  RP_TOURNEE_REPONSES.add(id);
+  try {
+    const tournee=state._tourneeAffichee;
+    const v=tournee?.contrat==='boire_v1'
+      ?await sbRpcVerdict('tournee_repondre',{p_invitation:id,p_accepte:!!accepte},{encoreValide:()=>contexteNavigationRueValide(c)})
+      :await sbRepondreInvitationDiner(id,accepte,null).then(rows=>({ok:Array.isArray(rows)&&rows.length===1}));
+    if(!contexteNavigationRueValide(c)) return;
+    if(v?.ok!==true){showToast('Réponse non confirmée','Réessayez : aucune acceptation ni refus confirmé.',false);return;}
+    document.getElementById('modal-postes')?.classList.remove('open');
+    state._tourneeModalOuvert=false;
+    state._tourneeAffichee=null;
+    showToast(accepte?'Invitation acceptée':'Invitation déclinée',accepte?'Le service attend la résolution de la tournée.':'Votre refus est enregistré.',accepte);
+  } catch (_) {
+    if(contexteNavigationRueValide(c)) showToast('Réponse non confirmée','Votre réponse n’a pas pu être vérifiée. Réessayez.',false);
+  } finally { RP_TOURNEE_REPONSES.delete(id); }
 }
 
 // Interface "Produire" -- meme modele que doProduireArme (armurerie), restreinte aux recettes
 // de la carte du commerce (l'exploitant ne produit que ce qu'il vend, v1 du moteur).
 async function doProduireRecetteCommerce(commerceType, buildingId, roomId, pa, cost) {
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
-  const data = await chargerCommerce(commerceType, pays, ville, buildingId, roomId);
-  if (!data) { showToast('Indisponible', '', false); return; }
-
-  const recettesDispo = (data.carte || []).filter(id => recetteAutoriseePourCommerce(resoudreProduitCommerce(id), data));
-
-  document.getElementById('postes-modal-title').textContent = 'Produire';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#8a8060;margin-bottom:.7rem">Main-d\'œuvre : ' + COUT_MAIN_OEUVRE_PA_ALIMENTAIRE + ' FR par PA travaillé.</div>';
-  if (recettesDispo.length === 0) {
-    html += '<div style="font-size:.9rem;color:#8a8060">Aucune recette disponible sur la carte de cet établissement.</div>';
-  }
-  recettesDispo.forEach(id => {
-    const recette = resoudreProduitCommerce(id);
-    const materiauxTxt = Object.entries(recette.materiaux).map(([m, q]) => q + ' ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m] ? RESSOURCES_ECONOMIE[m].label : m)).join(', ');
-    const stockActuel = data.stockProduits[id] || 0;
-    const stockMax = plafondEffectifCommerce(data, id);
-    // Bouton PRODUIRE explicite (lot boissons, 20 aout 2026) -- la fiche recette redevient une
-    // simple fiche informative (div, plus cliquable en elle-meme), l'action est desormais un
-    // vrai bouton distinct. Meme handler qu'avant, doProduireRecetteCommerceUI(), aucune logique
-    // dupliquee -- generique, s'applique a tous les commerces utilisant cette fenetre, pas
-    // seulement le Cafe de la Gare.
-    html += '<div style="margin-bottom:.5rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;font-size:.88rem">';
-    html += '<b>' + recette.label + '</b> — ' + recette.pa + ' PA → ' + recette.portions + ' portions<br>';
-    html += '<span style="color:#8a8060">Matériaux : ' + materiauxTxt + ' · Salaire : ' + (recette.pa * COUT_MAIN_OEUVRE_PA_ALIMENTAIRE) + ' FR · Stock : ' + stockActuel + (stockMax != null ? '/' + stockMax : '') + '</span><br>';
-    html += '<button onclick="doProduireRecetteCommerceUI(\'' + commerceType + '\',\'' + buildingId + '\',\'' + (roomId || '') + '\',\'' + id + '\')" style="margin-top:.5rem;padding:.4rem 1rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.82rem;font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em">PRODUIRE</button>';
-    html += '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  return doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
 }
 
 async function doProduireRecetteCommerceUI(commerceType, buildingId, roomId, recetteId) {
@@ -5910,6 +5840,7 @@ async function doProduireRecetteCommerceUI(commerceType, buildingId, roomId, rec
   const res = await produireRecetteCommerce(commerceType, pays, ville, buildingId, roomId, recetteId);
   if (!res.ok) {
     const messages = {
+      production_non_autorisee: 'Vous n’êtes pas habilité à produire dans cet établissement.',
       recette_non_autorisee: 'Cette recette n\'est pas autorisée pour cet établissement.',
       pa_insuffisants: recette.pa + ' PA requis.',
       stock_matiere_insuffisant: 'Il manque du ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[res.matiere] ? RESSOURCES_ECONOMIE[res.matiere].label : res.matiere) + ' en stock.',
@@ -5926,7 +5857,7 @@ async function doProduireRecetteCommerceUI(commerceType, buildingId, roomId, rec
   showToast('Production réussie !', recette.label + ' — ' + res.portions + ' portions. +' + res.salaire + ' FR de salaire.', true, true);
   addJournalEntry('Production de ' + recette.label + ' (' + res.portions + ' portions) à ' + (BUILDINGS[buildingId]?.name || buildingId) + '.', 'event-good');
   // Ne ferme pas le modal : rafraichit pour enchainer (meme pattern que confirmerProduction/doProduireArme)
-  doProduireRecetteCommerce(commerceType, buildingId, roomId, 0, 0);
+  doConsulterCarteCommerce(commerceType, buildingId, roomId, 0, 0);
 }
 
 async function chargerArmurerieLocale() {
@@ -5955,24 +5886,7 @@ const SALAIRE_PRODUCTION_ARMURERIE = 100; // 2 PA x 50 FR/PA
 const PA_TOURNEE = 1;
 
 async function doProduireArme() {
-  const data = await chargerArmurerieLocale();
-  if (!data) { showToast('Indisponible', '', false); return; }
-
-  document.getElementById('postes-modal-title').textContent = 'Produire une arme';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Salaire fixe : ' + SALAIRE_PRODUCTION_ARMURERIE + ' FR par arme (' + PA_PRODUCTION_ARMURERIE + ' PA), quel que soit le modèle.</div>';
-  Object.entries(getRecettesPays(state.country || 'republic')).forEach(([id, r]) => {
-    const materiauxTxt = Object.entries(r.materiaux).map(([m, q]) => q + ' ' + m).join(', ');
-    const stockActuel = data.stockProduits[id] || 0;
-    const stockMax = data.parametres.stockMax[id] || 0;
-    html += '<button onclick="confirmerProduction(\'' + id + '\')" style="display:block;width:100%;text-align:left;margin-bottom:.5rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.78rem">';
-    html += '<b>' + r.label + '</b> — ' + PA_PRODUCTION_ARMURERIE + ' PA<br>';
-    html += '<span style="color:#8a8060">Matériaux : ' + materiauxTxt + ' · Salaire : ' + SALAIRE_PRODUCTION_ARMURERIE + ' FR · Stock : ' + stockActuel + '/' + stockMax + '</span>';
-    html += '</button>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  return ouvrirModalAcheterArme();
 }
 
 async function confirmerProduction(produitId) {
@@ -5983,6 +5897,7 @@ async function confirmerProduction(produitId) {
   // relit les matieres, le plafond et la caisse, preleve le PA et verse le salaire.
   const data = await chargerArmurerieLocale();
   if (!data) { showToast('Indisponible', '', false); return; }
+  if(!commercePeutProduire(data)){showToast('Production non autorisée','Vous n’êtes pas habilité à produire ici.',false);return;}
   const recette = getRecettesPays(state.country || 'republic')[produitId];
 
   const r = await commerceProduire(data.id, produitId, 'produire_arme');

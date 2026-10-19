@@ -4897,7 +4897,7 @@ async function sbGetInvitationsTournee(tourneeId) {
 }
 
 async function sbGetInvitationsTourneeRecues(nomJoueur) {
-  return sbGet('invitations_diner', `invite=eq.${encodeURIComponent(nomJoueur)}&statut=eq.attente&tournee_id=not.is.null`) || [];
+  return sbGet('invitations_diner', `invite=eq.${encodeURIComponent(nomJoueur)}&statut=in.(attente,acceptee)&tournee_id=not.is.null`) || [];
 }
 
 async function sbTracerAction(action) {

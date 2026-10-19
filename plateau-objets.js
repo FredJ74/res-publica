@@ -546,20 +546,20 @@ function ficheLignesEffets(effets) {
 // fiche.resolu === false  ->  objet hors catalogue : AUCUN generique de repli n'est
 // affiche, et rien n'est invente.
 function ficheOfficielleHtml(fiche) {
-  const cadre = 'border:1px solid #2a2010;background:#0b0a05;padding:.6rem .7rem;margin-top:.7rem';
-  const titre = '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.45rem">'
+  const cadre = 'border:1px solid #394656;background:#252D38;border-radius:9px;padding:.6rem .7rem;margin-top:.7rem';
+  const titre = '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.12em;color:#E5C477;margin-bottom:.45rem">'
               + '<i class="ti ti-certificate" style="font-size:.8rem"></i> FICHE OFFICIELLE — INFORMATIONS SYSTÈME</div>';
 
   if (!fiche || fiche.resolu !== true) {
     return '<div style="' + cadre + '">' + titre
-      + '<div style="font-size:.8rem;color:#8a8060;line-height:1.5">Cet objet ne figure pas au catalogue officiel des commerces. '
+      + '<div style="font-size:.8rem;color:#aab5c3;line-height:1.5">Cet objet ne figure pas au catalogue officiel des commerces. '
       + 'Ses propriétés ne sont pas garanties par une fiche système.</div></div>';
   }
 
   const ligne = function (l, v) {
     return '<div style="display:flex;gap:.5rem;font-size:.8rem;line-height:1.55">'
-         + '<span style="color:#6a5a30;min-width:8.5rem;flex-shrink:0">' + ficheEchapper(l) + '</span>'
-         + '<span style="color:#c0b090">' + ficheEchapper(v) + '</span></div>';
+         + '<span style="color:#aab5c3;min-width:8.5rem;flex-shrink:0">' + ficheEchapper(l) + '</span>'
+         + '<span style="color:#e0e6ed">' + ficheEchapper(v) + '</span></div>';
   };
 
   let h = '<div style="' + cadre + '">' + titre;
@@ -581,16 +581,16 @@ function ficheOfficielleHtml(fiche) {
   // permet de faire : ce serait exact sur les chiffres et trompeur sur le fond.
   const lignes = ficheLignesEffets(fiche.effets);
   if (fiche.aucun_effet === true) {
-    h += '<div style="margin-top:.4rem;font-size:.82rem;color:#8a8060"><b style="color:#a09070">Effets : Aucun</b></div>';
+    h += '<div style="margin-top:.4rem;font-size:.82rem;color:#aab5c3"><b style="color:#a09070">Effets : Aucun</b></div>';
   } else if (lignes.length > 0) {
-    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#6a5a30;font-family:Bebas Neue,sans-serif">EFFETS RÉELS</div>';
+    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#aab5c3;font-family:Bebas Neue,sans-serif">EFFETS RÉELS</div>';
     lignes.forEach(function (l) { h += ligne(l.libelle, l.valeur); });
   }
 
   if (Array.isArray(fiche.capacites) && fiche.capacites.length) {
-    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#6a5a30;font-family:Bebas Neue,sans-serif">CE QU\'IL PERMET</div>';
+    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#aab5c3;font-family:Bebas Neue,sans-serif">CE QU\'IL PERMET</div>';
     fiche.capacites.forEach(function (c) {
-      h += '<div style="font-size:.8rem;color:#c0b090;line-height:1.55">• ' + ficheEchapper(FICHE_LIBELLES_CAPACITES[c] || c) + '</div>';
+      h += '<div style="font-size:.8rem;color:#e0e6ed;line-height:1.55">• ' + ficheEchapper(FICHE_LIBELLES_CAPACITES[c] || c) + '</div>';
     });
   }
 
@@ -603,7 +603,7 @@ function ficheOfficielleHtml(fiche) {
   if (fiche.conditions)    usage += ligne('Conditions', JSON.stringify(fiche.conditions));
   if (fiche.contraintes)   usage += ligne('Contraintes', JSON.stringify(fiche.contraintes));
   if (usage) {
-    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#6a5a30;font-family:Bebas Neue,sans-serif">USAGE</div>' + usage;
+    h += '<div style="margin-top:.45rem;font-size:.7rem;letter-spacing:.08em;color:#aab5c3;font-family:Bebas Neue,sans-serif">USAGE</div>' + usage;
   }
 
   h += '</div>';
@@ -615,15 +615,15 @@ function ficheOfficielleHtml(fiche) {
 // aucun champ absent n'est comble.
 function ficheCommercialeHtml(infos) {
   const i = infos || {};
-  const cadre = 'border:1px solid #2a2010;background:#0f0d05;padding:.6rem .7rem';
+  const cadre = 'border:1px solid #394656;background:#252D38;border-radius:9px;padding:.6rem .7rem';
   let h = '<div style="' + cadre + '">'
-        + '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.45rem">'
+        + '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.12em;color:#E5C477;margin-bottom:.45rem">'
         + '<i class="ti ti-tag" style="font-size:.8rem"></i> PRÉSENTATION COMMERCIALE</div>';
-  if (texteSur(i.nom))       h += '<div style="font-family:Playfair Display,serif;font-size:.98rem;color:#e0d5b8">' + ficheEchapper(i.nom) + '</div>';
-  if (texteSur(i.description)) h += '<div style="font-size:.82rem;color:#a0a080;line-height:1.55;margin-top:.25rem">' + ficheEchapper(i.description) + '</div>';
+  if (texteSur(i.nom))       h += '<div style="font-family:Playfair Display,serif;font-size:.98rem;color:#E5C477">' + ficheEchapper(i.nom) + '</div>';
+  if (texteSur(i.description)) h += '<div style="font-size:.82rem;color:#c8d2de;line-height:1.55;margin-top:.25rem">' + ficheEchapper(i.description) + '</div>';
   if (i.prix != null)        h += '<div style="font-size:.85rem;color:#C9A84C;margin-top:.35rem">' + Number(i.prix).toLocaleString('fr-FR') + ' ' + ficheEchapper(i.devise || 'FR') + '</div>';
-  if (texteSur(i.vendeur))   h += '<div style="font-size:.76rem;color:#6a5a30;margin-top:.2rem">Vendu par ' + ficheEchapper(i.vendeur) + '</div>';
-  if (i.stock != null)       h += '<div style="font-size:.76rem;color:#6a5a30">Stock : ' + Number(i.stock) + '</div>';
+  if (texteSur(i.vendeur))   h += '<div style="font-size:.76rem;color:#aab5c3;margin-top:.2rem">Vendu par ' + ficheEchapper(i.vendeur) + '</div>';
+  if (i.stock != null)       h += '<div style="font-size:.76rem;color:#aab5c3">Stock : ' + Number(i.stock) + '</div>';
   h += '</div>';
   return h;
 }

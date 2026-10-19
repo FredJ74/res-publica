@@ -4095,6 +4095,8 @@ function renderRoomActions(room, buildingId, roomId) {
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
   const allOrders = ordresDeclares
     .filter(o => !dynMasque.includes(o.fn))
+    .filter(o => !['produire_commerce','produire_arme'].includes(o.fn))
+    .filter(o => o.fn !== 'gerer_commerce' || (typeof commerceDroitsPiece === 'function' && commerceDroitsPiece(buildingId, roomId)))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
     .concat(dynOrders);
 
@@ -4298,7 +4300,7 @@ function renderRoomActions(room, buildingId, roomId) {
     // SAUF quand sa valeur declaree est reellement 0 PA (seul le Cafe de la Gare pour l'instant) --
     // les autres commerces (brasserie/hotel-mineur/buvette) debitent encore reellement leur PA
     // declare et doivent continuer a l'afficher.
-    if (o.fn === 'produire_commerce' || o.fn === 'consommer_boisson' || o.fn === 'offrir_tournee') {
+    if (o.fn === 'produire_commerce' || o.fn === 'consommer_boisson') {
       paDisplay = '';
     } else if (o.fn === 'consulter_carte_commerce' && o.pa === 0) {
       paDisplay = '';

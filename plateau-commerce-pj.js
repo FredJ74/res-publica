@@ -114,7 +114,7 @@ const I18N_COMMERCE_PJ_FR = {
   // Libelles du parcours commercant unifie (30 septembre 2026). Le vocabulaire est
   // celui d'une boutique ; un restaurant dit « Consulter la carte » pour la MEME
   // primitive, et c'est voulu : le libelle appartient au metier, la primitive au socle.
-  'commercepj.ordre.produits':       "Voir les produits",
+  'commercepj.ordre.produits':       "Consulter les produits",
   'commercepj.ordre.produitsAide':   "Les articles proposés à la vente, avec leur prix et leur stock.",
   'commercepj.ordre.produire':       "Produire",
   'commercepj.ordre.produireAide':   "Fabriquer pour ce commerce, avec ses matières premières. Le travail est payé.",
@@ -617,6 +617,43 @@ async function commercePjValiderTypes() {
 // ECRAN PROPRIETAIRE
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
+// Droits de presentation issus exclusivement des lignes entreprises/fonds du serveur.
+// Le bail identifie le fonds ; son locataire n'en prouve jamais la propriete.
+function commerceEstProprietaire(data, nom = state.char?.name) {
+  return !!nom && !!data && [nom, 'pj:' + nom].includes(data.proprietaire);
+}
+// Le registre salaries est ecrit par employer_fonds, sous controle du proprietaire.
+// Un intitule de role libre, un bail ou un emploi ailleurs n'accordent aucun droit.
+function commercePeutProduire(data, nom = state.char?.name) {
+  return commerceEstProprietaire(data, nom) || (!!nom && Array.isArray(data?.salaries) &&
+    data.salaries.some(s => s.actif === true && [nom, 'pj:' + nom].includes(s.ref)));
+}
+function commerceLibelleCatalogue(data) {
+  return (data?.typesAutorises||[]).includes('bar-restauration') ? 'Consulter la carte' : 'Consulter les produits';
+}
+let RP_COMMERCE_DROITS = null;
+function commerceDroitsPiece(buildingId, roomId) {
+  if (buildingId !== state.currentBuilding || roomId !== state.currentRoom) return false;
+  const c = contexteNavigationRue();
+  const fonds = commercePjFondsIci();
+  if (RP_COMMERCE_DROITS && contexteNavigationRueValide(RP_COMMERCE_DROITS.contexte) && RP_COMMERCE_DROITS.fonds === fonds) {
+    return RP_COMMERCE_DROITS.proprietaire === true;
+  }
+  const entree = RP_COMMERCE_DROITS = {contexte:c, fonds, proprietaire:false};
+  const commerce = typeof resoudreCommerceActuel === 'function' ? resoudreCommerceActuel() : null;
+  const id = fonds || (buildingId==='armurerie' ? getEntrepriseIdArmurerie(c.pays,c.ville) : commerce && getCommerceId(commerce.type, c.pays, c.ville, commerce.buildingId, commerce.roomId));
+  if (!id) return false;
+  const lecture = fonds ? sbGetFonds(id) : sbGetEntreprise(id);
+  Promise.resolve(lecture).then(data => {
+    if (RP_COMMERCE_DROITS !== entree || !contexteNavigationRueValide(c)) return;
+    entree.proprietaire = commerceEstProprietaire(data, c.nom);
+    entree.data=data;
+    const room = BUILDINGS[buildingId]?.rooms?.[roomId] || getBuildingContext(buildingId)?.roomsExtra?.[roomId];
+    if (room) renderRoomActions(room, buildingId, roomId);
+  }).catch(() => {});
+  return false;
+}
+
 // ORDRE DU LOCAL, DERIVE DU FONDS
 // ---------------------------------------------------------------------------
 // Le local ne sait pas ce qu'il abrite : c'est le BAIL qui designe le fonds.
@@ -698,7 +735,8 @@ function ordresCommerceDuLocal(buildingId, roomId, ville) {
   const ordres = [
     Object.assign({}, base, {
       fn: 'consulter_carte_commerce', icon: 'ti-shopping-bag',
-      label: tCommercePJ('commercepj.ordre.produits'),
+      label: RP_COMMERCE_DROITS && contexteNavigationRueValide(RP_COMMERCE_DROITS.contexte)
+        ? commerceLibelleCatalogue(RP_COMMERCE_DROITS.data) : tCommercePJ('commercepj.ordre.produits'),
       desc:  tCommercePJ('commercepj.ordre.produitsAide'),
       // LE MASQUE PORTE SUR LES ORDRES QUE L'ETAT CONTREDIT, ET SUR EUX SEULS.
       //  - `louer_local` : le local est loue et exploite, il n'est plus a louer.
@@ -722,7 +760,7 @@ function ordresCommerceDuLocal(buildingId, roomId, ville) {
   ];
 
   // Le proprietaire garde SA porte, distincte de celle du client : le terminal.
-  if (moi && titulaire === moi) {
+  if (commerceDroitsPiece(buildingId, roomId)) {
     ordres.push(Object.assign({}, base, {
       fn: 'commerce_pj', icon: 'ti-device-desktop-analytics',
       label: tCommercePJ('commercepj.ordre.gerer'),
@@ -1240,6 +1278,7 @@ async function commercePjProduireLots(referenceId) {
   const lots  = Math.max(1, Math.min(99, Math.floor(Number(champ && champ.value) || 1)));
   commercePjMessage(referenceId, tCommercePJ('commercepj.prod.enCours'), true);
   const ctx = await commercePjContexte();
+  if(!ctx.jeSuisProprietaire&&!commercePeutProduire(ctx.fonds)){showToast('Production non autorisée','Vous n’êtes pas habilité à produire ici.',false);return;}
   if (!commercePjTransactionActive(tx)) return;
   // UNE SEULE CLE POUR TOUTE LA COMMANDE : un double clic rejoue la meme cle et ne
   // produit donc pas une seconde fois les memes lots.
@@ -1536,6 +1575,7 @@ async function commercePjProduire(referenceId, requete, origine) {
   return commercePjTransaction('production', async (tx) => {
   const ctx = await commercePjContexte();
   if (!commercePjTransactionActive(tx)) return;
+  if (!ctx.jeSuisProprietaire && !commercePeutProduire(ctx.fonds)) { showToast('Production non autorisée', 'Vous n’êtes pas habilité à produire ici.', false); return; }
   const r = await sbFondsReferenceProduire(requete, state.char.name, ctx.fondsId, referenceId);
   if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
@@ -1669,7 +1709,7 @@ async function commercePjEcranBoutique(ctx) {
       '<button ' + ((stock <= 0 || !enVente) ? 'disabled ' : 'onclick="' + achatAction + '" ') +
       'style="padding:.5rem .9rem;border:1px solid #526176;border-radius:5px;background:#394656;color:#f2f4f6;' +
       'cursor:' + ((stock <= 0 || !enVente) ? 'default;opacity:.45' : 'pointer') + '">' +
-      commercePjEchapper(tCommercePJ('commercepj.boutique.acheter')) + '</button>';
+      commercePjEchapper((f.typesAutorises||[]).includes('bar-restauration') ? 'Commander' : tCommercePJ('commercepj.boutique.acheter')) + '</button>';
     if (rec) {
       const maxi = Math.max(0, Number(maxis[id]) || 0);
       const lotTient = maxi === 0 || stock + Number(rec.portions) <= maxi;
@@ -1681,13 +1721,14 @@ async function commercePjEcranBoutique(ctx) {
           return refs[refId]?.generique_id === m && (Number(stocks[refId]) || 0) >= besoin;
         });
       });
-      const productionImpossible = !lotTient || !matieresOk;
+      const productionImpossible = !commercePeutProduire(f) || !lotTient || !matieresOk;
       const produireAction = "commercePjProduire('" + id + "','" + nouvelleCleProduction() + "','publique')";
       html += '<button ' + (productionImpossible ? 'disabled ' : 'onclick="' + produireAction + '" ') +
         'style="padding:.5rem .9rem;border:1px solid #B99A57;border-radius:5px;background:transparent;color:#E5C477;' +
         'cursor:' + (productionImpossible ? 'default;opacity:.45' : 'pointer') + '">' +
         commercePjEchapper(tCommercePJ('commercepj.ref.produire')) + '</button>';
-    }
+    } else html += commercePjBouton('', 'Produire', false, true);
+    html += commercePjBouton("commercePjFicheProduit('" + id + "')", 'Fiche produit');
     html += '</div></div>';
   });
   html += '<div style="margin-top:.9rem">' +
@@ -1710,6 +1751,7 @@ async function commercePjEcranBoutique(ctx) {
 async function commercePjEcranTravail(ctx) {
   commercePjChargement(tCommercePJ('commercepj.travail.titre'));
   if (!ctx || !ctx.fonds) ctx = await commercePjContexte();
+  if(!ctx.jeSuisProprietaire&&!commercePeutProduire(ctx.fonds)){showToast('Production non autorisée','Vous n’êtes pas habilité à produire ici.',false);return;}
   const f = ctx.fonds || {}, cur = commercePjDevise();
   const refs = f.references || {}, stocks = f.stockReferences || {};
   const maxis = (f.parametres || {}).stockMaxReferences || {};
@@ -1985,7 +2027,7 @@ async function commercePjFicheProduit(referenceId) {
     }).catch(function () { return null; });
   }
 
-  let html = '<div style="padding:1rem">';
+  let html = '<div style="padding:1rem;background:#151A21;color:#e0e6ed">';
   if (typeof ficheCommercialeHtml === 'function') {
     html += ficheCommercialeHtml({
       nom: r.nom, description: r.description, prix: r.prixVente, devise: cur,
@@ -2063,10 +2105,11 @@ async function commercePjActualiserPersonnage(options = {}) {
     // recalculer un solde a partir du prix ou des bonus annonces.
     const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(nom)
       + '&country=eq.' + encodeURIComponent(pays)
-      + '&select=user_id,arg,liquide,hp,moral,pa' + (options.inventaire ? ',inventory' : '') + '&limit=2');
+      + '&select=user_id,arg,liquide,hp,moral,pa' + (options.social ? ',resources,stats' : '') + (options.inventaire ? ',inventory' : '') + '&limit=2');
     if (version !== RP_CPJ_ETAT_VERSION || !Array.isArray(rows) || rows.length !== 1 || rows[0].user_id !== uid
         || state.char?.name !== nom || state.country !== pays || rpAuthUid() !== uid
         || (typeof rpAuthJeton === 'function' && (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) !== jeton)) return false;
+    if(options.social) { if(typeof rows[0].resources?.inf === 'number' && Number.isFinite(rows[0].resources.inf)) { state.inf=rows[0].resources.inf; state.char.resources={...state.char.resources,inf:state.inf}; } if(rows[0].stats) state.char.stats={...state.char.stats,...rows[0].stats}; }
     for (const champ of ['arg','liquide','hp','moral','pa']) {
       const valeur = rows[0][champ];
       if (typeof valeur === 'number' && Number.isFinite(valeur)) {
