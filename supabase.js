@@ -6822,7 +6822,10 @@ async function sbOrganisationCommande(orgaId, action, parametres) {
     if(!/^orgcmd-[A-Za-z0-9-]{6,80}$/.test(requete))throw Error('reprise_invalide');
     localStorage.setItem(cle,requete);
     if(localStorage.getItem(cle)!==requete)throw Error('reprise_indisponible');
-    const r=await sbRpcVerdict('organisation_commande_administrative',{
+    const rpcMembres=['demander','admettre','refuser_demande','accepter_invitation','refuser_invitation','promouvoir','retrograder'].includes(action);
+    const r=rpcMembres ? await sbRpcVerdict('organisation_commande_membres',{
+      p_requete:requete,p_organisation:orgaId,p_action:action,p_parametres:params
+    }) : await sbRpcVerdict('organisation_commande_administrative',{
       p_requete:requete,p_organisation:orgaId,p_action:action,p_parametres:params
     });
     if(r?.transport?.http===404&&r.transport.code==='PGRST202'){

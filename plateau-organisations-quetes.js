@@ -883,31 +883,39 @@ function ouvrirGestionMembres(orgaId) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function monterGrade(orgaId, nomMembre) {
+async function monterGrade(orgaId, nomMembre) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
   const membre = orga.membres.find(m => m.nom === nomMembre);
   if (!membre || membre.gradeIdx >= grades.length - 1) return;
+  const serveur=await organisationEssayerCommande(orgaId,'promouvoir',{nom:nomMembre});
+  if(serveur===false)return;
+  if(serveur===null){
   membre.gradeIdx++;
   membre.grade = grades[membre.gradeIdx];
-  showToast('Grade attribué', nomMembre + ' est maintenant ' + membre.grade + '.', true);
   sauvegarderOrga(orga);
+  }
+  showToast('Grade attribué', nomMembre + ' est maintenant ' + getOrgaById(orgaId).membres.find(m=>m.nom===nomMembre).grade + '.', true);
   ouvrirGestionMembres(orgaId);
 }
 
-function descendreGrade(orgaId, nomMembre) {
+async function descendreGrade(orgaId, nomMembre) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
   const membre = orga.membres.find(m => m.nom === nomMembre);
   if (!membre || membre.gradeIdx <= 0) return;
+  const serveur=await organisationEssayerCommande(orgaId,'retrograder',{nom:nomMembre});
+  if(serveur===false)return;
+  if(serveur===null){
   membre.gradeIdx--;
   membre.grade = grades[membre.gradeIdx];
-  showToast('Grade retiré', nomMembre + ' est maintenant ' + membre.grade + '.', false);
   sauvegarderOrga(orga);
+  }
+  showToast('Grade retiré', nomMembre + ' est maintenant ' + getOrgaById(orgaId).membres.find(m=>m.nom===nomMembre).grade + '.', false);
   ouvrirGestionMembres(orgaId);
 }
 
@@ -924,7 +932,7 @@ async function exclureMembre(orgaId, nomMembre) {
 
 // ------ DEMANDES D'ADHÉSION ------
 
-function demanderAdhesion(orgaId) {
+async function demanderAdhesion(orgaId) {
   // Recherche directe dans la liste plate (fonctionne deja nativement multi-empire)
   let orga = getOrgaById(orgaId);
   if (!orga) return;
@@ -952,9 +960,14 @@ function demanderAdhesion(orgaId) {
     showToast('Demande en cours', 'Votre demande est déjà en attente.', false); return;
   }
 
+  const serveur=await organisationEssayerCommande(orgaId,'demander',{});
+  if(serveur===false)return;
+  if(serveur===null){
   if (!orga.demandesAdhesion) orga.demandesAdhesion = [];
   orga.demandesAdhesion.push({ nom: state.char?.name, date: state.day || 1 });
   sauvegarderOrga(orga);
+  }
+
   showToast('Demande envoyée', 'Votre demande d\'adhésion à "' + orga.nom + '" a été envoyée.', true);
   addJournalEntry('Demande d\'adhésion à "' + orga.nom + '".', '');
 }
@@ -983,26 +996,34 @@ function ouvrirDemandesAdhesion(orgaId) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function accepterAdhesion(orgaId, nomCandidat) {
+async function accepterAdhesion(orgaId, nomCandidat) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
   const def = TYPES_ORGANISATIONS[orga.type] || {};
   const grades = def.grades?.[state.country] || ['Membre'];
 
+  const serveur=await organisationEssayerCommande(orgaId,'admettre',{nom:nomCandidat});
+  if(serveur===false)return;
+  if(serveur===null){
   orga.demandesAdhesion = (orga.demandesAdhesion || []).filter(d => d.nom !== nomCandidat);
   orga.membres.push({ nom: nomCandidat, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1 });
+  sauvegarderOrga(orga);
+  }
   showToast('Membre accepté', nomCandidat + ' rejoint "' + orga.nom + '" comme ' + grades[0] + '.', true);
   addJournalEntry(nomCandidat + ' accepté dans "' + orga.nom + '".', 'event-good');
-  sauvegarderOrga(orga);
   ouvrirDemandesAdhesion(orgaId);
 }
 
-function refuserAdhesion(orgaId, nomCandidat) {
+async function refuserAdhesion(orgaId, nomCandidat) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
+  const serveur=await organisationEssayerCommande(orgaId,'refuser_demande',{nom:nomCandidat});
+  if(serveur===false)return;
+  if(serveur===null){
   orga.demandesAdhesion = (orga.demandesAdhesion || []).filter(d => d.nom !== nomCandidat);
-  showToast('Demande refusée', nomCandidat + ' a été refusé.', false);
   sauvegarderOrga(orga);
+  }
+  showToast('Demande refusée', nomCandidat + ' a été refusé.', false);
   ouvrirDemandesAdhesion(orgaId);
 }
 
@@ -1104,12 +1125,17 @@ async function accepterInvitationOrga(orgaId, nomInvitant) {
     showToast('Limite atteinte', 'Vous appartenez déjà à une organisation de type ' + (def.label || orga.type) + '.', false); return;
   }
 
+  const serveur=await organisationEssayerCommande(orgaId,'accepter_invitation',{});
+  if(serveur===false)return;
+  if(serveur===null){
   orga.invitationsEnvoyees = (orga.invitationsEnvoyees || []).filter(i => i.nom !== state.char?.name);
   const grades = def.grades?.[state.country] || ['Membre'];
   if (!orga.membres) orga.membres = [];
   orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1 });
   sauvegarderOrga(orga);
-  showToast('Invitation acceptée', 'Vous rejoignez "' + orga.nom + '" comme ' + grades[0] + '.', true);
+  }
+
+  showToast('Invitation acceptée', 'Vous rejoignez "' + orga.nom + '" comme ' + getOrgaById(orgaId).membres.find(m=>m.nom===state.char.name).grade + '.', true);
   addJournalEntry('Invitation acceptée : membre de "' + orga.nom + '".', 'event-good');
 
   if (typeof sbSendMail === 'function' && nomInvitant) {
@@ -1127,8 +1153,13 @@ async function refuserInvitationOrga(orgaId, nomInvitant) {
     showToast('Invitation déjà traitée', 'Cette invitation n\'est plus valable.', false); return;
   }
 
+  const serveur=await organisationEssayerCommande(orgaId,'refuser_invitation',{});
+  if(serveur===false)return;
+  if(serveur===null){
   orga.invitationsEnvoyees = (orga.invitationsEnvoyees || []).filter(i => i.nom !== state.char?.name);
   sauvegarderOrga(orga);
+  }
+
   showToast('Invitation refusée', '', false);
   addJournalEntry('Invitation refusée : "' + orga.nom + '".', '');
 

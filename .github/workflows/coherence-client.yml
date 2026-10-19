@@ -47,6 +47,8 @@ jobs:
         run: python3 outils/bancs/banc-jodie-publications-local.py
       - name: Commandes administratives organisations sur PostgreSQL local
         run: python3 outils/bancs/banc-organisations-commandes-local.py
+      - name: Adhesions et grades organisations sur PostgreSQL local
+        run: python3 outils/bancs/banc-organisations-membres-local.py
       - name: Equipements collectifs sur PostgreSQL local
         run: python3 outils/bancs/banc-equipements-collectifs-local.py
       - name: Conserver les résultats des bancs

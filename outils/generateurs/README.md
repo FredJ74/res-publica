@@ -43,3 +43,7 @@ avertissement en en-tête de chaque fichier : la liste est dans
 `miroirs_de_data_js_seedes_par_copie`.
 
 Le processus qui les encadre est dans `../../WORKFLOW-SUPABASE.md`.
+
+## Organisations : adhésions et grades
+
+`node outils/generateurs/generer_organisations_regles.cjs` charge le vrai `data.js` dans Node et produit le bloc SQL privé des neuf types (grades et limite d’adhésion). `--check` compare ce bloc à la migration préparée `20261019130213`. Le banc client exécute cette comparaison ; une dérive fait échouer la CI. Il ne modifie pas le baseline et ne mesure pas la base vivante.
