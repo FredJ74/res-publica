@@ -2639,10 +2639,15 @@ async function sbGetOrganisationParId(orgaId) {
   if (!orgaId) return null;
   const rows = await sbGet('organisations', `id=eq.${encodeURIComponent(orgaId)}`).catch(() => []);
   if (!rows || rows.length === 0) return null;
-  try { return JSON.parse(rows[0].data); } catch(e) { return null; }
+  try {
+    const d=typeof rows[0].data==='string'?JSON.parse(rows[0].data):rows[0].data;
+    return d&&typeof d==='object'&&!Array.isArray(d)?d:null;
+  } catch(e) { return null; }
 }
 
 async function sbDeleteOrganisation(orgaId) {
+  const commande=await sbOrganisationCommande(orgaId,'dissoudre',{});
+  if(commande.disponible!==false)return commande.ok===true&&commande.dissoute===orgaId;
   const r=await sbDeleteVerdict('organisations', `id=eq.${encodeURIComponent(orgaId)}`);
   return r.ok===true && Array.isArray(r.donnees) && r.donnees.some(o=>o.id===orgaId);
 }
@@ -5047,7 +5052,10 @@ async function sbGetDerniereQueteResolue(country) {
 async function sbGetTerrainState(country, buildingId) {
   const rows = await sbGet('terrains_etat', `id=eq.${encodeURIComponent(country + '_' + buildingId)}`);
   if (!rows || rows.length === 0) return null;
-  try { return JSON.parse(rows[0].data); } catch(e) { return null; }
+  try {
+    const d=typeof rows[0].data==='string'?JSON.parse(rows[0].data):rows[0].data;
+    return d&&typeof d==='object'&&!Array.isArray(d)?d:null;
+  } catch(e) { return null; }
 }
 
 // Tous les terrains possedes par un joueur donne, quel que soit l'endroit ou il se trouve
@@ -6794,4 +6802,37 @@ async function sbContactOrganisationEtat(passeur, typeOrganisation) {
 async function sbContactOrganisationDemander(passeur, typeOrganisation) {
   return await sbRpc('contact_organisation_demander',
     { p_passeur: passeur, p_type_organisation: typeOrganisation });
+}
+
+// Transition additive : l'ancien chemin n'est possible que si PostgREST confirme
+// l'ABSENCE du nouveau contrat. Ni une panne ni un refus metier n'autorise un repli.
+const RP_ORGA_COMMANDES_EN_COURS = new Set();
+async function sbOrganisationCommande(orgaId, action, parametres) {
+  if (RP_ORGA_COMMANDES_EN_COURS.has(orgaId)) return {disponible:true,ok:false,raison:'commande_en_cours'};
+  RP_ORGA_COMMANDES_EN_COURS.add(orgaId);
+  let cle, requete;
+  try {
+    const uid=typeof rpAuthUid==='function'?rpAuthUid():null;
+    const nom=typeof state!=='undefined'?state.char?.name:null;
+    if(!uid||!nom) return {disponible:true,ok:false,raison:'session_perdue'};
+    // Figer les parametres avant toute attente ; le navigateur ne transmet aucun blob complet.
+    const params=JSON.parse(JSON.stringify(parametres));
+    cle='rp_orgcmd:'+JSON.stringify([uid,nom,orgaId,action,params]);
+    requete=localStorage.getItem(cle)||'orgcmd-'+crypto.randomUUID();
+    if(!/^orgcmd-[A-Za-z0-9-]{6,80}$/.test(requete))throw Error('reprise_invalide');
+    localStorage.setItem(cle,requete);
+    if(localStorage.getItem(cle)!==requete)throw Error('reprise_indisponible');
+    const r=await sbRpcVerdict('organisation_commande_administrative',{
+      p_requete:requete,p_organisation:orgaId,p_action:action,p_parametres:params
+    });
+    if(r?.transport?.http===404&&r.transport.code==='PGRST202'){
+      if(localStorage.getItem(cle)===requete)localStorage.removeItem(cle);
+      return {disponible:false,ok:false,raison:'contrat_absent'};
+    }
+    if(r?.ok===true){
+      try{if(localStorage.getItem(cle)===requete)localStorage.removeItem(cle);}catch(_){}
+    }
+    return {...r,disponible:true};
+  } catch(_){return {disponible:true,ok:false,raison:'commande_non_confirmee'};}
+  finally{RP_ORGA_COMMANDES_EN_COURS.delete(orgaId);}
 }

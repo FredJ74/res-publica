@@ -27,7 +27,7 @@ test('stockage de reprise indisponible : refus avant une nouvelle commande',()=>
 function extraireFichier(f,nom){const s=fs.readFileSync(path.join(root,f),'utf8');const n=acorn.parse(s,{ecmaVersion:'latest'}).body.find(n=>n.type==='FunctionDeclaration'&&n.id.name===nom);return s.slice(n.start,n.end);}
 test('suppression : une reponse vide ou refusee ne prouve pas une dissolution',async()=>{
  for(const r of [{ok:false},{ok:true,donnees:[]},{ok:true,donnees:[{id:'autre'}]},{ok:true,donnees:[{id:'o1'}]}]){
-  const c=vm.createContext({sbDeleteVerdict:async()=>r});vm.runInContext(extraireFichier('supabase.js','sbDeleteOrganisation'),c);assert.equal(await c.sbDeleteOrganisation('o1'),r.donnees?.[0]?.id==='o1');
+  const c=vm.createContext({sbDeleteVerdict:async()=>r,sbOrganisationCommande:async()=>({disponible:false})});vm.runInContext(extraireFichier('supabase.js','sbDeleteOrganisation'),c);assert.equal(await c.sbDeleteOrganisation('o1'),r.donnees?.[0]?.id==='o1');
  }
 });
 for(const confirme of [false,true])test(`dissolution ${confirme?'confirmee':'non confirmee'} : cache et journal suivent le serveur`,async()=>{

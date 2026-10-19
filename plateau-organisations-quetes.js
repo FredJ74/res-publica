@@ -489,6 +489,22 @@ function sauvegarderOrga(orga) {
   if (typeof sbSaveOrganisation === 'function') sbSaveOrganisation(orga).catch(() => {});
 }
 
+// Retourne null uniquement si le serveur confirme que le contrat n'est pas encore installe.
+// Le repli transitoire disparaitra avec la fermeture globale des anciennes ecritures.
+async function organisationEssayerCommande(orgaId, action, parametres) {
+  const contexte=equipementsCollectifsContexte();
+  const r=await sbOrganisationCommande(orgaId,action,parametres);
+  if(!equipementsCollectifsContexteValide(contexte))return false;
+  if(r?.disponible===false)return null;
+  if(!r?.ok){showToast('Opération non confirmée','Actualisez avant de recommencer. Aucun repli vers une sauvegarde générale.',false);return false;}
+  // Un recu rejoue ne contient pas d'ancien solde : relire la ligne courante.
+  const fraiche=await sbGetOrganisationParId(orgaId).catch(()=>null);
+  if(!equipementsCollectifsContexteValide(contexte))return false;
+  if(!fraiche||fraiche.id!==orgaId){showToast('Opération enregistrée','La relecture est indisponible. Actualisez la liste.',true);return false;}
+  state.organisations=(state.organisations||[]).map(o=>o.id===orgaId?fraiche:o);
+  return true;
+}
+
 // Charge toutes les organisations depuis Supabase au demarrage (remplace l'ancien state.orgasEmpire local perdu au rafraichissement)
 let RP_ORGANISATIONS_LECTURE = 0;
 async function chargerOrganisations() {
@@ -895,13 +911,14 @@ function descendreGrade(orgaId, nomMembre) {
   ouvrirGestionMembres(orgaId);
 }
 
-function exclureMembre(orgaId, nomMembre) {
+async function exclureMembre(orgaId, nomMembre) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
-  orga.membres = orga.membres.filter(m => m.nom !== nomMembre);
+  const serveur=await organisationEssayerCommande(orgaId,'exclure',{nom:nomMembre});
+  if(serveur===false)return;
+  if(serveur===null){orga.membres = orga.membres.filter(m => m.nom !== nomMembre);sauvegarderOrga(orga);}
   showToast('Membre exclu', nomMembre + ' a été exclu de ' + orga.nom + '.', false);
   addJournalEntry(nomMembre + ' exclu de "' + orga.nom + '".', 'event-bad');
-  sauvegarderOrga(orga);
   ouvrirGestionMembres(orgaId);
 }
 
@@ -1428,38 +1445,42 @@ async function sauvegarderOptionsOrga(orgaId) {
     nouvelAvatar = urlUploadee;
   }
 
-  if (newNom && newNom.length >= 2) orga.nom = newNom;
-  orga.devise = newDevise;
-  orga.avatar = nouvelAvatar;
-  sauvegarderOrga(orga);
+  const params={devise:newDevise,avatar:nouvelAvatar};
+  if(newNom&&newNom.length>=2)params.nom=newNom;
+  const serveur=await organisationEssayerCommande(orgaId,'informations',params);
+  if(serveur===false)return;
+  if(serveur===null){Object.assign(orga,params);sauvegarderOrga(orga);}
 
   _orgaAvatarFileTemp = null;
-  showToast('Paramètres enregistrés', '"' + orga.nom + '"', true);
+  showToast('Paramètres enregistrés', '"' + getOrgaById(orgaId).nom + '"', true);
   document.getElementById('modal-postes').classList.remove('open');
   switchSelfTab('orgas', null);
 }
 
-function renommerOrga(orgaId) {
+async function renommerOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
   const newNom = document.getElementById('orga-rename-input')?.value?.trim();
   if (!newNom || newNom.length < 2) return;
-  orga.nom = newNom;
-  sauvegarderOrga(orga);
+  const serveur=await organisationEssayerCommande(orgaId,'informations',{nom:newNom});
+  if(serveur===false)return;
+  if(serveur===null){orga.nom=newNom;sauvegarderOrga(orga);}
   showToast('Organisation renommée', '"' + newNom + '"', true);
   document.getElementById('modal-postes').classList.remove('open');
   switchSelfTab('orgas', null);
 }
 
-function toggleVisibiliteOrga(orgaId) {
+async function toggleVisibiliteOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga || orga.chef !== state.char?.name) return;
   // Reserve au type "criminelle" (Organisation Secrete) -- les 6 autres types restent toujours
   // publics dans ce game design, jamais de bascule vers secret pour eux (26 aout 2026).
   if (orga.type !== 'criminelle') return;
-  orga.visible = !orga.visible;
-  showToast(orga.visible ? 'Organisation visible' : 'Organisation secrète', '', true);
-  sauvegarderOrga(orga);
+  const visible=!orga.visible;
+  const serveur=await organisationEssayerCommande(orgaId,'visibilite',{visible});
+  if(serveur===false)return;
+  if(serveur===null){orga.visible=visible;sauvegarderOrga(orga);}
+  showToast(visible ? 'Organisation visible' : 'Organisation secrète', '', true);
   document.getElementById('modal-postes').classList.remove('open');
 }
 
@@ -1493,12 +1514,13 @@ async function dissoudreOrga(orgaId) {
   switchSelfTab('orgas', null);
 }
 
-function quitterOrga(orgaId) {
+async function quitterOrga(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
   if (orga.chef === state.char?.name) { showToast('Impossible', 'Dissolvez l\'organisation ou transmettez la direction avant de partir.', false); return; }
-  orga.membres = orga.membres.filter(m => m.nom !== state.char?.name);
-  sauvegarderOrga(orga);
+  const serveur=await organisationEssayerCommande(orgaId,'quitter',{nom:state.char.name});
+  if(serveur===false)return;
+  if(serveur===null){orga.membres=orga.membres.filter(m=>m.nom!==state.char.name);sauvegarderOrga(orga);}
   showToast('Vous avez quitté', '"' + orga.nom + '"', false);
   addJournalEntry('Départ de "' + orga.nom + '".', '');
   switchSelfTab('orgas', null);
@@ -7980,26 +8002,28 @@ async function confirmerDeclenchementElection(orgaId, pa, cost) {
   if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
 }
 
-function seProsenterCandidat(orgaId) {
+async function seProsenterCandidat(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga?.election?.enCours || orga.election.phase !== 'candidatures') { showToast('Indisponible', 'La période de candidature est terminée.', false); return; }
   const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
   if (!estMembre) { showToast('Réservé aux membres', '', false); return; }
   if (orga.election.candidats.some(c => c.nom === state.char?.name)) { showToast('Déjà candidat', '', false); return; }
-  orga.election.candidats.push({ nom: state.char?.name });
-  sauvegarderOrga(orga);
+  const serveur=await organisationEssayerCommande(orgaId,'candidature',{});
+  if(serveur===false)return;
+  if(serveur===null){orga.election.candidats.push({nom:state.char?.name});sauvegarderOrga(orga);}
   updateUI();
   showToast('Candidature enregistrée !', 'Vous êtes candidat à la présidence de "' + orga.nom + '".', true, true);
   if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
 }
 
-function voterElection(orgaId, candidatNom) {
+async function voterElection(orgaId, candidatNom) {
   const orga = getOrgaById(orgaId);
   if (!orga?.election?.enCours || orga.election.phase !== 'vote') { showToast('Indisponible', 'Le vote n\'est pas ouvert.', false); return; }
   const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
   if (!estMembre) { showToast('Réservé aux membres', '', false); return; }
-  orga.election.votes[state.char?.name] = candidatNom;
-  sauvegarderOrga(orga);
+  const serveur=await organisationEssayerCommande(orgaId,'vote',{nom:candidatNom});
+  if(serveur===false)return;
+  if(serveur===null){orga.election.votes[state.char?.name]=candidatNom;sauvegarderOrga(orga);}
   updateUI();
   showToast('Vote enregistré', 'Vous votez pour ' + candidatNom + '.', true);
   if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);

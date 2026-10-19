@@ -147,5 +147,11 @@ def main():
  fail(M2.read_text(),motif='ecritures_generales_a_migrer');q.execute('ROLLBACK')
  fail(M1.read_text(),motif='autorite_generale_a_migrer');q.execute('ROLLBACK')
  q.execute('REVOKE UPDATE ON organisations FROM authenticated');n+=1
+ # Le nouveau contrat de dissolution respecte la FK du socle reel.
+ q.execute((R/'migrations/20261019094425_organisations_commandes_administratives.sql').read_text())
+ q.execute("SELECT set_config('hg.acteur','Bob',false)")
+ fail("SELECT organisation_commande_administrative('orgcmd-dissolution-000001','o1','dissoudre','{}')",motif='foreign key')
+ assert len(etat()['objets'])>0
+ assert call("SELECT count(*) FROM organisation_commandes_recus WHERE requete='orgcmd-dissolution-000001'")==0;n+=1
  c.close();serveur.cleanup();print(f'{n}/{n} groupes SQL collectifs reussis ; paiement commun et tables jetables, aucun Supabase.')
 if __name__=='__main__':main()
