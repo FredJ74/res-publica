@@ -6823,7 +6823,9 @@ async function sbOrganisationCommande(orgaId, action, parametres) {
     localStorage.setItem(cle,requete);
     if(localStorage.getItem(cle)!==requete)throw Error('reprise_indisponible');
     const rpcMembres=['demander','admettre','refuser_demande','accepter_invitation','refuser_invitation','promouvoir','retrograder','avancer_election'].includes(action);
-    const r=rpcMembres ? await sbRpcVerdict('organisation_commande_membres',{
+    const r=['inviter','declencher_election'].includes(action) ? await sbRpcVerdict('organisation_commande_evenement',{
+      p_requete:requete,p_organisation:orgaId,p_action:action,p_parametres:params
+    }) : rpcMembres ? await sbRpcVerdict('organisation_commande_membres',{
       p_requete:requete,p_organisation:orgaId,p_action:action,p_parametres:params
     }) : await sbRpcVerdict('organisation_commande_administrative',{
       p_requete:requete,p_organisation:orgaId,p_action:action,p_parametres:params

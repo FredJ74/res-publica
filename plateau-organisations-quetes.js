@@ -1086,6 +1086,15 @@ async function envoyerInvitationOrga(orgaId) {
     showToast('Invitation déjà envoyée', destinataire + ' a déjà une invitation en attente.', false); return;
   }
 
+  const serveur=await organisationEssayerCommande(orgaId,'inviter',{nom:destinataire});
+  if(serveur===false)return;
+  if(serveur===true){
+    document.getElementById('modal-postes').classList.remove('open');
+    showToast('Invitation envoyée',destinataire+' a reçu votre invitation.',true);
+    addJournalEntry('Invitation envoyée à '+destinataire+' pour "'+orga.nom+'".','');
+    return;
+  }
+
   document.getElementById('modal-postes').classList.remove('open');
 
   const nomInvitant = state.char?.name || 'Anonyme';
@@ -8004,6 +8013,18 @@ async function confirmerDeclenchementElection(orgaId, pa, cost) {
   if (!orga) return;
   const motivation = document.getElementById('election-motivation')?.value?.trim();
   if (!motivation) { showToast('Motivation requise', '', false); return; }
+  const contexte=equipementsCollectifsContexte();
+  const serveur=await organisationEssayerCommande(orgaId,'declencher_election',{motivation});
+  if(serveur===false)return;
+  if(serveur===true){
+    const actualise=typeof commercePjActualiserPersonnage==='function'&&await commercePjActualiserPersonnage();
+    if(!equipementsCollectifsContexteValide(contexte))return;
+    document.getElementById('modal-postes')?.classList.remove('open');
+    updateUI();
+    showToast('Élection déclenchée !',actualise?'Les candidatures sont ouvertes pour 3 jours.':'Élection et publication enregistrées. Actualisation des PA indisponible : rechargez avant un nouvel ordre.',true,true);
+    if(document.getElementById('vue-self')?.classList.contains('active'))switchSelfTab('orgas',null);
+    return;
+  }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
 
