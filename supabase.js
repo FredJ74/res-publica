@@ -5266,6 +5266,10 @@ async function sbTransportRpc(fn, params, options) {
     return { etat: 'session_perdue', raison: 'session_perdue', http: null, code: null, envoyee: false };
   }
 
+  // Une intention de navigation peut devenir obsolete pendant le renouvellement du JWT.
+  if(typeof opts.encoreValide==='function'&&!opts.encoreValide())
+    return {etat:'contexte_obsolete',raison:'contexte_obsolete',envoyee:false};
+
   // COUPURE RESEAU (24 septembre 2026). `fetch` ne rejette pas sur un 4xx/5xx -- ceux-la sont
   // deja traites juste en dessous -- mais il REJETTE sur une panne de transport : hors ligne,
   // DNS, TLS, requete bloquee. Ce rejet n'etait capture nulle part : il traversait sbRpc, puis

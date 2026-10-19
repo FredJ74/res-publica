@@ -147,7 +147,7 @@ function hideBuildingTooltip() {
 // =====================
 // `batimentQuitte` (optionnel) : le batiment dont on vient de sortir. Il permet de DEDUIRE de la
 // carte le trottoir correspondant, au lieu de dependre d'une memoire locale (voir plus bas).
-function showVueRue(batimentQuitte) {
+function showVueRue(batimentQuitte, positionConfirmee = null) {
   hideBuildingTooltip();
   document.getElementById('vue-rue').classList.add('active');
   document.getElementById('vue-batiment').classList.remove('active');
@@ -224,12 +224,17 @@ function showVueRue(batimentQuitte) {
     // par plusieurs villes. Aucune exception de ville n'est codee ici.
     const noeudDerive = (batimentQuitte && typeof noeudRueDuBatiment === 'function')
       ? noeudRueDuBatiment(state.country, batimentQuitte) : null;
-    const reprise = noeudDerive
-      ? { noeudId: noeudDerive, depuisNoeudId: null }
-      : (typeof obtenirNoeudRueCentraleMemorise === 'function'
-          ? obtenirNoeudRueCentraleMemorise(state.country, state.currentCity, noeudDepart)
-          : { noeudId: noeudDepart, depuisNoeudId: null });
-    initialiserRueCentrale(state.country, reprise.noeudId, reprise.depuisNoeudId);
+    const souvenir=typeof obtenirNoeudRueCentraleMemorise==='function'
+      ?obtenirNoeudRueCentraleMemorise(state.country,state.currentCity,noeudDepart)
+      :{noeudId:noeudDepart,depuisNoeudId:null};
+    const reprise=noeudDerive
+      ?{noeudId:noeudDerive,depuisNoeudId:souvenir.noeudId===noeudDerive?souvenir.depuisNoeudId:null}
+      :souvenir;
+    if(positionConfirmee?.country===state.country&&positionConfirmee.city===state.currentCity&&
+       positionConfirmee.building===null&&RUE_CENTRALE_NOEUDS[state.country]?.[positionConfirmee.street]){
+      const orientation=souvenir.noeudId===positionConfirmee.street?souvenir.depuisNoeudId:null;
+      afficherNoeudRue(state.country,positionConfirmee.street,orientation,true);
+    }else initialiserRueCentrale(state.country,reprise.noeudId,reprise.depuisNoeudId);
   } else {
     // Ancien systeme (image statique + mini-carte des batiments) — pour les villes pas encore converties
     if (minimap) minimap.style.display = '';
@@ -1442,6 +1447,75 @@ function checkZoneEmbarquementAcces(buildingId, roomId) {
   return true;
 }
 
+// La sortie conserve le contexte de l'intention, jamais une position decidee localement.
+let sortieBatimentEnCours = null;
+function sortieBatimentSessionPerdueVisible(c) {
+  return state.char===c.personnage&&state.char?.name===c.nom&&state.country===c.pays&&
+    state.currentCity===c.ville&&state.currentBuilding===c.batiment&&state.currentRoom===c.piece&&
+    (typeof rpAuthUid!=='function'||rpAuthUid()===null||rpAuthUid()===c.uid);
+}
+function sortieBatimentMessage(verdict, incertaine = false) {
+  const t=verdict?.transport;
+  if(t?.etat==='session_perdue'||['non_authentifie','acteur_non_authentifie','session_perdue'].includes(verdict?.raison))
+    return ['Session expirée','Votre session n’est plus valide. Reconnectez-vous avant de sortir.'];
+  if(incertaine)return ['Sortie non confirmée','La réponse est incertaine et la position serveur n’a pas pu être vérifiée. Réessayez : votre position sera relue avant tout nouvel ordre.'];
+  if(t?.etat==='reseau')return ['Connexion indisponible','La connexion n’a pas permis de joindre le serveur. Réessayez.'];
+  if(t?.etat==='http')return [t.http===403?'Sortie non autorisée':'Service de sortie indisponible',t.http===403?'Le serveur refuse cet accès. Votre position reste inchangée.':'Le service a retourné une erreur. Réessayez dans un instant.'];
+  if(verdict?.raison==='sortie_non_referencee')return ['Sortie non référencée','La sortie de ce bâtiment n’est pas déclarée sur le serveur.'];
+  if(t?.etat==='reponse_invalide'||!verdict||typeof verdict.ok!=='boolean')return ['Réponse du serveur illisible','La sortie n’a pas pu être confirmée. Réessayez.'];
+  return ['Sortie refusée','Le serveur n’autorise pas cette sortie dans votre situation actuelle.'];
+}
+function signalerEchecSortie(etape, verdict, incertaine = false) {
+  const [titre,message]=sortieBatimentMessage(verdict,incertaine);
+  showToast(titre,message,false);
+  // Pas de corps HTTP, jeton, identite ou detail de personnage dans ce diagnostic.
+  const code=verdict?.transport?.code;
+  const diagnostic=etape+' ; transport='+(verdict?.transport?.etat||'metier')+
+    ' ; http='+(verdict?.transport?.http||'aucun')+' ; code='+(/^[A-Z0-9_]{1,32}$/.test(code||'')?code:'aucun');
+  if(typeof noterIncidentSession==='function')noterIncidentSession('sortie_non_confirmee',diagnostic);
+}
+async function confirmerSortieBatimentServeur(contexte) {
+  const valide=()=>contexteNavigationRueValide(contexte);
+  const encoreAutorise=()=>valide()&&!state.estEmprisonne&&
+    !(typeof interceptionJudiciaireBloqueDeplacement==='function'&&interceptionJudiciaireBloqueDeplacement());
+  const appeler=async(fn,params)=>{
+    if(!encoreAutorise())return {obsolete:true};
+    let r;
+    try{r=await sbRpcVerdict(fn,params,{encoreValide:encoreAutorise});}
+    catch(_){r={ok:false,transport:{etat:'reponse_invalide'}};}
+    if(!valide()&&!(r?.transport?.etat==='session_perdue'&&sortieBatimentSessionPerdueVisible(contexte)))return {obsolete:true};
+    if(r?.transport?.etat==='contexte_obsolete')return {obsolete:true};
+    return r;
+  };
+  const relire=async()=>{
+    const r=await appeler('rue_position_lire',{});
+    if(r?.obsolete)return r;
+    if(r?.ok===true&&r.country===contexte.pays&&r.city===contexte.ville&&r.building===null&&
+       typeof r.street==='string'&&RUE_CENTRALE_NOEUDS[contexte.pays]?.[r.street])
+      return {ok:true,position:r};
+    return {ok:false,verdict:r};
+  };
+  if(typeof sbRpcVerdict!=='function'||typeof RUE_CENTRALE_NOEUDS==='undefined')
+    return {ok:false,etape:'contrat',verdict:{ok:false,transport:{etat:'reponse_invalide'}}};
+  const sortie=await appeler('rue_sortie_batiment_lire',{});
+  if(sortie?.obsolete)return sortie;
+  if(sortie?.raison==='pas_dans_un_batiment'){
+    const actuel=await relire();return actuel?.ok||actuel?.obsolete?actuel:{...actuel,etape:'reprise',incertaine:true};
+  }
+  if(sortie?.ok!==true||typeof sortie.noeud!=='string'||!RUE_CENTRALE_NOEUDS[contexte.pays]?.[sortie.noeud])
+    return {ok:false,verdict:sortie?.ok===true?{ok:false,transport:{etat:'reponse_invalide'}}:sortie,etape:'lecture'};
+  const confirmation=await appeler('rue_position_enregistrer',{p_noeud:sortie.noeud});
+  if(confirmation?.obsolete)return confirmation;
+  if(confirmation?.transport?.etat==='session_perdue')return {ok:false,verdict:confirmation,etape:'confirmation',incertaine:true};
+  if(confirmation?.ok===true)return {ok:true,position:{country:contexte.pays,city:contexte.ville,street:sortie.noeud,building:null}};
+  // Jamais de relance aveugle d'une mutation : une lecture confirme une reponse perdue.
+  if(!confirmation||confirmation.transport||typeof confirmation.ok!=='boolean'||confirmation.raison==='pas_dans_un_batiment'){
+    const actuel=await relire();if(actuel?.ok||actuel?.obsolete)return actuel;
+    return {ok:false,verdict:confirmation?.transport?.etat==='session_perdue'?confirmation:actuel.verdict||confirmation,etape:'confirmation',incertaine:true};
+  }
+  return {ok:false,verdict:confirmation,etape:'confirmation'};
+}
+
 async function sortirBatiment() {
   if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
@@ -1450,6 +1524,11 @@ async function sortirBatiment() {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
     return;
   }
+  const contexteSortie=contexteNavigationRue();
+  if(sortieBatimentEnCours&&contexteNavigationRueValide(sortieBatimentEnCours))return;
+  sortieBatimentEnCours=contexteSortie;
+  try{
+  let positionSortieConfirmee=null;
   // Capture AVANT reinitialisation : si on quitte l'un des terrains du sous-lieu "Terrains a
   // batir de Montrouge" (Lot 2D, 19 aout 2026), la sortie doit ramener a l'ecran de selection
   // des terrains plutot qu'a la rue nue. Meme source unique de verite (TERRAINS_PAR_VILLE.
@@ -1491,54 +1570,17 @@ async function sortirBatiment() {
 
   const retourVersTerrainsMontrouge = typeof TERRAINS_PAR_VILLE !== 'undefined' && TERRAINS_PAR_VILLE.ville_b.includes(batimentQuitte);
 
-  // Confirmer la sortie sur le serveur AVANT d'effacer le bâtiment local.
-  // Le serveur vérifie que le noeud est une sortie autorisée de ce bâtiment.
-  if (state.country === 'republic' && typeof RUE_CENTRALE_NOEUDS !== 'undefined') {
-    // Le référentiel serveur, et non les zones graphiques, détermine la sortie.
-    if (typeof sbRpc !== 'function') {
-      showToast('Sortie indisponible', 'Connexion serveur indisponible.', false);
-      return;
-    }
-    // Les erreurs réseau momentanées ne doivent pas piéger un joueur dans un bâtiment.
-    // La position n'est modifiée localement qu'après confirmation serveur.
-    async function lireSortieAvecRelance() {
-      for (let tentative = 0; tentative < 3; tentative++) {
-        try {
-          const resultat = await sbRpc('rue_sortie_batiment_lire', {});
-          const v = Array.isArray(resultat) ? resultat[0] : resultat;
-          if (v?.ok || v?.raison === 'pas_dans_un_batiment') return v;
-        } catch (e) { console.warn('Lecture sortie, tentative ' + (tentative + 1), e); }
-      }
-      return null;
-    }
-    const sortie = await lireSortieAvecRelance();
-    if (!sortie?.ok || !sortie.noeud) {
-      // Après une confirmation précédente perdue, le serveur peut déjà avoir sorti le PJ.
-      if (sortie?.raison !== 'pas_dans_un_batiment') {
-        showToast('Sortie impossible', sortie?.raison || 'Connexion momentanément indisponible. Réessayez.', false);
-        return;
-      }
-    } else {
-      let confirmation = null;
-      for (let tentative = 0; tentative < 3; tentative++) {
-        try {
-          const resultat = await sbRpc('rue_position_enregistrer', { p_noeud: sortie.noeud });
-          confirmation = Array.isArray(resultat) ? resultat[0] : resultat;
-          if (confirmation?.ok) break;
-          // Un refus métier n'est pas une erreur réseau : ne pas le contourner.
-          if (confirmation?.raison && confirmation.raison !== 'erreur_reseau') break;
-        } catch (erreur) { console.warn('Confirmation sortie, tentative ' + (tentative + 1), erreur); }
-      }
-      if (confirmation?.ok !== true) {
-        // Vérifier si le premier appel a été appliqué malgré la perte de réponse.
-        const etat = await lireSortieAvecRelance();
-        if (etat?.raison !== 'pas_dans_un_batiment') {
-          showToast('Sortie refusée', confirmation?.raison || 'Le serveur n’a pas confirmé la sortie. Réessayez.', false);
-          return;
-        }
-      }
-    }
+  // Le meme contrat pour tous les batiments : sortie declaree puis ordre serveur.
+  if(state.country==='republic'){
+    const resultat=await confirmerSortieBatimentServeur(contexteSortie);
+    if(resultat?.obsolete)return;
+    if(!contexteNavigationRueValide(contexteSortie)&&!(resultat?.verdict?.transport?.etat==='session_perdue'&&sortieBatimentSessionPerdueVisible(contexteSortie)))return;
+    if(!resultat?.ok){signalerEchecSortie(resultat?.etape||'sortie',resultat?.verdict,resultat?.incertaine);return;}
+    positionSortieConfirmee=resultat.position;
   }
+  if(!contexteNavigationRueValide(contexteSortie))return;
+  if(typeof interceptionJudiciaireBloqueDeplacement==='function'&&interceptionJudiciaireBloqueDeplacement())return;
+  if(state.estEmprisonne){showToast('Emprisonné(e)','Votre détention interdit cette sortie.',false);return;}
 
   state.douanePassee = false;
   state.currentBuilding = null;
@@ -1555,13 +1597,14 @@ async function sortirBatiment() {
     } catch (e) {
       console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
     }
-    if (typeof sbSavePersonnage === 'function') {
+    if (!positionSortieConfirmee && typeof sbSavePersonnage === 'function') {
       sbSavePersonnage(state).catch(() => {});
     }
   }
-  showVueRue(batimentQuitte);
+  showVueRue(batimentQuitte,positionSortieConfirmee);
   if (retourVersTerrainsMontrouge && typeof ouvrirTerrainsMontrouge === 'function') ouvrirTerrainsMontrouge();
   addJournalEntry(`Vous sortez du batiment.`, '');
+  }finally{if(sortieBatimentEnCours===contexteSortie)sortieBatimentEnCours=null;}
 }
 
 
