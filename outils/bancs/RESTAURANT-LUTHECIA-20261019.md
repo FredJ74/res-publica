@@ -32,7 +32,7 @@ Les anciennes invitations acceptées ne prouvent pas l'absence de facturation an
 | Vérification locale | Résultat |
 | --- | --- |
 | Contrôleur client complet, dont Chromium et bundle Vercel | 90/90 bancs |
-| Nouveau banc client restaurant, inclus ci-dessus | 17/17 tests |
+| Nouveau banc client restaurant, inclus ci-dessus | 18/18 tests |
 | Nouveau PostgreSQL jetable restaurant | 94/94 assertions |
 | Catalogue et tournée, PostgreSQL jetable | 60/60 assertions |
 | Assemblage électronique, PostgreSQL jetable | 20/20 groupes |
@@ -46,6 +46,8 @@ Les anciennes invitations acceptées ne prouvent pas l'absence de facturation an
 | Workflow global | **10/12**, deux contrôles rouges détaillés ci-dessous |
 
 Les 94 assertions PostgreSQL incluent migrations rejouées, refus explicite d'une définition serveur inconnue avant mutation, cartes, prix, PA, matières, marge, stocks insuffisants, refus après débit simulé, exception et rollback, réponse perdue/rejeu, deux services concurrents, accès tiers, invitation obsolète, PNJ et agents, lecture après rechargement, protection des reçus, création future et tournée avec champagne via le moteur existant. Authentification, paiement et fiscalité annexes sont des fixtures : **ce ne sont pas des tests authentifiés Supabase ni une preuve de RLS réelle**. Les fonctions métier de production et de vente exécutées sont celles des migrations.
+
+La vérification finale de la projection REST a supprimé une lecture de `bonus_pa_differe` envisagée dans le premier commit : cette colonne de la table privée n'est pas exposée par la vue `personnages` archivée. Le bonus différé reste entièrement serveur, comme le prévoient les fonctions existantes d'attribution et de repos. Un test exécute la vraie relecture sociale et confronte ses colonnes à la vue ; aucune modification de vue ni exposition supplémentaire n'est nécessaire.
 
 ### Contrôles globaux non satisfaits
 
