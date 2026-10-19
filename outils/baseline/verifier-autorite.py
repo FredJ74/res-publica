@@ -327,6 +327,22 @@ def fonctions_du_baseline():
     return {nom: "\n".join(v) for nom, v in defs.items()}
 
 
+def declarations_rpc_migrations():
+    """Localiser une declaration sans la presenter comme une fonction deployee.
+
+    N'intervient jamais dans le verdict : seul un releve canonique du catalogue
+    peut resoudre l'absence dans le baseline.
+    """
+    declarations = collections.defaultdict(list)
+    for chemin in sorted(glob.glob(os.path.join(RACINE, "migrations", "*.sql"))):
+        texte = open(chemin, encoding="utf-8").read()
+        for nom in re.findall(r"(?mi)^\s*CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.([a-z_0-9]+)\s*\(", texte):
+            court = os.path.relpath(chemin, RACINE)
+            if court not in declarations[nom]:
+                declarations[nom].append(court)
+    return declarations
+
+
 def parametres_du_baseline():
     """nom de fonction -> liste des jeux de parametres, une entree par surcharge.
     Les surcharges comptent : le navigateur appelle parfois une forme courte
@@ -649,12 +665,16 @@ def main():
     # fonction. Un parametre mal nomme donne le meme symptome, PostgREST
     # resolvant la surcharge par les NOMS des parametres, pas par leur ordre.
     formes_baseline = parametres_du_baseline()
+    declarations_preparees = declarations_rpc_migrations()
     ecarts = []
     for fn in sorted(appels_rpc):
         if fn not in formes_baseline:
             sites = sorted({s for v in appels_rpc[fn].values() for s in v})[:2]
-            ecarts.append("%s : aucune fonction de ce nom dans le baseline — %s"
-                          % (fn, ", ".join(sites)))
+            origine = declarations_preparees.get(fn, [])
+            precision = (" ; declaration SQL : " + ", ".join(origine)
+                         + " ; registre vivant et extraction a verifier") if origine else " ; aucune declaration statique dans migrations/"
+            ecarts.append("%s : aucune fonction de ce nom dans le baseline — %s%s"
+                          % (fn, ", ".join(sites), precision))
             continue
         for passes, sites in sorted(appels_rpc[fn].items(), key=lambda kv: sorted(kv[0])):
             # <= et non == : un parametre a valeur par defaut peut etre omis.

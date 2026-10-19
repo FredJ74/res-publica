@@ -36,3 +36,18 @@ fauxsbRpcVerdict('ignore', {p_id: 1});
   });
   assert.equal(proc.status, 0, `${proc.error || ''}\n${proc.stdout}\n${proc.stderr}`);
 });
+test('une declaration preparee est localisee sans devenir une preuve de deploiement',()=>{
+ const script=String.raw`
+import runpy,tempfile
+from pathlib import Path
+m=runpy.run_path('outils/baseline/verifier-autorite.py',run_name='controle_importe')
+with tempfile.TemporaryDirectory() as dossier:
+    migrations=Path(dossier)/'migrations';migrations.mkdir()
+    (migrations/'a.sql').write_text('CREATE OR REPLACE FUNCTION public.fixture_rpc(p_nom text) RETURNS text LANGUAGE sql AS $$ SELECT p_nom $$;')
+    m['declarations_rpc_migrations'].__globals__['RACINE']=dossier
+    assert m['declarations_rpc_migrations']()=={'fixture_rpc':['migrations/a.sql']}
+    assert 'fixture_rpc' not in m['parametres_du_baseline']()
+`;
+ const proc=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8',timeout:15000});
+ assert.equal(proc.status,0,`${proc.stdout}\n${proc.stderr}`);
+});

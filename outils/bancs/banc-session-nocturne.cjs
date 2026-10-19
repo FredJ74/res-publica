@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const acorn=require('../vercel/node_modules/acorn'),root=path.resolve(__dirname,'../..');
-function extraire(f,noms){const s=fs.readFileSync(path.join(root,f),'utf8');return acorn.parse(s,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>s.slice(n.start,n.end)).join('\n');}
+function extraire(f,noms){const rue=f==='plateau-rue-centrale.js'&&noms.some(n=>['initialiserRueCentrale','afficherNoeudRue'].includes(n));if(rue)noms=[...noms,'contexteNavigationRue','contexteNavigationRueValide'];const s=fs.readFileSync(path.join(root,f),'utf8');return (rue?'let rueCentraleLecturePosition=0,rueCentraleDeplacementEnCours=null;':'')+acorn.parse(s,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>s.slice(n.start,n.end)).join('\n');}
 function mails(){
  let cache=[];const c=vm.createContext({state:{char:{name:'Alice'}},console,Map,Set,rpAuthUid:()=> 'uid',rpAuthSessionIdentifiant:()=> 'connexion',getMails:()=>cache,saveMails:x=>cache=x,
  getMyMails:()=>cache,mailsRecusVisibles:()=>cache.filter(m=>m.to==='Alice'&&!m.archived),trierMailsRecents:x=>x,escapeHtmlText:s=>s,formatDateAffichage:s=>s||'',renderForumModal(){},rafraichirVoyantsEtCompteursForum(){}});

@@ -1,7 +1,7 @@
 // Contrat client uniquement : les reponses RPC sont simulees, pas Supabase.
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
 const acorn=require('../vercel/node_modules/acorn'),root=path.resolve(__dirname,'../..');
-function fonctions(f,noms){const s=fs.readFileSync(path.join(root,f),'utf8');return acorn.parse(s,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>s.slice(n.start,n.end)).join('\n');}
+function fonctions(f,noms){const rue=f==='plateau-rue-centrale.js'&&noms.some(n=>['initialiserRueCentrale','afficherNoeudRue'].includes(n));if(rue)noms=[...noms,'contexteNavigationRue','contexteNavigationRueValide'];const s=fs.readFileSync(path.join(root,f),'utf8');return (rue?'let rueCentraleLecturePosition=0,rueCentraleDeplacementEnCours=null;':'')+acorn.parse(s,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>s.slice(n.start,n.end)).join('\n');}
 function contexte(){
  const elements=new Map();for(const id of ['modal-postes','postes-modal-title','postes-body'])elements.set(id,{innerHTML:'',classList:{add(){},remove(){}}});
  const c=vm.createContext({state:{char:{name:'Alice'},country:'republic',currentCity:'capitale',currentBuilding:'mairie',currentRoom:'accueil',pa:12},console,
