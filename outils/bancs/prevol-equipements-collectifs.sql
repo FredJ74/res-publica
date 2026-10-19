@@ -22,7 +22,7 @@ SELECT p.oid::regprocedure::text AS signature, md5(p.prosrc) AS empreinte_corps,
 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
 WHERE n.nspname='public' AND (p.proname IN
  ('acheter_produit_commerce','mouvement_titulaire','appliquer_taxe_transaction',
-  'mon_personnage','exiger_acteur','organisation_commande_administrative','organisation_commande_membres','organisation_regles_membres','inventaire_reception_etat',
+  'mon_personnage','exiger_acteur','organisation_commande_administrative','organisation_commande_evenement','organisation_commande_membres','organisation_regles_membres','inventaire_reception_etat',
   'inventaire_reclamer_livraison','inventaire_sauver_revision')
  OR p.proname LIKE 'organisation_equipement%' OR p.proname IN
  ('organisation_direction_garder','organisation_livraison_integrer',

@@ -125,6 +125,23 @@ def main():
   q.execute(f'DROP TRIGGER ignorer ON {table}')
  q.execute('CREATE TRIGGER ignorer BEFORE DELETE ON organisations FOR EACH ROW EXECUTE FUNCTION ignorer()')
  refus_silencieux("SELECT organisation_commande_administrative('orgcmd-ignore-delete-001','silencieux','dissoudre','{}')");q.execute('DROP TRIGGER ignorer ON organisations');n+=1
+ # Les memes intentions, apres retrait du refus de fixture, fonctionnent sans regression.
+ q.execute("SELECT organisation_commande_administrative('orgcmd-ignore-admin-001','silencieux','informations','{\"nom\":\"Confirme\"}')");assert q.fetchone()[0]['ok'];n+=1
+ assert acte('silencieux','promouvoir',{'nom':'Alice'},'orgcmd-ignore-membre-001')['ok'];assert lire('silencieux')['membres'][0]['gradeIdx']==2;n+=1
+ q.execute("SELECT pg_get_functiondef('organisation_commande_administrative(text,text,text,jsonb)'::regprocedure)");definition=q.fetchone()[0]
+ q.execute(definition.replace('BEGIN','BEGIN\n-- definition non examinee',1))
+ try:q.execute(garde);raise AssertionError('definition inconnue attendue')
+ except psycopg2.Error as e:assert 'definition_a_reexaminer' in str(e),str(e)
+ q.execute('ROLLBACK');q.execute(definition);n+=1
+ # Contre-preuve : retirer les nouveaux controles reproduit le faux succes historique.
+ q.execute("SELECT pg_get_functiondef('organisation_commande_administrative(text,text,text,jsonb)'::regprocedure)");definition=q.fetchone()[0]
+ import re
+ sans_garde=re.sub(r" IF NOT FOUND THEN RAISE EXCEPTION '(?:organisation_non_enregistree|dissolution_non_enregistree|recu_non_insere)'; END IF;",'',definition)
+ assert sans_garde!=definition;q.execute(sans_garde)
+ q.execute('CREATE TRIGGER ignorer BEFORE UPDATE ON organisations FOR EACH ROW EXECUTE FUNCTION ignorer()')
+ avant=lire('silencieux');q.execute("SELECT organisation_commande_administrative('orgcmd-reproduction-001','silencieux','informations','{\"nom\":\"Faux succes\"}')")
+ assert q.fetchone()[0]['ok'] and lire('silencieux')==avant
+ q.execute('DROP TRIGGER ignorer ON organisations');q.execute(definition);n+=1
  print(f'{n}/{n} groupes membres SQL reussis ; aucun Supabase.')
  c.close();serveur.cleanup()
 if __name__=='__main__':main()

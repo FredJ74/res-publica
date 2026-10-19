@@ -20,3 +20,8 @@ test('transport : nouvelle RPC explicite, aucune valeur de cout acceptee de l in
  vm.runInContext(fs.readFileSync(path.join(racine,'supabase.js'),'utf8'),c);c.rpAuthUid=()=> 'u';
  for(const action of ['inviter','declencher_election']){c.sbRpcVerdict=async(fn,p)=>{assert.equal(fn,'organisation_commande_evenement');assert.equal(p.p_action,action);return {ok:true};};assert.equal((await c.sbOrganisationCommande('o',action,action==='inviter'?{nom:'Bob'}:{motivation:'Motif'})).ok,true);}
 });
+test('couts electoraux : les deux ordres existants sont toujours 1 PA et 0 FR',()=>{
+ const buildings=vm.runInNewContext(fs.readFileSync(path.join(racine,'data.js'),'utf8')+';BUILDINGS',{}, {timeout:5000});
+ const couts=[];function visiter(o){if(!o||typeof o!=='object')return;if(['declencher_election_club','declencher_election_syndicat'].includes(o.fn))couts.push(o);for(const v of Object.values(o))visiter(v);}visiter(buildings);
+ for(const fn of ['declencher_election_club','declencher_election_syndicat']){const lignes=couts.filter(o=>o.fn===fn);assert.ok(lignes.length>0);assert.ok(lignes.every(o=>o.pa===1&&o.cost===0));}
+});

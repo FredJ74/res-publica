@@ -77,6 +77,12 @@ def main():
  avant=pa()[0]
  with ThreadPoolExecutor(2) as pool:res=list(pool.map(double,[0,1]))
  assert sum(bool(x.get('rejeu')) for x in res)==1 and pa()[0]==avant-1;n+=1
+ # Une definition financiere differente bloque l'election, pas l'invitation independante.
+ q.execute("SELECT pg_get_functiondef('payer_ordre(text,text,integer,integer)'::regprocedure)");definition=q.fetchone()[0]
+ q.execute(definition.replace('BEGIN','BEGIN\n-- definition financiere non examinee',1))
+ creer('independant','criminelle',False);assert acte('independant','inviter',{'nom':'Diane'},'orgcmd-independant-001')['ok'];n+=1
+ creer('paiementinconnu');refus('paiementinconnu','declencher_election',{'motivation':'motif'},'orgcmd-inconnu-000001','paiement_definition_a_reexaminer');n+=1
+ q.execute(definition)
  print(f'{n}/{n} groupes evenements reussis ; payer_ordre et triggers archives, aucune production.')
  c.close();serveur.cleanup()
 if __name__=='__main__':main()
