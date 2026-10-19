@@ -62,6 +62,7 @@ def main():
  with ThreadPoolExecutor(2) as pool:r=list(pool.map(concurrent,range(2)))
  assert all(x['ok'] for x in r) and sum(bool(x.get('rejeu')) for x in r)==1;n+=1
  q.execute("GRANT USAGE ON SCHEMA public TO authenticated,anon; SET ROLE authenticated")
+ assert acte('informations',{'devise':'Autorise'},'orgcmd-authentifie-000001')['ok'];n+=1
  try:q.execute('SELECT * FROM organisation_commandes_recus');raise AssertionError('registre prive')
  except psycopg2.Error:pass
  q.execute('RESET ROLE; SET ROLE anon')
@@ -99,6 +100,16 @@ def main():
  q.execute("SELECT set_config('hg.acteur','Alice',false)")
  assert acte('dissoudre')['dissoute']=='o';assert acte('dissoudre')['rejeu'];n+=1
  q.execute("SELECT count(*) FROM organisations");assert q.fetchone()[0]==0;n+=1
+ # Une definition ou un registre inconnus ne sont jamais ecrases.
+ q.execute("SELECT pg_get_functiondef('organisation_commande_administrative(text,text,text,jsonb)'::regprocedure)")
+ definition=q.fetchone()[0];q.execute(definition.replace('BEGIN','BEGIN\n-- source inconnue',1))
+ try:q.execute(migration);raise AssertionError('garde source attendue')
+ except psycopg2.Error as e:assert 'definition_a_reexaminer' in str(e),str(e)
+ q.execute('ROLLBACK');q.execute(definition);n+=1
+ q.execute("COMMENT ON TABLE organisation_commandes_recus IS 'inconnu'")
+ try:q.execute(migration);raise AssertionError('garde registre attendue')
+ except psycopg2.Error as e:assert 'registre_commandes_inconnu' in str(e),str(e)
+ q.execute('ROLLBACK');q.execute("COMMENT ON TABLE organisation_commandes_recus IS 'HG commandes administratives v1'");n+=1
  print(f'{n}/{n} groupes administratifs SQL reussis ; aucun Supabase, identite de fixture.')
  c.close();serveur.cleanup()
 if __name__=='__main__':main()

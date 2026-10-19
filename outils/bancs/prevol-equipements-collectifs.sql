@@ -22,7 +22,7 @@ SELECT p.oid::regprocedure::text AS signature, md5(p.prosrc) AS empreinte_corps,
 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
 WHERE n.nspname='public' AND (p.proname IN
  ('acheter_produit_commerce','mouvement_titulaire','appliquer_taxe_transaction',
-  'mon_personnage','exiger_acteur','inventaire_reception_etat',
+  'mon_personnage','exiger_acteur','organisation_commande_administrative','inventaire_reception_etat',
   'inventaire_reclamer_livraison','inventaire_sauver_revision')
  OR p.proname LIKE 'organisation_equipement%' OR p.proname IN
  ('organisation_direction_garder','organisation_livraison_integrer',
@@ -35,7 +35,7 @@ FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
 JOIN pg_attribute a ON a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
 WHERE n.nspname='public' AND c.relname IN
  ('organisations','ventes_snapshots','livraisons_objets','organisation_objets',
-  'organisation_equipements_actes','organisation_equipements_journal','equipements_capacites')
+  'organisation_equipements_actes','organisation_equipements_journal','equipements_capacites','organisation_commandes_recus')
 ORDER BY c.relname,a.attnum;
 SELECT c.relname, t.tgname, pg_get_triggerdef(t.oid) AS definition
 FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
