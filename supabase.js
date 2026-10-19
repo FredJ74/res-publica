@@ -2643,7 +2643,8 @@ async function sbGetOrganisationParId(orgaId) {
 }
 
 async function sbDeleteOrganisation(orgaId) {
-  return sbDelete('organisations', `id=eq.${encodeURIComponent(orgaId)}`);
+  const r=await sbDeleteVerdict('organisations', `id=eq.${encodeURIComponent(orgaId)}`);
+  return r.ok===true && Array.isArray(r.donnees) && r.donnees.some(o=>o.id===orgaId);
 }
 
 // =====================

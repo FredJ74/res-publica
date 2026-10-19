@@ -793,6 +793,7 @@ function renderOngletOrgas() {
 
       (estChef ?
         '<div style="padding:.5rem .8rem;display:flex;flex-wrap:wrap;gap:.35rem;border-bottom:1px solid #1a1208">' +
+          '<button type="button" data-organisation="' + commercePjEchapper(orga.id) + '" onclick="equipementsCollectifsOuvrir(this.dataset.organisation)">Équipements</button>' +
           '<button onclick="ouvrirGestionMembres(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a3a2a;background:transparent;color:#6a9a6a;cursor:pointer">👥 Membres</button>' +
           (!orga.visible ?
             // Organisation secrete : adhesion uniquement sur invitation, pas de candidature publique.
@@ -1462,10 +1463,19 @@ function toggleVisibiliteOrga(orgaId) {
   document.getElementById('modal-postes').classList.remove('open');
 }
 
-function dissoudreOrga(orgaId) {
+const dissolutionsOrganisationsEnCours = new Set();
+async function dissoudreOrga(orgaId) {
   const orga = getOrgaById(orgaId);
-  if (!orga) return;
-  // Historisation AVANT suppression (chronique_nationale) -- uniquement si l'organisation etait
+  if (!orga || dissolutionsOrganisationsEnCours.has(orgaId)) return;
+  if (orga.chef!==state.char?.name) {showToast('Accès refusé','Seule la direction peut dissoudre cette organisation.',false);return;}
+  const contexte=equipementsCollectifsContexte();
+  dissolutionsOrganisationsEnCours.add(orgaId);
+  let confirme=false;
+  try{confirme=typeof sbDeleteOrganisation==='function'&&await sbDeleteOrganisation(orgaId)===true;}catch(_){}
+  finally{dissolutionsOrganisationsEnCours.delete(orgaId);}
+  if(!equipementsCollectifsContexteValide(contexte))return;
+  if(!confirme){showToast('Dissolution non confirmée','Actualisez la liste avant de recommencer. Le matériel de l’organisation doit être préservé.',false);return;}
+  // Historisation APRES suppression confirmee (chronique_nationale) -- uniquement si l'organisation etait
   // publique : une organisation criminelle/secrete dissoute ne doit jamais laisser de trace
   // publique de son existence passee.
   if (orga.visible && typeof sbEnregistrerEvenementPublic === 'function') {
@@ -1477,7 +1487,6 @@ function dissoudreOrga(orgaId) {
     }).catch(() => {});
   }
   state.organisations = (state.organisations || []).filter(o => o.id !== orgaId);
-  if (typeof sbDeleteOrganisation === 'function') sbDeleteOrganisation(orgaId).catch(() => {});
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Organisation dissoute', '"' + orga.nom + '" n\'existe plus.', false);
   addJournalEntry('"' + orga.nom + '" dissoute.', 'event-bad');

@@ -9,7 +9,7 @@ const source=fs.readFileSync(path.resolve(__dirname,'../../plateau-commerce-pj.j
 function plateau(verdict={ok:true,montant:100,quantite:1,prixUnitaire:100}) {
  const appels=[],inventory=[{name:'Objet personnel'}];
  const ctx=vm.createContext({console,Number,state:{country:'republic',char:{name:'Alice'},arg:1000,liquide:500,hp:50,moral:40,pa:8,inventory},
-  rpAuthUid:()=> 'uid-alice',document:{getElementById:()=>({value:1})},
+  rpAuthUid:()=> 'uid-alice',document:{getElementById:id=>id==='cpj-payeur-collectif'?null:({value:1})},
   commercePjContexte:async()=>({fondsId:'fonds-local'}),
   sbAcheterProduitCommerce:async(...a)=>{appels.push(['achat',...a]);return verdict;},
   sbRpcVerdict:async(...a)=>{appels.push(['rpc',...a]);return verdict;},

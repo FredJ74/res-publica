@@ -15,7 +15,7 @@ const actions=[
 function plateau(rpc=async()=>({ok:true,montant:10,salaire:10,quantite:1,prixUnitaire:10,caisse:50,paRestants:2,inventory:[{name:'Ancien snapshot'}]})){
  const appels=[];const c=vm.createContext({console,SUPABASE_URL:'https://test.invalid',
   state:{char:{name:'Alice'},country:'republic',currentCity:'capitale',currentBuilding:'commerce',currentRoom:'boutique',arg:1000,liquide:1000,pa:8,inventory:[{name:'Personnel'}]},
-  document:{getElementById:()=>({value:'1',innerHTML:''})},rpAuthUid:()=> 'uid-alice'});
+  document:{getElementById:id=>id==='cpj-payeur-collectif'?null:({value:'1',innerHTML:''})},rpAuthUid:()=> 'uid-alice'});
  vm.runInContext(code,c);
  c.commercePjContexte=async()=>({fondsId:'fonds'});
  c.sbGet=async()=>[{user_id:'uid-alice',arg:300,liquide:200,pa:5,hp:70,moral:60,inventory:[{name:'Inventaire actuel'}]}];

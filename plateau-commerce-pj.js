@@ -1998,6 +1998,7 @@ async function commercePjFicheProduit(referenceId) {
     html += ficheOfficielleHtml(fiche);
   }
 
+  html += '<div id="cpj-payeur-zone"></div>';
   html += '<div style="height:.9rem"></div>';
   html += '<div style="font-family:Bebas Neue,sans-serif;letter-spacing:.1em;color:#a09070;font-size:.8rem;margin-bottom:.4rem">' +
     commercePjEchapper(tCommercePJ('commercepj.fiche.vente')) + '</div>';
@@ -2025,6 +2026,7 @@ async function commercePjFicheProduit(referenceId) {
     commercePjBouton('commercePjEcranBoutique()', tCommercePJ('commercepj.retour.boutique')) + '</div>';
   html += '</div>';
   commercePjModale(tCommercePJ('commercepj.titre.produit'), html);
+  if(typeof equipementsCollectifsProposerPayeur==='function') equipementsCollectifsProposerPayeur(document.getElementById('cpj-payeur-zone'));
 }
 
 let RP_CPJ_ETAT_VERSION = 0;
@@ -2084,25 +2086,32 @@ async function commercePjActualiserPersonnage(options = {}) {
 // Ni prix, ni objet, ni montant. La livraison passe par le sas existant.
 async function commercePjAcheter(referenceId, requete) {
   return commercePjTransaction('achat', async (tx) => {
+  const payeur=document.getElementById('cpj-payeur-collectif')?.value||'';
   const ctx = await commercePjContexte();
   if (!commercePjTransactionActive(tx)) return;
   const qte = Math.max(1, Math.floor(Number((document.getElementById('cpj-qte') || {}).value) || 1));
-  const r = await sbAcheterProduitCommerce(requete, state.char.name, ctx.fondsId, referenceId, qte);
+  if(payeur && !payeur.startsWith('orga:'))return;
+  const collectif=payeur.startsWith('orga:');
+  const reprise=collectif?equipementsCollectifsCleAchat(payeur.slice(5),ctx.fondsId,referenceId,qte,requete):null;
+  const r = collectif
+    ? await sbRpcVerdict('organisation_equipement_acheter',{p_requete:reprise.requete,p_organisation:payeur.slice(5),p_fonds:ctx.fondsId,p_reference:referenceId,p_quantite:qte})
+    : await sbAcheterProduitCommerce(requete, state.char.name, ctx.fondsId, referenceId, qte);
   if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
+  if(collectif)equipementsCollectifsAchatConfirme(reprise);
   await commercePjActualiserPersonnage();
   if (!commercePjTransactionActive(tx)) return;
   if (typeof updateUI === 'function') updateUI();
   if (r.rejeu === true) { commercePjEcranBoutique(); return; }
   showToast(tCommercePJ('commercepj.fiche.achete'),
-    commercePjMontant(r.montant) + ' ' + commercePjDevise() + ' — ' + tCommercePJ('commercepj.fiche.recu'), true, true);
+    commercePjMontant(r.montant) + ' ' + commercePjDevise() + ' — ' + (collectif?'Inventaire collectif':tCommercePJ('commercepj.fiche.recu')), true, true);
   if (typeof addJournalEntry === 'function') {
     addJournalEntry('Achat : ' + r.quantite + ' × ' + commercePjMontant(r.prixUnitaire) + ' ' +
       commercePjDevise() + '.', 'event-good');
   }
   // Le sas existant reste le seul chemin de livraison : on ne cree pas un second
   // systeme de reception, on declenche simplement le drainage deja en place.
-  if (typeof verifierObjetsRecus === 'function') { try { await verifierObjetsRecus(); } catch (e) {} }
+  if (!collectif && typeof verifierObjetsRecus === 'function') { try { await verifierObjetsRecus(); } catch (e) {} }
   if (typeof updateUI === 'function') updateUI();
   commercePjEcranBoutique();
   });
