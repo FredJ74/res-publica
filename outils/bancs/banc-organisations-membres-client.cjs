@@ -24,6 +24,7 @@ test('transport membres : garde de rejeu commune, nom de RPC explicite',async()=
 for(const verdict of [false,true,null])test(`progression electorale : ${verdict}`,async()=>{
  const initial={id:'o',chef:'Alice',nom:'Structure',country:'republic',type:'politique',visible:true,caisse:25,election:{enCours:true,phase:'candidatures',dateFinCandidatures:4,dateFinVote:7,candidats:[{nom:'Bob'},{nom:'Alice'}],votes:{Alice:'Bob',Bob:'Alice'}},membres:[{nom:'Alice'},{nom:'Bob'}]};
  const c=vm.createContext({state:{char:{name:'Alice'},day:7,organisations:[initial]},TYPES_ORGANISATIONS:regles(),evenements:[],saves:[]});
+ c.equipementsCollectifsContexte=()=>c.state.char;c.equipementsCollectifsContexteValide=x=>x===c.state.char;
  c.getOrgaById=()=>c.state.organisations[0];c.addExternalEvent=e=>c.evenements.push(e);c.sbEnregistrerEvenementPublic=async()=>true;c.sauvegarderOrga=o=>c.saves.push(o);
  c.organisationEssayerCommande=async(id,action,p)=>{assert.equal(action,'avancer_election');assert.equal(Object.keys(p).length,0);if(verdict===true)c.state.organisations=[{...initial,chef:'Bob',caisse:2025,election:{enCours:false}}];return verdict;};
  vm.runInContext(fonction('annoncerDirectionElection')+'\n'+fonction('verifierElectionsOrganisations'),c);
@@ -31,4 +32,10 @@ for(const verdict of [false,true,null])test(`progression electorale : ${verdict}
  if(verdict===false){assert.equal(c.evenements.length,0);assert.equal(initial.chef,'Alice');assert.equal(c.saves.length,0);}
  if(verdict===true){assert.equal(c.state.organisations[0].chef,'Bob');assert.equal(c.state.organisations[0].caisse,2025);assert.equal(c.evenements.length,1);assert.equal(c.saves.length,0);}
  if(verdict===null){assert.equal(initial.chef,'Bob');assert.equal(c.saves.length,2);assert.equal(c.evenements.length,1);}
+});
+test('progression : changer de personnage interrompt toute la boucle, sans agir sur les structures suivantes',async()=>{
+ const c=vm.createContext({state:{char:{name:'Alice'},organisations:[{id:'a',election:{enCours:true}},{id:'b',election:{enCours:true}}]},appels:0});
+ c.equipementsCollectifsContexte=()=>c.state.char;c.equipementsCollectifsContexteValide=x=>x===c.state.char;
+ c.organisationEssayerCommande=async()=>{c.appels++;c.state.char={name:'Bob'};return false;};
+ vm.runInContext(fonction('verifierElectionsOrganisations'),c);await c.verifierElectionsOrganisations();assert.equal(c.appels,1);
 });

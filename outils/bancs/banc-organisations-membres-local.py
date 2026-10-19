@@ -13,7 +13,7 @@ def main():
  q.execute("CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$SELECT nullif(current_setting('hg.acteur',true),'')$$")
  q.execute((r/'migrations/20261019094425_organisations_commandes_administratives.sql').read_text())
  m=(r/'migrations/20261019130213_organisations_adhesions_grades.sql').read_text();q.execute(m);q.execute(m)
- election_sql=(r/'migrations/20261019133500_organisations_progression_elections.sql').read_text();q.execute(election_sql);q.execute(election_sql)
+ election_sql=(r/'migrations/20261019130951_organisations_progression_elections.sql').read_text();q.execute(election_sql);q.execute(election_sql)
  regles=json.loads(subprocess.check_output(['node','-e',"console.log(JSON.stringify(require('./outils/generateurs/generer_organisations_regles.cjs').regles()))"],cwd=r))
  def acteur(nom):q.execute("SELECT set_config('hg.acteur',%s,false)",(nom,))
  def creer(id,typ='politique',pays='republic',secret=False):
@@ -97,6 +97,16 @@ def main():
  q.execute("CREATE TRIGGER panne BEFORE INSERT ON organisation_commandes_recus FOR EACH ROW EXECUTE FUNCTION panne()")
  refus('election','avancer_election',key='orgcmd-election-annulee',motif='panne_fixture');assert lire('election')['election']['phase']=='candidatures';q.execute('DROP TRIGGER panne ON organisation_commandes_recus');n+=1
  refus('election','avancer_election',{'chef':'Charlie'},key='orgcmd-election-injection',motif='champs_interdits');n+=1
+ # ACL et definitions inconnues : aucun contournement de garde ni acces au miroir prive.
+ q.execute('SET ROLE authenticated')
+ try:q.execute('SELECT organisation_regles_membres()');raise AssertionError('miroir prive')
+ except psycopg2.Error:pass
+ q.execute('RESET ROLE');n+=1
+ q.execute("SELECT pg_get_functiondef('organisation_commande_membres(text,text,text,jsonb)'::regprocedure)")
+ definition=q.fetchone()[0];q.execute(definition.replace('BEGIN','BEGIN\n-- autre definition',1))
+ try:q.execute(election_sql);raise AssertionError('source divergente attendue')
+ except psycopg2.Error as e:assert 'definition_a_reexaminer' in str(e),str(e)
+ q.execute('ROLLBACK');q.execute(definition);n+=1
  print(f'{n}/{n} groupes membres SQL reussis ; aucun Supabase.')
  c.close();serveur.cleanup()
 if __name__=='__main__':main()

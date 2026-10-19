@@ -8075,9 +8075,11 @@ function annoncerDirectionElection(orga,vainqueur,ancienChef) {
 }
 
 async function verifierElectionsOrganisations() {
+  const contexte=equipementsCollectifsContexte();
   for(const orga of (state.organisations || [])) {
     if (!orga.election?.enCours) continue;
     const serveur=await organisationEssayerCommande(orga.id,'avancer_election',{});
+    if(!equipementsCollectifsContexteValide(contexte))return;
     if(serveur!==null){
       const fraiche=getOrgaById(orga.id);
       if(serveur&&fraiche?.chef&&fraiche.chef!==orga.chef)annoncerDirectionElection(fraiche,fraiche.chef,orga.chef);

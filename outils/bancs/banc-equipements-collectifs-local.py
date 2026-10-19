@@ -155,7 +155,7 @@ def main():
  assert call("SELECT count(*) FROM organisation_commandes_recus WHERE requete='orgcmd-dissolution-000001'")==0;n+=1
  # Progression atomique compatible avec la garde municipale/organisation et les biens persistants.
  q.execute((R/'migrations/20261019130213_organisations_adhesions_grades.sql').read_text())
- q.execute((R/'migrations/20261019133500_organisations_progression_elections.sql').read_text())
+ q.execute((R/'migrations/20261019130951_organisations_progression_elections.sql').read_text())
  q.execute("SELECT set_config('hg.acteur','Alice',false)")
  election={'enCours':True,'phase':'candidatures','dateFinCandidatures':5,'dateFinVote':6,'candidats':[{'nom':'Alice'},{'nom':'Bob'}],'votes':{'Bob':'Alice'}}
  q.execute("UPDATE organisations SET data=jsonb_set(data::jsonb,'{election}',%s::jsonb)::text WHERE id='o1'",(json.dumps(election),))
