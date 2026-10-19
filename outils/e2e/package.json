@@ -1,0 +1,8 @@
+{
+  "name": "human-gambit-parcours-joueur",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Parcours Chromium authentifies, comptes de test exclusivement",
+  "scripts": {"test": "node --test test-executeur.cjs", "prevol": "node luthecia.cjs --prevol", "campagne": "node luthecia.cjs"},
+  "devDependencies": {"playwright": "1.62.1"}
+}

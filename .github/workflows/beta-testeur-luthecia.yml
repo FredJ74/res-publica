@@ -1,0 +1,56 @@
+name: Parcours joueur isole de Luthecia
+
+on:
+  workflow_dispatch:
+  schedule:
+    # UTC. Inactif tant que HG_E2E_NIGHTLY n'est pas explicitement active.
+    - cron: '15 1 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: luthecia-comptes-test-reserves
+  cancel-in-progress: false
+
+jobs:
+  parcours-authentifie:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.HG_E2E_NIGHTLY == 'true')
+    environment: luthecia-e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HG_E2E_BASE_URL: ${{ vars.HG_E2E_BASE_URL }}
+      HG_E2E_MAX_MINUTES: '35'
+      HG_E2E_RAPPORT: ${{ runner.temp }}/luthecia-e2e
+      HG_E2E_EMAIL: ${{ secrets.HG_E2E_EMAIL }}
+      HG_E2E_PASSWORD: ${{ secrets.HG_E2E_PASSWORD }}
+      HG_E2E_PERSONNAGE: ${{ secrets.HG_E2E_PERSONNAGE }}
+      HG_E2E_UID: ${{ secrets.HG_E2E_UID }}
+      HG_E2E_INVITE_EMAIL: ${{ secrets.HG_E2E_INVITE_EMAIL }}
+      HG_E2E_INVITE_PASSWORD: ${{ secrets.HG_E2E_INVITE_PASSWORD }}
+      HG_E2E_INVITE_PERSONNAGE: ${{ secrets.HG_E2E_INVITE_PERSONNAGE }}
+      HG_E2E_INVITE_UID: ${{ secrets.HG_E2E_INVITE_UID }}
+      HG_E2E_AUTORISATION_JSON: ${{ secrets.HG_E2E_AUTORISATION_JSON }}
+      HG_E2E_PLAN_JSON: ${{ secrets.HG_E2E_PLAN_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Installer uniquement le pilote, navigateur systeme existant
+        run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Exercer le pilote hors production
+        run: npm test --prefix outils/e2e
+      - name: Prevol obligatoire, aucun contournement des prerequis
+        run: npm run prevol --prefix outils/e2e
+      - name: Parcours authentifie borne
+        run: npm run campagne --prefix outils/e2e
+      - name: Resultats, y compris blocages ou echecs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: luthecia-joueur-${{ github.run_id }}
+          path: ${{ runner.temp }}/luthecia-e2e
+          retention-days: 3
+          if-no-files-found: error

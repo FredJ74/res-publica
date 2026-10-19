@@ -1,0 +1,80 @@
+{
+  "debut": "2026-10-19T22:48:59.770Z",
+  "mode": "authentifie-demande",
+  "statut": "BLOQUE",
+  "visites": [],
+  "dialogues": [],
+  "catalogues": [],
+  "consultations": [],
+  "actes": [],
+  "etapes": [],
+  "reseau": [],
+  "erreurs": [],
+  "nonExecutes": [
+    "achat",
+    "production",
+    "offrir-a-boire",
+    "diner",
+    "reception"
+  ],
+  "casNonExecutes": [
+    "achat/succes",
+    "achat/rupture",
+    "achat/fonds-insuffisants",
+    "achat/rechargement",
+    "production/autorise",
+    "production/interdit",
+    "offrir-a-boire/acceptation",
+    "offrir-a-boire/refus-total",
+    "offrir-a-boire/gains-non-cumulables",
+    "offrir-a-boire/double-reponse",
+    "diner/deux-repas-deux-champagnes",
+    "diner/refus",
+    "diner/stock-insuffisant",
+    "diner/rejeu",
+    "reception/simple",
+    "reception/double",
+    "reception/reponse-perdue",
+    "session/reponse-tardive"
+  ],
+  "actesEnCours": [],
+  "limites": [
+    "Aucun test local ne constitue une preuve authentifiee."
+  ],
+  "blocages": [
+    "HG_E2E_EMAIL",
+    "HG_E2E_PASSWORD",
+    "HG_E2E_PERSONNAGE",
+    "HG_E2E_UID",
+    "AUTORISATION_EXPLICITE_COMPTES_TEST"
+  ],
+  "fin": "2026-10-19T22:48:59.772Z",
+  "verificationLocale": {
+    "pilote": {
+      "reussis": 22,
+      "echecs": 0,
+      "ignores": 0,
+      "nature": "fixtures et Chromium local, pas de compte Supabase"
+    },
+    "clientExistant": {
+      "bancsReussis": 90,
+      "echecs": 0
+    },
+    "workflowGlobal": {
+      "reussis": 10,
+      "total": 12,
+      "echecs": [
+        "Authority",
+        "Referential"
+      ]
+    },
+    "httpsPublic": {
+      "site": "refus CONNECT proxy 403, aucun statut applicatif",
+      "githubApi": "refus CONNECT proxy 403, aucun statut applicatif"
+    },
+    "donneesReellesModifiees": false,
+    "migrationsAppliquees": [],
+    "campagneDistanteDeclenchee": false,
+    "deploiementVerifie": false
+  }
+}

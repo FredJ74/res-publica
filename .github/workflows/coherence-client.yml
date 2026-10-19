@@ -35,6 +35,10 @@ jobs:
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Bancs JavaScript, transports simulés
         run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
+      - name: Pilote joueur, fixtures locales sans compte ni Supabase
+        run: |
+          npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+          npm test --prefix outils/e2e
       - name: Dépendances du PostgreSQL jetable
         run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
       - name: Achat sur PostgreSQL local, sans identifiant Supabase
