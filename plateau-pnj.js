@@ -2890,6 +2890,7 @@ function appliquerGainENT(montant) {
 }
 
 async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
+  if(type==='diner_affaires'&&typeof restaurantLutheciaIci==='function'&&restaurantLutheciaIci()) return restaurantLutheciaInviter(nomInvite,estPJ);
   const messageEnvoye = (document.getElementById("invitation-message-input")?.value || "").trim().slice(0, 200);
   document.getElementById('modal-postes').classList.remove('open');
   const cfgPnj = CONFIG_INVITATIONS_SOCIALES[type] || {};
@@ -2962,6 +2963,7 @@ async function envoyerInvitationSociale(type, nomInvite, pa, cost, estPJ) {
 }
 
 async function verifierReponseInvitationSociale() {
+  if(typeof restaurantLutheciaSuivre==='function') await restaurantLutheciaSuivre();
   if (!state._invitationSocialeEnAttente || !state.char?.name) return;
   const infos = state._invitationSocialeEnAttente;
   const cfg = CONFIG_INVITATIONS_SOCIALES[infos.type];
@@ -2977,7 +2979,7 @@ async function verifierReponseInvitationSociale() {
   if (typeof sbGetInvitationsDinerTraitees !== 'function') return;
   try {
     const rows = await sbGetInvitationsDinerTraitees(state.char.name, infos.invite);
-    const ligne = (rows || []).find(r => r.type === infos.type);
+    const ligne = (rows || []).find(r => r.type === infos.type && !r.contrat_restaurant);
     if (!ligne) return;
 
     if (ligne.statut === 'acceptee') {
@@ -3064,6 +3066,7 @@ async function verifierInvitationsSocialesRecues() {
 }
 
 async function repondreInvitationSociale(id, accepte, nomInviteur) {
+  if(state._invitationSocialeCourante?.contrat_restaurant==='luthecia_v1') return restaurantLutheciaRepondre(id,accepte);
   const reponseEnvoyee = (document.getElementById("invitation-reponse-input")?.value || "").trim().slice(0, 200);
   document.getElementById('modal-postes').classList.remove('open');
   state._invitationSocialeModalOuvert = false;

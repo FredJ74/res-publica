@@ -3591,6 +3591,7 @@ async function chargerCommerce(type, pays, ville, buildingId, roomId) {
   const data = await chargerEntreprise(id, { type: type, pays: pays, ville: ville,
                                              batiment: buildingId, room: roomId });
   if (data) data.id = id;
+  if (typeof restaurantLutheciaCarte === 'function') return restaurantLutheciaCarte(data,pays,ville,buildingId,roomId);
   return data;
 }
 
@@ -3775,11 +3776,28 @@ const RECETTES_ALIMENTAIRES = {
   // doctrine que carbonade_frites verrouillee a Montrouge), pas une carte generaliste
   // reutilisable par un futur commerce 'brasserie'. Images deja presentes dans le depot
   // (images/luthecia-restaurant-menu-1/2/3.jpg, fournies par Fred), jamais generees ici.
+  // Neuf verres reels par fabrication. Arbitrage : prix 25, marge MINIMALE x2,
+  // double matiere du vin et 1 PA supplementaire ; le serveur refuse un lot sous la marge.
+  champagne_luthecia: {
+    id:'champagne_luthecia',label:'Champagne',categorie:'boisson',image:null,
+    materiaux:{fruits_legumes:2},pa:2,portions:9,effets:{moral:2},prixFixe:25,
+    typesAutorises:['brasserie'],paysAutorises:['republic'],villesAutorisees:['capitale'],buildingsAutorises:['hotel-republica']
+  },
+  cocktail_luthecia: {
+    id:'cocktail_luthecia',label:'Cocktail',categorie:'boisson',image:null,
+    materiaux:{fruits_legumes:2},pa:2,portions:9,effets:{moral:2},prixFixe:25,
+    typesAutorises:['brasserie'],paysAutorises:['republic'],villesAutorisees:['capitale'],buildingsAutorises:['hotel-republica']
+  },
+  amuse_bouche_luthecia: {
+    id:'amuse_bouche_luthecia',label:'Amuse-bouche',categorie:'snack',image:null,
+    materiaux:{cereales:1},pa:1,portions:15,effets:{hp:2,moral:1},
+    typesAutorises:['brasserie'],paysAutorises:['republic'],villesAutorisees:['capitale'],buildingsAutorises:['hotel-republica']
+  },
   menu_gastronomique_1: {
     id: 'menu_gastronomique_1',
     label: 'Menu 1 — Carpaccio de Saint-Jacques aux agrumes, Pavé de cerf sauce aux airelles, Omelette norvégienne',
     categorie: 'menu', image: 'images/luthecia-restaurant-menu-1.jpg',
-    materiaux: { poisson: 1, viande: 1, cereales: 1 }, pa: 1, portions: 5,
+    materiaux: { poisson: 1, viande: 1, cereales: 1 }, pa: 3, portions: 5,
     // +3 PA demande = paDiffere (champ deja existant du moteur, jamais utilise jusqu'ici par
     // aucune recette mais deja gere par commanderProduitCommerce() -> state.bonusPaProchainDormir).
     // Aucun mecanisme de PA immediat n'existe dans ce moteur de vente -- meme convention que
@@ -3802,13 +3820,13 @@ const RECETTES_ALIMENTAIRES = {
     // Prix strictement fixe (lot plafonds, 21 aout 2026) : jamais recalcule par
     // produireRecetteCommerce() malgre un proprietaire PNJ par defaut -- voir le nouveau
     // controle "!recette.prixFixe" ajoute a ce recalcul, plus bas dans ce fichier.
-    prixFixe: true
+    prixFixe: 125
   },
   menu_gastronomique_2: {
     id: 'menu_gastronomique_2',
     label: 'Menu 2 — Huîtres gratinées au four (origine Port-Sainte-Marie), Turbot sauce hollandaise, Soufflé au Grand Marnier',
     categorie: 'menu', image: 'images/luthecia-restaurant-menu-2.jpg',
-    materiaux: { poisson: 2, cereales: 1 }, pa: 1, portions: 5,
+    materiaux: { poisson: 2, cereales: 1 }, pa: 3, portions: 5,
     effets: { hp: 10, moral: 1, paDiffere: 3 },
     // villesAutorisees ajoute (lot isolation des villes, 22 aout 2026) : buildingsAutorises seul
     // ne verrouille QUE le buildingId, jamais la ville -- 'hotel-republica' est partage par les 4
@@ -3827,13 +3845,13 @@ const RECETTES_ALIMENTAIRES = {
     // Prix strictement fixe (lot plafonds, 21 aout 2026) : jamais recalcule par
     // produireRecetteCommerce() malgre un proprietaire PNJ par defaut -- voir le nouveau
     // controle "!recette.prixFixe" ajoute a ce recalcul, plus bas dans ce fichier.
-    prixFixe: true
+    prixFixe: 125
   },
   menu_gastronomique_3: {
     id: 'menu_gastronomique_3',
     label: 'Menu 3 — Foie gras et sa gelée de gewurztraminer, Chapon sauce aux morilles, Pavlova aux fruits rouges',
     categorie: 'menu', image: 'images/luthecia-restaurant-menu-3.jpg',
-    materiaux: { viande: 2, fruits_legumes: 1 }, pa: 1, portions: 5,
+    materiaux: { viande: 2, fruits_legumes: 1 }, pa: 3, portions: 5,
     effets: { hp: 10, moral: 1, paDiffere: 3 },
     // villesAutorisees ajoute (lot isolation des villes, 22 aout 2026) : buildingsAutorises seul
     // ne verrouille QUE le buildingId, jamais la ville -- 'hotel-republica' est partage par les 4
@@ -3852,7 +3870,7 @@ const RECETTES_ALIMENTAIRES = {
     // Prix strictement fixe (lot plafonds, 21 aout 2026) : jamais recalcule par
     // produireRecetteCommerce() malgre un proprietaire PNJ par defaut -- voir le nouveau
     // controle "!recette.prixFixe" ajoute a ce recalcul, plus bas dans ce fichier.
-    prixFixe: true
+    prixFixe: 125
   },
 
   // Menus gastronomiques du Capitaine Sauvage (Port-Sainte-Marie, 23 aout 2026) -- carte propre a
@@ -5007,7 +5025,7 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
   // est ramene proprement dans la fourchette actuelle -- meme regle de calcul que partout
   // ailleurs (fourchettePrixPJ), aucune duplication. Les commerces PNJ ne sont jamais concernes :
   // leur prix est deja recalcule a chaque production (produireRecetteCommerce), toujours a jour.
-  if (data.proprietaire !== 'PNJ' && data.parametres.prixVente[recetteId] != null) {
+  if (data.proprietaire !== 'PNJ' && typeof recette.prixFixe !== 'number' && data.parametres.prixVente[recetteId] != null) {
     const { min, max } = fourchettePrixPJ(coutRevientPortionRecette(data, recette));
     const prixActuel = data.parametres.prixVente[recetteId];
     if (prixActuel < min || prixActuel > max) {
@@ -5841,6 +5859,7 @@ async function doProduireRecetteCommerceUI(commerceType, buildingId, roomId, rec
   if (!res.ok) {
     const messages = {
       production_non_autorisee: 'Vous n’êtes pas habilité à produire dans cet établissement.',
+      marge_pnj_insuffisante: 'Le coût de ce lot dépasse la marge minimale à 25 FR. Aucun PA ni matière consommé.',
       recette_non_autorisee: 'Cette recette n\'est pas autorisée pour cet établissement.',
       pa_insuffisants: recette.pa + ' PA requis.',
       stock_matiere_insuffisant: 'Il manque du ' + (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[res.matiere] ? RESSOURCES_ECONOMIE[res.matiere].label : res.matiere) + ' en stock.',
