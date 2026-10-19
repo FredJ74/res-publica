@@ -11,7 +11,7 @@ DO $prevol$ BEGIN
   RAISE EXCEPTION 'precondition_definition_differente: commerce_produire'; END IF;
 END $prevol$;
 DO $prevol$ BEGIN
- IF coalesce(md5((SELECT prosrc FROM pg_proc WHERE oid=to_regprocedure('public.fonds_reference_produire_lots(text,text,text,text,integer)'))), 'absent') NOT IN ('6de469569b9b2aa3dc6fb378784d766e','66c7ba98418b9d797be96219494fbf8e') THEN
+ IF coalesce(md5((SELECT prosrc FROM pg_proc WHERE oid=to_regprocedure('public.fonds_reference_produire_lots(text,text,text,text,integer)'))), 'absent') NOT IN ('ab95c733be25d3da5c3c2874c100557f') THEN
   RAISE EXCEPTION 'precondition_definition_differente: fonds_reference_produire_lots'; END IF;
 END $prevol$;
 DO $prevol$ BEGIN
@@ -208,6 +208,8 @@ DECLARE
   v_cmup_avant numeric; v_cmup_apres numeric;
   v_deja record; v_salaire numeric; v_caisse numeric; v_jour integer;
   v_conso jsonb := '{}'::jsonb;
+  v_intermediaire numeric := 0; v_stock_comp numeric := 0; v_cmup_comp numeric := 0;
+  v_comp_ref text; v_comp record; v_a_prendre numeric; v_restant numeric;
 BEGIN
   PERFORM public.exiger_acteur(p_acteur);
   IF p_requete IS NULL OR p_requete !~ '^prod-[A-Za-z0-9-]{6,80}$' THEN
@@ -256,6 +258,10 @@ BEGIN
 
   SELECT * INTO v_deja FROM public.productions_references WHERE requete = p_requete;
   IF FOUND THEN
+    IF v_deja.acteur IS DISTINCT FROM p_acteur OR v_deja.fonds_id IS DISTINCT FROM p_fonds_id
+       OR v_deja.reference_id IS DISTINCT FROM p_reference_id OR v_deja.quantite IS DISTINCT FROM v_r.portions*v_lots THEN
+      RETURN jsonb_build_object('ok',false,'raison','requete_reutilisee');
+    END IF;
     RETURN jsonb_build_object('ok', true, 'rejeu', true, 'raison', 'requete_deja_honoree',
                               'quantite', v_deja.quantite, 'coutUnitaire', v_deja.cout_unitaire);
   END IF;
@@ -301,6 +307,36 @@ BEGIN
                               'manquantes', v_manque, 'lots', v_lots);
   END IF;
 
+  -- Consommer les composants ELECTRONIQUES deja fabriques dans ce fonds.
+  -- Pas de conversion fictive de produits exotiques au stade de l'assemblage.
+  v_intermediaire := coalesce((v_r.intermediaires->>'composants-electroniques')::numeric,0) * v_lots;
+  IF v_intermediaire > 0 THEN
+    v_restant := v_intermediaire;
+    FOR v_comp IN
+      SELECT ref.key AS id FROM jsonb_each(coalesce(v_data->'references','{}'::jsonb)) ref
+      WHERE ref.value->>'generique_id'='composants-electroniques'
+      ORDER BY ref.key
+    LOOP
+      EXIT WHEN v_restant=0;
+      v_comp_ref := v_comp.id;
+      v_stock_comp := greatest(0,coalesce((v_data->'stockReferences'->>v_comp_ref)::numeric,0));
+      IF v_stock_comp=0 THEN CONTINUE; END IF;
+      v_cmup_comp := (v_data->'coutMoyenReferences'->>v_comp_ref)::numeric;
+      IF v_cmup_comp IS NULL OR v_cmup_comp < 0 THEN
+        RETURN jsonb_build_object('ok',false,'raison','cout_composants_inconnu');
+      END IF;
+      v_a_prendre := least(v_restant,v_stock_comp);
+      v_mat := v_mat + v_a_prendre * v_cmup_comp;
+      v_data := jsonb_set(v_data,ARRAY['stockReferences',v_comp_ref],to_jsonb(v_stock_comp-v_a_prendre),true);
+      v_restant := v_restant-v_a_prendre;
+    END LOOP;
+    IF v_restant>0 THEN
+      RETURN jsonb_build_object('ok',false,'raison','composants_insuffisants',
+        'requis',v_intermediaire,'composant','composants-electroniques');
+    END IF;
+    v_conso := jsonb_set(v_conso,ARRAY['composants-electroniques'],to_jsonb(v_intermediaire),true);
+  END IF;
+
   v_quantite := v_r.portions * v_lots;
   v_max_ref  := nullif((v_data->'parametres'->'stockMaxReferences'->>p_reference_id)::integer, 0);
   v_stock_avant := greatest(0, coalesce((v_data->'stockReferences'->>p_reference_id)::numeric, 0))::integer;
@@ -317,6 +353,7 @@ BEGIN
   END IF;
 
   FOR v_m, v_q IN SELECT key, value FROM jsonb_each(v_conso) LOOP
+    IF v_m = 'composants-electroniques' THEN CONTINUE; END IF;
     v_sm := jsonb_set(v_sm, ARRAY[v_m],
               to_jsonb(coalesce((v_sm->>v_m)::numeric, 0) - (v_q#>>'{}')::numeric));
   END LOOP;
