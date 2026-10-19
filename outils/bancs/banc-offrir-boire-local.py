@@ -40,6 +40,8 @@ def main():
  for nom,f in [('tournees','baseline/domaines/personnage-et-presence/10_tables.sql'),('invitations_diner','baseline/domaines/personnage-et-presence/10_tables.sql')]:
   s=(ROOT/f).read_text();a=s.index('CREATE TABLE public.'+nom+' (');b=s.index('\n);',a)+3;c.execute(s[a:b]);c.execute('ALTER TABLE '+nom+' ADD PRIMARY KEY(id)')
  for nom,f in [('commerce_vendre_produit','baseline/domaines/economie/20_fonctions-1.sql'),('commerce_produire','baseline/domaines/economie/20_fonctions-1.sql'),('fonds_reference_produire_lots','baseline/domaines/finances-publiques/20_fonctions-1.sql'),('tournee_cloturer','baseline/domaines/personnage-et-presence/20_fonctions.sql')]:c.execute(extraire(nom,f))
+ # Le prevol exige le moteur electronique reel deja installe en production, non le baseline ancien.
+ c.execute(extraire('fonds_reference_produire_lots','migrations/20261018231225_assemblage_composants_stocks_reels.sql'))
  migration=(ROOT/'migrations/20261019213444_catalogue_et_offrir_a_boire.sql').read_text()
  c.execute(migration)
  c.execute(migration)  # Meme migration rejouee : idempotence structurelle obligatoire.
