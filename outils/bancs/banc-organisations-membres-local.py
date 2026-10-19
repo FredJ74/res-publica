@@ -107,6 +107,24 @@ def main():
  try:q.execute(election_sql);raise AssertionError('source divergente attendue')
  except psycopg2.Error as e:assert 'definition_a_reexaminer' in str(e),str(e)
  q.execute('ROLLBACK');q.execute(definition);n+=1
+ # Les triggers qui ignorent une ligne ne peuvent annoncer une mutation ou un recu fictifs.
+ garde=(r/'migrations/20261019132908_organisations_refus_silencieux.sql').read_text();q.execute(garde);q.execute(garde)
+ acteur('Alice');creer('silencieux','syndicale')
+ q.execute("UPDATE organisations SET data=jsonb_set(data::jsonb,'{membres,0,gradeIdx}','1')::text WHERE id='silencieux'")
+ q.execute("CREATE FUNCTION ignorer() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RETURN NULL;END$$")
+ def refus_silencieux(sql):
+  avant=lire('silencieux')
+  try:q.execute(sql);raise AssertionError('refus silencieux attendu')
+  except psycopg2.Error as e:assert 'non_' in str(e),str(e)
+  assert lire('silencieux')==avant
+ for table in ['organisations','organisation_commandes_recus']:
+  op='UPDATE' if table=='organisations' else 'INSERT'
+  q.execute(f'CREATE TRIGGER ignorer BEFORE {op} ON {table} FOR EACH ROW EXECUTE FUNCTION ignorer()')
+  refus_silencieux("SELECT organisation_commande_administrative('orgcmd-ignore-admin-001','silencieux','informations','{\"nom\":\"Autre\"}')");n+=1
+  refus_silencieux("SELECT organisation_commande_membres('orgcmd-ignore-membre-001','silencieux','promouvoir','{\"nom\":\"Alice\"}')");n+=1
+  q.execute(f'DROP TRIGGER ignorer ON {table}')
+ q.execute('CREATE TRIGGER ignorer BEFORE DELETE ON organisations FOR EACH ROW EXECUTE FUNCTION ignorer()')
+ refus_silencieux("SELECT organisation_commande_administrative('orgcmd-ignore-delete-001','silencieux','dissoudre','{}')");q.execute('DROP TRIGGER ignorer ON organisations');n+=1
  print(f'{n}/{n} groupes membres SQL reussis ; aucun Supabase.')
  c.close();serveur.cleanup()
 if __name__=='__main__':main()

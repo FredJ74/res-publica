@@ -1,6 +1,8 @@
 -- Contrôle non destructif du réseau des rues et des sorties de bâtiments.
 -- Résultat attendu : zéro anomalie de liaison et de sortie.
 -- Liaisons à sens unique interdites ; une boucle vers soi-même est signalée.
+BEGIN;
+SET TRANSACTION READ ONLY;
 WITH anomalies AS (
  SELECT 'voisin_inexistant' AS type,a.country,a.city,a.noeud AS source,v.dest AS cible
  FROM public.rue_noeuds_serveur a CROSS JOIN LATERAL unnest(a.voisins) v(dest)
@@ -10,7 +12,7 @@ WITH anomalies AS (
  SELECT 'retour_absent',a.country,a.city,a.noeud,v.dest
  FROM public.rue_noeuds_serveur a CROSS JOIN LATERAL unnest(a.voisins) v(dest)
  JOIN public.rue_noeuds_serveur b ON b.country=a.country AND b.city=a.city AND b.noeud=v.dest
- WHERE a.noeud<>v.dest AND NOT (a.noeud=ANY(b.voisins))
+ WHERE a.noeud<>v.dest AND NOT coalesce(a.noeud=ANY(b.voisins),false)
  UNION ALL
  SELECT 'boucle_sur_soi',a.country,a.city,a.noeud,v.dest
  FROM public.rue_noeuds_serveur a CROSS JOIN LATERAL unnest(a.voisins) v(dest)
@@ -26,3 +28,4 @@ WITH anomalies AS (
  GROUP BY a.country,a.city,a.noeud,v.dest HAVING count(*)>1
 )
 SELECT * FROM anomalies ORDER BY type,country,city,source,cible;
+ROLLBACK;
