@@ -1006,6 +1006,21 @@ const RUE_CENTRALE_NOEUDS = {
 // =====================
 // ETAT + RENDU
 // =====================
+// Une reponse ou une animation appartient a la session et au lieu qui l'ont declenchee.
+let rueCentraleDeplacementEnCours = null;
+let rueCentraleLecturePosition = 0;
+function contexteNavigationRue() {
+  return {personnage:state.char,nom:state.char?.name,pays:state.country,ville:state.currentCity,
+    batiment:state.currentBuilding,piece:state.currentRoom,
+    uid:typeof rpAuthUid==='function'?rpAuthUid():null,
+    session:typeof rpAuthSessionIdentifiant==='function'?rpAuthSessionIdentifiant():(typeof rpAuthJeton==='function'?rpAuthJeton():null)};
+}
+function contexteNavigationRueValide(c) {
+  return state.char===c.personnage&&state.char?.name===c.nom&&state.country===c.pays&&state.currentCity===c.ville&&
+    state.currentBuilding===c.batiment&&state.currentRoom===c.piece&&
+    (typeof rpAuthUid!=='function'||rpAuthUid()===c.uid)&&
+    (typeof rpAuthSessionIdentifiant==='function'?rpAuthSessionIdentifiant():(typeof rpAuthJeton==='function'?rpAuthJeton():null))===c.session;
+}
 let rueCentraleNoeudActuel = null;
 let rueCentraleDepuisNoeud = null; // memorise le noeud d'origine, pour liensParArrivee et zonesParArrivee
 
@@ -1106,12 +1121,14 @@ function trouverNoeudRueCentralePourBatiment(pays, buildingId) {
 }
 
 async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
+  const contexte=contexteNavigationRue(),lecture=++rueCentraleLecturePosition;
   if (pays === 'republic') {
     // Une reconnexion ne reprend jamais une position provenant du localStorage.
     // Le cache ne sert qu'a choisir l'orientation de la scene, pas le lieu.
     if (typeof sbRpc !== 'function') return;
     const position = await sbRpc('rue_position_lire', {})
       .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
+    if(!contexteNavigationRueValide(contexte)||lecture!==rueCentraleLecturePosition)return;
     if (position?.ok !== true || position.country !== pays ||
         position.city !== state.currentCity) {
       if (typeof showToast === 'function') showToast('Position indisponible',
@@ -1151,16 +1168,24 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
 }
 
 async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfirmee = false) {
+  const contexte=contexteNavigationRue();
   if (!positionDejaConfirmee && typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[noeudId];
   if (!noeud) return;
   if (pays === 'republic' && !positionDejaConfirmee) {
     if (typeof sbRpc !== 'function') return;
-    const position = await sbRpc('rue_position_enregistrer', {p_noeud: noeudId})
-      .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
-    if (position?.ok !== true) {
-      if (typeof showToast === 'function') showToast('Déplacement refusé',
-        position?.raison || 'Position serveur inaccessible.', false);
+    if(rueCentraleDeplacementEnCours&&contexteNavigationRueValide(rueCentraleDeplacementEnCours))return;
+    rueCentraleDeplacementEnCours=contexte;
+    ++rueCentraleLecturePosition;
+    let position;
+    try{
+      position=await sbRpc('rue_position_enregistrer',{p_noeud:noeudId})
+        .then(rows=>Array.isArray(rows)?rows[0]:rows).catch(()=>null);
+    }finally{if(rueCentraleDeplacementEnCours===contexte)rueCentraleDeplacementEnCours=null;}
+    if(!contexteNavigationRueValide(contexte))return;
+    ++rueCentraleLecturePosition;
+    if(position?.ok!==true){
+      if(typeof showToast==='function')showToast('Déplacement refusé',position?.raison||'Position serveur inaccessible.',false);
       return;
     }
   }
@@ -1244,7 +1269,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
       typeof carteDetachementPiece === 'function'
         ? carteDetachementPiece(pays, state.currentCity, null, null).catch(() => null) : null
     ]).then(([pol, det]) => {
-      if (rueCentraleNoeudActuel !== noeudId) return;
+      if (!contexteNavigationRueValide(contexte)||rueCentraleNoeudActuel !== noeudId) return;
       if (!pol && !det) return;
       const extras = [];
       if (pol) extras.push({ name: 'Patrouille de police',
@@ -1357,6 +1382,7 @@ function masquerTooltipRue() {
 
 // Deplacement d'un noeud de rue a l'autre (fondu, sans zoom — mouvement lateral/longitudinal)
 function deplacerRueCentrale(pays, direction) {
+  const contexte=contexteNavigationRue();
   const noeudOrigine = rueCentraleNoeudActuel;
   const noeud = RUE_CENTRALE_NOEUDS[pays]?.[rueCentraleNoeudActuel];
   const liensActuels = (noeud?.liensParArrivee && rueCentraleDepuisNoeud && noeud.liensParArrivee[rueCentraleDepuisNoeud]) || noeud?.liens;
@@ -1364,9 +1390,11 @@ function deplacerRueCentrale(pays, direction) {
   if (!destination) return;
 
   const overlay = document.getElementById('rc-overlay');
-  overlay.classList.add('actif');
-  setTimeout(() => {
-    afficherNoeudRue(pays, destination, noeudOrigine);
+  overlay?.classList.add('actif');
+  setTimeout(async () => {
+    if(!contexteNavigationRueValide(contexte)||rueCentraleNoeudActuel!==noeudOrigine)return;
+    await afficherNoeudRue(pays,destination,noeudOrigine);
+    if(!contexteNavigationRueValide(contexte))return;
     document.getElementById('rc-overlay')?.classList.add('actif');
     requestAnimationFrame(() => document.getElementById('rc-overlay')?.classList.remove('actif'));
   }, 550);
@@ -1377,6 +1405,7 @@ function deplacerRueCentrale(pays, direction) {
 // Navigue vers une sous-scene (ex: vue rapprochee des lots), avec le meme effet de zoom que l'entree dans un batiment,
 // mais reste dans la rue centrale au lieu d'appeler enterBuilding()
 function naviguerVersNoeudRue(pays, noeudId, nom) {
+  const contexte=contexteNavigationRue();
   masquerTooltipRue();
   const noeudOrigine = rueCentraleNoeudActuel;
   const img = document.getElementById('rc-image');
@@ -1386,10 +1415,12 @@ function naviguerVersNoeudRue(pays, noeudId, nom) {
   img.style.transition = 'transform 1.1s ease';
   img.style.transform = 'scale(1.4)';
   setTimeout(() => {
-    overlay.classList.add('actif');
+    if(contexteNavigationRueValide(contexte)&&rueCentraleNoeudActuel===noeudOrigine)overlay?.classList.add('actif');
   }, 500);
-  setTimeout(() => {
-    afficherNoeudRue(pays, noeudId, noeudOrigine);
+  setTimeout(async () => {
+    if(!contexteNavigationRueValide(contexte)||rueCentraleNoeudActuel!==noeudOrigine)return;
+    await afficherNoeudRue(pays,noeudId,noeudOrigine);
+    if(!contexteNavigationRueValide(contexte))return;
     document.getElementById('rc-overlay')?.classList.add('actif');
     requestAnimationFrame(() => document.getElementById('rc-overlay')?.classList.remove('actif'));
   }, 1000);
