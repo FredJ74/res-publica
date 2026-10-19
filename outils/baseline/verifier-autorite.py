@@ -144,7 +144,9 @@ def surface_du_navigateur():
     par_table = collections.defaultdict(set)
     sites = collections.defaultdict(list)
     bruts = []
-    helpers = (("sbInsert", "I"), ("sbUpdate", "U"), ("sbDelete", "D"))
+    helpers = tuple((nom + suffixe, verbe)
+               for nom, verbe in (("sbInsert", "I"), ("sbUpdate", "U"), ("sbDelete", "D"))
+               for suffixe in ("", "Verdict"))
     # `rest/v1/rpc/...` est un APPEL DE FONCTION, pas une table : l'exclure,
     # sinon le controle croit a une table nommee « rpc » mutee par le navigateur.
     motif_brut = re.compile(r"""rest/v1/(?!rpc\b)(?:\$\{[^}]*\}|)([a-z_0-9]+)""")
@@ -152,7 +154,7 @@ def surface_du_navigateur():
         court = os.path.relpath(chemin, RACINE)
         texte = open(chemin, encoding="utf-8", errors="replace").read()
         for helper, verbe in helpers:
-            for m in re.finditer(r"\b%s\(\s*['\"]([a-z_0-9]+)['\"]" % helper, texte):
+            for m in re.finditer(r"\b%s\s*\(\s*['\"]([a-z_0-9]+)['\"]" % helper, texte):
                 par_table[m.group(1)].add(verbe)
                 sites[(m.group(1), verbe)].append(
                     "%s:%d" % (court, texte[:m.start()].count("\n") + 1))
@@ -225,7 +227,7 @@ def rpc_du_navigateur():
     for chemin in fichiers_du_navigateur():
         court = os.path.relpath(chemin, RACINE)
         texte = open(chemin, encoding="utf-8", errors="replace").read()
-        for m in re.finditer(r"sbRpc\(\s*['\"]([a-z_0-9]+)['\"]\s*,\s*\{", texte):
+        for m in re.finditer(r"\bsbRpc(?:Verdict)?\s*\(\s*['\"]([a-z_0-9]+)['\"]\s*,\s*\{", texte):
             i = m.end() - 1
             prof, j = 0, i
             while j < len(texte):
