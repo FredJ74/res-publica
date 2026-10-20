@@ -87,7 +87,32 @@ function ouvrirInformationChantier(){
   const t=getTerrainState(state.currentBuilding),ch=t.chantier;
   constructionFenetre('Information sur le chantier','<p>Propriétaire : '+constructionEchapper(t.proprietaire||'Terrain non vendu')+'</p>'+(ch?'<p>'+constructionEchapper(ch.niveau||ch.type)+' · '+constructionEchapper(ch.progressionJours||0)+' / '+constructionEchapper(ch.dureeJours)+' jours utiles</p><p>Trésorerie : '+constructionEchapper(ch.tresorerie||0)+' FR · Financement : '+constructionEchapper(ch.totalVerse||0)+' / '+constructionEchapper(ch.coutTotal||0)+' FR</p><p>État : '+constructionEchapper(ch.arrete||'Travaux en cours')+'</p>':'<p>Aucun chantier en cours.</p>'));
 }
-function ouvrirApprovisionnementChantier(){constructionFenetre('Approvisionner le chantier',constructionSousOrdre('vendre_materiaux_chantier','Vendre des matériaux',0,0)+constructionSousOrdre('donner_materiaux_chantier','Donner gratuitement des matériaux',0,0));}
+function ouvrirApprovisionnementChantier(){
+  const ts=getTerrainState(state.currentBuilding),ch=ts.chantier;
+  if(!ch||!chantierAccepteMateriaux(ch))return;
+  const tarifs=['bois','minerai','metal'].map(m=>'<p>'+constructionEchapper(m)+' : '+constructionEchapper(ch.prixAchatPJ?.[m]??'entrepôt + 10 %, à confirmer par le serveur')+' FR/unité</p>').join('');
+  constructionFenetre('Approvisionner le chantier',tarifs+constructionSousOrdre('vendre_materiaux_chantier','Vendre des matériaux',0,0)+constructionSousOrdre('donner_materiaux_chantier','Donner gratuitement des matériaux',0,0)+(estTitulaire(ts.proprietaire)?constructionBouton('Fixer les prix d’achat','ouvrirPrixChantier()'):''));
+}
+function ouvrirPrixChantier(){
+  const ts=getTerrainState(state.currentBuilding);if(!estTitulaire(ts.proprietaire))return;
+  constructionFenetre('Prix d’achat des matériaux','<p>Prix en francs, au centime. Les champs vides conservent les tarifs existants.</p>'+['bois','minerai','metal'].map(m=>'<label>'+m+' <input id="chantier-prix-'+m+'" inputmode="decimal" value="'+constructionEchapper(ts.chantier?.prixAchatPJ?.[m]??'')+'"></label>').join('')+constructionBouton('Enregistrer les prix','confirmerPrixChantier()'));
+}
+let constructionPrixEnCours=false;
+async function confirmerPrixChantier(){
+  if(constructionPrixEnCours)return;
+  const contexte=contexteNavigationRue(),id=state.currentBuilding,prix={};
+  try{for(const m of ['bois','minerai','metal']){const v=document.getElementById('chantier-prix-'+m)?.value?.trim();if(v)prix[m]=HGMonnaie.lireSaisie(v);}}
+  catch(_){showToast('Prix invalide','Utilisez un montant positif ou nul, avec deux décimales au maximum.',false);return;}
+  if(!Object.keys(prix).length)return;
+  constructionPrixEnCours=true;
+  try{
+    const v=await sbRpcVerdict('chantier_prix_definir',{p_terrain_id:id,p_prix:prix},{encoreValide:()=>contexteNavigationRueValide(contexte)});
+    if(!contexteNavigationRueValide(contexte))return;
+    if(!v?.ok){showToast('Prix non confirmés','Les prix n’ont pas pu être confirmés par le serveur. Relisez-les avant de réessayer.',false);return;}
+    await chargerTerrainState(id);if(contexteNavigationRueValide(contexte))ouvrirApprovisionnementChantier();
+  }catch(_){if(contexteNavigationRueValide(contexte))showToast('Prix non confirmés','Relisez les prix sur le serveur avant de réessayer.',false);}
+  finally{constructionPrixEnCours=false;}
+}
 function ouvrirInformationLocaux(){
   const t=getTerrainState(state.currentBuilding);
   const lots=t.subdivisions||[];

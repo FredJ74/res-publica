@@ -1133,3 +1133,16 @@ function lotConcerneParReamenagement(chantier, lotId) {
 // une seconde implementation donnerait deux facons de livrer un batiment pour aucun usage reel.
 // Seule la traduction du plan en lots, elle, est ecrite des deux cotes et verrouillee par un test
 // d'egalite : c'est la partie ou une divergence produirait des lots differents selon l'endroit.
+
+// #57 : politique de financement, pure. Le debit/marqueur/mail doivent etre une
+// transaction serveur ; cette projection n'autorise aucune ecriture navigateur.
+function repartitionFinancementChantier(montant,banque,liquide){
+  const M=HGMonnaie,m=M.historique(montant),b=M.historique(banque),l=M.historique(liquide);
+  if(M.comparer(m,'0')<0||M.comparer(b,'0')<0||M.comparer(l,'0')<0)throw new Error('fonds_negatifs');
+  if(M.comparer(M.additionner(b,l),m)<0)return {ok:false,banque:'0.00',liquide:'0.00'};
+  const partBanque=M.comparer(b,m)>=0?m:b;
+  return {ok:true,banque:partBanque,liquide:M.soustraire(m,partBanque)};
+}
+function prixAchatMateriauChantier(prixEntrepot){
+  return HGMonnaie.pourcentageArrondi(HGMonnaie.historique(prixEntrepot),110);
+}
