@@ -846,16 +846,15 @@ window.addEventListener('DOMContentLoaded', () => {
     return Promise.resolve().then(fn).catch(e => console.warn('[Fond] ' + nom, e))
       .finally(() => lecturesFondEnCours.delete(nom));
   }
-  lancerLectureFond('mails', verifierNouveauxMails);
-
-  // Voyant d'activité forum (17 août 2026) — même cadence que la vérification des mails, même
-  // raison de réduction
-  if (typeof verifierActiviteForumNonVue === 'function') {
-    lancerLectureFond('forum', verifierActiviteForumNonVue);
+  // Lecteur deja introduit par la branche distante, integre au point commun des realites.
+  function actualiserRealitesConsultables() {
+    return Promise.all([
+      lancerLectureFond('mails',verifierNouveauxMails),
+      typeof verifierActiviteForumNonVue==='function'?lancerLectureFond('forum',verifierActiviteForumNonVue):undefined,
+      lancerLectureFond('objets',verifierObjetsRecus)
+    ]);
   }
-
-  // Vérification des objets reçus (dons d'un autre joueur) toutes les 2 minutes
-  lancerLectureFond('objets', verifierObjetsRecus);
+  actualiserRealitesConsultables();
 
   // Batiments fermes (incendie/explosifs) — au chargement puis toutes les 2 minutes
   setTimeout(() => lancerLectureFond('batimentsFermes', chargerBatimentsFermes, true), 1000);
@@ -938,8 +937,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Realites : ces lecteurs sont executes uniquement sur interaction/reconnexion.
   if(typeof rpRealitesEnregistrer==='function'){
-    const lecteurs={mails:verifierNouveauxMails,forum:verifierActiviteForumNonVue,objets:verifierObjetsRecus,
-      batiments:chargerBatimentsFermes,evenements:chargerEvenementsPartages,dons:recupererDonsEnAttente,
+    const lecteurs={consultables:actualiserRealitesConsultables,batiments:chargerBatimentsFermes,evenements:chargerEvenementsPartages,dons:recupererDonsEnAttente,
       vols:recupererVolsEnAttente,impacts:recupererImpactsEnAttente,titulaires:rafraichirTitulairesPostesElectifs};
     for(const [nom,fn]of Object.entries(lecteurs))rpRealitesEnregistrer(nom,fn);
     rpRealitesEnregistrer('presence',async()=>{

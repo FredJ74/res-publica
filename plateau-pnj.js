@@ -3090,23 +3090,28 @@ async function repondreInvitationSociale(id, accepte, nomInviteur) {
   state._invitationSocialeCourante = null;
 }
 
-// Un seul sondage social par session, sans requêtes superposées et sans onglet masqué.
-// Les réponses restent persistées en base : une reconnexion récupère les invitations.
-const RP_SOCIAL_POLL_MS = 12000;
+// API historique conservee ; les lectures sociales sont raccordees au registre commun.
 const RP_SOCIAL_POLL_EN_COURS = new Set();
 function lancerVerificationSociale(nom) {
-  if (document.hidden || RP_SOCIAL_POLL_EN_COURS.has(nom)) return;
-  const verification = window[nom];
-  if (typeof verification !== 'function') return;
+  if(document.hidden||RP_SOCIAL_POLL_EN_COURS.has(nom))return;
+  const verification=window[nom];if(typeof verification!=='function')return;
   RP_SOCIAL_POLL_EN_COURS.add(nom);
-  Promise.resolve().then(() => verification()).catch(e => {
-    console.warn('[Social] Verification indisponible : ' + nom, e);
-  }).finally(() => RP_SOCIAL_POLL_EN_COURS.delete(nom));
+  return Promise.resolve().then(()=>verification()).catch(e=>console.warn('[Social] Verification indisponible : '+nom,e))
+    .finally(()=>RP_SOCIAL_POLL_EN_COURS.delete(nom));
+}
+async function verifierRealiteSociale(){
+  // Reutilisation du lecteur ajoute sur la branche distante, sans fenetre de cache de 5 s.
+  for(const nom of ['verifierInvitationsSocialesRecues','verifierReponseInvitationSociale','verifierTourneesRecues','verifierTourneesActivesOffreur'])
+    await lancerVerificationSociale(nom);
+}
+function programmerVerificationSocialeSurAction(){
+  // Compatibilite des appelants : aucune seconde liste d'ecouteurs, aucun second sondage.
+  if(typeof rpRealitesSynchroniser==='function')return rpRealitesSynchroniser();
 }
 function demarrerPollingInvitationsDiner(){
   if(typeof rpRealitesEnregistrer!=='function')return;
-  for(const nom of ['verifierInvitationsSocialesRecues','verifierReponseInvitationSociale','verifierTourneesRecues','verifierTourneesActivesOffreur'])
-    rpRealitesEnregistrer(nom,()=>typeof window[nom]==='function'?window[nom]():undefined);
+  rpRealitesEnregistrer('social',verifierRealiteSociale);
+  return verifierRealiteSociale(); // une fois a la connexion, comme avant
 }
 
 function ouvrirModalFabriquerKompromat(nomAgent) {

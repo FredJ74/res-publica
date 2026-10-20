@@ -152,10 +152,13 @@ function filtrerPnjPostesPourvus(persons) {
   });
 }
 
+// La composition des titulaires change rarement : ne pas la relire a chaque
+// battement de presence de 30 s. La verification initiale reste immediate.
 async function rafraichirTitulairesPostesElectifs() {
   if (typeof sbListTitulairesPostes !== 'function') return;
   try {
-    const joueurs = await sbListTitulairesPostes() || [];
+    const joueurs = await sbListTitulairesPostes();
+    if (!Array.isArray(joueurs)) return;
     const cache = {};
     joueurs.forEach(j => {
       let poste = j.poste;
