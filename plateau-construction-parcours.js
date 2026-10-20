@@ -96,3 +96,29 @@ function ouvrirInformationLocaux(){
 function constructionEcrireProprietaire(){const nom=getTerrainState(state.currentBuilding).proprietaire;if(nom&&typeof composerMailPour==='function')composerMailPour(nom);}
 window.RP_ORDRES_DYNAMIQUES=window.RP_ORDRES_DYNAMIQUES||[];
 window.RP_ORDRES_DYNAMIQUES.push(ordresConstructionParcours);
+
+function memoriserVisiteTerrain(id,ts){
+  if(!id?.startsWith('terrain-a-batir'))return;
+  const visite={pnj:ts.pnj??null,pnjData:ts.pnjData??null,occupationInitialisee:ts.occupationInitialisee===true,
+    occupationScellee:!!(ts.occupationScellee||ts.proprietaire||ts.compromis),enqueteJusqua:ts.enqueteJusqua||null,policeInterventionAt:ts.policeInterventionAt||null,policeAppellee:ts.policeAppellee||null};
+  try{sessionStorage.setItem('terrain_occupation_visite_'+state.country+'_'+id,JSON.stringify(visite));}catch(e){}
+}
+function terminerVisiteTerrain(id){
+  if(!id?.startsWith('terrain-a-batir'))return;
+  const ts=getTerrainState(id);
+  if(ts.proprietaire||ts.compromis||ts.occupationScellee||ts.pnj)return;
+  setTerrainState(id,{occupationInitialisee:false});
+  try{sessionStorage.removeItem('terrain_occupation_visite_'+state.country+'_'+id);}catch(e){}
+}
+// Adaptateur de verdict uniquement : aucun jet, paiement, combat ou sanction parallele.
+function consequencesNeutralisationSquatteurs(score){
+  if(!Number.isFinite(score)||score<0||score>100)return null;
+  return score<50?{issue:'defaite'}:score<90?{issue:'neutralisation',trace:'delit'}:{issue:'cadavres',trace:'crime'};
+}
+function ouvrirNeutralisationSquatteurs(){
+  const ts=getTerrainState(state.currentBuilding);
+  if(!['squatter_cool','squatter_agr'].includes(ts.pnj))return;
+  // Le moteur civil actuel ne rend pas le jet final atteste demande par #57.
+  // Ne pas rejouer un assassinat aux seuils differents ni facturer un combat incomplet.
+  showToast('Combat non raccordé','La neutralisation attend le contrat serveur du combat commun. Aucun PA ni FR prélevé.',false);
+}

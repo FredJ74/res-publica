@@ -1584,6 +1584,7 @@ async function sortirBatiment() {
   if(state.estEmprisonne){showToast('Emprisonné(e)','Votre détention interdit cette sortie.',false);return;}
 
   state.douanePassee = false;
+  if (typeof terminerVisiteTerrain === 'function') terminerVisiteTerrain(batimentQuitte);
   state.currentBuilding = null;
   state.currentRoom = null;
   // Effacer et persister IMMEDIATEMENT (meme mecanisme que enterRoom), sinon un rafraichissement

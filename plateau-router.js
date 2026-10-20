@@ -521,6 +521,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'parquet')                 { ouvrirParquet(); return; }
   if (fn === 'demarches_administratives') { ouvrirDemarchesAdministratives(); return; }
   if (fn === 'achat_terrains') { ouvrirAchatTerrains(); return; }
+  if (fn === 'neutraliser_squatteurs') { ouvrirNeutralisationSquatteurs(); return; }
   if (fn === 'gestion_intrus') { ouvrirGestionIntrus(); return; }
   if (fn === 'information_chantier') { ouvrirInformationChantier(); return; }
   if (fn === 'approvisionner_chantier_menu') { ouvrirApprovisionnementChantier(); return; }

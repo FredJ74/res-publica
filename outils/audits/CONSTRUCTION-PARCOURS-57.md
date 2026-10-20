@@ -17,7 +17,7 @@ Porte serveur à traiter avant activation : `terrain_permis_acte` archivée n'ac
 
 ## Lot 2 — inventaire préalable
 
-`TERRAIN_PNJ_PROFILES` contient profils, personnalités et images ; `genererPnjTerrain` tirage pondéré par indices ; `chargerPnjTerrain` génération client/persistance et sessionStorage ; `terrain_occupation_generer/liberer/police` côté serveur. Négociation, police, dissimulation et traces existent dans `plateau-pnj.js`. Combat : `ouvrirModalAssassinat`, `confirmerAssassinatArme`, modes/armes et PA communs ; branche PNJ député attestée par RPC dédiée ; `militaire_taux_combat`/degré ne sont pas des RPC de combat civil interchangeables.
+`TERRAIN_PNJ_PROFILES` contient profils, personnalités et images ; `genererPnjTerrain` tirage pondéré par indices ; `chargerPnjTerrain` génération client/persistance et sessionStorage ; Aucune RPC `terrain_occupation_generer/liberer/police` retrouvée dans le dépôt ou les branches examinées : ne pas les considérer existantes. `setTerrainState` est un cache local, pas une écriture serveur. Négociation, police, dissimulation et traces existent dans `plateau-pnj.js`. Combat : `ouvrirModalAssassinat`, `confirmerAssassinatArme`, modes/armes et PA communs ; branche PNJ député attestée par RPC dédiée ; `militaire_taux_combat`/degré ne sont pas des RPC de combat civil interchangeables.
 
 Écarts à traiter : huit profils potentiels au lieu des quatre situations équiprobables ; génération de nouveau PNJ sur simple absence de cache sans visite vide attestée ; occupations non figées après acquisition ; aucun ordre de neutralisation des squatteurs branché au combat commun ; vérifier autorité serveur avant d'accepter un jet reçu du navigateur. Ne pas appeler une RPC d'Assemblée avec un faux siège ni créer un combat parallèle.
 
@@ -32,3 +32,9 @@ Moteur commun : `plateau-chantiers.js` (30/60/90/120k, 6/12/18/24 jours, 35/70/1
 Plan : `verdictModificationPlan`, `planEstVerrouille`, `appliquerVerrouPlan`, éditeur `doModifierPlanChantier` et RPC `terrain_permis_acte`. Livraison : `livrerChantier`/version cron, `appliquerReconfiguration`, RPC `restituer_reliquats_chantier`. Réaménagement : 10 FR/m² et 300 m²/j, baux protégés. Lots/onglets : `plateau-immobilier.js`, moteur de baux et commerce existant.
 
 Écarts : ancien verrou au début du dernier tiers au lieu d'y ouvrir l'édition ; livraison automatique et reliquats au PJ ; pas de réception sur place ; absence de flag distinct de plan initial validé. La réception doit être autoritaire et atomique avec transfert des reliquats aux mécanismes de caisse/stock existants, pas un simple booléen client.
+
+### Lot 2 — réalisé et blocage technique
+
+Tirage commun des quatre situations à 25 %, profils/identités/prompts conservés ; visite vide mémorisée (pas de nouveau tirage pendant la visite ou sur F5), renouvellement de visite après sortie serveur confirmée sans titre/compromis, protection visuelle après acquisition et délai d'enquête cadavre fixé à trois jours. Les données financières et géométriques ne sont pas sérialisées dans ce cache.
+
+La neutralisation ne peut pas être déclarée raccordée : le moteur civil existant ne produit pas de verdict final serveur pour une cible squatteur bêta, et la RPC de député est propre aux sièges de l'Assemblée. Le bouton ne prélève rien et signale le raccordement manquant. L'adaptateur de seuils ne jette pas les dés et n'applique pas de sanction parallèle. Aucun faux combat ou faux crime n'est simulé pour rendre le bouton actif. L'autorité partagée/persistance des occupations, négociation, police et dissimulation reste à porter sur un contrat serveur existant ou un socle autoritaire validé ; le cache de visite seul n'est pas une preuve de persistance Supabase.

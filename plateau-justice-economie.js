@@ -174,6 +174,10 @@ function doExpulsionLegale() {
   const indices = INDICES_NATIONAUX?.[state.country] || { ISN:30 };
   const isn = indices.ISN || 30;
 
+  if (ts.pnj === 'cadavre') {
+    setTerrainState(id,{enqueteJusqua:Date.now()+3*86400000,policeAppellee:Date.now(),policeInterventionAt:Date.now()+3*86400000});
+    showToast('Enquête ouverte','La signature est suspendue trois jours.',true);return;
+  }
   // Délai selon ISN — plus ISN est élevé, plus c'est rapide
   const delaiH = Math.max(6, Math.round(96 - isn * 0.6));
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -5088,6 +5092,7 @@ function setTerrainState(buildingId, patch) {
   if (!state.terrainsState) state.terrainsState = {};
   const actuel = { ...getTerrainState(buildingId), ...patch };
   state.terrainsState[buildingId] = actuel;
+  if (typeof memoriserVisiteTerrain === 'function') memoriserVisiteTerrain(buildingId, actuel);
   return actuel;
 }
 
