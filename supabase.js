@@ -4849,7 +4849,30 @@ async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingI
 // Les deux lectures de reception du meme tick partagent exactement cette requete.
 // sbGet mutualise deja les GET simultanes par session, sans conserver de resultat ensuite.
 async function sbGetInvitationsRecues(nomJoueur) {
-  return sbGet('invitations_diner', `invite=eq.${encodeURIComponent(nomJoueur)}&or=(statut.eq.attente,and(tournee_id.not.is.null,statut.eq.acceptee))`);
+  const origine = sbContexteInventaire(), invitations = [];
+  const filtre = `invite=eq.${encodeURIComponent(nomJoueur)}&or=(statut.eq.attente,and(tournee_id.not.is.null,statut.eq.acceptee))&order=id.asc&limit=100`;
+  let dernier = null;
+  // Une union peut depasser la limite REST alors que chacun des deux anciens GET tenait
+  // dans une page. Pagination par cle, sans offset : consommer une ancienne invitation
+  // entre deux pages ne doit pas faire sauter les lignes suivantes.
+  for (;;) {
+    const rows = await sbGet('invitations_diner', filtre + (dernier === null ? '' : '&id=gt.' + encodeURIComponent(dernier)));
+    const courant = sbContexteInventaire();
+    if (!Array.isArray(rows) || courant.uid !== origine.uid || courant.jeton !== origine.jeton
+        || courant.personnage !== origine.personnage) return null;
+    if (!rows.length) return invitations;
+    for (const row of rows) {
+      // Ne pas avancer avec un bigint deja arrondi par JSON/JavaScript, ni boucler sur
+      // une page incoherente. Les identifiants textuels exacts restent acceptes.
+      if (!(typeof row.id === 'number' && Number.isSafeInteger(row.id))
+          && !(typeof row.id === 'string' && /^-?\d+$/.test(row.id))) return null;
+      const id = String(row.id);
+      if (dernier !== null && BigInt(id) <= BigInt(dernier)) return null;
+      dernier = id;
+    }
+    invitations.push(...rows);
+    if (rows.length < 100) return invitations;
+  }
 }
 async function sbGetInvitationsDinerRecues(nomJoueur) {
   const rows = await sbGetInvitationsRecues(nomJoueur);

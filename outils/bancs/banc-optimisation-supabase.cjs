@@ -42,6 +42,38 @@ test('invitations : aucun partage entre comptes ni masque des erreurs HTTP/resea
  c.fetch=async()=>({ok:false,status:500,text:async()=>'{"message":"indisponible"}'});assert.equal(await c.sbGetInvitationsTourneeRecues('B'),null);
  c.fetch=async()=>{throw Error('reseau');};await assert.rejects(c.sbGetInvitationsDinerRecues('A'),/reseau/);
 });
+test('invitations : les tournees ne sont pas masquees par une page pleine de diners',async()=>{
+ const {c}=contexte(),appels=[];
+ const lignes=Array.from({length:1200},(_,i)=>({id:i+1,tournee_id:i<1100?null:'tournee',statut:i<1100?'attente':'acceptee'}));
+ c.sbGet=async(table,filtre)=>{const q=new URLSearchParams(filtre);appels.push(q);
+  const apres=Number((q.get('id')||'gt.0').slice(3));
+  return lignes.filter(x=>x.id>apres).slice(0,Math.min(1000,Number(q.get('limit')||1000)));
+ };
+ const tournees=await c.sbGetInvitationsTourneeRecues('Fixture');
+ assert.equal(tournees.length,100);assert.equal(tournees[0].id,1101);
+ assert.ok(appels.every(q=>q.get('order')==='id.asc'));
+});
+test('invitations : pages simultanees mutualisees et aucune perte si une ancienne ligne est consommee',async()=>{
+ const {c,appels}=contexte();let lignes=Array.from({length:101},(_,i)=>({id:i+1,tournee_id:'t',statut:'attente'}));
+ c.fetch=async(url,init)=>{appels.push({url,init});const q=new URL(url).searchParams,apres=Number((q.get('id')||'gt.0').slice(3));
+  const rows=lignes.filter(x=>x.id>apres).slice(0,100);if(apres===0)lignes=lignes.slice(1);
+  return {ok:true,status:200,json:async()=>rows};};
+ const [a,b]=await Promise.all([c.sbGetInvitationsDinerRecues('Fixture'),c.sbGetInvitationsTourneeRecues('Fixture')]);
+ assert.equal(a.length,0);assert.equal(b.length,101);assert.equal(appels.length,2);
+});
+test('invitations : aucune adoption de pages partielles apres panne ou changement de session',async()=>{
+ for(const cause of ['panne','session']){
+  const {c,identite}=contexte();let n=0;c.sbGet=async()=>{n++;if(n===1)return Array.from({length:100},(_,i)=>({id:i+1,statut:'attente',tournee_id:'t'}));
+   if(cause==='session')identite.session='autre';return cause==='panne'?null:[];};
+  assert.equal(await c.sbGetInvitationsTourneeRecues('Fixture'),null);
+ }
+});
+test('invitations : bigint textuel exact accepte ; identifiant arrondi ou page repetee refuses',async()=>{
+ const {c}=contexte();c.sbGet=async()=>[{id:'9007199254740993',tournee_id:'t',statut:'acceptee'}];
+ assert.equal((await c.sbGetInvitationsTourneeRecues('Fixture'))[0].id,'9007199254740993');
+ c.sbGet=async()=>[{id:9007199254740992}];assert.equal(await c.sbGetInvitationsRecues('Fixture'),null);
+ c.sbGet=async()=>Array.from({length:100},(_,i)=>({id:i+1}));assert.equal(await c.sbGetInvitationsRecues('Fixture'),null);
+});
 
 test('titres : projection sans photo, annuaire complet preserve pour ses autres usages',async()=>{
  const {c,appels}=contexte();await c.rafraichirTitulairesPostesElectifs();await c.sbListPersonnages();
@@ -101,6 +133,13 @@ test('photos tardives : aucun rendu de presence apres changement de piece, pays,
   if(changement==='piece')c.state.currentRoom='bureau';else if(changement==='pays')c.state.country='autre';else if(changement==='personnage')c.state.char={name:'Autre'};else identite.session='autre';
   d.resolve({Autre:'portrait'});await p;assert.equal(c.window._vraisJoueursPresents,undefined);
  }
+});
+test('presence de rue tardive ignoree apres entree dans un batiment, meme si le noeud reste memorise',async()=>{
+ const {c}=contexte(),d=differer();c.state.currentCity='capitale';c.state.currentBuilding=null;c.state.currentRoom=null;c.rueCentraleNoeudActuel='place';
+ c.rafraichirStatutsJudiciaires=async()=>{};c.sbGetPresencesInRoom=async()=>[{name:'Autre'}];c.rafraichirCachePhotosJoueurs=()=>d.p;
+ vm.runInContext(extraire(lire('plateau-multijoueur.js'),['chargerVraisJoueursPresents']),c);
+ const p=c.chargerVraisJoueursPresents('rue-centrale','place');await flush();c.state.currentBuilding='mairie';c.state.currentRoom='accueil';
+ d.resolve({Autre:'portrait'});await p;assert.equal(c.window._vraisJoueursPresents,undefined);
 });
 test('panne de photos : ancien cache conserve, aucune fausse fraicheur, pas de rafale des attenteurs',async()=>{
  const {c,temps}=contexte();c.sbListPhotosJoueurs=async()=>[{name:'A',photo_url:'ancienne'}];await c.rafraichirCachePhotosJoueurs();temps.now=60000;

@@ -554,7 +554,9 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
   targetId = targetId || 'persons-list';
   const moi = state.char?.name, personnage = state.char, pays = state.country, ville = state.currentCity;
   const session = contexteCachePhotosJoueurs();
+  const batimentDepart = state.currentBuilding, pieceDepart = state.currentRoom;
   const encoreIci = () => state.char === personnage && state.country === pays && state.currentCity === ville
+    && state.currentBuilding === batimentDepart && state.currentRoom === pieceDepart
     && contexteCachePhotosJoueurs() === session
     && (buildingId === 'rue-centrale'
       ? (typeof rueCentraleNoeudActuel === 'undefined' || rueCentraleNoeudActuel === roomId)
