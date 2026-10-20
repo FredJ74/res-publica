@@ -846,19 +846,25 @@ window.addEventListener('DOMContentLoaded', () => {
     return Promise.resolve().then(fn).catch(e => console.warn('[Fond] ' + nom, e))
       .finally(() => lecturesFondEnCours.delete(nom));
   }
-  lancerLectureFond('mails', verifierNouveauxMails);
-  setInterval(() => lancerLectureFond('mails', verifierNouveauxMails), 60000);
-
-  // Voyant d'activité forum (17 août 2026) — même cadence que la vérification des mails, même
-  // raison de réduction
-  if (typeof verifierActiviteForumNonVue === 'function') {
-    lancerLectureFond('forum', verifierActiviteForumNonVue);
-    setInterval(() => lancerLectureFond('forum', verifierActiviteForumNonVue), 60000);
+  // Une session inactive ne relit pas ses nouvelles réalités : mails, forum, objets.
+  // Synchronisation au chargement/reconnexion puis lors d'une interaction explicite.
+  function actualiserRealitesConsultables() {
+    lancerLectureFond('mails', verifierNouveauxMails);
+    if (typeof verifierActiviteForumNonVue === 'function') lancerLectureFond('forum', verifierActiviteForumNonVue);
+    lancerLectureFond('objets', verifierObjetsRecus);
   }
-
-  // Vérification des objets reçus (dons d'un autre joueur) toutes les 2 minutes
-  lancerLectureFond('objets', verifierObjetsRecus);
-  setInterval(() => lancerLectureFond('objets', verifierObjetsRecus), 120000);
+  actualiserRealitesConsultables();
+  let derniereActualisationRealites = Date.now();
+  function actualiserRealitesSurInteraction() {
+    if (document.hidden || Date.now() - derniereActualisationRealites < 5000) return;
+    derniereActualisationRealites = Date.now();
+    // Le clic declenche une synchronisation, sans boucle de surveillance.
+    actualiserRealitesConsultables();
+  }
+  document.addEventListener('click', actualiserRealitesSurInteraction, true);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') actualiserRealitesSurInteraction();
+  }, true);
 
   // Batiments fermes (incendie/explosifs) — au chargement puis toutes les 2 minutes
   setTimeout(() => lancerLectureFond('batimentsFermes', chargerBatimentsFermes, true), 1000);
@@ -1025,12 +1031,8 @@ window.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') return;
       if (typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion();
-      // Correctif latence des voyants Mail/Forum (audit du 21 aout 2026) : reutilise ce MEME
-      // ecouteur deja existant (jamais un second addEventListener) -- resynchronise les deux
-      // voyants immediatement au retour sur l'onglet, plutot que de laisser l'ecart s'accumuler
-      // jusqu'au prochain passage du polling de fond (qui reste actif, en filet de securite).
-      if (typeof verifierNouveauxMails === 'function') lancerLectureFond('mails', verifierNouveauxMails);
-      if (typeof verifierActiviteForumNonVue === 'function') lancerLectureFond('forum', verifierActiviteForumNonVue);
+      // Le retour sur l'onglet seul ne relit plus mails et forum.
+      // L'actualisation intervient lors de la prochaine interaction du PJ.
     });
   }
 
