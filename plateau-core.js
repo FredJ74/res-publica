@@ -943,9 +943,17 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => lancerLectureFond('impacts', recupererImpactsEnAttente, true), 2400);
   setTimeout(() => verifierLancementQuete(), 2600);
   setInterval(() => lancerLectureFond('evenements', chargerEvenementsPartages), 90000);
-  setInterval(() => lancerLectureFond('dons', recupererDonsEnAttente, true), 90000);
-  setInterval(() => lancerLectureFond('vols', recupererVolsEnAttente, true), 90000);
-  setInterval(() => lancerLectureFond('impacts', recupererImpactsEnAttente, true), 90000);
+  // Aucun sondage regulier en onglet masque : rattrapage immediat au retour.
+  // Les premiers chargements explicites ci-dessus restent actifs en toutes circonstances.
+  setInterval(() => lancerLectureFond('dons', recupererDonsEnAttente), 90000);
+  setInterval(() => lancerLectureFond('vols', recupererVolsEnAttente), 90000);
+  setInterval(() => lancerLectureFond('impacts', recupererImpactsEnAttente), 90000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    lancerLectureFond('dons', recupererDonsEnAttente);
+    lancerLectureFond('vols', recupererVolsEnAttente);
+    lancerLectureFond('impacts', recupererImpactsEnAttente);
+  });
 
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
   setInterval(() => {
