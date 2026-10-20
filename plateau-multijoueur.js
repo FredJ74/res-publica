@@ -152,10 +152,17 @@ function filtrerPnjPostesPourvus(persons) {
   });
 }
 
+// La composition des titulaires change rarement : ne pas la relire a chaque
+// battement de presence de 30 s. La verification initiale reste immediate.
+let RP_DERNIERE_LECTURE_TITULAIRES_MS = 0;
 async function rafraichirTitulairesPostesElectifs() {
   if (typeof sbListTitulairesPostes !== 'function') return;
+  const maintenant = Date.now();
+  if (RP_DERNIERE_LECTURE_TITULAIRES_MS && maintenant - RP_DERNIERE_LECTURE_TITULAIRES_MS < 120000) return;
   try {
-    const joueurs = await sbListTitulairesPostes() || [];
+    const joueurs = await sbListTitulairesPostes();
+    if (!Array.isArray(joueurs)) return;
+    RP_DERNIERE_LECTURE_TITULAIRES_MS = Date.now();
     const cache = {};
     joueurs.forEach(j => {
       let poste = j.poste;
