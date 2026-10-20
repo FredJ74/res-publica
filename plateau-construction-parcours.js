@@ -90,19 +90,19 @@ function ouvrirInformationChantier(){
 function ouvrirApprovisionnementChantier(){
   const ts=getTerrainState(state.currentBuilding),ch=ts.chantier;
   if(!ch||!chantierAccepteMateriaux(ch))return;
-  const tarifs=['bois','minerai','metal'].map(m=>'<p>'+constructionEchapper(m)+' : '+constructionEchapper(ch.prixAchatPJ?.[m]??'entrepôt + 10 %, à confirmer par le serveur')+' FR/unité</p>').join('');
+  const tarifs=['bois','minerai','metal'].map(m=>'<p>'+constructionEchapper(m)+' : '+constructionEchapper(ch.prixAchatPJ?.[m]??'entrepôt + 10 %, arrondi au franc supérieur, à confirmer par le serveur')+' FR/unité</p>').join('');
   constructionFenetre('Approvisionner le chantier',tarifs+constructionSousOrdre('vendre_materiaux_chantier','Vendre des matériaux',0,0)+constructionSousOrdre('donner_materiaux_chantier','Donner gratuitement des matériaux',0,0)+(estTitulaire(ts.proprietaire)?constructionBouton('Fixer les prix d’achat','ouvrirPrixChantier()'):''));
 }
 function ouvrirPrixChantier(){
   const ts=getTerrainState(state.currentBuilding);if(!estTitulaire(ts.proprietaire))return;
-  constructionFenetre('Prix d’achat des matériaux','<p>Prix en francs, au centime. Les champs vides conservent les tarifs existants.</p>'+['bois','minerai','metal'].map(m=>'<label>'+m+' <input id="chantier-prix-'+m+'" inputmode="decimal" value="'+constructionEchapper(ts.chantier?.prixAchatPJ?.[m]??'')+'"></label>').join('')+constructionBouton('Enregistrer les prix','confirmerPrixChantier()'));
+  constructionFenetre('Prix d’achat des matériaux','<p>Prix en francs entiers uniquement. Les champs vides conservent les tarifs existants.</p>'+['bois','minerai','metal'].map(m=>'<label>'+m+' <input id="chantier-prix-'+m+'" inputmode="numeric" step="1" value="'+constructionEchapper(ts.chantier?.prixAchatPJ?.[m]??'')+'"></label>').join('')+constructionBouton('Enregistrer les prix','confirmerPrixChantier()'));
 }
 let constructionPrixEnCours=false;
 async function confirmerPrixChantier(){
   if(constructionPrixEnCours)return;
   const contexte=contexteNavigationRue(),id=state.currentBuilding,prix={};
-  try{for(const m of ['bois','minerai','metal']){const v=document.getElementById('chantier-prix-'+m)?.value?.trim();if(v)prix[m]=HGMonnaie.lireSaisie(v);}}
-  catch(_){showToast('Prix invalide','Utilisez un montant positif ou nul, avec deux décimales au maximum.',false);return;}
+  try{for(const m of ['bois','minerai','metal']){const v=document.getElementById('chantier-prix-'+m)?.value?.trim();if(v)prix[m]=constructionFrancsEntiers(v);}}
+  catch(_){showToast('Prix invalide','Utilisez un nombre entier de francs, positif ou nul.',false);return;}
   if(!Object.keys(prix).length)return;
   constructionPrixEnCours=true;
   try{

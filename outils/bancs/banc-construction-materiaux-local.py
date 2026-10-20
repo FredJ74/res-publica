@@ -10,7 +10,7 @@ def main():
  try:
   c=psycopg2.connect(serveur.get_uri());c.autocommit=True;q=c.cursor()
   q.execute('''CREATE ROLE anon; CREATE ROLE authenticated;
-  CREATE TABLE personnages_donnees(name text PRIMARY KEY,country text,current_city text,current_building text,arg integer,liquide integer,inventory jsonb);
+  CREATE TABLE personnages_donnees(name text PRIMARY KEY,country text,current_city text,current_building text,arg integer,liquide integer,inventory jsonb,day integer DEFAULT 1);
   CREATE VIEW personnages AS SELECT * FROM personnages_donnees;
   CREATE TABLE terrains_etat(id text PRIMARY KEY,data text,updated_at timestamptz);
   CREATE TABLE ressources_economie(cle text PRIMARY KEY,prix_base numeric);
@@ -19,23 +19,44 @@ def main():
   CREATE FUNCTION terrain_etat_lire(text) RETURNS jsonb LANGUAGE sql AS $$SELECT $1::jsonb$$;
   CREATE FUNCTION inventaire_reception_etat(text) RETURNS jsonb LANGUAGE sql AS $$SELECT jsonb_build_object('ok',true,'inventory',inventory) FROM personnages_donnees WHERE name=$1$$;
   INSERT INTO ressources_economie VALUES('bois',5),('minerai',10),('metal',15);
-  INSERT INTO personnages_donnees VALUES('Fixture','republic','capitale','terrain',100,100,'[{"stackKey":"bois","stackable":true,"qty":20}]');
+  INSERT INTO personnages_donnees VALUES('Fixture','republic','capitale','terrain',100,100,'[{"stackKey":"bois","stackable":true,"qty":20}]',1);
   INSERT INTO terrains_etat VALUES('republic_terrain','{"city":"capitale","proprietaire":"Fixture","chantier":{"dureeJours":6,"progressionJours":1,"tresorerie":100,"stockMateriaux":{}}}',now());''')
   src=(R/'baseline/domaines/economie/20_fonctions-2.sql').read_text();a=src.index('CREATE OR REPLACE FUNCTION public.vendre_materiaux_chantier(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[a:],re.S);q.execute(src[a:a+m.end()])
+  q.execute("CREATE TABLE chantiers_paliers(palier text PRIMARY KEY,apport_minimal numeric,cout_total numeric,gabarit jsonb)")
+  q.execute("INSERT INTO chantiers_paliers VALUES('hangar',10500,30000,'{\"niveau\":\"hangar\",\"dureeJours\":6,\"progressionJours\":0}')")
+  q.execute("CREATE FUNCTION helvetia_debiter_fonds_ordinaires(text,numeric) RETURNS boolean LANGUAGE plpgsql AS $$BEGIN UPDATE personnages_donnees SET arg=arg-$2,liquide=liquide-$2 WHERE name=$1 AND liquide >= $2;RETURN FOUND;END$$")
+  src=(R/'baseline/domaines/economie/20_fonctions-1.sql').read_text();a=src.index('CREATE OR REPLACE FUNCTION public.chantier_lancer(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[a:],re.S);q.execute(src[a:a+m.end()])
   migration=next((R/'migrations').glob('*_construction_materiaux_prix_et_dons.sql')).read_text();q.execute(migration);q.execute(migration)
+  q.execute("INSERT INTO terrains_etat VALUES('republic_nouveau','{\"city\":\"capitale\",\"proprietaire\":\"Fixture\",\"constructionAutorisee\":true,\"permis\":{\"palierDemande\":\"hangar\"}}',now())")
+  q.execute("UPDATE personnages_donnees SET arg=20000,liquide=20000")
+  q.execute("SELECT chantier_lancer('Fixture','republic','nouveau','hangar',10500)");lancement=q.fetchone()[0]
+  assert lancement['ok'] and lancement['chantier']['prixAchatPJ']=={'bois':6,'minerai':11,'metal':17}
+  q.execute("UPDATE ressources_economie SET prix_base=100 WHERE cle='bois'")
+  q.execute("SELECT data::jsonb->'chantier'->'prixAchatPJ' FROM terrains_etat WHERE id='republic_nouveau'");assert q.fetchone()[0]['bois']==6
+  q.execute("SELECT chantier_lancer('Fixture','republic','nouveau','hangar',10500)");assert q.fetchone()[0]['raison']=='chantier_en_cours'
+  q.execute("SELECT liquide FROM personnages_donnees");assert q.fetchone()[0]==9500
+  q.execute("UPDATE ressources_economie SET prix_base=5 WHERE cle='bois'")
+  q.execute("UPDATE personnages_donnees SET arg=100,liquide=100")
   def appel(requete,qty=2,prix=1,cur=q):
    cur.execute('SELECT vendre_materiaux_chantier(%s,%s,%s,%s,%s,%s,%s)',('Fixture','republic','terrain','bois',qty,prix,requete));return cur.fetchone()[0]
   def etat():
-   q.execute("SELECT arg,liquide,inventory FROM personnages_donnees");pj=q.fetchone();q.execute("SELECT data::jsonb FROM terrains_etat");return pj,q.fetchone()[0]
-  v=appel('vente-001');assert v['ok'] and v['montant']=='11.00' and v['prixUnitaire']=='5.50';assert etat()[0][:2]==(111,111)
+   q.execute("SELECT arg,liquide,inventory FROM personnages_donnees");pj=q.fetchone();q.execute("SELECT data::jsonb FROM terrains_etat WHERE id='republic_terrain'");return pj,q.fetchone()[0]
+  v=appel('vente-001');assert v['ok'] and v['montant']==12 and v['prixUnitaire']==6;assert etat()[0][:2]==(112,112)
   avant=etat();assert appel('vente-001')['rejeu'];assert etat()==avant
   assert appel('vente-001',qty=4)['raison']=='requete_reutilisee';assert etat()==avant
-  assert appel('vente-002',qty=1)['raison']=='precision_monetaire_requise';assert etat()==avant
-  v=appel('don-00001',qty=1,prix=0);assert v['ok'] and v['montant']=='0.00';assert etat()[0][:2]==(111,111)
+  assert appel('vente-002',qty=1)['montant']==6;assert etat()[0][:2]==(118,118)
+  v=appel('don-00001',qty=1,prix=0);assert v['ok'] and v['montant']==0;assert etat()[0][:2]==(118,118)
+  for matiere,prix_attendu in [('minerai',11),('metal',17)]:
+   q.execute("UPDATE personnages_donnees SET inventory=%s",(json.dumps([{'stackKey':matiere,'stackable':True,'qty':1}]),))
+   q.execute("SELECT vendre_materiaux_chantier('Fixture','republic','terrain',%s,1,1,%s)",(matiere,'prix-'+matiere));v=q.fetchone()[0]
+   assert v['ok'] and v['prixUnitaire']==prix_attendu and v['montant']==prix_attendu
+  q.execute("UPDATE personnages_donnees SET inventory='[{\"stackKey\":\"bois\",\"stackable\":true,\"qty\":20}]'")
+  for prix_invalide in ['1.50','1.5','1.00','-1','NaN','Infinity']:
+   avant=etat();q.execute("SELECT chantier_prix_definir('terrain',%s)",(json.dumps({'bois':prix_invalide}),));assert not q.fetchone()[0]['ok'];assert etat()==avant
   q.execute("SELECT chantier_prix_definir('terrain','{\"bois\":null}')");assert not q.fetchone()[0]['ok']
   q.execute("SELECT chantier_prix_definir('terrain','{\"bois\":\"1.001\"}')");assert not q.fetchone()[0]['ok']
-  q.execute("SELECT chantier_prix_definir('terrain','{\"bois\":\"2.00\"}')");assert q.fetchone()[0]['ok']
-  assert appel('prix-001',qty=1,prix=999)['montant']=='2.00' # le vendeur ne fixe jamais son prix
+  q.execute("SELECT chantier_prix_definir('terrain','{\"bois\":\"2\"}')");assert q.fetchone()[0]['ok']
+  assert appel('prix-001',qty=1,prix=999)['montant']==2 # le vendeur ne fixe jamais son prix
   q.execute("UPDATE personnages_donnees SET current_city='ailleurs'");avant=etat();assert not appel('ville-001')['ok'];assert etat()==avant
   q.execute("UPDATE personnages_donnees SET current_city='capitale'")
   q.execute("CREATE OR REPLACE FUNCTION inventaire_reception_etat(text) RETURNS jsonb LANGUAGE sql AS $$SELECT '{\"ok\":false}'::jsonb$$")
@@ -53,6 +74,6 @@ def main():
   q.execute("CREATE OR REPLACE FUNCTION vendre_materiaux_chantier(p_vendeur text,p_country text,p_building_id text,p_matiere text,p_quantite integer,p_prix integer) RETURNS jsonb LANGUAGE sql AS $$SELECT '{}'::jsonb$$")
   try:q.execute(migration);raise AssertionError('garde attendue')
   except psycopg2.Error as e:assert 'definition_non_examinee' in str(e)
-  c.close();print('14 groupes PostgreSQL réussis : prix, dons, centimes, rejeu, concurrence, rollback, territoire, droits et garde de source. Dépendances simulées, aucun Supabase.')
+  c.close();print('Groupes PostgreSQL réussis : prix initiaux figes au lancement et arrondis au franc superieur, dons, refus des fractions, rejeu, concurrence, rollback, territoire, droits et garde de source. Dépendances simulées, aucun Supabase.')
  finally:serveur.cleanup()
 if __name__=='__main__':main()

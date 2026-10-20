@@ -1,18 +1,20 @@
 -- Issue #57, lot 3. PREPAREE UNIQUEMENT, ne pas appliquer sans prevol vivant.
 -- Reutilise le moteur de vente existant. Aucun changement de type monetaire ni de solde historique.
--- Si une fraction ne peut pas etre conservee par les colonnes vivantes : refus avant mutation.
+-- Prix initiaux : entrepot + 10 %, toujours arrondi au franc superieur.
+-- Prix proprietaire : francs entiers uniquement. Aucun changement de type monetaire.
 -- La reception versionnee existante est une precondition, jamais contournee.
-DO $g$ DECLARE h text; BEGIN SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.vendre_materiaux_chantier(text,text,text,text,integer,integer)'); IF h IS NULL OR h NOT IN ('454957349e1b59a60f4313b9f60eebe8','b2b1aaa3e494429c1e43d5f58a9f14a7') THEN RAISE EXCEPTION 'definition_non_examinee: public.vendre_materiaux_chantier(text,text,text,text,integer,integer)'; END IF; END;$g$;
+DO $g$ DECLARE h text; BEGIN SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.vendre_materiaux_chantier(text,text,text,text,integer,integer)'); IF h IS NULL OR h NOT IN ('454957349e1b59a60f4313b9f60eebe8','ad287131c34487f495a9849ad23e39cb') THEN RAISE EXCEPTION 'definition_non_examinee: public.vendre_materiaux_chantier(text,text,text,text,integer,integer)'; END IF; END;$g$;
 DO $g$ BEGIN
  IF to_regprocedure('public.inventaire_reception_etat(text)') IS NULL THEN RAISE EXCEPTION 'reception_versionnee_requise'; END IF;
  IF to_regclass('public.chantier_requetes') IS NOT NULL AND obj_description(to_regclass('public.chantier_requetes')) IS DISTINCT FROM 'HG chantier requetes #57 v1' THEN RAISE EXCEPTION 'table_requetes_inconnue'; END IF;
 END;$g$;
+DO $g$ DECLARE h text; BEGIN SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_lancer(text,text,text,text,numeric)'); IF h IS NULL OR h NOT IN ('f7e9fbfc8c0b0e722659f7c870354159','c4c1ada9bcc72a91302b95e524081349') THEN RAISE EXCEPTION 'definition_non_examinee: public.chantier_lancer(text,text,text,text,numeric)'; END IF; END;$g$;
 CREATE TABLE IF NOT EXISTS public.chantier_requetes(id text PRIMARY KEY,acteur text NOT NULL,charge jsonb NOT NULL,resultat jsonb NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
 COMMENT ON TABLE public.chantier_requetes IS 'HG chantier requetes #57 v1';
 ALTER TABLE public.chantier_requetes ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.chantier_requetes FROM PUBLIC,anon,authenticated;
 DO $g$ DECLARE h text; BEGIN SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.vendre_materiaux_chantier(text,text,text,text,integer,integer,text)'); IF h IS NOT NULL AND h NOT IN ('29869c27f561e8bee3c1671a37fa90a1') THEN RAISE EXCEPTION 'definition_non_examinee: public.vendre_materiaux_chantier(text,text,text,text,integer,integer,text)'; END IF; END;$g$;
-DO $g$ DECLARE h text; BEGIN SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_prix_definir(text,jsonb)'); IF h IS NOT NULL AND h NOT IN ('e76d871ac5092dcc5e72953162ddbd5e') THEN RAISE EXCEPTION 'definition_non_examinee: public.chantier_prix_definir(text,jsonb)'; END IF; END;$g$;
+DO $g$ DECLARE h text; BEGIN SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_prix_definir(text,jsonb)'); IF h IS NOT NULL AND h NOT IN ('4dcd2727c83b49a29fcf0068238df98f') THEN RAISE EXCEPTION 'definition_non_examinee: public.chantier_prix_definir(text,jsonb)'; END IF; END;$g$;
 CREATE OR REPLACE FUNCTION public.vendre_materiaux_chantier(p_vendeur text, p_country text, p_building_id text, p_matiere text, p_quantite integer, p_prix integer)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -90,10 +92,14 @@ BEGIN
   IF p_prix=0 THEN v_prix:=0;
   ELSE
     v_prix:=coalesce((v_chantier->'prixAchatPJ'->>p_matiere)::numeric,
-      (SELECT round(prix_base*1.10,2) FROM public.ressources_economie WHERE cle=p_matiere));
+      (SELECT ceil(prix_base*1.10) FROM public.ressources_economie WHERE cle=p_matiere));
   END IF;
-  IF v_prix IS NULL OR v_prix<0 OR v_prix<>round(v_prix,2) THEN
+  IF v_prix IS NULL OR v_prix<0 OR v_prix<>trunc(v_prix) THEN
     RETURN jsonb_build_object('ok',false,'raison','prix_indisponible');
+  END IF;
+
+  IF p_prix>0 AND (v_chantier->'prixAchatPJ'->p_matiere) IS NULL THEN
+    v_chantier:=jsonb_set(v_chantier,'{prixAchatPJ}',coalesce(v_chantier->'prixAchatPJ','{}'::jsonb)||jsonb_build_object(p_matiere,v_prix));
   END IF;
 
   -- STOCK REEL DU VENDEUR, relu sur son inventaire -- jamais celui annonce par le client.
@@ -123,10 +129,7 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'tresorerie_insuffisante');
   END IF;
   v_montant := v_qte::numeric * v_prix;
-  IF v_montant<>trunc(v_montant) AND EXISTS(
-    SELECT 1 FROM pg_attribute WHERE attrelid='public.personnages_donnees'::regclass
-    AND attname IN ('arg','liquide') AND atttypid IN ('int2'::regtype,'int4'::regtype,'int8'::regtype)
-  ) THEN RETURN jsonb_build_object('ok',false,'raison','precision_monetaire_requise'); END IF;
+
 
   -- ---- A partir d'ici, tout est applique ou rien ne l'est.
 
@@ -151,7 +154,7 @@ BEGIN
   v_chantier := jsonb_set(v_chantier, '{ventesMateriauxPJ}',
     COALESCE(v_chantier -> 'ventesMateriauxPJ', '[]'::jsonb) || jsonb_build_array(
       jsonb_build_object('vendeur', p_vendeur, 'matiere', p_matiere, 'quantite', v_qte,
-                         'prixUnitaire',round(v_prix,2)::text, 'montant', v_montant,
+                         'prixUnitaire',v_prix, 'montant', v_montant,
                          'horodatage', to_char(now() AT TIME ZONE 'Europe/Paris', 'YYYY-MM-DD"T"HH24:MI:SS'))));
 
   UPDATE terrains_etat
@@ -169,8 +172,8 @@ BEGIN
   IF (SELECT inventory FROM public.personnages_donnees WHERE name=p_vendeur) IS DISTINCT FROM v_inv THEN
     RAISE EXCEPTION 'inventaire_non_applique';
   END IF;
-  RETURN jsonb_build_object('ok', true, 'quantite', v_qte, 'montant', round(v_montant,2)::text,
-                            'prixUnitaire',round(v_prix,2)::text, 'matiere', p_matiere);
+  RETURN jsonb_build_object('ok', true, 'quantite', v_qte, 'montant', v_montant,
+                            'prixUnitaire',v_prix, 'matiere', p_matiere);
 END;
 $function$;
 CREATE OR REPLACE FUNCTION public.vendre_materiaux_chantier(p_vendeur text,p_country text,p_building_id text,p_matiere text,p_quantite integer,p_prix integer,p_requete text)
@@ -212,10 +215,10 @@ BEGIN
     RETURN jsonb_build_object('ok',false,'raison','chantier_indisponible'); END IF;
   IF jsonb_typeof(p_prix) IS DISTINCT FROM 'object' THEN RETURN jsonb_build_object('ok',false,'raison','prix_invalides'); END IF;
   FOR v_k,v_val IN SELECT * FROM jsonb_each(p_prix) LOOP
-    IF v_k NOT IN ('bois','minerai','metal') OR jsonb_typeof(v_val) NOT IN ('string','number') OR (v_val#>>'{}') !~ '^(0|[1-9][0-9]*)([.][0-9]{1,2})?$' THEN
+    IF v_k NOT IN ('bois','minerai','metal') OR jsonb_typeof(v_val) NOT IN ('string','number') OR (v_val#>>'{}') !~ '^(0|[1-9][0-9]*)$' THEN
       RETURN jsonb_build_object('ok',false,'raison','prix_invalides'); END IF;
     v_n:=(v_val#>>'{}')::numeric;
-    v_ch:=jsonb_set(v_ch,ARRAY['prixAchatPJ'],coalesce(v_ch->'prixAchatPJ','{}')||jsonb_build_object(v_k,round(v_n,2)::text));
+    v_ch:=jsonb_set(v_ch,ARRAY['prixAchatPJ'],coalesce(v_ch->'prixAchatPJ','{}')||jsonb_build_object(v_k,v_n));
   END LOOP;
   v_etat:=jsonb_set(v_etat,'{chantier}',v_ch);
   UPDATE public.terrains_etat SET data=v_etat::text,updated_at=now() WHERE id=v_pays||'_'||p_terrain_id;
@@ -226,3 +229,83 @@ REVOKE ALL ON FUNCTION public.vendre_materiaux_chantier(text,text,text,text,inte
 REVOKE ALL ON FUNCTION public.chantier_prix_definir(text,jsonb) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.vendre_materiaux_chantier(text,text,text,text,integer,integer,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.chantier_prix_definir(text,jsonb) TO authenticated;
+
+-- Raccordement au lancement existant : seul ajout des prix figes et du controle entier.
+CREATE OR REPLACE FUNCTION public.chantier_lancer(p_acteur text, p_pays text, p_batiment text, p_palier text, p_apport numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_id text; v_data jsonb; v_pal record; v_chantier jsonb; v_jour integer;
+  v_palier_permis text;
+  v_prix_initiaux jsonb; v_nb_prix integer; v_prix_valides boolean;
+BEGIN
+  PERFORM public.exiger_acteur(p_acteur);
+  v_id := p_pays || '_' || p_batiment;
+
+  SELECT * INTO v_pal FROM public.chantiers_paliers WHERE palier = p_palier;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'palier_inconnu'); END IF;
+
+  SELECT public.terrain_etat_lire(data) INTO v_data
+    FROM public.terrains_etat WHERE id = v_id FOR UPDATE;
+  IF v_data IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'terrain_absent'); END IF;
+
+  -- Regles existantes, relues sur l'etat reel du terrain -- l'ecran n'est qu'une anticipation.
+  IF (v_data->>'proprietaire') IS DISTINCT FROM p_acteur THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_proprietaire');
+  END IF;
+  IF v_data ? 'chantier' AND jsonb_typeof(v_data->'chantier') = 'object' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'chantier_en_cours');
+  END IF;
+  IF COALESCE((v_data->>'constructionAutorisee')::boolean, false) IS NOT TRUE THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'permis_requis');
+  END IF;
+  v_palier_permis := v_data->'permis'->>'palierDemande';
+  IF v_palier_permis IS NOT NULL AND v_palier_permis <> p_palier THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'permis_non_conforme',
+                              'attendu', v_palier_permis);
+  END IF;
+  IF COALESCE(v_data->>'succession_gel','') <> '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');
+  END IF;
+
+  -- L'apport minimal vient du miroir, jamais d'un calcul transmis.
+  IF p_apport IS NULL OR p_apport < v_pal.apport_minimal THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'apport_insuffisant',
+                              'minimum', v_pal.apport_minimal);
+  END IF;
+  IF p_apport > v_pal.cout_total THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'apport_excessif',
+                              'maximum', v_pal.cout_total);
+  END IF;
+
+  -- #57 : photographier les trois prix initiaux avant tout debit, dans le meme lancement.
+  -- Aucun tarif ne vient du navigateur, aucun arrondi des soldes ni changement d'unite.
+  IF p_apport<>trunc(p_apport) THEN RETURN jsonb_build_object('ok',false,'raison','francs_entiers_requis'); END IF;
+  SELECT jsonb_object_agg(cle,ceil(prix_base*1.10)),count(*),
+    bool_and(prix_base>=0 AND prix_base::text NOT IN ('NaN','Infinity','-Infinity'))
+    INTO v_prix_initiaux,v_nb_prix,v_prix_valides FROM public.ressources_economie
+    WHERE cle IN ('bois','minerai','metal');
+  IF v_nb_prix<>3 OR NOT coalesce(v_prix_valides,false) THEN
+    RETURN jsonb_build_object('ok',false,'raison','prix_entrepot_indisponibles'); END IF;
+
+  IF NOT public.helvetia_debiter_fonds_ordinaires(p_acteur, p_apport) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants', 'apport', p_apport);
+  END IF;
+
+  SELECT COALESCE(day,1) INTO v_jour FROM public.personnages_donnees WHERE name = p_acteur;
+  v_chantier := v_pal.gabarit
+                || jsonb_build_object('jourDebut', v_jour,
+                                      'totalVerse', p_apport, 'tresorerie', p_apport,
+                                      'prixAchatPJ', v_prix_initiaux);
+
+  UPDATE public.terrains_etat
+     SET data = (v_data || jsonb_build_object('chantier', v_chantier))::text, updated_at = now()
+   WHERE id = v_id;
+
+  RETURN jsonb_build_object('ok', true, 'chantier', v_chantier, 'apport', p_apport,
+    'arg', (SELECT arg FROM public.personnages_donnees WHERE name = p_acteur),
+    'liquide', (SELECT liquide FROM public.personnages_donnees WHERE name = p_acteur));
+END; $function$;

@@ -1134,15 +1134,24 @@ function lotConcerneParReamenagement(chantier, lotId) {
 // Seule la traduction du plan en lots, elle, est ecrite des deux cotes et verrouillee par un test
 // d'egalite : c'est la partie ou une divergence produirait des lots differents selon l'endroit.
 
-// #57 : politique de financement, pure. Le debit/marqueur/mail doivent etre une
-// transaction serveur ; cette projection n'autorise aucune ecriture navigateur.
+// #57 : montants en francs entiers, compatibles avec les circuits financiers existants.
+// Aucune conversion de solde ni unite centime. Ces projections n'autorisent aucun debit client.
+function constructionFrancsEntiers(valeur) {
+  if (typeof valeur === 'string') {
+    if (!/^(0|[1-9][0-9]*)$/.test(valeur)) throw new Error('francs_entiers_requis');
+    valeur = Number(valeur);
+  }
+  if (!Number.isSafeInteger(valeur) || valeur < 0) throw new Error('francs_entiers_requis');
+  return valeur;
+}
 function repartitionFinancementChantier(montant,banque,liquide){
-  const M=HGMonnaie,m=M.historique(montant),b=M.historique(banque),l=M.historique(liquide);
-  if(M.comparer(m,'0')<0||M.comparer(b,'0')<0||M.comparer(l,'0')<0)throw new Error('fonds_negatifs');
-  if(M.comparer(M.additionner(b,l),m)<0)return {ok:false,banque:'0.00',liquide:'0.00'};
-  const partBanque=M.comparer(b,m)>=0?m:b;
-  return {ok:true,banque:partBanque,liquide:M.soustraire(m,partBanque)};
+  const m=constructionFrancsEntiers(montant),b=constructionFrancsEntiers(banque),l=constructionFrancsEntiers(liquide);
+  if(b<m && l<m-b)return {ok:false,banque:0,liquide:0};
+  const partBanque=Math.min(b,m);
+  return {ok:true,banque:partBanque,liquide:m-partBanque};
 }
 function prixAchatMateriauChantier(prixEntrepot){
-  return HGMonnaie.pourcentageArrondi(HGMonnaie.historique(prixEntrepot),110);
+  const p=constructionFrancsEntiers(prixEntrepot);
+  // p + ceil(p/10) = ceil(p * 110/100), sans multiplication flottante (100*1.1 > 110 en JS).
+  return constructionFrancsEntiers(p+Math.ceil(p/10));
 }

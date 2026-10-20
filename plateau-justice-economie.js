@@ -13182,7 +13182,7 @@ async function confirmerVenteMateriauxChantier(mode = 'vente') {
     CONSTRUCTION_TRANSFERTS.delete(key);
     try{sessionStorage.removeItem('chantier-transfert:'+key);}catch(_){}
     if (!verdict.ok) {
-      showToast('Transfert refusé', verdict.raison === 'precision_monetaire_requise' ? 'Le serveur doit prendre en charge les centimes avant cette vente.' : 'Le serveur a refusé ce transfert (' + (verdict.raison || 'indisponible') + ').', false); return;
+      showToast('Transfert refusé', 'Le serveur a refusé ce transfert (' + (verdict.raison || 'indisponible') + ').', false); return;
     }
     // Un reçu rejoué peut être ancien : relire les miroirs, ne jamais appliquer ses deltas.
     const relu = await commercePjActualiserPersonnage({inventaire:true});

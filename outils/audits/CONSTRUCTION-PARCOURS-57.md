@@ -1,5 +1,14 @@
 # Construction — issue #57, inventaire avant modification
 
+## Règle courante au 21 octobre 2026 — PR #58
+
+**Cet arbitrage remplace les mentions historiques de centimes ci-dessous.** Prix initial PJ = prix courant de l'entrepôt × 1,10, **arrondi systématiquement au franc supérieur** : bois 6 FR, minerai 11 FR, métal 17 FR. Prix modifiés par le propriétaire : francs entiers non négatifs uniquement. Aucun changement d'unité, de colonne financière, de sauvegarde ou de solde historique. Le module monétaire en centimes ajouté dans la première préparation a été retiré ; ses tests sont remplacés par des épreuves de la règle entière, sans supprimer la couverture des refus, des bornes et de la conservation des montants.
+
+La migration préparée réutilise les moteurs `chantier_lancer` et `vendre_materiaux_chantier` : les trois tarifs sont photographiés au lancement, puis persistent même si l'entrepôt change ses prix. Pour un ancien chantier dépourvu de tarif, le premier transfert payé initialise le tarif courant de cette matière ; aucune reconstitution fictive d'un prix historique. Les tarifs propriétaires déjà entiers sont conservés ; un tarif fractionnaire préexistant est refusé, jamais arrondi silencieusement. Don gratuit, reçus, verrous, rejouabilité et rollback restent inchangés. Les réponses reprennent les montants numériques entiers du moteur existant.
+
+La migration n'a jamais été appliquée : les gardes de définitions ont donc été régénérées pour les nouveaux corps SQL effectivement testés, en conservant seulement la source archivée comme origine admissible. Aucune observation de catalogue ni empreinte du baseline n'a été changée.
+
+
 Branche depuis main `baa9cb7`, indépendante de la PR #56 ; aucun déploiement autorisé.
 Source des décisions : `ISSUE-57-ARBITRAGES.md` et précisions du propriétaire dans la conversation.
 
