@@ -1,6 +1,22 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const acorn=require('../vercel/node_modules/acorn'),root=path.resolve(__dirname,'../..');
 function source(f,noms){const s=fs.readFileSync(path.join(root,f),'utf8');return acorn.parse(s,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)||n.type==='VariableDeclaration'&&n.declarations.some(d=>noms.includes(d.id.name))).map(n=>s.slice(n.start,n.end)).join('\n');}
+for(const [quantite,historique] of [[3,false],[0,false],[3,true]])test(historique?'contre-epreuve : ancien const interrompt le vol confirme':'vol : utilise la quantite effectivement confirmee, '+quantite,async()=>{
+  const objets=[],notifications=[],etat={chantier:{stockMateriaux:{bois:20}},proprietaire:'Fixture proprietaire'};
+  const c=vm.createContext({state:{char:{name:'Fixture'},country:'republic',currentCity:'capitale',currentBuilding:'terrain-a-batir-1',day:1},
+    getTerrainState:()=>etat,deduireCoutOrdre:async()=>({ok:true}),document:{getElementById:()=>({classList:{remove(){}}})},
+    getStatEffective:()=>10,scoreVolMateriaux:()=>60,verdictVolMateriaux:()=>({reussite:true}),numeroJourChantier:()=>1,
+    vigilesDuChantier:()=>0,quantiteVolMateriaux:()=>10,sbTerrainActe:async(n,p)=>{assert.equal(p.p_quantite,10);return {ok:true,quantite,etat};},
+    remplacerTerrainState:()=>{},addToInventory:o=>objets.push(o),showToast:(...v)=>notifications.push(v),updateUI:()=>{},addJournalEntry:()=>{}});
+  let code=source('plateau-justice-economie.js',['confirmerVolMateriaux']);
+  if(historique)code=code.replace('let qte = quantiteVolMateriaux','const qte = quantiteVolMateriaux');
+  vm.runInContext(code,c);
+  if(historique){await assert.rejects(c.confirmerVolMateriaux('bois',1,0),/Assignment to constant/);assert.equal(objets.length,0);return;}
+  await c.confirmerVolMateriaux('bois',1,0);
+  assert.equal(objets.length,quantite>0?1:0);
+  if(quantite>0)assert.equal(objets[0].qty,quantite);
+  assert.equal(notifications.at(-1)[0],quantite>0?'Vol réussi !':'Rien à emporter');
+});
 test('les 36 terrains sont classes dans la ville et le pays canoniques',()=>{const c=vm.createContext({state:{country:'republic'}});vm.runInContext(fs.readFileSync(path.join(root,'data.js'),'utf8')+'\n'+source('plateau-justice-economie.js',['getVilleTerrain','getTousLesTerrainsPays']),c);const r=vm.runInContext(`Object.entries(WORLD).flatMap(([p,vs])=>Object.entries(vs).flatMap(([v,d])=>(d.buildings||[]).filter(id=>id.startsWith('terrain-a-batir')).map(id=>({p,v,id,lu:getVilleTerrain(id,p),inclus:getTousLesTerrainsPays(p).includes(id)}))))`,c);assert.equal(r.length,36);assert.ok(r.every(x=>x.v===x.lu&&x.inclus));assert.equal(c.getVilleTerrain('inconnu','republic'),null);assert.equal(c.getVilleTerrain('terrain-a-batir-1','inconnu'),null);});
 test('PSM 1500 m2, aucun achat facture pour un terrain sans reference de surface',async()=>{const c=vm.createContext({state:{char:{name:'Fixture'},country:'republic',currentBuilding:'terrain-a-batir-6',arg:10000},COUNTRIES:{republic:{cur:'FR'}},terrainOrdreDisponible:()=>({ok:true}),showToast:()=>{},getVilleTerrain:()=> 'ville_b',deduireCoutOrdre:async()=>{throw Error('DEBIT_INTERDIT');}});vm.runInContext(source('plateau-pnj.js',['SURFACE_TERRAINS','PRIX_AU_M2_TERRAIN','ACOMPTE_ACHAT_DIRECT','doAcheterTerrain']),c);assert.equal(vm.runInContext("SURFACE_TERRAINS['terrain-a-batir-8']",c),1500);await c.doAcheterTerrain();});
 for(const forme of ['map','tableau'])test('pret confirme : solde national relu correctement, '+forme,async()=>{const e={value:''},c=vm.createContext({state:{char:{name:'Fixture'},country:'republic',currentBuilding:'banque-nationale',comptesBancaires:forme==='map'?{nationale:{banque:'nationale',solde:500}}:[{banque:'nationale',solde:500}]},COUNTRIES:{republic:{cur:'FR'}},INDICES_NATIONAUX:{},document:{getElementById:id=>({value:id==='pret-montant'?'100000':'20',classList:{remove(){}}})},showToast:()=>{},signalerRefusCout:()=>{},updateUI:()=>{},addJournalEntry:()=>{},deduireCoutOrdre:async()=>({ok:true}),sbGetPretsEnCours:async()=>[],sbRpc:async()=>({ok:true,arg:100500,liquide:0,solde_banque:'100500.00'})});vm.runInContext(source('plateau-justice-economie.js',['confirmerPretBancaire','getTauxPret','TYPES_PRET']),c);await c.confirmerPretBancaire('nationale','travaux',0);assert.equal(c.state.comptesBancaires.nationale.solde,100500);assert.equal(c.state.liquide,0);});

@@ -37,4 +37,32 @@ SELECT country,count(*) AS lignes,count(DISTINCT building_id) AS batiments,
  count(*) FILTER (WHERE proprietaire IS NULL) AS proprietaires_colonne_absents,
  count(*) FILTER (WHERE niveau_construction IS NOT NULL) AS niveaux_colonne FROM public.terrains_etat GROUP BY country;
 SELECT type_banque,type_pret,statut,count(*) AS contrats FROM public.prets GROUP BY type_banque,type_pret,statut;
+-- Fermeture des dependances : ne pas preparer une substitution depuis le seul baseline.
+-- Inclut les surcharges, signatures exactes, contrats de monnaie/inventaire et emploi commun.
+SELECT p.oid::regprocedure AS signature,pg_get_functiondef(p.oid),p.proacl,
+ md5(p.prosrc) AS empreinte_source
+FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+WHERE n.nspname='public' AND p.prokind='f' AND
+ (p.proname ~ '(chantier|terrain|reliquat|pret|inventaire|reception|recu|entrepot)'
+ OR p.proname IN ('est_appel_serveur','compte_bancaire_initial','exiger_acteur',
+ 'pnj_quitter_groupe','pnj_position_effective','pnj_peut_conduire',
+ 'pnj_co_present','pnj_axe_position_refus','pnj_mouvement_individuel_refus',
+ 'employeur_embaucher','employe_recruter'))
+ORDER BY p.oid::regprocedure::text;
+-- Types reels : aucune hypothese integer/numeric, vue/table ou JSON/texte.
+SELECT c.oid::regclass AS relation,a.attname,format_type(a.atttypid,a.atttypmod) AS type,
+ a.attnotnull,pg_get_expr(d.adbin,d.adrelid) AS defaut
+FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+JOIN pg_attribute a ON a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+LEFT JOIN pg_attrdef d ON d.adrelid=c.oid AND d.adnum=a.attnum
+WHERE n.nspname='public' AND c.relname IN ('terrains_etat','prets','comptes_bancaires',
+ 'personnages','personnages_donnees','batiments_etat','locations_actives',
+ 'pnj_membres','pnj_metiers_profils','objets_recus') ORDER BY c.oid::regclass::text,a.attnum;
+-- Dependances catalogue (les appels SQL dynamiques exigent aussi l'examen des definitions).
+SELECT p.oid::regprocedure AS fonction,d.deptype,
+ pg_describe_object(d.refclassid,d.refobjid,d.refobjsubid) AS dependance
+FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+JOIN pg_depend d ON d.classid='pg_proc'::regclass AND d.objid=p.oid
+WHERE n.nspname='public' AND p.proname ~ '(chantier|terrain|pret|reliquat|fonds_commerce)'
+ORDER BY p.oid::regprocedure::text,dependance;
 ROLLBACK;
