@@ -4,7 +4,7 @@ Projet `jxpwoosmmhohoihxpbuc`, organisation `jbhuwfahomxtfihjiwej`, suivi GitHub
 Branche indépendante : `codex/optimisation-supabase-20261020`.
 Base `main` revérifiée par fetch : `baa9cb7e2b7f89db66cf268d21382deb0be2a3a2`.
 
-**Correctifs testés localement et sauvegardés. Aucun déploiement, aucune mesure de facturation distante, aucune garantie de retour sous quota.**
+**Correctifs testés localement et sauvegardés. Aucun déploiement de production confirmé, aucune mesure de facturation distante, aucune garantie de retour sous quota.**
 
 ## Diagnostic et preuves
 
@@ -62,7 +62,7 @@ Les réponses de PATCH/upsert réduites dépendent des tailles réelles des fich
 
 ## Vérifications
 
-- **19/19 tests ciblés**, dont deux contre-épreuves historiques : filtres/statuts, erreurs HTTP/réseau, changement de session, retours tardifs, suppression de photo, concurrence, sauvegarde et présence/journal.
+- **24/24 tests ciblés après revue de la PR #56**, dont deux contre-épreuves historiques : filtres/statuts, erreurs HTTP/réseau, changement de session, retours tardifs, suppression de photo, concurrence, sauvegarde et présence/journal.
 - **92/92 bancs client**, notamment navigation, dialogue PNJ, sport, mails/forum, finance, réception, chantier, location et continuité municipale.
 - **90/90 contre-épreuves historiques** ; aucune assertion désactivée.
 - **25/25 tests municipaux** inclus dans le contrôleur. Le mock ancien a d'abord provoqué deux échecs : il a été raccordé au nouveau helper, en conservant les assertions de rôles, vacance et identité.
@@ -77,12 +77,22 @@ Résultats et commandes : `RESULTATS-OPTIMISATION-SUPABASE-20261020.json`. Les b
 
 Aucun connecteur Supabase ni accès aux métriques n'est disponible. HTTPS vers le projet échoue au tunnel proxy (`CONNECT 403`), avant Supabase : ce n'est pas une erreur du jeu ni une panne fournisseur démontrée. Aucune donnée de joueur consultée ou modifiée par les tests.
 
-Git fetch/push fonctionne. L'API GitHub REST comme GraphQL répond `Forbidden` : ticket #55 non relu/actualisé ; création de PR bloquée. Titre et description sont conservés dans `PR-OPTIMISATION-SUPABASE-20261020.md`. Aucune PR ne doit être annoncée créée sans retour effectif de GitHub. Aucune fusion ni activation automatique.
+Git fetch/push fonctionne. La PR #56 a depuis été créée par ChatGPT ; sa référence Git a été récupérée et comparée à la branche. L'API GitHub REST comme GraphQL répond toujours `Forbidden` : ticket #55, résultats des Actions et métadonnées de PR restent inaccessibles. La description proposée est conservée dans `PR-OPTIMISATION-SUPABASE-20261020.md` et n'a pas pu être actualisée via l'API. Aucune fusion ni activation automatique.
 
 Commit principal : `7a025fb60657af75a9950df7efbd9dd77a96ef43`. Le commit de documentation/contre-épreuve supplémentaire figure dans le compte rendu final.
 
-Branche prête pour revue, **pas validée en production** ; aucune migration à appliquer. Dès accès API rétabli : créer la PR indépendante, observer CI/Preview, vérifier les projections REST et les parcours présence, portraits, mandats, messagerie/forum et invitations sur le vrai projet. Ne pas fusionner sur le seul pourcentage de fixture.
+Branche prête pour revue, **pas validée en production** ; aucune migration à appliquer. Dès accès API rétabli : contrôler les résultats de la PR #56 et sa Preview, vérifier les projections REST et les parcours présence, portraits, mandats, messagerie/forum et invitations sur le vrai projet. Ne pas fusionner sur le seul pourcentage de fixture.
 
 Comparer ensuite des fenêtres de 24 h de fréquentation similaire, puis plusieurs jours incluant le dimanche : ventiler egress base de données, Storage/CDN, Realtime, Auth et fonctions, octets/erreurs par route, sessions/heures actives et versions clientes. Contrôler réveil d'onglet, actualisation des portraits, invitations et tâches quotidiennes. Ces opérations restent techniques ; aucune manipulation SQL/GitHub n'est déléguée au game designer.
 
 Retour arrière : revert des commits de cette branche, sans migration ni purge de données. **Risque de dépassement non quantifié** : autres réponses, portraits persistants, Storage, consommateurs externes et anciens onglets peuvent rester coûteux. Aucun changement de stockage ou baisse de fréquence métier n'est ajouté sans mesure démontrant sa nécessité.
+
+## Complément de revue de la PR #56
+
+Deux cas ont été reproduits en échec avant correction : arrivée tardive de présences de rue après entrée dans un bâtiment (le nœud restait mémorisé), et tournées masquées par une page pleine de dîners dans la nouvelle lecture commune. Le premier contrôle désormais aussi le bâtiment et la pièce de départ. Le second utilise des pages de 100 lignes ordonnées par clé `id`, sans offset ; il refuse pages incohérentes, identifiants numériques arrondis et changements de session, et ne publie aucune lecture partielle en cas d'échec. Les petits ensembles continuent à partager un seul GET ; les grands ensembles nécessitent plusieurs pages.
+
+La compatibilité locale a été éprouvée sur les DDL archivés de `personnages_donnees`, `personnages`, `presences`, `invitations_diner` et leurs clés. Le nouveau banc PostgreSQL est intégré au workflow existant, sans nouvelle infrastructure. Ses fonctions d'authentification sont des fixtures et il ne charge pas les triggers/RLS de production : il ne certifie ni PostgREST vivant ni un compte réel.
+
+Préconditions restant à vérifier sur le projet vivant : colonnes et types, droits SELECT/UPDATE/INSERT, triggers de la vue, policies RLS, traitement REST des projections/retours et de l'union, limite de réponse PostgREST d'au moins 100 lignes, représentation exacte des identifiants bigint (les nombres hors précision sûre sont refusés). Les tests réels de sauvegarde/présence doivent utiliser un compte isolé autorisé, jamais les données d'un joueur.
+
+Les 14 bancs PostgreSQL du workflow ont été rejoués localement et réussissent. La revue ne donne pas le feu vert à la fusion tant que les Actions distantes et ces contrôles Supabase restent invérifiables. Voir `REVUE-PR56-20261020.md` et `RESULTATS-REVUE-PR56-20261020.json`.
