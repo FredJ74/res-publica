@@ -1,7 +1,15 @@
-name: Parcours joueur isole de Luthecia
+name: Parcours joueur autorise de Luthecia
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Arnie en consultation seule, ou comptes de test isoles
+        type: choice
+        default: consultation_seule
+        options:
+          - consultation_seule
+          - tests_isoles
   schedule:
     # UTC. Inactif tant que HG_E2E_NIGHTLY n'est pas explicitement active.
     - cron: '15 1 * * *'
@@ -20,19 +28,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
+      HG_E2E_MODE: ${{ github.event_name == 'workflow_dispatch' && (inputs.mode || 'consultation_seule') || 'tests_isoles' }}
+      HG_E2E_DECLENCHEMENT: ${{ github.event_name }}
       HG_E2E_BASE_URL: ${{ vars.HG_E2E_BASE_URL }}
       HG_E2E_MAX_MINUTES: '35'
       HG_E2E_RAPPORT: ${{ runner.temp }}/luthecia-e2e
-      HG_E2E_EMAIL: ${{ secrets.HG_E2E_EMAIL }}
-      HG_E2E_PASSWORD: ${{ secrets.HG_E2E_PASSWORD }}
-      HG_E2E_PERSONNAGE: ${{ secrets.HG_E2E_PERSONNAGE }}
-      HG_E2E_UID: ${{ secrets.HG_E2E_UID }}
-      HG_E2E_INVITE_EMAIL: ${{ secrets.HG_E2E_INVITE_EMAIL }}
-      HG_E2E_INVITE_PASSWORD: ${{ secrets.HG_E2E_INVITE_PASSWORD }}
-      HG_E2E_INVITE_PERSONNAGE: ${{ secrets.HG_E2E_INVITE_PERSONNAGE }}
-      HG_E2E_INVITE_UID: ${{ secrets.HG_E2E_INVITE_UID }}
-      HG_E2E_AUTORISATION_JSON: ${{ secrets.HG_E2E_AUTORISATION_JSON }}
-      HG_E2E_PLAN_JSON: ${{ secrets.HG_E2E_PLAN_JSON }}
+      HG_E2E_EMAIL: ${{ secrets[(github.event_name == 'workflow_dispatch' && (inputs.mode || 'consultation_seule') == 'consultation_seule') && 'HG_E2E_ARNIE_EMAIL' || 'HG_E2E_EMAIL'] }}
+      HG_E2E_PASSWORD: ${{ secrets[(github.event_name == 'workflow_dispatch' && (inputs.mode || 'consultation_seule') == 'consultation_seule') && 'HG_E2E_ARNIE_PASSWORD' || 'HG_E2E_PASSWORD'] }}
+      HG_E2E_PERSONNAGE: ${{ github.event_name == 'workflow_dispatch' && (inputs.mode || 'consultation_seule') == 'consultation_seule' && 'Arnie' || secrets.HG_E2E_PERSONNAGE }}
+      HG_E2E_UID: ${{ secrets[(github.event_name == 'workflow_dispatch' && (inputs.mode || 'consultation_seule') == 'consultation_seule') && 'HG_E2E_ARNIE_UID' || 'HG_E2E_UID'] }}
+      HG_E2E_INVITE_EMAIL: ${{ (github.event_name == 'schedule' || inputs.mode == 'tests_isoles') && secrets.HG_E2E_INVITE_EMAIL || '' }}
+      HG_E2E_INVITE_PASSWORD: ${{ (github.event_name == 'schedule' || inputs.mode == 'tests_isoles') && secrets.HG_E2E_INVITE_PASSWORD || '' }}
+      HG_E2E_INVITE_PERSONNAGE: ${{ (github.event_name == 'schedule' || inputs.mode == 'tests_isoles') && secrets.HG_E2E_INVITE_PERSONNAGE || '' }}
+      HG_E2E_INVITE_UID: ${{ (github.event_name == 'schedule' || inputs.mode == 'tests_isoles') && secrets.HG_E2E_INVITE_UID || '' }}
+      HG_E2E_AUTORISATION_JSON: ${{ secrets[(github.event_name == 'workflow_dispatch' && (inputs.mode || 'consultation_seule') == 'consultation_seule') && 'HG_E2E_ARNIE_AUTORISATION_JSON' || 'HG_E2E_AUTORISATION_JSON'] }}
+      HG_E2E_PLAN_JSON: ${{ (github.event_name == 'schedule' || inputs.mode == 'tests_isoles') && secrets.HG_E2E_PLAN_JSON || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

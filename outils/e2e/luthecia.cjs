@@ -3,6 +3,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
 const {lancerChromium}=require('../bancs/fixtures/chromium-cdp.cjs');
+const {verifierConsultation,installerConsultation,empreinteProtegee}=require('./consultation.cjs');
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const code=(c)=>Object.assign(new Error(c),{code:c});
@@ -13,9 +14,13 @@ async function borner(p,ms){let t;try{return await Promise.race([p,new Promise((
 function configuration(env=process.env){
  let autorisation;try{autorisation=JSON.parse(env.HG_E2E_AUTORISATION_JSON||'null');}catch{throw code('AUTORISATION_JSON_INVALIDE');}
  const a=autorisation;
+ const mode=env.HG_E2E_MODE||'tests_isoles';
+ if(!['tests_isoles','consultation_seule'].includes(mode))throw code('MODE_E2E_INVALIDE');
+ if(mode==='consultation_seule')verifierConsultation(env,a);
+ else if(env.HG_E2E_PERSONNAGE==='Arnie'||env.HG_E2E_INVITE_PERSONNAGE==='Arnie')throw code('ARNIE_INTERDIT_HORS_CONSULTATION');
  const manquants=[];
  for(const n of ['HG_E2E_BASE_URL','HG_E2E_EMAIL','HG_E2E_PASSWORD','HG_E2E_PERSONNAGE','HG_E2E_UID'])if(!env[n])manquants.push(n);
- if(!a||a.comptesReservesAuxTests!==true||a.autoriseParResponsable!==true)manquants.push('AUTORISATION_EXPLICITE_COMPTES_TEST');
+ if(mode==='tests_isoles'&&(!a||a.comptesReservesAuxTests!==true||a.autoriseParResponsable!==true))manquants.push('AUTORISATION_EXPLICITE_COMPTES_TEST');
  if(manquants.length)return {bloque:true,manquants};
  const url=new URL(env.HG_E2E_BASE_URL);
  if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash||url.pathname!=='/')throw code('URL_HTTPS_ORIGINE_REQUISE');
@@ -52,7 +57,7 @@ function configuration(env=process.env){
   if(e.panne&&!['perdre-reponse','retarder-reponse'].includes(e.panne))throw code('PANNE_INVALIDE');
   if(e.type==='clic'&&!/^[a-z][a-z0-9_]+$/.test(e.rpc||''))throw code('RPC_CIBLE_REQUISE');
  }
- return {url:url.origin,comptes,autorisation:a,duree,plan,bloque:false};
+ return {url:url.origin,comptes,autorisation:a,duree,plan,mode,bloque:false};
 }
 function proxyNavigateur(env){
  const source=env.HTTPS_PROXY||env.HTTP_PROXY;
@@ -78,7 +83,7 @@ function comparer(avant,apres,attendu={}){
   if((apres.entreprises[id].stockProduits?.[produit]??0)-(avant.entreprises[id].stockProduits?.[produit]??0)!==delta)throw code('DELTA_STOCK_INATTENDU');
  }
 }
-function preuve(s){return {liquide:s.liquide,arg:s.arg,pa:s.pa,hp:s.hp,moral:s.moral,inf:s.inf,ent:s.ent,inventaireSHA256:hash(s.inventory),entreprisesSHA256:hash(s.entreprises),batiment:s.current_building,piece:s.current_room};}
+function preuve(s){if(s.protegeeSHA256)return {ficheProtegeeSHA256:s.protegeeSHA256,batiment:s.current_building,piece:s.current_room};return {liquide:s.liquide,arg:s.arg,pa:s.pa,hp:s.hp,moral:s.moral,inf:s.inf,ent:s.ent,inventaireSHA256:hash(s.inventory),entreprisesSHA256:hash(s.entreprises),batiment:s.current_building,piece:s.current_room};}
 class Joueur{
  constructor(page,compte,conf,rapport,signal){this.page=page;this.compte=compte;this.conf=conf;this.rapport=rapport;this.signal=signal;this.derniereAction=0;}
  async rythme(deplacement=false){this.signal.throwIfAborted();const ms=(deplacement?2000:2000)+crypto.randomInt(deplacement?2001:3001);await pause(ms);this.signal.throwIfAborted();this.derniereAction=Date.now();}
@@ -86,15 +91,20 @@ class Joueur{
  async identite(){const s=await this.etat();if(s.nom!==this.compte.nom||s.uid!==this.compte.uid||s.pays!=='republic'||s.ville!=='capitale'||s.backend!==this.conf.autorisation.backend)throw code('IDENTITE_SESSION_OU_TERRITOIRE_CHANGE');return s;}
  async serveur(){
   await this.identite();
-  const r=await this.page.evaluate(async({nom,uid,ids})=>{
+  const r=await this.page.evaluate(async({nom,uid,ids,consultation})=>{
    if(typeof sbGet!=='function')return null;
-   const lignes=await sbGet('personnages','name=eq.'+encodeURIComponent(nom)+'&select=user_id,arg,liquide,pa,hp,moral,resources,stats,inventory,current_building,current_room');
+   const lignes=await sbGet('personnages','name=eq.'+encodeURIComponent(nom)+'&select='+(consultation?'*':'user_id,arg,liquide,pa,hp,moral,resources,stats,inventory,current_building,current_room'));
    if(!Array.isArray(lignes)||lignes.length!==1||lignes[0].user_id!==uid)return null;
    const s=lignes[0];const entreprises={};
    for(const id of ids){const e=await sbGet('entreprises','id=eq.'+encodeURIComponent(id)+'&select=id,data');if(!Array.isArray(e)||e.length!==1)return null;entreprises[id]={stockProduits:e[0].data.stockProduits,caisse:e[0].data.caisse};}
-   return {arg:s.arg,liquide:s.liquide,pa:s.pa,hp:s.hp,moral:s.moral,inf:s.resources?.inf,ent:s.stats?.ENT,inventory:s.inventory,current_building:s.current_building,current_room:s.current_room,entreprises};
-  },{nom:this.compte.nom,uid:this.compte.uid,ids:this.conf.autorisation.entreprises||[]});
-  await this.identite();if(!r)throw code('ETAT_SERVEUR_INACCESSIBLE');return r;
+   return {protegee:consultation?s:undefined,arg:s.arg,liquide:s.liquide,pa:s.pa,hp:s.hp,moral:s.moral,inf:s.resources?.inf,ent:s.stats?.ENT,inventory:s.inventory,current_building:s.current_building,current_room:s.current_room,entreprises};
+  },{nom:this.compte.nom,uid:this.compte.uid,ids:this.conf.autorisation.entreprises||[],consultation:this.conf.mode==='consultation_seule'});
+  await this.identite();if(!r)throw code('ETAT_SERVEUR_INACCESSIBLE');
+  if(this.conf.mode==='consultation_seule'){
+   r.protegeeSHA256=empreinteProtegee(r.protegee);delete r.protegee;
+   if(this.protegeeReference&&this.protegeeReference!==r.protegeeSHA256)throw code('DONNEES_ARNIE_MODIFIEES_PENDANT_CAMPAGNE');
+   this.protegeeReference=r.protegeeSHA256;
+  }return r;
  }
  async clic(locator,deplacement=false){await this.rythme(deplacement);await this.identite();await locator.click({timeout:15000});}
  async connexion(){
@@ -170,6 +180,7 @@ class Joueur{
   this.rapport.visites.push({acteur:this.compte.cle,batiment:s.batiment,piece:s.piece,preuve:preuve(serveur),ordresVisibles:affichage.ordres.map(o=>({libelle:o.libelle,handlerSHA256:hash(o.handler)}))});
  }
  async ouvrirOrdreLecture(fn){
+  if(this.conf.mode==='consultation_seule')throw code('ORDRE_METIER_INTERDIT_EN_CONSULTATION');
   if(!['consulter_dossier_notarial','reclamer_heritage','officialiser_transaction','consulter_archives_notariales'].includes(fn))throw code('CONSULTATION_NON_AUTORISEE');
   const avant=await this.serveur();
   await this.clic(this.page.locator('#vue-batiment [onclick*="doOrder("][onclick*="'+fn+'"]'));
@@ -205,6 +216,7 @@ class Joueur{
   await this.fermerModales();
  }
  async dialogue(){
+  if(this.conf.mode==='consultation_seule')throw code('DIALOGUE_NON_VERIFIE_SANS_EFFET');
   const carte=this.page.locator('#persons-list .person-card[data-enc]').first();
   if(!await carte.count())throw code('PNJ_NON_PRESENT');
   // Le contenu encode doit confirmer un PNJ, jamais un autre joueur.
@@ -229,6 +241,7 @@ class Joueur{
   await this.fermerModales();
  }
  async acte(e){
+  if(this.conf.mode==='consultation_seule')throw code('ACTE_INTERDIT_EN_CONSULTATION');
   const avant=await this.serveur();let utilise=false;
   this.rapport.actesEnCours=this.rapport.actesEnCours||[];
   const enCours={scenario:e.scenario,cas:e.cas||null,acteur:this.compte.cle,avant:preuve(avant)};
@@ -273,12 +286,14 @@ class Joueur{
 }
 async function campagne({env=process.env,prevol=false,interruption,dossier=env.HG_E2E_RAPPORT||path.join(os.tmpdir(),'hg-e2e-'+Date.now())}={}){
  fs.mkdirSync(dossier,{recursive:true,mode:0o700});
- const rapport={debut:new Date().toISOString(),mode:prevol?'prevol':'authentifie-demande',statut:'BLOQUE',visites:[],dialogues:[],catalogues:[],consultations:[],actes:[],etapes:[],reseau:[],erreurs:[],nonExecutes:[...SENSIBLES],casNonExecutes:[...CAS_REQUIS],actesEnCours:[],limites:['Aucun test local ne constitue une preuve authentifiee.']};
+ const rapport={debut:new Date().toISOString(),mode:env.HG_E2E_MODE==='consultation_seule'?'consultation_seule':(prevol?'prevol':'authentifie-demande'),statut:'BLOQUE',visites:[],dialogues:[],catalogues:[],consultations:[],actes:[],etapes:[],reseau:[],erreurs:[],nonExecutes:[...SENSIBLES],casNonExecutes:[...CAS_REQUIS],actesEnCours:[],limites:['Aucun test local ne constitue une preuve authentifiee.']};
  let conf,navigateur,browser,profil,timer,signal,retirerInterruption=()=>{};
  const fichier=path.join(dossier,'rapport.json');
  const enregistrer=()=>fs.writeFileSync(fichier,JSON.stringify(rapport,null,2)+'\n',{mode:0o600});
  try{
   conf=configuration(env);
+  rapport.mode=conf.mode||rapport.mode;
+  if(conf.mode==='consultation_seule')rapport.nonExecutes=[...SENSIBLES,'dialogues','ordres-metier','campagnes-recurrentes'];
   if(env.HG_E2E_REPRISE_DOSSIER&&conf.plan?.length){const ancien=JSON.parse(fs.readFileSync(path.join(env.HG_E2E_REPRISE_DOSSIER,'rapport.json'),'utf8'));if(ancien.actes?.length||ancien.actesEnCours?.length)throw code('REPRISE_SENSIBLE_RECONCILIATION_REQUISE');}
   if(conf.bloque){rapport.blocages=conf.manquants;return rapport;}
   const http=await require('playwright').request.newContext({proxy:proxyNavigateur(env)});
@@ -301,6 +316,7 @@ async function campagne({env=process.env,prevol=false,interruption,dossier=env.H
   const joueurs={};
   for(const compte of conf.comptes){
    const context=await browser.newContext({viewport:{width:1440,height:1000},serviceWorkers:'block',proxy:proxyNavigateur(env)}),page=await context.newPage();
+   if(conf.mode==='consultation_seule')await installerConsultation(context,conf,rapport);
    page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(45000);
    page.on('pageerror',e=>rapport.erreurs.push({acteur:compte.cle,...diagnostic(e.message)}));
    page.on('console',m=>{if(m.type()==='error')rapport.erreurs.push({acteur:compte.cle,...diagnostic(m.text())});});
@@ -309,18 +325,23 @@ async function campagne({env=process.env,prevol=false,interruption,dossier=env.H
    const j=new Joueur(page,compte,conf,rapport,signal);j.sauver=enregistrer;joueurs[compte.cle]=j;await j.connexion();
   }
   const j=joueurs.principal;
-  async function etape(nom,fn,joueur=j){signal.throwIfAborted();const debut=Date.now();try{await fn();rapport.etapes.push({nom,resultat:'REUSSI',dureeMs:Date.now()-debut});}catch(e){rapport.etapes.push({nom,resultat:'ECHEC',code:e.code||'UI_OU_SERVEUR_NON_CONFIRME',...diagnostic(e.message)});try{await joueur.identite();await joueur.page.screenshot({path:path.join(dossier,'echec-'+rapport.etapes.length+'.png')});}catch{}throw e;}finally{enregistrer();}}
+  async function etape(nom,fn,joueur=j){signal.throwIfAborted();const debut=Date.now();try{await fn();rapport.etapes.push({nom,resultat:'REUSSI',dureeMs:Date.now()-debut});}catch(e){rapport.etapes.push({nom,resultat:'ECHEC',code:e.code||'UI_OU_SERVEUR_NON_CONFIRME',...diagnostic(e.message)});try{await joueur.identite();const cible=conf.mode==='consultation_seule'?joueur.page.locator('#vue-batiment.active #piece-image, #vue-rue.active #rc-scene').first():joueur.page;await cible.screenshot({path:path.join(dossier,'echec-'+rapport.etapes.length+'.png')});}catch{}throw e;}finally{enregistrer();}}
   await etape('office-notarial-entree',()=>j.aller('office-notarial'));
-  for(const piece of ['accueil_notaire','bureau_successions','bureau_contrats','archives_notariales'])await etape('office-notarial-'+piece,async()=>{await j.piece('office-notarial',piece);await j.observer();const ordre={accueil_notaire:'consulter_dossier_notarial',bureau_successions:'reclamer_heritage',bureau_contrats:'officialiser_transaction',archives_notariales:'consulter_archives_notariales'}[piece];await j.ouvrirOrdreLecture(ordre);if(piece==='accueil_notaire')await j.dialogue();});
+  for(const piece of ['accueil_notaire','bureau_successions','bureau_contrats','archives_notariales'])await etape('office-notarial-'+piece,async()=>{await j.piece('office-notarial',piece);await j.observer();const ordre={accueil_notaire:'consulter_dossier_notarial',bureau_successions:'reclamer_heritage',bureau_contrats:'officialiser_transaction',archives_notariales:'consulter_archives_notariales'}[piece];if(conf.mode!=='consultation_seule'){await j.ouvrirOrdreLecture(ordre);if(piece==='accueil_notaire')await j.dialogue();}});
   await etape('office-notarial-sortie-sans-rechargement',()=>j.sortir());
   await etape('hotel-entree',()=>j.aller('hotel-republica'));
   for(const piece of ['accueil','bar','restaurant'])await etape('hotel-'+piece,async()=>{await j.piece('hotel-republica',piece);await j.observer();if(piece!=='accueil')await j.catalogue();});
-  await etape('hotel-rechargement',async()=>{const s=await j.identite();await j.rythme();await j.page.reload({waitUntil:'domcontentloaded'});await j.stable(s.batiment,s.piece);await j.observer();});
+  if(conf.mode!=='consultation_seule')await etape('hotel-rechargement',async()=>{const s=await j.identite();await j.rythme();await j.page.reload({waitUntil:'domcontentloaded'});await j.stable(s.batiment,s.piece);await j.observer();});
   for(const [i,e]of conf.plan.entries())await etape('acte-autorise-'+i,()=>joueurs[e.acteur||'principal'].acte(e),joueurs[e.acteur||'principal']);
-  rapport.nonExecutes=SENSIBLES.filter(s=>!rapport.actes.some(a=>a.scenario===s&&a.type==='clic'));
+  if(conf.mode!=='consultation_seule')rapport.nonExecutes=SENSIBLES.filter(s=>!rapport.actes.some(a=>a.scenario===s&&a.type==='clic'));
   await etape('hotel-sortie',()=>j.sortir());
   rapport.casNonExecutes=CAS_REQUIS.filter(c=>!rapport.actes.some(a=>a.cas===c&&['clic','recharger'].includes(a.type)));
   rapport.statut=rapport.casNonExecutes.length||rapport.nonExecutes.length?'PARCOURS_AUTHENTIFIE_PARTIEL':'PARCOURS_AUTHENTIFIE_REUSSI';
+  if(conf.mode==='consultation_seule'){
+   rapport.casNonExecutes=[...CAS_REQUIS];
+   rapport.statut=rapport.protectionsConsultation?.refus.length?'CONSULTATION_AVEC_OPERATIONS_BLOQUEES':'CONSULTATION_AUTHENTIFIEE_REUSSIE';
+   rapport.patrimoineFinal=preuve(await j.serveur());
+  }
   if(rapport.erreurs.length)rapport.statut='PARCOURS_AVEC_ANOMALIES_A_EXAMINER';
  }catch(e){rapport.blocages=[e.code||'ACCES_OU_EXECUTION_IMPOSSIBLE'];rapport.erreurs.push(diagnostic(e.message));rapport.statut=rapport.visites.length?'PARCOURS_INTERROMPU':'BLOQUE';}
  finally{
@@ -332,5 +353,5 @@ async function campagne({env=process.env,prevol=false,interruption,dossier=env.H
  }
  return rapport;
 }
-if(require.main===module){const arret=new AbortController();for(const sig of ['SIGINT','SIGTERM'])process.once(sig,()=>arret.abort());campagne({interruption:arret.signal,prevol:process.argv.includes('--prevol')}).then(r=>{console.log(JSON.stringify({statut:r.statut,visites:r.visites.length,actes:r.actes.length,blocages:r.blocages||[],rapport:process.env.HG_E2E_RAPPORT||'repertoire temporaire'}));process.exitCode=r.statut==='PARCOURS_AUTHENTIFIE_REUSSI'||r.statut==='PREVOL_LOCAL_CONFORME_AUTHENTIFICATION_NON_TESTEE'?0:2;}).catch(()=>{console.error('EXECUTEUR_ECHEC');process.exitCode=1;});}
+if(require.main===module){const arret=new AbortController();for(const sig of ['SIGINT','SIGTERM'])process.once(sig,()=>arret.abort());campagne({interruption:arret.signal,prevol:process.argv.includes('--prevol')}).then(r=>{console.log(JSON.stringify({statut:r.statut,visites:r.visites.length,actes:r.actes.length,blocages:r.blocages||[],rapport:process.env.HG_E2E_RAPPORT||'repertoire temporaire'}));process.exitCode=r.statut==='PARCOURS_AUTHENTIFIE_REUSSI'||r.statut==='CONSULTATION_AUTHENTIFIEE_REUSSIE'||r.statut==='PREVOL_LOCAL_CONFORME_AUTHENTIFICATION_NON_TESTEE'?0:2;}).catch(()=>{console.error('EXECUTEUR_ECHEC');process.exitCode=1;});}
 module.exports={proxyNavigateur,configuration,resumerReseau,diagnostic,comparer,preuve,Joueur,campagne,hash};
