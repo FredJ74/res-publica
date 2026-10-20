@@ -1,0 +1,430 @@
+{
+  "sourceCommit": "baa9cb7e2b7f89db66cf268d21382deb0be2a3a2",
+  "baselineReleve": "2026-10-13T17:41:36.000139",
+  "type": "diagnostic_sans_correction",
+  "productionConsultee": false,
+  "productionModifiee": false,
+  "migrationsAppliquees": [],
+  "postgres": {
+    "nature": "audit_local_sur_baseline_20261013",
+    "productionConsultee": false,
+    "limites": [
+      "Identite/poste simules, pas de GoTrue.",
+      "Vue personnages projection de fixture, pas la vue masquee et son declencheur complet.",
+      "Tables des domaines chargees depuis le baseline ; aucune migration de gameplay appliquee.",
+      "Les cas I reproduisent un defaut attendu et ne valent jamais validation fonctionnelle."
+    ],
+    "sources": {
+      "baseline/domaines/immobilier-et-territoire/20_fonctions.sql": "f7526d373177df9324274e7a0f188651478dae61ead9a4409006e30dad8dc55b",
+      "baseline/domaines/economie/20_fonctions-1.sql": "d607c3195d7a74620f055df0b7bf6c89cc1603f397b9659299e4f2b0ea844317",
+      "baseline/domaines/banque/20_fonctions.sql": "81ec4e42559143e7f9c35900f556fffd2576c925caacf44a65dacb0b7fe1c5a7",
+      "baseline/domaines/economie/20_fonctions-2.sql": "f75daeb55b438677e28b7bfa294bad4f88c1e08b4c1bf116890101d2a745d1c5",
+      "baseline/domaines/socle/20_fonctions.sql": "b961c29de60f40a9e072b9b5e4ebd495aaf2e2306eed9cec2882ac002d83c36a",
+      "baseline/domaines/banque/70_droits.sql": "28331149f12012689690bf94e06410612aa59734ab5d85d43af16877b6e87f87",
+      "baseline/domaines/banque/60_rls-policies.sql": "35dccc124822ed7d01fa3f42598d32325ec5be8f98da803d61d009846c457e24"
+    },
+    "observations": [
+      {
+        "id": "I01",
+        "resultat": "anomalie_reproduite",
+        "constat": "Compromis pose sur le terrain deja possede par AuditeurB, sans aucun debit."
+      },
+      {
+        "id": "I02",
+        "resultat": "anomalie_reproduite",
+        "constat": "Mutation et autorisation posees sans paiement du terrain ni permis independant."
+      },
+      {
+        "id": "I03",
+        "resultat": "anomalie_reproduite",
+        "constat": "Role authenticated sans personnage accepte comme serveur par la RPC de mutation."
+      },
+      {
+        "id": "I04",
+        "resultat": "anomalie_reproduite",
+        "constat": "Second chantier initial autorise sur terrain deja construit."
+      },
+      {
+        "id": "G01",
+        "resultat": "garantie_locale_observee",
+        "constat": "Deux lancements concurrents, un chantier et un apport seulement."
+      },
+      {
+        "id": "I05",
+        "resultat": "anomalie_reproduite",
+        "constat": "Repetition du meme versement debite deux fois : aucun recu de requete."
+      },
+      {
+        "id": "I06",
+        "resultat": "anomalie_reproduite",
+        "constat": "Plan verrouille et surface non respectes par la porte serveur."
+      },
+      {
+        "id": "I07",
+        "resultat": "anomalie_reproduite",
+        "constat": "Reamenagement deja acheve fourni par le client, aucun financement preleve."
+      },
+      {
+        "id": "I08",
+        "resultat": "anomalie_reproduite",
+        "constat": "Pret immobilier 100000 inscrit et arg credite, mais aucun credit du liquide ni du compte bancaire."
+      },
+      {
+        "id": "G02",
+        "resultat": "garantie_locale_observee",
+        "constat": "Compromis accorde gele : rejeu sans second contrat/credit arg."
+      },
+      {
+        "id": "I09",
+        "resultat": "anomalie_reproduite",
+        "constat": "Si le statut du compromis redevient en attente, credit refait malgre conflit sur la dette existante."
+      },
+      {
+        "id": "G03",
+        "resultat": "garantie_locale_observee",
+        "constat": "Fonds insuffisants : pas de chantier cree."
+      },
+      {
+        "id": "I10",
+        "resultat": "anomalie_reproduite",
+        "constat": "Acteur de Republia modifie la parcelle homonyme narco, recherche sans filtre de pays."
+      },
+      {
+        "id": "I11",
+        "resultat": "anomalie_reproduite",
+        "constat": "Creation fonds refusee sur terrain construit, mais apport de 1000 FR retire de arg avant le refus."
+      },
+      {
+        "id": "I12",
+        "resultat": "anomalie_reproduite",
+        "constat": "RLS du baseline permet a AuditeurA de solder directement la dette de AuditeurB."
+      },
+      {
+        "id": "I13",
+        "resultat": "anomalie_reproduite",
+        "constat": "Travail remunere sur chantier sans controle de presence physique dans cette RPC."
+      },
+      {
+        "id": "I14",
+        "resultat": "anomalie_reproduite",
+        "constat": "Premiere revendication concurrente : deux verdicts ok pour deux acquereurs, un seul compromis persiste."
+      },
+      {
+        "id": "I15",
+        "resultat": "anomalie_reproduite",
+        "constat": "Vrai payer_ordre + miroir genere : depot acheter_terrain 1000 FR refuse."
+      },
+      {
+        "id": "I16",
+        "resultat": "anomalie_reproduite",
+        "constat": "Vrai payer_ordre + miroir genere : solde notarial variable 23000 FR refuse."
+      }
+    ]
+  },
+  "javascript": {
+    "nature": "audit_JS_sur_code_reel_avec_IO_de_fixture",
+    "productionConsultee": false,
+    "observations": [
+      {
+        "id": "J01",
+        "resultat": "anomalie_reproduite",
+        "constat": "Echec ecriture terrain : entrepot debite/credite deux fois au rejeu, aucun materiau conserve au chantier."
+      },
+      {
+        "id": "J02",
+        "resultat": "anomalie_reproduite",
+        "constat": "Approvisionnement cron puise dans la reserve militaire que le moteur SQL manuel soustrait."
+      },
+      {
+        "id": "J03",
+        "resultat": "anomalie_reproduite",
+        "constat": "Un apport concurrent de 1000 FR est ecrase par le snapshot ancien du cron."
+      },
+      {
+        "id": "J04",
+        "resultat": "anomalie_reproduite",
+        "constat": "Livraison annoncee et comptee avant une persistance refusee ; batiment non livre apres relecture."
+      },
+      {
+        "id": "J05",
+        "resultat": "anomalie_reproduite",
+        "constat": "Mensualite avec echec personnage : argent et dette divergent, journee deja revendiquee, compteur de succes incremente."
+      },
+      {
+        "id": "J06",
+        "resultat": "anomalie_reproduite",
+        "constat": "Mensualite avec echec dette : argent et dette divergent, journee deja revendiquee, compteur de succes incremente."
+      },
+      {
+        "id": "J07",
+        "resultat": "anomalie_reproduite",
+        "constat": "Depot client : paiement effectue avant refus de reservation du terrain, sans remboursement dans le handler."
+      },
+      {
+        "id": "G04",
+        "resultat": "garantie_locale_observee",
+        "constat": "Livraison pure deplace le chantier et materialise les lots dans le meme objet."
+      },
+      {
+        "id": "J08",
+        "resultat": "anomalie_reproduite",
+        "constat": "Port-Sainte-Marie : surface canonique 1500 m2, achat direct calcule sur 2000 m2 et 24000 FR."
+      },
+      {
+        "id": "J09",
+        "resultat": "anomalie_reproduite",
+        "constat": "Acompte acheter_terrain 2 PA / 1000 FR absent du miroir genere, payer_ordre le refuse s il est conforme."
+      },
+      {
+        "id": "J10",
+        "resultat": "anomalie_reproduite",
+        "constat": "Solde notarial variable incompatible avec le miroir officialiser_transaction qui declare uniquement 0 FR."
+      },
+      {
+        "id": "J11",
+        "resultat": "anomalie_reproduite",
+        "constat": "Apres un succes serveur, le handler de pret appelle .find sur la map bancaire : exception et solde bancaire affiche perime."
+      },
+      {
+        "id": "J12",
+        "resultat": "anomalie_reproduite",
+        "constat": "Saisie nationale : chantier toujours actif sans proprietaire JSON, ancienne colonne proprietaire conservee."
+      },
+      {
+        "id": "J13",
+        "resultat": "anomalie_reproduite",
+        "constat": "Le classement de ville utilise les seules listes de Republia : neuf terrains des trois autres empires sont rattaches a la mauvaise ville."
+      }
+    ],
+    "erreursVille": [
+      {
+        "pays": "narco",
+        "ville": "capitale",
+        "terrain": "terrain-a-batir-6",
+        "villeCalculee": "ville_b"
+      },
+      {
+        "pays": "narco",
+        "ville": "ville_a",
+        "terrain": "terrain-a-batir-3",
+        "villeCalculee": "capitale"
+      },
+      {
+        "pays": "narco",
+        "ville": "ville_b",
+        "terrain": "terrain-a-batir-2",
+        "villeCalculee": "capitale"
+      },
+      {
+        "pays": "soviet",
+        "ville": "capitale",
+        "terrain": "terrain-a-batir-6",
+        "villeCalculee": "ville_b"
+      },
+      {
+        "pays": "soviet",
+        "ville": "ville_a",
+        "terrain": "terrain-a-batir-3",
+        "villeCalculee": "capitale"
+      },
+      {
+        "pays": "soviet",
+        "ville": "ville_b",
+        "terrain": "terrain-a-batir-2",
+        "villeCalculee": "capitale"
+      },
+      {
+        "pays": "khalija",
+        "ville": "capitale",
+        "terrain": "terrain-a-batir-6",
+        "villeCalculee": "ville_b"
+      },
+      {
+        "pays": "khalija",
+        "ville": "ville_a",
+        "terrain": "terrain-a-batir-3",
+        "villeCalculee": "capitale"
+      },
+      {
+        "pays": "khalija",
+        "ville": "ville_b",
+        "terrain": "terrain-a-batir-2",
+        "villeCalculee": "capitale"
+      }
+    ],
+    "sources": {
+      "api/cron-minuit.js": "e73d35ec77c6e59accfd2cf711b97621c41fd2e6ce1c28e76499b7f5097e9875",
+      "plateau-pnj.js": "87b4a0b51b8197ccb67b25844f7e0930b36be00957a084dfa59474af84be8d52",
+      "plateau-justice-economie.js": "ee72d5a76413c401e8398425aaa1732ad47d0ab05116bcd391754b7bb7a6efaf",
+      "plateau-chantiers.js": "028bdd39b18615fe82484cdc9e2f85e0e1ef8faded2e836cd885c17857569271",
+      "data.js": "36c79165970565340201a95126ab125394ae2d7e5896a9eb9c9bd389125bcf1a"
+    }
+  },
+  "carteDeclaree": {
+    "republic": {
+      "capitale": {
+        "nom": "Luthécia",
+        "terrains": [
+          "terrain-a-batir-1",
+          "terrain-a-batir-2",
+          "terrain-a-batir-3",
+          "terrain-a-batir-4",
+          "terrain-a-batir-5"
+        ]
+      },
+      "ville_a": {
+        "nom": "Port-Sainte-Marie",
+        "terrains": [
+          "terrain-a-batir-8",
+          "terrain-a-batir-9",
+          "terrain-a-batir-10",
+          "terrain-a-batir-11"
+        ]
+      },
+      "ville_b": {
+        "nom": "Montrouge",
+        "terrains": [
+          "terrain-a-batir-6",
+          "terrain-a-batir-montrouge-3",
+          "terrain-a-batir-montrouge-7",
+          "terrain-a-batir-montrouge-8",
+          "terrain-a-batir-montrouge-9",
+          "terrain-a-batir-montrouge-12"
+        ]
+      },
+      "caserne": {
+        "nom": "Caserne Militaire de Republia",
+        "terrains": []
+      },
+      "qhs": {
+        "nom": "Quartier Haute Securite",
+        "terrains": []
+      }
+    },
+    "narco": {
+      "capitale": {
+        "nom": "Ciudad Roja",
+        "terrains": [
+          "terrain-a-batir-1",
+          "terrain-a-batir-4",
+          "terrain-a-batir-5",
+          "terrain-a-batir-6",
+          "terrain-a-batir-7"
+        ]
+      },
+      "ville_a": {
+        "nom": "Puerto Negro",
+        "terrains": [
+          "terrain-a-batir-3"
+        ]
+      },
+      "ville_b": {
+        "nom": "Villa Sangre",
+        "terrains": [
+          "terrain-a-batir-2"
+        ]
+      },
+      "caserne": {
+        "nom": "Cuartel General",
+        "terrains": []
+      },
+      "qhs": {
+        "nom": "Prison Central",
+        "terrains": []
+      }
+    },
+    "soviet": {
+      "capitale": {
+        "nom": "Novomirsk",
+        "terrains": [
+          "terrain-a-batir-1",
+          "terrain-a-batir-4",
+          "terrain-a-batir-5",
+          "terrain-a-batir-6",
+          "terrain-a-batir-7"
+        ]
+      },
+      "ville_a": {
+        "nom": "Starovka",
+        "terrains": [
+          "terrain-a-batir-3"
+        ]
+      },
+      "ville_b": {
+        "nom": "Krasnov",
+        "terrains": [
+          "terrain-a-batir-2"
+        ]
+      },
+      "caserne": {
+        "nom": "Garnison du Peuple",
+        "terrains": []
+      },
+      "qhs": {
+        "nom": "Goulag de Novomirsk",
+        "terrains": []
+      }
+    },
+    "khalija": {
+      "capitale": {
+        "nom": "Al Madina",
+        "terrains": [
+          "terrain-a-batir-1",
+          "terrain-a-batir-4",
+          "terrain-a-batir-5",
+          "terrain-a-batir-6",
+          "terrain-a-batir-7"
+        ]
+      },
+      "ville_a": {
+        "nom": "Oasis City",
+        "terrains": [
+          "terrain-a-batir-3"
+        ]
+      },
+      "ville_b": {
+        "nom": "Al-Petrol",
+        "terrains": [
+          "terrain-a-batir-2"
+        ]
+      },
+      "caserne": {
+        "nom": "Forteresse Royale",
+        "terrains": []
+      },
+      "qhs": {
+        "nom": "Prison Royale",
+        "terrains": []
+      }
+    }
+  },
+  "miroirOrdresSHA256": "f3a708408f03fd31c0b59146ebb9b8337a32c8d04f483031d93b96fd9e2bc4e5",
+  "bancsExistants": {
+    "client": {
+      "bancs": 91,
+      "reussis": 91
+    },
+    "contreEpreuves": {
+      "cas": 90,
+      "reussis": 90
+    },
+    "globaux": {
+      "controles": 12,
+      "reussis": 10,
+      "echecs": [
+        "Authority",
+        "Referential"
+      ]
+    }
+  },
+  "accesDistants": {
+    "supabase": "CONNECT_403",
+    "vercel": "CONNECT_403",
+    "connecteurSupabaseExpose": false
+  },
+  "synthese": {
+    "observations": 33,
+    "anomaliesReproduites": 29,
+    "garantiesLocales": 4
+  }
+}
