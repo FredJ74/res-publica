@@ -4344,6 +4344,10 @@ const SURFACE_TERRAINS = {
   'terrain-a-batir-3': 2300,
   'terrain-a-batir-4': 1850,
   'terrain-a-batir-5': 2750,
+  'terrain-a-batir-8': 1500,
+  'terrain-a-batir-9': 1500,
+  'terrain-a-batir-10': 1500,
+  'terrain-a-batir-11': 1500,
   // Lot 2D (19 aout 2026) -- 5 nouveaux terrains de Montrouge, prix a 12 FR/m² valide par Fred.
   // Le lot 6 existant n'a volontairement AUCUNE entree ici (sa superficie n'a jamais ete
   // officiellement fixee) : ne pas lui en ajouter une dans ce lot, cf. plateau-rue-centrale.js.
@@ -4372,11 +4376,17 @@ async function doAcheterTerrain() {
     return;
   }
 
+  // Une surface indeterminee ne peut jamais devenir une surface forfaitaire facturee.
+  if (!Number.isFinite(SURFACE_TERRAINS[id]) || SURFACE_TERRAINS[id] <= 0
+      || (typeof getVilleTerrain === 'function' && !getVilleTerrain(id, state.country))) {
+    showToast('Terrain non disponible', 'La référence de surface ou de localisation de ce terrain doit être précisée avant son acquisition.', false);
+    return;
+  }
   // Deduction PA+cout centralisee (Lot 2C) -- avant toute mutation (setTerrainState, Supabase).
   const r = await deduireCoutOrdre({ pa: 2, cost: ACOMPTE_ACHAT_DIRECT });
   if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '2 PA requis.' : ACOMPTE_ACHAT_DIRECT + ' ' + cur + ' requis pour le dépôt de garantie.', false); return; }
 
-  const surface = SURFACE_TERRAINS[id] || 2000;
+  const surface = SURFACE_TERRAINS[id];
   const prix = surface * PRIX_AU_M2_TERRAIN;
   const delaiJours = 2 + Math.floor(Math.random() * 6); // 2 a 7 jours
   const dateAchat = Date.now() + delaiJours * 86400000;

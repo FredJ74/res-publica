@@ -5235,18 +5235,21 @@ const TERRAINS_PAR_VILLE = {
 // vous de terrains de n'importe quelle ville -- contrairement aux permis (mairie, filtres par
 // ville courante). A2, audit multi-ville du 16 aout 2026 : doActeVenteTerrain/
 // doOuvrirTransfertCompromis/doValiderTransfertCompromis ne parcouraient que TERRAINS_LUTHECIA.
-function getTousLesTerrainsPays() {
-  return Object.values(TERRAINS_PAR_VILLE).flat();
+function getTousLesTerrainsPays(pays) {
+  const p = pays || (typeof state !== 'undefined' ? state.country : 'republic');
+  if (typeof WORLD === 'undefined' || !WORLD[p]) return [];
+  return [...new Set(Object.values(WORLD[p]).flatMap(v => v.buildings || []))]
+    .filter(id => id.startsWith('terrain-a-batir'));
 }
 
 // Ville reelle d'un terrain, par son id -- ne jamais deduire la ville d'un terrain de
 // state.currentCity : le joueur signe toujours a l'Office Notarial de Luthecia, quelle que soit
 // la ville du terrain concerne (cf. finaliserAchatTerrain, plateau-pnj.js).
-function getVilleTerrain(id) {
-  for (const [ville, ids] of Object.entries(TERRAINS_PAR_VILLE)) {
-    if (ids.includes(id)) return ville;
-  }
-  return 'capitale';
+function getVilleTerrain(id, pays) {
+  const p = pays || (typeof state !== 'undefined' ? state.country : 'republic');
+  if (typeof WORLD === 'undefined' || !WORLD[p]) return null;
+  const villes = Object.entries(WORLD[p]).filter(([, v]) => (v.buildings || []).includes(id));
+  return villes.length === 1 ? villes[0][0] : null;
 }
 
 // =====================
@@ -8695,7 +8698,12 @@ async function confirmerPretBancaire(typeBanque, typePret, pa) {
   state.arg = Number(versement.arg);
   state.liquide = Number(versement.liquide);
   if (state.char) state.char.arg = state.arg;
-  const compteNational = (state.comptesBancaires || []).find(c => c.banque === 'nationale');
+  // Le chargeur commun hydrate une map, pas un tableau. Compatibilite des anciens caches.
+  if (Array.isArray(state.comptesBancaires)) {
+    state.comptesBancaires = Object.fromEntries(state.comptesBancaires.filter(c => c?.banque).map(c => [c.banque, c]));
+  }
+  if (!state.comptesBancaires) state.comptesBancaires = {};
+  const compteNational = state.comptesBancaires.nationale;
   if (compteNational && versement.solde_banque != null) compteNational.solde = Number(versement.solde_banque);
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
