@@ -10,7 +10,8 @@ def main():
  try:
   c=psycopg2.connect(serveur.get_uri());c.autocommit=True;q=c.cursor()
   q.execute('''CREATE ROLE anon; CREATE ROLE authenticated;
-  CREATE TABLE personnages_donnees(name text PRIMARY KEY,country text,current_city text,current_building text,arg integer,liquide integer,inventory jsonb,day integer DEFAULT 1);
+  CREATE TABLE personnages_donnees(name text PRIMARY KEY,country text,current_city text,current_building text,arg integer,liquide integer,inventory jsonb,day integer DEFAULT 1,updated_at timestamptz DEFAULT now());
+  CREATE TABLE comptes_bancaires(personnage text,banque text,solde numeric,updated_at timestamptz DEFAULT now(),PRIMARY KEY(personnage,banque));
   CREATE VIEW personnages AS SELECT * FROM personnages_donnees;
   CREATE TABLE terrains_etat(id text PRIMARY KEY,data text,updated_at timestamptz);
   CREATE TABLE ressources_economie(cle text PRIMARY KEY,prix_base numeric);
@@ -19,12 +20,12 @@ def main():
   CREATE FUNCTION terrain_etat_lire(text) RETURNS jsonb LANGUAGE sql AS $$SELECT $1::jsonb$$;
   CREATE FUNCTION inventaire_reception_etat(text) RETURNS jsonb LANGUAGE sql AS $$SELECT jsonb_build_object('ok',true,'inventory',inventory) FROM personnages_donnees WHERE name=$1$$;
   INSERT INTO ressources_economie VALUES('bois',5),('minerai',10),('metal',15);
-  INSERT INTO personnages_donnees VALUES('Fixture','republic','capitale','terrain',100,100,'[{"stackKey":"bois","stackable":true,"qty":20}]',1);
+  INSERT INTO personnages_donnees VALUES('Fixture','republic','capitale','terrain',100,100,'[{"stackKey":"bois","stackable":true,"qty":20}]',1,now());
   INSERT INTO terrains_etat VALUES('republic_terrain','{"city":"capitale","proprietaire":"Fixture","chantier":{"dureeJours":6,"progressionJours":1,"tresorerie":100,"stockMateriaux":{}}}',now());''')
   src=(R/'baseline/domaines/economie/20_fonctions-2.sql').read_text();a=src.index('CREATE OR REPLACE FUNCTION public.vendre_materiaux_chantier(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[a:],re.S);q.execute(src[a:a+m.end()])
   q.execute("CREATE TABLE chantiers_paliers(palier text PRIMARY KEY,apport_minimal numeric,cout_total numeric,gabarit jsonb)")
   q.execute("INSERT INTO chantiers_paliers VALUES('hangar',10500,30000,'{\"niveau\":\"hangar\",\"dureeJours\":6,\"progressionJours\":0}')")
-  q.execute("CREATE FUNCTION helvetia_debiter_fonds_ordinaires(text,numeric) RETURNS boolean LANGUAGE plpgsql AS $$BEGIN UPDATE personnages_donnees SET arg=arg-$2,liquide=liquide-$2 WHERE name=$1 AND liquide >= $2;RETURN FOUND;END$$")
+  src=(R/'baseline/domaines/banque/20_fonctions.sql').read_text();a=src.index('CREATE OR REPLACE FUNCTION public.helvetia_debiter_fonds_ordinaires(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[a:],re.S);q.execute(src[a:a+m.end()])
   src=(R/'baseline/domaines/economie/20_fonctions-1.sql').read_text();a=src.index('CREATE OR REPLACE FUNCTION public.chantier_lancer(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[a:],re.S);q.execute(src[a:a+m.end()])
   migration=next((R/'migrations').glob('*_construction_materiaux_prix_et_dons.sql')).read_text();q.execute(migration);q.execute(migration)
   q.execute("INSERT INTO terrains_etat VALUES('republic_nouveau','{\"city\":\"capitale\",\"proprietaire\":\"Fixture\",\"constructionAutorisee\":true,\"permis\":{\"palierDemande\":\"hangar\"}}',now())")
@@ -71,9 +72,37 @@ def main():
   with ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(concurrent,range(2)))
   assert all(v['ok'] for v in results) and sum(bool(v.get('rejeu')) for v in results)==1;assert etat()[0][0]==avant+2
   q.execute("SELECT has_function_privilege('authenticated','public.vendre_materiaux_chantier(text,text,text,text,integer,integer)','EXECUTE'),has_function_privilege('authenticated','public.vendre_materiaux_chantier(text,text,text,text,integer,integer,text)','EXECUTE')");assert q.fetchone()==(False,True)
+  # Comparaison avant/apres : meme helper historique, memes soldes, meme priorite liquide.
+  cas=[(100,0,40),(50,80,100),(0,100,40),(0,0,0),(0,0,1),(20,0,21)]
+  def configurer(liquide,banque):
+   q.execute("UPDATE personnages_donnees SET liquide=%s,arg=%s",(liquide,liquide+banque))
+   q.execute("INSERT INTO comptes_bancaires(personnage,banque,solde) VALUES('Fixture','nationale',%s) ON CONFLICT(personnage,banque) DO UPDATE SET solde=excluded.solde",(banque,))
+  def soldes():
+   q.execute("SELECT arg,liquide,(SELECT solde FROM comptes_bancaires WHERE personnage='Fixture' AND banque='nationale') FROM personnages_donnees WHERE name='Fixture'");return q.fetchone()
+  references=[]
+  for liq,banque,montant in cas:
+   configurer(liq,banque);q.execute("SELECT helvetia_debiter_fonds_ordinaires('Fixture',%s)",(montant,));references.append((q.fetchone()[0],soldes()))
+  financement=next((R/'migrations').glob('*_construction_lancement_priorite_bancaire.sql')).read_text();q.execute(financement);q.execute(financement)
+  for (liq,banque,montant),reference in zip(cas,references):
+   configurer(liq,banque);q.execute("SELECT helvetia_debiter_fonds_ordinaires('Fixture',%s)",(montant,));assert (q.fetchone()[0],soldes())==reference
+  for liq,banque,montant,attendu in [(100,100,40,(160,100,60)),(50,80,100,(30,30,0)),(20,80,101,(100,20,80)),(100,0,40,(60,60,0))]:
+   configurer(liq,banque);q.execute("SELECT helvetia_debiter_fonds_ordinaires('Fixture',%s,'nationale')",(montant,));assert q.fetchone()[0]==(liq+banque>=montant);assert soldes()==attendu
+  q.execute("SELECT has_function_privilege('authenticated','public.helvetia_debiter_fonds_ordinaires(text,numeric,text)','EXECUTE')");assert q.fetchone()[0] is False
+  configurer(10000,5000)
+  q.execute("INSERT INTO terrains_etat VALUES('republic_banque','{\"city\":\"capitale\",\"proprietaire\":\"Fixture\",\"constructionAutorisee\":true,\"permis\":{\"palierDemande\":\"hangar\"}}',now())")
+  q.execute("SELECT chantier_lancer('Fixture','republic','banque','hangar',10500)");assert q.fetchone()[0]['ok'];assert soldes()==(4500,4500,0)
+  q.execute("SELECT chantier_lancer('Fixture','republic','banque','hangar',10500)");assert not q.fetchone()[0]['ok'];assert soldes()==(4500,4500,0)
+  configurer(10,10);avant=soldes()
+  q.execute("INSERT INTO terrains_etat VALUES('republic_refus','{\"city\":\"capitale\",\"proprietaire\":\"Fixture\",\"constructionAutorisee\":true,\"permis\":{\"palierDemande\":\"hangar\"}}',now())")
+  q.execute("SELECT chantier_lancer('Fixture','republic','refus','hangar',10500)");assert q.fetchone()[0]['raison']=='fonds_insuffisants';assert soldes()==avant
+  q.execute("SELECT data::jsonb ? 'chantier' FROM terrains_etat WHERE id='republic_refus'");assert not q.fetchone()[0]
+  configurer(10,10);q.execute("UPDATE comptes_bancaires SET solde=10.5");avant=soldes()
+  try:q.execute("SELECT helvetia_debiter_fonds_ordinaires('Fixture',1,'nationale')");raise AssertionError('fraction historique a refuser')
+  except psycopg2.Error as e:assert 'etat_financier_non_entier' in str(e)
+  assert soldes()==avant
   q.execute("CREATE OR REPLACE FUNCTION vendre_materiaux_chantier(p_vendeur text,p_country text,p_building_id text,p_matiere text,p_quantite integer,p_prix integer) RETURNS jsonb LANGUAGE sql AS $$SELECT '{}'::jsonb$$")
   try:q.execute(migration);raise AssertionError('garde attendue')
   except psycopg2.Error as e:assert 'definition_non_examinee' in str(e)
-  c.close();print('Groupes PostgreSQL réussis : prix initiaux figes au lancement et arrondis au franc superieur, dons, refus des fractions, rejeu, concurrence, rollback, territoire, droits et garde de source. Dépendances simulées, aucun Supabase.')
+  c.close();print('Groupes PostgreSQL réussis : prix initiaux figes au lancement et arrondis au franc superieur, dons, refus des fractions, rejeu, concurrence, rollback, territoire, droits, garde de source, financement bancaire prioritaire et compatibilite historique. Dépendances simulées, aucun Supabase.')
  finally:serveur.cleanup()
 if __name__=='__main__':main()

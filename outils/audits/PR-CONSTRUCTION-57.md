@@ -4,6 +4,7 @@ Raccordement partiel du parcours construction de l'issue #57, depuis `main` `baa
 - Conservation des surfaces et prix individuels ; correction du prix forfaitaire injecté dans un état non initialisé. Surface absente du terrain 6 de Port-Sainte-Marie signalée, achat refusé avant débit.
 - Tirage/stabilité d'occupation dans le mécanisme client existant. Combat commun non raccordé : refus explicite sans débit, aucun second moteur.
 - Extension préparée du moteur existant de transfert de matériaux : dons, tarifs propriétaire, reçus de rejeu, concurrence et rollback. Client sans deltas locaux. Migration locale uniquement, gardée et non appliquée. Prix initiaux figés au lancement : entrepôt + 10 %, arrondi au franc supérieur (6/11/17 FR). Prix propriétaire uniquement en francs entiers ; aucun module de centimes ni changement de représentation financière.
+- Prélèvement de lancement préparé : priorité bancaire puis liquide, sans débit partiel ; la signature historique du moteur commun garde sa priorité liquide. Nouvelle option interne sans droits clients.
 - Prévol vivant en lecture seule et inventaire des obstacles de découpage, financement/cron et réception. Dépôt sous compromis arrêté avant tout frais tant que son serveur atomique manque.
 
 Validation locale : 93/93 bancs client, 90/90 contre-épreuves, banc PostgreSQL jetable. Contrôles globaux **10/12**, Authority et Referential rouges, expliqués et non masqués. Audit des 15 parcelles non vert : une surface absente. Aucune vérification authentifiée Supabase ou en jeu.
