@@ -11,13 +11,15 @@ def definition(nom,f):
 def table(nom,f):
  s=f.read_text();a=s.index('CREATE TABLE public.'+nom+' (');b=s.index('\n);',a)+3;return s[a:b]
 def main():
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('--local-jetable',action='store_true',required=True);p.parse_args()
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--local-jetable',action='store_true',required=True);p.add_argument('--correctif-reservation',action='store_true');args=p.parse_args()
  import pgserver,psycopg2
  spec=importlib.util.spec_from_file_location('boire_fixture',ROOT/'outils/bancs/banc-offrir-boire-local.py');fixture=importlib.util.module_from_spec(spec);spec.loader.exec_module(fixture)
  schema=re.sub(r'CREATE TABLE recettes_commerce\([^;]+;',table('recettes_commerce',ROOT/'baseline/domaines/economie/10_tables.sql'),fixture.SCHEMA)
  schema=re.sub(r"INSERT INTO recettes_commerce VALUES[^;]+;",'',schema)
  server=pgserver.get_server(tempfile.mkdtemp(prefix='hg-restaurant-'),cleanup_mode='delete');uri=server.get_uri();db=psycopg2.connect(uri);db.autocommit=True;c=db.cursor();c.execute(schema)
  c.execute("ALTER TABLE personnages_donnees ADD COLUMN bonus_pa_differe integer DEFAULT 0; ALTER TABLE personnages_donnees ADD COLUMN employes jsonb DEFAULT '[]'; ALTER TABLE personnages_donnees ADD COLUMN escort_active jsonb DEFAULT '[]'")
+ if args.correctif_reservation:
+  c.execute("ALTER TABLE personnages_donnees ADD COLUMN reservation_hotel jsonb; CREATE TABLE pa_bonus_hotel(building_id text PRIMARY KEY,montant integer); INSERT INTO pa_bonus_hotel VALUES('hotel-republica',2)")
  for t,f in [('tournees','personnage-et-presence'),('invitations_diner','personnage-et-presence'),('pnj_membres','socle-PNJ'),('pa_bonus_differes','finances-publiques')]:c.execute(table(t,ROOT/('baseline/domaines/'+f+'/10_tables.sql')))
  c.execute('ALTER TABLE tournees ADD PRIMARY KEY(id); ALTER TABLE invitations_diner ADD PRIMARY KEY(id)')
  # Projection reelle des identites de couverture ; seules les tables annexes sont minimales.
@@ -50,6 +52,7 @@ def main():
  c.execute("INSERT INTO entreprises VALUES('autre','{\"type\":\"brasserie\",\"country\":\"republic\",\"city\":\"ville_a\",\"buildingId\":\"capitaine-sauvage\",\"carte\":[]}',now())")
  ancien=q("SELECT data FROM entreprises WHERE id='autre'");avant=q("SELECT data FROM entreprises WHERE id='restaurant'")
  c.execute(MIGRATION.read_text());premier=q("SELECT data FROM entreprises WHERE id='restaurant'");c.execute(MIGRATION.read_text());check(q("SELECT data FROM entreprises WHERE id='restaurant'")==premier,'migration rejouee sans reinitialisation');check(q("SELECT data FROM entreprises WHERE id='autre'")==ancien,'autre commerce intact')
+ if args.correctif_reservation:c.execute((ROOT/'migrations/20261020114246_reservation_republica_accueil.sql').read_text())
  check(premier['stockProduits']['snack_buvette']==7 and premier['stockProduits']['vin']==8,'stocks historiques conserves');check(premier['caisse']==avant['caisse'],'caisse non dupliquee');check(premier['stockProduits']['champagne_luthecia']==0,'aucune boisson fictive');check(not any(x.startswith('menu_') for x in premier['cartesParPiece']['bar']),'aucun repas au bar');check('snack_buvette' in premier['cartesParPiece']['bar'] and 'snack_buvette' not in premier['cartesParPiece']['restaurant'],'cacahuetes uniquement bar');check('amuse_bouche_luthecia' in premier['cartesParPiece']['restaurant'],'amuse bouche');check('cocktail_luthecia' not in premier['cartesParPiece']['restaurant'],'pas cocktail restaurant');check(q("SELECT pa FROM recettes_commerce WHERE id='menu_psm_1'")==1,'autre restaurant PA intact')
  def reset():
   c.execute('DELETE FROM invitations_diner; DELETE FROM personnages_donnees; DELETE FROM taxes; UPDATE reglages SET refus=false,erreur=false')

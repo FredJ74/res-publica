@@ -46,7 +46,9 @@ jobs:
       - name: Achat sur PostgreSQL local, sans identifiant Supabase
         run: python3 outils/bancs/banc-achat-commerce-local.py --local-jetable
       - name: Restaurant gastronomique sur PostgreSQL local, sans identifiant Supabase
-        run: python3 outils/bancs/banc-restaurant-luthecia-local.py --local-jetable
+        run: python3 outils/bancs/banc-restaurant-luthecia-local.py --local-jetable --correctif-reservation
+      - name: Reservation Republica, accueil et persistance atomique hors production
+        run: python3 outils/bancs/banc-reservation-republica-local.py --local-jetable
       - name: Catalogue et tournée sur PostgreSQL local, sans identifiant Supabase
         run: python3 outils/bancs/banc-offrir-boire-local.py --local-jetable
       - name: Réception atomique sur PostgreSQL local, sans identifiant Supabase
