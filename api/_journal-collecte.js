@@ -724,6 +724,9 @@ const TYPES_CHRONIQUE = {
   organisation_chef_change:    { domaine: 'organisations',  poidsBase: 'mineur',      cransPJ: 1 },
   entreprise_rachat:           { domaine: 'economie',       poidsBase: 'mineur',      cransPJ: 1 },
   subvention_publique:         { domaine: 'economie',       poidsBase: 'secondaire',  cransPJ: 2 },
+  // Une conference est un evenement public reel ; ses declarations restent attribuees a l'orateur.
+  conference_presse:           { domaine: 'presse',         poidsBase: 'secondaire',  cransPJ: 2,
+    nature: 'declaration', resume: r => 'Conférence de presse : ' + r.libelle },
   lobbying_article_favorable:  { domaine: 'presse',         poidsBase: 'secondaire',  cransPJ: 1 },
   fraude_electorale_dejouee:   { domaine: 'politique',      poidsBase: 'majeur',      cransPJ: 2 },
   fraude_electorale_revelee:   { domaine: 'politique',      poidsBase: 'majeur',      cransPJ: 2 },
