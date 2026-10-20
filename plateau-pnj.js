@@ -3092,7 +3092,10 @@ async function repondreInvitationSociale(id, accepte, nomInviteur) {
 
 // Un seul sondage social par session, sans requêtes superposées et sans onglet masqué.
 // Les réponses restent persistées en base : une reconnexion récupère les invitations.
-const RP_SOCIAL_POLL_MS = 12000;
+// Rattrapage borne : les invitations sont relues a l'ouverture, au retour d'onglet,
+// puis au plus toutes les 90 s. Une session qui n'utilise aucun ordre social
+// ne doit plus interroger quatre flux toutes les 12 s.
+const RP_SOCIAL_POLL_MS = 90000;
 const RP_SOCIAL_POLL_EN_COURS = new Set();
 function lancerVerificationSociale(nom) {
   if (document.hidden || RP_SOCIAL_POLL_EN_COURS.has(nom)) return;
