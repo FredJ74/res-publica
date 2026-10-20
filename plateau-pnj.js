@@ -3095,8 +3095,12 @@ async function repondreInvitationSociale(id, accepte, nomInviteur) {
 // Rattrapage borne : les invitations sont relues a l'ouverture, au retour d'onglet,
 // puis au plus toutes les 90 s. Une session qui n'utilise aucun ordre social
 // ne doit plus interroger quatre flux toutes les 12 s.
-const RP_SOCIAL_POLL_MS = 90000;
+// La realite serveur se synchronise lors d'une interaction explicite du joueur.
+// Aucun sondage social periodique pour une session inactive (arbitrage 21/10).
+// Une courte temporisation regroupe les clics rapides sans lancer quatre GET a chaque fois.
 const RP_SOCIAL_POLL_EN_COURS = new Set();
+let RP_SOCIAL_DERNIERE_VERIFICATION_MS = 0;
+let RP_SOCIAL_VERIFICATION_PROGRAMMEE = false;
 function lancerVerificationSociale(nom) {
   if (document.hidden || RP_SOCIAL_POLL_EN_COURS.has(nom)) return;
   const verification = window[nom];
@@ -3106,18 +3110,34 @@ function lancerVerificationSociale(nom) {
     console.warn('[Social] Verification indisponible : ' + nom, e);
   }).finally(() => RP_SOCIAL_POLL_EN_COURS.delete(nom));
 }
+function verifierRealiteSociale() {
+  RP_SOCIAL_DERNIERE_VERIFICATION_MS = Date.now();
+  lancerVerificationSociale('verifierInvitationsSocialesRecues');
+  lancerVerificationSociale('verifierReponseInvitationSociale');
+  lancerVerificationSociale('verifierTourneesRecues');
+  lancerVerificationSociale('verifierTourneesActivesOffreur');
+}
+function programmerVerificationSocialeSurAction() {
+  if (document.hidden || RP_SOCIAL_VERIFICATION_PROGRAMMEE) return;
+  // Sur des clics rapproches, le premier declenche la synchronisation ; les
+  // suivants utilisent la realite deja en cours de lecture, sans rafale de GET.
+  if (Date.now() - RP_SOCIAL_DERNIERE_VERIFICATION_MS < 5000) return;
+  RP_SOCIAL_VERIFICATION_PROGRAMMEE = true;
+  setTimeout(() => {
+    RP_SOCIAL_VERIFICATION_PROGRAMMEE = false;
+    if (!document.hidden) verifierRealiteSociale();
+  }, 0);
+}
 function demarrerPollingInvitationsDiner() {
   if (window._dinerPollingActif) return;
   window._dinerPollingActif = true;
-  const verifier = () => {
-    lancerVerificationSociale('verifierInvitationsSocialesRecues');
-    lancerVerificationSociale('verifierReponseInvitationSociale');
-    lancerVerificationSociale('verifierTourneesRecues');
-    lancerVerificationSociale('verifierTourneesActivesOffreur');
-  };
-  setInterval(verifier, RP_SOCIAL_POLL_MS);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) verifier(); });
-  verifier();
+  // Connexion / ouverture : lire les evenements en attente une fois.
+  verifierRealiteSociale();
+  // Les interactions suivantes relisent l'etat, sans minuterie perpetuelle.
+  document.addEventListener('click', programmerVerificationSocialeSurAction, true);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') programmerVerificationSocialeSurAction();
+  }, true);
 }
 
 function ouvrirModalFabriquerKompromat(nomAgent) {
