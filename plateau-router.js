@@ -519,6 +519,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'rendre_sentence')         { ouvrirDossiersJuge(pa, cost); return; }
   // L'ECRAN DU PARQUET. Zero PA : c'est un ecran de decision, pas un acte.
   if (fn === 'parquet')                 { ouvrirParquet(); return; }
+  if (fn === 'demarches_administratives') { ouvrirDemarchesAdministratives(); return; }
+  if (fn === 'achat_terrains') { ouvrirAchatTerrains(); return; }
+  if (fn === 'gestion_intrus') { ouvrirGestionIntrus(); return; }
+  if (fn === 'information_chantier') { ouvrirInformationChantier(); return; }
+  if (fn === 'approvisionner_chantier_menu') { ouvrirApprovisionnementChantier(); return; }
+  if (fn === 'information_locaux') { ouvrirInformationLocaux(); return; }
   if (fn === 'etat_civil') { ouvrirEtatCivil(); return; }
   if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(pa, cost); return; }
   if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(pa, cost); return; }

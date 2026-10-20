@@ -5235,18 +5235,14 @@ const TERRAINS_PAR_VILLE = {
 // vous de terrains de n'importe quelle ville -- contrairement aux permis (mairie, filtres par
 // ville courante). A2, audit multi-ville du 16 aout 2026 : doActeVenteTerrain/
 // doOuvrirTransfertCompromis/doValiderTransfertCompromis ne parcouraient que TERRAINS_LUTHECIA.
-function getTousLesTerrainsPays() {
-  return Object.values(TERRAINS_PAR_VILLE).flat();
+function getTousLesTerrainsPays(pays) {
+  const p=pays||(typeof state!=='undefined'?state.country:'republic');
+  return [...new Set(Object.values(WORLD[p]||{}).flatMap(v=>(v.buildings||[]).filter(id=>id.startsWith('terrain-a-batir'))))];
 }
-
-// Ville reelle d'un terrain, par son id -- ne jamais deduire la ville d'un terrain de
-// state.currentCity : le joueur signe toujours a l'Office Notarial de Luthecia, quelle que soit
-// la ville du terrain concerne (cf. finaliserAchatTerrain, plateau-pnj.js).
-function getVilleTerrain(id) {
-  for (const [ville, ids] of Object.entries(TERRAINS_PAR_VILLE)) {
-    if (ids.includes(id)) return ville;
-  }
-  return 'capitale';
+function getVilleTerrain(id,pays) {
+  const p=pays||(typeof state!=='undefined'?state.country:'republic');
+  const villes=Object.entries(WORLD[p]||{}).filter(([,v])=>(v.buildings||[]).includes(id));
+  return villes.length===1?villes[0][0]:null;
 }
 
 // =====================
@@ -8716,168 +8712,43 @@ const DUREE_INSTRUCTION_PERMIS = {
   hangar: 2,
   commerce_standard: 4,
   commerce_premium: 6,
-  building: 10
+  building: 7
 };
 
-async function doDeposerDemandePermis(pa, cost) {
-  const id = state.currentBuilding;
+async function doDeposerDemandePermis(pa, cost, terrainId) {
+  const id = terrainId || state.currentBuilding;
+  const personnage = state.char, pays = state.country, ville = state.currentCity;
   await chargerTerrainState(id);
+  if(state.char !== personnage || state.country !== pays || state.currentCity !== ville) return;
   const ts = getTerrainState(id);
-  if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false); return; }
-
-  // Lot 1.5.13 : verdict unique (plateau-immobilier.js) -- deja construit, instruction en cours,
-  // ou carence de trois jours apres un refus. Aucune de ces regles n'est reecrite ici.
+  if (!estTitulaire(ts.proprietaire) && !(ts.compromis && ts.compromisPar === personnage?.name)) {
+    showToast('Accès refusé', 'Un titre de propriété ou un compromis à votre nom est requis.', false); return;
+  }
   const vDepot = verdictNouvelleDemandePermis(ts, state.day || 1);
-  if (!vDepot.ok) {
-    showToast(
-      vDepot.raison === 'deja_construit'      ? 'Déjà construit'
-    : vDepot.raison === 'instruction_en_cours' ? 'Demande en cours'
-    : 'Refus récent',
-      vDepot.raison === 'deja_construit'      ? 'Un bâtiment existe déjà sur ce terrain.'
-    : vDepot.raison === 'instruction_en_cours' ? 'Une demande de permis est déjà en instruction.'
-    : 'Le service d\'urbanisme a refusé une demande récemment. Nouveau dépôt possible dans '
-      + vDepot.restant + ' jour' + (vDepot.restant > 1 ? 's' : '') + '.', false);
-    return;
-  }
-
-  document.getElementById('postes-modal-title').textContent = 'Déposer une demande de permis';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Passé le délai d\'instruction, l\'absence de décision vaut accord : le permis est accordé tacitement. Le service d\'urbanisme peut accepter ou refuser tant que le dossier est ouvert — un refus doit être motivé par écrit.</div>';
-  Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
-    const duree = DUREE_INSTRUCTION_PERMIS[key];
-    // Lot 1.5.2 : un palier divisible passe d'abord par l'ecran de plan (ou le decoupage reste
-    // facultatif) ; hangar et commerce standard, indivisibles, sont deposes directement -- aucun
-    // formulaire de decoupage ne leur est propose, conformement au GD.
-    const action = planPermisPossible(ts, key)
-      ? 'ouvrirPlanPermis(\'' + key + '\',' + pa + ',' + cost + ')'
-      : 'confirmerDepotPermis(\'' + key + '\',' + pa + ',' + cost + ')';
-    html += '<button onclick="' + action + '" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
-    html += '<span>' + niv.label + '</span><span style="color:#8a8060">' + duree + ' jour(s) d\'instruction</span></button>';
+  if (!vDepot.ok) { showToast('Demande indisponible', vDepot.raison === 'cooldown_refus'
+    ? 'Nouveau dépôt possible dans ' + vDepot.restant + ' jour(s).'
+    : 'Un bâtiment ou une demande en cours existe déjà sur ce terrain.', false); return; }
+  let html = '<p>1 PA · 100 FR. Instruction au plus sept jours ; silence vaut accord. Tout refus doit être motivé. Le découpage sera défini durant le dernier tiers du chantier.</p>';
+  Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key,niv]) => {
+    const action = 'confirmerDepotPermis(' + [JSON.stringify(key),1,100,JSON.stringify(id)].join(',') + ')';
+    html += '<button type="button" class="construction-action construction-type" onclick="' + constructionEchapper(action) + '"><img src="' + constructionEchapper(niv.imageUrl) + '" alt=""><span>' + constructionEchapper(niv.label) + ' — ' + DUREE_INSTRUCTION_PERMIS[key] + ' jours</span></button>';
   });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  constructionFenetre('Déposer une demande de permis', html);
 }
 
-// PLAN DE DECOUPAGE JOINT A LA DEMANDE (Lot 1.5.2)
-// Brouillon en memoire uniquement, jamais persiste tant que le permis n'est pas depose. Il porte
-// son palier : si le demandeur revient en arriere et choisit un autre type de construction, le
-// plan devenu sans objet est ignore au lieu de contaminer la nouvelle demande (voir
-// confirmerDepotPermis).
-let _planPermisEnCours = { palier: null, lots: [] };
-
-async function ouvrirPlanPermis(palierDemande, pa, cost) {
-  const id = state.currentBuilding;
-  const ts = getTerrainState(id);
-  if (!planPermisPossible(ts, palierDemande)) {
-    // Ne devrait pas etre atteignable depuis l'ecran precedent : filet en cas d'appel direct.
-    confirmerDepotPermis(palierDemande, pa, cost);
-    return;
-  }
-  if (_planPermisEnCours.palier !== palierDemande) _planPermisEnCours = { palier: palierDemande, lots: [] };
-  renderPlanPermis(pa, cost);
-}
-
-function renderPlanPermis(pa, cost) {
-  const id = state.currentBuilding;
-  const ts = getTerrainState(id);
-  const palier = _planPermisEnCours.palier;
-  const lots = _planPermisEnCours.lots;
-  const projection = projectionPermis(ts, palier, lots);
-  const dispo = surfaceDisponible(projection);
-  const destinations = destinationsAutorisees(palier);
-
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Plan de découpage joint à la demande — <b>facultatif</b>. Vous pouvez déposer sans aucun lot : le bâtiment sera alors livré indivis, et la surface non attribuée vous restera.</div>';
-  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Surface exploitable : ' + surfaceTotale(ts) + ' m² · Inscrite au plan : ' + surfaceAllouee(projection) + ' m² · Reste : ' + dispo + ' m².<br>'
-       + destinations.map(function(d) {
-           return (d === 'appartement' ? 'Appartement' : 'Commerce') + ' : minimum ' + surfaceMinimaleLot(palier, d) + ' m²';
-         }).join(' · ') + '.</div>';
-
-  if (lots.length > 0) {
-    html += '<div style="display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem">';
-    lots.forEach(function(l, i) {
-      html += '<div style="padding:.5rem .6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
-      html += '<span style="font-size:.82rem;color:#c0b090">' + l.label + ' — ' + l.surface + ' m² · ' + (destinationDuLot(l) === 'appartement' ? 'appartement' : 'commerce') + '</span>';
-      html += '<button onclick="doRetirerLotPlanPermis(' + i + ',' + pa + ',' + cost + ')" style="font-size:.68rem;color:#cc5540;background:transparent;border:none;cursor:pointer">Retirer</button>';
-      html += '</div>';
-    });
-    html += '</div>';
-  }
-
-  html += '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">';
-  if (destinations.length > 1) {
-    html += '<select id="plan-destination" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
-    destinations.forEach(function(d) {
-      html += '<option value="' + d + '">' + (d === 'appartement' ? 'Appartement' : 'Commerce') + '</option>';
-    });
-    html += '</select>';
-  }
-  html += '<input id="plan-label" type="text" placeholder="Nom du lot..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '<input id="plan-surface" type="number" placeholder="Surface m²..." style="width:120px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '</div>';
-  html += '<button class="pnj-action-btn" onclick="doAjouterLotPlanPermis(' + pa + ',' + cost + ')">+ Ajouter ce lot au plan</button>';
-  html += '<button class="pnj-action-btn" style="margin-top:.6rem" onclick="confirmerDepotPermis(\'' + palier + '\',' + pa + ',' + cost + ')">Déposer la demande'
-       + (lots.length > 0 ? ' avec ce plan (' + lots.length + ' lot' + (lots.length > 1 ? 's' : '') + ')' : ' sans découpage') + '</button>';
-  html += '</div>';
-
-  document.getElementById('postes-modal-title').textContent = 'Découpage joint à la demande';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function doAjouterLotPlanPermis(pa, cost) {
-  const ts = getTerrainState(state.currentBuilding);
-  const palier = _planPermisEnCours.palier;
-  const label = (document.getElementById('plan-label')?.value || '').trim();
-  const surface = parseInt(document.getElementById('plan-surface')?.value || 0);
-  const destinationsPalier = destinationsAutorisees(palier);
-  const destination = document.getElementById('plan-destination')?.value || destinationsPalier[0];
-
-  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
-
-  // Meme verdict que la division d'un batiment livre, applique au terrain PROJETE : aucune regle
-  // de surface n'est reecrite ici.
-  const verdict = verdictAjoutLotPlan(ts, palier, _planPermisEnCours.lots, { destination, surface });
-  if (!verdict.ok) {
-    showToast(verdict.raison === 'surface_indisponible' ? 'Surface insuffisante' : 'Lot refusé', verdict.message, false);
-    return;
-  }
-
-  _planPermisEnCours.lots.push({
-    id: 'lot-' + Date.now() + '-' + _planPermisEnCours.lots.length,   // unique meme en cas d'ajouts dans la meme milliseconde
-    label, surface: verdict.surface, destination: verdict.destination
-  });
-  renderPlanPermis(pa, cost);
-}
-
-function doRetirerLotPlanPermis(index, pa, cost) {
-  _planPermisEnCours.lots.splice(index, 1);
-  renderPlanPermis(pa, cost);
-}
-
-async function confirmerDepotPermis(palierDemande, pa, cost) {
-  const id = state.currentBuilding;
+async function confirmerDepotPermis(palierDemande, pa, cost, terrainId) {
+  const id = terrainId || state.currentBuilding;
+  pa = 1; cost = 100;
+  if (!Object.prototype.hasOwnProperty.call(DUREE_INSTRUCTION_PERMIS,palierDemande)) return;
+  const titre = getTerrainState(id);
+  if (!estTitulaire(titre.proprietaire) && !(titre.compromis && titre.compromisPar === state.char?.name)) return;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Déposer ce permis')) return;
   const ts = getTerrainState(id);
   const jour = state.day || 1;
   const duree = DUREE_INSTRUCTION_PERMIS[palierDemande];
 
-  // Lot 1.5.2 : le plan n'est retenu que s'il a ete compose POUR CE PALIER (un retour en arriere
-  // vers un autre type de construction ne doit pas trainer un decoupage devenu sans objet), et
-  // seulement si ce palier accepte un decoupage sur ce terrain.
-  const planCandidat = (_planPermisEnCours.palier === palierDemande && planPermisPossible(ts, palierDemande))
-    ? _planPermisEnCours.lots : [];
-
-  // Defense en profondeur : le plan est revalide ENTIER avant enregistrement, meme si l'ecran a
-  // deja valide chaque ajout. Un plan invalide n'annule pas la demande -- il est simplement
-  // refuse, le demandeur restant libre de deposer sans decoupage.
-  const verdictPlan = verdictPlanPermis(ts, palierDemande, planCandidat);
-  if (!verdictPlan.ok) {
-    showToast('Plan refusé', verdictPlan.message, false);
-    return;
-  }
-  const decoupageInitial = snapshotPlanPermis(planCandidat);
+  // Aucun plan au depot : les lots appartiennent au dernier tiers des travaux.
+  const decoupageInitial = [];
 
   // Lot 1.5.5 : l'archive municipale est la source historique OFFICIELLE. Un depot ne peut donc
   // pas etre repute traite si elle n'a pas ete ecrite. On archive AVANT de prelever le cout et
@@ -8935,7 +8806,6 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
   const vDepot = await sbTerrainActe('terrain_permis_acte', {
     p_terrain_id: id, p_acte: 'permis_deposer', p_patch: { permis: permisACreer }
   });
-  _planPermisEnCours = { palier: null, lots: [] };   // brouillon consomme
   if (!vDepot || vDepot.ok !== true) {
     signalerRefusTerrain(vDepot, 'Le dépôt de la demande');
     return;
