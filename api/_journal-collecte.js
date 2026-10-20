@@ -716,6 +716,9 @@ async function collecterGrevesGenerales(periode, pays, personnagesConnus) {
 // lobbying reste structurellement plus faible qu'un vrai evenement politique.
 const TYPES_CHRONIQUE = {
   nomination:                  { domaine: 'politique',      poidsBase: 'secondaire',  cransPJ: 2 },
+  // La designation du president de l'Assemblee est un resultat institutionnel public
+  // verifie dans chronique_nationale, y compris lorsque le tirage au sort departage les elus.
+  assemblee_presidence:        { domaine: 'politique',      poidsBase: 'important',   cransPJ: 1 },
   election_resultat:           { domaine: 'politique',      poidsBase: 'secondaire',  cransPJ: 2 },
   greve_ordinaire_debut:       { domaine: 'greve_ordinaire', poidsBase: 'secondaire', cransPJ: 2 },
   greve_ordinaire_fin:         { domaine: 'greve_ordinaire', poidsBase: 'mineur',     cransPJ: 1 },
