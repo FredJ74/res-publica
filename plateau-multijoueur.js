@@ -153,9 +153,9 @@ function filtrerPnjPostesPourvus(persons) {
 }
 
 async function rafraichirTitulairesPostesElectifs() {
-  if (typeof sbListPersonnages !== 'function') return;
+  if (typeof sbListTitulairesPostes !== 'function') return;
   try {
-    const joueurs = await sbListPersonnages() || [];
+    const joueurs = await sbListTitulairesPostes() || [];
     const cache = {};
     joueurs.forEach(j => {
       let poste = j.poste;
@@ -463,22 +463,60 @@ function renderPersonsList(persons, targetId) {
 // Cache partagé des photos de profil (nom -> photo_url), réutilisé pour la présence, le forum et les mails
 window._cachePhotosJoueurs = window._cachePhotosJoueurs || {};
 window._cachePhotosJoueursTimestamp = window._cachePhotosJoueursTimestamp || 0;
-async function rafraichirCachePhotosJoueurs() {
+function contexteCachePhotosJoueurs() {
+  return JSON.stringify([
+    typeof rpAuthUid === 'function' ? rpAuthUid() : null,
+    typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant()
+      : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)
+  ]);
+}
+async function rafraichirCachePhotosJoueurs(noms) {
+  const contexte = contexteCachePhotosJoueurs();
+  let registre = window._cachePhotosJoueursRegistre;
+  if (!registre || registre.contexte !== contexte) {
+    registre = { contexte, lues: new Map(), completA: null, lecture: null };
+    window._cachePhotosJoueursRegistre = registre;
+    window._cachePhotosJoueurs = {};
+    window._cachePhotosJoueursTimestamp = 0;
+  }
+  const encoreValide = () => window._cachePhotosJoueursRegistre === registre
+    && contexteCachePhotosJoueurs() === contexte;
+  const demandes = noms === undefined ? null
+    : [...new Set(noms.filter(n => typeof n === 'string' && n.length > 0))];
   const maintenant = Date.now();
-  // Rafraichir au maximum toutes les 60 secondes pour éviter de spammer Supabase
-  if (maintenant - window._cachePhotosJoueursTimestamp < 60000 && Object.keys(window._cachePhotosJoueurs).length > 0) {
-    return window._cachePhotosJoueurs;
+  if (registre.completA !== null && maintenant - registre.completA < 60000) return window._cachePhotosJoueurs;
+  const manquants = demandes === null ? null : demandes.filter(n =>
+    !registre.lues.has(n) || maintenant - registre.lues.get(n) >= 60000);
+  if (manquants !== null && manquants.length === 0) return window._cachePhotosJoueurs;
+  // Serialiser les chargements du cache : plusieurs vues peuvent s'ouvrir dans le meme tick.
+  // Apres l'attente, recalculer uniquement ce qui manque, sans rejouer les lectures en echec.
+  if (registre.lecture) {
+    const succes = await registre.lecture;
+    if (!encoreValide()) return {};
+    return succes ? rafraichirCachePhotosJoueurs(noms) : window._cachePhotosJoueurs;
   }
-  if (typeof sbListPersonnages === 'function') {
-    try {
-      const joueurs = await sbListPersonnages() || [];
-      const cache = {};
-      joueurs.forEach(j => { if (j.photo_url) cache[j.name] = j.photo_url; });
+  if (typeof sbListPhotosJoueurs !== 'function') return window._cachePhotosJoueurs;
+  const lecture = Promise.resolve().then(() => sbListPhotosJoueurs(manquants === null ? undefined : manquants))
+    .then(joueurs => {
+      if (!encoreValide() || !Array.isArray(joueurs)) return false;
+      const cache = manquants === null ? {} : { ...window._cachePhotosJoueurs };
+      const date = Date.now();
+      if (manquants === null) {
+        registre.lues.clear();
+        registre.completA = date;
+        window._cachePhotosJoueursTimestamp = date;
+      } else manquants.forEach(n => { delete cache[n]; registre.lues.set(n, date); });
+      joueurs.forEach(j => {
+        registre.lues.set(j.name, date);
+        if (j.photo_url) cache[j.name] = j.photo_url;
+      });
       window._cachePhotosJoueurs = cache;
-      window._cachePhotosJoueursTimestamp = maintenant;
-    } catch(e) {}
-  }
-  return window._cachePhotosJoueurs;
+      return true;
+    }).catch(() => false);
+  registre.lecture = lecture;
+  try { await lecture; }
+  finally { if (registre.lecture === lecture) registre.lecture = null; }
+  return encoreValide() ? window._cachePhotosJoueurs : {};
 }
 
 // Retourne le HTML d'avatar (vraie photo si connue, sinon icone par defaut)
@@ -514,22 +552,25 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
   const buildingId = buildingIdParam !== undefined ? buildingIdParam : state.currentBuilding;
   const roomId = roomIdParam !== undefined ? roomIdParam : state.currentRoom;
   targetId = targetId || 'persons-list';
-  const moi = state.char?.name;
+  const moi = state.char?.name, personnage = state.char, pays = state.country, ville = state.currentCity;
+  const session = contexteCachePhotosJoueurs();
+  const encoreIci = () => state.char === personnage && state.country === pays && state.currentCity === ville
+    && contexteCachePhotosJoueurs() === session
+    && (buildingId === 'rue-centrale'
+      ? (typeof rueCentraleNoeudActuel === 'undefined' || rueCentraleNoeudActuel === roomId)
+      : (state.currentBuilding === buildingId && state.currentRoom === roomId));
   try {
     // Les statuts judiciaires sont relus EN MEME TEMPS que la presence : ils ne valent que pour
     // cette piece, et une table perimee afficherait une mention sur quelqu'un qui est parti.
     await rafraichirStatutsJudiciaires();
-    const presents = await sbGetPresencesInRoom(state.country, state.currentCity, buildingId, roomId);
-    // Si on a change de piece/scene entre temps (pour la rue, on verifie le noeud actuel)
-    if (buildingId === 'rue-centrale') {
-      if (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== roomId) return;
-    } else if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) {
-      return;
-    }
+    if (!encoreIci()) return;
+    const presents = await sbGetPresencesInRoom(pays, ville, buildingId, roomId);
+    if (!encoreIci()) return;
     const autres = presents.filter(p => p.name !== moi);
 
     // Recuperer les photos depuis l'annuaire des personnages (presences n'a pas de photo)
-    const photosParNom = await rafraichirCachePhotosJoueurs();
+    const photosParNom = await rafraichirCachePhotosJoueurs(autres.map(p => p.name));
+    if (!encoreIci()) return;
 
     // Mettre en cache pour getCurrentRoomPersons() (utilisé par assassinat, dons, etc.)
     window._vraisJoueursPresents = autres.map(p => ({

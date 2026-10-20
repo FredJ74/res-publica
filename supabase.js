@@ -407,7 +407,9 @@ function reporterDeltaPopNonEcrit(charState, ressources) {
 // n'existe pas, la sauvegarde ne fait rien et le dit -- l'appelant, lui, verra simplement que
 // rien n'a ete ecrit, ce qu'il sait deja gerer (voir reporterDeltaPopNonEcrit).
 async function sbEcrirePersonnage(data) {
-  const r = await sbUpdate('personnages', `name=eq.${encodeURIComponent(data.name)}`, data);
+  // Seuls l'existence et le repere de fraicheur sont consommes par la file de sauvegarde.
+  // Ne pas renvoyer photo, inventaire et historique a chaque PATCH. Le corps ecrit est intact.
+  const r = await sbUpdate('personnages', `name=eq.${encodeURIComponent(data.name)}&select=name,updated_at`, data);
   // PostgREST rend un tableau VIDE quand le filtre ne trouve rien -- valeur truthy, que
   // l'appelant prendrait pour une reussite. On rend explicitement null : c'est le signal que
   // sbSavePersonnage sait deja interpreter (report du delta de POP non ecrit).
@@ -928,6 +930,26 @@ async function sbLoadPersonnage(name) {
 async function sbListPersonnages() {
   // archetype (vocation) volontairement exclu - reste secret pour les autres joueurs
   return sbGet('personnages', 'select=name,country,current_city,poste,photo_url,domicile&order=created_at.asc');
+}
+
+// Projections dediees aux rafraichissements : jamais de portraits pour un titre politique.
+async function sbListTitulairesPostes() {
+  return sbGet('personnages', 'select=name,poste&poste=not.is.null');
+}
+
+// Les vues de presence ne demandent que les portraits des PJ effectivement affiches.
+// Les autres vues peuvent toujours demander l'annuaire des photos complet sans argument.
+async function sbListPhotosJoueurs(noms) {
+  if (noms === undefined) return sbGet('personnages', 'select=name,photo_url');
+  const uniques = [...new Set(noms.filter(n => typeof n === 'string' && n.length > 0))].sort();
+  const photos = [];
+  for (let i = 0; i < uniques.length; i += 100) {
+    const valeurs = '(' + uniques.slice(i, i + 100).map(n => '"' + n.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"').join(',') + ')';
+    const rows = await sbGet('personnages', 'select=name,photo_url&name=in.' + encodeURIComponent(valeurs));
+    if (!Array.isArray(rows)) return null; // panne distincte d'une liste de photos vide
+    photos.push(...rows);
+  }
+  return photos;
 }
 
 // =====================
@@ -1907,7 +1929,7 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId, groupeP
   }
   // Upsert — name est cle primaire, on remplace la ligne existante (sinon conflit silencieux)
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/presences`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/presences?select=name`, {
       method: 'POST',
       headers: { ...sbEnTetes(), 'Prefer': 'resolution=merge-duplicates,return=representation' },
       body: JSON.stringify({
@@ -4824,9 +4846,14 @@ async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingI
 // existante ou future n'a jamais tournee_id renseigne (jamais ecrit par sbCreerInvitationDiner),
 // donc ce filtre est un no-op strict pour elles -- seul le comportement des lignes de tournee
 // change (elles disparaissent de cette requete).
+// Les deux lectures de reception du meme tick partagent exactement cette requete.
+// sbGet mutualise deja les GET simultanes par session, sans conserver de resultat ensuite.
+async function sbGetInvitationsRecues(nomJoueur) {
+  return sbGet('invitations_diner', `invite=eq.${encodeURIComponent(nomJoueur)}&or=(statut.eq.attente,and(tournee_id.not.is.null,statut.eq.acceptee))`);
+}
 async function sbGetInvitationsDinerRecues(nomJoueur) {
-  const filtre = `invite=eq.${encodeURIComponent(nomJoueur)}&statut=eq.attente&tournee_id=is.null`;
-  return sbGet('invitations_diner', filtre) || [];
+  const rows = await sbGetInvitationsRecues(nomJoueur);
+  return Array.isArray(rows) ? rows.filter(r => r.tournee_id == null && r.statut === 'attente') : null;
 }
 
 async function sbGetInvitationsDinerTraitees(nomInviteur, nomInvite) {
@@ -4897,7 +4924,8 @@ async function sbGetInvitationsTournee(tourneeId) {
 }
 
 async function sbGetInvitationsTourneeRecues(nomJoueur) {
-  return sbGet('invitations_diner', `invite=eq.${encodeURIComponent(nomJoueur)}&statut=in.(attente,acceptee)&tournee_id=not.is.null`) || [];
+  const rows = await sbGetInvitationsRecues(nomJoueur);
+  return Array.isArray(rows) ? rows.filter(r => r.tournee_id != null && ['attente', 'acceptee'].includes(r.statut)) : null;
 }
 
 async function sbTracerAction(action) {

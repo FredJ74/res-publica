@@ -836,12 +836,14 @@ window.addEventListener('DOMContentLoaded', () => {
   // voyants du 21 aout 2026 -- ce polling redevient un filet de sécurité en arrière-plan, la
   // réactivité réelle vient désormais des déclenchements immédiats à l'ouverture de la
   // messagerie, à la lecture d'un mail et au retour sur l'onglet, voir forum.js/plus haut).
-  // Lectures non critiques : une seule requête par fonction et pause onglet masqué.
+  // Lectures visuelles : une seule execution par fonction et pause onglet masque.
+  // Les traitements differes et premiers chargements explicites gardent leur execution
+  // en arriere-plan ; memeMasque ne retire que la pause, jamais la garde de chevauchement.
   const lecturesFondEnCours = new Set();
-  function lancerLectureFond(nom, fn) {
-    if (document.hidden || lecturesFondEnCours.has(nom) || typeof fn !== 'function') return;
+  function lancerLectureFond(nom, fn, memeMasque = false) {
+    if ((!memeMasque && document.hidden) || lecturesFondEnCours.has(nom) || typeof fn !== 'function') return;
     lecturesFondEnCours.add(nom);
-    Promise.resolve().then(fn).catch(e => console.warn('[Fond] ' + nom, e))
+    return Promise.resolve().then(fn).catch(e => console.warn('[Fond] ' + nom, e))
       .finally(() => lecturesFondEnCours.delete(nom));
   }
   lancerLectureFond('mails', verifierNouveauxMails);
@@ -859,7 +861,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setInterval(() => lancerLectureFond('objets', verifierObjetsRecus), 120000);
 
   // Batiments fermes (incendie/explosifs) — au chargement puis toutes les 2 minutes
-  setTimeout(() => chargerBatimentsFermes(), 1000);
+  setTimeout(() => lancerLectureFond('batimentsFermes', chargerBatimentsFermes, true), 1000);
   setInterval(() => lancerLectureFond('batimentsFermes', chargerBatimentsFermes), 120000);
 
   // Championnat sportif — verifie/avance la saison au chargement puis toutes les 5 minutes
@@ -929,21 +931,21 @@ window.addEventListener('DOMContentLoaded', () => {
   setInterval(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 300000);
 
   // Événements partagés (journal global) — au chargement puis toutes les 90 secondes
-  setTimeout(() => chargerEvenementsPartages(), 1500);
+  setTimeout(() => lancerLectureFond('evenements', chargerEvenementsPartages, true), 1500);
   setTimeout(() => chargerOrganisations(), 1800);
   setTimeout(() => { if (typeof chargerLocations === 'function') chargerLocations(); }, 1900);
   setTimeout(() => { if (typeof demarrerPollingNotificationChat === 'function') demarrerPollingNotificationChat(); }, 2000);
   setTimeout(() => { if (typeof demarrerPollingInvitationsDiner === 'function') demarrerPollingInvitationsDiner(); }, 2000);
   setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
   setTimeout(() => { if (typeof appliquerVictoireElectorale === 'function') appliquerVictoireElectorale(); }, 2350);
-  setTimeout(() => recupererDonsEnAttente(), 2000);
-  setTimeout(() => recupererVolsEnAttente(), 2200);
-  setTimeout(() => recupererImpactsEnAttente(), 2400);
+  setTimeout(() => lancerLectureFond('dons', recupererDonsEnAttente, true), 2000);
+  setTimeout(() => lancerLectureFond('vols', recupererVolsEnAttente, true), 2200);
+  setTimeout(() => lancerLectureFond('impacts', recupererImpactsEnAttente, true), 2400);
   setTimeout(() => verifierLancementQuete(), 2600);
   setInterval(() => lancerLectureFond('evenements', chargerEvenementsPartages), 90000);
-  setInterval(recupererDonsEnAttente, 90000);
-  setInterval(recupererVolsEnAttente, 90000);
-  setInterval(recupererImpactsEnAttente, 90000);
+  setInterval(() => lancerLectureFond('dons', recupererDonsEnAttente, true), 90000);
+  setInterval(() => lancerLectureFond('vols', recupererVolsEnAttente, true), 90000);
+  setInterval(() => lancerLectureFond('impacts', recupererImpactsEnAttente, true), 90000);
 
   // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
   setInterval(() => {
@@ -951,10 +953,10 @@ window.addEventListener('DOMContentLoaded', () => {
     // La sauvegarde de securite en fin de boucle reste active.
     if (!document.hidden) {
     if (typeof sbUpdatePresence === 'function' && state.char?.name && state.currentBuilding && state.currentRoom) {
-      sbUpdatePresence(state.char.name, state.country, state.currentCity, state.currentBuilding, state.currentRoom, typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : []).catch(() => {});
+      lancerLectureFond('presence', () => sbUpdatePresence(state.char.name, state.country, state.currentCity, state.currentBuilding, state.currentRoom, typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : []));
     }
-    if (typeof chargerVraisJoueursPresents === 'function') chargerVraisJoueursPresents();
-    if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
+    if (typeof chargerVraisJoueursPresents === 'function') lancerLectureFond('joueursPresents', chargerVraisJoueursPresents);
+    if (typeof rafraichirTitulairesPostesElectifs === 'function') lancerLectureFond('titulaires', rafraichirTitulairesPostesElectifs);
     // Assemblee (chantier du 10 septembre 2026). Deux caches distincts, rafraichis a des rythmes
     // differents parce qu'ils ne servent pas au meme moment :
     //   - les sieges/sessions ne comptent que dans l'hemicycle : on ne les recharge que la-bas,
@@ -987,7 +989,7 @@ window.addEventListener('DOMContentLoaded', () => {
       sbSavePersonnage(state).catch(() => {});
     }
   }, 30000);
-  if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
+  if (typeof rafraichirTitulairesPostesElectifs === 'function') lancerLectureFond('titulaires', rafraichirTitulairesPostesElectifs, true);
   // Premier chargement : les interdictions en vigueur doivent etre connues AVANT le premier achat,
   // sinon le tout premier passage en caisse ignorerait une loi pourtant en vigueur.
   if (typeof rafraichirAssembleeInterdictions === 'function') rafraichirAssembleeInterdictions().catch(() => {});
@@ -1019,8 +1021,8 @@ window.addEventListener('DOMContentLoaded', () => {
       // ecouteur deja existant (jamais un second addEventListener) -- resynchronise les deux
       // voyants immediatement au retour sur l'onglet, plutot que de laisser l'ecart s'accumuler
       // jusqu'au prochain passage du polling de fond (qui reste actif, en filet de securite).
-      if (typeof verifierNouveauxMails === 'function') verifierNouveauxMails();
-      if (typeof verifierActiviteForumNonVue === 'function') verifierActiviteForumNonVue();
+      if (typeof verifierNouveauxMails === 'function') lancerLectureFond('mails', verifierNouveauxMails);
+      if (typeof verifierActiviteForumNonVue === 'function') lancerLectureFond('forum', verifierActiviteForumNonVue);
     });
   }
 
