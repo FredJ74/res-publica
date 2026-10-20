@@ -7,7 +7,7 @@ Raccordement partiel du parcours construction de l'issue #57, depuis `main` `baa
 - Prélèvement de lancement préparé : priorité bancaire puis liquide, sans débit partiel ; la signature historique du moteur commun garde sa priorité liquide. Nouvelle option interne sans droits clients.
 - Prévol vivant en lecture seule et inventaire des obstacles de découpage, financement/cron et réception. Dépôt sous compromis arrêté avant tout frais tant que son serveur atomique manque.
 
-Validation locale : 93/93 bancs client, 90/90 contre-épreuves, banc PostgreSQL jetable. Contrôles globaux **10/12**, Authority et Referential rouges, expliqués et non masqués. Audit des 15 parcelles non vert : une surface absente. Aucune vérification authentifiée Supabase ou en jeu.
+Validation locale : 93/93 bancs client, 90/90 contre-épreuves, banc PostgreSQL jetable. Contrôles globaux **10/12**, Authority et Referential rouges, expliqués et non masqués. Audit des 15 parcelles non vert : une surface absente. Aucune vérification authentifiée Supabase ou en jeu. Les épreuves monétaires couvrent désormais uniquement les francs entiers.
 
 Travaux encore nécessaires : atomicité permis/acquisitions/prêts, persistance partagée des occupations et combat PNJ, prélèvements/approvisionnement/cron atomiques, premier plan au dernier tiers et marqueur historique, réception physique et caisse/stock du bâtiment, baux. Cette PR est une sauvegarde de travail à garder en brouillon.
 

@@ -45,7 +45,9 @@ def main():
   v=appel('vente-001');assert v['ok'] and v['montant']==12 and v['prixUnitaire']==6;assert etat()[0][:2]==(112,112)
   avant=etat();assert appel('vente-001')['rejeu'];assert etat()==avant
   assert appel('vente-001',qty=4)['raison']=='requete_reutilisee';assert etat()==avant
+  q.execute("UPDATE ressources_economie SET prix_base=100 WHERE cle='bois'")
   assert appel('vente-002',qty=1)['montant']==6;assert etat()[0][:2]==(118,118)
+  q.execute("UPDATE ressources_economie SET prix_base=5 WHERE cle='bois'")
   v=appel('don-00001',qty=1,prix=0);assert v['ok'] and v['montant']==0;assert etat()[0][:2]==(118,118)
   for matiere,prix_attendu in [('minerai',11),('metal',17)]:
    q.execute("UPDATE personnages_donnees SET inventory=%s",(json.dumps([{'stackKey':matiere,'stackable':True,'qty':1}]),))
@@ -58,6 +60,11 @@ def main():
   q.execute("SELECT chantier_prix_definir('terrain','{\"bois\":\"1.001\"}')");assert not q.fetchone()[0]['ok']
   q.execute("SELECT chantier_prix_definir('terrain','{\"bois\":\"2\"}')");assert q.fetchone()[0]['ok']
   assert appel('prix-001',qty=1,prix=999)['montant']==2 # le vendeur ne fixe jamais son prix
+  avant=etat();q.execute("SELECT chantier_prix_definir('terrain','{\"bois\":1.5}')");assert not q.fetchone()[0]['ok'];assert etat()==avant
+  q.execute("UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{chantier,prixAchatPJ,bois}','1.5')::text WHERE id='republic_terrain'");avant=etat()
+  assert appel('fraction-historique',qty=1)['raison']=='prix_indisponible';assert etat()==avant
+  q.execute("SELECT chantier_prix_definir('terrain','{\"bois\":2}')");assert q.fetchone()[0]['ok']
+
   q.execute("UPDATE personnages_donnees SET current_city='ailleurs'");avant=etat();assert not appel('ville-001')['ok'];assert etat()==avant
   q.execute("UPDATE personnages_donnees SET current_city='capitale'")
   q.execute("CREATE OR REPLACE FUNCTION inventaire_reception_etat(text) RETURNS jsonb LANGUAGE sql AS $$SELECT '{\"ok\":false}'::jsonb$$")
@@ -92,6 +99,13 @@ def main():
   q.execute("INSERT INTO terrains_etat VALUES('republic_banque','{\"city\":\"capitale\",\"proprietaire\":\"Fixture\",\"constructionAutorisee\":true,\"permis\":{\"palierDemande\":\"hangar\"}}',now())")
   q.execute("SELECT chantier_lancer('Fixture','republic','banque','hangar',10500)");assert q.fetchone()[0]['ok'];assert soldes()==(4500,4500,0)
   q.execute("SELECT chantier_lancer('Fixture','republic','banque','hangar',10500)");assert not q.fetchone()[0]['ok'];assert soldes()==(4500,4500,0)
+  configurer(10000,5000);avant=soldes()
+  q.execute("INSERT INTO terrains_etat VALUES('republic_panne','{\"city\":\"capitale\",\"proprietaire\":\"Fixture\",\"constructionAutorisee\":true,\"permis\":{\"palierDemande\":\"hangar\"}}',now())")
+  q.execute("CREATE FUNCTION panne_terrain() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN IF NEW.id='republic_panne' THEN RAISE EXCEPTION 'panne_apres_debit_fixture';END IF;RETURN NEW;END$$; CREATE TRIGGER panne_terrain BEFORE UPDATE ON terrains_etat FOR EACH ROW EXECUTE FUNCTION panne_terrain()")
+  try:q.execute("SELECT chantier_lancer('Fixture','republic','panne','hangar',10500)");raise AssertionError('rollback de lancement attendu')
+  except psycopg2.Error as e:assert 'panne_apres_debit_fixture' in str(e)
+  assert soldes()==avant
+  q.execute("SELECT data::jsonb ? 'chantier' FROM terrains_etat WHERE id='republic_panne'");assert not q.fetchone()[0]
   configurer(10,10);avant=soldes()
   q.execute("INSERT INTO terrains_etat VALUES('republic_refus','{\"city\":\"capitale\",\"proprietaire\":\"Fixture\",\"constructionAutorisee\":true,\"permis\":{\"palierDemande\":\"hangar\"}}',now())")
   q.execute("SELECT chantier_lancer('Fixture','republic','refus','hangar',10500)");assert q.fetchone()[0]['raison']=='fonds_insuffisants';assert soldes()==avant
