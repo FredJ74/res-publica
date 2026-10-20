@@ -67,6 +67,15 @@ test('cache vide ou personnages sans photo : succes memorise pendant 60 secondes
  await c.rafraichirCachePhotosJoueurs();temps.now=59999;await c.rafraichirCachePhotosJoueurs();assert.equal(n,1);
  temps.now=60000;await c.rafraichirCachePhotosJoueurs();assert.equal(n,2);
 });
+test('contre-epreuve : les cinq lectures successives du cache vide historique deviennent une',async()=>{
+ const fixture=JSON.parse(lire('outils/bancs/fixtures/optimisation-supabase-avant.json')),comptes=[];
+ for(const ancien of [true,false]){
+  const {c}=contexte(ancien?{multi:fixture.fonctions}:{});let n=0;const lire=async()=>{n++;return [];};
+  c.sbListPersonnages=lire;c.sbListPhotosJoueurs=lire;
+  for(let i=0;i<5;i++)await c.rafraichirCachePhotosJoueurs();comptes.push(n);
+ }
+ assert.deepEqual(comptes,[5,1]);
+});
 test('lectures photos simultanees : une lecture, puis seulement les noms encore manquants',async()=>{
  const {c}=contexte(),d=differer(),appels=[];c.sbListPhotosJoueurs=async noms=>{appels.push(normal(noms));return appels.length===1?d.p:[];};
  const a=c.rafraichirCachePhotosJoueurs(['A']),b=c.rafraichirCachePhotosJoueurs(['A']),e=c.rafraichirCachePhotosJoueurs(['A','B']);await flush();assert.equal(appels.length,1);
