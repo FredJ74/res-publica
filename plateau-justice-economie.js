@@ -8747,6 +8747,11 @@ async function confirmerDepotPermis(palierDemande, pa, cost, terrainId) {
   if (!Object.prototype.hasOwnProperty.call(DUREE_INSTRUCTION_PERMIS,palierDemande)) return;
   const titre = getTerrainState(id);
   if (!estTitulaire(titre.proprietaire) && !(titre.compromis && titre.compromisPar === state.char?.name)) return;
+  // L'ancienne porte SQL refuse les compromis : ne jamais facturer un acte qu'elle rejettera.
+  // L'ouverture du dossier est disponible, son dépôt attend le raccordement atomique serveur.
+  if (!estTitulaire(titre.proprietaire)) {
+    showToast('Dépôt non disponible', 'Le dépôt sous compromis attend le raccordement serveur. Aucun frais ni PA n’a été prélevé.', false); return;
+  }
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Déposer ce permis')) return;
   const ts = getTerrainState(id);
   const jour = state.day || 1;

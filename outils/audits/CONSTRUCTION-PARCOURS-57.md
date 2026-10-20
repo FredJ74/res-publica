@@ -56,3 +56,35 @@ Vérification : 14 groupes PostgreSQL jetables, dont application répétée, pai
 - Acquisition, compromis, permis, prêts et acte : plusieurs circuits existants dissocient débit et mutation du terrain ; aucune prétention de sécurisation complète de ces circuits.
 - La protection financière globale contre sauvegarde générale périmée doit être vérifiée sur le catalogue vivant avant toute activation. Le seul verrou de cette RPC ne suffit pas.
 - Transport des soldes historiques : le rafraîchisseur commun accepte actuellement les nombres JSON ; une migration globale vers chaînes décimales serait un chantier financier transversal, non dissimulé dans cette migration.
+
+## Lot 4 — inventaire avant modification et obstacles confirmés
+
+L'inventaire du code réel confirme que `verdictModificationPlan` ferme le plan à 2/3, `terrain_permis_acte('permis_plan_modifier')` ne vérifie que le propriétaire/permis et laisse la validation temporelle au navigateur, `livrerChantierServeur` active automatiquement le bâtiment à 100 %, puis `restituerReliquatsServeur` crédite le bénéficiaire PJ. Modifier seulement le menu ou retirer le verrou client ne respecterait donc ni les seuils ni l'autorité serveur. Un tableau `decoupageInitial: []` ne distingue pas un plan jamais initialisé d'une validation indivise. Les anciens chantiers n'ont pas le marqueur explicite exigé par #57 : aucune déduction silencieuse sur cet historique.
+
+Les pièces dynamiques et les baux existent dans `plateau-immobilier.js`. Une livraison ne rend pas à elle seule le local louable : les données de location et l'éligibilité du local dans les fonctions serveur doivent concorder. La reconfiguration payante existante (10 FR/m² concerné, 300 m²/jour, financement intégral et protection des baux) doit être conservée. Il ne faut pas la remplacer par un simple enregistrement gratuit du JSON du plan.
+
+**Non implémenté / non prêt à activer** : nouvelle fenêtre temporelle du premier plan, marqueur historique de validation, réception physique atomique, transfert des reliquats vers caisse/stock du bâtiment, remplacement du cron de livraison, adaptation des locations. Aucune réception simulée ni animation de fausse réussite n'est ajoutée. La commande de réception affiche explicitement cette indisponibilité au lieu de tomber dans l'ordre générique.
+
+Le prévol `outils/bancs/prevol-construction-57.sql` prépare la collecte en lecture seule des signatures, définitions, types, triggers, droits, politiques et dépendances nécessaires. Il n'a pas été exécuté à distance : le proxy refuse l'accès Supabase et aucun connecteur n'est exposé. Cela bloque la confirmation de compatibilité et le déploiement, pas la collecte locale d'informations ; aucun état de joueur n'a été modifié.
+
+## Contrôle complémentaire des données de parcelles
+
+`node outils/audits/auditer-parcelles-57.cjs` relit les références déclarées, sans nombre de parcelle utilisé comme règle. `PARCELLES-57.json` contient les 15 parcelles de Républia avec leurs surfaces et prix distincts. Le contrôle renvoie volontairement un code non nul : **terrain-a-batir-6, Port-Sainte-Marie (`ville_b`), superficie absente**. Son prix déclaré de 25 000 FR est conservé ; aucune surface n'est inventée et son achat est bloqué avant débit faute de donnée. Les surfaces 1 500 m² des parcelles 8 à 11 viennent des descriptions existantes. Les valeurs persistantes explicites restent prioritaires sur les références du dépôt ; leur contenu réel n'est pas connu sans lecture Supabase.
+
+Un défaut supplémentaire a été corrigé : l'état client non initialisé injectait un prix forfaitaire de 25 000 FR, qui pouvait masquer le prix individuel déclaré. Il renvoie maintenant un prix absent et le résolveur commun relit le véritable ordre d'achat. Aucun calcul de prix à partir d'une surface ou du numéro du terrain n'a été ajouté.
+
+## Protection avant déploiement du dépôt sous compromis
+
+La porte SQL archivée n'accepte que le propriétaire. La nouvelle sélection admet le dossier sous compromis, mais sa confirmation est explicitement arrêtée **avant archive, PA ou frais** tant que le raccordement atomique manque. Il ne faut pas facturer un acte qui sera refusé. Même sous titre, le dépôt existant garde archive/paiement/permis en plusieurs appels : son atomicité n'est pas acquise. Le catalogue des coûts `ordres_couts` doit être régénéré avec le générateur existant et comparé au vivant avant activation du tarif 100 FR/1 PA ; aucune empreinte n'a été ajustée pour faire passer ce contrôle.
+
+## Vérification finale de cette étape — travail incomplet
+
+- 93/93 bancs client réussis après les dernières modifications ; 18 cas ciblés du parcours et 4 groupes de monnaie exacte.
+- 14 groupes PostgreSQL jetables réussis, dépendances d'identité/réception simulées ; 90/90 contre-épreuves réussies. Analyse syntaxique SQL du prévol et de la migration réussie.
+- Contrôleur global : **10/12**, Authority et Referential restent rouges. Comparaison avec une archive de `origin/main` : Authority avait déjà 28 RPC absentes, la branche en signale 30 ; Referential avait déjà trois empreintes divergentes, celle des coûts change encore avec le tarif de permis validé. Ce ne sont pas des contrôles verts. Aucun baseline ou résultat modifié pour les masquer.
+- Une erreur de classement du nouveau prévol a été détectée et corrigée sans toucher au contrôleur : `BEGIN; SET TRANSACTION READ ONLY; ... ROLLBACK;` conserve la lecture seule et l'enveloppe reconnue par le workflow.
+- Vérification des données de parcelles : code non nul attendu, une surface absente, aucune valeur inventée. Rapport `PARCELLES-57.json` et tests du blocage avant débit.
+- `git fetch origin main` : base toujours `baa9cb7`, aucun commit concurrent de main à réintégrer. PR #56 non incorporée. Versions des seuls scripts/styles modifiés actualisées.
+- Accès Supabase : tunnel HTTPS refusé 403, aucun connecteur exposé. Aucun test authentifié du jeu ni vérification des définitions vivantes, aucun déploiement. API GitHub GraphQL refusée (`Forbidden`), bien que lecture HTML publique et push Git fonctionnent. Ouverture de PR à tenter après sauvegarde finale ; ne pas la prétendre créée en cas d'échec.
+
+**Verdict : chantier #57 non terminé, branche non fusionnable.** Lots 1–3 partiellement raccordés, lot 4 inventorié et non implémenté. Restent notamment le dépôt atomique du permis sous compromis, l'autorité partagée des occupations et le combat PNJ commun, les échéances/cron atomiques, les prêts et actes concernés, le découpage et la réception/baux. Les limitations d'accès empêchent la validation vivante ; elles ne constituent pas, à elles seules, une explication à tout le code restant à écrire. Aucun arbitrage supplémentaire n'a été demandé et aucun déploiement ne doit être engagé sur cet état.
