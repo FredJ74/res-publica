@@ -1,0 +1,35 @@
+{
+  "statut": "BLOQUE_LANCEMENT_DISTANT",
+  "consultationReelleExecutee": false,
+  "visitesReelles": 0,
+  "testeurOperationnel": false,
+  "autorisationJSONManuelleRequise": false,
+  "testsLocaux": {
+    "pilote": {
+      "reussis": 69,
+      "total": 69
+    },
+    "client": {
+      "reussis": 90,
+      "total": 90
+    },
+    "postgresJetable": {
+      "reussis": 5,
+      "total": 5
+    },
+    "globaux": {
+      "reussis": 10,
+      "total": 12,
+      "echecs": [
+        "Authority",
+        "Referential"
+      ]
+    }
+  },
+  "blocages": [
+    "API_GITHUB_PROXY_CONNECT_403",
+    "EFFETS_MOUVEMENT_SERVEUR_NON_VERIFIES"
+  ],
+  "donneesProductionModifiees": false,
+  "migrationsAppliquees": []
+}

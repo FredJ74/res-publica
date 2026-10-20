@@ -6,22 +6,42 @@ const erreur=c=>Object.assign(new Error(c),{code:c});
 const RPC_LECTURE=new Set(['mon_personnage','rue_position_lire','rue_sortie_batiment_lire','inventaire_reception_etat']);
 function verifierConsultation(env,a){
  if(env.HG_E2E_PERSONNAGE!=='Arnie')throw erreur('CONSULTATION_RESERVEE_A_ARNIE');
- if(env.HG_E2E_DECLENCHEMENT==='schedule')throw erreur('CAMPAGNE_RECURRENTE_ARNIE_INTERDITE');
- if(a?.autoriseParResponsable!==true||a?.mode!=='consultation_seule'||a?.personnageHistoriqueAutorise!=='Arnie')throw erreur('AUTORISATION_CONSULTATION_ARNIE_REQUISE');
+ if(env.HG_E2E_DECLENCHEMENT!=='workflow_dispatch')throw erreur('CONSULTATION_ARNIE_MANUELLE_REQUISE');
  if(env.HG_E2E_PLAN_JSON&&JSON.stringify(JSON.parse(env.HG_E2E_PLAN_JSON))!=='[]')throw erreur('PLAN_SENSIBLE_INTERDIT_EN_CONSULTATION');
- if(env.HG_E2E_INVITE_EMAIL||env.HG_E2E_INVITE_PASSWORD||a.entreprises?.length||a.scenarios?.length)throw erreur('CONTREPARTIES_INTERDITES_EN_CONSULTATION');
- const audit=a.auditArnie;
- if(!audit||audit.personnage!=='Arnie'||audit.uid!==env.HG_E2E_UID||audit.authUsersVerifie!==true||audit.memePersonnageVerifie!==true)throw erreur('AUDIT_SUPABASE_ARNIE_REQUIS');
- if(!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(audit.uid||''))throw erreur('UID_ARNIE_NON_VERIFIE');
- if(audit.nombrePersonnagesDuCompte!==1)throw erreur('COMPTE_ARNIE_MULTIPERSONNAGES_A_AUDITER');
- const adresse=crypto.createHash('sha256').update((env.HG_E2E_EMAIL||'').trim().toLowerCase()).digest('hex');
- if(!env.HG_E2E_EMAIL||audit.adresseSHA256!==adresse)throw erreur('ADRESSE_NON_VERIFIEE_POUR_UID_ARNIE');
- const date=Date.parse(audit.verifieLe||'');
- if(!Number.isFinite(date)||Date.now()-date>86400000||date-Date.now()>300000)throw erreur('AUDIT_ARNIE_ABSENT_OU_EXPIRE');
- if(audit.anonyme===true)throw erreur('COMPTE_ARNIE_ANONYME_ACCES_INDEPENDANT_NON_DISPONIBLE');
- if(audit.anonyme!==false||audit.emailConfirme!==true)throw erreur('AUTHENTIFICATION_ARNIE_NON_CONFIRMEE');
- if(audit.navigationSansEffetVerifiee!==true)throw erreur('AUDIT_EFFETS_NAVIGATION_REQUIS');
- return true;
+ if(env.HG_E2E_INVITE_EMAIL||env.HG_E2E_INVITE_PASSWORD||a?.entreprises?.length||a?.scenarios?.length)throw erreur('CONTREPARTIES_INTERDITES_EN_CONSULTATION');
+ if(!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(env.HG_E2E_UID||''))throw erreur('UID_ARNIE_NON_VERIFIE');
+ if(env.HG_E2E_BASE_URL&&new URL(env.HG_E2E_BASE_URL).origin!=='https://res-publica.vercel.app')throw erreur('ORIGINE_ARNIE_NON_AUTORISEE');
+ // Portee fixe issue de l'autorisation du proprietaire, PAS une declaration d'audit.
+ // L'identite et la position seront verifiees par des reponses serveur avant la page.
+ return {origine:'https://res-publica.vercel.app',backend:'https://jxpwoosmmhohoihxpbuc.supabase.co',
+  comptes:[{personnage:'Arnie',uid:env.HG_E2E_UID}],entreprises:[],scenarios:[]};
+}
+function verifierUtilisateur(user,compte){
+ if(user?.id!==compte.uid||user?.is_anonymous!==false||!user?.email_confirmed_at||
+  typeof user.email!=='string'||user.email.trim().toLowerCase()!==compte.email.trim().toLowerCase())throw erreur('COMPTE_DIFFERENT_OU_NON_CONFIRME');
+}
+async function prevolAutomatique(request,conf,clePublique){
+ const compte=conf.comptes[0],backend=conf.autorisation.backend;
+ async function lire(chemin,options={}){
+  let res;try{res=await request.fetch(backend+chemin,{...options,timeout:15000,maxRedirects:0,maxRetries:0});}catch{throw erreur('PREVOL_TRANSPORT_INDISPONIBLE');}
+  if(!res.ok())throw erreur('PREVOL_HTTP_'+res.status());
+  const d=await res.json().catch(()=>{throw erreur('PREVOL_REPONSE_INVALIDE');});return d;
+ }
+ const auth=await lire('/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:clePublique},data:{email:compte.email,password:compte.password}});
+ verifierUtilisateur(auth?.user,compte);
+ if(typeof auth.access_token!=='string'||!auth.access_token)throw erreur('PREVOL_SESSION_ABSENTE');
+ const headers={apikey:clePublique,Authorization:'Bearer '+auth.access_token};
+ verifierUtilisateur(await lire('/auth/v1/user',{method:'GET',headers}),compte);
+ const nom=await lire('/rest/v1/rpc/mon_personnage',{method:'POST',headers,data:{}});
+ if(nom!=='Arnie')throw erreur('PERSONNAGE_AUTRE_QUE_ARNIE');
+ // Le filtre d'UID sert seulement a lire : les droits RLS restent ceux de la session.
+ const lignes=await lire('/rest/v1/personnages?user_id=eq.'+encodeURIComponent(compte.uid)+'&select=*&limit=2',{method:'GET',headers});
+ if(!Array.isArray(lignes)||lignes.length!==1||lignes[0].name!=='Arnie'||lignes[0].user_id!==compte.uid)throw erreur('COMPTE_ARNIE_AMBIGU_OU_INACCESSIBLE');
+ const ligne=lignes[0];
+ if(ligne.country!=='republic'||ligne.current_city!=='capitale')throw erreur('ARNIE_HORS_LUTHECIA_AUCUN_DEPLACEMENT');
+ return {authentificationVerifiee:true,personnageVerifie:true,personnageUniqueVisible:true,
+  ficheSHA256:empreinteProtegee(ligne),position:{batiment:ligne.current_building,piece:ligne.current_room},
+  limite:'La lecture sous RLS ne certifie pas les lignes invisibles ni les fonctions de mouvement.'};
 }
 function uidJeton(entetes){
  // Seulement le JWT emis par la connexion independante de CE contexte. Pas de stockage/export.
@@ -32,7 +52,10 @@ function decisionConsultation({url,methode,corps,entetes={}},conf,session){
  const u=new URL(url),backend=conf.autorisation.backend;
  const authentifie=session.uidValide===true&&uidJeton(entetes)===conf.comptes[0].uid;
  if(methode==='OPTIONS')return {action:'autoriser'};
- if(u.origin===backend&&u.pathname==='/auth/v1/token'&&methode==='POST'&&['password','refresh_token'].includes(u.searchParams.get('grant_type')))return {action:'verifier-auth'};
+ if(u.origin===backend&&u.pathname==='/auth/v1/token'&&methode==='POST'&&['password','refresh_token'].includes(u.searchParams.get('grant_type'))){
+  if(u.searchParams.get('grant_type')==='password'&&corps?.email?.trim().toLowerCase()!==conf.comptes[0].email.trim().toLowerCase())return {action:'bloquer',raison:'ADRESSE_AUTH_NON_AUTORISEE'};
+  return {action:'verifier-auth'};
+ }
  if(u.origin===backend&&u.pathname.startsWith('/auth/')){
   if(methode==='GET'&&u.pathname==='/auth/v1/user'&&authentifie)return {action:'verifier-auth'};
   return {action:'bloquer',raison:'AUTHENTIFICATION_NON_AUTORISEE'};
@@ -41,9 +64,12 @@ function decisionConsultation({url,methode,corps,entetes={}},conf,session){
  if(rpc){
   if(!authentifie)return {action:'bloquer',raison:'IDENTITE_NON_CONFIRMEE'};
   if(RPC_LECTURE.has(rpc)&&['GET','POST'].includes(methode))return {action:rpc==='mon_personnage'?'verifier-personnage':'autoriser'};
-  if(rpc==='rue_position_enregistrer'&&methode==='POST'&&session.personnageValide&&corps&&Object.keys(corps).length===1&&/^luthecia-[a-z0-9-]+$/.test(corps.p_noeud||''))return {action:'autoriser'};
+  // Aucun mouvement tant que ses effets serveur ne sont pas certifies.
+  if(rpc==='rue_position_enregistrer')return {action:'bloquer',raison:'DEPLACEMENT_NON_AUDITE_INTERDIT'};
   return {action:'bloquer',raison:'RPC_NON_VERIFIEE_SANS_EFFET'};
  }
+ if(u.origin===backend&&u.pathname.startsWith('/rest/v1/rpc/'))return {action:'bloquer',raison:'RPC_NON_VERIFIEE_SANS_EFFET'};
+ if(u.origin===backend&&u.pathname.startsWith('/rest/')&&!authentifie)return {action:'bloquer',raison:'IDENTITE_NON_CONFIRMEE'};
  if((u.origin===conf.url&&u.pathname.startsWith('/api/'))||(u.origin===backend&&u.pathname.startsWith('/functions/')))return {action:'bloquer',raison:'API_A_EFFETS_NON_EXCLUS'};
  if(u.pathname==='/api/chat')return {action:'bloquer',raison:'DIALOGUE_A_EFFETS_NON_EXCLUS'};
  if(!['GET','HEAD'].includes(methode))return {action:'bloquer',raison:'ECRITURE_INTERDITE_EN_CONSULTATION'};
@@ -66,7 +92,8 @@ async function installerConsultation(context,conf,rapport){
   const d=await res.json().catch(()=>null);
   if(decision.action==='verifier-auth'){
    const user=d?.user||d;
-   if(user?.id!==conf.comptes[0].uid||user?.is_anonymous!==false||!user?.email_confirmed_at){
+   let valide=true;try{verifierUtilisateur(user,conf.comptes[0]);}catch{valide=false;}
+   if(!valide){
     session.uidValide=false;session.personnageValide=false;rapport.protectionsConsultation.authentificationVerifiee=false;rapport.protectionsConsultation.personnageVerifie=false;return refuser('COMPTE_DIFFERENT_OU_NON_CONFIRME');
    }
    session.uidValide=true;rapport.protectionsConsultation.authentificationVerifiee=true;
@@ -84,4 +111,4 @@ function empreinteProtegee(ligne){
  const stable={...ligne};for(const k of ['current_city','current_building','current_room','updated_at'])delete stable[k];
  return hash(Object.fromEntries(Object.entries(stable).sort(([a],[b])=>a.localeCompare(b))));
 }
-module.exports={verifierConsultation,decisionConsultation,installerConsultation,empreinteProtegee};
+module.exports={prevolAutomatique,verifierUtilisateur,verifierConsultation,decisionConsultation,installerConsultation,empreinteProtegee};

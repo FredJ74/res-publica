@@ -30,7 +30,7 @@ jobs:
     env:
       HG_E2E_MODE: ${{ github.event_name == 'workflow_dispatch' && (inputs.mode || 'consultation_seule') || 'tests_isoles' }}
       HG_E2E_DECLENCHEMENT: ${{ github.event_name }}
-      HG_E2E_BASE_URL: ${{ vars.HG_E2E_BASE_URL }}
+      HG_E2E_BASE_URL: ${{ vars.HG_E2E_BASE_URL || 'https://res-publica.vercel.app/' }}
       HG_E2E_MAX_MINUTES: '35'
       HG_E2E_RAPPORT: ${{ runner.temp }}/luthecia-e2e
       HG_E2E_EMAIL: ${{ secrets[(github.event_name == 'workflow_dispatch' && (inputs.mode || 'consultation_seule') == 'consultation_seule') && 'HG_E2E_ARNIE_EMAIL' || 'HG_E2E_EMAIL'] }}
@@ -41,7 +41,7 @@ jobs:
       HG_E2E_INVITE_PASSWORD: ${{ (github.event_name == 'schedule' || inputs.mode == 'tests_isoles') && secrets.HG_E2E_INVITE_PASSWORD || '' }}
       HG_E2E_INVITE_PERSONNAGE: ${{ (github.event_name == 'schedule' || inputs.mode == 'tests_isoles') && secrets.HG_E2E_INVITE_PERSONNAGE || '' }}
       HG_E2E_INVITE_UID: ${{ (github.event_name == 'schedule' || inputs.mode == 'tests_isoles') && secrets.HG_E2E_INVITE_UID || '' }}
-      HG_E2E_AUTORISATION_JSON: ${{ secrets[(github.event_name == 'workflow_dispatch' && (inputs.mode || 'consultation_seule') == 'consultation_seule') && 'HG_E2E_ARNIE_AUTORISATION_JSON' || 'HG_E2E_AUTORISATION_JSON'] }}
+      HG_E2E_AUTORISATION_JSON: ${{ (github.event_name == 'schedule' || inputs.mode == 'tests_isoles') && secrets.HG_E2E_AUTORISATION_JSON || '' }}
       HG_E2E_PLAN_JSON: ${{ (github.event_name == 'schedule' || inputs.mode == 'tests_isoles') && secrets.HG_E2E_PLAN_JSON || '' }}
     steps:
       - uses: actions/checkout@v4

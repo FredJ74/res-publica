@@ -3,7 +3,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
 const {lancerChromium}=require('../bancs/fixtures/chromium-cdp.cjs');
-const {verifierConsultation,installerConsultation,empreinteProtegee}=require('./consultation.cjs');
+const {prevolAutomatique,verifierConsultation,installerConsultation,empreinteProtegee}=require('./consultation.cjs');
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const code=(c)=>Object.assign(new Error(c),{code:c});
@@ -13,10 +13,10 @@ async function borner(p,ms){let t;try{return await Promise.race([p,new Promise((
 
 function configuration(env=process.env){
  let autorisation;try{autorisation=JSON.parse(env.HG_E2E_AUTORISATION_JSON||'null');}catch{throw code('AUTORISATION_JSON_INVALIDE');}
- const a=autorisation;
+ let a=autorisation;
  const mode=env.HG_E2E_MODE||'tests_isoles';
  if(!['tests_isoles','consultation_seule'].includes(mode))throw code('MODE_E2E_INVALIDE');
- if(mode==='consultation_seule')verifierConsultation(env,a);
+ if(mode==='consultation_seule'){a=verifierConsultation(env,a);env={...env,HG_E2E_BASE_URL:env.HG_E2E_BASE_URL||a.origine};}
  else if(env.HG_E2E_PERSONNAGE==='Arnie'||env.HG_E2E_INVITE_PERSONNAGE==='Arnie')throw code('ARNIE_INTERDIT_HORS_CONSULTATION');
  const manquants=[];
  for(const n of ['HG_E2E_BASE_URL','HG_E2E_EMAIL','HG_E2E_PASSWORD','HG_E2E_PERSONNAGE','HG_E2E_UID'])if(!env[n])manquants.push(n);
@@ -106,7 +106,17 @@ class Joueur{
    this.protegeeReference=r.protegeeSHA256;
   }return r;
  }
- async clic(locator,deplacement=false){await this.rythme(deplacement);await this.identite();await locator.click({timeout:15000});}
+ async consulterPositionExistante(){
+  const s=await this.identite();
+  const scene=this.page.locator('#vue-batiment.active #piece-image, #vue-rue.active #rc-scene').first();
+  await scene.waitFor({state:'visible',timeout:30000});
+  await this.page.waitForFunction(()=>[...document.querySelectorAll('#vue-batiment.active #piece-image img, #vue-rue.active #rc-scene img')].every(i=>i.complete&&i.naturalWidth>0),null,{timeout:30000});
+  const serveur=await this.serveur();
+  if(serveur.current_building!==this.rapport.prevolAutomatique.position.batiment||serveur.current_room!==this.rapport.prevolAutomatique.position.piece||s.batiment!==serveur.current_building||s.piece!==serveur.current_room)throw code('POSITION_INITIALE_NON_CONFIRMEE');
+  this.rapport.visites.push({type:'consultation-position-existante',batiment:s.batiment,piece:s.piece});
+  this.rapport.patrimoineFinal=preuve(serveur);
+ }
+ async clic(locator,deplacement=false){if(deplacement&&this.conf.mode==='consultation_seule')throw code('DEPLACEMENT_NON_AUDITE_INTERDIT');await this.rythme(deplacement);await this.identite();await locator.click({timeout:15000});}
  async connexion(){
   this.signal.throwIfAborted();
   await this.page.goto(this.conf.url+'/',{waitUntil:'domcontentloaded',timeout:45000});
@@ -322,10 +332,26 @@ async function campagne({env=process.env,prevol=false,interruption,dossier=env.H
    page.on('console',m=>{if(m.type()==='error')rapport.erreurs.push({acteur:compte.cle,...diagnostic(m.text())});});
    page.on('response',r=>{if(r.status()>=400||/\/rest\/v1\/rpc\/|\/api\/chat/.test(r.url()))rapport.reseau.push({acteur:compte.cle,...resumerReseau(r.url(),r.status())});});
    page.on('requestfailed',r=>rapport.reseau.push({acteur:compte.cle,...resumerReseau(r.url(),null),...diagnostic(r.failure()?.errorText)}));
-   const j=new Joueur(page,compte,conf,rapport,signal);j.sauver=enregistrer;joueurs[compte.cle]=j;await j.connexion();
+   const j=new Joueur(page,compte,conf,rapport,signal);j.sauver=enregistrer;joueurs[compte.cle]=j;
+   if(conf.mode==='consultation_seule'){
+    const source=fs.readFileSync(path.join(__dirname,'../../supabase.js'),'utf8');
+    const cle=source.match(/const SUPABASE_ANON = '([^']+)';/)?.[1];
+    if(!cle)throw code('CLE_PUBLIQUE_APPLICATION_ABSENTE');
+    rapport.prevolAutomatique=await prevolAutomatique(context.request,conf,cle);
+    j.protegeeReference=rapport.prevolAutomatique.ficheSHA256;
+    enregistrer();
+   }
+   await j.connexion();
   }
   const j=joueurs.principal;
   async function etape(nom,fn,joueur=j){signal.throwIfAborted();const debut=Date.now();try{await fn();rapport.etapes.push({nom,resultat:'REUSSI',dureeMs:Date.now()-debut});}catch(e){rapport.etapes.push({nom,resultat:'ECHEC',code:e.code||'UI_OU_SERVEUR_NON_CONFIRME',...diagnostic(e.message)});try{await joueur.identite();const cible=conf.mode==='consultation_seule'?joueur.page.locator('#vue-batiment.active #piece-image, #vue-rue.active #rc-scene').first():joueur.page;await cible.screenshot({path:path.join(dossier,'echec-'+rapport.etapes.length+'.png')});}catch{}throw e;}finally{enregistrer();}}
+  if(conf.mode==='consultation_seule'){
+   await etape('consultation-position-existante',()=>j.consulterPositionExistante());
+   rapport.statut=rapport.erreurs.length?'CONSULTATION_INITIALE_AVEC_ANOMALIES':'CONSULTATION_INITIALE_AUTHENTIFIEE';
+   rapport.limites.push('Aucun deplacement execute : effets serveur non verifies. Testeur complet non operationnel.');
+   rapport.blocages=['PARCOURS_MOBILE_BLOQUE_AUDIT_EFFETS_SERVEUR_MANQUANT'];
+   return rapport;
+  }
   await etape('office-notarial-entree',()=>j.aller('office-notarial'));
   for(const piece of ['accueil_notaire','bureau_successions','bureau_contrats','archives_notariales'])await etape('office-notarial-'+piece,async()=>{await j.piece('office-notarial',piece);await j.observer();const ordre={accueil_notaire:'consulter_dossier_notarial',bureau_successions:'reclamer_heritage',bureau_contrats:'officialiser_transaction',archives_notariales:'consulter_archives_notariales'}[piece];if(conf.mode!=='consultation_seule'){await j.ouvrirOrdreLecture(ordre);if(piece==='accueil_notaire')await j.dialogue();}});
   await etape('office-notarial-sortie-sans-rechargement',()=>j.sortir());

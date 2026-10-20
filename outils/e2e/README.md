@@ -1,6 +1,6 @@
 # Parcours joueur automatisé — Luthécia
 
-Cet outil pilote l'interface du jeu dans Chromium, au rythme d'un joueur. Il ne crée aucun compte, ne revendique aucun personnage, n'injecte pas d'état et n'appelle aucun moteur d'écriture directement. **Sans compte explicitement autorisé, il s'arrête avant de charger la page de connexion.** Arnie constitue une autorisation historique distincte : exclusivement `consultation_seule`, après audit réel de son compte existant. Les tests du pilote sur fixtures ne sont pas des tests authentifiés du jeu.
+Cet outil pilote l'interface du jeu dans Chromium, au rythme d'un joueur. Il ne crée aucun compte, ne revendique aucun personnage, n'injecte pas d'état et n'appelle aucun moteur d'écriture directement. **Sans compte explicitement autorisé, il s'arrête avant de charger la page de connexion.** Arnie constitue une autorisation historique distincte : exclusivement `consultation_seule`, après prévol authentifié automatique de son compte existant. Les tests du pilote sur fixtures ne sont pas des tests authentifiés du jeu.
 
 ## Exécution et limites
 
@@ -90,59 +90,30 @@ Les actions sensibles sont journalisées comme en cours **avant** le clic. Aprè
 Les signaux d'arrêt, délais et erreurs ferment les contextes puis Chromium et suppriment le profil temporaire. Aucun stockage de session, HAR, vidéo ou trace Playwright n'est exporté : ils pourraient contenir des secrets. Les journaux conservent opérations, statuts HTTP, catégories et empreintes d'erreurs, jamais les en-têtes, corps de requêtes, mots de passe, jetons ou dialogues intégraux. Les captures n'interviennent qu'après vérification d'identité, sur échec. Les artefacts doivent rester dans le dépôt privé et l'environnement de test autorisé.
 
 
-## Arnie : consultation seule du personnage historique
+## Arnie : prévol automatique et première consultation
 
-L'autorisation porte uniquement sur **Arnie**, avec son UID **lu et vérifié dans Supabase**, jamais un UID inventé ou celui d'un autre compte. L'absence de saisie de mot de passe à l'ouverture du jeu ne démontre pas que le compte soit anonyme : une session classique peut aussi être conservée et renouvelée.
+L'autorisation du propriétaire est limitée à Arnie. Le workflow manuel `consultation_seule` utilise exclusivement trois secrets de l'environnement `luthecia-e2e` : `HG_E2E_ARNIE_EMAIL`, `HG_E2E_ARNIE_PASSWORD`, `HG_E2E_ARNIE_UID`. Aucun repli vers un autre compte. L'origine de production est fixée à `https://res-publica.vercel.app` ; cette valeur est utilisée par défaut. Aucun secret `HG_E2E_ARNIE_AUTORISATION_JSON` ni déclaration `auditArnie` n'est nécessaire. Le mode est interdit au planning nocturne et exige `workflow_dispatch`.
 
-Le prévol `outils/bancs/prevol-arnie.sql` est une transaction de **lecture seule**, destinée à un canal technique autorisé qui peut lire `auth.users`. Il recherche exactement `name='Arnie'`, refuse ambiguïté/UID nul/compte absent, rejoint `auth.users` par cet UID et indique : anonymat, adresse présente/confirmée/en attente, mot de passe présent (booléen seulement), fournisseurs d'identité, nombre de personnages du compte, position et empreinte protégée de la fiche. Il ne sort aucun jeton, hash de mot de passe ou adresse brute. Il extrait aussi les vrais déclencheurs et fonctions à examiner avant toute conversion ou navigation. Une lecture de catalogue n'est pas à elle seule une preuve d'absence d'effets.
+Avant même de charger la page de connexion, `prevolAutomatique` utilise la clé **publique** déjà présente dans `supabase.js` et les identifiants protégés du job pour :
 
-### Accès indépendant et sécurisation
+1. Se connecter normalement au service GoTrue, sans création ni conversion de compte.
+2. Vérifier le même UID, l'adresse attendue, le caractère non anonyme et la confirmation, puis relire `/auth/v1/user`.
+3. Appeler la RPC existante `mon_personnage` : la réponse doit être exactement Arnie.
+4. Lire sous les droits RLS de cette session la fiche filtrée par UID, avec une limite de deux lignes : exactement une fiche visible Arnie, liée au même UID, en Républia à Luthécia est exigée.
+5. Garder uniquement une empreinte du patrimoine/progression et la position dans le rapport. Aucun identifiant de compte, mot de passe ou jeton n'est exporté.
 
-`auth.js` prévoit déjà `rpAuthSecuriserCompte` : `PUT /auth/v1/user` pour le compte actuellement connecté, avec e-mail et mot de passe, sans paramètre d'UID ni transfert. La réponse est contrôlée par rapport à l'UID précédent. `rpAuthEtatCompte` lit l'état GoTrue pour distinguer attente et confirmation. Les tests de ce dépôt couvrent ces fonctions réelles sur réponses **fictives**, pas sur le compte d'Arnie.
+Les requêtes sont bornées, sans redirection ni rejeu automatique. Transport indisponible, statut HTTP et JSON invalide ont des codes distincts. Toute identité différente arrête avant la page du jeu. La lecture sous RLS ne certifie pas l'absence d'une fiche invisible ; elle est recoupée avec la sélection autoritaire de `mon_personnage`. Elle ne remplace pas une lecture des catalogues pour auditer des fonctions d'écriture.
 
-Si l'audit vivant révèle un compte anonyme, le pilote ne peut pas le transférer et ne doit pas récupérer les jetons du navigateur personnel. Après vérification technique du même compte et des déclencheurs, l'éventuelle action personnelle minimale est l'interface existante **Mon personnage → Identité → Sécurité du compte → Sécuriser mon personnage**, puis le lien de confirmation si demandé. Aucune consigne de sécurisation effective n'est donnée tant que le type réel du compte est inconnu. Ne pas réinitialiser le compte, en créer un autre ou appeler `rattacher_personnage` pour contourner le problème.
+La connexion par formulaire est ensuite conservée. La garde intercepte aussi ces réponses : UID, adresse et confirmation sont revérifiés avant livraison à la page, puis le personnage effectif. Les sauvegardes, réceptions automatiques, présence, dépenses, ordres, dialogues, transferts, API/cron, créations et modifications d'authentification sont bloqués avant envoi. Les WebSockets sont refusés et les Service Workers bloqués. Les lectures REST requièrent une identité vérifiée ; seules quatre RPC de lecture explicites sont admises. Aucun succès synthétique ne masque un refus.
 
-Une fois un accès indépendant classique confirmé, le pilote garde la connexion normale par formulaire. Il ne change jamais l'authentification. La réponse GoTrue doit être celle du même UID confirmé, puis `mon_personnage` doit répondre exactement Arnie ; sinon la réponse est refusée avant exposition à l'application. Il n'existe aucun personnage de remplacement par défaut.
+**Les déplacements sont actuellement tous interdits**, côté pilote et réseau, y compris `rue_position_enregistrer`. Une déclaration historique `navigationSansEffetVerifiee: true` ne peut pas lever ce verrou. En effet, `enterRoom` déclenche `sbSavePersonnage` ; la sauvegarde peut écrire inventaire et fiche entière. Le déclencheur archivé de la vue peut réécrire des champs financiers même lors d'un PATCH partiel. Les effets du déplacement dans la rue ne sont pas certifiés par un catalogue vivant accessible à cette session. Aucun PATCH réduit ou second moteur de navigation n'est introduit.
 
-### Secrets distincts, aucune campagne récurrente
+La campagne consulte uniquement la scène **déjà occupée**, vérifie son affichage et sa position client/serveur, puis relit l'empreinte initiale du personnage. Un changement inattendu arrête le test, sans restauration de données réelles. Le résultat `CONSULTATION_INITIALE_AUTHENTIFIEE` désigne uniquement cette consultation. Les erreurs navigateur sont signalées séparément. Le code de sortie reste **2**, car le parcours mobile et les scénarios métier ne sont pas validés : le job peut être rouge même si la consultation initiale est confirmée. Les écritures automatiques bloquées restent visibles dans le rapport, sans être présentées comme des pannes réseau du jeu.
 
-Le lancement manuel du workflow propose par défaut `consultation_seule`, y compris en l'absence d'un choix explicite. Le nom est alors fixé à `Arnie` et le job utilise exclusivement ces secrets de l'environnement protégé `luthecia-e2e` :
-
-- `HG_E2E_ARNIE_EMAIL`
-- `HG_E2E_ARNIE_PASSWORD`
-- `HG_E2E_ARNIE_UID`
-- `HG_E2E_ARNIE_AUTORISATION_JSON`
-
-Un secret manquant ne retombe jamais sur les valeurs d'un compte de test. Ces secrets restent séparés des comptes isolés et du planning antérieur. Le mode consultation interdit le déclenchement `schedule` ; le mode isolé refuse Arnie. **La présente autorisation ne permet pas d'activer une campagne nocturne récurrente sur Arnie.**
-
-L'autorisation privée doit avoir `mode: "consultation_seule"`, `personnageHistoriqueAutorise: "Arnie"`, `autoriseParResponsable: true`, l'origine/backend exacts et `comptes` contenant seulement la paire nom/UID auditée. Elle porte aussi `auditArnie` avec :
-
-- `personnage: "Arnie"`, `uid` exact et `nombrePersonnagesDuCompte: 1` ; un compte partagé entre plusieurs personnages exige un audit supplémentaire, jamais une sélection automatique.
-- `authUsersVerifie` et `memePersonnageVerifie` établis par la lecture réelle.
-- `anonyme: false`, `emailConfirme: true`, après constat effectif.
-- `adresseSHA256` correspondant au SHA-256 de l'adresse confirmée, normalisée en minuscules sans espaces externes. Cela empêche d'essayer accidentellement les identifiants d'un membre de la famille. L'adresse et son empreinte ne doivent pas figurer dans les rapports publics.
-- `verifieLe`, horodatage du constat vivant, datant de moins de 24 heures.
-- `navigationSansEffetVerifiee`, uniquement après inspection des fonctions et déclencheurs réellement déployés. Ne jamais cocher ce champ pour contourner un catalogue inaccessible.
-
-Ce schéma n'est pas un audit rempli ni une invitation à inventer des valeurs. **Aucun de ces faits n'a été constaté pour Arnie lors de la préparation de ce mode.** Les UID présents dans les tests sont des UUID fictifs de bases jetables.
-
-### Garde réseau et limites du parcours
-
-`consultation.cjs` installe la garde avant de charger la page, sur tout le contexte Chromium, avec Service Workers bloqués et WebSockets refusés. Elle interdit notamment : création anonyme, conversion/rattachement/admin d'authentification, sauvegardes générales et urgentes, écritures d'inventaire, réceptions automatiques, dons, achats, production, invitations/réponses, progression, présence et API métier/cron, même appelées au chargement ou à la fermeture. Aucun succès synthétique n'est renvoyé pour remplacer un refus.
-
-Seuls sont admis la connexion indépendante normale, le renouvellement/contrôle du même UID, les lectures REST, quatre RPC de lecture explicitement énumérées et `rue_position_enregistrer` avec un nœud de Luthécia, après validation du personnage. Les droits serveur, interceptions, détention et restrictions restent applicables. Les RPC inconnues sont refusées, même si leur nom finit par « lire ».
-
-Les ordres métier et dialogues sont aussi refusés dans les handlers du pilote, même appelés directement. Le parcours ne tente pas de transformer un refus en réussite par rechargement. Il contrôle avant/après les déplacements l'identité et la fiche exposée du personnage, avec empreinte de tous les champs hormis position et date de modification. Les valeurs privées ne sont pas exportées dans les preuves du rapport. Toute différence inattendue arrête la campagne ; aucune restauration de données réelles n'est tentée.
-
-**Limite bloquante identifiée dans le code actuel :** `enterRoom` persiste la pièce via `sbSavePersonnage`, qui peut écrire l'inventaire révisé puis une fiche générale. Le déclencheur archivé `personnages_vue_modifier` réécrit de nombreux champs, même à partir d'un PATCH partiel de la vue. La garde ne laisse donc pas passer cette sauvegarde et ne la réécrit pas en un second moteur de navigation. Une pièce non confirmée côté serveur fait échouer le parcours. Le catalogue vivant doit permettre d'identifier un chemin de position déjà sûr, ou une correction distincte couverte doit être préparée, avant de pouvoir certifier toutes les pièces. Aucun déploiement SQL n'est entrepris dans ce chantier pour contourner cette limite.
+Le rapport privé Actions (rétention de trois jours) est produit même en cas d'échec. Les captures d'échec restent limitées à la scène, hors portrait et modales personnelles. Pas de trace, HAR, session exportée ou identifiants dans les journaux. Ne pas déclarer le testeur complet opérationnel à partir d'une consultation initiale.
 
 ### Tests hors production
 
-```bash
-npm test --prefix outils/e2e
-python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
-```
+`npm test --prefix outils/e2e` couvre le prévol sur réponses fictives, son transport Playwright sur HTTP local, et la garde Chromium avec vérification des requêtes réellement reçues par un serveur local. Les refus d'identité, anonymat, confirmation, personnage, ambiguïté, territoire, HTTP, JSON, réseau, déplacements et écritures sont exercés. Les tests de `rpAuthSecuriserCompte` restent des tests sur réponses fictives : le pilote ne modifie jamais l'authentification d'Arnie.
 
-Le premier comprend des réponses d'authentification fictives et une garde testée dans Chromium local. Le second exécute le vrai SQL de prévol sur PostgreSQL jetable (Arnie fictif anonyme/classique, homonymes, UID nul et compte absent), sans accès Supabase. Ils ne démontrent ni l'identité réelle ni le raccordement d'Arnie.
-
-Les captures d'échec du mode Arnie sont limitées à l'image de la scène (pièce ou rue), hors portrait, soldes, formulaires et modales personnelles. Aucune capture d'Arnie n'a été produite lors de cette session bloquée.
+Le SQL en lecture seule `outils/bancs/prevol-arnie.sql` reste disponible pour l'opérateur disposant du catalogue vivant ; il n'est plus un formulaire d'autorisation obligatoire. `python3 outils/e2e/test-prevol-arnie-local.py --local-jetable` l'exerce uniquement sur PostgreSQL jetable. Aucun résultat local ne constitue une preuve de connexion ou de visite réelle d'Arnie.
