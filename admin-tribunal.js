@@ -107,12 +107,8 @@ async function admDemarrer() {
   admMessage('', false);
   await admRelire();
   if (ADMIN_MINUTEUR) clearInterval(ADMIN_MINUTEUR);
-  ADMIN_MINUTEUR = setInterval(function () {
-    // L'onglet cache ne travaille pas : un panneau laisse ouvert toute la nuit ne doit pas
-    // interroger la base 4 000 fois pour rien.
-    if (document.hidden) return;
-    admRelire();
-  }, ADMIN_PERIODE_MS);
+  // Lecture a la connexion, aux actions et au bouton Actualiser, jamais par horloge.
+
 }
 
 /* --- LECTURE ------------------------------------------------------------- */

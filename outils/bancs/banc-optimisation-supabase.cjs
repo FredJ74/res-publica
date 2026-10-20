@@ -172,11 +172,13 @@ test('garde commune : pas de chevauchement, liberation apres erreur, cadences ma
  await c.lancerLectureFond('dons',()=>{throw Error('panne');},true);await c.lancerLectureFond('dons',()=>{n++;},true);assert.equal(n,2);
  c.document.hidden=true;await c.lancerLectureFond('mails',()=>{n++;});assert.equal(n,2);await c.lancerLectureFond('dons',()=>{n++;},true);assert.equal(n,3);
 });
-test('raccordement : 90 secondes et traitement masque conserves pour dons, vols et impacts',()=>{
+test('raccordement : dons, vols et impacts restent initialises et sont relus sur interaction uniquement',()=>{
  const code=lire('plateau-core.js');for(const [nom,fn] of [['dons','recupererDonsEnAttente'],['vols','recupererVolsEnAttente'],['impacts','recupererImpactsEnAttente']]){
-  assert.ok(code.includes(`setInterval(() => lancerLectureFond('${nom}', ${fn}, true), 90000)`));
+  assert.ok(!code.includes(`setInterval(() => lancerLectureFond('${nom}', ${fn}, true), 90000)`));
   assert.ok(code.includes(`setTimeout(() => lancerLectureFond('${nom}', ${fn}, true),`));
+  assert.ok(code.includes(`${nom}:${fn}`));
  }
+ assert.ok(code.includes('rpRealitesEnregistrer(nom,fn)'));
 });
 
 // Mesure reproductible : requetes executees par les vraies fonctions, reponses simulees.

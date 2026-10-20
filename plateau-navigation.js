@@ -1575,7 +1575,15 @@ async function sortirBatiment() {
     const resultat=await confirmerSortieBatimentServeur(contexteSortie);
     if(resultat?.obsolete)return;
     if(!contexteNavigationRueValide(contexteSortie)&&!(resultat?.verdict?.transport?.etat==='session_perdue'&&sortieBatimentSessionPerdueVisible(contexteSortie)))return;
-    if(!resultat?.ok){signalerEchecSortie(resultat?.etape||'sortie',resultat?.verdict,resultat?.incertaine);return;}
+    if(!resultat?.ok){
+      // Le refus appartient au serveur. Resynchroniser apres ce verdict, jamais rejouer le mouvement.
+      if(resultat?.verdict?.ok===false&&!resultat.verdict.transport&&typeof rpRealitesSynchroniser==='function'){
+        const c=rpRealitesContexte();
+        await rpRealitesSynchroniser({domaines:false});
+        if(!rpRealitesContexteValide(c,false))return;
+      }
+      signalerEchecSortie(resultat?.etape||'sortie',resultat?.verdict,resultat?.incertaine);return;
+    }
     positionSortieConfirmee=resultat.position;
   }
   if(!contexteNavigationRueValide(contexteSortie))return;

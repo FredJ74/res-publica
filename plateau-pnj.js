@@ -3103,18 +3103,10 @@ function lancerVerificationSociale(nom) {
     console.warn('[Social] Verification indisponible : ' + nom, e);
   }).finally(() => RP_SOCIAL_POLL_EN_COURS.delete(nom));
 }
-function demarrerPollingInvitationsDiner() {
-  if (window._dinerPollingActif) return;
-  window._dinerPollingActif = true;
-  const verifier = () => {
-    lancerVerificationSociale('verifierInvitationsSocialesRecues');
-    lancerVerificationSociale('verifierReponseInvitationSociale');
-    lancerVerificationSociale('verifierTourneesRecues');
-    lancerVerificationSociale('verifierTourneesActivesOffreur');
-  };
-  setInterval(verifier, RP_SOCIAL_POLL_MS);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) verifier(); });
-  verifier();
+function demarrerPollingInvitationsDiner(){
+  if(typeof rpRealitesEnregistrer!=='function')return;
+  for(const nom of ['verifierInvitationsSocialesRecues','verifierReponseInvitationSociale','verifierTourneesRecues','verifierTourneesActivesOffreur'])
+    rpRealitesEnregistrer(nom,()=>typeof window[nom]==='function'?window[nom]():undefined);
 }
 
 function ouvrirModalFabriquerKompromat(nomAgent) {

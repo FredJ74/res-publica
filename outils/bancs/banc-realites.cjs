@@ -1,0 +1,45 @@
+// Synchronisation reelle du module, transports simules ; aucun compte de production.
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const acorn=require('../vercel/node_modules/acorn');
+const lire=f=>fs.readFileSync(require('node:path').join(__dirname,'../..',f),'utf8');
+function extraire(f,noms){const s=lire(f);return acorn.parse(s,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>s.slice(n.start,n.end)).join('\n');}
+function jeu(){
+ const evenements={},peintures=[],appels=[],c=vm.createContext({console,state:{char:{name:'Alice'},country:'republic',currentCity:'capitale',currentBuilding:'mairie',currentRoom:'hall',pa:8,hp:100,arg:2000,liquide:300},
+  setTimeout,clearTimeout,document:{addEventListener:(n,f)=>evenements['document:'+n]=f},window:{addEventListener:(n,f)=>evenements['window:'+n]=f},
+  rpAuthUid:()=> 'uid',rpAuthSessionIdentifiant:()=> 'session',rpAuthAssurerSession:async()=>{},
+  sbViderSauvegardeDifferee:async()=>{},showToast:(...x)=>appels.push(x),restaurerJournal:j=>appels.push(['journal',j.journal]),
+  updateUI:o=>peintures.push(o),updateLocationDisplay(){},setInterval:()=>assert.fail('aucun minuteur de synchronisation'),Event:class{constructor(t,o){this.type=t;Object.assign(this,o);}}
+ });
+ c.fiche=()=>({userId:'uid',char:{name:'Alice',journal:[{text:'Attaque',combatId:42}]},country:'republic',currentCity:'capitale',currentBuilding:'mairie',currentRoom:'hall',pa:0,hp:0,arg:0,liquide:0,inf:0,pop:0,dis:0,poste:null,hospitalisation:{dateFinParis:'2099-01-01'}});
+ c.sbLoadPersonnage=async()=>{appels.push(['lire']);return c.fiche();};vm.runInContext(lire('plateau-realites.js'),c);return {c,evenements,appels,peintures};
+}
+test('aucune lecture a installation, focus, visibilite, ni minuterie',()=>{const {c,evenements,appels}=jeu();c.rpRealitesInstaller();assert.equal(appels.length,0);assert.equal(evenements['window:focus'],undefined);assert.equal(evenements['document:visibilitychange'],undefined);});
+test('interaction : zeros, poste revoque, hospitalisation et journal serveur adoptes sans sauvegarde',async()=>{const {c,peintures}=jeu();c.state.poste={id:'maire'};c.sbSavePersonnage=()=>assert.fail('pas de sauvegarde de lecture');const v=await c.rpRealitesSynchroniser();assert.equal(v.ok,true);for(const k of ['pa','hp','arg','liquide','dis'])assert.equal(c.state[k],0);assert.equal(c.state.poste,null);assert.equal(c.state.char.journal[0].combatId,42);assert.ok(peintures.every(o=>o.lecture===true));});
+test('reconnexions online et restauration bfcache relisent ; pageshow ordinaire ne relit pas deux fois',async()=>{const {c,evenements,appels}=jeu();c.rpRealitesInstaller();await evenements['window:pageshow']({persisted:false});assert.equal(appels.length,0);await evenements['window:online']();assert.equal(appels.filter(a=>a[0]==='lire').length,1);await evenements['window:pageshow']({persisted:true});assert.equal(appels.filter(a=>a[0]==='lire').length,2);});
+test('panne ou fiche etrangere : ordre refuse, aucune ressource remplacee par zero',async()=>{const {c}=jeu();c.sbLoadPersonnage=async()=>null;assert.equal(await c.rpRealitesAvantOrdre(),false);assert.equal(c.state.arg,2000);c.sbLoadPersonnage=async()=>({...c.fiche(),userId:'autre'});assert.equal(await c.rpRealitesAvantOrdre(),false);assert.equal(c.state.char.name,'Alice');});
+test('reponse tardive de compte, session, personnage ou piece ignoree',async()=>{for(const type of ['uid','session','nom','piece']){const {c}=jeu();let finir;c.sbLoadPersonnage=()=>new Promise(r=>finir=r);const p=c.rpRealitesSynchroniser();await new Promise(setImmediate);if(type==='uid')c.rpAuthUid=()=> 'autre';if(type==='session')c.rpAuthSessionIdentifiant=()=> 'autre';if(type==='nom')c.state.char={name:'Bob'};if(type==='piece')c.state.currentRoom='autre';finir(c.fiche());assert.equal((await p).raison,'contexte_obsolete');assert.equal(c.state.arg,2000);}});
+test('lectures simultanees mutualisees et lecteurs existants executes une fois',async()=>{const {c,appels}=jeu();let finir,n=0;c.sbLoadPersonnage=()=>{appels.push(['lire']);return new Promise(r=>finir=r);};c.rpRealitesEnregistrer('invitation',async()=>n++);const a=c.rpRealitesSynchroniser(),b=c.rpRealitesSynchroniser();await new Promise(setImmediate);finir(c.fiche());await Promise.all([a,b]);assert.equal(appels.filter(a=>a[0]==='lire').length,1);assert.equal(n,1);});
+test('clic : handler seulement apres synchronisation ; double clic ne rejoue pas deux ordres',async()=>{const {c,evenements}=jeu();c.rpRealitesInstaller();let finir,ordres=0;c.sbLoadPersonnage=()=>new Promise(r=>finir=r);const cible={isConnected:true,closest(){return this;},dispatchEvent(){},click(){ordres++;}};const e=()=>({target:cible,preventDefault(){},stopImmediatePropagation(){}});const a=evenements['document:click'](e());await evenements['document:click'](e());assert.equal(ordres,0);await new Promise(setImmediate);finir(c.fiche());await a;assert.equal(ordres,1);});
+test('position changee sur serveur : ancien bouton non rejoue',async()=>{const {c,evenements}=jeu();c.rpRealitesInstaller();c.sbLoadPersonnage=async()=>({...c.fiche(),currentBuilding:'dispensaire-public',currentRoom:'salle_attente'});const cible={isConnected:true,closest(){return this;},dispatchEvent(){},click(){assert.fail('ancien ordre');}};await evenements['document:click']({target:cible,preventDefault(){},stopImmediatePropagation(){}});assert.equal(c.state.currentBuilding,'dispensaire-public');});
+test('horloge reste locale, refresh des vues passe par registre et plus aucun intervalle reseau',()=>{
+ for(const f of ['plateau-pnj.js','plateau-multijoueur.js','plateau-assemblee-seance.js','plateau-camion-militaire.js','admin-tribunal.js'])assert.ok(!acorn.parse(lire(f),{ecmaVersion:'latest'}).body.some(n=>n.type==='ExpressionStatement'&&n.expression.callee?.name==='setInterval'));
+ assert.ok(!extraire('plateau-core.js',['startClock']).includes('checkMidnight()'));
+ assert.ok(!extraire('plateau-multijoueur.js',['demarrerPollingNotificationChat']).includes('visibilitychange'));
+ assert.ok(!extraire('plateau-pnj.js',['demarrerPollingInvitationsDiner']).includes('setInterval'));
+});
+
+test('lecture en retard apres delai : aucun ecrasement et nouvelle tentative possible',async()=>{const {c}=jeu();let finir;c.sbLoadPersonnage=()=>new Promise(r=>finir=r);const v=await c.rpRealitesSynchroniser({delaiLecture:5});assert.equal(v.ok,false);finir(c.fiche());await new Promise(setImmediate);assert.equal(c.state.hp,100);c.sbLoadPersonnage=async()=>c.fiche();assert.equal((await c.rpRealitesSynchroniser()).ok,true);});
+test('inventaire integral des intervalles navigateur : trois visuels et un compte a rebours fini',()=>{
+ const {execFileSync}=require('node:child_process'),path=require('node:path');
+ const r=JSON.parse(execFileSync(process.execPath,[path.join(__dirname,'../audits/auditer-minuteurs-navigateur.cjs')],{encoding:'utf8'}));
+ assert.deepEqual(r.intervalles.map(x=>x.fichier+':'+x.fonction).sort(),['plateau-core.js:startClock','plateau-justice-economie.js:compteARebonsSignalement','plateau-organisations-quetes.js:demarrerTickVisuel','plateau-personnage.js:_secuArmerCompteARebours'].sort());
+ const source=extraire('plateau-justice-economie.js',['compteARebonsSignalement']);assert.ok(source.indexOf('clearInterval(tic)')<source.indexOf("sbRpc('police_signalement_resoudre'"));
+});
+test('inventaire : generation monotone, revision ancienne ou contrat perdu refuses',async()=>{
+ const {c}=jeu();c.state._inventaireVersionne=true;c.state._inventaireRevision=8;c.state._inventaireGeneration=12;
+ c.sbLoadPersonnage=async()=>({...c.fiche(),_inventaireVersionne:true,_inventaireRevision:7});assert.equal((await c.rpRealitesSynchroniser()).ok,false);assert.equal(c.state._inventaireGeneration,12);
+ c.sbLoadPersonnage=async()=>({...c.fiche(),_inventaireVersionne:false});assert.equal((await c.rpRealitesSynchroniser()).raison,'inventaire_non_confirme');
+ c.sbLoadPersonnage=async()=>({...c.fiche(),_inventaireVersionne:true,_inventaireRevision:9,_inventaireGeneration:0});assert.equal((await c.rpRealitesSynchroniser()).ok,true);assert.equal(c.state._inventaireGeneration,13);
+});
+test('inventaire modifie pendant une lecture : ancienne photo complete ignoree',async()=>{const {c}=jeu();let finir;c.sbLoadPersonnage=()=>new Promise(r=>finir=r);const p=c.rpRealitesSynchroniser();await new Promise(setImmediate);c.state._inventaireGeneration=1;finir(c.fiche());assert.equal((await p).raison,'inventaire_obsolete');assert.equal(c.state.arg,2000);});
+test('routeur direct : confirmation serveur attendue avant toute branche ou depense',async()=>{const {c}=jeu();vm.runInContext(extraire('plateau-router.js',['doOrder']),c);let ouvert=0;c.ouvrirPublicitePremium=()=>{assert.equal(c.state.pa,0);ouvert++;};c.deduireCoutOrdre=()=>assert.fail('aucun debit avant synchro');c.sbLoadPersonnage=async()=>null;await c.doOrder('publicite_premium',1,100);assert.equal(ouvert,0);c.sbLoadPersonnage=async()=>c.fiche();await c.doOrder('publicite_premium',1,100);assert.equal(ouvert,1);});

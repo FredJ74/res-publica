@@ -567,7 +567,7 @@ async function chargerVraisJoueursPresents(buildingIdParam, roomIdParam, targetI
     await rafraichirStatutsJudiciaires();
     if (!encoreIci()) return;
     const presents = await sbGetPresencesInRoom(pays, ville, buildingId, roomId);
-    if (!encoreIci()) return;
+    if (!encoreIci() || !Array.isArray(presents)) return;
     const autres = presents.filter(p => p.name !== moi);
 
     // Recuperer les photos depuis l'annuaire des personnages (presences n'a pas de photo)
@@ -2222,11 +2222,7 @@ function afficherVueConversation() {
   _chatDernierMessage = null;
   if (_chatInterval) clearInterval(_chatInterval);
   rafraichirConversationActuelle(true);
-  _chatInterval = setInterval(() => {
-    if (!document.hidden && document.getElementById('chat-messages-zone')) {
-      rafraichirConversationActuelle(false);
-    }
-  }, 8000);
+
 }
 
 async function quitterSalonActuelChat() {
@@ -2310,16 +2306,10 @@ async function verifierNotificationChatSansChevauchement() {
   try { await verifierNotificationChat(); }
   finally { _chatNotifEnCours = false; }
 }
-function demarrerPollingNotificationChat() {
-  if (_chatNotifInterval) return;
-  verifierNotificationChatSansChevauchement();
-  _chatNotifInterval = setInterval(verifierNotificationChatSansChevauchement, 30000);
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      verifierNotificationChatSansChevauchement();
-      if (_conversationActuelle && document.getElementById('chat-messages-zone')) rafraichirConversationActuelle(false);
-    }
-  });
+function demarrerPollingNotificationChat(){
+  if(typeof rpRealitesEnregistrer!=='function')return;
+  rpRealitesEnregistrer('chatNotifications',verifierNotificationChatSansChevauchement);
+  rpRealitesEnregistrer('conversation',()=>_conversationActuelle&&document.getElementById('chat-messages-zone')?rafraichirConversationActuelle(false):undefined);
 }
 
 // =====================================================================

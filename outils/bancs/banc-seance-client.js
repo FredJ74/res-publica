@@ -156,7 +156,7 @@ print('============================================================');
 att('un brouillon de discours survit au rafraichissement',
     dans(CODE, 'RP_SEANCE_BROUILLON'));
 att('la veille est arretee a la fermeture', dans(CODE, 'seanceArreterVeille'));
-att("la veille s'arrete aussi si l'ecran disparait", dans(CODE, "cadre.style.display === 'none'"));
+att("la seance ne se relit que si l'ecran est visible, sur interaction", dans(CODE, "cadre.style.display!=='none'") && dans(CODE, "rpRealitesEnregistrer('seance'") && !dans(CODE, "setInterval("));
 
 print('');
 print('============================================================');

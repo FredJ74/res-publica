@@ -1986,28 +1986,35 @@ async function sbGetHistoriqueDeplacements(name, depuisJour) {
 }
 
 async function sbGetPresencesInRoom(country, city, buildingId, roomId) {
-  // Si pas dans un batiment/piece (rue centrale), pas de presence a chercher
-  if (!buildingId || !roomId) return [];
-  const filtre = `country=eq.${encodeURIComponent(country)}&city=eq.${encodeURIComponent(city)}&building_id=eq.${encodeURIComponent(buildingId)}&room_id=eq.${encodeURIComponent(roomId)}`;
-  const rows = await sbGet('presences', filtre);
-  if (!rows) return [];
-  // Filtrer les présences trop anciennes (>5 min = probablement déconnecté)
-  const now = Date.now();
-  return rows.filter(r => (now - new Date(r.updated_at).getTime()) < 5 * 60 * 1000);
+  if(!buildingId||!roomId)return [];
+  const v=await sbRpcVerdict('presences_realites_lire',{
+    p_country:country,p_city:city,p_building:buildingId,p_room:roomId
+  });
+  // Aucun repli sur le vieux TTL : un PJ inactif reste physiquement a sa position serveur.
+  // RPC absente/refus/panne != piece vide. Conserver le dernier affichage, sans feindre sa fraicheur.
+  return v?.ok&&v.contrat===1&&Array.isArray(v.presences)?v.presences:null;
 }
 
 // =====================
 // SAUVEGARDE AUTO
 // =====================
 let sbSaveTimer = null;
+let sbSauvegardeDifferee = null;
 function sbAutoSave() {
-  if (sbSaveTimer) clearTimeout(sbSaveTimer);
-  sbSaveTimer = setTimeout(async () => {
-    sbSaveTimer = null;
-    if (state?.char?.name) {
-      await sbSavePersonnage(state);
-    }
-  }, 3000); // Sauvegarde 3s après la dernière action
+  if(typeof rpRealitesLectureEnCours==='function'&&rpRealitesLectureEnCours())return;
+  if(!state?.char?.name||state.personnageChargeDepuisServeur===false)return;
+  if(sbSaveTimer)clearTimeout(sbSaveTimer);
+  // Capture a l'action : jamais le state mutable relu trois secondes plus tard.
+  sbSauvegardeDifferee={personnage:state.char,uid:typeof rpAuthUid==='function'?rpAuthUid():null,
+    donnees:JSON.parse(JSON.stringify(sbPayloadPersonnage(state)))};
+  sbSaveTimer=setTimeout(()=>sbViderSauvegardeDifferee(),3000);
+}
+async function sbViderSauvegardeDifferee(){
+  if(sbSaveTimer){clearTimeout(sbSaveTimer);sbSaveTimer=null;}
+  const capture=sbSauvegardeDifferee;sbSauvegardeDifferee=null;
+  if(capture&&state.char===capture.personnage&&(typeof rpAuthUid!=='function'||rpAuthUid()===capture.uid))
+    await sbEnfilerEcriturePersonnage(state,capture.donnees);
+  await sbSaveQueue;
 }
 
 // Filet de secours au dechargement de la page (correctif, 20 aout 2026) : sbAutoSave() ci-dessus

@@ -313,14 +313,11 @@ function camionNaviguerVers(villeId, buildingId, roomId) {
 // Uniquement tant que je suis a bord, uniquement sur ce camion, et arretee des
 // que j'en descends. Ce n'est pas un moteur de temps reel : c'est la plus petite
 // chose qui permette a un passager de constater qu'on l'a emmene.
-function camionDemarrerVeille() {
+function camionDemarrerVeille(){
   camionArreterVeille();
-  RP_CAMION_VEILLE = setInterval(() => {
-    if (typeof state === 'undefined' || state.currentBuilding !== RP_CAMION_BATIMENT) {
-      camionArreterVeille(); return;
-    }
-    camionRafraichirContexte().catch(() => {});
-  }, RP_CAMION_VEILLE_MS);
+  if(typeof rpRealitesEnregistrer==='function')rpRealitesEnregistrer('camion',()=>{
+    if(state.currentBuilding===RP_CAMION_BATIMENT)return camionRafraichirContexte();
+  });
 }
 
 function camionArreterVeille() {

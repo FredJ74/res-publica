@@ -1541,10 +1541,12 @@ async function chargerEvenementsPartages() {
 // Récupère et crédite les dons d'argent reçus de la part d'autres joueurs (depuis Supabase)
 async function recupererDonsEnAttente() {
   if (typeof sbRecupererDonsEnAttente !== 'function') return;
+  const contexteRealite=typeof rpRealitesContexte==='function'?rpRealitesContexte():null;
   const moi = state.char?.name;
   if (!moi) return;
   try {
     const dons = await sbRecupererDonsEnAttente(moi);
+    if(contexteRealite&&!rpRealitesContexteValide(contexteRealite))return;
     if (!dons || dons.length === 0) return;
     const cur = COUNTRIES[state.country]?.cur || 'FR';
     // DUPLICATION D'ARGENT CORRIGEE (17 septembre 2026, audit des frontieres d'autorite).
@@ -1639,10 +1641,12 @@ async function recupererDonsEnAttente() {
 // independante du delai de recuperation du voleur.
 async function recupererVolsEnAttente() {
   if (typeof sbRecupererVolsEnAttente !== 'function') return;
+  const contexteRealite=typeof rpRealitesContexte==='function'?rpRealitesContexte():null;
   const moi = state.char?.name;
   if (!moi) return;
   try {
     const vols = await sbRecupererVolsEnAttente(moi);
+    if(contexteRealite&&!rpRealitesContexteValide(contexteRealite))return;
     if (!vols || vols.length === 0) return;
     const cur = COUNTRIES[state.country]?.cur || 'FR';
     let totalRecu = 0;
@@ -1744,10 +1748,12 @@ async function recupererVolsEnAttente() {
 // Recupere et applique les impacts d'indices en attente (ex: consequence d'une fausse rumeur)
 async function recupererImpactsEnAttente() {
   if (typeof sbRecupererImpactsEnAttente !== 'function') return;
+  const contexteRealite=typeof rpRealitesContexte==='function'?rpRealitesContexte():null;
   const moi = state.char?.name;
   if (!moi) return;
   try {
     const impacts = await sbRecupererImpactsEnAttente(moi);
+    if(contexteRealite&&!rpRealitesContexteValide(contexteRealite))return;
     if (!impacts || impacts.length === 0) return;
     let resume = [];
     for (const imp of impacts) {
