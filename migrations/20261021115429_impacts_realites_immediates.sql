@@ -192,6 +192,9 @@ $function$;
 REVOKE ALL ON FUNCTION public.impacts_realites_synchroniser() FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.impacts_realites_synchroniser() TO authenticated;
 
+-- L auteur lie le recu mais reste secret pour la victime (neutralisation non identifiee).
+REVOKE SELECT ON public.impacts_indices_attente FROM authenticated;
+GRANT SELECT(id,victime,indice,delta,raison,traite,created_at,palier,applique_serveur,applique_le,resultat) ON public.impacts_indices_attente TO authenticated;
 REVOKE ALL ON FUNCTION public.impact_deposer(text,text,text,integer,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.impact_deposer(text,text,text,integer,text) TO authenticated;
 COMMIT;

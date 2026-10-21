@@ -1204,15 +1204,15 @@
       },
       {
         "fichier": "plateau-realites.js",
-        "fonction": "rpRealitesSynchroniser",
-        "ligne": 43,
+        "fonction": "rpRealitesRelirePersonnage",
+        "ligne": 49,
         "type": "setTimeout",
         "delai": "options.delaiLecture||10000"
       },
       {
         "fichier": "plateau-realites.js",
         "fonction": "rpRealitesSynchroniser",
-        "ligne": 51,
+        "ligne": 76,
         "type": "setTimeout",
         "delai": "options.delaiLecture||10000"
       },

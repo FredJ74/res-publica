@@ -3303,7 +3303,8 @@ async function sbDeposerVol(vol) {
 }
 
 async function sbRecupererVolsEnAttente(victime) {
-  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false`;
+  // Auteur du recu intentionnellement exclu : une attaque non identifiee reste secrete.
+  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false&select=id,victime,indice,delta,raison,traite,created_at,palier,applique_serveur,applique_le,resultat`;
   return sbGet('vols_en_attente', filtre) || [];
 }
 
@@ -5020,7 +5021,8 @@ async function sbSynchroniserImpactsRealites(){
 }
 
 async function sbRecupererImpactsEnAttente(victime) {
-  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false`;
+  // Auteur du recu intentionnellement exclu : une attaque non identifiee reste secrete.
+  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false&select=id,victime,indice,delta,raison,traite,created_at,palier,applique_serveur,applique_le,resultat`;
   return sbGet('impacts_indices_attente', filtre) || [];
 }
 

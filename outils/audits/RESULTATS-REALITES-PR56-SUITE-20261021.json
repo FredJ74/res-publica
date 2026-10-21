@@ -1,0 +1,128 @@
+{
+  "branche": "codex/optimisation-supabase-20261020",
+  "depart": "714c7b3beb6acce6e88f2c9bfc078efc4e52d663",
+  "implementation": "62085d1345b19ebbd159501ad28cdfab24540ce5",
+  "bancs_client": {
+    "reussis": 95,
+    "echecs": 0,
+    "moteur": "Node 24 ; lanceurs historiques via adaptateur local Node, pas JavaScriptCore natif"
+  },
+  "tests_realites_cibles": {
+    "reussis": 33,
+    "echecs": 0,
+    "authentification": "simulee"
+  },
+  "contre_epreuves_existantes": {
+    "reussies": 90,
+    "echecs": 0
+  },
+  "tests_calendrier": {
+    "reussis": 5,
+    "echecs": 0
+  },
+  "bancs_postgresql_workflow": [
+    {
+      "banc": "banc-optimisation-projections-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-realites-presences-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-realites-impacts-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-realites-rue-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-realites-payer-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-achat-commerce-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-restaurant-luthecia-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-reservation-republica-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-offrir-boire-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-reception-atomique-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-assemblage-electronique-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-jodie-publications-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-commandes-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-membres-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-evenements-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-coherence-rues-local",
+      "code": 0
+    },
+    {
+      "banc": "banc-equipements-collectifs-local",
+      "code": 0
+    }
+  ],
+  "scenarios_nouveaux_postgresql": {
+    "impacts_reels": 37,
+    "garde_rue_moteur_simule": 11,
+    "payer_ordre_dependances_annexes_simulees": 8
+  },
+  "preuve_avant_apres": {
+    "archive_sans_correctif": "ECHEC, code 1, conserve",
+    "meme_assertion_avec_migration_locale": "REUSSITE, code 0",
+    "resultat": "PREUVE-REALITES-AGRESSION-CORRIGEE.json"
+  },
+  "controles_globaux": {
+    "reussis": 10,
+    "total": 12,
+    "authority": {
+      "rpc_absentes_baseline": 30,
+      "signature_renommee_non_reconnue": 1,
+      "precision": "Le moteur de rue manque au catalogue archive ; dependance de prevol vivant, aucune fausse declaration ajoutee."
+    },
+    "referential": {
+      "empreintes_divergentes": 3
+    }
+  },
+  "acces": {
+    "supabase": "Proxy CONNECT 403 avant service ; aucun outil Supabase expose",
+    "github_api": "GraphQL Forbidden ; git push disponible",
+    "production_authentifiee_testee": false,
+    "ci_distante_verifiee": false
+  },
+  "donnees_reelles_modifiees": false,
+  "migrations_production_appliquees": [],
+  "fusion": false,
+  "deploiement_commande": false,
+  "consommation_facturee_mesuree": false,
+  "verdict": "NON TERMINE : controle complet des ordres, calendrier autonome et catalogue vivant manquants",
+  "confidentialite_auteur_impact": "colonne non lisible par authenticated ; projection explicite testee"
+}

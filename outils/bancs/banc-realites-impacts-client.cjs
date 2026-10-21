@@ -30,3 +30,7 @@ test('rapports collectifs existants : tous les rounds autorises restent consulta
  vm.runInContext(source('plateau-politique.js',['ouvrirPanneauCombat']),c);await c.ouvrirPanneauCombat(3);
  const html=dom.get('postes-body').innerHTML;assert.ok(html.includes('BILAN DU ROUND 1'));assert.ok(html.includes('BILAN DU ROUND 2'));
 });
+
+test('projection impacts : le navigateur ne demande jamais la colonne auteur secrete',async()=>{
+ let filtre;const c=vm.createContext({sbGet:async(_,f)=>{filtre=f;return [];}});vm.runInContext(source('supabase.js',['sbRecupererImpactsEnAttente']),c);await c.sbRecupererImpactsEnAttente('Victime');assert.ok(filtre.includes('select=id,'));assert.ok(!filtre.includes('auteur'));assert.ok(filtre.includes('applique_serveur'));
+});
