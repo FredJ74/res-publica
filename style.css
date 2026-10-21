@@ -2184,3 +2184,10 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .forum-mail-rubrique.active{border-color:rgba(201,168,76,.3);background:rgba(201,168,76,.12);
   color:#ead18b;font-weight:600}
 .forum-mail-rubrique:focus-visible{outline:2px solid #c9a84c;outline-offset:2px}
+
+/* Dossiers immobiliers : palette et contrôles de la charte générale. */
+.construction-dossier{padding:1rem;color:#e2e9f1;display:grid;gap:.65rem}
+.construction-action{display:block;width:100%;padding:.75rem;border:1px solid #a98d56;border-radius:6px;background:#263447;color:#e5c477;text-align:left;cursor:pointer;font:inherit}
+.construction-action:focus-visible{outline:2px solid #e5c477;outline-offset:2px}
+.construction-type{display:grid;grid-template-columns:100px 1fr;gap:.8rem;align-items:center}
+.construction-type img{width:100px;height:65px;object-fit:cover;border-radius:4px}
