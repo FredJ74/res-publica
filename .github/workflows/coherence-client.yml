@@ -50,6 +50,10 @@ jobs:
           python3 outils/bancs/banc-realites-impacts-local.py
           python3 outils/bancs/banc-realites-rue-local.py
           python3 outils/bancs/banc-realites-payer-local.py
+      - name: Socle notarial fonds murs et préemption — PostgreSQL jetable
+        run: python3 outils/bancs/banc-immobilier-ventes-local.py
+      - name: Dépendance construction PR58 — PostgreSQL jetable
+        run: python3 outils/bancs/banc-construction-materiaux-local.py
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
       - name: Achat sur PostgreSQL local, sans identifiant Supabase

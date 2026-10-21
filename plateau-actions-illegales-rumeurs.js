@@ -6476,6 +6476,8 @@ async function traiterActeRachatEntreprise(candidat, pa, cost) {
     showToast('Clause en attente', 'Le prêt demandé n\'est pas encore tranché par la banque. Revenez après sa décision.', false);
     return;
   }
+  // #66 : les biens raccordes passent par le meme acte, avant tout debit historique.
+  if (typeof immobilierReprendreCompromis === 'function' && await immobilierReprendreCompromis(data)) return;
   // L'acompte deja verse est deduit du prix : le joueur paie le prix total, jamais le prix + acompte.
   const solde = def.prix - (data.acompte || 0);
 
