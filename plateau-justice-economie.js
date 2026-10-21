@@ -4508,100 +4508,11 @@ function doImprimerLivre() {
 // (resoudreInvestissementsExpires, cron-minuit.js, strictement inchangee) jusqu'a sa resolution
 // naturelle -- tant qu'elle existe, sbGetInvestissementEnCours() continue d'etre interroge ici pour
 // empecher un nouveau placement de coexister avec la ligne legacy pendant la transition.
-async function ouvrirInvestir(pa, cost) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  const actifLegacy = (typeof sbGetInvestissementEnCours === 'function' && state.char?.name)
-    ? await sbGetInvestissementEnCours(state.char.name).catch(() => null)
-    : null;
-  if (actifLegacy) {
-    const joursRestants = Math.max(0, Math.ceil((new Date(actifLegacy.jour_resolution_at).getTime() - Date.now()) / 86400000));
-    showToast('Investissement en cours', 'Vous avez déjà ' + actifLegacy.montant_initial.toLocaleString('fr-FR') + ' ' + cur + ' placés (ancien système). Capital immobilisé. Résultat dans ' + joursRestants + ' jour(s).', false);
-    return;
-  }
-
-  const placementsActifs = (state.placementsBancaires || []).filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
-  const totalActif = placementsActifs.reduce((s, p) => s + (p.montant || 0), 0);
-  const infoExistant = placementsActifs.length > 0
-    ? '<div style="font-size:.75rem;color:#8a6a20;margin-bottom:.6rem">Déjà placés : ' + totalActif.toLocaleString('fr-FR') + ' ' + cur + ' (' + placementsActifs.length + ' investissement(s) actif(s)).</div>'
-    : '';
-
-  document.getElementById('postes-modal-title').textContent = 'Investir';
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1rem">' +
-    '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Capital preleve sur votre compte Banque nationale, immobilise 7 jours. Rendement entre -12% et +12% selon la conjoncture economique locale a l\'echeance.</div>' +
-    infoExistant +
-    '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">MONTANT (min. 500 ' + cur + ')</div>' +
-    '<input id="investir-montant" type="number" min="500" step="100" placeholder="Montant en ' + cur + '..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.8rem"/>' +
-    '<button onclick="confirmerInvestir(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Placer les fonds</button>' +
-    '</div>';
-  document.getElementById('modal-postes').classList.add('open');
+async function ouvrirInvestir(pa,cost) {
+  await openFinancesModal(0,0);
+  document.getElementById('investir-montant')?.focus();
 }
-
-async function confirmerInvestir(pa, cost) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const montant = parseInt(document.getElementById('investir-montant')?.value || 0);
-  if (!montant || montant < 500) { showToast('Montant invalide', 'Minimum 500 ' + cur + '.', false); return; }
-
-  if (typeof sbGetInvestissementEnCours === 'function' && state.char?.name) {
-    const actifLegacy = await sbGetInvestissementEnCours(state.char.name).catch(() => null);
-    if (actifLegacy) { showToast('Investissement refusé', 'Vous avez déjà un investissement en cours (ancien système).', false); return; }
-  }
-
-  // Source des fonds : exclusivement le compte Banque nationale -- jamais liquide, jamais
-  // Helvetia, jamais une combinaison automatique (regle absolue de ce lot). getFondsDisponiblesOrdinaires()
-  // n'est PAS utilisee ici : ce n'est pas une depense ordinaire.
-  const soldeNational = state.comptesBancaires?.nationale?.solde || 0;
-  if (soldeNational < montant) {
-    showToast('Solde Banque nationale insuffisant', 'Déposez d\'abord ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' sur votre compte.', false);
-    return;
-  }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const intSnapshot = getStatEffective('INT'); // fige au moment de la mise (equipe actuelle)
-  // Ville figee au moment du placement (micro-correctif IE) -- jamais recalculee a l'echeance :
-  // le placement conserve le contexte economique de la ville ou il a ete souscrit, meme si le
-  // joueur demenage ensuite (regle explicite du chantier). Meme convention que l'ancien systeme
-  // investissements (state.currentCity), jamais la ville "actuelle" au moment de la resolution.
-  const ville = state.currentCity || 'capitale';
-
-  // Creation atomique (RPC creer_placement_national) : revalide le solde reel, debite le compte
-  // national et cree la ligne placements_bancaires (avec sa ville) dans une seule transaction
-  // serveur -- jamais de debit sans placement, jamais de placement sans debit reel. Le PA deja
-  // deduit ci-dessus n'est pas rembourse si la RPC echoue ensuite (meme doctrine que partout
-  // ailleurs dans le projet pour un echec non lie a la disponibilite du PA lui-meme).
-  const resultat = (typeof sbCreerPlacementNational === 'function')
-    ? await sbCreerPlacementNational(state.char.name, montant, intSnapshot, ville).catch(() => null)
-    : null;
-  if (!resultat) {
-    showToast('Erreur', 'Le placement n\'a pas pu être enregistré. Réessayez.', false);
-    return;
-  }
-
-  // Runtime : integre la ligne retournee par la RPC si sa forme est bien celle attendue (jamais
-  // verifiee en conditions reelles avant ce lot) ; sinon relecture fiable via
-  // sbGetPlacementsBancaires, seule source de verite garantie. Le solde du compte national est de
-  // meme rafraichi depuis la base (deja debite server-side), jamais recalcule localement par
-  // soustraction.
-  const ligneCreee = Array.isArray(resultat) ? resultat[0] : resultat;
-  if (ligneCreee && ligneCreee.id && ligneCreee.statut) {
-    state.placementsBancaires = [...(state.placementsBancaires || []), ligneCreee];
-  } else if (typeof sbGetPlacementsBancaires === 'function') {
-    state.placementsBancaires = await sbGetPlacementsBancaires(state.char.name).catch(() => state.placementsBancaires || []);
-  }
-  if (typeof sbGetComptesBancaires === 'function') {
-    const comptes = await sbGetComptesBancaires(state.char.name).catch(() => null);
-    if (comptes && typeof construireMapComptesBancaires === 'function') state.comptesBancaires = construireMapComptesBancaires(comptes);
-  }
-
-  // arg strictement inchange : un placement est un transfert de poche, pas une depense.
-  document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  showToast('Investissement placé !', montant.toLocaleString('fr-FR') + ' ' + cur + ' immobilisés 7 jours.', true, true);
-  addJournalEntry('Investissement Banque nationale de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' placé. Résultat dans 7 jours.', 'event-info');
-}
+async function confirmerInvestir() {return placerBanqueNationale();}
 
 // =====================
 // BANQUE PRIVEE HELVETIA (chantier "Helvetia H1") -- compte reel, depot/retrait, placements
