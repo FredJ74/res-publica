@@ -41,6 +41,8 @@ jobs:
           npm test --prefix outils/e2e
       - name: Dépendances du PostgreSQL jetable
         run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - name: Placements Banque nationale, sources et recus atomiques
+        run: python3 outils/bancs/banc-placements-sources-local.py
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
       - name: Achat sur PostgreSQL local, sans identifiant Supabase

@@ -2863,6 +2863,8 @@ async function retirerPetiteAnnonce(id) {
 // FINANCES MODAL
 // =====================
 async function openFinancesModal(pa, cost) {
+  const contexteCompte=typeof contexteNavigationRue==='function'?contexteNavigationRue():null;
+  if(typeof banqueNationaleReconcilier==='function'&&state.currentBuilding==='banque-nationale')await banqueNationaleReconcilier();
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
   // Lot 3 (chantier fiscalite/Helvetia) : "En banque" affiche desormais le solde reel du compte
   // Banque nationale (comptes_bancaires), plus l'ancien champ plat state.banque (legacy, plus
@@ -2881,6 +2883,7 @@ async function openFinancesModal(pa, cost) {
     ? (await sbGetPretsEnCours(state.char.name).catch(() => [])).filter(p => (p.type_banque || 'nationale') === 'nationale')
     : [];
 
+  if(contexteCompte&&!contexteNavigationRueValide(contexteCompte))return;
   document.getElementById('finances-body').innerHTML = `
     <div class="finance-row">
       <div class="finance-label">Argent total</div>
@@ -2938,6 +2941,7 @@ async function openFinancesModal(pa, cost) {
     </div>` : ''}
   `;
 
+  if(state.currentBuilding==='banque-nationale'&&typeof banqueNationaleFormulaire==='function')document.getElementById('finances-body').insertAdjacentHTML('beforeend',banqueNationaleFormulaire());
   document.getElementById('modal-finances').classList.add('open');
 }
 
