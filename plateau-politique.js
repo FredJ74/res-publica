@@ -4098,7 +4098,8 @@ function renderRoomActions(room, buildingId, roomId) {
     .filter(o => !['produire_commerce','produire_arme'].includes(o.fn))
     .filter(o => o.fn !== 'gerer_commerce' || (typeof commerceDroitsPiece === 'function' && commerceDroitsPiece(buildingId, roomId)))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
-    .concat(dynOrders);
+    .concat(dynOrders)
+    .filter(o=>o.fn!=='presenter_autorisation_coffre'||(typeof enigme1AutorisationCoffreUtilisable==='function'&&enigme1AutorisationCoffreUtilisable()));
 
   const buttons = allOrders.map(o => {
     // Verifier requiresPost : doit avoir le bon poste specifique
