@@ -32,6 +32,8 @@ def main():
    for f,ts in [('banque',['helvetia_debiter_fonds_ordinaires','helvetia_crediter_destination']),('economie1',['entreprise_prix_rachat','entreprise_signer_compromis','entreprise_acte_rachat','entreprise_ajouter_historique']),('economie2',['payer_ordre','vendre_fonds_commerce']),('finances',['caisse_institution_mouvement','recette_municipale']),('socle',['mouvement_titulaire']),('communication',['mail_systeme_poser_interne'])]:
     fichier={'banque':'banque/20_fonctions.sql','economie1':'economie/20_fonctions-1.sql','economie2':'economie/20_fonctions-2.sql','finances':'finances-publiques/20_fonctions-1.sql','socle':'socle/20_fonctions.sql','communication':'communication/20_fonctions.sql'}[f]
     for nom in ts:q.execute(fonction('baseline/domaines/'+fichier,nom))
+   for ligne in (R/'baseline/domaines/finances-publiques/30_contraintes.sql').read_text().splitlines():
+    if 'ADD CONSTRAINT recettes_municipales_canal_check ' in ligne or 'ADD CONSTRAINT recettes_municipales_montant_check ' in ligne:q.execute(ligne)
    mig=(R/'migrations/20261021203047_immobilier_offres_fonds_murs.sql').read_text();q.execute(mig);q.execute(mig)
    def ok(v,t):
     nonlocal n
@@ -209,8 +211,19 @@ def main():
    ok(appel('immobilier_acte_finaliser',('libre-zero',['gratuit']))['ok'],'cession sans prix impose, frais d acte existants seulement')
    ok(appel('immobilier_offre_deposer',('<img-src=x>','bien3','fonds','1'))['raison']=='parametres_invalides','identifiant de courrier non injectable')
    ok(appel('immobilier_acte_finaliser',('<script>',['gratuit']))['raison']=='requete_invalide','identifiant historique strictement borne')
+   q.execute("SET test.serveur='oui';INSERT INTO terrains_etat(id,country,building_id,proprietaire,data) VALUES('municipal-test','republic','municipal-test','ville:republic_capitale','{\"proprietaire\":\"ville:republic_capitale\",\"city\":\"capitale\"}');INSERT INTO immobilier_biens VALUES('municipal-test','republic','capitale','municipal-test','municipal-test',NULL,100);INSERT INTO locations_actives(id,country,data) VALUES('bail-municipal','republic','{\"country\":\"republic\",\"city\":\"capitale\",\"buildingId\":\"municipal-test\",\"locataire\":\"Locataire\"}');SET test.serveur='non'")
+   acteur('Maire');ok(appel('immobilier_offre_deposer',('municipal-priorite','municipal-test','murs',None))['ok'],'offre municipale avec locataire')
+   ok(any(o['id']=='municipal-priorite' for o in appel('immobilier_catalogue',('republic',))['offres']),'autorite municipale conserve la vue de son offre privee')
+   acteur('Autre');ok(all(o['id']!='municipal-priorite' for o in appel('immobilier_catalogue',('republic',))['offres']),'visibilite municipale ne publie pas la priorite aux tiers')
    # Droits de tables et RPC.
    q.execute("SELECT has_table_privilege('authenticated','immobilier_offres','UPDATE'),has_function_privilege('anon','immobilier_acte_finaliser(text,text[])','EXECUTE')");ok(q.fetchone()==(False,False),'aucune ecriture directe ou acte anonyme')
+   q.execute("ALTER TABLE recettes_municipales DROP CONSTRAINT recettes_municipales_canal_check;ALTER TABLE recettes_municipales ADD CONSTRAINT recettes_municipales_canal_check CHECK(canal IN('taxe_fonciere','loyer','taxe_transaction','cession_immobiliere','autre_canal_vivant'))")
+   try:q.execute(mig)
+   except psycopg2.Error as e:
+    db.rollback();ok('canaux_municipaux_non_examines' in str(e),'migration refuse une extension de contrainte non examinee')
+   else:raise AssertionError('extension vivante effacee')
+   q.execute("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='recettes_municipales'::regclass AND conname='recettes_municipales_canal_check'")
+   ok('autre_canal_vivant' in q.fetchone()[0],'contrainte inconnue preservee apres refus')
   print(f'{n}/{n} scenarios PostgreSQL locaux reussis ; auth simulee, production non verifiee.')
  finally:server.cleanup()
 if __name__=='__main__':main()

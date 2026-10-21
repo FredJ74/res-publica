@@ -62,7 +62,7 @@ async function ouvrirCatalogueImmobilier(){
   html+='</article>';
  }
  html+='<button class="pnj-action-btn" onclick="ouvrirMesBiensImmobiliers()">Mettre un bien en vente</button>';
- immobilierFenetre('Catalogue notarial',html);
+ immobilierFenetre('Catalogue notarial',html);return true;
 }
 async function immobilierReconcilierActes(c){
  const prefixe='immobilier-acte:';let cles=[];
@@ -152,4 +152,18 @@ async function deposerOffreImmobiliere(index,actif,libre){
  immobilierCommandeEnCours=true;
  try{const v=await sbImmobilierDeposer(id,b.id,actif,prix).catch(()=>null);if(!immobilierContexteValide(c))return;if(!v?.ok){showToast('Offre non confirmée',immobilierMotif(v?.raison),false);return;}sessionStorage.removeItem(cle);await ouvrirCatalogueImmobilier();}
  finally{immobilierCommandeEnCours=false;}
+}
+
+// Un ancien compromis conserve son acompte et ses clauses ; son acte utilise le socle commun.
+// Retour true = pris en charge ou lecture incertaine : ne jamais essayer un autre debit.
+async function immobilierReprendreCompromis(entreprise){
+ const c=immobilierContexte(),v=await sbImmobilierBiens(c.pays).catch(()=>null);
+ if(!immobilierContexteValide(c))return true;
+ if(!v?.ok||!Array.isArray(v.biens)){showToast('Acte non lancé','Le raccordement du titre doit être confirmé par le notaire.',false);return true;}
+ const bien=v.biens.find(b=>b.entreprise_id===entreprise.id);
+ if(!bien)return false; // ancien actif non raccorde : moteur historique inchange
+ const catalogueLu=await ouvrirCatalogueImmobilier();if(!immobilierContexteValide(c)||!catalogueLu)return true;
+ const index=immobilierCatalogueCourant.findIndex(o=>o.bien_id===bien.id&&o.actif==='fonds'&&o.disponible);
+ if(index<0){showToast('Acte non lancé','L’offre du fonds doit être complétée ou rendue disponible chez le notaire. Votre compromis reste conservé.',false);return true;}
+ preparerAchatImmobilier(index);return true;
 }

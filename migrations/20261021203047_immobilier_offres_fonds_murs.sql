@@ -11,15 +11,18 @@ SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobil
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_priorites_publier()');IF h IS NOT NULL AND h<>'c4af6a11f2af57a91ebb5cff51764c89' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_priorites_publier';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_priorite_refuser(text)');IF h IS NOT NULL AND h<>'549f6cf542d5c2eb232de05d549bb0db' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_priorite_refuser';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_catalogue(text)');IF h IS NOT NULL AND h<>'5502ac2c106b5e5762aceaaa82f561f7' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_catalogue';END IF;
-SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.vendre_fonds_commerce(text,text,text,int4,bool)');IF h IS NOT NULL AND h<>'0d2ee8ea2c56c8121efac1c8f95f62e9' THEN RAISE EXCEPTION 'definition_non_examinee: vendre_fonds_commerce';END IF;
-SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_acte_finaliser(text,text[])');IF h IS NOT NULL AND h<>'01ae556e2c0c2ab0e7425580f758f63b' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_acte_finaliser';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.vendre_fonds_commerce(text,text,text,numeric,bool)');IF h IS NOT NULL AND h<>'e3a66e85a09dd0629e5b8538af71a667' THEN RAISE EXCEPTION 'definition_non_examinee: vendre_fonds_commerce';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_acte_finaliser(text,text[])');IF h IS NOT NULL AND h<>'79cee8e2a3b8277495785757d513485d' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_acte_finaliser';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_titre_proteger()');IF h IS NOT NULL AND h<>'d1951e6b03191acf276da74b4aa01992' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_titre_proteger';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_bail_serialiser()');IF h IS NOT NULL AND h<>'1ff311d413ae9f2da5f6aaf03944e6ba' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_bail_serialiser';END IF;
-SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_biens_lire(text)');IF h IS NOT NULL AND h<>'c9d5066483a2baa42665b123f6d1b9d2' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_biens_lire';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_biens_lire(text)');IF h IS NOT NULL AND h<>'e681c1dc1c9bfa3f4365b907979a8b99' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_biens_lire';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_acte_etat(text)');IF h IS NOT NULL AND h<>'5f21c208ef92586e164f84bfcca7d462' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_acte_etat';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_references_publier()');IF h IS NOT NULL AND h<>'cd5cb84c8c1641b43a6a6324e53662b6' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_references_publier';END IF;
 END;$g$;
 -- FIN GARDE #66
+
+
+
 
 
 
@@ -216,7 +219,7 @@ BEGIN
 END;$$;
 
 DO $g$ DECLARE h text;BEGIN SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.vendre_fonds_commerce(text,text,text,integer)');IF h IS NULL OR h NOT IN('cb3c22d94317435bafb6cb0e2ab80de7','aac3ccef114484fe223676a0ce446af4') THEN RAISE EXCEPTION 'definition_non_examinee: vendre_fonds_commerce';END IF;END;$g$;
-CREATE OR REPLACE FUNCTION public.vendre_fonds_commerce(p_vendeur text, p_acheteur text, p_fonds_id text, p_prix integer, p_paiement_externe boolean)
+CREATE OR REPLACE FUNCTION public.vendre_fonds_commerce(p_vendeur text, p_acheteur text, p_fonds_id text, p_prix numeric, p_paiement_externe boolean)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -226,8 +229,8 @@ DECLARE
   v_data jsonb;
   v_bail_id text;
   v_bail jsonb;
-  v_prix integer := GREATEST(0, COALESCE(p_prix, 0));
-  v_caisse integer;
+  v_prix numeric := GREATEST(0, COALESCE(p_prix, 0));
+  v_caisse numeric;
   v_premier text;
   v_second text;
 BEGIN
@@ -248,7 +251,8 @@ BEGIN
     IF NOT mouvement_titulaire(p_acheteur, -v_prix) THEN RETURN jsonb_build_object('ok', false, 'raison', 'acheteur_insolvable'); END IF;
     IF NOT mouvement_titulaire(p_vendeur, v_prix) THEN RAISE EXCEPTION 'vendeur_introuvable'; END IF;
   END IF;
-  v_caisse := GREATEST(0, COALESCE((v_data ->> 'caisse')::numeric, 0))::integer;
+  v_caisse := GREATEST(0, COALESCE((v_data ->> 'caisse')::numeric, 0));
+  IF NOT p_paiement_externe THEN v_caisse:=v_caisse::integer;END IF;
   IF v_caisse > 0 THEN
     IF p_paiement_externe THEN
       IF public.immobilier_ref_pj(p_vendeur) IS NULL THEN RAISE EXCEPTION 'vendeur_non_raccorde';END IF;
@@ -282,17 +286,19 @@ CREATE OR REPLACE FUNCTION public.vendre_fonds_commerce(p_vendeur text,p_acheteu
 RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path=public,pg_temp AS $function$
  SELECT public.vendre_fonds_commerce(p_vendeur,p_acheteur,p_fonds_id,p_prix,false);
 $function$;
-REVOKE ALL ON FUNCTION public.vendre_fonds_commerce(text,text,text,integer,boolean) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.vendre_fonds_commerce(text,text,text,numeric,boolean) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.vendre_fonds_commerce(text,text,text,integer) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.vendre_fonds_commerce(text,text,text,integer) TO service_role;
 DO $g$ DECLARE h text;BEGIN SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.recette_municipale(text,text,numeric,text)');
  IF h IS NULL OR h NOT IN('1a0ee027dc0a9b0b77524f9d5c2d061c','81acdda0369275ea3369cb8ea1bf7c89') THEN RAISE EXCEPTION 'definition_non_examinee: recette_municipale';END IF;END;$g$;
 -- Ne jamais effacer une extension du catalogue vivant non examinee.
-DO $g$ DECLARE definition text;canaux text[];BEGIN
+DO $g$ DECLARE definition text;BEGIN
  SELECT pg_get_constraintdef(oid) INTO definition FROM pg_constraint WHERE conrelid='public.recettes_municipales'::regclass AND conname='recettes_municipales_canal_check';
  IF definition IS NOT NULL THEN
-  SELECT array_agg(DISTINCT m[1] ORDER BY m[1]) INTO canaux FROM regexp_matches(definition,'''([^'']+)''','g') m;
-  IF canaux IS DISTINCT FROM ARRAY['loyer','taxe_fonciere','taxe_transaction']::text[] AND canaux IS DISTINCT FROM ARRAY['cession_immobiliere','loyer','taxe_fonciere','taxe_transaction']::text[] THEN RAISE EXCEPTION 'canaux_municipaux_non_examines';END IF;
+  IF definition NOT IN(
+   $c$CHECK ((canal = ANY (ARRAY['taxe_fonciere'::text, 'loyer'::text, 'taxe_transaction'::text])))$c$,
+   $c$CHECK ((canal = ANY (ARRAY['taxe_fonciere'::text, 'loyer'::text, 'taxe_transaction'::text, 'cession_immobiliere'::text])))$c$
+  ) THEN RAISE EXCEPTION 'canaux_municipaux_non_examines';END IF;
  END IF;
 END;$g$;
 ALTER TABLE public.recettes_municipales DROP CONSTRAINT IF EXISTS recettes_municipales_canal_check;
@@ -434,7 +440,7 @@ BEGIN
     ELSE
      SELECT data INTO d FROM public.entreprises WHERE id=b.entreprise_id;
      IF coalesce((d->>'version')::integer,0)>=2 THEN
-      r:=public.vendre_fonds_commerce(o.vendeur,'pj:'||moi,b.entreprise_id,o.prix::integer,true);
+      r:=public.vendre_fonds_commerce(o.vendeur,'pj:'||moi,b.entreprise_id,o.prix,true);
       IF r->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'transfert_fonds_refuse';END IF;
      ELSE
       d:=public.entreprise_ajouter_historique(d||jsonb_build_object('proprietaire',moi),o.prix,'Cession notariée du fonds',p.day);
@@ -497,7 +503,7 @@ CREATE OR REPLACE FUNCTION public.immobilier_biens_lire(p_pays text) RETURNS jso
 DECLARE moi text:=public.mon_personnage();r jsonb;
 BEGIN
  IF moi IS NULL THEN RETURN '{"ok":false,"raison":"acteur_non_authentifie"}';END IF;
- SELECT coalesce(jsonb_agg(jsonb_build_object('id',b.id,'pays',b.pays,'ville',b.ville,'building_id',b.building_id,'surface',b.surface,
+ SELECT coalesce(jsonb_agg(jsonb_build_object('id',b.id,'entreprise_id',b.entreprise_id,'pays',b.pays,'ville',b.ville,'building_id',b.building_id,'surface',b.surface,
   'proprietaire_murs',public.immobilier_titulaire(b.id,'murs'),'proprietaire_fonds',public.immobilier_titulaire(b.id,'fonds'),
   'peut_vendre_fonds',public.immobilier_ref_pj(public.immobilier_titulaire(b.id,'fonds'))=moi,
   'peut_vendre_murs',public.immobilier_ref_pj(public.immobilier_titulaire(b.id,'murs'))=moi OR (public.immobilier_titulaire(b.id,'murs')='ville:'||b.pays||'_'||b.ville
