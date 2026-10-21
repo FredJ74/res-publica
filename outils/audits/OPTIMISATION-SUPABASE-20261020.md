@@ -1,3 +1,5 @@
+> Mise à jour du 21 octobre : le principe des réalités remplace les anciennes cadences décrites ci-dessous. Rapport courant : [REALITES-PR56-20261021.md](REALITES-PR56-20261021.md). Migration de présence préparée et garanties serveur encore bloquantes : PR non fusionnable. Les mesures historiques ne sont pas des consommations facturées.
+
 # Optimisation Supabase — 20 octobre 2026
 
 Projet `jxpwoosmmhohoihxpbuc`, organisation `jbhuwfahomxtfihjiwej`, suivi GitHub #55.

@@ -152,8 +152,7 @@ function filtrerPnjPostesPourvus(persons) {
   });
 }
 
-// La composition des titulaires change rarement : ne pas la relire a chaque
-// battement de presence de 30 s. La verification initiale reste immediate.
+// Titulaires relus au chargement et aux interactions, sans battement ni TTL temporel.
 async function rafraichirTitulairesPostesElectifs() {
   if (typeof sbListTitulairesPostes !== 'function') return;
   try {

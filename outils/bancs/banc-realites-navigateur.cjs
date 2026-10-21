@@ -3,9 +3,9 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const {lancerChromium}=require('./fixtures/chromium-cdp.cjs');
 const racine=path.resolve(__dirname,'../..'),acorn=require('../vercel/node_modules/acorn');
 function extraire(f,noms){const s=fs.readFileSync(path.join(racine,f),'utf8');return acorn.parse(s,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&noms.includes(n.id.name)).map(n=>s.slice(n.start,n.end)).join('\n');}
-function pageRealites(){return `<!doctype html><meta charset="utf-8"><button id="sortir" onclick="sortie()"><span>Sortir</span></button><div id="game-time"></div><div id="journal"></div><script>
+function pageRealites(){return `<!doctype html><meta charset="utf-8"><button id="sortir" onclick="sortie()"><span>Sortir</span></button><button id="carte" onclick="coordonnees(event)">Carte</button><input id="case" type="checkbox" onclick="caseLue=this.checked"><input id="message" onkeydown="if(event.key===\'Enter\')messageLu=this.value"><div id="game-time"></div><div id="journal"></div><script>
 var state={char:{name:'Alice'},country:'republic',currentCity:'capitale',currentBuilding:'mairie',currentRoom:'hall',hp:100,pa:8,arg:2000,liquide:300};
-var compteurs={lectures:0,commandes:0,mutations:0},intervalles=[],serveur={coma:false},dernierRefus=null;
+var compteurs={lectures:0,commandes:0,mutations:0},intervalles=[],serveur={coma:false},dernierRefus=null,positionLue=null,caseLue=false,messageLu=null;function coordonnees(e){positionLue=[e.clientX,e.clientY,e.ctrlKey];}
 window.setInterval=(fn,delai)=>{intervalles.push({fn,delai});return intervalles.length;};
 function rpAuthUid(){return 'uid';}function rpAuthSessionIdentifiant(){return 'session';}async function rpAuthAssurerSession(){}
 async function sbViderSauvegardeDifferee(){}
@@ -24,6 +24,11 @@ document.addEventListener('DOMContentLoaded',async()=>{try{
  for(let i=0;i<50&&dernierRefus===null;i++)await attendre();
  exiger(dernierRefus==='hospitalisation','refus serveur non recu');exiger(compteurs.commandes===1&&compteurs.mutations===0,'mutation malgre refus');exiger(state.hp===0&&state.pa===0,'synchronisation apres attaque');
  exiger(document.getElementById('journal').textContent.includes('Attaque'),'journal non actualise');
+ document.getElementById('carte').dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:142,clientY:52,ctrlKey:true}));
+ for(let i=0;i<50&&!positionLue;i++)await attendre();exiger(JSON.stringify(positionLue)==='[142,52,true]','coordonnees de carte perdues');
+ document.getElementById('case').click();for(let i=0;i<50&&!caseLue;i++)await attendre();exiger(caseLue&&document.getElementById('case').checked,'activation native checkbox perdue');
+ document.getElementById('message').value='Bonjour';document.getElementById('message').dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,cancelable:true,key:'Enter'}));
+ for(let i=0;i<50&&!messageLu;i++)await attendre();exiger(messageLu==='Bonjour','entree clavier perdue');
  const total=compteurs.lectures;for(let minute=0;minute<60;minute++)for(const t of intervalles)t.fn();await attendre();exiger(compteurs.lectures===total,'polling reapparu apres action');
  document.body.dataset.verdict='OK';
 }catch(e){document.body.dataset.verdict='ECHEC';document.body.dataset.erreur=e.stack||e.message;}});

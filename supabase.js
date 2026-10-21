@@ -62,6 +62,9 @@ function sbEnTetes() {
 // `envoyee` dit si la requete a quitte le navigateur. C'est la seule donnee qui permette
 // d'affirmer a un joueur que son action n'a pas pu partir -- jamais qu'elle a echoue.
 async function sbTransportRest(methode, table, filtres, corps, preferResolution) {
+  const finirRealite=typeof rpRealitesRequeteCommencer==='function'?rpRealitesRequeteCommencer():null;
+  try {
+
   // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
   // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
   if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
@@ -114,6 +117,8 @@ async function sbTransportRest(methode, table, filtres, corps, preferResolution)
   let donnees = null;
   try { donnees = await res.json(); } catch (e) { donnees = true; }
   return { etat: 'ok', donnees, http: res.status, code: null, envoyee: true };
+
+  } finally { if(finirRealite)finirRealite(); }
 }
 
 // VERDICT STRUCTURE POUR REST. Meme forme que sbRpcVerdict : { ok, raison, transport } sur un
@@ -2012,9 +2017,11 @@ function sbAutoSave() {
 async function sbViderSauvegardeDifferee(){
   if(sbSaveTimer){clearTimeout(sbSaveTimer);sbSaveTimer=null;}
   const capture=sbSauvegardeDifferee;sbSauvegardeDifferee=null;
+  let confirme=true;
   if(capture&&state.char===capture.personnage&&(typeof rpAuthUid!=='function'||rpAuthUid()===capture.uid))
-    await sbEnfilerEcriturePersonnage(state,capture.donnees);
+    confirme=!!(await sbEnfilerEcriturePersonnage(state,capture.donnees));
   await sbSaveQueue;
+  return confirme;
 }
 
 // Filet de secours au dechargement de la page (correctif, 20 aout 2026) : sbAutoSave() ci-dessus
@@ -5295,6 +5302,9 @@ const RP_RPC_PUBLIQUES = new Set([
 // Le statut HTTP et le code PostgREST/PostgreSQL sont conserves pour le diagnostic, jamais
 // pour l'affichage : c'est l'appelant qui choisit une phrase pour le joueur.
 async function sbTransportRpc(fn, params, options) {
+  const finirRealite=typeof rpRealitesRequeteCommencer==='function'?rpRealitesRequeteCommencer():null;
+  try {
+
   const opts = options || {};
   const publique = (opts.publique === true) || RP_RPC_PUBLIQUES.has(fn);
 
@@ -5376,6 +5386,8 @@ async function sbTransportRpc(fn, params, options) {
     return { etat:'reponse_invalide', raison:'transport_indisponible', http:res.status,
       code:null, message:null, envoyee:true };
   }
+
+  } finally { if(finirRealite)finirRealite(); }
 }
 
 // CONTRAT HISTORIQUE, INCHANGE. 300 sites d'appel lisent sbRpc depuis trois ans : 2xx -> corps

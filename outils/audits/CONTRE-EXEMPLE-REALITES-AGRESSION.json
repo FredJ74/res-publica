@@ -1,0 +1,11 @@
+{
+  "portee": "PostgreSQL jetable, fonction SQL archivee reelle, dependances et personnages fictifs ; pas la production",
+  "fonction": "impact_deposer",
+  "impact_accepte": true,
+  "sante_victime_apres": 100,
+  "pa_victime_apres": 8,
+  "hospitalisation_victime_apres": null,
+  "impacts_differes_non_traites": 1,
+  "realite_immediate_satisfaite": false,
+  "fusion_autorisee": false
+}

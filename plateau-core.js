@@ -832,13 +832,9 @@ window.addEventListener('DOMContentLoaded', () => {
     syncCyclesDepuisSupabase();
   }, 2000);
 
-  // Vérification mails toutes les minutes (réduit de 2 min à 1 min, correctif latence des
-  // voyants du 21 aout 2026 -- ce polling redevient un filet de sécurité en arrière-plan, la
-  // réactivité réelle vient désormais des déclenchements immédiats à l'ouverture de la
-  // messagerie, à la lecture d'un mail et au retour sur l'onglet, voir forum.js/plus haut).
-  // Lectures visuelles : une seule execution par fonction et pause onglet masque.
-  // Les traitements differes et premiers chargements explicites gardent leur execution
-  // en arriere-plan ; memeMasque ne retire que la pause, jamais la garde de chevauchement.
+  // Initialisations a la connexion et lecteurs reutilises aux interactions.
+  // Aucun sondage temporel : visible ou masque, le navigateur inactif ne consulte pas Supabase.
+  // La garde de chevauchement reste commune aux chargements explicites.
   const lecturesFondEnCours = new Set();
   function lancerLectureFond(nom, fn, memeMasque = false) {
     if ((!memeMasque && document.hidden) || lecturesFondEnCours.has(nom) || typeof fn !== 'function') return;
@@ -874,8 +870,8 @@ window.addEventListener('DOMContentLoaded', () => {
     finally { verificationSaisonEnCours = false; }
   }
   // Le calendrier sportif est une échéance, pas un traitement de fond permanent.
-  // Une passe au chargement puis une passe quotidienne de secours assurent
-  // l'initialisation et la reprise, y compris après un dimanche sans joueurs.
+  // Une passe au chargement, puis un rattrapage sur interaction apres l'echeance
+  // assurent la reprise sans surveillance d'un navigateur inactif.
   // Le dimanche soir, conserver la cadence de 5 minutes pour les transitions.
   function estDimancheParis(date = new Date()) {
     return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', weekday: 'short' }).format(date) === 'Sun';
@@ -922,7 +918,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(tickFootballSelonCalendrier, 500);
   setTimeout(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 3000);
 
-  // Événements partagés (journal global) — au chargement puis toutes les 90 secondes
+  // Événements partagés (journal global) — connexion puis interactions
   setTimeout(() => lancerLectureFond('evenements', chargerEvenementsPartages, true), 1500);
   setTimeout(() => chargerOrganisations(), 1800);
   setTimeout(() => { if (typeof chargerLocations === 'function') chargerLocations(); }, 1900);
@@ -942,13 +938,18 @@ window.addEventListener('DOMContentLoaded', () => {
     for(const [nom,fn]of Object.entries(lecteurs))rpRealitesEnregistrer(nom,fn);
     rpRealitesEnregistrer('presence',async()=>{
       if(state.char?.name&&state.currentBuilding&&state.currentRoom)await sbUpdatePresence(state.char.name,state.country,state.currentCity,state.currentBuilding,state.currentRoom);
-      if(typeof chargerVraisJoueursPresents==='function')await chargerVraisJoueursPresents();
+      if(typeof chargerVraisJoueursPresents==='function'){
+        if(!state.currentBuilding&&typeof rueCentraleNoeudActuel!=='undefined'&&rueCentraleNoeudActuel)
+          await chargerVraisJoueursPresents('rue-centrale',rueCentraleNoeudActuel,'persons-list-rue');
+        else if(state.currentBuilding&&state.currentRoom)await chargerVraisJoueursPresents();
+      }
     });
     rpRealitesEnregistrer('assemblee',async()=>{
       if(typeof rafraichirAssembleeInterdictions==='function')await rafraichirAssembleeInterdictions();
       if(state.currentBuilding==='assemblee'&&typeof rafraichirAssemblee==='function')await rafraichirAssemblee();
     });
     rpRealitesEnregistrer('minuitClient',()=>checkMidnight());
+    rpRealitesEnregistrer('version',()=>verifierNouvelleVersion());
     rpRealitesEnregistrer('calendrier',async()=>{
       await verifierSaisonSelonCalendrier();await tickFootballSelonCalendrier();
       if(typeof verifierElectionsOrganisations==='function')await verifierElectionsOrganisations();
@@ -972,10 +973,7 @@ window.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('beforeunload', () => { if (typeof sbSauvegardeUrgenceDechargement === 'function') sbSauvegardeUrgenceDechargement(); });
   }
 
-  // Detection de nouvelle version (correctif, 20 aout 2026) : verification au demarrage, toutes
-  // les 5 min (meme cadence que le championnat/les elections d'organisations ci-dessus), et
-  // immediatement quand l'onglet redevient visible (le cas le plus frequent en pratique : un
-  // onglet reste ouvert en arriere-plan pendant un deploiement).
+  // Detection de version : connexion puis interactions, aucune surveillance temporelle.
   setTimeout(() => { if (typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion(); }, 2700);
 
   // Séquence de chargement espacée pour éviter les conflits de modaux
