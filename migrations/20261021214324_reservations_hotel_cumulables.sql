@@ -5,7 +5,7 @@ SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.hotel_r
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.hotel_reservation_ajouter(text)');IF h IS NOT NULL AND h NOT IN('25010ab65f2c3d5a8005f60917103420') THEN RAISE EXCEPTION 'definition_non_examinee: hotel_reservation_ajouter';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.hotel_reservation_proteger()');IF h IS NOT NULL AND h NOT IN('0125e230f4df32695bb2a4cfaab58984') THEN RAISE EXCEPTION 'definition_non_examinee: hotel_reservation_proteger';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.hotel_repos_attester(text)');IF h IS NOT NULL AND h NOT IN('7ce387a8f83b25c8e58f50b3918472d8') THEN RAISE EXCEPTION 'definition_non_examinee: hotel_repos_attester';END IF;
-SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.pa_bonus_chambre(text,text)');IF h IS NOT NULL AND h NOT IN('c276a328571bd8f961f6540ee48076cb','8a2ae0417b535f0f3c6aef6fa189880e') THEN RAISE EXCEPTION 'definition_non_examinee: pa_bonus_chambre';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.pa_bonus_chambre(text,text)');IF h IS NOT NULL AND h NOT IN('c276a328571bd8f961f6540ee48076cb','a605bba660b59be671a4ede27608fdf4') THEN RAISE EXCEPTION 'definition_non_examinee: pa_bonus_chambre';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.hotel_reserver(text,text)');IF h IS NOT NULL AND h NOT IN('d5852264aa3cfa2f3a0982cf68274d96') THEN RAISE EXCEPTION 'definition_non_examinee: hotel_reserver';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.hotel_reservations_lire(text)');IF h IS NOT NULL AND h NOT IN('dc0dc1e9aeec106ab8903951d38442d7') THEN RAISE EXCEPTION 'definition_non_examinee: hotel_reservations_lire';END IF;
 END;$g$;
@@ -96,7 +96,7 @@ BEGIN
  SELECT montant INTO STRICT bonus FROM public.pa_bonus_hotel WHERE building_id=p_batiment;
  UPDATE public.hotel_repos SET accorde=true,transaction_id=txid_current() WHERE acteur=p_acteur AND jour=a.jour;
  SELECT coalesce(jsonb_agg(x),'[]'::jsonb) INTO v FROM jsonb_array_elements(v->'nuits') x WHERE x->>'id'<>a.nuit_id;
- UPDATE public.personnages_donnees SET reservation_hotel=jsonb_build_object('version',2,'nuits',v),moral=least(100,coalesce(moral,0)+r.moral) WHERE name=p_acteur RETURNING moral INTO moral_final;
+ UPDATE public.personnages_donnees SET reservation_hotel=jsonb_build_object('version',2,'nuits',v),moral=least(100,coalesce(moral,0)+r.moral),updated_at=now() WHERE name=p_acteur RETURNING moral INTO moral_final;
  pa_final:=public.pa_crediter_interne(p_acteur,bonus);
  RETURN jsonb_build_object('ok',true,'rejeu',false,'pa',pa_final,'moral',moral_final,'montant',bonus,'bonus_moral',r.moral,'reservation_hotel',jsonb_build_object('version',2,'nuits',v));
 END;$$;
