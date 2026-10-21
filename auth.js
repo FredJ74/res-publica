@@ -40,6 +40,8 @@ const RP_AUTH_CLE_IDENTITE = 'respublica_auth_identite';
 let RP_AUTH_SESSION = null;
 let RP_AUTH_PROMESSE = null;      // deduplique les appels concurrents
 let RP_AUTH_INDISPONIBLE = false; // vrai si le fournisseur REFUSE STRUCTURELLEMENT l'anonyme (422)
+let RP_AUTH_GENERATION = 0; // invalide les retours d'une ancienne connexion
+let RP_AUTH_JETON_REFUSE = null;
 let RP_AUTH_ETAT = null;          // 'ok' | 'reconnexion_requise' | 'reseau' | 'indisponible'
 
 function rpAuthCleAnon() {
@@ -143,20 +145,30 @@ async function rpAuthRenouveler(refreshToken) {
 
 /* --- LE POINT D'ENTREE. Idempotent, deduplique, ne leve jamais. ---------- */
 async function rpAuthAssurerSession() {
-  if (rpAuthSessionValide(RP_AUTH_SESSION)) return RP_AUTH_SESSION;
   if (RP_AUTH_PROMESSE) return RP_AUTH_PROMESSE;
 
-  RP_AUTH_PROMESSE = (async function () {
-    try {
+  const generation = RP_AUTH_GENERATION;
+  const travail = (async function () {
+    const renouveler = async function () {
+      if (generation !== RP_AUTH_GENERATION) return RP_AUTH_SESSION;
+      const stock = rpAuthLireStockage();
+      // Un autre onglet a pu renouveler le jeton pendant notre inactivite.
+      if (stock && RP_AUTH_SESSION && stock.user?.id !== RP_AUTH_SESSION.user?.id) {
+        RP_AUTH_ETAT='reconnexion_requise';return null;
+      }
+      if (rpAuthSessionValide(stock) && stock.access_token !== RP_AUTH_JETON_REFUSE) RP_AUTH_SESSION=stock;
       if (!RP_AUTH_SESSION) RP_AUTH_SESSION = rpAuthLireStockage();
-      if (rpAuthSessionValide(RP_AUTH_SESSION)) { RP_AUTH_ETAT = 'ok'; return RP_AUTH_SESSION; }
+      if (rpAuthSessionValide(RP_AUTH_SESSION) && RP_AUTH_SESSION.access_token !== RP_AUTH_JETON_REFUSE) { RP_AUTH_ETAT = 'ok'; return RP_AUTH_SESSION; }
 
       // Session connue mais perimee : on la renouvelle -- surtout ne pas ouvrir
       // un nouveau compte, ce serait abandonner le personnage du joueur.
       if (RP_AUTH_SESSION && RP_AUTH_SESSION.refresh_token) {
         const r = await rpAuthRenouveler(RP_AUTH_SESSION.refresh_token)
                           .catch(() => ({ ok: false, definitif: false, raison: 'exception' }));
+        if (generation !== RP_AUTH_GENERATION) return RP_AUTH_SESSION;
+        if (r.ok && r.session.user?.id !== RP_AUTH_SESSION?.user?.id) { RP_AUTH_ETAT='reconnexion_requise';return null; }
         if (r.ok) {
+          RP_AUTH_JETON_REFUSE=null;
           RP_AUTH_SESSION = r.session; rpAuthEcrireStockage(r.session);
           rpAuthMemoriserIdentite(r.session);
           RP_AUTH_ETAT = 'ok';
@@ -172,6 +184,8 @@ async function rpAuthAssurerSession() {
           return null;
         }
         // ECHEC DEFINITIF : le serveur a refuse le jeton.
+        const recente=rpAuthLireStockage();
+        if (rpAuthSessionValide(recente) && recente.user?.id===RP_AUTH_SESSION?.user?.id && recente.access_token!==RP_AUTH_SESSION?.access_token) {RP_AUTH_SESSION=recente;RP_AUTH_ETAT='ok';return recente;}
         RP_AUTH_SESSION = null; rpAuthEcrireStockage(null);
       }
 
@@ -183,13 +197,14 @@ async function rpAuthAssurerSession() {
       const identite = rpAuthIdentiteMemorisee();
       if (identite && identite.email) {
         RP_AUTH_ETAT = 'reconnexion_requise';
-        console.warn('[auth] session perdue pour ' + identite.email
-                     + ' — reconnexion demandee, aucun compte anonyme cree.');
+        console.warn('[auth] reconnexion demandee, aucun compte anonyme cree.');
+        if(typeof afficherBandeauReconnexion==='function')afficherBandeauReconnexion();
         return null;
       }
 
       if (RP_AUTH_INDISPONIBLE) { RP_AUTH_ETAT = 'indisponible'; return null; }
       const nouvelle = await rpAuthOuvrirAnonyme().catch(() => null);
+      if (generation !== RP_AUTH_GENERATION) return RP_AUTH_SESSION;
       if (nouvelle) {
         RP_AUTH_SESSION = nouvelle; rpAuthEcrireStockage(nouvelle);
         RP_AUTH_ETAT = 'ok';
@@ -197,11 +212,19 @@ async function rpAuthAssurerSession() {
         RP_AUTH_ETAT = RP_AUTH_INDISPONIBLE ? 'indisponible' : 'reseau';
       }
       return nouvelle;
-    } finally {
-      RP_AUTH_PROMESSE = null;
-    }
+    };
+    // Verrou natif partage entre onglets, seulement pendant une interaction. Aucun heartbeat.
+    if(typeof navigator!=='undefined' && navigator.locks?.request)return navigator.locks.request('respublica-auth-session',renouveler);
+    return renouveler();
   })();
-  return RP_AUTH_PROMESSE;
+  RP_AUTH_PROMESSE=travail;
+  try{return await travail;}finally{if(RP_AUTH_PROMESSE===travail)RP_AUTH_PROMESSE=null;}
+}
+
+// Un 401 ne rejoue jamais l'action. Il prepare seulement la prochaine interaction.
+async function rpAuthRecupererApresRefus(jeton) {
+ if(RP_AUTH_SESSION?.access_token===jeton){RP_AUTH_JETON_REFUSE=jeton;RP_AUTH_SESSION.expire_le=0;}
+ return rpAuthAssurerSession();
 }
 
 /* --- MEMOIRE D'IDENTITE (24 septembre 2026) ------------------------------
@@ -476,7 +499,7 @@ async function rpAuthDemanderConfirmationAdresse(email) {
  *  une modification de l'utilisateur en place. La session obtenue REMPLACE entierement la
  *  precedente, en memoire et dans le stockage.
  */
-async function rpAuthSeConnecter(email, motDePasse) {
+async function rpAuthSeConnecter(email, motDePasse, options = {}) {
   // Qui etions-nous AVANT de tenter ? Lu maintenant, parce que la reponse va ecraser la session.
   // Rien n'est purge a ce stade : un echec ne doit rien detruire (voir plus bas).
   const ancienUid = rpAuthUid();
@@ -491,6 +514,8 @@ async function rpAuthSeConnecter(email, motDePasse) {
   }
   const session = rpAuthNormaliser(await res.json().catch(() => null));
   if (!session) return { ok: false, raison: 'reponse_illisible' };
+  if(options.uidAttendu && session.user?.id!==options.uidAttendu)return {ok:false,raison:'identite_differente'};
+  RP_AUTH_GENERATION++;RP_AUTH_JETON_REFUSE=null;
   // DURCISSEMENT DU 21 septembre 2026. Une promesse d'ouverture de session pouvait etre EN VOL
   // au moment de la connexion (rpAuthAssurerSession est dedupliquee et survit a l'appel qui l'a
   // lancee). En se resolvant apres nous, elle reassignait RP_AUTH_SESSION avec le compte ANONYME

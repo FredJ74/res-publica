@@ -2069,8 +2069,15 @@ function declencherHospitalisation(palier) {
   // annulable gratuitement. Sauvegarde immediate, pas au prochain cycle : la victime peut
   // rafraichir dans la seconde.
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-  const batimentCible = lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
-  const pieceCible = lieu === 'clinique' ? 'reception_clinique' : 'salle_attente';
+  rejoindreHospitalisation();
+}
+
+// Meme arrivee medicale que l'hospitalisation historique, sans reappliquer son traitement.
+// Les nouvelles notifications SQL ont deja fixe les PV, PA, dates et statistiques.
+function rejoindreHospitalisation(){
+  if(!state.hospitalisation)return;
+  const batimentCible = state.hospitalisation.lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
+  const pieceCible = state.hospitalisation.lieu === 'clinique' ? 'reception_clinique' : 'salle_attente';
   if (typeof enterBuilding === 'function') enterBuilding(batimentCible, true);
   if (typeof enterRoom === 'function') enterRoom(batimentCible, pieceCible, null);
 }

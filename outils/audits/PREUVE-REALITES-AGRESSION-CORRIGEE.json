@@ -1,0 +1,19 @@
+{
+  "portee": "PostgreSQL jetable, fonction SQL archivee reelle, dependances et personnages fictifs ; pas la production",
+  "correctif_local_applique": true,
+  "fonction": "impact_deposer",
+  "impact_accepte": true,
+  "sante_victime_apres": 0,
+  "pa_victime_apres": 0,
+  "hospitalisation_victime_apres": {
+    "lieu": "dispensaire",
+    "palier": "totale",
+    "impactId": "audit-impact",
+    "dateFinParis": "2026-10-27",
+    "dateDebutParis": "2026-10-21"
+  },
+  "notifications_non_lues": 1,
+  "impacts_differes_non_traites": 0,
+  "realite_immediate_satisfaite": true,
+  "fusion_autorisee": false
+}

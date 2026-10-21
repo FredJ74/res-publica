@@ -158,7 +158,7 @@ test('les fonctions de secretaire ne sont pas acceptables depuis le payload du n
 });
 
 for(const [poste,piece,titre] of [['maire','bureau_maire','Secrétaire général de la mairie'],['maire_adjoint','bureau_maire_adjoint','Secrétaire du maire adjoint']])test(`${poste} : filtre et tick de presence conservent un seul PNJ et recalculent la vacance`,async()=>{
- const j=plateau();j.ctx.state.currentRoom=piece;j.ctx.sbListPersonnages=async()=>[];
+ const j=plateau();j.ctx.state.currentRoom=piece;j.ctx.sbListTitulairesPostes=async()=>[];
  const p=j.ctx.personnesNormalesDeLaPiece('mairie-capitale',piece)[0];
  j.ctx._titulairesPostes={[poste+'_capitale']:'Alice'};
  assert.equal(j.ctx.filtrerPnjPostesPourvus([p]).length,1);

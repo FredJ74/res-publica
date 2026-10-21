@@ -1,0 +1,1285 @@
+{
+  "avant_commit": "8540b2d",
+  "avant": {
+    "portee": "Fichiers navigateur JS/MJS a la racine ; bibliotheques tierces exclues",
+    "intervalles": [
+      {
+        "fichier": "admin-tribunal.js",
+        "fonction": "admDemarrer",
+        "ligne": 110,
+        "type": "setInterval",
+        "delai": "ADMIN_PERIODE_MS"
+      },
+      {
+        "fichier": "plateau-assemblee-seance.js",
+        "fonction": "seanceDemarrerVeille",
+        "ligne": 87,
+        "type": "setInterval",
+        "delai": "SEANCE_VEILLE_MS"
+      },
+      {
+        "fichier": "plateau-camion-militaire.js",
+        "fonction": "camionDemarrerVeille",
+        "ligne": 318,
+        "type": "setInterval",
+        "delai": "RP_CAMION_VEILLE_MS"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 871,
+        "type": "setInterval",
+        "delai": "120000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 903,
+        "type": "setInterval",
+        "delai": "300000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 935,
+        "type": "setInterval",
+        "delai": "20000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 937,
+        "type": "setInterval",
+        "delai": "300000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 951,
+        "type": "setInterval",
+        "delai": "90000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 954,
+        "type": "setInterval",
+        "delai": "90000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 955,
+        "type": "setInterval",
+        "delai": "90000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 956,
+        "type": "setInterval",
+        "delai": "90000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 965,
+        "type": "setInterval",
+        "delai": "30000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 1029,
+        "type": "setInterval",
+        "delai": "300000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "startClock",
+        "ligne": 2198,
+        "type": "setInterval",
+        "delai": "60000"
+      },
+      {
+        "fichier": "plateau-justice-economie.js",
+        "fonction": "compteARebonsSignalement",
+        "ligne": 1938,
+        "type": "setInterval",
+        "delai": "1000"
+      },
+      {
+        "fichier": "plateau-justice-economie.js",
+        "fonction": "ouvrirChatAudience",
+        "ligne": 15266,
+        "type": "setInterval",
+        "delai": "8000"
+      },
+      {
+        "fichier": "plateau-multijoueur.js",
+        "fonction": "afficherVueConversation",
+        "ligne": 2232,
+        "type": "setInterval",
+        "delai": "8000"
+      },
+      {
+        "fichier": "plateau-multijoueur.js",
+        "fonction": "demarrerPollingNotificationChat",
+        "ligne": 2323,
+        "type": "setInterval",
+        "delai": "30000"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "demarrerTickVisuel",
+        "ligne": 5854,
+        "type": "setInterval",
+        "delai": "500"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "ouvrirLiveMatchReel",
+        "ligne": 7508,
+        "type": "setInterval",
+        "delai": "6000"
+      },
+      {
+        "fichier": "plateau-personnage.js",
+        "fonction": "_secuArmerCompteARebours",
+        "ligne": 858,
+        "type": "setInterval",
+        "delai": "1000"
+      }
+    ],
+    "delais_uniques_ou_sequences": [
+      {
+        "fichier": "creation.js",
+        "fonction": "connecterAvecMotDePasse",
+        "ligne": 109,
+        "type": "setTimeout",
+        "delai": "700"
+      },
+      {
+        "fichier": "creation.js",
+        "fonction": "chargerPersonnageParNom",
+        "ligne": 282,
+        "type": "setTimeout",
+        "delai": "1000"
+      },
+      {
+        "fichier": "forum-canvas.js",
+        "fonction": "rpCanvasInitComposeScreen",
+        "ligne": 631,
+        "type": "setTimeout",
+        "delai": "0"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "ouvrirForumSurEditeur",
+        "ligne": 363,
+        "type": "setTimeout",
+        "delai": "60"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "richInsertImage",
+        "ligne": 1212,
+        "type": "setTimeout",
+        "delai": "50"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "quotePost",
+        "ligne": 1647,
+        "type": "setTimeout",
+        "delai": "100"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "loadForumTopicsFromSB",
+        "ligne": 2415,
+        "type": "setTimeout",
+        "delai": "12000"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "renderMailRead",
+        "ligne": 2644,
+        "type": "setTimeout",
+        "delai": "0"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "submitMail",
+        "ligne": 2787,
+        "type": "setTimeout",
+        "delai": "1500"
+      },
+      {
+        "fichier": "plateau-actions-illegales-rumeurs.js",
+        "fonction": "confirmerAssassinatArme",
+        "ligne": 582,
+        "type": "setTimeout",
+        "delai": "800"
+      },
+      {
+        "fichier": "plateau-actions-illegales-rumeurs.js",
+        "fonction": "neutraliserDeputePnj",
+        "ligne": 629,
+        "type": "setTimeout",
+        "delai": "800"
+      },
+      {
+        "fichier": "plateau-actions-illegales-rumeurs.js",
+        "fonction": "confirmerEmpoisonnement",
+        "ligne": 2624,
+        "type": "setTimeout",
+        "delai": "800"
+      },
+      {
+        "fichier": "plateau-assemblee-presidence.js",
+        "fonction": "presidenceTirageOuvrir",
+        "ligne": 346,
+        "type": "setTimeout",
+        "delai": "900"
+      },
+      {
+        "fichier": "plateau-assemblee-presidence.js",
+        "fonction": "presidenceTirageOuvrir",
+        "ligne": 354,
+        "type": "setTimeout",
+        "delai": "delai"
+      },
+      {
+        "fichier": "plateau-assemblee-presidence.js",
+        "fonction": "presidenceTirageOuvrir",
+        "ligne": 356,
+        "type": "setTimeout",
+        "delai": "PRESIDENCE_PAS_MIN_MS"
+      },
+      {
+        "fichier": "plateau-commerce-pj.js",
+        "fonction": "commercePjDecorTelecharger",
+        "ligne": 2513,
+        "type": "setTimeout",
+        "delai": "10000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 687,
+        "type": "setTimeout",
+        "delai": "4000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 831,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 870,
+        "type": "setTimeout",
+        "delai": "1000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 902,
+        "type": "setTimeout",
+        "delai": "2500"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 934,
+        "type": "setTimeout",
+        "delai": "500"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 936,
+        "type": "setTimeout",
+        "delai": "3000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 940,
+        "type": "setTimeout",
+        "delai": "1500"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 941,
+        "type": "setTimeout",
+        "delai": "1800"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 942,
+        "type": "setTimeout",
+        "delai": "1900"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 943,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 944,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 945,
+        "type": "setTimeout",
+        "delai": "2100"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 946,
+        "type": "setTimeout",
+        "delai": "2350"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 947,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 948,
+        "type": "setTimeout",
+        "delai": "2200"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 949,
+        "type": "setTimeout",
+        "delai": "2400"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 950,
+        "type": "setTimeout",
+        "delai": "2600"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 1028,
+        "type": "setTimeout",
+        "delai": "2700"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 1040,
+        "type": "setTimeout",
+        "delai": "1000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 1041,
+        "type": "setTimeout",
+        "delai": "3000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 1042,
+        "type": "setTimeout",
+        "delai": "5000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 1049,
+        "type": "setTimeout",
+        "delai": "8000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 1052,
+        "type": "setTimeout",
+        "delai": "300"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "restaurerPositionApresChargement",
+        "ligne": 1725,
+        "type": "setTimeout",
+        "delai": "300"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "restaurerPositionApresChargement",
+        "ligne": 1733,
+        "type": "setTimeout",
+        "delai": "300"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "restaurerPositionApresChargement",
+        "ligne": 1738,
+        "type": "setTimeout",
+        "delai": "300"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "showToast",
+        "ligne": 2719,
+        "type": "setTimeout",
+        "delai": "3800"
+      },
+      {
+        "fichier": "plateau-divers.js",
+        "fonction": "doSeConfeser",
+        "ligne": 690,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-justice-economie.js",
+        "fonction": "compteARebonsSignalement",
+        "ligne": 1956,
+        "type": "setTimeout",
+        "delai": "600"
+      },
+      {
+        "fichier": "plateau-navigation.js",
+        "fonction": "forceRenderCity",
+        "ligne": 50,
+        "type": "setTimeout",
+        "delai": "500"
+      },
+      {
+        "fichier": "plateau-navigation.js",
+        "fonction": "enterBuilding",
+        "ligne": 368,
+        "type": "setTimeout",
+        "delai": "100"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "jouerChoreographieCouche",
+        "ligne": 4570,
+        "type": "setTimeout",
+        "delai": "Math.round(etapePrecedente.t * dureeMs)"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "jouerChoreographieCouche",
+        "ligne": 4578,
+        "type": "setTimeout",
+        "delai": "Math.round(couche.vibrationAuMoment * dureeMs)"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "jouerChoreographieCouche",
+        "ligne": 4582,
+        "type": "setTimeout",
+        "delai": "300"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "executerSequenceRealisation",
+        "ligne": 4758,
+        "type": "setTimeout",
+        "delai": "debutPlan"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "executerSequenceRealisation",
+        "ligne": 4774,
+        "type": "setTimeout",
+        "delai": "i * pas"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "executerSequenceRealisation",
+        "ligne": 4791,
+        "type": "setTimeout",
+        "delai": "debutPlan"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "executerSequenceRealisation",
+        "ligne": 4800,
+        "type": "setTimeout",
+        "delai": "offset"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "jouerBeatEtContinuer",
+        "ligne": 5749,
+        "type": "setTimeout",
+        "delai": "dureeAttenteMs + 150"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "jouerSituationSuivante",
+        "ligne": 5766,
+        "type": "setTimeout",
+        "delai": "900"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "appliquerSceneActeursPreview",
+        "ligne": 5963,
+        "type": "setTimeout",
+        "delai": "a.delay"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "afficherInsertCanonique",
+        "ligne": 7284,
+        "type": "setTimeout",
+        "delai": "3400"
+      },
+      {
+        "fichier": "plateau-personnage.js",
+        "fonction": "htmlSecuriteDuCompte",
+        "ligne": 789,
+        "type": "setTimeout",
+        "delai": "0"
+      },
+      {
+        "fichier": "plateau-personnage.js",
+        "fonction": "confirmerDestructionPersonnage",
+        "ligne": 2047,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-pnj.js",
+        "fonction": "talkToPnj",
+        "ligne": 1447,
+        "type": "setTimeout",
+        "delai": "4000"
+      },
+      {
+        "fichier": "plateau-pnj.js",
+        "fonction": "programmerVerificationSocialeSurAction",
+        "ligne": 3126,
+        "type": "setTimeout",
+        "delai": "0"
+      },
+      {
+        "fichier": "plateau-publicite-premium.js",
+        "fonction": "publicitePremiumTelecharger",
+        "ligne": 80,
+        "type": "setTimeout",
+        "delai": "10000"
+      },
+      {
+        "fichier": "plateau-quete-accueil.js",
+        "fonction": "queteAccueilSurbrillance",
+        "ligne": 59,
+        "type": "setTimeout",
+        "delai": "dureeMs || 10000"
+      },
+      {
+        "fichier": "plateau-quete-accueil.js",
+        "fonction": "queteAccueilVerifierEtapeBatiment",
+        "ligne": 153,
+        "type": "setTimeout",
+        "delai": "60000"
+      },
+      {
+        "fichier": "plateau-quete-accueil.js",
+        "fonction": "queteAccueilVerifierEtapeBatiment",
+        "ligne": 172,
+        "type": "setTimeout",
+        "delai": "60000 - ecoule"
+      },
+      {
+        "fichier": "plateau-quete-accueil.js",
+        "fonction": "queteAccueilArmerMinuteurStade",
+        "ligne": 448,
+        "type": "setTimeout",
+        "delai": "60000"
+      },
+      {
+        "fichier": "plateau-quete-accueil.js",
+        "fonction": "afficherPopupQueteAccueil",
+        "ligne": 1033,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-resolution.js",
+        "fonction": "ouvrirResolutionSpectaculaire",
+        "ligne": 116,
+        "type": "setTimeout",
+        "delai": "duree"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "deplacerRueCentrale",
+        "ligne": 1394,
+        "type": "setTimeout",
+        "delai": "550"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "naviguerVersNoeudRue",
+        "ligne": 1417,
+        "type": "setTimeout",
+        "delai": "500"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "naviguerVersNoeudRue",
+        "ligne": 1420,
+        "type": "setTimeout",
+        "delai": "1000"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "entrerDansBatimentRue",
+        "ligne": 1437,
+        "type": "setTimeout",
+        "delai": "500"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "entrerDansBatimentRue",
+        "ligne": 1441,
+        "type": "setTimeout",
+        "delai": "1400"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "entrerDansBatimentRue",
+        "ligne": 1447,
+        "type": "setTimeout",
+        "delai": "100"
+      },
+      {
+        "fichier": "supabase.js",
+        "fonction": "sbLoadForumTopicsVerdict",
+        "ligne": 971,
+        "type": "setTimeout",
+        "delai": "8000"
+      },
+      {
+        "fichier": "supabase.js",
+        "fonction": "sbAutoSave",
+        "ligne": 2005,
+        "type": "setTimeout",
+        "delai": "3000"
+      }
+    ]
+  },
+  "apres": {
+    "portee": "Fichiers navigateur JS/MJS a la racine ; bibliotheques tierces exclues",
+    "intervalles": [
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "startClock",
+        "ligne": 2138,
+        "type": "setInterval",
+        "delai": "60000"
+      },
+      {
+        "fichier": "plateau-justice-economie.js",
+        "fonction": "compteARebonsSignalement",
+        "ligne": 1938,
+        "type": "setInterval",
+        "delai": "1000"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "demarrerTickVisuel",
+        "ligne": 5854,
+        "type": "setInterval",
+        "delai": "500"
+      },
+      {
+        "fichier": "plateau-personnage.js",
+        "fonction": "_secuArmerCompteARebours",
+        "ligne": 858,
+        "type": "setInterval",
+        "delai": "1000"
+      }
+    ],
+    "delais_uniques_ou_sequences": [
+      {
+        "fichier": "creation.js",
+        "fonction": "connecterAvecMotDePasse",
+        "ligne": 109,
+        "type": "setTimeout",
+        "delai": "700"
+      },
+      {
+        "fichier": "creation.js",
+        "fonction": "chargerPersonnageParNom",
+        "ligne": 282,
+        "type": "setTimeout",
+        "delai": "1000"
+      },
+      {
+        "fichier": "forum-canvas.js",
+        "fonction": "rpCanvasInitComposeScreen",
+        "ligne": 631,
+        "type": "setTimeout",
+        "delai": "0"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "ouvrirForumSurEditeur",
+        "ligne": 363,
+        "type": "setTimeout",
+        "delai": "60"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "richInsertImage",
+        "ligne": 1212,
+        "type": "setTimeout",
+        "delai": "50"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "quotePost",
+        "ligne": 1647,
+        "type": "setTimeout",
+        "delai": "100"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "loadForumTopicsFromSB",
+        "ligne": 2415,
+        "type": "setTimeout",
+        "delai": "12000"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "renderMailRead",
+        "ligne": 2644,
+        "type": "setTimeout",
+        "delai": "0"
+      },
+      {
+        "fichier": "forum.js",
+        "fonction": "submitMail",
+        "ligne": 2787,
+        "type": "setTimeout",
+        "delai": "1500"
+      },
+      {
+        "fichier": "plateau-actions-illegales-rumeurs.js",
+        "fonction": "confirmerAssassinatArme",
+        "ligne": 582,
+        "type": "setTimeout",
+        "delai": "800"
+      },
+      {
+        "fichier": "plateau-actions-illegales-rumeurs.js",
+        "fonction": "neutraliserDeputePnj",
+        "ligne": 629,
+        "type": "setTimeout",
+        "delai": "800"
+      },
+      {
+        "fichier": "plateau-actions-illegales-rumeurs.js",
+        "fonction": "confirmerEmpoisonnement",
+        "ligne": 2624,
+        "type": "setTimeout",
+        "delai": "800"
+      },
+      {
+        "fichier": "plateau-assemblee-presidence.js",
+        "fonction": "presidenceTirageOuvrir",
+        "ligne": 346,
+        "type": "setTimeout",
+        "delai": "900"
+      },
+      {
+        "fichier": "plateau-assemblee-presidence.js",
+        "fonction": "presidenceTirageOuvrir",
+        "ligne": 354,
+        "type": "setTimeout",
+        "delai": "delai"
+      },
+      {
+        "fichier": "plateau-assemblee-presidence.js",
+        "fonction": "presidenceTirageOuvrir",
+        "ligne": 356,
+        "type": "setTimeout",
+        "delai": "PRESIDENCE_PAS_MIN_MS"
+      },
+      {
+        "fichier": "plateau-commerce-pj.js",
+        "fonction": "commercePjDecorTelecharger",
+        "ligne": 2513,
+        "type": "setTimeout",
+        "delai": "10000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 687,
+        "type": "setTimeout",
+        "delai": "4000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 831,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 856,
+        "type": "setTimeout",
+        "delai": "1000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 887,
+        "type": "setTimeout",
+        "delai": "2500"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 918,
+        "type": "setTimeout",
+        "delai": "500"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 919,
+        "type": "setTimeout",
+        "delai": "3000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 922,
+        "type": "setTimeout",
+        "delai": "1500"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 923,
+        "type": "setTimeout",
+        "delai": "1800"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 924,
+        "type": "setTimeout",
+        "delai": "1900"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 925,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 926,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 927,
+        "type": "setTimeout",
+        "delai": "2100"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 928,
+        "type": "setTimeout",
+        "delai": "2350"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 929,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 930,
+        "type": "setTimeout",
+        "delai": "2200"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 931,
+        "type": "setTimeout",
+        "delai": "2400"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 932,
+        "type": "setTimeout",
+        "delai": "2600"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 977,
+        "type": "setTimeout",
+        "delai": "2700"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 980,
+        "type": "setTimeout",
+        "delai": "1000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 981,
+        "type": "setTimeout",
+        "delai": "3000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 982,
+        "type": "setTimeout",
+        "delai": "5000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 989,
+        "type": "setTimeout",
+        "delai": "8000"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "initialisation",
+        "ligne": 992,
+        "type": "setTimeout",
+        "delai": "300"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "restaurerPositionApresChargement",
+        "ligne": 1665,
+        "type": "setTimeout",
+        "delai": "300"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "restaurerPositionApresChargement",
+        "ligne": 1673,
+        "type": "setTimeout",
+        "delai": "300"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "restaurerPositionApresChargement",
+        "ligne": 1678,
+        "type": "setTimeout",
+        "delai": "300"
+      },
+      {
+        "fichier": "plateau-core.js",
+        "fonction": "showToast",
+        "ligne": 2660,
+        "type": "setTimeout",
+        "delai": "3800"
+      },
+      {
+        "fichier": "plateau-divers.js",
+        "fonction": "doSeConfeser",
+        "ligne": 690,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-justice-economie.js",
+        "fonction": "compteARebonsSignalement",
+        "ligne": 1956,
+        "type": "setTimeout",
+        "delai": "600"
+      },
+      {
+        "fichier": "plateau-navigation.js",
+        "fonction": "forceRenderCity",
+        "ligne": 50,
+        "type": "setTimeout",
+        "delai": "500"
+      },
+      {
+        "fichier": "plateau-navigation.js",
+        "fonction": "enterBuilding",
+        "ligne": 368,
+        "type": "setTimeout",
+        "delai": "100"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "jouerChoreographieCouche",
+        "ligne": 4570,
+        "type": "setTimeout",
+        "delai": "Math.round(etapePrecedente.t * dureeMs)"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "jouerChoreographieCouche",
+        "ligne": 4578,
+        "type": "setTimeout",
+        "delai": "Math.round(couche.vibrationAuMoment * dureeMs)"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "jouerChoreographieCouche",
+        "ligne": 4582,
+        "type": "setTimeout",
+        "delai": "300"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "executerSequenceRealisation",
+        "ligne": 4758,
+        "type": "setTimeout",
+        "delai": "debutPlan"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "executerSequenceRealisation",
+        "ligne": 4774,
+        "type": "setTimeout",
+        "delai": "i * pas"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "executerSequenceRealisation",
+        "ligne": 4791,
+        "type": "setTimeout",
+        "delai": "debutPlan"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "executerSequenceRealisation",
+        "ligne": 4800,
+        "type": "setTimeout",
+        "delai": "offset"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "jouerBeatEtContinuer",
+        "ligne": 5749,
+        "type": "setTimeout",
+        "delai": "dureeAttenteMs + 150"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "jouerSituationSuivante",
+        "ligne": 5766,
+        "type": "setTimeout",
+        "delai": "900"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "appliquerSceneActeursPreview",
+        "ligne": 5963,
+        "type": "setTimeout",
+        "delai": "a.delay"
+      },
+      {
+        "fichier": "plateau-organisations-quetes.js",
+        "fonction": "afficherInsertCanonique",
+        "ligne": 7284,
+        "type": "setTimeout",
+        "delai": "3400"
+      },
+      {
+        "fichier": "plateau-personnage.js",
+        "fonction": "htmlSecuriteDuCompte",
+        "ligne": 789,
+        "type": "setTimeout",
+        "delai": "0"
+      },
+      {
+        "fichier": "plateau-personnage.js",
+        "fonction": "confirmerDestructionPersonnage",
+        "ligne": 2047,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-pnj.js",
+        "fonction": "talkToPnj",
+        "ligne": 1447,
+        "type": "setTimeout",
+        "delai": "4000"
+      },
+      {
+        "fichier": "plateau-publicite-premium.js",
+        "fonction": "publicitePremiumTelecharger",
+        "ligne": 80,
+        "type": "setTimeout",
+        "delai": "10000"
+      },
+      {
+        "fichier": "plateau-quete-accueil.js",
+        "fonction": "queteAccueilSurbrillance",
+        "ligne": 59,
+        "type": "setTimeout",
+        "delai": "dureeMs || 10000"
+      },
+      {
+        "fichier": "plateau-quete-accueil.js",
+        "fonction": "queteAccueilVerifierEtapeBatiment",
+        "ligne": 153,
+        "type": "setTimeout",
+        "delai": "60000"
+      },
+      {
+        "fichier": "plateau-quete-accueil.js",
+        "fonction": "queteAccueilVerifierEtapeBatiment",
+        "ligne": 172,
+        "type": "setTimeout",
+        "delai": "60000 - ecoule"
+      },
+      {
+        "fichier": "plateau-quete-accueil.js",
+        "fonction": "queteAccueilArmerMinuteurStade",
+        "ligne": 448,
+        "type": "setTimeout",
+        "delai": "60000"
+      },
+      {
+        "fichier": "plateau-quete-accueil.js",
+        "fonction": "afficherPopupQueteAccueil",
+        "ligne": 1033,
+        "type": "setTimeout",
+        "delai": "2000"
+      },
+      {
+        "fichier": "plateau-realites.js",
+        "fonction": "rpRealitesAttendreRequetes",
+        "ligne": 34,
+        "type": "setTimeout",
+        "delai": "0"
+      },
+      {
+        "fichier": "plateau-realites.js",
+        "fonction": "rpRealitesRelirePersonnage",
+        "ligne": 49,
+        "type": "setTimeout",
+        "delai": "options.delaiLecture||10000"
+      },
+      {
+        "fichier": "plateau-realites.js",
+        "fonction": "rpRealitesSynchroniser",
+        "ligne": 76,
+        "type": "setTimeout",
+        "delai": "options.delaiLecture||10000"
+      },
+      {
+        "fichier": "plateau-resolution.js",
+        "fonction": "ouvrirResolutionSpectaculaire",
+        "ligne": 116,
+        "type": "setTimeout",
+        "delai": "duree"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "deplacerRueCentrale",
+        "ligne": 1394,
+        "type": "setTimeout",
+        "delai": "550"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "naviguerVersNoeudRue",
+        "ligne": 1417,
+        "type": "setTimeout",
+        "delai": "500"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "naviguerVersNoeudRue",
+        "ligne": 1420,
+        "type": "setTimeout",
+        "delai": "1000"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "entrerDansBatimentRue",
+        "ligne": 1437,
+        "type": "setTimeout",
+        "delai": "500"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "entrerDansBatimentRue",
+        "ligne": 1441,
+        "type": "setTimeout",
+        "delai": "1400"
+      },
+      {
+        "fichier": "plateau-rue-centrale.js",
+        "fonction": "entrerDansBatimentRue",
+        "ligne": 1447,
+        "type": "setTimeout",
+        "delai": "100"
+      },
+      {
+        "fichier": "supabase.js",
+        "fonction": "sbLoadForumTopicsVerdict",
+        "ligne": 976,
+        "type": "setTimeout",
+        "delai": "8000"
+      },
+      {
+        "fichier": "supabase.js",
+        "fonction": "sbAutoSave",
+        "ligne": 2015,
+        "type": "setTimeout",
+        "delai": "3000"
+      }
+    ]
+  },
+  "limite": "Inventaire syntaxique et revue des callbacks ; pas une mesure de trafic facture."
+}

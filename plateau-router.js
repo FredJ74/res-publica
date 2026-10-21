@@ -6,7 +6,8 @@
 
 // ORDERS SYSTEM
 // =====================
-function doOrder(fn, pa, cost, label, desc, successRate) {
+async function doOrder(fn, pa, cost, label, desc, successRate) {
+  if(typeof rpRealitesAvantOrdre==='function'&&!(await rpRealitesAvantOrdre()))return;
   // ORDRE COURANT (chantier C, 13 septembre 2026). deduireCoutOrdre ne recoit que
   // {pa, cost} de ses 268 appelants : elle ne sait pas QUEL ordre elle facture, et
   // le serveur en a besoin pour verifier que le cout annonce est bien un cout
