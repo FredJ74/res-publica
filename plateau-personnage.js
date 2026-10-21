@@ -7,6 +7,7 @@
 // CHAR SHEET
 // =====================
 async function openCharSheet() {
+  if(typeof hotelReservationsReconcilier==='function'&&await hotelReservationsReconcilier()===false){showToast('Réservations à actualiser','La liste serveur des nuitées n’a pas pu être confirmée.',false);}
   const char = state.char;
   if (!char) return;
   const co = COUNTRIES[char.country];
@@ -44,6 +45,7 @@ async function openCharSheet() {
       <button id="cs-tab-btn-stats" onclick="switchCharSheetTab('stats')" style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem .8rem;border:1px solid #4a3a20;background:#12100a;color:#c0a060;cursor:pointer">Statistiques</button>
     </div>
     <div id="cs-tab-identite">
+    ${typeof hotelReservationsFiche==='function'?hotelReservationsFiche():''}
     <div class="char-sheet-grid">
       <div class="cs-section">
         <div class="cs-title">Caracteristiques</div>
@@ -3055,102 +3057,10 @@ function signalerRefusReservationChambre(r, cout) {
   console.warn('[chambre] reservation refusee — raison serveur :', raison, r);
 }
 
-async function doReserverChambreHotel(pa) {
-  const confortMap = {
-    'hotel-republica': { moral: 3, paBonus: 2 },
-    'hotel-port':      { moral: 3, paBonus: 2 },
-    'hotel-mineur':    { moral: 3, paBonus: 2 },
-    'palais-presidentiel': { moral: 8, paBonus: 8 }
-  };
-  const bonus = confortMap[state.currentBuilding] || { moral: 2, paBonus: 1 };
-  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const ordre = room?.orders?.find(o => o.fn === 'reserver_chambre_hotel');
-  const cout = ordre?.cost || 60;
-  // CHANTIER C / PHASE 3. Le Republica encaisse dans SA caisse d'entreprise : prelevement et
-  // credit doivent alors se faire dans la MEME transaction serveur, sinon l'un peut aboutir
-  // sans l'autre. Les autres hotels versent dans une caisse institutionnelle et gardent le
-  // chemin ordinaire. Dans les deux cas le montant reste le cout DECLARE de l'ordre, valide
-  // par payer_ordre contre le miroir -- une seule fois, jamais deux.
-  const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
-  const viaEntreprise = (state.currentBuilding === 'hotel-republica'
-                         && typeof chargerCommerce === 'function'
-                         && typeof commerceVendreProduit === 'function');
-  let r;
-  // Vrai des que la recette a deja ete encaissee dans la meme transaction que le prelevement
-  // (entreprise du Republica, ou vente_structure_encaisser pour les autres hotels).
-  let recetteEncaissee = viaEntreprise;
-  if (viaEntreprise) {
-    const dataHotel = await chargerCommerce('brasserie', pays, ville, 'hotel-republica', null);
-    r = dataHotel
-      ? await commerceVendreProduit(dataHotel.id, [], 'service', 'reserver_chambre_hotel', pa, cout)
-      : { ok: false, raison: 'introuvable' };
-  } else if (cout > 0 && typeof encaisserVenteStructure === 'function'
-             && typeof getCaisseLocaleId === 'function') {
-    // Lot « ventes a une structure » (17 septembre 2026) : prelevement, taxe locale+nationale et
-    // recette de l'hotel sont desormais UNE transaction serveur. Avant, la taxe etait un appel
-    // client separe -- donc contournable -- et le credit de la caisse un tir-et-oublie dont le
-    // retour n'etait jamais lu. Memes taux, meme caisse, meme montant declare qu'avant.
-    r = await encaisserVenteStructure('reserver_chambre_hotel', pa, cout,
-                                      pays + '_' + getCaisseLocaleId('hotel', ville), ville);
-    recetteEncaissee = r.ok;
-  } else {
-    // PLUS DE REPLI CLIENT (8 octobre 2026) : voir le commentaire du bloc supprime plus bas.
-    // On refuse au lieu de prelever.
-    r = { ok: false, raison: 'encaissement_indisponible' };
-  }
-  if (!r.ok) {
-    signalerRefusReservationChambre(r, cout);
-    return;
-  }
-
-  // Caisse propre a l'hotel (correctif du 23 aout 2026, audit dedie) : le paiement disparaissait
-  // integralement jusqu'ici (aucune caisse creditee nulle part). Reutilise exactement le meme
-  // mecanisme deja en place pour les commerces/la buvette -- appliquerTaxeTransaction() (taux
-  // local + national INCHANGES) puis crediterCaisseBatiment() sur une caisse identifiee par
-  // getCaisseLocaleId('hotel', ville) (meme principe deja eprouve par la buvette/le marche :
-  // categorie stable 'hotel', ville reelle du batiment) -- une caisse DISTINCTE par ville, y
-  // compris pour hotel-mineur qui partage son buildingId entre plusieurs villes/empires.
-  // Reutilise caisses_batiments, deja existante : aucune nouvelle table.
-  //
-  // EXCEPTION Le Republica (unification du 30 aout 2026, decision de Fred) : la reservation de
-  // chambre est une des 3 activites (hotel/restaurant/bar) censees partager UNE seule caisse
-  // privee (l'entreprise du commerce), pas la caisse institutionnelle 'hotel' partagee par Hotel
-  // du Port/Hotel de la Victoire (non touches, toujours sur crediterCaisseBatiment ci-dessous).
-  // NE PAS DEPLOYER avant execution de la migration SQL de fusion (voir rapport dedie).
-  // LE CHEMIN DE REPLI A ETE SUPPRIME LE 8 OCTOBRE 2026. Il recalculait la taxe dans le
-  // navigateur (appliquerTaxeTransaction) puis creditait l'hotel du net -- exactement le triple
-  // appel client que le lot « ventes a une structure » avait remplace par une seule transaction
-  // serveur. Deux raisons de le retirer, et la seconde seule suffirait :
-  //
-  //   . IL ECRIVAIT `budgets_municipaux.data.caisse`, une cle que le chantier municipal vient de
-  //     supprimer. Il l'aurait donc RECREEE avec la taxe locale dedans : une seconde bourse,
-  //     alimentee par de l'argent deja compte ailleurs.
-  //   . IL ETAIT UN SECOND MOTEUR DE TAXE. Les taux vivent au serveur, la perception municipale
-  //     passe par recette_municipale, et deux calculs de la meme taxe finissent toujours par
-  //     diverger.
-  //
-  // Il ne s'activait de toute facon que si `encaisserVenteStructure` manquait de la page -- un
-  // defaut de deploiement, pas une panne. Ce cas-la refuse desormais la reservation en amont,
-  // avant tout prelevement : rien n'est pris, donc rien n'est perdu.
-
-  // Persistance (urgence du 27 aout 2026, migration personnages.reservation_hotel executee) :
-  // portee sur state.char (jamais sur la racine de state, qui n'est jamais persistee) --
-  // survit donc nativement au meme rail que le reste du personnage (sbSavePersonnage/
-  // sbLoadPersonnage, plus le cache localStorage deja synchronise a chaque updateUI()), sans
-  // aucune mecanique de sauvegarde parallele. sauvegarderPersonnageImmediat() (au lieu du seul
-  // updateUI(), dont la sauvegarde Supabase est debounced 3s) : une chambre payee doit survivre
-  // a un refresh immediat, pas seulement au prochain autosave.
-  if (state.char) state.char.reservationHotel = { buildingId: state.currentBuilding, bonus };
-  updateUI();
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-  showToast('Chambre reservee', 'Vous obtiendrez un bonus de +' + bonus.paBonus + ' PA et +' + bonus.moral + ' Moral en passant l\'ordre Dormir <strong>dans cette chambre</strong>.', true, true);
-  addJournalEntry('Vous avez reserve une chambre d\'hotel. Vous obtiendrez un bonus de ' + bonus.paBonus + ' PA + ' + bonus.moral + ' moral en passant l\'ordre dormir <strong>dans cette chambre</strong>.', 'event-good');
-  if (typeof queteAccueilApresReservationChambre === 'function') queteAccueilApresReservationChambre();
-}
+async function doReserverChambreHotel(pa) {return hotelReserverChambre();}
 
 async function doServiceEtage(pa) {
-  const reservation = state.char?.reservationHotel;
+  const reservation = hotelReservationCourante();
   if (!reservation || reservation.buildingId !== state.currentBuilding) {
     showToast('Chambre non reservee', 'Vous devez d\'abord reserver une chambre a l\'accueil pour beneficier du service d\'etage.', false);
     return;
@@ -3173,60 +3083,19 @@ async function doServiceEtage(pa) {
 }
 
 async function doDormirChambre() {
-  const personnageInitial = state.char, paysInitial = state.country;
-  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
-  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
-    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
-
-  // Le repos quotidien est validé par doDormir() auprès du serveur.
-  // La réservation est contrôlée ici pour le bonus hôtelier uniquement.
-  const reservation = state.char?.reservationHotel;
-  if (!reservation || reservation.buildingId !== state.currentBuilding) {
-    showToast('Chambre non reservee', 'Vous n\'avez pas reserve la chambre. Vous devez passer l\'ordre Dormir a partir de votre fiche personnage.', false);
-    return;
-  }
-  // Garde-fou explicite (23 aout 2026, dernier point avant GO) : verifie que le personnage est
-  // REELLEMENT dans la chambre de l'hotel reserve, pas seulement que le bouton dormir_chambre
-  // n'est affiche que la -- une verification cote fonction, pas seulement cote UI. Reutilise la
-  // configuration DEJA existante plutot que d'ajouter une nouvelle table buildingId->roomId en
-  // parallele (qui pourrait diverger de data.js) : dormir_chambre n'est declare que par les 3
-  // rooms chambre reelles (chambres/chambre_port/chambre_mineur, verifie -- aucune autre room ne
-  // porte cet ordre), donc controler que la room courante offre bien cet ordre est strictement
-  // equivalent au mapping explicite hotel-republica->chambres/hotel-port->chambre_port/
-  // hotel-mineur->chambre_mineur, sans le dupliquer.
-  const roomActuelle = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const estDansLaChambre = roomActuelle?.orders?.some(o => o.fn === 'dormir_chambre');
-  if (!estDansLaChambre) {
-    showToast('Chambre non reservee', 'Vous devez etre physiquement dans la chambre de l\'hotel reserve pour beneficier du bonus.', false);
-    return;
-  }
-  const reussi = await doDormir();
-  if (!retourActif()) return;
-  if (reussi) {
-    // Plafonne a PA_MAX (Lot 1) : doDormir() a deja plafonne sa propre recuperation, mais ce
-    // bonus de chambre s'applique dans un second temps, en dehors de doDormir() -- sans ce
-    // Math.min, il pourrait a lui seul faire depasser la reserve maximale.
-    // Bonus de chambre : montant DECLARE cote serveur par batiment, et reservation consommee
-    // dans la meme transaction -- le blob de reservation, que le client ecrit, ne decide plus
-    // du montant (16 septembre 2026).
-    const rCh = (typeof sbRpc === 'function' && state.char?.name)
-      ? await sbRpc('pa_bonus_chambre', { p_acteur: state.char.name,
-                                          p_batiment: state.currentBuilding }).catch(() => null) : null;
-    if (!retourActif()) return;
-    const vCh = Array.isArray(rCh) ? rCh[0] : rCh;
-    if (vCh && typeof vCh.pa === 'number') state.pa = vCh.pa;
-    state.moral = Math.min(100, (state.moral || 0) + reservation.bonus.moral);
-    // Consommation de la reservation (urgence du 27 aout 2026) : nullifiee sur state.char (meme
-    // champ que la creation ci-dessus), persistee immediatement -- une reservation deja
-    // consommee ne doit jamais reapparaitre "encore valide" a un refresh suivant.
-    if (state.char) state.char.reservationHotel = null;
-    updateUI();
-    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-    showToast('Bonus de chambre applique', '+' + reservation.bonus.paBonus + ' PA, +' + reservation.bonus.moral + ' Moral.', true, true);
-    addJournalEntry('Bonus de la chambre reservee applique : +' + reservation.bonus.paBonus + ' PA, +' + reservation.bonus.moral + ' moral.', 'event-good');
-  }
+ const c=contexteNavigationRue();
+ const reservation=hotelReservationCourante();
+ const room=BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+ if(!reservation||!room?.orders?.some(o=>o.fn==='dormir_chambre')){showToast('Chambre non réservée','Une nuit disponible et la présence dans sa chambre sont nécessaires.',false);return;}
+ await doDormir();
+ if(!contexteNavigationRueValide(c)||state.hp<=0)return;
+ // Le serveur exige le repos quotidien atteste dans CETTE chambre.
+ const v=await sbRpcVerdict('pa_bonus_chambre',{p_acteur:c.nom,p_batiment:c.batiment}).catch(()=>null);
+ if(!contexteNavigationRueValide(c))return;
+ if(!v?.ok){showToast('Bonus non confirmé','Le serveur n’a pas confirmé la consommation d’une nuit et son bonus.',false);return;}
+ if(typeof v.pa==='number')state.pa=v.pa;if(typeof v.moral==='number')state.moral=v.moral;
+ state.char.reservationHotel=v.reservation_hotel;updateUI();
+ if(!v.rejeu){showToast('Bonus de chambre appliqué','Une seule nuit a été utilisée. Vos autres réservations sont conservées.',true);addJournalEntry('Nuit réservée utilisée : bonus de chambre confirmé par le serveur.','event-good');}
 }
 
 function verifierProgressionHospitalisation() {
