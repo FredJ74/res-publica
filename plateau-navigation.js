@@ -1461,6 +1461,7 @@ function sortieBatimentMessage(verdict, incertaine = false) {
   if(incertaine)return ['Sortie non confirmée','La réponse est incertaine et la position serveur n’a pas pu être vérifiée. Réessayez : votre position sera relue avant tout nouvel ordre.'];
   if(t?.etat==='reseau')return ['Connexion indisponible','La connexion n’a pas permis de joindre le serveur. Réessayez.'];
   if(t?.etat==='http')return [t.http===403?'Sortie non autorisée':'Service de sortie indisponible',t.http===403?'Le serveur refuse cet accès. Votre position reste inchangée.':'Le service a retourné une erreur. Réessayez dans un instant.'];
+  if(verdict?.raison==='acteur_incapacite')return ['Déplacement impossible','Votre état de santé ne permet pas ce déplacement. Consultez votre journal pour connaître les événements survenus.'];
   if(verdict?.raison==='sortie_non_referencee')return ['Sortie non référencée','La sortie de ce bâtiment n’est pas déclarée sur le serveur.'];
   if(t?.etat==='reponse_invalide'||!verdict||typeof verdict.ok!=='boolean')return ['Réponse du serveur illisible','La sortie n’a pas pu être confirmée. Réessayez.'];
   return ['Sortie refusée','Le serveur n’autorise pas cette sortie dans votre situation actuelle.'];

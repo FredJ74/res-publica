@@ -1754,9 +1754,31 @@ async function recupererImpactsEnAttente() {
   try {
     const impacts = await sbRecupererImpactsEnAttente(moi);
     if(contexteRealite&&!rpRealitesContexteValide(contexteRealite))return;
-    if (!impacts || impacts.length === 0) return;
+    if(!Array.isArray(impacts))return {realiteNonConfirmee:true};
+    if(impacts.length===0)return;
+    // Nouvelle application SQL : relire sa photographie, notifier seulement, ne jamais
+    // recalculer les degats, les tirages, les dates ou les bonus deja acquis au serveur.
+    const serveur=impacts.filter(i=>i.applique_serveur===true);
+    if(serveur.length){
+      if(typeof rpRealitesRelirePersonnage!=='function')return {realiteNonConfirmee:true};
+      const lecture=await rpRealitesRelirePersonnage();
+      if(!lecture.ok)return {realiteNonConfirmee:true};
+      if(contexteRealite&&!rpRealitesContexteValide(contexteRealite,false))return;
+      for(const imp of serveur){
+        if(typeof sbMarquerImpactTraite==='function')await sbMarquerImpactTraite(imp.id);
+        if(contexteRealite&&!rpRealitesContexteValide(contexteRealite,false))return;
+      }
+      if(serveur.some(i=>i.indice==='hp_set')){
+        if(typeof rejoindreHospitalisation==='function')rejoindreHospitalisation();
+        showToast('Agression !','Votre état et votre journal ont été actualisés depuis le serveur.',false,true);
+        if(typeof signalerEvenementJournal==='function')signalerEvenementJournal();
+      }else if(serveur.some(i=>i.resultat?.gain_moral>0)){
+        showToast('Correspondance lue','Le bonus acquis figure dans votre journal.',true,true);
+      }
+    }
     let resume = [];
     for (const imp of impacts) {
+      if(imp.applique_serveur===true)continue;
       if (imp.indice === 'pop') { state.pop = Math.max(0, Math.min(100, (state.pop || 0) + imp.delta)); resume.push(imp.delta + ' POP'); }
       if (imp.indice === 'inf') { state.inf = Math.max(0, Math.min(100, (state.inf || 0) + imp.delta)); resume.push(imp.delta + ' INF'); }
       if (imp.indice === 'dis') { state.dis = Math.max(0, Math.min(100, (state.dis || 50) + imp.delta)); resume.push(imp.delta + ' DIS'); }
@@ -1829,7 +1851,7 @@ async function recupererImpactsEnAttente() {
         showToast('Indices modifiés', resume.join(', '), false, true);
       }
     }
-  } catch(e) { console.warn('recupererImpactsEnAttente error', e); }
+  } catch(e) { console.warn('recupererImpactsEnAttente error', e); return {realiteNonConfirmee:true}; }
 }
 
 // Regeneration naturelle des PV (+10/jour) apres une agression — appelee a minuit dans runMidnightUpdate

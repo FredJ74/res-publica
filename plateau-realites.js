@@ -34,20 +34,18 @@ async function rpRealitesAttendreRequetes(){
     await new Promise(r=>setTimeout(r,0));
   }
 }
-async function rpRealitesSynchroniser(options={}) {
-  if(RP_REALITES_EN_COURS)return RP_REALITES_EN_COURS;
-  const travail=(async()=>{
-    if(typeof rpAuthAssurerSession==='function')await rpAuthAssurerSession();
-    if(state._chargementPersonnage)await state._chargementPersonnage;
-    let attente;
-    const disponible=await Promise.race([rpRealitesAttendreRequetes().then(()=>true),new Promise(r=>attente=setTimeout(()=>r(false),options.delaiLecture||10000))]).finally(()=>clearTimeout(attente));
-    if(!disponible)return {ok:false,raison:'transaction_en_cours'};
-    if(!state.char?.name)return {ok:false,raison:'personnage_absent'};
-    if(typeof sbViderSauvegardeDifferee==='function'&&(await sbViderSauvegardeDifferee())===false)return {ok:false,raison:'sauvegarde_non_confirmee'};
+async function rpRealitesRelirePersonnage(options={}) {
     const c=rpRealitesContexte(),generation=state._inventaireGeneration||0,revision=state._inventaireRevision;
     if(!c.uid)return {ok:false,raison:'session_perdue'};
     let minuteur;
-    const fiche=await Promise.race([sbLoadPersonnage(c.nom),new Promise(resolve=>{
+    const fiche=await Promise.race([(async()=>{
+      if(typeof sbSynchroniserImpactsRealites==='function'){
+        const v=await sbSynchroniserImpactsRealites();
+        if(v?.ok!==true||v.contrat!==1)throw new Error('impacts_non_confirmes');
+        if(!rpRealitesContexteValide(c))return null;
+      }
+      return sbLoadPersonnage(c.nom);
+    })(),new Promise(resolve=>{
       minuteur=setTimeout(()=>resolve(null),options.delaiLecture||10000);
     })]).finally(()=>clearTimeout(minuteur));
     if(!rpRealitesContexteValide(c))return {ok:false,raison:'contexte_obsolete'};
@@ -66,14 +64,30 @@ async function rpRealitesSynchroniser(options={}) {
       state.char.arg=fiche.arg;state.char.pa=fiche.pa;
       if(typeof restaurerJournal==='function')restaurerJournal(state.char);
       if(options.peindre!==false){if(typeof updateUI==='function')updateUI({lecture:true});if(typeof updateLocationDisplay==='function')updateLocationDisplay();}
-      RP_REALITES_LECTURE=false;
+      return {ok:true,positionChangee:c.pays!==state.country||c.ville!==state.currentCity||c.batiment!==state.currentBuilding||c.piece!==state.currentRoom};
+    }finally{RP_REALITES_LECTURE=false;}
+}
+async function rpRealitesSynchroniser(options={}) {
+  if(RP_REALITES_EN_COURS)return RP_REALITES_EN_COURS;
+  const travail=(async()=>{
+    if(typeof rpAuthAssurerSession==='function')await rpAuthAssurerSession();
+    if(state._chargementPersonnage)await state._chargementPersonnage;
+    let attente;
+    const disponible=await Promise.race([rpRealitesAttendreRequetes().then(()=>true),new Promise(r=>attente=setTimeout(()=>r(false),options.delaiLecture||10000))]).finally(()=>clearTimeout(attente));
+    if(!disponible)return {ok:false,raison:'transaction_en_cours'};
+    if(!state.char?.name)return {ok:false,raison:'personnage_absent'};
+    if(typeof sbViderSauvegardeDifferee==='function'&&(await sbViderSauvegardeDifferee())===false)return {ok:false,raison:'sauvegarde_non_confirmee'};
+    const c=rpRealitesContexte();
+    const lecture=await rpRealitesRelirePersonnage(options);
+    if(!lecture.ok)return lecture;
+    try{
       const contexte=rpRealitesContexte();
       if(options.domaines!==false){
         // Les fonctions de reception existantes gardent leurs recus et controles atomiques.
         // Ordre sequentiel : pas de mutations concurrentes des miroirs d'un personnage.
         for(const [nom,lire] of RP_REALITES_LECTEURS){
           if(!rpRealitesContexteValide(contexte))return {ok:false,raison:'contexte_obsolete'};
-          try{await lire();}catch(_){console.warn('[Realites] Lecture non confirmee : '+nom);}
+          try{const verdict=await lire();if(verdict?.realiteNonConfirmee)return {ok:false,raison:'realite_non_confirmee'};}catch(_){console.warn('[Realites] Lecture non confirmee : '+nom);return {ok:false,raison:'realite_non_confirmee'};}
         }
         // Les receptions historiques peuvent avoir utilise la file existante de sauvegarde.
         // Ne pas autoriser un nouvel ordre avant leur confirmation, ni inventer un succes.

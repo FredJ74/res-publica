@@ -5012,6 +5012,13 @@ async function sbDeposerImpactIndice(impact) {
   return (r && r.ok === true) ? r : null;
 }
 
+// Rattrapage transactionnel des anciennes lignes, avant lecture de la fiche officielle.
+// Aucun calcul d'effet dans le navigateur. Migration PR56 requise, pas de faux succes.
+async function sbSynchroniserImpactsRealites(){
+  const r=await sbRpc('impacts_realites_synchroniser',{});
+  return Array.isArray(r)?r[0]:r;
+}
+
 async function sbRecupererImpactsEnAttente(victime) {
   const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false`;
   return sbGet('impacts_indices_attente', filtre) || [];
