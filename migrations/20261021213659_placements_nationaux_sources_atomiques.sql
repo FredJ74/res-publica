@@ -1,7 +1,7 @@
 -- PREPAREE UNIQUEMENT #64. Aucun appel financier dans cette migration.
 BEGIN;
 DO $g$ DECLARE h text;BEGIN
-SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.creer_placement_national_interne(text,numeric,int4,text,text)');IF h IS NOT NULL AND h<>'73f9abb074abe4e17024aaa90444a0bb' THEN RAISE EXCEPTION 'definition_non_examinee: creer_placement_national_interne';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.creer_placement_national_interne(text,numeric,int4,text,text)');IF h IS NOT NULL AND h<>'6d2347477b0580f6c6b26f7ba288c407' THEN RAISE EXCEPTION 'definition_non_examinee: creer_placement_national_interne';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.banque_nationale_placer(text,text,text,int4)');IF h IS NOT NULL AND h<>'06e299e17b3534f26f97300f46d7e608' THEN RAISE EXCEPTION 'definition_non_examinee: banque_nationale_placer';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.banque_placement_recu(text)');IF h IS NOT NULL AND h<>'e9f46b12ef5d7559fb2943a7e25a1593' THEN RAISE EXCEPTION 'definition_non_examinee: banque_placement_recu';END IF;
 END;$g$;
@@ -55,7 +55,7 @@ BEGIN
   END IF;
 
   IF p_source='liquide' THEN
-    UPDATE public.personnages_donnees SET liquide=liquide-p_montant
+    UPDATE public.personnages_donnees SET liquide=liquide-p_montant,updated_at=now()
      WHERE name=p_personnage AND liquide>=p_montant;
     IF NOT FOUND THEN RAISE EXCEPTION 'Liquide insuffisant';END IF;
   ELSIF p_source='compte' THEN
