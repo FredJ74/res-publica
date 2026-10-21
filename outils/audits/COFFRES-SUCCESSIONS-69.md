@@ -1,0 +1,15 @@
+# Issue #69 — audit et protection préalable du règlement successoral
+
+Les décisions de tailles, prix annuels, capacités et succession sont lues intégralement. L'ancienne offre de 600 FR/jour n'a pas été remplacée par une façade qui ferait croire les coffres opérationnels : aucun moteur bancaire multiformat complet n'est livré ici.
+
+Défaut démontré sur le vrai `succession_regler(text)` archivé : une disposition `coffre` (ou tout type inconnu) sans branche de transfert traverse les trois seuls types terrain/entreprise/argent et reçoit malgré tout `regle=true`, puis clôture le dossier. Le contre-exemple PostgreSQL local le reproduit avant correction. Ce serait une perte comptable de transmission lors du raccordement des coffres.
+
+La migration préparée `20261021220151_succession_refuser_actifs_non_raccordes.sql` ajoute une garde dans la sous-transaction existante de chaque disposition. Un type inconnu reste non réglé, est nommé dans `echecs`, et interdit la fausse clôture ; les dispositions reconnues indépendantes continuent. Aucune transmission fictive ni moteur successoral parallèle. Corps et droits existants conservés par patch gardé, aucun appel métier pendant le DDL.
+
+15/15 assertions PostgreSQL locales : contre-exemple antérieur, coffre/type inconnu/type absent, indépendance d'une autre disposition, marqueurs, rejeu, argent nul reconnu, migration répétée et refus de définition divergente. Données entièrement fictives, pas de compte de joueur. Aucun coffre réel lu, modifié, supprimé ou transféré.
+
+Reste à faire : location annuelle via le bail commun, capacité transactionnelle, stockage privé et transferts d'inventaire révisé, renouvellement/impayés, résiliation vide, ouverture/gel des dispositions avant suppression et cascade successeur/remplaçant/conjoint du moteur existant. Le parcours de suppression actuel ouvre et gèle la succession par plusieurs RPC, puis supprime le personnage ; il faut traiter toute la chaîne avant de rendre une nouvelle location disponible. Le contenu ne doit jamais passer provisoirement par l'inventaire du défunt/héritier.
+
+Obstacle de définition confirmé : le noyau commun de `plateau-objets.js` contient id/nom/famille/catégorie/icone/régime/qty ; aucun poids numérique commun ni calcul de poids d'inventaire n'a été trouvé dans le code/SQL examinés. Les capacités 50/100/150/400 ne fixent pas à elles seules le coût de chaque référence. Une question de game design est laissée en attente ; aucun poids zéro ou coefficient arbitraire utilisé. Le calendrier affiche la date civile réelle Paris, mais la convention de renouvellement annuel et le traitement des anciens baux doivent être confrontés aux contrats vivants ; ne pas substituer simplement un prélèvement quotidien de 250 FR au vieux 600 FR.
+
+Prévol Supabase non accessible. La garde seule est indépendante et candidate à revue, mais non fusionnée dans main/non déployée. Elle ne constitue pas la clôture de #69. Après activation éventuelle, préserver les dispositions retenues et traiter leurs erreurs ; aucun retour arrière par suppression de contenu ni restauration de vieux patrimoines.
