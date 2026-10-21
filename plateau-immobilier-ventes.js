@@ -33,14 +33,15 @@ function immobilierOffresRegrouper(offres){
 }
 let immobilierCommandeEnCours=false;
 let immobilierCatalogueCourant=[];
-function immobilierContexte(){return {nom:state.char?.name,uid:typeof rpAuthUid==='function'?rpAuthUid():null,pays:state.country,
- session:typeof rpAuthSessionIdentifiant==='function'?rpAuthSessionIdentifiant():null,batiment:state.currentBuilding,piece:state.currentRoom};}
-function immobilierContexteValide(c){const n=immobilierContexte();return Object.keys(c).every(k=>c[k]===n[k]);}
+let immobilierOffreAConfirmer=null;
+function immobilierContexte(){return contexteNavigationRue();}
+function immobilierContexteValide(c){return contexteNavigationRueValide(c);}
 function immobilierEchapper(t){return String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function immobilierTotalExact(a,b){if(!/^[0-9]+$/.test(String(a))||!/^[0-9]+$/.test(String(b)))return null;return (BigInt(a)+BigInt(b)).toString();}
 function immobilierFenetre(titre,html){document.getElementById('postes-modal-title').textContent=titre;document.getElementById('postes-body').innerHTML='<div class="immobilier-offres">'+html+'</div>';document.getElementById('modal-postes').classList.add('open');}
 async function ouvrirCatalogueImmobilier(){
  const c=immobilierContexte();
+ await immobilierReconcilierActes(c);if(!immobilierContexteValide(c))return;
  const v=await sbImmobilierCatalogue(c.pays).catch(()=>null);
  if(!immobilierContexteValide(c))return;
  if(!v?.ok||!Array.isArray(v.offres)){showToast('Catalogue indisponible','Les offres du notaire n’ont pas pu être confirmées. Aucun acte effectué.',false);return;}
@@ -55,7 +56,7 @@ async function ouvrirCatalogueImmobilier(){
   else html+='<p>Vendeur : '+immobilierEchapper(o.vendeur)+' · '+(o.regime==='libre_pj'?'Prix demandé par le propriétaire PJ':'Prix public / de référence')+'</p>';
   html+='<p>Prix '+(o.actif==='ensemble'?'total':'')+' : <strong>'+immobilierEchapper(prix)+' FR</strong> · Acte : 1 PA, sans frais supplémentaires en FR.</p>';
   if(o.prioritaire)html+='<p>Votre priorité court jusqu’au '+immobilierEchapper(new Date(o.priorite_fin).toLocaleString('fr-FR'))+'.</p>';
-  html+='<p>'+(o.disponible?'Disponible':'Sous priorité — achat non ouvert')+'</p>';
+  html+='<p>'+(o.sous_compromis?'Sous compromis':(o.disponible?'Disponible':'Offre non ouverte dans votre situation'))+'</p>';
   if(o.disponible)html+='<button class="pnj-action-btn" onclick="preparerAchatImmobilier('+i+')">Préparer l’acte</button>';
   if(o.prioritaire)html+='<button class="pnj-action-btn" onclick="refuserPrioriteImmobiliere('+i+')">Refuser ma priorité</button>';
   html+='</article>';
@@ -63,15 +64,37 @@ async function ouvrirCatalogueImmobilier(){
  html+='<button class="pnj-action-btn" onclick="ouvrirMesBiensImmobiliers()">Mettre un bien en vente</button>';
  immobilierFenetre('Catalogue notarial',html);
 }
+async function immobilierReconcilierActes(c){
+ const prefixe='immobilier-acte:';let cles=[];
+ try{for(let i=0;i<sessionStorage.length;i++){const cle=sessionStorage.key(i);if(cle?.startsWith(prefixe))cles.push(cle);}}catch(_){return;}
+ for(const cle of cles){
+  if(!immobilierContexteValide(c))return;
+  let contenu;try{contenu=JSON.parse(cle.slice(prefixe.length));}catch(_){continue;}
+  if(contenu[0]!==c.uid||contenu[1]!==c.nom||contenu[2]!==c.pays)continue;
+  const requete=sessionStorage.getItem(cle);if(!requete)continue;
+  const v=await sbImmobilierActeEtat(requete).catch(()=>null);
+  if(!immobilierContexteValide(c))return;
+  if(!v?.ok||!v.termine||v.verdict?.ok!==true)continue;
+  if(JSON.stringify([...(v.verdict.offres||[])].sort())!==JSON.stringify([...contenu[3]].sort()))continue;
+  const fiche=typeof rafraichirRuntimeHelvetia==='function'?await rafraichirRuntimeHelvetia():null;
+  if(!immobilierContexteValide(c))return;
+  if(typeof fiche?.pa==='number')state.pa=fiche.pa;
+  sessionStorage.removeItem(cle);
+  showToast('Acte confirmé','Le notaire confirme l’acte dont la réponse avait été perdue. Aucun nouveau paiement.',true);
+ }
+}
 function preparerAchatImmobilier(index){
  const o=immobilierCatalogueCourant[index];if(!o?.disponible)return;
+ immobilierOffreAConfirmer={index,offre:{...o,offres:[...o.offres]},contexte:immobilierContexte()};
  const prix=o.actif==='ensemble'?immobilierTotalExact(o.prix_fonds,o.prix_murs):o.prix;
  immobilierFenetre('Confirmer l’acte notarial','<p>Actif : '+immobilierEchapper({fonds:'Fonds seul',murs:'Murs seuls',ensemble:'Fonds et murs'}[o.actif])+'</p><p>Prix : '+immobilierEchapper(prix)+' FR. Coût de l’acte : 1 PA.</p><p>L’achat des murs conserve le bail. L’achat du fonds suit ses règles de cession existantes.</p><button class="pnj-action-btn" onclick="confirmerAchatImmobilier('+index+')">Signer l’acte et payer</button>');
 }
 function immobilierCleReprise(c,offres){return 'immobilier-acte:'+JSON.stringify([c.uid,c.nom,c.pays,[...offres].sort()]);}
 async function confirmerAchatImmobilier(index){
  if(immobilierCommandeEnCours)return;
- const offre=immobilierCatalogueCourant[index];if(!offre||!offre.disponible)return;
+ const prepare=immobilierOffreAConfirmer?.index===index?immobilierOffreAConfirmer:null;
+ if(prepare&&!immobilierContexteValide(prepare.contexte))return;
+ const offre=prepare?.offre||immobilierCatalogueCourant[index];if(!offre||!offre.disponible)return;
  const c=immobilierContexte(),cle=immobilierCleReprise(c,offre.offres);
  let requete;
  try{requete=sessionStorage.getItem(cle);if(!requete){requete=crypto.randomUUID();sessionStorage.setItem(cle,requete);}}
@@ -81,7 +104,7 @@ async function confirmerAchatImmobilier(index){
   const v=await sbImmobilierActe(requete,offre.offres).catch(()=>null);
   if(!immobilierContexteValide(c))return;
   if(v?.ok!==true){showToast('Acte non confirmé',v?.transport?'La réponse est incertaine. La prochaine tentative vérifiera le même acte.':immobilierMotif(v?.raison),false);return;}
-  sessionStorage.removeItem(cle);
+  sessionStorage.removeItem(cle);immobilierOffreAConfirmer=null;
   // Relecture des poches existantes ; aucun ancien solde d'un recu n'est recopie.
   const fiche=typeof rafraichirRuntimeHelvetia==='function'?await rafraichirRuntimeHelvetia():null;
   if(!immobilierContexteValide(c))return;

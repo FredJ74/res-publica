@@ -23,6 +23,7 @@ def main():
     CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql STABLE AS $$SELECT nullif(current_setting('test.acteur',true),'')$$;
     CREATE FUNCTION est_appel_serveur() RETURNS boolean LANGUAGE sql STABLE AS $$SELECT coalesce(current_setting('test.serveur',true),'')='oui'$$;
     CREATE FUNCTION exiger_acteur(text) RETURNS void LANGUAGE plpgsql AS $$BEGIN IF $1 IS DISTINCT FROM mon_personnage() THEN RAISE EXCEPTION 'acteur_non_authentifie';END IF;END$$;
+    CREATE FUNCTION acteur_poste_courant() RETURNS TABLE(poste_id text) LANGUAGE sql AS $$SELECT poste->>'id' FROM personnages_donnees WHERE name=mon_personnage()$$;
     CREATE FUNCTION salaire_caisse_de(text,text,text) RETURNS text LANGUAGE sql AS $$SELECT $2||'_mairie_'||$3$$;
     INSERT INTO entreprises_constantes VALUES('acompte_compromis',1000);INSERT INTO entreprises_prix_rachat VALUES('hotel-republica',380000);
     INSERT INTO ordres_couts VALUES('officialiser_transaction',1,0);
@@ -41,12 +42,13 @@ def main():
     q.execute("INSERT INTO personnages_donnees(name,user_id,country,current_city,current_building,current_room,hp,pa,arg,liquide,poste) VALUES(%s,gen_random_uuid(),'republic','capitale','office-notarial','bureau_contrats',100,10,%s,%s,%s)",(nom,solde,solde,Json(poste)))
     q.execute("INSERT INTO comptes_bancaires(id,personnage,pays,banque,solde) VALUES(%s,%s,'republic','nationale',0)",(nom,nom))
    for nom in ['Acheteur','Autre','Locataire','Vendeur']:pj(nom)
+   pj('Pauvre',2000)
    pj('Maire',poste={'id':'maire','city':'capitale'})
    q.execute("INSERT INTO entreprises(id,data) VALUES('hotel','{\"id\":\"hotel\",\"type\":\"brasserie\",\"country\":\"republic\",\"city\":\"capitale\",\"buildingId\":\"hotel-republica\",\"proprietaire\":\"PNJ\",\"caisse\":100,\"stock\":{\"vin\":7}}'),('sans-surface','{\"id\":\"sans-surface\",\"type\":\"bar\",\"country\":\"republic\",\"city\":\"capitale\",\"buildingId\":\"autre-bar\",\"proprietaire\":\"PNJ\"}')")
    q.execute("SET test.serveur='oui'");ok(appel('immobilier_raccorder_pnj')['raccordes']==2,'raccordement commun, sans moteur propre au batiment');ok(appel('immobilier_raccorder_pnj')['raccordes']==0,'initialisation idempotente');q.execute("SET test.serveur='non'")
    bien='republic:capitale:hotel-republica'
    acteur('Maire');v=appel('immobilier_offre_deposer',('murs',bien,'murs',None));ok(v['ok'],'offre murs municipaux deposee')
-   acteur('Acheteur');v=appel('immobilier_offre_deposer',('fonds',bien,'fonds',None));ok(v['ok'],'fonds PNJ au catalogue existant')
+   acteur('Acheteur');q.execute("SET test.serveur='oui'");v=appel('immobilier_offre_deposer',('fonds',bien,'fonds',None));ok(v['ok'],'fonds PNJ au catalogue existant');q.execute("SET test.serveur='non'")
    cat=appel('immobilier_catalogue',('republic',));ok(sorted(int(o['prix']) for o in cat['offres'])==[180000,380000],'1200 m2 a 150 et fonds distinct de 380000')
    v=appel('immobilier_offre_deposer',('incomplet','republic:capitale:autre-bar','fonds',None));ok(v['raison']=='fiche_incomplete','aucune vente avec surface inventee')
    v=appel('immobilier_acte_finaliser',('achat-conjoint',['fonds','murs']));ok(v['ok'] and v['prix_total']=='560000','achat conjoint atomique des deux actifs')
@@ -113,16 +115,100 @@ def main():
    q.execute("SELECT data->>'proprietaire' FROM entreprises WHERE id='fonds-v2'");ok(q.fetchone()[0]=='pj:Acheteur','rollback du premier titre de l achat conjoint')
    q.execute("SELECT count(*) FROM immobilier_actes WHERE requete='demi-achat'");ok(q.fetchone()[0]==0,'aucun recu de succes pour une transaction annulee')
    q.execute('DROP TRIGGER panne_acte ON comptes_bancaires')
+   ok(appel('immobilier_acte_finaliser',('demi-achat',['murs3','fonds3']))['ok'],'reprise du meme acte apres rollback : deux vendeurs PJ servis atomiquement')
+   q.execute("SELECT proprietaire FROM terrains_etat WHERE id='titre3'");ok(q.fetchone()[0]=='Locataire','titre des murs du vendeur distinct transfere')
+   ok(appel('immobilier_offre_deposer',('concurrence-fonds','bien3','fonds','30000'))['ok'],'nouvelle offre sur le fonds acquis, memes mecanismes')
    # Achat concurrent : un seul vainqueur, aucun debit du perdant.
    acteur('Locataire');q.execute("SELECT liquide,pa FROM personnages_donnees WHERE name IN('Vendeur','Locataire') ORDER BY name");avant_concurrence=q.fetchall()
    def acheter(nom):
     with psycopg2.connect(uri) as cx:
      cx.autocommit=True
      with cx.cursor() as z:
-      z.execute("SELECT set_config('test.acteur',%s,false)",(nom,));z.execute("SELECT immobilier_acte_finaliser(%s,ARRAY['fonds3'])",('concurrent-'+nom,));return z.fetchone()[0]
-   with ThreadPoolExecutor(max_workers=2) as pool:verdicts=list(pool.map(acheter,['Vendeur','Locataire']))
+      z.execute("SELECT set_config('test.acteur',%s,false)",(nom,));z.execute("SELECT immobilier_acte_finaliser(%s,ARRAY['concurrence-fonds'])",('concurrent-'+nom,));return z.fetchone()[0]
+   with ThreadPoolExecutor(max_workers=2) as pool:verdicts=list(pool.map(acheter,['Vendeur','Autre']))
    ok(sum(v['ok'] for v in verdicts)==1,'un seul acheteur concurrent')
    ok(any(v.get('raison')=='offre_vendue' for v in verdicts),'perdant refuse avant mutation')
+   # Imprimerie : appel du circuit historique reel, sans copier sa cession ni sa caisse.
+   q.execute("CREATE FUNCTION assemblee_requete_ouvrir(text,text,text) RETURNS jsonb LANGUAGE sql AS $$SELECT NULL::jsonb$$;CREATE FUNCTION assemblee_requete_clore(text,jsonb) RETURNS jsonb LANGUAGE sql AS $$SELECT $2$$")
+   q.execute(fonction('historique/sql-racine/migrations/migration_20260920_caisses_marqueur_interne.sql','imprimerie_cession_finaliser'))
+   q.execute("""SET test.serveur='oui';
+    INSERT INTO caisses_batiments VALUES('republic_gouvernement-min_fin','{"solde":0}',now());
+    INSERT INTO entreprises_constantes VALUES('prix_rachat_imprimerie',180000);
+    INSERT INTO terrains_etat(id,country,building_id,proprietaire,data) VALUES('titre4','republic','imprimerie-fixture','Vendeur','{"proprietaire":"Vendeur","city":"capitale"}');
+    INSERT INTO entreprises VALUES('imprimerie-fixture','{"id":"imprimerie-fixture","type":"imprimerie","country":"republic","city":"capitale","buildingId":"imprimerie-fixture","proprietaire":"PNJ","pretDemande":{"statut":"attente_validation"}}',now());
+    INSERT INTO immobilier_biens VALUES('bien4','republic','capitale','imprimerie-fixture','titre4','imprimerie-fixture',300);SET test.serveur='non';""")
+   acteur('Autre');q.execute("SET test.serveur='oui'");ok(appel('immobilier_offre_deposer',('imprimerie','bien4','fonds',None))['ok'],'imprimerie par la meme fiche commune');q.execute("SET test.serveur='non'")
+   acteur('Pauvre');q.execute("SELECT liquide,pa FROM personnages_donnees WHERE name='Pauvre'");avant_pauvre=q.fetchone()
+   ok(appel('immobilier_acte_finaliser',('pret-attente',['imprimerie']))['raison']=='pret_en_attente','clause de pret existante refuse avant tout mouvement')
+   q.execute("UPDATE entreprises SET data=data-'pretDemande' WHERE id='imprimerie-fixture'")
+   v=appel('immobilier_acte_finaliser',('deficit',['imprimerie']));ok(v['raison']=='fonds_insuffisants','insuffisance apres tentative d acompte : refus atomique')
+   q.execute("SELECT liquide,pa FROM personnages_donnees WHERE name='Pauvre'");ok(q.fetchone()==avant_pauvre,'aucune perte de l acompte ni du PA apres refus de solde')
+   q.execute("SELECT data ? 'compromis' FROM entreprises WHERE id='imprimerie-fixture'");ok(q.fetchone()[0]==False,'pas de compromis orphelin apres transaction refusee')
+   acteur('Autre');q.execute("SELECT liquide,pa FROM personnages_donnees WHERE name='Autre'");avant_imprimerie=q.fetchone()
+   ok(appel('immobilier_acte_finaliser',('acheter-imprimerie',['imprimerie']))['ok'],'cession imprimerie existante appelee sous la transaction commune')
+   q.execute("SELECT liquide,pa FROM personnages_donnees WHERE name='Autre'");ok(q.fetchone()==(avant_imprimerie[0]-180000,avant_imprimerie[1]-1),'un prix imprimeur et un seul PA, acompte compris')
+   q.execute("SELECT data->>'solde' FROM caisses_batiments WHERE id='republic_gouvernement-min_fin'");ok(q.fetchone()[0]=='180000','la caisse Etat historique encaisse exactement le prix')
+   # Forcer une erreur du courrier annule aussi la mise en vente et sa fenetre.
+   q.execute("SET test.serveur='oui';INSERT INTO terrains_etat(id,country,building_id,proprietaire,data) VALUES('titre5','republic','local5','Autre','{\"proprietaire\":\"Autre\",\"city\":\"capitale\"}');INSERT INTO immobilier_biens VALUES('bien5','republic','capitale','local5','titre5',NULL,300);INSERT INTO locations_actives VALUES('bail5','republic','{\"country\":\"republic\",\"city\":\"capitale\",\"buildingId\":\"local5\",\"locataire\":\"Locataire\",\"prix\":123}',now());SET test.serveur='non'")
+   q.execute("CREATE FUNCTION panne_mail() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne mail simulee';END$$;CREATE TRIGGER panne_mail BEFORE INSERT ON mails FOR EACH ROW EXECUTE FUNCTION panne_mail()")
+   try:appel('immobilier_offre_deposer',('mail-absent','bien5','murs','999'))
+   except psycopg2.Error:pass
+   else:raise AssertionError('offre sans notification acceptee')
+   q.execute("SELECT count(*) FROM immobilier_offres WHERE id='mail-absent'");ok(q.fetchone()[0]==0,'courrier absent : aucune priorite silencieuse ouverte')
+   q.execute('DROP TRIGGER panne_mail ON mails')
+   # Raccordement du loyer : fonctions SQL reelles, meme bail, bailleur resolve au paiement.
+   for nom in ['bail_destination_attestee','prelever_loyer_bail']:
+    q.execute(fonction('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',nom))
+   loyers=(R/'migrations/20261021203832_immobilier_loyers_titres.sql').read_text();q.execute(loyers);q.execute(loyers)
+   q.execute("SELECT data FROM locations_actives WHERE id='bail2'");d_bail=q.fetchone()[0]
+   ok(appel('bail_destination_attestee',(Json(d_bail),))['type']=='titulaire_murs','ancien bail redirige selon les murs actuels sans reecrire ses clauses')
+   q.execute("SELECT arg FROM personnages_donnees WHERE name='Autre'");arg_avant=q.fetchone()[0]
+   q.execute("SET test.serveur='oui'");ok(appel('prelever_loyer_bail',('bail2',))=='paye','moteur de perception existant conserve')
+   q.execute("SELECT arg FROM personnages_donnees WHERE name='Autre'");ok(q.fetchone()[0]==arg_avant+123,'loyer verse au nouveau proprietaire, pas au precedent')
+   ok(appel('prelever_loyer_bail',('bail2',))=='deja_preleve','aucun double loyer apres reprise cron')
+   ok(appel('bail_destination_attestee',(Json({'country':'republic','city':'capitale','buildingId':'autre-batiment','roomId':'salle'}),))['type']=='municipal','baux non raccordes conservent leur regime')
+   ok(appel('bail_destination_attestee',(Json({'isBox':True,'chambreClinique':True,'buildingId':'local5'}),)) is None,'priorite de l exemption clinique preservee meme sur donnees historiques mixtes')
+   # Un ancien titre PJ et sa surface ne sont jamais convertis en bien municipal.
+   q.execute("""INSERT INTO entreprises VALUES('pnj-dans-murs-pj','{"id":"pnj-dans-murs-pj","type":"bar","country":"republic","city":"capitale","buildingId":"deja-prive","proprietaire":"PNJ"}',now());
+    INSERT INTO terrains_etat(id,country,building_id,proprietaire,data) VALUES('prive-ancien','republic','deja-prive','Vendeur','{"city":"capitale","surface":450,"proprietaire":"Vendeur","subdivisions":[{"id":"historique","surface":90}]}');""")
+   q.execute("SELECT data FROM terrains_etat WHERE id='prive-ancien'");titre_avant=q.fetchone()[0]
+   ok(appel('immobilier_raccorder_pnj')['raccordes']==1,'raccordement dun commerce dans des murs deja prives')
+   q.execute("SELECT proprietaire,data FROM terrains_etat WHERE id='prive-ancien'");ok(q.fetchone()==('Vendeur',titre_avant),'titre PJ, subdivisions et geometrie inchanges')
+   q.execute("SELECT surface FROM immobilier_biens WHERE building_id='deja-prive'");ok(q.fetchone()[0]==450,'superficie persistante prioritaire sur toute valeur par defaut')
+   q.execute("SET test.serveur='non'")
+   # Une ancienne copie ne remet pas le vendeur apres la vente et ne contourne pas le notaire.
+   acteur('Vendeur')
+   try:q.execute("UPDATE terrains_etat SET proprietaire='Vendeur',data=(data::jsonb||'{\"proprietaire\":\"Vendeur\"}')::text WHERE id='titre2'")
+   except psycopg2.Error as e:ok(e.pgcode=='42501','ancien snapshot de titre refuse au serveur')
+   else:raise AssertionError('titre restaure par ancien proprietaire')
+   acteur('Autre');etat=appel('immobilier_acte_etat',('acheter-imprimerie',));ok(etat['termine'] and etat['verdict']['ok'],'reconciliation authentifiee dun acte apres F5')
+   acteur('Locataire');ok(not appel('immobilier_acte_etat',('acheter-imprimerie',))['termine'],'recu dun autre compte non expose')
+   q.execute("SET test.serveur='oui'");v=appel('immobilier_references_publier');ok(v['ok'] and v['publiees']==0 and v['non_valorisees']==1,'prix de fonds absent : aucune valeur inventee');q.execute("INSERT INTO entreprises_prix_rachat VALUES('deja-prive',5000)");v=appel('immobilier_references_publier');ok(v['ok'] and v['publiees']==1,'publication initiale serveur des seules references completes')
+   ok(appel('immobilier_references_publier')['publiees']==0,'references publiques idempotentes et aucune revente PJ automatique')
+   q.execute("SET test.serveur='non'")
+   pj('Ministre',poste={'id':'min_fin','city':'capitale'})
+   q.execute("CREATE FUNCTION exiger_poste(text) RETURNS text LANGUAGE plpgsql AS $$BEGIN IF NOT EXISTS(SELECT 1 FROM acteur_poste_courant() WHERE poste_id=$1) THEN RAISE EXCEPTION 'poste_non_autorise';END IF;RETURN mon_personnage();END$$")
+   q.execute(fonction('baseline/domaines/economie/20_fonctions-1.sql','entreprise_acte_preemption'))
+   q.execute("SET test.serveur='oui';UPDATE entreprises SET data=data||'{\"preemptionEtat\":\"attente_acte\"}' WHERE id='pnj-dans-murs-pj';SET test.serveur='non'")
+   acteur('Ministre');ok(appel('entreprise_acte_preemption',('Ministre','pnj-dans-murs-pj','État',None,0,0))['ok'],'pouvoir de preemption Etat existant preserve, distinct de celui du locataire')
+   q.execute("SELECT proprietaire FROM terrains_etat WHERE id='prive-ancien'");ok(q.fetchone()[0]=='Vendeur','preemption du fonds ne prend toujours pas les murs PJ')
+   # Sources non PJ : pas de reference de prix inventee pour les autres empires.
+   q.execute("SET test.serveur='oui';INSERT INTO terrains_etat(id,country,building_id,proprietaire,data) VALUES('sov-titre','sovarka','local','Vendeur','{\"proprietaire\":\"Vendeur\",\"city\":\"capitale\"}');INSERT INTO immobilier_biens VALUES('sov','sovarka','capitale','local','sov-titre',NULL,450);UPDATE personnages_donnees SET country='sovarka' WHERE name='Vendeur';SET test.serveur='non'")
+   acteur('Vendeur');ok(appel('immobilier_offre_deposer',('sov-offre','sov','murs','123'))['raison']=='regime_revente_non_arbitre','liberte PJ de Republia non extrapolee a Sovarka')
+   q.execute("SET test.serveur='oui';UPDATE personnages_donnees SET country='republic' WHERE name='Vendeur';SET test.serveur='non'")
+   # Un service autonome reste capable de regler un titre hors vente : aucune regression du calendrier.
+   q.execute("SET test.serveur='oui';UPDATE terrains_etat SET proprietaire='Locataire',data=(data::jsonb||'{\"proprietaire\":\"Locataire\"}')::text WHERE id='titre5';SET test.serveur='non'")
+   q.execute("SELECT proprietaire FROM terrains_etat WHERE id='titre5'");ok(q.fetchone()[0]=='Locataire','mutation serveur autonome non remplacee par un nouveau moteur')
+   q.execute("SELECT data->>'proprietaire' FROM entreprises WHERE id='fonds-v2'");titulaire_fonds=q.fetchone()[0].removeprefix('pj:')
+   acteur(titulaire_fonds);ok(appel('immobilier_offre_deposer',('gratuit','bien3','fonds','0'))['ok'],'prix PJ nul accepte sans plancher derive du bareme')
+   q.execute("SET test.serveur='oui';UPDATE entreprises SET data=data||'{\"caisse\":0.5}' WHERE id='fonds-v2';SET test.serveur='non'")
+   acteur('Pauvre');q.execute("SELECT pa,liquide FROM personnages_donnees WHERE name='Pauvre'");frais_avant=q.fetchone()
+   ok(appel('immobilier_acte_finaliser',('fraction-historique',['gratuit']))['raison']=='etat_financier_non_entier','ancienne caisse fractionnaire refusee, jamais arrondie silencieusement')
+   q.execute("SELECT pa,liquide FROM personnages_donnees WHERE name='Pauvre'");ok(q.fetchone()==frais_avant,'refus fractionnaire avant toute contrepartie')
+   q.execute("SET test.serveur='oui';UPDATE entreprises SET data=data||'{\"caisse\":0}' WHERE id='fonds-v2';SET test.serveur='non'")
+   ok(appel('immobilier_acte_finaliser',('libre-zero',['gratuit']))['ok'],'cession sans prix impose, frais d acte existants seulement')
+   ok(appel('immobilier_offre_deposer',('<img-src=x>','bien3','fonds','1'))['raison']=='parametres_invalides','identifiant de courrier non injectable')
+   ok(appel('immobilier_acte_finaliser',('<script>',['gratuit']))['raison']=='requete_invalide','identifiant historique strictement borne')
    # Droits de tables et RPC.
    q.execute("SELECT has_table_privilege('authenticated','immobilier_offres','UPDATE'),has_function_privilege('anon','immobilier_acte_finaliser(text,text[])','EXECUTE')");ok(q.fetchone()==(False,False),'aucune ecriture directe ou acte anonyme')
   print(f'{n}/{n} scenarios PostgreSQL locaux reussis ; auth simulee, production non verifiee.')

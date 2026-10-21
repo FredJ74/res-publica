@@ -1,6 +1,34 @@
 -- #66 PREPAREE UNIQUEMENT : aucune application en production autorisee.
 -- Raccordements vers terrains_etat/entreprises, jamais de nouveaux titres ou caisses paralleles.
 BEGIN;
+-- GARDE DES FONCTIONS NOUVELLES #66
+DO $g$ DECLARE h text;BEGIN
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_ref_pj(text)');IF h IS NOT NULL AND h<>'c8ccbb1575a224b3aa174caa8d9e3fde' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_ref_pj';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_titulaire(text,text)');IF h IS NOT NULL AND h<>'879ac2a5a48b7354052a04e39df794c7' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_titulaire';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_occupant(text)');IF h IS NOT NULL AND h<>'498f1bd020ddb0bff6f9d5a5a7a535ac' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_occupant';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_raccorder_pnj()');IF h IS NOT NULL AND h<>'f3598a021c447e42642043c778ce5462' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_raccorder_pnj';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_offre_deposer(text,text,text,text)');IF h IS NOT NULL AND h<>'55155472e7f0bbf469e19f086d766d7e' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_offre_deposer';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_priorites_publier()');IF h IS NOT NULL AND h<>'c4af6a11f2af57a91ebb5cff51764c89' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_priorites_publier';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_priorite_refuser(text)');IF h IS NOT NULL AND h<>'549f6cf542d5c2eb232de05d549bb0db' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_priorite_refuser';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_catalogue(text)');IF h IS NOT NULL AND h<>'5502ac2c106b5e5762aceaaa82f561f7' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_catalogue';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.vendre_fonds_commerce(text,text,text,int4,bool)');IF h IS NOT NULL AND h<>'0d2ee8ea2c56c8121efac1c8f95f62e9' THEN RAISE EXCEPTION 'definition_non_examinee: vendre_fonds_commerce';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_acte_finaliser(text,text[])');IF h IS NOT NULL AND h<>'01ae556e2c0c2ab0e7425580f758f63b' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_acte_finaliser';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_titre_proteger()');IF h IS NOT NULL AND h<>'d1951e6b03191acf276da74b4aa01992' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_titre_proteger';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_bail_serialiser()');IF h IS NOT NULL AND h<>'1ff311d413ae9f2da5f6aaf03944e6ba' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_bail_serialiser';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_biens_lire(text)');IF h IS NOT NULL AND h<>'c9d5066483a2baa42665b123f6d1b9d2' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_biens_lire';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_acte_etat(text)');IF h IS NOT NULL AND h<>'5f21c208ef92586e164f84bfcca7d462' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_acte_etat';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.immobilier_references_publier()');IF h IS NOT NULL AND h<>'cd5cb84c8c1641b43a6a6324e53662b6' THEN RAISE EXCEPTION 'definition_non_examinee: immobilier_references_publier';END IF;
+END;$g$;
+-- FIN GARDE #66
+
+
+
+
+
+
+
+
+
 CREATE TABLE IF NOT EXISTS public.immobilier_tarifs_pays(pays text PRIMARY KEY,prix_m2 numeric NOT NULL CHECK(prix_m2>=0));
 INSERT INTO public.immobilier_tarifs_pays VALUES('republic',150) ON CONFLICT DO NOTHING;
 DO $$BEGIN IF (SELECT prix_m2 FROM public.immobilier_tarifs_pays WHERE pays='republic')<>150 THEN RAISE EXCEPTION 'bareme_existant_divergent';END IF;END$$;
@@ -11,6 +39,7 @@ CREATE TABLE IF NOT EXISTS public.immobilier_biens(
 CREATE TABLE IF NOT EXISTS public.immobilier_surfaces_validees(
  pays text,ville text,building_id text,surface numeric NOT NULL CHECK(surface>0),PRIMARY KEY(pays,ville,building_id));
 INSERT INTO public.immobilier_surfaces_validees VALUES('republic','capitale','hotel-republica',1200) ON CONFLICT DO NOTHING;
+DO $$BEGIN IF (SELECT surface FROM public.immobilier_surfaces_validees WHERE pays='republic' AND ville='capitale' AND building_id='hotel-republica')<>1200 THEN RAISE EXCEPTION 'surface_validee_divergente';END IF;END$$;
 CREATE TABLE IF NOT EXISTS public.immobilier_offres(
  id text PRIMARY KEY,bien_id text NOT NULL REFERENCES public.immobilier_biens(id),actif text NOT NULL CHECK(actif IN('fonds','murs')),
  vendeur text NOT NULL,prix numeric NOT NULL CHECK(prix>=0 AND prix=trunc(prix)),regime text NOT NULL CHECK(regime IN('reference','libre_pj')),
@@ -29,7 +58,7 @@ ALTER TABLE public.immobilier_actes ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.immobilier_tarifs_pays,public.immobilier_biens,public.immobilier_surfaces_validees,public.immobilier_offres,public.immobilier_actes FROM PUBLIC,anon,authenticated;
 
 CREATE OR REPLACE FUNCTION public.immobilier_ref_pj(p_ref text) RETURNS text LANGUAGE sql IMMUTABLE SET search_path=public,pg_temp AS $$
- SELECT CASE WHEN left(p_ref,3)='pj:' THEN substr(p_ref,4) WHEN p_ref='PNJ' OR strpos(p_ref,':')>0 THEN NULL ELSE nullif(p_ref,'') END;
+ SELECT CASE WHEN left(p_ref,3)='pj:' THEN substr(p_ref,4) WHEN p_ref='PNJ' OR left(p_ref,5)='orga:' OR left(p_ref,6)='ville:' THEN NULL ELSE nullif(p_ref,'') END;
 $$;
 CREATE OR REPLACE FUNCTION public.immobilier_titulaire(p_bien text,p_actif text) RETURNS text LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
 DECLARE b public.immobilier_biens%rowtype;t public.terrains_etat%rowtype;v text;
@@ -38,7 +67,7 @@ BEGIN
  IF NOT FOUND THEN RETURN NULL;END IF;
  IF p_actif='fonds' THEN SELECT data->>'proprietaire' INTO v FROM public.entreprises WHERE id=b.entreprise_id;RETURN v;END IF;
  SELECT * INTO t FROM public.terrains_etat WHERE id=b.terrain_id;
- IF t.proprietaire IS DISTINCT FROM t.data::jsonb->>'proprietaire' THEN RAISE EXCEPTION 'titres_murs_divergents';END IF;
+ IF t.proprietaire IS DISTINCT FROM t.data::jsonb->>'proprietaire' AND NOT coalesce(public.immobilier_ref_pj(t.proprietaire)=public.immobilier_ref_pj(t.data::jsonb->>'proprietaire'),false) THEN RAISE EXCEPTION 'titres_murs_divergents';END IF;
  RETURN t.proprietaire;
 END;$$;
 CREATE OR REPLACE FUNCTION public.immobilier_occupant(p_bien text) RETURNS text LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
@@ -89,8 +118,9 @@ END;$$;
 CREATE OR REPLACE FUNCTION public.immobilier_offre_deposer(p_id text,p_bien text,p_actif text,p_prix text DEFAULT NULL) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
 DECLARE b public.immobilier_biens%rowtype;moi text:=public.mon_personnage();vendeur text;prix numeric;regime text;occupant text;courrier jsonb;h_notification timestamptz;ancien public.immobilier_offres%rowtype;d jsonb;
 BEGIN
- IF moi IS NULL THEN RETURN '{"ok":false,"raison":"acteur_non_authentifie"}';END IF;
- IF nullif(p_id,'') IS NULL OR length(p_id)>120 OR p_actif NOT IN('fonds','murs') OR p_actif IS NULL THEN RETURN '{"ok":false,"raison":"parametres_invalides"}';END IF;
+ IF moi IS NULL AND NOT public.est_appel_serveur() THEN RETURN '{"ok":false,"raison":"acteur_non_authentifie"}';END IF;
+ IF p_id IS NULL OR p_id !~ '^[A-Za-z0-9_-]{1,120}$' OR p_actif NOT IN('fonds','murs') OR p_actif IS NULL THEN RETURN '{"ok":false,"raison":"parametres_invalides"}';END IF;
+ PERFORM 1 FROM public.personnages_donnees WHERE name=moi FOR UPDATE;
  PERFORM pg_advisory_xact_lock(hashtextextended('immobilier:'||p_bien,0));
  SELECT * INTO ancien FROM public.immobilier_offres WHERE id=p_id;
  IF FOUND THEN
@@ -101,7 +131,7 @@ BEGIN
   RETURN jsonb_build_object('ok',true,'offre',ancien.id,'rejeu',true);
  END IF;
  SELECT * INTO b FROM public.immobilier_biens WHERE id=p_bien FOR UPDATE;
- IF NOT EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=moi AND country=b.pays AND current_building='office-notarial' AND current_room='bureau_contrats' AND coalesce(hp,100)>0) THEN RETURN '{"ok":false,"raison":"pas_chez_notaire"}';END IF;
+ IF NOT public.est_appel_serveur() AND NOT EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=moi AND country=b.pays AND current_building='office-notarial' AND current_room='bureau_contrats' AND coalesce(hp,100)>0) THEN RETURN '{"ok":false,"raison":"pas_chez_notaire"}';END IF;
  IF NOT FOUND OR b.surface IS NULL THEN RETURN '{"ok":false,"raison":"fiche_incomplete"}';END IF;
  IF EXISTS(SELECT 1 FROM public.immobilier_offres WHERE bien_id=p_bien AND actif=p_actif AND statut<>'vendue') THEN RETURN '{"ok":false,"raison":"offre_existante"}';END IF;
  vendeur:=public.immobilier_titulaire(p_bien,p_actif);
@@ -113,10 +143,11 @@ BEGIN
  ELSE
   regime:='reference';
   IF p_actif='fonds' AND vendeur='PNJ' THEN
+   IF NOT public.est_appel_serveur() THEN RETURN '{"ok":false,"raison":"offre_reference_serveur"}';END IF;
    SELECT data INTO d FROM public.entreprises WHERE id=b.entreprise_id FOR UPDATE;
    prix:=public.entreprise_prix_rachat(d);
   ELSIF p_actif='murs' AND vendeur='ville:'||b.pays||'_'||b.ville THEN
-   IF NOT EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=moi AND country=b.pays AND poste->>'id' IN('maire','maire_adjoint') AND poste->>'city'=b.ville) THEN RETURN '{"ok":false,"raison":"autorite_municipale_requise"}';END IF;
+   IF NOT public.est_appel_serveur() AND NOT EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=moi AND country=b.pays AND poste->>'id' IN('maire','maire_adjoint') AND poste->>'city'=b.ville) THEN RETURN '{"ok":false,"raison":"autorite_municipale_requise"}';END IF;
    SELECT b.surface*prix_m2 INTO prix FROM public.immobilier_tarifs_pays WHERE pays=b.pays;
   ELSE RETURN '{"ok":false,"raison":"titulaire_non_raccorde"}';END IF;
   IF p_prix IS NOT NULL AND p_prix IS DISTINCT FROM prix::text THEN RETURN '{"ok":false,"raison":"prix_public_non_modifiable"}';END IF;
@@ -153,13 +184,18 @@ CREATE OR REPLACE FUNCTION public.immobilier_priorite_refuser(p_offre text) RETU
 DECLARE o public.immobilier_offres%rowtype;moi text:=public.mon_personnage();
 BEGIN
  IF moi IS NULL THEN RETURN '{"ok":false,"raison":"acteur_non_authentifie"}';END IF;
+ PERFORM 1 FROM public.personnages_donnees WHERE name=moi FOR UPDATE;
+ IF EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=moi AND coalesce(hp,100)<=0) THEN RETURN '{"ok":false,"raison":"acteur_incapacite"}';END IF;
  SELECT * INTO o FROM public.immobilier_offres WHERE id=p_offre;
  IF NOT FOUND THEN RETURN '{"ok":false,"raison":"offre_absente"}';END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended('immobilier:'||o.bien_id,0));
  SELECT * INTO o FROM public.immobilier_offres WHERE id=p_offre FOR UPDATE;
  IF o.beneficiaire IS DISTINCT FROM moi THEN RETURN '{"ok":false,"raison":"pas_prioritaire"}';END IF;
  IF o.statut='vendue' THEN RETURN '{"ok":false,"raison":"deja_vendue"}';END IF;
- IF o.statut='priorite' THEN UPDATE public.immobilier_offres SET statut='disponible',refus_le=clock_timestamp(),publication_le=clock_timestamp() WHERE id=p_offre;END IF;
+ IF o.statut='priorite' THEN
+  IF o.priorite_fin<=clock_timestamp() THEN UPDATE public.immobilier_offres SET statut='disponible',publication_le=priorite_fin WHERE id=p_offre;
+  ELSE UPDATE public.immobilier_offres SET statut='disponible',refus_le=clock_timestamp(),publication_le=clock_timestamp() WHERE id=p_offre;END IF;
+ END IF;
  RETURN '{"ok":true}';
 END;$$;
 
@@ -169,10 +205,13 @@ BEGIN
  IF moi IS NULL THEN RETURN '{"ok":false,"raison":"acteur_non_authentifie"}';END IF;
  SELECT coalesce(jsonb_agg(jsonb_build_object('id',o.id,'bien_id',b.id,'actif',o.actif,'vendeur',o.vendeur,'pays',b.pays,'ville',b.ville,'building_id',b.building_id,'surface',b.surface,
   'prix',o.prix::text,'regime',o.regime,'statut',CASE WHEN o.statut='priorite' AND o.priorite_fin<=clock_timestamp() THEN 'disponible' ELSE o.statut END,
+  'sous_compromis',o.actif='fonds' AND coalesce((e.data->>'compromis')::boolean,false) AND coalesce((e.data->>'compromisExpireAt')::numeric,0)>extract(epoch FROM clock_timestamp())*1000,
   'prioritaire',o.beneficiaire=moi AND o.statut='priorite' AND o.priorite_fin>clock_timestamp(),'priorite_fin',CASE WHEN o.beneficiaire=moi THEN o.priorite_fin END,
-  'disponible',o.statut='disponible' OR (o.statut='priorite' AND (o.beneficiaire=moi OR o.priorite_fin<=clock_timestamp()))) ORDER BY o.created_at,o.id),'[]') INTO r
- FROM public.immobilier_offres o JOIN public.immobilier_biens b ON b.id=o.bien_id
- WHERE b.pays=p_pays AND o.statut<>'vendue' AND (o.statut<>'priorite' OR o.priorite_fin<=clock_timestamp() OR o.beneficiaire=moi OR public.immobilier_ref_pj(o.vendeur)=moi);
+  'disponible',b.surface IS NOT NULL AND public.immobilier_titulaire(b.id,o.actif)=o.vendeur
+    AND NOT (o.actif='fonds' AND coalesce((e.data->>'compromis')::boolean,false) AND coalesce((e.data->>'compromisExpireAt')::numeric,0)>extract(epoch FROM clock_timestamp())*1000 AND coalesce(e.data->>'compromisPar','')<>moi)
+    AND (o.statut='disponible' OR (o.statut='priorite' AND (o.beneficiaire=moi OR o.priorite_fin<=clock_timestamp())))) ORDER BY o.created_at,o.id),'[]') INTO r
+ FROM public.immobilier_offres o JOIN public.immobilier_biens b ON b.id=o.bien_id LEFT JOIN public.entreprises e ON e.id=b.entreprise_id
+ WHERE b.pays=p_pays AND o.statut<>'vendue' AND (o.statut<>'priorite' OR o.priorite_fin<=clock_timestamp() OR o.beneficiaire=moi OR public.immobilier_ref_pj(o.vendeur)=moi OR (o.vendeur='ville:'||b.pays||'_'||b.ville AND EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=moi AND country=b.pays AND poste->>'id' IN('maire','maire_adjoint') AND poste->>'city'=b.ville)));
  RETURN jsonb_build_object('ok',true,'offres',r);
 END;$$;
 
@@ -248,6 +287,14 @@ REVOKE ALL ON FUNCTION public.vendre_fonds_commerce(text,text,text,integer) FROM
 GRANT EXECUTE ON FUNCTION public.vendre_fonds_commerce(text,text,text,integer) TO service_role;
 DO $g$ DECLARE h text;BEGIN SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.recette_municipale(text,text,numeric,text)');
  IF h IS NULL OR h NOT IN('1a0ee027dc0a9b0b77524f9d5c2d061c','81acdda0369275ea3369cb8ea1bf7c89') THEN RAISE EXCEPTION 'definition_non_examinee: recette_municipale';END IF;END;$g$;
+-- Ne jamais effacer une extension du catalogue vivant non examinee.
+DO $g$ DECLARE definition text;canaux text[];BEGIN
+ SELECT pg_get_constraintdef(oid) INTO definition FROM pg_constraint WHERE conrelid='public.recettes_municipales'::regclass AND conname='recettes_municipales_canal_check';
+ IF definition IS NOT NULL THEN
+  SELECT array_agg(DISTINCT m[1] ORDER BY m[1]) INTO canaux FROM regexp_matches(definition,'''([^'']+)''','g') m;
+  IF canaux IS DISTINCT FROM ARRAY['loyer','taxe_fonciere','taxe_transaction']::text[] AND canaux IS DISTINCT FROM ARRAY['cession_immobiliere','loyer','taxe_fonciere','taxe_transaction']::text[] THEN RAISE EXCEPTION 'canaux_municipaux_non_examines';END IF;
+ END IF;
+END;$g$;
 ALTER TABLE public.recettes_municipales DROP CONSTRAINT IF EXISTS recettes_municipales_canal_check;
 ALTER TABLE public.recettes_municipales ADD CONSTRAINT recettes_municipales_canal_check CHECK(canal IN('taxe_fonciere','loyer','taxe_transaction','cession_immobiliere'));
 CREATE OR REPLACE FUNCTION public.recette_municipale(p_pays text, p_ville text, p_montant numeric, p_canal text)
@@ -300,7 +347,7 @@ DECLARE moi text:=public.mon_personnage();ids text[];b public.immobilier_biens%r
  a public.immobilier_actes%rowtype;p public.personnages_donnees%rowtype;d jsonb;r jsonb;total numeric:=0;reste numeric;ancien text;v text;nb integer;occupant text;
 BEGIN
  IF moi IS NULL THEN RETURN '{"ok":false,"raison":"acteur_non_authentifie"}';END IF;
- IF nullif(p_requete,'') IS NULL OR length(p_requete)>120 OR cardinality(p_offres) NOT BETWEEN 1 AND 2 OR cardinality(p_offres) IS NULL THEN RETURN '{"ok":false,"raison":"requete_invalide"}';END IF;
+ IF p_requete IS NULL OR p_requete !~ '^[A-Za-z0-9_-]{1,120}$' OR cardinality(p_offres) NOT BETWEEN 1 AND 2 OR cardinality(p_offres) IS NULL THEN RETURN '{"ok":false,"raison":"requete_invalide"}';END IF;
  SELECT array_agg(DISTINCT x ORDER BY x) INTO ids FROM unnest(p_offres) AS t(x);
  IF cardinality(ids)<>cardinality(p_offres) OR array_position(ids,NULL) IS NOT NULL THEN RETURN '{"ok":false,"raison":"offres_invalides"}';END IF;
  -- Verrou des participants AVANT les biens ; memes noms dans le meme ordre pour les ventes croisees.
@@ -322,7 +369,8 @@ BEGIN
  IF FOUND THEN IF a.offres IS DISTINCT FROM ids THEN RETURN '{"ok":false,"raison":"requete_reutilisee"}';END IF;RETURN a.verdict||'{"rejeu":true}'::jsonb;END IF;
  SELECT * INTO b FROM public.immobilier_biens WHERE id=ancien FOR UPDATE;
  IF b.surface IS NULL OR b.pays IS DISTINCT FROM p.country THEN RETURN '{"ok":false,"raison":"fiche_incomplete_ou_hors_pays"}';END IF;
- PERFORM 1 FROM public.terrains_etat WHERE id=b.terrain_id FOR UPDATE;
+ SELECT data::jsonb INTO d FROM public.terrains_etat WHERE id=b.terrain_id FOR UPDATE;
+ IF d->>'succession_gel' IS NOT NULL AND EXISTS(SELECT 1 FROM public.immobilier_offres WHERE id=ANY(ids) AND actif='murs') THEN RETURN '{"ok":false,"raison":"bien_gele"}';END IF;
  PERFORM 1 FROM public.entreprises WHERE id=b.entreprise_id FOR UPDATE;
  PERFORM 1 FROM public.locations_actives WHERE country=b.pays AND data->>'city'=b.ville AND data->>'buildingId'=b.building_id ORDER BY id FOR UPDATE;
  FOR o IN SELECT * FROM public.immobilier_offres WHERE id=ANY(ids) ORDER BY actif FOR UPDATE LOOP
@@ -336,6 +384,8 @@ BEGIN
   ELSE
    SELECT data INTO d FROM public.entreprises WHERE id=b.entreprise_id;
    IF d->>'succession_gel' IS NOT NULL OR d->>'successionGel' IS NOT NULL THEN RETURN '{"ok":false,"raison":"bien_gele"}';END IF;
+   IF coalesce((d->>'version')::integer,0)>=2 AND (coalesce((d->>'caisse')::numeric,0)<>trunc(coalesce((d->>'caisse')::numeric,0)) OR coalesce((d->>'caisse')::numeric,0)<0) THEN RETURN '{"ok":false,"raison":"etat_financier_non_entier"}';END IF;
+   IF coalesce((d->>'acompte')::numeric,0)<>trunc(coalesce((d->>'acompte')::numeric,0)) OR coalesce((d->>'acompte')::numeric,0)<0 OR coalesce((d->>'acompte')::numeric,0)>o.prix THEN RETURN '{"ok":false,"raison":"acompte_historique_incoherent"}';END IF;
    IF d->'pretDemande'->>'statut'='attente_validation' THEN RETURN '{"ok":false,"raison":"pret_en_attente"}';END IF;
    IF coalesce((d->>'compromis')::boolean,false) THEN
     IF d->>'compromisPar' IS DISTINCT FROM moi THEN RETURN '{"ok":false,"raison":"pas_votre_compromis"}';END IF;
@@ -392,7 +442,7 @@ BEGIN
      END IF;
     END IF;
    END IF;
-   UPDATE public.immobilier_offres SET statut='vendue',acheteur=moi,publication_le=coalesce(publication_le,clock_timestamp()) WHERE id=o.id;
+   UPDATE public.immobilier_offres SET statut='vendue',acheteur=moi,publication_le=coalesce(publication_le,CASE WHEN priorite_fin<=clock_timestamp() THEN priorite_fin END) WHERE id=o.id;
   END LOOP;
   r:=jsonb_build_object('ok',true,'requete',p_requete,'offres',ids,'prix_total',total::text,'rejeu',false);
   UPDATE public.immobilier_actes SET verdict=r WHERE acteur=moi AND requete=p_requete;
@@ -409,11 +459,15 @@ BEGIN
  IF TG_TABLE_NAME='terrains_etat' THEN
   SELECT id INTO bien FROM public.immobilier_biens WHERE terrain_id=OLD.id;v_actif:='murs';avant:=OLD.proprietaire;
   IF TG_OP<>'DELETE' THEN apres:=NEW.proprietaire;
-   IF bien IS NOT NULL AND NEW.proprietaire IS DISTINCT FROM NEW.data::jsonb->>'proprietaire' THEN RAISE EXCEPTION 'titres_murs_divergents';END IF;
+   IF bien IS NOT NULL AND NEW.proprietaire IS DISTINCT FROM NEW.data::jsonb->>'proprietaire' AND NOT coalesce(public.immobilier_ref_pj(NEW.proprietaire)=public.immobilier_ref_pj(NEW.data::jsonb->>'proprietaire'),false) THEN RAISE EXCEPTION 'titres_murs_divergents';END IF;
   END IF;
  ELSE
   SELECT id INTO bien FROM public.immobilier_biens WHERE entreprise_id=OLD.id;v_actif:='fonds';avant:=OLD.data->>'proprietaire';
   IF TG_OP<>'DELETE' THEN apres:=NEW.data->>'proprietaire';END IF;
+ END IF;
+ -- Le pouvoir d'Etat existant reste distinct du droit de l'exploitant.
+ IF TG_TABLE_NAME='entreprises' AND TG_OP='UPDATE' THEN
+  IF OLD.data->>'preemptionEtat'='attente_acte' AND EXISTS(SELECT 1 FROM public.acteur_poste_courant() a WHERE a.poste_id='min_fin') THEN RETURN NEW;END IF;
  END IF;
  IF bien IS NOT NULL AND (TG_OP='DELETE' OR apres IS DISTINCT FROM avant) AND NOT public.est_appel_serveur() THEN
   IF TG_OP='DELETE' OR NOT EXISTS(SELECT 1 FROM public.immobilier_actes a JOIN public.immobilier_offres o ON o.id=ANY(a.offres)
@@ -445,7 +499,7 @@ BEGIN
  IF moi IS NULL THEN RETURN '{"ok":false,"raison":"acteur_non_authentifie"}';END IF;
  SELECT coalesce(jsonb_agg(jsonb_build_object('id',b.id,'pays',b.pays,'ville',b.ville,'building_id',b.building_id,'surface',b.surface,
   'proprietaire_murs',public.immobilier_titulaire(b.id,'murs'),'proprietaire_fonds',public.immobilier_titulaire(b.id,'fonds'),
-  'peut_vendre_fonds',public.immobilier_ref_pj(public.immobilier_titulaire(b.id,'fonds'))=moi OR public.immobilier_titulaire(b.id,'fonds')='PNJ',
+  'peut_vendre_fonds',public.immobilier_ref_pj(public.immobilier_titulaire(b.id,'fonds'))=moi,
   'peut_vendre_murs',public.immobilier_ref_pj(public.immobilier_titulaire(b.id,'murs'))=moi OR (public.immobilier_titulaire(b.id,'murs')='ville:'||b.pays||'_'||b.ville
    AND EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=moi AND country=b.pays AND poste->>'city'=b.ville AND poste->>'id' IN('maire','maire_adjoint')))) ORDER BY b.id),'[]') INTO r
  FROM public.immobilier_biens b WHERE b.pays=p_pays;
@@ -453,6 +507,38 @@ BEGIN
 END;$$;
 REVOKE ALL ON FUNCTION public.immobilier_biens_lire(text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.immobilier_biens_lire(text) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.immobilier_acte_etat(p_requete text) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE moi text:=public.mon_personnage();v jsonb;
+BEGIN
+ IF moi IS NULL THEN RETURN '{"ok":false,"raison":"acteur_non_authentifie"}';END IF;
+ SELECT verdict INTO v FROM public.immobilier_actes WHERE acteur=moi AND requete=p_requete;
+ RETURN jsonb_build_object('ok',true,'termine',v IS NOT NULL,'verdict',v);
+END;$$;
+REVOKE ALL ON FUNCTION public.immobilier_acte_etat(text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.immobilier_acte_etat(text) TO authenticated;
+
+-- Publication initiale des references, operation serveur explicite apres prevol ; aucun prix PJ invente.
+CREATE OR REPLACE FUNCTION public.immobilier_references_publier() RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE b record;v_actif text;titulaire text;r jsonb;n integer:=0;incomplets integer:=0;
+BEGIN
+ IF NOT public.est_appel_serveur() THEN RAISE EXCEPTION 'serveur_requis' USING ERRCODE='42501';END IF;
+ FOR b IN SELECT * FROM public.immobilier_biens WHERE surface IS NOT NULL ORDER BY id LOOP
+  FOREACH v_actif IN ARRAY ARRAY['fonds','murs'] LOOP
+   titulaire:=public.immobilier_titulaire(b.id,v_actif);
+   IF (v_actif='fonds' AND titulaire='PNJ') OR (v_actif='murs' AND titulaire='ville:'||b.pays||'_'||b.ville) THEN
+    IF (v_actif='fonds' AND (SELECT public.entreprise_prix_rachat(data) FROM public.entreprises WHERE id=b.entreprise_id) IS NULL) OR (v_actif='murs' AND NOT EXISTS(SELECT 1 FROM public.immobilier_tarifs_pays WHERE pays=b.pays)) THEN incomplets:=incomplets+1;CONTINUE;END IF;
+    IF EXISTS(SELECT 1 FROM public.immobilier_offres o WHERE o.bien_id=b.id AND o.actif=v_actif AND o.statut<>'vendue') THEN CONTINUE;END IF;
+    r:=public.immobilier_offre_deposer('reference-'||md5(b.id||':'||v_actif),b.id,v_actif,NULL);
+    IF r->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'publication_reference_refusee';END IF;
+    n:=n+1;
+   END IF;
+  END LOOP;
+ END LOOP;
+ RETURN jsonb_build_object('ok',true,'publiees',n,'non_valorisees',incomplets);
+END;$$;
+REVOKE ALL ON FUNCTION public.immobilier_references_publier() FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.immobilier_references_publier() TO service_role;
 
 -- Droits explicites : tous les helpers sont prives ; aucune table n'est modifiable par le client.
 REVOKE ALL ON FUNCTION public.immobilier_ref_pj(text),public.immobilier_titulaire(text,text),public.immobilier_occupant(text),public.immobilier_raccorder_pnj(),public.immobilier_priorites_publier(),public.immobilier_titre_proteger(),public.immobilier_bail_serialiser() FROM PUBLIC,anon,authenticated;

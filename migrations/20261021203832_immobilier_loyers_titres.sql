@@ -2,7 +2,7 @@
 BEGIN;
 DO $g$ DECLARE h text;BEGIN
  SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.bail_destination_attestee(jsonb)');
- IF h IS NULL OR h NOT IN('4f8f753b7aefcf18809664fc504049b5','570465a770490a16d359b038dc4c7bba') THEN RAISE EXCEPTION 'definition_non_examinee: bail_destination_attestee';END IF;
+ IF h IS NULL OR h NOT IN('4f8f753b7aefcf18809664fc504049b5','ec8ddea6cb3c29052d2bc3b03985ac2e') THEN RAISE EXCEPTION 'definition_non_examinee: bail_destination_attestee';END IF;
  SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.prelever_loyer_bail(text)');
  IF h IS NULL OR h NOT IN('ddd1f687b157f6b88cbd52a033556a2d','944b4d5929b11b1775eccc532df15eaa') THEN RAISE EXCEPTION 'definition_non_examinee: prelever_loyer_bail';END IF;
 END;$g$;
@@ -15,9 +15,8 @@ CREATE OR REPLACE FUNCTION public.bail_destination_attestee(p_data jsonb)
 AS $function$
 DECLARE bien text; titulaire text;
 BEGIN
- IF coalesce((p_data->>'chambreClinique')::boolean,false) OR coalesce((p_data->>'isBox')::boolean,false) THEN
-  RETURN CASE WHEN coalesce((p_data->>'isBox')::boolean,false) THEN jsonb_build_object('type','caisse_batiment','buildingId',p_data->>'buildingId') ELSE NULL END;
- END IF;
+ IF coalesce((p_data->>'chambreClinique')::boolean,false) THEN RETURN NULL;END IF;
+ IF coalesce((p_data->>'isBox')::boolean,false) THEN RETURN jsonb_build_object('type','caisse_batiment','buildingId',p_data->>'buildingId');END IF;
  SELECT id INTO bien FROM public.immobilier_biens WHERE pays=p_data->>'country' AND ville=p_data->>'city' AND building_id=p_data->>'buildingId';
  IF bien IS NOT NULL THEN
   titulaire:=public.immobilier_titulaire(bien,'murs');

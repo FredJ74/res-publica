@@ -5050,9 +5050,9 @@ async function sbGetDerniereQueteResolue(country) {
 // sbGetTerrainState et sbGetTerrainsPossedesPar RESTENT : elles ne font que lire.
 
 async function sbGetTerrainState(country, buildingId, city) {
-  const ville=city||(typeof state!=='undefined'?state.currentCity:null);
   const rows=await sbGet('terrains_etat',`country=eq.${encodeURIComponent(country)}&building_id=eq.${encodeURIComponent(buildingId)}`);
   if(!Array.isArray(rows))return null;
+  const ville=city||(rows.length>1&&typeof state!=='undefined'?state.currentCity:null);
   try{
     const candidats=rows.map(r=>typeof r.data==='string'?JSON.parse(r.data):r.data)
       .filter(d=>d&&typeof d==='object'&&!Array.isArray(d)&&(!ville||!d.city||d.city===ville));
@@ -6854,3 +6854,5 @@ async function sbImmobilierBiens(pays){return sbRpcVerdict('immobilier_biens_lir
 async function sbImmobilierDeposer(id,bien,actif,prix){return sbRpcVerdict('immobilier_offre_deposer',{p_id:id,p_bien:bien,p_actif:actif,p_prix:prix});}
 async function sbImmobilierRefuser(offre){return sbRpcVerdict('immobilier_priorite_refuser',{p_offre:offre});}
 async function sbImmobilierActe(requete,offres){return sbRpcVerdict('immobilier_acte_finaliser',{p_requete:requete,p_offres:offres});}
+
+async function sbImmobilierActeEtat(requete){return sbRpcVerdict('immobilier_acte_etat',{p_requete:requete});}

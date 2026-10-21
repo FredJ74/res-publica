@@ -1,4 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+const acorn=require('../vercel/node_modules/acorn');
+const navSource=fs.readFileSync(path.join(__dirname,'../../plateau-rue-centrale.js'),'utf8');
+const nav=acorn.parse(navSource,{ecmaVersion:'latest'}).body.filter(n=>n.type==='FunctionDeclaration'&&['contexteNavigationRue','contexteNavigationRueValide'].includes(n.id.name)).map(n=>navSource.slice(n.start,n.end)).join('\n');
 const source=fs.readFileSync(path.join(__dirname,'../../plateau-immobilier-ventes.js'),'utf8');
 const c=vm.createContext({});vm.runInContext(source,c);
 test('reference des murs unique : La Republica 1200 m2, distinct des 380000 FR de fonds',()=>{assert.equal(c.immobilierPrixReference(1200,150),180000);assert.equal(180000+380000,560000);});
@@ -7,3 +10,18 @@ test('mecanique identique, prix territorial parametrable, aucun coefficient de v
 test('achat conjoint conserve les deux offres, prix et vendeurs differents',()=>{const r=c.immobilierOffresRegrouper([{id:'f',bien_id:'x',actif:'fonds',disponible:true,vendeur:'Alice',prix:7},{id:'m',bien_id:'x',actif:'murs',disponible:true,vendeur:'Bob',prix:11,surface:1200}]);assert.equal(r.length,3);assert.equal(r[2].prix_total,'18');assert.equal(r[2].vendeur_murs,'Bob');assert.equal(r[2].offres.length,2);});
 test('priorite privee : jamais de faux achat conjoint avec un actif indisponible',()=>{assert.equal(c.immobilierOffresRegrouper([{id:'f',bien_id:'x',actif:'fonds',disponible:true},{id:'m',bien_id:'x',actif:'murs',disponible:false}]).length,2);});
 test('comparaison economique complete : aucun fonds inclus et aucun cout obligatoire oublie',()=>{assert.equal(c.immobilierCoutCompletComparaison(1200,150,25800,120000,[1000]).conforme,true);assert.equal(c.immobilierCoutCompletComparaison(1200,150,25800,120000,[40000]).conforme,false);assert.equal(c.immobilierCoutCompletComparaison(1200,150,25800,120000,undefined).verifiable,false);});
+test('total conjoint exact meme au-dela des entiers precis JavaScript',()=>{assert.equal(c.immobilierTotalExact('9007199254740993','7'),'9007199254741000');assert.equal(c.immobilierTotalExact('5.5','1'),null);});
+function navigateur(){
+ const memoire=new Map(),appels=[],elements=new Map();
+ const s={char:{name:'Alice'},country:'republic',currentBuilding:'office-notarial',currentRoom:'bureau_contrats',pa:5};
+ const c=vm.createContext({console,state:s,rpAuthUid:()=> 'uid',rpAuthSessionIdentifiant:()=> 'session',crypto:{randomUUID:()=> 'requete-stable'},
+ sessionStorage:{getItem:k=>memoire.get(k)||null,setItem:(k,v)=>memoire.set(k,v),removeItem:k=>memoire.delete(k),key:i=>[...memoire.keys()][i],get length(){return memoire.size;}},
+ document:{getElementById:id=>{if(!elements.has(id))elements.set(id,{classList:{add(){}}});return elements.get(id);}},WORLD:{},BUILDINGS:{},
+ sbImmobilierCatalogue:async()=>({ok:true,offres:[{id:'offre',bien_id:'bien',actif:'murs',disponible:true,prix:'100',surface:1200}]}),
+ sbImmobilierActeEtat:async()=>({ok:true,termine:false}),showToast:(...x)=>appels.push(['toast',...x]),rafraichirRuntimeHelvetia:async()=>{appels.push(['relire']);return {pa:4};}});
+ vm.runInContext(nav,c);vm.runInContext(source,c);return {c,memoire,appels,elements};
+}
+test('preparer acte ne debite rien : confirmation explicite requise',async()=>{const {c,appels,elements}=navigateur();await c.ouvrirCatalogueImmobilier();c.preparerAchatImmobilier(0);assert.ok(elements.get('postes-body').innerHTML.includes('Signer l’acte et payer'));assert.ok(!appels.some(a=>a[0]==='relire'));});
+test('double clic et reponse perdue : une requete stable, aucun nouveau debit suppose',async()=>{const {c,memoire}=navigateur();await c.ouvrirCatalogueImmobilier();let finir,n=0,ids=[];c.sbImmobilierActe=async(id)=>{n++;ids.push(id);return new Promise(r=>finir=r);};const p=c.confirmerAchatImmobilier(0);await c.confirmerAchatImmobilier(0);assert.equal(n,1);finir({ok:false,transport:{etat:'reseau'}});await p;assert.equal(memoire.size,1);c.sbImmobilierActe=async(id)=>{ids.push(id);return {ok:true};};await c.confirmerAchatImmobilier(0);assert.deepEqual(ids,['requete-stable','requete-stable']);assert.equal(memoire.size,0);assert.equal(c.state.pa,4);});
+test('retour tardif apres changement de personnage : aucun solde ni PA adopte',async()=>{const {c,appels}=navigateur();await c.ouvrirCatalogueImmobilier();let finir;c.sbImmobilierActe=()=>new Promise(r=>finir=r);const p=c.confirmerAchatImmobilier(0);c.state.char={name:'Bob'};finir({ok:true});await p;assert.ok(!appels.some(a=>a[0]==='relire'));assert.equal(c.state.pa,5);});
+test('F5 apres reponse perdue : lecture de recu, jamais de repetition de l achat',async()=>{const {c,memoire,appels}=navigateur();const cle=c.immobilierCleReprise(c.immobilierContexte(),['offre']);memoire.set(cle,'ancienne-requete');c.sbImmobilierActeEtat=async()=>({ok:true,termine:true,verdict:{ok:true,offres:['offre']}});c.sbImmobilierActe=()=>assert.fail('ne pas repayer un acte confirme');await c.ouvrirCatalogueImmobilier();assert.equal(memoire.size,0);assert.ok(appels.some(a=>a[0]==='relire'));});
