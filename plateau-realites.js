@@ -111,7 +111,7 @@ function rpRealitesInstaller(){
   window.addEventListener('online',()=>rpRealitesSynchroniser());
   window.addEventListener('pageshow',e=>{if(e.persisted)return rpRealitesSynchroniser();});
   for(const type of ['click','dblclick','submit','change','keydown'])document.addEventListener(type,async e=>{
-    if(RP_REALITES_REJEU||e.defaultPrevented||e.target?.closest?.('#bandeau-reconnexion'))return;
+    if(RP_REALITES_REJEU||e.defaultPrevented||e.target?.closest?.('#bandeau-reconnexion')?.id==='bandeau-reconnexion')return;
     if(type==='keydown'&&(e.key!=='Enter'||!e.target?.closest?.('[onkeydown]')))return;
     const activation=(type==='click'||type==='dblclick')?e.target?.closest?.('[onclick],[ondblclick],button,[role=button]'):e.target;
     const cible=activation?e.target:null;
