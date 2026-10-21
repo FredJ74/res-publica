@@ -1524,10 +1524,33 @@ function afficherBandeauReconnexion() {
   bouton.style.cssText = 'font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;'
     + 'padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer';
   bouton.textContent = trad('auth.reconnectButton', 'Me reconnecter');
-  bouton.addEventListener('click', () => { window.location.href = 'index.html?connexion=1'; });
-  actions.appendChild(bouton);
-
-  boite.appendChild(titre); boite.appendChild(corps); boite.appendChild(actions);
+  const uidAttendu=(typeof rpAuthUid==='function'?rpAuthUid():null)||state.userId||(typeof rpProprietaireCache==='function'?rpProprietaireCache():null);
+  const nomAttendu=state.char?.name;
+  const formulaire=document.createElement('form');formulaire.style.cssText='display:grid;gap:.8rem;margin-top:1rem';
+  const email=document.createElement('input');email.type='email';email.autocomplete='username';email.required=true;email.value=adresse;email.setAttribute('aria-label','Adresse e-mail');
+  const secret=document.createElement('input');secret.type='password';secret.autocomplete='current-password';secret.required=true;secret.setAttribute('aria-label','Mot de passe');
+  const message=document.createElement('p');message.setAttribute('role','status');
+  bouton.type='submit';
+  formulaire.appendChild(email);formulaire.appendChild(secret);formulaire.appendChild(message);formulaire.appendChild(bouton);
+  let enCours=false;
+  formulaire.addEventListener('submit',async e=>{
+    e.preventDefault();if(enCours)return;enCours=true;bouton.disabled=true;
+    try{
+      if(!uidAttendu){message.textContent='L’identité du personnage ne peut pas être confirmée. Aucune reconnexion automatique effectuée.';return;}
+      const v=await rpAuthSeConnecter(email.value.trim(),secret.value,{uidAttendu});secret.value='';
+      if(!v?.ok){message.textContent=v?.raison==='identite_differente'?'Ce compte ne correspond pas au personnage de cette partie.':'Connexion refusée. Vérifiez vos identifiants.';return;}
+      const nom=await sbRpc('mon_personnage');
+      if(typeof nom!=='string'||nom!==nomAttendu){message.textContent='Le personnage associé au compte doit être vérifié. Aucun ordre relancé.';return;}
+      const r=await rpRealitesSynchroniser();
+      if(!r?.ok){message.textContent='Connexion rétablie, synchronisation momentanément indisponible. Réessayez ici.';return;}
+      div.remove();
+      if(typeof updateLocationDisplay==='function')updateLocationDisplay();
+      showToast('Session rétablie','Votre situation a été actualisée. Aucun ordre précédent n’a été relancé.',true);
+    }catch(_){secret.value='';message.textContent='Connexion momentanément indisponible. Vos données sont conservées.';}
+    finally{enCours=false;bouton.disabled=false;}
+  });
+  boite.appendChild(formulaire);
+  boite.prepend(corps);boite.prepend(titre);
   div.appendChild(boite);
   document.body.appendChild(div);
 }

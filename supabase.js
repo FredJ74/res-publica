@@ -61,7 +61,7 @@ function sbEnTetes() {
 //
 // `envoyee` dit si la requete a quitte le navigateur. C'est la seule donnee qui permette
 // d'affirmer a un joueur que son action n'a pas pu partir -- jamais qu'elle a echoue.
-async function sbTransportRest(methode, table, filtres, corps, preferResolution) {
+async function sbTransportRest(methode, table, filtres, corps, preferResolution, dejaRenouvelee = false) {
   const finirRealite=typeof rpRealitesRequeteCommencer==='function'?rpRealitesRequeteCommencer():null;
   try {
 
@@ -79,6 +79,7 @@ async function sbTransportRest(methode, table, filtres, corps, preferResolution)
   }
 
   if (methode !== 'GET' && typeof sbInvaliderLecturesRecentes === 'function') sbInvaliderLecturesRecentes();
+  const uidAvant=typeof rpAuthUid==='function'?rpAuthUid():null;
   const url = `${SUPABASE_URL}/rest/v1/${table}` + (filtres ? `?${filtres}` : '');
   const prefer = preferResolution
     ? `return=representation,resolution=${preferResolution}`
@@ -102,6 +103,9 @@ async function sbTransportRest(methode, table, filtres, corps, preferResolution)
     try { code = (JSON.parse(texte) || {}).code || null; } catch (e) { code = null; }
     console.error('sbTransportRest ' + methode + ' ' + table + ' -> ' + res.status, texte);
     if (res.status === 401) {
+      if(typeof rpAuthRecupererApresRefus==='function')await rpAuthRecupererApresRefus(init.headers.Authorization?.replace(/^Bearer /,'')).catch(()=>null);
+      if(methode==='GET'&&!dejaRenouvelee&&uidAvant&&typeof rpAuthUid==='function'&&rpAuthUid()===uidAvant&&typeof rpAuthJeton==='function'&&rpAuthJeton()&&('Bearer '+rpAuthJeton())!==init.headers.Authorization)
+        return sbTransportRest(methode,table,filtres,corps,preferResolution,true);
       return { etat: 'session_perdue', raison: 'session_perdue', http: 401, code,
                message: texte, envoyee: true, donnees: null };
     }
@@ -5380,6 +5384,7 @@ async function sbTransportRpc(fn, params, options) {
     // ou fonction non accordee au porteur de la requete. Le joueur doit se reconnecter, et
     // surtout ne pas lire que « rien n'a ete modifie » -- ce qui est vrai mais n'explique rien.
     if (res.status === 401) {
+      if(typeof rpAuthRecupererApresRefus==='function')await rpAuthRecupererApresRefus(jeton).catch(()=>null);
       return { etat: 'session_perdue', raison: 'session_perdue', http: 401, code: code,
                message: texte, envoyee: true };
     }
