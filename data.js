@@ -3278,7 +3278,7 @@ const BUILDINGS = {
           {name:'Laurent Barre', role:"PNJ - Directeur d'agence", rel:'neutral', job:'directeur', photoUrl:'images/laurent-barre.webp', photoPos:'65% 30%'}
         ],
         orders: [
-          {fn:'gerer_finances', label:'Gérer mon compte', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR) et emprunts dans un seul écran.'},
+          {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
           {fn:'presenter_autorisation_coffre', label:'Présenter une autorisation judiciaire', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Accéder à un coffre grâce à une autorisation du juge.'}
         ]
