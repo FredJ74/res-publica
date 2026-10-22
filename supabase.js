@@ -5065,9 +5065,16 @@ async function sbGetTerrainState(country, buildingId, city) {
 // que sur le terrain lui-meme).
 async function sbGetTerrainsPossedesPar(country, nom) {
   const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(country)}&proprietaire=eq.${encodeURIComponent(nom)}`);
-  return (rows || []).map(function(r) {
-    try { return { buildingId: r.building_id, ...JSON.parse(r.data) }; } catch(e) { return null; }
-  }).filter(Boolean);
+  // Un echec de lecture n'est pas un patrimoine vide (notamment avant succession).
+  if (!Array.isArray(rows)) throw new Error('lecture_terrains_impossible');
+  return rows.map(function(r) {
+    const data = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+    if (!data || typeof data !== 'object' || Array.isArray(data) || !r.id || !r.building_id) {
+      throw new Error('titre_terrain_invalide');
+    }
+    // Les identifiants de colonne sont autoritaires ; le blob ne peut les remplacer.
+    return { ...data, terrain_id: r.id, buildingId: r.building_id, country: r.country };
+  });
 }
 
 // Trois fonctions manquantes decouvertes le 5 aout 2026 : appelees partout dans le code des
