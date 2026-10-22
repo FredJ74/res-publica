@@ -69,6 +69,6 @@ def main():
  q.execute("select liquide from personnages_donnees where name='Charlie'");assert q.fetchone()[0]==300
  q.execute("select count(*) from placements_bancaires where personnage='Charlie'");assert q.fetchone()[0]==1
  print('OK placements nationaux : espèces, compte, 3 actifs, rejeu, concurrence, erreurs et identité')
- db.close();serveur.stop()
+ db.close()  # pgserver gere le processus avec cleanup_mode=delete
 
 if __name__=='__main__':main()
