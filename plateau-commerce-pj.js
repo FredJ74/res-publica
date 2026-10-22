@@ -1981,10 +1981,6 @@ async function commercePjApporter(matiere, requete, mode) {
   return commercePjTransaction('matiere', async (tx) => {
   const ctx = await commercePjContexte();
   if (!commercePjTransactionActive(tx)) return;
-  if (ctx.fonds?.references?.[referenceId]?.venteSurPlaceUniquement === true) {
-    showToast('Consommation sur place', 'Cette prestation ne peut pas être vendue à emporter.', false);
-    return;
-  }
   const qte = Math.max(1, Math.floor(Number((document.getElementById('cpj-appro-qte') || {}).value) || 1));
   const r = await sbFondsMatiereApporter(requete, state.char.name, ctx.fondsId, matiere, qte, mode);
   if (!commercePjTransactionActive(tx)) return;
