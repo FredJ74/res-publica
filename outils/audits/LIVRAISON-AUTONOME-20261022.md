@@ -1,3 +1,5 @@
+> Suite de cette intervention : [clôture #95/#96 et succession des coffres](CLOTURE-TECHNIQUE-SUITE-20261022.md). Les résultats ci-dessous conservent leur date et leur périmètre historiques.
+
 # Livraison autonome du 22 octobre 2026
 
 **CHANTIER NON TERMINÉ. Aucune activation des migrations sensibles autorisée par ces résultats.**

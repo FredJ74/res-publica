@@ -1,5 +1,6 @@
 -- Lecture seule. Ne valide pas un deploiement a partir du seul schema archive.
-BEGIN TRANSACTION READ ONLY;
+BEGIN;
+SET TRANSACTION READ ONLY;
 SELECT n.nspname,p.proname,pg_get_function_identity_arguments(p.oid) AS arguments,
  p.prosecdef,p.proconfig,md5(pg_get_functiondef(p.oid)) AS definition,
  has_function_privilege('anon',p.oid,'EXECUTE') AS anon_execute,

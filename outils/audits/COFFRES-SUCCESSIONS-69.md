@@ -1,3 +1,5 @@
+> Suite de cette intervention : [clôture #95/#96 et succession des coffres](CLOTURE-TECHNIQUE-SUITE-20261022.md). Les résultats ci-dessous conservent leur date et leur périmètre historiques.
+
 # Issue #69 — audit et protection préalable du règlement successoral
 
 Les décisions de tailles, prix annuels, capacités et succession sont lues intégralement. L'ancienne offre de 600 FR/jour n'a pas été remplacée par une façade qui ferait croire les coffres opérationnels : aucun moteur bancaire multiformat complet n'est livré ici.
