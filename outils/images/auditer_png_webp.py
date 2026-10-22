@@ -55,7 +55,7 @@ def main():
         try:
             with Image.open(ROOT/p) as im:
                 im.load()
-                if im.n_frames>1:
+                if getattr(im, 'n_frames', 1)>1:
                     item["decision"]="conserver : PNG animé"; report.append(item); continue
                 if im.mode not in ("RGB","RGBA"):
                     im=im.convert("RGBA" if "transparency" in im.info else "RGB")
