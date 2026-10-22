@@ -4,7 +4,7 @@ DO $g$ DECLARE h text; BEGIN
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_autorite_exiger_interne(text,text,text)'); IF h IS NOT NULL AND h<>'13da73d866b2c75d44ae432a771c0b10' THEN RAISE EXCEPTION 'definition_non_examinee: chantier_autorite_exiger_interne(text,text,text)';END IF;
 END;$g$;
 CREATE TABLE IF NOT EXISTS public.chantier_commandes_recus (
- acteur text NOT NULL,requete text NOT NULL,terrain_id text NOT NULL,commande jsonb NOT NULL,resultat jsonb NOT NULL,cree_le timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(acteur,requete));
+ personnage_id uuid NOT NULL,acteur text NOT NULL,requete text NOT NULL,terrain_id text NOT NULL,commande jsonb NOT NULL,resultat jsonb NOT NULL,cree_le timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(acteur,requete));
 ALTER TABLE public.chantier_commandes_recus ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.chantier_commandes_recus FROM PUBLIC,anon,authenticated,service_role;
 CREATE OR REPLACE FUNCTION public.chantier_autorite_exiger_interne(p_titulaire text,p_pays text,p_ville text)

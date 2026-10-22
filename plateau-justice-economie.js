@@ -4528,7 +4528,7 @@ async function confirmerInvestir() {return placerBanqueNationale();}
 // operation Helvetia -- les RPC mutent server-side, jamais localement par soustraction (meme
 // doctrine que confirmerInvestir/Placement Banque nationale ci-dessus).
 let RP_HELVETIA_VERSION = 0;
-async function rafraichirRuntimeHelvetia() {
+async function rafraichirRuntimeHelvetia(options = {}) {
   const nom = state.char?.name, pays = state.country;
   const version = ++RP_HELVETIA_VERSION;
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
@@ -4542,6 +4542,7 @@ async function rafraichirRuntimeHelvetia() {
   if (version !== RP_HELVETIA_VERSION || state.char?.name !== nom || state.country !== pays
       || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)
       || (typeof rpAuthJeton === 'function' && (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) !== jeton)) return;
+  if(options.exigerComptes&&(!frais||!Array.isArray(comptes)))return null;
   for (const champ of ['arg','liquide']) {
     if (typeof frais?.[champ] === 'number' && Number.isFinite(frais[champ])) {
       state[champ] = frais[champ];
@@ -7649,6 +7650,7 @@ async function doPayerVersementChantier() {
 }
 
 async function doCorrompreChantier(pa, cost) {
+  if(state.country==='republic'){showToast('Délai incompressible','Ce chantier ne peut pas être accéléré.',false);return;}
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Accélérer le chantier')) return;
   await chargerTerrainState(id);
@@ -7723,15 +7725,16 @@ let _planModificationEnCours = { buildingId: null, lots: [] };
 // Verdict d'ouverture, partage par l'ecran et par la confirmation : l'ecran n'est qu'une
 // anticipation contournable par un appel direct, la confirmation le rejoue integralement.
 function verdictOuvertureModificationPlan(ts) {
-  if (!estTitulaire(ts && ts.proprietaire)) return { ok: false, message: "Vous n'êtes pas propriétaire de ce terrain." };
-  const v = verdictModificationPlan(ts && ts.chantier);
+  if (!constructionPeutGerer(ts)) return { ok: false, message: "Vous n'êtes pas propriétaire de ce terrain." };
+  const premiereApresReception=ts?.niveau_construction && !ts.planInitialValide && !(ts.subdivisions||[]).length;
+  const v = premiereApresReception?{ok:true}:verdictModificationPlan(ts && ts.chantier);
   if (!v.ok) {
     return { ok: false, message:
       v.raison === 'chantier_absent'   ? "Aucun chantier en cours sur ce terrain."
     : v.raison === 'chantier_livre'    ? "Le bâtiment est livré : son plan ne se modifie plus ici."
-    : "Les travaux ont dépassé les deux tiers : le plan est définitivement arrêté." };
+    : v.raison==='dernier_tiers_requis'?"Le plan initial s’ouvre pendant le dernier tiers des travaux.":"Le premier plan est validé : toute modification passe par un réaménagement payant." };
   }
-  const palier = (ts.permis && ts.permis.palierDemande) || (ts.chantier && ts.chantier.niveau);
+  const palier = (ts.permis && ts.permis.palierDemande) || (ts.chantier && ts.chantier.niveau) || ts.niveau_construction;
   if (!palier) return { ok: false, message: "Aucun permis ne rattache un plan à ce chantier." };
   if (!batimentDivisible(palier)) {
     return { ok: false, message: 'Une construction de type « '
@@ -7772,8 +7775,8 @@ function renderModificationPlan() {
   const pct = (ch.dureeJours > 0) ? Math.floor(progressionNormalisee(ch.progressionJours, ch.dureeJours) * 100) : 0;
 
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Le plan reste modifiable <b>gratuitement</b> tant que les travaux n\'ont pas atteint les deux tiers. Avancement réel : '
-       + pct + ' % — verrouillage à 67 %. Au-delà, seul un chantier de réaménagement pourra encore changer quoi que ce soit.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Le plan initial est modifiable gratuitement pendant le dernier tiers, jusqu’à sa validation définitive. Avancement réel : '
+       + pct + ' %. Après validation ou réception avec un plan, toute modification exige un chantier payant.</div>';
   html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Surface exploitable : ' + surfaceTotale(ts) + ' m² · Inscrite au plan : ' + surfaceAllouee(projection) + ' m² · Reste : ' + dispo + ' m².<br>'
        + destinations.map(function (d) {
            return (d === 'appartement' ? 'Appartement' : 'Commerce') + ' : minimum ' + surfaceMinimaleLot(palier, d) + ' m²';
@@ -7806,6 +7809,7 @@ function renderModificationPlan() {
   html += '<button class="pnj-action-btn" onclick="doAjouterLotModificationPlan()">+ Ajouter ce lot au plan</button>';
   html += '<button class="pnj-action-btn" style="margin-top:.6rem" onclick="confirmerModificationPlan()">Enregistrer ce plan'
        + (lots.length > 0 ? ' (' + lots.length + ' lot' + (lots.length > 1 ? 's' : '') + ')' : ' sans découpage') + '</button>';
+  html += '<button class="pnj-action-btn" onclick="confirmerModificationPlan(true)">Valider définitivement ce premier plan</button>';
   html += '</div>';
 
   document.getElementById('postes-modal-title').textContent = 'Modifier le plan de découpage';
@@ -7842,64 +7846,20 @@ function doRetirerLotModificationPlan(index) {
   renderModificationPlan();
 }
 
-async function confirmerModificationPlan() {
-  const id = _planModificationEnCours.buildingId || state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Modifier le plan')) return;
-
-  // RELECTURE AVANT ECRITURE. L'ecran a pu rester ouvert pendant que le chantier franchissait les
-  // deux tiers -- au passage de minuit, ou par une acceleration. Le verrou est donc reevalue sur
-  // l'etat frais, jamais sur celui qui a servi a dessiner l'ecran.
-  await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  const v = verdictOuvertureModificationPlan(ts);
-  if (!v.ok) { showToast('Modification impossible', v.message, false); return; }
-
-  const nouveauPlan = _planModificationEnCours.lots;
-  const verdictPlan = verdictPlanPermis(ts, v.palier, nouveauPlan);
-  if (!verdictPlan.ok) { showToast('Plan refusé', verdictPlan.message, false); return; }
-  const decoupage = snapshotPlanPermis(nouveauPlan);
-
-  // Meme doctrine qu'au depot et qu'a la decision (Lot 1.5.5) : l'archive municipale COMMANDE. Si
-  // elle n'enregistre pas la modification, le plan en vigueur ne bouge pas d'un metre carre.
-  // Le document nomme celui qui modifie -- le proprietaire d'aujourd'hui -- et non le demandeur
-  // d'origine, qui peut ne plus rien avoir a voir avec ce terrain. L'en-tete du dossier, lui, reste
-  // lu sur l'evenement de depot (regrouperDossiersUrbanisme) : l'histoire n'est pas reecrite.
-  const permisModifie = Object.assign({}, ts.permis || {}, {
-    decoupageInitial: decoupage,
-    demandeur: state.char?.name || (ts.permis && ts.permis.demandeur) || null
-  });
-  const emis = (typeof emettreDocumentUrbanisme === 'function')
-    ? await emettreDocumentUrbanisme({ ...ts, city: ts.city || state.currentCity }, permisModifie, 'modification_plan',
-        { buildingId: id, pays: state.country, ville: ts.city || state.currentCity, jour: state.day || 1 })
-    : null;
-  if (!emis) {
-    showToast('Modification impossible', "Les archives municipales n'ont pas pu enregistrer cette modification. Le plan précédent reste en vigueur.", false);
-    return;
-  }
-
-  const permis = Object.assign({}, ts.permis || {}, { decoupageInitial: decoupage });
-  // LA PORTE DU PERMIS NE LAISSE TOUCHER QUE `permis` (10 octobre 2026), et verifie en base la
-  // premiere regle de `verdictOuvertureModificationPlan` : etre proprietaire. Les autres regles du
-  // verdict -- chantier present, deux tiers non franchis, palier divisible, surface connue --
-  // restent ici : elles sont le VERDICT UNIQUE du jeu, et en faire une seconde version en SQL
-  // serait exactement le defaut que ce chantier combat.
-  const vPlan = await sbTerrainActe('terrain_permis_acte', {
-    p_terrain_id: id, p_acte: 'permis_plan_modifier', p_patch: { permis: permis }
-  });
-  _planModificationEnCours = { buildingId: null, lots: [] };
-  if (!vPlan || vPlan.ok !== true) {
-    signalerRefusTerrain(vPlan, 'La modification du plan');
-    return;
-  }
-  remplacerTerrainState(id, vPlan.etat);
-
+async function confirmerModificationPlan(valider=false) {
+  const id=_planModificationEnCours.buildingId||state.currentBuilding;
+  if(id!==state.currentBuilding){showToast('Plan non envoyé','Revenez sur le terrain concerné.',false);return;}
+  if(!await chargerTerrainState(id,true)){showToast('Plan non envoyé','L’état du terrain ne peut pas être confirmé.',false);return;}
+  const ts=getTerrainState(id),v=verdictOuvertureModificationPlan(ts);
+  if(!v.ok){showToast('Plan non envoyé',v.message,false);return;}
+  const lots=snapshotPlanPermis(_planModificationEnCours.lots);
+  const validite=verdictPlanPermis(ts,v.palier,lots);
+  if(!validite.ok){showToast('Plan refusé',validite.message,false);return;}
+  const r=await constructionExecuterCommande('plan',{lots,valider:valider===true});
+  if(!r)return;
+  _planModificationEnCours={buildingId:null,lots:[]};
   document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  const resume = decoupage.length > 0
-    ? decoupage.length + ' lot' + (decoupage.length > 1 ? 's' : '')
-    : 'aucun lot — livraison indivise';
-  showToast('Plan modifié', 'Nouveau plan enregistré : ' + resume + '.', true, true);
-  addJournalEntry('Plan de découpage modifié en cours de chantier : ' + resume + '.', 'event-good');
+  showToast('Plan enregistré',valider?'Le premier plan est validé. Les modifications suivantes seront payantes.':'Le plan est conservé sur le serveur et dans les archives municipales.',true);
 }
 
 // =====================================================================
@@ -12853,47 +12813,10 @@ async function doTravaillerChantier(pa, cost) {
 }
 
 async function confirmerTravailChantier() {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Travailler ici')) return;
-  const ts = getTerrainState(id);
-  const ch = ts.chantier;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (!ch) { showToast('Aucun chantier', '', false); return; }
-
-  const voulues = parseInt(document.getElementById('chantier-heures')?.value || 0);
-  if (voulues <= 0) { showToast('Impossible', "Indiquez un nombre d'heures.", false); return; }
-
-  // CHANTIER C (14 septembre 2026). Les PA demandes sont un NOMBRE D'HEURES choisi par le joueur :
-  // l'ordre travailler_chantier declare 0 PA, payer_ordre refusait donc ('cout_non_declare') et
-  // travailler sur un chantier etait impossible en production. Le navigateur bornait en outre
-  // lui-meme les heures, puis se creditait le salaire.
-  // chantier_travailler recalcule les QUATRE bornes du jeu : heures demandees, heures encore
-  // utiles (capacite du jour ramenee a la fraction de materiaux reellement en stock, moins ce qui
-  // est deja fait), PA reels, et ce que la tresorerie peut payer. Puis il preleve les PA et verse
-  // le salaire dans la meme transaction.
-  const rTravail = await sbRpc('chantier_travailler', {
-    p_acteur: state.char?.name, p_pays: state.country, p_batiment: id, p_heures: voulues
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
-  if (!rTravail || rTravail.ok !== true) {
-    const messages = {
-      chantier_absent: "Aucun chantier en cours ici.",
-      aucune_heure_travaillable: "Aucune heure ne peut être travaillée maintenant.",
-      type_non_couvert: "Ce type de chantier n'accepte pas encore le travail à l'heure.",
-      terrain_gele: 'Ce terrain est gelé par une succession.'
-    };
-    showToast('Impossible', messages[(rTravail && rTravail.raison) || ''] || '', false);
-    return;
-  }
-  state.pa = rTravail.pa; state.arg = rTravail.arg; state.liquide = rTravail.liquide;
-  if (state.char) state.char.arg = state.arg;
-  setTerrainState(id, { chantier: rTravail.chantier });
-  const res = { heures: rTravail.heures, montant: Number(rTravail.montant) };
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  showToast('Journée de travail', '+' + res.montant.toLocaleString('fr-FR') + ' ' + cur + ' pour ' + res.heures + ' heure(s).', true, true);
-  addJournalEntry('Vous avez travaillé ' + res.heures + ' heure(s) sur un chantier. +'
-    + res.montant.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
+  const heures=document.getElementById('chantier-heures')?.value?.trim();
+  if(!/^[1-9][0-9]*$/.test(heures||'')){showToast('Heures invalides','Indiquez un nombre entier positif.',false);return;}
+  const r=await constructionExecuterCommande('travailler',{heures});
+  if(r){document.getElementById('modal-postes')?.classList.remove('open');showToast('Travail confirmé',Number(r.montant).toLocaleString('fr-FR')+' FR versés par le chantier.',true);}
 }
 
 // VENTE DE MATERIAUX AU CHANTIER (Lot 1.5.10)

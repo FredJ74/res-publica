@@ -43,7 +43,10 @@ function constructionMenusTerrain(ts,proprietaire) {
     }
   }else if(ts.niveau_construction){
     ordres.push(constructionOrdre('information_locaux','Information sur les locaux','ti-building-store'));
-    if(proprietaire)ordres.push(constructionOrdre('reconfigurer_lots','Réorganiser les lots','ti-layout-grid'));
+    if(proprietaire){
+      if(!ts.planInitialValide&&!(ts.subdivisions||[]).length)ordres.push(constructionOrdre('modifier_plan_chantier','Définir le premier plan','ti-layout-grid'));
+      else ordres.push(constructionOrdre('reconfigurer_lots','Réorganiser les lots','ti-layout-grid'));
+    }
   }else if(proprietaire)ordres.push(constructionOrdre('construire_sur_terrain','Démarrage du chantier','ti-building'));
   if(ordres.length)ordres[0].masque=masque;
   else ordres.push(constructionOrdre('information_chantier','Information sur le terrain','ti-info-circle',{masque}));
@@ -98,10 +101,10 @@ function ouvrirApprovisionnementChantier(){
   const ts=getTerrainState(state.currentBuilding),ch=ts.chantier;
   if(!ch||!chantierAccepteMateriaux(ch))return;
   const tarifs=['bois','minerai','metal'].map(m=>'<p>'+constructionEchapper(m)+' : '+constructionEchapper(ch.prixAchatPJ?.[m]??'entrepôt + 10 %, arrondi au franc supérieur, à confirmer par le serveur')+' FR/unité</p>').join('');
-  constructionFenetre('Approvisionner le chantier',tarifs+constructionSousOrdre('vendre_materiaux_chantier','Vendre des matériaux',0,0)+constructionSousOrdre('donner_materiaux_chantier','Donner gratuitement des matériaux',0,0)+(estTitulaire(ts.proprietaire)?constructionBouton('Fixer les prix d’achat','ouvrirPrixChantier()'):''));
+  constructionFenetre('Approvisionner le chantier',tarifs+constructionSousOrdre('vendre_materiaux_chantier','Vendre des matériaux',0,0)+constructionSousOrdre('donner_materiaux_chantier','Donner gratuitement des matériaux',0,0)+(constructionPeutGerer(ts)?constructionBouton('Fixer les prix d’achat','ouvrirPrixChantier()'):''));
 }
 function ouvrirPrixChantier(){
-  const ts=getTerrainState(state.currentBuilding);if(!estTitulaire(ts.proprietaire))return;
+  const ts=getTerrainState(state.currentBuilding);if(!constructionPeutGerer(ts))return;
   constructionFenetre('Prix d’achat des matériaux','<p>Prix en francs entiers uniquement. Les champs vides conservent les tarifs existants.</p>'+['bois','minerai','metal'].map(m=>'<label>'+m+' <input id="chantier-prix-'+m+'" inputmode="numeric" step="1" value="'+constructionEchapper(ts.chantier?.prixAchatPJ?.[m]??'')+'"></label>').join('')+constructionBouton('Enregistrer les prix','confirmerPrixChantier()'));
 }
 let constructionPrixEnCours=false;
@@ -113,7 +116,7 @@ async function confirmerPrixChantier(){
   if(!Object.keys(prix).length)return;
   constructionPrixEnCours=true;
   try{
-    const v=await sbRpcVerdict('chantier_prix_definir',{p_terrain_id:id,p_prix:prix},{encoreValide:()=>contexteNavigationRueValide(contexte)});
+    const v=await constructionExecuterCommande('prix',{prix});
     if(!contexteNavigationRueValide(contexte))return;
     if(!v?.ok){showToast('Prix non confirmés','Les prix n’ont pas pu être confirmés par le serveur. Relisez-les avant de réessayer.',false);return;}
     await chargerTerrainState(id);if(contexteNavigationRueValide(contexte))ouvrirApprovisionnementChantier();
@@ -183,8 +186,10 @@ async function constructionExecuterCommande(action,parametres={}){
     const frais=await chargerTerrainState(id,true);
     if(!contexteNavigationRueValide(contexte))return null;
     if(!frais){showToast('Commande acquise','Le serveur a confirmé l’opération, mais son état actualisé reste à relire. L’intention de reprise est conservée.',true);return null;}
-    if(typeof commercePjActualiserPersonnage==='function')await commercePjActualiserPersonnage();
+    const finance=typeof rafraichirRuntimeHelvetia==='function'?await rafraichirRuntimeHelvetia({exigerComptes:true}):null;
+    if(!finance){showToast('Commande acquise','La relecture financière reste à confirmer. L’intention de reprise est conservée.',true);return null;}
     if(!contexteNavigationRueValide(contexte))return null;
+    if(typeof finance.pa==='number'){state.pa=finance.pa;state.char.pa=finance.pa;}
     sessionStorage.removeItem(cle);updateUI();return r;
   }finally{constructionCommandeEnCours=false;}
 }
@@ -192,8 +197,8 @@ async function receptionnerChantier(){
   const r=await constructionExecuterCommande('receptionner');
   if(!r)return;
   showToast('Bâtiment réceptionné','Les locaux sont ouverts. Les reliquats sont conservés dans la caisse et le stock du bâtiment.',true,true);
-  if(typeof hydraterPiecesDynamiques==='function')hydraterPiecesDynamiques();
-  if(typeof renderBuilding==='function')renderBuilding();
+  if(typeof rafraichirPiecesDynamiques==='function')rafraichirPiecesDynamiques(state.currentBuilding);
+  if(typeof renderRoomActions==='function')renderRoomActions(BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom],state.currentBuilding,state.currentRoom);
 }
 
 let constructionRepriseEnCours=false;
@@ -201,15 +206,16 @@ async function constructionReconcilierCommandes(buildingId){
   if(constructionRepriseEnCours||constructionCommandeEnCours||buildingId!==state.currentBuilding)return;
   const c=contexteNavigationRue();constructionRepriseEnCours=true;
   try{
-    for(const action of ['lancer','verser','receptionner']){
+    for(const action of ['lancer','verser','receptionner','plan','travailler','prix']){
       const cle='chantier-commande:'+JSON.stringify([c.uid,c.nom,state.country,state.currentCity,buildingId,action]);
       let i;try{i=JSON.parse(sessionStorage.getItem(cle)||'null');}catch(_){continue;}
       if(!i?.requete)continue;
       const r=await sbRpcVerdict('chantier_commande_recu',{p_requete:i.requete}).catch(()=>null);
       if(!contexteNavigationRueValide(c))return;
       if(r?.ok&&r.terminee){
-        if(typeof commercePjActualiserPersonnage==='function')await commercePjActualiserPersonnage();
-        if(!contexteNavigationRueValide(c))return;
+        const finance=typeof rafraichirRuntimeHelvetia==='function'?await rafraichirRuntimeHelvetia({exigerComptes:true}):null;
+        if(!finance||!contexteNavigationRueValide(c))return;
+        if(typeof finance.pa==='number'){state.pa=finance.pa;state.char.pa=finance.pa;}
         sessionStorage.removeItem(cle);
       }
       // Absence non concluante : une autre transaction peut etre encore en cours. Garder l'intention.

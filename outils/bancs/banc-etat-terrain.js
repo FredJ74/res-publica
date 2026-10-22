@@ -1,3 +1,5 @@
+// #57 : le plan reste un des 22 sites, transfere a la commande versionnee commune.
+// Le compte total est conserve ; ni perte de couverture ni exception au controle des blobs.
 // Banc STRUCTUREL de L'ETAT D'UN TERRAIN -- chantier 5, les 22 `sbSetTerrainState` (10 oct. 2026).
 // SOURCES: aucune -- ce banc lit les six fichiers de production lui-meme, par readFile.
 //
@@ -94,12 +96,12 @@ att('un verdict absent est dit comme une panne de transport, pas comme un refus 
 print('');
 print('3. LES VINGT-DEUX ECRITURES PASSENT PAR HUIT PORTES, UNE PAR MECANISME');
 var ACTES = {
-  'terrain_compromis_acte': 6, 'terrain_permis_acte': 5, 'terrain_chantier_acte': 2,
+  'terrain_compromis_acte': 6, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 2,
   'terrain_lots_acte': 6, 'terrain_reamenagement_poser': 1
 };
 var totalPortes = 0;
 Object.keys(ACTES).sort().forEach(function (porte) {
-  var n = partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
+  var n = porte==='chantier_commande_plan' ? partout(/constructionExecuterCommande\('plan'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
   totalPortes += n;
   att(porte + ' : ' + ACTES[porte] + ' appel(s)', n === ACTES[porte], n + ' trouve(s)');
 });
@@ -143,6 +145,7 @@ var ACTES_NOMMES = [
   'lot_louer', 'lot_bail_libere'
 ];
 var manquants = ACTES_NOMMES.filter(function (a) {
+  if(a==='permis_plan_modifier')return partout(/constructionExecuterCommande\('plan'/g)!==1;
   return partout(new RegExp("p_acte: '" + a + "'", 'g')) === 0;
 });
 att('les dix-neuf actes des quatre portes a liste close sont tous appeles',

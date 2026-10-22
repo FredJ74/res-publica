@@ -1,7 +1,7 @@
 -- Separation technique : migration sous la limite du canal MCP. PREPAREE.
 BEGIN;
 DO $g$ DECLARE h text; BEGIN
-SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_commande(text,text,text,jsonb)'); IF h IS NOT NULL AND h<>'b767bf5e6f0e42bf71286c4c6a37349d' THEN RAISE EXCEPTION 'definition_non_examinee: chantier_commande(text,text,text,jsonb)';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_commande(text,text,text,jsonb)'); IF h IS NOT NULL AND h<>'2a7f00f8cb89712411867063f13977f8' THEN RAISE EXCEPTION 'definition_non_examinee: chantier_commande(text,text,text,jsonb)';END IF;
 END;$g$;
 CREATE OR REPLACE FUNCTION public.chantier_commande(p_requete text,p_terrain_id text,p_action text,p_parametres jsonb)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $f$
@@ -16,10 +16,11 @@ BEGIN
  commande:=jsonb_build_object('action',p_action,'parametres',p_parametres);
  SELECT * INTO rec FROM public.chantier_commandes_recus cr WHERE cr.acteur=acteur AND cr.requete=p_requete;
  IF FOUND THEN
-  IF rec.terrain_id IS DISTINCT FROM p_terrain_id OR rec.commande<>commande THEN RAISE EXCEPTION 'requete_reutilisee';END IF;
+  IF rec.personnage_id IS DISTINCT FROM a.id OR rec.terrain_id IS DISTINCT FROM p_terrain_id OR rec.commande<>commande THEN RAISE EXCEPTION 'requete_reutilisee';END IF;
   RETURN rec.resultat||jsonb_build_object('rejeu',true);
  END IF;
  IF coalesce(a.hp,0)<=0 OR coalesce(a.hospitalisation->>'dateFinParis','')>(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text THEN RAISE EXCEPTION 'acteur_incapacite';END IF;
+ IF EXISTS(SELECT 1 FROM public.detention_active(acteur)) THEN RAISE EXCEPTION 'acteur_detenu';END IF;
  SELECT * INTO t FROM public.terrains_etat WHERE country=a.country AND
   (id=p_terrain_id OR building_id=p_terrain_id AND data::jsonb->>'city'=a.current_city) ORDER BY (id=p_terrain_id) DESC LIMIT 1;
  IF NOT FOUND THEN RAISE EXCEPTION 'terrain_introuvable';END IF;
@@ -63,6 +64,7 @@ BEGIN
   etat:=etat||jsonb_build_object('chantier',ch);
  ELSIF p_action='receptionner' THEN
   IF p_parametres<>'{}'::jsonb OR jsonb_typeof(ch) IS DISTINCT FROM 'object' OR NOT coalesce((ch->>'progressionJours')::numeric>=(ch->>'dureeJours')::numeric AND (ch->>'dureeJours')::numeric>0,false) THEN RAISE EXCEPTION 'chantier_non_acheve';END IF;
+  IF coalesce((ch->>'totalVerse')::numeric,0)<coalesce((ch->>'coutTotal')::numeric,1) THEN RAISE EXCEPTION 'financement_incomplet';END IF;
   IF a.country IS DISTINCT FROM t.country OR a.current_city IS DISTINCT FROM etat->>'city' OR a.current_building IS DISTINCT FROM t.building_id THEN RAISE EXCEPTION 'pas_sur_place';END IF;
   IF etat->'chantierAcheve'->'reliquats'->>'restitue'='false' THEN RAISE EXCEPTION 'anciens_reliquats_en_attente';END IF;
   plan:=coalesce(etat->'permis'->'decoupageInitial','[]');
@@ -97,10 +99,10 @@ BEGIN
  END IF;
  UPDATE public.terrains_etat SET data=etat::text,niveau_construction=etat->>'niveau_construction',updated_at=now() WHERE id=t.id;
  resultat:=jsonb_build_object('ok',true,'etat',etat,'chantier',etat->'chantier','montant',montant,'pourcentage',CASE WHEN etat ? 'chantier' THEN floor((etat->'chantier'->>'totalVerse')::numeric*100/(etat->'chantier'->>'coutTotal')::numeric) ELSE 100 END);
- INSERT INTO public.chantier_commandes_recus(acteur,requete,terrain_id,commande,resultat) VALUES(acteur,p_requete,p_terrain_id,commande,resultat);
+ INSERT INTO public.chantier_commandes_recus(personnage_id,acteur,requete,terrain_id,commande,resultat) VALUES(a.id,acteur,p_requete,p_terrain_id,commande,resultat);
  RETURN resultat;
 EXCEPTION WHEN SQLSTATE 'P0001' OR insufficient_privilege THEN
- IF SQLERRM=ANY(ARRAY['acteur_incapacite','acteur_non_authentifie','action_inconnue','anciens_reliquats_en_attente','apport_hors_bornes','approvisionnement_non_confirme','besoin_chantier_absent','champs_interdits','chantier_non_acheve','chantier_ou_batiment_existant','commande_invalide','fonds_insuffisants','francs_entiers_requis','lots_preexistants_a_examiner','mandat_municipal_requis','montant_invalide','occupation_bloquante','palier_inconnu','pas_proprietaire','pas_sur_place','permis_non_conforme','plan_invalide','prix_indisponibles','reliquat_caisse_non_confirme','reliquat_invalide','requete_reutilisee','stock_reliquat_invalide','terrain_gele','terrain_introuvable','titulaire_modifie','versement_impossible','representation_organisation_refusee','etat_financier_non_entier','organisation_absente']) THEN RETURN jsonb_build_object('ok',false,'raison',SQLERRM);END IF;
+ IF SQLERRM=ANY(ARRAY['acteur_detenu','financement_incomplet','acteur_incapacite','acteur_non_authentifie','action_inconnue','anciens_reliquats_en_attente','apport_hors_bornes','approvisionnement_non_confirme','besoin_chantier_absent','champs_interdits','chantier_non_acheve','chantier_ou_batiment_existant','commande_invalide','fonds_insuffisants','francs_entiers_requis','lots_preexistants_a_examiner','mandat_municipal_requis','montant_invalide','occupation_bloquante','palier_inconnu','pas_proprietaire','pas_sur_place','permis_non_conforme','plan_invalide','prix_indisponibles','reliquat_caisse_non_confirme','reliquat_invalide','requete_reutilisee','stock_reliquat_invalide','terrain_gele','terrain_introuvable','titulaire_modifie','versement_impossible','representation_organisation_refusee','etat_financier_non_entier','organisation_absente']) THEN RETURN jsonb_build_object('ok',false,'raison',SQLERRM);END IF;
  RAISE;
 END;$f$;
 REVOKE ALL ON FUNCTION public.chantier_autorite_exiger_interne(text,text,text) FROM PUBLIC,anon,authenticated,service_role;

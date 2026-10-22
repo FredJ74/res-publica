@@ -906,10 +906,12 @@ function appliquerVerrouPlan(chantier, jour) {
 // Verdict unique sur la modification du plan initial. Ne connait ni proprietaire ni PA : la
 // propriete est verifiee par l'appelant, avec le mecanisme existant (estTitulaire).
 function verdictModificationPlan(chantier) {
-  if (!chantier) return { ok: false, raison: 'chantier_absent' };
-  if (chantierTermine(chantier)) return { ok: false, raison: 'chantier_livre' };
-  if (planEstVerrouille(chantier)) return { ok: false, raison: 'plan_verrouille' };
-  return { ok: true, raison: null };
+  if (!chantier) return { ok:false, raison:'chantier_absent' };
+  if (chantier.livre===true || chantier.planInitialValide===true) return { ok:false, raison:'plan_initial_valide' };
+  const duree=nombreFini(chantier.dureeJours,0),progression=nombreFini(chantier.progressionJours,0);
+  if(duree<=0||progression<duree*2/3)return {ok:false,raison:'dernier_tiers_requis'};
+  // L'ancien drapeau automatique planVerrouille ne vaut pas validation du premier plan.
+  return {ok:true,raison:null};
 }
 
 // ---------------------------------------------------------------------------
