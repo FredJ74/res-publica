@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-const sql=readFileSync('outils/migrations/20261022_placement_national_idempotent.sql','utf8');
+const sql=readFileSync('migrations/20261022211000_placement_national_idempotent.sql','utf8');
 const client=readFileSync('plateau-justice-economie.js','utf8');
 const ui=readFileSync('plateau-communication.js','utf8');
 const transport=readFileSync('supabase.js','utf8');
