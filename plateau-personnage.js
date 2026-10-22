@@ -1342,10 +1342,10 @@ async function ouvrirSuccession(defunt, country) {
 
     dispositions = [];
     for (const t of terrains) {
-      const dt = biensTestament[t.buildingId];
+      const dt = biensTestament[t.terrain_id] || biensTestament[t.buildingId];
       const chaine = await determinerChaineInitiale(dt, conjointNom);
       dispositions.push({
-        id: t.buildingId, type: 'terrain',
+        id: t.buildingId, terrain_id: t.terrain_id || null, ville: t.city || null, type: 'terrain',
         libelle: BUILDINGS[t.buildingId]?.shortName || BUILDINGS[t.buildingId]?.name || t.buildingId,
         remplacant_prevu: dt?.remplacant || null,
         chaine, etat: 'en_attente', resultat: null, regle: false
@@ -1415,7 +1415,7 @@ async function ouvrirSuccession(defunt, country) {
       // d'autrui. `terrain_succession_geler` exige une succession EN ATTENTE et verifie que le
       // terrain est bien celui du defunt. Rejouable a l'identique, comme la reprise l'exige.
       const r = await sbRpc('terrain_succession_geler',
-        { p_terrain_id: d.id, p_succession: successionId })
+        { p_terrain_id: d.terrain_id || d.id, p_succession: successionId })
         .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
       if (!r || r.ok !== true) return { ok: false, raison: 'echec_gel_terrain', detail: d.id };
     } else if (d.type === 'entreprise') {
