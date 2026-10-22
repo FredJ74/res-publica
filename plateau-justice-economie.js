@@ -4601,13 +4601,19 @@ async function confirmerInvestir(pa, cost) {
   const lignesServeur = await relirePlacementsNationauxServeur(nom);
   const comptesServeur = (typeof sbGetComptesBancaires === 'function')
     ? await sbGetComptesBancaires(nom).catch(() => null) : null;
+  const personnageServeur = (typeof sbLoadPersonnage === 'function')
+    ? await sbLoadPersonnage(nom).catch(() => null) : null;
+  if (state.char?.name === nom && personnageServeur) {
+    if (typeof personnageServeur.liquide === 'number') state.liquide = personnageServeur.liquide;
+    if (typeof personnageServeur.arg === 'number') { state.arg = personnageServeur.arg; state.char.arg = personnageServeur.arg; }
+  }
   if (Array.isArray(comptesServeur) && typeof construireMapComptesBancaires === 'function') {
     state.comptesBancaires = construireMapComptesBancaires(comptesServeur);
   }
   const confirme = Array.isArray(lignesServeur) && ligneCreee?.id &&
     lignesServeur.some(p => p.id === ligneCreee.id && p.banque === 'nationale' && p.type === 'terme' && p.montant != null);
   updateUI();
-  if (!confirme || !Array.isArray(comptesServeur)) {
+  if (!confirme || !Array.isArray(comptesServeur) || !personnageServeur) {
     showToast('Vérification nécessaire', 'Le serveur a répondu, mais la confirmation bancaire complète est indisponible. Ne recommencez pas le placement : rechargez votre compte ou contactez l’administration.', false);
     return;
   }
