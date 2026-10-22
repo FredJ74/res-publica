@@ -5471,7 +5471,13 @@ async function sbEntrepotVirementMairie(entrepotId, montant) {
 // ville = la ville OU SE TROUVE LE PERSONNAGE au moment du placement (state.currentCity),
 // jamais recalculee a l'echeance : le placement conserve le contexte economique de sa ville de
 // souscription meme si le joueur demenage ensuite.
-async function sbCreerPlacementNational(personnage, montant, intSnapshot, ville) {
+async function sbCreerPlacementNationalSecurise(personnage, montant, intSnapshot, ville, source, intention) {
+  return sbRpc('creer_placement_national_securise', {
+    p_personnage: personnage, p_montant: montant, p_int_snapshot: intSnapshot,
+    p_ville: ville, p_source: source, p_intention: intention
+  });
+}
+function sbCreerPlacementNational(personnage, montant, intSnapshot, ville) {
   return sbRpc('creer_placement_national', { p_personnage: personnage, p_montant: montant, p_int_snapshot: intSnapshot, p_ville: ville });
 }
 
