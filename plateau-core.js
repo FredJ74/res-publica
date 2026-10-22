@@ -1572,7 +1572,58 @@ function afficherBandeauReconnexion() {
   bouton.style.cssText = 'font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;'
     + 'padding:.55rem 1.3rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer';
   bouton.textContent = trad('auth.reconnectButton', 'Me reconnecter');
-  bouton.addEventListener('click', () => { window.location.href = 'index.html?connexion=1'; });
+  bouton.addEventListener('click', () => {
+    // Conserver le plateau et le personnage tant que l'authentification n'est pas confirmée.
+    if (boite.querySelector('form')) return;
+    const formulaire = document.createElement('form');
+    formulaire.style.cssText = 'display:flex;flex-direction:column;gap:.7rem;margin-top:1rem';
+    const email = document.createElement('input');
+    email.type = 'email'; email.required = true; email.autocomplete = 'username';
+    email.placeholder = 'Adresse e-mail'; email.value = adresse;
+    const motDePasse = document.createElement('input');
+    motDePasse.type = 'password'; motDePasse.required = true;
+    motDePasse.autocomplete = 'current-password'; motDePasse.placeholder = 'Mot de passe';
+    for (const champ of [email, motDePasse]) {
+      champ.style.cssText = 'padding:.65rem;background:#211d15;color:#eee;border:1px solid #8a6a20';
+      formulaire.appendChild(champ);
+    }
+    const retour = document.createElement('div');
+    retour.style.cssText = 'color:#efb77e;font-size:.86rem';
+    retour.setAttribute('role', 'status');
+    const confirmer = document.createElement('button');
+    confirmer.type = 'submit'; confirmer.textContent = 'Valider la reconnexion';
+    confirmer.style.cssText = bouton.style.cssText;
+    formulaire.appendChild(retour); formulaire.appendChild(confirmer);
+    formulaire.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (confirmer.disabled) return;
+      confirmer.disabled = true;
+      retour.textContent = '';
+      try {
+        if (typeof rpAuthSeConnecter !== 'function') throw new Error('Authentification indisponible');
+        const resultat = await rpAuthSeConnecter(email.value.trim(), motDePasse.value);
+        if (!resultat?.ok) {
+          retour.textContent = 'Connexion refusée. Vérifiez vos identifiants.';
+          return;
+        }
+        // Ne jamais rejouer ici l'ordre coûteux qui a précédé l'expiration.
+        // Recharger uniquement la fiche par les fonctions de lecture existantes.
+        div.remove();
+        REPLI_COMPTE_TENTE = false;
+        if (typeof recupererPersonnageDuCompte === 'function') {
+          await recupererPersonnageDuCompte();
+        }
+        if (typeof loadCharacter === 'function') loadCharacter();
+      } catch (erreur) {
+        retour.textContent = 'Connexion indisponible. Réessayez sans quitter le jeu.';
+      } finally {
+        confirmer.disabled = false;
+      }
+    });
+    actions.appendChild(formulaire);
+    bouton.disabled = true;
+    email.focus();
+  });
   actions.appendChild(bouton);
 
   boite.appendChild(titre); boite.appendChild(corps); boite.appendChild(actions);
