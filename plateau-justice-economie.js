@@ -4652,7 +4652,8 @@ async function ouvrirGestionHelvetia(pa, cost) {
     document.getElementById('postes-body').innerHTML =
       '<div style="padding:1rem">' +
       '<div style="font-size:.82rem;color:#a09070;font-style:italic;margin-bottom:1rem;line-height:1.6">« Un compte chez nous commence à 10 000 ' + cur + '. En dessous, nous ne voyons pas l\'intérêt de la conversation. »</div>' +
-      '<div style="font-size:.78rem;color:#8a8060;margin-bottom:1rem">Fonds ordinaires disponibles : ' + disponible.toLocaleString('fr-FR') + ' ' + cur + '. L\'ouverture prélève 10 000 ' + cur + ' sur votre liquide puis, si besoin, votre compte Banque nationale.</div>' +
+      '<div style="font-size:.85rem;color:#f0ead6;margin-bottom:.7rem;line-height:1.55"><strong>Conditions d\'ouverture propres à Helvetia</strong> : versement initial obligatoire de <strong>10 000 ' + cur + '</strong>. Cet argent reste sur votre compte Helvetia, ce ne sont pas des frais. Le solde doit ensuite rester au moins égal à 10 000 ' + cur + '.</div>' +
+      '<div style="font-size:.78rem;color:#8a8060;margin-bottom:1rem">Vos fonds ordinaires disponibles : <strong>' + disponible.toLocaleString('fr-FR') + ' ' + cur + '</strong>. Le versement provient d\'abord du liquide, puis si nécessaire de votre compte Banque nationale. Contrairement à la banque publique, Helvetia impose ce seuil d\'entrée.</div>' +
       '<button onclick="confirmerOuvertureHelvetia(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ouvrir un compte (10 000 ' + cur + ')</button>' +
       '</div>';
     document.getElementById('modal-postes').classList.add('open');
