@@ -23,7 +23,7 @@ async function banqueNationaleReconcilier(){
  showToast('Placement confirmé','Le serveur confirme votre souscription précédente. Aucun nouveau paiement.',true);
 }
 async function banqueNationaleActualiser(c){
- const f=await rafraichirRuntimeHelvetia();
+ const f=await rafraichirRuntimeHelvetia({exigerComptes:true,exigerPlacements:true});
  if(!contexteNavigationRueValide(c)||!f)return false;
  if(typeof f?.pa==='number')state.pa=f.pa;
  if(typeof updateUI==='function')updateUI();return true;

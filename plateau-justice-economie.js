@@ -4548,6 +4548,7 @@ async function rafraichirRuntimeHelvetia(options = {}) {
       || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)
       || (typeof rpAuthJeton === 'function' && (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) !== jeton)) return;
   if(options.exigerComptes&&(!frais||!Array.isArray(comptes)))return null;
+  if(options.exigerPlacements&&!Array.isArray(placements))return null;
   for (const champ of ['arg','liquide']) {
     if (typeof frais?.[champ] === 'number' && Number.isFinite(frais[champ])) {
       state[champ] = frais[champ];

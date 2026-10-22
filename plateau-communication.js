@@ -2893,6 +2893,11 @@ async function retirerPetiteAnnonce(id) {
 async function openFinancesModal(pa, cost) {
   const contexteCompte=typeof contexteNavigationRue==='function'?contexteNavigationRue():null;
   if(typeof banqueNationaleReconcilier==='function'&&state.currentBuilding==='banque-nationale')await banqueNationaleReconcilier();
+  // Main 95e3eb9 : conserver la relecture serveur, dans le parcours commun #64.
+  if(state.currentBuilding==='banque-nationale'){
+    const frais=await banqueNationaleActualiser(contexteCompte);
+    if(!frais){showToast('Compte indisponible','Impossible de confirmer vos soldes et placements. Réessayez.',false);return;}
+  }
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
   // Lot 3 (chantier fiscalite/Helvetia) : "En banque" affiche desormais le solde reel du compte
   // Banque nationale (comptes_bancaires), plus l'ancien champ plat state.banque (legacy, plus
