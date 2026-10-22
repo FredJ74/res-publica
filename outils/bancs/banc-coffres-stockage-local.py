@@ -311,6 +311,8 @@ def main():
    c.execute((R/'migrations/20261022210001_coffres_reglement_successoral.sql').read_text())
    c.execute("SET test.serveur='off';SET test.uid='00000000-0000-4000-8000-000000000069'")
    choix=ancien['coffre'];contenu=[{'name':'Tableau','exemplaire':{'id':'coffre-original'},'histoire':['avant deces']},{'name':'Tickets','stackable':True,'stackKey':'ticket','qty':3}]
+   caracteristiques=q("SELECT jsonb_build_object('taille',taille,'debut',debut_annuel,'echeance',renouvellement_annuel,'impaye',loyer_impaye) FROM coffres_bancaires WHERE id=%s",(choix,))
+   liquide_bob=q("SELECT liquide FROM personnages_donnees WHERE name='Bob-fixture'")
    c.execute('UPDATE coffres_bancaires SET contenu=%s WHERE id=%s',(Json(contenu),choix))
    c.execute("INSERT INTO testaments(id,testateur,country,contenu) VALUES('testament-fixture','Alice-fixture','republic',%s)",(Json({'biens':[{'id':choix,'beneficiaire':'Bob-fixture'}]}),))
    c.execute("INSERT INTO successions(id,defunt,country,testament_id,dispositions) VALUES('succession-coffres','Alice-fixture','republic','testament-fixture',%s)",(Json([{'id':'coffre-etranger','type':'coffre','chaine':[]}]),))
@@ -338,10 +340,17 @@ def main():
    r=q("SELECT succession_regler('succession-coffres')")
    ok(not r.get('cloturee') and any('archive_fixture' in e for e in r['echecs']),'panne archive : disposition preservee et echec nomme, autres etapes independantes')
    c.execute('DROP TRIGGER panne_archive ON locations_archives')
-   r=q("SELECT succession_regler('succession-coffres')");ok(r.get('cloturee') and not r.get('echecs'),'reprise reglement commun apres panne sans refaire les autres dispositions')
+   def regler_concurrent(_):
+    with psycopg2.connect(server.get_uri()) as d:
+     cc=d.cursor();cc.execute("SET LOCAL ROLE service_role;SET test.serveur='on'");cc.execute("SELECT succession_regler('succession-coffres')");return cc.fetchone()[0]
+   with ThreadPoolExecutor(max_workers=2) as ex:verdicts=list(ex.map(regler_concurrent,range(2)))
+   ok(sum(bool(r.get('cloturee')) for r in verdicts)==1 and all(not r.get('echecs') for r in verdicts),'reprise concurrente : une cloture, aucun doublon ni echec masque')
    ok(q('SELECT contenu FROM coffres_bancaires WHERE id=%s',(choix,))==contenu,'metadonnees et exemplaires integralement conserves')
    ok(q("SELECT data->>'locataire' FROM locations_actives WHERE id=(SELECT bail_id FROM coffres_bancaires WHERE id=%s)",(choix,))=='Bob-fixture','bail transmet au vrai heritier')
    ok(q('SELECT count(*) FROM coffres_bancaires')==1,'autres coffres sans heritier detruits, pas transferes a Etat')
+   ok(q("SELECT jsonb_build_object('taille',taille,'debut',debut_annuel,'echeance',renouvellement_annuel,'impaye',loyer_impaye) FROM coffres_bancaires WHERE id=%s",(choix,))==caracteristiques,'taille echeance anniversaire et arriere transmis sans nouveau prelevement')
+   ok(q("SELECT liquide FROM personnages_donnees WHERE name='Bob-fixture'")==liquide_bob,'inheritance ne debite ni ne credite artificiellement heritier')
+
    avant=photo_complete();r=q("SELECT succession_regler('succession-coffres')");ok(r.get('raison')=='deja_resolue' and photo_complete()==avant,'rejeu de reglement sans duplication ni second effet')
    print(f'{n}/{n} assertions locales. Stockage et taille prepares ; aucun abonnement ni succession active en production.')
  finally:server.cleanup()
