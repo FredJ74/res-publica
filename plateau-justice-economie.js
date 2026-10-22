@@ -4504,6 +4504,16 @@ function doImprimerLivre() {
 // (resoudreInvestissementsExpires, cron-minuit.js, strictement inchangee) jusqu'a sa resolution
 // naturelle -- tant qu'elle existe, sbGetInvestissementEnCours() continue d'etre interroge ici pour
 // empecher un nouveau placement de coexister avec la ligne legacy pendant la transition.
+// Toute lecture des placements est issue du serveur. Une réponse absente ne vaut pas liste vide.
+async function relirePlacementsNationauxServeur(nom) {
+  if (typeof sbGetPlacementsBancaires !== 'function') return null;
+  const lignes = await sbGetPlacementsBancaires(nom).catch(() => null);
+  if (!Array.isArray(lignes)) return null;
+  if (state.char?.name === nom) state.placementsBancaires = lignes;
+  return lignes;
+}
+
+let RP_PLACEMENT_NATIONAL_EN_COURS = false;
 async function ouvrirInvestir(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
@@ -4516,7 +4526,12 @@ async function ouvrirInvestir(pa, cost) {
     return;
   }
 
-  const placementsActifs = (state.placementsBancaires || []).filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
+  const lignesServeur = await relirePlacementsNationauxServeur(state.char?.name);
+  if (!lignesServeur) {
+    showToast('Placements indisponibles', 'Impossible de vérifier vos placements auprès du serveur. Réessayez plus tard.', false);
+    return;
+  }
+  const placementsActifs = lignesServeur.filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
   const totalActif = placementsActifs.reduce((s, p) => s + (p.montant || 0), 0);
   const infoExistant = placementsActifs.length > 0
     ? '<div style="font-size:.75rem;color:#8a6a20;margin-bottom:.6rem">Déjà placés : ' + totalActif.toLocaleString('fr-FR') + ' ' + cur + ' (' + placementsActifs.length + ' investissement(s) actif(s)).</div>'
@@ -4535,6 +4550,9 @@ async function ouvrirInvestir(pa, cost) {
 }
 
 async function confirmerInvestir(pa, cost) {
+  if (RP_PLACEMENT_NATIONAL_EN_COURS) return;
+  RP_PLACEMENT_NATIONAL_EN_COURS = true;
+  try {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('investir-montant')?.value || 0);
   if (!montant || montant < 500) { showToast('Montant invalide', 'Minimum 500 ' + cur + '.', false); return; }
@@ -4572,31 +4590,32 @@ async function confirmerInvestir(pa, cost) {
     ? await sbCreerPlacementNational(state.char.name, montant, intSnapshot, ville).catch(() => null)
     : null;
   if (!resultat) {
-    showToast('Erreur', 'Le placement n\'a pas pu être enregistré. Réessayez.', false);
+    showToast('Opération non confirmée', 'Impossible de connaître le résultat du serveur. Ne relancez pas immédiatement ce placement : vérifiez votre compte.', false);
     return;
   }
 
-  // Runtime : integre la ligne retournee par la RPC si sa forme est bien celle attendue (jamais
-  // verifiee en conditions reelles avant ce lot) ; sinon relecture fiable via
-  // sbGetPlacementsBancaires, seule source de verite garantie. Le solde du compte national est de
-  // meme rafraichi depuis la base (deja debite server-side), jamais recalcule localement par
-  // soustraction.
+  // Une réponse RPC n'est pas un état affichable : relire systématiquement Supabase.
+  const nom = state.char.name;
   const ligneCreee = Array.isArray(resultat) ? resultat[0] : resultat;
-  if (ligneCreee && ligneCreee.id && ligneCreee.statut) {
-    state.placementsBancaires = [...(state.placementsBancaires || []), ligneCreee];
-  } else if (typeof sbGetPlacementsBancaires === 'function') {
-    state.placementsBancaires = await sbGetPlacementsBancaires(state.char.name).catch(() => state.placementsBancaires || []);
+  const lignesServeur = await relirePlacementsNationauxServeur(nom);
+  const comptesServeur = (typeof sbGetComptesBancaires === 'function')
+    ? await sbGetComptesBancaires(nom).catch(() => null) : null;
+  if (Array.isArray(comptesServeur) && typeof construireMapComptesBancaires === 'function') {
+    state.comptesBancaires = construireMapComptesBancaires(comptesServeur);
   }
-  if (typeof sbGetComptesBancaires === 'function') {
-    const comptes = await sbGetComptesBancaires(state.char.name).catch(() => null);
-    if (comptes && typeof construireMapComptesBancaires === 'function') state.comptesBancaires = construireMapComptesBancaires(comptes);
-  }
-
-  // arg strictement inchange : un placement est un transfert de poche, pas une depense.
-  document.getElementById('modal-postes')?.classList.remove('open');
+  const confirme = Array.isArray(lignesServeur) && ligneCreee?.id &&
+    lignesServeur.some(p => p.id === ligneCreee.id && p.banque === 'nationale' && p.type === 'terme' && p.montant != null);
   updateUI();
-  showToast('Investissement placé !', montant.toLocaleString('fr-FR') + ' ' + cur + ' immobilisés 7 jours.', true, true);
-  addJournalEntry('Investissement Banque nationale de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' placé. Résultat dans 7 jours.', 'event-info');
+  if (!confirme || !Array.isArray(comptesServeur)) {
+    showToast('Vérification nécessaire', 'Le serveur a répondu, mais la confirmation bancaire complète est indisponible. Ne recommencez pas le placement : rechargez votre compte ou contactez l’administration.', false);
+    return;
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Investissement confirmé', montant.toLocaleString('fr-FR') + ' ' + cur + ' immobilisés 7 jours.', true, true);
+  addJournalEntry('Investissement Banque nationale de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' confirmé par le serveur.', 'event-info');
+  } finally {
+    RP_PLACEMENT_NATIONAL_EN_COURS = false;
+  }
 }
 
 // =====================
