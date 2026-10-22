@@ -46,6 +46,8 @@ remplace pas l'essai de toutes les migrations de #112 sur le catalogue vivant.
 - 62 assertions PostgreSQL construction dans chacun des deux etats ci-dessus.
 - Banc PostgreSQL materiaux reussi : ventes/dons, entiers, refus, rejeu, concurrence,
   rollback, droits, compatibilite financiere historique et priorite bancaire.
+- **17/17 bancs PostgreSQL du workflow complet** ont egalement ete relances.
+- 11 tests Node calendrier/placements, 23 analyses de syntaxe API et garde de payload passent.
 - Cinq scenarios du client reel extrait, transport simule : reponse perdue,
   double clic, contexte obsolete, relecture financiere indisponible et reprise.
 - Controleur client : 92/92 bancs ; contre-epreuves historiques : 90/90.
