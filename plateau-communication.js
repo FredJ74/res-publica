@@ -2875,7 +2875,9 @@ async function openFinancesModal(pa, cost) {
   // Placements/emprunts (chantier "Banque Nationale de Luthecia") : memes donnees persistantes
   // que la Fiche personnage (state.placementsBancaires deja hydrate, sbGetPretsEnCours en lecture
   // directe), filtrees sur la Banque nationale puisque ce modal ne gere que ce compte-la.
-  const placementsActifs = (state.placementsBancaires || []).filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
+  const placementsServeur = (typeof relirePlacementsNationauxServeur === 'function' && state.char?.name)
+    ? await relirePlacementsNationauxServeur(state.char.name) : null;
+  const placementsActifs = (Array.isArray(placementsServeur) ? placementsServeur : []).filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
   const totalPlacements = placementsActifs.reduce((s, p) => s + (p.montant || 0), 0);
   const pretsNationale = (typeof sbGetPretsEnCours === 'function' && state.char?.name)
     ? (await sbGetPretsEnCours(state.char.name).catch(() => [])).filter(p => (p.type_banque || 'nationale') === 'nationale')
@@ -2907,7 +2909,13 @@ async function openFinancesModal(pa, cost) {
       <div class="finance-amount">${soldeNational.toLocaleString('fr-FR')} ${cur}</div>
     </div>
     <div style="padding:.6rem 1rem;border-bottom:1px solid #1a1810">
-      <div style="font-size:.75rem;color:#6a5a30;margin-bottom:.4rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em">PLACEMENTS</div>
+      <div style="font-size:.75rem;color:#6a5a30;margin-bottom:.4rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em">PLACEMENTS / INVESTIR</div>
+      ${!Array.isArray(placementsServeur) ? '<div style="font-size:.78rem;color:#cc9a44">Lecture serveur indisponible : placement désactivé.</div>' : ''}
+      <div style="font-size:.75rem;color:#a09070;margin:.4rem 0">Minimum 500 FR, immobilisation 7 jours, rendement de -12 % à +12 % à échéance. Coût : 1 PA.</div>
+      <div style="display:flex;gap:.5rem;align-items:center;margin:.5rem 0">
+        <input class="finance-input" id="investir-montant" type="number" min="500" step="100" placeholder="Montant à placer" />
+        <button class="finance-btn" ${Array.isArray(placementsServeur) ? '' : 'disabled'} onclick="confirmerInvestir(1,0)">Placer</button>
+      </div>
       ${placementsActifs.length === 0
         ? '<div style="font-size:.78rem;color:#9a8a68;font-style:italic">Aucun placement en cours.</div>'
         : `<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">${totalPlacements.toLocaleString('fr-FR')} ${cur} placés (${placementsActifs.length} investissement(s))</div>` +
