@@ -1,0 +1,21 @@
+name: Garde WebP commerce premium
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/edge-functions/commerce-decoration/**'
+      - 'outils/bancs/verifier-decoration-webp.py'
+      - '.github/workflows/garde-decoration-webp.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/edge-functions/commerce-decoration/**'
+      - 'outils/bancs/verifier-decoration-webp.py'
+permissions:
+  contents: read
+jobs:
+  garde:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 outils/bancs/verifier-decoration-webp.py
