@@ -721,6 +721,7 @@ const WORLD = {
           // Masquage d'onglet, declaratif : les quatre postes existent, sont
           // louables et atteignables par enterRoom, mais la barre d'onglets
           // garde une seule entree « Open Space ».
+          roomsExclues: ['tribune_republia'],
           roomsMasquees: ['open_space_a', 'open_space_b', 'open_space_c', 'open_space_d']
         }
       }
