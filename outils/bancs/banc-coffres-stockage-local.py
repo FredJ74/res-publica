@@ -177,6 +177,57 @@ def main():
    ok(q('SELECT renouvellement_annuel::text FROM coffres_bancaires WHERE id=%s',(annuel,))=='2027-10-22' and q("SELECT data->>'prix' FROM locations_actives WHERE id=%s",(bail_annuel,))=='1250','taille XL et futur tarif, anniversaire toujours intact')
    c.execute("SET test.uid='00000000-0000-4000-8000-000000000070'");avant=photo_taille();r=taille('coffre-autrui-00001','S')
    ok(r.get('raison')=='coffre_inaccessible' and photo_taille()==avant,'changement du coffre d autrui refuse meme par RPC directe')
+   # Meme RPC de loyer que le cron, dates et impaye financiers conserves au serveur.
+   c.execute("SET test.uid='00000000-0000-4000-8000-000000000069';CREATE VIEW personnages AS SELECT * FROM personnages_donnees")
+   c.execute("CREATE OR REPLACE FUNCTION est_appel_serveur() RETURNS boolean LANGUAGE sql AS $$SELECT coalesce(current_setting('test.serveur',true),'')='on'$$")
+   c.execute(fonction('migrations/20261021203832_immobilier_loyers_titres.sql','prelever_loyer_bail'))
+   for f in ['20261022153000_coffres_annuels_primitives.sql','20261022153001_coffres_annuels_loyer_commun.sql']:
+    sql=(R/'migrations'/f).read_text();c.execute(sql);c.execute(sql)
+   abonnement=creer();bail_abonnement=q('SELECT bail_id FROM coffres_bancaires WHERE id=%s',(abonnement,))
+   c.execute("UPDATE coffres_bancaires SET debut_annuel=(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date,renouvellement_annuel=((statement_timestamp() AT TIME ZONE 'Europe/Paris')::date+interval '1 year')::date WHERE id=%s",(abonnement,))
+   c.execute("UPDATE locations_actives SET data=data||'{\"periodicite\":\"annuelle\"}' WHERE id=%s",(bail_abonnement,))
+   c.execute("UPDATE personnages_donnees SET liquide=1000,arg=2000 WHERE name='Alice-fixture';UPDATE comptes_bancaires SET solde=1000")
+   def loyer(id=bail_abonnement,cur=c):cur.execute('SELECT prelever_loyer_bail(%s)',(id,));return cur.fetchone()[0]
+   echeance=q('SELECT renouvellement_annuel::text FROM coffres_bancaires WHERE id=%s',(abonnement,));solde=q('SELECT solde FROM comptes_bancaires')
+   ok(loyer()=='paye' and q('SELECT solde FROM comptes_bancaires')==solde-250,'loyer annuel initial : une transaction commune, 250 FR')
+   ok(q('SELECT premier_loyer_paye AND renouvellement_annuel::text=%s FROM coffres_bancaires WHERE id=%s',(echeance,abonnement,)),'premier paiement ne repousse pas l anniversaire initial')
+   avant=photo_taille();ok(loyer()=='deja_preleve' and photo_taille()==avant,'meme jour/reponse perdue : un seul loyer annuel')
+   c.execute('UPDATE coffres_bancaires SET loyer_jour_traitement=NULL WHERE id=%s',(abonnement,));avant=photo_taille();ok(loyer()=='non_echu' and photo_taille()==avant,'lendemain hors echeance : aucun loyer quotidien')
+   # Mise a l echeance de la fixture, pas de changement de calendrier de la machine.
+   def a_echeance():
+    c.execute("UPDATE coffres_bancaires SET debut_annuel=((statement_timestamp() AT TIME ZONE 'Europe/Paris')::date-interval '1 year')::date,renouvellement_annuel=(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date,loyer_jour_traitement=NULL WHERE id=%s",(abonnement,))
+   a_echeance();solde=q('SELECT solde FROM comptes_bancaires');ok(loyer()=='paye' and q('SELECT solde FROM comptes_bancaires')==solde-250,'anniversaire : renouvellement dans le moteur commun')
+   ok(q('SELECT renouvellement_annuel::text FROM coffres_bancaires WHERE id=%s',(abonnement,))==echeance,'date de renouvellement derivee de l ancrage civil, pas du jour du rattrapage')
+   a_echeance();c.execute("UPDATE personnages_donnees SET liquide=0,arg=0 WHERE name='Alice-fixture';UPDATE comptes_bancaires SET solde=0");cash=q('SELECT jsonb_agg(c ORDER BY id) FROM caisses_batiments c')
+   ok(loyer()=='avertissement' and q('SELECT jsonb_agg(c ORDER BY id) FROM caisses_batiments c')==cash,'impaye initial : avertissement sans debit ni credit')
+   ok(q('SELECT loyer_impaye FROM coffres_bancaires WHERE id=%s',(abonnement,))==250,'loyer impaye fige pour cette echeance')
+   for _ in range(3):
+    c.execute('UPDATE coffres_bancaires SET loyer_jour_traitement=NULL WHERE id=%s',(abonnement,));loyer()
+   ok(q('SELECT loyer_impaye FROM coffres_bancaires WHERE id=%s',(abonnement,))==250 and q("SELECT (data->'impaye'->>'montantDu')::integer FROM locations_actives WHERE id=%s",(bail_abonnement,))==250,'trois nuits impayees : 250 FR dus, jamais trois annuites')
+   ok(q('SELECT count(*) FROM coffres_bancaires WHERE id=%s',(abonnement,))==1 and q('SELECT count(*) FROM locations_actives WHERE id=%s',(bail_abonnement,))==1,'aucune expulsion ni disparition du coffre pour impaye')
+   # Une vieille sauvegarde de prix ne dicte ni le montant ni le calendrier prives.
+   c.execute("UPDATE locations_actives SET data=data||'{\"prix\":600,\"jourPaiement\":\"2099-01-01\"}' WHERE id=%s",(bail_abonnement,))
+   c.execute("UPDATE personnages_donnees SET liquide=1000,arg=1000 WHERE name='Alice-fixture';UPDATE coffres_bancaires SET loyer_jour_traitement=NULL WHERE id=%s",(abonnement,));argent=q("SELECT liquide FROM personnages_donnees WHERE name='Alice-fixture'")
+   ok(loyer()=='paye' and q("SELECT liquide FROM personnages_donnees WHERE name='Alice-fixture'")==argent-250,'sauvegarde de bail perimee : tarif prive de 250 FR et ancrage preserves')
+   ok(q('SELECT loyer_impaye FROM coffres_bancaires WHERE id=%s',(abonnement,))==0 and q("SELECT data ? 'impaye' FROM locations_actives WHERE id=%s",(bail_abonnement,))==False,'reglement de l echeance efface son impaye, sans oublier une autre date')
+   # La panne finale de credit doit annuler aussi le debit et toute modification de date.
+   a_echeance();c.execute("DELETE FROM caisses_batiments WHERE id='republic_mairie_capitale'");c.execute('COMMIT');avant=photo_taille()
+   try:loyer();raise AssertionError('panne attendue')
+   except psycopg2.Error as err:db.rollback();assert 'encaissement_non_confirme' in str(err)
+   ok(photo_taille()==avant,'destination indisponible : rollback finances echeance et etat d impaye')
+   c.execute("INSERT INTO caisses_batiments(id,data) VALUES('republic_mairie_capitale','{\"solde\":0}')");c.execute('COMMIT')
+   def annuites_concurrentes(_):
+    with psycopg2.connect(server.get_uri()) as d:
+     cc=d.cursor();cc.execute("SET test.uid='00000000-0000-4000-8000-000000000069'");return loyer(cur=cc)
+   with ThreadPoolExecutor(max_workers=2) as pool:rs=list(pool.map(annuites_concurrentes,range(2)))
+   ok(sorted(rs)==['deja_preleve','paye'],'deux passages de loyer concurrents : une seule annuite')
+   # Calcul seul de l ancrage bissextile, distinct du test de paiement.
+   c.execute("UPDATE coffres_bancaires SET debut_annuel='2024-02-29',renouvellement_annuel='2027-02-28' WHERE id=%s",(abonnement,));q("SELECT coffre_loyer_terminer_interne(jsonb_build_object('coffre',%s),'paye')",(abonnement,))
+   ok(q('SELECT renouvellement_annuel::text FROM coffres_bancaires WHERE id=%s',(abonnement,))=='2028-02-29','calendrier : retrouver le 29 fevrier depuis l ancrage, sans derive permanente au 28')
+   # Repasser le changement de taille apres mutualisation de l encaissement.
+   c.execute("UPDATE personnages_donnees SET liquide=1000,arg=1000 WHERE name='Alice-fixture'");r=q('SELECT coffre_changer_taille(%s,%s,%s,%s)',('coffre-mutualise-001',abonnement,'M',0))
+   ok(r['ok'] and r['montant']==200 and r['renouvellementAnnuel']=='2028-02-29','agrandissement apres mutualisation : meme difference et meme echeance')
+   ok(q("SELECT has_function_privilege('authenticated','coffre_loyer_terminer_interne(jsonb,text)','EXECUTE')")==False,'aucun client ne peut valider un loyer sans encaissement')
    print(f'{n}/{n} assertions locales. Stockage et taille prepares ; aucun abonnement ni succession active en production.')
  finally:server.cleanup()
 if __name__=='__main__':main()
