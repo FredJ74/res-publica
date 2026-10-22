@@ -4613,6 +4613,8 @@ async function confirmerInvestir(pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Investissement confirmé', montant.toLocaleString('fr-FR') + ' ' + cur + ' immobilisés 7 jours.', true, true);
   addJournalEntry('Investissement Banque nationale de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' confirmé par le serveur.', 'event-info');
+  // Parcours unique : garder la gestion du compte ouverte et rafraîchie après placement.
+  if (document.getElementById('modal-finances')?.classList.contains('open') && typeof openFinancesModal === 'function') await openFinancesModal(0, 0);
   } finally {
     RP_PLACEMENT_NATIONAL_EN_COURS = false;
   }
