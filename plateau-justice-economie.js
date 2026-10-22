@@ -7650,63 +7650,8 @@ async function doPayerVersementChantier() {
 }
 
 async function doCorrompreChantier(pa, cost) {
-  if(state.country==='republic'){showToast('Délai incompressible','Ce chantier ne peut pas être accéléré.',false);return;}
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Accélérer le chantier')) return;
-  await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const ch = ts.chantier;
-
-  if (!ch) { showToast('Impossible', "Aucun chantier en cours ici.", false); return; }
-  // Lot 1.5.7 : il n'existe plus de "versement en attente" -- le financement est libre. La seule
-  // limite reste le plafond finance, applique plus bas par progressionAutorisee.
-  if (!peutProgresser(ch.totalVerse, ch.progressionJours, ch.dureeJours, ch.coutTotal)) {
-    showToast('Financement insuffisant', 'Complétez le financement avant d\'accélérer le chantier.', false); return;
-  }
-
-  // Lot 1.5.7 : dateFinPrevue n'existe plus -- la progression est la seule verite. L'ancien effet
-  // "diviser par deux le temps restant" se traduit fidelement par "avancer de la moitie du travail
-  // restant", plafonne par le financement comme n'importe quelle progression. Aucune faveur : la
-  // corruption ne permet pas de franchir un seuil non finance.
-  const restantJours = Math.max(0, ch.dureeJours - ch.progressionJours);
-  if (restantJours <= 0) { showToast('Inutile', 'Le chantier est déjà arrivé à son terme.', false); return; }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  const gain = progressionAutorisee(ch.progressionJours, restantJours / 2, ch.totalVerse, ch.dureeJours, ch.coutTotal);
-  ch.progressionJours = Math.min(ch.dureeJours, ch.progressionJours + gain);
-
-  // Lot 1.5.11 : la corruption est le SECOND point du jeu qui fait bouger progressionJours, avec
-  // le cron. Le verrou des 2/3 s'y applique donc exactement pareil -- il decoule de la progression
-  // reelle, jamais de la maniere dont elle a ete obtenue.
-  //
-  // Elle ne peut en revanche jamais LIVRER : elle avance de la moitie du travail restant, donc
-  // approche le terme sans jamais l'atteindre (et l'ecran refuse deja d'agir sur un chantier
-  // arrive a son terme). La livraison reste le fait du seul traitement quotidien -- un unique
-  // point d'arrivee, pas deux.
-  // LE SERVEUR CALCULE LA PROGRESSION, LE NAVIGATEUR N'ENVOIE PLUS AUCUN NOMBRE (10 oct. 2026).
-  // `progressionAutorisee` et `appliquerVerrouPlan` tournaient ICI, et leur resultat partait dans
-  // un `sbSetTerrainState` avale qui reecrivait l'objet `chantier` ENTIER -- celui que le cron de
-  // minuit fait avancer chaque nuit. Un chiffre que le client dicte et qui BORNE un avancement est
-  // une faille, meme derriere une RPC. `terrain_chantier_acte` refait le calcul sur l'etat reel,
-  // avec les trois seuils de financement lus en base et semes par le generateur de miroirs ; la
-  // preuve ancien-contre-nouveau tient sur une grille de 184 chantiers.
-  const vCh = await sbTerrainActe('terrain_chantier_acte', {
-    p_terrain_id: id, p_acte: 'chantier_accelerer', p_jour: state.day || 1
-  });
-  if (!vCh || vCh.ok !== true) {
-    signalerRefusTerrain(vCh, "L'accélération du chantier");
-    return;
-  }
-  remplacerTerrainState(id, vCh.etat);
-
-  updateUI();
-  const avancement = Number(vCh.progression) || 0;
-  const reste = Number(vCh.reste) || 0;
-  addJournalEntry('Chantier accéléré par corruption (-' + cost + ' ' + cur + '). Avancement : '
-    + avancement.toFixed(1) + ' / ' + ch.dureeJours + ' jours.', 'event-info');
-  showToast('Chantier accéléré', reste.toFixed(1) + ' jours de travail restants.', true);
+  // Les quatre empires actuels sont non P2W. Refuser avant tout cout ou mutation.
+  showToast('Délai incompressible', 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', false);
 }
 
 // =====================================================================

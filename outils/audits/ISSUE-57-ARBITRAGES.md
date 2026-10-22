@@ -1,3 +1,5 @@
+> **Arbitrage prioritaire actualisé : les quatre pays actuels (Républia/republic, Sovarka/soviet, El Estado/narco, Al-Khalija/khalija) sont NON P2W. Délais incompressibles, aucune accélération payante. Les mentions antérieures de pays « à définir » sont dépassées par la mission de finalisation du propriétaire.**
+
 # Objectif
 Démarrer IMMÉDIATEMENT le codage de la remise en cohérence de la chaîne construction/terrains de Res Publica, **en réutilisant les moteurs existants**, sans redemander au game designer les décisions déjà validées. Créer branche dédiée `codex/construction-parcours-20261020`, avancer par commits testés, ouvrir PR vers main, NE PAS merger/déployer sans validation. Ne pas toucher au chantier Supabase PR #56 ni le mélanger. Préserver les règles, documents et interactions déjà codés non modifiés ci-dessous. Contrôler les RPC/migrations côté serveur autant que l'interface, éviter les écritures financières en deux temps.
 

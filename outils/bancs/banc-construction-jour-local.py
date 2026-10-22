@@ -57,6 +57,7 @@ def main():
    c.execute(fn('baseline/domaines/economie/20_fonctions-1.sql','chantier_travailler'))
    c.execute(fn('migrations/20261020214955_construction_materiaux_prix_et_dons.sql','chantier_prix_definir'))
    for migration in sorted((R/'migrations').glob('202610221304*.sql')):c.execute(migration.read_text());c.execute(migration.read_text())
+   c.execute((R/'migrations/20261022143001_construction_delais_quatre_empires.sql').read_text());c.execute((R/'migrations/20261022143001_construction_delais_quatre_empires.sql').read_text())
    def ok(v,t):
     nonlocal n
     assert v,t;n+=1;print('OK',t,flush=True)
@@ -170,6 +171,10 @@ def main():
    c.execute("UPDATE personnages_donnees SET current_building='municipal',poste='{\"id\":\"maire\",\"city\":\"capitale\"}';UPDATE cycles_electoraux SET data='{\"eluId\":\"Alice\"}'")
    r=commande('ch-prix-maire0001','municipal','prix',{'prix':{'bois':'7'}});ok(r['ok'] and r['etat']['chantier']['prixAchatPJ']['bois']==7,'maire : tarifs du chantier communal via meme moteur')
    refuse(lambda:commande('ch-prix-fraction1','municipal','prix',{'prix':{'bois':'7.5'}}),'fraction de franc refusee sans nouvelle ecriture')
+   for pays in ['republic','soviet','narco','khalija']:
+    c.execute('UPDATE personnages_donnees SET country=%s',(pays,));avant=photo()
+    r=q("SELECT terrain_chantier_acte('plan-projet','chantier_accelerer')")
+    ok(r.get('raison')=='delai_incompressible' and photo()==avant,'delai incompressible avant mutation dans '+pays)
   print(f'{n}/{n} assertions, PostgreSQL jetable ; authentification et notifications de fixture, aucun acces production.')
  finally:server.cleanup()
 if __name__=='__main__':main()
