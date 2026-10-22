@@ -84,3 +84,18 @@ test('nouvelle connexion meme compte : ancienne reponse toujours ignoree',async(
  c.sbRpc=async()=>{vm.runInContext('RP_AUTH_SESSION='+JSON.stringify(session('connexion-2')),c);return {ok:false,raison:'deja_repose',pa:17};};
  await c.doDormir();assert.equal(c.state.pa,5);assert.equal(c.messages.length,0);
 });
+
+test('reconnexion : le bandeau ne se ferme qu apres une restauration confirmee',()=>{
+ const acorn=require('../vercel/node_modules/acorn');
+ const src=fs.readFileSync(path.join(root,'plateau-core.js'),'utf8');
+ const ast=acorn.parse(src,{ecmaVersion:'latest'});
+ const recuperation=ast.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='recupererPersonnageDuCompte');
+ const bandeau=ast.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='afficherBandeauReconnexion');
+ assert.ok(recuperation&&bandeau,'les deux fonctions doivent exister');
+ const f=src.slice(recuperation.start,recuperation.end),b=src.slice(bandeau.start,bandeau.end);
+ assert.match(f,/loadCharacter\(\)/,'la fiche doit suivre le chemin nominal de chargement');
+ assert.match(f,/return true;/,'la restauration doit confirmer sa reussite');
+ assert.match(b,/const restaure = await recupererPersonnageDuCompte\(\)/);
+ assert.match(b,/if \(restaure !== true\) throw/,'une fiche introuvable ne valide pas la reconnexion');
+ assert.ok(b.indexOf('if (restaure !== true)')<b.indexOf('div.remove();'),'le bandeau ne doit disparaitre qu apres verification');
+});
