@@ -1611,9 +1611,10 @@ function afficherBandeauReconnexion() {
         div.remove();
         REPLI_COMPTE_TENTE = false;
         if (typeof recupererPersonnageDuCompte === 'function') {
+          // Ce parcours relance déjà loadCharacter() lorsqu'il retrouve la fiche.
+          // Ne pas provoquer deux lectures et deux restaurations concurrentes.
           await recupererPersonnageDuCompte();
         }
-        if (typeof loadCharacter === 'function') loadCharacter();
       } catch (erreur) {
         retour.textContent = 'Connexion indisponible. Réessayez sans quitter le jeu.';
       } finally {
