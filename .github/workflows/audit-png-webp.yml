@@ -27,7 +27,7 @@ jobs:
           path: audit-png-webp.json
       - name: Construire les WebP candidats sur runner sans pousser
         run: |
-          python outils/images/auditer_png_webp.py --apply --report conversion-png-webp.json > /dev/null
+          python outils/images/auditer_png_webp.py --apply --retain-original --report conversion-png-webp.json > /dev/null
           git diff --check
           git status --short > conversion-fichiers.txt
           python -c 'import json, zipfile, pathlib; j=json.load(open("conversion-png-webp.json")); a={pathlib.Path(x["path"]).with_suffix(".webp").as_posix() for x in j["images"] if x["decision"]=="converti"}; a.update(ref for x in j["images"] if x["decision"]=="converti" for ref in x["refs"]); z=zipfile.ZipFile("webp-convertis-a-verifier.zip","w",compression=zipfile.ZIP_DEFLATED); [z.write(p) for p in sorted(a) if pathlib.Path(p).is_file()]; z.close()'
