@@ -8754,14 +8754,14 @@ const DUREE_INSTRUCTION_PERMIS = {
   hangar: 2,
   commerce_standard: 4,
   commerce_premium: 6,
-  building: 10
+  building: 7
 };
 
 async function doDeposerDemandePermis(pa, cost) {
   const id = state.currentBuilding;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
-  if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false); return; }
+  if (!estTitulaire(ts.proprietaire) && !(ts.compromis && ts.compromisPar === state.char?.name)) { showToast('Accès refusé', 'Vous ne détenez ni ce terrain ni son compromis.', false); return; }
 
   // Lot 1.5.13 : verdict unique (plateau-immobilier.js) -- deja construit, instruction en cours,
   // ou carence de trois jours apres un refus. Aucune de ces regles n'est reecrite ici.
@@ -8783,12 +8783,8 @@ async function doDeposerDemandePermis(pa, cost) {
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Passé le délai d\'instruction, l\'absence de décision vaut accord : le permis est accordé tacitement. Le service d\'urbanisme peut accepter ou refuser tant que le dossier est ouvert — un refus doit être motivé par écrit.</div>';
   Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
     const duree = DUREE_INSTRUCTION_PERMIS[key];
-    // Lot 1.5.2 : un palier divisible passe d'abord par l'ecran de plan (ou le decoupage reste
-    // facultatif) ; hangar et commerce standard, indivisibles, sont deposes directement -- aucun
-    // formulaire de decoupage ne leur est propose, conformement au GD.
-    const action = planPermisPossible(ts, key)
-      ? 'ouvrirPlanPermis(\'' + key + '\',' + pa + ',' + cost + ')'
-      : 'confirmerDepotPermis(\'' + key + '\',' + pa + ',' + cost + ')';
+    // Aucun plan au depot : le decoupage intervient dans le dernier tiers du chantier.
+    const action = 'confirmerDepotPermis(\'' + key + '\',1,100)';
     html += '<button onclick="' + action + '" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
     html += '<span>' + niv.label + '</span><span style="color:#8a8060">' + duree + ' jour(s) d\'instruction</span></button>';
   });
@@ -8894,98 +8890,64 @@ function doRetirerLotPlanPermis(index, pa, cost) {
   renderPlanPermis(pa, cost);
 }
 
+// Une intention conservee apres perte de reponse : le serveur fournit la preuve de rejeu.
+let RP_PERMIS_DEPOT_EN_COURS = false;
 async function confirmerDepotPermis(palierDemande, pa, cost) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Déposer ce permis')) return;
-  const ts = getTerrainState(id);
-  const jour = state.day || 1;
-  const duree = DUREE_INSTRUCTION_PERMIS[palierDemande];
-
-  // Lot 1.5.2 : le plan n'est retenu que s'il a ete compose POUR CE PALIER (un retour en arriere
-  // vers un autre type de construction ne doit pas trainer un decoupage devenu sans objet), et
-  // seulement si ce palier accepte un decoupage sur ce terrain.
-  const planCandidat = (_planPermisEnCours.palier === palierDemande && planPermisPossible(ts, palierDemande))
-    ? _planPermisEnCours.lots : [];
-
-  // Defense en profondeur : le plan est revalide ENTIER avant enregistrement, meme si l'ecran a
-  // deja valide chaque ajout. Un plan invalide n'annule pas la demande -- il est simplement
-  // refuse, le demandeur restant libre de deposer sans decoupage.
-  const verdictPlan = verdictPlanPermis(ts, palierDemande, planCandidat);
-  if (!verdictPlan.ok) {
-    showToast('Plan refusé', verdictPlan.message, false);
-    return;
+  if (RP_PERMIS_DEPOT_EN_COURS) return;
+  const origine = { personnage: state.char, nom: state.char?.name, pays: state.country,
+    ville: state.currentCity, terrain: state.currentBuilding,
+    uid: typeof rpAuthUid === 'function' ? rpAuthUid() : null };
+  if (!origine.nom || !origine.uid || !DUREE_INSTRUCTION_PERMIS[palierDemande]
+      || typeof sbRpcVerdict !== 'function') return;
+  const courant = () => state.char === origine.personnage && state.char?.name === origine.nom
+    && state.country === origine.pays && state.currentCity === origine.ville
+    && state.currentBuilding === origine.terrain && rpAuthUid() === origine.uid;
+  const cle = 'hg-permis:' + JSON.stringify([origine.uid, origine.nom, origine.pays, origine.terrain]);
+  RP_PERMIS_DEPOT_EN_COURS = true;
+  try {
+    let intention;
+    try {
+      intention = JSON.parse(sessionStorage.getItem(cle) || 'null');
+      if (intention && intention.palier !== palierDemande) {
+        showToast('Dépôt à vérifier', 'Vérifiez le précédent dépôt avant de changer de type de bâtiment.', false);
+        return;
+      }
+      if (!intention) {
+        intention = { requete: crypto.randomUUID(), palier: palierDemande };
+        sessionStorage.setItem(cle, JSON.stringify(intention));
+      }
+    } catch (_) {
+      showToast('Dépôt impossible', 'Le navigateur ne peut pas conserver la référence du dépôt. Aucun ordre envoyé.', false);
+      return;
+    }
+    const r = await sbRpcVerdict('terrain_permis_deposer', {
+      p_terrain: origine.terrain, p_palier: intention.palier, p_requete: intention.requete
+    });
+    if (!courant()) return;
+    if (!r || r.ok !== true) {
+      // Une absence de confirmation ne prouve pas que le serveur a refuse l'acte.
+      if (r && !r.transport) sessionStorage.removeItem(cle);
+      showToast('Dépôt non confirmé', r?.transport
+        ? 'Réponse incertaine. Réessayez le même dépôt : son identifiant sera conservé.'
+        : 'Le serveur a refusé le dépôt (' + (r?.raison || 'réponse invalide') + ').', false);
+      return;
+    }
+    if (!r.etat || !r.document || !r.paiement) {
+      showToast('Dépôt à vérifier', 'Confirmation incomplète. Conservez cette référence et réessayez.', false);
+      return;
+    }
+    remplacerTerrainState(origine.terrain, r.etat);
+    appliquerPaiementServeur(r.paiement);
+    sessionStorage.removeItem(cle);
+    _planPermisEnCours = { palier: null, lots: [] };
+    document.getElementById('modal-postes')?.classList.remove('open');
+    showToast('Demande déposée', 'Le dossier et son récépissé ont été enregistrés par le serveur.', true, true);
+    if (!r.rejeu) addJournalEntry('Demande de permis déposée : ' + NIVEAUX_CONSTRUCTION[palierDemande].label + '.', 'event-good');
+  } catch (_) {
+    if (courant()) showToast('Dépôt non confirmé', 'Réessayez le même dépôt pour vérifier son enregistrement, sans nouveau prélèvement.', false);
+  } finally {
+    RP_PERMIS_DEPOT_EN_COURS = false;
   }
-  const decoupageInitial = snapshotPlanPermis(planCandidat);
-
-  // Lot 1.5.5 : l'archive municipale est la source historique OFFICIELLE. Un depot ne peut donc
-  // pas etre repute traite si elle n'a pas ete ecrite. On archive AVANT de prelever le cout et
-  // AVANT d'ecrire le permis : si l'archivage echoue, rien ne se passe du tout -- aucun cout, aucun
-  // permis, aucun document -- et le joueur peut simplement recommencer.
-  //
-  // Pre-controle du cout avant l'archivage (jamais un prelevement) : deduireCoutOrdre est la seule
-  // primitive atomique de debit, mais elle n'a pas d'inverse. Verifier d'abord la disponibilite
-  // reduit a une course impossible en pratique le cas "archive ecrite, cout refuse", qui laisserait
-  // une ligne d'archive sans permis. L'append-only rend cette ligne inoffensive, mais autant ne
-  // jamais la produire.
-  const paDispo = TEST_MODE || (state.pa || 0) >= (pa || 0);
-  const fondsDispo = (cost || 0) <= 0
-    || (typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() >= cost : true);
-  if (!paDispo || !fondsDispo) {
-    signalerRefusCout({ ok: false, raison: paDispo ? 'fonds_insuffisants' : 'pa_insuffisants', pa, cost });
-    return;
-  }
-
-  const permisACreer = {
-    demandeur: state.char?.name,
-    palierDemande,
-    dateDepot: jour,
-    dureeInstruction: duree,
-    // Lot 1.5.13 : l'instruction se compte en journees REELLEMENT instruites, incrementees par le
-    // traitement quotidien et suspendues pendant une enquete. dateInstructionTerminee n'est plus
-    // qu'un reperage d'affichage, conserve pour les ecrans et les dossiers anterieurs.
-    joursInstructionFaits: 0,
-    dateInstructionTerminee: jour + duree,
-    statut: 'instruction',
-    // Numero de dossier fige au depot : identite de ce dossier d'urbanisme, reprise par
-    // l'historique municipal et par les documents delivres.
-    numeroDossier: numeroDossierUrbanisme(state.country, id, Date.now()),
-    // SNAPSHOT du decoupage demande. Tableau vide = permis sans decoupage, cas parfaitement
-    // legitime (le batiment sera alors livre indivis). Ce plan n'est PAS ecrit dans
-    // ts.subdivisions : les lots ne naitront qu'a la livraison du chantier -- sans quoi le Lot
-    // 1.1 hydraterait des pieces louables dans un batiment qui n'existe pas encore.
-    decoupageInitial: decoupageInitial
-  };
-
-  const emis = (typeof emettreDocumentUrbanisme === 'function')
-    ? await emettreDocumentUrbanisme({ ...ts, city: ts.city || state.currentCity }, permisACreer, 'depot',
-        { buildingId: id, pays: state.country, ville: ts.city || state.currentCity, jour: jour })
-    : null;
-  if (!emis) {
-    showToast('Dépôt impossible', "Les archives municipales n'ont pas pu enregistrer votre demande. Aucun frais n'a été prélevé — réessayez.", false);
-    return;
-  }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // LE DEMANDEUR N'EST PLUS DICTE PAR LE NAVIGATEUR (10 octobre 2026) : le serveur le pose
-  // lui-meme sur le dossier, et refuse tout champ etranger a l'acte.
-  const vDepot = await sbTerrainActe('terrain_permis_acte', {
-    p_terrain_id: id, p_acte: 'permis_deposer', p_patch: { permis: permisACreer }
-  });
-  _planPermisEnCours = { palier: null, lots: [] };   // brouillon consomme
-  if (!vDepot || vDepot.ok !== true) {
-    signalerRefusTerrain(vDepot, 'Le dépôt de la demande');
-    return;
-  }
-  remplacerTerrainState(id, vDepot.etat);
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Demande déposée', 'Instruction en cours (' + duree + ' jour(s)).', true, true);
-  addJournalEntry('Demande de permis de construire déposée (' + NIVEAUX_CONSTRUCTION[palierDemande].label + ')'
-    + (decoupageInitial.length > 0
-        ? ', avec un plan de découpage de ' + decoupageInitial.length + ' lot' + (decoupageInitial.length > 1 ? 's' : '') + '.'
-        : ', sans découpage.'), 'event-good');
 }
 
 // A appeler en entrant sur le terrain : fait passer une demande en instruction vers l'attente de validation du maire
