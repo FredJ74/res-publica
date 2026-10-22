@@ -28,13 +28,135 @@
     }
   ],
   "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" }
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/images/arme-fusil-republic.png",
+      "destination": "/images/arme-fusil-republic.webp"
+    },
+    {
+      "source": "/images/arme-mitraillette-militaire.png",
+      "destination": "/images/arme-mitraillette-militaire.webp"
+    },
+    {
+      "source": "/images/arme-pistolet-militaire.png",
+      "destination": "/images/arme-pistolet-militaire.webp"
+    },
+    {
+      "source": "/images/calepin-enigme-musee.png",
+      "destination": "/images/calepin-enigme-musee.webp"
+    },
+    {
+      "source": "/images/escort-f-1-robe-verte.png",
+      "destination": "/images/escort-f-1-robe-verte.webp"
+    },
+    {
+      "source": "/images/escort-h-1-costume-beige.png",
+      "destination": "/images/escort-h-1-costume-beige.webp"
+    },
+    {
+      "source": "/images/escort-republic.png",
+      "destination": "/images/escort-republic.webp"
+    },
+    {
+      "source": "/images/explosifs-militaires.png",
+      "destination": "/images/explosifs-militaires.webp"
+    },
+    {
+      "source": "/images/luthecia-carte-postale-culture.png",
+      "destination": "/images/luthecia-carte-postale-culture.webp"
+    },
+    {
+      "source": "/images/luthecia-carte-postale-institutions.png",
+      "destination": "/images/luthecia-carte-postale-institutions.webp"
+    },
+    {
+      "source": "/images/luthecia-carte-postale-internationale.png",
+      "destination": "/images/luthecia-carte-postale-internationale.webp"
+    },
+    {
+      "source": "/images/luthecia-marche-croque-monsieur.png",
+      "destination": "/images/luthecia-marche-croque-monsieur.webp"
+    },
+    {
+      "source": "/images/luthecia-marche-echarpe.png",
+      "destination": "/images/luthecia-marche-echarpe.webp"
+    },
+    {
+      "source": "/images/luthecia-souvenir-garde-republien.png",
+      "destination": "/images/luthecia-souvenir-garde-republien.webp"
+    },
+    {
+      "source": "/images/luthecia-souvenir-maxence-monfils.png",
+      "destination": "/images/luthecia-souvenir-maxence-monfils.webp"
+    },
+    {
+      "source": "/images/luthecia-souvenir-porte-cle-palais.png",
+      "destination": "/images/luthecia-souvenir-porte-cle-palais.webp"
+    },
+    {
+      "source": "/images/montrouge/montrouge-carte-postale-musee-rail.png",
+      "destination": "/images/montrouge/montrouge-carte-postale-musee-rail.webp"
+    },
+    {
+      "source": "/images/montrouge/montrouge-carte-postale-place-rail.png",
+      "destination": "/images/montrouge/montrouge-carte-postale-place-rail.webp"
+    },
+    {
+      "source": "/images/montrouge/montrouge-carte-postale-touristique.png",
+      "destination": "/images/montrouge/montrouge-carte-postale-touristique.webp"
+    },
+    {
+      "source": "/images/montrouge/montrouge-marche-casquette.png",
+      "destination": "/images/montrouge/montrouge-marche-casquette.webp"
+    },
+    {
+      "source": "/images/montrouge/montrouge-marche-casse-croute.png",
+      "destination": "/images/montrouge/montrouge-marche-casse-croute.webp"
+    },
+    {
+      "source": "/images/parapluie-republicain.png",
+      "destination": "/images/parapluie-republicain.webp"
+    },
+    {
+      "source": "/images/port-sainte-marie-carte-postale-culture-marine.png",
+      "destination": "/images/port-sainte-marie-carte-postale-culture-marine.webp"
+    },
+    {
+      "source": "/images/port-sainte-marie-carte-postale-notre-dame-mer.png",
+      "destination": "/images/port-sainte-marie-carte-postale-notre-dame-mer.webp"
+    },
+    {
+      "source": "/images/port-sainte-marie-carte-postale-touristique.png",
+      "destination": "/images/port-sainte-marie-carte-postale-touristique.webp"
+    },
+    {
+      "source": "/images/port-sainte-marie-marche-friture.png",
+      "destination": "/images/port-sainte-marie-marche-friture.webp"
+    },
+    {
+      "source": "/images/port-sainte-marie-marche-tshirt.png",
+      "destination": "/images/port-sainte-marie-marche-tshirt.webp"
+    },
+    {
+      "source": "/images/stade-brise-mariannaise.png",
+      "destination": "/images/stade-brise-mariannaise.webp"
+    },
+    {
+      "source": "/images/stade-olympique-luthecia.png",
+      "destination": "/images/stade-olympique-luthecia.webp"
+    }
   ],
   "headers": [
     {
       "source": "/images/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     }
   ]
