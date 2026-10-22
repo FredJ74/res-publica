@@ -58,6 +58,10 @@ jobs:
         run: python3 outils/bancs/banc-placements-sources-local.py
       - name: Reservations cumulables et bonus atteste, PostgreSQL jetable
         run: python3 outils/bancs/banc-reservations-cumulables-local.py
+      - name: Inventaire, occupation en unites et conservation des retraits multilignes
+        run: python3 outils/bancs/banc-inventaire-unites-local.py
+      - name: Successions, refus des types non raccordes sans fausse cloture
+        run: python3 outils/bancs/banc-succession-types-local.py
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
       - name: Achat sur PostgreSQL local, sans identifiant Supabase
