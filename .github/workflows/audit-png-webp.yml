@@ -40,3 +40,42 @@ jobs:
             conversion-fichiers.txt
             webp-convertis-a-verifier.zip
           retention-days: 7
+
+  publier-variantes:
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'audit/png-vers-webp-20261022' && github.event.pull_request.head.repo.full_name == github.repository }}
+    needs: mesurer
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installer Pillow
+        run: python -m pip install pillow==11.3.0
+      - name: Préparer les variantes sans retirer les PNG
+        run: python outils/images/auditer_png_webp.py --apply --retain-original --report conversion-png-webp.json > /dev/null
+      - name: Contrôler et enregistrer exclusivement les variantes et références
+        run: |
+          python - <<'PY'
+          import json, pathlib, subprocess
+          d=json.loads(pathlib.Path('conversion-png-webp.json').read_text())
+          images=[x for x in d['images'] if x['decision']=='converti']
+          paths=sorted({pathlib.Path(x['path']).with_suffix('.webp').as_posix() for x in images} | {p for x in images for p in x['refs']})
+          if paths:
+              subprocess.run(['git','add','--',*paths],check=True)
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          print('WebP convertis et indexés :',len(images))
+          PY
+          if git diff --cached --quiet; then
+            echo 'Aucun changement supplémentaire'
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Images: ajouter les WebP et garder les PNG historiques"
+          git push origin HEAD:${{ github.head_ref }}
