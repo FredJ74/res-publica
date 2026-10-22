@@ -721,6 +721,7 @@ const WORLD = {
           // Masquage d'onglet, declaratif : les quatre postes existent, sont
           // louables et atteignables par enterRoom, mais la barre d'onglets
           // garde une seule entree « Open Space ».
+          roomsExclues: ['tribune_republia'],
           roomsMasquees: ['open_space_a', 'open_space_b', 'open_space_c', 'open_space_d']
         }
       }
@@ -3319,7 +3320,7 @@ const BUILDINGS = {
           {name:'M. Fischer', role:'PNJ - Gestionnaire de patrimoine', rel:'neutral', job:'banquier'}
         ],
         orders: [
-          {fn:'gerer_finances',    label:'Gerer mon compte',      pa:0, cost:0,    type:'legal',   icon:'ti-chart-bar',    successRate:100, desc:'Compte, depot, retrait et placements Helvetia.'},
+          {fn:'gerer_finances',    label:'Ouvrir / gérer mon compte', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Ouverture : versement de 10 000 FR conservé sur le compte ; solde minimum 10 000 FR. Dépôts, retraits et placements.'},
           {fn:'compte_offshore',   label:'Placements et optimisation fiscale', pa:0, cost:0, type:'legal', icon:'ti-world', successRate:100, desc:'Placements declares et offshore avec Ursula Offshore.'},
           {fn:'emprunter_prive',   label:'Emprunter (sans verification)', pa:1, cost:0, type:'grey', icon:'ti-credit-card', successRate:100, desc:'Aucune verification. Taux eleve. Methode de recouvrement... directe en cas d\'impaye.'},
           {fn:'blanchiment',       label:'Blanchir des fonds',     pa:0, cost:0,    type:'illegal', icon:'ti-refresh',      successRate:100, desc:'Service a l\'etude. Pas encore disponible.'},

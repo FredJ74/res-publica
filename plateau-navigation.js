@@ -551,7 +551,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
   const b = BUILDINGS[buildingId];
   if (!b) return [];
   const ctxForTabs = getBuildingContext(buildingId);
-  const roomsBrutes = Object.entries({ ...(b.rooms || {}), ...(ctxForTabs?.roomsExtra || {}) });
+  const roomsBrutes = Object.entries({ ...(b.rooms || {}), ...(ctxForTabs?.roomsExtra || {}) }).filter(([roomId]) => !(ctxForTabs?.roomsExclues || []).includes(roomId));
   // Chambres individuelles de la clinique privee (arbitrage UX, 20 aout 2026) : jamais des
   // onglets bruts "Chambre 1"..."Chambre 10" -- acces via le point d'entree unique "Chambres"
   // sur l'accueil (doOuvrirChambresClinique, plateau-personnage.js), qui appelle enterRoom()
@@ -661,7 +661,9 @@ function enterRoom(buildingId, roomId, tabEl) {
   }
   const b = BUILDINGS[buildingId];
   if (!b) return;
-  const ctxRoomsExtra = getBuildingContext(buildingId)?.roomsExtra;
+  const ctxEntreePiece = getBuildingContext(buildingId);
+  if (ctxEntreePiece?.roomsExclues?.includes(roomId)) return;
+  const ctxRoomsExtra = ctxEntreePiece?.roomsExtra;
   const room = b.rooms?.[roomId] || ctxRoomsExtra?.[roomId];
   if (!room) return;
 
