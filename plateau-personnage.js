@@ -1398,6 +1398,9 @@ async function ouvrirSuccession(defunt, country) {
       dispositions
     });
     if (!rCreation) return { ok: false, raison: 'echec_creation_succession' };
+    const dossierCree=Array.isArray(rCreation)?rCreation[0]:rCreation;
+    if(!Array.isArray(dossierCree?.dispositions))return {ok:false,raison:'photographie_successorale_non_confirmee'};
+    dispositions=dossierCree.dispositions;
   }
 
   // 8. Gel de tous les terrains/entreprises concernes -- derive des DISPOSITIONS elles-memes
@@ -1679,9 +1682,12 @@ async function getPatrimoineTransmissible() {
       if (data && data.proprietaire === nom) entreprises.push({ id: def.id, label: def.label });
     }
   }
+  const vCoffres=await sbRpcVerdict('coffre_catalogue',{}).catch(()=>null);
+  if(!vCoffres?.ok)throw new Error('patrimoine_coffres_non_confirme');
+  const coffres=(vCoffres.coffres||[]).map(c=>({id:c.id,label:'Coffre bancaire '+c.taille}));
   return {
     terrains: (terrains || []).map(t => ({ buildingId: t.buildingId, label: BUILDINGS[t.buildingId]?.shortName || BUILDINGS[t.buildingId]?.name || t.buildingId })),
-    entreprises,
+    entreprises,coffres,
     argentBanque: (typeof totalComptesBancaires === 'function' ? totalComptesBancaires() : (state.banque || 0))
   };
 }
@@ -1750,7 +1756,8 @@ function _testamentArgentRowsGet() {
 async function ouvrirFormulaireTestament(testamentExistant, pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Testament';
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement du patrimoine...</div>';
-  const patrimoine = await getPatrimoineTransmissible();
+  const patrimoine = await getPatrimoineTransmissible().catch(()=>null);
+  if(!patrimoine){showToast('Patrimoine indisponible','Impossible de confirmer tous vos biens. Aucun testament enregistré.',false);return;}
   window._testamentPatrimoineCourant = patrimoine;
 
   const contenuExistant = testamentExistant?.contenu || {};
@@ -1773,9 +1780,9 @@ async function ouvrirFormulaireTestament(testamentExistant, pa, cost) {
     });
   }
 
-  if (patrimoine.entreprises.length > 0) {
-    html += '<div style="font-size:.86rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Entreprises</div>';
-    patrimoine.entreprises.forEach(e => {
+  if (patrimoine.entreprises.length > 0 || (patrimoine.coffres||[]).length > 0) {
+    html += '<div style="font-size:.86rem;color:#6a5a30;margin:.6rem 0 .3rem;text-transform:uppercase;letter-spacing:.05em">Entreprises et coffres</div>';
+    patrimoine.entreprises.concat(patrimoine.coffres||[]).forEach(e => {
       html += '<div style="display:flex;gap:.4rem;align-items:center;margin-bottom:.4rem">';
       html += '<span style="flex:1;font-size:.92rem;color:#c0b090">' + escapeHtmlText(e.label) + '</span>';
       html += '<input id="testament-bien-' + e.id + '" type="text" placeholder="Bénéficiaire (facultatif)" value="' + escapeHtmlText(beneficiairesBiens[e.id] || '') + '" style="width:180px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.35rem .5rem;font-size:.86rem;outline:none" />';
@@ -1784,7 +1791,7 @@ async function ouvrirFormulaireTestament(testamentExistant, pa, cost) {
     });
   }
 
-  if (patrimoine.terrains.length === 0 && patrimoine.entreprises.length === 0) {
+  if (patrimoine.terrains.length === 0 && patrimoine.entreprises.length === 0 && !(patrimoine.coffres||[]).length) {
     html += '<div style="font-size:.92rem;color:#8a8060;font-style:italic;margin-bottom:.6rem">Aucun terrain, bâtiment ou entreprise à votre nom pour l\'instant.</div>';
   }
 
@@ -1835,7 +1842,7 @@ async function soumettreTestament(pa, cost) {
     const remplacant = (document.getElementById('testament-remplacant-' + t.buildingId)?.value || '').trim();
     biens.push({ id: t.buildingId, beneficiaire: val, remplacant: remplacant || null });
   }
-  for (const e of patrimoine.entreprises) {
+  for (const e of patrimoine.entreprises.concat(patrimoine.coffres||[])) {
     const val = (document.getElementById('testament-bien-' + e.id)?.value || '').trim();
     if (!val) continue;
     const remplacant = (document.getElementById('testament-remplacant-' + e.id)?.value || '').trim();
