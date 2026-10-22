@@ -25,3 +25,18 @@ jobs:
         with:
           name: audit-png-webp
           path: audit-png-webp.json
+      - name: Construire les WebP candidats sur runner sans pousser
+        run: |
+          python outils/images/auditer_png_webp.py --apply --report conversion-png-webp.json > /dev/null
+          git diff --check
+          git status --short > conversion-fichiers.txt
+      - name: Archiver le résultat pour inspection avant intégration
+        uses: actions/upload-artifact@v4
+        with:
+          name: conversion-webp-a-verifier
+          path: |
+            conversion-png-webp.json
+            conversion-fichiers.txt
+            images/**/*.webp
+            images/*.webp
+          retention-days: 7
