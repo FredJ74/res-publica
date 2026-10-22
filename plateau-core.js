@@ -2992,6 +2992,7 @@ function restaurerJournal(char) {
       <span class="journal-text ${entry.cls || ''}">${entry.text}</span>`;
     j.appendChild(div);
   });
+  if(typeof initialiserJournalVentes==='function')initialiserJournalVentes();
 }
 
 // Close modals on overlay click
