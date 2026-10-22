@@ -1,0 +1,30 @@
+name: Placement national transactionnel
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'outils/migrations/20261022_placement_national_idempotent.sql'
+      - 'outils/bancs/banc-placement-national-local.py'
+      - 'outils/bancs/test-placement-national-securise.mjs'
+      - 'supabase.js'
+      - 'plateau-justice-economie.js'
+      - 'plateau-communication.js'
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  placements:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - run: node --test outils/bancs/test-placement-national-securise.mjs
+      - run: python3 outils/bancs/banc-placement-national-local.py

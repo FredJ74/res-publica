@@ -2863,6 +2863,21 @@ async function retirerPetiteAnnonce(id) {
 // FINANCES MODAL
 // =====================
 async function openFinancesModal(pa, cost) {
+  const nom = state.char?.name;
+  if (!nom || typeof sbGetComptesBancaires !== 'function' || typeof sbLoadPersonnage !== 'function') return;
+  const [comptes, personnage] = await Promise.all([
+    sbGetComptesBancaires(nom).catch(() => null),
+    sbLoadPersonnage(nom).catch(() => null)
+  ]);
+  if (!Array.isArray(comptes) || !personnage || state.char?.name !== nom) {
+    showToast('Comptes indisponibles', 'La situation bancaire ne peut pas être lue auprès du serveur. Aucun solde local ne sera affiché.', false);
+    return;
+  }
+  if (typeof construireMapComptesBancaires === 'function') {
+    state.comptesBancaires = construireMapComptesBancaires(comptes);
+  }
+  if (typeof personnage.liquide === 'number') state.liquide = personnage.liquide;
+  if (typeof personnage.arg === 'number') { state.arg = personnage.arg; state.char.arg = personnage.arg; }
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
   // Lot 3 (chantier fiscalite/Helvetia) : "En banque" affiche desormais le solde reel du compte
   // Banque nationale (comptes_bancaires), plus l'ancien champ plat state.banque (legacy, plus
@@ -2914,6 +2929,7 @@ async function openFinancesModal(pa, cost) {
       <div style="font-size:.75rem;color:#a09070;margin:.4rem 0">Minimum 500 FR, immobilisation 7 jours, rendement de -12 % à +12 % à échéance. Coût : 1 PA.</div>
       <div style="display:flex;gap:.5rem;align-items:center;margin:.5rem 0">
         <input class="finance-input" id="investir-montant" type="number" min="500" step="100" placeholder="Montant à placer" />
+        <select class="finance-input" id="investir-source" aria-label="Origine des fonds"><option value="nationale">Compte national</option><option value="liquide">Espèces</option></select>
         <button class="finance-btn" ${Array.isArray(placementsServeur) ? '' : 'disabled'} onclick="confirmerInvestir(1,0)">Placer</button>
       </div>
       ${placementsActifs.length === 0

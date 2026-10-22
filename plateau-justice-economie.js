@@ -4562,35 +4562,36 @@ async function confirmerInvestir(pa, cost) {
     if (actifLegacy) { showToast('Investissement refusé', 'Vous avez déjà un investissement en cours (ancien système).', false); return; }
   }
 
-  // Source des fonds : exclusivement le compte Banque nationale -- jamais liquide, jamais
-  // Helvetia, jamais une combinaison automatique (regle absolue de ce lot). getFondsDisponiblesOrdinaires()
-  // n'est PAS utilisee ici : ce n'est pas une depense ordinaire.
-  const soldeNational = state.comptesBancaires?.nationale?.solde || 0;
-  if (soldeNational < montant) {
-    showToast('Solde Banque nationale insuffisant', 'Déposez d\'abord ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' sur votre compte.', false);
+  const source = document.getElementById('investir-source')?.value || 'nationale';
+  if (!['nationale','liquide'].includes(source)) return;
+  const nomPersonnage = state.char.name;
+  const cleAttente = 'hg-placement-national:' + nomPersonnage;
+  let attente = null;
+  try { attente = JSON.parse(localStorage.getItem(cleAttente) || 'null'); } catch (_) {}
+  if (attente && (attente.montant !== montant || attente.source !== source)) {
+    showToast('Placement à vérifier', 'Une opération précédente est encore incertaine. Reprenez le même montant et la même source avant d’en commencer une autre.', false);
     return;
   }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const intSnapshot = getStatEffective('INT'); // fige au moment de la mise (equipe actuelle)
-  // Ville figee au moment du placement (micro-correctif IE) -- jamais recalculee a l'echeance :
-  // le placement conserve le contexte economique de la ville ou il a ete souscrit, meme si le
-  // joueur demenage ensuite (regle explicite du chantier). Meme convention que l'ancien systeme
-  // investissements (state.currentCity), jamais la ville "actuelle" au moment de la resolution.
-  const ville = state.currentCity || 'capitale';
-
-  // Creation atomique (RPC creer_placement_national) : revalide le solde reel, debite le compte
-  // national et cree la ligne placements_bancaires (avec sa ville) dans une seule transaction
-  // serveur -- jamais de debit sans placement, jamais de placement sans debit reel. Le PA deja
-  // deduit ci-dessus n'est pas rembourse si la RPC echoue ensuite (meme doctrine que partout
-  // ailleurs dans le projet pour un echec non lie a la disponibilite du PA lui-meme).
-  const resultat = (typeof sbCreerPlacementNational === 'function')
-    ? await sbCreerPlacementNational(state.char.name, montant, intSnapshot, ville).catch(() => null)
+  const nouvelleOperation = !attente;
+  const intSnapshot = attente ? attente.intSnapshot : getStatEffective('INT');
+  const ville = attente ? attente.ville : (state.currentCity || 'capitale');
+  const intention = attente ? attente.intention : crypto.randomUUID();
+  if (nouvelleOperation) {
+    const r = await deduireCoutOrdre({ pa, cost });
+    if (!r.ok) { signalerRefusCout(r); return; }
+    attente = { montant, source, intSnapshot, ville, intention };
+    try { localStorage.setItem(cleAttente, JSON.stringify(attente)); } catch (_) {
+      showToast('Stockage local indisponible', 'Impossible de garantir la reprise de cette opération après déconnexion.', false);
+      return;
+    }
+  }
+  // Le serveur débite EXACTEMENT une source dans la même transaction que l'INSERT.
+  // Le même identifiant d'intention renvoie le résultat d'origine sans nouveau débit.
+  const resultat = (typeof sbCreerPlacementNationalSecurise === 'function')
+    ? await sbCreerPlacementNationalSecurise(nomPersonnage, montant, intSnapshot, ville, source, intention).catch(() => null)
     : null;
   if (!resultat) {
-    showToast('Opération non confirmée', 'Impossible de connaître le résultat du serveur. Ne relancez pas immédiatement ce placement : vérifiez votre compte.', false);
+    showToast('Opération à vérifier', 'Réponse serveur incertaine. Réessayez avec le même montant et la même source : aucune seconde opération ne sera créée pour cette intention.', false);
     return;
   }
 
@@ -4600,16 +4601,23 @@ async function confirmerInvestir(pa, cost) {
   const lignesServeur = await relirePlacementsNationauxServeur(nom);
   const comptesServeur = (typeof sbGetComptesBancaires === 'function')
     ? await sbGetComptesBancaires(nom).catch(() => null) : null;
+  const personnageServeur = (typeof sbLoadPersonnage === 'function')
+    ? await sbLoadPersonnage(nom).catch(() => null) : null;
+  if (state.char?.name === nom && personnageServeur) {
+    if (typeof personnageServeur.liquide === 'number') state.liquide = personnageServeur.liquide;
+    if (typeof personnageServeur.arg === 'number') { state.arg = personnageServeur.arg; state.char.arg = personnageServeur.arg; }
+  }
   if (Array.isArray(comptesServeur) && typeof construireMapComptesBancaires === 'function') {
     state.comptesBancaires = construireMapComptesBancaires(comptesServeur);
   }
   const confirme = Array.isArray(lignesServeur) && ligneCreee?.id &&
     lignesServeur.some(p => p.id === ligneCreee.id && p.banque === 'nationale' && p.type === 'terme' && p.montant != null);
   updateUI();
-  if (!confirme || !Array.isArray(comptesServeur)) {
+  if (!confirme || !Array.isArray(comptesServeur) || !personnageServeur) {
     showToast('Vérification nécessaire', 'Le serveur a répondu, mais la confirmation bancaire complète est indisponible. Ne recommencez pas le placement : rechargez votre compte ou contactez l’administration.', false);
     return;
   }
+  try { localStorage.removeItem(cleAttente); } catch (_) {}
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Investissement confirmé', montant.toLocaleString('fr-FR') + ' ' + cur + ' immobilisés 7 jours.', true, true);
   addJournalEntry('Investissement Banque nationale de ' + montant.toLocaleString('fr-FR') + ' ' + cur + ' confirmé par le serveur.', 'event-info');
