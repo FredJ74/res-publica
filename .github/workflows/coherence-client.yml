@@ -52,6 +52,8 @@ jobs:
           python3 outils/bancs/banc-realites-payer-local.py
       - name: Socle notarial fonds murs et préemption — PostgreSQL jetable
         run: python3 outils/bancs/banc-immobilier-ventes-local.py
+      - name: Construction, journee et financeurs atomiques — PostgreSQL jetable
+        run: python3 outils/bancs/banc-construction-jour-local.py
       - name: Dépendance construction PR58 — PostgreSQL jetable
         run: python3 outils/bancs/banc-construction-materiaux-local.py
       - name: Placements Banque nationale, sources et recus atomiques
