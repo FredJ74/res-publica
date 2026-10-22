@@ -1999,6 +1999,7 @@ async function confirmerDestructionPersonnage() {
     return;
   }
 
+  const contexteSuppression=typeof contexteNavigationRue==='function'?contexteNavigationRue():null;
   document.getElementById('modal-postes').classList.remove('open');
 
   // Succession fail-closed (architecture v4, 21 aout 2026) : la destruction du personnage n'est
@@ -2011,6 +2012,7 @@ async function confirmerDestructionPersonnage() {
     console.error('Erreur ouverture succession', e);
     return { ok: false, raison: 'exception_ouverture' };
   });
+  if(contexteSuppression&&!contexteNavigationRueValide(contexteSuppression))return;
   if (!ouvertureResult.ok) {
     showToast('Destruction annulée', "La succession n'a pas pu être ouverte (" + ouvertureResult.raison + "). Réessayez plus tard — votre personnage n'a pas été supprimé.", false, true);
     console.error('Succession annulée avant toute mutation :', ouvertureResult.raison, ouvertureResult.detail);
@@ -2034,8 +2036,12 @@ async function confirmerDestructionPersonnage() {
     await sbEnregistrerDeces(nom, state.country, state.currentCity).catch(() => {});
   }
 
-  if (typeof sbDeletePersonnage === 'function') {
-    await sbDeletePersonnage(nom).catch(() => {});
+  const suppressionConfirmee=typeof sbDeletePersonnage==='function'
+    ? await sbDeletePersonnage(nom).catch(()=>false):false;
+  if(contexteSuppression&&!contexteNavigationRueValide(contexteSuppression))return;
+  if(suppressionConfirmee!==true){
+    showToast('Suppression non confirmée','La suppression complète ne peut pas être confirmée. Votre session est conservée ; ne créez pas de nouveau personnage.',false);
+    return;
   }
 
   // Nettoyer le localStorage local

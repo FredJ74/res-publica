@@ -306,7 +306,7 @@ def main():
     src=(R/'baseline/domaines/personnage-et-presence/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public\.'+table+r' \(.*?\n\);',src,re.S)[0])
    c.execute('ALTER TABLE successions ADD PRIMARY KEY(id)')
    c.execute(fonction('baseline/domaines/personnage-et-presence/20_fonctions.sql','succession_regler'))
-   for f in ['20261021220151_succession_refuser_actifs_non_raccordes.sql','20261021220316_succession_titres_canoniques.sql','20261022184500_successions_decisions_autorisees.sql','20261022210000_coffres_ouverture_successorale.sql','20261022210001_coffres_reglement_successoral.sql']:
+   for f in ['20261021220151_succession_refuser_actifs_non_raccordes.sql','20261021220316_succession_titres_canoniques.sql','20261022184500_successions_decisions_autorisees.sql','20261022184501_successions_creation_verifiee.sql','20261022210000_coffres_ouverture_successorale.sql','20261022210001_coffres_reglement_successoral.sql']:
     c.execute((R/'migrations'/f).read_text())
    c.execute((R/'migrations/20261022210001_coffres_reglement_successoral.sql').read_text())
    c.execute("SET test.serveur='off';SET test.uid='00000000-0000-4000-8000-000000000069'")

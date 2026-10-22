@@ -1,7 +1,7 @@
 -- #69/#95 PREPAREE : photographie privee du vrai titulaire, dans l'ouverture commune.
 BEGIN;
 DO $g$ DECLARE h text;BEGIN
-SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.coffres_succession_ouvrir()');IF h IS NOT NULL AND h NOT IN('d1da21f9c2a6325d8c74b5bbe59f7429') THEN RAISE EXCEPTION 'definition_non_examinee: coffres_succession_ouvrir()';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.coffres_succession_ouvrir()');IF h IS NOT NULL AND h NOT IN('1cc3f2cda89571af87b079cb59f23512') THEN RAISE EXCEPTION 'definition_non_examinee: coffres_succession_ouvrir()';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.coffres_suppression_garder()');IF h IS NOT NULL AND h NOT IN('83a43c61e2f5be91ad6aaeac028cac8f','18fe81303c601ac9ae88c3975425d594') THEN RAISE EXCEPTION 'definition_non_examinee: coffres_suppression_garder()';END IF;
 END $g$;
 DO $$BEGIN
@@ -17,7 +17,7 @@ DECLARE pj public.personnages_donnees;c public.coffres_bancaires;testament jsonb
 BEGIN
  SELECT * INTO pj FROM public.personnages_donnees WHERE name=NEW.defunt FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'defunt_introuvable';END IF;
- IF NOT public.est_appel_serveur() AND (pj.user_id IS DISTINCT FROM auth.uid() OR public.mon_personnage() IS DISTINCT FROM pj.name) THEN RAISE EXCEPTION 'defunt_non_possede' USING ERRCODE='42501';END IF;
+ IF public.est_appel_serveur() IS DISTINCT FROM true AND (pj.user_id IS DISTINCT FROM auth.uid() OR public.mon_personnage() IS DISTINCT FROM pj.name) THEN RAISE EXCEPTION 'defunt_non_possede' USING ERRCODE='42501';END IF;
  IF NEW.country IS DISTINCT FROM pj.country THEN RAISE EXCEPTION 'pays_successoral_incoherent';END IF;
  SELECT contenu INTO testament FROM public.testaments WHERE id=NEW.testament_id AND testateur=pj.name AND statut='actif';
  SELECT CASE WHEN conjoint1=pj.name THEN conjoint2 ELSE conjoint1 END INTO conjoint FROM public.mariages
