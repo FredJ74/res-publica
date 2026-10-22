@@ -1072,6 +1072,7 @@ async function resoudreSuccessionsExpirees() {
     if (!successions) return resultats;
 
     for (const s of successions) {
+      const photographieDispositions=JSON.stringify(s.dispositions||[]);
       const dispositions = s.dispositions || [];
       let mutated = false;
       const nouveauxConvoques = [];
@@ -1129,8 +1130,8 @@ async function resoudreSuccessionsExpirees() {
       // retentee integralement demain, sans aucun risque d'avoir mute un actif sur la base d'une
       // decision jamais realmente ecrite.
       if (mutated) {
-        const r = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}`, { dispositions }).catch(() => null);
-        if (!r) continue;
+        const r = await sbUpdate('successions', `id=eq.${encodeURIComponent(s.id)}&dispositions=eq.${encodeURIComponent(photographieDispositions)}`, { dispositions }).catch(() => null);
+        if (!Array.isArray(r) || r.length !== 1) continue;
       }
 
       const toutesResolues = dispositions.every(d => !!d.resultat);

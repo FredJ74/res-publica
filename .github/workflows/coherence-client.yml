@@ -69,6 +69,8 @@ jobs:
         run: python3 outils/bancs/banc-equipements-collectifs-local.py
       - name: Placements nationaux atomiques et idempotents sur PostgreSQL local
         run: python3 outils/bancs/banc-placement-national-local.py
+      - name: Autorisations successorales, decisions et concurrence — PostgreSQL jetable
+        run: python3 outils/bancs/banc-successions-autorisations-local.py
       - name: Conserver les résultats des bancs
         if: always()
         uses: actions/upload-artifact@v4
