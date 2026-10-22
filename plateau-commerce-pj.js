@@ -1981,6 +1981,10 @@ async function commercePjApporter(matiere, requete, mode) {
   return commercePjTransaction('matiere', async (tx) => {
   const ctx = await commercePjContexte();
   if (!commercePjTransactionActive(tx)) return;
+  if (ctx.fonds?.references?.[referenceId]?.venteSurPlaceUniquement === true) {
+    showToast('Consommation sur place', 'Cette prestation ne peut pas être vendue à emporter.', false);
+    return;
+  }
   const qte = Math.max(1, Math.floor(Number((document.getElementById('cpj-appro-qte') || {}).value) || 1));
   const r = await sbFondsMatiereApporter(requete, state.char.name, ctx.fondsId, matiere, qte, mode);
   if (!commercePjTransactionActive(tx)) return;
@@ -2054,12 +2058,16 @@ async function commercePjFicheProduit(referenceId) {
     html += '<input id="cpj-qte" type="number" min="1" step="1" max="' + stock + '" value="1" ' +
       'style="width:100%;padding:.5rem;background:#0e0c08;border:1px solid #3a3a30;color:#e0d8c0;margin-bottom:.8rem"/>';
     // L'achat dans son propre commerce est autorise : le bouton n'est jamais masque.
-    html += commercePjBouton("commercePjAcheter('" + referenceId + "','" + nouvelleCleAchat() + "')",
-      tCommercePJ('commercepj.boutique.acheter'), true);
+    // Une expérience consommée sur place (ex. fontaine de chocolat) n'est pas
+    // un article à emporter. Le mode est déclaré sur la référence du commerce.
+    if (r.venteSurPlaceUniquement !== true) {
+      html += commercePjBouton("commercePjAcheter('" + referenceId + "','" + nouvelleCleAchat() + "')",
+        tCommercePJ('commercepj.boutique.acheter'), true);
+    }
     // Consommation immédiate uniquement dans les fonds exerçant la restauration.
     // La transaction serveur conserve le paiement, la fiscalité et le stock commun.
     if ((f.typesAutorises || []).includes('bar-restauration') && r.recette_id &&
-        ['encas','encas-a-emporter','plat-simple','plat-elabore','menu-gastronomique','aliment-prepare'].includes(r.generique_id)) {
+        ['boisson','encas','encas-a-emporter','plat-simple','plat-elabore','menu-gastronomique','aliment-prepare'].includes(r.generique_id)) {
       html += commercePjBouton("commercePjConsommerSurPlace('" + referenceId + "','" + nouvelleCleAchat() + "')",
         'Consommer sur place', false);
     }
