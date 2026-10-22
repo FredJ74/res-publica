@@ -20,7 +20,7 @@ s:=replace(s,$a1$  IF public.est_appel_serveur() THEN RETURN NEW; END IF;$a1$,$b
   IF FOUND THEN
     SELECT name INTO nom FROM public.personnages_donnees WHERE id=coffre.titulaire_id;
     IF nom IS NULL THEN RAISE EXCEPTION 'coffre_titulaire_absent';END IF;
-    attendu:=coffre.site||jsonb_build_object('coffreId',coffre.id::text,'locataire',nom,'periodicite','annuelle','prix',public.coffre_tarif_annuel_interne(coffre.taille),'tailleCoffre',coffre.taille);
+    attendu:=coffre.site||jsonb_build_object('coffreId',coffre.id::text,'locataire',nom,'locataireRef','pj:'||nom,'orgaId','','periodicite','annuelle','prix',public.coffre_tarif_annuel_interne(coffre.taille),'tailleCoffre',coffre.taille);
     FOR cle IN SELECT jsonb_object_keys(attendu) LOOP
       IF NEW.data->cle IS DISTINCT FROM attendu->cle THEN RAISE EXCEPTION 'contrat_coffre_modifie' USING ERRCODE='42501';END IF;
     END LOOP;
@@ -30,7 +30,7 @@ s:=replace(s,$a1$  IF public.est_appel_serveur() THEN RETURN NEW; END IF;$a1$,$b
   IF TG_OP='INSERT' AND NEW.country='republic' AND NEW.data->>'city'='capitale' AND NEW.data->>'buildingId'='banque-nationale' AND NEW.data->>'roomId'='coffre_privatif' THEN RAISE EXCEPTION 'contrat_coffre_versionne_requis';END IF;
   IF public.est_appel_serveur() THEN RETURN NEW; END IF;$b1$);
 EXECUTE s;
-ELSIF h IS DISTINCT FROM '3dbc6ff2886b7948b8a48d15babaee6d' THEN RAISE EXCEPTION 'definition_non_examinee: bail_cle_coherente()';END IF;
+ELSIF h IS DISTINCT FROM '1e59fac3dfa21d31c0d5e0a9c4c7cc56' THEN RAISE EXCEPTION 'definition_non_examinee: bail_cle_coherente()';END IF;
 END;$p$;
 DO $g$ DECLARE h text;BEGIN
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.coffre_souscrire(text,text)');IF h IS NOT NULL AND h<>'c2ec0a56ed2115a4a05cbacbcc5959da' THEN RAISE EXCEPTION 'definition_non_examinee: coffre_souscrire(text,text)';END IF;

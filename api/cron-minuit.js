@@ -4491,19 +4491,24 @@ async function preleverLoyersBaux() {
         continue;
       }
 
-      const verdictRows = await sbRpc('prelever_loyer_bail', { p_bail_id: row.id }, HEADERS_SERVICE);
+      const annuel=data.periodicite==='annuelle'&&!!data.coffreId;
+      const verdictRows = annuel
+        ? await sbRpc('prelever_loyer_bail_verdict', { p_bail_id: row.id }, HEADERS_SERVICE)
+        : await sbRpc('prelever_loyer_bail', { p_bail_id: row.id }, HEADERS_SERVICE);
       // sbRpc renvoie null en cas d'echec HTTP (RPC absente, exception PL/pgSQL). Une exception
       // signifie que la transaction a ete ANNULEE : ni debit, ni credit.
       if (verdictRows === null) { resultats.erreurs++; continue; }
-      const verdict = Array.isArray(verdictRows) ? verdictRows[0] : verdictRows;
+      const enveloppe = Array.isArray(verdictRows) ? verdictRows[0] : verdictRows;
+      if(annuel&&enveloppe?.ok!==true){resultats.erreurs++;continue;}
+      const verdict=annuel?enveloppe.verdict:enveloppe;
 
       if (verdict === 'paye') {
         resultats.payes++;
-        resultats.collecte += Number(data.prix) || 0;
+        resultats.collecte += Number(annuel?enveloppe.montant:data.prix) || 0;
       } else if (verdict === 'avertissement') {
         resultats.avertissements++;
         await envoyerMailSysteme(data.locataire, 'Gestionnaire immobilier', 'Loyer impayé — ' + (data.localLabel || 'votre local'), 'Votre loyer de ' + (data.prix || 0) + ' FR pour ' + (data.localLabel || 'votre local')
-                 + " n'a pas pu être prélevé. Régularisez sous 24h ou vous serez expulsé(e).").catch(() => {});
+                 + (annuel?" n'a pas pu être prélevé pour cette échéance annuelle. Le coffre et ses objets sont conservés. Régularisez votre situation.":" n'a pas pu être prélevé. Régularisez sous 24h ou vous serez expulsé(e).")).catch(() => {});
       } else if (verdict === 'expulsion_requise' || verdict === 'expulsion_requise_deja_avise') {
         // IMPAYE CONSTATE, JAMAIS D'EXPULSION AUTOMATIQUE (arbitrage du 8 septembre 2026).
         //

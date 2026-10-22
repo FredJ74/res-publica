@@ -19,7 +19,7 @@ SELECT p.oid::regprocedure AS signature,pg_get_userbyid(p.proowner) AS proprieta
  'terrain_permis_acte','terrain_lots_acte','terrain_reamenagement_poser','terrain_etat_fusionner_interne','restituer_reliquats_chantier',
  'helvetia_debiter_fonds_ordinaires','helvetia_inventaire_sortie','inventaire_localiser','inventaire_retirer',
  'inventaire_revision_garder','inventaire_reception_etat','inventaire_occupation_unites','inventaire_place_restante',
- 'prelever_loyer_bail','terminer_bail','resilier_bail_volontaire','bail_cle_coherente','bail_autorite_de','bail_destination_attestee',
+ 'payer_ordre','acteur_identifie','prelever_loyer_bail','terminer_bail','resilier_bail_volontaire','bail_cle_coherente','bail_autorite_de','bail_destination_attestee',
  'succession_regler','personnages_vue_supprimer','organisation_equipement_exiger','poste_est_atteste','detention_active','objet_sas_deposer')) ORDER BY 1;
 SELECT p.oid::regprocedure AS fonction,pg_describe_object(d.refclassid,d.refobjid,d.refobjsubid) AS dependance
  FROM pg_depend d JOIN pg_proc p ON d.classid='pg_proc'::regclass AND d.objid=p.oid
@@ -29,14 +29,14 @@ SELECT p.oid::regprocedure AS fonction,pg_describe_object(d.refclassid,d.refobji
 SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,a.attname,format_type(a.atttypid,a.atttypmod) AS type
  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_attribute a ON a.attrelid=c.oid
  WHERE n.nspname='public' AND c.relname IN ('personnages_donnees','terrains_etat','organisations','comptes_bancaires',
- 'caisses_batiments','batiments_etat','locations_actives','locations_archives','dossiers_succession',
+ 'caisses_batiments','batiments_etat','locations_actives','locations_archives','successions','testaments',
  'chantier_commandes_recus','coffres_bancaires','coffres_requetes') AND a.attnum>0 AND NOT a.attisdropped ORDER BY 1,a.attnum;
 SELECT c.relname,t.tgname,pg_get_triggerdef(t.oid) AS definition FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
  JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname IN
  ('personnages_donnees','terrains_etat','organisations','locations_actives','coffres_bancaires') AND NOT t.tgisinternal ORDER BY 1,2;
 SELECT tablename,policyname,roles,cmd,qual,with_check FROM pg_policies WHERE schemaname='public'
  AND tablename IN ('personnages_donnees','terrains_etat','organisations','caisses_batiments','locations_actives',
- 'locations_archives','chantier_commandes_recus','coffres_bancaires','coffres_requetes') ORDER BY 1,2;
+ 'locations_archives','successions','testaments','coffres_couts_autorises','chantier_commandes_recus','coffres_bancaires','coffres_requetes') ORDER BY 1,2;
 SELECT table_name,grantee,privilege_type FROM information_schema.role_table_grants WHERE table_schema='public'
  AND table_name IN ('personnages','personnages_donnees','terrains_etat','organisations','locations_actives',
  'chantier_commandes_recus','coffres_bancaires','coffres_requetes') ORDER BY 1,2,3;

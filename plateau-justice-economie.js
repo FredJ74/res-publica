@@ -3885,6 +3885,8 @@ function payerLocations() {
     // avertissement, ni resiliation. Ne concerne aucune autre location (logements sociaux,
     // appartements, locaux commerciaux...).
     if (loc.chambreClinique === true) return;
+    // Un coffre annuel n'est jamais presente comme un debit quotidien par le navigateur.
+    if (loc.coffreId && loc.periodicite==='annuelle') return;
 
     // Box portuaire (lot du 25 aout 2026, §13-14) : l'ancien bail EXCLUSIF de l'entrepot
     // (isLocationRoom/locationData retires de data.js) est remplace par des box individuels
