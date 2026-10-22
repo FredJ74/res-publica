@@ -2893,7 +2893,8 @@ async function openFinancesModal(pa, cost) {
   const placementsServeur = (typeof relirePlacementsNationauxServeur === 'function' && state.char?.name)
     ? await relirePlacementsNationauxServeur(state.char.name) : null;
   const placementsActifs = (Array.isArray(placementsServeur) ? placementsServeur : []).filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut === 'actif');
-  const totalPlacements = placementsActifs.reduce((s, p) => s + (p.montant || 0), 0);
+  const placementsTermines = (Array.isArray(placementsServeur) ? placementsServeur : []).filter(p => p && p.banque === 'nationale' && p.type === 'terme' && p.statut !== 'actif');
+  const totalPlacements = placementsActifs.reduce((s, p) => s + Number(p.montant || 0), 0);
   const pretsNationale = (typeof sbGetPretsEnCours === 'function' && state.char?.name)
     ? (await sbGetPretsEnCours(state.char.name).catch(() => [])).filter(p => (p.type_banque || 'nationale') === 'nationale')
     : [];
@@ -2937,8 +2938,15 @@ async function openFinancesModal(pa, cost) {
         : `<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">${totalPlacements.toLocaleString('fr-FR')} ${cur} placés (${placementsActifs.length} investissement(s))</div>` +
           placementsActifs.map(p => {
             const joursRestants = p.prochaine_echeance ? Math.max(0, Math.ceil((new Date(p.prochaine_echeance).getTime() - Date.now()) / 86400000)) : null;
-            return `<div style="font-size:.72rem;color:#8a8060;padding:.1rem 0">${(p.montant||0).toLocaleString('fr-FR')} ${cur}${joursRestants !== null ? ' — résultat dans ' + joursRestants + ' jour(s)' : ''}</div>`;
+            const dateDebut = p.date_placement ? new Date(p.date_placement).toLocaleDateString('fr-FR') : 'inconnue';
+            const dateFin = p.prochaine_echeance ? new Date(p.prochaine_echeance).toLocaleDateString('fr-FR') : 'inconnue';
+            return `<div style="font-size:.74rem;color:#a99979;padding:.3rem 0;border-top:1px solid #252016"><strong>${Number(p.montant||0).toLocaleString('fr-FR')} ${cur}</strong> — souscrit le ${dateDebut}, échéance le ${dateFin}${joursRestants !== null ? ' (' + joursRestants + ' jour(s) restants)' : ''}</div>`;
           }).join('')}
+      ${placementsTermines.length ? '<div style="margin-top:.7rem;font-size:.73rem;color:#b8a277">PLACEMENTS TERMINÉS</div>' + placementsTermines.map(p => {
+        const fin = p.date_resolution || p.prochaine_echeance || p.date_placement;
+        const date = fin ? new Date(fin).toLocaleDateString('fr-FR') : 'inconnue';
+        return `<div style="font-size:.73rem;color:#8a8060;padding:.2rem 0">${Number(p.montant||0).toLocaleString('fr-FR')} ${cur} — ${p.statut === 'termine' ? 'terminé' : 'statut : ' + String(p.statut || 'inconnu')} le ${date}${p.montant_final != null ? ' ; résultat : ' + Number(p.montant_final).toLocaleString('fr-FR') + ' ' + cur : ''}</div>`;
+      }).join('') : ''}
     </div>
     <div style="padding:.6rem 1rem;border-bottom:1px solid #1a1810">
       <div style="font-size:.75rem;color:#6a5a30;margin-bottom:.4rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em">EMPRUNTS EN COURS</div>
