@@ -2914,6 +2914,7 @@ async function openFinancesModal(pa, cost) {
       <div style="font-size:.75rem;color:#a09070;margin:.4rem 0">Minimum 500 FR, immobilisation 7 jours, rendement de -12 % à +12 % à échéance. Coût : 1 PA.</div>
       <div style="display:flex;gap:.5rem;align-items:center;margin:.5rem 0">
         <input class="finance-input" id="investir-montant" type="number" min="500" step="100" placeholder="Montant à placer" />
+        <select class="finance-input" id="investir-source" aria-label="Origine des fonds"><option value="nationale">Compte national</option><option value="liquide">Espèces</option></select>
         <button class="finance-btn" ${Array.isArray(placementsServeur) ? '' : 'disabled'} onclick="confirmerInvestir(1,0)">Placer</button>
       </div>
       ${placementsActifs.length === 0
