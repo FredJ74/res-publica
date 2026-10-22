@@ -1,3 +1,6 @@
+// #57 22 octobre : approvisionnement initial inclus dans la commande SQL de lancement.
+// Les refus/relectures de cette commande sont testes dans banc-construction-commandes-client.cjs
+// et le moteur dans banc-construction-jour-local.py ; aucun scenario supprime.
 // Banc STRUCTUREL de l'APPROVISIONNEMENT DES CHANTIERS -- plateau-justice-economie.js
 // (chantier 5, chaine 5, 10 octobre 2026).
 // SOURCES: aucune -- ce banc lit plateau-justice-economie.js lui-meme, par readFile.
@@ -74,37 +77,37 @@ att('plus aucun test `plan.depense > 0`',
     compte(code, /plan\.depense\s*>\s*0/g) === 0);
 
 print('');
-print('3. DEUX APPELS A LA PORTE, UN PAR FAMILLE DE CHANTIER');
-att('exactement deux appels dans le fichier',
-    compte(code, /sbRpc\('chantier_approvisionner'/g) === 2,
+print('3. CONSTRUCTION ATOMIQUE, PORTE HISTORIQUE CONSERVEE POUR REAMENAGEMENT');
+att('un seul appel historique, reserve au reamenagement',
+    compte(code, /sbRpc\('chantier_approvisionner'/g) === 1,
     compte(code, /sbRpc\('chantier_approvisionner'/g) + ' appel(s)');
-att('la construction appelle la porte une fois',
-    compte(construction, /sbRpc\('chantier_approvisionner'/g) === 1);
-att("elle nomme la cle « chantier »",
-    construction.indexOf("p_cle_chantier: 'chantier'") >= 0);
+att('la construction appelle une seule commande atomique de lancement',
+    compte(construction, /constructionExecuterCommande\('lancer'/g) === 1);
+att('la construction ne fractionne plus le lancement et le premier approvisionnement',
+    compte(construction, /sbRpc\(/g) === 0 && compte(construction, /chantier_approvisionner/g) === 0);
 att('le reamenagement appelle la porte une fois',
     compte(reconfig, /sbRpc\('chantier_approvisionner'/g) === 1);
 att("il nomme la cle « chantierReamenagement »",
     reconfig.indexOf("p_cle_chantier: 'chantierReamenagement'") >= 0);
-att('les deux transmettent le besoin du jour et le jour de jeu',
-    compte(code, /p_besoin: besoinJ1, p_jour: state\.day \|\| 1/g) === 2,
+att('seul le reamenagement transmet encore un besoin, la construction le derive au serveur',
+    compte(code, /p_besoin: besoinJ1, p_jour: state\.day \|\| 1/g) === 1,
     compte(code, /p_besoin: besoinJ1, p_jour: state\.day \|\| 1/g) + ' occurrence(s)');
 
 print('');
 print('4. LE VERDICT EST LU, ET UNE PANNE EST NOMMEE AU JOUEUR');
 att('la construction lit le verdict',
-    construction.indexOf('!appro || appro.ok !== true') >= 0);
+    construction.indexOf('if(!r)return') >= 0);
 att('le reamenagement lit le verdict',
     reconfig.indexOf('!appro || appro.ok !== true') >= 0);
-att("les deux nomment « Approvisionnement non confirmé »",
-    compte(code, /Approvisionnement non confirmé/g) === 2,
+att("le refus d approvisionnement historique reste nomme",
+    compte(code, /Approvisionnement non confirmé/g) === 1,
     compte(code, /Approvisionnement non confirmé/g) + ' occurrence(s)');
-att('les deux recopient le chantier ARRETE PAR LE SERVEUR',
-    compte(code, /ch = appro\.chantier;|chantier = appro\.chantier;/g) === 2,
+att('reamenagement recopie le chantier serveur, construction delegue a la relecture commune',
+    compte(code, /ch = appro\.chantier;|chantier = appro\.chantier;/g) === 1,
     compte(code, /ch = appro\.chantier;|chantier = appro\.chantier;/g) + ' occurrence(s)');
-att('les deux signalent l echec au Journal en event-bad',
+att('le reamenagement conserve son journal de refus',
     compte(src, /approvisionnement du jour 1 non enregistré\.",?\s*\n?\s*'event-bad'|approvisionnement du jour 1 non enregistré\.", 'event-bad'/g) >= 1
-    || compte(code, /approvisionnement du jour 1 non enregistré/g) === 2,
+    || compte(code, /approvisionnement du jour 1 non enregistré/g) === 1,
     compte(code, /approvisionnement du jour 1 non enregistré/g) + ' occurrence(s)');
 
 print('');

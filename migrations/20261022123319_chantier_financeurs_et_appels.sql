@@ -1,9 +1,9 @@
 -- #57 PREPAREE. Adaptateurs des caisses existantes, aucun compte parallele.
 BEGIN;
 DO $g$ DECLARE h text; BEGIN
-SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_financeur_verrouiller_interne(text,text,text)'); IF h IS NOT NULL AND h<>'335f5827ef610d76d6e912dda6d4db3f' THEN RAISE EXCEPTION 'definition_non_examinee: chantier_financeur_verrouiller_interne(text,text,text)';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_financeur_verrouiller_interne(text,text,text)'); IF h IS NOT NULL AND h<>'e23c07c5c8806ca832f23989756f1fe1' THEN RAISE EXCEPTION 'definition_non_examinee: chantier_financeur_verrouiller_interne(text,text,text)';END IF;
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_financeur_debiter_interne(jsonb,numeric)'); IF h IS NOT NULL AND h<>'722aa30a2fd08e7dbe303f13e7c7f716' THEN RAISE EXCEPTION 'definition_non_examinee: chantier_financeur_debiter_interne(jsonb,numeric)';END IF;
-SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_appel_fonds_interne(jsonb,jsonb)'); IF h IS NOT NULL AND h<>'8c34197110991a11f475b50d95f54903' THEN RAISE EXCEPTION 'definition_non_examinee: chantier_appel_fonds_interne(jsonb,jsonb)';END IF;
+SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.chantier_appel_fonds_interne(jsonb,jsonb)'); IF h IS NOT NULL AND h<>'9fd0bbebbc32c94cfa50a8f7e1419f2f' THEN RAISE EXCEPTION 'definition_non_examinee: chantier_appel_fonds_interne(jsonb,jsonb)';END IF;
 END;$g$;
 CREATE OR REPLACE FUNCTION public.chantier_financeur_verrouiller_interne(p_titulaire text,p_pays text,p_ville text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $f$
@@ -17,13 +17,14 @@ BEGIN
  ELSIF p_titulaire LIKE 'ville:%' THEN
   IF p_titulaire<>'ville:'||p_pays||':'||p_ville THEN RAISE EXCEPTION 'commune_hors_territoire';END IF;
   c:=p_pays||'_mairie_'||p_ville;
-  PERFORM 1 FROM public.caisses_batiments WHERE id=c FOR UPDATE;
+  SELECT data INTO d FROM public.caisses_batiments WHERE id=c FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'caisse_communale_absente';END IF;
+  IF (d->>'solde') IS NULL OR (d->>'solde')::numeric<0 OR (d->>'solde')::numeric<>trunc((d->>'solde')::numeric) OR d->>'solde' IN('NaN','Infinity','-Infinity') THEN RAISE EXCEPTION 'caisse_communale_invalide';END IF;
   SELECT data::jsonb->>'eluId' INTO n FROM public.cycles_electoraux WHERE country=p_pays AND poste_id='maire' AND city=p_ville;
   RETURN jsonb_build_object('type','ville','id',c,'destinataire',n);
  ELSE
   n:=CASE WHEN p_titulaire LIKE 'pj:%' THEN substr(p_titulaire,4) ELSE p_titulaire END;
-  IF n IS NULL OR n='' OR position(':' in n)>0 AND p_titulaire NOT LIKE 'pj:%' THEN RAISE EXCEPTION 'titulaire_non_pris_en_charge';END IF;
+  IF n IS NULL OR n='' THEN RAISE EXCEPTION 'titulaire_non_pris_en_charge';END IF;
   PERFORM 1 FROM public.personnages_donnees WHERE name=n FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'proprietaire_absent';END IF;
   PERFORM 1 FROM public.comptes_bancaires WHERE personnage=n AND banque='nationale' FOR UPDATE;
@@ -65,7 +66,9 @@ BEGIN
  IF p IS NULL OR d IS NULL OR d<=0 OR t IS NULL OR t<=0 OR verse IS NULL OR verse<0 THEN RAISE EXCEPTION 'dimensionnement_chantier_invalide';END IF;
  cible:=ceil(t*CASE WHEN p>=d*2/3 THEN 1 WHEN p>=d/3 THEN .70 ELSE .35 END);
  m:=greatest(0,cible-verse);
- IF m=0 THEN RETURN ch;END IF;
+ IF m=0 THEN
+  IF ch->>'arrete'='financement' THEN ch:=ch||jsonb_build_object('arrete',null,'appelFondsManquant',null);END IF;
+  RETURN ch;END IF;
  IF public.chantier_financeur_debiter_interne(p_source,m) THEN
   ch:=ch||jsonb_build_object('totalVerse',verse+m,'tresorerie',coalesce((ch->>'tresorerie')::numeric,0)+m,'arrete',null,'appelFondsManquant',null);
   evenement:='appel_fonds_paye';

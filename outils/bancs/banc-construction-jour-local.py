@@ -19,7 +19,7 @@ def main():
    CREATE TABLE organisations(id text PRIMARY KEY,data text);
    CREATE TABLE caisses_batiments(id text PRIMARY KEY,data jsonb,updated_at timestamptz);
    CREATE TABLE cycles_electoraux(country text,poste_id text,city text,data text);
-   CREATE TABLE terrains_etat(id text PRIMARY KEY,country text,building_id text,proprietaire text,data text,updated_at timestamptz);
+   CREATE TABLE terrains_etat(id text PRIMARY KEY,country text,building_id text,proprietaire text,data text,updated_at timestamptz,niveau_construction text);
    CREATE TABLE batiments_etat(id text PRIMARY KEY,country text,city text,data jsonb,updated_at timestamptz);
    CREATE TABLE villes(pays text,ville text);INSERT INTO villes VALUES('republic','capitale');
    CREATE TABLE chantiers_besoins_jour(position_cycle integer,bois numeric,minerai numeric,metal numeric);
@@ -27,7 +27,7 @@ def main():
    CREATE TABLE ressources_economie(cle text PRIMARY KEY,prix_base numeric);INSERT INTO ressources_economie VALUES('bois',5),('minerai',10),('metal',15);
    CREATE TABLE entreprises_constantes(cle text PRIMARY KEY,valeur numeric);INSERT INTO entreprises_constantes VALUES('chantier_taux_horaire',70);
    CREATE FUNCTION est_appel_serveur() RETURNS boolean LANGUAGE sql AS $$SELECT current_setting('test.serveur',true)='on'$$;
-   CREATE FUNCTION exiger_acteur(text) RETURNS void LANGUAGE plpgsql AS $$BEGIN IF NOT est_appel_serveur() THEN RAISE EXCEPTION 'interdit_fixture';END IF;END$$;
+   CREATE FUNCTION exiger_acteur(text) RETURNS void LANGUAGE plpgsql AS $$BEGIN IF NOT est_appel_serveur() AND $1 IS DISTINCT FROM public.mon_personnage() THEN RAISE EXCEPTION 'interdit_fixture';END IF;END$$;
    CREATE TABLE notifications(destinataire text,sujet text,corps text);
    CREATE FUNCTION mail_systeme_poser_interne(text,text,text,text,text DEFAULT NULL) RETURNS jsonb LANGUAGE plpgsql AS $$BEGIN INSERT INTO notifications VALUES($2,$3,$4);RETURN '{"ok":true}';END$$;
    SET test.serveur='on';""")
@@ -36,6 +36,16 @@ def main():
     s=(R/f'baseline/seeds/90_socle/{f}.sql').read_text();c.execute(s)
    for f in sorted((R/'migrations').glob('202610221233*.sql')):c.execute(f.read_text());c.execute(f.read_text())
    c.execute("INSERT INTO personnages_donnees VALUES('Alice','republic',60000,30000,now());INSERT INTO comptes_bancaires VALUES('Alice','nationale',30000,now());INSERT INTO caisses_batiments VALUES('republic_gouvernement-min_fin','{\"solde\":0}',now()),('republic_entrepot_capitale','{\"solde\":0}',now()),('republic_mairie_capitale','{\"solde\":60000}',now());INSERT INTO organisations VALUES('orga','{\"chef\":\"Chef\",\"caisse\":60000}');INSERT INTO cycles_electoraux VALUES('republic','maire','capitale','{\"eluId\":\"Maire1\"}');INSERT INTO batiments_etat VALUES('republic_capitale_entrepot','republic','capitale','{\"entrepot\":{\"stock\":{\"bois\":10000,\"minerai\":10000,\"metal\":10000}}}',now())")
+   c.execute("ALTER TABLE personnages_donnees ADD COLUMN hp integer DEFAULT 100,ADD COLUMN hospitalisation jsonb,ADD COLUMN current_city text DEFAULT 'capitale',ADD COLUMN current_building text,ADD COLUMN day integer DEFAULT 1,ADD COLUMN poste jsonb")
+   c.execute("CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$SELECT nullif(current_setting('test.acteur',true),'')$$;CREATE FUNCTION acteur_poste_courant() RETURNS TABLE(nom text,poste_id text,poste_city text,pays text) LANGUAGE sql AS $$SELECT name,poste->>'id',poste->>'city',country FROM personnages_donnees WHERE name=mon_personnage()$$")
+   c.execute(fn('migrations/20261019064000_organisations_equipements_collectifs.sql','organisation_equipement_exiger'))
+   c.execute(fn('baseline/domaines/politique-et-elections/20_fonctions.sql','poste_est_atteste'))
+   src=(R/'baseline/domaines/economie/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public.chantiers_paliers \(.*?\n\);',src,re.S)[0])
+   c.execute((R/'baseline/seeds/90_socle/chantiers_paliers.sql').read_text())
+   for migration in sorted((R/'migrations').glob('202610221240*.sql')):c.execute(migration.read_text());c.execute(migration.read_text())
+   c.execute((R/'migrations/20261022125121_chantier_recu_relecture.sql').read_text())
+   for nom in ['chantier_lancer','chantier_verser']:c.execute(fn('baseline/domaines/economie/20_fonctions-1.sql',nom))
+   c.execute((R/'migrations/20261022125728_chantier_fermer_commandes_non_versionnees.sql').read_text());c.execute((R/'migrations/20261022125728_chantier_fermer_commandes_non_versionnees.sql').read_text())
    def ok(v,t):
     nonlocal n
     assert v,t;n+=1;print('OK',t,flush=True)
@@ -43,10 +53,10 @@ def main():
    def creer(id,owner='Alice',progress=0,verse=10500,tre=10500):
     ch={'type':'construction','niveau':'hangar','dureeJours':6,'coutTotal':30000,'coutTravail':21000,'progressionJours':progress,'totalVerse':verse,'tresorerie':tre,'heuresFaites':0,'stockMateriaux':{},'evenements':[]}
     etat={'city':'capitale','proprietaire':owner,'surface':741,'prixAchat':23000,'chantier':ch}
-    c.execute('INSERT INTO terrains_etat VALUES(%s,\'republic\',%s,%s,%s,now())',(id,id,owner,json.dumps(etat)));return etat
+    c.execute('INSERT INTO terrains_etat(id,country,building_id,proprietaire,data,updated_at) VALUES(%s,\'republic\',%s,%s,%s,now())',(id,id,owner,json.dumps(etat)));return etat
    def traiter(id,cur=c):cur.execute('SELECT chantier_jour_traiter(%s)',(id,));return cur.fetchone()[0]
    def prochain(id):c.execute("UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{chantier,jourTraite}','null')::text WHERE id=%s",(id,))
-   def photo():return q("SELECT jsonb_build_array((SELECT jsonb_agg(t ORDER BY id) FROM terrains_etat t),(SELECT jsonb_agg(p ORDER BY name) FROM personnages_donnees p),(SELECT jsonb_agg(c ORDER BY id) FROM caisses_batiments c),(SELECT jsonb_agg(c) FROM comptes_bancaires c),(SELECT jsonb_agg(b) FROM batiments_etat b),(SELECT jsonb_agg(n) FROM notifications n),(SELECT jsonb_agg(o) FROM organisations o))")
+   def photo():return q("SELECT jsonb_build_array((SELECT jsonb_agg(t ORDER BY id) FROM terrains_etat t),(SELECT jsonb_agg(p ORDER BY name) FROM personnages_donnees p),(SELECT jsonb_agg(c ORDER BY id) FROM caisses_batiments c),(SELECT jsonb_agg(c) FROM comptes_bancaires c),(SELECT jsonb_agg(b) FROM batiments_etat b),(SELECT jsonb_agg(n) FROM notifications n),(SELECT jsonb_agg(o) FROM organisations o),(SELECT jsonb_agg(r ORDER BY requete) FROM chantier_commandes_recus r))")
    creer('normal');r=traiter('normal');ch=r['etat']['chantier'];ok(ch['progressionJours']==1 and ch['tresorerie']==5505,'journee reelle, matieres et PNJ payes')
    ok(q("SELECT data->>'solde' FROM caisses_batiments WHERE id='republic_entrepot_capitale'")=='1495','recette entrepot dans seule caisse canonique')
    ok(q("SELECT batiment_etat_lire(data)->'entrepot' ? 'caisse' FROM batiments_etat")==False,'aucune caisse parasite dans le blob')
@@ -85,6 +95,46 @@ def main():
    c.execute("SET test.serveur='off'");avant=photo();ok(traiter('normal')['raison']=='reserve_au_serveur' and photo()==avant,'appel navigateur refuse sans mutation')
    c.execute("SELECT has_function_privilege('authenticated','chantier_jour_traiter(text)','EXECUTE'),has_function_privilege('service_role','chantier_jour_traiter(text)','EXECUTE'),has_function_privilege('service_role','chantier_financeur_debiter_interne(jsonb,numeric)','EXECUTE')")
    ok(c.fetchone()==(False,True,False),'droits : cron seul, primitives financieres privees')
+   c.execute("SELECT has_function_privilege('authenticated','chantier_lancer(text,text,text,text,numeric)','EXECUTE'),has_function_privilege('authenticated','chantier_verser(text,text,text,numeric)','EXECUTE')");ok(c.fetchone()==(False,False),'anciennes commandes sans recu inaccessibles au navigateur')
+   # Commandes du meme moteur : lancement, versement et reception, avec vrai recu.
+   c.execute("SET test.acteur='Alice';UPDATE personnages_donnees SET liquide=100000,arg=100000,current_building='lancement';UPDATE comptes_bancaires SET solde=0")
+   def terrain_vierge(id,owner='Alice',palier='hangar'):
+    d={'proprietaire':owner,'city':'capitale','surface':1500,'prixAchat':3570,'constructionAutorisee':True,'permis':{'palierDemande':palier,'decoupageInitial':[]}}
+    c.execute("INSERT INTO terrains_etat(id,country,building_id,proprietaire,data) VALUES(%s,'republic',%s,%s,%s)",(id,id,owner,json.dumps(d)))
+   def commande(req,id,action,params={}):return q('SELECT chantier_commande(%s,%s,%s,%s)',(req,id,action,Json(params)))
+   def refuse(fn,t):
+    c.execute('COMMIT')
+    avant=photo()
+    try:
+     r=fn();assert r.get('ok') is False,'refus attendu : '+t
+    except psycopg2.Error:db.rollback()
+    ok(photo()==avant,t)
+   terrain_vierge('lancement');r=commande('ch-lancement-0001','lancement','lancer',{'palier':'hangar','apport':'10500'})
+   ok(r['ok'] and r['chantier']['prixAchatPJ']=={'bois':6,'minerai':11,'metal':17},'lancement commun, prix miroir arrondis au franc superieur')
+   avant=photo();ok(commande('ch-lancement-0001','lancement','lancer',{'palier':'hangar','apport':'10500'})['rejeu'] and photo()==avant,'lancement : reponse perdue sans second debit')
+   refuse(lambda:commande('ch-lancement-0001','lancement','lancer',{'palier':'hangar','apport':'12000'}),'reutilisation du recu pour un autre montant refusee')
+   refuse(lambda:commande('ch-reception-0001','lancement','receptionner'),'reception prematuree refusee sans mutation')
+   c.execute("UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{chantier,progressionJours}','6')::text WHERE id='lancement';UPDATE personnages_donnees SET current_building='ailleurs'")
+   refuse(lambda:commande('ch-reception-0002','lancement','receptionner'),'reception hors site refusee')
+   c.execute("UPDATE personnages_donnees SET current_building='lancement'")
+   r=commande('ch-reception-0003','lancement','receptionner');ok(r['ok'] and 'chantier' not in r['etat'] and r['etat']['niveau_construction']=='hangar','reception sur place active le batiment une seule fois')
+   ok(q("SELECT data->>'solde' FROM caisses_batiments WHERE id='republic_capitale_lancement'")=='9005','reliquat financier a la caisse du batiment, jamais au PJ')
+   ok(q("SELECT chantier_commande_recu('ch-reception-0003')")['terminee'],'rechargement : recu confirme consultable sans rejouer la commande')
+   c.execute("SET test.acteur='Bob'");ok(not q("SELECT chantier_commande_recu('ch-reception-0003')")['terminee'],'autre acteur : aucun recu divulgue');c.execute("SET test.acteur='Alice'")
+   avant=photo();ok(commande('ch-reception-0003','lancement','receptionner')['rejeu'] and photo()==avant,'reception reponse perdue : aucun second reliquat')
+   ok(r['etat']['stockMateriaux']=={'bois':100,'minerai':50,'metal':33},'reliquat materiaux au stock du batiment sans passage par inventaire PJ')
+   ok(r['etat']['surface']==1500 and r['etat']['prixAchat']==3570,'surface et prix propres preserves')
+   terrain_vierge('municipal','ville:republic:capitale');c.execute("UPDATE personnages_donnees SET poste='{\"id\":\"maire_adjoint\",\"city\":\"capitale\"}',current_building='municipal'")
+   refuse(lambda:commande('ch-commune-0001','municipal','lancer',{'palier':'hangar','apport':'10500'}),'adjoint ne peut engager une construction communale')
+   c.execute("UPDATE personnages_donnees SET poste='{\"id\":\"maire\",\"city\":\"capitale\"}';UPDATE cycles_electoraux SET data='{\"eluId\":\"Maire2\"}'")
+   refuse(lambda:commande('ch-commune-0001','municipal','lancer',{'palier':'hangar','apport':'10500'}),'faux poste maire sans mandat atteste refuse')
+   c.execute("UPDATE cycles_electoraux SET data='{\"eluId\":\"Alice\"}'")
+   argent=q('SELECT liquide FROM personnages_donnees');r=commande('ch-commune-0001','municipal','lancer',{'palier':'hangar','apport':'10500'})
+   ok(r['ok'] and q('SELECT liquide FROM personnages_donnees')==argent and r['etat']['proprietaire']=='ville:republic:capitale','maire decide seul, finance communal, aucune appropriation personnelle')
+   terrain_vierge('projet-orga','orga:orga');c.execute("UPDATE personnages_donnees SET current_building='projet-orga';UPDATE organisations SET data=jsonb_set(data::jsonb,'{chef}','\"Autre\"')::text")
+   refuse(lambda:commande('ch-orga-00001','projet-orga','lancer',{'palier':'hangar','apport':'10500'}),'organisation : membre sans representation refuse')
+   c.execute("UPDATE organisations SET data=jsonb_set(data::jsonb,'{chef}','\"Alice\"')::text")
+   r=commande('ch-orga-00001','projet-orga','lancer',{'palier':'hangar','apport':'10500'});ok(r['ok'] and r['chantier']['maitreOuvrage']=='orga:orga','organisation : chef via porte commune, caisse et maitrise ouvrage organisationnelles')
   print(f'{n}/{n} assertions, PostgreSQL jetable ; authentification et notifications de fixture, aucun acces production.')
  finally:server.cleanup()
 if __name__=='__main__':main()

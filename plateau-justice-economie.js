@@ -5089,9 +5089,13 @@ function signalerRefusTerrain(v, action) {
   if (typeof showToast === 'function') showToast(quoi + ' impossible', detail.charAt(0).toUpperCase() + detail.slice(1), false);
 }
 
-async function chargerTerrainState(buildingId) {
-  if (typeof sbGetTerrainState !== 'function') return getTerrainState(buildingId);
-  const distant = await sbGetTerrainState(state.country, buildingId).catch(() => null);
+async function chargerTerrainState(buildingId, exigerDistant) {
+  const contexte={personnage:state.char,pays:state.country,ville:state.currentCity};
+  if(typeof constructionReconcilierCommandes==='function')await constructionReconcilierCommandes(buildingId);
+  if (typeof sbGetTerrainState !== 'function') return exigerDistant?null:getTerrainState(buildingId);
+  const distant = await sbGetTerrainState(contexte.pays, buildingId, contexte.ville).catch(() => null);
+  if(state.char!==contexte.personnage||state.country!==contexte.pays||state.currentCity!==contexte.ville)return null;
+  if(exigerDistant&&!distant)return null;
   if (distant) {
     if (!state.terrainsState) state.terrainsState = {};
     state.terrainsState[buildingId] = distant;
@@ -7565,7 +7569,7 @@ async function ouvrirModalConstruire() {
   const ts = getTerrainState(id);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
-  if (!estTitulaire(ts.proprietaire)) {
+  if (!constructionPeutGerer(ts)) {
     showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false);
     return;
   }
@@ -7598,7 +7602,7 @@ async function ouvrirModalConstruire() {
 
   document.getElementById('postes-modal-title').textContent = 'Construire sur ce terrain';
   let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le type de construction. Vous versez librement ce que vous voulez dans la trésorerie du chantier, au minimum 35 % pour le lancer, et vous complétez ensuite à votre rythme : 70 % pour franchir le premier tiers, 100 % pour les deux tiers.</div>';
+  html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le type de construction. Vous versez librement ce que vous voulez dans la trésorerie du chantier, au minimum 35 % pour le lancer, Les tranches suivantes sont prélevées automatiquement : 35 % au premier tiers, puis 30 % aux deux tiers. Fonds insuffisants : pause sans débit partiel.</div>';
   Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
     html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
     const mini = montantMinimalLancement(niv.cout);
@@ -7619,176 +7623,29 @@ async function ouvrirModalConstruire() {
 // une seule table, jamais deux.
 
 async function confirmerConstruction(niveauKey) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Construire ici')) return;
-  const ts = getTerrainState(id);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (ts.chantier) { showToast('Chantier en cours', 'Un chantier est déjà en cours sur ce terrain.', false); return; }
-
-  // Cadavre / squatteurs : meme contrat que l'ecran, revalide ici -- l'ecran n'est qu'une
-  // anticipation, contournable par un appel direct (meme doctrine qu'au Lot 1.2).
-  const dispo = (typeof terrainOrdreDisponible === 'function')
-    ? terrainOrdreDisponible('construire_sur_terrain', id) : { ok: true };
-  if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
-
-  // PERMIS EXACT : le permis accorde doit porter sur CE palier. constructionAutorisee seule ne
-  // suffit pas -- elle ne dit pas pour quel type de construction l'autorisation a ete donnee.
-  if (!ts.constructionAutorisee) { showToast('Permis requis', "La construction n'est pas autorisée sur ce terrain.", false); return; }
-  const palierAccorde = ts.permis && ts.permis.palierDemande;
-  if (palierAccorde && palierAccorde !== niveauKey) {
-    showToast('Permis non conforme',
-      'Votre permis porte sur « ' + (NIVEAUX_CONSTRUCTION[palierAccorde]?.label || palierAccorde) + ' », pas sur ce projet.', false);
-    return;
-  }
-
-  // Chantier dimensionne et FIGE au lancement (plateau-chantiers.js).
-  let chantier = creerChantierConstruction(niveauKey, state.day || 1);
-  if (!chantier) { showToast('Projet inconnu', '', false); return; }
-
-  // Apport initial LIBRE, au minimum 35 % du cout total. Aucun echeancier : le proprietaire peut
-  // verser davantage, jusqu'a 100 % des maintenant, et completera ensuite a son rythme.
-  const mini = montantMinimalLancement(chantier.coutTotal);
-  const saisi = parseInt(document.getElementById('chantier-apport')?.value || 0);
-  const apport = (saisi && saisi > 0) ? saisi : mini;
-  if (apport < mini) {
-    showToast('Apport insuffisant', 'Il faut verser au moins ' + mini.toLocaleString('fr-FR') + ' ' + cur + ' (35 %) pour lancer ce chantier.', false);
-    return;
-  }
-  const fonds = (typeof getFondsDisponiblesOrdinaires === 'function') ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (fonds < apport) {
-    showToast('Fonds insuffisants', apport.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
-    return;
-  }
-
-  // CHANTIER C (14 septembre 2026). L'apport est un MONTANT DE TRANSACTION choisi par le joueur :
-  // il ne peut pas figurer dans le miroir des couts d'ordre, et payer_ordre le refusait donc
-  // ('cout_non_declare') -- le lancement d'un chantier etait impossible en production. chantier_lancer
-  // relit le terrain sous verrou, revalide propriete, permis, palier et gel, construit le chantier
-  // a partir du gabarit MIROIR du palier, verifie l'apport minimal de 35 % et preleve.
-  const rLancement = await sbRpc('chantier_lancer', {
-    p_acteur: state.char?.name, p_pays: state.country, p_batiment: id,
-    p_palier: niveauKey, p_apport: apport
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
-  if (!rLancement || rLancement.ok !== true) {
-    const messages = {
-      pas_proprietaire: 'Ce terrain ne vous appartient pas.',
-      chantier_en_cours: 'Un chantier est déjà en cours sur ce terrain.',
-      permis_requis: "La construction n'est pas autorisée sur ce terrain.",
-      permis_non_conforme: 'Votre permis ne porte pas sur ce projet.',
-      apport_insuffisant: 'Il faut verser au moins ' + mini.toLocaleString('fr-FR') + ' ' + cur + ' (35 %).',
-      fonds_insuffisants: apport.toLocaleString('fr-FR') + ' ' + cur + ' requis.',
-      terrain_gele: 'Ce terrain est gelé par une succession.'
-    };
-    showToast('Chantier impossible', messages[(rLancement && rLancement.raison) || ''] || '', false);
-    return;
-  }
-  state.arg = rLancement.arg; state.liquide = rLancement.liquide;
-  if (state.char) state.char.arg = state.arg;
-  chantier = rLancement.chantier;
-
-  // APPROVISIONNEMENT IMMEDIAT (Lot 1.5.9). Un chantier ne doit pas attendre minuit pour pouvoir
-  // employer quelqu'un. Memes regles exactement que l'approvisionnement quotidien du cron --
-  // meme fonction de decision, planifierApprovisionnement -- avec les entrees/sorties d'ici.
-  // Si l'entrepot ou la tresorerie ne suivent pas, la penurie reste reelle : rien n'est invente.
-  const villeTerrain = ts.city || state.currentCity || 'capitale';
-  const idEntrepot = (typeof ENTREPOT_PAR_VILLE !== 'undefined') ? ENTREPOT_PAR_VILLE[villeTerrain] : null;
-  // L'APPROVISIONNEMENT EST UNE SEULE TRANSACTION, DES DEUX COTES (chantier 5, chaine 5,
-  // 10 octobre 2026).
-  //
-  // CE QUI SE PASSAIT, EN DEUX DEFAUTS. (a) approvisionner_chantier debite l'ENTREPOT dans sa
-  // transaction, mais la contrepartie -- le stock livre, la tresorerie depensee -- ne vivait que
-  // dans le sbSetTerrainState avale qui suivait. Perdue, la marchandise etait DETRUITE :
-  // l'entrepot avait vendu, le chantier n'avait rien recu et n'avait rien paye. Et le repli
-  // `|| { depense: 0 }` presentait une panne de la RPC comme « rien a acheter », donc comme un
-  // succes. (b) Plus grave : le navigateur transmettait lui-meme p_tresorerie, qui BORNE le
-  // pouvoir d'achat. Un client modifie annoncant une tresorerie enorme pouvait vider l'entrepot
-  // sans rien payer.
-  //
-  // chantier_approvisionner lit le chantier DANS LE BLOB DU TERRAIN sous verrou -- stock et
-  // tresorerie compris -- delegue a approvisionner_chantier (qui reste l'unique moteur du cote
-  // entrepot, et n'est plus appelable par un client), puis ecrit la contrepartie dans le meme
-  // blob et la meme transaction. Elle verifie aussi que le terrain est bien le mien.
-  //
-  // Le chantier lui-meme est deja persiste par chantier_lancer, appelee plus haut : il n'y a donc
-  // plus aucune ecriture de terrain a faire ici.
-  if (idEntrepot) {
-    const besoinJ1 = besoinMateriauxJourChantier(chantier, 1);
-    const appro = typeof sbRpc === 'function'
-      ? await sbRpc('chantier_approvisionner', {
-          p_terrain_id: id, p_cle_chantier: 'chantier', p_entrepot: idEntrepot,
-          p_besoin: besoinJ1, p_jour: state.day || 1
-        }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
-          .catch(function () { return null; })
-      : null;
-    // UNE PANNE N'EST PLUS « RIEN A ACHETER ». On le dit, et on garde le chantier tel que le
-    // serveur le connait : il existe, il n'est simplement pas approvisionne.
-    if (!appro || appro.ok !== true) {
-      showToast('Approvisionnement non confirmé',
-        "Le chantier est ouvert, mais la livraison du premier jour n'a pas pu être enregistrée"
-        + ((appro && appro.raison) ? ' (' + appro.raison + ')' : '')
-        + '. Rien n\'a été prélevé à l\'entrepôt.', false);
-      addJournalEntry("Chantier ouvert, approvisionnement du jour 1 non enregistré.", 'event-bad');
-    } else if (appro.chantier) {
-      // On recopie dans le cache le chantier arrete par le SERVEUR, jamais un calcul local.
-      chantier = appro.chantier;
-      if (typeof setTerrainState === 'function') setTerrainState(id, { chantier: chantier });
-    }
-  }
-
+  const palier=creerChantierConstruction(niveauKey,state.day||1);
+  if(!palier)return;
+  const texte=document.getElementById('chantier-apport')?.value?.trim();
+  let apport;
+  try{apport=texte?constructionFrancsEntiers(texte):montantMinimalLancement(palier.coutTotal);}
+  catch(_){showToast('Apport invalide','Utilisez des francs entiers.',false);return;}
+  const r=await constructionExecuterCommande('lancer',{palier:niveauKey,apport:String(apport)});
+  if(!r)return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  const pct = Math.floor(chantier.totalVerse * 100 / chantier.coutTotal);
-  addJournalEntry('Chantier ouvert : ' + NIVEAUX_CONSTRUCTION[niveauKey].label + '. Apport de '
-    + apport.toLocaleString('fr-FR') + ' ' + cur + ' (' + pct + ' % du coût). Durée théorique : '
-    + chantier.dureeJours + ' jours de travail effectif.', 'event-good');
-  showToast('Chantier ouvert !', chantier.dureeJours + ' jours de travail à financer et à réaliser.', true, true);
+  showToast('Chantier ouvert', 'Le serveur a confirmé le financement et les premiers matériaux.',true,true);
 }
 
 // Apport libre a tout moment : n'importe quel montant positif, autant de fois qu'on veut.
 // Remplace l'ancien "payer le versement du palier" : il n'existe plus de versement impose.
 async function doPayerVersementChantier() {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Financer le chantier')) return;
-  await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const ch = ts.chantier;
-  if (!ch) { showToast('Aucun chantier', "Aucun chantier en cours sur ce terrain.", false); return; }
-
-  const saisi = parseInt(document.getElementById('chantier-versement')?.value || 0);
-  const restant = Math.max(0, ch.coutTotal - ch.totalVerse);
-  const montant = (saisi && saisi > 0) ? saisi : restant;
-  if (montant <= 0) { showToast('Déjà financé', 'Ce chantier est intégralement financé.', false); return; }
-
-  const fonds = (typeof getFondsDisponiblesOrdinaires === 'function') ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (fonds < montant) { showToast('Fonds insuffisants', montant.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
-
-  // CHANTIER C : meme cause, meme correctif que le lancement. Le serveur relit le reste a
-  // financer, borne le versement, preleve et ecrit -- en une seule transaction.
-  const rVersement = await sbRpc('chantier_verser', {
-    p_acteur: state.char?.name, p_pays: state.country, p_batiment: id, p_montant: montant
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
-  if (!rVersement || rVersement.ok !== true) {
-    const messages = {
-      pas_proprietaire: 'Ce terrain ne vous appartient pas.',
-      chantier_absent: "Aucun chantier en cours sur ce terrain.",
-      deja_finance: 'Ce chantier est intégralement financé.',
-      fonds_insuffisants: montant.toLocaleString('fr-FR') + ' ' + cur + ' requis.',
-      terrain_gele: 'Ce terrain est gelé par une succession.'
-    };
-    showToast('Versement refusé', messages[(rVersement && rVersement.raison) || ''] || '', false);
-    return;
-  }
-  state.arg = rVersement.arg; state.liquide = rVersement.liquide;
-  if (state.char) state.char.arg = state.arg;
-  const maj = rVersement.chantier;
-  setTerrainState(id, { chantier: maj });
-
-  updateUI();
-  const pct = Number(rVersement.pourcentage || 0);
-  addJournalEntry('Chantier financé : +' + montant.toLocaleString('fr-FR') + ' ' + cur
-    + ' (total versé : ' + pct + ' %).', 'event-good');
-  showToast('Versement effectué', 'Financement cumulé : ' + pct + ' %.', true);
+  const ch=getTerrainState(state.currentBuilding).chantier;
+  if(!ch)return;
+  const texte=document.getElementById('chantier-versement')?.value?.trim();
+  let montant;
+  try{montant=texte?constructionFrancsEntiers(texte):Math.max(0,ch.coutTotal-ch.totalVerse);}
+  catch(_){showToast('Montant invalide','Utilisez des francs entiers.',false);return;}
+  const r=await constructionExecuterCommande('verser',{montant:String(montant)});
+  if(r)showToast('Versement confirmé','Le financement réel du chantier a été actualisé.',true);
 }
 
 async function doCorrompreChantier(pa, cost) {

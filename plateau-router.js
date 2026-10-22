@@ -261,7 +261,7 @@ async function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'transfert_compromis') { ouvrirMenuTransfertCompromis(pa, cost); return; }
   if (fn === 'payer_versement_chantier') { doPayerVersementChantier(); return; }
   if (fn === 'travailler_chantier')    { doTravaillerChantier(pa, cost); return; }
-  if (fn === 'receptionner_chantier') { showToast('Réception indisponible', 'Le raccordement serveur de la réception sur place n’est pas encore installé. Aucune livraison n’a été déclenchée.', false); return; }
+  if (fn === 'receptionner_chantier') { await receptionnerChantier(); return; }
   if (fn === 'donner_materiaux_chantier') { doVendreMateriauxChantier(pa, cost, 'don'); return; }
   if (fn === 'vendre_materiaux_chantier') { doVendreMateriauxChantier(pa, cost); return; }
   if (fn === 'modifier_plan_chantier') { doModifierPlanChantier(pa, cost); return; }

@@ -20,6 +20,13 @@ function constructionReferenceTerrain(id,etat) {
   const prix=brut!==null && brut!==undefined && Number.isFinite(Number(brut)) && Number(brut)>=0?Number(brut):null;
   return {surface:Number.isFinite(surface)&&surface>0?surface:null,prix};
 }
+function constructionPeutGerer(ts){
+  if(typeof estTitulaire==='function'&&estTitulaire(ts?.proprietaire))return true;
+  const ref=ts?.proprietaire;
+  if(ref==='ville:'+state.country+':'+state.currentCity)return state.char?.poste?.id==='maire'&&state.char?.poste?.city===state.currentCity;
+  if(typeof ref==='string'&&ref.startsWith('orga:')&&typeof getOrgaById==='function')return getOrgaById(ref.slice(5))?.chef===state.char?.name;
+  return false;
+}
 function constructionMenusTerrain(ts,proprietaire) {
   const ordres=[],ch=ts.chantier;
   const masque=[...CONSTRUCTION_ORDRES_AVANT_VENTE,...CONSTRUCTION_ORDRES_INTRUS,...CONSTRUCTION_ORDRES_CHANTIER];
@@ -50,7 +57,7 @@ function ordresConstructionParcours(id,room){
   }
   if(!id?.startsWith('terrain-a-batir') || room!==Object.keys(BUILDINGS[id]?.rooms||{})[0])return [];
   const ts=getTerrainState(id);
-  return constructionMenusTerrain(ts,typeof estTitulaire==='function' && estTitulaire(ts.proprietaire));
+  return constructionMenusTerrain(ts,constructionPeutGerer(ts));
 }
 function constructionEchapper(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function constructionFenetre(titre,html){
@@ -146,4 +153,66 @@ function ouvrirNeutralisationSquatteurs(){
   // Le moteur civil actuel ne rend pas le jet final atteste demande par #57.
   // Ne pas rejouer un assassinat aux seuils differents ni facturer un combat incomplet.
   showToast('Combat non raccordé','La neutralisation attend le contrat serveur du combat commun. Aucun PA ni FR prélevé.',false);
+}
+
+// Intentions techniques persistantes, transport/auth et relectures existants. Aucun delta financier.
+let constructionCommandeEnCours=false;
+async function constructionExecuterCommande(action,parametres={}){
+  if(constructionCommandeEnCours)return null;
+  const contexte=contexteNavigationRue(),id=state.currentBuilding;
+  const cle='chantier-commande:'+JSON.stringify([contexte.uid,contexte.nom,state.country,state.currentCity,id,action]);
+  let intention;
+  try{
+    const stockee=sessionStorage.getItem(cle);
+    intention=stockee?JSON.parse(stockee):{requete:'ch-'+crypto.randomUUID(),parametres};
+    if(JSON.stringify(intention.parametres)!==JSON.stringify(parametres)){
+      showToast('Commande en attente','Reprenez d’abord la commande précédente avec les mêmes paramètres pour vérifier son résultat.',false);return null;
+    }
+    sessionStorage.setItem(cle,JSON.stringify(intention));
+  }catch(_){showToast('Commande non lancée','La reprise sûre de cette opération ne peut pas être enregistrée.',false);return null;}
+  constructionCommandeEnCours=true;
+  try{
+    const r=await sbRpcVerdict('chantier_commande',{p_requete:intention.requete,p_terrain_id:id,p_action:action,p_parametres:intention.parametres}).catch(()=>null);
+    if(!contexteNavigationRueValide(contexte))return null;
+    if(!r?.ok){
+      // Ne pas perdre l'intention sur une erreur HTTP/transport dont le resultat est inconnu.
+      if(r&&!r.transport)sessionStorage.removeItem(cle);
+      showToast('Commande non confirmée',r?.transport||!r?'La réponse est incertaine. Reprenez la même commande pour vérifier son résultat sans second traitement.':(r.raison||'Le serveur a refusé cette commande.'),false);return null;
+    }
+    // Le recu peut etre ancien : relire le terrain et les finances, jamais adopter son snapshot.
+    const frais=await chargerTerrainState(id,true);
+    if(!contexteNavigationRueValide(contexte))return null;
+    if(!frais){showToast('Commande acquise','Le serveur a confirmé l’opération, mais son état actualisé reste à relire. L’intention de reprise est conservée.',true);return null;}
+    if(typeof commercePjActualiserPersonnage==='function')await commercePjActualiserPersonnage();
+    if(!contexteNavigationRueValide(contexte))return null;
+    sessionStorage.removeItem(cle);updateUI();return r;
+  }finally{constructionCommandeEnCours=false;}
+}
+async function receptionnerChantier(){
+  const r=await constructionExecuterCommande('receptionner');
+  if(!r)return;
+  showToast('Bâtiment réceptionné','Les locaux sont ouverts. Les reliquats sont conservés dans la caisse et le stock du bâtiment.',true,true);
+  if(typeof hydraterPiecesDynamiques==='function')hydraterPiecesDynamiques();
+  if(typeof renderBuilding==='function')renderBuilding();
+}
+
+let constructionRepriseEnCours=false;
+async function constructionReconcilierCommandes(buildingId){
+  if(constructionRepriseEnCours||constructionCommandeEnCours||buildingId!==state.currentBuilding)return;
+  const c=contexteNavigationRue();constructionRepriseEnCours=true;
+  try{
+    for(const action of ['lancer','verser','receptionner']){
+      const cle='chantier-commande:'+JSON.stringify([c.uid,c.nom,state.country,state.currentCity,buildingId,action]);
+      let i;try{i=JSON.parse(sessionStorage.getItem(cle)||'null');}catch(_){continue;}
+      if(!i?.requete)continue;
+      const r=await sbRpcVerdict('chantier_commande_recu',{p_requete:i.requete}).catch(()=>null);
+      if(!contexteNavigationRueValide(c))return;
+      if(r?.ok&&r.terminee){
+        if(typeof commercePjActualiserPersonnage==='function')await commercePjActualiserPersonnage();
+        if(!contexteNavigationRueValide(c))return;
+        sessionStorage.removeItem(cle);
+      }
+      // Absence non concluante : une autre transaction peut etre encore en cours. Garder l'intention.
+    }
+  }finally{constructionRepriseEnCours=false;}
 }

@@ -2,7 +2,7 @@
 BEGIN;
 DO $g$ DECLARE h text;BEGIN
 SELECT md5(prosrc) INTO h FROM pg_proc WHERE oid=to_regprocedure('public.approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric)');
-IF h IS NULL OR h NOT IN ('aed6d3286a5c348ea4f17d414259739e','2718c56822cdba6d8e93380cf42933b7') THEN RAISE EXCEPTION 'approvisionnement_definition_non_examinee';END IF;
+IF h IS NULL OR h NOT IN ('aed6d3286a5c348ea4f17d414259739e','0161eb65fbe30222af55f22b3ad14829') THEN RAISE EXCEPTION 'approvisionnement_definition_non_examinee';END IF;
 END;$g$;
 CREATE OR REPLACE FUNCTION public.approvisionner_chantier(p_acteur text, p_pays text, p_ville text, p_entrepot text, p_besoin jsonb, p_stock_chantier jsonb, p_tresorerie numeric)
  RETURNS jsonb
@@ -16,7 +16,7 @@ DECLARE
   v_cle text; v_en_chantier numeric; v_manque numeric; v_prix numeric;
   v_present numeric; v_reserve_m numeric; v_dispo numeric; v_abordable numeric; v_qte numeric;
   v_achats jsonb := '{}'::jsonb; v_nouveau_chantier jsonb := '{}'::jsonb;
-  v_depense numeric := 0;
+  v_depense numeric := 0; v_recette jsonb; v_ancien_flag text;
 BEGIN
   PERFORM public.exiger_acteur(p_acteur);
   SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
@@ -51,7 +51,11 @@ BEGIN
   END LOOP;
 
   IF v_depense > 0 THEN
-    IF NOT coalesce((public.entrepot_caisse_mouvement(v_id,v_depense)->>'ok')::boolean,false) THEN
+    v_ancien_flag:=current_setting('rp.caisse_interne',true);
+    PERFORM set_config('rp.caisse_interne','on',true);
+    v_recette:=public.caisse_institution_mouvement(public.entrepot_caisse_id(v_id),v_depense,true);
+    PERFORM set_config('rp.caisse_interne',coalesce(v_ancien_flag,''),true);
+    IF NOT coalesce((v_recette->>'ok')::boolean,false) THEN
       RAISE EXCEPTION 'recette_entrepot_non_confirmee';END IF;
     UPDATE public.batiments_etat
        SET data = to_jsonb((v_etat || jsonb_build_object('entrepot',
