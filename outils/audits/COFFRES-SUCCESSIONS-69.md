@@ -24,3 +24,17 @@ Une nouvelle primitive SQL privée `inventaire_occupation_unites(jsonb)` appliqu
 La vérification du moteur commun a aussi révélé une perte reproductible : `inventaire_retirer` soustrayait la quantité demandée à **chaque ligne** partageant une `stackKey`, alors que `helvetia_inventaire_sortie` valide le total. Un retrait de 6 sur deux lignes de 4 et 5 annonçait 6 sortis, mais détruisait les 9 unités. La migration préparée `20261022115612_inventaire_unites_et_retrait_multilignes.sql` répartit le retrait une seule fois dans l’ordre des lignes, préserve les métadonnées et refuse un stock insuffisant. Elle réutilise le moteur commun, sans nouveau moteur de transfert. Avant production, contrôler les définitions et tous les appelants vivants ; les droits existants de la fonction remplacée ne sont pas élargis.
 
 Validation du noyau : **35/35 assertions PostgreSQL locales**, plus 100 retraits générés déterministes, avec les vraies fonctions archivées de localisation/protection/extraction. Le banc reproduit d’abord la perte antérieure, vérifie les quatre seuils, les quantités invalides, les objets uniques/protégés, les métadonnées, le refus transactionnel et les définitions divergentes. Le compteur ne remplace pas encore les verrous/contrats/reçus des futures RPC de coffre. **#69 reste non terminé et non déployable** tant que baux, renouvellement, dépôt/retrait privés et succession complète ne sont pas raccordés.
+
+## Arbitrage du propriétaire — changement de taille (22 octobre 2026)
+
+Règle désormais validée pour le raccordement au bail commun :
+
+- La capacité change immédiatement ; la date de renouvellement annuel initiale ne change jamais.
+- Agrandissement : paiement immédiat de la différence entre le tarif annuel de l'ancienne taille et celui de la nouvelle taille (S 250, M 450, L 750, XL 1250 FR). Aucun prorata au nombre de jours, aucun remboursement. Exemple S → M : 200 FR ; M → XL : 800 FR.
+- Réduction : gratuite, aucun remboursement. Le nouveau tarif s'applique au prochain renouvellement, à la même échéance.
+- Réduction refusée si le nombre d'unités effectivement stockées excède la capacité cible ; aucun objet n'est déplacé ou supprimé pour la permettre.
+- Le tarif comparé est celui de la taille immédiatement précédente : une réduction puis un nouvel agrandissement ne crée pas un crédit mémorisé sur un ancien paiement.
+
+L'acte devra être transactionnel avec le paiement, la taille, le tarif de renouvellement et son reçu : refus de paiement ou capacité insuffisante = aucun changement ; même intention après réponse perdue = aucun second prélèvement. Préserver le même coffre, son contrat, son échéance et toutes les métadonnées des objets. Aucun nouveau moteur de facturation.
+
+**Statut : arbitrage enregistré, raccordement financier et interface non encore réalisés.** Ce texte ne constitue pas une migration ni une activation. Le cycle annuel et la succession complète restent à terminer comme indiqué dans `FINALISATION-57-69-20261022.md`.

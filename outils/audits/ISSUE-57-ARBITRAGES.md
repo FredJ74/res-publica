@@ -20,3 +20,11 @@ Démarrer IMMÉDIATEMENT le codage de la remise en cohérence de la chaîne cons
 - Chaque lot : tests locaux existants, anti-régressions, contrôle des portes serveur pour sécurité; indiquer codé/testé/déployé distinctement. Ne pas déployer, pas de nouveaux assets IA, pas de migration destructive. Si un point nécessite arbitrage, isoler mais continuer les autres tâches.
 - À la fin fournir liens commits/PR, tâches achevées/restantes, blocages réels ; ne pas proclamer des corrections en production sans vérification.
 
+
+## Précision du propriétaire du 22 octobre 2026 — P2W
+
+- Empire non P2W : délai de construction incompressible ; aucun paiement ne permet de le raccourcir.
+- Empire P2W : l'accélération payante est autorisée en principe.
+- Aucune liste définitive des pays P2W n'est validée. Aucun tarif, montant ou coefficient d'accélération n'est validé.
+
+Ne pas déduire une autorisation P2W de la seule absence d'appartenance à Républia, ni réactiver un ancien coefficient comme s'il avait été validé. L'activation d'une accélération payante reste suspendue à ces définitions. Conserver les délais et coûts de base documentés ; aucune règle nouvelle ne doit être inventée.
