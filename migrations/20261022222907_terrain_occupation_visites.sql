@@ -1,8 +1,8 @@
 -- #94 PREPAREE : l'occupation reste dans terrains_etat ; les visites sont un verrou technique.
 BEGIN;
 CREATE TABLE public.terrain_visites_actives (
- personnage text NOT NULL, terrain_id text NOT NULL REFERENCES public.terrains_etat(id),
- PRIMARY KEY(personnage,terrain_id)
+ personnage_id uuid NOT NULL REFERENCES public.personnages_donnees(id) ON DELETE CASCADE, terrain_id text NOT NULL REFERENCES public.terrains_etat(id),
+ PRIMARY KEY(personnage_id,terrain_id)
 );
 ALTER TABLE public.terrain_visites_actives ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.terrain_visites_actives FROM PUBLIC,anon,authenticated;
@@ -19,9 +19,9 @@ BEGIN
  IF (NEW.country,NEW.current_city,NEW.current_building) IS NOT DISTINCT FROM
     (OLD.country,OLD.current_city,OLD.current_building) THEN RETURN NEW; END IF;
  FOR v IN SELECT t.id FROM public.terrain_visites_actives a JOIN public.terrains_etat t ON t.id=a.terrain_id
-  WHERE a.personnage=OLD.name AND (t.country,t.building_id) IS DISTINCT FROM (NEW.country,NEW.current_building)
+  WHERE a.personnage_id=OLD.id AND (t.country,t.building_id) IS DISTINCT FROM (NEW.country,NEW.current_building)
   ORDER BY t.id FOR UPDATE OF t LOOP
-  DELETE FROM public.terrain_visites_actives WHERE personnage=OLD.name AND terrain_id=v.id;
+  DELETE FROM public.terrain_visites_actives WHERE personnage_id=OLD.id AND terrain_id=v.id;
  END LOOP;
  RETURN NEW;
 END;$f$;
@@ -33,7 +33,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $f$
 DECLARE acteur text:=public.mon_personnage();p record;t record;e jsonb;nouvelle boolean;occupation text;
 BEGIN
  IF acteur IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
- SELECT country,current_city,current_building INTO p FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
+ SELECT id,country,current_city,current_building INTO p FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
  IF NOT FOUND OR p.current_building IS DISTINCT FROM p_terrain OR p_terrain NOT LIKE 'terrain-a-batir%' THEN
   RETURN jsonb_build_object('ok',false,'raison','pas_sur_place'); END IF;
  SELECT * INTO t FROM public.terrains_etat WHERE id=p.country||'_'||p_terrain AND country=p.country
@@ -59,7 +59,7 @@ BEGIN
  IF nullif(e->>'proprietaire','') IS NOT NULL OR coalesce((e->>'compromis')::boolean,false) THEN
   e:=public.terrain_etat_fusionner_interne(t.id,'{"occupationScellee":true}',p.country);
  END IF;
- INSERT INTO public.terrain_visites_actives VALUES(acteur,t.id) ON CONFLICT DO NOTHING;
+ INSERT INTO public.terrain_visites_actives VALUES(p.id,t.id) ON CONFLICT DO NOTHING;
  RETURN jsonb_build_object('ok',true,'etat',e);
 END;$f$;
 REVOKE ALL ON FUNCTION public.terrain_occupation_lire(text) FROM PUBLIC,anon;

@@ -15,6 +15,7 @@ def main():
   CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$SELECT coalesce(nullif(current_setting('hg.fixture',true),''),'Fixture')$$;
   INSERT INTO personnages_donnees VALUES('Fixture','republic','capitale','terrain-a-batir-1'),('Autre','republic','capitale','terrain-a-batir-1');
   INSERT INTO terrains_etat VALUES('republic_terrain-a-batir-1','republic','terrain-a-batir-1',NULL,'{"city":"capitale","surface":1234,"prix":5678}',now());''')
+  q.execute('ALTER TABLE personnages_donnees ADD COLUMN id uuid DEFAULT gen_random_uuid() NOT NULL UNIQUE')
   source=(R/'baseline/domaines/immobilier-et-territoire/20_fonctions.sql').read_text()
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:
    a=source.index('CREATE OR REPLACE FUNCTION public.'+fn+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',source[a:],re.S);q.execute(source[a:a+m.end()])
@@ -33,6 +34,9 @@ def main():
    q.execute('SELECT data::jsonb FROM terrains_etat');return q.fetchone()[0]
   r=appel();check(r['ok']);avant=lire();check(avant['surface']==1234 and avant['prix']==5678)
   check(appel()['etat']==avant)
+  q.execute("UPDATE personnages_donnees SET name='Renomme' WHERE name='Fixture';SET hg.fixture='Renomme'")
+  check(appel()['etat']==avant)
+  q.execute("UPDATE personnages_donnees SET name='Fixture' WHERE name='Renomme';SET hg.fixture='Fixture'")
   q.execute("UPDATE personnages_donnees SET current_city=current_city WHERE name='Fixture'");check(appel()['etat']==avant)
   # Aucune nouvelle generation si un autre visiteur est encore sur le terrain.
   q.execute("SET hg.fixture='Autre'");check(appel()['etat']==avant)
