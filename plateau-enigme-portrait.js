@@ -912,7 +912,7 @@ function enigme1VerifierDeclenchement() {
         id: 'calepin-enigme1',
         name: "Calepin de l'enquête",
         icon: 'ti-notebook',
-        imageUrl: 'images/calepin-enigme-musee.png',
+        imageUrl: 'images/calepin-enigme-musee.webp',
         desc: "Un petit calepin. Chaque page se remplit au fil de ce que vous découvrez.",
         calepinEnigme1: true
       });
