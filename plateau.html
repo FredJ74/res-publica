@@ -760,7 +760,7 @@
 <script src="forum-canvas.js?v=36"></script>
 <script src="forum.js?v=20261020-mail-rubriques"></script>
 <script src="plateau-realites.js?v=20261021-consolidation"></script>
-<script src="plateau-core.js?v=20261021-consolidation"></script>
+<script src="plateau-core.js?v=20261022-successions-ventes"></script>
 <script src="plateau-immobilier.js?v=20261021-consolidation"></script>
 <script src="plateau-immobilier-ventes.js?v=20261021-consolidation"></script>
 <script src="plateau-chantiers.js?v=20261022-construction-plan"></script>
@@ -769,7 +769,8 @@
 <script src="plateau-commerce.js?v=20261021-consolidation"></script>
 <!-- Interface de la verticale commerce PJ (C5). Apres plateau-objets.js dont il
      reutilise la fiche officielle, et apres plateau-fonds.js pour nouvelIdFonds. -->
-<script src="plateau-commerce-pj.js?v=20261021-consolidation"></script>
+<script src="plateau-commerce-pj.js?v=20261022-successions-ventes"></script>
+<script src="plateau-journal-ventes.js?v=20261022-96"></script>
 <script src="plateau-resolution.js?v=20261021-consolidation"></script>
 <script src="plateau-rue-centrale.js?v=20261021-consolidation"></script>
 <script src="plateau-quete-accueil.js?v=20261021-consolidation"></script>
@@ -790,9 +791,9 @@
 <!-- Equipements de bureau : interface d'attente seule, aucune mecanique. AVANT le
      routeur, qui resout ouvrirModalEquipements(). -->
 <script src="plateau-equipements.js?v=20261021-consolidation"></script>
-<script src="plateau-navigation.js?v=20261021-consolidation"></script>
+<script src="plateau-navigation.js?v=20261022-successions-ventes"></script>
 <script src="plateau-hotels.js?v=20261021-consolidation"></script>
-<script src="plateau-personnage.js?v=20261022-consolidation"></script>
+<script src="plateau-personnage.js?v=20261022-successions-ventes"></script>
 <script src="plateau-pnj.js?v=20261021-consolidation"></script>
 <script src="plateau-multijoueur.js?v=20261021-consolidation"></script>
 <script src="plateau-communication.js?v=20261022-livraison-banque"></script>
@@ -864,7 +865,7 @@
 
 <script>
 // Journal store — ouvrir/fermer
-function toggleJournalStore() {
+async function toggleJournalStore() {
   const store = document.getElementById('journal-store');
   const btn = document.getElementById('journal-open-btn');
   const isOpen = store.style.display === 'flex';
@@ -873,6 +874,7 @@ function toggleJournalStore() {
   if (!isOpen) {
     const badge = document.getElementById('journal-badge');
     if (badge) badge.style.display = 'none';
+    if(typeof chargerJournalVentes==='function')await chargerJournalVentes(true);
   }
 }
 
