@@ -4641,6 +4641,7 @@ async function rafraichirRuntimeHelvetia() {
     state.comptesBancaires = construireMapComptesBancaires(comptes);
   }
   if (Array.isArray(placements)) state.placementsBancaires = placements;
+  return frais;
 }
 
 // Point d'entree unique Helvetia (route par gerer_finances ET compte_offshore quand
@@ -5296,6 +5297,7 @@ function ouvrirMenuOfficialiserTransaction(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Officialiser une transaction';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem;display:flex;flex-direction:column;gap:.6rem">' +
+    '<button class="pnj-action-btn" onclick="ouvrirCatalogueImmobilier()">Consulter les offres de fonds et de murs</button>' +
     '<button class="pnj-action-btn" onclick="doActeVenteTerrain()">Vente de terrain</button>' +
     '<button class="pnj-action-btn" onclick="doActeRachatEntreprise(' + pa + ',' + cost + ')">Rachat d\'une entreprise</button>' +
     '</div>';

@@ -367,10 +367,10 @@ REGRESSIONS_PLAINTES_SUPABASE = [
 # ETAT D'UN TERRAIN (chantier 5, les 22 `sbSetTerrainState`, 10 octobre 2026).
 REGRESSIONS_TERRAIN_SUPABASE = [
     ("terrain -- la plus grosse surface d'ecriture cliente revient dans supabase.js",
-     "async function sbGetTerrainState(country, buildingId) {",
+     "async function sbGetTerrainState(country, buildingId, city) {",
      "async function sbSetTerrainState(country, buildingId, etat) {\n"
      "  return sbUpsert('terrains_etat', { id: country + '_' + buildingId });\n}\n"
-     "async function sbGetTerrainState(country, buildingId) {",
+     "async function sbGetTerrainState(country, buildingId, city) {",
      "sbSetTerrainState n existe plus dans supabase.js"),
 ]
 

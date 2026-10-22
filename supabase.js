@@ -5049,13 +5049,15 @@ async function sbGetDerniereQueteResolue(country) {
 //
 // sbGetTerrainState et sbGetTerrainsPossedesPar RESTENT : elles ne font que lire.
 
-async function sbGetTerrainState(country, buildingId) {
-  const rows = await sbGet('terrains_etat', `id=eq.${encodeURIComponent(country + '_' + buildingId)}`);
-  if (!rows || rows.length === 0) return null;
-  try {
-    const d=typeof rows[0].data==='string'?JSON.parse(rows[0].data):rows[0].data;
-    return d&&typeof d==='object'&&!Array.isArray(d)?d:null;
-  } catch(e) { return null; }
+async function sbGetTerrainState(country, buildingId, city) {
+  const rows=await sbGet('terrains_etat',`country=eq.${encodeURIComponent(country)}&building_id=eq.${encodeURIComponent(buildingId)}`);
+  if(!Array.isArray(rows))return null;
+  const ville=city||(rows.length>1&&typeof state!=='undefined'?state.currentCity:null);
+  try{
+    const candidats=rows.map(r=>typeof r.data==='string'?JSON.parse(r.data):r.data)
+      .filter(d=>d&&typeof d==='object'&&!Array.isArray(d)&&(!ville||!d.city||d.city===ville));
+    return candidats.length===1?candidats[0]:null;
+  }catch(_){return null;}
 }
 
 // Tous les terrains possedes par un joueur donne, quel que soit l'endroit ou il se trouve
@@ -5063,9 +5065,16 @@ async function sbGetTerrainState(country, buildingId) {
 // que sur le terrain lui-meme).
 async function sbGetTerrainsPossedesPar(country, nom) {
   const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(country)}&proprietaire=eq.${encodeURIComponent(nom)}`);
-  return (rows || []).map(function(r) {
-    try { return { buildingId: r.building_id, ...JSON.parse(r.data) }; } catch(e) { return null; }
-  }).filter(Boolean);
+  // Un echec de lecture n'est pas un patrimoine vide (notamment avant succession).
+  if (!Array.isArray(rows)) throw new Error('lecture_terrains_impossible');
+  return rows.map(function(r) {
+    const data = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+    if (!data || typeof data !== 'object' || Array.isArray(data) || !r.id || !r.building_id) {
+      throw new Error('titre_terrain_invalide');
+    }
+    // Les identifiants de colonne sont autoritaires ; le blob ne peut les remplacer.
+    return { ...data, terrain_id: r.id, buildingId: r.building_id, country: r.country };
+  });
 }
 
 // Trois fonctions manquantes decouvertes le 5 aout 2026 : appelees partout dans le code des
@@ -6845,3 +6854,12 @@ async function sbOrganisationCommande(orgaId, action, parametres) {
   } catch(_){return {disponible:true,ok:false,raison:'commande_non_confirmee'};}
   finally{RP_ORGA_COMMANDES_EN_COURS.delete(orgaId);}
 }
+
+// #66 : actes et offres utilisent le transport existant, jamais de mutation REST des titres.
+async function sbImmobilierCatalogue(pays){return sbRpcVerdict('immobilier_catalogue',{p_pays:pays});}
+async function sbImmobilierBiens(pays){return sbRpcVerdict('immobilier_biens_lire',{p_pays:pays});}
+async function sbImmobilierDeposer(id,bien,actif,prix){return sbRpcVerdict('immobilier_offre_deposer',{p_id:id,p_bien:bien,p_actif:actif,p_prix:prix});}
+async function sbImmobilierRefuser(offre){return sbRpcVerdict('immobilier_priorite_refuser',{p_offre:offre});}
+async function sbImmobilierActe(requete,offres){return sbRpcVerdict('immobilier_acte_finaliser',{p_requete:requete,p_offres:offres});}
+
+async function sbImmobilierActeEtat(requete){return sbRpcVerdict('immobilier_acte_etat',{p_requete:requete});}
