@@ -35,6 +35,7 @@ def main():
    charger('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn)
   charger('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
   charger('baseline/domaines/socle/20_fonctions.sql','objet_sas_deposer')
+  charger('baseline/domaines/socle/20_fonctions.sql','titulaire_est_moi')
   sql=(R/'migrations/20261022220516_permis_depot_transactionnel.sql').read_text();q.execute(sql);q.execute(sql)
   n=0
   def check(ok):
@@ -77,6 +78,23 @@ def main():
   with ThreadPoolExecutor(max_workers=2) as pool:rr=list(pool.map(concurrent,range(2)))
   check(all(x['ok'] for x in rr));check(sum(bool(x.get('rejeu')) for x in rr)==1);check(snapshot()[0]==(9,900,900))
   q.execute("SELECT has_table_privilege('authenticated','permis_transactions_internes','INSERT'),has_table_privilege('authenticated','permis_depots_recus','INSERT'),has_function_privilege('anon','terrain_permis_deposer(text,text,uuid)','EXECUTE')");check(q.fetchone()==(False,False,False))
+  # Une archive fabriquée ne peut pas servir de recu de paiement.
+  terrain();q.execute("INSERT INTO dossiers_urbanisme(id,data) VALUES('urb-depot-00000000-0000-4000-8000-000000000001-00000000-0000-4000-8000-000000000016','{}')")
+  avant=snapshot()
+  try:appel(16);raise AssertionError('collision attendue')
+  except psycopg2.Error as e:check(e.pgcode=='23505')
+  check(snapshot()==avant)
+  # Proprietaire type pj:, complement bancaire et refus sans debit partiel.
+  terrain(proprietaire='pj:Fixture');q.execute("UPDATE personnages_donnees SET liquide=25,arg=125;INSERT INTO comptes_bancaires VALUES('compte','Fixture','nationale',100,now())")
+  check(appel(17)['ok']);check(snapshot()[0]==(8,0,25))
+  q.execute("SELECT solde FROM comptes_bancaires");check(q.fetchone()[0]==25)
+  terrain();avant=snapshot();check(appel(18)['raison']=='fonds_insuffisants');check(snapshot()==avant)
+  q.execute("UPDATE personnages_donnees SET pa=10,liquide=1000,arg=1025")
+  terrain(permis={'statut':'refuse','jourRefus':17});check(appel(19)['ok'])
+  # Rejouer un ancien recu renvoie les soldes actuels, pas ceux du debit historique.
+  q.execute("UPDATE personnages_donnees SET liquide=777,arg=802")
+  r=appel(19);check(r['rejeu'] and r['paiement']['liquide']==777)
+  terrain();avant=snapshot();check(appel(20,'inconnu')['raison']=='palier_invalide');check(snapshot()==avant)
   # Une definition non examinee fait echouer toute la migration, sans affaiblissement.
   q.execute("CREATE OR REPLACE FUNCTION payer_ordre(p_acteur text,p_fn text DEFAULT NULL,p_pa integer DEFAULT 0,p_cost integer DEFAULT 0) RETURNS jsonb LANGUAGE sql AS $$SELECT '{}'::jsonb$$")
   try:q.execute(sql);raise AssertionError('garde attendue')

@@ -49,6 +49,11 @@ CREATE TABLE IF NOT EXISTS public.permis_depots_recus (
 );
 ALTER TABLE public.permis_depots_recus ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.permis_depots_recus FROM PUBLIC,anon,authenticated;
+DO $nouveau$ BEGIN
+ IF to_regprocedure('public.terrain_permis_deposer(text,text,uuid)') IS NOT NULL AND NOT EXISTS(
+  SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('public.terrain_permis_deposer(text,text,uuid)')
+  AND md5(prosrc)='fe477be60c077cee84331a80426dc22b') THEN RAISE EXCEPTION 'definition_non_examinee: terrain_permis_deposer'; END IF;
+END;$nouveau$;
 CREATE OR REPLACE FUNCTION public.terrain_permis_deposer(p_terrain text,p_palier text,p_requete uuid)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $f$
 DECLARE acteur text:=public.mon_personnage(); identite uuid:=auth.uid(); pays text;ville text;jour integer;
