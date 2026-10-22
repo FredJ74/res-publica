@@ -4095,6 +4095,11 @@ function renderRoomActions(room, buildingId, roomId) {
   // Plus d'ordres communs ici — se_cacher/blocus/incendier sont dans la fiche personnage
   const allOrders = ordresDeclares
     .filter(o => !dynMasque.includes(o.fn))
+    // Autorisation judiciaire de la quête du musée : ordre uniquement dans l'accueil bancaire.
+    .filter(o => o.fn !== 'presenter_autorisation_coffre' || (
+      buildingId === 'banque-nationale' && roomId === 'accueil_banque' &&
+      !!state.char?.enigme1?.autorisationCoffre && !state.char?.enigme1?.coffreOuvert
+    ))
     .filter(o => !['produire_commerce','produire_arme'].includes(o.fn))
     .filter(o => o.fn !== 'gerer_commerce' || (typeof commerceDroitsPiece === 'function' && commerceDroitsPiece(buildingId, roomId)))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
