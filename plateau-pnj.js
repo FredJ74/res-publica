@@ -148,7 +148,7 @@ function getPnjAvatar(pnj, empireColor) {
   // Photo escort selon empire si pas de photoUrl
   if (!pnj.photoUrl && pnj.job === 'escort') {
     const escortPhotos = {
-      republic: 'images/escort-republic.png',
+      republic: 'images/escort-republic.webp',
       narco:    'images/escort-narco.webp',
       soviet:   'images/escort-soviet.webp',
       khalija:  'images/escort-khalija.webp',

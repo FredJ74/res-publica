@@ -1275,7 +1275,7 @@ const ARMES_CATALOGUE = {
       icon: 'ti-crosshair',
       desc: 'Fiable, discret, classique. Trois balles suffisent généralement.',
       bonus: { stat: 'PER', val: 8 },
-      imageUrl: 'images/arme-fusil-republic.png'
+      imageUrl: 'images/arme-fusil-republic.webp'
     },
     {
       id: 'carabine_chasse',
@@ -2397,7 +2397,7 @@ function doAcheterPoisonObjet(type, pa, cost) {
   // Afficher le modal d'achat avec image et description parodique
   const desc = POISON_DESC_PARODIQUE[type] || obj.msg;
   const imageUrl = {
-    parapluie: 'images/parapluie-republicain.png',
+    parapluie: 'images/parapluie-republicain.webp',
     polonium:  'images/polonium-sovarka.webp',
     ghb:       'images/ghb-narco.jpg',
     vipere:    'images/vipere-des-sables-khalija.webp'
@@ -2445,7 +2445,7 @@ async function confirmerAchatPoison(type, pa, cost) {
     poisonType: type, legal: false, usageUnique: true,
     desc: obj.msg,
     imageUrl: {
-      parapluie: 'images/parapluie-republicain.png',
+      parapluie: 'images/parapluie-republicain.webp',
       polonium:  'images/polonium-sovarka.webp',
       ghb:       'images/ghb-narco.jpg',
       vipere:    'images/vipere-des-sables-khalija.webp'
@@ -3977,21 +3977,21 @@ const FAMILLES_PRODUITS_MARCHE = ['aliment', 'integration_locale', 'carte_postal
 const PRODUITS_MARCHE = {
   tshirt_psm: {
     id: 'tshirt_psm', label: 'T-shirt de Port-Sainte-Marie', familleProduitMarche: 'integration_locale',
-    categorie: 'objet', image: 'images/port-sainte-marie-marche-tshirt.png', icon: 'ti-shirt',
+    categorie: 'objet', image: 'images/port-sainte-marie-marche-tshirt.webp', icon: 'ti-shirt',
     materiaux: { textile: 2 }, pa: 1, portions: 6,
     bonusIntegrationVille: 'ville_a',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   casquette_montrouge: {
     id: 'casquette_montrouge', label: 'Casquette de cheminot', familleProduitMarche: 'integration_locale',
-    categorie: 'objet', image: 'images/montrouge/montrouge-marche-casquette.png', icon: 'ti-shirt',
+    categorie: 'objet', image: 'images/montrouge/montrouge-marche-casquette.webp', icon: 'ti-shirt',
     materiaux: { textile: 2 }, pa: 1, portions: 6,
     bonusIntegrationVille: 'ville_b',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   echarpe_luthecia: {
     id: 'echarpe_luthecia', label: 'Écharpe en soie', familleProduitMarche: 'integration_locale',
-    categorie: 'objet', image: 'images/luthecia-marche-echarpe.png', icon: 'ti-shirt',
+    categorie: 'objet', image: 'images/luthecia-marche-echarpe.webp', icon: 'ti-shirt',
     materiaux: { textile: 1, produits_exotiques: 1 }, pa: 1, portions: 6,
     bonusIntegrationVille: 'capitale',
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
@@ -4010,21 +4010,21 @@ const PRODUITS_MARCHE = {
   // -- meme moteur, aucun prix invente a la main).
   porte_cle_palais_luthecia: {
     id: 'porte_cle_palais_luthecia', label: 'Porte-clé du Palais présidentiel', familleProduitMarche: 'integration_locale',
-    categorie: 'objet', image: 'images/luthecia-souvenir-porte-cle-palais.png', icon: 'ti-key',
+    categorie: 'objet', image: 'images/luthecia-souvenir-porte-cle-palais.webp', icon: 'ti-key',
     desc: 'Souvenir représentant le Palais présidentiel de Luthécia en miniature.',
     materiaux: { metal: 1 }, pa: 1, portions: 6,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   },
   garde_republien_plomb: {
     id: 'garde_republien_plomb', label: 'Garde républien en plomb', familleProduitMarche: 'integration_locale',
-    categorie: 'objet', image: 'images/luthecia-souvenir-garde-republien.png', icon: 'ti-chess-knight',
+    categorie: 'objet', image: 'images/luthecia-souvenir-garde-republien.webp', icon: 'ti-chess-knight',
     desc: 'Petite figurine de collection représentant un garde républien en uniforme.',
     materiaux: { metal: 1 }, pa: 1, portions: 6,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   },
   figurine_maxence_monfils: {
     id: 'figurine_maxence_monfils', label: 'Figurine de Maxence Monfils', familleProduitMarche: 'integration_locale',
-    categorie: 'objet', image: 'images/luthecia-souvenir-maxence-monfils.png', icon: 'ti-user',
+    categorie: 'objet', image: 'images/luthecia-souvenir-maxence-monfils.webp', icon: 'ti-user',
     desc: 'Figurine représentant Maxence Monfils enfant, avec une loupe et une sauterelle.',
     materiaux: { metal: 1 }, pa: 1, portions: 6,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
@@ -4038,19 +4038,19 @@ const PRODUITS_MARCHE = {
   // intact et inchange -- ces 3 entrees n'y touchent pas.
   casse_croute_cheminot: {
     id: 'casse_croute_cheminot', label: 'Casse-croûte du Cheminot', familleProduitMarche: 'aliment',
-    categorie: 'objet', image: 'images/montrouge/montrouge-marche-casse-croute.png', icon: 'ti-meat',
+    categorie: 'objet', image: 'images/montrouge/montrouge-marche-casse-croute.webp', icon: 'ti-meat',
     materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 8,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   cornet_friture_psm: {
     id: 'cornet_friture_psm', label: 'Cornet de friture de poissons', familleProduitMarche: 'aliment',
-    categorie: 'objet', image: 'images/port-sainte-marie-marche-friture.png', icon: 'ti-fish',
+    categorie: 'objet', image: 'images/port-sainte-marie-marche-friture.webp', icon: 'ti-fish',
     materiaux: { poisson: 1, cereales: 1 }, pa: 1, portions: 8,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   croque_monsieur_luthecia: {
     id: 'croque_monsieur_luthecia', label: 'Croque-Monsieur du Marché', familleProduitMarche: 'aliment',
-    categorie: 'objet', image: 'images/luthecia-marche-croque-monsieur.png', icon: 'ti-meat',
+    categorie: 'objet', image: 'images/luthecia-marche-croque-monsieur.webp', icon: 'ti-meat',
     materiaux: { cereales: 1, viande: 1, fruits_legumes: 1 }, pa: 1, portions: 8,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   },
@@ -4069,55 +4069,55 @@ const PRODUITS_MARCHE = {
   // ouvrirEcrireCartePostale/envoyerCartePostale/lireCartePostale, plateau-personnage.js).
   carte_psm_notre_dame_mer: {
     id: 'carte_psm_notre_dame_mer', label: 'Carte postale — Notre-Dame de la Mer', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: 'images/port-sainte-marie-carte-postale-notre-dame-mer.png', icon: 'ti-mail',
+    categorie: 'objet', image: 'images/port-sainte-marie-carte-postale-notre-dame-mer.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   carte_psm_touristique: {
     id: 'carte_psm_touristique', label: 'Carte postale — Souvenir de Port-Sainte-Marie', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: 'images/port-sainte-marie-carte-postale-touristique.png', icon: 'ti-mail',
+    categorie: 'objet', image: 'images/port-sainte-marie-carte-postale-touristique.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   carte_psm_culture_marine: {
     id: 'carte_psm_culture_marine', label: 'Carte postale — Traditions de la Marine', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: 'images/port-sainte-marie-carte-postale-culture-marine.png', icon: 'ti-mail',
+    categorie: 'objet', image: 'images/port-sainte-marie-carte-postale-culture-marine.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_a'], buildingsAutorises: ['marche-psm']
   },
   carte_montrouge_place_rail: {
     id: 'carte_montrouge_place_rail', label: 'Carte postale — Place du Rail', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: 'images/montrouge/montrouge-carte-postale-place-rail.png', icon: 'ti-mail',
+    categorie: 'objet', image: 'images/montrouge/montrouge-carte-postale-place-rail.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   carte_montrouge_touristique: {
     id: 'carte_montrouge_touristique', label: 'Carte postale — Souvenir de Montrouge', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: 'images/montrouge/montrouge-carte-postale-touristique.png', icon: 'ti-mail',
+    categorie: 'objet', image: 'images/montrouge/montrouge-carte-postale-touristique.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   carte_montrouge_musee_rail: {
     id: 'carte_montrouge_musee_rail', label: 'Carte postale — Musée du Rail', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: 'images/montrouge/montrouge-carte-postale-musee-rail.png', icon: 'ti-mail',
+    categorie: 'objet', image: 'images/montrouge/montrouge-carte-postale-musee-rail.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
   carte_luthecia_institutions: {
     id: 'carte_luthecia_institutions', label: 'Carte postale — Institutions de Luthécia', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: 'images/luthecia-carte-postale-institutions.png', icon: 'ti-mail',
+    categorie: 'objet', image: 'images/luthecia-carte-postale-institutions.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   },
   carte_luthecia_internationale: {
     id: 'carte_luthecia_internationale', label: 'Carte postale — Luthécia, ville internationale', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: 'images/luthecia-carte-postale-internationale.png', icon: 'ti-mail',
+    categorie: 'objet', image: 'images/luthecia-carte-postale-internationale.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   },
   carte_luthecia_culture: {
     id: 'carte_luthecia_culture', label: 'Carte postale — Musées et Jardin botanique', familleProduitMarche: 'carte_postale',
-    categorie: 'objet', image: 'images/luthecia-carte-postale-culture.png', icon: 'ti-mail',
+    categorie: 'objet', image: 'images/luthecia-carte-postale-culture.webp', icon: 'ti-mail',
     materiaux: { bois: 1 }, pa: 1, portions: 16,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['capitale'], buildingsAutorises: ['marche']
   }

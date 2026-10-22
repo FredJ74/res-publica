@@ -96,3 +96,10 @@ test('Krasnov : seuls huit originaux non raccordes sont exclus, les futurs WebP 
   }
  }}lire(root);
 });
+
+test('CI : Playwright installe une seule fois avant les bancs client et le pilote',()=>{
+ const yaml=require('node:fs').readFileSync(path.join(root,'.github/workflows/coherence-client.yml'),'utf8');
+ const installation=yaml.indexOf('npm ci --prefix outils/e2e '),client=yaml.indexOf('python3 outils/bancs/controler-client.py'),pilote=yaml.indexOf('npm test --prefix outils/e2e');
+ assert.ok(installation>=0 && installation<client && client<pilote,'les imports Playwright exigent son installation avant le premier banc client');
+ assert.equal((yaml.match(/npm ci --prefix outils\/e2e /g)||[]).length,1);
+});

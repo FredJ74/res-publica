@@ -391,7 +391,7 @@ const WORLD = {
             {name:'Michel Parlotte (PNJ)', role:'Journaliste Sportif', rel:'neutral', job:'commentateur', photoUrl:'images/journaliste-michel-parlotte.webp'}
           ],
           roomOverrides: {
-            terrain: { name: "Terrain — Olympique de Luthécia", imageUrl: "images/stade-olympique-luthecia.png" },
+            terrain: { name: "Terrain — Olympique de Luthécia", imageUrl: "images/stade-olympique-luthecia.webp" },
             vestiaires: { name: "Vestiaire — Olympique de Luthécia", imageUrl: "images/vestiaires-luthecia.webp",
               persons: [{name:'Alphonse Toudroit (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'images/entraineur-adjoint-alphonse-toudroit.webp'}]
             },
@@ -921,7 +921,7 @@ const WORLD = {
             {name:'Maurice Éhault (PNJ)', role:'Entraineur', rel:'neutral', job:'entraineur', photoUrl:'images/entraineur-mariannaise-ehault.webp'}
           ],
           roomOverrides: {
-            terrain: { name: "Terrain — La Brise Mariannaise", imageUrl: "images/stade-brise-mariannaise.png" },
+            terrain: { name: "Terrain — La Brise Mariannaise", imageUrl: "images/stade-brise-mariannaise.webp" },
             vestiaires: { name: "Vestiaire — La Brise Mariannaise", imageUrl: "images/vestiaires-mariannaise.webp",
               persons: [
                 {name:'Thibault Gosse (PNJ)', role:'Entraineur Adjoint', rel:'neutral', job:'entraineur_adjoint', photoUrl:'images/entraineur-adjoint-mariannaise-gosse.webp'}
@@ -2330,8 +2330,8 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=1200&q=80",
         persons: [
           {name:'Marco (Barman)', role:'PNJ - Barman', rel:'neutral', job:'barman', photoUrl:'images/marco-barman.webp', photoPos:'50% 20%'},
-          {name:'Natacha (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'F', photoUrl:'images/escort-f-1-robe-verte.png', photoPos:'50% 15%'},
-          {name:'Julien (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'H', photoUrl:'images/escort-h-1-costume-beige.png', photoPos:'50% 15%'},
+          {name:'Natacha (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'F', photoUrl:'images/escort-f-1-robe-verte.webp', photoPos:'50% 15%'},
+          {name:'Julien (PNJ)', role:'Escort — Agence Roxane Velours', rel:'neutral', job:'escort', genre:'H', photoUrl:'images/escort-h-1-costume-beige.webp', photoPos:'50% 15%'},
           {name:'Marc Hantile', role:'Lobbyiste — Conseil en affaires et économie', rel:'neutral', job:'lobbyiste', photoUrl:'images/luthecia-pnj-marc-hantile.jpg', photoPos:'55% 15%'}
         ],
         orders: [
