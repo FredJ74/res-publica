@@ -10,7 +10,7 @@ assert "a2fa09c304ac4090945db10959719b48" in sql
 # Sur ce moteur de test, seuls les deux corps fictifs remplacent les deux corps
 # vivants; le garde d'empreintes est verifie statiquement puis retire pour
 # executer la migration reelle sur ces deux fonctions fictives.
-sql=re.sub(r"DO \\$g\\$ DECLARE a text;c text;BEGIN.*?END \\$g\\$;", "",sql,count=1,flags=re.S)
+sql=re.sub(r"DO [\\s\\S]*?moteur_commerce_non_examine[\\s\\S]*?END \\$g\\$;", "",sql,count=1)
 assert "moteur_commerce_non_examine" not in sql
 server=pgserver.get_server(tempfile.mkdtemp(prefix='hg-fontaine-110-'),cleanup_mode='delete')
 conn=psycopg2.connect(server.get_uri());conn.autocommit=True;c=conn.cursor()
