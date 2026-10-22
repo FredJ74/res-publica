@@ -105,7 +105,6 @@ EXCEPTION WHEN SQLSTATE 'P0001' OR insufficient_privilege THEN
  IF SQLERRM=ANY(ARRAY['acteur_detenu','financement_incomplet','acteur_incapacite','acteur_non_authentifie','action_inconnue','anciens_reliquats_en_attente','apport_hors_bornes','approvisionnement_non_confirme','besoin_chantier_absent','champs_interdits','chantier_non_acheve','chantier_ou_batiment_existant','commande_invalide','fonds_insuffisants','francs_entiers_requis','lots_preexistants_a_examiner','mandat_municipal_requis','montant_invalide','occupation_bloquante','palier_inconnu','pas_proprietaire','pas_sur_place','permis_non_conforme','plan_invalide','prix_indisponibles','reliquat_caisse_non_confirme','reliquat_invalide','requete_reutilisee','stock_reliquat_invalide','terrain_gele','terrain_introuvable','titulaire_modifie','versement_impossible','representation_organisation_refusee','etat_financier_non_entier','organisation_absente']) THEN RETURN jsonb_build_object('ok',false,'raison',SQLERRM);END IF;
  RAISE;
 END;$f$;
-REVOKE ALL ON FUNCTION public.chantier_autorite_exiger_interne(text,text,text) FROM PUBLIC,anon,authenticated,service_role;
 REVOKE ALL ON FUNCTION public.chantier_commande(text,text,text,jsonb) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.chantier_commande(text,text,text,jsonb) TO authenticated;
 COMMIT;
