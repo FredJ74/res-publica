@@ -148,3 +148,7 @@ plateau-football-realisateur-tests.js
 #                            referencees par un chemin RELATIF (`asset:
 #                            'images/football-reaction-...mp4'`). Servies par
 #                            Vercel, elles restent.
+
+# Krasnov : decors non actifs. Conserver en Git, exclure du deploy Vercel.
+# Retirer cette exclusion lorsque les lieux de Sovarka seront effectivement raccordes.
+images/krasnov/
