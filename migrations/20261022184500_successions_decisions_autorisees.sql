@@ -37,6 +37,7 @@ BEGIN
    RETURN jsonb_build_object('ok',true,'deja_repondu',true);
   END IF;
   IF e IS NULL OR e->>'beneficiaire' IS DISTINCT FROM moi THEN RAISE EXCEPTION 'heritier_non_convoque' USING ERRCODE='42501'; END IF;
+  IF d->>'type'='coffre' AND NOT EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=moi AND id::text=e->>'beneficiaire_id') THEN RAISE EXCEPTION 'heritier_identite_modifiee' USING ERRCODE='42501';END IF;
   IF e->>'reponse' IS NOT NULL THEN RETURN jsonb_build_object('ok',false,'raison','reponse_deja_fixee'); END IF;
   IF (e->>'expires_at')::timestamptz IS NULL OR (e->>'expires_at')::timestamptz<maintenant THEN
    RETURN jsonb_build_object('ok',false,'raison','convocation_expiree');
@@ -54,7 +55,7 @@ BEGIN
      candidat:=s.conjoint;role_suivant:='legal_conjoint';
    END IF;
    IF candidat IS NOT NULL THEN
-    prochaine:=jsonb_build_object('role',role_suivant,'beneficiaire',candidat,'convoque_le',maintenant,
+    prochaine:=jsonb_build_object('role',role_suivant,'beneficiaire',candidat,'beneficiaire_id',(SELECT id FROM public.personnages_donnees WHERE name=candidat),'convoque_le',maintenant,
      'expires_at',maintenant+interval '10 days','reponse',NULL,'repondu_le',NULL);
     d:=jsonb_set(d,'{chaine}',(d->'chaine')||jsonb_build_array(prochaine));
    ELSE
