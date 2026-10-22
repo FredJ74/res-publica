@@ -82,3 +82,17 @@ test('configuration raccordee au script teste, production et Preview non desacti
   assert.match(y,/group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/);
  }
 });
+
+test('Krasnov : seuls huit originaux non raccordes sont exclus, les futurs WebP restent servis',()=>{
+ const fs=require('node:fs'),ignore=fs.readFileSync(path.join(root,'.vercelignore'),'utf8').split('\n');
+ const originaux=fs.readdirSync(path.join(root,'images/krasnov')).filter(n=>n.endsWith('.png')).map(n=>'images/krasnov/'+n).sort();
+ assert.equal(originaux.length,8);assert.ok(!ignore.includes('images/krasnov/'));
+ assert.deepEqual(ignore.filter(n=>n.startsWith('images/krasnov/')).sort(),originaux);
+ const exclus=new Set(['.git','node_modules','outils','baseline','historique','images','audio','Blender']);
+ function lire(dir){for(const d of fs.readdirSync(dir,{withFileTypes:true})){
+  if(d.name.startsWith('.')||exclus.has(d.name))continue;const f=path.join(dir,d.name);
+  if(d.isDirectory())lire(f);else if(/\.(?:js|mjs|cjs|html|css|json)$/.test(d.name)){
+   const s=fs.readFileSync(f,'utf8');for(const n of originaux)assert.ok(!s.includes(n),`asset exclu reference dans ${path.relative(root,f)} : ${n}`);
+  }
+ }}lire(root);
+});

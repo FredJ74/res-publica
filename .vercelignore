@@ -152,6 +152,14 @@ plateau-football-realisateur-tests.js
 # --- ARCHIVE KRASNOV NON RACCORDÉE ---
 # Huit originaux enregistrés sur GitHub (#70), aucune scène ni donnée en jeu
 # ne les référence encore. Ils restent dans le dépôt et seront servis seulement
-# lorsque Sovarka sera raccordée, après suppression de cette exclusion.
+# lorsque Sovarka sera raccordée, après retrait des exclusions nécessaires.
+# Seuls les huit originaux sont exclus : un futur WebP reste servi par défaut.
 # Empêche 30,6 Mo d'assets dormants d'entrer dans chaque build Vercel.
-images/krasnov/
+images/krasnov/distillerie-centre-radar.png
+images/krasnov/ecole-foret.png
+images/krasnov/eglise.png
+images/krasnov/gare.png
+images/krasnov/maison.png
+images/krasnov/marche-ferme.png
+images/krasnov/stade-commissariat.png
+images/krasnov/terrains.png
