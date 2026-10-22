@@ -2917,6 +2917,10 @@ async function openFinancesModal(pa, cost) {
           }).join('')}
     </div>
     <div style="padding:.6rem 1rem;border-bottom:1px solid #1a1810">
+      <button class="finance-btn" onclick="document.getElementById('modal-finances').classList.remove('open');ouvrirInvestir(1,0)">Souscrire un placement</button>
+      <div style="font-size:.72rem;color:#8a8060;margin-top:.4rem">Les placements sont actuellement financés par le compte Banque nationale. Le placement direct depuis les espèces sera proposé après sécurisation de la transaction serveur.</div>
+    </div>
+    <div style="padding:.6rem 1rem;border-bottom:1px solid #1a1810">
       <div style="font-size:.75rem;color:#6a5a30;margin-bottom:.4rem;font-family:'Bebas Neue',sans-serif;letter-spacing:.1em">EMPRUNTS EN COURS</div>
       ${pretsNationale.length === 0
         ? '<div style="font-size:.78rem;color:#9a8a68;font-style:italic">Aucun emprunt en cours.</div>'
