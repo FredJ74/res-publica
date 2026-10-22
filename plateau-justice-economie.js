@@ -4577,11 +4577,20 @@ async function confirmerInvestir(pa, cost) {
   const ville = attente ? attente.ville : (state.currentCity || 'capitale');
   const intention = attente ? attente.intention : crypto.randomUUID();
   if (nouvelleOperation) {
-    const r = await deduireCoutOrdre({ pa, cost });
-    if (!r.ok) { signalerRefusCout(r); return; }
+    // Enregistrer l'identifiant AVANT toute deduction de PA : si le navigateur ne
+    // peut pas garantir le rejeu, aucun cout ni placement n'est engage.
     attente = { montant, source, intSnapshot, ville, intention };
-    try { localStorage.setItem(cleAttente, JSON.stringify(attente)); } catch (_) {
-      showToast('Stockage local indisponible', 'Impossible de garantir la reprise de cette opération après déconnexion.', false);
+    try {
+      localStorage.setItem(cleAttente, JSON.stringify(attente));
+      if (localStorage.getItem(cleAttente) !== JSON.stringify(attente)) throw new Error('intention_non_persistante');
+    } catch (_) {
+      showToast('Placement indisponible', 'La reprise sécurisée de cette opération ne peut pas être garantie sur cet appareil.', false);
+      return;
+    }
+    const r = await deduireCoutOrdre({ pa, cost });
+    if (!r.ok) {
+      try { localStorage.removeItem(cleAttente); } catch (_) {}
+      signalerRefusCout(r);
       return;
     }
   }
