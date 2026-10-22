@@ -71,10 +71,10 @@ print(json.dumps(e))`;
  if(cas==='muet')assert.ok(e.some(s=>s.includes('muet')));
  });
 }
-test('configuration raccordee au script teste, production et Preview non desactivees',()=>{
+test('configuration raccordee au script teste, deploiements automatiques limites a main',()=>{
  const { readFileSync }=require('node:fs');const v=JSON.parse(readFileSync(path.join(root,'vercel.json'),'utf8'));
  assert.equal(v.ignoreCommand,'node vercel-ignore-build.cjs');
- assert.equal(v.git?.deploymentEnabled,undefined);assert.equal(v.github?.enabled,undefined);
+ assert.deepEqual(v.git?.deploymentEnabled,{'*':false,main:true});assert.equal(v.github?.enabled,undefined);
  assert.equal(v.crons.length,2);assert.equal(v.functions['api/chat.js'].maxDuration,30);
  for(const f of ['coherence-client','garde-payload-vercel','test-detention-jours-civils','test-fermetures-jours-civils']){
   const y=readFileSync(path.join(root,`.github/workflows/${f}.yml`),'utf8');
