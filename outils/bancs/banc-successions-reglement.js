@@ -65,6 +65,10 @@ globalThis.fetch = function (url, options) {
   if (appel.methode === 'GET' && appel.url.indexOf('successions') !== -1) {
     return reponse(true, SUCCESSIONS);
   }
+  // PostgREST return=representation : une seule ligne compare-and-swap.
+  if (appel.methode === 'PATCH' && appel.url.indexOf('successions') !== -1) {
+    return reponse(true, [{ id: 'fixture', dispositions: appel.corps.dispositions }]);
+  }
   // LE DECOR REPOND AUSSI A L'ANCIEN CHEMIN : terrain, entreprise, fiche et caisse credibles,
   // sinon la version precedente sortirait par `return false` avant d'ecrire, et l'epreuve
   // « aucune ecriture de reglement » passerait aussi sur le code fautif.
