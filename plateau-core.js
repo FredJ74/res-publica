@@ -1612,7 +1612,8 @@ function afficherBandeauReconnexion() {
         if (typeof recupererPersonnageDuCompte !== 'function') throw new Error('Restauration indisponible');
         // Garder le formulaire visible tant que le chemin de restauration n'est pas achevé.
         // Un échec réseau ne doit pas faire disparaître le seul accès à la reconnexion.
-        await recupererPersonnageDuCompte();
+        const restaure = await recupererPersonnageDuCompte();
+        if (restaure !== true) throw new Error('Personnage non restaure');
         div.remove();
       } catch (erreur) {
         retour.textContent = 'Connexion indisponible. Réessayez sans quitter le jeu.';
@@ -1730,6 +1731,7 @@ async function recupererPersonnageDuCompte() {
     if (!state.currentBuilding || !state.currentRoom) {
       if (typeof showVueRue === 'function') showVueRue();
     }
+    return true;
   } catch (e) {
     rpDiagId('repliCompte', 'EXCEPTION : ' + (e && e.message));
     console.warn('Repli par compte impossible', e);
