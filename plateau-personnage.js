@@ -1638,17 +1638,11 @@ async function doRepondreHeritage(successionId, dispositionId, reponse) {
     return;
   }
 
-  etape.reponse = reponse;
-  etape.repondu_le = new Date().toISOString();
-
-  let nouveauConvoque = null;
-  if (reponse === 'renonce') {
-    const suivante = await determinerEtapeSuivante(disposition, etape.role, succession.conjoint);
-    if (suivante) { disposition.chaine.push(suivante); nouveauConvoque = suivante.beneficiaire; }
-  }
-
-  const r = await sbUpdateSuccession(successionId, { dispositions });
-  if (!r) { showToast('Erreur', "Votre réponse n'a pas pu être enregistrée. Réessayez.", false); return; }
+  const contexte=typeof contexteNavigationRue==='function'?contexteNavigationRue():null;
+  const r=await sbRpcVerdict('succession_repondre',{p_succession:successionId,p_disposition:dispositionId,p_reponse:reponse}).catch(()=>null);
+  if(contexte&&!contexteNavigationRueValide(contexte))return;
+  if(!r?.ok){showToast('Réponse non confirmée',r?.transport?'La réponse du serveur est incertaine. Relisez le dossier avant de réessayer.':'Le serveur a refusé cette réponse. Relisez le dossier.',false);return;}
+  const nouveauConvoque=r.nouveauConvoque||null;
 
   if (nouveauConvoque && typeof sbSendMail === 'function') {
     await sbSendMail('Office Notarial', nouveauConvoque, 'Succession — ' + succession.defunt,
