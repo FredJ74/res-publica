@@ -1608,13 +1608,12 @@ function afficherBandeauReconnexion() {
         }
         // Ne jamais rejouer ici l'ordre coûteux qui a précédé l'expiration.
         // Recharger uniquement la fiche par les fonctions de lecture existantes.
-        div.remove();
         REPLI_COMPTE_TENTE = false;
-        if (typeof recupererPersonnageDuCompte === 'function') {
-          // Ce parcours relance déjà loadCharacter() lorsqu'il retrouve la fiche.
-          // Ne pas provoquer deux lectures et deux restaurations concurrentes.
-          await recupererPersonnageDuCompte();
-        }
+        if (typeof recupererPersonnageDuCompte !== 'function') throw new Error('Restauration indisponible');
+        // Garder le formulaire visible tant que le chemin de restauration n'est pas achevé.
+        // Un échec réseau ne doit pas faire disparaître le seul accès à la reconnexion.
+        await recupererPersonnageDuCompte();
+        div.remove();
       } catch (erreur) {
         retour.textContent = 'Connexion indisponible. Réessayez sans quitter le jeu.';
       } finally {
