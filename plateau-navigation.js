@@ -1472,6 +1472,12 @@ function sortieBatimentMessage(verdict, incertaine = false) {
 function signalerEchecSortie(etape, verdict, incertaine = false) {
   const [titre,message]=sortieBatimentMessage(verdict,incertaine);
   showToast(titre,message,false);
+  // Une sortie refusée faute de session doit donner accès à la reconnexion
+  // directement sur le plateau : aucun F5 ni nouvel ordre de sortie automatique.
+  if (verdict?.transport?.etat === 'session_perdue' ||
+      ['non_authentifie','acteur_non_authentifie','session_perdue'].includes(verdict?.raison)) {
+    if (typeof afficherBandeauReconnexion === 'function') afficherBandeauReconnexion();
+  }
   // Pas de corps HTTP, jeton, identite ou detail de personnage dans ce diagnostic.
   const code=verdict?.transport?.code;
   const diagnostic=etape+' ; transport='+(verdict?.transport?.etat||'metier')+
