@@ -1,0 +1,35 @@
+name: Compatibilite des anciennes URL PNG
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'images/**'
+      - 'vercel.json'
+      - '.github/workflows/verify-webp-compat.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  aliases-png:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verifier les redirections et les WebP
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          cfg=json.loads(Path('vercel.json').read_text())
+          aliases=[x for x in cfg['rewrites'] if x['source'].endswith('.png')]
+          assert len(aliases)==29, f'29 alias PNG attendus, {len(aliases)} trouves'
+          for item in aliases:
+              old=Path(item['source'].lstrip('/'))
+              new=Path(item['destination'].lstrip('/'))
+              assert not old.exists(), f'Ancien PNG encore present: {old}'
+              assert new.is_file(), f'WebP absent: {new}'
+              assert new.read_bytes()[:4]==b'RIFF', f'RIFF WebP invalide: {new}'
+              assert new.read_bytes()[8:12]==b'WEBP', f'En-tete WebP invalide: {new}'
+              assert item['destination']==item['source'][:-4]+'.webp'
+          print(f'{len(aliases)} alias PNG => WebP verifies')
+          PY

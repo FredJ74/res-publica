@@ -65,7 +65,7 @@ const RECETTES_MILITAIRES = {
     produitParLot: 1,
     icon: 'ti-crosshair',
     typeObjet: 'arme', sousType: 'militaire',
-    imageUrl: 'images/arme-pistolet-militaire.png',
+    imageUrl: 'images/arme-pistolet-militaire.webp',
     desc: 'Arme de poing réglementaire de l\'armée de Républia.'
   },
   mitraillette: {
@@ -74,7 +74,7 @@ const RECETTES_MILITAIRES = {
     produitParLot: 1,
     icon: 'ti-crosshair',
     typeObjet: 'arme', sousType: 'militaire',
-    imageUrl: 'images/arme-mitraillette-militaire.png',
+    imageUrl: 'images/arme-mitraillette-militaire.webp',
     desc: 'Arme automatique réglementaire de l\'armée de Républia.'
   },
   explosif_militaire: {
@@ -84,7 +84,7 @@ const RECETTES_MILITAIRES = {
     produitParLot: 3,
     icon: 'ti-bomb',
     typeObjet: 'explosif', sousType: 'militaire',
-    imageUrl: 'images/explosifs-militaires.png',
+    imageUrl: 'images/explosifs-militaires.webp',
     desc: 'Explosifs réglementaires de l\'armée de Républia.'
   },
 
