@@ -228,6 +228,61 @@ def main():
    c.execute("UPDATE personnages_donnees SET liquide=1000,arg=1000 WHERE name='Alice-fixture'");r=q('SELECT coffre_changer_taille(%s,%s,%s,%s)',('coffre-mutualise-001',abonnement,'M',0))
    ok(r['ok'] and r['montant']==200 and r['renouvellementAnnuel']=='2028-02-29','agrandissement apres mutualisation : meme difference et meme echeance')
    ok(q("SELECT has_function_privilege('authenticated','coffre_loyer_terminer_interne(jsonb,text)','EXECUTE')")==False,'aucun client ne peut valider un loyer sans encaissement')
+   # Souscription reelle sur fixtures : cout PA historique et premiere annuite, un seul acte.
+   for domaine,table in [('economie','ordres_couts'),('economie','ordres_couts_ecarts'),('economie','ordres_couts_inconnus'),('politique-et-elections','presidence_memoire_ordres')]:
+    src=(R/f'baseline/domaines/{domaine}/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public\.'+table+r' \(.*?\n\);',src,re.S)[0])
+   c.execute("ALTER TABLE ordres_couts_inconnus ADD PRIMARY KEY(fn);ALTER TABLE ordres_couts_ecarts ADD UNIQUE(fn,pa,cost);INSERT INTO ordres_couts VALUES('louer_local',1,0)")
+   c.execute(fonction('migrations/20261021120540_payer_ordre_garde_incapacite.sql','payer_ordre'))
+   c.execute(fonction('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','bail_cle_coherente'))
+   c.execute('CREATE TRIGGER trg_bail_cle_coherente BEFORE INSERT OR UPDATE ON locations_actives FOR EACH ROW EXECUTE FUNCTION bail_cle_coherente()')
+   for f in ['20261022160000_coffres_souscription_socle.sql','20261022160001_coffres_souscription_et_baux.sql']:
+    sql=(R/'migrations'/f).read_text();c.execute(sql);c.execute(sql)
+   c.execute("UPDATE personnages_donnees SET pa=30,liquide=10000,arg=20000,current_room='coffre_privatif' WHERE name='Alice-fixture';UPDATE comptes_bancaires SET solde=10000")
+   def souscrire(req,t='S',cur=c):cur.execute('SELECT coffre_souscrire(%s,%s)',(req,t));return cur.fetchone()[0]
+   def photo_complete():return [photo_taille(),q('SELECT jsonb_agg(c) FROM coffres_couts_autorises c')]
+   avant=photo_complete();r=q("SELECT payer_ordre('Alice-fixture','louer_local',1,0)")
+   ok(r.get('raison')=='coffre_versionne_requis' and photo_complete()==avant,'ancien onglet : refuser avant PA ou frais, pas apres une inscription rejetee')
+   for t,prix in [('S',250),('M',450),('L',750),('XL',1250)]:
+    pa=q("SELECT pa FROM personnages_donnees WHERE name='Alice-fixture'");argent=q('SELECT solde FROM comptes_bancaires');r=souscrire('coffre-abonnement-'+t+'0001',t)
+    ok(r['ok'] and r['tarifAnnuel']==prix and q('SELECT solde FROM comptes_bancaires')==argent-prix and q("SELECT pa FROM personnages_donnees WHERE name='Alice-fixture'")==pa-1,'souscription '+t+' : premiere annuite et 1 PA atomiques')
+    ok(q('SELECT count(*) FROM locations_actives WHERE id=(SELECT bail_id FROM coffres_bancaires WHERE id=%s)',(r['coffre'],))==1 and q('SELECT premier_loyer_paye FROM coffres_bancaires WHERE id=%s',(r['coffre'],)),'vrai bail et paiement acquis ensemble '+t)
+   ancien=r;avant=photo_complete();r=souscrire('coffre-abonnement-XL0001','XL');ok(r.get('rejeu') and r['coffre']==ancien['coffre'] and photo_complete()==avant,'reponse de souscription perdue : meme coffre, pas de second bail ni paiement')
+   avant=photo_complete();r=souscrire('coffre-abonnement-XL0001','S');ok(r.get('raison')=='requete_reutilisee' and photo_complete()==avant,'cle de souscription ne peut changer de taille apres paiement')
+   cat=q('SELECT coffre_catalogue()');ok(cat['ok'] and [o['tarifAnnuel'] for o in cat['offres']]==[250,450,750,1250],'catalogue derive des tarifs serveur, pas prix dictes par formulaire')
+   c.execute("SET test.uid='00000000-0000-4000-8000-000000000070'");cat=q('SELECT coffre_catalogue()');ok(cat['ok'] and cat['coffres']==[],'catalogue individuel : Bob ne voit aucun des coffres d Alice');c.execute("SET test.uid='00000000-0000-4000-8000-000000000069'")
+   c.execute("UPDATE personnages_donnees SET liquide=0,arg=0 WHERE name='Alice-fixture';UPDATE comptes_bancaires SET solde=0");avant=photo_complete();r=souscrire('coffre-sans-fonds01')
+   ok(r.get('raison')=='premier_loyer_refuse' and photo_complete()==avant,'fonds insuffisants : aucun PA perdu, aucun coffre bail ou marqueur abandonne')
+   c.execute("UPDATE personnages_donnees SET liquide=1000,arg=1000,pa=0 WHERE name='Alice-fixture'");avant=photo_complete();r=souscrire('coffre-sans-pa-0001')
+   ok(r.get('raison')=='cout_souscription_refuse' and photo_complete()==avant,'PA insuffisants : aucun paiement ou bail')
+   c.execute("UPDATE personnages_donnees SET pa=30,current_room='accueil' WHERE name='Alice-fixture'");avant=photo_complete();r=souscrire('coffre-hors-site001')
+   ok(r.get('raison')=='pas_sur_place' and photo_complete()==avant,'souscription hors site refusee avant cout')
+   c.execute("UPDATE personnages_donnees SET current_room='coffre_privatif' WHERE name='Alice-fixture'")
+   for t in ['XXL','s',None]:
+    avant=photo_complete();r=souscrire('coffre-format-'+str(t)+'0001',t);ok(r.get('raison')=='taille_invalide' and photo_complete()==avant,'format invalide sans effet '+str(t))
+   # Le nouveau bail peut seulement conserver les champs attestes par son coffre prive.
+   bail=q('SELECT bail_id FROM coffres_bancaires WHERE id=%s',(ancien['coffre'],));c.execute('COMMIT');avant=photo_complete()
+   try:c.execute("UPDATE locations_actives SET data=data||'{\"prix\":600}' WHERE id=%s",(bail,));raise AssertionError('ancien tarif accepte')
+   except psycopg2.Error as err:db.rollback();assert 'contrat_coffre_modifie' in str(err)
+   ok(photo_complete()==avant,'ancienne sauvegarde ne peut restaurer un tarif quotidien sur le contrat annuel')
+   c.execute("UPDATE personnages_donnees SET liquide=1000,arg=1000 WHERE name='Alice-fixture'");c.execute('COMMIT')
+   def abonnements_concurrents(_):
+    with psycopg2.connect(server.get_uri()) as d:
+     cc=d.cursor();cc.execute("SET test.uid='00000000-0000-4000-8000-000000000069'");return souscrire('coffre-course-abonne1',cur=cc)
+   with ThreadPoolExecutor(max_workers=2) as pool:rs=list(pool.map(abonnements_concurrents,range(2)))
+   ok(all(x.get('ok') for x in rs) and rs[0]['coffre']==rs[1]['coffre'] and sum(bool(x.get('rejeu')) for x in rs)==1,'deux inscriptions concurrentes meme intention : un coffre, un PA et un paiement')
+   ok(q('SELECT count(*) FROM coffres_couts_autorises')==0 and q("SELECT has_table_privilege('authenticated','coffres_couts_autorises','INSERT')")==False,'autorisation transitoire de cout vide et inaccessible au navigateur')
+   for f in ['20261022160002_coffres_reprise_et_resiliation.sql','20261022160003_coffres_baux_confidentialite.sql']:
+    sql=(R/'migrations'/f).read_text();c.execute(sql);c.execute(sql)
+   # Les policies permissives historiques restent presentes : la restriction doit s ajouter.
+   c.execute('CREATE POLICY locations_lecture ON locations_actives FOR SELECT TO anon,authenticated USING(true);GRANT SELECT ON locations_actives TO anon,authenticated')
+   c.execute("SET ROLE authenticated;SET test.uid='00000000-0000-4000-8000-000000000070'");ok(q('SELECT count(*) FROM locations_actives')==0,'RLS : meme lecture directe des contrats d autrui refusee');c.execute("RESET ROLE;SET test.uid='00000000-0000-4000-8000-000000000069'")
+   r=souscrire('coffre-resilier-cible1');id_fin=r['coffre'];rev=0
+   avant=photo_complete();r=q('SELECT coffre_resilier(%s,%s,%s)',('coffre-resilier-0001',id_fin,rev))
+   ok(r.get('ok') and r.get('resilie'),'resiliation versionnee reutilise la terminaison du bail vide')
+   avant=photo_complete();r=q('SELECT coffre_resilier(%s,%s,%s)',('coffre-resilier-0001',id_fin,rev))
+   ok(r.get('rejeu') and photo_complete()==avant,'resiliation reponse perdue : recu retrouve apres suppression du coffre')
+   ok(q("SELECT coffre_recu('coffre-resilier-0001')->>'terminee'")=='true','F5 : consultation de confirmation sans reexecuter la commande')
+   c.execute("SET test.uid='00000000-0000-4000-8000-000000000070'");ok(q("SELECT coffre_recu('coffre-resilier-0001')->>'terminee'")=='false','recu invisible pour un autre UID');c.execute("SET test.uid='00000000-0000-4000-8000-000000000069'")
    print(f'{n}/{n} assertions locales. Stockage et taille prepares ; aucun abonnement ni succession active en production.')
  finally:server.cleanup()
 if __name__=='__main__':main()

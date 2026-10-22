@@ -3510,6 +3510,7 @@ async function persisterLocation(loc) {
 }
 
 function ouvrirModalLouerLocal(pa, cost) {
+  if(typeof coffreLutheciaIci==='function'&&coffreLutheciaIci())return ouvrirCoffresBancaires();
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;
   if (!buildingId || !roomId) return;
@@ -3577,6 +3578,7 @@ function ouvrirModalLouerLocal(pa, cost) {
 }
 
 async function confirmerLocation(pa, cost) {
+  if(typeof coffreLutheciaIci==='function'&&coffreLutheciaIci())return ouvrirCoffresBancaires();
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;
   const room = BUILDINGS[buildingId]?.rooms?.[roomId];
@@ -3690,6 +3692,7 @@ function entrerEtLouerSuite(buildingId, roomId) {
 }
 
 function ouvrirModalGererLocal() {
+  if(typeof coffreLutheciaIci==='function'&&coffreLutheciaIci())return ouvrirCoffresBancaires();
   const buildingId = state.currentBuilding;
   const roomId = state.currentRoom;
   const location = getLocationPourRoom(buildingId, roomId);

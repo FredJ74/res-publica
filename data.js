@@ -3293,7 +3293,7 @@ const BUILDINGS = {
         locationData: { prix: 600, bonusPOP: 0, bonusINF: 4, bonusDIS: 12, label: 'Coffre Privatif', tier: 1 },
         persons: [],
         orders: [
-          {fn:'louer_local', label:'Louer ce coffre (600 FR/jour)', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 DIS +4 INF. Vos secrets en sécurité absolue.'},
+          {fn:'louer_local', label:'Louer un coffre', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'+12 DIS +4 INF. Vos secrets en sécurité absolue.'},
           {fn:'gerer_local', label:'Gérer mon coffre', pa:1, cost:0, type:'legal', icon:'ti-settings', successRate:100}
         ]
       }
