@@ -6,7 +6,8 @@
 
 // ORDERS SYSTEM
 // =====================
-function doOrder(fn, pa, cost, label, desc, successRate) {
+async function doOrder(fn, pa, cost, label, desc, successRate) {
+  if(typeof rpRealitesAvantOrdre==='function'&&!(await rpRealitesAvantOrdre()))return;
   // ORDRE COURANT (chantier C, 13 septembre 2026). deduireCoutOrdre ne recoit que
   // {pa, cost} de ses 268 appelants : elle ne sait pas QUEL ordre elle facture, et
   // le serveur en a besoin pour verifier que le cout annonce est bien un cout
@@ -260,6 +261,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'transfert_compromis') { ouvrirMenuTransfertCompromis(pa, cost); return; }
   if (fn === 'payer_versement_chantier') { doPayerVersementChantier(); return; }
   if (fn === 'travailler_chantier')    { doTravaillerChantier(pa, cost); return; }
+  if (fn === 'receptionner_chantier') { showToast('Réception indisponible', 'Le raccordement serveur de la réception sur place n’est pas encore installé. Aucune livraison n’a été déclenchée.', false); return; }
+  if (fn === 'donner_materiaux_chantier') { doVendreMateriauxChantier(pa, cost, 'don'); return; }
   if (fn === 'vendre_materiaux_chantier') { doVendreMateriauxChantier(pa, cost); return; }
   if (fn === 'modifier_plan_chantier') { doModifierPlanChantier(pa, cost); return; }
   if (fn === 'reconfigurer_lots') { doOuvrirReconfiguration(pa, cost); return; }
@@ -519,6 +522,13 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'rendre_sentence')         { ouvrirDossiersJuge(pa, cost); return; }
   // L'ECRAN DU PARQUET. Zero PA : c'est un ecran de decision, pas un acte.
   if (fn === 'parquet')                 { ouvrirParquet(); return; }
+  if (fn === 'demarches_administratives') { ouvrirDemarchesAdministratives(); return; }
+  if (fn === 'achat_terrains') { ouvrirAchatTerrains(); return; }
+  if (fn === 'neutraliser_squatteurs') { ouvrirNeutralisationSquatteurs(); return; }
+  if (fn === 'gestion_intrus') { ouvrirGestionIntrus(); return; }
+  if (fn === 'information_chantier') { ouvrirInformationChantier(); return; }
+  if (fn === 'approvisionner_chantier_menu') { ouvrirApprovisionnementChantier(); return; }
+  if (fn === 'information_locaux') { ouvrirInformationLocaux(); return; }
   if (fn === 'etat_civil') { ouvrirEtatCivil(); return; }
   if (fn === 'demander_naturalisation') { ouvrirModalNaturalisation(pa, cost); return; }
   if (fn === 'demander_mariage') { ouvrirModalDemandeMariage(pa, cost); return; }

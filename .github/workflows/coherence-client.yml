@@ -41,6 +41,29 @@ jobs:
           npm test --prefix outils/e2e
       - name: Dépendances du PostgreSQL jetable
         run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - name: Projections Supabase sur le schema archive, hors production
+        run: python3 outils/bancs/banc-optimisation-projections-local.py --local-jetable
+      - name: Présences physiques sans battement — PostgreSQL local
+        run: python3 outils/bancs/banc-realites-presences-local.py
+      - name: Impacts, garde de rue et débit commun — PostgreSQL local
+        run: |
+          python3 outils/bancs/banc-realites-impacts-local.py
+          python3 outils/bancs/banc-realites-rue-local.py
+          python3 outils/bancs/banc-realites-payer-local.py
+      - name: Socle notarial fonds murs et préemption — PostgreSQL jetable
+        run: python3 outils/bancs/banc-immobilier-ventes-local.py
+      - name: Dépendance construction PR58 — PostgreSQL jetable
+        run: python3 outils/bancs/banc-construction-materiaux-local.py
+      - name: Placements Banque nationale, sources et recus atomiques
+        run: python3 outils/bancs/banc-placements-sources-local.py
+      - name: Reservations cumulables et bonus atteste, PostgreSQL jetable
+        run: python3 outils/bancs/banc-reservations-cumulables-local.py
+      - name: Inventaire, occupation en unites et conservation des retraits multilignes
+        run: python3 outils/bancs/banc-inventaire-unites-local.py
+      - name: Successions, refus des types non raccordes sans fausse cloture
+        run: python3 outils/bancs/banc-succession-types-local.py
+      - name: Successions, coherence des titres immobiliers
+        run: python3 outils/bancs/banc-succession-titres-local.py
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
       - name: Achat sur PostgreSQL local, sans identifiant Supabase

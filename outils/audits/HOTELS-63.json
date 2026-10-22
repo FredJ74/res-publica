@@ -1,0 +1,170 @@
+[
+  {
+    "pays": "republic",
+    "ville": "capitale",
+    "building": "hotel-republica",
+    "accueil": "accueil",
+    "chambres": [
+      "chambres"
+    ],
+    "pa": 0,
+    "prix": 80,
+    "moral": 3,
+    "caisse": "republic_hotel_capitale",
+    "entreprise": true
+  },
+  {
+    "pays": "republic",
+    "ville": "ville_a",
+    "building": "hotel-port",
+    "accueil": "hall_port",
+    "chambres": [
+      "chambre_port"
+    ],
+    "pa": 0,
+    "prix": 60,
+    "moral": 3,
+    "caisse": "republic_hotel_ville_a",
+    "entreprise": false
+  },
+  {
+    "pays": "republic",
+    "ville": "ville_b",
+    "building": "hotel-mineur",
+    "accueil": "hall_mineur",
+    "chambres": [
+      "chambre_mineur"
+    ],
+    "pa": 0,
+    "prix": 60,
+    "moral": 3,
+    "caisse": "republic_hotel_ville_b",
+    "entreprise": false
+  },
+  {
+    "pays": "narco",
+    "ville": "capitale",
+    "building": "hotel-republica",
+    "accueil": "accueil",
+    "chambres": [
+      "chambres"
+    ],
+    "pa": 0,
+    "prix": 80,
+    "moral": 3,
+    "caisse": "narco_hotel_capitale",
+    "entreprise": false
+  },
+  {
+    "pays": "narco",
+    "ville": "ville_a",
+    "building": "hotel-mineur",
+    "accueil": "hall_mineur",
+    "chambres": [
+      "chambre_mineur"
+    ],
+    "pa": 0,
+    "prix": 60,
+    "moral": 3,
+    "caisse": "narco_hotel_ville_a",
+    "entreprise": false
+  },
+  {
+    "pays": "narco",
+    "ville": "ville_b",
+    "building": "hotel-mineur",
+    "accueil": "hall_mineur",
+    "chambres": [
+      "chambre_mineur"
+    ],
+    "pa": 0,
+    "prix": 60,
+    "moral": 3,
+    "caisse": "narco_hotel_ville_b",
+    "entreprise": false
+  },
+  {
+    "pays": "soviet",
+    "ville": "capitale",
+    "building": "hotel-republica",
+    "accueil": "accueil",
+    "chambres": [
+      "chambres"
+    ],
+    "pa": 0,
+    "prix": 80,
+    "moral": 3,
+    "caisse": "soviet_hotel_capitale",
+    "entreprise": false
+  },
+  {
+    "pays": "soviet",
+    "ville": "ville_a",
+    "building": "hotel-mineur",
+    "accueil": "hall_mineur",
+    "chambres": [
+      "chambre_mineur"
+    ],
+    "pa": 0,
+    "prix": 60,
+    "moral": 3,
+    "caisse": "soviet_hotel_ville_a",
+    "entreprise": false
+  },
+  {
+    "pays": "soviet",
+    "ville": "ville_b",
+    "building": "hotel-mineur",
+    "accueil": "hall_mineur",
+    "chambres": [
+      "chambre_mineur"
+    ],
+    "pa": 0,
+    "prix": 60,
+    "moral": 3,
+    "caisse": "soviet_hotel_ville_b",
+    "entreprise": false
+  },
+  {
+    "pays": "khalija",
+    "ville": "capitale",
+    "building": "hotel-republica",
+    "accueil": "accueil",
+    "chambres": [
+      "chambres"
+    ],
+    "pa": 0,
+    "prix": 80,
+    "moral": 3,
+    "caisse": "khalija_hotel_capitale",
+    "entreprise": false
+  },
+  {
+    "pays": "khalija",
+    "ville": "ville_a",
+    "building": "hotel-mineur",
+    "accueil": "hall_mineur",
+    "chambres": [
+      "chambre_mineur"
+    ],
+    "pa": 0,
+    "prix": 60,
+    "moral": 3,
+    "caisse": "khalija_hotel_ville_a",
+    "entreprise": false
+  },
+  {
+    "pays": "khalija",
+    "ville": "ville_b",
+    "building": "hotel-mineur",
+    "accueil": "hall_mineur",
+    "chambres": [
+      "chambre_mineur"
+    ],
+    "pa": 0,
+    "prix": 60,
+    "moral": 3,
+    "caisse": "khalija_hotel_ville_b",
+    "entreprise": false
+  }
+]

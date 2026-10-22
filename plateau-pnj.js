@@ -3090,31 +3090,28 @@ async function repondreInvitationSociale(id, accepte, nomInviteur) {
   state._invitationSocialeCourante = null;
 }
 
-// Un seul sondage social par session, sans requêtes superposées et sans onglet masqué.
-// Les réponses restent persistées en base : une reconnexion récupère les invitations.
-const RP_SOCIAL_POLL_MS = 12000;
+// API historique conservee ; les lectures sociales sont raccordees au registre commun.
 const RP_SOCIAL_POLL_EN_COURS = new Set();
 function lancerVerificationSociale(nom) {
-  if (document.hidden || RP_SOCIAL_POLL_EN_COURS.has(nom)) return;
-  const verification = window[nom];
-  if (typeof verification !== 'function') return;
+  if(document.hidden||RP_SOCIAL_POLL_EN_COURS.has(nom))return;
+  const verification=window[nom];if(typeof verification!=='function')return;
   RP_SOCIAL_POLL_EN_COURS.add(nom);
-  Promise.resolve().then(() => verification()).catch(e => {
-    console.warn('[Social] Verification indisponible : ' + nom, e);
-  }).finally(() => RP_SOCIAL_POLL_EN_COURS.delete(nom));
+  return Promise.resolve().then(()=>verification()).catch(e=>console.warn('[Social] Verification indisponible : '+nom,e))
+    .finally(()=>RP_SOCIAL_POLL_EN_COURS.delete(nom));
 }
-function demarrerPollingInvitationsDiner() {
-  if (window._dinerPollingActif) return;
-  window._dinerPollingActif = true;
-  const verifier = () => {
-    lancerVerificationSociale('verifierInvitationsSocialesRecues');
-    lancerVerificationSociale('verifierReponseInvitationSociale');
-    lancerVerificationSociale('verifierTourneesRecues');
-    lancerVerificationSociale('verifierTourneesActivesOffreur');
-  };
-  setInterval(verifier, RP_SOCIAL_POLL_MS);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) verifier(); });
-  verifier();
+async function verifierRealiteSociale(){
+  // Reutilisation du lecteur ajoute sur la branche distante, sans fenetre de cache de 5 s.
+  for(const nom of ['verifierInvitationsSocialesRecues','verifierReponseInvitationSociale','verifierTourneesRecues','verifierTourneesActivesOffreur'])
+    await lancerVerificationSociale(nom);
+}
+function programmerVerificationSocialeSurAction(){
+  // Compatibilite des appelants : aucune seconde liste d'ecouteurs, aucun second sondage.
+  if(typeof rpRealitesSynchroniser==='function')return rpRealitesSynchroniser();
+}
+function demarrerPollingInvitationsDiner(){
+  if(typeof rpRealitesEnregistrer!=='function')return;
+  rpRealitesEnregistrer('social',verifierRealiteSociale);
+  return verifierRealiteSociale(); // une fois a la connexion, comme avant
 }
 
 function ouvrirModalFabriquerKompromat(nomAgent) {
@@ -3589,35 +3586,10 @@ function genererPnjTerrain(buildingId) {
     : [];
   if (!profiles.length) return null;
 
-  // Indices impériaux modifient les probabilités (Securite/Eco/Social calcules -- moyenne des
-  // villes pour Republia, ancien national inchange pour les 3 autres empires ; Diplomatie reste
-  // un indice national independant, non concerne)
-  const idFallback = INDICES_NATIONAUX?.[country]?.ID ?? 40;
-  const isn = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'isn') : 30;
-  const ie  = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'ie') : 50;
-  const id  = idFallback;
-  const is  = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'social') : 45;
-
-  // Ajuster les probabilités selon indices
-  const adjustedProfiles = profiles.map(p => {
-    let prob = p.prob;
-    if (p.id === 'squatter_agr')  prob = Math.max(0.01, prob - isn/200 - is/200);
-    if (p.id === 'squatter_cool') prob = Math.max(0.02, prob - isn/300);
-    if (p.id === 'cadavre')       prob = Math.max(0.005, prob + (100-id)/500);
-    if (p.id === 'promoteur')     prob = Math.max(0.03, prob + ie/400);
-    if (p.id === 'inspecteur')    prob = Math.max(0.05, prob + isn/300);
-    if (p.id === 'vide')          prob = Math.max(0.05, prob + isn/200);
-    return { ...p, prob };
-  });
-
-  // Normaliser et tirer au sort
-  const total = adjustedProfiles.reduce((s, p) => s + p.prob, 0);
-  let roll = Math.random() * total;
-  for (const p of adjustedProfiles) {
-    roll -= p.prob;
-    if (roll <= 0) return p.id === 'vide' ? null : p;
-  }
-  return null;
+  // Quatre situations equiprobables, communes a toutes les parcelles. Les profils
+  // (identites, personnalites, images) restent ceux du catalogue PNJ existant.
+  const id = ['squatter_cool','squatter_agr','cadavre','vide'][Math.floor(Math.random()*4)];
+  return id === 'vide' ? null : (profiles.find(p=>p.id===id)||null);
 }
 
 async function interagirPnjTerrain(pnjId) {
@@ -3754,45 +3726,31 @@ function soudoyerGardienTerrain(montant) {
 
 function chargerPnjTerrain(buildingId) {
   if (!buildingId?.startsWith('terrain-a-batir')) return;
-
-  // Vérifier si état persistant existe déjà
-  const ts = getTerrainState(buildingId);
-
-  // Si police est intervenue, vider le PNJ
-  if (ts.policeInterventionAt && Date.now() > ts.policeInterventionAt && ts.pnj) {
-    setTerrainState(buildingId, { pnj: null, pnjData: null, policeAppellee: null, policeInterventionAt: null });
-    sessionStorage.removeItem('terrain_pnj_' + buildingId);
-    showToast('Terrain libéré', 'La police est intervenue.', true);
+  let ts = getTerrainState(buildingId);
+  const cle = 'terrain_occupation_visite_' + state.country + '_' + buildingId;
+  // Ce cache de visite ne confere aucun titre, permis, droit ni resultat de combat.
+  if (!ts.occupationInitialisee && !Object.prototype.hasOwnProperty.call(ts, 'pnj')) {
+    try { const visite=JSON.parse(sessionStorage.getItem(cle)||'null');
+      if(visite)ts=setTerrainState(buildingId,visite);
+    } catch(e) {}
+  }
+  if(ts.proprietaire || ts.compromis || ts.occupationScellee){
+    setTerrainState(buildingId,{occupationScellee:true,occupationInitialisee:true});
+    sessionStorage.removeItem('terrain_pnj_'+buildingId);
     return;
   }
-
-  // Utiliser le PNJ persistant si disponible
-  if (ts.pnjData) {
-    sessionStorage.setItem('terrain_pnj_' + buildingId, JSON.stringify({
-      name: ts.pnjData.name + ' (PNJ)',
-      role: ts.pnjData.role,
-      job: ts.pnjData.job,
-      rel: ts.pnjData.rel,
-      trait: ts.pnjData.trait,
-      photoUrl: ts.pnjData.photoUrl,
-      photoPos: ts.pnjData.photoPos,
-      terrainPnjId: ts.pnjData.id
-    }));
-    return;
+  if(ts.policeInterventionAt && Date.now()>=ts.policeInterventionAt){
+    ts=setTerrainState(buildingId,{pnj:null,pnjData:null,policeAppellee:null,policeInterventionAt:null});
   }
-
-  // Générer automatiquement au premier passage
-  const pnjObj = genererPnjTerrain(buildingId);
-  if (pnjObj) {
-    setTerrainState(buildingId, { pnj: pnjObj.id, pnjData: pnjObj, dateGeneration: Date.now() });
-    sessionStorage.setItem('terrain_pnj_' + buildingId, JSON.stringify({
-      name: pnjObj.name + ' (PNJ)', role: pnjObj.role, job: pnjObj.job,
-      rel: pnjObj.rel, trait: pnjObj.trait, photoUrl: pnjObj.photoUrl,
-      photoPos: pnjObj.photoPos, terrainPnjId: pnjObj.id
-    }));
-  } else {
-    sessionStorage.removeItem('terrain_pnj_' + buildingId);
+  if(!ts.occupationInitialisee){
+    const pnj=ts.pnjData||genererPnjTerrain(buildingId);
+    ts=setTerrainState(buildingId,{pnj:pnj?.id||null,pnjData:pnj,occupationInitialisee:true,dateGeneration:Date.now()});
   }
+  if(ts.pnjData)sessionStorage.setItem('terrain_pnj_'+buildingId,JSON.stringify({
+    name:ts.pnjData.name+' (PNJ)',role:ts.pnjData.role,job:ts.pnjData.job,rel:ts.pnjData.rel,
+    trait:ts.pnjData.trait,photoUrl:ts.pnjData.photoUrl,photoPos:ts.pnjData.photoPos,terrainPnjId:ts.pnjData.id
+  }));
+  else sessionStorage.removeItem('terrain_pnj_'+buildingId);
 }
 
 async function getTerrainsVraimentLibres(country) {
@@ -3822,6 +3780,8 @@ async function getTerrainsVraimentLibres(country) {
 function terrainOrdreDisponible(fn, buildingId) {
   const ts = getTerrainState(buildingId);
   const pnj = ts.pnj; // PNJ persistant sur ce terrain
+  if (Number(ts.enqueteJusqua)>Date.now() && ['acheter_terrain','signer_compromis','construire_sur_terrain'].includes(fn))
+    return {ok:false,raison:'Une enquete bloque la signature pendant trois jours apres le signalement.'};
 
   // Ordres bloqués si cadavre présent
   if (pnj === 'cadavre') {
@@ -3879,27 +3839,8 @@ function terrainOrdreDisponible(fn, buildingId) {
 
 function doVerifierTerrain() {
   const id = state.currentBuilding;
-  let ts = getTerrainState(id);
-
-  if (!ts.pnj) {
-    // Générer et persister le PNJ
-    const pnjObj = genererPnjTerrain(id);
-    ts = setTerrainState(id, {
-      pnj: pnjObj ? pnjObj.id : null,
-      pnjData: pnjObj || null,
-      dateGeneration: Date.now()
-    });
-    // Mettre à jour le sessionStorage aussi pour l'affichage
-    if (pnjObj) {
-      sessionStorage.setItem('terrain_pnj_' + id, JSON.stringify({
-        name: pnjObj.name + ' (PNJ)', role: pnjObj.role, job: pnjObj.job,
-        rel: pnjObj.rel, trait: pnjObj.trait, terrainPnjId: pnjObj.id,
-        photoUrl: pnjObj.photoUrl, photoPos: pnjObj.photoPos
-      }));
-    } else {
-      sessionStorage.removeItem('terrain_pnj_' + id);
-    }
-  }
+  chargerPnjTerrain(id);
+  const ts = getTerrainState(id);
 
   const pnj = ts.pnjData;
   if (!pnj) {
@@ -4344,6 +4285,11 @@ const SURFACE_TERRAINS = {
   'terrain-a-batir-3': 2300,
   'terrain-a-batir-4': 1850,
   'terrain-a-batir-5': 2750,
+  // Surfaces deja declarees dans les descriptions de Port-Sainte-Marie.
+  'terrain-a-batir-8': 1500,
+  'terrain-a-batir-9': 1500,
+  'terrain-a-batir-10': 1500,
+  'terrain-a-batir-11': 1500,
   // Lot 2D (19 aout 2026) -- 5 nouveaux terrains de Montrouge, prix a 12 FR/m² valide par Fred.
   // Le lot 6 existant n'a volontairement AUCUNE entree ici (sa superficie n'a jamais ete
   // officiellement fixee) : ne pas lui en ajouter une dans ce lot, cf. plateau-rue-centrale.js.
@@ -4372,12 +4318,15 @@ async function doAcheterTerrain() {
     return;
   }
 
+  const reference = constructionReferenceTerrain(id, getTerrainState(id));
+  if (!reference.surface || reference.prix === null) { showToast('Référence manquante', 'Surface ou prix officiel absent : aucun achat ne peut être facturé.', false); return; }
+
   // Deduction PA+cout centralisee (Lot 2C) -- avant toute mutation (setTerrainState, Supabase).
   const r = await deduireCoutOrdre({ pa: 2, cost: ACOMPTE_ACHAT_DIRECT });
   if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '2 PA requis.' : ACOMPTE_ACHAT_DIRECT + ' ' + cur + ' requis pour le dépôt de garantie.', false); return; }
 
-  const surface = SURFACE_TERRAINS[id] || 2000;
-  const prix = surface * PRIX_AU_M2_TERRAIN;
+  const surface = reference.surface;
+  const prix = reference.prix;
   const delaiJours = 2 + Math.floor(Math.random() * 6); // 2 a 7 jours
   const dateAchat = Date.now() + delaiJours * 86400000;
   const dateLimite = dateAchat + 24 * 3600000;

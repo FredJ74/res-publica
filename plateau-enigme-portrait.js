@@ -761,7 +761,12 @@ async function doDemanderJugeInstruction(pa, cost) {
 // BANQUE NATIONALE — coffre lie a la succession de Pierre Thibault
 // =====================
 
+function enigme1AutorisationCoffreUtilisable() {
+  const e=state.char?.enigme1;return e?.autorisationCoffre===true&&e.coffreOuvert!==true;
+}
+
 async function doPresenterAutorisationCoffre(pa, cost) {
+  if(!enigme1AutorisationCoffreUtilisable()){showToast('Autorisation indisponible','Vous ne disposez pas d’une autorisation encore utilisable.',false);return;}
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   const autorise = state.char && state.char.enigme1 && state.char.enigme1.autorisationCoffre;

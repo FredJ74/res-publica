@@ -1,0 +1,679 @@
+{
+  "date": "2026-10-20",
+  "pr": 56,
+  "branche": "codex/optimisation-supabase-20261020",
+  "base_main": "baa9cb7e2b7f89db66cf268d21382deb0be2a3a2",
+  "verdict": "FUSION_BLOQUEE_CONTROLES_DISTANTS_NON_VERIFIES",
+  "corrections": [
+    "Presence de rue tardive apres entree batiment",
+    "Union invitations tronquee par limite de page"
+  ],
+  "tests_cibles": {
+    "reussis": 24,
+    "echecs": 0,
+    "reproductions_avant_correction": 2
+  },
+  "client": [
+    {
+      "banc": "banc-administration-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.129
+    },
+    {
+      "banc": "banc-annuaire-territoires.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.138
+    },
+    {
+      "banc": "banc-api-supabase.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.073
+    },
+    {
+      "banc": "banc-appro-chantier.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.089
+    },
+    {
+      "banc": "banc-archives-musee.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.138
+    },
+    {
+      "banc": "banc-assemblee-hall.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.116
+    },
+    {
+      "banc": "banc-autorite-detecteurs.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.211
+    },
+    {
+      "banc": "banc-avis-de-recherche.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.1
+    },
+    {
+      "banc": "banc-barreau-temoins-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.101
+    },
+    {
+      "banc": "banc-calendrier-electoral.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.079
+    },
+    {
+      "banc": "banc-calendrier-succession.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.167
+    },
+    {
+      "banc": "banc-candidatures-nocturnes.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.111
+    },
+    {
+      "banc": "banc-carrieres-creation-et-audience-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.085
+    },
+    {
+      "banc": "banc-chaines-17-a-20.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.096
+    },
+    {
+      "banc": "banc-chantier-progression-serveur.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.063
+    },
+    {
+      "banc": "banc-chat-disponibilite.mjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.175
+    },
+    {
+      "banc": "banc-chromium-cycle.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 8.125
+    },
+    {
+      "banc": "banc-coherence-banques.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.134
+    },
+    {
+      "banc": "banc-coherence-organisations.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.176
+    },
+    {
+      "banc": "banc-coherence-sauvegarde.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.135
+    },
+    {
+      "banc": "banc-commerce-etat-client.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.123
+    },
+    {
+      "banc": "banc-commerce-transactions.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.152
+    },
+    {
+      "banc": "banc-commerce-unifie-navigateur.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 1.044
+    },
+    {
+      "banc": "banc-commerce-unifie.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.985
+    },
+    {
+      "banc": "banc-compromis-nocturnes.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.095
+    },
+    {
+      "banc": "banc-conference-presse-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.065
+    },
+    {
+      "banc": "banc-consommation-inventaire.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.111
+    },
+    {
+      "banc": "banc-contexte-public-dialogue.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.085
+    },
+    {
+      "banc": "banc-continuite-municipale.mjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.616
+    },
+    {
+      "banc": "banc-cotisations-organisations.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.099
+    },
+    {
+      "banc": "banc-cron-paris.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.133
+    },
+    {
+      "banc": "banc-cycle-plaintes.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.088
+    },
+    {
+      "banc": "banc-deploiement-sobre.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 1.035
+    },
+    {
+      "banc": "banc-desertion-liberation.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.065
+    },
+    {
+      "banc": "banc-detention-plateau.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.088
+    },
+    {
+      "banc": "banc-dialogue-pnj-republia.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.11
+    },
+    {
+      "banc": "banc-equipements-collectifs-client.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.32
+    },
+    {
+      "banc": "banc-etat-terrain.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.091
+    },
+    {
+      "banc": "banc-greffe-documents-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.102
+    },
+    {
+      "banc": "banc-greve-generale.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.102
+    },
+    {
+      "banc": "banc-hydratation-personnage.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.168
+    },
+    {
+      "banc": "banc-infobulles-navigateur.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 1.444
+    },
+    {
+      "banc": "banc-interception-reseau.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 1.641
+    },
+    {
+      "banc": "banc-jodie-confirmation.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.191
+    },
+    {
+      "banc": "banc-justice-peine-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.076
+    },
+    {
+      "banc": "banc-mail-systeme.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.092
+    },
+    {
+      "banc": "banc-memoire-mandats-dialogue.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.088
+    },
+    {
+      "banc": "banc-mutation-terrain.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.06
+    },
+    {
+      "banc": "banc-navigation-rues.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.13
+    },
+    {
+      "banc": "banc-nominations-municipales.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 1.012
+    },
+    {
+      "banc": "banc-optimisation-supabase.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.639
+    },
+    {
+      "banc": "banc-ordre-de-bataille-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.064
+    },
+    {
+      "banc": "banc-ordres-territoires.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.138
+    },
+    {
+      "banc": "banc-organisations-commandes-client.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.177
+    },
+    {
+      "banc": "banc-organisations-evenements-client.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.243
+    },
+    {
+      "banc": "banc-organisations-membres-client.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.41
+    },
+    {
+      "banc": "banc-palais-gouvernement.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.141
+    },
+    {
+      "banc": "banc-parquet-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.131
+    },
+    {
+      "banc": "banc-patcher-blob.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.084
+    },
+    {
+      "banc": "banc-portrait-liquide.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.108
+    },
+    {
+      "banc": "banc-preemptions.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.114
+    },
+    {
+      "banc": "banc-presidence-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.105
+    },
+    {
+      "banc": "banc-prets-bancaires.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.113
+    },
+    {
+      "banc": "banc-quatrieme-passe-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.095
+    },
+    {
+      "banc": "banc-reception-objets.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.192
+    },
+    {
+      "banc": "banc-referent-commandant.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.084
+    },
+    {
+      "banc": "banc-referents-palais.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.108
+    },
+    {
+      "banc": "banc-reservation-republica.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.32
+    },
+    {
+      "banc": "banc-restaurant-luthecia.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.947
+    },
+    {
+      "banc": "banc-retours-acteur.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.191
+    },
+    {
+      "banc": "banc-rues-navigateur.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 4.38
+    },
+    {
+      "banc": "banc-seance-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.093
+    },
+    {
+      "banc": "banc-session-nocturne.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.244
+    },
+    {
+      "banc": "banc-solde-personnage.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.075
+    },
+    {
+      "banc": "banc-sorties-batiments.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.745
+    },
+    {
+      "banc": "banc-souvenirs-et-achat-direct.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.113
+    },
+    {
+      "banc": "banc-stabilisation-session.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.208
+    },
+    {
+      "banc": "banc-subventions-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.084
+    },
+    {
+      "banc": "banc-successions-reglement.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.122
+    },
+    {
+      "banc": "banc-taux-imposition.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.076
+    },
+    {
+      "banc": "banc-taxe-fonciere.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.125
+    },
+    {
+      "banc": "banc-titre-pnj-de-poste.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.101
+    },
+    {
+      "banc": "banc-tournee-cloture.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.081
+    },
+    {
+      "banc": "banc-transport-rest.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.063
+    },
+    {
+      "banc": "banc-tribunal-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.115
+    },
+    {
+      "banc": "banc-universite-calendrier.js",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.085
+    },
+    {
+      "banc": "banc-universite-et-pnj-client.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.16
+    },
+    {
+      "banc": "banc-universite-missions-autres.js",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.093
+    },
+    {
+      "banc": "banc-universite-missions-medecin.js",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 0.085
+    },
+    {
+      "banc": "banc-urbanisme-nature-refusee.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.105
+    },
+    {
+      "banc": "banc-vercel-bundle.cjs",
+      "code": 0,
+      "moteur": "Node natif",
+      "secondes": 3.966
+    },
+    {
+      "banc": "banc-vote-electoral.js",
+      "code": 0,
+      "moteur": "lanceur historique",
+      "secondes": 0.103
+    }
+  ],
+  "sql_workflow": [
+    {
+      "test": "banc-optimisation-projections-local",
+      "commande": "python3 outils/bancs/banc-optimisation-projections-local.py --local-jetable",
+      "code": 0,
+      "secondes": 0.82
+    },
+    {
+      "test": "test-prevol-arnie-local",
+      "commande": "python3 outils/e2e/test-prevol-arnie-local.py --local-jetable",
+      "code": 0,
+      "secondes": 0.78
+    },
+    {
+      "test": "banc-achat-commerce-local",
+      "commande": "python3 outils/bancs/banc-achat-commerce-local.py --local-jetable",
+      "code": 0,
+      "secondes": 1.04
+    },
+    {
+      "test": "banc-restaurant-luthecia-local",
+      "commande": "python3 outils/bancs/banc-restaurant-luthecia-local.py --local-jetable --correctif-reservation",
+      "code": 0,
+      "secondes": 0.93
+    },
+    {
+      "test": "banc-reservation-republica-local",
+      "commande": "python3 outils/bancs/banc-reservation-republica-local.py --local-jetable",
+      "code": 0,
+      "secondes": 0.87
+    },
+    {
+      "test": "banc-offrir-boire-local",
+      "commande": "python3 outils/bancs/banc-offrir-boire-local.py --local-jetable",
+      "code": 0,
+      "secondes": 0.97
+    },
+    {
+      "test": "banc-reception-atomique-local",
+      "commande": "python3 outils/bancs/banc-reception-atomique-local.py --local-jetable",
+      "code": 0,
+      "secondes": 0.95
+    },
+    {
+      "test": "banc-assemblage-electronique-local",
+      "commande": "python3 outils/bancs/banc-assemblage-electronique-local.py",
+      "code": 0,
+      "secondes": 0.87
+    },
+    {
+      "test": "banc-jodie-publications-local",
+      "commande": "python3 outils/bancs/banc-jodie-publications-local.py",
+      "code": 0,
+      "secondes": 0.79
+    },
+    {
+      "test": "banc-organisations-commandes-local",
+      "commande": "python3 outils/bancs/banc-organisations-commandes-local.py",
+      "code": 0,
+      "secondes": 0.81
+    },
+    {
+      "test": "banc-organisations-membres-local",
+      "commande": "python3 outils/bancs/banc-organisations-membres-local.py",
+      "code": 0,
+      "secondes": 0.94
+    },
+    {
+      "test": "banc-organisations-evenements-local",
+      "commande": "python3 outils/bancs/banc-organisations-evenements-local.py",
+      "code": 0,
+      "secondes": 0.84
+    },
+    {
+      "test": "banc-coherence-rues-local",
+      "commande": "python3 outils/bancs/banc-coherence-rues-local.py",
+      "code": 0,
+      "secondes": 0.81
+    },
+    {
+      "test": "banc-equipements-collectifs-local",
+      "commande": "python3 outils/bancs/banc-equipements-collectifs-local.py",
+      "code": 0,
+      "secondes": 0.89
+    }
+  ],
+  "contre_epreuves": {
+    "reussies": 90,
+    "echecs": 0
+  },
+  "calendrier": 5,
+  "pilote_local": 69,
+  "projections_archive_scenarios": 5,
+  "global": {
+    "reussis": 10,
+    "total": 12,
+    "sortie": "CONTROLE D'ENSEMBLE DU BASELINE -- 12 controles\n========================================================================\n  le processus tient                     verifier-workflow.py           OK \n  la classification est entiere          verifier-classification.py     OK \n  le baseline est fidele au catalogue    verifier-baseline.py           OK \n  l'autorite tient                       verifier-autorite.py           ECHEC\n      |    4. aucun privilege de maintenance aux roles clients     0 ecarts OK \n      |    5. anon n'ecrit nulle part, aucun setval pour un client 0 ecarts OK \n      |    6. aucun droit d'ecriture hors surface declaree         0 ecarts OK \n      |    7. aucune policy d'ecriture totalement permissive       0 ecarts OK \n      |    8. aucune table du baseline sans RLS                    0 ecarts OK \n      |    9. aucune fonction de declencheur appelable par un client 0 ecarts OK \n      |   10. aucune fonction mutante client-appelable sans garde  0 ecarts OK \n      |   11. aucune fonction mutante appelable par anon           0 ecarts OK \n      | \n      | FAMILLE 3 -- LES PORTES SERVEUR ET LES MIGRATIONS PREPAREES\n      |   ----------------------------------------------------------------------\n      |   12. les migrations en attente ne nomment rien d'inconnu  0 ecarts OK \n      |   13. toute RPC appelee par le navigateur existe           28 ecarts ECHEC\n      |       - consommer_sur_place_commerce : aucune fonction de ce nom dans le baseline — plateau-commerce-pj.js:2169 ; aucune declaration statique dans migrations/\n      |       - inventaire_reception_etat : aucune fonction de ce nom dans le baseline — supabase.js:3247 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier\n      |       - inventaire_reclamer_livraison : aucune fonction de ce nom dans le baseline — supabase.js:3255 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier\n      |       - inventaire_sauver_revision : aucune fonction de ce nom dans le baseline — supabase.js:3250 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier\n      |       - justice_executer_condamnation_soi : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:12598 ; aucune declaration statique dans migrations/\n      |       - organisation_commande_administrative : aucune fonction de ce nom dans le baseline — supabase.js:6885 ; declaration SQL : migrations/20261019094425_organisations_commandes_administratives.sql ; registre vivant et extraction a verifier\n      |       ... et 22 autre(s)\n      | \n      | ========================================================================\n      | ECHEC : 1 invariant(s) en ecart sans migration declaree\n      |   - invariant 13 : toute RPC appelee par le navigateur existe (28 ecarts)\n\n  les referentiels concordent            verifier-referentiels.py       ECHEC\n      |   ressources_economie       17 lignes  2c2a88b3833ca978  NON RECALCULABLE (aucun generateur)\n      |   villes                    12 lignes  d41051aa8bcafadd  recalculee\n      | \n      |   generes mais surveilles par aucune table <miroir>_empreinte :\n      |     clubs_football         2c2f8d0fe578a8bb  (rien ne la confronte en base)\n      |     miroirs_chantiers      6f16826f81bad98a  (rien ne la confronte en base)\n      |     miroirs_entreprises    DERIVE : a497db09af2c6fe7 != e2b15dda50c9a640\n      |     offres_emploi_bne      2cf0edcba2fa05fc  (rien ne la confronte en base)\n      |     postes_electifs        2390eb52a42ae6a6  (rien ne la confronte en base)\n      | \n      | --------------------------------------------------------------------------\n      | TROISIEME AXE : l'artefact serveur genere\n      |   24 constantes generees, importees par 3 module(s) de api/\n      |     _journal-collecte.js          1 constante(s)\n      |     conseiller-creation.js        4 constante(s)\n      |     cron-minuit.js               20 constante(s)\n      |   regeneration identique au fichier du disque  (empreinte ca2826514f403b41)\n      |   tous les noms importes sont exportes, aucun n'est redeclare localement\n      | \n      | ==========================================================================\n      | ECHEC : 3 probleme(s) sur l'axe des empreintes\n      |   - empreintes/ordres_couts : le generateur rend a1159f6106f955b9, la declaration annonce 20e52d8f9bbe8e3f. data.js a bouge depuis la mesure : le catalogue vivant est a verifier, et la declaration a reprendre.\n      |   - empreintes/postes_nommes_regles : le generateur rend 694f117ace57b0b1, la declaration annonce 6c0c7aa0d29bf852. data.js a bouge depuis la mesure : le catalogue vivant est a verifier, et la declaration a reprendre.\n      |   - empreintes/miroirs_entreprises : le generateur rend a497db09af2c6fe7, la declaration annonce e2b15dda50c9a640\n\n  les faits publics atteignent le Journal verifier-faits-publics.py      OK \n  les fonctions concordent               verifier-fonctions.py          OK \n  le monde neuf est propre               verifier-monde-neuf.py         OK \n  l'assemblage se tient                  assembler.py                   OK \n  la reconstruction passe                reconstruire.py                OK \n  non-regression du pilote 2B            verifier.py                    OK \n  non-regression de l'archive 2D         verifier-archive-registre.py   OK \n========================================================================\nECHEC : 2 controle(s) sur 12\n  - l'autorite tient (verifier-autorite.py)\n  - les referentiels concordent (verifier-referentiels.py)\n\nLe detail de chaque echec est au-dessus. Rien n'a ete corrige :\nces outils rapportent, ils ne reparent pas.\n"
+  },
+  "API_modules_syntaxe": 23,
+  "payload_vercel": "conforme",
+  "git_merge_tree": "sans conflit",
+  "GitHub_Actions_distant": "inconnu - Forbidden REST et GraphQL",
+  "Supabase_vivant": "non verifie - aucun connecteur, CONNECT 403",
+  "production_modifiee": false,
+  "migration": false,
+  "fusion": false,
+  "deploiement_production": false,
+  "comptes_reels_utilises": false,
+  "mesure_facturation_reelle": false
+}

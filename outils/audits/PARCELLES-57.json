@@ -1,0 +1,120 @@
+{
+  "portee": "Declarations du depot, pas les valeurs persistantes Supabase",
+  "parcelles": [
+    {
+      "pays": "republic",
+      "ville": "capitale",
+      "id": "terrain-a-batir-1",
+      "surface": 2150,
+      "prix": 25800
+    },
+    {
+      "pays": "republic",
+      "ville": "capitale",
+      "id": "terrain-a-batir-2",
+      "surface": 2300,
+      "prix": 27600
+    },
+    {
+      "pays": "republic",
+      "ville": "capitale",
+      "id": "terrain-a-batir-3",
+      "surface": 2300,
+      "prix": 27600
+    },
+    {
+      "pays": "republic",
+      "ville": "capitale",
+      "id": "terrain-a-batir-4",
+      "surface": 1850,
+      "prix": 22200
+    },
+    {
+      "pays": "republic",
+      "ville": "capitale",
+      "id": "terrain-a-batir-5",
+      "surface": 2750,
+      "prix": 33000
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_a",
+      "id": "terrain-a-batir-8",
+      "surface": 1500,
+      "prix": 3500
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_a",
+      "id": "terrain-a-batir-9",
+      "surface": 1500,
+      "prix": 3500
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_a",
+      "id": "terrain-a-batir-10",
+      "surface": 1500,
+      "prix": 3500
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_a",
+      "id": "terrain-a-batir-11",
+      "surface": 1500,
+      "prix": 3500
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_b",
+      "id": "terrain-a-batir-6",
+      "surface": null,
+      "prix": 25000
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_b",
+      "id": "terrain-a-batir-montrouge-3",
+      "surface": 1500,
+      "prix": 18000
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_b",
+      "id": "terrain-a-batir-montrouge-7",
+      "surface": 1800,
+      "prix": 21600
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_b",
+      "id": "terrain-a-batir-montrouge-8",
+      "surface": 2200,
+      "prix": 26400
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_b",
+      "id": "terrain-a-batir-montrouge-9",
+      "surface": 2500,
+      "prix": 30000
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_b",
+      "id": "terrain-a-batir-montrouge-12",
+      "surface": 3000,
+      "prix": 36000
+    }
+  ],
+  "donneesManquantes": [
+    {
+      "pays": "republic",
+      "ville": "ville_b",
+      "id": "terrain-a-batir-6",
+      "surface": null,
+      "prix": 25000
+    }
+  ],
+  "pret": false
+}

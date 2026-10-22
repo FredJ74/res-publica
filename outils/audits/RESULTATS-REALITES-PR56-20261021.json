@@ -1,0 +1,42 @@
+{
+  "branche": "codex/optimisation-supabase-20261020",
+  "tests_locaux": {
+    "cibles": {
+      "reussis": 46,
+      "echecs": 0
+    },
+    "bancs_client": {
+      "reussis": 94,
+      "echecs": 0
+    },
+    "contre_epreuves": {
+      "reussis": 90,
+      "echecs": 0
+    },
+    "projections_postgresql": {
+      "reussis": 5,
+      "echecs": 0
+    },
+    "presences_postgresql": "reussi, identite simulee"
+  },
+  "controles_globaux": {
+    "reussis": 10,
+    "total": 12,
+    "authority_rpc_absentes": 29,
+    "referential_empreintes_divergentes": 3
+  },
+  "audit_agression_archive": {
+    "conforme": false,
+    "bloquant": true,
+    "resultat": "CONTRE-EXEMPLE-REALITES-AGRESSION.json"
+  },
+  "production": {
+    "tests_authentifies": false,
+    "migration_appliquee": false,
+    "donnees_modifiees": false,
+    "deploiement_commande": false,
+    "consommation_mesuree": false
+  },
+  "fusion_autorisee": false,
+  "verdict": "NON TERMINE : autorite serveur et catalogue vivant non verifies"
+}

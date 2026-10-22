@@ -1,0 +1,209 @@
+{
+  "portee": "Sources locales uniquement ; aucune demonstration de cout complet ou comparabilite en production",
+  "barreme_murs_republic": 150,
+  "la_republica": {
+    "surface_validee": 1200,
+    "murs_reference": 180000,
+    "fonds_catalogue": 380000
+  },
+  "prix_fonds_existants": {
+    "commerces": {
+      "cafe-gare-montrouge": 180000,
+      "brasserie-voyageurs-montrouge": 120000,
+      "hotel-mineur": 80000,
+      "cafe-tabac-cheminots-montrouge": 180000,
+      "bar-des-pecheurs": 180000,
+      "hotel-republica": 380000
+    },
+    "armurerie": 130000,
+    "imprimerie": 180000
+  },
+  "comparaisons": [
+    {
+      "ville": "capitale",
+      "id": "terrain-a-batir-1",
+      "surface": 2150,
+      "prix": 25800,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 145900,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "capitale",
+      "id": "terrain-a-batir-2",
+      "surface": 2300,
+      "prix": 27600,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 147700,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "capitale",
+      "id": "terrain-a-batir-3",
+      "surface": 2300,
+      "prix": 27600,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 147700,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "capitale",
+      "id": "terrain-a-batir-4",
+      "surface": 1850,
+      "prix": 22200,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 142300,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "capitale",
+      "id": "terrain-a-batir-5",
+      "surface": 2750,
+      "prix": 33000,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 153100,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "ville_a",
+      "id": "terrain-a-batir-8",
+      "surface": 1500,
+      "prix": 3500,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 123600,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "ville_a",
+      "id": "terrain-a-batir-9",
+      "surface": 1500,
+      "prix": 3500,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 123600,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "ville_a",
+      "id": "terrain-a-batir-10",
+      "surface": 1500,
+      "prix": 3500,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 123600,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "ville_a",
+      "id": "terrain-a-batir-11",
+      "surface": 1500,
+      "prix": 3500,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 123600,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "ville_b",
+      "id": "terrain-a-batir-6",
+      "surface": null,
+      "prix": 25000,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 145100,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "surface_parcelle_absente",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "ville_b",
+      "id": "terrain-a-batir-montrouge-3",
+      "surface": 1500,
+      "prix": 18000,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 138100,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "ville_b",
+      "id": "terrain-a-batir-montrouge-7",
+      "surface": 1800,
+      "prix": 21600,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 141700,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "ville_b",
+      "id": "terrain-a-batir-montrouge-8",
+      "surface": 2200,
+      "prix": 26400,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 146500,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "ville_b",
+      "id": "terrain-a-batir-montrouge-9",
+      "surface": 2500,
+      "prix": 30000,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 150100,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    },
+    {
+      "ville": "ville_b",
+      "id": "terrain-a-batir-montrouge-12",
+      "surface": 3000,
+      "prix": 36000,
+      "budget_chantier": 120000,
+      "permis_declare_client": 100,
+      "sous_total_connu": 156100,
+      "murs_reference_comparaison": 180000,
+      "geometrie_a_verifier": "capacite_du_projet_et_reception_a_confirmer_PR58",
+      "comparaison_complete": false
+    }
+  ],
+  "limites": [
+    "Acompte de 1000 FR non ajoute au prix : il est deja compris dans celui-ci.",
+    "Materiaux et travail deja dans le budget forfaitaire, pas de double compte.",
+    "Frais reels, geometrie admissible et reception dependant de PR58 non verifies ; aucun tarif modifie.",
+    "Seule la surface de La Republica est approuvee pour les commerces PNJ ; autres comparaisons non etablies."
+  ]
+}

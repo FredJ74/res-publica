@@ -6,7 +6,7 @@
 <title>Res Publica — Plateau de Jeu</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Bebas+Neue&family=Crimson+Pro:wght@400;600&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-<link rel="stylesheet" href="style.css?v=167">
+<link rel="stylesheet" href="style.css?v=20261021-immobilier66">
 <style>
 /* Tooltip minimap */
 .has-tooltip { position: relative; }
@@ -652,12 +652,12 @@
   <div class="toast-sub" id="toast-sub"></div>
 </div>
 
-<script src="data.js?v=339"></script>
+<script src="data.js?v=20261021-consolidation"></script>
 <script src="avatars.js?v=126"></script>
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
-<script src="auth.js?v=8"></script>
-<script src="supabase.js?v=265"></script>
+<script src="auth.js?v=20261021-consolidation"></script>
+<script src="supabase.js?v=20261022-consolidation"></script>
 <!-- Tiptap (Lot C2) : chargé en ESM depuis un CDN, comme déjà validé dans les prototypes
      prototype-tiptap-image.html et prototype-canvas-composition.html. forum-canvas.js reste
      un script classique (comme tout le reste du jeu) ; ce petit module se contente d'exposer
@@ -759,83 +759,89 @@
 </script>
 <script src="forum-canvas.js?v=36"></script>
 <script src="forum.js?v=20261020-mail-rubriques"></script>
-<script src="plateau-core.js?v=211"></script>
-<script src="plateau-immobilier.js?v=11"></script>
-<script src="plateau-chantiers.js?v=8"></script>
-<script src="plateau-fonds.js?v=1"></script>
-<script src="plateau-objets.js?v=2"></script>
-<script src="plateau-commerce.js?v=1"></script>
+<script src="plateau-realites.js?v=20261021-consolidation"></script>
+<script src="plateau-core.js?v=20261021-consolidation"></script>
+<script src="plateau-immobilier.js?v=20261021-consolidation"></script>
+<script src="plateau-immobilier-ventes.js?v=20261021-consolidation"></script>
+<script src="plateau-chantiers.js?v=20261021-consolidation"></script>
+<script src="plateau-fonds.js?v=20261021-consolidation"></script>
+<script src="plateau-objets.js?v=20261021-consolidation"></script>
+<script src="plateau-commerce.js?v=20261021-consolidation"></script>
 <!-- Interface de la verticale commerce PJ (C5). Apres plateau-objets.js dont il
      reutilise la fiche officielle, et apres plateau-fonds.js pour nouvelIdFonds. -->
-<script src="plateau-commerce-pj.js?v=22"></script>
-<script src="plateau-resolution.js?v=3"></script>
-<script src="plateau-rue-centrale.js?v=157"></script>
-<script src="plateau-quete-accueil.js?v=32"></script>
-<script src="plateau-enigme-portrait.js?v=26"></script>
-<script src="plateau-logements-montrouge.js?v=3"></script>
-<script src="plateau-etat-civil.js?v=9"></script>
-<script src="plateau-musee-personnalites.js?v=2"></script>
-<script src="plateau-maxence.js?v=3"></script>
+<script src="plateau-commerce-pj.js?v=20261021-consolidation"></script>
+<script src="plateau-resolution.js?v=20261021-consolidation"></script>
+<script src="plateau-rue-centrale.js?v=20261021-consolidation"></script>
+<script src="plateau-quete-accueil.js?v=20261021-consolidation"></script>
+<script src="plateau-enigme-portrait.js?v=20261021-consolidation"></script>
+<script src="plateau-logements-montrouge.js?v=20261021-consolidation"></script>
+<script src="plateau-etat-civil.js?v=20261021-consolidation"></script>
+<script src="plateau-musee-personnalites.js?v=20261021-consolidation"></script>
+<script src="plateau-maxence.js?v=20261021-consolidation"></script>
 <!-- Variantes graphiques des pieces (4 octobre 2026). AVANT plateau-navigation.js, dont
      enterRoom appelle varianteImagePiece() et varianteAppliquerEnseigne(). Ne depend d'aucun
      autre fichier au chargement : ses appels a getLocationPourRoom (plateau-justice-economie.js)
      et sbGetFonds (supabase.js) sont tous gardes par typeof et n'ont lieu qu'a l'execution. -->
-<script src="plateau-variantes-pieces.js?v=10"></script>
+<script src="plateau-variantes-pieces.js?v=20261021-consolidation"></script>
 <!-- Plan de l'open space : APRES plateau-variantes-pieces.js, dont il reutilise la
      geometrie (varianteZoneEnPixels, varianteTailleNaturelle), et AVANT
      plateau-navigation.js, dont enterRoom appelle openSpaceInjecterZones(). -->
-<script src="plateau-open-space.js?v=2"></script>
+<script src="plateau-open-space.js?v=20261021-consolidation"></script>
 <!-- Equipements de bureau : interface d'attente seule, aucune mecanique. AVANT le
      routeur, qui resout ouvrirModalEquipements(). -->
-<script src="plateau-equipements.js?v=1"></script>
-<script src="plateau-navigation.js?v=212"></script>
-<script src="plateau-personnage.js?v=202"></script>
-<script src="plateau-pnj.js?v=20261018"></script>
-<script src="plateau-multijoueur.js?v=154"></script>
-<script src="plateau-communication.js?v=161"></script>
-<script src="plateau-politique.js?v=264"></script>
-<script src="plateau-gouvernement.js?v=6"></script>
-<script src="plateau-effort-guerre.js?v=10"></script>
-<script src="plateau-justice-economie.js?v=275"></script>
-<script src="plateau-entrepots.js?v=1"></script>
-<script src="plateau-actions-illegales-rumeurs.js?v=209"></script>
-<script src="plateau-restaurant-luthecia.js?v=1"></script>
-<script src="plateau-football-realisateur-ia.js?v=1"></script>
-<script src="plateau-equipements-collectifs.js?v=1"></script>
-<script src="plateau-organisations-quetes.js?v=188"></script>
-<script src="plateau-divers.js?v=153"></script>
+<script src="plateau-equipements.js?v=20261021-consolidation"></script>
+<script src="plateau-navigation.js?v=20261021-consolidation"></script>
+<script src="plateau-hotels.js?v=20261021-consolidation"></script>
+<script src="plateau-personnage.js?v=20261022-consolidation"></script>
+<script src="plateau-pnj.js?v=20261021-consolidation"></script>
+<script src="plateau-multijoueur.js?v=20261021-consolidation"></script>
+<script src="plateau-communication.js?v=20261021-consolidation"></script>
+<script src="plateau-politique.js?v=20261021-consolidation"></script>
+<script src="plateau-gouvernement.js?v=20261021-consolidation"></script>
+<script src="plateau-effort-guerre.js?v=20261021-consolidation"></script>
+<script src="plateau-justice-economie.js?v=20261021-consolidation"></script>
+
+<script src="plateau-construction-parcours.js?v=20261021-consolidation"></script>
+<script src="plateau-entrepots.js?v=20261021-consolidation"></script>
+<script src="plateau-actions-illegales-rumeurs.js?v=20261021-consolidation"></script>
+<script src="plateau-restaurant-luthecia.js?v=20261021-consolidation"></script>
+<script src="plateau-football-realisateur-ia.js?v=20261021-consolidation"></script>
+<script src="plateau-equipements-collectifs.js?v=20261021-consolidation"></script>
+<script src="plateau-organisations-quetes.js?v=20261021-consolidation"></script>
+<script src="plateau-divers.js?v=20261021-consolidation"></script>
 <!-- Assemblee nationale (chantier du 10 septembre 2026). Charge APRES plateau-politique.js et
      plateau-actions-illegales-rumeurs.js, dont il complete les mecaniques, et AVANT le routeur,
      qui resout ses handlers. -->
-<script src="plateau-assemblee.js?v=9"></script>
+<script src="plateau-assemblee.js?v=20261021-consolidation"></script>
 <!-- Ecran de la seance parlementaire : APRES plateau-assemblee.js (il reutilise
      assembleeActionServeur, assembleeIssueAction et ASSEMBLEE_RAISONS), APRES supabase.js
      (il appelle ses douze portes) et AVANT le routeur, qui resout ouvrirSeanceParlementaire. -->
-<script src="plateau-assemblee-seance.js?v=3"></script>
+<script src="plateau-assemblee-seance.js?v=20261021-consolidation"></script>
 <!-- Election du President de l'Assemblee et courte paille : APRES plateau-assemblee.js
      (sa carte de depute lit RP_PRESIDENCE_ETAT) et APRES plateau-assemblee-seance.js, dont
      il complete le panneau. Son crochet de revelation differee est appele par
      declencherEntreeZone (plateau-navigation.js), sixieme consommateur de l'evenement. -->
-<script src="plateau-assemblee-presidence.js?v=2"></script>
+<script src="plateau-assemblee-presidence.js?v=20261021-consolidation"></script>
 <!-- Camion militaire : APRES plateau-commerce-pj.js (les deux deposent leur source d'ordres
      dans le meme registre RP_ORDRES_DYNAMIQUES) et AVANT le routeur, qui resout ses handlers. -->
 <!-- PNJ sociaux : APRES plateau-pnj.js (talkToPnj y note les conversations) et APRES
      plateau-navigation.js, dont declencherEntreeZone appelle son consommateur. -->
-<script src="plateau-social-pnj.js?v=2"></script>
-<script src="plateau-escorts-agence.js?v=1"></script>
+<script src="plateau-social-pnj.js?v=20261021-consolidation"></script>
+<script src="plateau-escorts-agence.js?v=20261021-consolidation"></script>
 <!-- Comptoir d'embauche des agences : APRES supabase.js (il appelle ses deux portes) et
      APRES plateau-core.js (PNJ_AVATAR lui donne l'icone du metier), AVANT le routeur,
      qui resout agenceEmploiOuvrir pour les ordres d'embauche. -->
-<script src="plateau-agence-emploi.js?v=1"></script>
-<script src="plateau-contact-organisation.js?v=1"></script>
-<script src="plateau-camion-militaire.js?v=1"></script>
+<script src="plateau-agence-emploi.js?v=20261021-consolidation"></script>
+<script src="plateau-contact-organisation.js?v=20261021-consolidation"></script>
+<script src="plateau-camion-militaire.js?v=20261021-consolidation"></script>
 <!-- Terminal de section du Lieutenant (lot T) : APRES supabase.js, dont il appelle les cinq
      portes, et AVANT le routeur, qui resout ouvrirTerminalSection pour l'ordre voir_ma_section. -->
-<script src="plateau-militaire-terminal.js?v=2"></script>
+<script src="plateau-militaire-terminal.js?v=20261021-consolidation"></script>
 <!-- Catalogue des stages medecin : charge avant le routeur, sans activer les ordres. -->
 <script src="universite-missions-medecin.js?v=2"></script>
-<script src="plateau-publicite-premium.js?v=6"></script>
-<script src="plateau-router.js?v=250"></script>
+<script src="plateau-publicite-premium.js?v=20261021-consolidation"></script>
+<script src="plateau-banque-nationale.js?v=20261021-consolidation"></script>
+<script src="plateau-router.js?v=20261021-consolidation"></script>
 <div style="display:none">
   <div id="char-avatar-top"></div>
   <div id="char-name-display"></div>

@@ -7505,7 +7505,7 @@ async function ouvrirLiveMatchReel(numeroJournee, matchIdx) {
   document.getElementById('modal-postes').classList.add('open');
 
   await rafraichirLiveMatchReel();
-  _liveViewerInterval = setInterval(rafraichirLiveMatchReel, 6000);
+  if(typeof rpRealitesEnregistrer==='function')rpRealitesEnregistrer('matchVisible',()=>_liveViewerRef?rafraichirLiveMatchReel():undefined);
 }
 
 async function rafraichirLiveMatchReel() {
