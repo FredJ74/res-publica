@@ -265,6 +265,9 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'reconfigurer_lots') { doOuvrirReconfiguration(pa, cost); return; }
   if (fn === 'gerer_fonds_commerce') { doGererFondsCommerce(pa, cost); return; }
   if (fn === 'corrompre_chantier') { doCorrompreChantier(pa, cost); return; }
+  if (fn === 'donner_materiaux_chantier') { return doVendreMateriauxChantier(pa,cost,'don'); }
+  if (fn === 'prix_chantier') { ouvrirPrixChantier(); return; }
+  if (fn === 'receptionner_chantier') { return receptionnerChantier(); }
   if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(pa, cost); return; }
   if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(pa, cost); return; }
   if (fn === 'vente_directe_usine') { doOuvrirVenteDirecteUsine(pa, cost); return; }
