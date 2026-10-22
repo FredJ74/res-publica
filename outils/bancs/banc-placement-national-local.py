@@ -2,6 +2,7 @@
 """Preuve transactionnelle locale de la RPC placements nationale, sans comptes joueurs."""
 from pathlib import Path
 import tempfile, uuid
+from concurrent.futures import ThreadPoolExecutor
 
 def main():
  import pgserver, psycopg2
@@ -24,7 +25,7 @@ def main():
  CREATE FUNCTION public.exiger_acteur(text) RETURNS void LANGUAGE plpgsql AS $$
  BEGIN IF $1 IS DISTINCT FROM current_setting('hg.acteur',true)
  THEN RAISE EXCEPTION 'acteur_refuse'; END IF; END $$;
- INSERT INTO personnages_donnees VALUES ('Alice','republic',800,1800,now()),('Bob','republic',700,700,now());
+ INSERT INTO personnages_donnees VALUES ('Alice','republic',800,1800,now()),('Bob','republic',700,700,now()),('Charlie','republic',800,800,now());
  INSERT INTO comptes_bancaires VALUES('a','Alice','republic','nationale',1000,now());""")
  sql=(root/'outils/migrations/20261022_placement_national_idempotent.sql').read_text()
  q.execute(sql)
@@ -52,7 +53,22 @@ def main():
  try:faire(uuid.uuid4(),acteur='Bob');raise AssertionError('identité acceptée')
  except psycopg2.Error as e:assert 'acteur_refuse' in str(e)
  assert stats()==(300,0,3)
- print('OK placements nationaux : espèces, compte, 3 actifs, rejeu, erreurs et identité')
+ # Deux requêtes concurrentes portant la meme intention doivent retourner UNE seule ligne.
+ ident = str(uuid.uuid4())
+ def concurrent():
+  cx=psycopg2.connect(serveur.get_uri());cx.autocommit=True
+  with cx.cursor() as c:
+   c.execute("select set_config('hg.acteur','Charlie',false)")
+   c.execute('select (public.creer_placement_national_securise(%s,%s,%s,%s,%s,%s)).id',
+             ('Charlie',500,6,'capitale','liquide',ident))
+   resultat=c.fetchone()[0]
+  cx.close();return resultat
+ with ThreadPoolExecutor(max_workers=2) as pool:
+  a,b=list(pool.map(lambda _:concurrent(),range(2)))
+ assert a==b
+ q.execute("select liquide from personnages_donnees where name='Charlie'");assert q.fetchone()[0]==300
+ q.execute("select count(*) from placements_bancaires where personnage='Charlie'");assert q.fetchone()[0]==1
+ print('OK placements nationaux : espèces, compte, 3 actifs, rejeu, concurrence, erreurs et identité')
  db.close();serveur.stop()
 
 if __name__=='__main__':main()
