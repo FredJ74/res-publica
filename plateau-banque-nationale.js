@@ -18,7 +18,7 @@ async function banqueNationaleReconcilier(){
  if(!attente?.requete)return;
  const v=await sbRpcVerdict('banque_placement_recu',{p_requete:attente.requete}).catch(()=>null);
  if(!contexteNavigationRueValide(c)||!v?.ok)return;
- await banqueNationaleActualiser(c);if(!contexteNavigationRueValide(c))return;
+ const relu=await banqueNationaleActualiser(c);if(!relu||!contexteNavigationRueValide(c))return;
  sessionStorage.removeItem(cle);
  showToast('Placement confirmé','Le serveur confirme votre souscription précédente. Aucun nouveau paiement.',true);
 }

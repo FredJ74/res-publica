@@ -8,3 +8,19 @@ test('reponse perdue, double clic, meme intention : meme identifiant sans deltas
 test('F5 retrouve le recu sans relancer la souscription',async()=>{const {c,mem}=jeu();mem.set(c.banquePlacementCle({uid:'uid',nom:'Fixture'}),JSON.stringify({requete:'ancienne'}));c.sbRpcVerdict=async(fn)=>{assert.equal(fn,'banque_placement_recu');return {ok:true};};await c.banqueNationaleReconcilier();assert.equal(mem.size,0);});
 test('retour tardif pour un autre personnage ignore',async()=>{const {c}=jeu();let finir,lectures=0;c.sbRpcVerdict=()=>new Promise(r=>finir=r);c.rafraichirRuntimeHelvetia=async()=>{lectures++;};const p=c.placerBanqueNationale();c.state.char={name:'Autre'};finir({ok:true});await p;assert.equal(lectures,0);assert.equal(c.state.pa,10);});
 test('rendu reel : investir masque, gerer_finances reste visible',()=>{const src=fs.readFileSync(path.join(root,'plateau-politique.js'),'utf8'),f=acorn.parse(src,{ecmaVersion:'latest'}).body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='renderRoomActions'),n=f.body.body.find(n=>n.type==='VariableDeclaration'&&n.declarations.some(d=>d.id.name==='allOrders'));const c=vm.createContext({ordresDeclares:[{fn:'investir',menuVisible:false},{fn:'gerer_finances'}],dynOrders:[],dynMasque:[]});const v=vm.runInContext(src.slice(n.start,n.end)+';allOrders',c);assert.equal(v.length,1);assert.equal(v[0].fn,'gerer_finances');});
+
+test('relecture bancaire exige comptes et placements, conserve une reprise non confirmee',async()=>{
+ const {c,mem}=jeu();let options;
+ c.rafraichirRuntimeHelvetia=async o=>{options=o;return null;};
+ mem.set(c.banquePlacementCle({uid:'uid',nom:'Fixture'}),JSON.stringify({requete:'ancienne'}));
+ c.sbRpcVerdict=async()=>({ok:true});await c.banqueNationaleReconcilier();
+ assert.equal(options.exigerComptes,true);assert.equal(options.exigerPlacements,true);assert.equal(mem.size,1);
+});
+test('ecran bancaire commun refuse les donnees perimees si la lecture serveur echoue',async()=>{
+ const {c}=jeu();let affichages=0;
+ c.state.currentBuilding='banque-nationale';c.banqueNationaleReconcilier=async()=>{};
+ c.banqueNationaleActualiser=async()=>false;
+ c.document={getElementById(){affichages++;throw Error('aucun rendu attendu');}};
+ vm.runInContext(fonctions('plateau-communication.js',['openFinancesModal']),c);
+ await c.openFinancesModal(0,0);assert.equal(affichages,0);
+});
