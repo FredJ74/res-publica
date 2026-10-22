@@ -26,6 +26,7 @@ def tracked():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true", help="Modifie les assets et références")
+    ap.add_argument("--retain-original", action="store_true", help="Conserve les PNG en tant que compatibilité pour URLs persistées")
     ap.add_argument("--quality", type=int, default=88)
     ap.add_argument("--min-saving", type=float, default=0.15)
     ap.add_argument("--report", default="")
@@ -79,7 +80,8 @@ def main():
             report.append(item); continue
         if a.apply:
             (ROOT/target).write_bytes(data)
-            (ROOT/p).unlink()
+            if not a.retain_original:
+                (ROOT/p).unlink()
         for f in refs:
             replacements.setdefault(f,{})[old]=target.as_posix()
         item["decision"]="converti" if a.apply else "convertible"
