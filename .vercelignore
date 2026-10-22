@@ -148,3 +148,10 @@ plateau-football-realisateur-tests.js
 #                            referencees par un chemin RELATIF (`asset:
 #                            'images/football-reaction-...mp4'`). Servies par
 #                            Vercel, elles restent.
+
+# --- ARCHIVE KRASNOV NON RACCORDÉE ---
+# Huit originaux enregistrés sur GitHub (#70), aucune scène ni donnée en jeu
+# ne les référence encore. Ils restent dans le dépôt et seront servis seulement
+# lorsque Sovarka sera raccordée, après suppression de cette exclusion.
+# Empêche 30,6 Mo d'assets dormants d'entrer dans chaque build Vercel.
+images/krasnov/
