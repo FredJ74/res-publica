@@ -363,10 +363,10 @@ function enterBuilding(buildingId, skipAutoRoom) {
 
   // Générer PNJ aléatoire si terrain à bâtir
   if (buildingId?.startsWith('terrain-a-batir')) {
-    chargerPnjTerrain(buildingId);
+    const occupationConfirmee = chargerPnjTerrain(buildingId);
     // Le PNJ est maintenant dans sessionStorage — forcer re-rendu après
-    setTimeout(() => {
-      if (state.currentRoom && state.currentBuilding === buildingId) {
+    occupationConfirmee.then(confirmee => {
+      if (confirmee && state.currentRoom && state.currentBuilding === buildingId) {
         const room = BUILDINGS[buildingId]?.rooms?.[state.currentRoom];
         if (room) {
           let persons = [...(room.persons || [])];
@@ -382,7 +382,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
           renderPersonsList(persons);
         }
       }
-    }, 100);
+    }).catch(() => {});
   }
   document.getElementById('vue-rue').classList.remove('active');
   document.getElementById('vue-batiment').classList.add('active');
