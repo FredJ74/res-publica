@@ -1,0 +1,84 @@
+{
+  "source": "WORLD, ordres declares effectifs et SURFACE_TERRAINS ; pas une observation Supabase",
+  "parcelles_declarees": 36,
+  "donnees_manquantes": [
+    {
+      "pays": "khalija",
+      "ville": "capitale",
+      "id": "terrain-a-batir-6",
+      "surface": null,
+      "prix": 25000
+    },
+    {
+      "pays": "khalija",
+      "ville": "capitale",
+      "id": "terrain-a-batir-7",
+      "surface": null,
+      "prix": 25000
+    },
+    {
+      "pays": "narco",
+      "ville": "capitale",
+      "id": "terrain-a-batir-6",
+      "surface": null,
+      "prix": 25000
+    },
+    {
+      "pays": "narco",
+      "ville": "capitale",
+      "id": "terrain-a-batir-7",
+      "surface": null,
+      "prix": 25000
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_a",
+      "id": "terrain-a-batir-10",
+      "surface": null,
+      "prix": 3500
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_a",
+      "id": "terrain-a-batir-11",
+      "surface": null,
+      "prix": 3500
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_a",
+      "id": "terrain-a-batir-8",
+      "surface": null,
+      "prix": 3500
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_a",
+      "id": "terrain-a-batir-9",
+      "surface": null,
+      "prix": 3500
+    },
+    {
+      "pays": "republic",
+      "ville": "ville_b",
+      "id": "terrain-a-batir-6",
+      "surface": null,
+      "prix": 25000
+    },
+    {
+      "pays": "soviet",
+      "ville": "capitale",
+      "id": "terrain-a-batir-6",
+      "surface": null,
+      "prix": 25000
+    },
+    {
+      "pays": "soviet",
+      "ville": "capitale",
+      "id": "terrain-a-batir-7",
+      "surface": null,
+      "prix": 25000
+    }
+  ],
+  "valeurs_inventees": false
+}
