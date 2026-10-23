@@ -1,0 +1,53 @@
+{
+  "branche": "codex/construction-parcours-20261020",
+  "base_main": "baa9cb7e2b7f89db66cf268d21382deb0be2a3a2",
+  "portee": "Tests locaux uniquement ; aucune verification authentifiee Supabase, aucun deploiement",
+  "client": {
+    "total": 93,
+    "reussis": 93,
+    "echecs": []
+  },
+  "cibles": {
+    "parcours": 19,
+    "francs_entiers": 4,
+    "postgres": "Banc jetable reussi : prix figes, dons, refus des fractions, idempotence, concurrence, rollback, banque prioritaire, signature historique comparee avant/apres",
+    "contre_epreuves": 90
+  },
+  "globaux": {
+    "reussis": 10,
+    "total": 12,
+    "echecs": {
+      "Authority": "30 RPC absentes du baseline, contre 28 sur main ; prevol vivant non effectue",
+      "Referential": "3 empreintes divergentes deja sur main ; cout du permis modifie dans cette branche, catalogue vivant et seed a reconciler"
+    }
+  },
+  "parcelles": {
+    "total_republic": 15,
+    "surface_absente": [
+      "terrain-a-batir-6"
+    ],
+    "source": "Declarations du depot ; valeurs persistantes Supabase non lues"
+  },
+  "pret_a_fusionner": false,
+  "migration_appliquee": false,
+  "donnees_production_modifiees": false,
+  "historique_avant_arbitrage_franc_entier": {
+    "client": {
+      "total": 93,
+      "reussis": 93,
+      "echecs": []
+    },
+    "cibles": {
+      "parcours": 18,
+      "monnaie_groupes": 4,
+      "postgres_groupes": 14,
+      "contre_epreuves": 90
+    }
+  },
+  "regle_materiaux": "entrepot + 10 %, plafond au franc ; prix proprietaire en francs entiers uniquement",
+  "verification_pr": "PR #58 et deux nouveaux commits observes en lecture HTML publique ; aucune fusion/deploiement",
+  "migrations_preparees": [
+    "20261020214955_construction_materiaux_prix_et_dons.sql",
+    "20261020222029_construction_lancement_priorite_bancaire.sql"
+  ]
+}

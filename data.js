@@ -5250,7 +5250,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
-          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
       }
@@ -5272,7 +5272,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
-          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
       }
@@ -5294,7 +5294,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
-          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
       }
@@ -5316,7 +5316,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
-          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
       }
@@ -5339,7 +5339,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'acheter_terrain',  label:'Acheter ce terrain (2300 m² — 27 600 FR)',       pa:2, cost:27600, type:'legal',   icon:'ti-home-plus', successRate:100},
-          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
       }
@@ -5362,7 +5362,7 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'acheter_terrain',   label:'Acheter ce terrain (2300 m² — 27 600 FR)',          pa:2, cost:27600, type:'legal',   icon:'ti-home-plus', successRate:100},
-          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:2, cost:0, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
+          {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
       }

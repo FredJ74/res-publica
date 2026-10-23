@@ -875,7 +875,8 @@ function enterRoom(buildingId, roomId, tabEl) {
     pieceImg.removeAttribute('data-ancrage');
   }
 
-  const imgUrl = enigme1Img || chantierImg || varianteImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl;
+  const fricheImg = typeof constructionImageTerrainNu === 'function' ? constructionImageTerrainNu(state.country, buildingId, typeof getTerrainState === 'function' ? getTerrainState(buildingId) : null) : null;
+  const imgUrl = enigme1Img || chantierImg || fricheImg || varianteImg || roomOverride?.imageUrl || empireRoomImg || room.imageUrl;
   if (imgUrl) {
     pieceImg.style.background = `linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.18) 100%), url('${imgUrl}') center/cover no-repeat`;
   } else {
@@ -1591,6 +1592,7 @@ async function sortirBatiment() {
   if(state.estEmprisonne){showToast('Emprisonné(e)','Votre détention interdit cette sortie.',false);return;}
 
   state.douanePassee = false;
+  if (typeof terminerVisiteTerrain === 'function') terminerVisiteTerrain(batimentQuitte);
   state.currentBuilding = null;
   state.currentRoom = null;
   // Effacer et persister IMMEDIATEMENT (meme mecanisme que enterRoom), sinon un rafraichissement

@@ -174,6 +174,10 @@ function doExpulsionLegale() {
   const indices = INDICES_NATIONAUX?.[state.country] || { ISN:30 };
   const isn = indices.ISN || 30;
 
+  if (ts.pnj === 'cadavre') {
+    setTerrainState(id,{enqueteJusqua:Date.now()+3*86400000,policeAppellee:Date.now(),policeInterventionAt:Date.now()+3*86400000});
+    showToast('Enquête ouverte','La signature est suspendue trois jours.',true);return;
+  }
   // Délai selon ISN — plus ISN est élevé, plus c'est rapide
   const delaiH = Math.max(6, Math.round(96 - isn * 0.6));
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -5119,13 +5123,14 @@ function getMatieresPremieresVille(country, city) {
 // nulle part, ce qui faisait planter toute tentative de construction.
 function getTerrainState(buildingId) {
   if (!state.terrainsState) state.terrainsState = {};
-  return state.terrainsState[buildingId] || { proprietaire: null, niveau_construction: null, valeur_totale: PRIX_TERRAIN, constructionAutorisee: false, permis: null };
+  return state.terrainsState[buildingId] || { proprietaire: null, niveau_construction: null, valeur_totale: null, constructionAutorisee: false, permis: null };
 }
 
 function setTerrainState(buildingId, patch) {
   if (!state.terrainsState) state.terrainsState = {};
   const actuel = { ...getTerrainState(buildingId), ...patch };
   state.terrainsState[buildingId] = actuel;
+  if (typeof memoriserVisiteTerrain === 'function') memoriserVisiteTerrain(buildingId, actuel);
   return actuel;
 }
 
@@ -5273,18 +5278,14 @@ const TERRAINS_PAR_VILLE = {
 // vous de terrains de n'importe quelle ville -- contrairement aux permis (mairie, filtres par
 // ville courante). A2, audit multi-ville du 16 aout 2026 : doActeVenteTerrain/
 // doOuvrirTransfertCompromis/doValiderTransfertCompromis ne parcouraient que TERRAINS_LUTHECIA.
-function getTousLesTerrainsPays() {
-  return Object.values(TERRAINS_PAR_VILLE).flat();
+function getTousLesTerrainsPays(pays) {
+  const p=pays||(typeof state!=='undefined'?state.country:'republic');
+  return [...new Set(Object.values(WORLD[p]||{}).flatMap(v=>(v.buildings||[]).filter(id=>id.startsWith('terrain-a-batir'))))];
 }
-
-// Ville reelle d'un terrain, par son id -- ne jamais deduire la ville d'un terrain de
-// state.currentCity : le joueur signe toujours a l'Office Notarial de Luthecia, quelle que soit
-// la ville du terrain concerne (cf. finaliserAchatTerrain, plateau-pnj.js).
-function getVilleTerrain(id) {
-  for (const [ville, ids] of Object.entries(TERRAINS_PAR_VILLE)) {
-    if (ids.includes(id)) return ville;
-  }
-  return 'capitale';
+function getVilleTerrain(id,pays) {
+  const p=pays||(typeof state!=='undefined'?state.country:'republic');
+  const villes=Object.entries(WORLD[p]||{}).filter(([,v])=>(v.buildings||[]).includes(id));
+  return villes.length===1?villes[0][0]:null;
 }
 
 // =====================
@@ -8754,168 +8755,48 @@ const DUREE_INSTRUCTION_PERMIS = {
   hangar: 2,
   commerce_standard: 4,
   commerce_premium: 6,
-  building: 10
+  building: 7
 };
 
-async function doDeposerDemandePermis(pa, cost) {
-  const id = state.currentBuilding;
+async function doDeposerDemandePermis(pa, cost, terrainId) {
+  const id = terrainId || state.currentBuilding;
+  const personnage = state.char, pays = state.country, ville = state.currentCity;
   await chargerTerrainState(id);
+  if(state.char !== personnage || state.country !== pays || state.currentCity !== ville) return;
   const ts = getTerrainState(id);
-  if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false); return; }
-
-  // Lot 1.5.13 : verdict unique (plateau-immobilier.js) -- deja construit, instruction en cours,
-  // ou carence de trois jours apres un refus. Aucune de ces regles n'est reecrite ici.
+  if (!estTitulaire(ts.proprietaire) && !(ts.compromis && ts.compromisPar === personnage?.name)) {
+    showToast('Accès refusé', 'Un titre de propriété ou un compromis à votre nom est requis.', false); return;
+  }
   const vDepot = verdictNouvelleDemandePermis(ts, state.day || 1);
-  if (!vDepot.ok) {
-    showToast(
-      vDepot.raison === 'deja_construit'      ? 'Déjà construit'
-    : vDepot.raison === 'instruction_en_cours' ? 'Demande en cours'
-    : 'Refus récent',
-      vDepot.raison === 'deja_construit'      ? 'Un bâtiment existe déjà sur ce terrain.'
-    : vDepot.raison === 'instruction_en_cours' ? 'Une demande de permis est déjà en instruction.'
-    : 'Le service d\'urbanisme a refusé une demande récemment. Nouveau dépôt possible dans '
-      + vDepot.restant + ' jour' + (vDepot.restant > 1 ? 's' : '') + '.', false);
-    return;
-  }
-
-  document.getElementById('postes-modal-title').textContent = 'Déposer une demande de permis';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Passé le délai d\'instruction, l\'absence de décision vaut accord : le permis est accordé tacitement. Le service d\'urbanisme peut accepter ou refuser tant que le dossier est ouvert — un refus doit être motivé par écrit.</div>';
-  Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
-    const duree = DUREE_INSTRUCTION_PERMIS[key];
-    // Lot 1.5.2 : un palier divisible passe d'abord par l'ecran de plan (ou le decoupage reste
-    // facultatif) ; hangar et commerce standard, indivisibles, sont deposes directement -- aucun
-    // formulaire de decoupage ne leur est propose, conformement au GD.
-    const action = planPermisPossible(ts, key)
-      ? 'ouvrirPlanPermis(\'' + key + '\',' + pa + ',' + cost + ')'
-      : 'confirmerDepotPermis(\'' + key + '\',' + pa + ',' + cost + ')';
-    html += '<button onclick="' + action + '" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
-    html += '<span>' + niv.label + '</span><span style="color:#8a8060">' + duree + ' jour(s) d\'instruction</span></button>';
+  if (!vDepot.ok) { showToast('Demande indisponible', vDepot.raison === 'cooldown_refus'
+    ? 'Nouveau dépôt possible dans ' + vDepot.restant + ' jour(s).'
+    : 'Un bâtiment ou une demande en cours existe déjà sur ce terrain.', false); return; }
+  let html = '<p>1 PA · 100 FR. Instruction au plus sept jours ; silence vaut accord. Tout refus doit être motivé. Le découpage sera défini durant le dernier tiers du chantier.</p>';
+  Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key,niv]) => {
+    const action = 'confirmerDepotPermis(' + [JSON.stringify(key),1,100,JSON.stringify(id)].join(',') + ')';
+    html += '<button type="button" class="construction-action construction-type" onclick="' + constructionEchapper(action) + '"><img src="' + constructionEchapper(niv.imageUrl) + '" alt=""><span>' + constructionEchapper(niv.label) + ' — ' + DUREE_INSTRUCTION_PERMIS[key] + ' jours</span></button>';
   });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  constructionFenetre('Déposer une demande de permis', html);
 }
 
-// PLAN DE DECOUPAGE JOINT A LA DEMANDE (Lot 1.5.2)
-// Brouillon en memoire uniquement, jamais persiste tant que le permis n'est pas depose. Il porte
-// son palier : si le demandeur revient en arriere et choisit un autre type de construction, le
-// plan devenu sans objet est ignore au lieu de contaminer la nouvelle demande (voir
-// confirmerDepotPermis).
-let _planPermisEnCours = { palier: null, lots: [] };
-
-async function ouvrirPlanPermis(palierDemande, pa, cost) {
-  const id = state.currentBuilding;
-  const ts = getTerrainState(id);
-  if (!planPermisPossible(ts, palierDemande)) {
-    // Ne devrait pas etre atteignable depuis l'ecran precedent : filet en cas d'appel direct.
-    confirmerDepotPermis(palierDemande, pa, cost);
-    return;
+async function confirmerDepotPermis(palierDemande, pa, cost, terrainId) {
+  const id = terrainId || state.currentBuilding;
+  pa = 1; cost = 100;
+  if (!Object.prototype.hasOwnProperty.call(DUREE_INSTRUCTION_PERMIS,palierDemande)) return;
+  const titre = getTerrainState(id);
+  if (!estTitulaire(titre.proprietaire) && !(titre.compromis && titre.compromisPar === state.char?.name)) return;
+  // L'ancienne porte SQL refuse les compromis : ne jamais facturer un acte qu'elle rejettera.
+  // L'ouverture du dossier est disponible, son dépôt attend le raccordement atomique serveur.
+  if (!estTitulaire(titre.proprietaire)) {
+    showToast('Dépôt non disponible', 'Le dépôt sous compromis attend le raccordement serveur. Aucun frais ni PA n’a été prélevé.', false); return;
   }
-  if (_planPermisEnCours.palier !== palierDemande) _planPermisEnCours = { palier: palierDemande, lots: [] };
-  renderPlanPermis(pa, cost);
-}
-
-function renderPlanPermis(pa, cost) {
-  const id = state.currentBuilding;
-  const ts = getTerrainState(id);
-  const palier = _planPermisEnCours.palier;
-  const lots = _planPermisEnCours.lots;
-  const projection = projectionPermis(ts, palier, lots);
-  const dispo = surfaceDisponible(projection);
-  const destinations = destinationsAutorisees(palier);
-
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Plan de découpage joint à la demande — <b>facultatif</b>. Vous pouvez déposer sans aucun lot : le bâtiment sera alors livré indivis, et la surface non attribuée vous restera.</div>';
-  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.8rem">Surface exploitable : ' + surfaceTotale(ts) + ' m² · Inscrite au plan : ' + surfaceAllouee(projection) + ' m² · Reste : ' + dispo + ' m².<br>'
-       + destinations.map(function(d) {
-           return (d === 'appartement' ? 'Appartement' : 'Commerce') + ' : minimum ' + surfaceMinimaleLot(palier, d) + ' m²';
-         }).join(' · ') + '.</div>';
-
-  if (lots.length > 0) {
-    html += '<div style="display:flex;flex-direction:column;gap:.3rem;margin-bottom:.8rem">';
-    lots.forEach(function(l, i) {
-      html += '<div style="padding:.5rem .6rem;border:1px solid #2a2010;background:#0f0d05;display:flex;justify-content:space-between;align-items:center">';
-      html += '<span style="font-size:.82rem;color:#c0b090">' + l.label + ' — ' + l.surface + ' m² · ' + (destinationDuLot(l) === 'appartement' ? 'appartement' : 'commerce') + '</span>';
-      html += '<button onclick="doRetirerLotPlanPermis(' + i + ',' + pa + ',' + cost + ')" style="font-size:.68rem;color:#cc5540;background:transparent;border:none;cursor:pointer">Retirer</button>';
-      html += '</div>';
-    });
-    html += '</div>';
-  }
-
-  html += '<div style="display:flex;gap:.4rem;margin-bottom:.4rem">';
-  if (destinations.length > 1) {
-    html += '<select id="plan-destination" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
-    destinations.forEach(function(d) {
-      html += '<option value="' + d + '">' + (d === 'appartement' ? 'Appartement' : 'Commerce') + '</option>';
-    });
-    html += '</select>';
-  }
-  html += '<input id="plan-label" type="text" placeholder="Nom du lot..." style="flex:1;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '<input id="plan-surface" type="number" placeholder="Surface m²..." style="width:120px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '</div>';
-  html += '<button class="pnj-action-btn" onclick="doAjouterLotPlanPermis(' + pa + ',' + cost + ')">+ Ajouter ce lot au plan</button>';
-  html += '<button class="pnj-action-btn" style="margin-top:.6rem" onclick="confirmerDepotPermis(\'' + palier + '\',' + pa + ',' + cost + ')">Déposer la demande'
-       + (lots.length > 0 ? ' avec ce plan (' + lots.length + ' lot' + (lots.length > 1 ? 's' : '') + ')' : ' sans découpage') + '</button>';
-  html += '</div>';
-
-  document.getElementById('postes-modal-title').textContent = 'Découpage joint à la demande';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-function doAjouterLotPlanPermis(pa, cost) {
-  const ts = getTerrainState(state.currentBuilding);
-  const palier = _planPermisEnCours.palier;
-  const label = (document.getElementById('plan-label')?.value || '').trim();
-  const surface = parseInt(document.getElementById('plan-surface')?.value || 0);
-  const destinationsPalier = destinationsAutorisees(palier);
-  const destination = document.getElementById('plan-destination')?.value || destinationsPalier[0];
-
-  if (!label) { showToast('Nom manquant', 'Donnez un nom à ce lot.', false); return; }
-
-  // Meme verdict que la division d'un batiment livre, applique au terrain PROJETE : aucune regle
-  // de surface n'est reecrite ici.
-  const verdict = verdictAjoutLotPlan(ts, palier, _planPermisEnCours.lots, { destination, surface });
-  if (!verdict.ok) {
-    showToast(verdict.raison === 'surface_indisponible' ? 'Surface insuffisante' : 'Lot refusé', verdict.message, false);
-    return;
-  }
-
-  _planPermisEnCours.lots.push({
-    id: 'lot-' + Date.now() + '-' + _planPermisEnCours.lots.length,   // unique meme en cas d'ajouts dans la meme milliseconde
-    label, surface: verdict.surface, destination: verdict.destination
-  });
-  renderPlanPermis(pa, cost);
-}
-
-function doRetirerLotPlanPermis(index, pa, cost) {
-  _planPermisEnCours.lots.splice(index, 1);
-  renderPlanPermis(pa, cost);
-}
-
-async function confirmerDepotPermis(palierDemande, pa, cost) {
-  const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Déposer ce permis')) return;
   const ts = getTerrainState(id);
   const jour = state.day || 1;
   const duree = DUREE_INSTRUCTION_PERMIS[palierDemande];
 
-  // Lot 1.5.2 : le plan n'est retenu que s'il a ete compose POUR CE PALIER (un retour en arriere
-  // vers un autre type de construction ne doit pas trainer un decoupage devenu sans objet), et
-  // seulement si ce palier accepte un decoupage sur ce terrain.
-  const planCandidat = (_planPermisEnCours.palier === palierDemande && planPermisPossible(ts, palierDemande))
-    ? _planPermisEnCours.lots : [];
-
-  // Defense en profondeur : le plan est revalide ENTIER avant enregistrement, meme si l'ecran a
-  // deja valide chaque ajout. Un plan invalide n'annule pas la demande -- il est simplement
-  // refuse, le demandeur restant libre de deposer sans decoupage.
-  const verdictPlan = verdictPlanPermis(ts, palierDemande, planCandidat);
-  if (!verdictPlan.ok) {
-    showToast('Plan refusé', verdictPlan.message, false);
-    return;
-  }
-  const decoupageInitial = snapshotPlanPermis(planCandidat);
+  // Aucun plan au depot : les lots appartiennent au dernier tiers des travaux.
+  const decoupageInitial = [];
 
   // Lot 1.5.5 : l'archive municipale est la source historique OFFICIELLE. Un depot ne peut donc
   // pas etre repute traite si elle n'a pas ete ecrite. On archive AVANT de prelever le cout et
@@ -8973,7 +8854,6 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
   const vDepot = await sbTerrainActe('terrain_permis_acte', {
     p_terrain_id: id, p_acte: 'permis_deposer', p_patch: { permis: permisACreer }
   });
-  _planPermisEnCours = { palier: null, lots: [] };   // brouillon consomme
   if (!vDepot || vDepot.ok !== true) {
     signalerRefusTerrain(vDepot, 'Le dépôt de la demande');
     return;
@@ -13287,123 +13167,72 @@ async function confirmerTravailChantier() {
 // VENTE DE MATERIAUX AU CHANTIER (Lot 1.5.10)
 // Le PJ doit etre PHYSIQUEMENT sur le terrain : l'ordre n'existe que dans la piece du terrain et
 // state.currentBuilding est relu ici. Vendre n'est pas travailler : 0 PA.
-async function doVendreMateriauxChantier(pa, cost) {
+async function doVendreMateriauxChantier(pa, cost, mode = 'vente') {
+  const contexte = contexteNavigationRue();
   const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Fournir le chantier')) return;
   await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  const ch = ts.chantier;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (!ch) { showToast('Aucun chantier', "Aucun chantier en cours sur ce terrain.", false); return; }
-  if (!chantierAccepteMateriaux(ch)) { showToast('Chantier terminé', "Ce chantier n'a plus besoin de matériaux.", false); return; }
-
-  // Matieres reellement possedees par le joueur, lues sur son inventaire empilable.
-  const possede = {};
-  ['bois', 'minerai', 'metal'].forEach(function (m) {
-    const ligne = (state.inventory || []).find(function (i) { return i.stackable && i.stackKey === m; });
-    possede[m] = ligne ? Math.max(0, Math.floor(ligne.qty || 0)) : 0;
-  });
-  const dispo = ['bois', 'minerai', 'metal'].filter(function (m) { return possede[m] > 0; });
-  if (dispo.length === 0) { showToast('Rien à vendre', "Vous ne transportez aucun matériau de construction.", false); return; }
-
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Trésorerie du chantier : '
-       + Math.floor(ch.tresorerie || 0).toLocaleString('fr-FR') + ' ' + cur
-       + '. Vous fixez librement votre prix — le chantier paiera tant qu\'il en a les moyens.</div>';
-  html += '<div style="display:flex;gap:.4rem;margin-bottom:.6rem">';
-  html += '<select id="vente-matiere" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
-  dispo.forEach(function (m) {
-    const res = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) || {};
-    html += '<option value="' + m + '">' + (res.label || m) + ' (' + possede[m] + ')</option>';
-  });
-  html += '</select>';
-  html += '<input id="vente-quantite" type="number" min="1" placeholder="Quantité..." style="width:110px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '<input id="vente-prix" type="number" min="1" placeholder="Prix/unité..." style="width:110px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '</div>';
-  html += '<button class="pnj-action-btn" onclick="confirmerVenteMateriauxChantier()">Vendre au chantier</button>';
-  html += '</div>';
-  document.getElementById('postes-modal-title').textContent = 'Fournir le chantier';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  if (!contexteNavigationRueValide(contexte)) return;
+  const ch = getTerrainState(id).chantier;
+  if (!ch || !chantierAccepteMateriaux(ch)) {
+    showToast('Approvisionnement indisponible', 'Aucun chantier actif ici.', false); return;
+  }
+  const disponibles = ['bois','minerai','metal'].filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && i.qty > 0));
+  if (!disponibles.length) { showToast('Aucun matériau', 'Vous ne transportez aucun matériau de construction.', false); return; }
+  const don = mode === 'don';
+  constructionFenetre(don ? 'Donner des matériaux' : 'Vendre des matériaux',
+    '<p>' + (don ? 'Don gratuit : aucun paiement.' : 'Le prix affiché par le propriétaire est appliqué par le serveur. Aucun prix ne peut être fixé par le vendeur.') + '</p>' +
+    '<select id="vente-matiere">' + disponibles.map(m => '<option value="' + m + '">' + m + '</option>').join('') + '</select>' +
+    '<input id="vente-quantite" type="number" min="1" step="1" placeholder="Quantité">' +
+    constructionBouton(don ? 'Donner gratuitement' : 'Vendre au tarif du chantier', 'confirmerVenteMateriauxChantier(' + JSON.stringify(mode) + ')'));
 }
 
-async function confirmerVenteMateriauxChantier() {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Fournir le chantier')) return;
-  const ts = getTerrainState(id);
-  const ch = ts.chantier;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (!ch) { showToast('Aucun chantier', '', false); return; }
-
-  const matiere = document.getElementById('vente-matiere')?.value || 'bois';
-  const quantite = parseInt(document.getElementById('vente-quantite')?.value || 0);
-  const prix = parseInt(document.getElementById('vente-prix')?.value || 0);
-
-  // PREVISUALISATION SEULEMENT. verdictVenteMateriaux sert a refuser tout de suite une saisie
-  // manifestement invalide et a afficher un message utile ; il n'a AUCUNE autorite. La quantite
-  // reellement transferee est recalculee par la RPC, sous verrou, sur les donnees serveur.
-  const ligne = (state.inventory || []).find(function (i) { return i.stackable && i.stackKey === matiere; });
-  const possede = ligne ? Math.max(0, Math.floor(ligne.qty || 0)) : 0;
-  const apercu = verdictVenteMateriaux(ch, matiere, quantite, prix, possede);
-  if (!apercu.ok) {
-    const messages = {
-      chantier_termine: "Ce chantier n'a plus besoin de matériaux.",
-      matiere_invalide: "Ce matériau n'entre pas dans la construction.",
-      prix_invalide: 'Indiquez un prix unitaire positif.',
-      quantite_invalide: 'Indiquez une quantité positive.',
-      stock_insuffisant: "Vous ne transportez pas ce matériau.",
-      tresorerie_insuffisante: "La trésorerie du chantier ne permet pas d'acheter une seule unité à ce prix."
-    };
-    showToast('Vente refusée', messages[apercu.raison] || 'Vente impossible.', false);
-    return;
+// Les requêtes incertaines sont conservées pour rejouer le même reçu, jamais un second débit.
+const CONSTRUCTION_TRANSFERTS = new Map();
+async function confirmerVenteMateriauxChantier(mode = 'vente') {
+  const contexte = contexteNavigationRue(), id = state.currentBuilding;
+  const matiere = document.getElementById('vente-matiere')?.value;
+  const saisie = document.getElementById('vente-quantite')?.value || '';
+  if (!/^[1-9][0-9]*$/.test(saisie) || !Number.isSafeInteger(Number(saisie)) || Number(saisie) > 2147483647 || !['bois','minerai','metal'].includes(matiere)) {
+    showToast('Quantité invalide', 'Indiquez un nombre entier positif de matériaux.', false); return;
   }
-
-  // TRANSACTION SERVEUR. Une seule ecriture, tout ou rien : inventaire, argent, stock, tresorerie
-  // et journal sont valides ensemble ou pas du tout. Il n'existe plus aucun chemin client capable
-  // de muter l'un sans l'autre -- l'ancien mecanisme en memoire avec filet de restitution a ete
-  // supprime, pour qu'il n'y ait jamais deux chemins concurrents.
-  if (typeof sbVendreMateriauxChantier !== 'function') {
-    showToast('Vente indisponible', "Le service de vente n'est pas disponible pour le moment.", false);
-    return;
+  const key = JSON.stringify([state.country,state.currentCity,state.char?.name,typeof rpAuthUid === 'function' ? rpAuthUid() : null,id,matiere,saisie,mode]);
+  let intent = CONSTRUCTION_TRANSFERTS.get(key);
+  if (intent?.enCours) return;
+  if (!intent) {
+    let precedente=null;
+    try{precedente=sessionStorage.getItem('chantier-transfert:'+key);}catch(_){}
+    intent={requete:precedente||assembleeNouvelleRequete(),enCours:false};
+    // Sans stockage du reçu, une fermeture après réponse perdue rendrait le rejeu incertain.
+    try{sessionStorage.setItem('chantier-transfert:'+key,intent.requete);}
+    catch(_){showToast('Transfert indisponible','Le navigateur ne peut pas conserver le reçu de cette opération.',false);return;}
+    CONSTRUCTION_TRANSFERTS.set(key,intent);
   }
-  const verdict = await sbVendreMateriauxChantier(state.char?.name, state.country, id, matiere, quantite, prix)
-    .catch(function () { return null; });
-
-  // FAIL-CLOSED : null = appel echoue = transaction annulee cote serveur, donc rien n'a bouge.
-  if (!verdict) {
-    showToast('Vente impossible', "La transaction n'a pas pu aboutir. Rien n'a été échangé — réessayez.", false);
-    return;
-  }
-  if (!verdict.ok) {
-    const messagesServeur = {
-      pas_sur_place: "Vous devez être physiquement sur le chantier.",
-      chantier_absent: "Aucun chantier en cours sur ce terrain.",
-      chantier_termine: "Ce chantier n'a plus besoin de matériaux.",
-      stock_insuffisant: "Vous ne transportez plus ce matériau.",
-      tresorerie_insuffisante: "La trésorerie du chantier ne suffit plus à ce prix.",
-      vendeur_absent: "Votre personnage est introuvable."
-    };
-    showToast('Vente refusée', messagesServeur[verdict.raison] || 'Vente impossible.', false);
-    return;
-  }
-
-  // Le serveur fait foi : on realigne l'etat local sur ce qu'il a reellement applique.
-  if (ligne) {
-    ligne.qty = Math.max(0, possede - verdict.quantite);
-    if (ligne.qty <= 0) state.inventory = state.inventory.filter(function (i) { return i !== ligne; });
-  }
-  state.arg = (state.arg || 0) + Number(verdict.montant || 0);
-  await chargerTerrainState(id).catch(function () {});
-
-  const labelRes = ((typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) || {}).label || matiere;
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (typeof renderInventory === 'function') renderInventory();
-  updateUI();
-  showToast('Vente conclue', verdict.quantite + ' ' + labelRes + ' → +'
-    + Number(verdict.montant).toLocaleString('fr-FR') + ' ' + cur + '.', true, true);
-  addJournalEntry('Vous avez fourni ' + verdict.quantite + ' ' + labelRes + ' à un chantier pour '
-    + Number(verdict.montant).toLocaleString('fr-FR') + ' ' + cur + ' ('
-    + verdict.prixUnitaire + ' ' + cur + '/unité).', 'event-good');
+  intent.enCours = true;
+  try {
+    const verdict = await sbRpcVerdict('vendre_materiaux_chantier', {
+      p_vendeur:state.char?.name,p_country:state.country,p_building_id:id,p_matiere:matiere,
+      p_quantite:Number(saisie),p_prix:mode === 'don' ? 0 : 1,p_requete:intent.requete
+    }, {encoreValide:() => contexteNavigationRueValide(contexte)});
+    if (!contexteNavigationRueValide(contexte)) return;
+    if (!verdict || verdict.transport && verdict.transport.etat !== 'ok' && !verdict.ok) {
+      showToast('Confirmation incertaine', 'Le résultat ne peut pas être confirmé. Réessayez cette même opération ; aucun second transfert ne sera demandé.', false); return;
+    }
+    CONSTRUCTION_TRANSFERTS.delete(key);
+    try{sessionStorage.removeItem('chantier-transfert:'+key);}catch(_){}
+    if (!verdict.ok) {
+      showToast('Transfert refusé', 'Le serveur a refusé ce transfert (' + (verdict.raison || 'indisponible') + ').', false); return;
+    }
+    // Un reçu rejoué peut être ancien : relire les miroirs, ne jamais appliquer ses deltas.
+    const relu = await commercePjActualiserPersonnage({inventaire:true});
+    if (!contexteNavigationRueValide(contexte)) return;
+    await chargerTerrainState(id);
+    if (!contexteNavigationRueValide(contexte)) return;
+    document.getElementById('modal-postes')?.classList.remove('open');
+    updateUI();
+    showToast('Transfert confirmé', relu ? 'Matériaux transférés. Inventaire et soldes relus sur le serveur.' : 'Transfert confirmé ; actualisation de vos données encore nécessaire.', true);
+  } catch (_) {
+    if (contexteNavigationRueValide(contexte)) showToast('Confirmation incertaine', 'Réessayez la même opération pour retrouver son reçu.', false);
+  } finally { intent.enCours = false; }
 }
 
 // VOL DE MATERIAUX SUR UN CHANTIER (refondu au Lot 1.5.8)
