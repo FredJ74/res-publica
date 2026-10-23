@@ -94,7 +94,7 @@ att('un verdict absent est dit comme une panne de transport, pas comme un refus 
 print('');
 print('3. LES VINGT-DEUX ECRITURES PASSENT PAR HUIT PORTES, UNE PAR MECANISME');
 var ACTES = {
-  'terrain_compromis_acte': 6, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 1,
+  'terrain_compromis_acte': 6, 'terrain_permis_acte': 3, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 1,
   'terrain_lots_acte': 6, 'terrain_reamenagement_poser': 1
 };
 var totalPortes = 0;
@@ -109,8 +109,8 @@ att('terrain_succession_geler : 1 appel',
     partout(/sbRpc\('terrain_succession_geler'/g) === 1);
 att('terrain_succession_annuler_compromis : 1 appel',
     partout(/sbRpc\('terrain_succession_annuler_compromis'/g) === 1);
-att('vingt-deux parcours transactionnels connus, incluant permis et plan versionnes',
-    totalPortes + 3 === 22, (totalPortes + 3) + ' routee(s)');
+att('vingt-et-un parcours transactionnels encore autorises, permis et plan versionnes inclus',
+    totalPortes + 3 === 21, (totalPortes + 3) + ' routee(s)');
 
 // CHAQUE APPEL LIT SON VERDICT, ET AUCUN NE L'AVALE. Cette epreuve manquait : une contre-epreuve
 // qui supprimait la lecture du verdict du transfert de compromis laissait ce banc VERT. Un banc
