@@ -1,0 +1,110 @@
+{
+  "base_main": "7b8b163",
+  "branche": "codex/construction-moteur-94-20261023",
+  "postgresql_workflow": [
+    {
+      "banc": "test-prevol-arnie-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-achat-commerce-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-restaurant-luthecia-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reservation-republica-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-offrir-boire-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reception-atomique-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-assemblage-electronique-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-jodie-publications-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-commandes-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-membres-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-evenements-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-coherence-rues-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-equipements-collectifs-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-fontaine-110-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-placement-national-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-construction-jour-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-construction-materiaux-local.py",
+      "code": 0
+    }
+  ],
+  "construction_postgresql": {
+    "assertions": 62,
+    "modes": [
+      "definition origine",
+      "garde exact permis PR112"
+    ],
+    "identite": "simulee"
+  },
+  "client": {
+    "bancs": 92,
+    "reussis": 92
+  },
+  "contre_epreuves": {
+    "total": 90,
+    "reussis": 90
+  },
+  "adaptateur_client": 5,
+  "tests_node": 11,
+  "syntaxe_api": 23,
+  "controles_globaux": {
+    "branche_construction": "9/12",
+    "branche_workflow": "10/12",
+    "rouges_residuels": [
+      "Authority",
+      "Referential"
+    ]
+  },
+  "production": {
+    "migrations_appliquees": 0,
+    "donnees_modifiees": false,
+    "deploiement": false,
+    "tests_authentifies": false,
+    "catalogue_vivant": "CONNECT 403"
+  },
+  "pr_creation": "API GitHub Forbidden",
+  "chantier_termine": false
+}
