@@ -5330,7 +5330,7 @@ const BUILDINGS = {
     bgColor: "#0a0a05",
     desc: "Autrefois un seul grand domaine agricole en périphérie de Luthécia — la Châtaigneraie — ce terrain a été loti en cinq parcelles distinctes, aujourd'hui proposées séparément à la vente.",
     rooms: {
-      terrain2: {
+      terrain: {
         name: "Terrain",
         image: "🏗️",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
@@ -5354,7 +5354,7 @@ const BUILDINGS = {
     bgColor: "#0a0a05",
     desc: "Autrefois un seul grand domaine agricole en périphérie de Luthécia — la Châtaigneraie — ce terrain a été loti en cinq parcelles distinctes, aujourd'hui proposées séparément à la vente.",
     rooms: {
-      terrain3: {
+      terrain: {
         name: "Terrain",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
         desc: "Lot de la Châtaigneraie (2300 m²) en bordure de la route principale, bonne visibilité.",
