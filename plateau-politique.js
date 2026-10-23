@@ -4137,6 +4137,12 @@ function renderRoomActions(room, buildingId, roomId) {
       if (livre) return fnLivre.has(o.fn);
       if (chantier) {
         if (!fnChantier.has(o.fn)) return false;
+        // Le plan initial n'est accessible que dans le dernier tiers et
+        // uniquement quand le moteur commun le permet.
+        if (['modifier_plan_chantier','diviser_construction'].includes(o.fn)) {
+          return typeof verdictModificationPlan === 'function' &&
+            verdictModificationPlan(chantier).ok;
+        }
         // La reception est fournie par la source dynamique #114 uniquement
         // lorsque le moteur confirme 100 %. Pas de bouton premature.
         if (o.fn === 'receptionner_chantier') {
