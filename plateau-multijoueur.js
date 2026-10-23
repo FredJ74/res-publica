@@ -368,17 +368,11 @@ function renderPersonsList(persons, targetId) {
       '</div></div>';
   };
 
-  // PRESENCE AUTONOME ou ACCOMPAGNANTE : le tri se fait sur une propriete portee par la donnee
-  // elle-meme, jamais sur une liste de familles ecrite ici. Une mecanique qui declarera demain
-  // un accompagnant sera rattachee sans qu'une ligne de ce fichier change.
-  const accompagnants = persons.filter(p => p && p.estAccompagnement === true);
-  const autonomes     = persons.filter(p => !p || p.estAccompagnement !== true);
-  const personCards   = autonomes.map(carteDePersonne).join('');
-
   // Ajouter PNJ terrain si on est sur un terrain
   // (ce bloc etait ecrit DEUX FOIS a l'identique ; le doublon est retire le 29 septembre 2026.
   //  Il etait sans effet -- le garde par nom dedoublonnait -- mais restait du code mort.)
-  if (state.currentBuilding?.startsWith('terrain-a-batir')) {
+  if (targetId === 'persons-list' && state.currentBuilding?.startsWith('terrain-a-batir')
+      && !(typeof estPieceDynamiqueLot === 'function' && estPieceDynamiqueLot(state.currentRoom))) {
     const stored = sessionStorage.getItem('terrain_pnj_' + state.currentBuilding);
     if (stored) {
       try {
@@ -389,6 +383,14 @@ function renderPersonsList(persons, targetId) {
       } catch(e) {}
     }
   }
+
+  // PRESENCE AUTONOME ou ACCOMPAGNANTE : le tri se fait sur une propriete portee par la donnee
+  // elle-meme, jamais sur une liste de familles ecrite ici. Une mecanique qui declarera demain
+  // un accompagnant sera rattachee sans qu'une ligne de ce fichier change.
+  const accompagnants = persons.filter(p => p && p.estAccompagnement === true);
+  const autonomes     = persons.filter(p => !p || p.estAccompagnement !== true);
+  const personCards   = autonomes.map(carteDePersonne).join('');
+
   const simules = getSimulesPresents();
   const simuleCards = simules.map(p => {
     const enc = encodePnjSafe({...p, isPJ: true});

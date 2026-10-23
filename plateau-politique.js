@@ -4105,6 +4105,11 @@ function renderRoomActions(room, buildingId, roomId) {
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
     .concat(dynOrders);
 
+  const achatTerrainBloqueParIntrus = /^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain' &&
+    typeof getTerrainState === 'function' &&
+    ['squatter_agr','squatter_cool','cadavre'].includes(getTerrainState(buildingId)?.pnj);
+  const messageAchatTerrainIntrus = 'Achat impossible, vous devez libérer le terrain en gérant les intrus';
+
   const ordresTerrainLuthecia = (() => {
     if (!/^terrain-a-batir-[1-5]$/.test(buildingId) || roomId !== 'terrain' ||
         typeof getTerrainState !== 'function') return allOrders;
@@ -4124,7 +4129,7 @@ function renderRoomActions(room, buildingId, roomId) {
       if (avantAcquisition) {
         if (!fnAvant.has(o.fn)) return false;
         if (o.fn === 'racheter_terrain') return false;
-        if (['acheter_terrain','signer_compromis'].includes(o.fn) &&
+        if (['acheter_terrain','signer_compromis'].includes(o.fn) && !achatTerrainBloqueParIntrus &&
             typeof terrainOrdreDisponible === 'function' &&
             !terrainOrdreDisponible(o.fn, buildingId).ok) return false;
         if (o.fn === 'appeler_police_terrain') {
@@ -4161,6 +4166,10 @@ function renderRoomActions(room, buildingId, roomId) {
   })();
 
   const buttons = ordresTerrainLuthecia.map(o => {
+    if (achatTerrainBloqueParIntrus && ['acheter_terrain','signer_compromis'].includes(o.fn)) {
+      return '<button type="button" class="action-btn legal blocked" disabled aria-disabled="true" title="' +
+        messageAchatTerrainIntrus + '"><i class="ti ' + o.icon + '"></i> ' + o.label + '</button>';
+    }
     // Verifier requiresPost : doit avoir le bon poste specifique
     let needsPost = false;
     if (o.requiresPost) {
@@ -4499,6 +4508,11 @@ function renderRoomActions(room, buildingId, roomId) {
       if (!entries.length) return '';
       entries.forEach(e => deja.add(e.o.fn));
       window._terrainOrdresGroupes[index] = { titre: g.titre, entries };
+      if (g.titre === 'Achat de terrains' && achatTerrainBloqueParIntrus) {
+        return '<button type="button" class="action-btn legal blocked" disabled aria-disabled="true" title="' +
+          messageAchatTerrainIntrus + '"><i class="ti ti-layout-list"></i> ' + g.titre +
+          ' <span class="pa-cost">' + messageAchatTerrainIntrus + '</span></button>';
+      }
       return '<button class="action-btn legal" onclick="ouvrirMenuOrdresTerrain(' + index +
         ')" title="' + g.titre + '"><i class="ti ti-layout-list"></i> ' +
         g.titre + ' <span class="pa-cost">▾</span></button>';
