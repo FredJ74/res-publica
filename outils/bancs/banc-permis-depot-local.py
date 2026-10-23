@@ -36,7 +36,7 @@ def main():
   charger('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
   charger('baseline/domaines/socle/20_fonctions.sql','objet_sas_deposer')
   charger('baseline/domaines/socle/20_fonctions.sql','titulaire_est_moi')
-  sql=(R/'migrations/20261022220516_permis_depot_transactionnel.sql').read_text();q.execute(sql);q.execute(sql)
+  sql=(R/'migrations/20261022220516_permis_depot_transactionnel.sql').read_text();q.execute(sql)  # une reinstallation volontaire est refusee par l'empreinte de la RPC modifiee
   # Une archive de depot ne peut etre ajoutee directement par un joueur.
   try:
    q.execute("INSERT INTO dossiers_urbanisme(id,country,type_evenement,data) VALUES('faux-depot','republic','depot','{}')")
