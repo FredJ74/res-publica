@@ -17,7 +17,11 @@ BEGIN
  proprio:=regexp_replace(coalesce(fonds->>'proprietaire',''),'^pj:','');
  -- Seuls les vrais titulaires PJ au moment de la transaction ont un journal personnel.
  NEW.journal_titulaire:=NULL;NEW.journal_enseigne:=NULL;
- IF proprio<>regexp_replace(coalesce(NEW.vendeur,''),'^pj:','') THEN RAISE EXCEPTION 'vente_titulaire_incoherent';END IF;
+ IF proprio IS DISTINCT FROM regexp_replace(coalesce(NEW.vendeur,''),'^pj:','') THEN
+  -- Un journal facultatif ne doit JAMAIS annuler une vente ni son paiement.
+  -- Aucun titulaire de notification n'est designe si les identites divergent.
+  RETURN NEW;
+ END IF;
  SELECT id INTO NEW.journal_titulaire FROM public.personnages_donnees WHERE name=proprio;
  IF NEW.journal_titulaire IS NOT NULL THEN NEW.journal_enseigne:=coalesce(nullif(fonds->>'enseigne',''),'Commerce');END IF;
  RETURN NEW;
