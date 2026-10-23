@@ -145,6 +145,15 @@ function ouvrirStatsPerso() {
 }
 
 function getPnjAvatar(pnj, empireColor) {
+  if (['squatter_cool','squatter_agr'].includes(pnj.terrainPnjId || pnj.id) && pnj.photoUrl) {
+    const attr = v => String(v || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<button type="button" class="pnj-terrain-photo" onclick="ouvrirPhotoPleinEcran(this)" data-url="' +
+      attr(pnj.photoUrl) + '" data-nom="' + attr((pnj.name || '').replace(' (PNJ)','')) +
+      '" aria-label="Agrandir le portrait"><img src="' + attr(pnj.photoUrl) +
+      '" alt="' + attr((pnj.name || '').replace(' (PNJ)','')) + '" style="object-position:' +
+      attr(pnj.photoPos || '50% 25%') + '"></button>';
+  }
+
   // Photo escort selon empire si pas de photoUrl
   if (!pnj.photoUrl && pnj.job === 'escort') {
     const escortPhotos = {
@@ -815,6 +824,9 @@ function openPnjModal(encodedPnj) {
   const avatarHtml = typeof getPnjAvatar === 'function' ? getPnjAvatar(pnj, empireCol) : '';
   const avatarEl = document.getElementById('pnj-avatar-container');
   if (avatarEl) avatarEl.innerHTML = avatarHtml;
+  const identiteEl = document.getElementById('pnj-identite');
+  if (identiteEl) identiteEl.classList.toggle('pnj-identite-terrain',
+    ['squatter_cool','squatter_agr'].includes(pnj.terrainPnjId || pnj.id) && !!pnj.photoUrl);
 
   // Rôle et trait de personnalité
   const roleEl = document.getElementById('pnj-role-display');
@@ -966,9 +978,6 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" style="color:#C9A84C;border-color:#8a6a20" onclick="distribuerTractJeanLou(\'' + pnjSafeName + '\')"><i class="ti ti-file-description" style="font-size:.85rem"></i> Distribuer un tract (mission Jean-Lou)</button>';
   }
 
-  if (pnj.rel === 'enemy') {
-    actionBtns += '<button class="pnj-action-btn" onclick="talkToPnj(\'' + enc + '\', \'confrontation\')"><i class="ti ti-sword" style="font-size:.85rem"></i> Confronter</button>';
-  }
 
   // Interrogatoire cible (Phase 4 memoire, 22 aout 2026) : reserve aux postes enqueteurs/juges
   // (V1 validee -- commissaire = policier/enqueteur habilite du jeu, juge). Gate cote client
