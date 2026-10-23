@@ -1,6 +1,12 @@
 {
  "commentaires": [
   {
+   "empreinte": "70012904fbbb1ead0b960185c468a121",
+   "genre": "COLUMN",
+   "objet": "batiments_fermes",
+   "sous": "date_fin_universelle"
+  },
+  {
    "empreinte": "dbde34bf03d6d6f19889e8be40f17c20",
    "genre": "FUNCTION",
    "objet": "ville_est_reelle(text,text)",
@@ -57,10 +63,40 @@
    "tbl": "logements_demandes"
   },
   {
+   "empreinte": "5ee40fb12a73c9c3db1a3d175a94fed8",
+   "genre": "p",
+   "nom": "permis_depots_recus_pkey",
+   "tbl": "permis_depots_recus"
+  },
+  {
+   "empreinte": "767cb9e1f3413c5bf5554528dffeb305",
+   "genre": "p",
+   "nom": "permis_transactions_internes_pkey",
+   "tbl": "permis_transactions_internes"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "reservations_salle_reception_pkey",
    "tbl": "reservations_salle_reception"
+  },
+  {
+   "empreinte": "5ee40fb12a73c9c3db1a3d175a94fed8",
+   "genre": "p",
+   "nom": "terrain_negociations_recus_pkey",
+   "tbl": "terrain_negociations_recus"
+  },
+  {
+   "empreinte": "258ac56d8c3ae3442ece73fe66f2ae76",
+   "genre": "p",
+   "nom": "terrain_negociations_refus_pkey",
+   "tbl": "terrain_negociations_refus"
+  },
+  {
+   "empreinte": "137c4cfac0173bceb55f4e358dfc6fb9",
+   "genre": "p",
+   "nom": "terrain_visites_actives_pkey",
+   "tbl": "terrain_visites_actives"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -87,6 +123,12 @@
    "tbl": "villes_empreinte"
   },
   {
+   "empreinte": "5cbc8059beb3b03b892e68377e986ec2",
+   "genre": "u",
+   "nom": "permis_depots_recus_archive_key",
+   "tbl": "permis_depots_recus"
+  },
+  {
    "empreinte": "661cdca3474a8dc260e6b3506c6fb62c",
    "genre": "c",
    "nom": "locations_actives_salle_reunion_non_louable",
@@ -99,10 +141,34 @@
    "tbl": "logements_demandes"
   },
   {
+   "empreinte": "0bd5479e6e51d9dd6210e408b77a1af2",
+   "genre": "c",
+   "nom": "terrain_negociations_recus_montant_check",
+   "tbl": "terrain_negociations_recus"
+  },
+  {
+   "empreinte": "0bd5479e6e51d9dd6210e408b77a1af2",
+   "genre": "c",
+   "nom": "terrain_negociations_refus_montant_check",
+   "tbl": "terrain_negociations_refus"
+  },
+  {
    "empreinte": "a3b71922bd74c828c02dd8c210f64c83",
    "genre": "c",
    "nom": "villes_empreinte_seul_check",
    "tbl": "villes_empreinte"
+  },
+  {
+   "empreinte": "8d9e62cb2c95c5c8e3a4eb0d3bfa6280",
+   "genre": "f",
+   "nom": "terrain_visites_actives_personnage_id_fkey",
+   "tbl": "terrain_visites_actives"
+  },
+  {
+   "empreinte": "48ff4154409c7a4134ef73594b863bb6",
+   "genre": "f",
+   "nom": "terrain_visites_actives_terrain_id_fkey",
+   "tbl": "terrain_visites_actives"
   }
  ],
  "domaine": "immobilier et territoire",
@@ -330,12 +396,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "anon",
-   "genre": "FUNCTION",
-   "objet": "resilier_bail_volontaire(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "resilier_bail_volontaire(text,text)",
@@ -446,6 +506,84 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "terrain_negociation_conclure(text,text,integer,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_negociation_conclure(text,text,integer,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_negociation_conclure(text,text,integer,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_negociation_jet_interne()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_negociation_jet_interne()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_negociation_preparer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_negociation_preparer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_negociation_preparer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_occupation_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_occupation_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_occupation_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_occupation_tirer_interne()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_occupation_tirer_interne()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "terrain_permis_acte(text,text,jsonb)",
    "privileges": "EXECUTE"
   },
@@ -459,6 +597,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "terrain_permis_acte(text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "terrain_permis_deposer(text,text,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_permis_deposer(text,text,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_permis_deposer(text,text,uuid)",
    "privileges": "EXECUTE"
   },
   {
@@ -531,6 +687,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "terrain_succession_geler(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "terrain_visites_clore_interne()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "terrain_visites_clore_interne()",
    "privileges": "EXECUTE"
   },
   {
@@ -556,30 +724,6 @@
    "genre": "FUNCTION",
    "objet": "villes_empreinte_reelle()",
    "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "anon",
-   "genre": "SEQUENCE",
-   "objet": "batiments_fermes_id_seq",
-   "privileges": "SELECT, USAGE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "SEQUENCE",
-   "objet": "batiments_fermes_id_seq",
-   "privileges": "SELECT, USAGE"
-  },
-  {
-   "beneficiaire": "postgres",
-   "genre": "SEQUENCE",
-   "objet": "batiments_fermes_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
-  },
-  {
-   "beneficiaire": "service_role",
-   "genre": "SEQUENCE",
-   "objet": "batiments_fermes_id_seq",
-   "privileges": "SELECT, UPDATE, USAGE"
   },
   {
    "beneficiaire": "anon",
@@ -744,6 +888,30 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "permis_depots_recus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "permis_depots_recus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "permis_transactions_internes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "permis_transactions_internes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "reservations_salle_reception",
@@ -759,6 +927,42 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "reservations_salle_reception",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "terrain_negociations_recus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "terrain_negociations_recus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "terrain_negociations_refus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "terrain_negociations_refus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "terrain_visites_actives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "terrain_visites_actives",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -849,14 +1053,14 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "66b1fea54fa7c394f1b301c5738dc9a4",
-  "20_fonctions.sql": "e29e93dca0732cc18251fdcc03ef0783",
-  "30_contraintes.sql": "85fea615dc27bd1380864b18bf5a0844",
-  "35_index.sql": "3d319f664a45b587249753e4ef607bed",
-  "50_triggers.sql": "17584ddfdfa26f9d3ab4f91524e61d22",
-  "60_rls-policies.sql": "d75e548ae702eda3a2c074c1f8afeef5",
-  "70_droits.sql": "0a78c5eda4ce7879acf31d132f5a534b",
-  "80_commentaires.sql": "1f3a2950e2af35ad3e61470a1ae940a7"
+  "10_tables.sql": "f06390b1f5cb42742ca232e37f7e314b",
+  "20_fonctions.sql": "51a46c7e63eafd374303da826650cf42",
+  "30_contraintes.sql": "c9e982a4b1f8fbde85918ab510bc8faa",
+  "35_index.sql": "553d41f51d96778a455e072416e3332a",
+  "50_triggers.sql": "8c70d914a0adb75f2b0a0baf55280f08",
+  "60_rls-policies.sql": "c42d1bb649bffa21e5c3344a05493eb4",
+  "70_droits.sql": "0e181bd5fc2b68677cdd62a9135798b8",
+  "80_commentaires.sql": "f076354110db8198420cbb179c53d8a7"
  },
  "fonctions": [
   {
@@ -905,7 +1109,7 @@
    "signature": "batiment_etat_lire(jsonb)"
   },
   {
-   "empreinte": "36ed40fb0c916dfed092e79600a9a343",
+   "empreinte": "2dc46fb93db2c5a5c1f5ac6a11600e3f",
    "security_definer": true,
    "signature": "batiment_etat_sous_cle_ecrire(text,text,text,text,jsonb)"
   },
@@ -920,12 +1124,12 @@
    "signature": "eviction_indemniser(text,text,text)"
   },
   {
-   "empreinte": "ed319430516b8a20437266fa4115db56",
+   "empreinte": "7158f66e3b85431b8c43c7b27a3018e8",
    "security_definer": true,
    "signature": "prelever_loyer_bail(text)"
   },
   {
-   "empreinte": "fbcd9597f5f0d4920aca2e6cb15d8e8f",
+   "empreinte": "f87db63cae8c1d450bfb6fa268301fea",
    "security_definer": true,
    "signature": "resilier_bail_volontaire(text,text)"
   },
@@ -935,7 +1139,7 @@
    "signature": "terminer_bail(text,text,text,integer)"
   },
   {
-   "empreinte": "6d23e30c45c02e5aaccfa0604efac392",
+   "empreinte": "4326e42f8b71af0acb0ed6071aa80829",
    "security_definer": true,
    "signature": "terrain_chantier_acte(text,text,text,integer,integer)"
   },
@@ -965,9 +1169,39 @@
    "signature": "terrain_lots_acte(text,text,jsonb,text[])"
   },
   {
-   "empreinte": "a04b1403d408db28c4e51135026df7de",
+   "empreinte": "2dc6e50be442a564218910a40265a680",
+   "security_definer": true,
+   "signature": "terrain_negociation_conclure(text,text,integer,uuid)"
+  },
+  {
+   "empreinte": "f35eb332fe516f521b8c61f749e9e9fb",
+   "security_definer": false,
+   "signature": "terrain_negociation_jet_interne()"
+  },
+  {
+   "empreinte": "fc2379050eedb3e46d52ff10f3b3cbf2",
+   "security_definer": true,
+   "signature": "terrain_negociation_preparer(text)"
+  },
+  {
+   "empreinte": "8beb67b2e85b83a530086a2e1c29d727",
+   "security_definer": true,
+   "signature": "terrain_occupation_lire(text)"
+  },
+  {
+   "empreinte": "31b034a30b09182f546d4ddd13f52a9f",
+   "security_definer": false,
+   "signature": "terrain_occupation_tirer_interne()"
+  },
+  {
+   "empreinte": "faaa7f83d7769692c8a9911f061c220a",
    "security_definer": true,
    "signature": "terrain_permis_acte(text,text,jsonb)"
+  },
+  {
+   "empreinte": "3ca7ea9f04c42f1ac0c08d6c4f292f8b",
+   "security_definer": true,
+   "signature": "terrain_permis_deposer(text,text,uuid)"
   },
   {
    "empreinte": "83828b5cfb01e32e80e0f9def57e8fd0",
@@ -988,6 +1222,11 @@
    "empreinte": "6335e138c31d491d3bcfc9ad6a19213e",
    "security_definer": true,
    "signature": "terrain_succession_geler(text,text)"
+  },
+  {
+   "empreinte": "fd8afdc7a22153480376e08c7fe00750",
+   "security_definer": true,
+   "signature": "terrain_visites_clore_interne()"
   },
   {
    "empreinte": "ebe2b9c8ceca60f0f9dd2a7e7e114a1e",
@@ -1046,7 +1285,13 @@
   "locations_archives_pkey",
   "logements_attributions_historique_pkey",
   "logements_demandes_pkey",
+  "permis_depots_recus_archive_key",
+  "permis_depots_recus_pkey",
+  "permis_transactions_internes_pkey",
   "reservations_salle_reception_pkey",
+  "terrain_negociations_recus_pkey",
+  "terrain_negociations_refus_pkey",
+  "terrain_visites_actives_pkey",
   "terrains_etat_pkey",
   "terrains_historique_ventes_pkey",
   "villes_empreinte_pkey",
@@ -1229,7 +1474,32 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "permis_depots_recus"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "permis_transactions_internes"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "reservations_salle_reception"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "terrain_negociations_recus"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "terrain_negociations_refus"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "terrain_visites_actives"
   },
   {
    "active": true,
@@ -1270,9 +1540,9 @@
    "nom": "batiments_etat"
   },
   {
-   "colonnes": 8,
-   "empreinte_catalogue": "38ced2a0ab66cb8a23f425918a940894",
-   "empreinte_texte": "726e0a40fde6efb72461f78de84d0a6d",
+   "colonnes": 10,
+   "empreinte_catalogue": "db4ff4871b35e0dc88b4d1617b85d4b3",
+   "empreinte_texte": "e2d1db7d9ccfdb03e3d1ca5845c4e50e",
    "nom": "batiments_fermes"
   },
   {
@@ -1306,10 +1576,40 @@
    "nom": "logements_demandes"
   },
   {
+   "colonnes": 3,
+   "empreinte_catalogue": "4639d0e3a785b50444cb109878158aeb",
+   "empreinte_texte": "d3ed178af8a4b90c438dcfd4e1d62995",
+   "nom": "permis_depots_recus"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "9017aba43b68e4f05fef8d6879c8da2e",
+   "empreinte_texte": "cda61ea8df358040b2a541186db5d858",
+   "nom": "permis_transactions_internes"
+  },
+  {
    "colonnes": 5,
    "empreinte_catalogue": "82e875a6479cb25d3657baa321fb1673",
    "empreinte_texte": "c8adbbfbb1c3be3fd87c437495a86c0e",
    "nom": "reservations_salle_reception"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "19e688254107feea533213ce8b6d4be1",
+   "empreinte_texte": "174447ea2d032653e40350353f14c874",
+   "nom": "terrain_negociations_recus"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "62d3a35fe291268c5437c168dc0a195c",
+   "empreinte_texte": "1a44ca27b8777a75435de9bb6cfe96d0",
+   "nom": "terrain_negociations_refus"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "d7b24840ef1bba4c44899866785a173e",
+   "empreinte_texte": "7bb7e0a5020dc0856e85cacafe3b4a2c",
+   "nom": "terrain_visites_actives"
   },
   {
    "colonnes": 9,
@@ -1348,6 +1648,18 @@
    "fonction": "pnj_miroir_police_declencheur()",
    "nom": "trg_pnj_miroir_police",
    "tbl": "batiments_etat"
+  },
+  {
+   "empreinte": "d8fea04c07a7298ba3998f9716232cc9",
+   "fonction": "fermeture_definir_date_universelle()",
+   "nom": "trg_fermeture_date_universelle",
+   "tbl": "batiments_fermes"
+  },
+  {
+   "empreinte": "52235a6a498841e320562a68f3d36f8a",
+   "fonction": "permis_depot_archive_proteger()",
+   "nom": "permis_depot_archive_versionnee",
+   "tbl": "dossiers_urbanisme"
   },
   {
    "empreinte": "1a527a89e8a84a0941295ac2da9d520e",

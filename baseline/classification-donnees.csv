@@ -318,3 +318,8 @@ votes_confiance_bulletins;politique et elections;C;structure_seule;0;non;0;0;Bul
 votes_electoraux;politique et elections;C;structure_seule;0;oui;0;0;Bulletins.;
 zz_snap_cka_blob;socle PNJ;C;hors_baseline;1;non;0;0;Sauvegarde avant bascule du 27/09/2026.;
 zz_snap_cka_metier;socle PNJ;C;hors_baseline;96;non;0;0;Sauvegarde de pnj_soldats_metier avant bascule.;
+terrain_visites_actives;immobilier et territoire;C;structure_seule;1;non;0;1;Verrous de visite, sans contenu de monde neuf.;ETAT VIVANT PUR : aucun historique ni verrou au premier jour.
+permis_depots_recus;immobilier et territoire;C;structure_seule;0;non;0;1;Recus historiques des depots de permis.;ETAT VIVANT PUR : aucun historique ni verrou au premier jour.
+permis_transactions_internes;immobilier et territoire;C;structure_seule;0;non;0;1;Autorisation interne transitoire des depots de permis.;ETAT VIVANT PUR : aucun historique ni verrou au premier jour.
+terrain_negociations_refus;immobilier et territoire;C;structure_seule;0;non;0;1;Offres refusees par personnage et occupation. Aucun etat initial.;ETAT VIVANT PUR : aucun historique ni verrou au premier jour.
+terrain_negociations_recus;immobilier et territoire;C;structure_seule;0;non;0;1;Recus idempotents de negociation, aucun acces client direct.;ETAT VIVANT PUR : aucun historique ni verrou au premier jour.

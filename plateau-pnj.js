@@ -1152,6 +1152,12 @@ function openPnjModal(encodedPnj) {
     actionBtns += genererZoneCarriereHtml(pnj);
   }
 
+  if (!isPJ && ['squatter_cool', 'squatter_agr'].includes(pnj.terrainPnjId || pnj.id)) {
+    const cible = encodePnjSafe({ terrain: state.currentBuilding, pays: state.country,
+      ville: state.currentCity, occupation: revisionOccupationSquatteurs(getTerrainState(state.currentBuilding)) });
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirNegociationDepuisPnj(\'' + cible + '\')">Faire une proposition</button>';
+  }
+
   actionBtns += '<div id="quete-action-zone"></div>';
   // Verifier de facon non bloquante si ce PNJ correspond a une quete active
   if (!isPJ && typeof getQueteActivePourPnj === 'function') {
@@ -1181,7 +1187,8 @@ function openPnjModal(encodedPnj) {
   // Recharger l'historique de la conversation du jour (uniquement pour les PNJ — jamais pour un vrai joueur)
   if (!isPJ) {
     const pnjNameClean = pnj.name?.replace(' (PNJ)', '').trim();
-    const convKeyOpen = 'conv_' + (pnjNameClean||'pnj') + '_day' + (state.day||1);
+    const convKeyOpen = 'conv_' + (pnjNameClean||'pnj') + '_day' + (state.day||1)
+      + (['squatter_cool','squatter_agr'].includes(pnj.terrainPnjId || pnj.id) ? '_terrain_rp3' : '');
     const histOpen = state.pnjConversations?.[convKeyOpen] || [];
 
     if (pnjNameClean === 'Jérémy' && histOpen.length >= 2) {
@@ -1422,6 +1429,12 @@ async function talkToPnj(encodedPnj, action) {
   if ((pnj.terrainPnjId === 'cadavre' || pnj.id === 'cadavre')) return;
 
   if (!action || action.trim() === '') return;
+
+  if (['squatter_cool', 'squatter_agr'].includes(pnj.terrainPnjId || pnj.id)
+      && (action === 'bonjour' || /n[ée]goci|propos(?:er|ition)|combien.*part|quitter.*terrain/i.test(action))) {
+    document.getElementById('pnj-speech').textContent = repliqueNegociationSquatteurs(pnj.terrainPnjId || pnj.id);
+    return;
+  }
 
   const speech = document.getElementById('pnj-speech');
   speech.innerHTML = '<div class="pnj-loading"><span class="spin"></span> En train de repondre...</div>';
@@ -1816,7 +1829,7 @@ function verifierSuccesMaxence(cle) {
   // Récupérer l'historique de la conversation du jour
   const pnjKey2 = pnj.name?.replace(' (PNJ)', '').trim();
   const versionDialogueTerrain = ['squatter_cool','squatter_agr'].includes(pnj.terrainPnjId || pnj.id)
-    ? '_terrain_rp2' : '';
+    ? '_terrain_rp3' : '';
   const convKey = 'conv_' + (pnjKey2||'pnj') + '_day' + (state.day||1) + versionDialogueTerrain;
   if (!state.pnjConversations) state.pnjConversations = {};
   if (!state.pnjConversations[convKey]) state.pnjConversations[convKey] = [];
@@ -3952,91 +3965,196 @@ function calculerTauxNegociationSquatteurs(montant) {
   return Math.max(5, Math.min(90, Math.round(taux)));
 }
 
-function majTauxNegociationLive() {
-  const montant = parseInt(document.getElementById('negoc-montant')?.value || 0);
-  const taux = calculerTauxNegociationSquatteurs(montant);
-  const el = document.getElementById('negoc-taux-live');
-  if (el) el.textContent = 'Chances de succès actuelles : ' + taux + '%';
+// Le serveur fixe le contexte et le verdict ; le navigateur ne tire jamais le resultat.
+function repliqueNegociationSquatteurs(type, resultat) {
+  if (resultat === 'accepte') return type === 'squatter_cool'
+    ? "OK l'ami, marché conclu ! Avant de partir, on va fêter ça. On t'offre une mousse et on trinque à notre départ. À la tienne, et prends soin de ce petit coin !"
+    : "Bon, ça passe. On prend le fric et on se casse. Mais évite de nous regarder comme ça.";
+  if (resultat === 'refuse') return type === 'squatter_cool'
+    ? "Ah non, avec ça, on ne peut même pas louer une camionnette… On reste."
+    : "Tu te fous de notre gueule avec tes miettes ? Garde ton fric et dégage avant qu'on s'énerve.";
+  return type === 'squatter_cool'
+    ? "On peut peut-être s'arranger… Tu proposes combien pour qu'on déménage ?"
+    : "Tu veux nous dégager, baltringue ? T'as cru quoi, qu'on était des toutous ? Vas-y, annonce ce que t'as à proposer, et te fous pas de nous, ou on te défonce.";
 }
 
-function doNegocierSquatteurs(pa, cost) {
-  const id = state.currentBuilding;
-  // Revalidation a l'ouverture (bug remonte avant Phase L) : requiresSquatteurs n'etait lu par
-  // aucun code, le bouton restait affiche/cliquable sans squatteur reel. terrainOrdreDisponible
-  // est la meme verification deja utilisee pour signer_compromis/acheter_terrain.
-  const dispo = typeof terrainOrdreDisponible === 'function' ? terrainOrdreDisponible('negocier_squatteurs', id) : { ok: true };
-  if (!dispo.ok) { showToast('Aucun squatteur', dispo.raison || 'Aucun squatteur a negocier.', false); return; }
-  const ts = getTerrainState(id);
-  const pnj = profilOccupationTerrain(ts);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  const minMontant = pnj?.id === 'squatter_agr' ? 500 : 0;
-
+function contexteNegociationSquatteurs() {
+  return { personnage: state.char, uid: typeof rpAuthUid === 'function' ? rpAuthUid() : null,
+    pays: state.country, ville: state.currentCity, terrain: state.currentBuilding };
+}
+function memeContexteNegociation(c) {
+  return !!c && state.char === c.personnage && state.country === c.pays
+    && state.currentCity === c.ville && state.currentBuilding === c.terrain
+    && c.uid === (typeof rpAuthUid === 'function' ? rpAuthUid() : null);
+}
+function revisionOccupationSquatteurs(e) {
+  return String(e?.dateGeneration ?? 'historique') + ':' + e?.pnj;
+}
+function ouvrirNegociationDepuisPnj(encoded) {
+  let cible;
+  try { cible = JSON.parse(decodeURIComponent(encoded)); } catch (_) { return; }
+  if (cible.terrain !== state.currentBuilding || cible.pays !== state.country
+      || cible.ville !== state.currentCity) return;
+  document.getElementById('modal-pnj')?.classList.remove('open');
+  return doNegocierSquatteurs(1, 0, cible.occupation);
+}
+function tauxNegociationServeur(base, montant) {
+  return Math.max(5, Math.min(90, Math.round(base + bonusArgentSquatteurs(montant))));
+}
+function majTauxNegociationLive() {
+  const c = state._negociationSquatteurs;
+  const montant = Number(document.getElementById('negoc-montant')?.value || 0);
+  const el = document.getElementById('negoc-taux-live');
+  if (el && c) el.textContent = 'Chances de succès actuelles : ' + tauxNegociationServeur(c.baseTaux, montant) + '%';
+}
+function signalerRefusNegociation(r) {
+  const motifs = {
+    pas_sur_place: 'Vous devez être sur ce terrain.',
+    aucun_squatteur: 'Il n’y a plus de squatteurs sur ce terrain.',
+    occupation_modifiee: 'Les occupants ont changé. Rouvrez la négociation.',
+    offre_trop_faible: 'La nouvelle proposition doit dépasser la dernière offre refusée. Minimum : ' + (r?.minimum || 1) + ' FR.',
+    fonds_insuffisants: 'Vos fonds disponibles ne couvrent pas cette proposition.',
+    pa_insuffisants: 'Il vous faut 1 PA pour cette tentative.',
+    terrain_gele: 'Ce terrain est gelé.',
+    intervention_en_cours: 'Une intervention est déjà en cours sur ce terrain.'
+  };
+  showToast('Négociation indisponible', motifs[r?.raison] || 'La réponse du serveur ne peut pas être confirmée. Réessayez.', false);
+}
+function appliquerEtatNegociation(c, etat) {
+  if (!etat || !memeContexteNegociation(c)) return;
+  remplacerTerrainState(c.terrain, etat);
+  const room = BUILDINGS[c.terrain]?.rooms?.[state.currentRoom];
+  if (room) {
+    renderPersonsList(room.persons || []);
+    renderRoomActions(room, c.terrain, state.currentRoom);
+  }
+}
+async function doNegocierSquatteurs(pa, cost, occupationAttendue) {
+  const precedente = state._negociationSquatteurs;
+  if (memeContexteNegociation(precedente) && precedente.tentative && !precedente.terminee) {
+    if (!precedente.enCours) return confirmerNegociation(1, 0);
+    return;
+  }
+  const c = contexteNegociationSquatteurs();
+  state._negociationOuverture = c;
+  if (!c.uid || typeof sbRpcVerdict !== 'function') { signalerRefusNegociation(null); return; }
+  const r = await sbRpcVerdict('terrain_negociation_preparer', { p_terrain: c.terrain }).catch(() => null);
+  if (!memeContexteNegociation(c) || state._negociationOuverture !== c) return;
+  if (r?.etat) appliquerEtatNegociation(c, r.etat);
+  if (!r?.ok) { signalerRefusNegociation(r); return; }
+  if (occupationAttendue && occupationAttendue !== r.occupation) {
+    signalerRefusNegociation({ raison: 'occupation_modifiee' }); return;
+  }
+  Object.assign(c, { occupation: r.occupation, type: r.etat.pnj, baseTaux: r.baseTaux,
+    minimum: r.minimum, dernierRefus: r.dernierRefus });
+  state._negociationSquatteurs = c;
+  const cur = COUNTRIES[c.pays]?.cur || 'FR';
   document.getElementById('postes-modal-title').textContent = 'Négocier le départ';
   document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.6rem;font-style:italic">"' + (pnj?.trait || '') + '"</div>' +
-    (minMontant > 0 ? '<div style="font-size:.7rem;color:#8a3a2a;margin-bottom:.5rem">Ces squatteurs refuseront toute offre inférieure à ' + minMontant + ' ' + cur + '.</div>' : '') +
-    '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">Chaque 100 ' + cur + ' supplémentaires améliorent vos chances de +1%. Qui vous accompagne compte aussi.</div>' +
-    '<input id="negoc-montant" type="number" min="' + minMontant + '" step="100" placeholder="Montant proposé..." oninput="majTauxNegociationLive()" ' +
-    'style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;margin-bottom:.4rem"/>' +
-    '<div id="negoc-taux-live" style="font-size:.78rem;color:#C9A84C;font-weight:bold;margin-bottom:.6rem">Chances de succès actuelles : ' + calculerTauxNegociationSquatteurs(minMontant) + '%</div>' +
-    '<button onclick="confirmerNegociation(' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Négocier</button>' +
-    '</div>';
+    '<div style="padding:1rem;display:grid;gap:.8rem">' +
+    '<p id="negoc-replique" style="font-size:1rem;line-height:1.5;font-style:italic"></p>' +
+    (c.dernierRefus != null ? '<p>Dernière offre refusée : ' + c.dernierRefus + ' ' + cur + '. La nouvelle offre doit être supérieure.</p>' : '') +
+    '<label for="negoc-montant">Votre proposition (' + cur + ')</label>' +
+    '<input id="negoc-montant" type="number" min="' + c.minimum + '" step="1" value="' + c.minimum + '" oninput="majTauxNegociationLive()" style="padding:.65rem;background:#121005;border:1px solid #8a6a20;color:#f0ead6;font:inherit">' +
+    '<div id="negoc-taux-live" style="color:#C9A84C"></div>' +
+    '<small>1 PA par tentative. La somme est versée uniquement si l’accord est accepté.</small>' +
+    '<button id="negoc-confirmer" class="pnj-action-btn" onclick="confirmerNegociation(1,0)">Faire une proposition</button></div>';
+  document.getElementById('negoc-replique').textContent = repliqueNegociationSquatteurs(c.type);
+  majTauxNegociationLive();
   document.getElementById('modal-postes').classList.add('open');
 }
-
 async function confirmerNegociation(pa, cost) {
-  const id = state.currentBuilding;
-  // Revalidation au commit (bug remonte avant Phase L) : la modale peut avoir ete ouverte
-  // avant que le squat ne disparaisse (police appelee, negociation menee ailleurs, etc.) --
-  // aucun PA ni argent ne doit etre preleve si le squat n'existe plus reellement.
-  const dispo = typeof terrainOrdreDisponible === 'function' ? terrainOrdreDisponible('negocier_squatteurs', id) : { ok: true };
-  if (!dispo.ok) {
-    document.getElementById('modal-postes').classList.remove('open');
-    showToast('Aucun squatteur', dispo.raison || 'Aucun squatteur a negocier.', false);
+  const c = state._negociationSquatteurs;
+  if (!memeContexteNegociation(c) || c.enCours || c.terminee) return;
+  const input = document.getElementById('negoc-montant');
+  const montant = c.tentative?.montant ?? Number(input?.value);
+  if (!Number.isSafeInteger(montant) || montant < c.minimum || montant > 2147483647) {
+    signalerRefusNegociation({ raison: 'offre_trop_faible', minimum: c.minimum }); return;
+  }
+  if (!c.tentative) c.tentative = { montant, requete: crypto.randomUUID() };
+  c.enCours = true;
+  const bouton = document.getElementById('negoc-confirmer');
+  if (bouton) bouton.disabled = true;
+  if (input) input.disabled = true;
+  const r = await sbRpcVerdict('terrain_negociation_conclure', {
+    p_terrain: c.terrain, p_occupation: c.occupation, p_montant: montant, p_requete: c.tentative.requete
+  }).catch(() => null);
+  c.enCours = false;
+  // Une reconnexion ne doit pas recopier les fonds d'un autre personnage.
+  if (!memeContexteNegociation(c) || state._negociationSquatteurs !== c) return;
+  if (bouton) bouton.disabled = false;
+  if (!r || r.transport) {
+    if (bouton) bouton.textContent = 'Vérifier le résultat';
+    showToast('Résultat non confirmé', 'Réessayez pour vérifier cette même proposition. Aucun nouveau tirage ne sera effectué.', false);
+    return; // garder UUID et montant, meme si la reponse s'est perdue APRES le commit
+  }
+  if (r.etat) appliquerEtatNegociation(c, r.etat);
+  if (!r.ok) {
+    c.tentative = null;
+    if (input) input.disabled = false;
+    signalerRefusNegociation(r);
     return;
   }
-  const ts = getTerrainState(id);
-  const pnj = profilOccupationTerrain(ts);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const montant = parseInt(document.getElementById('negoc-montant')?.value || 0);
-
-  if (!montant || montant < (pnj?.id === 'squatter_agr' ? 500 : 0)) {
-    showToast('Montant insuffisant', 'Les squatteurs refusent.', false);
+  c.terminee = true;
+  appliquerPaiementServeur(r.paiement);
+  if (typeof r.paiement?.moral === 'number') state.moral = r.paiement.moral;
+  sessionStorage.removeItem('terrain_pnj_' + c.terrain);
+  const room = BUILDINGS[c.terrain]?.rooms?.[state.currentRoom];
+  if (room) {
+    renderPersonsList(room.persons || []);
+    renderRoomActions(room, c.terrain, state.currentRoom);
+  }
+  updateUI();
+  if (!r.rejeu) addJournalEntry(r.accepte
+    ? 'Départ négocié des squatteurs : ' + montant + ' FR.' + (r.bonusMoral ? ' +1 Moral.' : '')
+    : 'Offre de ' + montant + ' FR refusée par les squatteurs. Aucun argent versé.', r.accepte ? 'event-good' : 'event-info');
+  if (r.accepte && r.etat?.pnj) {
+    showToast('Accord déjà enregistré', 'La situation actuelle du terrain a changé. Aucun nouveau paiement n’a été effectué.', false);
     return;
   }
-  if (getFondsDisponiblesOrdinaires() < montant) {
-    showToast('Fonds insuffisants', 'Vous n\'avez pas ' + montant + ' ' + cur + '.', false);
-    return;
+  document.getElementById('postes-modal-title').textContent = r.accepte ? 'Marché conclu' : 'Proposition refusée';
+  document.getElementById('postes-body').innerHTML =
+    '<div id="negoc-resultat" style="padding:1rem;display:grid;gap:1rem"><p id="negoc-replique" style="font-size:1rem;line-height:1.5;font-style:italic"></p>' +
+    (r.bonusMoral ? '<div style="color:#C9A84C">+1 Moral — un dernier verre entre amis.</div>' : '') +
+    (r.accepte
+      ? '<button class="pnj-action-btn" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">Fermer</button>'
+      : '<button class="pnj-action-btn" onclick="doNegocierSquatteurs(1,0)">Nouvelle proposition</button>') + '</div>';
+  document.getElementById('negoc-replique').textContent = repliqueNegociationSquatteurs(r.pnj, r.accepte ? 'accepte' : 'refuse');
+  document.getElementById('modal-postes').classList.add('open');
+  if (r.accepte) {
+    // Couvre Fermer, croix et fermeture de l'overlay ; jamais une nouvelle attribution de bonus.
+    const modal = document.getElementById('modal-postes');
+    const observateur = new MutationObserver(() => {
+      if (!document.getElementById('negoc-resultat')) { observateur.disconnect(); return; }
+      if (modal.classList.contains('open')) return;
+      observateur.disconnect();
+      afficherAchatApresSquatteurs(c);
+    });
+    observateur.observe(modal, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
   }
-  const rNegoc = await deduireCoutOrdre({ pa, cost });
-  if (!rNegoc.ok) { signalerRefusCout(rNegoc); return; }
-
-  // La benediction ne se consomme qu'ici, a la resolution reelle -- pas dans
-  // calculerTauxNegociationSquatteurs, appelee aussi par l'apercu en direct du modal (elle
-  // bruleraitle bonus a chaque frappe clavier sinon).
-  let taux = calculerTauxNegociationSquatteurs(montant);
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(5, Math.min(95, Math.round(taux)));
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const succesNego = roll <= taux;
-
-  const debitNego = await debiterFondsOrdinaires(montant);
-  if (!debitNego.ok) { showToast('Fonds insuffisants', 'Vous n\'avez pas ' + montant + ' ' + cur + '.', false); return; }
-  document.getElementById('modal-postes').classList.remove('open');
-
-  if (succesNego) {
-    setTerrainState(id, { pnj: null, pnjData: null });
-    sessionStorage.removeItem('terrain_pnj_' + id);
-    updateUI();
-    addJournalEntry('Squatteurs convaincus pour ' + montant + ' ' + cur + '. Jet ' + roll + '/' + taux + '%.', 'event-good');
-    showToast('Terrain libéré !', 'Les squatteurs sont partis. -' + montant + ' ' + cur, true);
-  } else {
-    updateUI();
-    addJournalEntry('Négociation échouée. ' + montant + ' ' + cur + ' perdus. Jet ' + roll + '/' + taux + '%.', 'event-bad');
-    showToast('Refus !', 'Ils ont pris l\'argent mais restent. -' + montant + ' ' + cur, false);
-  }
+}
+async function afficherAchatApresSquatteurs(c) {
+  if (!memeContexteNegociation(c)) return;
+  const etat = await sbGetTerrainState(c.pays, c.terrain).catch(() => null);
+  const modal = document.getElementById('modal-postes');
+  if (!memeContexteNegociation(c) || modal.classList.contains('open')) return;
+  if (!etat) { signalerRefusNegociation(null); return; }
+  remplacerTerrainState(c.terrain, etat);
+  if (etat.pnj || etat.proprietaire || etat.compromis) return;
+  document.getElementById('postes-modal-title').textContent = 'Terrain libéré';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem;display:grid;gap:1rem"><p>Les squatteurs sont partis. Vous pouvez maintenant acheter le terrain.</p>' +
+    '<button class="pnj-action-btn" onclick="ouvrirAchatTerrainApresNegociation()">Acheter le terrain</button></div>';
+  modal.classList.add('open');
+}
+function ouvrirAchatTerrainApresNegociation() {
+  const c = state._negociationSquatteurs;
+  if (!memeContexteNegociation(c)) return;
+  const room = BUILDINGS[c.terrain]?.rooms?.[state.currentRoom];
+  if (!room) return;
+  renderRoomActions(room, c.terrain, state.currentRoom);
+  const index = Object.keys(window._terrainOrdresGroupes || {}).find(k => window._terrainOrdresGroupes[k].titre === 'Achat de terrains');
+  if (index !== undefined) ouvrirMenuOrdresTerrain(index);
 }
 
 const ACOMPTE_COMPROMIS = 1000;

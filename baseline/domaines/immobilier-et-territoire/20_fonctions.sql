@@ -438,6 +438,14 @@ BEGIN
 
   SELECT data INTO v_data FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
 
+  -- nominations_municipales_entrepot : garde apres verrou, avant toute ecriture.
+  IF NOT v_serveur AND p_sous_cle = 'candidatures'
+     AND NOT public.candidature_entrepot_modification_autorisee(p_pays,
+       coalesce(public.batiment_etat_lire(v_data) -> 'candidatures', '{}'::jsonb), p_valeur) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'autorite_insuffisante');
+  END IF;
+
+
   IF NOT FOUND THEN
     INSERT INTO public.batiments_etat (id, country, city, building_id, data)
     VALUES (v_id, p_pays, p_ville, p_batiment,
@@ -697,6 +705,10 @@ DECLARE
   v_ville       text;
   v_building    text;
   v_arg         numeric;
+  v_liquide_loyer numeric;
+  v_disponible_bancaire numeric;
+  v_debit_banque numeric;
+  v_debit_liquide numeric;
   v_jour        text := to_char(now() AT TIME ZONE 'Europe/Paris', 'YYYY-MM-DD');
   v_cle         text;
   v_titulaire   text;
@@ -773,8 +785,12 @@ BEGIN
     RETURN 'locataire_absent';
   END IF;
 
+  SELECT coalesce(liquide,0) INTO v_liquide_loyer
+     FROM public.personnages_donnees WHERE name=v_locataire FOR UPDATE;
+  SELECT coalesce(sum(greatest(solde,0)),0) INTO v_disponible_bancaire
+     FROM public.comptes_bancaires WHERE personnage=v_locataire AND banque='nationale';
   -- Impayé.
-  IF COALESCE(v_arg, 0) < v_prix THEN
+  IF COALESCE(v_arg, 0) < v_prix OR coalesce(v_liquide_loyer,0)+v_disponible_bancaire < v_prix THEN
     IF COALESCE((v_data ->> 'avertissement')::boolean, false) THEN
       -- ARDOISE ATOMIQUE (chantier 6, 9 octobre 2026). Cette branche etait LA SEULE sortie
       -- a effet a ne pas poser jourPaiement : un rejeu du cron la meme nuit rendait de
@@ -939,10 +955,17 @@ BEGIN
     RAISE EXCEPTION 'destination_introuvable';
   END IF;
 
-  -- Débit du locataire seulement après crédit valide.
-  UPDATE personnages
-  SET arg = COALESCE(arg, 0) - v_prix
-  WHERE name = v_locataire;
+  -- Débit atomique des avoirs réels, priorité au compte national.
+  v_debit_banque:=least(v_disponible_bancaire,v_prix);
+  v_debit_liquide:=v_prix-v_debit_banque;
+  UPDATE public.comptes_bancaires
+     SET solde=solde-v_debit_banque,updated_at=now()
+   WHERE personnage=v_locataire AND banque='nationale' AND solde>=v_debit_banque;
+  IF v_debit_banque>0 AND NOT FOUND THEN RAISE EXCEPTION 'compte_bancaire_modifie'; END IF;
+  UPDATE public.personnages_donnees
+     SET arg=arg-v_prix,liquide=liquide-v_debit_liquide,updated_at=now()
+   WHERE name=v_locataire AND liquide>=v_debit_liquide;
+  IF NOT FOUND THEN RAISE EXCEPTION 'avoirs_modifies'; END IF;
 
   UPDATE locations_actives
   SET data = (v_data - 'avertissement')
@@ -964,9 +987,14 @@ CREATE OR REPLACE FUNCTION public.resilier_bail_volontaire(p_bail_id text, p_act
  SET search_path TO 'public'
 AS $function$
 BEGIN
-  PERFORM public.exiger_acteur(p_acteur);
   IF COALESCE(p_bail_id, '') = '' OR COALESCE(p_acteur, '') = '' THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+  -- Le demandeur agit-il en son propre nom ? La reference typee du navigateur est acceptee,
+  -- le nom nu des baux historiques aussi. Qu'il soit le titulaire DE CE BAIL est verifie
+  -- ensuite par terminer_bail, qui seule lit la ligne.
+  IF NOT public.acteur_est_moi(p_acteur) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_titulaire');
   END IF;
   RETURN terminer_bail(p_bail_id, 'resiliation_volontaire', p_acteur, 0);
 END;
@@ -1047,11 +1075,15 @@ DECLARE
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  -- Arbitrage : republic, soviet, narco et khalija sont tous non P2W.
+  -- Aucun pays futur n'est autorise implicitement ; il faudra un arbitrage explicite.
+  IF p_acte='chantier_accelerer' THEN RETURN jsonb_build_object('ok',false,'raison','delai_incompressible');END IF;
   IF p_acte NOT IN ('chantier_accelerer', 'chantier_materiaux_voler') THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'acte_inconnu');
   END IF;
   SELECT d.country INTO v_pays FROM public.personnages_donnees d WHERE d.name = v_moi LIMIT 1;
 
+  IF p_acte='chantier_accelerer' AND v_pays='republic' THEN RETURN jsonb_build_object('ok',false,'raison','delai_incompressible');END IF;
   v_lu := public.terrain_etat_verrouiller_interne(p_terrain_id);
   v_etat := v_lu -> 'etat';
   IF (v_lu ->> 'gele')::boolean THEN
@@ -1062,6 +1094,7 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'chantier_absent');
   END IF;
 
+  IF coalesce((v_ch->>'dureeJours')::numeric,0)<=0 OR coalesce((v_ch->>'progressionJours')::numeric,0)>=(v_ch->>'dureeJours')::numeric THEN RETURN jsonb_build_object('ok',false,'raison','chantier_a_son_terme');END IF;
   IF p_acte = 'chantier_accelerer' THEN
     SELECT valeur::double precision INTO v_s1 FROM public.entreprises_constantes WHERE cle = 'seuil_demarrage_pct';
     SELECT valeur::double precision INTO v_s2 FROM public.entreprises_constantes WHERE cle = 'seuil_premier_tiers_pct';
@@ -1414,6 +1447,168 @@ BEGIN
     'lots', v_neuf, 'retires', v_n);
 END; $function$;
 
+-- terrain_negociation_conclure(text,text,integer,uuid) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_negociation_conclure(p_terrain text, p_occupation text, p_montant integer, p_requete uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE acteur text:=public.mon_personnage();p record;r record;c jsonb;e jsonb;cle text;solde numeric;
+ paiement jsonb;resultat jsonb;taux integer;jet integer;accepte boolean;bonus integer:=0;argent integer;
+BEGIN
+ IF acteur IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
+ IF p_requete IS NULL OR p_montant IS NULL OR p_montant<1 OR nullif(p_occupation,'') IS NULL THEN
+  RETURN jsonb_build_object('ok',false,'raison','requete_invalide'); END IF;
+ SELECT * INTO p FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','personnage_introuvable'); END IF;
+ SELECT n.* INTO r FROM public.terrain_negociations_recus n WHERE n.acteur=p.id AND n.requete=p_requete;
+ IF FOUND THEN
+  IF r.terrain IS DISTINCT FROM p.country||'_'||p_terrain OR r.occupation IS DISTINCT FROM p_occupation OR r.montant<>p_montant THEN
+   RETURN jsonb_build_object('ok',false,'raison','requete_reutilisee'); END IF;
+  resultat:=r.resultat||jsonb_build_object('rejeu',true);
+  SELECT public.terrain_etat_lire(data) INTO e FROM public.terrains_etat WHERE id=r.terrain;
+ ELSE
+  c:=public.terrain_negociation_preparer(p_terrain);
+  IF c->>'ok' IS DISTINCT FROM 'true' THEN RETURN c; END IF;
+  IF c->>'occupation' IS DISTINCT FROM p_occupation THEN RETURN jsonb_build_object('ok',false,'raison','occupation_modifiee','etat',c->'etat'); END IF;
+  IF p_montant<(c->>'minimum')::numeric THEN RETURN jsonb_build_object('ok',false,'raison','offre_trop_faible','minimum',c->'minimum','dernierRefus',c->'dernierRefus'); END IF;
+  SELECT coalesce(cb.solde,0) INTO solde FROM public.comptes_bancaires cb WHERE cb.personnage=acteur AND cb.banque='nationale' FOR UPDATE;
+  IF coalesce(p.liquide,0)+coalesce(solde,0)<p_montant THEN RETURN jsonb_build_object('ok',false,'raison','fonds_insuffisants'); END IF;
+  paiement:=public.payer_ordre(acteur,'negocier_squatteurs',1,0);
+  IF paiement->>'ok' IS DISTINCT FROM 'true' THEN RETURN paiement; END IF;
+  argent:=CASE WHEN p_montant>=4000 THEN 20 WHEN p_montant>=1000 THEN floor(8+(p_montant-1000)::numeric*4/1000)
+   WHEN p_montant>=500 THEN floor(5+(p_montant-500)::numeric*3/500) ELSE floor(p_montant::numeric/100) END;
+  taux:=greatest(5,least(90,floor((c->>'baseTaux')::numeric+argent+.5)::integer));
+  jet:=public.terrain_negociation_jet_interne();accepte:=jet<=taux;e:=c->'etat';cle:=p.country||'_'||p_terrain;
+  IF accepte THEN
+   IF public.helvetia_debiter_fonds_ordinaires(acteur,p_montant) IS NOT TRUE THEN RAISE EXCEPTION 'paiement_non_confirme'; END IF;
+   IF e->>'pnj'='squatter_cool' THEN
+    UPDATE public.personnages_donnees SET moral=least(100,coalesce(moral,50)+1) WHERE id=p.id RETURNING moral-coalesce(p.moral,50) INTO bonus;
+   END IF;
+   e:=public.terrain_etat_fusionner_interne(cle,'{"pnj":null,"pnjData":null,"occupationScellee":true}'::jsonb,p.country);
+  ELSE
+   INSERT INTO public.terrain_negociations_refus VALUES(p.id,cle,p_occupation,p_montant)
+    ON CONFLICT ON CONSTRAINT terrain_negociations_refus_pkey DO UPDATE SET montant=excluded.montant;
+  END IF;
+  resultat:=jsonb_build_object('ok',true,'accepte',accepte,'pnj',c->'etat'->>'pnj','montant',p_montant,'taux',taux,'jet',jet,'bonusMoral',bonus);
+  INSERT INTO public.terrain_negociations_recus(acteur,requete,terrain,occupation,montant,resultat) VALUES(p.id,p_requete,cle,p_occupation,p_montant,resultat);
+ END IF;
+ SELECT jsonb_build_object('pa',d.pa,'arg',d.arg,'liquide',d.liquide,'moral',d.moral,
+  'solde_national',coalesce((SELECT cb.solde FROM public.comptes_bancaires cb WHERE cb.personnage=acteur AND cb.banque='nationale'),0))
+  INTO paiement FROM public.personnages_donnees d WHERE id=p.id;
+ RETURN resultat||jsonb_build_object('etat',e,'paiement',paiement);
+END;$function$;
+
+-- terrain_negociation_jet_interne() -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_negociation_jet_interne()
+ RETURNS integer
+ LANGUAGE sql
+ SET search_path TO 'public', 'pg_temp'
+AS $function$ SELECT 1+floor(random()*100)::integer $function$;
+
+-- terrain_negociation_preparer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_negociation_preparer(p_terrain text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE acteur text:=public.mon_personnage();p record;t record;e jsonb;revision text;dernier integer;
+ cha numeric;social numeric;bonus integer;org record;m jsonb;grade integer;
+BEGIN
+ IF acteur IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
+ SELECT * INTO p FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
+ IF NOT FOUND OR p.current_building IS DISTINCT FROM p_terrain OR p_terrain NOT LIKE 'terrain-a-batir%' THEN
+  RETURN jsonb_build_object('ok',false,'raison','pas_sur_place'); END IF;
+ SELECT * INTO t FROM public.terrains_etat WHERE id=p.country||'_'||p_terrain
+  AND country=p.country AND building_id=p_terrain FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','terrain_introuvable'); END IF;
+ e:=public.terrain_etat_lire(t.data);
+ IF e IS NULL OR e->>'city' IS DISTINCT FROM p.current_city THEN RETURN jsonb_build_object('ok',false,'raison','terrain_incoherent'); END IF;
+ IF coalesce(e->>'succession_gel','')<>'' THEN RETURN jsonb_build_object('ok',false,'raison','terrain_gele','etat',e); END IF;
+ IF coalesce(e->>'policeAppellee','')<>'' OR coalesce((e->>'enqueteJusqua')::numeric,0)>extract(epoch FROM clock_timestamp())*1000 THEN
+  RETURN jsonb_build_object('ok',false,'raison','intervention_en_cours','etat',e); END IF;
+ IF coalesce(e->>'pnj','') NOT IN ('squatter_cool','squatter_agr') THEN
+  RETURN jsonb_build_object('ok',false,'raison','aucun_squatteur','etat',e); END IF;
+ revision:=coalesce(e->>'dateGeneration','historique')||':'||(e->>'pnj');
+ SELECT n.montant INTO dernier FROM public.terrain_negociations_refus n WHERE n.acteur=p.id AND n.terrain=t.id AND n.occupation=revision;
+ SELECT avg(v) INTO cha FROM (
+  SELECT coalesce((p.stats->>'CHA')::numeric,8) v
+  UNION ALL SELECT mb.car_cha::numeric
+   FROM public.pnj_membres mb JOIN public.pnj_employes_metier em ON em.pnj_id=mb.id
+   WHERE mb.proprietaire_pj=acteur AND mb.leader_pj=acteur AND mb.statut='actif'
+ ) valeurs;
+ cha:=cha-CASE WHEN p.excommunie IS NOT NULL AND p.excommunie<>'null'::jsonb THEN 2 ELSE 0 END;
+ IF p.stats_affaiblies ? 'CHA' THEN cha:=greatest(1,floor(cha*greatest(0,least(1,coalesce(p.hp,0)::numeric/100))+.5));
+ ELSE cha:=floor(cha+.5); END IF;
+ IF p.country='republic' THEN
+  SELECT (data->>'social')::numeric INTO social FROM public.indices_villes WHERE id=p.country||'_'||p.current_city;
+  social:=coalesce(social,45);
+ ELSE social:=CASE p.country WHEN 'narco' THEN 25 WHEN 'soviet' THEN 35 WHEN 'khalija' THEN 40 ELSE 45 END; END IF;
+ bonus:=0;
+ FOR org IN SELECT data::jsonb d FROM public.organisations LOOP
+  SELECT v INTO m FROM jsonb_array_elements(coalesce(org.d->'membres','[]'::jsonb)) v WHERE v->>'nom'=acteur LIMIT 1;
+  IF m IS NULL THEN CONTINUE; END IF;
+  grade:=coalesce((m->>'gradeIdx')::integer,0);
+  bonus:=bonus+CASE org.d->>'type'
+   WHEN 'economique' THEN CASE WHEN grade>=3 THEN 30 WHEN grade>=2 THEN 20 WHEN grade>=1 THEN 10 ELSE 0 END
+   WHEN 'syndicale' THEN CASE WHEN grade>=2 THEN 25 WHEN grade>=1 THEN 15 ELSE 0 END ELSE 0 END;
+ END LOOP;
+ RETURN jsonb_build_object('ok',true,'etat',e,'occupation',revision,'dernierRefus',dernier,
+  'minimum',greatest(CASE WHEN e->>'pnj'='squatter_agr' THEN 500 ELSE 1 END,coalesce(dernier::numeric+1,1)),
+  'baseTaux',50+2*(cha-13)+(social-50)/5+bonus);
+END;$function$;
+
+-- terrain_occupation_lire(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_occupation_lire(p_terrain text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE acteur text:=public.mon_personnage();p record;t record;e jsonb;nouvelle boolean;occupation text;
+BEGIN
+ IF acteur IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
+ SELECT id,country,current_city,current_building INTO p FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
+ IF NOT FOUND OR p.current_building IS DISTINCT FROM p_terrain OR p_terrain NOT LIKE 'terrain-a-batir%' THEN
+  RETURN jsonb_build_object('ok',false,'raison','pas_sur_place'); END IF;
+ SELECT * INTO t FROM public.terrains_etat WHERE id=p.country||'_'||p_terrain AND country=p.country
+  AND building_id=p_terrain FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','terrain_introuvable'); END IF;
+ e:=public.terrain_etat_lire(t.data);
+ IF e IS NULL OR e->>'city' IS DISTINCT FROM p.current_city THEN RETURN jsonb_build_object('ok',false,'raison','terrain_incoherent'); END IF;
+ nouvelle:=NOT EXISTS(SELECT 1 FROM public.terrain_visites_actives WHERE terrain_id=t.id);
+ IF nouvelle AND NOT coalesce((e->>'occupationScellee')::boolean,false)
+  AND nullif(e->>'proprietaire','') IS NULL AND NOT coalesce((e->>'compromis')::boolean,false)
+  AND coalesce(e->>'succession_gel','')=''
+  AND coalesce(e->>'policeAppellee','')=''
+  AND coalesce((e->>'enqueteJusqua')::numeric,0)<=extract(epoch FROM clock_timestamp())*1000 THEN
+  -- Conserver une presence historique a sa premiere adoption, sans la reinterpreter.
+  IF coalesce((e->>'occupationInitialisee')::boolean,false) OR NOT (e ? 'pnj') THEN
+   occupation:=public.terrain_occupation_tirer_interne();
+   e:=public.terrain_etat_fusionner_interne(t.id,jsonb_build_object('pnj',occupation,'pnjData',NULL,
+    'occupationInitialisee',true,'dateGeneration',floor(extract(epoch FROM clock_timestamp())*1000)),p.country);
+  ELSE
+   e:=public.terrain_etat_fusionner_interne(t.id,'{"occupationInitialisee":true}',p.country);
+  END IF;
+ END IF;
+ IF nullif(e->>'proprietaire','') IS NOT NULL OR coalesce((e->>'compromis')::boolean,false) THEN
+  e:=public.terrain_etat_fusionner_interne(t.id,'{"occupationScellee":true}',p.country);
+ END IF;
+ INSERT INTO public.terrain_visites_actives VALUES(p.id,t.id) ON CONFLICT DO NOTHING;
+ RETURN jsonb_build_object('ok',true,'etat',e);
+END;$function$;
+
+-- terrain_occupation_tirer_interne() -> text | sql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_occupation_tirer_interne()
+ RETURNS text
+ LANGUAGE sql
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+ SELECT (ARRAY[NULL::text,'squatter_cool','squatter_agr','cadavre'])[1+floor(random()*4)::integer];
+$function$;
+
 -- terrain_permis_acte(text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.terrain_permis_acte(p_terrain_id text, p_acte text, p_patch jsonb DEFAULT NULL::jsonb)
  RETURNS jsonb
@@ -1426,8 +1621,12 @@ DECLARE
   v_lu jsonb; v_etat jsonb; v_patch jsonb; v_final jsonb; v_permis jsonb;
   v_ville text; v_ville_inconnue boolean := false; v_cles text[]; v_k text;
 BEGIN
+  IF p_acte = 'permis_deposer' THEN
+    RETURN jsonb_build_object('ok',false,'raison','commande_versionnee_requise');
+  END IF;
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_acte='permis_plan_modifier' THEN RETURN jsonb_build_object('ok',false,'raison','commande_versionnee_requise');END IF;
   IF p_acte NOT IN ('permis_deposer', 'permis_prevenir_maire', 'permis_decider',
                     'permis_accelerer', 'permis_plan_modifier') THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'acte_inconnu');
@@ -1527,6 +1726,90 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'etat', v_final,
                             'ville_inconnue', v_ville_inconnue);
 END; $function$;
+
+-- terrain_permis_deposer(text,text,uuid) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_permis_deposer(p_terrain text, p_palier text, p_requete uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE acteur text:=public.mon_personnage(); identite uuid:=auth.uid(); pays text;ville text;jour integer;
+ lu jsonb; etat jsonb; permis jsonb; precedent jsonb;doc jsonb; paiement jsonb;reception jsonb;
+ duree integer; reference text; batiment text;
+BEGIN
+ IF acteur IS NULL OR identite IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
+ IF p_requete IS NULL OR nullif(btrim(p_terrain),'') IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','requete_invalide'); END IF;
+ duree:=CASE p_palier WHEN 'hangar' THEN 2 WHEN 'commerce_standard' THEN 4 WHEN 'commerce_premium' THEN 6 WHEN 'building' THEN 7 END;
+ IF duree IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','palier_invalide'); END IF;
+ -- Meme ordre de verrous que les commandes financieres : personnage, requete, terrain.
+ SELECT country,current_city INTO pays,ville FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','personnage_introuvable'); END IF;
+ PERFORM pg_advisory_xact_lock(hashtextextended('permis:'||identite::text||':'||p_requete::text,0));
+ reference:='urb-depot-'||identite::text||'-'||p_requete::text;
+ SELECT d.data INTO precedent FROM public.permis_depots_recus r
+ JOIN public.dossiers_urbanisme d ON d.id=r.archive
+ WHERE r.acteur=identite AND r.requete=p_requete;
+ IF FOUND THEN
+  IF precedent->>'buildingId' IS DISTINCT FROM p_terrain
+     OR precedent->>'palier' IS DISTINCT FROM p_palier OR precedent->>'demandeur' IS DISTINCT FROM acteur THEN
+   RETURN jsonb_build_object('ok',false,'raison','requete_reutilisee');
+  END IF;
+  -- La preuve du debit reste l'archive, jamais une nouvelle livraison au rejeu.
+  SELECT jsonb_build_object('pa',p.pa,'arg',p.arg,'liquide',p.liquide,
+   'solde_national',coalesce((SELECT solde FROM public.comptes_bancaires WHERE personnage=acteur AND banque='nationale'),0))
+   INTO paiement FROM public.personnages_donnees p WHERE p.name=acteur;
+  lu:=public.terrain_etat_verrouiller_interne((precedent->>'pays')||'_'||p_terrain);
+  RETURN jsonb_build_object('ok',true,'rejeu',true,'document',precedent,'etat',lu->'etat','paiement',paiement);
+ END IF;
+ -- Une cle canonique pays/batiment evite de choisir un terrain homonyme d'un autre pays.
+ SELECT building_id INTO batiment FROM public.terrains_etat WHERE id=pays||'_'||p_terrain AND country=pays;
+ IF batiment IS DISTINCT FROM p_terrain THEN RETURN jsonb_build_object('ok',false,'raison','terrain_introuvable'); END IF;
+ lu:=public.terrain_etat_verrouiller_interne(pays||'_'||p_terrain);etat:=lu->'etat';
+ IF coalesce((lu->>'gele')::boolean,true) THEN RETURN jsonb_build_object('ok',false,'raison','terrain_gele'); END IF;
+ IF etat->>'city' IS DISTINCT FROM ville OR ville IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','hors_juridiction'); END IF;
+ IF public.titulaire_est_moi(etat->>'proprietaire') IS NOT TRUE THEN
+  IF etat->>'compromis' IS DISTINCT FROM 'true' OR etat->>'compromisPar' IS DISTINCT FROM acteur THEN
+   RETURN jsonb_build_object('ok',false,'raison','pas_titulaire'); END IF;
+  IF jsonb_typeof(etat->'compromisExpireAt') IS DISTINCT FROM 'number' THEN
+   RETURN jsonb_build_object('ok',false,'raison','compromis_expiration_inconnue'); END IF;
+  IF (etat->>'compromisExpireAt')::numeric<=extract(epoch FROM clock_timestamp())*1000 THEN
+   RETURN jsonb_build_object('ok',false,'raison','compromis_expire'); END IF;
+ END IF;
+ IF nullif(etat->>'niveau_construction','') IS NOT NULL OR jsonb_typeof(etat->'chantier')='object' THEN
+  RETURN jsonb_build_object('ok',false,'raison','deja_construit'); END IF;
+ permis:=etat->'permis';jour:=public.jour_de_jeu_pays(pays);
+ IF jour IS NULL THEN RAISE EXCEPTION 'calendrier_indisponible'; END IF;
+ IF permis->>'statut' IN ('instruction','attente_validation','valide') THEN
+  RETURN jsonb_build_object('ok',false,'raison','permis_existant'); END IF;
+ IF permis->>'statut'='refuse' AND permis->>'jourRefus' IS NOT NULL
+    AND jour<(permis->>'jourRefus')::integer+3 THEN
+  RETURN jsonb_build_object('ok',false,'raison','cooldown_refus'); END IF;
+ permis:=jsonb_build_object('demandeur',acteur,'palierDemande',p_palier,'dateDepot',jour,
+  'dureeInstruction',duree,'joursInstructionFaits',0,'dateInstructionTerminee',jour+duree,
+  'statut','instruction','numeroDossier','URB-'||pays||'-'||p_terrain||'-'||p_requete::text,'decoupageInitial','[]'::jsonb);
+ INSERT INTO public.permis_transactions_internes VALUES(txid_current(),identite);
+ paiement:=public.payer_ordre(acteur,'deposer_demande_permis',1,100);
+
+ IF paiement->>'ok' IS DISTINCT FROM 'true' THEN
+  DELETE FROM public.permis_transactions_internes WHERE transaction_id=txid_current();
+  RETURN paiement;
+ END IF;
+ etat:=public.terrain_etat_fusionner_interne(pays||'_'||p_terrain,jsonb_build_object('permis',permis),pays);
+ doc:=jsonb_build_object('id',reference,'nature','depot','numeroDossier',permis->>'numeroDossier',
+  'jour',jour,'jourDepot',jour,'demandeur',acteur,'pays',pays,'ville',ville,
+  'buildingId',p_terrain,'palier',p_palier,'palierLabel',CASE p_palier WHEN 'hangar' THEN 'Hangar'
+   WHEN 'commerce_standard' THEN 'Commerce standard' WHEN 'commerce_premium' THEN 'Commerce premium' ELSE 'Building' END,
+  'surfaceExploitable',etat->'surface','decoupage','[]'::jsonb);
+ INSERT INTO public.dossiers_urbanisme(id,country,city,building_id,numero_dossier,type_evenement,demandeur,jour,libelle,data)
+ VALUES(reference,pays,ville,p_terrain,permis->>'numeroDossier','depot',acteur,jour,'Depot de demande de permis',doc);
+ reception:=public.objet_sas_deposer('document_urbanisme',acteur,jsonb_build_object('id',reference,
+  'type','document_urbanisme_depot','name','Recepisse de demande de permis','icon','ti-file-text','legal',true,'documentUrbanisme',doc),reference);
+ IF reception->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'document_non_confirme'; END IF;
+ INSERT INTO public.permis_depots_recus VALUES(identite,p_requete,reference);
+ DELETE FROM public.permis_transactions_internes WHERE transaction_id=txid_current();
+ RETURN jsonb_build_object('ok',true,'etat',etat,'document',doc,'paiement',paiement);
+END;$function$;
 
 -- terrain_proprietaire_muter(text,text,jsonb,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.terrain_proprietaire_muter(p_terrain_id text, p_titre text, p_patch jsonb, p_reference text DEFAULT NULL::text)
@@ -1733,6 +2016,26 @@ BEGIN
                jsonb_build_object('succession_gel', p_succession), NULL);
   RETURN jsonb_build_object('ok', true, 'gel', p_succession, 'etat', v_final);
 END; $function$;
+
+-- terrain_visites_clore_interne() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.terrain_visites_clore_interne()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v record;
+BEGIN
+ -- Un rechargement, une sauvegarde ou un changement de piece ne termine pas la visite.
+ IF (NEW.country,NEW.current_city,NEW.current_building) IS NOT DISTINCT FROM
+    (OLD.country,OLD.current_city,OLD.current_building) THEN RETURN NEW; END IF;
+ FOR v IN SELECT t.id FROM public.terrain_visites_actives a JOIN public.terrains_etat t ON t.id=a.terrain_id
+  WHERE a.personnage_id=OLD.id AND (t.country,t.building_id) IS DISTINCT FROM (NEW.country,NEW.current_building)
+  ORDER BY t.id FOR UPDATE OF t LOOP
+  DELETE FROM public.terrain_visites_actives WHERE personnage_id=OLD.id AND terrain_id=v.id;
+ END LOOP;
+ RETURN NEW;
+END;$function$;
 
 -- ville_est_reelle(text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.ville_est_reelle(p_pays text, p_ville text)

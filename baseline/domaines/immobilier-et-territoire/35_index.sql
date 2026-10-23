@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 12 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 18 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   batiments_etat_pkey  (contrainte batiments_etat_pkey)
 --   batiments_fermes_pkey  (contrainte batiments_fermes_pkey)
 --   dossiers_urbanisme_pkey  (contrainte dossiers_urbanisme_pkey)
@@ -18,7 +18,13 @@
 --   locations_archives_pkey  (contrainte locations_archives_pkey)
 --   logements_attributions_historique_pkey  (contrainte logements_attributions_historique_pkey)
 --   logements_demandes_pkey  (contrainte logements_demandes_pkey)
+--   permis_depots_recus_archive_key  (contrainte permis_depots_recus_archive_key)
+--   permis_depots_recus_pkey  (contrainte permis_depots_recus_pkey)
+--   permis_transactions_internes_pkey  (contrainte permis_transactions_internes_pkey)
 --   reservations_salle_reception_pkey  (contrainte reservations_salle_reception_pkey)
+--   terrain_negociations_recus_pkey  (contrainte terrain_negociations_recus_pkey)
+--   terrain_negociations_refus_pkey  (contrainte terrain_negociations_refus_pkey)
+--   terrain_visites_actives_pkey  (contrainte terrain_visites_actives_pkey)
 --   terrains_etat_pkey  (contrainte terrains_etat_pkey)
 --   terrains_historique_ventes_pkey  (contrainte terrains_historique_ventes_pkey)
 --   villes_empreinte_pkey  (contrainte villes_empreinte_pkey)

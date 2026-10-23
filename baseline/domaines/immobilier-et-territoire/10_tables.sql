@@ -27,7 +27,9 @@ CREATE TABLE public.batiments_fermes (
   jour_fin integer NOT NULL,
   motif text NOT NULL,
   auteur text,
-  created_at timestamp with time zone DEFAULT now() NOT NULL
+  created_at timestamp with time zone DEFAULT now() NOT NULL,
+  date_fin_universelle date,
+  duree_jours integer
 );
 
 CREATE TABLE public.dossiers_urbanisme (
@@ -91,12 +93,45 @@ CREATE TABLE public.logements_demandes (
   created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.permis_depots_recus (
+  acteur uuid NOT NULL,
+  requete uuid NOT NULL,
+  archive text NOT NULL
+);
+
+CREATE TABLE public.permis_transactions_internes (
+  transaction_id bigint NOT NULL,
+  acteur uuid NOT NULL
+);
+
 CREATE TABLE public.reservations_salle_reception (
   id text NOT NULL,
   pays_hote text NOT NULL,
   jour integer NOT NULL,
   data jsonb NOT NULL,
   created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.terrain_negociations_recus (
+  acteur uuid NOT NULL,
+  requete uuid NOT NULL,
+  terrain text NOT NULL,
+  occupation text NOT NULL,
+  montant integer NOT NULL,
+  resultat jsonb NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.terrain_negociations_refus (
+  acteur uuid NOT NULL,
+  terrain text NOT NULL,
+  occupation text NOT NULL,
+  montant integer NOT NULL
+);
+
+CREATE TABLE public.terrain_visites_actives (
+  personnage_id uuid NOT NULL,
+  terrain_id text NOT NULL
 );
 
 CREATE TABLE public.terrains_etat (
