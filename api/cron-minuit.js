@@ -1748,6 +1748,23 @@ async function avancerChantiersQuotidien() {
         else resultats.reliquats_en_attente++;
       }
 
+      // #57 : une seule transaction SQL pour une construction. Ne jamais retomber sur
+      // les anciennes ecritures REST si la RPC manque ou si sa reponse est perdue.
+      if (etat.chantier) {
+        const brut = await sbRpc('chantier_jour_traiter', { p_terrain_id: row.id }, HEADERS_SERVICE).catch(() => null);
+        const verdict = Array.isArray(brut) ? brut[0] : brut;
+        if (!verdict || verdict.ok !== true) {
+          resultats.erreurs++;
+          signalerEchec('chantier:jour:' + row.id, verdict?.raison || 'confirmation_indeterminee');
+        } else if (verdict.rejeu || verdict.ignore) resultats.ignores++;
+        else {
+          if (Number(verdict.avance) > 0) resultats.avances++;
+          if (verdict.etat?.chantier?.arrete === 'financement') resultats.bloques_financement++;
+          if (verdict.etat?.chantier?.arrete === 'penurie_materiaux') resultats.penuries++;
+        }
+        continue;
+      }
+
       // UN TERRAIN PEUT PORTER DEUX CHANTIERS VIVANTS AU FIL DE SA VIE : la construction initiale
       // (etat.chantier) puis, une fois le batiment livre, une reconfiguration (Lot 1.5.14). Ils ne
       // coexistent jamais -- on ne reconfigure pas un batiment qui n'existe pas encore -- mais ils
