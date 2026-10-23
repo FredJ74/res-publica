@@ -600,6 +600,10 @@ function renderOngletsPieces(buildingId, roomActifId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  // Compatibilite positions de joueurs enregistrees avant l'unification #57.
+  // Les lots 2/3 exposent desormais la piece canonique terrain.
+  if ((buildingId === 'terrain-a-batir-2' && roomId === 'terrain2') ||
+      (buildingId === 'terrain-a-batir-3' && roomId === 'terrain3')) roomId = 'terrain';
   if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
