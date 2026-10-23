@@ -40,7 +40,7 @@ def main():
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:charger('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn)
   charger('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
   charger('migrations/20261020222029_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires',True)
-  sql=(R/'migrations/20261023225617_squatteurs_negociation_transactionnelle.sql').read_text();q.execute(sql);q.execute(sql)
+  sql=(R/'migrations/20261023231127_squatteurs_negociation_transactionnelle.sql').read_text();q.execute(sql);q.execute(sql)
   n=0
   def check(v):
    nonlocal n

@@ -43,6 +43,9 @@ test('reponse perdue : meme UUID et meme montant, aucun tirage ni debit client',
  await f.ctx.confirmerNegociation(1,0);assert.equal(f.element('negoc-confirmer').textContent,'Vérifier le résultat');
  f.element('negoc-montant').value='900';await f.ctx.confirmerNegociation(1,0);
  assert.deepEqual(f.appels[1].args,f.appels[2].args);assert.equal(f.state.pa,30);
+ f.setVerdict({ok:false,raison:'reponse_inconnue',transport:{etat:'inconnu',envoyee:true}});
+ await f.ctx.confirmerNegociation(1,0);await f.ctx.confirmerNegociation(1,0);
+ assert.deepEqual(f.appels[1].args,f.appels[4].args);assert.equal(f.element('negoc-montant').disabled,true);
 });
 test('changement de personnage pendant le transport : aucun fonds ni dialogue recopie',async()=>{
  const f=fixture();await f.ctx.doNegocierSquatteurs(1,0);let resolve;

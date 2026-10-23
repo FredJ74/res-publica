@@ -4083,7 +4083,7 @@ async function confirmerNegociation(pa, cost) {
   // Une reconnexion ne doit pas recopier les fonds d'un autre personnage.
   if (!memeContexteNegociation(c) || state._negociationSquatteurs !== c) return;
   if (bouton) bouton.disabled = false;
-  if (!r) {
+  if (!r || r.transport) {
     if (bouton) bouton.textContent = 'Vérifier le résultat';
     showToast('Résultat non confirmé', 'Réessayez pour vérifier cette même proposition. Aucun nouveau tirage ne sera effectué.', false);
     return; // garder UUID et montant, meme si la reponse s'est perdue APRES le commit
@@ -4108,6 +4108,10 @@ async function confirmerNegociation(pa, cost) {
   if (!r.rejeu) addJournalEntry(r.accepte
     ? 'Départ négocié des squatteurs : ' + montant + ' FR.' + (r.bonusMoral ? ' +1 Moral.' : '')
     : 'Offre de ' + montant + ' FR refusée par les squatteurs. Aucun argent versé.', r.accepte ? 'event-good' : 'event-info');
+  if (r.accepte && r.etat?.pnj) {
+    showToast('Accord déjà enregistré', 'La situation actuelle du terrain a changé. Aucun nouveau paiement n’a été effectué.', false);
+    return;
+  }
   document.getElementById('postes-modal-title').textContent = r.accepte ? 'Marché conclu' : 'Proposition refusée';
   document.getElementById('postes-body').innerHTML =
     '<div id="negoc-resultat" style="padding:1rem;display:grid;gap:1rem"><p id="negoc-replique" style="font-size:1rem;line-height:1.5;font-style:italic"></p>' +
