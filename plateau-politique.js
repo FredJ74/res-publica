@@ -4502,6 +4502,19 @@ function renderRoomActions(room, buildingId, roomId) {
     buttons.splice(0, buttons.length, ...grouped.filter(Boolean), ...autres);
   }
 
+  // Informations de lecture seule sur le chantier et les locaux ; aucune transaction inventee.
+  if (/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain') {
+    const tsInfo = typeof getTerrainState === 'function' ? getTerrainState(buildingId) : null;
+    const btnInfo = (titre, nature) => '<button class="action-btn legal" onclick="ouvrirInformationsTerrainLuthecia(\\'' +
+      nature + '\\')" title="' + titre + '"><i class="ti ti-info-circle"></i> ' + titre + '</button>';
+    if (tsInfo?.chantier) buttons.push(btnInfo('Information sur le chantier', 'chantier'));
+    if (tsInfo?.niveau_construction && !tsInfo?.chantier) buttons.push(btnInfo('Information sur les locaux', 'locaux'));
+    if (tsInfo?.chantier && typeof ouvrirApprovisionnementChantier === 'function' &&
+        typeof chantierAccepteMateriaux === 'function' && chantierAccepteMateriaux(tsInfo.chantier)) {
+      buttons.push('<button class="action-btn legal" onclick="ouvrirApprovisionnementChantier()"><i class="ti ti-truck"></i> Approvisionner le chantier</button>');
+    }
+  }
+
   // Redactions de La Tribune : trois menus, sans changer les ordres ni leurs handlers.
   const redactionTribune = state.country === 'republic' &&
     ((buildingId === 'la-tribune' && roomId === 'redaction' && state.currentCity === 'capitale') ||
@@ -4539,6 +4552,33 @@ function renderRoomActions(room, buildingId, roomId) {
 
   document.getElementById('actions-row-bat').innerHTML = buttons.join('') ||
     '<div style="font-size:.75rem;color:#9a8a68;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
+}
+
+function ouvrirInformationsTerrainLuthecia(nature) {
+  const id = state.currentBuilding;
+  if (!/^terrain-a-batir-[1-5]$/.test(id) || state.currentRoom !== 'terrain' ||
+      typeof getTerrainState !== 'function') return;
+  const ts = getTerrainState(id), ch = ts?.chantier;
+  const ech = v => String(v ?? '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const ligne = (k,v) => '<p><strong>' + ech(k) + ' :</strong> ' + ech(v) + '</p>';
+  let html = ligne('Terrain', BUILDINGS[id]?.shortName || id) + ligne('Propriétaire', ts?.proprietaire || 'Non attribué');
+  if (nature === 'chantier' && ch) {
+    html += ligne('Bâtiment prévu', ts?.niveau_construction || ch?.niveau || ch?.type || 'En construction');
+    html += ligne('Jours de progression', ch?.progressionJours ?? 'Non disponibles');
+    html += ligne('État', ch?.etat || ch?.statut || 'En cours');
+  } else if (nature === 'locaux' && ts?.niveau_construction && !ch) {
+    const lots = Array.isArray(ts?.subdivisions) ? ts.subdivisions : [];
+    html += ligne('Bâtiment livré', ts.niveau_construction);
+    html += ligne('Nombre de lots', lots.length);
+    html += lots.map((lot,i) => ligne('Lot ' + (i+1), (lot.nom || lot.name || 'Sans nom') +
+      ' — ' + (lot.surface || lot.superficie || 'surface inconnue') + ' m²' +
+      (lot.locataire ? ' — occupé par ' + lot.locataire : ''))).join('');
+  } else return;
+  document.getElementById('postes-modal-title').textContent =
+    nature === 'chantier' ? 'Information sur le chantier' : 'Information sur les locaux';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' + html + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 function ouvrirMenuOrdresTerrain(index) {
