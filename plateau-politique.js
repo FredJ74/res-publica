@@ -4127,6 +4127,9 @@ function renderRoomActions(room, buildingId, roomId) {
       if (avantAcquisition) {
         if (!fnAvant.has(o.fn)) return false;
         if (o.fn === 'racheter_terrain') return false;
+        if (o.fn === 'appeler_police_terrain') {
+          return ['squatter_agr','squatter_cool','cadavre'].includes(ts?.pnj);
+        }
         // Les intrus ne sont visibles que lorsque leur situation est connue.
         if (o.fn === 'negocier_squatteurs' || o.fn === 'faire_disparaitre_cadavre') {
           return typeof terrainOrdreDisponible === 'function' &&
