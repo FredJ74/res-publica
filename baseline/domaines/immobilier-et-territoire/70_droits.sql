@@ -48,7 +48,6 @@ GRANT EXECUTE ON FUNCTION public.eviction_indemniser(text,text,text) TO postgres
 GRANT EXECUTE ON FUNCTION public.eviction_indemniser(text,text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.prelever_loyer_bail(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.prelever_loyer_bail(text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.resilier_bail_volontaire(text,text) TO anon;
 GRANT EXECUTE ON FUNCTION public.resilier_bail_volontaire(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.resilier_bail_volontaire(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.resilier_bail_volontaire(text,text) TO service_role;
@@ -67,9 +66,25 @@ GRANT EXECUTE ON FUNCTION public.terrain_etat_verrouiller_interne(text) TO postg
 GRANT EXECUTE ON FUNCTION public.terrain_lots_acte(text,text,jsonb,text[]) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.terrain_lots_acte(text,text,jsonb,text[]) TO postgres;
 GRANT EXECUTE ON FUNCTION public.terrain_lots_acte(text,text,jsonb,text[]) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_negociation_conclure(text,text,integer,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_negociation_conclure(text,text,integer,uuid) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_negociation_conclure(text,text,integer,uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_negociation_jet_interne() TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_negociation_jet_interne() TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_negociation_preparer(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_negociation_preparer(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_negociation_preparer(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_occupation_lire(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_occupation_lire(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_occupation_lire(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_occupation_tirer_interne() TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_occupation_tirer_interne() TO service_role;
 GRANT EXECUTE ON FUNCTION public.terrain_permis_acte(text,text,jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.terrain_permis_acte(text,text,jsonb) TO postgres;
 GRANT EXECUTE ON FUNCTION public.terrain_permis_acte(text,text,jsonb) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_permis_deposer(text,text,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.terrain_permis_deposer(text,text,uuid) TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_permis_deposer(text,text,uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.terrain_proprietaire_muter(text,text,jsonb,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.terrain_proprietaire_muter(text,text,jsonb,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.terrain_proprietaire_muter(text,text,jsonb,text) TO service_role;
@@ -82,16 +97,12 @@ GRANT EXECUTE ON FUNCTION public.terrain_succession_annuler_compromis(text,text)
 GRANT EXECUTE ON FUNCTION public.terrain_succession_geler(text,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.terrain_succession_geler(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.terrain_succession_geler(text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.terrain_visites_clore_interne() TO postgres;
+GRANT EXECUTE ON FUNCTION public.terrain_visites_clore_interne() TO service_role;
 GRANT EXECUTE ON FUNCTION public.ville_est_reelle(text,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.ville_est_reelle(text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.villes_empreinte_reelle() TO postgres;
 GRANT EXECUTE ON FUNCTION public.villes_empreinte_reelle() TO service_role;
-
--- DROITS SUR LES SEQUENCES
-GRANT SELECT, USAGE ON SEQUENCE public.batiments_fermes_id_seq TO anon;
-GRANT SELECT, USAGE ON SEQUENCE public.batiments_fermes_id_seq TO authenticated;
-GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.batiments_fermes_id_seq TO postgres;
-GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.batiments_fermes_id_seq TO service_role;
 
 -- DROITS SUR LES TABLES
 GRANT SELECT ON TABLE public.batiments_etat TO anon;
@@ -121,9 +132,19 @@ GRANT SELECT ON TABLE public.logements_demandes TO anon;
 GRANT INSERT, SELECT, UPDATE ON TABLE public.logements_demandes TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.logements_demandes TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.logements_demandes TO service_role;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.permis_depots_recus TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.permis_depots_recus TO service_role;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.permis_transactions_internes TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.permis_transactions_internes TO service_role;
 GRANT INSERT, SELECT ON TABLE public.reservations_salle_reception TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.reservations_salle_reception TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.reservations_salle_reception TO service_role;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrain_negociations_recus TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrain_negociations_recus TO service_role;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrain_negociations_refus TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrain_negociations_refus TO service_role;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrain_visites_actives TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrain_visites_actives TO service_role;
 GRANT SELECT ON TABLE public.terrains_etat TO anon;
 GRANT SELECT ON TABLE public.terrains_etat TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.terrains_etat TO postgres;
