@@ -37,6 +37,14 @@ def main():
   charger('baseline/domaines/socle/20_fonctions.sql','objet_sas_deposer')
   charger('baseline/domaines/socle/20_fonctions.sql','titulaire_est_moi')
   sql=(R/'migrations/20261022220516_permis_depot_transactionnel.sql').read_text();q.execute(sql);q.execute(sql)
+  # Une archive de depot ne peut etre ajoutee directement par un joueur.
+  try:
+   q.execute("INSERT INTO dossiers_urbanisme(id,country,type_evenement,data) VALUES('faux-depot','republic','depot','{}')")
+   raise AssertionError('archive non protegee')
+  except psycopg2.Error as erreur:
+   assert 'depot_permis_commande_versionnee_requise' in str(erreur)
+  q.execute("SELECT count(*) FROM dossiers_urbanisme WHERE id='faux-depot'")
+  assert q.fetchone()[0]==0
   n=0
   def check(ok):
    nonlocal n
