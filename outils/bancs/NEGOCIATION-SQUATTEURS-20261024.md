@@ -20,4 +20,4 @@ Le bonus historique de bénédiction était exclusivement local et sans colonne 
 
 La publication du client doit être confirmée séparément par le statut de déploiement et la lecture des fichiers réellement servis.
 
-Le banc historique de dépôt de permis charge désormais sa véritable définition avant migration depuis une fixture figée. La garde d’empreinte de la migration reste inchangée ; le baseline vivant conserve les protections postérieures du serveur.
+Les bancs historiques de dépôt de permis et de construction chargent désormais leurs véritables définitions avant migration depuis des fixtures figées. La garde d’empreinte de la migration reste inchangée ; le baseline vivant conserve les protections postérieures du serveur.
