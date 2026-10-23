@@ -600,6 +600,8 @@ function renderOngletsPieces(buildingId, roomActifId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  if ((buildingId === 'terrain-a-batir-2' && roomId === 'terrain2') ||
+      (buildingId === 'terrain-a-batir-3' && roomId === 'terrain3')) roomId = 'terrain';
   if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
