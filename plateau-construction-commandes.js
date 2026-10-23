@@ -53,7 +53,7 @@ async function constructionReconcilierCommandes(buildingId){
   if(constructionRepriseEnCours||constructionCommandeEnCours||buildingId!==state.currentBuilding)return;
   const c=contexteNavigationRue();constructionRepriseEnCours=true;
   try{
-    for(const action of ['lancer','verser','receptionner','plan','travailler','prix']){
+    for(const action of ['lancer','verser','receptionner','plan','travailler','prix','reamenager']){
       const cle='chantier-commande:'+JSON.stringify([c.uid,c.nom,state.country,state.currentCity,buildingId,action]);
       let i;try{i=JSON.parse(sessionStorage.getItem(cle)||'null');}catch(_){continue;}
       if(!i?.requete)continue;
@@ -74,13 +74,13 @@ if (typeof window !== 'undefined') {
   window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
   window.RP_ORDRES_DYNAMIQUES.push(function(id,piece) {
     if (!id?.startsWith('terrain-a-batir')) return [];
-    const ts=getTerrainState(id),ch=ts.chantier;
+    const ts=getTerrainState(id),ch=ts.chantier || ts.chantierReamenagement;
     if (!constructionPeutGerer(ts)) return [];
     const plan={fn:'modifier_plan_chantier',label:'Définir les lots intérieurs',icon:'ti-layout-grid',pa:0,cost:0,type:'legal',successRate:100};
     if (!ch) return ts.niveau_construction && !ts.planInitialValide && !(ts.subdivisions||[]).length ? [plan] : [];
     if (!chantierTermine(ch)) {
       const ordres=[{fn:'prix_chantier',label:'Prix d’achat des matériaux',icon:'ti-coins',pa:0,cost:0,type:'legal',successRate:100}];
-      if(verdictModificationPlan(ch).ok) ordres.push(plan);
+      if(ch.type!=='reamenagement' && verdictModificationPlan(ch).ok) ordres.push(plan);
       return ordres;
     }
     return [{fn:'receptionner_chantier',label:'Réceptionner le bâtiment',icon:'ti-key',pa:0,cost:0,type:'legal',successRate:100}];

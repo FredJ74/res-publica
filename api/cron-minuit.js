@@ -1750,7 +1750,7 @@ async function avancerChantiersQuotidien() {
 
       // #57 : une seule transaction SQL pour une construction. Ne jamais retomber sur
       // les anciennes ecritures REST si la RPC manque ou si sa reponse est perdue.
-      if (etat.chantier) {
+      if (etat.chantier || etat.chantierReamenagement) {
         const brut = await sbRpc('chantier_jour_traiter', { p_terrain_id: row.id }, HEADERS_SERVICE).catch(() => null);
         const verdict = Array.isArray(brut) ? brut[0] : brut;
         if (!verdict || verdict.ok !== true) {
@@ -1759,8 +1759,8 @@ async function avancerChantiersQuotidien() {
         } else if (verdict.rejeu || verdict.ignore) resultats.ignores++;
         else {
           if (Number(verdict.avance) > 0) resultats.avances++;
-          if (verdict.etat?.chantier?.arrete === 'financement') resultats.bloques_financement++;
-          if (verdict.etat?.chantier?.arrete === 'penurie_materiaux') resultats.penuries++;
+          if ((verdict.etat?.chantier || verdict.etat?.chantierReamenagement)?.arrete === 'financement') resultats.bloques_financement++;
+          if ((verdict.etat?.chantier || verdict.etat?.chantierReamenagement)?.arrete === 'penurie_materiaux') resultats.penuries++;
         }
         continue;
       }

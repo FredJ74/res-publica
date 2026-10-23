@@ -1,34 +1,5 @@
-// #57 22 octobre : approvisionnement initial inclus dans la commande SQL de lancement.
-// Les refus/relectures de cette commande sont testes dans banc-construction-commandes-client.cjs
-// et le moteur dans banc-construction-jour-local.py ; aucun scenario supprime.
-// Banc STRUCTUREL de l'APPROVISIONNEMENT DES CHANTIERS -- plateau-justice-economie.js
-// (chantier 5, chaine 5, 10 octobre 2026).
-// SOURCES: aucune -- ce banc lit plateau-justice-economie.js lui-meme, par readFile.
-//
-// POURQUOI CE BANC EST STRUCTUREL, ET PAS COMPORTEMENTAL. Les deux approvisionnements vivent au
-// milieu de confirmerConstruction et confirmerReconfiguration, deux fonctions de plus de cent
-// lignes qui enchainent la validation du plan, le financement, la creation du chantier et
-// l'ouverture de modales. Les extraire demanderait de simuler tout cela ; les appeler voudrait
-// dire rejouer un ordre entier. Le comportement de la PORTE, lui, est eprouve en transaction
-// annulee cote base (16 epreuves) -- c'est la seule facon honnete de couper ce travail en deux.
-//
-// CE QUE CE BANC ETABLIT, dans la portee exacte des deux blocs :
-//   1. plus AUCUN appel client a approvisionner_chantier -- c'etait par lui que la tresorerie
-//      DICTEE PAR LE NAVIGATEUR passait, et c'est elle qui bornait le pouvoir d'achat ;
-//   2. plus aucun repli `|| { depense: 0 }`, qui presentait une panne de RPC comme « rien a
-//      acheter », donc comme un succes ;
-//   3. exactement DEUX appels a chantier_approvisionner, un par famille de chantier, chacun
-//      nommant sa cle, et dont le VERDICT est lu ;
-//   4. le stock et la tresorerie ne sont plus transmis ;
-//   5. la construction n'ecrit plus le terrain du tout (chantier_lancer l'a deja fait), et le
-//      reamenagement, qui n'a pas de porte de lancement, LIT desormais le resultat de son unique
-//      ecriture au lieu de l'avaler.
-//
-// CONTRE-EPREUVE. Joue contre la version precedente de plateau-justice-economie.js, il ECHOUE sur
-// 22 de ses 23 epreuves :
-//   git show HEAD:plateau-justice-economie.js > /tmp/avant.js
-//   printf "var CHEMIN_SOURCE = '/tmp/avant.js';\n" > /tmp/decor.js
-//   python3 outils/bancs/lancer-banc.py outils/bancs/banc-appro-chantier.js /tmp/decor.js
+// #94 : les deux familles passent maintenant par les commandes atomiques.
+// Les 23 garanties sont conservees ; tests comportementaux et PostgreSQL dans les bancs dedies.
 var src = readFile(typeof CHEMIN_SOURCE === 'string'
   ? CHEMIN_SOURCE : '/Users/fredericjasseron/ResPublica/plateau-justice-economie.js');
 
@@ -77,64 +48,25 @@ att('plus aucun test `plan.depense > 0`',
     compte(code, /plan\.depense\s*>\s*0/g) === 0);
 
 print('');
-print('3. CONSTRUCTION ATOMIQUE, PORTE HISTORIQUE CONSERVEE POUR REAMENAGEMENT');
-att('un seul appel historique, reserve au reamenagement',
-    compte(code, /sbRpc\('chantier_approvisionner'/g) === 1,
-    compte(code, /sbRpc\('chantier_approvisionner'/g) + ' appel(s)');
-att('la construction appelle une seule commande atomique de lancement',
-    compte(construction, /constructionExecuterCommande\('lancer'/g) === 1);
-att('la construction ne fractionne plus le lancement et le premier approvisionnement',
-    compte(construction, /sbRpc\(/g) === 0 && compte(construction, /chantier_approvisionner/g) === 0);
-att('le reamenagement appelle la porte une fois',
-    compte(reconfig, /sbRpc\('chantier_approvisionner'/g) === 1);
-att("il nomme la cle « chantierReamenagement »",
-    reconfig.indexOf("p_cle_chantier: 'chantierReamenagement'") >= 0);
-att('seul le reamenagement transmet encore un besoin, la construction le derive au serveur',
-    compte(code, /p_besoin: besoinJ1, p_jour: state\.day \|\| 1/g) === 1,
-    compte(code, /p_besoin: besoinJ1, p_jour: state\.day \|\| 1/g) + ' occurrence(s)');
-
-print('');
-print('4. LE VERDICT EST LU, ET UNE PANNE EST NOMMEE AU JOUEUR');
-att('la construction lit le verdict',
-    construction.indexOf('if(!r)return') >= 0);
-att('le reamenagement lit le verdict',
-    reconfig.indexOf('!appro || appro.ok !== true') >= 0);
-att("le refus d approvisionnement historique reste nomme",
-    compte(code, /Approvisionnement non confirmé/g) === 1,
-    compte(code, /Approvisionnement non confirmé/g) + ' occurrence(s)');
-att('reamenagement recopie le chantier serveur, construction delegue a la relecture commune',
-    compte(code, /ch = appro\.chantier;|chantier = appro\.chantier;/g) === 1,
-    compte(code, /ch = appro\.chantier;|chantier = appro\.chantier;/g) + ' occurrence(s)');
-att('le reamenagement conserve son journal de refus',
-    compte(src, /approvisionnement du jour 1 non enregistré\.",?\s*\n?\s*'event-bad'|approvisionnement du jour 1 non enregistré\.", 'event-bad'/g) >= 1
-    || compte(code, /approvisionnement du jour 1 non enregistré/g) === 1,
-    compte(code, /approvisionnement du jour 1 non enregistré/g) + ' occurrence(s)');
-
-print('');
-print('5. LES ECRITURES DIRECTES DE TERRAIN DANS CES DEUX BLOCS');
-att("la construction n'ecrit plus le terrain du tout (chantier_lancer l'a deja fait)",
-    compte(construction, /await sbSetTerrainState\(/g) === 0,
-    compte(construction, /await sbSetTerrainState\(/g) + ' occurrence(s)');
-// MIS A JOUR LE 10 OCTOBRE 2026 (chantier 5, les 22 ecritures de `terrains_etat`). Ces deux
-// epreuves exigeaient que le reamenagement garde UNE ecriture directe, « faute de porte de
-// lancement ». La porte existe desormais : `terrain_reamenagement_poser`. Elle n'ecrit que la cle
-// `chantierReamenagement`, sous verrou, apres avoir verifie la propriete en base -- donc elle ne
-// peut plus effacer la nuit du cron, ce que l'ancienne ecriture du blob entier pouvait faire.
-// Ce que ces epreuves verifient n'a pas change de NATURE : l'ecriture existe, et son resultat est
-// lu. Ce qui a change, c'est par ou elle passe.
-att('le reamenagement passe par sa porte, et plus par aucune ecriture directe',
-    compte(reconfig, /await sbSetTerrainState\(/g) === 0
-    && compte(reconfig, /sbTerrainActe\('terrain_reamenagement_poser'/g) === 1,
-    compte(reconfig, /sbTerrainActe\('terrain_reamenagement_poser'/g) + ' appel(s) a la porte');
-att("et son verdict est lu : un refus arrete la fonction",
-    reconfig.indexOf('poseCh.ok !== true') >= 0
-    && reconfig.indexOf('remplacerTerrainState(id, poseCh.etat)') >= 0);
-att("son echec est nomme au joueur", reconfig.indexOf('Travaux non enregistrés') >= 0);
-// Celle-ci se lit dans les COMMENTAIRES, c'est le but : la dette doit etre ecrite noir sur blanc
-// a l'endroit ou elle subsiste.
-att("la dette restante est CONSIGNEE dans le code, pas masquee",
-    reconfigAvecCommentaires.indexOf('DETTE CONSIGNEE') >= 0);
-
+print('3. UNE COMMANDE COMMUNE PAR FAMILLE, AUCUN STOCK OU BUDGET CLIENT');
+att('aucun appel historique a chantier_approvisionner', compte(code, /sbRpc\('chantier_approvisionner'/g) === 0);
+att('construction : une commande de lancement', compte(construction, /constructionExecuterCommande\('lancer'/g) === 1);
+att('construction sans second approvisionnement', compte(construction, /sbRpc\(/g) === 0);
+att('reamenagement : une commande atomique', compte(reconfig, /constructionExecuterCommande\('reamenager'/g) === 1);
+att('seul le plan est transmis', reconfig.indexOf("'reamenager', { lots }") >= 0 && reconfig.indexOf('p_chantier') < 0);
+att('aucun besoin impose par le client', compte(code, /p_besoin: besoinJ1/g) === 0);
+print('4. VERDICTS ET CONTEXTES');
+att('construction refuse le verdict absent', construction.indexOf('if(!r)return') >= 0);
+att('reamenagement refuse le verdict absent', reconfig.indexOf('!r || !contexteNavigationRueValide(contexte)') >= 0);
+att('aucune fausse confirmation locale', reconfig.indexOf('poseCh') < 0 && reconfig.indexOf('appro.') < 0);
+att('aucun snapshot financier recopie', reconfig.indexOf('state.arg =') < 0 && reconfig.indexOf('state.liquide =') < 0);
+att('journal apres confirmation seulement', reconfig.indexOf('addJournalEntry(') > reconfig.indexOf('if (!r ||'));
+print('5. AUCUN PAIEMENT OU CHANTIER COMPOSE PAR LE NAVIGATEUR');
+att('construction sans ecriture directe', compte(construction, /sbSetTerrainState\(/g) === 0);
+att('reamenagement sans porte legacy ou ecriture directe', compte(reconfig, /sbTerrainActe\(|sbSetTerrainState\(|setTerrainState\(/g) === 0);
+att('aucun paiement avant la transaction', reconfig.indexOf('deduireCoutOrdre') < 0);
+att('aucun dimensionnement impose au serveur', reconfig.indexOf('creerChantierReamenagement') < 0 && reconfig.indexOf('verserAuChantier') < 0);
+att('plan fige avant la requete asynchrone', reconfig.indexOf('JSON.parse(JSON.stringify(') >= 0 && reconfig.indexOf('JSON.parse(') < reconfig.indexOf('await constructionExecuterCommande'));
 print('');
 print('6. CE QUE LE NAVIGATEUR NE CALCULE PLUS');
 att('il ne recalcule plus les prix des trois materiaux pour cet achat',

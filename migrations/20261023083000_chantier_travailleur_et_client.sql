@@ -6,7 +6,7 @@ DO $g$ DECLARE h text;s text;BEGIN
   s:=replace(s,$ancien$ PERFORM public.chantier_autorite_exiger_interne(etat->>'proprietaire',t.country,etat->>'city');$ancien$,$nouveau$ -- Le travail remunere est ouvert aux PJ presents ; seule la gestion exige le proprietaire.
  IF p_action<>'travailler' THEN
  PERFORM public.chantier_autorite_exiger_interne(etat->>'proprietaire',t.country,etat->>'city');
- END IF;$nouveau$);EXECUTE s;
- ELSIF h IS DISTINCT FROM 'b46c382a352401d3dd7365a7c8ea975c' THEN RAISE EXCEPTION 'definition_non_examinee: chantier_commande(text,text,text,jsonb)';END IF;
+ END IF;$nouveau$);s:=replace(s,$source$ source:=public.chantier_financeur_verrouiller_interne(ancien_etat->>'proprietaire',t.country,ancien_etat->>'city');$source$,$source_neuf$ IF p_action<>'travailler' THEN source:=public.chantier_financeur_verrouiller_interne(ancien_etat->>'proprietaire',t.country,ancien_etat->>'city');END IF;$source_neuf$);EXECUTE s;
+ ELSIF h IS DISTINCT FROM 'f7948b5e7a04d071d6aa13fdd44b2306' THEN RAISE EXCEPTION 'definition_non_examinee: chantier_commande(text,text,text,jsonb)';END IF;
 END;$g$;
 COMMIT;

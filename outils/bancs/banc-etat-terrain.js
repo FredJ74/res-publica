@@ -98,11 +98,11 @@ print('');
 print('3. LES VINGT-DEUX ECRITURES PASSENT PAR HUIT PORTES, UNE PAR MECANISME');
 var ACTES = {
   'terrain_compromis_acte': 6, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 1,
-  'terrain_lots_acte': 6, 'terrain_reamenagement_poser': 1
+  'terrain_lots_acte': 6, 'chantier_commande_reamenagement': 1
 };
 var totalPortes = 0;
 Object.keys(ACTES).sort().forEach(function (porte) {
-  var n = porte==='chantier_commande_plan' ? partout(/constructionExecuterCommande\('plan'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
+  var n = porte==='chantier_commande_reamenagement' ? partout(/constructionExecuterCommande\('reamenager'/g) : porte==='chantier_commande_plan' ? partout(/constructionExecuterCommande\('plan'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
   totalPortes += n;
   att(porte + ' : ' + ACTES[porte] + ' appel(s)', n === ACTES[porte], n + ' trouve(s)');
 });
