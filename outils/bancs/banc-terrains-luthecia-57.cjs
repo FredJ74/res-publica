@@ -55,4 +55,14 @@ for(const n of [1,2,3,4,5]){
  let livre=test(n,{proprietaire:'Alice',niveau_construction:'commerce_premium'});
  assert(livre.has('reconfigurer_lots')&&!livre.has('acheter_terrain'),'Livraison '+n);
 }
+// Un visiteur ne doit jamais obtenir les commandes reservees au titulaire.
+for(const n of [1,2,3,4,5]){
+  const id='terrain-a-batir-'+n;
+  const enCours={proprietaire:'Bob',chantier:{progressionJours:2,dureeJours:6}};
+  const visible=filtrer(id,'terrain',()=>enCours,catalogue,()=>({ok:false}),
+    x=>x==='Alice',()=>({ok:false}),()=>false).map(o=>o.fn);
+  assert(!visible.includes('payer_versement_chantier'),'Un tiers voit les versements du chantier '+n);
+  assert(!visible.includes('modifier_plan_chantier'),'Le plan est disponible avant son dernier tiers '+n);
+  assert(!visible.includes('receptionner_chantier'),'Reception prematuree '+n);
+}
 console.log('OK — 5 terrains, image, prix, catalogue et phases conformes.');
