@@ -3879,6 +3879,11 @@ async function doVerifierTerrain() {
   }
 }
 
+function tauxCorruptionInspecteurTerrain() {
+  const dup = getStatEffective('DUP');
+  return Math.min(80, 40 + Math.floor(dup * 2));
+}
+
 function doAppelerPoliceTerrain() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
@@ -3889,6 +3894,7 @@ function doAppelerPoliceTerrain() {
   const delaiRapideH = Math.max(1, Math.round(delaiH / 4));
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const coutSoudoiement = Math.floor(100 + isn * 3);
+  const tauxSoudoiement = tauxCorruptionInspecteurTerrain();
 
   document.getElementById('postes-modal-title').textContent = '🚔 Appeler la police';
   document.getElementById('postes-body').innerHTML =
@@ -3899,10 +3905,10 @@ function doAppelerPoliceTerrain() {
     '<div style="display:flex;flex-direction:column;gap:.5rem">' +
     '<button onclick="doExpulsionLegale();fermerModalPostes()" ' +
     'style="text-align:left;padding:.6rem .8rem;border:1px solid #3a5a3a;background:#0a0f0a;color:#6ada6a;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;cursor:pointer">' +
-    '⚖️ Expulsion légale — délai ' + delaiH + 'h (gratuit)</button>' +
+    '⚖️ Expulsion légale — délai ' + delaiH + 'h (gratuit) · sans jet aléatoire</button>' +
     '<button onclick="doExpulsionAcceleree(' + coutSoudoiement + ');fermerModalPostes()" ' +
     'style="text-align:left;padding:.6rem .8rem;border:1px solid #5a5a20;background:#0a0f00;color:#C9A84C;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;cursor:pointer">' +
-    '💰 Soudoyer l\'inspecteur — ' + coutSoudoiement + ' ' + cur + ' · délai ' + delaiRapideH + 'h</button>' +
+    '💰 Soudoyer l\'inspecteur — ' + coutSoudoiement + ' ' + cur + ' · délai ' + delaiRapideH + 'h · réussite ' + tauxSoudoiement + '%</button>' +
     '<button onclick="fermerModalPostes()" ' +
     'style="padding:.4rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;font-family:Bebas Neue,sans-serif;font-size:.68rem;cursor:pointer">Annuler</button>' +
     '</div></div>';
@@ -3915,8 +3921,7 @@ function doExpulsionAcceleree(cout) {
   const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30 };
   const isn = indices.ISN || 30;
   const delaiRapideH = Math.max(1, Math.round((96 - isn * 0.6) / 4));
-  const dup = getStatEffective('DUP');
-  const taux = Math.min(80, 40 + Math.floor(dup * 2));
+  const taux = tauxCorruptionInspecteurTerrain();
   const roll = Math.floor(Math.random() * 100) + 1;
 
   if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false); return; }
