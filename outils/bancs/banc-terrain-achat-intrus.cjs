@@ -13,7 +13,8 @@ function rendu(pnj,lot=1){
 test('les cinq parcelles gardent achat visible et inactif avec chaque occupation',()=>{
  for(let lot=1;lot<=5;lot++)for(const pnj of ['cadavre','squatter_cool','squatter_agr']){
   const r=rendu(pnj,lot);assert.match(r.html,/Achat de terrains/);assert.match(r.html,/Gestion des intrus/);
-  assert.ok(r.html.includes(message));assert.match(r.html,/disabled aria-disabled="true"/);
+  assert.doesNotMatch(r.html.replace(/<[^>]*>/g,''),/Achat impossible/);
+  assert.match(r.html,/aria-disabled="true" onclick="expliquerAchatTerrainBloque\(\)"/);
   const groupe=Object.values(r.groupes).find(g=>g.titre==='Achat de terrains');
   assert.equal(groupe.entries.length,2);
   for(const e of groupe.entries){assert.match(e.html,/disabled/);assert.doesNotMatch(e.html,/onclick|doOrder/);}
