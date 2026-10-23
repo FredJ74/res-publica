@@ -1,17 +1,22 @@
 -- #94 PREPAREE : l'occupation reste dans terrains_etat ; les visites sont un verrou technique.
 BEGIN;
-CREATE TABLE public.terrain_visites_actives (
+DO $definitions$ BEGIN
+ IF to_regprocedure('public.terrain_occupation_tirer_interne()') IS NOT NULL AND NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('public.terrain_occupation_tirer_interne()') AND md5(prosrc) IN ('21db904314cd78d76a2509c37407c02f','21db904314cd78d76a2509c37407c02f')) THEN RAISE EXCEPTION 'occupation_definition_non_examinee: terrain_occupation_tirer_interne';END IF;
+ IF to_regprocedure('public.terrain_visites_clore_interne()') IS NOT NULL AND NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('public.terrain_visites_clore_interne()') AND md5(prosrc) IN ('4e5ad57e84c1d6059912d03026e3ec57','94bd2a4bc3aba5ae5b3e69a35f84e0c3')) THEN RAISE EXCEPTION 'occupation_definition_non_examinee: terrain_visites_clore_interne';END IF;
+ IF to_regprocedure('public.terrain_occupation_lire(text)') IS NOT NULL AND NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('public.terrain_occupation_lire(text)') AND md5(prosrc) IN ('9ec6d02d9111b77192bfe84f95a4c96d','a03834c09941ee85f1dc43956268320a')) THEN RAISE EXCEPTION 'occupation_definition_non_examinee: terrain_occupation_lire';END IF;
+END;$definitions$;
+CREATE TABLE IF NOT EXISTS public.terrain_visites_actives (
  personnage_id uuid NOT NULL REFERENCES public.personnages_donnees(id) ON DELETE CASCADE, terrain_id text NOT NULL REFERENCES public.terrains_etat(id),
  PRIMARY KEY(personnage_id,terrain_id)
 );
 ALTER TABLE public.terrain_visites_actives ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.terrain_visites_actives FROM PUBLIC,anon,authenticated;
-CREATE FUNCTION public.terrain_occupation_tirer_interne() RETURNS text
+CREATE OR REPLACE FUNCTION public.terrain_occupation_tirer_interne() RETURNS text
 LANGUAGE sql VOLATILE SET search_path=public,pg_temp AS $f$
  SELECT (ARRAY[NULL::text,'squatter_cool','squatter_agr','cadavre'])[1+floor(random()*4)::integer];
 $f$;
 REVOKE ALL ON FUNCTION public.terrain_occupation_tirer_interne() FROM PUBLIC,anon,authenticated;
-CREATE FUNCTION public.terrain_visites_clore_interne() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.terrain_visites_clore_interne() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $f$
 DECLARE v record;
 BEGIN
@@ -19,18 +24,19 @@ BEGIN
  IF (NEW.country,NEW.current_city,NEW.current_building) IS NOT DISTINCT FROM
     (OLD.country,OLD.current_city,OLD.current_building) THEN RETURN NEW; END IF;
  FOR v IN SELECT t.id FROM public.terrain_visites_actives a JOIN public.terrains_etat t ON t.id=a.terrain_id
-  WHERE a.personnage_id=OLD.id AND (t.country,t.building_id) IS DISTINCT FROM (NEW.country,NEW.current_building)
+  WHERE a.personnage_id=OLD.id AND (t.country,t.data::jsonb->>'city',t.building_id) IS DISTINCT FROM (NEW.country,NEW.current_city,NEW.current_building)
   ORDER BY t.id FOR UPDATE OF t LOOP
   DELETE FROM public.terrain_visites_actives WHERE personnage_id=OLD.id AND terrain_id=v.id;
  END LOOP;
  RETURN NEW;
 END;$f$;
 REVOKE ALL ON FUNCTION public.terrain_visites_clore_interne() FROM PUBLIC,anon,authenticated;
+DROP TRIGGER IF EXISTS terrain_visites_deplacement ON public.personnages_donnees;
 CREATE TRIGGER terrain_visites_deplacement AFTER UPDATE OF country,current_city,current_building
  ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION public.terrain_visites_clore_interne();
-CREATE FUNCTION public.terrain_occupation_lire(p_terrain text) RETURNS jsonb
+CREATE OR REPLACE FUNCTION public.terrain_occupation_lire(p_terrain text) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $f$
-DECLARE acteur text:=public.mon_personnage();p record;t record;e jsonb;nouvelle boolean;occupation text;
+DECLARE acteur text:=public.mon_personnage();p record;t record;e jsonb;nouvelle boolean;occupation text;fiche record;
 BEGIN
  IF acteur IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
  SELECT id,country,current_city,current_building INTO p FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
@@ -38,7 +44,17 @@ BEGIN
   RETURN jsonb_build_object('ok',false,'raison','pas_sur_place'); END IF;
  SELECT * INTO t FROM public.terrains_etat WHERE id=p.country||'_'||p_terrain AND country=p.country
   AND building_id=p_terrain FOR UPDATE;
- IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','terrain_introuvable'); END IF;
+ IF NOT FOUND THEN
+  SELECT * INTO fiche FROM public.terrains_referentiel WHERE pays=p.country AND ville=p.current_city AND batiment=p_terrain;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','terrain_introuvable');END IF;
+  -- Premiere visite seulement : references declarees, jamais une surface ou un prix invente.
+  INSERT INTO public.terrains_etat(id,country,building_id,proprietaire,data,updated_at)
+   VALUES(p.country||'_'||p_terrain,p.country,p_terrain,NULL,
+    jsonb_strip_nulls(jsonb_build_object('city',p.current_city,'surface',fiche.surface,'valeur_totale',fiche.prix_achat))::text,now())
+   ON CONFLICT(id) DO NOTHING;
+  SELECT * INTO t FROM public.terrains_etat WHERE id=p.country||'_'||p_terrain AND country=p.country AND building_id=p_terrain FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','terrain_introuvable');END IF;
+ END IF;
  e:=public.terrain_etat_lire(t.data);
  IF e IS NULL OR e->>'city' IS DISTINCT FROM p.current_city THEN RETURN jsonb_build_object('ok',false,'raison','terrain_incoherent'); END IF;
  nouvelle:=NOT EXISTS(SELECT 1 FROM public.terrain_visites_actives WHERE terrain_id=t.id);

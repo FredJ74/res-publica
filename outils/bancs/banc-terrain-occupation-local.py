@@ -19,7 +19,8 @@ def main():
   source=(R/'baseline/domaines/immobilier-et-territoire/20_fonctions.sql').read_text()
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:
    a=source.index('CREATE OR REPLACE FUNCTION public.'+fn+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',source[a:],re.S);q.execute(source[a:a+m.end()])
-  sql=(R/'migrations/20261022222907_terrain_occupation_visites.sql').read_text();q.execute(sql)
+  q.execute((R/'migrations/20261023080100_terrains_referentiel_declare.sql').read_text());q.execute((R/'migrations/20261023080100_terrains_referentiel_declare.sql').read_text())
+  sql=(R/'migrations/20261022222907_terrain_occupation_visites.sql').read_text();q.execute(sql);q.execute(sql)
   n=0
   def check(v):
    nonlocal n
@@ -31,7 +32,7 @@ def main():
   def appel(cur=q):
    cur.execute("SELECT terrain_occupation_lire('terrain-a-batir-1')");return cur.fetchone()[0]
   def lire():
-   q.execute('SELECT data::jsonb FROM terrains_etat');return q.fetchone()[0]
+   q.execute("SELECT data::jsonb FROM terrains_etat WHERE id='republic_terrain-a-batir-1'");return q.fetchone()[0]
   r=appel();check(r['ok']);avant=lire();check(avant['surface']==1234 and avant['prix']==5678)
   check(appel()['etat']==avant)
   q.execute("UPDATE personnages_donnees SET name='Renomme' WHERE name='Fixture';SET hg.fixture='Renomme'")
@@ -56,7 +57,7 @@ def main():
    q.execute("UPDATE terrains_etat SET data='{\"city\":\"capitale\",\"surface\":1234,\"prix\":5678,\"pnj\":\"squatter_agr\",\"occupationInitialisee\":true}'")
    patch(protection);sortir();check(appel()['etat']['pnj']=='squatter_agr')
   # Pays et ville doivent provenir de la position serveur.
-  sortir();q.execute("UPDATE personnages_donnees SET country='soviet' WHERE name='Fixture'");check(appel()['raison']=='terrain_introuvable')
+  sortir();republicain=lire();q.execute("UPDATE personnages_donnees SET country='soviet' WHERE name='Fixture'");r=appel();check(r['ok']);check(lire()==republicain)
   q.execute("UPDATE personnages_donnees SET country='republic',current_city='autre' WHERE name='Fixture'");check(appel()['raison']=='terrain_incoherent')
   q.execute("UPDATE personnages_donnees SET current_city='capitale' WHERE name='Fixture'")
   q.execute("SELECT has_table_privilege('authenticated','terrain_visites_actives','INSERT'),has_function_privilege('authenticated','terrain_occupation_tirer_interne()','EXECUTE'),has_function_privilege('anon','terrain_occupation_lire(text)','EXECUTE')");check(q.fetchone()==(False,False,False))
@@ -68,6 +69,17 @@ def main():
   q.execute("UPDATE terrains_etat SET data='{\"city\":\"capitale\",\"occupationInitialisee\":true,\"pnj\":null}'")
   avant=lire();check(appel()['etat']==avant)
   q.execute('DELETE FROM terrain_visites_actives');check(appel()['etat']!=avant)
+  # Changement de ville seul : il clot aussi la visite.
+  q.execute("UPDATE personnages_donnees SET current_city='autre' WHERE name='Fixture'")
+  q.execute('SELECT count(*) FROM terrain_visites_actives');check(q.fetchone()[0]==0)
+  # Parcelle jamais visitee : creation sous autorite du referentiel declare, sans ecraser l'existant.
+  q.execute("UPDATE personnages_donnees SET current_city='capitale',current_building='terrain-a-batir-2' WHERE name='Fixture'")
+  q.execute("SELECT terrain_occupation_lire('terrain-a-batir-2')");r=q.fetchone()[0];check(r['ok'])
+  check(r['etat']['surface']==2300 and r['etat']['valeur_totale']==27600)
+  q.execute("INSERT INTO terrains_referentiel VALUES('republic','capitale','terrain-a-batir-fixture-sans-valeurs',NULL,NULL)")
+  q.execute("UPDATE personnages_donnees SET current_building='terrain-a-batir-fixture-sans-valeurs' WHERE name='Fixture'")
+  q.execute("SELECT terrain_occupation_lire('terrain-a-batir-fixture-sans-valeurs')");r=q.fetchone()[0];check(r['ok']);check('surface' not in r['etat'] and 'valeur_totale' not in r['etat'])
+  q.execute("SELECT data::jsonb->>'pnj' FROM terrains_etat WHERE id='republic_terrain-a-batir-1'");check(q.fetchone()[0]=='cadavre')
   print(json.dumps({'ok':True,'assertions':n,'production':False,'identite':'simulee'}))
  finally:srv.cleanup()
 if __name__=='__main__':main()
