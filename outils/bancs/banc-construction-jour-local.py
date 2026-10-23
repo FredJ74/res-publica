@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 R=Path(__file__).resolve().parents[2]
 def fn(f,nom):
  s=(R/f).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',s[a:],re.S);return s[a:a+m.end()]
-def main():
+def main(apres=None):
  import pgserver,psycopg2
  from psycopg2.extras import Json
  server=pgserver.get_server(tempfile.mkdtemp(prefix='hg-construction-jour-'),cleanup_mode='delete');n=0
@@ -180,6 +180,7 @@ def main():
     c.execute('UPDATE personnages_donnees SET country=%s',(pays,));avant=photo()
     r=q("SELECT terrain_chantier_acte('plan-projet','chantier_accelerer')")
     ok(r.get('raison')=='delai_incompressible' and photo()==avant,'delai incompressible avant mutation dans '+pays)
+   if apres:apres(db,server)
   print(f'{n}/{n} assertions, PostgreSQL jetable ; authentification et notifications de fixture, aucun acces production.')
  finally:server.cleanup()
 if __name__=='__main__':main()

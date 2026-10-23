@@ -13005,47 +13005,19 @@ async function doTravaillerChantier(pa, cost) {
 }
 
 async function confirmerTravailChantier() {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Travailler ici')) return;
-  const ts = getTerrainState(id);
-  const ch = ts.chantier;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (!ch) { showToast('Aucun chantier', '', false); return; }
-
-  const voulues = parseInt(document.getElementById('chantier-heures')?.value || 0);
-  if (voulues <= 0) { showToast('Impossible', "Indiquez un nombre d'heures.", false); return; }
-
-  // CHANTIER C (14 septembre 2026). Les PA demandes sont un NOMBRE D'HEURES choisi par le joueur :
-  // l'ordre travailler_chantier declare 0 PA, payer_ordre refusait donc ('cout_non_declare') et
-  // travailler sur un chantier etait impossible en production. Le navigateur bornait en outre
-  // lui-meme les heures, puis se creditait le salaire.
-  // chantier_travailler recalcule les QUATRE bornes du jeu : heures demandees, heures encore
-  // utiles (capacite du jour ramenee a la fraction de materiaux reellement en stock, moins ce qui
-  // est deja fait), PA reels, et ce que la tresorerie peut payer. Puis il preleve les PA et verse
-  // le salaire dans la meme transaction.
-  const rTravail = await sbRpc('chantier_travailler', {
-    p_acteur: state.char?.name, p_pays: state.country, p_batiment: id, p_heures: voulues
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
-  if (!rTravail || rTravail.ok !== true) {
-    const messages = {
-      chantier_absent: "Aucun chantier en cours ici.",
-      aucune_heure_travaillable: "Aucune heure ne peut être travaillée maintenant.",
-      type_non_couvert: "Ce type de chantier n'accepte pas encore le travail à l'heure.",
-      terrain_gele: 'Ce terrain est gelé par une succession.'
-    };
-    showToast('Impossible', messages[(rTravail && rTravail.raison) || ''] || '', false);
-    return;
+  const contexte = contexteNavigationRue();
+  const heures = document.getElementById('chantier-heures')?.value?.trim();
+  if (!/^[1-9][0-9]*$/.test(heures || '')) {
+    showToast('Impossible', "Indiquez un nombre entier d'heures.", false); return;
   }
-  state.pa = rTravail.pa; state.arg = rTravail.arg; state.liquide = rTravail.liquide;
-  if (state.char) state.char.arg = state.arg;
-  setTerrainState(id, { chantier: rTravail.chantier });
-  const res = { heures: rTravail.heures, montant: Number(rTravail.montant) };
-
+  const r = await constructionExecuterCommande('travailler', { heures });
+  if (!r || !contexteNavigationRueValide(contexte)) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  showToast('Journée de travail', '+' + res.montant.toLocaleString('fr-FR') + ' ' + cur + ' pour ' + res.heures + ' heure(s).', true, true);
-  addJournalEntry('Vous avez travaillé ' + res.heures + ' heure(s) sur un chantier. +'
-    + res.montant.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  showToast('Journée de travail', '+' + Number(r.montant).toLocaleString('fr-FR') + ' ' + cur
+    + ' de salaire confirmé par le serveur.', true, true);
+  addJournalEntry('Travail sur le chantier : ' + Number(r.montant).toLocaleString('fr-FR')
+    + ' ' + cur + ' confirmés.', 'event-good');
 }
 
 // VENTE DE MATERIAUX AU CHANTIER (Lot 1.5.10)
