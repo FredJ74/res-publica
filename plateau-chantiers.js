@@ -906,10 +906,12 @@ function appliquerVerrouPlan(chantier, jour) {
 // Verdict unique sur la modification du plan initial. Ne connait ni proprietaire ni PA : la
 // propriete est verifiee par l'appelant, avec le mecanisme existant (estTitulaire).
 function verdictModificationPlan(chantier) {
-  if (!chantier) return { ok: false, raison: 'chantier_absent' };
-  if (chantierTermine(chantier)) return { ok: false, raison: 'chantier_livre' };
-  if (planEstVerrouille(chantier)) return { ok: false, raison: 'plan_verrouille' };
-  return { ok: true, raison: null };
+  if (!chantier) return { ok:false, raison:'chantier_absent' };
+  if (chantier.livre===true || chantier.planInitialValide===true) return { ok:false, raison:'plan_initial_valide' };
+  const duree=nombreFini(chantier.dureeJours,0),progression=nombreFini(chantier.progressionJours,0);
+  if(duree<=0||progression<duree*2/3)return {ok:false,raison:'dernier_tiers_requis'};
+  // L'ancien drapeau automatique planVerrouille ne vaut pas validation du premier plan.
+  return {ok:true,raison:null};
 }
 
 // ---------------------------------------------------------------------------
@@ -1133,3 +1135,25 @@ function lotConcerneParReamenagement(chantier, lotId) {
 // une seconde implementation donnerait deux facons de livrer un batiment pour aucun usage reel.
 // Seule la traduction du plan en lots, elle, est ecrite des deux cotes et verrouillee par un test
 // d'egalite : c'est la partie ou une divergence produirait des lots differents selon l'endroit.
+
+// #57 : montants en francs entiers, compatibles avec les circuits financiers existants.
+// Aucune conversion de solde ni unite centime. Ces projections n'autorisent aucun debit client.
+function constructionFrancsEntiers(valeur) {
+  if (typeof valeur === 'string') {
+    if (!/^(0|[1-9][0-9]*)$/.test(valeur)) throw new Error('francs_entiers_requis');
+    valeur = Number(valeur);
+  }
+  if (!Number.isSafeInteger(valeur) || valeur < 0) throw new Error('francs_entiers_requis');
+  return valeur;
+}
+function repartitionFinancementChantier(montant,banque,liquide){
+  const m=constructionFrancsEntiers(montant),b=constructionFrancsEntiers(banque),l=constructionFrancsEntiers(liquide);
+  if(b<m && l<m-b)return {ok:false,banque:0,liquide:0};
+  const partBanque=Math.min(b,m);
+  return {ok:true,banque:partBanque,liquide:m-partBanque};
+}
+function prixAchatMateriauChantier(prixEntrepot){
+  const p=constructionFrancsEntiers(prixEntrepot);
+  // p + ceil(p/10) = ceil(p * 110/100), sans multiplication flottante (100*1.1 > 110 en JS).
+  return constructionFrancsEntiers(p+Math.ceil(p/10));
+}
