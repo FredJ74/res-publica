@@ -13,9 +13,9 @@ def suite(db,server):
   nonlocal n
   assert v,t;n+=1;print('OK lots',t,flush=True)
  c.execute(m.fn('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','terrain_lots_acte'))
- sql=(R/'migrations/20261023085000_terrain_lots_miroirs_attestes.sql').read_text();c.execute(sql);c.execute(sql)
+ sql=(R/'migrations/20261023090012_terrain_lots_miroirs_attestes.sql').read_text();c.execute(sql);c.execute(sql)
  c.execute(m.fn('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','terrain_reamenagement_poser'))
- garde=(R/'migrations/20261023085001_terrain_reamenagement_legacy_ferme.sql').read_text();c.execute(garde);c.execute(garde)
+ garde=(R/'migrations/20261023090013_terrain_reamenagement_legacy_ferme.sql').read_text();c.execute(garde);c.execute(garde)
  ok(q("SELECT terrain_reamenagement_poser('inconnu','{\"coutTotal\":0,\"progressionJours\":999}')")['raison']=='commande_versionnee_requise','ancienne pose ne forge ni cout ni progression')
  c.execute("SET test.acteur='Alice';UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='immeuble',hp=100;UPDATE organisations SET data='{\"chef\":\"Chef\",\"caisse\":1000}'")
  lots=[{'id':'a','surface':600,'destination':'commerce','label':'Local A','loyer':123,'locataire':None,'identite':'historique'}, {'id':'b','surface':600,'destination':'commerce','label':'Local B','loyer':234,'locataire':'Autre'}]

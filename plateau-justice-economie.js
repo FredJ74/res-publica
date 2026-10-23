@@ -3470,12 +3470,18 @@ function getLocationPourRoom(buildingId, roomId, city = state.currentCity) {
 
 // Charge toutes les locations actives depuis Supabase au demarrage (remplace l'ancien
 // state.locationsActives purement local, perdu au rafraichissement).
+let _locationsLectureGeneration=0;
 async function chargerLocations() {
-  if (typeof sbLoadLocations !== 'function') return;
+  const lecture=++_locationsLectureGeneration,personnage=state.char,session=typeof rpAuthSessionIdentifiant==='function'?rpAuthSessionIdentifiant():null;
+  const pays=state.country,nom=state.char?.name,uid=typeof rpAuthUid==='function'?rpAuthUid():null;
+  if (typeof sbGetVerdict !== 'function') return false;
   try {
-    const locations = await sbLoadLocations(state.country);
-    state.locationsActives = locations;
-  } catch (e) { console.warn('chargerLocations error', e); }
+    const v=await sbGetVerdict('locations_actives', 'country=eq.'+encodeURIComponent(pays));
+    if (lecture!==_locationsLectureGeneration || personnage!==state.char || pays!==state.country || nom!==state.char?.name || uid!==(typeof rpAuthUid==='function'?rpAuthUid():null) || session!==(typeof rpAuthSessionIdentifiant==='function'?rpAuthSessionIdentifiant():null)) return false;
+    if (!v?.ok || !Array.isArray(v.donnees) || v.donnees.some(r=>!r?.data || typeof r.data!=='object' || Array.isArray(r.data))) return false;
+    state.locationsActives=v.donnees.map(r=>r.data);
+    return true;
+  } catch (_) { return false; }
 }
 
 // Persistance d'UNE entree de state.locationsActives (Lot 1.0, 6 septembre 2026) -- point unique
@@ -7590,58 +7596,14 @@ async function doOuvrirLouerLot(pa, cost) {
 }
 
 async function doLouerCeLot(lotId, pa, cost) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Louer ce lot')) return;
-  const ts = getTerrainState(id);
-  const subdivisions = ts.subdivisions || [];
-  const lot = subdivisions.find(function(l) { return l.id === lotId; });
-  if (!lot || lotEstLoue(id, lot)) { showToast('Indisponible', 'Ce lot vient d\'être loué par quelqu\'un d\'autre.', false); return; }
-
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (state.arg < lot.loyer) {
-    showToast('Fonds insuffisants', lot.loyer + ' ' + cur + ' requis pour le premier loyer.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // Lot 1.3 : le bail est la source unique. Prise ATOMIQUE avant tout debit -- c'est la cle
-  // primaire de locations_actives qui arbitre cote Postgres, donc deux joueurs signant en meme
-  // temps ne peuvent pas obtenir le meme local (sbClaimerLocation, supabase.js). L'ancien test
-  // "lot.locataire est vide" ne protegeait de rien : les deux clients lisaient "libre".
-  const bail = construireBailLot(id, lot, state.currentCity, state.country);
-  const obtenu = (typeof sbClaimerLocation === 'function') ? await sbClaimerLocation(bail).catch(function() { return false; }) : false;
-  if (!obtenu) {
-    showToast('Indisponible', 'Ce lot vient d\'être loué par quelqu\'un d\'autre.', false);
-    return;
-  }
-  if (!state.locationsActives) state.locationsActives = [];
-  state.locationsActives.push(bail);
-
-  state.arg -= lot.loyer;
-
-  // Miroir transitoire vers subdivision.locataire : n'est PLUS la verite metier (plus aucun
-  // lecteur client ne s'en sert), mais preleverLoyersLots (api/cron-minuit.js, Lot 1.4) preleve
-  // encore les loyers de lots depuis ce champ. Le retirer maintenant arreterait les loyers.
-  lot.locataire = state.char?.name;
-  // LE MIROIR NE REECRIT PLUS TOUT LE DECOUPAGE (10 octobre 2026). Le bail lui-meme est deja pris
-  // atomiquement (`sbClaimerLocation`, cle primaire de `locations_actives`) : ce qui suit n'est que
-  // le champ que le cron des loyers lit encore. Il est desormais pose LOT PAR LOT, et le serveur
-  // verifie que le locataire inscrit est bien l'appelant. Un echec ici ne remet pas le bail en
-  // cause -- il est deja signe -- mais il est NOMME, parce qu'il ferait perdre le loyer.
-  const vBail = await sbTerrainActe('terrain_lots_acte', {
-    p_terrain_id: id, p_acte: 'lot_louer', p_lots: [lot]
-  });
-  if (!vBail || vBail.ok !== true) {
-    signalerRefusTerrain(vBail, "L'inscription du locataire au plan");
-  } else {
-    remplacerTerrainState(id, vBail.etat);
-  }
-
-  document.getElementById('modal-postes').classList.remove('open');
+  const contexte=contexteNavigationRue();
+  const r=await constructionExecuterCommande('louer',{lot:lotId});
+  if (!r || !contexteNavigationRueValide(contexte)) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof rafraichirPiecesDynamiques==='function') rafraichirPiecesDynamiques(state.currentBuilding);
   updateUI();
-  showToast('Bail signé !', lot.label + ' loué. -' + lot.loyer + ' ' + cur + '/jour.', true, true);
-  addJournalEntry('Location signée : ' + lot.label + ' (' + (BUILDINGS[id]?.shortName || id) + '). -' + lot.loyer + ' ' + cur + '/jour.', 'event-good');
+  showToast('Bail signé', 'Le bail, le premier loyer et les PA ont été confirmés par le serveur.', true, true);
+  addJournalEntry('Location du lot confirmée par le serveur.', 'event-good');
 }
 
 async function doGererLotLoue() {

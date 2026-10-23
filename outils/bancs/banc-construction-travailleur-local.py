@@ -14,7 +14,7 @@ def suite(db,server):
  def ok(v,t):
   nonlocal n
   assert v,t;n+=1;print('OK travailleur',t)
- sql=(R/'migrations/20261023083000_chantier_travailleur_et_client.sql').read_text();c.execute(sql);c.execute(sql)
+ sql=(R/'migrations/20261023090008_chantier_travailleur_et_client.sql').read_text();c.execute(sql);c.execute(sql)
  c.execute("UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='tiers',pa=50;SET test.acteur='Alice';SET test.serveur='off'")
  c.execute("UPDATE organisations SET data='{\"chef\":\"Chef\",\"caisse\":60000}'")
  etat={'city':'capitale','proprietaire':'orga:orga','surface':777,'chantier':{'type':'construction','niveau':'hangar','dureeJours':6,'coutTotal':30000,'coutTravail':21000,'totalVerse':30000,'tresorerie':10000,'progressionJours':0,'heuresFaites':0,'stockMateriaux':{'bois':1000,'minerai':1000,'metal':1000}}}

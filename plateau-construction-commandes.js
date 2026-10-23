@@ -44,6 +44,11 @@ async function constructionExecuterCommande(action,parametres={}){
     if(!finance){showToast('Commande acquise','La relecture financière reste à confirmer. L’intention de reprise est conservée.',true);return null;}
     if(!contexteNavigationRueValide(contexte))return null;
     if(typeof finance.pa==='number'){state.pa=finance.pa;state.char.pa=finance.pa;}
+    if(action==='louer') {
+      const locations=typeof chargerLocations==='function'?await chargerLocations():false;
+      if(!contexteNavigationRueValide(contexte))return null;
+      if(!locations){showToast('Bail confirmé','La relecture du bail reste à confirmer. L’intention de reprise est conservée.',true);return null;}
+    }
     sessionStorage.removeItem(cle);updateUI();return r;
   }finally{constructionCommandeEnCours=false;}
 }
@@ -60,7 +65,7 @@ async function constructionReconcilierCommandes(buildingId){
   if(constructionRepriseEnCours||constructionCommandeEnCours||buildingId!==state.currentBuilding)return;
   const c=contexteNavigationRue();constructionRepriseEnCours=true;
   try{
-    for(const action of ['lancer','verser','receptionner','plan','travailler','prix','reamenager']){
+    for(const action of ['lancer','verser','receptionner','plan','travailler','prix','reamenager','louer']){
       const cle=constructionCleCommande(action,buildingId,c);
       let i;try{i=JSON.parse(sessionStorage.getItem(cle)||'null');}catch(_){continue;}
       if(!i?.requete)continue;
@@ -70,6 +75,10 @@ async function constructionReconcilierCommandes(buildingId){
         const finance=typeof rafraichirRuntimeHelvetia==='function'?await rafraichirRuntimeHelvetia({exigerComptes:true}):null;
         if(!finance||!contexteNavigationRueValide(c))return;
         if(typeof finance.pa==='number'){state.pa=finance.pa;state.char.pa=finance.pa;}
+        if(action==='louer') {
+          const locations=typeof chargerLocations==='function'?await chargerLocations():false;
+          if(!contexteNavigationRueValide(c)||!locations)return;
+        }
         sessionStorage.removeItem(cle);
       }
       // Absence non concluante : une autre transaction peut etre encore en cours. Garder l'intention.
