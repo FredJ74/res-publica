@@ -33,4 +33,11 @@ AND tablename IN('terrains_etat','dossiers_urbanisme','objets_recus','locations_
 SELECT t.tgrelid::regclass,pg_get_triggerdef(t.oid) FROM pg_trigger t WHERE NOT t.tgisinternal AND t.tgrelid IN
  (to_regclass('public.terrains_etat'),to_regclass('public.dossiers_urbanisme'),to_regclass('public.objets_recus'),
  to_regclass('public.locations_actives'),to_regclass('public.personnages_donnees'));
+-- Comptage anonyme des superficies persistantes ; ne pas confondre absence du code et absence en base.
+WITH terrains AS (
+ SELECT country,public.terrain_etat_lire(data) AS etat FROM public.terrains_etat WHERE building_id LIKE 'terrain-a-batir%'
+)
+SELECT country,etat->>'city' AS ville,count(*) AS terrains_persistants,
+ count(*) FILTER(WHERE CASE WHEN jsonb_typeof(etat->'surface')='number' THEN (etat->>'surface')::numeric>0 ELSE false END) AS superficies_positives
+FROM terrains GROUP BY country,etat->>'city';
 ROLLBACK;

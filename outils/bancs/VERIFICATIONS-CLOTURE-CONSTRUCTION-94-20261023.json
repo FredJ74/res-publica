@@ -1,0 +1,199 @@
+{
+  "date_utc": "2026-10-23T09:38:07.895922+00:00",
+  "verdict": "CHANTIER NON TERMINE",
+  "production": {
+    "migrations_appliquees": [],
+    "donnees_joueurs_modifiees": false,
+    "tests_authentifies": false,
+    "deploiement_verifie": false,
+    "fusion_main": false
+  },
+  "source_jeu_testee": "38de5ded9c324915c7da4261ca63200cc6b4f6db",
+  "main_integre": "33910beea744d8d17423e204f0ddf426cabddcdc",
+  "client": {
+    "lots": {
+      "reussis": 96,
+      "total": 96
+    },
+    "urbanisme": {
+      "reussis": 94,
+      "total": 94
+    },
+    "occupation": {
+      "reussis": 93,
+      "total": 93
+    }
+  },
+  "contre_epreuves": {
+    "lots": {
+      "reussies": 90,
+      "total": 90
+    },
+    "urbanisme": {
+      "reussies": 91,
+      "total": 91,
+      "avant_integration_journal_ventes": true
+    }
+  },
+  "postgresql_jetable": [
+    {
+      "banc": "test-prevol-arnie-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-achat-commerce-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-restaurant-luthecia-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reservation-republica-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-offrir-boire-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reception-atomique-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-assemblage-electronique-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-jodie-publications-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-commandes-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-membres-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-evenements-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-coherence-rues-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-equipements-collectifs-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-fontaine-110-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-placement-national-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-construction-jour-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-construction-materiaux-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reamenagement-materiaux-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-construction-travailleur-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reamenagement-transactionnel-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-lots-miroirs-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-location-lot-transactionnelle-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reamenagement-budget-local.py",
+      "code": 1
+    },
+    {
+      "banc": "banc-journal-ventes-local.py",
+      "code": 0
+    }
+  ],
+  "cas_budget_rouge": {
+    "controle": "financement_100m2",
+    "coutAnnonce": 1000,
+    "avance": 0.9,
+    "tresorerie": 65,
+    "evenements": [
+      {
+        "cle": "lancement",
+        "coutTotal": 1000,
+        "dureeJours": 1,
+        "surfaceConcernee": 100
+      },
+      {
+        "cle": "journee",
+        "date": "2026-10-23",
+        "achats": {
+          "bois": 20,
+          "metal": 7,
+          "minerai": 10
+        },
+        "avance": 0.9,
+        "coutPNJ": 630,
+        "heuresPNJ": 9
+      }
+    ],
+    "production": false
+  },
+  "pilote_fixtures": {
+    "reussis": 69,
+    "total": 69,
+    "authentification_reelle": false
+  },
+  "calendriers": {
+    "reussis": 11,
+    "total": 11
+  },
+  "globaux": {
+    "scope": "codex/lots-reamenagement-94-20261023",
+    "reussis": 10,
+    "total": 12,
+    "echecs": [
+      "Authority",
+      "Referential"
+    ],
+    "authority": {
+      "signatures_inconnues_migrations": 1,
+      "rpc_non_attestees_baseline": 33
+    },
+    "referential": [
+      "ordres_couts",
+      "postes_nommes_regles",
+      "miroirs_entreprises"
+    ],
+    "baseline_modifie": false
+  },
+  "pr_creation": "refusee par API GitHub GraphQL : Forbidden",
+  "limites": [
+    "Identite, calendrier et certains services annexes de fixtures ; aucun compte de joueur reel utilise.",
+    "Le catalogue Supabase vivant reste inaccessible ; les observations historiques ne valent pas prevol actuel.",
+    "Barème de resistance des squatteurs et regle de depassement du budget en attente.",
+    "Conditions du pret immobilier non definies par issue 65.",
+    "Occupation/police/combat, vols/securite, exploitation complete des fonds et certains titres restent a terminer."
+  ]
+}
