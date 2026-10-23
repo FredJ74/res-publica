@@ -4462,6 +4462,34 @@ function renderRoomActions(room, buildingId, roomId) {
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
+  // #57 — groupes de commandes des cinq terrains, sans fabriquer de nouveaux handlers.
+  if (/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain') {
+    const groupesTerrain = [
+      { titre: 'Achat de terrains', fns: ['acheter_terrain','signer_compromis','racheter_terrain'] },
+      { titre: 'Gestion des intrus', fns: ['negocier_squatteurs','appeler_police_terrain','faire_disparaitre_cadavre'] },
+      { titre: 'Démarrage du chantier', fns: ['construire_sur_terrain','emprunter_construction'] },
+      { titre: 'Information et approvisionnement du chantier', fns: ['payer_versement_chantier','vendre_materiaux_chantier','donner_materiaux_chantier','prix_chantier'] },
+      { titre: 'Travail et division des lots', fns: ['travailler_chantier','modifier_plan_chantier','diviser_construction'] },
+      { titre: 'Fin du chantier', fns: ['receptionner_chantier'] },
+      { titre: 'Information et réorganisation des locaux', fns: ['reconfigurer_lots','gerer_lot_loue','gerer_fonds_commerce'] }
+    ];
+    window._terrainOrdresGroupes = {};
+    const deja = new Set();
+    const grouped = groupesTerrain.map((g, index) => {
+      const entries = ordresTerrainLuthecia.map((o, i) => ({ o, html: buttons[i] }))
+        .filter(x => g.fns.includes(x.o.fn));
+      if (!entries.length) return '';
+      entries.forEach(e => deja.add(e.o.fn));
+      window._terrainOrdresGroupes[index] = { titre: g.titre, entries };
+      return '<button class="action-btn legal" onclick="ouvrirMenuOrdresTerrain(' + index +
+        ')" title="' + g.titre + '"><i class="ti ti-layout-list"></i> ' +
+        g.titre + ' <span class="pa-cost">▾</span></button>';
+    });
+    const autres = ordresTerrainLuthecia.map((o, i) => ({ o, html: buttons[i] }))
+      .filter(x => !deja.has(x.o.fn)).map(x => x.html);
+    buttons.splice(0, buttons.length, ...grouped.filter(Boolean), ...autres);
+  }
+
   // Redactions de La Tribune : trois menus, sans changer les ordres ni leurs handlers.
   const redactionTribune = state.country === 'republic' &&
     ((buildingId === 'la-tribune' && roomId === 'redaction' && state.currentCity === 'capitale') ||
@@ -4499,6 +4527,17 @@ function renderRoomActions(room, buildingId, roomId) {
 
   document.getElementById('actions-row-bat').innerHTML = buttons.join('') ||
     '<div style="font-size:.75rem;color:#9a8a68;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
+}
+
+function ouvrirMenuOrdresTerrain(index) {
+  const groupe = window._terrainOrdresGroupes?.[index];
+  if (!groupe) return;
+  document.getElementById('postes-modal-title').textContent = groupe.titre;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="display:grid;gap:.8rem;padding:1rem">' +
+    groupe.entries.map(e => '<div style="padding:.7rem;border:1px solid #5b4825;border-radius:8px">' + e.html + '</div>').join('') +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 function ouvrirMenuOrdresTribune(index) {
