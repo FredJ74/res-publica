@@ -94,7 +94,7 @@ att('un verdict absent est dit comme une panne de transport, pas comme un refus 
 print('');
 print('3. LES VINGT-DEUX ECRITURES PASSENT PAR HUIT PORTES, UNE PAR MECANISME');
 var ACTES = {
-  'terrain_compromis_acte': 6, 'terrain_permis_acte': 5, 'terrain_chantier_acte': 2,
+  'terrain_compromis_acte': 6, 'terrain_permis_acte': 4, 'terrain_chantier_acte': 2,
   'terrain_lots_acte': 6, 'terrain_reamenagement_poser': 1
 };
 var totalPortes = 0;
@@ -110,7 +110,7 @@ att('terrain_succession_geler : 1 appel',
 att('terrain_succession_annuler_compromis : 1 appel',
     partout(/sbRpc\('terrain_succession_annuler_compromis'/g) === 1);
 att('soit VINGT-DEUX ecritures routees, le compte exact du releve',
-    totalPortes + 2 === 22, (totalPortes + 2) + ' routee(s)');
+    totalPortes + 3 === 22, (totalPortes + 3) + ' routee(s)');
 
 // CHAQUE APPEL LIT SON VERDICT, ET AUCUN NE L'AVALE. Cette epreuve manquait : une contre-epreuve
 // qui supprimait la lecture du verdict du transfert de compromis laissait ce banc VERT. Un banc
@@ -137,7 +137,7 @@ print('4. LES SEIZE ACTES SONT NOMMES, ET AUCUN AUTRE');
 var ACTES_NOMMES = [
   'compromis_signer', 'compromis_pret_demander', 'compromis_transfert_proposer',
   'compromis_transfert_accepter', 'achat_direct_deposer', 'achat_direct_accelerer',
-  'permis_deposer', 'permis_prevenir_maire', 'permis_decider', 'permis_accelerer',
+  'permis_prevenir_maire', 'permis_decider', 'permis_accelerer',
   'permis_plan_modifier', 'chantier_accelerer', 'chantier_materiaux_voler',
   'lot_ajouter', 'lot_fusion_proposer', 'lot_fusion_accepter', 'lot_fusion_refuser',
   'lot_louer', 'lot_bail_libere'
@@ -149,6 +149,13 @@ att('les dix-neuf actes des quatre portes a liste close sont tous appeles',
     manquants.length === 0, 'manquants : ' + manquants.join(', '));
 
 print('');
+var bDepot = sansCommentaires(bloc('plateau-justice-economie.js', 'confirmerDepotPermis'));
+att('le depot versionne remplace la porte historique, sans paiement ou archive separes',
+    bDepot.indexOf("sbRpcVerdict('terrain_permis_deposer'") >= 0
+    && bDepot.indexOf('r.ok !== true') >= 0
+    && bDepot.indexOf('deduireCoutOrdre(') < 0
+    && bDepot.indexOf('emettreDocumentUrbanisme(') < 0
+    && bDepot.indexOf("p_acte: 'permis_deposer'") < 0);
 print('5. PLUS AUCUN SITE N ENVOIE L ETAT ENTIER');
 // Les trois pires envoyaient `ts` ou `etat`, l'objet du cache -- dans la ligne que le cron fait
 // avancer chaque nuit.
