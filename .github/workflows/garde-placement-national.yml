@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'outils/migrations/20261022_placement_national_idempotent.sql'
+      - 'migrations/20261022211000_placement_national_idempotent.sql'
       - 'outils/bancs/banc-placement-national-local.py'
       - 'outils/bancs/test-placement-national-securise.mjs'
       - 'supabase.js'
