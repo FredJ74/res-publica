@@ -14,18 +14,19 @@ function journalVentesPeindre(){
  }
 }
 async function chargerJournalVentes(acquitter=false){
- if(!state.char?.name||typeof rpAuthUid!=='function'||!rpAuthUid())return;
- if(journalVentesLecture){await journalVentesLecture;if(acquitter)return chargerJournalVentes(true);return;}
+ if(!state.char?.name||typeof rpAuthUid!=='function'||!rpAuthUid())return false;
+ if(journalVentesLecture){await journalVentesLecture;if(acquitter)return chargerJournalVentes(true);return false;}
  const identite=journalVentesIdentite();
  const operation=(async()=>{
   const r=await sbRpcVerdict('journal_ventes_lire',{p_acquitter:acquitter}).catch(()=>null);
-  if(identite!==journalVentesIdentite())return;
-  if(!r?.ok){if(acquitter&&typeof showToast==='function')showToast('Journal des ventes indisponible','La lecture et son acquittement ne sont pas confirmés. Réessayez.',false);return;}
+  if(identite!==journalVentesIdentite())return false;
+  if(!r?.ok){if(acquitter&&typeof showToast==='function')showToast('Journal des ventes indisponible','La lecture et son acquittement ne sont pas confirmés. Réessayez.',false);return false;}
   journalVentesContexte=identite;journalVentesEvenements=r.evenements||[];journalVentesPeindre();
   if(r.nonLues>0&&typeof signalerEvenementJournal==='function')signalerEvenementJournal();
+  return acquitter && r.nonLues===0;
  })();
  journalVentesLecture=operation;
- try{await operation;}finally{if(journalVentesLecture===operation)journalVentesLecture=null;}
+ try{return await operation;}finally{if(journalVentesLecture===operation)journalVentesLecture=null;}
 }
 function initialiserJournalVentes(){
  journalVentesPeindre();
