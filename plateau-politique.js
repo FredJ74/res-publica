@@ -4105,7 +4105,44 @@ function renderRoomActions(room, buildingId, roomId) {
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
     .concat(dynOrders);
 
-  const buttons = allOrders.map(o => {
+  // Issue #57 — liste contextuelle des cinq terrains de la Chataigneraie.
+  // On conserve les handlers existants jusqu'a l'integration du moteur #114.
+  // Ce filtre est purement visuel : les controles serveur restent obligatoires.
+  const ordresTerrainLuthecia = (() => {
+    if (!/^terrain-a-batir-[1-5]$/.test(buildingId) || roomId !== 'terrain' ||
+        typeof getTerrainState !== 'function') return allOrders;
+    const ts = getTerrainState(buildingId);
+    const proprietaire = ts?.proprietaire;
+    const chantier = ts?.chantier;
+    const livre = !!ts?.niveau_construction && !chantier;
+    const avantAcquisition = !proprietaire && !chantier && !livre;
+    const fnAvant = new Set(['acheter_terrain','signer_compromis','racheter_terrain',
+      'negocier_squatteurs','appeler_police_terrain','faire_disparaitre_cadavre']);
+    const fnApresAchat = new Set(['construire_sur_terrain','emprunter_construction']);
+    const fnChantier = new Set(['payer_versement_chantier','travailler_chantier',
+      'vendre_materiaux_chantier','modifier_plan_chantier','diviser_construction']);
+    const fnLivre = new Set(['reconfigurer_lots','gerer_lot_loue','gerer_fonds_commerce']);
+    return allOrders.filter(o => {
+      if (avantAcquisition) {
+        if (!fnAvant.has(o.fn)) return false;
+        if (o.fn === 'racheter_terrain') return false;
+        // Les intrus ne sont visibles que lorsque leur situation est connue.
+        if (o.fn === 'negocier_squatteurs' || o.fn === 'faire_disparaitre_cadavre') {
+          return typeof terrainOrdreDisponible === 'function' &&
+            terrainOrdreDisponible(o.fn, buildingId).ok;
+        }
+        return true;
+      }
+      if (livre) return fnLivre.has(o.fn);
+      if (chantier) return fnChantier.has(o.fn);
+      if (proprietaire) return fnApresAchat.has(o.fn) ||
+        (o.fn === 'racheter_terrain' && !(
+          typeof estTitulaire === 'function' && estTitulaire(proprietaire)));
+      return false;
+    });
+  })();
+
+  const buttons = ordresTerrainLuthecia.map(o => {
     // Verifier requiresPost : doit avoir le bon poste specifique
     let needsPost = false;
     if (o.requiresPost) {
