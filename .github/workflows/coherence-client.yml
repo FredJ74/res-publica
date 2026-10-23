@@ -75,6 +75,8 @@ jobs:
         run: python3 outils/bancs/banc-permis-depot-local.py
       - name: Documents et decisions urbanisme sur PostgreSQL local
         run: python3 outils/bancs/banc-urbanisme-documents-local.py --construction114
+      - name: Journal des ventes prive, PostgreSQL jetable
+        run: python3 outils/bancs/banc-journal-ventes-local.py
       - name: Conserver les résultats des bancs
         if: always()
         uses: actions/upload-artifact@v4
