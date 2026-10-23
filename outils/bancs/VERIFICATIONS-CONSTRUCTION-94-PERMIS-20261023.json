@@ -1,0 +1,100 @@
+{
+  "branche": "codex/construction-permis-94-20261023",
+  "base_main": "0bfca65",
+  "client": {
+    "reussis": 92,
+    "total": 92
+  },
+  "contre_epreuves": {
+    "reussis": 91,
+    "total": 91
+  },
+  "permis_postgresql": {
+    "assertions": 56,
+    "identite": "simulee",
+    "base": "jetable locale"
+  },
+  "permis_client": {
+    "tests": 8,
+    "transport": "simule"
+  },
+  "postgresql_workflow": [
+    {
+      "banc": "test-prevol-arnie-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-achat-commerce-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-restaurant-luthecia-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reservation-republica-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-offrir-boire-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reception-atomique-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-assemblage-electronique-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-jodie-publications-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-commandes-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-membres-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-evenements-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-coherence-rues-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-equipements-collectifs-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-placement-national-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-permis-depot-local.py",
+      "code": 0
+    }
+  ],
+  "tests_node_calendrier_placements": 11,
+  "syntaxe_api": 23,
+  "controles_globaux": {
+    "reussis": 9,
+    "total": 12,
+    "echecs": [
+      "Workflow : SQL bancaire hors rangement",
+      "Authority : RPC absentes de la photographie",
+      "Referential : trois derives historiques"
+    ]
+  },
+  "supabase_vivant": "non verifie : CONNECT 403",
+  "pr": "creation refusee par API GitHub",
+  "fusion": false,
+  "migration_appliquee": false,
+  "donnees_production_modifiees": false,
+  "chantier_global_termine": false
+}
