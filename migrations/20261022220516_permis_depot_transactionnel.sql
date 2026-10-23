@@ -133,7 +133,10 @@ BEGIN
  INSERT INTO public.permis_transactions_internes VALUES(txid_current(),identite);
  paiement:=public.payer_ordre(acteur,'deposer_demande_permis',1,100);
 
- IF paiement->>'ok' IS DISTINCT FROM 'true' THEN RETURN paiement; END IF;
+ IF paiement->>'ok' IS DISTINCT FROM 'true' THEN
+  DELETE FROM public.permis_transactions_internes WHERE transaction_id=txid_current();
+  RETURN paiement;
+ END IF;
  etat:=public.terrain_etat_fusionner_interne(pays||'_'||p_terrain,jsonb_build_object('permis',permis),pays);
  doc:=jsonb_build_object('id',reference,'nature','depot','numeroDossier',permis->>'numeroDossier',
   'jour',jour,'jourDepot',jour,'demandeur',acteur,'pays',pays,'ville',ville,
