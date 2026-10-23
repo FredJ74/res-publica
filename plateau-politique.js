@@ -4124,6 +4124,9 @@ function renderRoomActions(room, buildingId, roomId) {
       if (avantAcquisition) {
         if (!fnAvant.has(o.fn)) return false;
         if (o.fn === 'racheter_terrain') return false;
+        if (['acheter_terrain','signer_compromis'].includes(o.fn) &&
+            typeof terrainOrdreDisponible === 'function' &&
+            !terrainOrdreDisponible(o.fn, buildingId).ok) return false;
         if (o.fn === 'appeler_police_terrain') {
           return ['squatter_agr','squatter_cool','cadavre'].includes(ts?.pnj);
         }
