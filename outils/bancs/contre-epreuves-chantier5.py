@@ -391,11 +391,10 @@ REGRESSIONS_TERRAIN_JUSTICE = [
      "    p_patch: etat",
      "la decision du permis ne transmet que `permis`"),
 
-    ("terrain -- l'acceleration du chantier redevient calculee dans le navigateur",
-     "    p_terrain_id: id, p_acte: 'chantier_accelerer', p_jour: state.day || 1",
-     "    p_terrain_id: id, p_acte: 'chantier_accelerer', p_jour: state.day || 1,\n"
-     "    p_patch: { chantier: appliquerVerrouPlan(ch, state.day || 1) }",
-     "l'acceleration n'envoie ni progression, ni gain, ni duree"),
+    ("terrain -- l'acceleration interdite preleve quand meme PA et argent",
+     "  showToast('Délai incompressible',",
+     "  await deduireCoutOrdre({pa,cost});\n  showToast('Délai incompressible',",
+     "l'acceleration interdite ne preleve ni PA ni argent"),
 
     ("terrain -- le vol credite la quantite calculee ici, pas celle que le serveur a arretee",
      "    qte = Number(vVol.quantite) || 0;",
