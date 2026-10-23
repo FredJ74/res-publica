@@ -4105,7 +4105,56 @@ function renderRoomActions(room, buildingId, roomId) {
     .filter(o => !dynOrders.some(d => d.fn === o.fn))
     .concat(dynOrders);
 
-  const buttons = allOrders.map(o => {
+  // Issue #57 — liste contextuelle des cinq terrains de la Chataigneraie.
+  // On conserve les handlers existants jusqu'a l'integration du moteur #114.
+  // Ce filtre est purement visuel : les controles serveur restent obligatoires.
+  const ordresTerrainLuthecia = (() => {
+    if (!/^terrain-a-batir-[1-5]$/.test(buildingId) || roomId !== 'terrain' ||
+        typeof getTerrainState !== 'function') return allOrders;
+    const ts = getTerrainState(buildingId);
+    const proprietaire = ts?.proprietaire;
+    const chantier = ts?.chantier;
+    const livre = !!ts?.niveau_construction && !chantier;
+    const avantAcquisition = !proprietaire && !chantier && !livre;
+    const fnAvant = new Set(['acheter_terrain','signer_compromis','racheter_terrain',
+      'negocier_squatteurs','appeler_police_terrain','faire_disparaitre_cadavre']);
+    const fnApresAchat = new Set(['construire_sur_terrain','emprunter_construction']);
+    const fnChantier = new Set(['payer_versement_chantier','travailler_chantier',
+      'vendre_materiaux_chantier','donner_materiaux_chantier','prix_chantier',
+      'modifier_plan_chantier','diviser_construction','receptionner_chantier']);
+    const fnLivre = new Set(['reconfigurer_lots','gerer_lot_loue','gerer_fonds_commerce']);
+    return allOrders.filter(o => {
+      if (avantAcquisition) {
+        if (!fnAvant.has(o.fn)) return false;
+        if (o.fn === 'racheter_terrain') return false;
+        if (o.fn === 'appeler_police_terrain') {
+          return ['squatter_agr','squatter_cool','cadavre'].includes(ts?.pnj);
+        }
+        // Les intrus ne sont visibles que lorsque leur situation est connue.
+        if (o.fn === 'negocier_squatteurs' || o.fn === 'faire_disparaitre_cadavre') {
+          return typeof terrainOrdreDisponible === 'function' &&
+            terrainOrdreDisponible(o.fn, buildingId).ok;
+        }
+        return true;
+      }
+      if (livre) return fnLivre.has(o.fn);
+      if (chantier) {
+        if (!fnChantier.has(o.fn)) return false;
+        // La reception est fournie par la source dynamique #114 uniquement
+        // lorsque le moteur confirme 100 %. Pas de bouton premature.
+        if (o.fn === 'receptionner_chantier') {
+          return typeof chantierTermine === 'function' && chantierTermine(chantier);
+        }
+        return true;
+      }
+      if (proprietaire) return fnApresAchat.has(o.fn) ||
+        (o.fn === 'racheter_terrain' && !(
+          typeof estTitulaire === 'function' && estTitulaire(proprietaire)));
+      return false;
+    });
+  })();
+
+  const buttons = ordresTerrainLuthecia.map(o => {
     // Verifier requiresPost : doit avoir le bon poste specifique
     let needsPost = false;
     if (o.requiresPost) {
@@ -4425,6 +4474,46 @@ function renderRoomActions(room, buildingId, roomId) {
     return '<button class="action-btn ' + o.type + blockedCls + '" onclick="' + onclickFn + '" title="' + tooltipFinal + '"><i class="ti ' + o.icon + '" style="font-size:.82rem"></i> ' + o.label + ' <span class="pa-cost">' + coutJoint + '</span>' + gainBadge + '</button>';
   });
 
+  // #57 — groupes de commandes des cinq terrains, sans fabriquer de nouveaux handlers.
+  if (/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain') {
+    const groupesTerrain = [
+      { titre: 'Achat de terrains', fns: ['acheter_terrain','signer_compromis','racheter_terrain'] },
+      { titre: 'Gestion des intrus', fns: ['negocier_squatteurs','appeler_police_terrain','faire_disparaitre_cadavre'] },
+      { titre: 'Démarrage du chantier', fns: ['construire_sur_terrain','emprunter_construction'] },
+      { titre: 'Information et approvisionnement du chantier', fns: ['payer_versement_chantier','vendre_materiaux_chantier','donner_materiaux_chantier','prix_chantier'] },
+      { titre: 'Travail et division des lots', fns: ['travailler_chantier','modifier_plan_chantier','diviser_construction'] },
+      { titre: 'Fin du chantier', fns: ['receptionner_chantier'] },
+      { titre: 'Information et réorganisation des locaux', fns: ['reconfigurer_lots','gerer_lot_loue','gerer_fonds_commerce'] }
+    ];
+    window._terrainOrdresGroupes = {};
+    const deja = new Set();
+    const grouped = groupesTerrain.map((g, index) => {
+      const entries = ordresTerrainLuthecia.map((o, i) => ({ o, html: buttons[i] }))
+        .filter(x => g.fns.includes(x.o.fn));
+      if (!entries.length) return '';
+      entries.forEach(e => deja.add(e.o.fn));
+      window._terrainOrdresGroupes[index] = { titre: g.titre, entries };
+      return '<button class="action-btn legal" onclick="ouvrirMenuOrdresTerrain(' + index +
+        ')" title="' + g.titre + '"><i class="ti ti-layout-list"></i> ' +
+        g.titre + ' <span class="pa-cost">▾</span></button>';
+    });
+    const autres = ordresTerrainLuthecia.map((o, i) => ({ o, html: buttons[i] }))
+      .filter(x => !deja.has(x.o.fn)).map(x => x.html);
+    buttons.splice(0, buttons.length, ...grouped.filter(Boolean), ...autres);
+  }
+
+  // Informations de lecture seule sur le chantier et les locaux ; aucune transaction inventee.
+  if (/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain') {
+    const tsInfo = typeof getTerrainState === 'function' ? getTerrainState(buildingId) : null;
+    const btnInfo = (titre, nature) => `<button class="action-btn legal" onclick="ouvrirInformationsTerrainLuthecia('${nature}')" title="${titre}"><i class="ti ti-info-circle"></i> ${titre}</button>`;
+    if (tsInfo?.chantier) buttons.push(btnInfo('Information sur le chantier', 'chantier'));
+    if (tsInfo?.niveau_construction && !tsInfo?.chantier) buttons.push(btnInfo('Information sur les locaux', 'locaux'));
+    if (tsInfo?.chantier && typeof ouvrirApprovisionnementChantier === 'function' &&
+        typeof chantierAccepteMateriaux === 'function' && chantierAccepteMateriaux(tsInfo.chantier)) {
+      buttons.push('<button class="action-btn legal" onclick="ouvrirApprovisionnementChantier()"><i class="ti ti-truck"></i> Approvisionner le chantier</button>');
+    }
+  }
+
   // Redactions de La Tribune : trois menus, sans changer les ordres ni leurs handlers.
   const redactionTribune = state.country === 'republic' &&
     ((buildingId === 'la-tribune' && roomId === 'redaction' && state.currentCity === 'capitale') ||
@@ -4462,6 +4551,44 @@ function renderRoomActions(room, buildingId, roomId) {
 
   document.getElementById('actions-row-bat').innerHTML = buttons.join('') ||
     '<div style="font-size:.75rem;color:#9a8a68;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
+}
+
+function ouvrirInformationsTerrainLuthecia(nature) {
+  const id = state.currentBuilding;
+  if (!/^terrain-a-batir-[1-5]$/.test(id) || state.currentRoom !== 'terrain' ||
+      typeof getTerrainState !== 'function') return;
+  const ts = getTerrainState(id), ch = ts?.chantier;
+  const ech = v => String(v ?? '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const ligne = (k,v) => '<p><strong>' + ech(k) + ' :</strong> ' + ech(v) + '</p>';
+  let html = ligne('Terrain', BUILDINGS[id]?.shortName || id) + ligne('Propriétaire', ts?.proprietaire || 'Non attribué');
+  if (nature === 'chantier' && ch) {
+    html += ligne('Bâtiment prévu', ts?.niveau_construction || ch?.niveau || ch?.type || 'En construction');
+    html += ligne('Jours de progression', ch?.progressionJours ?? 'Non disponibles');
+    html += ligne('État', ch?.etat || ch?.statut || 'En cours');
+  } else if (nature === 'locaux' && ts?.niveau_construction && !ch) {
+    const lots = Array.isArray(ts?.subdivisions) ? ts.subdivisions : [];
+    html += ligne('Bâtiment livré', ts.niveau_construction);
+    html += ligne('Nombre de lots', lots.length);
+    html += lots.map((lot,i) => ligne('Lot ' + (i+1), (lot.nom || lot.name || 'Sans nom') +
+      ' — ' + (lot.surface || lot.superficie || 'surface inconnue') + ' m²' +
+      (lot.locataire ? ' — occupé par ' + lot.locataire : ''))).join('');
+  } else return;
+  document.getElementById('postes-modal-title').textContent =
+    nature === 'chantier' ? 'Information sur le chantier' : 'Information sur les locaux';
+  document.getElementById('postes-body').innerHTML =
+    '<div style="padding:1rem">' + html + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function ouvrirMenuOrdresTerrain(index) {
+  const groupe = window._terrainOrdresGroupes?.[index];
+  if (!groupe) return;
+  document.getElementById('postes-modal-title').textContent = groupe.titre;
+  document.getElementById('postes-body').innerHTML =
+    '<div style="display:grid;gap:.8rem;padding:1rem">' +
+    groupe.entries.map(e => '<div style="padding:.7rem;border:1px solid #5b4825;border-radius:8px">' + e.html + '</div>').join('') +
+    '</div>';
+  document.getElementById('modal-postes').classList.add('open');
 }
 
 function ouvrirMenuOrdresTribune(index) {
