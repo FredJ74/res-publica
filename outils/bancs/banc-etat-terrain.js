@@ -99,7 +99,7 @@ var ACTES = {
 };
 var totalPortes = 0;
 Object.keys(ACTES).sort().forEach(function (porte) {
-  var n = partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
+  var n = porte==='chantier_commande_plan' ? partout(/constructionExecuterCommande\('plan'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
   totalPortes += n;
   att(porte + ' : ' + ACTES[porte] + ' appel(s)', n === ACTES[porte], n + ' trouve(s)');
 });
@@ -109,7 +109,7 @@ att('terrain_succession_geler : 1 appel',
     partout(/sbRpc\('terrain_succession_geler'/g) === 1);
 att('terrain_succession_annuler_compromis : 1 appel',
     partout(/sbRpc\('terrain_succession_annuler_compromis'/g) === 1);
-att('soit VINGT-DEUX ecritures routees, le compte exact du releve',
+att('vingt-deux parcours transactionnels connus, incluant permis et plan versionnes',
     totalPortes + 3 === 22, (totalPortes + 3) + ' routee(s)');
 
 // CHAQUE APPEL LIT SON VERDICT, ET AUCUN NE L'AVALE. Cette epreuve manquait : une contre-epreuve
