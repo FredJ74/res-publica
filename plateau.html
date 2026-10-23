@@ -866,9 +866,11 @@ async function toggleJournalStore() {
   store.style.display = isOpen ? 'none' : 'flex';
   // Effacer le badge quand on ouvre
   if (!isOpen) {
+    // Ne jamais masquer une alerte commerciale si le serveur n'a pas acquitte les ventes.
+    const confirme = typeof chargerJournalVentes==='function'
+      ? await chargerJournalVentes(true) : true;
     const badge = document.getElementById('journal-badge');
-    if (badge) badge.style.display = 'none';
-    if(typeof chargerJournalVentes==='function')await chargerJournalVentes(true);
+    if (confirme && badge) badge.style.display = 'none';
   }
 }
 
