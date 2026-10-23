@@ -375,6 +375,11 @@ REGRESSIONS_TERRAIN_SUPABASE = [
 ]
 
 REGRESSIONS_TERRAIN_JUSTICE = [
+    ("permis -- un paiement client separe revient avant la commande atomique",
+     "    const r = await sbRpcVerdict('terrain_permis_deposer', {",
+     "    await deduireCoutOrdre({pa:1,cost:100});\n    const r = await sbRpcVerdict('terrain_permis_deposer', {",
+     "le depot versionne remplace la porte historique"),
+
     ("terrain -- le verdict du transfert de compromis n'est plus lu",
      "  if (!vTr || vTr.ok !== true) {",
      "  if (false) {",
