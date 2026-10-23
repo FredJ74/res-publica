@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 """Budget fixe valide : arrondis absorbes dans les quantites, sans apport supplementaire."""
-import importlib.util,json
+import importlib.util,json,subprocess
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('ream',R/'outils/bancs/banc-reamenagement-transactionnel-local.py');b=importlib.util.module_from_spec(spec);spec.loader.exec_module(b)
 def controle(db,server):
  from psycopg2.extras import Json
  c=db.cursor()
- for surface in list(range(1,1001))+[2999,3000,3001,9999,10000,100001]:
+ surfaces=list(range(1,1001))+[2999,3000,3001,9999,10000,100001]
+ js="const fs=require('node:fs'),vm=require('node:vm'),c={};vm.createContext(c);vm.runInContext(fs.readFileSync('plateau-chantiers.js','utf8'),c);const surfaces=JSON.parse(fs.readFileSync(0,'utf8'));process.stdout.write(JSON.stringify(surfaces.map(s=>c.materiauxDuJourReamenagement({coutMateriaux:s*3,dureeJours:Math.ceil(s/300)}))));"
+ paniers_client=json.loads(subprocess.check_output(['node','-e',js],input=json.dumps(surfaces).encode(),cwd=R))
+ for surface,client in zip(surfaces,paniers_client):
   duree=(surface+299)//300
   budget=surface*3
   c.execute("SELECT chantier_besoin_jour_interne(%s,1)",(Json({'type':'reamenagement','coutMateriaux':budget,'dureeJours':duree}),))
   panier=c.fetchone()[0]
+  assert panier==client,(surface,panier,client)
   assert sum(panier[k]*p for k,p in [('bois',5),('minerai',10),('metal',15)])*duree<=budget,(surface,panier)
   assert all(v>=0 and int(v)==v for v in panier.values())
- print('OK paniers bornes : 1006 superficies',flush=True)
+ print('OK parite client/SQL et paniers bornes : 1006 superficies',flush=True)
  c.execute("SET test.acteur='Alice';SET test.serveur='off';UPDATE personnages_donnees SET liquide=5000,arg=10000;UPDATE comptes_bancaires SET solde=5000")
  c.execute("SELECT data::jsonb->'subdivisions' FROM terrains_etat WHERE id='ream'");lots=c.fetchone()[0];lots[0]['surface']+=100
  c.execute("SELECT chantier_commande('ch-ream-budget100','ream','reamenager',%s)",(Json({'lots':lots}),));r=c.fetchone()[0];assert r['ok'],r
