@@ -2053,10 +2053,12 @@ async function commercePjFicheProduit(referenceId) {
       commercePjEchapper(tCommercePJ('commercepj.ref.rupture')) + '</div>';
     html += commercePjBouton('', tCommercePJ('commercepj.boutique.acheter'), false, true);
   } else {
-    html += '<label style="display:block;font-size:.78rem;color:#8a8060;margin-bottom:.3rem">' +
-      commercePjEchapper(tCommercePJ('commercepj.fiche.quantite')) + '</label>';
-    html += '<input id="cpj-qte" type="number" min="1" step="1" max="' + stock + '" value="1" ' +
-      'style="width:100%;padding:.5rem;background:#0e0c08;border:1px solid #3a3a30;color:#e0d8c0;margin-bottom:.8rem"/>';
+    if (r.venteSurPlaceUniquement !== true) {
+      html += '<label style="display:block;font-size:.78rem;color:#8a8060;margin-bottom:.3rem">' +
+        commercePjEchapper(tCommercePJ('commercepj.fiche.quantite')) + '</label>';
+      html += '<input id="cpj-qte" type="number" min="1" step="1" max="' + stock + '" value="1" ' +
+        'style="width:100%;padding:.5rem;background:#0e0c08;border:1px solid #3a3a30;color:#e0d8c0;margin-bottom:.8rem"/>';
+    }
     // L'achat dans son propre commerce est autorise : le bouton n'est jamais masque.
     // Une expérience consommée sur place (ex. fontaine de chocolat) n'est pas
     // un article à emporter. Le mode est déclaré sur la référence du commerce.
