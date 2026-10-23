@@ -26,3 +26,11 @@ test('agressifs : pas de bonjour automatique ; replique RP preservee',()=>{
  assert.equal(filtrerReponseSquatteur('les_gars_du_bas','Bonjour !'),'Bonjour !');
  assert.match(filtrerReponseSquatteur('la_bande_a_rotule','Bonjour !','en'),/What/);
 });
+
+test('la discussion libre ne peut annoncer un depart accepte ni un paiement',()=>{
+ for(const id of tous) for(const texte of ['Marché conclu, on part.','On accepte votre offre.','Nous partons.','We accept your offer.']){
+  assert.notEqual(filtrerReponseSquatteur(id,texte),texte);
+ }
+ for(const id of agressifs) assert.match(construirePromptSysteme(id,'fr'),/baltringue/);
+});
+
