@@ -3583,41 +3583,12 @@ async function confirmerEscortPiege(nomCible, pa, cost) {
 }
 
 function genererPnjTerrain(buildingId) {
-  const country = state.country || 'republic';
-  const profiles = (typeof TERRAIN_PNJ_PROFILES !== 'undefined')
-    ? TERRAIN_PNJ_PROFILES[country] || TERRAIN_PNJ_PROFILES.republic
-    : [];
-  if (!profiles.length) return null;
-
-  // Indices impériaux modifient les probabilités (Securite/Eco/Social calcules -- moyenne des
-  // villes pour Republia, ancien national inchange pour les 3 autres empires ; Diplomatie reste
-  // un indice national independant, non concerne)
-  const idFallback = INDICES_NATIONAUX?.[country]?.ID ?? 40;
-  const isn = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'isn') : 30;
-  const ie  = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'ie') : 50;
-  const id  = idFallback;
-  const is  = typeof getIndiceNationalCalcule === 'function' ? getIndiceNationalCalcule(country, 'social') : 45;
-
-  // Ajuster les probabilités selon indices
-  const adjustedProfiles = profiles.map(p => {
-    let prob = p.prob;
-    if (p.id === 'squatter_agr')  prob = Math.max(0.01, prob - isn/200 - is/200);
-    if (p.id === 'squatter_cool') prob = Math.max(0.02, prob - isn/300);
-    if (p.id === 'cadavre')       prob = Math.max(0.005, prob + (100-id)/500);
-    if (p.id === 'promoteur')     prob = Math.max(0.03, prob + ie/400);
-    if (p.id === 'inspecteur')    prob = Math.max(0.05, prob + isn/300);
-    if (p.id === 'vide')          prob = Math.max(0.05, prob + isn/200);
-    return { ...p, prob };
-  });
-
-  // Normaliser et tirer au sort
-  const total = adjustedProfiles.reduce((s, p) => s + p.prob, 0);
-  let roll = Math.random() * total;
-  for (const p of adjustedProfiles) {
-    roll -= p.prob;
-    if (roll <= 0) return p.id === 'vide' ? null : p;
-  }
-  return null;
+  // Compatibilite : presenter seulement l'occupation deja confirmee, sans tirage client.
+  const occupation = getTerrainState(buildingId)?.pnj;
+  if (!['squatter_cool','squatter_agr','cadavre'].includes(occupation)) return null;
+  const pays = state.country || 'republic';
+  return (TERRAIN_PNJ_PROFILES[pays] || TERRAIN_PNJ_PROFILES.republic || [])
+    .find(profil => profil.id === occupation) || null;
 }
 
 async function interagirPnjTerrain(pnjId) {
@@ -3685,71 +3656,8 @@ async function interagirPnjTerrain(pnjId) {
     return;
   }
 
-  // Promoteur — propose rachat à prix gonflé
-  if (pnj.id === 'promoteur') {
-    const prixGonfle = Math.floor(Math.random() * 5000) + 6000;
-    addJournalEntry(pnj.name + ' vous propose de racheter ce terrain pour ' + prixGonfle.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-info');
-    showToast(pnj.name, 'Offre de rachat : ' + prixGonfle.toLocaleString('fr-FR') + ' ' + cur + '. Intéressant ?', true);
-    return;
-  }
-
-  // Gardien — peut être soudoyé
-  if (pnj.id === 'gardien') {
-    const pot = Math.floor(isn / 5) * 10 + 100;
-    document.getElementById('postes-modal-title').textContent = pnj.name + ' — Gardien';
-    document.getElementById('postes-body').innerHTML =
-      '<div style="padding:1rem">' +
-      '<div style="font-size:.82rem;color:#a09060;margin-bottom:.8rem;font-style:italic">"' + (pnj.trait || (pnj.job === 'escort' ? 'Je connais tous les secrets de cette ville. Mon tarif : 500 ' + (COUNTRIES[state.country]?.cur || 'FR') + '/réveil.' : 'Un personnage discret.')) + '"</div>' +
-      '<button onclick="soudoyerGardienTerrain(' + pot + ');document.getElementById(\'modal-postes\').classList.remove(\'open\')" ' +
-      'style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;display:block;margin-bottom:.4rem;width:100%">' +
-      '<i class="ti ti-coin"></i> Soudoyer (' + pot + ' ' + cur + ')</button>' +
-      '<button onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')" ' +
-      'style="font-family:Bebas Neue,sans-serif;font-size:.75rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;cursor:pointer;width:100%">Partir</button>' +
-      '</div>';
-    document.getElementById('modal-postes').classList.add('open');
-    return;
-  }
-
-  // Inspecteur — vérifie les permis
-  if (pnj.id === 'inspecteur') {
-    const aPermis = state.inventory?.find(i => i.type === 'permis' && i.building === state.currentBuilding);
-    if (aPermis) {
-      addJournalEntry(pnj.name + ' vérifie vos permis. Tout est en ordre.', 'event-info');
-      showToast('Contrôle passé', 'Vos permis sont valides.', true);
-    } else {
-      state.dis = Math.max(0, (state.dis||50) - 8);
-      updateUI();
-      addJournalEntry(pnj.name + ' vous demande un permis de construire. Vous n\'en avez pas. -8 DIS.', 'event-bad');
-      showToast('Contrôle raté !', 'Permis manquant. -8 DIS.', false);
-    }
-    return;
-  }
-
   // Par défaut — juste parler
   showToast(pnj.name, pnj.trait || 'Un personnage mystérieux.', true);
-}
-
-function soudoyerGardienTerrain(montant) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (state.arg < montant) {
-    showToast('Fonds insuffisants', montant + ' ' + cur + ' requis.', false);
-    return;
-  }
-  const dup = getStatEffective('DUP');
-  const taux = Math.min(80, 40 + Math.floor(dup/2));
-  const roll = Math.floor(Math.random() * 100) + 1;
-  state.arg -= montant;
-  if (roll <= taux) {
-    state.dis = Math.min(100, (state.dis||50) + 5);
-    updateUI();
-    showToast('Gardien soudoyé !', 'Il regarde ailleurs. +5 DIS.', true);
-    addJournalEntry('Gardien soudoyé pour ' + montant + ' ' + cur + '. -' + montant + ' ' + cur + ' · +5 DIS.', 'event-good');
-  } else {
-    state.dis = Math.max(0, (state.dis||50) - 10);
-    updateUI();
-    showToast('Refus !', 'Il n\'a pas accepté. -10 DIS.', false);
-    addJournalEntry('Tentative de corruption du gardien refusée. -' + montant + ' ' + cur + ' · -10 DIS.', 'event-bad');
-  }
 }
 
 async function chargerPnjTerrain(buildingId) {

@@ -179,8 +179,7 @@ function doExpulsionLegale() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   // Ajouter l'inspecteur de police comme PNJ visible
-  const pnjPolice = (TERRAIN_PNJ_PROFILES?.[state.country] || TERRAIN_PNJ_PROFILES?.republic || [])
-    .find(p => p.id === 'inspecteur_police') || {
+  const pnjPolice = (TERRAIN_POLICE_PROFILES?.[state.country] || TERRAIN_POLICE_PROFILES?.republic) || {
       name: 'L\'Inspecteur', role: 'Inspecteur de police', job: 'commissaire',
       rel: 'neutral', trait: 'Arrive quand on l\'appelle. Prend note. Repart.'
     };
