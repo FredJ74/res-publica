@@ -4605,7 +4605,13 @@ function expliquerAchatTerrainBloque() {
 }
 
 function ouvrirMenuOrdresTerrain(index) {
-  const groupe = window._terrainOrdresGroupes?.[index];
+  const titreDemande = window._terrainOrdresGroupes?.[index]?.titre;
+  if (!titreDemande) return;
+  const id = state.currentBuilding, piece = state.currentRoom;
+  const room = BUILDINGS[id]?.rooms?.[piece];
+  if (!room) return;
+  renderRoomActions(room, id, piece);
+  const groupe = Object.values(window._terrainOrdresGroupes || {}).find(g => g.titre === titreDemande);
   if (!groupe) return;
   document.getElementById('postes-modal-title').textContent = groupe.titre;
   document.getElementById('postes-body').innerHTML =
