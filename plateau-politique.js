@@ -4137,19 +4137,21 @@ function renderRoomActions(room, buildingId, roomId) {
         }
         return true;
       }
-      if (livre) return fnLivre.has(o.fn);
+      const titulaire = typeof estTitulaire === 'function' && estTitulaire(proprietaire);
+      if (livre) return titulaire && fnLivre.has(o.fn);
       if (chantier) {
         if (!fnChantier.has(o.fn)) return false;
-        // La reception est fournie par la source dynamique #114 uniquement
-        // lorsque le moteur confirme 100 %. Pas de bouton premature.
-        if (o.fn === 'receptionner_chantier') {
-          return typeof chantierTermine === 'function' && chantierTermine(chantier);
+        if (o.fn === 'modifier_plan_chantier' || o.fn === 'diviser_construction') {
+          return titulaire && typeof verdictModificationPlan === 'function' &&
+            verdictModificationPlan(chantier).ok;
         }
+        if (o.fn === 'receptionner_chantier') {
+          return titulaire && typeof chantierTermine === 'function' && chantierTermine(chantier);
+        }
+        if (['payer_versement_chantier','prix_chantier'].includes(o.fn)) return titulaire;
         return true;
       }
-      if (proprietaire) return fnApresAchat.has(o.fn) ||
-        (o.fn === 'racheter_terrain' && !(
-          typeof estTitulaire === 'function' && estTitulaire(proprietaire)));
+      if (proprietaire) return titulaire ? fnApresAchat.has(o.fn) : o.fn === 'racheter_terrain';
       return false;
     });
   })();
