@@ -49,6 +49,21 @@ CREATE TABLE IF NOT EXISTS public.permis_depots_recus (
 );
 ALTER TABLE public.permis_depots_recus ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.permis_depots_recus FROM PUBLIC,anon,authenticated;
+-- Les depots de permis ne doivent plus etre forgés via INSERT direct dans l'archive.
+-- Les autres evenements d'urbanisme historiques restent inchanges dans ce lot.
+CREATE FUNCTION public.permis_depot_archive_proteger() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $g$
+BEGIN
+ IF NEW.type_evenement='depot' AND NOT EXISTS(
+  SELECT 1 FROM public.permis_transactions_internes
+  WHERE transaction_id=txid_current() AND acteur=auth.uid()
+ ) THEN RAISE EXCEPTION 'depot_permis_commande_versionnee_requise'; END IF;
+ RETURN NEW;
+END;$g$;
+REVOKE ALL ON FUNCTION public.permis_depot_archive_proteger() FROM PUBLIC,anon,authenticated;
+CREATE TRIGGER permis_depot_archive_versionnee
+ BEFORE INSERT ON public.dossiers_urbanisme FOR EACH ROW
+ EXECUTE FUNCTION public.permis_depot_archive_proteger();
 DO $nouveau$ BEGIN
  IF to_regprocedure('public.terrain_permis_deposer(text,text,uuid)') IS NOT NULL AND NOT EXISTS(
   SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('public.terrain_permis_deposer(text,text,uuid)')
