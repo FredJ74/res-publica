@@ -4505,8 +4505,7 @@ function renderRoomActions(room, buildingId, roomId) {
   // Informations de lecture seule sur le chantier et les locaux ; aucune transaction inventee.
   if (/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain') {
     const tsInfo = typeof getTerrainState === 'function' ? getTerrainState(buildingId) : null;
-    const btnInfo = (titre, nature) => '<button class="action-btn legal" onclick="ouvrirInformationsTerrainLuthecia(\\'' +
-      nature + '\\')" title="' + titre + '"><i class="ti ti-info-circle"></i> ' + titre + '</button>';
+    const btnInfo = (titre, nature) => `<button class="action-btn legal" onclick="ouvrirInformationsTerrainLuthecia('${nature}')" title="${titre}"><i class="ti ti-info-circle"></i> ${titre}</button>`;
     if (tsInfo?.chantier) buttons.push(btnInfo('Information sur le chantier', 'chantier'));
     if (tsInfo?.niveau_construction && !tsInfo?.chantier) buttons.push(btnInfo('Information sur les locaux', 'locaux'));
     if (tsInfo?.chantier && typeof ouvrirApprovisionnementChantier === 'function' &&
