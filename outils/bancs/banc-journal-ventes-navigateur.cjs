@@ -14,7 +14,7 @@ test('journal existant : dix ventes, une alerte, acquittement groupe, historique
  const confirme=await p.evaluate(()=>chargerJournalVentes(true));assert.equal(confirme,true,'acquittement confirme par le serveur');assert.equal(await p.evaluate(()=>lues),true);assert.equal(await p.locator('[data-vente-journal]').count(),10,'acquittement ne supprime pas historique');
  const refuse=await p.evaluate(async()=>{const ancien=sbRpcVerdict;window.sbRpcVerdict=async()=>{throw Error('indisponible')};const resultat=await chargerJournalVentes(true);window.sbRpcVerdict=ancien;return resultat;});
  assert.equal(refuse,false,'une panne reseau ne confirme jamais le badge');
- assert.match(fs.readFileSync(path.join(root,'plateau.html'),'utf8'),/if \\(confirme && badge\\) badge\\.style\\.display/,'le badge depend du resultat du serveur');
+ assert.ok(fs.readFileSync(path.join(root,'plateau.html'),'utf8').includes("if (confirme && badge) badge.style.display"),'le badge depend du resultat du serveur');
  const avant=await p.evaluate(()=>compteur);await p.waitForTimeout(150);assert.equal(await p.evaluate(()=>compteur),avant,'navigateur inactif sans interrogation');
  await p.evaluate(()=>{document.getElementById('journal').innerHTML='';initialiserJournalVentes();});assert.equal(await p.locator('[data-vente-journal]').count(),10,'rendu restaure sans nouvelle copie sauvegardee');
  await p.evaluate(()=>{window.sbRpcVerdict=()=>new Promise(r=>window.finir=r);window.attente=chargerJournalVentes(false);uid='autre-uid';state.char.name='Autre';document.getElementById('journal').innerHTML='';finir({ok:true,nonLues:1,evenements:[{id:'interdit'}]});});await p.evaluate(()=>attente);assert.equal(await p.locator('[data-vente-journal]').count(),0,'reponse ancienne ignoree');
