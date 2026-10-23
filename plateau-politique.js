@@ -4120,7 +4120,8 @@ function renderRoomActions(room, buildingId, roomId) {
       'negocier_squatteurs','appeler_police_terrain','faire_disparaitre_cadavre']);
     const fnApresAchat = new Set(['construire_sur_terrain','emprunter_construction']);
     const fnChantier = new Set(['payer_versement_chantier','travailler_chantier',
-      'vendre_materiaux_chantier','modifier_plan_chantier','diviser_construction']);
+      'vendre_materiaux_chantier','donner_materiaux_chantier','prix_chantier',
+      'modifier_plan_chantier','diviser_construction','receptionner_chantier']);
     const fnLivre = new Set(['reconfigurer_lots','gerer_lot_loue','gerer_fonds_commerce']);
     return allOrders.filter(o => {
       if (avantAcquisition) {
@@ -4134,7 +4135,15 @@ function renderRoomActions(room, buildingId, roomId) {
         return true;
       }
       if (livre) return fnLivre.has(o.fn);
-      if (chantier) return fnChantier.has(o.fn);
+      if (chantier) {
+        if (!fnChantier.has(o.fn)) return false;
+        // La reception est fournie par la source dynamique #114 uniquement
+        // lorsque le moteur confirme 100 %. Pas de bouton premature.
+        if (o.fn === 'receptionner_chantier') {
+          return typeof chantierTermine === 'function' && chantierTermine(chantier);
+        }
+        return true;
+      }
       if (proprietaire) return fnApresAchat.has(o.fn) ||
         (o.fn === 'racheter_terrain' && !(
           typeof estTitulaire === 'function' && estTitulaire(proprietaire)));
