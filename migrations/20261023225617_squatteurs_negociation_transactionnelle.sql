@@ -39,7 +39,7 @@ BEGIN
  IF coalesce(e->>'pnj','') NOT IN ('squatter_cool','squatter_agr') THEN
   RETURN jsonb_build_object('ok',false,'raison','aucun_squatteur','etat',e); END IF;
  revision:=coalesce(e->>'dateGeneration','historique')||':'||(e->>'pnj');
- SELECT montant INTO dernier FROM public.terrain_negociations_refus WHERE acteur=p.id AND terrain=t.id AND occupation=revision;
+ SELECT n.montant INTO dernier FROM public.terrain_negociations_refus n WHERE n.acteur=p.id AND n.terrain=t.id AND n.occupation=revision;
  SELECT avg(v) INTO cha FROM (
   SELECT coalesce((p.stats->>'CHA')::numeric,8) v
   UNION ALL SELECT mb.car_cha::numeric
@@ -79,7 +79,7 @@ BEGIN
   RETURN jsonb_build_object('ok',false,'raison','requete_invalide'); END IF;
  SELECT * INTO p FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','personnage_introuvable'); END IF;
- SELECT * INTO r FROM public.terrain_negociations_recus WHERE acteur=p.id AND requete=p_requete;
+ SELECT n.* INTO r FROM public.terrain_negociations_recus n WHERE n.acteur=p.id AND n.requete=p_requete;
  IF FOUND THEN
   IF r.terrain IS DISTINCT FROM p.country||'_'||p_terrain OR r.occupation IS DISTINCT FROM p_occupation OR r.montant<>p_montant THEN
    RETURN jsonb_build_object('ok',false,'raison','requete_reutilisee'); END IF;
@@ -90,7 +90,7 @@ BEGIN
   IF c->>'ok' IS DISTINCT FROM 'true' THEN RETURN c; END IF;
   IF c->>'occupation' IS DISTINCT FROM p_occupation THEN RETURN jsonb_build_object('ok',false,'raison','occupation_modifiee','etat',c->'etat'); END IF;
   IF p_montant<(c->>'minimum')::numeric THEN RETURN jsonb_build_object('ok',false,'raison','offre_trop_faible','minimum',c->'minimum','dernierRefus',c->'dernierRefus'); END IF;
-  SELECT coalesce(solde,0) INTO solde FROM public.comptes_bancaires WHERE personnage=acteur AND banque='nationale' FOR UPDATE;
+  SELECT coalesce(cb.solde,0) INTO solde FROM public.comptes_bancaires cb WHERE cb.personnage=acteur AND cb.banque='nationale' FOR UPDATE;
   IF coalesce(p.liquide,0)+coalesce(solde,0)<p_montant THEN RETURN jsonb_build_object('ok',false,'raison','fonds_insuffisants'); END IF;
   paiement:=public.payer_ordre(acteur,'negocier_squatteurs',1,0);
   IF paiement->>'ok' IS DISTINCT FROM 'true' THEN RETURN paiement; END IF;
@@ -106,13 +106,13 @@ BEGIN
    e:=public.terrain_etat_fusionner_interne(cle,'{"pnj":null,"pnjData":null,"occupationScellee":true}'::jsonb,p.country);
   ELSE
    INSERT INTO public.terrain_negociations_refus VALUES(p.id,cle,p_occupation,p_montant)
-    ON CONFLICT(acteur,terrain,occupation) DO UPDATE SET montant=excluded.montant;
+    ON CONFLICT ON CONSTRAINT terrain_negociations_refus_pkey DO UPDATE SET montant=excluded.montant;
   END IF;
   resultat:=jsonb_build_object('ok',true,'accepte',accepte,'pnj',c->'etat'->>'pnj','montant',p_montant,'taux',taux,'jet',jet,'bonusMoral',bonus);
   INSERT INTO public.terrain_negociations_recus(acteur,requete,terrain,occupation,montant,resultat) VALUES(p.id,p_requete,cle,p_occupation,p_montant,resultat);
  END IF;
  SELECT jsonb_build_object('pa',d.pa,'arg',d.arg,'liquide',d.liquide,'moral',d.moral,
-  'solde_national',coalesce((SELECT solde FROM public.comptes_bancaires WHERE personnage=acteur AND banque='nationale'),0))
+  'solde_national',coalesce((SELECT cb.solde FROM public.comptes_bancaires cb WHERE cb.personnage=acteur AND cb.banque='nationale'),0))
   INTO paiement FROM public.personnages_donnees d WHERE id=p.id;
  RETURN resultat||jsonb_build_object('etat',e,'paiement',paiement);
 END;$f$;
