@@ -3752,47 +3752,29 @@ function soudoyerGardienTerrain(montant) {
   }
 }
 
-function chargerPnjTerrain(buildingId) {
-  if (!buildingId?.startsWith('terrain-a-batir')) return;
-
-  // Vérifier si état persistant existe déjà
-  const ts = getTerrainState(buildingId);
-
-  // Si police est intervenue, vider le PNJ
-  if (ts.policeInterventionAt && Date.now() > ts.policeInterventionAt && ts.pnj) {
-    setTerrainState(buildingId, { pnj: null, pnjData: null, policeAppellee: null, policeInterventionAt: null });
-    sessionStorage.removeItem('terrain_pnj_' + buildingId);
-    showToast('Terrain libéré', 'La police est intervenue.', true);
-    return;
+async function chargerPnjTerrain(buildingId) {
+  if (!buildingId?.startsWith('terrain-a-batir')) return false;
+  const contexte = {personnage:state.char, pays:state.country, ville:state.currentCity,
+    uid:typeof rpAuthUid==='function'?rpAuthUid():null};
+  if (!contexte.uid || typeof sbRpcVerdict!=='function') return false;
+  const r = await sbRpcVerdict('terrain_occupation_lire',{p_terrain:buildingId}).catch(()=>null);
+  if (state.char!==contexte.personnage || state.country!==contexte.pays || state.currentCity!==contexte.ville
+      || state.currentBuilding!==buildingId || rpAuthUid()!==contexte.uid) return false;
+  if (!r?.ok || !r.etat) {
+    showToast('Terrain non vérifié','La situation du terrain ne peut pas être confirmée. Réessayez.',false);
+    return false;
   }
-
-  // Utiliser le PNJ persistant si disponible
-  if (ts.pnjData) {
-    sessionStorage.setItem('terrain_pnj_' + buildingId, JSON.stringify({
-      name: ts.pnjData.name + ' (PNJ)',
-      role: ts.pnjData.role,
-      job: ts.pnjData.job,
-      rel: ts.pnjData.rel,
-      trait: ts.pnjData.trait,
-      photoUrl: ts.pnjData.photoUrl,
-      photoPos: ts.pnjData.photoPos,
-      terrainPnjId: ts.pnjData.id
-    }));
-    return;
-  }
-
-  // Générer automatiquement au premier passage
-  const pnjObj = genererPnjTerrain(buildingId);
-  if (pnjObj) {
-    setTerrainState(buildingId, { pnj: pnjObj.id, pnjData: pnjObj, dateGeneration: Date.now() });
-    sessionStorage.setItem('terrain_pnj_' + buildingId, JSON.stringify({
-      name: pnjObj.name + ' (PNJ)', role: pnjObj.role, job: pnjObj.job,
-      rel: pnjObj.rel, trait: pnjObj.trait, photoUrl: pnjObj.photoUrl,
-      photoPos: pnjObj.photoPos, terrainPnjId: pnjObj.id
-    }));
-  } else {
-    sessionStorage.removeItem('terrain_pnj_' + buildingId);
-  }
+  remplacerTerrainState(buildingId,r.etat);
+  const profils=TERRAIN_PNJ_PROFILES[contexte.pays]||[];
+  const pnj=r.etat.pnjData || profils.find(p=>p.id===r.etat.pnj);
+  if (pnj) {
+    // Le profil est une presentation. Seul l'identifiant confirme par le serveur fait autorite.
+    setTerrainState(buildingId,{pnjData:pnj});
+    sessionStorage.setItem('terrain_pnj_'+buildingId,JSON.stringify({name:pnj.name+' (PNJ)',
+      role:pnj.role,job:pnj.job,rel:pnj.rel,trait:pnj.trait,photoUrl:pnj.photoUrl,
+      photoPos:pnj.photoPos,terrainPnjId:pnj.id}));
+  } else sessionStorage.removeItem('terrain_pnj_'+buildingId);
+  return true;
 }
 
 async function getTerrainsVraimentLibres(country) {
@@ -3877,29 +3859,10 @@ function terrainOrdreDisponible(fn, buildingId) {
   return { ok: true };
 }
 
-function doVerifierTerrain() {
+async function doVerifierTerrain() {
   const id = state.currentBuilding;
-  let ts = getTerrainState(id);
-
-  if (!ts.pnj) {
-    // Générer et persister le PNJ
-    const pnjObj = genererPnjTerrain(id);
-    ts = setTerrainState(id, {
-      pnj: pnjObj ? pnjObj.id : null,
-      pnjData: pnjObj || null,
-      dateGeneration: Date.now()
-    });
-    // Mettre à jour le sessionStorage aussi pour l'affichage
-    if (pnjObj) {
-      sessionStorage.setItem('terrain_pnj_' + id, JSON.stringify({
-        name: pnjObj.name + ' (PNJ)', role: pnjObj.role, job: pnjObj.job,
-        rel: pnjObj.rel, trait: pnjObj.trait, terrainPnjId: pnjObj.id,
-        photoUrl: pnjObj.photoUrl, photoPos: pnjObj.photoPos
-      }));
-    } else {
-      sessionStorage.removeItem('terrain_pnj_' + id);
-    }
-  }
+  if (!await chargerPnjTerrain(id)) return;
+  const ts = getTerrainState(id);
 
   const pnj = ts.pnjData;
   if (!pnj) {
