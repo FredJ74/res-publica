@@ -4151,7 +4151,7 @@ function renderRoomActions(room, buildingId, roomId) {
     });
   })();
 
-
+  const buttons = ordresTerrainLuthecia.map(o => {
     // Verifier requiresPost : doit avoir le bon poste specifique
     let needsPost = false;
     if (o.requiresPost) {
