@@ -798,7 +798,7 @@ function openPnjModal(encodedPnj) {
   }
 
   // Cadavre — photo plein écran uniquement, pas de dialogue
-  if (pnj.terrainPnjId === 'cadavre') {
+  if ((pnj.terrainPnjId === 'cadavre' || pnj.id === 'cadavre')) {
     ouvrirPhotoCadavre(JSON.stringify({
       photoUrl: pnj.photoUrl, photoPos: pnj.photoPos,
       role: pnj.role, trait: pnj.trait
@@ -1349,6 +1349,7 @@ function traitsLisibles(profil) {
 }
 
 function profilServeurDuPnj(pnj) {
+  if (pnj?.terrainPnjId === 'cadavre' || pnj?.id === 'cadavre') return null;
   // UNE ESCORT EST ADRESSEE PAR SON IDENTITE, jamais par son nom (1er octobre
   // 2026). C'est le meme identifiant qui porte son contrat et sa memoire : la
   // renommer ne la rend donc pas muette, et deux homonymes de deux empires ne
@@ -1408,6 +1409,8 @@ async function talkToPnj(encodedPnj, action) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }
   catch(e) { return; }
+
+  if ((pnj.terrainPnjId === 'cadavre' || pnj.id === 'cadavre')) return;
 
   if (!action || action.trim() === '') return;
 

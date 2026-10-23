@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import chat from '../../api/chat.js';
-import {construirePromptSysteme, maxTokensProfil} from '../../api/_pnj-profils.js';
+import {construirePromptSysteme, maxTokensProfil, profilExiste} from '../../api/_pnj-profils.js';
 import {joueurAuthentifie} from '../../api/_deepseek.js';
 
 const json = (v, status = 200) => new Response(JSON.stringify(v), {status});
@@ -79,7 +79,7 @@ async function scenario(options, verifier) {
     else process.env.DEEPSEEK_API_KEY = original.key;
   }
 }
-for (const profil of ['sabri_coledur', 'ced_labone', 'henrico_stot', 'gerard_poincon', 'jeremy']) {
+for (const profil of ["sabri_coledur","ced_labone","henrico_stot","gerard_poincon","jeremy","les_gars_du_bas","la_bande_a_rotule","los_relajados","los_violentos","famille_kolkhozov","miliciens_zeles","famille_al_bedouin","clan_al_resistant"]) {
   test(`conversation ${profil} : vrai prompt et historique, sans alteration`, async () => {
     await scenario({profil}, ({req, res, appels}) => {
       assert.equal(res.code, 200); assert.equal(res.body.reponse, 'Reponse IA fixture');
@@ -149,3 +149,5 @@ test('autres API : appel sans options conserve le contrat auth historique', asyn
   try {assert.deepEqual(await joueurAuthentifie({headers: {authorization: 'Bearer fixture'}}), {id: 'fixture', jeton: 'fixture'});}
   finally {globalThis.fetch = original;}
 });
+
+test('aucun cadavre ne dispose de profil de conversation',()=>{for(const id of ['cadavre','individu_non_identifie','deux_inconnus','camarade_inconnu','inconnu'])assert.equal(profilExiste(id),false);});
