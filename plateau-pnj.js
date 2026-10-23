@@ -1815,7 +1815,9 @@ function verifierSuccesMaxence(cle) {
   // deuxieme ligne quand `action` est vide. Elle ne pouvait jamais etre vraie.
   // Récupérer l'historique de la conversation du jour
   const pnjKey2 = pnj.name?.replace(' (PNJ)', '').trim();
-  const convKey = 'conv_' + (pnjKey2||'pnj') + '_day' + (state.day||1);
+  const versionDialogueTerrain = ['squatter_cool','squatter_agr'].includes(pnj.terrainPnjId || pnj.id)
+    ? '_terrain_rp2' : '';
+  const convKey = 'conv_' + (pnjKey2||'pnj') + '_day' + (state.day||1) + versionDialogueTerrain;
   if (!state.pnjConversations) state.pnjConversations = {};
   if (!state.pnjConversations[convKey]) state.pnjConversations[convKey] = [];
   const history = state.pnjConversations[convKey];

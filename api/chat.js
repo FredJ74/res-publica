@@ -21,7 +21,7 @@
 //
 // LA CLE D'API N'EST JAMAIS TRANSMISE AU NAVIGATEUR, ni journalisee, ni renvoyee dans une erreur.
 
-import { construirePromptSysteme, profilExiste, maxTokensProfil } from './_pnj-profils.js';
+import { construirePromptSysteme, profilExiste, maxTokensProfil, filtrerReponseSquatteur } from './_pnj-profils.js';
 import { appelDeepSeek, joueurAuthentifie, classerEchecFournisseur } from './_deepseek.js';
 import { sbTransport } from './_supabase.js';
 import { PROFILS_MUNICIPAUX_LUTHECIA, lireTitulaireMunicipal, contexteMunicipal } from '../continuite-municipale.js';
@@ -269,5 +269,5 @@ export default async function handler(req, res) {
     journalChat('fournisseur', diagnostic?.cause || 'inconnu', r.http || null);
     return res.status(502).json({ error: 'Le PNJ est momentanément indisponible.' });
   }
-  return res.status(200).json({ reponse: r.texte });
+  return res.status(200).json({ reponse: filtrerReponseSquatteur(req.body.profil, r.texte, req.body.lang) });
 }
