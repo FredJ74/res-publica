@@ -132,7 +132,7 @@ BEGIN
   'statut','instruction','numeroDossier','URB-'||pays||'-'||p_terrain||'-'||p_requete::text,'decoupageInitial','[]'::jsonb);
  INSERT INTO public.permis_transactions_internes VALUES(txid_current(),identite);
  paiement:=public.payer_ordre(acteur,'deposer_demande_permis',1,100);
- DELETE FROM public.permis_transactions_internes WHERE transaction_id=txid_current();
+
  IF paiement->>'ok' IS DISTINCT FROM 'true' THEN RETURN paiement; END IF;
  etat:=public.terrain_etat_fusionner_interne(pays||'_'||p_terrain,jsonb_build_object('permis',permis),pays);
  doc:=jsonb_build_object('id',reference,'nature','depot','numeroDossier',permis->>'numeroDossier',
@@ -146,6 +146,7 @@ BEGIN
   'type','document_urbanisme_depot','name','Recepisse de demande de permis','icon','ti-file-text','legal',true,'documentUrbanisme',doc),reference);
  IF reception->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'document_non_confirme'; END IF;
  INSERT INTO public.permis_depots_recus VALUES(identite,p_requete,reference);
+ DELETE FROM public.permis_transactions_internes WHERE transaction_id=txid_current();
  RETURN jsonb_build_object('ok',true,'etat',etat,'document',doc,'paiement',paiement);
 END;$f$;
 REVOKE ALL ON FUNCTION public.terrain_permis_deposer(text,text,uuid) FROM PUBLIC,anon;
