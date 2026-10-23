@@ -7,12 +7,16 @@ spec=importlib.util.spec_from_file_location('construction',R/'outils/bancs/banc-
 def suite(db,server):
  from psycopg2.extras import Json
  c=db.cursor();n=0
- def q(s,a=()):c.execute(s,a);return c.fetchone()[0]
+ def q(s,a=()):
+  c.execute(s,a);v=c.fetchone()[0];db.commit();return v
  def ok(v,t):
   nonlocal n
   assert v,t;n+=1;print('OK lots',t,flush=True)
  c.execute(m.fn('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','terrain_lots_acte'))
  sql=(R/'migrations/20261023085000_terrain_lots_miroirs_attestes.sql').read_text();c.execute(sql);c.execute(sql)
+ c.execute(m.fn('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','terrain_reamenagement_poser'))
+ garde=(R/'migrations/20261023085001_terrain_reamenagement_legacy_ferme.sql').read_text();c.execute(garde);c.execute(garde)
+ ok(q("SELECT terrain_reamenagement_poser('inconnu','{\"coutTotal\":0,\"progressionJours\":999}')")['raison']=='commande_versionnee_requise','ancienne pose ne forge ni cout ni progression')
  c.execute("SET test.acteur='Alice';UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='immeuble',hp=100;UPDATE organisations SET data='{\"chef\":\"Chef\",\"caisse\":1000}'")
  lots=[{'id':'a','surface':600,'destination':'commerce','label':'Local A','loyer':123,'locataire':None,'identite':'historique'}, {'id':'b','surface':600,'destination':'commerce','label':'Local B','loyer':234,'locataire':'Autre'}]
  etat={'city':'capitale','surface':1500,'proprietaire':'orga:orga','niveau_construction':'commerce_premium','subdivisions':lots}

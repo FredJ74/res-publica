@@ -7947,12 +7947,15 @@ async function confirmerModificationPlan(valider=false) {
 let _planReconfigEnCours = { buildingId: null, lots: [] };
 
 async function doOuvrirReconfiguration(pa, cost) {
+  const contexte = contexteNavigationRue();
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Reconfigurer les lots')) return;
+  if (!contexteNavigationRueValide(contexte)) return;
   await chargerTerrainState(id);
+  if (!contexteNavigationRueValide(contexte)) return;
   const ts = getTerrainState(id);
 
-  if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', "Vous n'êtes pas propriétaire de ce bâtiment.", false); return; }
+  if (!constructionPeutGerer(ts)) { showToast('Accès refusé', "Vous n'êtes pas propriétaire de ce bâtiment.", false); return; }
   if (!ts.niveau_construction) { showToast('Aucun bâtiment', "Il n'y a rien à reconfigurer sur un terrain nu.", false); return; }
   if (ts.chantier) { showToast('Construction en cours', 'Attendez la livraison du bâtiment.', false); return; }
   if (ts.chantierReamenagement) { showToast('Travaux en cours', 'Une reconfiguration est déjà engagée ici — elle ne peut pas être annulée.', false); return; }
@@ -7961,7 +7964,9 @@ async function doOuvrirReconfiguration(pa, cost) {
   }
 
   // Brouillon initialise sur le plan REEL : reconfigurer, c'est partir de l'existant.
-  _planReconfigEnCours = { buildingId: id, lots: snapshotPlanPermis(ts.subdivisions) };
+  const reprise = constructionRelireIntention('reamenager');
+  _planReconfigEnCours = { buildingId: id, lots: Array.isArray(reprise?.parametres?.lots)
+    ? JSON.parse(JSON.stringify(reprise.parametres.lots)) : snapshotPlanPermis(ts.subdivisions) };
   renderReconfiguration(pa, cost);
 }
 
@@ -12875,7 +12880,7 @@ async function doTravaillerChantier(pa, cost) {
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Travailler ici')) return;
   await chargerTerrainState(id);
   const ts = getTerrainState(id);
-  const ch = ts.chantier;
+  const ch = ts.chantier || ts.chantierReamenagement;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   if (!ch) { showToast('Aucun chantier', "Aucun chantier en cours sur ce terrain.", false); return; }
 

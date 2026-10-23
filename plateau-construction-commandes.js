@@ -6,11 +6,18 @@ function constructionPeutGerer(ts){
   if(typeof ref==='string'&&ref.startsWith('orga:')&&typeof getOrgaById==='function')return getOrgaById(ref.slice(5))?.chef===state.char?.name;
   return false;
 }
+function constructionCleCommande(action,buildingId=state.currentBuilding,contexte=contexteNavigationRue()) {
+  return 'chantier-commande:'+JSON.stringify([contexte.uid,contexte.nom,state.country,state.currentCity,buildingId,action]);
+}
+function constructionRelireIntention(action) {
+  try { return JSON.parse(sessionStorage.getItem(constructionCleCommande(action)) || 'null'); }
+  catch (_) { return null; }
+}
 let constructionCommandeEnCours=false;
 async function constructionExecuterCommande(action,parametres={}){
   if(constructionCommandeEnCours)return null;
   const contexte=contexteNavigationRue(),id=state.currentBuilding;
-  const cle='chantier-commande:'+JSON.stringify([contexte.uid,contexte.nom,state.country,state.currentCity,id,action]);
+  const cle=constructionCleCommande(action,id,contexte);
   let intention;
   try{
     const stockee=sessionStorage.getItem(cle);
@@ -54,7 +61,7 @@ async function constructionReconcilierCommandes(buildingId){
   const c=contexteNavigationRue();constructionRepriseEnCours=true;
   try{
     for(const action of ['lancer','verser','receptionner','plan','travailler','prix','reamenager']){
-      const cle='chantier-commande:'+JSON.stringify([c.uid,c.nom,state.country,state.currentCity,buildingId,action]);
+      const cle=constructionCleCommande(action,buildingId,c);
       let i;try{i=JSON.parse(sessionStorage.getItem(cle)||'null');}catch(_){continue;}
       if(!i?.requete)continue;
       const r=await sbRpcVerdict('chantier_commande_recu',{p_requete:i.requete}).catch(()=>null);

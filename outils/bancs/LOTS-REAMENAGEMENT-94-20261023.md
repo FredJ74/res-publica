@@ -14,12 +14,14 @@ Pour 100 m2 : prix total 1000 FR, materiaux 300 FR, travail 700 FR. Le panier ex
 
 - Banc construction original : 62 assertions conservees.
 - Travailleur tiers : 9 assertions PostgreSQL ; client 3 tests.
-- Reamenagement a 90 m2 : 17 assertions PostgreSQL.
-- Miroirs lots : 13 assertions PostgreSQL.
+- Reamenagement a 90 m2 : 23 assertions PostgreSQL (dont concurrence et rollback).
+- Miroirs lots : 14 assertions PostgreSQL.
 - Authentification, identites et services annexes de fixture : aucune preuve de fonctionnement authentifie en production.
 
 Installer la PR114 entiere, dependances comprises, puis 20261023083000, 84000, 84001, 84002, 85000, 85001 dans l'ordre seulement APRES resolution du controle budget, du prevol vivant et des autres raccordements. Verifier md5(prosrc), definitions, droits, RLS et triggers reels avant toute application. Les nouvelles definitions refusent le remplacement d'un corps inconnu. L'application repetee est testee.
 
-Restent explicitement : signature initiale d'un bail et premier loyer encore dans l'ancien circuit multi-appels ; raccordements des ventes/dons/prix/vols au reamenagement ; concurrence et rollback approfondis du nouveau parcours ; financement d'acquisition #65. Les conditions des prets immobiliers ne sont pas definies par #65 ; le pret travaux ne doit pas leur etre substitue. Le rapport n'assimile pas ces lacunes a un simple manque d'acces Supabase.
+Restent explicitement : signature initiale d'un bail et premier loyer encore dans l'ancien circuit multi-appels ; raccordements des ventes/dons/prix/vols au reamenagement ; financement d'acquisition #65. Les conditions des prets immobiliers ne sont pas definies par #65 ; le pret travaux ne doit pas leur etre substitue. Le rapport n'assimile pas ces lacunes a un simple manque d'acces Supabase.
 
 Retour arriere : ne pas supprimer les chantiers, baux ou recus. Conserver les protections serveur et le client compatible ; toute restauration de fonction exige l'examen des transactions intervenues. Aucun retour automatique aux portes permissives.
+
+Verification apres integration de main 33910be : 95/95 bancs client ; prevol SQL en lecture seule dans `outils/bancs/prevol-cloture-construction-94.sql`. Reprise F5 du plan et identifiants conserves dans le recu commun, sans nouveau stockage. Les fixtures PostgreSQL commitent explicitement chaque RPC pour distinguer son rollback de celui de leur preparation.

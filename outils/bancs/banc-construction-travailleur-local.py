@@ -9,7 +9,8 @@ def suite(db,server):
  from psycopg2.extras import Json
  import psycopg2
  c=db.cursor();n=0
- def q(s,a=()):c.execute(s,a);return c.fetchone()[0]
+ def q(s,a=()):
+  c.execute(s,a);v=c.fetchone()[0];db.commit();return v
  def ok(v,t):
   nonlocal n
   assert v,t;n+=1;print('OK travailleur',t)
@@ -29,6 +30,7 @@ def suite(db,server):
  def appel(_):
   with psycopg2.connect(server.get_uri()) as d:
    cc=d.cursor();cc.execute("SET test.acteur='Alice';SET test.serveur='off'");return cmd('ch-travail-concur01',cur=cc)
+ db.commit()
  with ThreadPoolExecutor(max_workers=2) as pool:rs=list(pool.map(appel,range(2)))
  ok(all(r['ok'] for r in rs) and sum(bool(r.get('rejeu')) for r in rs)==1,'concurrence une execution')
  c.execute("CREATE FUNCTION panne_travail() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN IF NEW.requete='ch-travail-panne001' THEN RAISE EXCEPTION 'panne_fixture';END IF;RETURN NEW;END$$;CREATE TRIGGER panne_travail BEFORE INSERT ON chantier_commandes_recus FOR EACH ROW EXECUTE FUNCTION panne_travail()")

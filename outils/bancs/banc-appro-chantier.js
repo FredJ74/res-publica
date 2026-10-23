@@ -1,3 +1,4 @@
+// SOURCES: aucune -- lecture structurelle du fichier de production.
 // #94 : les deux familles passent maintenant par les commandes atomiques.
 // Les 23 garanties sont conservees ; tests comportementaux et PostgreSQL dans les bancs dedies.
 var src = readFile(typeof CHEMIN_SOURCE === 'string'
