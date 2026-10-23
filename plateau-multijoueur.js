@@ -368,19 +368,14 @@ function renderPersonsList(persons, targetId) {
       '</div></div>';
   };
 
-  // Ajouter PNJ terrain si on est sur un terrain
-  // (ce bloc etait ecrit DEUX FOIS a l'identique ; le doublon est retire le 29 septembre 2026.
-  //  Il etait sans effet -- le garde par nom dedoublonnait -- mais restait du code mort.)
-  if (targetId === 'persons-list' && state.currentBuilding?.startsWith('terrain-a-batir')
-      && !(typeof estPieceDynamiqueLot === 'function' && estPieceDynamiqueLot(state.currentRoom))) {
-    const stored = sessionStorage.getItem('terrain_pnj_' + state.currentBuilding);
-    if (stored) {
-      try {
-        const pnjTerrain = JSON.parse(stored);
-        if (pnjTerrain.name && !persons.find(p => p.name === pnjTerrain.name)) {
-          persons = [...persons, pnjTerrain];
-        }
-      } catch(e) {}
+  // La presentation du terrain suit le meme etat que les ordres, jamais le cache de visite.
+  if (state.currentBuilding?.startsWith('terrain-a-batir')) {
+    persons = persons.filter(p => !p?.terrainPnjId || p.terrainPnjId === 'inspecteur_police');
+    if (targetId === 'persons-list' &&
+        !(typeof estPieceDynamiqueLot === 'function' && estPieceDynamiqueLot(state.currentRoom)) &&
+        typeof profilOccupationTerrain === 'function' && typeof getTerrainState === 'function') {
+      const pnj = profilOccupationTerrain(getTerrainState(state.currentBuilding));
+      if (pnj) persons.push({ ...pnj, name: pnj.name + ' (PNJ)', terrainPnjId: pnj.id });
     }
   }
 

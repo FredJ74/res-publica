@@ -3674,7 +3674,8 @@ async function chargerPnjTerrain(buildingId) {
   }
   remplacerTerrainState(buildingId,r.etat);
   const profils=TERRAIN_PNJ_PROFILES[contexte.pays]||[];
-  const pnj=r.etat.pnjData || profils.find(p=>p.id===r.etat.pnj);
+  const pnj=profilOccupationTerrain(r.etat,contexte.pays);
+  setTerrainState(buildingId,{pnjData:pnj || null});
   if (pnj) {
     // Le profil est une presentation. Seul l'identifiant confirme par le serveur fait autorite.
     setTerrainState(buildingId,{pnjData:pnj});
@@ -3708,6 +3709,12 @@ async function getTerrainsVraimentLibres(country) {
 // (systeme unifie, base sur state.terrainsState + Supabase). Une ancienne version basee sur
 // localStorage vivait ici, mais etait silencieusement ecrasee (dernier fichier charge gagne
 // en JS) — code mort supprime le 3 aout 2026 pour eviter toute confusion future.
+
+function profilOccupationTerrain(etat, pays = state.country) {
+  if (!['squatter_cool','squatter_agr','cadavre'].includes(etat?.pnj)) return null;
+  if (etat.pnjData?.id === etat.pnj) return etat.pnjData;
+  return (TERRAIN_PNJ_PROFILES[pays] || []).find(p => p.id === etat.pnj) || null;
+}
 
 function terrainOrdreDisponible(fn, buildingId) {
   const ts = getTerrainState(buildingId);
@@ -3772,7 +3779,7 @@ async function doVerifierTerrain() {
   if (!await chargerPnjTerrain(id)) return;
   const ts = getTerrainState(id);
 
-  const pnj = ts.pnjData;
+  const pnj = profilOccupationTerrain(ts);
   if (!pnj) {
     addJournalEntry('Terrain inspecté. Rien à signaler.', 'event-info');
     showToast('Terrain libre', 'Aucun obstacle. Vous pouvez procéder aux démarches.', true);
@@ -3795,7 +3802,7 @@ function tauxCorruptionInspecteurTerrain() {
 function doAppelerPoliceTerrain() {
   const id = state.currentBuilding;
   const ts = getTerrainState(id);
-  const pnj = ts.pnjData;
+  const pnj = profilOccupationTerrain(ts);
   const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30 };
   const isn = indices.ISN || 30;
   const delaiH = Math.max(6, Math.round(96 - isn * 0.6));
@@ -3946,7 +3953,7 @@ function doNegocierSquatteurs(pa, cost) {
   const dispo = typeof terrainOrdreDisponible === 'function' ? terrainOrdreDisponible('negocier_squatteurs', id) : { ok: true };
   if (!dispo.ok) { showToast('Aucun squatteur', dispo.raison || 'Aucun squatteur a negocier.', false); return; }
   const ts = getTerrainState(id);
-  const pnj = ts.pnjData;
+  const pnj = profilOccupationTerrain(ts);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   const minMontant = pnj?.id === 'squatter_agr' ? 500 : 0;
@@ -3977,7 +3984,7 @@ async function confirmerNegociation(pa, cost) {
     return;
   }
   const ts = getTerrainState(id);
-  const pnj = ts.pnjData;
+  const pnj = profilOccupationTerrain(ts);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const montant = parseInt(document.getElementById('negoc-montant')?.value || 0);
 
