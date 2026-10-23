@@ -8,7 +8,7 @@ Le reamenagement rejoint les commandes, recus, financeurs, approvisionnements, j
 
 ## Blocage reproductible, ne pas deployer
 
-Pour 100 m2 : prix total 1000 FR, materiaux 300 FR, travail 700 FR. Le panier existant arrondi donne 20 bois, 10 minerai, 7 metal, soit 305 FR. Il reste 695 FR, donc seulement 9 heures payables sur les 10 necessaires ; progression 0,9. Le financement est plafonne au prix total. Ne pas modifier silencieusement le panier, le salaire ou le tarif. Une question de conception ciblee est en attente : panier respecte-budget ou apport complementaire. banc-reamenagement-budget-local.py conserve cette exigence comme CONTROLE ROUGE BLOQUANT, inclus dans le workflow. Les scenarios a 90 m2 passent ; cela ne valide pas tous les dimensionnements.
+Arbitrage recu : prix total fixe, arrondis absorbes dans le panier sans depasser les quantites. La migration `20261023161856_chantier_panier_budget_fixe.sql` borne chaque tiers quotidien vers le bas. Pour 100 m2 : materiaux 290 FR, travail 700 FR, reliquat 10 FR, progression 100 %. Client et miroir cron raccordes. La migration `20261023095517_chantier_quotas_pnj_francs_entiers.sql` solde aussi les fractions finales de travail PNJ des nouveaux reamenagements, avec paiements entiers et sans acceleration. Aucun ancien historique salarial reconstitue artificiellement. Tests : 1006 superficies en parite JS/SQL et sous le budget ; parcours reception/rejeu de 1 a 601 m2, quotas 102/301 m2 et remplacement par travail PJ. Le workflow PostgreSQL passe 25/25.
 
 ## Verification et dependances
 
@@ -18,7 +18,7 @@ Pour 100 m2 : prix total 1000 FR, materiaux 300 FR, travail 700 FR. Le panier ex
 - Miroirs lots : 14 assertions PostgreSQL.
 - Authentification, identites et services annexes de fixture : aucune preuve de fonctionnement authentifie en production.
 
-Installer la PR114 entiere, dependances comprises, puis les migrations 20261023090008 a 20261023090017 dans l'ordre seulement APRES resolution du controle budget, du prevol vivant et des autres raccordements. Verifier md5(prosrc), definitions, droits, RLS et triggers reels avant toute application. Les nouvelles definitions refusent le remplacement d'un corps inconnu. L'application repetee est testee.
+Installer la PR114 entiere, dependances comprises, puis les migrations 20261023090008 a 20261023090017 dans l'ordre puis 20261023095517 et 20261023161856, seulement APRES le prevol vivant et les autres raccordements. Verifier md5(prosrc), definitions, droits, RLS et triggers reels avant toute application. Les nouvelles definitions refusent le remplacement d'un corps inconnu. L'application repetee est testee.
 
 Restent explicitement : vols et securite commune du chantier ; financement d'acquisition #65. Les conditions des prets immobiliers ne sont pas definies par #65 ; le pret travaux ne doit pas leur etre substitue. Le rapport n'assimile pas ces lacunes a un simple manque d'acces Supabase.
 

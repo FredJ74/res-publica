@@ -4,7 +4,7 @@
 
 ## Code réalisé et sauvegardé
 
-Le dernier main `33910be` est intégré dans les trois branches ; ses nouveautés commerciales et graphiques sont conservées. La consolidation générale n'est pas fusionnée.
+Le dernier main `aadc2cb` est intégré dans les trois branches ; ses nouveautés commerciales et graphiques sont conservées. La consolidation générale n'est pas fusionnée.
 
 | Branche | Base conservée | Corrections principales |
 |---|---|---|
@@ -23,7 +23,7 @@ La création de chacune des trois PR a été tentée et refusée par l'API GitHu
 | Bancs client — urbanisme / occupation / lots | 94/94 ; 93/93 ; 96/96 |
 | Contre-épreuves — lots | 90/90 |
 | Contre-épreuves — urbanisme, avant ajout du journal de ventes de main | 91/91 |
-| Bancs PostgreSQL du workflow de la branche lots | **23/24**, budget de réaménagement rouge |
+| Bancs PostgreSQL du workflow de la branche lots | **25/25**, y compris budget fixe et quotas PNJ |
 | Pilote joueur sur fixtures | 69/69, aucun compte réel |
 | Calendriers et contrôles Node dédiés | 11/11 |
 | Contrôles globaux | **10/12** : Workflow vert ; Authority et Referential rouges |
@@ -32,9 +32,13 @@ Tests spécifiques supplémentaires : documents urbanisme 54 assertions + 56 du 
 
 Les assertions de rollback comprennent les contreparties, stocks, baux, fonds et reçus concernés. Les tests historiques n'ont pas été désactivés ; leurs attentes de routage ont été adaptées aux commandes communes, avec les mêmes garanties et des scénarios comportementaux additionnels.
 
-## Échec réel conservé
+## Budget fixe corrige apres arbitrage
 
-Pour 100 m², le tarif est 1 000 FR : matériaux 300 FR, travail 700 FR. Le panier historique arrondi coûte 305 FR (20 bois, 10 minerai, 7 métal), laissant 695 FR : 9 heures payables et 90 % de progression. Le financement est plafonné au prix total. Le contrôle exige toujours un chantier finissable ; il échoue et reste exécuté en CI. Aucun prix, salaire, résultat ou empreinte n'a été modifié pour le faire passer. L'arbitrage demandé est soit un panier respectant le budget, soit un apport complémentaire ; aucune réponse n'est présumée.
+Le defaut historique reste conserve dans le rapport JSON comme reproduction avant correction : 305 FR de materiaux depassaient les 300 FR disponibles pour 100 m². L'arbitrage impose desormais de borner chaque tiers du panier quotidien vers le bas en unites entieres. Le reliquat reste au chantier : aucun prix, salaire ou apport supplementaire. Pour 100 m² : 290 FR de materiaux, 700 FR de travail, 10 FR de tresorerie et progression 100 %. Le meme calcul est raccorde au client, au miroir cron et a la fonction SQL commune ; le cycle de construction n'est pas modifie.
+
+Les quotas PNJ des nouveaux reamenagements sont soldes au franc entier selon le travail cumule effectivement paye, au lieu de bloquer une fraction d'heure finale. Le travail PJ reste en heures/PA entiers ; aucun jour incompressible n'est saute. Les anciens etats sans version de calcul ne sont pas reecrits en inventant leur historique salarial.
+
+Verification : 1 006 superficies comparees entre le vrai code client et SQL, budget materiaux jamais depasse ; parcours jusqu'a reception pour 1, 2, 99, 100, 101, 300 et 601 m² avec reprises et rejeux. Le banc quotas couvre aussi 102 et 301 m² et la substitution du travail PJ aux PNJ. Aucun de ces essais ne constitue une verification authentifiee en production.
 
 ## Parcours encore inachevés
 
@@ -50,10 +54,14 @@ Authority constate une signature de migration non attestée (`acheter_produit_co
 
 ## Migrations et déploiement
 
-**Aucune migration de production appliquée.** Les scripts préparés et leurs dépendances sont décrits dans `URBANISME-94-20261023.md`, `OCCUPATION-SUITE-94-20261023.md` et `LOTS-REAMENAGEMENT-94-20261023.md` sur leurs branches respectives. Les dernières migrations de lots vont de `20261023090008` à `20261023092229`. Ne pas fusionner la branche WIP tant que son contrôle budget et les parcours critiques restent ouverts.
+**Aucune migration de production appliquée.** Les scripts préparés et leurs dépendances sont décrits dans `URBANISME-94-20261023.md`, `OCCUPATION-SUITE-94-20261023.md` et `LOTS-REAMENAGEMENT-94-20261023.md` sur leurs branches respectives. Les migrations de lots vont de `20261023090008` à `20261023092229`, puis `20261023095517_chantier_quotas_pnj_francs_entiers.sql` et `20261023161856_chantier_panier_budget_fixe.sql`. Le budget local est corrige ; les autres parcours critiques et le prevol vivant restent ouverts.
 
 Prévol prévu : `outils/bancs/prevol-cloture-construction-94.sql`, transaction en lecture seule. Il examine registre, signatures, corps et empreintes, colonnes/droits, RLS et triggers, ainsi que les superficies persistantes sans noms de joueurs. Le connecteur Supabase n'est pas disponible dans cette session et l'accès direct a déjà été refusé CONNECT 403 : le prévol vivant n'a pas été exécuté. Aucun déploiement Vercel ni fonctionnement authentifié en jeu n'est confirmé.
 
 Ordre du paquet à examiner : PR112 → PR114 → urbanisme → correctifs de lots. Il faut vérifier les gardes et dépendances avant chaque script ; ne pas appliquer aveuglément toutes les migrations par nom. Aucune importation des coffres ou successions de la consolidation. Après résolution des points ouverts : revue des PR limitées, prévol vivant conforme, tests authentifiés sur environnement isolé autorisé, validation des transactions, puis seulement activation contrôlée. En retour arrière, conserver données, reçus et protections serveur ; ne pas rouvrir les anciennes écritures permissives.
 
 Les résultats machine sont dans `VERIFICATIONS-CLOTURE-CONSTRUCTION-94-20261023.json`. Les rapports n'annoncent ni clôture, ni feu vert production.
+
+## Sauvegarde de la reprise
+
+Corrections : `fec858c` ; integration main `fdb23d5` ; parite et prevol `bc88103`, branche `codex/lots-reamenagement-94-20261023`. Le budget n'est plus un arbitrage en attente. Le chantier global reste non termine pour les parcours listes plus haut ; ne pas confondre ces lacunes de code avec le seul manque d'acces Supabase. Aucun deploiement ou fusion autorise sur la base de ces seuls bancs locaux.

@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-23T09:38:07.895922+00:00",
+  "date_utc": "2026-10-23T16:23:34.249982+00:00",
   "verdict": "CHANTIER NON TERMINE",
   "production": {
     "migrations_appliquees": [],
@@ -8,8 +8,8 @@
     "deploiement_verifie": false,
     "fusion_main": false
   },
-  "source_jeu_testee": "38de5ded9c324915c7da4261ca63200cc6b4f6db",
-  "main_integre": "33910beea744d8d17423e204f0ddf426cabddcdc",
+  "source_jeu_testee": "fdb23d5506e6302456d44342f46858a893d2d815",
+  "main_integre": "aadc2cbc08fd818ae9e3617b5f2f72e366a572f5",
   "client": {
     "lots": {
       "reussis": 96,
@@ -117,6 +117,10 @@
       "code": 0
     },
     {
+      "banc": "banc-reamenagement-quotas-local.py",
+      "code": 0
+    },
+    {
       "banc": "banc-lots-miroirs-local.py",
       "code": 0
     },
@@ -126,40 +130,13 @@
     },
     {
       "banc": "banc-reamenagement-budget-local.py",
-      "code": 1
+      "code": 0
     },
     {
       "banc": "banc-journal-ventes-local.py",
       "code": 0
     }
   ],
-  "cas_budget_rouge": {
-    "controle": "financement_100m2",
-    "coutAnnonce": 1000,
-    "avance": 0.9,
-    "tresorerie": 65,
-    "evenements": [
-      {
-        "cle": "lancement",
-        "coutTotal": 1000,
-        "dureeJours": 1,
-        "surfaceConcernee": 100
-      },
-      {
-        "cle": "journee",
-        "date": "2026-10-23",
-        "achats": {
-          "bois": 20,
-          "metal": 7,
-          "minerai": 10
-        },
-        "avance": 0.9,
-        "coutPNJ": 630,
-        "heuresPNJ": 9
-      }
-    ],
-    "production": false
-  },
   "pilote_fixtures": {
     "reussis": 69,
     "total": 69,
@@ -192,8 +169,86 @@
   "limites": [
     "Identite, calendrier et certains services annexes de fixtures ; aucun compte de joueur reel utilise.",
     "Le catalogue Supabase vivant reste inaccessible ; les observations historiques ne valent pas prevol actuel.",
-    "Barème de resistance des squatteurs et regle de depassement du budget en attente.",
+    "Valeurs de resistance des squatteurs non definies ; budget fixe de reamenagement arbitre et corrige.",
     "Conditions du pret immobilier non definies par issue 65.",
     "Occupation/police/combat, vols/securite, exploitation complete des fonds et certains titres restent a terminer."
-  ]
+  ],
+  "reproduction_budget_avant_correction": {
+    "controle": "financement_100m2",
+    "coutAnnonce": 1000,
+    "avance": 0.9,
+    "tresorerie": 65,
+    "evenements": [
+      {
+        "cle": "lancement",
+        "coutTotal": 1000,
+        "dureeJours": 1,
+        "surfaceConcernee": 100
+      },
+      {
+        "cle": "journee",
+        "date": "2026-10-23",
+        "achats": {
+          "bois": 20,
+          "metal": 7,
+          "minerai": 10
+        },
+        "avance": 0.9,
+        "coutPNJ": 630,
+        "heuresPNJ": 9
+      }
+    ],
+    "production": false
+  },
+  "cas_budget_corrige": {
+    "controle": "financement_100m2",
+    "coutAnnonce": 1000,
+    "avance": 1,
+    "tresorerie": 10.0,
+    "evenements": [
+      {
+        "cle": "lancement",
+        "coutTotal": 1000,
+        "dureeJours": 1,
+        "surfaceConcernee": 100
+      },
+      {
+        "cle": "journee",
+        "date": "2026-10-23",
+        "achats": {
+          "bois": 20,
+          "metal": 6,
+          "minerai": 10
+        },
+        "avance": 1,
+        "coutPNJ": 700.0,
+        "heuresPNJ": 10.0
+      }
+    ],
+    "production": false
+  },
+  "budget_grille": {
+    "superficies": 1006,
+    "parite_client_sql": true,
+    "parcours_complets": [
+      1,
+      2,
+      99,
+      100,
+      101,
+      300,
+      601
+    ],
+    "reception_rejeu": true,
+    "production": false
+  },
+  "commits_reprise": [
+    "fec858c",
+    "fdb23d5",
+    "bc88103"
+  ],
+  "quotas_pnj": {
+    "assertions_nouvelles": 10,
+    "production": false
+  }
 }
