@@ -11747,8 +11747,8 @@ async function ouvrirPanneauCombat(batailleId) {
           (fini ? ' · <strong style="color:#cc6a44">combat terminé</strong>' : '') + '</div>';
 
   const rounds = Array.isArray(b.rounds) ? b.rounds : [];
-  const dernier = rounds.length ? rounds[rounds.length - 1] : null;
-  if (dernier) {
+  // Les rapports sont deja filtres par camp par la RPC : conserver tous les rounds consultables.
+  for (const dernier of rounds) {
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.6rem;margin-bottom:.8rem">';
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;margin-bottom:.4rem">BILAN DU ROUND ' + dernier.round + '</div>';
     html += '<div style="font-size:.76rem;color:#c0b090">Vos pertes : ' + (dernier.mes_pa_perdus || 0) +

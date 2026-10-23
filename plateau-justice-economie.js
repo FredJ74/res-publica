@@ -15301,11 +15301,8 @@ async function ouvrirChatAudience(affaireId) {
     + '<div style="font-size:.8rem;color:#8a8060">Chargement...</div></div>');
   await rafraichirChatAudience(true);
   if (_audienceMinuteur) clearInterval(_audienceMinuteur);
-  _audienceMinuteur = setInterval(function () {
-    const ouvert = document.getElementById('audience-corps');
-    if (!ouvert) { clearInterval(_audienceMinuteur); _audienceMinuteur = null; return; }
-    if (!document.hidden) rafraichirChatAudience(false);
-  }, 8000);
+  if(typeof rpRealitesEnregistrer==='function')rpRealitesEnregistrer('audience',()=>document.getElementById('audience-corps')?rafraichirChatAudience(false):undefined);
+
 }
 
 async function rafraichirChatAudience(complet) {

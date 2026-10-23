@@ -804,7 +804,7 @@ window.addEventListener('DOMContentLoaded', () => {
       state.char.poste = state.poste || null;
       state.char.currentCity = state.currentCity || 'capitale';
       state.char.arg = state.arg || 0;
-      state.char.resources = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
+      state.char.resources = { inf: state.inf||0, pop: state.pop||0, dis: state.dis??50 };
       state.char.currentBuilding = state.currentBuilding || null;
       state.char.currentRoom = state.currentRoom || null;
     }
@@ -832,35 +832,28 @@ window.addEventListener('DOMContentLoaded', () => {
     syncCyclesDepuisSupabase();
   }, 2000);
 
-  // Vérification mails toutes les minutes (réduit de 2 min à 1 min, correctif latence des
-  // voyants du 21 aout 2026 -- ce polling redevient un filet de sécurité en arrière-plan, la
-  // réactivité réelle vient désormais des déclenchements immédiats à l'ouverture de la
-  // messagerie, à la lecture d'un mail et au retour sur l'onglet, voir forum.js/plus haut).
-  // Lectures non critiques : une seule requête par fonction et pause onglet masqué.
+  // Initialisations a la connexion et lecteurs reutilises aux interactions.
+  // Aucun sondage temporel : visible ou masque, le navigateur inactif ne consulte pas Supabase.
+  // La garde de chevauchement reste commune aux chargements explicites.
   const lecturesFondEnCours = new Set();
-  function lancerLectureFond(nom, fn) {
-    if (document.hidden || lecturesFondEnCours.has(nom) || typeof fn !== 'function') return;
+  function lancerLectureFond(nom, fn, memeMasque = false) {
+    if ((!memeMasque && document.hidden) || lecturesFondEnCours.has(nom) || typeof fn !== 'function') return;
     lecturesFondEnCours.add(nom);
-    Promise.resolve().then(fn).catch(e => console.warn('[Fond] ' + nom, e))
+    return Promise.resolve().then(fn).catch(e => console.warn('[Fond] ' + nom, e))
       .finally(() => lecturesFondEnCours.delete(nom));
   }
-  lancerLectureFond('mails', verifierNouveauxMails);
-  setInterval(() => lancerLectureFond('mails', verifierNouveauxMails), 60000);
-
-  // Voyant d'activité forum (17 août 2026) — même cadence que la vérification des mails, même
-  // raison de réduction
-  if (typeof verifierActiviteForumNonVue === 'function') {
-    lancerLectureFond('forum', verifierActiviteForumNonVue);
-    setInterval(() => lancerLectureFond('forum', verifierActiviteForumNonVue), 60000);
+  // Lecteur deja introduit par la branche distante, integre au point commun des realites.
+  function actualiserRealitesConsultables() {
+    return Promise.all([
+      lancerLectureFond('mails',verifierNouveauxMails),
+      typeof verifierActiviteForumNonVue==='function'?lancerLectureFond('forum',verifierActiviteForumNonVue):undefined,
+      lancerLectureFond('objets',verifierObjetsRecus)
+    ]);
   }
-
-  // Vérification des objets reçus (dons d'un autre joueur) toutes les 2 minutes
-  lancerLectureFond('objets', verifierObjetsRecus);
-  setInterval(() => lancerLectureFond('objets', verifierObjetsRecus), 120000);
+  actualiserRealitesConsultables();
 
   // Batiments fermes (incendie/explosifs) — au chargement puis toutes les 2 minutes
-  setTimeout(() => chargerBatimentsFermes(), 1000);
-  setInterval(() => lancerLectureFond('batimentsFermes', chargerBatimentsFermes), 120000);
+  setTimeout(() => lancerLectureFond('batimentsFermes', chargerBatimentsFermes, true), 1000);
 
   // Championnat sportif — verifie/avance la saison au chargement puis toutes les 5 minutes
   // (n'importe quel joueur connecte peut declencher le rattrapage, l'etat est partage sur Supabase).
@@ -877,8 +870,8 @@ window.addEventListener('DOMContentLoaded', () => {
     finally { verificationSaisonEnCours = false; }
   }
   // Le calendrier sportif est une échéance, pas un traitement de fond permanent.
-  // Une passe au chargement puis une passe quotidienne de secours assurent
-  // l'initialisation et la reprise, y compris après un dimanche sans joueurs.
+  // Une passe au chargement, puis un rattrapage sur interaction apres l'echeance
+  // assurent la reprise sans surveillance d'un navigateur inactif.
   // Le dimanche soir, conserver la cadence de 5 minutes pour les transitions.
   function estDimancheParis(date = new Date()) {
     return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', weekday: 'short' }).format(date) === 'Sun';
@@ -892,7 +885,6 @@ window.addEventListener('DOMContentLoaded', () => {
     await verifierSaisonSansChevauchement();
   }
   setTimeout(verifierSaisonSelonCalendrier, 2500);
-  setInterval(verifierSaisonSelonCalendrier, 300000);
 
   // Football live (chantier "match reel 30 minutes", 28 aout 2026) : tick dedie, plus rapide (20s),
   // pour la progression des matchs de saison reguliere en fenetre echauffement/mt1/mitemps/mt2,
@@ -924,70 +916,46 @@ window.addEventListener('DOMContentLoaded', () => {
     await tickFootballSansChevauchement();
   }
   setTimeout(tickFootballSelonCalendrier, 500);
-  setInterval(tickFootballSelonCalendrier, 20000);
   setTimeout(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 3000);
-  setInterval(() => { if (typeof verifierElectionsOrganisations === 'function') verifierElectionsOrganisations(); }, 300000);
 
-  // Événements partagés (journal global) — au chargement puis toutes les 90 secondes
-  setTimeout(() => chargerEvenementsPartages(), 1500);
+  // Événements partagés (journal global) — connexion puis interactions
+  setTimeout(() => lancerLectureFond('evenements', chargerEvenementsPartages, true), 1500);
   setTimeout(() => chargerOrganisations(), 1800);
   setTimeout(() => { if (typeof chargerLocations === 'function') chargerLocations(); }, 1900);
   setTimeout(() => { if (typeof demarrerPollingNotificationChat === 'function') demarrerPollingNotificationChat(); }, 2000);
   setTimeout(() => { if (typeof demarrerPollingInvitationsDiner === 'function') demarrerPollingInvitationsDiner(); }, 2000);
   setTimeout(() => appliquerNaturalisationAcceptee(), 2100);
   setTimeout(() => { if (typeof appliquerVictoireElectorale === 'function') appliquerVictoireElectorale(); }, 2350);
-  setTimeout(() => recupererDonsEnAttente(), 2000);
-  setTimeout(() => recupererVolsEnAttente(), 2200);
-  setTimeout(() => recupererImpactsEnAttente(), 2400);
+  setTimeout(() => lancerLectureFond('dons', recupererDonsEnAttente, true), 2000);
+  setTimeout(() => lancerLectureFond('vols', recupererVolsEnAttente, true), 2200);
+  setTimeout(() => lancerLectureFond('impacts', recupererImpactsEnAttente, true), 2400);
   setTimeout(() => verifierLancementQuete(), 2600);
-  setInterval(() => lancerLectureFond('evenements', chargerEvenementsPartages), 90000);
-  setInterval(recupererDonsEnAttente, 90000);
-  setInterval(recupererVolsEnAttente, 90000);
-  setInterval(recupererImpactsEnAttente, 90000);
 
-  // Présence en pièce — re-publier + rafraîchir les joueurs visibles toutes les 30 secondes
-  setInterval(() => {
-    // Un onglet masque ne doit pas renouveler les presences ni recharger les vues.
-    // La sauvegarde de securite en fin de boucle reste active.
-    if (!document.hidden) {
-    if (typeof sbUpdatePresence === 'function' && state.char?.name && state.currentBuilding && state.currentRoom) {
-      sbUpdatePresence(state.char.name, state.country, state.currentCity, state.currentBuilding, state.currentRoom, typeof getMonGroupePNJ === 'function' ? getMonGroupePNJ() : []).catch(() => {});
-    }
-    if (typeof chargerVraisJoueursPresents === 'function') chargerVraisJoueursPresents();
-    if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
-    // Assemblee (chantier du 10 septembre 2026). Deux caches distincts, rafraichis a des rythmes
-    // differents parce qu'ils ne servent pas au meme moment :
-    //   - les sieges/sessions ne comptent que dans l'hemicycle : on ne les recharge que la-bas,
-    //     pour ne pas imposer trois requetes toutes les 30 s a chaque joueur du monde ;
-    //   - les interdictions en vigueur, elles, sont consultees a chaque achat n'importe ou :
-    //     elles sont donc rafraichies partout.
-    if (state.currentBuilding === 'assemblee' && typeof rafraichirAssemblee === 'function') {
-      rafraichirAssemblee().catch(() => {});
-    }
-    if (typeof rafraichirAssembleeInterdictions === 'function') {
-      rafraichirAssembleeInterdictions().catch(() => {});
-    }
-    // Camion militaire : un camion arrive ou reparti change ce que ce lieu
-    // propose. On relit ici, avec la presence, plutot que d'ouvrir une seconde
-    // boucle -- la veille dediee de 10 s n'existe QUE lorsqu'on est a bord.
-    if (typeof camionRafraichirContexte === 'function') {
-      camionRafraichirContexte().catch(() => {});
-    }
-    } // fin des rafraichissements visuels : suspendus en onglet masque
-    // Sauvegarde automatique periodique -- filet de securite pour rattraper tout gain
-    // (INF, HP, etc.) qu'une fonction particuliere aurait omis de sauvegarder elle-meme.
-    // Correctif du 25 aout 2026 (bug production confirme par instrumentation : un onglet
-    // oublie republiait aveuglement son etat perime toutes les 30s, ecrasant une correction
-    // serveur ou une autre session plus recente) : passe par sbVerifierEtSauvegarderPersonnage
-    // (supabase.js) plutot que sbSavePersonnage direct -- seul CE minuteur purement temporel
-    // est concerne, tous les autres appelants (actions explicites du joueur) restent inchanges.
-    if (typeof sbVerifierEtSauvegarderPersonnage === 'function' && state.char?.name) {
-      sbVerifierEtSauvegarderPersonnage(state).catch(() => {});
-    } else if (typeof sbSavePersonnage === 'function' && state.char?.name) {
-      sbSavePersonnage(state).catch(() => {});
-    }
-  }, 30000);
-  if (typeof rafraichirTitulairesPostesElectifs === 'function') rafraichirTitulairesPostesElectifs();
+  // Realites : ces lecteurs sont executes uniquement sur interaction/reconnexion.
+  if(typeof rpRealitesEnregistrer==='function'){
+    const lecteurs={consultables:actualiserRealitesConsultables,batiments:chargerBatimentsFermes,evenements:chargerEvenementsPartages,dons:recupererDonsEnAttente,
+      vols:recupererVolsEnAttente,impacts:recupererImpactsEnAttente,titulaires:rafraichirTitulairesPostesElectifs};
+    for(const [nom,fn]of Object.entries(lecteurs))rpRealitesEnregistrer(nom,fn);
+    rpRealitesEnregistrer('presence',async()=>{
+      if(state.char?.name&&state.currentBuilding&&state.currentRoom)await sbUpdatePresence(state.char.name,state.country,state.currentCity,state.currentBuilding,state.currentRoom);
+      if(typeof chargerVraisJoueursPresents==='function'){
+        if(!state.currentBuilding&&typeof rueCentraleNoeudActuel!=='undefined'&&rueCentraleNoeudActuel)
+          await chargerVraisJoueursPresents('rue-centrale',rueCentraleNoeudActuel,'persons-list-rue');
+        else if(state.currentBuilding&&state.currentRoom)await chargerVraisJoueursPresents();
+      }
+    });
+    rpRealitesEnregistrer('assemblee',async()=>{
+      if(typeof rafraichirAssembleeInterdictions==='function')await rafraichirAssembleeInterdictions();
+      if(state.currentBuilding==='assemblee'&&typeof rafraichirAssemblee==='function')await rafraichirAssemblee();
+    });
+    rpRealitesEnregistrer('minuitClient',()=>checkMidnight());
+    rpRealitesEnregistrer('version',()=>verifierNouvelleVersion());
+    rpRealitesEnregistrer('calendrier',async()=>{
+      await verifierSaisonSelonCalendrier();await tickFootballSelonCalendrier();
+      if(typeof verifierElectionsOrganisations==='function')await verifierElectionsOrganisations();
+    });
+  }
+  if (typeof rafraichirTitulairesPostesElectifs === 'function') lancerLectureFond('titulaires', rafraichirTitulairesPostesElectifs, true);
   // Premier chargement : les interdictions en vigueur doivent etre connues AVANT le premier achat,
   // sinon le tout premier passage en caisse ignorerait une loi pourtant en vigueur.
   if (typeof rafraichirAssembleeInterdictions === 'function') rafraichirAssembleeInterdictions().catch(() => {});
@@ -1005,24 +973,8 @@ window.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('beforeunload', () => { if (typeof sbSauvegardeUrgenceDechargement === 'function') sbSauvegardeUrgenceDechargement(); });
   }
 
-  // Detection de nouvelle version (correctif, 20 aout 2026) : verification au demarrage, toutes
-  // les 5 min (meme cadence que le championnat/les elections d'organisations ci-dessus), et
-  // immediatement quand l'onglet redevient visible (le cas le plus frequent en pratique : un
-  // onglet reste ouvert en arriere-plan pendant un deploiement).
+  // Detection de version : connexion puis interactions, aucune surveillance temporelle.
   setTimeout(() => { if (typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion(); }, 2700);
-  setInterval(() => { if (typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion(); }, 300000);
-  if (typeof document !== 'undefined') {
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState !== 'visible') return;
-      if (typeof verifierNouvelleVersion === 'function') verifierNouvelleVersion();
-      // Correctif latence des voyants Mail/Forum (audit du 21 aout 2026) : reutilise ce MEME
-      // ecouteur deja existant (jamais un second addEventListener) -- resynchronise les deux
-      // voyants immediatement au retour sur l'onglet, plutot que de laisser l'ecart s'accumuler
-      // jusqu'au prochain passage du polling de fond (qui reste actif, en filet de securite).
-      if (typeof verifierNouveauxMails === 'function') verifierNouveauxMails();
-      if (typeof verifierActiviteForumNonVue === 'function') verifierActiviteForumNonVue();
-    });
-  }
 
   // Séquence de chargement espacée pour éviter les conflits de modaux
   setTimeout(() => genererMeteoPolitique(), 1000);
@@ -1270,7 +1222,7 @@ function loadCharacter() {
         // son propre .catch(()=>null) : une panne ne vaut pas une liste vide et ne doit
         // jamais faire echouer le chargement du personnage lui-meme (deja protege par le
         // .catch() global de la chaine plus bas).
-        Promise.all([
+        state._chargementPersonnage = Promise.all([
           sbLoadPersonnage(char.name),
           (typeof sbGetComptesBancaires === 'function' ? sbGetComptesBancaires(char.name).catch(() => null) : Promise.resolve(null)),
           (typeof sbGetPlacementsBancaires === 'function' ? sbGetPlacementsBancaires(char.name).catch(() => null) : Promise.resolve(null))
@@ -2239,7 +2191,7 @@ function startClock() {
   setInterval(() => {
     syncRealTime();
     updateClock();
-    checkMidnight();
+    // Horloge visuelle seulement : aucun traitement reseau au repos.
   }, 60000);
 }
 
@@ -2510,11 +2462,11 @@ async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur', fn = null
   return { ok: true, paPreleves, montantPreleve: cost };
 }
 
-function checkMidnight() {
+async function checkMidnight() {
   if (state.hour === 0 && state.minute < 2) {
     if (!state.midnightDone) {
       state.midnightDone = true;
-      runMidnightUpdate();
+      return runMidnightUpdate();
     }
   } else {
     state.midnightDone = false;
@@ -2623,10 +2575,11 @@ async function runMidnightUpdate() {
 // UI UPDATE
 // =====================
 function updateUI() {
-  verifierObjectifs();
+  const options = arguments[0] || {};
+  if (!options.lecture) verifierObjectifs();
   const cur = state.char ? (COUNTRIES[state.char.country]?.cur || 'FR') : 'FR';
   // Sauvegarde auto Supabase
-  if (typeof sbAutoSave === 'function' && state?.char?.name) sbAutoSave();
+  if (!options.lecture && typeof sbAutoSave === 'function' && state?.char?.name) sbAutoSave();
   renderEmployesPanel();
   if (typeof renderInventory === 'function') renderInventory();
   // Sauvegarde localStorage — sync état complet
@@ -2641,10 +2594,10 @@ function updateUI() {
     state.char.currentBuilding = state.currentBuilding || null;
     state.char.currentRoom     = state.currentRoom || null;
     state.char.arg         = state.arg || 0;
-    state.char.resources   = { inf: state.inf||0, pop: state.pop||0, dis: state.dis||50 };
-    state.char.hp          = state.hp || 100;
+    state.char.resources   = { inf: state.inf||0, pop: state.pop||0, dis: state.dis??50 };
+    state.char.hp          = state.hp ?? 100;
     state.char.pa          = (typeof state.pa === 'number') ? state.pa : 10;
-    state.char.moral       = state.moral || 75;
+    state.char.moral       = state.moral ?? 75;
     try {
       localStorage.setItem('respublica_char_' + state.char.name, JSON.stringify(state.char));
       localStorage.setItem('respublica_char', JSON.stringify(state.char));

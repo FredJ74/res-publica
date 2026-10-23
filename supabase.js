@@ -62,6 +62,9 @@ function sbEnTetes() {
 // `envoyee` dit si la requete a quitte le navigateur. C'est la seule donnee qui permette
 // d'affirmer a un joueur que son action n'a pas pu partir -- jamais qu'elle a echoue.
 async function sbTransportRest(methode, table, filtres, corps, preferResolution) {
+  const finirRealite=typeof rpRealitesRequeteCommencer==='function'?rpRealitesRequeteCommencer():null;
+  try {
+
   // Voir sbRpc : on s'assure d'avoir une session avant toute requete, pour que les policies
   // RLS voient auth.uid() plutot que la cle anon partagee. Idempotent, un seul aller-retour.
   if (typeof rpAuthAssurerSession === 'function' && typeof rpAuthJeton === 'function' && !rpAuthJeton()) {
@@ -114,6 +117,8 @@ async function sbTransportRest(methode, table, filtres, corps, preferResolution)
   let donnees = null;
   try { donnees = await res.json(); } catch (e) { donnees = true; }
   return { etat: 'ok', donnees, http: res.status, code: null, envoyee: true };
+
+  } finally { if(finirRealite)finirRealite(); }
 }
 
 // VERDICT STRUCTURE POUR REST. Meme forme que sbRpcVerdict : { ok, raison, transport } sur un
@@ -407,7 +412,9 @@ function reporterDeltaPopNonEcrit(charState, ressources) {
 // n'existe pas, la sauvegarde ne fait rien et le dit -- l'appelant, lui, verra simplement que
 // rien n'a ete ecrit, ce qu'il sait deja gerer (voir reporterDeltaPopNonEcrit).
 async function sbEcrirePersonnage(data) {
-  const r = await sbUpdate('personnages', `name=eq.${encodeURIComponent(data.name)}`, data);
+  // Seuls l'existence et le repere de fraicheur sont consommes par la file de sauvegarde.
+  // Ne pas renvoyer photo, inventaire et historique a chaque PATCH. Le corps ecrit est intact.
+  const r = await sbUpdate('personnages', `name=eq.${encodeURIComponent(data.name)}&select=name,updated_at`, data);
   // PostgREST rend un tableau VIDE quand le filtre ne trouve rien -- valeur truthy, que
   // l'appelant prendrait pour une reussite. On rend explicitement null : c'est le signal que
   // sbSavePersonnage sait deja interpreter (report du delta de POP non ecrit).
@@ -928,6 +935,26 @@ async function sbLoadPersonnage(name) {
 async function sbListPersonnages() {
   // archetype (vocation) volontairement exclu - reste secret pour les autres joueurs
   return sbGet('personnages', 'select=name,country,current_city,poste,photo_url,domicile&order=created_at.asc');
+}
+
+// Projections dediees aux rafraichissements : jamais de portraits pour un titre politique.
+async function sbListTitulairesPostes() {
+  return sbGet('personnages', 'select=name,poste&poste=not.is.null');
+}
+
+// Les vues de presence ne demandent que les portraits des PJ effectivement affiches.
+// Les autres vues peuvent toujours demander l'annuaire des photos complet sans argument.
+async function sbListPhotosJoueurs(noms) {
+  if (noms === undefined) return sbGet('personnages', 'select=name,photo_url');
+  const uniques = [...new Set(noms.filter(n => typeof n === 'string' && n.length > 0))].sort();
+  const photos = [];
+  for (let i = 0; i < uniques.length; i += 100) {
+    const valeurs = '(' + uniques.slice(i, i + 100).map(n => '"' + n.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"').join(',') + ')';
+    const rows = await sbGet('personnages', 'select=name,photo_url&name=in.' + encodeURIComponent(valeurs));
+    if (!Array.isArray(rows)) return null; // panne distincte d'une liste de photos vide
+    photos.push(...rows);
+  }
+  return photos;
 }
 
 // =====================
@@ -1907,7 +1934,7 @@ async function sbUpdatePresence(name, country, city, buildingId, roomId, groupeP
   }
   // Upsert — name est cle primaire, on remplace la ligne existante (sinon conflit silencieux)
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/presences`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/presences?select=name`, {
       method: 'POST',
       headers: { ...sbEnTetes(), 'Prefer': 'resolution=merge-duplicates,return=representation' },
       body: JSON.stringify({
@@ -1964,28 +1991,37 @@ async function sbGetHistoriqueDeplacements(name, depuisJour) {
 }
 
 async function sbGetPresencesInRoom(country, city, buildingId, roomId) {
-  // Si pas dans un batiment/piece (rue centrale), pas de presence a chercher
-  if (!buildingId || !roomId) return [];
-  const filtre = `country=eq.${encodeURIComponent(country)}&city=eq.${encodeURIComponent(city)}&building_id=eq.${encodeURIComponent(buildingId)}&room_id=eq.${encodeURIComponent(roomId)}`;
-  const rows = await sbGet('presences', filtre);
-  if (!rows) return [];
-  // Filtrer les présences trop anciennes (>5 min = probablement déconnecté)
-  const now = Date.now();
-  return rows.filter(r => (now - new Date(r.updated_at).getTime()) < 5 * 60 * 1000);
+  if(!buildingId||!roomId)return [];
+  const v=await sbRpcVerdict('presences_realites_lire',{
+    p_country:country,p_city:city,p_building:buildingId,p_room:roomId
+  });
+  // Aucun repli sur le vieux TTL : un PJ inactif reste physiquement a sa position serveur.
+  // RPC absente/refus/panne != piece vide. Conserver le dernier affichage, sans feindre sa fraicheur.
+  return v?.ok&&v.contrat===1&&Array.isArray(v.presences)?v.presences:null;
 }
 
 // =====================
 // SAUVEGARDE AUTO
 // =====================
 let sbSaveTimer = null;
+let sbSauvegardeDifferee = null;
 function sbAutoSave() {
-  if (sbSaveTimer) clearTimeout(sbSaveTimer);
-  sbSaveTimer = setTimeout(async () => {
-    sbSaveTimer = null;
-    if (state?.char?.name) {
-      await sbSavePersonnage(state);
-    }
-  }, 3000); // Sauvegarde 3s après la dernière action
+  if(typeof rpRealitesLectureEnCours==='function'&&rpRealitesLectureEnCours())return;
+  if(!state?.char?.name||state.personnageChargeDepuisServeur===false)return;
+  if(sbSaveTimer)clearTimeout(sbSaveTimer);
+  // Capture a l'action : jamais le state mutable relu trois secondes plus tard.
+  sbSauvegardeDifferee={personnage:state.char,uid:typeof rpAuthUid==='function'?rpAuthUid():null,
+    donnees:JSON.parse(JSON.stringify(sbPayloadPersonnage(state)))};
+  sbSaveTimer=setTimeout(()=>sbViderSauvegardeDifferee(),3000);
+}
+async function sbViderSauvegardeDifferee(){
+  if(sbSaveTimer){clearTimeout(sbSaveTimer);sbSaveTimer=null;}
+  const capture=sbSauvegardeDifferee;sbSauvegardeDifferee=null;
+  let confirme=true;
+  if(capture&&state.char===capture.personnage&&(typeof rpAuthUid!=='function'||rpAuthUid()===capture.uid))
+    confirme=!!(await sbEnfilerEcriturePersonnage(state,capture.donnees));
+  await sbSaveQueue;
+  return confirme;
 }
 
 // Filet de secours au dechargement de la page (correctif, 20 aout 2026) : sbAutoSave() ci-dessus
@@ -3267,7 +3303,8 @@ async function sbDeposerVol(vol) {
 }
 
 async function sbRecupererVolsEnAttente(victime) {
-  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false`;
+  // Auteur du recu intentionnellement exclu : une attaque non identifiee reste secrete.
+  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false&select=id,victime,indice,delta,raison,traite,created_at,palier,applique_serveur,applique_le,resultat`;
   return sbGet('vols_en_attente', filtre) || [];
 }
 
@@ -4824,9 +4861,37 @@ async function sbCreerInvitationDiner(inviteur, invite, country, city, buildingI
 // existante ou future n'a jamais tournee_id renseigne (jamais ecrit par sbCreerInvitationDiner),
 // donc ce filtre est un no-op strict pour elles -- seul le comportement des lignes de tournee
 // change (elles disparaissent de cette requete).
+// Les deux lectures de reception du meme tick partagent exactement cette requete.
+// sbGet mutualise deja les GET simultanes par session, sans conserver de resultat ensuite.
+async function sbGetInvitationsRecues(nomJoueur) {
+  const origine = sbContexteInventaire(), invitations = [];
+  const filtre = `invite=eq.${encodeURIComponent(nomJoueur)}&or=(statut.eq.attente,and(tournee_id.not.is.null,statut.eq.acceptee))&order=id.asc&limit=100`;
+  let dernier = null;
+  // Une union peut depasser la limite REST alors que chacun des deux anciens GET tenait
+  // dans une page. Pagination par cle, sans offset : consommer une ancienne invitation
+  // entre deux pages ne doit pas faire sauter les lignes suivantes.
+  for (;;) {
+    const rows = await sbGet('invitations_diner', filtre + (dernier === null ? '' : '&id=gt.' + encodeURIComponent(dernier)));
+    const courant = sbContexteInventaire();
+    if (!Array.isArray(rows) || courant.uid !== origine.uid || courant.jeton !== origine.jeton
+        || courant.personnage !== origine.personnage) return null;
+    if (!rows.length) return invitations;
+    for (const row of rows) {
+      // Ne pas avancer avec un bigint deja arrondi par JSON/JavaScript, ni boucler sur
+      // une page incoherente. Les identifiants textuels exacts restent acceptes.
+      if (!(typeof row.id === 'number' && Number.isSafeInteger(row.id))
+          && !(typeof row.id === 'string' && /^-?\d+$/.test(row.id))) return null;
+      const id = String(row.id);
+      if (dernier !== null && BigInt(id) <= BigInt(dernier)) return null;
+      dernier = id;
+    }
+    invitations.push(...rows);
+    if (rows.length < 100) return invitations;
+  }
+}
 async function sbGetInvitationsDinerRecues(nomJoueur) {
-  const filtre = `invite=eq.${encodeURIComponent(nomJoueur)}&statut=eq.attente&tournee_id=is.null`;
-  return sbGet('invitations_diner', filtre) || [];
+  const rows = await sbGetInvitationsRecues(nomJoueur);
+  return Array.isArray(rows) ? rows.filter(r => r.tournee_id == null && r.statut === 'attente') : null;
 }
 
 async function sbGetInvitationsDinerTraitees(nomInviteur, nomInvite) {
@@ -4897,7 +4962,8 @@ async function sbGetInvitationsTournee(tourneeId) {
 }
 
 async function sbGetInvitationsTourneeRecues(nomJoueur) {
-  return sbGet('invitations_diner', `invite=eq.${encodeURIComponent(nomJoueur)}&statut=in.(attente,acceptee)&tournee_id=not.is.null`) || [];
+  const rows = await sbGetInvitationsRecues(nomJoueur);
+  return Array.isArray(rows) ? rows.filter(r => r.tournee_id != null && ['attente', 'acceptee'].includes(r.statut)) : null;
 }
 
 async function sbTracerAction(action) {
@@ -4947,8 +5013,16 @@ async function sbDeposerImpactIndice(impact) {
   return (r && r.ok === true) ? r : null;
 }
 
+// Rattrapage transactionnel des anciennes lignes, avant lecture de la fiche officielle.
+// Aucun calcul d'effet dans le navigateur. Migration PR56 requise, pas de faux succes.
+async function sbSynchroniserImpactsRealites(){
+  const r=await sbRpc('impacts_realites_synchroniser',{});
+  return Array.isArray(r)?r[0]:r;
+}
+
 async function sbRecupererImpactsEnAttente(victime) {
-  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false`;
+  // Auteur du recu intentionnellement exclu : une attaque non identifiee reste secrete.
+  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false&select=id,victime,indice,delta,raison,traite,created_at,palier,applique_serveur,applique_le,resultat`;
   return sbGet('impacts_indices_attente', filtre) || [];
 }
 
@@ -5237,6 +5311,9 @@ const RP_RPC_PUBLIQUES = new Set([
 // Le statut HTTP et le code PostgREST/PostgreSQL sont conserves pour le diagnostic, jamais
 // pour l'affichage : c'est l'appelant qui choisit une phrase pour le joueur.
 async function sbTransportRpc(fn, params, options) {
+  const finirRealite=typeof rpRealitesRequeteCommencer==='function'?rpRealitesRequeteCommencer():null;
+  try {
+
   const opts = options || {};
   const publique = (opts.publique === true) || RP_RPC_PUBLIQUES.has(fn);
 
@@ -5318,6 +5395,8 @@ async function sbTransportRpc(fn, params, options) {
     return { etat:'reponse_invalide', raison:'transport_indisponible', http:res.status,
       code:null, message:null, envoyee:true };
   }
+
+  } finally { if(finirRealite)finirRealite(); }
 }
 
 // CONTRAT HISTORIQUE, INCHANGE. 300 sites d'appel lisent sbRpc depuis trois ans : 2xx -> corps

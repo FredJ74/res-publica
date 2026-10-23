@@ -82,13 +82,12 @@ function fermerSeanceParlementaire() {
   if (cadre) cadre.style.display = 'none';
 }
 
-function seanceDemarrerVeille() {
+function seanceDemarrerVeille(){
   seanceArreterVeille();
-  RP_SEANCE_VEILLE = setInterval(() => {
-    const cadre = document.getElementById('rp-seance');
-    if (!cadre || cadre.style.display === 'none') { seanceArreterVeille(); return; }
-    seanceRafraichir().catch(() => {});
-  }, SEANCE_VEILLE_MS);
+  if(typeof rpRealitesEnregistrer==='function')rpRealitesEnregistrer('seance',()=>{
+    const cadre=document.getElementById('rp-seance');
+    if(cadre&&cadre.style.display!=='none')return seanceRafraichir();
+  });
 }
 
 function seanceArreterVeille() {

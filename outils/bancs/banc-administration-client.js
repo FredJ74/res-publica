@@ -119,11 +119,8 @@ att('aucun mot de passe, aucun secret en clair dans le depot',
 
 print('');
 print('4. LE RAFRAICHISSEMENT EST DISCRET, ET MUET');
-att('le panneau relit periodiquement',
-    panneau.indexOf('ADMIN_PERIODE_MS') >= 0 && panneau.indexOf('setInterval(') >= 0);
-att('et il se tait quand l onglet n est pas visible',
-    bloc(panneau, 'ADMIN_MINUTEUR = setInterval(', '}, ADMIN_PERIODE_MS);')
-      .indexOf('document.hidden') >= 0);
+att('le panneau ne relit jamais periodiquement', panneau.indexOf('setInterval(') < 0);
+att('les dossiers restent actualisables explicitement', pageAdmin.indexOf('onclick="admRelire()"') >= 0 && panneau.indexOf('await admRelire()') >= 0);
 att('un compteur sobre, pas une alerte',
     panneau.indexOf("admEl('adm-compteur')") >= 0 && panneau.indexOf('en attente') >= 0);
 att('AUCUN SON, et aucune notification intrusive',
