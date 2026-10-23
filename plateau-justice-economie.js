@@ -4651,7 +4651,7 @@ async function confirmerInvestir(pa, cost) {
 // operation Helvetia -- les RPC mutent server-side, jamais localement par soustraction (meme
 // doctrine que confirmerInvestir/Placement Banque nationale ci-dessus).
 let RP_HELVETIA_VERSION = 0;
-async function rafraichirRuntimeHelvetia() {
+async function rafraichirRuntimeHelvetia(options = {}) {
   const nom = state.char?.name, pays = state.country;
   const version = ++RP_HELVETIA_VERSION;
   const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
@@ -4665,6 +4665,8 @@ async function rafraichirRuntimeHelvetia() {
   if (version !== RP_HELVETIA_VERSION || state.char?.name !== nom || state.country !== pays
       || (typeof rpAuthUid === 'function' && rpAuthUid() !== uid)
       || (typeof rpAuthJeton === 'function' && (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) !== jeton)) return;
+  if(options.exigerComptes&&(!frais||!Array.isArray(comptes)))return null;
+  if(options.exigerPlacements&&!Array.isArray(placements))return null;
   for (const champ of ['arg','liquide']) {
     if (typeof frais?.[champ] === 'number' && Number.isFinite(frais[champ])) {
       state[champ] = frais[champ];
@@ -4675,6 +4677,7 @@ async function rafraichirRuntimeHelvetia() {
     state.comptesBancaires = construireMapComptesBancaires(comptes);
   }
   if (Array.isArray(placements)) state.placementsBancaires = placements;
+  return frais;
 }
 
 // Point d'entree unique Helvetia (route par gerer_finances ET compte_offshore quand
@@ -5210,9 +5213,13 @@ function signalerRefusTerrain(v, action) {
   if (typeof showToast === 'function') showToast(quoi + ' impossible', detail.charAt(0).toUpperCase() + detail.slice(1), false);
 }
 
-async function chargerTerrainState(buildingId) {
-  if (typeof sbGetTerrainState !== 'function') return getTerrainState(buildingId);
-  const distant = await sbGetTerrainState(state.country, buildingId).catch(() => null);
+async function chargerTerrainState(buildingId, exigerDistant) {
+  const contexte={personnage:state.char,pays:state.country,ville:state.currentCity};
+  if(typeof constructionReconcilierCommandes==='function')await constructionReconcilierCommandes(buildingId);
+  if (typeof sbGetTerrainState !== 'function') return exigerDistant?null:getTerrainState(buildingId);
+  const distant = await sbGetTerrainState(contexte.pays, buildingId, contexte.ville).catch(() => null);
+  if(state.char!==contexte.personnage||state.country!==contexte.pays||state.currentCity!==contexte.ville)return null;
+  if(exigerDistant&&!distant)return null;
   if (distant) {
     if (!state.terrainsState) state.terrainsState = {};
     state.terrainsState[buildingId] = distant;
@@ -7743,235 +7750,34 @@ async function ouvrirModalConstruire() {
 // une seule table, jamais deux.
 
 async function confirmerConstruction(niveauKey) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Construire ici')) return;
-  const ts = getTerrainState(id);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (ts.chantier) { showToast('Chantier en cours', 'Un chantier est déjà en cours sur ce terrain.', false); return; }
-
-  // Cadavre / squatteurs : meme contrat que l'ecran, revalide ici -- l'ecran n'est qu'une
-  // anticipation, contournable par un appel direct (meme doctrine qu'au Lot 1.2).
-  const dispo = (typeof terrainOrdreDisponible === 'function')
-    ? terrainOrdreDisponible('construire_sur_terrain', id) : { ok: true };
-  if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
-
-  // PERMIS EXACT : le permis accorde doit porter sur CE palier. constructionAutorisee seule ne
-  // suffit pas -- elle ne dit pas pour quel type de construction l'autorisation a ete donnee.
-  if (!ts.constructionAutorisee) { showToast('Permis requis', "La construction n'est pas autorisée sur ce terrain.", false); return; }
-  const palierAccorde = ts.permis && ts.permis.palierDemande;
-  if (palierAccorde && palierAccorde !== niveauKey) {
-    showToast('Permis non conforme',
-      'Votre permis porte sur « ' + (NIVEAUX_CONSTRUCTION[palierAccorde]?.label || palierAccorde) + ' », pas sur ce projet.', false);
-    return;
-  }
-
-  // Chantier dimensionne et FIGE au lancement (plateau-chantiers.js).
-  let chantier = creerChantierConstruction(niveauKey, state.day || 1);
-  if (!chantier) { showToast('Projet inconnu', '', false); return; }
-
-  // Apport initial LIBRE, au minimum 35 % du cout total. Aucun echeancier : le proprietaire peut
-  // verser davantage, jusqu'a 100 % des maintenant, et completera ensuite a son rythme.
-  const mini = montantMinimalLancement(chantier.coutTotal);
-  const saisi = parseInt(document.getElementById('chantier-apport')?.value || 0);
-  const apport = (saisi && saisi > 0) ? saisi : mini;
-  if (apport < mini) {
-    showToast('Apport insuffisant', 'Il faut verser au moins ' + mini.toLocaleString('fr-FR') + ' ' + cur + ' (35 %) pour lancer ce chantier.', false);
-    return;
-  }
-  const fonds = (typeof getFondsDisponiblesOrdinaires === 'function') ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (fonds < apport) {
-    showToast('Fonds insuffisants', apport.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
-    return;
-  }
-
-  // CHANTIER C (14 septembre 2026). L'apport est un MONTANT DE TRANSACTION choisi par le joueur :
-  // il ne peut pas figurer dans le miroir des couts d'ordre, et payer_ordre le refusait donc
-  // ('cout_non_declare') -- le lancement d'un chantier etait impossible en production. chantier_lancer
-  // relit le terrain sous verrou, revalide propriete, permis, palier et gel, construit le chantier
-  // a partir du gabarit MIROIR du palier, verifie l'apport minimal de 35 % et preleve.
-  const rLancement = await sbRpc('chantier_lancer', {
-    p_acteur: state.char?.name, p_pays: state.country, p_batiment: id,
-    p_palier: niveauKey, p_apport: apport
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
-  if (!rLancement || rLancement.ok !== true) {
-    const messages = {
-      pas_proprietaire: 'Ce terrain ne vous appartient pas.',
-      chantier_en_cours: 'Un chantier est déjà en cours sur ce terrain.',
-      permis_requis: "La construction n'est pas autorisée sur ce terrain.",
-      permis_non_conforme: 'Votre permis ne porte pas sur ce projet.',
-      apport_insuffisant: 'Il faut verser au moins ' + mini.toLocaleString('fr-FR') + ' ' + cur + ' (35 %).',
-      fonds_insuffisants: apport.toLocaleString('fr-FR') + ' ' + cur + ' requis.',
-      terrain_gele: 'Ce terrain est gelé par une succession.'
-    };
-    showToast('Chantier impossible', messages[(rLancement && rLancement.raison) || ''] || '', false);
-    return;
-  }
-  state.arg = rLancement.arg; state.liquide = rLancement.liquide;
-  if (state.char) state.char.arg = state.arg;
-  chantier = rLancement.chantier;
-
-  // APPROVISIONNEMENT IMMEDIAT (Lot 1.5.9). Un chantier ne doit pas attendre minuit pour pouvoir
-  // employer quelqu'un. Memes regles exactement que l'approvisionnement quotidien du cron --
-  // meme fonction de decision, planifierApprovisionnement -- avec les entrees/sorties d'ici.
-  // Si l'entrepot ou la tresorerie ne suivent pas, la penurie reste reelle : rien n'est invente.
-  const villeTerrain = ts.city || state.currentCity || 'capitale';
-  const idEntrepot = (typeof ENTREPOT_PAR_VILLE !== 'undefined') ? ENTREPOT_PAR_VILLE[villeTerrain] : null;
-  // L'APPROVISIONNEMENT EST UNE SEULE TRANSACTION, DES DEUX COTES (chantier 5, chaine 5,
-  // 10 octobre 2026).
-  //
-  // CE QUI SE PASSAIT, EN DEUX DEFAUTS. (a) approvisionner_chantier debite l'ENTREPOT dans sa
-  // transaction, mais la contrepartie -- le stock livre, la tresorerie depensee -- ne vivait que
-  // dans le sbSetTerrainState avale qui suivait. Perdue, la marchandise etait DETRUITE :
-  // l'entrepot avait vendu, le chantier n'avait rien recu et n'avait rien paye. Et le repli
-  // `|| { depense: 0 }` presentait une panne de la RPC comme « rien a acheter », donc comme un
-  // succes. (b) Plus grave : le navigateur transmettait lui-meme p_tresorerie, qui BORNE le
-  // pouvoir d'achat. Un client modifie annoncant une tresorerie enorme pouvait vider l'entrepot
-  // sans rien payer.
-  //
-  // chantier_approvisionner lit le chantier DANS LE BLOB DU TERRAIN sous verrou -- stock et
-  // tresorerie compris -- delegue a approvisionner_chantier (qui reste l'unique moteur du cote
-  // entrepot, et n'est plus appelable par un client), puis ecrit la contrepartie dans le meme
-  // blob et la meme transaction. Elle verifie aussi que le terrain est bien le mien.
-  //
-  // Le chantier lui-meme est deja persiste par chantier_lancer, appelee plus haut : il n'y a donc
-  // plus aucune ecriture de terrain a faire ici.
-  if (idEntrepot) {
-    const besoinJ1 = besoinMateriauxJourChantier(chantier, 1);
-    const appro = typeof sbRpc === 'function'
-      ? await sbRpc('chantier_approvisionner', {
-          p_terrain_id: id, p_cle_chantier: 'chantier', p_entrepot: idEntrepot,
-          p_besoin: besoinJ1, p_jour: state.day || 1
-        }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
-          .catch(function () { return null; })
-      : null;
-    // UNE PANNE N'EST PLUS « RIEN A ACHETER ». On le dit, et on garde le chantier tel que le
-    // serveur le connait : il existe, il n'est simplement pas approvisionne.
-    if (!appro || appro.ok !== true) {
-      showToast('Approvisionnement non confirmé',
-        "Le chantier est ouvert, mais la livraison du premier jour n'a pas pu être enregistrée"
-        + ((appro && appro.raison) ? ' (' + appro.raison + ')' : '')
-        + '. Rien n\'a été prélevé à l\'entrepôt.', false);
-      addJournalEntry("Chantier ouvert, approvisionnement du jour 1 non enregistré.", 'event-bad');
-    } else if (appro.chantier) {
-      // On recopie dans le cache le chantier arrete par le SERVEUR, jamais un calcul local.
-      chantier = appro.chantier;
-      if (typeof setTerrainState === 'function') setTerrainState(id, { chantier: chantier });
-    }
-  }
-
+  const palier=creerChantierConstruction(niveauKey,state.day||1);
+  if(!palier)return;
+  const texte=document.getElementById('chantier-apport')?.value?.trim();
+  let apport;
+  try{apport=texte?constructionFrancsEntiers(texte):montantMinimalLancement(palier.coutTotal);}
+  catch(_){showToast('Apport invalide','Utilisez des francs entiers.',false);return;}
+  const r=await constructionExecuterCommande('lancer',{palier:niveauKey,apport:String(apport)});
+  if(!r)return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  const pct = Math.floor(chantier.totalVerse * 100 / chantier.coutTotal);
-  addJournalEntry('Chantier ouvert : ' + NIVEAUX_CONSTRUCTION[niveauKey].label + '. Apport de '
-    + apport.toLocaleString('fr-FR') + ' ' + cur + ' (' + pct + ' % du coût). Durée théorique : '
-    + chantier.dureeJours + ' jours de travail effectif.', 'event-good');
-  showToast('Chantier ouvert !', chantier.dureeJours + ' jours de travail à financer et à réaliser.', true, true);
+  showToast('Chantier ouvert', 'Le serveur a confirmé le financement et les premiers matériaux.',true,true);
 }
 
 // Apport libre a tout moment : n'importe quel montant positif, autant de fois qu'on veut.
 // Remplace l'ancien "payer le versement du palier" : il n'existe plus de versement impose.
 async function doPayerVersementChantier() {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Financer le chantier')) return;
-  await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const ch = ts.chantier;
-  if (!ch) { showToast('Aucun chantier', "Aucun chantier en cours sur ce terrain.", false); return; }
-
-  const saisi = parseInt(document.getElementById('chantier-versement')?.value || 0);
-  const restant = Math.max(0, ch.coutTotal - ch.totalVerse);
-  const montant = (saisi && saisi > 0) ? saisi : restant;
-  if (montant <= 0) { showToast('Déjà financé', 'Ce chantier est intégralement financé.', false); return; }
-
-  const fonds = (typeof getFondsDisponiblesOrdinaires === 'function') ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (fonds < montant) { showToast('Fonds insuffisants', montant.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
-
-  // CHANTIER C : meme cause, meme correctif que le lancement. Le serveur relit le reste a
-  // financer, borne le versement, preleve et ecrit -- en une seule transaction.
-  const rVersement = await sbRpc('chantier_verser', {
-    p_acteur: state.char?.name, p_pays: state.country, p_batiment: id, p_montant: montant
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
-  if (!rVersement || rVersement.ok !== true) {
-    const messages = {
-      pas_proprietaire: 'Ce terrain ne vous appartient pas.',
-      chantier_absent: "Aucun chantier en cours sur ce terrain.",
-      deja_finance: 'Ce chantier est intégralement financé.',
-      fonds_insuffisants: montant.toLocaleString('fr-FR') + ' ' + cur + ' requis.',
-      terrain_gele: 'Ce terrain est gelé par une succession.'
-    };
-    showToast('Versement refusé', messages[(rVersement && rVersement.raison) || ''] || '', false);
-    return;
-  }
-  state.arg = rVersement.arg; state.liquide = rVersement.liquide;
-  if (state.char) state.char.arg = state.arg;
-  const maj = rVersement.chantier;
-  setTerrainState(id, { chantier: maj });
-
-  updateUI();
-  const pct = Number(rVersement.pourcentage || 0);
-  addJournalEntry('Chantier financé : +' + montant.toLocaleString('fr-FR') + ' ' + cur
-    + ' (total versé : ' + pct + ' %).', 'event-good');
-  showToast('Versement effectué', 'Financement cumulé : ' + pct + ' %.', true);
+  const ch=getTerrainState(state.currentBuilding).chantier;
+  if(!ch)return;
+  const texte=document.getElementById('chantier-versement')?.value?.trim();
+  let montant;
+  try{montant=texte?constructionFrancsEntiers(texte):Math.max(0,ch.coutTotal-ch.totalVerse);}
+  catch(_){showToast('Montant invalide','Utilisez des francs entiers.',false);return;}
+  const r=await constructionExecuterCommande('verser',{montant:String(montant)});
+  if(r)showToast('Versement confirmé','Le financement réel du chantier a été actualisé.',true);
 }
 
 async function doCorrompreChantier(pa, cost) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Accélérer le chantier')) return;
-  await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const ch = ts.chantier;
-
-  if (!ch) { showToast('Impossible', "Aucun chantier en cours ici.", false); return; }
-  // Lot 1.5.7 : il n'existe plus de "versement en attente" -- le financement est libre. La seule
-  // limite reste le plafond finance, applique plus bas par progressionAutorisee.
-  if (!peutProgresser(ch.totalVerse, ch.progressionJours, ch.dureeJours, ch.coutTotal)) {
-    showToast('Financement insuffisant', 'Complétez le financement avant d\'accélérer le chantier.', false); return;
-  }
-
-  // Lot 1.5.7 : dateFinPrevue n'existe plus -- la progression est la seule verite. L'ancien effet
-  // "diviser par deux le temps restant" se traduit fidelement par "avancer de la moitie du travail
-  // restant", plafonne par le financement comme n'importe quelle progression. Aucune faveur : la
-  // corruption ne permet pas de franchir un seuil non finance.
-  const restantJours = Math.max(0, ch.dureeJours - ch.progressionJours);
-  if (restantJours <= 0) { showToast('Inutile', 'Le chantier est déjà arrivé à son terme.', false); return; }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  const gain = progressionAutorisee(ch.progressionJours, restantJours / 2, ch.totalVerse, ch.dureeJours, ch.coutTotal);
-  ch.progressionJours = Math.min(ch.dureeJours, ch.progressionJours + gain);
-
-  // Lot 1.5.11 : la corruption est le SECOND point du jeu qui fait bouger progressionJours, avec
-  // le cron. Le verrou des 2/3 s'y applique donc exactement pareil -- il decoule de la progression
-  // reelle, jamais de la maniere dont elle a ete obtenue.
-  //
-  // Elle ne peut en revanche jamais LIVRER : elle avance de la moitie du travail restant, donc
-  // approche le terme sans jamais l'atteindre (et l'ecran refuse deja d'agir sur un chantier
-  // arrive a son terme). La livraison reste le fait du seul traitement quotidien -- un unique
-  // point d'arrivee, pas deux.
-  // LE SERVEUR CALCULE LA PROGRESSION, LE NAVIGATEUR N'ENVOIE PLUS AUCUN NOMBRE (10 oct. 2026).
-  // `progressionAutorisee` et `appliquerVerrouPlan` tournaient ICI, et leur resultat partait dans
-  // un `sbSetTerrainState` avale qui reecrivait l'objet `chantier` ENTIER -- celui que le cron de
-  // minuit fait avancer chaque nuit. Un chiffre que le client dicte et qui BORNE un avancement est
-  // une faille, meme derriere une RPC. `terrain_chantier_acte` refait le calcul sur l'etat reel,
-  // avec les trois seuils de financement lus en base et semes par le generateur de miroirs ; la
-  // preuve ancien-contre-nouveau tient sur une grille de 184 chantiers.
-  const vCh = await sbTerrainActe('terrain_chantier_acte', {
-    p_terrain_id: id, p_acte: 'chantier_accelerer', p_jour: state.day || 1
-  });
-  if (!vCh || vCh.ok !== true) {
-    signalerRefusTerrain(vCh, "L'accélération du chantier");
-    return;
-  }
-  remplacerTerrainState(id, vCh.etat);
-
-  updateUI();
-  const avancement = Number(vCh.progression) || 0;
-  const reste = Number(vCh.reste) || 0;
-  addJournalEntry('Chantier accéléré par corruption (-' + cost + ' ' + cur + '). Avancement : '
-    + avancement.toFixed(1) + ' / ' + ch.dureeJours + ' jours.', 'event-info');
-  showToast('Chantier accéléré', reste.toFixed(1) + ' jours de travail restants.', true);
+  // Les quatre empires actuels sont non P2W. Refuser avant tout cout ou mutation.
+  showToast('Délai incompressible', 'Aucun paiement ne permet d’accélérer une construction dans les empires actuels.', false);
 }
 
 // =====================================================================
@@ -7990,15 +7796,16 @@ let _planModificationEnCours = { buildingId: null, lots: [] };
 // Verdict d'ouverture, partage par l'ecran et par la confirmation : l'ecran n'est qu'une
 // anticipation contournable par un appel direct, la confirmation le rejoue integralement.
 function verdictOuvertureModificationPlan(ts) {
-  if (!estTitulaire(ts && ts.proprietaire)) return { ok: false, message: "Vous n'êtes pas propriétaire de ce terrain." };
-  const v = verdictModificationPlan(ts && ts.chantier);
+  if (!constructionPeutGerer(ts)) return { ok: false, message: "Vous n'êtes pas propriétaire de ce terrain." };
+  const premiereApresReception=ts?.niveau_construction && !ts.planInitialValide && !(ts.subdivisions||[]).length;
+  const v = premiereApresReception?{ok:true}:verdictModificationPlan(ts && ts.chantier);
   if (!v.ok) {
     return { ok: false, message:
       v.raison === 'chantier_absent'   ? "Aucun chantier en cours sur ce terrain."
     : v.raison === 'chantier_livre'    ? "Le bâtiment est livré : son plan ne se modifie plus ici."
-    : "Les travaux ont dépassé les deux tiers : le plan est définitivement arrêté." };
+    : v.raison==='dernier_tiers_requis'?"Le plan initial s’ouvre pendant le dernier tiers des travaux.":"Le premier plan est validé : toute modification passe par un réaménagement payant." };
   }
-  const palier = (ts.permis && ts.permis.palierDemande) || (ts.chantier && ts.chantier.niveau);
+  const palier = (ts.permis && ts.permis.palierDemande) || (ts.chantier && ts.chantier.niveau) || ts.niveau_construction;
   if (!palier) return { ok: false, message: "Aucun permis ne rattache un plan à ce chantier." };
   if (!batimentDivisible(palier)) {
     return { ok: false, message: 'Une construction de type « '
@@ -8075,6 +7882,7 @@ function renderModificationPlan() {
        + (lots.length > 0 ? ' (' + lots.length + ' lot' + (lots.length > 1 ? 's' : '') + ')' : ' sans découpage') + '</button>';
   html += '</div>';
 
+  html += '<button class="pnj-action-btn" onclick="confirmerModificationPlan(true)">Valider définitivement le premier plan</button>';
   document.getElementById('postes-modal-title').textContent = 'Modifier le plan de découpage';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
@@ -8109,64 +7917,20 @@ function doRetirerLotModificationPlan(index) {
   renderModificationPlan();
 }
 
-async function confirmerModificationPlan() {
-  const id = _planModificationEnCours.buildingId || state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Modifier le plan')) return;
-
-  // RELECTURE AVANT ECRITURE. L'ecran a pu rester ouvert pendant que le chantier franchissait les
-  // deux tiers -- au passage de minuit, ou par une acceleration. Le verrou est donc reevalue sur
-  // l'etat frais, jamais sur celui qui a servi a dessiner l'ecran.
-  await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  const v = verdictOuvertureModificationPlan(ts);
-  if (!v.ok) { showToast('Modification impossible', v.message, false); return; }
-
-  const nouveauPlan = _planModificationEnCours.lots;
-  const verdictPlan = verdictPlanPermis(ts, v.palier, nouveauPlan);
-  if (!verdictPlan.ok) { showToast('Plan refusé', verdictPlan.message, false); return; }
-  const decoupage = snapshotPlanPermis(nouveauPlan);
-
-  // Meme doctrine qu'au depot et qu'a la decision (Lot 1.5.5) : l'archive municipale COMMANDE. Si
-  // elle n'enregistre pas la modification, le plan en vigueur ne bouge pas d'un metre carre.
-  // Le document nomme celui qui modifie -- le proprietaire d'aujourd'hui -- et non le demandeur
-  // d'origine, qui peut ne plus rien avoir a voir avec ce terrain. L'en-tete du dossier, lui, reste
-  // lu sur l'evenement de depot (regrouperDossiersUrbanisme) : l'histoire n'est pas reecrite.
-  const permisModifie = Object.assign({}, ts.permis || {}, {
-    decoupageInitial: decoupage,
-    demandeur: state.char?.name || (ts.permis && ts.permis.demandeur) || null
-  });
-  const emis = (typeof emettreDocumentUrbanisme === 'function')
-    ? await emettreDocumentUrbanisme({ ...ts, city: ts.city || state.currentCity }, permisModifie, 'modification_plan',
-        { buildingId: id, pays: state.country, ville: ts.city || state.currentCity, jour: state.day || 1 })
-    : null;
-  if (!emis) {
-    showToast('Modification impossible', "Les archives municipales n'ont pas pu enregistrer cette modification. Le plan précédent reste en vigueur.", false);
-    return;
-  }
-
-  const permis = Object.assign({}, ts.permis || {}, { decoupageInitial: decoupage });
-  // LA PORTE DU PERMIS NE LAISSE TOUCHER QUE `permis` (10 octobre 2026), et verifie en base la
-  // premiere regle de `verdictOuvertureModificationPlan` : etre proprietaire. Les autres regles du
-  // verdict -- chantier present, deux tiers non franchis, palier divisible, surface connue --
-  // restent ici : elles sont le VERDICT UNIQUE du jeu, et en faire une seconde version en SQL
-  // serait exactement le defaut que ce chantier combat.
-  const vPlan = await sbTerrainActe('terrain_permis_acte', {
-    p_terrain_id: id, p_acte: 'permis_plan_modifier', p_patch: { permis: permis }
-  });
-  _planModificationEnCours = { buildingId: null, lots: [] };
-  if (!vPlan || vPlan.ok !== true) {
-    signalerRefusTerrain(vPlan, 'La modification du plan');
-    return;
-  }
-  remplacerTerrainState(id, vPlan.etat);
-
+async function confirmerModificationPlan(valider=false) {
+  const id=_planModificationEnCours.buildingId||state.currentBuilding;
+  if(id!==state.currentBuilding){showToast('Plan non envoyé','Revenez sur le terrain concerné.',false);return;}
+  if(!await chargerTerrainState(id,true)){showToast('Plan non envoyé','L’état du terrain ne peut pas être confirmé.',false);return;}
+  const ts=getTerrainState(id),v=verdictOuvertureModificationPlan(ts);
+  if(!v.ok){showToast('Plan non envoyé',v.message,false);return;}
+  const lots=snapshotPlanPermis(_planModificationEnCours.lots);
+  const validite=verdictPlanPermis(ts,v.palier,lots);
+  if(!validite.ok){showToast('Plan refusé',validite.message,false);return;}
+  const r=await constructionExecuterCommande('plan',{lots,valider:valider===true});
+  if(!r)return;
+  _planModificationEnCours={buildingId:null,lots:[]};
   document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  const resume = decoupage.length > 0
-    ? decoupage.length + ' lot' + (decoupage.length > 1 ? 's' : '')
-    : 'aucun lot — livraison indivise';
-  showToast('Plan modifié', 'Nouveau plan enregistré : ' + resume + '.', true, true);
-  addJournalEntry('Plan de découpage modifié en cours de chantier : ' + resume + '.', 'event-good');
+  showToast('Plan enregistré',valider?'Le premier plan est validé. Les modifications suivantes seront payantes.':'Le plan est conservé sur le serveur et dans les archives municipales.',true);
 }
 
 // =====================================================================
@@ -13249,123 +13013,71 @@ async function confirmerTravailChantier() {
 // VENTE DE MATERIAUX AU CHANTIER (Lot 1.5.10)
 // Le PJ doit etre PHYSIQUEMENT sur le terrain : l'ordre n'existe que dans la piece du terrain et
 // state.currentBuilding est relu ici. Vendre n'est pas travailler : 0 PA.
-async function doVendreMateriauxChantier(pa, cost) {
+async function doVendreMateriauxChantier(pa, cost, mode = 'vente') {
+  const contexte = contexteNavigationRue();
   const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Fournir le chantier')) return;
   await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  const ch = ts.chantier;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (!ch) { showToast('Aucun chantier', "Aucun chantier en cours sur ce terrain.", false); return; }
-  if (!chantierAccepteMateriaux(ch)) { showToast('Chantier terminé', "Ce chantier n'a plus besoin de matériaux.", false); return; }
-
-  // Matieres reellement possedees par le joueur, lues sur son inventaire empilable.
-  const possede = {};
-  ['bois', 'minerai', 'metal'].forEach(function (m) {
-    const ligne = (state.inventory || []).find(function (i) { return i.stackable && i.stackKey === m; });
-    possede[m] = ligne ? Math.max(0, Math.floor(ligne.qty || 0)) : 0;
-  });
-  const dispo = ['bois', 'minerai', 'metal'].filter(function (m) { return possede[m] > 0; });
-  if (dispo.length === 0) { showToast('Rien à vendre', "Vous ne transportez aucun matériau de construction.", false); return; }
-
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Trésorerie du chantier : '
-       + Math.floor(ch.tresorerie || 0).toLocaleString('fr-FR') + ' ' + cur
-       + '. Vous fixez librement votre prix — le chantier paiera tant qu\'il en a les moyens.</div>';
-  html += '<div style="display:flex;gap:.4rem;margin-bottom:.6rem">';
-  html += '<select id="vente-matiere" style="background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none">';
-  dispo.forEach(function (m) {
-    const res = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[m]) || {};
-    html += '<option value="' + m + '">' + (res.label || m) + ' (' + possede[m] + ')</option>';
-  });
-  html += '</select>';
-  html += '<input id="vente-quantite" type="number" min="1" placeholder="Quantité..." style="width:110px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '<input id="vente-prix" type="number" min="1" placeholder="Prix/unité..." style="width:110px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '</div>';
-  html += '<button class="pnj-action-btn" onclick="confirmerVenteMateriauxChantier()">Vendre au chantier</button>';
-  html += '</div>';
-  document.getElementById('postes-modal-title').textContent = 'Fournir le chantier';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  if (!contexteNavigationRueValide(contexte)) return;
+  const ch = getTerrainState(id).chantier;
+  if (!ch || !chantierAccepteMateriaux(ch)) {
+    showToast('Approvisionnement indisponible', 'Aucun chantier actif ici.', false); return;
+  }
+  const disponibles = ['bois','minerai','metal'].filter(m => (state.inventory || []).some(i => i.stackable && i.stackKey === m && i.qty > 0));
+  if (!disponibles.length) { showToast('Aucun matériau', 'Vous ne transportez aucun matériau de construction.', false); return; }
+  const don = mode === 'don';
+  constructionFenetre(don ? 'Donner des matériaux' : 'Vendre des matériaux',
+    '<p>' + (don ? 'Don gratuit : aucun paiement.' : 'Le prix affiché par le propriétaire est appliqué par le serveur. Aucun prix ne peut être fixé par le vendeur.') + '</p>' +
+    '<select id="vente-matiere">' + disponibles.map(m => '<option value="' + m + '">' + m + '</option>').join('') + '</select>' +
+    '<input id="vente-quantite" type="number" min="1" step="1" placeholder="Quantité">' +
+    constructionBouton(don ? 'Donner gratuitement' : 'Vendre au tarif du chantier', 'confirmerVenteMateriauxChantier(' + JSON.stringify(mode) + ')'));
 }
 
-async function confirmerVenteMateriauxChantier() {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Fournir le chantier')) return;
-  const ts = getTerrainState(id);
-  const ch = ts.chantier;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (!ch) { showToast('Aucun chantier', '', false); return; }
-
-  const matiere = document.getElementById('vente-matiere')?.value || 'bois';
-  const quantite = parseInt(document.getElementById('vente-quantite')?.value || 0);
-  const prix = parseInt(document.getElementById('vente-prix')?.value || 0);
-
-  // PREVISUALISATION SEULEMENT. verdictVenteMateriaux sert a refuser tout de suite une saisie
-  // manifestement invalide et a afficher un message utile ; il n'a AUCUNE autorite. La quantite
-  // reellement transferee est recalculee par la RPC, sous verrou, sur les donnees serveur.
-  const ligne = (state.inventory || []).find(function (i) { return i.stackable && i.stackKey === matiere; });
-  const possede = ligne ? Math.max(0, Math.floor(ligne.qty || 0)) : 0;
-  const apercu = verdictVenteMateriaux(ch, matiere, quantite, prix, possede);
-  if (!apercu.ok) {
-    const messages = {
-      chantier_termine: "Ce chantier n'a plus besoin de matériaux.",
-      matiere_invalide: "Ce matériau n'entre pas dans la construction.",
-      prix_invalide: 'Indiquez un prix unitaire positif.',
-      quantite_invalide: 'Indiquez une quantité positive.',
-      stock_insuffisant: "Vous ne transportez pas ce matériau.",
-      tresorerie_insuffisante: "La trésorerie du chantier ne permet pas d'acheter une seule unité à ce prix."
-    };
-    showToast('Vente refusée', messages[apercu.raison] || 'Vente impossible.', false);
-    return;
+const CONSTRUCTION_TRANSFERTS = new Map();
+async function confirmerVenteMateriauxChantier(mode = 'vente') {
+  const contexte = contexteNavigationRue(), id = state.currentBuilding;
+  const matiere = document.getElementById('vente-matiere')?.value;
+  const saisie = document.getElementById('vente-quantite')?.value || '';
+  if (!/^[1-9][0-9]*$/.test(saisie) || !Number.isSafeInteger(Number(saisie)) || Number(saisie) > 2147483647 || !['bois','minerai','metal'].includes(matiere)) {
+    showToast('Quantité invalide', 'Indiquez un nombre entier positif de matériaux.', false); return;
   }
-
-  // TRANSACTION SERVEUR. Une seule ecriture, tout ou rien : inventaire, argent, stock, tresorerie
-  // et journal sont valides ensemble ou pas du tout. Il n'existe plus aucun chemin client capable
-  // de muter l'un sans l'autre -- l'ancien mecanisme en memoire avec filet de restitution a ete
-  // supprime, pour qu'il n'y ait jamais deux chemins concurrents.
-  if (typeof sbVendreMateriauxChantier !== 'function') {
-    showToast('Vente indisponible', "Le service de vente n'est pas disponible pour le moment.", false);
-    return;
+  const key = JSON.stringify([state.country,state.currentCity,state.char?.name,typeof rpAuthUid === 'function' ? rpAuthUid() : null,id,matiere,saisie,mode]);
+  let intent = CONSTRUCTION_TRANSFERTS.get(key);
+  if (intent?.enCours) return;
+  if (!intent) {
+    let precedente=null;
+    try{precedente=sessionStorage.getItem('chantier-transfert:'+key);}catch(_){}
+    intent={requete:precedente||assembleeNouvelleRequete(),enCours:false};
+    // Sans stockage du reçu, une fermeture après réponse perdue rendrait le rejeu incertain.
+    try{sessionStorage.setItem('chantier-transfert:'+key,intent.requete);}
+    catch(_){showToast('Transfert indisponible','Le navigateur ne peut pas conserver le reçu de cette opération.',false);return;}
+    CONSTRUCTION_TRANSFERTS.set(key,intent);
   }
-  const verdict = await sbVendreMateriauxChantier(state.char?.name, state.country, id, matiere, quantite, prix)
-    .catch(function () { return null; });
-
-  // FAIL-CLOSED : null = appel echoue = transaction annulee cote serveur, donc rien n'a bouge.
-  if (!verdict) {
-    showToast('Vente impossible', "La transaction n'a pas pu aboutir. Rien n'a été échangé — réessayez.", false);
-    return;
-  }
-  if (!verdict.ok) {
-    const messagesServeur = {
-      pas_sur_place: "Vous devez être physiquement sur le chantier.",
-      chantier_absent: "Aucun chantier en cours sur ce terrain.",
-      chantier_termine: "Ce chantier n'a plus besoin de matériaux.",
-      stock_insuffisant: "Vous ne transportez plus ce matériau.",
-      tresorerie_insuffisante: "La trésorerie du chantier ne suffit plus à ce prix.",
-      vendeur_absent: "Votre personnage est introuvable."
-    };
-    showToast('Vente refusée', messagesServeur[verdict.raison] || 'Vente impossible.', false);
-    return;
-  }
-
-  // Le serveur fait foi : on realigne l'etat local sur ce qu'il a reellement applique.
-  if (ligne) {
-    ligne.qty = Math.max(0, possede - verdict.quantite);
-    if (ligne.qty <= 0) state.inventory = state.inventory.filter(function (i) { return i !== ligne; });
-  }
-  state.arg = (state.arg || 0) + Number(verdict.montant || 0);
-  await chargerTerrainState(id).catch(function () {});
-
-  const labelRes = ((typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) || {}).label || matiere;
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (typeof renderInventory === 'function') renderInventory();
-  updateUI();
-  showToast('Vente conclue', verdict.quantite + ' ' + labelRes + ' → +'
-    + Number(verdict.montant).toLocaleString('fr-FR') + ' ' + cur + '.', true, true);
-  addJournalEntry('Vous avez fourni ' + verdict.quantite + ' ' + labelRes + ' à un chantier pour '
-    + Number(verdict.montant).toLocaleString('fr-FR') + ' ' + cur + ' ('
-    + verdict.prixUnitaire + ' ' + cur + '/unité).', 'event-good');
+  intent.enCours = true;
+  try {
+    const verdict = await sbRpcVerdict('vendre_materiaux_chantier', {
+      p_vendeur:state.char?.name,p_country:state.country,p_building_id:id,p_matiere:matiere,
+      p_quantite:Number(saisie),p_prix:mode === 'don' ? 0 : 1,p_requete:intent.requete
+    }, {encoreValide:() => contexteNavigationRueValide(contexte)});
+    if (!contexteNavigationRueValide(contexte)) return;
+    if (!verdict || verdict.transport && verdict.transport.etat !== 'ok' && !verdict.ok) {
+      showToast('Confirmation incertaine', 'Le résultat ne peut pas être confirmé. Réessayez cette même opération ; aucun second transfert ne sera demandé.', false); return;
+    }
+    CONSTRUCTION_TRANSFERTS.delete(key);
+    try{sessionStorage.removeItem('chantier-transfert:'+key);}catch(_){}
+    if (!verdict.ok) {
+      showToast('Transfert refusé', 'Le serveur a refusé ce transfert (' + (verdict.raison || 'indisponible') + ').', false); return;
+    }
+    // Un reçu rejoué peut être ancien : relire les miroirs, ne jamais appliquer ses deltas.
+    const relu = await commercePjActualiserPersonnage({inventaire:true});
+    if (!contexteNavigationRueValide(contexte)) return;
+    await chargerTerrainState(id);
+    if (!contexteNavigationRueValide(contexte)) return;
+    document.getElementById('modal-postes')?.classList.remove('open');
+    updateUI();
+    showToast('Transfert confirmé', relu ? 'Matériaux transférés. Inventaire et soldes relus sur le serveur.' : 'Transfert confirmé ; actualisation de vos données encore nécessaire.', true);
+  } catch (_) {
+    if (contexteNavigationRueValide(contexte)) showToast('Confirmation incertaine', 'Réessayez la même opération pour retrouver son reçu.', false);
+  } finally { intent.enCours = false; }
 }
 
 // VOL DE MATERIAUX SUR UN CHANTIER (refondu au Lot 1.5.8)

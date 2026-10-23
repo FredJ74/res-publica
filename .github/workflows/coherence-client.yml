@@ -77,6 +77,10 @@ jobs:
         run: python3 outils/bancs/banc-permis-depot-local.py
       - name: Occupation persistante des terrains sur PostgreSQL local
         run: python3 outils/bancs/banc-terrain-occupation-local.py
+      - name: Construction et materiaux atomiques sur PostgreSQL local
+        run: |
+          python3 outils/bancs/banc-construction-jour-local.py
+          python3 outils/bancs/banc-construction-materiaux-local.py
       - name: Conserver les résultats des bancs
         if: always()
         uses: actions/upload-artifact@v4
