@@ -20,6 +20,7 @@ def suite(db,server):
  c.execute('CREATE TRIGGER trg_bail_cle_coherente BEFORE INSERT OR UPDATE ON locations_actives FOR EACH ROW EXECUTE FUNCTION bail_cle_coherente()')
  for p in ['20261023090008_chantier_travailleur_et_client.sql','20261023090009_chantier_reamenagement_socle.sql','20261023090010_chantier_reamenagement_commandes.sql','20261023090011_chantier_reamenagement_jour_travail.sql','20261023090014_loyers_lots_financement_commun.sql','20261023090015_location_lot_commandes_socle.sql','20261023090016_location_lot_raccordement.sql','20261023090017_location_lot_legacy_avant_paiement.sql']:
   c.execute((R/'migrations'/p).read_text());c.execute((R/'migrations'/p).read_text())
+ for p in sorted((R/'migrations').glob('*_chantier_quotas_pnj_francs_entiers.sql')):c.execute(p.read_text());c.execute(p.read_text())
  correctif=next((R/'migrations').glob('*_location_lot_preserver_fonds_existants.sql')).read_text();c.execute(correctif);c.execute(correctif)
  c.execute("SET test.acteur='Alice';SET test.serveur='off';UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='locaux',pa=50,hp=100,liquide=40,arg=100;UPDATE comptes_bancaires SET solde=60;UPDATE organisations SET data='{\"chef\":\"Chef\",\"caisse\":1000}'")
  lots=[{'id':'a','label':'Atelier','surface':600,'loyer':90,'destination':'commerce','locataire':None,'identite':'historique'},{'id':'b','label':'Local B','surface':600,'loyer':200,'destination':'commerce','locataire':None}]

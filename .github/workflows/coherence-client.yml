@@ -78,6 +78,7 @@ jobs:
           python3 outils/bancs/banc-reamenagement-materiaux-local.py
           python3 outils/bancs/banc-construction-travailleur-local.py
           python3 outils/bancs/banc-reamenagement-transactionnel-local.py
+          python3 outils/bancs/banc-reamenagement-quotas-local.py
           python3 outils/bancs/banc-lots-miroirs-local.py
           python3 outils/bancs/banc-location-lot-transactionnelle-local.py
           python3 outils/bancs/banc-reamenagement-budget-local.py

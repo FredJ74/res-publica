@@ -1260,7 +1260,7 @@ function materiauxDuJourReamenagementServeur(ch) {
   const panier = {};
   MATERIAUX_SERVEUR.forEach(function (cle) {
     const prix = (RESSOURCES_ECONOMIE_SERVEUR[cle] && RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase) || 0;
-    panier[cle] = prix > 0 ? Math.round(parMatiere / prix) : 0;
+    panier[cle] = prix > 0 ? Math.floor(parMatiere / prix) : 0;
   });
   return panier;
 }

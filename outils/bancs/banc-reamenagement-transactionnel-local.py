@@ -16,6 +16,8 @@ def suite(db,server,apres=None):
   assert v,t;n+=1;print('OK reamenagement',t,flush=True)
  for p in ['20261023090008_chantier_travailleur_et_client.sql','20261023090009_chantier_reamenagement_socle.sql','20261023090010_chantier_reamenagement_commandes.sql','20261023090011_chantier_reamenagement_jour_travail.sql']:
   c.execute((R/'migrations'/p).read_text());c.execute((R/'migrations'/p).read_text())
+ for p in sorted((R/'migrations').glob('*_chantier_quotas_pnj_francs_entiers.sql')):c.execute(p.read_text());c.execute(p.read_text())
+ for p in sorted((R/'migrations').glob('*_chantier_panier_budget_fixe.sql')):c.execute(p.read_text());c.execute(p.read_text())
  c.execute("SET test.acteur='Alice';SET test.serveur='off';UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='ream',hp=100,liquide=5000,arg=10000,pa=50;UPDATE comptes_bancaires SET solde=5000;UPDATE organisations SET data='{\"chef\":\"Chef\",\"caisse\":60000}'")
  lots=[{'id':'a','surface':600,'destination':'commerce','label':'Atelier','loyer':100,'locataire':None,'metadata':{'origine':'historique'}},{'id':'b','surface':600,'destination':'commerce','label':'Loué','loyer':240,'locataire':'Locataire','bailHistorique':'identite'}]
  etat={'city':'capitale','proprietaire':'Alice','surface':1600,'niveau_construction':'commerce_premium','subdivisions':lots,'planInitialValide':True}
