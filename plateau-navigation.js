@@ -361,29 +361,6 @@ function enterBuilding(buildingId, skipAutoRoom) {
     }).catch(() => { state.ambassadesOuvertesCache = []; });
   }
 
-  // Générer PNJ aléatoire si terrain à bâtir
-  if (buildingId?.startsWith('terrain-a-batir')) {
-    const occupationConfirmee = chargerPnjTerrain(buildingId);
-    // Le PNJ est maintenant dans sessionStorage — forcer re-rendu après
-    occupationConfirmee.then(confirmee => {
-      if (confirmee && state.currentRoom && state.currentBuilding === buildingId) {
-        const room = BUILDINGS[buildingId]?.rooms?.[state.currentRoom];
-        if (room) {
-          let persons = [...(room.persons || [])];
-          const stored = sessionStorage.getItem('terrain_pnj_' + buildingId);
-          if (stored) {
-            try {
-              const pnjTerrain = JSON.parse(stored);
-              if (pnjTerrain.name && !persons.find(p => p.name === pnjTerrain.name)) {
-                persons = [...persons, pnjTerrain];
-              }
-            } catch(e) {}
-          }
-          renderPersonsList(persons);
-        }
-      }
-    }).catch(() => {});
-  }
   document.getElementById('vue-rue').classList.remove('active');
   document.getElementById('vue-batiment').classList.add('active');
   const ancienConteneurRue = document.getElementById('rue-centrale-conteneur');
@@ -704,6 +681,39 @@ function enterRoom(buildingId, roomId, tabEl) {
     if (typeof sbSavePersonnage === 'function') {
       positionEcriteSurLeServeur = Promise.resolve(sbSavePersonnage(state)).catch(() => null);
     }
+  }
+
+  // L'occupation exige la position SERVEUR : attendre la sauvegarde avant la RPC.
+  if (buildingId?.startsWith('terrain-a-batir')) {
+    const visiteTerrain = { personnage: state.char, pays: state.country, ville: state.currentCity,
+      uid: typeof rpAuthUid === 'function' ? rpAuthUid() : null };
+    const occupationConfirmee = positionEcriteSurLeServeur.then(() => {
+      if (state.char !== visiteTerrain.personnage || state.country !== visiteTerrain.pays ||
+          state.currentCity !== visiteTerrain.ville || state.currentBuilding !== buildingId ||
+          state.currentRoom !== roomId ||
+          (typeof rpAuthUid === 'function' ? rpAuthUid() : null) !== visiteTerrain.uid) return false;
+      return chargerPnjTerrain(buildingId);
+    });
+    // Le PNJ est maintenant dans sessionStorage — forcer re-rendu après
+    occupationConfirmee.then(confirmee => {
+      if (confirmee && state.currentRoom === roomId && state.currentBuilding === buildingId) {
+        const room = BUILDINGS[buildingId]?.rooms?.[state.currentRoom];
+        if (room) {
+          let persons = [...(room.persons || [])];
+          const stored = sessionStorage.getItem('terrain_pnj_' + buildingId);
+          if (stored) {
+            try {
+              const pnjTerrain = JSON.parse(stored);
+              if (pnjTerrain.name && !persons.find(p => p.name === pnjTerrain.name)) {
+                persons = [...persons, pnjTerrain];
+              }
+            } catch(e) {}
+          }
+          renderPersonsList(persons);
+          renderRoomActions(room, buildingId, roomId);
+        }
+      }
+    }).catch(() => {});
   }
 
   // Réinitialiser le cache des vrais joueurs (on change de pièce, l'ancien cache est obsolète)
