@@ -385,11 +385,10 @@ REGRESSIONS_TERRAIN_JUSTICE = [
      "  if (false) {",
      "les dix-neuf appels nommes lisent tous leur verdict"),
 
-    ("terrain -- la decision du permis renvoie l'etat ENTIER au serveur",
-     "    p_patch: valide\n      ? { permis: etat.permis, constructionAutorisee: true }\n"
-     "      : { permis: etat.permis }",
-     "    p_patch: etat",
-     "la decision du permis ne transmet que `permis`"),
+    ("terrain -- la decision transmet a nouveau un statut depuis le navigateur",
+     "sbRpcVerdict('terrain_permis_decider',{",
+     "sbRpcVerdict('terrain_permis_decider',{p_patch:{permis:{statut:'valide'}},",
+     "la decision ne transmet plus aucun dossier dicte par le navigateur"),
 
     ("terrain -- l'acceleration du chantier redevient calculee dans le navigateur",
      "    p_terrain_id: id, p_acte: 'chantier_accelerer', p_jour: state.day || 1",

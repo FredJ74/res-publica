@@ -4,7 +4,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import re,tempfile,json
 R=Path(__file__).resolve().parents[2]
-def main():
+def main(apres=None):
  import pgserver,psycopg2
  serveur=pgserver.get_server(tempfile.mkdtemp(prefix='hg-permis-'),cleanup_mode='delete')
  try:
@@ -103,6 +103,7 @@ def main():
   q.execute("UPDATE personnages_donnees SET liquide=777,arg=802")
   r=appel(19);check(r['rejeu'] and r['paiement']['liquide']==777)
   terrain();avant=snapshot();check(appel(20,'inconnu')['raison']=='palier_invalide');check(snapshot()==avant)
+  if apres:apres(c,q,serveur,charger,appel,terrain,snapshot)
   # Une definition non examinee fait echouer toute la migration, sans affaiblissement.
   q.execute("CREATE OR REPLACE FUNCTION payer_ordre(p_acteur text,p_fn text DEFAULT NULL,p_pa integer DEFAULT 0,p_cost integer DEFAULT 0) RETURNS jsonb LANGUAGE sql AS $$SELECT '{}'::jsonb$$")
   try:q.execute(sql);raise AssertionError('garde attendue')

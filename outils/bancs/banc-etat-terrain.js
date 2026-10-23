@@ -94,12 +94,12 @@ att('un verdict absent est dit comme une panne de transport, pas comme un refus 
 print('');
 print('3. LES VINGT-DEUX ECRITURES PASSENT PAR HUIT PORTES, UNE PAR MECANISME');
 var ACTES = {
-  'terrain_compromis_acte': 6, 'terrain_permis_acte': 4, 'terrain_chantier_acte': 2,
+  'terrain_compromis_acte': 6, 'terrain_permis_acte': 3, 'terrain_permis_decider': 1, 'terrain_chantier_acte': 2,
   'terrain_lots_acte': 6, 'terrain_reamenagement_poser': 1
 };
 var totalPortes = 0;
 Object.keys(ACTES).sort().forEach(function (porte) {
-  var n = partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
+  var n = porte==='terrain_permis_decider' ? partout(/sbRpcVerdict\('terrain_permis_decider'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
   totalPortes += n;
   att(porte + ' : ' + ACTES[porte] + ' appel(s)', n === ACTES[porte], n + ' trouve(s)');
 });
@@ -143,6 +143,7 @@ var ACTES_NOMMES = [
   'lot_louer', 'lot_bail_libere'
 ];
 var manquants = ACTES_NOMMES.filter(function (a) {
+  if(a==='permis_decider')return partout(/sbRpcVerdict\('terrain_permis_decider'/g)!==1;
   return partout(new RegExp("p_acte: '" + a + "'", 'g')) === 0;
 });
 att('les dix-neuf actes des quatre portes a liste close sont tous appeles',
@@ -171,12 +172,13 @@ att("prevenir le maire n'envoie plus rien d'autre que l'acte",
 att("et `rien_a_signaler` est traite comme le cas NORMAL, sans toast",
     bPrev.indexOf('signalerRefusTerrain') < 0 && bPrev.indexOf('vPrev.ok !== true') >= 0);
 var bDec = sansCommentaires(bloc('plateau-justice-economie.js', 'traiterPermis'));
-att('la decision du permis ne transmet que `permis` (et `constructionAutorisee` si valide)',
-    bDec.indexOf('p_patch: valide') >= 0
-    && bDec.indexOf("{ permis: etat.permis, constructionAutorisee: true }") >= 0);
-att("et son verdict est lu : un refus ARRETE la decision",
-    bDec.indexOf('vDec.ok !== true') >= 0
-    && bDec.indexOf('vDec.ok !== true') < bDec.indexOf('remplacerTerrainState(buildingId, vDec.etat)'));
+att('la decision ne transmet plus aucun dossier dicte par le navigateur',
+    bDec.indexOf("sbRpcVerdict('terrain_permis_decider'") >= 0
+    && bDec.indexOf('p_patch') < 0 && bDec.indexOf('deduireCoutOrdre(') < 0
+    && bDec.indexOf('emettreDocumentUrbanisme(') < 0);
+att('et son verdict est lu : un refus ARRETE la decision',
+    bDec.indexOf('if(!r?.ok)') >= 0 && bDec.indexOf('return;') >= 0);
+
 var bCorr = sansCommentaires(bloc('plateau-justice-economie.js', 'doCorrompreFonctionnairePermis'));
 att("la corruption du fonctionnaire ne transmet que `permis`",
     bCorr.indexOf('p_patch: { permis: ts.permis }') >= 0);

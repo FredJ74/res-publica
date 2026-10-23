@@ -9078,98 +9078,39 @@ function doOuvrirRefusPermis(buildingId, pa, cost) {
 // motif : passe explicitement par l'appelant, ou lu dans l'ecran de refus a defaut. Le rendre
 // parametrable evite que la regle "un refus s'ecrit" ne dependance d'un champ de formulaire --
 // elle appartient a la decision, pas a l'interface qui la saisit.
-async function traiterPermis(buildingId, valide, pa, cost, motif) {
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', buildingId, 'Traiter ce permis')) return;
-  const etat = await sbGetTerrainState(state.country, buildingId).catch(() => null);
-  if (!etat?.permis) return;
-
-  // Verdict unique : dossier encore ouvert, et motif ecrit obligatoire en cas de refus.
-  const motifSaisi = valide ? null
-    : ((typeof motif === 'string' && motif) || document.getElementById('permis-motif-refus')?.value || '');
-  const vDecision = verdictDecisionPermis(etat.permis, valide, motifSaisi);
-  if (!vDecision.ok) {
-    showToast(vDecision.raison === 'motif_requis' ? 'Motif requis' : 'Dossier clos',
-      vDecision.raison === 'motif_requis'
-        ? 'Écrivez le motif du refus (10 caractères minimum) : il sera archivé et communiqué au demandeur.'
-        : 'Ce dossier a déjà été tranché.', false);
-    return;
-  }
-  // Lot 1.5.5 : la decision est archivee AVANT toute mutation du permis et avant le prelevement.
-  // Si l'archive municipale n'enregistre pas l'acte, la decision n'a pas lieu : le permis reste
-  // EXACTEMENT dans l'etat ou il etait -- rien n'est perdu, le maire adjoint peut retrancher plus
-  // tard -- et aucun cout n'est preleve. Meme pre-controle du cout qu'au depot, pour ne pas laisser
-  // une ligne d'archive sans decision.
-  const paDispoDecision = TEST_MODE || (state.pa || 0) >= (pa || 0);
-  const fondsDispoDecision = (cost || 0) <= 0
-    || (typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() >= cost : true);
-  if (!paDispoDecision || !fondsDispoDecision) {
-    signalerRefusCout({ ok: false, raison: paDispoDecision ? 'fonds_insuffisants' : 'pa_insuffisants', pa, cost });
-    return;
-  }
-
-  // Le snapshot archive porte la decision : on le construit sur une COPIE du permis, sans encore
-  // toucher a l'etat vivant.
-  const permisDecide = { ...etat.permis, statut: valide ? 'valide' : 'refuse', motifRefus: vDecision.motif };
-  const emisDecision = (typeof emettreDocumentUrbanisme === 'function')
-    ? await emettreDocumentUrbanisme(etat, permisDecide, valide ? 'acceptation' : 'refus',
-        { buildingId: buildingId, pays: state.country, ville: etat.city || state.currentCity,
-          jour: state.day || 1 })
-    : null;
-  if (!emisDecision) {
-    showToast('Décision impossible', "Les archives municipales n'ont pas pu enregistrer cette décision. Le dossier reste en l'état — réessayez.", false);
-    return;
-  }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  etat.permis.statut = valide ? 'valide' : 'refuse';
-  if (!valide) {
-    etat.permis.motifRefus = vDecision.motif;
-    // Jour du refus : point de depart de la carence de trois jours avant un nouveau depot.
-    etat.permis.jourRefus = state.day || 1;
-  }
-  // L'AUTORITE DE LA DECISION EST ENFIN VERIFIEE (10 octobre 2026). Cette fonction ne verifiait
-  // RIEN : `requiresPost: 'maire_adjoint'` et « dans cette ville uniquement » vivaient dans
-  // data.js, cote navigateur. N'importe quel joueur connecte pouvait donc valider ou refuser
-  // n'importe quel permis du jeu -- la policy d'UPDATE de `terrains_etat` le laisse ecrire. Et
-  // l'ecriture envoyait `etat` ENTIER, donc effacait la nuit du cron.
-  const vDec = await sbTerrainActe('terrain_permis_acte', {
-    p_terrain_id: buildingId, p_acte: 'permis_decider',
-    p_patch: valide
-      ? { permis: etat.permis, constructionAutorisee: true }
-      : { permis: etat.permis }
-  });
-  if (!vDec || vDec.ok !== true) {
-    signalerRefusTerrain(vDec, 'La décision sur ce permis');
-    return;
-  }
-  if (valide) etat.constructionAutorisee = true;
-  remplacerTerrainState(buildingId, vDec.etat);
-
-  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
-  if (typeof sbSendMail === 'function') {
-    const msg = valide
-      ? 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été validé. Vous pouvez construire.'
-      : 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été refusé.\n\nMotif retenu par le service d\'urbanisme : '
-        + vDecision.motif + '\n\nVous pourrez déposer une nouvelle demande dans ' + PERMIS_COOLDOWN_REFUS_JOURS + ' jours.';
-    await sbSendMail('Mairie', etat.permis.demandeur, valide ? 'Permis validé' : 'Permis refusé', msg, time).catch(() => {});
-  }
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-  showToast(valide ? 'Permis validé' : 'Permis refusé', '', true, true);
-  addJournalEntry((valide ? 'Permis de construire validé' : 'Permis de construire refusé') + ' pour ' + etat.permis.demandeur + '.', valide ? 'event-good' : 'event-bad');
+let URBANISME_DECISION_EN_COURS=false;
+async function traiterPermis(buildingId,valide,pa,cost,motif) {
+  if(URBANISME_DECISION_EN_COURS)return;
+  const c=contexteNavigationRue(),pays=state.country;
+  const texte=valide?null:((typeof motif==='string'&&motif)||document.getElementById('permis-motif-refus')?.value||'').trim();
+  if(!valide&&texte.length<10){showToast('Motif requis','Écrivez au moins dix caractères.',false);return;}
+  const cle='urbanisme-decision:'+JSON.stringify([c.uid,c.nom,pays,buildingId]);
+  URBANISME_DECISION_EN_COURS=true;
+  try{
+    let i;
+    try{
+      i=JSON.parse(sessionStorage.getItem(cle)||'null');
+      if(i&&(i.valide!==valide||i.motif!==texte)){showToast('Décision à vérifier','Reprenez la décision précédente avant de la modifier.',false);return;}
+      if(!i){i={requete:crypto.randomUUID(),valide,motif:texte};sessionStorage.setItem(cle,JSON.stringify(i));}
+    }catch(_){showToast('Décision non envoyée','La référence de reprise ne peut pas être conservée.',false);return;}
+    const r=await sbRpcVerdict('terrain_permis_decider',{p_terrain:buildingId,p_valide:i.valide,p_motif:i.motif,p_requete:i.requete});
+    if(!contexteNavigationRueValide(c))return;
+    if(!r?.ok){
+      if(r&&!r.transport)sessionStorage.removeItem(cle);
+      showToast('Décision non confirmée',r?.transport?'Réponse incertaine : reprenez la même décision.':(r?.raison||'Le serveur n’a pas confirmé cette décision.'),false);return;
+    }
+    const frais=await sbGetTerrainState(pays,buildingId).catch(()=>null);
+    if(!contexteNavigationRueValide(c))return;
+    const relu=typeof commercePjActualiserPersonnage==='function'?await commercePjActualiserPersonnage({inventaire:true}):false;
+    if(!contexteNavigationRueValide(c))return;
+    if(!frais||!relu){showToast('Décision enregistrée','L’actualisation reste à confirmer. La référence de reprise est conservée.',true);return;}
+    remplacerTerrainState(buildingId,frais);sessionStorage.removeItem(cle);updateUI();
+    showToast('Décision enregistrée','La décision et son document officiel ont été enregistrés par le serveur.',true,true);
+    doTraiterDemandesPermis(pa,cost);
+  }catch(_){if(contexteNavigationRueValide(c))showToast('Décision à vérifier','Reprenez la même décision pour retrouver son résultat.',false);}
+  finally{URBANISME_DECISION_EN_COURS=false;}
 }
 
-// =====================
-// DOSSIERS D'URBANISME — CONSULTATION MUNICIPALE (Lot 1.5.5)
-// =====================
-// Consultation pure : aucune decision, aucun cout, aucune mecanique politique nouvelle. L'archive
-// est lue telle qu'elle a ete ecrite, jamais reconstruite depuis l'etat courant des terrains.
-//
-// DROITS : reserves au maire adjoint, comme les autres entrees de son bureau (requiresPost dans
-// data.js). Choix deliberement conservateur -- aucun systeme de permissions nouveau n'est introduit
-// dans ce lot. Le demandeur, lui, conserve ses propres documents physiques (Lot 1.5.3).
 async function doConsulterDossiersUrbanisme() {
   document.getElementById('postes-modal-title').textContent = "Dossiers d'urbanisme";
   document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Consultation des archives...</div>';
