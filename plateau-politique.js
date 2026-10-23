@@ -4119,7 +4119,7 @@ function renderRoomActions(room, buildingId, roomId) {
     const fnChantier = new Set(['payer_versement_chantier','travailler_chantier',
       'vendre_materiaux_chantier','donner_materiaux_chantier','prix_chantier',
       'modifier_plan_chantier','diviser_construction','receptionner_chantier']);
-    const fnLivre = new Set(['reconfigurer_lots','gerer_lot_loue','gerer_fonds_commerce']);
+    const fnLivre = new Set(['reconfigurer_lots']); // accès et location via onglets des locaux
     return allOrders.filter(o => {
       if (avantAcquisition) {
         if (!fnAvant.has(o.fn)) return false;
