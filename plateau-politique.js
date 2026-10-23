@@ -4509,9 +4509,8 @@ function renderRoomActions(room, buildingId, roomId) {
       entries.forEach(e => deja.add(e.o.fn));
       window._terrainOrdresGroupes[index] = { titre: g.titre, entries };
       if (g.titre === 'Achat de terrains' && achatTerrainBloqueParIntrus) {
-        return '<button type="button" class="action-btn legal blocked" disabled aria-disabled="true" title="' +
-          messageAchatTerrainIntrus + '"><i class="ti ti-layout-list"></i> ' + g.titre +
-          ' <span class="pa-cost">' + messageAchatTerrainIntrus + '</span></button>';
+        return '<button type="button" class="action-btn legal blocked" aria-disabled="true" onclick="expliquerAchatTerrainBloque()">' +
+          '<i class="ti ti-layout-list"></i> ' + g.titre + '</button>';
       }
       return '<button class="action-btn legal" onclick="ouvrirMenuOrdresTerrain(' + index +
         ')" title="' + g.titre + '"><i class="ti ti-layout-list"></i> ' +
@@ -4599,6 +4598,10 @@ function ouvrirInformationsTerrainLuthecia(nature) {
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' + html + '</div>';
   document.getElementById('modal-postes').classList.add('open');
+}
+
+function expliquerAchatTerrainBloque() {
+  showToast('Achat impossible', 'Achat impossible, vous devez libérer le terrain en gérant les intrus', false);
 }
 
 function ouvrirMenuOrdresTerrain(index) {
