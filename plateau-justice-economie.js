@@ -12904,7 +12904,7 @@ async function doVendreMateriauxChantier(pa, cost, mode = 'vente') {
   const id = state.currentBuilding;
   await chargerTerrainState(id);
   if (!contexteNavigationRueValide(contexte)) return;
-  const ch = getTerrainState(id).chantier;
+  const ts = getTerrainState(id), ch = ts.chantier || ts.chantierReamenagement;
   if (!ch || !chantierAccepteMateriaux(ch)) {
     showToast('Approvisionnement indisponible', 'Aucun chantier actif ici.', false); return;
   }

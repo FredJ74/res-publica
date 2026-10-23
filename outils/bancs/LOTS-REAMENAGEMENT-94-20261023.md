@@ -20,7 +20,7 @@ Pour 100 m2 : prix total 1000 FR, materiaux 300 FR, travail 700 FR. Le panier ex
 
 Installer la PR114 entiere, dependances comprises, puis les migrations 20261023090008 a 20261023090017 dans l'ordre seulement APRES resolution du controle budget, du prevol vivant et des autres raccordements. Verifier md5(prosrc), definitions, droits, RLS et triggers reels avant toute application. Les nouvelles definitions refusent le remplacement d'un corps inconnu. L'application repetee est testee.
 
-Restent explicitement : raccordements des ventes/dons/prix/vols au reamenagement ; financement d'acquisition #65. Les conditions des prets immobiliers ne sont pas definies par #65 ; le pret travaux ne doit pas leur etre substitue. Le rapport n'assimile pas ces lacunes a un simple manque d'acces Supabase.
+Restent explicitement : vols et securite commune du chantier ; financement d'acquisition #65. Les conditions des prets immobiliers ne sont pas definies par #65 ; le pret travaux ne doit pas leur etre substitue. Le rapport n'assimile pas ces lacunes a un simple manque d'acces Supabase.
 
 Retour arriere : ne pas supprimer les chantiers, baux ou recus. Conserver les protections serveur et le client compatible ; toute restauration de fonction exige l'examen des transactions intervenues. Aucun retour automatique aux portes permissives.
 
@@ -33,6 +33,17 @@ Verification apres integration de main 33910be : 95/95 bancs client ; prevol SQL
 
 Les INSERT et modifications financieres brutes d'un bail dynamique sont refuses. L'option de visibilite reste utilisable. Le client relit les baux avant de lever son intention de reprise ; une panne conserve le registre precedent, les reponses tardives ou destinees a un autre contexte sont ecartees. La location ne recopie aucun delta financier client.
 
-Tests : 24 assertions PostgreSQL additionnelles, 4 tests client. Succes, manque de fonds/PA, presence, concurrence, rejeu, rollback apres contrepartie, interdiction d'ecriture brute, garde des permis et absence de deuxieme loyer au cron du jour. Identite et session restent des fixtures, pas une authentification Supabase reelle. Les identifiants de migration ont ete remis a l'heure UTC de leur ecriture, avant toute application ; aucun registre ou baseline modifie.
+Tests : 30 assertions PostgreSQL additionnelles, 4 tests client. Succes, manque de fonds/PA, presence, concurrence, rejeu, rollback apres contrepartie, interdiction d'ecriture brute, garde des permis et absence de deuxieme loyer au cron du jour. Identite et session restent des fixtures, pas une authentification Supabase reelle. Les identifiants de migration ont ete remis a l'heure UTC de leur ecriture, avant toute application ; aucun registre ou baseline modifie.
 
 Limites restantes de ce sous-parcours : controle complet des ecritures historiques de fin de bail/domiciliation, raccordement des lots vendus au futur registre de titres, preuve de compatibilite des triggers financiers vivants, et tarification des nouveaux lots dont le loyer initial est actuellement zero dans le moteur commun. Aucun ancien bail n'est modifie automatiquement.
+
+
+## Approvisionnement et compatibilite des fonds
+
+20261023090710 raccorde les ventes, dons et tarifs au reamenagement dans les fonctions existantes, sans ajouter de RPC ou de moteur d'inventaire. 12 assertions PostgreSQL additionnelles : prix serveur, don, coma, territoire, rejeu, concurrence et rollback. L'identite et le service de reception de la fixture restent simules.
+
+20261023091701 conserve les liens et transferts de baux des fonds existants, attestes par `entreprises` (table en lecture seule pour les clients dans le catalogue archive). Le bail ne peut pas inventer son fonds ou modifier son prix au passage. Le test execute le moteur de vente deja present, a prix nul sur des fixtures ; il ne valide pas tout le financement des ventes.
+
+20261023092229 corrige une perte reproductible : `creer_fonds_commerce` debitait l'apport avant de retourner `local_non_commercial`. Les controles precedents sont maintenant termines avant le debit, dans le meme moteur. Aucun tarif ni condition d'octroi ajoute. Les fonctions dynamiques de fonds restent a raccorder : le resolveur archive ne reconnait que les trois centres statiques, et les references typees/finances historiques doivent etre rapprochees des definitions vivantes avant activation. Ne pas confondre preservation des fonds existants et validation de l'exploitation commerciale de tous les nouveaux lots.
+
+Ordre obligatoire du paquet complet : PR112, puis PR114, puis la serie urbanisme 20261023071739..20261023071900, puis les migrations de cette branche 20261023090008..20261023092229 (ordre lexical interne). Les depots/instructions ne se reappliquent pas aveuglement par ordre de nom : la garde de PR112 precede le garde de plan PR114. Conserver le registre effectif et stopper au moindre corps inconnu. Les tests couvrent les variantes ciblees, pas une extraction integrale de la production.

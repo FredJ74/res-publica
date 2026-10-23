@@ -112,7 +112,7 @@ function constructionFenetre(titre,html){
 }
 function constructionBouton(texte,js){return '<button type="button" class="construction-action" onclick="'+constructionEchapper(js)+'">'+constructionEchapper(texte)+'</button>';}
 function ouvrirApprovisionnementChantier(){
-  const ts=getTerrainState(state.currentBuilding),ch=ts.chantier;
+  const ts=getTerrainState(state.currentBuilding),ch=ts.chantier || ts.chantierReamenagement;
   if(!ch||!chantierAccepteMateriaux(ch))return;
   const tarifs=['bois','minerai','metal'].map(m=>'<p>'+constructionEchapper(m)+' : '+constructionEchapper(ch.prixAchatPJ?.[m]??'entrepôt + 10 %, arrondi au franc supérieur, à confirmer par le serveur')+' FR/unité</p>').join('');
   constructionFenetre('Approvisionner le chantier',tarifs+constructionSousOrdre('vendre_materiaux_chantier','Vendre des matériaux',0,0)+constructionSousOrdre('donner_materiaux_chantier','Donner gratuitement des matériaux',0,0)+(constructionPeutGerer(ts)?constructionBouton('Fixer les prix d’achat','ouvrirPrixChantier()'):''));
@@ -120,7 +120,7 @@ function ouvrirApprovisionnementChantier(){
 function constructionSousOrdre(fn,label,pa,cost){return constructionBouton(label,'doOrder('+[JSON.stringify(fn),pa||0,cost||0,JSON.stringify(label),'""',100].join(',')+')');}
 function ouvrirPrixChantier(){
   const ts=getTerrainState(state.currentBuilding);if(!constructionPeutGerer(ts))return;
-  constructionFenetre('Prix d’achat des matériaux','<p>Prix en francs entiers uniquement. Les champs vides conservent les tarifs existants.</p>'+['bois','minerai','metal'].map(m=>'<label>'+m+' <input id="chantier-prix-'+m+'" inputmode="numeric" step="1" value="'+constructionEchapper(ts.chantier?.prixAchatPJ?.[m]??'')+'"></label>').join('')+constructionBouton('Enregistrer les prix','confirmerPrixChantier()'));
+  constructionFenetre('Prix d’achat des matériaux','<p>Prix en francs entiers uniquement. Les champs vides conservent les tarifs existants.</p>'+['bois','minerai','metal'].map(m=>'<label>'+m+' <input id="chantier-prix-'+m+'" inputmode="numeric" step="1" value="'+constructionEchapper((ts.chantier || ts.chantierReamenagement)?.prixAchatPJ?.[m]??'')+'"></label>').join('')+constructionBouton('Enregistrer les prix','confirmerPrixChantier()'));
 }
 async function confirmerPrixChantier(){
   if(constructionPrixEnCours)return;

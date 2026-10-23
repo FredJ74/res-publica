@@ -4,7 +4,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import json,re,tempfile
 R=Path(__file__).resolve().parents[2]
-def main():
+def main(apres=None):
  import pgserver,psycopg2
  serveur=pgserver.get_server(tempfile.mkdtemp(prefix='hg-construction-'),cleanup_mode='delete')
  try:
@@ -114,6 +114,7 @@ def main():
   try:q.execute("SELECT helvetia_debiter_fonds_ordinaires('Fixture',1,'nationale')");raise AssertionError('fraction historique a refuser')
   except psycopg2.Error as e:assert 'etat_financier_non_entier' in str(e)
   assert soldes()==avant
+  if apres:apres(c,q,serveur)
   q.execute("CREATE OR REPLACE FUNCTION vendre_materiaux_chantier(p_vendeur text,p_country text,p_building_id text,p_matiere text,p_quantite integer,p_prix integer) RETURNS jsonb LANGUAGE sql AS $$SELECT '{}'::jsonb$$")
   try:q.execute(migration);raise AssertionError('garde attendue')
   except psycopg2.Error as e:assert 'definition_non_examinee' in str(e)

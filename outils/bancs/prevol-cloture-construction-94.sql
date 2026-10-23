@@ -1,5 +1,6 @@
 -- LECTURE SEULE. Executer par le connecteur autorise avant tout lot, pas de donnees joueur.
-BEGIN TRANSACTION READ ONLY;
+BEGIN;
+SET TRANSACTION READ ONLY;
 SELECT version,name FROM supabase_migrations.schema_migrations WHERE version IN
  ('20261020214955','20261020222029','20261022123320','20261022124056','20261022130417','20261022143001') ORDER BY version;
 WITH attendu(signature,empreinte_observee) AS (VALUES
@@ -21,13 +22,14 @@ FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='publ
  ('terrain_etat_verrouiller_interne','terrain_etat_fusionner_interne','chantier_commande','chantier_jour_traiter',
  'chantier_plan_enregistrer_interne','chantier_autorite_exiger_interne','chantier_financeur_verrouiller_interne',
  'objet_sas_deposer','recherche_inscrire','combat_coup_resoudre','prelever_loyer_bail','bail_cle_coherente',
+ 'creer_fonds_commerce','vendre_fonds_commerce','mouvement_titulaire','local_vocation_commerciale',
  'helvetia_debiter_fonds_ordinaires','mail_systeme_poser_interne','detention_active','acteur_poste_courant');
 SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,c.relacl
 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'
 AND c.relname IN('terrains_etat','dossiers_urbanisme','objets_recus','locations_actives','personnages_donnees',
- 'comptes_bancaires','organisations','caisses_batiments','chantier_commandes_recus');
+ 'comptes_bancaires','organisations','caisses_batiments','chantier_commandes_recus','entreprises');
 SELECT tablename,policyname,roles,cmd,qual,with_check FROM pg_policies WHERE schemaname='public'
-AND tablename IN('terrains_etat','dossiers_urbanisme','objets_recus','locations_actives','personnages_donnees','comptes_bancaires');
+AND tablename IN('terrains_etat','dossiers_urbanisme','objets_recus','locations_actives','personnages_donnees','comptes_bancaires','entreprises');
 SELECT t.tgrelid::regclass,pg_get_triggerdef(t.oid) FROM pg_trigger t WHERE NOT t.tgisinternal AND t.tgrelid IN
  (to_regclass('public.terrains_etat'),to_regclass('public.dossiers_urbanisme'),to_regclass('public.objets_recus'),
  to_regclass('public.locations_actives'),to_regclass('public.personnages_donnees'));
