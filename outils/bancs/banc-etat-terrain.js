@@ -94,7 +94,7 @@ att('un verdict absent est dit comme une panne de transport, pas comme un refus 
 print('');
 print('3. LES VINGT-DEUX ECRITURES PASSENT PAR HUIT PORTES, UNE PAR MECANISME');
 var ACTES = {
-  'terrain_compromis_acte': 6, 'terrain_permis_acte': 4, 'terrain_chantier_acte': 2,
+  'terrain_compromis_acte': 6, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 1,
   'terrain_lots_acte': 6, 'terrain_reamenagement_poser': 1
 };
 var totalPortes = 0;
@@ -138,14 +138,15 @@ var ACTES_NOMMES = [
   'compromis_signer', 'compromis_pret_demander', 'compromis_transfert_proposer',
   'compromis_transfert_accepter', 'achat_direct_deposer', 'achat_direct_accelerer',
   'permis_prevenir_maire', 'permis_decider', 'permis_accelerer',
-  'permis_plan_modifier', 'chantier_accelerer', 'chantier_materiaux_voler',
+  'permis_plan_modifier', 'chantier_materiaux_voler',
   'lot_ajouter', 'lot_fusion_proposer', 'lot_fusion_accepter', 'lot_fusion_refuser',
   'lot_louer', 'lot_bail_libere'
 ];
 var manquants = ACTES_NOMMES.filter(function (a) {
+  if (a === 'permis_plan_modifier') return partout(/constructionExecuterCommande\('plan'/g) !== 1;
   return partout(new RegExp("p_acte: '" + a + "'", 'g')) === 0;
 });
-att('les dix-neuf actes des quatre portes a liste close sont tous appeles',
+att('les dix-huit actes encore autorises sont tous appeles',
     manquants.length === 0, 'manquants : ' + manquants.join(', '));
 
 print('');
@@ -184,11 +185,11 @@ att("la corruption du fonctionnaire ne transmet que `permis`",
 print('');
 print('6. LE CHANTIER : LE NAVIGATEUR N ENVOIE PLUS AUCUN NOMBRE');
 var bCh = sansCommentaires(bloc('plateau-justice-economie.js', 'doCorrompreChantier'));
-att("l'acceleration n'envoie ni progression, ni gain, ni duree",
-    bCh.indexOf('p_acte: \'chantier_accelerer\'') >= 0
-    && bCh.indexOf('p_patch') < 0 && bCh.indexOf('p_progression') < 0);
-att("et elle recopie la progression ARRETEE PAR LE SERVEUR",
-    bCh.indexOf('Number(vCh.progression)') >= 0 && bCh.indexOf('Number(vCh.reste)') >= 0);
+att("l'acceleration interdite ne lance aucune commande serveur ni progression",
+    bCh.indexOf('sbTerrainActe(') < 0 && bCh.indexOf('sbRpc') < 0
+    && bCh.indexOf('progressionJours') < 0);
+att("l'acceleration interdite ne preleve ni PA ni argent",
+    bCh.indexOf('deduireCoutOrdre(') < 0 && bCh.indexOf('Délai incompressible') >= 0);
 att("appliquerVerrouPlan n'est plus appele dans ce chemin",
     bCh.indexOf('appliquerVerrouPlan(') < 0);
 var bVol = sansCommentaires(bloc('plateau-justice-economie.js', 'confirmerVolMateriaux'));
