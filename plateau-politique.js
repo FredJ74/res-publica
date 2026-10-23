@@ -4566,9 +4566,10 @@ function ouvrirInformationsTerrainLuthecia(nature) {
     const lots = Array.isArray(ts?.subdivisions) ? ts.subdivisions : [];
     html += ligne('Bâtiment livré', ts.niveau_construction);
     html += ligne('Nombre de lots', lots.length);
-    html += lots.map((lot,i) => ligne('Lot ' + (i+1), (lot.nom || lot.name || 'Sans nom') +
-      ' — ' + (lot.surface || lot.superficie || 'surface inconnue') + ' m²' +
-      (lot.locataire ? ' — occupé par ' + lot.locataire : ''))).join('');
+    html += lots.map((lot,i) => ligne('Lot ' + (i+1), (lot.label || lot.nom || lot.name || 'Sans nom') +
+      ' — ' + (lot.surface ?? lot.superficie ?? 'surface inconnue') + ' m²' +
+      ' — loyer : ' + (lot.loyer ?? 'non défini') + ' FR' +
+      (lot.locataire ? ' — occupé par ' + lot.locataire : ' — disponible'))).join('');
   } else return;
   document.getElementById('postes-modal-title').textContent =
     nature === 'chantier' ? 'Information sur le chantier' : 'Information sur les locaux';
