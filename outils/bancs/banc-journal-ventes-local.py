@@ -49,6 +49,11 @@ def main():
    finally:c.execute('SELECT pg_advisory_unlock(96)')
    resultat=futur.result(timeout=10)
   ok(len(resultat['evenements'])==11 and lire()['nonLues']==1,'vente concurrente non affichee reste non lue')
+  # Un desaccord de proprietaire ne doit pas annuler la vente ni creer une alerte erronée.
+  c.execute('RESET ROLE')
+  c.execute("INSERT INTO ventes_snapshots(requete,jour_paris,acheteur,vendeur,fonds_id,reference_id,nom_commercial,generique_id,quantite,prix_unitaire,montant_total,fiche_officielle) VALUES('vente-tiers','2026-10-22','Arnie','Tiers','fonds','chocolat','Chocolat chaud','chocolat',1,20,20,'{}')")
+  c.execute("SELECT journal_titulaire FROM ventes_snapshots WHERE requete='vente-tiers'")
+  ok(c.fetchone()[0] is None,'vente incoherente conservee sans notification a un mauvais titulaire')
   print(f'{n}/{n} assertions, aucune transaction reelle.')
  finally:db.close();s.cleanup()
 if __name__=='__main__':main()
