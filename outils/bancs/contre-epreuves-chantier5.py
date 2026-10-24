@@ -138,29 +138,23 @@ REGRESSIONS_SUCCESSIONS = [
      "la porte n est pas appelee"),
 ]
 
+# Les garanties de prix/purge sont désormais éprouvées dans PostgreSQL : le client
+# transmet une intention et relit le serveur. Les quatre mutants portent sur ce contrat réel.
 REGRESSIONS_TERRAIN = [
-    ("terrain -- le verdict de la mutation n'est plus lu",
-     "  if (!vMut || vMut.ok !== true) {",
-     "  if (false) {",
-     # Sans la lecture du verdict, `vMut.etat` leve sur un verdict nul : la promesse est rejetee et
-     # la fonction ne rend plus false. C'est cette epreuve-la qui tombe la premiere.
-     "verdict absent : la fonction rend false"),
-
-    ("terrain -- l'ecriture directe du blob revient",
-     "  const vMut = typeof sbRpc === 'function'",
-     "  await sbSetTerrainState(state.country, id, patch).catch(() => {});\n"
-     "  const vMut = typeof sbRpc === 'function'",
-     "finaliserAchatTerrain ne fait plus aucune ecriture directe de terrain"),
-
-    ("terrain -- la purge de la reservation retombe hors du patch",
-     "  for (const k in (purge || {})) patch[k] = purge[k];",
-     "  if (false) { for (const k in (purge || {})) patch[k] = purge[k]; }",
-     "LA PURGE DE LA RESERVATION EST DANS LE MEME PATCH"),
-
-    ("terrain -- le cache local reprend le patch au lieu de l'etat serveur",
-     "  if (typeof setTerrainState === 'function' && vMut.etat) setTerrainState(id, vMut.etat);",
-     "  if (typeof setTerrainState === 'function') setTerrainState(id, patch);",
-     "le cache local recopie l'etat RENDU PAR LE SERVEUR"),
+    ("terrain -- le verdict serveur n'est plus attendu",
+     "return !!await finance135Acquerir(id,", "return true|| !!await finance135Acquerir(id,",
+     "une seule porte"),
+    ("terrain -- une écriture directe revient",
+     "return !!await finance135Acquerir(id,", "sbSetTerrainState(state.country,id,{});return !!await finance135Acquerir(id,",
+     "aucune ancienne primitive"),
+    ("terrain -- le compromis est confondu avec l'achat direct",
+     "titre==='achat_direct'?'acte_direct':'acte_compromis'", "'acte_direct'",
+     "titre compromis"),
+]
+REGRESSIONS_TERRAIN_PONT = [
+    ("terrain -- le cache reprend une copie au lieu de la relecture officielle",
+     "remplacerTerrainState(cible,terrain);", "remplacerTerrainState(cible,{proprietaire:'Ben'});",
+     "cache actuel du serveur"),
 ]
 
 REGRESSIONS_TOURNEE = [
@@ -757,6 +751,7 @@ def main():
     serie("TAUX D'IMPOSITION", BANC_IMPOTS, JUSTICE, REGRESSIONS_IMPOTS, echecs)
     serie("CLOTURE D'UNE TOURNEE", BANC_TOURNEE, ILLEGALES, REGRESSIONS_TOURNEE, echecs)
     serie("MUTATION DE PROPRIETE D'UN TERRAIN", BANC_TERRAIN, PNJ, REGRESSIONS_TERRAIN, echecs)
+    serie("RELECTURE DE PROPRIETE", BANC_TERRAIN, os.path.join(RACINE,"plateau-terrain-banque.js"), REGRESSIONS_TERRAIN_PONT, echecs, lanceur=lancer_cible("plateau-terrain-banque.js"))
     serie("CYCLE D'UNE AFFAIRE -- justice", BANC_PLAINTES, JUSTICE,
           REGRESSIONS_PLAINTES_JUSTICE, echecs, lanceur=lancer_cible("plateau-justice-economie.js"))
     serie("CYCLE D'UNE AFFAIRE -- supabase", BANC_PLAINTES, SUPABASE,
@@ -803,7 +798,7 @@ def main():
     total = (len(REGRESSIONS) + len(REGRESSIONS_VOTE) + len(REGRESSIONS_DESERTION)
              + len(REGRESSIONS_COTISATIONS) + len(REGRESSIONS_SUCCESSIONS)
              + len(REGRESSIONS_IMPOTS) + len(REGRESSIONS_TOURNEE)
-             + len(REGRESSIONS_TERRAIN) + len(REGRESSIONS_PLAINTES_JUSTICE)
+             + len(REGRESSIONS_TERRAIN) + len(REGRESSIONS_TERRAIN_PONT) + len(REGRESSIONS_PLAINTES_JUSTICE)
              + len(REGRESSIONS_PLAINTES_SUPABASE)
              + len(REGRESSIONS_TERRAIN_SUPABASE) + len(REGRESSIONS_TERRAIN_JUSTICE)
              + len(REGRESSIONS_TERRAIN_PERSONNAGE)

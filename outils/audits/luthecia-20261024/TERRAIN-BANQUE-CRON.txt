@@ -1,0 +1,51 @@
+
+BANC DE preleverPretsBancairesServeur — aucun debit sans sa garde
+============================================================================
+  OK  une revendication PATCH sur prets est emise
+  OK  le filtre cible le pret par son id
+  OK  le filtre EXIGE que la journee ne soit pas deja prise (compare-and-swap)
+  OK  le filtre accepte le pret dont la colonne est vide (is.null -- neq exclut les NULL)
+  OK  le corps pose le jour courant
+  OK  la revendication est la PREMIERE ecriture de la passe
+  OK  une mensualite est prelevee
+  OK  un seul debit emis sur l emprunteur
+  OK  le debit porte la mensualite sur arg
+  OK  et la meme somme sur liquide
+  OK  le debit suit la revendication, jamais avant
+  OK  journee deja prise : aucune mensualite prelevee
+  OK  journee deja prise : comptee comme deja revendiquee
+  OK  journee deja prise : AUCUN debit emis
+  OK  journee deja prise : AUCUNE requete apres la revendication
+  OK  panne de transport : aucune mensualite prelevee
+  OK  panne de transport : le marqueur est declare non pose
+  OK  panne de transport : AUCUN debit emis
+  OK  panne de transport : AUCUNE requete apres la revendication
+  OK  deja preleve aujourd hui : rien n est prelevé
+  OK  deja preleve aujourd hui : aucune revendication n est meme tentee
+  OK  deja preleve aujourd hui : aucun debit
+  OK  pret gele pour arbitrage : signale, jamais touche
+  OK  pret gele pour arbitrage : aucun debit
+  OK  pret gele pour arbitrage : aucune revendication
+  OK  contrat versionne une seule RPC
+  OK  contrat versionne aucun PATCH, meme sur reponse absente
+  OK  contrat versionne compteur de debit conforme
+  OK  contrat versionne compteur de saisie conforme
+  OK  contrat versionne une seule RPC
+  OK  contrat versionne aucun PATCH, meme sur reponse absente
+  OK  contrat versionne compteur de debit conforme
+  OK  contrat versionne compteur de saisie conforme
+  OK  contrat versionne une seule RPC
+  OK  contrat versionne aucun PATCH, meme sur reponse absente
+  OK  contrat versionne compteur de debit conforme
+  OK  contrat versionne compteur de saisie conforme
+  OK  contrat versionne une seule RPC
+  OK  contrat versionne aucun PATCH, meme sur reponse absente
+  OK  contrat versionne compteur de debit conforme
+  OK  contrat versionne compteur de saisie conforme
+  OK  contrat versionne une seule RPC
+  OK  contrat versionne aucun PATCH, meme sur reponse absente
+  OK  contrat versionne compteur de debit conforme
+  OK  contrat versionne compteur de saisie conforme
+
+============================================================================
+LES 45 EPREUVES SONT VERTES.
