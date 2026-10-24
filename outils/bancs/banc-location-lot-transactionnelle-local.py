@@ -100,5 +100,17 @@ def suite(db,server):
  c.execute("SET test.serveur='on';INSERT INTO locations_actives(id,country,data) VALUES('republic:centre-commercial:local:capitale','republic','{\"country\":\"republic\",\"city\":\"capitale\",\"buildingId\":\"centre-commercial\",\"roomId\":\"local\",\"locataire\":\"Alice\"}');SET test.serveur='off'");db.commit()
  r=q("SELECT creer_fonds_commerce('Alice','republic:centre-commercial:local:capitale','fonds-statique',0,'Historique')")
  ok(r['ok'] and r['vocation']=='commerce','creation historique valide conservee, sans nouveau moteur')
+ # Version vivante : l'autorite accepte aussi pj:<nom>, correction a preserver.
+ c.execute("CREATE FUNCTION titulaire_est_moi(text) RETURNS boolean LANGUAGE sql AS $$SELECT $1 IN(public.mon_personnage(),'pj:'||public.mon_personnage())$$")
+ for nom in ['acteur_est_moi','creer_fonds_commerce']:c.execute(m.fn('outils/bancs/banc-fixture-fonds-creation-reference-typee.sql',nom))
+ c.execute(sql);c.execute(sql)
+ avant=photo();r=q("SELECT creer_fonds_commerce('pj:Alice','republic:locaux:lot_dyn_b:capitale','fonds-type-refuse',40,'Refuse')")
+ ok(r.get('raison')=='local_non_commercial' and photo()==avant,'version vivante typee : refus avant apport conserve')
+ avant=photo();r=q("SELECT creer_fonds_commerce('pj:Bob','republic:locaux:lot_dyn_b:capitale','fonds-type-autrui',40,'Refuse')")
+ ok(r.get('raison')=='pas_titulaire' and photo()==avant,'reference typee tierce refusee sans debit')
+ c.execute("SET test.serveur='on';INSERT INTO locations_actives(id,country,data) VALUES('republic:centre-commercial:local-type:capitale','republic','{\"country\":\"republic\",\"city\":\"capitale\",\"buildingId\":\"centre-commercial\",\"roomId\":\"local-type\",\"locataire\":\"Alice\"}');SET test.serveur='off'");db.commit()
+ r=q("SELECT creer_fonds_commerce('pj:Alice','republic:centre-commercial:local-type:capitale','fonds-type-valide',0,'Type')")
+ ok(r['ok'] and r['proprietaire']=='pj:Alice','creation avec reference pj conservee apres adaptation')
  print(json.dumps({'location_transactionnelle':True,'assertions':n,'production':False}))
 if __name__=='__main__':m.main(suite)
+
