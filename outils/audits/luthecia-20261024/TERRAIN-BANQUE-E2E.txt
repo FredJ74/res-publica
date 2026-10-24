@@ -1,0 +1,86 @@
+
+> human-gambit-parcours-joueur@1.0.0 test
+> node --test test-*.cjs
+
+✔ historique explicitement autorise, sans pretendre compte de test reserve (2.067104ms)
+✔ Arnie refuse autrePersonnage (0.25029ms)
+✔ Arnie refuse uidAbsent (0.206545ms)
+✔ Arnie refuse origineAutre (0.184683ms)
+✔ Arnie refuse modeIsoles (0.221767ms)
+✔ Arnie refuse plan (0.252533ms)
+✔ Arnie refuse invite (0.192595ms)
+✔ Arnie refuse planification (0.183411ms)
+✔ prevol automatique refuse uid (0.766903ms)
+✔ prevol automatique refuse adresse (0.480079ms)
+✔ prevol automatique refuse anonyme (0.307495ms)
+✔ prevol automatique refuse confirmation (0.281506ms)
+✔ prevol automatique refuse controleUtilisateur (0.17642ms)
+✔ prevol automatique refuse personnage (0.18278ms)
+✔ prevol automatique refuse partage (0.292352ms)
+✔ prevol automatique refuse territoire (0.315987ms)
+✔ prevol automatique refuse proprietaire (0.235848ms)
+✔ prevol automatique refuse fiche (0.195799ms)
+✔ prevol automatique sans declaration manuelle, lectures exactes et aucun secret exporte (8.140907ms)
+✔ prevol HTTP, JSON et transport distincts, sans message prive (0.971625ms)
+✔ secret de declaration historique ne peut autoriser un deplacement (0.675719ms)
+✔ reseau interdit POST /auth/v1/signup (0.19607ms)
+✔ reseau interdit PUT /auth/v1/user (0.103272ms)
+✔ reseau interdit POST /auth/v1/admin/users (0.194677ms)
+✔ reseau interdit PATCH /rest/v1/personnages?name=eq.Arnie (0.199534ms)
+✔ reseau interdit POST /rest/v1/personnages (0.145615ms)
+✔ reseau interdit POST /rest/v1/presences (0.247646ms)
+✔ reseau interdit POST /rest/v1/rpc/payer_ordre (0.207446ms)
+✔ reseau interdit POST /rest/v1/rpc/inventaire_sauver_revision (0.336457ms)
+✔ reseau interdit POST /rest/v1/rpc/inventaire_reclamer_livraison (0.112066ms)
+✔ reseau interdit POST /rest/v1/rpc/rattacher_personnage (0.175629ms)
+✔ reseau interdit GET /functions/v1/action (0.117384ms)
+✔ lecture permise, aucune ecriture deduite dun nom de RPC (0.165575ms)
+✔ navigation limitee a Luthecia, acteur et personnage verifies (0.252212ms)
+✔ aucun cron ni dialogue API accessible meme en GET (0.233615ms)
+✔ empreinte protege patrimoine et progression, pas uniquement le liquide (1.103089ms)
+✔ handlers sensibles refuses avant tout appel meme si invoques directement (0.666785ms)
+✔ procedure reelle de securisation : UID conserve et confirmation en attente (34.88424ms)
+✔ procedure reelle : un UID de reponse different est refuse sans remplacer la fiche (7.361735ms)
+✔ procedure reelle : compte confirme conserve le meme UID et personnage (6.652157ms)
+✔ Chromium local : UID et Arnie verifies, POST/PATCH/PUT/cron bloques avant serveur (1844.73048ms)
+✔ reponse auth autre UID refusee avant exposition a la page, aucun jeton en rapport (0.790137ms)
+✔ mon_personnage different ne devient jamais Arnie par defaut (0.320403ms)
+✔ auth avant transport refuse une adresse differente et REST sans identite (0.214838ms)
+✔ clic de deplacement bloque avant rythme, identite et DOM (0.288136ms)
+✔ consultation initiale : aucun clic, position serveur initiale et empreinte requises (0.556822ms)
+✔ Playwright HTTP reel local : prevol termine avant page, aucune ecriture metier (11.025167ms)
+✔ aucune configuration : bloque, aucune authentification ni navigateur (2.784523ms)
+✔ compte present sans autorisation explicite : bloque (0.220176ms)
+✔ identite et origine explicitement autorisees (0.271672ms)
+✔ refuse origine (0.40577ms)
+✔ refuse http (0.174718ms)
+✔ refuse identite (0.20953ms)
+✔ refuse duree (0.161369ms)
+✔ refuse secretURL (0.254276ms)
+✔ acte economique refuse sans ressources isolees (0.477525ms)
+✔ acte refuse sans contre-preuve serveur (0.399951ms)
+✔ acte refuse sans verdict serveur attendu (0.377507ms)
+✔ clic sensible lie a un handler exact et un scenario autorise (0.497776ms)
+✔ deux comptes doivent etre distincts et complets (0.160727ms)
+✔ montants nuls, stocks et inventaire compares, pas de faux succes (0.524144ms)
+✔ journaux sans URL complete, query, messages, JWT, email ou corps de requete (0.498596ms)
+✔ Chromium reel : clic humain, position serveur, divergence et changement de personnage (24001.354153ms)
+✔ simule : clic financier confronte verdict, effet serveur et UI (1.180244ms)
+✔ simule : reponse perdue execute une seule requete, sans rejeu automatique (0.712283ms)
+✔ simule : handler different refuse avant tout clic, journal conserve pour reconciliation (0.37217ms)
+✔ position de rue : contrat serveur existant, building null et noeud exact (0.314144ms)
+✔ proxy reutilise sans fuite ni contournement TLS (0.212164ms)
+✔ oracles invalides refuses au prevol avant toute action financiere (0.377828ms)
+ℹ tests 69
+ℹ suites 0
+ℹ pass 69
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24099.562301
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

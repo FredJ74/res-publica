@@ -85,6 +85,17 @@ jobs:
         run: |
           python3 outils/bancs/banc-construction-jour-local.py
           python3 outils/bancs/banc-construction-materiaux-local.py
+          python3 outils/bancs/banc-construction-travailleur-local.py
+          python3 outils/bancs/banc-reamenagement-transactionnel-local.py
+          python3 outils/bancs/banc-reamenagement-quotas-local.py
+          python3 outils/bancs/banc-reamenagement-budget-local.py
+          python3 outils/bancs/banc-reamenagement-materiaux-local.py
+          python3 outils/bancs/banc-lots-miroirs-local.py
+          python3 outils/bancs/banc-occupation-actions-135-local.py
+          python3 outils/bancs/banc-terrain-banque-135-local.py
+          python3 outils/bancs/banc-terrain-banque-135-local.py --apres-location
+          python3 outils/bancs/contre-epreuves-terrain-banque-135-local.py
+          python3 outils/bancs/banc-location-lot-transactionnelle-local.py
       - name: Conserver les résultats des bancs
         if: always()
         uses: actions/upload-artifact@v4

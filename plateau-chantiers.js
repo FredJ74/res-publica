@@ -498,13 +498,11 @@ function budgetMateriauxParJourChantier(chantier) {
   return Math.max(0, nombreFini(chantier.coutMateriaux, 0)) / duree;
 }
 
-// Panier du jour d'une reconfiguration : un tiers de la valeur dans chaque matiere, arrondi.
-// Pas de sequence deterministe pour le metal ici, contrairement a la construction : cette sequence
-// existe pour eviter une derive d'arrondi sur 24 journees identiques, alors qu'une reconfiguration
-// dure quelques jours et que son budget quotidien est deja un nombre quelconque.
+// Chaque tiers du budget quotidien est borne vers le bas en unites entieres.
+// Le reliquat reste dans la tresorerie ; les arrondis ne consomment jamais le budget salarial.
 function materiauxDuJourReamenagement(chantier) {
   const exact = panierMateriauxPourValeur(budgetMateriauxParJourChantier(chantier));
-  return { bois: Math.round(exact.bois), minerai: Math.round(exact.minerai), metal: Math.round(exact.metal) };
+  return { bois: Math.floor(exact.bois), minerai: Math.floor(exact.minerai), metal: Math.floor(exact.metal) };
 }
 
 // Besoin du jour N, quel que soit le type de chantier. Point d'entree unique : le reste du moteur

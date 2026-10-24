@@ -1260,7 +1260,7 @@ function materiauxDuJourReamenagementServeur(ch) {
   const panier = {};
   MATERIAUX_SERVEUR.forEach(function (cle) {
     const prix = (RESSOURCES_ECONOMIE_SERVEUR[cle] && RESSOURCES_ECONOMIE_SERVEUR[cle].prixBase) || 0;
-    panier[cle] = prix > 0 ? Math.round(parMatiere / prix) : 0;
+    panier[cle] = prix > 0 ? Math.floor(parMatiere / prix) : 0;
   });
   return panier;
 }
@@ -1466,74 +1466,18 @@ async function archiverEvenementUrbanismeServeur(doc) {
 // verdict. L'archive municipale COMMANDE -- si elle n'est pas ecrite, l'accord n'a pas lieu et sera
 // retente la nuit suivante.
 async function traiterInstructionsPermis() {
-  const resultats = { instruits: 0, suspendus: 0, accords_tacites: 0, echecs_archive: 0, ignores: 0 };
-  try {
-    const terrains = await sbGet('terrains_etat', '');
-    if (!terrains) return resultats;
-    // Cle CRON-SEULEMENT (permis.jourInstruction) : Europe/Paris (arbitrage du 20/09/2026).
-    const jour = jourParisISO();
-
-    for (const row of terrains) {
-      let etat;
-      try { etat = JSON.parse(row.data); } catch (e) { continue; }
-      const p = etat.permis;
-      if (!permisEnInstructionServeur(p)) continue;
-      if (p.jourInstruction === jour) { resultats.ignores++; continue; }   // anti-rejeu quotidien
-
-      p.jourInstruction = jour;
-      const suspendu = terrainSuspenduServeur(etat);
-      if (suspendu) {
-        // L'enquete GELE le compteur : aucune journee consommee, aucune perdue non plus.
-        resultats.suspendus++;
-      } else if (!instructionAcheveeServeur(p)) {
-        p.joursInstructionFaits = joursInstructionFaitsServeur(p) + 1;
-        resultats.instruits++;
-      }
-
-      const verdict = verdictAccordTaciteServeur(etat);
-      if (verdict.ok) {
-        const doc = construireDocumentUrbanismeServeur(etat, p, 'accord_tacite',
-          { buildingId: row.building_id, pays: row.country, ville: etat.city, jour: null });
-        const archive = await archiverEvenementUrbanismeServeur(doc);
-        if (!archive) {
-          // Rien n'est decide sans acte municipal. On n'ecrit meme pas le compteur : la nuit
-          // suivante reprendra exactement au meme point.
-          resultats.echecs_archive++;
-          continue;
-        }
-
-        p.statut = 'valide';
-        p.accordTacite = true;
-        p.jourDecision = jour;
-        etat.constructionAutorisee = true;
-
-        // Copie physique du document, par le canal de reception automatique (Lot 1.5.4) : elle
-        // entre meme si l'inventaire est plein, quitte a mettre le demandeur en Surcharge.
-        // Identifiant deterministe : un rejeu ne peut pas produire deux exemplaires.
-        if (p.demandeur) {
-          await sbInsert('objets_recus', {
-            id: 'urb-tacite-' + row.id + '-' + (p.numeroDossier || 'sansnumero'),
-            destinataire: p.demandeur,
-            expediteur: "Services d'urbanisme",
-            data: JSON.stringify({
-              id: doc.id,
-              type: 'document_urbanisme_accord_tacite',
-              name: "Attestation d'accord tacite" + (doc.batimentLabel ? ' — ' + doc.batimentLabel : ''),
-              icon: 'ti-file-certificate',
-              legal: true,
-              desc: texteAccordTaciteServeur(doc),
-              documentUrbanisme: doc
-            })
-          }).catch(() => {});
-          await envoyerMailSysteme(p.demandeur, "Services d'urbanisme", 'Permis accorde tacitement', "Le delai d'instruction de votre demande s'est ecoule sans decision. Votre permis de construire est donc ACCORDE TACITEMENT : vous pouvez construire. L'attestation vous sera remise a votre prochaine connexion.").catch(() => {});
-        }
-        resultats.accords_tacites++;
-      }
-
-      await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`,
-        { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
-    }
-  } catch (e) { console.error('traiterInstructionsPermis error', e); }
+  const resultats = { instruits:0, suspendus:0, accords_tacites:0, echecs_archive:0, ignores:0 };
+  const terrains=await sbGet('terrains_etat','').catch(()=>null);
+  if(!terrains){signalerEchec('permis_instruction_transactionnelle','lecture_terrains_indisponible');return resultats;}
+  for(const row of terrains){
+    let etat;try{etat=JSON.parse(row.data);}catch(_){continue;}
+    if(!permisEnInstructionServeur(etat.permis))continue;
+    const brut=await sbRpc('terrain_permis_instruction_jour',{p_terrain:row.id},HEADERS_SERVICE).catch(()=>null);
+    const verdict=Array.isArray(brut)?brut[0]:brut;
+    if(!verdict?.ok){signalerEchec('permis_instruction_transactionnelle',verdict?.raison||'verdict_absent');resultats.echecs_archive++;continue;}
+    for(const k of ['instruits','suspendus','accords_tacites'])resultats[k]+=Number(verdict[k])||0;
+    if(verdict.ignore||verdict.rejeu)resultats.ignores++;
+  }
   return resultats;
 }
 
@@ -1750,7 +1694,7 @@ async function avancerChantiersQuotidien() {
 
       // #57 : une seule transaction SQL pour une construction. Ne jamais retomber sur
       // les anciennes ecritures REST si la RPC manque ou si sa reponse est perdue.
-      if (etat.chantier) {
+      if (etat.chantier || etat.chantierReamenagement) {
         const brut = await sbRpc('chantier_jour_traiter', { p_terrain_id: row.id }, HEADERS_SERVICE).catch(() => null);
         const verdict = Array.isArray(brut) ? brut[0] : brut;
         if (!verdict || verdict.ok !== true) {
@@ -1759,8 +1703,8 @@ async function avancerChantiersQuotidien() {
         } else if (verdict.rejeu || verdict.ignore) resultats.ignores++;
         else {
           if (Number(verdict.avance) > 0) resultats.avances++;
-          if (verdict.etat?.chantier?.arrete === 'financement') resultats.bloques_financement++;
-          if (verdict.etat?.chantier?.arrete === 'penurie_materiaux') resultats.penuries++;
+          if ((verdict.etat?.chantier || verdict.etat?.chantierReamenagement)?.arrete === 'financement') resultats.bloques_financement++;
+          if ((verdict.etat?.chantier || verdict.etat?.chantierReamenagement)?.arrete === 'penurie_materiaux') resultats.penuries++;
         }
         continue;
       }
@@ -2003,6 +1947,14 @@ async function preleverPretsBancairesServeur() {
     const jourPrets = jourParisISO();
 
     for (const pret of prets) {
+      if (pret.contrat_version === 2 && pret.type_banque === 'nationale') {
+        const brut=await sbRpc('pret_national_jour_traiter',{p_pret:pret.id},HEADERS_SERVICE).catch(()=>null);
+        const verdict=Array.isArray(brut)?brut[0]:brut;
+        if(!verdict?.ok){signalerEchec('pret_national_transactionnel',verdict?.raison||'verdict_absent');continue;}
+        if(!verdict.rejeu){if(verdict.montant>0)resultats.preleves++;if(verdict.impaye)resultats.impayes++;if(verdict.saisi)resultats.saisies++;}
+        continue;
+      }
+
       // GEL DES PRETS ANTERIEURS A LA REPARATION (chantier A / P0-1, 14 septembre 2026).
       // sbUpdatePret n'existait pas dans ce fichier : AUCUNE mensualite n'a jamais ete prelevee
       // depuis la mise en service. Les prets deja ouverts a cette date ont donc accumule des
@@ -6402,6 +6354,8 @@ export default async function handler(req, res) {
     const permis = await traiterInstructionsPermis();
 
     // 8. Progression quotidienne des chantiers (versements, alea, livraison)
+    const occupationsPolice = await sbRpc('terrain_police_echeances_traiter', {}, HEADERS_SERVICE).catch(() => null);
+    if (!(Array.isArray(occupationsPolice)?occupationsPolice[0]:occupationsPolice)?.ok) signalerEchec('terrain_police', 'verdict_absent_ou_refus');
     const chantiers = await avancerChantiersQuotidien();
 
     // 9. Mensualites des prets bancaires (a heure fixe, que le joueur dorme ou non)

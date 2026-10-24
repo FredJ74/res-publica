@@ -1,3 +1,5 @@
+-- Fixture historique isolee : ne jamais appliquer en production.
+BEGIN;
 -- Version avant migration de depot, archivee depuis main d978a76.
 -- Un banc de migration doit partir de cet etat, et non du baseline vivant apres migration.
 CREATE OR REPLACE FUNCTION public.terrain_permis_acte(p_terrain_id text, p_acte text, p_patch jsonb DEFAULT NULL::jsonb)
@@ -112,3 +114,5 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'etat', v_final,
                             'ville_inconnue', v_ville_inconnue);
 END; $function$;
+
+ROLLBACK;

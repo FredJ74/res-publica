@@ -1,170 +1,31 @@
-// Banc de la MUTATION DE PROPRIETE D'UN TERRAIN -- plateau-pnj.js (chantier 5, 10 octobre 2026).
-// On extrait la VRAIE fonction du fichier de production.
-// SOURCES: aucune -- ce banc lit plateau-pnj.js lui-meme, par readFile.
-//
-// CE QUE CE BANC ETABLIT. finaliserAchatTerrain est la mutation de propriete la plus centrale du
-// jeu : les deux branches d'achat (compromis et achat direct) y aboutissent. Le solde du prix est
-// deja parti cote serveur (deduireCoutOrdre -> payer_ordre) quand elle s'execute, et son ecriture
-// etait AVALEE : l'acheteur pouvait payer et ne rien recevoir. L'historique public de la vente,
-// ecrit juste apres et avale lui aussi, pouvait acter une vente qui n'existe pas -- avec un
-// identifiant portant Date.now(), donc jamais dedoublonnable. Et la purge de la reservation
-// consommee etait une TROISIEME ecriture, elle aussi avalee : si elle se perdait,
-// doActeVenteTerrain reproposait l'acte et le joueur repayait le solde.
-//
-// Le banc verifie les deux moities : un seul appel a terrain_proprietaire_muter, portant le TITRE
-// et un PATCH (jamais un blob entier relu dans le cache), la purge de la reservation DANS LE MEME
-// patch, et aucune annonce d'achat si le verdict n'est pas venu.
-var src = readFile(typeof CHEMIN_SOURCE === 'string'
-  ? CHEMIN_SOURCE : '/Users/fredericjasseron/ResPublica/plateau-pnj.js');
-function bloc(nom) {
-  var i = src.indexOf('async function ' + nom + '(');
-  if (i < 0) i = src.indexOf('function ' + nom + '(');
-  if (i < 0) throw new Error('introuvable : ' + nom);
-  var j = src.indexOf('{', i), p = 0, k = j;
-  while (k < src.length) { if (src[k] === '{') p++; else if (src[k] === '}') { p--; if (!p) break; } k++; }
-  return src.slice(i, k + 1);
+// SOURCES: aucune -- vrais adaptateurs de production ; atomicite/archives eprouvees en PostgreSQL.
+var src=readFile(typeof CHEMIN_SOURCE==='string'&&(typeof CHEMIN_FICHIER!=='string'||CHEMIN_FICHIER==='plateau-pnj.js')?CHEMIN_SOURCE:'/Users/fredericjasseron/ResPublica/plateau-pnj.js');
+var pont=readFile(typeof CHEMIN_FICHIER==='string'&&CHEMIN_FICHIER==='plateau-terrain-banque.js'?CHEMIN_SOURCE:'/Users/fredericjasseron/ResPublica/plateau-terrain-banque.js');
+function bloc(nom){var i=src.indexOf('async function '+nom+'('),j=src.indexOf('{',i),p=0,k=j;for(;k<src.length;k++){if(src[k]==='{')p++;if(src[k]==='}'&&!--p)break;}return src.slice(i,k+1);}
+var state,VERDICT,GELE,RPC,TOASTS,JOURNAL,CACHE,ANCIENNES,stock=new Map();
+var sessionStorage={getItem:k=>stock.get(k)||null,setItem:(k,v)=>stock.set(k,v),removeItem:k=>stock.delete(k)},crypto={randomUUID:()=> 'fixture-uuid'};
+function contexteNavigationRue(){return {uid:'fixture',nom:state.char.name,char:state.char};}function contexteNavigationRueValide(c){return c.char===state.char;}
+function refuserSiGele(){return Promise.resolve(GELE);}function updateUI(){}function constructionFenetre(){}function constructionBouton(){}
+function getTerrainState(){return CACHE[CACHE.length-1]||{};}
+function showToast(t,m,ok){TOASTS.push({titre:t,message:m,ok:!!ok});}function addJournalEntry(m,c){JOURNAL.push({texte:m,classe:c});}
+function sbRpcVerdict(nom,args){RPC.push({nom:nom,args:args});return VERDICT==='rejet'?Promise.reject(Error('transport')):Promise.resolve(Array.isArray(VERDICT)?VERDICT[0]:VERDICT);}
+function sbGetTerrainState(){var v=Array.isArray(VERDICT)?VERDICT[0]:VERDICT;return Promise.resolve(v&&v.ok?v.etat:null);}
+function rafraichirRuntimeHelvetia(){return Promise.resolve({pa:7});}function remplacerTerrainState(id,e){CACHE.push(e);}
+var document={getElementById:()=>({classList:{remove(){}}})};
+function sbSetTerrainState(){ANCIENNES.push('ancien_blob');}function sbEnregistrerVenteTerrain(){ANCIENNES.push('ancienne_archive');}
+eval(pont);eval(bloc('finaliserAchatTerrain'));
+function neuf(v,gele){stock.clear();state={char:{name:'Ben'},country:'republic',currentCity:'capitale',arg:5000};VERDICT=v===undefined?{ok:true,etat:{proprietaire:'Ben',surface:800,valeur_totale:9000,city:'ville_a',permis:{statut:'valide'},zzTemoinServeur:4242}}:v;GELE=!!gele;RPC=[];TOASTS=[];JOURNAL=[];CACHE=[];ANCIENNES=[];}
+function sync(p){var fini=false,v;Promise.resolve(p).then(x=>{v=x;fini=true;},e=>{v=e;fini=true;});for(var i=0;i<500&&!fini;i++)drainMicrotasks();if(!fini)throw Error('promesse non resolue');return v;}
+var ko=0,n=0;function att(t,v){n++;if(v)print('  ok '+t);else{ko++;print('  *** '+t);}}
+neuf();att('mutation via une commande complete',sync(finaliserAchatTerrain('zz-parcelle',1,2,true,'compromis',{}))===true);
+att('une seule porte',RPC.length===1&&RPC[0].nom==='terrain_acquisition_commande');att('titre compromis',RPC[0].args.p_action==='acte_compromis');att('identifiant du terrain',RPC[0].args.p_terrain==='zz-parcelle');
+att('UUID present',typeof RPC[0].args.p_requete==='string'&&RPC[0].args.p_requete.length>0);att('aucune ancienne primitive',ANCIENNES.length===0);
+att('prix non dicte par le client',!('prix' in RPC[0].args)&&!('prix' in RPC[0].args.p_parametres));att('surface non dictee',!('surface' in RPC[0].args));att('ville non dictee',!('city' in RPC[0].args));att('purge serveur non fournie par le client',!('p_patch' in RPC[0].args));att('aucun blob de cache',!('_fusionne' in RPC[0].args));
+att('cache actuel du serveur',CACHE.length===1&&CACHE[0].zzTemoinServeur===4242&&CACHE[0].permis.statut==='valide');att('achat annonce apres relecture',TOASTS.some(t=>t.ok));
+neuf();att('achat direct meme adaptateur',sync(finaliserAchatTerrain('zz-parcelle',7000,600,false,'achat_direct',{}))===true);att('titre achat direct',RPC[0].args.p_action==='acte_direct');att('purge toujours serveur',!('p_patch' in RPC[0].args));att('autorisation de permis non dictee',!('constructionAutorisee' in RPC[0].args));att('aucune ancienne primitive',ANCIENNES.length===0);
+for(var c of [null,[],'rejet',{ok:false,raison:'pas_mon_compromis'},{ok:false,raison:'terrain_gele'}]){
+ neuf(c);att('refus sans fausse propriete',sync(finaliserAchatTerrain('zz-parcelle',9000,800,true,'compromis',{}))===false);att('aucun achat annonce',!TOASTS.some(t=>t.ok));att('motif nomme au joueur',TOASTS.length===1&&!TOASTS[0].ok);att('aucun cache de titre adopte',CACHE.length===0);att('aucun paiement ou archive locale',state.arg===5000&&ANCIENNES.length===0);
 }
-
-var console = { error: function () {}, warn: function () {}, log: function () {} };
-var RPC = [], ANCIENNES = [], TOASTS = [], JOURNAL = [], CACHE = [];
-var VERDICT = null, GELE = false;
-var state = { char: { name: 'Ben' }, country: 'republic', currentCity: 'capitale', arg: 5000 };
-
-function sbRpc(nom, args) {
-  RPC.push({ nom: nom, args: args });
-  if (VERDICT === 'rejet') return Promise.reject(new Error('transport'));
-  return Promise.resolve(VERDICT);
-}
-// Les deux primitives que cette fonction ne doit plus appeler.
-function sbSetTerrainState(p, id, etat) { ANCIENNES.push({ quoi: 'sbSetTerrainState', etat: etat }); return Promise.resolve(true); }
-function sbEnregistrerVenteTerrain() { ANCIENNES.push({ quoi: 'sbEnregistrerVenteTerrain' }); return Promise.resolve(true); }
-
-function setTerrainState(id, patch) { CACHE.push(patch); return { _fusionne: true, id: id }; }
-function refuserSiGele() { return Promise.resolve(GELE); }
-function sbGetMariageActif() { return Promise.resolve(null); }
-function getVilleTerrain(id) { return 'ville_a'; }
-function showToast(t, m, ok) { TOASTS.push({ titre: t, message: m, ok: ok === true }); }
-function addJournalEntry(m, c) { JOURNAL.push({ texte: m, classe: c }); }
-function updateUI() {}
-var COUNTRIES = { republic: { cur: 'FR' } };
-var BUILDINGS = { 'zz-parcelle': { shortName: 'Parcelle du banc' } };
-
-eval(bloc('finaliserAchatTerrain'));
-
-var ko = 0, attendus = 0;
-function att(n, c, detail) {
-  attendus++;
-  if (c) print('  ok  ' + n);
-  else { print('  *** ' + n); if (detail !== undefined) print('        ' + detail); ko++; }
-}
-function sync(p) {
-  var fini = false, val;
-  Promise.resolve(p).then(function (v) { val = v; fini = true; }, function (e) { val = e; fini = true; });
-  for (var i = 0; i < 300 && !fini; i++) drainMicrotasks();
-  if (!fini) throw new Error('promesse non resolue apres 300 vidanges');
-  return val;
-}
-function neuf(verdict, gele) {
-  RPC = []; ANCIENNES = []; TOASTS = []; JOURNAL = []; CACHE = [];
-  VERDICT = verdict === undefined
-    ? [{ ok: true, titre: 'compromis', cle: 'republic_zz-parcelle', proprietaire: 'Ben',
-         vente_consignee: true,
-         // UN TEMOIN QUE SEUL LE SERVEUR CONNAIT : le patch ne le porte pas. Sans lui, un cache
-         // qui recopierait le patch au lieu de l'etat rendu passerait l'epreuve sans rien prouver.
-         etat: { proprietaire: 'Ben', surface: 800, valeur_totale: 9000,
-                 permis: { statut: 'valide' }, zzTemoinServeur: 4242 } }]
-    : verdict;
-  GELE = !!gele;
-  state = { char: { name: 'Ben' }, country: 'republic', currentCity: 'capitale', arg: 5000 };
-}
-function portes() { return RPC.filter(function (r) { return r.nom === 'terrain_proprietaire_muter'; }); }
-function succes() { return TOASTS.filter(function (t) { return t.ok; }); }
-
-print('');
-print('1. UNE PORTE, UN TITRE, UN PATCH -- JAMAIS UN BLOB DE CACHE');
-neuf();
-var rendu = sync(finaliserAchatTerrain('zz-parcelle', 9000, 800, true, 'compromis',
-                                       { compromis: null, compromisPar: null }));
-att('la porte est appelee une fois', portes().length === 1);
-att('le titre invoque est transmis', portes().length === 1
-    && portes()[0].args.p_titre === 'compromis');
-att("l'identifiant du terrain est transmis", portes().length === 1
-    && portes()[0].args.p_terrain_id === 'zz-parcelle');
-att('aucune ancienne primitive', ANCIENNES.length === 0, JSON.stringify(ANCIENNES));
-att('la fonction rend true', rendu === true, String(rendu));
-
-var patch = portes()[0].args.p_patch;
-att('le patch porte la mutation de propriete', patch.proprietaire === 'Ben');
-att('le patch porte le prix et la surface',
-    patch.valeur_totale === 9000 && patch.surface === 800);
-att("la ville vient de getVilleTerrain, jamais de currentCity", patch.city === 'ville_a',
-    String(patch.city));
-att('LA PURGE DE LA RESERVATION EST DANS LE MEME PATCH',
-    'compromis' in patch && patch.compromis === null && patch.compromisPar === null,
-    JSON.stringify(patch));
-att("le patch ne contient pas un blob entier de cache (pas de cle _fusionne)",
-    !('_fusionne' in patch));
-att("le cache local recopie l'etat RENDU PAR LE SERVEUR",
-    CACHE.length === 1 && CACHE[0].zzTemoinServeur === 4242
-    && CACHE[0].permis && CACHE[0].permis.statut === 'valide',
-    JSON.stringify(CACHE));
-att("l'achat est annonce", succes().length >= 1
-    && succes().some(function (t) { return t.titre.indexOf('Terrain acheté') >= 0; }),
-    JSON.stringify(TOASTS));
-
-print('');
-print('2. ACHAT DIRECT : MEME PORTE, AUTRE TITRE, AUTRE PURGE');
-neuf([{ ok: true, titre: 'achat_direct', proprietaire: 'Ben', vente_consignee: true,
-        etat: { proprietaire: 'Ben' } }]);
-sync(finaliserAchatTerrain('zz-parcelle', 7000, 600, false, 'achat_direct',
-                           { achatDirect: null }));
-att('le titre est « achat_direct »', portes().length === 1
-    && portes()[0].args.p_titre === 'achat_direct');
-att('la purge de la reservation est dans le patch',
-    'achatDirect' in portes()[0].args.p_patch
-    && portes()[0].args.p_patch.achatDirect === null);
-att('sans permis, la construction n est PAS autorisee',
-    portes()[0].args.p_patch.constructionAutorisee === false);
-att('aucune ancienne primitive', ANCIENNES.length === 0, JSON.stringify(ANCIENNES));
-
-print('');
-print('3. SANS VERDICT, L ACHETEUR N EST PAS ANNONCE PROPRIETAIRE');
-var echecs = [[null, 'verdict absent'], [[], 'reponse vide'], ['rejet', 'transport rejete'],
-              [[{ ok: false, raison: 'pas_mon_compromis' }], 'titre refuse'],
-              [[{ ok: false, raison: 'terrain_gele' }], 'terrain gele au serveur']];
-for (var i = 0; i < echecs.length; i++) {
-  neuf(echecs[i][0]);
-  var r = sync(finaliserAchatTerrain('zz-parcelle', 9000, 800, true, 'compromis',
-                                     { compromis: null }));
-  att(echecs[i][1] + ' : la fonction rend false', r === false, String(r));
-  att(echecs[i][1] + ' : aucun achat annonce',
-      !succes().some(function (t) { return t.titre.indexOf('Terrain acheté') >= 0; }),
-      JSON.stringify(TOASTS));
-  att(echecs[i][1] + ' : le joueur est averti que rien n a ete enregistre',
-      TOASTS.length === 1 && TOASTS[0].titre.indexOf('non enregistré') >= 0,
-      JSON.stringify(TOASTS));
-  att(echecs[i][1] + ' : le cache local n est PAS modifie', CACHE.length === 0,
-      JSON.stringify(CACHE));
-  att(echecs[i][1] + " : le motif est nomme au Journal",
-      JOURNAL.length === 1 && JOURNAL[0].classe === 'event-bad', JSON.stringify(JOURNAL));
-}
-
-print('');
-print('4. UN TERRAIN GELE PAR UNE SUCCESSION N ATTEINT MEME PAS LA PORTE');
-neuf(undefined, true);
-var rg = sync(finaliserAchatTerrain('zz-parcelle', 9000, 800, true, 'compromis', {}));
-att('la porte n est pas appelee', portes().length === 0);
-att('la fonction rend false', rg === false, String(rg));
-
-print('');
-print('5. LES TROIS PORTES D ENTREE D HIER ONT DISPARU');
-att('finaliserAchatTerrain ne fait plus aucune ecriture directe de terrain',
-    bloc('finaliserAchatTerrain').indexOf('sbSetTerrainState') < 0);
-att('elle n enregistre plus la vente a part',
-    bloc('finaliserAchatTerrain').indexOf('sbEnregistrerVenteTerrain') < 0);
-att('elle recoit bien un titre et une purge',
-    src.indexOf('async function finaliserAchatTerrain(id, prix, surface, aPermis, titre, purge)') >= 0);
-
-print('');
-if (ko === 0) print('LES ' + attendus + ' EPREUVES SONT VERTES.');
-else print('ECHEC : ' + ko + ' epreuve(s) sur ' + attendus + ' en defaut.');
+neuf(undefined,true);att('gel avant la commande',sync(finaliserAchatTerrain('zz-parcelle',0,0,false,'compromis',{}))===false&&RPC.length===0);
+att('aucune ecriture de terrain directe',bloc('finaliserAchatTerrain').indexOf('sbSetTerrainState')<0);att('aucune archive separee',bloc('finaliserAchatTerrain').indexOf('sbEnregistrerVenteTerrain')<0);att('titre conserve dans le contrat',bloc('finaliserAchatTerrain').indexOf("titre==='achat_direct'")>=0);
+print(ko?'ECHEC : '+ko+' epreuve(s) sur '+n:'LES '+n+' EPREUVES SONT VERTES.');

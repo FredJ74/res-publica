@@ -1,0 +1,198 @@
+{
+  "date_utc": "2026-10-24T08:22:27.763031+00:00",
+  "base": "e781074d9d6f5d54b2ecd5628e09b524ae3cdfcd",
+  "code": "b0237c9b4c9dab8eaa545a9d28deb941a3d63d07",
+  "production": {
+    "migrations_appliquees": [],
+    "donnees_modifiees": false,
+    "authentification_reelle_testee": false,
+    "sha_verifie": false,
+    "fusion": false
+  },
+  "client": {
+    "reussis": 107,
+    "total": 107
+  },
+  "contre_epreuves": {
+    "reussies": 91,
+    "total": 91
+  },
+  "postgresql_workflow": [
+    {
+      "banc": "test-prevol-arnie-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-achat-commerce-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-restaurant-luthecia-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reservation-republica-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-offrir-boire-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reception-atomique-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-assemblage-electronique-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-jodie-publications-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-commandes-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-membres-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-organisations-evenements-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-coherence-rues-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-equipements-collectifs-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-fontaine-110-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-placement-national-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-journal-ventes-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-permis-depot-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-negociation-squatteurs-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-ced-football-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-terrain-occupation-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-construction-jour-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-construction-materiaux-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-construction-travailleur-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reamenagement-transactionnel-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reamenagement-quotas-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reamenagement-budget-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reamenagement-materiaux-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-lots-miroirs-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-occupation-actions-135-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-location-lot-transactionnelle-local.py",
+      "code": 0
+    }
+  ],
+  "lots_assertions": 18,
+  "occupation_assertions": 40,
+  "negociation_assertions": 59,
+  "calendriers": {
+    "reussis": 11,
+    "total": 11
+  },
+  "e2e_fixtures": {
+    "reussis": 69,
+    "total": 69,
+    "comptes_reels": false
+  },
+  "globaux": {
+    "reussis": 6,
+    "total": 12,
+    "main_avant_correction": {
+      "reussis": 5,
+      "total": 12
+    },
+    "echecs": [
+      "Classification",
+      "Baseline",
+      "Authority",
+      "Referential",
+      "Assemblage",
+      "Reconstruction"
+    ],
+    "authority": {
+      "rpc_absentes_du_baseline": 35,
+      "migration_signature_inconnue": 1,
+      "faux_positif_acteur_corrige": true
+    },
+    "baseline_modifie": false
+  },
+  "limites": [
+    "Aucun outil Supabase expose",
+    "HTTP Vercel refuse par proxy : Tunnel connection failed: 403 Forbidden",
+    "API GitHub GraphQL Forbidden",
+    "L11 demeure reproductible : correction incomplete",
+    "L09 demeure non persistant : raccordement serveur a achever",
+    "L04 : consommation non supportee par le contrat audite ; produit non supprime, aucun nouveau taux invente"
+  ],
+  "main_integre": "eb92a6ebeed2eb3e591d8f7f7b5776d3a69141db",
+  "ced_football_assertions": 45,
+  "scopes": {
+    "workflow_postgresql": "30 bancs apres integration de main/PR136, tous verts ; banc occupation enrichi ensuite (40 assertions vertes)",
+    "jsc": "adaptateur Node local, pas JavaScriptCore natif",
+    "baseline": "Aucun changement propre a cette branche dans baseline/ par rapport au main integre",
+    "reference_globaux": "Le journal MAIN-REFERENCE correspond au main e781074, avant PR136 et corrections de Workflow."
+  },
+  "branches": {
+    "stabilisation": "codex/stabilisation-luthecia-135-20261024",
+    "parcelles": "codex/parcelles-gabarit-135-20261024",
+    "parcelles_sha": "aa240adb52bd75a63cd1e1b4a6d857968406e48b"
+  },
+  "code_dernieres_protections": "b0237c9b4c9dab8eaa545a9d28deb941a3d63d07"
+}

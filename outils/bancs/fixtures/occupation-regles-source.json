@@ -1,0 +1,61 @@
+{
+  "indices": {
+    "republic": {
+      "ISN": 30,
+      "IE": 50,
+      "ID": 40,
+      "IS": 45,
+      "IP": 40
+    },
+    "narco": {
+      "ISN": 15,
+      "IE": 30,
+      "ID": 20,
+      "IS": 25,
+      "IP": 40
+    },
+    "soviet": {
+      "ISN": 70,
+      "IE": 40,
+      "ID": 30,
+      "IS": 35,
+      "IP": 40
+    },
+    "khalija": {
+      "ISN": 60,
+      "IE": 65,
+      "ID": 50,
+      "IS": 40,
+      "IP": 40
+    }
+  },
+  "bonus": {
+    "criminelle": [
+      {
+        "grade": 0,
+        "valeur": 5
+      },
+      {
+        "grade": 1,
+        "valeur": 10
+      },
+      {
+        "grade": 2,
+        "valeur": 15
+      },
+      {
+        "grade": 3,
+        "valeur": 20
+      }
+    ],
+    "religieuse": [],
+    "economique": [],
+    "syndicale": [],
+    "loge": [
+      {
+        "grade": 2,
+        "valeur": 10
+      }
+    ]
+  }
+}

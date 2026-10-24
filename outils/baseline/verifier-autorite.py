@@ -108,7 +108,7 @@ CODE = {"INSERT": "I", "UPDATE": "U", "DELETE": "D"}
 GARDES = re.compile(
     r"(exiger_acteur|est_mon_personnage|mon_personnage|mon_poste_est|mon_poste_est_dans"
     r"|acteur_poste_courant|poste_est_atteste|acteur_present_sur_site|acteur_identifie"
-    r"|parquet_moi|juge_moi"
+    r"|parquet_moi|juge_moi|acteur_est_moi"
     r"|est_appel_serveur|auth\.uid)\s*\(")
 
 # « cette fonction ecrit-elle ? » -- lu dans sa definition.
