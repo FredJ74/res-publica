@@ -9386,13 +9386,18 @@ async function doFinancerOeuvreCulturelle(pa, cost) {
 
 // Ordres de l'accueil, ouverts a tous (pas reserves a l'ambassadeur)
 //
-// AUDIENCE AUPRES DES TROIS AMBASSADEURS PNJ (24 octobre 2026, arbitrage GD de Fred).
-// Avant : un PNJ generique « L'Ambassadeur », le meme pour les trois pays, et SANS profil de
-// dialogue -- depuis le 13 octobre le serveur le refusait, et le joueur payait 1 PA pour une
-// fenetre muette. Desormais le joueur choisit l'ambassade, et c'est l'ambassadeur PNJ de ce pays
-// qui le recoit (profils dans api/_pnj-personnalites.js). Les bureaux restent FERMES : on ne
-// rencontre l'ambassadeur que sur audience, jamais en entrant chez lui. Le joueur ambassadeur
-// (ambassades_ouvertes) sera raccorde avec les autres empires.
+// AUDIENCES AUPRES DES AMBASSADEURS (24 octobre 2026, arbitrage GD de Fred).
+//
+// LE PARCOURS : le joueur demande audience a l'accueil (1 PA, une demande en cours par
+// ambassade) -> mail « demande transmise » -> l'ambassadeur accorde (PNJ : delai tire par le
+// serveur entre tout de suite et 3 jours, jamais de refus ; joueur ambassadeur : quand il veut)
+// -> mail « audience accordee » -> le bureau de cet ambassadeur s'ouvre pour ce joueur seul
+// pendant 48 heures, l'ambassadeur PNJ l'y attend.
+//
+// UNE SEULE REALITE, CELLE DU SERVEUR (regle de Fred, meme jour). Tout est decide par les
+// fonctions ambassade_* (migrations/20261024184500_ambassades_audiences.sql) : le prelevement,
+// l'enregistrement, le delai (jamais revele ici), l'accord, l'acces au bureau. Cet ecran ne fait
+// qu'afficher leurs verdicts. Il n'y a plus de tirage dans le navigateur.
 const AMBASSADEURS_PNJ = {
   khalija: { name: 'Mohamed Al-Mansoori (PNJ)', role: 'Ambassadeur d\'Al-Khalija' },
   soviet:  { name: 'Valery Antonov (PNJ)',      role: 'Ambassadeur de Sovarka' },
@@ -9404,10 +9409,11 @@ function doDemanderAudienceAmbassadeur(pa, cost) {
   // Charte ardoise et or commune (style.css : .cpj-dialogue, .cpj-note, .cpj-touche) : aucune
   // couleur en dur ici, la fenetre suit la charte si elle evolue.
   let html = '<div class="cpj-dialogue">';
-  html += '<p class="cpj-note" style="margin:0 0 .8rem;font-style:italic">Auprès de quelle ambassade sollicitez-vous une audience ?</p>';
+  html += '<p class="cpj-note" style="margin:0 0 .8rem;font-style:italic">Auprès de quelle ambassade sollicitez-vous une audience ? '
+    + 'Votre demande sera transmise, et la réponse vous parviendra par courrier.</p>';
   Object.entries(AMBASSADEURS_PNJ).forEach(([empireId, amb]) => {
     const pays = COUNTRIES[empireId]?.n || empireId;
-    html += '<button class="cpj-touche" onclick="confirmerAudienceAmbassadeur(&quot;' + empireId + '&quot;,' + (pa || 0) + ',' + (cost || 0) + ')" '
+    html += '<button class="cpj-touche" onclick="confirmerAudienceAmbassadeur(&quot;' + empireId + '&quot;)" '
       + 'style="display:block;width:100%;text-align:left;margin-bottom:.5rem;padding:.6rem .8rem;cursor:pointer">'
       + pays + ' — <em>' + amb.name.replace(' (PNJ)', '') + '</em></button>';
   });
@@ -9416,23 +9422,97 @@ function doDemanderAudienceAmbassadeur(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerAudienceAmbassadeur(empireId, pa, cost) {
+// Les refus propres aux audiences. Ceux du paiement (PA insuffisants...) passent par
+// signalerRefusCout, comme pour tout ordre du jeu.
+const REFUS_AUDIENCE = {
+  demande_en_cours:       ['Demande déjà en cours', 'Votre demande d\'audience auprès de cette ambassade attend encore sa réponse.'],
+  audience_deja_accordee: ['Audience déjà accordée', 'Une audience vous attend déjà : présentez-vous au bureau de l\'ambassadeur.'],
+  pas_sur_place:          ['Hors du Quartier', 'Les demandes d\'audience se déposent à l\'accueil du Quartier des Ambassades.'],
+  ambassade_inconnue:     ['Ambassade inconnue', 'Cette ambassade ne reçoit pas de demande d\'audience.'],
+  acteur_non_authentifie: ['Personnage non chargé', 'Votre personnage n\'est pas chargé : rien n\'a été enregistré. Rechargez la page.']
+};
+
+async function confirmerAudienceAmbassadeur(empireId) {
   const amb = AMBASSADEURS_PNJ[empireId];
   if (!amb) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  // `fn` EXPLICITE : le prelevement arrive apres un choix dans une modale, et state._ordreEnCours
-  // peut alors porter un autre ordre route entre-temps (voir doOrder, plateau-router.js).
-  const r = await deduireCoutOrdre({ pa, cost, fn: 'demander_audience_ambassadeur' });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const nomCourt = amb.name.replace(' (PNJ)', '');
-  const roll = Math.random() * 100;
-  if (roll < 70) {
-    const pnj = { name: amb.name, role: amb.role, rel: 'neutral', job: 'ambassadeur' };
-    if (typeof openPnjModal === 'function') openPnjModal(typeof encodePnjSafe === 'function' ? encodePnjSafe(pnj) : pnj);
-    addJournalEntry('Vous êtes reçu(e) en audience par ' + nomCourt + ', ' + amb.role.toLowerCase() + '.', 'event-info');
-  } else {
-    showToast('Audience refusée', nomCourt + ' ne peut pas vous recevoir pour le moment.', false);
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('ambassade_demander_audience', { p_empire: empireId }).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    const m = v && REFUS_AUDIENCE[v.raison];
+    if (m) { showToast(m[0], m[1], false); return; }
+    if (v && v.raison && !v.transport) { signalerRefusCout(v); return; }
+    showToast('Demande non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", false);
+    return;
   }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa });
+  const nomCourt = v.ambassadeur || amb.name.replace(' (PNJ)', '');
+  state.audiencesEnAttente = v.statut === 'demandee';
+  if (v.statut === 'accordee') {
+    showToast('Audience accordée', nomCourt + ' vous reçoit : présentez-vous à son bureau dans les 48 heures.', true);
+    addJournalEntry('Audience accordée par ' + nomCourt + '. Son bureau vous est ouvert pendant 48 heures.', 'event-good');
+  } else {
+    showToast('Demande transmise', 'Votre demande d\'audience auprès de ' + nomCourt + ' a été transmise. La réponse vous parviendra par courrier.', true);
+    addJournalEntry('Demande d\'audience transmise à ' + nomCourt + '.', 'event-info');
+  }
+  if (typeof verifierNouveauxMails === 'function') verifierNouveauxMails();
+}
+
+// Constate cote serveur les audiences arrivees a echeance (c'est ce passage qui envoie le mail
+// « audience accordee »), et retient seulement s'il reste une demande en attente : la
+// verification des mails ne rappelle le serveur que dans ce cas. Silencieuse en cas d'echec.
+async function rafraichirAudiencesAmbassade() {
+  if (!state.char?.name || typeof sbRpcVerdict !== 'function') return null;
+  const v = await sbRpcVerdict('ambassade_mes_audiences', {}).catch(() => null);
+  if (v && v.ok === true) state.audiencesEnAttente = Number(v.en_attente || 0) > 0;
+  return v;
+}
+
+// L'ACCES A UN BUREAU EST DECIDE PAR LE SERVEUR (ambassade_acces_bureau) : audience accordee et
+// non expiree, ou joueur ambassadeur en poste. enterRoom passe par ici avant d'ouvrir un bureau.
+const AMBASSADE_BUREAU_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
+
+async function verifierAccesBureauAmbassade(buildingId, roomId, tabEl) {
+  const empireId = AMBASSADE_BUREAU_EMPIRE[roomId];
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('ambassade_acces_bureau', { p_empire: empireId }).catch(() => null)
+    : null;
+  if (v && v.ok === true) {
+    state._accesBureauAmbassade = roomId;
+    enterRoom(buildingId, roomId, tabEl);
+    return;
+  }
+  const nom = AMBASSADEURS_PNJ[empireId]?.name.replace(' (PNJ)', '') || "L'ambassadeur";
+  if (v && v.raison === 'sur_audience') {
+    showToast('Sur audience uniquement', nom + " ne reçoit que sur audience. Demandez-la à l'accueil du Quartier des Ambassades.", false);
+  } else if (v && v.raison === 'acteur_non_authentifie') {
+    showToast('Personnage non chargé', 'Rechargez la page.', false);
+  } else {
+    showToast('Vérification impossible', "L'accès au bureau n'a pas pu être vérifié. Réessayez dans un instant.", false);
+  }
+  // Un rechargement de page dans un bureau dont l'audience a expire ramene a l'accueil.
+  if (state.currentBuilding === buildingId && state.currentRoom === roomId) {
+    enterRoom(buildingId, 'accueil_ambassades');
+  }
+}
+
+// Bouton du mail recu par un joueur ambassadeur (quand les autres empires seront codes).
+async function accorderAudienceAmbassade(idDemande) {
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('ambassade_accorder_audience', { p_id: idDemande }).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    const motifs = {
+      deja_traitee: ['Déjà traitée', 'Cette demande d\'audience a déjà reçu une réponse.'],
+      demande_introuvable: ['Demande introuvable', 'Cette demande ne vous est pas adressée.'],
+      plus_ambassadeur: ['Plus ambassadeur', 'Vous n\'êtes plus en poste dans cette ambassade.']
+    };
+    const m = v && motifs[v.raison];
+    showToast(m ? m[0] : 'Opération refusée', m ? m[1] : "L'audience n'a pas pu être accordée.", false);
+    return;
+  }
+  showToast('Audience accordée', (v.demandeur || 'Le demandeur') + ' est prévenu(e) par courrier ; votre bureau lui est ouvert 48 heures.', true);
 }
 
 async function doDemanderAsilePolitique(pa, cost) {

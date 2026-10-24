@@ -15,13 +15,19 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   PNJ reçus **sur audience seulement** — Valery Antonov (Sovarka, la
   rigidité), Guillermo Vasquez (El Estado, la corruption), Mohamed
   Al-Mansoori (Al-Khalija, le snobisme). Fenêtre à la charte ardoise et or.
-  **Attend le test de Fred**, et sa décision sur le tirage de 70 %, fait par
-  le navigateur, donc contraire à la règle serveur (garder via une fonction
-  serveur, ou supprimer le tirage).
+  **Fusionnée le 24/10.** Son tirage de 70 % côté navigateur est remplacé par
+  le parcours d'audience ci-dessous.
 - PR #141 (branche `claude/audit-ambassades-20261024`, documentation) :
   `AUDIT_AMBASSADES.md` v2 (game design retrouvé, 12 écarts écran/serveur)
   et `AUDIT_BNE.md` (audit complet du Bureau). Chacun finit par les
   questions à trancher par Fred.
+- **Audiences d'ambassade (nouveau parcours, arbitrage Fred 24/10)** — branche
+  `claude/audiences-ambassades-20261024` : demande à l'accueil (1 PA, une par
+  ambassade) → mail « transmise » → délai tiré par le serveur (0 à 3 jours,
+  jamais de refus) → mail « accordée » → bureau ouvert 48 h pour ce joueur,
+  ambassadeur PNJ dedans. Fonctions `ambassade_*` **appliquées en production**
+  (registre 20261024185323 et 20261024185346), baseline pas encore
+  réextrait. Passe de nuit ajoutée dans `api/cron-minuit.js`.
 - Prochaines étapes, **après réponses de Fred** :
   1. BNE B1 (le mail d'arbitrage rejoué peut faire perdre l'emploi) :
      migration de `bne_agir` + test ;

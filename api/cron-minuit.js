@@ -4158,6 +4158,17 @@ async function traiterQuotidienNationalServeur(pays) {
   // elles sont regroupees ici pour n'avoir qu'un seul point d'entree quotidien national.
   await traiterDesertionsServeur(pays);
   await traiterExpulsionsAmbassadeursServeur(pays);
+  await traiterAudiencesAmbassadesServeur();
+}
+
+// --- AUDIENCES D'AMBASSADE ECHUES (24 octobre 2026) --------------------------
+// Un joueur absent recoit quand meme son mail « audience accordee » : la passe de nuit constate
+// les echeances que personne n'a vues. Les autres passages sont la demande elle-meme, la
+// verification des mails d'un joueur qui a une demande en cours, et son chargement. La fonction
+// est globale et idempotente : l'appeler une fois par pays ne fait rien de plus la deuxieme fois.
+async function traiterAudiencesAmbassadesServeur() {
+  const v = await sbRpc('ambassades_audiences_echoir_toutes', {}, HEADERS_SERVICE).catch(() => null);
+  if (!v || v.ok !== true) signalerEchec('audiences_ambassades', JSON.stringify(v));
 }
 
 // ============================================================================
