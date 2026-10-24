@@ -8698,3 +8698,15 @@ const SCANDALES_PREDEFINIS = [
   "Le Camarade Pontife Tractorenko a béni un tracteur privé par erreur. L'hérésie est totale.",
   "Le Juge Honoré Cozetoujours a condamné son propre greffier avant d'entendre l'affaire. Il 'assume pleinement'."
 ];
+
+// #135 : meme gabarit de commandes pour les cinq parcelles de La Chataigneraie.
+// Les prix/labels d'achat, superficies, descriptions et images restent propres a chaque parcelle.
+{
+  const modele = BUILDINGS['terrain-a-batir-4'].rooms.terrain.orders
+    .filter(o => o.fn !== 'corrompre_chantier'); // Quatre pays non P2W : aucun raccourcissement.
+  for (let numero = 1; numero <= 5; numero++) {
+    const piece = BUILDINGS['terrain-a-batir-' + numero].rooms.terrain;
+    const achat = piece.orders.find(o => o.fn === 'acheter_terrain');
+    piece.orders = modele.map(o => ({...o, ...(o.fn === 'acheter_terrain' ? achat : {})}));
+  }
+}
