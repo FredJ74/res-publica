@@ -87,3 +87,9 @@ La migration 14 corrige aussi le refus métier après décision du prêt dans la
 Compatibilité historique validée aussi sur PostgreSQL : un ancien permis sans numéro/demandeur/ville et avec plan NULL est archivé sans inventer ces informations ; aucun objet n’est attribué fictivement. Le constructeur conserve les inconnus, conformément aux fonctions historiques. Le banc bancaire atteint 60 assertions, plus les 59 de négociation conservées.
 
 Le cas de prêt travaux de 1 001 FR vérifie également une dernière échéance réduite : totalité due soldée exactement, sans sur-prélèvement. Un septième mutant retire le plafonnement au reliquat et le banc le détecte. Les 61 assertions bancaires passent sur fixture ; les 59 de négociation sont conservées séparément, sans addition artificielle de scénarios.
+
+## Preuve de composition ajoutée le 25 octobre
+
+Lire `REPRISE-TERRAINS-135-20261025.md` : cinq parcours complets sur PostgreSQL jetable réunissent négociation (deux cas), compromis/permis, acte, construction, appels 35/35/30, plans, réception et relecture depuis une nouvelle connexion. 324 assertions intégrées, cinq pannes de réception annulées et cinq réceptions concurrentes. Les quatre paliers et les superficies/prix individuels sont conservés. Trois contre-épreuves font rougir le parcours sur deuxième journée, uniformisation des parcelles et tranche modifiée. Aucun nouveau moteur ni nouvelle migration métier.
+
+Le correctif client de reprise est sauvegardé séparément dans `2e252dc` : lecture réelle du terrain avant effacement de l’intention, sans récursion. Il peut être examiné indépendamment des migrations sensibles ; ne pas fusionner cette branche entière pour ce seul changement. Aucune preuve authentifiée ou installation réelle revendiquée. L’ordre de production ci-dessus et le prévol restent obligatoires.

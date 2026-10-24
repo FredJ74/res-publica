@@ -94,6 +94,8 @@ jobs:
           python3 outils/bancs/banc-occupation-actions-135-local.py
           python3 outils/bancs/banc-terrain-banque-135-local.py
           python3 outils/bancs/banc-terrain-banque-135-local.py --apres-location
+          python3 outils/bancs/banc-parcours-terrain-construction-135-local.py
+          python3 outils/bancs/contre-epreuves-parcours-terrain-135-local.py
           python3 outils/bancs/banc-benediction-135-local.py
           python3 outils/bancs/banc-filature-benediction-135-local.py
           python3 outils/bancs/banc-enquete-confirmation-135-local.py

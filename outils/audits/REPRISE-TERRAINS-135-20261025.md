@@ -11,3 +11,48 @@ Fichiers : `plateau-construction-commandes.js`, `plateau-justice-economie.js`, v
 Aucune migration nécessaire pour **cette correction de reprise seule** : elle emploie les lecteurs de reçu, de terrain et de finances déjà utilisés. Elle ne remplace pas le prévol et l’installation coordonnée des quinze migrations terrain/banque de la livraison précédente. Ne pas fusionner la branche entière pour livrer quelques lignes indépendantes. Les audiences/BNE et leurs arbitrages restent au chantier de Claude.
 
 Aucune fusion, installation Supabase ni vérification authentifiée en jeu par Codex. Les résultats décrivent des tests locaux.
+
+## Parcours terrain complet sur PostgreSQL jetable
+
+Le nouveau `banc-parcours-terrain-construction-135-local.py` raccorde les moteurs dans **une même base**, sans remplacer leurs commandes par des réponses simulées. Il réutilise le décor et les 61 assertions terrain/banque, les corps fournis dans le prévol, PR112 et les migrations de construction déjà préparées. Les 59 assertions de négociation de la fixture restent distinctes ; elles ne sont pas présentées comme de nouveaux parcours.
+
+Cinq parcours sont exécutés :
+
+| Parcelle de Luthécia | Superficie propre | Prix propre | Construction éprouvée |
+|---|---:|---:|---|
+| terrain-a-batir-1 | 2 150 m² | 25 800 FR | Hangar, 6 jours |
+| terrain-a-batir-2 | 2 300 m² | 27 600 FR | Commerce standard, 12 jours |
+| terrain-a-batir-3 | 2 300 m² | 27 600 FR | Commerce premium, 18 jours |
+| terrain-a-batir-4 | 1 850 m² | 22 200 FR | Building, 24 jours |
+| terrain-a-batir-5 | 2 750 m² | 33 000 FR | Hangar, 6 jours |
+
+Ces valeurs sont comparées au générateur des parcelles depuis `data.js`, puis relues après acquisition et réception. Cette répartition des niveaux concerne **uniquement les scénarios de test**, aucune règle particulière n’est créée selon la parcelle. Les prix des matériaux proviennent également de `data.js`, et l’entrepôt est celui du seed existant de Luthécia, pas un autre identifiant inventé pour le test.
+
+Deux parcours commencent par des squatteurs : compromis bloqué sans débit, libération via `terrain_negociation_conclure` et rejeu sans second versement. Le tirage de négociation est forcé à la réussite uniquement dans la fixture pour rendre le parcours reproductible. Le banc de négociation existant éprouve séparément les bornes et refus. Aucun nouveau barème de résistance ni combat ajouté.
+
+Chaque parcours passe ensuite par le compromis avec permis, le refus de signer avant satisfaction de cette clause, l’instruction réelle sous verrou, l’accord tacite et son archive/SAS, l’acte de vente et l’imputation exacte du dépôt. Puis lancement à 35 %, priorité bancaire, entrepôt et rémunérations des ouvriers par les vrais moteurs, appels complémentaires à 70 % et 100 %, respect de la durée du palier, réception refusée trop tôt, plans validés et lots reçus pour premium/building. Les autres paliers restent indivisibles comme prévu.
+
+Le changement de date est simulé **seulement en datant les marqueurs de la fixture à hier**, sans attendre plusieurs semaines ni changer l’horloge de production. À chaque étape, augmenter le jour personnel ne permet ni un second avancement ni un second paiement dans la même journée commune. Cela ne constitue pas une observation du cron réel pendant 24 jours.
+
+Après achèvement : erreur injectée au moment du reçu de réception → terrain, fonds, stocks, lots, archives et reçus identiques à l’avant-transaction ; deux réceptions concurrentes avec la même requête → une réalisation et un rejeu ; nouvelle connexion → mêmes titre, permis, lots et reçu. **324 assertions intégrées**, pas 324 parcours indépendants.
+
+Le banc compose aussi les gardes des anciennes commandes, le permis PR112, le lecteur de reçus, les plans initiaux et l’interdiction d’accélérer dans les quatre empires. Il applique chaque migration chargée deux fois immédiatement pour vérifier son rejeu ; il ne rejoue pas une ancienne définition après son durcissement. Aucun fichier SQL généré du baseline n’a été retouché.
+
+`contre-epreuves-parcours-terrain-135-local.py` injecte trois défauts **dans la base jetable seulement** : deuxième journée autorisée, superficie/prix uniformisés, tranche de 75 % au lieu de 70 %. Les trois doivent faire échouer l’assertion correspondante ; un simple plantage sans le diagnostic attendu ne compte pas comme preuve.
+
+### Limites et installation
+
+Aucune nouvelle migration métier dans ce lot. La commande de prêt réel et ses refus restent couverts par le banc terrain/banque réutilisé ; ces cinq nouveaux parcours paient leur acquisition sur des fonds fictifs disponibles, sans revendiquer cinq parcours hypothécaires supplémentaires. Le scénario ne teste pas le combat, la police ou les cadavres : leurs bancs dédiés du workflow restent nécessaires. Les notifications et l’identité sont celles de la fixture, pas une authentification Supabase réelle. Les lots sont vérifiés dans les états serveur reçus ; leur exploitation n’est pas présentée comme une visite authentifiée du jeu.
+
+L’ordre et les préconditions de production restent ceux de `LIVRAISON-TERRAIN-BANQUE-135-20261024.md` et des lots construction sélectionnés par l’agent principal. **Ne pas déduire du succès local que ces migrations sont déjà appliquées.** La composition locale testée n’est pas une consigne de rejouer tout le dossier migrations en production. Les 22 fonctions du relevé vivant sont une photographie datée ; les autres corps et dépendances doivent être comparés avant installation sensible.
+
+Les preuves brutes de cette reprise sont rangées dans `luthecia-20261025/`. Les six contrôles globaux restent publiés séparément. Les nouvelles RPC d’ambassades intégrées de main sont signalées par Authority tant que l’extraction n’a pas été actualisée : ne pas modifier le baseline manuellement pour les faire disparaître. L09 global reste à raccorder et n’est pas déclaré terminé par ce lot terrain.
+
+## Vérifications finales de ce lot
+
+- 111/111 bancs client, dont dix tests du pont construction/relecture.
+- 39/39 configurations PostgreSQL du workflow, avec le parcours des cinq terrains et les trois contre-épreuves ajoutés à la CI existante.
+- 91/91 contre-épreuves historiques.
+- 6/12 contrôles globaux : Classification, Baseline, Authority, Referential, Assemblage et Reconstruction restent rouges. Authority signale 42 RPC non extraites après les nouvelles audiences de main, et la signature interne commerce historiquement inconnue. Aucune empreinte ni fichier généré modifié pour masquer ces écarts.
+
+Les preuves sont dans `luthecia-20261025/RESULTATS.json` et ses journaux associés. Aucun succès local n’est présenté comme une observation en jeu ou une migration appliquée.

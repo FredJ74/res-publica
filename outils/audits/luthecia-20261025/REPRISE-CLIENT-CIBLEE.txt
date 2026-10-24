@@ -1,0 +1,18 @@
+✔ commande versionnee et relectures : aucun ancien snapshot adopte (7.341991ms)
+✔ reponse perdue : reprendre le meme identifiant sans changer les parametres (0.957618ms)
+✔ double clic : une seule execution en vol (1.516987ms)
+✔ contexte perime : aucune relecture ni actualisation du nouveau personnage (0.97929ms)
+✔ relecture financiere impossible : preuve de reprise conservee (0.982144ms)
+✔ reconnexion : reçu confirmé puis terrain courant relu avant abandon de la reprise (102.039357ms)
+✔ reçu acquis mais terrain inaccessible : intention conservée, pas de faux état reconstruit (46.000125ms)
+✔ reprise : panne financière après lecture terrain conserve la preuve (31.951203ms)
+✔ réponse terrain tardive : aucun cache ou PA sur un autre personnage (33.101215ms)
+✔ contre-épreuve : ancienne réconciliation oublie la preuve malgré la panne de lecture (28.404009ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 265.655685

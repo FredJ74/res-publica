@@ -1,0 +1,66 @@
+{
+  "date_utc": "2026-10-24T23:57:11.621058+00:00",
+  "branche": "codex/stabilisation-luthecia-135-20261024",
+  "correctif_reprise": "2e252dc",
+  "main_integre": "6a249a1",
+  "client": {
+    "reussis": 111,
+    "total": 111,
+    "preuve": "CLIENT.json"
+  },
+  "postgresql_workflow": {
+    "reussis": 39,
+    "total": 39,
+    "preuve": "POSTGRESQL.json"
+  },
+  "parcours_terrain": {
+    "parcelles": 5,
+    "paliers": 4,
+    "assertions": 324,
+    "negociations_reussies": 2,
+    "pannes_reception_annulees": 5,
+    "receptions_concurrentes": 5,
+    "comptes_reels": false,
+    "temps_simule": true,
+    "preuve": "PARCOURS-TERRAIN-CONSTRUCTION.txt"
+  },
+  "contre_epreuves_parcours": {
+    "reussies": 3,
+    "total": 3,
+    "incluses_dans_workflow": true
+  },
+  "contre_epreuves_historiques": {
+    "reussies": 91,
+    "total": 91,
+    "preuve": "CONTRE-EPREUVES-HISTORIQUES.txt"
+  },
+  "globaux": {
+    "reussis": 6,
+    "total": 12,
+    "echecs": [
+      "Classification",
+      "Baseline",
+      "Authority",
+      "Referential",
+      "Assemblage",
+      "Reconstruction"
+    ],
+    "rpc_non_extraites": 42,
+    "signature_inconnue_historique": 1,
+    "preuve": "GLOBAUX.txt"
+  },
+  "production": {
+    "migrations_appliquees": [],
+    "donnees_reelles_modifiees": false,
+    "authentification_reelle_testee": false,
+    "fusion": false,
+    "deploiement_verifie": false
+  },
+  "limites": [
+    "Contexte d’identite et notifications de fixture, pas de connexion Supabase authentifiee",
+    "Prevol vivant et installation coordonnee encore necessaires avant activation des migrations sensibles",
+    "Aucun test de combat, police ou cadavre dans les cinq nouveaux parcours : leurs bancs dedies restent distincts",
+    "Ces cinq acquisitions utilisent des fonds fictifs disponibles ; les prets sont testes separement par le banc reutilise",
+    "L09 global reste incomplet, non active"
+  ]
+}
