@@ -1,0 +1,31 @@
+{
+  "date_utc": "2026-10-24T07:32:39.855393+00:00",
+  "authentification": false,
+  "requetes": "GET uniquement",
+  "resultats": [
+    {
+      "fichier": "plateau.html",
+      "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "fichier": "data.js",
+      "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "fichier": "plateau-construction-commandes.js",
+      "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    },
+    {
+      "fichier": "api/chat",
+      "erreur": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    }
+  ]
+}

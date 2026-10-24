@@ -1,0 +1,389 @@
+Tu reprends le chantier de stabilisation de Luthécia dans Human Gambit / Res Publica.
+
+Dépôt : FredJ74/res-publica
+Production : https://res-publica.vercel.app
+Supabase : projet jxpwoosmmhohoihxpbuc
+Mission d’audit : https://github.com/FredJ74/res-publica/issues/135
+
+OBJECTIF
+
+Corriger les problèmes confirmés de l’audit, livrer les corrections et vérifier leur fonctionnement. Ne te limite pas à un nouveau rapport ou à un plan.
+
+Fred est le game designer ; tu es responsable technique. Avance sans relance entre les étapes. Arrête-toi uniquement devant un véritable arbitrage de game design introuvable dans les décisions existantes, ou un blocage d’accès incontournable. Une difficulté technique ordinaire doit être résolue par tes soins.
+
+Ne demande pas à Fred de copier du SQL, d’effectuer les manipulations techniques ou de rédiger tes prompts.
+
+POINT DE DÉPART ET DOCUMENTATION
+
+L’audit a examiné main :
+e781074d9d6f5d54b2ecd5628e09b524ae3cdfcd
+
+Ce SHA est un point de référence historique : vérifie le main actuel avant toute modification et préserve les corrections intervenues depuis.
+
+Le rapport a été produit localement :
+outils/audits/AUDIT-LUTHECIA-20261024.md
+
+Avec ses annexes :
+outils/audits/luthecia-20261024/
+
+Attention : sa publication GitHub n’était pas terminée au dernier compte-rendu. Ne présume pas que ces fichiers existent dans ton checkout. L’issue #135 contient la mission d’audit, pas nécessairement ses résultats. Si les livrables sont disponibles dans l’environnement, récupère-les et sauvegarde-les dans le dépôt. Sinon, utilise les constats détaillés ci-dessous, vérifie-les et reconstruis les preuves nécessaires sans bloquer le chantier.
+
+Lis les AGENTS.md applicables, WORKFLOW-SUPABASE.md et les règles du dépôt avant d’agir.
+
+ÉTAT CONNU À PRÉSERVER
+
+La PR #134 a livré la négociation avec les squatteurs :
+https://github.com/FredJ74/res-publica/pull/134
+
+Comportements à préserver :
+- ouverture de la proposition depuis la conversation ;
+- répliques RP déterministes pour entrée en négociation et résultat ;
+- agressifs insultants et menaçants, sans combat automatique ;
+- sympathiques accueillants ;
+- 1 PA par tentative valide ;
+- argent débité uniquement si accord ;
+- nouvelle proposition strictement supérieure à toute offre précédemment refusée dans le contexte concerné ;
+- paiement, départ et récompense atomiques ;
+- +1 Moral une seule fois pour les sympathiques, plafond 100 ;
+- reçu avec UUID, rejeu sans nouveau tirage ni nouveau débit ;
+- contrôle de la version de l’occupation ;
+- en cas de réponse perdue, vérification du même acte, sans créer une nouvelle tentative ;
+- à la fermeture d’un résultat accepté, relecture serveur puis annonce du départ et accès à l’achat si le terrain est effectivement libre.
+
+L’IA ne décide jamais d’un paiement, d’un départ, d’un jet ou d’une récompense.
+
+L’audit n’a pas identifié de régression confirmée de #134. Ne réécris pas ce mécanisme sans nécessité démontrée.
+
+CONSTATS À VÉRIFIER ET CORRIGER
+
+L01 — LES CINQ PARCELLES N’ONT PAS LES MÊMES ORDRES
+
+Sources :
+- data.js, définitions finales terrain-a-batir-2 et terrain-a-batir-3 ;
+- renderRoomActions ;
+- plateau-construction-commandes.js.
+
+Au SHA audité :
+- lots 1/4/5 : 21/20/20 ordres statiques ;
+- lots 2/3 : acheter_terrain, deposer_demande_permis et corrompre_fonctionnaire_permis seulement.
+
+La source dynamique de construction ne recrée pas les commandes initiales manquantes.
+
+Décision ferme : les cinq parcelles ont la même image, les mêmes mécaniques et les mêmes ordres de base. Seuls leurs surfaces et prix propres diffèrent. Les commandes effectivement visibles dépendent ensuite de l’état et des droits.
+
+Correction attendue : un gabarit commun fiable, sans écraser les caractéristiques de chaque parcelle ni réintroduire d’anciens ordres abandonnés.
+
+Vérifier les cinq terrains dans les états vide, sympathiques, agressifs, cadavre, réservé/acquis, chantier et livré, selon les états réellement définis.
+
+L02 — LA POLICE ANNONCE UNE INTERVENTION QUI N’EST PAS PERSISTÉE
+
+Sources :
+- doAppelerPoliceTerrain ;
+- doExpulsionAcceleree ;
+- doExpulsionLegale ;
+- setTerrainState ;
+- api/cron-minuit.js.
+
+Au SHA audité :
+- setTerrainState fusionne seulement le cache ;
+- l’expulsion légale pose expulsionAt localement ;
+- la version accélérée utilise Math.random, modifie argent/DIS localement et pose policeInterventionAt ;
+- aucun consommateur de ces échéances dans le cron examiné ;
+- le parcours contourne le payeur générique, malgré le coût affiché de 1 PA.
+
+Correction attendue : acte serveur authentifié, présence canonique et occupation versionnée, coûts et décision atomiques, échéance persistée et traitée une seule fois. Réutiliser les taux et règles existants ; ne pas en inventer.
+
+Le taux affiché doit être exactement celui appliqué. Une intervention légale sans tirage ne doit pas afficher un faux pourcentage.
+
+Tester changement d’occupant, faux contexte, double clic, concurrence, réponse perdue, rejeu, rechargement et bascule quotidienne.
+
+L03 — DISSIMULER LE CADAVRE NE LE RETIRE QUE DU CACHE
+
+Source : doFaireDisparaitreCadavre dans plateau-pnj.js.
+
+Au SHA audité :
+- deduireCoutOrdre est appelé ;
+- un jet client peut retirer pnj/pnjData du cache ;
+- aucune commande serveur d’occupation ne persiste l’effet ;
+- les PA peuvent donc être payés pour un succès qui disparaît au rechargement.
+
+Correction attendue : commande serveur versionnée, coûts, décision et effets réunis dans la transaction. Réutiliser les conséquences existantes d’échec sans conserver de divergence locale.
+
+Un cadavre ne peut ni négocier ni discuter avec l’IA. Aucune action ouverte sur un cadavre ne doit s’appliquer ensuite à des squatteurs, ou inversement.
+
+L04/L05 — LES FORMULAIRES BANCAIRES CONTREDISENT LES CONDITIONS SERVEUR
+
+Sources :
+- routes emprunter et emprunter_construction ;
+- TYPES_PRET ;
+- ouvrirModalPretBancaire ;
+- confirmerPretBancaire ;
+- pret_national_contracter(numeric,integer,text,text).
+
+Au catalogue audité :
+- le serveur accepte uniquement travaux ;
+- durées admises : 10/15/20/25/30 jours ;
+- présence obligatoire en banque-nationale.
+
+Mais :
+- le client propose consommation, dont 5 jours ;
+- le terrain ouvre une demande de prêt travaux refusée par la garde de présence.
+
+Retrouve les règles et décisions déjà validées avant de modifier l’offre. Aligne les parcours sans inventer un produit financier ou modifier taux/durées de ta propre initiative.
+
+Si l’acte doit être réalisé à la banque, le joueur doit le comprendre avant de remplir un formulaire condamné au refus. Ne supprime pas une offre validée simplement pour masquer une implémentation manquante.
+
+Le prêt travaux dans la Banque Nationale possède déjà une transaction dette + crédit : préserve-la. Helvetia a des routes distinctes ; ne généralise pas ce diagnostic à tous les prêts.
+
+L06 — RÉAMÉNAGEMENT PAYÉ AVANT SA CRÉATION
+
+Source : confirmerReconfiguration.
+
+Au SHA audité :
+- deduireCoutOrdre débite le financement ;
+- terrain_reamenagement_poser est appelé ensuite ;
+- si la seconde requête échoue, le joueur a payé sans chantier persistant ;
+- le cache peut déjà montrer le chantier.
+
+Correction attendue : commande serveur atomique de lancement avec coût calculé depuis le plan réel, identité, droits, état attendu et reçu idempotent.
+
+Ne compense pas une réponse perdue par un remboursement client aveugle.
+
+L07 — LES CORRECTIONS DE RÉAMÉNAGEMENT RESTENT SUR UNE ANCIENNE BRANCHE
+
+Branche :
+codex/lots-reamenagement-94-20261023
+
+Dernier commit connu :
+cc3a18bbc922b720b9056cb9a0994ed78504bb91
+
+Autres commits annoncés :
+fec858c, fdb23d5, bc88103.
+
+Au moment de l’audit, cette branche était divergente de main :
+14 commits propres à la branche, 88 propres à main.
+
+Ne la fusionne pas aveuglément. Examine les changements utiles, leurs dépendances et les migrations réellement installées, puis reprends les corrections sur le main courant.
+
+Cas de référence 100 m² :
+- budget fixe 1 000 FR ;
+- résultat validé : 290 FR matériaux + 700 FR travail ;
+- 10 FR conservés ;
+- progression à 100 % ;
+- aucun supplément demandé.
+
+Le moteur audité donnait :
+- panier arrondi à 305 FR ;
+- 9 heures PNJ = 630 FR ;
+- progression 90 % ;
+- 65 FR restants, insuffisants pour l’heure entière suivante.
+
+Corriger ensemble client, traitement quotidien et fonction SQL commune. Solder correctement les fractions finales de travail PNJ, sans accélérer la durée minimale.
+
+La porte vivante terrain_reamenagement_poser acceptait encore un objet chantier fourni par le client avec trésorerie et progression arbitraires. Retirer cette autorité du client.
+
+Tester budgets, arrondis, petites/grandes surfaces, pénurie, prix plafond, fractions de travail, pause/reprise, réception, interruption et rejeu.
+
+L08 — RETRAIT DE LOT SANS AUTORISATION SUFFISANTE
+
+Fonction :
+terrain_lots_acte(text,text,jsonb,text[])
+
+Au catalogue audité, EXECUTE était accordé à authenticated.
+
+Dans lot_bail_libere :
+- les contrôles portent sur p_lots ;
+- les retraits p_retirer ne reçoivent pas la même validation ;
+- p_lots = NULL permet de sauter la boucle d’autorité tout en demandant un retrait.
+
+Une reproduction isolée du vrai corps SQL a retiré le lot d’un autre titulaire avec ok:true.
+
+Priorité : fermer cette possibilité sans casser les résiliations légitimes.
+
+Dériver les modifications du bail réel et d’un acte autorisé, ou contrôler chaque retrait dans la transaction. Le tableau fourni par le client ne fait pas autorité.
+
+La branche de réaménagement contient une fermeture de porte à examiner ; elle n’était pas installée au moment de l’audit.
+
+Tester tiers, lot inexistant, locataire/propriétaire légitimes, champs étrangers, retrait multiple et rejeu. Aucun test destructif sur un vrai lot.
+
+L09 — BÉNÉDICTION LOCALE SANS PERSISTANCE SERVEUR
+
+Sources :
+- demandes de bénédiction ;
+- consommerBonusBenediction ;
+- sbSavePersonnage/sbLoadPersonnage.
+
+state.char.benediction n’avait ni colonne persistante ni sérialisation/hydratation correspondante. Le bonus peut donc dépendre du navigateur et disparaître au chargement réel.
+
+La nouvelle négociation ne le consomme pas : ne réintroduis pas un bonus client non attesté dans son calcul serveur.
+
+Retrouve les décisions existantes d’attribution, consommation et expiration. Si elles suffisent, implémente une attribution et une consommation serveur uniques, avec temps commun. Sinon, formule une seule question de game design précise après avoir terminé les corrections indépendantes.
+
+Ne modifie pas les probabilités des autres actes pour contourner ce manque.
+
+L10 — SEPT RPC D’ORGANISATIONS APPELÉES MAIS ABSENTES EN PRODUCTION
+
+Noms absents du catalogue audité :
+- organisation_commande_administrative
+- organisation_commande_membres
+- organisation_commande_evenement
+- organisation_equipements_etat
+- organisation_equipement_deplacer
+- organisation_equipements_payeurs
+- organisation_equipement_acheter
+
+Sources client :
+plateau-organisations-quetes.js
+plateau-equipements-collectifs.js
+parcours d’achat collectif.
+
+Migrations préparées dans main :
+- 20261019094425_organisations_commandes_administratives.sql
+- 20261019130213...
+- 20261019130951...
+- 20261019132431...
+- 20261019064000...
+- 20261019064500...
+
+Vérifie le catalogue actuel : elles ont pu être installées depuis l’audit.
+
+Si elles sont toujours absentes, examine les dépendances et la compatibilité avec le schéma vivant, teste l’installation en base jetable, puis livre selon le workflow du dépôt. Ne lance pas en bloc toutes les migrations historiques.
+
+Attendus : commandes d’administration, adhésions/grades, invitations/élections et équipements réellement raccordés, droits et refus nommés, fonds et réception atomiques, reçus et rejeu.
+
+L11 — PAIEMENT ET TITRE IMMOBILIER SONT SÉPARÉS
+
+Sources :
+- doAcheterTerrain ;
+- doConfirmerCompromis ;
+- finaliserAchatTerrain ;
+- finalisation notariale ;
+- terrain_compromis_acte ;
+- terrain_proprietaire_muter.
+
+Au SHA audité :
+- dépôt et compromis paient avant l’écriture métier ;
+- au notaire, le solde prix - acompte est correctement calculé, mais débité avant la mutation du titre ;
+- la mutation regroupe propriété/historique/purge, sans inclure le paiement ;
+- aucune réconciliation financière commune n’assure ces deux appels.
+
+Une reproduction du vrai handler avec panne de la seconde requête laisse 1 000 FR et 2 PA débités sans réservation.
+
+Correction attendue :
+commandes atomiques et versionnées pour dépôt, compromis et acte final ; prix relu au serveur ; dépôt imputé exactement une fois ; propriété, historique, archives et reçu cohérents ; état récupérable après réponse perdue.
+
+Tester deux acquéreurs, refus métier, panne après débit injectée dans la transaction, réponse perdue après commit, rejeu et rechargement.
+
+Le financement d’acquisition doit être réellement suivi jusqu’au versement et à l’acte, pas simplement présenté dans une fenêtre ou enregistré comme intention.
+
+L12 — BASELINE ET CONTRÔLES NE REPRÉSENTENT PAS ENCORE FIDÈLEMENT LE SERVEUR
+
+Au moment de l’audit :
+- assembler.py produisait des appels de triggers vers fermeture_definir_date_universelle et permis_depot_archive_proteger absentes de la photographie du dépôt ;
+- ces fonctions existaient bien dans le catalogue vivant ;
+- verifier-autorite.py signalait 33 noms de RPC non représentés dans le baseline, une signature de migration et un détecteur sur resilier_bail_volontaire ;
+- le corps de cette dernière contenait pourtant acteur_est_moi(p_acteur) : ce signal ne prouve pas à lui seul une faille.
+
+Ne confonds pas absence du baseline et absence de production : seules les sept RPC de L10 étaient absentes parmi les noms littéraux examinés.
+
+Utilise les outils officiels de réextraction. Aucun changement manuel des fichiers générés ni des empreintes/références pour rendre les contrôles verts.
+
+Reconstruis en base jetable, distingue dette antérieure, erreur du détecteur et véritable défaut. Les contrôles Authority/Referential étaient déjà rouges : ne les masque pas.
+
+RÈGLES DE GAME DESIGN NON NÉGOCIABLES
+
+- Quatre occupations aléatoires seulement, 25 % chacune :
+  vide, squatteurs sympathiques, squatteurs agressifs, cadavre.
+- Pas de gardien de chantier, inspecteur municipal ou promoteur immobilier parmi ces rencontres aléatoires.
+- Les vrais agents de sécurité privée employés restent distincts de ces rencontres retirées.
+- Le serveur fait autorité sur l’occupation, les fonds, les PA, les jets, les titres et les récompenses.
+- Acheter reste visible quand le terrain est occupé.
+- L’explication « Achat impossible, vous devez libérer le terrain en gérant les intrus » apparaît temporairement à la tentative de clic, pas en permanence.
+- Le cadavre n’a ni négociation ni conversation IA.
+- Les squatteurs restent RP : aucune référence aux boutons, ordres, menus ou moteur du jeu.
+- Acceptation sympathique :
+  « Ok l’ami, marché conclu. Avant de partir, on va fêter ça. On t’offre une mousse, et on trinque à notre départ. »
+- Pas de valeurs de combat inventées pour distinguer les deux groupes.
+- Police, militaires, douanes et sécurité privée réutilisent le socle commun prévu ; détection avant tentative d’arrestation, droits liés à l’employeur.
+- Les quatre pays sont non P2W pour la construction : ni paiement ni travail PJ ne réduisent le délai minimal.
+- Le propriétaire fixe un prix maximum d’achat des matériaux, réellement respecté.
+- Respecter les priorités de fonds existantes : loyers et construction banque d’abord ; ne pas appliquer cette priorité arbitrairement à tous les actes historiques.
+- Helvetia et placements ne financent pas automatiquement les dépenses ordinaires.
+- Temps commun Europe/Paris, journée à minuit, prélèvements à 00h01 selon les règles existantes.
+- Dormir une fois par jour donne PA, revenu universel 150 FR et salaire du poste ; aucun rattrapage des jours oubliés.
+- Durées en jours pour prison, blessures, poison, neutralisation et fermetures.
+
+MÉTHODE ET ORDRE DE LIVRAISON
+
+Commence par vérifier que les constats sont toujours actuels. Évite un nouvel audit général : concentre-toi sur les reproductions et les corrections.
+
+Ordre conseillé :
+1. Fermer les pertes de fonds et le défaut d’autorisation : L08, L11, L06.
+2. Harmoniser les cinq terrains et raccorder police/cadavre : L01–L03.
+3. Reprendre proprement le réaménagement : L07.
+4. Réaligner banque et organisations : L04/L05/L10.
+5. Traiter bénédiction et représentation du schéma : L09/L12.
+6. Effectuer une recette intégrée des parcours corrigés.
+
+Adapte les lots aux dépendances réelles. Fais des commits et PR cohérents, suffisamment petits pour être vérifiables, sans attendre une relance entre chaque lot.
+
+Pour toute nouvelle commande transactionnelle :
+- identité serveur et présence canonique si nécessaire ;
+- autorisations depuis les titres/baux/postes réels ;
+- verrouillage et ordre de verrouillage cohérents ;
+- validation avant débit ;
+- paiement et effets dans la même transaction ;
+- UUID de requête et reçu idempotent ;
+- même UUID après résultat de transport incertain ;
+- refus d’un UUID réutilisé avec des paramètres différents ;
+- relecture de l’état après réponse perdue ;
+- aucune compensation financière aveugle côté client ;
+- aucune sauvegarde de cache ancien qui écrase un résultat récent.
+
+VALIDATION ET LIVRAISON
+
+Tu es autorisé à coder, tester, préparer et fusionner les PR validées, appliquer les migrations nécessaires selon le workflow du dépôt et déployer les corrections. Cette autorisation n’inclut pas de modifier arbitrairement les règles du jeu ni d’utiliser les personnages réels pour des achats, combats ou autres actes de test.
+
+N’altère pas Arnie, Jean Jaaj ou les autres personnages réels. Utilise des fixtures locales ou des comptes de test explicitement réservés si disponibles.
+
+Pour Supabase :
+- vérifier le catalogue et le registre actuels ;
+- tester migrations et dépendances en base jetable ;
+- appliquer seulement les migrations nécessaires ;
+- vérifier fonctions, signatures, ACL, RLS et registre après installation ;
+- régénérer les représentations par les outils officiels ;
+- ne jamais exposer de secret ni données personnelles dans les rapports.
+
+Exécute les tests pertinents, notamment PostgreSQL natif pour atomicité, autorisations et concurrence. PGlite peut aider une reproduction, mais ne remplace pas cette preuve.
+
+Réutilise les bancs existants. Ajoute des tests qui reproduisent les vrais défauts :
+- débit sans effet ;
+- effet sans débit ;
+- retrait du lot d’un tiers ;
+- deux demandeurs concurrents ;
+- occupation remplacée pendant une fenêtre ouverte ;
+- réponse perdue et rejeu ;
+- budget 100 m² ;
+- coûts affichés et effectivement prélevés ;
+- cinq parcelles et leurs états.
+
+Les CI réussies seules ne prouvent ni qu’une migration est installée ni que le nouveau client est servi. Après déploiement, vérifie le SHA livré et les fichiers effectivement servis, puis les objets du catalogue.
+
+Ne qualifie pas de « testé en production » un parcours uniquement lu dans le code ou exécuté sur fixture. S’il manque une session de test réservée, termine toutes les autres étapes et consigne précisément cette limite.
+
+CLÔTURE
+
+N’annonce pas « chantier terminé » tant qu’il reste une partie du périmètre silencieusement abandonnée.
+
+Fournis un compte-rendu final comprenant :
+- chaque constat L01–L12 : corrigé, déjà corrigé, arbitrage requis ou bloqué avec preuve ;
+- commits et PR ;
+- migrations réellement appliquées ;
+- version réellement déployée ;
+- tests exécutés et résultats ;
+- parcours réellement testés et limites ;
+- éventuels points restant à arbitrer, une question claire par point.
+
+Sauvegarde le rapport d’audit et le bilan de correction dans GitHub, et mets à jour l’issue #135 avec les liens.
+
+Commence maintenant et enchaîne jusqu’à la livraison complète de tout ce qui ne nécessite pas un nouvel arbitrage de game design.

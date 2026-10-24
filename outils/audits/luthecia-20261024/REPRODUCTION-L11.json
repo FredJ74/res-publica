@@ -1,0 +1,15 @@
+{
+  "constat": "L11",
+  "type": "reproduction_du_handler_reel_avec_transport_et_paiement_simules",
+  "production": false,
+  "avant": {
+    "arg": 5000,
+    "pa": 10
+  },
+  "apres": {
+    "arg": 4000,
+    "pa": 8
+  },
+  "reservation": false,
+  "defaut_reproduit": true
+}
