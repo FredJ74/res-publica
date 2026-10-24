@@ -40,8 +40,12 @@ session, puis bascule sur l'autre. Le travail doit donc pouvoir être
 4. **À chaque push, mettre à jour `RELAIS.md`** : chantier, branche, PR,
    ce qui est fait, ce qui reste, comment Fred peut tester.
 5. **Une pull request par chantier**, ouverte dès le premier push (en
-   brouillon si le travail n'est pas fini). C'est Fred qui décide de la
-   fusion dans `main` (= mise en bêta).
+   brouillon si le travail n'est pas fini). **L'agent fusionne lui-même**
+   dans `main` (= mise en bêta) dès que le chantier est fini et que les
+   contrôles passent, sans attendre le feu vert de Fred (décision de Fred,
+   25/10/2026). Il ne fusionne jamais un chantier qui attend une décision
+   de design, ni une branche en conflit, et il dit à Fred ce qui est parti
+   en bêta et comment le tester.
 6. **Chantier terminé et fusionné** : vider la section « En cours » de
    `RELAIS.md` et ajouter une ligne dans « Derniers chantiers ».
 

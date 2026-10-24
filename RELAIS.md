@@ -28,6 +28,10 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   ambassadeur PNJ dedans. Fonctions `ambassade_*` **appliquées en production**
   (registre 20261024185323 et 20261024185346), baseline pas encore
   réextrait. Passe de nuit ajoutée dans `api/cron-minuit.js`.
+- 25/10 : voyants de la messagerie synchronisés (bouton « Messages/Forums »,
+  « Boîte Mail », « Mails reçus » lisent la même copie de ce que rend le
+  serveur), et règle commune : **l'agent fusionne lui-même** quand les
+  contrôles passent (voir `AGENTS.md`).
 - Prochaines étapes, **après réponses de Fred** :
   1. BNE B1 (le mail d'arbitrage rejoué peut faire perdre l'emploi) :
      migration de `bne_agir` + test ;
