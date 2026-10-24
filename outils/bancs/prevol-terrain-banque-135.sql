@@ -2,14 +2,14 @@
 BEGIN;
 SET TRANSACTION READ ONLY;
 SELECT version,name FROM supabase_migrations.schema_migrations
-WHERE version IN('20261024121400','20261024121900','20261024122600','20261024123500','20261024123600','20261024123700','20261024123800','20261024124000','20261024124100','20261024131720','20261024132140','20261024133310') ORDER BY version;
+WHERE version IN('20261024121400','20261024121900','20261024122600','20261024123500','20261024123600','20261024123700','20261024123800','20261024124000','20261024124100','20261024131720','20261024132140','20261024133310','20261024134528','20261024135353') ORDER BY version;
 SELECT p.oid::regprocedure::text AS signature,md5(p.prosrc) AS empreinte,p.prosecdef,p.proconfig,
  has_function_privilege('authenticated',p.oid,'EXECUTE') AS client_execute,
  has_function_privilege('anon',p.oid,'EXECUTE') AS anonyme_execute,
  has_function_privilege('service_role',p.oid,'EXECUTE') AS serveur_execute
 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN
  ('terrain_acquisition_commande','pret_national_contracter_versionne','finance_terrain_banque_recu',
- 'pret_national_creer_interne','pret_national_jour_traiter','pret_versionne_ecriture_proteger',
+ 'terrain_permis_instruction_jour','pret_national_creer_interne','pret_national_jour_traiter','pret_versionne_ecriture_proteger',
  'pret_national_contracter','payer_ordre','terrain_compromis_acte','terrain_proprietaire_muter','compromis_expire_resoudre','terrain_permis_deposer') ORDER BY 1;
 SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,
  has_table_privilege('authenticated',c.oid,'SELECT,INSERT,UPDATE,DELETE') AS client_droit,
@@ -27,4 +27,10 @@ SELECT count(*) AS credits_absents_ou_doubles FROM public.prets p WHERE p.contra
 SELECT (SELECT count(*) FROM public.acquisitions_transactions_internes) AS capacites_acquisition_residuelles,
  (SELECT count(*) FROM public.prets_ecritures_internes) AS capacites_prets_residuelles;
 SELECT type_pret,contrat_version,count(*) FROM public.prets GROUP BY type_pret,contrat_version ORDER BY 1,2;
+-- Prévol AVANT activation du cron SQL : aucun dossier actif incomplet ne doit être
+-- transformé silencieusement. En cas de compte non nul, examiner ces cas, sans inventer les données.
+SELECT count(*) AS permis_actifs,
+ count(*) FILTER(WHERE coalesce(data::jsonb#>>'{permis,numeroDossier}','')='' OR coalesce(data::jsonb#>>'{permis,demandeur}','')='' OR coalesce(data::jsonb->>'city','')='') AS dossiers_incomplets,
+ count(*) FILTER(WHERE coalesce((data::jsonb#>>'{permis,dureeInstruction}')::numeric,0)<=0) AS durees_absentes
+FROM public.terrains_etat WHERE data::jsonb#>>'{permis,statut}' IN('instruction','attente_validation');
 ROLLBACK;

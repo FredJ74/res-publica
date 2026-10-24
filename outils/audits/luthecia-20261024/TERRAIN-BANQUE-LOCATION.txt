@@ -34,9 +34,20 @@ OK terrain banque compromis expire sans mutation finale
 OK terrain banque UUID bancaire avec montant different refuse
 OK terrain banque echeance reservee au serveur
 OK terrain banque recus prives sans lecture croisee
+OK terrain banque compromis avant refus PA a la signature finale
+OK terrain banque refus PA apres accord annule credit dette et decision
+OK terrain banque meme intention refusee puis PA disponibles un seul financement
 OK terrain banque permis joint par le moteur existant
 OK terrain banque archive et document de permis concordants
 OK terrain banque clause incluse dans les 2 PA et 1000 FR historiques
+OK terrain banque instruction interdite au navigateur sans mutation
+OK terrain banque instruction jour commun sans sommeil
+OK terrain banque rejeu instruction aucun second jour
+OK terrain banque panne document tacite annule archive compteur et autorisation
+OK terrain banque accord tacite archive SAS et etat dans une transaction
+OK terrain banque instruction preserve les changements apres le releve cron
+OK terrain banque attestation tacite persistante unique
+OK terrain banque accord tacite non reemis
 OK terrain banque jour Paris suivant sans sommeil et concurrence une seule echeance
 OK terrain banque dormir ne donne aucune seconde echeance 0
 OK terrain banque dormir ne donne aucune seconde echeance 1
@@ -47,5 +58,5 @@ OK terrain banque ancienne sauvegarde ne reecrit pas une dette versionnee
 OK terrain banque PA refuses apres creation interne rollback credit dette et recu
 OK terrain banque pret travaux preserve et UUID refuse non consomme
 OK terrain banque panne apres debit echeance rollback argent dette et marqueur
-{"terrain_banque": true, "assertions": 47, "production": false}
+{"terrain_banque": true, "assertions": 58, "production": false}
 {"ok": true, "assertions": 59, "production": false}

@@ -1466,74 +1466,18 @@ async function archiverEvenementUrbanismeServeur(doc) {
 // verdict. L'archive municipale COMMANDE -- si elle n'est pas ecrite, l'accord n'a pas lieu et sera
 // retente la nuit suivante.
 async function traiterInstructionsPermis() {
-  const resultats = { instruits: 0, suspendus: 0, accords_tacites: 0, echecs_archive: 0, ignores: 0 };
-  try {
-    const terrains = await sbGet('terrains_etat', '');
-    if (!terrains) return resultats;
-    // Cle CRON-SEULEMENT (permis.jourInstruction) : Europe/Paris (arbitrage du 20/09/2026).
-    const jour = jourParisISO();
-
-    for (const row of terrains) {
-      let etat;
-      try { etat = JSON.parse(row.data); } catch (e) { continue; }
-      const p = etat.permis;
-      if (!permisEnInstructionServeur(p)) continue;
-      if (p.jourInstruction === jour) { resultats.ignores++; continue; }   // anti-rejeu quotidien
-
-      p.jourInstruction = jour;
-      const suspendu = terrainSuspenduServeur(etat);
-      if (suspendu) {
-        // L'enquete GELE le compteur : aucune journee consommee, aucune perdue non plus.
-        resultats.suspendus++;
-      } else if (!instructionAcheveeServeur(p)) {
-        p.joursInstructionFaits = joursInstructionFaitsServeur(p) + 1;
-        resultats.instruits++;
-      }
-
-      const verdict = verdictAccordTaciteServeur(etat);
-      if (verdict.ok) {
-        const doc = construireDocumentUrbanismeServeur(etat, p, 'accord_tacite',
-          { buildingId: row.building_id, pays: row.country, ville: etat.city, jour: null });
-        const archive = await archiverEvenementUrbanismeServeur(doc);
-        if (!archive) {
-          // Rien n'est decide sans acte municipal. On n'ecrit meme pas le compteur : la nuit
-          // suivante reprendra exactement au meme point.
-          resultats.echecs_archive++;
-          continue;
-        }
-
-        p.statut = 'valide';
-        p.accordTacite = true;
-        p.jourDecision = jour;
-        etat.constructionAutorisee = true;
-
-        // Copie physique du document, par le canal de reception automatique (Lot 1.5.4) : elle
-        // entre meme si l'inventaire est plein, quitte a mettre le demandeur en Surcharge.
-        // Identifiant deterministe : un rejeu ne peut pas produire deux exemplaires.
-        if (p.demandeur) {
-          await sbInsert('objets_recus', {
-            id: 'urb-tacite-' + row.id + '-' + (p.numeroDossier || 'sansnumero'),
-            destinataire: p.demandeur,
-            expediteur: "Services d'urbanisme",
-            data: JSON.stringify({
-              id: doc.id,
-              type: 'document_urbanisme_accord_tacite',
-              name: "Attestation d'accord tacite" + (doc.batimentLabel ? ' — ' + doc.batimentLabel : ''),
-              icon: 'ti-file-certificate',
-              legal: true,
-              desc: texteAccordTaciteServeur(doc),
-              documentUrbanisme: doc
-            })
-          }).catch(() => {});
-          await envoyerMailSysteme(p.demandeur, "Services d'urbanisme", 'Permis accorde tacitement', "Le delai d'instruction de votre demande s'est ecoule sans decision. Votre permis de construire est donc ACCORDE TACITEMENT : vous pouvez construire. L'attestation vous sera remise a votre prochaine connexion.").catch(() => {});
-        }
-        resultats.accords_tacites++;
-      }
-
-      await sbUpdate('terrains_etat', `id=eq.${encodeURIComponent(row.id)}`,
-        { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
-    }
-  } catch (e) { console.error('traiterInstructionsPermis error', e); }
+  const resultats = { instruits:0, suspendus:0, accords_tacites:0, echecs_archive:0, ignores:0 };
+  const terrains=await sbGet('terrains_etat','').catch(()=>null);
+  if(!terrains){signalerEchec('permis_instruction_transactionnelle','lecture_terrains_indisponible');return resultats;}
+  for(const row of terrains){
+    let etat;try{etat=JSON.parse(row.data);}catch(_){continue;}
+    if(!permisEnInstructionServeur(etat.permis))continue;
+    const brut=await sbRpc('terrain_permis_instruction_jour',{p_terrain:row.id},HEADERS_SERVICE).catch(()=>null);
+    const verdict=Array.isArray(brut)?brut[0]:brut;
+    if(!verdict?.ok){signalerEchec('permis_instruction_transactionnelle',verdict?.raison||'verdict_absent');resultats.echecs_archive++;continue;}
+    for(const k of ['instruits','suspendus','accords_tacites'])resultats[k]+=Number(verdict[k])||0;
+    if(verdict.ignore||verdict.rejeu)resultats.ignores++;
+  }
   return resultats;
 }
 

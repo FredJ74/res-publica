@@ -28,7 +28,7 @@ def suite(db,q,srv):
  q.execute(catalogue['payer_ordre(text,text,integer,integer)']['definition'])
  q.execute((R/'migrations/20261024072349_occupation_actions_et_echeances.sql').read_text())
  if '--apres-location' in __import__('sys').argv:q.execute((R/'migrations/20261023090017_location_lot_legacy_avant_paiement.sql').read_text())
- for f in ['20261024121400_prets_nationaux_moteur_credit_commun.sql','20261024121900_prets_nationaux_commandes_versionnees.sql','20261024122600_acquisitions_capacites_et_gardes.sql','20261024123500_compromis_financement_reel.sql','20261024123600_terrains_referentiel_acquisition.sql','20261024123700_terrain_acquisition_commandes.sql','20261024123800_terrain_banque_relecture_recus.sql','20261024124000_prets_nationaux_echeances_atomiques.sql','20261024124100_prets_versionnes_fermer_ecritures_directes.sql','20261024131720_acquisitions_depots_attestes.sql','20261024132140_financement_compromis_termes_attestes.sql','20261024133310_terrain_vente_archive_reference_acte.sql']:
+ for f in ['20261024121400_prets_nationaux_moteur_credit_commun.sql','20261024121900_prets_nationaux_commandes_versionnees.sql','20261024122600_acquisitions_capacites_et_gardes.sql','20261024123500_compromis_financement_reel.sql','20261024123600_terrains_referentiel_acquisition.sql','20261024123700_terrain_acquisition_commandes.sql','20261024123800_terrain_banque_relecture_recus.sql','20261024124000_prets_nationaux_echeances_atomiques.sql','20261024124100_prets_versionnes_fermer_ecritures_directes.sql','20261024131720_acquisitions_depots_attestes.sql','20261024132140_financement_compromis_termes_attestes.sql','20261024133310_terrain_vente_archive_reference_acte.sql','20261024134528_permis_instruction_transactionnelle_acquisitions.sql','20261024135353_acquisition_refus_rollback_financement.sql']:
   sql=(R/'migrations'/f).read_text();q.execute(sql);q.execute(sql)
  # Mutations de contre-épreuve : seulement après installation, dans la base jetable.
  mutant=next((x.split('=',1)[1] for x in __import__('sys').argv if x.startswith('--mutant=')),None)
@@ -39,6 +39,7 @@ def suite(db,q,srv):
     'prix_public':('terrain_acquisition_commande(text,text,jsonb,uuid)',"e->>'acquisitionVersion'='2'",'false'),
     'credit_fictif':('pret_national_creer_interne(text,numeric,integer,text,text,text,numeric)','solde=solde+p_montant','solde=solde'),
     'rejeu_banque':('pret_national_contracter_versionne(numeric,integer,text,text,uuid)','IF FOUND THEN','IF false THEN'),
+    'permis_jour_rejoue':('terrain_permis_instruction_jour(text)',"IF p->>'jourInstruction'=jour THEN",'IF false THEN'),
     'archive_collision':('terrain_proprietaire_muter(text,text,jsonb,text)',"|| '-' || v_nouveau || '-' || coalesce(nullif(p_reference,''),'historique'),","|| '-' || v_nouveau,")
    }[mutant]
    q.execute('SELECT pg_get_functiondef(%s::regprocedure)',('public.'+nom,));d=q.fetchone()[0];assert d.count(avant)==1;q.execute(d.replace(avant,apres))
@@ -46,7 +47,7 @@ def suite(db,q,srv):
  def reset():
   q.execute("SET hg.acteur='Fixture';UPDATE personnages_donnees SET pa=50,hp=100,country='republic',current_city='capitale',current_building='terrain-a-batir-1',arg=200000,liquide=100000,stats_affaiblies='{}',excommunie=NULL;UPDATE comptes_bancaires SET solde=100000;UPDATE terrains_etat SET data='{\"city\":\"capitale\",\"pnj\":null,\"dateGeneration\":1,\"surface\":2150,\"valeur_totale\":25800}',proprietaire=NULL")
  def cmd(k,action,params=None,cur=q):return lire("SELECT terrain_acquisition_commande('terrain-a-batir-1',%s,%s,%s)",(action,Json(params or {'occupation':'1:'}),f'20000000-0000-4000-8000-{k:012d}'),cur)
- def photo():return lire("SELECT jsonb_build_array((SELECT jsonb_agg(p ORDER BY name) FROM personnages_donnees p),(SELECT jsonb_agg(c ORDER BY id) FROM comptes_bancaires c),(SELECT jsonb_agg(t ORDER BY id) FROM terrains_etat t),(SELECT jsonb_agg(p ORDER BY id) FROM prets p),(SELECT count(*) FROM fonds_credits_uniques),(SELECT count(*) FROM terrain_acquisitions_recus),(SELECT count(*) FROM terrains_historique_ventes),(SELECT count(*) FROM courrier_fixture))")
+ def photo():return lire("SELECT jsonb_build_array((SELECT jsonb_agg(p ORDER BY name) FROM personnages_donnees p),(SELECT jsonb_agg(c ORDER BY id) FROM comptes_bancaires c),(SELECT jsonb_agg(t ORDER BY id) FROM terrains_etat t),(SELECT jsonb_agg(p ORDER BY id) FROM prets p),(SELECT count(*) FROM fonds_credits_uniques),(SELECT count(*) FROM terrain_acquisitions_recus),(SELECT count(*) FROM terrains_historique_ventes),(SELECT count(*) FROM courrier_fixture),(SELECT count(*) FROM dossiers_urbanisme),(SELECT count(*) FROM objets_recus))")
  reset();r=cmd(1,'depot');check(r['ok'] and r['montant']==1000,'depot reel 1000 FR')
  check(lire("SELECT pa FROM personnages_donnees WHERE name='Fixture'")==48,'2 PA du depot')
  check(lire("SELECT count(*) FROM courrier_fixture WHERE sujet='Rendez-vous fixé — achat de terrain'")==1,'courrier de rendez vous serveur conserve')
@@ -103,10 +104,31 @@ def suite(db,q,srv):
  check(lire("SELECT pret_national_contracter_versionne(2000,5,'consommation','banque-nationale','30000000-0000-4000-8000-000000000001')")['raison']=='requete_reutilisee' and photo()==avant,'UUID bancaire avec montant different refuse')
  check(not lire("SELECT has_function_privilege('authenticated','pret_national_jour_traiter(text)','EXECUTE')"),'echeance reservee au serveur')
  check(not lire("SELECT has_table_privilege('authenticated','terrain_acquisitions_recus','SELECT')"),'recus prives sans lecture croisee')
+ # Refus métier après crédit : doit annuler aussi la décision financière, pas seulement le titre.
+ q.execute("INSERT INTO comptes_bancaires(id,personnage,banque,solde) VALUES('compte-Autre-retabli','Autre','nationale',100000)")
+ reset();q.execute("SET hg.acteur='Autre'");check(cmd(18,'compromis',{'occupation':'1:','pret':{'montant':25000,'duree':30}})['ok'],'compromis avant refus PA a la signature finale')
+ q.execute("UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{compromisExpireAt}',to_jsonb(floor(extract(epoch FROM now())*1000)-1000))::text;UPDATE personnages_donnees SET pa=0,current_building='office-notarial' WHERE name='Autre'");avant=photo()
+ r=cmd(19,'acte_compromis');check(not r['ok'] and r['raison']=='pa_insuffisants' and photo()==avant,'refus PA apres accord annule credit dette et decision')
+ q.execute("UPDATE personnages_donnees SET pa=50 WHERE name='Autre'");check(cmd(19,'acte_compromis')['ok'],'meme intention refusee puis PA disponibles un seul financement')
  # Permis joint : meme archive et SAS que le depot individuel, aucune double facturation.
  reset();check(cmd(13,'compromis',{'occupation':'1:','permis':'hangar'})['ok'],'permis joint par le moteur existant')
  check(lire('SELECT count(*) FROM dossiers_urbanisme')==1 and lire('SELECT count(*) FROM objets_recus')==1,'archive et document de permis concordants')
  check(lire("SELECT pa FROM personnages_donnees WHERE name='Fixture'")==48 and lire("SELECT liquide FROM personnages_donnees WHERE name='Fixture'")==99000,'clause incluse dans les 2 PA et 1000 FR historiques')
+ q.execute("SET hg.serveur='off'");avant=photo()
+ check(lire("SELECT terrain_permis_instruction_jour('republic_terrain-a-batir-1')")['raison']=='serveur_requis' and photo()==avant,'instruction interdite au navigateur sans mutation')
+ # Instruction du permis joint sur l'etat courant : aucun blob de cron ne peut effacer le titre.
+ q.execute("SET hg.serveur='on';UPDATE terrains_etat SET data=jsonb_set(jsonb_set(data::jsonb,'{permis,dureeInstruction}','2'),'{permis,joursInstructionFaits}','0')::text")
+ check(lire("SELECT terrain_permis_instruction_jour('republic_terrain-a-batir-1')")['instruits']==1,'instruction jour commun sans sommeil')
+ avant=photo();check(lire("SELECT terrain_permis_instruction_jour('republic_terrain-a-batir-1')").get('rejeu') and photo()==avant,'rejeu instruction aucun second jour')
+ q.execute("UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{permis,jourInstruction}',to_jsonb(((now() AT TIME ZONE 'Europe/Paris')::date-1)::text))::text")
+ q.execute("CREATE TRIGGER panne_tacite BEFORE INSERT ON objets_recus FOR EACH ROW EXECUTE FUNCTION panne_titre()");avant=photo()
+ try:lire("SELECT terrain_permis_instruction_jour('republic_terrain-a-batir-1')");raise AssertionError('panne attendue')
+ except psycopg2.Error:check(photo()==avant,'panne document tacite annule archive compteur et autorisation')
+ q.execute("DROP TRIGGER panne_tacite ON objets_recus;UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{temoinAutreCommande}','\"courant\"')::text")
+ check(lire("SELECT terrain_permis_instruction_jour('republic_terrain-a-batir-1')")['accords_tacites']==1,'accord tacite archive SAS et etat dans une transaction')
+ check(lire("SELECT data::jsonb->>'temoinAutreCommande' FROM terrains_etat")=='courant','instruction preserve les changements apres le releve cron')
+ check(lire("SELECT count(*) FROM dossiers_urbanisme WHERE type_evenement='accord_tacite'")==1 and lire('SELECT count(*) FROM objets_recus')==2,'attestation tacite persistante unique')
+ avant=photo();check(lire("SELECT terrain_permis_instruction_jour('republic_terrain-a-batir-1')")['ignore'] and photo()==avant,'accord tacite non reemis')
  # Echeances : date Paris serveur, reliquat exact, sommeil sans nouveau quota, concurrence.
  q.execute("SET hg.serveur='on'");pretid=r=None
  q.execute("SELECT id FROM prets WHERE type_pret='consommation'");pretid=q.fetchone()[0]
