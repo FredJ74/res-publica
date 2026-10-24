@@ -1,21 +1,18 @@
 {
-  "date_utc": "2026-10-24T08:22:27.763031+00:00",
-  "base": "e781074d9d6f5d54b2ecd5628e09b524ae3cdfcd",
-  "code": "b0237c9b4c9dab8eaa545a9d28deb941a3d63d07",
+  "date_utc": "2026-10-24T18:59:32.893267+00:00",
+  "code": "2c359004350165f081843f7d5d48d67e4ba3ca11",
+  "main_integre": "f69ae9b",
   "production": {
     "migrations_appliquees": [],
     "donnees_modifiees": false,
     "authentification_reelle_testee": false,
-    "sha_verifie": false,
-    "fusion": false
+    "fusion": false,
+    "deploiement_verifie": false
   },
   "client": {
-    "reussis": 107,
-    "total": 107
-  },
-  "contre_epreuves": {
-    "reussies": 91,
-    "total": 91
+    "reussis": 111,
+    "total": 111,
+    "preuve": "REPRISE-CLIENT.json"
   },
   "postgresql_workflow": [
     {
@@ -135,29 +132,67 @@
       "code": 0
     },
     {
+      "banc": "banc-terrain-banque-135-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-terrain-banque-135-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-benediction-135-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-filature-benediction-135-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-enquete-confirmation-135-local.py",
+      "code": 0
+    },
+    {
+      "banc": "contre-epreuves-filature-135-local.py",
+      "code": 0
+    },
+    {
+      "banc": "contre-epreuves-terrain-banque-135-local.py",
+      "code": 0
+    },
+    {
       "banc": "banc-location-lot-transactionnelle-local.py",
       "code": 0
     }
   ],
-  "lots_assertions": 18,
-  "occupation_assertions": 40,
-  "negociation_assertions": 59,
-  "calendriers": {
-    "reussis": 11,
-    "total": 11
+  "contre_epreuves_historiques": {
+    "reussies": 91,
+    "total": 91,
+    "preuve": "REPRISE-CONTRE-EPREUVES.txt"
   },
-  "e2e_fixtures": {
-    "reussis": 69,
-    "total": 69,
-    "comptes_reels": false
+  "contre_epreuves_terrain_banque": {
+    "reussies": 7,
+    "total": 7,
+    "incluses_dans_workflow_postgresql": true
+  },
+  "contre_epreuves_filature": {
+    "reussies": 3,
+    "total": 3,
+    "incluses_dans_workflow_postgresql": true
+  },
+  "assertions_ciblees": {
+    "terrain_banque": 61,
+    "benediction_socle_prive": 44,
+    "filature_privee": 30,
+    "instruction_enquete": 12
+  },
+  "contre_epreuves_integrees": {
+    "materiaux_ancienne_constante": true,
+    "enquete_fausse_reussite": true,
+    "enquete_corps_inconnu_refuse": true
   },
   "globaux": {
     "reussis": 6,
     "total": 12,
-    "main_avant_correction": {
-      "reussis": 5,
-      "total": 12
-    },
     "echecs": [
       "Classification",
       "Baseline",
@@ -167,32 +202,23 @@
       "Reconstruction"
     ],
     "authority": {
-      "rpc_absentes_du_baseline": 35,
-      "migration_signature_inconnue": 1,
-      "faux_positif_acteur_corrige": true
+      "rpc_absentes_du_baseline": 38,
+      "migration_signature_inconnue": 1
     },
-    "baseline_modifie": false
+    "baseline_modifie_par_ce_lot": false,
+    "preuve": "REPRISE-GLOBAUX.txt"
+  },
+  "etat": {
+    "L04": "code et tests locaux livres, prevol/installation et preuve reelle restent a assurer par agent principal",
+    "L11": "code et tests locaux livres, prevol/installation et preuve reelle restent a assurer par agent principal",
+    "L09": "non termine : socle et filature prives, six autres actes et client a raccorder, aucune activation partielle"
   },
   "limites": [
-    "Aucun outil Supabase expose",
-    "HTTP Vercel refuse par proxy : Tunnel connection failed: 403 Forbidden",
-    "API GitHub GraphQL Forbidden",
-    "L11 demeure reproductible : correction incomplete",
-    "L09 demeure non persistant : raccordement serveur a achever",
-    "L04 : consommation non supportee par le contrat audite ; produit non supprime, aucun nouveau taux invente"
+    "Aucun test sur compte reel ni aucun solde reel modifie",
+    "Les adaptations judiciaires et filature exigent la comparaison de leurs corps vivants absents du releve initial",
+    "Le banc de confirmation judiciaire simule explicitement le contre-espionnage ; parcours agents non prouve",
+    "Le correctif materiaux elimine une exception mais ne rend pas son ancien transfert inventaire atomique",
+    "Les echecs de catalogue/referentiels ne sont pas corriges par alteration des fichiers generes"
   ],
-  "main_integre": "eb92a6ebeed2eb3e591d8f7f7b5776d3a69141db",
-  "ced_football_assertions": 45,
-  "scopes": {
-    "workflow_postgresql": "30 bancs apres integration de main/PR136, tous verts ; banc occupation enrichi ensuite (40 assertions vertes)",
-    "jsc": "adaptateur Node local, pas JavaScriptCore natif",
-    "baseline": "Aucun changement propre a cette branche dans baseline/ par rapport au main integre",
-    "reference_globaux": "Le journal MAIN-REFERENCE correspond au main e781074, avant PR136 et corrections de Workflow."
-  },
-  "branches": {
-    "stabilisation": "codex/stabilisation-luthecia-135-20261024",
-    "parcelles": "codex/parcelles-gabarit-135-20261024",
-    "parcelles_sha": "aa240adb52bd75a63cd1e1b4a6d857968406e48b"
-  },
-  "code_dernieres_protections": "b0237c9b4c9dab8eaa545a9d28deb941a3d63d07"
+  "preuves_anterieures": "RESULTATS-AVANT-TERRAIN-BANQUE.json"
 }

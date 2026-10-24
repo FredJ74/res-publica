@@ -103,3 +103,9 @@ Dans `confirmerVolMateriaux`, la quantité demandée était déclarée constante
 L’instruction d’enquête pouvait dévoiler une trace malgré le refus du moteur de détention, puis annoncer un succès. La migration préparée exige une confirmation réelle du registre et de la projection PJ, et verrouille la trace. Douze assertions sur PostgreSQL jetable reproduisent le défaut, éprouvent le succès, les refus et l’écriture ignorée, la concurrence et les contre-épreuves. Contre-espionnage simulé, non vérifié en production. La commande globale d’enquête avec paiement/jet/bonus demeure à raccorder.
 
 La bénédiction refuse désormais aussi un tirage SQL NULL dans une migration complémentaire gardée. Le banc du socle passe de 41 à 44 assertions ; les trois tirages invalides annulent l’opération au lieu de consommer un PA avec résultat indéterminé. Ces composants restent privés. Détails, empreintes et dépendances dans `BENEDICTION-135-20261024.md`.
+
+### Vérification de la reprise sur 2c35900
+
+111/111 bancs client ; 37/37 configurations PostgreSQL du workflow, dont les contre-épreuves terrain/banque et filature ; 91/91 contre-épreuves historiques. Six contrôles globaux rouges restent Classification, Baseline, Authority, Referential, Assemblage, Reconstruction. Authority : 38 RPC non extraites, plus la signature commerce historiquement inconnue. La concordance des fonctions passe avec le moteur JS disponible ; une première exécution sans ce moteur avait correctement refusé de conclure. Aucun résultat ou fichier généré modifié pour blanchir un écart. `RESULTATS.json` est actualisé avec les preuves brutes et conserve son ancienne photographie.
+
+L09 reste incomplet ; absence de raccordement des six autres actes et du navigateur. Aucune migration, fusion ou vérification authentifiée de production réalisée par Codex. Les nouvelles corrections de main jusqu’à f69ae9b sont intégrées sans changement des ambassades ou du Bureau de l’Emploi.
