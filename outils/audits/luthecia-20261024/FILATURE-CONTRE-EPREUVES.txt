@@ -1,0 +1,4 @@
+OK rejeu
+OK caisse
+OK badge
+{"production": false, "contre_epreuves": [{"mutant": "rejeu", "echec_attendu": true, "code": 1}, {"mutant": "caisse", "echec_attendu": true, "code": 1}, {"mutant": "badge", "echec_attendu": true, "code": 1}]}

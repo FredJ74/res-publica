@@ -87,3 +87,7 @@ Les sept consommateurs actuels sont `confirmerVol`, `confirmerAchatArmeIllegal` 
 Il reste à réunir tentative, jet, consommation et effet dans les moteurs de ces familles, avec reçu d’acte et relecture, puis basculer l’attribution. La négociation PR134 demeure inchangée et aucun bonus client ne lui est réintroduit. **L09 n’est pas terminé et ce reste est une lacune d’implémentation, pas uniquement un contrôle vivant manquant.** Aucune décision supplémentaire de game design n’est demandée.
 
 La dernière exécution après ce complément passe 109/109 bancs client, 33/33 configurations PostgreSQL, 91/91 contre-épreuves historiques et 6/6 mutants terrain/banque/calendrier détectés. Les globaux restent à 6/12. Les journaux `TERRAIN-BANQUE-*` correspondent à ce complément, sans comptes ni données réels.
+
+### Reprise du 24 octobre — filature et bénédiction
+
+Socle de filature préparé en privé, utilisant les payeurs institutionnels et le lecteur existants, avec receipt, autorité issue du registre et bonus consommé dans la transaction du véritable jet. Lecture des dernières 24h corrigée pour ne plus dépendre du jour personnel. Preuves natives et contre-épreuves dans `banc-filature-benediction-135-local.py` et `contre-epreuves-filature-135-local.py`. Détails et préconditions dans `BENEDICTION-135-20261024.md`. L09 reste en cours, sans exposition de commande ni changement client prématuré ; aucune vérification authentifiée ou installation Supabase revendiquée.
