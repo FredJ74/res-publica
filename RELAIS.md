@@ -29,3 +29,7 @@ existantes, à reprendre si Fred le demande) :
 
 - 24/10/2026 — Mise en place du relais Codex/Claude (`AGENTS.md`,
   `CLAUDE.md`, `RELAIS.md`).
+
+### Suite L09 préparée, non activée
+
+Socle privé d’attribution/persistance/consommation implémenté et éprouvé : 41 assertions PostgreSQL. Migration `20261024174646_benediction_etat_prive_et_attribution.sql`, sans exposition de la commande d’attribution aux clients. Aucun raccordement des sept actes encore réalisé ; ne pas annoncer L09 terminé ni activer ce lot seul. Lire `outils/audits/BENEDICTION-135-20261024.md` et le prévol complémentaire associé. Le développement continue par les actes hôtes, en réutilisant leurs moteurs existants.
