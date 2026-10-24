@@ -18,6 +18,7 @@ def suite(db,q,srv):
  q.execute('ALTER TABLE personnages_donnees ADD COLUMN current_room text;ALTER TABLE pnj_membres ADD COLUMN nom text,ADD COLUMN pays text,ADD COLUMN ville text,ADD COLUMN building_id text,ADD COLUMN room_id text,ADD COLUMN rue_noeud_id text,ADD COLUMN leader_pnj_id text')
  for nom in ['pnj_position_effective','pnj_co_present']:q.execute(fn('baseline/domaines/socle-PNJ/20_fonctions.sql',nom))
  for _ in range(2):q.execute((R/MIGRATION).read_text())
+ for _ in range(2):q.execute((R/'migrations/20261024185500_benediction_refuser_jet_absent.sql').read_text())
  attendus=json.loads(subprocess.check_output(['node',str(R/'outils/generateurs/generer_contacts_religieux.cjs')],text=True))
  q.execute('SELECT pays,ville,batiment,piece,nom,fonction FROM religion_contacts_referentiel');reels=set(q.fetchall())
  check(reels=={tuple(x[k] for k in ['pays','ville','batiment','piece','nom','fonction']) for x in attendus},'contacts conformes a data.js')
@@ -26,6 +27,11 @@ def suite(db,q,srv):
  def demande(k,nom='Père Ception',cur=q):return lire('SELECT religion_benediction_demander(%s,%s)',(nom,f'90000000-0000-4000-8000-{k:012d}'),cur)
  def etat():return lire('SELECT religion_benediction_lire()')['benediction']
  def photo():return lire("SELECT jsonb_build_array((SELECT jsonb_agg(p ORDER BY name) FROM personnages_donnees p),(SELECT jsonb_agg(b ORDER BY acteur) FROM religion_benedictions b),(SELECT jsonb_agg(r ORDER BY acteur,requete) FROM religion_benedictions_recus r),(SELECT count(*) FROM acquisitions_transactions_internes),(SELECT jsonb_agg(c ORDER BY acteur,acte) FROM religion_benedictions_consommations c))")
+ position()
+ for index,v in enumerate(['NULL::integer','0','101']):
+  jet(v);avant=photo()
+  try:demande(900+index);raise AssertionError('jet invalide attendu')
+  except psycopg2.Error as ex:check('jet_invalide' in str(ex) and photo()==avant,'jet attribution invalide rollback complet '+v)
  position();identite=lire("SELECT id FROM personnages_donnees WHERE name='Fixture'");jet(80)
  sans_bonus=str(uuid.uuid4());check(lire('SELECT religion_benediction_consommer_interne(%s,%s,%s)',(identite,'enquete',sans_bonus))==0,'tentative sans bonus historisee')
  r=demande(1,'Père Ception (PNJ)');check(r['ok'] and r['succes'] and r['jet']==80 and r['benediction']['actif'],'attribution serveur a la borne de 80 pour cent')

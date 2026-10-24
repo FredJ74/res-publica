@@ -97,3 +97,9 @@ Socle de filature préparé en privé, utilisant les payeurs institutionnels et 
 Dans `confirmerVolMateriaux`, la quantité demandée était déclarée constante puis réaffectée après le retrait confirmé par `terrain_chantier_acte`. Le succès levait donc `Assignment to constant variable` avant le crédit d’inventaire. La variable est désormais réaffectable : l’interface utilise bien la quantité rendue par le serveur, jamais celle demandée. Aucun tarif, formule ou stock modifié par ce correctif. Trois tests exécutent le vrai corps de fonction : quantité serveur inférieure à la demande, refus/stock épuisé, et contre-épreuve avec l’ancienne constante. La contre-épreuve prouve le plantage après la mutation simulée, sans prétendre avoir exercé un joueur réel.
 
 **Limite conservée explicitement :** le transfert de matériaux vers l’inventaire reste séparé dans le chemin historique ; ce correctif enlève une exception démontrée, mais n’est pas une preuve d’atomicité du vol ni de L09 complet. Il ne restitue ni ne modifie aucun objet réel perdu auparavant.
+
+### Confirmation judiciaire et tirages absents
+
+L’instruction d’enquête pouvait dévoiler une trace malgré le refus du moteur de détention, puis annoncer un succès. La migration préparée exige une confirmation réelle du registre et de la projection PJ, et verrouille la trace. Douze assertions sur PostgreSQL jetable reproduisent le défaut, éprouvent le succès, les refus et l’écriture ignorée, la concurrence et les contre-épreuves. Contre-espionnage simulé, non vérifié en production. La commande globale d’enquête avec paiement/jet/bonus demeure à raccorder.
+
+La bénédiction refuse désormais aussi un tirage SQL NULL dans une migration complémentaire gardée. Le banc du socle passe de 41 à 44 assertions ; les trois tirages invalides annulent l’opération au lieu de consommer un PA avec résultat indéterminé. Ces composants restent privés. Détails, empreintes et dépendances dans `BENEDICTION-135-20261024.md`.

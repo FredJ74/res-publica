@@ -63,6 +63,9 @@ OK terrain banque panne apres debit echeance rollback argent dette et marqueur
 OK terrain banque reliquat non divisible solde exactement sans surprelevement
 {"terrain_banque": true, "assertions": 61, "production": false}
 OK benediction contacts conformes a data.js
+OK benediction jet attribution invalide rollback complet NULL::integer
+OK benediction jet attribution invalide rollback complet 0
+OK benediction jet attribution invalide rollback complet 101
 OK benediction tentative sans bonus historisee
 OK benediction attribution serveur a la borne de 80 pour cent
 OK benediction ancienne tentative sans bonus ne prend pas un bonus ulterieur
@@ -103,5 +106,5 @@ OK benediction homonyme nouveau personnage ne reprend pas un ancien bonus
 OK benediction contact religieux valide ville_a
 OK benediction contact religieux valide ville_b
 OK benediction expiration inchangee au passage heure hiver
-{"benediction_socle_prive": true, "raccordement_actes": false, "assertions": 41, "production": false}
+{"benediction_socle_prive": true, "raccordement_actes": false, "assertions": 44, "production": false}
 {"ok": true, "assertions": 59, "production": false}
