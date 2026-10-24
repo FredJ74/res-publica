@@ -20,7 +20,15 @@ async function finance135Executer(domaine,cible,parametres) {
  }catch(_){showToast('Opération non lancée','La reprise sûre ne peut pas être conservée.',false);return null;}
  finance135EnCours=true;
  try{
-  let r;try{r=await sbRpcVerdict(domaine==='pret'?'pret_national_contracter_versionne':'terrain_acquisition_commande',{...i.parametres,p_requete:i.requete});}catch(_){r=null;}
+  let r;try{
+   // Signatures explicites : le contrôle d’autorité vérifie noms ET paramètres transmis.
+   if(domaine==='pret')r=await sbRpcVerdict('pret_national_contracter_versionne',{
+    p_montant:i.parametres.p_montant,p_duree_jours:i.parametres.p_duree_jours,
+    p_type_pret:i.parametres.p_type_pret,p_building_id:i.parametres.p_building_id,p_requete:i.requete});
+   else r=await sbRpcVerdict('terrain_acquisition_commande',{
+    p_terrain:i.parametres.p_terrain,p_action:i.parametres.p_action,
+    p_parametres:i.parametres.p_parametres,p_requete:i.requete});
+  }catch(_){r=null;}
   if(!contexteNavigationRueValide(c))return null;
   if(!r?.ok){
    if(r&&!r.transport){await finance135Relire(domaine,cible,c);if(!contexteNavigationRueValide(c))return null;sessionStorage.removeItem(cle);}
