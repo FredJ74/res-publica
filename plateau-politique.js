@@ -9420,7 +9420,9 @@ async function confirmerAudienceAmbassadeur(empireId, pa, cost) {
   const amb = AMBASSADEURS_PNJ[empireId];
   if (!amb) return;
   document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
+  // `fn` EXPLICITE : le prelevement arrive apres un choix dans une modale, et state._ordreEnCours
+  // peut alors porter un autre ordre route entre-temps (voir doOrder, plateau-router.js).
+  const r = await deduireCoutOrdre({ pa, cost, fn: 'demander_audience_ambassadeur' });
   if (!r.ok) { signalerRefusCout(r); return; }
   const nomCourt = amb.name.replace(' (PNJ)', '');
   const roll = Math.random() * 100;
