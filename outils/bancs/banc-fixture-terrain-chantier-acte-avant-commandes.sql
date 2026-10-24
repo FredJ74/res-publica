@@ -1,3 +1,5 @@
+-- Fixture historique isolee : ne jamais appliquer en production.
+BEGIN;
 -- Definition avant commandes versionnees, archivee depuis main d978a76.
 -- Les gardes des migrations restent strictes ; seul leur point de depart est fige.
 CREATE OR REPLACE FUNCTION public.terrain_chantier_acte(p_terrain_id text, p_acte text, p_matiere text DEFAULT NULL::text, p_quantite integer DEFAULT NULL::integer, p_jour integer DEFAULT NULL::integer)
@@ -104,3 +106,5 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'etat', v_final, 'chantier', v_ch,
     'matiere', p_matiere, 'quantite', v_qte, 'stock_restant', v_dispo - v_qte);
 END; $function$;
+
+ROLLBACK;

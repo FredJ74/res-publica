@@ -51,3 +51,14 @@ with tempfile.TemporaryDirectory() as dossier:
  const proc=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8',timeout:15000});
  assert.equal(proc.status,0,`${proc.stdout}\n${proc.stderr}`);
 });
+test('Authority reconnait acteur_est_moi comme les autres resolveurs, sans accepter une fonction sans garde',()=>{
+ const script=String.raw`import runpy
+m=runpy.run_path('outils/baseline/verifier-autorite.py',run_name='controle_importe')
+f=m['garde_a_un_saut']
+assert f('resilier_bail_volontaire',{'resilier_bail_volontaire':"IF NOT public.acteur_est_moi(p_acteur) THEN RETURN; END IF;"})
+assert not f('dangereuse',{'dangereuse':"UPDATE public.objets SET nom='autrui';"})
+assert f('porte',{'porte':'PERFORM interne();','interne':'PERFORM public.acteur_est_moi(p_acteur);'})
+assert not f('porte',{'porte':'PERFORM milieu();','milieu':'PERFORM interne();','interne':'PERFORM public.acteur_est_moi(p_acteur);'})
+`;
+ const p=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8'});assert.equal(p.status,0,p.stdout+p.stderr);
+});

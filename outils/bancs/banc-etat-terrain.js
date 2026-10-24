@@ -103,6 +103,7 @@ var ACTES = {
 var totalPortes = 0;
 Object.keys(ACTES).sort().forEach(function (porte) {
   var n = porte==='chantier_commande_location' ? partout(/constructionExecuterCommande\('louer'/g) : porte==='chantier_commande_reamenagement' ? partout(/constructionExecuterCommande\('reamenager'/g) : porte==='chantier_commande_plan' ? partout(/constructionExecuterCommande\('plan'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
+  if(porte==='terrain_permis_acte') n+=partout(/sbRpcVerdict\('terrain_permis_deposer'/g); // meme depot, porte versionnee de #112
   totalPortes += n;
   att(porte + ' : ' + ACTES[porte] + ' appel(s)', n === ACTES[porte], n + ' trouve(s)');
 });
@@ -146,6 +147,7 @@ var ACTES_NOMMES = [
   'lot_louer', 'lot_bail_libere'
 ];
 var manquants = ACTES_NOMMES.filter(function (a) {
+  if(a==='permis_deposer')return partout(/sbRpcVerdict\('terrain_permis_deposer'/g)!==1;
   if(a==='lot_louer')return partout(/constructionExecuterCommande\('louer'/g)!==1;
   if(a==='permis_plan_modifier')return partout(/constructionExecuterCommande\('plan'/g)!==1;
   return partout(new RegExp("p_acte: '" + a + "'", 'g')) === 0;
