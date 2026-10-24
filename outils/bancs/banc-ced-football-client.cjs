@@ -9,7 +9,9 @@ function fixture() {
   for (const id of ['modal-pnj','postes-modal-title','postes-body','modal-postes','ced-acheter'])
     elements.set(id,{innerHTML:'',textContent:'',classList:{add(){},remove(){}}});
   let calls=[];
+  const storage = new Map();
   const c={state:{char:{name:'Fixture'},country:'republic',currentCity:'capitale',currentBuilding:'centre-artisanal',currentRoom:'travees'},
+    sessionStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
     rpAuthUid:()=> 'uid',crypto:{randomUUID:()=> 'requete-unique'},document:{getElementById:id=>elements.get(id)},
     showToast(){},addJournalEntry(){},updateUI(){},appliquerPaiementServeur(){},sbAdopterInventaireServeur:r=>{c.state.inventory=r.inventory;return true;},
     sbRpcVerdict:async(fn,params)=>{calls.push({fn,params});return {ok:true,inventory:[{name:'Boulette de shit'}],paiement:{}};}};
@@ -27,6 +29,9 @@ test('Ced : resultat perdu conserve UUID a la reouverture',async()=>{
   c.ouvrirAchatCed();await c.confirmerAchatCed();const pending=c.state._achatCed;
   c.ouvrirAchatCed();assert.equal(c.state._achatCed,pending);await c.confirmerAchatCed();
   assert.deepEqual(ids,['requete-unique','requete-unique']);assert.equal(pending.termine,undefined);
+  // Un rechargement perd l'objet memoire, mais conserve le recu a verifier dans cet onglet.
+  delete c.state._achatCed;c.crypto.randomUUID=()=> 'ne-doit-pas-etre-utilisee';c.ouvrirAchatCed();
+  await c.confirmerAchatCed();assert.equal(ids[2],'requete-unique');
 });
 test('Ced : double clic en vol et reconnexion ne recopient aucun inventaire',async()=>{
   const {c}=fixture();let resolve,n=0;c.sbRpcVerdict=()=>{n++;return new Promise(r=>resolve=r);};
@@ -56,4 +61,12 @@ test('Stade : vrais choix actifs a zero, desactives et expliques a deux',async()
 test('Ced : trace effectivement formulatee pour les rumeurs',()=>{
   const src=fs.readFileSync(path.join(root,'plateau-actions-illegales-rumeurs.js'),'utf8');
   assert.match(src,/achat_drogue:\s*\(a, c\)/);
+});
+test('Henrico oriente des le premier conseil ; Ced connait son offre et Pat',async()=>{
+  const {construirePromptSysteme}=await import(path.join(root,'api/_pnj-profils.js'));
+  const h=construirePromptSysteme('henrico_stot','fr');
+  assert.match(h,/premier conseil/);assert.match(h,/immédiatement/);assert.match(h,/Grobras Sécurité/);
+  assert.match(h,/pas ton employeur/);
+  const c=construirePromptSysteme('ced_labone','fr');assert.match(c,/50 FR/);assert.match(c,/Pat Hounette/);
+  assert.doesNotMatch(c,/TU NE NOMMES PERSONNE|Tu ne nommes aucune marchandise/);
 });

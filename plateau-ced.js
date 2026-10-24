@@ -6,11 +6,17 @@ function cedSurPlace() {
   return state.country === 'republic' && state.currentCity === 'capitale'
     && state.currentBuilding === 'centre-artisanal' && state.currentRoom === 'travees';
 }
+function cedCleReprise() {
+  return 'ced_achat_' + rpAuthUid() + '_' + state.char.name;
+}
 function ouvrirAchatCed() {
   if (!cedSurPlace() || !state.char || !rpAuthUid()) return;
   let c = state._achatCed;
   if (!cedContexteValide(c) || c.termine) {
-    c = { personnage: state.char, uid: rpAuthUid(), requete: crypto.randomUUID() };
+    let precedente = null;
+    try { precedente = sessionStorage.getItem(cedCleReprise()); } catch (_) {}
+    c = { personnage: state.char, uid: rpAuthUid(), requete: precedente || crypto.randomUUID(),
+      incertain: !!precedente, cleReprise: cedCleReprise() };
     state._achatCed = c;
   }
   document.getElementById('modal-pnj')?.classList.remove('open');
@@ -28,6 +34,7 @@ async function confirmerAchatCed() {
   if (!cedContexteValide(c) || c.enCours || c.termine) return;
   if (!c.incertain && !cedSurPlace()) return;
   c.enCours = true;
+  try { sessionStorage.setItem(c.cleReprise, c.requete); } catch (_) {}
   const bouton = document.getElementById('ced-acheter');
   if (bouton) bouton.disabled = true;
   let r;
@@ -44,6 +51,7 @@ async function confirmerAchatCed() {
   }
   c.incertain = false;
   if (!r.ok) {
+    try { sessionStorage.removeItem(c.cleReprise); } catch (_) {}
     const messages = { pas_sur_place: 'Retrouvez Ced dans les travées du Centre Artisanal de Luthécia.',
       inventaire_plein: 'Il vous faut une place libre dans l’inventaire.',
       fonds_insuffisants: 'Vos fonds disponibles ne couvrent pas les 50 FR.',
@@ -52,6 +60,7 @@ async function confirmerAchatCed() {
     return;
   }
   c.termine = true;
+  try { sessionStorage.removeItem(c.cleReprise); } catch (_) {}
   appliquerPaiementServeur(r.paiement);
   let adopte = sbAdopterInventaireServeur(r);
   if (!adopte) {

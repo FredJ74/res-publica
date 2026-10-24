@@ -378,6 +378,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "football_entrainements_compter_interne(text,date)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "football_entrainements_compter_interne(text,date)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "football_entrainements_du_jour()",
@@ -682,12 +694,12 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "afc6f86acbaaccd38e635e071c5e98aa",
-  "20_fonctions.sql": "5ba8ce9a5ed0f116e45b4bded9e70275",
+  "20_fonctions.sql": "baad8636a1819c8982f755d5d1f9e451",
   "30_contraintes.sql": "a945d6b8dc14bd0b29fb832a4652cdec",
-  "35_index.sql": "5650794763a074d67e44e9748b0d7b8b",
+  "35_index.sql": "ccff8c87f33b369e4ac2e7f4cf4b1ac0",
   "50_triggers.sql": "a28e75c4ebe093dff38fb2bdd3abf71a",
   "60_rls-policies.sql": "8be2fd6b8c93f9b08a9302d92cdf68b3",
-  "70_droits.sql": "0366e0c2301524f7e87ef796dee3503e",
+  "70_droits.sql": "563f768c0e9b4eba99085b922b847c39",
   "80_commentaires.sql": "7e25fdd2e2677d8b23473fbea48f1be6"
  },
  "fonctions": [
@@ -757,12 +769,17 @@
    "signature": "club_president_voter(text,boolean)"
   },
   {
-   "empreinte": "d89e07db0fbe64adf919b8906dd8d789",
+   "empreinte": "6f38f51267e215dcd40a6aa177faf02c",
    "security_definer": true,
    "signature": "football_entrainement_consommer(text)"
   },
   {
-   "empreinte": "fee0aba7133e3ed075f3034a1b9f8e44",
+   "empreinte": "e7431198ff1953752a05c1c04c6207df",
+   "security_definer": false,
+   "signature": "football_entrainements_compter_interne(text,date)"
+  },
+  {
+   "empreinte": "514498942465b971a61f1aa9b3ff987b",
    "security_definer": true,
    "signature": "football_entrainements_du_jour()"
   },
@@ -798,6 +815,10 @@
   }
  ],
  "index_autonomes": [
+  {
+   "empreinte": "3431567cb54701528728407e9510fdbe",
+   "nom": "entrainements_football_perso_date"
+  },
   {
    "empreinte": "e7090fd4cfe6c41131d35eca2e8f2d59",
    "nom": "entrainements_football_perso_jour"

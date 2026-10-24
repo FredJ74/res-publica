@@ -181,6 +181,12 @@
    "sous": ""
   },
   {
+   "empreinte": "64e6283e6e7b079b41806200835ed25c",
+   "genre": "TABLE",
+   "objet": "pnj_ced_achats_recus",
+   "sous": ""
+  },
+  {
    "empreinte": "3cbe3e967469083071995747241d72ff",
    "genre": "TABLE",
    "objet": "pnj_familles_classes",
@@ -253,6 +259,12 @@
    "genre": "p",
    "nom": "pnj_candidats_catalogue_pkey",
    "tbl": "pnj_candidats_catalogue"
+  },
+  {
+   "empreinte": "5ee40fb12a73c9c3db1a3d175a94fed8",
+   "genre": "p",
+   "nom": "pnj_ced_achats_recus_pkey",
+   "tbl": "pnj_ced_achats_recus"
   },
   {
    "empreinte": "fdbfed26d1819f5e09f5e6742f1ebf80",
@@ -385,6 +397,12 @@
    "genre": "c",
    "nom": "pnj_candidat_genre_connu",
    "tbl": "pnj_candidats_catalogue"
+  },
+  {
+   "empreinte": "7be6b182055f50e4f7fbc16039abf596",
+   "genre": "c",
+   "nom": "pnj_ced_achats_recus_prix_check",
+   "tbl": "pnj_ced_achats_recus"
   },
   {
    "empreinte": "dff639dc352b53fb359865bccd50246c",
@@ -714,6 +732,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_ced_acheter(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_ced_acheter(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_ced_acheter(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "pnj_classe_de(text)",
@@ -1413,6 +1449,18 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "pnj_candidats_catalogue",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "pnj_ced_achats_recus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "pnj_ced_achats_recus",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -1659,14 +1707,14 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "987060db29b2631a083fdfbf017b1cb7",
-  "20_fonctions.sql": "fd749d58eb14e909d88fc0c5a55c77db",
-  "30_contraintes.sql": "2cae6ce8ea77166da6c00897a811b2d9",
-  "35_index.sql": "9cee8070d05ce6f792bb67c136e15fbf",
+  "10_tables.sql": "6ece659d1b664d32909a3b6238bf50ee",
+  "20_fonctions.sql": "118fdc2d0e71df13245ea29a77e53a6b",
+  "30_contraintes.sql": "a80a59d8e15945808a288ab72e08baa0",
+  "35_index.sql": "f75665219d9bf3ae2c569159b44ea10a",
   "50_triggers.sql": "98f9d5e8dafb390316f722536ecd0637",
-  "60_rls-policies.sql": "850ce0714f315223f78546b4d814f049",
-  "70_droits.sql": "70d7fbc4d3057979e7b4eb071386c3ac",
-  "80_commentaires.sql": "a974af1f46541dd256e8be0b893794c1"
+  "60_rls-policies.sql": "e87735ea78f461fc533f79b099ffce6c",
+  "70_droits.sql": "79dfe12a99d3ed912166cc00660728d3",
+  "80_commentaires.sql": "6a7651b26866914a22bb5df2e7b5c2cc"
  },
  "fonctions": [
   {
@@ -1718,6 +1766,11 @@
    "empreinte": "c4fbbfb628eede69785e83bbae540213",
    "security_definer": false,
    "signature": "pnj_caracteristiques_cles()"
+  },
+  {
+   "empreinte": "1513447b1f26ce582ab5e590796acf56",
+   "security_definer": true,
+   "signature": "pnj_ced_acheter(uuid)"
   },
   {
    "empreinte": "710122bc787c9db3df93b05745f5be93",
@@ -2011,6 +2064,7 @@
  "index_portes": [
   "pnj_axes_autorite_pkey",
   "pnj_candidats_catalogue_pkey",
+  "pnj_ced_achats_recus_pkey",
   "pnj_employes_metier_pkey",
   "pnj_employeurs_pkey",
   "pnj_evenements_pkey",
@@ -2053,6 +2107,11 @@
    "active": true,
    "forcee": false,
    "tbl": "pnj_candidats_catalogue"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "pnj_ced_achats_recus"
   },
   {
    "active": true,
@@ -2180,6 +2239,12 @@
    "empreinte_catalogue": "908babcedf11194fb7657ddd664be82f",
    "empreinte_texte": "3abf421388d14e5f47a6728674ec499d",
    "nom": "pnj_candidats_catalogue"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "fe21ec974f51aa1031fd4563f98ba318",
+   "empreinte_texte": "16fd726fdfd26cf3e7ac17351536ddbe",
+   "nom": "pnj_ced_achats_recus"
   },
   {
    "colonnes": 11,

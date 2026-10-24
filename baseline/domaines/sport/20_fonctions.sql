@@ -651,14 +651,12 @@ BEGIN
   -- DOUBLE CLIC : le second appel attend ici, puis constate la limite.
   PERFORM pg_advisory_xact_lock(hashtext('football_entrainement|' || v_moi));
 
-  SELECT d.day INTO v_jour FROM public.personnages_donnees d WHERE d.name = v_moi;
+  SELECT public.jour_de_jeu_pays(d.country) INTO v_jour FROM public.personnages_donnees d WHERE d.name = v_moi;
   IF v_jour IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
   END IF;
 
-  SELECT count(*) INTO v_nb
-    FROM public.entrainements_football e
-   WHERE e.personnage = v_moi AND e.jour = v_jour;
+  v_nb := public.football_entrainements_compter_interne(v_moi,(now() AT TIME ZONE 'Europe/Paris')::date);
 
   IF v_nb >= c_max THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'limite_quotidienne_atteinte',
@@ -681,6 +679,19 @@ BEGIN
 END;
 $function$;
 
+-- football_entrainements_compter_interne(text,date) -> integer | sql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.football_entrainements_compter_interne(p_personnage text, p_date date)
+ RETURNS integer
+ LANGUAGE sql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+ SELECT count(*)::integer FROM public.entrainements_football e
+ WHERE e.personnage=p_personnage
+  AND e.cree_le >= (p_date::timestamp AT TIME ZONE 'Europe/Paris')
+  AND e.cree_le < ((p_date+1)::timestamp AT TIME ZONE 'Europe/Paris');
+$function$;
+
 -- football_entrainements_du_jour() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.football_entrainements_du_jour()
  RETURNS jsonb
@@ -694,13 +705,11 @@ BEGIN
   IF v_moi IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
   END IF;
-  SELECT d.day INTO v_jour FROM public.personnages_donnees d WHERE d.name = v_moi;
+  SELECT public.jour_de_jeu_pays(d.country) INTO v_jour FROM public.personnages_donnees d WHERE d.name = v_moi;
   IF v_jour IS NULL THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');
   END IF;
-  SELECT count(*) INTO v_nb
-    FROM public.entrainements_football e
-   WHERE e.personnage = v_moi AND e.jour = v_jour;
+  v_nb := public.football_entrainements_compter_interne(v_moi,(now() AT TIME ZONE 'Europe/Paris')::date);
   RETURN jsonb_build_object('ok', true, 'nb', v_nb, 'max', c_max, 'jour', v_jour);
 END;
 $function$;

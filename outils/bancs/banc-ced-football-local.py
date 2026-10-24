@@ -4,8 +4,8 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import json, re, tempfile
 R=Path(__file__).resolve().parents[2]
-M1='migrations/20261024073208_centre_artisanal_achat_ced.sql'
-M2='migrations/20261024073242_football_quota_jour_commun.sql'
+M1='migrations/20261024074120_centre_artisanal_achat_ced.sql'
+M2='migrations/20261024074129_football_quota_jour_commun.sql'
 SOURCES=[
  ('migrations/20261020222029_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires'),
  ('baseline/domaines/socle/20_fonctions.sql','inventaire_place_restante'),
@@ -83,6 +83,15 @@ def main():
   q.execute("SELECT football_entrainement_consommer('endurance')");check(q.fetchone()[0]['nb']==2)
   q.execute("SELECT football_entrainement_consommer('technique')");check(q.fetchone()[0]['raison']=='limite_quotidienne_atteinte')
   q.execute("SELECT pa FROM personnages_donnees WHERE name='Fixture'");check(q.fetchone()[0]==26)
+  # Trois tentatives simultanees avec une seule place restante : une seule consomme 2 PA.
+  q.execute("DELETE FROM entrainements_football WHERE personnage='Fixture';INSERT INTO entrainements_football VALUES('deja','Fixture',1,'defense',now())")
+  def sport(_):
+   with psycopg2.connect(uri) as cc:
+    qq=cc.cursor();qq.execute("SET hg.uid='00000000-0000-4000-8000-000000000001';SELECT football_entrainement_consommer('technique')")
+    return qq.fetchone()[0]
+  with ThreadPoolExecutor(max_workers=3) as pool:rs=list(pool.map(sport,range(3)))
+  check(sum(x['ok'] for x in rs)==1)
+  q.execute("SELECT pa FROM personnages_donnees WHERE name='Fixture'");check(q.fetchone()[0]==24)
   # Fenetres parisiennes exactes, y compris jour court/long aux changements d'heure.
   for date in ['2026-03-29','2026-10-25']:
    q.execute("DELETE FROM entrainements_football WHERE personnage='DST'")
