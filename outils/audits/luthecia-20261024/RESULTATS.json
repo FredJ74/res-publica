@@ -140,7 +140,7 @@
     }
   ],
   "lots_assertions": 18,
-  "occupation_assertions": 37,
+  "occupation_assertions": 40,
   "negociation_assertions": 59,
   "calendriers": {
     "reussis": 11,
@@ -184,7 +184,7 @@
   "main_integre": "eb92a6ebeed2eb3e591d8f7f7b5776d3a69141db",
   "ced_football_assertions": 45,
   "scopes": {
-    "workflow_postgresql": "30 bancs apres integration de main/PR136, tous verts ; banc occupation enrichi ensuite (37 assertions vertes)",
+    "workflow_postgresql": "30 bancs apres integration de main/PR136, tous verts ; banc occupation enrichi ensuite (40 assertions vertes)",
     "jsc": "adaptateur Node local, pas JavaScriptCore natif",
     "baseline": "Aucun changement propre a cette branche dans baseline/ par rapport au main integre",
     "reference_globaux": "Le journal MAIN-REFERENCE correspond au main e781074, avant PR136 et corrections de Workflow."
@@ -193,5 +193,6 @@
     "stabilisation": "codex/stabilisation-luthecia-135-20261024",
     "parcelles": "codex/parcelles-gabarit-135-20261024",
     "parcelles_sha": "aa240adb52bd75a63cd1e1b4a6d857968406e48b"
-  }
+  },
+  "code_dernieres_protections": "b0237c9b4c9dab8eaa545a9d28deb941a3d63d07"
 }

@@ -1,0 +1,659 @@
+CONTROLE D'ENSEMBLE DU BASELINE -- 12 controles
+========================================================================
+  le processus tient                     verifier-workflow.py           OK 
+      | GARDE-FOU DU WORKFLOW SUPABASE
+      | 
+      | 1. AUCUN .sql A LA RACINE
+      |   --------------------------------------------------------------------
+      |   fichiers .sql a la racine du depot                    0 / 0        OK 
+      |   c'est la dispersion de 184 fichiers ici qui avait rendu l'histoire illisible
+      | 
+      | 2. ARCHIVE DES SQL DE LA RACINE
+      |   --------------------------------------------------------------------
+      |   migrations historiques archivees                    184 / 184      OK 
+      |   fichiers non appliques archives                       3 / 3        OK 
+      |   archives au nom inattendu                             0 / 0        OK 
+      | 
+      | 3. MIGRATIONS FUTURES : NOMMAGE
+      |   --------------------------------------------------------------------
+      |   migrations au nom non conforme                        0 / 0        OK 
+      |   horodatages en double                                 0 / 0        OK 
+      |   65 migration(s) en attente d'application ou deja appliquee(s)
+      | 
+      | 4. MIGRATIONS POSTERIEURES AU POINT DE COUPE
+      |   --------------------------------------------------------------------
+      |   point de coupe du baseline : 2026-10-13T17:41:36.000139
+      |   migrations anterieures au point de coupe              0 / 0        OK 
+      | 
+      | 5. SQL DANS SES TROIS MAISONS
+      |   --------------------------------------------------------------------
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-secretaires-referents.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-carrieres-et-audience.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-construction-moteur-94.sql
+      |   outils/bancs/     1 blocs DO, 3 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-arnie.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-1.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-avocat-et-temoins.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunes-officielles.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-equipements-collectifs.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-nominations-municipales.sql
+      |   outils/bancs/     6 blocs DO, 6 RAISE, 0 ordre(s) nu(s)  banc-budget-cascade.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-assemblee-regards.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-palais-contexte-et-eligibilite.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-suspension-partis.sql
+      |   outils/bancs/     1 blocs DO, 4 RAISE, 17 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-greffe-et-universite.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-quatrieme-passe.sql
+      |   outils/bancs/     3 blocs DO, 13 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  contre-epreuves-subventions.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-election.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-justice-peine-serveur.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-INTERCEPTION-46.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-renouvellement-legislature.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-quete-accueil-contexte.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-etat-terrain-2.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-universite-socle.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-construction-permis.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-etat-terrain-1.sql
+      |   outils/bancs/     1 blocs DO, 4 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-caserne-autorites.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-reservation-republica-prevol.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-dependances-coherence-lecture.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-2.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 1 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-fixture-terrain-chantier-acte-avant-commandes.sql
+      |   outils/bancs/     1 blocs DO, 3 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-2.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-fontaine-110.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-administration-tribunal.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunal-pv-et-delai.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-garde-republicaine.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-defense-simplifiee.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunal-appel-indemnite-signalement.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-credit-tournee.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-seance-parole-discipline.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-succession-sans-vacance.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-3.sql
+      |   outils/bancs/     1 blocs DO, 3 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-conference-de-presse.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 1 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-fixture-terrain-permis-acte-avant-depot.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  controle-coherence-rues-sorties.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-3.sql
+      |   outils/bancs/     1 blocs DO, 13 RAISE, 25 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-parcours-judiciaires.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-catalogue-boire.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-parquet-serveur.sql
+      |   outils/bancs/     1 blocs DO, 4 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-1.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-restaurant-luthecia-prevol.sql
+      |   outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-reception-contrat-lecture.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-seance-protestation-suspension.sql
+      |   outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-memoire.sql
+      |   fichiers .sql hors des trois maisons                  0 / 0        OK 
+      |   baseline/       237 fichiers  l'etat canonique, genere -- jamais edite a la main
+      |   historique/     905 fichiers  l'archive documentaire, non rejouable
+      |   migrations/      65 fichiers  les evolutions futures, une par fichier horodate
+      | 
+      | 6. LE PROCESSUS EST ECRIT
+      |   --------------------------------------------------------------------
+      |   WORKFLOW-SUPABASE.md present                          1 / 1        OK 
+      |   longueur du processus, en lignes                    575 / 575      OK 
+      |   README renvoyant au processus                         4 / 4        OK 
+      | 
+      | 7. UN SEUL OUTIL PAR RESPONSABILITE
+      |   --------------------------------------------------------------------
+      |   controle global                verifier-baseline.py       OK 
+      |   reconstruction                 reconstruire.py            OK 
+      |   rendu des seeds                seeds.py                   OK 
+      |   rendu du schema                rendre.py                  OK 
+      |   requetes d'introspection       requetes.py                OK 
+      | 
+      | 8. AUCUN SCRIPT TECHNIQUE A LA RACINE
+      |   --------------------------------------------------------------------
+      |   fichiers .py a la racine du depot                     0 / 0        OK 
+      |   correctifs ponctuels archives                       342 / 342      OK 
+      |   generateurs dans outils/generateurs                  13 / 13       OK 
+      |   generateurs restes dans .scratch                      0 / 0        OK 
+      |   fichiers citant encore l'ancien chemin                0 / 0        OK 
+      | 
+      | 9. LE DEPLOIEMENT RESTE DEPLOYABLE
+      |   --------------------------------------------------------------------
+      |   taches cron declarees                         2 / 2 au plus
+      |   planifications a plus d'une invocation par jour        0 / 0        OK 
+      | 
+      | ========================================================================
+      |   1. AUCUN .sql A LA RACINE                            CONFORME
+      |   2. ARCHIVE DES SQL DE LA RACINE                      CONFORME
+      |   3. MIGRATIONS FUTURES : NOMMAGE                      CONFORME
+      |   4. MIGRATIONS POSTERIEURES AU POINT DE COUPE         CONFORME
+      |   5. SQL DANS SES TROIS MAISONS                        CONFORME
+      |   6. LE PROCESSUS EST ECRIT                            CONFORME
+      |   7. UN SEUL OUTIL PAR RESPONSABILITE                  CONFORME
+      |   8. AUCUN SCRIPT TECHNIQUE A LA RACINE                CONFORME
+      |   9. LE DEPLOIEMENT RESTE DEPLOYABLE                   CONFORME
+      | 
+      | CONFORME : le processus tient. Aucun .sql a la racine, l'archive est
+      |            complete, les migrations sont nommees et posterieures au
+      |            point de coupe, et chaque responsabilite a un seul outil.
+
+  la classification est entiere          verifier-classification.py     ECHEC
+      | 1. nombre de tables classees        : 324 / 319  NON
+      | 2. tables classees deux fois        : 0  OK
+      | 3. empreinte de la liste des tables : 979d9200fca31f59a3db04f6f1474c56  NON
+      | 4. tables D sans justification de separation : 0 / 21  OK
+      | 5. tables en seed sans justification : 0 / 99  OK
+      | 6. tables d'etat vivant en seed complet : 0  OK
+      | 7. categories/strategies hors vocabulaire : 0  OK
+      | 
+      | Repartition  A=66  B=22  C=215  D=21
+      | Tables entrant dans le seed : 99  (1954 lignes actuelles cumulees)
+      | 
+      | ECHEC : 2 anomalie(s)
+      |   - nombre de tables classees incorrect
+      |   - la liste des tables classees ne correspond pas au catalogue releve
+
+  le baseline est fidele au catalogue    verifier-baseline.py           ECHEC
+      | BASELINE COMPLET -- CONTROLE DE COMPLETUDE ET DE FIDELITE
+      | base relevee le 2026-10-13T17:41:36.000139   |   17 domaines rendus
+      | 
+      | 1. STRUCTURE                                    baseline / base
+      |   ------------------------------------------------------------------------
+      |   tables                                              319 / 314          NON
+      |   colonnes                                           2457 / 2437         NON
+      |   contraintes                                         623 / 613          NON
+      |   index autonomes                                     187 / 187          OK 
+      |   index portes par une contrainte                     334 / 328          NON
+      |   sequences (possedees + autonomes)                    38 / 38           OK 
+      |     dont autonomes, creees explicitement                3 / 3            OK 
+      |   
+      |   reconciliation catalogue = baseline + ecarte deliberement :
+      |     tables                     314 rendus +   5 ecartes =   319 / 319   OK 
+      |     contraintes                613 rendus +   2 ecartes =   615 / 615   OK 
+      |     commentaires               367 rendus +   3 ecartes =   370 / 370   OK 
+      |     colonnes                  2437 rendues +  31 ecartees + 73 de vues =  2541 / 2541  OK 
+      |   
+      |   empreinte des colonnes                     44c42e3d9b0c66c790db2822ad790ee1 NON
+      |                                              557fdb28dafbce0653c743ef42f433b5  (base)
+      |   empreinte des contraintes                  927553ec4a9d1bb468a848b039e7f45e NON
+      |                                              919703d923080aa8aa3d82b7989bddbd  (base)
+      |   empreinte des index autonomes              5f7dc3739818cac782693d8ee8ad6551 OK 
+      | 
+      | 2. LOGIQUE SERVEUR                              baseline / base
+      |   ------------------------------------------------------------------------
+      |   fonctions                                           913 / 906          NON
+      |   vues                                                  2 / 2            OK 
+      |   declencheurs                                         53 / 51           NON
+      |   fonctions presentes dans 2 domaines                   0 / 0            OK 
+      |   
+      |   empreinte des fonctions                    cbfe4f7ced878056ffb665088d51f415 NON
+      |                                              3552d36194c2e81d46ea0151d64d22ec  (base)
+      |   empreinte des vues                         be98d3a7391c4a235e78282204fd29d4 OK 
+      |   empreinte des declencheurs                 b1e4130c9d106a03637a934744ddc884 NON
+      |                                              0a736eb256de01a3bb8bb54b861c0ae5  (base)
+      |   
+      |   definitions relues depuis les fichiers              913 / 906          NON
+      |   corps de table relus depuis les fichiers            319 / 314          NON
+      | 
+      | 3. SECURITE                                     baseline / base
+      |   ------------------------------------------------------------------------
+      |   fonctions SECURITY DEFINER                          782 / 777          NON
+      |   fonctions SECURITY INVOKER                          124 / 129          NON
+      |   tables avec RLS active                              319 / 314          NON
+      |   policies                                            281 / 281          OK 
+      |   lignes de droits                                   3597 / 3574         NON
+      |   droits au niveau colonne                             19 / 19           OK 
+      |   privileges par defaut inventories                     7 / 7            OK 
+      |   empreinte des privileges par defaut        859cd268d66ac0f43411ad776e6af7cc OK 
+      |   defaut des fonctions ferme aux roles clients            1 / 1            OK 
+      |   tables RLS active sans policy                       165 / 160          NON
+      |   tables sans aucune RLS                                0 / 0            OK 
+      |   
+      |   empreinte des policies                     4ca6b1b4338922470f49093220197b96 OK 
+      |   empreinte des policies avec roles          e6badaba663bd3ebfaeba51519856b83 OK 
+      |   empreinte des droits                       17169eb54457497f6a73a62f80a851b7 NON
+      |                                              ad8cdeb7b7ceee0ed9a1bc1285d80000  (base)
+      |   empreinte des commentaires                 a1bf742eb260b6f81dfa1a93ea971f7d NON
+      |                                              e762ba59ee15a8c405a353ec1042b228  (base)
+      | 
+      | 4. SEEDS -- application de la classification 2C
+      |   ------------------------------------------------------------------------
+      |   hors_baseline                5 tables  | 0 recreee(s) a tort OK 
+      |   reconstruction_explicite    17 tables  | 0 structure(s) manquante(s) OK 
+      |   seed_complet                76 tables  | 0 structure(s) manquante(s) OK 
+      |   seed_filtre                  6 tables  | 0 structure(s) manquante(s) OK 
+      |   structure_seule            220 tables  | 0 structure(s) manquante(s) OK 
+      |   
+      |   tables de la surface de seed couvertes               99 / 99           OK 
+      |   seeds sur une table hors surface                      0 / 0            OK 
+      |   fichiers TODO contenant des donnees                   0 / 0            OK 
+      |   tables dont le nombre de lignes diverge               0 / 0            OK 
+      | 
+      |   90_socle             47 tables   506 lignes d'INSERT
+      |   91_empire            21 tables   182 lignes d'INSERT
+      |   92_mixte             14 tables   409 lignes d'INSERT
+      |   95_a-regenerer        8 tables     0 lignes d'INSERT
+      |   99_a-construire       9 tables     0 lignes d'INSERT
+      |   
+      |   fichiers de seed conformes a leur empreinte           99 / 99           OK 
+      | 
+      | INTEGRITE DES FICHIERS
+      |   ------------------------------------------------------------------------
+      |   fichiers conformes a leur empreinte                 138 / 138          OK 
+      |   fichiers non declares au manifeste                    0 / 0            OK 
+      | 
+      | ============================================================================
+      |   1. STRUCTURE                                         ECHEC (6)
+      |   2. LOGIQUE SERVEUR                                   ECHEC (6)
+      |   3. SECURITE                                          ECHEC (7)
+      |   4. SEEDS -- application de la classification 2C      CONFORME
+      |   INTEGRITE DES FICHIERS                               CONFORME
+      | 
+      | ECHEC : 19 anomalie(s)
+      |   - [1] tables : baseline 319, base 314
+      |   - [1] colonnes : baseline 2457, base 2437
+      |   - [1] contraintes : baseline 623, base 613
+      |   - [1] index portes par une contrainte : baseline 334, base 328
+      |   - [1] empreinte empreinte des colonnes non conforme
+      |   - [1] empreinte empreinte des contraintes non conforme
+      |   - [2] fonctions : baseline 913, base 906
+      |   - [2] declencheurs : baseline 53, base 51
+      |   - [2] empreinte empreinte des fonctions non conforme
+      |   - [2] empreinte empreinte des declencheurs non conforme
+      |   - [2] definitions relues depuis les fichiers : baseline 913, base 906
+      |   - [2] corps de table relus depuis les fichiers : baseline 319, base 314
+      |   - [3] fonctions SECURITY DEFINER : baseline 782, base 777
+      |   - [3] fonctions SECURITY INVOKER : baseline 124, base 129
+      |   - [3] tables avec RLS active : baseline 319, base 314
+      |   - [3] lignes de droits : baseline 3597, base 3574
+      |   - [3] tables RLS active sans policy : baseline 165, base 160
+      |   - [3] empreinte empreinte des droits non conforme
+      |   - [3] empreinte empreinte des commentaires non conforme
+
+  l'autorite tient                       verifier-autorite.py           ECHEC
+      | CONTROLE DE L'ARCHITECTURE D'AUTORITE
+      |   75 fichiers de navigateur, 61 tables mutees, 3 acces PostgREST bruts
+      |   321 relations et 913 fonctions portant un droit, 281 policies, 909 definitions
+      |   declaration : 73 tables, 0 invariants en attente d'application
+      | 
+      | FAMILLE 1 -- LE CODE DU NAVIGATEUR
+      |   ----------------------------------------------------------------------
+      |    1. aucune mutation cliente hors surface declaree        0 ecarts OK 
+      |    2. aucun acces PostgREST brut non recense               0 ecarts OK 
+      |    3. identite passee a une RPC toujours verifiee au serveur 0 ecarts OK 
+      | 
+      | FAMILLE 2 -- L'ETAT DE LA BASE, LU DANS LE BASELINE
+      |   ----------------------------------------------------------------------
+      |    4. aucun privilege de maintenance aux roles clients     0 ecarts OK 
+      |    5. anon n'ecrit nulle part, aucun setval pour un client 0 ecarts OK 
+      |    6. aucun droit d'ecriture hors surface declaree         0 ecarts OK 
+      |    7. aucune policy d'ecriture totalement permissive       0 ecarts OK 
+      |    8. aucune table du baseline sans RLS                    0 ecarts OK 
+      |    9. aucune fonction de declencheur appelable par un client 0 ecarts OK 
+      |   10. aucune fonction mutante client-appelable sans garde  0 ecarts OK 
+      |   11. aucune fonction mutante appelable par anon           0 ecarts OK 
+      | 
+      | FAMILLE 3 -- LES PORTES SERVEUR ET LES MIGRATIONS PREPAREES
+      |   ----------------------------------------------------------------------
+      |   12. les migrations en attente ne nomment rien d'inconnu  1 ecart ECHEC
+      |       - 20261023000000_fontaine_exclusivite_sur_place.sql : signature inconnue « acheter_produit_commerce_interne(text,text,text,text,integer) »
+      |   13. toute RPC appelee par le navigateur existe           35 ecarts ECHEC
+      |       - chantier_commande : aucune fonction de ce nom dans le baseline — plateau-construction-commandes.js:32 ; declaration SQL : migrations/20261022124056_chantier_commandes_et_reception.sql ; registre vivant et extraction a verifier
+      |       - chantier_commande_recu : aucune fonction de ce nom dans le baseline — plateau-construction-commandes.js:72 ; declaration SQL : migrations/20261022125121_chantier_recu_relecture.sql ; registre vivant et extraction a verifier
+      |       - consommer_sur_place_commerce : aucune fonction de ce nom dans le baseline — plateau-commerce-pj.js:2179 ; aucune declaration statique dans migrations/
+      |       - creer_placement_national_securise : aucune fonction de ce nom dans le baseline — supabase.js:5475 ; declaration SQL : migrations/20261022211000_placement_national_idempotent.sql ; registre vivant et extraction a verifier
+      |       - inventaire_reception_etat : aucune fonction de ce nom dans le baseline — supabase.js:3225 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier
+      |       - inventaire_reclamer_livraison : aucune fonction de ce nom dans le baseline — supabase.js:3233 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier
+      |       ... et 29 autre(s)
+      | 
+      | ========================================================================
+      | ECHEC : 2 invariant(s) en ecart sans migration declaree
+      |   - invariant 12 : les migrations en attente ne nomment rien d'inconnu (1 ecarts)
+      |   - invariant 13 : toute RPC appelee par le navigateur existe (35 ecarts)
+
+  les referentiels concordent            verifier-referentiels.py       ECHEC
+      | CONTROLE DES REFERENTIELS RECOPIES  (axe data.js / navigateur  ->  api/)
+      |   moteur : /System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc
+      |   6 referentiels declares, 0 divergence(s) connue(s)
+      | 
+      |   clubs_sportifs             canon : 12 entree(s)
+      |       api/_referentiels-generes.js                  12 entree(s)   0 ecart(s)  OK
+      |       api/_journal-collecte.js                      12 entree(s)   0 ecart(s)  OK
+      | 
+      |   empires                    canon : 4 entree(s)
+      |       api/_journal-collecte.js                       4 entree(s)   0 ecart(s)  OK
+      | 
+      |   greve_paliers              canon : 5 entree(s)
+      |       api/_referentiels-generes.js                   5 entree(s)   0 ecart(s)  OK
+      | 
+      |   postes_nommes              canon : 18 entree(s)
+      |       api/_referentiels-generes.js                  18 entree(s)   0 ecart(s)  OK
+      | 
+      |   recettes_militaires        canon : 8 entree(s)
+      |       api/_referentiels-generes.js                   8 entree(s)   0 ecart(s)  OK
+      | 
+      |   ressources_economie        canon : 18 entree(s)
+      |       api/_referentiels-generes.js                  18 entree(s)   0 ecart(s)  OK
+      |       api/_journal-collecte.js                      18 entree(s)   0 ecart(s)  OK
+      | 
+      | --------------------------------------------------------------------------
+      | SECOND AXE : data.js  ->  BASE, par empreinte
+      |   mesure de la base datee du 2026-10-08 (lecture seule, non rejouee ici)
+      |   infractions               39 lignes  a7463ab07be5b9ab  recalculee
+      |   ordres_couts           DERIVE DE data.js : 95599d69f71d5465 != 20e52d8f9bbe8e3f
+      |   ordres_couts             410 lignes  20e52d8f9bbe8e3f  DECLARATION PERIMEE (mesure historique)
+      |     base     ATTENDU (lot 4D) : le miroir ne dit plus ce que dit le jeu
+      |     posee    ATTENDU (lot 4D) : la sentinelle ne correspond pas au contenu
+      |   pa_bonus_differes         10 lignes  1c02ca809fdb9b8b  recalculee
+      |   postes_nommes_regles   DERIVE DE data.js : 694f117ace57b0b1 != 6c0c7aa0d29bf852
+      |   postes_nommes_regles      18 lignes  6c0c7aa0d29bf852  DECLARATION PERIMEE (mesure historique)
+      |     posee    ATTENDU (lot 4D) : la sentinelle ne correspond pas au contenu
+      |   ressources_economie       17 lignes  2c2a88b3833ca978  NON RECALCULABLE (aucun generateur)
+      |   villes                    12 lignes  d41051aa8bcafadd  recalculee
+      | 
+      |   generes mais surveilles par aucune table <miroir>_empreinte :
+      |     clubs_football         2c2f8d0fe578a8bb  (rien ne la confronte en base)
+      |     miroirs_chantiers      6f16826f81bad98a  (rien ne la confronte en base)
+      |     miroirs_entreprises    DERIVE : c68bb035d5fc6268 != e2b15dda50c9a640
+      |     offres_emploi_bne      2cf0edcba2fa05fc  (rien ne la confronte en base)
+      |     postes_electifs        2390eb52a42ae6a6  (rien ne la confronte en base)
+      | 
+      | --------------------------------------------------------------------------
+      | TROISIEME AXE : l'artefact serveur genere
+      |   24 constantes generees, importees par 3 module(s) de api/
+      |     _journal-collecte.js          1 constante(s)
+      |     conseiller-creation.js        4 constante(s)
+      |     cron-minuit.js               20 constante(s)
+      |   regeneration identique au fichier du disque  (empreinte ca2826514f403b41)
+      |   tous les noms importes sont exportes, aucun n'est redeclare localement
+      | 
+      | ==========================================================================
+      | ECHEC : 3 probleme(s) sur l'axe des empreintes
+      |   - empreintes/ordres_couts : le generateur rend 95599d69f71d5465, la declaration annonce 20e52d8f9bbe8e3f. data.js a bouge depuis la mesure : le catalogue vivant est a verifier, et la declaration a reprendre.
+      |   - empreintes/postes_nommes_regles : le generateur rend 694f117ace57b0b1, la declaration annonce 6c0c7aa0d29bf852. data.js a bouge depuis la mesure : le catalogue vivant est a verifier, et la declaration a reprendre.
+      |   - empreintes/miroirs_entreprises : le generateur rend c68bb035d5fc6268, la declaration annonce e2b15dda50c9a640
+
+  les faits publics atteignent le Journal verifier-faits-publics.py      OK 
+      | CONTROLE DU RACCORD REGISTRE DES FAITS PUBLICS -> COLLECTE DE PRESSE
+      | ========================================================================
+      |   actes declares publics au registre      : 13
+      |   types acceptes par la collecte          : 32
+      |   types judiciaires jetes en silence      : 0  OK
+      |   types `justice_` acceptes hors registre : 0  OK
+      | ========================================================================
+      | CONFORME : les 13 faits judiciaires publics ont tous leur ligne de collecte,
+      | et la collecte n'accepte aucun type judiciaire hors registre.
+
+  les fonctions concordent               verifier-fonctions.py          OK 
+      | CONCORDANCE DES FONCTIONS RECOPIEES -- chantier 7
+      | ========================================================================
+      | 
+      | EXHAUSTIVITE
+      |   --------------------------------------------------------------------
+      |   copies declarees                               55
+      |   copies ecartees, nommees                       21
+      |   copies trouvees dans le depot et non declarees  0
+      | 
+      | CHANTIERS
+      |   --------------------------------------------------------------------
+      |   seuilDeuxTiersServeur -> seuilDeuxTiers                  concorde (10 cas)
+      |   progressionAtteintDeuxTiersServeur -> progressionAtteintDeuxTiers concorde (96 cas)
+      |   chantierTermineServeur -> chantierTermine                concorde (96 cas)
+      |   numeroJourChantierServeur -> numeroJourChantier          concorde (96 cas)
+      |   capaciteHeuresJourServeur -> capaciteHeuresJourChantier  concorde (96 cas)
+      |   fractionTravailServeur -> (function (ch, h) { return fractionTravail(Math.max(0, Number(ch && ch.heuresFaites) || 0) + Math.max(0, Number(h) || 0), capaciteHeuresJourChantier(ch)); }) concorde (192 cas)
+      |   fractionMateriauxServeur -> fractionMateriaux            concorde (20 cas)
+      |   materiauxDuJourServeur -> materiauxDuJourConstruction    concorde (7 cas)
+      |   materiauxDuJourReamenagementServeur -> materiauxDuJourReamenagement concorde (96 cas)
+      |   besoinMateriauxJourServeur -> besoinMateriauxJourChantier concorde (192 cas)
+      |   reliquatNPCServeur -> reliquatNPC                        concorde (192 cas)
+      |   progressionMaxFinanceeServeur -> progressionMaxFinancee  concorde (72 cas)
+      |   planifierApprovisionnementServeur -> planifierApprovisionnement concorde (54 cas)
+      |   lotsLivrablesDepuisPlanServeur -> lotsLivrablesDepuisPlan concorde (4 cas)
+      |   appliquerVerrouPlanServeur -> (function (ch, j) { var m = appliquerVerrouPlan(ch, j); return (m !== ch && m && m.planVerrouille === true) ? true : false; }) concorde (96 cas)
+      | 
+      | ECONOMIE
+      |   --------------------------------------------------------------------
+      |   getPrixRessourceServeur -> getPrixRessource              concorde (109 cas)
+      |   getPrixRessource -> getPrixRessource                     divergence declaree tenue (1/109 cas)
+      |   palierGreveOrdinaireServeur -> palierGreveOrdinaire      concorde (10 cas)
+      |   niveauGreveGeneraleServeur -> palierGreveGenerale        homonyme, les deux symboles existent
+      |   chargerBudgetNationalServeur -> chargerBudgetNational    homonyme, les deux symboles existent
+      |   villesDeServeur -> villesDe                              homonyme, les deux symboles existent
+      | 
+      | ELECTIONS
+      |   --------------------------------------------------------------------
+      |   partiesHeureParis -> partiesHeureParis                   concorde (6 cas)
+      |   instantHeureParis -> instantHeureParis                   concorde (5 cas)
+      |   dateCalendairePlusJours -> dateCalendairePlusJours       concorde (24 cas)
+      |   lundiSemaineParis -> lundiSemaineParis                   concorde (6 cas)
+      |   datesScrutinSemaine -> datesScrutinSemaine               concorde (6 cas)
+      |   calendrierPremierTour -> calendrierPremierTour           concorde (6 cas)
+      |   calendrierTourSuivant -> calendrierTourSuivant           concorde (6 cas)
+      |   lundiMinuitParisApresSemaines -> lundiMinuitParisApresSemaines concorde (18 cas)
+      |   construireNouveauCycleElectoral -> construireNouveauCycleElectoral concorde (5 cas)
+      |   calculerScoresBaseCycle -> calculerScoresBaseCycle       concorde (16 cas)
+      |   resoudreScrutinSimple -> resoudreScrutinSimple           concorde (16 cas)
+      |   resoudreScrutinDepute -> resoudreScrutinDepute           concorde (16 cas)
+      |   departageCandidats -> departageCandidats                 concorde (5 cas)
+      |   appliquerEffetsTracts -> appliquerEffetsTracts           concorde (16 cas)
+      | 
+      | GOUVERNEMENT
+      |   --------------------------------------------------------------------
+      |   echeanceEffectiveServeur -> echeanceEffective            concorde (6 cas)
+      | 
+      | MILITAIRE
+      |   --------------------------------------------------------------------
+      |   paTravailMilitaireServeur -> paTravailMilitaire          concorde (10 cas)
+      |   coutRevientLotMilitaireServeur -> coutRevientLotMilitaire concorde (10 cas)
+      |   ressourcesMilitairesEligiblesServeur -> ressourcesMilitairesEligibles concorde (1 cas)
+      | 
+      | URBANISME
+      |   --------------------------------------------------------------------
+      |   permisEnInstructionServeur -> permisEnInstruction        concorde (11 cas)
+      |   dureeInstructionPermisServeur -> dureeInstructionPermis  concorde (11 cas)
+      |   joursInstructionFaitsServeur -> joursInstructionFaits    concorde (11 cas)
+      |   instructionAcheveeServeur -> instructionAchevee          concorde (11 cas)
+      |   verdictAccordTaciteServeur -> verdictAccordTacite        concorde (36 cas)
+      |   terrainSuspenduServeur -> terrainSuspenduAdministrativement concorde (36 cas)
+      |   construireDocumentUrbanismeServeur -> construireDocumentUrbanisme concorde (33 cas)
+      |   libelleAccordTaciteServeur -> libelleEvenementUrbanisme  divergence declaree tenue (3/4 cas)
+      |   texteAccordTaciteServeur -> texteDocumentUrbanisme       divergence declaree tenue (4/4 cas)
+      | 
+      | EPINGLEES PAR EMPREINTE DE TEXTE
+      |   --------------------------------------------------------------------
+      |   urbanisme/archiver                                       epinglee
+      |   elections/attacher-effets-tracts                         epinglee
+      |   successions/personnage-existe                            epinglee
+      |   successions/etape-suivante                               epinglee
+      |   indices/modifier-indice-ville                            epinglee
+      |   nocturne/desertions                                      epinglee
+      |   nocturne/expulsions-ambassadeurs                         epinglee
+      | 
+      | CONSTANTES PORTANT LE MEME NOM DES DEUX COTES
+      |   --------------------------------------------------------------------
+      |   FUSEAU_ELECTORAL                                         egales
+      |   CANDIDATURES_MIN_MS                                      egales
+      |   REPARTITION_PORT_DEFAUT                                  egales
+      | 
+      | ========================================================================
+      | LES FONCTIONS CONCORDENT.
+      | 55 copies declarees, dont 42 comparees sur 1882 cas executes des deux cotes.
+
+  le monde neuf est propre               verifier-monde-neuf.py         OK 
+      | CONTROLE DU MONDE NEUF
+      |   99 fichiers de seed, 1098 lignes de donnees examinees
+      |   6 motifs d'artefact, 12 vestiges recherches, 3 exceptions declarees
+      | 
+      | 1. ARTEFACTS DE BETA
+      |   ----------------------------------------------------------------------
+      |   occurrences non declarees : 0  OK 
+      | 
+      | 2. VESTIGES CANONISES
+      |   ----------------------------------------------------------------------
+      |   occurrences non declarees : 0  OK 
+      | 
+      | FAUX POSITIFS, DECLARES ET ADMIS : 1
+      |     . 91_empire/renseignement_couvertures.sql:22 — nom de couverture authored « Nabil Ben Azzouz » : le motif zz y est un faux positif, consigne au chantier 2E
+      | 
+      | ========================================================================
+      | CONFORME : aucune donnee de bêta et aucun vestige dans les seeds.
+      |            Le monde neuf ne herite ni des artefacts de la bêta, ni des
+      |            objets que l'audit a declares vestiges.
+
+  l'assemblage se tient                  assembler.py                   ECHEC
+      | ASSEMBLAGE STATIQUE DU BASELINE
+      |   17 domaines | 319 tables | 38 sequences | 909 fonctions distinctes | 2 vues
+      | 
+      | 1. cles etrangeres examinees            : 66
+      |    vers une table ecartee               : 0 OK 
+      |    vers une table introuvable           : 0 OK 
+      | 
+      | 2. declencheurs sans leur fonction      : 2 NON
+      | 
+      | 3. appels a une fonction absente        : 0 OK 
+      | 
+      | 4. defauts nextval sans leur sequence   : 0 OK 
+      | 
+      | 5. references a un artefact hors baseline
+      |    non declarees                        : 0 OK 
+      |    declarees dans DIFFERENCES-DELIBEREES : 1
+      |      . socle/20_fonctions.sql : reference a sauvegarde_beta_20260913 (schema de sauvegarde de la beta)
+      | 
+      | 6. corps de fonction citant une table ecartee : 0 OK 
+      | 
+      | 7. ordre des phases
+      |    table        (10) avant contrainte   (30) OK 
+      |    table        (10) avant index        (35) OK 
+      |    table        (10) avant vue          (40) OK 
+      |    fonction     (20) avant contrainte   (30) OK 
+      |    fonction     (20) avant index        (35) OK 
+      |    fonction     (20) avant vue          (40) OK 
+      |    fonction     (20) avant trigger      (50) OK 
+      |    fonction     (20) avant policy       (60) OK 
+      |    table        (10) avant policy       (60) OK 
+      |    sequence     (10) avant table        (10) OK 
+      | 
+      | 8. dependances vers un autre schema (declarees, non recreees) : 2
+      |    auth.uid                           utilise par personnage-et-presence
+      |    auth.users                         utilise par personnage-et-presence
+      | 
+      | 9. assemblage des seeds
+      |    tables peuplees par un seed         : 82
+      |    tables en attente (TODO, sans donnee) : 17
+      |    seeds dont une cle etrangere vise une table non peuplee : 1 A SIGNALER
+      |    tables a cle etrangere sur elles-memes : 2
+      | 
+      | ============================================================================
+      | A SIGNALER (non bloquant pour l'assemblage) : 2
+      |   . socle/20_fonctions.sql : reference a sauvegarde_beta_20260913 (schema de sauvegarde de la beta)
+      |   . seed de journaux : cle etrangere vers personnages_donnees, qui n'est pas peuplee. L'INSERT ne passera que si la colonne est nulle sur toutes les lignes seedees.
+      | 
+      | ECHEC : 2 anomalie(s) d'assemblage
+      |   - immobilier-et-territoire : declencheur trg_fermeture_date_universelle appelle fermeture_definir_date_universelle, absente du baseline
+      |   - immobilier-et-territoire : declencheur permis_depot_archive_versionnee appelle permis_depot_archive_proteger, absente du baseline
+      | 
+      | Aucun objet n'a ete supprime pour faire passer ce test.
+
+  la reconstruction passe                reconstruire.py                ECHEC
+      | RECONSTRUCTION DU BASELINE -- chantier 2F
+      |   analyseur : pglast v8.6, grammaire de PostgreSQL 18.6
+      |   production : PostgreSQL 17.6 -- meme version majeure
+      | 
+      | 1. ASSEMBLAGE
+      |   ----------------------------------------------------------------------
+      |   220 fichiers assembles, 3170415 octets, 17 domaines
+      |   ordre : phases 10 > 20 > 30 > 35 > 40 > 50 > 60 > 70 > 80 > 85, puis les seeds 90_socle > 91_empire > 92_mixte
+      | 
+      | 2. GRAMMAIRE REELLE DE POSTGRESQL
+      |   ----------------------------------------------------------------------
+      |   ordres analyses                      : 7826
+      |   refuses par l'analyseur              : 0  OK 
+      | 
+      | 3. SIMULATION DU CATALOGUE, DANS L'ORDRE D'APPLICATION
+      |   ----------------------------------------------------------------------
+      |   dependances manquantes a leur rang   : 2  NON
+      |     - immobilier-et-territoire/50_triggers.sql (ordre 3) : CreateTrigStmt : fonction de declencheur fermeture_definir_date_universelle absente
+      |     - immobilier-et-territoire/50_triggers.sql (ordre 4) : CreateTrigStmt : fonction de declencheur permis_depot_archive_proteger absente
+      | 
+      |   dependances externes rencontrees : 4
+      |     auth.uid               utilisee par 2 fichier(s)
+      |     auth.users             utilisee par 1 fichier(s)
+      |     pg_catalog.extract     utilisee par 1 fichier(s)
+      |     pg_catalog.timezone    utilisee par 2 fichier(s)
+      | 
+      | 4. LE MONDE OBTENU
+      |   ----------------------------------------------------------------------
+      |   tables creees                         319 / 314    NON  
+      |   vues creees                             2 / 2      OK   
+      |   signatures de fonction creees         913 / 906    NON  
+      |   noms de fonction distincts            909 / 902    NON  4 fonctions sont surchargees : moins de noms que de signatures
+      |   contraintes posees                    623 / 613    NON  
+      |   index autonomes crees                 187 / 187    OK   
+      |   declencheurs crees                     53 / 51     NON  
+      |   policies creees                       281 / 281    OK   
+      |   sequences disponibles                  38 / 38     OK   
+      |   indices de ville seedes                 3 / 3      OK   les 3 villes de Republia, 5 indices chacune
+      |   titulaires PNJ seedes                  18 / 18     OK   18 titulaires : 3 juges municipaux distincts, le Procureur national, et les deux postes pourvus par la passe de minuit du 12 octobre
+      |   entrepots seedes                        3 / 3      OK   les 3 entrepots logistiques, 17 matieres chacun -- leur tresorerie a quitte le blob le 8 octobre 2026 pour une vraie caisse, seedee avec les autres
+      |   PNJ de socle seedes                     0 / 0      OK   un monde neuf n'herite d'aucun PNJ : ils naissent des mecanismes
+      |   soldats seedes                          0 / 0      OK   aucun soldat au premier jour
+      |   possessions de PNJ seedees              0 / 0      OK   aucune possession heritee
+      |   compagnies militaires seedees           0 / 0      OK   0 compagnie et 0 section au premier jour -- arbitrage du 5 octobre 2026
+      |   organisations seedees                   0 / 0      OK   les loges attendent le mecanisme de rattachement du chef
+      |   lignes de rp_transitions                0 / 0      OK   table volontairement vide : rp_transition_active() rend FALSE sur cle absente
+      |   caisses de batiment seedees            44 / 44     OK   les 44 dotations financieres arbitrees, ecrites depuis le tableau
+      |   lignes de repartition budgetaire seedees     28 / 28     OK   10 nationales (9/100 x 9 + Assemblee 19/100), Caserne 65/100, Douanes 35/100, QHS 0/100, 3 tribunaux a 1/3, 3 x 3 municipales a 40/40/20, et 3 subventions a 0/100
+      |   versements budgetaires seedes           0 / 0      OK   journal des versements reels : un monde neuf nait sans historique, sinon le premier minuit croirait avoir deja verse
+      |   compteur de recettes municipales seede      0 / 0      OK   mesure du jour, jamais une tresorerie : un monde neuf nait sans recette percue
+      | 
+      |   1097 lignes seedees au total, dans 82 tables
+      | 
+      | ==========================================================================
+      | ECHEC : 0 refus de grammaire, 2 dependance(s) manquante(s), 5 attente(s) du monde non tenue(s)
+
+  non-regression du pilote 2B            verifier.py                    OK 
+      | STRUCTURE                            rendu / base
+      |   tables                                 10 / 10      OK 
+      |   colonnes                               84 / 84      OK 
+      |   contraintes                            11 / 11      OK 
+      |   index autonomes                         1 / 1       OK 
+      |   fonctions                              16 / 16      OK 
+      |   triggers                                5 / 5       OK 
+      |   policies                               24 / 24      OK 
+      |   tables avec RLS active                 10 / 10      OK 
+      |   lignes de droits                       78 / 78      OK 
+      |   droits au niveau colonne                0 / 0       OK 
+      | 
+      | SECURITE
+      |   fonctions SECURITY DEFINER             16 / 16      OK 
+      |   fonctions SECURITY INVOKER              0 / 0       OK 
+      |   tables RLS active sans policy           2 / 2       OK 
+      | 
+      | FIDELITE DES DEFINITIONS
+      |   empreinte globale des fonctions    8fb07ae0943888902f4cc39a3c0b2f4c  OK 
+      |   definitions de fonctions conformes     16 / 16     OK 
+      | 
+      | INTEGRITE DES FICHIERS
+      |   10_tables.sql            df63a8ee1cf6eba96116250c1f3df90f OK 
+      |   20_fonctions.sql         72f497d5fb029bb62565e11360bb7529 OK 
+      |   30_contraintes.sql       ffb3cb7d3394aec0ce27100db5a00323 OK 
+      |   35_index.sql             b559c9228e86ca7adf8f1da94fa01f5a OK 
+      |   50_triggers.sql          c5cf681c1026e8216ef862b99fa3f01b OK 
+      |   60_rls-policies.sql      7b2500087e51a183ef6bd439f4474a9b OK 
+      |   70_droits.sql            e2373296b26179a6d73ebb63b32af663 OK 
+      |   80_commentaires.sql      0204fa2a12a22705ee75d1a4c021a4ea OK 
+      | 
+      | CONFORME : le domaine communication est fidele au catalogue.
+
+  non-regression de l'archive 2D         verifier-archive-registre.py   OK 
+      | Fichiers .sql trouves      : 539 (attendu 539)
+      | Versions distinctes        : 539
+      | Doublons de version        : 0
+      | Empreinte globale          : 9e74c0eb5adbddc8b61de2b1532cbef0 (attendu 9e74c0eb5adbddc8b61de2b1532cbef0)
+      | Empreinte des noms         : b764e9b6141d4e1a17a3d4b016cf3c56 (attendu b764e9b6141d4e1a17a3d4b016cf3c56)
+      | Repartition par categorie  : DDL=393, DML=32, MIXTE=114, AUTRE=0
+      | 
+      | CONFORME : les 539 entrees archivees correspondent exactement au registre.
+
+========================================================================
+ECHEC : 6 controle(s) sur 12
+  - la classification est entiere (verifier-classification.py)
+  - le baseline est fidele au catalogue (verifier-baseline.py)
+  - l'autorite tient (verifier-autorite.py)
+  - les referentiels concordent (verifier-referentiels.py)
+  - l'assemblage se tient (assembler.py)
+  - la reconstruction passe (reconstruire.py)
+
+Le detail de chaque echec est au-dessus. Rien n'a ete corrige :
+ces outils rapportent, ils ne reparent pas.

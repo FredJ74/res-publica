@@ -4,6 +4,9 @@ OK occupation taux historique calcule depuis ressources et groupe canoniques
 OK occupation echec reel
 OK occupation PA et consequences judiciaires reunis
 OK occupation reponse perdue aucun nouveau jet ni sanction
+OK occupation UUID ne peut changer le taux
+OK occupation UUID ne peut changer l action
+OK occupation UUID ne peut changer le prix
 OK occupation succes persiste et crime ancien conserve
 OK occupation cadavre absent aucun debit
 OK occupation ancien ordre cadavre ne touche pas les squatteurs
@@ -37,5 +40,5 @@ OK occupation excommunication et affaiblissement existants
 OK occupation meilleur palier par organisation et cumul existant
 OK occupation refus de corruption : cout historique, DIS -15 et aucun depart
 OK occupation sauvegarde CAS anterieure ne restaure pas les PA de l appel legal
-{"occupation_actions": true, "assertions": 37, "production": false}
+{"occupation_actions": true, "assertions": 40, "production": false}
 {"ok": true, "assertions": 59, "production": false}

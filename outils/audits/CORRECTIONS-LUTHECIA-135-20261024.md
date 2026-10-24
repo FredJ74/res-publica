@@ -57,7 +57,7 @@ Aucun accès Supabase exposé dans cette session. Les GET vers Vercel sont refus
 ### Derniers résultats
 
 - 107/107 bancs client après PR136 ; 91/91 contre-épreuves.
-- 30/30 bancs PostgreSQL du workflow après intégration de PR136. Le banc d'occupation a ensuite été enrichi jusqu'à 37 assertions réussies, dont la sauvegarde CAS ; 59 assertions de négociation conservées et 18 assertions lots.
+- 30/30 bancs PostgreSQL du workflow après intégration de PR136. Le banc d'occupation a ensuite été enrichi jusqu'à 40 assertions réussies, dont la sauvegarde CAS et les UUID réutilisés avec des paramètres différents ; 59 assertions de négociation conservées et 18 assertions lots.
 - Ced/football : 45 assertions natives ; calendriers Node : 11/11 ; pilote E2E : 69/69 sur fixtures, aucune session réelle.
 - Globaux : 6/12. Le main e781074 de référence était à 5/12. Les contrôles rouges ne sont pas désactivés.
 - Révision des sauvegardes : commit b0237c9. Branche indépendante des parcelles : aa240ad (versionnement du chargement data.js compris).
