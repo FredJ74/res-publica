@@ -5,7 +5,23 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-Aucun chantier repris par le relais pour l'instant.
+**Ambassades (Claude)** — **Codex : ne pas toucher aux ambassades** tant que
+ce chantier est ouvert.
+- Contexte : objectif actuel = terminer Luthécia. Les ambassades ne seront
+  raccordées aux autres empires que lorsqu'ils seront codés ; les ordres
+  existent mais restent en attente jusque-là (arbitrage Fred, 24/10).
+- Audit : `AUDIT_AMBASSADES.md`, PR #141 (brouillon, documentation seule).
+- En cours : branche `claude/ambassadeurs-pnj-20261024` — trois ambassadeurs
+  PNJ reçoivent **sur audience seulement** depuis l'accueil (bureaux fermés) :
+  Valery Antonov (Sovarka, la rigidité), Guillermo Vasquez (El Estado, la
+  corruption), Mohamed Al-Mansoori (Al-Khalija, le snobisme). Profils dans
+  `api/_pnj-personnalites.js`, ordre dans `plateau-politique.js`
+  (`doDemanderAudienceAmbassadeur`). Fait, à tester par Fred.
+- Reste à proposer à Fred : griser « Bientôt disponible » les autres ordres
+  des ambassades (ministre AE : ouvrir/nommer/démettre/expulser ; accueil :
+  asile, réservation de salle).
+- Bancs : 85/102 en local, les 17 échecs sont identiques sur `main`
+  (bancs navigateur, environnement).
 
 Travaux déjà ouverts avant la mise en place du relais (pull requests
 existantes, à reprendre si Fred le demande) :

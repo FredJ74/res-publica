@@ -9385,16 +9385,49 @@ async function doFinancerOeuvreCulturelle(pa, cost) {
 }
 
 // Ordres de l'accueil, ouverts a tous (pas reserves a l'ambassadeur)
-async function doDemanderAudienceAmbassadeur(pa, cost) {
+//
+// AUDIENCE AUPRES DES TROIS AMBASSADEURS PNJ (24 octobre 2026, arbitrage GD de Fred).
+// Avant : un PNJ generique « L'Ambassadeur », le meme pour les trois pays, et SANS profil de
+// dialogue -- depuis le 13 octobre le serveur le refusait, et le joueur payait 1 PA pour une
+// fenetre muette. Desormais le joueur choisit l'ambassade, et c'est l'ambassadeur PNJ de ce pays
+// qui le recoit (profils dans api/_pnj-personnalites.js). Les bureaux restent FERMES : on ne
+// rencontre l'ambassadeur que sur audience, jamais en entrant chez lui. Le joueur ambassadeur
+// (ambassades_ouvertes) sera raccorde avec les autres empires.
+const AMBASSADEURS_PNJ = {
+  khalija: { name: 'Mohamed Al-Mansoori (PNJ)', role: 'Ambassadeur d\'Al-Khalija' },
+  soviet:  { name: 'Valery Antonov (PNJ)',      role: 'Ambassadeur de Sovarka' },
+  narco:   { name: 'Guillermo Vasquez (PNJ)',   role: 'Ambassadeur d\'El Estado' }
+};
+
+function doDemanderAudienceAmbassadeur(pa, cost) {
+  document.getElementById('postes-modal-title').textContent = 'Demander audience';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Auprès de quelle ambassade sollicitez-vous une audience ?</div>';
+  Object.entries(AMBASSADEURS_PNJ).forEach(([empireId, amb]) => {
+    const pays = COUNTRIES[empireId]?.n || empireId;
+    html += '<button onclick="confirmerAudienceAmbassadeur(&quot;' + empireId + '&quot;,' + (pa || 0) + ',' + (cost || 0) + ')" '
+      + 'style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#f0ead6;cursor:pointer;font-family:Crimson Pro,serif;font-size:.88rem">'
+      + pays + ' — <em>' + amb.name.replace(' (PNJ)', '') + '</em></button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerAudienceAmbassadeur(empireId, pa, cost) {
+  const amb = AMBASSADEURS_PNJ[empireId];
+  if (!amb) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
+  const nomCourt = amb.name.replace(' (PNJ)', '');
   const roll = Math.random() * 100;
   if (roll < 70) {
-    const pnj = { name: 'L\'Ambassadeur', role: 'PNJ - Ambassadeur', rel: 'neutral', job: 'ambassadeur' };
+    const pnj = { name: amb.name, role: amb.role, rel: 'neutral', job: 'ambassadeur' };
     if (typeof openPnjModal === 'function') openPnjModal(typeof encodePnjSafe === 'function' ? encodePnjSafe(pnj) : pnj);
-    addJournalEntry('Vous êtes reçu(e) par l\'ambassadeur.', 'event-info');
+    addJournalEntry('Vous êtes reçu(e) en audience par ' + nomCourt + ', ' + amb.role.toLowerCase() + '.', 'event-info');
   } else {
-    showToast('Indisponible', "L'ambassadeur ne peut pas vous recevoir pour le moment.", false);
+    showToast('Audience refusée', nomCourt + ' ne peut pas vous recevoir pour le moment.', false);
   }
 }
 
