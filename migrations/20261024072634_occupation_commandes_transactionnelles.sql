@@ -89,6 +89,8 @@ BEGIN
   UPDATE public.personnages_donnees SET resources=coalesce(resources,'{}')||jsonb_build_object('dis',greatest(0,coalesce((resources->>'dis')::numeric,50)-CASE WHEN succes THEN 5 WHEN p_action='cadavre' THEN 20 ELSE 15 END)),
    hp=greatest(0,hp-CASE WHEN p_action='cadavre' AND NOT succes THEN 5 ELSE 0 END),updated_at=clock_timestamp() WHERE id=p.id;
  END IF;
+ -- Meme l'appel legal change la revision : une sauvegarde anterieure ne peut republier ses PA.
+ UPDATE public.personnages_donnees SET updated_at=clock_timestamp() WHERE id=p.id;
  UPDATE public.terrains_etat SET data=e::text,updated_at=now() WHERE id=cle;
  resultat:=jsonb_build_object('ok',true,'succes',succes,'action',p_action,'taux',c->'taux','jet',jet,'cout',c->'cout','pa',c->'pa','delaiHeures',c->'delaiHeures','prescriptionJours',c->'prescriptionJours');
  INSERT INTO public.terrain_actions_recus VALUES(p.id,p_requete,cle,p_occupation,p_action,resultat);

@@ -91,5 +91,8 @@ def suite(db,q,srv):
  check(abs(contexte('cadavre')['taux']-(36+25/3))<1e-9,'meilleur palier par organisation et cumul existant')
  reset('squatter_cool');jet(100);r=acte('corruption_police',26,occupation='100:squatter_cool',taux=66);p=lire("SELECT to_jsonb(p) FROM personnages_donnees p WHERE name='Fixture'")
  check(not r['succes'] and p['pa']==49 and p['liquide']==810 and p['resources']['dis']==65 and r['etat']['pnj']=='squatter_cool','refus de corruption : cout historique, DIS -15 et aucun depart')
+ reset('squatter_cool');q.execute("UPDATE personnages_donnees SET updated_at='2001-01-01' WHERE name='Fixture'");ancienne=lire("SELECT updated_at FROM personnages_donnees WHERE name='Fixture'")
+ acte('police',27,occupation='100:squatter_cool')
+ q.execute("UPDATE personnages_donnees SET pa=99 WHERE name='Fixture' AND updated_at=%s",(ancienne,));check(q.rowcount==0 and lire("SELECT pa FROM personnages_donnees WHERE name='Fixture'")==49,'sauvegarde CAS anterieure ne restaure pas les PA de l appel legal')
  print(json.dumps({'occupation_actions':True,'assertions':n,'production':False}))
 if __name__=='__main__':m.main(suite)
