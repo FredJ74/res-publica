@@ -6,11 +6,18 @@ function constructionPeutGerer(ts){
   if(typeof ref==='string'&&ref.startsWith('orga:')&&typeof getOrgaById==='function')return getOrgaById(ref.slice(5))?.chef===state.char?.name;
   return false;
 }
+function constructionCleCommande(action,buildingId=state.currentBuilding,contexte=contexteNavigationRue()) {
+  return 'chantier-commande:'+JSON.stringify([contexte.uid,contexte.nom,state.country,state.currentCity,buildingId,action]);
+}
+function constructionRelireIntention(action) {
+  try { return JSON.parse(sessionStorage.getItem(constructionCleCommande(action)) || 'null'); }
+  catch (_) { return null; }
+}
 let constructionCommandeEnCours=false;
 async function constructionExecuterCommande(action,parametres={}){
   if(constructionCommandeEnCours)return null;
   const contexte=contexteNavigationRue(),id=state.currentBuilding;
-  const cle='chantier-commande:'+JSON.stringify([contexte.uid,contexte.nom,state.country,state.currentCity,id,action]);
+  const cle=constructionCleCommande(action,id,contexte);
   let intention;
   try{
     const stockee=sessionStorage.getItem(cle);
@@ -37,6 +44,11 @@ async function constructionExecuterCommande(action,parametres={}){
     if(!finance){showToast('Commande acquise','La relecture financière reste à confirmer. L’intention de reprise est conservée.',true);return null;}
     if(!contexteNavigationRueValide(contexte))return null;
     if(typeof finance.pa==='number'){state.pa=finance.pa;state.char.pa=finance.pa;}
+    if(action==='louer') {
+      const locations=typeof chargerLocations==='function'?await chargerLocations():false;
+      if(!contexteNavigationRueValide(contexte))return null;
+      if(!locations){showToast('Bail confirmé','La relecture du bail reste à confirmer. L’intention de reprise est conservée.',true);return null;}
+    }
     sessionStorage.removeItem(cle);updateUI();return r;
   }finally{constructionCommandeEnCours=false;}
 }
@@ -53,8 +65,8 @@ async function constructionReconcilierCommandes(buildingId){
   if(constructionRepriseEnCours||constructionCommandeEnCours||buildingId!==state.currentBuilding)return;
   const c=contexteNavigationRue();constructionRepriseEnCours=true;
   try{
-    for(const action of ['lancer','verser','receptionner','plan','travailler','prix']){
-      const cle='chantier-commande:'+JSON.stringify([c.uid,c.nom,state.country,state.currentCity,buildingId,action]);
+    for(const action of ['lancer','verser','receptionner','plan','travailler','prix','reamenager','louer']){
+      const cle=constructionCleCommande(action,buildingId,c);
       let i;try{i=JSON.parse(sessionStorage.getItem(cle)||'null');}catch(_){continue;}
       if(!i?.requete)continue;
       const r=await sbRpcVerdict('chantier_commande_recu',{p_requete:i.requete}).catch(()=>null);
@@ -63,6 +75,10 @@ async function constructionReconcilierCommandes(buildingId){
         const finance=typeof rafraichirRuntimeHelvetia==='function'?await rafraichirRuntimeHelvetia({exigerComptes:true}):null;
         if(!finance||!contexteNavigationRueValide(c))return;
         if(typeof finance.pa==='number'){state.pa=finance.pa;state.char.pa=finance.pa;}
+        if(action==='louer') {
+          const locations=typeof chargerLocations==='function'?await chargerLocations():false;
+          if(!contexteNavigationRueValide(c)||!locations)return;
+        }
         sessionStorage.removeItem(cle);
       }
       // Absence non concluante : une autre transaction peut etre encore en cours. Garder l'intention.
@@ -74,13 +90,13 @@ if (typeof window !== 'undefined') {
   window.RP_ORDRES_DYNAMIQUES = window.RP_ORDRES_DYNAMIQUES || [];
   window.RP_ORDRES_DYNAMIQUES.push(function(id,piece) {
     if (!id?.startsWith('terrain-a-batir')) return [];
-    const ts=getTerrainState(id),ch=ts.chantier;
+    const ts=getTerrainState(id),ch=ts.chantier || ts.chantierReamenagement;
     if (!constructionPeutGerer(ts)) return [];
     const plan={fn:'modifier_plan_chantier',label:'Définir les lots intérieurs',icon:'ti-layout-grid',pa:0,cost:0,type:'legal',successRate:100};
     if (!ch) return ts.niveau_construction && !ts.planInitialValide && !(ts.subdivisions||[]).length ? [plan] : [];
     if (!chantierTermine(ch)) {
       const ordres=[{fn:'prix_chantier',label:'Prix d’achat des matériaux',icon:'ti-coins',pa:0,cost:0,type:'legal',successRate:100}];
-      if(verdictModificationPlan(ch).ok) ordres.push(plan);
+      if(ch.type!=='reamenagement' && verdictModificationPlan(ch).ok) ordres.push(plan);
       return ordres;
     }
     return [{fn:'receptionner_chantier',label:'Réceptionner le bâtiment',icon:'ti-key',pa:0,cost:0,type:'legal',successRate:100}];
@@ -96,7 +112,7 @@ function constructionFenetre(titre,html){
 }
 function constructionBouton(texte,js){return '<button type="button" class="construction-action" onclick="'+constructionEchapper(js)+'">'+constructionEchapper(texte)+'</button>';}
 function ouvrirApprovisionnementChantier(){
-  const ts=getTerrainState(state.currentBuilding),ch=ts.chantier;
+  const ts=getTerrainState(state.currentBuilding),ch=ts.chantier || ts.chantierReamenagement;
   if(!ch||!chantierAccepteMateriaux(ch))return;
   const tarifs=['bois','minerai','metal'].map(m=>'<p>'+constructionEchapper(m)+' : '+constructionEchapper(ch.prixAchatPJ?.[m]??'entrepôt + 10 %, arrondi au franc supérieur, à confirmer par le serveur')+' FR/unité</p>').join('');
   constructionFenetre('Approvisionner le chantier',tarifs+constructionSousOrdre('vendre_materiaux_chantier','Vendre des matériaux',0,0)+constructionSousOrdre('donner_materiaux_chantier','Donner gratuitement des matériaux',0,0)+(constructionPeutGerer(ts)?constructionBouton('Fixer les prix d’achat','ouvrirPrixChantier()'):''));
@@ -104,7 +120,7 @@ function ouvrirApprovisionnementChantier(){
 function constructionSousOrdre(fn,label,pa,cost){return constructionBouton(label,'doOrder('+[JSON.stringify(fn),pa||0,cost||0,JSON.stringify(label),'""',100].join(',')+')');}
 function ouvrirPrixChantier(){
   const ts=getTerrainState(state.currentBuilding);if(!constructionPeutGerer(ts))return;
-  constructionFenetre('Prix d’achat des matériaux','<p>Prix en francs entiers uniquement. Les champs vides conservent les tarifs existants.</p>'+['bois','minerai','metal'].map(m=>'<label>'+m+' <input id="chantier-prix-'+m+'" inputmode="numeric" step="1" value="'+constructionEchapper(ts.chantier?.prixAchatPJ?.[m]??'')+'"></label>').join('')+constructionBouton('Enregistrer les prix','confirmerPrixChantier()'));
+  constructionFenetre('Prix d’achat des matériaux','<p>Prix en francs entiers uniquement. Les champs vides conservent les tarifs existants.</p>'+['bois','minerai','metal'].map(m=>'<label>'+m+' <input id="chantier-prix-'+m+'" inputmode="numeric" step="1" value="'+constructionEchapper((ts.chantier || ts.chantierReamenagement)?.prixAchatPJ?.[m]??'')+'"></label>').join('')+constructionBouton('Enregistrer les prix','confirmerPrixChantier()'));
 }
 async function confirmerPrixChantier(){
   if(constructionPrixEnCours)return;
