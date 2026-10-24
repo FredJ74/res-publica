@@ -9401,12 +9401,14 @@ const AMBASSADEURS_PNJ = {
 
 function doDemanderAudienceAmbassadeur(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Demander audience';
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Auprès de quelle ambassade sollicitez-vous une audience ?</div>';
+  // Charte ardoise et or commune (style.css : .cpj-dialogue, .cpj-note, .cpj-touche) : aucune
+  // couleur en dur ici, la fenetre suit la charte si elle evolue.
+  let html = '<div class="cpj-dialogue">';
+  html += '<p class="cpj-note" style="margin:0 0 .8rem;font-style:italic">Auprès de quelle ambassade sollicitez-vous une audience ?</p>';
   Object.entries(AMBASSADEURS_PNJ).forEach(([empireId, amb]) => {
     const pays = COUNTRIES[empireId]?.n || empireId;
-    html += '<button onclick="confirmerAudienceAmbassadeur(&quot;' + empireId + '&quot;,' + (pa || 0) + ',' + (cost || 0) + ')" '
-      + 'style="display:block;width:100%;text-align:left;margin-bottom:.4rem;padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;color:#f0ead6;cursor:pointer;font-family:Crimson Pro,serif;font-size:.88rem">'
+    html += '<button class="cpj-touche" onclick="confirmerAudienceAmbassadeur(&quot;' + empireId + '&quot;,' + (pa || 0) + ',' + (cost || 0) + ')" '
+      + 'style="display:block;width:100%;text-align:left;margin-bottom:.5rem;padding:.6rem .8rem;cursor:pointer">'
       + pays + ' — <em>' + amb.name.replace(' (PNJ)', '') + '</em></button>';
   });
   html += '</div>';

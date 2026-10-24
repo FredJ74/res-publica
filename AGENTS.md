@@ -47,3 +47,11 @@ leur numéro (#57, #135…).
 - **Base Supabase** : suivre `WORKFLOW-SUPABASE.md` sans exception.
 - Freemium **jamais pay-to-win** : le premium est cosmétique ou de confort.
 - Aucune clé ni secret dans le dépôt ou les messages.
+
+## Charte graphique
+
+- Toute fenêtre pop-up suit la **charte ardoise et or** de `style.css` :
+  conteneur `cpj-dialogue`, texte secondaire `cpj-note`, boutons
+  `cpj-touche` (`cpj-primaire` pour l'action principale), champs
+  `cpj-champ`. Pas de couleurs en dur : l'ancienne palette brune
+  (`#0f0d05`, `#8a8060`, `#2a2010`…) ne doit plus être recopiée.
