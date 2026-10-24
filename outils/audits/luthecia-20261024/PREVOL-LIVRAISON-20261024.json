@@ -1,0 +1,2453 @@
+{
+  "releve": "2026-10-24",
+  "projet": "jxpwoosmmhohoihxpbuc",
+  "source": "outils/bancs/prevol-stabilisation-135.sql au commit f0f6c27608585f1ebb3a86ea296d067d14215625",
+  "lecture_seule": true,
+  "sections": [
+    {
+      "requete": 1,
+      "lignes": [
+        {
+          "version": "20260906214643",
+          "name": "vente_materiaux_chantier"
+        },
+        {
+          "version": "20260906224359",
+          "name": "reliquats_chantier"
+        },
+        {
+          "version": "20260913105641",
+          "name": "prets_jour_dernier_prelevement_journee_partagee"
+        },
+        {
+          "version": "20260913120554",
+          "name": "chantier_b_ossature_identite_auth"
+        },
+        {
+          "version": "20260913122656",
+          "name": "chantier_b_liaison_proprietaire_personnage"
+        },
+        {
+          "version": "20260913123304",
+          "name": "chantier_b_durcissement_helvetia_placements"
+        },
+        {
+          "version": "20260913123446",
+          "name": "chantier_b_fermeture_tables_serveur_seul"
+        },
+        {
+          "version": "20260913124849",
+          "name": "chantier_b_rls_donnees_bancaires_joueur"
+        },
+        {
+          "version": "20260913130303",
+          "name": "chantier_b_rls_personnages_ecriture_proprietaire"
+        },
+        {
+          "version": "20260913130549",
+          "name": "chantier_b_exiger_acteur_rpc_publiques"
+        },
+        {
+          "version": "20260913130623",
+          "name": "chantier_b_exiger_acteur_rpc_begin_minuscule"
+        },
+        {
+          "version": "20260913130727",
+          "name": "chantier_b_exiger_acteur_rpc_sql"
+        },
+        {
+          "version": "20260913131013",
+          "name": "chantier_b_rls_elections"
+        },
+        {
+          "version": "20260913131157",
+          "name": "chantier_b_masquage_donnees_privees_personnages"
+        },
+        {
+          "version": "20260913131302",
+          "name": "chantier_b_correctif_declencheur_insertion_vue"
+        },
+        {
+          "version": "20260913131523",
+          "name": "chantier_b_rls_detentions"
+        },
+        {
+          "version": "20260913132351",
+          "name": "chantier_b_autorite_institutionnelle_et_pouvoirs_judiciaires"
+        },
+        {
+          "version": "20260913132443",
+          "name": "chantier_b_fermeture_rpc_restantes"
+        },
+        {
+          "version": "20260913132555",
+          "name": "chantier_b_revoquer_anon_rpc_institutionnelles"
+        },
+        {
+          "version": "20260913134422",
+          "name": "chantier_c_paiement_ordres_autoritaire"
+        },
+        {
+          "version": "20260913182154",
+          "name": "chantier_c_miroir_complet_et_fail_closed"
+        },
+        {
+          "version": "20260913182309",
+          "name": "chantier_c_miroir_etat_civil_et_empreinte"
+        },
+        {
+          "version": "20260913182411",
+          "name": "chantier_c_policy_suppression_compte_proprietaire"
+        },
+        {
+          "version": "20260913182716",
+          "name": "chantier_c_phase2_entrepot_achat"
+        },
+        {
+          "version": "20260913184602",
+          "name": "chantier_c_empreinte_ressources_economie"
+        },
+        {
+          "version": "20260913184805",
+          "name": "chantier_c_phase2_usines"
+        },
+        {
+          "version": "20260913184857",
+          "name": "chantier_c_phase2_rachat_matiere_usine"
+        },
+        {
+          "version": "20260913185129",
+          "name": "chantier_c_phase2_criee_taxe_soins"
+        },
+        {
+          "version": "20260913185629",
+          "name": "chantier_c_phase2_appro_chantier_et_salaire_directeur"
+        },
+        {
+          "version": "20260913195529",
+          "name": "chantier_c_phase2_quatre_derniers_groupes"
+        },
+        {
+          "version": "20260913195613",
+          "name": "chantier_c_phase2_prix_directeurs"
+        },
+        {
+          "version": "20260913200504",
+          "name": "chantier_c_fermeture_batiments_etat"
+        },
+        {
+          "version": "20260913202533",
+          "name": "chantier_c_phase3_mouvement_titulaire_table_reelle"
+        },
+        {
+          "version": "20260913203139",
+          "name": "chantier_c_phase3_miroirs_entreprises"
+        },
+        {
+          "version": "20260913203248",
+          "name": "chantier_c_phase3_miroirs_entreprises_donnees"
+        },
+        {
+          "version": "20260913203338",
+          "name": "chantier_c_phase3_entreprise_assurer_existence"
+        },
+        {
+          "version": "20260913203540",
+          "name": "chantier_c_phase3_recettes_commerce"
+        },
+        {
+          "version": "20260913203634",
+          "name": "chantier_c_phase3_recettes_commerce_donnees"
+        },
+        {
+          "version": "20260913203728",
+          "name": "chantier_c_phase3_commerce_fixer_parametres"
+        },
+        {
+          "version": "20260913203936",
+          "name": "chantier_c_phase3_commerce_acheter_matiere"
+        },
+        {
+          "version": "20260913203959",
+          "name": "chantier_c_phase3_historique_et_grants"
+        },
+        {
+          "version": "20260913204812",
+          "name": "chantier_c_phase3_debiter_fonds_table_reelle"
+        },
+        {
+          "version": "20260913204947",
+          "name": "chantier_c_phase3_recettes_metadonnees_livraison"
+        },
+        {
+          "version": "20260913205110",
+          "name": "chantier_c_phase3_commerce_vendre_produit"
+        },
+        {
+          "version": "20260913210036",
+          "name": "chantier_c_phase3_vendre_produit_fixe_et_dynamique"
+        },
+        {
+          "version": "20260913210152",
+          "name": "chantier_c_phase3_commerce_produire"
+        },
+        {
+          "version": "20260913210248",
+          "name": "chantier_c_phase3_vendre_produit_liste"
+        },
+        {
+          "version": "20260913212221",
+          "name": "chantier_c_journal_ecarts_couts_v2"
+        },
+        {
+          "version": "20260913212715",
+          "name": "chantier_c_phase3_prix_rachat_et_propriete"
+        },
+        {
+          "version": "20260913212808",
+          "name": "chantier_c_phase3_rpc_propriete"
+        },
+        {
+          "version": "20260913212923",
+          "name": "chantier_c_phase3_entreprise_mouvement_fiscal"
+        },
+        {
+          "version": "20260913213021",
+          "name": "chantier_c_phase3_succession_entreprises"
+        },
+        {
+          "version": "20260913213136",
+          "name": "chantier_c_phase3_assurer_existence_imprimerie"
+        },
+        {
+          "version": "20260913213209",
+          "name": "chantier_c_phase3_fermeture_entreprises"
+        },
+        {
+          "version": "20260913230436",
+          "name": "chantier_c_fermeture_caisses_batiments"
+        },
+        {
+          "version": "20260913231259",
+          "name": "chantier_c_miroirs_chantiers"
+        },
+        {
+          "version": "20260913231403",
+          "name": "chantier_c_rpc_chantiers"
+        },
+        {
+          "version": "20260913231448",
+          "name": "chantier_c_rpc_chantier_travailler"
+        },
+        {
+          "version": "20260913232051",
+          "name": "chantier_c_imprimerie_produire_tracts"
+        },
+        {
+          "version": "20260913232209",
+          "name": "chantier_c_fabriquer_produit_pa"
+        },
+        {
+          "version": "20260913232445",
+          "name": "chantier_c_banque_nationale_mouvement"
+        },
+        {
+          "version": "20260913232620",
+          "name": "chantier_c_fermeture_comptes_bancaires"
+        },
+        {
+          "version": "20260913233007",
+          "name": "chantier_c_comptes_bancaires_lecture_proprietaire"
+        },
+        {
+          "version": "20260913233545",
+          "name": "chantier_c_debiter_fonds_ordinaires_guichet"
+        },
+        {
+          "version": "20260917232123",
+          "name": "militaire_logistique_terrain"
+        },
+        {
+          "version": "20260927171042",
+          "name": "socle_pnj_renseignement_chantier_restant_documente"
+        },
+        {
+          "version": "20261001161801",
+          "name": "contact_organisation"
+        },
+        {
+          "version": "20261001162848",
+          "name": "contact_organisation_strategie_isolee"
+        },
+        {
+          "version": "20261008235521",
+          "name": "idempotence_prets_helvetia"
+        },
+        {
+          "version": "20261009153817",
+          "name": "mails_routes_contact_organisation"
+        },
+        {
+          "version": "20261009153925",
+          "name": "mails_routes_prets_helvetia"
+        },
+        {
+          "version": "20261010004339",
+          "name": "taxe_fonciere_un_terrain_une_journee_une_transaction"
+        },
+        {
+          "version": "20261010080015",
+          "name": "terrain_un_seul_point_de_mutation_de_propriete"
+        },
+        {
+          "version": "20261010080337",
+          "name": "terrain_proprietaire_muter_preuves_structurelles"
+        },
+        {
+          "version": "20261010081020",
+          "name": "chantier_l_approvisionnement_lit_la_tresorerie_en_base"
+        },
+        {
+          "version": "20261010122516",
+          "name": "terrain_un_seul_ecrivain_interne_et_la_porte_du_compromis"
+        },
+        {
+          "version": "20261010122711",
+          "name": "terrain_la_porte_du_permis_et_sa_liste_de_cles"
+        },
+        {
+          "version": "20261010123004",
+          "name": "terrain_la_porte_du_chantier_calcule_sa_progression"
+        },
+        {
+          "version": "20261010123828",
+          "name": "terrain_la_porte_du_decoupage_en_lots"
+        },
+        {
+          "version": "20261010123910",
+          "name": "terrain_chaque_acte_declare_ses_cles"
+        },
+        {
+          "version": "20261010124442",
+          "name": "terrain_le_gel_successoral_a_enfin_son_jumeau"
+        },
+        {
+          "version": "20261010152035",
+          "name": "terrain_reamenagement_et_le_proprietaire_du_depot"
+        },
+        {
+          "version": "20261010191907",
+          "name": "le_navigateur_perd_l_ecriture_sur_les_terrains_et_les_plaintes"
+        },
+        {
+          "version": "20261014063359",
+          "name": "loyers_debiter_avoirs_reels"
+        },
+        {
+          "version": "20261018202712",
+          "name": "pret_national_credit_atomique_20261018"
+        },
+        {
+          "version": "20261018202724",
+          "name": "regulariser_pret_national_jean_20261018"
+        },
+        {
+          "version": "20261018232338",
+          "name": "rue_terrains_lots_liaisons_bidirectionnelles"
+        },
+        {
+          "version": "20261023164414",
+          "name": "terrain_occupation_visites_94"
+        },
+        {
+          "version": "20261023164824",
+          "name": "construction_materiaux_prix_et_dons_94"
+        },
+        {
+          "version": "20261023164839",
+          "name": "construction_lancement_priorite_bancaire_94"
+        },
+        {
+          "version": "20261023164844",
+          "name": "chantier_financeurs_et_appels_94"
+        },
+        {
+          "version": "20261023164848",
+          "name": "chantier_jour_transactionnel_94"
+        },
+        {
+          "version": "20261023164853",
+          "name": "chantier_approvisionnement_caisse_unique_94"
+        },
+        {
+          "version": "20261023164857",
+          "name": "chantier_autorite_et_recus_94"
+        },
+        {
+          "version": "20261023164901",
+          "name": "chantier_commandes_et_reception_94"
+        },
+        {
+          "version": "20261023164905",
+          "name": "chantier_recu_relecture_94"
+        },
+        {
+          "version": "20261023164911",
+          "name": "chantier_fermer_commandes_non_versionnees_94"
+        },
+        {
+          "version": "20261023164915",
+          "name": "chantier_plan_initial_94"
+        },
+        {
+          "version": "20261023164919",
+          "name": "chantier_plan_raccordement_94"
+        },
+        {
+          "version": "20261023164934",
+          "name": "chantier_gardes_legacy_et_travail_94"
+        },
+        {
+          "version": "20261023164938",
+          "name": "chantier_travail_versionne_94"
+        },
+        {
+          "version": "20261023164942",
+          "name": "chantier_prix_representants_94"
+        },
+        {
+          "version": "20261023164946",
+          "name": "construction_delais_quatre_empires_94"
+        },
+        {
+          "version": "20261023231127",
+          "name": "squatteurs_negociation_transactionnelle"
+        }
+      ]
+    },
+    {
+      "requete": 2,
+      "lignes": [
+        {
+          "signature": "acteur_est_moi(text)",
+          "empreinte": "0c615426e7fae88bcf8a8205e3e92d08",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+          "client_execute": false,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.acteur_est_moi(p_ref text)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\n  SELECT public.est_appel_serveur() OR public.titulaire_est_moi(p_ref);\n$function$\n"
+        },
+        {
+          "signature": "chantier_autorite_exiger_interne(text,text,text)",
+          "empreinte": "13da73d866b2c75d44ae432a771c0b10",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres}",
+          "client_execute": false,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.chantier_autorite_exiger_interne(p_titulaire text, p_pays text, p_ville text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE n text:=public.mon_personnage();a record;d jsonb;\nBEGIN\n IF n IS NULL THEN RAISE EXCEPTION 'acteur_non_authentifie' USING ERRCODE='42501';END IF;\n IF p_titulaire LIKE 'orga:%' THEN\n  -- Reutiliser la porte de representation existante, pas la presence dans une piece.\n  d:=public.organisation_equipement_exiger(substr(p_titulaire,6));\n ELSIF p_titulaire='ville:'||p_pays||':'||p_ville THEN\n  SELECT * INTO a FROM public.acteur_poste_courant();\n  SELECT poste INTO d FROM public.personnages_donnees WHERE name=n;\n  IF a.pays IS DISTINCT FROM p_pays OR a.poste_id IS DISTINCT FROM 'maire' OR a.poste_city IS DISTINCT FROM p_ville\n    OR NOT public.poste_est_atteste(n,d,p_pays) THEN RAISE EXCEPTION 'mandat_municipal_requis' USING ERRCODE='42501';END IF;\n ELSIF p_titulaire IS DISTINCT FROM n AND p_titulaire IS DISTINCT FROM 'pj:'||n THEN\n  RAISE EXCEPTION 'pas_proprietaire' USING ERRCODE='42501';\n END IF;\nEND;$function$\n"
+        },
+        {
+          "signature": "chantier_commande_recu(text)",
+          "empreinte": "743399b3f090658d03394cb7af037336",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.chantier_commande_recu(p_requete text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE n text:=public.mon_personnage();r record;\nBEGIN\n IF n IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie');END IF;\n SELECT * INTO r FROM public.chantier_commandes_recus cr WHERE cr.acteur=n AND cr.requete=p_requete AND cr.personnage_id=(SELECT id FROM public.personnages_donnees WHERE name=n);\n RETURN jsonb_build_object('ok',true,'terminee',FOUND);\nEND;$function$\n"
+        },
+        {
+          "signature": "chantier_commande(text,text,text,jsonb)",
+          "empreinte": "106d75cbaecc936f53bdc005acd9ab40",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.chantier_commande(p_requete text, p_terrain_id text, p_action text, p_parametres jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\n#variable_conflict use_variable\nDECLARE acteur text:=public.mon_personnage();t record;a record;etat jsonb;ancien_etat jsonb;source jsonb;ch jsonb;pal record;rec record;commande jsonb;resultat jsonb;\n montant numeric;prix jsonb;plan jsonb;lot jsonb;lots jsonb:='[]';s numeric;total numeric:=0;minimum numeric;vus text[]:=ARRAY[]::text[];idlot text;dest text;r jsonb;cle text;v numeric;caisse text;avant text;entrepot text;besoin jsonb;\nBEGIN\n IF acteur IS NULL THEN RAISE EXCEPTION 'acteur_non_authentifie' USING ERRCODE='42501';END IF;\n IF p_requete IS NULL OR p_requete !~ '^ch-[A-Za-z0-9-]{8,100}$' OR p_parametres IS NULL OR jsonb_typeof(p_parametres)<>'object' THEN RAISE EXCEPTION 'commande_invalide';END IF;\n SELECT * INTO a FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;\n PERFORM pg_advisory_xact_lock(hashtextextended('chantier:'||acteur||':'||p_requete,0));\n commande:=jsonb_build_object('action',p_action,'parametres',p_parametres);\n SELECT * INTO rec FROM public.chantier_commandes_recus cr WHERE cr.acteur=acteur AND cr.requete=p_requete;\n IF FOUND THEN\n  IF rec.personnage_id IS DISTINCT FROM a.id OR rec.terrain_id IS DISTINCT FROM p_terrain_id OR rec.commande<>commande THEN RAISE EXCEPTION 'requete_reutilisee';END IF;\n  RETURN rec.resultat||jsonb_build_object('rejeu',true);\n END IF;\n IF coalesce(a.hp,0)<=0 OR coalesce(a.hospitalisation->>'dateFinParis','')>(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text THEN RAISE EXCEPTION 'acteur_incapacite';END IF;\n IF EXISTS(SELECT 1 FROM public.detention_active(acteur)) THEN RAISE EXCEPTION 'acteur_detenu';END IF;\n SELECT * INTO t FROM public.terrains_etat WHERE country=a.country AND\n  (id=p_terrain_id OR building_id=p_terrain_id AND data::jsonb->>'city'=a.current_city) ORDER BY (id=p_terrain_id) DESC LIMIT 1;\n IF NOT FOUND THEN RAISE EXCEPTION 'terrain_introuvable';END IF;\n ancien_etat:=t.data::jsonb;\n IF p_action<>'travailler' THEN source:=public.chantier_financeur_verrouiller_interne(ancien_etat->>'proprietaire',t.country,ancien_etat->>'city');END IF;\n SELECT * INTO t FROM public.terrains_etat WHERE id=t.id FOR UPDATE;etat:=t.data::jsonb;\n IF etat->>'proprietaire' IS DISTINCT FROM ancien_etat->>'proprietaire' OR etat->>'city' IS DISTINCT FROM ancien_etat->>'city' THEN RAISE EXCEPTION 'titulaire_modifie';END IF;\n IF p_action<>'travailler' THEN PERFORM public.chantier_autorite_exiger_interne(etat->>'proprietaire',t.country,etat->>'city');END IF;\n IF coalesce(etat->>'succession_gel','')<>'' THEN RAISE EXCEPTION 'terrain_gele';END IF;\n ch:=etat->'chantier';\n IF p_action='lancer' THEN\n  IF p_parametres-ARRAY['palier','apport']<>'{}' THEN RAISE EXCEPTION 'champs_interdits';END IF;\n  IF jsonb_typeof(ch)='object' OR jsonb_typeof(etat->'chantierReamenagement')='object' OR nullif(etat->>'niveau_construction','') IS NOT NULL THEN RAISE EXCEPTION 'chantier_ou_batiment_existant';END IF;\n  IF NOT coalesce((etat->>'constructionAutorisee')::boolean,false) OR etat->'permis'->>'palierDemande' IS DISTINCT FROM p_parametres->>'palier' THEN RAISE EXCEPTION 'permis_non_conforme';END IF;\n  IF etat->>'pnj' IN('squatter_cool','squatter_agr','cadavre') THEN RAISE EXCEPTION 'occupation_bloquante';END IF;\n  SELECT * INTO pal FROM public.chantiers_paliers WHERE palier=p_parametres->>'palier';\n  IF NOT FOUND THEN RAISE EXCEPTION 'palier_inconnu';END IF;\n  IF p_parametres->>'apport' !~ '^[0-9]+$' OR p_parametres->>'apport' IS NULL THEN RAISE EXCEPTION 'francs_entiers_requis';END IF;\n  montant:=(p_parametres->>'apport')::numeric;\n  IF montant<pal.apport_minimal OR montant>pal.cout_total THEN RAISE EXCEPTION 'apport_hors_bornes';END IF;\n  SELECT jsonb_object_agg(e.cle,ceil(e.prix_base*1.1)) INTO prix FROM public.ressources_economie e WHERE e.cle IN('bois','minerai','metal') AND e.prix_base>=0 AND e.prix_base::text NOT IN('NaN','Infinity','-Infinity');\n  IF prix IS NULL OR (SELECT count(*) FROM jsonb_object_keys(prix))<>3 THEN RAISE EXCEPTION 'prix_indisponibles';END IF;\n  IF NOT public.chantier_financeur_debiter_interne(source,montant) THEN RAISE EXCEPTION 'fonds_insuffisants';END IF;\n  ch:=pal.gabarit||jsonb_build_object('jourDebut',a.day,'jourTraite',(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text,'totalVerse',montant,'tresorerie',montant,'prixAchatPJ',prix,'maitreOuvrage',etat->>'proprietaire','planInitialValide',false);\n  SELECT building_id INTO entrepot FROM public.entrepots_par_ville WHERE ville=etat->>'city';\n  IF entrepot IS NOT NULL THEN\n   SELECT jsonb_build_object('bois',bois,'minerai',minerai,'metal',metal) INTO besoin FROM public.chantiers_besoins_jour WHERE position_cycle=1;\n   IF besoin IS NULL THEN RAISE EXCEPTION 'besoin_chantier_absent';END IF;\n   plan:=public.approvisionner_chantier(acteur,t.country,etat->>'city',entrepot,besoin,coalesce(ch->'stockMateriaux','{}'),(ch->>'tresorerie')::numeric);\n   IF NOT coalesce((plan->>'ok')::boolean,false) THEN RAISE EXCEPTION 'approvisionnement_non_confirme';END IF;\n   ch:=ch||jsonb_build_object('stockMateriaux',plan->'stockChantier','tresorerie',(ch->>'tresorerie')::numeric-(plan->>'depense')::numeric);\n  END IF;\n  etat:=etat||jsonb_build_object('chantier',ch);\n ELSIF p_action='verser' THEN\n  IF p_parametres-ARRAY['montant']<>'{}' OR jsonb_typeof(ch) IS DISTINCT FROM 'object' OR (ch->>'progressionJours')::numeric>=(ch->>'dureeJours')::numeric THEN RAISE EXCEPTION 'versement_impossible';END IF;\n  IF p_parametres->>'montant' !~ '^[0-9]+$' OR p_parametres->>'montant' IS NULL THEN RAISE EXCEPTION 'francs_entiers_requis';END IF;\n  montant:=least((p_parametres->>'montant')::numeric,(ch->>'coutTotal')::numeric-(ch->>'totalVerse')::numeric);\n  IF montant<=0 THEN RAISE EXCEPTION 'montant_invalide';END IF;\n  IF NOT public.chantier_financeur_debiter_interne(source,montant) THEN RAISE EXCEPTION 'fonds_insuffisants';END IF;\n  ch:=ch||jsonb_build_object('totalVerse',(ch->>'totalVerse')::numeric+montant,'tresorerie',(ch->>'tresorerie')::numeric+montant);\n  etat:=etat||jsonb_build_object('chantier',ch);\n ELSIF p_action='travailler' THEN\n  IF p_parametres-ARRAY['heures']<>'{}' OR coalesce(p_parametres->>'heures','') !~ '^[1-9][0-9]*$' THEN RAISE EXCEPTION 'heures_invalides';END IF;\n  IF a.current_city IS DISTINCT FROM etat->>'city' OR a.current_building IS DISTINCT FROM t.building_id THEN RAISE EXCEPTION 'pas_sur_place';END IF;\n  r:=public.chantier_travailler(acteur,t.country,t.id,(p_parametres->>'heures')::integer);\n  IF NOT coalesce((r->>'ok')::boolean,false) THEN RAISE EXCEPTION 'travail_refuse';END IF;\n  SELECT data::jsonb INTO etat FROM public.terrains_etat WHERE id=t.id;\n  montant:=(r->>'montant')::numeric;\n ELSIF p_action='prix' THEN\n  IF p_parametres-ARRAY['prix']<>'{}' OR jsonb_typeof(p_parametres->'prix') IS DISTINCT FROM 'object' THEN RAISE EXCEPTION 'prix_invalides';END IF;\n  r:=public.chantier_prix_definir(t.id,p_parametres->'prix');\n  IF NOT coalesce((r->>'ok')::boolean,false) THEN RAISE EXCEPTION 'prix_invalides';END IF;\n  SELECT data::jsonb INTO etat FROM public.terrains_etat WHERE id=t.id;\n ELSIF p_action='plan' THEN\n  IF p_parametres-ARRAY['lots','valider']<>'{}' OR jsonb_typeof(p_parametres->'lots') IS DISTINCT FROM 'array' OR jsonb_typeof(p_parametres->'valider') IS DISTINCT FROM 'boolean' THEN RAISE EXCEPTION 'plan_invalide';END IF;\n  etat:=public.chantier_plan_enregistrer_interne(etat,p_parametres->'lots',(p_parametres->>'valider')::boolean,t.building_id,t.country,acteur,p_requete,a.day);\n ELSIF p_action='receptionner' THEN\n  IF p_parametres<>'{}'::jsonb OR jsonb_typeof(ch) IS DISTINCT FROM 'object' OR NOT coalesce((ch->>'progressionJours')::numeric>=(ch->>'dureeJours')::numeric AND (ch->>'dureeJours')::numeric>0,false) THEN RAISE EXCEPTION 'chantier_non_acheve';END IF;\n  IF coalesce((ch->>'totalVerse')::numeric,0)<coalesce((ch->>'coutTotal')::numeric,1) THEN RAISE EXCEPTION 'financement_incomplet';END IF;\n  IF a.country IS DISTINCT FROM t.country OR a.current_city IS DISTINCT FROM etat->>'city' OR a.current_building IS DISTINCT FROM t.building_id THEN RAISE EXCEPTION 'pas_sur_place';END IF;\n  IF etat->'chantierAcheve'->'reliquats'->>'restitue'='false' THEN RAISE EXCEPTION 'anciens_reliquats_en_attente';END IF;\n  plan:=coalesce(etat->'permis'->'decoupageInitial','[]');\n  IF jsonb_typeof(plan)<>'array' THEN RAISE EXCEPTION 'plan_invalide';END IF;\n  lots:=public.chantier_plan_normaliser_interne(etat,ch->>'niveau',plan);\n  IF jsonb_array_length(coalesce(etat->'subdivisions','[]'))>0 THEN RAISE EXCEPTION 'lots_preexistants_a_examiner';END IF;\n  montant:=coalesce((ch->>'tresorerie')::numeric,0);\n  IF montant<0 OR montant<>trunc(montant) OR montant::text IN('NaN','Infinity','-Infinity') THEN RAISE EXCEPTION 'reliquat_invalide';END IF;\n  caisse:=t.country||'_'||(etat->>'city')||'_'||t.building_id;\n  IF montant>0 THEN\n   avant:=current_setting('rp.caisse_interne',true);PERFORM set_config('rp.caisse_interne','on',true);\n   r:=public.caisse_institution_mouvement(caisse,montant,false);PERFORM set_config('rp.caisse_interne',coalesce(avant,''),true);\n   IF NOT coalesce((r->>'ok')::boolean,false) THEN RAISE EXCEPTION 'reliquat_caisse_non_confirme';END IF;\n  END IF;\n  FOREACH cle IN ARRAY ARRAY['bois','minerai','metal'] LOOP\n   v:=coalesce((ch->'stockMateriaux'->>cle)::numeric,0);\n   IF v<0 OR v<>trunc(v) OR v::text IN('NaN','Infinity','-Infinity') THEN RAISE EXCEPTION 'stock_reliquat_invalide';END IF;\n   etat:=jsonb_set(etat,'{stockMateriaux}',coalesce(etat->'stockMateriaux','{}')||jsonb_build_object(cle,coalesce((etat->'stockMateriaux'->>cle)::numeric,0)+v));\n  END LOOP;\n  IF jsonb_typeof(etat->'chantierAcheve')='object' THEN etat:=etat||jsonb_build_object('chantiersArchives',coalesce(etat->'chantiersArchives','[]')||jsonb_build_array(etat->'chantierAcheve'));END IF;\n  etat:=(etat-'chantier')||jsonb_build_object('niveau_construction',ch->>'niveau','subdivisions',lots,'planInitialValide',(coalesce((ch->>'planInitialValide')::boolean,false) OR jsonb_array_length(lots)>0),\n   'chantierAcheve',ch||jsonb_build_object('livre',true,'jourLivraison',(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text,'tresorerie',0,'stockMateriaux',jsonb_build_object('bois',0,'minerai',0,'metal',0),'reliquats',jsonb_build_object('restitue',true,'beneficiaire',etat->>'proprietaire','caisse',caisse,'tresorerie',montant,'materiaux',ch->'stockMateriaux')));\n ELSE RAISE EXCEPTION 'action_inconnue';\n END IF;\n UPDATE public.terrains_etat SET data=etat::text,niveau_construction=etat->>'niveau_construction',updated_at=now() WHERE id=t.id;\n resultat:=jsonb_build_object('ok',true,'etat',etat,'chantier',etat->'chantier','montant',montant,'pourcentage',CASE WHEN etat ? 'chantier' THEN floor((etat->'chantier'->>'totalVerse')::numeric*100/(etat->'chantier'->>'coutTotal')::numeric) ELSE 100 END);\n INSERT INTO public.chantier_commandes_recus(personnage_id,acteur,requete,terrain_id,commande,resultat) VALUES(a.id,acteur,p_requete,p_terrain_id,commande,resultat);\n RETURN resultat;\nEXCEPTION WHEN SQLSTATE 'P0001' OR insufficient_privilege THEN\n IF SQLERRM=ANY(ARRAY['prix_invalides','heures_invalides','travail_refuse','plan_initial_valide','dernier_tiers_requis','reamenagement_payant_requis','local_occupe','batiment_indivisible','document_plan_non_confirme','acteur_detenu','financement_incomplet','acteur_incapacite','acteur_non_authentifie','action_inconnue','anciens_reliquats_en_attente','apport_hors_bornes','approvisionnement_non_confirme','besoin_chantier_absent','champs_interdits','chantier_non_acheve','chantier_ou_batiment_existant','commande_invalide','fonds_insuffisants','francs_entiers_requis','lots_preexistants_a_examiner','mandat_municipal_requis','montant_invalide','occupation_bloquante','palier_inconnu','pas_proprietaire','pas_sur_place','permis_non_conforme','plan_invalide','prix_indisponibles','reliquat_caisse_non_confirme','reliquat_invalide','requete_reutilisee','stock_reliquat_invalide','terrain_gele','terrain_introuvable','titulaire_modifie','versement_impossible','representation_organisation_refusee','etat_financier_non_entier','organisation_absente']) THEN RETURN jsonb_build_object('ok',false,'raison',SQLERRM);END IF;\n RAISE;\nEND;$function$\n"
+        },
+        {
+          "signature": "chantier_jour_traiter(text)",
+          "empreinte": "6410338f9007370e43d05703cbf73913",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+          "client_execute": false,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.chantier_jour_traiter(p_terrain_id text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE r record;snapshot jsonb;etat jsonb;ch jsonb;source jsonb;jour text;avant numeric;apres numeric;d numeric;\n besoin jsonb;stock jsonb;plan jsonb;entrepot text;num integer;m text;req numeric;f numeric:=1;cap numeric;faites numeric;heures numeric;cout numeric;gain numeric;plafond numeric;taux numeric;rep jsonb;ancien text;\nBEGIN\n IF NOT public.est_appel_serveur() THEN RETURN jsonb_build_object('ok',false,'raison','reserve_au_serveur');END IF;\n SELECT * INTO r FROM public.terrains_etat WHERE id=p_terrain_id;\n IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','terrain_absent');END IF;\n snapshot:=r.data::jsonb;\n IF jsonb_typeof(snapshot->'chantier') IS DISTINCT FROM 'object' THEN RETURN jsonb_build_object('ok',true,'ignore',true);END IF;\n -- Le verrou du financeur precede celui du terrain, comme lancement/ventes/transferts.\n source:=public.chantier_financeur_verrouiller_interne(snapshot->>'proprietaire',r.country,snapshot->>'city');\n SELECT * INTO r FROM public.terrains_etat WHERE id=p_terrain_id FOR UPDATE;etat:=r.data::jsonb;\n IF etat->>'proprietaire' IS DISTINCT FROM snapshot->>'proprietaire' OR etat->>'city' IS DISTINCT FROM snapshot->>'city' THEN\n  RETURN jsonb_build_object('ok',false,'raison','titulaire_modifie');END IF;\n ch:=etat->'chantier';jour:=(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text;\n IF coalesce(etat->>'succession_gel','')<>'' THEN RETURN jsonb_build_object('ok',true,'ignore',true,'raison','terrain_gele');END IF;\n IF ch->>'type' IS DISTINCT FROM 'construction' THEN RETURN jsonb_build_object('ok',false,'raison','chantier_historique_a_examiner');END IF;\n IF ch->>'jourTraite'=jour THEN RETURN jsonb_build_object('ok',true,'rejeu',true,'etat',etat);END IF;\n avant:=(ch->>'progressionJours')::numeric;d:=(ch->>'dureeJours')::numeric;\n IF avant IS NULL OR avant<0 OR d IS NULL OR d<=0 OR d<>trunc(d) THEN RAISE EXCEPTION 'dimensionnement_chantier_invalide';END IF;\n IF avant<d THEN\n  ch:=public.chantier_appel_fonds_interne(ch,source);\n  IF ch->>'arrete' IS DISTINCT FROM 'financement' THEN\n   num:=floor(avant)::integer+1;\n   SELECT jsonb_build_object('bois',bois,'minerai',minerai,'metal',metal) INTO besoin FROM public.chantiers_besoins_jour\n    WHERE position_cycle=((num-1)%(SELECT count(*) FROM public.chantiers_besoins_jour))+1;\n   IF besoin IS NULL THEN RAISE EXCEPTION 'besoin_chantier_absent';END IF;\n   SELECT building_id INTO entrepot FROM public.entrepots_par_ville WHERE ville=etat->>'city';\n   stock:=coalesce(ch->'stockMateriaux','{}');\n   IF entrepot IS NOT NULL THEN\n    plan:=public.approvisionner_chantier(source->>'destinataire',r.country,etat->>'city',entrepot,besoin,stock,coalesce((ch->>'tresorerie')::numeric,0));\n    IF NOT coalesce((plan->>'ok')::boolean,false) THEN RAISE EXCEPTION 'approvisionnement_non_confirme';END IF;\n    stock:=plan->'stockChantier';ch:=ch||jsonb_build_object('tresorerie',(ch->>'tresorerie')::numeric-(plan->>'depense')::numeric);\n   END IF;\n   FOREACH m IN ARRAY ARRAY['bois','minerai','metal'] LOOP\n    req:=(besoin->>m)::numeric;\n    IF req>0 THEN f:=least(f,greatest(0,coalesce((stock->>m)::numeric,0))/req);END IF;\n   END LOOP;\n   SELECT valeur INTO taux FROM public.entreprises_constantes WHERE cle='chantier_taux_horaire';\n   IF taux IS NULL OR taux<=0 THEN RAISE EXCEPTION 'taux_chantier_indisponible';END IF;\n   cap:=(ch->>'coutTravail')::numeric/taux/d;faites:=coalesce((ch->>'heuresFaites')::numeric,0);\n   IF cap IS NULL OR cap<=0 OR faites<0 OR faites>cap THEN RAISE EXCEPTION 'capacite_travail_invalide';END IF;\n   plafond:=CASE WHEN (ch->>'totalVerse')::numeric>=(ch->>'coutTotal')::numeric THEN d\n     WHEN (ch->>'totalVerse')::numeric>=ceil((ch->>'coutTotal')::numeric*.7) THEN d*2/3 ELSE d/3 END;\n   heures:=greatest(0,least(floor(cap*least(f,d-avant,plafond-avant))-faites,floor((ch->>'tresorerie')::numeric/taux)));cout:=heures*taux;\n   IF cout>0 THEN\n    ancien:=current_setting('rp.caisse_interne',true);PERFORM set_config('rp.caisse_interne','on',true);\n    rep:=public.caisse_institution_mouvement(r.country||'_gouvernement-min_fin',cout,true);\n    PERFORM set_config('rp.caisse_interne',coalesce(ancien,''),true);\n    IF NOT coalesce((rep->>'ok')::boolean,false) THEN RAISE EXCEPTION 'remuneration_pnj_non_confirmee';END IF;\n   END IF;\n   gain:=least(1,f,(faites+heures)/cap,d-avant);\n   gain:=greatest(0,least(gain,plafond-avant));apres:=avant+gain;\n   FOREACH m IN ARRAY ARRAY['bois','minerai','metal'] LOOP\n    stock:=jsonb_set(stock,ARRAY[m],to_jsonb(greatest(0,coalesce((stock->>m)::numeric,0)-floor((besoin->>m)::numeric*gain))));\n   END LOOP;\n   ch:=ch||jsonb_build_object('progressionJours',apres,'tresorerie',(ch->>'tresorerie')::numeric-cout,'stockMateriaux',stock,'heuresFaites',0,'arrete',CASE WHEN gain=0 THEN 'penurie_materiaux' ELSE NULL END,\n    'evenements',coalesce(ch->'evenements','[]')||jsonb_build_array(jsonb_build_object('cle','journee','date',jour,'avance',gain,'heuresPNJ',heures,'coutPNJ',cout,'achats',plan->'achats')));\n   -- Un seuil atteint aujourd'hui appelle immediatement la tranche suivante, sans avancer le temps utile si refus.\n   IF apres<d THEN ch:=public.chantier_appel_fonds_interne(ch,source);END IF;\n  END IF;\n END IF;\n IF (ch->>'progressionJours')::numeric>=d THEN\n  IF NOT coalesce((ch->>'attenteReception')::boolean,false) AND nullif(source->>'destinataire','') IS NOT NULL THEN\n   rep:=public.mail_systeme_poser_interne('Chef de Chantier',source->>'destinataire','Chantier acheve — reception sur place','Les travaux sont acheves. Venez sur place pour receptionner le batiment et ouvrir ses locaux.');\n   IF NOT coalesce((rep->>'ok')::boolean,false) THEN ch:=ch||jsonb_build_object('notificationEchec',rep);END IF;\n  END IF;\n  ch:=ch||jsonb_build_object('attenteReception',true,'arrete',null);\n END IF;\n ch:=ch||jsonb_build_object('jourTraite',jour);\n etat:=etat||jsonb_build_object('chantier',ch);\n UPDATE public.terrains_etat SET data=etat::text,updated_at=now() WHERE id=p_terrain_id;\n RETURN jsonb_build_object('ok',true,'etat',etat,'attenteReception',coalesce((ch->>'attenteReception')::boolean,false),'avance',coalesce(gain,0));\nEND;$function$\n"
+        },
+        {
+          "signature": "compromis_expire_resoudre(text,text)",
+          "empreinte": "d3e35ecf0edb0b1c2a6858f5ad6f1b81",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+          "client_execute": false,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.compromis_expire_resoudre(p_type text, p_cible text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  v_type text := lower(btrim(coalesce(p_type,''))); v_data jsonb;\n  v_pays text; v_bat text; v_prefixe text; v_expire bigint;\n  v_ms bigint := (extract(epoch from now())*1000)::bigint;\n  v_pret jsonb; v_refus boolean := false; v_gele boolean := false; v_existe boolean;\n  v_detail text[] := ARRAY[]::text[]; v_montant numeric; v_arg numeric;\n  v_acompte numeric; v_par text; v_perm text;\n  v_jour text := to_char((now() AT TIME ZONE 'Europe/Paris')::date, 'YYYY-MM-DD');\nBEGIN\n  -- FAIL-CLOSED : un type ou une cible absents LEVENT. Rendre un verdict voudrait dire\n  -- « rien a resoudre », et le cron reposerait un drapeau qu'il n'a pas gagne.\n  IF v_type NOT IN ('terrain','entreprise') THEN\n    RAISE EXCEPTION 'compromis_expire_resoudre : type inconnu « % »', p_type; END IF;\n  IF btrim(coalesce(p_cible,'')) = '' THEN\n    RAISE EXCEPTION 'compromis_expire_resoudre : la cible est obligatoire'; END IF;\n\n  -- LE VERROU SUR LE BIEN est ce qui serialise deux passes simultanees.\n  IF v_type = 'terrain' THEN\n    SELECT t.data::jsonb, t.country, t.building_id INTO v_data, v_pays, v_bat\n      FROM public.terrains_etat t WHERE t.id = p_cible FOR UPDATE;\n    v_prefixe := 'compromis-';\n  ELSE\n    -- Le pays d'une entreprise : son blob d'abord, sinon le DEUXIEME segment de l'identifiant\n    -- (« <type>-<pays>-<ville> »). C'est exactement ce que lisait `split('-').slice(1)[0]`.\n    SELECT e.data,\n           nullif(coalesce(e.data->>'country', split_part(coalesce(e.data->>'id', e.id),'-',2)),''), e.id\n      INTO v_data, v_pays, v_bat FROM public.entreprises e WHERE e.id = p_cible FOR UPDATE;\n    v_prefixe := 'compromis-entreprise-';\n  END IF;\n  IF v_data IS NULL THEN RETURN jsonb_build_object('ok', false, 'action','non_applicable'); END IF;\n  -- Un bien Helvetia garde sa propre RPC : on ne reimplemente pas sa decision ici.\n  IF v_type = 'terrain' AND (v_data->>'proprietaire') = 'Helvetia' THEN\n    RETURN jsonb_build_object('ok', false, 'action','helvetia'); END IF;\n  IF coalesce((v_data->>'compromis')::boolean, false) IS NOT TRUE\n     OR (v_data->>'compromisExpireAt') IS NULL THEN\n    RETURN jsonb_build_object('ok', false, 'action','non_applicable'); END IF;\n  v_expire := (v_data->>'compromisExpireAt')::bigint;\n  IF v_expire > v_ms THEN RETURN jsonb_build_object('ok', false, 'action','pas_encore_expire'); END IF;\n\n  -- UN PRET DEJA ACCORDE GELE LE COMPROMIS (correctif du 10 aout 2026) : sans cette garde, la\n  -- meme ligne se ferait perdre son acompte a chaque passage du cron, chaque nuit.\n  v_pret := v_data->'pretDemande';\n  IF jsonb_typeof(v_pret) = 'object' AND v_pret->>'statut' = 'accorde' THEN\n    RETURN jsonb_build_object('ok', true, 'action','pret_accorde_compromis_gele'); END IF;\n\n  -- PERMIS DU MAIRE : terrain seulement. Pas de reponse = positif, maintenant.\n  IF v_type = 'terrain' THEN\n    v_perm := v_data #>> '{permis,statut}';\n    IF v_perm = 'attente_validation' THEN\n      v_data := jsonb_set(jsonb_set(v_data, '{permis,statut}', '\"valide\"'),\n                          '{permis,autoValide}', 'true');\n      v_data := jsonb_set(v_data, '{constructionAutorisee}', 'true', true);\n      v_detail := array_append(v_detail, 'permis validé (sans réponse du maire)');\n    ELSIF v_perm = 'valide' THEN\n      v_data := jsonb_set(v_data, '{constructionAutorisee}', 'true', true);\n      v_detail := array_append(v_detail, 'permis validé par le maire');\n    ELSIF v_perm = 'refuse' THEN\n      v_refus := true; v_detail := array_append(v_detail, 'permis refusé par le maire');\n    END IF;\n  END IF;\n\n  -- LE TIRAGE DU PRET EST ICI, pas chez l'appelant : un rejeu ne peut plus le rejouer.\n  IF jsonb_typeof(v_pret) = 'object' AND v_pret->>'statut' = 'attente_validation' THEN\n    v_montant := coalesce((v_pret->>'montant')::numeric, 0);\n    SELECT true, coalesce(arg,0) INTO v_existe, v_arg FROM public.personnages\n     WHERE name = v_pret->>'demandeur' FOR UPDATE;\n    v_arg := coalesce(v_arg, 0);\n    IF v_arg >= v_montant * 0.10 OR random() < 0.5 THEN\n      v_data := jsonb_set(v_data, '{pretDemande,statut}', '\"accorde\"');\n      IF coalesce(v_existe, false) THEN\n        UPDATE public.personnages SET arg = coalesce(arg,0) + v_montant\n         WHERE name = v_pret->>'demandeur';\n        INSERT INTO public.prets (id, emprunteur, country, building_id, type_banque,\n            montant_initial, montant_restant, duree_jours, mensualite, jours_impayes, statut)\n        VALUES ('pret-' || v_type || '-' || p_cible || '-' || v_jour, v_pret->>'demandeur',\n            v_pays, v_bat, 'nationale', v_montant, (v_pret->>'montantTotal')::numeric,\n            (v_pret->>'duree')::integer, (v_pret->>'mensualite')::numeric, 0, 'en_cours')\n        ON CONFLICT (id) DO NOTHING;\n      END IF;\n      v_detail := array_append(v_detail, 'prêt accordé (+' || v_montant::text || ' FR virés)');\n      v_gele := true;\n    ELSE\n      v_data := jsonb_set(v_data, '{pretDemande,statut}', '\"refuse\"');\n      v_refus := true; v_detail := array_append(v_detail, 'prêt refusé par la banque');\n    END IF;\n  END IF;\n\n  -- Pret accorde a l'instant, aucune autre clause refusee : le compromis reste actif, ni\n  -- rembourse ni perdu -- le joueur finalisera plus tard avec l'argent prete.\n  IF v_gele AND NOT v_refus THEN\n    IF v_type = 'terrain' THEN\n      UPDATE public.terrains_etat SET data = v_data::text, updated_at = now() WHERE id = p_cible;\n    ELSE\n      UPDATE public.entreprises SET data = v_data, updated_at = now() WHERE id = p_cible;\n    END IF;\n    RETURN jsonb_build_object('ok', true, 'action','pret_en_attente_finalisation',\n                              'detail', array_to_string(v_detail,' · '));\n  END IF;\n\n  v_acompte := coalesce((v_data->>'acompte')::numeric, 0);\n  v_par := v_data->>'compromisPar';\n  IF v_refus AND v_par IS NOT NULL AND v_acompte > 0 THEN\n    UPDATE public.personnages SET arg = coalesce(arg,0) + v_acompte WHERE name = v_par;\n    v_detail := array_append(v_detail, 'acompte remboursé (' || v_acompte::text || ' FR)');\n  ELSE\n    v_detail := array_append(v_detail, 'acompte perdu (' || v_acompte::text || ' FR)');\n  END IF;\n\n  INSERT INTO public.compromis_historique (id, country, building_id, demandeur, resultat, detail)\n  VALUES (v_prefixe || p_cible || '-' || v_jour, v_pays, v_bat, coalesce(v_par,'inconnu'),\n          CASE WHEN v_refus THEN 'rembourse' ELSE 'perdu' END,\n          coalesce(nullif(array_to_string(v_detail,' · '),''),\n                   CASE WHEN v_type='entreprise'\n                        THEN 'compromis de rachat d''entreprise expiré sans finalisation'\n                        ELSE '' END))\n  ON CONFLICT (id) DO NOTHING;\n\n  -- `pretDemande` est efface aussi (10 aout 2026) : un {statut:'refuse'} laisse accroche aurait\n  -- bloque a tort le pretOk d'un futur compromis n'ayant rien demande.\n  v_data := v_data - 'compromis' - 'compromisPar' - 'acompte' - 'compromisAt'\n                   - 'compromisExpireAt' - 'pretDemande';\n  IF v_type = 'terrain' THEN\n    UPDATE public.terrains_etat SET data = v_data::text, updated_at = now() WHERE id = p_cible;\n  ELSE\n    UPDATE public.entreprises SET data = v_data, updated_at = now() WHERE id = p_cible;\n  END IF;\n\n  RETURN jsonb_build_object('ok', true,\n    'action', CASE WHEN v_refus THEN 'rembourse' ELSE 'perdu' END,\n    'acompte', v_acompte, 'detail', array_to_string(v_detail,' · '));\nEND; $function$\n"
+        },
+        {
+          "signature": "detention_active(text)",
+          "empreinte": "d41331e880a6227125c3ac2a23bba267",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.detention_active(p_nom text)\n RETURNS TABLE(id text, country text, city text, jour_debut integer, jour_fin integer, qhs boolean)\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\n  SELECT d.id, d.country, d.city, d.jour_debut, d.jour_fin, coalesce(d.qhs, false)\n    FROM public.detentions d\n   WHERE d.nom = p_nom\n     AND d.mode_fin IS NULL\n     AND d.jour_fin_effective IS NULL\n   ORDER BY d.created_at DESC\n   LIMIT 1;\n$function$\n"
+        },
+        {
+          "signature": "fermeture_definir_date_universelle()",
+          "empreinte": "380426b569ffd63abc90fd985fbc650f",
+          "prosecdef": false,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+          "client_execute": false,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.fermeture_definir_date_universelle()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nBEGIN\n  IF NEW.duree_jours IS NULL OR NEW.duree_jours < 1 OR NEW.duree_jours > 36500 THEN\n    RAISE EXCEPTION 'Fermeture : duree_jours obligatoire (1..36500)';\n  END IF;\n  -- La base décide de la date, pas le navigateur ni le compteur individuel.\n  NEW.date_fin_universelle := (now() AT TIME ZONE 'Europe/Paris')::date + NEW.duree_jours;\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+          "signature": "helvetia_debiter_fonds_ordinaires(text,numeric,text)",
+          "empreinte": "a960aeb44ddca7cc78ea837c8cbc8f24",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+          "client_execute": false,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.helvetia_debiter_fonds_ordinaires(p_personnage text, p_montant numeric, p_priorite text)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  v_liquide numeric; v_arg numeric; v_solde numeric;\n  v_preleve_liquide numeric; v_preleve_national numeric;\nBEGIN\n  IF p_priorite NOT IN ('liquide','nationale') OR p_priorite IS NULL THEN RAISE EXCEPTION 'priorite_invalide'; END IF;\n  IF p_montant IS NULL OR p_montant <= 0 THEN RETURN true; END IF;\n\n  SELECT COALESCE(liquide,0), COALESCE(arg,0) INTO v_liquide, v_arg\n    FROM public.personnages_donnees WHERE name = p_personnage FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'Personnage introuvable'; END IF;\n\n  SELECT COALESCE(solde,0) INTO v_solde FROM public.comptes_bancaires\n   WHERE personnage = p_personnage AND banque = 'nationale' FOR UPDATE;\n\n  -- Les circuits historiques conservent leur priorite liquide et leur representation.\n  -- La construction requiert des francs entiers : ne jamais arrondir un solde historique.\n  IF p_priorite='nationale' AND (p_montant<>trunc(p_montant) OR v_liquide<>trunc(v_liquide)\n      OR coalesce(v_solde,0)<>trunc(coalesce(v_solde,0)) OR v_liquide<0 OR coalesce(v_solde,0)<0) THEN\n    RAISE EXCEPTION 'etat_financier_non_entier'; END IF;\n  IF (v_liquide + COALESCE(v_solde,0)) < p_montant THEN RETURN false; END IF;\n  IF p_priorite='nationale' THEN\n    v_preleve_national:=LEAST(coalesce(v_solde,0),p_montant);\n    v_preleve_liquide:=p_montant-v_preleve_national;\n  ELSE\n    v_preleve_liquide:=LEAST(v_liquide,p_montant);\n    v_preleve_national:=p_montant-v_preleve_liquide;\n  END IF;\n\n  UPDATE public.personnages_donnees\n     SET liquide = v_liquide - v_preleve_liquide,\n         arg = GREATEST(0, v_arg - p_montant),\n         updated_at = now()\n   WHERE name = p_personnage;\n\n  IF v_preleve_national > 0 THEN\n    UPDATE public.comptes_bancaires SET solde = solde - v_preleve_national, updated_at = now()\n     WHERE personnage = p_personnage AND banque = 'nationale';\n  END IF;\n\n  RETURN true;\nEND; $function$\n"
+        },
+        {
+          "signature": "helvetia_debiter_fonds_ordinaires(text,numeric)",
+          "empreinte": "a9ef864bfaa3b52da709252e393000d5",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+          "client_execute": false,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.helvetia_debiter_fonds_ordinaires(p_personnage text, p_montant numeric)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nBEGIN\n  RETURN public.helvetia_debiter_fonds_ordinaires(p_personnage,p_montant,'liquide');\nEND;$function$\n"
+        },
+        {
+          "signature": "payer_ordre(text,text,integer,integer)",
+          "empreinte": "9a461bfc3c33f04f342ce6f5586393a7",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.payer_ordre(p_acteur text, p_fn text DEFAULT NULL::text, p_pa integer DEFAULT 0, p_cost integer DEFAULT 0)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  v_fn text := coalesce(nullif(btrim(coalesce(p_fn,'')), ''), '(non transmis)');\n  v_connu boolean; v_valide boolean;\n  v_pa integer; v_liquide numeric; v_arg numeric;\n  v_compte_id text; v_solde numeric := 0;\n  v_pris_liquide numeric; v_pris_national numeric;\n  v_memorable record; v_pays text;\nBEGIN\n  IF v_fn = 'deposer_demande_permis' AND NOT EXISTS (\n    SELECT 1 FROM public.permis_transactions_internes WHERE transaction_id=txid_current() AND acteur=auth.uid()\n  ) THEN RETURN jsonb_build_object('ok',false,'raison','commande_versionnee_requise'); END IF;\n  PERFORM public.exiger_acteur(p_acteur);\n  IF coalesce(p_pa, 0) < 0 OR coalesce(p_cost, 0) < 0 THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'montant_negatif');\n  END IF;\n\n  SELECT EXISTS (SELECT 1 FROM public.ordres_couts o WHERE o.fn = v_fn) INTO v_connu;\n\n  IF NOT v_connu THEN\n    INSERT INTO public.ordres_couts_inconnus (fn, pa, cost)\n    VALUES (v_fn, coalesce(p_pa,0), coalesce(p_cost,0))\n    ON CONFLICT (fn) DO UPDATE SET occurrences = public.ordres_couts_inconnus.occurrences + 1;\n    RETURN jsonb_build_object('ok', false, 'raison', 'ordre_inconnu', 'fn', v_fn);\n  END IF;\n\n  SELECT EXISTS (SELECT 1 FROM public.ordres_couts o\n                 WHERE o.fn = v_fn AND o.pa = coalesce(p_pa,0) AND o.cost = coalesce(p_cost,0))\n    INTO v_valide;\n  IF NOT v_valide THEN\n    INSERT INTO public.ordres_couts_ecarts (fn, pa, cost)\n    VALUES (v_fn, coalesce(p_pa,0), coalesce(p_cost,0))\n    ON CONFLICT (fn, pa, cost)\n      DO UPDATE SET occurrences = public.ordres_couts_ecarts.occurrences + 1, vu_le = now();\n    RETURN jsonb_build_object('ok', false, 'raison', 'cout_non_declare',\n                              'fn', v_fn, 'pa', p_pa, 'cost', p_cost);\n  END IF;\n\n  SELECT pa, liquide, arg INTO v_pa, v_liquide, v_arg\n  FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;\n  IF v_pa IS NULL THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');\n  END IF;\n\n  SELECT id, solde INTO v_compte_id, v_solde FROM public.comptes_bancaires\n  WHERE personnage = p_acteur AND banque = 'nationale' FOR UPDATE;\n  v_solde := coalesce(v_solde, 0);\n\n  IF v_pa < coalesce(p_pa, 0) THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'pa_insuffisants', 'pa_reel', v_pa);\n  END IF;\n  IF coalesce(v_liquide,0) + v_solde < coalesce(p_cost, 0) THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants',\n                              'disponible', coalesce(v_liquide,0) + v_solde);\n  END IF;\n\n  v_pris_liquide := least(coalesce(v_liquide,0), coalesce(p_cost,0));\n  v_pris_national := coalesce(p_cost,0) - v_pris_liquide;\n\n  UPDATE public.personnages_donnees\n     SET pa = v_pa - coalesce(p_pa,0),\n         liquide = coalesce(v_liquide,0) - v_pris_liquide,\n         arg = coalesce(v_arg,0) - coalesce(p_cost,0)\n   WHERE name = p_acteur;\n\n  IF v_pris_national > 0 AND v_compte_id IS NOT NULL THEN\n    UPDATE public.comptes_bancaires SET solde = solde - v_pris_national,\n           updated_at = now() WHERE id = v_compte_id;\n  END IF;\n\n  -- LA MEMOIRE DES MANDATS (11 octobre 2026). Apres le prelevement, donc sur un fait accompli, et\n  -- seulement si le triplet figure au registre des actes memorables. `presidence_memoire_noter`\n  -- verifie elle-meme que l'acteur est bien le President en exercice : si c'est un ministre qui\n  -- tient la conference de presse, rien n'est ecrit. Le registre ne contient AUCUN panneau a\n  -- (0 PA, 0 FR) -- ouvrir une fenetre n'est pas un acte.\n  SELECT * INTO v_memorable FROM public.presidence_memoire_ordres\n   WHERE fn = v_fn AND pa = coalesce(p_pa,0) AND cost = coalesce(p_cost,0);\n  IF FOUND THEN\n    SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = p_acteur;\n    PERFORM public.presidence_memoire_noter(\n      v_pays, 'reaction', 'ordre_presidentiel', v_memorable.sujet,\n      jsonb_build_object('ordre', v_fn, 'pa', coalesce(p_pa,0), 'cout', coalesce(p_cost,0)),\n      p_acteur);\n  END IF;\n\n  RETURN jsonb_build_object(\n    'ok', true, 'pa', v_pa - coalesce(p_pa,0),\n    'liquide', coalesce(v_liquide,0) - v_pris_liquide,\n    'arg', coalesce(v_arg,0) - coalesce(p_cost,0),\n    'solde_national', v_solde - v_pris_national,\n    'pa_preleves', coalesce(p_pa,0), 'montant_preleve', coalesce(p_cost,0));\nEND;\n$function$\n"
+        },
+        {
+          "signature": "permis_depot_archive_proteger()",
+          "empreinte": "93c4710e58172e89437e4dc482b5d567",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+          "client_execute": false,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.permis_depot_archive_proteger()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nBEGIN\n IF NEW.type_evenement='depot' AND NOT EXISTS(\n  SELECT 1 FROM public.permis_transactions_internes\n  WHERE transaction_id=txid_current() AND acteur=auth.uid()\n ) THEN RAISE EXCEPTION 'depot_permis_commande_versionnee_requise'; END IF;\n RETURN NEW;\nEND;$function$\n"
+        },
+        {
+          "signature": "prelever_loyer_bail(text)",
+          "empreinte": "3cfefba8f901bffa734baa35e3b68388",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+          "client_execute": false,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.prelever_loyer_bail(p_bail_id text)\n RETURNS text\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  v_bail        locations_actives%ROWTYPE;\n  v_data        jsonb;\n  v_locataire   text;\n  v_prix        numeric;\n  v_dest        jsonb;\n  v_dest_type   text;\n  v_pays        text;\n  v_ville       text;\n  v_building    text;\n  v_arg         numeric;\n  v_liquide_loyer numeric;\n  v_disponible_bancaire numeric;\n  v_debit_banque numeric;\n  v_debit_liquide numeric;\n  v_jour        text := to_char(now() AT TIME ZONE 'Europe/Paris', 'YYYY-MM-DD');\n  v_cle         text;\n  v_titulaire   text;\n  v_orga_id     text;\n  v_orga_data   text;\n  v_maj         integer;\n  v_rec         jsonb;\n  -- L'ardoise de l'impaye, desormais calculee ET posee ici : voir le bloc de la\n  -- branche « expulsion_requise ».\n  v_imp         jsonb;\n  v_avise       boolean;\nBEGIN\n  SELECT *\n  INTO v_bail\n  FROM locations_actives\n  WHERE id = p_bail_id\n  FOR UPDATE;\n\n  IF NOT FOUND THEN\n    RETURN 'bail_absent';\n  END IF;\n\n  v_data      := v_bail.data;\n  v_locataire := v_data ->> 'locataire';\n  v_prix      := COALESCE((v_data ->> 'prix')::numeric, 0);\n\n  -- Anti-rejeu : un seul prélèvement par bail et par jour réel.\n  IF (v_data ->> 'jourPaiement') = v_jour THEN\n    RETURN 'deja_preleve';\n  END IF;\n\n  -- Usages sans loyer réel.\n  IF v_prix <= 0\n     OR (v_data ->> 'chambreClinique') = 'true'\n     OR v_locataire IS NULL\n  THEN\n    UPDATE locations_actives\n    SET data = v_data || jsonb_build_object('jourPaiement', v_jour)\n    WHERE id = p_bail_id;\n\n    RETURN 'ignore_sans_loyer';\n  END IF;\n\n  -- DESTINATION ATTESTEE (20 septembre 2026). Elle n'est plus lue dans le bail --\n  -- ecriture directe falsifiable -- mais DERIVEE du local, par la meme regle que le\n  -- client (destinationLoyerPourLocal). Le champ destinationLoyer du bail n'est plus\n  -- qu'informatif. Fail-closed inchange : pas de destination -> pas de mouvement.\n  v_dest := public.bail_destination_attestee(v_data);\n  IF v_dest IS NULL THEN\n    UPDATE locations_actives\n    SET data = v_data || jsonb_build_object('jourPaiement', v_jour)\n    WHERE id = p_bail_id;\n    RETURN 'ignore_sans_loyer';\n  END IF;\n\n  IF v_dest IS NULL OR jsonb_typeof(v_dest) = 'null' THEN\n    UPDATE locations_actives\n    SET data = v_data || jsonb_build_object('jourPaiement', v_jour)\n    WHERE id = p_bail_id;\n\n    RETURN 'ignore_sans_loyer';\n  END IF;\n\n  v_dest_type := v_dest ->> 'type';\n\n  -- Verrou du locataire.\n  SELECT arg\n  INTO v_arg\n  FROM personnages\n  WHERE name = v_locataire\n  FOR UPDATE;\n\n  IF NOT FOUND THEN\n    RETURN 'locataire_absent';\n  END IF;\n\n  SELECT coalesce(liquide,0) INTO v_liquide_loyer\n     FROM public.personnages_donnees WHERE name=v_locataire FOR UPDATE;\n  SELECT coalesce(sum(greatest(solde,0)),0) INTO v_disponible_bancaire\n     FROM public.comptes_bancaires WHERE personnage=v_locataire AND banque='nationale';\n  -- Impayé.\n  IF COALESCE(v_arg, 0) < v_prix OR coalesce(v_liquide_loyer,0)+v_disponible_bancaire < v_prix THEN\n    IF COALESCE((v_data ->> 'avertissement')::boolean, false) THEN\n      -- ARDOISE ATOMIQUE (chantier 6, 9 octobre 2026). Cette branche etait LA SEULE sortie\n      -- a effet a ne pas poser jourPaiement : un rejeu du cron la meme nuit rendait de\n      -- nouveau « expulsion_requise », et l'appelant rajoutait un jour et un loyer a\n      -- l'ardoise. La dette DOUBLAIT a chaque passe.\n      --\n      -- Poser le marqueur ne suffisait pas : l'appelant reecrivait le blob entier depuis\n      -- une lecture ANTERIEURE a cet appel, et effacait donc le marqueur dans la foulee.\n      -- Le calcul de l'ardoise descend ici, ou il devient atomique avec sa revendication :\n      -- une RPC est une seule transaction, et v_data a ete lu FOR UPDATE.\n      --\n      -- La regle, elle, ne change pas (arbitrage du 8 septembre 2026) : aucune expulsion\n      -- automatique, un impaye est un FAIT qu'on chiffre et qu'on conserve, et un seul\n      -- avis a l'ouverture de l'ardoise. Aucun argent ne bouge : le loyer reste du.\n      v_imp := CASE WHEN jsonb_typeof(v_data -> 'impaye') = 'object'\n                    THEN v_data -> 'impaye' ELSE '{}'::jsonb END;\n      v_avise := COALESCE((v_imp ->> 'avisEnvoye')::boolean, false);\n      UPDATE locations_actives\n         SET data = v_data || jsonb_build_object(\n               'jourPaiement', v_jour,\n               'impaye', jsonb_build_object(\n                  'depuis',     COALESCE(v_imp ->> 'depuis', v_jour),\n                  'jours',      COALESCE((v_imp ->> 'jours')::numeric, 0) + 1,\n                  'montantDu',  COALESCE((v_imp ->> 'montantDu')::numeric, 0) + v_prix,\n                  'avisEnvoye', true))\n       WHERE id = p_bail_id;\n      -- Deux verdicts distincts, parce que l'appelant n'a plus qu'une chose a faire et\n      -- qu'elle depend de celui-ci : poster l'avis UNE fois, a l'ouverture.\n      IF v_avise THEN\n        RETURN 'expulsion_requise_deja_avise';\n      END IF;\n      RETURN 'expulsion_requise';\n    END IF;\n\n    UPDATE locations_actives\n    SET data = v_data\n      || jsonb_build_object(\n           'avertissement', true,\n           'jourPaiement', v_jour\n         )\n    WHERE id = p_bail_id;\n\n    RETURN 'avertissement';\n  END IF;\n\n  -- Crédit de la destination.\n  IF v_dest_type = 'municipal' THEN\n\n    v_pays  := COALESCE(v_dest ->> 'pays',  v_data ->> 'country');\n    v_ville := COALESCE(v_dest ->> 'ville', v_data ->> 'city');\n\n    v_rec := public.recette_municipale(v_pays, v_ville, v_prix, 'loyer');\n    IF NOT COALESCE((v_rec ->> 'ok')::boolean, false) THEN\n      RAISE EXCEPTION 'destination_introuvable';\n    END IF;\n\n  ELSIF v_dest_type = 'titulaire_murs' THEN\n\n    -- Le titulaire explicite n'est PLUS lu : c'etait la porte par laquelle un bail\n    -- falsifie redirigeait le loyer. Le proprietaire ACTUEL fait foi, toujours.\n    v_titulaire := NULL;\n\n    IF v_titulaire IS NULL OR v_titulaire = '' THEN\n      SELECT (data::jsonb ->> 'proprietaire')\n      INTO v_titulaire\n      FROM terrains_etat\n      WHERE country = (v_data ->> 'country')\n        AND building_id = (v_data ->> 'buildingId');\n    END IF;\n\n    IF v_titulaire IS NULL OR v_titulaire = '' THEN\n      RAISE EXCEPTION 'destination_introuvable';\n    END IF;\n\n    -- Organisation propriétaire.\n    IF left(v_titulaire, 5) = 'orga:' THEN\n\n      v_orga_id := substr(v_titulaire, 6);\n\n      IF v_orga_id = '' THEN\n        RAISE EXCEPTION 'destination_introuvable';\n      END IF;\n\n      SELECT data\n      INTO v_orga_data\n      FROM organisations\n      WHERE id = v_orga_id\n      FOR UPDATE;\n\n      IF NOT FOUND THEN\n        RAISE EXCEPTION 'destination_introuvable';\n      END IF;\n\n      IF v_orga_data IS NULL OR btrim(v_orga_data) = '' THEN\n        RAISE EXCEPTION 'destination_introuvable';\n      END IF;\n\n      UPDATE organisations\n      SET data = jsonb_set(\n                   v_orga_data::jsonb,\n                   '{caisse}',\n                   to_jsonb(\n                     COALESCE(\n                       (v_orga_data::jsonb ->> 'caisse')::numeric,\n                       0\n                     ) + v_prix\n                   )\n                 )::text\n      WHERE id = v_orga_id;\n\n    ELSE\n\n      -- PJ propriétaire, avec compatibilité ancien format nom brut.\n      IF left(v_titulaire, 3) = 'pj:' THEN\n        v_titulaire := substr(v_titulaire, 4);\n      END IF;\n\n      UPDATE personnages\n      SET arg = COALESCE(arg, 0) + v_prix\n      WHERE name = v_titulaire;\n\n      GET DIAGNOSTICS v_maj = ROW_COUNT;\n\n      IF v_maj = 0 THEN\n        RAISE EXCEPTION 'destination_introuvable';\n      END IF;\n\n    END IF;\n\n  ELSIF v_dest_type = 'caisse_batiment' THEN\n\n    v_building := COALESCE(\n      v_dest ->> 'buildingId',\n      v_data ->> 'buildingId'\n    );\n\n    v_cle := (v_data ->> 'country') || '_' || v_building;\n\n    UPDATE caisses_batiments\n    SET data = jsonb_set(\n                 COALESCE(data, '{}'::jsonb),\n                 '{solde}',\n                 to_jsonb(\n                   COALESCE((data ->> 'solde')::numeric, 0) + v_prix\n                 )\n               ),\n        updated_at = now()\n    WHERE id = v_cle;\n\n    GET DIAGNOSTICS v_maj = ROW_COUNT;\n\n    IF v_maj = 0 THEN\n      INSERT INTO caisses_batiments (id, data, updated_at)\n      VALUES (\n        v_cle,\n        jsonb_build_object('solde', v_prix),\n        now()\n      );\n    END IF;\n\n  ELSE\n    RAISE EXCEPTION 'destination_introuvable';\n  END IF;\n\n  -- Débit atomique des avoirs réels, priorité au compte national.\n  v_debit_banque:=least(v_disponible_bancaire,v_prix);\n  v_debit_liquide:=v_prix-v_debit_banque;\n  UPDATE public.comptes_bancaires\n     SET solde=solde-v_debit_banque,updated_at=now()\n   WHERE personnage=v_locataire AND banque='nationale' AND solde>=v_debit_banque;\n  IF v_debit_banque>0 AND NOT FOUND THEN RAISE EXCEPTION 'compte_bancaire_modifie'; END IF;\n  UPDATE public.personnages_donnees\n     SET arg=arg-v_prix,liquide=liquide-v_debit_liquide,updated_at=now()\n   WHERE name=v_locataire AND liquide>=v_debit_liquide;\n  IF NOT FOUND THEN RAISE EXCEPTION 'avoirs_modifies'; END IF;\n\n  UPDATE locations_actives\n  SET data = (v_data - 'avertissement')\n    || jsonb_build_object(\n         'jourPaiement', v_jour,\n         'dernierLoyerPaye', v_jour\n       )\n  WHERE id = p_bail_id;\n\n  RETURN 'paye';\nEND;\n$function$\n"
+        },
+        {
+          "signature": "pret_national_contracter(numeric,integer,text,text)",
+          "empreinte": "8a08c4561a32f8eafb3c03429fa63b38",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.pret_national_contracter(p_montant numeric, p_duree_jours integer, p_type_pret text, p_building_id text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE v_nom text; v_pj public.personnages_donnees%ROWTYPE; v_taux numeric; v_total numeric; v_mensualite numeric; v_id text; v_solde numeric; v_arg numeric; v_liquide numeric;\nBEGIN\n v_nom:=public.mon_personnage();\n IF v_nom IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;\n SELECT * INTO v_pj FROM public.personnages_donnees WHERE name=v_nom FOR UPDATE;\n IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','personnage_absent'); END IF;\n IF p_montant IS NULL OR p_montant<>trunc(p_montant) OR p_montant<1000 OR p_montant>1000000\n    OR p_duree_jours NOT IN (10,15,20,25,30)\n    OR p_type_pret <> 'travaux' OR v_pj.country<>'republic'\n    OR v_pj.current_building <> 'banque-nationale' THEN\n  RETURN jsonb_build_object('ok',false,'raison','parametres_invalides');\n END IF;\n IF EXISTS(SELECT 1 FROM public.prets WHERE emprunteur=v_nom AND type_pret=p_type_pret AND statut='en_cours') THEN\n  RETURN jsonb_build_object('ok',false,'raison','pret_deja_actif');\n END IF;\n SELECT solde INTO v_solde FROM public.comptes_bancaires WHERE personnage=v_nom AND banque='nationale' FOR UPDATE;\n IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','compte_national_absent'); END IF;\n v_taux:=public.taux_pret_nationale(v_pj.country);\n v_total:=round(p_montant*(1+v_taux/100));\n v_mensualite:=ceil(v_total/p_duree_jours);\n v_id:='pret-national-'||gen_random_uuid()::text;\n INSERT INTO public.prets(id,emprunteur,country,building_id,type_banque,type_pret,montant_initial,montant_restant,duree_jours,mensualite,jours_impayes,jour_dernier_prelevement,statut)\n VALUES(v_id,v_nom,v_pj.country,v_pj.current_building,'nationale',p_type_pret,p_montant,v_total,p_duree_jours,v_mensualite,0,(now() at time zone 'Europe/Paris')::date::text,'en_cours');\n INSERT INTO public.fonds_credits_uniques(acteur,source,reference,ordre,montant) VALUES(v_nom,'pret_national',v_id,'emprunter_construction',p_montant);\n UPDATE public.comptes_bancaires SET solde=solde+p_montant,updated_at=now() WHERE personnage=v_nom AND banque='nationale' RETURNING solde INTO v_solde;\n UPDATE public.personnages_donnees SET arg=COALESCE(arg,0)+p_montant,updated_at=now() WHERE name=v_nom RETURNING arg,COALESCE(liquide,0) INTO v_arg,v_liquide;\n RETURN jsonb_build_object('ok',true,'pret_id',v_id,'montant',p_montant,'solde_banque',v_solde,'arg',v_arg,'liquide',v_liquide);\nEND; $function$\n"
+        },
+        {
+          "signature": "recherche_inscrire(jsonb,text)",
+          "empreinte": "478add9bb5ea14112f420dffee8ac919",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.recherche_inscrire(p_entree jsonb, p_cible text DEFAULT NULL::text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE v_moi text; v_cible text; v_id text; v_apres jsonb; v_n integer;\nBEGIN\n  IF p_entree IS NULL OR jsonb_typeof(p_entree) <> 'object' THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'entree_invalide');\n  END IF;\n\n  v_moi := public.mon_personnage();\n  IF v_moi IS NOT NULL THEN\n    -- UN JOUEUR N'INSCRIT QUE SUR SA PROPRE FICHE. Condamner autrui est un pouvoir, et il a sa\n    -- porte : justice_condamner, qui relit le poste de l'appelant.\n    IF p_cible IS NOT NULL AND p_cible <> v_moi THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'pas_ma_fiche');\n    END IF;\n    v_cible := v_moi;\n  ELSE\n    IF coalesce(btrim(coalesce(p_cible, '')), '') = '' THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'cible_manquante');\n    END IF;\n    v_cible := p_cible;\n  END IF;\n\n  PERFORM set_config('rp.recherche_interne', 'on', true);\n\n  -- IDEMPOTENCE PAR IDENTIFIANT, quand l'entree en porte un. C'est le cas du mandat d'arret des\n  -- tracts calomnieux, dont le client verifiait deja l'absence avant de le refleter. Un crime\n  -- ordinaire, lui, n'a pas d'identifiant : il peut etre commis deux fois, et doit s'inscrire\n  -- deux fois.\n  v_id := nullif(p_entree ->> 'id', '');\n  IF v_id IS NOT NULL THEN\n    SELECT count(*) INTO v_n FROM public.personnages_donnees d,\n           jsonb_array_elements(CASE WHEN jsonb_typeof(d.recherche)='array'\n                                     THEN d.recherche ELSE '[]'::jsonb END) e\n     WHERE d.name = v_cible AND e ->> 'id' = v_id;\n    IF v_n > 0 THEN\n      SELECT coalesce(recherche, '[]'::jsonb) INTO v_apres\n        FROM public.personnages_donnees WHERE name = v_cible;\n      RETURN jsonb_build_object('ok', true, 'action', 'deja_inscrite',\n                                'recherche', coalesce(v_apres, '[]'::jsonb));\n    END IF;\n  END IF;\n\n  -- L'AJOUT EST ATOMIQUE : aucune relecture, donc aucune fenetre de perte.\n  UPDATE public.personnages_donnees\n     SET recherche = (CASE WHEN jsonb_typeof(recherche) = 'array'\n                           THEN recherche ELSE '[]'::jsonb END) || jsonb_build_array(p_entree)\n   WHERE name = v_cible\n  RETURNING recherche INTO v_apres;\n  PERFORM set_config('rp.recherche_interne', '', true);   -- la portee s'arrete ici\n  IF NOT FOUND THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable');\n  END IF;\n\n  RETURN jsonb_build_object('ok', true, 'action', 'inscrite',\n                            'recherche', coalesce(v_apres, '[]'::jsonb));\nEND; $function$\n"
+        },
+        {
+          "signature": "terrain_compromis_acte(text,text,jsonb)",
+          "empreinte": "17e26d10e1fb5585d5f5e60a0e816b68",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.terrain_compromis_acte(p_terrain_id text, p_acte text, p_patch jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE v_moi text; v_pays text; v_lu jsonb; v_etat jsonb; v_patch jsonb; v_final jsonb;\n  v_cles text[]; v_k text;\nBEGIN\n  v_moi := public.mon_personnage();\n  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;\n  IF p_acte NOT IN ('compromis_signer', 'compromis_pret_demander', 'compromis_transfert_proposer',\n                    'compromis_transfert_accepter', 'achat_direct_deposer', 'achat_direct_accelerer') THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'acte_inconnu');\n  END IF;\n  IF p_patch IS NULL OR jsonb_typeof(p_patch) <> 'object' THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'patch_invalide');\n  END IF;\n  SELECT d.country INTO v_pays FROM public.personnages_donnees d WHERE d.name = v_moi LIMIT 1;\n\n  -- LISTE DE CLES PAR ACTE (10 octobre 2026). Meme regle que `terrain_permis_acte` : un acte\n  -- ne touche que les cles qu'il declare. Relevees sur les six chemins du navigateur.\n  v_cles := CASE p_acte\n    WHEN 'compromis_signer' THEN ARRAY['compromis', 'compromisPar', 'acompte',\n                                        'compromisAt', 'compromisExpireAt', 'pretDemande', 'permis']\n    WHEN 'compromis_pret_demander' THEN ARRAY['pretDemande']\n    WHEN 'compromis_transfert_proposer' THEN ARRAY['transfertPropose', 'transfertProposePar']\n    WHEN 'compromis_transfert_accepter' THEN ARRAY['compromisPar', 'transfertPropose',\n                                        'transfertProposePar', 'permis', 'pretDemande']\n    ELSE ARRAY['achatDirect'] END;\n  FOR v_k IN SELECT jsonb_object_keys(p_patch) LOOP\n    IF NOT (v_k = ANY (v_cles)) THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'cle_hors_acte', 'cle', v_k);\n    END IF;\n  END LOOP;\n\n  v_lu := public.terrain_etat_verrouiller_interne(p_terrain_id);\n  v_etat := v_lu -> 'etat';\n  -- LE GEL SUCCESSORAL EST LA MEME REGLE QUE DANS `terrain_proprietaire_muter`, lue en base.\n  IF (v_lu ->> 'gele')::boolean THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');\n  END IF;\n  v_patch := p_patch;\n\n  IF p_acte = 'compromis_signer' THEN\n    -- LA REGLE EXISTAIT DEJA, cote serveur, pour le jumeau Helvetia : `signer_compromis_bien_helvetia`\n    -- refuse « bien deja sous compromis ». Le chemin ordinaire ne la verifiait que dans l'ecran.\n    IF coalesce((v_etat ->> 'compromis')::boolean, false)\n       AND (v_etat ->> 'compromisPar') IS DISTINCT FROM v_moi THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'deja_sous_compromis',\n                                'detenteur', v_etat ->> 'compromisPar');\n    END IF;\n    -- LE DETENTEUR N'EST PLUS DICTE PAR LE NAVIGATEUR.\n    v_patch := v_patch || jsonb_build_object('compromis', true, 'compromisPar', v_moi);\n\n  ELSIF p_acte IN ('compromis_pret_demander', 'compromis_transfert_proposer') THEN\n    IF coalesce((v_etat ->> 'compromis')::boolean, false) IS NOT TRUE\n       OR (v_etat ->> 'compromisPar') IS DISTINCT FROM v_moi THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_compromis');\n    END IF;\n    IF p_acte = 'compromis_transfert_proposer' THEN\n      IF nullif(btrim(coalesce(v_patch ->> 'transfertPropose', '')), '') IS NULL THEN\n        RETURN jsonb_build_object('ok', false, 'raison', 'destinataire_absent');\n      END IF;\n      IF (v_patch ->> 'transfertPropose') = v_moi THEN\n        RETURN jsonb_build_object('ok', false, 'raison', 'transfert_a_soi_meme');\n      END IF;\n      v_patch := v_patch || jsonb_build_object('transfertProposePar', v_moi);\n    END IF;\n\n  ELSIF p_acte = 'compromis_transfert_accepter' THEN\n    -- LA REGLE QUI N'EXISTAIT QUE DANS L'ECRAN. Sans elle, n'importe quel joueur connecte posait\n    -- son nom dans `compromisPar` et reprenait le compromis d'un autre.\n    IF (v_etat ->> 'transfertPropose') IS DISTINCT FROM v_moi THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'transfert_non_propose');\n    END IF;\n    v_patch := v_patch || jsonb_build_object('compromisPar', v_moi,\n      'transfertPropose', NULL, 'transfertProposePar', NULL);\n\n  ELSIF p_acte = 'achat_direct_deposer' THEN\n    IF coalesce((v_etat ->> 'compromis')::boolean, false)\n       OR ((v_etat -> 'achatDirect') IS NOT NULL\n           AND (v_etat -> 'achatDirect' ->> 'demandeur') IS DISTINCT FROM v_moi) THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'terrain_indisponible');\n    END IF;\n    IF jsonb_typeof(v_patch -> 'achatDirect') <> 'object' THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'achat_direct_absent');\n    END IF;\n    v_patch := jsonb_set(v_patch, '{achatDirect,demandeur}', to_jsonb(v_moi));\n\n  ELSIF p_acte = 'achat_direct_accelerer' THEN\n    -- REGLE RECOPIEE MOT POUR MOT DU CLIENT :\n    --   if (!ts.achatDirect || ts.achatDirect.demandeur !== state.char?.name)\n    IF (v_etat -> 'achatDirect') IS NULL\n       OR (v_etat -> 'achatDirect' ->> 'demandeur') IS DISTINCT FROM v_moi THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_achat_direct');\n    END IF;\n    v_patch := jsonb_set(v_patch, '{achatDirect,demandeur}', to_jsonb(v_moi));\n  END IF;\n\n  v_final := public.terrain_etat_fusionner_interne(p_terrain_id, v_patch, v_pays);\n  RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'etat', v_final);\nEND; $function$\n"
+        },
+        {
+          "signature": "terrain_lots_acte(text,text,jsonb,text[])",
+          "empreinte": "9d648dfb4f5248faf18b4373083ba57f",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.terrain_lots_acte(p_terrain_id text, p_acte text, p_lots jsonb DEFAULT NULL::jsonb, p_retirer text[] DEFAULT NULL::text[])\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  v_moi text; v_pays text; v_lu jsonb; v_etat jsonb; v_lots jsonb; v_final jsonb;\n  v_neuf jsonb; v_lot jsonb; v_remplacant jsonb; v_id text; v_i integer; v_n integer := 0;\nBEGIN\n  v_moi := public.mon_personnage();\n  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;\n  IF p_acte NOT IN ('lot_ajouter', 'lot_fusion_proposer', 'lot_fusion_accepter',\n                    'lot_fusion_refuser', 'lot_louer', 'lot_bail_libere') THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'acte_inconnu');\n  END IF;\n  IF p_lots IS NOT NULL AND jsonb_typeof(p_lots) <> 'array' THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'lots_invalides');\n  END IF;\n  IF coalesce(jsonb_array_length(coalesce(p_lots, '[]'::jsonb)), 0) = 0\n     AND coalesce(array_length(p_retirer, 1), 0) = 0 THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'rien_a_ecrire');\n  END IF;\n  SELECT d.country INTO v_pays FROM public.personnages_donnees d WHERE d.name = v_moi LIMIT 1;\n\n  v_lu := public.terrain_etat_verrouiller_interne(p_terrain_id);\n  v_etat := v_lu -> 'etat';\n  IF (v_lu ->> 'gele')::boolean THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');\n  END IF;\n  v_lots := coalesce(v_etat -> 'subdivisions', '[]'::jsonb);\n  IF jsonb_typeof(v_lots) <> 'array' THEN v_lots := '[]'::jsonb; END IF;\n\n  -- AUTORITE PAR ACTE. Les deux actes du proprietaire passent par le jumeau SQL de `estTitulaire`,\n  -- qui reconnait `pj:<nom>` comme la chaine nue. Les autres sont le fait du locataire ou du\n  -- visiteur : les ecrans ne leur demandaient rien d'autre que de concerner leur propre lot, et\n  -- c'est ce que la porte verifie lot par lot.\n  IF p_acte IN ('lot_ajouter', 'lot_fusion_proposer') THEN\n    IF NOT public.titulaire_est_moi(v_etat ->> 'proprietaire') THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'pas_proprietaire');\n    END IF;\n  ELSIF p_acte IN ('lot_fusion_accepter', 'lot_fusion_refuser') THEN\n    FOR v_lot IN SELECT * FROM jsonb_array_elements(coalesce(p_lots, '[]'::jsonb)) LOOP\n      v_id := v_lot ->> 'id';\n      IF NOT EXISTS (\n        SELECT 1 FROM jsonb_array_elements(v_lots) e\n         WHERE (e.value ->> 'id') = v_id\n           AND (e.value -> 'propositionAgrandissement') IS NOT NULL\n           AND public.titulaire_est_moi(e.value ->> 'locataire')) THEN\n        RETURN jsonb_build_object('ok', false, 'raison', 'aucune_proposition_sur_mon_lot', 'lot', v_id);\n      END IF;\n    END LOOP;\n  ELSIF p_acte = 'lot_louer' THEN\n    -- Le bail est pris ATOMIQUEMENT ailleurs (`locations_actives`, cle primaire). Cette ecriture\n    -- n'est que le miroir transitoire que le cron des loyers lit encore : la porte verifie donc\n    -- seulement que le locataire pose est bien l'appelant.\n    FOR v_lot IN SELECT * FROM jsonb_array_elements(coalesce(p_lots, '[]'::jsonb)) LOOP\n      IF NOT public.titulaire_est_moi(v_lot ->> 'locataire') THEN\n        RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_bail', 'lot', v_lot ->> 'id');\n      END IF;\n    END LOOP;\n  ELSIF p_acte = 'lot_bail_libere' THEN\n    -- Fin de bail : le miroir se vide. Le champ pose doit etre NUL -- on ne liberera jamais un lot\n    -- en y INSTALLANT quelqu'un.\n    FOR v_lot IN SELECT * FROM jsonb_array_elements(coalesce(p_lots, '[]'::jsonb)) LOOP\n      IF nullif(btrim(coalesce(v_lot ->> 'locataire', '')), '') IS NOT NULL THEN\n        RETURN jsonb_build_object('ok', false, 'raison', 'liberation_qui_installe', 'lot', v_lot ->> 'id');\n      END IF;\n    END LOOP;\n  END IF;\n\n  -- FUSION PAR IDENTIFIANT DE LOT. Un lot dont l'identifiant existe est REMPLACE ; sinon il est\n  -- ajoute. Les identifiants de `p_retirer` disparaissent. Le reste du tableau n'est pas touche.\n  v_neuf := '[]'::jsonb;\n  FOR v_i IN 0 .. greatest(0, jsonb_array_length(v_lots) - 1) LOOP\n    v_lot := v_lots -> v_i;\n    v_id := v_lot ->> 'id';\n    IF v_id IS NOT NULL AND p_retirer IS NOT NULL AND v_id = ANY (p_retirer) THEN\n      v_n := v_n + 1;\n      CONTINUE;\n    END IF;\n    IF v_id IS NOT NULL THEN\n      v_remplacant := NULL;\n      SELECT e.value INTO v_remplacant FROM jsonb_array_elements(coalesce(p_lots, '[]'::jsonb)) e\n       WHERE (e.value ->> 'id') = v_id LIMIT 1;\n      IF v_remplacant IS NOT NULL THEN v_lot := v_remplacant; END IF;\n    END IF;\n    v_neuf := v_neuf || jsonb_build_array(v_lot);\n  END LOOP;\n  -- Les lots envoyes qui n'existaient pas encore sont AJOUTES, dans l'ordre d'arrivee.\n  FOR v_lot IN SELECT * FROM jsonb_array_elements(coalesce(p_lots, '[]'::jsonb)) LOOP\n    IF NOT EXISTS (SELECT 1 FROM jsonb_array_elements(v_neuf) e\n                    WHERE (e.value ->> 'id') = (v_lot ->> 'id')) THEN\n      v_neuf := v_neuf || jsonb_build_array(v_lot);\n    END IF;\n  END LOOP;\n\n  v_final := public.terrain_etat_fusionner_interne(p_terrain_id,\n               jsonb_build_object('subdivisions', v_neuf), v_pays);\n  RETURN jsonb_build_object('ok', true, 'acte', p_acte, 'etat', v_final,\n    'lots', v_neuf, 'retires', v_n);\nEND; $function$\n"
+        },
+        {
+          "signature": "terrain_negociation_conclure(text,text,integer,uuid)",
+          "empreinte": "fce7fa18edabf330608098afed4b074c",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.terrain_negociation_conclure(p_terrain text, p_occupation text, p_montant integer, p_requete uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE acteur text:=public.mon_personnage();p record;r record;c jsonb;e jsonb;cle text;solde numeric;\n paiement jsonb;resultat jsonb;taux integer;jet integer;accepte boolean;bonus integer:=0;argent integer;\nBEGIN\n IF acteur IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;\n IF p_requete IS NULL OR p_montant IS NULL OR p_montant<1 OR nullif(p_occupation,'') IS NULL THEN\n  RETURN jsonb_build_object('ok',false,'raison','requete_invalide'); END IF;\n SELECT * INTO p FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;\n IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','personnage_introuvable'); END IF;\n SELECT n.* INTO r FROM public.terrain_negociations_recus n WHERE n.acteur=p.id AND n.requete=p_requete;\n IF FOUND THEN\n  IF r.terrain IS DISTINCT FROM p.country||'_'||p_terrain OR r.occupation IS DISTINCT FROM p_occupation OR r.montant<>p_montant THEN\n   RETURN jsonb_build_object('ok',false,'raison','requete_reutilisee'); END IF;\n  resultat:=r.resultat||jsonb_build_object('rejeu',true);\n  SELECT public.terrain_etat_lire(data) INTO e FROM public.terrains_etat WHERE id=r.terrain;\n ELSE\n  c:=public.terrain_negociation_preparer(p_terrain);\n  IF c->>'ok' IS DISTINCT FROM 'true' THEN RETURN c; END IF;\n  IF c->>'occupation' IS DISTINCT FROM p_occupation THEN RETURN jsonb_build_object('ok',false,'raison','occupation_modifiee','etat',c->'etat'); END IF;\n  IF p_montant<(c->>'minimum')::numeric THEN RETURN jsonb_build_object('ok',false,'raison','offre_trop_faible','minimum',c->'minimum','dernierRefus',c->'dernierRefus'); END IF;\n  SELECT coalesce(cb.solde,0) INTO solde FROM public.comptes_bancaires cb WHERE cb.personnage=acteur AND cb.banque='nationale' FOR UPDATE;\n  IF coalesce(p.liquide,0)+coalesce(solde,0)<p_montant THEN RETURN jsonb_build_object('ok',false,'raison','fonds_insuffisants'); END IF;\n  paiement:=public.payer_ordre(acteur,'negocier_squatteurs',1,0);\n  IF paiement->>'ok' IS DISTINCT FROM 'true' THEN RETURN paiement; END IF;\n  argent:=CASE WHEN p_montant>=4000 THEN 20 WHEN p_montant>=1000 THEN floor(8+(p_montant-1000)::numeric*4/1000)\n   WHEN p_montant>=500 THEN floor(5+(p_montant-500)::numeric*3/500) ELSE floor(p_montant::numeric/100) END;\n  taux:=greatest(5,least(90,floor((c->>'baseTaux')::numeric+argent+.5)::integer));\n  jet:=public.terrain_negociation_jet_interne();accepte:=jet<=taux;e:=c->'etat';cle:=p.country||'_'||p_terrain;\n  IF accepte THEN\n   IF public.helvetia_debiter_fonds_ordinaires(acteur,p_montant) IS NOT TRUE THEN RAISE EXCEPTION 'paiement_non_confirme'; END IF;\n   IF e->>'pnj'='squatter_cool' THEN\n    UPDATE public.personnages_donnees SET moral=least(100,coalesce(moral,50)+1) WHERE id=p.id RETURNING moral-coalesce(p.moral,50) INTO bonus;\n   END IF;\n   e:=public.terrain_etat_fusionner_interne(cle,'{\"pnj\":null,\"pnjData\":null,\"occupationScellee\":true}'::jsonb,p.country);\n  ELSE\n   INSERT INTO public.terrain_negociations_refus VALUES(p.id,cle,p_occupation,p_montant)\n    ON CONFLICT ON CONSTRAINT terrain_negociations_refus_pkey DO UPDATE SET montant=excluded.montant;\n  END IF;\n  resultat:=jsonb_build_object('ok',true,'accepte',accepte,'pnj',c->'etat'->>'pnj','montant',p_montant,'taux',taux,'jet',jet,'bonusMoral',bonus);\n  INSERT INTO public.terrain_negociations_recus(acteur,requete,terrain,occupation,montant,resultat) VALUES(p.id,p_requete,cle,p_occupation,p_montant,resultat);\n END IF;\n SELECT jsonb_build_object('pa',d.pa,'arg',d.arg,'liquide',d.liquide,'moral',d.moral,\n  'solde_national',coalesce((SELECT cb.solde FROM public.comptes_bancaires cb WHERE cb.personnage=acteur AND cb.banque='nationale'),0))\n  INTO paiement FROM public.personnages_donnees d WHERE id=p.id;\n RETURN resultat||jsonb_build_object('etat',e,'paiement',paiement);\nEND;$function$\n"
+        },
+        {
+          "signature": "terrain_negociation_preparer(text)",
+          "empreinte": "a636f0832dae49181b2622269c4afc9b",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.terrain_negociation_preparer(p_terrain text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE acteur text:=public.mon_personnage();p record;t record;e jsonb;revision text;dernier integer;\n cha numeric;social numeric;bonus integer;org record;m jsonb;grade integer;\nBEGIN\n IF acteur IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;\n SELECT * INTO p FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;\n IF NOT FOUND OR p.current_building IS DISTINCT FROM p_terrain OR p_terrain NOT LIKE 'terrain-a-batir%' THEN\n  RETURN jsonb_build_object('ok',false,'raison','pas_sur_place'); END IF;\n SELECT * INTO t FROM public.terrains_etat WHERE id=p.country||'_'||p_terrain\n  AND country=p.country AND building_id=p_terrain FOR UPDATE;\n IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','terrain_introuvable'); END IF;\n e:=public.terrain_etat_lire(t.data);\n IF e IS NULL OR e->>'city' IS DISTINCT FROM p.current_city THEN RETURN jsonb_build_object('ok',false,'raison','terrain_incoherent'); END IF;\n IF coalesce(e->>'succession_gel','')<>'' THEN RETURN jsonb_build_object('ok',false,'raison','terrain_gele','etat',e); END IF;\n IF coalesce(e->>'policeAppellee','')<>'' OR coalesce((e->>'enqueteJusqua')::numeric,0)>extract(epoch FROM clock_timestamp())*1000 THEN\n  RETURN jsonb_build_object('ok',false,'raison','intervention_en_cours','etat',e); END IF;\n IF coalesce(e->>'pnj','') NOT IN ('squatter_cool','squatter_agr') THEN\n  RETURN jsonb_build_object('ok',false,'raison','aucun_squatteur','etat',e); END IF;\n revision:=coalesce(e->>'dateGeneration','historique')||':'||(e->>'pnj');\n SELECT n.montant INTO dernier FROM public.terrain_negociations_refus n WHERE n.acteur=p.id AND n.terrain=t.id AND n.occupation=revision;\n SELECT avg(v) INTO cha FROM (\n  SELECT coalesce((p.stats->>'CHA')::numeric,8) v\n  UNION ALL SELECT mb.car_cha::numeric\n   FROM public.pnj_membres mb JOIN public.pnj_employes_metier em ON em.pnj_id=mb.id\n   WHERE mb.proprietaire_pj=acteur AND mb.leader_pj=acteur AND mb.statut='actif'\n ) valeurs;\n cha:=cha-CASE WHEN p.excommunie IS NOT NULL AND p.excommunie<>'null'::jsonb THEN 2 ELSE 0 END;\n IF p.stats_affaiblies ? 'CHA' THEN cha:=greatest(1,floor(cha*greatest(0,least(1,coalesce(p.hp,0)::numeric/100))+.5));\n ELSE cha:=floor(cha+.5); END IF;\n IF p.country='republic' THEN\n  SELECT (data->>'social')::numeric INTO social FROM public.indices_villes WHERE id=p.country||'_'||p.current_city;\n  social:=coalesce(social,45);\n ELSE social:=CASE p.country WHEN 'narco' THEN 25 WHEN 'soviet' THEN 35 WHEN 'khalija' THEN 40 ELSE 45 END; END IF;\n bonus:=0;\n FOR org IN SELECT data::jsonb d FROM public.organisations LOOP\n  SELECT v INTO m FROM jsonb_array_elements(coalesce(org.d->'membres','[]'::jsonb)) v WHERE v->>'nom'=acteur LIMIT 1;\n  IF m IS NULL THEN CONTINUE; END IF;\n  grade:=coalesce((m->>'gradeIdx')::integer,0);\n  bonus:=bonus+CASE org.d->>'type'\n   WHEN 'economique' THEN CASE WHEN grade>=3 THEN 30 WHEN grade>=2 THEN 20 WHEN grade>=1 THEN 10 ELSE 0 END\n   WHEN 'syndicale' THEN CASE WHEN grade>=2 THEN 25 WHEN grade>=1 THEN 15 ELSE 0 END ELSE 0 END;\n END LOOP;\n RETURN jsonb_build_object('ok',true,'etat',e,'occupation',revision,'dernierRefus',dernier,\n  'minimum',greatest(CASE WHEN e->>'pnj'='squatter_agr' THEN 500 ELSE 1 END,coalesce(dernier::numeric+1,1)),\n  'baseTaux',50+2*(cha-13)+(social-50)/5+bonus);\nEND;$function$\n"
+        },
+        {
+          "signature": "terrain_occupation_lire(text)",
+          "empreinte": "9ec6d02d9111b77192bfe84f95a4c96d",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.terrain_occupation_lire(p_terrain text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE acteur text:=public.mon_personnage();p record;t record;e jsonb;nouvelle boolean;occupation text;\nBEGIN\n IF acteur IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;\n SELECT id,country,current_city,current_building INTO p FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;\n IF NOT FOUND OR p.current_building IS DISTINCT FROM p_terrain OR p_terrain NOT LIKE 'terrain-a-batir%' THEN\n  RETURN jsonb_build_object('ok',false,'raison','pas_sur_place'); END IF;\n SELECT * INTO t FROM public.terrains_etat WHERE id=p.country||'_'||p_terrain AND country=p.country\n  AND building_id=p_terrain FOR UPDATE;\n IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','terrain_introuvable'); END IF;\n e:=public.terrain_etat_lire(t.data);\n IF e IS NULL OR e->>'city' IS DISTINCT FROM p.current_city THEN RETURN jsonb_build_object('ok',false,'raison','terrain_incoherent'); END IF;\n nouvelle:=NOT EXISTS(SELECT 1 FROM public.terrain_visites_actives WHERE terrain_id=t.id);\n IF nouvelle AND NOT coalesce((e->>'occupationScellee')::boolean,false)\n  AND nullif(e->>'proprietaire','') IS NULL AND NOT coalesce((e->>'compromis')::boolean,false)\n  AND coalesce(e->>'succession_gel','')=''\n  AND coalesce(e->>'policeAppellee','')=''\n  AND coalesce((e->>'enqueteJusqua')::numeric,0)<=extract(epoch FROM clock_timestamp())*1000 THEN\n  -- Conserver une presence historique a sa premiere adoption, sans la reinterpreter.\n  IF coalesce((e->>'occupationInitialisee')::boolean,false) OR NOT (e ? 'pnj') THEN\n   occupation:=public.terrain_occupation_tirer_interne();\n   e:=public.terrain_etat_fusionner_interne(t.id,jsonb_build_object('pnj',occupation,'pnjData',NULL,\n    'occupationInitialisee',true,'dateGeneration',floor(extract(epoch FROM clock_timestamp())*1000)),p.country);\n  ELSE\n   e:=public.terrain_etat_fusionner_interne(t.id,'{\"occupationInitialisee\":true}',p.country);\n  END IF;\n END IF;\n IF nullif(e->>'proprietaire','') IS NOT NULL OR coalesce((e->>'compromis')::boolean,false) THEN\n  e:=public.terrain_etat_fusionner_interne(t.id,'{\"occupationScellee\":true}',p.country);\n END IF;\n INSERT INTO public.terrain_visites_actives VALUES(p.id,t.id) ON CONFLICT DO NOTHING;\n RETURN jsonb_build_object('ok',true,'etat',e);\nEND;$function$\n"
+        },
+        {
+          "signature": "terrain_proprietaire_muter(text,text,jsonb,text)",
+          "empreinte": "df5c90d592cc16812eb0d139d8ead87b",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.terrain_proprietaire_muter(p_terrain_id text, p_titre text, p_patch jsonb, p_reference text DEFAULT NULL::text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE\n  v_moi text; v_data jsonb; v_cle text; v_prix numeric; v_n integer; v_nouveau text;\nBEGIN\n  IF p_titre NOT IN ('compromis','achat_direct','recompense_quete','serveur') THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'titre_inconnu');\n  END IF;\n  IF p_patch IS NULL OR jsonb_typeof(p_patch) <> 'object' THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'patch_invalide');\n  END IF;\n\n  v_moi := public.mon_personnage();\n  IF p_titre = 'serveur' THEN\n    IF v_moi IS NOT NULL THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'titre_reserve_au_serveur');\n    END IF;\n  ELSIF v_moi IS NULL THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');\n  END IF;\n\n  SELECT t.id, t.data::jsonb INTO v_cle, v_data FROM public.terrains_etat t\n   WHERE t.id = p_terrain_id OR t.building_id = p_terrain_id\n   ORDER BY (t.id = p_terrain_id) DESC LIMIT 1 FOR UPDATE;\n  IF v_cle IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'terrain_introuvable'); END IF;\n  v_data := coalesce(v_data, '{}'::jsonb);\n\n  -- LE GEL SUCCESSORAL EST REFUSE AU SERVEUR, plus seulement dans le navigateur.\n  IF coalesce(v_data ->> 'succession_gel', '') <> '' THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');\n  END IF;\n\n  IF p_titre = 'compromis' THEN\n    IF coalesce((v_data ->> 'compromis')::boolean, false) IS NOT TRUE\n       OR (v_data ->> 'compromisPar') IS DISTINCT FROM v_moi THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_compromis');\n    END IF;\n  ELSIF p_titre = 'achat_direct' THEN\n    IF (v_data -> 'achatDirect' ->> 'demandeur') IS DISTINCT FROM v_moi THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'pas_mon_achat_direct');\n    END IF;\n  ELSIF p_titre = 'recompense_quete' THEN\n    IF NOT EXISTS (SELECT 1 FROM public.quetes_actives q\n                    WHERE q.id = p_reference AND q.statut = 'resolue' AND q.resolu_par = v_moi) THEN\n      RETURN jsonb_build_object('ok', false, 'raison', 'pas_ma_quete');\n    END IF;\n  END IF;\n\n  -- LA FUSION SE FAIT SUR L'ETAT REEL, SOUS VERROU : un patch partiel n'efface plus rien, et un\n  -- cache client perime ne peut plus ecraser le serveur.\n  v_data := v_data || p_patch;\n  v_nouveau := nullif(v_data ->> 'proprietaire', '');\n\n  UPDATE public.terrains_etat\n     SET data = v_data::text, proprietaire = v_nouveau, updated_at = now()\n   WHERE id = v_cle;\n\n  -- L'HISTORIQUE PUBLIC DE LA VENTE, DANS LA MEME TRANSACTION. Son identifiant est DATE et non\n  -- horodate a la milliseconde : un rejeu le meme jour sur le meme terrain ne cree pas une seconde\n  -- ligne, et le registre ne peut plus acter une vente qui n'a pas eu lieu.\n  v_prix := nullif(p_patch ->> 'valeur_totale', '')::numeric;\n  IF p_titre IN ('compromis','achat_direct') AND v_prix IS NOT NULL AND v_nouveau IS NOT NULL THEN\n    INSERT INTO public.terrains_historique_ventes (id, country, building_id, proprietaire, prix)\n    SELECT 'vente-' || t.building_id || '-' || to_char(now() AT TIME ZONE 'UTC','YYYYMMDD')\n             || '-' || v_nouveau,\n           t.country, t.building_id, v_nouveau, v_prix\n      FROM public.terrains_etat t WHERE t.id = v_cle\n    ON CONFLICT (id) DO NOTHING;\n    GET DIAGNOSTICS v_n = ROW_COUNT;\n  ELSE\n    v_n := 0;\n  END IF;\n\n  RETURN jsonb_build_object('ok', true, 'titre', p_titre, 'cle', v_cle,\n    'proprietaire', v_nouveau, 'vente_consignee', v_n = 1, 'etat', v_data);\nEND; $function$\n"
+        },
+        {
+          "signature": "terrain_reamenagement_poser(text,jsonb)",
+          "empreinte": "a8a85325e5e42892733af3c1d0d97124",
+          "prosecdef": true,
+          "proconfig": [
+            "search_path=public, pg_temp"
+          ],
+          "proacl": "{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",
+          "client_execute": true,
+          "anonyme_execute": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.terrain_reamenagement_poser(p_terrain_id text, p_chantier jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE v_moi text; v_pays text; v_lu jsonb; v_etat jsonb; v_final jsonb;\nBEGIN\n  v_moi := public.mon_personnage();\n  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;\n  IF p_chantier IS NULL OR jsonb_typeof(p_chantier) <> 'object' THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'chantier_absent');\n  END IF;\n  SELECT d.country INTO v_pays FROM public.personnages_donnees d WHERE d.name = v_moi LIMIT 1;\n\n  v_lu := public.terrain_etat_verrouiller_interne(p_terrain_id);\n  v_etat := v_lu -> 'etat';\n  IF (v_lu ->> 'gele')::boolean THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'terrain_gele');\n  END IF;\n  -- LA REGLE DES DEUX ECRANS DE RECONFIGURATION, lue en base :\n  --   if (!estTitulaire(ts.proprietaire)) « Vous n'etes pas proprietaire de ce batiment. »\n  IF NOT public.titulaire_est_moi(v_etat ->> 'proprietaire') THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'pas_proprietaire');\n  END IF;\n  -- LISTE DE CLES, en dur : cette porte n'ecrit QUE son propre chantier. Elle ne peut donc pas\n  -- effacer `chantier`, `permis`, `subdivisions` ni le compromis, meme appelee par un client\n  -- modifie ou par un ecran reste ouvert pendant la nuit du cron.\n  v_final := public.terrain_etat_fusionner_interne(p_terrain_id,\n               jsonb_build_object('chantierReamenagement', p_chantier), v_pays);\n  RETURN jsonb_build_object('ok', true, 'etat', v_final);\nEND; $function$\n"
+        }
+      ]
+    },
+    {
+      "requete": 3,
+      "lignes": [
+        {
+          "relname": "comptes_bancaires",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "id",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "comptes_bancaires",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "personnage",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "comptes_bancaires",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "pays",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "comptes_bancaires",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "banque",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "comptes_bancaires",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "solde",
+          "format_type": "numeric",
+          "attnotnull": true
+        },
+        {
+          "relname": "comptes_bancaires",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "ouvert_le",
+          "format_type": "timestamp with time zone",
+          "attnotnull": true
+        },
+        {
+          "relname": "comptes_bancaires",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "updated_at",
+          "format_type": "timestamp with time zone",
+          "attnotnull": true
+        },
+        {
+          "relname": "entreprises",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "id",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "entreprises",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "data",
+          "format_type": "jsonb",
+          "attnotnull": true
+        },
+        {
+          "relname": "entreprises",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "updated_at",
+          "format_type": "timestamp with time zone",
+          "attnotnull": true
+        },
+        {
+          "relname": "locations_actives",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arwd/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "id",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "locations_actives",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arwd/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "country",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "locations_actives",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arwd/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "data",
+          "format_type": "jsonb",
+          "attnotnull": true
+        },
+        {
+          "relname": "locations_actives",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arwd/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "created_at",
+          "format_type": "timestamp with time zone",
+          "attnotnull": true
+        },
+        {
+          "relname": "objets_recus",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "id",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "objets_recus",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "destinataire",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "objets_recus",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "expediteur",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "objets_recus",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "data",
+          "format_type": "jsonb",
+          "attnotnull": true
+        },
+        {
+          "relname": "objets_recus",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "created_at",
+          "format_type": "timestamp with time zone",
+          "attnotnull": false
+        },
+        {
+          "relname": "objets_recus",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "reception_token",
+          "format_type": "uuid",
+          "attnotnull": true
+        },
+        {
+          "relname": "organisations",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arwd/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "id",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "organisations",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arwd/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "country_origine",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "organisations",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arwd/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "data",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "organisations",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arwd/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "created_at",
+          "format_type": "timestamp with time zone",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "id",
+          "format_type": "uuid",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "name",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "country",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "archetype",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "career",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "stats",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "resources",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "arg",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "liquide",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "banque",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "hp",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "pa",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "moral",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "poste",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "current_city",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "current_building",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "inventory",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "informateurs",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "poison_actif",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "day",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "recherche",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "created_at",
+          "format_type": "timestamp without time zone",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "updated_at",
+          "format_type": "timestamp without time zone",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "photo_url",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "photo_pos",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "bio",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "current_room",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "contacts",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "historique_crimes",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "enquetes_en_cours",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "domicile",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "employes",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "locations_actives",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "dernier_objet_trouve_jour",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "convocations",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "est_emprisonne",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "motto",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "signature_html",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "signature_blocks",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "licence_sportive",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "performance_sportive",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "blessure_sportive",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "requisition",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "detention_qhs",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "dernier_dormir",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "salaire_touche",
+          "format_type": "boolean",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "reputation_criminelle",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "salutations_du_jour",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "invitation_sociale_en_attente",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "poste_depute",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "escort_active",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "quete_accueil",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "enigme1",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "maxence",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "succes_maxence",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "journal",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "origin",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "school",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "free_pts_restants",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "carte_postale_moral_jour",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "excommunie",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "reservation_hotel",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "qualifications",
+          "format_type": "jsonb",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "effets_actifs",
+          "format_type": "jsonb",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "demandeur_emploi",
+          "format_type": "boolean",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "bonus_lobbyiste",
+          "format_type": "integer",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "hospitalisation",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "stats_affaiblies",
+          "format_type": "jsonb",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "regen_jour",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "user_id",
+          "format_type": "uuid",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "quete_carriere",
+          "format_type": "jsonb",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "bonus_pa_differe",
+          "format_type": "integer",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "pa_repos_le",
+          "format_type": "date",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "competences_militaires",
+          "format_type": "jsonb",
+          "attnotnull": true
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "current_street",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "personnages_donnees",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "inventory_revision",
+          "format_type": "bigint",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "pnj_id",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "job",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "role_libelle",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "cout_jour",
+          "format_type": "integer",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "genre",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "photo_url",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "photo_pos",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "loyaute",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "depuis_jour",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "escort_id",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_employes_metier",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "candidat_id",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "id",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "famille",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "nom",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "pays",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "proprietaire_pj",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "leader_pj",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "leader_pnj_id",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "ville",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "building_id",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "room_id",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "rue_noeud_id",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "pa",
+          "format_type": "integer",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "liquide",
+          "format_type": "numeric",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "statut",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "car_ent",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "car_cha",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "car_dup",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "car_int",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "car_per",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "car_vol",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "cree_le",
+          "format_type": "timestamp with time zone",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "maj_le",
+          "format_type": "timestamp with time zone",
+          "attnotnull": true
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "proprietaire_institution",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "proprietaire_perimetre",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "pnj_membres",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "classe",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "id",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "emprunteur",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "country",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "building_id",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "type_banque",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "type_pret",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "montant_initial",
+          "format_type": "numeric",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "montant_restant",
+          "format_type": "numeric",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "duree_jours",
+          "format_type": "integer",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "mensualite",
+          "format_type": "numeric",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "jours_impayes",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "jour_dernier_prelevement",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "statut",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "created_at",
+          "format_type": "timestamp with time zone",
+          "attnotnull": false
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "bien_cible_id",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "accord_actif",
+          "format_type": "boolean",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "accord_fin_le",
+          "format_type": "timestamp with time zone",
+          "attnotnull": false
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "accord_avertissement_envoye",
+          "format_type": "boolean",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "proposition_en_attente",
+          "format_type": "boolean",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "saisie_financiere_faite",
+          "format_type": "boolean",
+          "attnotnull": true
+        },
+        {
+          "relname": "prets",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=arw/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "fraude_affaire_id",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "terrains_etat",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "id",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "terrains_etat",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "country",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "terrains_etat",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "building_id",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "terrains_etat",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "proprietaire",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "terrains_etat",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "data",
+          "format_type": "text",
+          "attnotnull": true
+        },
+        {
+          "relname": "terrains_etat",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "updated_at",
+          "format_type": "timestamp with time zone",
+          "attnotnull": false
+        },
+        {
+          "relname": "terrains_etat",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "niveau_construction",
+          "format_type": "text",
+          "attnotnull": false
+        },
+        {
+          "relname": "terrains_etat",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "valeur_totale",
+          "format_type": "integer",
+          "attnotnull": false
+        },
+        {
+          "relname": "terrains_etat",
+          "relrowsecurity": true,
+          "relforcerowsecurity": false,
+          "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres,service_role=arwdDxtm/postgres}",
+          "attname": "coproprietaire",
+          "format_type": "text",
+          "attnotnull": false
+        }
+      ]
+    },
+    {
+      "requete": 4,
+      "lignes": [
+        {
+          "schemaname": "public",
+          "tablename": "comptes_bancaires",
+          "policyname": "comptes_bancaires lecture proprietaire",
+          "roles": "{public}",
+          "cmd": "SELECT",
+          "qual": "est_mon_personnage(personnage)",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "locations_actives",
+          "policyname": "locations_ecriture",
+          "roles": "{authenticated}",
+          "cmd": "INSERT",
+          "qual": null,
+          "with_check": "bail_autorite_de(data)"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "locations_actives",
+          "policyname": "locations_lecture",
+          "roles": "{anon,authenticated}",
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "locations_actives",
+          "policyname": "locations_maj",
+          "roles": "{authenticated}",
+          "cmd": "UPDATE",
+          "qual": "bail_autorite_de(data)",
+          "with_check": "bail_autorite_de(data)"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "locations_actives",
+          "policyname": "locations_resiliation",
+          "roles": "{authenticated}",
+          "cmd": "DELETE",
+          "qual": "bail_autorite_de(data)",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "objets_recus",
+          "policyname": "objets_recus_lire_le_sien",
+          "roles": "{authenticated}",
+          "cmd": "SELECT",
+          "qual": "(destinataire = mon_personnage())",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "objets_recus",
+          "policyname": "objets_recus_reclamer_le_sien",
+          "roles": "{authenticated}",
+          "cmd": "DELETE",
+          "qual": "(destinataire = mon_personnage())",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "organisations",
+          "policyname": "organisations_ecriture_acteur",
+          "roles": "{authenticated}",
+          "cmd": "INSERT",
+          "qual": null,
+          "with_check": "acteur_identifie()"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "organisations",
+          "policyname": "organisations_lecture_publique",
+          "roles": "{anon,authenticated}",
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "organisations",
+          "policyname": "organisations_maj_acteur",
+          "roles": "{authenticated}",
+          "cmd": "UPDATE",
+          "qual": "acteur_identifie()",
+          "with_check": "acteur_identifie()"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "organisations",
+          "policyname": "organisations_suppression_acteur",
+          "roles": "{authenticated}",
+          "cmd": "DELETE",
+          "qual": "acteur_identifie()",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "personnages_donnees",
+          "policyname": "personnages_creation_soi",
+          "roles": "{authenticated}",
+          "cmd": "INSERT",
+          "qual": null,
+          "with_check": "(user_id = auth.uid())"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "personnages_donnees",
+          "policyname": "personnages_lecture",
+          "roles": "{anon,authenticated}",
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "personnages_donnees",
+          "policyname": "personnages_maj_soi",
+          "roles": "{authenticated}",
+          "cmd": "UPDATE",
+          "qual": "(user_id = auth.uid())",
+          "with_check": "(user_id = auth.uid())"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "personnages_donnees",
+          "policyname": "personnages_suppression_soi",
+          "roles": "{authenticated}",
+          "cmd": "DELETE",
+          "qual": "(user_id = auth.uid())",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "prets",
+          "policyname": "prets_ecriture_acteur",
+          "roles": "{authenticated}",
+          "cmd": "INSERT",
+          "qual": null,
+          "with_check": "acteur_identifie()"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "prets",
+          "policyname": "prets_lecture_publique",
+          "roles": "{anon,authenticated}",
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "prets",
+          "policyname": "prets_maj_acteur",
+          "roles": "{authenticated}",
+          "cmd": "UPDATE",
+          "qual": "acteur_identifie()",
+          "with_check": "acteur_identifie()"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "terrains_etat",
+          "policyname": "terrains_etat_lecture_publique",
+          "roles": "{anon,authenticated}",
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        }
+      ]
+    },
+    {
+      "requete": 5,
+      "lignes": [
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "terrain_visites_deplacement",
+          "pg_get_triggerdef": "CREATE TRIGGER terrain_visites_deplacement AFTER UPDATE OF country, current_city, current_building ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION terrain_visites_clore_interne()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnage_pays_declare",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnage_pays_declare BEFORE INSERT OR UPDATE OF country ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnage_pays_declare()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnages_archiver_suppression",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnages_archiver_suppression BEFORE DELETE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_archiver_suppression()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnages_attester_poste",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnages_attester_poste BEFORE INSERT OR UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_attester_poste()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnages_borner_jour",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnages_borner_jour BEFORE UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_borner_jour()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnages_fusionner_pop",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnages_fusionner_pop BEFORE INSERT OR UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_fusionner_pop()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnages_lien_militaire_rompu",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnages_lien_militaire_rompu AFTER UPDATE OF poste ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_lien_militaire_rompu()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnages_lien_militaire_supprime",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnages_lien_militaire_supprime BEFORE DELETE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_lien_militaire_supprime()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnages_lier_proprietaire",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnages_lier_proprietaire BEFORE INSERT OR UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_lier_proprietaire()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnages_observer_inventaire",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnages_observer_inventaire BEFORE UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_observer_inventaire()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnages_poste_perdu",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnages_poste_perdu AFTER UPDATE OF poste ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_poste_perdu()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "trg_personnages_preserver_judiciaire",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_personnages_preserver_judiciaire BEFORE UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_preserver_judiciaire()"
+        },
+        {
+          "tgrelid": "personnages_donnees",
+          "tgname": "zzzz_hg_inventory_revision",
+          "pg_get_triggerdef": "CREATE TRIGGER zzzz_hg_inventory_revision BEFORE UPDATE ON public.personnages_donnees FOR EACH ROW EXECUTE FUNCTION inventaire_revision_garder()"
+        },
+        {
+          "tgrelid": "organisations",
+          "tgname": "trg_organisations_politique_autorite",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_organisations_politique_autorite BEFORE INSERT OR DELETE OR UPDATE ON public.organisations FOR EACH ROW EXECUTE FUNCTION organisations_politique_autorite()"
+        },
+        {
+          "tgrelid": "locations_actives",
+          "tgname": "trg_bail_cle_coherente",
+          "pg_get_triggerdef": "CREATE TRIGGER trg_bail_cle_coherente BEFORE INSERT OR UPDATE ON public.locations_actives FOR EACH ROW EXECUTE FUNCTION bail_cle_coherente()"
+        }
+      ]
+    }
+  ]
+}
