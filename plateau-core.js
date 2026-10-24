@@ -1457,6 +1457,9 @@ function loadCharacter() {
             // Emploi BNE : pas de colonne dediee sur personnages (voir plateau-justice-economie.js),
             // le cache local state.emploiBNE doit etre rafraichi explicitement depuis Supabase.
             if (typeof rafraichirCacheEmploiBNE === 'function') rafraichirCacheEmploiBNE();
+            // Audiences d'ambassade : constat des echeances au chargement, et memorisation d'une
+            // demande en attente pour la verification periodique des mails.
+            if (typeof rafraichirAudiencesAmbassade === 'function') rafraichirAudiencesAmbassade();
             console.log('Personnage synchronisé depuis Supabase:', char.name);
           }
           // Coherence financiere (Lot 2) : APRES que liquide (via sbState/Object.assign),

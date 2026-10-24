@@ -2562,6 +2562,7 @@ function readMail(mailId) {
 // handlers. Aucun eval, aucun nom de fonction venu de la donnee : seule une cle connue est
 // acceptee, et un marqueur inconnu ne produit rien.
 const ACTIONS_MAIL = {
+  audience_accorder: { fn:'accorderAudienceAmbassade',   n:1, label:'✓ Accorder l\'audience' },
   poste:            { fn:'accepterNominationPosteNomme', n:1, label:'✓ Accepter le poste' },
   capitaine:        { fn:'accepterNominationCapitaine',  n:1, label:'✓ Accepter le poste' },
   lieutenant:       { fn:'accepterNominationLieutenant', n:1, label:'✓ Accepter le poste' },

@@ -10,6 +10,12 @@ async function verifierNouveauxMails() {
   if (typeof sbGetMailsFor !== 'function') return;
   const nom = state.char?.name;
   if (!nom) return;
+  // AUDIENCES D'AMBASSADE (24 octobre 2026) : tant qu'une demande attend sa reponse, la
+  // verification des mails demande d'abord au serveur de constater les echeances -- c'est ce
+  // constat qui depose le mail « audience accordee ». Aucun appel de plus sans demande en cours.
+  if (state.audiencesEnAttente && typeof rafraichirAudiencesAmbassade === 'function') {
+    await rafraichirAudiencesAmbassade().catch(() => null);
+  }
   try {
     const mails = await sbGetMailsFor(nom);
     const nonLus = (mails || []).filter(m => !m.read && m.to_player === nom).length;
