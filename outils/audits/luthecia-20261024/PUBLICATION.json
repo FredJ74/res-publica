@@ -1,0 +1,17 @@
+{
+  "date_utc": "2026-10-24T08:30:22.040623+00:00",
+  "pushs_confirmes": {
+    "codex/stabilisation-luthecia-135-20261024": "0229c247ae6e4247f412e8bb4e1137c9b797f7d5",
+    "codex/parcelles-gabarit-135-20261024": "aa240adb52bd75a63cd1e1b4a6d857968406e48b"
+  },
+  "pr_creees_par_cette_session": [],
+  "issue_135_modifiee_par_cette_session": false,
+  "refus": {
+    "pr_stabilisation": "Post \"https://api.github.com/graphql\": Forbidden",
+    "pr_parcelles": "Post \"https://api.github.com/graphql\": Forbidden",
+    "commentaire_issue_135": "Post \"https://api.github.com/repos/FredJ74/res-publica/issues/135/comments\": Forbidden"
+  },
+  "fusion_main_par_cette_session": false,
+  "deploiement_par_cette_session": false,
+  "ci_distante_observee": false
+}

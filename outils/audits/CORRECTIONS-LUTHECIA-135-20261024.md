@@ -61,3 +61,7 @@ Aucun accès Supabase exposé dans cette session. Les GET vers Vercel sont refus
 - Ced/football : 45 assertions natives ; calendriers Node : 11/11 ; pilote E2E : 69/69 sur fixtures, aucune session réelle.
 - Globaux : 6/12. Le main e781074 de référence était à 5/12. Les contrôles rouges ne sont pas désactivés.
 - Révision des sauvegardes : commit b0237c9. Branche indépendante des parcelles : aa240ad (versionnement du chargement data.js compris).
+
+### Opérations GitHub effectivement tentées
+
+Les deux créations de PR en brouillon ont été refusées : `Post https://api.github.com/graphql: Forbidden`. La mise à jour du ticket a aussi été tentée par l'API REST : `Post https://api.github.com/repos/FredJ74/res-publica/issues/135/comments: Forbidden`. Aucune PR ni aucun commentaire n'a été créé par cette session. Les branches et rapports sont toutefois poussés et leurs SHA distants contrôlés. Les descriptions et le commentaire prêts à publier sont conservés dans les annexes, avec `PUBLICATION.json`. Aucun résultat de GitHub Actions distant n'a été observé.
