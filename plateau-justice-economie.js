@@ -12885,7 +12885,7 @@ async function confirmerVolMateriaux(matiere, pa, cost) {
   if (verdict.reussite) {
     const jourNum = numeroJourChantier(ch);
     const stock = ch.stockMateriaux || { bois: 0, minerai: 0, metal: 0 };
-    const qte = quantiteVolMateriaux(score, matiere, jourNum, stock[matiere]);
+    let qte = quantiteVolMateriaux(score, matiere, jourNum, stock[matiere]);
     if (qte <= 0) { showToast('Rien à emporter', "Le stock a été vidé entre-temps.", false); return; }
 
     // LE STOCK EST REPLAFONNE SUR L'ETAT REEL, SOUS VERROU (10 octobre 2026). `qte` etait

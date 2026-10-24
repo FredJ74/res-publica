@@ -91,3 +91,9 @@ La dernière exécution après ce complément passe 109/109 bancs client, 33/33 
 ### Reprise du 24 octobre — filature et bénédiction
 
 Socle de filature préparé en privé, utilisant les payeurs institutionnels et le lecteur existants, avec receipt, autorité issue du registre et bonus consommé dans la transaction du véritable jet. Lecture des dernières 24h corrigée pour ne plus dépendre du jour personnel. Preuves natives et contre-épreuves dans `banc-filature-benediction-135-local.py` et `contre-epreuves-filature-135-local.py`. Détails et préconditions dans `BENEDICTION-135-20261024.md`. L09 reste en cours, sans exposition de commande ni changement client prématuré ; aucune vérification authentifiée ou installation Supabase revendiquée.
+
+### Défaut de réception locale du vol de matériaux confirmé
+
+Dans `confirmerVolMateriaux`, la quantité demandée était déclarée constante puis réaffectée après le retrait confirmé par `terrain_chantier_acte`. Le succès levait donc `Assignment to constant variable` avant le crédit d’inventaire. La variable est désormais réaffectable : l’interface utilise bien la quantité rendue par le serveur, jamais celle demandée. Aucun tarif, formule ou stock modifié par ce correctif. Trois tests exécutent le vrai corps de fonction : quantité serveur inférieure à la demande, refus/stock épuisé, et contre-épreuve avec l’ancienne constante. La contre-épreuve prouve le plantage après la mutation simulée, sans prétendre avoir exercé un joueur réel.
+
+**Limite conservée explicitement :** le transfert de matériaux vers l’inventaire reste séparé dans le chemin historique ; ce correctif enlève une exception démontrée, mais n’est pas une preuve d’atomicité du vol ni de L09 complet. Il ne restitue ni ne modifie aucun objet réel perdu auparavant.
