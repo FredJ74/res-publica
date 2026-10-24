@@ -11878,8 +11878,6 @@ async function confirmerMenerEnquete(pa, cost) {
   const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn') : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
 
   let taux = 35 + (perCommissaire - cibleInfos.per) * 2 + (infCommissaire - cibleInfos.inf) * 0.3 + (isn - 45) / 5;
-  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
-  taux = Math.max(10, Math.min(90, Math.round(taux)));
 
   const toutes = typeof sbGetActionsTracables === 'function' ? await sbGetActionsTracables(pays, ville, state.day || 1).catch(() => []) : [];
   const candidats = (toutes || []).filter(a => a.auteur === cible && !a.decouvert);
@@ -11889,6 +11887,10 @@ async function confirmerMenerEnquete(pa, cost) {
     showToast('Enquete infructueuse', 'Rien de compromettant trouve sur ' + cible + '.', false);
     return;
   }
+
+  // Le bonus ne se consomme que si un jet a réellement lieu, jamais sur une lecture vide/échouée.
+  taux = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(taux) : taux;
+  taux = Math.max(10, Math.min(90, Math.round(taux)));
 
   const roll = Math.floor(Math.random() * 100) + 1;
   if (roll > taux) {
