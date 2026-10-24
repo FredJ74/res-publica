@@ -5980,7 +5980,7 @@ const BUILDINGS = {
           {name:'Agent de Sécurité (PNJ)', role:'PNJ - Sécurité', rel:'neutral', job:'agent_securite'}
         ],
         orders: [
-          {fn:'demander_audience_ambassadeur', label:'Demander audience à l\'ambassadeur', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:70, desc:'Tenter de rencontrer un ambassadeur present.'},
+          {fn:'demander_audience_ambassadeur', label:'Demander audience à l\'ambassadeur', pa:1, cost:0, type:'legal', icon:'ti-door-enter', successRate:100, desc:'Solliciter une audience. La réponse arrive par courrier ; une audience accordée ouvre le bureau de l\'ambassadeur pendant 48 heures.'},
           {fn:'demander_asile_politique',       label:'Demander l\'asile politique',       pa:2, cost:0, type:'legal', icon:'ti-shield-check', successRate:100, desc:'Deposer une demande d\'asile politique aupres de cette ambassade.'},
           {fn:'reserver_salle_reception',       label:'Réserver la Salle de Réception',    pa:1, cost:0, type:'legal', icon:'ti-calendar-event', successRate:100, desc:'Reserver la salle pour aujourd\'hui (reserve aux ambassadeurs en poste ici).'}
         ]
@@ -5996,8 +5996,8 @@ const BUILDINGS = {
       bureau_al_khalija: {
         name: "Ambassade d'Al-Khalija",
         imageUrl: "images/bureau-ambassadeur-al-khalija.webp",
-        desc: "Le bureau de l'ambassadeur d'Al-Khalija. Ferme tant qu'Al-Khalija n'a pas ouvert d'ambassade a Luthecia.",
-        persons: [],
+        desc: "Le bureau de l'ambassadeur d'Al-Khalija. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Mohamed Al-Mansoori (PNJ)', role:"Ambassadeur d'Al-Khalija", rel:'neutral', job:'ambassadeur'}],
         orders: [
           {fn:'relations_bilaterales',            label:'Consulter les relations bilatérales', pa:0, cost:0,    type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'Etat des relations avec Al-Khalija.'},
           {fn:'corrompre_homologue_local',         label:'Corrompre un homologue local',        pa:2, cost:800,  type:'illegal', icon:'ti-cash-banknote', successRate:65,  requiresPost:'ambassadeur_local', desc:'Obtenir une faveur, au risque d\'un scandale.'},
@@ -6008,8 +6008,8 @@ const BUILDINGS = {
       bureau_sovarka: {
         name: "Ambassade de Sovarka",
         imageUrl: "images/bureau-ambassadeur-sovarka.webp",
-        desc: "Le bureau de l'ambassadeur de Sovarka. Ferme tant que Sovarka n'a pas ouvert d'ambassade a Luthecia.",
-        persons: [],
+        desc: "Le bureau de l'ambassadeur de Sovarka. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Valery Antonov (PNJ)', role:'Ambassadeur de Sovarka', rel:'neutral', job:'ambassadeur'}],
         orders: [
           {fn:'relations_bilaterales',            label:'Consulter les relations bilatérales', pa:0, cost:0,    type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'Etat des relations avec Sovarka.'},
           {fn:'corrompre_homologue_local',         label:'Corrompre un homologue local',        pa:2, cost:800,  type:'illegal', icon:'ti-cash-banknote', successRate:65,  requiresPost:'ambassadeur_local', desc:'Obtenir une faveur, au risque d\'un scandale.'},
@@ -6020,8 +6020,8 @@ const BUILDINGS = {
       bureau_el_estado: {
         name: "Ambassade d'El Estado",
         imageUrl: "images/bureau-ambassadeur-el-estado.webp",
-        desc: "Le bureau de l'ambassadeur d'El Estado. Ferme tant qu'El Estado n'a pas ouvert d'ambassade a Luthecia.",
-        persons: [],
+        desc: "Le bureau de l'ambassadeur d'El Estado. On n'y est reçu que sur audience, demandée à l'accueil.",
+        persons: [{name:'Guillermo Vasquez (PNJ)', role:"Ambassadeur d'El Estado", rel:'neutral', job:'ambassadeur'}],
         orders: [
           {fn:'relations_bilaterales',            label:'Consulter les relations bilatérales', pa:0, cost:0,    type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'Etat des relations avec El Estado.'},
           {fn:'corrompre_homologue_local',         label:'Corrompre un homologue local',        pa:2, cost:800,  type:'illegal', icon:'ti-cash-banknote', successRate:65,  requiresPost:'ambassadeur_local', desc:'Obtenir une faveur, au risque d\'un scandale.'},

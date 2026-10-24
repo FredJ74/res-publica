@@ -615,14 +615,18 @@ function enterRoom(buildingId, roomId, tabEl) {
   if (!checkZoneEmbarquementAcces(buildingId, roomId)) return;
   // Vérifier accès bureau d'ambassadeur — ferme tant que l'empire concerné n'a pas ouvert
   // son ambassade ici (voir sbOuvrirAmbassade / cache charge dans enterBuilding).
+  // AUDIENCES (24 octobre 2026) : c'est le SERVEUR qui ouvre un bureau -- audience accordee et
+  // non expiree, ou joueur ambassadeur en poste (ambassade_acces_bureau). L'ancienne regle,
+  // decidee ici sur un cache charge en arriere-plan, pouvait declarer un bureau ferme avant la fin
+  // du chargement. verifierAccesBureauAmbassade (plateau-politique.js) rappelle enterRoom une fois
+  // l'acces confirme ; le jeton est consomme a ce second passage.
   const AMBASSADE_ROOM_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
   if (buildingId === 'quartier-ambassades' && AMBASSADE_ROOM_EMPIRE[roomId]) {
-    const empireRequis = AMBASSADE_ROOM_EMPIRE[roomId];
-    const ouvertes = state.ambassadesOuvertesCache || [];
-    if (!ouvertes.some(a => a.empire === empireRequis)) {
-      showToast('Bureau fermé', "Aucune ambassade de " + (COUNTRIES[empireRequis]?.n || empireRequis) + " n'est ouverte ici pour le moment.", false);
+    if (state._accesBureauAmbassade !== roomId) {
+      if (typeof verifierAccesBureauAmbassade === 'function') verifierAccesBureauAmbassade(buildingId, roomId, tabEl);
       return;
     }
+    state._accesBureauAmbassade = null;
   }
   // Verrou : chambre individuelle de la clinique privee (lot chambres, 20 aout 2026) --
   // STRICTEMENT limite a clinique-privee/chambre_1..chambre_10, jamais generalise aux autres
