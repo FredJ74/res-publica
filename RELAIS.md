@@ -15,9 +15,8 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   PNJ reçus **sur audience seulement** — Valery Antonov (Sovarka, la
   rigidité), Guillermo Vasquez (El Estado, la corruption), Mohamed
   Al-Mansoori (Al-Khalija, le snobisme). Fenêtre à la charte ardoise et or.
-  **Attend le test de Fred**, et sa décision sur le tirage de 70 %, fait par
-  le navigateur, donc contraire à la règle serveur (garder via une fonction
-  serveur, ou supprimer le tirage).
+  **Fusionnée le 24/10.** Son tirage de 70 % côté navigateur est remplacé par
+  le parcours d'audience ci-dessous.
 - PR #141 (branche `claude/audit-ambassades-20261024`, documentation) :
   `AUDIT_AMBASSADES.md` v2 (game design retrouvé, 12 écarts écran/serveur)
   et `AUDIT_BNE.md` (audit complet du Bureau). Chacun finit par les
