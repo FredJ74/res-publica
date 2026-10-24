@@ -3826,118 +3826,11 @@ function tauxCorruptionInspecteurTerrain() {
   return Math.min(80, 40 + Math.floor(dup * 2));
 }
 
-function doAppelerPoliceTerrain() {
-  const id = state.currentBuilding;
-  const ts = getTerrainState(id);
-  const pnj = profilOccupationTerrain(ts);
-  const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30 };
-  const isn = indices.ISN || 30;
-  const delaiH = Math.max(6, Math.round(96 - isn * 0.6));
-  const delaiRapideH = Math.max(1, Math.round(delaiH / 4));
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const coutSoudoiement = Math.floor(100 + isn * 3);
-  const tauxSoudoiement = tauxCorruptionInspecteurTerrain();
+function doAppelerPoliceTerrain(){ return occupationOuvrirPolice(); }
 
-  document.getElementById('postes-modal-title').textContent = '🚔 Appeler la police';
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:.8rem 1rem">' +
-    '<div style="font-size:.78rem;color:#c0b090;margin-bottom:.8rem">' +
-      (pnj ? 'Présence détectée : <strong>' + pnj.role + '</strong>.' : 'Terrain occupé.') +
-    '</div>' +
-    '<div style="display:flex;flex-direction:column;gap:.5rem">' +
-    '<button onclick="doExpulsionLegale();fermerModalPostes()" ' +
-    'style="text-align:left;padding:.6rem .8rem;border:1px solid #3a5a3a;background:#0a0f0a;color:#6ada6a;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;cursor:pointer">' +
-    '⚖️ Expulsion légale — délai ' + delaiH + 'h (gratuit) · sans jet aléatoire</button>' +
-    '<button onclick="doExpulsionAcceleree(' + coutSoudoiement + ');fermerModalPostes()" ' +
-    'style="text-align:left;padding:.6rem .8rem;border:1px solid #5a5a20;background:#0a0f00;color:#C9A84C;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.06em;cursor:pointer">' +
-    '💰 Soudoyer l\'inspecteur — ' + coutSoudoiement + ' ' + cur + ' · délai ' + delaiRapideH + 'h · réussite ' + tauxSoudoiement + '%</button>' +
-    '<button onclick="fermerModalPostes()" ' +
-    'style="padding:.4rem;border:1px solid #2a2010;background:transparent;color:#6a5a30;font-family:Bebas Neue,sans-serif;font-size:.68rem;cursor:pointer">Annuler</button>' +
-    '</div></div>';
-  document.getElementById('modal-postes').classList.add('open');
-}
+function doExpulsionAcceleree(){ return occupationExecuterPolice("corruption_police"); }
 
-function doExpulsionAcceleree(cout) {
-  const id = state.currentBuilding;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30 };
-  const isn = indices.ISN || 30;
-  const delaiRapideH = Math.max(1, Math.round((96 - isn * 0.6) / 4));
-  const taux = tauxCorruptionInspecteurTerrain();
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' ' + cur + ' requis.', false); return; }
-
-  state.arg -= cout;
-  if (roll <= taux) {
-    setTerrainState(id, {
-      policeAppellee: Date.now(),
-      policeInterventionAt: Date.now() + delaiRapideH * 3600000
-    });
-    state.dis = Math.max(0, (state.dis || 50) - 5);
-    updateUI();
-    addJournalEntry('Inspecteur soudoyé pour ' + cout + ' ' + cur + '. Expulsion dans ' + delaiRapideH + 'h. -5 DIS.', 'event-good');
-    showToast('Arrangé !', 'Expulsion dans ' + delaiRapideH + 'h. -' + cout + ' ' + cur + ' · -5 DIS.', true);
-  } else {
-    state.dis = Math.max(0, (state.dis || 50) - 15);
-    updateUI();
-    addJournalEntry('Tentative de corruption refusée. -' + cout + ' ' + cur + ' · -15 DIS.', 'event-bad');
-    showToast('Refus !', 'L\'inspecteur a refusé. -' + cout + ' ' + cur + ' · -15 DIS.', false);
-  }
-}
-
-async function doFaireDisparaitreCadavre(pa, cost) {
-  const id = state.currentBuilding;
-  // Revalidation au commit (bug remonte avant Phase L, meme pattern que negocier_squatteurs) :
-  // aucun code ne verifiait jusqu'ici qu'un cadavre existe reellement avant le jet -- un joueur
-  // pouvait "dissimuler" un cadavre inexistant et, en cas d'echec du jet, subir -20 DIS -5 HP et
-  // une entree state.recherche de 24h pour un crime qui n'a jamais eu lieu.
-  const dispo = typeof terrainOrdreDisponible === 'function' ? terrainOrdreDisponible('faire_disparaitre_cadavre', id) : { ok: true };
-  if (!dispo.ok) { showToast('Aucun cadavre', dispo.raison || 'Aucun cadavre a dissimuler.', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const ts = getTerrainState(id);
-  const indices = INDICES_NATIONAUX?.[state.country] || { ISN: 30, ID: 40 };
-  const isn = indices.ISN || 30;
-  const id_idx = indices.ID || 40;
-
-  const dis = state.dis || 50;
-  const cha = getStatEffective('CHA');
-  const bonusOrga = calculerBonusOrga();
-  const taux = Math.min(85, Math.floor(dis/2 + cha/2) - Math.floor(isn/5) + (bonusOrga.dis || 0) / 3);
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    // Succès — cadavre disparu
-    const prescriptionJours = Math.max(7, Math.round(id_idx * 0.6));
-    setTerrainState(id, {
-      pnj: null, pnjData: null,
-      cadavreDisparuAt: Date.now(),
-      prescriptionAt: Date.now() + prescriptionJours * 86400000,
-      actesIllegaux: [...(ts.actesIllegaux || []), {
-        type: 'cadavre_dissimule',
-        auteur: state.char?.name,
-        date: Date.now(),
-        prescriptionAt: Date.now() + prescriptionJours * 86400000
-      }]
-    });
-    sessionStorage.removeItem('terrain_pnj_' + id);
-    state.dis = Math.max(0, (state.dis || 50) - 5);
-    updateUI();
-    addJournalEntry('Cadavre dissimulé avec succès. Jet ' + roll + '/' + taux + '%. Prescription dans ' + prescriptionJours + ' jours.', 'event-good');
-    showToast('Cadavre dissimulé !', 'Terrain libre. Prescription dans ' + prescriptionJours + ' jours. -5 DIS.', true);
-  } else {
-    // Échec — garde à vue
-    state.dis = Math.max(0, (state.dis || 50) - 20);
-    state.hp = Math.max(0, (state.hp || 100) - 5);
-    updateUI();
-    addJournalEntry('Flagrant délit ! Garde à vue de 24h. Jet ' + roll + '/' + taux + '%. -20 DIS · -5 HP.', 'event-bad');
-    showToast('Arrêté !', 'Garde à vue 24h. -20 DIS · -5 HP. (Jet ' + roll + '/' + taux + '%)', false);
-    // Bloquer le joueur 24h
-    await inscrireRecherche({ type: 'suspicion_cadavre', terrain: id, debut: Date.now(), fin: Date.now() + 86400000 });
-    addExternalEvent('🚨 ' + (state.char?.name) + ' a été arrêté pour suspicion de dissimulation de cadavre à ' + (WORLD[state.country]?.[state.currentCity]?.name || 'la ville') + '.');
-  }
-}
+function doFaireDisparaitreCadavre(){ return occupationDissimuler(); }
 
 // Bareme par paliers (interpolation lineaire entre paliers), plafond +20 a 4000+
 const PALIERS_BONUS_ARGENT_SQUATTEURS = [[0,0],[500,5],[1000,8],[2000,12],[3000,16],[4000,20]];
@@ -3968,7 +3861,7 @@ function calculerTauxNegociationSquatteurs(montant) {
 // Le serveur fixe le contexte et le verdict ; le navigateur ne tire jamais le resultat.
 function repliqueNegociationSquatteurs(type, resultat) {
   if (resultat === 'accepte') return type === 'squatter_cool'
-    ? "OK l'ami, marché conclu ! Avant de partir, on va fêter ça. On t'offre une mousse et on trinque à notre départ. À la tienne, et prends soin de ce petit coin !"
+    ? "Ok l’ami, marché conclu. Avant de partir, on va fêter ça. On t’offre une mousse, et on trinque à notre départ."
     : "Bon, ça passe. On prend le fric et on se casse. Mais évite de nous regarder comme ça.";
   if (resultat === 'refuse') return type === 'squatter_cool'
     ? "Ah non, avec ça, on ne peut même pas louer une camionnette… On reste."

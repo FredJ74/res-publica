@@ -6402,6 +6402,8 @@ export default async function handler(req, res) {
     const permis = await traiterInstructionsPermis();
 
     // 8. Progression quotidienne des chantiers (versements, alea, livraison)
+    const occupationsPolice = await sbRpc('terrain_police_echeances_traiter', {}, HEADERS_SERVICE).catch(() => null);
+    if (!(Array.isArray(occupationsPolice)?occupationsPolice[0]:occupationsPolice)?.ok) signalerEchec('terrain_police', 'verdict_absent_ou_refus');
     const chantiers = await avancerChantiersQuotidien();
 
     // 9. Mensualites des prets bancaires (a heure fixe, que le joueur dorme ou non)

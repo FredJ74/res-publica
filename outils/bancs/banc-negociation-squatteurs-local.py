@@ -4,7 +4,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import re, tempfile, json
 R=Path(__file__).resolve().parents[2]
-def main():
+def main(apres=None):
  import pgserver, psycopg2
  srv=pgserver.get_server(tempfile.mkdtemp(prefix='hg-nego-'),cleanup_mode='delete')
  try:
@@ -118,6 +118,7 @@ def main():
   check(contexte()['baseTaux']==89)
   q.execute("SELECT has_table_privilege('authenticated','terrain_negociations_recus','INSERT'),has_function_privilege('anon','terrain_negociation_conclure(text,text,integer,uuid)','EXECUTE'),has_function_privilege('authenticated','terrain_negociation_jet_interne()','EXECUTE')")
   check(q.fetchone()==(False,False,False))
+  if apres:apres(c,q,srv)
   print(json.dumps({'ok':True,'assertions':n,'production':False}))
  finally:srv.cleanup()
 if __name__=='__main__':main()
