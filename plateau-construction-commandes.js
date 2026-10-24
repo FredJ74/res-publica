@@ -73,6 +73,10 @@ async function constructionReconcilierCommandes(buildingId){
       const r=await sbRpcVerdict('chantier_commande_recu',{p_requete:i.requete}).catch(()=>null);
       if(!contexteNavigationRueValide(c))return;
       if(r?.ok&&r.terminee){
+        // Le reçu confirme l'acte, pas l'état actuel du terrain. Garder la reprise tant
+        // que cette lecture échoue, sans rappeler la réconciliation depuis elle-même.
+        const frais=await chargerTerrainState(buildingId,true,{sansReconciliation:true});
+        if(!contexteNavigationRueValide(c)||!frais)return;
         const finance=typeof rafraichirRuntimeHelvetia==='function'?await rafraichirRuntimeHelvetia({exigerComptes:true}):null;
         if(!finance||!contexteNavigationRueValide(c))return;
         if(typeof finance.pa==='number'){state.pa=finance.pa;state.char.pa=finance.pa;}

@@ -5178,9 +5178,9 @@ function signalerRefusTerrain(v, action) {
   if (typeof showToast === 'function') showToast(quoi + ' impossible', detail.charAt(0).toUpperCase() + detail.slice(1), false);
 }
 
-async function chargerTerrainState(buildingId, exigerDistant) {
+async function chargerTerrainState(buildingId, exigerDistant, options = {}) {
   const contexte={personnage:state.char,pays:state.country,ville:state.currentCity};
-  if(typeof constructionReconcilierCommandes==='function')await constructionReconcilierCommandes(buildingId);
+  if(!options.sansReconciliation&&typeof constructionReconcilierCommandes==='function')await constructionReconcilierCommandes(buildingId);
   if (typeof sbGetTerrainState !== 'function') return exigerDistant?null:getTerrainState(buildingId);
   const distant = await sbGetTerrainState(contexte.pays, buildingId, contexte.ville).catch(() => null);
   if(state.char!==contexte.personnage||state.country!==contexte.pays||state.currentCity!==contexte.ville)return null;
