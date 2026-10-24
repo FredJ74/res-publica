@@ -14,7 +14,8 @@ SOURCES=[
  ('migrations/20261016131932_reception_objets_atomique.sql','inventaire_reception_etat'),
  ('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')]
 def setup_sql():
- s=(R/'outils/bancs/fixtures/ced-football-schema.sql').read_text()
+ # Le fichier autonome s'annule ; seule la base jetable recoit ce decor marque.
+ s=(R/'outils/bancs/banc-fixture-ced-football-schema.sql').read_text().split('-- HG_FIXTURE_DEBUT\n',1)[1].split('-- HG_FIXTURE_FIN',1)[0]
  for path,fn in SOURCES:
   src=(R/path).read_text()
   for x in re.finditer(r'CREATE OR REPLACE FUNCTION public\.'+fn+r'\(',src):

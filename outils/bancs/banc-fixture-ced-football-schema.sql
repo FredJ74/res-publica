@@ -1,3 +1,6 @@
+-- Fixture fictive, annulee si executee seule ; decor extrait uniquement par le banc PostgreSQL jetable.
+BEGIN;
+-- HG_FIXTURE_DEBUT
 -- Identites et monde exclusivement fictifs. Helpers d'identite simules ; moteurs charges a part.
 CREATE ROLE anon; CREATE ROLE authenticated;
 CREATE SCHEMA auth;
@@ -28,3 +31,6 @@ INSERT INTO comptes_bancaires VALUES('c1','Fixture','nationale',200,now()),('c2'
 INSERT INTO ordres_couts VALUES('tenue_entrainement',2,0);
 SET hg.uid='00000000-0000-4000-8000-000000000001';
 SET request.path='/rpc/pnj_ced_acheter';
+
+-- HG_FIXTURE_FIN
+ROLLBACK;
