@@ -42,6 +42,7 @@ Préconditions : moteurs d’autorité/personnage, fonds ordinaires, crédit uni
 12. `20261024133310_terrain_vente_archive_reference_acte.sql`
 13. `20261024134528_permis_instruction_transactionnelle_acquisitions.sql`
 14. `20261024135353_acquisition_refus_rollback_financement.sql`
+15. `20261024140140_permis_instruction_compatibilite_archives.sql`
 
 La nouvelle façade de prêt du fichier 2 référence à l’exécution les capacités créées au fichier 3 : ne pas appeler cette RPC entre les deux installations. Chaque migration est exécutée immédiatement deux fois pour son idempotence ; ne pas rejouer une ancienne définition après les durcissements 10/11/12.
 
@@ -59,7 +60,7 @@ Après application autorisée : exécuter `outils/bancs/prevol-terrain-banque-13
 
 ## Preuves et limites
 
-`banc-terrain-banque-135-local.py` charge les vrais corps du prévol et les tables du baseline dans PostgreSQL jetable. 58 assertions nouvelles et 59 de négociation conservées : titre et 25 800 FR concordants, deux acquéreurs concurrents, refus sans fonds ou terrain occupé, expiration, UUID détourné, injection après débit avant titre, injection après crédit avant titre, rollback dette/fonds/archives/reçu, prêt réel/rejeu, remboursement de dépôt réel/rejeu, permis joint archive/SAS, échéances concurrentes du jour suivant sans sommeil, sommeil sans nouvelle échéance et solde exact 1 120 FR.
+`banc-terrain-banque-135-local.py` charge les vrais corps du prévol et les tables du baseline dans PostgreSQL jetable. 60 assertions nouvelles et 59 de négociation conservées : titre et 25 800 FR concordants, deux acquéreurs concurrents, refus sans fonds ou terrain occupé, expiration, UUID détourné, injection après débit avant titre, injection après crédit avant titre, rollback dette/fonds/archives/reçu, prêt réel/rejeu, remboursement de dépôt réel/rejeu, permis joint archive/SAS, échéances concurrentes du jour suivant sans sommeil, sommeil sans nouvelle échéance et solde exact 1 120 FR.
 
 Le changement de jour est simulé en datant la dernière échéance à hier dans la fixture jetable, pas en modifiant l’horloge de production. Les identités, notifications et contexte d’authentification annexes sont fictifs. Cela ne vaut pas parcours authentifié Supabase ou test du cron Vercel vivant.
 
@@ -77,8 +78,10 @@ Retour arrière : conserver les contrats versionnés, leurs reçus et leur trait
 
 Le cron historique d’instruction réécrivait tout le terrain à partir d’une lecture antérieure : une acquisition commise pendant ses appels pouvait disparaître. L’instruction est déplacée dans la transaction `terrain_permis_instruction_jour(text)` (service_role seulement). Le cron l’appelle pour les permis actifs, sans envoyer ni réécrire de blob. Même compteur Europe/Paris, même durée et suspensions, même accord tacite ; aucun délai nouveau. Archive, SAS et décision sont dans la transaction, notification par le moteur existant. Les fonctions pures historiques sont conservées pour leurs vérifications de règles, pas comme moteur d’écriture parallèle.
 
-**Installer la migration 13 avant ce nouveau cron.** Requiert dossiers_urbanisme, objet_sas_deposer, mail_systeme_poser_interne, est_appel_serveur et les données réelles des permis. Le prévol complémentaire dans `prevol-terrain-banque-135.sql` doit constater zéro dossier actif incomplet et aucune durée absente avant activation. Si une ancienne demande manque de numéro/demandeur/ville/durée, arrêter cette activation et examiner la donnée ; aucun remplissage inventé. Le nouveau moteur refuse ces cas explicitement plutôt que d’accorder une autorisation sans dossier concordant.
+**Installer les migrations 13 puis 15 avant ce nouveau cron.** Requiert dossiers_urbanisme, objet_sas_deposer, mail_systeme_poser_interne, est_appel_serveur et les données réelles des permis. Le prévol complémentaire dans `prevol-terrain-banque-135.sql` doit constater zéro nouveau dossier versionné incomplet et aucune durée absente avant activation. La migration 15 préserve les formats historiques : numéro, demandeur ou ville inconnus restent inconnus dans l’archive ; aucun destinataire n’est inventé et aucun objet n’est créé sans destinataire. Le plan absent/null reste vide comme dans le constructeur historique. Les dossiers versionnés nouvellement créés restent strictement contrôlés. Une durée absente doit être examinée avant activation, sans raccourcissement inventé.
 
 Tests natifs additionnels : jour suivant sans sommeil, reprise le même jour, accord et attestation persistants uniques, panne SAS annulant aussi archive/compteur/autorisation, préservation de changements faits après le relevé cron. Le banc `banc-permis-cron-acquisition-135.cjs` vérifie qu’aucun PATCH ni blob ne subsiste même sur réponse perdue ou refus. Cela ne constitue pas un test authentifié Supabase.
 
 La migration 14 corrige aussi le refus métier après décision du prêt dans la même commande : un manque de PA au paiement final renvoie le refus après rollback du crédit, de la dette et de la décision du prêt. Le même UUID peut réussir ensuite si les PA sont disponibles, sans second financement. Les erreurs techniques injectées restent des erreurs ; elles ne sont pas transformées en réussite. Le traitement autonome séparé du compromis reste conservé.
+
+Compatibilité historique validée aussi sur PostgreSQL : un ancien permis sans numéro/demandeur/ville et avec plan NULL est archivé sans inventer ces informations ; aucun objet n’est attribué fictivement. Le constructeur conserve les inconnus, conformément aux fonctions historiques. Le banc bancaire atteint 60 assertions, plus les 59 de négociation conservées.

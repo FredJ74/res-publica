@@ -48,6 +48,8 @@ OK terrain banque accord tacite archive SAS et etat dans une transaction
 OK terrain banque instruction preserve les changements apres le releve cron
 OK terrain banque attestation tacite persistante unique
 OK terrain banque accord tacite non reemis
+OK terrain banque ancien permis sans numero conserve sans numero invente
+OK terrain banque archive historique inconnue sans faux destinataire ni objet
 OK terrain banque jour Paris suivant sans sommeil et concurrence une seule echeance
 OK terrain banque dormir ne donne aucune seconde echeance 0
 OK terrain banque dormir ne donne aucune seconde echeance 1
@@ -58,5 +60,5 @@ OK terrain banque ancienne sauvegarde ne reecrit pas une dette versionnee
 OK terrain banque PA refuses apres creation interne rollback credit dette et recu
 OK terrain banque pret travaux preserve et UUID refuse non consomme
 OK terrain banque panne apres debit echeance rollback argent dette et marqueur
-{"terrain_banque": true, "assertions": 58, "production": false}
+{"terrain_banque": true, "assertions": 60, "production": false}
 {"ok": true, "assertions": 59, "production": false}

@@ -2,7 +2,7 @@
 BEGIN;
 SET TRANSACTION READ ONLY;
 SELECT version,name FROM supabase_migrations.schema_migrations
-WHERE version IN('20261024121400','20261024121900','20261024122600','20261024123500','20261024123600','20261024123700','20261024123800','20261024124000','20261024124100','20261024131720','20261024132140','20261024133310','20261024134528','20261024135353') ORDER BY version;
+WHERE version IN('20261024121400','20261024121900','20261024122600','20261024123500','20261024123600','20261024123700','20261024123800','20261024124000','20261024124100','20261024131720','20261024132140','20261024133310','20261024134528','20261024135353','20261024140140') ORDER BY version;
 SELECT p.oid::regprocedure::text AS signature,md5(p.prosrc) AS empreinte,p.prosecdef,p.proconfig,
  has_function_privilege('authenticated',p.oid,'EXECUTE') AS client_execute,
  has_function_privilege('anon',p.oid,'EXECUTE') AS anonyme_execute,
@@ -30,7 +30,7 @@ SELECT type_pret,contrat_version,count(*) FROM public.prets GROUP BY type_pret,c
 -- Prévol AVANT activation du cron SQL : aucun dossier actif incomplet ne doit être
 -- transformé silencieusement. En cas de compte non nul, examiner ces cas, sans inventer les données.
 SELECT count(*) AS permis_actifs,
- count(*) FILTER(WHERE coalesce(data::jsonb#>>'{permis,numeroDossier}','')='' OR coalesce(data::jsonb#>>'{permis,demandeur}','')='' OR coalesce(data::jsonb->>'city','')='') AS dossiers_incomplets,
+ count(*) FILTER(WHERE data::jsonb->>'acquisitionVersion'='2' AND (coalesce(data::jsonb#>>'{permis,numeroDossier}','')='' OR coalesce(data::jsonb#>>'{permis,demandeur}','')='' OR coalesce(data::jsonb->>'city','')='')) AS nouveaux_dossiers_incomplets,
  count(*) FILTER(WHERE coalesce((data::jsonb#>>'{permis,dureeInstruction}')::numeric,0)<=0) AS durees_absentes
 FROM public.terrains_etat WHERE data::jsonb#>>'{permis,statut}' IN('instruction','attente_validation');
 ROLLBACK;
