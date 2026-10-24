@@ -5,15 +5,7 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-**Ambassades — audit (Claude)** · branche `claude/audit-ambassades-20261024`
-- Fait : audit en lecture seule, rapport dans `AUDIT_AMBASSADES.md`. Aucun
-  code modifié.
-- Reste : Fred doit trancher les 5 décisions de design listées dans le
-  rapport avant toute correction de fond. Les corrections C7, C9-C12 peuvent
-  se faire sans arbitrage si Fred donne son accord.
-- **Codex : ne pas toucher aux ambassades** tant que ce chantier est ouvert.
-
-Le chantier terrains (#139, Codex) reste à Codex :
+Aucun chantier repris par le relais pour l'instant.
 
 Travaux déjà ouverts avant la mise en place du relais (pull requests
 existantes, à reprendre si Fred le demande) :
