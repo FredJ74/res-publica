@@ -120,6 +120,14 @@
     "code": 0
   },
   {
+    "banc": "banc-terrain-banque-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "contre-epreuves-terrain-banque-135-local.py",
+    "code": 0
+  },
+  {
     "banc": "banc-location-lot-transactionnelle-local.py",
     "code": 0
   }

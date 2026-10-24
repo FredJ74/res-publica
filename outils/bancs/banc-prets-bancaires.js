@@ -56,6 +56,7 @@ var PRET = {
 };
 
 var APPELS = [];
+var REPONSE_VERSIONNEE = {ok:true,montant:500};
 var REPONSE_REVENDICATION = { ok: true, corps: [{ id: 'pret-banc' }] };
 
 function estRevendication(appel) {
@@ -77,6 +78,7 @@ globalThis.fetch = function (url, options) {
     });
   }
 
+  if (appel.url.indexOf('/rpc/pret_national_jour_traiter') !== -1) return reponse(true,REPONSE_VERSIONNEE);
   if (estRevendication(appel)) {
     if (!REPONSE_REVENDICATION.ok) return reponse(false, { message: 'panne simulee' }, 500);
     return reponse(true, REPONSE_REVENDICATION.corps);
@@ -189,6 +191,16 @@ verifier('pret gele pour arbitrage : aucun debit', debitsEmis().length, 0);
 vrai('pret gele pour arbitrage : aucune revendication', apresRevendication() === null);
 PRET.created_at = '2026-10-01T12:00:00';
 
+// Nouvelles générations : jamais de marqueur REST ni de débit séparé en cas de panne.
+PRET.contrat_version=2;
+for(var v of [{ok:true,montant:500},{ok:true,rejeu:true},null,{ok:false,raison:'refus'},{ok:true,impaye:4,saisi:true}]){
+ REPONSE_VERSIONNEE=v;r=rejouer({ok:true,corps:[{id:PRET.id}]});
+ verifier('contrat versionne une seule RPC',APPELS.filter(a=>a.url.indexOf('/rpc/pret_national_jour_traiter')!==-1).length,1);
+ vrai('contrat versionne aucun PATCH, meme sur reponse absente',!APPELS.some(a=>a.methode==='PATCH'));
+ verifier('contrat versionne compteur de debit conforme',r.preleves,v&&v.ok&&v.montant>0?1:0);
+ verifier('contrat versionne compteur de saisie conforme',r.saisies,v&&v.ok&&v.saisi?1:0);
+}
+delete PRET.contrat_version;
 print('');
 print('============================================================================');
 if (echecs === 0) print('LES ' + total + ' EPREUVES SONT VERTES.');
