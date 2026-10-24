@@ -10,9 +10,10 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 22 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 23 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   pnj_axes_autorite_pkey  (contrainte pnj_axes_autorite_pkey)
 --   pnj_candidats_catalogue_pkey  (contrainte pnj_candidats_catalogue_pkey)
+--   pnj_ced_achats_recus_pkey  (contrainte pnj_ced_achats_recus_pkey)
 --   pnj_employes_metier_pkey  (contrainte pnj_employes_metier_pkey)
 --   pnj_employeurs_pkey  (contrainte pnj_employeurs_pkey)
 --   pnj_evenements_pkey  (contrainte pnj_evenements_pkey)

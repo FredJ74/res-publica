@@ -22,4 +22,5 @@
 --   transferts_clubs_pkey  (contrainte transferts_clubs_pkey)
 
 -- Index autonomes :
+CREATE INDEX entrainements_football_perso_date ON public.entrainements_football USING btree (personnage, cree_le);
 CREATE INDEX entrainements_football_perso_jour ON public.entrainements_football USING btree (personnage, jour);

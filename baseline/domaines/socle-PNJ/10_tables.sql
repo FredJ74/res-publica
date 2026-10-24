@@ -31,6 +31,13 @@ CREATE TABLE public.pnj_candidats_catalogue (
   actif boolean DEFAULT true NOT NULL
 );
 
+CREATE TABLE public.pnj_ced_achats_recus (
+  acteur uuid NOT NULL,
+  requete uuid NOT NULL,
+  prix integer NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.pnj_employes_metier (
   pnj_id text NOT NULL,
   job text NOT NULL,

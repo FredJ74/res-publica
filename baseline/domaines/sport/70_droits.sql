@@ -60,6 +60,8 @@ GRANT EXECUTE ON FUNCTION public.club_president_voter(text,boolean) TO service_r
 GRANT EXECUTE ON FUNCTION public.football_entrainement_consommer(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.football_entrainement_consommer(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.football_entrainement_consommer(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.football_entrainements_compter_interne(text,date) TO postgres;
+GRANT EXECUTE ON FUNCTION public.football_entrainements_compter_interne(text,date) TO service_role;
 GRANT EXECUTE ON FUNCTION public.football_entrainements_du_jour() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.football_entrainements_du_jour() TO postgres;
 GRANT EXECUTE ON FUNCTION public.football_entrainements_du_jour() TO service_role;
