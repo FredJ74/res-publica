@@ -13,6 +13,7 @@
 -- CLES PRIMAIRES
 ALTER TABLE public.pnj_axes_autorite ADD CONSTRAINT pnj_axes_autorite_pkey PRIMARY KEY (famille, axe);
 ALTER TABLE public.pnj_candidats_catalogue ADD CONSTRAINT pnj_candidats_catalogue_pkey PRIMARY KEY (candidat_id);
+ALTER TABLE public.pnj_ced_achats_recus ADD CONSTRAINT pnj_ced_achats_recus_pkey PRIMARY KEY (acteur, requete);
 ALTER TABLE public.pnj_employes_metier ADD CONSTRAINT pnj_employes_metier_pkey PRIMARY KEY (pnj_id);
 ALTER TABLE public.pnj_employeurs ADD CONSTRAINT pnj_employeurs_pkey PRIMARY KEY (employeur_id);
 ALTER TABLE public.pnj_evenements ADD CONSTRAINT pnj_evenements_pkey PRIMARY KEY (id);
@@ -37,6 +38,7 @@ ALTER TABLE public.pnj_transitions ADD CONSTRAINT pnj_transitions_pkey PRIMARY K
 -- CONTRAINTES DE VALIDATION
 ALTER TABLE public.pnj_axes_autorite ADD CONSTRAINT pnj_axes_autorite_autorite_check CHECK ((autorite = ANY (ARRAY['socle'::text, 'blob'::text, 'institution'::text])));
 ALTER TABLE public.pnj_candidats_catalogue ADD CONSTRAINT pnj_candidat_genre_connu CHECK (((genre IS NULL) OR (genre = ANY (ARRAY['H'::text, 'F'::text]))));
+ALTER TABLE public.pnj_ced_achats_recus ADD CONSTRAINT pnj_ced_achats_recus_prix_check CHECK ((prix = 50));
 ALTER TABLE public.pnj_evenements ADD CONSTRAINT pnj_evt_type CHECK ((type = 'mort'::text));
 ALTER TABLE public.pnj_familles_classes ADD CONSTRAINT pnj_familles_classes_classe_check CHECK ((classe = ANY (ARRAY['alpha'::text, 'beta'::text, 'gamma'::text])));
 ALTER TABLE public.pnj_fonctions ADD CONSTRAINT pnj_fonctions_classe_decor_check CHECK ((classe_decor = ANY (ARRAY['alpha'::text, 'beta'::text, 'gamma'::text])));

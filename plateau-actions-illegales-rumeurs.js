@@ -652,6 +652,7 @@ async function neutraliserDeputePnj(cible, mode, taux, siege) {
 // =====================
 // Formulations evasives par type d'action tracee (jamais de detail precis : montant, raison, etc.)
 const FORMULATIONS_RUMEUR_VRAIE = {
+  achat_drogue: (a, c) => 'On aurait vu ' + a + ' échanger quelques billets contre un petit paquet auprès de ' + c + '.',
   don:        (a, c) => 'On a vu ' + a + ' donner quelque chose discrètement à ' + c + '.',
   don_objet:  (a, c) => 'On raconte que ' + a + ' a remis un objet en mains propres à ' + c + ', loin des regards.',
   vol:        (a, c) => 'Un témoin jure avoir vu ' + a + ' s\'approcher un peu trop près des affaires de ' + c + '.',

@@ -32,6 +32,9 @@ GRANT EXECUTE ON FUNCTION public.pnj_caracteristiques_base(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.pnj_caracteristiques_base(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.pnj_caracteristiques_cles() TO postgres;
 GRANT EXECUTE ON FUNCTION public.pnj_caracteristiques_cles() TO service_role;
+GRANT EXECUTE ON FUNCTION public.pnj_ced_acheter(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.pnj_ced_acheter(uuid) TO postgres;
+GRANT EXECUTE ON FUNCTION public.pnj_ced_acheter(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.pnj_classe_de(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.pnj_classe_de(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.pnj_classe_decor(text) TO postgres;
@@ -153,6 +156,8 @@ GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.pnj_axes_autorite TO service_role;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.pnj_candidats_catalogue TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.pnj_candidats_catalogue TO service_role;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.pnj_ced_achats_recus TO postgres;
+GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.pnj_ced_achats_recus TO service_role;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.pnj_employes_metier TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.pnj_employes_metier TO service_role;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.pnj_employeurs TO postgres;

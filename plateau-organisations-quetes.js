@@ -4014,11 +4014,12 @@ async function doTenueEntrainement(pa, cost) {
   const nb = Number(etatJour.nb) || 0;
   // Le cache local est realigne sur le serveur : il ne decide plus rien, mais il reste lu
   // ailleurs (affichage), autant qu'il ne mente pas.
-  state.char.entrainementsJour = { jour: state.day || 1, nb };
+  state.char.entrainementsJour = { jour: etatJour.jour, nb };
 
   document.getElementById('postes-modal-title').textContent = "Tenue d'entraînement";
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Entraînements aujourd\'hui : ' + nb + '/2</div>';
+  if (nb >= 2) html += '<p role="status" style="color:#C9A84C;line-height:1.5">Vous avez déjà effectué vos deux entraînements du jour. Vous pourrez reprendre à minuit, heure de Luthécia.</p>';
   ['defense','technique','endurance'].forEach(stat => {
     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;padding:.4rem .6rem;border:1px solid #2a2010">';
     html += '<span style="font-size:.8rem;color:#c0b090">' + LABELS_PERF[stat] + ' : <b style="color:#C9A84C">' + (perf[stat]||0) + '</b></span>';
@@ -4056,7 +4057,7 @@ async function confirmerEntrainement(stat, pa, cost) {
   }
   // On recopie ce que le SERVEUR a arrete, jamais un calcul local.
   if (typeof r.pa === 'number') state.pa = r.pa;
-  state.char.entrainementsJour = { jour: state.day || 1, nb: Number(r.nb) || 0 };
+  state.char.entrainementsJour = { jour: r.jour, nb: Number(r.nb) || 0 };
 
   const blesse = Math.random() < 0.05;
   if (blesse) {

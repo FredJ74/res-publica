@@ -15,6 +15,7 @@
 
 ALTER TABLE public.pnj_axes_autorite ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pnj_candidats_catalogue ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pnj_ced_achats_recus ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pnj_employes_metier ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pnj_employeurs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pnj_evenements ENABLE ROW LEVEL SECURITY;

@@ -323,3 +323,5 @@ permis_depots_recus;immobilier et territoire;C;structure_seule;0;non;0;1;Recus h
 permis_transactions_internes;immobilier et territoire;C;structure_seule;0;non;0;1;Autorisation interne transitoire des depots de permis.;ETAT VIVANT PUR : aucun historique ni verrou au premier jour.
 terrain_negociations_refus;immobilier et territoire;C;structure_seule;0;non;0;1;Offres refusees par personnage et occupation. Aucun etat initial.;ETAT VIVANT PUR : aucun historique ni verrou au premier jour.
 terrain_negociations_recus;immobilier et territoire;C;structure_seule;0;non;0;1;Recus idempotents de negociation, aucun acces client direct.;ETAT VIVANT PUR : aucun historique ni verrou au premier jour.
+
+pnj_ced_achats_recus;socle PNJ;C;structure_seule;0;non;0;1;Recus idempotents des achats chez Ced. Aucun achat initial.;Etat vivant, aucun seed.
