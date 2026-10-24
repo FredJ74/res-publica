@@ -13,6 +13,17 @@ Ce fichier s'adresse à **tous les agents de code** qui travaillent sur ce dép�
 - Toute question de design (règle du jeu, prix, équilibrage, texte RP) se
   pose à Fred **avant** de coder, jamais tranchée par l'agent.
 
+## Une seule réalité : celle du serveur (règle de Fred, 24/10/2026)
+
+- **L'écran ne doit jamais pouvoir afficher autre chose que ce que le
+  serveur a décidé et enregistré.**
+- Tirages, gains, pertes, droits d'accès, échéances : décidés par une
+  fonction serveur, jamais par `Math.random()`, `Date.now()` ou un cache du
+  navigateur.
+- Pas de message de succès avant la réponse du serveur ; un refus est nommé.
+- Pas de montant ou d'effet annoncé que l'écran a calculé lui-même : il
+  affiche ce que le serveur renvoie.
+
 ## Le relais entre agents
 
 Fred alterne les agents : il travaille avec l'un jusqu'à sa limite de
