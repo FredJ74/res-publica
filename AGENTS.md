@@ -13,6 +13,17 @@ Ce fichier s'adresse à **tous les agents de code** qui travaillent sur ce dép�
 - Toute question de design (règle du jeu, prix, équilibrage, texte RP) se
   pose à Fred **avant** de coder, jamais tranchée par l'agent.
 
+## Une seule réalité : celle du serveur (règle de Fred, 24/10/2026)
+
+- **L'écran ne doit jamais pouvoir afficher autre chose que ce que le
+  serveur a décidé et enregistré.**
+- Tirages, gains, pertes, droits d'accès, échéances : décidés par une
+  fonction serveur, jamais par `Math.random()`, `Date.now()` ou un cache du
+  navigateur.
+- Pas de message de succès avant la réponse du serveur ; un refus est nommé.
+- Pas de montant ou d'effet annoncé que l'écran a calculé lui-même : il
+  affiche ce que le serveur renvoie.
+
 ## Le relais entre agents
 
 Fred alterne les agents : il travaille avec l'un jusqu'à sa limite de
@@ -47,3 +58,11 @@ leur numéro (#57, #135…).
 - **Base Supabase** : suivre `WORKFLOW-SUPABASE.md` sans exception.
 - Freemium **jamais pay-to-win** : le premium est cosmétique ou de confort.
 - Aucune clé ni secret dans le dépôt ou les messages.
+
+## Charte graphique
+
+- Toute fenêtre pop-up suit la **charte ardoise et or** de `style.css` :
+  conteneur `cpj-dialogue`, texte secondaire `cpj-note`, boutons
+  `cpj-touche` (`cpj-primaire` pour l'action principale), champs
+  `cpj-champ`. Pas de couleurs en dur : l'ancienne palette brune
+  (`#0f0d05`, `#8a8060`, `#2a2010`…) ne doit plus être recopiée.
