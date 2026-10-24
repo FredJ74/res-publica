@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Six corruptions réelles du code chargé sur PostgreSQL jetable ; chaque banc doit rougir."""
+"""Sept corruptions réelles du code chargé sur PostgreSQL jetable ; chaque banc doit rougir."""
 from pathlib import Path
 import subprocess,sys,json
 R=Path(__file__).resolve().parents[2]
-cas={'prix_public':'prix officiel moins le depot exactement une fois','credit_fictif':'compte national reellement credite','rejeu_banque':'credit consommation idempotent','dette_legacy':'garde attendue','archive_collision':'deux ventes legitimes meme jour archives distinctes','permis_jour_rejoue':'rejeu instruction aucun second jour'}
+cas={'prix_public':'prix officiel moins le depot exactement une fois','credit_fictif':'compte national reellement credite','rejeu_banque':'credit consommation idempotent','dette_legacy':'garde attendue','archive_collision':'deux ventes legitimes meme jour archives distinctes','permis_jour_rejoue':'rejeu instruction aucun second jour','echeance_arrondi':'reliquat non divisible solde exactement sans surprelevement'}
 resultats=[]
 for mutant,motif in cas.items():
  p=subprocess.run([sys.executable,str(R/'outils/bancs/banc-terrain-banque-135-local.py'),'--apres-location','--mutant='+mutant],cwd=R,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=120)

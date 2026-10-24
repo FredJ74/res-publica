@@ -39,6 +39,7 @@ def suite(db,q,srv):
     'prix_public':('terrain_acquisition_commande(text,text,jsonb,uuid)',"e->>'acquisitionVersion'='2'",'false'),
     'credit_fictif':('pret_national_creer_interne(text,numeric,integer,text,text,text,numeric)','solde=solde+p_montant','solde=solde'),
     'rejeu_banque':('pret_national_contracter_versionne(numeric,integer,text,text,uuid)','IF FOUND THEN','IF false THEN'),
+    'echeance_arrondi':('pret_national_jour_traiter(text)','du:=least(p.mensualite,p.montant_restant);','du:=p.mensualite;'),
     'permis_jour_rejoue':('terrain_permis_instruction_jour(text)',"IF p->>'jourInstruction'=jour THEN",'IF false THEN'),
     'archive_collision':('terrain_proprietaire_muter(text,text,jsonb,text)',"|| '-' || v_nouveau || '-' || coalesce(nullif(p_reference,''),'historique'),","|| '-' || v_nouveau,")
    }[mutant]
@@ -151,15 +152,21 @@ def suite(db,q,srv):
  try:q.execute("UPDATE prets SET montant_restant=0 WHERE type_pret='immobilier'");raise AssertionError('garde attendue')
  except psycopg2.Error as ex:check('pret_commande_versionnee_requise' in str(ex),'ancienne sauvegarde ne reecrit pas une dette versionnee')
  q.execute("UPDATE personnages_donnees SET pa=0,current_building='banque-nationale' WHERE name='Fixture';SET hg.acteur='Fixture'");avant=photo()
- r=lire("SELECT pret_national_contracter_versionne(1000,10,'travaux','banque-nationale','30000000-0000-4000-8000-000000000002')")
+ r=lire("SELECT pret_national_contracter_versionne(1001,10,'travaux','banque-nationale','30000000-0000-4000-8000-000000000002')")
  check(not r['ok'] and r['raison']=='pa_insuffisants' and photo()==avant,'PA refuses apres creation interne rollback credit dette et recu')
  q.execute("UPDATE personnages_donnees SET pa=50 WHERE name='Fixture'")
- r=lire("SELECT pret_national_contracter_versionne(1000,10,'travaux','banque-nationale','30000000-0000-4000-8000-000000000002')")
+ r=lire("SELECT pret_national_contracter_versionne(1001,10,'travaux','banque-nationale','30000000-0000-4000-8000-000000000002')")
  check(r['ok'],'pret travaux preserve et UUID refuse non consomme')
  q.execute("INSERT INTO prets_ecritures_internes VALUES(txid_current());UPDATE prets SET jour_dernier_prelevement=((now() AT TIME ZONE 'Europe/Paris')::date-1)::text WHERE id=%s;DELETE FROM prets_ecritures_internes WHERE transaction_id=txid_current()",(r['pret_id'],))
  q.execute("CREATE FUNCTION panne_echeance() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne_echeance';END$$;CREATE TRIGGER panne_echeance BEFORE UPDATE ON prets FOR EACH ROW EXECUTE FUNCTION panne_echeance()");avant=photo()
  try:lire('SELECT pret_national_jour_traiter(%s)',(r['pret_id'],));raise AssertionError('panne attendue')
  except psycopg2.Error as ex:check('panne_echeance' in str(ex) and photo()==avant,'panne apres debit echeance rollback argent dette et marqueur')
  q.execute('DROP TRIGGER panne_echeance ON prets')
+ total=lire('SELECT montant_restant FROM prets WHERE id=%s',(r['pret_id'],));mensualite=lire('SELECT mensualite FROM prets WHERE id=%s',(r['pret_id'],));versements=[]
+ for j in range(10):
+  q.execute("INSERT INTO prets_ecritures_internes VALUES(txid_current());UPDATE prets SET jour_dernier_prelevement=((now() AT TIME ZONE 'Europe/Paris')::date-1)::text WHERE id=%s;DELETE FROM prets_ecritures_internes WHERE transaction_id=txid_current()",(r['pret_id'],))
+  versements.append(lire('SELECT pret_national_jour_traiter(%s)',(r['pret_id'],))['montant'])
+ check(sum(versements)==total and versements[-1]<mensualite and lire('SELECT montant_restant FROM prets WHERE id=%s',(r['pret_id'],))==0,'reliquat non divisible solde exactement sans surprelevement')
+
  print(json.dumps({'terrain_banque':True,'assertions':n,'production':False}))
 if __name__=='__main__':m.main(suite)
