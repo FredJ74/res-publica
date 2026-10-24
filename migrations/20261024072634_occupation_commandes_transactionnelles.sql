@@ -24,6 +24,7 @@ BEGIN
  SELECT coalesce((p.stats->>'CHA')::numeric,8) c,coalesce((p.stats->>'DUP')::numeric,8) d
  UNION ALL SELECT mb.car_cha,mb.car_dup FROM public.pnj_membres mb JOIN public.pnj_employes_metier em ON em.pnj_id=mb.id
  WHERE mb.proprietaire_pj=acteur AND mb.leader_pj=acteur AND mb.statut='actif') x;
+ IF cha::text IN('NaN','Infinity','-Infinity') OR dup::text IN('NaN','Infinity','-Infinity') OR coalesce(p.resources->>'dis','50') IN('NaN','Infinity','-Infinity') THEN RETURN jsonb_build_object('ok',false,'raison','etat_personnage_invalide');END IF;
  cha:=cha-CASE WHEN p.excommunie IS NOT NULL AND p.excommunie<>'null'::jsonb THEN 2 ELSE 0 END;
  IF p.stats_affaiblies ? 'CHA' THEN cha:=greatest(1,floor(cha*greatest(0,least(1,p.hp::numeric/100))+.5));ELSE cha:=floor(cha+.5);END IF;
  IF p.stats_affaiblies ? 'DUP' THEN dup:=greatest(1,floor(dup*greatest(0,least(1,p.hp::numeric/100))+.5));ELSE dup:=floor(dup+.5);END IF;

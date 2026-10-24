@@ -21,10 +21,18 @@ def suite(db,server):
  lots=[{'id':'a','surface':600,'destination':'commerce','label':'Local A','loyer':123,'locataire':None,'identite':'historique'}, {'id':'b','surface':600,'destination':'commerce','label':'Local B','loyer':234,'locataire':'Autre'}]
  etat={'city':'capitale','surface':1500,'proprietaire':'orga:orga','niveau_construction':'commerce_premium','subdivisions':lots}
  c.execute("INSERT INTO terrains_etat(id,country,building_id,proprietaire,data) VALUES('immeuble','republic','immeuble','orga:orga',%s)",(json.dumps(etat),))
- def appel(acte,payload,retirer=None):return q('SELECT terrain_lots_acte(%s,%s,%s,%s)',('immeuble',acte,Json(payload),retirer))
+ def appel(acte,payload,retirer=None):return q('SELECT terrain_lots_acte(%s,%s,%s,%s)',('immeuble',acte,None if payload is None else Json(payload),retirer))
  def photo():return q("SELECT data::jsonb FROM terrains_etat WHERE id='immeuble'")
  def refuse(acte,payload,raison,retirer=None):
   avant=photo();r=appel(acte,payload,retirer);ok(not r['ok'] and r['raison']==raison and photo()==avant,raison)
+ # Contre-exemple natif du corps audite : NULL contournait les boucles d'autorite.
+ avant=photo()
+ for nom in ['terrain_etat_verrouiller_interne','terrain_etat_fusionner_interne','terrain_lots_acte']:
+  c.execute(m.fn('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',nom))
+ r=appel('lot_bail_libere',None,['b'])
+ ok(r['ok'] and len(photo()['subdivisions'])==1,'ancien corps reproduit le retrait du lot du tiers')
+ c.execute("UPDATE terrains_etat SET data=%s WHERE id='immeuble'",(json.dumps(avant),));db.commit()
+ c.execute(sql)
  # Faille L08 : NULL ne peut plus contourner l'autorite sur p_retirer.
  for ids in [['b'],['a','b'],['inconnu']]:
   avant=photo();r=appel('lot_bail_libere',None,ids)
