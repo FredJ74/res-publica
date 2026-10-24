@@ -4128,8 +4128,8 @@ async function doConfirmerCompromis(pa, cost) {
   const estHelvetia = ts.proprietaire === 'Helvetia';
 
   const demandePret = document.getElementById('compromis-pret-check')?.checked;
-  const montantPret = parseInt(document.getElementById('compromis-pret-montant')?.value || 0);
-  const dureePret = parseInt(document.getElementById('compromis-pret-duree')?.value || 30);
+  const montantPret = Number(document.getElementById('compromis-pret-montant')?.value || 0);
+  const dureePret = Number(document.getElementById('compromis-pret-duree')?.value || 30);
   const demandePermis = document.getElementById('compromis-permis-check')?.checked;
   const typePermis = document.getElementById('compromis-permis-type')?.value;
 
@@ -4185,67 +4185,7 @@ async function doConfirmerCompromis(pa, cost) {
     return;
   }
 
-  const rCompromis = await deduireCoutOrdre({ pa, cost });
-  if (!rCompromis.ok) { signalerRefusCout(rCompromis); return; }
-
-  const patch = {
-    compromis: true,
-    compromisPar: state.char?.name,
-    acompte: ACOMPTE_COMPROMIS,
-    compromisAt: Date.now(),
-    compromisExpireAt: Date.now() + 7 * 86400000
-  };
-
-  if (demandePret) {
-    const taux = typeof getTauxPret === 'function' ? getTauxPret('nationale') : 5;
-    const montantTotal = Math.round(montantPret * (1 + taux / 100));
-    patch.pretDemande = {
-      demandeur: state.char?.name,
-      montant: montantPret,
-      montantTotal: montantTotal,
-      duree: dureePret,
-      mensualite: Math.ceil(montantTotal / dureePret),
-      statut: 'attente_validation'
-    };
-  }
-  if (demandePermis && typePermis) {
-    // Lot 1.5.13 : ce raccourci creait un permis directement en 'attente_validation', sans duree
-    // ni numero de dossier -- un dossier qui, avec le moteur actuel, n'aurait jamais pu etre
-    // accorde tacitement (duree nulle) et serait reste suspendu a une signature. Il produit
-    // desormais un dossier ORDINAIRE, instruit comme n'importe quel autre.
-    const dureePermisCompromis = (typeof DUREE_INSTRUCTION_PERMIS !== 'undefined')
-      ? (DUREE_INSTRUCTION_PERMIS[typePermis] || 0) : 0;
-    const jourCompromis = state.day || 1;
-    patch.permis = {
-      demandeur: state.char?.name,
-      palierDemande: typePermis,
-      dateDepot: jourCompromis,
-      dureeInstruction: dureePermisCompromis,
-      joursInstructionFaits: 0,
-      dateInstructionTerminee: jourCompromis + dureePermisCompromis,
-      statut: 'instruction',
-      numeroDossier: (typeof numeroDossierUrbanisme === 'function')
-        ? numeroDossierUrbanisme(state.country, id, Date.now()) : null,
-      decoupageInitial: []
-    };
-  }
-
-  // LE COMPROMIS EST UNE PORTE (10 octobre 2026). `compromisPar` n'est plus dicte par ce
-  // navigateur : le serveur le pose lui-meme, refuse un terrain deja sous compromis d'autrui --
-  // la regle que son jumeau Helvetia appliquait deja -- et refuse tout champ etranger a l'acte.
-  const vSign = await sbTerrainActe('terrain_compromis_acte', {
-    p_terrain_id: id, p_acte: 'compromis_signer', p_patch: patch
-  });
-  if (!vSign || vSign.ok !== true) {
-    signalerRefusTerrain(vSign, 'La signature du compromis');
-    return;
-  }
-  remplacerTerrainState(id, vSign.etat);
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  addJournalEntry('Compromis de vente signé pour ' + ACOMPTE_COMPROMIS + ' ' + cur + '. Valable 7 jours.' + (demandePret ? ' Prêt demandé.' : '') + (demandePermis ? ' Permis demandé.' : ''), 'event-good');
-  showToast('Compromis signé !', 'Terrain réservé 7 jours. -' + ACOMPTE_COMPROMIS + ' ' + cur, true);
+  return finance135Acquerir(id,'compromis',{occupation:String(ts.dateGeneration??'historique')+':'+(ts.pnj||''),pret:demandePret?{montant:montantPret,duree:dureePret}:null,permis:demandePermis?typePermis:null});
 }
 
 // Surface reelle de chaque lot (m2), source de verite unique pour le prix au m2 et pour la
@@ -4273,55 +4213,10 @@ const ACOMPTE_ACHAT_DIRECT = 1000;
 // Achat direct (sans compromis) : depot de garantie immediat, rendez-vous chez le notaire
 // fixe a une date aleatoire (2 a 7 jours), avec 24h de rattrapage si le jour venu le joueur
 // n'est pas passe finaliser. Le solde du prix (moins l'acompte) est paye au notaire, pas ici.
-async function doAcheterTerrain() {
-  const id = state.currentBuilding;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Acheter ce terrain')) return;
-
-  const dispo = terrainOrdreDisponible('acheter_terrain', id);
-  if (!dispo.ok) { showToast('Impossible', dispo.raison, false); return; }
-  if (state.arg < ACOMPTE_ACHAT_DIRECT) {
-    showToast('Fonds insuffisants', ACOMPTE_ACHAT_DIRECT + ' ' + cur + ' requis pour le dépôt de garantie.', false);
-    return;
-  }
-
-  // Deduction PA+cout centralisee (Lot 2C) -- avant toute mutation (setTerrainState, Supabase).
-  const r = await deduireCoutOrdre({ pa: 2, cost: ACOMPTE_ACHAT_DIRECT });
-  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '2 PA requis.' : ACOMPTE_ACHAT_DIRECT + ' ' + cur + ' requis pour le dépôt de garantie.', false); return; }
-
-  const surface = SURFACE_TERRAINS[id] || 2000;
-  const prix = surface * PRIX_AU_M2_TERRAIN;
-  const delaiJours = 2 + Math.floor(Math.random() * 6); // 2 a 7 jours
-  const dateAchat = Date.now() + delaiJours * 86400000;
-  const dateLimite = dateAchat + 24 * 3600000;
-
-  // LE DEPOT DE GARANTIE EST UNE PORTE (10 octobre 2026). Le serveur pose lui-meme le demandeur
-  // et refuse un terrain deja sous compromis ou deja promis a quelqu'un d'autre.
-  const vDep = await sbTerrainActe('terrain_compromis_acte', {
-    p_terrain_id: id, p_acte: 'achat_direct_deposer',
-    p_patch: { achatDirect: {
-      demandeur: state.char?.name,
-      acompte: ACOMPTE_ACHAT_DIRECT,
-      prix: prix,
-      surface: surface,
-      dateAchat: dateAchat,
-      dateLimite: dateLimite
-    } }
-  });
-  if (!vDep || vDep.ok !== true) {
-    signalerRefusTerrain(vDep, 'Le dépôt de garantie');
-    return;
-  }
-  remplacerTerrainState(id, vDep.etat);
-
-  const dateTxt = new Date(dateAchat).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-  updateUI();
-  addJournalEntry('Dépôt de garantie versé (' + ACOMPTE_ACHAT_DIRECT + ' ' + cur + '). Rendez-vous chez le notaire fixé au ' + dateTxt + ' pour finaliser l\'achat.', 'event-good');
-  showToast('Dépôt versé !', 'Rendez-vous chez le notaire le ' + dateTxt + '. -' + ACOMPTE_ACHAT_DIRECT + ' ' + cur, true);
-  if (typeof sendMail === 'function') {
-    await sendMail(state.char?.name, 'Office Notarial', 'Rendez-vous fixé — achat de terrain',
-      'Votre rendez-vous pour la signature de l\'acte de vente est fixé au ' + dateTxt + '. Présentez-vous à l\'Office Notarial ce jour-là (une tolérance de 24h est accordée en cas d\'absence). Passé ce délai, le dépôt de garantie sera perdu et le terrain remis en vente.');
-  }
+async function doAcheterTerrain(){
+ const id=state.currentBuilding,ts=getTerrainState(id);
+ const disponible=terrainOrdreDisponible('acheter_terrain',id);if(!disponible.ok){showToast('Achat impossible',disponible.raison,false);return;}
+ return finance135Acquerir(id,'depot',{occupation:String(ts.dateGeneration??'historique')+':'+(ts.pnj||'')});
 }
 
 // Finalise reellement l'acquisition d'un terrain (proprietaire, surface, valeur, Supabase,
@@ -4337,79 +4232,7 @@ async function doAcheterTerrain() {
 // transaction : c'etait la seconde moitie du defaut. Avant, la reservation etait purgee par un
 // deuxieme sbSetTerrainState avale -- et si celui-la se perdait, doActeVenteTerrain reproposait
 // l'acte, que le joueur repayait, solde compris.
-async function finaliserAchatTerrain(id, prix, surface, aPermis, titre, purge) {
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, "Finaliser l'achat")) return false;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const b = BUILDINGS[id];
-  const localName = b?.shortName || b?.name || id;
-
-  let coproprietaire = null;
-  if (typeof sbGetMariageActif === 'function') {
-    try {
-      const mariage = await sbGetMariageActif(state.char?.name);
-      if (mariage) {
-        coproprietaire = mariage.conjoint1 === state.char?.name ? mariage.conjoint2 : mariage.conjoint1;
-      }
-    } catch(e) {}
-  }
-
-  // LA MUTATION DE PROPRIETE EST UNE PORTE SERVEUR (chantier 5, 10 octobre 2026).
-  //
-  // CE QUI SE PASSAIT. Le solde du prix etait deja parti cote serveur (deduireCoutOrdre ->
-  // payer_ordre, chez les deux appelants) quand on arrivait ici, et l'ecriture du terrain etait
-  // AVALEE : l'acheteur pouvait payer et ne rien recevoir. L'historique public de la vente, ecrit
-  // juste apres et avale lui aussi, pouvait de son cote acter une vente qui n'existe pas -- avec
-  // un identifiant portant Date.now(), donc jamais dedoublonnable.
-  //
-  // terrain_proprietaire_muter fait les deux dans UNE transaction, verifie le TITRE invoque
-  // (compromis a mon nom, ou achat direct a mon nom), refuse un terrain gele par une succession, et
-  // -- point d'architecture -- recoit un PATCH qu'elle fusionne sur l'etat REEL lu sous verrou,
-  // plus un blob entier relu dans le cache du navigateur qui pouvait ecraser le serveur.
-  const patch = {
-    proprietaire: state.char?.name,
-    coproprietaire: coproprietaire,
-    acheteAt: Date.now(),
-    constructionAutorisee: !!aPermis,
-    surface: surface,
-    valeur_totale: prix,
-    dette_fonciere: 0,
-    // La signature a toujours lieu a l'Office Notarial de Luthecia, quelle que soit la ville du
-    // terrain -- ne jamais deduire la ville d'un terrain de state.currentCity (A2, audit du 16
-    // aout 2026). getVilleTerrain (plateau-justice-economie.js) fait autorite via l'id du terrain.
-    city: typeof getVilleTerrain === 'function' ? getVilleTerrain(id) : (state.currentCity || 'capitale')
-  };
-  for (const k in (purge || {})) patch[k] = purge[k];
-  const vMut = typeof sbRpc === 'function'
-    ? await sbRpc('terrain_proprietaire_muter', {
-        p_terrain_id: id, p_titre: titre, p_patch: patch, p_reference: null
-      }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-    : null;
-  // SANS VERDICT, LE TERRAIN N'A PAS CHANGE DE MAIN -- et on ne l'annonce pas.
-  if (!vMut || vMut.ok !== true) {
-    showToast('Transfert non enregistré',
-      "Le paiement a été prélevé, mais la mutation de propriété n'a pas pu être enregistrée. "
-      + "Présentez-vous à nouveau à l'Office Notarial : le titre est toujours à votre nom.", false);
-    addJournalEntry("Mutation de propriété non enregistrée (" + ((vMut && vMut.raison) || 'appel non abouti')
-      + ") : le terrain n'a pas changé de main.", 'event-bad');
-    return false;
-  }
-  // On recopie dans le cache l'etat arrete par le SERVEUR, jamais un calcul local.
-  if (typeof setTerrainState === 'function' && vMut.etat) setTerrainState(id, vMut.etat);
-
-  updateUI();
-  if (coproprietaire) {
-    showToast('Bien partagé', coproprietaire + ' devient copropriétaire à 50% de ce terrain.', true);
-    addJournalEntry('Terrain acheté en copropriété avec ' + coproprietaire + ' (50/50).', 'event-good');
-  }
-  if (!aPermis) {
-    addJournalEntry('Terrain ' + localName + ' acheté pour ' + prix + ' ' + cur + '. SANS permis — construction bloquée jusqu\'autorisation du maire.', 'event-info');
-    showToast('Terrain acheté !', 'Sans permis : construction bloquée. Demandez l\'autorisation au maire.', true);
-  } else {
-    addJournalEntry('Terrain ' + localName + ' acheté pour ' + prix + ' ' + cur + '. Permis valide.', 'event-good');
-    showToast('Terrain acheté !', 'Avec permis. Construction autorisée.', true);
-  }
-  return true;
-}
+async function finaliserAchatTerrain(id,prix,surface,aPermis,titre){if(typeof refuserSiGele==='function'&&await refuserSiGele('terrain',id,'Finaliser l’achat'))return false;return !!await finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis');}
 
 // Accelere (reduit de moitie le delai restant) le rendez-vous notarial d'un achat direct en
 // attente, contre corruption — meme principe que corrompre_fonctionnaire_permis.

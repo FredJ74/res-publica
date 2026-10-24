@@ -97,12 +97,13 @@ att('un verdict absent est dit comme une panne de transport, pas comme un refus 
 print('');
 print('3. LES VINGT-DEUX ECRITURES PASSENT PAR HUIT PORTES, UNE PAR MECANISME');
 var ACTES = {
-  'terrain_compromis_acte': 6, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 1,
+  'terrain_compromis_acte': 4, 'acquisition_versionnee':2, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 1,
   'terrain_lots_acte': 5, 'chantier_commande_location': 1, 'chantier_commande_reamenagement': 1
 };
 var totalPortes = 0;
 Object.keys(ACTES).sort().forEach(function (porte) {
   var n = porte==='chantier_commande_location' ? partout(/constructionExecuterCommande\('louer'/g) : porte==='chantier_commande_reamenagement' ? partout(/constructionExecuterCommande\('reamenager'/g) : porte==='chantier_commande_plan' ? partout(/constructionExecuterCommande\('plan'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
+  if(porte==='acquisition_versionnee')n=partout(/finance135Acquerir\(id,'(?:depot|compromis)'/g);
   if(porte==='terrain_permis_acte') n+=partout(/sbRpcVerdict\('terrain_permis_deposer'/g); // meme depot, porte versionnee de #112
   totalPortes += n;
   att(porte + ' : ' + ACTES[porte] + ' appel(s)', n === ACTES[porte], n + ' trouve(s)');
@@ -147,6 +148,8 @@ var ACTES_NOMMES = [
   'lot_louer', 'lot_bail_libere'
 ];
 var manquants = ACTES_NOMMES.filter(function (a) {
+  if(a==='compromis_signer')return partout(/finance135Acquerir\(id,'compromis'/g)!==1;
+  if(a==='achat_direct_deposer')return partout(/finance135Acquerir\(id,'depot'/g)!==1;
   if(a==='permis_deposer')return partout(/sbRpcVerdict\('terrain_permis_deposer'/g)!==1;
   if(a==='lot_louer')return partout(/constructionExecuterCommande\('louer'/g)!==1;
   if(a==='permis_plan_modifier')return partout(/constructionExecuterCommande\('plan'/g)!==1;

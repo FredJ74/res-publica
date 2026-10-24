@@ -2003,6 +2003,14 @@ async function preleverPretsBancairesServeur() {
     const jourPrets = jourParisISO();
 
     for (const pret of prets) {
+      if (pret.contrat_version === 2 && pret.type_banque === 'nationale') {
+        const brut=await sbRpc('pret_national_jour_traiter',{p_pret:pret.id},HEADERS_SERVICE).catch(()=>null);
+        const verdict=Array.isArray(brut)?brut[0]:brut;
+        if(!verdict?.ok){signalerEchec('pret_national_transactionnel',verdict?.raison||'verdict_absent');continue;}
+        if(!verdict.rejeu){if(verdict.montant>0)resultats.preleves++;if(verdict.impaye)resultats.impayes++;if(verdict.saisi)resultats.saisies++;}
+        continue;
+      }
+
       // GEL DES PRETS ANTERIEURS A LA REPARATION (chantier A / P0-1, 14 septembre 2026).
       // sbUpdatePret n'existait pas dans ce fichier : AUCUNE mensualite n'a jamais ete prelevee
       // depuis la mise en service. Les prets deja ouverts a cette date ont donc accumule des

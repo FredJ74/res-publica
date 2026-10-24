@@ -5312,6 +5312,7 @@ function ouvrirMenuOfficialiserTransaction(pa, cost) {
 }
 
 async function doActeVenteTerrain() {
+  if(typeof finance135Reconcilier==='function')await finance135Reconcilier();
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const nom = state.char?.name;
 
@@ -5406,55 +5407,9 @@ function afficherRecapActeVente(candidat) {
 }
 
 async function traiterActeVente(candidat) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const id = candidat.id;
-  const ts = candidat.ts;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, "Officialiser l'acte")) return;
-
-  if (candidat.type === 'achatDirect') {
-    const ad = ts.achatDirect;
-    if (Date.now() < ad.dateAchat) {
-      showToast('Trop tôt', 'Votre rendez-vous n\'est pas encore arrivé.', false);
-      return;
-    }
-    if (Date.now() > ad.dateLimite) {
-      showToast('Rendez-vous manqué', 'Le délai de rattrapage de 24h est dépassé. Le dépôt est perdu.', false);
-      return;
-    }
-    const solde = ad.prix - ad.acompte;
-    if (state.arg < solde) {
-      showToast('Fonds insuffisants', solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false);
-      return;
-    }
-    // Deduction PA+cout centralisee (Lot 2C) -- au moment ou l'acte est effectivement traite
-    // (pas lors de la simple consultation/presentation des candidats dans doActeVenteTerrain),
-    // avant la premiere mutation irreversible (finalisation de l'achat).
-    const rAd = await deduireCoutOrdre({ pa: 1, cost: solde });
-    if (!rAd.ok) { showToast(rAd.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rAd.raison === 'pa_insuffisants' ? '1 PA requis.' : solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false); return; }
-    // LA MUTATION ET LA PURGE DE LA RESERVATION SONT UN SEUL ACTE (chantier 5, 10 octobre 2026).
-    //
-    // Le commentaire « Lot 1.5.0 » qui vivait ici decrivait un vrai defaut -- sbSetTerrainState
-    // ECRIT LE BLOB ENTIER, donc { achatDirect: null } effacait tout -- et sa correction consistait
-    // a renvoyer l'etat COMPLET fusionne depuis le cache. Ce correctif tenait, mais il laissait
-    // DEUX ecritures : la mutation, puis la purge, toutes deux avalees. Si la seconde se perdait,
-    // ts.achatDirect survivait, doActeVenteTerrain (qui filtre sur achatDirect.demandeur sans
-    // jamais regarder ts.proprietaire) reproposait l'acte, et le joueur REPAYAIT LE SOLDE.
-    // Les deux cles voyagent desormais dans le MEME patch, vers la meme transaction serveur, qui
-    // fusionne sur l'etat reel -- plus de blob de cache, plus de seconde ecriture.
-    const mute = await finaliserAchatTerrain(id, ad.prix, ad.surface, false, 'achat_direct',
-                                            { achatDirect: null });
-    if (!mute) return;
-    document.getElementById('modal-postes')?.classList.remove('open');
-    showToast('Acte signé !', 'Propriétaire de ' + (BUILDINGS[id]?.shortName || id) + '.', true, true);
-    return;
-  }
-
-  // Compromis
-  // Chantier H2A (28 aout 2026) : bien saisi par Helvetia -- finalisation deleguee integralement
-  // a finaliser_achat_bien_helvetia (RPC installee), jamais a finaliserAchatTerrain/deduireCoutOrdre
-  // (solde + transfert de propriete + credit caisse Helvetia + eventuelles obligations envers un
-  // copropriétaire sont tous geres, atomiquement, DANS la RPC). RPC d'abord, PA ensuite.
-  if (ts.proprietaire === 'Helvetia') {
+ const cur=COUNTRIES[state.country]?.cur||'FR',id=candidat.id,ts=candidat.ts;
+ if(ts.proprietaire!=='Helvetia'){await finaliserAchatTerrain(id,0,0,false,candidat.type==='achatDirect'?'achat_direct':'compromis');return;}
+ if (ts.proprietaire === 'Helvetia') {
     const pretEnAttenteH = ts.pretDemande && ts.pretDemande.statut === 'attente_validation';
     const refuseH = ts.pretDemande && ts.pretDemande.statut === 'refuse';
     if (refuseH) { showToast('Compromis caduc', 'Le prêt demandé a été refusé. Votre acompte a normalement déjà été remboursé.', false); return; }
@@ -5475,39 +5430,6 @@ async function traiterActeVente(candidat) {
     showToast('Acte signé !', 'Propriétaire de ' + (BUILDINGS[id]?.shortName || id) + ' (bien Helvetia). Acompte inclus dans le prix.', true, true);
     return;
   }
-
-  const permisOk = !ts.permis || ts.permis.statut === 'valide';
-  const pretOk = !ts.pretDemande || ts.pretDemande.statut === 'accorde' || ts.pretDemande.statut === undefined;
-  const pretEnAttente = ts.pretDemande && ts.pretDemande.statut === 'attente_validation';
-  const permisEnAttente = ts.permis && ts.permis.statut === 'attente_validation';
-  const refuse = (ts.permis && ts.permis.statut === 'refuse') || (ts.pretDemande && ts.pretDemande.statut === 'refuse');
-
-  if (refuse) {
-    showToast('Compromis caduc', 'Une clause a été refusée. Votre acompte a normalement déjà été remboursé.', false);
-    return;
-  }
-  if (permisEnAttente || pretEnAttente) {
-    showToast('Clauses en attente', 'Le permis et/ou le prêt ne sont pas encore tranchés. Revenez après leur décision.', false);
-    return;
-  }
-
-  const solde = ts.valeur_totale - (ts.acompte || 0);
-  if (state.arg < solde) {
-    showToast('Fonds insuffisants', solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false);
-    return;
-  }
-  // Deduction PA+cout centralisee (Lot 2C) -- au moment ou l'acte est effectivement traite,
-  // avant la premiere mutation irreversible (finalisation de l'achat).
-  const rCompromis = await deduireCoutOrdre({ pa: 1, cost: solde });
-  if (!rCompromis.ok) { showToast(rCompromis.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rCompromis.raison === 'pa_insuffisants' ? '1 PA requis.' : solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false); return; }
-  // MEME TRAITEMENT QUE L'ACHAT DIRECT CI-DESSUS, pour la meme raison : les cinq cles du compromis
-  // consomme voyagent dans le MEME patch que la mutation de propriete, vers la meme transaction.
-  const muteC = await finaliserAchatTerrain(id, ts.valeur_totale, ts.surface,
-    ts.constructionAutorisee, 'compromis',
-    { compromis: null, compromisPar: null, acompte: null, compromisAt: null, compromisExpireAt: null });
-  if (!muteC) return;
-  document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Acte signé !', 'Propriétaire de ' + (BUILDINGS[id]?.shortName || id) + '. Acompte déduit du prix.', true, true);
 }
 
 // =====================
@@ -8203,12 +8125,13 @@ const TYPES_PRET = {
 function pretBancaireDisponibilite(typeBanque, typePret) {
   if ((typeBanque || 'nationale') !== 'nationale') return {ok:true};
   if (state.currentBuilding !== 'banque-nationale') return {ok:false,raison:'Rendez-vous à la Banque Nationale pour demander votre prêt travaux. Aucun financement n’est prélevé ici.'};
-  if (typePret && typePret !== 'travaux') return {ok:false,raison:'Le prêt consommation n’est pas actuellement disponible à ce guichet. Aucun montant ni PA ne sera prélevé.'};
+  if (typePret && !['travaux','consommation'].includes(typePret)) return {ok:false,raison:'Le prêt consommation n’est pas actuellement disponible à ce guichet. Aucun montant ni PA ne sera prélevé.'};
   return {ok:true};
 }
 async function ouvrirModalPretBancaire(typeBanque, typePret, pa) {
   const disponibilite=pretBancaireDisponibilite(typeBanque,typePret);
   if(!disponibilite.ok){showToast('Prêt bancaire',disponibilite.raison,false);return;}
+  if(typeof finance135Reconcilier==='function')await finance135Reconcilier();
   typeBanque = typeBanque || 'nationale';
 
   if (!typePret) {
@@ -8254,6 +8177,7 @@ async function ouvrirModalPretBancaire(typeBanque, typePret, pa) {
 async function confirmerPretBancaire(typeBanque, typePret, pa) {
   const disponibilite=pretBancaireDisponibilite(typeBanque,typePret);
   if(!disponibilite.ok){showToast('Prêt bancaire',disponibilite.raison,false);return;}
+  if((typeBanque||'nationale')==='nationale')return finance135ContracterPret(typePret);
   const montant = parseInt(document.getElementById('pret-montant')?.value || 0);
   const duree = parseInt(document.getElementById('pret-duree')?.value || 10);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
