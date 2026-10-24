@@ -38,7 +38,12 @@ BEGIN
    AND r.resultat->>'transaction_id'=txid_current()::text AND r.resultat->>'bail_id'=NEW.id AND r.resultat->>'interne'='location_lot') THEN RETURN NEW;END IF;
  RAISE EXCEPTION 'location_commande_versionnee_requise' USING ERRCODE='42501';
 END;$f$;
-DROP TRIGGER IF EXISTS location_lot_ecriture_attestee ON public.locations_actives;
-CREATE TRIGGER location_lot_ecriture_attestee BEFORE INSERT OR UPDATE ON public.locations_actives FOR EACH ROW EXECUTE FUNCTION public.location_lot_ecriture_attester();
+DO $trigger$ BEGIN
+ IF NOT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.locations_actives'::regclass AND tgname='location_lot_ecriture_attestee') THEN
+  CREATE TRIGGER location_lot_ecriture_attestee BEFORE INSERT OR UPDATE ON public.locations_actives FOR EACH ROW EXECUTE FUNCTION public.location_lot_ecriture_attester();
+ ELSIF NOT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.locations_actives'::regclass AND tgname='location_lot_ecriture_attestee' AND tgfoid='public.location_lot_ecriture_attester()'::regprocedure AND tgtype=23 AND tgenabled='O') THEN
+  RAISE EXCEPTION 'trigger_location_non_examine';
+ END IF;
+END;$trigger$;
 REVOKE ALL ON FUNCTION public.location_lot_enregistrer_interne(jsonb,text,text,text,text,integer),public.location_lot_ecriture_attester() FROM PUBLIC,anon,authenticated,service_role;
 COMMIT;

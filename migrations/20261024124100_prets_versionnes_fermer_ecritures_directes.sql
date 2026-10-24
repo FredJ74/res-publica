@@ -11,6 +11,11 @@ BEGIN
  IF TG_OP='DELETE' THEN RETURN OLD;ELSE RETURN NEW;END IF;
 END;$f$;
 REVOKE ALL ON FUNCTION public.pret_versionne_ecriture_proteger() FROM PUBLIC,anon,authenticated,service_role;
-DROP TRIGGER IF EXISTS pret_versionne_ecriture ON public.prets;
-CREATE TRIGGER pret_versionne_ecriture BEFORE INSERT OR UPDATE OR DELETE ON public.prets FOR EACH ROW EXECUTE FUNCTION public.pret_versionne_ecriture_proteger();
+DO $trigger$ BEGIN
+ IF NOT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.prets'::regclass AND tgname='pret_versionne_ecriture') THEN
+  CREATE TRIGGER pret_versionne_ecriture BEFORE INSERT OR UPDATE OR DELETE ON public.prets FOR EACH ROW EXECUTE FUNCTION public.pret_versionne_ecriture_proteger();
+ ELSIF NOT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.prets'::regclass AND tgname='pret_versionne_ecriture' AND tgfoid='public.pret_versionne_ecriture_proteger()'::regprocedure AND tgtype=31 AND tgenabled='O') THEN
+  RAISE EXCEPTION 'trigger_pret_non_examine';
+ END IF;
+END;$trigger$;
 COMMIT;

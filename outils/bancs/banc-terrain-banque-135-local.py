@@ -30,6 +30,9 @@ def suite(db,q,srv):
  if '--apres-location' in __import__('sys').argv:q.execute((R/'migrations/20261023090017_location_lot_legacy_avant_paiement.sql').read_text())
  for f in ['20261024121400_prets_nationaux_moteur_credit_commun.sql','20261024121900_prets_nationaux_commandes_versionnees.sql','20261024122600_acquisitions_capacites_et_gardes.sql','20261024123500_compromis_financement_reel.sql','20261024123600_terrains_referentiel_acquisition.sql','20261024123700_terrain_acquisition_commandes.sql','20261024123800_terrain_banque_relecture_recus.sql','20261024124000_prets_nationaux_echeances_atomiques.sql','20261024124100_prets_versionnes_fermer_ecritures_directes.sql','20261024131720_acquisitions_depots_attestes.sql','20261024132140_financement_compromis_termes_attestes.sql','20261024133310_terrain_vente_archive_reference_acte.sql','20261024134528_permis_instruction_transactionnelle_acquisitions.sql','20261024135353_acquisition_refus_rollback_financement.sql']:
   sql=(R/'migrations'/f).read_text();q.execute(sql);q.execute(sql)
+ # Le cron n'a pas de personnage connecte : depot documentaire serveur autorise sur archive reelle.
+ for f in (R/'migrations').glob('*_permis_document_sas_serveur.sql'):
+  q.execute(f.read_text());q.execute(f.read_text())
  # Mutations de contre-épreuve : seulement après installation, dans la base jetable.
  mutant=next((x.split('=',1)[1] for x in __import__('sys').argv if x.startswith('--mutant=')),None)
  if mutant:
@@ -117,6 +120,8 @@ def suite(db,q,srv):
  q.execute("SET hg.serveur='off'");avant=photo()
  check(lire("SELECT terrain_permis_instruction_jour('republic_terrain-a-batir-1')")['raison']=='serveur_requis' and photo()==avant,'instruction interdite au navigateur sans mutation')
  # Instruction du permis joint sur l'etat courant : aucun blob de cron ne peut effacer le titre.
+ q.execute("SELECT pg_get_functiondef('public.mon_personnage()'::regprocedure)");identite_origine=q.fetchone()[0]
+ q.execute("CREATE OR REPLACE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$SELECT CASE WHEN current_setting('hg.serveur',true)='on' THEN NULL ELSE coalesce(nullif(current_setting('hg.acteur',true),''),'Fixture') END$$")
  q.execute("SET hg.serveur='on';UPDATE terrains_etat SET data=jsonb_set(jsonb_set(data::jsonb,'{permis,dureeInstruction}','2'),'{permis,joursInstructionFaits}','0')::text")
  check(lire("SELECT terrain_permis_instruction_jour('republic_terrain-a-batir-1')")['instruits']==1,'instruction jour commun sans sommeil')
  avant=photo();check(lire("SELECT terrain_permis_instruction_jour('republic_terrain-a-batir-1')").get('rejeu') and photo()==avant,'rejeu instruction aucun second jour')
@@ -129,6 +134,7 @@ def suite(db,q,srv):
  check(lire("SELECT data::jsonb->>'temoinAutreCommande' FROM terrains_etat")=='courant','instruction preserve les changements apres le releve cron')
  check(lire("SELECT count(*) FROM dossiers_urbanisme WHERE type_evenement='accord_tacite'")==1 and lire('SELECT count(*) FROM objets_recus')==2,'attestation tacite persistante unique')
  avant=photo();check(lire("SELECT terrain_permis_instruction_jour('republic_terrain-a-batir-1')")['ignore'] and photo()==avant,'accord tacite non reemis')
+ q.execute(identite_origine)
  # Echeances : date Paris serveur, reliquat exact, sommeil sans nouveau quota, concurrence.
  q.execute("SET hg.serveur='on'");pretid=r=None
  q.execute("SELECT id FROM prets WHERE type_pret='consommation'");pretid=q.fetchone()[0]
