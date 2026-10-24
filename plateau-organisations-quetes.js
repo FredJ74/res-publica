@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 158925)
-Total output lines: 10114
-
 // =====================
 // PLATEAU-ORGANISATIONS-QUETES.JS
 // Organisations (sauvegarde/chargement), systeme de quetes, loge maconnique
@@ -1678,7 +1675,6879 @@ function prochainDimanche20hParis(depuis) {
   }
   // Date.UTC normalise automatiquement un jour hors bornes du mois (ex. jour 33 -> mois suivant) :
   // pas besoin de gerer manuellement les fins de mois ici.
-  return heureMuraleVersInstantUTC(d.annee, d.mois, d.jour + joursAAjouter, 20, 0, 'Europe/Par…108925 tokens truncated…ubLocal.nom + ' sera boycotté par ses supporters.', true, true);
+  return heureMuraleVersInstantUTC(d.annee, d.mois, d.jour + joursAAjouter, 20, 0, 'Europe/Paris');
+}
+
+const UNE_SEMAINE_MS = 7 * 86400000;
+
+// =====================================================================
+// CADENCE HEBDOMADAIRE (chantier "durabilite championnat", 5 septembre 2026)
+// =====================================================================
+// Regle de game design VALIDEE, definitive : UNE SEULE journee de championnat par SEMAINE
+// CALENDAIRE, programmee le dimanche 20h Europe/Paris. Si personne n'est connecte le dimanche,
+// la journee est resolue au premier passage ulterieur -- mais elle consomme alors le quota de la
+// semaine calendaire OU CE RATTRAPAGE A LIEU, et aucune autre journee ne peut etre resolue avant
+// la semaine suivante. Jamais de cascade (J3 mardi, J4 mercredi, J5 jeudi : impossible).
+//
+// Remplace le garde-fou precedent, base sur le JOUR calendaire (memeJourCalendaireParis, retiree
+// avec ce chantier) : celui-ci autorisait deux journees dans une meme semaine reelle (un
+// rattrapage le lundi n'empechait pas l'echeance normale du dimanche suivant), ce qui contredit
+// la regle metier ci-dessus.
+//
+// Deux mecanismes complementaires, indissociables :
+//  1. VERROU  : saison.derniereSemaineResolue (cle ISO "YYYY-Www" Europe/Paris de l'instant de
+//               resolution). Une resolution est refusee si la semaine courante porte deja ce
+//               marqueur. Partage saison reguliere <-> playoffs (ils ne coexistent jamais).
+//  2. REANCRAGE : a chaque journee finalisee, l'ancrage saute au prochain dimanche 20h situe dans
+//               une semaine ISO STRICTEMENT POSTERIEURE a celle de la resolution (voir
+//               prochainDimanche20hSemaineSuivante). Sans lui, un rattrapage du mardi laisserait
+//               la journee suivante ancree au dimanche de la MEME semaine ISO, que le verrou (1)
+//               bloquerait, la repoussant au lundi -- puis au lundi suivant, etc. : le championnat
+//               boiterait definitivement d'un jour. Avec lui, la cadence retombe TOUJOURS sur un
+//               dimanche 20h, et un retard de plusieurs semaines ne peut jamais etre rattrape
+//               autrement qu'a raison d'une journee par semaine reelle.
+
+// Cle de semaine ISO-8601 (lundi -> dimanche) dans le fuseau canonique Europe/Paris, ex.
+// "2026-W36". Independante du fuseau du navigateur : deux joueurs a Tokyo et Montreal obtiennent
+// la meme cle pour le meme instant. Le dimanche est le DERNIER jour de sa semaine ISO -- un
+// coup d'envoi du dimanche 20h et un rattrapage du mardi suivant tombent donc bien dans deux
+// semaines ISO differentes, ce qui est exactement la semantique voulue.
+function semaineIsoParis(instant) {
+  const d = decomposerDateTimezone(instant, 'Europe/Paris');
+  // Arithmetique de date civile pure (aucune heure, aucun fuseau) sur un minuit UTC reconstruit.
+  const jour = new Date(Date.UTC(d.annee, d.mois - 1, d.jour));
+  const jourSemaineLundi0 = (jour.getUTCDay() + 6) % 7; // 0=lundi ... 6=dimanche
+  // Jeudi de la meme semaine ISO : son annee civile EST l'annee ISO de la semaine (definition).
+  const jeudi = new Date(jour.getTime() + (3 - jourSemaineLundi0) * 86400000);
+  const anneeIso = jeudi.getUTCFullYear();
+  const premierJanvier = Date.UTC(anneeIso, 0, 1);
+  const numero = Math.floor((jeudi.getTime() - premierJanvier) / 86400000 / 7) + 1;
+  return anneeIso + '-W' + String(numero).padStart(2, '0');
+}
+
+// Prochain dimanche 20h Europe/Paris situe dans une semaine ISO STRICTEMENT POSTERIEURE a celle
+// de `depuis`. Utilisee UNIQUEMENT pour reancrer apres une resolution (voir ci-dessus) -- la
+// programmation initiale d'une saison continue d'utiliser prochainDimanche20hParis(), qui donne
+// bien le dimanche de la semaine en cours quand on est avant 20h ce dimanche-la.
+function prochainDimanche20hSemaineSuivante(depuis) {
+  let candidat = prochainDimanche20hParis(depuis);
+  if (semaineIsoParis(candidat) === semaineIsoParis(depuis)) {
+    candidat = prochainDimanche20hParis(new Date(candidat.getTime() + 1000));
+  }
+  return candidat;
+}
+
+// Verrou (1) ci-dessus. `saison` peut ne pas encore porter le marqueur (saison d'avant ce
+// chantier) : dans ce cas aucune resolution n'a encore ete comptabilisee, donc rien ne bloque.
+function resolutionDejaFaiteCetteSemaine(saison, maintenant) {
+  if (!saison || !saison.derniereSemaineResolue) return false;
+  return saison.derniereSemaineResolue === semaineIsoParis(maintenant);
+}
+
+// Marque la semaine consommee ET reancre la journee suivante. Appelee UNIQUEMENT sur l'objet
+// `saison` local, juste avant le CAS qui le persiste -- jamais en dehors d'une ecriture atomique.
+function marquerResolutionEtReancrer(saison, numeroJourneeSuivante, maintenant) {
+  saison.derniereSemaineResolue = semaineIsoParis(maintenant);
+  saison.derniereJourneeResolueLe = maintenant.toISOString(); // conserve : informatif/affichage
+  saison.ancrageDimanche = {
+    numero: numeroJourneeSuivante,
+    kickoffISO: prochainDimanche20hSemaineSuivante(maintenant).toISOString()
+  };
+}
+
+// Historique du garde-fou anti-cascade, conserve pour memoire : v1 = fenetre glissante de 6 jours
+// (retardait a tort l'echeance normale du dimanche suivant apres un rattrapage du samedi) ; v2 =
+// "coup d'envoi en retard de plus d'une semaine" (laissait cascader la derniere journee d'un lot)
+// ; v3 = un jour calendaire Europe/Paris (memeJourCalendaireParis, RETIREE le 5 septembre 2026 :
+// elle autorisait deux journees dans une meme semaine reelle, contraire a la regle metier).
+// v4 = verrou de SEMAINE ISO + reancrage, voir semaineIsoParis/marquerResolutionEtReancrer.
+
+// Migration paresseuse (section 3 du chantier) : toute saison ne possedant pas encore
+// d'ancrage sportif reel en recoit un au tout premier passage de verifierEtJouerJournees()
+// suivant le deploiement de ce correctif -- "a partir de maintenant", l'option la plus robuste
+// explicitement validee (aucune donnee de match deja jouee n'est jamais touchee, uniquement le
+// point d'ancrage des journees pas encore jouees). Pas de migration SQL necessaire : ce
+// correctif s'applique de lui-meme des la premiere connexion d'un client apres deploiement.
+// Retourne true si une migration a reellement eu lieu (l'appelant doit alors persister `saison`).
+function assurerAncrageDimanche(saison) {
+  if (saison.ancrageDimanche || saison.phase !== 'reguliere') return false;
+  const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
+  // Aucune journee restante (cas theorique, la transition vers les playoffs suit juste apres
+  // dans verifierEtJouerJournees) : ancre quand meme sur le numero suivant, sans effet pratique.
+  const numero = prochaine ? prochaine.numero : (saison.calendrier[saison.calendrier.length - 1].numero + 1);
+  saison.ancrageDimanche = { numero, kickoffISO: prochainDimanche20hParis(new Date()).toISOString() };
+  return true;
+}
+
+// Calendrier en tour simple (methode du cercle) : 12 clubs -> 11 journees de 6 matchs
+function genererCalendrierSaison() {
+  const clubs = CLUBS_SPORTIFS.map(c => c.id);
+  const n = clubs.length;
+  const journees = [];
+  let arr = clubs.slice(1);
+
+  for (let j = 0; j < n - 1; j++) {
+    const matchs = [];
+    const roundClubs = [clubs[0], ...arr];
+    const inverse = j % 2 === 1;
+    for (let i = 0; i < n / 2; i++) {
+      const home = roundClubs[i];
+      const away = roundClubs[n - 1 - i];
+      matchs.push({
+        home: inverse ? away : home, away: inverse ? home : away,
+        played: false, scoreHome: null, scoreAway: null, recit: null
+      });
+    }
+    journees.push({ numero: j + 1, matchs });
+    arr.push(arr.shift());
+  }
+  return journees;
+}
+
+function getClub(id) { return CLUBS_SPORTIFS.find(c => c.id === id); }
+
+// Source de verite unique pour l'identite visuelle d'un club, a partir de son id stable
+// (chantier animations football, 28 aout 2026). Ne fabrique aucune donnee : renvoie
+// exactement le champ `identite` deja porte par CLUBS_SPORTIFS, ou null si absent.
+function identiteVisuelleClub(id) {
+  const club = getClub(id);
+  return (club && club.identite) || null;
+}
+
+function genererEvenementsMatch(home, away, scoreHome, scoreAway) {
+  const events = [];
+  const minutesUtilisees = new Set();
+  function minuteLibre() {
+    let m;
+    do { m = Math.floor(Math.random() * 90) + 1; } while (minutesUtilisees.has(m));
+    minutesUtilisees.add(m);
+    return m;
+  }
+  const vedette = (club) => club.vedettes[Math.floor(Math.random() * club.vedettes.length)];
+
+  for (let i = 0; i < scoreHome; i++) {
+    events.push({ minute: minuteLibre(), texte: `BUT ! ${vedette(home)} fait trembler les filets pour ${home.nom} !`, type: 'but' });
+  }
+  for (let i = 0; i < scoreAway; i++) {
+    events.push({ minute: minuteLibre(), texte: `BUT ! ${vedette(away)} marque pour ${away.nom} !`, type: 'but' });
+  }
+  const templatesColor = [
+    (c) => `Frappe cadrée de ${c}, à côté !`,
+    (c) => `Carton jaune pour ${c}.`,
+    (c) => `Bel arrêt du gardien devant ${c}.`,
+    (c) => `Occasion manquée pour ${c}, seul face au but.`,
+    (c) => `Corner obtenu, mais rien de dangereux.`,
+    (c) => `Tacle appuyé de ${c}, l'arbitre laisse jouer.`
+  ];
+  const nbColor = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < nbColor; i++) {
+    const club = Math.random() < 0.5 ? home : away;
+    const joueur = vedette(club);
+    const t = templatesColor[Math.floor(Math.random() * templatesColor.length)];
+    events.push({ minute: minuteLibre(), texte: t(joueur), type: 'action' });
+  }
+
+  events.sort((a, b) => a.minute - b.minute);
+  events.push({ minute: 90, texte: `Coup de sifflet final. Score final : ${home.nom} ${scoreHome} - ${scoreAway} ${away.nom}.`, type: 'fin' });
+  return events;
+}
+
+function simulerMatch(clubHomeId, clubAwayId, bonusHome, bonusAway, boycotte) {
+  const home = getClub(clubHomeId), away = getClub(clubAwayId);
+  const avantageDomicile = boycotte ? -5 : 5; // un stade boycotte desavantage legerement l'equipe locale
+  // Piete -> avantage offensif (lot "piete/football", 26 aout 2026) : locale au club (sa PROPRE
+  // ville, jamais celle de l'adversaire ni celle ou se joue le match), lue directement dans
+  // indices_villes (systeme distinct de budget_municipal utilise par securite/ecoles/espaces_
+  // verts/associatif ci-dessus -- getIndiceVille gere deja nativement le repli pour les 3 autres
+  // empires, aucun risque de regression hors Republia).
+  const pieteHome = (typeof getIndiceVille === 'function') ? getIndiceVille(home.country, home.city, 'piete') : 50;
+  const pieteAway = (typeof getIndiceVille === 'function') ? getIndiceVille(away.country, away.city, 'piete') : 50;
+  const forceHome = (home.valeurBase + avantageDomicile + (bonusHome || 0)) * multiplicateurPiete(pieteHome);
+  const forceAway = (away.valeurBase + (bonusAway || 0)) * multiplicateurPiete(pieteAway);
+  const buts = (force) => Math.max(0, Math.round((force / 28) + (Math.random() * 2.6 - 0.9)));
+  const scoreHome = buts(forceHome);
+  const scoreAway = buts(forceAway);
+
+  let recit;
+  if (scoreHome > scoreAway) recit = `${home.nom} s'impose ${scoreHome}-${scoreAway} face à ${away.nom} devant son public.`;
+  else if (scoreAway > scoreHome) recit = `${away.nom} s'impose ${scoreAway}-${scoreHome} sur la pelouse de ${home.nom}.`;
+  else recit = `Match nul ${scoreHome}-${scoreAway} entre ${home.nom} et ${away.nom}.`;
+
+  const evenements = genererEvenementsMatch(home, away, scoreHome, scoreAway);
+
+  return { scoreHome, scoreAway, recit, evenements };
+}
+
+function calculerClassement(journeesJouees) {
+  const table = {};
+  CLUBS_SPORTIFS.forEach(c => { table[c.id] = { id:c.id, nom:c.nom, pts:0, j:0, v:0, n:0, d:0, bp:0, bc:0 }; });
+  (journeesJouees || []).forEach(journee => {
+    journee.matchs.forEach(m => {
+      if (!m.played) return;
+      const h = table[m.home], a = table[m.away];
+      if (!h || !a) return;
+      h.j++; a.j++;
+      h.bp += m.scoreHome; h.bc += m.scoreAway;
+      a.bp += m.scoreAway; a.bc += m.scoreHome;
+      if (m.scoreHome > m.scoreAway) { h.v++; h.pts += 3; a.d++; }
+      else if (m.scoreAway > m.scoreHome) { a.v++; a.pts += 3; h.d++; }
+      else { h.n++; a.n++; h.pts++; a.pts++; }
+    });
+  });
+  return Object.values(table).sort((x, y) => (y.pts - x.pts) || ((y.bp - y.bc) - (x.bp - x.bc)) || (y.bp - x.bp));
+}
+
+function choisirStadeFinale(stadesUtilises) {
+  let dispo = CLUBS_SPORTIFS.filter(c => !(stadesUtilises || []).includes(c.id));
+  if (dispo.length === 0) dispo = CLUBS_SPORTIFS.slice();
+  return dispo[Math.floor(Math.random() * dispo.length)].id;
+}
+
+// Simule un tour a elimination directe, aller-retour (score cumule)
+function simulerTourElimination(clubsQualifies) {
+  const n = clubsQualifies.length;
+  const paires = [];
+  for (let i = 0; i < n / 2; i++) paires.push([clubsQualifies[i], clubsQualifies[n - 1 - i]]);
+
+  return paires.map(([a, b]) => {
+    const aller = simulerMatch(a, b);
+    const retour = simulerMatch(b, a);
+    const totalA = aller.scoreHome + retour.scoreAway;
+    const totalB = aller.scoreAway + retour.scoreHome;
+    return {
+      home:a, away:b, aller, retour, totalA, totalB,
+      vainqueur: totalA >= totalB ? a : b,
+      recit: `${getClub(a).nom} ${totalA} - ${totalB} ${getClub(b).nom} (cumul aller-retour)`
+    };
+  });
+}
+
+// =====================================================================
+// VERROU DE VERSION DU PROTOCOLE D'ECRITURE (C4, 5 septembre 2026)
+// =====================================================================
+// Estampille portee par le blob lui-meme. Regle : un client dont la version est INFERIEURE a
+// celle deja inscrite dans le blob n'a le droit d'ecrire NULLE PART dans le championnat (init,
+// ancrage, match, journee, nouvelle saison, boycott, notifications). Il continue de lire et
+// d'afficher normalement.
+//
+// PORTEE REELLE, a ne pas surestimer : cette constante vit dans le JavaScript. Elle protege donc
+// contre les clients deployes A PARTIR DE MAINTENANT (un client v2 sera bloque par un futur blob
+// v3), mais elle ne peut RIEN contre un bundle deja charge en memoire avant ce chantier, qui ne
+// contient tout simplement pas ce test. La barriere efficace contre CES onglets-la est le
+// deplacement de la ligne canonique vers championnat id=2 (voir CHAMPIONNAT_ROW_ID, supabase.js) :
+// leur `id=eq.1` est code en dur dans leur propre copie du code. Les deux mecanismes sont
+// complementaires, aucun ne remplace l'autre.
+const CHAMPIONNAT_SCHEMA_VERSION = 2;
+
+// Gate UNIQUE de toutes les ecritures du championnat. Centralisee ici pour qu'aucun futur chemin
+// d'ecriture ne puisse l'oublier : ecrireChampionnatCAS() l'applique lui-meme, en dernier recours.
+function peutEcrireChampionnat(saison) {
+  const versionBlob = (saison && typeof saison.schemaVersion === 'number') ? saison.schemaVersion : 1;
+  return CHAMPIONNAT_SCHEMA_VERSION >= versionBlob;
+}
+
+// Modele d'une saison neuve. Extrait pour etre partage entre la creation initiale et
+// demarrerNouvelleSaison() -- une seule definition de la forme du blob.
+function construireSaisonNeuve(saisonPrecedente) {
+  return {
+    schemaVersion: CHAMPIONNAT_SCHEMA_VERSION,
+    numero: (saisonPrecedente?.numero || 0) + 1,
+    dateDebut: new Date().toISOString(),
+    // Ancrage sportif reel (chantier "calendrier dimanche 20h") : la toute premiere journee
+    // d'une saison flambant neuve est TOUJOURS le prochain dimanche 20h Europe/Paris a partir
+    // de l'instant de creation -- dateDebut reste une simple metadonnee (horodatage de
+    // creation de la ligne), plus jamais la source du calendrier des journees.
+    ancrageDimanche: { numero: 1, kickoffISO: prochainDimanche20hParis(new Date()).toISOString() },
+    phase: 'reguliere',
+    calendrier: genererCalendrierSaison(),
+    stadeFinaleClubId: choisirStadeFinale(saisonPrecedente?.stadesUtilises || []),
+    stadesUtilises: [...(saisonPrecedente?.stadesUtilises || []), saisonPrecedente?.stadeFinaleClubId].filter(Boolean),
+    resultatsFinales: null,
+    palmares: saisonPrecedente?.palmares || [],
+    // Aucune semaine consommee : la J1 sera jouable des son coup d'envoi.
+    derniereSemaineResolue: null,
+    derniereJourneeResolueLe: null
+  };
+}
+
+// Reecrite (C1 + C2, 5 septembre 2026). Ne cree PLUS JAMAIS une saison sur une lecture ratee :
+// c'etait la cause directe des reinitialisations parasites des 1er et 4 septembre 2026 (une
+// erreur reseau etait interpretee comme "aucun championnat n'existe", puis ecrasait la saison
+// reelle par une J1 neuve). Renvoie null aussi bien sur erreur que sur absence non creable --
+// TOUS les appelants doivent donc tolerer null (ils le font, voir les gardes ajoutees).
+async function chargerOuInitialiserSaison() {
+  if (typeof sbLireChampionnat !== 'function') return null;
+  const lu = await sbLireChampionnat();
+
+  // Cas B -- ERREUR (reseau, timeout, non-2xx, corps inexploitable, data corrompue) :
+  // abandon propre du tick. Aucune creation, aucune ecriture, aucune donnee existante touchee.
+  // Le prochain tick (20s / 5min) retentera ; rien n'est perdu.
+  if (!lu.ok) return null;
+
+  // Cas A -- ligne REELLEMENT absente (HTTP 2xx, zero ligne) : seul cas ou creer est legitime.
+  if (lu.saison === null) {
+    const neuve = construireSaisonNeuve(null);
+    const apres = await sbCreerChampionnatSiAbsent(neuve); // INSERT ignore-duplicates + relecture
+    // On repart TOUJOURS de l'etat effectivement present apres l'INSERT, jamais de notre copie
+    // locale : si un autre client a gagne la course, c'est SA saison qui fait autorite.
+    if (!apres.ok || !apres.saison) return null;
+    return apres.saison;
+  }
+
+  return lu.saison;
+}
+
+function joursEcoulesDepuis(dateISO) {
+  return Math.max(0, Math.floor((Date.now() - new Date(dateISO).getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+// Fait avancer la saison selon le temps reel ecoule (1 journee par semaine).
+// Peut etre appelee par n'importe quel joueur au chargement — verifie avant de rejouer une journee deja faite.
+// dateSportiveTheorique (chantier "calendrier dimanche 20h", section 5) : libelle FR pre-formate
+// du dimanche theorique de cette journee (calculerKickoffJournee), fourni par l'appelant --
+// distinct de `time` (l'horodatage REEL de publication, formatDateHeureJeu(), qui peut tomber
+// un tout autre jour en cas de rattrapage). Sans cette distinction, un rattrapage du mardi
+// afficherait silencieusement le mardi comme etant la date du match alors que la journee
+// sportive theorique est le dimanche precedent.
+// LA PUBLICATION EST DEMANDEE, PLUS FABRIQUEE (16 septembre 2026).
+//
+// Le 16 septembre a 00h38, un compte rendu de « Journée 1 » est apparu au forum alors qu'aucun
+// match n'avait ete joue : un onglet executant un bundle d'avant le 5 septembre avait simule une
+// saison entiere dans sa seule memoire -- il n'avait rien pu ecrire dans championnat, mais rien
+// ne l'empechait d'ecrire au forum. Un compte rendu ne doit raconter que ce que la base contient.
+//
+// championnat_publier_journee compose donc le sujet ET le message a partir des recits reellement
+// persistes, sous un identifiant derive de (saison, journee) : republier n'a aucun effet, et une
+// journee qui n'est pas jouee en base n'a pas de compte rendu. Le serveur refuse desormais qu'un
+// client insere lui-meme un sujet « Journée … » signe de la Ligue.
+async function publierResultatsJourneeSurForum(numeroSaison, journee, dateSportiveTheorique) {
+  if (typeof formatDateHeureJeu !== 'function') return;
+  const time = formatDateHeureJeu();
+  const suffixeDate = dateSportiveTheorique ? ' (journée du ' + dateSportiveTheorique + ')' : '';
+  const titre = 'Journée ' + journee.numero + ' — Saison ' + numeroSaison + suffixeDate;
+  const contenu = journee.matchs.map(m => m.recit).join('<br>');
+
+  let topicId = null;
+  if (typeof sbRpc === 'function') {
+    const rows = await sbRpc('championnat_publier_journee', { p_journee: journee.numero })
+      .catch(() => null);
+    const r = Array.isArray(rows) ? rows[0] : rows;
+    if (!r || r.ok !== true) return;          // rien en base, rien a afficher
+    if (r.deja_publie) return;                // un autre client l'a deja publiee
+    topicId = r.topic_id || null;
+  }
+  if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
+  FORUM_TOPICS['sport'].unshift({
+    id: topicId || 'sport-' + Date.now(), title: titre, author: 'Ligue Officielle',
+    time, views: 1, replies: 0, lastPostAuthor: 'Ligue Officielle', lastPostTime: time,
+    posts: [{ author: 'Ligue Officielle', time, content: contenu }]
+  });
+}
+
+// Manche -> cle serveur. Le libelle affiche reste celui du jeu ; la cle sert a designer au
+// serveur QUELLE manche publier, pour qu'il aille en relire lui-meme le resultat persiste.
+const MANCHES_PLAYOFF = {
+  'Quarts de finale (aller)':  'quarts_aller',
+  'Quarts de finale (retour)': 'quarts_retour',
+  'Demi-finales (aller)':      'demies_aller',
+  'Demi-finales (retour)':     'demies_retour'
+};
+
+// Comme pour les journees (16 septembre 2026) : le communique officiel d'un tour est ecrit par
+// le serveur a partir des recits reellement persistes, sous un identifiant derive de (saison,
+// manche). Le client demande la publication, il ne la fabrique plus -- et ne peut plus signer
+// « Ligue Officielle » au forum.
+async function publierTourPlayoffSurForum(numeroSaison, titreManche, resultats) {
+  if (typeof formatDateHeureJeu !== 'function') return;
+  const time = formatDateHeureJeu();
+  const titre = titreManche + ' — Saison ' + numeroSaison;
+  const contenu = resultats.map(r => r.recit).join('<br>');
+
+  let topicId = null;
+  const manche = MANCHES_PLAYOFF[titreManche];
+  if (manche && typeof sbRpc === 'function') {
+    const rows = await sbRpc('championnat_publier_tour', { p_manche: manche }).catch(() => null);
+    const r = Array.isArray(rows) ? rows[0] : rows;
+    if (!r || r.ok !== true) return;      // rien d'acquis en base, rien a annoncer
+    if (r.deja_publie) return;            // un autre client l'a deja fait
+    topicId = r.topic_id || null;
+  }
+  if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
+  FORUM_TOPICS['sport'].unshift({
+    id: topicId || 'sport-playoff-' + Date.now(), title: titre, author: 'Ligue Officielle',
+    time, views: 1, replies: 0, lastPostAuthor: 'Ligue Officielle', lastPostTime: time,
+    posts: [{ author: 'Ligue Officielle', time, content: contenu }]
+  });
+}
+
+// Le sacre est l'annonce la plus lourde du championnat : c'est celle qu'un client ne doit
+// surtout pas pouvoir fabriquer. Le serveur relit le champion et le stade dans l'etat persiste,
+// et leurs noms dans le miroir clubs_football -- jamais dans le message qu'on lui envoie.
+// Le texte affiche ici en local est le meme, mot pour mot.
+async function publierPhasesFinalesSurForum(numeroSaison, rf) {
+  if (typeof formatDateHeureJeu !== 'function') return;
+  const time = formatDateHeureJeu();
+  const titre = '🏆 Sacre du champion — Saison ' + numeroSaison;
+  let contenu = '<b>Finale</b> (au ' + getClub(rf.stadeClubId).nom + ')<br>' + rf.finale.recit;
+  contenu += '<br><br><b>' + getClub(rf.champion).nom + ' est sacré champion de la saison ' + numeroSaison + ' !</b>';
+
+  let topicId = null;
+  if (typeof sbRpc === 'function') {
+    const rows = await sbRpc('championnat_publier_sacre', {}).catch(() => null);
+    const r = Array.isArray(rows) ? rows[0] : rows;
+    if (!r || r.ok !== true) return;
+    if (r.deja_publie) return;
+    topicId = r.topic_id || null;
+  }
+  if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
+  FORUM_TOPICS['sport'].unshift({
+    id: topicId || 'sport-finale-' + Date.now(), title: titre, author: 'Ligue Officielle',
+    time, views: 1, replies: 0, lastPostAuthor: 'Ligue Officielle', lastPostTime: time,
+    posts: [{ author: 'Ligue Officielle', time, content: contenu }]
+  });
+}
+
+async function verifierNotificationsAvantMatch(saison) {
+  if (saison.phase !== 'reguliere') return;
+  const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
+  if (!prochaine || prochaine.notifie24h) return;
+
+  // Reecrit (chantier "calendrier dimanche 20h") pour comparer directement au VRAI coup d'envoi
+  // (calculerKickoffJournee, ancrage reel) plutot qu'un decompte de jours entiers ecoules depuis
+  // dateDebut -- l'ancienne methode perdait toute precision d'heure et n'avait plus de sens des
+  // que l'ancrage n'est plus dateDebut lui-meme. Fenetre [0h, 24h[ avant le coup d'envoi,
+  // notifie24h garantit une notification unique par journee (inchange).
+  const kickoff = calculerKickoffJournee(saison, prochaine.numero);
+  if (!kickoff) return; // C5 : ancrage absent/corrompu -- abandon, jamais d'horaire local fabrique
+  const heuresAvantCoupEnvoi = (kickoff.getTime() - Date.now()) / 3600000;
+  if (heuresAvantCoupEnvoi > 24 || heuresAvantCoupEnvoi <= 0) return;
+
+  // C3 + doctrine "effets externes APRES revendication" (5 septembre 2026) : le drapeau
+  // notifie24h est desormais REVENDIQUE PAR CAS AVANT l'envoi des mails, au lieu d'etre sauve en
+  // aveugle apres. Avant ce correctif, deux clients simultanes envoyaient chacun la vague
+  // complete de convocations (mails en double), et le sbSaveChampionnat() final ecrasait par
+  // ailleurs tout le blob. Desormais un seul client remporte le drapeau et envoie les mails ;
+  // les perdants sortent sans rien envoyer.
+  const revendication = await majChampionnatCAS((fraiche) => {
+    if (fraiche.phase !== 'reguliere') return false;
+    const cible = fraiche.calendrier.find(j => j.numero === prochaine.numero);
+    if (!cible || cible.notifie24h) return false; // deja revendique par un autre client
+    cible.notifie24h = true;
+    return true;
+  });
+  if (!revendication.ok) return;
+  prochaine.notifie24h = true; // reflete la revendication sur la copie de l'appelant
+
+  for (const m of prochaine.matchs) {
+    const clubHome = getClub(m.home), clubAway = getClub(m.away);
+    const [contribHome, contribAway] = await Promise.all([calculerContributionEquipe(clubHome), calculerContributionEquipe(clubAway)]);
+    await notifierConvocationAnticipee(clubHome, contribHome, clubAway, kickoff);
+    await notifierConvocationAnticipee(clubAway, contribAway, clubHome, kickoff);
+  }
+}
+
+// Chantier "football live" (28 aout 2026) : le message n'entretient plus l'idee d'une presence
+// physique volontaire au stade -- le personnage est automatiquement engage dans le match, hors
+// ligne ou non (regle validee, section 17). Donne l'heure exacte d'echauffement/coup d'envoi/fin
+// prevue, calculee depuis calculerKickoffJournee (meme calendrier que la resolution reelle,
+// jamais une heure inventee separement).
+async function notifierConvocationAnticipee(club, contrib, adversaire, kickoff) {
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  const dateTxt = kickoff.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const heureEchauffement = new Date(kickoff.getTime() - DUREE_ECHAUFFEMENT_MS);
+  const heureFin = finPrevueMatch(kickoff);
+  const fmtH = (d) => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  for (const t of contrib.titulaires) {
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', t.nom, 'Convocation — ' + club.nom,
+        'Vous êtes titulaire pour le match du ' + dateTxt + ' face à ' + adversaire.nom + '.<br><br>' +
+        'Échauffement à ' + fmtH(heureEchauffement) + '.<br>Coup d\'envoi à ' + fmtH(kickoff) + '.<br>Fin prévue à ' + fmtH(heureFin) + '.<br><br>' +
+        'Vous serez automatiquement engagé(e) dans le match dès le début de l\'échauffement — aucune présence physique n\'est nécessaire, et cela ne dépend pas de votre connexion. ' +
+        'Vous serez en revanche indisponible pour toute autre démarche pendant cette période. Dernière chance de vous entraîner avant le coup d\'envoi !',
+        time).catch(() => {});
+    }
+  }
+  for (const r of contrib.remplacants) {
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', r.nom, 'Convocation — ' + club.nom,
+        'Vous êtes remplaçant(e) pour le match du ' + dateTxt + ' face à ' + adversaire.nom + ', échauffement à ' + fmtH(heureEchauffement) + '.', time).catch(() => {});
+    }
+  }
+}
+
+// Scission de l'ancien jouerMatchsTour() (5 septembre 2026, correctif "double effet playoffs").
+// Avant, une seule fonction simulait ET appliquait immediatement les effets externes
+// (salaires, primes, popularite, blessures reelles, PV, mails, caisse du club) -- ces effets
+// partaient donc AVANT que le resultat du tour ne soit persiste. Si le CAS de report echouait
+// ensuite, le tour restait a la meme etape en base et etait REJOUE la semaine suivante :
+// salaires, popularite, blessures, mails et publication etaient alors appliques DEUX FOIS.
+//
+// Desormais, meme doctrine que le moteur live : PHASE PURE (aucune ecriture, aucun effet, que
+// des lectures) -> CAS -> PHASE D'EFFETS, executee uniquement par le client qui a gagne le CAS.
+// simulerTourPur ne fait que des lectures (calculerContributionEquipe) et du calcul (simulerMatch).
+async function simulerTourPur(paires) {
+  const resultats = [], effets = [];
+  for (const [a, b] of paires) {
+    const clubA = getClub(a), clubB = getClub(b);
+    const [contribA, contribB] = await Promise.all([calculerContributionEquipe(clubA), calculerContributionEquipe(clubB)]);
+    const res = simulerMatch(a, b, contribA.bonus, contribB.bonus);
+    // Compositions PERSISTEES (16 septembre 2026) : sans elles, le serveur ne sait pas qui a
+    // dispute le tour et ne peut donc pas verser les primes lui-meme. Purement additif -- meme
+    // forme que les matchs de la saison reguliere, aucune regle ni aucun montant ne change.
+    resultats.push({ home: a, away: b, scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit,
+      compositions: {
+        home: { titulaires: contribA.titulaires.map(t => t.nom), remplacants: contribA.remplacants.map(t => t.nom) },
+        away: { titulaires: contribB.titulaires.map(t => t.nom), remplacants: contribB.remplacants.map(t => t.nom) }
+      } });
+    effets.push({ club: clubA, contrib: contribA, butsPour: res.scoreHome, butsContre: res.scoreAway });
+    effets.push({ club: clubB, contrib: contribB, butsPour: res.scoreAway, butsContre: res.scoreHome });
+  }
+  return { resultats, effets };
+}
+
+// PHASE D'EFFETS : n'est appelee qu'apres un CAS gagnant (voir verifierEtJouerJournees).
+async function appliquerEffetsTour(effets) {
+  for (const e of effets || []) {
+    await notifierCompositionsEtBlessures(e.club, e.contrib, e.butsPour, e.butsContre).catch(() => {});
+  }
+}
+
+function determinerVainqueursAgrege(aller, retour) {
+  // retour : memes paires mais domicile/exterieur inverses (b recoit a)
+  return aller.map((m, i) => {
+    const r = retour[i];
+    const totalA = m.scoreHome + r.scoreAway; // buts de "a" sur les deux manches
+    const totalB = m.scoreAway + r.scoreHome; // buts de "b" sur les deux manches
+    return totalA >= totalB ? m.home : m.away;
+  });
+}
+
+// Reecrit (chantier "calendrier dimanche 20h", section 6) : chaque tour de playoffs (quarts
+// aller/retour, demies aller/retour, finale) se joue desormais au prochain dimanche 20h Europe/
+// Paris reel, jamais plus sur l'horloge PA personnelle d'un joueur (state.day) -- qui permettait
+// a n'importe quel joueur d'accelerer les playoffs POUR TOUT LE MONDE en avancant sa propre
+// horloge. Meme garde-fou que la saison reguliere (verrou hebdomadaire semaineIsoParis /
+// saison.derniereSemaineResolue, partage entre les deux : ils ne sont jamais actifs en meme
+// temps, les playoffs ne demarrant qu'apres la fin complete de la saison reguliere).
+async function progresserPlayoffs(saison) {
+  const p = saison.playoffs;
+  const maintenant = new Date();
+  const kickoffTour = new Date(p.prochainKickoffISO);
+  // Garde defensive (5 septembre 2026) : sans elle, un prochainKickoffISO absent ou corrompu
+  // donnait une Invalid Date, dont toute comparaison est false -- le tour se serait donc joue
+  // IMMEDIATEMENT. Meme doctrine que calculerKickoffJournee (C5) : on abandonne, jamais de repli.
+  if (!Number.isFinite(kickoffTour.getTime())) return null;
+  if (maintenant < kickoffTour) return null;
+  // Verrou hebdomadaire (5 septembre 2026) : meme regle exacte que la saison reguliere, partagee
+  // via derniereSemaineResolue (les deux phases ne coexistent jamais). Un tour de playoffs
+  // consomme la semaine calendaire au meme titre qu'une journee.
+  if (resolutionDejaFaiteCetteSemaine(saison, maintenant)) return null;
+
+  // PHASE PURE (5 septembre 2026, correctif "double effet playoffs"). Cette fonction ne fait plus
+  // AUCUNE ecriture ni AUCUN effet externe : elle calcule le tour, mute la copie locale de
+  // `saison`, et RENVOIE la liste des effets et des publications a emettre. C'est l'appelant
+  // (verifierEtJouerJournees) qui persiste par CAS, puis n'emet ces effets QUE s'il a gagne.
+  //
+  // Ce que cela corrige exactement : auparavant les effets partaient pendant le calcul, donc
+  // AVANT la persistance. Un CAS de report perdu ou echoue laissait l'etape inchangee en base ;
+  // le tour etait rejoue la semaine suivante et TOUS ses effets etaient appliques une 2e fois
+  // (salaires + primes, popularite, blessures reelles et PV, mails, caisse du club, publication
+  // forum). Desormais : CAS perdu = rien de persiste ET rien d'emis ; CAS gagne = etape avancee
+  // en base, donc jamais de rejeu. Les deux branches sont sures.
+  //
+  // Renvoie null s'il n'y a rien a faire, sinon { effets, publications }.
+  const marquerResoluEtProgrammerSuivant = () => {
+    saison.derniereSemaineResolue = semaineIsoParis(maintenant);
+    saison.derniereJourneeResolueLe = maintenant.toISOString();
+    // Reancrage identique a la saison reguliere : le tour suivant tombe sur le prochain dimanche
+    // 20h Europe/Paris d'une semaine ISO strictement posterieure -- jamais "kickoff + 7 jours",
+    // qui apres un rattrapage tardif aurait pu retomber dans la semaine deja consommee.
+    p.prochainKickoffISO = prochainDimanche20hSemaineSuivante(maintenant).toISOString();
+  };
+
+  if (p.etape === 'quarts_aller') {
+    const tour = await simulerTourPur(p.quarts.paires);
+    p.quarts.aller = tour.resultats;
+    p.etape = 'quarts_retour';
+    marquerResoluEtProgrammerSuivant();
+    return { effets: tour.effets, publications: [{ type: 'tour', titre: 'Quarts de finale (aller)', resultats: tour.resultats }] };
+  }
+  if (p.etape === 'quarts_retour') {
+    const pairesRetour = p.quarts.paires.map(([a, b]) => [b, a]);
+    const tour = await simulerTourPur(pairesRetour);
+    p.quarts.retour = tour.resultats;
+    p.quarts.vainqueurs = determinerVainqueursAgrege(p.quarts.aller, p.quarts.retour);
+    p.demies = { paires: [[p.quarts.vainqueurs[0], p.quarts.vainqueurs[3]], [p.quarts.vainqueurs[1], p.quarts.vainqueurs[2]]], aller: null, retour: null, vainqueurs: null };
+    p.etape = 'demies_aller';
+    marquerResoluEtProgrammerSuivant();
+    return { effets: tour.effets, publications: [{ type: 'tour', titre: 'Quarts de finale (retour)', resultats: tour.resultats }] };
+  }
+  if (p.etape === 'demies_aller') {
+    const tour = await simulerTourPur(p.demies.paires);
+    p.demies.aller = tour.resultats;
+    p.etape = 'demies_retour';
+    marquerResoluEtProgrammerSuivant();
+    return { effets: tour.effets, publications: [{ type: 'tour', titre: 'Demi-finales (aller)', resultats: tour.resultats }] };
+  }
+  if (p.etape === 'demies_retour') {
+    const pairesRetour = p.demies.paires.map(([a, b]) => [b, a]);
+    const tour = await simulerTourPur(pairesRetour);
+    p.demies.retour = tour.resultats;
+    p.demies.vainqueurs = determinerVainqueursAgrege(p.demies.aller, p.demies.retour);
+    p.finale = { paire: [p.demies.vainqueurs[0], p.demies.vainqueurs[1]], resultat: null };
+    p.etape = 'finale';
+    marquerResoluEtProgrammerSuivant();
+    return { effets: tour.effets, publications: [{ type: 'tour', titre: 'Demi-finales (retour)', resultats: tour.resultats }] };
+  }
+  if (p.etape === 'finale') {
+    const [a, b] = p.finale.paire;
+    const tour = await simulerTourPur([[a, b]]);
+    const r = tour.resultats[0];
+    // `compositions` reprise telle quelle depuis le resultat simule (16 septembre 2026) : la
+    // finale se recopie champ par champ ici, elle aurait donc perdu la seule information qui
+    // permet au serveur de savoir a qui verser les primes.
+    p.finale.resultat = { home: a, away: b, scoreHome: r.scoreHome, scoreAway: r.scoreAway,
+                          recit: r.recit, compositions: r.compositions };
+
+    const champion = r.scoreHome >= r.scoreAway ? a : b;
+    const finaliste = champion === a ? b : a;
+    const classementFinal = calculerClassement(saison.calendrier);
+
+    saison.resultatsFinales = { quarts: p.quarts, demies: p.demies, finale: p.finale.resultat, champion, stadeClubId: saison.stadeFinaleClubId };
+    saison.palmares.push({
+      saison: saison.numero,
+      champion: getClub(champion).nom,
+      finaliste: getClub(finaliste).nom,
+      stade: getClub(saison.stadeFinaleClubId).nom,
+      classementFinal: classementFinal.map(c => ({ nom:c.nom, pts:c.pts }))
+    });
+    saison.phase = 'terminee';
+    p.etape = 'termine';
+    marquerResoluEtProgrammerSuivant();
+    return { effets: tour.effets, publications: [{ type: 'finale' }] };
+  }
+  return null;
+}
+
+async function verifierEtJouerJournees() {
+  let saison = await chargerOuInitialiserSaison();
+  // null = lecture Supabase en erreur (C1) OU creation impossible : on abandonne le tick sans
+  // rien ecrire. Les appelants (UI comprise) doivent tolerer null, voir leurs gardes.
+  if (!saison || saison.phase === 'terminee') return saison;
+
+  // Migration paresseuse de l'ancrage sportif (chantier "calendrier dimanche 20h", section 3) --
+  // voir assurerAncrageDimanche() : ne fait rien pour une saison deja migree ou fraichement creee
+  // (qui a deja son ancrage, voir chargerOuInitialiserSaison/demarrerNouvelleSaison). Persiste
+  // AVANT tout calcul de coup d'envoi plus bas, pour que verifierNotificationsAvantMatch() et
+  // avancerFootballLive() (qui relit sa propre copie depuis Supabase) voient tous deux le meme
+  // ancrage des ce tick. Desormais par CAS (C3) : l'ancien sbSaveChampionnat() reecrivait ici le
+  // blob ENTIER a partir d'une copie potentiellement perimee, ce qui pouvait effacer une journee
+  // que le moteur live venait de finaliser depuis un autre onglet.
+  if (!saison.ancrageDimanche) {
+    const r = await majChampionnatCAS((fraiche) => assurerAncrageDimanche(fraiche));
+    // majChampionnatCAS renvoie l'etat frais qu'il a lu, y compris quand il n'avait rien a
+    // ecrire (ancrage deja pose par un autre client) -- on l'exploite plutot que de relire.
+    if (r.saison) saison = r.saison;
+    else { const relu = await chargerOuInitialiserSaison(); if (relu) saison = relu; }
+  }
+
+  await verifierNotificationsAvantMatch(saison);
+
+  // Chantier "football live" (28 aout 2026) : la resolution des matchs de la journee courante de
+  // saison reguliere est entierement deleguee a avancerFootballLive() (echauffement 5min + 2x10min
+  // + mitemps 5min, evenements progressifs, verrou d'immobilisation, recompenses idempotentes --
+  // voir son entete). Cette fonction (verifierEtJouerJournees) ne reste responsable que du cycle
+  // de vie de la saison elle-meme (init, transition vers les phases finales, progression des
+  // phases finales) -- les playoffs restent geres par progresserPlayoffs (resolution instantanee),
+  // desormais lui aussi en phase pure -> CAS -> effets (correctif du 5 septembre 2026).
+  if (saison.phase === 'reguliere') {
+    const avancee = await avancerFootballLive();
+    if (avancee) saison = avancee;
+    else saison = await chargerOuInitialiserSaison() || saison; // relit un etat pousse par un AUTRE client entre-temps
+  }
+
+  // Une fois la phase reguliere entierement jouee, on enchaine les phases finales,
+  // etalees sur plusieurs semaines (une semaine par manche), comme la phase reguliere.
+  // Calcul PUREMENT local (calculerClassement) : aucun effet externe, donc rejouable sans risque
+  // par majChampionnatCAS si la course est perdue.
+  if (saison.phase === 'reguliere' && saison.calendrier.every(j => j.matchs.every(m => m.played))) {
+    const r = await majChampionnatCAS((fraiche) => {
+      if (fraiche.phase !== 'reguliere') return false; // un autre client a deja fait la transition
+      if (!fraiche.calendrier.every(j => j.matchs.every(m => m.played))) return false;
+      const classement = calculerClassement(fraiche.calendrier);
+      const top8 = classement.slice(0, 8).map(c => c.id);
+      fraiche.phase = 'quarts';
+      fraiche.playoffs = {
+        top8,
+        etape: 'quarts_aller',
+        // Chantier "calendrier dimanche 20h", section 6 : premier tour de playoffs = dimanche 20h
+        // Europe/Paris -- plus jamais state.day (horloge PA propre a chaque personnage, sans lien
+        // avec le calendrier reel ni avec les autres joueurs, qui permettait a un joueur
+        // d'accelerer les playoffs pour tous en avancant sa propre horloge). SemaineSuivante
+        // (5 septembre 2026) : la derniere journee de saison reguliere vient de consommer la
+        // semaine calendaire courante, le premier tour ne peut donc pas tomber dedans.
+        prochainKickoffISO: prochainDimanche20hSemaineSuivante(new Date()).toISOString(),
+        quarts: { paires: [[top8[0],top8[7]],[top8[3],top8[4]],[top8[1],top8[6]],[top8[2],top8[5]]], aller: null, retour: null, vainqueurs: null },
+        demies: null,
+        finale: null
+      };
+      return true;
+    });
+    if (r.saison) saison = r.saison;
+    else { const relu = await chargerOuInitialiserSaison(); if (relu) saison = relu; }
+  }
+
+  if (saison.playoffs && saison.phase !== 'terminee') {
+    const etapeAvant = saison.playoffs.etape;
+    const maintenantTour = new Date();
+    // PHASE PURE : calcule le tour et mute la copie locale, sans emettre le moindre effet.
+    const tour = await progresserPlayoffs(saison);
+    if (tour) {
+      const instantane = {
+        playoffs: saison.playoffs, phase: saison.phase,
+        resultatsFinales: saison.resultatsFinales, palmares: saison.palmares,
+        derniereSemaineResolue: saison.derniereSemaineResolue,
+        derniereJourneeResolueLe: saison.derniereJourneeResolueLe
+      };
+      // CAS : c'est LUI qui tranche entre clients concurrents. Les gardes rejouent les memes
+      // conditions sur l'etat frais, pour ne jamais ecraser un tour deja avance par un autre.
+      const r = await majChampionnatCAS((fraiche) => {
+        if (!fraiche.playoffs || fraiche.phase === 'terminee') return false;
+        if (fraiche.playoffs.etape !== etapeAvant) return false;                    // deja avance ailleurs
+        if (resolutionDejaFaiteCetteSemaine(fraiche, maintenantTour)) return false; // semaine deja consommee
+        Object.assign(fraiche, instantane);
+        return true;
+      }, 3);
+      // PHASE D'EFFETS : uniquement pour le gagnant du CAS. Un perdant n'a rien persiste et
+      // n'emet donc rien -- ni salaire, ni popularite, ni blessure, ni mail, ni publication.
+      if (r.ok) {
+        await appliquerEffetsTour(tour.effets);
+        // Primes du tour : meme primitive serveur que les journees, meme registre, meme
+        // idempotence. L'etape a deja avance en base, on paie donc la manche qu'on vient de jouer.
+        if (typeof sbRpc === 'function') {
+          for (const pub of tour.publications) {
+            const manche = (pub.type === 'finale') ? 'finale' : MANCHES_PLAYOFF[pub.titre];
+            if (manche) await sbRpc('football_primes_tour', { p_manche: manche }).catch(() => {});
+          }
+        }
+        for (const pub of tour.publications) {
+          if (pub.type === 'finale') await publierPhasesFinalesSurForum(saison.numero, saison.resultatsFinales).catch(() => {});
+          else await publierTourPlayoffSurForum(saison.numero, pub.titre, pub.resultats).catch(() => {});
+        }
+        if (r.saison) saison = r.saison;
+      } else {
+        // Rien n'a ete persiste et rien n'a ete emis : on repart de l'etat reellement en base.
+        const relu = await chargerOuInitialiserSaison();
+        if (relu) saison = relu;
+      }
+    }
+  }
+  return saison;
+}
+
+// Demarre une toute nouvelle saison (appelee automatiquement une fois la precedente terminee et consultee)
+// Reecrite (Lot G, 5 septembre 2026). Avant : construisait une saison neuve a partir de la copie
+// que l'appelant avait sous la main, puis l'ecrivait en AVEUGLE -- deux joueurs ouvrant la modale
+// "Observer le match" au meme instant creaient donc deux saisons differentes, la seconde
+// reinitialisant la premiere (calendrier et stade de finale sont tires independamment).
+// Desormais : etat frais + verification `phase === 'terminee'` + ecriture CAS. Le second client
+// constate que la phase n'est plus 'terminee' et n'ecrit rien.
+// Renvoie la saison effectivement en base (la sienne ou celle du gagnant), ou null.
+async function demarrerNouvelleSaison(saisonPrecedente) {
+  let creee = false;
+  const r = await majChampionnatCAS((fraiche) => {
+    // Seule une saison reellement terminee peut etre remplacee. Toute autre phase = un autre
+    // client a deja relance, ou la saison est en cours : on n'ecrit rien.
+    if (fraiche.phase !== 'terminee') return false;
+    const nouvelle = construireSaisonNeuve(fraiche); // reprend numero/palmares/stadesUtilises
+    // Remplacement integral du contenu de l'objet qui sera persiste (on ne peut pas reaffecter la
+    // reference elle-meme depuis le muteur) -- aucun residu de l'ancienne saison ne subsiste.
+    Object.keys(fraiche).forEach(k => { delete fraiche[k]; });
+    Object.assign(fraiche, nouvelle);
+    creee = true;
+    return true;
+  });
+  if (!r.ok || !r.saison) {
+    // Course perdue ou saison deja relancee : on renvoie l'etat courant, jamais une saison locale
+    // fantome que l'appelant afficherait alors qu'elle n'existe nulle part.
+    return r.saison || await chargerOuInitialiserSaison();
+  }
+  if (creee) await genererDemandesManifestationMatchs(r.saison);
+  return r.saison;
+}
+
+// Cree automatiquement une demande de manifestation par match de la saison (dimanche 20h Europe/
+// Paris, reutilise calculerKickoffJournee -- meme ancrage reel que la resolution des matchs,
+// jamais un second calcul de date, voir chantier "calendrier dimanche 20h").
+// Reecrite (5 septembre 2026) : les demandes (effets EXTERNES, table demandes_manifestation) sont
+// creees d'abord, puis leurs identifiants sont reportes dans le blob par CAS -- plus de
+// sbSaveChampionnat() aveugle qui reecrivait toute la saison depuis une copie locale. Le drapeau
+// manifestationsGenerees rend l'appel idempotent : jamais deux vagues de demandes pour une meme
+// saison, meme si deux clients y arrivent.
+async function genererDemandesManifestationMatchs(saison) {
+  if (!saison || saison.manifestationsGenerees) return;
+  const idsParMatch = {}; // "<journee>-<index>" -> id de la demande creee
+  for (const j of saison.calendrier) {
+    const dateMatch = calculerKickoffJournee(saison, j.numero);
+    if (!dateMatch) continue; // C5 : ancrage absent/corrompu -- aucune date inventee
+    for (let i = 0; i < j.matchs.length; i++) {
+      const m = j.matchs[i];
+      const clubHome = getClub(m.home), clubAway = getClub(m.away);
+      const id = await sbCreerDemandeManifestation({
+        orgaId: null, orgaNom: 'Ligue Officielle', orgaType: 'sportive',
+        pays: clubHome.country, ville: clubHome.city,
+        sujet: clubHome.nom + ' vs ' + clubAway.nom + ' (Journée ' + j.numero + ')',
+        sens: null, intensite: 0, cible: null,
+        matchInfo: { home: m.home, away: m.away, journeeNumero: j.numero, saisonNumero: saison.numero },
+        dateEvenement: dateMatch.toISOString(),
+        dateDepot: new Date().toISOString(),
+        auto: true
+      }).catch(() => null);
+      if (id) idsParMatch[j.numero + '-' + i] = id;
+    }
+  }
+  await majChampionnatCAS((fraiche) => {
+    if (fraiche.manifestationsGenerees) return false;
+    fraiche.calendrier.forEach(j => j.matchs.forEach((m, i) => {
+      const id = idsParMatch[j.numero + '-' + i];
+      if (id) m.demandeManifId = id;
+    }));
+    fraiche.manifestationsGenerees = true;
+    return true;
+  });
+}
+
+// =====================
+// PERFORMANCE DES JOUEURS & INDICES LOCAUX
+// =====================
+const LABELS_PERF = { defense: 'Défense', technique: 'Technique', endurance: 'Endurance' };
+// Mapping indice local -> parametre de performance
+// Securite -> Defense, Ecoles(education) -> Technique, Espaces verts(cadre de vie) -> Endurance
+// Associatif -> bonus global multiplicatif sur toute la contribution de l'equipe
+
+function multiplicateurIndice(val) {
+  // 0 -> x0.7, 50 -> x1.0, 100 -> x1.3
+  return 0.7 + ((val || 50) / 100) * 0.6;
+}
+
+// Piete -> avantage offensif (lot "piete/football", 26 aout 2026) : meme philosophie que
+// multiplicateurIndice ci-dessus (lineaire, neutre a 50), amplitude reduite -- piete est un
+// facteur SECONDAIRE, jamais plus de +-10% (regle validee), contre +-30% pour securite/ecoles/
+// espaces_verts/associatif. 0 -> x0.9, 50 -> x1.0 (neutre), 100 -> x1.1. Applique directement sur
+// la force finale dans simulerMatch (ce qui determine les buts), jamais sur une caracteristique
+// de joueur ni un nouveau jet -- le moteur n'a pas de probabilite offensive separee de la force
+// continue existante, donc c'est elle qui porte l'effet, au meme endroit que l'avantage du
+// terrain (avantageDomicile).
+function multiplicateurPiete(val) {
+  // 0 -> x0.9, 50 -> x1.0, 100 -> x1.1
+  return 0.9 + ((val || 50) / 100) * 0.2;
+}
+
+async function getIndicesPourVille(country, city) {
+  const key = country + '_' + city;
+  if (typeof sbGetBudgetMunicipal !== 'function') return { securite:50, associatif:50, ecoles:50, espaces_verts:50 };
+  const data = await sbGetBudgetMunicipal(key).catch(() => null);
+  return data?.indices || { securite:50, associatif:50, ecoles:50, espaces_verts:50 };
+}
+
+const TITULAIRES_MAX = 11;
+const REMPLACANTS_MAX = 4;
+
+async function calculerContributionEquipe(club) {
+  if (typeof sbListJoueursLicencies !== 'function') return { bonus: 0, titulaires: [], remplacants: [], nonRetenus: [] };
+  const licencies = await sbListJoueursLicencies(club.id).catch(() => []);
+  const jour = state.day || 1;
+  const dispo = (licencies || []).filter(j => !(j.blessure_sportive?.jusquauJour > jour));
+
+  const withTotal = dispo.map(j => {
+    const p = j.performance_sportive || { defense:0, technique:0, endurance:0 };
+    return { nom: j.name, perf: p, total: (p.defense||0) + (p.technique||0) + (p.endurance||0) };
+  }).filter(j => j.total > club.valeurBase * 0.5); // seuil de qualification face aux PNJ du club
+
+  withTotal.sort((a, b) => b.total - a.total);
+  const titulaires = withTotal.slice(0, TITULAIRES_MAX);
+  const remplacants = withTotal.slice(TITULAIRES_MAX, TITULAIRES_MAX + REMPLACANTS_MAX);
+  const nonRetenus = withTotal.slice(TITULAIRES_MAX + REMPLACANTS_MAX);
+
+  const indices = await getIndicesPourVille(club.country, club.city);
+  let bonus = 0;
+  titulaires.forEach(t => {
+    bonus += (t.perf.defense || 0) * multiplicateurIndice(indices.securite) * 0.3;
+    bonus += (t.perf.technique || 0) * multiplicateurIndice(indices.ecoles) * 0.3;
+    bonus += (t.perf.endurance || 0) * multiplicateurIndice(indices.espaces_verts) * 0.3;
+  });
+  bonus *= multiplicateurIndice(indices.associatif);
+
+  return { bonus: Math.round(bonus), titulaires, remplacants, nonRetenus };
+}
+
+// Envoie la convocation (titulaire/remplacant/non retenu) et applique un risque de blessure aux titulaires
+async function notifierCompositionsEtBlessures(club, contrib, butsPour, butsContre) {
+  const jour = state.day || 1;
+  const resultat = butsPour > butsContre ? 'victoire' : (butsPour < butsContre ? 'defaite' : 'match nul');
+  const victoire = butsPour > butsContre;
+
+  const budgetClub = await chargerBudgetClub(club.id);
+  const salaires = budgetClub.salaires;
+
+  // Popularite (correctif audit football, 31 aout 2026) : cette fonction (voie de resolution
+  // instantanee -- match jamais tique en live, et TOUTES les phases finales, voir entete du
+  // chantier "football live") n'accordait jusqu'ici AUCUNE popularite, contrairement a la voie
+  // live (construireEffetsRestantsMatch) qui applique deja +20/+30 aux titulaires. Meme regle
+  // reprise a l'identique ici, jamais cumulative (jamais +20 puis +30) : le resultat en jeu doit
+  // etre identique, qu'un match ait ete regarde en direct ou non. Remplacants/non retenus : 0,
+  // inchange. Aucun bonus lie a une performance individuelle (but, triplé...) -- decision de
+  // game design separee, hors perimetre de ce correctif.
+  const gainPop = victoire ? 30 : 20;
+  // L'ARGENT NE PASSE PLUS PAR ICI (16 septembre 2026) : les primes et le debit de la caisse du
+  // club sont verses par football_primes_journee/_tour, qui recalcule les montants et ne paie
+  // chaque joueur qu'une fois. Voir appliquerEffetRestant pour le detail du defaut corrige.
+  // La popularite et le courrier restent au client : leurs chemins fonctionnent.
+  for (const t of contrib.titulaires) {
+    if (gainPop > 0 && typeof sbAjusterPopularite === 'function') await sbAjusterPopularite(t.nom, gainPop, 'football_match').catch(() => {});
+  }
+
+  for (const t of contrib.titulaires) {
+    let messageBlessure = '';
+    const blesse = Math.random() < 0.08;
+    if (blesse) {
+      const grave = Math.random() < 0.3;
+      const duree = grave ? (7 + Math.floor(Math.random()*4)) : (2 + Math.floor(Math.random()*2));
+      const degatsPV = grave ? 30 : 15;
+      if (typeof sbAppliquerBlessureSportive === 'function') {
+        await sbAppliquerBlessureSportive(t.nom, { jusquauJour: jour + duree, gravite: grave ? 'grave' : 'legere' }, degatsPV).catch(() => {});
+      }
+      messageBlessure = '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (grave ? 'gravement' : 'légèrement') + '). Indisponible ' + duree + ' jour(s), -' + degatsPV + ' PV.';
+    }
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', t.nom, 'Vous étiez titulaire — ' + club.nom,
+        'Vous étiez titulaire lors du dernier match (' + resultat + ', ' + butsPour + '-' + butsContre + '). Salaire perçu : ' + (salaires.titulaire + (victoire ? salaires.primeVictoire : 0)).toLocaleString('fr-FR') + ' FR.' + messageBlessure, formatDateHeureJeu()).catch(() => {});
+    }
+  }
+  for (const r of contrib.remplacants) {
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', r.nom, 'Vous étiez remplaçant — ' + club.nom,
+        'Vous étiez remplaçant lors du dernier match (' + resultat + ', ' + butsPour + '-' + butsContre + '). Salaire perçu : ' + salaires.remplacant.toLocaleString('fr-FR') + ' FR.', formatDateHeureJeu()).catch(() => {});
+    }
+  }
+  for (const n of contrib.nonRetenus) {
+    if (typeof sbSendMail === 'function') {
+      await sbSendMail('Ligue Officielle', n.nom, 'Non retenu(e) — ' + club.nom,
+        'Vous n\'avez pas été retenu(e) pour le dernier match. Entraînez-vous pour retrouver votre place.', formatDateHeureJeu()).catch(() => {});
+    }
+  }
+}
+
+// =====================================================================
+// FOOTBALL LIVE (chantier "match reel 30 minutes", 28 aout 2026)
+// =====================================================================
+// Architecture : AUCUNE nouvelle table/colonne/RPC. Tout vit dans le meme document unique
+// championnat.data (jsonb, une seule ligne id=1) deja utilise par le systeme existant -- un
+// sous-objet `live` est ajoute a chaque match, additif et retro-compatible (les anciens matchs
+// joues avant ce chantier n'ont jamais ce champ et continuent de se lire exactement comme avant,
+// via played/scoreHome/scoreAway/recit/evenements/compositions, inchanges).
+//
+// Concurrence : plusieurs clients peuvent executer ce moteur simultanement (meme principe que
+// l'ancien verifierEtJouerJournees). Toute ecriture passe par ecrireChampionnatCAS, un
+// compare-and-swap PostgREST natif (PATCH conditionne sur l'updated_at lu au debut du tick) --
+// si un autre client a deja ecrit entre-temps, la condition ne correspond plus a aucune ligne,
+// PostgREST renvoie un tableau vide (aucune ligne modifiee), et CE client abandonne son tick sans
+// avoir rien persiste. Les effets de bord EXTERNES (salaire, popularite, blessure reelle, mail --
+// tout ce qui touche une autre table que championnat) ne sont JAMAIS appliques avant d'avoir
+// remporte ce compare-and-swap : ils sont d'abord decides localement (phase pure), puis
+// uniquement executes APRES un CAS gagnant (phase d'effets). Un tick perdant n'a donc RIEN
+// applique nulle part, jamais de salaire/popularite/blessure en double, jamais de mail en double.
+//
+// Non-anticipation : aucun evenement futur n'est jamais precalcule puis simplement cache/differe.
+// Seuls forceHome/forceAway (un TAUX, deja reconstituable a partir de donnees publiques -- stats
+// des titulaires, indices de ville) sont fixes a la composition figee ; le nombre, l'instant et
+// l'auteur de chaque but/action/blessure sont tires minute par minute, uniquement au moment ou
+// cette minute est effectivement atteinte par l'horloge reelle (voir avancerEvenementsJusqua).
+// =====================================================================
+
+const DUREE_ECHAUFFEMENT_MS = 5 * 60000;
+const DUREE_MT1_MS = 10 * 60000;
+const DUREE_PAUSE_MS = 5 * 60000;
+const DUREE_MT2_MS = 10 * 60000;
+const TAUX_BLESSURE_PAR_TITULAIRE = 0.08; // identique au taux historique (notifierCompositionsEtBlessures)
+
+// Reecrit (chantier "calendrier dimanche 20h") : source de verite = saison.ancrageDimanche
+// (numero de journee de reference + son coup d'envoi reel, voir prochainDimanche20hParis), jamais
+// plus dateDebut+setHours() local au navigateur. Chaque journee est simplement l'ancrage
+// decale de (numeroJournee - ancrage.numero) semaines completes -- une journee AVANT l'ancrage
+// (typiquement la J1 historique d'une saison migree, deja jouee un jour quelconque) obtient donc
+// une date theorique "avant l'ancrage", jamais utilisee pour la resoudre (elle est deja played),
+// seulement disponible si un affichage veut un jour theorique pour elle.
+// C5 (5 septembre 2026) : l'ancien repli `dateDebut + setHours(20,0,0,0)` est SUPPRIME. Il
+// calculait 20h dans le fuseau du NAVIGATEUR -- un joueur a Tokyo et un joueur a Montreal en
+// tiraient deux instants absolus differents pour la meme journee, et pouvaient donc la resoudre a
+// deux moments distincts. Il n'existe plus qu'une seule source de calendrier : l'ancrage
+// canonique (dimanche 20h Europe/Paris). En son absence ou s'il est incoherent, cette fonction
+// renvoie null et TOUS ses appelants abandonnent proprement -- jamais d'horaire fabrique
+// silencieusement. Le cas ne doit de toute facon plus se produire : assurerAncrageDimanche()
+// migre toute saison au premier passage de verifierEtJouerJournees().
+function calculerKickoffJournee(saison, numeroJournee) {
+  const ancrage = saison && saison.ancrageDimanche;
+  if (!ancrage || typeof ancrage.numero !== 'number' || !ancrage.kickoffISO) return null;
+  const base = new Date(ancrage.kickoffISO).getTime();
+  if (!Number.isFinite(base)) return null; // kickoffISO corrompu -> abandon, jamais de repli local
+  return new Date(base + (numeroJournee - ancrage.numero) * UNE_SEMAINE_MS);
+}
+
+// Pure fonction du temps reel ecoule depuis kickoffAt -- jamais dependante d'un etat client.
+// echauffement [-5,0) -> mt1 [0,10) (minutes fictives 0->45) -> mitemps [10,15) -> mt2 [15,25)
+// (minutes fictives 45->90) -> termine [25,+inf).
+function phaseMatchActuelle(kickoffAt, maintenant) {
+  const t = maintenant.getTime() - kickoffAt.getTime();
+  if (t < -DUREE_ECHAUFFEMENT_MS) return { statut: 'a_venir', minuteFictive: null };
+  if (t < 0) return { statut: 'echauffement', minuteFictive: null };
+  if (t < DUREE_MT1_MS) return { statut: 'mt1', minuteFictive: Math.min(45, Math.floor((t / DUREE_MT1_MS) * 45)) };
+  if (t < DUREE_MT1_MS + DUREE_PAUSE_MS) return { statut: 'mitemps', minuteFictive: 45 };
+  if (t < DUREE_MT1_MS + DUREE_PAUSE_MS + DUREE_MT2_MS) {
+    const t2 = t - DUREE_MT1_MS - DUREE_PAUSE_MS;
+    return { statut: 'mt2', minuteFictive: 45 + Math.min(45, Math.floor((t2 / DUREE_MT2_MS) * 45)) };
+  }
+  return { statut: 'termine', minuteFictive: 90 };
+}
+
+function finPrevueMatch(kickoffAt) {
+  return new Date(kickoffAt.getTime() + DUREE_MT1_MS + DUREE_PAUSE_MS + DUREE_MT2_MS);
+}
+
+// Tirage pondere generique. pool = [{item, poids}], poids > 0. Renvoie null si pool vide (jamais
+// d'invention de faux joueur -- l'appelant doit alors se rabattre sur club.vedettes).
+function tirerPondere(pool) {
+  if (!pool || pool.length === 0) return null;
+  const total = pool.reduce((s, p) => s + p.poids, 0);
+  if (total <= 0) return pool[Math.floor(Math.random() * pool.length)].item;
+  let r = Math.random() * total;
+  for (const p of pool) { r -= p.poids; if (r <= 0) return p.item; }
+  return pool[pool.length - 1].item;
+}
+
+// Pondere par la stat pertinente + un leger effet Endurance (plus marque en seconde periode,
+// regle validee : "Endurance peut notamment conserver davantage d'influence en seconde periode").
+// titulaires : tableau {nom, perf:{defense,technique,endurance}} (compositionFigee.home/away.titulaires).
+function poolPondereeParStat(titulaires, statKey, phase) {
+  return (titulaires || []).map(t => {
+    const perf = t.perf || {};
+    let poids = 1 + (perf[statKey] || 0);
+    poids *= phase === 'mt2' ? (1 + (perf.endurance || 0) / 50) : (1 + (perf.endurance || 0) / 150);
+    return { item: t.nom, poids };
+  });
+}
+
+const TEMPLATES_COULEUR_LIVE = [
+  { type: 'occasion', offensif: true,  texte: (c) => `Frappe cadrée de ${c}, à côté !` },
+  { type: 'occasion', offensif: true,  texte: (c) => `Grosse occasion pour ${c}, seul(e) face au gardien !` },
+  { type: 'occasion', offensif: true,  texte: (c) => `Corner obtenu par ${c}, dangereux.` },
+  { type: 'carton',   offensif: false, texte: (c) => `Carton jaune pour ${c}.` },
+  { type: 'action',   offensif: false, texte: (c) => `Bel arrêt du gardien devant ${c}.` },
+  { type: 'action',   offensif: false, texte: (c) => `Interception décisive de ${c}.` },
+  { type: 'action',   offensif: false, texte: (c) => `Tacle appuyé de ${c}, l'arbitre laisse jouer.` },
+  { type: 'action',   offensif: false, texte: (c) => `Faute sifflée contre ${c}.` }
+];
+
+function genererBut(live, cote, club, titulaires, minute, phase) {
+  const buteur = tirerPondere(poolPondereeParStat(titulaires, 'technique', phase))
+    || club.vedettes[Math.floor(Math.random() * club.vedettes.length)];
+  if (cote === 'home') live.scoreHome++; else live.scoreAway++;
+  live.evenements.push({
+    minute, atRealTime: new Date().toISOString(), type: 'but', club: cote, joueur: buteur,
+    texte: 'BUT ! ' + buteur + ' fait trembler les filets pour ' + club.nom + ' ! (' + live.scoreHome + '-' + live.scoreAway + ')'
+  });
+}
+
+function genererEvenementCouleurLive(live, clubHome, clubAway, titHome, titAway, minute, phase) {
+  const cote = Math.random() < 0.5 ? 'home' : 'away';
+  const club = cote === 'home' ? clubHome : clubAway;
+  const titulaires = cote === 'home' ? titHome : titAway;
+  const tpl = TEMPLATES_COULEUR_LIVE[Math.floor(Math.random() * TEMPLATES_COULEUR_LIVE.length)];
+  const statKey = tpl.offensif ? 'technique' : 'defense';
+  const joueur = tirerPondere(poolPondereeParStat(titulaires, statKey, phase))
+    || club.vedettes[Math.floor(Math.random() * club.vedettes.length)];
+  live.evenements.push({ minute, atRealTime: new Date().toISOString(), type: tpl.type, club: cote, joueur, texte: tpl.texte(joueur) });
+}
+
+// Meme taux agrege que l'ancien systeme post-match (8% par titulaire, reparti ici minute par
+// minute sur les 90 minutes fictives) -- meme repartition grave/legere, meme duree, memes PV.
+// PURE : ne mute jamais personnages directement. La blessure decidee est deposee comme un
+// "effet en attente" (live.effetsRestants) plutot qu'appliquee en ligne -- voir
+// appliquerEffetRestant/drainerEffetsRestants, qui garantissent qu'elle sera appliquee
+// EXACTEMENT une fois meme si le client qui gagne le CAS de ce tick disparait avant d'avoir pu
+// l'appliquer (correctif du 28 aout 2026, cf. entete "REPRISE POST-CAS" plus bas).
+function tenterBlessureLive(live, cote, club, titulaires, minute) {
+  if (!titulaires || titulaires.length === 0) return; // aucun PJ reel titulaire -> pas de blessure reelle possible
+  const proba = (TAUX_BLESSURE_PAR_TITULAIRE * titulaires.length) / 90;
+  if (Math.random() >= proba) return;
+  const joueur = titulaires[Math.floor(Math.random() * titulaires.length)].nom;
+  const grave = Math.random() < 0.3;
+  const duree = grave ? (7 + Math.floor(Math.random() * 4)) : (2 + Math.floor(Math.random() * 2));
+  const degatsPV = grave ? 30 : 15;
+  live.evenements.push({
+    minute, atRealTime: new Date().toISOString(), type: 'blessure', club: cote, joueur,
+    texte: '⚠️ ' + joueur + ' se blesse (' + (grave ? 'gravement' : 'légèrement') + ') et doit sortir.'
+  });
+  const detail = { joueur, grave, duree, degatsPV, minute };
+  if (!live.blessures) live.blessures = [];
+  live.blessures.push(detail);
+  if (!live.effetsRestants) live.effetsRestants = [];
+  live.effetsRestants.push({
+    id: 'blessure-' + joueur + '-' + minute + '-' + Date.now() + '-' + Math.floor(Math.random() * 1e6),
+    type: 'blessure', joueur, blessure: { jusquauJour: (state.day || 1) + duree, gravite: grave ? 'grave' : 'legere' }, degatsPV
+  });
+}
+
+// Genere, de facon purement synchrone, tous les evenements dus entre live.minuteGeneree (exclu)
+// et minuteCible (inclus) -- boucle bornee a 90 iterations au pire, aucun cout reseau. Rien n'est
+// jamais genere pour une minute non encore atteinte par l'horloge reelle (voir phaseMatchActuelle) :
+// meme lors d'un rattrapage tardif (client revenu apres la fin du match), les evenements des
+// minutes intermediaires sont tires ICI, au moment du rattrapage -- jamais pre-decides avant.
+// =====================================================================
+// TRIBUNES ACTIVES (chantier "supporters", 28 aout 2026)
+// =====================================================================
+// Choix de camp : PERSISTANT pour un match donne (live.supportersChoix[nom] = 'home'|'away'|
+// 'neutre'), ecrit une seule fois via CAS (choisirCampSupporter), jamais modifiable ensuite --
+// aucun mecanisme de changement de camp n'existe. Presence ACTIVE : jamais persistee comme telle,
+// toujours recalculee a la volee depuis le systeme de presence deja existant du jeu
+// (sbGetPresencesInRoom, rafraichi automatiquement toutes les 30s par tout client present --
+// plateau-core.js). Un supporter ne compte donc que si les DEUX conditions sont vraies au moment
+// du calcul : un choix de camp enregistre pour CE match, et une presence active dans le Stade/
+// Terrain de la ville hote. Fermer la modale du live ne touche ni l'un ni l'autre.
+// =====================================================================
+
+// Ecrit le choix de camp d'UN joueur pour UN match, une seule fois (immuable ensuite). CAS avec
+// quelques tentatives bornees -- action rare (une fois par joueur par match), aucune file
+// d'attente necessaire contrairement au moteur de match lui-meme.
+async function choisirCampSupporter(journeeNumero, matchIdx, choix) {
+  const nom = state.char?.name;
+  if (!nom) return false;
+  for (let tentative = 0; tentative < 5; tentative++) {
+    const charge = await chargerChampionnatAvecVersion();
+    if (!charge) return false;
+    const { saison, version } = charge;
+    const journee = saison.calendrier.find(j => j.numero === journeeNumero);
+    const m = journee?.matchs?.[matchIdx];
+    if (!m || !m.live || m.played) return false;
+    if (!m.live.supportersChoix) m.live.supportersChoix = {};
+    if (m.live.supportersChoix[nom]) return true; // deja choisi pour ce match -- immuable, rien a faire
+    m.live.supportersChoix[nom] = choix;
+    const cas = await ecrireChampionnatCAS(saison, version);
+    if (cas.ok) return true;
+    // course perdue -- retente sur l'etat frais (un autre client a ecrit entre-temps)
+  }
+  return false;
+}
+
+// Effectif ACTIF de chaque camp a l'instant present : choix persistant ET presence active ET
+// jamais un titulaire (deja engage sportivement, section 12 -- pas de double comptage). Une seule
+// lecture reseau (presence), reutilisable pour le calcul du bonus ET pour l'affichage (compteurs +
+// noms, jamais la formule -- voir rendu du live).
+async function compterSupportersActifs(clubHome, clubAway, live) {
+  const vide = { home: { count: 0, noms: [] }, away: { count: 0, noms: [] } };
+  if (!live?.supportersChoix || typeof sbGetPresencesInRoom !== 'function') return vide;
+  const presents = await sbGetPresencesInRoom(clubHome.country, clubHome.city, clubHome.stadeBuilding || 'stade', 'terrain').catch(() => []);
+  const nomsPresents = new Set((presents || []).map(p => p.name));
+  const titulaires = new Set([
+    ...((live.compositionFigee?.home?.titulaires || []).map(t => t.nom)),
+    ...((live.compositionFigee?.away?.titulaires || []).map(t => t.nom))
+  ]);
+  const homeNoms = [], awayNoms = [];
+  for (const [nom, choix] of Object.entries(live.supportersChoix)) {
+    if (!nomsPresents.has(nom) || titulaires.has(nom)) continue;
+    if (choix === 'home') homeNoms.push(nom);
+    else if (choix === 'away') awayNoms.push(nom);
+  }
+  return { home: { count: homeNoms.length, noms: homeNoms }, away: { count: awayNoms.length, noms: awayNoms } };
+}
+
+// Ecart GLOBAL maximal entre les deux equipes (regle validee) : D = supporters domicile -
+// exterieur, impactGlobal = 5*tanh(D/6) -- D=0 -> 0, D=5 -> ~3.4, D=10 -> ~4.7, jamais plus de 5.
+// Positif favorise le domicile. Correctif du 28 aout 2026 : appliquer +impactGlobal a domicile ET
+// -impactGlobal a l'exterieur DOUBLE l'ecart reel (jusqu'a ~9.4 a D=10 au lieu du plafond de 5
+// specifie) -- l'appelant (avancerEvenementsJusqua) doit repartir la moitie de cette valeur de
+// chaque cote pour que l'ECART TOTAL entre les deux equipes reste plafonne a ~5, jamais chaque
+// cote individuellement. Repli sans Math.tanh (deja standard, mais defensif).
+function bonusTribunes(countHome, countAway) {
+  const d = countHome - countAway;
+  const t = (typeof Math.tanh === 'function') ? Math.tanh(d / 6) : (Math.exp(d / 3) - 1) / (Math.exp(d / 3) + 1);
+  return 5 * t;
+}
+
+function avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible, impactGlobalTribunes) {
+  const titHome = live.compositionFigee.home.titulaires;
+  const titAway = live.compositionFigee.away.titulaires;
+  // Bonus tribunes (deja calcule pour cet appel, voir progresserMatchLive) applique au TAUX,
+  // jamais retroactivement : seuls les evenements generes a partir de maintenant en tiennent
+  // compte -- ceux deja dans live.evenements restent inchanges. La MOITIE de l'ecart global est
+  // appliquee de chaque cote (+ a domicile, - a l'exterieur) afin que l'ECART TOTAL entre les deux
+  // equipes reste plafonne a la valeur calibree (~5), jamais le double.
+  const b = (impactGlobalTribunes || 0) / 2;
+  const tauxButHome = Math.max(0, (live.forceHome || 0) + b) / 28; // meme formule que l'ancien simulerMatch (buts = round(force/28 + bruit))
+  const tauxButAway = Math.max(0, (live.forceAway || 0) - b) / 28;
+  while (live.minuteGeneree < minuteCible) {
+    live.minuteGeneree++;
+    const m = live.minuteGeneree;
+    if (m === 45) continue; // la mi-temps a son propre evenement dedie, pas de tir a la 45e minute pile
+    const phase = m <= 45 ? 'mt1' : 'mt2';
+    if (Math.random() < tauxButHome / 90) genererBut(live, 'home', clubHome, titHome, m, phase);
+    if (Math.random() < tauxButAway / 90) genererBut(live, 'away', clubAway, titAway, m, phase);
+    if (Math.random() < 0.12) genererEvenementCouleurLive(live, clubHome, clubAway, titHome, titAway, m, phase);
+    tenterBlessureLive(live, 'home', clubHome, titHome, m);
+    tenterBlessureLive(live, 'away', clubAway, titAway, m);
+  }
+}
+
+// Fait progresser UN match vers la phase cible (phaseInfo, deja calculee depuis l'horloge reelle).
+// Phase PURE cote effets externes (les blessures decidees sont deposees dans live.effetsRestants,
+// jamais appliquees ici) -- la seule chose "impure" ici est la lecture (jamais l'ecriture) de sbListJoueursLicencies
+// via calculerContributionEquipe, au moment de la composition figee. Renvoie true si `match.live`
+// a ete modifie (donc s'il faut tenter une ecriture).
+async function progresserMatchLive(clubHome, clubAway, match, kickoff, phaseInfo) {
+  if (!match.live) {
+    match.live = {
+      kickoffAt: kickoff.toISOString(), statut: 'a_venir', compositionFigee: null,
+      forceHome: null, forceAway: null, scoreHome: 0, scoreAway: 0, minuteGeneree: 0,
+      evenements: [], blessures: [], effetsRestants: [], supportersChoix: {}
+    };
+  }
+  const live = match.live;
+  const maintenant = new Date().toISOString();
+  let modifie = false;
+
+  // Composition figee UNE SEULE FOIS, des que l'echauffement (ou une phase ulterieure atteinte
+  // directement, ex. rattrapage tardif) est constate.
+  if (!live.compositionFigee && phaseInfo.statut !== 'a_venir') {
+    const [contribHome, contribAway] = await Promise.all([calculerContributionEquipe(clubHome), calculerContributionEquipe(clubAway)]);
+    live.compositionFigee = {
+      home: { titulaires: contribHome.titulaires.map(t => ({ nom: t.nom, perf: t.perf })), remplacants: contribHome.remplacants.map(t => t.nom) },
+      away: { titulaires: contribAway.titulaires.map(t => ({ nom: t.nom, perf: t.perf })), remplacants: contribAway.remplacants.map(t => t.nom) }
+    };
+    const avantageDomicile = match.boycotte ? -5 : 5;
+    const pieteHome = typeof getIndiceVille === 'function' ? getIndiceVille(clubHome.country, clubHome.city, 'piete') : 50;
+    const pieteAway = typeof getIndiceVille === 'function' ? getIndiceVille(clubAway.country, clubAway.city, 'piete') : 50;
+    live.forceHome = (clubHome.valeurBase + avantageDomicile + contribHome.bonus) * multiplicateurPiete(pieteHome);
+    live.forceAway = (clubAway.valeurBase + contribAway.bonus) * multiplicateurPiete(pieteAway);
+    live.statut = 'echauffement';
+    live.evenements.push({
+      minute: 0, atRealTime: maintenant, type: 'composition', club: null, joueur: null,
+      texte: 'Compositions officielles : ' + clubHome.nom + ' vs ' + clubAway.nom + '.'
+    });
+    modifie = true;
+  }
+  if (!live.compositionFigee) return modifie; // trop tot (a_venir)
+  if (!live.supportersChoix) live.supportersChoix = {}; // retro-compat : matchs deja commences avant ce chantier
+
+  const ordre = ['echauffement', 'mt1', 'mitemps', 'mt2', 'termine'];
+  const idxCible = ordre.indexOf(phaseInfo.statut === 'a_venir' ? 'echauffement' : phaseInfo.statut);
+
+  if (live.statut === 'echauffement' && idxCible >= ordre.indexOf('mt1')) {
+    live.evenements.push({ minute: 0, atRealTime: maintenant, type: 'debut', club: null, joueur: null, texte: "Coup d'envoi !" });
+    live.statut = 'mt1';
+    modifie = true;
+  }
+  // Effectifs des tribunes releves juste avant CHAQUE generation d'evenements (pas de precision a
+  // la milliseconde requise, section 19 -- mais recalcule separement pour mt1 et pour mt2 au cas
+  // ou les deux transitions seraient rattrapees dans le meme appel, pour ne jamais utiliser un
+  // effectif perime). Aucun evenement sportif pendant l'echauffement/la mi-temps, donc aucun
+  // bonus a calculer a ces moments (section 5).
+  if (live.statut === 'mt1') {
+    const minuteCible = idxCible >= ordre.indexOf('mitemps') ? 45 : (phaseInfo.minuteFictive || 0);
+    if (minuteCible > live.minuteGeneree) {
+      const supportersActuels = await compterSupportersActifs(clubHome, clubAway, live);
+      avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible, bonusTribunes(supportersActuels.home.count, supportersActuels.away.count));
+      modifie = true;
+    }
+    if (idxCible >= ordre.indexOf('mitemps')) {
+      live.evenements.push({
+        minute: 45, atRealTime: maintenant, type: 'mitemps', club: null, joueur: null,
+        texte: 'Mi-temps : ' + clubHome.nom + ' ' + live.scoreHome + ' - ' + live.scoreAway + ' ' + clubAway.nom
+      });
+      live.statut = 'mitemps';
+      modifie = true;
+    }
+  }
+  if (live.statut === 'mitemps' && idxCible >= ordre.indexOf('mt2')) {
+    live.evenements.push({ minute: 45, atRealTime: maintenant, type: 'reprise', club: null, joueur: null, texte: 'Coup d\'envoi de la seconde période !' });
+    live.statut = 'mt2';
+    modifie = true;
+  }
+  if (live.statut === 'mt2') {
+    const minuteCible = idxCible >= ordre.indexOf('termine') ? 90 : (phaseInfo.minuteFictive || 45);
+    if (minuteCible > live.minuteGeneree) {
+      const supportersActuels = await compterSupportersActifs(clubHome, clubAway, live);
+      avancerEvenementsJusqua(live, clubHome, clubAway, minuteCible, bonusTribunes(supportersActuels.home.count, supportersActuels.away.count));
+      modifie = true;
+    }
+    if (idxCible >= ordre.indexOf('termine')) {
+      live.statut = 'termine';
+      live.evenements.push({
+        minute: 90, atRealTime: maintenant, type: 'fin', club: null, joueur: null,
+        texte: 'Coup de sifflet final ! ' + clubHome.nom + ' ' + live.scoreHome + ' - ' + live.scoreAway + ' ' + clubAway.nom + '.'
+      });
+      modifie = true;
+    }
+  }
+  return modifie;
+}
+
+// =====================================================================
+// REPRISE POST-CAS (correctif du 28 aout 2026)
+// =====================================================================
+// Probleme corrige : gagner le CAS de finalisation (m.played devient true, persiste) puis
+// disparaitre (crash/refresh/perte reseau) AVANT d'avoir fini d'appliquer les effets externes
+// (salaire/POP/blessure/mail, plusieurs dizaines d'appels sequentiels) laissait ces effets
+// DEFINITIVEMENT perdus : m.played bloque toute nouvelle tentative de finalisation, donc plus
+// personne ne rappelait jamais la fonction qui les appliquait.
+//
+// Correction : chaque effet individuel (une recompense de titulaire/remplacant, un credit de
+// caisse de club, une blessure reelle) devient un ELEMENT PERSISTE dans live.effetsRestants
+// (construit pendant la phase PURE, donc ecrit par le MEME CAS qui pose played:true -- jamais
+// perdu). Son application se fait ensuite par petites revendications independantes : on relit
+// l'etat frais, on retire CET ELEMENT PRECIS de la liste (CAS), et seulement APRES avoir gagne
+// CE CAS localise-t-on l'effet externe correspondant. Un crash au milieu ne peut donc jamais
+// faire perdre plus qu'UN SEUL element (deja retire de la liste mais pas encore applique a
+// l'exterieur) -- fenetre de quelques centaines de ms par element, du meme ordre que le residu
+// deja accepte pour la persistance du PA (autosave debounce). drainerEffetsRestants est rappelee
+// a CHAQUE tick (voir avancerFootballLive), meme quand rien d'autre ne change ce tick-la : elle
+// reprend donc automatiquement tout effet laisse en attente par un client disparu, sans action du
+// joueur, sans mecanique de gameplay nouvelle.
+// =====================================================================
+
+// PURE : construit la liste des effets dus a la fin d'un match (jamais d'appel reseau externe
+// autre que des LECTURES -- chargerBudgetClub). Appelee dans la phase pure d'avancerFootballLive,
+// AVANT le CAS, pour que la liste soit ecrite atomiquement avec played:true.
+async function construireEffetsRestantsMatch(match, clubHome, clubAway) {
+  const live = match.live;
+  const victoireHome = live.scoreHome > live.scoreAway;
+  const victoireAway = live.scoreAway > live.scoreHome;
+  const nul = live.scoreHome === live.scoreAway;
+  const budgetHome = await chargerBudgetClub(clubHome.id);
+  const budgetAway = await chargerBudgetClub(clubAway.id);
+  const items = [];
+  const uid = () => Date.now() + '-' + Math.floor(Math.random() * 1e6);
+
+  function ajouterCote(club, compo, victoire, budget) {
+    const salaires = budget.salaires;
+    const resultatLabel = victoire ? 'victoire' : (nul ? 'match nul' : 'défaite');
+    const gainPop = victoire ? 30 : 20; // regle validee : +20 pour avoir dispute le match (defaite/nul), +30 au total si victoire (jamais +20 puis +30)
+    let totalSalaires = 0;
+    for (const t of compo.titulaires) {
+      const montant = salaires.titulaire + (victoire ? salaires.primeVictoire : 0);
+      const blessureJoueur = (live.blessures || []).find(b => b.joueur === t.nom);
+      const msgBlessure = blessureJoueur
+        ? '<br><br>⚠️ Vous vous êtes blessé(e) pendant le match (' + (blessureJoueur.grave ? 'gravement' : 'légèrement') + '). Indisponible ' + blessureJoueur.duree + ' jour(s), -' + blessureJoueur.degatsPV + ' PV.'
+        : '';
+      items.push({
+        id: 'recomp-' + t.nom + '-' + uid(), type: 'recompense', nom: t.nom, montant, gainPop,
+        sujet: 'Vous étiez titulaire — ' + club.nom,
+        corps: 'Vous avez disputé le match (' + resultatLabel + ', ' + live.scoreHome + '-' + live.scoreAway + '). Salaire perçu : ' + montant.toLocaleString('fr-FR') + ' FR. +' + gainPop + ' Popularité.' + msgBlessure
+      });
+      totalSalaires += montant;
+    }
+    for (const nomRemp of compo.remplacants) {
+      items.push({
+        id: 'recomp-' + nomRemp + '-' + uid(), type: 'recompense', nom: nomRemp, montant: salaires.remplacant, gainPop: 0,
+        sujet: 'Vous étiez remplaçant — ' + club.nom,
+        corps: 'Vous étiez remplaçant(e) lors du dernier match (' + live.scoreHome + '-' + live.scoreAway + '). Salaire perçu : ' + salaires.remplacant.toLocaleString('fr-FR') + ' FR.'
+      });
+      totalSalaires += salaires.remplacant;
+    }
+    if (totalSalaires > 0) items.push({ id: 'budget-' + club.id + '-' + uid(), type: 'budget_club', clubId: club.id, montant: totalSalaires, motif: 'Salaires des joueurs (' + resultatLabel + ')' });
+  }
+
+  ajouterCote(clubHome, live.compositionFigee.home, victoireHome, budgetHome);
+  ajouterCote(clubAway, live.compositionFigee.away, victoireAway, budgetAway);
+  if (!live.effetsRestants) live.effetsRestants = [];
+  live.effetsRestants.push(...items);
+}
+
+// Applique UN effet externe deja revendique (retire de la liste par un CAS gagnant -- voir
+// drainerEffetsRestants). Jamais appelee avant cette revendication.
+async function appliquerEffetRestant(item) {
+  if (item.type === 'blessure') {
+    if (typeof sbAppliquerBlessureSportive === 'function') await sbAppliquerBlessureSportive(item.joueur, item.blessure, item.degatsPV).catch(() => {});
+    return;
+  }
+  if (item.type === 'recompense') {
+    // L'ARGENT NE PASSE PLUS PAR ICI (16 septembre 2026). sbAppliquerSalaire ecrivait la fiche
+    // d'un AUTRE personnage : depuis le chantier B la vue refuse cette ecriture, et l'appel
+    // etait avale par un .catch() muet -- la prime etait perdue en silence, sauf quand le
+    // beneficiaire se trouvait etre le joueur dont le navigateur drainait l'effet, qui se
+    // creditait alors lui-meme. football_primes_journee/_tour verse desormais tout le monde,
+    // au montant que le serveur recalcule, une seule fois. Popularite et courrier restent ici :
+    // ils passent par des chemins qui fonctionnent.
+    if (item.gainPop && typeof sbAjusterPopularite === 'function') await sbAjusterPopularite(item.nom, item.gainPop, 'football_match').catch(() => {});
+    if (typeof sbSendMail === 'function') await sbSendMail('Ligue Officielle', item.nom, item.sujet, item.corps, formatDateHeureJeu()).catch(() => {});
+    return;
+  }
+  if (item.type === 'budget_club') {
+    // La caisse du club est debitee par le serveur, dans la meme transaction que les primes
+    // qu'elle finance -- la debiter encore ici la ponctionnerait deux fois.
+    return;
+  }
+}
+
+// Localise, dans une saison DEJA CHARGEE, le tout premier effet en attente (n'importe quel match,
+// n'importe quelle journee -- couvre aussi bien le match qui vient d'etre finalise ce tick qu'un
+// effet laisse en plan par un client disparu il y a plusieurs ticks).
+function trouverProchainEffetRestant(saison) {
+  for (const j of saison.calendrier) {
+    for (let i = 0; i < j.matchs.length; i++) {
+      const m = j.matchs[i];
+      if (m.live?.effetsRestants?.length) return { journeeNumero: j.numero, matchIdx: i, item: m.live.effetsRestants[0] };
+    }
+  }
+  return null;
+}
+
+// Revendique puis applique, un par un, jusqu'a maxItems effets en attente. Chaque iteration relit
+// l'etat frais (un autre client a pu progresser entre-temps), ce qui rend la fonction sure a
+// rappeler depuis n'importe quel tick, par n'importe quel client, aussi souvent que necessaire.
+async function drainerEffetsRestants(maxItems) {
+  let traites = 0;
+  while (traites < maxItems) {
+    const charge = await chargerChampionnatAvecVersion();
+    if (!charge) break;
+    const { saison, version } = charge;
+    const cible = trouverProchainEffetRestant(saison);
+    if (!cible) break;
+    const journee = saison.calendrier.find(j => j.numero === cible.journeeNumero);
+    const m = journee.matchs[cible.matchIdx];
+    m.live.effetsRestants = m.live.effetsRestants.filter(it => it.id !== cible.item.id);
+    const cas = await ecrireChampionnatCAS(saison, version);
+    if (!cas.ok) continue; // un autre client vient d'ecrire -- retente immediatement sur l'etat frais
+    await appliquerEffetRestant(cible.item);
+    traites++;
+  }
+  return traites;
+}
+
+// Reecrite (5 septembre 2026) : delegue a sbLireChampionnat(), qui distingue erreur et absence et
+// vise la ligne canonique (CHAMPIONNAT_ROW_ID). Renvoie null dans les DEUX cas -- ici c'est sans
+// ambiguite, tous les appelants sont des chemins d'ecriture qui doivent alors simplement
+// abandonner leur tick sans rien creer ni ecrire.
+async function chargerChampionnatAvecVersion() {
+  if (typeof sbLireChampionnat !== 'function') return null;
+  const lu = await sbLireChampionnat();
+  if (!lu.ok || !lu.saison) return null;
+  return { saison: lu.saison, version: lu.version };
+}
+
+// Compare-and-swap PostgREST natif : PATCH conditionne sur l'updated_at lu au debut du tick.
+// Si un autre client a ecrit entre-temps, la clause WHERE ne correspond plus a aucune ligne --
+// PostgREST (Prefer: return=representation) renvoie alors un tableau VIDE, jamais une erreur.
+// POINT D'ECRITURE UNIQUE du championnat (C3, 5 septembre 2026) : plus aucun chemin fonctionnel
+// ne fait de PATCH aveugle. Deux gardes avant d'ecrire :
+//  - verrou de version (C4) : un client plus ancien que le blob n'ecrit jamais ;
+//  - estampille : le blob repart toujours avec la version du client qui vient de l'ecrire, ce qui
+//    permet au verrou de fonctionner pour les deploiements suivants.
+async function ecrireChampionnatCAS(saison, versionAttendue) {
+  if (!peutEcrireChampionnat(saison)) {
+    console.warn('[championnat] ecriture refusee : client v' + CHAMPIONNAT_SCHEMA_VERSION +
+      ' plus ancien que le blob v' + saison.schemaVersion + ' -- rechargez la page.');
+    return { ok: false, raison: 'version-client-obsolete' };
+  }
+  if (!versionAttendue) return { ok: false, raison: 'version-attendue-absente' };
+  saison.schemaVersion = CHAMPIONNAT_SCHEMA_VERSION;
+  const nouvelleVersion = new Date().toISOString();
+  const res = await sbUpdate('championnat', CHAMPIONNAT_FILTRE_ID + '&updated_at=eq.' + encodeURIComponent(versionAttendue), { data: saison, updated_at: nouvelleVersion }).catch(() => null);
+  return (res && res.length > 0) ? { ok: true } : { ok: false, raison: 'course-perdue' };
+}
+
+// Helper commun a tous les chemins d'ecriture "hors moteur live" (ancrage, notifications,
+// boycott, transition playoffs, nouvelle saison). Relit l'etat frais, laisse l'appelant le muter,
+// puis ecrit en CAS -- avec quelques tentatives bornees, car ces actions sont rares et non
+// concurrentes entre elles (contrairement au moteur de match, qui a sa propre boucle).
+// `muter(saison)` doit renvoyer true pour demander l'ecriture, false pour abandonner sans ecrire.
+async function majChampionnatCAS(muter, tentatives) {
+  const max = tentatives || 4;
+  for (let i = 0; i < max; i++) {
+    const charge = await chargerChampionnatAvecVersion();
+    if (!charge) return { ok: false, raison: 'lecture-impossible' };
+    if (!peutEcrireChampionnat(charge.saison)) return { ok: false, raison: 'version-client-obsolete' };
+    let demande;
+    try { demande = await muter(charge.saison); }
+    catch (e) { return { ok: false, raison: 'mutation-echouee' }; }
+    if (!demande) return { ok: false, raison: 'rien-a-ecrire', saison: charge.saison };
+    const cas = await ecrireChampionnatCAS(charge.saison, charge.version);
+    if (cas.ok) return { ok: true, saison: charge.saison };
+    if (cas.raison === 'version-client-obsolete') return cas;
+    // course perdue : on relit l'etat frais et on retente
+  }
+  return { ok: false, raison: 'trop-de-courses-perdues' };
+}
+
+// Point d'entree unique du moteur live regulier (journee courante uniquement -- les playoffs
+// restent geres par progresserPlayoffs, hors perimetre de ce
+// chantier, voir rapport final). Idempotent, rejouable par n'importe quel client, aussi souvent
+// que necessaire : deux phases strictement separees (PURE puis EFFETS), voir commentaire d'entete.
+async function avancerFootballLive() {
+  const charge = await chargerChampionnatAvecVersion();
+  if (!charge || !charge.saison) return null;
+  const { saison, version } = charge;
+  if (saison.phase !== 'reguliere') return null;
+
+  const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
+  if (!prochaine) return null;
+
+  // Verrou de version (C4) : un client plus ancien que le blob ne fait meme pas tourner le
+  // moteur, il ne pourrait de toute facon rien persister.
+  if (!peutEcrireChampionnat(saison)) return null;
+
+  const kickoff = calculerKickoffJournee(saison, prochaine.numero);
+  if (!kickoff) return null; // C5 : ancrage absent/corrompu -- abandon, jamais d'horaire local
+  const maintenant = new Date();
+  const phaseInfo = phaseMatchActuelle(kickoff, maintenant);
+  if (phaseInfo.statut === 'a_venir') return null;
+
+  // VERROU HEBDOMADAIRE (5 septembre 2026) -- remplace l'ancien garde-fou "un jour calendaire
+  // Europe/Paris", qui autorisait deux journees dans une meme semaine reelle (un rattrapage le
+  // lundi n'empechait pas l'echeance normale du dimanche suivant), contrairement a la regle
+  // metier validee. Regle appliquee ici : AU PLUS UNE journee resolue par SEMAINE ISO
+  // Europe/Paris. Combine au reancrage effectue a la finalisation (marquerResolutionEtReancrer),
+  // il rend structurellement impossible toute cascade -- il n'existe jamais plus d'une journee en
+  // retard a la fois, puisque la suivante est reprogrammee au dimanche de la semaine d'apres des
+  // que la precedente est resolue.
+  if (resolutionDejaFaiteCetteSemaine(saison, maintenant)) return null;
+
+  const finalisationsLegacy = [];
+  let modifie = false;
+
+  for (const m of prochaine.matchs) {
+    if (m.played) continue;
+    const clubHome = getClub(m.home), clubAway = getClub(m.away);
+
+    // Interdiction ministerielle (systeme existant, genererDemandesManifestationMatchs) :
+    // forfait immediat, prioritaire sur tout le pipeline live -- inchange par ce chantier.
+    const demandeMatch = m.demandeManifId ? await sbGetDemandeManifestationParId(m.demandeManifId).catch(() => null) : null;
+    if (demandeMatch?.statut === 'interdite') {
+      Object.assign(m, { scoreHome: 0, scoreAway: 1, recit: 'Match interdit par le Ministère de l\'Intérieur — victoire par forfait de ' + clubAway.nom + ' (0-1).', evenements: [], played: true });
+      modifie = true;
+      if (typeof addExternalEvent === 'function') addExternalEvent('🚫 Le match ' + clubHome.nom + ' vs ' + clubAway.nom + ' est interdit par le Ministère de l\'Intérieur. Victoire par forfait de ' + clubAway.nom + '.');
+      continue;
+    }
+
+    if (phaseInfo.statut === 'termine' && !m.live) {
+      // Fenetre de 30 minutes entierement ecoulee sans qu'aucun client ne l'ait jamais tickee --
+      // repli garanti sur l'ancienne resolution instantanee (aucun match ne reste jamais bloque).
+      // Chemin historique, hors perimetre du correctif "reprise post-CAS" (voir rapport).
+      const [contribHome, contribAway] = await Promise.all([calculerContributionEquipe(clubHome), calculerContributionEquipe(clubAway)]);
+      const res = simulerMatch(m.home, m.away, contribHome.bonus, contribAway.bonus, m.boycotte);
+      Object.assign(m, {
+        scoreHome: res.scoreHome, scoreAway: res.scoreAway, recit: res.recit, evenements: res.evenements, played: true,
+        compositions: {
+          home: { titulaires: contribHome.titulaires.map(t => t.nom), remplacants: contribHome.remplacants.map(t => t.nom) },
+          away: { titulaires: contribAway.titulaires.map(t => t.nom), remplacants: contribAway.remplacants.map(t => t.nom) }
+        }
+      });
+      modifie = true;
+      finalisationsLegacy.push({ club: clubHome, contrib: contribHome, butsPour: res.scoreHome, butsContre: res.scoreAway });
+      finalisationsLegacy.push({ club: clubAway, contrib: contribAway, butsPour: res.scoreAway, butsContre: res.scoreHome });
+      continue;
+    }
+
+    const chg = await progresserMatchLive(clubHome, clubAway, m, kickoff, phaseInfo);
+    if (chg) modifie = true;
+    if (m.live && m.live.statut === 'termine' && !m.played) {
+      const home = clubHome, away = clubAway;
+      const recit = m.live.scoreHome > m.live.scoreAway
+        ? home.nom + ' s\'impose ' + m.live.scoreHome + '-' + m.live.scoreAway + ' face à ' + away.nom
+        : (m.live.scoreAway > m.live.scoreHome
+          ? away.nom + ' s\'impose ' + m.live.scoreAway + '-' + m.live.scoreHome + ' sur la pelouse de ' + home.nom
+          : 'Match nul ' + m.live.scoreHome + '-' + m.live.scoreAway + ' entre ' + home.nom + ' et ' + away.nom);
+      // Construit la liste des effets dus (PURE, lectures seules) AVANT le CAS -- voir
+      // construireEffetsRestantsMatch : elle sera ainsi ecrite atomiquement avec played:true,
+      // jamais perdue meme si ce client disparait juste apres avoir gagne le CAS ci-dessous.
+      await construireEffetsRestantsMatch(m, clubHome, clubAway);
+      Object.assign(m, {
+        scoreHome: m.live.scoreHome, scoreAway: m.live.scoreAway, recit, evenements: m.live.evenements, played: true,
+        compositions: {
+          home: { titulaires: m.live.compositionFigee.home.titulaires.map(t => t.nom), remplacants: m.live.compositionFigee.home.remplacants },
+          away: { titulaires: m.live.compositionFigee.away.titulaires.map(t => t.nom), remplacants: m.live.compositionFigee.away.remplacants }
+        }
+      });
+    }
+  }
+
+  // Marque la fin de journee AVANT le CAS : persiste atomiquement avec le reste de `saison` --
+  // alimente le verrou hebdomadaire ci-dessus lors des PROCHAINS appels a cette fonction (une
+  // journee ne peut jamais se marquer elle-meme comme resolue avant d'etre complete).
+  if (modifie && prochaine.matchs.every(m => m.played)) {
+    // Consomme la semaine calendaire ET reancre la journee suivante au dimanche 20h de la semaine
+    // ISO suivante (5 septembre 2026) -- les deux dans la MEME ecriture atomique que played:true,
+    // donc jamais l'un sans l'autre. C'est ce reancrage qui empeche le championnat de "boiter"
+    // apres un rattrapage : sans lui, la journee suivante resterait ancree au dimanche de la
+    // semaine deja consommee, que le verrou hebdomadaire bloquerait, la repoussant au lundi, puis
+    // au lundi suivant, indefiniment.
+    marquerResolutionEtReancrer(saison, prochaine.numero + 1, new Date());
+    // Instant REEL de resolution de cette journee (additif, 5 septembre 2026). Necessaire au
+    // Journal : collecterFootball() (api/_journal-collecte.js) datait jusqu'ici chaque journee par
+    // `dateDebut + (numero-1) x 7 jours`, une SECONDE formule de calendrier, divergente de
+    // l'ancrage canonique des qu'un rattrapage decale une journee -- une journee rattrapee
+    // pouvait donc n'etre jamais collectee (sa date theorique tombait dans une fenetre ou elle
+    // n'etait pas encore jouee). On persiste donc la date reelle, seule source fiable.
+    prochaine.resolueLe = new Date().toISOString();
+  }
+
+  let casGagne = !modifie; // rien a revendiquer -> ne bloque pas la reprise ci-dessous
+  if (modifie) {
+    // Revendication (CAS) AVANT tout effet externe -- voir commentaire d'entete du chantier.
+    const cas = await ecrireChampionnatCAS(saison, version);
+    casGagne = cas.ok;
+    if (cas.ok) {
+      for (const f of finalisationsLegacy) {
+        await notifierCompositionsEtBlessures(f.club, f.contrib, f.butsPour, f.butsContre).catch(() => {});
+      }
+      if (prochaine.matchs.every(m => m.played)) {
+        const dateSportiveTheorique = kickoff.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long' });
+        await publierResultatsJourneeSurForum(saison.numero, prochaine, dateSportiveTheorique).catch(() => {});
+        // PRIMES : versees par le serveur, qui relit lui-meme la composition figee, verifie les
+        // licences et recalcule les montants. Idempotent -- rappeler cet ordre ne paie personne
+        // deux fois, ce qui permet a n'importe quel client de rattraper une journee dont le
+        // gagnant du compare-and-swap aurait disparu avant d'arriver ici.
+        if (typeof sbRpc === 'function') {
+          await sbRpc('football_primes_journee', { p_journee: prochaine.numero }).catch(() => {});
+        }
+        await resoudreParisJournee(saison.numero, prochaine).catch(() => {});
+      }
+    }
+    // course perdue (cas.ok===false) : un autre client a deja avance l'etat -- ne pas retenter
+    // cette progression precise ici, mais NE JAMAIS sauter la reprise ci-dessous pour autant, elle
+    // est independante de ce qui vient d'echouer.
+  }
+
+  // Reprise post-CAS (toujours tentee, meme si rien d'autre n'a change ce tick, meme si le CAS de
+  // progression ci-dessus a ete perdu) : un client precedent a pu gagner un CAS de finalisation
+  // puis disparaitre avant d'avoir applique tous les
+  // effets externes dus (POP/salaire/blessure/mail) -- voir entete "REPRISE POST-CAS" plus haut.
+  await drainerEffetsRestants(40);
+
+  // saison n'est fiable a renvoyer que si CE client a reellement gagne l'ecriture de sa propre
+  // progression (ou n'avait rien a ecrire) -- une course perdue laisse cette copie locale perimee.
+  return casGagne ? saison : null;
+}
+
+// Determine, de facon SYNCHRONE, si `nomJoueur` est actuellement titulaire d'un match en fenetre
+// [kickoff-5min, kickoff+25min] dans une saison DEJA CHARGEE (aucun appel reseau ici -- reserve a
+// une consommation depuis un cache recent, voir rafraichirVerrouFootball/tickFootballLive).
+function trouverVerrouMatchPourJoueur(saison, nomJoueur) {
+  if (!saison || saison.phase !== 'reguliere' || !nomJoueur) return null;
+  const maintenant = new Date();
+  for (const j of saison.calendrier) {
+    for (const m of j.matchs) {
+      if (m.played || !m.live || !m.live.compositionFigee) continue;
+      const kickoff = new Date(m.live.kickoffAt);
+      const phaseInfo = phaseMatchActuelle(kickoff, maintenant);
+      if (phaseInfo.statut === 'a_venir' || phaseInfo.statut === 'termine') continue;
+      const estHome = m.live.compositionFigee.home.titulaires.some(t => t.nom === nomJoueur);
+      const estAway = !estHome && m.live.compositionFigee.away.titulaires.some(t => t.nom === nomJoueur);
+      if (!estHome && !estAway) continue;
+      const club = getClub(estHome ? m.home : m.away);
+      const adversaire = getClub(estHome ? m.away : m.home);
+      return { matchKey: j.numero + '-' + m.home + '-' + m.away, journeeNumero: j.numero, matchIdx: j.matchs.indexOf(m),
+        club, adversaire, kickoffAt: kickoff, finPrevue: finPrevueMatch(kickoff), statutPhase: phaseInfo.statut };
+    }
+  }
+  return null;
+}
+
+// Sauvegarde immediate de state.char (local + Supabase) — necessaire pour tout changement qui
+// doit survivre a un rafraichissement de page, meme sans changement de piece/batiment.
+function sauvegarderPersonnageImmediat() {
+  if (!state.char) return;
+  try {
+    localStorage.setItem('respublica_char_' + (state.char.name || 'default'), JSON.stringify(state.char));
+    localStorage.setItem('respublica_char', JSON.stringify(state.char));
+  } catch (e) {}
+  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
+}
+
+// Moyenne de groupe (9 aout 2026) : valeurs disponibles pour <stat> parmi le joueur + ses
+// employes actuellement inGroupe (meme perimetre que rejoindreJeremy/quitterJeremy/
+// organiser_blocus, PAS state.group.members qui est un mecanisme distinct pour rejoindre
+// le groupe d'un AUTRE joueur/PNJ). Un employe sans valeur pour cette stat precise (les PNJ
+// n'ont que FOR/CHA/DUP/INT via PNJ_STATS_PAR_JOB, jamais VOL/ENT, sauf override explicite
+// comme le PER d'un informateur fixe a son recrutement) est simplement absent du tableau -
+// ni compte ni traite comme 0, pour ne pas fausser la moyenne vers le bas artificiellement.
+function getMembresGroupeAvecStat(stat) {
+  const valeurs = [];
+  const valeurJoueur = state.char?.stats?.[stat];
+  if (valeurJoueur !== undefined && valeurJoueur !== null) valeurs.push(valeurJoueur);
+  (typeof getEmployes === 'function' ? getEmployes() : (state.employes || []))
+    .filter(e => e.inGroupe)
+    .forEach(e => {
+      const v = e.stats?.[stat] ?? (typeof PNJ_STATS_PAR_JOB !== 'undefined' ? PNJ_STATS_PAR_JOB[e.job]?.[stat] : undefined);
+      if (v !== undefined && v !== null) valeurs.push(v);
+    });
+  return valeurs;
+}
+
+// Renvoie la valeur EFFECTIVE d'une caracteristique, en tenant compte de la moyenne de
+// groupe (9 aout 2026 : remplace la simple valeur du joueur - un groupe bien compose peut
+// faire monter le taux de reussite d'un ordre, un groupe mal compose peut le faire baisser),
+// puis de l'affaiblissement
+// lie aux HP. A utiliser partout ou une stat compte (CHA pour se defendre, etc.) au lieu de
+// lire state.char.stats directement. Retrocompatible : joueur seul (aucun employe inGroupe)
+// -> moyenne d'un seul element = sa propre valeur, comportement strictement identique a avant.
+// Bonus ENT local (Lot 2, objets d'integration -- 23 aout 2026) : +1 non cumulable tant qu'au
+// moins un objet familleProduitMarche:'integration_locale' de l'inventaire a
+// bonusIntegrationVille === state.currentCity. Fonction independante (jamais fusionnee dans
+// getStatEffective directement) : reutilisee telle quelle par l'affichage ENT (plateau-core.js)
+// sans jamais entrainer la logique de moyenne de groupe -- seule getStatEffective doit tenir
+// compte du groupe, pas ce bonus purement personnel. Relit l'inventaire a chaque appel, aucun
+// etat mis en cache : deposer/donner/detruire l'objet fait donc disparaitre le bonus des le
+// prochain appel, sans code supplementaire. Jamais d'ecriture dans state.char.stats.
+function bonusEntIntegrationLocale() {
+  return (state.inventory || []).some(i =>
+    i && i.familleProduitMarche === 'integration_locale' && i.bonusIntegrationVille === state.currentCity
+  ) ? 1 : 0;
+}
+
+function getStatEffective(stat) {
+  const valeursGroupe = getMembresGroupeAvecStat(stat);
+  const base = valeursGroupe.length > 0
+    ? valeursGroupe.reduce((s, v) => s + v, 0) / valeursGroupe.length
+    : (state.char?.stats?.[stat] ?? 8);
+  // LE BONUS DE FORMATION A ETE RETIRE DE CETTE FORMULE (12 octobre 2026). Il ajoutait +2 a une
+  // caracteristique au choix depuis `state.char.bonusFormation`, un champ sans colonne, non
+  // persiste, et sans aucun ecretage -- il faisait donc passer une caracteristique au plafond de
+  // 16 a 18 effectifs. L'ancien systeme `se_former` qui le produisait est supprime ; plus aucun
+  // producteur n'existe, et la lecture part avec lui plutot que de rester comme une branche morte
+  // qu'un futur champ homonyme pourrait reveiller.
+  // Bonus ENT local (Lot 2) : n'affecte QUE stat==='ENT', court-circuite avant tout appel a
+  // bonusEntIntegrationLocale() pour les 5 autres caracteristiques -- comportement et cout
+  // strictement inchanges pour tous les autres appelants de cette fonction.
+  const bonusLocal = (stat === 'ENT') ? bonusEntIntegrationLocale() : 0;
+  // Malus d'excommunication (lot "carriere religieuse Republia", lot 2, 26 aout 2026) : -2 CHA
+  // reversible tant que state.char.excommunie est actif (personnages.excommunie, JSONB nullable).
+  // N'affecte QUE CHA, meme doctrine que le bonus ENT local ci-dessus -- ne modifie jamais
+  // state.char.stats.CHA (la caracteristique de base), disparait des la levee (excommunie remis
+  // a null) sans aucune trace residuelle.
+  const malusExcommunication = (stat === 'CHA' && state.char?.excommunie) ? -2 : 0;
+  const valeurNormale = base + bonusLocal + malusExcommunication;
+  if (state.statsAffaiblies && state.statsAffaiblies[stat] !== undefined) {
+    const fraction = Math.max(0, Math.min(1, (state.hp || 0) / 100));
+    return Math.max(1, Math.round(valeurNormale * fraction));
+  }
+  return Math.round(valeurNormale);
+}
+
+// SUIVRE UNE FORMATION A ETE SUPPRIME (12 octobre 2026) -- ancien systeme universitaire.
+//
+// QUARANTE LIGNES RETIREES ICI : `doSeFormer` et `appliquerFormation`. L'ordre `se_former` coutait
+// 2 PA + 100 FR et posait `state.char.bonusFormation = { stat, valeur: 2 }` -- un +2 temporaire a
+// une caracteristique au choix, valable jusqu'au prochain sommeil, verrouille a une formation par
+// jour.
+//
+// POURQUOI IL DEVAIT DISPARAITRE, ET CE N'EST PAS UNE QUESTION DE GOUT. L'audit du 11 octobre
+// l'avait mesure : ni `bonusFormation` ni `dernierFormationJour` n'avaient de colonne. Ils
+// vivaient dans `state.char`, donc en memoire du navigateur et dans `localStorage`, et
+// `Object.assign(state, sbState)` les detruisait a chaque reconciliation serveur. Le joueur payait
+// 2 PA et 100 FR au SERVEUR pour un bonus que le serveur ne connaissait pas, qui n'etait affiche
+// nulle part, qui ne survivait pas a un rechargement de page -- et dont le verrou « une par jour »
+// tombait avec lui, rendant l'ordre repetable autant de fois qu'on rechargeait. Il n'avait par
+// ailleurs AUCUN ecretage : une caracteristique au plafond de 16 passait effectivement a 18.
+//
+// L'UNIVERSITE DEVIENT LE LIEU D'UNE VRAIE QUALIFICATION, et son socle est en base
+// (`universite_*`, migration du 12 octobre 2026) : cursus, jalons, slot a vie, autorite serveur.
+// Le catalogue des cursus n'est PAS invente ici -- il sera arbitre a partir de
+// `baseline/arbitrages/INVENTAIRE-CARRIERES-ET-QUALIFICATIONS.md`.
+//
+// CE QUI N'EST PAS TOUCHE : `donner_conf` (Donner une conference) et `recruter_etud` (Recruter des
+// militants) ne dependaient d'aucune partie de ce systeme et restent entiers.
+
+// STAGE A LA CASERNE (Corps de Garde) — regenere la Volonte, ouvert a tout PJ (pas reserve aux
+// militaires). +5 VOL, 1 fois par jour, max 3 jours CONSECUTIFS puis 7 jours de repos avant de
+// pouvoir recommencer. Rater un jour (pas de stage la veille) relance un nouveau cycle de 3 a
+// zero, sans cooldown -- seule une serie ininterrompue de 3 jours declenche le repos force.
+// PA/cout preleves via deduireCoutOrdre (Phase K, migre depuis une deduction hardcodee) : les
+// handlers dedies (routes via un cas special de doOrder, voir plateau-router.js) ne beneficient
+// PAS de la deduction generique de PA/cout, qui ne s'applique qu'aux ordres sans handler dedie.
+async function doStageCaserne(pa, cost) {
+  if (!state.char) return;
+  const suivi = state.char.stageCaserne || {};
+
+  if (suivi.cooldownJusqua && state.day < suivi.cooldownJusqua) {
+    showToast('Repos obligatoire', 'Trois jours de stage d\'affilée, place au repos. Revenez au jour ' + suivi.cooldownJusqua + '.', false);
+    return;
+  }
+  if (suivi.dernierJour === state.day) {
+    showToast('Déjà fait aujourd\'hui', 'Un seul stage par jour.', false);
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('PA insuffisants', 'Il vous manque des PA pour ce stage.', false); return; }
+
+  const streak = (suivi.dernierJour === state.day - 1) ? (suivi.streak || 0) + 1 : 1;
+
+  if (!state.char.stats) state.char.stats = {};
+  state.char.stats.VOL = (state.char.stats.VOL || 0) + 5;
+
+  const nouveauSuivi = { dernierJour: state.day, streak };
+  if (streak >= 3) {
+    nouveauSuivi.streak = 0;
+    nouveauSuivi.cooldownJusqua = state.day + 7;
+  }
+  state.char.stageCaserne = nouveauSuivi;
+
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  updateUI();
+  showToast('Stage terminé !', '"Il faut le vouloir pour remonter sa Volonté !" — +5 Volonté.', true, true);
+  addJournalEntry('Stage à la Caserne. +5 Volonté (' + streak + '/3 jours consécutifs).', 'event-good');
+}
+
+// RECRUTER DES MILITANTS (Universite, amphi) — conditionne a l'adhesion a un syndicat actif,
+// 1 recrutement/jour, plafond de 2 militants par joueur. Prepare les futures manifestations.
+async function doRecruterMilitants(pa, cost) {
+  const orgas = state.organisations || [];
+  const syndicat = orgas.find(o => o.type === 'syndicale' && o.membres?.some(m => m.nom === state.char?.name));
+  if (!syndicat) {
+    showToast('Adhésion requise', "Il faut être membre d'un syndicat étudiant actif pour recruter des militants.", false);
+    return;
+  }
+  if (state.char?.dernierRecrutementMilitant === state.day) {
+    showToast('Déjà fait aujourd\'hui', 'Un seul recrutement de militant par jour.', false);
+    return;
+  }
+  const mesMilitants = typeof sbGetMesMilitants === 'function'
+    ? await sbGetMesMilitants(state.country, state.char?.name).catch(() => [])
+    : [];
+  if (mesMilitants.length >= 2) {
+    showToast('Plafond atteint', 'Vous avez déjà 2 militants recrutés (maximum).', false);
+    return;
+  }
+  const noms = ['Sacha Fervent', 'Lila Combattante', 'Noé Insurgé', 'Maya Debout', 'Théo Rebelle', 'Zoé Militante'];
+  const nomPnj = noms[Math.floor(Math.random() * noms.length)] + ' (PNJ)';
+
+  // ===========================================================================
+  // RECRUTEMENT AU SOCLE (27 septembre 2026)
+  // ===========================================================================
+  // Le paiement et la creation etaient en deux temps, et la creation etait un INSERT direct du
+  // navigateur en best-effort (`.catch(() => {})`) : un echec passait inapercu, le joueur avait paye
+  // ses 2 PA et croyait avoir un militant. La RPC fait les deux dans UNE transaction -- plafond
+  // compte au serveur, 2 PA preleves par payer_ordre, PNJ cree avec son profil FIXE -- et son
+  // resultat est desormais LU. Fail closed : pas de confirmation, aucun effet.
+  //
+  // Le nom reste tire au sort ici : un nom n'est pas une caracteristique.
+  if (!state.char?.name) { showToast('Action impossible', 'Votre personnage n\'est pas chargé.', false); return; }
+  const r = (typeof sbRecruterMilitant === 'function')
+    ? await sbRecruterMilitant(state.country, state.char.name, nomPnj, syndicat.id,
+                               state.currentCity, state.currentBuilding, state.currentRoom)
+    : null;
+  if (!r || r.ok !== true) {
+    const motifs = {
+      plafond_militants: 'Vous avez déjà 2 militants recrutés (maximum).',
+      paiement_refuse: pa + ' PA requis.',
+      acteur_non_authentifie: 'Votre personnage n\'est pas identifié.',
+      // LES DEUX REFUS DESCENDUS AU SERVEUR LE 13 OCTOBRE 2026. Les deux gardes existaient
+      // deja -- l'ordre les annonce dans sa description -- mais elles ne vivaient que dans ce
+      // navigateur. Les pre-controles ci-dessus sont CONSERVES : ils evitent un appel dont le
+      // refus est certain, ils ne remplacent pas la garde.
+      adhesion_syndicale_requise: 'Il faut être membre d\'un syndicat actif pour recruter des militants.',
+      recrutement_du_jour_deja_fait: 'Un seul recrutement de militant par jour de jeu.'
+    };
+    showToast('Recrutement impossible',
+      motifs[r && r.raison] || 'Personne n\'a voulu s\'engager.', false);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+
+  state.char.dernierRecrutementMilitant = state.day;
+  sauvegarderPersonnageImmediat();
+  // Comptabiliser le militant comme adherent du syndicat
+  if (!syndicat.membres) syndicat.membres = [];
+  syndicat.membres.push({ nom: nomPnj, grade: 'Militant (PNJ)', rejointLe: state.day || 1, estPnj: true, recruteur: state.char?.name });
+  sauvegarderOrga(syndicat);
+  updateUI();
+  // Compteur pris sur la reponse du SERVEUR, qui vient de compter le plafond, plutot que sur la
+  // lecture cliente faite avant l'appel : c'est lui qui fait autorite.
+  showToast('Militant recruté !', nomPnj + ' rejoint votre réseau ('
+    + (r.militants ?? (mesMilitants.length + 1)) + '/' + (r.plafond ?? 2) + ').', true);
+  addJournalEntry('Recrutement d\'un militant étudiant : ' + nomPnj + ' (syndicat : ' + syndicat.nom + ').', 'event-good');
+
+  // Retour visuel immediat, SANS muter l'objet BUILDINGS global (partage par tous les
+  // joueurs). La reapparition fiable et multi-session du militant est deja assuree par
+  // enterRoom() (plateau-navigation.js), qui le recharge depuis Supabase a chaque entree
+  // dans un batiment "universite". Ecrire ici en plus dans room.persons dupliquait cette
+  // logique et laissait une entree fantome permanente, visible de tous, jamais nettoyee.
+  const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  if (room && typeof renderPersonsList === 'function') {
+    const apercu = [
+      {
+        name: nomPnj,
+        role: 'Militant recruté (lié à ' + (state.char?.name || 'vous') + ')',
+        rel: 'ally',
+        job: 'militant'
+      },
+      ...(room.persons || [])
+    ];
+    renderPersonsList(apercu);
+  }
+}
+
+// =====================
+// BLOCUS SYNDICAL — reserve au Secretaire General et au Secretaire General Adjoint
+// (gradeIdx 1 ou 2 sur la hierarchie syndicale republic ['Adherent','Secretaire General
+// Adjoint','Secretaire General','Confederal']). Cible n'importe quel batiment (pas
+// seulement les chantiers) : bloque les ordres legaux, favorise les illegaux, tant qu'un
+// des deux leaders le renouvelle chaque jour. Delogeable par la police (doMobiliserPolice).
+// =====================
+
+// Puissance syndicale (0-100) : militants recrutes + demonstration de force en cours +
+// palmares de blocus reussis + sympathie gagnee en cas de repression violente subie.
+// Utilisee pour ameliorer les futurs blocus, et pour peser sur les indices de ville et la
+// popularite du maire tant qu'un blocus est actif (voir cron serveur).
+function calculerPuissanceSyndicale(syndicat, blocusActifQuelquePart) {
+  if (!syndicat) return 0;
+  const militants = (syndicat.membres || []).filter(m => m.estPnj).length;
+  let puissance = militants * 3;
+  if (blocusActifQuelquePart) puissance += 15;
+  puissance += (syndicat.blocusReussis || 0) * 5;
+  puissance += (syndicat.repressionsSubies || 0) * 8;
+  return Math.max(0, Math.min(100, Math.round(puissance)));
+}
+
+function getMonSyndicatEtGrade() {
+  const orgas = (typeof chargerOrgas === 'function') ? chargerOrgas() : (state.orgas || []);
+  const syndicat = orgas.find(o => o.type === 'syndicale' && o.membres?.some(m => m.nom === state.char?.name));
+  if (!syndicat) return null;
+  const membre = syndicat.membres.find(m => m.nom === state.char?.name);
+  return { syndicat, gradeIdx: membre?.gradeIdx ?? -1 };
+}
+
+async function doOrganiserBlocusSyndical() {
+  const infos = getMonSyndicatEtGrade();
+  if (!infos || infos.gradeIdx < 1 || infos.gradeIdx > 2) {
+    showToast('Accès refusé', "Réservé au Secrétaire Général et au Secrétaire Général Adjoint d'un syndicat.", false);
+    return;
+  }
+  const { syndicat } = infos;
+  const militants = (syndicat.membres || []).filter(m => m.estPnj);
+  if (militants.length < 2) {
+    showToast('Effectifs insuffisants', 'Il faut au moins 2 militants recrutés pour organiser un blocus.', false);
+    return;
+  }
+
+  const etatActuel = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, state.currentBuilding) : {};
+  if (etatActuel?.blocus) {
+    showToast('Déjà bloqué', 'Un blocus est déjà en cours ici.', false);
+    return;
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Militants disponibles : ' + militants.length + '. Plus vous en mobilisez, plus le blocus a de chances de réussir et sera intense.</div>';
+  html += '<input id="blocus-nb-militants" type="number" min="2" max="' + militants.length + '" value="' + militants.length + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;margin-bottom:.6rem" />';
+  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">REVENDICATION SYNDICALE</div>';
+  html += '<textarea id="blocus-revendication" rows="2" placeholder="Ex: Contre la précarité des travailleurs du bâtiment..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.82rem;box-sizing:border-box"></textarea>';
+  html += '<button class="pnj-action-btn" onclick="confirmerOrganiserBlocus(\'' + syndicat.id + '\')" style="margin-top:.6rem">Organiser le blocus</button>';
+  html += '</div>';
+
+  document.getElementById('postes-modal-title').textContent = 'Organiser un blocus';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerOrganiserBlocus(syndicatId) {
+  const nbMilitants = parseInt(document.getElementById('blocus-nb-militants')?.value || 2);
+  const revendication = (document.getElementById('blocus-revendication')?.value || 'Revendications non précisées.').trim();
+
+  const infos = getMonSyndicatEtGrade();
+  const syndicat = infos?.syndicat;
+  const puissance = calculerPuissanceSyndicale(syndicat, false);
+  const taux = Math.min(90, 10 + nbMilitants * 6 + Math.round(puissance / 5)); // la puissance du syndicat facilite les futurs blocus
+  const intensite = Math.min(90, 10 + nbMilitants * 6); // l'intensite reste liee aux seuls militants mobilises, pas au bonus de puissance
+
+  const roll = Math.floor(Math.random() * 100) + 1;
+  document.getElementById('modal-postes')?.classList.remove('open');
+
+  if (roll > taux) {
+    showToast('Blocus raté', 'Les militants n\'ont pas réussi à s\'organiser cette fois-ci.', false);
+    addJournalEntry('Tentative de blocus syndical ratée.', 'event-bad');
+    return;
+  }
+
+  // Palmares : chaque blocus reussi renforce durablement la puissance syndicale
+  syndicat.blocusReussis = (syndicat.blocusReussis || 0) + 1;
+  if (typeof sauvegarderOrga === 'function') sauvegarderOrga(syndicat);
+
+  const patch = {
+    blocus: {
+      syndicatId: syndicatId,
+      syndicatNom: syndicat?.nom || 'Syndicat',
+      revendication: revendication,
+      nbMilitants: nbMilitants,
+      intensite: intensite,
+      leaderActuel: state.char?.name,
+      lanceLe: Date.now(),
+      dernierRenouvellementTimestamp: Date.now() // horodatage reel, verifie par le cron (pas un numero de jour, peu fiable pour un calcul de duree ecoulee)
+    }
+  };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, state.currentBuilding, patch).catch(() => {});
+
+  updateUI();
+  showToast('Blocus organisé !', 'Le bâtiment est maintenant bloqué. Renouvelez chaque jour pour le maintenir.', true, true);
+  addJournalEntry('Blocus syndical organisé (' + nbMilitants + ' militants) : "' + revendication + '"', 'event-good');
+  if (typeof addExternalEvent === 'function') {
+    addExternalEvent('✊ Un blocus syndical a été organisé dans un bâtiment de la ville : "' + revendication + '"', 'local');
+  }
+}
+
+async function doRenouvelerBlocusSyndical() {
+  const infos = getMonSyndicatEtGrade();
+  if (!infos || infos.gradeIdx < 1 || infos.gradeIdx > 2) {
+    showToast('Accès refusé', "Réservé au Secrétaire Général et au Secrétaire Général Adjoint.", false);
+    return;
+  }
+  const etatActuel = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, state.currentBuilding) : {};
+  if (!etatActuel?.blocus) {
+    showToast('Rien à renouveler', "Aucun blocus en cours ici.", false);
+    return;
+  }
+  if (etatActuel.blocus.syndicatId !== infos.syndicat.id) {
+    showToast('Impossible', "Ce blocus n'est pas celui de votre syndicat.", false);
+    return;
+  }
+
+  const patch = { blocus: { ...etatActuel.blocus, dernierRenouvellementTimestamp: Date.now(), leaderActuel: state.char?.name } };
+  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, state.currentBuilding, patch).catch(() => {});
+
+  showToast('Blocus renouvelé', 'Le blocus se poursuit pour au moins un jour de plus.', true);
+  addJournalEntry('Blocus syndical renouvelé.', 'event-info');
+}
+
+// Verification a l'entree d'un batiment : met en cache l'etat du blocus (async, sur
+// state.blocusActifIci) pour une lecture synchrone ulterieure par doOrder(), et affiche la
+// popup si un blocus non encore tranche pour cette visite est actif.
+async function verifierBlocusEntree(buildingId, roomId) {
+  if (typeof sbGetBatimentEtat !== 'function') return;
+  const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId).catch(() => null);
+  state.blocusActifIci = etat?.blocus || null;
+
+  if (!state.blocusActifIci) return;
+  if (state.blocusEntreeResolueBuildingId === buildingId) return; // deja tranche pour cette visite
+  if (state.currentBuilding !== buildingId) return; // le joueur a change de piece entre temps
+
+  afficherPopupBlocusEntree(buildingId);
+}
+
+function afficherPopupBlocusEntree(buildingId) {
+  const b = state.blocusActifIci;
+  if (!b) return;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.6rem"><strong>' + (b.syndicatNom || 'Un syndicat') + '</strong> bloque l\'accès à ce bâtiment.</div>';
+  html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">"' + b.revendication + '"</div>';
+  html += '<div style="font-size:.75rem;color:#6a5a30;margin-bottom:.8rem">Les démarches administratives sont bloquées ici. Les activités illégales y sont facilitées.</div>';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<button class="pnj-action-btn" onclick="doForcerBlocus(\'' + buildingId + '\')">Forcer le passage</button>';
+  html += '<button class="pnj-action-btn" onclick="sortirBatiment()" style="opacity:.8">Repartir</button>';
+  html += '</div></div>';
+  document.getElementById('postes-modal-title').textContent = 'Blocus en cours';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function doForcerBlocus(buildingId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  // FOR fantome retire (bêta) : le joueur n'a jamais eu de FOR (toujours undefined, repli fixe
+  // a 8) -- (forStat-10)*3 valait donc TOUJOURS -6, un malus constant et silencieux applique a
+  // tous les joueurs sans exception. VOL est deja un second facteur reel de cette meme formule,
+  // pas besoin d'une seconde caracteristique pour ce jet.
+  const volStat = getStatEffective('VOL');
+  const intensite = state.blocusActifIci?.intensite || 40;
+  const taux = Math.max(5, Math.min(90, Math.round(40 + (volStat - 10) * 3 - intensite / 2)));
+  const roll = Math.floor(Math.random() * 100) + 1;
+
+  if (roll <= taux) {
+    state.blocusEntreeResolueBuildingId = buildingId;
+    state.blocusModificateurLegal = 20; // bonus applique aux ordres legaux pendant cette visite (compense en partie le malus du blocus)
+    showToast('Passage forcé !', 'Vous entrez malgré le blocus.', true);
+    addJournalEntry('Passage forcé à travers un blocus syndical.', 'event-good');
+    if (typeof updateUI === 'function') updateUI();
+  } else {
+    showToast('Refoulé', 'Les militants vous repoussent.', false);
+    addJournalEntry('Tentative de passage en force repoussée par des militants.', 'event-bad');
+    if (typeof sortirBatiment === 'function') sortirBatiment();
+  }
+}
+
+// SE RENSEIGNER (halls de Centre d'Affaires / Centre Commercial / Travées du Centre Artisanal)
+// Liste les locaux du batiment courant : loue ou libre, et l'organisation domiciliee si elle
+// n'est pas secrete (case cochee par le fondateur, ou type d'organisation secret par defaut).
+function doSeRenseigner() {
+  const b = BUILDINGS[state.currentBuilding];
+  if (!b) return;
+  const locaux = Object.entries(b.rooms || {}).filter(([, r]) => r.isLocationRoom);
+
+  document.getElementById('postes-modal-title').textContent = 'Se renseigner';
+  let html = '<div style="padding:1rem">';
+  if (locaux.length === 0) {
+    html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Rien de particulier à signaler ici.</div>';
+  } else {
+    locaux.forEach(([roomId, room]) => {
+      // Scope ville ajoute le 2026-08-16 (locations sans city toutes migrees)
+      const location = (state.locationsActives || []).find(l =>
+        l.buildingId === state.currentBuilding && l.roomId === roomId && l.city === state.currentCity
+      );
+      html += '<div style="padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+      html += '<div style="font-size:.82rem;color:#c0b090">' + (room.locationData?.label || room.name) + '</div>';
+      if (!location) {
+        html += '<div style="font-size:.7rem;color:#4a8a4a">Libre</div>';
+      } else {
+        html += '<div style="font-size:.7rem;color:#8a6a20">Loué</div>';
+      }
+      html += '</div>';
+      if (location) {
+        const orga = (state.organisations || []).find(o => o.id === location.orgaId);
+        if (orga && orga.visible) {
+          html += '<div style="font-size:.72rem;color:#a89870;margin-top:.2rem">Domicilié ici : ' + orga.nom + '</div>';
+        } else {
+          // orga secrete (orga && !orga.visible) : le siege ne doit pas etre revele ici --
+          // rendu identique a un local loue par un particulier sans organisation, pour ne
+          // laisser filtrer aucun indice reliant ce local a une organisation secrete.
+          html += '<div style="font-size:.72rem;color:#6a5a30;font-style:italic;margin-top:.2rem">Loué par ' + (location.locataire || 'un particulier') + ', sans organisation associée.</div>';
+        }
+      }
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Statut effectif d'une licence sportive -- back-compat : une licence achetee avant le lot du 25
+// aout 2026 (saisonnalite des licences) n'a pas de champ 'statut' du tout, elle est consideree
+// 'active' par defaut (comportement historique inchange). null si aucune licence.
+function statutLicenceSportive() {
+  const lic = state.char?.licenceSportive;
+  if (!lic) return null;
+  return lic.statut || 'active';
+}
+
+// Lecture fraiche OBLIGATOIRE de licence_sportive avant toute garde d'action locale (lot du 25
+// aout 2026, suite a l'incident production Arnie) : state.char n'est reconcilie avec Supabase
+// qu'UNE SEULE FOIS, au demarrage de la page (loadCharacter, plateau-core.js) -- jamais pendant
+// la suite de la session. Un onglet reste donc ouvert indefiniment avec un licenceSportive
+// perime des qu'une correction est faite directement en base (ou, plus generalement, des qu'un
+// autre mecanisme -- transfert accepte ailleurs, renouvellement de saison par le cron -- change
+// la licence sans que CE client ne soit informe). Une garde qui ne compare que des valeurs
+// locales (licenceSportive.clubId === club visite) peut donc rester juste EN APPARENCE tout en
+// autorisant une action sur la base d'un club qui n'est plus le vrai club du personnage --
+// exactement le mecanisme qui a permis l'annulation d'un non-renouvellement a PSM alors que la
+// licence reelle etait a Luthecia. Echoue silencieusement vers l'etat local actuel en cas de
+// probleme reseau (jamais un blocage plus severe qu'avant ce correctif).
+// Etend desormais AUSSI la blessure sportive (correctif audit football, 31 aout 2026) : un match
+// (live ou resolu instantanement) ecrit blessure_sportive directement en base via
+// sbAppliquerBlessureSportive, sur la session de n'importe quel client -- jamais forcement celle
+// du joueur blesse. Sans ce rafraichissement, state.char.blessureSportive restait la copie locale
+// d'avant le match (souvent null) et les gardes ci-dessous (estIndisponiblePourSport) autorisaient
+// a tort un entrainement/une participation. Meme requete unique, un seul appel reseau ajoute,
+// aucune nouvelle architecture -- reutilise exactement l'idiome deja en place pour la licence.
+async function rafraichirLicenceSportiveDepuisServeur() {
+  if (!state.char?.name || typeof sbGet !== 'function') return state.char?.licenceSportive || null;
+  try {
+    const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=licence_sportive,blessure_sportive');
+    if (rows && rows[0] && state.char) {
+      state.char.licenceSportive = rows[0].licence_sportive || null;
+      state.char.blessureSportive = rows[0].blessure_sportive || null;
+    } else if (Array.isArray(rows) && rows.length === 0) {
+      // CORRECTIF DU 14 septembre 2026. Une reponse VIDE (et non une panne : sbGet rend null sur
+      // erreur HTTP, un tableau sur succes) signifie qu'aucune ligne ne porte ce nom -- le
+      // personnage n'existe pas cote serveur. Jusqu'ici on gardait alors silencieusement la
+      // valeur du cache local, et la prise de licence repondait "deja licencie" pour une licence
+      // que le serveur n'a jamais eue. On ne detruit pas la donnee locale (elle n'est plus
+      // qu'un affichage), mais on previent franchement.
+      if (typeof signalerPersonnageFantome === 'function') {
+        signalerPersonnageFantome(state.char.name, { etat: 'orphelin' });
+      }
+    }
+  } catch (e) {}
+  return state.char?.licenceSportive || null;
+}
+
+// Prix ramene de 300 a 150 FR (lot du 25 aout 2026, licences saisonnieres). La licence n'est
+// plus permanente : elle vaut une saison et se renouvelle tacitement au meme club au changement
+// de saison (voir traiterLicencesSportivesSaison, api/cron-minuit.js -- seul point qui debite le
+// renouvellement, jamais le client). derniereSaisonTraitee aligne cette premiere prise sur la
+// saison en cours, pour que le cron ne la traite pas comme "a renouveler" avant la VRAIE fin de
+// saison.
+const COUT_LICENCE_SPORTIVE = 150;
+
+async function doPrendreLicenceSportive(pa, cost) {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+
+  await rafraichirLicenceSportiveDepuisServeur();
+  const lic = state.char?.licenceSportive;
+  const statutActuel = statutLicenceSportive();
+
+  // Regle validee (lot du 25 aout 2026) : le transfert reste la SEULE facon de changer de club
+  // tant qu'une licence est active. Une licence active ailleurs bloque toute prise directe ici.
+  if (statutActuel === 'active') {
+    if (lic.clubId === clubLocal.id) { showToast('Déjà licencié(e)', 'Vous avez déjà votre licence pour ' + clubLocal.nom + '.', false); return; }
+    showToast('Déjà licencié ailleurs', 'Vous êtes licencié(e) à ' + (getClub(lic.clubId)?.nom || 'un autre club') + '. Seul un transfert permet de changer de club tant que votre licence est active.', false);
+    return;
+  }
+  // Licence impayee : rattachement conserve au club d'origine -- reprise possible UNIQUEMENT
+  // dans ce meme club (regle explicite, evite qu'un impaye devienne joueur libre gratuitement).
+  if (statutActuel === 'impaye') {
+    if (lic.clubId !== clubLocal.id) {
+      showToast('Rattaché à un autre club', 'Votre licence impayée vous rattache toujours à ' + (getClub(lic.clubId)?.nom || 'votre club') + '. Vous ne pouvez la reprendre que là-bas, ou passer par un transfert.', false);
+      return;
+    }
+    // sinon : reprise autorisee ci-dessous, meme parcours d'achat que d'habitude.
+  }
+  if (statutActuel === 'anneeBlanche') {
+    showToast('Année blanche', 'Vous ne pouvez prendre aucune licence tant que votre année blanche n\'est pas terminée.', false);
+    return;
+  }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
+  if (!state.char) return;
+  const saison = await chargerOuInitialiserSaison();
+  state.char.licenceSportive = { clubId: clubLocal.id, dateAchat: state.day || 1, statut: 'active', derniereSaisonTraitee: saison?.numero || 1, nonRenouvellement: false };
+  sauvegarderPersonnageImmediat();
+  updateUI();
+  showToast('Licence obtenue !', 'Vous pouvez désormais vous entraîner et jouer pour ' + clubLocal.nom + '.', true, true);
+  addJournalEntry('Licence sportive prise pour ' + clubLocal.nom + ' (-' + COUT_LICENCE_SPORTIVE + ' FR).', 'event-good');
+  // Correctif du 25 aout 2026 (bug UX v79) : updateUI() ne rafraichit jamais actions-row-bat
+  // (renderRoomActions est un rendu ponctuel, fait uniquement a l'entree dans une piece, voir
+  // enterRoom) -- sans ce rappel, le bouton "Prendre sa licence sportive" (et tout autre ordre
+  // dont l'etat grise/infobulle depend de licenceSportive) restait affiche tel qu'au moment de
+  // l'entree dans la piece, meme apres que cette licence vienne de changer. Meme idiome deja
+  // utilise ailleurs (confirmerLocation/resilierBox) pour rafraichir la piece courante.
+  if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
+}
+
+// Demande de non-renouvellement (lot du 25 aout 2026, §3) : ne resilie JAMAIS la licence dans
+// l'instant -- le joueur termine normalement sa saison. C'est traiterLicencesSportivesSaison
+// (api/cron-minuit.js), au VRAI changement de saison, qui lit ce flag et fait basculer la
+// licence en annee blanche sans prelevement. Un transfert accepte pendant que ce flag est actif
+// l'annule automatiquement (repondreTransfertJoueur cree une toute nouvelle licenceSportive,
+// nonRenouvellement:false par construction).
+async function doDemanderNonRenouvellementLicence(pa, cost) {
+  const clubLocal = getClubLocal();
+  await rafraichirLicenceSportiveDepuisServeur();
+  const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'gérer votre licence');
+  if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
+  if (state.char.licenceSportive.nonRenouvellement) { showToast('Déjà demandé', 'Vous avez déjà demandé à ne pas renouveler votre licence.', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  state.char.licenceSportive.nonRenouvellement = true;
+  sauvegarderPersonnageImmediat();
+  updateUI();
+  showToast('Demande enregistrée', 'Vous terminez la saison normalement à ' + clubLocal.nom + '. Votre licence ne sera pas renouvelée à la prochaine saison.', true, true);
+  addJournalEntry('Demande de non-renouvellement de la licence sportive à ' + clubLocal.nom + '.', 'event-info');
+  if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
+}
+
+async function doAnnulerNonRenouvellementLicence() {
+  const clubLocal = getClubLocal();
+  await rafraichirLicenceSportiveDepuisServeur();
+  const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'gérer votre licence');
+  if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
+  if (!state.char.licenceSportive.nonRenouvellement) { showToast('Aucune demande en cours', '', false); return; }
+
+  state.char.licenceSportive.nonRenouvellement = false;
+  sauvegarderPersonnageImmediat();
+  updateUI();
+  showToast('Demande annulée', 'Votre licence à ' + clubLocal.nom + ' sera de nouveau renouvelée tacitement au changement de saison.', true, true);
+  addJournalEntry('Annulation de la demande de non-renouvellement à ' + clubLocal.nom + '.', 'event-info');
+  if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom, null);
+}
+
+function verifierEtResetEntrainementsJour() {
+  if (!state.char) return;
+  if (state.char.entrainementsJour?.jour !== state.day) {
+    state.char.entrainementsJour = { jour: state.day || 1, nb: 0 };
+  }
+}
+
+function estIndisponiblePourSport() {
+  const b = state.char?.blessureSportive;
+  return b && b.jusquauJour > (state.day || 1);
+}
+
+// Garde commune entraînement/conseil (correctif du 25 aout 2026, audit comparatif des 3 clubs) :
+// avant ce correctif, seule la PRESENCE d'une licenceSportive etait verifiee, jamais son club --
+// un PJ licencie a Luthecia pouvait s'entrainer et recevoir des conseils a PSM/Montrouge. Renvoie
+// un message dedie par cas (licence absente / mauvais club / impayee / annee blanche) ; null si
+// tout est en ordre.
+function messageLicenceInvalidePourClub(clubLocal, verbe) {
+  const lic = state.char?.licenceSportive;
+  const statutActuel = statutLicenceSportive();
+  if (!lic) return 'Prenez votre licence sportive avant de ' + verbe + '.';
+  if (statutActuel === 'anneeBlanche') return 'Vous êtes en année blanche : impossible de ' + verbe + ' pour l\'instant.';
+  if (statutActuel === 'impaye') return 'Votre licence à ' + (getClub(lic.clubId)?.nom || 'votre club') + ' n\'a pas été renouvelée. Reprenez-la pour pouvoir ' + verbe + '.';
+  if (lic.clubId !== clubLocal?.id) return 'Vous êtes licencié(e) à ' + (getClub(lic.clubId)?.nom || 'un autre club') + '. Vous ne pouvez ' + verbe + ' que dans ce club (un transfert est nécessaire pour en changer).';
+  return null;
+}
+
+async function doTenueEntrainement(pa, cost) {
+  const clubLocal = getClubLocal();
+  await rafraichirLicenceSportiveDepuisServeur();
+  const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'vous entraîner');
+  if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
+  if (estIndisponiblePourSport()) {
+    const reste = state.char.blessureSportive.jusquauJour - (state.day||1);
+    showToast('Blessé(e)', 'Encore ' + reste + ' jour(s) avant de pouvoir vous entraîner.', false);
+    return;
+  }
+  // LE COMPTE VIENT DU SERVEUR (24 septembre 2026). Il ne sert plus qu'a AFFICHER : c'est la RPC
+  // football_entrainement_consommer qui autorise ou refuse. Si le serveur ne repond pas, on
+  // n'invente aucun chiffre et on n'ouvre pas l'ecran -- mieux vaut dire franchement qu'on ne
+  // sait pas que laisser croire a un quota qu'on n'a pas verifie.
+  const etatJour = (typeof sbFootballEntrainementsDuJour === 'function')
+    ? await sbFootballEntrainementsDuJour().catch(() => null) : null;
+  if (!etatJour || etatJour.ok !== true) {
+    showToast('Indisponible',
+      "Le nombre d'entraînements du jour n'a pas pu être vérifié. Réessayez dans un instant.", false);
+    return;
+  }
+  const perf = state.char.performance || { defense:0, technique:0, endurance:0 };
+  const nb = Number(etatJour.nb) || 0;
+  // Le cache local est realigne sur le serveur : il ne decide plus rien, mais il reste lu
+  // ailleurs (affichage), autant qu'il ne mente pas.
+  state.char.entrainementsJour = { jour: state.day || 1, nb };
+
+  document.getElementById('postes-modal-title').textContent = "Tenue d'entraînement";
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Entraînements aujourd\'hui : ' + nb + '/2</div>';
+  if (nb >= 2) html += '<p role="status" style="color:#C9A84C;line-height:1.5">Vous avez déjà effectué vos deux entraînements du jour. Les trois choix sont indisponibles jusqu’à la prochaine journée d’entraînement.</p>';
+  ['defense','technique','endurance'].forEach(stat => {
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;padding:.4rem .6rem;border:1px solid #2a2010">';
+    html += '<span style="font-size:.8rem;color:#c0b090">' + LABELS_PERF[stat] + ' : <b style="color:#C9A84C">' + (perf[stat]||0) + '</b></span>';
+    html += '<button ' + (nb >= 2 ? 'disabled' : '') + ' onclick="confirmerEntrainement(\'' + stat + '\',' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:' + (nb>=2?'#5a5040':'#C9A84C') + ';cursor:' + (nb>=2?'default':'pointer') + '">S\'entraîner</button>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerEntrainement(stat, pa, cost) {
+  // AUTORITE SERVEUR (24 septembre 2026). Une seule RPC verifie la limite du jour, preleve les
+  // 2 PA et enregistre l'entrainement, dans la meme transaction et sous verrou par joueur. Le
+  // client ne decide plus rien : il ne peut plus s'accorder un troisieme entrainement en vidant
+  // son localStorage, et deux clics rapides ne peuvent plus payer deux fois.
+  // Le cout reste celui declare par l'ordre (`tenue_entrainement`, 2 PA) et verifie par
+  // payer_ordre contre le miroir : aucune regle ni aucun montant n'est modifie ici.
+  if (typeof sbFootballEntrainementConsommer !== 'function') {
+    showToast('Indisponible', "L'entraînement n'est pas disponible pour le moment.", false); return;
+  }
+  const r = await sbFootballEntrainementConsommer(stat);
+  if (!r || r.ok !== true) {
+    const motif = r && r.raison;
+    if (motif === 'limite_quotidienne_atteinte') {
+      showToast('Limite atteinte', 'Maximum 2 entraînements par jour.', false);
+      doTenueEntrainement(pa, cost);   // on rouvre sur le compte reel du serveur
+      return;
+    }
+    // Tous les autres motifs sont ceux de payer_ordre : on les fait nommer par l'aiguilleur
+    // existant, qui sait deja dire « PA insuffisants », « personnage non reconnu », etc.
+    // `null` (echec de transport) devient paiement_indisponible, desormais nomme lui aussi.
+    signalerRefusCout(r ? { raison: motif, pa, cost } : { raison: 'paiement_indisponible', pa, cost });
+    return;
+  }
+  // On recopie ce que le SERVEUR a arrete, jamais un calcul local.
+  if (typeof r.pa === 'number') state.pa = r.pa;
+  state.char.entrainementsJour = { jour: state.day || 1, nb: Number(r.nb) || 0 };
+
+  const blesse = Math.random() < 0.05;
+  if (blesse) {
+    const grave = Math.random() < 0.3;
+    const duree = grave ? (7 + Math.floor(Math.random()*4)) : (2 + Math.floor(Math.random()*2));
+    const degatsPV = grave ? 30 : 15;
+    state.char.blessureSportive = { jusquauJour: (state.day||1) + duree, gravite: grave ? 'grave' : 'legere' };
+    state.hp = Math.max(1, (state.hp||100) - degatsPV);
+    // Ecriture explicite via sbAppliquerBlessureSportive (correctif audit football, 31 aout 2026) :
+    // cette fonction est desormais la SEULE autorite d'ecriture de blessure_sportive (voir
+    // sbSavePersonnage, supabase.js, qui ne l'ecrit plus du tout) -- sauvegarderPersonnageImmediat()
+    // juste apres reste necessaire pour entrainementsJour/hp/etc., mais ne persiste plus la
+    // blessure elle-meme. Aucun changement de probabilite/gravite/duree/degats.
+    if (typeof sbAppliquerBlessureSportive === 'function') {
+      await sbAppliquerBlessureSportive(state.char.name, state.char.blessureSportive, degatsPV).catch(() => {});
+    }
+    sauvegarderPersonnageImmediat();
+    document.getElementById('modal-postes')?.classList.remove('open');
+    updateUI();
+    showToast('Blessure à l\'entraînement !', (grave?'Grave':'Légère') + '. Indisponible ' + duree + ' jour(s). -' + degatsPV + ' PV.', false);
+    return;
+  }
+
+  if (!state.char.performance) state.char.performance = { defense:0, technique:0, endurance:0 };
+  state.char.performance[stat] = (state.char.performance[stat] || 0) + 2;
+  sauvegarderPersonnageImmediat();
+  updateUI();
+  showToast('Entraînement réussi', '+2 ' + LABELS_PERF[stat] + '.', true, true);
+  doTenueEntrainement(pa, cost);
+}
+
+async function doConseilEntraineurAdjoint() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+  await rafraichirLicenceSportiveDepuisServeur();
+  const msgLicence = messageLicenceInvalidePourClub(clubLocal, 'recevoir des conseils');
+  if (msgLicence) { showToast('Licence requise', msgLicence, false); return; }
+
+  document.getElementById('postes-modal-title').textContent = "Conseil de l'entraîneur adjoint";
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const classement = await calculerClassementClub(clubLocal);
+  const position = classement.findIndex(j => j.nom === state.char?.name);
+  const moi = classement[position];
+  const perf = state.char.performance || { defense:0, technique:0, endurance:0 };
+  const total = moi ? moi.total : (perf.defense + perf.technique + perf.endurance);
+
+  let html = '<div style="padding:1rem;font-size:.85rem;color:#c0b090;line-height:1.5">';
+
+  if (moi?.statut === 'titulaire') {
+    html += '"Beau travail, tu es titulaire. Continue comme ça et surveille le classement — d\'autres poussent derrière toi."';
+  } else if (moi?.statut === 'remplaçant') {
+    html += '"Tu es dans le groupe des quinze, en tant que remplaçant. Encore un effort pour viser une place de titulaire."';
+  } else if (moi?.statut === 'blessé') {
+    html += '"Repose-toi d\'abord. On reparlera entraînement une fois que tu seras remis."';
+  } else {
+    const seuilIdx = TITULAIRES_MAX + REMPLACANTS_MAX - 1; // dernier retenu (15e)
+    const dernierRetenu = classement[seuilIdx];
+    const seuilTotal = dernierRetenu ? dernierRetenu.total : Math.ceil(clubLocal.valeurBase * 0.5);
+    const manque = Math.max(1, seuilTotal - total + 1);
+
+    const indices = await getIndicesPourVille(clubLocal.country, clubLocal.city);
+    const options = [
+      { stat: 'defense', mult: multiplicateurIndice(indices.securite), label: 'Défense' },
+      { stat: 'technique', mult: multiplicateurIndice(indices.ecoles), label: 'Technique' },
+      { stat: 'endurance', mult: multiplicateurIndice(indices.espaces_verts), label: 'Endurance' }
+    ].sort((a, b) => b.mult - a.mult);
+    const meilleure = options[0];
+    const joursNecessaires = Math.ceil(manque / 4); // 2 seances/jour x +2 points = +4/jour max
+
+    html += '"Il te manque environ <b style="color:#C9A84C">' + manque + ' points</b> pour intégrer les quinze. ';
+    html += 'Avec le contexte actuel de la ville, c\'est ta <b style="color:#C9A84C">' + meilleure.label + '</b> qui te rapportera le plus. ';
+    html += 'Si tu t\'entraînes à fond dessus, compte environ <b style="color:#C9A84C">' + joursNecessaires + ' jour(s)</b>."';
+  }
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// Passee async (correctif audit football, 31 aout 2026) : meme rafraichissement que
+// doTenueEntrainement avant toute decision, pour ne jamais statuer sur une blessure_sportive
+// locale obsolete -- meme garde, memes deux causes corrigees, voir rafraichirLicenceSportiveDepuisServeur.
+// Appelant (plateau-router.js) n'attend deja aucune valeur de retour synchrone (doPrendreLicenceSportive/
+// doTenueEntrainement, deja async, suivent exactement le meme patron d'appel sans await).
+async function doTenueMatch() {
+  await rafraichirLicenceSportiveDepuisServeur();
+  if (!state.char?.licenceSportive) { showToast('Licence requise', 'Prenez votre licence sportive.', false); return; }
+  if (estIndisponiblePourSport()) {
+    const reste = state.char.blessureSportive.jusquauJour - (state.day||1);
+    showToast('Blessé(e)', 'Encore ' + reste + ' jour(s) avant de pouvoir jouer.', false);
+    return;
+  }
+  const perf = state.char.performance || { defense:0, technique:0, endurance:0 };
+  const total = (perf.defense||0) + (perf.technique||0) + (perf.endurance||0);
+
+  document.getElementById('postes-modal-title').textContent = 'Tenue de match';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Répartissez librement vos ' + total + ' points de performance. Modifiable jusqu\'au coup d\'envoi du prochain match.</div>';
+  ['defense','technique','endurance'].forEach(stat => {
+    html += '<div style="margin-bottom:.5rem">';
+    html += '<label style="font-size:.75rem;color:#c0b090;display:block;margin-bottom:.2rem">' + LABELS_PERF[stat] + '</label>';
+    html += '<input type="number" id="perf-' + stat + '" value="' + (perf[stat]||0) + '" min="0" max="' + total + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box"/>';
+    html += '</div>';
+  });
+  html += '<div id="perf-total-warning" style="font-size:.72rem;color:#cc6a44;margin-bottom:.6rem"></div>';
+  html += '<button onclick="confirmerReallocationPerformance(' + total + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Valider la répartition</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function confirmerReallocationPerformance(total) {
+  const nouvelle = {};
+  let somme = 0;
+  ['defense','technique','endurance'].forEach(stat => {
+    const v = Math.max(0, parseInt(document.getElementById('perf-' + stat)?.value || '0'));
+    nouvelle[stat] = v;
+    somme += v;
+  });
+  if (somme !== total) {
+    document.getElementById('perf-total-warning').textContent = 'Le total doit rester égal à ' + total + ' points (actuellement ' + somme + ').';
+    return;
+  }
+  state.char.performance = nouvelle;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Répartition mise à jour', 'Votre configuration sera utilisée pour le prochain match.', true, true);
+}
+
+function getClubLocal() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  return CLUBS_SPORTIFS.find(c => c.country === pays && c.city === ville);
+}
+
+// =====================================================================
+// FOOTBALL LIVE — INTERFACE (chantier "match reel 30 minutes", 28 aout 2026)
+// Remplace l'ancien doRegarderLive/afficherLiveMatch (replay statique d'un match deja termine,
+// 1 PA). Desormais : A) un match reellement en cours (echauffement/mt1/mitemps/mt2) ouvre le VRAI
+// live, synchronise pour tous les spectateurs via l'etat persiste (championnat.data) -- jamais un
+// simple affichage local ; B) un match termine ouvre un resume clairement etiquete comme tel.
+// Gratuit (0 PA) dans les deux cas : regarder un evenement sportif ne consomme plus de PA.
+// =====================================================================
+
+let _liveViewerInterval = null;
+let _liveViewerRef = null; // {journeeNumero, matchIdx}
+let _liveViewerNbEvenementsConnus = 0;
+
+// =====================================================================
+// MOTEUR VISUEL DU MATCH (chantier "V1 moteur visuel", 28 aout 2026)
+// =====================================================================
+// Couche STRICTEMENT locale/decorative. N'ecrit jamais dans championnat.data, ne modifie jamais
+// live.scoreHome/Away/evenements/compositionFigee, ne relit jamais une donnee sportive qui
+// n'existe pas deja cote client. avancerFootballLive/avancerEvenementsJusqua/progresserMatchLive
+// ne sont ni appeles differemment ni modifies par ce chantier -- uniquement leurs SORTIES deja
+// lues par rafraichirLiveMatchReel (live.evenements, live.scoreHome/Away, live.compositionFigee,
+// live.kickoffAt, live.statut) et les fonctions pures deja existantes (phaseMatchActuelle,
+// calculerKickoffJournee, DUREE_*) sont reutilisees en LECTURE SEULE pour deriver l'horloge et
+// les limites de phase -- jamais une deuxieme horloge sportive.
+// =====================================================================
+let _liveViewerTickVisuel = null;          // setInterval 500ms, purement local
+let _liveViewerSceneEtat = null;           // {live, home, away, matchKey} -- alimente par rafraichirLiveMatchReel, lu par le tick visuel
+let _liveViewerSceneMatchKey = null;       // matchKey du shell DOM actuellement monte (pour savoir s'il faut le reconstruire)
+let _liveViewerScenarioCache = {};         // { 'matchKey-phase': [...instants deterministes] }
+let _liveViewerDernierInstantAffiche = null;
+let _liveViewerFileCanonique = [];         // evenements canoniques nouveaux, en attente d'affichage prioritaire
+let _liveViewerAfficheCanoniqueEnCours = false;
+let _liveViewerPremierRafraichissement = true; // evite de "rejouer" en insert tous les evenements deja passes a l'ouverture
+let _liveViewerTimeoutsAnimation = [];     // setTimeout d'animation en cours, nettoyes a la fermeture
+let _liveViewerPortraitsCache = {};        // { matchKey: { nom: photoUrl|null } }
+let _liveViewerNomsSupportersConnus = { home: [], away: [] };
+
+function fermerLiveMatchReel() {
+  if (_liveViewerInterval) { clearInterval(_liveViewerInterval); _liveViewerInterval = null; }
+  arreterTickVisuel();
+  _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
+  _liveViewerTimeoutsAnimation = [];
+  _liveViewerRef = null;
+  _liveViewerNbEvenementsConnus = 0;
+  _liveViewerSceneEtat = null;
+  _liveViewerSceneMatchKey = null;
+  _liveViewerDernierInstantAffiche = null;
+  _liveViewerFileCanonique = [];
+  _liveViewerAfficheCanoniqueEnCours = false;
+  _liveViewerPremierRafraichissement = true;
+  _liveViewerNomsSupportersConnus = { home: [], away: [] };
+}
+
+// ---- Generateur deterministe (mulberry32) -- jamais utilise pour un calcul sportif, uniquement
+// pour choisir QUAND et QUEL TYPE de micro-action decorative afficher. ----
+function hashChaineVersUint32(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function creerPRNGDeterministe(seedUint32) {
+  let a = seedUint32 >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// ---- Catalogue V1 des micro-actions narratives (section 7) -- purement visuel, jamais ecrit. ----
+// trajet : indices dans ZONES_TERRAIN (0=but de l'equipe agissante, 6=but adverse), toujours
+// exprimes du point de vue de l'equipe qui agit (miroir applique a l'affichage selon le cote).
+const CLES_ZONES_TERRAIN = ['but-propre', 'defense', 'milieu-recul', 'centre', 'milieu-avance', 'attaque', 'but-adverse'];
+const CATALOGUE_MICRO_ACTIONS = {
+  circulation:  { label: 'Circulation du ballon', trajet: [2, 3, 4],    duree: 2400 },
+  duel:         { label: 'Duel au sol',           trajet: [3],          duree: 1700 },
+  interception: { label: 'Interception',          trajet: [3, 2],       duree: 1500 },
+  course:       { label: 'Course offensive',      trajet: [3, 4, 5],    duree: 2600 },
+  degagement:   { label: 'Dégagement',            trajet: [1, 2, 3],    duree: 1400 },
+  sortie:       { label: 'Ballon sorti',          trajet: [4],          duree: 1100 },
+  touche:       { label: 'Touche',                trajet: [4],          duree: 1500 },
+  remise:       { label: 'Remise en jeu',         trajet: [4, 3],       duree: 1800 },
+  centre:       { label: 'Centre',                trajet: [5, 6],       duree: 1700 },
+  frappe:       { label: 'Frappe !',              trajet: [6],          duree: 1300 },
+  arret:        { label: 'Arrêt du gardien',      trajet: [6],          duree: 1300 }
+};
+const CLES_TYPES_MICRO_ACTION = Object.keys(CATALOGUE_MICRO_ACTIONS);
+
+// =====================================================================
+// REALISATEUR AUTOMATIQUE (chantier "realisateur automatique" du 28 aout 2026, architecture
+// multi-plans/signatures de ville du 29 aout 2026)
+// =====================================================================
+// Couche STRICTEMENT decorative, branchee UNIQUEMENT sur les micro-actions narratives locales
+// (jouerMicroAction). Ne touche ni live.evenements ni afficherInsertCanonique. Deux familles de
+// plans distinctes, jamais confondues :
+//  - 'terrain' : pilote le mini-terrain DOM deja existant (cadrage/zoom/travelling/vitesse via
+//    transform + transition-duration, purement CSS/JS leger, aucun asset) ;
+//  - 'illustre' : pilote une zone d'insert separee (#live-realisateur-illustre, meme langage
+//    visuel que le placeholder canonique #live-insert-bd mais un id distinct -- jamais le meme
+//    element, pour ne jamais interferer avec un insert d'evenement canonique en cours ou a venir).
+// Une sequence = un NOMBRE QUELCONQUE de plans (1, 2, 3, 4... aucune branche speciale dans
+// executerSequenceRealisation selon leur nombre -- la sequence experimentale a 3 angles,
+// SEQUENCE_PREVIEW_3_ANGLES plus bas, sert de preuve que l'architecture generique sait deja
+// executer plusieurs assets/angles successifs), generes une seule fois par instant deterministe
+// (meme seed que genererScenarioNarratifPhase : matchKey+phase+instant.t) donc identiques pour
+// tous les spectateurs. Ne lit JAMAIS live.evenements : le montage ne peut donc jamais "trahir" un
+// evenement canonique futur (meme garantie que le scenario narratif lui-meme).
+// =====================================================================
+
+const CADRAGE_SCALE_REALISATEUR = { large: 1, moyen: 1.12, serre: 1.26 };
+const ICONES_MICRO_ACTION_REALISATEUR = {
+  circulation: '🔄', duel: '⚔️', interception: '🛡️', course: '🏃', degagement: '👢',
+  sortie: '↪️', touche: '🥅', remise: '🤾', centre: '➰', frappe: '🎯', arret: '🧤'
+};
+
+// Gabarits de montage (section F) : plusieurs rythmes possibles, tires au hasard deterministe --
+// jamais le meme enchainement a chaque micro-action. Duree courtes (rythme du live). "large"
+// apparait deux fois (frequence legerement plus elevee, cas le plus simple/sur).
+const GABARITS_MONTAGE_REALISATEUR = [
+  [{ type: 'terrain', cadrage: 'large', dureeBase: 900, dureeVariable: 500, effets: ['travelling', 'accelere'], probaEffet: .35 }],
+  [{ type: 'terrain', cadrage: 'large', dureeBase: 800, dureeVariable: 400, effets: null, probaEffet: 0 }],
+  [
+    { type: 'terrain', cadrage: 'moyen', dureeBase: 650, dureeVariable: 350, effets: ['zoom'], probaEffet: .4 },
+    { type: 'terrain', cadrage: 'serre', dureeBase: 550, dureeVariable: 350, effets: ['ralenti', 'vibration'], probaEffet: .35 }
+  ],
+  [
+    { type: 'terrain', cadrage: 'moyen', dureeBase: 550, dureeVariable: 300, effets: ['accelere'], probaEffet: .3 },
+    { type: 'illustre', dureeBase: 850, dureeVariable: 400 },
+    { type: 'terrain', cadrage: 'large', dureeBase: 450, dureeVariable: 250, effets: null, probaEffet: 0 }
+  ],
+  [
+    { type: 'terrain', cadrage: 'moyen', dureeBase: 650, dureeVariable: 300, effets: ['zoom', 'travelling'], probaEffet: .4 },
+    { type: 'illustre', dureeBase: 950, dureeVariable: 450 }
+  ],
+  [
+    { type: 'terrain', cadrage: 'large', dureeBase: 450, dureeVariable: 200, effets: null, probaEffet: 0 },
+    { type: 'terrain', cadrage: 'serre', dureeBase: 600, dureeVariable: 350, effets: ['vibration', 'ralenti'], probaEffet: .4 },
+    { type: 'terrain', cadrage: 'large', dureeBase: 450, dureeVariable: 200, effets: null, probaEffet: 0 }
+  ]
+];
+
+// =====================================================================
+// CHOREGRAPHIE DES PLAN_ILLUSTRE (crash-test "ras du sol", 28 aout 2026)
+// =====================================================================
+// Un plan illustre porte desormais plan.couches (tableau -- V1 : toujours une seule entree, le
+// placeholder actuel). Chaque couche a un `nom` (reserve pour une future distinction
+// fond/sujet/premier_plan -- section "parallaxe future" : ajouter une couche = ajouter une entree
+// ici + une cible DOM dediee, l'executeur/jouerChoreographieCouche ne changent pas) et :
+//  - mouvement: 'fixe' (aucune transformation, l'image reste immobile pendant dureeMs -- le
+//    roman-photo est un choix de realisation a part entiere, pas un defaut) ou 'dynamique' ;
+//  - etapes (uniquement si 'dynamique') : cadrages successifs {t (0..1 du plan), cadrage:
+//    {scale,x,y,rotation}, easing}, enchaines par des transitions CSS independantes (une par
+//    segment) -- permet un mouvement en plusieurs temps (ex. acceleration puis bref ralenti) sans
+//    aucune bibliotheque d'animation ;
+//  - vibrationAuMoment (0..1, optionnel) : impact ponctuel a un instant du plan.
+// COUCHE_ILLUSTRE_FIXE_DEFAUT est exactement ce que produisent aujourd'hui les deux gabarits
+// "illustre" existants ci-dessus (aucun changement de comportement pour eux).
+const COUCHE_ILLUSTRE_FIXE_DEFAUT = [{ nom: 'placeholder', mouvement: 'fixe' }];
+
+// Gabarit EXPERIMENTAL clairement identifie (section "crash-test ras du sol") : cadrage large ->
+// zoom+pan avant simulant une vitesse rapide (acceleration, easing ease-in) -> tres bref
+// ralentissement final (easing ease-out) -> micro-vibration d'impact -> sortie CUT. Duree cible
+// 1 a 1.5s (dureeBase+dureeVariable = [1000,1400]). Reserve aux micro-actions decoratives neutres
+// (duel/course/remise) -- jamais associe a frappe/but/carton/blessure, donc jamais un signal
+// annoncant un evenement canonique. Ne lit AUCUNE donnee sportive (meme garantie que le reste du
+// realisateur). `asset` (29 aout 2026) : premier vrai visuel du realisateur -- SEULE couche a
+// porter ce champ dans tout le fichier ; appliquerPlanIllustreRealisation bascule sur le rendu
+// image UNIQUEMENT quand couche.asset est present, donc les autres gabarits illustre (couches
+// sans asset, cf. COUCHE_ILLUSTRE_FIXE_DEFAUT) gardent exactement leur rendu pictogramme actuel.
+const GABARIT_CRASH_TEST_RAS_DU_SOL = [
+  {
+    type: 'illustre', dureeBase: 1000, dureeVariable: 400,
+    transitionEntree: 'cut', transitionSortie: 'cut',
+    couches: [{
+      nom: 'placeholder',
+      asset: 'images/football-plan-ras-du-sol-01.webp',
+      mouvement: 'dynamique',
+      etapes: [
+        { t: 0,   cadrage: { scale: 1,    x: 0, y: 0,  rotation: 0 },    easing: 'linear' },
+        { t: .78, cadrage: { scale: 1.5,  x: 0, y: -4, rotation: -1.5 }, easing: 'ease-in' },
+        { t: 1,   cadrage: { scale: 1.62, x: 0, y: -5, rotation: -1.5 }, easing: 'ease-out' }
+      ],
+      vibrationAuMoment: .92
+    }]
+  }
+];
+
+// Pool pondere + filtrable par micro-action : les 6 gabarits existants restent equiprobables
+// (poids 1 chacun) ; le crash-test est rare PAR CONSTRUCTION (poids tres faible ET reserve a un
+// sous-ensemble de micro-actions) -- jamais mele au reste sans discipline de rythme (section
+// "IMPORTANT POUR LE RYTHME"). `id` (chantier "architecture multi-plans / signatures de ville",
+// 29 aout 2026) : chaque entree porte desormais un identifiant stable -- c'est ce qui permet a
+// UNE MEME famille d'action (ex. 'duel', deja compatible avec les 6 gabarits par defaut ET le
+// crash-test, soit 7 gabarits disponibles) de recevoir plusieurs gabarits differents ; ajouter un
+// futur gabarit a une famille = ajouter une entree ici avec le bon `microActionsCompatibles`,
+// jamais une modification de genererSequenceRealisation/executerSequenceRealisation.
+const POOL_GABARITS_REALISATEUR = GABARITS_MONTAGE_REALISATEUR
+  .map((gabarit, i) => ({ id: 'gabarit_montage_' + i, gabarit, poids: 1, microActionsCompatibles: null }))
+  .concat([{ id: 'crash_test_ras_du_sol', gabarit: GABARIT_CRASH_TEST_RAS_DU_SOL, poids: .3, microActionsCompatibles: ['duel', 'course', 'remise'] }]);
+
+// =====================================================================
+// PROFIL DE REALISATION PAR VILLE HOTE (chantier "architecture multi-plans / signatures de
+// ville", 29 aout 2026)
+// =====================================================================
+// Reserve UNIQUEMENT l'architecture -- AUCUN style artistique n'est arbitre ici (pas de manga, pas
+// d'Acid Ink, pas de BD europeenne, rien). PROFILS_REALISATION_VILLE est volontairement VIDE :
+// tant qu'aucune entree n'y est ajoutee, profilRealisationVille() renvoie toujours
+// PROFIL_REALISATION_DEFAUT, dont le `pool` contient EXACTEMENT les memes entrees que
+// POOL_GABARITS_REALISATEUR (memes objets gabarit/poids/microActionsCompatibles, memes
+// probabilites) -- donc AUCUN changement de comportement du live reel tant que ce chantier reste
+// en l'etat (section 17 : "aucun changement artistique visible du match reel"). `.slice()`
+// (correctif du 29 aout 2026) : le TABLEAU lui-meme est une copie distincte de
+// POOL_GABARITS_REALISATEUR, pour qu'un futur profil de ville ne puisse jamais, par une simple
+// mutation en place (push/splice/etc. sur profil.pool), corrompre le pool global partage -- les
+// entrees qu'il contient restent des references partagees (jamais mutees nulle part dans ce
+// fichier), donc aucun cout, aucun changement de probabilite.
+// Cle de resolution : country+'.'+city de la ville HOTE, TOUJOURS celle du club home (un club
+// joue toujours dans sa propre ville) -- concept STRICTEMENT separe de l'identite visuelle des
+// clubs (identiteVisuelleClub reste couleurs/maillot/finition, jamais camera/montage/rythme,
+// section "distinction identite club / realisation ville").
+const PROFIL_REALISATION_DEFAUT = {
+  id: 'defaut',
+  pool: POOL_GABARITS_REALISATEUR.slice(),
+  rythmeMoyen: 1,                // multiplicateur neutre -- 1 = comportement actuel, jamais applique tant qu'inutilise
+  frequenceFixe: null,           // reserve : biais futur vers mouvement:'fixe'
+  frequenceMultiAngle: null,     // reserve : biais futur vers les sequences multi-plans/angles
+  transitionsPrivilegiees: null, // reserve : ex. forcer davantage de cuts/fondus selon la ville
+  amplitudeCameraMax: null,      // reserve : ex. limiter/etendre le scale max des cadrages
+  plansSignature: [],            // reserve : futurs gabarits exclusifs a une ville
+  traitement: null               // reserve : futur filtre/texture visuel -- jamais applique aujourd'hui
+};
+const PROFILS_REALISATION_VILLE = {}; // volontairement vide -- aucune signature de ville arbitree pour l'instant
+function profilRealisationVille(country, city) {
+  return PROFILS_REALISATION_VILLE[country + '.' + city] || PROFIL_REALISATION_DEFAUT;
+}
+
+// Clone superficiel-suffisant (donnees plates, jamais de fonction/Date) : chaque plan genere garde
+// sa PROPRE copie de couches, jamais une reference partagee vers la constante du gabarit.
+function clonerCouches(couches) {
+  return JSON.parse(JSON.stringify(couches));
+}
+
+// Duree totale d'une sequence (section 4, "duree totale calculable"), a partir de n'importe quelle
+// liste de plans -- reutilisable aussi bien par genererSequenceRealisation que par une sequence
+// construite a la main (ex. SEQUENCE_PREVIEW_3_ANGLES, plus bas).
+function dureeTotaleSequence(sequence) {
+  return sequence.plans.reduce((s, p) => s + p.dureeMs, 0);
+}
+
+// Fonction PURE et deterministe (section B) : meme (seed, contexte, profil) => toujours la meme
+// sequence. Le seed est construit par l'appelant a partir de la meme identite stable que le
+// scenario narratif (jamais recalcule differemment ici) -- donc tous les spectateurs d'un match
+// obtiennent la meme sequence pour le meme instant, sans aucune ecriture reseau. Ne lit ni live ni
+// contexte sportif : contexte se limite a {microAction, cote}, deja purement decoratifs -- le
+// filtrage du pool par micro-action est donc lui aussi sans aucune connaissance de la verite
+// sportive, juste de l'identite deja connue de l'instant narratif local.
+// `profil` (chantier "architecture multi-plans / signatures de ville", 29 aout 2026) : parametre
+// OPTIONNEL -- absent (tous les appels existants), il vaut PROFIL_REALISATION_DEFAUT dont le pool
+// est exactement POOL_GABARITS_REALISATEUR (meme reference) : comportement rigoureusement
+// identique a avant ce chantier. Un futur profil de ville n'aura qu'a fournir son propre `pool`
+// (memes gabarits reutilises, filtres/reponderes, ou nouveaux gabarits exclusifs) -- aucune autre
+// ligne de cette fonction n'a besoin de changer.
+function genererSequenceRealisation(seed, contexte, profil) {
+  const poolActif = (profil || PROFIL_REALISATION_DEFAUT).pool;
+  const rng = creerPRNGDeterministe(hashChaineVersUint32('realisateur-' + seed));
+  const poolEligible = poolActif.filter(e =>
+    !e.microActionsCompatibles || e.microActionsCompatibles.includes(contexte.microAction));
+  const totalPoids = poolEligible.reduce((s, e) => s + e.poids, 0);
+  let r = rng() * totalPoids;
+  let entree = poolEligible[poolEligible.length - 1];
+  for (const e of poolEligible) { r -= e.poids; if (r <= 0) { entree = e; break; } }
+  const plans = entree.gabarit.map((squelette, i) => {
+    const dureeMs = Math.round(squelette.dureeBase + rng() * squelette.dureeVariable);
+    const plan = {
+      type: squelette.type, dureeMs,
+      transition: squelette.transitionEntree || (i === 0 ? 'cut' : (rng() < .5 ? 'fondu' : 'cut')),
+      // Section 3 : "equipe/joueur mis en valeur si utile" -- champs reserves, non consommes par le
+      // rendu aujourd'hui (aucun gabarit actuel ne cible un joueur precis en decoratif -- seuls les
+      // evenements canoniques le font, via evenement.joueur, deja gere ailleurs/inchangeant).
+      equipeMiseEnValeur: contexte.cote || 'neutre',
+      joueurMisEnValeur: null
+    };
+    if (squelette.type === 'terrain') {
+      plan.cadrage = squelette.cadrage;
+      plan.effet = (squelette.effets && rng() < squelette.probaEffet)
+        ? squelette.effets[Math.floor(rng() * squelette.effets.length)]
+        : null;
+      if (plan.effet === 'travelling') plan.travellingDx = rng() < .5 ? -3 : 3; // sens deterministe, jamais Math.random
+    } else {
+      plan.variante = Math.floor(rng() * 3); // reserve pour de futures variantes graphiques (section 4), non rendu en V1
+      plan.transitionSortie = squelette.transitionSortie || (rng() < .5 ? 'fondu' : 'cut');
+      plan.couches = clonerCouches(squelette.couches || COUCHE_ILLUSTRE_FIXE_DEFAUT);
+    }
+    return plan;
+  });
+  // Section 4 : metadonnees de sequence (identifiant de gabarit, duree totale calculable, joueur
+  // eventuel, caractere decoratif) -- genererSequenceRealisation ne produit AUJOURD'HUI que des
+  // sequences decoratives (`decoratif: true` toujours) ; une sequence canonique n'existe pas et
+  // n'est pas construite par ce chantier (section 12/13).
+  return {
+    gabaritId: entree.id, plans, microAction: contexte.microAction, cote: contexte.cote,
+    dureeMs: dureeTotaleSequence({ plans }), joueur: null, decoratif: true
+  };
+}
+
+// Reechantillonne le trajet (relatif au point de vue de l'equipe qui agit) sur le nombre de plans
+// "terrain" de la sequence -- un point par plan terrain, dans l'ordre, mirroir applique pour
+// l'equipe away (meme convention que l'ancien code : zoneAbsolue = idxRel pour home, 6-idxRel
+// pour away).
+function zonesTerrainPourSequence(trajetRelatif, cote, nbPlansTerrain) {
+  const n = Math.max(1, nbPlansTerrain);
+  const zones = [];
+  for (let k = 0; k < n; k++) {
+    const idxRel = n === 1
+      ? trajetRelatif[trajetRelatif.length - 1]
+      : trajetRelatif[Math.round(k * (trajetRelatif.length - 1) / (n - 1))];
+    zones.push(cote === 'home' ? idxRel : (6 - idxRel));
+  }
+  return zones;
+}
+
+// Applique le cadrage/l'effet d'UN plan terrain sur le mini-terrain deja existant : transform
+// (scale/translate) sur .live-pelouse (jamais un redimensionnement reel, jamais de reflow) +
+// transition-duration sur ballon/joueurs pour accelere/ralenti. Toujours reinitialise en entier
+// (jamais d'accumulation d'un plan a l'autre).
+function appliquerCadrageTerrain(plan) {
+  const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
+  if (pelouse) {
+    let scale = CADRAGE_SCALE_REALISATEUR[plan.cadrage] || 1;
+    if (plan.effet === 'zoom') scale *= 1.08;
+    let transform = 'scale(' + scale.toFixed(3) + ')';
+    if (plan.effet === 'travelling') transform += ' translateX(' + plan.travellingDx + '%)';
+    pelouse.style.transition = 'transform .4s ease';
+    pelouse.style.transform = transform;
+    pelouse.classList.remove('live-pelouse--vibration');
+    if (plan.effet === 'vibration') {
+      void pelouse.offsetWidth; // force le reflow pour pouvoir rejouer l'animation (meme patron que afficherMessageTribune)
+      pelouse.classList.add('live-pelouse--vibration');
+    }
+  }
+  const dureeMs = plan.effet === 'accelere' ? 250 : (plan.effet === 'ralenti' ? 1100 : null);
+  ['live-ballon', 'live-joueur-home', 'live-joueur-away'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.transitionDuration = dureeMs ? dureeMs + 'ms' : '';
+  });
+}
+
+// Formate un cadrage {scale,x,y,rotation} en chaine CSS transform (x/y en %, rotation en degres).
+function transformCssDepuisCadrage(cadrage) {
+  return 'scale(' + cadrage.scale + ') translate(' + cadrage.x + '%, ' + cadrage.y + '%) rotate(' + cadrage.rotation + 'deg)';
+}
+
+// Joue la choregraphie d'UNE couche sur l'overlay illustre (V1 : toujours la seule couche du
+// placeholder actuel -- une future couche 'fond'/'sujet'/'premier_plan' ajouterait juste une
+// entree ici + sa propre cible DOM, cette fonction n'a pas besoin d'etre reecrite). 'fixe' :
+// aucune transformation (immobilite assumee, cut/fondu d'entree-sortie restent independants).
+// 'dynamique' : enchaine les etapes via le patron reflow-puis-transition deja utilise ailleurs
+// dans ce fichier (afficherMessageTribune) -- une transition CSS par segment, chacune avec son
+// propre easing, jamais de requestAnimationFrame ni de nouveau mecanisme de timer : les segments
+// suivants (i>=1) sont de simples setTimeout, geres comme tous les autres timers d'animation.
+function jouerChoreographieCouche(couche, overlay, dureeMs) {
+  if (!couche || couche.mouvement !== 'dynamique' || !couche.etapes || couche.etapes.length < 2) {
+    overlay.style.transition = 'none';
+    overlay.style.transform = (couche && couche.etapes && couche.etapes[0]) ? transformCssDepuisCadrage(couche.etapes[0].cadrage) : '';
+    return;
+  }
+  const etapes = couche.etapes;
+  overlay.style.transition = 'none';
+  overlay.style.transform = transformCssDepuisCadrage(etapes[0].cadrage);
+  void overlay.offsetWidth; // force le reflow : le cadrage initial est peint avant toute transition
+  for (let i = 1; i < etapes.length; i++) {
+    const etapePrecedente = etapes[i - 1];
+    const etape = etapes[i];
+    const segMs = Math.max(30, Math.round((etape.t - etapePrecedente.t) * dureeMs));
+    const idEtape = setTimeout(() => {
+      if (_liveViewerAfficheCanoniqueEnCours) return;
+      overlay.style.transition = 'transform ' + (segMs / 1000).toFixed(3) + 's ' + (etape.easing || 'linear');
+      overlay.style.transform = transformCssDepuisCadrage(etape.cadrage);
+    }, Math.round(etapePrecedente.t * dureeMs));
+    _liveViewerTimeoutsAnimation.push(idEtape);
+  }
+  if (couche.vibrationAuMoment != null) {
+    const idVib = setTimeout(() => {
+      if (_liveViewerAfficheCanoniqueEnCours) return;
+      void overlay.offsetWidth;
+      overlay.classList.add('live-realisateur-vibration-appliquee');
+      const idVibFin = setTimeout(() => overlay.classList.remove('live-realisateur-vibration-appliquee'), 300);
+      _liveViewerTimeoutsAnimation.push(idVibFin);
+    }, Math.round(couche.vibrationAuMoment * dureeMs));
+    _liveViewerTimeoutsAnimation.push(idVib);
+  }
+}
+
+// Affiche UN plan illustre : reutilise le placeholder existant (memes classes CSS que
+// #live-insert-bd, id different -- jamais le meme element qu'un insert canonique). Remet
+// systematiquement le cadrage du terrain a plat pour que l'insert ne soit jamais deforme par un
+// zoom/travelling laisse par un plan terrain precedent de la MEME sequence. transition==='cut' :
+// apparition instantanee (classe live-insert-bd-instant, desactive le fondu d'entree existant) ;
+// sinon fondu existant inchange. Premier vrai asset (29 aout 2026) : si couche.asset est present,
+// la choregraphie s'applique a l'<img> dediee (object-fit:cover, jamais de deformation, contenue
+// par l'overflow:hidden de .live-insert-bd) plutot qu'a l'overlay entier, et le pictogramme est
+// masque -- sinon (toutes les autres couches illustre, aucune ne porte `asset`) comportement
+// STRICTEMENT inchange : pictogramme + choregraphie sur l'overlay comme avant. jouerChoreographieCouche
+// lui-meme n'est pas modifie, seule sa CIBLE varie.
+function appliquerPlanIllustreRealisation(plan, instant, def, club) {
+  const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
+  if (pelouse) pelouse.style.transform = 'scale(1)';
+  const overlay = document.getElementById('live-realisateur-illustre');
+  if (!overlay) return;
+  const actionEl = overlay.querySelector('.live-insert-bd-action');
+  const texteEl = overlay.querySelector('.live-insert-bd-texte');
+  const imageEl = document.getElementById('live-realisateur-illustre-image');
+  const videoEl = document.getElementById('live-realisateur-illustre-video');
+  const couche = (plan.couches && plan.couches[0]) || null;
+
+  // Neutralise systematiquement la couche video AVANT d'appliquer le nouveau plan, qu'il soit
+  // lui-meme video ou non (chantier "support video du realisateur preview", 29 aout 2026) --
+  // jamais de son residuel d'un plan video precedent quel que soit le plan qui le suit.
+  if (videoEl) { videoEl.pause(); videoEl.currentTime = 0; videoEl.style.display = 'none'; }
+
+  if (couche && couche.asset && couche.media === 'video') {
+    if (imageEl) { imageEl.style.display = 'none'; imageEl.removeAttribute('src'); }
+    if (videoEl) {
+      videoEl.src = couche.asset;
+      videoEl.style.display = 'block';
+      // Meme champ declaratif couche.ajustement que pour une image (contain evite un rognage
+      // destructeur quand le ratio source -- souvent proche du carre pour un clip reaction -- ne
+      // correspond pas au cadre large de la pelouse).
+      videoEl.style.objectFit = couche.ajustement === 'contain' ? 'contain' : '';
+      videoEl.loop = false;
+      videoEl.muted = false; // audio conserve
+      videoEl.playsInline = true;
+      videoEl.currentTime = 0; // relecture systematique depuis 0 a chaque declenchement
+      const lecture = videoEl.play();
+      if (lecture && typeof lecture.catch === 'function') lecture.catch(() => {});
+    }
+    if (actionEl) actionEl.textContent = '';
+  } else if (couche && couche.asset) {
+    if (imageEl) {
+      imageEl.src = couche.asset; imageEl.style.display = 'block';
+      // couche.ajustement (correctif du 29 aout 2026, defaut 'cover' -- absent sur toutes les
+      // couches A/B/C existantes, donc aucun changement de comportement pour elles) : 'contain'
+      // affiche l'image ENTIERE (ratio preserve, bandes du fond sombre existant autour si le ratio
+      // source ne correspond pas au cadre) au lieu de la rogner -- utile pour des assets dont le
+      // ratio varie fortement d'un plan a l'autre (ex. D -- tension). CSS de classe (.live-insert-bd-image)
+      // garde object-fit:cover comme reglage PAR DEFAUT ; seule une surcharge inline explicite change ce
+      // rendu, jamais une modification globale de la regle partagee.
+      imageEl.style.objectFit = couche.ajustement === 'contain' ? 'contain' : '';
+    }
+    if (actionEl) actionEl.textContent = ''; // l'asset reel remplace le pictogramme-placeholder
+  } else {
+    if (imageEl) { imageEl.style.display = 'none'; imageEl.removeAttribute('src'); }
+    if (actionEl) actionEl.textContent = ICONES_MICRO_ACTION_REALISATEUR[instant.type] || 'ℹ️';
+  }
+  // plan.cartouche (correctif du 29 aout 2026, defaut true -- absent sur tous les plans existants
+  // donc aucun changement de comportement pour A/B/le vrai live) : un plan illustre peut demander
+  // explicitement `cartouche:false` pour rester PUREMENT visuel, sans texte narratif superpose --
+  // reutilisable plus tard par le realisateur reel pour distinguer un plan narratif (cartouche) d'un
+  // plan de mise en scene pure (sans cartouche), sans hack CSS ni structure parallele.
+  if (texteEl) texteEl.textContent = (plan.cartouche === false) ? '' : (def.label || '') + ' — ' + club.nom;
+
+  overlay.className = 'live-insert-bd live-insert-bd-visible' + (plan.transition === 'cut' ? ' live-insert-bd-instant' : '');
+  const cible = (couche && couche.asset && couche.media === 'video' && videoEl) ? videoEl
+    : (couche && couche.asset && imageEl) ? imageEl
+    : overlay;
+  jouerChoreographieCouche(couche, cible, plan.dureeMs);
+}
+
+// sortieCut=true : masque instantanement (aucun fondu de sortie), pour un plan dont
+// transitionSortie==='cut' (ex. crash-test ras du sol). Par defaut (false/undefined) : fondu
+// existant inchange (transition CSS .3s deja definie sur .live-insert-bd). Reinitialise aussi
+// l'<img> (transform/affichage/src) pour ne jamais laisser un cadrage ou une image residuelle
+// avant le prochain plan illustre de la MEME session de live. Reinitialise aussi la <video> --
+// pause + retour a 0 + masquage -- pour ne jamais laisser un son residuel apres la fin d'une
+// sequence (chantier "support video du realisateur preview", 29 aout 2026).
+function masquerPlanIllustreRealisation(sortieCut) {
+  const overlay = document.getElementById('live-realisateur-illustre');
+  const imageEl = document.getElementById('live-realisateur-illustre-image');
+  const videoEl = document.getElementById('live-realisateur-illustre-video');
+  if (!overlay) return;
+  if (sortieCut) {
+    overlay.style.transition = 'none';
+    overlay.className = 'live-insert-bd';
+    void overlay.offsetWidth;
+    overlay.style.transition = '';
+  } else {
+    overlay.className = 'live-insert-bd';
+  }
+  overlay.style.transform = '';
+  if (imageEl) {
+    imageEl.style.transition = ''; imageEl.style.transform = ''; imageEl.style.objectFit = '';
+    imageEl.style.display = 'none'; imageEl.removeAttribute('src');
+  }
+  if (videoEl) {
+    videoEl.pause(); videoEl.currentTime = 0; videoEl.style.transition = ''; videoEl.style.transform = '';
+    videoEl.style.objectFit = ''; videoEl.style.display = 'none'; videoEl.removeAttribute('src');
+  }
+}
+
+// Remet la scene a plat a la fin d'une sequence de realisation -- strictement equivalent a
+// l'ancien retour a l'etat neutre de jouerMicroAction (meme positions, meme label vide), plus la
+// remise a plat du cadrage/de la vitesse/de l'insert illustre introduits par ce chantier.
+// sortieCut : transmis a masquerPlanIllustreRealisation si le DERNIER plan illustre programme de
+// la sequence demandait une sortie en cut (jamais un fondu par defaut dans ce cas).
+function reinitialiserSceneApresSequenceRealisation(sortieCut) {
+  masquerPlanIllustreRealisation(sortieCut);
+  const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
+  // Correctif MR4 (chantier "montage continu", 30 aout 2026, cause factuelle identifiee par audit
+  // du code -- jamais corrigee sur simple supposition) : AVANT ce correctif, cette ligne fixait
+  // `transform:scale(1)` sans jamais reinitialiser `transition`, qui restait donc celle laissee par
+  // le TOUT DERNIER plan joue -- 2600ms cubic-bezier apres un Drone Dive/Orbit Freeze, .4s ease
+  // apres un gabarit normal, ou aucune transition du tout apres un plan illustre. Le retour a l'etat
+  // neutre entre deux realisations n'avait donc jamais la MEME vitesse/courbe d'une fois sur
+  // l'autre -- source concrete du raccord "pas naturel" signale en production. Desormais TOUJOURS
+  // la meme transition de retour (identique a la transition normale d'un gabarit de production,
+  // appliquerCadrageTerrain), quel que soit l'effet qui vient de se jouer.
+  if (pelouse) {
+    pelouse.style.transition = 'transform .4s ease';
+    pelouse.style.transform = 'scale(1)';
+    pelouse.classList.remove('live-pelouse--vibration');
+  }
+  ['live-ballon', 'live-joueur-home', 'live-joueur-away'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.transitionDuration = '';
+  });
+  positionnerBallon(3); positionnerJoueur('home', 2); positionnerJoueur('away', 4);
+  const joueurHomeEl = document.getElementById('live-joueur-home');
+  const joueurAwayEl = document.getElementById('live-joueur-away');
+  if (joueurHomeEl) joueurHomeEl.style.display = '';
+  if (joueurAwayEl) joueurAwayEl.style.display = '';
+  // Masque tout acteur V2 residuel (chantier "mini-terrain V2", 29 aout 2026) -- jamais d'acteur
+  // laisse visible apres la fin d'une sequence ou une fermeture Grand ecran.
+  appliquerSceneActeursPreview([]);
+  const l = document.getElementById('live-action-label');
+  if (l) l.textContent = '';
+  // Remet a plat le score local du preview (chantier "raccord mini-terrain <-> D/E/F", 29 aout
+  // 2026) -- jamais lu/ecrit ailleurs que dans ce fichier, jamais Supabase/championnat.data.
+  const scoreEl = document.getElementById('live-score-mini');
+  if (scoreEl) scoreEl.textContent = '0 - 0';
+}
+
+// Executeur commun (section D) : enchaine un nombre QUELCONQUE de plans deja generes (sequence.plans.forEach,
+// aucune branche speciale pour 1, 2, 3 ou 4 plans -- verifie explicitement dans le chantier
+// "architecture multi-plans" du 29 aout 2026), purement par affichage.
+// A CHAQUE callback, verifie qu'aucun insert canonique n'est en cours (_liveViewerAfficheCanoniqueEnCours,
+// deja utilise par tickVisuelScene) -- si un evenement canonique a pris la priorite entre-temps, ce
+// plan est simplement saute, jamais de conflit visuel avec afficherInsertCanonique. Tous les
+// setTimeout sont pousses dans _liveViewerTimeoutsAnimation (meme tableau que le reste du moteur
+// visuel) donc nettoyes par fermerLiveMatchReel comme n'importe quel autre timer -- aucun timer
+// residuel possible a la fermeture.
+function executerSequenceRealisation(sequence, instant, def, club) {
+  const terrainPlans = sequence.plans.filter(p => p.type === 'terrain');
+  const zonesTerrain = zonesTerrainPourSequence(def.trajet, instant.cote, terrainPlans.length);
+  const planTerrainUnique = terrainPlans.length === 1;
+  let offset = 0;
+  let kTerrain = 0;
+  let sortieCutAttendue = false; // sortie du DERNIER plan illustre programme -- lue par le plan suivant, ou par idFin
+  sequence.plans.forEach(plan => {
+    const debutPlan = offset;
+    if (plan.type === 'terrain') {
+      const zoneCible = zonesTerrain[kTerrain];
+      const sortiePrecedente = sortieCutAttendue;
+      const idT = setTimeout(() => {
+        if (_liveViewerAfficheCanoniqueEnCours) return;
+        masquerPlanIllustreRealisation(sortiePrecedente);
+        appliquerCadrageTerrain(plan);
+        // plan.etatVisuel (chantier "raccord mini-terrain <-> D/E/F", 29 aout 2026, defaut absent --
+        // aucun changement de comportement pour un plan terrain existant, reel ou preview) : un etat
+        // visuel FIGE preview-only (ballon + LES DEUX marqueurs a la fois), prioritaire sur la marche
+        // fluide habituelle -- necessaire ici car le fallback ci-dessous ne repositionne jamais que
+        // le marqueur de instant.cote, jamais les deux cotes a la fois.
+        if (plan.etatVisuel) {
+          appliquerEtatVisuelTerrainPreview(plan.etatVisuel);
+        } else if (planTerrainUnique && def.trajet.length > 1) {
+          // Sequence a un seul plan terrain (cas le plus frequent) : on conserve la marche fluide
+          // historique en sous-etapant le trajet complet DANS la fenetre de ce plan.
+          const pas = plan.dureeMs / def.trajet.length;
+          def.trajet.forEach((idxRel, i) => {
+            const idSub = setTimeout(() => {
+              if (_liveViewerAfficheCanoniqueEnCours) return;
+              const zoneAbs = instant.cote === 'home' ? idxRel : (6 - idxRel);
+              positionnerBallon(zoneAbs);
+              positionnerJoueur(instant.cote, zoneAbs);
+            }, i * pas);
+            _liveViewerTimeoutsAnimation.push(idSub);
+          });
+        } else if (plan.effet !== 'pause') {
+          positionnerBallon(zoneCible);
+          positionnerJoueur(instant.cote, zoneCible);
+        }
+      }, debutPlan);
+      _liveViewerTimeoutsAnimation.push(idT);
+      kTerrain++;
+    } else {
+      sortieCutAttendue = plan.transitionSortie === 'cut';
+      const idT = setTimeout(() => {
+        if (_liveViewerAfficheCanoniqueEnCours) return;
+        appliquerPlanIllustreRealisation(plan, instant, def, club);
+      }, debutPlan);
+      _liveViewerTimeoutsAnimation.push(idT);
+    }
+    offset += plan.dureeMs;
+  });
+
+  const idFin = setTimeout(() => {
+    if (_liveViewerAfficheCanoniqueEnCours) return;
+    reinitialiserSceneApresSequenceRealisation(sortieCutAttendue);
+  }, offset);
+  _liveViewerTimeoutsAnimation.push(idFin);
+}
+
+// =====================================================================
+// PREVIEW REALISATEUR -- BANC D'ESSAI VISUEL (outil de mise au point, 29 aout 2026, etendu en
+// banc d'essai declaratif le meme jour)
+// =====================================================================
+// Outil de developpement STRICTEMENT local/decoratif, actif UNIQUEMENT si l'URL contient
+// ?footballPreview=1 (une seule verification a DOMContentLoaded, aucun autre branchement --
+// absent du parametre, cette section entiere ne fait strictement rien). Reutilise TEL QUEL le
+// vrai executeur (executerSequenceRealisation) et le vrai generateur (genererSequenceRealisation)
+// -- aucune imitation parallele. Le shell DOM est construit via la VRAIE construireSceneMiniTerrain
+// (memes ids/classes que le live reel), avec deux clubs REELS (getClub), jamais de donnee
+// fictive. Aucune lecture/ecriture championnat, aucun appel Supabase, aucun PA, aucun effet
+// canonique -- tout se joue en memoire/DOM, exactement comme la couche decorative existante. Les
+// scenarios de test sont declares dans SCENARIOS_PREVIEW_REALISATEUR (plus bas) -- le panneau
+// construit ses boutons depuis cette liste, jamais de bouton code en dur.
+function trouverSequenceCrashTestRasDuSol(instant) {
+  // genererSequenceRealisation est pure (aucun effet de bord) : on peut l'appeler a blanc autant
+  // de fois que necessaire pour retomber sur le gabarit voulu -- jamais une modification du pool
+  // ni de ses probabilites, seulement une recherche du seed adequat parmi ceux deja possibles en
+  // production. Identification par gabaritId (stable, chantier "architecture multi-plans" du 29
+  // aout 2026) plutot que par sniffing structurel.
+  for (let i = 0; i < 500; i++) {
+    const sequence = genererSequenceRealisation('preview-crash-test-' + i, { microAction: instant.type, cote: instant.cote });
+    if (sequence.gabaritId === 'crash_test_ras_du_sol') return sequence;
+  }
+  return null; // ne devrait jamais arriver (~4.7% de chances par tirage, 500 essais tres largement suffisants)
+}
+
+// Generalisation de trouverSequenceCrashTestRasDuSol (chantier "instrumentation des clics debug",
+// 30 aout 2026) : MEME principe (genererSequenceRealisation est pure, on peut la rappeler a blanc
+// jusqu'a retomber sur le gabaritId voulu), etendu a N'IMPORTE QUEL gabarit de
+// POOL_GABARITS_REALISATEUR -- jamais un nouveau moteur, jamais une modification du pool. Sert
+// UNIQUEMENT le pont debug IA (voir plus bas) : permet de rejouer visuellement un gabarit de
+// PRODUCTION (deja utilise en match reel via jouerMicroAction) depuis le banc d'essai preview,
+// alors qu'aucun scenario dedie n'existe pour eux dans SCENARIOS_PREVIEW_REALISATEUR (ils ne sont
+// normalement demontres qu'en direct). `contexte` doit deja satisfaire les
+// microActionsCompatibles du gabarit vise (sinon aucun tirage ne peut jamais l'atteindre, boucle
+// epuisee normalement -- pas un bug).
+function trouverSequenceProductionAvecGabaritId(gabaritId, contexte) {
+  for (let i = 0; i < 500; i++) {
+    const sequence = genererSequenceRealisation('debug-pont-ia-' + gabaritId + '-' + i, contexte);
+    if (sequence.gabaritId === gabaritId) return sequence;
+  }
+  return null;
+}
+
+// Sequence B "3 angles" (test de montage, 29 aout 2026) : hypothese testee, le spectaculaire
+// vient du montage/changement d'angle plus que du seul mouvement dans une image fixe.
+// EXCLUSIVEMENT dans la preview -- volontairement absente de GABARITS_MONTAGE_REALISATEUR/
+// POOL_GABARITS_REALISATEUR, donc jamais selectionnable en match reel par genererSequenceRealisation.
+// Construite DIRECTEMENT avec les memes champs qu'un plan produit par genererSequenceRealisation
+// (type/dureeMs/transition/transitionSortie/couches), executee par la VRAIE
+// executerSequenceRealisation -- aucun second moteur d'animation. Chaque plan coupe EN PLEIN
+// MOUVEMENT (derniere etape jamais "posee"), sauf le dernier (C) qui suspend brievement + vibre
+// juste avant le cut de sortie -- pour donner l'illusion d'une action continue malgre le
+// changement brutal d'angle/d'image. Duree totale : 700+650+900 = 2250ms (ajustee le 29 aout
+// 2026 -- rythme initial de 1250ms juge trop rapide ; les etapes de choregraphie sont deja
+// exprimees en fractions relatives (t: 0..1), donc elles s'adaptent naturellement a ces nouvelles
+// durees sans aucune autre modification : A reste en acceleration au cut, B reste en travelling
+// au cut, C conserve son ralentissement/suspension final + micro-impact).
+// executerSequenceRealisation/jouerChoreographieCouche ne lisent jamais ces objets, ils sont en
+// lecture seule pour ce chantier -- reutilisable tel quel sans clonage entre deux relances.
+// Metadonnees de sequence (section 4) ajoutees pour coherence de schema avec genererSequenceRealisation
+// -- non lues par l'executeur, purement documentaires/preuve de la grammaire commune.
+const SEQUENCE_PREVIEW_3_ANGLES = {
+  gabaritId: 'preview_3_angles', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: [
+    { // PLAN A -- camera ras-du-sol frontale, mouvement rapide vers l'action, cut en plein mouvement.
+      type: 'illustre', dureeMs: 700, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+      couches: [{
+        nom: 'placeholder', asset: 'images/football-plan-ras-du-sol-01.webp', mouvement: 'dynamique',
+        etapes: [
+          { t: 0, cadrage: { scale: 1,    x: 0, y: 0,  rotation: 0 },  easing: 'linear' },
+          { t: 1, cadrage: { scale: 1.35, x: 0, y: -3, rotation: -1 }, easing: 'ease-in' }
+        ]
+      }]
+    },
+    { // PLAN B -- angle lateral tres bas, travelling horizontal rapide, part deja "en mouvement"
+      // (scale/pan de depart superieurs a l'etat neutre) pour prolonger la sensation du plan A.
+      type: 'illustre', dureeMs: 650, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+      couches: [{
+        nom: 'placeholder', asset: 'images/football-duel-angle-02.webp', mouvement: 'dynamique',
+        etapes: [
+          { t: 0, cadrage: { scale: 1.15, x: -4, y: 0, rotation: 0 },  easing: 'linear' },
+          { t: 1, cadrage: { scale: 1.3,  x: 10, y: 0, rotation: .5 }, easing: 'ease-in' }
+        ]
+      }]
+    },
+    { // PLAN C -- tres proche du ballon/des jambes, mouvement plus court, tres bref ralentissement/
+      // suspension (ease-out sur le dernier segment) + micro-vibration d'impact avant le cut de sortie.
+      type: 'illustre', dureeMs: 900, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+      couches: [{
+        nom: 'placeholder', asset: 'images/football-duel-angle-03.webp', mouvement: 'dynamique',
+        etapes: [
+          { t: 0,  cadrage: { scale: 1.4,  x: 0, y: -2, rotation: 0 },   easing: 'linear' },
+          { t: .7, cadrage: { scale: 1.55, x: 0, y: -3, rotation: -.5 }, easing: 'ease-in' },
+          { t: 1,  cadrage: { scale: 1.6,  x: 0, y: -3, rotation: -.5 }, easing: 'ease-out' }
+        ],
+        vibrationAuMoment: .9
+      }]
+    }
+  ]
+};
+SEQUENCE_PREVIEW_3_ANGLES.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_3_ANGLES); // 700+650+900 = 2250ms
+
+// Sequence C "stop motion" (premier test le 29 aout 2026, mise en scene "rupture frame 06" le meme
+// jour) : 7 poses fixes distinctes (01-05, 07-08) cut franc entre chacune -- AUCUNE animation
+// continue sur ces 7-la (mouvement:'fixe', aucun cadrage/zoom, pour eviter que la sequence ne se
+// lise comme un montage multi-angle façon B). Le mouvement perçu y vient UNIQUEMENT du changement
+// brutal de pose, jamais d'un deplacement de camera. La frame 06 (projection/arret visuel) est la
+// SEULE rupture de langage : couche mouvement:'dynamique', memes primitives que le plan A/crash-
+// test ras-du-sol (etapes scale/pan/rotation + vibrationAuMoment) -- aucun nouveau mecanisme, la
+// vibration y est reutilisable proprement (contrairement a une pose fixe, cf. l'historique de ce
+// fichier) puisque mouvement:'dynamique' a bien >=2 etapes. Aucun effet graphique supplementaire
+// (flash/radiales) ajoute : aurait exige du code neuf specifique a C, hors perimetre demande --
+// zoom + vibration existante suffisent au test. Rythme volontairement irregulier et asymetrique :
+// ce sont des durees de mise en scene, pas des evenements sportifs. EXCLUSIVEMENT dans la preview
+// -- volontairement absente de GABARITS_MONTAGE_REALISATEUR/POOL_GABARITS_REALISATEUR, comme B.
+const FRAMES_STOP_MOTION_DUEL = [
+  { asset: 'images/football-stopmotion-duel-frame-01.webp', dureeMs: 450 }, // duel / approche
+  { asset: 'images/football-stopmotion-duel-frame-02.webp', dureeMs: 280 }, // declenchement du tacle
+  { asset: 'images/football-stopmotion-duel-frame-03.webp', dureeMs: 220 }, // tacle engage
+  { asset: 'images/football-stopmotion-duel-frame-04.webp', dureeMs: 190 }, // glissade avancee
+  { asset: 'images/football-stopmotion-duel-frame-05.webp', dureeMs: 320 }, // contact / rupture
+  {
+    asset: 'images/football-stopmotion-duel-frame-06.webp', dureeMs: 800, // projection / arret visuel -- seule rupture animee
+    couche: {
+      mouvement: 'dynamique',
+      etapes: [
+        { t: 0,   cadrage: { scale: 1,    x: 0, y: 0,  rotation: 0 },  easing: 'linear' },
+        { t: .55, cadrage: { scale: 1.55, x: 0, y: -4, rotation: -1 }, easing: 'ease-in' },
+        { t: 1,   cadrage: { scale: 1.68, x: 0, y: -5, rotation: -1 }, easing: 'ease-out' }
+      ],
+      vibrationAuMoment: .88
+    }
+  },
+  { asset: 'images/football-stopmotion-duel-frame-07.webp', dureeMs: 540 }, // joueurs au sol
+  { asset: 'images/football-stopmotion-duel-frame-08.webp', dureeMs: 700 }  // debut du relevage
+];
+const SEQUENCE_PREVIEW_STOP_MOTION = {
+  gabaritId: 'preview_stop_motion', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_STOP_MOTION_DUEL.map(frame => ({
+    // cartouche:false (correctif du 29 aout 2026) : sequence purement visuelle, aucun texte
+    // narratif ne doit recouvrir les 8 poses -- voir appliquerPlanIllustreRealisation.
+    type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    // frame.couche (uniquement frame 06) surcharge mouvement/etapes/vibrationAuMoment sur la base
+    // par defaut {nom, asset, mouvement:'fixe'} -- les 7 autres frames restent inchangees.
+    couches: [Object.assign({ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe' }, frame.couche || {})]
+  }))
+};
+SEQUENCE_PREVIEW_STOP_MOTION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_STOP_MOTION); // 450+280+220+190+320+800+540+700 = 3500ms (ralenti le 29 aout 2026, tempo initial juge trop rapide)
+
+// Sequence D "tension" (premier test, 29 aout 2026) : grammaire OPPOSEE a C -- dilatation
+// temporelle (plans 01-10, cadrages/regards/attente, aucun effet) puis rupture nette de rythme
+// (plans 11-13, cuts tres rapides "presque stop motion" au moment du contact). Coup franc de La
+// Brise Mariannaise contre l'Olympique de Luthecia a Port-Sainte-Marie -- s'arrete
+// DELIBEREMENT avant toute resolution sportive (aucun but/arret/tir/resultat montre, la frame 13
+// ne montre que le tout debut du depart du ballon). 13 poses FIXES (mouvement:'fixe' partout,
+// aucun zoom/pan/vibration pour ce premier test -- meme discipline que C : CUT franc, aucun
+// cartouche). EXCLUSIVEMENT dans la preview, comme B/C -- jamais ajoutee a
+// GABARITS_MONTAGE_REALISATEUR/POOL_GABARITS_REALISATEUR.
+// Zooms 03/05/07 (correctif du 29 aout 2026, approfondi le meme jour) : memes primitives que le
+// plan A/crash-test ras-du-sol (etapes scale/x/y/rotation/easing, mouvement:'dynamique') -- aucune
+// vibration, aucun pan, aucune rotation, cadrage initial identique a un plan fixe (scale 1). Un
+// seul segment t:0->t:1 couvre deja TOUTE la duree du plan (segMs = dureeMs complet dans
+// jouerChoreographieCouche) -- l'ajustement porte donc sur la PERCEPTION du mouvement, pas sur sa
+// duree reelle : easing 'ease-in' (au lieu de 'linear') pour une immobilite apparente en debut de
+// plan qui se resout en mouvement net et perceptible en fin de plan, et amplitude de zoom
+// nettement augmentee pour que le resserrement final soit sensible. Intensite volontairement
+// croissante 03 < 05 < 07 ("tension qui se resserre progressivement") ; 04/06 restent des couches
+// par defaut (fixe), contraste assume.
+const ZOOM_TIRE_LEGER = { mouvement: 'dynamique', etapes: [
+  { t: 0, cadrage: { scale: 1,    x: 0, y: 0, rotation: 0 }, easing: 'linear' },
+  { t: 1, cadrage: { scale: 1.16, x: 0, y: 0, rotation: 0 }, easing: 'ease-in' }
+] };
+const ZOOM_GARDIEN_LEGER = { mouvement: 'dynamique', etapes: [
+  { t: 0, cadrage: { scale: 1,    x: 0, y: 0, rotation: 0 }, easing: 'linear' },
+  { t: 1, cadrage: { scale: 1.22, x: 0, y: 0, rotation: 0 }, easing: 'ease-in' }
+] };
+const ZOOM_PUBLIC_LEGER = { mouvement: 'dynamique', etapes: [
+  { t: 0, cadrage: { scale: 1,    x: 0, y: 0, rotation: 0 }, easing: 'linear' },
+  { t: 1, cadrage: { scale: 1.30, x: 0, y: 0, rotation: 0 }, easing: 'ease-in' }
+] };
+
+const FRAMES_TENSION_COUP_FRANC = [
+  { asset: 'images/football-tension-coup-franc-frame-01.webp', dureeMs: 1300 }, // situation generale
+  { asset: 'images/football-tension-coup-franc-frame-02.webp', dureeMs: 900 },  // gros plan ballon
+  { asset: 'images/football-tension-coup-franc-frame-03.webp', dureeMs: 900, couche: ZOOM_TIRE_LEGER },    // regard du tireur -- zoom subtil
+  { asset: 'images/football-tension-coup-franc-frame-04.webp', dureeMs: 1000 }, // Taclojnou, entraineur Luthecia -- parfaitement fixe
+  { asset: 'images/football-tension-coup-franc-frame-05.webp', dureeMs: 900, couche: ZOOM_GARDIEN_LEGER }, // gardien de Luthecia -- zoom un peu plus perceptible
+  { asset: 'images/football-tension-coup-franc-frame-06.webp', dureeMs: 1000 }, // Ehault, entraineur La Brise -- parfaitement fixe
+  { asset: 'images/football-tension-coup-franc-frame-07.webp', dureeMs: 1500, couche: ZOOM_PUBLIC_LEGER }, // public sous tension -- zoom lent
+  { asset: 'images/football-tension-coup-franc-frame-08.webp', dureeMs: 1400 }, // chaussure / ballon
+  { asset: 'images/football-tension-coup-franc-frame-09.webp', dureeMs: 1050 }, // reprise de l'elan (acceleration progressive, 29 aout 2026)
+  { asset: 'images/football-tension-coup-franc-frame-10.webp', dureeMs: 750 },  // joueur arme sa frappe
+  { asset: 'images/football-tension-coup-franc-frame-11.webp', dureeMs: 500 },  // pied droit au contact
+  { asset: 'images/football-tension-coup-franc-frame-12.webp', dureeMs: 320 },  // impact maximal
+  { asset: 'images/football-tension-coup-franc-frame-13.webp', dureeMs: 220 }   // le ballon commence a partir -- s'arrete la
+];
+const SEQUENCE_PREVIEW_TENSION = {
+  gabaritId: 'preview_tension', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_TENSION_COUP_FRANC.map(frame => ({
+    type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    // ajustement:'contain' (correctif du 29 aout 2026) : les 13 assets de D ont des ratios tres
+    // variables (plans larges vs gros plans quasi carres) -- affichage integral, jamais rogne.
+    // frame.couche (03/05/07 uniquement) surcharge mouvement/etapes par-dessus la base fixe -- les
+    // 10 autres plans restent inchanges (fixe, aucun mouvement).
+    couches: [Object.assign({ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe', ajustement: 'contain' }, frame.couche || {})]
+  }))
+};
+SEQUENCE_PREVIEW_TENSION.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TENSION); // 1300+900+900+1000+900+1000+1500+1400+1050+750+500+320+220 = 11740ms (acceleration 08-13 progressive, 29 aout 2026)
+
+// Scenario E -- Trajectoire (29 aout 2026) : suite immediate de D, meme grammaire que B (3 plans,
+// cuts francs, angles differents, aucun mouvement ajoute -- "les images contiennent deja leur
+// sensation de mouvement"). Extrait d'un triptyque source unique (football-coup franc
+// tryptique.png) decoupe mecaniquement en 3 fichiers independants, aucun contenu modifie. Les
+// trois plans ont un ratio tres large (~4:1) par rapport au conteneur (16/6.5 ~= 2.46:1) --
+// ajustement:'contain' obligatoire (comme pour D) pour ne rien rogner (ballon/pied/plongeon du
+// gardien seraient coupes en 'cover'). Sequence preview-only : pas de chainage automatique
+// depuis D, pas de branche but/arret, jamais ajoutee a POOL_GABARITS_REALISATEUR.
+const FRAMES_TRAJECTOIRE_COUP_FRANC = [
+  { asset: 'images/football-coup-franc-trajectoire-01.webp', dureeMs: 650 },  // gros plan pied/ballon, effets de vitesse -- suite directe de l'impact de D
+  { asset: 'images/football-coup-franc-trajectoire-02.webp', dureeMs: 700 },  // le ballon passe au-dessus du mur Luthecia
+  { asset: 'images/football-coup-franc-trajectoire-03.webp', dureeMs: 1000 } // le ballon degage le mur, le gardien commence sa detente -- aucun but/arret affirme
+];
+const SEQUENCE_PREVIEW_TRAJECTOIRE = {
+  gabaritId: 'preview_trajectoire', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_TRAJECTOIRE_COUP_FRANC.map(frame => ({
+    type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe', ajustement: 'contain' }]
+  }))
+};
+SEQUENCE_PREVIEW_TRAJECTOIRE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TRAJECTOIRE); // 650+700+1000 = 2350ms
+
+// Scenario F1 -- Arret (29 aout 2026) : resolution visuelle de l'action (le gardien intercepte),
+// plans 1/2/3 illustres classiques (aucun mouvement ajoute), plan 4 = premier plan VIDEO du banc
+// d'essai (reaction de Taclojnou, son conserve). Les trois images ont un ratio proche de 1.5:1 (tres
+// eloigne du cadre large 16/6.5 ~= 2.46:1) -- en 'cover' le rognage vertical (~19,5% en haut ET en
+// bas) coupe le haut du crane/les gants sur l'image 1, le plongeon complet sur l'image 2 (capture)
+// et le haut de la tete/les crampons sur l'image 3 -- ajustement:'contain' obligatoire sur les
+// trois, meme raisonnement que D/E. La video (640x640, ratio 1:1) serait rognee de ~30% de chaque
+// cote en 'cover' -- contain egalement.
+// Plan 2 (capture, correctif du 29 aout 2026) : prolongement immediat de l'arret, gardien en plein
+// plongeon avec le ballon -- insere entre l'instant de l'arret et le gardien releve, aucun autre
+// plan modifie.
+// dureeMs du plan video (le dernier) : duree REELLE mesuree du fichier (afinfo/mdls concordants :
+// 4085,986 ms / 4,087 s), pas une valeur arbitraire -- 4100ms (leger surplus technique au-dessus de
+// la mesure, pour ne jamais couper la video une milliseconde avant sa fin naturelle via le timer du plan).
+const FRAMES_ARRET_COUP_FRANC = [
+  { asset: 'images/football-coup-franc-arret-gardien-capture.webp', dureeMs: 700 }, // gardien en plein plongeon avec le ballon (correctif ordre du 29 aout 2026 : passe en premier)
+  { asset: 'images/football-coup-franc-arret-gardien.webp', dureeMs: 900 },         // le gardien intercepte le ballon -- resolution de l'action
+  { asset: 'images/football-coup-franc-arret-gardien-releve.webp', dureeMs: 1200 }  // le gardien est en possession du ballon, sourit
+];
+const SEQUENCE_PREVIEW_ARRET = {
+  gabaritId: 'preview_arret', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_ARRET_COUP_FRANC.map(frame => ({
+    type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe', ajustement: 'contain' }]
+  })).concat([{
+    type: 'illustre', dureeMs: 4100, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: 'images/football-reaction-taclojnou-arret.mp4', mouvement: 'fixe', ajustement: 'contain', media: 'video' }]
+  }])
+};
+SEQUENCE_PREVIEW_ARRET.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_ARRET); // 900+700+1200+4100 = 6900ms
+
+// Scenario F2 -- But (29 aout 2026) : seconde resolution possible apres E -- Trajectoire (F1 =
+// arret, F2 = but), meme grammaire que F1 (plans illustres fixes + dernier plan video). Reutilise
+// EXACTEMENT la meme infrastructure video generique introduite pour F1 (couche.media:'video' sur
+// <video id="live-realisateur-illustre-video">) -- aucun second systeme video, aucun cas
+// particulier Ehault code dans l'executeur. Les deux images ont le meme ratio ~1.5:1 que les
+// assets F1 (tres eloigne du cadre large 16/6.5 ~= 2.46:1) -- en 'cover' le rognage vertical
+// (~19,5% en haut ET en bas) couperait la main/le pied du gardien plongeant sur l'image 1 et les
+// joueurs a genoux/la tribune sur l'image 2 -- ajustement:'contain' obligatoire sur les deux. La
+// video (640x640, ratio 1:1) serait rognee de ~30% de chaque cote en 'cover' -- contain egalement.
+// dureeMs du plan video : duree REELLE mesuree du fichier (afinfo/mdls concordants : 4085,986 ms /
+// 4,087 s, identique au format de F1), pas une valeur arbitraire -- 4100ms (meme marge technique
+// que F1, pour ne jamais couper la video avant sa fin naturelle).
+const FRAMES_BUT_COUP_FRANC = [
+  { asset: 'images/football-coup-franc-echec-gardien.webp', dureeMs: 700 },  // le ballon a deja depasse les mains du gardien
+  { asset: 'images/football-coup-franc-but-celebration.webp', dureeMs: 1400 } // plan large : La Brise celebre, Luthecia abattue, tribune en fete
+];
+const SEQUENCE_PREVIEW_BUT = {
+  gabaritId: 'preview_but', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_BUT_COUP_FRANC.map(frame => ({
+    type: 'illustre', dureeMs: frame.dureeMs, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: frame.asset, mouvement: 'fixe', ajustement: 'contain' }]
+  })).concat([{
+    type: 'illustre', dureeMs: 4100, transition: 'cut', transitionSortie: 'cut', equipeMiseEnValeur: 'neutre',
+    cartouche: false,
+    couches: [{ nom: 'placeholder', asset: 'images/football-reaction-ehault-but.mp4', mouvement: 'fixe', ajustement: 'contain', media: 'video' }]
+  }])
+};
+SEQUENCE_PREVIEW_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_BUT); // 700+1400+4100 = 6200ms
+
+// Demonstrations completes du coup franc (29 aout 2026) : simple CONCATENATION des tableaux .plans
+// deja valides de D/E/F1 et D/E/F2 -- aucun plan recopie ni modifie, les memes objets plan/couche
+// sont reutilises par reference (Array.concat cree un nouveau tableau, jamais de nouveaux plans).
+// executerSequenceRealisation ne fait deja RIEN de special entre deux plans 'illustre' consecutifs
+// (masquerPlanIllustreRealisation n'est appele qu'a la fin de la sequence ou avant un plan
+// 'terrain', qu'aucun des 4 scenarios sources ne contient) -- le raccord D->E, E->F1 et E->F2 est
+// donc deja un cut naturel, exactement comme les raccords internes de D/F1/F2 eux-memes. Aucun
+// changement necessaire au moteur : cette section ne fait qu'assembler des sequences existantes.
+// D/E/F1/F2 restent intacts et selectionnables individuellement (leurs constantes ne sont ni
+// modifiees ni retirees) -- ces deux nouvelles constantes sont de simples compositions preview,
+// jamais ajoutees a POOL_GABARITS_REALISATEUR.
+const SEQUENCE_PREVIEW_COUP_FRANC_ARRETE = {
+  gabaritId: 'preview_coup_franc_arrete', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: SEQUENCE_PREVIEW_TENSION.plans.concat(SEQUENCE_PREVIEW_TRAJECTOIRE.plans, SEQUENCE_PREVIEW_ARRET.plans)
+};
+SEQUENCE_PREVIEW_COUP_FRANC_ARRETE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_COUP_FRANC_ARRETE); // 11740+2350+6900 = 20990ms
+
+const SEQUENCE_PREVIEW_COUP_FRANC_BUT = {
+  gabaritId: 'preview_coup_franc_but', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: SEQUENCE_PREVIEW_TENSION.plans.concat(SEQUENCE_PREVIEW_TRAJECTOIRE.plans, SEQUENCE_PREVIEW_BUT.plans)
+};
+SEQUENCE_PREVIEW_COUP_FRANC_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_COUP_FRANC_BUT); // 11740+2350+6200 = 20290ms
+
+// Raccord mini-terrain <-> D/E/F (29 aout 2026, etendu au plateau multi-acteurs V2 le meme jour) :
+// encadre les demonstrations D-E-F1/D-E-F2 DEJA VALIDEES (reutilisees ici par simple .concat() de
+// leurs .plans -- memes objets, jamais recopies ni modifies) avec un bref passage par le
+// mini-terrain avant et apres, pour tester la continuite visuelle terrain -> illustre -> terrain.
+// Les plans de terrain (PHASE_TERRAIN_*) sont des plans 'terrain' RESOLUS a la main (comme tous les
+// plans preview de ce fichier), utilisant le champ declaratif plan.etatVisuel (voir
+// executerSequenceRealisation) -- aucune touche a D/E/F1/F2 eux-memes, aucun second moteur de terrain.
+//
+// PHASE 1b (mise en place, V2 section 6 "petite vie de la scene") : MEME etatVisuel-famille que la
+// phase 1a mais avec des positions legerement ajustees (memes ids d'acteurs) -- le mur se resserre,
+// le gardien se decale, le tireur recule d'un pas. Aucun tir simule, aucune nouvelle verite
+// sportive : juste la transition CSS .live-acteur (1.3s) qui joue naturellement entre deux etats
+// voisins.
+//
+// PHASE 2 (rapprochement) : reutilise TEL QUEL le mecanisme de zoom deja existant pour les plans
+// terrain reels (appliquerCadrageTerrain, effet:'zoom' + cadrage:'moyen', transition CSS .4s deja
+// en place) -- aucune infrastructure nouvelle. `etatVisuel` y reprend l'etat "mise en place" (deja
+// stabilise) uniquement pour eviter que ce plan retombe dans le fallback generique a un seul cote.
+const PHASE_TERRAIN_COUP_FRANC_PREPARE = { type: 'terrain', dureeMs: 1400, cadrage: 'large', etatVisuel: 'coup_franc_prepare' };
+const PHASE_TERRAIN_MISE_EN_PLACE = { type: 'terrain', dureeMs: 800, cadrage: 'large', etatVisuel: 'coup_franc_prepare_mise_en_place' };
+const PHASE_TERRAIN_RAPPROCHEMENT = { type: 'terrain', dureeMs: 500, cadrage: 'moyen', effet: 'zoom', etatVisuel: 'coup_franc_prepare_mise_en_place' };
+const PHASE_TERRAIN_APRES_ARRET = { type: 'terrain', dureeMs: 1200, cadrage: 'large', etatVisuel: 'apres_arret' };
+const PHASE_TERRAIN_ENGAGEMENT_APRES_BUT = { type: 'terrain', dureeMs: 1200, cadrage: 'large', etatVisuel: 'engagement_apres_but' };
+
+const SEQUENCE_PREVIEW_RACCORD_ARRETE = {
+  gabaritId: 'preview_raccord_arrete', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: [PHASE_TERRAIN_COUP_FRANC_PREPARE, PHASE_TERRAIN_MISE_EN_PLACE, PHASE_TERRAIN_RAPPROCHEMENT]
+    .concat(SEQUENCE_PREVIEW_COUP_FRANC_ARRETE.plans)
+    .concat([PHASE_TERRAIN_APRES_ARRET])
+};
+SEQUENCE_PREVIEW_RACCORD_ARRETE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_RACCORD_ARRETE); // 1400+800+500+20990+1200 = 24890ms
+
+const SEQUENCE_PREVIEW_RACCORD_BUT = {
+  gabaritId: 'preview_raccord_but', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: [PHASE_TERRAIN_COUP_FRANC_PREPARE, PHASE_TERRAIN_MISE_EN_PLACE, PHASE_TERRAIN_RAPPROCHEMENT]
+    .concat(SEQUENCE_PREVIEW_COUP_FRANC_BUT.plans)
+    .concat([PHASE_TERRAIN_ENGAGEMENT_APRES_BUT])
+};
+SEQUENCE_PREVIEW_RACCORD_BUT.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_RACCORD_BUT); // 1400+800+500+20290+1200 = 24190ms
+
+// =====================================================================
+// BANC D'ESSAI VISUEL -- liste declarative des scenarios de preview (chantier "banc d'essai
+// visuel", 29 aout 2026, complete avec le scenario stop motion le meme jour)
+// =====================================================================
+// Le panneau construit ses boutons a partir de CETTE liste (aucun bouton code en dur) --
+// ajouter un futur scenario = ajouter une entree ici, jamais toucher initPreviewRealisateur.
+// `disponible` (defaut true) : un scenario dont les assets ne sont pas encore livres peut etre
+// declare avec `disponible:false`, le panneau ne l'affiche alors pas -- "le panneau ne doit
+// afficher que les scenarios disposant reellement de leurs assets" (section 6). Aucun scenario
+// factice n'est ajoute ici : A, B et desormais C disposent tous de vrais assets.
+//
+// MIXTE (section 6, PAS implemente ici -- pas encore demande) : un futur scenario "mixte"
+// (terrain -> illustre fixe -> stop motion -> illustre anime -> terrain) resterait, lui aussi, une
+// simple sequence.plans plus longue -- aucune reecriture d'executerSequenceRealisation/
+// jouerChoreographieCouche necessaire, exactement comme B et C le demontrent deja.
+//
+// MICRO-ANIMATION COURTE (GIF/WebP anime, section 5, PAS implemente -- aucun asset) : verifie,
+// aucune adaptation necessaire. appliquerPlanIllustreRealisation assigne l'asset via
+// `imageEl.src = couche.asset` sur un <img> standard (voir plus haut) -- un navigateur anime
+// nativement un GIF/WebP anime affecte a `<img src>`, independamment du transform CSS de
+// jouerChoreographieCouche (camera et animation intrinseque du fichier sont orthogonales). Rien a
+// changer ici tant qu'aucun tel asset n'existe.
+const SCENARIOS_PREVIEW_REALISATEUR = [
+  {
+    id: 'plan_unique',
+    label: 'A — Plan unique',
+    disponible: true,
+    construireSequence: instant => trouverSequenceCrashTestRasDuSol(instant)
+  },
+  {
+    id: 'multi_angle',
+    label: 'B — Multi-angle — ' + (SEQUENCE_PREVIEW_3_ANGLES.dureeMs / 1000).toFixed(2).replace('.', ',') + ' s',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_3_ANGLES
+  },
+  {
+    id: 'stop_motion',
+    label: 'C — Stop motion',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_STOP_MOTION
+  },
+  {
+    id: 'tension',
+    label: 'D — Tension',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_TENSION
+  },
+  {
+    id: 'trajectoire',
+    label: 'E — Trajectoire',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_TRAJECTOIRE
+  },
+  {
+    id: 'arret',
+    label: 'F1 — Arrêt',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_ARRET
+  },
+  {
+    id: 'but',
+    label: 'F2 — But',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_BUT
+  },
+  {
+    id: 'coup_franc_arrete',
+    label: 'D-E-F1 — Coup franc arrêté',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_COUP_FRANC_ARRETE
+  },
+  {
+    id: 'coup_franc_but',
+    label: 'D-E-F2 — Coup franc but',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_COUP_FRANC_BUT
+  },
+  {
+    id: 'raccord_coup_franc_arrete',
+    label: 'Raccord — Coup franc arrêté',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_RACCORD_ARRETE
+  },
+  {
+    id: 'raccord_coup_franc_but',
+    label: 'Raccord — Coup franc but',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_RACCORD_BUT
+  },
+  {
+    id: 'match_miniature_v2',
+    label: 'V2 — Match miniature continu',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_MATCH_MINIATURE_V2
+  },
+  {
+    id: 'drone_dive_impact_freeze',
+    label: 'Réalisateur — Drone Dive + Impact Freeze',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE
+  },
+  {
+    id: 'freeze_follow_ball',
+    label: 'Réalisateur — Freeze sélectif + Follow Ball',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL
+  },
+  {
+    id: 'orbit_freeze',
+    label: 'Réalisateur — Orbit Freeze',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_ORBIT_FREEZE
+  },
+  {
+    id: 'time_ramp',
+    label: 'Réalisateur — Time Ramp',
+    disponible: true,
+    construireSequence: () => SEQUENCE_PREVIEW_TIME_RAMP
+  }
+];
+
+// Declenche une sequence (n'importe quel scenario du banc d'essai) via la VRAIE
+// executerSequenceRealisation, avec le meme nettoyage-avant-relance que fermerLiveMatchReel
+// (jamais de timer orphelin entre deux clics, quel que soit le scenario). Deja generique (prend
+// n'importe quelle `sequence` conforme au schema plan/couches) : ajouter un futur scenario de test
+// ne demande qu'une entree dans SCENARIOS_PREVIEW_REALISATEUR -- jamais un nouveau moteur de preview.
+function lancerSequencePreview(sequence, def, club, instant) {
+  if (!sequence) return;
+  _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
+  _liveViewerTimeoutsAnimation = [];
+  // Coupe immediatement toute video du scenario precedent -- les timers ci-dessus empechent de
+  // NOUVEAUX changements de plan, mais une video deja lancee par un plan passe continuerait sinon
+  // de jouer (et de faire du son) pendant tout le nouveau scenario (chantier "support video du
+  // realisateur preview", 29 aout 2026).
+  const videoEnCours = document.getElementById('live-realisateur-illustre-video');
+  if (videoEnCours) { videoEnCours.pause(); videoEnCours.currentTime = 0; videoEnCours.style.display = 'none'; }
+  // Remet a plat le score local du preview avant tout nouveau scenario -- meme discipline que la
+  // video (chantier "raccord mini-terrain <-> D/E/F", 29 aout 2026) : un changement de scenario en
+  // plein "Raccord -- Coup franc but" ne doit jamais laisser "1 - 0" affiche sur un scenario suivant
+  // qui n'a rien a voir.
+  const scoreEnCours = document.getElementById('live-score-mini');
+  if (scoreEnCours) scoreEnCours.textContent = '0 - 0';
+  // Masque tout acteur V2 residuel et restaure les marqueurs V1 avant tout nouveau scenario
+  // (chantier "mini-terrain V2", 29 aout 2026) -- meme discipline que le score/la video : un
+  // changement de scenario en plein "Raccord" ne doit jamais laisser une silhouette affichee sur
+  // un scenario V1 (A/B/C/D/E/F1/F2) qui n'a rien a voir.
+  appliquerSceneActeursPreview([]);
+  const joueurHomeEnCours = document.getElementById('live-joueur-home');
+  const joueurAwayEnCours = document.getElementById('live-joueur-away');
+  if (joueurHomeEnCours) joueurHomeEnCours.style.display = '';
+  if (joueurAwayEnCours) joueurAwayEnCours.style.display = '';
+  // Remet a plat la duree de transition du ballon avant tout nouveau scenario (chantier
+  // "choregraphie spatiale coherente", 29 aout 2026) -- sans ce reset, une transition preview
+  // ralentie (positionnerBallonPreview, 1,5-4s) laissee par "V2 -- Match miniature continu"
+  // contaminerait le ballon des scenarios A/B/C/D-E-F1/D-E-F2/raccords, qui s'attendent tous a la
+  // transition CSS par defaut (.5s) de positionnerBallon, jamais touchee par ailleurs.
+  const ballonEnCours = document.getElementById('live-ballon');
+  if (ballonEnCours) ballonEnCours.style.transitionDuration = '';
+  const label = document.getElementById('live-action-label');
+  if (label) label.textContent = def.label + ' — ' + club.nom; // meme habillage que jouerMicroAction
+  executerSequenceRealisation(sequence, instant, def, club);
+}
+
+function initPreviewRealisateur() {
+  if (new URLSearchParams(window.location.search).get('footballPreview') !== '1') return;
+  if (document.getElementById('live-mini-terrain')) return; // un live reel est deja monte sur cette page, on n'interfere pas
+
+  const home = getClub('olympique-luthecia');
+  const away = getClub('cheminote-montrouge');
+  const def = CATALOGUE_MICRO_ACTIONS['duel'];
+  const instant = { type: 'duel', cote: 'home' };
+
+  // Boutons construits depuis SCENARIOS_PREVIEW_REALISATEUR (banc d'essai, section 2/6) -- seuls
+  // les scenarios `disponible !== false` sont affiches (aucun placeholder pour un scenario dont
+  // les assets ne sont pas encore livres).
+  const scenariosVisibles = SCENARIOS_PREVIEW_REALISATEUR.filter(s => s.disponible !== false);
+  const boutonsHtml = scenariosVisibles.map(s =>
+    '<button id="preview-realisateur-btn-' + s.id + '" style="width:100%;margin-top:.4rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">▶ ' + s.label + '</button>'
+  ).join('');
+
+  // Boutons du mode grand ecran (memes scenarios, memes ids de gabarit, prefixe "grand" pour
+  // eviter toute collision avec les boutons du petit panneau).
+  const boutonsGrandHtml = scenariosVisibles.map(s =>
+    '<button id="preview-realisateur-grand-btn-' + s.id + '" style="font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">▶ ' + s.label + '</button>'
+  ).join('');
+
+  // Robustesse ergonomique (correctif du 29 aout 2026, CORRIGE le 30 aout 2026 -- Fred ne
+  // pouvait plus atteindre TEST A/B/C en production). CAUSE FACTUELLE (lecture directe du layout,
+  // jamais supposee) : l'ancien schema reposait sur #preview-realisateur-mont en flex:0 0 auto
+  // (jamais retreci, prend TOUJOURS sa hauteur naturelle) et sur UNE SEULE zone flex:1;min-height:0
+  // pour absorber tout le reste (liste de scenarios + bloc debug ajoute le 30 aout) -- sur un
+  // viewport pas assez haut, titre+mont pouvaient a eux seuls approcher max-height, ecrasant cette
+  // zone flex:1 vers une hauteur quasi nulle : le contenu qu'elle contient (scenarios, PUIS le bloc
+  // debug/TEST A/B/C ajoutes apres coup) devenait invisible, sans meme un ascenseur exploitable.
+  // Corrige en faisant defiler le PANNEAU ENTIER comme un seul bloc (overflow-y:auto sur
+  // #preview-realisateur-panneau lui-meme, plus de sous-zone a hauteur retrecissable) : le
+  // mini-terrain reste la premiere chose visible a l'ouverture (confortablement visible, jamais
+  // retreci), et TOUT le reste (scenarios, TEST A/B/C, trace) est TOUJOURS atteignable en
+  // descendant, quelle que soit la hauteur du navigateur -- jamais une hauteur nulle possible.
+  // max-height:calc(100vh - 2rem) inchange (le panneau ne grandit pas demesurement, il defile).
+  const panneau = document.createElement('div');
+  panneau.id = 'preview-realisateur-panneau';
+  panneau.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:500;width:340px;max-width:90vw;background:#0d0b05;border:1px solid #8a6a20;padding:.9rem;font-family:inherit;box-shadow:0 4px 20px rgba(0,0,0,.6);box-sizing:border-box;max-height:calc(100vh - 2rem);overflow-y:auto;overflow-x:hidden';
+  panneau.innerHTML =
+    '<div style="font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:.85rem;margin-bottom:.6rem">🎬 PREVIEW RÉALISATEUR — banc d\'essai</div>' +
+    '<div id="preview-realisateur-mont"></div>' +
+    '<div id="preview-realisateur-liste-scroll">' +
+    boutonsHtml +
+    '</div>' +
+    '<div>' +
+    '<button id="preview-realisateur-btn-grand-ecran" style="width:100%;margin-top:.6rem;font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.5rem;border:1px solid #7a6a48;background:transparent;color:#c0b090;cursor:pointer">⛶ Grand écran</button>' +
+    '<div style="font-size:.68rem;color:#7a6a48;margin-top:.5rem">Outil de mise au point — aucune écriture championnat, aucun PA, aucun effet canonique. Aucun scénario de preview n\'apparaît en match réel.</div>' +
+    '</div>';
+  document.body.appendChild(panneau);
+
+  // Overlay grand format (chantier "grand ecran", 29 aout 2026) : NE construit PAS un second
+  // moteur de preview -- au clic, le shell DOM existant (#live-mini-terrain, construit UNE SEULE
+  // FOIS ci-dessus par construireSceneMiniTerrain) est simplement DEPLACE (Node.appendChild sur un
+  // noeud deja existant le detache et le rattache, sans clone ni nouveaux ids) depuis le petit
+  // support vers ce grand support, puis inversement a la fermeture. executerSequenceRealisation/
+  // jouerChoreographieCouche continuent de cibler les memes ids partout ou se trouve le noeud.
+  const grandEcran = document.createElement('div');
+  grandEcran.id = 'preview-realisateur-grand-ecran';
+  grandEcran.style.cssText = 'display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.96);flex-direction:column;align-items:center;justify-content:center;padding:2rem;box-sizing:border-box';
+  grandEcran.innerHTML =
+    '<div style="width:100%;max-width:1600px;display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">' +
+    '<div style="font-family:\'Bebas Neue\',sans-serif;letter-spacing:.08em;color:#C9A84C;font-size:1rem">🎬 GRAND ÉCRAN — banc d\'essai</div>' +
+    '<button id="preview-realisateur-grand-fermer" style="font-family:\'Bebas Neue\',sans-serif;font-size:.8rem;letter-spacing:.08em;padding:.4rem .9rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">✕ Fermer (Échap)</button>' +
+    '</div>' +
+    '<div id="preview-realisateur-grand-mont" style="width:min(92vw,1600px);max-height:76vh;overflow:auto"></div>' +
+    '<div style="display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap;justify-content:center">' + boutonsGrandHtml + '</div>';
+  document.body.appendChild(grandEcran);
+
+  document.getElementById('preview-realisateur-mont').innerHTML = construireSceneMiniTerrain('preview-crash-test', home, away);
+
+  scenariosVisibles.forEach(s => {
+    document.getElementById('preview-realisateur-btn-' + s.id).addEventListener('click', () => {
+      lancerSequencePreview(s.construireSequence(instant), def, home, instant);
+    });
+    document.getElementById('preview-realisateur-grand-btn-' + s.id).addEventListener('click', () => {
+      lancerSequencePreview(s.construireSequence(instant), def, home, instant);
+    });
+  });
+
+  // Deplace le shell existant (jamais de clone) du petit support vers le grand, et inversement --
+  // ouverture ne touche jamais aux timers en cours (la sequence en train de jouer continue) ;
+  // fermeture nettoie systematiquement (memes primitives que lancerSequencePreview) pour ne
+  // jamais laisser un cadrage/zoom fige avant la prochaine ouverture.
+  function ouvrirGrandEcran() {
+    const scene = document.getElementById('live-mini-terrain');
+    const grandMont = document.getElementById('preview-realisateur-grand-mont');
+    if (!scene || !grandMont) return;
+    grandMont.appendChild(scene);
+    document.getElementById('preview-realisateur-grand-ecran').style.display = 'flex';
+  }
+  function fermerGrandEcran() {
+    const overlay = document.getElementById('preview-realisateur-grand-ecran');
+    if (!overlay || overlay.style.display === 'none') return;
+    _liveViewerTimeoutsAnimation.forEach(id => clearTimeout(id));
+    _liveViewerTimeoutsAnimation = [];
+    reinitialiserSceneApresSequenceRealisation(true);
+    const scene = document.getElementById('live-mini-terrain');
+    const petitMont = document.getElementById('preview-realisateur-mont');
+    if (scene && petitMont) petitMont.appendChild(scene);
+    overlay.style.display = 'none';
+  }
+  document.getElementById('preview-realisateur-btn-grand-ecran').addEventListener('click', ouvrirGrandEcran);
+  document.getElementById('preview-realisateur-grand-fermer').addEventListener('click', fermerGrandEcran);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') fermerGrandEcran(); });
+
+  // ---------------------------------------------------------------------------
+  // PONT INTEGRATION IA -> EXECUTEUR EXISTANT (LOTS 8/9/14/15, chantier "industrialisation du
+  // realisateur", 30 aout 2026 -- corrige le meme jour, chantier "instrumentation des clics debug
+  // + montage continu", suite au retour de Fred en production)
+  // ---------------------------------------------------------------------------
+  // Additif PUR : un bouton + un panneau de trace en plus, AUCUN bouton/scenario existant
+  // modifie. Route TOUJOURS vers la MEME executerSequenceRealisation/lancerSequencePreview que les
+  // boutons ci-dessus (jamais un second moteur d'execution) -- seule la SELECTION en amont change
+  // (RealisateurIA.selectionnerRealisation, cf. plateau-football-realisateur-ia.js, module pur sans
+  // DOM) au lieu d'un clic manuel sur un scenario precis. `jouerMicroAction` (point d'entree du
+  // vrai match live) N'EST PAS touche par ce pont.
+  //
+  // CAUSE FACTUELLE DES "CLICS QUI NE REAGISSENT PAS TOUJOURS" (identifiee par instrumentation +
+  // mesure headless AVANT tout correctif, jamais par supposition -- voir rapport du chantier) :
+  // la version precedente de ce pont resolvait `plan.selectedGrammar` UNIQUEMENT via
+  // SCENARIOS_PREVIEW_REALISATEUR.find(...) puis faisait un `return` silencieux si rien n'etait
+  // trouve. Or (a) les gabarits de PRODUCTION (gabarit_montage_0..5, poids 1 chacun -- les plus
+  // FREQUEMMENT choisis pour une micro-action) n'ont JAMAIS d'entree dans cette liste (ils ne sont
+  // demontres qu'en match reel), et (b) le gabarit crash_test_ras_du_sol porte un id DIFFERENT de
+  // son bouton preview ('plan_unique'). Mesure factuelle sur 2000 clics simules AVANT correctif :
+  // 51.4% resolus, 39.5% silencieux (gabarit production sans scenario preview), 8.3% silencieux
+  // mais LEGITIMES (plan null sur un carton adversarial de la rotation), 0.8% silencieux par id
+  // mismatch -- soit environ un clic sur deux sans aucune reaction visible. Correctif applique :
+  // resoudre les grammaires `source==='production'` via trouverSequenceProductionAvecGabaritId
+  // (meme principe que trouverSequenceCrashTestRasDuSol, deja valide) au lieu de les ignorer.
+  if (window.RealisateurIA) {
+    const memoireDebugIA = RealisateurIA.creerMemoireRealisateur();
+    // Compteurs inspectables (console navigateur : window.__debugRealisateurClics) -- permettent de
+    // distinguer un clic non recu (recus n'augmente pas) d'un clic recu mais sans reaction visible
+    // (recus augmente, lancements n'augmente pas).
+    window.__debugRealisateurClics = { recus: 0, respirations: 0, planNul: 0, resolutionEchouee: 0, lancements: 0 };
+    // Rotation de situations REPRESENTATIVES (micro-actions variees + chaine coup franc D/E/F1/F2
+    // + un carton adversarial) -- couvre les cas essentiels sans faire tourner un vrai match.
+    const situationsDebugIA = [
+      { microAction: 'circulation', cote: 'home', minute: 12, ecartScore: 0, pressionRecente: 0 },
+      { microAction: 'duel', cote: 'home', minute: 14, ecartScore: 0, pressionRecente: 1 },
+      { microAction: 'course', cote: 'away', minute: 18, ecartScore: 0, pressionRecente: 1 },
+      { microAction: 'centre', cote: 'home', minute: 22, ecartScore: 0, pressionRecente: 2 },
+      { microAction: 'frappe', cote: 'home', minute: 23, ecartScore: 0, pressionRecente: 3 },
+      { microAction: 'interception', cote: 'away', minute: 30, ecartScore: 0, pressionRecente: 1 },
+      { microAction: 'degagement', cote: 'away', minute: 35, ecartScore: -1, pressionRecente: 0 },
+      { coupFrancEtape: 'tension', minute: 40 },
+      { coupFrancEtape: 'trajectoire', minute: 40 },
+      { coupFrancEtape: 'arret', coupFrancResultat: 'arret', minute: 40 },
+      { coupFrancEtape: 'but', coupFrancResultat: 'but', minute: 41 },
+      { canonique: { type: 'carton', joueur: null }, minute: 44 }
+    ];
+    let indexDebugIA = 0;
+
+    const blocDebugIA = document.createElement('div');
+    blocDebugIA.style.cssText = 'margin-top:.6rem;padding-top:.6rem;border-top:1px dashed #4a3c22';
+    blocDebugIA.innerHTML =
+      '<button id="preview-realisateur-ia-btn" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.75rem;letter-spacing:.06em;padding:.45rem;border:1px dashed #6a9aca;background:transparent;color:#6a9aca;cursor:pointer">🤖 Sélection IA (debug, situation suivante)</button>' +
+      '<div style="display:flex;gap:.3rem;margin-top:.35rem">' +
+      '<button id="preview-realisateur-test-a" style="flex:1;font-size:.68rem;padding:.35rem;border:1px solid #4a3c22;background:transparent;color:#8a9aa8;cursor:pointer">TEST A</button>' +
+      '<button id="preview-realisateur-test-b" style="flex:1;font-size:.68rem;padding:.35rem;border:1px solid #4a3c22;background:transparent;color:#8a9aa8;cursor:pointer">TEST B</button>' +
+      '<button id="preview-realisateur-test-c" style="flex:1;font-size:.68rem;padding:.35rem;border:1px solid #4a3c22;background:transparent;color:#8a9aa8;cursor:pointer">TEST C</button>' +
+      '</div>' +
+      '<div style="font-size:.6rem;color:#5a5040;margin-top:.25rem">TEST A/B/C : force directement la grammaire (contournent le tirage pondere) -- QA uniquement, ne modifient AUCUNE probabilite du selecteur automatique.</div>' +
+      '<pre id="preview-realisateur-ia-trace" style="margin-top:.4rem;max-height:280px;overflow:auto;font-size:.62rem;line-height:1.35;color:#8a9aa8;background:#05070a;padding:.4rem;border:1px solid #2a3038;white-space:pre-wrap"></pre>';
+    // Placement DANS la zone deja scrollable (correctif "risque de mise en page", 30 aout 2026) --
+    // le panneau grandit a chaque chantier (commentaire d'origine du 29 aout 2026 sur ce meme
+    // risque pour les boutons de scenario) ; un bloc ajoute en sibling FIXE de `panneau` pouvait,
+    // sur un viewport bas, se retrouver partiellement/totalement hors de `max-height` (overflow
+    // hidden, pas de scroll) et donc injoignable au clic -- cause plausible supplementaire des
+    // "clics non recus". En le mettant a la fin de la liste deja scrollable, il reste TOUJOURS
+    // atteignable, exactement comme les boutons de scenario eux-memes.
+    const zoneScroll = document.getElementById('preview-realisateur-liste-scroll');
+    (zoneScroll || panneau).appendChild(blocDebugIA);
+
+    // Resout une grammaire choisie (par le selecteur OU force par TEST A/B/C) vers une VRAIE
+    // sequence DOM. Retourne {sequence, methode} ou {sequence:null, methode} si aucune resolution
+    // n'est possible -- JAMAIS d'exception, toujours une reponse inspectable (LOT 14).
+    function resoudreSequenceDepuisGrammaire(selectedGrammar, situation) {
+      const grammaire = RealisateurIA.REGISTRE_GRAMMAIRES_REALISATEUR.find(function (g) { return g.id === selectedGrammar; });
+      if (grammaire && grammaire.source === 'production') {
+        const contexte = { microAction: situation.microAction, cote: situation.cote || 'home' };
+        const sequence = trouverSequenceProductionAvecGabaritId(selectedGrammar, contexte);
+        return { sequence: sequence, methode: 'production (trouverSequenceProductionAvecGabaritId)', grammaire: grammaire };
+      }
+      const scenario = SCENARIOS_PREVIEW_REALISATEUR.find(function (s) { return s.id === selectedGrammar; });
+      if (scenario) return { sequence: scenario.construireSequence(instant), methode: 'preview-demo (SCENARIOS_PREVIEW_REALISATEUR)', grammaire: grammaire };
+      return { sequence: null, methode: 'aucune (id "' + selectedGrammar + '" introuvable dans les deux registres)', grammaire: grammaire };
+    }
+
+    // ETAT "EN COURS" (chantier "audit du catalogue visuel", 30 aout 2026) : cause factuelle
+    // etablie par test instrumente (timers reels, voir rapport) de "C vu comme une seule image" --
+    // lancerSequencePreview n'a AUCUN verrou (verifie par lecture directe du code) : un second
+    // lancement, quel qu'il soit (bouton debug, TEST A/B/C, OU N'IMPORTE LEQUEL des 16 boutons
+    // manuels existants -- comportement PRE-EXISTANT, pas introduit par ce chantier), efface tous
+    // les timers en attente du lancement precedent et le remplace, silencieusement. Ce chantier ne
+    // change PAS ce mecanisme (portee du diagnostic = catalogue/resolution, pas redesign de
+    // l'interaction du banc d'essai) -- il rend seulement l'interruption VISIBLE dans la trace.
+    window.__debugRealisateurEnCours = null;
+    function signalerLancement(selectedGrammar, sequence, grammaire) {
+      window.__debugRealisateurEnCours = {
+        selectedGrammar: selectedGrammar,
+        nbPlans: sequence.plans.length,
+        lanceA: Date.now(),
+        dureeAttendueMs: (grammaire && typeof grammaire.dureeMsAttendueApprox === 'number') ? grammaire.dureeMsAttendueApprox : null
+      };
+    }
+    function detecterInterruptionPrecedente() {
+      const p = window.__debugRealisateurEnCours;
+      if (!p || p.dureeAttendueMs == null) return null;
+      const msEcoules = Date.now() - p.lanceA;
+      if (msEcoules < p.dureeAttendueMs) {
+        return { id: p.selectedGrammar, nbPlans: p.nbPlans, msEcoules: msEcoules, msRestants: p.dureeAttendueMs - msEcoules,
+          motif: 'interrompue par ce nouveau clic avant sa fin naturelle -- comportement du banc d\'essai (aucun verrou), pas une resolution partielle' };
+      }
+      return null;
+    }
+
+    // Verification d'identite SELECTED -> RESOLVED (section 11) : compare le nombre de plans
+    // reellement obtenus au nombre attendu declare dans le registre (nbPlansAttendu, mesure sur les
+    // vraies constantes source). Un ecart signalerait une resolution vers la mauvaise unite --
+    // jamais observe en pratique (voir rapport), mais verifie a CHAQUE clic, pas seulement en test.
+    function vererifierIdentiteResolution(grammaire, sequence) {
+      if (!grammaire || !sequence) return null;
+      const attendu = grammaire.nbPlansAttendu;
+      const obtenu = sequence.plans.length;
+      return { attendu: attendu, obtenu: obtenu, identite: attendu === obtenu ? 'OK' : 'MISMATCH -- a investiguer' };
+    }
+
+    function traiterSelection(situation, selectedGrammarForce, memoire, planEtTrace) {
+      const interruptionPrecedente = detecterInterruptionPrecedente();
+      const etapes = ['clic_recu', 'situation_generee'];
+      let plan, trace;
+      if (planEtTrace) { plan = planEtTrace.plan; trace = planEtTrace.trace; etapes.push('selection_terminee'); }
+      else { plan = { selectedGrammar: selectedGrammarForce, intention: null, intensity: null, isRespiration: false, forceParTest: true }; trace = { rejets: [], rejetsRaccord: [] }; etapes.push('selection_forcee_test_qa'); }
+
+      let resolution = null, etatExecuteur = 'aucune tentative de lancement', identiteResolution = null;
+      if (!plan) {
+        window.__debugRealisateurClics.planNul++;
+        etapes.push('selection_sans_plan');
+        etatExecuteur = 'aucun lancement -- ' + (trace.rejetGlobal || 'raison inconnue');
+      } else if (plan.isRespiration) {
+        window.__debugRealisateurClics.respirations++;
+        etapes.push('respiration_choisie');
+        etatExecuteur = 'aucun lancement (volontaire) -- respiration : le mini-terrain courant continue tel quel';
+      } else {
+        resolution = resoudreSequenceDepuisGrammaire(plan.selectedGrammar, situation);
+        etapes.push('plan_resolu:' + resolution.methode);
+        if (!resolution.sequence) {
+          window.__debugRealisateurClics.resolutionEchouee++;
+          etapes.push('resolution_echouee');
+          etatExecuteur = 'aucun lancement -- resolution DOM introuvable malgre un plan valide (a signaler si persistant)';
+        } else {
+          identiteResolution = vererifierIdentiteResolution(resolution.grammaire, resolution.sequence);
+          etapes.push('lancement_demande');
+          etatExecuteur = 'lancement via lancerSequencePreview (aucun verrou dans l’executeur -- toute sequence en cours est interrompue proprement puis remplacee)';
+          lancerSequencePreview(resolution.sequence, def, home, instant);
+          signalerLancement(plan.selectedGrammar, resolution.sequence, resolution.grammaire);
+          window.__debugRealisateurClics.lancements++;
+          etapes.push('sequence_lancee');
+        }
+      }
+      etapes.push('fin_traitement_clic');
+
+      const traceEl = document.getElementById('preview-realisateur-ia-trace');
+      if (traceEl) {
+        traceEl.textContent = JSON.stringify({
+          etapesPipeline: etapes,
+          compteursSession: window.__debugRealisateurClics,
+          interruptionDeLaRealisationPrecedente: interruptionPrecedente,
+          situation: situation,
+          realisationPrecedente: trace.realisationPrecedente || null,
+          etatVisuelSortiePrecedent: trace.etatSortiePrecedent || null,
+          intention: trace.intention || null,
+          intensite: trace.intensite != null ? trace.intensite : null,
+          candidatsRejetesCompatibilite: trace.rejets,
+          candidatsRejetesRaccord: trace.rejetsRaccord,
+          candidatsPonderes: trace.candidatsPonderes || null,
+          selected: plan ? plan.selectedGrammar : null,
+          selectedForceParTestQA: !!(plan && plan.forceParTest),
+          statutGrammaire: resolution && resolution.grammaire ? resolution.grammaire.statut : null,
+          resolutionMethode: resolution ? resolution.methode : null,
+          identiteSelectedResolved: identiteResolution,
+          dureeAttendueMs: resolution && resolution.grammaire ? resolution.grammaire.dureeMsAttendueApprox : null,
+          etatExecuteur: etatExecuteur,
+          nouvelEtatVisuelSortie: (trace.etatSortieChoisi) || null
+        }, null, 2);
+      }
+    }
+
+    document.getElementById('preview-realisateur-ia-btn').addEventListener('click', function () {
+      // ETAPE 1 : reception du clic (compteur inspectable -- si ce nombre n'augmente jamais au clic
+      // reel, la cause est "clic non recu", ex. element hors-viewport/recouvert).
+      window.__debugRealisateurClics.recus++;
+      const situation = situationsDebugIA[indexDebugIA % situationsDebugIA.length];
+      indexDebugIA++;
+      const resultat = RealisateurIA.selectionnerRealisation({
+        situation: situation, seed: 'debug-panneau-' + Date.now(), memoire: memoireDebugIA
+      });
+      traiterSelection(situation, null, memoireDebugIA, resultat);
+    });
+
+    // TEST A/B/C (section 15 de la consigne du 30 aout 2026, QA uniquement) : force directement la
+    // grammaire, CONTOURNE entierement le tirage pondere -- jamais un changement des probabilites
+    // normales du selecteur automatique, seulement un moyen de verifier l'integrite d'une
+    // realisation precise a la demande.
+    const situationTestDuel = { microAction: 'duel', cote: 'home', minute: 30, ecartScore: 0, pressionRecente: 1 };
+    document.getElementById('preview-realisateur-test-a').addEventListener('click', function () {
+      window.__debugRealisateurClics.recus++;
+      traiterSelection(situationTestDuel, 'crash_test_ras_du_sol', null, null);
+    });
+    document.getElementById('preview-realisateur-test-b').addEventListener('click', function () {
+      window.__debugRealisateurClics.recus++;
+      traiterSelection(situationTestDuel, 'multi_angle', null, null);
+    });
+    document.getElementById('preview-realisateur-test-c').addEventListener('click', function () {
+      window.__debugRealisateurClics.recus++;
+      traiterSelection(situationTestDuel, 'stop_motion', null, null);
+    });
+
+    // ---------------------------------------------------------------------------
+    // TEST MATCH NARRATIF (chantier "du jukebox a la narration", 30 aout 2026, section 17)
+    // ---------------------------------------------------------------------------
+    // Demonstrateur : joue une SUITE de situations synthetiques a travers la VRAIE API du monteur
+    // (RealisateurIA.construireArcNarratif -- jamais un scenario fige code a la main pour "faire
+    // joli"). L'orchestrateur attend la fin PREVUE de chaque beat (dureeMsAttendueApprox du
+    // registre) avant de lancer le suivant -- aucun chevauchement volontaire (section 19).
+    const blocMatchNarratif = document.createElement('div');
+    blocMatchNarratif.style.cssText = 'margin-top:.6rem;padding-top:.6rem;border-top:1px dashed #4a3c22';
+    blocMatchNarratif.innerHTML =
+      '<button id="preview-match-narratif-btn" style="width:100%;font-family:\'Bebas Neue\',sans-serif;font-size:.78rem;letter-spacing:.06em;padding:.5rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">🎬 TEST MATCH NARRATIF</button>' +
+      '<button id="preview-match-narratif-stop" style="width:100%;margin-top:.3rem;font-size:.68rem;padding:.35rem;border:1px solid #7a4a4a;background:transparent;color:#c08080;cursor:pointer">⏹ Stop</button>' +
+      '<div id="preview-match-narratif-statut" style="font-size:.65rem;color:#8a9aa8;margin-top:.35rem;min-height:1.2em"></div>' +
+      '<pre id="preview-match-narratif-trace" style="margin-top:.3rem;max-height:260px;overflow:auto;font-size:.6rem;line-height:1.35;color:#8a9aa8;background:#05070a;padding:.4rem;border:1px solid #2a3038;white-space:pre-wrap"></pre>';
+    (zoneScroll || panneau).appendChild(blocMatchNarratif);
+
+    // Generateur de situations DEMO : meme forme de situation que genererMatchSynthetique du
+    // simulateur headless (plateau-football-realisateur-simulateur.js), reecrit ici sans
+    // dependance Node -- mix delibere de phases calmes/vives/pression + UNE chaine coup franc +
+    // UN but canonique en jeu ouvert (montre honnetement le pass-through, rien invente) + UN
+    // carton adversarial (prouve R1 en direct). Seed base sur Date.now() : chaque lancement
+    // montre une variante differente, jamais une demo figee.
+    function genererSituationsMatchNarratifDemo(seedBase) {
+      const rng = RealisateurIA.creerPRNGDeterministeRia(RealisateurIA.hashChaineVersUint32Ria('demo-match-narratif-' + seedBase));
+      const MICRO_ACTIONS_CALMES = ['circulation', 'degagement', 'sortie', 'touche', 'remise'];
+      const MICRO_ACTIONS_VIVES = ['duel', 'interception', 'course', 'centre', 'frappe'];
+      const TOUTES = MICRO_ACTIONS_CALMES.concat(MICRO_ACTIONS_VIVES);
+      const situations = [];
+      let pression = 0;
+      function ajouterPhase(n, listeActions, minuteDebut) {
+        for (let i = 0; i < n; i++) {
+          pression = rng() < 0.4 ? Math.min(3, pression + 1) : Math.max(0, pression - 1);
+          situations.push({
+            microAction: listeActions[Math.floor(rng() * listeActions.length)],
+            cote: rng() < 0.5 ? 'home' : 'away',
+            minute: minuteDebut + i, ecartScore: 0, pressionRecente: pression
+          });
+          if (listeActions === TOUTES && rng() < 0.1) situations.push({ canonique: { type: 'occasion', joueur: null }, minute: minuteDebut + i });
+        }
+      }
+      ajouterPhase(6, MICRO_ACTIONS_CALMES, 1);
+      ajouterPhase(10, TOUTES, 7);
+      situations.push({ coupFrancEtape: 'tension', minute: 18 });
+      situations.push({ coupFrancEtape: 'trajectoire', minute: 18 });
+      const resolutionCoupFranc = rng() < 0.5 ? 'arret' : 'but';
+      situations.push({ coupFrancEtape: resolutionCoupFranc, coupFrancResultat: resolutionCoupFranc, minute: 18 });
+      ajouterPhase(8, TOUTES, 19);
+      situations.push({ canonique: { type: 'but', joueur: 'Joueur Demo' }, minute: 28 });
+      ajouterPhase(6, MICRO_ACTIONS_CALMES, 29);
+      situations.push({ canonique: { type: 'carton', joueur: 'Joueur Demo Adverse' }, minute: 35 });
+      ajouterPhase(10, TOUTES, 36);
+      return situations;
+    }
+
+    let _matchNarratifEnCours = false;
+    let _matchNarratifTimeoutIds = [];
+    function arreterMatchNarratif(messageStatut) {
+      _matchNarratifEnCours = false;
+      _matchNarratifTimeoutIds.forEach(function (id) { clearTimeout(id); });
+      _matchNarratifTimeoutIds = [];
+      const statutEl = document.getElementById('preview-match-narratif-statut');
+      if (statutEl && messageStatut) statutEl.textContent = messageStatut;
+    }
+
+    function tracerMatchNarratif(indexSituation, total, situation, trace, arcPlan, beatEnCours) {
+      const traceEl = document.getElementById('preview-match-narratif-trace');
+      if (!traceEl) return;
+      traceEl.textContent = JSON.stringify({
+        situationIndex: (indexSituation + 1) + '/' + total,
+        situation: situation,
+        famille: trace.famille,
+        intensite: trace.intensite,
+        arcPrevu: trace.arcChoisi || (arcPlan ? arcPlan.arc : null),
+        beatsPrevus: trace.beatsPrevus,
+        beatEnCours: beatEnCours || null,
+        dureeMsTotaleApproxArc: arcPlan ? arcPlan.dureeMsTotaleApprox : null,
+        evenementCanonique: situation.canonique || null
+      }, null, 2);
+    }
+
+    function jouerBeatEtContinuer(situation, arcPlan, trace, indexSituation, total, indexBeat, onArcTermine) {
+      if (!_matchNarratifEnCours) return;
+      if (indexBeat >= arcPlan.beats.length) { onArcTermine(); return; }
+      const b = arcPlan.beats[indexBeat];
+      let dureeAttenteMs = 900; // respiration / plan sans lancement : simple pause, mini-terrain courant inchange
+      if (!b.plan.isRespiration) {
+        const resolution = resoudreSequenceDepuisGrammaire(b.plan.selectedGrammar, situation);
+        if (resolution.sequence) {
+          lancerSequencePreview(resolution.sequence, def, home, instant);
+          dureeAttenteMs = RealisateurIA.dureeApproxDepuisRegistre(b.plan.selectedGrammar) || 1500;
+        }
+      }
+      tracerMatchNarratif(indexSituation, total, situation, trace, arcPlan, { role: b.role, selectedGrammar: b.plan.selectedGrammar, dureeMsAttendue: dureeAttenteMs });
+      // Marge de 150ms (jamais un chevauchement volontaire, section 19) : le beat suivant n'est
+      // programme qu'APRES la duree prevue du beat courant, jamais en parallele.
+      const idT = setTimeout(function () {
+        jouerBeatEtContinuer(situation, arcPlan, trace, indexSituation, total, indexBeat + 1, onArcTermine);
+      }, dureeAttenteMs + 150);
+      _matchNarratifTimeoutIds.push(idT);
+    }
+
+    function jouerSituationSuivante(situations, indexSituation, memoire) {
+      if (!_matchNarratifEnCours) return;
+      if (indexSituation >= situations.length) { arreterMatchNarratif('Match narratif termine (' + situations.length + ' situations).'); return; }
+      const situation = situations[indexSituation];
+      const { arcPlan, trace } = RealisateurIA.construireArcNarratif({
+        situation: situation, seed: 'match-narratif-' + Date.now() + '-' + indexSituation, memoire: memoire
+      });
+      const statutEl = document.getElementById('preview-match-narratif-statut');
+      if (statutEl) statutEl.textContent = 'Situation ' + (indexSituation + 1) + '/' + situations.length + ' — famille ' + trace.famille + ' — arc [' + (arcPlan.arc || []).join(' → ') + ']';
+      if (!arcPlan.beats.length) {
+        tracerMatchNarratif(indexSituation, situations.length, situation, trace, arcPlan, null);
+        const idT = setTimeout(function () { jouerSituationSuivante(situations, indexSituation + 1, memoire); }, 900);
+        _matchNarratifTimeoutIds.push(idT);
+        return;
+      }
+      jouerBeatEtContinuer(situation, arcPlan, trace, indexSituation, situations.length, 0, function () {
+        jouerSituationSuivante(situations, indexSituation + 1, memoire);
+      });
+    }
+
+    document.getElementById('preview-match-narratif-btn').addEventListener('click', function () {
+      arreterMatchNarratif(); // toute execution narrative precedente est proprement stoppee avant d'en lancer une nouvelle -- jamais de chevauchement (section 19)
+      _liveViewerTimeoutsAnimation.forEach(function (id) { clearTimeout(id); });
+      _liveViewerTimeoutsAnimation = [];
+      reinitialiserSceneApresSequenceRealisation(true);
+      _matchNarratifEnCours = true;
+      const memoire = RealisateurIA.creerMemoireRealisateur();
+      const situations = genererSituationsMatchNarratifDemo(Date.now());
+      const statutEl = document.getElementById('preview-match-narratif-statut');
+      if (statutEl) statutEl.textContent = 'Demarrage — ' + situations.length + ' situations synthetiques.';
+      jouerSituationSuivante(situations, 0, memoire);
+    });
+    document.getElementById('preview-match-narratif-stop').addEventListener('click', function () {
+      arreterMatchNarratif('Arrete manuellement.');
+    });
+  }
+}
+window.addEventListener('DOMContentLoaded', initPreviewRealisateur);
+
+// Genere UNE FOIS (puis met en cache) la chronologie deterministe d'une phase de jeu (mt1/mt2) --
+// jamais un metronome fixe (intervalles irreguliers), jamais recalculee differemment pour deux
+// spectateurs (seed = identite stable matchKey+phase, jamais une tranche de temps arrondie).
+// Un spectateur qui ouvre en cours de periode calcule EXACTEMENT la meme chronologie et se
+// positionne simplement a l'instant present -- jamais une animation qui repart de zero.
+function genererScenarioNarratifPhase(matchKey, phaseKey, dureePhaseSec) {
+  const cle = matchKey + '-' + phaseKey;
+  if (_liveViewerScenarioCache[cle]) return _liveViewerScenarioCache[cle];
+  const rng = creerPRNGDeterministe(hashChaineVersUint32(cle));
+  const scenario = [];
+  let t = 1 + rng() * 3;
+  while (t < dureePhaseSec - 2) {
+    const cote = rng() < 0.5 ? 'home' : 'away';
+    const type = CLES_TYPES_MICRO_ACTION[Math.floor(rng() * CLES_TYPES_MICRO_ACTION.length)];
+    scenario.push({ t, type, cote });
+    // Une remise en jeu se raconte en plusieurs temps (section 7) : ballon sorti -> touche ->
+    // remise, enchaines naturellement plutot que trois tirages independants.
+    if (type === 'sortie') {
+      t += 1.1 + rng() * 0.6; scenario.push({ t, type: 'touche', cote });
+      t += 1.4 + rng() * 0.8; scenario.push({ t, type: 'remise', cote });
+    }
+    // Une frappe narrative peut se resoudre par un arret local -- jamais garanti, jamais un signal
+    // fiable qu'un but canonique va suivre (section 8 : pas de "grammaire qui trahit le futur").
+    if (type === 'frappe' && rng() < 0.6) {
+      t += 0.9 + rng() * 0.5; scenario.push({ t, type: 'arret', cote: cote === 'home' ? 'away' : 'home' });
+    }
+    t += 2 + rng() * 7; // intervalle irregulier avant la sequence suivante
+  }
+  _liveViewerScenarioCache[cle] = scenario;
+  return scenario;
+}
+
+// Dernier instant du scenario dont le temps ecoule (t) est deja atteint -- purement une lecture
+// de l'horloge reelle, jamais un evenement futur montre en avance.
+function trouverInstantNarratifActuel(scenario, tEcouleSec) {
+  let courant = null;
+  for (const instant of scenario) {
+    if (instant.t > tEcouleSec) break;
+    courant = instant;
+  }
+  return courant;
+}
+
+// Limites reelles d'une phase, deduites UNIQUEMENT de live.kickoffAt (horloge canonique unique)
+// et des constantes de duree deja existantes (DUREE_ECHAUFFEMENT_MS/DUREE_MT1_MS/DUREE_PAUSE_MS/
+// DUREE_MT2_MS, definies plus haut dans ce fichier pour le moteur -- jamais redefinies ici).
+function calculerLimitesPhase(kickoffAtDate, statut) {
+  const k = kickoffAtDate.getTime();
+  if (statut === 'echauffement') return { debut: k - DUREE_ECHAUFFEMENT_MS, duree: DUREE_ECHAUFFEMENT_MS };
+  if (statut === 'mt1') return { debut: k, duree: DUREE_MT1_MS };
+  if (statut === 'mitemps') return { debut: k + DUREE_MT1_MS, duree: DUREE_PAUSE_MS };
+  if (statut === 'mt2') return { debut: k + DUREE_MT1_MS + DUREE_PAUSE_MS, duree: DUREE_MT2_MS };
+  return { debut: k + DUREE_MT1_MS + DUREE_PAUSE_MS + DUREE_MT2_MS, duree: 0 };
+}
+
+// ---- Tick visuel (section 3) : intervalle local uniquement, jamais un appel reseau -- fait
+// progresser le chrono affiche et la narration entre deux refresh de rafraichirLiveMatchReel
+// (6s). Demarre/arrete avec la fenetre de live, jamais laisse tourner apres fermeture. ----
+function demarrerTickVisuel() {
+  arreterTickVisuel();
+  _liveViewerTickVisuel = setInterval(tickVisuelScene, 500);
+  tickVisuelScene();
+}
+function arreterTickVisuel() {
+  if (_liveViewerTickVisuel) { clearInterval(_liveViewerTickVisuel); _liveViewerTickVisuel = null; }
+}
+
+function formaterChronoLive(phaseInfo) {
+  if (phaseInfo.statut === 'echauffement') return 'ÉCHAUFFEMENT';
+  if (phaseInfo.statut === 'mitemps') return 'MI-TEMPS';
+  if (phaseInfo.statut === 'termine') return 'TERMINÉ';
+  const m = phaseInfo.minuteFictive != null ? phaseInfo.minuteFictive : 0;
+  return m + "'";
+}
+
+// Positions (%) des 7 zones le long du terrain, du but propre (0%) au but adverse (100%) --
+// purement decoratif.
+const POSITIONS_ZONES_POURCENT = [8, 22, 36, 50, 64, 78, 92];
+
+function positionnerBallon(indexZoneAbsolu) {
+  const ballon = document.getElementById('live-ballon');
+  if (!ballon) return;
+  const pct = POSITIONS_ZONES_POURCENT[Math.max(0, Math.min(6, indexZoneAbsolu))];
+  ballon.style.left = pct + '%';
+  ballon.style.top = (28 + Math.random() * 44) + '%'; // leger flottement vertical, purement esthetique
+}
+
+// Positionnement PREVIEW du ballon en coordonnees CONTINUES (x/y%), chantier "choregraphie spatiale
+// coherente" (29 aout 2026). NE REMPLACE PAS positionnerBallon (index de zone discret, transition
+// CSS fixe .5s, utilise par A/B/C/D-E-F1/D-E-F2/raccords/moteur reel -- intouche) : fonction
+// STRICTEMENT separee et preview-only, pour les cas ou le ballon doit suivre un "porteur visuel"
+// dont le rythme (1,5-4s) est tres eloigne de la transition fixe de .live-ballon. `dureeMs`
+// (optionnel) surcharge la duree de transition PROPRE a cet appel, exactement comme
+// appliquerSceneActeursPreview le fait deja pour un acteur -- jamais une modification de la regle
+// CSS partagee. reinitialiserSceneApresSequenceRealisation reinitialise deja transitionDuration ET
+// repositionne le ballon via l'ancien positionnerBallon(3) a la fin de toute sequence -- aucun
+// nettoyage supplementaire necessaire cote fin de sequence ; lancerSequencePreview le reinitialise
+// aussi de maniere defensive au demarrage d'un nouveau scenario (voir plus bas).
+function positionnerBallonPreview(xPourcent, yPourcent, dureeMs) {
+  const ballon = document.getElementById('live-ballon');
+  if (!ballon) return;
+  ballon.style.transitionDuration = dureeMs ? (dureeMs + 'ms') : '';
+  ballon.style.left = xPourcent + '%';
+  ballon.style.top = yPourcent + '%';
+}
+function positionnerJoueur(cote, indexZoneAbsolu) {
+  const el = document.getElementById('live-joueur-' + cote);
+  if (!el) return;
+  const pct = POSITIONS_ZONES_POURCENT[Math.max(0, Math.min(6, indexZoneAbsolu))];
+  el.style.left = pct + '%';
+}
+
+// Rendu du plateau multi-acteurs V2, PREVIEW UNIQUEMENT (chantier "mini-terrain V2", 29 aout
+// 2026). Un acteur = pure mise en scene ({id, cote, role, x, y, orientation, visible}) -- AUCUNE
+// intelligence footballistique, AUCUNE collision, AUCUNE statistique, AUCUN calcul de possession :
+// les etats visuels DECRIVENT une scene, cette fonction se contente de POSITIONNER les silhouettes
+// qui la representent. Identite stable (id) prete pour un futur ciblage camera (focus/follow/orbit/
+// freeze cible par id ou par role, ex. document.getElementById('live-acteur-tireur') ou
+// document.querySelectorAll('.live-acteur-role-mur')) -- non implemente ici, juste non bloque.
+// Cree/met a jour SUR PLACE (jamais de rebuild systematique) : deux appels successifs avec les
+// memes ids ne font que repositionner les memes elements DOM -- c'est ce qui permet la transition
+// CSS .live-acteur (1.3s, "petite vie de la scene") de jouer naturellement entre deux etats voisins
+// (ex. coup_franc_prepare -> coup_franc_prepare_mise_en_place). Un acteur absent de la liste courante
+// est simplement masque (jamais supprime), pour une reapparition propre si un futur etat le
+// reintroduit. `vitesseMs` (optionnel) : duree de transition PROPRE a cet appel, sans jamais toucher
+// la regle CSS partagee -- absent, la vitesse par defaut (1.3s, definie dans plateau.html) s'applique.
+// `a.vitesse` (optionnel, chantier "banc d'essai V2 en continu", 29 aout 2026) : SURCHARGE
+// individuelle par acteur, prioritaire sur `vitesseMs` -- permet des sous-groupes qui ne bougent pas
+// tous a la meme vitesse (porteur/action plus vif que la defense qui replace), sans scheduler ni
+// second mecanisme : retrocompatible, un acteur qui n'en porte pas suit exactement `vitesseMs`
+// comme avant.
+// `a.delay` (optionnel, ms -- chantier "lissage du mini-terrain V2 en continu", 29 aout 2026) :
+// decale le DEPART de la mise a jour de CET acteur via son propre setTimeout (jamais un depart
+// groupe pour toute la scene) -- pousse dans _liveViewerTimeoutsAnimation comme n'importe quel autre
+// timer d'animation (nettoye automatiquement a la fermeture/au changement de scenario, aucun risque
+// de timer residuel). Retrocompatible : un acteur sans `delay` est applique immediatement, exactement
+// comme avant (tous les etats existants -- coup_franc_prepare, apres_arret, etc. -- n'en portent
+// jamais et restent parfaitement inchanges).
+function appliquerSceneActeursPreview(acteurs, vitesseMs) {
+  const conteneur = document.getElementById('live-acteurs');
+  if (!conteneur) return;
+  const idsVus = {};
+  (acteurs || []).forEach(a => {
+    idsVus[a.id] = true;
+    const appliquerActeur = () => {
+      if (_liveViewerAfficheCanoniqueEnCours) return;
+      let el = document.getElementById('live-acteur-' + a.id);
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'live-acteur-' + a.id;
+        el.innerHTML = '<div class="live-acteur-tete"></div><div class="live-acteur-corps"></div>';
+        conteneur.appendChild(el);
+      }
+      el.className = 'live-acteur live-acteur-' + a.cote + (a.role ? ' live-acteur-role-' + a.role : '');
+      el.style.left = a.x + '%';
+      el.style.top = a.y + '%';
+      const vitesseEffective = a.vitesse || vitesseMs;
+      el.style.transitionDuration = vitesseEffective ? (vitesseEffective + 'ms') : '';
+      el.style.setProperty('--acteur-rotation', (a.orientation || 0) + 'deg');
+      el.style.display = a.visible === false ? 'none' : '';
+      // Hooks sprites (LOT 16/17) : attributs data-* INERTES -- aucune regle CSS ne les lit
+      // aujourd'hui (rendu Smartie actif inchange), prepares pour un futur renderer sprite raster.
+      if (a.directionArt) el.dataset.direction = a.directionArt;
+      if (a.mirrored != null) el.dataset.mirrored = String(!!a.mirrored);
+      if (a.animation) el.dataset.animation = a.animation;
+      if (a.animationSpeed != null) el.dataset.animationSpeed = String(a.animationSpeed);
+      if (a.frozen != null) el.dataset.frozen = String(!!a.frozen);
+    };
+    if (a.delay) {
+      const idDelai = setTimeout(appliquerActeur, a.delay);
+      _liveViewerTimeoutsAnimation.push(idDelai);
+    } else {
+      appliquerActeur();
+    }
+  });
+  Array.prototype.forEach.call(conteneur.children, el => {
+    if (!idsVus[el.id.replace('live-acteur-', '')]) el.style.display = 'none';
+  });
+}
+
+// Etats visuels du mini-terrain, PREVIEW UNIQUEMENT (chantier "raccord mini-terrain <-> D/E/F" du
+// 29 aout 2026, etendu au plateau multi-acteurs V2 le meme jour) : positions FIGEES, aucune
+// nouvelle mecanique sportive, aucune simulation tactique -- purement decoratif. `acteurs` (V2) :
+// delegue a appliquerSceneActeursPreview et masque les marqueurs V1 (#live-joueur-home/away,
+// desormais redondants avec les silhouettes). Sans `acteurs` (V1, conserve pour compatibilite),
+// repli sur positionnerJoueur (un seul marqueur par cote) et les marqueurs V1 restent affiches.
+// `ballon` reste positionne par l'UNIQUE mecanisme existant (positionnerBallon) dans les deux cas
+// -- le ballon n'est jamais un acteur, il reste distinct et immediatement identifiable (l'emoji
+// existant). `score` (uniquement sur engagement_apres_but) : texte purement local au DOM du preview
+// (#live-score-mini), jamais lu/ecrit ailleurs, jamais connecte a championnat.data/Supabase --
+// reinitialise a '0 - 0' par reinitialiserSceneApresSequenceRealisation et lancerSequencePreview.
+const ETATS_VISUELS_TERRAIN_PREVIEW = {
+  // Coup franc prepare (V2) -- tireur + 2 partenaires Brise, mur de 3 + 1 defenseur + gardien
+  // distinct (couleur role, aucun asset) cote Luthecia. Nombre minimal juge lisible, pas 22 joueurs.
+  coup_franc_prepare: {
+    ballon: 5,
+    acteurs: [
+      { id: 'tireur',       cote: 'home', role: 'tireur',      x: 72, y: 54, orientation: 90 },
+      { id: 'partenaire_1', cote: 'home',                      x: 63, y: 40 },
+      { id: 'partenaire_2', cote: 'home',                      x: 60, y: 66 },
+      { id: 'mur_1',        cote: 'away', role: 'mur',         x: 87, y: 42 },
+      { id: 'mur_2',        cote: 'away', role: 'mur',         x: 88, y: 50 },
+      { id: 'mur_3',        cote: 'away', role: 'mur',         x: 87, y: 58 },
+      { id: 'defenseur_1',  cote: 'away',                      x: 80, y: 28 },
+      { id: 'gardien',      cote: 'away', role: 'gardien',     x: 95, y: 50, orientation: 270 }
+    ]
+  },
+  // "Petite vie de la scene" (section 6) : MEMES ids, positions legerement ajustees -- le mur se
+  // resserre, le gardien se decale lateralement, le tireur recule d'un pas. Jamais un tir simule.
+  coup_franc_prepare_mise_en_place: {
+    ballon: 5,
+    acteurs: [
+      { id: 'tireur',       cote: 'home', role: 'tireur',      x: 70, y: 52, orientation: 90 },
+      { id: 'partenaire_1', cote: 'home',                      x: 62, y: 38 },
+      { id: 'partenaire_2', cote: 'home',                      x: 59, y: 68 },
+      { id: 'mur_1',        cote: 'away', role: 'mur',         x: 89, y: 41 },
+      { id: 'mur_2',        cote: 'away', role: 'mur',         x: 89, y: 50 },
+      { id: 'mur_3',        cote: 'away', role: 'mur',         x: 89, y: 59 },
+      { id: 'defenseur_1',  cote: 'away',                      x: 81, y: 27 },
+      { id: 'gardien',      cote: 'away', role: 'gardien',     x: 95, y: 47, orientation: 270 }
+    ]
+  },
+  // Apres l'arret (V2) : ballon aupres du gardien, mur dissous (repositionne, plus en formation),
+  // Brise repliee -- aucun tir rejoue, aucune nouvelle verite sportive.
+  apres_arret: {
+    ballon: 6,
+    acteurs: [
+      { id: 'gardien',      cote: 'away', role: 'gardien', x: 93, y: 50 },
+      { id: 'mur_1',        cote: 'away',                  x: 78, y: 40 },
+      { id: 'mur_2',        cote: 'away',                  x: 76, y: 60 },
+      { id: 'tireur',       cote: 'home',                  x: 62, y: 50 },
+      { id: 'partenaire_1', cote: 'home',                  x: 58, y: 35 }
+    ]
+  },
+  // Engagement apres but (V2) : ballon au centre, Luthecia (qui encaisse) reprend le jeu, Brise
+  // repliee dans sa moitie de terrain -- score local uniquement (jamais Supabase/championnat.data).
+  engagement_apres_but: {
+    ballon: 3,
+    score: '1 - 0',
+    acteurs: [
+      { id: 'gardien', cote: 'away', role: 'gardien', x: 94, y: 50 },
+      { id: 'mur_1',   cote: 'away',                  x: 48, y: 46 },
+      { id: 'mur_2',   cote: 'away',                  x: 46, y: 58 },
+      { id: 'tireur',  cote: 'home',                  x: 40, y: 42 },
+      { id: 'partenaire_1', cote: 'home',              x: 38, y: 60 }
+    ]
+  }
+};
+
+// Camera V1 (chantier "camera virtuelle sur mini-terrain continu", 29 aout 2026) : experience
+// visuelle isolee au preview, aucune reecriture de la choregraphie/locomotion V2 deja validee
+// (2fea1af). PRINCIPE (section 1 de la demande) : la scene miniature reste le "monde" (positions
+// x/y des acteurs, jamais recalculees) ; .live-pelouse devient le "viewport" pilote par
+// transform:scale()+translate() -- EXACTEMENT le meme mecanisme que celui deja utilise par
+// appliquerCadrageTerrain pour les plans D/E/F1/F2/A/B/C (cadrage large/moyen/serre), jamais une
+// nouvelle infrastructure. .live-mini-terrain (le parent, overflow:hidden, jamais transforme) agit
+// comme le cadre fixe qui decoupe la pelouse agrandie/deplacee -- aucune coordonnee d'acteur n'est
+// jamais touchee.
+// CIBLE (section 2) : centre = melange 60% position du porteur / 40% centre de la boite englobante
+// du groupe 'actif' -- accompagne PRINCIPALEMENT le porteur/ballon (poids majoritaire) sans jamais
+// centrer au pixel pres (les 40% restants gardent plusieurs acteurs dans le cadrage). Repli sur le
+// centre de TOUS les acteurs si aucun porteur (seul cas : replacement_collectif, plan de cloture
+// large).
+// ZOOM (section 4) : proportionnel a l'etalement horizontal (spread) du groupe actif -- groupe
+// resserre (duel/passe) => zoom module vers CAMERA_SCALE_MAX (1.32, delibere modere, "les Smarties
+// ne doivent pas devenir enormes") ; groupe etale (transition/repli) => reste pres de
+// CAMERA_SCALE_MIN (1, vue generale). Bornes choisies (16/42% d'etalement) pour rester TOUJOURS tres
+// en-deca du champ visible reellement couvert a ce niveau de zoom (jamais d'acteur hors cadre, voir
+// le rapport du chantier pour les valeurs mesurees).
+// CLAMP anti-debordement (section 5, EXIGENCE DURE "jamais de zone vide hors du terrain") : a
+// scale=1 aucun pan n'est possible (la pelouse remplit deja exactement le cadre) -- au-dela, le pan
+// maximal sans reveler de bord est PANLIMIT=50*(1-1/scale) (pourcentage, demontre par la geometrie
+// de transform:scale() translate(), pivot centre par defaut). cx/cy sont systematiquement clampes
+// dans cette fenetre AVANT d'etre convertis en transform -- aucune configuration ne peut jamais
+// sortir la pelouse de son cadre.
+// CONTINUITE (section 3, coeur du chantier -- exactement le probleme deja resolu pour les acteurs en
+// 2fea1af, applique maintenant a la camera) : CAMERA_TRANSITION_MS (2600ms) est DELIBEREMENT plus
+// long que la duree de la quasi-totalite des phases 1-9 (1400-2100ms) -- la camera est donc encore
+// EN MOUVEMENT quand la phase suivante lui assigne une nouvelle cible, et une transition CSS
+// retablie en cours de route repart TOUJOURS de la valeur interpolee courante (jamais de saut,
+// comportement standard du moteur de rendu) : aucun arret programme, aucune frontiere de phase
+// perceptible, une seule courbe continue. Phase 10 (4000ms, plus longue que 2600ms) est la seule ou
+// la camera acheve reellement son mouvement -- plan de cloture large volontairement stable.
+// PAS D'ANTICIPATION DE TRAJECTOIRE (section 4, explicitement optionnelle) : ecartee ici -- le
+// simple fait que CAMERA_TRANSITION_MS depasse la duree de phase suffit deja a garantir la continuite
+// demandee (section 3/8), une anticipation aurait ajoute une dependance supplementaire (prochaine
+// destination) sans necessite averee pour ce V1 ("extension minimale", section 5 de la demande).
+const CAMERA_SCALE_MIN = 1;
+const CAMERA_SCALE_MAX = 1.32;
+const CAMERA_SPREAD_TIGHT_POURCENT = 16;
+const CAMERA_SPREAD_WIDE_POURCENT = 42;
+const CAMERA_TRANSITION_MS = 2600;
+const CAMERA_POIDS_PORTEUR = 0.6;
+// Camera V1.5 -- travelling anticipatif (chantier "travelling anticipatif du porteur", 29 aout
+// 2026) : la camera V1 (ci-dessus) suit deja le porteur/groupe actif mais le CENTRE exactement --
+// aucune impression de direction d'attaque. Ajoute ICI un DECALAGE supplementaire dans le sens du
+// deplacement du porteur, en reutilisant SA SEULE donnee deja declaree (acteur.orientation +
+// acteur.deplacement, calcules par acteurMatchMiniature a partir du delta avec la phase precedente
+// -- jamais une nouvelle inference football, exactement l'option de repli explicitement autorisee
+// par la demande : "delta entre position precedente et position cible actuelle"). Absent sur la
+// toute premiere phase de la demo (mid_home_1 n'a encore aucun precedent) -- anticipation nulle par
+// construction, comportement correct (aucune direction connue).
+// AMPLITUDE (section 3) : CAMERA_ANTICIPATION_MAX_POURCENT (8, dans la fourchette 5-10% demandee),
+// module lineairement par le deplacement du porteur CETTE phase rapporte a
+// CAMERA_ANTICIPATION_DEPLACEMENT_REF_POURCENT (10, deplacement mesure au-dela duquel l'anticipation
+// est deja pleine) -- un replacement quasi immobile (deplacement proche de 0) donne une anticipation
+// quasi nulle, un grand deplacement (ex. contre-attaque away_repart, 12%) sature au maximum.
+// INTERACTION AVEC LE MELANGE 60/40 (section 6) ET CLAMP EN DEUX TEMPS -- CONSTAT FACTUEL fait en
+// testant ce chantier : sur la choregraphie reelle, la cible porteur/groupe (brutX/Y) depasse DEJA
+// tres souvent, a elle seule, le panLimit de Camera V1 (le cadrage reste modere -- section 6 --
+// c'est PRECISEMENT ce qui le rend sobre) -- un simple ADDITIF anticipation+clamp final unique
+// s'est donc revele INVISIBLE dans la quasi-totalite des phases mesurees (la cible de base sature
+// deja seule le clamp, l'anticipation ajoutee par-dessus ne fait alors plus AUCUNE difference apres
+// clamp). CORRECTIF : une fraction du budget de pan (panLimit) est RESERVEE a l'anticipation --
+// la cible de base porteur/groupe est d'abord clampee a un panLimitBase reduit (panLimit moins la
+// reserve), PUIS l'anticipation est ajoutee et le tout reclampe au panLimit COMPLET (jamais
+// depasse, meme garantie qu'avant, test F). La reserve elle-meme est plafonnee a
+// CAMERA_ANTICIPATION_RESERVE_FRACTION (40%) du panLimit total -- jamais toute la place disponible,
+// le cadrage de base porteur/groupe reste TOUJOURS majoritaire (section 5, "ne doit jamais devenir
+// un simple suivi individuel"). Reutilise aussi CAMERA_TRANSITION_MS tel quel (section 4) :
+// l'anticipation reste un simple ingredient de plus dans le MEME calcul de cx/cy final joue une
+// seule fois par phase, donc beneficie automatiquement de la meme redirection en plein mouvement a
+// chaque frontiere, y compris lors d'un changement de sens (ex. changement de possession) -- aucun
+// mecanisme de lissage separe necessaire.
+// RECUPERATION FACILE DE CAMERA V1 SANS ANTICIPATION (test A) : mettre CAMERA_ANTICIPATION_MAX_POURCENT
+// a 0 desactive entierement ce terme (reserve nulle, cadrage de base clampe au panLimit complet
+// exactement comme avant) et reproduit exactement le cadrage V1 d'origine (2fea1af/0150801).
+const CAMERA_ANTICIPATION_MAX_POURCENT = 8;
+const CAMERA_ANTICIPATION_DEPLACEMENT_REF_POURCENT = 10;
+const CAMERA_ANTICIPATION_RESERVE_FRACTION = 0.4;
+function calculerCadrageCameraMatchMiniature(etat) {
+  const reference = etat.acteurs.filter(function(a) { return a.intensite === 'actif'; });
+  const groupe = reference.length ? reference : etat.acteurs;
+  const xs = groupe.map(function(a) { return a.x; });
+  const ys = groupe.map(function(a) { return a.y; });
+  const minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+  const minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+  const centreGroupeX = (minX + maxX) / 2, centreGroupeY = (minY + maxY) / 2;
+  const porteur = etat.porteur ? etat.acteurs.find(function(a) { return a.id === etat.porteur; }) : null;
+  const brutX = porteur ? (CAMERA_POIDS_PORTEUR * porteur.x + (1 - CAMERA_POIDS_PORTEUR) * centreGroupeX) : centreGroupeX;
+  const brutY = porteur ? (CAMERA_POIDS_PORTEUR * porteur.y + (1 - CAMERA_POIDS_PORTEUR) * centreGroupeY) : centreGroupeY;
+  let anticipationX = 0, anticipationY = 0, amplitudeAnticipation = 0;
+  if (porteur && porteur.deplacement) {
+    const fractionAnticipation = Math.max(0, Math.min(1, porteur.deplacement / CAMERA_ANTICIPATION_DEPLACEMENT_REF_POURCENT));
+    const rad = porteur.orientation * Math.PI / 180;
+    amplitudeAnticipation = fractionAnticipation * CAMERA_ANTICIPATION_MAX_POURCENT;
+    anticipationX = Math.cos(rad) * amplitudeAnticipation;
+    anticipationY = Math.sin(rad) * amplitudeAnticipation;
+  }
+  const spread = maxX - minX;
+  const t = Math.max(0, Math.min(1, (CAMERA_SPREAD_WIDE_POURCENT - spread) / (CAMERA_SPREAD_WIDE_POURCENT - CAMERA_SPREAD_TIGHT_POURCENT)));
+  const scale = CAMERA_SCALE_MIN + t * (CAMERA_SCALE_MAX - CAMERA_SCALE_MIN);
+  const panLimit = 50 * (1 - 1 / scale);
+  // La reserve est calculee INDEPENDAMMENT PAR AXE, a partir de la seule COMPOSANTE d'anticipation
+  // de cet axe (jamais de la magnitude totale du vecteur) : nulle des qu'il n'y a aucune
+  // anticipation a loger sur cet axe (ex. phase 1, aucun deplacement connu -- panLimitBase redevient
+  // alors identique au panLimit complet de Camera V1, reproduction exacte, test A). Une premiere
+  // version reservait sur la magnitude 2D complete du vecteur -- BUG mesure empiriquement (assertions
+  // B) : des qu'un deplacement n'etait pas parfaitement horizontal (ex. -72deg, passe_laterale), la
+  // reserve "consommait" plus de budget X que ce que la composante X de l'anticipation ne redonnait
+  // ensuite, produisant un decalage cx dans le sens INVERSE du deplacement reel -- exactement ce que
+  // la demande interdit ("jamais l'inverse"). Le calcul PAR AXE elimine ce biais par construction :
+  // reserveX/Y ne peut jamais depasser |anticipationX|/|anticipationY|, donc le decalage final ne
+  // peut jamais etre pire (plus en arriere) que Camera V1 pur sur cet axe.
+  const reserveX = Math.min(Math.abs(anticipationX), panLimit * CAMERA_ANTICIPATION_RESERVE_FRACTION);
+  const reserveY = Math.min(Math.abs(anticipationY), panLimit * CAMERA_ANTICIPATION_RESERVE_FRACTION);
+  const panLimitBaseX = panLimit - reserveX;
+  const panLimitBaseY = panLimit - reserveY;
+  const cxBase = Math.max(50 - panLimitBaseX, Math.min(50 + panLimitBaseX, brutX));
+  const cyBase = Math.max(50 - panLimitBaseY, Math.min(50 + panLimitBaseY, brutY));
+  let cx = Math.max(50 - panLimit, Math.min(50 + panLimit, cxBase + anticipationX));
+  let cy = Math.max(50 - panLimit, Math.min(50 + panLimit, cyBase + anticipationY));
+  // Filet de securite final (teste par fuzzing) : le groupe actif (donc le porteur, toujours actif)
+  // doit rester dans la fenetre visible MEME dans un cas adversaire ou l'anticipation pousserait cx
+  // loin du groupe qu'elle est censee accompagner. Reclampe cx/cy dans l'intervalle qui garantit que
+  // [cx-demiChamp, cx+demiChamp] couvre bien [minX,maxX] (et l'equivalent en Y) -- intersecte avec le
+  // clamp terrain deja applique ci-dessus, jamais en le remplacant (un groupe legitimement dans les
+  // bornes CAMERA_SPREAD_TIGHT/WIDE tient toujours dans les deux a la fois, verifie par fuzzing).
+  const demiChamp = 50 / scale;
+  if (maxX - minX <= 2 * demiChamp) {
+    cx = Math.max(maxX - demiChamp, Math.min(minX + demiChamp, cx));
+  }
+  if (maxY - minY <= 2 * demiChamp) {
+    cy = Math.max(maxY - demiChamp, Math.min(minY + demiChamp, cy));
+  }
+  return { scale: scale, cx: cx, cy: cy };
+}
+function appliquerCameraMatchMiniaturePreview(etat) {
+  const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
+  if (!pelouse) return;
+  const cadrage = calculerCadrageCameraMatchMiniature(etat);
+  pelouse.style.transition = 'transform ' + (CAMERA_TRANSITION_MS / 1000).toFixed(2) + 's ease';
+  pelouse.style.transform = 'scale(' + cadrage.scale.toFixed(3) + ') translate(' + (-(cadrage.cx - 50)).toFixed(2) + '%, ' + (-(cadrage.cy - 50)).toFixed(2) + '%)';
+}
+function appliquerEtatVisuelTerrainPreview(id) {
+  const etat = ETATS_VISUELS_TERRAIN_PREVIEW[id];
+  if (!etat) return;
+  // etat.ballonXY (chantier "choregraphie spatiale coherente", 29 aout 2026) : coordonnees
+  // continues liees a un porteur visuel -- prioritaire sur etat.ballon (index de zone) quand
+  // present. Aucun etat existant (coup_franc_prepare/apres_arret/engagement_apres_but/etc.) ne
+  // porte ce champ : comportement rigoureusement inchange pour eux (etat.ballon reste lu comme
+  // avant, positionnerBallon jamais touche).
+  if (etat.ballonXY != null) {
+    positionnerBallonPreview(etat.ballonXY.x, etat.ballonXY.y, etat.vitesseBallonMs);
+    // Camera V1 (section 1 de la demande) : appelee ICI, dans la MEME condition que
+    // positionnerBallonPreview (deja le signal etabli "etat V2 moderne base sur un porteur",
+    // jamais vrai pour coup_franc_prepare/apres_arret/engagement_apres_but) -- volontairement APRES
+    // appliquerCadrageTerrain (deja execute plus haut dans executerSequenceRealisation pour ce
+    // meme plan, cadrage:'large'/scale(1) fige) : ecrit .live-pelouse.style.transform en dernier,
+    // de facon synchrone avant tout repaint, donc sans flash intermediaire (meme garantie que
+    // appliquerPlanIllustreRealisation qui remet deja `scale(1)` selon exactement ce principe).
+    // etat.cameraSpectaculaire (chantier "Drone Dive + Impact Freeze", 30 aout 2026) : champ
+    // OPTIONNEL, absent de tous les etats existants (V1/V1.5, raccords) -- quand present, remplace
+    // ICI la Camera V1.5 automatique par un cadrage explicite {scale,cx,cy,dureeMs,easing} pour CE
+    // seul plan (voir appliquerCameraSpectaculairePreview). Camera V1.5 (calculerCadrageCameraMatchMiniature)
+    // reste totalement intouchee -- ce n'est qu'un AIGUILLAGE, jamais une modification de sa formule.
+    if (etat.cameraSpectaculaire) {
+      appliquerCameraSpectaculairePreview(etat.cameraSpectaculaire);
+    } else {
+      appliquerCameraMatchMiniaturePreview(etat);
+    }
+  } else if (etat.ballon != null) {
+    positionnerBallon(etat.ballon);
+  }
+  const joueurHomeEl = document.getElementById('live-joueur-home');
+  const joueurAwayEl = document.getElementById('live-joueur-away');
+  if (etat.acteurs) {
+    appliquerSceneActeursPreview(etat.acteurs, etat.vitesseMs);
+    if (joueurHomeEl) joueurHomeEl.style.display = 'none';
+    if (joueurAwayEl) joueurAwayEl.style.display = 'none';
+  } else {
+    if (etat.home != null) positionnerJoueur('home', etat.home);
+    if (etat.away != null) positionnerJoueur('away', etat.away);
+    if (joueurHomeEl) joueurHomeEl.style.display = '';
+    if (joueurAwayEl) joueurAwayEl.style.display = '';
+    appliquerSceneActeursPreview([]);
+  }
+  if (etat.score) {
+    const scoreEl = document.getElementById('live-score-mini');
+    if (scoreEl) scoreEl.textContent = etat.score;
+  }
+}
+
+// Deux allures declaratives (chantier "banc d'essai V2 en continu", 29 aout 2026) -- reference
+// historique, non utilisee directement (voir VITESSE_MARCHE_PAR_ROLE/VITESSE_COURSE_PAR_ROLE plus
+// bas pour les valeurs reellement appliquees). PORTEES PAR LA SCENE/LE PLAN PREVIEW, jamais une
+// constante globale du moteur reel.
+const VITESSE_MARCHE_MS = 1500;
+const VITESSE_COURSE_MS = 750;
+
+// Chantier "choregraphie spatiale coherente" (29 aout 2026). RETOUR UTILISATEUR apres le lissage
+// precedent (9916dd2) : deplacements encore trop rapides, et surtout le BALLON ne semble pas
+// coherent avec les acteurs -- persistance de l'effet "Smarties".
+//
+// DIAGNOSTIC FACTUEL (inspection de positionnerBallon, appliquerSceneActeursPreview et des 9 phases
+// de 9916dd2) :
+// 1. LE BALLON ET LES ACTEURS SONT POSITIONNES DE MANIERE TOTALEMENT INDEPENDANTE. positionnerBallon
+//    prend un INDEX DE ZONE discret (0-6, 7 positions x possibles seulement) avec un flottement
+//    vertical ALEATOIRE (Math.random) a chaque appel -- les acteurs, eux, ont des coordonnees x/y
+//    CONTINUES choisies a la main. Rien dans le code ne relie jamais la position du ballon a celle
+//    d'un acteur precis : la coherence n'existait que quand j'avais, par hasard, choisi des valeurs
+//    approximativement voisines en ecrivant les 9 phases -- jamais garantie, jamais un porteur
+//    explicite.
+// 2. LE BALLON A UNE TRANSITION CSS FIXE DE .5s (regle partagee .live-ballon dans plateau.html),
+//    totalement INDEPENDANTE de la vitesse (1,45-1,8s) des acteurs -- le ballon arrive donc
+//    TOUJOURS plusieurs fois plus vite que n'importe quel joueur, quel que soit son rythme :
+//    incoherence spatiale garantie des que les acteurs ralentissent.
+// 3. Les vitesses actuelles (VITESSE_MARCHE_PAR_ROLE ~1,45-1,8s, VITESSE_COURSE_PAR_ROLE ~0,75-0,95s)
+//    restent EN DECA des nouvelles bandes demandees (marche 2,5-4s, course 1,5-2,5s) -- le ressenti
+//    "pions qui bondissent" vient aussi de la, pas seulement du ballon.
+//
+// SOLUTION RETENUE (aucune camera, aucun changement du moteur sportif, aucune physique de dribble/
+// interception) :
+// 1. NOTION DE PORTEUR VISUEL (section 3) : chaque phase peut declarer `porteur` (l'id d'un
+//    acteur). phaseMatchMiniature() calcule ALORS la position du ballon comme un simple decalage
+//    fixe par rapport a CE porteur (ballon = porteur.x +/- avanceBallon, porteur.y) -- aucune donnee
+//    sportive, aucune decision, une pure relation spatiale figee comme tout le reste de ce fichier.
+// 2. NOUVELLE FONCTION positionnerBallonPreview(x, y, dureeMs) (voir plus haut, pres de
+//    positionnerBallon) : positionnement en coordonnees CONTINUES avec une duree de transition
+//    PROPRE au preview -- jamais positionnerBallon, jamais la regle CSS partagee. Le ballon d'une
+//    phase avec porteur recoit la MEME duree de transition que ce porteur (vitesseBallonMs =
+//    porteur.vitesse) : il suit visuellement son rythme au lieu d'arriver 3-4x plus vite.
+// 3. "PASSE" VISUELLE (section 4) : simplement un CHANGEMENT du champ `porteur` d'une phase a la
+//    suivante -- le ballon glisse alors du decalage de l'ancien porteur vers celui du nouveau, sur
+//    sa propre transition. Aucune resolution, aucun echec possible : le scenario preview connait
+//    deja la destination et se contente de la jouer (exactement la consigne).
+// 4. VITESSES REVUES A LA HAUSSE : VITESSE_MARCHE_PAR_ROLE desormais dans la bande ~2,5-4s,
+//    VITESSE_COURSE_PAR_ROLE dans la bande ~1,5-2,5s (valeurs exactes ci-dessous).
+// 5. TEMPS MORT ENCORE RESSERRE : la duree des plans est recalculee pour coller de pres au
+//    mouvement le plus long de chaque phase (~150-200ms de marge, contre ~1150ms avant) --
+//    "une nouvelle destination arrive des que le mouvement precedent vient de se terminer".
+// 6. ORIENTATION (section 10) : acteurMatchMiniature calcule desormais automatiquement
+//    `orientation` a partir du DEPLACEMENT reel de chaque acteur entre la phase precedente et la
+//    phase courante (angle du vecteur de deplacement) -- reutilise le champ `orientation` deja
+//    supporte par appliquerSceneActeursPreview depuis le chantier V2 initial, AUCUN changement du
+//    renderer necessaire. Simple calcul a la construction des donnees, aucune architecture lourde.
+// Chantier "intensite de mouvement selon l'action" (29 aout 2026). RETOUR UTILISATEUR apres
+// 8e5b80c : vitesses lentes et ballon desormais satisfaisants, MAIS "tous les acteurs se
+// deplacent puis marquent leurs arrets a peu pres ensemble" -- une respiration COLLECTIVE
+// artificielle.
+//
+// DIAGNOSTIC FACTUEL (inspection de 8e5b80c) : chaque phase choisissait une seule allure
+// ('marche' OU 'course') appliquee UNIFORMEMENT aux 8 acteurs a la fois (ex. ACTEURS_DEFENSE_COULISSE
+// donnait 'course' aux 8 acteurs, ACTEURS_NOUVEAU_PORTEUR donnait 'marche' aux 8). Consequence
+// directe : l'integralite du terrain change de regime de vitesse EN MEME TEMPS a chaque
+// changement de phase -- meme avec des delais individuels (a.delay, 0-320ms) et des vitesses
+// variees par ROLE FOOTBALLISTIQUE (attaquant/milieu/gardien/defenseur), les 8 acteurs
+// terminaient leur transition dans une fenetre commune (deja resserree a ~220ms de marge sur
+// l'acteur le plus lent), donnant l'impression d'un "souffle" synchronise plutot que d'un
+// terrain a plusieurs rythmes independants. La vitesse d'un acteur ne dependait QUE de son
+// poste, jamais de sa proximite reelle avec l'action -- un attaquant tres eloigne de l'action
+// courait aussi vite qu'un attaquant au coeur du jeu.
+//
+// SOLUTION RETENUE (aucune camera, aucune nouvelle mecanique sportive, architecture 8e5b80c
+// integralement reutilisee -- porteur visuel, positionnerBallonPreview, passe = changement de
+// porteur) :
+// 1. `acteur.intensite` ('actif' | 'peripherique'), CHOISIE INDIVIDUELLEMENT PAR ACTEUR ET PAR
+//    PHASE selon sa proximite VISUELLE avec le porteur/le ballon a CET instant de la narration --
+//    remplace le parametre `tempo` (marche/course) qui etait choisi une fois pour toute la
+//    phase. Un meme acteur peut etre 'actif' dans une phase puis 'peripherique' dans la
+//    suivante des que l'action s'eloigne de lui (section 5), et inversement.
+// 2. VITESSE_ACTIF_PAR_ROLE / VITESSE_PERIPHERIQUE_PAR_ROLE : MEMES bandes deja validees dans
+//    8e5b80c (ex-VITESSE_COURSE_PAR_ROLE / ex-VITESSE_MARCHE_PAR_ROLE, valeurs inchangees,
+//    simplement renommees pour refleter qu'elles sont maintenant choisies par proximite avec
+//    l'action et non plus par un tempo de phase global) -- le role footballistique reste un
+//    modificateur SECONDAIRE (un defenseur actif reste legerement plus lent qu'un attaquant
+//    actif), mais l'intensite (actif/peripherique) prime desormais, exactement comme demande.
+// 3. dureeMs d'une phase (calcule automatiquement par phaseMatchMiniature, voir plus bas) :
+//    base UNIQUEMENT sur les acteurs 'actif' de CETTE phase (+ MARGE_TRANSITION_MS) -- les
+//    acteurs 'peripherique' peuvent legitimement ne pas avoir fini de bouger (ou ne pas avoir
+//    bouge du tout) quand la phase change : c'est le comportement recherche, pas un defaut a
+//    corriger. Repli sur tous les acteurs si aucun n'est 'actif' (ex. replacement_collectif,
+//    seul beat ou toute l'equipe respire ensemble, deliberement).
+// 4. ARRETS PERIPHERIQUES REELS : plusieurs acteurs (ex. gardien_home, att_away_1) recoivent
+//    EXACTEMENT les memes coordonnees x/y sur plusieurs phases consecutives -- aucune nouvelle
+//    transition CSS ne se declenche alors (le renderer existant, appliquerSceneActeursPreview,
+//    n'a pas ete modifie : assigner deux fois la meme valeur a `left`/`top` ne produit aucun
+//    mouvement), donc aucune destination "artificielle" n'est imposee (section 6).
+const DELAY_PAR_ROLE_MATCH_MINIATURE = { attaquant: 0, milieu: 200, gardien: 120, defenseur: 320 };
+const VITESSE_ACTIF_PAR_ROLE = { attaquant: 1500, milieu: 1800, gardien: 2000, defenseur: 2200 };        // bande ~1,5-2,5s (ex-COURSE, inchangee)
+const VITESSE_PERIPHERIQUE_PAR_ROLE = { attaquant: 2600, milieu: 3000, gardien: 3200, defenseur: 3400 }; // bande ~2,5-4s (ex-MARCHE, inchangee)
+const MARGE_TRANSITION_MS = 280; // marge au-dessus du dernier acteur ACTIF a terminer sa transition
+const AVANCE_BALLON_PORTEUR_POURCENT = 3; // decalage fixe ballon/porteur (devant lui, sens d'attaque de son equipe)
+function categorieActeurMatchMiniature(id) {
+  if (id.indexOf('gardien_') === 0) return 'gardien';
+  if (id.indexOf('def_') === 0) return 'defenseur';
+  if (id.indexOf('mid_') === 0) return 'milieu';
+  return 'attaquant';
+}
+// ---- HOOKS SPRITES FUTURS (LOT 16, chantier "industrialisation du realisateur", 30 aout 2026) ----
+// PROTOTYPE, aucun asset : prepare uniquement l'INTERFACE pour qu'un futur rendu sprite raster
+// puisse un jour remplacer le rendu CSS "Smartie" SANS reecrire acteurMatchMiniature ni
+// appliquerSceneActeursPreview. Le rendu CSS actif reste inchange -- aucune de ces metadonnees
+// n'est lue par une regle CSS aujourd'hui (verifie : aucun selecteur `[data-*]` dans plateau.html
+// avant ce chantier). Convention retenue (direction artistique deja validee, voir consigne du
+// chantier) : 8 directions logiques, 5 arts reels prevus (S, SE, E, NE, N) + mirroir horizontal
+// pour W/SW/NW -- DIRECTIONS_MIROIR_SPRITE ci-dessous encode exactement cette convention.
+const DIRECTIONS_MIROIR_SPRITE = { W: 'E', SW: 'SE', NW: 'NE' };
+function direction8DepuisAngleSprite(angleDeg) {
+  const norm = ((angleDeg % 360) + 360) % 360;
+  return ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'][Math.round(norm / 45) % 8];
+}
+// Memorise, PENDANT LA CONSTRUCTION du dictionnaire ETATS_MATCH_MINIATURE_V2 ci-dessous (evaluee
+// dans l'ordre d'ecriture des phases, donc chronologique), la derniere position connue de chaque
+// acteur -- sert uniquement a calculer `orientation` (angle du deplacement reel), jamais lu au
+// runtime, jamais partage avec le moteur reel.
+let _positionsPrecedentesMatchMiniature = {};
+// Construit UN acteur avec vitesse/retard deterministes derives de son role (extrait de son id) et
+// de son INTENSITE ('actif' -- proche de l'action, ou 'peripherique' -- eloigne) POUR CETTE PHASE
+// PRECISE (chantier "intensite de mouvement selon l'action", 29 aout 2026 -- remplace l'ancien
+// parametre `tempo` choisi par phase entiere), PLUS une orientation calculee a partir de son propre
+// deplacement depuis la phase precedente (aucun changement du renderer, `orientation` est deja lu
+// par appliquerSceneActeursPreview). Si `x`/`y` sont IDENTIQUES a la phase precedente, aucune
+// transition ne se declenchera (l'acteur reste immobile -- comportement voulu pour un acteur
+// peripherique qui "conserve une position pertinente", section 6).
+function acteurMatchMiniature(id, cote, x, y, intensite) {
+  const categorie = categorieActeurMatchMiniature(id);
+  const vitesse = (intensite === 'actif' ? VITESSE_ACTIF_PAR_ROLE : VITESSE_PERIPHERIQUE_PAR_ROLE)[categorie];
+  const acteur = { id: id, cote: cote, x: x, y: y, vitesse: vitesse, delay: DELAY_PAR_ROLE_MATCH_MINIATURE[categorie], intensite: intensite };
+  if (categorie === 'gardien') acteur.role = 'gardien';
+  // Hooks sprites (LOT 16/17) : toujours presents, jamais lus par le rendu CSS actif -- valeurs
+  // par defaut neutres (aucun effet tant qu'aucun futur renderer sprite ne les consomme).
+  acteur.animation = 'idle';
+  acteur.animationSpeed = 1;
+  acteur.frozen = false;
+  const precedent = _positionsPrecedentesMatchMiniature[id];
+  if (precedent && (precedent.x !== x || precedent.y !== y)) {
+    acteur.orientation = Math.round(Math.atan2(y - precedent.y, x - precedent.x) * 180 / Math.PI);
+    // `deplacement` (chantier "Camera V1.5 -- travelling anticipatif", 29 aout 2026) : magnitude en
+    // % du deplacement x/y depuis la phase precedente, meme delta que celui deja utilise pour
+    // `orientation` ci-dessus -- jamais une nouvelle donnee, jamais lu par le renderer d'acteurs
+    // (appliquerSceneActeursPreview), uniquement par la camera preview pour moduler l'amplitude de
+    // son anticipation (aucun impact sur la choregraphie/locomotion validees).
+    acteur.deplacement = Math.hypot(x - precedent.x, y - precedent.y);
+    acteur.animation = 'run';
+    acteur.direction = direction8DepuisAngleSprite(acteur.orientation);
+    acteur.mirrored = DIRECTIONS_MIROIR_SPRITE.hasOwnProperty(acteur.direction);
+    acteur.directionArt = DIRECTIONS_MIROIR_SPRITE[acteur.direction] || acteur.direction;
+  }
+  _positionsPrecedentesMatchMiniature[id] = { x: x, y: y };
+  return acteur;
+}
+// Chantier "continuite de la zone active" (29 aout 2026) -- CORRECTIF CIBLE issu de l'audit
+// instrumente factuel du meme jour (commit 28ed14b) : la mesure a etabli que dureeMs, calcule
+// jusqu'ici comme max(delay+vitesse) sur TOUT le groupe 'actif', etait systematiquement dicte par
+// le membre le PLUS LENT de ce groupe (un defenseur/gardien actif, ~2520ms) -- jamais par le
+// porteur (plus rapide, attaquant/milieu). Consequence mesuree : le porteur -- et donc le ballon,
+// qui lui est spatialement lie -- terminait sa propre transition puis restait immobile entre 600ms
+// et 1300ms (21 a 46% de chaque phase de 2800ms) a chaque occurrence sur les 9 phases d'action.
+// Un gel collectif de 280ms de TOUT le groupe actif se produisait en outre en fin de chaque phase
+// (9 occurrences mesurees, une par phase, exactement = MARGE_TRANSITION_MS).
+// AVANCE_CONTINUITE_PORTEUR_MS : quand un porteur est designe, dureeMs est desormais calcule a
+// partir de SA SEULE vitesse (jamais de son delay, qui ne fait que retarder le DEBUT de son propre
+// mouvement -- pas la duree de la phase), MOINS cette avance -- le porteur (et le ballon) recoivent
+// donc leur destination suivante legerement AVANT la fin theorique de leur propre transition :
+// une redirection CSS en plein mouvement, jamais une arrivee suivie d'une attente (section 1/2).
+// Les autres acteurs actifs (soutien/defenseur proche) peuvent, eux, ponctuellement patienter un
+// peu si leur propre transition est plus longue que celle du porteur (section 3, explicitement
+// tolere) -- mais puisque le porteur (toujours 'actif') n'est desormais quasiment jamais immobile,
+// la condition "TOUS les acteurs actifs simultanement immobiles" ne peut plus se produire (section
+// 8/10C), sans avoir touche la position, la vitesse ou le delay d'AUCUN acteur.
+// Repli INCHANGE (ancien calcul base sur max(delay+vitesse) du groupe actif, ou de tous les
+// acteurs si aucun n'est actif) pour toute phase SANS porteur (ex. replacement_collectif, seul
+// beat de fin de demo -- comportement de cloture normal, hors perimetre de ce correctif).
+const AVANCE_CONTINUITE_PORTEUR_MS = 100;
+function phaseMatchMiniature(porteurId, acteurs, ballonManuel, vitesseBallonManuelle) {
+  let ballonXY = ballonManuel || null;
+  let vitesseBallonMs = vitesseBallonManuelle;
+  let dureeMs = null;
+  if (porteurId) {
+    const p = acteurs.find(function(a) { return a.id === porteurId; });
+    if (p) {
+      vitesseBallonMs = p.vitesse;
+      if (!ballonXY) ballonXY = { x: p.x + (p.cote === 'home' ? AVANCE_BALLON_PORTEUR_POURCENT : -AVANCE_BALLON_PORTEUR_POURCENT), y: p.y };
+      dureeMs = Math.max(400, p.vitesse - AVANCE_CONTINUITE_PORTEUR_MS);
+    }
+  }
+  if (dureeMs == null) {
+    const acteursActifs = acteurs.filter(function(a) { return a.intensite === 'actif'; });
+    const reference = acteursActifs.length ? acteursActifs : acteurs;
+    dureeMs = Math.max.apply(null, reference.map(function(a) { return a.delay + a.vitesse; })) + MARGE_TRANSITION_MS;
+  }
+  return { porteur: porteurId || null, ballonXY: ballonXY, vitesseBallonMs: vitesseBallonMs, acteurs: acteurs, dureeMs: dureeMs };
+}
+
+// Banc d'essai "V2 -- Match miniature continu" (29 aout 2026, choregraphie spatiale revue le meme
+// jour) : demonstration preview-only du plateau multi-acteurs SEUL pendant ~25-35s, aucune image
+// D/E/F, aucune video, cadrage terrain normal (aucune camera V1 -- section 11). 8 acteurs (4 par
+// cote dont 1 gardien chacun) + le ballon (toujours l'element #live-ballon existant, jamais un
+// acteur). MEME scenario qu'avant (comparaison directe possible) mais rechoregraphie en 10 phases
+// (au lieu de 9) suivant UNE possession continue et comprehensible : construction lente au milieu
+// -> soutien des partenaires -> defense qui coulisse -> passe laterale -> nouveau porteur qui
+// progresse -> perte de balle predeterminee (aucune probabilite, juste le scenario qui l'a decide)
+// -> contre-attaque adverse -> replacement collectif. Chaque phase part des positions ou la
+// precedente s'est arretee (section 8, "A evolue vers B, B continue vers C") -- aucun "tableau independant".
+// Chaque acteur porte desormais 'actif' ou 'peripherique' INDIVIDUELLEMENT (au lieu d'un tempo de
+// phase entiere) -- l'ecart delibere entre les coordonnees d'un acteur "peripherique" et celles de
+// la phase precedente est parfois NUL (ex. gardien_home reste EXACTEMENT sur les memes x/y de la
+// phase 1 a la phase 4 : aucune transition ne se declenche, section 6 "ne pas imposer une
+// destination artificielle"). La zone 'actif' se deplace avec l'action (mid_home_1 -> att_home_1
+// -> def_away_1/gardien_away -> mid_away_1/att_away_1/def_home_1, section 5).
+const ACTEURS_POSSESSION_HOME_MILIEU = [
+  acteurMatchMiniature('gardien_home', 'home', 8,  50, 'peripherique'),
+  acteurMatchMiniature('def_home_1',   'home', 20, 50, 'peripherique'),
+  acteurMatchMiniature('mid_home_1',   'home', 42, 48, 'actif'), // porteur
+  acteurMatchMiniature('att_home_1',   'home', 58, 55, 'actif'),
+  acteurMatchMiniature('gardien_away', 'away', 94, 50, 'peripherique'),
+  acteurMatchMiniature('def_away_1',   'away', 78, 50, 'actif'),
+  acteurMatchMiniature('mid_away_1',   'away', 62, 50, 'actif'),
+  acteurMatchMiniature('att_away_1',   'away', 46, 45, 'peripherique')
+];
+const ACTEURS_PROGRESSION_LENTE = [
+  acteurMatchMiniature('gardien_home', 'home', 8,  50, 'peripherique'), // immobile (memes x/y que la phase precedente)
+  acteurMatchMiniature('def_home_1',   'home', 24, 49, 'peripherique'),
+  acteurMatchMiniature('mid_home_1',   'home', 52, 45, 'actif'), // porteur, progresse
+  acteurMatchMiniature('att_home_1',   'home', 64, 56, 'actif'),
+  acteurMatchMiniature('gardien_away', 'away', 94, 50, 'peripherique'), // immobile
+  acteurMatchMiniature('def_away_1',   'away', 76, 50, 'actif'),
+  acteurMatchMiniature('mid_away_1',   'away', 60, 48, 'actif'),
+  acteurMatchMiniature('att_away_1',   'away', 46, 45, 'peripherique') // immobile
+];
+const ACTEURS_PARTENAIRES_ACCOMPAGNENT = [
+  acteurMatchMiniature('gardien_home', 'home', 8,  50, 'peripherique'), // immobile
+  acteurMatchMiniature('def_home_1',   'home', 28, 50, 'peripherique'),
+  acteurMatchMiniature('mid_home_1',   'home', 60, 42, 'actif'), // porteur, continue
+  acteurMatchMiniature('att_home_1',   'home', 72, 62, 'actif'), // appel/ecartement large
+  acteurMatchMiniature('gardien_away', 'away', 93, 50, 'peripherique'),
+  acteurMatchMiniature('def_away_1',   'away', 74, 50, 'actif'),
+  acteurMatchMiniature('mid_away_1',   'away', 58, 46, 'actif'),
+  acteurMatchMiniature('att_away_1',   'away', 46, 45, 'peripherique') // immobile
+];
+const ACTEURS_DEFENSE_COULISSE = [
+  acteurMatchMiniature('gardien_home', 'home', 8,  50, 'peripherique'), // immobile
+  acteurMatchMiniature('def_home_1',   'home', 30, 50, 'peripherique'),
+  acteurMatchMiniature('mid_home_1',   'home', 64, 40, 'actif'), // porteur
+  acteurMatchMiniature('att_home_1',   'home', 76, 64, 'actif'),
+  acteurMatchMiniature('gardien_away', 'away', 90, 50, 'peripherique'),
+  acteurMatchMiniature('def_away_1',   'away', 68, 48, 'actif'), // coulisse vers le ballon
+  acteurMatchMiniature('mid_away_1',   'away', 56, 44, 'actif'), // recule aider la defense
+  acteurMatchMiniature('att_away_1',   'away', 50, 42, 'peripherique')
+];
+const ACTEURS_PASSE_LATERALE = [
+  acteurMatchMiniature('gardien_home', 'home', 9,  50, 'peripherique'),
+  acteurMatchMiniature('def_home_1',   'home', 32, 50, 'peripherique'),
+  acteurMatchMiniature('mid_home_1',   'home', 66, 38, 'actif'), // vient de passer, encore implique
+  acteurMatchMiniature('att_home_1',   'home', 78, 58, 'actif'), // NOUVEAU porteur, recoit la passe
+  acteurMatchMiniature('gardien_away', 'away', 90, 50, 'peripherique'), // immobile (memes x/y que phase precedente)
+  acteurMatchMiniature('def_away_1',   'away', 66, 50, 'actif'),
+  acteurMatchMiniature('mid_away_1',   'away', 54, 42, 'actif'),
+  acteurMatchMiniature('att_away_1',   'away', 52, 40, 'peripherique')
+];
+const ACTEURS_NOUVEAU_PORTEUR = [
+  acteurMatchMiniature('gardien_home', 'home', 9,  50, 'peripherique'), // immobile
+  acteurMatchMiniature('def_home_1',   'home', 34, 50, 'peripherique'),
+  acteurMatchMiniature('mid_home_1',   'home', 68, 38, 'peripherique'), // sort de la zone active, soutien lointain
+  acteurMatchMiniature('att_home_1',   'home', 84, 60, 'actif'), // porteur, s'installe
+  acteurMatchMiniature('gardien_away', 'away', 88, 50, 'actif'), // ENTRE dans la zone active -- l'action se rapproche de son but
+  acteurMatchMiniature('def_away_1',   'away', 64, 52, 'actif'),
+  acteurMatchMiniature('mid_away_1',   'away', 52, 44, 'peripherique'), // sort de la zone active
+  acteurMatchMiniature('att_away_1',   'away', 54, 40, 'peripherique')
+];
+const ACTEURS_NOUVELLE_PROGRESSION = [
+  acteurMatchMiniature('gardien_home', 'home', 9,  50, 'peripherique'), // immobile
+  acteurMatchMiniature('def_home_1',   'home', 36, 50, 'peripherique'),
+  acteurMatchMiniature('mid_home_1',   'home', 70, 40, 'peripherique'),
+  acteurMatchMiniature('att_home_1',   'home', 89, 62, 'actif'), // porteur, pousse profond
+  acteurMatchMiniature('gardien_away', 'away', 86, 50, 'actif'),
+  acteurMatchMiniature('def_away_1',   'away', 62, 54, 'actif'),
+  acteurMatchMiniature('mid_away_1',   'away', 50, 46, 'peripherique'),
+  acteurMatchMiniature('att_away_1',   'away', 56, 42, 'peripherique')
+];
+const ACTEURS_CHANGEMENT_POSSESSION = [
+  acteurMatchMiniature('gardien_home', 'home', 9,  50, 'peripherique'), // immobile
+  acteurMatchMiniature('def_home_1',   'home', 38, 50, 'peripherique'),
+  acteurMatchMiniature('mid_home_1',   'home', 66, 42, 'peripherique'),
+  acteurMatchMiniature('att_home_1',   'home', 80, 58, 'actif'), // n'est plus porteur, mais encore dans l'action (reagit a la perte)
+  acteurMatchMiniature('gardien_away', 'away', 84, 50, 'actif'),
+  acteurMatchMiniature('def_away_1',   'away', 58, 54, 'actif'), // NOUVEAU porteur -- purement predetermine
+  acteurMatchMiniature('mid_away_1',   'away', 46, 48, 'actif'), // proche, pret a recevoir
+  acteurMatchMiniature('att_away_1',   'away', 60, 44, 'peripherique')
+];
+const ACTEURS_AWAY_REPART = [
+  acteurMatchMiniature('gardien_home', 'home', 10, 50, 'peripherique'),
+  acteurMatchMiniature('def_home_1',   'home', 34, 52, 'actif'), // recupere/revient defendre -- ENTRE dans la zone active
+  acteurMatchMiniature('mid_home_1',   'home', 58, 46, 'peripherique'), // hors du jeu, en retard
+  acteurMatchMiniature('att_home_1',   'home', 70, 56, 'peripherique'), // hors du jeu
+  acteurMatchMiniature('gardien_away', 'away', 84, 50, 'peripherique'), // sort de la zone active, plus necessaire
+  acteurMatchMiniature('def_away_1',   'away', 50, 55, 'actif'), // vient de passer, encore implique
+  acteurMatchMiniature('mid_away_1',   'away', 34, 48, 'actif'), // NOUVEAU porteur, porte le contre
+  acteurMatchMiniature('att_away_1',   'away', 66, 42, 'actif') // appel offensif -- ENTRE dans la zone active
+];
+const ACTEURS_REPLACEMENT_COLLECTIF = [
+  acteurMatchMiniature('gardien_home', 'home', 8,  50, 'peripherique'),
+  acteurMatchMiniature('def_home_1',   'home', 24, 50, 'peripherique'),
+  acteurMatchMiniature('mid_home_1',   'home', 42, 48, 'peripherique'),
+  acteurMatchMiniature('att_home_1',   'home', 56, 52, 'peripherique'),
+  acteurMatchMiniature('gardien_away', 'away', 92, 50, 'peripherique'),
+  acteurMatchMiniature('def_away_1',   'away', 76, 50, 'peripherique'),
+  acteurMatchMiniature('mid_away_1',   'away', 58, 50, 'peripherique'),
+  acteurMatchMiniature('att_away_1',   'away', 44, 48, 'peripherique')
+];
+// dureeMs calcule automatiquement par phaseMatchMiniature (voir plus haut) a partir des SEULS
+// acteurs 'actif' de chaque phase -- jamais hardcode ici, jamais un tableau independant.
+const ETATS_MATCH_MINIATURE_V2 = {
+  possession_home_milieu:   phaseMatchMiniature('mid_home_1', ACTEURS_POSSESSION_HOME_MILIEU),
+  progression_lente:        phaseMatchMiniature('mid_home_1', ACTEURS_PROGRESSION_LENTE),
+  partenaires_accompagnent: phaseMatchMiniature('mid_home_1', ACTEURS_PARTENAIRES_ACCOMPAGNENT),
+  defense_coulisse:         phaseMatchMiniature('mid_home_1', ACTEURS_DEFENSE_COULISSE),
+  passe_laterale:           phaseMatchMiniature('att_home_1', ACTEURS_PASSE_LATERALE),
+  nouveau_porteur:          phaseMatchMiniature('att_home_1', ACTEURS_NOUVEAU_PORTEUR),
+  nouvelle_progression:     phaseMatchMiniature('att_home_1', ACTEURS_NOUVELLE_PROGRESSION),
+  changement_possession:    phaseMatchMiniature('def_away_1', ACTEURS_CHANGEMENT_POSSESSION),
+  away_repart:              phaseMatchMiniature('mid_away_1', ACTEURS_AWAY_REPART),
+  replacement_collectif:    phaseMatchMiniature(null, ACTEURS_REPLACEMENT_COLLECTIF, { x: 50, y: 50 }, VITESSE_PERIPHERIQUE_PAR_ROLE.milieu)
+};
+Object.assign(ETATS_VISUELS_TERRAIN_PREVIEW, ETATS_MATCH_MINIATURE_V2);
+
+// Duree des plans : chaque phaseMatchMiniature() a deja calcule son propre dureeMs (MARGE_TRANSITION_MS
+// au-dessus du dernier acteur ACTIF a terminer -- jamais les peripheriques). Ici, simple lecture --
+// phases 1 a 9 (un defenseur 'actif' present a chaque fois, le plus lent : 320+2200+280 = 2800ms) ;
+// phase 10 (aucun acteur actif, repli sur tous : 320+3400+280 = 4000ms).
+const FRAMES_MATCH_MINIATURE_V2 = [
+  { etatVisuel: 'possession_home_milieu' },   // 1. possession home au milieu
+  { etatVisuel: 'progression_lente' },        // 2. progression lente du porteur
+  { etatVisuel: 'partenaires_accompagnent' }, // 3. partenaires accompagnent
+  { etatVisuel: 'defense_coulisse' },         // 4. defense coulisse
+  { etatVisuel: 'passe_laterale' },           // 5. passe laterale
+  { etatVisuel: 'nouveau_porteur' },          // 6. nouveau porteur
+  { etatVisuel: 'nouvelle_progression' },     // 7. nouvelle progression
+  { etatVisuel: 'changement_possession' },    // 8. changement de possession visuel
+  { etatVisuel: 'away_repart' },              // 9. away repart dans l'autre sens
+  { etatVisuel: 'replacement_collectif' }     // 10. replacement collectif (seul beat sans zone active)
+];
+const SEQUENCE_PREVIEW_MATCH_MINIATURE_V2 = {
+  gabaritId: 'preview_match_miniature_v2', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_MATCH_MINIATURE_V2.map(frame => ({
+    type: 'terrain', dureeMs: ETATS_MATCH_MINIATURE_V2[frame.etatVisuel].dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel
+  }))
+};
+SEQUENCE_PREVIEW_MATCH_MINIATURE_V2.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_MATCH_MINIATURE_V2); // 1700*4+1400*3+2100+1700+4000 = 6800+4200+2100+1700+4000 = 18800ms (~18,8s -- duree
+// mecaniquement plus courte qu'avant ce correctif (29,2s) : consequence DIRECTE et ATTENDUE du
+// calage de dureeMs sur le porteur (rapide) plutot que sur le defenseur/gardien actif le plus lent
+// -- documente et assume dans le rapport du chantier "continuite de la zone active".
+
+// =====================================================================
+// PREMIER BAC A SABLE "REALISATEUR" -- DRONE DIVE + IMPACT FREEZE (chantier "drone dive + impact
+// freeze", 30 aout 2026). Scenario preview ISOLE, laboratoire d'un effet ponctuel/spectaculaire --
+// n'utilise, ne modifie et n'etend AUCUNE donnee de Camera V1/V1.5 (calculerCadrageCameraMatchMiniature,
+// CAMERA_*), aucune donnee de la choregraphie match_miniature_v2 (ids d'acteurs, tableaux ACTEURS_*,
+// _positionsPrecedentesMatchMiniature -- delibolement des IDS DISTINCTS ci-dessous pour ne jamais
+// partager cet etat mutable). Reutilise seulement, EN LECTURE SEULE, les constantes de vitesse/role
+// deja partagees (VITESSE_ACTIF_PAR_ROLE, DELAY_PAR_ROLE_MATCH_MINIATURE, AVANCE_BALLON_PORTEUR_POURCENT).
+//
+// PRINCIPE (section 1 de la demande) : reutilise TEL QUEL le pipeline generique existant
+// (executerSequenceRealisation/lancerSequencePreview/SCENARIOS_PREVIEW_REALISATEUR) pour tout ce qui
+// est deja robuste et valide (cleanup, Grand ecran, boutons) -- AUCUNE modification de ces fonctions.
+// La SEULE piece nouvelle est le champ optionnel `etat.cameraSpectaculaire` (voir
+// appliquerEtatVisuelTerrainPreview ci-dessus) + la primitive appliquerCameraSpectaculairePreview
+// ci-dessous : un cadrage EXPLICITE {scale,cx,cy,dureeMs,easing}, decouple de la formule Camera V1.5.
+// Les beats SANS ce champ (vue generale, retour normal) utilisent Camera V1.5 sans modification --
+// c'est ce qui donne le "retour progressif au cadrage dynamique normal" (section 5) gratuitement.
+//
+// IMPACT FREEZE (section 4) : le monde (acteurs+ballon) est "fige" simplement en NE PROGRAMMANT
+// AUCUN nouveau changement de position pour ce beat -- meme mecanisme deja valide pour les acteurs
+// peripheriques immobiles de match_miniature_v2 ("si x/y sont IDENTIQUES a la phase precedente,
+// aucune transition ne se declenche"). La camera, elle, RECOIT un nouveau cadrage `cameraSpectaculaire`
+// pour ce meme beat -- DECOUPLAGE monde/camera prouve empiriquement dans le rapport (timestamps).
+function appliquerCameraSpectaculairePreview(cadrage) {
+  const pelouse = document.querySelector('#live-mini-terrain .live-pelouse');
+  if (!pelouse) return;
+  const scale = cadrage.scale;
+  // Meme securite geometrique que Camera V1.5 (jamais reveler de zone hors terrain), plafond de
+  // zoom volontairement PLUS HAUT ici (effet ponctuel, section 2 de la demande autorise a depasser
+  // le 1.32 de Camera V1.5) -- formule dupliquee a dessein (2 lignes) plutot que factorisee avec
+  // calculerCadrageCameraMatchMiniature, pour NE JAMAIS toucher au code de Camera V1.5 (interdiction
+  // explicite de la demande).
+  const panLimit = 50 * (1 - 1 / scale);
+  const cx = Math.max(50 - panLimit, Math.min(50 + panLimit, cadrage.cx));
+  const cy = Math.max(50 - panLimit, Math.min(50 + panLimit, cadrage.cy));
+  pelouse.style.transition = 'transform ' + (cadrage.dureeMs / 1000).toFixed(2) + 's ' + (cadrage.easing || 'ease');
+  // cadrage.rotation (chantier "Orbit Freeze", 30 aout 2026) : DEGRE OPTIONNEL, absent des cadrages
+  // du bac a sable #1 (Drone Dive) et #2 (Follow Ball) -- extension purement ADDITIVE, jamais
+  // appelee par eux (verifie par regression : leur transform reste caractere pour caractere
+  // identique, aucun `rotate()` n'est jamais ajoute a leur chaine puisque cadrage.rotation y est
+  // toujours absent/falsy). N'ajoute le terme `rotate()` QUE si une valeur non nulle est fournie.
+  let transform = 'scale(' + scale.toFixed(3) + ') translate(' + (-(cx - 50)).toFixed(2) + '%, ' + (-(cy - 50)).toFixed(2) + '%)';
+  if (cadrage.rotation) transform += ' rotate(' + cadrage.rotation.toFixed(2) + 'deg)';
+  pelouse.style.transform = transform;
+}
+
+// Amplitudes choisies experimentalement (section 2/11.3-11.4 du rapport) :
+// DIVE_SCALE=1.85 (nettement au-dela du plafond 1.32 de Camera V1.5, Smarties clairement plus
+// presents sans remplir l'ecran), FREEZE_SCALE=1.92 (leger sursaut supplementaire PENDANT le gel,
+// section 4 -- "elle doit poursuivre un tres leger mouvement").
+const DD_DIVE_SCALE = 1.85;
+const DD_FREEZE_SCALE = 1.92;
+const DD_ZONE_CONTACT = { x: 67, y: 45 }; // milieu porteur/defenseur au moment de l'impact
+const DD_ZONE_CONTACT_FREEZE = { x: 68, y: 44 }; // leger glissement lateral pendant le freeze (section 4)
+const DD_FREEZE_DUREE_MS = 400; // dans la fourchette 300-500ms demandee (section 4)
+const DD_DIVE_EASING = 'cubic-bezier(0.55,0.05,0.15,0.95)'; // accel/decel marquee, sensation de plongee (section 2)
+
+// Acteurs du bac a sable -- IDS DISTINCTS de match_miniature_v2 (prefixe `_dd`), litteraux directs
+// (jamais acteurMatchMiniature/_positionsPrecedentesMatchMiniature -- aucun etat mutable partage).
+// 5 acteurs seulement : suffisant pour une scene lisible (porteur, defenseur qui converge, un
+// partenaire, deux gardiens en arriere-plan), pas 8 -- ce scenario est un laboratoire de camera, pas
+// une nouvelle choregraphie.
+function acteurDd(id, cote, x, y, categorie, intensite) {
+  const vitesse = (intensite === 'actif' ? VITESSE_ACTIF_PAR_ROLE : VITESSE_PERIPHERIQUE_PAR_ROLE)[categorie];
+  const acteur = { id: id, cote: cote, x: x, y: y, vitesse: vitesse, delay: DELAY_PAR_ROLE_MATCH_MINIATURE[categorie], intensite: intensite };
+  if (categorie === 'gardien') acteur.role = 'gardien';
+  return acteur;
+}
+function ballonDd(porteur) {
+  return { x: porteur.x + AVANCE_BALLON_PORTEUR_POURCENT, y: porteur.y };
+}
+function etatDd(porteurId, acteurs, cameraSpectaculaire) {
+  const porteur = acteurs.find(function(a) { return a.id === porteurId; });
+  const etat = { porteur: porteurId, acteurs: acteurs, ballonXY: ballonDd(porteur), vitesseBallonMs: porteur.vitesse };
+  if (cameraSpectaculaire) etat.cameraSpectaculaire = cameraSpectaculaire;
+  return etat;
+}
+
+const ETATS_DRONE_DIVE_IMPACT_FREEZE = {
+  vue_generale_dd: etatDd('porteur_dd', [
+    acteurDd('gardien_home_dd', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_dd', 'home', 40, 50, 'milieu', 'actif'),
+    acteurDd('soutien_dd', 'home', 55, 65, 'attaquant', 'actif'),
+    acteurDd('defenseur_dd', 'away', 70, 30, 'defenseur', 'peripherique'),
+    acteurDd('gardien_away_dd', 'away', 92, 50, 'gardien', 'peripherique')
+  ]),
+  progression_dd: etatDd('porteur_dd', [
+    acteurDd('gardien_home_dd', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_dd', 'home', 55, 48, 'milieu', 'actif'),
+    acteurDd('soutien_dd', 'home', 62, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_dd', 'away', 62, 38, 'defenseur', 'actif'),
+    acteurDd('gardien_away_dd', 'away', 91, 50, 'gardien', 'peripherique')
+  ]),
+  approche_contact_dd: etatDd('porteur_dd', [
+    acteurDd('gardien_home_dd', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_dd', 'home', 66, 46, 'milieu', 'actif'),
+    acteurDd('soutien_dd', 'home', 64, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_dd', 'away', 68, 44, 'defenseur', 'actif'),
+    acteurDd('gardien_away_dd', 'away', 90, 50, 'gardien', 'peripherique')
+  ]),
+  reprise_dd: etatDd('porteur_dd', [
+    acteurDd('gardien_home_dd', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_dd', 'home', 74, 50, 'milieu', 'actif'),
+    acteurDd('soutien_dd', 'home', 70, 62, 'attaquant', 'actif'),
+    acteurDd('defenseur_dd', 'away', 70, 46, 'defenseur', 'actif'),
+    acteurDd('gardien_away_dd', 'away', 89, 50, 'gardien', 'peripherique')
+  ]),
+  retour_normal_dd: etatDd('porteur_dd', [
+    acteurDd('gardien_home_dd', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_dd', 'home', 80, 52, 'milieu', 'actif'),
+    acteurDd('soutien_dd', 'home', 76, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_dd', 'away', 74, 48, 'defenseur', 'actif'),
+    acteurDd('gardien_away_dd', 'away', 88, 50, 'gardien', 'peripherique')
+  ])
+};
+// L'etat du freeze REUTILISE EXACTEMENT les positions ET le ballonXY de approche_contact_dd (memes
+// objets/valeurs) -- aucune nouvelle valeur x/y, donc aucune transition CSS ne se DECLENCHE sur les
+// acteurs/le ballon pendant ce beat (section 4) : la valeur ecrite est identique a la precedente, un
+// navigateur reel ne demarre alors aucune animation (aucun changement de style calcule). Seule sa
+// camera differe (DD_ZONE_CONTACT_FREEZE, leger sursaut).
+ETATS_DRONE_DIVE_IMPACT_FREEZE.impact_freeze_dd = { porteur: 'porteur_dd', acteurs: ETATS_DRONE_DIVE_IMPACT_FREEZE.approche_contact_dd.acteurs, ballonXY: ETATS_DRONE_DIVE_IMPACT_FREEZE.approche_contact_dd.ballonXY, vitesseBallonMs: ETATS_DRONE_DIVE_IMPACT_FREEZE.approche_contact_dd.vitesseBallonMs };
+Object.assign(ETATS_VISUELS_TERRAIN_PREVIEW, ETATS_DRONE_DIVE_IMPACT_FREEZE);
+
+const FRAMES_DRONE_DIVE_IMPACT_FREEZE = [
+  { etatVisuel: 'vue_generale_dd', dureeMs: 2200 },
+  { etatVisuel: 'progression_dd', dureeMs: 2200 },
+  // DRONE DIVE (section 2) : la camera plonge vers la zone de contact PENDANT que le monde progresse
+  // vers approche_contact_dd -- UN SEUL mouvement continu combinant scale+translate (jamais un zoom
+  // puis un pan separes), duree alignee sur celle du beat pour que l'"arrivee" de la plongee
+  // coincide avec le debut du freeze (sensation d'impact).
+  { etatVisuel: 'approche_contact_dd', dureeMs: 1700, camera: { scale: DD_DIVE_SCALE, cx: DD_ZONE_CONTACT.x, cy: DD_ZONE_CONTACT.y, dureeMs: 1700, easing: DD_DIVE_EASING } },
+  // IMPACT FREEZE (section 4) : le monde ne recoit AUCUNE nouvelle position (voir plus haut) --
+  // seule la camera bouge, sur EXACTEMENT la duree du freeze (elle est donc en mouvement du debut a
+  // la fin du gel, jamais figee elle aussi).
+  { etatVisuel: 'impact_freeze_dd', dureeMs: DD_FREEZE_DUREE_MS, camera: { scale: DD_FREEZE_SCALE, cx: DD_ZONE_CONTACT_FREEZE.x, cy: DD_ZONE_CONTACT_FREEZE.y, dureeMs: DD_FREEZE_DUREE_MS, easing: 'ease-out' } },
+  // REPRISE (section 5) : le monde repart immediatement (nouvelles positions), la camera n'a PAS de
+  // cadrage explicite ici -- elle retombe sur Camera V1.5 automatique (etat.ballonXY present, pas de
+  // cameraSpectaculaire), qui la ramene naturellement vers son amplitude normale (<=1.32).
+  { etatVisuel: 'reprise_dd', dureeMs: 1800 },
+  { etatVisuel: 'retour_normal_dd', dureeMs: 2500 }
+];
+const SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE = {
+  gabaritId: 'preview_drone_dive_impact_freeze', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_DRONE_DIVE_IMPACT_FREEZE.map(frame => {
+    // camera:{...} (section 11.2 du rapport) : transporte jusqu'a l'etat via cameraSpectaculaire --
+    // jamais lu directement par executerSequenceRealisation/appliquerCadrageTerrain (aucune
+    // modification de ces fonctions), seulement par appliquerEtatVisuelTerrainPreview via l'etat.
+    if (frame.camera) ETATS_VISUELS_TERRAIN_PREVIEW[frame.etatVisuel].cameraSpectaculaire = frame.camera;
+    return { type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel };
+  })
+};
+SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE); // 2200+2200+1700+400+1800+2500 = 10800ms (~10,8s)
+
+// =====================================================================
+// BAC A SABLE "REALISATEUR" #2 -- FREEZE SELECTIF + BALLON AU RALENTI + FOLLOW BALL (chantier
+// "freeze selectif + ballon au ralenti + follow ball", 30 aout 2026). Scenario preview ISOLE
+// (bouton DISTINCT, n'affecte pas et ne remplace pas Drone Dive + Impact Freeze -- SEQUENCE_PREVIEW_DRONE_DIVE_IMPACT_FREEZE
+// et son bouton restent strictement inchanges ci-dessus).
+//
+// TROIS HORLOGES VISUELLES DECOUPLEES (section 1/7 de la demande -- "independance REELLE", pas une
+// simulation par coordonnees identiques pour le ballon) :
+// A. ACTEURS fige : meme mecanisme QUE le bac a sable #1 (memes objets acteurs -- reference tableau
+//    partagee entre le plan "frappe" et le plan "freeze/ralenti" -- aucune nouvelle valeur x/y donc
+//    aucune transition CSS declenchee, prouve empiriquement dans le rapport par comparaison de
+//    valeurs, pas seulement par absence d'ecriture).
+// B. BALLON PAS fige : contrairement au bac a sable #1 (ou le ballon partageait aussi le meme
+//    ballonXY que les acteurs pendant le freeze), ICI le plan "freeze/ralenti" declare un ballonXY
+//    MANUEL DIFFERENT (detache du porteur -- etatDd() n'est PAS utilise pour ce plan precis, car
+//    cette fonction attache toujours le ballon au porteur) avec sa PROPRE vitesseBallonMs longue
+//    (FB_FREEZE_DUREE_MS, alignee sur la duree du plan) : positionnerBallonPreview() joue alors UNE
+//    SEULE transition continue sur toute la fenetre -- jamais de teleportation, jamais de sous-etape.
+// C. CAMERA PAS figee : cameraSpectaculaire (MEME primitive que le bac a sable #1,
+//    appliquerCameraSpectaculairePreview, aucune duplication ni modification) suit le ballon avec sa
+//    propre duree/cible, decouplee des deux autres horloges.
+//
+// Reutilise intentionnellement acteurDd/ballonDd/etatDd/appliquerCameraSpectaculairePreview du bac a
+// sable #1 (fonctions deja generiques, aucune donnee/etat mutable partage) -- "reutiliser
+// intelligemment les primitives existantes" (section 7), sans construire un moteur temporel
+// generique (chaque plan reste un simple etat statique joue par le pipeline existant, comme partout
+// ailleurs dans ce fichier).
+const FB_FOLLOW_SCALE = 1.48; // zoom modere, delibolement plus doux que le drone dive (1.85-1.92, chantier precedent) -- section 5 "mouvement extremement doux"
+const FB_FREEZE_DUREE_MS = 1100; // dans la fourchette 900-1300ms demandee (section 3)
+
+const ETATS_FREEZE_FOLLOW_BALL = {
+  vue_normale_fb: etatDd('porteur_fb', [
+    acteurDd('gardien_home_fb', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_fb', 'home', 35, 50, 'milieu', 'actif'),
+    acteurDd('attaquant_fb', 'home', 48, 56, 'attaquant', 'actif'),
+    acteurDd('defenseur_fb', 'away', 60, 44, 'defenseur', 'peripherique'),
+    acteurDd('gardien_away_fb', 'away', 92, 50, 'gardien', 'peripherique')
+  ]),
+  preparation_frappe_fb: etatDd('attaquant_fb', [
+    acteurDd('gardien_home_fb', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_fb', 'home', 50, 48, 'milieu', 'actif'),
+    acteurDd('attaquant_fb', 'home', 55, 52, 'attaquant', 'actif'),
+    acteurDd('defenseur_fb', 'away', 62, 46, 'defenseur', 'actif'),
+    acteurDd('gardien_away_fb', 'away', 91, 50, 'gardien', 'peripherique')
+  ]),
+  frappe_fb: etatDd('attaquant_fb', [
+    acteurDd('gardien_home_fb', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_fb', 'home', 52, 47, 'milieu', 'actif'),
+    acteurDd('attaquant_fb', 'home', 58, 50, 'attaquant', 'actif'),
+    acteurDd('defenseur_fb', 'away', 63, 47, 'defenseur', 'actif'),
+    acteurDd('gardien_away_fb', 'away', 90, 50, 'gardien', 'peripherique')
+  ]),
+  // reprise_fb/retour_normal_fb (section 6/section J du rapport) : ballonXY MANUEL ici aussi
+  // (jamais etatDd) -- le ballon continue la MEME trajectoire, EXACTEMENT depuis le point ou
+  // ballon_ralenti_fb l'a laisse (72,44), a vitesse redevenue normale. Le reattacher au porteur
+  // via etatDd aurait provoque un saut brutal (retour aux pieds de l'attaquant) au moment meme ou
+  // la demande interdit explicitement tout saut de position (section 6/J).
+  reprise_fb: {
+    porteur: 'attaquant_fb',
+    acteurs: [
+      acteurDd('gardien_home_fb', 'home', 8, 50, 'gardien', 'peripherique'),
+      acteurDd('porteur_fb', 'home', 56, 48, 'milieu', 'actif'),
+      acteurDd('attaquant_fb', 'home', 64, 52, 'attaquant', 'actif'),
+      acteurDd('defenseur_fb', 'away', 66, 48, 'defenseur', 'actif'),
+      acteurDd('gardien_away_fb', 'away', 89, 50, 'gardien', 'peripherique')
+    ],
+    ballonXY: { x: 80, y: 43 },
+    vitesseBallonMs: VITESSE_ACTIF_PAR_ROLE.attaquant // vitesse NORMALE retrouvee (contraste net avec le ralenti qui precede -- section 6 "reprise perceptible")
+  },
+  retour_normal_fb: {
+    porteur: 'attaquant_fb',
+    acteurs: [
+      acteurDd('gardien_home_fb', 'home', 8, 50, 'gardien', 'peripherique'),
+      acteurDd('porteur_fb', 'home', 60, 50, 'milieu', 'actif'),
+      acteurDd('attaquant_fb', 'home', 70, 54, 'attaquant', 'actif'),
+      acteurDd('defenseur_fb', 'away', 72, 50, 'defenseur', 'actif'),
+      acteurDd('gardien_away_fb', 'away', 88, 50, 'gardien', 'peripherique')
+    ],
+    // Toujours EN L'AIR, loin de la ligne de but (94%) et du gardien -- le scenario s'arrete ici,
+    // avant toute resolution sportive (section 2 : "pas de but, pas d'arret, pas de sortie").
+    ballonXY: { x: 86, y: 41 },
+    vitesseBallonMs: VITESSE_ACTIF_PAR_ROLE.attaquant
+  }
+};
+// Plan "ballon_ralenti_fb" (section 3/4/5) : MEMES acteurs (meme reference tableau) que frappe_fb --
+// figes -- mais ballonXY MANUEL (jamais etatDd, qui l'attacherait au porteur) : le ballon quitte le
+// pied de l'attaquant (58,50) vers une trajectoire lisible (72,44), sur SA PROPRE vitesseBallonMs
+// longue (FB_FREEZE_DUREE_MS) -- nettement plus lent que son debit normal (1500-2200ms deja pour un
+// deplacement typiquement 2 a 3 fois plus grand ailleurs dans ce fichier) pour une DISTANCE bien plus
+// courte : impression de ralenti par construction, jamais une physique simulee. cameraSpectaculaire
+// suit le ballon (cx/cy entre le point de depart et la cible, biaise vers la destination -- "espace
+// devant la trajectoire", section 5) avec la MEME duree que le ballon -- decouplage total des trois
+// horloges, chacune sa propre transition/duree sur EXACTEMENT la meme fenetre temporelle.
+ETATS_FREEZE_FOLLOW_BALL.ballon_ralenti_fb = {
+  porteur: 'attaquant_fb',
+  acteurs: ETATS_FREEZE_FOLLOW_BALL.frappe_fb.acteurs,
+  ballonXY: { x: 72, y: 44 },
+  vitesseBallonMs: FB_FREEZE_DUREE_MS,
+  cameraSpectaculaire: { scale: FB_FOLLOW_SCALE, cx: 66, cy: 46, dureeMs: FB_FREEZE_DUREE_MS, easing: 'ease-in-out' }
+};
+Object.assign(ETATS_VISUELS_TERRAIN_PREVIEW, ETATS_FREEZE_FOLLOW_BALL);
+
+const FRAMES_FREEZE_FOLLOW_BALL = [
+  { etatVisuel: 'vue_normale_fb', dureeMs: 2400 },
+  { etatVisuel: 'preparation_frappe_fb', dureeMs: 2200 },
+  { etatVisuel: 'frappe_fb', dureeMs: 1000 },
+  // FREEZE SELECTIF + RALENTI (section 3/4) : voir etat ci-dessus -- acteurs figes, ballon et
+  // camera actifs sur EXACTEMENT cette fenetre.
+  { etatVisuel: 'ballon_ralenti_fb', dureeMs: FB_FREEZE_DUREE_MS },
+  // REPRISE (section 6) : nouvelles positions (jamais les memes que frappe_fb -- une vraie
+  // transition repart, a la vitesse normale des acteurs, jamais artificiellement acceleree) ; le
+  // ballon continue sa trajectoire (toujours pas de resultat sportif -- il ne touche ni but ni
+  // gardien) ; camera SANS cameraSpectaculaire -- retombe automatiquement sur Camera V1.5.
+  { etatVisuel: 'reprise_fb', dureeMs: 2000 },
+  { etatVisuel: 'retour_normal_fb', dureeMs: 2400 }
+];
+const SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL = {
+  gabaritId: 'preview_freeze_follow_ball', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_FREEZE_FOLLOW_BALL.map(frame => ({ type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel }))
+};
+SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_FREEZE_FOLLOW_BALL); // 2400+2200+1000+1100+2000+2400 = 11100ms (~11,1s)
+
+// =====================================================================
+// BAC A SABLE "REALISATEUR" #3 -- ORBIT FREEZE / FAUX BULLET TIME (chantier "orbit freeze / faux
+// bullet time", 30 aout 2026). Scenario preview ISOLE, bouton DISTINCT -- n'affecte pas et ne
+// remplace pas Drone Dive + Impact Freeze ni Freeze selectif + Follow Ball (les deux restent
+// strictement inchanges, verifie en non-regression).
+//
+// DIFFERENCE avec le bac a sable #2 (section 1/3 de la demande) : cette fois le BALLON est
+// egalement fige (jamais detache du porteur -- c'est un DUEL, pas un tir, le ballon reste
+// naturellement a ses pieds pendant tout l'effet). SEULE la camera reste active.
+//
+// TECHNIQUE RETENUE POUR L'ILLUSION "ORBIT" (section 4/5) : 3 MICRO-CADRAGES SUCCESSIFS
+// (orbit_a -> orbit_b -> orbit_c), chacun son propre plan 'terrain' avec la MEME reference
+// acteurs+ballonXY que duel_impact_of (aucune nouvelle valeur, donc aucune transition sur le monde
+// -- prouve par comparaison de valeurs dans le rapport, pas seulement par absence d'ecriture), mais
+// un cameraSpectaculaire DIFFERENT a chaque fois : translateX alterne cote gauche (orbit_a) -> cote
+// droit, au-dela de l'axe du duel (orbit_b) -> recomposition centree/plus ouverte (orbit_c), combine
+// a une PULSATION DE ZOOM (scale 1.55 -> 1.65 -> 1.48) et une ROTATION TRES LEGERE alternee
+// (-2deg -> +2deg -> 0deg, cf. ORBIT_ROTATION_MAX_DEG) -- c'est la combinaison simultanee
+// translation+zoom+rotation qui vise l'impression de contournement (un pan seul n'aurait donne que
+// "le terrain glisse", section 4). transform-origin volontairement LAISSE PAR DEFAUT (50% 50%,
+// jamais touche) : a une amplitude de rotation aussi faible (+/-2deg), deplacer le pivot n'aurait
+// change le rendu que de facon marginale, et le laisser au centre permet de REUTILISER TEL QUEL le
+// clamp geometrique deja demontre sur (panLimit=50*(1-1/scale)) sans nouvelle demonstration
+// -- choix documente dans le rapport (limite honnete plutot que sur-ingenierie, section 14).
+// CONTINUITE (section 6) : chaque cameraSpectaculaire.dureeMs INTERIEUR est deliberement PLUS LONG
+// que la duree de son propre sous-plan (ORBIT_SOUS_PLAN_MS=500, transitions 650-900ms) --
+// EXACTEMENT le meme principe de continuite deja demontre pour Camera V1.5/le drone dive/follow
+// ball : la camera est encore en mouvement quand le sous-plan suivant la redirige, donc jamais
+// d'arret perceptible entre les 3 micro-cadrages, un seul geste continu.
+// REPRISE (section 8) : orbit_c utilise une duree ENCORE PLUS longue (900ms sur un sous-plan de
+// 500ms) -- la camera est donc TOUJOURS en train de s'installer sur son cadrage final quand
+// reprise_of demarre et que les acteurs repartent : "PLAY pendant que la camera est encore
+// cinematographique", jamais un retour mecanique instantane. reprise_of n'a PAS de
+// cameraSpectaculaire -- Camera V1.5 automatique redirige alors cette transition encore en cours
+// vers son propre calcul, ramenant progressivement le cadrage a la normale (memes garanties que le
+// bac a sable #2).
+const ORBIT_SOUS_PLAN_MS = 500; // total freeze = 3*500 = 1500ms, dans la fourchette 1200-1800ms demandee (section 3)
+const ORBIT_ROTATION_MAX_DEG = 2; // amplitude "tres faible" demandee (section 5)
+
+const ETATS_ORBIT_FREEZE = {
+  vue_normale_of: etatDd('porteur_of', [
+    acteurDd('gardien_home_of', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_of', 'home', 32, 50, 'milieu', 'actif'),
+    acteurDd('soutien_of', 'home', 46, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_of', 'away', 58, 40, 'defenseur', 'peripherique'),
+    acteurDd('gardien_away_of', 'away', 92, 50, 'gardien', 'peripherique')
+  ]),
+  progression_of: etatDd('porteur_of', [
+    acteurDd('gardien_home_of', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_of', 'home', 46, 49, 'milieu', 'actif'),
+    acteurDd('soutien_of', 'home', 54, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_of', 'away', 54, 44, 'defenseur', 'actif'),
+    acteurDd('gardien_away_of', 'away', 91, 50, 'gardien', 'peripherique')
+  ]),
+  duel_impact_of: etatDd('porteur_of', [
+    acteurDd('gardien_home_of', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_of', 'home', 56, 48, 'milieu', 'actif'),
+    acteurDd('soutien_of', 'home', 58, 62, 'attaquant', 'actif'),
+    acteurDd('defenseur_of', 'away', 58, 48, 'defenseur', 'actif'),
+    acteurDd('gardien_away_of', 'away', 90, 50, 'gardien', 'peripherique')
+  ]),
+  reprise_of: etatDd('porteur_of', [
+    acteurDd('gardien_home_of', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_of', 'home', 62, 50, 'milieu', 'actif'),
+    acteurDd('soutien_of', 'home', 64, 60, 'attaquant', 'actif'),
+    acteurDd('defenseur_of', 'away', 60, 46, 'defenseur', 'actif'),
+    acteurDd('gardien_away_of', 'away', 89, 50, 'gardien', 'peripherique')
+  ]),
+  retour_normal_of: etatDd('porteur_of', [
+    acteurDd('gardien_home_of', 'home', 8, 50, 'gardien', 'peripherique'),
+    acteurDd('porteur_of', 'home', 70, 52, 'milieu', 'actif'),
+    acteurDd('soutien_of', 'home', 72, 62, 'attaquant', 'actif'),
+    acteurDd('defenseur_of', 'away', 68, 48, 'defenseur', 'actif'),
+    acteurDd('gardien_away_of', 'away', 88, 50, 'gardien', 'peripherique')
+  ])
+};
+// orbit_a/b/c (section 3/9) : MEMES acteurs ET MEME ballonXY que duel_impact_of (reference
+// identique -- jamais de nouvelle valeur x/y) : le MONDE ENTIER (acteurs + ballon, contrairement au
+// bac a sable #2) reste reellement immobile sur toute la duree des 3 sous-plans -- seule
+// cameraSpectaculaire differe a chaque etape.
+['orbit_a', 'orbit_b', 'orbit_c'].forEach(function(id, i) {
+  ETATS_ORBIT_FREEZE[id] = {
+    porteur: 'porteur_of',
+    acteurs: ETATS_ORBIT_FREEZE.duel_impact_of.acteurs,
+    ballonXY: ETATS_ORBIT_FREEZE.duel_impact_of.ballonXY,
+    vitesseBallonMs: ETATS_ORBIT_FREEZE.duel_impact_of.vitesseBallonMs
+  };
+});
+ETATS_ORBIT_FREEZE.orbit_a.cameraSpectaculaire = { scale: 1.55, cx: 51, cy: 46, rotation: -ORBIT_ROTATION_MAX_DEG, dureeMs: 650, easing: 'ease-in-out' };
+ETATS_ORBIT_FREEZE.orbit_b.cameraSpectaculaire = { scale: 1.65, cx: 63, cy: 50, rotation: ORBIT_ROTATION_MAX_DEG, dureeMs: 650, easing: 'ease-in-out' };
+ETATS_ORBIT_FREEZE.orbit_c.cameraSpectaculaire = { scale: 1.48, cx: 57, cy: 48, rotation: 0, dureeMs: 900, easing: 'ease-out' };
+Object.assign(ETATS_VISUELS_TERRAIN_PREVIEW, ETATS_ORBIT_FREEZE);
+
+const FRAMES_ORBIT_FREEZE = [
+  { etatVisuel: 'vue_normale_of', dureeMs: 2200 },
+  { etatVisuel: 'progression_of', dureeMs: 2000 },
+  { etatVisuel: 'duel_impact_of', dureeMs: 800 },
+  // FREEZE COMPLET + ORBIT (section 3/4) : voir les etats ci-dessus.
+  { etatVisuel: 'orbit_a', dureeMs: ORBIT_SOUS_PLAN_MS },
+  { etatVisuel: 'orbit_b', dureeMs: ORBIT_SOUS_PLAN_MS },
+  { etatVisuel: 'orbit_c', dureeMs: ORBIT_SOUS_PLAN_MS },
+  // REPRISE (section 8) : nouvelles positions (jamais les memes que duel_impact_of), ballon
+  // TOUJOURS attache au porteur (etatDd) -- coherent avec un duel (jamais detache comme un tir),
+  // aucun saut brutal. Camera SANS cameraSpectaculaire -- Camera V1.5 automatique reprend la main,
+  // redirigeant en douceur la transition d'orbit_c encore en cours (section 6/8/9 du rapport).
+  { etatVisuel: 'reprise_of', dureeMs: 2000 },
+  { etatVisuel: 'retour_normal_of', dureeMs: 2400 }
+];
+const SEQUENCE_PREVIEW_ORBIT_FREEZE = {
+  gabaritId: 'preview_orbit_freeze', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_ORBIT_FREEZE.map(frame => ({ type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel }))
+};
+SEQUENCE_PREVIEW_ORBIT_FREEZE.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_ORBIT_FREEZE); // 2200+2000+800+500+500+500+2000+2400 = 10900ms (~10,9s)
+
+// =====================================================================
+// BAC A SABLE "REALISATEUR" #4 -- TIME RAMP (chantier "time ramp -- acceleration/ralenti/reprise",
+// 30 aout 2026). Scenario preview ISOLE, bouton DISTINCT -- n'affecte pas et ne remplace aucun
+// scenario existant (les 3 bacs a sable precedents restent strictement inchanges, verifie en
+// non-regression).
+//
+// PRINCIPE ABSOLU (section 1) : AUCUN FREEZE. Chaque plan assigne une NOUVELLE position a chaque
+// acteur implique -- jamais la meme reference que le plan precedent (a l'oppose des bacs a sable
+// #1/#2/#3). La sensation de vitesse vient UNIQUEMENT de deux leviers COMBINES par regime :
+// - la duree de transition CSS de l'acteur (vitesseMs, ex-VITESSE_ACTIF_PAR_ROLE mais des valeurs
+//   PROPRES a ce scenario -- TR_VITESSE_NORMAL/FAST/SLOW -- puisque les bandes partagees
+//   1500-3400ms ne couvrent pas l'amplitude demandee ici) ;
+// - la DISTANCE parcourue par plan (plus grande en FAST, plus petite en SLOW) -- car la vitesse
+//   PERCUE est distance/duree, pas la duree seule : un ralenti obtenu SEULEMENT en allongeant la
+//   duree se heurte a la contrainte de continuite camera ci-dessous, alors qu'une distance reduite
+//   en plus d'une duree modestement allongee restitue le ratio demande (~0,35-0,55x) sans ce
+//   compromis (section 3, "cibles perceptuelles, pas obligations mathematiques").
+//
+// AUCUN NOUVEL EFFET CAMERA (section 7/15, "on teste le TEMPS, pas un nouvel effet camera") : ce
+// scenario n'utilise JAMAIS cameraSpectaculaire -- CHAQUE etat porte un ballonXY normal, donc
+// appliquerEtatVisuelTerrainPreview retombe systematiquement sur Camera V1.5 automatique
+// (calculerCadrageCameraMatchMiniature), rigoureusement INCHANGEE, exactement comme n'importe quel
+// etat "normal" de match_miniature_v2. C'est la premiere reutilisation de la VRAIE formule V1.5 sur
+// des acteurs construits hors de acteurMatchMiniature -- possible car calculerCadrageCameraMatchMiniature
+// ne lit que etat.acteurs/etat.porteur/etat.ballonXY, generiquement, sans dependre de leur origine.
+//
+// CONTRAINTE DECOUVERTE ET DOCUMENTEE (section 4/16.14 du rapport) : Camera V1.5 utilise une
+// CAMERA_TRANSITION_MS FIXE de 2600ms (jamais modifiee ici). Pour que la camera ne s'immobilise
+// JAMAIS entre deux plans (elle doit toujours etre "encore en train d'arriver" quand le plan suivant
+// la redirige -- meme principe de continuite que partout ailleurs dans ce fichier), la duree de
+// CHAQUE plan doit rester strictement sous 2600ms. C'est cette contrainte -- pas un choix
+// artistique -- qui fixe TR_VITESSE_SLOW a 2400ms plutot qu'a une valeur plus longue qui aurait
+// mieux isole le ratio de vitesse demande mais aurait laisse la camera immobile jusqu'a 450-1000ms
+// entre deux plans lents. Documente honnetement plutot que masque par un freeze (interdiction
+// explicite de la demande).
+const TR_OVERLAP_MS = 150; // avance de redirection (meme principe que AVANCE_CONTINUITE_PORTEUR_MS de Camera V1.5, chantier 2fea1af)
+function dureeAvecChevauchementTr(vitesseMs) { return Math.max(200, vitesseMs - TR_OVERLAP_MS); }
+const TR_VITESSE_NORMAL = 1800; // rythme comparable a VITESSE_ACTIF_PAR_ROLE.milieu (locomotion V2 validee), section 3
+const TR_VITESSE_FAST = 1100;   // combine a une distance plus grande par plan -- ratio percu ~1,9x (cible 1,5-2x)
+const TR_VITESSE_SLOW = 2400;   // plafonne sous CAMERA_TRANSITION_MS (2600ms, voir ci-dessus) ; combine a une distance
+                                 // reduite par plan -- ratio percu ~0,37x (cible 0,35-0,55x)
+const TR_VITESSE_REPRISE = 1400; // "CLAC" (section 9) : plus vif que TR_VITESSE_NORMAL, contraste net avec le ralenti qui precede
+const TR_VITESSE_PERIPHERIQUE = 3200; // acteurs non directement impliques (gardiens) -- modere, jamais fige (section 6)
+
+// acteurTimeRamp (section 10, "petite abstraction reutilisable si cela simplifie reellement") :
+// meme forme que acteurDd (bacs a sable #1-3) mais vitesse EXPLICITE (jamais deduite d'un role/une
+// intensite -- c'est le regime NORMAL/FAST/SLOW qui la determine ici, pas le poste). delay
+// systematiquement nul -- ce scenario porte sur la VITESSE, pas sur un etalement/decalage de depart
+// (a l'oppose de match_miniature_v2).
+function acteurTimeRamp(id, cote, x, y, vitesseMs, intensite, role) {
+  const acteur = { id: id, cote: cote, x: x, y: y, vitesse: vitesseMs, delay: 0, intensite: intensite };
+  if (role) acteur.role = role;
+  return acteur;
+}
+// etatTimeRamp : meme principe que etatDd (ballon lie au porteur, AVANCE_BALLON_PORTEUR_POURCENT
+// partage, jamais reimplemente differemment) mais AUCUN champ cameraSpectaculaire -- Camera V1.5
+// automatique systematiquement.
+function etatTimeRamp(porteurId, acteurs) {
+  const porteur = acteurs.find(function(a) { return a.id === porteurId; });
+  return { porteur: porteurId, acteurs: acteurs, ballonXY: { x: porteur.x + AVANCE_BALLON_PORTEUR_POURCENT, y: porteur.y }, vitesseBallonMs: porteur.vitesse };
+}
+
+const ETATS_TIME_RAMP = {
+  normal_1_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 8, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 26, 50, TR_VITESSE_NORMAL, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 38, 60, TR_VITESSE_PERIPHERIQUE, 'peripherique'),
+    acteurTimeRamp('defenseur_tr', 'away', 60, 38, TR_VITESSE_PERIPHERIQUE, 'peripherique'),
+    acteurTimeRamp('gardien_away_tr', 'away', 92, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  normal_2_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 8, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 36, 49, TR_VITESSE_NORMAL, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 44, 60, TR_VITESSE_PERIPHERIQUE, 'peripherique'),
+    acteurTimeRamp('defenseur_tr', 'away', 58, 40, TR_VITESSE_PERIPHERIQUE, 'peripherique'),
+    acteurTimeRamp('gardien_away_tr', 'away', 91, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  fast_1_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 46, 48, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 50, 60, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 62, 42, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 90, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  fast_2_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 58, 47, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 60, 60, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 66, 44, TR_VITESSE_FAST, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 89, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  // slow_1/slow_2 (section 3/8) : DISTANCE volontairement REDUITE (5% vs 10-12% en NORMAL/FAST) --
+  // c'est cette reduction, COMBINEE a TR_VITESSE_SLOW (2400ms), qui restitue le ratio de vitesse
+  // percue cible (~0,35-0,55x) tout en gardant chaque plan sous les 2600ms de CAMERA_TRANSITION_MS
+  // (voir le commentaire d'architecture en tete de ce bloc).
+  slow_1_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 63, 46, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 64, 60, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 68, 46, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 89, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  slow_2_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 68, 45, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 68, 60, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 70, 46, TR_VITESSE_SLOW, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 88, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  reprise_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 76, 44, TR_VITESSE_REPRISE, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 76, 60, TR_VITESSE_REPRISE, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 76, 48, TR_VITESSE_REPRISE, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 87, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ]),
+  retour_normal_tr: etatTimeRamp('porteur_tr', [
+    acteurTimeRamp('gardien_home_tr', 'home', 9, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien'),
+    acteurTimeRamp('porteur_tr', 'home', 80, 45, TR_VITESSE_NORMAL, 'actif'),
+    acteurTimeRamp('soutien_tr', 'home', 80, 60, TR_VITESSE_NORMAL, 'actif'),
+    acteurTimeRamp('defenseur_tr', 'away', 80, 48, TR_VITESSE_NORMAL, 'actif'),
+    acteurTimeRamp('gardien_away_tr', 'away', 86, 50, TR_VITESSE_PERIPHERIQUE, 'peripherique', 'gardien')
+  ])
+};
+Object.assign(ETATS_VISUELS_TERRAIN_PREVIEW, ETATS_TIME_RAMP);
+
+const FRAMES_TIME_RAMP = [
+  { etatVisuel: 'normal_1_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_NORMAL) },
+  { etatVisuel: 'normal_2_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_NORMAL) },
+  { etatVisuel: 'fast_1_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_FAST) },
+  { etatVisuel: 'fast_2_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_FAST) },
+  // FAST -> SLOW (section 8) : la frontiere de plan tombe alors que le porteur/soutien/defenseur
+  // sont encore visiblement en train d'arriver sur leur cible FAST (dureeAvecChevauchementTr laisse
+  // TR_OVERLAP_MS de marge) -- rupture de rythme perceptible SANS jamais d'arret, la redirection se
+  // fait en plein mouvement (meme principe de continuite que Camera V1.5).
+  { etatVisuel: 'slow_1_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_SLOW) },
+  { etatVisuel: 'slow_2_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_SLOW) },
+  // SLOW -> NORMAL (section 9) : "CLAC" -- TR_VITESSE_REPRISE (1400ms) nettement plus vif que
+  // TR_VITESSE_SLOW (2400ms), rupture nette mesurable, toujours sans saut (memes acteurs, nouvelle
+  // destination seulement).
+  { etatVisuel: 'reprise_tr', dureeMs: dureeAvecChevauchementTr(TR_VITESSE_REPRISE) },
+  { etatVisuel: 'retour_normal_tr', dureeMs: 2200 }
+];
+const SEQUENCE_PREVIEW_TIME_RAMP = {
+  gabaritId: 'preview_time_ramp', microAction: 'duel', cote: 'home', joueur: null, decoratif: true,
+  plans: FRAMES_TIME_RAMP.map(frame => ({ type: 'terrain', dureeMs: frame.dureeMs, cadrage: 'large', etatVisuel: frame.etatVisuel }))
+};
+SEQUENCE_PREVIEW_TIME_RAMP.dureeMs = dureeTotaleSequence(SEQUENCE_PREVIEW_TIME_RAMP);
+
+// Joue UNE sequence narrative locale : delegue au realisateur automatique -- genere une sequence
+// d'un nombre quelconque de plans terrain/illustre (l'executeur n'a aucune branche speciale selon
+// le nombre de plans, chantier "architecture multi-plans" du 29 aout 2026), deterministe (seed =
+// matchKey+phase+instant.t, identite stable partagee par tous les spectateurs), puis l'execute.
+// Purement visuel -- aucune donnee sportive lue ni ecrite ici.
+function jouerMicroAction(instant, home, away, matchKey, phaseKey) {
+  const def = CATALOGUE_MICRO_ACTIONS[instant.type];
+  if (!def) return;
+  const club = instant.cote === 'home' ? home : away;
+  const label = document.getElementById('live-action-label');
+  if (label) label.textContent = def.label + ' — ' + club.nom;
+
+  const scene = document.getElementById('live-mini-terrain');
+  if (scene) { scene.classList.add('live-mini-terrain--actif'); scene.classList.remove('live-mini-terrain--echauffement', 'live-mini-terrain--mitemps'); }
+
+  // Ville HOTE = toujours celle du club home (un club joue toujours dans sa propre ville) --
+  // signature de realisation resolue ici, jamais melangee a l'identite visuelle des clubs
+  // (identiteVisuelleClub reste couleurs/maillot, un concept totalement separe). Aucun profil de
+  // ville n'etant encore defini (PROFILS_REALISATION_VILLE vide), ceci renvoie toujours
+  // PROFIL_REALISATION_DEFAUT -- zero changement de comportement tant qu'aucun profil artistique
+  // n'est configure.
+  const profil = profilRealisationVille(home.country, home.city);
+  const seed = matchKey + '-' + phaseKey + '-' + instant.t;
+  const sequence = genererSequenceRealisation(seed, { microAction: instant.type, cote: instant.cote }, profil);
+  executerSequenceRealisation(sequence, instant, def, club);
+}
+
+// Ambiance hors phase de jeu (section 13) : echauffement calme, mi-temps arretee (aucune
+// narration sportive, n'interfere ni avec la buvette ni avec le systeme supporters), fin figee.
+function afficherAmbiancePhase(statut) {
+  const label = document.getElementById('live-action-label');
+  const scene = document.getElementById('live-mini-terrain');
+  if (!scene) return;
+  scene.classList.remove('live-mini-terrain--actif');
+  if (statut === 'echauffement') {
+    scene.classList.add('live-mini-terrain--echauffement');
+    scene.classList.remove('live-mini-terrain--mitemps');
+    if (label) label.textContent = "Échauffement…";
+    positionnerBallon(3); positionnerJoueur('home', 2); positionnerJoueur('away', 4);
+  } else if (statut === 'mitemps') {
+    scene.classList.add('live-mini-terrain--mitemps');
+    scene.classList.remove('live-mini-terrain--echauffement');
+    if (label) label.textContent = 'Pause — les joueurs regagnent les vestiaires.';
+  } else if (statut === 'termine') {
+    if (label) label.textContent = 'Match terminé.';
+  }
+}
+
+// Point d'entree du tick 500ms. File d'attente des evenements canoniques TOUJOURS prioritaire sur
+// la narration locale (section 8/9) -- jamais l'inverse, jamais de melange des deux en meme temps.
+function tickVisuelScene() {
+  if (!_liveViewerRef || !_liveViewerSceneEtat) return;
+  const { live, home, away, matchKey } = _liveViewerSceneEtat;
+  const kickoff = new Date(live.kickoffAt);
+  const phaseInfo = phaseMatchActuelle(kickoff, new Date());
+
+  const chronoEl = document.getElementById('live-chrono');
+  if (chronoEl) chronoEl.textContent = formaterChronoLive(phaseInfo);
+
+  if (_liveViewerFileCanonique.length && !_liveViewerAfficheCanoniqueEnCours) {
+    const ev = _liveViewerFileCanonique.shift();
+    afficherInsertCanonique(ev, matchKey);
+    return;
+  }
+  if (_liveViewerAfficheCanoniqueEnCours) return; // laisse l'insert en cours se terminer avant toute narration
+
+  if (phaseInfo.statut !== 'mt1' && phaseInfo.statut !== 'mt2') {
+    afficherAmbiancePhase(phaseInfo.statut);
+    return;
+  }
+
+  const limites = calculerLimitesPhase(kickoff, phaseInfo.statut);
+  const tEcouleSec = (Date.now() - limites.debut) / 1000;
+  if (tEcouleSec < 0) return; // pas encore dans cette phase
+  const scenario = genererScenarioNarratifPhase(matchKey, phaseInfo.statut, limites.duree / 1000);
+  const instant = trouverInstantNarratifActuel(scenario, tEcouleSec);
+  if (instant && instant !== _liveViewerDernierInstantAffiche) {
+    _liveViewerDernierInstantAffiche = instant;
+    jouerMicroAction(instant, home, away, matchKey, phaseInfo.statut);
+  }
+}
+
+const LABELS_PHASE_LIVE = {
+  echauffement: 'ÉCHAUFFEMENT', mt1: '1ʳᵉ PÉRIODE', mitemps: 'MI-TEMPS', mt2: '2ᵉ PÉRIODE', termine: 'TERMINÉ'
+};
+const ICONES_EVENEMENT_LIVE = {
+  composition: '📋', debut: '🟢', but: '⚽', occasion: '💥', carton: '🟨', action: 'ℹ️',
+  blessure: '🚑', mitemps: '⏸️', reprise: '🔄', fin: '🏁'
+};
+
+// ---- Portraits PJ (section 11) : reutilise personnages.photo_url (colonne existante, deja lue
+// ailleurs dans le jeu -- getPnjAvatar/sbSavePersonnage). Meme patron que sbListJoueursLicencies
+// (lecture large filtree cote client, jamais un champ prive comme performance_sportive). Cache
+// par match : une seule lecture reseau, jamais relue a chaque tick 6s. ----
+async function chargerPortraitsMatch(matchKey, live) {
+  if (_liveViewerPortraitsCache[matchKey]) return _liveViewerPortraitsCache[matchKey];
+  const cache = {};
+  const noms = [
+    ...(live.compositionFigee?.home?.titulaires || []).map(t => t.nom),
+    ...(live.compositionFigee?.away?.titulaires || []).map(t => t.nom)
+  ];
+  if (typeof sbGet === 'function' && noms.length) {
+    // Correctif du 28 aout 2026 : cible desormais UNIQUEMENT les ~22 titulaires de CE match (OR de
+    // name.eq., chaque valeur encodee individuellement -- meme patron que name=eq.${encodeURIComponent(...)}
+    // deja utilise partout ailleurs dans ce fichier, jamais un in.() quote a la main), au lieu de
+    // lire tous les joueurs licencies puis filtrer cote client. select limite a name,photo_url.
+    const filtre = 'or=(' + noms.map(n => 'name.eq.' + encodeURIComponent(n)).join(',') + ')&select=name,photo_url';
+    const rows = await sbGet('personnages', filtre).catch(() => []);
+    (rows || []).forEach(r => { cache[r.name] = r.photo_url || null; });
+  }
+  _liveViewerPortraitsCache[matchKey] = cache;
+  return cache;
+}
+
+// Rendu d'un portrait -- fallback generique propre si aucune photo, jamais de tentative
+// d'attribuer une photo a un nom fictif (club.vedettes) : ces noms n'apparaissent jamais dans le
+// cache (construit uniquement a partir de compositionFigee, jamais des vedettes de repli).
+function rendrePortraitJoueur(nom, matchKey, taillePx) {
+  const taille = taillePx || 32;
+  const url = (_liveViewerPortraitsCache[matchKey] || {})[nom];
+  if (url) {
+    return '<img src="' + url + '" class="live-portrait-joueur" style="width:' + taille + 'px;height:' + taille + 'px" alt="' + nom.replace(/"/g, '') + '"/>';
+  }
+  return '<div class="live-portrait-joueur live-portrait-fallback" style="width:' + taille + 'px;height:' + taille + 'px"><i class="ti ti-user"></i></div>';
+}
+
+// ---- Insert "BD" (section 10) : conteneur en couches (fond/action/portrait/texte), CACHE par
+// defaut. Affiche un PLACEHOLDER esthetique et clairement identifiable par type d'evenement
+// canonique -- aucune illustration definitive ; le futur asset remplacera le fond/l'action sans
+// changement de structure (mêmes ids, mêmes couches). ----
+function afficherInsertCanonique(evenement, matchKey) {
+  _liveViewerAfficheCanoniqueEnCours = true;
+  const insert = document.getElementById('live-insert-bd');
+  if (!insert) { _liveViewerAfficheCanoniqueEnCours = false; return; }
+  const actionEl = document.getElementById('live-insert-bd-action');
+  const portraitEl = document.getElementById('live-insert-bd-portrait');
+  const texteEl = document.getElementById('live-insert-bd-texte');
+
+  const icone = ICONES_EVENEMENT_LIVE[evenement.type] || '⚽';
+  if (actionEl) actionEl.textContent = icone;
+  if (texteEl) texteEl.textContent = evenement.texte || '';
+  if (portraitEl) portraitEl.innerHTML = evenement.joueur ? rendrePortraitJoueur(evenement.joueur, matchKey, 64) : '';
+
+  const label = document.getElementById('live-action-label');
+  if (label) label.textContent = '';
+
+  insert.className = 'live-insert-bd live-insert-bd-visible live-insert-bd-' + evenement.type;
+
+  const idT = setTimeout(() => {
+    insert.classList.remove('live-insert-bd-visible');
+    insert.className = 'live-insert-bd';
+    _liveViewerAfficheCanoniqueEnCours = false;
+  }, 3400);
+  _liveViewerTimeoutsAnimation.push(idT);
+}
+
+// ---- Tribunes visuelles (section 12) : densite + message discret d'arrivee, purement
+// decoratifs. compterSupportersActifs() reste l'unique source (deja existante, mecanique
+// sportive inchangee) -- ici uniquement un diff LOCAL de deux instantanes successifs pour
+// detecter une arrivee, jamais une nouvelle persistance. ----
+function mettreAJourTribunesVisuelles(supporters, home, away) {
+  const identites = { home: home ? identiteVisuelleClub(home.id) : null, away: away ? identiteVisuelleClub(away.id) : null };
+  ['home', 'away'].forEach(cote => {
+    const dotsEl = document.getElementById('live-tribune-' + cote + '-dots');
+    if (dotsEl) {
+      const n = Math.min(supporters[cote].count, 24);
+      const identite = identites[cote];
+      const styleDot = identite ? ' style="background:' + identite.colorPrimaire + '"' : '';
+      dotsEl.innerHTML = ('<span class="live-tribune-dot"' + styleDot + '></span>').repeat(n);
+    }
+    if (!_liveViewerPremierRafraichissement) {
+      const anciens = _liveViewerNomsSupportersConnus[cote] || [];
+      const arrivee = supporters[cote].noms.find(n => !anciens.includes(n));
+      if (arrivee) afficherMessageTribune(arrivee + ' rejoint les tribunes ' + (cote === 'home' ? 'domicile' : 'extérieur') + ' !');
+    }
+    _liveViewerNomsSupportersConnus[cote] = supporters[cote].noms;
+  });
+}
+function afficherMessageTribune(texte) {
+  const el = document.getElementById('live-message-tribune');
+  if (!el) return;
+  el.textContent = texte;
+  el.classList.remove('live-message-tribune-visible');
+  void el.offsetWidth; // force le reflow pour pouvoir rejouer l'animation d'entree
+  el.classList.add('live-message-tribune-visible');
+}
+
+function classeEvenementLive(type) {
+  if (type === 'but') return 'live-event live-event-but';
+  if (type === 'carton') return 'live-event live-event-carton';
+  if (type === 'blessure') return 'live-event live-event-blessure';
+  if (type === 'mitemps' || type === 'reprise' || type === 'fin' || type === 'debut') return 'live-event live-event-marqueur';
+  if (type === 'occasion') return 'live-event live-event-occasion';
+  return 'live-event';
+}
+
+function renderCarteEvenementLive(e, estNouveau) {
+  const icone = ICONES_EVENEMENT_LIVE[e.type] || '•';
+  const cls = classeEvenementLive(e.type) + (estNouveau ? ' live-event-nouveau' : '');
+  const minuteTxt = (e.minute != null && e.type !== 'composition') ? '<span class="live-event-minute">' + e.minute + "'</span>" : '';
+  return '<div class="' + cls + '">' + minuteTxt + '<span class="live-event-icone">' + icone + '</span><span class="live-event-texte">' + e.texte + '</span></div>';
+}
+
+function renderEnTeteLive(home, away, scoreHome, scoreAway, phaseInfo) {
+  let html = '<div class="live-entete">';
+  html += '<div class="live-phase-badge live-phase-' + phaseInfo.statut + '">' + (LABELS_PHASE_LIVE[phaseInfo.statut] || '') + (phaseInfo.minuteFictive != null ? ' · ' + phaseInfo.minuteFictive + "'" : '') + '</div>';
+  html += '<div class="live-score-ligne">';
+  html += '<span class="live-club-nom">' + home.nom + '</span>';
+  html += '<span class="live-score">' + scoreHome + ' - ' + scoreAway + '</span>';
+  html += '<span class="live-club-nom">' + away.nom + '</span>';
+  html += '</div></div>';
+  return html;
+}
+
+// Trouve, dans la saison DEJA CHARGEE, la journee dont le coup d'envoi est en fenetre "live"
+// (echauffement -> termine inclus, pour laisser le temps a l'ecran de detecter la toute fin) --
+// utilise a la fois par le badge et par doRegarderLiveOuResume.
+function trouverJourneeLiveActuelle(saison) {
+  if (!saison || saison.phase !== 'reguliere') return null;
+  const prochaine = saison.calendrier.find(j => !j.matchs.every(m => m.played));
+  if (!prochaine) return null;
+  const kickoff = calculerKickoffJournee(saison, prochaine.numero);
+  if (!kickoff) return null; // C5 : pas d'ancrage canonique -> aucun live a afficher
+  const phaseInfo = phaseMatchActuelle(kickoff, new Date());
+  if (phaseInfo.statut === 'a_venir') return null;
+  return { journee: prochaine, kickoff, phaseInfo };
+}
+
+async function doRegarderLiveOuResume() {
+  document.getElementById('postes-modal-title').textContent = 'Football';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const saison = await chargerOuInitialiserSaison();
+  const actuel = trouverJourneeLiveActuelle(saison);
+  if (actuel && actuel.phaseInfo.statut !== 'termine') {
+    const idx = actuel.journee.matchs.findIndex(m => !m.played);
+    if (idx >= 0) { ouvrirLiveMatchReel(actuel.journee.numero, idx); return; }
+  }
+
+  let derniereJournee = null;
+  for (let i = saison.calendrier.length - 1; i >= 0; i--) {
+    if (saison.calendrier[i].matchs.every(m => m.played)) { derniereJournee = saison.calendrier[i]; break; }
+  }
+  if (!derniereJournee) {
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#5a5040;font-style:italic">Aucun match joué pour l\'instant. Revenez après la première journée.</div>';
+    return;
+  }
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Résumés — Journée ' + derniereJournee.numero + '</div>';
+  derniereJournee.matchs.forEach((m, idx) => {
+    html += '<button onclick="ouvrirResumeMatch(' + derniereJournee.numero + ',' + idx + ')" style="width:100%;text-align:left;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">' + getClub(m.home).nom + ' <b style="color:#C9A84C">' + m.scoreHome + ' - ' + m.scoreAway + '</b> ' + getClub(m.away).nom + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// Resume d'un match DEJA TERMINE (played:true) -- ancien afficherLiveMatch, renomme et clairement
+// etiquete comme tel (jamais presente comme un live). Fonctionne a l'identique pour un match
+// resolu par l'ancien systeme (evenements generes en bloc) ou par le nouveau moteur live
+// (evenements deja tous presents, car m.evenements est copie depuis m.live.evenements a la
+// finalisation) -- aucune distinction necessaire cote affichage, retro-compatibilite totale.
+function ouvrirResumeMatch(numeroJournee, matchIdx) {
+  fermerLiveMatchReel();
+  chargerOuInitialiserSaison().then(saison => {
+    if (!saison) return; // lecture Supabase en erreur (C1) : on n'affiche rien plutot que de planter
+    const journee = saison.calendrier.find(j => j.numero === numeroJournee);
+    const m = journee?.matchs?.[matchIdx];
+    if (!m) return;
+    const home = getClub(m.home), away = getClub(m.away);
+    const evenements = m.evenements || genererEvenementsMatch(home, away, m.scoreHome, m.scoreAway);
+
+    document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
+    let html = '<div class="live-container">';
+    html += '<div class="live-resume-etiquette">RÉSUMÉ DU MATCH</div>';
+    html += renderEnTeteLive(home, away, m.scoreHome, m.scoreAway, { statut: 'termine', minuteFictive: null });
+    html += '<div class="live-fil-evenements">';
+    evenements.forEach(e => { html += renderCarteEvenementLive(e, false); });
+    html += '</div></div>';
+    document.getElementById('postes-body').innerHTML = html;
+  });
+}
+
+// Construit UNE FOIS le shell persistant du mini-terrain (section 5) : pelouse, ballon, jetons
+// joueurs, tribunes symboliques, insert BD (placeholder), chrono/libelle d'action. N'est plus
+// jamais recree tant que le match regarde reste le meme -- rafraichirLiveMatchReel ne fait ensuite
+// que des mises a jour CIBLEES de ses sous-elements (textContent/className/style), jamais un
+// remplacement d'innerHTML de ce bloc.
+function construireSceneMiniTerrain(matchKey, home, away) {
+  // Habillage automatique par match (section 4, chantier identites visuelles) : les jetons
+  // joueurs reprennent la couleur principale du club reellement domicile/exterieur de CETTE
+  // rencontre (resolue via identiteVisuelleClub(home.id)/identiteVisuelleClub(away.id)), jamais
+  // une couleur fixe Luthecia/Republia. Repli sur les couleurs generiques existantes (CSS) si un
+  // club n'a exceptionnellement pas d'identite definie.
+  const identiteHome = identiteVisuelleClub(home.id);
+  const identiteAway = identiteVisuelleClub(away.id);
+  const styleJoueurHome = identiteHome ? ' style="background:' + identiteHome.colorPrimaire + '"' : '';
+  const styleJoueurAway = identiteAway ? ' style="background:' + identiteAway.colorPrimaire + '"' : '';
+
+  let html = '<div class="live-mini-terrain" id="live-mini-terrain">';
+  html += '<div class="live-mini-terrain-entete">';
+  html += '<div class="live-phase-badge" id="live-phase-badge"></div>';
+  html += '<div class="live-chrono" id="live-chrono"></div>';
+  html += '</div>';
+  html += '<div class="live-mini-terrain-score">';
+  html += '<span class="live-club-nom">' + home.nom + '</span>';
+  html += '<span class="live-score" id="live-score-mini">0 - 0</span>';
+  html += '<span class="live-club-nom">' + away.nom + '</span>';
+  html += '</div>';
+  html += '<div class="live-pelouse">';
+  html += '<div class="live-pelouse-lignes"></div>';
+  html += '<div class="live-but live-but-home"></div><div class="live-but live-but-away"></div>';
+  // Conteneur des acteurs V2 (chantier "mini-terrain V2", 29 aout 2026) : vide par defaut, jamais
+  // touche par le mini-terrain V1 ni par le moteur reel -- seul appliquerSceneActeursPreview y
+  // ecrit. Place AVANT les marqueurs V1 (ballon en dernier dans le DOM = toujours au-dessus).
+  html += '<div class="live-acteurs" id="live-acteurs"></div>';
+  html += '<div class="live-joueur live-joueur-home" id="live-joueur-home"' + styleJoueurHome + '></div>';
+  html += '<div class="live-joueur live-joueur-away" id="live-joueur-away"' + styleJoueurAway + '></div>';
+  html += '<div class="live-ballon" id="live-ballon">⚽</div>';
+  html += '<div class="live-insert-bd" id="live-insert-bd">';
+  html += '<div class="live-insert-bd-fond"></div>';
+  html += '<div class="live-insert-bd-action" id="live-insert-bd-action"></div>';
+  html += '<div class="live-insert-bd-portrait" id="live-insert-bd-portrait"></div>';
+  html += '<div class="live-insert-bd-texte" id="live-insert-bd-texte"></div>';
+  html += '</div>';
+  // Plan illustre du realisateur automatique (chantier "premiere passe du realisateur", 28 aout
+  // 2026) : meme langage visuel que l'insert canonique ci-dessus, id DISTINCT expres -- jamais le
+  // meme element, pour ne jamais interferer avec un insert d'evenement canonique (afficherInsertCanonique
+  // reste seul proprietaire de #live-insert-bd, intouche par ce chantier).
+  html += '<div class="live-insert-bd" id="live-realisateur-illustre">';
+  html += '<div class="live-insert-bd-fond"></div>';
+  // Premier vrai asset du realisateur (29 aout 2026) : <img> persistante, masquee par defaut
+  // (display:none) et sans src -- appliquerPlanIllustreRealisation ne la montre que pour les
+  // couches qui portent explicitement `asset` (aujourd'hui : uniquement GABARIT_CRASH_TEST_RAS_DU_SOL).
+  html += '<img class="live-insert-bd-image" id="live-realisateur-illustre-image" alt="" />';
+  // Support video du realisateur preview (chantier F1 -- Arret, 29 aout 2026) : <video> persistante,
+  // meme classe CSS que l'<img> ci-dessus (object-fit herite, aucune regle CSS ajoutee), masquee et
+  // sans src par defaut. appliquerPlanIllustreRealisation ne l'active QUE pour une couche declarant
+  // `media:'video'` -- generique et reutilisable pour de futurs micro-clips, aucun cas particulier
+  // Taclojnou code ici. playsinline (lecture in-place mobile), pas de loop, pas de muted (audio
+  // conserve) -- la lecture elle-meme est declenchee par appliquerPlanIllustreRealisation, jamais
+  // en autoplay HTML (toujours dans le contexte d'une interaction utilisateur : clic banc d'essai).
+  html += '<video class="live-insert-bd-image" id="live-realisateur-illustre-video" playsinline preload="auto"></video>';
+  html += '<div class="live-insert-bd-action"></div>';
+  html += '<div class="live-insert-bd-texte"></div>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="live-action-label" id="live-action-label"></div>';
+  html += '<div class="live-tribunes-symboliques">';
+  html += '<div class="live-tribune-symbolique"><div class="live-tribune-dots" id="live-tribune-home-dots"></div><div class="live-tribune-symbolique-nom">' + home.nom + '</div></div>';
+  html += '<div class="live-tribune-symbolique"><div class="live-tribune-dots" id="live-tribune-away-dots"></div><div class="live-tribune-symbolique-nom">' + away.nom + '</div></div>';
+  html += '</div>';
+  html += '<div class="live-message-tribune" id="live-message-tribune"></div>';
+  html += '</div>';
+  return html;
+}
+
+// VRAI live, synchronise pour tous les spectateurs : chaque rafraichissement relit (et fait
+// avancer, si personne d'autre ne l'a deja fait) l'etat AUTORITAIRE persiste -- jamais de
+// pre-calcul local, jamais d'evenement invente cote client. Un joueur qui ouvre en cours de match
+// recoit directement la phase/le score/les evenements deja survenus ; fermer puis rouvrir relit
+// simplement le meme etat, rien n'est jamais rejoue depuis le debut.
+async function ouvrirLiveMatchReel(numeroJournee, matchIdx) {
+  fermerLiveMatchReel();
+  _liveViewerRef = { journeeNumero: numeroJournee, matchIdx };
+  _liveViewerNbEvenementsConnus = 0;
+  document.getElementById('postes-modal-title').textContent = 'Live';
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Connexion au direct...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  await rafraichirLiveMatchReel();
+  _liveViewerInterval = setInterval(rafraichirLiveMatchReel, 6000);
+}
+
+async function rafraichirLiveMatchReel() {
+  if (!_liveViewerRef) return;
+  if (typeof avancerFootballLive === 'function') await avancerFootballLive().catch(() => {});
+  const saison = await chargerOuInitialiserSaison();
+  const journee = saison?.calendrier?.find(j => j.numero === _liveViewerRef.journeeNumero);
+  const m = journee?.matchs?.[_liveViewerRef.matchIdx];
+  if (!m) { fermerLiveMatchReel(); return; }
+
+  const home = getClub(m.home), away = getClub(m.away);
+  const matchKey = _liveViewerRef.journeeNumero + '-' + m.home + '-' + m.away;
+
+  if (m.played) {
+    // Le match vient de se terminer (ou etait deja termine) : bascule silencieusement sur le
+    // resume, meme fenetre, jamais de rechargement de la page.
+    fermerLiveMatchReel();
+    ouvrirResumeMatch(_liveViewerRef ? _liveViewerRef.journeeNumero : journee.numero, journee.matchs.indexOf(m));
+    return;
+  }
+
+  const live = m.live;
+  if (!live || !live.compositionFigee) {
+    arreterTickVisuel();
+    _liveViewerSceneMatchKey = null;
+    document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
+    document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Les compositions ne sont pas encore annoncées. Revenez juste avant l\'échauffement.</div>';
+    return;
+  }
+  const kickoff = new Date(live.kickoffAt);
+  const phaseInfo = phaseMatchActuelle(kickoff, new Date());
+
+  document.getElementById('postes-modal-title').textContent = home.nom + ' vs ' + away.nom;
+
+  // Shell PERSISTANT construit une seule fois (a l'ouverture, ou si on bascule sur un autre
+  // match) -- jamais recree a chaque refresh 6s (section 5).
+  if (_liveViewerSceneMatchKey !== matchKey) {
+    document.getElementById('postes-body').innerHTML =
+      '<div class="live-container">' + construireSceneMiniTerrain(matchKey, home, away) + '<div id="live-donnees-dynamiques"></div></div>';
+    _liveViewerSceneMatchKey = matchKey;
+    _liveViewerDernierInstantAffiche = null;
+    demarrerTickVisuel();
+  }
+  _liveViewerSceneEtat = { live, home, away, matchKey };
+
+  // Detection des evenements canoniques NOUVEAUX -- jamais ceux deja connus a l'ouverture (pas de
+  // rejeu en insert de tout l'historique quand on rejoint en cours de match, section 2/9).
+  if (!_liveViewerPremierRafraichissement) {
+    for (let i = _liveViewerNbEvenementsConnus; i < live.evenements.length; i++) {
+      const e = live.evenements[i];
+      if (['but', 'occasion', 'carton', 'blessure', 'debut', 'mitemps', 'reprise', 'fin'].includes(e.type)) {
+        _liveViewerFileCanonique.push(e);
+      }
+    }
+  }
+
+  // Dernier joueur mis en evidence : le plus recent evenement NOUVEAU (jamais encore rendu) qui
+  // implique un vrai PJ -- purement cosmetique, section 9.
+  let joueurEnEvidence = null;
+  for (let i = live.evenements.length - 1; i >= _liveViewerNbEvenementsConnus; i--) {
+    if (live.evenements[i].joueur) { joueurEnEvidence = live.evenements[i].joueur; break; }
+  }
+
+  await chargerPortraitsMatch(matchKey, live);
+
+  // Mises a jour CIBLEES du shell persistant (jamais un remplacement complet de son innerHTML).
+  const badge = document.getElementById('live-phase-badge');
+  if (badge) { badge.textContent = LABELS_PHASE_LIVE[phaseInfo.statut] || ''; badge.className = 'live-phase-badge live-phase-' + phaseInfo.statut; }
+  const scoreMini = document.getElementById('live-score-mini');
+  if (scoreMini) scoreMini.textContent = live.scoreHome + ' - ' + live.scoreAway;
+
+  const supporters = await compterSupportersActifs(home, away, live).catch(() => ({ home: { count: 0, noms: [] }, away: { count: 0, noms: [] } }));
+  mettreAJourTribunesVisuelles(supporters, home, away);
+
+  // Choix de camp : propose uniquement a un vrai spectateur (jamais a un titulaire, deja engage
+  // sportivement) n'ayant pas encore choisi pour CE match -- immuable une fois fait.
+  const moi = state.char?.name;
+  const jeSuisTitulaire = moi && (
+    live.compositionFigee.home.titulaires.some(t => t.nom === moi) ||
+    live.compositionFigee.away.titulaires.some(t => t.nom === moi)
+  );
+  let htmlDonnees = '';
+  if (moi && !jeSuisTitulaire && !(live.supportersChoix && live.supportersChoix[moi])) {
+    htmlDonnees += renderChoixCamp(_liveViewerRef.journeeNumero, _liveViewerRef.matchIdx, home, away);
+  }
+  htmlDonnees += renderPanneauTribunes(supporters, home, away);
+  htmlDonnees += renderPanneauTerrain(live, home, away, joueurEnEvidence);
+  htmlDonnees += '<div class="live-fil-evenements" id="live-fil-evenements">';
+  live.evenements.forEach((e, i) => { htmlDonnees += renderCarteEvenementLive(e, i >= _liveViewerNbEvenementsConnus); });
+  htmlDonnees += '</div>';
+  const zoneDynamique = document.getElementById('live-donnees-dynamiques');
+  if (zoneDynamique) zoneDynamique.innerHTML = htmlDonnees;
+
+  _liveViewerNbEvenementsConnus = live.evenements.length;
+  _liveViewerPremierRafraichissement = false;
+}
+
+function renderChoixCamp(journeeNumero, matchIdx, home, away) {
+  let html = '<div class="live-choix-camp">';
+  html += '<div class="live-choix-camp-titre">Quel camp soutenez-vous ?</div>';
+  html += '<div class="live-choix-camp-boutons">';
+  html += '<button onclick="confirmerChoixCampSupporter(' + journeeNumero + ',' + matchIdx + ',\'home\')">' + home.nom + '</button>';
+  html += '<button onclick="confirmerChoixCampSupporter(' + journeeNumero + ',' + matchIdx + ',\'away\')">' + away.nom + '</button>';
+  html += '<button onclick="confirmerChoixCampSupporter(' + journeeNumero + ',' + matchIdx + ',\'neutre\')">Spectateur neutre</button>';
+  html += '</div></div>';
+  return html;
+}
+
+async function confirmerChoixCampSupporter(journeeNumero, matchIdx, choix) {
+  await choisirCampSupporter(journeeNumero, matchIdx, choix);
+  await rafraichirLiveMatchReel();
+}
+
+// Effectifs des tribunes -- affiche les NOMBRES ET LES NOMS (jamais la formule/le calcul interne,
+// section 7/8).
+function renderPanneauTribunes(supporters, home, away) {
+  let html = '<div class="live-panneau">';
+  html += '<div class="live-panneau-titre">TRIBUNES</div>';
+  html += '<div class="live-tribunes-grille">';
+  [{ club: home, s: supporters.home }, { club: away, s: supporters.away }].forEach(cote => {
+    html += '<div class="live-tribune-camp">';
+    html += '<div class="live-tribune-entete"><span>' + cote.club.nom + '</span><b>' + cote.s.count + ' supporter' + (cote.s.count > 1 ? 's' : '') + '</b></div>';
+    if (cote.s.noms.length) {
+      html += '<div class="live-tribune-noms">' + cote.s.noms.map(n => '<span class="live-tribune-nom">' + n + '</span>').join('') + '</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+// Vrais titulaires de la composition figee, identifiables par leur nom -- jamais de caracteristique
+// privee affichee, uniquement les evenements du match auquel ils ont deja ete meles (section 9).
+function renderPanneauTerrain(live, home, away, joueurEnEvidence) {
+  function icones(nom) {
+    let but = 0, carton = 0, blessure = 0;
+    (live.evenements || []).forEach(e => {
+      if (e.joueur !== nom) return;
+      if (e.type === 'but') but++; else if (e.type === 'carton') carton++; else if (e.type === 'blessure') blessure++;
+    });
+    let s = '';
+    if (but) s += ' ' + '⚽'.repeat(Math.min(but, 3));
+    if (carton) s += ' 🟨';
+    if (blessure) s += ' 🚑';
+    return s;
+  }
+  function listeCote(titulaires) {
+    return (titulaires || []).map(t =>
+      '<div class="live-terrain-joueur' + (t.nom === joueurEnEvidence ? ' live-terrain-joueur-actif' : '') + '">' + t.nom + icones(t.nom) + '</div>'
+    ).join('');
+  }
+  let html = '<div class="live-panneau">';
+  html += '<div class="live-panneau-titre">SUR LE TERRAIN</div>';
+  html += '<div class="live-terrain-equipes">';
+  html += '<div class="live-terrain-camp"><div class="live-terrain-club">' + home.nom + '</div>' + listeCote(live.compositionFigee.home.titulaires) + '</div>';
+  html += '<div class="live-terrain-camp"><div class="live-terrain-club">' + away.nom + '</div>' + listeCote(live.compositionFigee.away.titulaires) + '</div>';
+  html += '</div></div>';
+  return html;
+}
+
+// "SOIR DE MATCH !" (chantier "football live", 28 aout 2026, section 9) -- ouverte automatiquement
+// (voir tickFootballLive) au tout debut de l'echauffement pour un PJ effectivement titulaire et
+// connecte a cet instant. Fermer cette fenetre ne change rien a l'immobilisation (voir le verrou
+// central dans doOrder, plateau-router.js) : #soir-de-match-animation-zone est un point d'insertion
+// prepare pour une future animation/media personnalise (chantier separe, non traite ici) --
+// actuellement un simple accessoire CSS generique, jamais une "personnalisation" au sens demande.
+function ouvrirSoirDeMatch(verrou) {
+  const heureFin = verrou.finPrevue.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('postes-modal-title').textContent = 'Football';
+  let html = '<div class="soir-de-match">';
+  html += '<div class="soir-de-match-titre">SOIR DE MATCH !</div>';
+  html += '<div class="soir-de-match-texte">Vous êtes titulaire et vous vous échauffez.</div>';
+  html += '<div class="soir-de-match-infos">' + verrou.club.nom + ' vs ' + verrou.adversaire.nom + ' — fin prévue à ' + heureFin + '.</div>';
+  html += '<div id="soir-de-match-animation-zone" class="soir-de-match-animation-zone"><div class="soir-de-match-animation-placeholder">⚽</div></div>';
+  html += '<button onclick="ouvrirLiveDepuisVerrou()" class="soir-de-match-bouton">Rejoindre le direct</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function ouvrirLiveDepuisVerrou() {
+  if (!state.matchEnCoursTitulaire) return;
+  ouvrirLiveMatchReel(state.matchEnCoursTitulaire.journeeNumero, state.matchEnCoursTitulaire.matchIdx);
+}
+
+// Point d'entree unique du "tick" football rapide (voir plateau-core.js, intervalle dedie) :
+// fait avancer le moteur live, rafraichit le verrou d'immobilisation du joueur courant, declenche
+// "SOIR DE MATCH !" une seule fois par match, et met a jour le badge persistant de reouverture.
+async function tickFootballLive() {
+  if (typeof avancerFootballLive === 'function') await avancerFootballLive().catch(() => {});
+  if (typeof chargerOuInitialiserSaison !== 'function') return;
+  const saison = await chargerOuInitialiserSaison().catch(() => null);
+  if (!saison) return;
+
+  const verrou = state.char?.name ? trouverVerrouMatchPourJoueur(saison, state.char.name) : null;
+  state.matchEnCoursTitulaire = verrou;
+
+  if (verrou && verrou.statutPhase === 'echauffement') {
+    if (state._soirDeMatchAffichePour !== verrou.matchKey) {
+      state._soirDeMatchAffichePour = verrou.matchKey;
+      ouvrirSoirDeMatch(verrou);
+    }
+  } else if (!verrou) {
+    state._soirDeMatchAffichePour = null;
+  }
+
+  verifierPopupRepriseStade(saison);
+  renderBadgeFootballLive(verrou, saison);
+}
+
+// "LE MATCH REPREND !" (section 6, chantier "supporters", 28 aout 2026) -- des que la seconde
+// periode commence, tout PJ actuellement dans l'enceinte du Stade (n'importe quelle piece : la
+// buvette y compris, section 5) de la ville hote reçoit cette pop-up une seule fois par match
+// (garde state._repriseAffichePour). Fermer la fenetre ne bloque rien -- juste une invitation.
+function verifierPopupRepriseStade(saison) {
+  const actuel = trouverJourneeLiveActuelle(saison);
+  if (!actuel || actuel.phaseInfo.statut !== 'mt2') return;
+  if (!state.char?.name || !state.currentBuilding || !state.currentCity) return;
+
+  for (let idx = 0; idx < actuel.journee.matchs.length; idx++) {
+    const m = actuel.journee.matchs[idx];
+    if (m.played || !m.live || m.live.statut !== 'mt2') continue;
+    const clubHome = getClub(m.home);
+    const matchKey = actuel.journee.numero + '-' + m.home + '-' + m.away;
+    if (state._repriseAffichePour === matchKey) continue;
+    const dansEnceinte = state.country === clubHome.country && state.currentCity === clubHome.city
+      && state.currentBuilding === (clubHome.stadeBuilding || 'stade');
+    if (!dansEnceinte) continue;
+    state._repriseAffichePour = matchKey;
+    ouvrirPopupRepriseStade(actuel.journee.numero, idx);
+    return;
+  }
+}
+
+function ouvrirPopupRepriseStade(journeeNumero, matchIdx) {
+  document.getElementById('postes-modal-title').textContent = 'Football';
+  let html = '<div class="soir-de-match">';
+  html += '<div class="soir-de-match-titre" style="font-size:1.5rem">LE MATCH REPREND !</div>';
+  html += '<div class="soir-de-match-texte">Videz vos verres, le match reprend.<br>On a besoin de vous !</div>';
+  html += '<button onclick="ouvrirLiveMatchReel(' + journeeNumero + ',' + matchIdx + ')" class="soir-de-match-bouton">Retourner en tribune</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Badge persistant (topbar) -- accessible, jamais cache/obscur (section 10) : visible pour un
+// titulaire immobilise (rejoint directement SON match) OU pour n'importe quel spectateur des
+// qu'un match est en cours (le live reste consultable sans etre titulaire, section 19).
+function renderBadgeFootballLive(verrou, saison) {
+  const badge = document.getElementById('football-live-badge');
+  if (!badge) return;
+  if (verrou) {
+    badge.style.display = '';
+    badge.textContent = '⚽ ' + verrou.club.nom + ' — ' + (LABELS_PHASE_LIVE[verrou.statutPhase] || '');
+    badge.onclick = function () { ouvrirLiveMatchReel(verrou.journeeNumero, verrou.matchIdx); };
+    return;
+  }
+  const actuel = trouverJourneeLiveActuelle(saison);
+  if (actuel && actuel.phaseInfo.statut !== 'termine') {
+    const idx = actuel.journee.matchs.findIndex(m => !m.played);
+    if (idx >= 0) {
+      badge.style.display = '';
+      badge.textContent = '⚽ Match en direct';
+      badge.onclick = function () { ouvrirLiveMatchReel(actuel.journee.numero, idx); };
+      return;
+    }
+  }
+  badge.style.display = 'none';
+}
+
+// Correctif du 25 aout 2026 (audit comparatif des 3 clubs, anomalie §1) : le chef/fondateur par
+// defaut d'un club de supporters etait code en dur sur 'Alfredo Mifassole (PNJ)', le meneur de
+// Luthecia -- correct pour Luthecia mais errone a PSM/Montrouge, ou ce nom n'apparait nulle part.
+// Derive desormais le PNJ REELLEMENT affiche dans la room siege_supporters de cette ville : le
+// roomOverride specifique s'il existe (Luthecia -> Alfredo Mifassole, inchange), sinon le PNJ
+// generique de la definition de base partagee (BUILDINGS.stade -- 'Meneur des Supporters (PNJ)',
+// deja ce qui est visuellement affiche a PSM/Montrouge aujourd'hui, faute de PNJ dedie dans les
+// donnees). N'invente aucune nouvelle identite : si aucune donnee ne permet de determiner un PNJ
+// precis, le repli generique deja existant est utilise tel quel.
+function getMeneurSupportersLocal() {
+  const ctx = typeof getBuildingContext === 'function' ? getBuildingContext('stade') : null;
+  const personsOverride = ctx?.roomOverrides?.siege_supporters?.persons;
+  if (personsOverride && personsOverride.length > 0) return personsOverride[0].name;
+  const personsBase = (typeof BUILDINGS !== 'undefined') ? BUILDINGS?.stade?.rooms?.siege_supporters?.persons : null;
+  return (personsBase && personsBase[0]?.name) || 'Meneur des Supporters (PNJ)';
+}
+
+async function doRejoindreClubSupporters(pa, cost) {
+  if (!state.organisations) state.organisations = [];
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+
+  let orga = state.organisations.find(o => o.type === 'supporters' && o.country === pays && o.city === ville);
+
+  const dejaMembre = orga?.membres?.some(m => m.nom === state.char?.name);
+  if (dejaMembre) { showToast('Déjà membre', 'Vous êtes déjà membre du club de supporters de ' + clubLocal.nom + '.', false); return; }
+
+  // Avant Phase K, le PA (1) etait deduit ici sans jamais respecter TEST_MODE (bug decouvert
+  // lors de la migration -- seul le cout (alors 150 FR) etait correctement verifie). Cout ramene
+  // a 50 FR le 25 aout 2026 (lot logistique portuaire, §13, "cotisations non eternelles") pour
+  // s'aligner sur le meme principe d'adhesion que le Syndicat des Dockers de PSM -- desormais
+  // jamais eternelle, voir renouvellerCotisationsOrganisations (api/cron-minuit.js).
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '50 FR requis pour l\'adhésion.', false); return; }
+
+  const def = TYPES_ORGANISATIONS.supporters;
+  const grades = def?.grades?.[pays] || ['Sympathisant', 'Membre', 'Ultra', 'Meneur'];
+  const saison = await chargerOuInitialiserSaison();
+
+  if (!orga) {
+    const meneurLocal = getMeneurSupportersLocal();
+    orga = {
+      id: 'orga_supporters_' + pays + '_' + ville,
+      type: 'supporters',
+      nom: 'Club de Supporters — ' + clubLocal.nom,
+      desc: 'Les fidèles du ' + clubLocal.nom + '.',
+      fondateur: meneurLocal, chef: meneurLocal, chefEstPnj: true,
+      country: pays, city: ville, country_origine: pays,
+      creeLe: state.day || 1,
+      membres: [], demandesAdhesion: [],
+      bonusLocaux: { pop:0, inf:0, dis:0 }, caisse: 0,
+      influence: 50, // jauge officielle d'influence, valeur neutre de depart (2 septembre 2026)
+      election: null,
+      visible: true
+    };
+    state.organisations.push(orga);
+  }
+
+  // saison peut etre null si la lecture Supabase a echoue (C1) -- les PA ont deja ete debites
+  // ici, on ne bloque donc pas l'adhesion : repli sur la saison 1, meme convention que
+  // doPrendreLicenceSportive/accepterTransfert.
+  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1, derniereCotisationSaison: saison?.numero || 1 });
+  sauvegarderOrga(orga);
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Bienvenue !', 'Vous êtes désormais ' + grades[0] + ' du club de supporters — ' + clubLocal.nom + '.', true, true);
+  addJournalEntry('Adhésion au club de supporters du ' + clubLocal.nom + ' (-50 FR).', 'event-good');
+  await crediterBudgetClub(clubLocal.id, cost, 'Cotisation supporter');
+
+  // Rafraichir immediatement l'onglet Organisations si la fiche est deja ouverte dessus
+  if (document.getElementById('vue-self')?.classList.contains('active')) {
+    switchSelfTab('orgas', null);
+  }
+}
+
+function getClubSupportersLocal() {
+  const pays = state.country || 'republic';
+  const ville = state.currentCity || 'capitale';
+  return (state.organisations || []).find(o => o.type === 'supporters' && o.country === pays && o.city === ville);
+}
+
+// Syndicat des Dockers de Port-Sainte-Marie (lot du 25 aout 2026, correctif blocus_portuaire).
+// Etienne Dantafasse ("President du Syndicat des Dockers de Port-Sainte-Marie", data.js) etait
+// purement decoratif jusqu'ici -- job:null, aucune organisation reelle ne le referencait, aucun
+// PJ ne pouvait donc jamais en etre reellement "le chef". Cree paresseusement selon exactement
+// le meme principe que le club de supporters ci-dessus (doRejoindreClubSupporters, id
+// deterministe, chef PNJ par defaut) au lieu d'une nouvelle organisation permanente pre-semee :
+// meme table state.organisations, meme sauvegarderOrga(), meme mecanisme d'election generique
+// et deja type-agnostique (verifierElectionsOrganisations) -- aucun nouveau systeme de
+// permission. Seule vraie difference avec le club de supporters : la creation est declenchee par
+// une simple visite de la room (voir enterRoom, plateau-navigation.js), pas par un order
+// d'adhesion dedie (aucune UI de membres pour ce lot, hors perimetre).
+// IDENTIFIANT GENERIQUE D'UN SYNDICAT DE DOCKERS (17 septembre 2026, application de la decision
+// « le blocus portuaire est une action syndicale »). L'identifiant historique de Republia,
+// 'orga_syndicat_dockers_republic_ville_a', suit deja le schema <pays>_<ville> : on se contente de
+// le CALCULER au lieu de le coder en dur, pour que la meme mecanique vaille dans tout empire ou un
+// syndicat de dockers sera un jour constitue. Aucun syndicat n'est cree ici : la fonction rend
+// null si le territoire n'en a pas.
+function idSyndicatDockers(country, city) {
+  if (!country || !city) return null;
+  return 'orga_syndicat_dockers_' + country + '_' + city;
+}
+
+// Syndicat des dockers COMPETENT pour un territoire donne, quel que soit l'empire.
+function syndicatDockersDuTerritoire(country, city) {
+  const id = idSyndicatDockers(country, city);
+  if (!id) return null;
+  return (state.organisations || []).find(o => o.id === id) || null;
+}
+
+function getSyndicatDockersPSM() {
+  return syndicatDockersDuTerritoire('republic', 'ville_a');
+}
+
+function getChefSyndicatDockersPSM() {
+  return getSyndicatDockersPSM()?.chef || null;
+}
+
+async function chargerOuCreerSyndicatDockersPSM() {
+  let orga = getSyndicatDockersPSM();
+  if (orga) return orga;
+  if (!state.organisations) state.organisations = [];
+  orga = {
+    id: 'orga_syndicat_dockers_republic_ville_a',
+    type: 'syndicale',
+    nom: 'Syndicat des Dockers de Port-Sainte-Marie',
+    desc: 'Le syndicat des dockers du Port industriel de Port-Sainte-Marie.',
+    fondateur: 'Étienne Dantafasse (PNJ)', chef: 'Étienne Dantafasse (PNJ)', chefEstPnj: true,
+    country: 'republic', city: 'ville_a', country_origine: 'republic',
+    creeLe: state.day || 1,
+    membres: [], demandesAdhesion: [],
+    bonusLocaux: { pop:0, inf:0, dis:0 }, caisse: 0,
+    influence: 50, // jauge officielle d'influence, valeur neutre de depart (2 septembre 2026)
+    election: null,
+    visible: true
+  };
+  state.organisations.push(orga);
+  if (typeof sauvegarderOrga === 'function') sauvegarderOrga(orga);
+  return orga;
+}
+
+// ---- ADHÉSION (lot logistique portuaire, 25 aout 2026, §12) ----
+// Meme structure que doRejoindreClubSupporters ci-dessus (1 PA, seul precedent d'adhesion a une
+// organisation existant dans le jeu -- aucun precedent 0 PA trouve, reutilise plutot qu'invente),
+// 50 FR credites a la caisse propre du syndicat (orga.caisse, pas de "budget club" equivalent
+// ici puisqu'il n'y a pas de club sportif a financer).
+async function doRejoindreSyndicatDockers(pa, cost) {
+  const orga = await chargerOuCreerSyndicatDockersPSM();
+  if (!orga) { showToast('Indisponible', '', false); return; }
+  const dejaMembre = orga.membres?.some(m => m.nom === state.char?.name);
+  if (dejaMembre) { showToast('Déjà syndiqué', 'Vous êtes déjà membre du Syndicat des Dockers de Port-Sainte-Marie.', false); return; }
+
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { showToast('Fonds insuffisants', '50 FR requis pour l\'adhésion.', false); return; }
+
+  const def = TYPES_ORGANISATIONS.syndicale;
+  const grades = def?.grades?.[orga.country] || ['Adherent', 'Delegue', 'Secretaire Adjoint', 'Secretaire General'];
+  // derniereCotisationDate (pas state.day, compteur propre a chaque personnage cote client, voir
+  // renouvellerCotisationsOrganisations/api/cron-minuit.js) : date reelle, base du renouvellement
+  // tous les 3 mois calendaires.
+  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1, derniereCotisationDate: new Date().toISOString() });
+  orga.caisse = (orga.caisse || 0) + cost;
+  sauvegarderOrga(orga);
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Bienvenue au syndicat !', 'Vous êtes désormais ' + grades[0] + ' du Syndicat des Dockers de Port-Sainte-Marie.', true, true);
+  addJournalEntry('Adhésion au Syndicat des Dockers de Port-Sainte-Marie (-50 FR).', 'event-good');
+  if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
+}
+
+// ---- ÉLECTION (reutilise integralement le moteur generique deja type-agnostique) ----
+function doDeclencherElectionSyndicat(pa, cost) {
+  const orga = getSyndicatDockersPSM();
+  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); return; }
+  const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
+  if (!estMembre) { showToast('Réservé aux membres', 'Syndiquez-vous pour déclencher une élection.', false); return; }
+  if (orga.election?.enCours) { showToast('Élection en cours', 'Une élection est déjà en cours pour ce syndicat.', false); return; }
+  const jour = state.day || 1;
+  if (orga.election?.derniereElection && (jour - orga.election.derniereElection) < 7) {
+    const reste = 7 - (jour - orga.election.derniereElection);
+    showToast('Trop tôt', 'Encore ' + reste + ' jour(s) avant de pouvoir redéclencher une élection.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Déclencher une élection';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.6rem">Motivez votre décision — ce message sera publié sur le forum du championnat.</div>';
+  html += '<textarea id="election-motivation" rows="4" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem" placeholder="Pourquoi déclenchez-vous cette élection ?"></textarea>';
+  html += '<button onclick="confirmerDeclenchementElection(\'' + orga.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déclencher l\'élection</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// ---- MANIFESTATION (meme modele securise que le club de supporters : garde UI via
+// requiresChefSyndicatDockers dans data.js + revalidation independante ici cote handler,
+// reutilise integralement ouvrirDemandeAutorisationManifester deja type-agnostique) ----
+function doOrganiserManifestationSyndicat() {
+  const orga = getSyndicatDockersPSM();
+  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); return; }
+  const estChef = orga.chef === state.char?.name;
+  if (!estChef) { showToast('Réservé au chef', 'Seul le chef du Syndicat des Dockers peut organiser une manifestation.', false); return; }
+  ouvrirDemandeAutorisationManifester(orga.id);
+}
+
+function doDeclencherElectionClub(pa, cost) {
+  const orga = getClubSupportersLocal();
+  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
+  const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
+  if (!estMembre) { showToast('Réservé aux membres', 'Adhérez au club pour déclencher une élection.', false); return; }
+  if (orga.election?.enCours) { showToast('Élection en cours', 'Une élection est déjà en cours pour ce club.', false); return; }
+  const jour = state.day || 1;
+  if (orga.election?.derniereElection && (jour - orga.election.derniereElection) < 7) {
+    const reste = 7 - (jour - orga.election.derniereElection);
+    showToast('Trop tôt', 'Encore ' + reste + ' jour(s) avant de pouvoir redéclencher une élection.', false);
+    return;
+  }
+
+  document.getElementById('postes-modal-title').textContent = 'Déclencher une élection';
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:.6rem">Motivez votre décision — ce message sera publié sur le forum du championnat.</div>';
+  html += '<textarea id="election-motivation" rows="4" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem" placeholder="Pourquoi déclenchez-vous cette élection ?"></textarea>';
+  html += '<button onclick="confirmerDeclenchementElection(\'' + orga.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déclencher l\'élection</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerDeclenchementElection(orgaId, pa, cost) {
+  const orga = getOrgaById(orgaId);
+  if (!orga) return;
+  const motivation = document.getElementById('election-motivation')?.value?.trim();
+  if (!motivation) { showToast('Motivation requise', '', false); return; }
+  const contexte=equipementsCollectifsContexte();
+  const serveur=await organisationEssayerCommande(orgaId,'declencher_election',{motivation});
+  if(serveur===false)return;
+  if(serveur===true){
+    const actualise=typeof commercePjActualiserPersonnage==='function'&&await commercePjActualiserPersonnage();
+    if(!equipementsCollectifsContexteValide(contexte))return;
+    document.getElementById('modal-postes')?.classList.remove('open');
+    updateUI();
+    showToast('Élection déclenchée !',actualise?'Les candidatures sont ouvertes pour 3 jours.':'Élection et publication enregistrées. Actualisation des PA indisponible : rechargez avant un nouvel ordre.',true,true);
+    if(document.getElementById('vue-self')?.classList.contains('active'))switchSelfTab('orgas',null);
+    return;
+  }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { signalerRefusCout(r); return; }
+
+  const jour = state.day || 1;
+  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
+  orga.election = {
+    enCours: true, phase: 'candidatures',
+    motivateur: state.char?.name, motivation,
+    dateDeclenchement: jour, dateFinCandidatures: jour + 3, dateFinVote: jour + 6,
+    candidats: [], votes: {},
+    derniereElection: orga.election?.derniereElection || null
+  };
+  sauvegarderOrga(orga);
+
+  if (typeof sbCreateTopic === 'function') {
+    const titre = '🗳 Élection déclenchée — ' + orga.nom;
+    const contenu = (state.char?.name || 'Un membre') + ' déclenche une élection pour la présidence de "' + orga.nom + '" :<br><br><em>' + motivation + '</em><br><br>Les candidatures sont ouvertes pendant 3 jours, suivies de 3 jours de vote.';
+    const topicId = await sbCreateTopic('sport', titre, state.char?.name || 'Anonyme', state.country, time).catch(() => null);
+    if (topicId && typeof sbCreatePost === 'function') await sbCreatePost(topicId, state.char?.name || 'Anonyme', contenu, time).catch(() => {});
+    if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
+    FORUM_TOPICS['sport'].unshift({ id: topicId || 'election-' + Date.now(), title: titre, author: state.char?.name, time, views: 1, replies: 0, lastPostAuthor: state.char?.name, lastPostTime: time, posts: [{ author: state.char?.name, time, content: contenu }] });
+  }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  updateUI();
+  showToast('Élection déclenchée !', 'Les candidatures sont ouvertes pour 3 jours.', true, true);
+  if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
+}
+
+async function seProsenterCandidat(orgaId) {
+  const orga = getOrgaById(orgaId);
+  if (!orga?.election?.enCours || orga.election.phase !== 'candidatures') { showToast('Indisponible', 'La période de candidature est terminée.', false); return; }
+  const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
+  if (!estMembre) { showToast('Réservé aux membres', '', false); return; }
+  if (orga.election.candidats.some(c => c.nom === state.char?.name)) { showToast('Déjà candidat', '', false); return; }
+  const serveur=await organisationEssayerCommande(orgaId,'candidature',{});
+  if(serveur===false)return;
+  if(serveur===null){orga.election.candidats.push({nom:state.char?.name});sauvegarderOrga(orga);}
+  updateUI();
+  showToast('Candidature enregistrée !', 'Vous êtes candidat à la présidence de "' + orga.nom + '".', true, true);
+  if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
+}
+
+async function voterElection(orgaId, candidatNom) {
+  const orga = getOrgaById(orgaId);
+  if (!orga?.election?.enCours || orga.election.phase !== 'vote') { showToast('Indisponible', 'Le vote n\'est pas ouvert.', false); return; }
+  const estMembre = orga.membres?.some(m => m.nom === state.char?.name);
+  if (!estMembre) { showToast('Réservé aux membres', '', false); return; }
+  const serveur=await organisationEssayerCommande(orgaId,'vote',{nom:candidatNom});
+  if(serveur===false)return;
+  if(serveur===null){orga.election.votes[state.char?.name]=candidatNom;sauvegarderOrga(orga);}
+  updateUI();
+  showToast('Vote enregistré', 'Vous votez pour ' + candidatNom + '.', true);
+  if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
+}
+
+// Fait avancer toutes les elections en cours (candidatures -> vote -> depouillement).
+// Appelee par n'importe quel joueur au chargement, comme le championnat.
+function annoncerDirectionElection(orga,vainqueur,ancienChef) {
+        addExternalEvent('🗳 ' + vainqueur + ' remporte l\'élection à la présidence de "' + orga.nom + '".');
+        if (orga.visible && typeof sbEnregistrerEvenementPublic === 'function') {
+          sbEnregistrerEvenementPublic(orga.country, 'organisation_chef_change', {
+            personnages: [vainqueur, ancienChef].filter(Boolean),
+            libelle: vainqueur + ' remporte l\'élection à la présidence de "' + orga.nom + '".',
+            data: { orga_id: orga.id, type: orga.type, nom: orga.nom, nouveau_chef: vainqueur, ancien_chef: ancienChef },
+            sourceRef: orga.id
+          }).catch(() => {});
+        }
+}
+
+async function verifierElectionsOrganisations() {
+  const contexte=equipementsCollectifsContexte();
+  for(const orga of (state.organisations || [])) {
+    if (!orga.election?.enCours) continue;
+    const serveur=await organisationEssayerCommande(orga.id,'avancer_election',{});
+    if(!equipementsCollectifsContexteValide(contexte))return;
+    if(serveur!==null){
+      const fraiche=getOrgaById(orga.id);
+      if(serveur&&fraiche?.chef&&fraiche.chef!==orga.chef)annoncerDirectionElection(fraiche,fraiche.chef,orga.chef);
+      continue;
+    }
+    const jour = state.day || 1;
+
+    if (orga.election.phase === 'candidatures' && jour >= orga.election.dateFinCandidatures) {
+      orga.election.phase = 'vote';
+      sauvegarderOrga(orga);
+    }
+
+    if (orga.election.phase === 'vote' && jour >= orga.election.dateFinVote) {
+      const decompte = {};
+      Object.values(orga.election.votes).forEach(nom => { decompte[nom] = (decompte[nom] || 0) + 1; });
+      let vainqueur = null, maxVoix = -1;
+      orga.election.candidats.forEach(c => {
+        const voix = decompte[c.nom] || 0;
+        if (voix > maxVoix) { maxVoix = voix; vainqueur = c.nom; }
+      });
+
+      if (vainqueur) {
+        const ancienChef = orga.chef;
+        orga.chef = vainqueur;
+        orga.chefEstPnj = false;
+        const def = TYPES_ORGANISATIONS[orga.type];
+        const grades = def?.grades?.[orga.country] || [];
+        const membre = orga.membres.find(m => m.nom === vainqueur);
+        if (membre && grades.length) { membre.grade = grades[grades.length - 1]; membre.gradeIdx = grades.length - 1; }
+        annoncerDirectionElection(orga,vainqueur,ancienChef);
+      }
+
+      orga.election = { enCours: false, phase: null, derniereElection: jour, candidats: [], votes: {} };
+      sauvegarderOrga(orga);
+    }
+  }
+}
+
+// Rendu generique de l'organigramme d'une organisation (chef/membres/election en cours),
+// extrait le 25 aout 2026 (lot logistique portuaire, §12) pour etre reutilise a la fois par le
+// club de supporters (doConsulterOrganigrammeSupporters, comportement inchange) et par le
+// Syndicat des Dockers de PSM (doConsulterOrganigrammeSyndicat, nouveau) -- aucune donnee/moteur
+// d'election dupliques, seul l'affichage etait jusqu'ici code en dur pour les supporters.
+// retourFn : nom (string) de la fonction globale a rappeler pour revenir de la fiche membre.
+function afficherOrganigrammeOrga(orga, retourFn) {
+  window._orgaOrganigrammeCourante = orga;
+  window._orgaOrganigrammeRetourFn = retourFn;
+  // Retour a la vue liste : plus aucun membre "courant" (evite qu'un rafraichissement de cache
+  // photos arrive apres coup et rouvre a tort la fiche du dernier membre consulte).
+  window._orgaOrganigrammeMembreCourant = null;
+
+  const titreChef = typeof titreChefOrga === 'function' ? titreChefOrga(orga.type) : 'Chef';
+
+  document.getElementById('postes-modal-title').textContent = 'Organigramme — ' + orga.nom;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em;margin-bottom:.25rem">' + orga.nom + (orga.chefEstPnj ? ' (poste vacant — assuré par PNJ)' : '') + '</div>';
+  html += '<div style="font-size:.85rem;color:#8a8060;margin-bottom:.9rem">' + titreChef + ' actuel : ' + orga.chef + '</div>';
+
+  const membresTries = [...(orga.membres || [])].sort((a, b) => (b.gradeIdx || 0) - (a.gradeIdx || 0));
+  html += '<div style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:.35rem">';
+  if (membresTries.length === 0) {
+    html += '<div style="font-size:.85rem;color:#5a5040;font-style:italic">Aucun membre pour l\'instant.</div>';
+  }
+  membresTries.forEach(m => {
+    const estChef = m.nom === orga.chef;
+    const nomEchap = m.nom.replace(/'/g, "\\'");
+    html += '<div onclick="afficherDetailMembreOrga(\'' + nomEchap + '\')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.5rem .6rem;border:1px solid #2a2010;font-size:.9rem;color:' + (estChef ? '#C9A84C' : '#c0b090') + '"><span>' + m.nom + (estChef ? ' 👑' : '') + '</span><span>' + m.grade + '</span></div>';
+  });
+  html += '</div>';
+
+  if (orga.election?.enCours) {
+    html += '<div style="margin-top:1rem;padding:.6rem;border:1px solid #4a3a1a;background:#0f0d05">';
+    html += '<div style="font-size:.82rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.06em">ÉLECTION EN COURS — ' + (orga.election.phase === 'candidatures' ? 'Candidatures ouvertes' : 'Vote en cours') + '</div>';
+    html += '<div style="font-size:.8rem;color:#8a8060;margin-top:.3rem;font-style:italic">« ' + orga.election.motivation + ' » — ' + orga.election.motivateur + '</div>';
+    if (orga.election.candidats.length > 0) {
+      html += '<div style="font-size:.82rem;color:#c0b090;margin-top:.5rem">Candidats : ' + orga.election.candidats.map(c => c.nom).join(', ') + '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  const bodyEl = document.getElementById('postes-body');
+  bodyEl.innerHTML = html;
+  bodyEl.dataset.vue = 'liste';
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+// Compteur d'ouverture + nom du membre actuellement affiche (correctif du 25 aout 2026, apres
+// retour de test production : la version precedente rappelait doConsulterOrganigrammeX() depuis
+// le .then() de rafraichirCachePhotosJoueurs(), qui elle-meme relancait un nouveau cycle a
+// chaque fois -- boucle de microtaches infinie tant que la vue restait "liste", puisque
+// afficherOrganigrammeOrga() remet toujours dataset.vue='liste'. Meme defaut present a
+// l'identique dans doConsulterOrganigrammeSupporters depuis v70 (confirme par comparaison avec
+// aa13990) : pas une regression propre au Syndicat, un bug latent partage par tous les
+// organigrammes, corrige ici une seule fois pour les deux.
+let _orgaOrganigrammeOuvertureId = 0;
+
+// Rafraichit UNIQUEMENT la vue deja affichee (liste ou fiche membre), sans jamais rappeler
+// doConsulterOrganigrammeX() ni relancer rafraichirCachePhotosJoueurs() -- appelee au plus une
+// fois par ouverture, apres resolution du chargement des photos. idOuverture capture au moment
+// de l'ouverture : si l'utilisateur a referme/rouvert un organigramme entretemps (nouvel id) ou
+// si la modale n'est plus ouverte, ce re-render est abandonne silencieusement (jamais de
+// reouverture forcee de la modale).
+function rerenderVueOrganigrammeCourante(idOuverture) {
+  if (idOuverture !== _orgaOrganigrammeOuvertureId) return;
+  if (!document.getElementById('modal-postes')?.classList.contains('open')) return;
+  if (window._orgaOrganigrammeMembreCourant) {
+    afficherDetailMembreOrga(window._orgaOrganigrammeMembreCourant);
+  } else if (window._orgaOrganigrammeCourante) {
+    afficherOrganigrammeOrga(window._orgaOrganigrammeCourante, window._orgaOrganigrammeRetourFn);
+  }
+}
+
+// Correctif du 25 aout 2026 (audit comparatif des 3 clubs, anomalie §1) : l'ancien comportement
+// (un simple showToast) donnait l'impression d'un ordre non branché, en particulier a PSM/
+// Montrouge ou le club de supporters n'a pas encore ete cree (creation paresseuse a la premiere
+// adhesion, doRejoindreClubSupporters -- ce n'est PAS un bug de cablage, voir rapport d'audit).
+// Ouvre desormais la MEME modale que l'organigramme normal, avec une explication persistante et
+// actionnable, au lieu d'un toast transitoire. Ne touche ni _orgaOrganigrammeOuvertureId ni
+// window._orgaOrganigrammeCourante dans cette branche (aucun risque de reintroduire la boucle
+// recursive deja corrigee -- voir le commentaire dedie plus haut -- puisqu'aucun appel a
+// rafraichirCachePhotosJoueurs n'a lieu ici, il n'y a aucun membre a photographier).
+function doConsulterOrganigrammeSupporters() {
+  const clubLocal = typeof getClubLocal === 'function' ? getClubLocal() : null;
+  const orga = getClubSupportersLocal();
+  if (!orga) {
+    document.getElementById('postes-modal-title').textContent = 'Organigramme — Club de Supporters';
+    document.getElementById('postes-body').innerHTML =
+      '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Aucun club de supporters n\'a encore été fondé ici' + (clubLocal ? ' pour ' + clubLocal.nom : '') + '. Rejoignez-le en premier (« Rejoindre le club de supporters ») pour le créer officiellement et faire apparaître son organigramme.</div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
+  const idOuverture = ++_orgaOrganigrammeOuvertureId;
+  afficherOrganigrammeOrga(orga, 'doConsulterOrganigrammeSupporters');
+  if (typeof rafraichirCachePhotosJoueurs === 'function') {
+    rafraichirCachePhotosJoueurs().then(() => rerenderVueOrganigrammeCourante(idOuverture)).catch(() => {});
+  }
+}
+
+// Syndicat des Dockers de PSM (lot logistique portuaire, 25 aout 2026, §12) : meme rendu que le
+// club de supporters (afficherOrganigrammeOrga ci-dessus), meme moteur d'election generique
+// (deja type-agnostique, verifierElectionsOrganisations). chargerOuCreerSyndicatDockersPSM cree
+// paresseusement l'organisation si elle n'existe pas encore (meme garde que le blocus).
+async function doConsulterOrganigrammeSyndicat() {
+  const orga = await chargerOuCreerSyndicatDockersPSM();
+  if (!orga) { showToast('Indisponible', 'Aucun syndicat ici.', false); return; }
+  const idOuverture = ++_orgaOrganigrammeOuvertureId;
+  afficherOrganigrammeOrga(orga, 'doConsulterOrganigrammeSyndicat');
+  if (typeof rafraichirCachePhotosJoueurs === 'function') {
+    rafraichirCachePhotosJoueurs().then(() => rerenderVueOrganigrammeCourante(idOuverture)).catch(() => {});
+  }
+}
+
+// Fiche detail d'un membre d'une organisation (club de supporters ou syndicat) : photo (si
+// connue), grade, et un bouton pour lui ecrire directement (ouvre la messagerie avec son nom
+// deja rempli en destinataire). Generalisee le 25 aout 2026 (etait afficherDetailMembreSupporters,
+// couplee en dur au club de supporters -- meme extraction que afficherOrganigrammeOrga ci-dessus).
+function afficherDetailMembreOrga(nom) {
+  window._orgaOrganigrammeMembreCourant = nom;
+  const orga = window._orgaOrganigrammeCourante;
+  const membre = orga?.membres?.find(m => m.nom === nom);
+  const avatar = (typeof getAvatarHtmlPourNom === 'function') ? getAvatarHtmlPourNom(nom, 72, '#C9A84C') : '';
+  const nomEchap = nom.replace(/'/g, "\\'");
+
+  let html = '<div style="padding:1.2rem;display:flex;flex-direction:column;align-items:center;gap:.6rem">';
+  html += avatar;
+  html += '<div style="font-size:1rem;color:#f0ead6;font-family:Bebas Neue,sans-serif;letter-spacing:.04em">' + nom + '</div>';
+  if (membre) html += '<div style="font-size:.85rem;color:#8a8060">' + membre.grade + '</div>';
+  html += '<button class="pnj-action-btn" onclick="ecrireAMembre(\'' + nomEchap + '\')" style="margin-top:.6rem"><i class="ti ti-mail" style="font-size:.85rem"></i> Écrire à ' + nom + '</button>';
+  html += '<button class="pnj-action-btn" onclick="' + (window._orgaOrganigrammeRetourFn || 'doConsulterOrganigrammeSupporters') + '()" style="margin-top:.3rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Retour à l\'organigramme</button>';
+  html += '</div>';
+
+  const bodyEl = document.getElementById('postes-body');
+  bodyEl.innerHTML = html;
+  bodyEl.dataset.vue = 'membre';
+}
+
+// Ouvre la messagerie directement en mode redaction, destinataire pre-rempli.
+function ecrireAMembre(nom) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  document.getElementById('modal-forum')?.classList.add('open');
+  if (typeof forumView !== 'undefined') forumView = 'mail';
+  if (typeof mailView !== 'undefined') mailView = 'compose';
+  if (typeof renderMailCompose === 'function') renderMailCompose(nom);
+}
+
+const PRODUITS_VISUELS_CLUB = {
+  'olympique-luthecia': {
+    echarpe: 'images/produit-echarpe-luthecia.webp',
+    casquette: 'images/produit-casquette-luthecia.webp',
+    maillot: 'images/produit-tshirt-luthecia.webp'
+  },
+  'cheminote-montrouge': {
+    echarpe: 'images/produit-echarpe-montrouge-dediee.webp',
+    casquette: 'images/produits-casquette-echarpe-montrouge.webp',
+    maillot: 'images/produit-tshirt-montrouge.webp'
+  },
+  'brise-mariannaise': {
+    echarpe: 'images/produits-casquette-echarpe-mariannaise.webp',
+    casquette: 'images/produits-casquette-echarpe-mariannaise.webp',
+    maillot: 'images/produit-polo-mariannaise.webp'
+  }
+};
+
+// =====================
+// BUDGET DU CLUB SPORTIF
+// =====================
+async function chargerBudgetClub(clubId) {
+  if (typeof sbGetBudgetClub !== 'function') return null;
+  let data = await sbGetBudgetClub(clubId).catch(() => null);
+  if (!data) {
+    data = { clubId, caisse: 0, historique: [], salaires: { titulaire: 100, remplacant: 50, primeVictoire: 150 } };
+    if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(clubId, data).catch(() => {});
+  }
+  if (!data.salaires) data.salaires = { titulaire: 100, remplacant: 50, primeVictoire: 150 };
+  return data;
+}
+
+async function crediterBudgetClub(clubId, montant, motif) {
+  const data = await chargerBudgetClub(clubId);
+  if (!data) return;
+  data.caisse = Math.max(0, (data.caisse || 0) + montant);
+  data.historique = data.historique || [];
+  data.historique.push({ jour: state.day || 1, montant, motif });
+  if (data.historique.length > 50) data.historique = data.historique.slice(-50); // on garde un historique recent, pas infini
+  if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(clubId, data).catch(() => {});
+  return data;
+}
+
+// LA SUBVENTION MUNICIPALE A CHANGE D'ETAGE (10 octobre 2026) -- L'ANCIENNE CHAINE EST RESORBEE.
+//
+// Il y avait ici `verifierSubventionMairie(club)`, et son auxiliaire `joursEcoulesDepuisMarqueurISO`.
+// Ce chemin etait GELE depuis le 8 octobre, en attente d'un arbitrage de game design : il lisait
+// une categorie « associatif » qui n'a jamais existe dans une cle `allocation` elle-meme
+// supprimee, son montant valait `0` ecrit en dur, et aucun club n'a jamais touche un franc par la.
+//
+// L'ARBITRAGE EST RENDU, ET IL NE RESSEMBLE PAS A CE CHEMIN. Une commune subventionne desormais
+// les organisations eligibles de son territoire en DEUX ETAGES : une ligne budgetaire
+// « Subventions » que le maire dote d'un pourcentage comme les autres, qui alimente une caisse
+// municipale CUMULATIVE ; puis des propositions PONCTUELLES, en francs bruts, que l'organisation
+// accepte ou refuse en trois jours. Rien de tout cela n'est automatique, et rien n'est quotidien.
+//
+// POURQUOI SUPPRIMER PLUTOT QUE REBRANCHER. Garder cette fonction aurait laisse DEUX mecaniques
+// de subvention municipale en parallele -- l'une fantome et quotidienne, l'autre reelle et
+// deliberee. La consigne est explicite sur ce point. La preuve a ete faite avant de supprimer :
+// `verifierSubventionMairie` n'avait qu'UN appelant (`doConsulterBudgetClub`, un ecran de
+// consultation), `joursEcoulesDepuisMarqueurISO` n'etait appele que par elle, et le marqueur
+// `derniereSubventionJour` n'etait lu par aucun autre fichier, aucun cron, aucun generateur.
+//
+// LA NOUVELLE CHAINE EST ENTIEREMENT AU SERVEUR : `subvention_proposer`, `subvention_repondre`,
+// `subventions_expirer`, `subvention_enveloppe_lire`, `subventions_recues_lire`. Un navigateur ne
+// decide plus ni l'eligibilite, ni la domiciliation, ni le montant disponible, ni qui peut
+// repondre. Voir `baseline/arbitrages/CHAINE-7-SUBVENTIONS-MUNICIPALES.md`.
+//
+// LA LECON DU 25 SEPTEMBRE 2026 SURVIT A SON CODE, parce qu'elle peut encore frapper ailleurs :
+// le marqueur `derniereSubventionJour` vivait dans une ligne PARTAGEE (budgets_clubs) et etait
+// compare a `state.day`, un compteur PROPRE A CHAQUE PERSONNAGE. Un habitant au jour 47 croisant
+// un marqueur pose par un joueur au jour 3 calculait 44 jours ecoules : le versement ne dependait
+// pas du temps, mais de QUI passait. Le meme motif avait deja frappe le solde des effectifs de
+// police et deux distributions budgetaires. La nouvelle chaine n'a plus de marqueur de journee du
+// tout -- le jour vient de `jour_de_jeu_pays()`, au serveur, le meme pour tous.
+//
+// L'ANCIEN COMMENTAIRE DE RESORPTION (8 octobre 2026) disparait avec son code : il expliquait
+// pourquoi le montant valait zero. La question qu'il laissait ouverte a recu sa reponse.
+async function doConsulterBudgetClub() {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Budget — ' + clubLocal.nom;
+  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
+  document.getElementById('modal-postes').classList.add('open');
+
+  const data = await chargerBudgetClub(clubLocal.id);
+
+  let html = '<div style="padding:1rem">';
+  html += '<div style="text-align:center;font-family:Bebas Neue,sans-serif;font-size:1.3rem;color:#C9A84C;margin-bottom:1rem">' + (data.caisse || 0).toLocaleString('fr-FR') + ' FR</div>';
+
+  // LES SUBVENTIONS MUNICIPALES RECUES (10 octobre 2026). C'est l'ecran ou le dirigeant vient
+  // deja voir la caisse : c'est donc la que la proposition d'une commune doit l'attendre, plutot
+  // que dans un ecran neuf qu'il n'aurait aucune raison d'ouvrir.
+  //
+  // CE N'EST PAS CET ECRAN QUI DECIDE QUI PEUT REPONDRE. `subventions_recues_lire` ne rend que
+  // les propositions dont l'appelant est le GESTIONNAIRE DE CAISSE, et c'est le meme resolveur
+  // que la porte appliquera : un bouton affiche ici est un bouton que le serveur accepte.
+  const recu = (typeof sbSubventionsRecuesLire === 'function')
+    ? await sbSubventionsRecuesLire().catch(() => null) : null;
+  const mesPropositions = (recu && recu.ok === true && Array.isArray(recu.recues))
+    ? recu.recues.filter(p => p.beneficiaire === clubLocal.id) : [];
+  if (mesPropositions.length) {
+    html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">Subventions proposées par la mairie</div>';
+    mesPropositions.forEach(p => {
+      const j = Number(p.jours_restants);
+      html += '<div style="border:1px solid #8a6a20;padding:.5rem;margin-bottom:.5rem">';
+      html += '<div style="font-size:.8rem;color:#C9A84C;font-family:Bebas Neue,sans-serif">'
+            + Number(p.montant).toLocaleString('fr-FR') + ' FR</div>';
+      html += '<div style="font-size:.7rem;color:#8a8060;margin-bottom:.35rem">Proposés par ' + p.maire
+            + ', maire de la commune — '
+            + (j > 1 ? j + ' jours pour répondre' : (j === 1 ? 'dernier jour pour répondre' : 'échéance atteinte'))
+            + '.</div>';
+      html += '<div style="display:flex;gap:.3rem">';
+      html += '<button onclick="repondreSubventionMunicipale(\'' + p.id + '\',\'accepter\')"'
+            + ' style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem;border:1px solid #4a7a3a;background:transparent;color:#6ab858;cursor:pointer">Accepter</button>';
+      html += '<button onclick="repondreSubventionMunicipale(\'' + p.id + '\',\'refuser\')"'
+            + ' style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.35rem;border:1px solid #7a3a2a;background:transparent;color:#cc6a44;cursor:pointer">Refuser</button>';
+      html += '</div></div>';
+    });
+  }
+
+  html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.4rem">Dernières opérations</div>';
+  html += '<div style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:.25rem">';
+  if (!data.historique || data.historique.length === 0) {
+    html += '<div style="font-size:.75rem;color:#5a5040;font-style:italic">Aucune opération pour l\'instant.</div>';
+  } else {
+    [...data.historique].reverse().forEach(h => {
+      const col = h.montant >= 0 ? '#6ab858' : '#cc6a44';
+      html += '<div style="display:flex;justify-content:space-between;font-size:.75rem;padding:.2rem 0;border-bottom:1px solid #1a1208"><span style="color:#c0b090">' + h.motif + '</span><span style="color:' + col + '">' + (h.montant>=0?'+':'') + h.montant.toLocaleString('fr-FR') + ' FR</span></div>';
+    });
+  }
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+// LA REPONSE A UNE SUBVENTION MUNICIPALE (10 octobre 2026).
+//
+// Le navigateur envoie un identifiant et un VERBE pris dans une liste close -- jamais un statut,
+// jamais un montant. Le serveur verifie l'autorite sur la caisse, l'echeance, et surtout qu'une
+// seule reponse gagne : si deux dirigeants cliquent en meme temps, le second recoit
+// `course_perdue` et rien n'est deplace deux fois.
+async function repondreSubventionMunicipale(id, reponse) {
+  if (typeof sbSubventionRepondre !== 'function') {
+    showToast('Indisponible', 'La mairie ne répond pas.', false); return;
+  }
+  const r = await sbSubventionRepondre(id, reponse).catch(() => null);
+  if (!r || r.ok !== true) {
+    const motifs = {
+      acteur_non_authentifie: 'Votre personnage n\'est pas identifié.',
+      proposition_introuvable: 'Cette proposition n\'existe plus.',
+      deja_close: 'Cette proposition a déjà reçu une réponse' + (r && r.clos_par ? ' de ' + r.clos_par : '') + '.',
+      proposition_echue: 'Le délai de trois jours est écoulé : la proposition a expiré et les fonds sont retournés à la commune.',
+      aucun_gestionnaire: 'Personne ne dirige la caisse de cette organisation.',
+      pas_gestionnaire_caisse: 'Vous ne dirigez pas la caisse de cette organisation.',
+      course_perdue: 'Un autre dirigeant a répondu avant vous.',
+      reponse_invalide: 'Réponse non reconnue.'
+    };
+    showToast('Refusé', motifs[(r && r.raison)] || 'La réponse a été refusée.', false);
+    if (typeof doConsulterBudgetClub === 'function') await doConsulterBudgetClub();
+    return;
+  }
+
+  if (r.statut === 'acceptee') {
+    showToast('Subvention acceptée',
+      Number(r.montant).toLocaleString('fr-FR') + ' FR versés par la mairie. Caisse : '
+      + Number(r.caisse_organisation).toLocaleString('fr-FR') + ' FR.', true, true);
+    addJournalEntry('Subvention municipale acceptée : +'
+      + Number(r.montant).toLocaleString('fr-FR') + ' FR pour ' + r.beneficiaire_nom + '.', 'event-good');
+  } else {
+    showToast('Subvention refusée',
+      'Les ' + Number(r.montant_libere).toLocaleString('fr-FR') + ' FR retournent à la commune.', true);
+    addJournalEntry('Subvention municipale de ' + Number(r.montant_libere).toLocaleString('fr-FR')
+      + ' FR refusée.', 'event-info');
+  }
+  if (typeof doConsulterBudgetClub === 'function') await doConsulterBudgetClub();
+}
+
+// =====================
+// SPONSORING
+// =====================
+const PALIERS_SPONSORING = [
+  { montant: 500, inf: 2, label: 'Sponsor bronze' },
+  { montant: 1500, inf: 5, label: 'Sponsor argent' },
+  { montant: 3000, inf: 10, label: 'Sponsor officiel' }
+];
+
+function doSponsoriserClub(pa, cost) {
+  const clubLocal = getClubLocal();
+  if (!clubLocal) { showToast('Indisponible', 'Aucun club local ici.', false); return; }
+
+  document.getElementById('postes-modal-title').textContent = 'Sponsoriser ' + clubLocal.nom;
+  let html = '<div style="padding:1rem">';
+  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Votre nom sera associé au club — visibilité en échange de votre soutien financier.</div>';
+  PALIERS_SPONSORING.forEach(p => {
+    html += '<button onclick="confirmerSponsoring(' + p.montant + ',\'' + p.label + '\',' + p.inf + ',' + pa + ',' + cost + ')" style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.55rem .7rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer;font-size:.8rem">';
+    html += '<span>' + p.label + '</span><span style="color:#C9A84C">' + p.montant.toLocaleString('fr-FR') + ' FR · +' + p.inf + ' INF</span></button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+async function confirmerSponsoring(montant, label, inf, pa, cost) {
+  const clubLocal = getClubLocal();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (getFondsDisponiblesOrdinaires() < montant) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { signalerRefusCout(r); return; }
+  const debitSponsoring = await debiterFondsOrdinaires(montant);
+  if (!debitSponsoring.ok) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
+  state.inf = Math.min(100, (state.inf || 0) + inf);
+  clubLocal.sponsorActuel = state.char?.name || null;
+  updateUI();
+  showToast(label + ' !', 'Votre nom est désormais associé à ' + clubLocal.nom + '. +' + inf + ' INF.', true, true);
+  addJournalEntry(label + ' de ' + clubLocal.nom + ' (-' + montant + ' FR, +' + inf + ' INF).', 'event-good');
+  await crediterBudgetClub(clubLocal.id, montant, label + ' — ' + (state.char?.name || 'Anonyme'));
+}
+
+// =====================
+// MANIFESTATION DU CLUB DE SUPPORTERS
+// =====================
+async function doOrganiserManifestation() {
+  const orga = getClubSupportersLocal();
+  if (!orga) { showToast('Indisponible', 'Aucun club de supporters ici.', false); return; }
+  const estChef = orga.chef === state.char?.name;
+  if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut organiser une manifestation.', false); return; }
+  ouvrirDemandeAutorisationManifester(orga.id);
+}
+
+// =====================
+// BOYCOTT
+// =====================
+async function doOrganiserBoycott(pa, cost) {
+  const orga = getClubSupportersLocal();
+  const clubLocal = getClubLocal();
+  if (!orga || !clubLocal) { showToast('Indisponible', '', false); return; }
+  const estChef = orga.chef === state.char?.name;
+  if (!estChef) { showToast('Réservé au président', 'Seul le président du club de supporters peut décider d\'un boycott.', false); return; }
+
+  const saison = await chargerOuInitialiserSaison();
+  if (!saison) { showToast('Championnat indisponible', 'Impossible de lire le championnat pour le moment. Réessayez dans un instant.', false); return; }
+  const prochaineJournee = saison.calendrier.find(j => j.matchs.some(m => !m.played && m.home === clubLocal.id));
+  if (!prochaineJournee) { showToast('Aucun match à domicile', 'Pas de prochain match à domicile pour ce club.', false); return; }
+  const r = await deduireCoutOrdre({ pa, cost });
+  if (!r.ok) { signalerRefusCout(r); return; }
+  // C3 : le boycott est desormais pose par CAS sur l'etat frais. L'ancien sbSaveChampionnat()
+  // reecrivait ici le blob ENTIER a partir d'une copie lue plusieurs secondes plus tot (le temps
+  // d'ouvrir la modale et de payer les PA) -- il pouvait donc effacer un match que le moteur live
+  // venait de finaliser entre-temps.
+  const ecriture = await majChampionnatCAS((fraiche) => {
+    const jc = fraiche.calendrier.find(j => j.numero === prochaineJournee.numero);
+    const mc = jc && jc.matchs.find(m => !m.played && m.home === clubLocal.id);
+    if (!mc || mc.boycotte) return false; // match deja joue ou deja boycotte entre-temps
+    mc.boycotte = true;
+    return true;
+  });
+  if (!ecriture.ok) { showToast('Boycott non enregistré', 'Le match vient de commencer ou une autre action a eu lieu. Réessayez.', false); return; }
+
+  document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Boycott décidé', 'Le prochain match à domicile de ' + clubLocal.nom + ' sera boycotté par ses supporters.', true, true);
   addJournalEntry('Le club de supporters décide de boycotter le prochain match à domicile.', 'event-bad');
   addExternalEvent('🚫 Le club de supporters de "' + clubLocal.nom + '" annonce un boycott du prochain match à domicile.');
 }
