@@ -7656,10 +7656,6 @@ async function ouvrirModalConstruire() {
     showToast('Accès refusé', 'Vous n\'êtes pas propriétaire de ce terrain.', false);
     return;
   }
-  if (!ts.constructionAutorisee) {
-    showToast('Permis requis', 'La construction n\'est pas autorisée sur ce terrain (permis manquant).', false);
-    return;
-  }
   if (ts.niveau_construction) {
     showToast('Déjà construit', 'Un bâtiment de type "' + (NIVEAUX_CONSTRUCTION[ts.niveau_construction]?.label||'') + '" existe déjà ici.', false);
     return;
@@ -7682,6 +7678,11 @@ async function ouvrirModalConstruire() {
   const dispoChantier = (typeof terrainOrdreDisponible === 'function')
     ? terrainOrdreDisponible('construire_sur_terrain', id) : { ok: true };
   if (!dispoChantier.ok) { showToast('Impossible', dispoChantier.raison, false); return; }
+
+  if (!ts.constructionAutorisee) {
+    // Sans permis joint, ouvrir le dossier existant, sans débiter à l'ouverture.
+    return doDeposerDemandePermis(1, 100);
+  }
 
   document.getElementById('postes-modal-title').textContent = 'Construire sur ce terrain';
   let html = '<div style="padding:1rem">';
