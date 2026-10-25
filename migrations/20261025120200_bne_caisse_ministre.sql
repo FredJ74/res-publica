@@ -1,3 +1,5 @@
+-- APPLIQUEE le 25/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261025221942.
+-- Eprouvee apres application en transaction annulee (bancs SQL du 25/10). Baseline NON reextrait.
 -- ============================================================================
 -- CAISSE DU BUREAU DE L'EMPLOI : LE MINISTRE DES FINANCES S'Y SERT (Fred, 25 octobre 2026)
 -- ============================================================================
@@ -73,3 +75,16 @@ BEGIN
 END; $function$;
 REVOKE ALL ON FUNCTION public.bne_caisse_prelever(numeric) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.bne_caisse_prelever(numeric) TO authenticated;
+
+-- Declarer une guerre : -20 d'Indice Diplomatique pour le pays qui la declare.
+DO $mig$
+DECLARE v_def text; v_new text;
+  v_frag text := E'  RETURN jsonb_build_object(''ok'', true, ''id'', v_id, ''attaquant'', v_pays, ''attaque'', p_pays_attaque);';
+  v_ajout text := E'  -- Indice Diplomatique (25/10/2026) : -20 pour le pays qui declare la guerre.\n  PERFORM public.indice_diplomatique_varier_interne(v_pays, -20, ''guerre_declaree'', v_moi);\n\n';
+BEGIN
+  v_def := pg_get_functiondef('public.guerre_declarer(text)'::regprocedure);
+  IF position('indice_diplomatique_varier_interne' in v_def) > 0 THEN RETURN; END IF;
+  v_new := replace(v_def, v_frag, v_ajout || v_frag);
+  IF v_new = v_def THEN RAISE EXCEPTION 'patch non applique : fragment de guerre_declarer introuvable'; END IF;
+  EXECUTE v_new;
+END $mig$;

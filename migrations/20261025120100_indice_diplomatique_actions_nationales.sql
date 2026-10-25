@@ -1,3 +1,5 @@
+-- APPLIQUEE le 25/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261025220806.
+-- Eprouvee apres application en transaction annulee (bancs SQL du 25/10). Baseline NON reextrait.
 -- ============================================================================
 -- INDICE DIPLOMATIQUE : LES ACTIONS NATIONALES QUI LE FONT VARIER PASSENT PAR LE SERVEUR
 -- (25 octobre 2026, suite de 20261025120000 ; Fred : « garder toutes les variations existantes »)

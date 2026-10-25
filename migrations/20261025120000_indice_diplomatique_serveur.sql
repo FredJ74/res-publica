@@ -1,3 +1,5 @@
+-- APPLIQUEE le 25/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261025220648.
+-- Eprouvee apres application en transaction annulee (bancs SQL du 25/10). Baseline NON reextrait.
 -- ============================================================================
 -- INDICE DIPLOMATIQUE : UN PAR PAYS, TENU PAR LE SERVEUR (decisions de Fred du 25 octobre 2026)
 -- ============================================================================
