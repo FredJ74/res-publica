@@ -1,0 +1,4 @@
+OK rejeu
+OK genre
+OK retrait
+{"production": false, "contre_epreuves": [{"mutant": "rejeu", "echec_attendu": true, "code": 1}, {"mutant": "genre", "echec_attendu": true, "code": 1}, {"mutant": "retrait", "echec_attendu": true, "code": 1}]}

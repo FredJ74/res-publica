@@ -102,6 +102,8 @@ jobs:
           python3 outils/bancs/contre-epreuves-filature-confirmation-135-local.py
           python3 outils/bancs/banc-vol-chantier-135-local.py
           python3 outils/bancs/banc-arme-clandestine-135-local.py
+          python3 outils/bancs/banc-vol-ordinaire-135-local.py
+          python3 outils/bancs/contre-epreuves-vol-ordinaire-135-local.py
           python3 outils/bancs/contre-epreuves-arme-clandestine-135-local.py
           python3 outils/bancs/contre-epreuves-vol-chantier-135-local.py
           python3 outils/bancs/banc-enquete-confirmation-135-local.py
