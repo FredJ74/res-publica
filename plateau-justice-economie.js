@@ -13584,6 +13584,47 @@ async function offresChantiersBNE() {
 let VIREMENT_JOUEURS = [];
 let VIREMENT_DESTINATAIRE = null;
 
+// CAISSE DU BUREAU DE L'EMPLOI (Fred, 25/10/2026) : le Ministre des Finances peut, s'il le veut,
+// virer tout ou partie de l'argent des parutions de presse vers la caisse de son ministere.
+// Rien n'est automatique. Le serveur verifie le poste, le solde, preleve 1 PA et vire.
+async function ouvrirCaisseBNE() {
+  document.getElementById('postes-modal-title').textContent = "Caisse du Bureau de l'Emploi";
+  document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue"><p class="cpj-note" style="font-style:italic">Chargement…</p></div>';
+  document.getElementById('modal-postes').classList.add('open');
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('bne_caisse_lire', {}).catch(() => null) : null;
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  if (!v || v.ok !== true) {
+    document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue"><p class="cpj-note">'
+      + (v?.raison === 'reserve_ministre_finances' ? 'Réservé au Ministre des Finances.' : 'Le serveur n\'a pas répondu.') + '</p></div>';
+    return;
+  }
+  const fr = n => Number(n || 0).toLocaleString('fr-FR');
+  let html = '<div class="cpj-dialogue">';
+  html += '<p class="cpj-note" style="margin:0 0 .6rem">Caisse du Bureau de l\'Emploi : <strong>' + fr(v.solde_bne) + ' ' + cur + '</strong><br>'
+    + 'Caisse de votre ministère : <strong>' + fr(v.solde_ministere) + ' ' + cur + '</strong></p>';
+  html += '<p class="cpj-note" style="margin:0 0 .8rem">L\'argent vient des annonces que les joueurs font paraître dans la presse depuis le Bureau. Le virer vers votre ministère coûte 1 PA.</p>';
+  html += '<input id="bne-caisse-montant" class="cpj-champ" inputmode="numeric" placeholder="Montant (' + cur + ')" style="width:100%;margin-bottom:.5rem;text-align:left">';
+  html += '<div style="display:flex;gap:.5rem"><button class="cpj-touche" style="flex:1" onclick="document.getElementById(\'bne-caisse-montant\').value=\'' + Math.floor(Number(v.solde_bne) || 0) + '\'">Tout</button>'
+    + '<button class="cpj-touche cpj-primaire" style="flex:2" onclick="confirmerPrelevementCaisseBNE()">Virer vers le ministère (1 PA)</button></div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+async function confirmerPrelevementCaisseBNE() {
+  const brut = (document.getElementById('bne-caisse-montant')?.value || '').trim();
+  if (!/^[1-9][0-9]{0,8}$/.test(brut)) { showToast('Montant invalide', 'Indiquez un nombre entier de francs.', false); return; }
+  const v = await sbRpcVerdict('bne_caisse_prelever', { p_montant: Number(brut) }).catch(() => null);
+  if (!v || v.ok !== true) {
+    if (v?.raison === 'solde_insuffisant') showToast('Solde insuffisant', 'La caisse du Bureau ne contient que ' + Number(v.solde || 0).toLocaleString('fr-FR') + ' FR.', false);
+    else if (v?.raison === 'reserve_ministre_finances') showToast('Accès refusé', 'Réservé au Ministre des Finances.', false);
+    else signalerRefusCout(v || {});
+    return;
+  }
+  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+  showToast('Virement effectué', Number(v.montant).toLocaleString('fr-FR') + ' FR versés à la caisse du ministère.', true);
+  addJournalEntry('Virement de ' + Number(v.montant).toLocaleString('fr-FR') + ' FR de la caisse du Bureau de l\'Emploi vers le ministère des Finances.', 'event-info');
+  ouvrirCaisseBNE();
+}
+
 async function ouvrirVirementJoueur(automatique) {
   VIREMENT_DESTINATAIRE = null;
   const titre = automatique ? 'Virement automatique — Banque Nationale' : 'Faire un virement — Banque Nationale';

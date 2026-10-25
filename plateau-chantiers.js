@@ -727,9 +727,11 @@ function reliquatNPC(chantier, fractionDesMateriaux) {
   const faites = Math.max(0, nombreFini(chantier && chantier.heuresFaites, 0));
   const restantesUtiles = Math.max(0, utiles - faites);
   const tresorerie = Math.max(0, nombreFini(chantier && chantier.tresorerie, 0));
-  const payables = Math.floor(tresorerie / CHANTIER_TAUX_HORAIRE);
+  // Ouvriers PNJ payes au taux fixe par le proprietaire (Fred, 25/10/2026), comme les joueurs.
+  const taux = tauxHoraireChantier(chantier);
+  const payables = Math.floor(tresorerie / taux);
   const heures = Math.max(0, Math.min(restantesUtiles, payables));
-  return { heures: heures, montant: coutHeuresTravail(heures) };
+  return { heures: heures, montant: heures * taux };
 }
 
 // Fraction travail REELLE du jour : heures effectivement faites (PJ + NPC) sur la capacite.

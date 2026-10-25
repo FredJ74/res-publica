@@ -810,12 +810,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'demettre_ambassadeur_cible'){ ouvrirModalDemettreAmbassadeur(pa, cost); return; }
   if (fn === 'expulser_ambassadeur_cible'){ ouvrirModalExpulserAmbassadeur(pa, cost); return; }
   if (fn === 'relations_bilaterales') { ouvrirRelationsBilaterales(); return; }
-  if (fn === 'corrompre_homologue_local') { doCorrompreHomologueLocal(pa, cost); return; }
   if (fn === 'organiser_reception_diplomatique') { doOrganiserReceptionDiplomatique(pa, cost); return; }
   if (fn === 'financer_oeuvre_culturelle') { doFinancerOeuvreCulturelle(pa, cost); return; }
   if (fn === 'demander_audience_ambassadeur') { doDemanderAudienceAmbassadeur(pa, cost); return; }
   if (fn === 'demander_asile_politique') { doDemanderAsilePolitique(pa, cost); return; }
   if (fn === 'reserver_salle_reception') { doReserverSalleReception(pa, cost); return; }
+  if (fn === 'bne_caisse_prelever') { ouvrirCaisseBNE(); return; }
   if (fn === 'sanctions_empire')        { ouvrirModalEmpireCible('sanctions', 'Imposer des sanctions a'); return; }
   if (fn === 'reception_etat') { doReceptionAvecBonus(fn, cost); return; }
   if (fn === 'banquet_diplo') { ouvrirBanquetDiplomatique(pa, cost); return; }

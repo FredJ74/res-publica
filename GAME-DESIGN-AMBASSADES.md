@@ -99,12 +99,46 @@ L'ambassadeur **ne peut pas être arrêté** dans le pays hôte ; il peut seulem
 décision du 15/07 (3 jours de prison), à rétablir avec une vérification de sa
 présence dans le pays.
 
-### Réceptions et relations (25/10 — avec les autres empires)
-L'ambassadeur invite des joueurs du pays hôte dans la salle de réception ; les
-invités présents améliorent la relation entre les deux pays, et un traité
-proposé par le ministre a plus de chances d'aboutir si l'ambassadeur a préparé
-le terrain. Suppose un **Indice Diplomatique réel et partagé** (question ouverte
-de l'audit).
+### Rôle de l'ambassade (Fred, 25/10)
+L'ambassade est **un outil pour les joueurs**. Elle doit pouvoir remplir plusieurs
+rôles : aider les concitoyens perdus dans un autre empire à regagner leur pays,
+développer le soft power du pays, servir de sanctuaire aux espions grâce à
+l'immunité diplomatique, etc. Human Gambit laisse la place un maximum aux joueurs :
+**on ne code pas les interactions humaines**, comme la corruption entre joueurs.
+
+### Indice Diplomatique (Fred, 25/10 — en jeu depuis le 25/10)
+**Un indice par pays**, réel, tenu par le serveur (0 à 100, valeurs de départ :
+Républia 40, El Estado 20, Sovarka 30, Al-Khalija 50). Toutes les variations
+existantes sont gardées et appliquées par le serveur :
+- ouvrir une ambassade : +8 ;
+- réception diplomatique de l'ambassadeur : voir ci-dessous ;
+- mécénat culturel de l'ambassadeur : +3 (et +8 de popularité) ;
+- propagande d'État : −5 ;
+- déclarer une guerre : −20 ; activer un cessez-le-feu : +10 (une fois par camp) ;
+- mobilisation nationale : −5 pour chacun des autres pays ;
+- banquet diplomatique du Président : +8 si tous les invités viennent (chacun vient 7 fois sur 10) ;
+- réception d'État du Président : +5 si elle réussit (chance selon la popularité) ;
+- proposition diplomatique acceptée : +12 (traité) ou +8 (négociations) pour les
+  deux pays ; refusée : autant en moins pour le pays qui refuse.
+
+**À quoi il sert concrètement : décidé plus tard** (Fred).
+
+### Réception diplomatique (Fred, 25/10 — en jeu depuis le 25/10)
+**Avec présence** : l'ambassadeur réserve la Salle de Réception pour le jour
+(1 PA, une ambassade par jour), puis organise la réception (2 PA, 1 200 FR).
+Chaque joueur du pays hôte présent dans la Salle de Réception (l'ambassadeur
+exclu) rapporte **+1 Indice Diplomatique et +1 popularité** à l'ambassadeur,
+plafonnés à **+10 et +5**. **Une réception ratée** (personne) : **−3 et −3**.
+Une réception par réservation.
+
+### Corruption d'un homologue local — supprimée (Fred, 25/10)
+L'ordre « Corrompre un homologue local » est supprimé des trois bureaux : la
+corruption entre joueurs se joue entre joueurs.
+
+### Réceptions et traités (avec les autres empires)
+Un traité proposé par le ministre a plus de chances d'aboutir si l'ambassadeur
+a préparé le terrain : à raccorder quand l'usage de l'Indice Diplomatique sera
+décidé et que les autres empires seront codés.
 
 ## Écartés par Fred
 
@@ -114,7 +148,5 @@ de l'audit).
 
 ## Questions encore ouvertes
 
-- L'Indice Diplomatique : le rendre réel et partagé, ou le retirer de
-  l'affichage tant qu'il ne l'est pas.
-- La « faveur » obtenue en corrompant un homologue.
+- À quoi sert concrètement l'Indice Diplomatique (Fred : « plus tard »).
 - Les ordres d'ambassade non raccordables : les passer en « Bientôt disponible ».

@@ -253,3 +253,11 @@ formule ; B15 sans objet. **Restent** :
 (`poste_candidature_transmettre`, soldé par `poste_attribuer_interne`), restes de
 l'ancienne formule retirés (registre 20261025204304, 20261025204410,
 20261025204601). Reste B12 (Bureau de direction) et les questions ouvertes.
+
+**Mise à jour du 25/10 (décisions de la série de questions)** : B12 réglé, le
+Bureau de direction est supprimé (pas de directeur, la référente de l'accueil tient
+ce rôle). Les ouvriers PNJ des chantiers sont payés au taux fixé par le
+propriétaire (passe de nuit, au moins 50 FR de l'heure). La caisse du Bureau est
+ouverte au Ministre des Finances, par un acte volontaire (ordre « Caisse du Bureau
+de l'Emploi », 1 PA, RPC `bne_caisse_prelever`). Caractère des trois référentes
+validé par Fred.

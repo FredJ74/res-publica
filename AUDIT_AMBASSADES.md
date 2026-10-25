@@ -212,3 +212,16 @@ joueur codée : asile tranché par lui, PNJ secrétaires, valise diplomatique. R
 attachés au voyage entre empires : immunité, arrestation de l'expulsé, transfert de
 détenus, naturalisation. Restent ouverts : R1, R2, R4, R10 (Indice Diplomatique et
 effets des actions de l'ambassadeur), la « faveur », les réceptions.
+
+**Mise à jour du 25/10 (décisions de la série de questions)** : R1 et R4 réglés.
+L'Indice Diplomatique est une ligne par pays tenue par le serveur
+(`indices_diplomatiques`, avec journal) ; toutes les variations existantes sont
+appliquées par le serveur (ouverture d'ambassade, réception avec présence,
+mécénat, propagande, guerre, cessez-le-feu, mobilisation, banquet et réception
+d'État, réponse aux propositions diplomatiques). La réservation de la Salle de
+Réception passe par le serveur (le navigateur ne peut plus écrire la ligne).
+L'ordre de corruption est supprimé (décision de Fred). Restent : R2 (traités dans
+l'état personnel), R10 (annonces publiques écrites par le navigateur), l'usage
+concret de l'Indice Diplomatique (Fred : plus tard). Constat : une réception ou un
+mécénat suppose un ambassadeur présent dans le pays hôte, donc le voyage entre
+empires ; la règle est en place côté serveur et servira dès qu'il existera.

@@ -8,6 +8,20 @@ Règles : voir `AGENTS.md`.
 **Ambassades et Bureau de l'Emploi : chantiers de Claude seul** (Fred, 25/10). Ces
 notes sont la trace du travail, pour reprendre l'historique. **Codex : ne pas toucher aux
 ambassades ni au Bureau de l'Emploi.**
+- **Décisions de la série de questions (25/10, branche
+  `claude/decisions-ambassades-bne-20261025`)** : Indice Diplomatique réel, un par pays
+  (`indices_diplomatiques` + journal, `indices_diplomatiques_lire`, seule écriture
+  `indice_diplomatique_varier_interne`) ; toutes les variations par le serveur
+  (`ambassade_ouvrir`, `ambassade_reception_organiser` avec présence,
+  `ambassade_mecenat`, `ambassade_reserver_salle`, patchs de
+  `communication_officielle_publier`, `guerre_cessez_le_feu_activer`, `guerre_declarer`,
+  `indice_diplomatique_ordre` pour mobilisation / banquet / réception d'État,
+  `diplomatie_repondre`). Le client ne modifie plus `INDICES_NATIONAUX[p].ID` : il la
+  recharge (`chargerIndicesDiplomatiques`). Corruption d'un homologue supprimée ; Bureau de
+  direction du BNE supprimé ; ouvriers PNJ payés au taux du propriétaire
+  (`reliquatNPCServeur`) ; caisse du BNE ouverte au Ministre des Finances
+  (`bne_caisse_lire`, `bne_caisse_prelever`, ordre `bne_caisse_prelever`). Migrations
+  `20261025120000`, `120100`, `120200`.
 - Contexte : objectif actuel = terminer Luthécia. Les ambassades ne seront
   raccordées aux autres empires que lorsqu'ils seront codés (arbitrage
   Fred, 24/10). Nouvelle règle de Fred : **une seule réalité, celle du
