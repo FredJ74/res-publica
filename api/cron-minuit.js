@@ -1218,9 +1218,20 @@ function reliquatNPCServeur(ch, fMat) {
   const utiles = Math.floor(cap * f);
   const faites = Math.max(0, Number(ch && ch.heuresFaites) || 0);
   const restantesUtiles = Math.max(0, utiles - faites);
-  const payables = Math.floor(Math.max(0, Number(ch && ch.tresorerie) || 0) / TAUX_HORAIRE_SERVEUR);
+  // Les ouvriers PNJ sont payes AU TAUX FIXE PAR LE PROPRIETAIRE (Fred, 25/10/2026), comme les
+  // ouvriers joueurs, jamais sous le salaire minimum. Le taux de reference (70) ne sert plus qu'a
+  // mesurer le travail a faire.
+  const taux = tauxHoraireChantierServeur(ch);
+  const payables = Math.floor(Math.max(0, Number(ch && ch.tresorerie) || 0) / taux);
   const heures = Math.max(0, Math.min(restantesUtiles, payables));
-  return { heures: heures, montant: heures * TAUX_HORAIRE_SERVEUR };
+  return { heures: heures, montant: heures * taux };
+}
+
+// Meme regle que tauxHoraireChantier (plateau-chantiers.js) et que chantier_travailler (serveur).
+const CHANTIER_SALAIRE_MINIMUM_SERVEUR = 50;
+function tauxHoraireChantierServeur(ch) {
+  const t = Number(ch && ch.tauxHoraire);
+  return Math.max(CHANTIER_SALAIRE_MINIMUM_SERVEUR, Number.isFinite(t) && t > 0 ? t : TAUX_HORAIRE_SERVEUR);
 }
 
 function fractionTravailServeur(ch, heuresNPC) {

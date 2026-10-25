@@ -1856,6 +1856,8 @@ function applyCharToState(char) {
   // (creation.js) -- jamais recalcule ensuite.
   state.inf = char.resources?.inf ?? 25;
   state.pop = char.resources?.pop ?? 30;
+  // Indice Diplomatique : un par pays, tenu par le serveur (25/10/2026). On recharge la copie d'affichage.
+  if (typeof chargerIndicesDiplomatiques === 'function') chargerIndicesDiplomatiques().catch(() => {});
   state.dis = char.resources?.dis ?? 85;
   // Restauration des PA depuis le cache local (audit du 20 aout 2026) : state.pa restait bloque
   // a la valeur par defaut du litteral d'etat initial (999, plateau-core.js:324) le temps que la

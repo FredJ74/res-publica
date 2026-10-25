@@ -2672,6 +2672,7 @@ const BUILDINGS = {
                    photoPos:'50% 20%'}],
         orders: [
           {fn:'pilotage_fiscal_budgetaire', label:'Fiscalité et budget', pa:2, cost:0, type:'legal', icon:'ti-percentage', successRate:100, requiresPost:'min_fin', desc:'Taux d\'imposition national, répartition budgétaire et redressement fiscal — une seule fonction de pilotage financier.'},
+          {fn:'bne_caisse_prelever', label:"Caisse du Bureau de l'Emploi", pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, requiresPost:'min_fin', desc:"L'argent des parutions dans la presse payées au Bureau de l'Emploi. Virez-en tout ou partie vers la caisse de votre ministère (1 PA). Rien n'est automatique."},
           {fn:'subvention',           label:'Accorder une subvention',      pa:2, cost:0, type:'legal',   icon:'ti-coins',          successRate:100, requiresPost:'min_fin', desc:'Cibler un citoyen, un club sportif, une entreprise ou une organisation. Montant a fixer ensuite (plafond 5000 FR).'},
           {fn:'gestion_industrielle_portuaire', label:'Gestion industrielle et portuaire', pa:1, cost:0, type:'legal', icon:'ti-building-factory', successRate:100, requiresPost:'min_fin', desc:'Directeurs d\'usine, virements aux usines nationales, Commandant du Port.'},
           {fn:'preempter_entreprise', label:'Droit de preemption sur une entreprise', pa:2, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_fin', desc:'Nationaliser une entreprise encore tenue par un PNJ, financee par un pret automatique de la Banque Nationale. Une seule preemption a la fois.'},
@@ -6000,7 +6001,6 @@ const BUILDINGS = {
         persons: [{name:'Mohamed Al-Mansoori (PNJ)', role:"Ambassadeur d'Al-Khalija", rel:'neutral', job:'ambassadeur'}],
         orders: [
           {fn:'relations_bilaterales',            label:'Consulter les relations bilatérales', pa:0, cost:0,    type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'Etat des relations avec Al-Khalija.'},
-          {fn:'corrompre_homologue_local',         label:'Corrompre un homologue local',        pa:2, cost:800,  type:'illegal', icon:'ti-cash-banknote', successRate:65,  requiresPost:'ambassadeur_local', desc:'Obtenir une faveur, au risque d\'un scandale.'},
           {fn:'organiser_reception_diplomatique',  label:'Organiser une réception diplomatique',pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Reserver la Salle de Reception commune.'},
           {fn:'financer_oeuvre_culturelle',        label:'Financer une œuvre culturelle',        pa:1, cost:600,  type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'}
         ]
@@ -6012,7 +6012,6 @@ const BUILDINGS = {
         persons: [{name:'Valery Antonov (PNJ)', role:'Ambassadeur de Sovarka', rel:'neutral', job:'ambassadeur'}],
         orders: [
           {fn:'relations_bilaterales',            label:'Consulter les relations bilatérales', pa:0, cost:0,    type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'Etat des relations avec Sovarka.'},
-          {fn:'corrompre_homologue_local',         label:'Corrompre un homologue local',        pa:2, cost:800,  type:'illegal', icon:'ti-cash-banknote', successRate:65,  requiresPost:'ambassadeur_local', desc:'Obtenir une faveur, au risque d\'un scandale.'},
           {fn:'organiser_reception_diplomatique',  label:'Organiser une réception diplomatique',pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Reserver la Salle de Reception commune.'},
           {fn:'financer_oeuvre_culturelle',        label:'Financer une œuvre culturelle',        pa:1, cost:600,  type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'}
         ]
@@ -6024,7 +6023,6 @@ const BUILDINGS = {
         persons: [{name:'Guillermo Vasquez (PNJ)', role:"Ambassadeur d'El Estado", rel:'neutral', job:'ambassadeur'}],
         orders: [
           {fn:'relations_bilaterales',            label:'Consulter les relations bilatérales', pa:0, cost:0,    type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'Etat des relations avec El Estado.'},
-          {fn:'corrompre_homologue_local',         label:'Corrompre un homologue local',        pa:2, cost:800,  type:'illegal', icon:'ti-cash-banknote', successRate:65,  requiresPost:'ambassadeur_local', desc:'Obtenir une faveur, au risque d\'un scandale.'},
           {fn:'organiser_reception_diplomatique',  label:'Organiser une réception diplomatique',pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Reserver la Salle de Reception commune.'},
           {fn:'financer_oeuvre_culturelle',        label:'Financer une œuvre culturelle',        pa:1, cost:600,  type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'}
         ]
@@ -6332,15 +6330,9 @@ const BUILDINGS = {
           {fn:'consulter_offres_emploi', label:'Postes à pourvoir', pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:"Les postes de l'État et de l'armée tenus par des PNJ faute de joueur. Votre candidature est transmise au recruteur officiel."},
           {fn:'bne_passer_annonce', label:'Passer une annonce', pa:1, cost:0, type:'legal', icon:'ti-speakerphone', successRate:100, desc:"Vous cherchez du monde ? Annonce gratuite (1 PA), affichée 7 jours au Bureau, avec votre adresse pour vous écrire. Option : parution aussi dans La Tribune (30 FR, 3 jours)."}
         ]
-      },
-      bureau_direction: {
-        name: "Bureau de Direction",
-        imageBg: "linear-gradient(135deg,#0f1510,#141c14)",
-        imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80",
-        desc: "Le bureau du directeur de l'office. Accès sur rendez-vous.",
-        persons: [],
-        orders: []
       }
+      // Le « Bureau de Direction » est supprime (Fred, 25/10/2026) : la referente emploi de
+      // l'accueil tient ce role, il n'y a pas de directeur.
     }
   },
 

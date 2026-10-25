@@ -30,6 +30,7 @@ Elles expliquent le Bureau (postes, candidatures, armée, annonces, paie, vireme
 chantiers, plainte d'un employé non payé) ; elles ne connaissent pas la liste du jour
 et renvoient au tableau « Postes à pourvoir ». **Jean-Lou Zeure** reste ce qu'il est :
 l'ancien maire déchu qui cherche du travail, référent des élections.
+Leur caractère (inventé par Claude) est validé par Fred (25/10).
 
 ## Ce qui disparaît
 
@@ -39,8 +40,8 @@ l'ancien maire déchu qui cherche du travail, référent des élections.
   nouvelle formule (ces emplois n'étaient pas payés : il ne perd rien).
 - L'**inscription comme demandeur d'emploi** : supprimée. Tout joueur consulte
   et postule directement.
-- Le **Bureau de direction** : question reportée à la fin du chantier (pièce
-  créée en août par copie du modèle de l'entrepôt, jamais remplie).
+- Le **Bureau de direction** : supprimé (Fred, 25/10). Il n'y a pas de
+  directeur ; la référente emploi de l'accueil tient ce rôle.
 
 ## 1. Les postes recensés automatiquement
 
@@ -94,6 +95,11 @@ l'annonce dans La Tribune de Républia, en reprenant l'ordre « Déposer une pet
 annonce » et son prix (30 FR, 1 PA, 3 jours) : le joueur ne paie pas plus cher
 qu'au journal. **L'argent reste au Bureau**, le journal ne touche rien.
 
+**La caisse du Bureau** (Fred, 25/10) : le **Ministre des Finances** peut s'y
+servir pour alimenter la caisse de son ministère. **Rien n'est automatique** :
+c'est un acte volontaire, ordre « Caisse du Bureau de l'Emploi » dans son bureau
+(1 PA, tout ou partie du solde).
+
 **Le jeu ne code pas l'embauche** : candidatures, choix, négociation se règlent
 entre joueurs par mail. Nous sommes dans un JDR, tout ne se code pas.
 
@@ -110,6 +116,8 @@ entre joueurs par mail. Nous sommes dans un JDR, tout ne se code pas.
     du chantier, ordre « Travailler sur le chantier » existant, **laissé
     cliquable** comme aujourd'hui. Le **propriétaire fixe le taux horaire**, au
     moins le **salaire minimum de 50 FR de l'heure**.
+    Les **ouvriers PNJ** qui font le reste du travail la nuit sont payés **au même
+    taux** (Fred, 25/10).
   - **Travail au jour** (exemple : sécurité privée d'un bâtiment) : salaire
     journalier, par virement.
   - Travail dans un bâtiment : payé par la caisse du bâtiment ; mercenaires et
@@ -132,4 +140,5 @@ entre joueurs par mail. Nous sommes dans un JDR, tout ne se code pas.
 - L'ordre « Déposer une petite annonce » de la Tribune est entièrement décidé par
   le navigateur (PA, argent, enregistrement, recette du journal) : à repasser par
   le serveur. Le Bureau n'a pas de caisse : à créer.
-- Le taux horaire des chantiers est fixe (70 FR) dans le code.
+- Le taux horaire des chantiers était fixe (70 FR) dans le code : réglé le 25/10
+  (taux du propriétaire, joueurs et PNJ).

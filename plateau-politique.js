@@ -5238,7 +5238,9 @@ async function publierMessagePresidentiel(type, pa, cost) {
   if (ef.pop) state.pop = Math.min(100, state.pop + ef.pop);
   if (ef.inf) state.inf = Math.min(100, state.inf + ef.inf);
   if (ef.is && INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IS = Math.min(100, INDICES_NATIONAUX[pays].IS + ef.is);
-  if (ef.id && INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].ID = Math.max(0, INDICES_NATIONAUX[pays].ID + ef.id);
+  // L'Indice Diplomatique est tenu par le serveur (25/10/2026) : la propagande y coute 5 points,
+  // appliques par communication_officielle_publier. On recharge la copie d'affichage.
+  if (ef.id) chargerIndicesDiplomatiques().catch(() => {});
   if (ef.ie && INDICES_NATIONAUX?.[pays]) INDICES_NATIONAUX[pays].IE = Math.max(0, INDICES_NATIONAUX[pays].IE + ef.ie);
   if (type === 'deuil') state.deuil = state.day;
 
@@ -7265,33 +7267,34 @@ async function ouvrirReponsesDiplomatiques(pa, cost) {
 
 async function repondreDiplomatie(propositionId, accepte, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  const rows = typeof sbGet === 'function' ? await sbGet('propositions_diplomatiques', `id=eq.${encodeURIComponent(propositionId)}`).catch(() => []) : [];
-  const p = rows?.[0]?.data;
-  if (!p) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PAR LE SERVEUR (25/10/2026) : il verifie que la proposition vous est adressee et attend une
+  // reponse, preleve 1 PA, change son statut et fait varier l'Indice Diplomatique (accepte : +12
+  // pour un traite, +8 pour des negociations, aux deux pays ; refuse : autant en moins pour vous).
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('diplomatie_repondre', { p_id: propositionId, p_accepte: !!accepte }).catch(() => null) : null;
+  if (!v || v.ok !== true) {
+    const motifs = { reserve_ministre_ae: 'Réservé au Ministre des Affaires Étrangères.',
+                     proposition_introuvable: 'Cette proposition ne vous est pas adressée.',
+                     deja_repondue: 'Il a déjà été répondu à cette proposition.' };
+    if (v && motifs[v.raison]) showToast('Réponse impossible', motifs[v.raison], false);
+    else signalerRefusCout(v || {});
+    return;
+  }
+  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+  chargerIndicesDiplomatiques().catch(() => {});
+  const p = { id: propositionId, ...(v.proposition || {}) };
   const config = DIPLOMATIE_CONFIG[p.type] || { gainAccepte: 0, perteRefus: 0, label: p.type };
 
-  if (typeof sbMajPropositionDiplomatique === 'function') {
-    await sbMajPropositionDiplomatique(propositionId, { statut: accepte ? 'acceptee' : 'refusee' });
-  }
-
   if (accepte) {
-    INDICES_NATIONAUX[p.empireProposeur] = INDICES_NATIONAUX[p.empireProposeur] || {};
-    INDICES_NATIONAUX[p.empireCible] = INDICES_NATIONAUX[p.empireCible] || {};
-    INDICES_NATIONAUX[p.empireProposeur].ID = Math.min(100, (INDICES_NATIONAUX[p.empireProposeur].ID || 50) + config.gainAccepte);
-    INDICES_NATIONAUX[p.empireCible].ID = Math.min(100, (INDICES_NATIONAUX[p.empireCible].ID || 50) + config.gainAccepte);
     if (p.type === 'traite') {
       if (!state.traites) state.traites = [];
       state.traites.push({ empire: p.empireProposeur, type: p.details, jour: state.day });
     }
-    showToast(config.label + ' accepté(e)', '+' + config.gainAccepte + ' ID pour les deux camps.', true, true);
+    showToast(config.label + ' accepté(e)', '+' + config.gainAccepte + ' Indice Diplomatique pour les deux pays.', true, true);
     addExternalEvent(config.label.toUpperCase() + ' : accord conclu entre ' + p.empireProposeurNom + ' et ' + (COUNTRIES[p.empireCible]?.n || p.empireCible) + '.');
   } else {
-    INDICES_NATIONAUX[p.empireCible] = INDICES_NATIONAUX[p.empireCible] || {};
-    INDICES_NATIONAUX[p.empireCible].ID = Math.max(0, (INDICES_NATIONAUX[p.empireCible].ID || 50) - config.perteRefus);
-    showToast(config.label + ' refusé(e)', '-' + config.perteRefus + ' ID.', false);
-    addJournalEntry(config.label + ' refusée avec ' + p.empireProposeurNom + '. -' + config.perteRefus + ' ID.', 'event-bad');
+    showToast(config.label + ' refusé(e)', '-' + config.perteRefus + ' Indice Diplomatique.', false);
+    addJournalEntry(config.label + ' refusée avec ' + p.empireProposeurNom + '. -' + config.perteRefus + ' Indice Diplomatique.', 'event-bad');
   }
 
   if (typeof sbSendMail === 'function') {
@@ -7342,14 +7345,12 @@ async function executerOrdreEmpire(action, empireId, empireName, pa, cost) {
   if (action === 'declarer_guerre') {
     if (!state.guerres) state.guerres = [];
     state.guerres.push({ empire: empireId, nom: empireName, depuis: 'Jour ' + state.day });
-    INDICES_NATIONAUX[state.country].ID = Math.max(0, INDICES_NATIONAUX[state.country].ID - 20);
     addExternalEvent('GUERRE DECLAREE : ' + (COUNTRIES[state.country]?.n||'') + ' declare la guerre a ' + empireName + ' !');
     addMailNotification('Etat-Major', 'Declaration de guerre', 'La guerre a ete declaree contre ' + empireName + '. L\'armee est en alerte maximale.');
-    showToast('Guerre declaree !', 'Conflit ouvert avec ' + empireName + '. -20 ID.', false);
+    showToast('Guerre declaree !', 'Conflit ouvert avec ' + empireName + '.', false);
   } else if (action === 'cessez_le_feu') {
     if (state.guerres) state.guerres = state.guerres.filter(g => g.empire !== empireId);
-    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 10);
-    showToast('Cessez-le-feu', 'Negociation en cours avec ' + empireName + '. +10 ID.', true);
+    showToast('Cessez-le-feu', 'Negociation en cours avec ' + empireName + '.', true);
     addJournalEntry('Cessez-le-feu negocie avec ' + empireName, 'event-good');
   } else if (action === 'ouvrir_ambassade') {
     // PAR LE SERVEUR (25/10/2026, audit R5) : autorite, ligne, 2 PA dans la meme transaction.
@@ -7358,16 +7359,14 @@ async function executerOrdreEmpire(action, empireId, empireName, pa, cost) {
     if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
     if (!state.ambassades) state.ambassades = [];
     state.ambassades.push({ empire: empireId, nom: empireName });
-    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 8);
+    // +8 Indice Diplomatique : applique par ambassade_ouvrir (serveur, 25/10/2026).
+    chargerIndicesDiplomatiques().catch(() => {});
     updateUI();
     showToast('Ambassade ouverte', 'Representation diplomatique etablie a ' + empireName + '. +8 ID.', true);
   } else if (action === 'sanctions') {
-    INDICES_NATIONAUX[state.country].ID = Math.max(0, INDICES_NATIONAUX[state.country].ID - 5);
-    INDICES_NATIONAUX[empireId] = INDICES_NATIONAUX[empireId] || {};
-    const perteCible = 3 + Math.floor(Math.random() * 8); // aleatoire entre 3 et 10
-    INDICES_NATIONAUX[empireId].ID = Math.max(0, (INDICES_NATIONAUX[empireId].ID || 50) - perteCible);
-    showToast('Sanctions imposees', 'Sanctions economiques contre ' + empireName + '. -5 ID pour vous, -' + perteCible + ' ID pour ' + empireName + '.', false);
-    addExternalEvent('Sanctions officielles imposees contre ' + empireName + ' (-' + perteCible + ' ID).');
+    // Plus aucun ordre du jeu n'arrive ici (l'action « Imposer des sanctions » a ete retiree) :
+    // le navigateur ne touche plus a l'Indice Diplomatique, tenu par le serveur (25/10/2026).
+    showToast('Sanctions', 'Cette action n\'est plus disponible.', false);
   } else {
     showToast(action.replace(/_/g,' '), 'Action menee envers ' + empireName, true);
     addJournalEntry(action.replace(/_/g,' ') + ' : ' + empireName, 'event-info');
@@ -9206,10 +9205,10 @@ function signerTraite() {
   const type = document.getElementById('traite-type')?.value;
   document.getElementById('modal-postes').classList.remove('open');
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 12);
+  // Sans appelant : un traite n'entre en vigueur que par diplomatie_repondre (serveur).
   if (!state.traites) state.traites = [];
   state.traites.push({ empire: empireId, type, jour: state.day });
-  showToast('Traite signe', 'Traite ' + type + ' avec ' + empireName + '. +12 ID.', true, true);
+  showToast('Traite signe', 'Traite ' + type + ' avec ' + empireName + '.', true, true);
   addExternalEvent('TRAITE : Accord ' + type + ' signe entre ' + (COUNTRIES[state.country]?.n||'') + ' et ' + empireName + '.');
 }
 
@@ -9238,93 +9237,95 @@ function ouvrirRelationsBilaterales() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function doCorrompreHomologueLocal(pa, cost) {
-  const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
-  if (!empireId) return;
-  const empireName = COUNTRIES[empireId]?.n || empireId;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', 'Corrompre un homologue coûte ' + cost + ' ' + cur + '.', false); return; }
-  const roll = Math.random() * 100;
-  if (roll < 65) {
-    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 6);
-    showToast('Faveur obtenue', 'Un homologue local vous doit une faveur. +6 ID.', true);
-    addJournalEntry('Corruption discrète d\'un homologue à l\'ambassade de ' + empireName + '. +6 ID.', 'event-info');
-  } else {
-    INDICES_NATIONAUX[state.country].ID = Math.max(0, INDICES_NATIONAUX[state.country].ID - 10);
-    showToast('Scandale', 'La tentative de corruption a été découverte. -10 ID.', false);
-    addExternalEvent('SCANDALE DIPLOMATIQUE : une tentative de corruption à l\'ambassade de ' + empireName + ' a été dévoilée.');
-  }
-  updateUI();
-}
+// L'ordre « Corrompre un homologue local » est SUPPRIME (Fred, 25/10/2026) : Human Gambit laisse
+// la place aux joueurs et ne code pas les interactions humaines, comme la corruption entre PJ.
 
-function doOrganiserReceptionDiplomatique(pa, cost) {
-  const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
-  if (!empireId) return;
-  const empireName = COUNTRIES[empireId]?.n || empireId;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  // Verifier qu'une reservation existe bien pour aujourd'hui, au nom de cette ambassade
-  // (voir sbReserverSalleReception, ordre pris a l'accueil).
-  const jour = state.day || 1;
-  sbGetReservationSalle(state.country, jour).then(async resa => {
-    if (!resa || resa.data?.empire !== empireId) {
-      showToast('Salle non réservée', "Réservez d'abord la Salle de Réception pour aujourd'hui, depuis l'accueil du Quartier des Ambassades.", false);
-      return;
-    }
-    const r = await deduireCoutOrdre({ pa, cost });
-    if (!r.ok) { showToast('Fonds insuffisants', 'Organiser une réception coûte ' + cost + ' ' + cur + '.', false); return; }
-    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 5);
-    state.pop = Math.min(100, (state.pop || 50) + 5);
-    showToast('Réception organisée', 'Une réception diplomatique a été donnée dans la Salle de Réception. +5 ID, +5 POP.', true);
-    addExternalEvent('DIPLOMATIE : réception donnée à l\'ambassade de ' + empireName + '.');
-    updateUI();
-  }).catch(() => {
-    showToast('Erreur', 'Impossible de vérifier la réservation pour le moment.', false);
+// INDICE DIPLOMATIQUE : UN PAR PAYS, TENU PAR LE SERVEUR (Fred, 25/10/2026 : « une seule realite,
+// celle du serveur »). INDICES_NATIONAUX[pays].ID n'est plus qu'une copie d'affichage, rechargee
+// d'ici ; le navigateur ne la modifie plus jamais lui-meme.
+async function chargerIndicesDiplomatiques() {
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('indices_diplomatiques_lire', {}).catch(() => null) : null;
+  if (!v || v.ok !== true || !v.indices || typeof INDICES_NATIONAUX === 'undefined') return false;
+  Object.entries(v.indices).forEach(([p, val]) => {
+    INDICES_NATIONAUX[p] = INDICES_NATIONAUX[p] || {};
+    INDICES_NATIONAUX[p].ID = Number(val);
   });
+  if (typeof updateUI === 'function') updateUI();
+  return true;
 }
 
-// Reservation de la Salle de Reception, prise a l'accueil. Reservee aux ambassadeurs
-// effectivement en poste ici (peu importe lequel des 3, du moment qu'il en est un) —
-// la reservation est associee a SON empire, pas au pays hote, pour rester coherente
-// avec la verification faite dans doOrganiserReceptionDiplomatique.
+const MOTIFS_AMBASSADEUR = {
+  reserve_ambassadeur: 'Seul l\'ambassadeur en poste peut le faire.',
+  pas_sur_place: 'Il faut être au Quartier des Ambassades.',
+  salle_deja_reservee: 'La Salle de Réception est déjà réservée aujourd\'hui.',
+  salle_non_reservee: 'Réservez d\'abord la Salle de Réception pour aujourd\'hui, depuis l\'accueil du Quartier des Ambassades.',
+  reception_deja_donnee: 'La réception de cette réservation a déjà eu lieu.'
+};
+function signalerRefusAmbassadeur(v, titre) {
+  if (v && MOTIFS_AMBASSADEUR[v.raison]) { showToast(titre, MOTIFS_AMBASSADEUR[v.raison], false); return; }
+  if (typeof signalerRefusCout === 'function' && v && v.raison) { signalerRefusCout(v); return; }
+  showToast(titre, 'Le serveur n\'a pas répondu. Rien n\'a été prélevé.', false);
+}
+function appliquerResultatAmbassadeur(v) {
+  if (v?.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+  if (typeof v?.pop === 'number') state.pop = v.pop;
+  chargerIndicesDiplomatiques().catch(() => {});
+  if (typeof updateUI === 'function') updateUI();
+}
+
+// RECEPTION DIPLOMATIQUE, AVEC PRESENCE (Fred, 25/10/2026), par le serveur : salle reservee pour
+// aujourd'hui, 2 PA et 1 200 FR. +1 Indice Diplomatique et +1 popularite par joueur du pays hote
+// present dans la Salle de Reception (l'ambassadeur exclu), plafonds +10 et +5. Aucun invite :
+// la reception est ratee, -3 et -3.
+async function doOrganiserReceptionDiplomatique(pa, cost) {
+  const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
+  if (!empireId) return;
+  const empireName = COUNTRIES[empireId]?.n || empireId;
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_reception_organiser', { p_empire: empireId }).catch(() => null) : null;
+  if (!v || v.ok !== true) { signalerRefusAmbassadeur(v, 'Réception impossible'); return; }
+  appliquerResultatAmbassadeur(v);
+  const n = Number(v.invites) || 0;
+  if (n === 0) {
+    showToast('Réception ratée', 'Personne n\'est venu dans la Salle de Réception. -3 Indice Diplomatique, -3 popularité.', false);
+    addExternalEvent('DIPLOMATIE : la réception de l\'ambassade de ' + empireName + ' s\'est tenue devant une salle vide.');
+  } else {
+    showToast('Réception réussie', n + ' invité' + (n > 1 ? 's' : '') + ' présent' + (n > 1 ? 's' : '') + '. +' + v.delta_indice + ' Indice Diplomatique, +' + v.delta_pop + ' popularité.', true);
+    addExternalEvent('DIPLOMATIE : réception donnée à l\'ambassade de ' + empireName + ' (' + n + ' invité' + (n > 1 ? 's' : '') + ').');
+  }
+}
+
+// Reservation de la Salle de Reception, prise a l'accueil, par le serveur (25/10/2026) : reservee
+// a un ambassadeur en poste ici, pour le jour de jeu du pays hote, une ambassade par jour.
 async function doReserverSalleReception(pa, cost) {
-  const jour = state.day || 1;
   const monAmbassade = (state.ambassadesOuvertesCache || []).find(a => a.ambassadeur === state.char?.name);
   if (!monAmbassade) {
     showToast('Réservation impossible', 'Seul un ambassadeur en poste ici peut réserver cette salle.', false);
     return;
   }
-  const resa = typeof sbGetReservationSalle === 'function' ? await sbGetReservationSalle(state.country, jour).catch(() => null) : null;
-  if (resa) {
-    const empireResa = COUNTRIES[resa.data?.empire]?.n || resa.data?.empire;
-    showToast('Salle déjà réservée', 'La Salle de Réception est déjà réservée aujourd\'hui par ' + empireResa + '.', false);
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_reserver_salle', { p_empire: monAmbassade.empire }).catch(() => null) : null;
+  if (!v || v.ok !== true) {
+    if (v?.raison === 'salle_deja_reservee' && v.empire) {
+      showToast('Salle déjà réservée', 'La Salle de Réception est déjà réservée aujourd\'hui par ' + (COUNTRIES[v.empire]?.n || v.empire) + '.', false);
+      return;
+    }
+    signalerRefusAmbassadeur(v, 'Réservation impossible');
     return;
   }
-  const rDeduc = await deduireCoutOrdre({ pa, cost });
-  if (!rDeduc.ok) { signalerRefusCout(rDeduc); return; }
-  const res = typeof sbReserverSalleReception === 'function'
-    ? await sbReserverSalleReception(state.country, jour, monAmbassade.empire, state.char?.name).catch(() => ({ ok: false }))
-    : { ok: false };
-  if (res.ok) {
-    showToast('Salle réservée', 'La Salle de Réception est réservée pour aujourd\'hui.', true);
-    addJournalEntry('Réservation de la Salle de Réception du Quartier des Ambassades pour aujourd\'hui.', 'event-info');
-  } else {
-    showToast('Réservation impossible', 'La salle vient d\'être réservée par un autre pays.', false);
-  }
+  appliquerResultatAmbassadeur(v);
+  showToast('Salle réservée', 'La Salle de Réception est réservée pour aujourd\'hui.', true);
+  addJournalEntry('Réservation de la Salle de Réception du Quartier des Ambassades pour aujourd\'hui.', 'event-info');
 }
 
+// Mecenat culturel, par le serveur (effets inchanges : +3 Indice Diplomatique, +8 popularite).
 async function doFinancerOeuvreCulturelle(pa, cost) {
   const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
   if (!empireId) return;
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', 'Financer une œuvre culturelle coûte ' + cost + ' ' + cur + '.', false); return; }
-  state.pop = Math.min(100, (state.pop || 50) + 8);
-  INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 3);
-  showToast('Mécénat culturel', 'Une œuvre a été financée localement. +8 POP, +3 ID.', true);
-  addExternalEvent('SOFT POWER : ' + (COUNTRIES[state.country]?.n || state.country) + ' finance une œuvre culturelle à ' + empireName + '.');
-  updateUI();
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_mecenat', { p_empire: empireId }).catch(() => null) : null;
+  if (!v || v.ok !== true) { signalerRefusAmbassadeur(v, 'Mécénat impossible'); return; }
+  appliquerResultatAmbassadeur(v);
+  showToast('Mécénat culturel', 'Une œuvre a été financée localement. +8 popularité, +3 Indice Diplomatique.', true);
+  addExternalEvent('SOFT POWER : ' + (COUNTRIES[empireId]?.n || empireId) + ' finance une œuvre culturelle.');
 }
 
 // Ordres de l'accueil, ouverts a tous (pas reserves a l'ambassadeur)
@@ -9825,20 +9826,24 @@ function ouvrirBanquetDiplomatique(pa, cost) {
 async function confirmerBanquetDiplomatique(pa, cost) {
   const invites = Array.from(document.querySelectorAll('.banquet-invite:checked')).map(el => el.value);
   if (invites.length === 0) { showToast('Aucun invité sélectionné', '', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PAR LE SERVEUR (25/10/2026) : il preleve les PA, tire la venue de chaque invite (7 fois sur
+  // 10) et, si tous viennent, ajoute 8 points a l'Indice Diplomatique du pays.
+  const r = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('indice_diplomatique_ordre', { p_fn: 'banquet_diplo', p_pa: pa, p_invites: invites.length }).catch(() => null) : null;
+  if (!r || r.ok !== true) { signalerRefusCout(r || {}); return; }
+  if (r.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paie);
+  chargerIndicesDiplomatiques().catch(() => {});
   document.getElementById('modal-postes')?.classList.remove('open');
 
   if (!verifierBudgetInstitution('presidence')) return;
 
-  const venus = invites.filter(() => Math.random() < 0.7); // 70% de chance de presence par invite
+  const venus = invites.slice(0, Math.max(0, Number(r.venus) || 0));
   const cur = COUNTRIES[state.country]?.cur || 'FR';
 
   if (venus.length === invites.length) {
     state.pop = Math.min(100, state.pop + 15);
     state.inf = Math.min(100, state.inf + 12);
     state.moral = Math.min(100, state.moral + 5);
-    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 8);
     updateUI();
     showToast('Banquet réussi !', 'Tous les invités sont venus. +15 POP +12 INF +5 Moral +8 ID.', true, true);
     addJournalEntry('Banquet diplomatique réussi — tous les invités présents.', 'event-good');
@@ -9873,21 +9878,21 @@ async function doReceptionAvecBonus(fn, cost) {
     showToast('Budget insuffisant', 'Le budget de la Presidence est insuffisant. Le Ministre des Finances doit revoir la repartition budgetaire.', false);
     return;
   }
-  // Deduction PA centralisee (Lot 2C) -- apres verification du budget, avant tout debit.
-  const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!rPa.ok) { signalerRefusCout(rPa); return; }
+  // PA ET ISSUE PAR LE SERVEUR (25/10/2026) -- apres verification du budget, avant tout debit.
+  // indice_diplomatique_ordre preleve les 2 PA, tire la reussite avec la meme formule qu'avant
+  // (80 % ajuste par la popularite, borne 5..95) et ajoute 5 points a l'Indice Diplomatique.
+  const rPa = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('indice_diplomatique_ordre', { p_fn: 'reception_etat', p_pa: 2 }).catch(() => null) : null;
+  if (!rPa || rPa.ok !== true) { signalerRefusCout(rPa || {}); return; }
+  if (rPa.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(rPa.paie);
+  chargerIndicesDiplomatiques().catch(() => {});
   budgetPresidence.solde -= budgetPresidence.coutOrdre;
 
-  // Bonus/malus selon popularite
-  const popBonus = state.pop > 20 ? Math.floor((state.pop - 20) * 1) : -Math.floor((20 - state.pop) * 1);
-  const taux = Math.min(95, Math.max(5, 80 + Math.floor(popBonus / 2)));
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
+  // L'issue a ete tiree par le serveur.
+  if (rPa.reussi === true) {
     state.pop = Math.min(100, state.pop + 10);
     state.inf = Math.min(100, state.inf + 8);
     state.moral = Math.min(100, state.moral + 5);
-    INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 5);
     updateUI();
     showToast(fn === 'reception_etat' ? 'Reception reussie !' : 'Banquet reussi !', '+10 POP +8 INF +5 Moral +5 ID.', true, true);
     addJournalEntry(fn === 'reception_etat' ? 'Reception d\'Etat reussie.' : 'Banquet diplomatique reussi.', 'event-good');
@@ -10992,8 +10997,9 @@ async function confirmerGuerreEmpire(empireId, empireName, pa, cost) {
   }
   state.pop = Math.max(0, (state.pop||0) - 20);
   state.inf = Math.min(100, (state.inf||0) + 10);
-  INDICES_NATIONAUX[pays].ID = Math.max(0, INDICES_NATIONAUX[pays].ID - 20);
+  // -20 Indice Diplomatique : applique par guerre_declarer (serveur, 25/10/2026).
   INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 15);
+  chargerIndicesDiplomatiques().catch(() => {});
   updateUI();
   addExternalEvent('⚔️ GUERRE DÉCLARÉE : ' + (COUNTRIES[pays]?.n||'') + ' déclare la guerre à ' + empireName + ' !');
   showToast('Guerre déclarée !', 'Conflit ouvert avec ' + empireName + '. Visible par tous.', false, true);
@@ -11130,7 +11136,8 @@ async function confirmerActivationCessezLeFeu(guerreId, adversaire, pa, cost) {
     return;
   }
 
-  INDICES_NATIONAUX[pays].ID = Math.min(100, INDICES_NATIONAUX[pays].ID + 10);
+  // +10 Indice Diplomatique : applique par guerre_cessez_le_feu_activer (serveur, 25/10/2026).
+  chargerIndicesDiplomatiques().catch(() => {});
   updateUI();
   if (tousActifs) {
     showToast('Cessez-le-feu total !', 'Les deux camps ont activé le cessez-le-feu. Le conflit est terminé.', true, true);
@@ -12731,12 +12738,16 @@ async function confirmerMobilisation(pa, cost) {
   // l'ordre de facade `mobilisation_nationale`, dont le miroir declare desormais les couples
   // 4/3/2 PA. Sans ce parametre, le cout partait sous state._ordreEnCours, faux des que la
   // fenetre est rouverte apres un autre ordre.
-  const r = await deduireCoutOrdre({ pa, cost, fn: 'mobilisation_nationale' });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PAR LE SERVEUR (25/10/2026) : indice_diplomatique_ordre preleve les PA sous l'ordre de facade
+  // et retire 5 points d'Indice Diplomatique a chacun des autres pays.
+  const r = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('indice_diplomatique_ordre', { p_fn: 'mobilisation_nationale', p_pa: pa }).catch(() => null) : null;
+  if (!r || r.ok !== true) { signalerRefusCout(r || {}); return; }
+  if (r.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paie);
+  chargerIndicesDiplomatiques().catch(() => {});
 
   const pays = state.country || 'republic';
   INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + 10);
-  Object.keys(INDICES_NATIONAUX).forEach(p => { if (p !== pays) INDICES_NATIONAUX[p].ID = Math.max(0, INDICES_NATIONAUX[p].ID - 5); });
   updateUI();
 
   if (empireCible === pays) {

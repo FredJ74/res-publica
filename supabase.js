@@ -4002,13 +4002,8 @@ async function sbGetReservationSalle(paysHote, jour) {
   return rows?.[0] || null;
 }
 
-async function sbReserverSalleReception(paysHote, jour, empireReservant, reservePar) {
-  const id = paysHote + '-' + jour;
-  const existant = await sbGetReservationSalle(paysHote, jour);
-  if (existant) return { ok: false, existant };
-  await sbInsert('reservations_salle_reception', { id, pays_hote: paysHote, jour, data: { empire: empireReservant, reservePar } });
-  return { ok: true };
-}
+// sbReserverSalleReception A DISPARU (25/10/2026) : la reservation passe par la RPC
+// ambassade_reserver_salle (le navigateur ne peut plus ecrire la ligne).
 
 // sbFixerEcheanceExpulsion A DISPARU (25/10/2026, audit R6) : ambassade_expulser pose l'echeance
 // a l'heure du serveur.
