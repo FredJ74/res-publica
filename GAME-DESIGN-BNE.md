@@ -18,6 +18,19 @@ Les annonces portent sur Luthécia, les autres villes du pays, et l'internationa
 **Les joueurs passent avant les PNJ.** Le Bureau ne propose **aucun poste
 politique** (ministres, Premier ministre, maire adjoint, député…).
 
+## Les référentes emploi (Fred, 25/10)
+
+Une **secrétaire différente à l'accueil de chaque agence**, référente emploi,
+illustrée par l'image de l'accueil de son agence :
+- **Nathalie Boulot** — Luthécia ;
+- **Edwige Leroux** — Port-Sainte-Marie (annexe du Centre d'Affaires) ;
+- **Pétra Vaillepas** — Montrouge (annexe du Centre d'Affaires).
+
+Elles expliquent le Bureau (postes, candidatures, armée, annonces, paie, virements,
+chantiers, plainte d'un employé non payé) ; elles ne connaissent pas la liste du jour
+et renvoient au tableau « Postes à pourvoir ». **Jean-Lou Zeure** reste ce qu'il est :
+l'ancien maire déchu qui cherche du travail, référent des élections.
+
 ## Ce qui disparaît
 
 - Les **sept offres** d'août (serveur, docker, hôtelier, secrétaire, commerçant
