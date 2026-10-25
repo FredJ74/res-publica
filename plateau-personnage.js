@@ -444,7 +444,6 @@ function switchSelfTab(tab, el) {
 
     // L'affichage ne prejuge pas du verdict serveur : un cache local peut etre perime.
     const dejaDormi = false;
-    const salaire = calculerSalaireDormir();
 
     let html = '<div style="padding:1.2rem;max-width:600px">';
 
@@ -491,7 +490,7 @@ function switchSelfTab(tab, el) {
     html += '<div style="font-size:.72rem;color:#6a5a30"><i class="ti ' + confort.icon + '" style="font-size:.7rem"></i> ' + confort.label + '</div></div>';
     html += '</div>';
     html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem;line-height:1.5">';
-    html += (dejaDormi ? '<span style="color:#9a8a68">Vous avez deja dormi aujourd\'hui.</span>' : 'Versement du salaire universel : <strong style="color:#C9A84C">+' + salaire.toLocaleString('fr-FR') + ' ' + cur + '</strong>') + '<br>';
+    html += (dejaDormi ? '<span style="color:#9a8a68">Vous avez deja dormi aujourd\'hui.</span>' : texteVersementDormir()) + '<br>';
     html += '+' + confort.moral + ' Moral · ';
     html += (confort.paBonus > 0 ? '+' + confort.paBonus + ' PA bonus demain' : 'Pas de bonus PA') + '</div>';
     html += '<button onclick="doDormir()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.4rem 1rem;border:1px solid ' + (dejaDormi ? '#2a2010' : '#4a6a8a') + ';background:transparent;color:' + (dejaDormi ? '#4a4030' : '#6a8aaa') + ';cursor:' + (dejaDormi ? 'not-allowed' : 'pointer') + '"' + (dejaDormi ? ' disabled' : '') + '>Dormir maintenant</button>';
@@ -2084,7 +2083,9 @@ const MOTIFS_REFUS_SALAIRE = {
   paye_par_la_caserne: ['Solde militaire', 'Votre solde est versée par la caserne, pas par un salaire civil.'],
   bareme_absent: ['Aucun salaire prévu', "Aucun barème n'est déclaré pour votre fonction actuelle."],
   caisse_payeuse_non_declaree: ['Caisse introuvable', "La caisse qui doit vous payer n'est pas déclarée. Signalez-le : ce n'est pas normal."],
-  caisse_insuffisante: ['Caisse vide', "L'institution qui vous emploie n'a pas les fonds pour vous payer aujourd'hui."]
+  caisse_insuffisante: ['Caisse vide', "L'institution qui vous emploie n'a pas les fonds pour vous payer aujourd'hui."],
+  // Le motif que rend reellement salaire_civil_percevoir (l'ancien nom ci-dessus reste lu).
+  caisse_vide: ['Caisse vide', "Votre employeur n'a pas les fonds pour vous payer aujourd'hui : aucun salaire n'est versé."]
 };
 
 function signalerRefusSalaire(r) {
@@ -4340,4 +4341,15 @@ function ouvrirChangementMotDePasse() {
       : r?.raison === 'mot_de_passe_trop_court' ? 'Choisissez au moins 8 caractères.'
       : 'Modification refusée. Reconnectez-vous à votre compte puis réessayez.';
   });
+}
+
+// LE VERSEMENT DE « DORMIR » NE S'ANNONCE PLUS CHIFFRE (audit du BNE, B3, 25/10/2026). Le montant
+// affiche etait calcule par l'ecran a partir du seul revenu universel, alors que le serveur
+// (salaire_civil_percevoir) verse le salaire du poste, ou celui de l'emploi du Bureau paye par la
+// caisse de l'employeur, ou rien si cette caisse est vide. L'ecran dit donc QUI paie ; le montant
+// reel s'affiche apres le versement, tel que le serveur l'a rendu.
+function texteVersementDormir() {
+  if (state.poste && state.poste.id) return 'Versement du salaire de votre poste, montant fixé par le Trésor.';
+  if (state.emploiBNE && state.emploiBNE.offreId) return 'Versement du salaire de votre emploi, payé par votre employeur s\'il en a les moyens.';
+  return 'Versement du revenu universel.';
 }
