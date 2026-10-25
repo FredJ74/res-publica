@@ -51,7 +51,7 @@ infobulle **« Accès limité : il faut avoir une invitation. »**
 Ont accès : **audience accordée**, **immunité diplomatique** (l'ambassadeur en
 poste), **statut de réfugié politique**.
 
-### Asile politique (25/10 — réalisable dès Luthécia)
+### Asile politique (25/10 — en jeu depuis le 25/10)
 - Demande à l'accueil du hall ; l'ambassadeur **accepte ou refuse**.
 - Ambassadeur PNJ : décision **selon le dossier** — accepté si le joueur est
   réellement menacé (recherché, poursuivi, condamné), refusé sinon ; réponse par
@@ -59,6 +59,10 @@ poste), **statut de réfugié politique**.
 - Réfugié accepté : **protégé dans l'ambassade** qui l'accueille (accès à son
   bureau, impossible à arrêter tant qu'il y est), **arrêtable dès qu'il sort du
   Quartier des Ambassades**.
+- Règles d'application posées sans arbitrage contraire : coût 2 PA (coût déjà
+  déclaré de l'ordre) ; une seule demande en cours ou un seul asile actif par
+  joueur ; une demande refusée peut être renouvelée ; l'asile reste acquis
+  (aucune fin prévue pour l'instant).
 
 ### Naturalisation (25/10 — avec les autres empires)
 La demande se fait à l'ambassade du pays visé ; **l'ambassadeur accepte ou
