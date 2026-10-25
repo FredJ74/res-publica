@@ -66,5 +66,14 @@
     "pilote-complet.txt": "fbf01be0ef3e3dceef78a9de7d832f3909d46f223119b448c956c27f9fc66e60",
     "postgres-parcours.txt": "6e77cf14c5a305a33fdd6446856bc99ce957431686f230604c86f8a32b2b389a",
     "postgres-permis.txt": "1ddd528dccf50e068dd354f46ad1622bf3fa8f87353a7493d38492600414eddb"
+  },
+  "livraison": {
+    "commit_code": "8901d21d2e5147a61cf89a6a59e0b74fd47d02c9",
+    "branche_poussee": true,
+    "creation_pr_tentee": true,
+    "creation_pr_resultat": "API_GRAPHQL_FORBIDDEN",
+    "pr_creee": false,
+    "fusion_main": false,
+    "deploiement_production_verifie": false
   }
 }

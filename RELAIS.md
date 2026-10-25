@@ -108,3 +108,8 @@ existantes, à reprendre si Fred le demande) :
 
 - 24/10/2026 — Mise en place du relais Codex/Claude (`AGENTS.md`,
   `CLAUDE.md`, `RELAIS.md`).
+
+
+### Sauvegarde de la recette immobilière #135
+
+Code/test sauvegardés au commit `8901d21d2e5147a61cf89a6a59e0b74fd47d02c9`, branche `codex/recette-immobilier-135-20261025`. Tentative de PR en brouillon refusée par l'API GraphQL GitHub (`Forbidden`). Aucune PR créée, aucun merge ; production non vérifiée. Les sept contrôles globaux rouges sont reproduits sur main intact (5/12 réussis), sans modification de baseline. Le prévol local d'Arnie reste bloqué avant authentification, zéro visite, zéro acte. Rapport : `outils/audits/RECETTE-IMMOBILIER-135-20261025.md`. Reprendre uniquement cette recette ; ne pas importer les composants privés L09.

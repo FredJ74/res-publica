@@ -81,3 +81,10 @@ Visite des cinq scènes avec Arnie, positions et retours réels, images et cadra
 Le correctif ne nécessite aucune migration. Les migrations déjà présentes ne sont ni rejouées ni déclarées installées à partir des seuls commits. Aucun déploiement n'est attesté par cette session. La recette exige un runner autorisé ayant accès au jeu et aux secrets Actions existants ; les effets de navigation doivent rester contrôlés avant tout mouvement du personnage. Aucune manipulation SQL ni transmission d'identifiants n'est demandée au game designer.
 
 Les preuves sont archivées sous `outils/audits/recette-immobilier-135-20261025/` ; les résultats authentifiés restent explicitement à zéro. **La recette en jeu n'est pas close.**
+
+
+## Livraison sauvegardée
+
+Code et preuves poussés : `8901d21d2e5147a61cf89a6a59e0b74fd47d02c9` sur `codex/recette-immobilier-135-20261025`. La création de PR en brouillon a été tentée après le push ; l'API GraphQL GitHub a répondu `Forbidden`. Aucune PR créée par cette session, aucune fusion effectuée et aucun déploiement de production vérifié. Un éventuel Preview déclenché par l'intégration distante n'a pas pu être observé.
+
+Le fichier de description technique de PR est préparé ; son contenu est repris par ce rapport. Le refus d'API ne concerne pas le transport Git, dont la sauvegarde distante est vérifiée séparément. Le dernier fetch confirme toujours main `40b6fe0`, sans nouvel écart concurrent.
