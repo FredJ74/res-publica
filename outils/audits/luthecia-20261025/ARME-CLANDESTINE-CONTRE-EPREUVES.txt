@@ -1,0 +1,4 @@
+OK rejeu
+OK prix
+OK bonus
+{"production": false, "contre_epreuves": [{"mutant": "rejeu", "echec_attendu": true, "code": 1}, {"mutant": "prix", "echec_attendu": true, "code": 1}, {"mutant": "bonus", "echec_attendu": true, "code": 1}]}
