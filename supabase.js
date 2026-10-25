@@ -3687,25 +3687,9 @@ async function sbGetAmbassadesOuvertes(paysHote) {
   return rows || [];
 }
 
-async function sbOuvrirAmbassade(paysHote, empire, jour) {
-  const id = paysHote + '-' + empire;
-  const existants = await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(id)}`);
-  if (existants && existants.length > 0) return existants[0];
-  return sbInsert('ambassades_ouvertes', { id, pays_hote: paysHote, empire, data: { empire, jour } });
-}
-
-// Nomme un ambassadeur pour une ambassade deja ouverte — met a jour le champ "ambassadeur"
-// de la meme ligne, pour permettre de restreindre les ordres du bureau a cette seule personne.
-async function sbNommerAmbassadeur(paysHote, empire, nomAmbassadeur) {
-  const id = paysHote + '-' + empire;
-  return sbPatcherBlob('ambassades_ouvertes', id, { ambassadeur: nomAmbassadeur });
-}
-
-// Renvoi d'un ambassadeur — ancien mécanisme, conservé pour compatibilité mais plus utilisé
-// directement (voir sbFixerEcheanceExpulsion pour la vraie expulsion avec délai de 24h).
-async function sbRenvoyerAmbassadeur(paysHote, empire) {
-  return sbNommerAmbassadeur(paysHote, empire, null);
-}
+// sbOuvrirAmbassade, sbNommerAmbassadeur et sbRenvoyerAmbassadeur ONT DISPARU (25/10/2026, audit
+// R5) : ouvrir, nommer et demettre passent par ambassade_ouvrir / ambassade_nommer /
+// ambassade_demettre, qui verifient l'autorite et prelevent les PA dans la meme transaction.
 
 // =====================
 // ARCHIVE PARTAGEE DES LOIS DE L'ASSEMBLEE (retention 1 an)
@@ -4026,12 +4010,8 @@ async function sbReserverSalleReception(paysHote, jour, empireReservant, reserve
   return { ok: true };
 }
 
-// Expulsion avec delai : garde l'ambassadeur en poste, ajoute juste une echeance. La verification
-// (arrestation automatique si l'echeance est depassee) doit se faire au passage au jour suivant.
-async function sbFixerEcheanceExpulsion(paysHote, empire, jourEcheance) {
-  const id = paysHote + '-' + empire;
-  return sbPatcherBlob('ambassades_ouvertes', id, { expulsionEcheance: jourEcheance });
-}
+// sbFixerEcheanceExpulsion A DISPARU (25/10/2026, audit R6) : ambassade_expulser pose l'echeance
+// a l'heure du serveur.
 
 // LES ECRITURES SUR guerres PASSENT PAR LE SERVEUR (§6.3, 20 septembre 2026).
 //

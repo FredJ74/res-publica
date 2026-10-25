@@ -2581,6 +2581,8 @@ function readMail(mailId) {
 // acceptee, et un marqueur inconnu ne produit rien.
 const ACTIONS_MAIL = {
   audience_accorder: { fn:'accorderAudienceAmbassade',   n:1, label:'✓ Accorder l\'audience' },
+  asile_accorder:    { fn:'trancherAsileAmbassade',      n:1, avant:[true],  label:'✓ Accorder l\'asile' },
+  asile_refuser:     { fn:'trancherAsileAmbassade',      n:1, avant:[false], label:'✗ Refuser l\'asile' },
   poste:            { fn:'accepterNominationPosteNomme', n:1, label:'✓ Accepter le poste' },
   capitaine:        { fn:'accepterNominationCapitaine',  n:1, label:'✓ Accepter le poste' },
   lieutenant:       { fn:'accepterNominationLieutenant', n:1, label:'✓ Accepter le poste' },

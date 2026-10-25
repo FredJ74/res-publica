@@ -64,6 +64,22 @@ poste), **statut de réfugié politique**.
   joueur ; une demande refusée peut être renouvelée ; l'asile reste acquis
   (aucune fin prévue pour l'instant).
 
+### Ambassadeur joueur (25/10 — en jeu depuis le 25/10)
+- Les quatre actions du ministre (ouvrir, nommer, démettre, expulser) sont faites
+  par le serveur : autorité vérifiée, 2 PA, aucun faux succès ; l'échéance
+  d'expulsion (24 h) est posée par le serveur et la mission prend fin la nuit.
+- L'ambassadeur joueur accorde l'audience et **tranche l'asile** depuis ses mails.
+- Les PNJ deviennent **secrétaires de l'ambassadeur**, référents de la diplomatie,
+  dès qu'un joueur est en poste (rôle et dialogue).
+- **Valise diplomatique** : l'ambassadeur en poste passe la douane de l'aéroport
+  sans contrôle.
+
+### Attendent le voyage entre empires (constat du 25/10)
+Le jeu ne sait pas encore faire séjourner un joueur dans un autre empire : rien ne
+dit au serveur qu'un joueur est « dans le pays hôte ». Restent donc à brancher avec
+le voyage : l'immunité, l'arrestation de l'expulsé resté sur place, le transfert
+d'un détenu, la naturalisation dans un autre empire.
+
 ### Naturalisation (25/10 — avec les autres empires)
 La demande se fait à l'ambassade du pays visé ; **l'ambassadeur accepte ou
 refuse**.

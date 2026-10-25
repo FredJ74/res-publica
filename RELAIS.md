@@ -78,6 +78,12 @@ ambassades ni au Bureau de l'Emploi.**
 - 25/10 soir : **trois référentes emploi** (Nathalie Boulot, Edwige Leroux, Pétra
   Vaillepas), fiches dans `api/_pnj-referents.js`, déclarées dans `pnj_referents`
   (registre 20261025201502).
+- 25/10 nuit : **fin des chantiers**. BNE : restes retirés, heures de chantier et
+  dossier de candidature par le serveur (#162). Ambassades : actions du ministre par
+  le serveur, table en lecture seule pour les joueurs, asile tranché par
+  l'ambassadeur joueur, secrétaires, valise (registre 20261025210049, …210208,
+  …210344). Bloqués par l'absence de voyage entre empires : immunité, arrestation de
+  l'expulsé, transfert de détenus, naturalisation (voir `GAME-DESIGN-AMBASSADES.md`).
 - Prochaines étapes (Claude) : coder `GAME-DESIGN-BNE.md` par lots — 1. suppression
   des offres et de l'inscription + recensement ; 2. candidatures et décision du
   vendredi ; 3. annonces des joueurs (+ parution Tribune par le serveur, caisse du

@@ -7352,17 +7352,14 @@ async function executerOrdreEmpire(action, empireId, empireName, pa, cost) {
     showToast('Cessez-le-feu', 'Negociation en cours avec ' + empireName + '. +10 ID.', true);
     addJournalEntry('Cessez-le-feu negocie avec ' + empireName, 'event-good');
   } else if (action === 'ouvrir_ambassade') {
-    const r = await deduireCoutOrdre({ pa, cost });
-    if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
+    // PAR LE SERVEUR (25/10/2026, audit R5) : autorite, ligne, 2 PA dans la meme transaction.
+    const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_ouvrir', { p_pays_hote: empireId }).catch(() => null) : null;
+    if (!v || v.ok !== true) { signalerRefusAmbassadeMinistre(v); return; }
+    if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
     if (!state.ambassades) state.ambassades = [];
     state.ambassades.push({ empire: empireId, nom: empireName });
     INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 8);
     updateUI();
-    // Persistance partagee : rend le bureau accessible a tous, dans le Quartier des Ambassades
-    // du pays cible (empireId), pour l'ambassadeur de state.country.
-    if (typeof sbOuvrirAmbassade === 'function') {
-      sbOuvrirAmbassade(empireId, state.country, state.day || 1).catch(() => {});
-    }
     showToast('Ambassade ouverte', 'Representation diplomatique etablie a ' + empireName + '. +8 ID.', true);
   } else if (action === 'sanctions') {
     INDICES_NATIONAUX[state.country].ID = Math.max(0, INDICES_NATIONAUX[state.country].ID - 5);
@@ -9472,6 +9469,8 @@ async function rafraichirAccesBureauxAmbassade() {
   if (typeof sbRpcVerdict !== 'function') return null;
   const v = await sbRpcVerdict('ambassade_acces_bureaux', {}).catch(() => null);
   state.accesBureauxAmbassade = (v && v.ok === true && v.bureaux) ? v.bureaux : null;
+  // Ambassadeurs joueurs en poste (25/10/2026) : leurs PNJ deviennent secretaires.
+  state.ambassadeursEnPoste = (v && v.ok === true && v.ambassadeurs) ? v.ambassadeurs : {};
   return state.accesBureauxAmbassade;
 }
 
@@ -9568,6 +9567,42 @@ async function accorderAudienceAmbassade(idDemande) {
   showToast('Audience accordée', (v.demandeur || 'Le demandeur') + ' est prévenu(e) par courrier ; votre bureau lui est ouvert 48 heures.', true);
 }
 
+// L'AMBASSADEUR JOUEUR TRANCHE L'ASILE (Fred, 25/10/2026), depuis les boutons du mail.
+async function trancherAsileAmbassade(accorder, idDemande) {
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('ambassade_trancher_asile', { p_id: idDemande, p_accorder: !!accorder }).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    const motifs = {
+      deja_tranchee: ['Déjà tranchée', 'Cette demande d\'asile a déjà reçu une réponse.'],
+      demande_introuvable: ['Demande introuvable', 'Cette demande ne vous est pas adressée.'],
+      plus_en_poste: ['Plus ambassadeur', 'Vous n\'êtes plus en poste dans cette ambassade.']
+    };
+    const m = v && motifs[v.raison];
+    showToast(m ? m[0] : 'Opération refusée', m ? m[1] : "La décision n'a pas pu être enregistrée.", false);
+    return;
+  }
+  showToast(accorder ? 'Asile accordé' : 'Asile refusé', (v.demandeur || 'Le demandeur') + ' est prévenu(e) par courrier.', true);
+}
+
+// LES SECRETAIRES DE L'AMBASSADEUR (Fred, 25/10/2026). Quand un joueur est ambassadeur en poste,
+// le PNJ ambassadeur reste dans le bureau comme « secretaire de l'ambassadeur », referent de la
+// diplomatie : son role affiche et son profil de dialogue changent. Lu sur le serveur
+// (ambassade_acces_bureaux -> ambassadeurs) ; sans ambassadeur joueur, rien ne change.
+function appliquerSecretairesAmbassade(persons) {
+  const enPoste = state.ambassadeursEnPoste || {};
+  if (!Object.keys(enPoste).length || typeof AMBASSADEURS_PNJ === 'undefined') return persons;
+  return persons.map(function (p) {
+    const empire = Object.keys(AMBASSADEURS_PNJ).find(e => AMBASSADEURS_PNJ[e].name === p.name);
+    if (!empire || !enPoste[empire]) return p;
+    const base = (typeof slugPnj === 'function') ? slugPnj(p.name.replace(' (PNJ)', '')) : null;
+    return Object.assign({}, p, {
+      role: "Secrétaire de l'ambassadeur " + enPoste[empire],
+      profilId: base ? base + '_secretaire' : undefined
+    });
+  });
+}
+
 // ASILE POLITIQUE (25 octobre 2026, arbitrage de Fred). Demande a l'accueil aupres d'une
 // ambassade ; l'ambassadeur PNJ decide SELON LE DOSSIER, par le serveur, a une echeance tiree
 // entre tout de suite et 3 jours ; reponse par mail. Le refugie entre dans le bureau de son
@@ -9648,28 +9683,42 @@ function ouvrirModalNommerAmbassadeur(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+const REFUS_AMBASSADE_MINISTRE = {
+  reserve_ministre_ae: ['Accès refusé', 'Réservé au Ministre des Affaires Étrangères.'],
+  pays_invalide: ['Pays invalide', 'Choisissez un autre empire.'],
+  deja_ouverte: ['Déjà ouverte', 'Votre pays a déjà une ambassade dans cet empire.'],
+  ambassade_fermee: ['Ambassade fermée', "Ouvrez d'abord une ambassade dans cet empire."],
+  personne_introuvable: ['Personne introuvable', 'Seul un citoyen de votre pays peut être nommé ambassadeur.'],
+  deja_en_poste: ['Déjà en poste', 'Cette personne est déjà votre ambassadeur dans cet empire.'],
+  aucun_ambassadeur: ['Aucun ambassadeur', "Il n'y a pas d'ambassadeur en poste."],
+  deja_expulse: ['Déjà expulsé', "L'expulsion de cet ambassadeur est déjà en cours."]
+};
+function signalerRefusAmbassadeMinistre(v) {
+  const m = v && REFUS_AMBASSADE_MINISTRE[v.raison];
+  if (m) { showToast(m[0], m[1], false); return; }
+  if (v && v.raison && !v.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
+  showToast('Action non effectuée', "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", false);
+}
+
 async function confirmerAmbassadeur(pa, cost) {
   const contact = document.getElementById('amb-contact')?.value;
   const empireId = document.getElementById('amb-empire')?.value;
   document.getElementById('modal-postes').classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PAR LE SERVEUR (25/10/2026, audit R5) : rien n'est annonce avant sa reponse ; il previent
+  // lui-meme le nomme.
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_nommer', { p_pays_hote: empireId, p_personne: contact }).catch(() => null) : null;
+  if (!v || v.ok !== true) { signalerRefusAmbassadeMinistre(v); return; }
+  if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  // Persistance partagee : la nomination doit etre visible de tous, dans le Quartier des
-  // Ambassades du pays cible (empireId), pour restreindre les ordres du bureau a cette personne.
-  if (typeof sbNommerAmbassadeur === 'function') {
-    sbNommerAmbassadeur(empireId, state.country, contact).catch(() => {});
-  }
-  envoyerNotificationVraiJoueur(contact, 'Nomination comme ambassadeur', 'Vous avez ete nomme(e) ambassadeur(rice) aupres de ' + empireName + ' par le Ministre des Affaires Etrangeres.');
-  addExternalEvent('NOMINATION : ' + contact + ' nomme(e) ambassadeur(rice) aupres de ' + empireName + '.');
+  addExternalEvent('NOMINATION : ' + v.ambassadeur + ' nomme(e) ambassadeur(rice) aupres de ' + empireName + '.');
   if (typeof sbEnregistrerEvenementPublic === 'function') {
     sbEnregistrerEvenementPublic(state.country, 'nomination', {
-      personnages: [contact].filter(Boolean),
-      libelle: contact + ' est nommé(e) ambassadeur(rice) auprès de ' + empireName + '.',
-      data: { poste: 'ambassadeur', empire_cible: empireId, nomme: contact }
+      personnages: [v.ambassadeur].filter(Boolean),
+      libelle: v.ambassadeur + ' est nommé(e) ambassadeur(rice) auprès de ' + empireName + '.',
+      data: { poste: 'ambassadeur', empire_cible: empireId, nomme: v.ambassadeur }
     }).catch(() => {});
   }
-  showToast('Ambassadeur nomme', contact + ' → ' + empireName, true);
+  showToast('Ambassadeur nomme', v.ambassadeur + ' → ' + empireName, true);
 }
 
 // DEMETTRE : le pays qui a nomme son propre ambassadeur met fin a sa mission — perte
@@ -9706,17 +9755,10 @@ async function ouvrirModalDemettreAmbassadeur(pa, cost) {
 
 async function confirmerDemissionAmbassadeur(empireId, pa, cost) {
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const rows = typeof sbGet === 'function' ? await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(empireId + '-' + state.country)}`).catch(() => []) : [];
-  const ancienAmbassadeur = rows?.[0]?.data?.ambassadeur;
-  if (typeof sbNommerAmbassadeur === 'function') {
-    await sbNommerAmbassadeur(empireId, state.country, null).catch(() => {});
-  }
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (ancienAmbassadeur) {
-    envoyerNotificationVraiJoueur(ancienAmbassadeur, 'Fin de mission', 'Le Ministre des Affaires Étrangères a mis fin à votre mission d\'ambassadeur auprès de ' + empireName + '. Vous perdez ce poste avec effet immédiat.');
-  }
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_demettre', { p_pays_hote: empireId }).catch(() => null) : null;
+  if (!v || v.ok !== true) { signalerRefusAmbassadeMinistre(v); return; }
+  if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
   addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' démet son ambassadeur auprès de ' + empireName + '.');
   showToast('Ambassadeur démis', 'La mission a pris fin, poste perdu avec effet immédiat.', false);
 }
@@ -9748,22 +9790,16 @@ async function ouvrirModalExpulserAmbassadeur(pa, cost) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// L'ECHEANCE EST POSEE PAR LE SERVEUR (24 h, audit R6) et le message ne promet plus d'arrestation
+// (audit R9) : elle reviendra avec le voyage entre empires (decision du 15 juillet).
 async function confirmerExpulsionAmbassadeur(empireId, pa, cost) {
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const echeance = Date.now() + 24 * 60 * 60 * 1000; // 24h reelles, comme les autres delais du jeu (couvre-feu, recherche militaire)
-  if (typeof sbFixerEcheanceExpulsion === 'function') {
-    await sbFixerEcheanceExpulsion(state.country, empireId, echeance).catch(() => {});
-  }
   document.getElementById('modal-postes')?.classList.remove('open');
-  const rows = typeof sbGet === 'function' ? await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(state.country + '-' + empireId)}`).catch(() => []) : [];
-  const ambassadeurVise = rows?.[0]?.data?.ambassadeur;
-  if (ambassadeurVise) {
-    envoyerNotificationVraiJoueur(ambassadeurVise, 'Expulsion diplomatique', 'Vous êtes déclaré(e) persona non grata. Vous avez 24h pour quitter ' + (COUNTRIES[state.country]?.n || state.country) + ', sous peine d\'arrestation. Vous conservez votre poste jusque-là.');
-  }
-  addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' expulse l\'ambassadeur de ' + empireName + ' (24h pour quitter le pays).');
-  showToast('Ambassadeur expulsé', 'Délai de 24h notifié, poste conservé jusqu\'à l\'échéance.', false);
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_expulser', { p_empire: empireId }).catch(() => null) : null;
+  if (!v || v.ok !== true) { signalerRefusAmbassadeMinistre(v); return; }
+  if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
+  addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' expulse l\'ambassadeur de ' + empireName + ' (24h avant la fin de sa mission).');
+  showToast('Ambassadeur expulsé', 'Sa mission prendra fin dans 24 heures.', false);
 }
 
 function ouvrirBanquetDiplomatique(pa, cost) {
@@ -14577,36 +14613,8 @@ async function verifierDesertionsQuotidien(pays) {
 // null, exactement comme le fait deja « Demettre » -- et on efface l'echeance, ce qui deverrouille
 // l'ambassade pour l'avenir. L'AMBASSADE N'EST PAS FERMEE : le bureau reste ouvert, seul
 // l'ambassadeur s'en va. C'est la doctrine du lot : sanctionner n'est pas rompre.
-async function verifierExpulsionsAmbassadeursQuotidien(pays) {
-  if (typeof sbGet !== 'function' || typeof sbUpdate !== 'function') return;
-  const rows = await sbGet('ambassades_ouvertes', `pays_hote=eq.${encodeURIComponent(pays)}`).catch(() => null);
-  if (!rows) return;
-  const maintenant = Date.now();
-  for (const r of rows) {
-    const data = r.data || {};
-    const echeance = Number(data.expulsionEcheance);
-    if (!isFinite(echeance) || echeance <= 0) continue;
-    if (maintenant < echeance) continue;   // le delai court encore
-
-    const nomExpulse = data.ambassadeur || null;
-    const suite = Object.assign({}, data);
-    delete suite.expulsionEcheance;        // deverrouille : une nouvelle expulsion redevient possible
-    suite.ambassadeur = null;              // la mission prend fin
-    suite.derniereExpulsion = { nom: nomExpulse, leTs: maintenant };
-    await sbUpdate('ambassades_ouvertes', `id=eq.${encodeURIComponent(r.id)}`, { data: suite }).catch(() => {});
-
-    if (nomExpulse) {
-      // L'AVIS D'EXPULSION N'EST PLUS ENVOYE D'ICI (§5, 20 septembre 2026). Cette passe tourne
-      // dans le navigateur du premier joueur a franchir minuit -- un joueur quelconque, jamais
-      // le ministre -- et postait sous l'en-tete « Ministere des Affaires Etrangeres ».
-      // C'est desormais traiterExpulsionsAmbassadeursServeur() (api/cron-minuit.js) qui emet
-      // l'avis, avec l'autorite du serveur, et sans le doublon que les deux chemins
-      // produisaient. La mise a jour de l'ambassade, elle, reste faite ici : elle est
-      // idempotente (expulsionEcheance efface) et rend l'effet immediat pour le joueur present.
-      addExternalEvent('🛂 ' + nomExpulse + ' a quitté ses fonctions d\'ambassadeur à l\'expiration du délai d\'expulsion.');
-    }
-  }
-}
+// verifierExpulsionsAmbassadeursQuotidien A DISPARU (25/10/2026, audit R11) : la fin d'une
+// expulsion n'est plus appliquee que par le serveur (traiterExpulsionsAmbassadeursServeur).
 
 // ---- LE LIEUTENANT FAIT REMONTER SON RAPPORT DE RENSEIGNEMENT AU CAPITAINE ----
 async function ouvrirRemonterRenseignement(pa, cost) {

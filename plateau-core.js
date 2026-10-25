@@ -2593,8 +2593,8 @@ async function runMidnightUpdate() {
   if (typeof verifierEffetsCouvreFeuQuotidien === 'function') await verifierEffetsCouvreFeuQuotidien(state.country || 'republic').catch(() => {});
   if (typeof verifierRechercheMilitaireQuotidien === 'function') await verifierRechercheMilitaireQuotidien(state.country || 'republic').catch(() => {});
   // verifierDesertionsQuotidien() retiree ici : miroir serveur traiterDesertionsServeur().
-  // Expulsions diplomatiques echues (Lot 4.3) : meme cadence que les desertions, meme fail-soft.
-  if (typeof verifierExpulsionsAmbassadeursQuotidien === 'function') await verifierExpulsionsAmbassadeursQuotidien(state.country || 'republic').catch(() => {});
+  // verifierExpulsionsAmbassadeursQuotidien() retiree le 25/10/2026 (audit R11) : seule la passe
+  // de nuit du serveur (traiterExpulsionsAmbassadeursServeur) met fin a une mission.
   checkScandale();
   checkEffacementCrimes();
   payerInformateurs();
