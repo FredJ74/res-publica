@@ -267,6 +267,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'corrompre_chantier') { doCorrompreChantier(pa, cost); return; }
   if (fn === 'donner_materiaux_chantier') { return doVendreMateriauxChantier(pa,cost,'don'); }
   if (fn === 'prix_chantier') { ouvrirPrixChantier(); return; }
+  if (fn === 'taux_chantier') { ouvrirTauxChantier(); return; }
   if (fn === 'receptionner_chantier') { return receptionnerChantier(); }
   if (fn === 'voler_materiel_chantier') { doVolerMaterielChantier(pa, cost); return; }
   if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(pa, cost); return; }

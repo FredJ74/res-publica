@@ -34,6 +34,15 @@ const CHANTIER_PCT_MATERIAUX = 30;
 // Remuneration de reference du travail de chantier, en FR par heure. Une heure RP coutera 1 PA
 // au joueur qui la fournit (Lot 1.5.9) -- ce module ne connait ni PA ni joueur.
 const CHANTIER_TAUX_HORAIRE = 70;
+// SALAIRE DES OUVRIERS PJ (Fred, 25/10/2026) : le proprietaire fixe le taux horaire de son chantier
+// (chantier.tauxHoraire), jamais sous le salaire minimum. Le taux de reference ci-dessus reste celui
+// d'un chantier sans taux fixe, et celui qui mesure le travail a faire (capacite en heures). C'est
+// le serveur (chantier_travailler) qui paie ; l'ecran n'affiche que ce taux.
+const CHANTIER_SALAIRE_MINIMUM = 50;
+function tauxHoraireChantier(chantier) {
+  const t = nombreFini(chantier && chantier.tauxHoraire, CHANTIER_TAUX_HORAIRE);
+  return Math.max(CHANTIER_SALAIRE_MINIMUM, t > 0 ? t : CHANTIER_TAUX_HORAIRE);
+}
 
 // Durees theoriques par palier, en jours. Toutes multiples de 3 : les seuils du tiers et des deux
 // tiers tombent donc sur des valeurs exactes, sans arrondi.
@@ -665,7 +674,7 @@ function heuresTravaillablesPar(chantier, heuresVoulues, paDisponibles) {
   const voulues = Math.max(0, Math.floor(nombreFini(heuresVoulues, 0)));
   const pa = Math.max(0, Math.floor(nombreFini(paDisponibles, 0)));
   const tresorerie = Math.max(0, nombreFini(chantier && chantier.tresorerie, 0));
-  const payables = Math.floor(tresorerie / CHANTIER_TAUX_HORAIRE);
+  const payables = Math.floor(tresorerie / tauxHoraireChantier(chantier));
   // Borne materiaux : identique pour les PJ et les NPC. Sans materiaux, aucune heure n'est
   // travaillable -- un joueur ne peut pas etre paye pour un travail qui ne fera rien avancer.
   return Math.max(0, Math.min(voulues, heuresUtilesRestantes(chantier), pa, payables));
@@ -741,10 +750,11 @@ function offreBNEChantier(chantier) {
   // pourrait pas contribuer a la progression.
   const restantes = heuresUtilesRestantes(chantier);
   if (restantes <= 0) return null;
-  const payables = Math.floor(Math.max(0, nombreFini(chantier.tresorerie, 0)) / CHANTIER_TAUX_HORAIRE);
+  const taux = tauxHoraireChantier(chantier);
+  const payables = Math.floor(Math.max(0, nombreFini(chantier.tresorerie, 0)) / taux);
   const heures = Math.min(restantes, payables);
   if (heures <= 0) return null;
-  return { heuresRestantes: heures, tauxHoraire: CHANTIER_TAUX_HORAIRE, type: chantier.type, niveau: chantier.niveau };
+  return { heuresRestantes: heures, tauxHoraire: taux, type: chantier.type, niveau: chantier.niveau };
 }
 
 // Remise a zero des heures du jour, appelee par le traitement quotidien apres consolidation.
