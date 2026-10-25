@@ -5121,22 +5121,8 @@ async function sbSetBatimentEtat(country, city, buildingId, patch) {
   return await sbGetBatimentEtat(country, city, buildingId);
 }
 
-// Bureau National de l'Emploi (9 aout 2026) — reutilise batiments_etat plutot qu'une nouvelle
-// table dediee (pas de DDL possible avec la cle anon). Une seule entree partagee par pays
-// ('national'/'bne' comme city/buildingId), contenant l'occupation reelle de TOUTES les
-// offres (OFFRES_EMPLOI_BNE, data.js), quelle que soit leur portee ou le bureau physique visite :
-// { offres: { [offreId]: [ { pjNom, statut: 'actif'|'en_attente_arbitrage' } ] } }
-async function sbGetEtatBNE(country) {
-  const etat = await sbGetBatimentEtat(country, 'national', 'bne');
-  return etat.offres ? etat : { offres: {} };
-}
-
-// sbSetEtatBNE A ETE SUPPRIMEE (chantier 5, chaine 20, 10 octobre 2026). Elle reecrivait le blob
-// PARTAGE des affectations du Bureau de l'emploi -- celui de TOUS les joueurs -- a partir d'une
-// copie lue plus tot, et son retour n'etait jamais lu. Deux joueurs qui prenaient un poste en meme
-// temps : le second ecrasait le premier. Ses quatre appelants passent desormais par `bne_agir`,
-// qui verrouille le blob et relit le plafond de places dans son miroir genere.
-// sbGetEtatBNE ci-dessus RESTE : lire le blob pour l'afficher n'est pas une autorite.
+// Bureau National de l'Emploi : sbGetEtatBNE et sbSetEtatBNE ont disparu avec la formule d'aout
+// (25 octobre 2026, GAME-DESIGN-BNE.md).
 
 async function sbCreerPret(pret) {
   return await sbInsert('prets', pret);
