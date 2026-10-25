@@ -898,6 +898,7 @@ const WORLD = {
               persons: [],
               orders: [
                 {fn:'consulter_offres_emploi', label:'Postes à pourvoir', pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:"Les postes de l'État et de l'armée tenus par des PNJ faute de joueur. Votre candidature est transmise au recruteur officiel."},
+                {fn:'bne_passer_annonce', label:'Passer une annonce', pa:1, cost:0, type:'legal', icon:'ti-speakerphone', successRate:100, desc:"Vous cherchez du monde ? Annonce gratuite (1 PA), affichée 7 jours au Bureau, avec votre adresse pour vous écrire. Option : parution aussi dans La Tribune (30 FR, 3 jours)."}
               ]
             }
           }
@@ -1260,6 +1261,7 @@ const WORLD = {
               persons: [],
               orders: [
                 {fn:'consulter_offres_emploi', label:'Postes à pourvoir', pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:"Les postes de l'État et de l'armée tenus par des PNJ faute de joueur. Votre candidature est transmise au recruteur officiel."},
+                {fn:'bne_passer_annonce', label:'Passer une annonce', pa:1, cost:0, type:'legal', icon:'ti-speakerphone', successRate:100, desc:"Vous cherchez du monde ? Annonce gratuite (1 PA), affichée 7 jours au Bureau, avec votre adresse pour vous écrire. Option : parution aussi dans La Tribune (30 FR, 3 jours)."}
               ]
             }
           }
@@ -6325,6 +6327,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'consulter_offres_emploi', label:'Postes à pourvoir', pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:"Les postes de l'État et de l'armée tenus par des PNJ faute de joueur. Votre candidature est transmise au recruteur officiel."},
+          {fn:'bne_passer_annonce', label:'Passer une annonce', pa:1, cost:0, type:'legal', icon:'ti-speakerphone', successRate:100, desc:"Vous cherchez du monde ? Annonce gratuite (1 PA), affichée 7 jours au Bureau, avec votre adresse pour vous écrire. Option : parution aussi dans La Tribune (30 FR, 3 jours)."}
         ]
       },
       bureau_direction: {
