@@ -247,3 +247,9 @@ formule ; B15 sans objet. **Restent** :
   quel que soit le taux fixé par le propriétaire ;
 - la **caisse du Bureau** reçoit les 30 FR des annonces presse et ne dépense rien ;
 - le **caractère** des trois référentes est provisoire.
+
+**Mise à jour du 25/10 (nuit)** : B8 réglé (`bne_heures_chantiers`), B14 réglé
+(fenêtre de travail à la charte), dossier de candidature tenu par le serveur
+(`poste_candidature_transmettre`, soldé par `poste_attribuer_interne`), restes de
+l'ancienne formule retirés (registre 20261025204304, 20261025204410,
+20261025204601). Reste B12 (Bureau de direction) et les questions ouvertes.

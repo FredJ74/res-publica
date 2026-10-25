@@ -5513,50 +5513,7 @@ async function traiterMiseEnVenteCaissesFret() {
   return resultats;
 }
 
-async function verifierConflitsEmploiBNE() {
-  const resultats = { notifies: [] };
-  try {
-    const idBNE = PAYS_CASCADE + '_national_bne';
-    const etatRows = await sbGet('batiments_etat', `id=eq.${encodeURIComponent(idBNE)}`);
-    if (!etatRows || !etatRows[0]) return resultats;
-    let etat;
-    try { etat = JSON.parse(etatRows[0].data); } catch(e) { return resultats; }
-    const offres = etat.offres || {};
-
-    const joueurs = await sbGet('personnages', `select=name,country,poste&country=eq.${PAYS_CASCADE}`) || [];
-
-    for (const [offreId, occupants] of Object.entries(offres)) {
-      for (const occ of (occupants || [])) {
-        if (occ.statut !== 'actif') continue;
-        const joueur = joueurs.find(j => j.name === occ.pjNom);
-        if (!joueur) continue;
-        let poste = joueur.poste;
-        if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
-        // Pas de poste politique, pas de conflit. Le mandat de depute reste cumulable (decision de
-        // Fred, 25/10/2026), comme bne_agir l'accepte.
-        if (!poste?.id || poste.id === 'depute') continue;
-
-        // Deja notifie et pas encore traite (mail non archive avec ce sujet) : ne pas renvoyer chaque nuit
-        const dejaNotifie = await sbGet('mails', `to_player=eq.${encodeURIComponent(occ.pjNom)}&subject=eq.${encodeURIComponent('Poste politique et emploi BNE en même temps')}&archived=eq.false`);
-        if (dejaNotifie && dejaNotifie.length > 0) continue;
-
-        const corps = 'Vous occupez à la fois le poste politique de <strong>' + (poste.name || poste.id) + '</strong> et un emploi du Bureau National de l\'Emploi (' + offreId + '). Les deux sont incompatibles.<br><br>' +
-          'Si vous conservez votre poste politique : rendez-vous au Bureau National de l\'Emploi pour démissionner de votre emploi BNE (immédiat, gratuit).<br>' +
-          'Si vous préférez garder l\'emploi BNE : démissionnez de votre poste politique par les moyens habituels.<br><br>' +
-          'En attendant votre décision, un seul salaire vous est versé chaque jour : celui de votre poste politique. Votre emploi BNE reste à votre nom, mais il n\'est pas payé tant que vous cumulez.';
-
-        // PAR LA BRIQUE (10 octobre 2026). `archived: false` est le DEFAUT de la colonne : rien
-        // n'est perdu en ne le passant plus. La garde anti-renvoi ci-dessus relit `mails`, donc
-        // un courrier perdu sera retente la nuit suivante -- ce qui est le comportement voulu.
-        await envoyerMailSysteme(occ.pjNom, 'Bureau National de l\'Emploi',
-          'Poste politique et emploi BNE en même temps', corps,
-          new Date().toLocaleDateString('fr-FR'));
-        resultats.notifies.push({ pjNom: occ.pjNom, poste: poste.id, offre: offreId });
-      }
-    }
-  } catch(e) { console.error('verifierConflitsEmploiBNE error', e); }
-  return resultats;
-}
+// verifierConflitsEmploiBNE A ETE RETIREE le 25/10/2026 avec les emplois du Bureau d'aout.
 
 // =====================
 // VOTE DE CONFIANCE — RÉSOLUTION SERVEUR (chantier "Hotel de Ville / elections", 4 septembre
@@ -6535,7 +6492,7 @@ export default async function handler(req, res) {
     }
 
     // 14. Conflits poste politique + emploi BNE (mail d'arbitrage, rien n'est tranche automatiquement)
-    const conflitsBNE = await verifierConflitsEmploiBNE();
+    const conflitsBNE = { retire: true };
 
     // 15. Investissements arrives a echeance (J+7, chantier "refonte des ordres") -- legacy,
     // ne concerne plus que l'unique ligne heritee non migree (voir plus bas, 15b).

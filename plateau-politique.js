@@ -184,12 +184,8 @@ async function chargerCandidaturesPostes(country) {
   return (etat && etat.candidatures) || {};
 }
 
-async function sauvegarderCandidaturesPostes(country, candidatures) {
-  const pays = country || state.country || 'republic';
-  if (typeof sbSetBatimentEtat === 'function') {
-    await sbSetBatimentEtat(pays, VILLE_ID_CANDIDATURES_POSTES, BATIMENT_ID_CANDIDATURES_POSTES, { candidatures }).catch(() => {});
-  }
-}
+// sauvegarderCandidaturesPostes A DISPARU (25/10/2026) : le dossier n'est plus ecrit que par le
+// serveur (poste_candidature_transmettre, poste_attribuer_interne, passe de nuit).
 
 // Protection de 7 jours reels contre la revocation/le remplacement politique arbitraire d'un PJ
 // fraichement nomme (§9-12 du lot) -- ne bloque QUE l'arbitraire du nominateur : demission,
@@ -278,23 +274,8 @@ function tempsProtectionRestanteTexte(poste) {
   return heures + 'h';
 }
 
-// Recale l'echeance et le nominateur responsable si l'autorite de nomination a change depuis la
-// derniere ecriture du dossier -- garantit au nouveau titulaire une fenetre complete de 48h
-// (§5 du lot) sans jamais sanctionner un nominateur qui vient de prendre ses fonctions. Mute le
-// dossier en place (appelant responsable de la sauvegarde) ; retourne true si un changement a
-// ete applique.
-async function reconcilierAutoriteCandidature(dossier) {
-  const regle = POSTES_NOMMES_EXCLUSIFS[dossier.posteId];
-  if (!regle || typeof getTitulaireActuel !== 'function') return false;
-  const autoriteActuelle = await getTitulaireActuel(regle.nommePar, villeDeLAutorite(regle, dossier.city));
-  const nomActuel = autoriteActuelle ? autoriteActuelle.nom : null;
-  if (nomActuel && dossier.autoriteNom !== nomActuel) {
-    dossier.autoriteNom = nomActuel;
-    dossier.echeanceTs = Date.now() + DELAI_DECISION_CANDIDATURE_MS;
-    return true;
-  }
-  return false;
-}
+// reconcilierAutoriteCandidature A DISPARU (25/10/2026) : le serveur recale l'echeance quand le
+// recruteur change, a la candidature suivante.
 
 // Candidature aupres de l'autorite de nomination (POSTES_NOMMES_EXCLUSIFS). Generalise a tous
 // les postes nommes ce qui n'existait avant que pour PM/ministres (postulerPoste). Regle de
@@ -404,64 +385,26 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
     return;
   }
 
-  const candidatNom = state.char?.name || 'Anonyme';
-
-  // Persistance de la candidature (§2/§6 du lot priorite PJ) : ouvre ou complete une fenetre de
-  // decision de 48h reelles pour l'autorite PJ. Le titulaire actuel du poste est forcement un
-  // PNJ ou le poste est vacant a ce stade (ouvrirEcranPostes ne propose "Postuler" que dans ce
-  // cas), jamais un PJ deja protege -- rien a verifier de ce cote ici.
-  const candidatures = await chargerCandidaturesPostes(state.country);
-  const cleDossier = cleCandidaturePoste(posteId, villeCourante);
-  let dossier = candidatures[cleDossier];
-  let candidatureDejaEnregistree = false;
-  if (!dossier || dossier.traitee) {
-    dossier = {
-      posteId, city: villeCourante,
-      candidats: [{ nom: candidatNom, depuisTs: Date.now() }],
-      echeanceTs: Date.now() + DELAI_DECISION_CANDIDATURE_MS,
-      autoriteNom: titulaireAutorite.nom,
-      traitee: false
-    };
-  } else if (dossier.candidats.some(c => c.nom === candidatNom && !c.retiree)) {
-    candidatureDejaEnregistree = true; // deja candidat pour ce poste -- pas un nouvel evenement
-  } else {
-    dossier.candidats.push({ nom: candidatNom, depuisTs: Date.now() });
-    // La fenetre en cours n'est jamais reinitialisee par l'arrivee d'un nouveau candidat --
-    // seul un changement d'autorite la recale (reconcilierAutoriteCandidature).
-  }
-
-  if (candidatureDejaEnregistree) {
-    showToast('Déjà candidat', 'Votre candidature au poste de ' + posteName + ' est déjà enregistrée, en attente de décision.', false);
-    return;
-  }
-
-  // 1 PA PAR CANDIDATURE, PRELEVE PAR LE SERVEUR (Fred, 25/10/2026), avant toute transmission :
-  // un refus de paiement n'ecrit rien et n'envoie rien.
-  const vPaie = typeof sbRpcVerdict === 'function'
+  // LE DOSSIER EST TENU PAR LE SERVEUR (25 octobre 2026). Circuit du 25 aout inchange (48 h, puis
+  // tirage au sort et popularite du recruteur divisee par deux), mais poste_candidature_transmettre
+  // resout le recruteur, refuse un doublon sans rien prelever, preleve 1 PA, ecrit le dossier sous
+  // verrou et envoie le mail au recruteur. L'ecran n'ecrit plus rien.
+  const vT = typeof sbRpcVerdict === 'function'
     ? await sbRpcVerdict('poste_candidature_transmettre', { p_poste: posteId, p_city: villeCourante || null }).catch(() => null)
     : null;
-  if (!vPaie || vPaie.ok !== true) {
-    if (vPaie && vPaie.raison === 'poste_deja_occupe_par_un_joueur') { showToast('Poste pourvu', "Ce poste vient d'être pris par un autre joueur.", false); return; }
-    if (vPaie && typeof signalerRefusCout === 'function' && !vPaie.transport) { signalerRefusCout(vPaie); return; }
+  if (!vT || vT.ok !== true) {
+    const r = vT && vT.raison;
+    if (r === 'recruteur_pnj') { await postulerPosteAutoritePnj(posteId, posteName, villeCourante); return; }
+    if (r === 'deja_candidat') { showToast('Déjà candidat', 'Votre candidature au poste de ' + posteName + ' est déjà enregistrée, en attente de décision.', false); return; }
+    if (r === 'poste_deja_occupe_par_un_joueur') { showToast('Poste pourvu', "Ce poste vient d'être pris par un autre joueur.", false); return; }
+    if (r === 'recruteur_soi_meme') { showToast('Candidature inutile', 'Vous êtes vous-même le recruteur de ce poste.', false); return; }
+    if (vT && !vT.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(vT); return; }
     showToast('Candidature non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni transmis.", false);
     return;
   }
-  if (typeof vPaie.pa === 'number' && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: vPaie.pa });
-
-  candidatures[cleDossier] = dossier;
-  await sauvegarderCandidaturesPostes(state.country, candidatures);
-
-  const sujet = 'Candidature au poste de ' + posteName;
-  const corps = candidatNom + ' postule au poste de <strong>' + posteName + '</strong>. Vous disposez de 48h pour choisir un candidat depuis la fenêtre de gestion des candidatures, sans quoi le système tranchera automatiquement.<br><br>' +
-    marqueurActionMail('candidature', posteId, posteName, candidatNom);
-
-  if (typeof sbSendMail === 'function') {
-    const h = String(state.hour || 8).padStart(2,'0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-    await sbSendMail(candidatNom, titulaireAutorite.nom, sujet, corps, time).catch(() => {});
-  }
-  showToast('Demande transmise', 'Votre candidature au poste de ' + posteName + ' a été transmise à ' + titulaireAutorite.nom + '.', true);
-  addJournalEntry('Demande de poste envoyée à ' + titulaireAutorite.nom + ' : ' + posteName + '. En attente de réponse.', 'event-info');
+  if (typeof vT.pa === 'number' && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: vT.pa });
+  showToast('Demande transmise', 'Votre candidature au poste de ' + posteName + ' a été transmise à ' + vT.recruteur + '.', true);
+  addJournalEntry('Demande de poste envoyée à ' + vT.recruteur + ' : ' + posteName + '. En attente de réponse.', 'event-info');
 }
 
 
@@ -6432,14 +6375,7 @@ async function accepterNominationPosteNomme(idNomination) {
   state.poste = { id: posteId, name: regle.label, city: city, nommeLe: Date.now() };
   if (state.char) state.char.poste = state.poste;
   state.salaireTouche = false;
-  // Solde un eventuel dossier de candidature persistant pour ce poste (§8 du lot) : ce poste est
-  // desormais pourvu, les candidatures encore listees deviennent obsoletes.
-  const candidaturesNettoyage = await chargerCandidaturesPostes(state.country);
-  const cleNettoyage = cleCandidaturePoste(posteId, city || null);
-  if (candidaturesNettoyage[cleNettoyage] && !candidaturesNettoyage[cleNettoyage].traitee) {
-    candidaturesNettoyage[cleNettoyage].traitee = true;
-    await sauvegarderCandidaturesPostes(state.country, candidaturesNettoyage);
-  }
+  // Le dossier de candidature du poste est solde par le serveur (poste_attribuer_interne).
   updateUI();
   if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
     const roomCourante = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
@@ -6549,14 +6485,7 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
     return;
   }
 
-  // Solde le dossier de candidature persistant pour ce poste (§8 du lot) : nettoie les autres
-  // candidatures en attente, plus rien a afficher une fois le poste pourvu.
-  const candidatures = await chargerCandidaturesPostes(state.country);
-  const cleDossier = cleCandidaturePoste(posteId, villeDuPoste);
-  if (candidatures[cleDossier] && !candidatures[cleDossier].traitee) {
-    candidatures[cleDossier].traitee = true;
-    await sauvegarderCandidaturesPostes(state.country, candidatures);
-  }
+  // Le dossier de candidature du poste est solde par le serveur (poste_attribuer_interne).
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
@@ -6592,7 +6521,6 @@ async function ouvrirGestionCandidatures(posteIds, pa, cost) {
 
   const villeCourante = state.currentCity || 'capitale';
   const candidaturesTout = await chargerCandidaturesPostes(state.country);
-  let dossiersModifies = false;
 
   let html = '<div style="padding:.5rem 0">';
   for (const posteId of posteIds) {
@@ -6611,7 +6539,6 @@ async function ouvrirGestionCandidatures(posteIds, pa, cost) {
     if (candidatsActifs.length === 0) {
       html += '<div style="padding:.3rem 1rem .6rem;font-size:.78rem;color:#5a5040;font-style:italic">Aucune candidature en attente.</div>';
     } else {
-      if (await reconcilierAutoriteCandidature(dossier)) dossiersModifies = true;
       const heuresRestantes = Math.max(0, Math.ceil((dossier.echeanceTs - Date.now()) / 3600000));
       html += '<div style="padding:.2rem 1rem .4rem;font-size:.75rem;color:#8a6a20;font-style:italic">' +
         (heuresRestantes > 0
@@ -6632,7 +6559,6 @@ async function ouvrirGestionCandidatures(posteIds, pa, cost) {
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
-  if (dossiersModifies) await sauvegarderCandidaturesPostes(state.country, candidaturesTout);
 }
 
 async function nommerDepuisCandidature(posteId, posteName, candidatNom, pa, cost) {

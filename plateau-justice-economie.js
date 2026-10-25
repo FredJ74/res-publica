@@ -12829,14 +12829,15 @@ async function doTravaillerChantier(pa, cost) {
     return;
   }
 
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">' + restantes + ' heure(s) restante(s) aujourd\'hui sur ce chantier · '
-       + tauxHoraireChantier(ch) + ' ' + cur + '/heure, taux fixé par le propriétaire. Chaque heure vous coûte 1 PA. Vous pouvez en prendre jusqu\'à ' + maxi + '.</div>';
-  html += '<div style="display:flex;gap:.4rem;margin-bottom:.6rem">';
-  html += '<input id="chantier-heures" type="number" min="1" max="' + maxi + '" value="' + maxi + '" style="width:110px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
-  html += '<span style="font-size:.78rem;color:#8a8060;align-self:center">heure(s)</span>';
+  // Charte ardoise et or (audit du Bureau, B14, 25/10/2026).
+  let html = '<div class="cpj-dialogue">';
+  html += '<p class="cpj-note" style="margin:0 0 .8rem">' + restantes + ' heure(s) restante(s) aujourd\'hui sur ce chantier · '
+       + tauxHoraireChantier(ch) + ' ' + cur + '/heure, taux fixé par le propriétaire. Chaque heure vous coûte 1 PA. Vous pouvez en prendre jusqu\'à ' + maxi + '.</p>';
+  html += '<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.8rem">';
+  html += '<input id="chantier-heures" class="cpj-champ" type="number" min="1" max="' + maxi + '" value="' + maxi + '" />';
+  html += '<span class="cpj-note">heure(s)</span>';
   html += '</div>';
-  html += '<button class="pnj-action-btn" onclick="confirmerTravailChantier()">Travailler</button>';
+  html += '<button class="cpj-touche cpj-primaire" onclick="confirmerTravailChantier()">Travailler</button>';
   html += '</div>';
   document.getElementById('postes-modal-title').textContent = 'Travailler sur le chantier';
   document.getElementById('postes-body').innerHTML = html;
@@ -13550,94 +13551,27 @@ async function validerImpotNational(pa, cost) {
 }
 
 // =====================
-// BUREAU NATIONAL DE L'EMPLOI (BNE) — 9 aout 2026
+// BUREAU NATIONAL DE L'EMPLOI — formule du 25 octobre 2026 (GAME-DESIGN-BNE.md)
 // =====================
-// Donne un revenu regulier a un PJ sans poste politique. Incompatible avec state.poste
-// (verifie a la postulation) — un vrai poste politique prime toujours. L'occupation reelle
-// des offres (OFFRES_EMPLOI_BNE, data.js) vit dans Supabase via sbGetEtatBNE/sbSetEtatBNE
-// (supabase.js), pas dans un nouveau champ sur la table personnages (aucune colonne
-// supplementaire possible avec la cle anon) : state.emploiBNE n'est qu'un cache local,
-// rafraichi au chargement du personnage (plateau-core.js) et apres chaque action BNE.
-//
-// Regle de conflit (demandee par Fred le 9 aout 2026) : une situation deja active (emploi
-// BNE OU poste politique) n'est jamais ecrasee automatiquement par une nouvelle candidature.
-// - Postuler alors qu'on tient deja un AUTRE emploi BNE : la nouvelle offre est reservee en
-//   'en_attente_arbitrage' (comptee dans les places, invisible aux autres), un mail part avec
-//   les deux choix, l'emploi actuel reste actif tant que le joueur n'a pas tranche.
-// - Obtenir un poste politique en gardant un emploi BNE actif : detecte par le cron nocturne
-//   (verifierConflitsEmploiBNE, api/cron-minuit.js), meme mail, meme mecanique de tranchage
-//   (trancherEmploiBNE), cote poste politique celui-ci n'est jamais touche automatiquement.
+// La formule d'aout (sept offres fictives, inscription, prise d'emploi par bne_agir, mail
+// d'arbitrage, verification de cumul de nuit) a ete retiree le 25/10/2026. Le Bureau recense les
+// postes reels tenus par des PNJ, transmet les candidatures au recruteur officiel et affiche les
+// annonces des joueurs.
 
-function trouverEmploiActuelBNE(offresBlob, pjNom) {
-  for (const [offreId, occupants] of Object.entries(offresBlob || {})) {
-    const entry = (occupants || []).find(o => o.pjNom === pjNom && o.statut === 'actif');
-    if (entry) return { offreId, entry };
-  }
-  return null;
-}
-
-function trouverReservationEnAttenteBNE(offresBlob, pjNom) {
-  for (const [offreId, occupants] of Object.entries(offresBlob || {})) {
-    const entry = (occupants || []).find(o => o.pjNom === pjNom && o.statut === 'en_attente_arbitrage');
-    if (entry) return { offreId, entry };
-  }
-  return null;
-}
-
-function compterPlacesPrisesBNE(offresBlob, offreId) {
-  return ((offresBlob || {})[offreId] || []).length;
-}
-
-// Rafraichit le cache local state.emploiBNE depuis Supabase — appelee au chargement du
-// personnage (plateau-core.js) et apres chaque action BNE, jamais suppose fiable seul.
-async function rafraichirCacheEmploiBNE() {
-  if (!state.char?.name || typeof sbGetEtatBNE !== 'function') return;
-  try {
-    const etat = await sbGetEtatBNE(state.country);
-    const actuel = trouverEmploiActuelBNE(etat.offres, state.char.name);
-    state.emploiBNE = actuel ? { offreId: actuel.offreId } : null;
-  } catch(e) {}
-}
-
-async function doInscrireDemandeurEmploi(pa, cost) {
-  // L'INSCRIPTION EST ENREGISTREE PAR LE SERVEUR (audit du BNE, B6, 25/10/2026). `bne_inscrire`
-  // preleve le PA et pose l'inscription dans la meme transaction ; deja inscrit, il ne preleve
-  // rien. Avant, le PA etait preleve a chaque clic et l'inscription ecrite par le navigateur.
-  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('bne_inscrire', {}).catch(() => null) : null;
-  if (!v || v.ok !== true) {
-    if (v && typeof signalerRefusCout === 'function' && ['pa_insuffisants','fonds_insuffisants','personnage_non_charge','caisse_institution_insuffisante'].includes(v.raison)) { signalerRefusCout(v); return; }
-    signalerRefusBNE(v);
-    return;
-  }
-  if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
-  state.char = state.char || {};
-  state.char.demandeurEmploi = true;
-  if (v.deja_inscrit) {
-    showToast('Déjà inscrit', 'Vous êtes déjà demandeur d\'emploi : aucun PA n\'a été dépensé. Consultez les offres disponibles.', true);
-    return;
-  }
-  showToast('Inscription enregistrée', 'Vous êtes désormais demandeur d\'emploi. Consultez les offres disponibles.', true);
-  addJournalEntry('Inscription comme demandeur d\'emploi au Bureau National de l\'Emploi.', 'event-info');
-}
-
-// Chantiers de la ville proposant du travail aujourd'hui. Lecture seule, aucune persistance.
-async function offresChantiersBNE(pays, ville) {
-  if (typeof sbGet !== 'function' || typeof offreBNEChantier !== 'function') return [];
-  const rows = await sbGet('terrains_etat', `country=eq.${encodeURIComponent(pays)}`).catch(() => []);
-  const offres = [];
-  (rows || []).forEach(function (r) {
-    let etat; try { etat = JSON.parse(r.data); } catch (e) { return; }
-    if (!etat || (etat.city || 'capitale') !== ville) return;
-    const o = offreBNEChantier(etat.chantier);
-    if (!o) return;
-    const niv = (typeof NIVEAUX_CONSTRUCTION !== 'undefined' && NIVEAUX_CONSTRUCTION[o.niveau]) || {};
-    offres.push({
-      libelle: 'Ouvrier de chantier — ' + (niv.label || o.niveau || 'construction'),
-      ville: ville, terrain: (BUILDINGS[r.building_id]?.shortName || r.building_id),
-      tauxHoraire: o.tauxHoraire, heuresRestantes: o.heuresRestantes
-    });
+// Chantiers de la ville proposant du travail aujourd'hui (decision du 6 septembre 2026). Les
+// heures et le taux sont calcules par le SERVEUR (bne_heures_chantiers, memes bornes que
+// chantier_travailler) : l'ecran ne recalcule plus rien (audit B8, 25/10/2026).
+async function offresChantiersBNE() {
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('bne_heures_chantiers', {}).catch(() => null) : null;
+  if (!v || v.ok !== true || !Array.isArray(v.chantiers)) return [];
+  return v.chantiers.map(function (c) {
+    const niv = (typeof NIVEAUX_CONSTRUCTION !== 'undefined' && NIVEAUX_CONSTRUCTION[c.niveau]) || {};
+    return {
+      libelle: (c.type === 'reamenagement' ? 'Ouvrier de réaménagement — ' : 'Ouvrier de chantier — ') + (niv.label || c.niveau || 'construction'),
+      ville: v.ville, terrain: (BUILDINGS[c.terrain]?.shortName || c.terrain),
+      tauxHoraire: c.taux, heuresRestantes: c.heures
+    };
   });
-  return offres;
 }
 
 // =====================================================================================
@@ -13849,7 +13783,7 @@ async function ouvrirOffresEmploiBNE() {
   // Les heures de chantier de la ville (decision du 6 septembre 2026, conservee).
   const villeCourante = state.currentCity || 'capitale';
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const chantiers = await offresChantiersBNE(state.country, villeCourante).catch(() => []);
+  const chantiers = await offresChantiersBNE().catch(() => []);
   if (chantiers.length) {
     html += '<h4 style="margin:1.1rem 0 .5rem">Chantiers de la ville</h4>';
     chantiers.forEach(function (c) {
@@ -13947,136 +13881,6 @@ async function postulerPosteBNE(i) {
 async function postulerGradeBNE(grade) {
   if (typeof confirmerCandidatureEngagement !== 'function') return;
   await confirmerCandidatureEngagement(grade);
-}
-
-// Chaque refus de la porte du BNE est NOMME au joueur. Sans cela, un poste complet et une panne
-// reseau se ressembleraient -- et c'est exactement ce que la version precedente faisait, en
-// annoncant un succes dans les deux cas.
-function signalerRefusBNE(v) {
-  if (!v) {
-    showToast('Action impossible', "L'opération n'a pas abouti : rien n'a été modifié.", false);
-    return;
-  }
-  const motifs = {
-    poste_complet: ['Poste complet', "Il n'y a plus de place disponible pour cette offre."],
-    arbitrage_en_attente: ['Candidature en attente',
-      "Tranchez d'abord la candidature en attente reçue par mail."],
-    deja_en_poste: ['Déjà en poste', 'Vous occupez déjà cette offre.'],
-    aucun_emploi: ['Aucun emploi', "Vous n'occupez actuellement aucun poste du BNE."],
-    offre_inconnue: ['Offre inconnue', "Cette offre n'existe pas au Bureau de l'emploi."],
-    aucune_reservation: ['Déjà tranché', "Cette candidature a déjà été tranchée : rien n'a changé, votre emploi actuel est conservé."],
-    poste_politique: ['Poste politique en cours', 'Vous occupez déjà un poste politique, incompatible avec un emploi du BNE. Le mandat de député, lui, reste cumulable.'],
-    inscription_requise: ['Inscription requise', "Inscrivez-vous d'abord comme demandeur d'emploi."],
-    hors_ville: ['Offre d\'une autre ville', 'Cette offre locale ne se prend que sur place, dans sa ville.'],
-    acteur_non_authentifie: ['Personnage non chargé',
-      "Votre personnage n'est pas chargé : rien n'a été enregistré. Rechargez la page."]
-  };
-  const m = motifs[v.raison];
-  showToast(m ? m[0] : 'Opération refusée',
-            m ? m[1] : "Le Bureau de l'emploi a refusé l'opération (" + (v.raison || 'motif inconnu') + ').',
-            false);
-}
-
-async function postulerOffreEmploiBNE(offreId) {
-  const offre = OFFRES_EMPLOI_BNE[offreId];
-  if (!offre) return;
-  // Le poste politique, l'inscription et la ville sont juges par `bne_agir` (audit B5-B7,
-  // 25/10/2026) : l'ecran ne refuse plus de lui-meme, il affiche le refus nomme du serveur.
-  const pjNom = state.char?.name;
-  // LE BLOB DU BNE EST PARTAGE, ET SON PLAFOND N'EST PLUS VERIFIE SUR UNE LECTURE PERIMEE
-  // (chantier 5, chaine 20, 10 octobre 2026). Les quatre chemins du BNE lisaient le blob ENTIER,
-  // en modifiaient une copie et le reecrivaient, sans lire le retour. Deux joueurs qui prenaient
-  // un poste en meme temps : le second ecrasait le premier. Et le test `placesPrises >=
-  // offre.places` portait sur une lecture faite AVANT l'ecriture -- deux joueurs pouvaient prendre
-  // LA MEME DERNIERE PLACE.
-  //
-  // `bne_agir` verrouille le blob, relit le plafond DANS LE MIROIR GENERE (jamais celui que le
-  // client annonce -- un plafond transmis n'est pas un plafond) et mute en une transaction.
-  // L'emploi actuel decide seul entre prise immediate et reservation : c'est le serveur qui le
-  // lit, plus le navigateur.
-  const avant = await sbGetEtatBNE(state.country);
-  const emploiAvant = trouverEmploiActuelBNE(avant.offres, pjNom);
-  const vBne = typeof sbRpc === 'function'
-    ? await sbRpc('bne_agir', { p_acte: emploiAvant ? 'reserver' : 'prendre', p_offre: offreId })
-        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-    : null;
-  if (!vBne || vBne.ok !== true) {
-    signalerRefusBNE(vBne);
-    return;
-  }
-  state.emploiBNE = vBne.emploi_actuel ? { offreId: vBne.emploi_actuel } : null;
-
-  if (!emploiAvant) {
-    document.getElementById('modal-postes')?.classList.remove('open');
-    showToast('Poste obtenu !', 'Vous occupez désormais : ' + offre.label + '. Salaire versé chaque jour à l\'ordre Dormir.', true, true);
-    addJournalEntry('Poste obtenu au Bureau National de l\'Emploi : ' + offre.label + '.', 'event-good');
-    return;
-  }
-
-  // Situation deja en cours (autre emploi BNE) : la reservation est posee, le poste actuel reste
-  // actif -- rien n'est ecrase, et c'est le courrier qui fait trancher.
-  const emploiActuel = emploiAvant;
-  const ancienneOffre = OFFRES_EMPLOI_BNE[emploiActuel.offreId];
-
-  const corps = 'Vous occupez déjà le poste de <strong>' + (ancienneOffre?.label || emploiActuel.offreId) + '</strong> et avez postulé pour <strong>' + offre.label + '</strong>.<br><br>' +
-    'Votre poste actuel reste actif tant que vous n\'avez pas tranché. La nouvelle offre vous est réservée en attendant votre réponse.<br><br>' +
-    marqueurActionMail('bne_garder', emploiActuel.offreId, offreId) + marqueurActionMail('bne_prendre', emploiActuel.offreId, offreId);
-
-  if (typeof sbSendMail === 'function') {
-    const h = String(state.hour || 8).padStart(2, '0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
-    await sbSendMail('Bureau National de l\'Emploi', pjNom, 'Deux postes en même temps ?', corps, time).catch(() => {});
-  }
-  document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Candidature enregistrée', 'Vous occupez déjà un poste — consultez votre messagerie pour trancher.', true);
-  addJournalEntry('Candidature déposée pour ' + offre.label + ', en attente d\'arbitrage (poste actuel conservé).', 'event-info');
-}
-
-// Appelee depuis les 2 boutons du mail d'arbitrage (postulerOffreEmploiBNE et
-// verifierConflitsEmploiBNE cote cron envoient le meme format de mail).
-async function trancherEmploiBNE(garderActuel, ancienOffreId, nouvelOffreId) {
-  // MEME PORTE QUE LA PRISE DE POSTE (chaine 20) : l'arbitrage est une mutation du meme blob
-  // partage, et il avait la meme lecture-modification-ecriture avalee.
-  const vBne = typeof sbRpc === 'function'
-    ? await sbRpc('bne_agir', {
-        p_acte: garderActuel ? 'trancher_garder' : 'trancher_prendre',
-        p_offre: nouvelOffreId, p_offre_ancienne: ancienOffreId || null
-      }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-    : null;
-  if (!vBne || vBne.ok !== true) { signalerRefusBNE(vBne); return; }
-  state.emploiBNE = vBne.emploi_actuel ? { offreId: vBne.emploi_actuel } : null;
-
-  if (garderActuel) {
-    showToast('Poste conservé', 'Vous gardez votre poste actuel.', true);
-    addJournalEntry('Arbitrage BNE : poste actuel conservé.', 'event-info');
-  } else {
-    const offre = OFFRES_EMPLOI_BNE[nouvelOffreId];
-    showToast('Nouveau poste confirmé', 'Vous occupez désormais : ' + (offre?.label || nouvelOffreId) + '.', true, true);
-    addJournalEntry('Arbitrage BNE : nouveau poste confirmé (' + (offre?.label || nouvelOffreId) + ').', 'event-good');
-  }
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-  updateUI();
-}
-
-async function demissionnerEmploiBNE() {
-  const pjNom = state.char?.name;
-  const etat = await sbGetEtatBNE(state.country);
-  const emploiActuel = trouverEmploiActuelBNE(etat.offres, pjNom);
-  if (!emploiActuel) {
-    showToast('Aucun emploi', 'Vous n\'occupez actuellement aucun poste du BNE.', false);
-    return;
-  }
-  // MEME PORTE (chaine 20). Le serveur relit l'emploi en cours sous verrou : si la demission
-  // arrive apres un arbitrage concurrent, il refuse au lieu de reecrire un blob perime.
-  const vBne = typeof sbRpc === 'function'
-    ? await sbRpc('bne_agir', { p_acte: 'demissionner', p_offre: emploiActuel.offreId })
-        .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
-    : null;
-  if (!vBne || vBne.ok !== true) { signalerRefusBNE(vBne); return; }
-  state.emploiBNE = vBne.emploi_actuel ? { offreId: vBne.emploi_actuel } : null;
-  const offre = OFFRES_EMPLOI_BNE[emploiActuel.offreId];
-  showToast('Démission effective', 'Vous ne travaillez plus comme ' + (offre?.label || emploiActuel.offreId) + '.', true);
-  addJournalEntry('Démission du poste : ' + (offre?.label || emploiActuel.offreId) + '.', 'event-info');
 }
 
 // =====================================================================================
