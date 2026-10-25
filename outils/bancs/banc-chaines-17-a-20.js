@@ -130,38 +130,18 @@ att('sbGetCandidatures, qui ne fait que lire, est conservee',
     SRC['plateau-politique.js'].indexOf('async function sbGetCandidatures(') >= 0);
 
 print('');
-print('20. BUREAU DE L EMPLOI : UNE PORTE POUR LES QUATRE ACTES');
+print('20. BUREAU DE L EMPLOI : LA FORMULE D AOUT EST RETIREE (25 octobre 2026)');
 var dJE = CODE['plateau-justice-economie.js'];
-// TROIS SITES D'APPEL POUR CINQ ACTES, et c'est volontaire : la prise de poste et la reservation
-// sont le MEME site (l'acte depend de l'emploi en cours), et les deux issues de l'arbitrage aussi.
-// Les quatre chemins du navigateur avaient quatre fois la meme lecture-modification-ecriture ;
-// ils ont desormais trois appels et une seule porte.
-att('trois sites d appel pour les cinq actes',
-    compte(dJE, /sbRpc\('bne_agir'/g) === 3, compte(dJE, /sbRpc\('bne_agir'/g) + ' appel(s)');
-att('les cinq actes sont nommes dans les appels',
-    dJE.indexOf("'reserver' : 'prendre'") >= 0
-    && dJE.indexOf("'trancher_garder' : 'trancher_prendre'") >= 0
-    && dJE.indexOf("p_acte: 'demissionner'") >= 0);
-att('plus aucune ecriture du blob partage',
-    compte(dJE, /sbSetEtatBNE\(/g) === 0, compte(dJE, /sbSetEtatBNE\(/g) + ' occurrence(s)');
-att('sbSetEtatBNE a disparu de supabase.js',
-    CODE['supabase.js'].indexOf('async function sbSetEtatBNE(') < 0);
-att('sbGetEtatBNE, qui ne fait que lire, est conservee',
-    CODE['supabase.js'].indexOf('async function sbGetEtatBNE(') >= 0);
-att('le plafond de places n est plus verifie dans le navigateur',
-    dJE.indexOf('placesPrises >= offre.places') < 0);
-att("le plafond n'est jamais transmis a la porte",
-    compte(dJE, /p_places/g) === 0, compte(dJE, /p_places/g) + ' occurrence(s)');
-att("l'emploi actuel recopie celui que le serveur a arrete",
-    compte(dJE, /vBne\.emploi_actuel/g) >= 3,
-    compte(dJE, /vBne\.emploi_actuel/g) + ' occurrence(s)');
-att('chaque refus de la porte est NOMME au joueur',
-    dJE.indexOf('function signalerRefusBNE(') >= 0
-    && compte(dJE, /signalerRefusBNE\(/g) >= 4,
-    compte(dJE, /signalerRefusBNE\(/g) + ' appel(s)');
-att('les quatre motifs metier du BNE sont nommes',
-    dJE.indexOf('poste_complet:') >= 0 && dJE.indexOf('arbitrage_en_attente:') >= 0
-    && dJE.indexOf('aucun_emploi:') >= 0 && dJE.indexOf('offre_inconnue:') >= 0);
+// La chaine 20 avait fait passer les quatre actes de l'ancienne formule par une seule porte
+// serveur (bne_agir). Fred a remplace cette formule le 25/10/2026 (GAME-DESIGN-BNE.md) : il n'y
+// a plus d'emploi a prendre, donc plus aucun appel, et surtout plus aucune ecriture du blob.
+att('plus aucun appel a l ancienne porte', compte(dJE, /bne_agir/g) === 0, compte(dJE, /bne_agir/g) + ' occurrence(s)');
+att('plus aucune ecriture du blob partage', compte(dJE, /sbSetEtatBNE\(/g) === 0);
+att('sbSetEtatBNE et sbGetEtatBNE ont disparu de supabase.js',
+    CODE['supabase.js'].indexOf('async function sbSetEtatBNE(') < 0
+    && CODE['supabase.js'].indexOf('async function sbGetEtatBNE(') < 0);
+att('le recensement est lu sur le serveur', dJE.indexOf("sbRpcVerdict('bne_postes_a_pourvoir'") >= 0);
+att('les annonces sont publiees par le serveur', dJE.indexOf("sbRpcVerdict('bne_annonce_publier'") >= 0);
 
 print('');
 if (ko === 0) print('LES ' + attendus + ' EPREUVES SONT VERTES.');

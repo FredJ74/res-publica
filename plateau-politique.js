@@ -184,12 +184,8 @@ async function chargerCandidaturesPostes(country) {
   return (etat && etat.candidatures) || {};
 }
 
-async function sauvegarderCandidaturesPostes(country, candidatures) {
-  const pays = country || state.country || 'republic';
-  if (typeof sbSetBatimentEtat === 'function') {
-    await sbSetBatimentEtat(pays, VILLE_ID_CANDIDATURES_POSTES, BATIMENT_ID_CANDIDATURES_POSTES, { candidatures }).catch(() => {});
-  }
-}
+// sauvegarderCandidaturesPostes A DISPARU (25/10/2026) : le dossier n'est plus ecrit que par le
+// serveur (poste_candidature_transmettre, poste_attribuer_interne, passe de nuit).
 
 // Protection de 7 jours reels contre la revocation/le remplacement politique arbitraire d'un PJ
 // fraichement nomme (§9-12 du lot) -- ne bloque QUE l'arbitraire du nominateur : demission,
@@ -278,23 +274,8 @@ function tempsProtectionRestanteTexte(poste) {
   return heures + 'h';
 }
 
-// Recale l'echeance et le nominateur responsable si l'autorite de nomination a change depuis la
-// derniere ecriture du dossier -- garantit au nouveau titulaire une fenetre complete de 48h
-// (§5 du lot) sans jamais sanctionner un nominateur qui vient de prendre ses fonctions. Mute le
-// dossier en place (appelant responsable de la sauvegarde) ; retourne true si un changement a
-// ete applique.
-async function reconcilierAutoriteCandidature(dossier) {
-  const regle = POSTES_NOMMES_EXCLUSIFS[dossier.posteId];
-  if (!regle || typeof getTitulaireActuel !== 'function') return false;
-  const autoriteActuelle = await getTitulaireActuel(regle.nommePar, villeDeLAutorite(regle, dossier.city));
-  const nomActuel = autoriteActuelle ? autoriteActuelle.nom : null;
-  if (nomActuel && dossier.autoriteNom !== nomActuel) {
-    dossier.autoriteNom = nomActuel;
-    dossier.echeanceTs = Date.now() + DELAI_DECISION_CANDIDATURE_MS;
-    return true;
-  }
-  return false;
-}
+// reconcilierAutoriteCandidature A DISPARU (25/10/2026) : le serveur recale l'echeance quand le
+// recruteur change, a la candidature suivante.
 
 // Candidature aupres de l'autorite de nomination (POSTES_NOMMES_EXCLUSIFS). Generalise a tous
 // les postes nommes ce qui n'existait avant que pour PM/ministres (postulerPoste). Regle de
@@ -404,64 +385,26 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
     return;
   }
 
-  const candidatNom = state.char?.name || 'Anonyme';
-
-  // Persistance de la candidature (§2/§6 du lot priorite PJ) : ouvre ou complete une fenetre de
-  // decision de 48h reelles pour l'autorite PJ. Le titulaire actuel du poste est forcement un
-  // PNJ ou le poste est vacant a ce stade (ouvrirEcranPostes ne propose "Postuler" que dans ce
-  // cas), jamais un PJ deja protege -- rien a verifier de ce cote ici.
-  const candidatures = await chargerCandidaturesPostes(state.country);
-  const cleDossier = cleCandidaturePoste(posteId, villeCourante);
-  let dossier = candidatures[cleDossier];
-  let candidatureDejaEnregistree = false;
-  if (!dossier || dossier.traitee) {
-    dossier = {
-      posteId, city: villeCourante,
-      candidats: [{ nom: candidatNom, depuisTs: Date.now() }],
-      echeanceTs: Date.now() + DELAI_DECISION_CANDIDATURE_MS,
-      autoriteNom: titulaireAutorite.nom,
-      traitee: false
-    };
-  } else if (dossier.candidats.some(c => c.nom === candidatNom && !c.retiree)) {
-    candidatureDejaEnregistree = true; // deja candidat pour ce poste -- pas un nouvel evenement
-  } else {
-    dossier.candidats.push({ nom: candidatNom, depuisTs: Date.now() });
-    // La fenetre en cours n'est jamais reinitialisee par l'arrivee d'un nouveau candidat --
-    // seul un changement d'autorite la recale (reconcilierAutoriteCandidature).
-  }
-
-  if (candidatureDejaEnregistree) {
-    showToast('Déjà candidat', 'Votre candidature au poste de ' + posteName + ' est déjà enregistrée, en attente de décision.', false);
-    return;
-  }
-
-  // 1 PA PAR CANDIDATURE, PRELEVE PAR LE SERVEUR (Fred, 25/10/2026), avant toute transmission :
-  // un refus de paiement n'ecrit rien et n'envoie rien.
-  const vPaie = typeof sbRpcVerdict === 'function'
+  // LE DOSSIER EST TENU PAR LE SERVEUR (25 octobre 2026). Circuit du 25 aout inchange (48 h, puis
+  // tirage au sort et popularite du recruteur divisee par deux), mais poste_candidature_transmettre
+  // resout le recruteur, refuse un doublon sans rien prelever, preleve 1 PA, ecrit le dossier sous
+  // verrou et envoie le mail au recruteur. L'ecran n'ecrit plus rien.
+  const vT = typeof sbRpcVerdict === 'function'
     ? await sbRpcVerdict('poste_candidature_transmettre', { p_poste: posteId, p_city: villeCourante || null }).catch(() => null)
     : null;
-  if (!vPaie || vPaie.ok !== true) {
-    if (vPaie && vPaie.raison === 'poste_deja_occupe_par_un_joueur') { showToast('Poste pourvu', "Ce poste vient d'être pris par un autre joueur.", false); return; }
-    if (vPaie && typeof signalerRefusCout === 'function' && !vPaie.transport) { signalerRefusCout(vPaie); return; }
+  if (!vT || vT.ok !== true) {
+    const r = vT && vT.raison;
+    if (r === 'recruteur_pnj') { await postulerPosteAutoritePnj(posteId, posteName, villeCourante); return; }
+    if (r === 'deja_candidat') { showToast('Déjà candidat', 'Votre candidature au poste de ' + posteName + ' est déjà enregistrée, en attente de décision.', false); return; }
+    if (r === 'poste_deja_occupe_par_un_joueur') { showToast('Poste pourvu', "Ce poste vient d'être pris par un autre joueur.", false); return; }
+    if (r === 'recruteur_soi_meme') { showToast('Candidature inutile', 'Vous êtes vous-même le recruteur de ce poste.', false); return; }
+    if (vT && !vT.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(vT); return; }
     showToast('Candidature non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni transmis.", false);
     return;
   }
-  if (typeof vPaie.pa === 'number' && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: vPaie.pa });
-
-  candidatures[cleDossier] = dossier;
-  await sauvegarderCandidaturesPostes(state.country, candidatures);
-
-  const sujet = 'Candidature au poste de ' + posteName;
-  const corps = candidatNom + ' postule au poste de <strong>' + posteName + '</strong>. Vous disposez de 48h pour choisir un candidat depuis la fenêtre de gestion des candidatures, sans quoi le système tranchera automatiquement.<br><br>' +
-    marqueurActionMail('candidature', posteId, posteName, candidatNom);
-
-  if (typeof sbSendMail === 'function') {
-    const h = String(state.hour || 8).padStart(2,'0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-    await sbSendMail(candidatNom, titulaireAutorite.nom, sujet, corps, time).catch(() => {});
-  }
-  showToast('Demande transmise', 'Votre candidature au poste de ' + posteName + ' a été transmise à ' + titulaireAutorite.nom + '.', true);
-  addJournalEntry('Demande de poste envoyée à ' + titulaireAutorite.nom + ' : ' + posteName + '. En attente de réponse.', 'event-info');
+  if (typeof vT.pa === 'number' && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: vT.pa });
+  showToast('Demande transmise', 'Votre candidature au poste de ' + posteName + ' a été transmise à ' + vT.recruteur + '.', true);
+  addJournalEntry('Demande de poste envoyée à ' + vT.recruteur + ' : ' + posteName + '. En attente de réponse.', 'event-info');
 }
 
 
@@ -6432,14 +6375,7 @@ async function accepterNominationPosteNomme(idNomination) {
   state.poste = { id: posteId, name: regle.label, city: city, nommeLe: Date.now() };
   if (state.char) state.char.poste = state.poste;
   state.salaireTouche = false;
-  // Solde un eventuel dossier de candidature persistant pour ce poste (§8 du lot) : ce poste est
-  // desormais pourvu, les candidatures encore listees deviennent obsoletes.
-  const candidaturesNettoyage = await chargerCandidaturesPostes(state.country);
-  const cleNettoyage = cleCandidaturePoste(posteId, city || null);
-  if (candidaturesNettoyage[cleNettoyage] && !candidaturesNettoyage[cleNettoyage].traitee) {
-    candidaturesNettoyage[cleNettoyage].traitee = true;
-    await sauvegarderCandidaturesPostes(state.country, candidaturesNettoyage);
-  }
+  // Le dossier de candidature du poste est solde par le serveur (poste_attribuer_interne).
   updateUI();
   if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
     const roomCourante = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
@@ -6549,14 +6485,7 @@ async function accepterCandidaturePoste(posteId, posteName, candidatNom) {
     return;
   }
 
-  // Solde le dossier de candidature persistant pour ce poste (§8 du lot) : nettoie les autres
-  // candidatures en attente, plus rien a afficher une fois le poste pourvu.
-  const candidatures = await chargerCandidaturesPostes(state.country);
-  const cleDossier = cleCandidaturePoste(posteId, villeDuPoste);
-  if (candidatures[cleDossier] && !candidatures[cleDossier].traitee) {
-    candidatures[cleDossier].traitee = true;
-    await sauvegarderCandidaturesPostes(state.country, candidatures);
-  }
+  // Le dossier de candidature du poste est solde par le serveur (poste_attribuer_interne).
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
@@ -6592,7 +6521,6 @@ async function ouvrirGestionCandidatures(posteIds, pa, cost) {
 
   const villeCourante = state.currentCity || 'capitale';
   const candidaturesTout = await chargerCandidaturesPostes(state.country);
-  let dossiersModifies = false;
 
   let html = '<div style="padding:.5rem 0">';
   for (const posteId of posteIds) {
@@ -6611,7 +6539,6 @@ async function ouvrirGestionCandidatures(posteIds, pa, cost) {
     if (candidatsActifs.length === 0) {
       html += '<div style="padding:.3rem 1rem .6rem;font-size:.78rem;color:#5a5040;font-style:italic">Aucune candidature en attente.</div>';
     } else {
-      if (await reconcilierAutoriteCandidature(dossier)) dossiersModifies = true;
       const heuresRestantes = Math.max(0, Math.ceil((dossier.echeanceTs - Date.now()) / 3600000));
       html += '<div style="padding:.2rem 1rem .4rem;font-size:.75rem;color:#8a6a20;font-style:italic">' +
         (heuresRestantes > 0
@@ -6632,7 +6559,6 @@ async function ouvrirGestionCandidatures(posteIds, pa, cost) {
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
-  if (dossiersModifies) await sauvegarderCandidaturesPostes(state.country, candidaturesTout);
 }
 
 async function nommerDepuisCandidature(posteId, posteName, candidatNom, pa, cost) {
@@ -7426,17 +7352,14 @@ async function executerOrdreEmpire(action, empireId, empireName, pa, cost) {
     showToast('Cessez-le-feu', 'Negociation en cours avec ' + empireName + '. +10 ID.', true);
     addJournalEntry('Cessez-le-feu negocie avec ' + empireName, 'event-good');
   } else if (action === 'ouvrir_ambassade') {
-    const r = await deduireCoutOrdre({ pa, cost });
-    if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
+    // PAR LE SERVEUR (25/10/2026, audit R5) : autorite, ligne, 2 PA dans la meme transaction.
+    const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_ouvrir', { p_pays_hote: empireId }).catch(() => null) : null;
+    if (!v || v.ok !== true) { signalerRefusAmbassadeMinistre(v); return; }
+    if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
     if (!state.ambassades) state.ambassades = [];
     state.ambassades.push({ empire: empireId, nom: empireName });
     INDICES_NATIONAUX[state.country].ID = Math.min(100, INDICES_NATIONAUX[state.country].ID + 8);
     updateUI();
-    // Persistance partagee : rend le bureau accessible a tous, dans le Quartier des Ambassades
-    // du pays cible (empireId), pour l'ambassadeur de state.country.
-    if (typeof sbOuvrirAmbassade === 'function') {
-      sbOuvrirAmbassade(empireId, state.country, state.day || 1).catch(() => {});
-    }
     showToast('Ambassade ouverte', 'Representation diplomatique etablie a ' + empireName + '. +8 ID.', true);
   } else if (action === 'sanctions') {
     INDICES_NATIONAUX[state.country].ID = Math.max(0, INDICES_NATIONAUX[state.country].ID - 5);
@@ -9546,6 +9469,8 @@ async function rafraichirAccesBureauxAmbassade() {
   if (typeof sbRpcVerdict !== 'function') return null;
   const v = await sbRpcVerdict('ambassade_acces_bureaux', {}).catch(() => null);
   state.accesBureauxAmbassade = (v && v.ok === true && v.bureaux) ? v.bureaux : null;
+  // Ambassadeurs joueurs en poste (25/10/2026) : leurs PNJ deviennent secretaires.
+  state.ambassadeursEnPoste = (v && v.ok === true && v.ambassadeurs) ? v.ambassadeurs : {};
   return state.accesBureauxAmbassade;
 }
 
@@ -9642,6 +9567,42 @@ async function accorderAudienceAmbassade(idDemande) {
   showToast('Audience accordée', (v.demandeur || 'Le demandeur') + ' est prévenu(e) par courrier ; votre bureau lui est ouvert 48 heures.', true);
 }
 
+// L'AMBASSADEUR JOUEUR TRANCHE L'ASILE (Fred, 25/10/2026), depuis les boutons du mail.
+async function trancherAsileAmbassade(accorder, idDemande) {
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('ambassade_trancher_asile', { p_id: idDemande, p_accorder: !!accorder }).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    const motifs = {
+      deja_tranchee: ['Déjà tranchée', 'Cette demande d\'asile a déjà reçu une réponse.'],
+      demande_introuvable: ['Demande introuvable', 'Cette demande ne vous est pas adressée.'],
+      plus_en_poste: ['Plus ambassadeur', 'Vous n\'êtes plus en poste dans cette ambassade.']
+    };
+    const m = v && motifs[v.raison];
+    showToast(m ? m[0] : 'Opération refusée', m ? m[1] : "La décision n'a pas pu être enregistrée.", false);
+    return;
+  }
+  showToast(accorder ? 'Asile accordé' : 'Asile refusé', (v.demandeur || 'Le demandeur') + ' est prévenu(e) par courrier.', true);
+}
+
+// LES SECRETAIRES DE L'AMBASSADEUR (Fred, 25/10/2026). Quand un joueur est ambassadeur en poste,
+// le PNJ ambassadeur reste dans le bureau comme « secretaire de l'ambassadeur », referent de la
+// diplomatie : son role affiche et son profil de dialogue changent. Lu sur le serveur
+// (ambassade_acces_bureaux -> ambassadeurs) ; sans ambassadeur joueur, rien ne change.
+function appliquerSecretairesAmbassade(persons) {
+  const enPoste = state.ambassadeursEnPoste || {};
+  if (!Object.keys(enPoste).length || typeof AMBASSADEURS_PNJ === 'undefined') return persons;
+  return persons.map(function (p) {
+    const empire = Object.keys(AMBASSADEURS_PNJ).find(e => AMBASSADEURS_PNJ[e].name === p.name);
+    if (!empire || !enPoste[empire]) return p;
+    const base = (typeof slugPnj === 'function') ? slugPnj(p.name.replace(' (PNJ)', '')) : null;
+    return Object.assign({}, p, {
+      role: "Secrétaire de l'ambassadeur " + enPoste[empire],
+      profilId: base ? base + '_secretaire' : undefined
+    });
+  });
+}
+
 // ASILE POLITIQUE (25 octobre 2026, arbitrage de Fred). Demande a l'accueil aupres d'une
 // ambassade ; l'ambassadeur PNJ decide SELON LE DOSSIER, par le serveur, a une echeance tiree
 // entre tout de suite et 3 jours ; reponse par mail. Le refugie entre dans le bureau de son
@@ -9722,28 +9683,42 @@ function ouvrirModalNommerAmbassadeur(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+const REFUS_AMBASSADE_MINISTRE = {
+  reserve_ministre_ae: ['Accès refusé', 'Réservé au Ministre des Affaires Étrangères.'],
+  pays_invalide: ['Pays invalide', 'Choisissez un autre empire.'],
+  deja_ouverte: ['Déjà ouverte', 'Votre pays a déjà une ambassade dans cet empire.'],
+  ambassade_fermee: ['Ambassade fermée', "Ouvrez d'abord une ambassade dans cet empire."],
+  personne_introuvable: ['Personne introuvable', 'Seul un citoyen de votre pays peut être nommé ambassadeur.'],
+  deja_en_poste: ['Déjà en poste', 'Cette personne est déjà votre ambassadeur dans cet empire.'],
+  aucun_ambassadeur: ['Aucun ambassadeur', "Il n'y a pas d'ambassadeur en poste."],
+  deja_expulse: ['Déjà expulsé', "L'expulsion de cet ambassadeur est déjà en cours."]
+};
+function signalerRefusAmbassadeMinistre(v) {
+  const m = v && REFUS_AMBASSADE_MINISTRE[v.raison];
+  if (m) { showToast(m[0], m[1], false); return; }
+  if (v && v.raison && !v.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
+  showToast('Action non effectuée', "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", false);
+}
+
 async function confirmerAmbassadeur(pa, cost) {
   const contact = document.getElementById('amb-contact')?.value;
   const empireId = document.getElementById('amb-empire')?.value;
   document.getElementById('modal-postes').classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PAR LE SERVEUR (25/10/2026, audit R5) : rien n'est annonce avant sa reponse ; il previent
+  // lui-meme le nomme.
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_nommer', { p_pays_hote: empireId, p_personne: contact }).catch(() => null) : null;
+  if (!v || v.ok !== true) { signalerRefusAmbassadeMinistre(v); return; }
+  if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  // Persistance partagee : la nomination doit etre visible de tous, dans le Quartier des
-  // Ambassades du pays cible (empireId), pour restreindre les ordres du bureau a cette personne.
-  if (typeof sbNommerAmbassadeur === 'function') {
-    sbNommerAmbassadeur(empireId, state.country, contact).catch(() => {});
-  }
-  envoyerNotificationVraiJoueur(contact, 'Nomination comme ambassadeur', 'Vous avez ete nomme(e) ambassadeur(rice) aupres de ' + empireName + ' par le Ministre des Affaires Etrangeres.');
-  addExternalEvent('NOMINATION : ' + contact + ' nomme(e) ambassadeur(rice) aupres de ' + empireName + '.');
+  addExternalEvent('NOMINATION : ' + v.ambassadeur + ' nomme(e) ambassadeur(rice) aupres de ' + empireName + '.');
   if (typeof sbEnregistrerEvenementPublic === 'function') {
     sbEnregistrerEvenementPublic(state.country, 'nomination', {
-      personnages: [contact].filter(Boolean),
-      libelle: contact + ' est nommé(e) ambassadeur(rice) auprès de ' + empireName + '.',
-      data: { poste: 'ambassadeur', empire_cible: empireId, nomme: contact }
+      personnages: [v.ambassadeur].filter(Boolean),
+      libelle: v.ambassadeur + ' est nommé(e) ambassadeur(rice) auprès de ' + empireName + '.',
+      data: { poste: 'ambassadeur', empire_cible: empireId, nomme: v.ambassadeur }
     }).catch(() => {});
   }
-  showToast('Ambassadeur nomme', contact + ' → ' + empireName, true);
+  showToast('Ambassadeur nomme', v.ambassadeur + ' → ' + empireName, true);
 }
 
 // DEMETTRE : le pays qui a nomme son propre ambassadeur met fin a sa mission — perte
@@ -9780,17 +9755,10 @@ async function ouvrirModalDemettreAmbassadeur(pa, cost) {
 
 async function confirmerDemissionAmbassadeur(empireId, pa, cost) {
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const rows = typeof sbGet === 'function' ? await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(empireId + '-' + state.country)}`).catch(() => []) : [];
-  const ancienAmbassadeur = rows?.[0]?.data?.ambassadeur;
-  if (typeof sbNommerAmbassadeur === 'function') {
-    await sbNommerAmbassadeur(empireId, state.country, null).catch(() => {});
-  }
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (ancienAmbassadeur) {
-    envoyerNotificationVraiJoueur(ancienAmbassadeur, 'Fin de mission', 'Le Ministre des Affaires Étrangères a mis fin à votre mission d\'ambassadeur auprès de ' + empireName + '. Vous perdez ce poste avec effet immédiat.');
-  }
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_demettre', { p_pays_hote: empireId }).catch(() => null) : null;
+  if (!v || v.ok !== true) { signalerRefusAmbassadeMinistre(v); return; }
+  if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
   addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' démet son ambassadeur auprès de ' + empireName + '.');
   showToast('Ambassadeur démis', 'La mission a pris fin, poste perdu avec effet immédiat.', false);
 }
@@ -9822,22 +9790,16 @@ async function ouvrirModalExpulserAmbassadeur(pa, cost) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// L'ECHEANCE EST POSEE PAR LE SERVEUR (24 h, audit R6) et le message ne promet plus d'arrestation
+// (audit R9) : elle reviendra avec le voyage entre empires (decision du 15 juillet).
 async function confirmerExpulsionAmbassadeur(empireId, pa, cost) {
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const echeance = Date.now() + 24 * 60 * 60 * 1000; // 24h reelles, comme les autres delais du jeu (couvre-feu, recherche militaire)
-  if (typeof sbFixerEcheanceExpulsion === 'function') {
-    await sbFixerEcheanceExpulsion(state.country, empireId, echeance).catch(() => {});
-  }
   document.getElementById('modal-postes')?.classList.remove('open');
-  const rows = typeof sbGet === 'function' ? await sbGet('ambassades_ouvertes', `id=eq.${encodeURIComponent(state.country + '-' + empireId)}`).catch(() => []) : [];
-  const ambassadeurVise = rows?.[0]?.data?.ambassadeur;
-  if (ambassadeurVise) {
-    envoyerNotificationVraiJoueur(ambassadeurVise, 'Expulsion diplomatique', 'Vous êtes déclaré(e) persona non grata. Vous avez 24h pour quitter ' + (COUNTRIES[state.country]?.n || state.country) + ', sous peine d\'arrestation. Vous conservez votre poste jusque-là.');
-  }
-  addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' expulse l\'ambassadeur de ' + empireName + ' (24h pour quitter le pays).');
-  showToast('Ambassadeur expulsé', 'Délai de 24h notifié, poste conservé jusqu\'à l\'échéance.', false);
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_expulser', { p_empire: empireId }).catch(() => null) : null;
+  if (!v || v.ok !== true) { signalerRefusAmbassadeMinistre(v); return; }
+  if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
+  addExternalEvent('DIPLOMATIE : ' + (COUNTRIES[state.country]?.n || state.country) + ' expulse l\'ambassadeur de ' + empireName + ' (24h avant la fin de sa mission).');
+  showToast('Ambassadeur expulsé', 'Sa mission prendra fin dans 24 heures.', false);
 }
 
 function ouvrirBanquetDiplomatique(pa, cost) {
@@ -14651,36 +14613,8 @@ async function verifierDesertionsQuotidien(pays) {
 // null, exactement comme le fait deja « Demettre » -- et on efface l'echeance, ce qui deverrouille
 // l'ambassade pour l'avenir. L'AMBASSADE N'EST PAS FERMEE : le bureau reste ouvert, seul
 // l'ambassadeur s'en va. C'est la doctrine du lot : sanctionner n'est pas rompre.
-async function verifierExpulsionsAmbassadeursQuotidien(pays) {
-  if (typeof sbGet !== 'function' || typeof sbUpdate !== 'function') return;
-  const rows = await sbGet('ambassades_ouvertes', `pays_hote=eq.${encodeURIComponent(pays)}`).catch(() => null);
-  if (!rows) return;
-  const maintenant = Date.now();
-  for (const r of rows) {
-    const data = r.data || {};
-    const echeance = Number(data.expulsionEcheance);
-    if (!isFinite(echeance) || echeance <= 0) continue;
-    if (maintenant < echeance) continue;   // le delai court encore
-
-    const nomExpulse = data.ambassadeur || null;
-    const suite = Object.assign({}, data);
-    delete suite.expulsionEcheance;        // deverrouille : une nouvelle expulsion redevient possible
-    suite.ambassadeur = null;              // la mission prend fin
-    suite.derniereExpulsion = { nom: nomExpulse, leTs: maintenant };
-    await sbUpdate('ambassades_ouvertes', `id=eq.${encodeURIComponent(r.id)}`, { data: suite }).catch(() => {});
-
-    if (nomExpulse) {
-      // L'AVIS D'EXPULSION N'EST PLUS ENVOYE D'ICI (§5, 20 septembre 2026). Cette passe tourne
-      // dans le navigateur du premier joueur a franchir minuit -- un joueur quelconque, jamais
-      // le ministre -- et postait sous l'en-tete « Ministere des Affaires Etrangeres ».
-      // C'est desormais traiterExpulsionsAmbassadeursServeur() (api/cron-minuit.js) qui emet
-      // l'avis, avec l'autorite du serveur, et sans le doublon que les deux chemins
-      // produisaient. La mise a jour de l'ambassade, elle, reste faite ici : elle est
-      // idempotente (expulsionEcheance efface) et rend l'effet immediat pour le joueur present.
-      addExternalEvent('🛂 ' + nomExpulse + ' a quitté ses fonctions d\'ambassadeur à l\'expiration du délai d\'expulsion.');
-    }
-  }
-}
+// verifierExpulsionsAmbassadeursQuotidien A DISPARU (25/10/2026, audit R11) : la fin d'une
+// expulsion n'est plus appliquee que par le serveur (traiterExpulsionsAmbassadeursServeur).
 
 // ---- LE LIEUTENANT FAIT REMONTER SON RAPPORT DE RENSEIGNEMENT AU CAPITAINE ----
 async function ouvrirRemonterRenseignement(pa, cost) {

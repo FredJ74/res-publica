@@ -1454,9 +1454,6 @@ function loadCharacter() {
             // d'unicite. Remplace l'ancien mecanisme jodieVerifierMailAccueil() (jamais actif en
             // production, retire integralement -- voir plateau-communication.js).
             if (typeof jodiePortraitVerifierProposition === 'function') jodiePortraitVerifierProposition();
-            // Emploi BNE : pas de colonne dediee sur personnages (voir plateau-justice-economie.js),
-            // le cache local state.emploiBNE doit etre rafraichi explicitement depuis Supabase.
-            if (typeof rafraichirCacheEmploiBNE === 'function') rafraichirCacheEmploiBNE();
             // Audiences d'ambassade : constat des echeances au chargement, et memorisation d'une
             // demande en attente pour la verification periodique des mails.
             if (typeof rafraichirAudiencesAmbassade === 'function') rafraichirAudiencesAmbassade();
@@ -2596,8 +2593,8 @@ async function runMidnightUpdate() {
   if (typeof verifierEffetsCouvreFeuQuotidien === 'function') await verifierEffetsCouvreFeuQuotidien(state.country || 'republic').catch(() => {});
   if (typeof verifierRechercheMilitaireQuotidien === 'function') await verifierRechercheMilitaireQuotidien(state.country || 'republic').catch(() => {});
   // verifierDesertionsQuotidien() retiree ici : miroir serveur traiterDesertionsServeur().
-  // Expulsions diplomatiques echues (Lot 4.3) : meme cadence que les desertions, meme fail-soft.
-  if (typeof verifierExpulsionsAmbassadeursQuotidien === 'function') await verifierExpulsionsAmbassadeursQuotidien(state.country || 'republic').catch(() => {});
+  // verifierExpulsionsAmbassadeursQuotidien() retiree le 25/10/2026 (audit R11) : seule la passe
+  // de nuit du serveur (traiterExpulsionsAmbassadeursServeur) met fin a une mission.
   checkScandale();
   checkEffacementCrimes();
   payerInformateurs();

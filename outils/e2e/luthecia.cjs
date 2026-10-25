@@ -107,12 +107,45 @@ class Joueur{
   }return r;
  }
  async consulterPositionExistante(){
-  const s=await this.identite();
+  await this.identite();
   const scene=this.page.locator('#vue-batiment.active #piece-image, #vue-rue.active #rc-scene').first();
-  await scene.waitFor({state:'visible',timeout:30000});
-  await this.page.waitForFunction(()=>[...document.querySelectorAll('#vue-batiment.active #piece-image img, #vue-rue.active #rc-scene img')].every(i=>i.complete&&i.naturalWidth>0),null,{timeout:30000});
-  const serveur=await this.serveur();
-  if(serveur.current_building!==this.rapport.prevolAutomatique.position.batiment||serveur.current_room!==this.rapport.prevolAutomatique.position.piece||s.batiment!==serveur.current_building||s.piece!==serveur.current_room)throw code('POSITION_INITIALE_NON_CONFIRMEE');
+  const attendreScene=async()=>{
+   await scene.waitFor({state:'visible',timeout:30000});
+   await this.page.waitForFunction(()=>[...document.querySelectorAll('#vue-batiment.active #piece-image img, #vue-rue.active #rc-scene img')].every(i=>i.complete&&i.naturalWidth>0),null,{timeout:30000});
+  };
+  await attendreScene();
+  let serveur=await this.serveur(),s=await this.identite();
+  const attendue=this.rapport.prevolAutomatique.position;
+  const serveurConforme=()=>serveur.current_building===attendue.batiment&&serveur.current_room===attendue.piece;
+  const interfaceConforme=()=>s.batiment===serveur.current_building&&s.piece===serveur.current_room;
+  let attenteInterface=false,delaiDepasse=false;
+  // Le bootstrap restaure la pièce par un callback différé. Attendre uniquement
+  // le DOM si le serveur n'a PAS bougé ; aucune navigation, sauvegarde ou polling SQL.
+  if(serveurConforme()&&!interfaceConforme()){
+   attenteInterface=true;
+   try{
+    await this.page.waitForFunction(({batiment,piece,nom,uid})=>{
+     if(typeof state==='undefined'||typeof rpAuthUid!=='function')return false;
+     // Un changement d'identité interrompt aussi l'attente : la garde ci-dessous refusera.
+     if(state.char?.name!==nom||rpAuthUid()!==uid)return true;
+     return state.currentBuilding===batiment&&state.currentRoom===piece;
+    },{...attendue,nom:this.compte.nom,uid:this.compte.uid},{timeout:30000});
+   }catch(e){if(e.name!=='TimeoutError')throw e;delaiDepasse=true;}
+   this.signal.throwIfAborted();
+   if(!delaiDepasse)await attendreScene();
+   serveur=await this.serveur();s=await this.identite();
+  }
+  // Uniquement des identifiants de lieux, jamais les identifiants ou les données du PJ.
+  const positionConforme=serveurConforme()&&interfaceConforme();
+  if(!positionConforme){
+    this.rapport.positionDiagnostic={
+      prevol:{batiment:attendue.batiment,piece:attendue.piece},
+      serveur:{batiment:serveur.current_building,piece:serveur.current_room},
+      interface:{batiment:s.batiment,piece:s.piece},
+      attenteInterface:{effectuee:attenteInterface,delaiDepasse}
+    };
+    throw code('POSITION_INITIALE_NON_CONFIRMEE');
+  }
   this.rapport.visites.push({type:'consultation-position-existante',batiment:s.batiment,piece:s.piece});
   this.rapport.patrimoineFinal=preuve(serveur);
  }

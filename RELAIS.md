@@ -5,6 +5,17 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### #135 — Position initiale du testeur après #167
+
+- Branche reprise : `codex/recette-immobilier-135-20261025`, main `348865998c8eede33ba18e32f3da9f8f27149117` intégré. Aucun fichier métier d'ambassade/BNE modifié par Codex ; sources applicatives identiques à ce main.
+- Résultat réel transmis par Fred pour la campagne 40237138029 : serveur avant/après = quartier-ambassades / accueil_ambassades, interface = null / null, personnage inchangé. Rapport/commentaire de #167 non récupérable directement ici (API GitHub refusée). Ne pas prétendre une visite validée.
+- Course reproduite du testeur : il conservait une mesure de l'interface prise avant les attentes et lectures asynchrones. Mesures désormais fraîches ; attente DOM locale bornée uniquement si le serveur est encore strictement au lieu du prévol, puis relecture des deux côtés. Aucun déplacement, normalisation, injection de position ou polling SQL. Une divergence réelle reste refusée ; diagnostic #167 conservé et enrichi de l'attente.
+- Neuf cas ciblés, dont Chromium local utilisant le callback réel à 300 ms et les lieux observés. 97/97 tests du pilote sur fixtures. La correction doit encore être confirmée par une campagne réelle après intégration ; elle n'est pas une preuve que le cas d'Arnie est résolu en production.
+- Vérifications indépendantes : matériaux et refus/rejeu/rollback passent ; 62 assertions de progression et 15 assertions supplémentaires sur le taux actuel (commande commune, ouvrier tiers, seuil de trésorerie, doubles appels et panne finale). Le workflow appelle ce banc étendu, qui conserve toutes les 62 assertions historiques. Aucune modification de la migration de Claude.
+- Dépendance observée : bne_heures_chantiers appelle chantier_besoin_jour_interne, dont la définition n'est pas archivée dans main. Une tentative isolée ne peut donc pas éprouver ce lecteur sans hypothèse ; aucun faux helper ni ancienne migration de réaménagement importé. À vérifier par catalogue vivant, sans conclure que la fonction manque en production.
+- Pas de migration appliquée ou préparée pour ce lot. Aucun compte, secret, finance, PA, possession ou position d'Arnie modifié. Lecture Actions/PR et déploiement toujours bloqués par les accès de cette session ; ne pas fermer #135.
+
+
 ### #135 — Clôture de recette après intégration #161
 
 - Branche reprise : `codex/recette-immobilier-135-20261025`. Main intégré `5dcdc476ed9f57d49c9a0a2cf21a15bb782b15a5` : correctif #161 retrouvé dans Git, aucun retour à l'ancien handler ou à l'ancien script. Les fichiers métier/visuels sont exactement ceux de main ; travaux de Claude conservés sans modification propre.
@@ -88,6 +99,12 @@ ambassades ni au Bureau de l'Emploi.**
 - 25/10 soir : **trois référentes emploi** (Nathalie Boulot, Edwige Leroux, Pétra
   Vaillepas), fiches dans `api/_pnj-referents.js`, déclarées dans `pnj_referents`
   (registre 20261025201502).
+- 25/10 nuit : **fin des chantiers**. BNE : restes retirés, heures de chantier et
+  dossier de candidature par le serveur (#162). Ambassades : actions du ministre par
+  le serveur, table en lecture seule pour les joueurs, asile tranché par
+  l'ambassadeur joueur, secrétaires, valise (registre 20261025210049, …210208,
+  …210344). Bloqués par l'absence de voyage entre empires : immunité, arrestation de
+  l'expulsé, transfert de détenus, naturalisation (voir `GAME-DESIGN-AMBASSADES.md`).
 - Prochaines étapes (Claude) : coder `GAME-DESIGN-BNE.md` par lots — 1. suppression
   des offres et de l'inscription + recensement ; 2. candidatures et décision du
   vendredi ; 3. annonces des joueurs (+ parution Tribune par le serveur, caisse du

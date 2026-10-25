@@ -821,12 +821,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'banquet_diplo') { ouvrirBanquetDiplomatique(pa, cost); return; }
 
   // Bureau National de l'Emploi (9 aout 2026)
-  if (fn === 'sinscrire_demandeur_emploi') { doInscrireDemandeurEmploi(pa, cost); return; }
   if (fn === 'consulter_offres_emploi')    { ouvrirOffresEmploiBNE(); return; }
   if (fn === 'bne_passer_annonce')         { ouvrirFormulaireAnnonceBNE(); return; }
   if (fn === 'virement_joueur')            { ouvrirVirementJoueur(false); return; }
   if (fn === 'virement_automatique')       { ouvrirVirementJoueur(true); return; }
-  if (fn === 'demissionner_emploi_bne')    { demissionnerEmploiBNE(); return; }
 
   // Republia — Se nourrir (repas_gastronomique) : lie au stock reel du restaurant (lot
   // finition boucle economique, 21 aout 2026) -- special-case obligatoire comme les autres

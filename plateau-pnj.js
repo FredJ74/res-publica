@@ -1376,6 +1376,8 @@ function profilServeurDuPnj(pnj) {
   // renommer ne la rend donc pas muette, et deux homonymes de deux empires ne
   // partagent ni profil ni souvenirs.
   if (pnj && pnj.escortId) return pnj.escortId;
+  // Profil impose par le contexte (secretaires de l'ambassadeur, 25/10/2026).
+  if (pnj && pnj.profilId) return pnj.profilId;
   const nom = (pnj?.name || '').replace(' (PNJ)', '').trim();
   if (!nom) return null;
   return PNJ_PROFILS_SERVEUR[nom] || slugPnj(nom) || null;

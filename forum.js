@@ -2581,6 +2581,8 @@ function readMail(mailId) {
 // acceptee, et un marqueur inconnu ne produit rien.
 const ACTIONS_MAIL = {
   audience_accorder: { fn:'accorderAudienceAmbassade',   n:1, label:'✓ Accorder l\'audience' },
+  asile_accorder:    { fn:'trancherAsileAmbassade',      n:1, avant:[true],  label:'✓ Accorder l\'asile' },
+  asile_refuser:     { fn:'trancherAsileAmbassade',      n:1, avant:[false], label:'✗ Refuser l\'asile' },
   poste:            { fn:'accepterNominationPosteNomme', n:1, label:'✓ Accepter le poste' },
   capitaine:        { fn:'accepterNominationCapitaine',  n:1, label:'✓ Accepter le poste' },
   lieutenant:       { fn:'accepterNominationLieutenant', n:1, label:'✓ Accepter le poste' },
@@ -2593,8 +2595,6 @@ const ACTIONS_MAIL = {
   orga_non:         { fn:'refuserInvitationOrga',  n:2, label:'✕ Refuser l\'invitation', refus:true },
   greve_oui:        { fn:'repondreAppelGreveGenerale', n:2, apres:['accepte'], label:'✓ Accepter' },
   greve_non:        { fn:'repondreAppelGreveGenerale', n:2, apres:['refuse'],  label:'✗ Refuser', refus:true },
-  bne_garder:       { fn:'trancherEmploiBNE', n:2, avant:[true],  label:'Garder mon poste actuel' },
-  bne_prendre:      { fn:'trancherEmploiBNE', n:2, avant:[false], label:'Prendre le nouveau poste' },
   // ECRIRE A QUELQU'UN QU'ON VIENT DE SE VOIR RECOMMANDER (1er octobre 2026). Le
   // seul marqueur pose par le SERVEUR (contact_organisation_demander) et non par
   // le navigateur : un passeur transmet un nom, et le destinataire doit pouvoir

@@ -403,9 +403,8 @@ function closeSelfView() {
   }
 }
 
-// Salaire verse a l'ordre Dormir : poste politique prioritaire, sinon emploi BNE actif
-// (state.emploiBNE, cache local rafraichi par rafraichirCacheEmploiBNE — voir
-// plateau-justice-economie.js), sinon le plancher universel SALAIRES.default (9 aout 2026).
+// Salaire de reference a l'ordre Dormir : poste politique, sinon le plancher universel
+// SALAIRES.default (9 aout 2026 ; emplois du Bureau retires le 25/10/2026).
 // LES MILITAIRES NE SONT PAS PAYES ICI (phase 2, 18 septembre 2026). Cette fonction alimente une
 // creation monetaire cliente (state.arg += salaire) sans debiter aucune caisse. Les soldes
 // militaires sont versees par militaire_solde_percevoir, qui debite reellement la caisse de la
@@ -416,10 +415,6 @@ function calculerSalaireDormir() {
   if (GRADES_PAYES_PAR_LA_CASERNE.includes(state.gradeMilitaire)) return 0;
   if (state.poste && GRADES_PAYES_PAR_LA_CASERNE.includes(state.poste.id)) return 0;
   if (state.poste) return SALAIRES[state.poste.id] || SALAIRES.default;
-  if (state.emploiBNE?.offreId && typeof OFFRES_EMPLOI_BNE !== 'undefined') {
-    const offre = OFFRES_EMPLOI_BNE[state.emploiBNE.offreId];
-    if (offre) return offre.salaire;
-  }
   return SALAIRES.default;
 }
 
@@ -4354,6 +4349,5 @@ function ouvrirChangementMotDePasse() {
 // reel s'affiche apres le versement, tel que le serveur l'a rendu.
 function texteVersementDormir() {
   if (state.poste && state.poste.id) return 'Versement du salaire de votre poste, montant fixé par le Trésor.';
-  if (state.emploiBNE && state.emploiBNE.offreId) return 'Versement du salaire de votre emploi, payé par votre employeur s\'il en a les moyens.';
   return 'Versement du revenu universel.';
 }
