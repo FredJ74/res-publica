@@ -1,0 +1,20 @@
+name: Parcours immobilier cinq terrains - PostgreSQL jetable
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  parcours-immobilier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - name: Acheter, financer, autoriser, construire et receptionner les cinq terrains
+        run: python3 outils/bancs/banc-parcours-terrain-construction-135-local.py
