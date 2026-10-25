@@ -225,3 +225,9 @@ l'état personnel), R10 (annonces publiques écrites par le navigateur), l'usage
 concret de l'Indice Diplomatique (Fred : plus tard). Constat : une réception ou un
 mécénat suppose un ambassadeur présent dans le pays hôte, donc le voyage entre
 empires ; la règle est en place côté serveur et servira dès qu'il existera.
+
+**Mise à jour du 26/10 (nuit, audit « une seule vérité »)** : R2 et R10 réglés pour les
+ambassades. Les annonces publiques de la réception, du mécénat et d'un accord
+diplomatique sont écrites par le serveur ; « Relations bilatérales » lit les traités
+acceptés sur le serveur. Tous les écarts de cet audit sont désormais réglés ou attachés
+au voyage entre empires.

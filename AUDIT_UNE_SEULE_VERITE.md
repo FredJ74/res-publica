@@ -1,0 +1,266 @@
+# Audit « une seule vérité, celle du serveur » — 25-26 octobre 2026
+
+Commande de Fred (25/10, chantier de nuit) : *« Audite tout le jeu pour trouver où il
+peut y avoir deux vérités, celle du serveur et celle du navigateur, afin de mettre en
+conformité avec ma décision d'avoir une seule vérité, celle du serveur. »*
+
+Lecture retenue par Claude : **cet audit inventorie et classe** ; il ne corrige pas le
+code des chantiers des autres (Codex y travaille, et l'ordre des corrections est une
+décision de Fred). Seuls les écarts restants dans les chantiers de Claude (ambassades,
+Bureau de l'Emploi) sont corrigés la même nuit (voir la fin).
+
+Méthode : lecture des droits réels de la base (qui peut écrire quoi), lecture des
+déclencheurs qui protègent la fiche du personnage, recherche dans tout le code du
+navigateur des tirages au sort, des horloges, des effets appliqués en mémoire et des
+écritures directes. Chaque constat cite son fichier. Les fonctions sans appelant ont été
+écartées (code mort, listé à part).
+
+---
+
+## En bref, pour Fred
+
+Le jeu a déjà fait une grande partie du chemin : **l'argent, les PA, les comptes en
+banque, les caisses des bâtiments, l'inventaire, les postes, les guerres, les ambassades
+et le Bureau de l'Emploi** sont tenus par le serveur. Le navigateur ne peut ni se donner
+de l'argent, ni des PA, ni un poste, ni un objet.
+
+Il reste **quatre familles de « deux vérités »** :
+
+1. **Des portes ouvertes** (le plus grave) : une quarantaine de tables de la base acceptent qu'*importe
+   quel joueur connecté* y écrive *n'importe quoi* — budgets, partis, prêts, mariages,
+   successions, indices des villes, niveaux de prison, élections… Et trois fonctions du
+   serveur créent de l'argent dans une caisse sur simple demande du navigateur. Un
+   joueur qui sait ouvrir la console de son navigateur peut réécrire ces données.
+2. **La fiche du personnage** : le navigateur la renvoie entière à chaque sauvegarde, et
+   le serveur accepte encore tels quels la santé, le moral, la position, la prison,
+   l'hôpital, les employés, le domicile, les effets actifs, la réputation criminelle…
+   et les variations de popularité et d'influence décidées par l'écran.
+3. **Le navigateur décide** : environ **95 tirages au sort** sont faits par l'écran
+   (vols, assassinats, douanes, corruption, élections truquées, fuite, football…), ainsi
+   que **l'ordre générique** qui sert à des dizaines d'ordres (jusqu'à 149 décrits) : le
+   jet de réussite et ses effets sont calculés par l'écran. Le passage de minuit fait
+   encore une partie du travail dans le navigateur du joueur connecté.
+4. **Deux affichages** : des choses n'existent que sur l'écran du joueur et disparaissent
+   au rechargement (objets ajoutés par l'écran, gains d'argent de l'ordre générique,
+   traités, référendums, guerres du vieux dispatcheur) ; et **153 annonces publiques**
+   (« GUERRE DÉCLARÉE », « SCANDALE »…) sont écrites par le navigateur, que le serveur ait
+   constaté quelque chose ou non.
+
+**Ma recommandation d'ordre** : 1) fermer les portes ouvertes ; 2) verrouiller la fiche ;
+3) remplacer l'ordre générique par un jet serveur unique (un seul chantier règle des
+dizaines d'ordres) ; 4) passer les tirages restants famille par famille ; 5) faire écrire
+les annonces publiques par le serveur. Chaque point peut être un chantier séparé.
+
+---
+
+## 1. Portes ouvertes : le serveur accepte l'écriture de n'importe quel joueur
+
+### 1.1 Tables écrites par tout joueur connecté, sur toute ligne
+
+La règle d'accès de ces tables est `acteur_identifie()` : il suffit d'être connecté.
+Aucune vérification de poste, de propriétaire ou de montant. (I = créer, U = modifier,
+D = supprimer.)
+
+| Domaine | Tables | Ce qu'un joueur peut faire |
+|---|---|---|
+| Finances publiques | `budgets_nationaux` (I,U), `budgets_municipaux` (I,U), `budgets_clubs` (I,U) | réécrire un budget. `budgets_nationaux` est en partie protégé (champs réservés à un poste, stocks de l'armurerie, marqueurs de nuit) ; les deux autres ne le sont pas |
+| Prêts | `prets` (I,U) | créer ou modifier un prêt (une protection existe sur les écritures « versionnées » seulement) |
+| Élections | `cycles_electoraux` (I,U), `fraudes_electorales` (I,U), `votes_confiance` (I,U), `votes_electoraux` (D) | modifier un cycle, effacer une fraude, supprimer des votes |
+| Organisations | `organisations` (I,U,D) | créer, modifier, supprimer toute organisation qui n'est pas un parti (les partis sont protégés) |
+| État civil | `mariages` (I,U), `demandes_mariage` (I,U), `successions` (I,U), `etat_civil_deces` (I), `etat_civil_naissances` (I), `demandes_naturalisation` (I,U) | marier, déclarer un décès ou une naissance, modifier une succession |
+| Justice, ordre public | `niveaux_prison` (I,U), `etats_urgence` (I,U), `greves_generales` (I,U), `demandes_manifestation` (I,U), `rumeurs_actives` (U sur toute ligne), `rapports_renseignement` (I) | changer le niveau d'une prison, déclarer un état d'urgence ou une grève |
+| Territoire | `indices_villes` (I,U), `dossiers_urbanisme` (I), `terrains_historique_ventes` (I), `logements_demandes` (I,U), `logements_attributions_historique` (I) | réécrire les indices de sécurité ou d'économie d'une ville |
+| Commerce, fret | `caisses_fret` (I,U), `contenu_caisses_fret` (I,U), `petites_annonces` (I,U), `registre_ventes_armes` (I), `objets_abandonnes` (I,D) | modifier une caisse de fret ou son contenu |
+| Football | `transferts_clubs` (I,U), `championnat` (I,U hors ligne 1) | modifier un transfert, le championnat |
+| Récits publics | `evenements_globaux` (I), `chronique_nationale` (I, hors faits judiciaires), `chat_piece` (I), `contributions_piete` (I), `tribune_articles_etouffes` (I), `quetes_actives` (I,U), `souvenirs_accueil` (I,U), `dons_en_attente` (D) | publier un faux événement national ou mondial, une fausse chronique |
+| Postes PNJ | `titulaires_pnj` (I,U,D pour les postes sans règle de nomination) | changer qui tient un poste PNJ |
+
+Les autres tables écrivables par les joueurs sont limitées à **leurs propres lignes**
+(mails, forum, présences, testaments, invitations, candidatures, salons…) : c'est
+conforme.
+
+**Remède** : pour chaque table, retirer le droit d'écriture des joueurs et passer par
+une fonction du serveur qui vérifie l'autorité, comme cela a été fait pour les guerres,
+les ambassades ou les caisses. Commencer par les budgets, les prêts, les élections,
+les organisations, l'état civil et les indices des villes.
+
+### 1.2 Fonctions du serveur qui croient le navigateur sur un montant
+
+| Fonction | Ce qu'elle accepte | Gravité |
+|---|---|---|
+| `batiment_caisse_mouvement(p_delta)` | tout joueur connecté peut ajouter ou retirer **n'importe quel montant** dans la caisse de n'importe quel bâtiment (le code le dit : l'autorité sur le montant est « laissée ouverte ») | création d'argent |
+| `caisse_institution_mouvement(p_delta)` | un **crédit** (montant positif) envoyé par un joueur n'est soumis à aucune autorité : n'importe quelle caisse d'institution peut être remplie à volonté. Les retraits, eux, sont contrôlés | création d'argent |
+| `caisse_client_mouvement(p_delta)` | même chose pour les caisses du pays du joueur : un crédit passe sans contrôle | création d'argent |
+| `impact_deposer(p_delta)` | les dégâts d'une agression sont fixés par le navigateur ; seule garde : être au même endroit (le code le dit : « ne remplace pas un jet serveur ») | santé d'autrui |
+| `personnage_ajuster_pop_inf(…, p_cause)` | registre de causes bornées, mais c'est le navigateur qui choisit la cause et le moment | popularité d'autrui, bornée |
+
+**Remède** : un crédit de caisse ne doit naître que d'une recette réelle connue du
+serveur (vente, impôt, paiement d'un ordre) ; les dégâts d'une agression se tirent au
+serveur.
+
+---
+
+## 2. La fiche du personnage
+
+À chaque sauvegarde, le navigateur renvoie la fiche entière (`sbSavePersonnage`). Le
+serveur la filtre (`personnages_vue_modifier` et ses déclencheurs).
+
+**Déjà tenu par le serveur** : caractéristiques, points libres, qualifications,
+banque, argent liquide et compte (toute hausse est ignorée), inventaire (le navigateur
+n'y écrit plus), PA (ne peuvent que baisser), poste et poste de député (doivent être
+attestés), jour (+1 au plus, jamais en arrière), convocations, casier et avis de
+recherche (ne peuvent pas être effacés), refuge d'ambassade.
+
+**Encore accepté tel quel du navigateur** :
+- **santé** (une hausse est seulement notée dans un journal, pas refusée), **moral** ;
+- **popularité et influence** : le navigateur annonce une variation, le serveur
+  l'ajoute — c'est donc l'écran qui décide de chaque +10 ou −20 ;
+- **position** (ville, bâtiment, pièce) ;
+- **prison** (`est_emprisonne`, hors réfugiés), **quartier de haute sécurité**,
+  **hospitalisation**, **poison actif**, **stats affaiblies** ;
+- **employés**, **informateurs**, **contacts**, **escorte**, **domicile**, **locations** ;
+- **réputation criminelle**, **enquêtes en cours**, **effets actifs**, **réquisition** ;
+- **excommunication**, licence et performance sportives, quêtes et énigmes, salaire
+  touché, dernier sommeil, réservation d'hôtel.
+
+**Remède** : ne plus laisser la sauvegarde écrire ces champs ; chacun ne change que par
+l'action du serveur qui en est la cause (soin, condamnation, embauche, déplacement…).
+C'est le chantier le plus structurant : il oblige à passer en serveur les actions qui
+modifient ces champs.
+
+---
+
+## 3. Le navigateur décide
+
+### 3.1 L'ordre générique (`plateau-router.js`, `executerOrdreGenerique`)
+
+Tout ordre qui n'a pas de traitement dédié passe par lui. Le paiement est fait par le
+serveur, mais **le jet de réussite (réussite critique, réussite, partielle, échec,
+échec critique) est tiré par l'écran**, et ses effets (santé, moral, influence,
+popularité, discrétion, gain d'argent) sont appliqués par l'écran à partir de
+`ORDER_EFFECTS` (`data.js`, jusqu'à 149 ordres décrits). Le remboursement d'un échec,
+lui, est déjà attesté par le serveur.
+
+**Remède** : un seul chantier — une fonction serveur « exécuter un ordre » qui paie,
+tire et applique les effets déclarés — règle d'un coup tous ces ordres.
+
+### 3.2 Les tirages au sort de l'écran (environ 95)
+
+Recensés dans 11 fichiers (liste complète en annexe A). Les principales familles :
+- **crimes et clandestinité** : vol, assassinat, empoisonnement, incendie, explosifs,
+  se cacher, corruption d'un registre, d'un fonctionnaire, d'un gardien, d'un douanier,
+  falsification, contrebande, découverte des crimes passés, détection d'un acte illégal ;
+- **police et justice** : fuite, résistance, fuite devant la police, contrôle
+  automatique, enquêtes, convocations, codétenus ;
+- **douanes et transport** : contrôle de douane, passage à l'aéroport, inspection des
+  cargaisons, transport, syndicat du port ;
+- **politique** : bourrer les urnes, falsifier les listes, truquer le dépouillement,
+  contester les résultats, démenti, état d'urgence, décret, censure, couvre-feu,
+  mobilisation (événement à 15 %), ordre fiscal ciblé ;
+- **vie sociale et religion** : bénédiction, confession, loge, piété, rumeurs,
+  escortes, débauchage, recrutement d'un codétenu, objets trouvés, antipoison ;
+- **football** : buts, blessures, entraînement en direct ;
+- **organisations et quêtes** : effets des ordres d'organisation, blocus, revendication,
+  génération des quêtes.
+
+Certains ne jouent que pour les autres empires (exemple : l'arrestation au réveil ou au
+déplacement est désactivée à Républia) : ils seront à reprendre avec ces empires.
+
+**Remède** : chaque tirage passe au serveur avec son action (comme l'audience
+d'ambassade, l'asile ou le banquet). Regrouper par famille : un chantier « crimes », un
+« police et justice », un « douanes », un « fraudes électorales », un « football »…
+
+### 3.3 Le passage de minuit dans le navigateur (`plateau-core.js`, `runMidnightUpdate`)
+
+Si un joueur est connecté à minuit, son navigateur traite encore : plaintes, enquêtes,
+convocations, découverte des crimes passés, population, effets du couvre-feu,
+recherche militaire, scandale, effacement des crimes, paiement des informateurs. Si
+personne n'est connecté, rien ne se passe pour ces points ; si quelqu'un l'est, c'est
+son écran qui décide. Le message « recettes fiscales versées au trésor » est un simple
+texte : le versement réel est fait par le serveur.
+
+**Remède** : déplacer chaque traitement dans la passe de nuit du serveur
+(`api/cron-minuit.js`), comme cela a déjà été fait pour les budgets, les désertions et
+les expulsions d'ambassadeurs.
+
+### 3.4 Horloge du navigateur pour des échéances enregistrées
+
+- couvre-feu et recherche militaire : `dateFin = Date.now() + …` écrit dans le budget
+  national (`plateau-politique.js` 14107, 14230, 14723) ;
+- clôture d'un vote à 48 h (`plateau-politique.js` 10397) ;
+- suspicion après un cadavre, 24 h (`plateau-pnj.js` 3944) ;
+- expiration des convocations (`plateau-personnage.js` 1182, 1209) ;
+- étouffement d'un article, 7 jours (`supabase.js` 5584).
+
+**Remède** : l'échéance est posée par le serveur, à son heure (comme pour l'expulsion
+d'un ambassadeur).
+
+---
+
+## 4. Deux affichages
+
+- **Objets ajoutés par l'écran seul** : `addToInventory` (28 appels) et une vingtaine
+  de `state.inventory.push` ajoutent un objet sur l'écran, mais la sauvegarde ne
+  transmet plus l'inventaire : si l'action n'a pas aussi un passage serveur, l'objet
+  disparaît au rechargement (exemples à vérifier : achat d'arme, de poison, de gilet,
+  d'explosifs, récolte, reliques, tracts, actes d'état civil, documents d'urbanisme,
+  caisses de fret, contrebande, accessoires de club).
+- **Gains d'argent de l'ordre générique** (`crediterFondsOrdinaires`) : l'écran affiche
+  le gain, le serveur l'ignore à la sauvegarde ; il disparaît au rechargement.
+- **Listes qui ne vivent que dans l'écran** : `state.traites` (traités),
+  `state.referendums`, `state.guerres` et `state.ambassades` (vieux dispatcheur),
+  `state.prisonniers`, `state.assassinats`, `state.archivesJugements`,
+  `state.plaintesEnCours` (en partie rechargées du serveur).
+- **Annonces publiques** : `addExternalEvent` (153 appels) publie dans
+  `evenements_globaux` ce que l'écran a décidé (« GUERRE DÉCLARÉE », « SCANDALE », « réception
+  donnée »…), et la table accepte n'importe quel texte de n'importe quel joueur.
+- **Cache local** : la fiche est gardée dans le navigateur (`respublica_char_…`) et
+  affichée le temps que le serveur réponde ; c'est un affichage provisoire, sans
+  conséquence tant que la valeur du serveur l'écrase ensuite.
+- **Copies d'affichage** : `INDICES_NATIONAUX` (ISN, IE, IS) reste une constante en
+  mémoire, modifiée par l'écran (`plateau-politique.js`, `plateau-justice-economie.js`,
+  `plateau-navigation.js`, `plateau-organisations-quetes.js`) ; seul l'Indice
+  Diplomatique est désormais tenu par le serveur (25/10).
+
+---
+
+## 5. Code mort (aucun appelant), à supprimer
+
+- écritures vers des tables fermées, qui échoueraient : `sbSaveCompagnie`,
+  `sbCreerEngagement`, `sbCreerFaitArmes`, `sbArchiverLoi`, `sbCreerPari`,
+  `sbSavePresidentClub` (`supabase.js`) ;
+- tirages sans appelant : `calculerResultatElection`, `doCorrompreGardien`,
+  `doFalsifierDocs`, `interagirPnjTerrain`, `confirmerBourrerUrnes`,
+  `confirmerFalsifierListes` ;
+- `executerOrdreEmpire` (branches guerre, cessez-le-feu, sanctions) et `signerTraite`.
+
+---
+
+## 6. Corrigé la même nuit dans les chantiers de Claude
+
+- **Annonces publiques des ambassades** (réception, mécénat, accord diplomatique) :
+  écrites désormais par le serveur, dans la même opération que l'action
+  (`annonce_publique_interne`) ; le navigateur ne les écrit plus.
+- **Traités** : « Relations bilatérales » lit les traités réellement acceptés sur le
+  serveur (`diplomatie_traites_lire`) au lieu de la liste personnelle du lecteur.
+- Bureau de l'Emploi : aucun écart restant trouvé.
+- Migration `20261026010000` (registre 20261025223724), éprouvée en transaction annulée.
+
+---
+
+## Annexe A — tirages au sort décidés par le navigateur
+
+Fichier (sans le préfixe `plateau-`), fonction englobante, ligne. Les identifiants
+tirés au hasard et les effets purement visuels sont exclus.
+
+- **actions-illegales-rumeurs** : butin (l.214), checkScandale (l.3241), confirmerAchatExplosifs (l.2142), confirmerAssassinatArme (l.481), confirmerCorruptionRegistre (l.1817), confirmerEmpoisonnement (l.2541), confirmerIncendier (l.2208), confirmerRecolte (l.7044), doSeCacher (l.2858), ecouterRumeurs (l.710), explosifIdx (l.2299), isPays (l.1706), jetFinal (l.152), repere (l.2238)
+- **communication** : calculerResultatElection (l.1418), doLogePortail (l.1204), election (l.1407)
+- **divers** : doDemanderBenedictionContact (l.888), doSeConfeser (l.685), genererEvenementAleatoire (l.21), pieteVille (l.800), reclamerObjetTrouve (l.966)
+- **justice-economie** : candidats (l.12001), checkArrestationAuDeplacement (l.1016), checkArrestationAuReveil (l.1024), checkDetection (l.991), codetenu (l.2530), confirmerDonArgent (l.66), confirmerFalsification (l.2950), convocation (l.1113), cur (l.1232), detection (l.11254), disCaisse (l.10575), doCorrompreFonctionnairePermis (l.8918), doCorrompreGardien (l.4433), doCorruption (l.2303), doFalsifierDocs (l.4455), doTenterFuitePolice (l.11336), isn (l.2434), isnVille (l.12139), jet (l.13016), r (l.4285), resoudreControlePoliceAutomatique (l.11275), tenterFuite (l.1520), tenterResistance (l.1538), traiterEnquetes (l.796), verifierDecouverteCrimesPasses (l.2383)
+- **multijoueur** : confirmerDebauchage (l.1403), confirmerRecrutementCodetenu (l.65)
+- **navigation** : confirmerTransport (l.2680), doContrebandePort (l.2864), doControlDouanes (l.2800), doCorrompreDoanier (l.2827), doInspecterCargaisons (l.2951), doPasserDouanesAeroport (l.1405), syndicat (l.2923)
+- **organisations-quetes** : b (l.2893), buts (l.1867), confirmerEntrainement (l.4062), doForcerBlocus (l.3760), gele (l.328), lancerNouvelleQuete (l.171), notifierCompositionsEtBlessures (l.2612), ordre (l.1271), proba (l.2782), revendication (l.3662)
+- **personnage** : doCentreAntiPoison (l.2692), jeterObjetInventaire (l.3818)
+- **pnj** : appliquerEffetRumeur (l.2349), confirmerEscortPiege (l.3556), doExpulsionAcceleree (l.3874), doFaireDisparaitreCadavre (l.3915), etouffementActif (l.2710), interagirPnjTerrain (l.3644), lot (l.615), pnjInfo (l.2939), repondreNegociationParcelle (l.731), texteEchappe (l.2429)
+- **politique** : actifs (l.8451), censurer (l.9163), confirmerBourrerUrnes (l.2665), confirmerContesterResultats (l.2866), confirmerDementi (l.10210), confirmerEtatUrgence (l.7081), confirmerFalsifierListes (l.2599), confirmerMobilisation (l.12772), confirmerTruquerDepouillement (l.2759), executerOrdreFiscalCible (l.7825), jourSurv (l.12862), pnjInfoMariage (l.6882), rang (l.2603), signerDecretInutile (l.4691), taux (l.9999), verifierCouvreFeu (l.14151)
+- **router** : executerOrdreGenerique (l.873)

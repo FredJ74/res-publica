@@ -7286,12 +7286,10 @@ async function repondreDiplomatie(propositionId, accepte, pa, cost) {
   const config = DIPLOMATIE_CONFIG[p.type] || { gainAccepte: 0, perteRefus: 0, label: p.type };
 
   if (accepte) {
-    if (p.type === 'traite') {
-      if (!state.traites) state.traites = [];
-      state.traites.push({ empire: p.empireProposeur, type: p.details, jour: state.day });
-    }
+    // Le traite est enregistre par le serveur (statut 'acceptee') ; « Relations bilaterales » le
+    // relit avec diplomatie_traites_lire. Plus de copie dans l'etat personnel (audit R2).
     showToast(config.label + ' accepté(e)', '+' + config.gainAccepte + ' Indice Diplomatique pour les deux pays.', true, true);
-    addExternalEvent(config.label.toUpperCase() + ' : accord conclu entre ' + p.empireProposeurNom + ' et ' + (COUNTRIES[p.empireCible]?.n || p.empireCible) + '.');
+    // L'annonce publique est ecrite par diplomatie_repondre (serveur, 26/10/2026).
   } else {
     showToast(config.label + ' refusé(e)', '-' + config.perteRefus + ' Indice Diplomatique.', false);
     addJournalEntry(config.label + ' refusée avec ' + p.empireProposeurNom + '. -' + config.perteRefus + ' Indice Diplomatique.', 'event-bad');
@@ -9217,24 +9215,33 @@ function signerTraite() {
 // =====================
 const AMBASSADE_ROOM_EMPIRE_MAP = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
 
-function ouvrirRelationsBilaterales() {
+// RELATIONS BILATERALES : l'indice et les traites viennent du serveur (26/10/2026, audit R2) --
+// avant, on affichait les traites gardes dans l'etat personnel du lecteur.
+async function ouvrirRelationsBilaterales() {
   const empireId = AMBASSADE_ROOM_EMPIRE_MAP[state.currentRoom];
   if (!empireId) return;
   const empireName = COUNTRIES[empireId]?.n || empireId;
-  const idActuel = INDICES_NATIONAUX[empireId]?.ID ?? 50;
-  const traitesActifs = (state.traites || []).filter(t => t.empire === empireId);
   document.getElementById('postes-modal-title').textContent = 'Relations bilatérales — ' + empireName;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.85rem;margin-bottom:.6rem">Indice Diplomatique actuel : <strong>' + idActuel + '</strong></div>';
-  if (traitesActifs.length === 0) {
-    html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic">Aucun traité en vigueur.</div>';
+  document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue"><p class="cpj-note" style="font-style:italic">Chargement…</p></div>';
+  document.getElementById('modal-postes').classList.add('open');
+  await chargerIndicesDiplomatiques().catch(() => {});
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('diplomatie_traites_lire', { p_empire: empireId }).catch(() => null) : null;
+  const idActuel = INDICES_NATIONAUX[empireId]?.ID;
+  let html = '<div class="cpj-dialogue">';
+  html += '<p class="cpj-note" style="margin:0 0 .6rem">Indice Diplomatique de ' + empireName + ' : <strong>' + (typeof idActuel === 'number' ? idActuel : '—') + '</strong></p>';
+  if (!v || v.ok !== true) {
+    html += '<p class="cpj-note">Le serveur n\'a pas répondu.</p>';
+  } else if (!v.traites.length) {
+    html += '<p class="cpj-note" style="font-style:italic">Aucun traité en vigueur.</p>';
   } else {
-    html += '<div style="font-size:.82rem;margin-bottom:.4rem">Traités en vigueur :</div>';
-    traitesActifs.forEach(t => { html += '<div style="font-size:.8rem;color:#c0b090">— ' + t.type + ' (Jour ' + t.jour + ')</div>'; });
+    html += '<p class="cpj-note" style="margin:0 0 .3rem">Traités en vigueur :</p>';
+    v.traites.forEach(t => {
+      const d = t.le ? new Date(t.le) : null;
+      html += '<p class="cpj-note" style="margin:0">— ' + String(t.type || 'traité').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) + (d && !isNaN(d) ? ' (' + d.toLocaleDateString('fr-FR') + ')' : '') + '</p>';
+    });
   }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
 }
 
 // L'ordre « Corrompre un homologue local » est SUPPRIME (Fred, 25/10/2026) : Human Gambit laisse
@@ -9287,11 +9294,10 @@ async function doOrganiserReceptionDiplomatique(pa, cost) {
   const n = Number(v.invites) || 0;
   if (n === 0) {
     showToast('Réception ratée', 'Personne n\'est venu dans la Salle de Réception. -3 Indice Diplomatique, -3 popularité.', false);
-    addExternalEvent('DIPLOMATIE : la réception de l\'ambassade de ' + empireName + ' s\'est tenue devant une salle vide.');
   } else {
     showToast('Réception réussie', n + ' invité' + (n > 1 ? 's' : '') + ' présent' + (n > 1 ? 's' : '') + '. +' + v.delta_indice + ' Indice Diplomatique, +' + v.delta_pop + ' popularité.', true);
-    addExternalEvent('DIPLOMATIE : réception donnée à l\'ambassade de ' + empireName + ' (' + n + ' invité' + (n > 1 ? 's' : '') + ').');
   }
+  // L'annonce publique est ecrite par le serveur, avec la reception (26/10/2026, audit R10).
 }
 
 // Reservation de la Salle de Reception, prise a l'accueil, par le serveur (25/10/2026) : reservee
@@ -9325,7 +9331,7 @@ async function doFinancerOeuvreCulturelle(pa, cost) {
   if (!v || v.ok !== true) { signalerRefusAmbassadeur(v, 'Mécénat impossible'); return; }
   appliquerResultatAmbassadeur(v);
   showToast('Mécénat culturel', 'Une œuvre a été financée localement. +8 popularité, +3 Indice Diplomatique.', true);
-  addExternalEvent('SOFT POWER : ' + (COUNTRIES[empireId]?.n || empireId) + ' finance une œuvre culturelle.');
+  // L'annonce publique est ecrite par le serveur (26/10/2026, audit R10).
 }
 
 // Ordres de l'accueil, ouverts a tous (pas reserves a l'ambassadeur)
