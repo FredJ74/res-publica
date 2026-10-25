@@ -42,6 +42,23 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   ambassadeur PNJ dedans. Fonctions `ambassade_*` **appliquées en production**
   (registre 20261024185323 et 20261024185346), baseline pas encore
   réextrait. Passe de nuit ajoutée dans `api/cron-minuit.js`.
+- 25/10 : voyants de la messagerie synchronisés (bouton « Messages/Forums »,
+  « Boîte Mail », « Mails reçus » lisent la même copie de ce que rend le
+  serveur), et règle commune : **l'agent fusionne lui-même** quand les
+  contrôles passent (voir `AGENTS.md`).
+- 25/10 : **`GAME-DESIGN-AMBASSADES.md`**, la référence des décisions de Fred
+  (secrétaires PNJ, naturalisation, transfert de détenus, asile, valise,
+  immunité, réceptions ; visas et dépêches écartés). Portes du hall
+  cliquables et onglets avec infobulle « Accès limité : il faut avoir une
+  invitation. » (branche `claude/portes-ambassades-20261025`, fonction
+  `ambassade_acces_bureaux` appliquée, registre 20261025002311).
+- 25/10 nuit : **asile politique** (branche `claude/asile-ambassades-20261025`) :
+  demande à l'accueil (2 PA), décision de l'ambassadeur PNJ selon le dossier
+  (recherché ou affaire vivante) sous 0 à 3 jours, mail ; le réfugié entre
+  dans le bureau de son ambassade et ne peut pas être arrêté au Quartier des
+  Ambassades (patch de `detention_ouvrir_interne` et `police_detection_verifier`,
+  + déclencheur filet). Trois migrations appliquées (registre 20261025004912,
+  20261025004941, 20261025005227).
 - Prochaines étapes, **après réponses de Fred** :
   1. BNE B1 (le mail d'arbitrage rejoué peut faire perdre l'emploi) :
      migration de `bne_agir` + test ;

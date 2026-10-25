@@ -16,9 +16,27 @@ async function verifierNouveauxMails() {
   if (state.audiencesEnAttente && typeof rafraichirAudiencesAmbassade === 'function') {
     await rafraichirAudiencesAmbassade().catch(() => null);
   }
+  const personnage = state.char;
   try {
     const mails = await sbGetMailsFor(nom);
-    const nonLus = (mails || []).filter(m => !m.read && m.to_player === nom).length;
+    if (state.char !== personnage || state.char?.name !== nom) return;
+    // Lecture refusee ou en panne : les voyants gardent leur etat, jamais un faux « 0 ».
+    if (!Array.isArray(mails)) return;
+    // UNE SEULE SOURCE POUR TOUS LES VOYANTS (25 octobre 2026). Ce que le serveur vient de rendre
+    // est d'abord recopie dans le cache local, celui que lisent la barre laterale et les
+    // rubriques de la messagerie. Le voyant du bouton, celui de « Boite Mail » et celui de
+    // « Mails recus » comptent alors la meme chose, au meme instant, avec la meme definition
+    // (mailsRecusVisibles : recus, non archives). Avant, le bouton comptait cote serveur, archives
+    // comprises, et les rubriques attendaient l'ouverture de la messagerie pour se mettre a jour.
+    const cacheEcrit = (mails && typeof fusionnerMailsServeur === 'function') ? fusionnerMailsServeur(mails) : false;
+    if (cacheEcrit && typeof rafraichirVoyantMailLocal === 'function') {
+      rafraichirVoyantMailLocal();
+      if (typeof rafraichirVoyantsEtCompteursForum === 'function') rafraichirVoyantsEtCompteursForum();
+      return;
+    }
+    // Repli si le cache local ne peut pas etre ecrit (quota du navigateur) : le bouton garde au
+    // moins le compte du serveur, avec la meme definition que les rubriques.
+    const nonLus = (mails || []).filter(m => !m.read && !m.archived && m.to_player === nom).length;
     const badge = document.getElementById('mail-badge');
     if (badge) {
       if (nonLus > 0) {
@@ -28,12 +46,7 @@ async function verifierNouveauxMails() {
         badge.style.display = 'none';
       }
     }
-    // Mettre à jour le titre de la page
-    if (nonLus > 0) {
-      document.title = '(' + nonLus + ') Res Publica';
-    } else {
-      document.title = 'Res Publica';
-    }
+    document.title = nonLus > 0 ? '(' + nonLus + ') Res Publica' : 'Res Publica';
   } catch(e) {}
 }
 
