@@ -1,7 +1,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),acorn=require('../vercel/node_modules/acorn');
 const source=fs.readFileSync('plateau-jets-commandes.js','utf8');
 function fixture(stockage=new Map()){
- const appels=[],messages=[],c=vm.createContext({console,Map,Symbol,JSON,Number,Object,Array,crypto:{randomUUID:()=> 'uuid-fixture-'+Math.random()},sessionStorage:{getItem:k=>stockage.get(k)||null,setItem:(k,v)=>stockage.set(k,v),removeItem:k=>stockage.delete(k)},state:{char:{name:'Fixture'},country:'republic',currentCity:'capitale',currentBuilding:'armurerie',currentRoom:'magasin',_inventaireGeneration:0,_dernierUpdatedAtConnu:'ancien'},uid:'uid-fixture',session:'session-fixture',showToast:(...x)=>messages.push(x),updateUI:()=>{},addJournalEntry:()=>{},document:{getElementById:()=>null,querySelector:()=>({value:'Autre'})}});
+ const appels=[],messages=[],c=vm.createContext({console,Map,Symbol,JSON,Number,Object,Array,setTimeout,clearTimeout,crypto:{randomUUID:()=> 'uuid-fixture-'+Math.random()},sessionStorage:{getItem:k=>stockage.get(k)||null,setItem:(k,v)=>stockage.set(k,v),removeItem:k=>stockage.delete(k)},state:{char:{name:'Fixture'},country:'republic',currentCity:'capitale',currentBuilding:'armurerie',currentRoom:'magasin',_inventaireGeneration:0,_dernierUpdatedAtConnu:'ancien'},uid:'uid-fixture',session:'session-fixture',showToast:(...x)=>messages.push(x),updateUI:()=>{},addJournalEntry:()=>{},document:{getElementById:()=>null,querySelector:()=>({value:'Autre'})}});
  c.rpAuthUid=()=>c.uid;c.rpAuthJeton=()=>c.session;c.rpAuthSessionIdentifiant=()=>c.session;
  c.contexteNavigationRue=()=>({uid:c.uid,nom:c.state.char.name,char:c.state.char,pays:c.state.country,session:c.session});
  c.contexteNavigationRueValide=x=>x.uid===c.uid&&x.char===c.state.char&&x.pays===c.state.country&&x.session===c.session;
@@ -74,4 +74,22 @@ test('suspension explicite : aucun retour à un ordre historique',async()=>{
 test('suspension avec reçu en attente : reprise du même UUID seulement',async()=>{
  const f=fixture();f.c.resultat={ok:false,transport:{etat:'reseau'}};await f.c.l09Intercepter('vol',{});const id=f.appels.at(-1).p.p_requete;
  f.c.contrat.actesAtomiques=0;f.c.contrat.actesSuspendus=true;f.c.resultat={ok:true,rejeu:true,succes:true,butin:'rien'};await f.c.l09Intercepter('vol',{});assert.equal(f.appels.at(-1).p.p_requete,id);assert.equal(f.stockage.size,0);
+});
+
+test('soldes et PA nuls restent nuls après relecture',async()=>{
+ const f=fixture();f.c.frais.pa=0;f.c.frais.hp=0;f.c.frais.pop=0;await f.c.l09Intercepter('vol',{});assert.equal(f.c.state.pa,0);assert.equal(f.c.state.char.pa,0);assert.equal(f.c.state.hp,0);assert.equal(f.c.state.pop,0);
+});
+test('nom reçu du serveur : journal échappé, objet et toast inchangés',async()=>{
+ const f=fixture(),journal=[];f.c.addJournalEntry=t=>journal.push(t);f.c.resultat={ok:true,succes:true,objet:{name:'<img src=x onerror=alert(1)>'},prix:750};await f.c.l09Intercepter('achat_arme_illegal',{});assert.ok(journal[0].includes('&lt;img'));assert.ok(!journal[0].includes('<img'));assert.ok(f.messages.some(m=>m[1].includes('<img')));
+});
+
+test('délai dépassé : libérer le verrou mais garder le même UUID et ignorer la réponse tardive',async()=>{
+ const f=fixture(),timers=new Map();let index=0,finir;
+ f.c.setTimeout=fn=>{timers.set(++index,fn);return index;};f.c.clearTimeout=id=>timers.delete(id);
+ f.c.sbRpcVerdict=async(fn,p)=>{f.appels.push({fn,p});return fn==='religion_benediction_lire'?f.c.contrat:new Promise(r=>finir=r);};
+ const a=f.c.l09Intercepter('vol',{});for(let i=0;i<12&&!finir;i++)await Promise.resolve();assert.ok(finir);assert.equal(timers.size,1);const cle=f.appels.at(-1).p.p_requete;
+ [...timers.values()][0]();await a;assert.equal(f.stockage.size,1);assert.equal(f.c.state.pa,undefined);assert.equal(timers.size,0);
+ f.c.sbRpcVerdict=async(fn,p)=>{f.appels.push({fn,p});return fn==='religion_benediction_lire'?f.c.contrat:{ok:true,rejeu:true,succes:true,butin:'rien'};};
+ await f.c.l09Intercepter('vol',{});assert.equal(f.appels.at(-1).p.p_requete,cle);assert.equal(f.c.state.pa,42);
+ finir({ok:true,succes:true,pa:999});await Promise.resolve();assert.equal(f.c.state.pa,42);
 });

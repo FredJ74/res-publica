@@ -7,7 +7,7 @@ SELECT p.oid::regprocedure::text AS signature,md5(p.prosrc) AS empreinte,p.proco
 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN
  ('religion_benediction_lire','religion_benediction_demander','religion_benediction_consommer_interne',
  'pnj_position_effective','pnj_co_present','terrain_negociation_jet_interne','payer_ordre','mon_personnage',
- 'ordres_jets_commande','evasion_commande','justice_condamnation_poser_interne','justice_peine_effective_interne','detention_prolonger_interne','rp_transition_active','vol_commande','vol_hasard_interne','chantier_vol_commande','arme_clandestine_commande','inventaire_reception_etat','inventaire_reclamer_livraison','inventaire_revision_garder','indice_ville_ajuster_interne','acteur_poste_courant','filature_deplacements','police_filature_commande','personnage_stat_jet_interne','personnage_securite_jet_interne','commissaire_enqueter','plainte_instruire_interne','plainte_instruire_trace_interne','police_enquete_commande','police_chasse_commande','affaire_transmettre','dossier_acte_consigner','justice_recherches','justice_executer_condamnation','justice_executer_condamnation_soi','police_detection_verifier','ambassade_refuge_de','ambassade_refugie_protege','personnages_proteger_refugie','commerce_vendre_produit_interne','commerce_vendre_produit','assemblee_cle_convocation','mail_systeme_poser_interne','contre_espionnage_resoudre','contre_espionnage_memoriser','personnages_preserver_judiciaire','detention_clore_evasion',
+ 'ordres_jets_recu_interne','ordres_jets_refuser_legacy','vol_legacy_inserer_garder','ordres_jets_commande','evasion_commande','justice_condamnation_poser_interne','justice_peine_effective_interne','detention_prolonger_interne','rp_transition_active','vol_commande','vol_hasard_interne','chantier_vol_commande','arme_clandestine_commande','inventaire_reception_etat','inventaire_reclamer_livraison','inventaire_revision_garder','indice_ville_ajuster_interne','acteur_poste_courant','filature_deplacements','police_filature_commande','personnage_stat_jet_interne','personnage_securite_jet_interne','commissaire_enqueter','plainte_instruire_interne','plainte_instruire_trace_interne','police_enquete_commande','police_chasse_commande','affaire_transmettre','dossier_acte_consigner','justice_recherches','justice_executer_condamnation','justice_executer_condamnation_soi','police_detection_verifier','ambassade_refuge_de','ambassade_refugie_protege','personnages_proteger_refugie','commerce_vendre_produit_interne','commerce_vendre_produit','assemblee_cle_convocation','mail_systeme_poser_interne','contre_espionnage_resoudre','contre_espionnage_memoriser','personnages_preserver_judiciaire','detention_clore_evasion',
  'detention_clore_interne','recherche_inscrire','terrain_chantier_acte','caisse_institution_mouvement',
  'caisse_client_mouvement','helvetia_debiter_fonds_ordinaires','helvetia_crediter_destination') ORDER BY 1;
 SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,c.relacl,a.attname,format_type(a.atttypid,a.atttypmod),a.attnotnull FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_attribute a ON a.attrelid=c.oid
@@ -20,7 +20,7 @@ AND tablename IN('religion_benedictions','religion_benedictions_recus','religion
 SELECT t.tgrelid::regclass::text AS relation,t.tgname,pg_get_triggerdef(t.oid) AS declencheur,
  p.oid::regprocedure::text AS fonction,md5(p.prosrc) AS empreinte,p.proconfig,p.proacl,pg_get_functiondef(p.oid) AS definition
 FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid WHERE NOT t.tgisinternal AND t.tgrelid IN
- (to_regclass('public.personnages'),to_regclass('public.personnages_donnees'),to_regclass('public.terrains_etat'),to_regclass('public.actions_tracables'),
+ (to_regclass('public.vols_en_attente'),to_regclass('public.personnages'),to_regclass('public.personnages_donnees'),to_regclass('public.terrains_etat'),to_regclass('public.actions_tracables'),
  to_regclass('public.detentions'),to_regclass('public.jugements'),to_regclass('public.plaintes_en_cours'),
  to_regclass('public.dossiers_judiciaires_actes'),to_regclass('public.objets_recus'),to_regclass('public.caisses_batiments'),to_regclass('public.evenements_globaux')) ORDER BY 1,2;
 -- Rechercher les compteurs effectivement persistés, sans exporter de personnage.
@@ -29,4 +29,8 @@ FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='publ
 AND (p.prosrc LIKE '%joursDetenuDeserteur%' OR p.prosrc ~* 'desert[a-z_]*.{0,80}detention');
 SELECT table_name,grantee,privilege_type FROM information_schema.table_privileges
 WHERE table_schema='public' AND table_name IN('personnages','personnages_donnees','vols_en_attente','armes_clandestines_recus','vols_commandes_recus','evasions_recus','evasions_jours','rp_transitions') ORDER BY 1,2,3;
+-- État de bascule existant et arriéré legacy : lecture agrégée, aucune purge.
+SELECT cle,actif,note FROM public.rp_transitions WHERE cle LIKE 'actes_jets_atomiques_%' ORDER BY cle;
+SELECT type_butin,count(*) AS en_attente,count(*) FILTER(WHERE montant<0) AS credits_legacy
+FROM public.vols_en_attente WHERE traite IS NOT TRUE GROUP BY type_butin ORDER BY type_butin;
 ROLLBACK;

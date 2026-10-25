@@ -17,12 +17,26 @@ function l09MessageRefus(r){
   return messages[r?.raison]||'Le serveur a refusé cet ordre. Aucun succès n’est confirmé.';
 }
 function l09Cle(ordre,c,id){return 'hg-jet:'+JSON.stringify([c.uid,id,ordre]);}
+async function l09Rpc(fn,parametres,c){
+  if(!['religion_benediction_lire','ordres_jets_commande'].includes(fn))throw new Error('transport_jet_non_autorise');
+  let delai,expire=false;
+  const limite=new Promise(resolve=>{delai=setTimeout(()=>{expire=true;resolve({ok:false,transport:{etat:'indetermine'}});},15000);});
+  try{
+    // Le délai ne prouve pas un refus serveur : le même UUID restera à reprendre.
+    const options={encoreValide:()=>!expire&&contexteNavigationRueValide(c)};
+    // Noms explicites : le contrôle d’autorité doit continuer de voir les deux RPC.
+    const appel=(fn==='religion_benediction_lire'
+      ?sbRpcVerdict('religion_benediction_lire',parametres,options)
+      :sbRpcVerdict('ordres_jets_commande',parametres,options)).catch(()=>null);
+    return await Promise.race([appel,limite]);
+  }finally{clearTimeout(delai);}
+}
 async function l09Intercepter(ordre,parametres){
   if(!L09_RPC[ordre])throw new Error('ordre_jet_inconnu');
   if(l09EnCours)return true;
   const c=contexteNavigationRue();l09EnCours=true;
   try{
-    const contrat=await sbRpcVerdict('religion_benediction_lire',{}, {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
+    const contrat=await l09Rpc('religion_benediction_lire',{},c);
     if(!contexteNavigationRueValide(c))return true;
     // Un ancien serveur ne possède pas ce service ; aucun nouvel hôte n'est appelé.
     if(contrat?.transport?.http===404&&contrat.transport.code==='PGRST202')return false;
@@ -40,7 +54,7 @@ async function l09Intercepter(ordre,parametres){
       }
       sessionStorage.setItem(cle,JSON.stringify(intention));
     }catch(_){showToast('Ordre non lancé','La reprise sûre de cette commande ne peut pas être enregistrée.',false);return true;}
-    const r=await sbRpcVerdict('ordres_jets_commande',{p_personnage:contrat.personnageId,p_ordre:ordre,p_parametres:intention.parametres,p_requete:intention.requete}, {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
+    const r=await l09Rpc('ordres_jets_commande',{p_personnage:contrat.personnageId,p_ordre:ordre,p_parametres:intention.parametres,p_requete:intention.requete},c);
     if(!contexteNavigationRueValide(c))return true;
     if(!r?.ok){
       if(r&&!r.transport){sessionStorage.removeItem(cle);showToast('Ordre refusé',l09MessageRefus(r),false);}
@@ -84,7 +98,11 @@ function l09AfficherResultat(ordre,r){
     if(r.succes)l09AfficherRapport(r);
   }
   showToast(titre,texte,positif,true);
-  if(typeof addJournalEntry==='function')addJournalEntry(titre+' — '+texte,positif?'event-good':'event-info');
+  if(typeof addJournalEntry==='function'){
+    const brut=titre+' — '+texte;
+    const journal=typeof escapeHtmlText==='function'?escapeHtmlText(brut):brut.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    addJournalEntry(journal,positif?'event-good':'event-info');
+  }
 }
 function l09AfficherRapport(r){
   const h=document.getElementById('postes-modal-title'),b=document.getElementById('postes-body'),m=document.getElementById('modal-postes');if(!h||!b||!m)return;
