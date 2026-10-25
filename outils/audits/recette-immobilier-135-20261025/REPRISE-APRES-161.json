@@ -1,0 +1,36 @@
+{
+  "reference_main": "5dcdc476ed9f57d49c9a0a2cf21a15bb782b15a5",
+  "correctif_161_present_dans_git": true,
+  "checks_github": {
+    "resultat_signale_par_responsable": "5 reussis",
+    "consulte_independamment": false
+  },
+  "vercel": {
+    "build_local_non_ignore": true,
+    "commit_precedent_examine": "87f39bbfa7a6f1b960041b09704e1432d06c6a71",
+    "https": "TUNNEL_PROXY_403",
+    "statut_applicatif_obtenu": false,
+    "deploiement_verifie": false
+  },
+  "actions": {
+    "declenchement_tente": true,
+    "workflow": "beta-testeur-luthecia.yml",
+    "ref": "main",
+    "mode": "consultation_seule",
+    "resultat": "GET_METADATA_FORBIDDEN",
+    "lancement_confirme": false,
+    "rapports_distants_recuperes": false
+  },
+  "authentification_arnie_executee_par_session": false,
+  "visites_authentifiees_confirmees_par_session": 0,
+  "modifications_authentification": false,
+  "modifications_patrimoine": false,
+  "migrations_appliquees": [],
+  "tests_anterieurs_conserves_sans_reexecution": {
+    "pilote": 88,
+    "bancs_clients": 105,
+    "parcours_postgresql_assertions": 324,
+    "permis_postgresql_assertions": 56
+  },
+  "limite": "La campagne consultation_seule conserve le verrou de deplacement et ne peut pas prouver cinq visites."
+}

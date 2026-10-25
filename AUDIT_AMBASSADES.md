@@ -178,3 +178,29 @@ par des fonctions serveur.
 4. **Asile politique** : contre quoi protège-t-il, et qui l'accorde ?
 5. **Indice Diplomatique** : le rendre réel et partagé, ou le retirer de
    l'affichage tant qu'il ne l'est pas ?
+
+---
+
+## 6. Bilan au 25 octobre 2026 (soir)
+
+**Réglé** : R3 (audience décidée par le serveur, sans refus), R7 (accès aux bureaux
+décidé par le serveur, portes et onglets), R8 (asile politique réel : décision selon
+le dossier, protection au Quartier des Ambassades). Trois ambassadeurs PNJ reçoivent
+sur audience.
+
+**Encore vrai aujourd'hui, et atteignable en bêta** (le Ministre des Affaires
+étrangères est un joueur) : la fenêtre « Ambassades et ambassadeurs » ouvre, nomme,
+démet et expulse sans attendre la base (R5), avec l'horloge du joueur (R6) et une
+menace d'arrestation qui n'existe pas (R9). Effet réel nul tant que les autres
+empires ne sont pas codés, mais 2 PA dépensés et des annonces publiques fausses.
+→ en attente de la décision « Bientôt disponible ».
+
+**Inatteignable aujourd'hui** (aucun ambassadeur joueur à Luthécia) : R1, R2, R4,
+R10, R11, R12 (la table des ambassades est vide).
+
+**Décidé, à coder avec les autres empires** : naturalisation, transfert de détenus,
+valise, immunité et arrestation de l'expulsé, réceptions, branche de l'ambassadeur
+joueur, secrétaires d'ambassadeur.
+
+**Questions ouvertes** : Indice Diplomatique ; « faveur » de la corruption ; ordres
+non raccordables en « Bientôt disponible » ; portraits des trois ambassadeurs.

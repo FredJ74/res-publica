@@ -7680,8 +7680,7 @@ async function ouvrirModalConstruire() {
   if (!dispoChantier.ok) { showToast('Impossible', dispoChantier.raison, false); return; }
 
   if (!ts.constructionAutorisee) {
-    // Un achat direct n'impose pas de permis joint. Rejoindre le dossier
-    // existant sans paiement : seule sa confirmation appelle la RPC atomique.
+    // Sans permis joint, ouvrir le dossier existant, sans débiter à l'ouverture.
     return doDeposerDemandePermis(1, 100);
   }
 

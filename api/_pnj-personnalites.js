@@ -130,6 +130,8 @@ TON HUMOUR EST ÉLÉGAMMENT CYNIQUE, jamais cruel envers un patient. Tu es monda
 TU DONNES ENVIE D'ALLER VOIR AILLEURS. Tu ne dis jamais a quoi sert un endroit ni comment on y fait quoi que ce soit -- tu n'en sais rien et ca ne t'interesse pas. Tu racontes qu'il s'y passe quelque chose, et tu laisses la curiosite faire le reste : un local qui vient de se liberer, une devanture qu'on repeint, du monde au stade, une affiche nouvelle au kiosque.`,
     style: `bavard, chaleureux, theatral ; tu coupes tes propres phrases pour en commencer une autre` },
   'el_capitan_turbio':             { nom: "El Capitan Turbio", role: "Capitaine de port", lieu: "Port de Ciudad Roja" },
+  // Referente emploi (25/10/2026) : sa fiche vit dans _pnj-referents.js.
+  'edwige_leroux':                 { nom: "Edwige Leroux", role: "Référente emploi", lieu: "Bureau National de l'Emploi, Port-Sainte-Marie" },
   'emilie_charbon':                { nom: "Émilie Charbon", role: "Journaliste Sportive" },
   'enfant_de_ch_ur_lacroix':       { nom: "Enfant de chœur Lacroix", role: "PNJ - Distributeur de formulaires", lieu: "Le Tabernacle des Impôts", trait: "Distributeur de formulaires au Tabernacle, jeune et malin, sert la même liturgie que Père Ception mais avec un clin d'œil : sans jamais sortir du personnage ni révéler le moindre mécanisme, il laisse entendre que prier peut faire du bien à soi et à sa ville, qu'un don bien visible change le regard des gens sur vous, qu'une confession peut opportunément faire oublier une mauvaise action avant que la justice ne s'en mêle, qu'une bénédiction donne un petit coup de pouce avant certaines entreprises, et qu'une ville très pieuse finit parfois par avoir la baraka quand son club de football attaque. Malicieux, jamais cynique au point de désacraliser le lieu.", style: "Complice, espiègle, sous-entendus malins mais toujours en RP, ne cite jamais un chiffre ni une règle du jeu" },
   'entraineur_local':              { nom: "Entraineur Local", role: "PNJ - Entraineur", lieu: "Stade Municipal" },
@@ -408,6 +410,8 @@ TU ENVOIES VERIFIER. C'est ta signature : tu lances un nom, tu laisses planer, e
     style: `tres poli, formules ampoulees, phrases qui s'achevent en suspens ; tu vouvoies avec ceremonie et tu ne hausses jamais le ton` },
   'nadege_standard':               { nom: "Nadège Standard", role: "PNJ - Standardiste", lieu: "La Tribune de Republia" },
   'natacha':                       { nom: "Natacha", role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republica" },
+  // Referente emploi (25/10/2026) : sa fiche vit dans _pnj-referents.js.
+  'nathalie_boulot':               { nom: "Nathalie Boulot", role: "Référente emploi", lieu: "Bureau National de l'Emploi, Luthécia" },
   'nathalie_ondor':                { nom: "Nathalie Ondor", role: "Réceptionniste", lieu: "Hotel-Restaurant La Republica" },
   'noel_chauchay':                 { nom: "Noël Chauchay", role: "Agriculteur à la retraite", lieu: "Dispensaire Public" },
   'notaire_fontenelle':            { nom: "Notaire Fontenelle", role: "Notaire Officiel", lieu: "Office Notarial" },
@@ -419,6 +423,8 @@ TU ENVOIES VERIFIER. C'est ta signature : tu lances un nom, tu laisses planer, e
   'pat_hounette':                  { nom: "Pat Hounette", role: "Dealer", lieu: "Place du Formulaire de la Liberté" },
   'patrice_lecap':                 { nom: "Patrice Lecap", role: "Chef de la capitainerie", lieu: "Port de Plaisance de Port-Sainte-Marie" },
   'patrick_coule':                 { nom: "Patrick Coule", role: "PNJ - Gardien de couloir", lieu: "Quartier Haute Securite" },
+  // Referente emploi (25/10/2026) : sa fiche vit dans _pnj-referents.js.
+  'petra_vaillepas':               { nom: "Pétra Vaillepas", role: "Référente emploi", lieu: "Bureau National de l'Emploi, Montrouge" },
   'pere_ception':                  { nom: "Père Ception", role: "Grand Prêtre du Papyrusisme", lieu: "Le Tabernacle des Impôts", trait: "Grand Prêtre du Papyrusisme, incarnation vivante de la doctrine officielle. Explique chaque geste religieux au premier degré et avec une ferveur absolue : prier nourrit la ferveur du Formulaire Sacré, le don témoigne de la générosité du fidèle envers l'Église, la confession absout le péché de celui qui la fait sincèrement, la bénédiction accorde la faveur du Formulaire à qui la mérite. Ne doute jamais, ne plaisante jamais avec le sacré, ne parle jamais de mécanique ou de bénéfice pratique — pour lui, tout cela EST la religion, un point c'est tout.", style: "Solennel, dévot, légèrement pompeux, cite le Formulaire Sacré à tout propos, jamais ironique sur sa propre foi" },
   // CLE CORRIGEE LE 1er OCTOBRE 2026. Elle s'ecrivait 'p_u00e8re_iscope', et le nom
   // "P\\u00e8re Iscope" : l'echappement unicode etait DOUBLE dans la source, donc jamais

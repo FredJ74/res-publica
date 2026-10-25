@@ -1,0 +1,91 @@
+{
+  "reference_main": "5dcdc476ed9f57d49c9a0a2cf21a15bb782b15a5",
+  "nature": "attendu extrait du depot, non observe sur Vercel",
+  "origine_attendue": "https://res-publica.vercel.app",
+  "ressources": [
+    {
+      "chemin": "plateau.html",
+      "url_attendue": "https://res-publica.vercel.app/plateau.html",
+      "sha256_attendu": "a025d8c660490d3235930d209031bfe9190091c0a1c63dc002c971b89824fc48",
+      "octets_attendus": 56578,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "data.js",
+      "url_attendue": "https://res-publica.vercel.app/data.js?v=referentes-20261025",
+      "sha256_attendu": "7375e330e56257f299ae2793872465be1a8145879895619fd6cccf401f747cf6",
+      "octets_attendus": 669721,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "plateau-justice-economie.js",
+      "url_attendue": "https://res-publica.vercel.app/plateau-justice-economie.js?v=permis135-fix-20261025",
+      "sha256_attendu": "e1aacac598d0bf0d85dd54a856d69ed39eacc27aca46130076f5d59c8cbca928",
+      "octets_attendus": 986519,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "plateau-terrain-banque.js",
+      "url_attendue": "https://res-publica.vercel.app/plateau-terrain-banque.js?v=finance135-20261025",
+      "sha256_attendu": "ea4174007c85623fd3c5da0602f24a0762ebe8e87b753e368d3eac834fd423e3",
+      "octets_attendus": 5301,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "plateau-construction-commandes.js",
+      "url_attendue": "https://res-publica.vercel.app/plateau-construction-commandes.js?v=2",
+      "sha256_attendu": "a9244d75e40243d16153bd70b52ec6a74aada0c16e67f34e7708b0ebf12d7a88",
+      "octets_attendus": 11267,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "plateau-chantiers.js",
+      "url_attendue": "https://res-publica.vercel.app/plateau-chantiers.js?v=chantier-taux-20261025",
+      "sha256_attendu": "0b594846b393651054f882f0517e97f7eef7f3e790e44830d254f09eae91e30a",
+      "octets_attendus": 59199,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "plateau-politique.js",
+      "url_attendue": "https://res-publica.vercel.app/plateau-politique.js?v=276",
+      "sha256_attendu": "da9a7275ed77485ea30ab66f52ef0257e81b46a924a8c9f8f02dc17508baf762",
+      "octets_attendus": 943129,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "plateau-router.js",
+      "url_attendue": "https://res-publica.vercel.app/plateau-router.js?v=virements-20261025",
+      "sha256_attendu": "d7c68550a037456c5225023b945d790df52e45e25686cb14f80a8f7b19ccdafe",
+      "octets_attendus": 76813,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "plateau-navigation.js",
+      "url_attendue": "https://res-publica.vercel.app/plateau-navigation.js?v=portes-20261025",
+      "sha256_attendu": "e8718a91ff4ba723a36d3770e87b51cd2266274a8d0415cc5861941e04c5b242",
+      "octets_attendus": 177174,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "supabase.js",
+      "url_attendue": "https://res-publica.vercel.app/supabase.js?v=265",
+      "sha256_attendu": "c2a908ec36e619f2c40685bfb71746e98be368d28d866c0fa688fbb705053b10",
+      "octets_attendus": 387616,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "auth.js",
+      "url_attendue": "https://res-publica.vercel.app/auth.js?v=8",
+      "sha256_attendu": "103e55a8d42e3fe77628c68494f09a1674e52d5f404432e761b80ca7fdf80109",
+      "octets_attendus": 30055,
+      "observe_en_production": false
+    },
+    {
+      "chemin": "images/terrain-a-vendre-republic.webp",
+      "url_attendue": "https://res-publica.vercel.app/images/terrain-a-vendre-republic.webp",
+      "sha256_attendu": "b7be508636092dfdbb760b4bd6b0c358d43708374691897ddfffd80a58f7829c",
+      "octets_attendus": 357608,
+      "observe_en_production": false
+    }
+  ]
+}

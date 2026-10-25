@@ -5,19 +5,19 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### #135 — Recette Chromium immobilière limitée, reprise du 25 octobre
+### #135 — Clôture de recette après intégration #161
 
-- Branche isolée `codex/recette-immobilier-135-20261025`, issue de main `40b6fe0`. Ne pas y importer les composants privés L09 de la branche précédente. Les virements et le salaire horaire de chantier de Claude sont conservés.
-- Pilote existant retrouvé : `outils/e2e/luthecia.cjs`, garde `consultation.cjs`, workflow manuel `beta-testeur-luthecia.yml` et environnement `luthecia-e2e`. Aucun compte créé, aucune authentification modifiée, aucun secret extrait.
-- Défaut reproduit sur les cinq interfaces Chromium locales : après achat sans permis, « Construire » bloquait sans accès au dossier. Le handler commun rejoint maintenant `doDeposerDemandePermis`, après ses gardes d'occupation/chantier/bâtiment, sans prélèvement à l'ouverture. RPC et tarifs inchangés.
-- Défaut du pilote : un test d'identité importait Acorn depuis le constructeur Vercel, absent de son workflow. Dépendance déclarée/verrouillée dans le pilote ; reproduction avant/après dans un répertoire sans Vercel. Aucun changement d'auth.js.
-- Vérifications : 88/88 tests du pilote, 105/105 bancs clients, 25 tests clients ciblés, 61 assertions banque/terrain et 324 parcours des cinq terrains, 56 assertions permis. Trois contre-épreuves SQL détectent prix uniformisés, jour rejoué et tranches altérées. Toutes sur fixtures locales, aucun résultat présenté comme un test authentifié.
-- Réel : aucune visite ni transaction d'Arnie. Ses trois secrets Actions sont absents de l'environnement local ; l'API GitHub et le site du jeu sont refusés par le proxy (CONNECT 403). Le lancement local s'arrête avant navigateur/authentification sur UID non vérifié. Les garde-fous d'Arnie restent stricts ; acheter_terrain engage directement un dépôt et n'est pas une consultation.
-- Pas de migration préparée/appliquée par ce lot, pas de données de joueur touchées. La recette en jeu et le déploiement ne sont pas attestés ; ne pas fermer le chantier ni fusionner la grande branche. Rapport détaillé et preuves ajoutés dans outils/audits.
+- Branche reprise : `codex/recette-immobilier-135-20261025`. Main intégré `5dcdc476ed9f57d49c9a0a2cf21a15bb782b15a5` : correctif #161 retrouvé dans Git, aucun retour à l'ancien handler ou à l'ancien script. Les fichiers métier/visuels sont exactement ceux de main ; travaux de Claude conservés sans modification propre.
+- Les 88 tests du pilote, 105 bancs clients, 324 assertions du parcours et 56 permis sont acquis ; les cinq contrôles de PR #161 réussis sont signalés par Fred. Pas de répétition inutile des campagnes déjà terminées. Les adaptateurs financiers et les bancs SQL sont inchangés depuis la version éprouvée.
+- Nouvelle vérification locale ciblée : le filtre Vercel ne saute pas le build entre `87f39bb` et `5dcdc47`. Ceci ne prouve pas un déploiement. Script attendu : `plateau-justice-economie.js?v=permis135-fix-20261025`. Image locale commune WebP 1536×1024. Manifeste attendu préparé, sans le présenter comme observé en production.
+- Tentative réelle de `gh workflow run beta-testeur-luthecia.yml --ref main -f mode=consultation_seule` arrêtée au GET de métadonnées (`Forbidden` vers l'API GitHub), aucun lancement attesté par Codex. HTTPS Vercel : tunnel proxy refusé 403, aucun statut applicatif obtenu. Aucun autre outil GitHub/Vercel/navigateur distant disponible, pas de contournement par push ou planification.
+- Une seule demande a été envoyée : lancer ce workflow manuellement sur main, mode consultation_seule, sans toucher aux comptes ni aux secrets. Procédure et limites dans `outils/audits/CLOTURE-RECETTE-135-APRES-161.md`. Le rapport privé s'appelle `luthecia-joueur-<run_id>`, même si le job est rouge.
+- Aucun compte/finance/possession modifié, aucune migration appliquée. Recette authentifiée non attestée par cette session ; attendre le résultat réel. Le pilote se limite à la scène existante et garde les déplacements bloqués : ne pas annoncer les cinq visites à partir d'une simple connexion.
 
 
-**Ambassades et Bureau de l'Emploi (Claude)** — **Codex : ne pas toucher aux
-ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
+**Ambassades et Bureau de l'Emploi : chantiers de Claude seul** (Fred, 25/10). Ces
+notes sont la trace du travail, pour reprendre l'historique. **Codex : ne pas toucher aux
+ambassades ni au Bureau de l'Emploi.**
 - Contexte : objectif actuel = terminer Luthécia. Les ambassades ne seront
   raccordées aux autres empires que lorsqu'ils seront codés (arbitrage
   Fred, 24/10). Nouvelle règle de Fred : **une seule réalité, celle du
@@ -85,6 +85,9 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   `virements_automatiques_mes`, `virement_automatique_arreter`, passe de nuit
   `virements_automatiques_executer` (cron). Tous les lots de `GAME-DESIGN-BNE.md`
   sont livrés ; reste la question du Bureau de direction (fin de chantier).
+- 25/10 soir : **trois référentes emploi** (Nathalie Boulot, Edwige Leroux, Pétra
+  Vaillepas), fiches dans `api/_pnj-referents.js`, déclarées dans `pnj_referents`
+  (registre 20261025201502).
 - Prochaines étapes (Claude) : coder `GAME-DESIGN-BNE.md` par lots — 1. suppression
   des offres et de l'inscription + recensement ; 2. candidatures et décision du
   vendredi ; 3. annonces des joueurs (+ parution Tribune par le serveur, caisse du
@@ -108,8 +111,3 @@ existantes, à reprendre si Fred le demande) :
 
 - 24/10/2026 — Mise en place du relais Codex/Claude (`AGENTS.md`,
   `CLAUDE.md`, `RELAIS.md`).
-
-
-### Sauvegarde de la recette immobilière #135
-
-Code/test sauvegardés au commit `8901d21d2e5147a61cf89a6a59e0b74fd47d02c9`, branche `codex/recette-immobilier-135-20261025`. Tentative de PR en brouillon refusée par l'API GraphQL GitHub (`Forbidden`). Aucune PR créée, aucun merge ; production non vérifiée. Les sept contrôles globaux rouges sont reproduits sur main intact (5/12 réussis), sans modification de baseline. Le prévol local d'Arnie reste bloqué avant authentification, zéro visite, zéro acte. Rapport : `outils/audits/RECETTE-IMMOBILIER-135-20261025.md`. Reprendre uniquement cette recette ; ne pas importer les composants privés L09.
