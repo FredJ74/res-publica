@@ -9622,15 +9622,63 @@ async function accorderAudienceAmbassade(idDemande) {
   showToast('Audience accordée', (v.demandeur || 'Le demandeur') + ' est prévenu(e) par courrier ; votre bureau lui est ouvert 48 heures.', true);
 }
 
-async function doDemanderAsilePolitique(pa, cost) {
-  if (!state.char) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  state.char.asilePolitique = { pays: state.country, jour: state.day || 1 };
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-  showToast('Demande déposée', 'Votre demande d\'asile politique a été enregistrée.', true);
-  addExternalEvent((state.char?.name || 'Un individu') + ' a demandé l\'asile politique auprès d\'une ambassade.');
-  addJournalEntry('Demande d\'asile politique déposée.', 'event-info');
+// ASILE POLITIQUE (25 octobre 2026, arbitrage de Fred). Demande a l'accueil aupres d'une
+// ambassade ; l'ambassadeur PNJ decide SELON LE DOSSIER, par le serveur, a une echeance tiree
+// entre tout de suite et 3 jours ; reponse par mail. Le refugie entre dans le bureau de son
+// ambassade et ne peut pas etre arrete tant qu'il est au Quartier des Ambassades ; il redevient
+// arretable des qu'il en sort. Tout est decide par les fonctions ambassade_* (migrations
+// 20261025020000 a 20261025020200) : cet ecran n'affiche que leurs verdicts.
+function doDemanderAsilePolitique(pa, cost) {
+  document.getElementById('postes-modal-title').textContent = 'Demander l\'asile politique';
+  let html = '<div class="cpj-dialogue">';
+  html += '<p class="cpj-note" style="margin:0 0 .8rem;font-style:italic">Auprès de quelle ambassade déposez-vous votre demande ? '
+    + 'Votre dossier sera examiné, et la réponse vous parviendra par courrier. Si l\'asile vous est accordé, '
+    + 'vous serez en sécurité tant que vous resterez au Quartier des Ambassades.</p>';
+  Object.entries(AMBASSADEURS_PNJ).forEach(([empireId]) => {
+    const pays = COUNTRIES[empireId]?.n || empireId;
+    html += '<button class="cpj-touche" onclick="confirmerDemandeAsile(&quot;' + empireId + '&quot;)" '
+      + 'style="display:block;width:100%;text-align:left;margin-bottom:.5rem;padding:.6rem .8rem;cursor:pointer">'
+      + 'Ambassade ' + (/^[AEIOUÉ]/.test(pays) ? 'd\'' : 'de ') + pays + '</button>';
+  });
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+const REFUS_ASILE = {
+  asile_en_cours:         ['Demande déjà en cours', 'Votre demande d\'asile attend encore la décision de l\'ambassade.'],
+  deja_refugie:           ['Déjà réfugié(e)', 'Vous bénéficiez déjà de l\'asile politique.'],
+  pas_sur_place:          ['Hors du Quartier', 'Les demandes d\'asile se déposent à l\'accueil du Quartier des Ambassades.'],
+  ambassade_inconnue:     ['Ambassade inconnue', 'Cette ambassade ne reçoit pas de demande d\'asile.'],
+  acteur_non_authentifie: ['Personnage non chargé', 'Votre personnage n\'est pas chargé : rien n\'a été enregistré. Rechargez la page.']
+};
+
+async function confirmerDemandeAsile(empireId) {
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('ambassade_demander_asile', { p_empire: empireId }).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    const m = v && REFUS_ASILE[v.raison];
+    if (m) { showToast(m[0], m[1], false); return; }
+    if (v && v.raison && !v.transport) { signalerRefusCout(v); return; }
+    showToast('Demande non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni enregistré.", false);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa });
+  const ambassade = v.ambassade || 'l\'ambassade';
+  if (v.statut === 'accorde') {
+    showToast('Asile accordé', ambassade + ' vous accorde l\'asile. Vous êtes en sécurité tant que vous restez au Quartier des Ambassades.', true);
+    addJournalEntry('Asile politique accordé par l\'' + ambassade + '.', 'event-good');
+  } else if (v.statut === 'refuse') {
+    showToast('Asile refusé', ambassade + ' ne donne pas suite à votre demande.', false);
+    addJournalEntry('Demande d\'asile refusée par l\'' + ambassade + '.', 'event-info');
+  } else {
+    state.audiencesEnAttente = true;
+    showToast('Demande transmise', 'Votre demande d\'asile auprès de l\'' + ambassade + ' a été transmise. La réponse vous parviendra par courrier.', true);
+    addJournalEntry('Demande d\'asile politique transmise à l\'' + ambassade + '.', 'event-info');
+  }
+  if (typeof verifierNouveauxMails === 'function') verifierNouveauxMails();
 }
 
 function ouvrirModalNommerAmbassadeur(pa, cost) {

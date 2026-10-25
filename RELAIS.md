@@ -38,8 +38,13 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   cliquables et onglets avec infobulle « Accès limité : il faut avoir une
   invitation. » (branche `claude/portes-ambassades-20261025`, fonction
   `ambassade_acces_bureaux` appliquée, registre 20261025002311).
-  **Prochain chantier prévu : l'asile politique** (décidé, réalisable dès
-  Luthécia, voir la fiche).
+- 25/10 nuit : **asile politique** (branche `claude/asile-ambassades-20261025`) :
+  demande à l'accueil (2 PA), décision de l'ambassadeur PNJ selon le dossier
+  (recherché ou affaire vivante) sous 0 à 3 jours, mail ; le réfugié entre
+  dans le bureau de son ambassade et ne peut pas être arrêté au Quartier des
+  Ambassades (patch de `detention_ouvrir_interne` et `police_detection_verifier`,
+  + déclencheur filet). Trois migrations appliquées (registre 20261025004912,
+  20261025004941, 20261025005227).
 - Prochaines étapes, **après réponses de Fred** :
   1. BNE B1 (le mail d'arbitrage rejoué peut faire perdre l'emploi) :
      migration de `bne_agir` + test ;
