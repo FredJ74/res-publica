@@ -1,0 +1,80 @@
+{
+  "main_reference": "348865998c8eede33ba18e32f3da9f8f27149117",
+  "branche": "codex/recette-immobilier-135-20261025",
+  "commit_correctif_initial": "5b01ba41bfb853989107df2e618598164006ca3c",
+  "campagne_reelle_transmise": {
+    "url": "https://github.com/FredJ74/res-publica/actions/runs/40237138029",
+    "source": "compte rendu transmis par le responsable dans la conversation",
+    "rapport_recupere_directement": false,
+    "authentification_signalee_fonctionnelle": true,
+    "prevol": {
+      "batiment": "quartier-ambassades",
+      "piece": "accueil_ambassades"
+    },
+    "serveur": {
+      "batiment": "quartier-ambassades",
+      "piece": "accueil_ambassades"
+    },
+    "interface_mesuree": {
+      "batiment": null,
+      "piece": null
+    },
+    "modification_personnage_signalee": false,
+    "visite_validee": false
+  },
+  "tests_isoles": {
+    "pilote": {
+      "reussis": 97,
+      "total": 97,
+      "ignores": 0
+    },
+    "nouveaux_cas_position": 9,
+    "clients": {
+      "reussis": 105,
+      "total": 105
+    },
+    "progression_assertions": 62,
+    "salaires_assertions": 15,
+    "parcours_cinq_terrains_assertions": 324,
+    "migration_salaire_actuelle_incluse": true,
+    "materiaux": "REUSSI",
+    "globaux": {
+      "reussis": 4,
+      "total": 12,
+      "memes_ecarts_que_main": true
+    }
+  },
+  "limites": {
+    "lecture_bne_heures": "non éprouvée : définition de chantier_besoin_jour_interne non archivée sur main",
+    "verification_production_apres_correctif": false,
+    "verification_vigiles_serveur_vivant": false
+  },
+  "livraison": {
+    "creation_pr_tentee": true,
+    "creation_pr": "API_GRAPHQL_FORBIDDEN",
+    "fusion_effectuee": false,
+    "vercel": "TUNNEL_PROXY_403, statut du déploiement non vérifié",
+    "migrations_appliquees": [],
+    "donnees_arnie_modifiees": false
+  },
+  "sources_sha256": {
+    "outils/e2e/luthecia.cjs": "6474789edb3bdd71294c14c2f72a687280345783c24a6c3d5558d67292824f0f",
+    "outils/e2e/test-position-initiale.cjs": "962527d3eafef598cbad76c2fb68dc430ae8520131d0b85c226dd45c163f40a3",
+    "outils/bancs/banc-construction-jour-local.py": "9037b30d174a93d19bb143b4318651ee63ffb90841083d9e487b2a43afae3dd9",
+    "outils/bancs/banc-construction-taux-135-local.py": "224dd24d524032c185e9a6445a11db75fbca38bd88c760608dfc60c8b1888961",
+    "outils/bancs/banc-parcours-terrain-construction-135-local.py": "dc1cc159491ead44b38e5c3e757a9a1b2ea4d45afb92832399aa867bebd7c100",
+    ".github/workflows/coherence-client.yml": "9ea09a7987c3d47ce3c65e2d3684220bd391dbd3adb599f4bc4ef8bb0d32a5e4"
+  },
+  "preuves_sha256": {
+    "cinq-parcours-salaire-actuel.txt": "6e77cf14c5a305a33fdd6446856bc99ce957431686f230604c86f8a32b2b389a",
+    "clients.json": "a25546f0c53399dd263b225d7ad961323255aa36ef9ce3c5a2399fe85b071018",
+    "clients.txt": "973025f3193c39be25cc1127cf1d8c9fa3dfcab6fbd98729684294354fba5f58",
+    "globaux-branche.txt": "4b5cfdc7cf34334dec846dc3afa4d1a1a347b9fbfb7cb15aba6a61012f55e1f0",
+    "globaux-main.txt": "22a6d72cc6550b823c67637164681583c01c6c17627827107673f087478f451e",
+    "materiaux.txt": "c75fb5c97f957db2dcd13636e223b291c1a6045e2c1a885bf8969d44b7a68d8f",
+    "pilote-final.txt": "b2f37fb4040976e980e93f8263736e38115a592662fd810675226f10b300992f",
+    "position-chromium-quartier.txt": "a5a29a21f07aadac8adce0b53a358d9fa798d66336e7bafa9763c4cef7ebf8dc",
+    "position-reproduction-avant.txt": "bd21fe80fb67ace64ff2d58c1845602c6e609a4056ee65daab56982054504746",
+    "salaires-et-progression.txt": "86b451a0b9e6be46f14c49a5bd489a9bb4df8ff3a2d9c0ed22e720c110e0663c"
+  }
+}

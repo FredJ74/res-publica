@@ -128,3 +128,12 @@ existantes, à reprendre si Fred le demande) :
 
 - 24/10/2026 — Mise en place du relais Codex/Claude (`AGENTS.md`,
   `CLAUDE.md`, `RELAIS.md`).
+
+
+### Dernière preuve #135 — correction de mesure et salaires
+
+Code principal poussé `5b01ba4`, main repris `3488659`. Les données réelles transmises concernent la campagne 40237138029 ; le diagnostic de l'interface capturait une mesure antérieure aux attentes. Le testeur corrige cette course sans normaliser les lieux ni écrire de position. Sa résolution réelle pour Arnie reste à confirmer après intégration.
+
+Validation finale : 97/97 pilote, 9 nouveaux cas de position, 105/105 bancs clients, matériaux réussis, 62 assertions de progression conservées et 15 supplémentaires de salaires ; 324 assertions des cinq terrains relancées en incluant cette fois la migration de salaire actuelle. Le lecteur BNE et la sécurité privée vivante ne sont pas présentés comme validés. Globaux 4/12, strictement les mêmes écarts que main intact. Aucune empreinte corrigée pour les masquer.
+
+PR en brouillon tentée : API GraphQL `Forbidden`, aucune PR créée par cette session. Aucun merge/deploiement ou SQL de production. Vercel inaccessible ici par refus de tunnel proxy, ce qui ne démontre pas une panne du site. Rapport `outils/audits/POSITION-INITIALE-135-20261025.md`, preuves `outils/audits/position-135-20261025/`. Ne pas relancer encore l'ancien testeur de #167 en espérant une correction : intégrer le nouveau code après contrôles, puis une seule campagne consultation_seule, sans toucher aux secrets ou à Arnie.

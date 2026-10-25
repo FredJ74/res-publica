@@ -1,0 +1,17 @@
+✔ une position restaurée pendant le chargement remplace la première mesure périmée (2.205686ms)
+✔ une mesure est reprise après la lecture serveur asynchrone (0.27194ms)
+✔ restauration différée : attente locale bornée, puis deux positions fraîchement relues (0.340561ms)
+✔ un déplacement serveur depuis le prévol échoue sans attendre un éventuel retour (0.545954ms)
+✔ une interface réellement divergente reste refusée, même après le délai (0.494958ms)
+✔ null, chaîne vide et identifiant de rue ne sont jamais rendus équivalents (0.567816ms)
+✔ une mutation serveur pendant l’attente n’est pas masquée par le retour de l’interface (0.569688ms)
+✔ un changement de personnage pendant l’attente arrête la consultation (0.333681ms)
+✔ Chromium local : le vrai callback de restauration de 300 ms précède la validation (1347.35042ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1357.54536

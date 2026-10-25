@@ -1,0 +1,68 @@
+✖ une position restaurée pendant le chargement remplace la première mesure périmée (2.693089ms)
+✖ une mesure est reprise après la lecture serveur asynchrone (0.480239ms)
+✖ restauration différée : attente locale bornée, puis deux positions fraîchement relues (0.170422ms)
+✔ un déplacement serveur depuis le prévol échoue sans attendre un éventuel retour (0.93422ms)
+✔ une interface réellement divergente reste refusée, même après le délai (0.245133ms)
+✔ null, chaîne vide et identifiant de rue ne sont jamais rendus équivalents (0.316378ms)
+✔ une mutation serveur pendant l’attente n’est pas masquée par le retour de l’interface (3.798151ms)
+✖ un changement de personnage pendant l’attente arrête la consultation (0.83231ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 4
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18.050486
+
+✖ failing tests:
+
+test at outils/e2e/test-position-initiale.cjs:17:1
+✖ une position restaurée pendant le chargement remplace la première mesure périmée (2.693089ms)
+  Error: POSITION_INITIALE_NON_CONFIRMEE
+      at code (/workspace/res-publica-recette135/outils/e2e/luthecia.cjs:9:31)
+      at Joueur.consulterPositionExistante (/workspace/res-publica-recette135/outils/e2e/luthecia.cjs:124:11)
+      at async TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-position-initiale.cjs:19:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'POSITION_INITIALE_NON_CONFIRMEE'
+  }
+
+test at outils/e2e/test-position-initiale.cjs:21:1
+✖ une mesure est reprise après la lecture serveur asynchrone (0.480239ms)
+  Error: POSITION_INITIALE_NON_CONFIRMEE
+      at code (/workspace/res-publica-recette135/outils/e2e/luthecia.cjs:9:31)
+      at Joueur.consulterPositionExistante (/workspace/res-publica-recette135/outils/e2e/luthecia.cjs:124:11)
+      at async TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-position-initiale.cjs:23:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'POSITION_INITIALE_NON_CONFIRMEE'
+  }
+
+test at outils/e2e/test-position-initiale.cjs:25:1
+✖ restauration différée : attente locale bornée, puis deux positions fraîchement relues (0.170422ms)
+  Error: POSITION_INITIALE_NON_CONFIRMEE
+      at code (/workspace/res-publica-recette135/outils/e2e/luthecia.cjs:9:31)
+      at Joueur.consulterPositionExistante (/workspace/res-publica-recette135/outils/e2e/luthecia.cjs:124:11)
+      at async TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-position-initiale.cjs:27:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'POSITION_INITIALE_NON_CONFIRMEE'
+  }
+
+test at outils/e2e/test-position-initiale.cjs:49:1
+✖ un changement de personnage pendant l’attente arrête la consultation (0.83231ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /IDENTITE_CHANGE/. Input:
+  
+  'Error: POSITION_INITIALE_NON_CONFIRMEE'
+  
+      at async TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-position-initiale.cjs:51:2)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Error],
+    expected: /IDENTITE_CHANGE/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
