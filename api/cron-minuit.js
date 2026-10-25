@@ -5524,7 +5524,9 @@ async function verifierConflitsEmploiBNE() {
         if (!joueur) continue;
         let poste = joueur.poste;
         if (typeof poste === 'string') { try { poste = JSON.parse(poste); } catch(e) { poste = null; } }
-        if (!poste?.id) continue; // pas de poste politique, pas de conflit
+        // Pas de poste politique, pas de conflit. Le mandat de depute reste cumulable (decision de
+        // Fred, 25/10/2026), comme bne_agir l'accepte.
+        if (!poste?.id || poste.id === 'depute') continue;
 
         // Deja notifie et pas encore traite (mail non archive avec ce sujet) : ne pas renvoyer chaque nuit
         const dejaNotifie = await sbGet('mails', `to_player=eq.${encodeURIComponent(occ.pjNom)}&subject=eq.${encodeURIComponent('Poste politique et emploi BNE en même temps')}&archived=eq.false`);
@@ -5532,7 +5534,8 @@ async function verifierConflitsEmploiBNE() {
 
         const corps = 'Vous occupez à la fois le poste politique de <strong>' + (poste.name || poste.id) + '</strong> et un emploi du Bureau National de l\'Emploi (' + offreId + '). Les deux sont incompatibles.<br><br>' +
           'Si vous conservez votre poste politique : rendez-vous au Bureau National de l\'Emploi pour démissionner de votre emploi BNE (immédiat, gratuit).<br>' +
-          'Si vous préférez garder l\'emploi BNE : démissionnez de votre poste politique par les moyens habituels. Votre emploi BNE reste actif et payé en attendant votre décision.';
+          'Si vous préférez garder l\'emploi BNE : démissionnez de votre poste politique par les moyens habituels.<br><br>' +
+          'En attendant votre décision, un seul salaire vous est versé chaque jour : celui de votre poste politique. Votre emploi BNE reste à votre nom, mais il n\'est pas payé tant que vous cumulez.';
 
         // PAR LA BRIQUE (10 octobre 2026). `archived: false` est le DEFAUT de la colonne : rien
         // n'est perdu en ne le passant plus. La garde anti-renvoi ci-dessus relit `mails`, donc

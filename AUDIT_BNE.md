@@ -194,3 +194,29 @@ cohérent avec la décision « simple étiquette ».
    pièce ?
 5. **Un interlocuteur pour le Bureau (B13)** : un agent d'accueil PNJ qui
    explique les offres, ou Jean-Lou reste seul ?
+
+## 6. Réponses de Fred et corrections (25 octobre 2026)
+
+Réponses de Fred : 1. « Oui, bien sûr » (salaires payés par l'employeur) ;
+2. le député **peut** cumuler ; 3. « les emplois sont là pour donner une vie
+au plateau » (direction de design pour B11, pas encore codée) ; 4 et 5 : à
+reformuler.
+
+**Corrigé** (migration `20261025030000_bne_corrections.sql`, registre Supabase
+20261025010423, éprouvée en transaction annulée sur 10 cas, puis côté écran) :
+
+| Constat | Correction |
+|---|---|
+| B1, B10 | `bne_agir` refuse de trancher sans réservation en attente (`aucune_reservation`) ou avec une offre inconnue. Un bouton de mail rejoué ne fait plus rien perdre. |
+| B2 | Le mail de nuit dit la vérité : un seul salaire par jour, celui du poste politique. Le député n'est plus signalé. |
+| B3 | « Dormir » n'affiche plus de montant calculé par l'écran ; il dit qui paie. Le montant réel s'affiche après le versement. Motif `caisse_vide` nommé. |
+| B4 | Les offres sans salaire affichent « Non salarié — revenu universel conservé » ; les autres « payés par l'employeur ». |
+| B5, B6, B7 | `bne_agir` refuse un emploi à qui a un poste politique (sauf député), à qui n'est pas inscrit, et hors de la ville d'une offre locale. L'écran n'en décide plus. |
+| B6 bis | Inscription par `bne_inscrire` : 1 PA, une seule fois. |
+| B9 | Serveur, hôtelier et docker payés par la caisse de leur employeur ; caisse vide = pas de salaire. |
+| **Nouveau** | Trouvé au banc : `salaire_civil_percevoir` lisait mal le registre du Bureau (enregistré en texte) — **aucun emploi n'était jamais payé**, les employés ne touchaient que le revenu universel. Corrigé. |
+
+Restent ouverts : B8 (chantiers, avec Codex), B11 (donner un rôle aux emplois),
+B12, B13, B14 (charte, #143). Point d'attention : les caisses des employeurs
+sont maigres (Hôtel du Mineur et port de PSM : 200 FR chacune), un employé y
+sera vite non payé.

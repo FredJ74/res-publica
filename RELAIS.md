@@ -59,12 +59,14 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   Ambassades (patch de `detention_ouvrir_interne` et `police_detection_verifier`,
   + déclencheur filet). Trois migrations appliquées (registre 20261025004912,
   20261025004941, 20261025005227).
-- Prochaines étapes, **après réponses de Fred** :
-  1. BNE B1 (le mail d'arbitrage rejoué peut faire perdre l'emploi) :
-     migration de `bne_agir` + test ;
-  2. BNE B2-B4 (textes faux : mail de cumul, montant de « Dormir »,
-     « 0 FR/jour ») ;
-  3. griser « Bientôt disponible » les ordres d'ambassade non raccordables.
+- 25/10 nuit : **corrections du Bureau de l'Emploi** (branche
+  `claude/bne-corrections-20261025`) : B1-B7, B9, B10 et un bug trouvé au banc
+  (aucun emploi n'était payé). Migration appliquée (registre 20261025010423).
+  Détail dans `AUDIT_BNE.md` § 6.
+- Prochaines étapes :
+  1. BNE B11 (« les emplois donnent vie au plateau ») : à concevoir avec Fred ;
+     B12-B13 : questions reformulées, en attente de sa réponse ;
+  2. griser « Bientôt disponible » les ordres d'ambassade non raccordables.
 - Bancs : 85/102 en local, les 17 échecs sont identiques sur `main`
   (bancs navigateur, environnement).
 - Issue #143 : passer toutes les fenêtres à la charte (plus tard).
