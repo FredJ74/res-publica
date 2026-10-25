@@ -13722,14 +13722,22 @@ async function rafraichirCacheEmploiBNE() {
 }
 
 async function doInscrireDemandeurEmploi(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  // CORRECTIF (Lot 4.3) : l'inscription vivait sur state, jamais sur state.char, et n'etait donc
-  // ni sauvegardee ni relue -- les 1 PA depenses etaient perdus a chaque rechargement. Elle rejoint
-  // le personnage, seul objet reellement persiste.
+  // L'INSCRIPTION EST ENREGISTREE PAR LE SERVEUR (audit du BNE, B6, 25/10/2026). `bne_inscrire`
+  // preleve le PA et pose l'inscription dans la meme transaction ; deja inscrit, il ne preleve
+  // rien. Avant, le PA etait preleve a chaque clic et l'inscription ecrite par le navigateur.
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('bne_inscrire', {}).catch(() => null) : null;
+  if (!v || v.ok !== true) {
+    if (v && typeof signalerRefusCout === 'function' && ['pa_insuffisants','fonds_insuffisants','personnage_non_charge','caisse_institution_insuffisante'].includes(v.raison)) { signalerRefusCout(v); return; }
+    signalerRefusBNE(v);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function' && typeof v.pa === 'number') appliquerPaiementServeur({ pa: v.pa });
   state.char = state.char || {};
   state.char.demandeurEmploi = true;
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state.char).catch(() => {});
+  if (v.deja_inscrit) {
+    showToast('Déjà inscrit', 'Vous êtes déjà demandeur d\'emploi : aucun PA n\'a été dépensé. Consultez les offres disponibles.', true);
+    return;
+  }
   showToast('Inscription enregistrée', 'Vous êtes désormais demandeur d\'emploi. Consultez les offres disponibles.', true);
   addJournalEntry('Inscription comme demandeur d\'emploi au Bureau National de l\'Emploi.', 'event-info');
 }
@@ -13817,12 +13825,20 @@ async function ouvrirOffresEmploiBNE() {
     return '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center">' +
       '<div>' +
         '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + o.label + '</div>' +
-        '<div style="font-size:.68rem;color:#6a5a30;margin-top:.15rem">' + portéeLabel[o.portee] + ' · ' + o.salaire.toLocaleString('fr-FR') + ' ' + cur + '/jour · ' + placesPrises + '/' + o.places + ' places prises</div>' +
+        '<div style="font-size:.68rem;color:#6a5a30;margin-top:.15rem">' + portéeLabel[o.portee] + ' · ' + texteRemunerationOffreBNE(o, cur) + ' · ' + placesPrises + '/' + o.places + ' places prises</div>' +
       '</div>' + bouton +
     '</div>';
   }).join('');
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
+}
+
+// REMUNERATION AFFICHEE D'UNE OFFRE (audit B4, 25/10/2026). « 0 FR/jour » laissait croire a un
+// travail gratuit : une offre sans salaire declare laisse au joueur son revenu universel, et une
+// offre locale est payee par la caisse de son employeur (decision de Fred, 25/10/2026).
+function texteRemunerationOffreBNE(o, cur) {
+  if (!o || !(o.salaire > 0)) return 'Non salarié — revenu universel conservé';
+  return o.salaire.toLocaleString('fr-FR') + ' ' + cur + '/jour, payés par l\'employeur';
 }
 
 // Chaque refus de la porte du BNE est NOMME au joueur. Sans cela, un poste complet et une panne
@@ -13840,6 +13856,10 @@ function signalerRefusBNE(v) {
     deja_en_poste: ['Déjà en poste', 'Vous occupez déjà cette offre.'],
     aucun_emploi: ['Aucun emploi', "Vous n'occupez actuellement aucun poste du BNE."],
     offre_inconnue: ['Offre inconnue', "Cette offre n'existe pas au Bureau de l'emploi."],
+    aucune_reservation: ['Déjà tranché', "Cette candidature a déjà été tranchée : rien n'a changé, votre emploi actuel est conservé."],
+    poste_politique: ['Poste politique en cours', 'Vous occupez déjà un poste politique, incompatible avec un emploi du BNE. Le mandat de député, lui, reste cumulable.'],
+    inscription_requise: ['Inscription requise', "Inscrivez-vous d'abord comme demandeur d'emploi."],
+    hors_ville: ['Offre d\'une autre ville', 'Cette offre locale ne se prend que sur place, dans sa ville.'],
     acteur_non_authentifie: ['Personnage non chargé',
       "Votre personnage n'est pas chargé : rien n'a été enregistré. Rechargez la page."]
   };
@@ -13852,10 +13872,8 @@ function signalerRefusBNE(v) {
 async function postulerOffreEmploiBNE(offreId) {
   const offre = OFFRES_EMPLOI_BNE[offreId];
   if (!offre) return;
-  if (state.poste) {
-    showToast('Poste politique en cours', 'Vous occupez déjà un poste politique, incompatible avec un emploi du BNE.', false);
-    return;
-  }
+  // Le poste politique, l'inscription et la ville sont juges par `bne_agir` (audit B5-B7,
+  // 25/10/2026) : l'ecran ne refuse plus de lui-meme, il affiche le refus nomme du serveur.
   const pjNom = state.char?.name;
   // LE BLOB DU BNE EST PARTAGE, ET SON PLAFOND N'EST PLUS VERIFIE SUR UNE LECTURE PERIMEE
   // (chantier 5, chaine 20, 10 octobre 2026). Les quatre chemins du BNE lisaient le blob ENTIER,
