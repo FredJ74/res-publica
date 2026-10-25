@@ -59,6 +59,10 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   écran « Postes à pourvoir » lu sur `bne_postes_a_pourvoir` ; candidature par le
   circuit existant du 25 août (Fred : « on conserve l'ancien fonctionnement en
   entier ») ; capitaine/lieutenant postulables depuis le Bureau.
+- 25/10 soir : **1 PA par candidature** (registre 20261025182135) et **lot 3,
+  annonces des joueurs** (registre 20261025183757 : `bne_annonces`,
+  `bne_annonce_publier/lister/retirer`, option Tribune 30 FR versés à la caisse
+  `<pays>_bureau-national-emploi`).
 - Prochaines étapes (Claude) : coder `GAME-DESIGN-BNE.md` par lots — 1. suppression
   des offres et de l'inscription + recensement ; 2. candidatures et décision du
   vendredi ; 3. annonces des joueurs (+ parution Tribune par le serveur, caisse du

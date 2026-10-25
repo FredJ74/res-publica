@@ -13778,7 +13778,10 @@ async function ouvrirOffresEmploiBNE() {
   document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue"><p class="cpj-note" style="font-style:italic;text-align:center">Chargement des postes…</p></div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('bne_postes_a_pourvoir', {}).catch(() => null) : null;
+  const [v, vAnn] = typeof sbRpcVerdict === 'function'
+    ? await Promise.all([sbRpcVerdict('bne_postes_a_pourvoir', {}).catch(() => null),
+                         sbRpcVerdict('bne_annonces_lister', {}).catch(() => null)])
+    : [null, null];
   if (!v || v.ok !== true) {
     document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue"><p class="cpj-note">'
       + "Le Bureau n'a pas pu consulter le registre des postes. Réessayez dans un instant.</p></div>";
@@ -13817,6 +13820,29 @@ async function ouvrirOffresEmploiBNE() {
   if (!lignes) html += '<p class="cpj-note">L\'armée ne recrute pas en ce moment.</p>';
   html += '<p class="cpj-note" style="font-size:.75rem;margin-top:.4rem">Le poste de Commandant de la Caserne, s\'il est à pourvoir, figure parmi les postes de l\'État.</p>';
 
+  // LES ANNONCES DES JOUEURS (lot 3, Fred 25/10/2026) : petites annonces, l'embauche se regle
+  // entre joueurs par mail. Liste rendue par le serveur (bne_annonces_lister).
+  BNE_ANNONCES_AFFICHEES = (vAnn && vAnn.ok === true && Array.isArray(vAnn.annonces)) ? vAnn.annonces : [];
+  html += '<h4 style="margin:1.1rem 0 .5rem">Annonces des joueurs</h4>';
+  if (!vAnn || vAnn.ok !== true) {
+    html += '<p class="cpj-note">Les annonces n\'ont pas pu être chargées.</p>';
+  } else if (!BNE_ANNONCES_AFFICHEES.length) {
+    html += '<p class="cpj-note">Aucune annonce pour le moment.</p>';
+  }
+  BNE_ANNONCES_AFFICHEES.forEach(function (an, i) {
+    const lieuAn = an.lieu === 'international' ? 'International' : nomVille(an.lieu);
+    const fin = new Date(an.expire_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+    html += '<div style="padding:.55rem 0;border-bottom:1px solid var(--cpj-filet, rgba(201,168,76,.2))">'
+      + '<div><strong>' + esc(an.intitule) + '</strong> — ' + esc(lieuAn) + ' · ' + esc(an.salaire) + '</div>'
+      + '<div class="cpj-note lecture-longue" style="font-size:.8rem;margin:.2rem 0">' + esc(an.descriptif) + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem">'
+      + '<span class="cpj-note" style="font-size:.72rem">Recruteur : ' + esc(an.auteur) + ' · jusqu\'au ' + esc(fin) + '</span>'
+      + (an.de_moi
+          ? '<button class="cpj-touche" onclick="retirerAnnonceBNE(' + i + ')">Retirer</button>'
+          : '<button class="cpj-touche" onclick="ecrireRecruteurBNE(' + i + ')">Écrire au recruteur</button>')
+      + '</div></div>';
+  });
+
   // Les heures de chantier de la ville (decision du 6 septembre 2026, conservee).
   const villeCourante = state.currentCity || 'capitale';
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -13834,6 +13860,80 @@ async function ouvrirOffresEmploiBNE() {
 }
 
 let BNE_POSTES_AFFICHES = [];
+let BNE_ANNONCES_AFFICHEES = [];
+
+function ecrireRecruteurBNE(i) {
+  const an = BNE_ANNONCES_AFFICHEES[i];
+  if (!an || typeof composerMailPour !== 'function') return;
+  composerMailPour(an.auteur);
+  const sujet = document.getElementById('compose-mail-subject');
+  if (sujet) sujet.value = 'Votre annonce : ' + an.intitule;
+}
+
+async function retirerAnnonceBNE(i) {
+  const an = BNE_ANNONCES_AFFICHEES[i];
+  if (!an) return;
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('bne_annonce_retirer', { p_id: an.id }).catch(() => null) : null;
+  if (!v || v.ok !== true) { showToast('Retrait impossible', "L'annonce n'a pas pu être retirée.", false); return; }
+  showToast('Annonce retirée', 'Votre annonce n\'est plus affichée au Bureau.', true);
+  ouvrirOffresEmploiBNE();
+}
+
+// LE FORMULAIRE (Fred, 25/10/2026) : intitule, descriptif, lieu, salaire -- rien d'autre. Le nom du
+// recruteur est ajoute par le serveur. La duree de 7 jours est annoncee AVANT la publication.
+function ouvrirFormulaireAnnonceBNE() {
+  document.getElementById('postes-modal-title').textContent = "Passer une annonce — Bureau National de l'Emploi";
+  const villes = ['capitale', 'ville_a', 'ville_b'];
+  const nomVille = (ville) => (WORLD[state.country]?.[ville]?.name) || ville;
+  let html = '<div class="cpj-dialogue">';
+  html += '<p class="cpj-note" style="margin:0 0 .8rem">Annonce gratuite pour 1 PA. <strong>Elle reste affichée 7 jours</strong>, puis disparaît d\'elle-même. '
+    + 'Votre nom y figure pour qu\'on puisse vous écrire : l\'embauche et la paie se règlent ensuite entre vous.</p>';
+  html += '<input id="bne-an-intitule" class="cpj-champ" maxlength="80" placeholder="Intitulé (ex. : Maçon pour mon chantier)" style="width:100%;margin-bottom:.5rem">';
+  html += '<textarea id="bne-an-descriptif" class="cpj-champ" maxlength="600" placeholder="Descriptif" style="width:100%;min-height:90px;margin-bottom:.5rem;resize:vertical"></textarea>';
+  html += '<select id="bne-an-lieu" class="cpj-champ" style="width:100%;margin-bottom:.5rem">'
+    + villes.map(v => '<option value="' + v + '"' + (v === (state.currentCity || 'capitale') ? ' selected' : '') + '>' + nomVille(v) + '</option>').join('')
+    + '<option value="international">International</option></select>';
+  html += '<input id="bne-an-salaire" class="cpj-champ" maxlength="60" placeholder="Salaire (ex. : 60 FR de l\'heure, 150 FR par jour)" style="width:100%;margin-bottom:.7rem">';
+  html += '<label class="cpj-note" style="display:flex;gap:.5rem;align-items:flex-start;margin-bottom:.9rem;cursor:pointer">'
+    + '<input type="checkbox" id="bne-an-presse" style="margin-top:.2rem"> '
+    + '<span>Publier aussi dans <strong>La Tribune de Républia</strong> : 30 FR, parution 3 jours, une seule petite annonce à la fois.</span></label>';
+  html += '<button class="cpj-touche cpj-primaire" style="width:100%" onclick="confirmerAnnonceBNE()">Publier l\'annonce</button>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+const REFUS_ANNONCE_BNE = {
+  intitule_invalide: ['Intitulé manquant', "Donnez un intitulé à votre annonce (80 caractères au plus)."],
+  descriptif_invalide: ['Descriptif manquant', "Décrivez le travail proposé (600 caractères au plus)."],
+  salaire_invalide: ['Salaire manquant', "Indiquez le salaire proposé (60 caractères au plus)."],
+  lieu_invalide: ['Lieu inconnu', "Choisissez une ville du pays, ou l'international."],
+  annonce_presse_deja_active: ['Déjà une petite annonce', "Vous avez déjà une petite annonce dans La Tribune : une seule à la fois. Publiez sans l'option presse, ou attendez la fin de la parution."]
+};
+
+async function confirmerAnnonceBNE() {
+  const val = (id) => (document.getElementById(id)?.value || '').trim();
+  const presse = !!document.getElementById('bne-an-presse')?.checked;
+  const v = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('bne_annonce_publier', {
+        p_intitule: val('bne-an-intitule'), p_descriptif: val('bne-an-descriptif'),
+        p_lieu: document.getElementById('bne-an-lieu')?.value || '', p_salaire: val('bne-an-salaire'),
+        p_presse: presse }).catch(() => null)
+    : null;
+  if (!v || v.ok !== true) {
+    const m = v && REFUS_ANNONCE_BNE[v.raison];
+    if (m) { showToast(m[0], m[1], false); return; }
+    if (v && v.raison && !v.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
+    showToast('Annonce non publiée', "L'opération n'a pas abouti : rien n'a été prélevé ni publié.", false);
+    return;
+  }
+  // PA et argent recopies tels que le serveur les a arretes (payer_ordre).
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paiement || { pa: v.pa });
+  document.getElementById('modal-postes')?.classList.remove('open');
+  const fin = new Date(v.expire_le).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+  showToast('Annonce publiée', 'Affichée au Bureau jusqu\'au ' + fin + (presse ? ', et 3 jours dans La Tribune de Républia.' : '.'), true);
+  addJournalEntry('Annonce publiée au Bureau de l\'Emploi' + (presse ? ' et dans La Tribune' : '') + '.', 'event-info');
+}
 
 async function postulerPosteBNE(i) {
   const p = BNE_POSTES_AFFICHES[i];
