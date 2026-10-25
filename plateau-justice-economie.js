@@ -13640,6 +13640,131 @@ async function offresChantiersBNE(pays, ville) {
   return offres;
 }
 
+// =====================================================================================
+// VIREMENTS ENTRE JOUEURS (GAME-DESIGN-BNE.md, la paie -- Fred, 25/10/2026)
+// =====================================================================================
+// A la Banque Nationale : virement simple (1 PA) ou automatique (1 PA, quotidien ou hebdomadaire,
+// verse la nuit par le serveur). Le destinataire se choisit par une RECHERCHE de joueur (demande de
+// Fred). Tout est decide par le serveur (banque_virement, banque_virement_automatique_creer).
+let VIREMENT_JOUEURS = [];
+let VIREMENT_DESTINATAIRE = null;
+
+async function ouvrirVirementJoueur(automatique) {
+  VIREMENT_DESTINATAIRE = null;
+  const titre = automatique ? 'Virement automatique — Banque Nationale' : 'Faire un virement — Banque Nationale';
+  document.getElementById('postes-modal-title').textContent = titre;
+  document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue"><p class="cpj-note" style="font-style:italic">Chargement…</p></div>';
+  document.getElementById('modal-postes').classList.add('open');
+  const liste = typeof sbListPersonnages === 'function' ? await sbListPersonnages().catch(() => []) : [];
+  VIREMENT_JOUEURS = (liste || []).map(j => j.name).filter(n => n && n !== state.char?.name).sort((a, b) => a.localeCompare(b, 'fr'));
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  let html = '<div class="cpj-dialogue">';
+  html += '<p class="cpj-note" style="margin:0 0 .8rem">' + (automatique
+    ? 'Une somme versée chaque jour ou chaque semaine, de votre compte vers celui d\'un autre joueur, la nuit. 1 PA pour le mettre en place. Vous l\'arrêtez à tout moment depuis votre fiche. Si votre compte ne suffit pas, rien n\'est versé ce jour-là et vous êtes tous deux prévenus.'
+    : 'Un versement unique de votre compte vers celui d\'un autre joueur, pour 1 PA.') + '</p>';
+  html += '<input id="vir-recherche" class="cpj-champ" placeholder="Rechercher un joueur…" autocomplete="off" oninput="filtrerVirementJoueurs()" style="width:100%;margin-bottom:.3rem;text-align:left">';
+  html += '<div id="vir-resultats" style="max-height:150px;overflow-y:auto;margin-bottom:.5rem"></div>';
+  html += '<p id="vir-choisi" class="cpj-note" style="margin:.2rem 0 .6rem">Aucun destinataire choisi.</p>';
+  html += '<input id="vir-montant" class="cpj-champ" inputmode="numeric" placeholder="Montant (' + cur + ')" style="width:100%;margin-bottom:.5rem;text-align:left">';
+  if (automatique) {
+    html += '<select id="vir-frequence" class="cpj-champ" style="width:100%;margin-bottom:.7rem;text-align:left">'
+      + '<option value="jour">Chaque jour</option><option value="semaine">Chaque semaine</option></select>';
+  }
+  html += '<button class="cpj-touche cpj-primaire" style="width:100%" onclick="confirmerVirementJoueur(' + (automatique ? 'true' : 'false') + ')">'
+    + (automatique ? 'Mettre en place (1 PA)' : 'Virer (1 PA)') + '</button></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  filtrerVirementJoueurs();
+}
+
+function filtrerVirementJoueurs() {
+  const q = (document.getElementById('vir-recherche')?.value || '').trim().toLocaleLowerCase('fr');
+  const box = document.getElementById('vir-resultats');
+  if (!box) return;
+  const esc = (t) => (typeof escapeHtmlText === 'function' ? escapeHtmlText(String(t)) : String(t));
+  const trouves = q ? VIREMENT_JOUEURS.filter(n => n.toLocaleLowerCase('fr').includes(q)).slice(0, 12) : [];
+  box.innerHTML = trouves.map((n, i) => '<button class="cpj-touche" style="display:block;width:100%;text-align:left;margin-bottom:.25rem" '
+    + 'onclick="choisirVirementJoueur(' + VIREMENT_JOUEURS.indexOf(n) + ')">' + esc(n) + '</button>').join('')
+    || (q ? '<p class="cpj-note" style="font-size:.78rem">Aucun joueur ne correspond.</p>' : '');
+}
+
+function choisirVirementJoueur(i) {
+  const n = VIREMENT_JOUEURS[i];
+  if (!n) return;
+  VIREMENT_DESTINATAIRE = n;
+  const esc = (t) => (typeof escapeHtmlText === 'function' ? escapeHtmlText(String(t)) : String(t));
+  const p = document.getElementById('vir-choisi');
+  if (p) p.innerHTML = 'Destinataire : <strong>' + esc(n) + '</strong>';
+  const r = document.getElementById('vir-resultats'); if (r) r.innerHTML = '';
+  const q = document.getElementById('vir-recherche'); if (q) q.value = n;
+}
+
+const REFUS_VIREMENT = {
+  pas_sur_place: ['À la banque', 'Les virements se font à la Banque Nationale.'],
+  beneficiaire_introuvable: ['Destinataire introuvable', 'Choisissez un joueur dans la recherche.'],
+  beneficiaire_invalide: ['Destinataire invalide', 'Vous ne pouvez pas vous virer de l\'argent à vous-même.'],
+  montant_invalide: ['Montant invalide', 'Indiquez un nombre entier de francs, positif.'],
+  frequence_invalide: ['Fréquence invalide', 'Choisissez chaque jour ou chaque semaine.'],
+  solde_insuffisant: ['Solde insuffisant', 'Votre compte de la Banque Nationale ne couvre pas ce virement.']
+};
+
+async function confirmerVirementJoueur(automatique) {
+  if (!VIREMENT_DESTINATAIRE) { showToast('Destinataire manquant', 'Recherchez et choisissez un joueur.', false); return; }
+  const brut = (document.getElementById('vir-montant')?.value || '').trim();
+  if (!/^[1-9][0-9]{0,7}$/.test(brut)) { showToast('Montant invalide', 'Indiquez un nombre entier de francs, positif.', false); return; }
+  const montant = Number(brut);
+  const v = typeof sbRpcVerdict !== 'function' ? null : await (automatique
+    ? sbRpcVerdict('banque_virement_automatique_creer', { p_beneficiaire: VIREMENT_DESTINATAIRE, p_montant: montant,
+        p_frequence: document.getElementById('vir-frequence')?.value || 'jour' })
+    : sbRpcVerdict('banque_virement', { p_beneficiaire: VIREMENT_DESTINATAIRE, p_montant: montant })).catch(() => null);
+  if (!v || v.ok !== true) {
+    const m = v && REFUS_VIREMENT[v.raison];
+    if (m) { showToast(m[0], m[1], false); return; }
+    if (v && v.raison && !v.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
+    showToast('Virement non effectué', "L'opération n'a pas abouti : rien n'a été prélevé ni versé.", false);
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, arg: v.arg, solde_national: v.solde_national });
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (automatique) {
+    showToast('Virement automatique en place', montant + ' FR ' + (document.getElementById('vir-frequence')?.value === 'semaine' ? 'par semaine' : 'par jour')
+      + ' à ' + VIREMENT_DESTINATAIRE + '. Premier versement cette nuit.', true);
+    addJournalEntry('Virement automatique mis en place au profit de ' + VIREMENT_DESTINATAIRE + ' (' + montant + ' FR).', 'event-info');
+  } else {
+    showToast('Virement effectué', montant + ' FR virés à ' + VIREMENT_DESTINATAIRE + '.', true);
+    addJournalEntry('Virement de ' + montant + ' FR à ' + VIREMENT_DESTINATAIRE + '.', 'event-info');
+  }
+}
+
+// L'INTERFACE PERSONNELLE : les virements automatiques emis (arret gratuit) et recus.
+async function rafraichirVirementsAutomatiquesFiche() {
+  const box = document.getElementById('fiche-virements-auto');
+  if (!box || typeof sbRpcVerdict !== 'function') return;
+  const v = await sbRpcVerdict('virements_automatiques_mes', {}).catch(() => null);
+  if (!document.getElementById('fiche-virements-auto')) return;
+  if (!v || v.ok !== true) { box.innerHTML = ''; return; }
+  const liste = Array.isArray(v.virements) ? v.virements : [];
+  if (!liste.length) { box.innerHTML = ''; return; }
+  const esc = (t) => (typeof escapeHtmlText === 'function' ? escapeHtmlText(String(t)) : String(t));
+  const freq = (f) => f === 'semaine' ? 'par semaine' : 'par jour';
+  let html = '<div class="cpj-dialogue" style="margin-bottom:.8rem"><h4 style="margin:0 0 .5rem">Virements automatiques</h4>';
+  liste.forEach(function (x) {
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.35rem 0">'
+      + '<span>' + (x.emis ? 'À <strong>' + esc(x.beneficiaire) + '</strong>' : 'De <strong>' + esc(x.emetteur) + '</strong>')
+      + ' : ' + x.montant + ' FR ' + freq(x.frequence) + '</span>'
+      + (x.emis ? '<button class="cpj-touche" onclick="arreterVirementAutomatique(\'' + x.id + '\')">Arrêter</button>' : '')
+      + '</div>';
+  });
+  html += '</div>';
+  box.innerHTML = html;
+}
+
+async function arreterVirementAutomatique(id) {
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('virement_automatique_arreter', { p_id: id }).catch(() => null) : null;
+  if (!v || v.ok !== true) { showToast('Arrêt impossible', "Le virement n'a pas pu être arrêté.", false); return; }
+  showToast('Virement arrêté', 'Plus rien ne sera versé. Le bénéficiaire est prévenu.', true);
+  rafraichirVirementsAutomatiquesFiche();
+}
+
 // LE BUREAU NOUVELLE FORMULE (GAME-DESIGN-BNE.md, decisions de Fred du 25/10/2026).
 // Le Bureau ne recrute pas : il RECENSE les postes reels tenus par des PNJ faute de joueur, et
 // transmet la candidature au recruteur officiel par le circuit existant (« on conserve l'ancien
@@ -13766,12 +13891,12 @@ function ouvrirFormulaireAnnonceBNE() {
   let html = '<div class="cpj-dialogue">';
   html += '<p class="cpj-note" style="margin:0 0 .8rem">Annonce gratuite pour 1 PA. <strong>Elle reste affichée 7 jours</strong>, puis disparaît d\'elle-même. '
     + 'Votre nom y figure pour qu\'on puisse vous écrire : l\'embauche et la paie se règlent ensuite entre vous.</p>';
-  html += '<input id="bne-an-intitule" class="cpj-champ" maxlength="80" placeholder="Intitulé (ex. : Maçon pour mon chantier)" style="width:100%;margin-bottom:.5rem">';
-  html += '<textarea id="bne-an-descriptif" class="cpj-champ" maxlength="600" placeholder="Descriptif" style="width:100%;min-height:90px;margin-bottom:.5rem;resize:vertical"></textarea>';
-  html += '<select id="bne-an-lieu" class="cpj-champ" style="width:100%;margin-bottom:.5rem">'
+  html += '<input id="bne-an-intitule" class="cpj-champ" maxlength="80" placeholder="Intitulé (ex. : Maçon pour mon chantier)" style="width:100%;margin-bottom:.5rem;text-align:left">';
+  html += '<textarea id="bne-an-descriptif" class="cpj-champ" maxlength="600" placeholder="Descriptif" style="width:100%;min-height:90px;margin-bottom:.5rem;resize:vertical;text-align:left"></textarea>';
+  html += '<select id="bne-an-lieu" class="cpj-champ" style="width:100%;margin-bottom:.5rem;text-align:left">'
     + villes.map(v => '<option value="' + v + '"' + (v === (state.currentCity || 'capitale') ? ' selected' : '') + '>' + nomVille(v) + '</option>').join('')
     + '<option value="international">International</option></select>';
-  html += '<input id="bne-an-salaire" class="cpj-champ" maxlength="60" placeholder="Salaire (ex. : 60 FR de l\'heure, 150 FR par jour)" style="width:100%;margin-bottom:.7rem">';
+  html += '<input id="bne-an-salaire" class="cpj-champ" maxlength="60" placeholder="Salaire (ex. : 60 FR de l\'heure, 150 FR par jour)" style="width:100%;margin-bottom:.7rem;text-align:left">';
   html += '<label class="cpj-note" style="display:flex;gap:.5rem;align-items:flex-start;margin-bottom:.9rem;cursor:pointer">'
     + '<input type="checkbox" id="bne-an-presse" style="margin-top:.2rem"> '
     + '<span>Publier aussi dans <strong>La Tribune de Républia</strong> : 30 FR, parution 3 jours, une seule petite annonce à la fois.</span></label>';

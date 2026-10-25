@@ -3279,6 +3279,8 @@ const BUILDINGS = {
         orders: [
           {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
           {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
+          {fn:'virement_joueur', label:'Faire un virement', pa:1, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:"Virer de l'argent de votre compte vers celui d'un autre joueur, en une fois."},
+          {fn:'virement_automatique', label:'Mettre en place un virement automatique', pa:1, cost:0, type:'legal', icon:'ti-repeat', successRate:100, desc:"Verser chaque jour ou chaque semaine une somme à un autre joueur (un salaire, par exemple). Il s'arrête à tout moment depuis votre fiche."},
           {fn:'presenter_autorisation_coffre', label:'Présenter une autorisation judiciaire', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Accéder à un coffre grâce à une autorisation du juge.'}
         ]
       },

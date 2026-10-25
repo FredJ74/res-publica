@@ -102,6 +102,16 @@ entre joueurs par mail. Nous sommes dans un JDR, tout ne se code pas.
   - Travail dans un bâtiment : payé par la caisse du bâtiment ; mercenaires et
     joueurs recrutés pour leurs compétences : par le compte du recruteur.
 
+### Virements (validé par Fred le 25/10, en jeu depuis le 25/10)
+- **Virement simple** à la Banque Nationale : 1 PA, du compte vers le compte d'un
+  autre joueur, un seul versement ; le destinataire sans compte en reçoit un.
+- **Virement automatique** créé à la Banque Nationale : 1 PA, bénéficiaire,
+  montant, chaque jour ou chaque semaine, versé la nuit par le serveur.
+- **Arrêt** gratuit depuis la fiche du joueur (onglet des actions).
+- **Compte insuffisant** une nuit : rien n'est versé ce jour-là, les deux joueurs
+  reçoivent un mail, le virement reste actif.
+- Le destinataire se choisit par une **recherche de joueur** (Fred).
+
 ## Constats techniques liés (25/10)
 
 - Aucun virement d'un joueur à un autre n'existe : à créer avant le virement
