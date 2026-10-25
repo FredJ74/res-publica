@@ -112,7 +112,17 @@ class Joueur{
   await scene.waitFor({state:'visible',timeout:30000});
   await this.page.waitForFunction(()=>[...document.querySelectorAll('#vue-batiment.active #piece-image img, #vue-rue.active #rc-scene img')].every(i=>i.complete&&i.naturalWidth>0),null,{timeout:30000});
   const serveur=await this.serveur();
-  if(serveur.current_building!==this.rapport.prevolAutomatique.position.batiment||serveur.current_room!==this.rapport.prevolAutomatique.position.piece||s.batiment!==serveur.current_building||s.piece!==serveur.current_room)throw code('POSITION_INITIALE_NON_CONFIRMEE');
+  const attendue=this.rapport.prevolAutomatique.position;
+  // Uniquement des identifiants de lieux, jamais les identifiants ou les données du PJ.
+  const positionConforme=serveur.current_building===attendue.batiment&&serveur.current_room===attendue.piece&&s.batiment===serveur.current_building&&s.piece===serveur.current_room;
+  if(!positionConforme){
+    this.rapport.positionDiagnostic={
+      prevol:{batiment:attendue.batiment,piece:attendue.piece},
+      serveur:{batiment:serveur.current_building,piece:serveur.current_room},
+      interface:{batiment:s.batiment,piece:s.piece}
+    };
+    throw code('POSITION_INITIALE_NON_CONFIRMEE');
+  }
   this.rapport.visites.push({type:'consultation-position-existante',batiment:s.batiment,piece:s.piece});
   this.rapport.patrimoineFinal=preuve(serveur);
  }
