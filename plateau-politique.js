@@ -346,7 +346,10 @@ async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
                    villeCourante ? 'local' : 'national');
 }
 
-async function demanderNominationPoste(posteId, posteName) {
+// villeCible (25/10/2026, Bureau de l'Emploi) : le Bureau recense les postes de TOUTES les
+// villes ; la candidature vise alors la ville du poste, pas celle ou se tient le joueur. Sans ce
+// parametre (Organigramme, Palais), c'est la ville courante, comme avant.
+async function demanderNominationPoste(posteId, posteName, villeCible) {
   document.getElementById('modal-postes')?.classList.remove('open');
 
   // AUCUNE CANDIDATURE SANS PERSONNAGE CHARGE (24 septembre 2026).
@@ -369,7 +372,7 @@ async function demanderNominationPoste(posteId, posteName) {
   const check = peutAccepterPosteNomme(posteId);
   if (!check.ok) { showToast('Impossible', check.raison, false); return; }
 
-  const villeCourante = regle.scope === 'ville' ? state.currentCity : null;
+  const villeCourante = regle.scope === 'ville' ? (villeCible || state.currentCity) : null;
   // La ville du POSTE sert a identifier le siege ; celle de l'AUTORITE peut differer.
   const titulaireAutorite = typeof getTitulaireActuel === 'function'
     ? await getTitulaireActuel(regle.nommePar, villeDeLAutorite(regle, villeCourante)) : null;
@@ -11715,7 +11718,7 @@ async function confirmerCandidatureEngagement(grade) {
   if (!r || r.ok !== true) {
     const m = r?.raison;
     showToast('Candidature refusée',
-      m === 'pas_sur_place' ? 'Vous devez être à la Caserne Militaire pour vous engager.'
+      m === 'pas_sur_place' ? (grade === 'soldat' ? 'Vous devez être à la Caserne Militaire pour vous engager.' : 'Vous devez être à la Caserne Militaire ou au Bureau de l\'Emploi pour postuler.')
       : m === 'deja_militaire' ? 'Vous servez déjà dans l\'armée.'
       : m === 'candidature_deja_active' ? 'Vous avez déjà une candidature en cours pour ce grade.'
       : m === 'pa_insuffisants' ? 'Il vous faut 2 PA pour déposer une candidature.'

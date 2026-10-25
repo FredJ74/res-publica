@@ -13762,83 +13762,88 @@ async function offresChantiersBNE(pays, ville) {
   return offres;
 }
 
+// LE BUREAU NOUVELLE FORMULE (GAME-DESIGN-BNE.md, decisions de Fred du 25/10/2026).
+// Le Bureau ne recrute pas : il RECENSE les postes reels tenus par des PNJ faute de joueur, et
+// transmet la candidature au recruteur officiel par le circuit existant (« on conserve l'ancien
+// fonctionnement en entier ») : poste nomme -> demanderNominationPoste ; capitaine et lieutenant
+// -> confirmerCandidatureEngagement ; soldats -> la caserne. La liste vient du serveur
+// (bne_postes_a_pourvoir) : l'ecran n'affiche rien qu'il n'ait rendu.
+const BNE_LIBELLES_RECRUTEURS = {
+  maire: 'le maire', min_fin: 'le Ministre des Finances', min_int: "le Ministre de l'Intérieur",
+  min_just: 'le Ministre de la Justice', min_def: 'le Ministre de la Défense'
+};
+
 async function ouvrirOffresEmploiBNE() {
-  if (!state.char?.demandeurEmploi) {
-    showToast('Inscription requise', 'Inscrivez-vous comme demandeur d\'emploi avant de consulter les offres.', false);
-    return;
-  }
-  document.getElementById('postes-modal-title').textContent = "Offres d'emploi — Bureau National de l'Emploi";
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060;font-style:italic">Chargement des offres...</div>';
+  document.getElementById('postes-modal-title').textContent = "Postes à pourvoir — Bureau National de l'Emploi";
+  document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue"><p class="cpj-note" style="font-style:italic;text-align:center">Chargement des postes…</p></div>';
   document.getElementById('modal-postes').classList.add('open');
 
-  const etat = await sbGetEtatBNE(state.country);
+  const v = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('bne_postes_a_pourvoir', {}).catch(() => null) : null;
+  if (!v || v.ok !== true) {
+    document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue"><p class="cpj-note">'
+      + "Le Bureau n'a pas pu consulter le registre des postes. Réessayez dans un instant.</p></div>";
+    return;
+  }
+  BNE_POSTES_AFFICHES = Array.isArray(v.postes) ? v.postes : [];
+  const nomVille = (ville) => (WORLD[state.country]?.[ville]?.name) || ville;
+  const esc = (t) => (typeof escapeHtmlText === 'function' ? escapeHtmlText(String(t == null ? '' : t)) : String(t == null ? '' : t));
+
+  let html = '<div class="cpj-dialogue">';
+  html += '<p class="cpj-note" style="margin:0 0 .9rem">Le Bureau recense les postes tenus par des PNJ faute de candidat. '
+    + 'Votre candidature est transmise au recruteur officiel, qui décide. Les joueurs passent avant les PNJ.</p>';
+
+  html += '<h4 style="margin:.2rem 0 .5rem">Postes de l\'État</h4>';
+  if (!BNE_POSTES_AFFICHES.length) {
+    html += '<p class="cpj-note">Aucun poste à pourvoir : tous sont tenus par des joueurs.</p>';
+  }
+  BNE_POSTES_AFFICHES.forEach(function (p, i) {
+    const lieu = p.ville ? ' — ' + esc(nomVille(p.ville)) : '';
+    const recruteur = (BNE_LIBELLES_RECRUTEURS[p.recruteur] || p.recruteur)
+      + (p.recruteur === 'maire' && p.ville ? ' de ' + nomVille(p.ville) : '');
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.55rem 0;border-bottom:1px solid var(--cpj-filet, rgba(201,168,76,.2))">'
+      + '<div><div><strong>' + esc(p.label) + '</strong>' + lieu + '</div>'
+      + '<div class="cpj-note" style="font-size:.75rem">Tenu par ' + esc(p.pnj || 'un PNJ') + ' · recruteur : ' + esc(recruteur) + '</div></div>'
+      + '<button class="cpj-touche" onclick="postulerPosteBNE(' + i + ')">Postuler</button></div>';
+  });
+
+  const a = v.armee || {};
+  html += '<h4 style="margin:1.1rem 0 .5rem">L\'armée recrute</h4>';
+  const ligneArmee = (libelle, n, action) => '<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.45rem 0">'
+    + '<div><strong>' + libelle + '</strong> : ' + n + ' poste' + (n > 1 ? 's' : '') + '</div>' + action + '</div>';
+  let lignes = 0;
+  if (Number(a.capitaines) > 0) { lignes++; html += ligneArmee('Capitaine', Number(a.capitaines), '<button class="cpj-touche" onclick="postulerGradeBNE(\'capitaine\')">Postuler</button>'); }
+  if (Number(a.lieutenants) > 0) { lignes++; html += ligneArmee('Lieutenant', Number(a.lieutenants), '<button class="cpj-touche" onclick="postulerGradeBNE(\'lieutenant\')">Postuler</button>'); }
+  if (Number(a.soldats) > 0) { lignes++; html += ligneArmee('Soldat', Number(a.soldats), '<span class="cpj-note" style="font-size:.75rem">Postulez directement à la caserne</span>'); }
+  if (!lignes) html += '<p class="cpj-note">L\'armée ne recrute pas en ce moment.</p>';
+  html += '<p class="cpj-note" style="font-size:.75rem;margin-top:.4rem">Le poste de Commandant de la Caserne, s\'il est à pourvoir, figure parmi les postes de l\'État.</p>';
+
+  // Les heures de chantier de la ville (decision du 6 septembre 2026, conservee).
   const villeCourante = state.currentCity || 'capitale';
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const pjNom = state.char?.name;
-  const emploiActuel = trouverEmploiActuelBNE(etat.offres, pjNom);
-  const reservationEnAttente = trouverReservationEnAttenteBNE(etat.offres, pjNom);
-
-  const offresVisibles = Object.entries(OFFRES_EMPLOI_BNE).filter(([, o]) =>
-    o.portee !== 'locale' || o.ville === villeCourante
-  );
-
-  // Lot 1.5.9 : un chantier ouvert s'annonce automatiquement tant qu'il lui reste des heures a
-  // effectuer aujourd'hui ET que sa tresorerie peut les payer. Offres DERIVEES, jamais persistees,
-  // recalculees a chaque ouverture de l'ecran -- le catalogue statique OFFRES_EMPLOI_BNE n'est pas
-  // touche, et aucun systeme generique de BNE n'est introduit.
-  const offresChantiers = await offresChantiersBNE(state.country, villeCourante).catch(() => []);
-
-  const portéeLabel = { locale: 'Locale', nationale: 'Nationale', internationale: 'Internationale' };
-
-  let html = '<div style="padding:1rem">';
-  if (reservationEnAttente) {
-    html += '<div style="font-size:.78rem;color:#c08a3a;font-style:italic;margin-bottom:.8rem;border:1px solid #6a4a1a;padding:.5rem">Une candidature est en attente d\'arbitrage — consultez votre messagerie pour trancher avant d\'en déposer une nouvelle.</div>';
-  }
-  if (offresChantiers.length > 0) {
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">CHANTIERS DE LA VILLE</div>';
-    offresChantiers.forEach(function (c) {
-      html += '<div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
-      html += '<div style="font-size:.85rem;color:#c0b090">' + c.libelle + '</div>';
-      // Aucun PA affiche : l'annonce est un contrat de travail, pas une fiche technique.
-      html += '<div style="font-size:.7rem;color:#6a5a30;margin-top:.2rem">' + c.ville + ' · ' + c.terrain
-           + ' · ' + c.tauxHoraire + ' ' + cur + '/heure · ' + c.heuresRestantes + ' heure(s) disponible(s) aujourd\'hui</div>';
-      html += '<div style="font-size:.68rem;color:#6a5a30;font-style:italic;margin-top:.2rem">Présentez-vous sur place pour travailler.</div>';
-      html += '</div>';
+  const chantiers = await offresChantiersBNE(state.country, villeCourante).catch(() => []);
+  if (chantiers.length) {
+    html += '<h4 style="margin:1.1rem 0 .5rem">Chantiers de la ville</h4>';
+    chantiers.forEach(function (c) {
+      html += '<div style="padding:.45rem 0"><strong>' + esc(c.libelle) + '</strong>'
+        + '<div class="cpj-note" style="font-size:.75rem">' + esc(c.terrain) + ' · ' + c.tauxHoraire + ' ' + cur + '/heure · '
+        + c.heuresRestantes + ' heure(s) disponible(s) aujourd\'hui. Présentez-vous sur place pour travailler.</div></div>';
     });
-    html += '<div style="height:.6rem"></div>';
   }
-
-  html += offresVisibles.map(([offreId, o]) => {
-    const placesPrises = compterPlacesPrisesBNE(etat.offres, offreId);
-    const complet = placesPrises >= o.places;
-    const estMonEmploi = emploiActuel?.offreId === offreId;
-    let bouton;
-    if (estMonEmploi) {
-      bouton = '<span style="font-size:.7rem;color:#4a8a4a">Votre emploi actuel</span>';
-    } else if (reservationEnAttente) {
-      bouton = '<span style="font-size:.7rem;color:#5a5040">Candidature en attente</span>';
-    } else if (complet) {
-      bouton = '<span style="font-size:.7rem;color:#5a5040">Complet</span>';
-    } else {
-      bouton = '<button onclick="postulerOffreEmploiBNE(\'' + offreId + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer">Postuler</button>';
-    }
-    return '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.7rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center">' +
-      '<div>' +
-        '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#E8C97A">' + o.label + '</div>' +
-        '<div style="font-size:.68rem;color:#6a5a30;margin-top:.15rem">' + portéeLabel[o.portee] + ' · ' + texteRemunerationOffreBNE(o, cur) + ' · ' + placesPrises + '/' + o.places + ' places prises</div>' +
-      '</div>' + bouton +
-    '</div>';
-  }).join('');
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
 
-// REMUNERATION AFFICHEE D'UNE OFFRE (audit B4, 25/10/2026). « 0 FR/jour » laissait croire a un
-// travail gratuit : une offre sans salaire declare laisse au joueur son revenu universel, et une
-// offre locale est payee par la caisse de son employeur (decision de Fred, 25/10/2026).
-function texteRemunerationOffreBNE(o, cur) {
-  if (!o || !(o.salaire > 0)) return 'Non salarié — revenu universel conservé';
-  return o.salaire.toLocaleString('fr-FR') + ' ' + cur + '/jour, payés par l\'employeur';
+let BNE_POSTES_AFFICHES = [];
+
+async function postulerPosteBNE(i) {
+  const p = BNE_POSTES_AFFICHES[i];
+  if (!p || typeof demanderNominationPoste !== 'function') return;
+  await demanderNominationPoste(p.poste, p.label, p.ville || null);
+}
+
+async function postulerGradeBNE(grade) {
+  if (typeof confirmerCandidatureEngagement !== 'function') return;
+  await confirmerCandidatureEngagement(grade);
 }
 
 // Chaque refus de la porte du BNE est NOMME au joueur. Sans cela, un poste complet et une panne

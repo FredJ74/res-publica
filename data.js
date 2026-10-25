@@ -897,9 +897,7 @@ const WORLD = {
               desc: "L'antenne locale du Bureau National de l'Emploi de Républia. Offres d'emploi, accompagnement, formation.",
               persons: [],
               orders: [
-                {fn:'sinscrire_demandeur_emploi', label:"S'inscrire comme demandeur d'emploi", pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, desc:"Ouvre l'accès aux offres du Bureau National de l'Emploi."},
-                {fn:'consulter_offres_emploi', label:"Consulter les offres d'emploi", pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:'Offres locales, nationales et internationales disponibles.'},
-                {fn:'demissionner_emploi_bne', label:'Démissionner de mon emploi', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Effet immédiat, sans coût. Libère la place pour un autre demandeur.'}
+                {fn:'consulter_offres_emploi', label:'Postes à pourvoir', pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:"Les postes de l'État et de l'armée tenus par des PNJ faute de joueur. Votre candidature est transmise au recruteur officiel."},
               ]
             }
           }
@@ -1261,9 +1259,7 @@ const WORLD = {
               desc: "L'antenne locale du Bureau National de l'Emploi de Républia. Offres d'emploi, accompagnement, formation.",
               persons: [],
               orders: [
-                {fn:'sinscrire_demandeur_emploi', label:"S'inscrire comme demandeur d'emploi", pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, desc:"Ouvre l'accès aux offres du Bureau National de l'Emploi."},
-                {fn:'consulter_offres_emploi', label:"Consulter les offres d'emploi", pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:'Offres locales, nationales et internationales disponibles.'},
-                {fn:'demissionner_emploi_bne', label:'Démissionner de mon emploi', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Effet immédiat, sans coût. Libère la place pour un autre demandeur.'}
+                {fn:'consulter_offres_emploi', label:'Postes à pourvoir', pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:"Les postes de l'État et de l'armée tenus par des PNJ faute de joueur. Votre candidature est transmise au recruteur officiel."},
               ]
             }
           }
@@ -6328,9 +6324,7 @@ const BUILDINGS = {
           {name:'Jean-Lou Zeure', role:'Ancien Maire de Luthécia', rel:'neutral', job:'citoyen', photoUrl:'images/jean-lou-zeure.webp', photoPos:'63% 30%'}
         ],
         orders: [
-          {fn:'sinscrire_demandeur_emploi', label:"S'inscrire comme demandeur d'emploi", pa:1, cost:0, type:'legal', icon:'ti-user-plus', successRate:100, desc:"Ouvre l'accès aux offres du Bureau National de l'Emploi."},
-          {fn:'consulter_offres_emploi', label:"Consulter les offres d'emploi", pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:'Offres locales, nationales et internationales disponibles.'},
-          {fn:'demissionner_emploi_bne', label:'Démissionner de mon emploi', pa:0, cost:0, type:'legal', icon:'ti-door-exit', successRate:100, desc:'Effet immédiat, sans coût. Libère la place pour un autre demandeur.'}
+          {fn:'consulter_offres_emploi', label:'Postes à pourvoir', pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:"Les postes de l'État et de l'armée tenus par des PNJ faute de joueur. Votre candidature est transmise au recruteur officiel."},
         ]
       },
       bureau_direction: {
@@ -8446,21 +8440,11 @@ const SALAIRES = {
 // depuis n'importe quel Bureau de Republia), 'internationale' (visible aussi au Quartier des
 // Ambassades — pour l'instant juste une etiquette/du contenu jouable, pas de vraie mecanique
 // inter-empire derriere).
-const OFFRES_EMPLOI_BNE = {
-  serveur_luthecia:     { job:'serveur',    label:'Serveur — Hôtel Républica',                       portee:'locale',         ville:'capitale', salaire:200, places:2 },
-  docker_psm:           { job:'docker',     label:'Docker — Port Industriel de Port-Sainte-Marie',   portee:'locale',         ville:'ville_a',  salaire:220, places:2 },
-  hotelier_montrouge:   { job:'hotelier',   label:'Hôtelier — Hôtel du Mineur',                       portee:'locale',         ville:'ville_b',  salaire:250, places:1 },
-  // LES QUATRE POSTES ITINERANTS NE SONT PAS SALARIES (arbitrage GD, 20 septembre 2026).
-  // Aucun employeur ne les represente dans l'economie : ni batiment, ni poste, ni caisse. Ils
-  // existent pour l'interaction, pas pour produire. Leur verser un salaire aurait signifie soit
-  // creer de la monnaie, soit inventer un employeur. Le salaire passe donc a 0 -- l'offre, son
-  // label, ses places et son role fonctionnel restent intacts. Le titulaire touche le revenu
-  // universel comme tout citoyen, ni plus ni moins.
-  secretaire_nationale: { job:'secretaire', label:'Secrétaire administratif (poste itinérant)',       portee:'nationale',      salaire:0, places:3 },
-  commercant_national:  { job:'commercant', label:'Commerçant itinérant',                             portee:'nationale',      salaire:0, places:3 },
-  banquier_national:    { job:'banquier',   label:'Conseiller bancaire',                              portee:'nationale',      salaire:0, places:1 },
-  hotesse_ambassade:    { job:'hotesse',    label:"Hôtesse d'accueil diplomatique",                   portee:'internationale', salaire:0, places:2 }
-};
+// LES SEPT OFFRES FICTIVES D'AOUT SONT SUPPRIMEES (decision de Fred, 25 octobre 2026,
+// GAME-DESIGN-BNE.md) : le Bureau recense desormais les postes reels tenus par des PNJ
+// (bne_postes_a_pourvoir) et affichera les annonces des joueurs. Le catalogue reste declare,
+// vide, pour les appelants historiques (bne_agir refuse toute offre : 'offre_inconnue').
+const OFFRES_EMPLOI_BNE = {};
 
 // Postes nommes (non electifs) avec regles de cumul strictes
 // 'depute' est le SEUL poste compatible avec juge/commissaire

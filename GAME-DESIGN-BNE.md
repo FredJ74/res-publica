@@ -52,18 +52,18 @@ pourvoir d'après les unités qui existent (une compagnie sans capitaine joueur 
 Commandant, capitaine, lieutenant : « Postulez ici ». Soldats : nombre de places
 et « Postulez directement à la caserne » (l'engagement reste celui de la caserne).
 
-**Candidature** : 1 PA, depuis le Bureau. Le Bureau **transmet** la candidature
+**Candidature** : depuis le Bureau (coût : celui du circuit existant ; Fred avait dit 1 PA avant de conserver l'ancien circuit — à confirmer). Le Bureau **transmet** la candidature
 au recruteur officiel ; il ne court-circuite pas le recrutement normal. Un joueur
 peut postuler à **plusieurs postes** en même temps.
 
-**Décision, une fois par semaine, le vendredi** :
-- le recruteur statue sur la ou les candidatures du poste ;
-- **une seule candidature** : il est **obligé de l'accepter** (le joueur remplace
-  le PNJ) ;
-- **plusieurs** : il est **obligé de choisir** parmi elles ;
-- **pas de décision** (recruteur absent ou PNJ) : le serveur tranche **à minuit** —
-  candidat unique nommé d'office ; plusieurs candidats : **jet basé sur
-  l'Entregent (ENT)**, le meilleur est nommé.
+**Décision : le circuit du 25 août 2026 est conservé en entier** (Fred, 25/10 —
+la règle du vendredi et du jet d'Entregent, proposée le même jour, est abandonnée) :
+- **recruteur PNJ** : le joueur est nommé **tout de suite** ;
+- **recruteur joueur** : il a **48 heures** pour choisir ; sinon **tirage au sort**
+  parmi les candidats et **popularité du recruteur divisée par deux** ;
+- un joueur nommé est **protégé 7 jours** contre une révocation arbitraire.
+Capitaine et lieutenant : candidature militaire existante (2 PA), déposable au
+Bureau comme à la caserne.
 
 **Le premier poste attribué annule** les autres candidatures du joueur.
 
