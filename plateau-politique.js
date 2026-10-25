@@ -4142,7 +4142,7 @@ function renderRoomActions(room, buildingId, roomId) {
       'negocier_squatteurs','appeler_police_terrain','faire_disparaitre_cadavre']);
     const fnApresAchat = new Set(['construire_sur_terrain','emprunter_construction']);
     const fnChantier = new Set(['payer_versement_chantier','travailler_chantier',
-      'vendre_materiaux_chantier','donner_materiaux_chantier','prix_chantier',
+      'vendre_materiaux_chantier','donner_materiaux_chantier','prix_chantier','taux_chantier',
       'modifier_plan_chantier','diviser_construction','receptionner_chantier']);
     const fnLivre = new Set(['reconfigurer_lots']); // accès et location via onglets des locaux
     return allOrders.filter(o => {

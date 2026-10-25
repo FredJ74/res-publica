@@ -12822,7 +12822,7 @@ async function doTravaillerChantier(pa, cost) {
   const paDispo = TEST_MODE ? restantes : Math.max(0, state.pa || 0);
   const maxi = heuresTravaillablesPar(ch, restantes, paDispo);
   if (maxi <= 0) {
-    const payables = Math.floor(Math.max(0, ch.tresorerie || 0) / CHANTIER_TAUX_HORAIRE);
+    const payables = Math.floor(Math.max(0, ch.tresorerie || 0) / tauxHoraireChantier(ch));
     showToast(payables <= 0 ? 'Chantier sans trésorerie' : 'PA insuffisants',
       payables <= 0 ? "Le chantier ne peut pas vous payer : sa trésorerie est vide."
                     : "Il vous faut au moins 1 PA pour travailler une heure.", false);
@@ -12831,7 +12831,7 @@ async function doTravaillerChantier(pa, cost) {
 
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">' + restantes + ' heure(s) restante(s) aujourd\'hui sur ce chantier · '
-       + CHANTIER_TAUX_HORAIRE + ' ' + cur + '/heure. Chaque heure vous coûte 1 PA. Vous pouvez en prendre jusqu\'à ' + maxi + '.</div>';
+       + tauxHoraireChantier(ch) + ' ' + cur + '/heure, taux fixé par le propriétaire. Chaque heure vous coûte 1 PA. Vous pouvez en prendre jusqu\'à ' + maxi + '.</div>';
   html += '<div style="display:flex;gap:.4rem;margin-bottom:.6rem">';
   html += '<input id="chantier-heures" type="number" min="1" max="' + maxi + '" value="' + maxi + '" style="width:110px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-family:Crimson Pro,serif;font-size:.82rem;outline:none" />';
   html += '<span style="font-size:.78rem;color:#8a8060;align-self:center">heure(s)</span>';

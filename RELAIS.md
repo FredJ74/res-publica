@@ -63,6 +63,12 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   annonces des joueurs** (registre 20261025183757 : `bne_annonces`,
   `bne_annonce_publier/lister/retirer`, option Tribune 30 FR versés à la caisse
   `<pays>_bureau-national-emploi`).
+- 25/10 soir : **taux horaire des chantiers** fixé par le titulaire, minimum 50 FR
+  (registre 20261025193111) : action `taux` de `chantier_commande`,
+  `chantier_taux_definir`, `chantier_travailler` paie au taux du chantier. **Codex :
+  touche à tes fichiers construction** (`plateau-construction-commandes.js` : ordre
+  dynamique `taux_chantier` ; `plateau-chantiers.js` : `tauxHoraireChantier`). Le
+  travail PNJ (cron) reste au taux de référence de 70 FR.
 - Prochaines étapes (Claude) : coder `GAME-DESIGN-BNE.md` par lots — 1. suppression
   des offres et de l'inscription + recensement ; 2. candidatures et décision du
   vendredi ; 3. annonces des joueurs (+ parution Tribune par le serveur, caisse du

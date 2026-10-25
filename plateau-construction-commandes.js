@@ -80,7 +80,9 @@ if (typeof window !== 'undefined') {
     const plan={fn:'modifier_plan_chantier',label:'Définir les lots intérieurs',icon:'ti-layout-grid',pa:0,cost:0,type:'legal',successRate:100};
     if (!ch) return ts.niveau_construction && !ts.planInitialValide && !(ts.subdivisions||[]).length ? [plan] : [];
     if (!chantierTermine(ch)) {
-      const ordres=[{fn:'prix_chantier',label:'Prix d’achat des matériaux',icon:'ti-coins',pa:0,cost:0,type:'legal',successRate:100}];
+      const ordres=[{fn:'prix_chantier',label:'Prix d’achat des matériaux',icon:'ti-coins',pa:0,cost:0,type:'legal',successRate:100},
+        // Salaire des ouvriers (Fred, 25/10/2026) : taux horaire fixe par le titulaire, minimum 50 FR.
+        {fn:'taux_chantier',label:'Salaire horaire des ouvriers',icon:'ti-cash',pa:0,cost:0,type:'legal',successRate:100}];
       if(verdictModificationPlan(ch).ok) ordres.push(plan);
       return ordres;
     }
@@ -106,6 +108,30 @@ function constructionSousOrdre(fn,label,pa,cost){return constructionBouton(label
 function ouvrirPrixChantier(){
   const ts=getTerrainState(state.currentBuilding);if(!constructionPeutGerer(ts))return;
   constructionFenetre('Prix d’achat des matériaux','<p>Prix en francs entiers uniquement. Les champs vides conservent les tarifs existants.</p>'+['bois','minerai','metal'].map(m=>'<label>'+m+' <input id="chantier-prix-'+m+'" inputmode="numeric" step="1" value="'+constructionEchapper(ts.chantier?.prixAchatPJ?.[m]??'')+'"></label>').join('')+constructionBouton('Enregistrer les prix','confirmerPrixChantier()'));
+}
+// SALAIRE HORAIRE DES OUVRIERS (Fred, 25/10/2026). Meme porte que les prix : chantier_commande,
+// action 'taux' ; le serveur refuse tout taux sous le salaire minimum.
+let constructionTauxEnCours=false;
+function ouvrirTauxChantier(){
+  const ts=getTerrainState(state.currentBuilding);if(!constructionPeutGerer(ts)||!ts.chantier)return;
+  const cur=COUNTRIES[state.country]?.cur||'FR';
+  constructionFenetre('Salaire horaire des ouvriers','<p>Chaque heure de travail sur votre chantier coûte 1 PA à l’ouvrier et lui est payée par la trésorerie du chantier, au taux que vous fixez. Salaire minimum : '+CHANTIER_SALAIRE_MINIMUM+' '+cur+' de l’heure. Taux actuel : '+tauxHoraireChantier(ts.chantier)+' '+cur+'.</p>'
+    +'<label>Taux horaire ('+cur+') <input id="chantier-taux" inputmode="numeric" step="1" value="'+constructionEchapper(ts.chantier.tauxHoraire??'')+'" placeholder="'+CHANTIER_TAUX_HORAIRE+'"></label>'
+    +constructionBouton('Enregistrer le taux','confirmerTauxChantier()'));
+}
+async function confirmerTauxChantier(){
+  if(constructionTauxEnCours)return;
+  const contexte=contexteNavigationRue(),id=state.currentBuilding;
+  const brut=(document.getElementById('chantier-taux')?.value||'').trim();
+  if(!/^[1-9][0-9]{0,5}$/.test(brut)||Number(brut)<CHANTIER_SALAIRE_MINIMUM){showToast('Taux refusé','Indiquez un nombre entier de francs, au moins le salaire minimum de '+CHANTIER_SALAIRE_MINIMUM+' FR de l’heure.',false);return;}
+  constructionTauxEnCours=true;
+  try{
+    const v=await constructionExecuterCommande('taux',{taux:brut});
+    if(!contexteNavigationRueValide(contexte))return;
+    if(!v?.ok)return;
+    await chargerTerrainState(id);
+    if(contexteNavigationRueValide(contexte)){document.getElementById('modal-postes')?.classList.remove('open');showToast('Taux enregistré','Les ouvriers de votre chantier seront payés '+brut+' FR de l’heure.',true);}
+  }finally{constructionTauxEnCours=false;}
 }
 async function confirmerPrixChantier(){
   if(constructionPrixEnCours)return;
