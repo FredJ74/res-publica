@@ -8364,7 +8364,16 @@ const TYPES_PRET = {
   consommation: { label: 'Consommation', desc: 'Petite somme, remboursement rapide, taux élevé.', montantMax: 10000, tauxFixe: 12, dureeMax: 30 }
 };
 
+function pretBancaireDisponibilite(typeBanque, typePret) {
+  if ((typeBanque || 'nationale') !== 'nationale') return {ok:true};
+  if (state.currentBuilding !== 'banque-nationale') return {ok:false,raison:'Rendez-vous à la Banque Nationale pour demander votre prêt travaux. Aucun financement n’est prélevé ici.'};
+  if (typePret && !['travaux','consommation'].includes(typePret)) return {ok:false,raison:'Le prêt consommation n’est pas actuellement disponible à ce guichet. Aucun montant ni PA ne sera prélevé.'};
+  return {ok:true};
+}
 async function ouvrirModalPretBancaire(typeBanque, typePret, pa) {
+  const disponibilite=pretBancaireDisponibilite(typeBanque,typePret);
+  if(!disponibilite.ok){showToast('Prêt bancaire',disponibilite.raison,false);return;}
+  if(typeof finance135Reconcilier==='function')await finance135Reconcilier();
   typeBanque = typeBanque || 'nationale';
 
   if (!typePret) {
@@ -8408,6 +8417,8 @@ async function ouvrirModalPretBancaire(typeBanque, typePret, pa) {
 }
 
 async function confirmerPretBancaire(typeBanque, typePret, pa) {
+  const disponibilite=pretBancaireDisponibilite(typeBanque,typePret);
+  if(!disponibilite.ok){showToast('Prêt bancaire',disponibilite.raison,false);return;}
   if((typeBanque||'nationale')==='nationale')return finance135ContracterPret(typePret);
   const montant = parseInt(document.getElementById('pret-montant')?.value || 0);
   const duree = parseInt(document.getElementById('pret-duree')?.value || 10);
