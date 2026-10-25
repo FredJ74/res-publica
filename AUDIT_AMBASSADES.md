@@ -204,3 +204,11 @@ joueur, secrétaires d'ambassadeur.
 
 **Questions ouvertes** : Indice Diplomatique ; « faveur » de la corruption ; ordres
 non raccordables en « Bientôt disponible » ; portraits des trois ambassadeurs.
+
+**Mise à jour du 25/10 (nuit)** : R5, R6, R9, R11 et R12 réglés (actions du ministre
+par le serveur, échéance serveur, plus de fausse menace, fin d'expulsion par la seule
+passe de nuit, table en lecture seule pour les joueurs). Branche de l'ambassadeur
+joueur codée : asile tranché par lui, PNJ secrétaires, valise diplomatique. Restent
+attachés au voyage entre empires : immunité, arrestation de l'expulsé, transfert de
+détenus, naturalisation. Restent ouverts : R1, R2, R4, R10 (Indice Diplomatique et
+effets des actions de l'ambassadeur), la « faveur », les réceptions.
