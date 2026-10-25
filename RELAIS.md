@@ -5,8 +5,9 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-**Ambassades et Bureau de l'Emploi (Claude)** — **Codex : ne pas toucher aux
-ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
+**Ambassades et Bureau de l'Emploi : chantiers de Claude seul** (Fred, 25/10). Ces
+notes sont la trace du travail, pour reprendre l'historique. **Codex : ne pas toucher aux
+ambassades ni au Bureau de l'Emploi.**
 - Contexte : objectif actuel = terminer Luthécia. Les ambassades ne seront
   raccordées aux autres empires que lorsqu'ils seront codés (arbitrage
   Fred, 24/10). Nouvelle règle de Fred : **une seule réalité, celle du
@@ -74,6 +75,9 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   `virements_automatiques_mes`, `virement_automatique_arreter`, passe de nuit
   `virements_automatiques_executer` (cron). Tous les lots de `GAME-DESIGN-BNE.md`
   sont livrés ; reste la question du Bureau de direction (fin de chantier).
+- 25/10 soir : **trois référentes emploi** (Nathalie Boulot, Edwige Leroux, Pétra
+  Vaillepas), fiches dans `api/_pnj-referents.js`, déclarées dans `pnj_referents`
+  (registre 20261025201502).
 - Prochaines étapes (Claude) : coder `GAME-DESIGN-BNE.md` par lots — 1. suppression
   des offres et de l'inscription + recensement ; 2. candidatures et décision du
   vendredi ; 3. annonces des joueurs (+ parution Tribune par le serveur, caisse du

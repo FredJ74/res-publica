@@ -895,7 +895,7 @@ const WORLD = {
               imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
               imageUrl: "images/bureau-emploi-annexe-psm.webp",
               desc: "L'antenne locale du Bureau National de l'Emploi de Républia. Offres d'emploi, accompagnement, formation.",
-              persons: [],
+              persons: [{name:'Edwige Leroux', role:"Secrétaire — référente emploi", rel:'neutral', job:'secretaire', photoUrl:'images/bureau-emploi-annexe-psm.webp', photoPos:'49% 55%'}],
               orders: [
                 {fn:'consulter_offres_emploi', label:'Postes à pourvoir', pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:"Les postes de l'État et de l'armée tenus par des PNJ faute de joueur. Votre candidature est transmise au recruteur officiel."},
                 {fn:'bne_passer_annonce', label:'Passer une annonce', pa:1, cost:0, type:'legal', icon:'ti-speakerphone', successRate:100, desc:"Vous cherchez du monde ? Annonce gratuite (1 PA), affichée 7 jours au Bureau, avec votre adresse pour vous écrire. Option : parution aussi dans La Tribune (30 FR, 3 jours)."}
@@ -1258,7 +1258,7 @@ const WORLD = {
               imageBg: "linear-gradient(135deg,#0f1216,#161a20)",
               imageUrl: "images/montrouge/montrouge-bne-accueil.jpg",
               desc: "L'antenne locale du Bureau National de l'Emploi de Républia. Offres d'emploi, accompagnement, formation.",
-              persons: [],
+              persons: [{name:'Pétra Vaillepas', role:"Secrétaire — référente emploi", rel:'neutral', job:'secretaire', photoUrl:'images/montrouge/montrouge-bne-accueil.jpg', photoPos:'25% 38%'}],
               orders: [
                 {fn:'consulter_offres_emploi', label:'Postes à pourvoir', pa:0, cost:0, type:'legal', icon:'ti-list-search', successRate:100, desc:"Les postes de l'État et de l'armée tenus par des PNJ faute de joueur. Votre candidature est transmise au recruteur officiel."},
                 {fn:'bne_passer_annonce', label:'Passer une annonce', pa:1, cost:0, type:'legal', icon:'ti-speakerphone', successRate:100, desc:"Vous cherchez du monde ? Annonce gratuite (1 PA), affichée 7 jours au Bureau, avec votre adresse pour vous écrire. Option : parution aussi dans La Tribune (30 FR, 3 jours)."}
@@ -6325,6 +6325,7 @@ const BUILDINGS = {
         imageUrl: "images/bureau-national-emploi-luthecia.webp",
         desc: "Le hall d'accueil du Bureau National de l'Emploi. Offres d'emploi, accompagnement, formation, création d'activité.",
         persons: [
+          {name:'Nathalie Boulot', role:"Secrétaire — référente emploi", rel:'neutral', job:'secretaire', photoUrl:'images/bureau-national-emploi-luthecia.webp', photoPos:'50% 55%'},
           {name:'Jean-Lou Zeure', role:'Ancien Maire de Luthécia', rel:'neutral', job:'citoyen', photoUrl:'images/jean-lou-zeure.webp', photoPos:'63% 30%'}
         ],
         orders: [
