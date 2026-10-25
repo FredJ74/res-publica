@@ -5346,6 +5346,7 @@ function ouvrirMenuOfficialiserTransaction(pa, cost) {
 }
 
 async function doActeVenteTerrain() {
+  if(typeof finance135Reconcilier==='function')await finance135Reconcilier();
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const nom = state.char?.name;
 
@@ -8407,6 +8408,7 @@ async function ouvrirModalPretBancaire(typeBanque, typePret, pa) {
 }
 
 async function confirmerPretBancaire(typeBanque, typePret, pa) {
+  if((typeBanque||'nationale')==='nationale')return finance135ContracterPret(typePret);
   const montant = parseInt(document.getElementById('pret-montant')?.value || 0);
   const duree = parseInt(document.getElementById('pret-duree')?.value || 10);
   const cur = COUNTRIES[state.country]?.cur || 'FR';
