@@ -4,7 +4,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import re, tempfile, json
 R=Path(__file__).resolve().parents[2]
-def main():
+def main(suite_callback=None):
  import pgserver, psycopg2
  srv=pgserver.get_server(tempfile.mkdtemp(prefix='hg-nego-'),cleanup_mode='delete')
  try:
@@ -41,6 +41,9 @@ def main():
   charger('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
   charger('migrations/20261020222029_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires',True)
   sql=(R/'migrations/20261023231127_squatteurs_negociation_transactionnelle.sql').read_text();q.execute(sql);q.execute(sql)
+  if suite_callback is not None:
+   suite_callback(c,q,srv)
+   return
   n=0
   def check(v):
    nonlocal n
