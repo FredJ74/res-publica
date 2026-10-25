@@ -1,0 +1,174 @@
+[
+  {
+    "banc": "test-prevol-arnie-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-achat-commerce-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-restaurant-luthecia-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-reservation-republica-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-offrir-boire-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-reception-atomique-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-assemblage-electronique-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-jodie-publications-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-organisations-commandes-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-organisations-membres-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-organisations-evenements-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-coherence-rues-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-equipements-collectifs-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-fontaine-110-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-placement-national-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-journal-ventes-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-permis-depot-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-negociation-squatteurs-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-ced-football-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-terrain-occupation-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-construction-jour-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-construction-materiaux-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-construction-travailleur-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-reamenagement-transactionnel-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-reamenagement-quotas-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-reamenagement-budget-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-reamenagement-materiaux-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-lots-miroirs-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-occupation-actions-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-terrain-banque-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-terrain-banque-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-parcours-terrain-construction-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "contre-epreuves-parcours-terrain-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-benediction-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-filature-benediction-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-vol-chantier-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "contre-epreuves-vol-chantier-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-enquete-confirmation-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-enquete-benediction-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "contre-epreuves-enquete-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "contre-epreuves-filature-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "contre-epreuves-terrain-banque-135-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-location-lot-transactionnelle-local.py",
+    "code": 0
+  }
+]

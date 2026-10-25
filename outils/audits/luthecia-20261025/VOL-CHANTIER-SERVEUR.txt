@@ -142,6 +142,7 @@ OK vol chantier score parfait vingt bois par les regles existantes
 OK vol chantier retrait stock confirme
 OK vol chantier butin recu par le vrai moteur revisionne
 OK vol chantier deux PA du catalogue reel
+OK vol chantier evenement de disparition enregistre avec le butin sans exposer le voleur
 OK vol chantier livraison reclamee et recu atomiques aucun depot en suspens
 OK vol chantier indice social applique une fois
 OK vol chantier reponse perdue aucun second objet PA ou effet
@@ -152,6 +153,7 @@ OK vol chantier rejeu ne peut pas devenir un acte d un autre empire
 OK vol chantier ancienne sauvegarde REST ne peut pas effacer le butin confirme
 OK vol chantier echec detecte sans retrait ni objet fictif
 OK vol chantier recherche via le moteur judiciaire commun
+OK vol chantier vrai garde judiciaire empeche la sauvegarde REST d effacer l avis
 OK vol chantier echec discret trace sans recherche supplementaire
 OK vol chantier presence refusee avant PA jet et bonus
 OK vol chantier PA insuffisants sans mutation
@@ -165,6 +167,7 @@ OK vol chantier ecriture ignoree rollback complet inventaire_ecriture_non_appliq
 OK vol chantier ecriture ignoree rollback complet indice_social_non_confirme
 OK vol chantier ecriture ignoree rollback complet trace_vol_non_confirmee
 OK vol chantier ecriture ignoree rollback complet recherche_non_confirmee
+OK vol chantier ecriture ignoree rollback complet evenement_vol_non_confirme
 OK vol chantier panne finale annule retrait inventaire revision PA trace social et bonus
 OK vol chantier deux sessions meme requete un seul butin
 OK vol chantier deux actes distincts ne depensent qu une fois le bonus au seuil de reussite
@@ -183,5 +186,5 @@ OK vol chantier parite formule navigateur seuils vigiles reputation et metal 9
 OK vol chantier parite formule navigateur seuils vigiles reputation et metal 10
 OK vol chantier parite formule navigateur seuils vigiles reputation et metal 11
 OK vol chantier commande privee avant activation complete
-{"vol_chantier_serveur": true, "assertions": 45, "client_raccorde": false, "production": false}
+{"vol_chantier_serveur": true, "assertions": 48, "client_raccorde": false, "production": false}
 {"ok": true, "assertions": 59, "production": false}

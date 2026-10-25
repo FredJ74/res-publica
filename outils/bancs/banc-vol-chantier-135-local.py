@@ -23,7 +23,12 @@ def suite(db,q,srv):
  s=(R/'baseline/domaines/justice/10_tables.sql').read_text();q.execute(re.search(r'CREATE TABLE public.actions_tracables \(.*?\n\);',s,re.S)[0]);q.execute('ALTER TABLE actions_tracables ADD PRIMARY KEY(id)')
  s=(R/'baseline/domaines/economie/10_tables.sql').read_text();q.execute(re.search(r'CREATE TABLE public.chantiers_besoins_jour \(.*?\n\);',s,re.S)[0]);q.execute((R/'baseline/seeds/90_socle/chantiers_besoins_jour.sql').read_text())
  for f,nom in [('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','terrain_chantier_acte'),('baseline/domaines/politique-et-elections/20_fonctions.sql','indice_ville_ajuster_interne'),('baseline/domaines/justice/20_fonctions-2.sql','recherche_inscrire')]:q.execute(fn(f,nom))
+ q.execute("ALTER TABLE personnages_donnees ADD COLUMN convocations jsonb DEFAULT '[]',ADD COLUMN historique_crimes jsonb DEFAULT '[]'")
+ q.execute(fn('baseline/domaines/assemblee/20_fonctions-1.sql','assemblee_cle_convocation'));q.execute(fn('baseline/domaines/personnage-et-presence/20_fonctions.sql','personnages_preserver_judiciaire'))
+ q.execute('CREATE TRIGGER judiciaire_vol_fixture BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_preserver_judiciaire()')
+ sql=(R/'baseline/domaines/divers-et-technique/10_tables.sql').read_text();q.execute(re.search(r'CREATE TABLE public\.evenements_globaux \(.*?\n\);',sql,re.S)[0])
  q.execute((R/MIGRATION).read_text());q.execute((R/MIGRATION).read_text())
+ for _ in range(2):q.execute((R/'migrations/20261025004601_vol_chantier_evenement_transactionnel.sql').read_text())
  if MUTANT:
   d=lire("SELECT pg_get_functiondef('chantier_vol_commande(text,text,uuid)'::regprocedure)")
   avant,apres={
@@ -39,12 +44,13 @@ def suite(db,q,srv):
   r=lire('SELECT religion_benediction_demander(%s,%s)',('Père Ception',str(uuid.uuid4())));assert r['ok'] and r['succes'],r
   q.execute("UPDATE personnages_donnees SET current_building='terrain-a-batir-1',current_room='terrain' WHERE name='Fixture'")
  def appel(k,mat='bois',cur=q):return lire('SELECT chantier_vol_commande(%s,%s,%s)',('terrain-a-batir-1',mat,f'b0000000-0000-4000-8000-{k:012d}'),cur)
- def photo():return lire("SELECT jsonb_build_array((SELECT jsonb_agg(p ORDER BY name) FROM personnages_donnees p),(SELECT jsonb_agg(t ORDER BY id) FROM terrains_etat t),(SELECT jsonb_agg(b ORDER BY acteur) FROM religion_benedictions b),(SELECT jsonb_agg(c ORDER BY acteur,acte) FROM religion_benedictions_consommations c),(SELECT jsonb_agg(r ORDER BY acteur,requete) FROM chantier_vols_recus r),(SELECT jsonb_agg(a ORDER BY id) FROM actions_tracables a),(SELECT jsonb_agg(i ORDER BY id) FROM indices_villes i),(SELECT jsonb_agg(o ORDER BY id) FROM objets_recus o),(SELECT jsonb_agg(l ORDER BY jeton) FROM inventaire_livraisons_recues l))")
+ def photo():return lire("SELECT jsonb_build_array((SELECT jsonb_agg(p ORDER BY name) FROM personnages_donnees p),(SELECT jsonb_agg(t ORDER BY id) FROM terrains_etat t),(SELECT jsonb_agg(b ORDER BY acteur) FROM religion_benedictions b),(SELECT jsonb_agg(c ORDER BY acteur,acte) FROM religion_benedictions_consommations c),(SELECT jsonb_agg(r ORDER BY acteur,requete) FROM chantier_vols_recus r),(SELECT jsonb_agg(a ORDER BY id) FROM actions_tracables a),(SELECT jsonb_agg(i ORDER BY id) FROM indices_villes i),(SELECT jsonb_agg(o ORDER BY id) FROM objets_recus o),(SELECT jsonb_agg(l ORDER BY jeton) FROM inventaire_livraisons_recues l),(SELECT jsonb_agg(e ORDER BY id) FROM evenements_globaux e))")
  position();ancien=lire("SELECT inventaire_reception_etat('Fixture')");jet(100);r=appel(1)
  check(r['ok'] and r['score']==100 and r['quantite']==20,'score parfait vingt bois par les regles existantes')
  check(lire("SELECT (data::jsonb->'chantier'->'stockMateriaux'->>'bois')::int FROM terrains_etat WHERE id='republic_terrain-a-batir-1'")==80,'retrait stock confirme')
  check(r['inventaire']['inventory'][-1]['qty']==20 and r['inventaire']['revision']>=1,'butin recu par le vrai moteur revisionne')
  check(lire("SELECT pa FROM personnages_donnees WHERE name='Fixture'")==48,'deux PA du catalogue reel')
+ check(lire('SELECT count(*) FROM evenements_globaux WHERE id=%s',(r['evenementPublic'],))==1,'evenement de disparition enregistre avec le butin sans exposer le voleur')
  check(lire("SELECT count(*) FROM objets_recus WHERE id LIKE 'vol-chantier-%'")==0 and lire("SELECT count(*) FROM inventaire_livraisons_recues WHERE id LIKE 'vol-chantier-%'")==1,'livraison reclamee et recu atomiques aucun depot en suspens')
  check(lire("SELECT data->>'social' FROM indices_villes WHERE id='republic_capitale'")=='49','indice social applique une fois')
  avant=photo();check(appel(1)['rejeu'] and photo()==avant,'reponse perdue aucun second objet PA ou effet')
@@ -59,6 +65,9 @@ def suite(db,q,srv):
  check(lire("SELECT inventory FROM personnages_donnees WHERE name='Fixture'")==courant,'ancienne sauvegarde REST ne peut pas effacer le butin confirme')
  position();jet(1);r=appel(2);check(r['ok'] and r['detecte'] and r['quantite']==0,'echec detecte sans retrait ni objet fictif')
  check(lire("SELECT recherche @> '[{\"id\":\"vol-chantier-b0000000-0000-4000-8000-000000000002\"}]' FROM personnages_donnees WHERE name='Fixture'"),'recherche via le moteur judiciaire commun')
+ recherche=lire("SELECT recherche FROM personnages_donnees WHERE name='Fixture'")
+ q.execute("GRANT UPDATE(recherche),SELECT(name,recherche) ON personnages_donnees TO authenticated;SET ROLE authenticated;SET request.path='/rest/v1/personnages_donnees';UPDATE personnages_donnees SET recherche='[]' WHERE name='Fixture';RESET ROLE;SET request.path=''")
+ check(lire("SELECT recherche FROM personnages_donnees WHERE name='Fixture'")==recherche,'vrai garde judiciaire empeche la sauvegarde REST d effacer l avis')
  position();jet(30);r=appel(3);check(r['ok'] and not r['succes'] and not r['detecte'] and r['quantite']==0,'echec discret trace sans recherche supplementaire')
  position();q.execute("UPDATE personnages_donnees SET current_room='ailleurs' WHERE name='Fixture'");avant=photo();check(appel(4)['raison']=='pas_sur_place' and photo()==avant,'presence refusee avant PA jet et bonus')
  position();q.execute("UPDATE personnages_donnees SET pa=1 WHERE name='Fixture'");avant=photo();check(appel(4)['raison']=='pa_insuffisants' and photo()==avant,'PA insuffisants sans mutation')
@@ -69,8 +78,8 @@ def suite(db,q,srv):
  try:appel(4);raise AssertionError('stock ignore attendu')
  except psycopg2.Error as ex:check('retrait_chantier_non_confirme' in str(ex) and photo()==avant,'stock silencieusement ignore ne cree aucun butin gratuit')
  q.execute('DROP TRIGGER stock_ignore_fixture ON terrains_etat')
- for table,corps,erreur,j in [('personnages_donnees','NEW.pa:=OLD.pa;RETURN NEW;','paiement_vol_non_confirme',100),('personnages_donnees','NEW.inventory:=OLD.inventory;RETURN NEW;','inventaire_ecriture_non_appliquee',100),('indices_villes','NEW.data:=OLD.data;RETURN NEW;','indice_social_non_confirme',100),('actions_tracables','RETURN NULL;','trace_vol_non_confirmee',100),('personnages_donnees','NEW.recherche:=OLD.recherche;RETURN NEW;','recherche_non_confirmee',1)]:
-  position();jet(j);operation='INSERT' if table=='actions_tracables' else 'UPDATE'
+ for table,corps,erreur,j in [('personnages_donnees','NEW.pa:=OLD.pa;RETURN NEW;','paiement_vol_non_confirme',100),('personnages_donnees','NEW.inventory:=OLD.inventory;RETURN NEW;','inventaire_ecriture_non_appliquee',100),('indices_villes','NEW.data:=OLD.data;RETURN NEW;','indice_social_non_confirme',100),('actions_tracables','RETURN NULL;','trace_vol_non_confirmee',100),('personnages_donnees','NEW.recherche:=OLD.recherche;RETURN NEW;','recherche_non_confirmee',1),('evenements_globaux','RETURN NULL;','evenement_vol_non_confirme',100)]:
+  position();jet(j);operation='INSERT' if table in ('actions_tracables','evenements_globaux') else 'UPDATE'
   q.execute('CREATE OR REPLACE FUNCTION defaut_vol_fixture() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN '+corps+'END$$;CREATE TRIGGER defaut_vol_fixture BEFORE '+operation+' ON '+table+' FOR EACH ROW EXECUTE FUNCTION defaut_vol_fixture()');avant=photo()
   try:appel(4);raise AssertionError('ecriture ignoree attendue '+erreur)
   except psycopg2.Error as ex:check(erreur in str(ex) and photo()==avant,'ecriture ignoree rollback complet '+erreur)
