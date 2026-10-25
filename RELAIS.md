@@ -8,6 +8,13 @@ Règles : voir `AGENTS.md`.
 **Ambassades et Bureau de l'Emploi : chantiers de Claude seul** (Fred, 25/10). Ces
 notes sont la trace du travail, pour reprendre l'historique. **Codex : ne pas toucher aux
 ambassades ni au Bureau de l'Emploi.**
+- **Audit « une seule vérité » (26/10, nuit, branche `claude/audit-une-seule-verite-20261026`)** :
+  `AUDIT_UNE_SEULE_VERITE.md` inventorie tout le jeu (tables ouvertes à tout joueur, RPC
+  qui créent de l'argent sur demande, champs de fiche encore libres, ~95 tirages et l'ordre
+  générique décidés par l'écran, passe de minuit cliente, échéances à l'horloge du
+  navigateur, deux affichages, code mort). **Rien n'est corrigé hors ambassades et BNE** :
+  l'ordre des chantiers est à décider par Fred. Corrigé côté ambassades : annonces publiques
+  par le serveur, traités lus sur le serveur (migration `20261026010000`).
 - **Décisions de la série de questions (25/10, branche
   `claude/decisions-ambassades-bne-20261025`)** : Indice Diplomatique réel, un par pays
   (`indices_diplomatiques` + journal, `indices_diplomatiques_lire`, seule écriture
