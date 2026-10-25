@@ -151,7 +151,7 @@ async function ouvrirEcranPostes() {
   }
   html += '<div style="padding:.5rem 1rem .8rem;font-size:.72rem;color:#6a5a30;font-style:italic">'
         + 'Capitaine, Lieutenant et soldat se candidatent à la Caserne Militaire, en personne, '
-        + 'par l\'ordre « S\'engager dans l\'armée » (2 PA).</div>';
+        + 'par l\'ordre « S\'engager dans l\'armée » (1 PA).</div>';
 
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -322,11 +322,15 @@ async function postulerPosteAutoritePnj(posteId, posteName, villeCourante) {
       poste_deja_occupe_par_un_joueur: 'Ce poste vient d\'etre pris par un autre joueur.',
       autorite_joueur_doit_decider: 'L\'autorite de nomination est desormais tenue par un joueur : votre candidature doit passer par elle.',
       poste_inconnu: 'Ce poste ne figure pas parmi les postes nommes.',
-      acteur_non_authentifie: 'Votre identite n\'a pas pu etre etablie.'
+      acteur_non_authentifie: 'Votre identite n\'a pas pu etre etablie.',
+      carriere_requise: 'Votre carriere ne vous ouvre pas ce poste' + (v && Array.isArray(v.carrieres_qui_ouvrent) && v.carrieres_qui_ouvrent.length ? ' (carriere requise : ' + v.carrieres_qui_ouvrent.join(', ') + ').' : '.')
     };
-    showToast('Candidature refusee', (v && motifs[v.raison]) || 'Le serveur a refuse cette candidature.', false);
+    // Refus de paiement (1 PA par candidature, Fred 25/10/2026) : message commun des couts.
+    if (v && ['pa_insuffisants','fonds_insuffisants','personnage_non_charge'].includes(v.raison) && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
+    showToast('Candidature refusee', (v && motifs[v.raison]) || 'Le serveur a refuse cette candidature' + (v && v.raison ? ' (' + v.raison + ').' : '.'), false);
     return;
   }
+  if (typeof v.pa === 'number' && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa });
 
   const regle = POSTES_NOMMES_EXCLUSIFS[posteId] || { label: posteName || posteId };
   state.poste = { id: posteId, name: regle.label, city: villeCourante || null, nommeLe: Date.now() };
@@ -430,6 +434,19 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
     showToast('Déjà candidat', 'Votre candidature au poste de ' + posteName + ' est déjà enregistrée, en attente de décision.', false);
     return;
   }
+
+  // 1 PA PAR CANDIDATURE, PRELEVE PAR LE SERVEUR (Fred, 25/10/2026), avant toute transmission :
+  // un refus de paiement n'ecrit rien et n'envoie rien.
+  const vPaie = typeof sbRpcVerdict === 'function'
+    ? await sbRpcVerdict('poste_candidature_transmettre', { p_poste: posteId, p_city: villeCourante || null }).catch(() => null)
+    : null;
+  if (!vPaie || vPaie.ok !== true) {
+    if (vPaie && vPaie.raison === 'poste_deja_occupe_par_un_joueur') { showToast('Poste pourvu', "Ce poste vient d'être pris par un autre joueur.", false); return; }
+    if (vPaie && typeof signalerRefusCout === 'function' && !vPaie.transport) { signalerRefusCout(vPaie); return; }
+    showToast('Candidature non transmise', "L'opération n'a pas abouti : rien n'a été prélevé ni transmis.", false);
+    return;
+  }
+  if (typeof vPaie.pa === 'number' && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: vPaie.pa });
 
   candidatures[cleDossier] = dossier;
   await sauvegarderCandidaturesPostes(state.country, candidatures);
@@ -845,7 +862,7 @@ function messageRefusCandidature(r) {
   if (raison === 'non_domicilie') return 'Vous devez etre domicilie dans cet empire pour vous y presenter.';
   if (raison === 'cumul_interdit') return 'Ce poste est incompatible avec celui que vous occupez deja.';
   if (raison === 'deja_depute') return 'Vous etes deja depute.';
-  if (raison === 'pa_insuffisants') return 'Il vous faut 2 PA pour deposer une candidature.';
+  if (raison === 'pa_insuffisants') return 'Il vous faut 1 PA pour deposer une candidature.';
   if (raison === 'poste_inconnu') return 'Ce scrutin n\'existe pas.';
   return 'Les candidatures a ce scrutin sont closes, ou la candidature n\'a pas pu etre enregistree. Rien n\'a ete debite.';
 }
@@ -11684,7 +11701,7 @@ async function ouvrirSEngagerArmee() {
 
   html += '<div style="font-size:.76rem;color:#8a8060;font-style:italic;margin-bottom:.7rem">'
         + 'Vous pouvez candidater à plusieurs grades en même temps. La première candidature acceptée '
-        + 'annule automatiquement les autres. Chaque dépôt coûte 2 PA et n\'est jamais remboursé.</div>';
+        + 'annule automatiquement les autres. Chaque dépôt coûte 1 PA et n\'est jamais remboursé.</div>';
 
   GRADES_ENGAGEMENT.forEach(g => {
     const mienne = deja(g.id);
@@ -11694,7 +11711,7 @@ async function ouvrirSEngagerArmee() {
     if (mienne) {
       html += '<div style="font-size:.74rem;color:#6a6050;font-style:italic">Candidature déjà déposée.</div>';
     } else {
-      html += '<button onclick="confirmerCandidatureEngagement(\'' + g.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Candidater — 2 PA</button>';
+      html += '<button onclick="confirmerCandidatureEngagement(\'' + g.id + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.74rem;letter-spacing:.08em;padding:.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Candidater — 1 PA</button>';
     }
     html += '</div>';
   });
@@ -11721,7 +11738,7 @@ async function confirmerCandidatureEngagement(grade) {
       m === 'pas_sur_place' ? (grade === 'soldat' ? 'Vous devez être à la Caserne Militaire pour vous engager.' : 'Vous devez être à la Caserne Militaire ou au Bureau de l\'Emploi pour postuler.')
       : m === 'deja_militaire' ? 'Vous servez déjà dans l\'armée.'
       : m === 'candidature_deja_active' ? 'Vous avez déjà une candidature en cours pour ce grade.'
-      : m === 'pa_insuffisants' ? 'Il vous faut 2 PA pour déposer une candidature.'
+      : m === 'pa_insuffisants' ? 'Il vous faut 1 PA pour déposer une candidature.'
       : m === 'grade_invalide' ? 'Ce grade ne se candidate pas à la caserne.'
       : 'Refus du serveur (' + (m || 'indisponible') + ').', false);
     return;
@@ -11732,7 +11749,7 @@ async function confirmerCandidatureEngagement(grade) {
   showToast('Candidature déposée',
     'Votre candidature au grade de ' + libelleGradeEngagement(grade)
     + ' est transmise à toute la chaîne de commandement.', true, true);
-  addJournalEntry('Candidature déposée pour le grade de ' + libelleGradeEngagement(grade) + '. (−2 PA)', 'event-info');
+  addJournalEntry('Candidature déposée pour le grade de ' + libelleGradeEngagement(grade) + '. (−1 PA)', 'event-info');
 }
 
 async function confirmerRetraitCandidature(id) {

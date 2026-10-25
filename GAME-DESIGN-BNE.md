@@ -52,7 +52,7 @@ pourvoir d'après les unités qui existent (une compagnie sans capitaine joueur 
 Commandant, capitaine, lieutenant : « Postulez ici ». Soldats : nombre de places
 et « Postulez directement à la caserne » (l'engagement reste celui de la caserne).
 
-**Candidature** : depuis le Bureau (coût : celui du circuit existant ; Fred avait dit 1 PA avant de conserver l'ancien circuit — à confirmer). Le Bureau **transmet** la candidature
+**Candidature** : depuis le Bureau, **1 PA pour toute candidature** à un poste (postes de l'État et grades militaires, Fred 25/10), prélevé par le serveur ; un refus ne coûte rien. Les candidatures aux élections et à la présidence d'un club ne sont pas concernées. Le Bureau **transmet** la candidature
 au recruteur officiel ; il ne court-circuite pas le recrutement normal. Un joueur
 peut postuler à **plusieurs postes** en même temps.
 

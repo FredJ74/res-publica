@@ -2509,7 +2509,7 @@ const BUILDINGS = {
            photoUrl:'images/luthecia-palais-gouvernement-secretaire-dupuis.webp', photoPos:'50% 15%'}
         ],
         orders: [
-          {fn:'postuler', label:'Postuler a un poste', pa:2, cost:0, type:'legal', icon:'ti-id-badge', successRate:100, desc:'Postes electifs (calendrier) et postes nommes (candidature aupres de l\'autorite competente).'}
+          {fn:'postuler', label:'Postuler a un poste', pa:1, cost:0, type:'legal', icon:'ti-id-badge', successRate:100, desc:'Postes electifs (calendrier) et postes nommes (candidature aupres de l\'autorite competente).'}
         ]
       },
       bureaux: {
@@ -4408,7 +4408,7 @@ const BUILDINGS = {
           {name:'Secretaire Municipal', role:'PNJ - Administration', rel:'neutral', job:'secretaire'}
         ],
         orders: [
-          {fn:'postuler',      label:'Postuler a un poste',   pa:2, cost:0,  type:'legal', icon:'ti-id-badge',   successRate:100},
+          {fn:'postuler',      label:'Postuler a un poste',   pa:1, cost:0,  type:'legal', icon:'ti-id-badge',   successRate:100},
           {fn:'gerer_finances',label:'Gerer les finances locales',pa:1,cost:0,type:'legal', icon:'ti-chart-bar',  successRate:100, requiresPost:true},
           {fn:'corrompre_fonct',label:'Corrompre un employ',   pa:2, cost:200,type:'illegal',icon:'ti-coins',     successRate:65},
           // etat_civil (chantier finition ergonomique Hotel de Ville, 4 septembre 2026) : regroupe
@@ -5415,7 +5415,7 @@ const BUILDINGS = {
           // 2 PA, et c'est le SERVEUR qui les prend (militaire_candidature_deposer), apres avoir
           // verifie l'identite reelle, la presence a la caserne et l'absence de grade. Un refus
           // ne coute rien : le paiement est la derniere chose qui arrive.
-          {fn:'s_engager_armee',    label:'S\'engager dans l\'armée',  pa:2, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Candidater comme Capitaine, Lieutenant ou simple soldat. Plusieurs candidatures simultanees sont permises ; la premiere acceptee annule les autres.'},
+          {fn:'s_engager_armee',    label:'S\'engager dans l\'armée',  pa:1, cost:0, type:'legal', icon:'ti-flag', successRate:100, desc:'Candidater comme Capitaine, Lieutenant ou simple soldat. Plusieurs candidatures simultanees sont permises ; la premiere acceptee annule les autres.'},
           {fn:'traiter_candidatures', label:'Candidatures à l\'engagement', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, requiresPost:['commandant','capitaine','lieutenant'], desc:'Reserve a la chaine de commandement. Examiner les candidatures que l\'on a le pouvoir d\'accepter.'},
           {fn:'decouvrir_affectation', label:'Découvrir mon affectation', pa:0, cost:0, type:'legal', icon:'ti-map-pin', successRate:100, desc:'Engagement accepte : se presenter a la caserne dans les 48 heures pour apprendre sa compagnie, sa section et son chef.'},
           // Consultation pure, ouverte a tous : un civil qui n'a jamais servi obtient un calepin
