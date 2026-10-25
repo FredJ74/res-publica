@@ -398,6 +398,13 @@ function openForum_module(forumId) {
   }
   renderForumModal();
   document.getElementById('modal-forum').classList.add('open');
+  // LES VOYANTS DE LA MESSAGERIE SE METTENT A JOUR DES L'OUVERTURE (25 octobre 2026) : une
+  // lecture du serveur, puis seulement la barre laterale et le bouton sont repeints -- jamais
+  // la zone centrale, ou un brouillon peut etre en cours.
+  if (typeof loadMailsFromSB === 'function') loadMailsFromSB().then(() => {
+    rafraichirVoyantsEtCompteursForum();
+    if (typeof rafraichirVoyantMailLocal === 'function') rafraichirVoyantMailLocal();
+  }).catch(() => {});
   // Voyant d'activite (revu le 22 aout 2026) : la simple ouverture de la fenetre Forum ne marque
   // plus rien comme vu -- seule l'ouverture d'un forum PRECIS (forumId fourni) le marque, lui
   // seul. Un appel sans forumId (atterrissage sur la liste des categories, rien de precis
@@ -703,7 +710,7 @@ function renderForumSidebar() {
         ${[['recus','ti-inbox','Mails reçus'],['envoyes','ti-send','Mails envoyés'],['archives','ti-archive','Mails archivés']].map(([id,icone,nom]) => `
           <button type="button" class="forum-mail-rubrique ${mailRubrique === id ? 'active' : ''}"
             aria-current="${mailRubrique === id ? 'page' : 'false'}" onclick="selectionnerRubriqueMail('${id}')">
-            <i class="ti ${icone}"></i> ${nom}
+            <i class="ti ${icone}"></i> ${nom}${id === 'recus' && unreadCount > 0 ? htmlPointRougeActivite('.4rem') : ''}
           </button>`).join('')}
       </div>` : ''}
     ${renderCategorieHeader('intra', 'ti-flag', 'Forums nationaux')}
@@ -2482,6 +2489,43 @@ async function loadForumPostsFromSB(topicId) {
 }
 
 let mailLectureSequence = 0;
+// FUSION DES MAILS LUS SUR LE SERVEUR DANS LE CACHE LOCAL (25 octobre 2026). Une seule
+// implementation, partagee par l'ouverture de la messagerie (loadMailsFromSB) ET par la
+// verification periodique (verifierNouveauxMails, plateau-communication.js). Avant, seule
+// l'ouverture remplissait le cache : le voyant du bouton « Messages/Forums » venait du serveur,
+// ceux des rubriques venaient d'un cache en retard, et les deux se contredisaient pendant
+// plusieurs secondes. Desormais les deux lisent la meme copie de ce que le serveur a rendu.
+// Rend true si le cache a reellement ete ecrit.
+function fusionnerMailsServeur(rows) {
+  if (!Array.isArray(rows)) return false;
+  const local = getMails();
+  const localById = new Map(local.map(m => [m.id, m]));
+  const sbIds = new Set(rows.map(r => r.id));
+  const merged = [
+    ...rows.map(r => {
+      const dejaLuLocalement = localById.get(r.id)?.read || false;
+      const estLu = r.read || dejaLuLocalement;
+      // Si Supabase n'a pas encore le statut lu alors qu'on l'a localement, on retente la synchro
+      if (dejaLuLocalement && !r.read && typeof sbMarkMailRead === 'function') {
+        sbMarkMailRead(r.id).catch(() => {});
+      }
+      return { id: r.id, from: r.from_player, to: r.to_player,
+        subject: r.subject, body: r.body, time: r.time, read: estLu, archived: r.archived || false,
+        // created_at (22 septembre 2026) : n'etait PAS recopie, alors que c'est la colonne
+        // sur laquelle sbGetMailsFor fait deja trier le serveur. Sans elle, le client ne
+        // disposait d'aucune date exploitable -- seulement `time`, une chaine d'affichage --
+        // et se rabattait sur l'ordre lexical des identifiants, qui n'est pas chronologique.
+        creeLe: r.created_at || null,
+        // Mapping explicite (17 aout 2026) : le meme oubli venait d'etre trouve et corrige sur
+        // le forum (loadForumTopicsFromSB/loadForumPostsFromSB, colonnes jamais recopiees sur
+        // les objets locaux) -- verifie ici des la premiere version, pas apres coup.
+        fromIsOrg: !!r.from_org_id, fromReal: r.from_real, fromOrgId: r.from_org_id, fromOrgIcon: r.from_org_icon };
+    }),
+    ...local.filter(m => !sbIds.has(m.id))
+  ];
+  return saveMails(merged);
+}
+
 async function loadMailsFromSB() {
   if (typeof sbGetMailsFor !== 'function') return;
   const name = state.char?.name;
@@ -2499,33 +2543,7 @@ async function loadMailsFromSB() {
     // mieux vaut une boite figee qu'une boite videe. Le 401 observe en production vient d'une
     // session absente (role anon), pas de la messagerie : voir le rapport du 22 septembre.
     if (!rows) { console.warn('[MAIL] lecture refusee ou indisponible, cache local inchange.'); return; }
-    // Fusionner avec localStorage
-    const local = getMails();
-    const localById = new Map(local.map(m => [m.id, m]));
-    const sbIds = new Set(rows.map(r => r.id));
-    const merged = [
-      ...rows.map(r => {
-        const dejaLuLocalement = localById.get(r.id)?.read || false;
-        const estLu = r.read || dejaLuLocalement;
-        // Si Supabase n'a pas encore le statut lu alors qu'on l'a localement, on retente la synchro
-        if (dejaLuLocalement && !r.read && typeof sbMarkMailRead === 'function') {
-          sbMarkMailRead(r.id).catch(() => {});
-        }
-        return { id: r.id, from: r.from_player, to: r.to_player,
-          subject: r.subject, body: r.body, time: r.time, read: estLu, archived: r.archived || false,
-          // created_at (22 septembre 2026) : n'etait PAS recopie, alors que c'est la colonne
-          // sur laquelle sbGetMailsFor fait deja trier le serveur. Sans elle, le client ne
-          // disposait d'aucune date exploitable -- seulement `time`, une chaine d'affichage --
-          // et se rabattait sur l'ordre lexical des identifiants, qui n'est pas chronologique.
-          creeLe: r.created_at || null,
-          // Mapping explicite (17 aout 2026) : le meme oubli venait d'etre trouve et corrige sur
-          // le forum (loadForumTopicsFromSB/loadForumPostsFromSB, colonnes jamais recopiees sur
-          // les objets locaux) -- verifie ici des la premiere version, pas apres coup.
-          fromIsOrg: !!r.from_org_id, fromReal: r.from_real, fromOrgId: r.from_org_id, fromOrgIcon: r.from_org_icon };
-      }),
-      ...local.filter(m => !sbIds.has(m.id))
-    ];
-    saveMails(merged);
+    fusionnerMailsServeur(rows);
   } catch(e) { console.warn('loadMailsFromSB error', e); }
 }
 
