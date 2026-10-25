@@ -1386,6 +1386,17 @@ async function doPasserDouanesAeroport() {
     khalija:  "Le Chambellan Al-Transit incline la tête. Vos papiers sont en règle. Bienvenue."
   };
 
+  // VALISE DIPLOMATIQUE (Fred, 25/10/2026) : pas de passage en douane pour un ambassadeur en
+  // poste. Le statut est lu sur le serveur (ambassade_mon_statut).
+  const statutDiplo = typeof sbRpcVerdict === 'function' ? await sbRpcVerdict('ambassade_mon_statut', {}).catch(() => null) : null;
+  if (statutDiplo && statutDiplo.ok === true && statutDiplo.ambassadeur === true) {
+    showToast('Valise diplomatique', 'Votre passeport diplomatique vous dispense du contrôle douanier.', true);
+    addJournalEntry('Passage en douane : dispense diplomatique.', 'event-info');
+    state.douanePassee = true;
+    if (typeof updateUI === 'function') updateUI();
+    return;
+  }
+
   // Si Recherché : jet de détection
   if (state.recherche?.length > 0) {
     // DIS fantome corrige (bêta) : state.dis est la vraie ressource Discretion (0-100),

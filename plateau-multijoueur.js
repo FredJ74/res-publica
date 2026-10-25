@@ -275,6 +275,8 @@ function renderPersonsList(persons, targetId) {
   // des sieges (depute si le siege est libre, assistant parlementaire s'il est tenu par un PJ) --
   // ce qu'une liste statique ne peut pas exprimer. No-op hors de l'hemicycle.
   if (typeof appliquerDeputesAssemblee === 'function') persons = appliquerDeputesAssemblee(persons);
+  // Secretaires de l'ambassadeur (25/10/2026) : no-op sans ambassadeur joueur en poste.
+  if (typeof appliquerSecretairesAmbassade === 'function') persons = appliquerSecretairesAmbassade(persons);
 
   const char = state.char;
   const ar = ARCHETYPES.find(x => x.id === char?.archetype);
