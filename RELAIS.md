@@ -54,6 +54,11 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   par des PNJ, candidature transmise au recruteur officiel avec décision le
   vendredi, annonces des joueurs, virement automatique, suppression des sept
   offres fictives et de l'inscription).
+- 25/10 soir, **lot 1 livré** (branche `claude/bne-recensement-20261025`, registre
+  20261025181516) : sept offres et inscription supprimées, mail aux titulaires,
+  écran « Postes à pourvoir » lu sur `bne_postes_a_pourvoir` ; candidature par le
+  circuit existant du 25 août (Fred : « on conserve l'ancien fonctionnement en
+  entier ») ; capitaine/lieutenant postulables depuis le Bureau.
 - Prochaines étapes (Claude) : coder `GAME-DESIGN-BNE.md` par lots — 1. suppression
   des offres et de l'inscription + recensement ; 2. candidatures et décision du
   vendredi ; 3. annonces des joueurs (+ parution Tribune par le serveur, caisse du
