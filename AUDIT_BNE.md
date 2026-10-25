@@ -220,3 +220,30 @@ Restent ouverts : B8 (chantiers, avec Codex), B11 (donner un rôle aux emplois),
 B12, B13, B14 (charte, #143). Point d'attention : les caisses des employeurs
 sont maigres (Hôtel du Mineur et port de PSM : 200 FR chacune), un employé y
 sera vite non payé.
+
+## 7. Bilan au 25 octobre 2026 (soir)
+
+La formule d'août est remplacée par celle de `GAME-DESIGN-BNE.md`, entièrement
+livrée : postes à pourvoir, candidature (1 PA) par le circuit du 25 août, armée,
+annonces des joueurs (+ Tribune), virements simples et automatiques, salaire
+horaire des chantiers, trois référentes emploi.
+
+Constats de l'audit : B1-B7, B9, B10 réglés ; B11 et B13 réglés par la nouvelle
+formule ; B15 sans objet. **Restent** :
+- **B8** : les heures de chantier affichées au Bureau sont calculées par l'écran
+  (mêmes formules que le serveur, mais deux réalités possibles) ;
+- **B12** : le Bureau de direction, vide (question reportée par Fred) ;
+- **B14** : la fenêtre « Travailler sur le chantier » garde l'ancienne palette.
+
+**Nouveaux points** :
+- le dossier de candidature auprès d'un recruteur **joueur** (fenêtre de 48 h) est
+  écrit par le navigateur dans `batiments_etat` (circuit du 25 août, conservé tel
+  quel) : seul le PA passe par le serveur ;
+- **restes de l'ancienne formule** à retirer : `bne_agir`, `bne_inscrire`, boutons
+  de mail « garder / prendre », vérification de cumul de nuit, salaires « emploi »
+  et caisses des trois emplois supprimés, ligne « salaire de votre emploi » de
+  « Dormir » ;
+- les **ouvriers PNJ** des chantiers restent payés 70 FR de l'heure par la nuit,
+  quel que soit le taux fixé par le propriétaire ;
+- la **caisse du Bureau** reçoit les 30 FR des annonces presse et ne dépense rien ;
+- le **caractère** des trois référentes est provisoire.
