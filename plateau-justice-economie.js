@@ -5346,6 +5346,7 @@ function ouvrirMenuOfficialiserTransaction(pa, cost) {
 }
 
 async function doActeVenteTerrain() {
+  if(typeof finance135Reconcilier==='function')await finance135Reconcilier();
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const nom = state.char?.name;
 
@@ -7589,58 +7590,14 @@ async function doOuvrirLouerLot(pa, cost) {
 }
 
 async function doLouerCeLot(lotId, pa, cost) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Louer ce lot')) return;
-  const ts = getTerrainState(id);
-  const subdivisions = ts.subdivisions || [];
-  const lot = subdivisions.find(function(l) { return l.id === lotId; });
-  if (!lot || lotEstLoue(id, lot)) { showToast('Indisponible', 'Ce lot vient d\'être loué par quelqu\'un d\'autre.', false); return; }
-
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (state.arg < lot.loyer) {
-    showToast('Fonds insuffisants', lot.loyer + ' ' + cur + ' requis pour le premier loyer.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // Lot 1.3 : le bail est la source unique. Prise ATOMIQUE avant tout debit -- c'est la cle
-  // primaire de locations_actives qui arbitre cote Postgres, donc deux joueurs signant en meme
-  // temps ne peuvent pas obtenir le meme local (sbClaimerLocation, supabase.js). L'ancien test
-  // "lot.locataire est vide" ne protegeait de rien : les deux clients lisaient "libre".
-  const bail = construireBailLot(id, lot, state.currentCity, state.country);
-  const obtenu = (typeof sbClaimerLocation === 'function') ? await sbClaimerLocation(bail).catch(function() { return false; }) : false;
-  if (!obtenu) {
-    showToast('Indisponible', 'Ce lot vient d\'être loué par quelqu\'un d\'autre.', false);
-    return;
-  }
-  if (!state.locationsActives) state.locationsActives = [];
-  state.locationsActives.push(bail);
-
-  state.arg -= lot.loyer;
-
-  // Miroir transitoire vers subdivision.locataire : n'est PLUS la verite metier (plus aucun
-  // lecteur client ne s'en sert), mais preleverLoyersLots (api/cron-minuit.js, Lot 1.4) preleve
-  // encore les loyers de lots depuis ce champ. Le retirer maintenant arreterait les loyers.
-  lot.locataire = state.char?.name;
-  // LE MIROIR NE REECRIT PLUS TOUT LE DECOUPAGE (10 octobre 2026). Le bail lui-meme est deja pris
-  // atomiquement (`sbClaimerLocation`, cle primaire de `locations_actives`) : ce qui suit n'est que
-  // le champ que le cron des loyers lit encore. Il est desormais pose LOT PAR LOT, et le serveur
-  // verifie que le locataire inscrit est bien l'appelant. Un echec ici ne remet pas le bail en
-  // cause -- il est deja signe -- mais il est NOMME, parce qu'il ferait perdre le loyer.
-  const vBail = await sbTerrainActe('terrain_lots_acte', {
-    p_terrain_id: id, p_acte: 'lot_louer', p_lots: [lot]
-  });
-  if (!vBail || vBail.ok !== true) {
-    signalerRefusTerrain(vBail, "L'inscription du locataire au plan");
-  } else {
-    remplacerTerrainState(id, vBail.etat);
-  }
-
-  document.getElementById('modal-postes').classList.remove('open');
+  const contexte=contexteNavigationRue();
+  const r=await constructionExecuterCommande('louer',{lot:lotId});
+  if (!r || !contexteNavigationRueValide(contexte)) return;
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof rafraichirPiecesDynamiques==='function') rafraichirPiecesDynamiques(state.currentBuilding);
   updateUI();
-  showToast('Bail signé !', lot.label + ' loué. -' + lot.loyer + ' ' + cur + '/jour.', true, true);
-  addJournalEntry('Location signée : ' + lot.label + ' (' + (BUILDINGS[id]?.shortName || id) + '). -' + lot.loyer + ' ' + cur + '/jour.', 'event-good');
+  showToast('Bail signé', 'Le bail, le premier loyer et les PA ont été confirmés par le serveur.', true, true);
+  addJournalEntry('Location du lot confirmée par le serveur.', 'event-good');
 }
 
 async function doGererLotLoue() {
@@ -8062,107 +8019,16 @@ function doRetirerLotReconfiguration(index, pa, cost) {
 }
 
 async function confirmerReconfiguration() {
+  const contexte = contexteNavigationRue();
   const id = _planReconfigEnCours.buildingId || state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Reconfigurer les lots')) return;
-  await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  if (!estTitulaire(ts.proprietaire)) { showToast('Accès refusé', "Vous n'êtes pas propriétaire de ce bâtiment.", false); return; }
-
-  // VERDICT UNIQUE, rejoue sur l'etat frais : plan structurellement valide, changement reel, et
-  // surtout AUCUN metre carre sous bail parmi les surfaces touchees.
-  const v = verdictLancementReconfiguration(ts, id, _planReconfigEnCours.lots);
-  if (!v.ok) {
-    showToast(
-      v.raison === 'lot_loue' ? 'Local sous bail'
-    : v.raison === 'aucun_changement' ? 'Plan inchangé'
-    : v.raison === 'reconfiguration_en_cours' ? 'Travaux en cours'
-    : 'Plan refusé',
-      v.message || (v.raison === 'aucun_changement' ? "Ce plan est identique à l'actuel." : 'Ce plan ne peut pas être retenu.'), false);
-    return;
-  }
-
-  const chantier = creerChantierReamenagement(ts.subdivisions || [], _planReconfigEnCours.lots, state.day || 1);
-  if (!chantier) { showToast('Plan inchangé', "Ce plan est identique à l'actuel.", false); return; }
-
-  // FINANCEMENT INTEGRAL AVANT OUVERTURE. Rien n'est engage tant que la totalite n'est pas versee :
-  // il n'existe donc jamais de reconfiguration a moitie financee, ni de paliers a franchir ensuite.
-  const fonds = (typeof getFondsDisponiblesOrdinaires === 'function') ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (fonds < chantier.coutTotal) {
-    showToast('Fonds insuffisants', chantier.coutTotal.toLocaleString('fr-FR') + ' ' + cur
-      + ' sont exigés en totalité pour engager ces travaux.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa: 0, cost: chantier.coutTotal });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  let ch = verserAuChantier(chantier, chantier.coutTotal);
-  ch.evenements = [{ cle: 'lancement', jour: state.day || 1, surfaceConcernee: ch.surfaceConcernee,
-                     coutTotal: ch.coutTotal, dureeJours: ch.dureeJours, operations: ch.operations }];
-
-  // APPROVISIONNEMENT IMMEDIAT, par la MEME decision d'achat que la construction et que le cron.
-  const villeTerrain = ts.city || state.currentCity || 'capitale';
-  const idEntrepot = (typeof ENTREPOT_PAR_VILLE !== 'undefined') ? ENTREPOT_PAR_VILLE[villeTerrain] : null;
-  // LE CHANTIER EST PERSISTE D'ABORD, ET SON ECHEC N'EST PLUS AVALE (chantier 5, chaine 5,
-  // 10 octobre 2026). A la difference de la construction, le reamenagement n'a PAS de
-  // chantier_lancer : le financement integral vient d'etre preleve au serveur, et cette ecriture
-  // est la seule qui fait exister le chantier. Elle etait avalee -- le joueur pouvait payer la
-  // totalite et n'avoir aucun chantier, sans le moindre signal.
-  //
-  // DETTE CONSIGNEE, ET NON MASQUEE : le paiement et cette ecriture restent DEUX appels. Les
-  // rendre atomiques demande une porte chantier_reamenagement_lancer, sur le modele de
-  // chantier_lancer -- elle n'existe pas, et l'inventer ici reviendrait a dupliquer un moteur de
-  // chantier. En attendant, l'echec est NOMME au joueur au lieu de disparaitre.
-  // LA PORTE DU REAMENAGEMENT (10 octobre 2026). Cette ecriture lisait deja son resultat -- elle
-  // n'avait pas le defaut des dix-neuf autres -- mais elle envoyait l'etat compose ici, donc elle
-  // pouvait effacer ce que le cron venait d'ecrire. `terrain_reamenagement_poser` n'ecrit QUE la
-  // cle `chantierReamenagement`, sous verrou, apres avoir verifie la propriete EN BASE.
-  setTerrainState(id, { chantierReamenagement: ch });
+  if (id !== state.currentBuilding) return;
+  const lots = JSON.parse(JSON.stringify(_planReconfigEnCours.lots || []));
+  const r = await constructionExecuterCommande('reamenager', { lots });
+  if (!r || !contexteNavigationRueValide(contexte)) return;
   _planReconfigEnCours = { buildingId: null, lots: [] };
-  const poseCh = await sbTerrainActe('terrain_reamenagement_poser',
-    { p_terrain_id: id, p_chantier: ch });
-  if (!poseCh || poseCh.ok !== true) {
-    showToast('Travaux non enregistrés',
-      "Le financement a été prélevé, mais le chantier n'a pas pu être enregistré. Signalez-le : "
-      + "aucun travail n'a commencé.", false);
-    addJournalEntry('Reconfiguration : financement prélevé, chantier NON enregistré.', 'event-bad');
-    document.getElementById('modal-postes')?.classList.remove('open');
-    updateUI();
-    return;
-  }
-  remplacerTerrainState(id, poseCh.etat);
-
-  // APPROVISIONNEMENT IMMEDIAT, PAR LA MEME PORTE QUE LA CONSTRUCTION. Le navigateur ne transmet
-  // plus ni le stock ni la tresorerie du chantier : le serveur les lit dans le blob qu'on vient
-  // d'ecrire, et la contrepartie du debit de l'entrepot est posee dans sa transaction.
-  if (idEntrepot) {
-    const besoinJ1 = besoinMateriauxJourChantier(ch, 1);
-    const appro = typeof sbRpc === 'function'
-      ? await sbRpc('chantier_approvisionner', {
-          p_terrain_id: id, p_cle_chantier: 'chantierReamenagement', p_entrepot: idEntrepot,
-          p_besoin: besoinJ1, p_jour: state.day || 1
-        }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; })
-          .catch(function () { return null; })
-      : null;
-    if (!appro || appro.ok !== true) {
-      showToast('Approvisionnement non confirmé',
-        "Les travaux sont engagés, mais la livraison du premier jour n'a pas pu être enregistrée"
-        + ((appro && appro.raison) ? ' (' + appro.raison + ')' : '')
-        + '. Rien n\'a été prélevé à l\'entrepôt.', false);
-      addJournalEntry('Reconfiguration engagée, approvisionnement du jour 1 non enregistré.',
-        'event-bad');
-    } else if (appro.chantier) {
-      ch = appro.chantier;
-      if (typeof setTerrainState === 'function') setTerrainState(id, { chantierReamenagement: ch });
-    }
-  }
-
   document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  showToast('Travaux engagés', ch.surfaceConcernee + ' m² concernés · ' + ch.dureeJours + ' jour(s). Aucune annulation possible.', true, true);
-  addJournalEntry('Reconfiguration engagée : ' + ch.surfaceConcernee + ' m² concernés, '
-    + ch.coutTotal.toLocaleString('fr-FR') + ' ' + cur + ' versés, ' + ch.dureeJours + ' jour(s) de travaux.', 'event-good');
+  showToast('Travaux engagés', 'Le serveur a confirmé le financement intégral et le plan des travaux.', true, true);
+  addJournalEntry('Reconfiguration engagée et financée intégralement.', 'event-good');
 }
 
 // =====================================================================
@@ -8363,7 +8229,16 @@ const TYPES_PRET = {
   consommation: { label: 'Consommation', desc: 'Petite somme, remboursement rapide, taux élevé.', montantMax: 10000, tauxFixe: 12, dureeMax: 30 }
 };
 
+function pretBancaireDisponibilite(typeBanque, typePret) {
+  if ((typeBanque || 'nationale') !== 'nationale') return {ok:true};
+  if (state.currentBuilding !== 'banque-nationale') return {ok:false,raison:'Rendez-vous à la Banque Nationale pour demander votre prêt travaux. Aucun financement n’est prélevé ici.'};
+  if (typePret && !['travaux','consommation'].includes(typePret)) return {ok:false,raison:'Le prêt consommation n’est pas actuellement disponible à ce guichet. Aucun montant ni PA ne sera prélevé.'};
+  return {ok:true};
+}
 async function ouvrirModalPretBancaire(typeBanque, typePret, pa) {
+  const disponibilite=pretBancaireDisponibilite(typeBanque,typePret);
+  if(!disponibilite.ok){showToast('Prêt bancaire',disponibilite.raison,false);return;}
+  if(typeof finance135Reconcilier==='function')await finance135Reconcilier();
   typeBanque = typeBanque || 'nationale';
 
   if (!typePret) {
@@ -8407,6 +8282,9 @@ async function ouvrirModalPretBancaire(typeBanque, typePret, pa) {
 }
 
 async function confirmerPretBancaire(typeBanque, typePret, pa) {
+  const disponibilite=pretBancaireDisponibilite(typeBanque,typePret);
+  if(!disponibilite.ok){showToast('Prêt bancaire',disponibilite.raison,false);return;}
+  if((typeBanque||'nationale')==='nationale')return finance135ContracterPret(typePret);
   const montant = parseInt(document.getElementById('pret-montant')?.value || 0);
   const duree = parseInt(document.getElementById('pret-duree')?.value || 10);
   const cur = COUNTRIES[state.country]?.cur || 'FR';

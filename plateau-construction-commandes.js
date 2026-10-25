@@ -50,6 +50,7 @@ async function receptionnerChantier(){
 
 let constructionRepriseEnCours=false;
 async function constructionReconcilierCommandes(buildingId){
+  if(typeof finance135Reconcilier==='function')await finance135Reconcilier();
   if(constructionRepriseEnCours||constructionCommandeEnCours||buildingId!==state.currentBuilding)return;
   const c=contexteNavigationRue();constructionRepriseEnCours=true;
   try{
