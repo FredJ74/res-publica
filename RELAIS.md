@@ -69,6 +69,11 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   touche à tes fichiers construction** (`plateau-construction-commandes.js` : ordre
   dynamique `taux_chantier` ; `plateau-chantiers.js` : `tauxHoraireChantier`). Le
   travail PNJ (cron) reste au taux de référence de 70 FR.
+- 25/10 soir : **virements entre joueurs** (registre 20261025194235 et
+  20261025194255) : `banque_virement`, `banque_virement_automatique_creer`,
+  `virements_automatiques_mes`, `virement_automatique_arreter`, passe de nuit
+  `virements_automatiques_executer` (cron). Tous les lots de `GAME-DESIGN-BNE.md`
+  sont livrés ; reste la question du Bureau de direction (fin de chantier).
 - Prochaines étapes (Claude) : coder `GAME-DESIGN-BNE.md` par lots — 1. suppression
   des offres et de l'inscription + recensement ; 2. candidatures et décision du
   vendredi ; 3. annonces des joueurs (+ parution Tribune par le serveur, caisse du

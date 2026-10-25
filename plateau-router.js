@@ -824,6 +824,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'sinscrire_demandeur_emploi') { doInscrireDemandeurEmploi(pa, cost); return; }
   if (fn === 'consulter_offres_emploi')    { ouvrirOffresEmploiBNE(); return; }
   if (fn === 'bne_passer_annonce')         { ouvrirFormulaireAnnonceBNE(); return; }
+  if (fn === 'virement_joueur')            { ouvrirVirementJoueur(false); return; }
+  if (fn === 'virement_automatique')       { ouvrirVirementJoueur(true); return; }
   if (fn === 'demissionner_emploi_bne')    { demissionnerEmploiBNE(); return; }
 
   // Republia — Se nourrir (repas_gastronomique) : lie au stock reel du restaurant (lot

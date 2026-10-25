@@ -482,6 +482,10 @@ function switchSelfTab(tab, el) {
       }).catch(() => {});
     }
 
+    // Virements automatiques (GAME-DESIGN-BNE.md, 25/10/2026) : arret gratuit depuis la fiche.
+    html += '<div id="fiche-virements-auto"></div>';
+    setTimeout(function () { if (typeof rafraichirVirementsAutomatiquesFiche === 'function') rafraichirVirementsAutomatiquesFiche(); }, 0);
+
     // Ordre Dormir
     html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:1rem;margin-bottom:.8rem">';
     html += '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem">';
