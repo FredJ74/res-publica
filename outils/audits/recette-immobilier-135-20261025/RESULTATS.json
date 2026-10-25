@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-25",
+  "main_reference": "40b6fe07b22e64eb76c1210263a5ca53f04f59d8",
+  "branche": "codex/recette-immobilier-135-20261025",
+  "tests": {
+    "pilote": {
+      "reussis": 88,
+      "total": 88,
+      "ignores": 0,
+      "nature": "Chromium et fixtures locales"
+    },
+    "clients": {
+      "reussis": 105,
+      "total": 105
+    },
+    "clients_cibles": 25,
+    "postgres_banque_assertions": 61,
+    "postgres_parcours_assertions": 324,
+    "postgres_permis_assertions": 56,
+    "contre_epreuves_detectees": [
+      "prix_uniformises",
+      "jour_rejoue",
+      "tranche_modifiee"
+    ],
+    "globaux": {
+      "reussis": 5,
+      "total": 12,
+      "memes_ecarts_que_main": true
+    }
+  },
+  "production": {
+    "visites_arnie": 0,
+    "transactions_arnie": 0,
+    "authentification_modifiee": false,
+    "migrations_appliquees": [],
+    "deploiement_verifie": false,
+    "donnees_joueurs_modifiees": false
+  },
+  "blocages": [
+    "SECRETS_ARNIE_NON_EXPOSES_LOCALEMENT",
+    "API_GITHUB_FORBIDDEN",
+    "HTTPS_JEU_PROXY_CONNECT_403",
+    "EFFETS_NAVIGATION_SERVEUR_NON_ATTESTES"
+  ],
+  "sources_sha256": {
+    "plateau-justice-economie.js": "d60111b77a87f2d5434b159984d98c3c5053398c967ad7831b448a099edccd4e",
+    "plateau.html": "d5f4970b6dc527f5502d446b674918aa7494ba10186f3ae3d9caf21c2d28d05b",
+    "outils/e2e/package.json": "dfdd7f9d8a41855b0d2acea59d8b2db2ab9ded33660ef6e2cdd764671fa5c452",
+    "outils/e2e/package-lock.json": "3333c4239329cf73465ec3a94bc098c43b58306486a9da7e54e93c2911d42e6a",
+    "outils/e2e/test-consultation.cjs": "1a0ab77544f591753b76a8f11e1ae43ef8cc63e54e7ed97eb57ad5f5548205db",
+    "outils/e2e/test-immobilier-135.cjs": "0c74d822b0ddaa8ffc1c5eb1f260cf21f6280478b989c1a23c10652e9f8c0bf8"
+  },
+  "preuves_sha256": {
+    "arnie-lancement-bloque.json": "d84116c1ca9b2b3ef3a423c6cf1ac30c107f16c9e0694aad2309f98fe24a318e",
+    "chromium-defaut-avant.txt": "eea5d2e677d1d772a3b51c46fd9ea110926a4fa5fd590410f41db92567cb2623",
+    "clients-cibles.txt": "560d88111c5068a49c6fc548720944045f6f7706e69186faa2f57b05770f38c6",
+    "clients.json": "f76cb9e99d6725a46b0403504b5262f290771f9bf6e3e8863696dc8a5508f9ea",
+    "clients.txt": "973025f3193c39be25cc1127cf1d8c9fa3dfcab6fbd98729684294354fba5f58",
+    "dependance-apres.txt": "e5c6e80af4496fdcd8d7c7bc424f6e724e55240715b9d1692178cd51d523f8f6",
+    "dependance-avant.txt": "b43f4cb7aef4542aecd4ea3a352fb1f10ecac946f3badb896a942a156e345777",
+    "globaux-branche.txt": "adbc0dabcebfc586aea954ad8090320a6941e71cabe6adaf3ace28e66986de6b",
+    "globaux-main.txt": "9af87a25adfb9ef45a9f40b8e97cf1b8388c86f4ed772845a204e02144a74d67",
+    "mutant-jour.txt": "8a6434cca76ecd61d47c8b6e3511088e4aa4012ea06bdd4045bef9b2424945e3",
+    "mutant-prix.txt": "b89a3d23b5562913d075ace001787592d2dd2a25659b30f6c312b9242ba9d35c",
+    "mutant-tranche.txt": "4c4fb7494a7080986da5b0a15c6cb4366e666dc8de26cbfed1b3c1bd17e1eb69",
+    "pilote-complet.txt": "fbf01be0ef3e3dceef78a9de7d832f3909d46f223119b448c956c27f9fc66e60",
+    "postgres-parcours.txt": "6e77cf14c5a305a33fdd6446856bc99ce957431686f230604c86f8a32b2b389a",
+    "postgres-permis.txt": "1ddd528dccf50e068dd354f46ad1622bf3fa8f87353a7493d38492600414eddb"
+  }
+}

@@ -1,0 +1,89 @@
+▶ cinq terrains : rendu et formulaires réels dans Chromium, contreparties uniquement en fixtures
+  ✔ lot 1 : achat et clauses du compromis sans signature (210.919143ms)
+  ✖ lot 1 : propriétaire sans permis rejoint la demande existante (3099.517003ms)
+  ✔ lot 1 : construction autorisée et matériaux sans lancement (65.402229ms)
+  ✔ lot 2 : achat et clauses du compromis sans signature (204.653935ms)
+  ✖ lot 2 : propriétaire sans permis rejoint la demande existante (3078.360656ms)
+  ✔ lot 2 : construction autorisée et matériaux sans lancement (67.606188ms)
+  ✔ lot 3 : achat et clauses du compromis sans signature (154.336071ms)
+  ✖ lot 3 : propriétaire sans permis rejoint la demande existante (3073.362746ms)
+  ✔ lot 3 : construction autorisée et matériaux sans lancement (50.028208ms)
+  ✔ lot 4 : achat et clauses du compromis sans signature (134.504004ms)
+  ✖ lot 4 : propriétaire sans permis rejoint la demande existante (3063.155905ms)
+  ✔ lot 4 : construction autorisée et matériaux sans lancement (51.069786ms)
+  ✔ lot 5 : achat et clauses du compromis sans signature (133.616042ms)
+  ✖ lot 5 : propriétaire sans permis rejoint la demande existante (3064.042583ms)
+  ✔ lot 5 : construction autorisée et matériaux sans lancement (51.297205ms)
+  ✔ prêt : renvoi au guichet puis formulaire national sans contrat (14.33692ms)
+  ✔ ancienne branche sans permis : reproduction de l’impasse, aucune demande (71.067509ms)
+✖ cinq terrains : rendu et formulaires réels dans Chromium, contreparties uniquement en fixtures (17590.706094ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 12
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17706.656558
+
+✖ failing tests:
+
+test at outils/e2e/test-immobilier-135.cjs:65:12
+✖ lot 1 : propriétaire sans permis rejoint la demande existante (3099.517003ms)
+  locator.waitFor: Timeout 3000ms exceeded.
+  Call log:
+  [2m  - waiting for locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first() to be visible[22m
+  
+      at TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-immobilier-135.cjs:69:88)
+      at async TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-immobilier-135.cjs:65:4) {
+    log: [ `  - waiting for locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first() to be visible` ],
+    name: 'TimeoutError'
+  }
+
+test at outils/e2e/test-immobilier-135.cjs:65:12
+✖ lot 2 : propriétaire sans permis rejoint la demande existante (3078.360656ms)
+  locator.waitFor: Timeout 3000ms exceeded.
+  Call log:
+  [2m  - waiting for locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first() to be visible[22m
+  
+      at TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-immobilier-135.cjs:69:88)
+      at async TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-immobilier-135.cjs:65:4) {
+    log: [ `  - waiting for locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first() to be visible` ],
+    name: 'TimeoutError'
+  }
+
+test at outils/e2e/test-immobilier-135.cjs:65:12
+✖ lot 3 : propriétaire sans permis rejoint la demande existante (3073.362746ms)
+  locator.waitFor: Timeout 3000ms exceeded.
+  Call log:
+  [2m  - waiting for locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first() to be visible[22m
+  
+      at TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-immobilier-135.cjs:69:88)
+      at async TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-immobilier-135.cjs:65:4) {
+    log: [ `  - waiting for locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first() to be visible` ],
+    name: 'TimeoutError'
+  }
+
+test at outils/e2e/test-immobilier-135.cjs:65:12
+✖ lot 4 : propriétaire sans permis rejoint la demande existante (3063.155905ms)
+  locator.waitFor: Timeout 3000ms exceeded.
+  Call log:
+  [2m  - waiting for locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first() to be visible[22m
+  
+      at TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-immobilier-135.cjs:69:88)
+      at async TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-immobilier-135.cjs:65:4) {
+    log: [ `  - waiting for locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first() to be visible` ],
+    name: 'TimeoutError'
+  }
+
+test at outils/e2e/test-immobilier-135.cjs:65:12
+✖ lot 5 : propriétaire sans permis rejoint la demande existante (3064.042583ms)
+  locator.waitFor: Timeout 3000ms exceeded.
+  Call log:
+  [2m  - waiting for locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first() to be visible[22m
+  
+      at TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-immobilier-135.cjs:69:88)
+      at async TestContext.<anonymous> (/workspace/res-publica-recette135/outils/e2e/test-immobilier-135.cjs:65:4) {
+    log: [ `  - waiting for locator('#modal-postes.open [onclick*="confirmerDepotPermis"]').first() to be visible` ],
+    name: 'TimeoutError'
+  }

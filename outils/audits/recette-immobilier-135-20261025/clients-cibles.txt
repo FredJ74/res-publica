@@ -1,0 +1,33 @@
+✔ pret travaux : guichet requis, Helvetia reste distinct (1.770225ms)
+✔ ouvrir et confirmer depuis le terrain refusent avant formulaire ou cout (146.19265ms)
+✔ commande versionnee et relectures : aucun ancien snapshot adopte (7.030877ms)
+✔ reponse perdue : reprendre le meme identifiant sans changer les parametres (0.942312ms)
+✔ double clic : une seule execution en vol (0.802616ms)
+✔ contexte perime : aucune relecture ni actualisation du nouveau personnage (0.68369ms)
+✔ relecture financiere impossible : preuve de reprise conservee (1.812607ms)
+✔ reproduction : les anciennes parcelles 2 et 3 manquent des ordres communs (14.907534ms)
+✔ cinq parcelles : memes commandes, prix individuels et caracteristiques conserves (16.828632ms)
+✔ depot : un seul RPC, aucun paiement ni archivage client (3.193558ms)
+✔ double clic : une seule commande pendant la reponse (0.804198ms)
+✔ reponse perdue puis rechargement : meme intention et aucun delta local (1.199292ms)
+✔ refus metier : aucun changement local et intention liberee (0.571214ms)
+✔ ancien personnage : une reponse tardive ne modifie pas le nouveau (1.615847ms)
+✔ intention incertaine : changement de palier interdit (0.625134ms)
+✔ stockage indisponible : aucune commande envoyee (0.706904ms)
+✔ confirmation incomplete : aucune fausse reussite (0.597082ms)
+✔ réponse perdue et F5 : même UUID, aucune compensation ni delta financier (6.137677ms)
+✔ double clic : une seule commande pendant la réponse en attente (3.135202ms)
+✔ UUID en attente ne peut pas recevoir de nouveaux paramètres (0.976713ms)
+✔ réponse tardive : aucun cache ni PA appliqué à un autre personnage (1.03597ms)
+✔ commit confirmé mais relecture indisponible : intention conservée (0.921912ms)
+✔ reconnexion : lecture du reçu, pas de nouvelle mutation (1.657839ms)
+✔ refus métier : aucune réussite, état réel relu sans débit client (1.270217ms)
+✔ prêt : signature explicite, paramètres et UUID inchangés (1.82769ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 209.302096

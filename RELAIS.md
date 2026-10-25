@@ -5,6 +5,17 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### #135 — Recette Chromium immobilière limitée, reprise du 25 octobre
+
+- Branche isolée `codex/recette-immobilier-135-20261025`, issue de main `40b6fe0`. Ne pas y importer les composants privés L09 de la branche précédente. Les virements et le salaire horaire de chantier de Claude sont conservés.
+- Pilote existant retrouvé : `outils/e2e/luthecia.cjs`, garde `consultation.cjs`, workflow manuel `beta-testeur-luthecia.yml` et environnement `luthecia-e2e`. Aucun compte créé, aucune authentification modifiée, aucun secret extrait.
+- Défaut reproduit sur les cinq interfaces Chromium locales : après achat sans permis, « Construire » bloquait sans accès au dossier. Le handler commun rejoint maintenant `doDeposerDemandePermis`, après ses gardes d'occupation/chantier/bâtiment, sans prélèvement à l'ouverture. RPC et tarifs inchangés.
+- Défaut du pilote : un test d'identité importait Acorn depuis le constructeur Vercel, absent de son workflow. Dépendance déclarée/verrouillée dans le pilote ; reproduction avant/après dans un répertoire sans Vercel. Aucun changement d'auth.js.
+- Vérifications : 88/88 tests du pilote, 105/105 bancs clients, 25 tests clients ciblés, 61 assertions banque/terrain et 324 parcours des cinq terrains, 56 assertions permis. Trois contre-épreuves SQL détectent prix uniformisés, jour rejoué et tranches altérées. Toutes sur fixtures locales, aucun résultat présenté comme un test authentifié.
+- Réel : aucune visite ni transaction d'Arnie. Ses trois secrets Actions sont absents de l'environnement local ; l'API GitHub et le site du jeu sont refusés par le proxy (CONNECT 403). Le lancement local s'arrête avant navigateur/authentification sur UID non vérifié. Les garde-fous d'Arnie restent stricts ; acheter_terrain engage directement un dépôt et n'est pas une consultation.
+- Pas de migration préparée/appliquée par ce lot, pas de données de joueur touchées. La recette en jeu et le déploiement ne sont pas attestés ; ne pas fermer le chantier ni fusionner la grande branche. Rapport détaillé et preuves ajoutés dans outils/audits.
+
+
 **Ambassades et Bureau de l'Emploi (Claude)** — **Codex : ne pas toucher aux
 ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
 - Contexte : objectif actuel = terminer Luthécia. Les ambassades ne seront

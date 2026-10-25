@@ -1,0 +1,11 @@
+✔ procedure reelle de securisation : UID conserve et confirmation en attente (26.820386ms)
+✔ procedure reelle : un UID de reponse different est refuse sans remplacer la fiche (6.250619ms)
+✔ procedure reelle : compte confirme conserve le meme UID et personnage (4.01814ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 113.508439
