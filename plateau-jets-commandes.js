@@ -64,7 +64,7 @@ async function l09Intercepter(ordre,parametres){
     const origine=typeof sbContexteInventaire==='function'?sbContexteInventaire():null;
     const frais=typeof rafraichirRuntimeHelvetia==='function'?await rafraichirRuntimeHelvetia({exigerComptes:true}):null;
     if(!contexteNavigationRueValide(c))return true;
-    if(!frais||frais.userId&&frais.userId!==c.uid){showToast('Ordre confirmé','La relecture de votre état reste à confirmer. La commande est conservée pour reprise.',false);return true;}
+    if(!frais||frais.userId!==c.uid){showToast('Ordre confirmé','La relecture de votre état reste à confirmer. La commande est conservée pour reprise.',false);return true;}
     if(Array.isArray(frais.inventory)&&Number.isSafeInteger(frais._inventaireRevision)){
       const inventaire={inventory:frais.inventory,revision:frais._inventaireRevision};
       if(origine&&typeof sbMarquerInventaires==='function')sbMarquerInventaires(inventaire,origine);

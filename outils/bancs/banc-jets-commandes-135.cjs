@@ -93,3 +93,7 @@ test('délai dépassé : libérer le verrou mais garder le même UUID et ignorer
  await f.c.l09Intercepter('vol',{});assert.equal(f.appels.at(-1).p.p_requete,cle);assert.equal(f.c.state.pa,42);
  finir({ok:true,succes:true,pa:999});await Promise.resolve();assert.equal(f.c.state.pa,42);
 });
+
+test('relecture sans propriétaire confirmé : aucune adoption et reprise conservée',async()=>{
+ const f=fixture();f.c.frais.userId=null;await f.c.l09Intercepter('vol',{});assert.equal(f.stockage.size,1);assert.equal(f.c.state.pa,undefined);
+});

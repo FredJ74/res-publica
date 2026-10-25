@@ -187,3 +187,6 @@ Complément client de reprise : délai local borné à 15 secondes sans présume
 
 
 Corrections finales encore privées : après les gardes historiques, `20261025113001_jets_suspension_sans_legacy.sql` maintient la fermeture même lorsque la transition existante est suspendue (les anciens clients ne doivent pas retrouver une porte ouverte). `20261025113501_vol_pnj_caracteristiques_reelles.sql`, après la correction canonique des ressources, utilise car_per/car_int du socle PNJ plutôt qu’une estimation à neuf ; la fixture de schéma reproduit l’écart 75 contre 60 puis vérifie sa correction, sans inventer de butin PNJ. Aucun changement de seuil ni de caractéristique réelle. La campagne finale est relancée ; aucune transition activée, aucune donnée réelle modifiée.
+
+
+Dernière garde client : une relecture sans propriétaire confirmé est refusée, même après un reçu valide ; l’intention reste disponible pour reprise. Le banc ciblé couvre désormais 20 cas, dont délais, réponse tardive, changement de personnage, identité recréée, suspension, valeurs nulles et texte du journal. Sources applicatives figées pour l’archivage final ; les blocages Supabase, du compteur déserteur et des sauvegardes financières restent ouverts.
