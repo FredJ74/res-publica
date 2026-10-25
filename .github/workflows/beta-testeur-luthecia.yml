@@ -52,11 +52,13 @@ jobs:
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
       - name: Installer Chromium pilote avec les dependances du runner
         run: npx --prefix outils/e2e playwright install --with-deps chromium
-      - name: Utiliser le Chromium installe pour le pilote
-        run: |
-          echo "HG_CHROMIUM=$(node -p \"require('./outils/e2e/node_modules/playwright').chromium.executablePath()\")" >> "$GITHUB_ENV"
       - name: Preparer le dossier du rapport avant toute verification
         run: mkdir -p "$HG_E2E_RAPPORT"
+      - name: Utiliser le Chromium installe pour le pilote
+        run: |
+          CHROME_PATH=$(node -e 'process.stdout.write(require("./outils/e2e/node_modules/playwright").chromium.executablePath())')
+          test -x "$CHROME_PATH"
+          printf 'HG_CHROMIUM=%s\n' "$CHROME_PATH" >> "$GITHUB_ENV"
       - name: Exercer le pilote hors production
         run: npm test --prefix outils/e2e
       - name: Prevol obligatoire, aucun contournement des prerequis
