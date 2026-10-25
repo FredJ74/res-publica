@@ -33,4 +33,8 @@ WHERE table_schema='public' AND table_name IN('personnages','personnages_donnees
 SELECT cle,actif,note FROM public.rp_transitions WHERE cle LIKE 'actes_jets_atomiques_%' ORDER BY cle;
 SELECT type_butin,count(*) AS en_attente,count(*) FILTER(WHERE montant<0) AS credits_legacy
 FROM public.vols_en_attente WHERE traite IS NOT TRUE GROUP BY type_butin ORDER BY type_butin;
+-- Appelants des portes modifiées : préserver interceptions et traitements autonomes.
+SELECT p.oid::regprocedure::text,md5(p.prosrc),pg_get_functiondef(p.oid)
+FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public'
+AND p.prosrc ~ '(justice_executer_condamnation|detention_clore_evasion|filature_deplacements|commissaire_enqueter)';
 ROLLBACK;

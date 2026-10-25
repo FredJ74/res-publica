@@ -37,6 +37,7 @@ def suite(db,q,srv):
  q.execute("ALTER TABLE personnages_donnees ADD COLUMN IF NOT EXISTS resources jsonb DEFAULT '{}'")
  if not COMMERCE:q.execute((R/'migrations/20261025011201_filature_confirmation_financiere.sql').read_text())
  q.execute((R/'migrations/20261025105001_jets_resources_canoniques.sql').read_text())
+ if COMMERCE:q.execute((R/'migrations/20261025113501_vol_pnj_caracteristiques_reelles.sql').read_text())
  if COMMERCE:
   q.execute("UPDATE personnages_donnees SET current_building='armurerie',current_room='magasin',liquide=10000,arg=20000,resources='{\"inf\":0,\"pop\":50}' WHERE name='Fixture';UPDATE comptes_bancaires SET solde=10000 WHERE personnage='Fixture';UPDATE entreprises SET data=jsonb_set(data,'{stockProduits,couteau}','10') WHERE id='armurerie-fixture'")
   r=appel('achat_arme_illegal',{'p_entreprise':'armurerie-fixture','p_arme':'couteau'})

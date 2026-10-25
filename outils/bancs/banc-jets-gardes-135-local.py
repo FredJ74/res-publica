@@ -18,17 +18,19 @@ def suite(db,q,srv):
  def lire(s,args=()):q.execute(s,args or None);return q.fetchone()[0]
  src=(R/'baseline/domaines/justice/10_tables.sql').read_text();q.execute(re.search(r'CREATE TABLE public.vols_en_attente \(.*?\n\);',src,re.S)[0]);q.execute('ALTER TABLE vols_en_attente ADD PRIMARY KEY(id)')
  for _ in range(2):q.execute((R/M).read_text())
+ for _ in range(2):q.execute((R/'migrations/20261025113001_jets_suspension_sans_legacy.sql').read_text())
+ q.execute("DELETE FROM rp_transitions WHERE cle='actes_jets_atomiques_republic'")
  if MUTANT:
   if MUTANT=='paiement':q.execute("CREATE OR REPLACE FUNCTION ordres_jets_refuser_legacy(p_acteur text,p_famille text) RETURNS boolean LANGUAGE sql AS $$SELECT false$$")
   else:
    nom,avant,apres={
     'lecture':('filature_deplacements(text)',"IF public.ordres_jets_refuser_legacy(public.mon_personnage(),'organiser_filature') THEN",'IF false THEN'),
-    'depot':('vol_legacy_inserer_garder()',"IF public.rp_transition_active('actes_jets_atomiques_'||(SELECT country FROM public.personnages_donnees WHERE name=public.mon_personnage())) THEN",'IF false THEN')
+    'depot':('vol_legacy_inserer_garder()',"IF EXISTS(SELECT 1 FROM public.rp_transitions WHERE cle='actes_jets_atomiques_'||(SELECT country FROM public.personnages_donnees WHERE name=public.mon_personnage())) THEN",'IF false THEN')
    }[MUTANT]
    d=lire('SELECT pg_get_functiondef(%s::regprocedure)',(nom,));assert d.count(avant)==1;q.execute(d.replace(avant,apres))
  q.execute("SET hg.acteur='Fixture';SET hg.serveur='off';UPDATE personnages_donnees SET hp=100,pa=50,country='republic',current_city='capitale',current_building='commissariat',current_room='bureau_commissaire' WHERE name='Fixture'")
  check(lire("SELECT ordres_jets_refuser_legacy('Fixture','organiser_filature')") is False,'transition inactive ne supprime pas les anciennes fonctions')
- q.execute("UPDATE rp_transitions SET actif=true WHERE cle='actes_jets_atomiques_republic'")
+ q.execute("INSERT INTO rp_transitions(cle,actif) VALUES('actes_jets_atomiques_republic',true)")
  avant=lire("SELECT jsonb_build_array(pa,liquide,arg) FROM personnages_donnees WHERE name='Fixture'")
  for nom,pa in [('voler',2),('mener_enquete',2),('organiser_filature',2),('organiser_chasse_homme',3),('tentative_evasion',3),('demander_benediction_contact',1),('voler_materiel_chantier',2)]:
   r=lire('SELECT payer_ordre(%s,%s,%s,0)',('Fixture',nom,pa));check(r.get('raison')=='commande_jet_atomique_requise','paiement historique bloque avant depense '+nom)
@@ -59,6 +61,9 @@ def suite(db,q,srv):
   q.execute("UPDATE caisses_batiments SET data='{\"solde\":10000}' WHERE id='republic_commissariat_capitale';CREATE OR REPLACE FUNCTION terrain_negociation_jet_interne() RETURNS integer LANGUAGE sql AS $$SELECT 1$$")
   r=lire('SELECT ordres_jets_commande(%s,%s,%s,%s)',(identite,'organiser_filature',Json({'p_cible':'Autre'}),str(uuid.uuid4())))
   check(r['ok'] and r['succes'],'vrai rapport fonctionne dans le meme moteur sous capacite privee')
+ q.execute("UPDATE rp_transitions SET actif=false WHERE cle='actes_jets_atomiques_republic'")
+ r=lire("SELECT payer_ordre('Fixture','voler',2,0)")
+ check(r.get('raison')=='commande_jet_atomique_requise','suspension ne rouvre pas les anciennes commandes')
  check(lire('SELECT count(*) FROM vols_en_attente')==0,'aucune livraison historique purgee ou inventee')
  print(json.dumps({'gardes_historiques':True,'assertions':n,'profil':'commerce' if COMMERCE else 'justice','execution_personnelle_non_archivee':True,'production':False}))
 def tout(db,q,srv):base.tout(db,q,srv);suite(db,q,srv)

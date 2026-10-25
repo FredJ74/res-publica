@@ -26,6 +26,13 @@ def suite(db,q,srv):
   check(r['ok'] and not r['succes'] and r['pop']==40,'sanction sovietique lit et ecrit resources.pop')
   res=lire("SELECT resources FROM personnages_donnees WHERE name='Fixture'")
   check(res=={'inf':30,'pop':40,'dis':12},'influence et discretion conservees avec la baisse de popularite')
+  q.execute("ALTER TABLE pnj_membres ADD COLUMN IF NOT EXISTS car_int integer;INSERT INTO pnj_membres(id,nom,pays,ville,building_id,room_id,statut,car_per,car_int) VALUES('pnj-stats-schema-fixture','PNJ stats fixture','republic','capitale','armurerie','magasin','actif',16,17);UPDATE personnages_donnees SET country='republic' WHERE name='Fixture';UPDATE indices_villes SET data=data||'{\"isn\":0}' WHERE id='republic_capitale';CREATE OR REPLACE FUNCTION vol_hasard_interne() RETURNS numeric LANGUAGE sql AS $$SELECT .9999$$")
+  r=lire('SELECT vol_commande(%s,%s,%s)',('PNJ stats fixture','argent',str(uuid.uuid4())))
+  check(r['score']==75,'defaut prototype reproduit estimation neuf ignorant les caracteristiques du PNJ')
+  for _ in range(2):q.execute((R/'migrations/20261025113501_vol_pnj_caracteristiques_reelles.sql').read_text())
+  r=lire('SELECT vol_commande(%s,%s,%s)',('PNJ stats fixture','argent',str(uuid.uuid4())))
+  check(r['score']==60 and r['butin']=='rien','caracteristiques PNJ seize et dix sept relues sans inventer de butin')
+
  else:
   r=lire('SELECT police_filature_commande(%s,%s)',('Autre',str(uuid.uuid4())))
   check(r['ok'] and r['taux']==63,'filature influence de trente points lue dans resources')
