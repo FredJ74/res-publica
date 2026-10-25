@@ -562,7 +562,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
       const tabName = ((typeof varianteNomPiece === 'function')
         ? varianteNomPiece(buildingId, roomId, state.currentCity, tabNameBase) : null) || tabNameBase;
       const actif = roomActifId ? (roomId === roomActifId) : (i === 0);
-      return `<div class="piece-tab ${actif ? 'active' : ''}" onclick="enterRoom('${buildingId}','${roomId}',this)" style="${style}">
+      return `<div class="piece-tab ${actif ? 'active' : ''}" data-piece="${roomId}" onclick="enterRoom('${buildingId}','${roomId}',this)" style="${style}">
         ${icon}${tabName}
       </div>`;
     }).join('')
@@ -933,6 +933,8 @@ function enterRoom(buildingId, roomId, tabEl) {
   // Plan de l'open space : pose ses zones cliquables, et retire celles de la
   // piece precedente. Meme emplacement et meme contrat que la zone de l'enigme.
   if (typeof openSpaceInjecterZones === 'function') openSpaceInjecterZones(buildingId, roomId, state.currentCity);
+  // Les trois portes du hall des ambassades (25 octobre 2026) : meme contrat.
+  if (typeof ambassadesPortesInjecter === 'function') ambassadesPortesInjecter(buildingId, roomId);
   // Luthécia : la partie gauche de l'accueil de L'Autruche mène à la rédaction.
   // La zone est retirée à chaque changement de pièce, comme celles de l'open space.
   pieceImg.querySelectorAll('.tribune-redaction-zone').forEach(el => el.remove());

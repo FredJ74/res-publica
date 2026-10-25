@@ -9485,7 +9485,8 @@ async function verifierAccesBureauAmbassade(buildingId, roomId, tabEl) {
   }
   const nom = AMBASSADEURS_PNJ[empireId]?.name.replace(' (PNJ)', '') || "L'ambassadeur";
   if (v && v.raison === 'sur_audience') {
-    showToast('Sur audience uniquement', nom + " ne reçoit que sur audience. Demandez-la à l'accueil du Quartier des Ambassades.", false);
+    // Texte decide par Fred (25/10/2026), le meme que l'infobulle des portes du hall.
+    showToast('Accès limité', 'Il faut avoir une invitation. ' + nom + " ne reçoit que sur audience, à demander à l'accueil.", false);
   } else if (v && v.raison === 'acteur_non_authentifie') {
     showToast('Personnage non chargé', 'Rechargez la page.', false);
   } else {
@@ -9495,6 +9496,112 @@ async function verifierAccesBureauAmbassade(buildingId, roomId, tabEl) {
   if (state.currentBuilding === buildingId && state.currentRoom === roomId) {
     enterRoom(buildingId, 'accueil_ambassades');
   }
+}
+
+// =====================
+// LES TROIS PORTES DU HALL (25 octobre 2026, arbitrage de Fred)
+// =====================
+// Les portes des trois ambassades, dessinees sur l'image de l'accueil, deviennent cliquables,
+// et leurs onglets portent la meme infobulle. Sans invitation : « Acces limite : il faut avoir
+// une invitation. » Ont acces : audience accordee, immunite diplomatique, refugie politique.
+//
+// L'ETAT AFFICHE VIENT DU SERVEUR (ambassade_acces_bureaux), lu a l'entree dans le batiment.
+// Il ne sert qu'a l'affichage : franchir une porte passe toujours par enterRoom, donc par
+// ambassade_acces_bureau, qui re-verifie. Meme geometrie et meme infobulle que les postes de
+// l'open space (plateau-open-space.js, plateau-variantes-pieces.js) : aucun second moteur.
+const PORTES_AMBASSADES = {
+  image: 'images/accueil-quartier-ambassades.webp',
+  // Fractions de l'image (1983 x 793) : chaque zone couvre l'encadrement de marbre, l'enseigne
+  // et la porte. Celle de Sovarka s'arrete au-dessus du comptoir de l'hotesse.
+  portes: [
+    { piece: 'bureau_al_khalija', empire: 'khalija', nom: 'Ambassade d\'Al-Khalija', zone: { x: 0.172, y: 0.220, w: 0.093, h: 0.440 } },
+    { piece: 'bureau_sovarka',    empire: 'soviet',  nom: 'Ambassade de Sovarka',     zone: { x: 0.455, y: 0.260, w: 0.080, h: 0.340 } },
+    { piece: 'bureau_el_estado',  empire: 'narco',   nom: 'Ambassade d\'El Estado',   zone: { x: 0.736, y: 0.220, w: 0.088, h: 0.440 } }
+  ]
+};
+const ACCES_LIMITE_AMBASSADE = 'Accès limité : il faut avoir une invitation.';
+
+// Lecture serveur de l'acces aux trois bureaux ; null tant qu'elle n'est pas revenue.
+async function rafraichirAccesBureauxAmbassade() {
+  if (typeof sbRpcVerdict !== 'function') return null;
+  const v = await sbRpcVerdict('ambassade_acces_bureaux', {}).catch(() => null);
+  state.accesBureauxAmbassade = (v && v.ok === true && v.bureaux) ? v.bureaux : null;
+  return state.accesBureauxAmbassade;
+}
+
+function texteAccesPorteAmbassade(empire) {
+  const a = state.accesBureauxAmbassade && state.accesBureauxAmbassade[empire];
+  if (!a || !a.acces) return ACCES_LIMITE_AMBASSADE;
+  if (a.motif === 'immunite') return 'Entrer — immunité diplomatique';
+  if (a.motif === 'refugie') return 'Entrer — réfugié politique';
+  if (a.motif === 'audience' && a.expire_le) {
+    const fin = new Date(a.expire_le).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', hour: '2-digit', minute: '2-digit' });
+    return 'Entrer — audience accordée jusqu\'à ' + fin;
+  }
+  return 'Entrer';
+}
+
+function majOngletsPortesAmbassade() {
+  PORTES_AMBASSADES.portes.forEach(function (p) {
+    const onglet = document.querySelector('.piece-tab[data-piece="' + p.piece + '"]');
+    if (onglet) onglet.title = texteAccesPorteAmbassade(p.empire);
+  });
+}
+
+// Appelee par enterRoom pour TOUTE piece : retire les portes de la piece precedente, et les
+// pose sur l'accueil du Quartier des Ambassades.
+function ambassadesPortesInjecter(buildingId, roomId) {
+  const cadre = document.getElementById('piece-image');
+  if (!cadre) return;
+  cadre.querySelectorAll('.amb-porte').forEach(function (el) { el.remove(); });
+  if (buildingId !== 'quartier-ambassades') return;
+
+  majOngletsPortesAmbassade();
+  rafraichirAccesBureauxAmbassade().then(majOngletsPortesAmbassade).catch(() => {});
+  if (roomId !== 'accueil_ambassades') return;
+
+  PORTES_AMBASSADES.portes.forEach(function (porte) {
+    const div = document.createElement('div');
+    div.className = 'amb-porte';
+    div.dataset.piece = porte.piece;
+    div.style.cssText = 'position:absolute;z-index:2;cursor:pointer;display:none;';
+    div.addEventListener('mousemove', function (e) {
+      if (typeof openSpaceAfficherInfobulle === 'function') openSpaceAfficherInfobulle(e, porte.nom, texteAccesPorteAmbassade(porte.empire));
+    });
+    div.addEventListener('mouseleave', function () {
+      if (typeof openSpaceMasquerInfobulle === 'function') openSpaceMasquerInfobulle();
+    });
+    div.addEventListener('click', function () {
+      if (typeof openSpaceMasquerInfobulle === 'function') openSpaceMasquerInfobulle();
+      enterRoom(buildingId, porte.piece, document.querySelector('.piece-tab[data-piece="' + porte.piece + '"]'));
+    });
+    cadre.appendChild(div);
+  });
+  ambassadesPortesPositionner(cadre);
+  if (!ambassadesPortesObservateur && typeof ResizeObserver !== 'undefined') {
+    ambassadesPortesObservateur = new ResizeObserver(function () {
+      if (cadre.querySelector('.amb-porte')) ambassadesPortesPositionner(cadre);
+    });
+    ambassadesPortesObservateur.observe(cadre);
+  }
+}
+let ambassadesPortesObservateur = null;
+
+function ambassadesPortesPositionner(cadre) {
+  if (typeof varianteTailleNaturelle !== 'function' || typeof varianteZoneEnPixels !== 'function') return;
+  varianteTailleNaturelle(PORTES_AMBASSADES.image).then(function (taille) {
+    PORTES_AMBASSADES.portes.forEach(function (porte) {
+      const div = cadre.querySelector('.amb-porte[data-piece="' + porte.piece + '"]');
+      if (!div) return;
+      const px = varianteZoneEnPixels(porte.zone, cadre, taille, null);
+      if (!px) { div.style.display = 'none'; return; }
+      div.style.display = 'block';
+      div.style.left = px.gauche + 'px';
+      div.style.top = px.haut + 'px';
+      div.style.width = px.largeur + 'px';
+      div.style.height = px.hauteur + 'px';
+    });
+  });
 }
 
 // Bouton du mail recu par un joueur ambassadeur (quand les autres empires seront codes).
