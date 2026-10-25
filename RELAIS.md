@@ -49,10 +49,18 @@ ambassades ni au Bureau de l'Emploi** tant que ces chantiers sont ouverts.
   `claude/bne-corrections-20261025`) : B1-B7, B9, B10 et un bug trouvé au banc
   (aucun emploi n'était payé). Migration appliquée (registre 20261025010423).
   Détail dans `AUDIT_BNE.md` § 6.
-- Prochaines étapes :
-  1. BNE B11 (« les emplois donnent vie au plateau ») : à concevoir avec Fred ;
-     B12-B13 : questions reformulées, en attente de sa réponse ;
-  2. griser « Bientôt disponible » les ordres d'ambassade non raccordables.
+- 25/10 soir : **nouvelle formule du Bureau de l'Emploi** décidée par Fred,
+  consignée dans **`GAME-DESIGN-BNE.md`** (recensement des postes réels tenus
+  par des PNJ, candidature transmise au recruteur officiel avec décision le
+  vendredi, annonces des joueurs, virement automatique, suppression des sept
+  offres fictives et de l'inscription).
+- Prochaines étapes (Claude) : coder `GAME-DESIGN-BNE.md` par lots — 1. suppression
+  des offres et de l'inscription + recensement ; 2. candidatures et décision du
+  vendredi ; 3. annonces des joueurs (+ parution Tribune par le serveur, caisse du
+  Bureau) ; 4. virement entre joueurs puis virement automatique ; 5. taux horaire
+  des chantiers fixé par le propriétaire (minimum 50 FR).
+  Ambassades : griser « Bientôt disponible » les ordres non raccordables (en
+  attente de Fred).
 - Bancs : 85/102 en local, les 17 échecs sont identiques sur `main`
   (bancs navigateur, environnement).
 - Issue #143 : passer toutes les fenêtres à la charte (plus tard).
