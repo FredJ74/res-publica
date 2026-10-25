@@ -4,7 +4,7 @@ function extraire(f,noms){const rue=f==='plateau-rue-centrale.js'&&noms.some(n=>
 function mails(){
  let cache=[];const c=vm.createContext({state:{char:{name:'Alice'}},console,Map,Set,rpAuthUid:()=> 'uid',rpAuthSessionIdentifiant:()=> 'connexion',getMails:()=>cache,saveMails:x=>cache=x,
  getMyMails:()=>cache,mailsRecusVisibles:()=>cache.filter(m=>m.to==='Alice'&&!m.archived),trierMailsRecents:x=>x,escapeHtmlText:s=>s,formatDateAffichage:s=>s||'',renderForumModal(){},rafraichirVoyantsEtCompteursForum(){}});
- vm.runInContext("let mailLectureSequence=0,mailRubrique='recus',mailView='inbox',forumView='mail';const FORUM_VUES_COMPOSITION=['compose-canvas','edit-post','new-topic','reply'];"+extraire('forum.js',['loadMailsFromSB','selectionnerRubriqueMail','switchToMail','forumEstEnCompositionActuellement','renderMailInbox']),c);
+ vm.runInContext("let mailLectureSequence=0,mailRubrique='recus',mailView='inbox',forumView='mail';const FORUM_VUES_COMPOSITION=['compose-canvas','edit-post','new-topic','reply'];"+extraire('forum.js',['loadMailsFromSB','fusionnerMailsServeur','selectionnerRubriqueMail','switchToMail','forumEstEnCompositionActuellement','renderMailInbox']),c);
  c.cache=()=>cache;c.rubrique=()=>vm.runInContext('mailRubrique',c);return c;
 }
 test('messagerie : chaque rubrique affiche exclusivement ses messages, y compris organisations',()=>{
