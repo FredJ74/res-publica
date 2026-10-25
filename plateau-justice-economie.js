@@ -2361,6 +2361,8 @@ function verifierDecouverteCrimesPasses() {
 // illimites de la phase de test permettaient de retenter indefiniment). Taux de base 10%,
 // modifie par DUP et l'indice de securite du pays — meme formule que le vol/cambriolage.
 async function doTentativeEvasion(pa, cost) {
+  if(typeof l09Intercepter==='function'&&await l09Intercepter('tentative_evasion',{}))return;
+
   if (!state.estEmprisonne) {
     showToast('Non emprisonne', 'Vous devez etre emprisonne pour tenter de vous evader.', false);
     return;
@@ -11843,6 +11845,8 @@ function doMenerEnquete(pa, cost) {
 }
 
 async function confirmerMenerEnquete(pa, cost) {
+  if(typeof l09Intercepter==='function'&&await l09Intercepter('mener_enquete',{p_cible:document.querySelector('input[name="enquete-cible"]:checked')?.value||''}))return;
+
   const cibleInput = document.querySelector('input[name="enquete-cible"]:checked');
   if (!cibleInput) { showToast('Cible requise', 'Choisissez une personne du repertoire.', false); return; }
   const cible = cibleInput.value;
@@ -11990,6 +11994,8 @@ function doOrganiserFilature(pa, cost) {
 }
 
 async function confirmerOrganiserFilature(pa, cost) {
+  if(typeof l09Intercepter==='function'&&await l09Intercepter('organiser_filature',{p_cible:document.querySelector('input[name="filature-cible"]:checked')?.value||''}))return;
+
   const cibleInput = document.querySelector('input[name="filature-cible"]:checked');
   if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); return; }
   const cible = cibleInput.value;
@@ -12160,6 +12166,8 @@ async function executerCondamnationRecherchee(nom, entree, rechercheActuelle, vi
 }
 
 async function confirmerOrganiserChasseHomme(pa, cost) {
+  if(typeof l09Intercepter==='function'&&await l09Intercepter('organiser_chasse_homme',{p_cible:document.querySelector('input[name="chasse-cible"]:checked')?.value||''}))return;
+
   const cibleInput = document.querySelector('input[name="chasse-cible"]:checked');
   if (!cibleInput) { showToast('Cible requise', 'Choisissez un PJ du repertoire.', false); return; }
   const cible = cibleInput.value;
@@ -12857,6 +12865,8 @@ async function doVolerMaterielChantier(pa, cost) {
 }
 
 async function confirmerVolMateriaux(matiere, pa, cost) {
+  if(typeof l09Intercepter==='function'&&await l09Intercepter('voler_materiel_chantier',{p_terrain:state.currentBuilding,p_matiere:matiere}))return;
+
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Voler du matériel')) return;
   const ts = getTerrainState(id);

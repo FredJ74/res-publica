@@ -136,6 +136,8 @@ const CONSEQUENCES_VOL_ECHEC = {
 };
 
 async function confirmerVol(encodedCible, jetBase, genre) {
+  if(typeof l09Intercepter==='function'&&await l09Intercepter('vol',{p_cible:l09CibleVol(encodedCible),p_genre:genre}))return;
+
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
   document.getElementById('modal-postes').classList.remove('open');
@@ -1666,6 +1668,8 @@ async function confirmerAchatArme(armeId) {
 }
 
 async function confirmerAchatArmeIllegal(armeId) {
+  if(typeof l09Intercepter==='function'&&await l09Intercepter('achat_arme_illegal',{p_entreprise:getEntrepriseIdArmurerie(state.country,state.currentCity||'capitale'),p_arme:armeId}))return;
+
   const pays = state.country || 'republic';
   const ville = state.currentCity || 'capitale';
   const cur = COUNTRIES[pays]?.cur || 'FR';

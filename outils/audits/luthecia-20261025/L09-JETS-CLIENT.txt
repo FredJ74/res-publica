@@ -1,0 +1,24 @@
+✔ serveur non activé : aucun hôte nouveau appelé et comportement historique conservé (60.496555ms)
+✔ session perdue : ne jamais basculer sur un ordre historique après erreur (31.491682ms)
+✔ huit entrées délèguent au même adaptateur privé sans prix ni PA navigateur (24.876246ms)
+✔ réponse perdue : même UUID, paramètres liés, aucune fausse réussite (18.727593ms)
+✔ rechargement : intention conservée pour la même identité immuable (33.277815ms)
+✔ personnage recréé de même nom : intention ancienne jamais réutilisée (31.206656ms)
+✔ absence d’identité serveur : aucun ordre (18.852918ms)
+✔ lecture financière impossible : reçu confirmé mais reprise non supprimée (15.440738ms)
+✔ écriture de stockage impossible : pas de commande envoyée (16.41043ms)
+✔ double clic en cours : une seule commande (15.379898ms)
+✔ réponse tardive après changement de personnage : aucun état adopté (13.214259ms)
+✔ inventaire modifié pendant la relecture : vrai garde refuse l’adoption (13.021874ms)
+✔ refus métier confirmé : rien affiché comme succès (15.226562ms)
+✔ les huit vrais points d’entrée quittent le chemin historique après prise en charge (112.83428ms)
+✔ suspension explicite : aucun retour à un ordre historique (15.067978ms)
+✔ suspension avec reçu en attente : reprise du même UUID seulement (13.288048ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 458.528636

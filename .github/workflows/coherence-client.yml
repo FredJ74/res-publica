@@ -111,6 +111,15 @@ jobs:
           python3 outils/bancs/contre-epreuves-enquete-135-local.py
           python3 outils/bancs/banc-chasse-benediction-135-local.py
           python3 outils/bancs/banc-chasse-asile-135-local.py
+          python3 outils/bancs/banc-evasion-135-local.py
+          python3 outils/bancs/contre-epreuves-evasion-135-local.py
+          python3 outils/bancs/banc-jets-schema-reel-135-local.py
+          python3 outils/bancs/banc-jets-schema-reel-135-local.py --vol
+          python3 outils/bancs/banc-jets-dispatch-135-local.py
+          python3 outils/bancs/banc-jets-dispatch-135-local.py --commerce
+          python3 outils/bancs/banc-jets-gardes-135-local.py
+          python3 outils/bancs/banc-jets-gardes-135-local.py --commerce
+          python3 outils/bancs/contre-epreuves-jets-gardes-135-local.py
           python3 outils/bancs/banc-benediction-inter-hotes-135-local.py
           python3 outils/bancs/contre-epreuves-chasse-135-local.py
           python3 outils/bancs/contre-epreuves-filature-135-local.py

@@ -1,0 +1,4 @@
+OK quota
+OK reliquat
+OK cloture
+{"production": false, "contre_epreuves": [{"mutant": "quota", "echec_attendu": true, "code": 1}, {"mutant": "reliquat", "echec_attendu": true, "code": 1}, {"mutant": "cloture", "echec_attendu": true, "code": 1}]}

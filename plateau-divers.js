@@ -877,6 +877,8 @@ async function confirmerConfession(pnjNom, actionId) {
 // formule variable (CHA du titulaire + piete de la ville) au profit d'un taux fixe de 80%,
 // regle validee.
 async function doDemanderBenedictionContact(pnjNom) {
+  if(typeof l09Intercepter==='function'&&await l09Intercepter('benediction',{p_religieux:pnjNom}))return;
+
   // Excommunication (§6 du lot 2) : impossibilite de recevoir une benediction, verifiee AVANT
   // toute deduction de PA (echec net, comme les autres gardes similaires du jeu).
   if (state.char?.excommunie) {
