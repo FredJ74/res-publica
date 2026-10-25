@@ -343,6 +343,104 @@ def declarations_rpc_migrations():
     return declarations
 
 
+def sql_statique(texte):
+    """Masquer commentaires et litteraux en conservant leurs positions.
+
+    Un RENAME cite dans un commentaire, un corps dollar-quote ou un EXECUTE
+    ne prouve pas qu'un objet est renomme. Les blocs commentaires s'imbriquent
+    en PostgreSQL. Les identifiants cites restent hors du sous-ensemble simple
+    deja reconnu par ce controle, sans leur inventer un nom normalise.
+    """
+    morceaux = list(texte)
+    i = 0
+    while i < len(texte):
+        debut = i
+        if texte.startswith('--', i):
+            fin = texte.find('\n', i)
+            i = len(texte) if fin < 0 else fin
+        elif texte.startswith('/*', i):
+            i += 2
+            niveau = 1
+            while i < len(texte) and niveau:
+                if texte.startswith('/*', i):
+                    niveau += 1
+                    i += 2
+                elif texte.startswith('*/', i):
+                    niveau -= 1
+                    i += 2
+                else:
+                    i += 1
+        elif texte[i] in "'\"":
+            quote = texte[i]
+            echappee = (quote == "'" and i > 0 and texte[i - 1] in 'eE'
+                        and (i < 2 or not (texte[i - 2].isalnum() or texte[i - 2] == '_')))
+            i += 1
+            while i < len(texte):
+                if texte[i] == quote:
+                    i += 1
+                    if i < len(texte) and texte[i] == quote:
+                        i += 1
+                        continue
+                    break
+                # Seul E'...' admet ces echappements (standard_conforming_strings).
+                if texte[i] == '\\' and echappee:
+                    i += 2
+                else:
+                    i += 1
+        elif texte[i] == '$' and (tag := re.match(r'\$(?:[A-Za-z_][A-Za-z_0-9]*)?\$', texte[i:])):
+            delimiteur = tag.group()
+            fin = texte.find(delimiteur, i + len(delimiteur))
+            i = len(texte) if fin < 0 else fin + len(delimiteur)
+        else:
+            i += 1
+            continue
+        morceaux[debut:i] = ['\n' if c == '\n' else ' ' for c in texte[debut:i]]
+    return ''.join(morceaux)
+
+
+def signatures_inconnues_migration(texte, signatures_connues):
+    """Controler les references et les renommages explicites dans leur ordre.
+
+    Un renommage ne cree aucune tolerance par nom : seule la signature exacte
+    d'une source connue peut transmettre son existence a la destination. Cela
+    n'atteste jamais une application en production (invariant 13 inchange).
+    """
+    connues = {re.sub(r'\s+', '', s) for s in signatures_connues}
+    creees = set()
+    inconnues = []
+    instruction = re.compile(
+        r'(?P<creation>\bCREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.(?P<cree>[a-z_0-9]+)\s*\()'
+        r'|(?P<renommage>\bALTER\s+FUNCTION\s+public\.(?P<source>[a-z_0-9]+)\s*\((?P<types>[^)]*)\)\s+RENAME\s+TO\s+(?P<cible>[a-z_0-9]+)\s*;)',
+        re.I)
+    references = re.compile(
+        r'\bON\s+FUNCTION\s+public\.(?P<nom>[a-z_0-9]+)\s*\((?P<arguments>[^)]*)\)', re.I)
+    # Conserver aussi les references des blocs DO/EXECUTE que le controle
+    # historique examinait. Un corps cite n'autorise jamais un renommage,
+    # mais il ne doit pas rendre invisible une reference inconnue.
+    evenements = [(m.start(), 'instruction', m) for m in instruction.finditer(sql_statique(texte))]
+    evenements += [(m.start(), 'reference', m) for m in references.finditer(texte)]
+    for _, genre, m in sorted(evenements, key=lambda x: x[0]):
+        if genre == 'reference':
+            nom = m.group('nom').lower()
+            sig = '%s(%s)' % (nom, re.sub(r'\s+', '', m.group('arguments')).lower())
+            if sig not in connues and nom not in creees:
+                inconnues.append(sig)
+        elif m.group('creation'):
+            # Regle existante : une fonction creee dans ce fichier peut recevoir
+            # ses droits. Ce n'est pas une preuve de signature pour un RENAME.
+            creees.add(m.group('cree').lower())
+        elif m.group('renommage'):
+            types = re.sub(r'\s+', '', m.group('types')).lower()
+            source = '%s(%s)' % (m.group('source').lower(), types)
+            cible = '%s(%s)' % (m.group('cible').lower(), types)
+            if source not in connues:
+                inconnues.append(source)
+            else:
+                connues.remove(source)
+                connues.add(cible)
+    return inconnues
+
+
 def parametres_du_baseline():
     """nom de fonction -> liste des jeux de parametres, une entree par surcharge.
     Les surcharges comptent : le navigateur appelle parfois une forme courte
@@ -619,17 +717,8 @@ def main():
         # acteur_identifie » qui a vecu ici depuis le chantier 3. Une exception
         # qui nomme un objet est le symptome d'une regle manquante : on ecrit la
         # regle, et l'exception s'en va.
-        creees = set(re.findall(r"CREATE OR REPLACE FUNCTION public\.([a-z_0-9]+)\(", texte))
-        for m in re.finditer(r"ON FUNCTION public\.([a-z_0-9]+)\(([^)]*)\)", texte):
-            # LES ESPACES NE FONT PAS LA SIGNATURE. Le catalogue rend
-            # « ville_est_reelle(text,text) » ; un auteur de migration ecrit
-            # naturellement « ville_est_reelle(text, text) ». Comparer les deux tels
-            # quels rendait cet invariant DOUBLEMENT faux : il criait sur des fonctions
-            # qui existent, et il serait reste muet sur une vraie inconnue ecrite sans
-            # espace. Trouve le 7 octobre 2026, sur trois fonctions du chantier 4E.
-            sig = "%s(%s)" % (m.group(1), re.sub(r"\s+", "", m.group(2)))
-            if sig not in signatures_connues and m.group(1) not in creees:
-                ecarts.append("%s : signature inconnue « %s »" % (court, sig))
+        for sig in signatures_inconnues_migration(texte, signatures_connues):
+            ecarts.append("%s : signature inconnue « %s »" % (court, sig))
         # les policies retirees nommement
         for m in re.finditer(r'DROP POLICY (?:IF EXISTS )?("[^"]+"|[A-Za-z_0-9]+) ON public\.([a-z_0-9]+)',
                              texte):

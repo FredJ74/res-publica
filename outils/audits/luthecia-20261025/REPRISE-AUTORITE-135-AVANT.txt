@@ -1,0 +1,77 @@
+CONTROLE DE L'ARCHITECTURE D'AUTORITE
+  78 fichiers de navigateur, 61 tables mutees, 3 acces PostgREST bruts
+  322 relations et 915 fonctions portant un droit, 281 policies, 911 definitions
+  declaration : 73 tables, 0 invariants en attente d'application
+
+FAMILLE 1 -- LE CODE DU NAVIGATEUR
+  ----------------------------------------------------------------------
+   1. aucune mutation cliente hors surface declaree        0 ecarts OK 
+   2. aucun acces PostgREST brut non recense               0 ecarts OK 
+   3. identite passee a une RPC toujours verifiee au serveur 0 ecarts OK 
+
+FAMILLE 2 -- L'ETAT DE LA BASE, LU DANS LE BASELINE
+  ----------------------------------------------------------------------
+   4. aucun privilege de maintenance aux roles clients     0 ecarts OK 
+   5. anon n'ecrit nulle part, aucun setval pour un client 0 ecarts OK 
+   6. aucun droit d'ecriture hors surface declaree         0 ecarts OK 
+   7. aucune policy d'ecriture totalement permissive       0 ecarts OK 
+   8. aucune table du baseline sans RLS                    0 ecarts OK 
+   9. aucune fonction de declencheur appelable par un client 0 ecarts OK 
+  10. aucune fonction mutante client-appelable sans garde  0 ecarts OK 
+  11. aucune fonction mutante appelable par anon           0 ecarts OK 
+
+FAMILLE 3 -- LES PORTES SERVEUR ET LES MIGRATIONS PREPAREES
+  ----------------------------------------------------------------------
+  12. les migrations en attente ne nomment rien d'inconnu  1 ecart ECHEC
+      - 20261023000000_fontaine_exclusivite_sur_place.sql : signature inconnue « acheter_produit_commerce_interne(text,text,text,text,integer) »
+  13. toute RPC appelee par le navigateur existe           45 ecarts ECHEC
+      - ambassade_acces_bureau : aucune fonction de ce nom dans le baseline — plateau-politique.js:9479 ; declaration SQL : migrations/20261024184600_ambassades_audiences_acces.sql, migrations/20261025020100_ambassades_asile_acces.sql ; registre vivant et extraction a verifier
+      - ambassade_acces_bureaux : aucune fonction de ce nom dans le baseline — plateau-politique.js:9527 ; declaration SQL : migrations/20261025010000_ambassades_acces_bureaux.sql, migrations/20261025020100_ambassades_asile_acces.sql ; registre vivant et extraction a verifier
+      - ambassade_accorder_audience : aucune fonction de ce nom dans le baseline — plateau-politique.js:9610 ; declaration SQL : migrations/20261024184600_ambassades_audiences_acces.sql ; registre vivant et extraction a verifier
+      - ambassade_demander_asile : aucune fonction de ce nom dans le baseline — plateau-politique.js:9659 ; declaration SQL : migrations/20261025020000_ambassades_asile.sql ; registre vivant et extraction a verifier
+      - ambassade_demander_audience : aucune fonction de ce nom dans le baseline — plateau-politique.js:9440 ; declaration SQL : migrations/20261024184500_ambassades_audiences.sql ; registre vivant et extraction a verifier
+      - ambassade_mes_audiences : aucune fonction de ce nom dans le baseline — plateau-politique.js:9467 ; declaration SQL : migrations/20261024184600_ambassades_audiences_acces.sql, migrations/20261025020100_ambassades_asile_acces.sql ; registre vivant et extraction a verifier
+      - bne_inscrire : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13483 ; declaration SQL : migrations/20261025030000_bne_corrections.sql ; registre vivant et extraction a verifier
+      - chantier_commande : aucune fonction de ce nom dans le baseline — plateau-construction-commandes.js:32 ; declaration SQL : migrations/20261022124056_chantier_commandes_et_reception.sql ; registre vivant et extraction a verifier
+      - chantier_commande_recu : aucune fonction de ce nom dans le baseline — plateau-construction-commandes.js:73 ; declaration SQL : migrations/20261022125121_chantier_recu_relecture.sql ; registre vivant et extraction a verifier
+      - consommer_sur_place_commerce : aucune fonction de ce nom dans le baseline — plateau-commerce-pj.js:2179 ; aucune declaration statique dans migrations/
+      - creer_placement_national_securise : aucune fonction de ce nom dans le baseline — supabase.js:5475 ; declaration SQL : migrations/20261022211000_placement_national_idempotent.sql ; registre vivant et extraction a verifier
+      - finance_terrain_banque_recu : aucune fonction de ce nom dans le baseline — plateau-terrain-banque.js:55 ; declaration SQL : migrations/20261024123800_terrain_banque_relecture_recus.sql ; registre vivant et extraction a verifier
+      - inventaire_reception_etat : aucune fonction de ce nom dans le baseline — plateau-ced.js:67, supabase.js:3225 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier
+      - inventaire_reclamer_livraison : aucune fonction de ce nom dans le baseline — supabase.js:3233 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier
+      - inventaire_sauver_revision : aucune fonction de ce nom dans le baseline — supabase.js:3228 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier
+      - journal_ventes_lire : aucune fonction de ce nom dans le baseline — plateau-journal-ventes.js:21 ; declaration SQL : migrations/20261022203000_journal_ventes_commerces.sql ; registre vivant et extraction a verifier
+      - justice_executer_condamnation_soi : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:12140 ; aucune declaration statique dans migrations/
+      - organisation_commande_administrative : aucune fonction de ce nom dans le baseline — supabase.js:6840 ; declaration SQL : migrations/20261019094425_organisations_commandes_administratives.sql ; registre vivant et extraction a verifier
+      - organisation_commande_evenement : aucune fonction de ce nom dans le baseline — supabase.js:6836 ; declaration SQL : migrations/20261019132431_organisations_invitations_elections_atomiques.sql ; registre vivant et extraction a verifier
+      - organisation_commande_membres : aucune fonction de ce nom dans le baseline — supabase.js:6838 ; declaration SQL : migrations/20261019130213_organisations_adhesions_grades.sql, migrations/20261019130951_organisations_progression_elections.sql ; registre vivant et extraction a verifier
+      - organisation_equipement_acheter : aucune fonction de ce nom dans le baseline — plateau-commerce-pj.js:2150 ; declaration SQL : migrations/20261019064500_achat_equipements_collectifs.sql ; registre vivant et extraction a verifier
+      - organisation_equipement_deplacer : aucune fonction de ce nom dans le baseline — plateau-equipements-collectifs.js:36 ; declaration SQL : migrations/20261019064000_organisations_equipements_collectifs.sql ; registre vivant et extraction a verifier
+      - organisation_equipements_etat : aucune fonction de ce nom dans le baseline — plateau-equipements-collectifs.js:19 ; declaration SQL : migrations/20261019064000_organisations_equipements_collectifs.sql ; registre vivant et extraction a verifier
+      - organisation_equipements_payeurs : aucune fonction de ce nom dans le baseline — plateau-equipements-collectifs.js:62 ; declaration SQL : migrations/20261019064000_organisations_equipements_collectifs.sql ; registre vivant et extraction a verifier
+      - police_action_resultat_lire : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:12377 ; declaration SQL : migrations/20261018093000_police_interception_reprise_transactionnelle.sql ; registre vivant et extraction a verifier
+      - police_detection_verifier : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:11128 ; aucune declaration statique dans migrations/
+      - police_reprise_lire : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:12317 ; declaration SQL : migrations/20261018093000_police_interception_reprise_transactionnelle.sql ; registre vivant et extraction a verifier
+      - pret_national_contracter : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:8251 ; declaration SQL : migrations/20261024121400_prets_nationaux_moteur_credit_commun.sql ; registre vivant et extraction a verifier
+      - pret_national_contracter_versionne : aucune fonction de ce nom dans le baseline — plateau-terrain-banque.js:25 ; declaration SQL : migrations/20261024121900_prets_nationaux_commandes_versionnees.sql ; registre vivant et extraction a verifier
+      - restaurant_diner_acquitter : aucune fonction de ce nom dans le baseline — plateau-restaurant-luthecia.js:77 ; declaration SQL : migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - restaurant_diner_creer : aucune fonction de ce nom dans le baseline — plateau-restaurant-luthecia.js:36 ; declaration SQL : migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - restaurant_diner_repondre : aucune fonction de ce nom dans le baseline — plateau-restaurant-luthecia.js:50 ; declaration SQL : migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - restaurant_diner_servir : aucune fonction de ce nom dans le baseline — plateau-restaurant-luthecia.js:68 ; declaration SQL : migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - restaurant_diner_suivre : aucune fonction de ce nom dans le baseline — plateau-restaurant-luthecia.js:63 ; declaration SQL : migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - rue_position_enregistrer : aucune fonction de ce nom dans le baseline — plateau-rue-centrale.js:1182 ; aucune declaration statique dans migrations/
+      - rue_position_lire : aucune fonction de ce nom dans le baseline — plateau-rue-centrale.js:1129 ; aucune declaration statique dans migrations/
+      - subvention_entreprise_verser : aucune fonction de ce nom dans le baseline — plateau-politique.js:8030 ; aucune declaration statique dans migrations/
+      - terrain_acquisition_commande : aucune fonction de ce nom dans le baseline — plateau-terrain-banque.js:28 ; declaration SQL : migrations/20261024123700_terrain_acquisition_commandes.sql ; registre vivant et extraction a verifier
+      - terrain_occupation_action : aucune fonction de ce nom dans le baseline — plateau-occupation-commandes.js:51 ; declaration SQL : migrations/20261024072634_occupation_commandes_transactionnelles.sql ; registre vivant et extraction a verifier
+      - terrain_occupation_action_preparer : aucune fonction de ce nom dans le baseline — plateau-occupation-commandes.js:8 ; declaration SQL : migrations/20261024072634_occupation_commandes_transactionnelles.sql ; registre vivant et extraction a verifier
+      - tournee_contrat_lire : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:5507 ; declaration SQL : migrations/20261019213444_catalogue_et_offrir_a_boire.sql ; registre vivant et extraction a verifier
+      - tournee_creer : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:5557 ; declaration SQL : migrations/20261019213444_catalogue_et_offrir_a_boire.sql, migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - tournee_repondre : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:5804, plateau-actions-illegales-rumeurs.js:5836 ; declaration SQL : migrations/20261019213444_catalogue_et_offrir_a_boire.sql ; registre vivant et extraction a verifier
+      - tracts_electoraux_distribuer_collectif : aucune fonction de ce nom dans le baseline — supabase.js:4460 ; aucune declaration statique dans migrations/
+      - vendre_materiaux_chantier : parametres (p_building_id, p_country, p_matiere, p_prix, p_quantite, p_requete, p_vendeur) ne correspondent a aucune surcharge — plateau-justice-economie.js:12809
+
+========================================================================
+ECHEC : 2 invariant(s) en ecart sans migration declaree
+  - invariant 12 : les migrations en attente ne nomment rien d'inconnu (1 ecarts)
+  - invariant 13 : toute RPC appelee par le navigateur existe (45 ecarts)

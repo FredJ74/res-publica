@@ -199,3 +199,12 @@ Dernier main intégré et revérifié : `c6aa8ec`, aucune nouvelle avance distan
 Lire `outils/audits/CLOTURE-L09-135-20261025.md` pour ce qui est réellement codé et ce qui ne l’est pas, l’ordre des onze composants de ce tour, la suspension sans retour legacy et les conditions de déploiement. Preuves brutes, manifeste et sources liées : `outils/audits/luthecia-20261025/CLOTURE-L09-*`.
 
 **CHANTIER NON TERMINÉ** : pas d’accès Supabase/Vercel dans Codex. Restent le compteur historique du déserteur, le garde financier contre sauvegardes périmées à confirmer ou compléter, l’exécution personnelle et ses appelants vivants, l’arriéré legacy et la recette authentifiée isolée. Ne pas inventer zéro, ne pas purger, ne pas exposer les commandes privées ni activer une transition pour prétendre terminer. Le prévol prêt à l’emploi est destiné à l’agent principal avec connecteur ; aucune manipulation technique demandée à Fred. Aucun merge main, aucune migration appliquée et aucun joueur réel modifié par cette session. Ne pas fermer #135.
+
+
+### Continuation demandée — correction démontrée du contrôle Authority
+
+Reprise sur la même branche, main `c6aa8ec` toujours intégré. L'invariant 12 faisait un faux positif sur le renommage réel de la fonction interne de fontaine. Le contrôle suit désormais la signature exacte, dans l'ordre, sans accepter les commentaires/chaînes comme preuve ; les références DO/EXECUTE restent vérifiées. Quatre tests directs passent, dont contre-épreuve sur la migration réelle. La comparaison avant/après conserve exactement les 45 écarts RPC de l'invariant 13. Aucun baseline ni mécanisme métier modifié.
+
+Campagne de ce tour : 112/112 clients, 8/8 assertions PostgreSQL jetables de fontaine ; globaux 6/12. Les 61/61 PostgreSQL et 91/91 contre-épreuves du précédent tour ne sont pas présentés comme rejoués ici. Lire `outils/audits/REPRISE-AUTORITE-135-20261025.md` et les preuves `luthecia-20261025/REPRISE-AUTORITE-135-*`.
+
+Le connecteur Supabase/Vercel est toujours absent. La reprise de l'historique déserteur, la protection financière vivante, l'exécution personnelle, l'arriéré legacy et la recette authentifiée restent des conditions réelles de clôture. Ne pas inventer ces observations pour afficher un verdict positif. Aucune migration, mutation de joueur, fusion ou activation. Chantier non terminé ; aucune manipulation technique demandée à Fred.

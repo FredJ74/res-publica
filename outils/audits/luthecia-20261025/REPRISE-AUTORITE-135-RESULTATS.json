@@ -1,0 +1,42 @@
+{
+  "date_utc": "2026-10-25",
+  "base": "633aa38069e2479839d6965e6644bb7b8fd343fb",
+  "sources": {
+    "outils/baseline/verifier-autorite.py": "a8871e5ab733fd2d75e83686ceea4a1510bd5f6cf45c611c85a11bed0c8f03ab",
+    "outils/bancs/banc-autorite-detecteurs.cjs": "2a27cb5a27e10a87c9502ef4b21a0d8194f9adfb4ce66c4dff992e7677417001"
+  },
+  "clients": {
+    "reussis": 112,
+    "total": 112
+  },
+  "detecteurs": {
+    "reussis": 4,
+    "total": 4
+  },
+  "postgresql_fontaine": {
+    "assertions": 8,
+    "jetable": true
+  },
+  "globaux": {
+    "reussis": 6,
+    "total": 12
+  },
+  "authority": {
+    "invariant_12": "OK",
+    "invariant_13": "ECHEC",
+    "ecarts_rpc": 45
+  },
+  "supabase_authentifie": false,
+  "migration_appliquee": false,
+  "fusion_main": false,
+  "production": false,
+  "preuves_sha256": {
+    "REPRISE-AUTORITE-135-APRES.txt": "f0eaa19322a9f872bdc429cefc7f86f1b08c486e169574ece331659d1ce5556b",
+    "REPRISE-AUTORITE-135-AVANT.txt": "fd1434106a0c113420266fafb12915e6cfdad4ae878379684bf8407cce41930f",
+    "REPRISE-AUTORITE-135-CIBLE.txt": "178e1a758ac200553a2f1d42204c9a75edde0ca73db592411829ccfcc66c9873",
+    "REPRISE-AUTORITE-135-CLIENT.json": "2ed9b0d4e706106990f69c8c869444c8f23322c4ec74716cb6a38e7650a0e5ca",
+    "REPRISE-AUTORITE-135-CLIENT.txt": "bc724fa00a73678fd61baea5616988cb6a758a82f642a34580a2708d53c4981e",
+    "REPRISE-AUTORITE-135-GLOBAUX.txt": "6a72f2389d8095c25d266d985272e246ee2289c6d0a2d0960027c8abc834e422",
+    "REPRISE-AUTORITE-135-POSTGRESQL.txt": "6c8adf3e38f5d5f4714aaa46876f9d7bdfb447722aeb4b76ce656b25fb94e306"
+  }
+}

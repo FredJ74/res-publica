@@ -62,3 +62,42 @@ assert not f('porte',{'porte':'PERFORM milieu();','milieu':'PERFORM interne();',
 `;
  const p=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8'});assert.equal(p.status,0,p.stdout+p.stderr);
 });
+
+test('Authority suit un renommage exact, sans accepter une source inconnue ou une mauvaise surcharge',()=>{
+ const script=String.raw`
+import runpy
+from pathlib import Path
+m=runpy.run_path('outils/baseline/verifier-autorite.py',run_name='controle_importe')
+f=m['signatures_inconnues_migration']
+connues={'origine(text,integer)'}
+renomme='ALTER FUNCTION public.origine(text, integer) RENAME TO interne;'
+assert f(renomme+' REVOKE ALL ON FUNCTION public.interne(text,integer) FROM PUBLIC;',connues)==[]
+assert f(renomme+' GRANT EXECUTE ON FUNCTION public.interne(text,text) TO authenticated;',connues)==['interne(text,text)']
+assert f(renomme+' COMMENT ON FUNCTION public.origine(text,integer) IS \'absente\';',connues)==['origine(text,integer)']
+assert f('REVOKE ALL ON FUNCTION public.interne(text,integer) FROM PUBLIC;'+renomme,connues)==['interne(text,integer)']
+assert f(renomme,set())==['origine(text,integer)']
+assert f('ALTER FUNCTION public.absente(text,integer) RENAME TO interne; REVOKE ALL ON FUNCTION public.interne(text,integer) FROM PUBLIC;',connues)==['absente(text,integer)','interne(text,integer)']
+assert f(renomme+' ALTER FUNCTION public.interne(text,integer) RENAME TO finale; REVOKE ALL ON FUNCTION public.finale(text,integer) FROM PUBLIC;',connues)==[]
+assert connues=={'origine(text,integer)'}, 'le catalogue de depart ne doit pas etre modifie'
+# Ni les commentaires imbriques ni les corps SQL/PLpgSQL ne creent un objet.
+for faux in ['-- '+renomme+'\n', '/* commentaire /* imbrique */ '+renomme+' */', "SELECT '"+renomme+"';", 'DO $corps$ BEGIN '+renomme+' END $corps$;', 'DO $$ BEGIN '+renomme+' END $$;']:
+    assert f(faux+' REVOKE ALL ON FUNCTION public.interne(text,integer) FROM PUBLIC;',connues)==['interne(text,integer)'], faux
+assert f("SELECT '\\'; REVOKE ALL ON FUNCTION public.inconnue() FROM PUBLIC;",connues)==['inconnue()']
+assert f("SELECT E'\\\'"+renomme+"'; REVOKE ALL ON FUNCTION public.interne(text,integer) FROM PUBLIC;",connues)==['interne(text,integer)']
+assert f('DO $$ BEGIN REVOKE ALL ON FUNCTION public.inconnue() FROM PUBLIC; END $$;',connues)==['inconnue()']
+assert f("DO $$ BEGIN EXECUTE 'REVOKE ALL ON FUNCTION public.inconnue() FROM PUBLIC'; END $$;",connues)==['inconnue()']
+# Conserver le chemin existant CREATE / droits sans exempter un nom cite.
+assert f('CREATE FUNCTION public.neuve() RETURNS void LANGUAGE sql AS $$SELECT 1$$; REVOKE ALL ON FUNCTION public.neuve() FROM PUBLIC;',set())==[]
+assert f("-- CREATE OR REPLACE FUNCTION public.inconnue()\nREVOKE ALL ON FUNCTION public.inconnue() FROM PUBLIC;",set())==['inconnue()']
+# Cas reel #110 : l'existence de la source est attestee dans le baseline.
+sig='acheter_produit_commerce(text,text,text,text,integer)'
+assert sig in m['droits_du_baseline']()[2]
+sql=Path('migrations/20261023000000_fontaine_exclusivite_sur_place.sql').read_text()
+assert f(sql,{sig,'consommer_sur_place_commerce(text,text,text,text)'})==[]
+# Supprimer reellement le RENAME doit recreer le defaut : contre-epreuve.
+sans=sql.replace('RENAME TO acheter_produit_commerce_interne;','RENAME TO autre_interne;')
+assert 'acheter_produit_commerce_interne(text,text,text,text,integer)' in f(sans,{sig})
+`;
+ const p=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8',timeout:15000});
+ assert.equal(p.status,0,`${p.error||''}\n${p.stdout}\n${p.stderr}`);
+});

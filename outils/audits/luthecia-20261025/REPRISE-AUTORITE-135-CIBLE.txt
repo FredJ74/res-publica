@@ -1,0 +1,12 @@
+✔ Authority recense les helpers historiques et Verdict sans confondre les paramètres imbriqués (44.757344ms)
+✔ une declaration preparee est localisee sans devenir une preuve de deploiement (80.289518ms)
+✔ Authority reconnait acteur_est_moi comme les autres resolveurs, sans accepter une fonction sans garde (38.699904ms)
+✔ Authority suit un renommage exact, sans accepter une source inconnue ou une mauvaise surcharge (47.520207ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 218.338972
