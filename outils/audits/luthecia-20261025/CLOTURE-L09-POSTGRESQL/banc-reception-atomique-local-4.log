@@ -1,0 +1,35 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK migration, garde de versions et rejeu DDL (aucun acte metier).
+OK 1 reception puis repetitions, metadonnees alimentaires/quete intactes
+OK 2 ID de file reutilise : nouveau jeton livre, ancienne demande rejouee sans toucher la nouvelle livraison
+OK 3 data JSON objet et document integral
+OK 4 empilement au-dela du plafond : surcharge preservee
+OK 5 exemplaire individualise
+OK 6 fusion des quantites de tracts
+OK 7 tracts de quete non fusionnes
+OK 8 carte postale complete, confidentialite des notifications testee en JS
+OK 9 livraison d autrui refusee
+OK 10 autre compte et absence de UID refuses par controle reel SQL (UID de fixture)
+OK 11 interruption avant commit : deux operations annulees
+OK 12 erreur apres insertion : rollback inventaire, revision, recu et livraison
+OK 13 trigger AFTER incompatible : postcondition invalide, rollback integral sans perte
+OK 14 reponse perdue apres commit : repetition sans second ajout
+OK 15 deux connexions/onglets concurrents, un seul ajout
+OK 16 deux livraisons distinctes concurrentes : conflit de revision sans perte, reprise explicite valide
+OK 17 ancienne sauvegarde RPC refusee apres reception
+OK 18 ancien PATCH REST conserve inventaire et revision, meme avec revision falsifiee
+OK 19 ancien PATCH sur vue avec trigger INSTEAD OF SECURITY DEFINER : inventaire conserve
+OK 20 sauvegarde CAS authentifiee sous contexte RPC conserve les ajouts legacy
+OK 21 anciennes reclamations DELETE et tracts bloquees pour authenticated
+OK 22 fonction inventaire_detruire archivee compatible, revision incrementee
+OK 23 contexte PostgREST incompatible : rollback, jamais suppression seule
+OK 24 reception sous role authenticated et chemin RPC, acces SQL effectif sans donnee reelle
+OK 25 aliment recu consommable par la vraie fonction archivee, effet PA inchange
+OK 26 helpers existants ajouter et place restante conservent le nouvel objet et ses metadonnees
+OK 27 objet de quete recu puis protege par le vrai helper archive de sortie
+OK 28 inventaire plein : reception automatique sans perte ni refus de capacite
+OK 29 derive du schema de recus refusee
+OK 30 format inconnu : aucune purge et aucune livraison perdue
+OK 31 definition modifiee refusee par la migration
+31 groupes de scenarios locaux reussis ; aucun acces Supabase

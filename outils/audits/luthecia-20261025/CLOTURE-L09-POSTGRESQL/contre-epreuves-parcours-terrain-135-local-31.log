@@ -1,0 +1,4 @@
+OK jour_rejoue
+OK prix_uniformises
+OK tranche_modifiee
+{"production": false, "contre_epreuves": [{"mutant": "jour_rejoue", "echec_attendu": true, "code": 1}, {"mutant": "prix_uniformises", "echec_attendu": true, "code": 1}, {"mutant": "tranche_modifiee", "echec_attendu": true, "code": 1}]}

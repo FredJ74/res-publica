@@ -1,0 +1,4 @@
+OK pa
+OK caisse
+OK identite
+{"production": false, "contre_epreuves": [{"mutant": "pa", "echec_attendu": true, "code": 1}, {"mutant": "caisse", "echec_attendu": true, "code": 1}, {"mutant": "identite", "echec_attendu": true, "code": 1}]}

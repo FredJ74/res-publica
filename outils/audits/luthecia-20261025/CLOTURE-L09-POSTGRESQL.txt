@@ -1,0 +1,62 @@
+0 python3 outils/bancs/banc-achat-commerce-local.py --local-jetable
+0 python3 outils/bancs/banc-restaurant-luthecia-local.py --local-jetable --correctif-reservation
+0 python3 outils/bancs/banc-reservation-republica-local.py --local-jetable
+0 python3 outils/bancs/banc-offrir-boire-local.py --local-jetable
+0 python3 outils/bancs/banc-reception-atomique-local.py --local-jetable
+0 python3 outils/bancs/banc-assemblage-electronique-local.py
+0 python3 outils/bancs/banc-jodie-publications-local.py
+0 python3 outils/bancs/banc-organisations-commandes-local.py
+0 python3 outils/bancs/banc-organisations-membres-local.py
+0 python3 outils/bancs/banc-organisations-evenements-local.py
+0 python3 outils/bancs/banc-coherence-rues-local.py
+0 python3 outils/bancs/banc-equipements-collectifs-local.py
+0 python3 outils/bancs/banc-fontaine-110-local.py
+0 python3 outils/bancs/banc-placement-national-local.py
+0 python3 outils/bancs/banc-journal-ventes-local.py
+0 python3 outils/bancs/banc-permis-depot-local.py
+0 python3 outils/bancs/banc-negociation-squatteurs-local.py
+0 python3 outils/bancs/banc-ced-football-local.py
+0 python3 outils/bancs/banc-terrain-occupation-local.py
+0 python3 outils/bancs/banc-construction-jour-local.py
+0 python3 outils/bancs/banc-construction-materiaux-local.py
+0 python3 outils/bancs/banc-construction-travailleur-local.py
+0 python3 outils/bancs/banc-reamenagement-transactionnel-local.py
+0 python3 outils/bancs/banc-reamenagement-quotas-local.py
+0 python3 outils/bancs/banc-reamenagement-budget-local.py
+0 python3 outils/bancs/banc-reamenagement-materiaux-local.py
+0 python3 outils/bancs/banc-lots-miroirs-local.py
+0 python3 outils/bancs/banc-occupation-actions-135-local.py
+0 python3 outils/bancs/banc-terrain-banque-135-local.py
+0 python3 outils/bancs/banc-terrain-banque-135-local.py --apres-location
+0 python3 outils/bancs/banc-parcours-terrain-construction-135-local.py
+0 python3 outils/bancs/contre-epreuves-parcours-terrain-135-local.py
+0 python3 outils/bancs/banc-benediction-135-local.py
+0 python3 outils/bancs/banc-filature-benediction-135-local.py
+0 python3 outils/bancs/banc-filature-confirmation-135-local.py
+0 python3 outils/bancs/contre-epreuves-filature-confirmation-135-local.py
+0 python3 outils/bancs/banc-vol-chantier-135-local.py
+0 python3 outils/bancs/banc-arme-clandestine-135-local.py
+0 python3 outils/bancs/banc-vol-ordinaire-135-local.py
+0 python3 outils/bancs/contre-epreuves-vol-ordinaire-135-local.py
+0 python3 outils/bancs/contre-epreuves-arme-clandestine-135-local.py
+0 python3 outils/bancs/contre-epreuves-vol-chantier-135-local.py
+0 python3 outils/bancs/banc-enquete-confirmation-135-local.py
+0 python3 outils/bancs/banc-enquete-benediction-135-local.py
+0 python3 outils/bancs/contre-epreuves-enquete-135-local.py
+0 python3 outils/bancs/banc-chasse-benediction-135-local.py
+0 python3 outils/bancs/banc-chasse-asile-135-local.py
+0 python3 outils/bancs/banc-evasion-135-local.py
+0 python3 outils/bancs/contre-epreuves-evasion-135-local.py
+0 python3 outils/bancs/banc-jets-schema-reel-135-local.py
+0 python3 outils/bancs/banc-jets-schema-reel-135-local.py --vol
+0 python3 outils/bancs/banc-jets-dispatch-135-local.py
+0 python3 outils/bancs/banc-jets-dispatch-135-local.py --commerce
+0 python3 outils/bancs/banc-jets-gardes-135-local.py
+0 python3 outils/bancs/banc-jets-gardes-135-local.py --commerce
+0 python3 outils/bancs/contre-epreuves-jets-gardes-135-local.py
+0 python3 outils/bancs/banc-benediction-inter-hotes-135-local.py
+0 python3 outils/bancs/contre-epreuves-chasse-135-local.py
+0 python3 outils/bancs/contre-epreuves-filature-135-local.py
+0 python3 outils/bancs/contre-epreuves-terrain-banque-135-local.py
+0 python3 outils/bancs/banc-location-lot-transactionnelle-local.py
+TOTAL 61 ECHECS 0

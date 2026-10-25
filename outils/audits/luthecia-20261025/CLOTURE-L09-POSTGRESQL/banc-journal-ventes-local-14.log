@@ -1,0 +1,18 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK rejeu de la vente : aucun evenement duplique
+OK dix ventes hors connexion conservees avec alerte globale
+OK veritables donnees transactionnelles
+OK ouverture acquitte dix ventes sans supprimer historique
+OK double ouverture idempotente
+OK vente suivante reste non lue
+OK tiers ne lit ni acquitte les ventes du proprietaire
+OK lecture du tiers ne retire pas alerte
+OK nom seul insuffisant sans bon UID
+OK vente annulee : aucune notification fantome
+OK enseigne historique preservee apres renommage
+OK pas de modification directe ni lecture anonyme
+OK acquittement concurrent effectivement bloque apres photographie
+OK vente concurrente non affichee reste non lue
+OK vente incoherente conservee sans notification a un mauvais titulaire
+15/15 assertions, aucune transaction reelle.

@@ -1,0 +1,101 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK journee reelle, matieres et PNJ payes
+OK recette entrepot dans seule caisse canonique
+OK aucune caisse parasite dans le blob
+OK reponse perdue : meme jour aucun double achat travail debit mail
+OK premier tiers : appel automatique 35 pour cent
+OK appel banque prioritaire, liquide preserve
+OK liquide inchange quand banque suffit
+OK deux tiers : 30 pour cent puis 6 jours incompressibles
+OK achevement sans livraison ni locaux avant reception
+OK invitation reception unique
+OK lendemain acheve : aucun nouvel achat salaire ni invitation
+OK fonds insuffisants : pause sans progression
+OK aucun debit partiel en refus
+OK manque persistant : pas de mail duplique
+OK fonds arrives : reprise automatique, temps utile conserve
+OK financeur et propriete stables orga:orga
+OK financeur et propriete stables ville:republic:capitale
+OK caisse organisation reelle debitee
+OK caisse municipale reelle debitee
+OK changement de maire : chantier autonome et communal
+OK deux cron concurrents : une seule journee
+OK panne finale : rollback fonds stocks caisses notifications et temps
+OK appel navigateur refuse sans mutation
+OK droits : cron seul, primitives financieres privees
+OK anciennes commandes sans recu inaccessibles au navigateur
+OK lancement commun, prix miroir arrondis au franc superieur
+OK lancement : reponse perdue sans second debit
+OK reutilisation du recu pour un autre montant refusee
+OK reception prematuree refusee sans mutation
+OK reception hors site refusee
+OK reception sur place active le batiment une seule fois
+OK reliquat financier a la caisse du batiment, jamais au PJ
+OK rechargement : recu confirme consultable sans rejouer la commande
+OK autre acteur : aucun recu divulgue
+OK reception reponse perdue : aucun second reliquat
+OK reliquat materiaux au stock du batiment sans passage par inventaire PJ
+OK surface et prix propres preserves
+OK adjoint ne peut engager une construction communale
+OK faux poste maire sans mandat atteste refuse
+OK maire decide seul, finance communal, aucune appropriation personnelle
+OK organisation : membre sans representation refuse
+OK organisation : chef via porte commune, caisse et maitrise ouvrage organisationnelles
+OK plan gratuit interdit avant dernier tiers
+OK plan dernier tiers enregistre sans activer les locaux
+OK archive et recepisse remis par sas commun dans la transaction
+OK plan : reponse perdue sans seconde archive ni document
+OK brouillon initial encore modifiable gratuitement
+OK surface excedentaire refusee sans archive ni document
+OK validation initiale explicite fige le plan
+OK nouvelle modification gratuite apres validation refusee
+OK travail PJ : moteur commun paie 70 FR par heure
+OK salaire et PA atomiques
+OK reponse de travail perdue : aucun double PA ou salaire
+OK travail distant refuse
+OK ancienne porte de plan ne contourne pas les phases
+OK construction Republia : aucune acceleration du delai incompressible
+OK maire : tarifs du chantier communal via meme moteur
+OK fraction de franc refusee sans nouvelle ecriture
+OK delai incompressible avant mutation dans republic
+OK delai incompressible avant mutation dans soviet
+OK delai incompressible avant mutation dans narco
+OK delai incompressible avant mutation dans khalija
+OK reamenagement lot loue protege avant paiement
+OK reamenagement surface excedentaire refusee
+OK reamenagement aucun debit partiel ni chantier si manque
+OK reamenagement lancement par moteur commun
+OK reamenagement 90 m2 : 10 FR m2, jour incompressible, tout finance
+OK reamenagement banque prioritaire puis liquide
+OK reamenagement metadonnees serveur preservees, faux locataire ignore
+OK reamenagement reponse perdue aucun second debit
+OK reamenagement second lancement refuse
+OK reamenagement reception anticipee refusee
+OK reamenagement approvisionnement et travail PNJ par jour commun
+OK reamenagement aucun local active avant reception
+OK reamenagement jour rejoue sans nouvelle progression
+OK reamenagement panne apres restitution : caisse, stocks, locaux et recu annules
+OK reamenagement reception et plan actifs atomiquement
+OK reamenagement modification legitime du lot non touche conservee
+OK reamenagement palier et titre immobilier preserves
+OK reamenagement reception rejouee sans second reliquat
+OK reamenagement panne apres debit : fonds, chantier et recu annules
+OK reamenagement lot dont le titre appartient a autrui refuse
+OK reamenagement lancements concurrents : un seul debit et un recu
+OK reamenagement 900 FR debites une seule fois, liquide preserve
+OK reamenagement recu non reutilisable pour un autre plan
+{"reamenagement": true, "assertions": 23, "production": false}
+{"surface": 102, "progression": 1, "tresorerie": 16.0, "production": false}
+OK quota PNJ 102 m2 achevables en un jour avec 714 FR de travail, sans PA fractionnaire
+OK quota PNJ cout du travail exact et entier
+OK quota PNJ jour rejoue aucun second salaire
+OK quota PNJ premiere journee ne depasse pas un jour utile
+OK quota PNJ 301 m2 en deux jours, reliquat de salaire solde
+OK quota PNJ 70 pour cent du prix total, aucune monnaie creee
+OK quota PNJ tous les paiements PNJ restent en francs entiers
+OK quota PNJ travail PJ : 3 PA, 210 FR, aucune avance du temps
+OK quota PNJ PJ remplace les PNJ, salaire total du chantier inchange
+OK quota PNJ aucun PA ou salaire PJ supplementaire au cron
+{"quotas_pnj": true, "assertions": 10, "production": false}
+62/62 assertions, PostgreSQL jetable ; authentification et notifications de fixture, aucun acces production.

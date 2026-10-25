@@ -1,0 +1,8 @@
+OK prix_public
+OK credit_fictif
+OK rejeu_banque
+OK dette_legacy
+OK archive_collision
+OK permis_jour_rejoue
+OK echeance_arrondi
+{"production": false, "contre_epreuves": [{"mutant": "prix_public", "refus_attendu_observe": true, "code": 1}, {"mutant": "credit_fictif", "refus_attendu_observe": true, "code": 1}, {"mutant": "rejeu_banque", "refus_attendu_observe": true, "code": 1}, {"mutant": "dette_legacy", "refus_attendu_observe": true, "code": 1}, {"mutant": "archive_collision", "refus_attendu_observe": true, "code": 1}, {"mutant": "permis_jour_rejoue", "refus_attendu_observe": true, "code": 1}, {"mutant": "echeance_arrondi", "refus_attendu_observe": true, "code": 1}]}

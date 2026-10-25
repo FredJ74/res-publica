@@ -1,0 +1,4 @@
+OK paiement
+OK lecture
+OK depot
+{"production": false, "contre_epreuves": [{"mutant": "paiement", "echec_attendu": true, "code": 1}, {"mutant": "lecture", "echec_attendu": true, "code": 1}, {"mutant": "depot", "echec_attendu": true, "code": 1}]}

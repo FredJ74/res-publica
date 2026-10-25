@@ -1,0 +1,15 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+REPRODUCTION : ancienne definition, debit refuse mais une livraison creee.
+OK : migration compilee et rejouee dans PostgreSQL local jetable.
+OK : debit refuse, aucun objet, vente, prelevement ou stock modifie.
+OK : achat nominal et rejeu, un seul debit et une seule livraison.
+OK : verdict nominal (hors sequence), objets et fonds strictement identiques avant/apres.
+OK : erreur apres debit, transaction entiere annulee.
+OK : deux connexions, deux commerces, un solde commun : une vente et une livraison.
+OK : double soumission concurrente, une seule livraison/vente/debit ; refus UNIQUE ou rejeu historique conserve.
+OK : stock decremente une fois et fiscalite de fixture transmise sans modification.
+OK : refus du service autorite de fixture conserve ; aucune preuve RLS distante.
+OK : metadonnees alimentaires SYNTHETIQUES conservees, variante inconnue refusee par le vrai SQL.
+OK : une definition serveur differente est refusee par la garde.
+12 groupes de scenarios PostgreSQL locaux reussis ; aucune connexion Supabase ni joueur reel.

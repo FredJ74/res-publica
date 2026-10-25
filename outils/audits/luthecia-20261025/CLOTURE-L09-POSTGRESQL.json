@@ -1,0 +1,368 @@
+[
+  {
+    "commande": "python3 outils/bancs/banc-achat-commerce-local.py --local-jetable",
+    "code": 0,
+    "secondes": 1.93,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-achat-commerce-local-0.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-restaurant-luthecia-local.py --local-jetable --correctif-reservation",
+    "code": 0,
+    "secondes": 2.19,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-restaurant-luthecia-local-1.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-reservation-republica-local.py --local-jetable",
+    "code": 0,
+    "secondes": 1.83,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-reservation-republica-local-2.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-offrir-boire-local.py --local-jetable",
+    "code": 0,
+    "secondes": 1.83,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-offrir-boire-local-3.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-reception-atomique-local.py --local-jetable",
+    "code": 0,
+    "secondes": 1.84,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-reception-atomique-local-4.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-assemblage-electronique-local.py",
+    "code": 0,
+    "secondes": 1.79,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-assemblage-electronique-local-5.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-jodie-publications-local.py",
+    "code": 0,
+    "secondes": 1.57,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-jodie-publications-local-6.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-organisations-commandes-local.py",
+    "code": 0,
+    "secondes": 1.78,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-organisations-commandes-local-7.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-organisations-membres-local.py",
+    "code": 0,
+    "secondes": 1.83,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-organisations-membres-local-8.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-organisations-evenements-local.py",
+    "code": 0,
+    "secondes": 1.69,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-organisations-evenements-local-9.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-coherence-rues-local.py",
+    "code": 0,
+    "secondes": 1.72,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-coherence-rues-local-10.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-equipements-collectifs-local.py",
+    "code": 0,
+    "secondes": 1.89,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-equipements-collectifs-local-11.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-fontaine-110-local.py",
+    "code": 0,
+    "secondes": 1.62,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-fontaine-110-local-12.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-placement-national-local.py",
+    "code": 0,
+    "secondes": 1.58,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-placement-national-local-13.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-journal-ventes-local.py",
+    "code": 0,
+    "secondes": 1.67,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-journal-ventes-local-14.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-permis-depot-local.py",
+    "code": 0,
+    "secondes": 1.53,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-permis-depot-local-15.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-negociation-squatteurs-local.py",
+    "code": 0,
+    "secondes": 1.74,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-negociation-squatteurs-local-16.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-ced-football-local.py",
+    "code": 0,
+    "secondes": 1.69,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-ced-football-local-17.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-terrain-occupation-local.py",
+    "code": 0,
+    "secondes": 1.67,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-terrain-occupation-local-18.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-construction-jour-local.py",
+    "code": 0,
+    "secondes": 1.73,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-construction-jour-local-19.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-construction-materiaux-local.py",
+    "code": 0,
+    "secondes": 1.53,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-construction-materiaux-local-20.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-construction-travailleur-local.py",
+    "code": 0,
+    "secondes": 1.78,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-construction-travailleur-local-21.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-reamenagement-transactionnel-local.py",
+    "code": 0,
+    "secondes": 1.98,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-reamenagement-transactionnel-local-22.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-reamenagement-quotas-local.py",
+    "code": 0,
+    "secondes": 1.98,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-reamenagement-quotas-local-23.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-reamenagement-budget-local.py",
+    "code": 0,
+    "secondes": 2.03,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-reamenagement-budget-local-24.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-reamenagement-materiaux-local.py",
+    "code": 0,
+    "secondes": 1.52,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-reamenagement-materiaux-local-25.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-lots-miroirs-local.py",
+    "code": 0,
+    "secondes": 1.73,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-lots-miroirs-local-26.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-occupation-actions-135-local.py",
+    "code": 0,
+    "secondes": 1.62,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-occupation-actions-135-local-27.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-terrain-banque-135-local.py",
+    "code": 0,
+    "secondes": 1.67,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-terrain-banque-135-local-28.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-terrain-banque-135-local.py --apres-location",
+    "code": 0,
+    "secondes": 1.72,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-terrain-banque-135-local-29.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-parcours-terrain-construction-135-local.py",
+    "code": 0,
+    "secondes": 2.23,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-parcours-terrain-construction-135-local-30.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-parcours-terrain-135-local.py",
+    "code": 0,
+    "secondes": 5.53,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-parcours-terrain-135-local-31.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-benediction-135-local.py",
+    "code": 0,
+    "secondes": 1.77,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-benediction-135-local-32.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-filature-benediction-135-local.py",
+    "code": 0,
+    "secondes": 1.87,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-filature-benediction-135-local-33.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-filature-confirmation-135-local.py",
+    "code": 0,
+    "secondes": 1.87,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-filature-confirmation-135-local-34.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-filature-confirmation-135-local.py",
+    "code": 0,
+    "secondes": 5.93,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-filature-confirmation-135-local-35.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-vol-chantier-135-local.py",
+    "code": 0,
+    "secondes": 2.07,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-vol-chantier-135-local-36.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-arme-clandestine-135-local.py",
+    "code": 0,
+    "secondes": 2.27,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-arme-clandestine-135-local-37.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-vol-ordinaire-135-local.py",
+    "code": 0,
+    "secondes": 2.37,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-vol-ordinaire-135-local-38.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-vol-ordinaire-135-local.py",
+    "code": 0,
+    "secondes": 6.94,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-vol-ordinaire-135-local-39.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-arme-clandestine-135-local.py",
+    "code": 0,
+    "secondes": 7.0,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-arme-clandestine-135-local-40.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-vol-chantier-135-local.py",
+    "code": 0,
+    "secondes": 6.55,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-vol-chantier-135-local-41.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-enquete-confirmation-135-local.py",
+    "code": 0,
+    "secondes": 2.12,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-enquete-confirmation-135-local-42.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-enquete-benediction-135-local.py",
+    "code": 0,
+    "secondes": 2.38,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-enquete-benediction-135-local-43.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-enquete-135-local.py",
+    "code": 0,
+    "secondes": 6.9,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-enquete-135-local-44.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-chasse-benediction-135-local.py",
+    "code": 0,
+    "secondes": 2.42,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-chasse-benediction-135-local-45.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-chasse-asile-135-local.py",
+    "code": 0,
+    "secondes": 2.37,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-chasse-asile-135-local-46.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-evasion-135-local.py",
+    "code": 0,
+    "secondes": 2.47,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-evasion-135-local-47.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-evasion-135-local.py",
+    "code": 0,
+    "secondes": 7.29,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-evasion-135-local-48.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-jets-schema-reel-135-local.py",
+    "code": 0,
+    "secondes": 2.48,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-jets-schema-reel-135-local-49.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-jets-schema-reel-135-local.py --vol",
+    "code": 0,
+    "secondes": 2.82,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-jets-schema-reel-135-local-50.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-jets-dispatch-135-local.py",
+    "code": 0,
+    "secondes": 2.73,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-jets-dispatch-135-local-51.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-jets-dispatch-135-local.py --commerce",
+    "code": 0,
+    "secondes": 2.63,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-jets-dispatch-135-local-52.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-jets-gardes-135-local.py",
+    "code": 0,
+    "secondes": 2.48,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-jets-gardes-135-local-53.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-jets-gardes-135-local.py --commerce",
+    "code": 0,
+    "secondes": 2.68,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-jets-gardes-135-local-54.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-jets-gardes-135-local.py",
+    "code": 0,
+    "secondes": 7.4,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-jets-gardes-135-local-55.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-benediction-inter-hotes-135-local.py",
+    "code": 0,
+    "secondes": 2.43,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-benediction-inter-hotes-135-local-56.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-chasse-135-local.py",
+    "code": 0,
+    "secondes": 6.69,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-chasse-135-local-57.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-filature-135-local.py",
+    "code": 0,
+    "secondes": 6.14,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-filature-135-local-58.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-terrain-banque-135-local.py",
+    "code": 0,
+    "secondes": 11.77,
+    "log": "CLOTURE-L09-POSTGRESQL/contre-epreuves-terrain-banque-135-local-59.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-location-lot-transactionnelle-local.py",
+    "code": 0,
+    "secondes": 1.82,
+    "log": "CLOTURE-L09-POSTGRESQL/banc-location-lot-transactionnelle-local-60.log"
+  }
+]

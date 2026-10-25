@@ -1,0 +1,96 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK journee reelle, matieres et PNJ payes
+OK recette entrepot dans seule caisse canonique
+OK aucune caisse parasite dans le blob
+OK reponse perdue : meme jour aucun double achat travail debit mail
+OK premier tiers : appel automatique 35 pour cent
+OK appel banque prioritaire, liquide preserve
+OK liquide inchange quand banque suffit
+OK deux tiers : 30 pour cent puis 6 jours incompressibles
+OK achevement sans livraison ni locaux avant reception
+OK invitation reception unique
+OK lendemain acheve : aucun nouvel achat salaire ni invitation
+OK fonds insuffisants : pause sans progression
+OK aucun debit partiel en refus
+OK manque persistant : pas de mail duplique
+OK fonds arrives : reprise automatique, temps utile conserve
+OK financeur et propriete stables orga:orga
+OK financeur et propriete stables ville:republic:capitale
+OK caisse organisation reelle debitee
+OK caisse municipale reelle debitee
+OK changement de maire : chantier autonome et communal
+OK deux cron concurrents : une seule journee
+OK panne finale : rollback fonds stocks caisses notifications et temps
+OK appel navigateur refuse sans mutation
+OK droits : cron seul, primitives financieres privees
+OK anciennes commandes sans recu inaccessibles au navigateur
+OK lancement commun, prix miroir arrondis au franc superieur
+OK lancement : reponse perdue sans second debit
+OK reutilisation du recu pour un autre montant refusee
+OK reception prematuree refusee sans mutation
+OK reception hors site refusee
+OK reception sur place active le batiment une seule fois
+OK reliquat financier a la caisse du batiment, jamais au PJ
+OK rechargement : recu confirme consultable sans rejouer la commande
+OK autre acteur : aucun recu divulgue
+OK reception reponse perdue : aucun second reliquat
+OK reliquat materiaux au stock du batiment sans passage par inventaire PJ
+OK surface et prix propres preserves
+OK adjoint ne peut engager une construction communale
+OK faux poste maire sans mandat atteste refuse
+OK maire decide seul, finance communal, aucune appropriation personnelle
+OK organisation : membre sans representation refuse
+OK organisation : chef via porte commune, caisse et maitrise ouvrage organisationnelles
+OK plan gratuit interdit avant dernier tiers
+OK plan dernier tiers enregistre sans activer les locaux
+OK archive et recepisse remis par sas commun dans la transaction
+OK plan : reponse perdue sans seconde archive ni document
+OK brouillon initial encore modifiable gratuitement
+OK surface excedentaire refusee sans archive ni document
+OK validation initiale explicite fige le plan
+OK nouvelle modification gratuite apres validation refusee
+OK travail PJ : moteur commun paie 70 FR par heure
+OK salaire et PA atomiques
+OK reponse de travail perdue : aucun double PA ou salaire
+OK travail distant refuse
+OK ancienne porte de plan ne contourne pas les phases
+OK construction Republia : aucune acceleration du delai incompressible
+OK maire : tarifs du chantier communal via meme moteur
+OK fraction de franc refusee sans nouvelle ecriture
+OK delai incompressible avant mutation dans republic
+OK delai incompressible avant mutation dans soviet
+OK delai incompressible avant mutation dans narco
+OK delai incompressible avant mutation dans khalija
+OK location ancien navigateur refuse avant PA
+OK location tiers peut louer sans etre proprietaire
+OK location 90 FR : banque 60 puis liquide 30, PA unique
+OK location proprietaire organisation credite par moteur de loyer existant
+OK location bail canonique et premier loyer confirms
+OK location rejeu aucun deuxieme paiement ou PA
+OK location double demande differente refusee
+OK location manque : aucun bail, debit partiel, PA ou avertissement persistant
+OK location INSERT ou alteration financiere directe refusee
+OK location INSERT ou alteration financiere directe refusee
+OK location INSERT ou alteration financiere directe refusee
+OK location option de visibilite preservee
+OK location panne apres paiement : PA, contrepartie, bail et recu annules
+OK location PA insuffisants avant paiement
+OK location presence serveur exigee
+OK location concurrence un bail un loyer un PA
+OK location cron du jour ne repaie pas le premier loyer
+OK location helper non appelable directement
+OK location helper non appelable directement
+OK location capabilite transactionnelle non forgeable par le client
+OK location garde location compatible avec variante permis examinee
+OK location gardes du depot et des decisions preservees integralement
+OK location garde location compatible avec variante permis examinee
+OK location gardes du depot et des decisions preservees integralement
+OK location liaison du fonds canonique preservee
+OK location bail ne peut inventer son propre fonds
+OK location moteur de vente existant peut transferer son bail sans contourner le garde
+OK location transfert conserve le prix contractuel
+OK location local refuse : aucun apport perdu, bail et fonds inchanges
+OK location creation historique valide conservee, sans nouveau moteur
+{"location_transactionnelle": true, "assertions": 30, "production": false}
+62/62 assertions, PostgreSQL jetable ; authentification et notifications de fixture, aucun acces production.

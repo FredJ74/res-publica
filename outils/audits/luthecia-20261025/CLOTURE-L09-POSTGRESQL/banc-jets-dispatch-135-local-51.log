@@ -1,0 +1,262 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK terrain banque depot reel 1000 FR
+OK terrain banque 2 PA du depot
+OK terrain banque courrier de rendez vous serveur conserve
+OK terrain banque reponse perdue depot sans nouveau debit
+OK terrain banque UUID parametres differents refuse
+OK terrain banque prix officiel moins le depot exactement une fois
+OK terrain banque cout total 25800, jamais 26800
+OK terrain banque rejeu du titre ne paye ni archive une seconde fois
+OK terrain banque fonds insuffisants aucun PA ni reservation
+OK terrain banque cadavre aucune depense
+OK terrain banque deux acheteurs une seule reservation
+OK terrain banque panne apres debit injectee
+OK terrain banque rollback fonds PA titre historique recu
+OK terrain banque compromis financement immobilier distinct des travaux
+OK terrain banque credit reel puis acquisition dans la meme commande
+OK terrain banque deux ventes legitimes meme jour archives distinctes
+OK terrain banque dette immobiliere conservee
+OK terrain banque compte national reellement credite
+OK terrain banque rejeu aucun second pret ni versement
+OK terrain banque consommation disponible au guichet
+OK terrain banque taux consommation 12 pour cent
+OK terrain banque credit consommation idempotent
+OK terrain banque second dossier independant
+OK terrain banque panne apres credit avant titre
+OK terrain banque credit dette paiement titre et recu annules ensemble
+OK terrain banque depot sans compte peut demander un financement
+OK terrain banque financement refuse faute de compte
+OK terrain banque acompte rembourse reellement sans perte de fonds
+OK terrain banque refus et remboursement non rejouables
+OK terrain banque compromis ordinaire
+OK terrain banque compromis expire sans mutation finale
+OK terrain banque UUID bancaire avec montant different refuse
+OK terrain banque echeance reservee au serveur
+OK terrain banque recus prives sans lecture croisee
+OK terrain banque compromis avant refus PA a la signature finale
+OK terrain banque refus PA apres accord annule credit dette et decision
+OK terrain banque meme intention refusee puis PA disponibles un seul financement
+OK terrain banque permis joint par le moteur existant
+OK terrain banque archive et document de permis concordants
+OK terrain banque clause incluse dans les 2 PA et 1000 FR historiques
+OK terrain banque instruction interdite au navigateur sans mutation
+OK terrain banque instruction jour commun sans sommeil
+OK terrain banque rejeu instruction aucun second jour
+OK terrain banque panne document tacite annule archive compteur et autorisation
+OK terrain banque accord tacite archive SAS et etat dans une transaction
+OK terrain banque instruction preserve les changements apres le releve cron
+OK terrain banque attestation tacite persistante unique
+OK terrain banque accord tacite non reemis
+OK terrain banque ancien permis sans numero conserve sans numero invente
+OK terrain banque archive historique inconnue sans faux destinataire ni objet
+OK terrain banque jour Paris suivant sans sommeil et concurrence une seule echeance
+OK terrain banque dormir ne donne aucune seconde echeance 0
+OK terrain banque dormir ne donne aucune seconde echeance 1
+OK terrain banque dormir ne donne aucune seconde echeance 2
+OK terrain banque dormir ne donne aucune seconde echeance 3
+OK terrain banque capital plus interets soldes exactement
+OK terrain banque ancienne sauvegarde ne reecrit pas une dette versionnee
+OK terrain banque PA refuses apres creation interne rollback credit dette et recu
+OK terrain banque pret travaux preserve et UUID refuse non consomme
+OK terrain banque panne apres debit echeance rollback argent dette et marqueur
+OK terrain banque reliquat non divisible solde exactement sans surprelevement
+{"terrain_banque": true, "assertions": 61, "production": false}
+OK benediction contacts conformes a data.js
+OK benediction jet attribution invalide rollback complet NULL::integer
+OK benediction jet attribution invalide rollback complet 0
+OK benediction jet attribution invalide rollback complet 101
+OK benediction tentative sans bonus historisee
+OK benediction attribution serveur a la borne de 80 pour cent
+OK benediction ancienne tentative sans bonus ne prend pas un bonus ulterieur
+OK benediction un PA par demande aucun argent
+OK benediction dormir ne change ni le bonus actif ni son expiration
+OK benediction nouvelle connexion retrouve le bonus actif
+OK benediction un autre personnage ne voit pas le bonus
+OK benediction vingt quatre heures exactes pas un jour personnel
+OK benediction reponse perdue meme recu sans nouveau PA ni bonus
+OK benediction nonce avec autre referent refuse
+OK benediction presence territoriale country
+OK benediction presence territoriale current_city
+OK benediction presence territoriale current_building
+OK benediction presence territoriale current_room
+OK benediction faux religieux refuse avant cout
+OK benediction excommunication sans cout
+OK benediction inconscience sans cout
+OK benediction PA insuffisants sans mutation
+OK benediction position reelle du socle PNJ prioritaire
+OK benediction religieux effectivement co present
+OK benediction une seule benediction active pas de cumul
+OK benediction echec au dessus de 80 preserve le bonus deja acquis
+OK benediction deux sessions ne depensent pas deux fois le bonus
+OK benediction etat recharge apres consommation
+OK benediction ancienne sauvegarde et sommeil ne restaurent rien
+OK benediction rejeu attribution deja consommee ne reactive rien
+OK benediction nouvelle demande legitime nouveau bonus
+OK benediction acte identifie consomme cinq points
+OK benediction nouvelle generation apres consommation
+OK benediction rejeu ancien acte ne consomme jamais une nouvelle generation
+OK benediction consommation privee annulee si acte serveur echoue
+OK benediction expiration serveur aucun bonus
+OK benediction panne apres PA annule paiement benediction et recu
+OK benediction panne apres attribution annule aussi les PA
+OK benediction double requete un seul cout et une seule attribution
+OK benediction etat et consommation prives inaccessibles aux clients
+OK benediction homonyme nouveau personnage ne reprend pas un ancien bonus
+OK benediction contact religieux valide ville_a
+OK benediction contact religieux valide ville_b
+OK benediction expiration inchangee au passage heure hiver
+{"benediction_socle_prive": true, "raccordement_actes": false, "assertions": 44, "production": false}
+OK filature sites couts postes et caisses identiques au jeu
+OK filature formule conservee groupe PER indice INF et cinq points
+OK filature rapport 24h reelles aucun jour personnel ni trace future
+OK filature horodatage ancien inconnu signale sans date inventee
+OK filature deux PA personnels et 150 FR institutionnels
+OK filature mouvement financier commun journalise une fois
+OK filature reponse perdue meme resultat aucun second cout ou bonus
+OK filature nonce cible changee refuse
+OK filature rejeu recopie caisse actuelle et rapport historique confirme
+OK filature badge de presentation ne donne aucun pouvoir
+OK filature presence et juridiction current_city
+OK filature presence et juridiction current_room
+OK filature presence et juridiction current_building
+OK filature presence et juridiction country
+OK filature PA insuffisants sans caisse ni bonus depense
+OK filature caisse insuffisante annule aussi les PA et le bonus
+OK filature jet echoue confirme sans faux rapport ni remboursement invente
+OK filature echec de jet consomme le bonus exactement une fois
+OK filature panne apres rapport annule PA caisse consommation et recu
+OK filature double clic une seule resolution de filature
+OK filature concurrence aucune double facture
+OK filature caracteristiques et influence reelles de la cible relues
+OK filature moyenne de groupe sans transformer une caracteristique absente en zero
+OK filature affaiblissement apres moyenne et arrondi commun
+OK filature expiration refuse le bonus sans bloquer un jet legitime
+OK filature bonus expire non marque consomme a tort
+OK filature lecture des dernieres 24h independante du jour personnel absent
+OK filature jet invalide annule argent PA bonus et recu
+OK filature refus lecteur commun annule la transaction complete
+OK filature prototype non expose avant activation L09
+{"filature_serveur": true, "client_raccorde": false, "assertions": 30, "production": false}
+OK enquete hote delegation commune conserve les droits de l ancienne signature
+OK enquete hote badge seul sans registre ne confere aucun pouvoir
+OK enquete hote autorite et refus sans effet commissaire_hors_juridiction
+OK enquete hote autorite et refus sans effet pas_sur_place
+OK enquete hote autorite et refus sans effet acteur_indisponible
+OK enquete hote autorite et refus sans effet pa_insuffisants
+OK enquete hote autorite et refus sans effet caisse_insuffisante
+OK enquete hote aucun candidat aucun jet ni bonus consomme
+OK enquete hote absence de trace preserve la benediction
+OK enquete hote enquete sans element conserve cout existant deux PA et 250 FR
+OK enquete hote reponse perdue sans nouvel examen cout ou jet
+OK enquete hote date inconnue refuse avant cout au lieu de pretendre rien trouver
+OK enquete hote formule et bonus conserves au seuil exact
+OK enquete hote instruction du fait choisi sans prendre une vieille trace personnelle
+OK enquete hote seule la trace instruite est decouverte
+OK enquete hote garde a vue vraiment ouverte
+OK enquete hote transmission et chronologie judiciaires communes reellement creees
+OK enquete hote annonce publique persistante liee a la vraie arrestation
+OK enquete hote rejeu aucun second debit detention dossier notification
+OK enquete hote meme requete ne change pas de cible
+OK enquete hote jet echoue cout du et bonus consomme sans detention fictive
+OK enquete hote bonus consomme une fois sur le vrai echec
+OK enquete hote ecriture ignoree rollback complet paiement_enquete_non_confirme
+OK enquete hote ecriture ignoree rollback complet caisse_enquete_non_confirmee
+OK enquete hote ecriture ignoree rollback complet trace_instruction_non_confirmee
+OK enquete hote ecriture ignoree rollback complet instruction_detention_non_confirmee
+OK enquete hote ecriture ignoree rollback complet transmission_enquete_non_confirmee
+OK enquete hote ecriture ignoree rollback complet transmission_enquete_non_confirmee
+OK enquete hote ecriture ignoree rollback complet evenement_enquete_non_confirme
+OK enquete hote panne finale annule cout bonus trace detention affaire et courrier
+OK enquete hote deux requetes concurrentes une seule instruction payee
+OK enquete hote vraie branche contre espionnage conservee sans fausse garde a vue
+OK enquete hote moteur commun cree la connaissance et non une detention de couverture
+OK enquete hote rejeu ne relance ni contre espionnage ni paiement
+OK enquete hote deux ordres distincts une trace instruite un bonus seulement
+OK enquete hote deux ordres legitimes paient chacun le cout sans doubler les consequences
+OK enquete hote reference de trace liee a auteur et territoire impossible a substituer
+OK enquete hote ancien appelant commissaire delegue au meme moteur et conserve son comportement
+OK enquete hote nouvel hote encore prive avant activation complete
+OK enquete hote migration refuse un moteur commun different du corps examine
+{"enquete_serveur": true, "assertions": 40, "contre_espionnage_simule": false, "client_raccorde": false, "production": false}
+OK chasse hote defaut historique reproduit peine entiere au lieu du reliquat
+OK chasse hote aucune condamnation executable aucun cout ni bonus
+OK chasse hote formule existante et bonus au seuil exact de chasse
+OK chasse hote cout un PA attribution puis trois PA et 300 FR institutionnels
+OK chasse hote condamnation vraiment executee par le moteur commun
+OK chasse hote incarceration dans ville du commissaire et non du jugement
+OK chasse hote annonce publique seulement apres arrestation confirmee
+OK chasse hote reponse perdue aucun second debit peine ou evenement
+OK chasse hote nonce ne change pas de cible
+OK chasse hote deja detenu refuse avant paiement et jet
+OK chasse hote echec du jet paye sans arrestation ni execution fictives
+OK chasse hote panne finale annule PA caisse bonus detention jugement courrier et evenement
+OK chasse hote deux chasses simultanees meme requete une seule peine
+OK chasse hote reliquat cinq plus sanction evasion deux sans reprendre vingt jours
+OK chasse hote duree effective et liens historiques conserves dans le registre
+OK chasse hote motifs historiques restent intacts au lieu de les remplacer par le reliquat
+OK chasse hote ecriture ignoree rollback complet paiement_chasse_non_confirme
+OK chasse hote ecriture ignoree rollback complet caisse_chasse_non_confirmee
+OK chasse hote ecriture ignoree rollback complet execution_condamnation_non_confirmee
+OK chasse hote ecriture ignoree rollback complet execution_condamnation_non_confirmee
+OK chasse hote ecriture ignoree rollback complet evenement_chasse_non_confirme
+OK chasse hote jet absent annule paiement et consommation du bonus
+OK chasse hote bonus intact apres tous les rollbacks
+OK chasse hote bonus consomme une seule fois entre deux ordres distincts
+OK chasse hote refus sans mutation pas_sur_place
+OK chasse hote refus sans mutation commissaire_hors_juridiction
+OK chasse hote refus sans mutation acteur_indisponible
+OK chasse hote refus sans mutation caisse_insuffisante
+OK chasse hote reliquat invalide refuse sans cout -1
+OK chasse hote reliquat invalide refuse sans cout 1.5
+OK chasse hote dependance personnelle absente refuse sans cout ni simulation
+OK chasse hote pas d extradition sur condamnation d un autre empire
+OK chasse hote hote prive sans activation prematuree
+{"chasse_serveur": true, "assertions": 33, "execution_personnelle_non_verifiee": true, "client_raccorde": false, "production": false}
+OK evasion toutes les gardes publiques du juge et du proces conservees textuellement
+OK evasion aucun droit judiciaire nouveau
+OK evasion pas de detention aucun cout ou faux succes
+OK evasion compteur historique absent ne devient jamais un faux zero
+OK evasion jet ordinaire reussi au seuil sans donner le bonus du deserteur
+OK evasion cloture reelle de peine et projection alignee
+OK evasion duree historique de peine non reecrite a la cloture
+OK evasion avis executable et lisible six jours reliquat quatre plus evasion deux
+OK evasion lien a la detention interrompue conserve
+OK evasion reponse perdue pas de seconde recherche cout ou cloture
+OK evasion nouvelle detention meme jour pas de seconde tentative
+OK evasion echec trois PA amende cinq cents et pas de fausse sortie
+OK evasion prolongation par moteur commun dans registre et projection
+OK evasion rejeu de peine aggravee sans seconde sanction
+OK evasion panne finale annule PA bonus cloture recherche jugement et quota
+OK evasion deux commandes concurrentes une seule evasion acquise
+OK evasion ecriture ignoree rollback complet personnages_donnees NEW.name='Fixture' AND NEW.pa<OLD.pa
+OK evasion ecriture ignoree rollback complet detentions NEW.nom='Fixture' AND NEW.mode_fin='evasion'
+OK evasion ecriture ignoree rollback complet jugements NEW.juge='Évasion constatée'
+OK evasion ecriture ignoree rollback complet evasions_recus true
+OK evasion tirage absent annule paiement consommation et quota
+OK evasion quota historique deja utilise conserve lors du raccordement
+OK evasion commande privee non activable tant que compteur deserteur et prevol manquent
+{"evasion_ordinaire": true, "assertions": 23, "deserteur_bloque_sans_historique": true, "client_raccorde": false, "production": false}
+OK dispatch identite issue du compte et transition absente inactive
+OK dispatch aucune activation implicite vol
+OK dispatch aucune activation implicite achat_arme_illegal
+OK dispatch aucune activation implicite tentative_evasion
+OK dispatch aucune activation implicite mener_enquete
+OK dispatch aucune activation implicite organiser_filature
+OK dispatch aucune activation implicite organiser_chasse_homme
+OK dispatch aucune activation implicite voler_materiel_chantier
+OK dispatch aucune activation implicite benediction
+OK dispatch un nom identique ne remplace pas l identifiant attendu
+OK dispatch montant navigateur non accepte par adaptateur
+OK dispatch aucun routage arbitraire
+OK dispatch transition existante arbitre activation du compte courant
+OK dispatch attribution deleguee au moteur existant sous meme identite
+OK dispatch adaptateur ne casse pas le recu et ne double pas le cout
+OK dispatch route filature execute le vrai rapport
+OK dispatch transition seule ne rend pas les commandes publiques
+OK dispatch relecture constate la suspension et non un retour au moteur historique
+OK dispatch recu relu hors de la piece et apres suspension sans nouveau paiement
+OK dispatch relecture ne change pas les parametres de l acte acquis
+OK dispatch suspension refuse toute nouvelle demande meme dans une famille deja utilisee
+{"dispatch": true, "profil": "justice", "assertions": 21, "activation_fixture_seulement": true, "production": false}
+{"ok": true, "assertions": 59, "production": false}

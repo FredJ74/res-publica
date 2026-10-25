@@ -1,0 +1,66 @@
+{
+  "source_applicative": "4e68e41ab1765b8f8cb1e84b1a16222c348194f5",
+  "main_integre": "c6aa8ec3804425e7ad8d66fc20b55dfa78f5a217",
+  "date": "2026-10-25",
+  "branche": "codex/stabilisation-luthecia-135-20261024",
+  "clients": {
+    "bancs": 112,
+    "reussis": 112,
+    "nouveaux_cas_cibles": 20
+  },
+  "postgresql": {
+    "configurations": 61,
+    "reussies": 61,
+    "authentification": "fixtures locales, pas Supabase"
+  },
+  "contre_epreuves_historiques": {
+    "reussies": 91,
+    "total": 91
+  },
+  "globaux": {
+    "reussis": 6,
+    "total": 12,
+    "rouges": [
+      "Classification",
+      "Baseline",
+      "Authority",
+      "Referential",
+      "Assemblage",
+      "Reconstruction"
+    ]
+  },
+  "production": {
+    "migration_appliquee": false,
+    "joueur_reel_modifie": false,
+    "test_authentifie_supabase": false,
+    "fusion_main_par_codex": false,
+    "deploiement_production_par_codex": false,
+    "vercel_verifie": false,
+    "actions_github_distantes_verifiees": false
+  },
+  "raccordement_prepare": true,
+  "activation_effectuee": false,
+  "verdict": "CHANTIER NON TERMINE",
+  "blocages": [
+    "Compteur historique de detention du deserteur non verifiable",
+    "Protection financiere contre anciennes sauvegardes non attestee",
+    "Execution personnelle et appelants vivants non archives",
+    "Arriere des vols et catalogue Supabase vivant non verifies"
+  ],
+  "sha256_sources": {
+    "plateau-jets-commandes.js": "db8e3050ce5ad2bafbf7613ec8f9b058cafb444da72a2d8522b1bfab04b386fc",
+    "plateau-actions-illegales-rumeurs.js": "1954fa39013aea6b82ea3ecf0d387f4ac62dac3ab058f96cd903e66b95ae9cd1",
+    "plateau-justice-economie.js": "a53f2a337c07d64ab0a9b5712ffe57127a503d6cca92057bb05d010432ebed8d",
+    "plateau-divers.js": "6d5211495674dea7b8f048ebcfbc622048fe789fa3c802bf287382826c5e6865",
+    "plateau.html": "aa50c70837330320378e9f133c7c21dfab55abc0f72ee1129be69213bad8ea18",
+    ".github/workflows/coherence-client.yml": "69e00d96eef007ffc3ab804db2b94efb31608e085acb916809b3d2b3560224fc",
+    "outils/bancs/prevol-benediction-135.sql": "02adf2ad7b58277eec9680dafef3885be16bed6b3fbe72252447d113bad12199",
+    "migrations/20261025103801_peines_et_inscription_communes.sql": "f710af90b3199e3f2c092a94e2542388226b1944431fe1827505c5a654ebeeca",
+    "migrations/20261025104001_evasion_commande_transactionnelle.sql": "ad79c05c059ab8ea11ad390564a55f11a276743c0cbf7d9ade02d58597e4820e",
+    "migrations/20261025105001_jets_resources_canoniques.sql": "42ccc3d47715d312f12e8b5011d1e315c8d4eb3f9a24388b3a9e48adbf8695d5",
+    "migrations/20261025105501_jets_dispatch_et_identite.sql": "f6e4c25b43649357d67f5917be8a113ac6ccbf9fc9f18fb9a640571fa5133459",
+    "migrations/20261025110001_jets_gardes_historiques.sql": "bb1dd9b7746228dc624131f597bb82d0207d75f2675121127e9c9545b466c8bd",
+    "migrations/20261025113001_jets_suspension_sans_legacy.sql": "c773ed551a419a029fa1c1672cb7d982afd8b639c3470a360430bb3bac1b5f84",
+    "migrations/20261025113501_vol_pnj_caracteristiques_reelles.sql": "78e022f81a65b87911316210b795c435c420962e4b9e46c706cdfd3dcd978d81"
+  }
+}

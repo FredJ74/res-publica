@@ -190,3 +190,12 @@ Corrections finales encore privées : après les gardes historiques, `2026102511
 
 
 Dernière garde client : une relecture sans propriétaire confirmé est refusée, même après un reçu valide ; l’intention reste disponible pour reprise. Le banc ciblé couvre désormais 20 cas, dont délais, réponse tardive, changement de personnage, identité recréée, suspension, valeurs nulles et texte du journal. Sources applicatives figées pour l’archivage final ; les blocages Supabase, du compteur déserteur et des sauvegardes financières restent ouverts.
+
+
+### Bilan final de la continuation — sources 4e68e41
+
+Dernier main intégré et revérifié : `c6aa8ec`, aucune nouvelle avance distante au dernier fetch. Code et preuves sauvegardés sur la branche de reprise. Campagne finale : **112/112 clients, 61/61 configurations PostgreSQL, 91/91 contre-épreuves historiques**, 20 cas client ciblés inclus. Globaux **6/12**, les mêmes six rouges ; Authority 47 RPC non extraites et ancienne signature de fontaine, Referential trois écarts d’empreintes inchangés. Aucun ajustement de baseline pour masquer un échec.
+
+Lire `outils/audits/CLOTURE-L09-135-20261025.md` pour ce qui est réellement codé et ce qui ne l’est pas, l’ordre des onze composants de ce tour, la suspension sans retour legacy et les conditions de déploiement. Preuves brutes, manifeste et sources liées : `outils/audits/luthecia-20261025/CLOTURE-L09-*`.
+
+**CHANTIER NON TERMINÉ** : pas d’accès Supabase/Vercel dans Codex. Restent le compteur historique du déserteur, le garde financier contre sauvegardes périmées à confirmer ou compléter, l’exécution personnelle et ses appelants vivants, l’arriéré legacy et la recette authentifiée isolée. Ne pas inventer zéro, ne pas purger, ne pas exposer les commandes privées ni activer une transition pour prétendre terminer. Le prévol prêt à l’emploi est destiné à l’agent principal avec connecteur ; aucune manipulation technique demandée à Fred. Aucun merge main, aucune migration appliquée et aucun joueur réel modifié par cette session. Ne pas fermer #135.

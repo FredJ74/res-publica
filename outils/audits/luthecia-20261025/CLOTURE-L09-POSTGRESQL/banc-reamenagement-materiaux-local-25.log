@@ -1,0 +1,16 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK materiaux reamenagement prix du proprietaire par le meme moteur
+OK materiaux reamenagement vendeur ne peut imposer 999 FR
+OK materiaux reamenagement contreparties vendeur et tresorerie exactes
+OK materiaux reamenagement aucun second chantier cree
+OK materiaux reamenagement reponse perdue aucun double stock ni credit
+OK materiaux reamenagement don gratuit par le meme moteur
+OK materiaux reamenagement rejeu du don sans double transfert
+OK materiaux reamenagement coma serveur avant inventaire et paiement
+OK materiaux reamenagement prix fractionnaire refuse
+OK materiaux reamenagement panne inventaire annule argent, objets, stocks et tresorerie
+OK materiaux reamenagement concurrence un seul paiement et un seul transfert
+OK materiaux reamenagement territoire serveur preserve
+{"materiaux_reamenagement": true, "assertions": 12, "production": false}
+Groupes PostgreSQL réussis : prix initiaux figes au lancement et arrondis au franc superieur, dons, refus des fractions, rejeu, concurrence, rollback, territoire, droits, garde de source, financement bancaire prioritaire et compatibilite historique. Dépendances simulées, aucun Supabase.

@@ -1,0 +1,4 @@
+OK butin_double
+OK bonus_reutilise
+OK rejeu_oublie
+{"production": false, "contre_epreuves": [{"mutant": "butin_double", "echec_attendu": true, "code": 1}, {"mutant": "bonus_reutilise", "echec_attendu": true, "code": 1}, {"mutant": "rejeu_oublie", "echec_attendu": true, "code": 1}]}

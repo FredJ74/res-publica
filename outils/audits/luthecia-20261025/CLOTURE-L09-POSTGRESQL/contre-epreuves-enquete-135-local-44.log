@@ -1,0 +1,4 @@
+OK jet_sans_candidat
+OK cible_reutilisee
+OK trace_substituee
+{"production": false, "contre_epreuves": [{"mutant": "jet_sans_candidat", "echec_attendu": true, "code": 1}, {"mutant": "cible_reutilisee", "echec_attendu": true, "code": 1}, {"mutant": "trace_substituee", "echec_attendu": true, "code": 1}]}

@@ -1,0 +1,11 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK coeur transactionnel inaccessible aux roles joueurs
+OK fontaine refusee a emporter
+OK achat refuse sans trace financiere
+OK fontaine acceptee sur place
+OK rejeu sur place idempotent
+OK produit ordinaire vendu a emporter
+OK une preuve par achat effectue
+OK appel direct au coeur refuse
+8/8 assertions, zero donnees de production
