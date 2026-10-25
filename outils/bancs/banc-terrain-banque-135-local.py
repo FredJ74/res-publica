@@ -26,8 +26,8 @@ def suite(db,q,srv):
  q.execute(fn('outils/bancs/banc-fixture-terrain-permis-acte-avant-depot.sql','terrain_permis_acte'))
  q.execute((R/'migrations/20261022220516_permis_depot_transactionnel.sql').read_text())
  q.execute(catalogue['payer_ordre(text,text,integer,integer)']['definition'])
- q.execute((R/'migrations/20261024072349_occupation_actions_et_echeances.sql').read_text())
- if '--apres-location' in __import__('sys').argv:q.execute((R/'migrations/20261023090017_location_lot_legacy_avant_paiement.sql').read_text())
+ q.execute((R/'outils/bancs/fixtures/historique-135/20261024072349_occupation_actions_et_echeances.sql').read_text())
+ if '--apres-location' in __import__('sys').argv:q.execute((R/'outils/bancs/fixtures/historique-135/20261023090017_location_lot_legacy_avant_paiement.sql').read_text())
  for f in ['20261024121400_prets_nationaux_moteur_credit_commun.sql','20261024121900_prets_nationaux_commandes_versionnees.sql','20261024122600_acquisitions_capacites_et_gardes.sql','20261024123500_compromis_financement_reel.sql','20261024123600_terrains_referentiel_acquisition.sql','20261024123700_terrain_acquisition_commandes.sql','20261024123800_terrain_banque_relecture_recus.sql','20261024124000_prets_nationaux_echeances_atomiques.sql','20261024124100_prets_versionnes_fermer_ecritures_directes.sql','20261024131720_acquisitions_depots_attestes.sql','20261024132140_financement_compromis_termes_attestes.sql','20261024133310_terrain_vente_archive_reference_acte.sql','20261024134528_permis_instruction_transactionnelle_acquisitions.sql','20261024135353_acquisition_refus_rollback_financement.sql','20261024140140_permis_instruction_compatibilite_archives.sql']:
   sql=(R/'migrations'/f).read_text();q.execute(sql);q.execute(sql)
  # Mutations de contre-épreuve : seulement après installation, dans la base jetable.
