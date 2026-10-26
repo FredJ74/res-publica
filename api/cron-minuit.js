@@ -4122,6 +4122,16 @@ async function traiterQuotidienNationalServeur(pays) {
   await traiterExpulsionsAmbassadeursServeur(pays);
   await traiterAudiencesAmbassadesServeur();
   await traiterVirementsAutomatiquesServeur();
+  await traiterCouvreFeuRechercheServeur(pays);
+}
+
+// --- COUVRE-FEU ET RECHERCHE MILITAIRE (27 octobre 2026, audit « une seule verite » §3.3) -------
+// Faits auparavant par le navigateur du joueur connecte a minuit (runMidnightUpdate). La fonction
+// serveur est idempotente sur le jour civil de Paris.
+async function traiterCouvreFeuRechercheServeur(pays) {
+  const v = await sbRpc('minuit_couvre_feu_recherche', { p_pays: pays }, HEADERS_SERVICE).catch(() => null);
+  const r = Array.isArray(v) ? v[0] : v;
+  if (!r || r.ok !== true) signalerEchec('couvre_feu_recherche:' + pays, JSON.stringify(v));
 }
 
 // --- AUDIENCES D'AMBASSADE ECHUES (24 octobre 2026) --------------------------

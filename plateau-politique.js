@@ -14142,11 +14142,9 @@ async function verifierCouvreFeu() {
   const finCouvreFeu = budgetNat.couvreFeu.dateFin;
   const couvreFeuEchu = finCouvreFeu ? (Date.now() > Number(finCouvreFeu))
                                      : (state.day > budgetNat.couvreFeu.jourFin);
-  if (couvreFeuEchu) {
-    budgetNat.couvreFeu.actif = false;
-    await sbSaveBudgetNational(pays, budgetNat).catch(() => {});
-    return;
-  }
+  // L'expiration est constatee par la passe de nuit du serveur (27/10/2026) : l'ecran ne
+  // l'ecrit plus, il se contente de ne pas appliquer un couvre-feu echu.
+  if (couvreFeuEchu) return;
   const heure = state.hour ?? 12;
   const enCouvreFeu = heure >= 20 || heure < 6;
   if (!enCouvreFeu || estExempteCouvreFeu()) return;
@@ -14164,34 +14162,7 @@ async function verifierCouvreFeu() {
 }
 
 // Applique la degradation quotidienne d'IS/POP tant que le couvre-feu est actif
-async function verifierEffetsCouvreFeuQuotidien(pays) {
-  // IDEMPOTENCE PARTAGEE (correctif Lot 4.3) : cette fonction retire 2 POP a CHACUN des huit
-  // titulaires gouvernementaux -- des personnages qui ne sont pas celui du joueur. Sans garde,
-  // chaque client qui passait minuit infligeait la penalite a tout le gouvernement.
-  const budgetNatCf = await chargerBudgetNational(pays).catch(() => null);
-  const jourCf = (typeof jourPartageISO === 'function') ? jourPartageISO() : null;
-  if (budgetNatCf && jourCf) {
-    if (budgetNatCf.dernierEffetCouvreFeuJour === jourCf) return;
-    budgetNatCf.dernierEffetCouvreFeuJour = jourCf;
-    await sbSaveBudgetNational(pays, budgetNatCf).catch(() => {});
-  }
-  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
-  if (!budgetNat?.couvreFeu?.actif) return;
-  if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].IS = Math.max(0, INDICES_NATIONAUX[pays].IS - 3);
-  const postesGouv = ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'];
-  for (const posteId of postesGouv) {
-    const infoTitulaire = await getTitulaireActuel(posteId, null, pays);
-    const nom = infoTitulaire?.estPJ ? infoTitulaire.nom : null;
-    if (!nom) continue;
-    if (nom === state.char?.name) { state.pop = Math.max(0, (state.pop||0) - 2); }
-    else if (typeof sbGet === 'function') {
-      const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(nom)}&select=pop`).catch(() => []);
-      const pop = rows?.[0]?.pop ?? 50;
-      await sbUpdate('personnages', `name=eq.${encodeURIComponent(nom)}`, { pop: Math.max(0, pop - 2) }).catch(() => {});
-    }
-  }
-  updateUI();
-}
+// verifierEffetsCouvreFeuQuotidien A DISPARU (27/10/2026) : minuit_couvre_feu_recherche (serveur).
 
 // =====================
 // RECHERCHE MILITAIRE — commanditee par le Commandant, associe un chercheur civil PNJ (en attendant l'universite)
@@ -14381,29 +14352,7 @@ async function getCoefArmeMilitaire(pays, arme) {
 }
 
 // Verifie chaque jour si une recherche militaire en cours est terminee
-async function verifierRechercheMilitaireQuotidien(pays) {
-  const budgetNat = await chargerBudgetNational(pays).catch(() => null);
-  const enCours = budgetNat?.rechercheMilitaire?.enCours;
-  if (!enCours) return;
-  // Meme correctif que le couvre-feu : la recherche militaire vit dans le budget national, donc
-  // partagee, alors que jourFin etait compare a state.day, compteur PRIVE. Un joueur avance
-  // achevait le programme pour toute la nation des le premier jour ; un joueur recent ne le
-  // voyait jamais aboutir. dateFin (Date.now() + 3 jours reels) est deja pose au lancement par
-  // lancerRechercheMilitaire ; jourFin reste lu en repli pour les programmes anterieurs.
-  const finRecherche = enCours.dateFin;
-  const rechercheAchevee = finRecherche ? (Date.now() >= Number(finRecherche))
-                                        : (state.day >= enCours.jourFin);
-  if (!rechercheAchevee) return;
-
-  if (!budgetNat.coefficientsArmesAcquis) budgetNat.coefficientsArmesAcquis = {};
-  budgetNat.coefficientsArmesAcquis[enCours.arme] = (budgetNat.coefficientsArmesAcquis[enCours.arme] || 0) + GAIN_COEF_RECHERCHE;
-  budgetNat.rechercheMilitaire.enCours = null;
-  await sbSaveBudgetNational(pays, budgetNat);
-  addExternalEvent('🔬 Recherche militaire achevée : le coefficient de tir de "' + enCours.arme + '" est amélioré pour toute la nation.');
-  const commandantInfoRecherche = await getTitulaireActuel('commandant', null, pays);
-  const commandantNom = commandantInfoRecherche?.estPJ ? commandantInfoRecherche.nom : null;
-  if (commandantNom && typeof sbSendMail === 'function') sbSendMail('Chercheurs Civils', commandantNom, 'Recherche achevée', 'Le programme de recherche sur "' + enCours.arme + '" est terminé. Coefficient amélioré.', typeof formatDateHeureJeu==='function'?formatDateHeureJeu():'').catch(()=>{});
-}
+// verifierRechercheMilitaireQuotidien A DISPARU (27/10/2026) : minuit_couvre_feu_recherche (serveur).
 
 // ==========================================================================================
 // suivreEscorteAvecMoi SUPPRIMEE (18 septembre 2026) -- avec la mission 'escorter' elle-meme.
