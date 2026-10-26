@@ -146,6 +146,19 @@ class Joueur{
     };
     throw code('POSITION_INITIALE_NON_CONFIRMEE');
   }
+  // Lecture de la position RPC, independante de la fiche, sans aucun deplacement.
+  // L'autorisation du pilote ne couvre que cette RPC explicitement auditee.
+  const positionRpc=await this.page.evaluate(async()=>{
+   if(typeof sbRpc!=='function')return null;
+   return await sbRpc('rue_position_lire',{});
+  });
+  await this.identite();
+  if(!positionRpc||positionRpc.ok!==true||
+     positionRpc.building!==serveur.current_building||
+     positionRpc.room!==serveur.current_room||
+     positionRpc.country!=='republic'||positionRpc.city!=='capitale')
+   throw code('POSITION_RPC_ET_FICHE_DIVERGENTES');
+  this.rapport.positionLectureRpcConforme=true;
   this.rapport.visites.push({type:'consultation-position-existante',batiment:s.batiment,piece:s.piece});
   this.rapport.patrimoineFinal=preuve(serveur);
  }

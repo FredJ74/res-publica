@@ -84,3 +84,18 @@ test('Chromium local : le vrai callback de restauration de 300 ms précède la v
   try{await browser?.close();}finally{try{await chrome?.arreter();}finally{serveur.closeAllConnections();await new Promise(r=>serveur.close(r));fs.rmSync(profil,{recursive:true,force:true});}}
  }
 });
+
+// Les tests suivants ne font aucun appel reseau et n'utilisent qu'une fixture.
+test('la verification de la position RPC est effectivement liee a la fiche serveur',()=>{
+ const fs=require('node:fs'),path=require('node:path'),acorn=require('acorn');
+ const source=fs.readFileSync(path.join(__dirname,'luthecia.cjs'),'utf8');
+ const ast=acorn.parse(source,{ecmaVersion:'latest'});
+ assert.ok(ast.body.length);
+ const a=source.indexOf("const positionRpc=await this.page.evaluate(");
+ const b=source.indexOf("this.rapport.positionLectureRpcConforme=true;",a);
+ assert.ok(a>0&&b>a);
+ assert.match(source.slice(a,b),/rue_position_lire/);
+ assert.match(source.slice(a,b),/positionRpc\.building!==serveur\.current_building/);
+ assert.match(source.slice(a,b),/positionRpc\.room!==serveur\.current_room/);
+ assert.match(source.slice(a,b),/POSITION_RPC_ET_FICHE_DIVERGENTES/);
+});
