@@ -67,6 +67,7 @@ test('Chromium local : le vrai callback de restauration de 300 ms précède la v
    // Identités et contreparties fictives, strictement dans ce serveur local.
    window.state={char:{name:'Fixture'},country:'republic',currentCity:'capitale',currentBuilding:null,currentRoom:null};
    window.SUPABASE_URL=origine;window.rpAuthUid=()=> 'uid-fixture';window.appels=[];
+    window.sbRpc=async(fn)=>{if(fn!=='rue_position_lire')throw Error('RPC_NON_AUTORISEE');return {ok:true,building:state.currentBuilding,room:state.currentRoom,country:'republic',city:'capitale'};};
    window.enterBuilding=(id,restauration)=>{if(restauration!==true||!window._restaurationPositionEnCours)throw Error('RESTaURATION_ATTENDUE');state.currentBuilding=id;appels.push('affichage-batiment');};
    window.enterRoom=(id,piece)=>{if(!window._restaurationPositionEnCours)throw Error('RESTaURATION_ATTENDUE');state.currentRoom=piece;document.getElementById('piece-image').textContent='Accueil';appels.push('affichage-piece');};
   },origine);
