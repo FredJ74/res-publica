@@ -6,7 +6,7 @@ const attendue={batiment:'office-notarial',piece:'accueil_notaire'};
 function fixture(){
  const f={ui:{...attendue},serveur:{current_building:attendue.batiment,current_room:attendue.piece,protegeeSHA256:'fixture'},attentes:0,lectures:0};
  const rapport={prevolAutomatique:{position:{...attendue}},visites:[]};
- const page={locator:()=>({first:()=>({waitFor:async()=>{await f.scene?.();}})}),waitForFunction:async(fn,args)=>{
+ const page={evaluate:async()=>({ok:true,building:f.serveur.current_building,room:f.serveur.current_room,country:'republic',city:'capitale'}),locator:()=>({first:()=>({waitFor:async()=>{await f.scene?.();}})}),waitForFunction:async(fn,args)=>{
   if(args){f.attentes++;await f.attente?.();}
  }};
  const j=new Joueur(page,{nom:'Fixture',uid:'uid-fixture'},{},rapport,new AbortController().signal);
@@ -98,4 +98,11 @@ test('la verification de la position RPC est effectivement liee a la fiche serve
  assert.match(source.slice(a,b),/positionRpc\.building!==serveur\.current_building/);
  assert.match(source.slice(a,b),/positionRpc\.room!==serveur\.current_room/);
  assert.match(source.slice(a,b),/POSITION_RPC_ET_FICHE_DIVERGENTES/);
+});
+
+test('divergence de la RPC de position : la consultation echoue sans se deplacer',async()=>{
+ const {f,j,rapport}=fixture();f.ui={...attendue};
+ j.page.evaluate=async()=>({ok:true,building:attendue.batiment,room:'bureau_contrats',country:'republic',city:'capitale'});
+ await assert.rejects(()=>j.consulterPositionExistante(),/POSITION_RPC_ET_FICHE_DIVERGENTES/);
+ assert.equal(rapport.visites.length,0);
 });
