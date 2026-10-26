@@ -3,6 +3,9 @@
 Ce fichier s'adresse à **tous les agents de code** qui travaillent sur ce dépôt
 (Codex, Claude). Claude le lit via `CLAUDE.md`, Codex le lit directement.
 
+
+**Avant toute décision de game design, lire `CONSTITUTION.md`** (document fondateur I sur IV de Fred, 2 octobre 2026) : elle dit pourquoi les règles sont ce qu'elles sont, et à quoi l'on reconnaît qu'une règle trahit le projet.
+
 ## Qui fait quoi
 
 - **Fred est le game designer.** Il ne code pas. Il décide du gameplay, du
