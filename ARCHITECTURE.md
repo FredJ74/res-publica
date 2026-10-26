@@ -1,7 +1,7 @@
 # Architecture de Human Gambit — état du socle
 
-*26 octobre 2026. Référence commune à Codex, Claude et ChatGPT, pour coder les empires
-suivants sans rien réinventer. À lire avec `CONSTITUTION.md`. Version illustrée : la page
+*26 octobre 2026, précisé le 27. Référence commune à Codex, Claude et ChatGPT : l'état du
+socle, pour finir Républia proprement puis coder les empires suivants sans rien réinventer. À lire avec `CONSTITUTION.md`. Version illustrée : la page
 « Architecture de Human Gambit » publiée par Claude pour Fred.*
 
 **En chiffres** : 93 bâtiments, 249 pièces, 846 ordres dans les pièces (346 actions
@@ -10,17 +10,33 @@ différentes), 357 tables et 1 058 fonctions dans la base, 57 fichiers dans le n
 ## Les couches
 
 À lire de bas en haut : chaque couche ne s'appuie que sur celles du dessous. Les couches 1
-à 3 sont communes à tous les empires ; la couche 4 se réécrit pour chacun (Constitution,
+à 3 sont communes à tous les empires. Dans la couche 4, **ce sont les contenus qui diffèrent
+d'un empire à l'autre, pas leurs formats ni leurs outils** : une fiche de PNJ, un bâtiment,
+une religion ou un club ont le même format, les mêmes écrans de gestion et les mêmes fonctions
+dans tous les empires ; seul ce qu'ils contiennent est propre à chacun (Constitution,
 article 7 : les mécaniques se partagent, les contenus jamais).
 
 | Couche | Contenu |
 |---|---|
 | **5. Entre empires** (raccordé avec les autres empires) | ambassades (ouverture, ambassadeur, audience, asile, réception, mécénat) ; diplomatie (Indice Diplomatique par pays, négociations, traités) ; guerres (déclaration, trêve, cessez-le-feu, mobilisation) ; **voyage entre empires : n'existe pas** (bloque immunité, arrestation de l'expulsé, naturalisation, transfert de détenus) ; commerce international et tourisme prévus |
-| **4. Contenu d'un empire** (jamais partagé) | géographie (3 villes, caserne, QHS, plans, rues, images) ; PNJ (noms, portraits, fiches de personnalité, référents, bibles) ; culture (monnaie, religion d'État, médias, clubs, scandales types) ; économie locale (entreprises, usines, chaînes, prix) ; institutions (noms des postes, grades d'organisations, sièges, calendrier électoral) ; énigmes de ville |
+| **4. Contenu d'un empire** (contenus propres ; formats, outils et écrans communs) | géographie (3 villes, caserne, QHS, plans, rues, images) ; PNJ (noms, portraits, fiches de personnalité, référents, bibles) ; culture (monnaie, religion d'État, médias, clubs, scandales types) ; économie locale (entreprises, usines, chaînes, prix) ; institutions (noms des postes, grades d'organisations, sièges, calendrier électoral) ; énigmes de ville |
 | **3. Mécaniques de jeu** (communes, paramétrées par empire) | vie du personnage, économie et travail, argent, territoire, pouvoir, justice et ordre, crime, armée, presse et opinion, organisations, foi, sport, renseignement, vie sociale |
-| **2. Moteur** (socle technique, Constitution art. 4) | identité et autorité ; temps (jour de jeu par pays, passe de minuit, échéances) ; argent (paiement des ordres, comptes, caisses, fonds en transit) ; biens (inventaire) ; lieux et présence ; mémoire et messages (mails à boutons, forum, chat, journal, chronique) ; ordres (catalogue par pièce, coûts déclarés, routeur) ; intérim des PNJ ; indices |
+| **2. Moteur** (socle technique, Constitution art. 4) | identité et autorité ; temps (**une horloge commune** : heure de Paris, bascule à minuit pour tous ; échéances en temps réel) ; argent (paiement des ordres, comptes, caisses, fonds en transit) ; biens (inventaire) ; lieux et présence ; mémoire et messages (mails à boutons, forum, chat, journal, chronique) ; ordres (catalogue par pièce, coûts déclarés, routeur) ; intérim des PNJ ; indices |
 | **1. Infrastructure** | navigateur (`plateau.html` et `plateau-*.js`, `data.js`, `supabase.js`, `forum.js`) ; base Supabase (fonctions `SECURITY DEFINER`, la seule vérité) ; serveur Vercel (`api/` : dialogues PNJ DeepSeek, journal, conférences, renseignements) ; tâches de nuit (`api/cron-minuit.js`, 26 traitements ; `api/cron-assemblee.js`) |
 | *Transversal* | administration (incarnation, journal d'administration) ; offre premium (cosmétique et confort, jamais pay-to-win dans les empires non payants) ; traduction (prévue après Républia) |
+
+## Le temps : une seule horloge
+
+Décision en vigueur : **une horloge commune à tous les joueurs et à tous les empires**,
+l'heure de Paris, avec une bascule à minuit pour tout le monde (passe de nuit du serveur).
+Les délais qui concernent des joueurs se comptent en temps réel (Constitution, article 12).
+
+Ce qui peut exister par pays n'est **pas une autre horloge**, seulement des paramètres posés
+sur l'horloge commune. Aujourd'hui, un seul : la fonction `jour_de_jeu_pays` numérote les
+jours à partir d'une date d'origine lue dans `rp_epoques` (Républia : 13/09/2026 ; tout pays
+sans ligne retombe sur la même date). **Ne créer aucune autre date d'origine, ni aucun
+compteur de jours propre à un pays ou à un personnage, sans décision de Fred** : ce serait
+réintroduire plusieurs systèmes de temps.
 
 ## Inventaire des mécaniques
 
@@ -29,12 +45,18 @@ serveur ; **Mixte** = serveur, avec des parties décidées par l'écran ; **Écr
 surtout par le navigateur ; **À créer** = n'existe pas. Classement d'ensemble : une même
 mécanique peut contenir des parties plus ou moins solides.
 
+**Ce tableau ne liste que ce qui est disponible dans le jeu, pas l'historique du
+développement.** Il a été établi le 26/10 à partir du code et des documents ; une première
+erreur a été corrigée le 27 (« saluer », supprimé des interactions avec les PNJ, y figurait
+encore). **La disponibilité réelle de chaque ligne reste à vérifier une par une** ; toute
+ligne trouvée fausse se corrige ici.
+
 ### Moteur
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
 | Identité et autorité | Reconnaît le joueur, son poste, sa présence sur place ; refuse ce qu'il n'a pas le droit de faire. | Serveur | Rien : commun. |
-| Temps | Jour de jeu par pays, passe de minuit, échéances en temps réel. | Mixte | Date de départ de l'empire ; l'ajouter à la passe de minuit. |
+| Temps | Horloge commune (heure de Paris), bascule à minuit pour tous, échéances en temps réel. | Mixte | Rien : l'horloge est commune. Pas de date d'origine propre sans décision. |
 | Paiement des ordres | Prélève PA et francs selon le coût déclaré de chaque ordre. | Serveur | Coûts des ordres propres à l'empire. |
 | Caisses | Caisses des bâtiments et des institutions ; un crédit doit venir d'un paiement réel. | Serveur | Caisses de ses institutions. |
 | Inventaire | Objets possédés, donnés, consommés, confisqués. | Mixte | Objets propres (armes, reliques, produits). |
@@ -149,7 +171,7 @@ mécanique peut contenir des parties plus ou moins solides.
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
 | Renseignement | Informateurs, cellules, rapports. | Mixte | Services du pays. |
-| Vie sociale | Saluer, dîners, escortes, dons, contacts, débauchage. | Mixte | Agences et PNJ. |
+| Vie sociale | Dîners d'affaires, escortes, dons, contacts, débauchage. | Mixte | Agences et PNJ. |
 
 ### Entre empires
 
@@ -160,6 +182,11 @@ mécanique peut contenir des parties plus ou moins solides.
 | Voyage entre empires | N'existe pas encore. | À créer | À créer une seule fois, pour tous. |
 
 ## Coder un nouvel empire
+
+> **Référence technique pour plus tard, pas une invitation à commencer.** La feuille de
+> route reste : terminer Luthécia, puis Port-Sainte-Marie et Montrouge (fin de Républia),
+> puis l'internationalisation, puis seulement les autres empires. Aucun travail sur Sovarka,
+> El Estado ou un autre empire ne commence avant cela.
 
 1. **Écrire le contenu, pas les mécaniques** : tout ce qui est en couche 4.
 2. **Déclarer l'empire dans la donnée** : une mécanique ne tourne dans un empire que si sa
