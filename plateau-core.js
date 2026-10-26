@@ -2592,8 +2592,9 @@ async function runMidnightUpdate() {
   // CE QUI RESTE ICI : couvre-feu et recherche militaire, qui n'ont AUCUN miroir
   // serveur (verifie). Tant qu'ils n'en ont pas, les retirer les supprimerait
   // purement et simplement les nuits sans joueur connecte.
-  if (typeof verifierEffetsCouvreFeuQuotidien === 'function') await verifierEffetsCouvreFeuQuotidien(state.country || 'republic').catch(() => {});
-  if (typeof verifierRechercheMilitaireQuotidien === 'function') await verifierRechercheMilitaireQuotidien(state.country || 'republic').catch(() => {});
+  // verifierEffetsCouvreFeuQuotidien() et verifierRechercheMilitaireQuotidien() retirees le
+  // 27/10/2026 : la passe de nuit du serveur les fait (minuit_couvre_feu_recherche), meme sans
+  // joueur connecte, a l'heure du serveur.
   // verifierDesertionsQuotidien() retiree ici : miroir serveur traiterDesertionsServeur().
   // verifierExpulsionsAmbassadeursQuotidien() retiree le 25/10/2026 (audit R11) : seule la passe
   // de nuit du serveur (traiterExpulsionsAmbassadeursServeur) met fin a une mission.
