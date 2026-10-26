@@ -6003,6 +6003,7 @@ function plafondBoisImprimerie() {
   return (typeof STOCK_BOIS_MAX_IMPRIMERIE_PNJ === 'number') ? STOCK_BOIS_MAX_IMPRIMERIE_PNJ : 10;
 }
 
+let VENTE_BOIS_EN_COURS = false;
 async function ouvrirVendreBoisImprimerie(pa, cost) {
   const lot = (state.inventory || []).find(i => i.stackKey === 'bois' && (i.qty || 0) > 0);
   if (!lot) {
@@ -6054,56 +6055,27 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   const imprimeur = (typeof nomImprimeurLocal === 'function' && nomImprimeurLocal()) || null;
   const plafond = plafondBoisImprimerie();
 
-  // DOUBLE-CLIC : le bois est reserve SYNCHRONEMENT, avant le moindre aller-retour reseau. Deux
-  // clics ne peuvent donc pas vendre deux fois le meme lot ; la reservation est rendue en entier
-  // si la vente echoue ou n'est que partielle.
-  lot.qty -= qteVoulue;
-  if (lot.qty <= 0) state.inventory = state.inventory.filter(i => i !== lot);
-  const rendreBois = (n) => {
-    if (n <= 0) return;
-    const l = (state.inventory || []).find(i => i.stackKey === 'bois');
-    if (l) l.qty = (l.qty || 0) + n;
-    else { if (!state.inventory) state.inventory = []; state.inventory.push({ ...lot, qty: n }); }
-  };
-
-  // Vente de matieres premieres : 0 PA, 0 FR (arbitrage du 11 septembre 2026) -- le joueur est le
-  // vendeur, il ne paie rien, quels que soient les pa/cost transmis par le bouton.
-  //
-  // TRANSACTION UNIQUE : le debit de la caisse, l'entree en stock ET le controle du plafond se font
-  // dans une seule instruction SQL sous verrou de ligne (batiment_caisse_mouvement). Deux ventes
-  // simultanees ne peuvent donc ni ecraser le meme solde, ni depasser ensemble la capacite. Si la
-  // caisse ou la place manquent, la RPC refuse EN ENTIER et renvoie l'etat reel : on recalcule
-  // alors la quantite reellement achetable et on retente une fois (vente partielle).
-  let qte = qteVoulue;
-  const tenter = async (n) => {
-    const montant = Math.round(n * prixUnitaire * 100) / 100;
-    return await sbBatimentMouvementCaisse(state.country, ville, building, 'imprimerie', -montant, 'stockBois', n, plafond)
-      .catch(() => null);
-  };
-  let r = (typeof sbBatimentMouvementCaisse === 'function') ? await tenter(qte) : null;
-  if (r && !r.ok && (r.raison === 'caisse_insuffisante' || r.raison === 'stock_plafond')) {
-    const parCaisse = Math.max(0, Math.floor((r.caisse || 0) / prixUnitaire));
-    const parPlace = (typeof r.stock === 'number') ? Math.max(0, plafond - r.stock) : qteVoulue;
-    qte = Math.min(qteVoulue, parCaisse, parPlace);
-    r = qte > 0 ? await tenter(qte) : { ok: false, raison: r.raison };
-  }
-  const montantPaye = Math.round(qte * prixUnitaire * 100) / 100;
-  if (!r || !r.ok) {
-    rendreBois(qteVoulue);
-    updateUI();
-    showToast(r && r.raison === 'stock_plafond' ? 'Entrepôt plein' : 'Caisse vide',
+  // PAR LE SERVEUR (26/10/2026) : le bois quitte l'inventaire reel, la caisse de l'imprimerie paie
+  // et l'argent arrive reellement au vendeur, dans une seule transaction. Avant, le serveur debitait
+  // la caisse mais l'argent n'arrivait que sur l'ecran, et le bois restait dans l'inventaire reel.
+  if (VENTE_BOIS_EN_COURS) return;
+  VENTE_BOIS_EN_COURS = true;
+  let r;
+  try { r = await sbRpcVerdict('imprimerie_acheter_bois', { p_qte: qteVoulue }).catch(() => null); }
+  finally { VENTE_BOIS_EN_COURS = false; }
+  if (!r || r.ok !== true) {
+    showToast(r && r.raison === 'stock_plafond' ? 'Entrepôt plein' : r && r.raison === 'stock_personnel_insuffisant' ? 'Stock personnel insuffisant' : 'Caisse vide',
       r && r.raison === 'stock_plafond'
-        ? (imprimeur || 'L\'imprimerie') + ' a déjà ' + plafond + ' bois en stock : elle ne peut plus en prendre.'
+        ? (imprimeur || 'L\'imprimerie') + ' a déjà ' + (r.plafond || plafond) + ' bois en stock : elle ne peut plus en prendre.'
+        : r && r.raison === 'stock_personnel_insuffisant' ? 'Vous n\'avez pas ' + qteVoulue + ' bois.'
         : (imprimeur || 'L\'imprimerie') + ' n\'a pas les moyens d\'acheter du bois pour le moment.', false);
     return;
   }
-  rendreBois(qteVoulue - qte);
-
-  // Encaissement joueur par le mecanisme standard : le montant exact retire de la caisse arrive en
-  // liquide, fonds reellement depensables (jamais state.arg seul, qui n'est pas depensable).
-  if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(montantPaye);
-  else state.arg = (state.arg || 0) + montantPaye;
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  const qte = Number(r.qte) || 0;
+  const montantPaye = Number(r.total) || 0;
+  if (Array.isArray(r.inventory)) state.inventory = r.inventory;
+  appliquerPaiementServeur({ arg: r.arg, liquide: r.liquide });
+  if (typeof renderInventory === 'function') renderInventory();
   updateUI();
 
   if (qte < qteVoulue) {
@@ -7022,17 +6994,17 @@ async function confirmerVirementUsineMinistere(pa, cost) {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
 
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // Debit atomique de la caisse de l'usine EN PREMIER (jamais de decouvert) ; le credit au
-  // Ministere n'est tente que si ce debit a reellement reussi.
-  const montantPreleve = await debiterCaisseEtatBatimentAtomique(pays, cfg.city, cfg.buildingId, 'usine', montant);
-  if (montantPreleve <= 0) {
-    showToast('Caisse insuffisante', "La caisse de l'usine ne peut pas couvrir ce virement.", false);
+  // PAR LE SERVEUR (26/10/2026) : poste, presence, 1 PA, debit de l'usine et credit du ministere
+  // dans une seule transaction.
+  const v = await sbRpcVerdict('usine_virer_vers_ministere', { p_montant: montant }).catch(() => null);
+  if (!v || v.ok !== true) {
+    if (v?.raison === 'caisse_insuffisante') showToast('Caisse insuffisante', "La caisse de l'usine ne peut pas couvrir ce virement.", false);
+    else if (v?.raison === 'reserve_directeur' || v?.raison === 'pas_sur_place') showToast('Accès refusé', 'Seul le directeur en poste peut ordonner ce virement, depuis sa propre usine.', false);
+    else signalerRefusCout(v || {});
     return;
   }
-  if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(pays, 'gouvernement-min_fin', montantPreleve);
+  if (v.paie) appliquerPaiementServeur(v.paie);
+  const montantPreleve = Number(v.montant) || montant;
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -13267,9 +13239,11 @@ async function debiterCaisseEtatBatimentAtomique(pays, ville, buildingId, sousCl
   // c'est-a-dire exactement ce que la RPC existe pour empecher. Une panne reseau rouvrait donc
   // la caisse a l'ecriture cliente. Il n'y a plus de repli : si le mouvement atomique n'aboutit
   // pas, rien n'est preleve et l'appelant le sait.
-  if (typeof sbBatimentMouvementCaisse !== 'function') return 0;
-  const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, -Math.abs(montant)).catch(() => null);
-  return (r && r.ok) ? montant : 0;
+  // LE NAVIGATEUR NE DEBITE PLUS UNE CAISSE DE BATIMENT (26/10/2026, audit « une seule verite ») :
+  // chaque debit legitime est fait par la fonction serveur de l'action elle-meme
+  // (usine_virer_vers_ministere, imprimerie_acheter_bois...). Ce point d'entree reste pour les
+  // appelants futurs et refuse.
+  return 0;
 }
 
 // DEUX CAISSES DISTINCTES (12 septembre 2026) : l'atelier d'impression et le journal sont deux
@@ -13285,8 +13259,9 @@ const CAISSE_REDACTION = 'redaction';
 async function crediterCaisseRedaction(pays, ville, buildingId, montant) {
   if (!(montant > 0)) return { ok: true, caisse: null };
   if (typeof sbBatimentMouvementCaisse !== 'function') return { ok: false, raison: 'indisponible' };
-  const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, CAISSE_REDACTION, Math.abs(montant),
-                                            null, 0, null, true).catch(() => null);
+  // Credit ADOSSE (26/10/2026) : le serveur ne verse que ce que le joueur vient reellement de payer.
+  const r = await sbRpcVerdict('batiment_caisse_client_crediter', { p_pays: pays, p_ville: ville, p_building: buildingId,
+    p_souscle: CAISSE_REDACTION, p_montant: Math.abs(montant) }).catch(() => null);
   return r || { ok: false, raison: 'reseau' };
 }
 
@@ -13309,8 +13284,9 @@ async function crediterCaisseEtatBatiment(pays, ville, buildingId, sousCle, mont
   // FAIL CLOSED (chantier C, phase 2) : meme raison que le debit ci-dessus. Un credit qui
   // n'aboutit pas rend null ; l'appelant doit en tenir compte plutot que de laisser le
   // navigateur reecrire la caisse lui-meme.
-  if (typeof sbBatimentMouvementCaisse !== 'function') return null;
-  const r = await sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, Math.abs(montant)).catch(() => null);
+  // Credit ADOSSE (26/10/2026) : le serveur ne verse que ce que le joueur vient reellement de payer.
+  const r = await sbRpcVerdict('batiment_caisse_client_crediter', { p_pays: pays, p_ville: ville, p_building: buildingId,
+    p_souscle: sousCle, p_montant: Math.abs(montant) }).catch(() => null);
   return (r && r.ok) ? r.caisse : null;
 }
 

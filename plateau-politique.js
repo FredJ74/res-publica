@@ -8084,19 +8084,17 @@ async function confirmerVirementMinistereUsine(pa, cost) {
   const pays = state.country || 'republic';
   const cur = COUNTRIES[pays]?.cur || 'FR';
 
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // Debit atomique de la caisse du Ministere EN PREMIER (jamais de decouvert) ; le credit a
-  // l'usine n'est tente que si ce debit a reellement reussi.
-  const montantPreleve = typeof debiterCaisseBatimentAtomique === 'function'
-    ? await debiterCaisseBatimentAtomique(pays, 'gouvernement-min_fin', montant)
-    : 0;
-  if (montantPreleve <= 0) {
-    showToast('Caisse insuffisante', 'La caisse du Ministère ne peut pas couvrir ce virement.', false);
+  // PAR LE SERVEUR (26/10/2026) : poste, 1 PA, debit du ministere et credit de l'usine dans une
+  // seule transaction.
+  const v = await sbRpcVerdict('ministere_virer_vers_usine', { p_poste_usine: posteCible, p_montant: montant }).catch(() => null);
+  if (!v || v.ok !== true) {
+    if (v?.raison === 'caisse_insuffisante') showToast('Caisse insuffisante', 'La caisse du Ministère ne peut pas couvrir ce virement.', false);
+    else if (v?.raison === 'reserve_ministre_finances') showToast('Accès refusé', 'Seul le Ministre des Finances peut ordonner ce virement.', false);
+    else signalerRefusCout(v || {});
     return;
   }
-  if (typeof crediterCaisseEtatBatiment === 'function') await crediterCaisseEtatBatiment(pays, cfg.city, cfg.buildingId, 'usine', montantPreleve);
+  if (v.paie) appliquerPaiementServeur(v.paie);
+  const montantPreleve = Number(v.montant) || montant;
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
