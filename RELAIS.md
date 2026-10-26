@@ -8,6 +8,13 @@ Règles : voir `AGENTS.md`.
 **Ambassades et Bureau de l'Emploi : chantiers de Claude seul** (Fred, 25/10). Ces
 notes sont la trace du travail, pour reprendre l'historique. **Codex : ne pas toucher aux
 ambassades ni au Bureau de l'Emploi.**
+- **Corrections « une seule vérité » (Fred, 26/10 : « fais dans l'ordre que tu veux »)** — Claude.
+  Fait : caisses adossées (`fonds_en_transit`, `batiment_caisse_client_crediter`, primitives de
+  caisse retirées au navigateur, `usine_virer_vers_ministere`, `ministere_virer_vers_usine`,
+  `imprimerie_acheter_bois`). **Codex : tout nouveau crédit de caisse se fait dans la fonction
+  serveur de l'action** ; un crédit demandé par le navigateur doit être adossé à un paiement.
+  Suite prévue : tables ouvertes (hors successions, terrains, urbanisme, championnat), fiche,
+  ordre générique.
 - **Audit « une seule vérité » (26/10, nuit, branche `claude/audit-une-seule-verite-20261026`)** :
   `AUDIT_UNE_SEULE_VERITE.md` inventorie tout le jeu (tables ouvertes à tout joueur, RPC
   qui créent de l'argent sur demande, champs de fiche encore libres, ~95 tirages et l'ordre

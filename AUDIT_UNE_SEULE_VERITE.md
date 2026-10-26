@@ -264,3 +264,16 @@ tirés au hasard et les effets purement visuels sont exclus.
 - **pnj** : appliquerEffetRumeur (l.2349), confirmerEscortPiege (l.3556), doExpulsionAcceleree (l.3874), doFaireDisparaitreCadavre (l.3915), etouffementActif (l.2710), interagirPnjTerrain (l.3644), lot (l.615), pnjInfo (l.2939), repondreNegociationParcelle (l.731), texteEchappe (l.2429)
 - **politique** : actifs (l.8451), censurer (l.9163), confirmerBourrerUrnes (l.2665), confirmerContesterResultats (l.2866), confirmerDementi (l.10210), confirmerEtatUrgence (l.7081), confirmerFalsifierListes (l.2599), confirmerMobilisation (l.12772), confirmerTruquerDepouillement (l.2759), executerOrdreFiscalCible (l.7825), jourSurv (l.12862), pnjInfoMariage (l.6882), rang (l.2603), signerDecretInutile (l.4691), taux (l.9999), verifierCouvreFeu (l.14151)
 - **router** : executerOrdreGenerique (l.873)
+
+---
+
+## Suivi des corrections
+
+- **26/10 (soir) — §1.2, création d'argent : réglé.** Un crédit de caisse demandé par le
+  navigateur ne peut verser que l'argent que le joueur vient réellement de payer (ordre) ou
+  de prélever avec autorité (registre `fonds_en_transit`, 15 minutes) ; sinon il est refusé et
+  journalisé (`credit_non_adosse`). `caisse_institution_mouvement`, sa variante plafonnée et
+  `batiment_caisse_mouvement` ne sont plus appelables par un navigateur. Virements usine ↔
+  ministère et vente de bois à une imprimerie entièrement par le serveur (la vente de bois
+  perdait l'argent du vendeur et lui laissait son bois). Migrations `20261026020000` et
+  `020100`. Reste du §1.2 : `impact_deposer` (dégâts) et `personnage_ajuster_pop_inf`.
