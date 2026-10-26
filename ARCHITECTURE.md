@@ -46,9 +46,10 @@ surtout par le navigateur ; **À créer** = n'existe pas. Classement d'ensemble 
 mécanique peut contenir des parties plus ou moins solides.
 
 **Ce tableau ne liste que ce qui est disponible dans le jeu, pas l'historique du
-développement.** Il a été établi le 26/10 à partir du code et des documents ; une première
-erreur a été corrigée le 27 (« saluer », supprimé des interactions avec les PNJ, y figurait
-encore). **La disponibilité réelle de chaque ligne reste à vérifier une par une** ; toute
+développement.** **Vérifié ligne par ligne le 27/10** : chaque mécanique a au moins un point
+d'entrée réel dans le jeu (bouton d'un lieu, fiche d'un joueur ou panneau de fonction) ;
+« saluer », supprimé des interactions avec les PNJ, a été retiré, et les limites constatées
+(boutons en « bientôt », actions réservées aux autres empires) sont dites dans la ligne. Toute
 ligne trouvée fausse se corrige ici.
 
 ### Moteur
@@ -63,7 +64,7 @@ ligne trouvée fausse se corrige ici.
 | Lieux et présence | Bâtiments, pièces, déplacements, qui est où. | Mixte | Plan, rues, bâtiments, images. |
 | Messagerie | Mails à boutons d'action, forum, chat de pièce, salons. | Serveur | Rien : commun. |
 | Mémoire publique | Journal personnel, chronique nationale, annonces publiques. | Mixte | Rien : commun. |
-| Ordres | Catalogue des actions par pièce, routeur, ordre générique. | Mixte | Ordres adaptés à l'histoire de l'empire. |
+| Ordres | Catalogue des actions par pièce et routeur ; l'ordre générique (cinq ordres) est tiré par le serveur depuis le 27/10. | Serveur | Ordres adaptés à l'histoire de l'empire. |
 | Intérim des PNJ | Un PNJ tient un poste vacant en attendant un joueur. | Mixte | Noms et portraits des titulaires PNJ. |
 | Dialogues des PNJ | Conversations des PNJ par DeepSeek, avec fiches de personnalité. | Serveur | Fiches de personnalité, bibles de contexte. |
 | Indices | Sécurité, économie, social, piété, moral par ville ; Indice Diplomatique par pays. | Mixte | Valeurs de départ. |
@@ -74,8 +75,8 @@ ligne trouvée fausse se corrige ici.
 |---|---|---|---|
 | Création | Origine, école, archétype, carrière, caractéristiques. | Mixte | Origines et écoles du pays. |
 | Santé, moral, popularité | Points de vie, moral, popularité, influence, discrétion. | Écran | Rien : commun. |
-| Université | Cursus, jalons, seconde carrière, qualifications. | Serveur | Établissements et cursus. |
-| État civil | Mariage, naissance, décès, succession, testament. | Mixte | Rien : commun. |
+| Université | Inscription à un cursus, jalons, seconde carrière ; syndicats étudiants, conférences. Le bouton « Suivre une formation » est en « bientôt ». | Serveur | Établissements et cursus. |
+| État civil | Demande en mariage (depuis la fiche d'un joueur), divorce, testament, héritage, actes à la mairie. | Mixte | Rien : commun. |
 | Quêtes et énigmes | Quête d'accueil, quête de carrière, énigmes de ville. | Mixte | Énigmes et référents propres. |
 
 ### Économie et travail
@@ -85,7 +86,7 @@ ligne trouvée fausse se corrige ici.
 | Entreprises et commerces | Commerces de joueurs, prix, stocks, ventes. | Serveur | Entreprises et commerces du pays. |
 | Usines et chaînes | Production, matières, directeurs, ventes directes. | Serveur | Usines et chaînes du pays. |
 | Entrepôts et ressources | Stocks régionaux, prix, matières premières. | Serveur | Ressources disponibles, prix. |
-| Port et fret | Caisses de fret, douane, contrebande, lots non réclamés. | Écran | Ports et routes. |
+| Port et fret | Bateau, colis, box, douane, criée, marchandises non réclamées (achat d'un lot encore décidé par l'écran). | Mixte | Ports et routes. |
 | Bureau de l'Emploi | Postes à pourvoir, annonces, référentes. | Serveur | Agences et référentes. |
 | Chantiers | Travail à l'heure, taux du propriétaire, ouvriers PNJ. | Serveur | Rien : commun. |
 
@@ -128,7 +129,7 @@ ligne trouvée fausse se corrige ici.
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
-| Actes illégaux | Vol, poison, assassinat, incendie, explosifs, contrebande, falsification. | Écran | Objets et lieux du marché noir. |
+| Actes illégaux | Vol, assassinat, empoisonnement, incendie, explosifs, falsification. Achat de poisons et contrebande : seulement dans les ports des autres empires. | Écran | Objets et lieux du marché noir. |
 | Corruption | Douaniers, fonctionnaires, presse, greffe. | Écran | Rien : commun. |
 | Organisations criminelles | Mise en relation, recrutement. | Serveur | Organisations du pays. |
 
@@ -158,7 +159,7 @@ ligne trouvée fausse se corrige ici.
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
-| Cultes | Piété, dons, confession, bénédiction, excommunication. | Mixte | Religion d'État et lieux de culte. |
+| Cultes | Prière, dons, confession, pèlerinage, reliques ; excommunication par le Grand Prêtre. La bénédiction n'a pas de bouton dans les lieux de culte (seulement par un contact). | Mixte | Religion d'État et lieux de culte. |
 
 ### Sport
 
@@ -170,8 +171,8 @@ ligne trouvée fausse se corrige ici.
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
-| Renseignement | Informateurs, cellules, rapports. | Mixte | Services du pays. |
-| Vie sociale | Dîners d'affaires, escortes, dons, contacts, débauchage. | Mixte | Agences et PNJ. |
+| Renseignement | Informateurs (loge, hôtel, bar), cellules de renseignement à l'étranger, renseignement militaire. | Mixte | Services du pays. |
+| Vie sociale | Dîners d'affaires, tournées offertes, escortes, dons d'objets, contacts, débauchage d'employés PNJ. | Mixte | Agences et PNJ. |
 
 ### Entre empires
 
