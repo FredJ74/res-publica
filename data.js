@@ -4606,7 +4606,7 @@ const BUILDINGS = {
         imageUrl: "https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=1200&q=80",
         persons: [{name:'Directeur Fabre (PNJ)', role:'Directeur usine', rel:'neutral', job:'directeur'}],
         orders: [
-          {fn:'acheter_entreprise', label:'Racheter l\'usine', pa:3, cost:8000, type:'legal', icon:'ti-building-factory', successRate:80, desc:'Genere 200 FR/jour en revenus passifs.'}
+          {fn:'acheter_entreprise', label:'Racheter l\'usine', pa:3, cost:8000, type:'legal', icon:'ti-building-factory', successRate:80, bientot:'Bientôt disponible : le rachat de cette usine n\'est pas encore en place.', desc:'Bientôt disponible : le rachat de cette usine n\'est pas encore en place.'}
         ]
       }
     }
