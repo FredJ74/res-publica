@@ -130,7 +130,9 @@ print('3. LES SEPT ORDRES NEUFS SONT ROUTES AVANT TOUT PRELEVEMENT CLIENT');
 // LE POINT DE BASCULE EST L'APPEL GENERIQUE, pas la premiere mention du mot : `deduireCoutOrdre`
 // est nommee des le dixieme caractere du fichier, dans un commentaire d'en-tete. L'ancre est
 // donc la LIGNE D'APPEL du chemin generique, celle qui preleve.
-var posCout = routeur.indexOf('const rPaiement = await deduireCoutOrdre(');
+// Depuis le 27/10/2026, le chemin generique ne preleve plus dans le navigateur : il appelle la
+// porte serveur ordre_generique_executer, qui paie elle-meme. L'ancre devient cet appel.
+var posCout = routeur.indexOf("sbRpcVerdict('ordre_generique_executer'");
 att('le point de prelevement generique du routeur est identifie', posCout > 0, 'position ' + posCout);
 ['casier_mon_extrait', 'casier_extrait_enquete', 'orga_extrait_duplicata',
  'greffe_corrompre_dossier', 'greffe_corrompre_faux_casier',
