@@ -6,7 +6,7 @@ const attendue={batiment:'office-notarial',piece:'accueil_notaire'};
 function fixture(){
  const f={ui:{...attendue},serveur:{current_building:attendue.batiment,current_room:attendue.piece,protegeeSHA256:'fixture'},attentes:0,lectures:0};
  const rapport={prevolAutomatique:{position:{...attendue}},visites:[]};
- const page={locator:()=>({first:()=>({waitFor:async()=>{await f.scene?.();}})}),waitForFunction:async(fn,args)=>{
+ const page={evaluate:async()=>({ok:true,building:f.serveur.current_building,room:f.serveur.current_room,country:'republic',city:'capitale'}),locator:()=>({first:()=>({waitFor:async()=>{await f.scene?.();}})}),waitForFunction:async(fn,args)=>{
   if(args){f.attentes++;await f.attente?.();}
  }};
  const j=new Joueur(page,{nom:'Fixture',uid:'uid-fixture'},{},rapport,new AbortController().signal);
@@ -67,6 +67,7 @@ test('Chromium local : le vrai callback de restauration de 300 ms précède la v
    // Identités et contreparties fictives, strictement dans ce serveur local.
    window.state={char:{name:'Fixture'},country:'republic',currentCity:'capitale',currentBuilding:null,currentRoom:null};
    window.SUPABASE_URL=origine;window.rpAuthUid=()=> 'uid-fixture';window.appels=[];
+    window.sbRpc=async(fn)=>{if(fn!=='rue_position_lire')throw Error('RPC_NON_AUTORISEE');return {ok:true,building:state.currentBuilding,room:state.currentRoom,country:'republic',city:'capitale'};};
    window.enterBuilding=(id,restauration)=>{if(restauration!==true||!window._restaurationPositionEnCours)throw Error('RESTaURATION_ATTENDUE');state.currentBuilding=id;appels.push('affichage-batiment');};
    window.enterRoom=(id,piece)=>{if(!window._restaurationPositionEnCours)throw Error('RESTaURATION_ATTENDUE');state.currentRoom=piece;document.getElementById('piece-image').textContent='Accueil';appels.push('affichage-piece');};
   },origine);
@@ -83,4 +84,26 @@ test('Chromium local : le vrai callback de restauration de 300 ms précède la v
  }finally{
   try{await browser?.close();}finally{try{await chrome?.arreter();}finally{serveur.closeAllConnections();await new Promise(r=>serveur.close(r));fs.rmSync(profil,{recursive:true,force:true});}}
  }
+});
+
+// Les tests suivants ne font aucun appel reseau et n'utilisent qu'une fixture.
+test('la verification de la position RPC est effectivement liee a la fiche serveur',()=>{
+ const fs=require('node:fs'),path=require('node:path'),acorn=require('acorn');
+ const source=fs.readFileSync(path.join(__dirname,'luthecia.cjs'),'utf8');
+ const ast=acorn.parse(source,{ecmaVersion:'latest'});
+ assert.ok(ast.body.length);
+ const a=source.indexOf("const positionRpc=await this.page.evaluate(");
+ const b=source.indexOf("this.rapport.positionLectureRpcConforme=true;",a);
+ assert.ok(a>0&&b>a);
+ assert.match(source.slice(a,b),/rue_position_lire/);
+ assert.match(source.slice(a,b),/positionRpc\.building!==serveur\.current_building/);
+ assert.match(source.slice(a,b),/positionRpc\.room!==serveur\.current_room/);
+ assert.match(source.slice(a,b),/POSITION_RPC_ET_FICHE_DIVERGENTES/);
+});
+
+test('divergence de la RPC de position : la consultation echoue sans se deplacer',async()=>{
+ const {f,j,rapport}=fixture();f.ui={...attendue};
+ j.page.evaluate=async()=>({ok:true,building:attendue.batiment,room:'bureau_contrats',country:'republic',city:'capitale'});
+ await assert.rejects(()=>j.consulterPositionExistante(),/POSITION_RPC_ET_FICHE_DIVERGENTES/);
+ assert.equal(rapport.visites.length,0);
 });

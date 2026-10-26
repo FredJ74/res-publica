@@ -55,7 +55,7 @@ test('clic de deplacement bloque avant rythme, identite et DOM',async()=>{const 
 
 test('consultation initiale : aucun clic, position serveur initiale et empreinte requises',async()=>{
  const c=configuration(environnement()),r={prevolAutomatique:{position:{batiment:'office-notarial',piece:'accueil_notaire'}},visites:[]};
- const page={locator:()=>({first:()=>({waitFor:async()=>{}})}),waitForFunction:async()=>{}};
+ const page={evaluate:async()=>({ok:true,building:'office-notarial',room:'accueil_notaire',country:'republic',city:'capitale'}),locator:()=>({first:()=>({waitFor:async()=>{}})}),waitForFunction:async()=>{}};
  const j=new Joueur(page,c.comptes[0],c,r,new AbortController().signal);
  j.identite=async()=>({batiment:'office-notarial',piece:'accueil_notaire'});
  j.serveur=async()=>({current_building:'office-notarial',current_room:'accueil_notaire',protegeeSHA256:'empreinte-fixture'});
