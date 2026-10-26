@@ -842,59 +842,31 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
 // inchange) ET par doRepasGastronomiqueGenerique() ci-dessous (apres verification du stock),
 // pour eviter toute duplication/divergence du moteur de jet existant.
 async function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
-  // LE CHEMIN GENERIQUE PAIE DESORMAIS AU SERVEUR (16 septembre 2026).
-  //
-  // C'etait le trou principal du systeme de PA. Tous les ordres SANS handler dedie finissent ici,
-  // et ce bloc se contentait de faire `state.pa -= pa` en memoire : aucun appel a payer_ordre,
-  // aucune verification serveur du solde ni du cout. Le serveur ne voyait jamais passer ces
-  // ordres -- ils n'apparaissaient donc meme pas dans ordres_couts_ecarts. Un joueur qui se
-  // donnait des PA pouvait les depenser sans que rien ne le contredise, et un joueur qui n'en
-  // avait pas pouvait contourner la seule garde existante (le `state.pa < pa` de doOrder).
-  //
-  // deduireCoutOrdre debite les PA ET l'argent au serveur, sous verrou, apres avoir verifie que
-  // le couple (fn, pa, cost) est un cout REELLEMENT declare, puis recopie l'etat arrete par le
-  // serveur. Les deux debits locaux qui suivaient disparaissent : ils feraient double emploi.
-  // FAIL CLOSED : un paiement refuse n'execute pas l'ordre.
-  if (typeof deduireCoutOrdre === 'function') {
-    const rPaiement = await deduireCoutOrdre({ pa, cost, fn });
-    if (!rPaiement.ok) {
-      if (typeof signalerRefusCout === 'function') signalerRefusCout(rPaiement);
-      return;
-    }
+  // L'ORDRE GENERIQUE PAR LE SERVEUR (27 octobre 2026, audit « une seule verite » §3.1).
+  // Le lieu, le poste, le paiement, le jet de reussite, les effets (sante, moral, influence,
+  // popularite, discretion) et le remboursement d'un echec sont decides par
+  // ordre_generique_executer, dans une seule transaction ; l'ecran ne fait plus que recopier.
+  // Avant, le serveur prelevait le cout mais l'ecran tirait le jet et s'appliquait les effets.
+  // Un ordre absent de la table ordres_generiques est refuse.
+  const v = (typeof sbRpcVerdict === 'function')
+    ? await sbRpcVerdict('ordre_generique_executer', { p_fn: fn, p_pa: pa || 0, p_cost: cost || 0 }).catch(() => null) : null;
+  if (!v || v.ok !== true) {
+    const motifs = { ordre_indisponible: 'Cet ordre n\'est pas disponible.',
+                     pas_sur_place: 'Il faut être sur place pour cela.',
+                     poste_requis: 'Cet ordre est réservé à un poste.' };
+    if (v && motifs[v.raison]) showToast('Ordre impossible', motifs[v.raison], false);
+    else if (typeof signalerRefusCout === 'function') signalerRefusCout(v || {});
+    return;
   }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg, solde_national: v.solde_national });
+  if (typeof v.hp === 'number') state.hp = v.hp;
+  if (typeof v.moral === 'number') state.moral = v.moral;
+  if (typeof v.pop === 'number') state.pop = v.pop;
+  if (typeof v.inf === 'number') state.inf = v.inf;
+  if (typeof v.dis === 'number') state.dis = v.dis;
+  const resultType = v.resultat;
+  const roll = v.jet;
 
-  // Roll
-  // Ajuster le taux selon le groupe pour le blocus
-  if (fn === 'organiser_blocus') {
-    const groupBonus = getGroupSize ? getGroupSize() - 1 : 0;
-    successRate = Math.min(90, 25 + groupBonus);
-  }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const malusSecurite = state.malusSecuriteMilitaire || 0;
-  const effectiveRate = Math.max(5, (successRate >= 98 ? 99 : successRate) - malusSecurite);
-  let resultType;
-  if (roll <= 100 - effectiveRate) { resultType = 'crit-fail'; }
-  else if (roll <= 100 - (effectiveRate * 0.7)) { resultType = 'fail'; }
-  else if (roll <= 100 - (effectiveRate * 0.4)) { resultType = 'partial'; }
-  else if (roll >= 95) { resultType = 'crit'; }
-  else { resultType = 'success'; }
-
-  // Ordres a succes garanti
-  // soins/soin_public/soins_basiques retires (20 aout 2026) : desormais des fn dediees
-  // (special-casees plus haut, doSoinCliniquePrivee/doSoinPublic), doOrder() ne les atteint plus
-  // jamais -- entree ici devenue inutile/trompeuse. soins_basiques n'est plus reference par aucun
-  // batiment (dispensaire-public-v est desormais branche sur soin_public comme les 2 autres).
-  // repas_gastronomique ajoute (lot carte gastronomique Le Republica, 21 aout 2026) : bug
-  // preexistant corrige (successRate:100 declare mais jamais garanti faute d'etre dans cette
-  // liste). Sans effet observable a ce jour -- le bouton qui l'exposait a ete retire de la salle
-  // du restaurant au meme lot (remplace par "Consulter la carte") -- mais le fn reste une
-  // infrastructure partagee (ORDER_EFFECTS, applyEffects, doRepasGastronomiqueGenerique) : garde
-  // deterministe si jamais rebranche ailleurs.
-  const alwaysSuccess = ['se_nourrir','dormir','se_reposer','soins_urgence','deplacer','gerer_finances','reserver','parler_pnj','se_renseigner','assister_session','voter_loi','deliberer_loge','plainte','plainte_police','archives','archives_police','acheter_terrain','se_presenter','rencontrer','repas_gastronomique'];
-  if (alwaysSuccess.includes(fn)) resultType = roll >= 95 ? 'crit' : 'success';
-
-  applyEffects(fn, resultType, cost);
   const msg = buildResultMsg(fn, resultType, desc, label);
   const isGood = ['crit','success','partial'].includes(resultType);
   showToast(buildResultLabel(resultType, roll), msg, isGood, resultType === 'crit');
@@ -910,68 +882,10 @@ async function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
   updateUI();
 }
 
-function applyEffects(fn, resultType, cost) {
-  const ef = ORDER_EFFECTS[fn] || {};
-  const mult = resultType === 'crit' ? 1.5 : resultType === 'success' ? 1 :
-               resultType === 'partial' ? 0.5 : resultType === 'fail' ? 0 : -0.5;
-
-  // REMBOURSEMENT PARTIEL SI ECHEC — DESORMAIS ATTESTE (17 septembre 2026, passe 3).
-  // Le debit de l'ordre passe par payer_ordre, qui valide le cout contre le miroir de data.js ;
-  // le remboursement, lui, etait un simple credit local (crediterFondsOrdinaires), donc une
-  // asymetrie : le serveur savait ce qu'on avait paye, mais pas ce qu'on se rendait.
-  // fonds_crediter_atteste relit le cout REEL de l'ordre dans ce meme miroir et applique la part
-  // de 30 % declaree cote serveur. Le navigateur ne transmet aucun montant, et la reference rend
-  // le rejeu sans effet. Le taux de 30 % est inchange, seulement deplace la ou il est verifiable.
-  if (resultType === 'fail' && cost > 0) {
-    const reference = 'ordre-' + fn + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
-    if (typeof sbFondsCrediterAtteste === 'function') {
-      sbFondsCrediterAtteste('remboursement_ordre_echoue', reference, fn).then(function (r) {
-        if (r && r.ok === true) {
-          if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }
-          if (typeof r.liquide === 'number') state.liquide = r.liquide;
-          if (typeof updateUI === 'function') updateUI();
-        }
-      });
-    }
-  }
-  if (resultType === 'crit-fail' && cost > 0) { /* Pas de remboursement */ }
-
-  // Appliquer effets
-  if (ef.hp)    state.hp    = Math.min(100, Math.max(0, state.hp    + Math.round(ef.hp    * mult)));
-  if (ef.moral) state.moral = Math.min(100, Math.max(0, state.moral + Math.round(ef.moral * mult)));
-  if (ef.inf)   state.inf   = Math.min(100, Math.max(0, state.inf   + Math.round(ef.inf   * mult)));
-  if (ef.pop)   state.pop   = Math.min(100, Math.max(0, state.pop   + Math.round(ef.pop   * (resultType === 'crit-fail' ? -1 : mult))));
-  if (ef.dis)   state.dis   = Math.min(100, Math.max(0, state.dis   + Math.round(ef.dis   * (ef.dis < 0 ? 1 : mult))));
-  // Lot 3 : effet de resultat generique (gain OU perte selon fn/mult), jamais un paiement
-  // "gate" -- s'applique toujours, ne peut jamais etre refuse (comportement inchange, deja
-  // borne a 0). Gain -> liquide (credit generique, meme regle que le remboursement ci-dessus).
-  // Perte -> prelevee d'abord sur liquide, jamais automatiquement sur la Banque nationale,
-  // sans jamais faire echouer l'ordre (ce n'est pas un paiement gate, deja borne a 0 comme avant).
-  if (ef.arg) {
-    const deltaArg = Math.round(ef.arg * mult);
-    if (deltaArg > 0) {
-      if (typeof crediterFondsOrdinaires === 'function') crediterFondsOrdinaires(deltaArg);
-      else state.arg = Math.min(9999999, state.arg + deltaArg);
-    } else if (deltaArg < 0) {
-      const perte = -deltaArg;
-      const preleveLiquide = Math.min(state.liquide || 0, perte);
-      state.liquide = (state.liquide || 0) - preleveLiquide;
-      state.arg = Math.min(9999999, Math.max(0, state.arg + deltaArg));
-    }
-  }
-
-  // Effets speciaux
-  // Blocus : le PA unique (1) est desormais preleve par executerOrdreGenerique comme pour tout
-  // autre ordre, AVANT le jet -- donc « quoi qu'il arrive » reste vrai. Ce second prelevement
-  // etait un doublon : cumule aux 3 PA que le bouton passait a doOrder, il portait le cout reel
-  // a 4 PA pour un ordre annonce a 1 (voir plateau-personnage.js, meme correctif).
-  if (fn === 'acheter_terrain') addToInventory({name:'Terrain (terrain en jeu)', icon:'ti-fence', type:'bien'});
-  if (fn === 'repas_gastronomique' && resultType !== 'fail' && resultType !== 'crit-fail') {
-    // Bonus differe atteste cote serveur (16 septembre 2026) : le montant est declare dans
-    // le miroir pa_bonus_differes, le client ne le choisit plus.
-    if (typeof sbRpc === 'function' && state.char?.name) { sbRpc('pa_bonus_differe_crediter', { p_acteur: state.char.name, p_source: 'repas_gastronomique' }).catch(() => {}); }
-  }
-}
+// applyEffects A DISPARU (27/10/2026) : les effets d'un ordre generique sont appliques par le
+// serveur (ordre_generique_executer). « acheter_terrain » et « repas_gastronomique », ses deux
+// effets speciaux, n'arrivaient plus ici (le premier a son propre parcours, le second n'a plus
+// de bouton).
 
 function buildResultLabel(type, roll) {
   const labels = {
