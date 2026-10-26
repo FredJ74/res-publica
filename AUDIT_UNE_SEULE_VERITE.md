@@ -134,7 +134,9 @@ modifient ces champs.
 
 ### 3.1 L'ordre générique (`plateau-router.js`, `executerOrdreGenerique`)
 
-Tout ordre qui n'a pas de traitement dédié passe par lui. Le paiement est fait par le
+Tout ordre qui n'a pas de traitement dédié passe par lui. **Rectifié le 27/10** : mesure faite,
+seuls cinq ordres réels y arrivaient (soins de la clinique, fuite, loge, interrogatoire), et non
+« des dizaines » ; `ORDER_EFFECTS` décrit 93 ordres mais la plupart ont leur propre traitement. Le paiement est fait par le
 serveur, mais **le jet de réussite (réussite critique, réussite, partielle, échec,
 échec critique) est tiré par l'écran**, et ses effets (santé, moral, influence,
 popularité, discrétion, gain d'argent) sont appliqués par l'écran à partir de
@@ -230,8 +232,9 @@ d'un ambassadeur).
   `sbCreerEngagement`, `sbCreerFaitArmes`, `sbArchiverLoi`, `sbCreerPari`,
   `sbSavePresidentClub` (`supabase.js`) ;
 - tirages sans appelant : `calculerResultatElection`, `doCorrompreGardien`,
-  `doFalsifierDocs`, `interagirPnjTerrain`, `confirmerBourrerUrnes`,
-  `confirmerFalsifierListes` ;
+  `doFalsifierDocs`, `interagirPnjTerrain` (**rectifié le 27/10** : `confirmerBourrerUrnes` et
+  `confirmerFalsifierListes` sont appelées par leur nom depuis `htmlChoixCandidatFraude` ; elles
+  sont bien en service) ;
 - `executerOrdreEmpire` (branches guerre, cessez-le-feu, sanctions) et `signerTraite`.
 
 ---
@@ -288,3 +291,11 @@ tirés au hasard et les effets purement visuels sont exclus.
   écrite par le navigateur (cotisations, sponsoring, boutique, transferts entre clubs,
   subvention ou redressement du ministère). Fermer la table suppose de passer ces cinq chemins
   au serveur, dont les transferts (table `transferts_clubs`, elle aussi ouverte).
+- **27/10 (nuit)** — §3.1 réglé : l'ordre générique passe par le serveur
+  (`ordre_generique_executer`, table `ordres_generiques`) ; « Racheter l'usine », qui faisait
+  payer 8 000 FR pour rien, est en « bientôt » (Constitution art. 15). §3.3 en partie : couvre-feu
+  et recherche militaire dans la passe de nuit du serveur (`minuit_couvre_feu_recherche`) ;
+  la croissance locale de la population supprimée. §5 : code mort supprimé (`sbSaveCompagnie`,
+  `sbCreerEngagement`, `sbCreerFaitArmes`, `sbArchiverLoi`, `sbCreerPari`, `sbSavePresidentClub`,
+  `calculerResultatElection`, `doCorrompreGardien`, `doFalsifierDocs`) ; `interagirPnjTerrain`
+  laissé (testé par un banc du chantier terrains de Codex).

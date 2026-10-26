@@ -1333,18 +1333,7 @@ async function sbCreerChampionnatSiAbsent(data) {
 // tous gardes par `typeof ... === 'function'`, une redefinition accidentelle les reactiverait
 // silencieusement.
 
-async function sbCreerPari(data) {
-  const id = 'pari-' + Date.now() + '-' + Math.floor(Math.random()*10000);
-  const ecrit = await sbInsert('paris_sportifs', { id, resolu: false, data });
-  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
-  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
-  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
-  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
-  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
-  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
-  if (!ecrit) return null;
-  return id;
-}
+// sbCreerPari SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
 async function sbGetParisJourneeNonResolus(journeeNumero, saisonNumero) {
   const rows = await sbGet('paris_sportifs', 'resolu=eq.false&select=id,data');
@@ -1434,9 +1423,7 @@ async function sbGetPresidentClub(clubId) {
   return rows[0].data;
 }
 
-async function sbSavePresidentClub(clubId, data) {
-  return sbUpsert('presidents_clubs', { id: clubId, data, updated_at: new Date().toISOString() });
-}
+// sbSavePresidentClub SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
 async function sbListTransfertsClub(clubId) {
   const rows = await sbGet('transferts_clubs', 'statut=neq.termine&select=id,data');
@@ -3697,15 +3684,7 @@ async function sbGetAmbassadesOuvertes(paysHote) {
 // et ne reflétait de toute facon que la session d'un seul joueur, pas un vrai historique
 // collectif de l'Assemblee.
 // =====================
-async function sbArchiverLoi(country, loiData) {
-  const id = loiData.id;
-  const existant = await sbGet('lois_assemblee', `id=eq.${encodeURIComponent(id)}`);
-  const data = { ...loiData };
-  if (existant && existant.length > 0) {
-    return sbUpdate('lois_assemblee', `id=eq.${encodeURIComponent(id)}`, { data });
-  }
-  return sbInsert('lois_assemblee', { id, country, data });
-}
+// sbArchiverLoi SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
 async function sbGetArchivesLois(country) {
   const rows = await sbGet('lois_assemblee', `country=eq.${encodeURIComponent(country)}&select=id,data`);
@@ -4315,18 +4294,7 @@ async function sbMarquerRapportRemonte(id) {
 // PLUS APPELEE depuis le 18 septembre 2026 : engagements_militaires n'accepte plus d'ecriture
 // cliente. Conservee pour ne pas casser un appel oublie, mais l'INSERT sera refuse par les
 // droits. Utiliser sbMilitaireEngagementCreer.
-async function sbCreerEngagement(data) {
-  const id = 'engagement-' + Date.now();
-  const ecrit = await sbInsert('engagements_militaires', { id, statut: 'attente_commandant', data });
-  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
-  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
-  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
-  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
-  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
-  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
-  if (!ecrit) return null;
-  return id;
-}
+// sbCreerEngagement SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
 async function sbGetEngagementsPays(pays, statut) {
   const rows = await sbGet('engagements_militaires', `statut=eq.${encodeURIComponent(statut)}&select=id,data`);
@@ -4340,18 +4308,7 @@ async function sbMajEngagement(id, statut, patch) {
   return sbPatcherBlob('engagements_militaires', id, patch, { statut });
 }
 
-async function sbCreerFaitArmes(data) {
-  const id = 'combat-' + Date.now();
-  const ecrit = await sbInsert('faits_armes', { id, data });
-  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
-  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
-  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
-  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
-  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
-  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
-  if (!ecrit) return null;
-  return id;
-}
+// sbCreerFaitArmes SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
 async function sbGetFaitsArmes() {
   const rows = await sbGet('faits_armes', 'select=id,data&order=created_at.desc&limit=30');
@@ -4359,9 +4316,7 @@ async function sbGetFaitsArmes() {
   return rows.map(r => ({ id: r.id, ...r.data }));
 }
 
-async function sbSaveCompagnie(id, data) {
-  return sbUpsert('compagnies_militaires', { id, data });
-}
+// sbSaveCompagnie SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
 async function sbCreerRumeurPolitique(data) {
   const id = 'rumeur-' + Date.now() + '-' + Math.floor(Math.random()*10000);

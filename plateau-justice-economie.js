@@ -957,24 +957,10 @@ function depenseBudget(institution, montant) {
 // corps.
 
 
-function mettreAJourPopulation() {
-  Object.keys(CITY_POPULATION[state.country] || {}).forEach(cityId => {
-    const pop = CITY_POPULATION[state.country][cityId];
-    if (!pop) return;
-    // Regeneration lente : +0.1% par jour
-    const regen = Math.floor(pop.total * 0.001);
-    pop.total = Math.min(pop.totalMax || pop.total * 1.5, pop.total + regen);
-    // RECALCUL RETIRE le 8 septembre 2026. Cette ligne ECRASAIT les recettes editoriales de
-    // data.js par une formule incompatible : Luthecia passait de 42 000 a 419 des le premier
-    // passage de minuit, soit une division par cent. Elle desynchronisait en outre le prorata
-    // fiscal du client de celui du serveur, et faisait diverger deux joueurs selon qu'ils avaient
-    // ou non passe minuit dans leur onglet.
-    //
-    // Aucune valeur n'est modifiee ici : on cesse simplement d'en detruire. Les recettes restent
-    // celles de data.js, qui sont aussi celles du miroir serveur. La croissance de population
-    // ci-dessus est conservee -- elle est locale, jetable, et n'ecrase rien.
-  });
-}
+// mettreAJourPopulation A DISPARU (27/10/2026, audit « une seule verite ») : elle faisait croitre
+// la population des villes de 0,1 % par nuit DANS LE SEUL NAVIGATEUR du joueur connecte a minuit,
+// si bien que deux joueurs voyaient des populations differentes. La population est celle de
+// data.js, la meme pour tous, jusqu'a ce qu'une regle serveur la fasse evoluer.
 
 async function checkDetection(fn, resultType) {
   const acte = ACTES_ILLEGAUX[fn];
@@ -4423,46 +4409,9 @@ function doCompteOffshore() {
   addJournalEntry('Compte offshore ouvert. -' + cost + ' ' + cur + '.', 'event-info');
 }
 
-function doCorrompreGardien() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 800;
-  const dup = getStatEffective('DUP');
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  const taux = Math.min(80, 30 + Math.floor(dup * 3));
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= taux) {
-    state.dis = Math.max(0, (state.dis||50) - 5);
-    updateUI();
-    showToast('Gardien corrompu !', 'Il regardera ailleurs. -5 DIS.', true);
-    addJournalEntry('Gardien corrompu. -' + cost + ' ' + cur + '.', 'event-bad');
-  } else {
-    updateUI();
-    showToast('Refus du gardien !', 'Il n\'a pas accepté. Argent perdu.', false);
-    addJournalEntry('Corruption gardien échouée. -' + cost + ' ' + cur + '.', 'event-bad');
-  }
-}
+// doCorrompreGardien SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
-async function doFalsifierDocs() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 500;
-  // Falsifier un document est une competence technique (INT), pas un numero de charme (DUP) --
-  // reclasse par l'audit de refonte de la creation de personnage (bêta).
-  const int = getStatEffective('INT');
-  const debit = await debiterFondsOrdinaires(cost);
-  if (!debit.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  const taux = Math.min(75, 25 + Math.floor(int * 3));
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= taux) {
-    addToInventory({ name: 'Document falsifié', icon: 'ti-file-x', type: 'document_falsifie', legal: false, desc: 'Document officiel falsifié.' });
-    updateUI();
-    showToast('Documents falsifiés !', '-' + cost + ' ' + cur + '. Document ajouté à l\'inventaire.', true);
-    addJournalEntry('Falsification docs réussie. -' + cost + ' ' + cur + '.', 'event-bad');
-  } else {
-    updateUI();
-    showToast('Falsification ratée !', 'Le faussaire a échoué. Argent perdu.', false);
-  }
-}
+// doFalsifierDocs SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
 async function doImprimerClandestin() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
