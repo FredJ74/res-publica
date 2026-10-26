@@ -1410,35 +1410,7 @@ function confirmerVote(electionId, candidatIdx) {
   addJournalEntry('Vote exprime pour ' + election.candidats[candidatIdx].nom + ' (' + election.nom + ')', 'event-info');
 }
 
-function calculerResultatElection(election) {
-  if (!election || !election.candidats) return;
-  const total = election.candidats.reduce((s, c) => s + (c.voix||0), 0) || 1;
-  // Ajouter voix PNJ pour simulation realiste
-  election.candidats.forEach(c => {
-    if (!c.isPJ) c.voix = (c.voix||0) + Math.floor(Math.random() * 200 + 50);
-  });
-  const sorted = [...election.candidats].sort((a,b) => (b.voix||0) - (a.voix||0));
-  const totalFinal = sorted.reduce((s,c) => s + (c.voix||0), 0);
-  const premier = sorted[0];
-  const pct = Math.round((premier.voix||0) / totalFinal * 100);
-
-  if (pct > 50) {
-    // Elu au premier tour
-    election.phase = 'termine';
-    election.resultat = { elu: premier.nom, pct, tour: 1 };
-    addExternalEvent('ELECTION : ' + premier.nom + ' elu(e) au 1er tour avec ' + pct + '% des voix (' + election.nom + ')');
-    addMailNotification('Commission Electorale', 'Resultats election : ' + election.nom, premier.nom + ' est elu(e) avec ' + pct + '% des voix. Mandat de 5 semaines.');
-  } else {
-    // Second tour entre les 2 premiers
-    const deuxieme = sorted[1];
-    election.tour = 2;
-    election.phase = 'campagne';
-    election.candidats = [sorted[0], sorted[1]].map(c => ({...c, voix: 0}));
-    election.jourResultat = election.jourResultat + 7;
-    addExternalEvent('ELECTION : Aucun candidat n\'a la majorite. Second tour entre ' + premier.nom + ' et ' + deuxieme.nom);
-    addMailNotification('Commission Electorale', '2eme tour — ' + election.nom, 'Aucun candidat n\'a obtenu la majorite absolue. Second tour entre ' + premier.nom + ' et ' + deuxieme.nom + '.');
-  }
-}
+// calculerResultatElection SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
 // =====================
 // BOITE MAIL
