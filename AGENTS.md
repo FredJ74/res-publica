@@ -5,6 +5,7 @@ Ce fichier s'adresse à **tous les agents de code** qui travaillent sur ce dép�
 
 
 **Avant toute décision de game design, lire `CONSTITUTION.md`** (document fondateur I sur IV de Fred, 2 octobre 2026) : elle dit pourquoi les règles sont ce qu'elles sont, et à quoi l'on reconnaît qu'une règle trahit le projet.
+**L'état du socle et des mécaniques est dans `ARCHITECTURE.md`** : les couches du jeu, l'inventaire des mécaniques et la marche à suivre pour un nouvel empire. Le tenir à jour.
 
 ## Qui fait quoi
 
