@@ -1,3 +1,5 @@
+-- APPLIQUEE le 26/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261026221837.
+-- Eprouvee apres application en transaction annulee (credit non adosse refuse, credit adosse accepte, vente de bois, virements usine-ministere). Baseline NON reextrait.
 -- ============================================================================
 -- CAISSES (suite de 20261026020000) : credit de caisse de batiment adosse, primitives retirees
 -- au navigateur, virements usine <-> ministere par le serveur (26 octobre 2026).
