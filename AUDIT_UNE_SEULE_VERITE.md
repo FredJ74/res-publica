@@ -277,3 +277,14 @@ tirés au hasard et les effets purement visuels sont exclus.
   ministère et vente de bois à une imprimerie entièrement par le serveur (la vente de bois
   perdait l'argent du vendeur et lui laissait son bois). Migrations `20261026020000` et
   `020100`. Reste du §1.2 : `impact_deposer` (dégâts) et `personnage_ajuster_pop_inf`.
+- **26/10 (soir) — correctif** : le débit des fonds ordinaires alimente aussi le registre
+  (migration `20261026030000`), sinon la recette de plusieurs achats (box du port, sels,
+  petite annonce, lobbying, sponsoring) aurait été refusée.
+- **Constaté en passant, à reprendre** : l'achat d'un lot de fret non réclamé
+  (`acheterLotNonReclameeFret`) se fait entièrement dans le navigateur — l'acheteur n'est pas
+  débité (le serveur ignore la baisse de son argent), les objets n'arrivent que sur son écran ;
+  sa recette est désormais refusée. Il faut une fonction serveur d'achat de lot.
+- **Tables ouvertes, budgets des clubs** : la caisse d'un club (`budgets_clubs.caisse`) est
+  écrite par le navigateur (cotisations, sponsoring, boutique, transferts entre clubs,
+  subvention ou redressement du ministère). Fermer la table suppose de passer ces cinq chemins
+  au serveur, dont les transferts (table `transferts_clubs`, elle aussi ouverte).
