@@ -2709,10 +2709,7 @@ async function sbLoadPlaintes(country) {
 // =====================
 // OBJETS ABANDONNES DANS UNE PIECE (visibles/ramassables par d'autres joueurs)
 // =====================
-async function sbAbandonnerObjet(objet, country, city, buildingId, roomId) {
-  const data = { id: objet.id, country, city, building_id: buildingId, room_id: roomId, data: JSON.stringify(objet) };
-  return sbInsert('objets_abandonnes', data);
-}
+// sbAbandonnerObjet SUPPRIMEE le 27/10/2026 : abandon par inventaire_abandonner, ramassage par objet_abandonne_ramasser (serveur).
 
 async function sbGetObjetsAbandonnesDansPiece(country, city, buildingId, roomId) {
   const filtre = `country=eq.${encodeURIComponent(country)}&city=eq.${encodeURIComponent(city)}&building_id=eq.${encodeURIComponent(buildingId)}&room_id=eq.${encodeURIComponent(roomId)}`;
@@ -2721,9 +2718,7 @@ async function sbGetObjetsAbandonnesDansPiece(country, city, buildingId, roomId)
   return rows.map(r => { try { return JSON.parse(r.data); } catch(e) { return null; } }).filter(Boolean);
 }
 
-async function sbRamasserObjetAbandonne(objetId) {
-  return sbDelete('objets_abandonnes', `id=eq.${encodeURIComponent(objetId)}`);
-}
+// sbRamasserObjetAbandonne SUPPRIMEE le 27/10/2026 : abandon par inventaire_abandonner, ramassage par objet_abandonne_ramasser (serveur).
 
 // Don direct d'objet a un vrai joueur — reellement persiste (contrairement a l'ancien
 // mecanisme purement local qui faisait juste disparaitre l'objet chez l'expediteur sans
