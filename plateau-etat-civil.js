@@ -305,20 +305,9 @@ function etatCivilActeDejaPossede(acte, nomConcerne) {
 // (maire adjoint/juge) delivrant l'acte d'un tiers, l'extrait rejoint le classeur du fonctionnaire
 // qui l'a etabli, exactement le comportement deja existant de l'ancien delivrerActe(). Renvoie
 // false sans rien faire si deja possede (anti-doublon).
-function etatCivilDelivrerActe(acte, nomConcerne) {
-  if (etatCivilActeDejaPossede(acte, nomConcerne)) return false;
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({
-    id: etatCivilCleActe(acte, nomConcerne) + '-' + Date.now(),
-    acteCle: etatCivilCleActe(acte, nomConcerne),
-    type: 'acte_officiel_' + acte.type,
-    name: acte.titre,
-    icon: 'ti-file-certificate',
-    legal: true,
-    concerne: nomConcerne,
-    desc: acte.texte
-  });
-  return true;
+async function etatCivilDelivrerActe(acte, nomConcerne, pa, cost) {
+  return await executerReceptionInventaire('etat_civil_document_recevoir', { p_nom: nomConcerne, p_type: acte.type,
+    p_reference: acte.id || null, p_pa: pa, p_cost: cost });
 }
 
 // Recherche par nom pour les fonctions habilitees (maire adjoint/juge) : contrairement a
@@ -421,26 +410,8 @@ function etatCivilAfficherFiche(nomPersonne) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-function etatCivilImprimerFiche(nomPersonne) {
-  const fiche = etatCivilConstruireFiche(nomPersonne);
-  if (!fiche) return;
-  if (!state.inventory) state.inventory = [];
-
-  const dejaImprimee = state.inventory.some(function(item) { return item.name === 'Fiche d\'état-civil — ' + fiche.nom; });
-  if (dejaImprimee) {
-    if (typeof showToast === 'function') showToast('Déjà en poche', 'Vous avez déjà cette fiche dans votre inventaire.', false);
-    return;
-  }
-
-  const texteComplet = fiche.evenements.map(function(e) { return e.texte; }).join('<br><br>');
-  state.inventory.push({
-    id: 'fiche-etat-civil-' + fiche.nom.replace(/\s+/g, '-').toLowerCase() + '-' + Date.now(),
-    name: 'Fiche d\'état-civil — ' + fiche.nom,
-    icon: 'ti-file-text',
-    desc: texteComplet
-  });
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(function() {});
-  if (typeof updateUI === 'function') updateUI();
-  if (typeof renderInventory === 'function') renderInventory();
-  if (typeof showToast === 'function') showToast('Fiche imprimée', fiche.nom + ' ajouté(e) à votre inventaire.', true);
+async function etatCivilImprimerFiche(nomPersonne) {
+  const v = await executerReceptionInventaire('etat_civil_document_recevoir', { p_nom: nomPersonne, p_type: 'fiche', p_reference: null, p_pa: 0, p_cost: 0 });
+  if (!v) return;
+  updateUI(); renderInventory(); showToast('Fiche imprimée', v.objet + ' ajouté à votre inventaire.', true);
 }

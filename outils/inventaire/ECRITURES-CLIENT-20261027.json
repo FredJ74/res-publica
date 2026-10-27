@@ -30,7 +30,7 @@
     "plateau-equipements-collectifs.js": "ae9fab392fe6101da00d4d4df5af4cd4e177746c8287d56e5194fa9f90f89c5d",
     "plateau-equipements.js": "816b693bcd30699791f8585948224eba326edfbbfde3945ba16c83356f5bea48",
     "plateau-escorts-agence.js": "674529700be920ad6000770380464caeeca27307300ebf733ed03740e4ed617f",
-    "plateau-etat-civil.js": "b1310c67034a13c5e395444ba378c84205a799afd475392b223d01272ba63196",
+    "plateau-etat-civil.js": "1514840f2dbb31c3c5b8693e8bd3e1aba049e340bdb02ac7b86a600cffd55b4c",
     "plateau-fonds.js": "a63e45f817c12c7cd14b8499e96f9b2ee56ee02c800f99e2c1ef4da28ecc8cdd",
     "plateau-football-realisateur-ia.js": "22765c5090b353105603ae731157e3a8e6e2c05bb87af75a3bbb817507064213",
     "plateau-football-realisateur-simulateur.js": "423298d674ccf0ae77e8ec74d8c8d935487a4f10daac196602ed5c73d59541b9",
@@ -38,7 +38,7 @@
     "plateau-gouvernement.js": "07beead30f55c786dd35e39bef7a00590daa91b6a6dc046731c866b793ebf9e6",
     "plateau-immobilier.js": "b64db42d762345ef00b29afe2a4aca1ba04e0d1408cc41e0129c0f5b73d9264e",
     "plateau-journal-ventes.js": "b093d7ff17563e461dcbbdcdd15d7ecd1e1c092ed4188a4edbe6e3f0f2696441",
-    "plateau-justice-economie.js": "87710b578a2b516085a3474eb93514538ed7a1df9dbd40b021f54f997131f000",
+    "plateau-justice-economie.js": "ec3395fe507acdaa42628668225a70937af972628eb0201101f2667dc721b6aa",
     "plateau-logements-montrouge.js": "75cc0fa7b3147de1aadd29ff0639747cb060eddbc9eb9a4b23597c46ea5f1034",
     "plateau-maxence.js": "3b9efb92704b72370fb7bb3d3d14562866881be6aa7b6332ac1874fe961aa52b",
     "plateau-militaire-terminal.js": "54a5cb2530d4b8720a056891fd14702bb437ad97a1ec645263195b33f031f386",
@@ -414,48 +414,6 @@
       "extrait": "state.inventory.push({ id: 'calepin-enigme1', name: \"Calepin de l'enquête\", icon: 'ti-notebook', imageUrl: 'images/calepin-enigme-musee.webp', desc: \"Un petit calepin. Chaque page se remplit au fil de ce que vous découvrez.\", calepinEnigme1"
     },
     {
-      "fichier": "plateau-etat-civil.js",
-      "ligne": 310,
-      "fonction": "etatCivilDelivrerActe",
-      "type": "retrait_ou_remplacement",
-      "extrait": "!state.inventory"
-    },
-    {
-      "fichier": "plateau-etat-civil.js",
-      "ligne": 310,
-      "fonction": "etatCivilDelivrerActe",
-      "type": "retrait_ou_remplacement",
-      "extrait": "state.inventory = []"
-    },
-    {
-      "fichier": "plateau-etat-civil.js",
-      "ligne": 311,
-      "fonction": "etatCivilDelivrerActe",
-      "type": "ajout_local",
-      "extrait": "state.inventory.push({ id: etatCivilCleActe(acte, nomConcerne) + '-' + Date.now(), acteCle: etatCivilCleActe(acte, nomConcerne), type: 'acte_officiel_' + acte.type, name: acte.titre, icon: 'ti-file-certificate', legal: true, concerne: nomCo"
-    },
-    {
-      "fichier": "plateau-etat-civil.js",
-      "ligne": 427,
-      "fonction": "etatCivilImprimerFiche",
-      "type": "retrait_ou_remplacement",
-      "extrait": "!state.inventory"
-    },
-    {
-      "fichier": "plateau-etat-civil.js",
-      "ligne": 427,
-      "fonction": "etatCivilImprimerFiche",
-      "type": "retrait_ou_remplacement",
-      "extrait": "state.inventory = []"
-    },
-    {
-      "fichier": "plateau-etat-civil.js",
-      "ligne": 436,
-      "fonction": "etatCivilImprimerFiche",
-      "type": "ajout_local",
-      "extrait": "state.inventory.push({ id: 'fiche-etat-civil-' + fiche.nom.replace(/\\s+/g, '-').toLowerCase() + '-' + Date.now(), name: 'Fiche d\\'état-civil — ' + fiche.nom, icon: 'ti-file-text', desc: texteComplet })"
-    },
-    {
       "fichier": "plateau-fonds.js",
       "ligne": 73,
       "fonction": "memeTitulaire",
@@ -485,70 +443,70 @@
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 5807,
+      "ligne": 5794,
       "fonction": "confirmerAchatEntrepot",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = v.inventory || state.inventory"
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 5928,
+      "ligne": 5915,
       "fonction": "confirmerVendreBoisImprimerie",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = r.inventory"
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 6162,
+      "ligne": 6149,
       "fonction": "confirmerVenteDirecteUsine",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = v.inventory || state.inventory"
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 6526,
+      "ligne": 6513,
       "fonction": "vendreMatierePremiereUsine",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = v.inventory || state.inventory"
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 6783,
+      "ligne": 6770,
       "fonction": "confirmerAchatArmoireSouvenirs",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = v.inventory || state.inventory"
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 8401,
+      "ligne": 8388,
       "fonction": "confirmerDepotPermis",
       "type": "changement_objet_candidat",
       "extrait": "!r.etat"
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 9746,
+      "ligne": 9733,
       "fonction": "confirmerAcheterCriee",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = v.inventory || state.inventory"
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 10736,
+      "ligne": 10723,
       "fonction": "confisquerObjets",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = r.inventory || state.inventory || []"
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 12676,
+      "ligne": 12663,
       "fonction": "confirmerVolMateriaux",
       "type": "ajout_local",
       "extrait": "addToInventory({ name: res.label || matiere, icon: res.icon, stackable: true, stackKey: matiere, qty: qte, desc: 'Dérobé sur un chantier.' })"
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 14841,
+      "ligne": 14828,
       "fonction": "rafraichirInventaireDepuisServeur",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = inv"

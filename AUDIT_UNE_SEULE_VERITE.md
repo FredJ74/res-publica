@@ -455,7 +455,7 @@ tirés au hasard et les effets purement visuels sont exclus.
   29 assertions sous authenticated ; 12 tests Node. Fret et autres sites restent à traiter.
   `inventaire_sauver_revision` reste inchangée, conformément à Fred.
 
-- **27/10 — lot fret préparé NON appliqué** (`20261027213000`) : dépôt, reprise,
+- **27/10 — lot fret préparé NON appliqué** (`20261027213520`) : dépôt, reprise,
   retrait et achat du lot indivisible rejoignent les reçus et le dépôt commun. L'index d'inventaire
   est lié à sa révision ; caisse, paiement, objets et lignes sont dans une seule transaction.
   Les contenus ne sont plus créables/augmentables par REST ; la diminution douanière existante
@@ -471,7 +471,7 @@ tirés au hasard et les effets purement visuels sont exclus.
   `doAcheterEntreprise` à un ancien handler non raccordé (l'ordre usine reste bientôt).
   Ces quatre producteurs morts sont retirés sans inventer de nouvelles actions serveur.
 
-- **27/10 — lot employés/groupe préparé NON appliqué** (`20261027215500`) :
+- **27/10 — lot employés/groupe préparé NON appliqué** (`20261027213521`) :
   extension de `pnj_objet_transferer`, réutilisation du lecteur et du dépôt commun. Sélection
   versionnée côté PJ, identifiant stable côté PNJ, quantité partielle, protection des objets
   de quête et des équipements miroirs, reçus et rollback. Les quatre boutons concernés ne
@@ -480,7 +480,7 @@ tirés au hasard et les effets purement visuels sont exclus.
   PNJ. Elles sont conservées, les transferts concernés refusés, jamais convertis silencieusement.
   Le lot ne doit pas être activé avant ce rapprochement et la protection de ses anciennes écritures.
 
-- **27/10 — accessoires de club préparés NON appliqués** (`20261027221000`) :
+- **27/10 — accessoires de club préparés NON appliqués** (`20261027213522`) :
   modèles de catalogue, prix historiques 80/60/150, club réel de la ville, loi, capacité,
   paiement, budget existant et dépôt dans une seule transaction avec reçu. Banc : 40 assertions
   SQL dont 29 communes, au rôle authenticated, transaction annulée. Les anciens écrivains de
@@ -488,3 +488,11 @@ tirés au hasard et les effets purement visuels sont exclus.
   Relevé statique des écritures et prévol vivant en lecture seule sous `outils/inventaire/`.
   **Le verrou final n'est ni préparé ni appliqué : les autres réceptions et changements
   d'objets ne sont pas encore tous passés sous autorité serveur.**
+
+- **27/10 — état civil préparé NON appliqué** (`20261027214000`) : actes de naissance,
+  mariage/dissolution, décès d'un PJ absent et successions définitivement réglées établis depuis
+  les tables existantes, poste attesté (pas le seul libellé affiché), coût du site, unicité,
+  dépôt et reçu. Les textes d'acte ne sont plus envoyés par le navigateur. Fiches historiques
+  copiées dans le catalogue, fiches PJ produites depuis leurs événements réels ; aucun mariage,
+  décès ou dossier de succession créé pour livrer un objet. 46 assertions PostgreSQL, dont 29
+  communes, transaction annulée sous authenticated. Le verrou final reste inchangé.

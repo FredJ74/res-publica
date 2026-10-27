@@ -46,3 +46,14 @@ test('accessoire : le client ne transmet ni tarif ni nom ni objet au serveur',as
  let demande;const c=vm.createContext({executerReceptionInventaire:async(fn,p)=>{demande={fn,p};return {ok:true,objet:'Écharpe — Club serveur',prix:80};},document:{getElementById:()=>({classList:{remove(){}}})},updateUI(){},showToast(){},addJournalEntry(){},getClubLocal:()=>assert.fail('club client ne fait pas autorite'),crediterBudgetClub:()=>assert.fail('credit client'),addToInventory:()=>assert.fail('ajout client')});
  vm.runInContext(fonction('plateau-organisations-quetes.js','confirmerAchatAccessoireClub'),c);await c.confirmerAchatAccessoireClub('echarpe','FAUX',1,0,0);assert.equal(demande.fn,'club_accessoire_acheter');assert.deepEqual(Object.keys(demande.p).sort(),['p_accessoire','p_cost','p_pa']);assert.equal(demande.p.p_accessoire,'echarpe');
 });
+test('acte officiel : le contenu affiche ne peut pas devenir un objet dicte au serveur',async()=>{
+ let demande;const c=vm.createContext({executerReceptionInventaire:async(fn,p)=>{demande=p;return {ok:true};}});
+ vm.runInContext(fonction('plateau-etat-civil.js','etatCivilDelivrerActe'),c);await c.etatCivilDelivrerActe({type:'mariage',id:'archive-reelle',titre:'FAUX',texte:'ARME'},'Fixture',1,0);assert.deepEqual(Object.keys(demande).sort(),['p_cost','p_nom','p_pa','p_reference','p_type']);assert.equal(demande.p_reference,'archive-reelle');
+});
+test('fiche imprimee par RPC, sans sauvegarde generale ni ajout local',async()=>{
+ let fn;const c=vm.createContext({executerReceptionInventaire:async(f)=>{fn=f;return {ok:true,objet:'Fiche serveur'};},updateUI(){},renderInventory(){},showToast(){},sbSavePersonnage:()=>assert.fail('sauvegarde fiche'),state:{inventory:[]}});
+ vm.runInContext(fonction('plateau-etat-civil.js','etatCivilImprimerFiche'),c);await c.etatCivilImprimerFiche('Fixture');assert.equal(fn,'etat_civil_document_recevoir');assert.equal(c.state.inventory.length,0);
+});
+test('confirmation d acte attend la reponse sans paiement separe et sans fausse reussite',async()=>{
+ let toasts=0;const c=vm.createContext({_acteOfficielChoixCache:[{type:'naissance'}],etatCivilDelivrerActe:async()=>null,deduireCoutOrdre:()=>assert.fail('debit separe'),showToast:()=>toasts++});vm.runInContext(fonction('plateau-justice-economie.js','confirmerActeOfficiel'),c);await c.confirmerActeOfficiel(0,'Fixture',1,100);assert.equal(toasts,0);
+});

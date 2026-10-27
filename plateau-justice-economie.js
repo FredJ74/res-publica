@@ -2739,25 +2739,12 @@ function ouvrirModalChoixActeOfficiel(actes, nomPersonne, opts) {
 }
 
 async function confirmerActeOfficiel(idx, nomPersonne, pa, cost) {
-  const acte = _acteOfficielChoixCache[idx];
-  if (!acte) return;
-  if (typeof etatCivilActeDejaPossede === 'function' && etatCivilActeDejaPossede(acte, nomPersonne)) {
-    document.getElementById('modal-postes').classList.remove('open');
-    showToast('Déjà en poche', 'Vous avez déjà cet acte dans votre inventaire.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) {
-    const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
-    showToast(r.raison === 'fonds_insuffisants' ? 'Fonds insuffisants' : 'PA insuffisants', r.raison === 'fonds_insuffisants' ? cost + ' ' + cur + ' requis.' : pa + ' PA requis.', false);
-    return;
-  }
-  document.getElementById('modal-postes').classList.remove('open');
-  if (typeof etatCivilDelivrerActe === 'function') etatCivilDelivrerActe(acte, nomPersonne);
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-  updateUI();
-  showToast('Acte délivré', acte.titre + ' ajouté à votre inventaire.', true, true);
-  addJournalEntry('Acte officiel obtenu : ' + acte.titre + (nomPersonne !== state.char?.name ? ' (' + nomPersonne + ')' : ''), 'event-info');
+  const acte = _acteOfficielChoixCache[idx]; if (!acte) return;
+  const v = await etatCivilDelivrerActe(acte, nomPersonne, pa, cost);
+  if (!v) return;
+  document.getElementById('modal-postes').classList.remove('open'); updateUI();
+  showToast('Acte délivré', v.objet + ' ajouté à votre inventaire.', true);
+  addJournalEntry('Acte officiel obtenu : ' + v.objet, 'event-info');
 }
 
 function ouvrirContesterResultats(pa, cost) {

@@ -7,7 +7,7 @@ def scenario(q,own,call,check,uid,snapshot,Json):
  import psycopg2
  for table,domain in [('clubs_sportifs_regles','sport'),('budgets_clubs','finances-publiques')]:
   s=(R/f'baseline/domaines/{domain}/10_tables.sql').read_text();own(re.search(r'CREATE TABLE public\.'+table+r' \([\s\S]*?\n\);',s)[0]);own(f'ALTER TABLE {table} ADD PRIMARY KEY('+('club_id' if table=='clubs_sportifs_regles' else 'id')+');')
- for _ in range(2):own((R/'migrations/20261027221000_inventaire_accessoires_club.sql').read_text())
+ for _ in range(2):own((R/'migrations/20261027213522_inventaire_accessoires_club.sql').read_text())
  own("INSERT INTO clubs_sportifs_regles VALUES('fixture-club','Club fictif','republic','capitale',70);INSERT INTO ordres_couts VALUES('choisir_accessoire_club',0,0)")
  own("UPDATE personnages_donnees SET current_building='stade',current_room='buvette',inventory='[]',liquide=100,arg=300 WHERE name='Fixture'")
  def achat(k,modele='echarpe',pa=0,cost=0):return call('club_accessoire_acheter',[uid(k),modele,pa,cost])
