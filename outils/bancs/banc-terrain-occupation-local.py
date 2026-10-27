@@ -38,6 +38,8 @@ def main():
   check(appel()['etat']==avant)
   q.execute("UPDATE personnages_donnees SET name='Fixture' WHERE name='Renomme';SET hg.fixture='Fixture'")
   q.execute("UPDATE personnages_donnees SET current_city=current_city WHERE name='Fixture'");check(appel()['etat']==avant)
+  # Aucune nouvelle generation si un autre visiteur est encore sur le terrain.
+  q.execute("SET hg.fixture='Autre'");check(appel()['etat']==avant)
   # Changement de la fiche sans changement effectif de lieu : aucune visite perdue.
   q.execute('SELECT count(*) FROM terrain_visites_actives');check(q.fetchone()[0]==2)
   q.execute("UPDATE personnages_donnees SET current_building=current_building,current_city=current_city WHERE name='Fixture'")
@@ -50,8 +52,6 @@ def main():
   q.execute("SET hg.fixture='Fixture'")
   check(appel()['etat']==avant)
   q.execute("SELECT count(*) FROM terrain_visites_actives");check(q.fetchone()[0]==2)
-  # Aucune nouvelle generation si un autre visiteur est encore sur le terrain.
-  q.execute("SET hg.fixture='Autre'");check(appel()['etat']==avant)
   q.execute("UPDATE personnages_donnees SET current_building=NULL WHERE name='Fixture'")
   q.execute('SELECT count(*) FROM terrain_visites_actives');check(q.fetchone()[0]==1)
   check(appel()['etat']==avant)
