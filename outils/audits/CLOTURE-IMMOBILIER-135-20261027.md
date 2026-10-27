@@ -62,3 +62,7 @@ Le helper BNE `chantier_besoin_jour_interne`, auparavant non archivé, est signa
 L'intervention nécessaire est de rendre disponibles les accès techniques GitHub, Supabase et Vercel dans une session d'exécution poursuivant cette branche. Pas de nouveau compte Arnie, pas de changement de secret, pas de SQL à faire exécuter par Fred. L'agent pourra alors lire les campagnes existantes et le catalogue réel, terminer le raccordement privé, éprouver puis ouvrir/fusionner les corrections admissibles et vérifier les ressources effectivement servies. Des comptes explicitement réservés seront nécessaires pour les déplacements authentifiés ; Arnie ne les remplace pas.
 
 Ne pas fermer #135 tant que le raccordement privé, l'intégration et le déploiement ainsi que les limites de la recette authentifiée ne sont pas réellement établis. Aucun déplacement de joueur réel, prêt, transfert, achat, combat ou écriture Supabase n'a été effectué ici.
+
+## Sauvegarde et tentative de revue
+
+Le correctif et les preuves sont poussés dans le commit `736ab07` sur `codex/cloture-immobilier-135-20261027`. La création de PR en brouillon a été tentée avec le client GitHub autorisé ; elle échoue avant création par `Post "https://api.github.com/graphql": Forbidden`. Aucun numéro de PR n'est attribué, aucune fusion effectuée et aucun déploiement revendiqué. La mise à jour de l'issue #135 est également inaccessible par cette API ; son texte de suivi est conservé ici et dans RELAIS.
