@@ -16,7 +16,10 @@ ambassades ni au Bureau de l'Emploi.**
   (`religion_agir`, `20261027040000`/`040100`) — `titulaires_pnj` et `contributions_piete` ne sont
   plus écrites par les joueurs. **Codex : pour la popularité ou l'influence rendues par une RPC,
   utiliser `adopterJaugeServeur('pop'|'inf', valeur)`, jamais `state.pop = v.pop`** (double
-  comptage à la sauvegarde suivante).
+  comptage à la sauvegarde suivante). **Bancs SQL : se placer au rôle `authenticated`** (`set_config('role','authenticated',true)`),
+  sinon `est_appel_serveur()` est vrai et masque les défauts (c'est ainsi que l'annulation des
+  gains de popularité écrits par le serveur est passée inaperçue ; corrigé, `20261027050000`).
+  Démenti et rumeurs politiques par le serveur (`dementi_executer`, `20261027060000`).
 - **Corrections « une seule vérité » (Fred, 26/10 : « fais dans l'ordre que tu veux »)** — Claude.
   Fait : caisses adossées (`fonds_en_transit`, `batiment_caisse_client_crediter`, primitives de
   caisse retirées au navigateur, `usine_virer_vers_ministere`, `ministere_virer_vers_usine`,

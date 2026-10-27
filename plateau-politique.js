@@ -10205,26 +10205,31 @@ async function doDementiOfficiel(pa, cost) {
   document.getElementById('postes-body').innerHTML = html;
 }
 
+// DEMENTI PAR LE SERVEUR (27 octobre 2026) : poste, rumeur, paiement, jet (80 %), popularite
+// rendue ou perte doublee, annonce -- tout est decide par dementi_executer. popPerdu n'est plus
+// envoye : le serveur le lit sur la rumeur.
+const MOTIFS_DEMENTI = { reserve_gouvernement: 'Seuls le président et les membres du gouvernement peuvent démentir officiellement.',
+                         rumeur_introuvable: 'Cette rumeur a déjà été démentie ou n\'existe plus.',
+                         cible_hors_gouvernement: 'Cette rumeur ne vise pas le gouvernement.' };
 async function confirmerDementi(rumeurId, cible, popPerdu, pa, cost) {
   document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const taux = 80; // successRate declare sur l'ordre
-
-  if (roll <= taux) {
-    if (typeof sbResoudreRumeur === 'function') await sbResoudreRumeur(rumeurId).catch(() => {});
-    const nouveauPop = typeof sbAjusterPopJoueur === 'function' ? await sbAjusterPopJoueur(cible, popPerdu, 'dementi_reussi').catch(() => null) : null;
-    if (cible === state.char?.name && nouveauPop !== null) { state.pop = nouveauPop; updateUI(); }
-    showToast('Démenti réussi !', 'La rumeur est effacée, la popularité de ' + cible + ' est rétablie.', true, true);
-    addJournalEntry('Démenti officiel réussi concernant ' + cible + '.', 'event-good');
-    addExternalEvent('📢 La présidence dément officiellement les rumeurs concernant ' + cible + '.');
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('dementi_executer', { p_rumeur_id: rumeurId, p_pa: pa, p_cost: cost }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v && MOTIFS_DEMENTI[v.raison]) showToast('Démenti impossible', MOTIFS_DEMENTI[v.raison], false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+    return;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
+  if (v.cible === state.char?.name && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.pop_cible);
+  updateUI();
+  if (v.reussi) {
+    showToast('Démenti réussi !', 'La rumeur est effacée, la popularité de ' + v.cible + ' est rétablie.', true, true);
+    addJournalEntry('Démenti officiel réussi concernant ' + v.cible + '.', 'event-good');
   } else {
-    const nouveauPop = typeof sbAjusterPopJoueur === 'function' ? await sbAjusterPopJoueur(cible, -(popPerdu * 2), 'dementi_rate').catch(() => null) : null;
-    if (cible === state.char?.name && nouveauPop !== null) { state.pop = nouveauPop; updateUI(); }
-    showToast('Démenti raté !', 'L\'opération se retourne contre ' + cible + '. Perte de popularité doublée.', false);
-    addJournalEntry('Démenti officiel raté, la situation s\'aggrave pour ' + cible + '.', 'event-bad');
-    addExternalEvent('📢 Le démenti officiel de la présidence échoue, aggravant les soupçons sur ' + cible + '.');
+    showToast('Démenti raté !', 'L\'opération se retourne contre ' + v.cible + '. Perte de popularité doublée.', false);
+    addJournalEntry('Démenti officiel raté, la situation s\'aggrave pour ' + v.cible + '.', 'event-bad');
   }
 }
 
@@ -14826,15 +14831,12 @@ async function doTorturerPrisonnierQHS(prisonnierId) {
     .then(rows2 => Array.isArray(rows2) ? rows2[0] : rows2).catch(() => null);
   if (!rTo || rTo.ok !== true) { showToast('Interrogatoire impossible', messageRefusQhs(rTo), false); return; }
 
-  // Sanction immediate et automatique sur le MJ : POP et INF a 10
-  state.pop = 10; state.inf = 10;
+  // Sanction du Ministre (POP et INF a 10) et rumeur : ecrites par le serveur (qhs_pouvoir, 27/10/2026).
+  if (typeof adopterJaugeServeur === 'function') { adopterJaugeServeur('pop', rTo.pop_ministre); adopterJaugeServeur('inf', rTo.inf_ministre); }
   updateUI();
 
   // Trace exploitable par les rumeurs et les enquetes
   if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('torture_qhs', p.nom);
-  if (typeof sbCreerRumeurPolitique === 'function') {
-    await sbCreerRumeurPolitique({ cible: mjNom, contenu: 'Le Ministre de la Justice ferait torturer des détenus au QHS.', auteur: 'Anonyme', jour: state.day || 1, popPerdu: 40 }).catch(() => {});
-  }
 
   // Alerte automatique au president et au premier ministre si le MJ est toujours en poste
   const presidentInfoTorture = await getTitulaireActuel('president', null, pays);
