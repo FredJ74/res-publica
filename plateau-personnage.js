@@ -3227,8 +3227,23 @@ async function doDormirChambre() {
     showToast('Chambre non réservée', 'Aucune nuitée disponible ici. Les nuits réservées ailleurs sont conservées.', false);
     return;
   }
-  // Le credit PA/moral et la consommation de la nuit font partie du repos atomique.
-  await doDormir();
+  const perso = state.char, hotel = state.currentBuilding, ville = state.currentCity;
+  const termine = await doDormir();
+  if (!termine || state.char !== perso || state.currentBuilding !== hotel || state.currentCity !== ville) return;
+  let bonus = await sbRpc('pa_bonus_chambre', {p_acteur:perso.name,p_batiment:hotel}).catch(()=>null);
+  if (!bonus) bonus = await sbRpc('pa_bonus_chambre', {p_acteur:perso.name,p_batiment:hotel}).catch(()=>null);
+  const resultat = Array.isArray(bonus) ? bonus[0] : bonus;
+  if (state.char !== perso || state.currentBuilding !== hotel || state.currentCity !== ville) return;
+  if (!resultat?.ok) {
+    showToast('Bonus hôtel à vérifier','Le repos est enregistré. Consultez vos nuits dans la fiche avant de repayer.',false);
+    return;
+  }
+  if (typeof resultat.pa === 'number') state.pa = resultat.pa;
+  if (typeof resultat.moral === 'number') state.moral = resultat.moral;
+  updateUI();
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  showToast('Bonus chambre appliqué','+'+resultat.montant+' PA, +'+resultat.moralBonus+' Moral.',true,true);
+  addJournalEntry('Bonus hôtel : +'+resultat.montant+' PA, +'+resultat.moralBonus+' Moral.', 'event-good');
 }
 
 
