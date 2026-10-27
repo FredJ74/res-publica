@@ -27,7 +27,7 @@ REVOKE ALL ON FUNCTION public.securite_agents_prives_presents_interne(text,text,
 
 -- #135 : les groupes constitués et les patrouilles isolées sont différents.
 -- Les policiers du catalogue actuel n'ont pas de chef de groupe : chaque matricule
--- constitue donc une unité isolée, sauf si un regroupement explicite est déjà indiqué.
+-- constitue donc une unité isolée, sauf si un regroupement explicite est déjà indiqué (`groupe_id` militaire).
 -- Les PNJ privés réutilisent leader_pnj_id (socle de déplacement/embauche).
 CREATE OR REPLACE FUNCTION public.securite_ordre_detection_interne(
  p_agents jsonb,p_batiment text,p_piece text,p_rue text
@@ -38,7 +38,7 @@ SET search_path TO 'public','pg_temp' AS $hg$
     CASE WHEN x ? 'pnj_prive_id' THEN 1 ELSE 0 END AS categorie,
     CASE WHEN x ? 'pnj_prive_id'
       THEN 'prive:'||coalesce(x->>'groupeCle',x->>'pnj_prive_id')
-      ELSE 'police:'||coalesce(nullif(x->>'groupeId',''),x->>'matricule')
+      ELSE 'police:'||coalesce(nullif(x->>'groupe_id',''),nullif(x->>'groupeId',''),x->>'matricule')
     END AS groupe
   FROM jsonb_array_elements(coalesce(p_agents,'[]'::jsonb)) AS x
   WHERE coalesce((x->>'pa')::integer,12)>0
