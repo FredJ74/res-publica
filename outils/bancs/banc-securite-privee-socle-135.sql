@@ -51,6 +51,44 @@ VALUES ('c1350000-0000-4000-8000-000000000135','00000000-0000-0000-0000-00000000
 SELECT set_config('request.jwt.claim.sub','c1350000-0000-4000-8000-000000000135',true);
 INSERT INTO public.personnages_donnees(name,user_id,country,current_city,current_building,current_room,hp,pa,resources,stats)
 VALUES ('__test_pj_135__','c1350000-0000-4000-8000-000000000135','republic','capitale','__test_bat_135__','terrain',100,10000,'{"dis":0}'::jsonb,'{"PER":8,"VOL":8}'::jsonb);
+-- Déploiement universel : deux PNJ en une unité, puis deux PNJ isolés.
+INSERT INTO public.pnj_membres(id,famille,classe,nom,pays,proprietaire_pj,leader_pj,statut,pa,car_per,car_vol)
+VALUES('__test_135_deploiement_a__','employe','beta','A fictif','republic','__test_pj_135__','__test_pj_135__','actif',12,15,15),
+('__test_135_deploiement_b__','employe','beta','B fictif','republic','__test_pj_135__','__test_pj_135__','actif',12,15,15);
+INSERT INTO public.pnj_employes_metier(pnj_id,job,role_libelle,cout_jour)
+VALUES('__test_135_deploiement_a__','agent_securite','A',0),
+('__test_135_deploiement_b__','agent_securite','B',0);
+SET LOCAL ROLE authenticated;
+DO $t$ DECLARE r jsonb; BEGIN
+ r:=public.pnj_deployer_unite(ARRAY['__test_135_deploiement_a__','__test_135_deploiement_b__'],true);
+ IF r->>'ok' IS DISTINCT FROM 'true' OR (r->>'deployes')::integer<>2 OR r->>'groupe' IS NULL
+ THEN RAISE EXCEPTION 'deploiement_collectif_refuse: %',r; END IF;
+END $t$;
+RESET ROLE;
+DO $t$ DECLARE r jsonb; g jsonb; BEGIN
+ r:=public.securite_agents_prives_presents_interne('republic','capitale','__test_bat_135__','terrain',NULL,'__test_cible_135__');
+ g:=public.securite_ordre_detection_interne(r,'__test_bat_135__','terrain',NULL);
+ IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(g) x WHERE (x->>'effectif')::integer=2
+ AND x->>'groupe' LIKE 'prive:deploiement-%') THEN RAISE EXCEPTION 'groupe_collectif_perdu: %',g; END IF;
+ UPDATE public.pnj_membres SET leader_pj='__test_pj_135__',groupe_deploiement_id=NULL
+ WHERE id IN ('__test_135_deploiement_a__','__test_135_deploiement_b__');
+END $t$;
+SET LOCAL ROLE authenticated;
+DO $t$ DECLARE r jsonb; BEGIN
+ r:=public.pnj_deployer_unite(ARRAY['__test_135_deploiement_a__','__test_135_deploiement_b__'],false);
+ IF r->>'ok' IS DISTINCT FROM 'true' OR r->>'groupe' IS NOT NULL
+ THEN RAISE EXCEPTION 'deploiement_individuel_refuse: %',r; END IF;
+END $t$;
+RESET ROLE;
+DO $t$ DECLARE r jsonb; g jsonb; BEGIN
+ r:=public.securite_agents_prives_presents_interne('republic','capitale','__test_bat_135__','terrain',NULL,'__test_cible_135__');
+ g:=public.securite_ordre_detection_interne(r,'__test_bat_135__','terrain',NULL);
+ IF (SELECT count(*) FROM jsonb_array_elements(g) x WHERE (x->>'effectif')::integer=1
+ AND x->>'groupe' IN ('prive:__test_135_deploiement_a__','prive:__test_135_deploiement_b__'))<>2
+ THEN RAISE EXCEPTION 'deployes_isoles_regroupes: %',g; END IF;
+ UPDATE public.pnj_membres SET statut='detenu'
+ WHERE id IN ('__test_135_deploiement_a__','__test_135_deploiement_b__');
+END $t$;
 -- Escorte : la position du PNJ suit celle de son chef PJ, sans affectation chantier.
 INSERT INTO public.pnj_membres(id,famille,classe,nom,pays,proprietaire_pj,leader_pj,statut,pa,car_per,car_vol)
 VALUES('__test_135_suiveur__','employe','beta','Escorte fictive','republic','__test_employeur_135__','__test_pj_135__','actif',12,22,19);
