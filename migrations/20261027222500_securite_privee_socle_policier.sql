@@ -80,6 +80,19 @@ BEGIN
     ||chr(10)||' v_agents := v_agents || public.securite_agents_prives_presents_interne(v_pj.country,v_pj.current_city,p_batiment,p_piece,p_rue,v_nom);';
  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'combat_effectifs_conflit'; END IF;
  s:=replace(s,a,b);
+ -- Les PNJ privés combattent avec les mêmes PA, mais leur état reste dans pnj_membres.
+ a:=' -- Réécriture par matricule ; les policiers absents ne sont jamais touchés.';
+ b:=' -- Persister aussi les PA des agents privés actifs après le round.'
+   ||chr(10)||' FOR v_idx IN 0..jsonb_array_length(v_actifs)-1 LOOP'
+   ||chr(10)||'   v_agent := v_actifs->v_idx;'
+   ||chr(10)||'   IF v_agent ? ''pnj_prive_id'' THEN'
+   ||chr(10)||'     UPDATE public.pnj_membres SET pa=greatest(0,(v_agent->>''pa'')::integer),maj_le=now()'
+   ||chr(10)||'     WHERE id=v_agent->>''pnj_prive_id'' AND statut=''actif'';'
+   ||chr(10)||'   END IF;'
+   ||chr(10)||' END LOOP;'
+   ||chr(10)||' -- Réécriture par matricule ; les policiers absents ne sont jamais touchés.';
+ IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'combat_pnj_pa_conflit'; END IF;
+ s:=replace(s,a,b);
  a:='   v_modifie := v_modifie || jsonb_build_array(v_agent);';
  b:='   IF v_agent ? ''pnj_prive_id'' THEN'
    ||chr(10)||'     UPDATE public.pnj_membres SET pa=greatest(0,(v_agent->>''pa'')::integer),maj_le=now()'
