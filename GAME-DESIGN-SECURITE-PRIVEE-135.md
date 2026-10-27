@@ -46,3 +46,13 @@ La fonction existante `militaire_bataille_groupes_constituer(bigint)` regroupe l
 Dans la base existante, `pnj_membres.leader_pj` et `pnj_membres.leader_pnj_id` représentent déjà des liens de suivi PNJ ; `militaire_bataille_groupes_constituer(bigint)` et `batailles_engagements.groupe_id` représentent des groupes au cours d'une bataille. **Ces deux constatations ne prouvent pas que les PJ disposent déjà d'un groupe universel opérationnel.** Le schéma inspecté de `personnages_donnees` ne comporte pas de colonne explicite `leader/groupe/chef`. Il faut identifier l'implémentation du groupe PJ, ses règles de déplacement et de déploiement avant de prétendre finaliser le raccordement.
 
 Conséquence : **ne pas confondre** `groupe_id` d'un engagement militaire (éphémère et lié à une bataille) avec l'identité persistante d'un groupe PJ/PNJ en exploration. Ne pas créer un moteur concurrent, une table ad hoc de vigiles, ni déduire un groupe de la seule co-présence.
+
+### Déploiement collectif ou individuel : implémentation du 28/10
+
+La migration de travail #135 ajoute **au socle universel PNJ** l'identité facultative `pnj_membres.groupe_deploiement_id`, indépendante de l'employeur et du métier. L'ordre serveur commun `pnj_deployer_unite(p_pnj_ids, p_groupe)` exige que tous les PNJ sélectionnés suivent réellement le PJ authentifié, puis fixe leur position sur celle du chef :
+- `p_groupe=true` : **une seule identité de détachement** partagée, conservée lors du départ du chef ;
+- `p_groupe=false` : **plusieurs unités isolées**, sans identité de détachement partagée.
+
+Le moteur de détection lit cette identité, ou les liens de chef PNJ existants, sans regrouper artificiellement les agents co-présents. Le banc SQL exerce les deux options dans une transaction annulée, sans PNJ réel modifié.
+
+**Portée actuelle et limites** : ce raccordement est effectif pour les PNJ qui suivent un PJ, et pour l'arbitrage de sécurité privée. La mécanique universelle de groupe entre **plusieurs PJ**, la réintégration collective d'unités déjà déposées et le branchement de toutes les interfaces (notamment `militaire_deposer_soldats` qui efface encore le groupe au dépôt) restent à traiter. Le socle militaire a révélé le mécanisme de dépose/reprise par nombre et le suivi `leader_pj`; il ne suffit pas à prouver le regroupement universel des PJ. **Ne pas annoncer un déploiement complet IG ou une production.**
