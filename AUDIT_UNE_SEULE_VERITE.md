@@ -462,3 +462,11 @@ tirés au hasard et les effets purement visuels sont exclus.
   reste possible. 47 assertions SQL (29 du lot précédent incluses), rôle authenticated,
   transaction annulée. Prévol vivant impératif des transitions et autorisations de caisse ;
   le calendrier de fret et les contrôles douaniers historiques ne sont pas remplacés.
+
+- **27/10 — lot raccordements/nettoyage** : `delivrerDocumentUrbanisme` passe aussi par
+  `objet_sas_deposer` pour soi, sans ajout local ni repli permissif. Huit tests des vrais handlers
+  couvrent les quatre routes fret, les deux destinataires du sas, refus/panne et les routes actives
+  conservées. `poserObjetMilitaire` n'avait plus d'appelant depuis le retrait serveur ;
+  `doImprimerLivre` correspond à un ordre retiré, `doImprimerClandestin` à un ordre remplacé,
+  `doAcheterEntreprise` à un ancien handler non raccordé (l'ordre usine reste bientôt).
+  Ces quatre producteurs morts sont retirés sans inventer de nouvelles actions serveur.

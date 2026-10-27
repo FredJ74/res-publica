@@ -4321,18 +4321,7 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
   if (pnj.isPJ) tracerActionPourRumeur('don_objet', nomCourt);
 }
 
-function doAcheterEntreprise() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 8000;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  state.pop = Math.min(100, (state.pop||0) + 5);
-  state.inf = Math.min(100, (state.inf||0) + 8);
-  addToInventory({ name: "Acte d'acquisition d'entreprise", icon: 'ti-building-factory', type: 'acte_officiel', legal: true, desc: 'Vous êtes propriétaire d\'une entreprise locale.' });
-  updateUI();
-  showToast('Entreprise achetée !', '-' + cost.toLocaleString('fr-FR') + ' ' + cur + '. +5 POP +8 INF.', true);
-  addJournalEntry('Achat entreprise. -' + cost.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
-}
+// doAcheterEntreprise : ancien ajout local sans appelant retire (chantier inventaire, 27/10).
 
 function doCompteOffshore() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -4349,31 +4338,9 @@ function doCompteOffshore() {
 
 // doFalsifierDocs SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
-async function doImprimerClandestin() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 300;
-  const debit = await debiterFondsOrdinaires(cost);
-  if (!debit.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.dis = Math.max(0, (state.dis||50) - 5);
-  addToInventory({ name: 'Publication clandestine', icon: 'ti-file-description', type: 'tract', legal: false, quantite: 20, desc: 'Pamphlet imprimé clandestinement.' });
-  updateUI();
-  showToast('Impression clandestine !', '-' + cost + ' ' + cur + '. 20 tracts clandestins. -5 DIS.', true);
-  addJournalEntry('Impression clandestine. -' + cost + ' ' + cur + '.', 'event-bad');
-}
+// doImprimerClandestin : ancien ajout local sans appelant retire (chantier inventaire, 27/10).
 
-function doImprimerLivre() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 500;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  state.pop = Math.min(100, (state.pop||0) + 6);
-  state.inf = Math.min(100, (state.inf||0) + 4);
-  addToInventory({ name: 'Livre publié', icon: 'ti-book', type: 'document', legal: true, desc: 'Votre ouvrage, publié à compte d\'auteur.' });
-  updateUI();
-  showToast('Livre publié !', '-' + cost + ' ' + cur + '. +6 POP +4 INF.', true);
-  addExternalEvent((state.char?.name||'Anonyme') + ' publie un ouvrage.');
-  addJournalEntry('Publication livre. -' + cost + ' ' + cur + '.', 'event-good');
-}
+// doImprimerLivre : ancien ajout local sans appelant retire (chantier inventaire, 27/10).
 
 // Placement Banque nationale : montant libre (min 500, pas de max), immobilise 7 jours, resolu
 // par le cron de minuit. Plusieurs investissements peuvent desormais coexister et s'additionnent
@@ -10108,7 +10075,7 @@ async function afficherGestionCaisseOuverteFret(caisseId) {
   window._fretCaisseOuverteActuelle = caisseId;
 }
 
-async functiasync function deposerDansCaisseFret(caisseId) {
+async function deposerDansCaisseFret(caisseId) {
   const idx = Number(document.getElementById('fret-depot-objet')?.value || 0);
   const objet = (window._fretEligiblesDepot || [])[idx];
   const index = state.inventory.indexOf(objet);
@@ -10120,14 +10087,14 @@ async functiasync function deposerDansCaisseFret(caisseId) {
   await afficherGestionCaisseOuverteFret(caisseId);
 }
 
-tiasync function reprendreDeCaisseFret(caisseId, contenuId) {
+async function reprendreDeCaisseFret(caisseId, contenuId) {
   const v = await executerReceptionInventaire('fret_objet_agir', { p_caisse: caisseId, p_action: 'reprendre', p_ligne: contenuId });
   if (!v) return;
   updateUI(); showToast('Repris', v.qte + ' unité(s) reprise(s).', true);
   await afficherGestionCaisseOuverteFret(caisseId);
 }
 
-tion ajouterChargeurFret(caisseId) {
+async function ajouterChargeurFret(caisseId) {
   const nom = document.getElementById('fret-nouveau-chargeur')?.value?.trim();
   if (!nom) return;
   const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
@@ -10637,7 +10604,7 @@ async function dedouanerCaisseFret(caisseId, pa) {
   await afficherCaisseArriveeFret(caisseId, pa);
 }
 
-async functiasync function retirerDeCaisseFret(caisseId, contenuId, pa) {
+async function retirerDeCaisseFret(caisseId, contenuId, pa) {
   const v = await executerReceptionInventaire('fret_objet_agir', { p_caisse: caisseId, p_action: 'retirer', p_ligne: contenuId,
     p_quantite: Number(document.getElementById('fret-retrait-qty-' + contenuId)?.value || 1) });
   if (!v) return;
@@ -10645,7 +10612,7 @@ async functiasync function retirerDeCaisseFret(caisseId, contenuId, pa) {
   await afficherCaisseArriveeFret(caisseId, pa);
 }
 
-tion ajouterReceptionnaireFret(caisseId) {
+async function ajouterReceptionnaireFret(caisseId) {
   const nom = document.getElementById('fret-nouveau-receptionnaire')?.value?.trim();
   if (!nom) return;
   const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
@@ -10698,14 +10665,14 @@ async function ouvrirMarchandisesNonReclamees() {
   document.getElementById('postes-body').innerHTML = html;
 }
 
-async functiasync function acheterLotNonReclameeFret(caisseId) {
+async function acheterLotNonReclameeFret(caisseId) {
   const v = await executerReceptionInventaire('fret_objet_agir', { p_caisse: caisseId, p_action: 'acheter' });
   if (!v) return;
   updateUI(); document.getElementById('modal-postes').classList.remove('open');
   showToast('Lot acheté', v.qte + ' unité(s), ' + v.prix + ' FR versés à la caisse du port.', true);
 }
 
-UILLE GENERIQUE (inventaire) ----
+// ---- FOUILLE GENERIQUE (inventaire) ----
 // REGLE GENERALE ARRETEE LE 13 SEPTEMBRE 2026 : « tout materiel illegal decouvert lors d'une
 // fouille douaniere ou d'une fouille/arrestation policiere est confisque. »
 //
