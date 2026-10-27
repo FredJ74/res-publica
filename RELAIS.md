@@ -7,7 +7,7 @@ Règles : voir `AGENTS.md`.
 
 ### Chantier inventaire EN COURS — reprise Codex, lots suivants
 
-- Branche `codex/inventaire-serveur-20261027`, issue de main `5c9e41e` (#206/#207/#208 conservées). Ne pas reprendre le vol de chantier de l'ancienne branche en bloc. La fiche, santé, moral et sauvegarde générale restent le chantier de Claude.
+- Branche `codex/inventaire-serveur-20261027`, issue de main `5c9e41e` (#206/#207/#208 conservées), main `da5ecc0` (#209/#210/#211) intégré. Ne pas reprendre le vol de chantier de l'ancienne branche en bloc. La fiche, santé, moral et sauvegarde générale restent le chantier de Claude.
 - Lot 4 préparé : sels à 30 FR avec paiement/caisse pharma/dépôt dans la même transaction ; objets trouvés avec tirage, limite quotidienne, souvenir et dépôt serveur. Même dépôt `inventaire_deposer_interne`, modèles dans `objets_modeles`. Reçus d'intention internes et transport versionné réutilisant `sbRpcVerdict`/`sbAdopterInventaireServeur(v)` ; aucun inventaire recomposé.
 - Défaut réel du dépôt commun corrigé en préparation : une seule pile historique de même stackKey augmente, pas toutes ; quantités fractionnaires refusées. Aucun verrou final ni changement de règle économique.
 - Bancs : 29 assertions PostgreSQL en transaction annulée, appels authenticated et request.path réel de RPC (identité/lois de fixture), 12 assertions Node des vrais handlers/adopteur. Référence complète avant ajout du nouveau banc : 105/105 après installation des dépendances locales, sans changement des attentes.
@@ -28,6 +28,13 @@ Règles : voir `AGENTS.md`.
 - Lot 10 préparé : émissions initiales Pat/Jean-Lou et calepin/clé de l'énigme, via les progressions existantes et le dépôt unique. Paiement historique de présentation du coffre conservé, horloge/variante tirées au serveur, reçus empêchant une réémission après ancienne sauvegarde. 46 assertions natives (29 communes). `created_at` testé avec son vrai type sans fuseau, lecture UTC explicite ; confirmer les anciens producteurs UTC au prévol.
 - **Limite de ces quêtes : les autres étapes/protections des colonnes de progression restent legacy et doivent être vérifiées avant verrou final.** La lecture d'une progression sauvegardée n'est pas présentée comme une preuve d'infalsifiabilité de toute la quête. Aucun changement du Bureau de l'Emploi de Claude ; seul le point de remise de Jean-Lou est raccordé dans `plateau-pnj.js`.
 - Suite : réconciliation des employés historiques, énigmes, PNJ, effort de guerre, titres/publications, urbanisme et récompenses/accessoires. Inventaire des modifications d'objets à faire avant toute proposition de verrou final. Le verrou final ne sera ni posé ni appliqué sans décision de Fred.
+
+### Sécurité privée #135 — arbitrages du 27/10 (ChatGPT)
+
+- Fred confirme : **seulement deux socles**, embauche/déplacement des PNJ et mécanique policière (malus actes illégaux, détection, interpellation, prison). « Vigile de chantier » est cosmétique. **Aucune affectation au chantier**, aucun moteur/table d'affectation propre aux vigiles. Le PJ employeur déplace librement son PNJ. En cas d'interpellation réussie, mécanisme carcéral policier existant et message RP « remis à la police, conduit en prison ».
+- `AGENTS.md` a été corrigé pour lever l'ancien arbitrage contradictoire. La PR #196 `codex/vigiles-vol-135-20261027` est **ouverte, non fusionnable en l'état** : elle ajoute `chantier_vigiles_affectations` et un moteur privé de détection, en contradiction avec cette décision ; ne pas appliquer ses migrations.
+- Vérification réelle Supabase en lecture seule : `pnj_position_effective(text)`, `police_detection_verifier(text,text,text)`, `combat_coup_resoudre(numeric,numeric,numeric,integer,integer)` existent. `police_detection_verifier` lit les effectifs policiers de `batiments_etat` ; il faut factoriser/utiliser son algorithme commun pour les agents PNJ sans faux policiers, sans nouvelle mécanique parallèle. Préserver les règles serveur de détection, les gardes anti-relance et le parcours d'incarcération.
+- Codex traite actuellement **l'inventaire**, y compris le vol de matériaux ; ne pas toucher à ces fichiers ni aux migrations objets. Préparer séparément le raccordement de sécurité passive et la détection/interpellation avec tests en transaction annulée (`authenticated`), puis déployer seulement après tests complets.
 
 
 ### #135 — Recette de clôture du 27 octobre
