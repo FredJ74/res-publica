@@ -13,7 +13,7 @@
 ## Implémentation de travail — PR #212 (non déployée)
 
 - `securite_ordre_detection_interne` constitue les unités par appartenance explicite, puis les ordonne police avant privé, effectif décroissant et tirage aléatoire à égalité.
-- Les PNJ privés utilisent `leader_pnj_id` ; les policiers sont isolés par matricule, sauf présence d'un `groupeId` explicite.
+- Les PNJ privés utilisent `leader_pnj_id` ; les policiers sont isolés par matricule, sauf présence d'un `groupe_id` explicite issu du socle militaire (ancien alias `groupeId` accepté).
 - `police_detection_verifier` exécute les jets successifs, puis enregistre le seul groupe retenu dans `police_interceptions.intervenants`.
 - `police_fuite_resoudre` et `police_combat_resoudre` ne retiennent que ces intervenants pour cette rencontre ; les rencontres historiques sans cette information gardent leur contrat antérieur.
 - Aucune table de vigiles affectés ni nouveau moteur de confrontation.
@@ -24,3 +24,9 @@
 - La PR #212 et la migration sont encore en brouillon, non fusionnées et non appliquées en production.
 - Bancs : `banc-securite-privee-socle-135.sql`, `banc-securite-privee-issues-135.sql` et `banc-securite-privee-priorites-135.sql`, tous lancés après la migration dans `BEGIN/ROLLBACK` sur des données fictives.
 - Vol de matériaux/inventaire : périmètre de Codex, à raccorder sans modifier ses fichiers concurrents.
+
+## Vérification du socle militaire (28/10)
+
+La fonction existante `militaire_bataille_groupes_constituer(bigint)` regroupe les `batailles_engagements` par `groupe_id`, en conservant compagnie, section, chef et effectif initial dans `batailles_groupes`. Cette mécanique concerne les **engagements dans une bataille** : elle ne constitue pas directement une patrouille dans une rue. Le raccordement de sécurité reconnaît désormais le même identifiant `groupe_id` pour des policiers déjà groupés, au lieu d'introduire un format concurrent. Les policiers sans identifiant explicite restent isolés. Les agents privés conservent le lien PNJ existant `leader_pnj_id`.
+
+**Reste à confirmer** le chemin existant entre les unités militaires constituées et les effectifs policiers affichés dans `effectifsPolice` ; ne pas affirmer que le regroupement policier est entièrement opérationnel avant cette preuve.
