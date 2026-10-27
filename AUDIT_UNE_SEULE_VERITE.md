@@ -340,4 +340,9 @@ tirés au hasard et les effets purement visuels sont exclus.
   `20261027080000`). Tout joueur pouvait inscrire une « fraude » de n'importe quelle ampleur, que
   le dépouillement appliquait. Les fraudes non révélées ne sont plus lisibles par les autres
   joueurs (auteur compris).
+- **27/10** — §1.1 : `votes_confiance` n'est plus écrite par les joueurs (tout joueur pouvait
+  réécrire statut et résultat, et la passe de nuit mettait alors à zéro la popularité du
+  gouvernement). Déclenchement et bulletins par `vote_confiance_declencher` et
+  `vote_confiance_voter` ; mails aux députés et annonce posés par le serveur (migration
+  `20261027090000`).
 

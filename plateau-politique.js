@@ -1074,34 +1074,14 @@ async function filtrerCandidaturesDePersonnagesExistants(candidatures) {
 // entiere etait un no-op silencieux. Table dediee votes_confiance (migration fournie separement),
 // bulletins stockes en jsonb sur la meme ligne (meme convention que cycles_electoraux.data).
 // =====================
-async function sbCreerVoteConfiance(vote) {
-  if (typeof sbInsert !== 'function') return null;
-  return sbInsert('votes_confiance', {
-    id: vote.id, country: vote.country, pm_nom: vote.pm_nom,
-    cloture_ts: new Date(vote.cloture_ts).toISOString(),
-    statut: 'en_cours', resultat: null, bulletins: {},
-    demission_limite_ts: null, demission_ts: null, consequence_appliquee: false,
-    created_at: new Date().toISOString()
-  }).catch(() => null);
-}
-
+// sbCreerVoteConfiance et sbDeposerBulletinConfiance SUPPRIMEES le 27 octobre 2026 : le vote se
+// cree et se remplit par vote_confiance_declencher et vote_confiance_voter.
 async function sbGetVoteConfianceEnCours(country) {
   if (typeof sbGet !== 'function') return null;
   const rows = await sbGet('votes_confiance', `country=eq.${encodeURIComponent(country)}&statut=eq.en_cours&order=created_at.desc&limit=1`).catch(() => []);
   return (rows && rows[0]) || null;
 }
 
-async function sbDeposerBulletinConfiance(voteId, votant, choix) {
-  if (typeof sbGet !== 'function' || typeof sbUpdate !== 'function') return false;
-  const rows = await sbGet('votes_confiance', `id=eq.${encodeURIComponent(voteId)}`).catch(() => []);
-  const vote = rows && rows[0];
-  if (!vote) return false;
-  const bulletins = { ...(vote.bulletins || {}) };
-  if (bulletins[votant]) return false; // deja vote, anti double-vote
-  bulletins[votant] = choix;
-  await sbUpdate('votes_confiance', `id=eq.${encodeURIComponent(voteId)}`, { bulletins }).catch(() => {});
-  return true;
-}
 
 // =====================
 // ARCHIVES DES MANDATS MUNICIPAUX — LECTURE (chantier "Hotel de Ville / elections", 4 septembre
@@ -10150,61 +10130,31 @@ async function ouvrirDeclencherVoteConfiance(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// DECLENCHEMENT PAR LE SERVEUR (27 octobre 2026) : poste, vote deja en cours, paiement, ouverture
+// de 48 h, mails aux deputes et annonce sont faits par vote_confiance_declencher. Auparavant tout
+// joueur pouvait creer ou reecrire un vote, statut et resultat compris.
+const MOTIFS_VOTE_CONFIANCE = { reserve_pm: 'Seul le Premier Ministre peut déclencher un vote de confiance.',
+                                vote_deja_en_cours: 'Un vote de confiance est déjà en cours à l\'Assemblée.',
+                                reserve_deputes: 'Seuls les députés peuvent voter.',
+                                vote_ferme: 'Ce vote de confiance n\'est plus ouvert.',
+                                deja_vote: 'Vous avez déjà voté.' };
 async function confirmerDeclenchementVoteConfiance(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // Correctif "clôture jamais appelée" (audit du 4 septembre 2026) : cloture_ts en temps REEL
-  // (Date.now(), jamais state.day -- personnel, non fiable comme horloge partagee, meme doctrine
-  // que le reste du moteur electoral) permet desormais au cron de detecter l'echeance et de
-  // resoudre le vote lui-meme (resoudreVotesConfianceEchusServeur, api/cron-minuit.js), ce qui
-  // n'existait nulle part avant ce chantier.
-  const vote = {
-    id: 'voteconf-' + Date.now(),
-    country: state.country,
-    pm_nom: state.char?.name || 'Anonyme',
-    cloture_ts: Date.now() + 48 * 60 * 60 * 1000
-  };
-
-  if (typeof sbCreerVoteConfiance === 'function') {
-    await sbCreerVoteConfiance(vote).catch(() => {});
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('vote_confiance_declencher', { p_pa: pa, p_cost: cost }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v && MOTIFS_VOTE_CONFIANCE[v.raison]) showToast('Vote impossible', MOTIFS_VOTE_CONFIANCE[v.raison], false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+    return;
   }
-
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie || {});
   showToast('Vote de confiance déclenché', 'L\'Assemblée se prononcera dans 48h.', true, true);
   addJournalEntry('Vote de confiance déclenché par le Premier Ministre.', 'event-info');
-  addExternalEvent('🏛 Le Premier Ministre ' + (state.char?.name||'') + ' engage la responsabilité de son gouvernement devant l\'Assemblée Nationale.', 'national');
-
-  // Notifier tous les deputes PJ pour qu'ils puissent voter
-  await notifierDeputesPourVoteConfiance(vote);
 }
 
-// Correctif "poste_depute au lieu de poste, pattern 'depute' exact au lieu de 'depute_'" (audit
-// du 4 septembre 2026, dette deja documentee dans le code lui-meme -- voir doDissoudreAssemblee,
-// qui utilisait deja le bon motif). Consequence de l'ancien bug : cette fonction ne notifiait
-// jamais aucun depute, 100% du temps (les deux conditions etaient independamment toujours fausses).
-async function notifierDeputesPourVoteConfiance(vote) {
-  if (typeof sbListPersonnages !== 'function' || typeof sbSendMail !== 'function') return;
-  try {
-    const joueurs = await sbListPersonnages() || [];
-    const deputesPJ = joueurs.filter(j => {
-      let pd = j.poste_depute;
-      if (typeof pd === 'string') { try { pd = JSON.parse(pd); } catch(e) { pd = null; } }
-      return j.country === vote.country && pd?.id === 'depute';
-    });
-
-    const h = String(state.hour || 8).padStart(2,'0');
-    const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
-    const sujet = 'Vote de confiance — Assemblée Nationale';
-    const corps = 'Le Premier Ministre ' + vote.pm_nom + ' engage la responsabilité de son gouvernement. ' +
-      'Votez avant 48h.<br><br>' +
-      marqueurActionMail('confiance_pour', vote.id) + marqueurActionMail('confiance_contre', vote.id);
-
-    for (const dep of deputesPJ) {
-      await sbSendMail('Assemblée Nationale', dep.name, sujet, corps, time).catch(() => {});
-    }
-  } catch(e) { console.warn('notifierDeputesPourVoteConfiance error', e); }
-}
+// notifierDeputesPourVoteConfiance SUPPRIMEE le 27 octobre 2026 : les deputes sont prevenus par
+// vote_confiance_declencher (mail de l'Assemblee pose par le serveur, memes boutons).
 
 // Appelee quand un depute PJ clique Pour/Contre dans le mail. Meme correctif de champ/motif que
 // notifierDeputesPourVoteConfiance ci-dessus.
@@ -10216,26 +10166,17 @@ async function voterConfiance(voteId, choix) {
     return;
   }
 
-  const ok = typeof sbDeposerBulletinConfiance === 'function'
-    ? await sbDeposerBulletinConfiance(voteId, state.char?.name, choix)
-    : false;
-
-  if (!ok) {
-    showToast('Vote impossible', 'Ce vote de confiance n\'est plus ouvert, ou vous avez déjà voté.', false);
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('vote_confiance_voter', { p_vote_id: voteId, p_choix: choix }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    showToast('Vote impossible', (v && MOTIFS_VOTE_CONFIANCE[v.raison]) || 'Ce vote de confiance n\'est plus ouvert, ou vous avez déjà voté.', false);
     return;
   }
   showToast('Vote enregistré', 'Votre vote (' + (choix === 'pour' ? 'Confiance' : 'Censure') + ') a été pris en compte.', true);
   addJournalEntry('Vous avez voté ' + (choix === 'pour' ? 'la confiance' : 'la censure') + ' au gouvernement.', 'event-info');
 }
 
-// Cloture desormais geree cote SERVEUR (resoudreVotesConfianceEchusServeur, api/cron-minuit.js) :
-// cette fonction client n'avait jamais d'appelant (confirme par l'audit du 4 septembre 2026) et
-// ne pouvait de toute facon jamais s'executer de facon fiable independamment d'une session
-// active. Conservee ici a titre documentaire uniquement, non appelee, non supprimee (aucun risque
-// a la laisser en place).
-async function cloturerVoteConfiance(vote) {
-  console.warn('cloturerVoteConfiance (client) est obsolete -- la cloture reelle est geree par le cron serveur.');
-}
 
 
 // =====================
