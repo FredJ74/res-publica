@@ -422,4 +422,15 @@ tirés au hasard et les effets purement visuels sont exclus.
   Traces encore écrites par l'écran : corruption de permis (terrains) et hooliganisme
   (organisations), chantiers de Codex — d'où `verifierDecouverteCrimesPasses` et
   `checkEffacementCrimes` maintenues pour elles.
+- **27/10 (soir)** — **lancer une rumeur** par le serveur (`rumeur_lancer`, `20261027170000`).
+  **Faille fermée** : les causes `rumeur_pj` (-5 à -20) et `rumeur_gouvernement` (-1 à -5) de
+  `personnage_ajuster_pop_inf` permettaient à n'importe quel joueur de retirer de la popularité à
+  n'importe qui, sans PA ni jet, à volonté. Reste à l'écran : l'influence d'une organisation visée
+  (table du chantier organisations, perte tirée par le serveur).
+- **Constat à corriger (27/10)** : le §2 dit « inventaire (le navigateur n'y écrit plus) ». C'est
+  inexact : `inventaire_sauver_revision` accepte du navigateur **n'importe quel inventaire** dès
+  que la révision correspond. Un joueur peut donc se fabriquer armes, explosifs, poisons,
+  documents. C'est le prochain grand chantier « une seule vérité » : chaque ajout d'objet doit
+  avoir son passage serveur, puis la sauvegarde de l'inventaire ne doit plus accepter que des
+  retraits (ou disparaître).
 
