@@ -87,7 +87,7 @@ DO $t$ DECLARE r jsonb; BEGIN
  IF jsonb_array_length(r)<>2 THEN RAISE EXCEPTION 'effectif_multiple_manquant: %',r; END IF;
 END $t$;
 -- Contre-épreuve : un agent déplacé hors de la zone ne peut poursuivre le combat.
-UPDATE public.pnj_membres SET building_id='__autre__' WHERE id='__test_135_private__';
+UPDATE public.pnj_membres SET building_id='__autre__' WHERE id IN ('__test_135_private__','__test_135_renfort__');
 SET LOCAL ROLE authenticated;
 DO $t$ DECLARE r jsonb; BEGIN
  r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',2);
