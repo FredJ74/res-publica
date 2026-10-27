@@ -2818,27 +2818,21 @@ function doControlDouanes() {
 // pot-de-vin fonctionne ou non -- l'ancien comportement "gratuit en cas d'echec" etait
 // l'anomalie, pas l'inverse).
 async function doCorrompreDoanier(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) {
-    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false);
-    return;
-  }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const dup = getStatEffective('DUP');
-  const inf = state.inf || 0;
-  const taux = Math.max(5, 55 + Math.floor(dup/10) + Math.floor(inf/10) + 20); // +20 zone transport, formule inchangee
-  if (roll <= taux) {
-    state.dis = Math.max(0, state.dis - 5);
+  // PAR LE SERVEUR (27 octobre 2026) : crime_corrompre_douanier (PA et prix a la tentative, jet
+  // 55 + DUP/10 + INF/10 + 20, discretion, detection). Le passage debloque reste tenu ici.
+  const v = await appelerCrimeServeur('crime_corrompre_douanier', { p_pa: pa, p_cost: cost });
+  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
+  adopterEtatCrimeServeur(v);
+  if (v.reussi) {
     state.douanePassee = true;
-    updateUI();
-    showToast('Agent corrompu', 'L\'agent regarde ailleurs. -300 FR -5 DIS. Accès à l\'embarquement autorisé.', true);
+    showToast('Agent corrompu', 'L\'agent regarde ailleurs. -' + cost + ' FR -5 DIS. Accès à l\'embarquement autorisé.', true);
     addJournalEntry('Corruption douanière réussie.', 'event-bad');
-    checkDetection('corrompre_douanier', 'success');
+    adopterDetectionServeur(v, 'corrompre_douanier');
+    updateUI();
     if (typeof enterRoom === 'function') enterRoom(state.currentBuilding, 'zone_embarquement', null);
   } else {
     showToast('Refus !', 'L\'agent n\'a pas mordu. Tentative notée.', false);
-    checkDetection('corrompre_douanier', 'fail');
+    updateUI();
   }
 }
 
@@ -2853,29 +2847,19 @@ async function doCorrompreDoanier(pa, cost) {
 // FRET MARITIME INTERNATIONAL, tables Supabase dediees caisses_fret + contenu_caisses_fret).
 
 async function doContrebandePort(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const pays = state.country || 'republic';
-  // DIS fantome corrige (bêta) : voir plateau-navigation.js:703 pour le detail.
-  const dis = state.dis || 8;
-  const dup = getStatEffective('DUP');
-  const empMod = { republic:0, narco:25, soviet:-20, khalija:10 }[pays] || 0;
-  const taux = Math.max(5, 55 + Math.floor(dis/10) + Math.floor(dup/10) + 15 + empMod - getMalusISN());
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const succesContrebande = roll <= taux;
-
-  if (succesContrebande) {
-    if (!state.inventory) state.inventory = [];
-    state.inventory.push({ type:'contrebande', name:'Cargaison de contrebande', icon:'ti-package-off', legal:false, desc:'Marchandises importées illégalement.' });
-    state.dis = Math.max(0, state.dis - 5);
-    updateUI();
+  // PAR LE SERVEUR (27 octobre 2026) : crime_contrebande (jet, cargaison en inventaire,
+  // discretion, detection).
+  const v = await appelerCrimeServeur('crime_contrebande', { p_pa: pa, p_cost: cost });
+  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
+  adopterEtatCrimeServeur(v);
+  if (v.reussi) {
     showToast('Contrebande réussie !', 'Cargaison ajoutée à votre inventaire. -5 DIS.', true, true);
     addJournalEntry('Contrebande portuaire réussie.', 'event-bad');
-    checkDetection('contrebande_port', 'success');
   } else {
     showToast('Échec !', 'La douane a repéré la manœuvre.', false);
-    checkDetection('contrebande_port', 'fail');
   }
+  adopterDetectionServeur(v, 'contrebande_port');
+  updateUI();
 }
 
 async function doBlocusPortuaire(pa, cost) {
@@ -2937,7 +2921,7 @@ async function doBlocusPortuaire(pa, cost) {
     state.pop = Math.max(0, state.pop - 8);
     updateUI();
     showToast('Échec du blocus', 'Le mouvement n\'a pas pris. -8 POP.', false);
-    checkDetection('blocus_portuaire', 'fail');
+    // checkDetection('blocus_portuaire', 'fail') retire (27/10/2026) : un echec n'est jamais detecte, l'appel ne faisait rien.
   }
 }
 

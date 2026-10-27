@@ -129,8 +129,8 @@ ligne trouvée fausse se corrige ici.
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
-| Actes illégaux | Vol, assassinat, empoisonnement, incendie, explosifs, falsification. Achat de poisons et contrebande : seulement dans les ports des autres empires. | Écran | Objets et lieux du marché noir. |
-| Corruption | Douaniers, fonctionnaires, presse, greffe. | Écran | Rien : commun. |
+| Actes illégaux | Vol, neutralisation, empoisonnement, incendie, explosifs, falsification, contrebande (jet, effets, détection et découverte de nuit par le serveur depuis le 27/10 ; restent à l'écran « Se cacher », la neutralisation d'un député, tracts calomnieux et fausse rumeur). Achat de poisons et contrebande : seulement dans les ports des autres empires. | Mixte | Objets et lieux du marché noir. |
+| Corruption | Douaniers, fonctionnaires, presse, greffe (douanier et fonctionnaires par le serveur depuis le 27/10). | Mixte | Rien : commun. |
 | Organisations criminelles | Mise en relation, recrutement. | Serveur | Organisations du pays. |
 
 ### Armée
