@@ -32,6 +32,19 @@ BEGIN
  RAISE NOTICE 'Banc #135 : 6 assertions de présence réussies en transaction annulée';
 END $t$;
 
+-- Un véritable groupe PNJ est formé par leader_pnj_id, jamais par co-présence.
+INSERT INTO public.pnj_membres(id,famille,classe,nom,pays,proprietaire_pj,leader_pnj_id,statut,pa,car_per,car_vol)
+VALUES('__test_135_subordonne__','employe','beta','Subordonné fictif','republic','__test_employeur_135__','__test_135_private__','actif',12,21,20);
+INSERT INTO public.pnj_employes_metier(pnj_id,job,role_libelle,cout_jour)
+VALUES('__test_135_subordonne__','agent_securite','Subordonné fictif',0);
+DO $t$ DECLARE r jsonb; g jsonb; BEGIN
+ r:=public.securite_agents_prives_presents_interne('republic','capitale','__test_bat_135__','terrain',NULL,'__test_cible_135__');
+ g:=public.securite_ordre_detection_interne(r,'__test_bat_135__','terrain',NULL);
+ IF jsonb_array_length(g)<>1 OR (g->0->>'effectif')::integer<>2
+   OR (g->0->>'perception')::numeric<>20 THEN
+   RAISE EXCEPTION 'leader_pnj_groupe_non_constitue: %',g; END IF;
+END $t$;
+UPDATE public.pnj_membres SET statut='detenu' WHERE id='__test_135_subordonne__';
 -- Cas authentifié : avis de recherche fictif, rencontre et combat commun.
 INSERT INTO auth.users(id,instance_id,aud,role)
 VALUES ('c1350000-0000-4000-8000-000000000135','00000000-0000-0000-0000-000000000000','authenticated','authenticated');
