@@ -2341,67 +2341,7 @@ function construirePhraseCibleTracee(type, cibleLabel) {
   return cibleLabel; // pj, pays
 }
 
-// Effet applique en cas de succes (§5), selon le type de cible. Reutilise exclusivement les
-// mecanismes existants (POP joueur, INF organisation, IS ville/pays, titulaires de poste) --
-// aucune nouvelle jauge parallele. Retourne un texte descriptif pour le recap/journal prive.
-async function appliquerEffetRumeur(type, cibleValue, cibleLabel) {
-  if (type === 'pj') {
-    const perte = Math.floor(Math.random() * 16) + 5; // 5 a 20 inclus
-    if (typeof sbAjusterPopJoueur === 'function') await sbAjusterPopJoueur(cibleValue, -perte, 'rumeur_pj').catch(() => {});
-    return '-' + perte + ' POP sur ' + cibleLabel;
-  }
-
-  if (type === 'organisation') {
-    const perte = Math.floor(Math.random() * 10) + 1; // 1 a 10 inclus
-    // organisation.influence = jauge OFFICIELLE d'influence de l'organisation (0-100, confirme
-    // le 2 septembre 2026) -- distincte de state.inf (influence PERSONNELLE du joueur, jamais
-    // touchee ici). Un champ absent/invalide (donnees anciennes anterieures a cette regle) vaut
-    // 50 (valeur neutre), jamais undefined/NaN.
-    if (typeof sbGetOrganisationParId === 'function' && typeof sbSaveOrganisation === 'function') {
-      const orga = await sbGetOrganisationParId(cibleValue).catch(() => null);
-      if (orga) {
-        const influenceActuelle = Number.isFinite(orga.influence) ? orga.influence : 50;
-        orga.influence = Math.max(0, Math.min(100, influenceActuelle - perte));
-        await sbSaveOrganisation(orga).catch(() => {});
-      }
-    }
-    return '-' + perte + ' INF sur l\'organisation « ' + cibleLabel + ' »';
-  }
-
-  if (type === 'local') {
-    return 'aucun effet statistique (rumeur purement RP)';
-  }
-
-  if (type === 'gouvernement') {
-    const perte = Math.floor(Math.random() * 5) + 1; // 1 a 5 inclus, UN SEUL tirage pour tous
-    const membres = [];
-    if (typeof getTitulaireActuel === 'function') {
-      for (const posteId of RUMEUR_POSTES_GOUVERNEMENT) {
-        const titulaire = await getTitulaireActuel(posteId, null, cibleValue).catch(() => null);
-        if (titulaire?.nom) membres.push(titulaire.nom);
-      }
-    }
-    if (typeof sbAjusterPopJoueur === 'function') {
-      for (const nom of membres) await sbAjusterPopJoueur(nom, -perte, 'rumeur_gouvernement').catch(() => {});
-    }
-    return membres.length > 0
-      ? ('-' + perte + ' POP sur ' + membres.length + ' membre(s) du gouvernement de ' + cibleLabel)
-      : ('aucun titulaire en poste actuellement dans le gouvernement de ' + cibleLabel);
-  }
-
-  if (type === 'pays') {
-    const perte = Math.floor(Math.random() * 5) + 1; // 1 a 5 inclus, UN SEUL tirage pour tout le pays
-    // appliquerDeltaIndiceVillesPays (plateau-divers.js) applique ce delta au bon nombre de
-    // vraies valeurs pour ce pays (3 pour Republia, 1 pour les 3 autres empires aujourd'hui) --
-    // aucune connaissance ici de l'etat d'avancement du decoupage par ville de chaque empire :
-    // le jour ou narco/soviet/khalija recevront un IS par ville, cette ligne restera correcte
-    // sans modification (voir VILLES_SUIVIES_PAR_PAYS, seul point a mettre a jour a ce moment-la).
-    if (typeof appliquerDeltaIndiceVillesPays === 'function') await appliquerDeltaIndiceVillesPays(cibleValue, 'social', -perte).catch(() => {});
-    return '-' + perte + ' IS sur ' + cibleLabel;
-  }
-
-  return '';
-}
+// appliquerEffetRumeur SUPPRIMEE (27/10/2026) : effets appliques par rumeur_lancer (serveur).
 
 async function validerLancementRumeur() {
   if (!_rumeur || _rumeur.soumission) return;
@@ -2414,25 +2354,48 @@ async function validerLancementRumeur() {
   const btn = document.getElementById('rumeur-btn-valider');
   if (btn) { btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = 'Lancement...'; }
 
-  const { pa, cost, successRate, type, cibleValue, cibleLabel } = _rumeur;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) {
-    signalerRefusCout(r);
+  const { pa, cost, type, cibleValue, cibleLabel } = _rumeur;
+  // PAR LE SERVEUR (27 octobre 2026) : rumeur_lancer preleve les PA, tire le jet (75 %), applique
+  // l'effet (POP du joueur vise, des ministres, indice social du pays), le retour de baton, publie
+  // l'annonce mondiale, trace et tire la detection. Seule l'influence d'une organisation reste
+  // appliquee ici (table du chantier organisations), avec la perte tiree par le serveur.
+  const texteEchappe = (typeof escapeHtmlText === 'function') ? escapeHtmlText(texte) : texte;
+  const prefixe = construirePrefixeRumeur(type, cibleLabel);
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('rumeur_lancer', { p_type: type, p_cible: cibleValue, p_texte: prefixe + ' — ' + texteEchappe,
+        p_cible_trace: construirePhraseCibleTracee(type, cibleLabel), p_pa: pa || 0, p_cost: cost || 0 }).catch(() => null)
+    : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    signalerRefusCout(v || { raison: 'paiement_indisponible' });
     _rumeur.soumission = false;
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'Lancer la rumeur — 1 PA'; }
     return;
   }
+  if (typeof v.pa === 'number') state.pa = v.pa;
+  if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.pop);
+  if (typeof adopterDetectionServeur === 'function') adopterDetectionServeur(v, 'fausse_rumeur');
 
   document.getElementById('modal-postes').classList.remove('open');
 
-  const texteEchappe = (typeof escapeHtmlText === 'function') ? escapeHtmlText(texte) : texte;
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const succes = roll <= (successRate || 75);
-
-  if (succes) {
-    const effetTexte = await appliquerEffetRumeur(type, cibleValue, cibleLabel);
-    const prefixe = construirePrefixeRumeur(type, cibleLabel);
-    const texteComplet = prefixe + ' — ' + texteEchappe;
+  if (v.reussi) {
+    let effetTexte;
+    if (type === 'pj') effetTexte = '-' + v.perte + ' POP sur ' + cibleLabel;
+    else if (type === 'gouvernement') effetTexte = v.membres > 0
+      ? ('-' + v.perte + ' POP sur ' + v.membres + ' membre(s) du gouvernement de ' + cibleLabel)
+      : ('aucun titulaire en poste actuellement dans le gouvernement de ' + cibleLabel);
+    else if (type === 'pays') effetTexte = '-' + v.perte + ' IS sur ' + cibleLabel;
+    else if (type === 'organisation') {
+      if (typeof sbGetOrganisationParId === 'function' && typeof sbSaveOrganisation === 'function') {
+        const orga = await sbGetOrganisationParId(cibleValue).catch(() => null);
+        if (orga) {
+          const influenceActuelle = Number.isFinite(orga.influence) ? orga.influence : 50;
+          orga.influence = Math.max(0, Math.min(100, influenceActuelle - v.perte));
+          await sbSaveOrganisation(orga).catch(() => {});
+        }
+      }
+      effetTexte = '-' + v.perte + ' INF sur l\'organisation « ' + cibleLabel + ' »';
+    } else effetTexte = 'aucun effet statistique (rumeur purement RP)';
 
     document.getElementById('postes-modal-title').textContent = '🗯 Rumeur lancée !';
     document.getElementById('postes-body').innerHTML =
@@ -2441,25 +2404,9 @@ async function validerLancementRumeur() {
       '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">Cible : ' + escapeHtmlText(cibleLabel) + '</div>' +
       '</div>';
     document.getElementById('modal-postes').classList.add('open');
-
-    // Portee mondiale (§9) : visible dans les 4 empires via la sentinelle country:'global'
-    // (sbGetEvenementsRecents, aucune migration de schema).
-    addExternalEvent('🗯 ' + texteComplet, 'mondial');
     addJournalEntry('Rumeur lancée avec succès contre ' + escapeHtmlText(cibleLabel) + ' : ' + effetTexte + '.', 'event-good');
-
-    if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('fausse_rumeur', construirePhraseCibleTracee(type, cibleLabel));
-    if (typeof checkDetection === 'function') checkDetection('fausse_rumeur', 'success');
   } else {
-    // Retour de baton (§6) : tirage entier 0-10 (borne 10 reellement atteignable, meme idiome
-    // que tous les autres jets du jeu) interprete directement comme un pourcentage 0-10% --
-    // <5% -> 0 ; 5-9% -> -1 ; 10% -> -2, sur POP et DIS a l'identique.
-    const rollRetour = Math.floor(Math.random() * 11); // 0 a 10 inclus
-    const perteRetour = rollRetour < 5 ? 0 : (rollRetour < 10 ? 1 : 2);
-    if (perteRetour > 0) {
-      state.pop = Math.max(0, (state.pop || 0) - perteRetour);
-      state.dis = Math.max(0, (state.dis || 50) - perteRetour);
-    }
-
+    const perteRetour = v.perte || 0;
     addJournalEntry(
       'Tentative de rumeur contre ' + escapeHtmlText(cibleLabel) + ' ratée.' +
       (perteRetour > 0 ? ' Elle se retourne contre vous : -' + perteRetour + ' POP -' + perteRetour + ' DIS.' : ' Aucune conséquence pour vous cette fois.'),
@@ -2470,8 +2417,6 @@ async function validerLancementRumeur() {
       perteRetour > 0 ? ('Votre tentative échoue et se retourne contre vous. -' + perteRetour + ' POP -' + perteRetour + ' DIS.') : 'Votre tentative échoue, sans conséquence pour vous cette fois.',
       false
     );
-
-    if (typeof checkDetection === 'function') checkDetection('fausse_rumeur', 'success');
   }
 
   _rumeur = null;

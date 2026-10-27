@@ -146,7 +146,7 @@ ligne trouvée fausse se corrige ici.
 |---|---|---|---|
 | Journal et rédaction | Journal du matin généré, articles, petites annonces, étouffement. | Mixte | Titres de presse du pays. |
 | Communication officielle | Tribunes, conférences de presse, propagande. | Serveur | Tribunes et salles. |
-| Rumeurs et scandales | Rumeurs, calomnies, scandales, démentis (démenti et rumeurs politiques par le serveur depuis le 27/10). | Mixte | Scandales types. |
+| Rumeurs et scandales | Rumeurs, calomnies, scandales, démentis (démenti, rumeurs politiques, « lancer une rumeur » et scandale de la nuit par le serveur depuis le 27/10). | Mixte | Scandales types (table `scandales_predefinis`). |
 
 ### Organisations
 
@@ -171,7 +171,7 @@ ligne trouvée fausse se corrige ici.
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
-| Renseignement | Informateurs (loge, hôtel, bar), cellules de renseignement à l'étranger, renseignement militaire. | Mixte | Services du pays. |
+| Renseignement | Informateurs (loge, hôtel, bar ; tenus par le serveur depuis le 27/10, interroger coûte 1 PA), cellules de renseignement à l'étranger, renseignement militaire. | Mixte | Services du pays. |
 | Vie sociale | Dîners d'affaires, tournées offertes, escortes, dons d'objets, contacts, débauchage d'employés PNJ. | Mixte | Agences et PNJ. |
 
 ### Entre empires
