@@ -7,7 +7,7 @@ function monde(rpc){
  const c=vm.createContext({state:{char:{name:'Fixture'},country:'republic',city:'capitale',currentBuilding:'mairie-capitale',currentRoom:'hall_mairie',inventory:[],_inventaireVersionne:true},
   rpAuthUid:()=> 'fixture-uid',rpAuthSessionIdentifiant:()=> 'fixture-session',
   sessionStorage:{getItem:k=>stockage.get(k),setItem:(k,v)=>stockage.set(k,v),removeItem:k=>stockage.delete(k)},crypto:{randomUUID:()=> 'nonce-'+(++nonce)},
-  showToast:(...a)=>appels.push(['toast',...a]),signalerRefusCout:v=>appels.push(['refus',v]),appliquerPaiementServeur:v=>appels.push(['paie',v])});
+  showToast:(...a)=>appels.push(['toast',...a]),signalerRefusCout:v=>appels.push(['refus',v]),updateUI:()=>appels.push(['ui']),appliquerPaiementServeur:v=>appels.push(['paie',v])});
  vm.runInContext(extrait('supabase.js','const RP_INVENTAIRE_ORIGINE =','// Fusionne uniquement'),c);
  c.sbRpcVerdict=async(fn,p,opts)=>{appels.push(['rpc',fn,p]);const o=c.sbContexteInventaire();const r=await rpc(fn,p,opts,c);return c.sbMarquerInventaires(r,o);};
  vm.runInContext(extrait('plateau-divers.js','const receptionsInventaireEnCours =','// ACHAT D\'UN OBJET PAR LE SERVEUR'),c);
@@ -19,7 +19,7 @@ test('adopte la reponse marquee elle-meme et supprime seulement une intention co
 });
 test('double clic : une seule demande en cours',async()=>{let finir;const m=monde(()=>new Promise(r=>finir=r));const p=m.c.executerReceptionInventaire('x',{});assert.equal(await m.c.executerReceptionInventaire('x',{}),null);finir(succes());await p;assert.equal(m.appels.filter(a=>a[0]==='rpc').length,1);});
 test('reponse perdue : nonce et parametres conserves pour le rejeu',async()=>{let k=0;const m=monde(async()=>++k===1?{ok:false,transport:{etat:'reseau'}}:succes());assert.equal(await m.c.executerReceptionInventaire('x',{n:2}),null);assert.equal(m.stockage.size,1);await m.c.executerReceptionInventaire('x',{n:2});const r=m.appels.filter(a=>a[0]==='rpc');assert.equal(r[0][2].p_requete,r[1][2].p_requete);});
-test('intention incertaine ne devient pas une autre operation',async()=>{const m=monde(async()=>{throw Error('reseau');});await m.c.executerReceptionInventaire('x',{n:2});await m.c.executerReceptionInventaire('x',{n:3});assert.equal(m.appels.filter(a=>a[0]==='rpc').length,1);assert.equal(m.stockage.size,1);});
+test('selection ou revision modifiee : termine seulement le rejeu de la demande precedente',async()=>{let k=0;const m=monde(async()=>++k===1?{ok:false,transport:{etat:'reseau'}}:succes());await m.c.executerReceptionInventaire('x',{n:2});assert.equal(await m.c.executerReceptionInventaire('x',{n:3}),null);const r=m.appels.filter(a=>a[0]==='rpc');assert.equal(r.length,2);assert.equal(r[1][2].n,2);assert.equal(r[0][2].p_requete,r[1][2].p_requete);assert.equal(m.stockage.size,0);});
 test('refus metier ne donne aucun objet ni paiement local',async()=>{const m=monde(async()=>({ok:false,raison:'fonds_insuffisants'}));assert.equal(await m.c.executerReceptionInventaire('x',{}),null);assert.equal(m.c.state.inventory.length,0);assert.equal(m.appels.filter(a=>a[0]==='paie').length,0);assert.equal(m.stockage.size,0);});
 for(const changement of ['personnage','lieu','generation','session']) test('reponse tardive ignoree apres changement de '+changement,async()=>{
  let finir;const m=monde(()=>new Promise(r=>finir=r));const p=m.c.executerReceptionInventaire('x',{});

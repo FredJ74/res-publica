@@ -914,9 +914,9 @@ async function executerReceptionInventaire(fn, parametres) {
   try {
     let intention;
     try { intention = JSON.parse(sessionStorage.getItem(cle) || 'null'); } catch (_) {}
-    if (intention && JSON.stringify(intention.parametres) !== JSON.stringify(parametres)) {
-      showToast('Action en attente', 'Réessayez d’abord la demande précédente pour en vérifier le résultat.', false); return null;
-    }
+    // Une revision/selection peut avoir change depuis la reponse perdue. On verifie
+    // d'abord l'ancienne intention ; ce clic n'execute pas la nouvelle demande.
+    const repriseAutre = intention && JSON.stringify(intention.parametres) !== JSON.stringify(parametres);
     if (!intention) {
       intention = { requete: crypto.randomUUID(), parametres };
       sessionStorage.setItem(cle, JSON.stringify(intention));
@@ -932,6 +932,9 @@ async function executerReceptionInventaire(fn, parametres) {
     }
     if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
     sessionStorage.removeItem(cle);
+    if (repriseAutre) {
+      updateUI(); showToast('Demande précédente vérifiée', 'Votre inventaire est à jour. Vous pouvez maintenant choisir une nouvelle action.', true); return null;
+    }
     return v;
   } catch (_) {
     showToast('Confirmation incertaine', 'Réessayez la même demande pour vérifier son résultat.', false); return null;

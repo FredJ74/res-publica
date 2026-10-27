@@ -11,7 +11,7 @@ def fonction(path,name):
  s=(R/path).read_text(); a=re.search(r'CREATE OR REPLACE FUNCTION public\.'+name+r'\(',s).start()
  m=re.search(r'AS\s+(\$\w*\$).*?\1;',s[a:],re.S)
  return s[a:a+m.end()]
-def main():
+def main(extra=None):
  import pgserver,psycopg2
  from psycopg2.extras import Json
  spec=importlib.util.spec_from_file_location('ced',R/'outils/bancs/banc-ced-football-local.py');mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
@@ -41,7 +41,7 @@ def main():
    nonlocal n
    assert value,msg;n+=1;print('OK',n,msg,flush=True)
   def own(sql,params=()):
-   q.execute('RESET ROLE');q.execute(sql,params)
+   q.execute('RESET ROLE');q.execute(sql,params) if params else q.execute(sql)
    return q.fetchone()[0] if q.description else None
   def call(fn,args):
    q.execute("SELECT set_config('role','authenticated',true),set_config('request.path',%s,true)",('/rpc/'+fn,))
@@ -88,6 +88,7 @@ def main():
   for fn in ['inventaire_deposer_interne(text,jsonb,boolean)','inventaire_action_rejouer_interne(text,uuid,text,jsonb)']:
    check(not own("SELECT has_function_privilege('authenticated',%s,'EXECUTE')",(fn,)),'primitive interne inaccessible : '+fn)
   check(not own("SELECT has_table_privilege('authenticated','inventaire_actions_recus','INSERT')"),'registre non forgeable depuis navigateur')
+  if extra:extra(q,own,call,check,uid,snapshot,Json)
   c.rollback();q.execute("SELECT to_regclass('public.inventaire_actions_recus')");check(q.fetchone()[0] is None,'transaction de banc entierement annulee')
   print(json.dumps({'assertions':n,'production':False,'role_appels':'authenticated','schema_et_jwt':'fixtures','rollback':True}))
  finally:srv.cleanup()

@@ -454,3 +454,11 @@ tirés au hasard et les effets purement visuels sont exclus.
   préparées, **aucune version de registre**, aucun prévol vivant accessible. Banc SQL annulé :
   29 assertions sous authenticated ; 12 tests Node. Fret et autres sites restent à traiter.
   `inventaire_sauver_revision` reste inchangée, conformément à Fred.
+
+- **27/10 — lot fret préparé NON appliqué** (`20261027213000`) : dépôt, reprise,
+  retrait et achat du lot indivisible rejoignent les reçus et le dépôt commun. L'index d'inventaire
+  est lié à sa révision ; caisse, paiement, objets et lignes sont dans une seule transaction.
+  Les contenus ne sont plus créables/augmentables par REST ; la diminution douanière existante
+  reste possible. 47 assertions SQL (29 du lot précédent incluses), rôle authenticated,
+  transaction annulée. Prévol vivant impératif des transitions et autorisations de caisse ;
+  le calendrier de fret et les contrôles douaniers historiques ne sont pas remplacés.
