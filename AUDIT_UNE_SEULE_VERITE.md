@@ -444,3 +444,13 @@ tirés au hasard et les effets purement visuels sont exclus.
   `commerce_vendre_produit_interne`), tracts électoraux et calomnieux (`tracts_imprimer`,
   détection des calomnieux par le serveur).
 
+
+- **27/10 — reprise Codex, lot 4 préparé NON appliqué** : branche
+  `codex/inventaire-serveur-20261027`. `sels_ammoniaque_acheter` lie paiement exact de la
+  quantité réellement déposée (30 FR), caisse pharma et dépôt commun ; `objet_trouve_reclamer`
+  porte le tirage, la limite quotidienne et le souvenir. Réponses versionnées adoptées telles
+  quelles ; reçus protégés contre le rejeu. Le dépôt commun ne crédite plus toutes les anciennes
+  piles d'une même clé et refuse les fractions d'unité. Migrations `20261027210800`/`210810`
+  préparées, **aucune version de registre**, aucun prévol vivant accessible. Banc SQL annulé :
+  29 assertions sous authenticated ; 12 tests Node. Fret et autres sites restent à traiter.
+  `inventaire_sauver_revision` reste inchangée, conformément à Fred.

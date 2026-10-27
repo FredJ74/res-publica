@@ -5,6 +5,16 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Chantier inventaire EN COURS — reprise Codex, lots suivants
+
+- Branche `codex/inventaire-serveur-20261027`, issue de main `5c9e41e` (#206/#207/#208 conservées). Ne pas reprendre le vol de chantier de l'ancienne branche en bloc. La fiche, santé, moral et sauvegarde générale restent le chantier de Claude.
+- Lot 4 préparé : sels à 30 FR avec paiement/caisse pharma/dépôt dans la même transaction ; objets trouvés avec tirage, limite quotidienne, souvenir et dépôt serveur. Même dépôt `inventaire_deposer_interne`, modèles dans `objets_modeles`. Reçus d'intention internes et transport versionné réutilisant `sbRpcVerdict`/`sbAdopterInventaireServeur(v)` ; aucun inventaire recomposé.
+- Défaut réel du dépôt commun corrigé en préparation : une seule pile historique de même stackKey augmente, pas toutes ; quantités fractionnaires refusées. Aucun verrou final ni changement de règle économique.
+- Bancs : 29 assertions PostgreSQL en transaction annulée, appels authenticated et request.path réel de RPC (identité/lois de fixture), 12 assertions Node des vrais handlers/adopteur. Référence complète avant ajout du nouveau banc : 105/105 après installation des dépendances locales, sans changement des attentes.
+- Migrations `20261027210800` et `20261027210810` NON appliquées : aucun outil Supabase exposé ici. Pas de numéro de registre inventé. Déploiement client à attendre jusqu'à l'installation vérifiée des RPC ; ne pas fusionner prématurément.
+- Suite : fret, employés, état civil, énigmes, PNJ, effort de guerre, titres/publications, urbanisme et récompenses/accessoires. Inventaire des modifications d'objets à faire avant toute proposition de verrou final. Le verrou final ne sera ni posé ni appliqué sans décision de Fred.
+
+
 ### #135 — Recette de clôture du 27 octobre
 
 - Branche `codex/cloture-immobilier-135-20261027`, issue de main `74128ee` : #174/#175/#178/#188 conservées, aucun ancien correctif réimporté. Aucun fichier métier ambassades/BNE ni socle transversal de Claude modifié.

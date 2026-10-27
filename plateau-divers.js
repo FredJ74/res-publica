@@ -811,60 +811,12 @@ const OBJETS_TROUVES_ASSEMBLEE = [
 ];
 
 async function reclamerObjetTrouve(pa, cost) {
-  // Limite a 1 essai par jour, peu importe le resultat
-  if (state.dernierObjetTrouveJour === state.day) {
-    showToast('Deja fait aujourd\'hui', 'Vous avez deja consulte le service des objets trouves aujourd\'hui. Revenez demain.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  state.dernierObjetTrouveJour = state.day;
-
-  const reussite = Math.random() < 0.5;
-  if (!reussite) {
-    showToast('Service des objets trouvés', 'Rien d\'intéressant aujourd\'hui. "Repassez demain", lâche l\'hôtesse des objets trouvés.', true);
-    addJournalEntry('Vous avez fouillé le service des objets trouvés. Rien à signaler.', '');
-    return;
-  }
-
-  const objet = OBJETS_TROUVES_ASSEMBLEE[Math.floor(Math.random() * OBJETS_TROUVES_ASSEMBLEE.length)];
-  const id = 'objet-trouve-' + Date.now();
-
-  addToInventory({
-    id,
-    name: objet.name,
-    icon: objet.icon,
-    desc: objet.desc,
-    type: objet.compromettant ? 'kompromat' : 'objet',
-    // origine (correctif ordre Voler, 22 aout 2026) : seul marqueur fiable identifiant un objet
-    // comme provenant reellement des Objets Trouves -- type:'kompromat'/'objet' ne suffit pas
-    // (kompromat est aussi produit par au moins 4 autres mecanismes sans rapport, voir l'audit
-    // dedie). Lu par le serveur (crime_voler) pour l'eligibilite au vol.
-    origine: 'objets_trouves',
-    cible: null,
-    legal: !objet.compromettant,
-    imageUrl: objet.imageUrl || null
-  });
-
-  // Enregistrer le souvenir du PNJ d'accueil (qui sait que CE PJ a recupere CET objet)
-  if (!state.souvenirsAccueil) state.souvenirsAccueil = [];
-  const souvenir = {
-    id: 'souv-' + Date.now(),
-    pjNom: state.char?.name || 'Anonyme',
-    objetNom: objet.name,
-    jourCreation: state.day || 1,
-    jourExpiration: (state.day || 1) + 12,
-    revele: false
-  };
-  state.souvenirsAccueil.push(souvenir);
-
-  // Persister le souvenir sur Supabase pour que les autres PJ puissent l'interroger
-  if (typeof sbAjouterSouvenirAccueil === 'function') {
-    sbAjouterSouvenirAccueil(souvenir).catch(() => {});
-  }
-
-  showToast('Objet trouvé !', 'Vous récupérez : ' + objet.name + '. L\'hôtesse des objets trouvés note discrètement votre nom dans son carnet...', true, true);
-  addJournalEntry('Objet trouvé réclamé : ' + objet.name + '.', objet.compromettant ? 'event-bad' : 'event-good');
+  const v = await executerReceptionInventaire('objet_trouve_reclamer', { p_pa: pa, p_cost: cost });
+  if (!v) return;
+  updateUI();
+  showToast(v.trouve ? 'Objet trouvé !' : 'Service des objets trouvés',
+    v.trouve ? 'Vous récupérez : ' + v.objet + '.' : 'Rien d’intéressant aujourd’hui. Repassez demain.', true, !!v.trouve);
+  addJournalEntry(v.trouve ? 'Objet trouvé réclamé : ' + v.objet + '.' : 'Service des objets trouvés : rien à signaler.', '');
 }
 
 // =====================
@@ -947,6 +899,45 @@ function getTotalInventaire() {
 // joueur en Surcharge (voir enSurcharge ci-dessous). Le plafond de 100 reste integralement
 // applicable a toutes les acquisitions VOLONTAIRES : achat, ramassage, transfert, fabrication.
 // Aucun appelant existant ne passe ce parametre -- comportement byte-identique pour eux.
+// Reprise des receptions serveur : conserve la meme intention apres une reponse perdue.
+// La reponse marquee par sbRpcVerdict est adoptee telle quelle, jamais reconstruite.
+const receptionsInventaireEnCours = new Set();
+async function executerReceptionInventaire(fn, parametres) {
+  const origine = sbContexteInventaire();
+  const lieu = JSON.stringify([state.country, state.city, state.currentBuilding, state.currentRoom]);
+  const encoreValide = () => { const actuel = sbContexteInventaire(); return actuel.personnage === origine.personnage
+    && actuel.uid === origine.uid && actuel.jeton === origine.jeton && actuel.generation === origine.generation
+    && JSON.stringify([state.country, state.city, state.currentBuilding, state.currentRoom]) === lieu; };
+  const cle = 'hg-inventaire:' + origine.uid + ':' + (origine.personnage?.name || '') + ':' + fn;
+  if (receptionsInventaireEnCours.has(cle)) return null;
+  receptionsInventaireEnCours.add(cle);
+  try {
+    let intention;
+    try { intention = JSON.parse(sessionStorage.getItem(cle) || 'null'); } catch (_) {}
+    if (intention && JSON.stringify(intention.parametres) !== JSON.stringify(parametres)) {
+      showToast('Action en attente', 'Réessayez d’abord la demande précédente pour en vérifier le résultat.', false); return null;
+    }
+    if (!intention) {
+      intention = { requete: crypto.randomUUID(), parametres };
+      sessionStorage.setItem(cle, JSON.stringify(intention));
+    }
+    const v = await sbRpcVerdict(fn, { ...intention.parametres, p_requete: intention.requete }, { encoreValide });
+    if (!encoreValide()) return null;
+    if (!v || v.ok !== true) {
+      if (v && !v.transport) sessionStorage.removeItem(cle);
+      signalerRefusCout(v || { raison: 'connexion_indisponible' }); return null;
+    }
+    if (!Number.isSafeInteger(v.revision) || !sbAdopterInventaireServeur(v)) {
+      showToast('Confirmation à relire', 'La réponse ne permet pas de confirmer votre inventaire. Réessayez la même demande.', false); return null;
+    }
+    if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+    sessionStorage.removeItem(cle);
+    return v;
+  } catch (_) {
+    showToast('Confirmation incertaine', 'Réessayez la même demande pour vérifier son résultat.', false); return null;
+  } finally { receptionsInventaireEnCours.delete(cle); }
+}
+
 // ACHAT D'UN OBJET PAR LE SERVEUR (27 octobre 2026, chantier inventaire). objet_acheter preleve
 // l'ordre declare et depose l'objet de son catalogue (objets_modeles) dans la meme transaction ;
 // l'ecran adopte l'inventaire rendu. Rend la reponse, ou null apres avoir prevenu le joueur.
