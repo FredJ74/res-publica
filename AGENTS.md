@@ -41,14 +41,17 @@ constitue jamais la preuve qu'une décision de gameplay n'existe pas.
   **avant** de modifier le code ou de demander un nouvel arbitrage.
 
 **Précédent #135 — sécurité privée des chantiers (décision de Fred déjà prise).**
-Les vigiles de chantier sont des agents de sécurité privée : leurs mécanismes
-communs de détection, intervention et combat sont réutilisés, et les prérogatives
-dépendent de leur employeur et de leur affectation. Ils peuvent intervenir
-face à un personnage recherché **après détection effective**, jamais avant.
-Cela n'autorise ni l'invention de pouvoirs policiers, ni une détention privée
-nouvelle : si les modalités exactes de retenue ou de remise à la police ne sont
-pas déjà définies, demander uniquement cet arbitrage précis. Ne pas créer de
-moteur parallèle.
+Les « vigiles de chantier » sont simplement des **agents de sécurité privée ordinaires**.
+**Deux socles exclusivement** : (1) embauche, groupe, déplacement et présence des PNJ ;
+(2) dissuasion des actes illégaux, détection, confrontation et emprisonnement selon
+le fonctionnement policier existant. L'employeur déplace librement son agent ;
+aucune affectation obligatoire au chantier, aucun statut de vigile, aucun moteur
+parallèle, aucun nouveau lieu de détention. L'agent présent impose les malus
+de sécurité applicables et peut interpeller un PJ recherché **uniquement après
+sa détection effective**. Si l'interpellation réussit, le parcours carcéral
+policier existant s'applique ; le récit précise que l'agent privé a remis le PJ
+à la police avant sa conduite en prison (décisions explicites de Fred, 27/10/2026).
+Le raccordement reste à tester en production, ne pas le présenter comme réalisé.
 
 ## Une seule réalité : celle du serveur (règle de Fred, 24/10/2026)
 
