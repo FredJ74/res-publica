@@ -401,4 +401,11 @@ tirés au hasard et les effets purement visuels sont exclus.
   serveur). L'alerte « repéré » n'est plus publiée dans le fil public (elle l'était par erreur).
   Reste à l'écran : tracts calomnieux et fausse rumeur (chantier des rumeurs), neutralisation
   d'un député, `checkScandale`, `checkEffacementCrimes`, `payerInformateurs`.
+- **27/10 (soir)** — passe de minuit cliente : **le scandale de la nuit** est tiré par le serveur
+  (`minuit_scandale`, une fois par pays et par date de Paris, 15 %, `20261027140000`) ; avant,
+  chaque navigateur connecté tirait le sien. Liste déplacée dans `scandales_predefinis`. Correctif
+  (`20261027130100`) : les fonctions de crime rendent `inventory` et `revision`, sans quoi l'écran
+  d'un inventaire versionné refusait d'adopter le nouvel inventaire. Restent à l'écran :
+  `checkEffacementCrimes` et `verifierDecouverteCrimesPasses` (traces d'achats d'armes et
+  d'explosifs, corruption de permis, hooliganisme encore écrites par l'écran), `payerInformateurs`.
 

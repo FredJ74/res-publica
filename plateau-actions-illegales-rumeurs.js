@@ -1996,7 +1996,7 @@ async function confirmerUtiliserExplosifs() {
     return;
   }
   if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
-  if (Array.isArray(v.inventaire) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur({ inventory: v.inventaire });
+  if (Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
   const reussi = !!v.reussi, repere = !!v.repere;
   const autresPresents = (Array.isArray(v.victimes) ? v.victimes : []).map(n => ({ name: n }));
   if (reussi) {
@@ -2197,7 +2197,7 @@ async function confirmerEmpoisonnement(cibleNom) {
     else showToast('Impossible', 'L\'empoisonnement n\'a pas pu avoir lieu.', false);
     return;
   }
-  if (Array.isArray(v.inventaire) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur({ inventory: v.inventaire });
+  if (Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
   state.estCache = false;
   const palier = v.palier;
   if (palier !== 'echec_total') {
@@ -2819,19 +2819,9 @@ async function validerRepartitionBudget(source) {
 
 // SCANDALES ALEATOIRES
 // =====================
-function declencherScandale() {
-  if (typeof SCANDALES_PREDEFINIS === 'undefined' || SCANDALES_PREDEFINIS.length === 0) return;
-  const scandale = SCANDALES_PREDEFINIS[Math.floor(Math.random() * SCANDALES_PREDEFINIS.length)];
-  addExternalEvent('🔴 SCANDALE : ' + scandale);
-  showToast('Scandale !', scandale.substring(0, 80) + '...', false);
-}
+// declencherScandale SUPPRIMEE (27/10/2026) : la liste des scandales vit dans scandales_predefinis.
 
-// Declencher un scandale aleatoire de temps en temps (a minuit, 15% de chance)
-function checkScandale() {
-  if (Math.random() < 0.15) {
-    declencherScandale();
-  }
-}
+// checkScandale SUPPRIMEE (27/10/2026) : minuit_scandale, passe de nuit du serveur.
 // =====================
 // CONSTANTE BONUS CARRIERE VOL (complement)
 // =====================
