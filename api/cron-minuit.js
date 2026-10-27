@@ -4126,12 +4126,25 @@ async function traiterQuotidienNationalServeur(pays) {
   await traiterScandaleServeur(pays);
   await traiterConvocationsServeur();
   await traiterDecouverteCrimesServeur();
+  await traiterInformateursServeur();
 }
 
 // --- DECOUVERTE DIFFEREE DES CRIMES (27 octobre 2026) -------------------------------------------
 // Les traces d'origine serveur (neutralisation, incendie, explosifs...) peuvent etre mises au jour
 // chaque nuit. Globale : une seule fois par passe.
 let decouverteCrimesTraiteeCettePasse = false;
+// --- SALAIRES DES INFORMATEURS (27 octobre 2026) ----------------------------------------------
+// Globale (tous pays) : une seule fois par passe. Avant, le navigateur du joueur les prelevait a
+// minuit sur le total affiche, et seulement s'il etait connecte.
+let informateursTraitesCettePasse = false;
+async function traiterInformateursServeur() {
+  if (informateursTraitesCettePasse) return;
+  informateursTraitesCettePasse = true;
+  const v = await sbRpc('minuit_informateurs', {}, HEADERS_SERVICE).catch(() => null);
+  const r = Array.isArray(v) ? v[0] : v;
+  if (!r || r.ok !== true) signalerEchec('informateurs', JSON.stringify(v));
+}
+
 async function traiterDecouverteCrimesServeur() {
   if (decouverteCrimesTraiteeCettePasse) return;
   decouverteCrimesTraiteeCettePasse = true;

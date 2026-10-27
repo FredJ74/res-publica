@@ -414,22 +414,16 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
   if (fn === 'escort_infos')           { doEscortInfos(); return; }
   if (fn === 'escort_piege')           { doEscortPiege(pa, cost); return; }
-  if (fn === 'recruter_informateur_1') { consulterInformateur(1); return; }
-  if (fn === 'recruter_informateur_2') { consulterInformateur(2); return; }
-  if (fn === 'recruter_informateur_3') { consulterInformateur(3, pa); return; }
-  if (fn === 'recruter_informateur_4') { consulterInformateur(4); return; }
-  if (fn === 'interroger_informateur_1'){ interrogerInformateur(1); return; }
-  if (fn === 'interroger_informateur_2'){ interrogerInformateur(2); return; }
-  if (fn === 'interroger_informateur_3'){ interrogerInformateur(3); return; }
-  if (fn === 'interroger_informateur_4'){ interrogerInformateur(4); return; }
-  if (fn === 'recruter_info')          { ouvrirRecruterInformateur(1); return; }
-  if (fn === 'recruter_info_2')        { ouvrirRecruterInformateur(2); return; }
-  if (fn === 'recruter_info_3')        { ouvrirRecruterInformateur(3, pa); return; }
-  if (fn === 'recruter_info_4')        { ouvrirRecruterInformateur(4, pa); return; }
-  if (fn === 'consulter_info')         { consulterInformateur(1); return; }
-  if (fn === 'consulter_info_2')       { consulterInformateur(2); return; }
-  if (fn === 'consulter_info_3')       { consulterInformateur(3, pa); return; }
-  if (fn === 'consulter_info_4')       { consulterInformateur(4); return; }
+  // INFORMATEURS PAR LE SERVEUR (27/10/2026). Seuls trois ordres existent dans data.js :
+  // recruter_informateur_2, recruter_info_4 et consulter_info_4. « Consulter la Taupe N4 »
+  // RECRUTAIT par erreur : c'est l'interrogation (1 PA). Les autres routes restent branchees au
+  // serveur, qui refuse un niveau sans ordre declare.
+  if (/^recruter_informateur_[1-4]$/.test(fn)) { consulterInformateur(Number(fn.slice(-1)), pa, cost); return; }
+  if (/^interroger_informateur_[1-4]$/.test(fn)) { interrogerInformateur(Number(fn.slice(-1)), pa); return; }
+  if (fn === 'recruter_info')          { ouvrirRecruterInformateur(1, pa, cost); return; }
+  if (/^recruter_info_[2-4]$/.test(fn)) { ouvrirRecruterInformateur(Number(fn.slice(-1)), pa, cost); return; }
+  if (fn === 'consulter_info')         { interrogerInformateur(1, pa); return; }
+  if (/^consulter_info_[2-4]$/.test(fn)) { interrogerInformateur(Number(fn.slice(-1)), pa); return; }
   if (fn === 'gerer_informateurs')     { ouvrirGestionInformateurs(); return; }
   if (fn === 'taxi_qhs')               { doTaxiSpecial('qhs', pa, cost); return; }
   if (fn === 'renseignement_transport_intl') { ouvrirRenseignementMireilleGuichet(); return; }
