@@ -5,6 +5,17 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### #135 — Vigiles et vol atomique (suite après #194)
+
+- Branche `codex/vigiles-vol-135-20261027`, main `83b5c78` (#194) repris sans réimporter d'ancien code.
+- Préparé : affectations liées aux vrais PNJ employés, présence par `pnj_position_effective`, détachement par `pnj_quitter_groupe`. Métier, statut, PA, employeur et propriété relus. Aucun moteur de recrutement parallèle.
+- Préparé : action `voler` dans `chantier_commande` et son reçu existant ; coûts par `payer_ordre`, stock et inventaire sous verrou, indices/recherche/traces/journal persistés, ancienne porte refusée. Client sans jet, paiement ni ajout local, reprise de la même intention et relecture d'inventaire.
+- Première étape éprouvée : 32 assertions natives + 720 comparaisons exactes JS/SQL, en plus des 62 assertions du banc commun ; 13 tests client du vol, dont les quatre contre-épreuves historiques #194 conservées sur fixture identifiée.
+- Ne pas déployer : bénédiction non persistée dans les sources retrouvées. Migration refuse explicitement le schéma sans cette colonne JSONB ; tests sur hypothèse de contrat documentée, pas preuve de schéma vivant. Aucun champ ajouté en production.
+- Reste : raccordement de détection/intervention privée au moteur commun. Fred confirme le droit d'intervenir après détection ; ne pas assimiler aux pouvoirs institutionnels. Contrats vivants de détection/coups à récupérer, aucun faux adaptateur policier créé.
+- Suite en cours : scénarios supplémentaires, contre-épreuves, régressions globales et prévol technique. Aucun joueur ni compte modifié, aucune migration appliquée. Accès Supabase/Vercel absents dans cette session.
+
+
 ### #135 — Recette de clôture du 27 octobre
 
 - Branche `codex/cloture-immobilier-135-20261027`, issue de main `74128ee` : #174/#175/#178/#188 conservées, aucun ancien correctif réimporté. Aucun fichier métier ambassades/BNE ni socle transversal de Claude modifié.
