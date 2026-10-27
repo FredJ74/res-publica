@@ -77,6 +77,15 @@ BEGIN
  SELECT pa INTO v_pa FROM public.pnj_membres WHERE id='__test_135_private__';
  IF v_pa IS NULL OR v_pa NOT BETWEEN 0 AND 12 THEN RAISE EXCEPTION 'pa_garde_hors_bornes: %',v_pa; END IF;
 END $t$;
+-- Deux agents simultanés : le round commun arbitre l'effectif, sans tableau de vigiles de chantier.
+INSERT INTO public.pnj_membres(id,famille,classe,nom,pays,proprietaire_pj,statut,pa,car_per,car_vol,ville,building_id,room_id)
+VALUES('__test_135_renfort__','employe','beta','Renfort fictif','republic','__test_employeur_135__','actif',12,16,18,'capitale','__test_bat_135__','terrain');
+INSERT INTO public.pnj_employes_metier(pnj_id,job,role_libelle,cout_jour)
+VALUES('__test_135_renfort__','maitre_chien','Renfort fictif',0);
+DO $t$ DECLARE r jsonb; BEGIN
+ r:=public.securite_agents_prives_presents_interne('republic','capitale','__test_bat_135__','terrain',NULL,'__test_pj_135__');
+ IF jsonb_array_length(r)<>2 THEN RAISE EXCEPTION 'effectif_multiple_manquant: %',r; END IF;
+END $t$;
 -- Contre-épreuve : un agent déplacé hors de la zone ne peut poursuivre le combat.
 UPDATE public.pnj_membres SET building_id='__autre__' WHERE id='__test_135_private__';
 SET LOCAL ROLE authenticated;
