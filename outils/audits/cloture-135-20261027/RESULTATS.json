@@ -1,0 +1,50 @@
+{
+  "base_main": "74128ee3ac8118f12c1e5e48577fafb43a2598ad",
+  "production_modifiee": false,
+  "authentification_executee_dans_cette_session": false,
+  "tests": {
+    "pilote": {
+      "reussis": 105,
+      "echecs": 0
+    },
+    "clients": {
+      "reussis": 105,
+      "echecs": 0
+    },
+    "navigation_groupement": {
+      "reussis": 60,
+      "inclus_dans_clients": true
+    },
+    "parcours_cinq_terrains": 324,
+    "banque_sous_jacente": 61,
+    "occupation": 30,
+    "negociation": 59,
+    "permis": 56,
+    "progression": 62,
+    "salaire": 15,
+    "vol_regressions": {
+      "reussis": 4,
+      "inclus_dans_pilote": true
+    },
+    "contre_epreuves_sql_attendues": 3,
+    "controles_globaux": {
+      "reussis": 4,
+      "total": 12,
+      "identiques_a_main": true
+    }
+  },
+  "preuves_sha256": {
+    "clients-final.txt": "973025f3193c39be25cc1127cf1d8c9fa3dfcab6fbd98729684294354fba5f58",
+    "e2e-final.txt": "1938b4290f1222517703ed51f009c83e48e1b1a32a77f4658f60e170dcdf7cff",
+    "globaux-final.txt": "a916b749def0237e1fd9c0f5192d754a38f0a5ffbbda26123867b096f132d8d8",
+    "globaux-main.txt": "c82833129547784d236213cdbad85474527d8218fdcc3f1185ef5f8870336a07",
+    "mutant-jour_rejoue.txt": "3487c5faeed8cbd282e460c6faf21ae1169ff5e092db78c526f8b1ef279e7d3a",
+    "mutant-prix_uniformises.txt": "06c755c549672b2e17ee68a00b0d44359876efdad1e30f1d7071770ce3f27099",
+    "mutant-tranche_modifiee.txt": "7c3c1d3ede28cd93a3d65814435a235a3f2cf64e2f9a9407fef4a7d5360cdd3c",
+    "navigation.txt": "563acb3d209ceaf042bab6c9af828881acc3170027a36f13b08b37949401ce28",
+    "negociation-permis.txt": "fb15c6dbb809babebf2e0c4c6607e97849e820c33d1baee082b27db2efdcda8e",
+    "parcours-salaire.txt": "6e77cf14c5a305a33fdd6446856bc99ce957431686f230604c86f8a32b2b389a",
+    "sql.txt": "cd95e64c4ac158122e13545a99131e933cc16bd18ad5584e4ebf2bfb56cd60e4",
+    "vol.txt": "2b1c465b6730453782bd2d8a69daaeb9b9e416ac0849fdf81c0a74f30cb44441"
+  }
+}
