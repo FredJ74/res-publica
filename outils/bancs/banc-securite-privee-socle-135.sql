@@ -56,3 +56,11 @@ BEGIN
 END $t$;
 SELECT set_config('request.jwt.claim.sub','c1350000-0000-4000-8000-000000000135',true);
 RESET ROLE;
+-- Contre-épreuve : un agent déplacé hors de la zone ne peut poursuivre le combat.
+UPDATE public.pnj_membres SET building_id='__autre__' WHERE id='__test_135_private__';
+SET LOCAL ROLE authenticated;
+DO $t$ DECLARE r jsonb; BEGIN
+ r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',2);
+ IF r->>'ok' IS DISTINCT FROM 'false' THEN RAISE EXCEPTION 'agent_eloigne_combat_accepte: %',r; END IF;
+END $t$;
+RESET ROLE;
