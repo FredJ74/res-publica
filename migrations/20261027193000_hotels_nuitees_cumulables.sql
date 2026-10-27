@@ -64,15 +64,21 @@ CREATE OR REPLACE FUNCTION public.hotel_nuitee_consommation_interne(p_acteur tex
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $f$
 DECLARE p record;n record;out_pa integer;out_moral integer; today_paris date:=(now() AT TIME ZONE 'Europe/Paris')::date;
 BEGIN
- SELECT id,country,current_city,current_building,current_room,pa_repos_le
+ SELECT id,country,current_city,current_building,current_room,pa_repos_le,pa,moral
  INTO p FROM public.personnages_donnees WHERE name=p_acteur FOR UPDATE;
  IF NOT FOUND OR p.pa_repos_le IS DISTINCT FROM today_paris THEN RETURN jsonb_build_object('ok',false,'raison','repos_non_valide');END IF;
  IF NOT ((p.current_building='hotel-republica' AND p.current_room='chambres')
  OR (p.current_building='hotel-port' AND p.current_room='chambre_port')
  OR (p.current_building='hotel-mineur' AND p.current_room='chambre_mineur')) THEN
  RETURN jsonb_build_object('ok',false,'raison','hors_chambre');END IF;
- IF EXISTS(SELECT 1 FROM public.hotel_nuitees WHERE personnage_id=p.id AND consommee_le=today_paris) THEN
- RETURN jsonb_build_object('ok',false,'raison','nuit_deja_utilisee'); END IF;
+ SELECT * INTO n FROM public.hotel_nuitees WHERE personnage_id=p.id AND consommee_le=today_paris LIMIT 1;
+ IF FOUND THEN
+  IF n.country=p.country AND n.city=p.current_city AND n.building_id=p.current_building THEN
+   RETURN jsonb_build_object('ok',true,'rejeu',true,'pa',p.pa,'moral',p.moral,
+    'montant',n.pa_bonus,'moralBonus',n.moral_bonus,'hotel',n.building_id);
+  END IF;
+  RETURN jsonb_build_object('ok',false,'raison','nuit_deja_utilisee');
+ END IF;
  SELECT * INTO n FROM public.hotel_nuitees
  WHERE personnage_id=p.id AND country=p.country AND city=p.current_city
  AND building_id=p.current_building AND consommee_le IS NULL
