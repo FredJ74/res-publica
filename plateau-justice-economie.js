@@ -12877,8 +12877,8 @@ async function confirmerVolMateriaux(matiere, pa, cost) {
   if (verdict.reussite) {
     const jourNum = numeroJourChantier(ch);
     const stock = ch.stockMateriaux || { bois: 0, minerai: 0, metal: 0 };
-    const qte = quantiteVolMateriaux(score, matiere, jourNum, stock[matiere]);
-    if (qte <= 0) { showToast('Rien à emporter', "Le stock a été vidé entre-temps.", false); return; }
+    const quantiteDemandee = quantiteVolMateriaux(score, matiere, jourNum, stock[matiere]);
+    if (quantiteDemandee <= 0) { showToast('Rien à emporter', "Le stock a été vidé entre-temps.", false); return; }
 
     // LE STOCK EST REPLAFONNE SUR L'ETAT REEL, SOUS VERROU (10 octobre 2026). `qte` etait
     // plafonnee par le stock que CE navigateur avait lu : deux voleurs simultanes emportaient donc
@@ -12887,14 +12887,14 @@ async function confirmerVolMateriaux(matiere, pa, cost) {
     // l'inventaire credite ci-dessous. Elle consigne aussi l'evenement, sans l'identite du voleur.
     const vVol = await sbTerrainActe('terrain_chantier_acte', {
       p_terrain_id: id, p_acte: 'chantier_materiaux_voler',
-      p_matiere: matiere, p_quantite: qte, p_jour: state.day || 1
+      p_matiere: matiere, p_quantite: quantiteDemandee, p_jour: state.day || 1
     });
     if (!vVol || vVol.ok !== true) {
       signalerRefusTerrain(vVol, 'Le vol de matériaux');
       return;
     }
     remplacerTerrainState(id, vVol.etat);
-    qte = Number(vVol.quantite) || 0;
+    const qte = Number(vVol.quantite) || 0;
     if (qte <= 0) { showToast('Rien à emporter', "Le stock a été vidé entre-temps.", false); return; }
 
     const res = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) || {};

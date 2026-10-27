@@ -1,0 +1,217 @@
+CONTROLE D'ENSEMBLE DU BASELINE -- 12 controles
+========================================================================
+  le processus tient                     verifier-workflow.py           ECHEC
+      | 
+      | 9. LE DEPLOIEMENT RESTE DEPLOYABLE
+      |   --------------------------------------------------------------------
+      |   taches cron declarees                         2 / 2 au plus
+      |   planifications a plus d'une invocation par jour        0 / 0        OK 
+      | 
+      | ========================================================================
+      |   1. AUCUN .sql A LA RACINE                            CONFORME
+      |   2. ARCHIVE DES SQL DE LA RACINE                      CONFORME
+      |   3. MIGRATIONS FUTURES : NOMMAGE                      CONFORME
+      |   4. MIGRATIONS POSTERIEURES AU POINT DE COUPE         CONFORME
+      |   5. SQL DANS SES TROIS MAISONS                        ECHEC (6)
+      |   6. LE PROCESSUS EST ECRIT                            CONFORME
+      |   7. UN SEUL OUTIL PAR RESPONSABILITE                  CONFORME
+      |   8. AUCUN SCRIPT TECHNIQUE A LA RACINE                CONFORME
+      |   9. LE DEPLOIEMENT RESTE DEPLOYABLE                   CONFORME
+      | 
+      | ECHEC : 6 regression(s) du workflow
+      |   - [5] fichiers .sql hors des trois maisons : 5 au lieu de 0
+      |   - [5] fichier .sql egare : outils/bancs/fixtures/terrain-permis-acte-avant-depot.sql
+      |   - [5] fichier .sql egare : outils/bancs/fixtures/ced-football-schema.sql
+      |   - [5] fichier .sql egare : outils/bancs/fixtures/terrain-chantier-acte-avant-commandes.sql
+      |   - [5] fichier .sql egare : outils/bancs/fixtures/historique-135/20261024072349_occupation_actions_et_echeances.sql
+      |   - [5] fichier .sql egare : outils/bancs/fixtures/historique-135/20261023090017_location_lot_legacy_avant_paiement.sql
+
+  la classification est entiere          verifier-classification.py     ECHEC
+      | 1. nombre de tables classees        : 325 / 319  NON
+      | 2. tables classees deux fois        : 0  OK
+      | 3. empreinte de la liste des tables : 0f1008a03fb2aac1146558c6d7103e9b  NON
+      | 4. tables D sans justification de separation : 0 / 21  OK
+      | 5. tables en seed sans justification : 0 / 99  OK
+      | 6. tables d'etat vivant en seed complet : 0  OK
+      | 7. categories/strategies hors vocabulaire : 0  OK
+      | 
+      | Repartition  A=66  B=22  C=216  D=21
+      | Tables entrant dans le seed : 99  (1954 lignes actuelles cumulees)
+      | 
+      | ECHEC : 2 anomalie(s)
+      |   - nombre de tables classees incorrect
+      |   - la liste des tables classees ne correspond pas au catalogue releve
+
+  le baseline est fidele au catalogue    verifier-baseline.py           ECHEC
+      |   INTEGRITE DES FICHIERS                               CONFORME
+      | 
+      | ECHEC : 21 anomalie(s)
+      |   - [1] tables : baseline 320, base 314
+      |   - [1] colonnes : baseline 2461, base 2437
+      |   - [1] contraintes : baseline 625, base 613
+      |   - [1] index autonomes : baseline 188, base 187
+      |   - [1] index portes par une contrainte : baseline 335, base 328
+      |   - [1] empreinte empreinte des colonnes non conforme
+      |   - [1] empreinte empreinte des contraintes non conforme
+      |   - [1] empreinte empreinte des index autonomes non conforme
+      |   - [2] fonctions : baseline 915, base 906
+      |   - [2] declencheurs : baseline 53, base 51
+      |   - [2] empreinte empreinte des fonctions non conforme
+      |   - [2] empreinte empreinte des declencheurs non conforme
+      |   - [2] definitions relues depuis les fichiers : baseline 915, base 906
+      |   - [2] corps de table relus depuis les fichiers : baseline 320, base 314
+      |   - [3] fonctions SECURITY DEFINER : baseline 783, base 777
+      |   - [3] fonctions SECURITY INVOKER : baseline 123, base 129
+      |   - [3] tables avec RLS active : baseline 320, base 314
+      |   - [3] lignes de droits : baseline 3604, base 3574
+      |   - [3] tables RLS active sans policy : baseline 166, base 160
+      |   - [3] empreinte empreinte des droits non conforme
+      |   - [3] empreinte empreinte des commentaires non conforme
+
+  l'autorite tient                       verifier-autorite.py           ECHEC
+      |   10. aucune fonction mutante client-appelable sans garde  0 ecarts OK 
+      |   11. aucune fonction mutante appelable par anon           0 ecarts OK 
+      | 
+      | FAMILLE 3 -- LES PORTES SERVEUR ET LES MIGRATIONS PREPAREES
+      |   ----------------------------------------------------------------------
+      |   12. les migrations en attente ne nomment rien d'inconnu  4 ecarts ECHEC
+      |       - 20261023000000_fontaine_exclusivite_sur_place.sql : signature inconnue « acheter_produit_commerce_interne(text,text,text,text,integer) »
+      |       - 20261027070100_election_contester.sql : signature inconnue « cycle_electoral_frais_interne(text,text,timestamptz) »
+      |       - 20261027070100_election_contester.sql : signature inconnue « cycle_electoral_initialiser(text,text) »
+      |       - 20261027070100_election_contester.sql : signature inconnue « cycle_electoral_initialiser(text,text) »
+      |   13. toute RPC appelee par le navigateur existe           83 ecarts ECHEC
+      |       - ambassade_acces_bureau : aucune fonction de ce nom dans le baseline — plateau-politique.js:9149 ; declaration SQL : migrations/20261024184600_ambassades_audiences_acces.sql, migrations/20261025020100_ambassades_asile_acces.sql ; registre vivant et extraction a verifier
+      |       - ambassade_acces_bureaux : aucune fonction de ce nom dans le baseline — plateau-politique.js:9197 ; declaration SQL : migrations/20261025010000_ambassades_acces_bureaux.sql, migrations/20261025020100_ambassades_asile_acces.sql ; registre vivant et extraction a verifier
+      |       - ambassade_accorder_audience : aucune fonction de ce nom dans le baseline — plateau-politique.js:9282 ; declaration SQL : migrations/20261024184600_ambassades_audiences_acces.sql ; registre vivant et extraction a verifier
+      |       - ambassade_demander_asile : aucune fonction de ce nom dans le baseline — plateau-politique.js:9367 ; declaration SQL : migrations/20261025020000_ambassades_asile.sql, migrations/20261025110200_ambassades_ambassadeur_joueur.sql ; registre vivant et extraction a verifier
+      |       - ambassade_demander_audience : aucune fonction de ce nom dans le baseline — plateau-politique.js:9110 ; declaration SQL : migrations/20261024184500_ambassades_audiences.sql ; registre vivant et extraction a verifier
+      |       - ambassade_demettre : aucune fonction de ce nom dans le baseline — plateau-politique.js:9486 ; declaration SQL : migrations/20261025110000_ambassades_ordres_ministre.sql ; registre vivant et extraction a verifier
+      |       ... et 77 autre(s)
+      | 
+      | ========================================================================
+      | ECHEC : 3 invariant(s) en ecart sans migration declaree
+      |   - invariant 3 : identite passee a une RPC toujours verifiee au serveur (1 ecarts)
+      |   - invariant 12 : les migrations en attente ne nomment rien d'inconnu (4 ecarts)
+      |   - invariant 13 : toute RPC appelee par le navigateur existe (83 ecarts)
+
+  les referentiels concordent            verifier-referentiels.py       ECHEC
+      |   villes                    12 lignes  d41051aa8bcafadd  recalculee
+      | 
+      |   generes mais surveilles par aucune table <miroir>_empreinte :
+      |     clubs_football         2c2f8d0fe578a8bb  (rien ne la confronte en base)
+      |     miroirs_chantiers      6f16826f81bad98a  (rien ne la confronte en base)
+      |     miroirs_entreprises    DERIVE : c68bb035d5fc6268 != e2b15dda50c9a640
+      |     offres_emploi_bne      DERIVE : d41d8cd98f00b204 != 2cf0edcba2fa05fc
+      |     postes_electifs        2390eb52a42ae6a6  (rien ne la confronte en base)
+      | 
+      | --------------------------------------------------------------------------
+      | TROISIEME AXE : l'artefact serveur genere
+      |   24 constantes generees, importees par 3 module(s) de api/
+      |     _journal-collecte.js          1 constante(s)
+      |     conseiller-creation.js        4 constante(s)
+      |     cron-minuit.js               20 constante(s)
+      |   regeneration identique au fichier du disque  (empreinte ca2826514f403b41)
+      |   tous les noms importes sont exportes, aucun n'est redeclare localement
+      | 
+      | ==========================================================================
+      | ECHEC : 4 probleme(s) sur l'axe des empreintes
+      |   - empreintes/ordres_couts : le generateur rend cfc3f3f7883d79e1, la declaration annonce 20e52d8f9bbe8e3f. data.js a bouge depuis la mesure : le catalogue vivant est a verifier, et la declaration a reprendre.
+      |   - empreintes/postes_nommes_regles : le generateur rend 694f117ace57b0b1, la declaration annonce 6c0c7aa0d29bf852. data.js a bouge depuis la mesure : le catalogue vivant est a verifier, et la declaration a reprendre.
+      |   - empreintes/miroirs_entreprises : le generateur rend c68bb035d5fc6268, la declaration annonce e2b15dda50c9a640
+      |   - empreintes/offres_emploi_bne : le generateur rend d41d8cd98f00b204, la declaration annonce 2cf0edcba2fa05fc
+
+  les faits publics atteignent le Journal verifier-faits-publics.py      OK 
+  les fonctions concordent               verifier-fonctions.py          ECHEC
+      |   construireDocumentUrbanismeServeur -> construireDocumentUrbanisme concorde (33 cas)
+      |   libelleAccordTaciteServeur -> libelleEvenementUrbanisme  divergence declaree tenue (3/4 cas)
+      |   texteAccordTaciteServeur -> texteDocumentUrbanisme       divergence declaree tenue (4/4 cas)
+      | 
+      | EPINGLEES PAR EMPREINTE DE TEXTE
+      |   --------------------------------------------------------------------
+      |   urbanisme/archiver                                       epinglee
+      |   elections/attacher-effets-tracts                         epinglee
+      |   successions/personnage-existe                            epinglee
+      |   successions/etape-suivante                               epinglee
+      |   indices/modifier-indice-ville                            epinglee
+      |   nocturne/desertions                                      epinglee
+      |   nocturne/expulsions-ambassadeurs                         TEXTE INTROUVABLE
+      | 
+      | CONSTANTES PORTANT LE MEME NOM DES DEUX COTES
+      |   --------------------------------------------------------------------
+      |   FUSEAU_ELECTORAL                                         egales
+      |   CANDIDATURES_MIN_MS                                      egales
+      |   REPARTITION_PORT_DEFAUT                                  egales
+      | 
+      | ========================================================================
+      | ECHEC : 2 probleme(s).
+      |   . copie non declaree : api/cron-minuit.js:tauxHoraireChantierServeur (canon apparent plateau-chantiers.js)
+      |   . nocturne/expulsions-ambassadeurs : texte introuvable (canon)
+
+  le monde neuf est propre               verifier-monde-neuf.py         OK 
+  l'assemblage se tient                  assembler.py                   ECHEC
+      |    fonction     (20) avant policy       (60) OK 
+      |    table        (10) avant policy       (60) OK 
+      |    sequence     (10) avant table        (10) OK 
+      | 
+      | 8. dependances vers un autre schema (declarees, non recreees) : 2
+      |    auth.uid                           utilise par personnage-et-presence
+      |    auth.users                         utilise par personnage-et-presence
+      | 
+      | 9. assemblage des seeds
+      |    tables peuplees par un seed         : 82
+      |    tables en attente (TODO, sans donnee) : 17
+      |    seeds dont une cle etrangere vise une table non peuplee : 1 A SIGNALER
+      |    tables a cle etrangere sur elles-memes : 2
+      | 
+      | ============================================================================
+      | A SIGNALER (non bloquant pour l'assemblage) : 2
+      |   . socle/20_fonctions.sql : reference a sauvegarde_beta_20260913 (schema de sauvegarde de la beta)
+      |   . seed de journaux : cle etrangere vers personnages_donnees, qui n'est pas peuplee. L'INSERT ne passera que si la colonne est nulle sur toutes les lignes seedees.
+      | 
+      | ECHEC : 2 anomalie(s) d'assemblage
+      |   - immobilier-et-territoire : declencheur trg_fermeture_date_universelle appelle fermeture_definir_date_universelle, absente du baseline
+      |   - immobilier-et-territoire : declencheur permis_depot_archive_versionnee appelle permis_depot_archive_proteger, absente du baseline
+      | 
+      | Aucun objet n'a ete supprime pour faire passer ce test.
+
+  la reconstruction passe                reconstruire.py                ECHEC
+      |   noms de fonction distincts            911 / 902    NON  4 fonctions sont surchargees : moins de noms que de signatures
+      |   contraintes posees                    625 / 613    NON  
+      |   index autonomes crees                 188 / 187    NON  
+      |   declencheurs crees                     53 / 51     NON  
+      |   policies creees                       281 / 281    OK   
+      |   sequences disponibles                  38 / 38     OK   
+      |   indices de ville seedes                 3 / 3      OK   les 3 villes de Republia, 5 indices chacune
+      |   titulaires PNJ seedes                  18 / 18     OK   18 titulaires : 3 juges municipaux distincts, le Procureur national, et les deux postes pourvus par la passe de minuit du 12 octobre
+      |   entrepots seedes                        3 / 3      OK   les 3 entrepots logistiques, 17 matieres chacun -- leur tresorerie a quitte le blob le 8 octobre 2026 pour une vraie caisse, seedee avec les autres
+      |   PNJ de socle seedes                     0 / 0      OK   un monde neuf n'herite d'aucun PNJ : ils naissent des mecanismes
+      |   soldats seedes                          0 / 0      OK   aucun soldat au premier jour
+      |   possessions de PNJ seedees              0 / 0      OK   aucune possession heritee
+      |   compagnies militaires seedees           0 / 0      OK   0 compagnie et 0 section au premier jour -- arbitrage du 5 octobre 2026
+      |   organisations seedees                   0 / 0      OK   les loges attendent le mecanisme de rattachement du chef
+      |   lignes de rp_transitions                0 / 0      OK   table volontairement vide : rp_transition_active() rend FALSE sur cle absente
+      |   caisses de batiment seedees            44 / 44     OK   les 44 dotations financieres arbitrees, ecrites depuis le tableau
+      |   lignes de repartition budgetaire seedees     28 / 28     OK   10 nationales (9/100 x 9 + Assemblee 19/100), Caserne 65/100, Douanes 35/100, QHS 0/100, 3 tribunaux a 1/3, 3 x 3 municipales a 40/40/20, et 3 subventions a 0/100
+      |   versements budgetaires seedes           0 / 0      OK   journal des versements reels : un monde neuf nait sans historique, sinon le premier minuit croirait avoir deja verse
+      |   compteur de recettes municipales seede      0 / 0      OK   mesure du jour, jamais une tresorerie : un monde neuf nait sans recette percue
+      | 
+      |   1097 lignes seedees au total, dans 82 tables
+      | 
+      | ==========================================================================
+      | ECHEC : 0 refus de grammaire, 2 dependance(s) manquante(s), 6 attente(s) du monde non tenue(s)
+
+  non-regression du pilote 2B            verifier.py                    OK 
+  non-regression de l'archive 2D         verifier-archive-registre.py   OK 
+========================================================================
+ECHEC : 8 controle(s) sur 12
+  - le processus tient (verifier-workflow.py)
+  - la classification est entiere (verifier-classification.py)
+  - le baseline est fidele au catalogue (verifier-baseline.py)
+  - l'autorite tient (verifier-autorite.py)
+  - les referentiels concordent (verifier-referentiels.py)
+  - les fonctions concordent (verifier-fonctions.py)
+  - l'assemblage se tient (assembler.py)
+  - la reconstruction passe (reconstruire.py)
+
+Le detail de chaque echec est au-dessus. Rien n'a ete corrige :
+ces outils rapportent, ils ne reparent pas.
