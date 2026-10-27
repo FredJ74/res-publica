@@ -21,9 +21,10 @@ test('double clic : une seule demande en cours',async()=>{let finir;const m=mond
 test('reponse perdue : nonce et parametres conserves pour le rejeu',async()=>{let k=0;const m=monde(async()=>++k===1?{ok:false,transport:{etat:'reseau'}}:succes());assert.equal(await m.c.executerReceptionInventaire('x',{n:2}),null);assert.equal(m.stockage.size,1);await m.c.executerReceptionInventaire('x',{n:2});const r=m.appels.filter(a=>a[0]==='rpc');assert.equal(r[0][2].p_requete,r[1][2].p_requete);});
 test('selection ou revision modifiee : termine seulement le rejeu de la demande precedente',async()=>{let k=0;const m=monde(async()=>++k===1?{ok:false,transport:{etat:'reseau'}}:succes());await m.c.executerReceptionInventaire('x',{n:2});assert.equal(await m.c.executerReceptionInventaire('x',{n:3}),null);const r=m.appels.filter(a=>a[0]==='rpc');assert.equal(r.length,2);assert.equal(r[1][2].n,2);assert.equal(r[0][2].p_requete,r[1][2].p_requete);assert.equal(m.stockage.size,0);});
 test('refus metier ne donne aucun objet ni paiement local',async()=>{const m=monde(async()=>({ok:false,raison:'fonds_insuffisants'}));assert.equal(await m.c.executerReceptionInventaire('x',{}),null);assert.equal(m.c.state.inventory.length,0);assert.equal(m.appels.filter(a=>a[0]==='paie').length,0);assert.equal(m.stockage.size,0);});
-for(const changement of ['personnage','lieu','ville','generation','session']) test('reponse tardive ignoree apres changement de '+changement,async()=>{
+for(const changement of ['personnage','personnage_muté','lieu','ville','generation','session']) test('reponse tardive ignoree apres changement de '+changement,async()=>{
  let finir;const m=monde(()=>new Promise(r=>finir=r));const p=m.c.executerReceptionInventaire('x',{});
  if(changement==='personnage')m.c.state.char={name:'Autre'};
+ if(changement==='personnage_muté')m.c.state.char.name='Autre';
  if(changement==='lieu')m.c.state.currentRoom='rue';
  if(changement==='ville')m.c.state.currentCity='ville_a';
  if(changement==='generation')m.c.state._inventaireGeneration=2;
@@ -33,3 +34,9 @@ for(const changement of ['personnage','lieu','ville','generation','session']) te
 test('authentification retardee : garde fournie au transport existant',async()=>{let garde;const m=monde(async(f,p,opts)=>{garde=opts.encoreValide;assert(garde());return succes();});await m.c.executerReceptionInventaire('x',{});m.c.state.char={name:'Autre'};assert.equal(garde(),false);});
 test('inventaire incomplet : pas de faux succes ni de nouveau nonce',async()=>{const m=monde(async()=>({ok:true,inventory:[]}));assert.equal(await m.c.executerReceptionInventaire('x',{}),null);assert.equal(m.stockage.size,1);assert.equal(m.appels.filter(a=>a[0]==='paie').length,0);});
 test('adoption refuse un inventaire recompose sans marque serveur',()=>{const m=monde(async()=>succes());assert.equal(m.c.sbAdopterInventaireServeur({ok:true,inventory:[],revision:2}),false);});
+test('session perdue sans envoi : aucune intention fantome ne bloque ou rejoue une autre selection',async()=>{
+ const m=monde(async()=>({ok:false,raison:'session_perdue',transport:{etat:'session_perdue',envoyee:false}}));await m.c.executerReceptionInventaire('x',{});assert.equal(m.stockage.size,0);assert.equal(m.c.state.inventory.length,0);assert(m.appels.some(a=>a[0]==='toast'&&a[1]==='Demande non envoyée'));
+});
+test('reponse transport perdue apres envoi : ne pretend pas que le paiement a ete refuse',async()=>{
+ const m=monde(async()=>({ok:false,transport:{etat:'reseau',envoyee:true}}));await m.c.executerReceptionInventaire('x',{});assert.equal(m.stockage.size,1);assert(m.appels.some(a=>a[0]==='toast'&&a[1]==='Confirmation incertaine'));assert.equal(m.appels.filter(a=>a[0]==='refus').length,0);
+});

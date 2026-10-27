@@ -23,7 +23,7 @@
     "plateau-construction-commandes.js": "a9244d75e40243d16153bd70b52ec6a74aada0c16e67f34e7708b0ebf12d7a88",
     "plateau-contact-organisation.js": "11c906ad0358cb93135cbd0c5843f84e3e9c1d6010272d440a25f53588fbcad9",
     "plateau-core.js": "e9dd8d02d63bf0af7ffdf2b05428c64562945f86790c6867f17459c63da9201d",
-    "plateau-divers.js": "62616dc1cf65f9fc38224a5c367cd1c7d4922d2fda91f5ae1a30311488ff1dd2",
+    "plateau-divers.js": "c7e9188f65c0c31427ec5dfbb4a904efa3e52a4912b418e8f2d22243693edae3",
     "plateau-effort-guerre.js": "14551258c0c7ac25f8dbe520e35267ed98a6ba29a4c47f16f3db0eababdc61ab",
     "plateau-enigme-portrait.js": "37746f1468656d69ea03dea82e89d8dcac262acd3034a94f378c62f8022dab1f",
     "plateau-entrepots.js": "71dd697a6072be62528bc02769811363dcab82351325c60628264dc5fb210bc1",
@@ -42,7 +42,7 @@
     "plateau-logements-montrouge.js": "75cc0fa7b3147de1aadd29ff0639747cb060eddbc9eb9a4b23597c46ea5f1034",
     "plateau-maxence.js": "3b9efb92704b72370fb7bb3d3d14562866881be6aa7b6332ac1874fe961aa52b",
     "plateau-militaire-terminal.js": "54a5cb2530d4b8720a056891fd14702bb437ad97a1ec645263195b33f031f386",
-    "plateau-multijoueur.js": "23e00135d59f7578faee9ae8c2f8333d58fb640d5e3b246737e72df0c1e91cb6",
+    "plateau-multijoueur.js": "4c959050d5367156f9d177e8757d5c8ca016c808095be4281bac913e6d781a6d",
     "plateau-musee-personnalites.js": "e6280ae7e27942a666ad68ffe64cdd1fdaded8feb83867ce35136b77a806d419",
     "plateau-navigation.js": "051c30a902a6a1cee7fc80175b6828816633d89c4021018d54774622aeb6adb6",
     "plateau-objets.js": "8295442e71551baf83293623dfdff88047c9bbcd0f02faa462607bd8f7619bfe",
@@ -85,25 +85,11 @@
       "extrait": "state.inventory = v.inventory || state.inventory"
     },
     {
-      "fichier": "plateau-assemblee-presidence.js",
-      "ligne": 82,
-      "fonction": "presidenceAdopterLeTitre",
-      "type": "changement_objet_candidat",
-      "extrait": "!state.char.name"
-    },
-    {
       "fichier": "plateau-assemblee.js",
       "ligne": 786,
       "fonction": "assembleeAppliquerEtatServeur",
       "type": "changement_objet_candidat",
       "extrait": "lot.qty = res.sels_restants"
-    },
-    {
-      "fichier": "plateau-assemblee.js",
-      "ligne": 1052,
-      "fonction": "sebLexConsulter",
-      "type": "changement_objet_candidat",
-      "extrait": "typeof d.etat"
     },
     {
       "fichier": "plateau-commerce-pj.js",
@@ -198,13 +184,6 @@
     },
     {
       "fichier": "plateau-core.js",
-      "ligne": 1187,
-      "fonction": "loadCharacter",
-      "type": "changement_objet_candidat",
-      "extrait": "!char.name"
-    },
-    {
-      "fichier": "plateau-core.js",
       "ligne": 1581,
       "fonction": "afficherBandeauReconnexion / callback",
       "type": "changement_objet_candidat",
@@ -225,43 +204,36 @@
       "extrait": "confirmer.type = 'submit'"
     },
     {
-      "fichier": "plateau-core.js",
-      "ligne": 1667,
-      "fonction": "recupererPersonnageDuCompte",
-      "type": "changement_objet_candidat",
-      "extrait": "!fiche.char.name"
-    },
-    {
       "fichier": "plateau-divers.js",
-      "ligne": 977,
+      "ligne": 1003,
       "fonction": "addToInventory",
       "type": "changement_objet_candidat",
       "extrait": "existant.qty = (existant.qty || 1) + qteReelle"
     },
     {
       "fichier": "plateau-divers.js",
-      "ligne": 979,
+      "ligne": 1005,
       "fonction": "addToInventory",
       "type": "ajout_local",
       "extrait": "state.inventory.push({ ...item, qty: qteReelle })"
     },
     {
       "fichier": "plateau-divers.js",
-      "ligne": 989,
+      "ligne": 1015,
       "fonction": "addToInventory",
       "type": "ajout_local",
       "extrait": "state.inventory.push(item)"
     },
     {
       "fichier": "plateau-divers.js",
-      "ligne": 1006,
+      "ligne": 1032,
       "fonction": "recevoirObjetAutomatique",
       "type": "ajout_local",
       "extrait": "addToInventory(item, { automatique: true })"
     },
     {
       "fichier": "plateau-divers.js",
-      "ligne": 1093,
+      "ligne": 1119,
       "fonction": "removeFromInventory",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = r.inventory || []"
@@ -279,34 +251,6 @@
       "fonction": "confirmerRetraitMilitaire",
       "type": "retrait_ou_remplacement",
       "extrait": "state.char.inventory = state.inventory"
-    },
-    {
-      "fichier": "plateau-fonds.js",
-      "ligne": 73,
-      "fonction": "memeTitulaire",
-      "type": "changement_objet_candidat",
-      "extrait": "!da.type"
-    },
-    {
-      "fichier": "plateau-fonds.js",
-      "ligne": 216,
-      "fonction": "verdictVenteFonds",
-      "type": "changement_objet_candidat",
-      "extrait": "!da.type"
-    },
-    {
-      "fichier": "plateau-gouvernement.js",
-      "ligne": 1343,
-      "fonction": "verdictDissolutionAssociation",
-      "type": "changement_objet_candidat",
-      "extrait": "!o.type"
-    },
-    {
-      "fichier": "plateau-gouvernement.js",
-      "ligne": 1712,
-      "fonction": "verdictCandidatureCommandant",
-      "type": "changement_objet_candidat",
-      "extrait": "typeof p.name"
     },
     {
       "fichier": "plateau-justice-economie.js",
@@ -345,13 +289,6 @@
     },
     {
       "fichier": "plateau-justice-economie.js",
-      "ligne": 8388,
-      "fonction": "confirmerDepotPermis",
-      "type": "changement_objet_candidat",
-      "extrait": "!r.etat"
-    },
-    {
-      "fichier": "plateau-justice-economie.js",
       "ligne": 9733,
       "fonction": "confirmerAcheterCriee",
       "type": "retrait_ou_remplacement",
@@ -379,32 +316,11 @@
       "extrait": "state.inventory = inv"
     },
     {
-      "fichier": "plateau-multijoueur.js",
-      "ligne": 148,
-      "fonction": "filtrerPnjPostesPourvus / callback",
-      "type": "changement_objet_candidat",
-      "extrait": "!p.name"
-    },
-    {
-      "fichier": "plateau-organisations-quetes.js",
-      "ligne": 101,
-      "fonction": "calculerBonusOrga / callback",
-      "type": "changement_objet_candidat",
-      "extrait": "!def.bonus"
-    },
-    {
       "fichier": "plateau-organisations-quetes.js",
       "ligne": 9476,
       "fonction": "changerTypeGreve",
       "type": "changement_objet_candidat",
       "extrait": "_greve.type = nouveauType"
-    },
-    {
-      "fichier": "plateau-personnage.js",
-      "ligne": 775,
-      "fonction": "_compteEstProprietaireDuPersonnage",
-      "type": "changement_objet_candidat",
-      "extrait": "!state.char.name"
     },
     {
       "fichier": "plateau-personnage.js",
@@ -526,20 +442,6 @@
       "extrait": "addToInventory({ name: 'Kompromat sur ' + nomCible, icon: 'ti-file-shredder', type: 'kompromat', cible: nomCible, desc: scandale, legal: false, expireDay: (state.day||1) + 10 })"
     },
     {
-      "fichier": "plateau-pnj.js",
-      "ligne": 3615,
-      "fonction": "chargerPnjTerrain",
-      "type": "changement_objet_candidat",
-      "extrait": "!r.etat"
-    },
-    {
-      "fichier": "plateau-politique.js",
-      "ligne": 1956,
-      "fonction": "tractsElectorauxDistribuablesIci / callback",
-      "type": "changement_objet_candidat",
-      "extrait": "!i.tractType"
-    },
-    {
       "fichier": "plateau-politique.js",
       "ligne": 5054,
       "fonction": "ouvrirConferenceDePresse",
@@ -636,13 +538,6 @@
       "fonction": "(global) / callback / callback",
       "type": "changement_objet_candidat",
       "extrait": "e.type='button'"
-    },
-    {
-      "fichier": "plateau-variantes-pieces.js",
-      "ligne": 567,
-      "fonction": "varianteEtatPiece",
-      "type": "changement_objet_candidat",
-      "extrait": "typeof famille.etat"
     }
   ]
 }

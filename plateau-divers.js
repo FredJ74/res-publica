@@ -904,11 +904,12 @@ function getTotalInventaire() {
 const receptionsInventaireEnCours = new Set();
 async function executerReceptionInventaire(fn, parametres) {
   const origine = sbContexteInventaire();
+  const nomOrigine = origine.personnage?.name || '';
   const lieu = JSON.stringify([state.country, state.currentCity, state.currentBuilding, state.currentRoom]);
-  const encoreValide = () => { const actuel = sbContexteInventaire(); return actuel.personnage === origine.personnage
+  const encoreValide = () => { const actuel = sbContexteInventaire(); return actuel.personnage === origine.personnage && (actuel.personnage?.name || '') === nomOrigine
     && actuel.uid === origine.uid && actuel.jeton === origine.jeton && actuel.generation === origine.generation
     && JSON.stringify([state.country, state.currentCity, state.currentBuilding, state.currentRoom]) === lieu; };
-  const cle = 'hg-inventaire:' + origine.uid + ':' + (origine.personnage?.name || '') + ':' + fn;
+  const cle = 'hg-inventaire:' + origine.uid + ':' + nomOrigine + ':' + fn;
   if (receptionsInventaireEnCours.has(cle)) return null;
   receptionsInventaireEnCours.add(cle);
   try {
@@ -922,10 +923,35 @@ async function executerReceptionInventaire(fn, parametres) {
       sessionStorage.setItem(cle, JSON.stringify(intention));
     }
     const v = await sbRpcVerdict(fn, { ...intention.parametres, p_requete: intention.requete }, { encoreValide });
-    if (!encoreValide()) return null;
+    if (!encoreValide()) {
+      if (v?.transport?.envoyee === false) sessionStorage.removeItem(cle);
+      return null;
+    }
     if (!v || v.ok !== true) {
       if (v && !v.transport) sessionStorage.removeItem(cle);
-      signalerRefusCout(v || { raison: 'connexion_indisponible' }); return null;
+      if (v?.transport) {
+        if (v.transport.envoyee === false) {
+          sessionStorage.removeItem(cle);
+          showToast('Demande non envoyée', 'Votre connexion doit être rétablie avant de réessayer.', false);
+        } else showToast('Confirmation incertaine', 'Réessayez la même demande pour vérifier son résultat.', false);
+      } else {
+        const motifs = {
+          inventaire_plein: 'Votre inventaire est plein.',
+          inventaire_perime: 'Vos objets ont changé. Rouvrez votre inventaire avant de réessayer.',
+          pas_sur_place: 'Vous devez être sur place pour effectuer cette action.',
+          pas_co_presents: 'Le destinataire doit être présent dans la même pièce.',
+          charge_historique_a_reconcilier: 'Ces objets sont conservés. Leur transfert est momentanément indisponible.',
+          deja_fait_aujourdhui: 'Vous avez déjà consulté ce service aujourd’hui.',
+          deja_possede: 'Vous possédez déjà ce document.',
+          objet_non_cessible: 'Cet objet ne peut pas être transféré par cet ordre.',
+          objet_protege: 'Cet objet doit être remis au destinataire de votre mission.',
+          autorite_insuffisante: 'Vous ne pouvez pas donner cet ordre à ce porteur.',
+          charge_maximale: 'Ce porteur a atteint sa charge maximale.'
+        };
+        if (motifs[v?.raison]) showToast('Action refusée', motifs[v.raison], false);
+        else signalerRefusCout(v || { raison: 'connexion_indisponible' });
+      }
+      return null;
     }
     if (!Number.isSafeInteger(v.revision) || !sbAdopterInventaireServeur(v)) {
       showToast('Confirmation à relire', 'La réponse ne permet pas de confirmer votre inventaire. Réessayez la même demande.', false); return null;

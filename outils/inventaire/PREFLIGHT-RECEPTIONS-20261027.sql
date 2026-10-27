@@ -11,14 +11,15 @@ SELECT p.oid::regprocedure AS signature,p.prosecdef,p.proconfig,p.proacl,pg_get_
  FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
  WHERE n.nspname='public' AND p.proname IN('inventaire_deposer_interne','inventaire_sauver_revision','inventaire_revision_garder',
  'objet_acheter','arme_acheter','recolte_effectuer','tracts_imprimer','objet_sas_deposer','pnj_objet_transferer','pnj_possessions_lire',
+ 'sels_ammoniaque_acheter','objet_trouve_reclamer','fret_objet_agir','club_accessoire_acheter','etat_civil_document_recevoir','mission_carriere_recevoir','enigme_objet_recevoir','quete_objet_reclamer','tracts_donner_joueur',
  'payer_ordre','helvetia_debiter_fonds_ordinaires','caisse_institution_mouvement','fret_dedouaner','mon_personnage','est_appel_serveur') ORDER BY 1;
 SELECT c.relname,c.relrowsecurity,c.relacl,pg_get_userbyid(c.relowner) AS proprietaire
  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'
  AND c.relname IN('objets_modeles','objets_achetables','objets_recus','pnj_possessions','pnj_membres','caisses_fret','contenu_caisses_fret',
- 'budgets_clubs','clubs_sportifs_regles','quetes_actives','souvenirs_accueil','dossiers_urbanisme');
+ 'budgets_clubs','clubs_sportifs_regles','quetes_actives','souvenirs_accueil','dossiers_urbanisme','inventaire_actions_recus','objets_trouves_jours');
 SELECT schemaname,tablename,policyname,roles,cmd,qual,with_check FROM pg_policies
  WHERE schemaname='public' AND tablename IN('personnages_donnees','objets_modeles','objets_achetables','pnj_possessions','pnj_membres',
- 'caisses_fret','contenu_caisses_fret','budgets_clubs','clubs_sportifs_regles','quetes_actives','souvenirs_accueil','dossiers_urbanisme');
+ 'caisses_fret','contenu_caisses_fret','budgets_clubs','clubs_sportifs_regles','quetes_actives','souvenirs_accueil','dossiers_urbanisme','inventaire_actions_recus','objets_trouves_jours');
 SELECT c.relname,t.tgname,pg_get_triggerdef(t.oid) FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
  WHERE NOT t.tgisinternal AND c.relnamespace='public'::regnamespace AND c.relname IN('personnages_donnees','personnages','pnj_possessions',
  'caisses_fret','contenu_caisses_fret','budgets_clubs','objets_recus','dossiers_urbanisme');
@@ -39,6 +40,13 @@ SELECT count(*) AS piles_identiques_historiques FROM (
  CASE WHEN jsonb_typeof(d.inventory)='array' THEN d.inventory ELSE '[]'::jsonb END) i
  WHERE i->>'stackable'='true' AND nullif(i->>'stackKey','') IS NOT NULL GROUP BY d.id,i->>'stackKey' HAVING count(*)>1
 ) s;
+SELECT fn,pa,cost FROM public.ordres_couts WHERE fn IN('acheter_sels_ammoniaque','objet_trouve','receptionner_commande',
+ 'choisir_accessoire_club','acte_officiel','acte_officiel_notaire','acte_officiel_mairie','acte_officiel_juge','presenter_autorisation_coffre') ORDER BY fn,pa,cost;
+-- Quantites anciennes a examiner, sans correction ni arrondi.
+SELECT count(*) AS objets_quantite_a_examiner FROM public.personnages_donnees d
+ CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(d.inventory)='array' THEN d.inventory ELSE '[]'::jsonb END) i
+ WHERE CASE WHEN NOT(i?'qty') THEN false WHEN jsonb_typeof(i->'qty')='number'
+ THEN (i->>'qty')::numeric<=0 OR (i->>'qty')::numeric<>trunc((i->>'qty')::numeric) ELSE true END;
 -- Ces controles ne remplacent PAS les bancs : appels metier a faire sur fixtures en transaction
 -- annulee, au role authenticated, avec request.path '/rpc/<fonction>' et UID de test autorise.
 SELECT has_function_privilege('authenticated','public.inventaire_deposer_interne(text,jsonb,boolean)','EXECUTE') AS depot_expose,

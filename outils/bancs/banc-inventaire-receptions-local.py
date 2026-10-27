@@ -11,31 +11,34 @@ def fonction(path,name):
  s=(R/path).read_text(); a=re.search(r'CREATE OR REPLACE FUNCTION public\.'+name+r'\(',s).start()
  m=re.search(r'AS\s+(\$\w*\$).*?\1;',s[a:],re.S)
  return s[a:a+m.end()]
+def initialiser(q):
+ spec=importlib.util.spec_from_file_location('ced',R/'outils/bancs/banc-ced-football-local.py');mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
+ q.execute(mod.setup_sql())
+ q.execute('CREATE VIEW personnages AS SELECT * FROM personnages_donnees; ALTER TABLE personnages_donnees ADD COLUMN dernier_objet_trouve_jour integer;')
+ for fn in ['est_appel_serveur','est_mon_personnage','exiger_acteur','mon_personnage']:
+  q.execute(fonction('baseline/domaines/socle/20_fonctions.sql',fn))
+ q.execute(fonction('baseline/domaines/banque/20_fonctions.sql','helvetia_debiter_fonds_ordinaires'))
+ q.execute(fonction('migrations/20261027180000_inventaire_achats_serveur.sql','inventaire_deposer_interne'))
+ q.execute('''CREATE TABLE objets_modeles(id text PRIMARY KEY,objet jsonb NOT NULL); ALTER TABLE objets_modeles ENABLE ROW LEVEL SECURITY;
+  CREATE TABLE caisses_batiments(id text PRIMARY KEY,data jsonb,updated_at timestamptz);
+  CREATE TABLE souvenirs_accueil(id text PRIMARY KEY,pj_nom text,objet_nom text,jour_creation integer,jour_expiration integer,revele boolean);
+  CREATE TABLE fixture_lois(interdit boolean); INSERT INTO fixture_lois VALUES(false);
+  CREATE FUNCTION assemblee_verifier_vente(jsonb,text) RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $$ SELECT jsonb_build_object('ok',NOT interdit,'raison','vente_interdite') FROM fixture_lois $$;
+  GRANT USAGE ON SCHEMA public,auth TO authenticated;
+  INSERT INTO caisses_batiments VALUES('republic_usine-pharmaceutique-luthecia','{"solde":0}',now());
+  INSERT INTO ordres_couts VALUES('acheter_sels_ammoniaque',0,0),('objet_trouve',1,0);
+  UPDATE personnages_donnees SET current_building='usine-pharmaceutique-luthecia',current_room='salle_ventes';
+  INSERT INTO rp_epoques VALUES('republic','2026-09-13');''')
+ q.execute(fonction('baseline/domaines/finances-publiques/20_fonctions-1.sql','caisse_institution_mouvement'))
+ for _ in range(2):
+  for m in MIGS:q.execute((R/'migrations'/m).read_text())
 def main(extra=None):
  import pgserver,psycopg2
  from psycopg2.extras import Json
- spec=importlib.util.spec_from_file_location('ced',R/'outils/bancs/banc-ced-football-local.py');mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
  srv=pgserver.get_server(tempfile.mkdtemp(prefix='hg-inventaire-'),cleanup_mode='delete')
  try:
-  c=psycopg2.connect(srv.get_uri());q=c.cursor();q.execute(mod.setup_sql())
-  q.execute('CREATE VIEW personnages AS SELECT * FROM personnages_donnees; ALTER TABLE personnages_donnees ADD COLUMN dernier_objet_trouve_jour integer;')
-  for fn in ['est_appel_serveur','est_mon_personnage','exiger_acteur','mon_personnage']:
-   q.execute(fonction('baseline/domaines/socle/20_fonctions.sql',fn))
-  q.execute(fonction('baseline/domaines/banque/20_fonctions.sql','helvetia_debiter_fonds_ordinaires'))
-  q.execute(fonction('migrations/20261027180000_inventaire_achats_serveur.sql','inventaire_deposer_interne'))
-  q.execute('''CREATE TABLE objets_modeles(id text PRIMARY KEY,objet jsonb NOT NULL); ALTER TABLE objets_modeles ENABLE ROW LEVEL SECURITY;
-   CREATE TABLE caisses_batiments(id text PRIMARY KEY,data jsonb,updated_at timestamptz);
-   CREATE TABLE souvenirs_accueil(id text PRIMARY KEY,pj_nom text,objet_nom text,jour_creation integer,jour_expiration integer,revele boolean);
-   CREATE TABLE fixture_lois(interdit boolean); INSERT INTO fixture_lois VALUES(false);
-   CREATE FUNCTION assemblee_verifier_vente(jsonb,text) RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $$ SELECT jsonb_build_object('ok',NOT interdit,'raison','vente_interdite') FROM fixture_lois $$;
-   GRANT USAGE ON SCHEMA public,auth TO authenticated;
-   INSERT INTO caisses_batiments VALUES('republic_usine-pharmaceutique-luthecia','{"solde":0}',now());
-   INSERT INTO ordres_couts VALUES('acheter_sels_ammoniaque',0,0),('objet_trouve',1,0);
-   UPDATE personnages_donnees SET current_building='usine-pharmaceutique-luthecia',current_room='salle_ventes';
-   INSERT INTO rp_epoques VALUES('republic','2026-09-13');''')
-  q.execute(fonction('baseline/domaines/finances-publiques/20_fonctions-1.sql','caisse_institution_mouvement'))
-  for _ in range(2):
-   for m in MIGS:q.execute((R/'migrations'/m).read_text())
+  c=psycopg2.connect(srv.get_uri());q=c.cursor()
+  initialiser(q)
   n=0
   def check(value,msg):
    nonlocal n
@@ -87,7 +90,20 @@ def main(extra=None):
   check(call('objet_trouve_reclamer',[uid(50),1,0]).get('raison')=='pas_sur_place' and snapshot()==before,'lieu absent refuse sans mutation')
   for fn in ['inventaire_deposer_interne(text,jsonb,boolean)','inventaire_action_rejouer_interne(text,uuid,text,jsonb)']:
    check(not own("SELECT has_function_privilege('authenticated',%s,'EXECUTE')",(fn,)),'primitive interne inaccessible : '+fn)
-  check(not own("SELECT has_table_privilege('authenticated','inventaire_actions_recus','INSERT')"),'registre non forgeable depuis navigateur')
+  # Meme si les DEFAULT PRIVILEGES distants accordent INSERT, RLS doit refuser l'acte.
+  own('GRANT SELECT,INSERT ON inventaire_actions_recus TO authenticated')
+  q.execute("SELECT set_config('role','authenticated',true),set_config('request.path','/inventaire_actions_recus',true)")
+  q.execute('SELECT count(*) FROM inventaire_actions_recus');check(q.fetchone()[0]==0,'registre invisible au navigateur meme avec privilege SELECT')
+  q.execute('SAVEPOINT rls')
+  try:q.execute("INSERT INTO inventaire_actions_recus VALUES('Fixture',gen_random_uuid(),'forge','{}','{}',now())");raise AssertionError('RLS contournee')
+  except psycopg2.Error as erreur:
+   assert erreur.pgcode=='42501';q.execute('ROLLBACK TO SAVEPOINT rls')
+  check(True,'registre non forgeable avec privilege INSERT mais sans politique RLS')
+  own('SAVEPOINT politique_inconnue');own('CREATE POLICY fixture_mauvaise ON inventaire_actions_recus FOR ALL TO authenticated USING(true) WITH CHECK(true)')
+  try:own((R/'migrations'/MIGS[1]).read_text());raise AssertionError('politique ignoree')
+  except psycopg2.Error as erreur:
+   assert 'politique preexistante' in str(erreur);q.execute('ROLLBACK TO SAVEPOINT politique_inconnue')
+  check(True,'migration refuse un registre preexistant expose plutot que reutiliser ses politiques')
   # Un depot automatique ne doit jamais effacer un ancien inventaire de format inconnu.
   own("CREATE FUNCTION fixture_depot_objet(p_q numeric) RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $$ SELECT public.inventaire_deposer_interne('Fixture',jsonb_build_object('name','Fixture','stackable',true,'stackKey','fixture','qty',p_q),true) $$")
   before=snapshot();check(call('fixture_depot_objet',[1.5]).get('raison')=='quantite_invalide' and snapshot()==before,'depot commun refuse la fraction sans arrondi')

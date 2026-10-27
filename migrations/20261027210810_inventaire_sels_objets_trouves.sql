@@ -11,6 +11,13 @@ CREATE TABLE IF NOT EXISTS public.objets_trouves_jours (
  acteur text NOT NULL, jour date NOT NULL, PRIMARY KEY(acteur,jour)
 );
 ALTER TABLE public.objets_trouves_jours ENABLE ROW LEVEL SECURITY;
+-- IF NOT EXISTS ne doit pas reutiliser silencieusement un registre deja expose.
+DO $securite$
+BEGIN
+ IF EXISTS(SELECT 1 FROM pg_policy WHERE polrelid IN('public.inventaire_actions_recus'::regclass,'public.objets_trouves_jours'::regclass)) THEN
+  RAISE EXCEPTION 'inventaire: politique preexistante du registre a examiner';
+ END IF;
+END; $securite$;
 INSERT INTO public.objets_modeles(id,objet) VALUES
 ('sels_ammoniaque','{"name":"Sels d''ammoniaque","icon":"ti-flask","stackable":true,"stackKey":"sels_ammoniaque","qty":1,"legal":true,"desc":"Un flacon piquant. Réveille brutalement quelqu''un d''assoupi — un député, par exemple."}'::jsonb),
 ('objet_trouve:0','{"name": "Parapluie a tete de mort", "icon": "ti-umbrella", "desc": "Un parapluie noir orne de tetes de mort doreees, la pointe etrangement acereee. Rappelle furieusement certaines methodes d''un service secret de l''Est, jadis tres efficace pour faire taire les genants.", "imageUrl": "images/objet-parapluie.webp", "type": "kompromat", "origine": "objets_trouves", "cible": null, "legal": false}'::jsonb),

@@ -12,7 +12,7 @@ CAS=[
  ('fret_sans_depot',M+'20261027213520_inventaire_fret_transactionnel.sql','d:=public.fret_deposer_objet_interne(a.name,l.objet,q);',"d:='{}'::jsonb;",'banc-inventaire-fret-local.py','reprise conserve quantites identite et metadonnees'),
  ('colis_non_protege',M+'20261027213521_inventaire_employes_socle.sql','IF public.inventaire_objet_protege(a.quete_carriere,o) THEN','IF false THEN','banc-inventaire-employes-local.py','colis protege par helper commun cote serveur'),
  ('budget_non_credite',M+'20261027213522_inventaire_accessoires_club.sql',"coalesce((budget->>'caisse')::numeric,0)+prix","coalesce((budget->>'caisse')::numeric,0)+0",'banc-inventaire-club-local.py','credit exact du budget existant'),
- ('succession_non_resolue',M+'20261027214000_inventaire_etat_civil.sql',"AND statut='resolue'","AND true",'banc-inventaire-etat-civil-local.py','succession non resolue non divulguee ni delivree'),
+ ('succession_non_resolue',M+'20261027214001_inventaire_etat_civil_documents.sql',"AND statut='resolue'","AND true",'banc-inventaire-etat-civil-local.py','succession non resolue non divulguee ni delivree'),
  ('mission_reemise',M+'20261027214213_inventaire_missions_et_enigme.sql',"AND action='mission_carriere' AND parametres=params)","AND false AND action='mission_carriere' AND parametres=params)",'banc-inventaire-missions-local.py','ancienne sauvegarde ne reemet pas le colis'),
  ('delai_ignore',M+'20261027214213_inventaire_missions_et_enigme.sql','>=3*86400','>=0','banc-inventaire-missions-local.py','pas de calepin avant 72 heures reelles'),
 ]

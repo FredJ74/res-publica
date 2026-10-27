@@ -1609,7 +1609,7 @@ function ouvrirDonnerEmploye(nomEmploye) {
 async function confirmerDonnerEmploye(nomEmploye, idx) {
   const emp = (state.employes || []).find(e => e.nom === nomEmploye);
   const item = state.inventory[idx];
-  if (!emp?.pnjId || !item) { showToast('Transfert indisponible', 'Le porteur doit être identifié par le serveur.', false); return; }
+  if (!emp?.pnjId || !item) { showToast('Transfert indisponible', 'Ce porteur n’est pas disponible. Rouvrez sa fiche.', false); return; }
   const v = await executerReceptionInventaire('pnj_objet_transferer', { p_pnj: emp.pnjId, p_index: idx, p_sens: 'donner',
     p_quantite: item.stackable ? Number(document.getElementById('donner-emp-qty-' + idx)?.value || 1) : 1,
     p_revision: state._inventaireRevision ?? null, p_possession: null });
@@ -1621,9 +1621,9 @@ async function confirmerDonnerEmploye(nomEmploye, idx) {
 
 async function ouvrirReprendreEmploye(nomEmploye) {
   const emp = (state.employes || []).find(e => e.nom === nomEmploye);
-  if (!emp?.pnjId) { showToast('Transfert indisponible', 'Le porteur doit être identifié par le serveur.', false); return; }
+  if (!emp?.pnjId) { showToast('Transfert indisponible', 'Ce porteur n’est pas disponible. Rouvrez sa fiche.', false); return; }
   if (Object.keys(emp.charge || {}).length || (emp.chargeUnique || []).length) {
-    showToast('Ancienne charge conservée', 'Son rapprochement avec les possessions serveur doit être vérifié avant tout transfert.', false); return;
+    showToast('Ancienne charge conservée', 'Ces objets sont conservés. Leur transfert est momentanément indisponible.', false); return;
   }
   // Reutilise exactement l'ecran et les controles du groupe commun, pas un second inventaire.
   let i = RP_GROUPE_COURANT.findIndex(m => m.id === emp.pnjId);
