@@ -3851,18 +3851,26 @@ async function chargerObjetsAbandonnesDansPiece() {
   } catch(e) { console.warn('chargerObjetsAbandonnesDansPiece error', e); }
 }
 
+// RAMASSER PAR LE SERVEUR (27/10/2026, audit « une seule verite ») : objet_abandonne_ramasser
+// verifie qu'on est dans la meme piece, retire l'objet du sol et l'ajoute a l'inventaire reel,
+// dans une seule transaction. Avant, l'objet etait retire de la base mais n'arrivait que sur
+// l'ecran : il disparaissait au rechargement.
 async function ramasserObjetAbandonne(objetId) {
-  if (typeof sbGetObjetsAbandonnesDansPiece !== 'function') return;
-  try {
-    const objets = await sbGetObjetsAbandonnesDansPiece(state.country, state.currentCity, state.currentBuilding, state.currentRoom);
-    const objet = objets.find(o => o.id === objetId);
-    if (!objet) { showToast('Trop tard', 'Quelqu\'un d\'autre l\'a déjà ramassé.', false); return; }
-    addToInventory(objet);
-    if (typeof sbRamasserObjetAbandonne === 'function') await sbRamasserObjetAbandonne(objetId).catch(() => {});
-    showToast('Objet ramassé', 'Vous récupérez : ' + objet.name + '.', true, true);
-    addJournalEntry('Vous avez ramassé "' + objet.name + '" trouvé sur place.', 'event-info');
+  const v = (typeof sbRpcVerdict === 'function')
+    ? await sbRpcVerdict('objet_abandonne_ramasser', { p_id: objetId }).catch(() => null) : null;
+  if (!v || v.ok !== true) {
+    if (v?.raison === 'objet_disparu') showToast('Trop tard', 'Quelqu\'un d\'autre l\'a déjà ramassé.', false);
+    else if (v?.raison === 'pas_sur_place') showToast('Trop loin', 'Cet objet n\'est pas dans la pièce où vous êtes.', false);
+    else showToast('Impossible', 'L\'objet n\'a pas pu être ramassé.', false);
     chargerObjetsAbandonnesDansPiece();
-  } catch(e) { console.warn('ramasserObjetAbandonne error', e); }
+    return;
+  }
+  if (Array.isArray(v.inventory)) state.inventory = v.inventory;
+  if (typeof renderInventory === 'function') renderInventory();
+  const nom = v.objet?.name || 'un objet';
+  showToast('Objet ramassé', 'Vous récupérez : ' + nom + '.', true, true);
+  addJournalEntry('Vous avez ramassé "' + nom + '" trouvé sur place.', 'event-info');
+  chargerObjetsAbandonnesDansPiece();
 }
 function toggleSection(panelId, chevronId) {
   const panel = document.getElementById(panelId);
