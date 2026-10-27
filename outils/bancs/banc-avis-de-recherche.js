@@ -86,8 +86,9 @@ att('le cron a son propre appel, avec sa cible nommee',
     && CODE['api/cron-minuit.js'].indexOf('p_cible: entree.nom') >= 0);
 // 27 octobre 2026 : neutralisation et explosifs inscrivent l'avis au serveur (crime_neutraliser,
 // crime_explosifs, crime_incendier), sans passer par l'ecran.
+// 27 octobre 2026 (soir) : achats au marche noir, deputes et empoisonnement aussi, au serveur.
 att('les inscriptions restantes passent par le helper',
-    partout(/inscrireRecherche\(/g) >= 10, partout(/inscrireRecherche\(/g) + ' appel(s)');
+    partout(/inscrireRecherche\(/g) >= 6, partout(/inscrireRecherche\(/g) + ' appel(s)');
 // 27 octobre 2026 : le retrait apres justification a quitte l'ecran (convocation_se_justifier).
 att('les retraits restants passent par le helper',
     partout(/retirerRecherche\(/g) >= 4, partout(/retirerRecherche\(/g) + ' appel(s)');

@@ -414,4 +414,12 @@ tirés au hasard et les effets purement visuels sont exclus.
   affiché, par le seul navigateur connecté). **Interroger coûte 1 PA (décision de Fred)** : c'était
   une source d'influence illimitée. « Consulter la Taupe N4 » recrutait par erreur ; c'est désormais
   l'interrogation. Les informations données restent des textes d'ambiance tirés par l'écran.
+- **27/10 (soir)** — **marché noir** par le serveur (`20261027160000`) : achat d'arme
+  (`crime_acheter_arme_noire` : jet, dénonciation, convocation, vente au triple, trace) et
+  d'explosifs (`crime_acheter_explosifs`). **Faille fermée** : `commerce_vendre_produit` en mode
+  `marche_noir` s'achetait directement, sans jet ni risque. Neutralisation d'un député : trace,
+  détection et avis de recherche par `assemblee_neutraliser_depute` (`20261027160100`).
+  Traces encore écrites par l'écran : corruption de permis (terrains) et hooliganisme
+  (organisations), chantiers de Codex — d'où `verifierDecouverteCrimesPasses` et
+  `checkEffacementCrimes` maintenues pour elles.
 

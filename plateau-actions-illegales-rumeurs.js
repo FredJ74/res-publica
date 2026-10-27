@@ -363,7 +363,8 @@ async function neutraliserDeputePnj(cible, mode, taux, siege) {
     addExternalEvent('Tentative de neutralisation sur le député ' + siege.nom + ' ! L\'auteur a été identifié.');
     // AJOUT, jamais remplacement (13/09/2026) : un `state.recherche = [...]` effacait ici tous
     // les autres motifs de poursuite, dont une condamnation en attente d'execution.
-    await inscrireRecherche({ acte: 'tentative_assassinat', type: 'crime', jour: state.day });
+    // Avis de recherche pose par le serveur (assemblee_neutraliser_depute, 27/10/2026).
+    if (Array.isArray(r.res.recherche)) state.recherche = r.res.recherche;
     showToast('Raté', siege.nom + ' esquive maladroitement et hurle. Les huissiers accourent.', false, true);
     addJournalEntry('Tentative de neutralisation ratée sur le député ' + siege.nom + '.', 'event-bad');
     updateUI();
@@ -373,12 +374,8 @@ async function neutraliserDeputePnj(cible, mode, taux, siege) {
 
   // Reussite : le serveur a deja endormi le depute dans la meme transaction.
   // Trace judiciaire : identique a toute autre neutralisation reussie (§25).
-  if (!state.historiqueCrimes) state.historiqueCrimes = [];
-  state.historiqueCrimes.push({
-    acte: 'assassinat', cible: siege.nom, jour: state.day, expireJour: (state.day || 1) + 8
-  });
-  tracerActionPourRumeur('assassinat', siege.nom);
-  checkDetection('assassiner_' + mode, 'success');
+  // Trace, rumeur et detection posees par le serveur dans la meme transaction (27/10/2026).
+  if (typeof adopterDetectionServeur === 'function') adopterDetectionServeur(r.res, 'assassiner_' + mode);
 
   showToast('Député neutralisé', siege.nom + ' glisse lentement sous son pupitre. Il ne votera pas dans cet état.', true, true);
   addJournalEntry('Le député ' + siege.nom + ' a été neutralisé. Il est endormi.', 'event-bad');
@@ -1437,57 +1434,28 @@ async function confirmerAchatArmeIllegal(armeId) {
 
   document.getElementById('modal-postes').classList.remove('open');
 
-  // Jet de reussite — meme logique que le vol (adapte : pas de cible, achat aupres du PNJ armurier)
-  const char = state.char;
-  const bonusCarriere = BONUS_CARRIERE_VOL[char?.career] || 0;
-  const isPays = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, state.currentCity || 'capitale', 'isn') : (INDICES_NATIONAUX[pays]?.ISN || 30);
-  let tauxReussite = 50 + bonusCarriere - (isPays / 3);
-  tauxReussite = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(tauxReussite) : tauxReussite;
-  tauxReussite = Math.max(5, Math.min(95, Math.round(tauxReussite)));
-  const roll = Math.random() * 100;
-
-  if (roll > tauxReussite) {
-    // ECHEC — l'armurier refuse et denonce. Rien n'a ete vendu : le stock n'est pas touche.
-    await inscrireRecherche({ acte: 'achat_arme_illegal', type: 'delit_mineur', jour: state.day });
-
-    // Convocation au commissariat — delai fixe 24h (jour+1, meme heure)
-    if (!state.convocations) state.convocations = [];
-    state.convocations.push({
-      // id stable : cle d'identite lue par le trigger personnages_preserver_judiciaire (chantier
-      // Assemblee). Sans lui, deux convocations de meme motif emises a la meme heure de jeu
-      // partageraient la meme cle derivee du contenu, et la fusion ne pourrait pas les distinguer.
-      id: 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-      motif: 'achat_arme_illegal',
-      jourEmission: state.day || 1,
-      heureEmission: state.hour || 8,
-      jourLimite: (state.day || 1) + 1,
-      heureLimite: state.hour || 8,
-      traitee: false
-    });
-
-    const commissairePays = { republic:'Raoul Toufaud', narco:'El Capitan Gordo', soviet:'Camarade Borodine', khalija:'Chambellan Ibn Protocole' }[pays] || 'Le Commissariat';
-    addMailNotification(commissairePays, 'Convocation officielle', 'L\'armurier a refusé la vente et vous a dénoncé. Présentez-vous au commissariat sous 24h pour vous justifier, faute de quoi vous serez arrêté(e).');
-
+  // PAR LE SERVEUR (27 octobre 2026) : crime_acheter_arme_noire tire le jet (50 + carriere -
+  // securite / 3 + benediction), denonce et convoque sur un echec, vend au triple du prix et pose
+  // la trace decouvrable sur une reussite. La benediction reste tenue ici, consommee et signalee.
+  const benediction = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(0) > 0 : false;
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('crime_acheter_arme_noire', { p_entreprise: data.id, p_arme: armeId, p_benediction: benediction }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    showToast(r?.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Achat refusé',
+              r?.raison === 'fonds_insuffisants' ? prixIllegal.toLocaleString('fr-FR') + ' ' + cur + ' requis (marché noir).'
+              : (r?.raison === 'stock_insuffisant' ? 'Rupture de stock.' : ''), false);
+    return;
+  }
+  if (r.reussi === false) {
+    if (Array.isArray(r.recherche)) state.recherche = r.recherche;
+    if (Array.isArray(r.convocations)) state.convocations = r.convocations;
     updateUI();
     showToast('Vente refusée !', 'L\'armurier vous dénonce. Convocation au commissariat sous 24h.', false, true);
     addJournalEntry('Tentative d\'achat d\'arme au marché noir échouée. Dénoncé(e) par l\'armurier.', 'event-bad');
     return;
   }
-
-  // REUSSITE — arme livree, non enregistree au registre, mais bien consommee du stock reel
-  // Deduction PA+cout centralisee (Lot 2C) -- cout du uniquement en cas de reussite (comme deja
-  // pour l'argent), AVANT toute mutation de stock/Supabase : fail-closed.
-  // CHANTIER C / PHASE 3. Meme cause, meme correctif que l'achat legal : le prix du marche noir
-  // (le triple du prix affiche) n'est pas un cout d'ordre declare. Le mode 'marche_noir' de la
-  // RPC applique la regle existante -- triple preleve, caisse de l'armurier NON creditee.
-  const r = await commerceVendreProduit(data.id, [{ produit: armeId, qte: 1 }],
-                                        'marche_noir', 'choisir_arme', 1, 0);
-  if (!r.ok) {
-    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Achat refusé',
-              r.raison === 'fonds_insuffisants'
-                ? prixIllegal.toLocaleString('fr-FR') + ' ' + cur + ' requis (marché noir).' : '', false);
-    return;
-  }
+  appliquerPaiementServeur({ pa: r.pa, liquide: r.liquide, arg: r.arg });
 
   if (!state.inventory) state.inventory = [];
   state.inventory.push({
@@ -1501,10 +1469,6 @@ async function confirmerAchatArmeIllegal(armeId) {
     bonus: arme.bonus,
     imageUrl: armeAffichee.imageUrl
   });
-
-  if (!state.historiqueCrimes) state.historiqueCrimes = [];
-  state.historiqueCrimes.push({ acte: 'achat_arme_illegal', cible: null, jour: state.day, expireJour: state.day + 8 });
-  tracerActionPourRumeur('achat_arme_illegal', null);
 
   updateUI();
   showToast('Arme acquise (marché noir)', arme.name + ' obtenue discrètement. Non enregistrée au registre.', true, true);
@@ -1874,40 +1838,24 @@ async function confirmerAchatExplosifs(pa, cost) {
   const cur = COUNTRIES[pays]?.cur || 'FR';
   const prix = 1200;
   document.getElementById('modal-postes').classList.remove('open');
-
-  if (getFondsDisponiblesOrdinaires() < prix) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
-
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
-  const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
-  const taux = Math.max(5, Math.min(95, 35 + empMod + careerBonus - getMalusISN()));
-
-  if (roll > taux) {
-    // ECHEC — le vendeur alerte la police, pas de debit
-    await inscrireRecherche({ acte: 'acheter_bombe_illegale', type: 'crime', jour: state.day });
+  // PAR LE SERVEUR (27 octobre 2026) : crime_acheter_explosifs (PA, jet, alerte, prix a la
+  // reussite, explosif depose en inventaire, trace decouvrable).
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_acheter_explosifs', { p_pa: pa, p_cost: cost }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v?.raison === 'fonds_insuffisants') showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+    return;
+  }
+  adopterEtatCrimeServeur(v);
+  if (Array.isArray(v.recherche)) state.recherche = v.recherche;
+  if (!v.reussi) {
     updateUI();
+    if (v.raison === 'fonds_insuffisants') { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
     showToast('Vente refusée !', 'Le vendeur se méfie et alerte la police. Vous êtes recherché(e).', false, true);
     addJournalEntry('Tentative d\'achat d\'explosifs échouée. Alerte donnée par le vendeur.', 'event-bad');
     return;
   }
-
-  // REUSSITE
-  const debit = await debiterFondsOrdinaires(prix);
-  if (!debit.ok) { showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({
-    type: 'explosif', name: 'Explosifs de chantier', icon: 'ti-bomb', legal: false,
-    desc: 'Non enregistré. Usage unique.',
-    imageUrl: 'images/explosifs-marche-noir.webp'
-  });
-
-  if (!state.historiqueCrimes) state.historiqueCrimes = [];
-  state.historiqueCrimes.push({ acte: 'acheter_bombe_illegale', cible: null, jour: state.day, expireJour: state.day + 8 });
-  tracerActionPourRumeur('acheter_bombe_illegale', null);
-
   updateUI();
   showToast('Explosifs acquis', 'Livraison discrète effectuée. Non enregistrée.', true, true);
   addJournalEntry('Achat clandestin : Explosifs (-' + prix.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-bad');
