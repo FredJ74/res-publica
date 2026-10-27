@@ -1,4 +1,5 @@
--- A APPLIQUER par Claude via MCP apply_migration.
+-- APPLIQUEE le 27/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261027113102.
+-- Eprouvee en transaction annulee au role authenticated (detection, trace, recherche, decouverte de minuit avec ecrou).
 -- ============================================================================
 -- LE SOCLE PENAL DU SERVEUR : DETECTION, TRACE, DECOUVERTE DIFFEREE (27 octobre 2026)
 -- ============================================================================

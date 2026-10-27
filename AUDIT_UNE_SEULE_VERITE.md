@@ -369,4 +369,17 @@ tirés au hasard et les effets purement visuels sont exclus.
   Migrations `20261027100000`, `100100`, `100200`. Reste de la passe cliente :
   `verifierDecouverteCrimesPasses`, `checkScandale`, `checkEffacementCrimes`, `payerInformateurs`
   — liées à l'historique des crimes, que l'écran écrit encore (famille « Crime »).
+- **27/10 (fin d'après-midi)** — famille « Crime », **premier lot** :
+  - socle pénal du serveur (`20261027110000`) : table `actes_illegaux` (taux de détection,
+    peine, amende), détection (`crime_detecter_interne`, règles de `checkDetection`), trace dans
+    l'historique, avis de recherche, et **découverte différée des crimes par la passe de nuit**
+    (`minuit_decouverte_crimes`, appelée par le cron) ;
+  - neutraliser (mains, arme blanche, arme à feu), incendier, explosifs (`20261027110100`) :
+    jet, dégâts, fermeture du bâtiment, détection et trace par `crime_neutraliser`,
+    `crime_incendier`, `crime_explosifs`. Ils étaient d'ailleurs inutilisables (ordre non déclaré) ;
+  - **deux portes fermées** : `impact_deposer('hp_set')` (mettre à terre quiconque dans la pièce,
+    sans jet ni PA) et l'écriture directe de `batiments_fermes` (fermer n'importe quel bâtiment).
+  Reste : vol, empoisonnement, corruption, falsification, contrebande, tracts, fausse rumeur
+  (détection encore par l'écran) ; neutralisation d'un député (`assemblee_neutraliser_depute`,
+  détection cliente) ; `checkScandale`, `checkEffacementCrimes`, `payerInformateurs`.
 

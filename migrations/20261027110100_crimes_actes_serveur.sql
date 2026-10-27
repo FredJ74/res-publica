@@ -1,4 +1,5 @@
--- A APPLIQUER par Claude via MCP apply_migration, APRES 20261027110000.
+-- APPLIQUEE le 27/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261027145732.
+-- Eprouvee en transaction annulee au role authenticated : hp_set refuse, soi/sans arme refuses, 4 tentatives, incendie 1j, explosifs (victime a 15 PV puis explosif consomme), decouverte de minuit -> detention.
 -- ============================================================================
 -- NEUTRALISER, INCENDIER, UTILISER DES EXPLOSIFS : PAR LE SERVEUR (27 octobre 2026)
 -- ============================================================================
@@ -20,7 +21,8 @@
 --     pouvoir) ; fermeture 3, 2 ou 1 jour ; detection au taux de l'acte, sinon trace ;
 --   * explosifs (3 PA, l'explosif est consomme) : taux = 35 + memes modificateurs ; reussite :
 --     fermeture 5 jours, chaque personne presente dans la piece tombe a 15 PV ; echec : l'auteur
---     est blesse et signale ; reussite : detection au taux de l'acte, sinon trace.
+--     est signale (recherche) ; reussite : detection au taux de l'acte, sinon trace.
+-- jour_fin est pose a 0 : le declencheur trg_fermeture_date_universelle le calcule.
 -- La PV d'une victime ne remonte jamais par une attaque (minimum entre ses PV et le palier).
 -- Idempotente. Aucun acte de joueur.
 -- ============================================================================
@@ -121,8 +123,8 @@ BEGIN
   v_roll := floor(random() * 100)::integer + 1;
   IF v_roll <= v_taux * 0.5 THEN v_jours := 3; ELSIF v_roll <= v_taux * 0.8 THEN v_jours := 2; ELSIF v_roll <= v_taux THEN v_jours := 1; END IF;
   IF v_jours > 0 THEN
-    INSERT INTO public.batiments_fermes (pays, ville, batiment_id, duree_jours, motif, auteur)
-    VALUES (m.country, m.current_city, m.current_building, v_jours, 'incendie', v_moi);
+    INSERT INTO public.batiments_fermes (pays, ville, batiment_id, duree_jours, motif, auteur, jour_fin)
+    VALUES (m.country, m.current_city, m.current_building, v_jours, 'incendie', v_moi, 0);
     PERFORM public.annonce_publique_interne(m.country, 'INCENDIE : ' || v_nom || ' ravagé par les flammes. Fermé ' || v_jours || ' jour(s).');
   END IF;
   v_repere := public.crime_detecter_interne(v_moi, 'incendier', false);
@@ -156,8 +158,8 @@ BEGIN
   v_roll := floor(random() * 100)::integer + 1;
   v_reussi := v_roll <= v_taux;
   IF v_reussi THEN
-    INSERT INTO public.batiments_fermes (pays, ville, batiment_id, duree_jours, motif, auteur)
-    VALUES (m.country, m.current_city, m.current_building, 5, 'explosifs', v_moi);
+    INSERT INTO public.batiments_fermes (pays, ville, batiment_id, duree_jours, motif, auteur, jour_fin)
+    VALUES (m.country, m.current_city, m.current_building, 5, 'explosifs', v_moi, 0);
     FOR v_v IN SELECT name FROM public.personnages_donnees
                 WHERE country = m.country AND current_city = m.current_city AND current_building = m.current_building
                   AND current_room IS NOT DISTINCT FROM m.current_room AND name <> v_moi FOR UPDATE LOOP
