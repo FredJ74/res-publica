@@ -9180,22 +9180,11 @@ function doChoisirAccessoireClub(pa, cost) {
 }
 
 async function confirmerAchatAccessoireClub(id, label, prix, pa, cost) {
-  const clubLocal = getClubLocal();
-  document.getElementById('modal-postes').classList.remove('open');
-  if (getFondsDisponiblesOrdinaires() < prix) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
-  // Vente legale : regle generale des interdictions (arbitrage du 11 septembre 2026), avant tout debit.
-  if (typeof assembleeControlerVenteLegale === 'function'
-      && !(await assembleeControlerVenteLegale([{ type: 'accessoire_sport' }]))) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const debitAccessoire = await debiterFondsOrdinaires(prix);
-  if (!debitAccessoire.ok) { showToast('Fonds insuffisants', prix + ' FR requis.', false); return; }
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({ type:'accessoire_sport', name: label + ' — ' + clubLocal.nom, icon:'ti-shirt', legal:true });
-  updateUI();
-  showToast('Achat effectué', label + ' du ' + clubLocal.nom + ' ajouté(e) à votre inventaire.', true, true);
-  addJournalEntry('Achat : ' + label + ' du ' + clubLocal.nom + ' (-' + prix + ' FR).', 'event-good');
-  await crediterBudgetClub(clubLocal.id, prix, 'Vente boutique : ' + label);
+  const v = await executerReceptionInventaire('club_accessoire_acheter', { p_accessoire: id, p_pa: pa, p_cost: cost });
+  if (!v) return;
+  document.getElementById('modal-postes').classList.remove('open'); updateUI();
+  showToast('Achat effectué', v.objet + ' ajouté à votre inventaire, ' + v.prix + ' FR.', true);
+  addJournalEntry('Achat : ' + v.objet + ' (-' + v.prix + ' FR).', 'event-good');
 }
 
 function doAcheterAccessoirePersonnalise() {

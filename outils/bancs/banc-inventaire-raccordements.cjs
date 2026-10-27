@@ -42,3 +42,7 @@ test('reprise de groupe adresse une possession stable, jamais un seul index peri
  let demande;const c=vm.createContext({RP_GROUPE_COURANT:[{id:'pnj-fixture',nom:'Porteur'}],RP_GROUPE_POSSESSIONS:{'pnj-fixture':[{index:2,possession_id:91}]},executerReceptionInventaire:async(fn,p)=>{demande=p;return null;},showToast(){}});
  vm.runInContext(fonction('plateau-multijoueur.js','confirmerGroupePnjRetirerObjet'),c);await c.confirmerGroupePnjRetirerObjet(0,2);assert.equal(demande.p_possession,91);demande=null;await c.confirmerGroupePnjRetirerObjet(0,0);assert.equal(demande,null);
 });
+test('accessoire : le client ne transmet ni tarif ni nom ni objet au serveur',async()=>{
+ let demande;const c=vm.createContext({executerReceptionInventaire:async(fn,p)=>{demande={fn,p};return {ok:true,objet:'Écharpe — Club serveur',prix:80};},document:{getElementById:()=>({classList:{remove(){}}})},updateUI(){},showToast(){},addJournalEntry(){},getClubLocal:()=>assert.fail('club client ne fait pas autorite'),crediterBudgetClub:()=>assert.fail('credit client'),addToInventory:()=>assert.fail('ajout client')});
+ vm.runInContext(fonction('plateau-organisations-quetes.js','confirmerAchatAccessoireClub'),c);await c.confirmerAchatAccessoireClub('echarpe','FAUX',1,0,0);assert.equal(demande.fn,'club_accessoire_acheter');assert.deepEqual(Object.keys(demande.p).sort(),['p_accessoire','p_cost','p_pa']);assert.equal(demande.p.p_accessoire,'echarpe');
+});

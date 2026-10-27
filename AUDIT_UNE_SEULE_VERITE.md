@@ -479,3 +479,12 @@ tirés au hasard et les effets purement visuels sont exclus.
   **Dépendance ouverte** : rapprochement des charges historiques du profil avec les possessions
   PNJ. Elles sont conservées, les transferts concernés refusés, jamais convertis silencieusement.
   Le lot ne doit pas être activé avant ce rapprochement et la protection de ses anciennes écritures.
+
+- **27/10 — accessoires de club préparés NON appliqués** (`20261027221000`) :
+  modèles de catalogue, prix historiques 80/60/150, club réel de la ville, loi, capacité,
+  paiement, budget existant et dépôt dans une seule transaction avec reçu. Banc : 40 assertions
+  SQL dont 29 communes, au rôle authenticated, transaction annulée. Les anciens écrivains de
+  budget restent une dépendance de déploiement ; ils ne sont pas réputés sûrs par ce lot.
+  Relevé statique des écritures et prévol vivant en lecture seule sous `outils/inventaire/`.
+  **Le verrou final n'est ni préparé ni appliqué : les autres réceptions et changements
+  d'objets ne sont pas encore tous passés sous autorité serveur.**

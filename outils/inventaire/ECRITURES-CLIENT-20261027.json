@@ -1,0 +1,851 @@
+{
+  "portee": "Analyse statique du code, aucune execution en jeu",
+  "verrou_final_prepare": false,
+  "verrou_final_applique": false,
+  "limites": [
+    "Les changements_objet_candidat ne prouvent pas un effet sur un objet possede : aliases et appelants restent a examiner.",
+    "Les variantes de simulation et les aides generiques ne sont pas automatiquement des circuits actifs.",
+    "Aucun changement d objet ni verrou final n est autorise par ce releve."
+  ],
+  "sha256_sources": {
+    "plateau-actions-illegales-rumeurs.js": "1200dd365eb6bec16855ea3ea229b451c479b132e76bc4f089d07dc06985c14e",
+    "plateau-agence-emploi.js": "d2d08b94736b5db227d5248a900eec4dd9cba02e2daafb880af9717748745f24",
+    "plateau-alimentaire.js": "5eaf43aee2fd895d7e75d650865750915e8b21a16fbe8075a041cf5e031d853d",
+    "plateau-assemblee-presidence.js": "2bb034fcb8ad128b0b20a424348f09f1c7c0b5667b9cf5894e7a8fce0ab1fb56",
+    "plateau-assemblee-seance.js": "8044de89832b67192e676cbb11d1391fd4f00b1bd2d4e5e9c73bfd68f3ba1071",
+    "plateau-assemblee.js": "dbd6cd32daf7bc24ae04c92c1411015c3463362d6904fe65bc130ef801da3abb",
+    "plateau-camion-militaire.js": "4d88947bac611647f9ca1ec86afe79f3820d6328926e9a4625d00eaaf2b73118",
+    "plateau-ced.js": "b29ce3ba799732925594e67c9d614e756e7be19268b12f6b1e09dd399682bd3c",
+    "plateau-chantiers.js": "861bbd073747fdd7c2cd0440358a0230a91b1ab7a2feec4c8df69d5c41ebd35d",
+    "plateau-commerce-pj.js": "57ea1891e32e499c47b34efbea8ed4df4dd9497d428ab3902f98e65ed059f069",
+    "plateau-commerce.js": "e77ddd1e7f6871480cfd210089873d38d396ad7eff6f89fb5aaa6305be8f68cb",
+    "plateau-communication.js": "da8005b4d217b7663b0981263a7eafcf3eb24241fb8cb09cfaf7a3fa80c1e0d5",
+    "plateau-construction-commandes.js": "a9244d75e40243d16153bd70b52ec6a74aada0c16e67f34e7708b0ebf12d7a88",
+    "plateau-contact-organisation.js": "11c906ad0358cb93135cbd0c5843f84e3e9c1d6010272d440a25f53588fbcad9",
+    "plateau-core.js": "e9dd8d02d63bf0af7ffdf2b05428c64562945f86790c6867f17459c63da9201d",
+    "plateau-divers.js": "62616dc1cf65f9fc38224a5c367cd1c7d4922d2fda91f5ae1a30311488ff1dd2",
+    "plateau-effort-guerre.js": "14551258c0c7ac25f8dbe520e35267ed98a6ba29a4c47f16f3db0eababdc61ab",
+    "plateau-enigme-portrait.js": "31e29c06bb12c18d4789e6c1abd398306000a75bd6b03db09dd2d0d9edc289fb",
+    "plateau-entrepots.js": "71dd697a6072be62528bc02769811363dcab82351325c60628264dc5fb210bc1",
+    "plateau-equipements-collectifs.js": "ae9fab392fe6101da00d4d4df5af4cd4e177746c8287d56e5194fa9f90f89c5d",
+    "plateau-equipements.js": "816b693bcd30699791f8585948224eba326edfbbfde3945ba16c83356f5bea48",
+    "plateau-escorts-agence.js": "674529700be920ad6000770380464caeeca27307300ebf733ed03740e4ed617f",
+    "plateau-etat-civil.js": "b1310c67034a13c5e395444ba378c84205a799afd475392b223d01272ba63196",
+    "plateau-fonds.js": "a63e45f817c12c7cd14b8499e96f9b2ee56ee02c800f99e2c1ef4da28ecc8cdd",
+    "plateau-football-realisateur-ia.js": "22765c5090b353105603ae731157e3a8e6e2c05bb87af75a3bbb817507064213",
+    "plateau-football-realisateur-simulateur.js": "423298d674ccf0ae77e8ec74d8c8d935487a4f10daac196602ed5c73d59541b9",
+    "plateau-football-realisateur-tests.js": "af4aaa8b18bbdd4b8466f50d51b44e2907831ca62cb02fdb0588263bb60cd9d1",
+    "plateau-gouvernement.js": "07beead30f55c786dd35e39bef7a00590daa91b6a6dc046731c866b793ebf9e6",
+    "plateau-immobilier.js": "b64db42d762345ef00b29afe2a4aca1ba04e0d1408cc41e0129c0f5b73d9264e",
+    "plateau-journal-ventes.js": "b093d7ff17563e461dcbbdcdd15d7ecd1e1c092ed4188a4edbe6e3f0f2696441",
+    "plateau-justice-economie.js": "87710b578a2b516085a3474eb93514538ed7a1df9dbd40b021f54f997131f000",
+    "plateau-logements-montrouge.js": "75cc0fa7b3147de1aadd29ff0639747cb060eddbc9eb9a4b23597c46ea5f1034",
+    "plateau-maxence.js": "3b9efb92704b72370fb7bb3d3d14562866881be6aa7b6332ac1874fe961aa52b",
+    "plateau-militaire-terminal.js": "54a5cb2530d4b8720a056891fd14702bb437ad97a1ec645263195b33f031f386",
+    "plateau-multijoueur.js": "23e00135d59f7578faee9ae8c2f8333d58fb640d5e3b246737e72df0c1e91cb6",
+    "plateau-musee-personnalites.js": "e6280ae7e27942a666ad68ffe64cdd1fdaded8feb83867ce35136b77a806d419",
+    "plateau-navigation.js": "051c30a902a6a1cee7fc80175b6828816633d89c4021018d54774622aeb6adb6",
+    "plateau-objets.js": "8295442e71551baf83293623dfdff88047c9bbcd0f02faa462607bd8f7619bfe",
+    "plateau-open-space.js": "6c0c55da7e01aa9cb93b827f693a95560a032b79084363c1508f44712cacc362",
+    "plateau-organisations-quetes.js": "0a696ed146b82379a321fc41cdec92a6b7ac45737acb442fa6c11e650a20803f",
+    "plateau-personnage.js": "bf9108a62aa194e90c7d2cc5a2c2a28426f39611df9339773882cd563de2dbee",
+    "plateau-pnj.js": "4978ad83c3cf5363bf162d5e030add43765c8eaf1e52c9eb5da5f69b073f02a2",
+    "plateau-politique.js": "23137ed99fc4f2555febe87d80adf12df68b2dee06407ec0131a298d2e649f69",
+    "plateau-publicite-premium.js": "ccb383f01a2f134a70da3b593df6b32ae885afbf15d7abfbcd6c2c26187f5ea3",
+    "plateau-quete-accueil.js": "ea428dddeb28d632bb55e9669e5f57266ea8e18b1b66917b1bb5e3960d3678f8",
+    "plateau-resolution.js": "78d889ad97aca2d95cfafd416e426f8c3e08e52f3682e5733859575113f644dd",
+    "plateau-restaurant-luthecia.js": "a6fbe4ff9f08f5d9d223127865838ff6aa920b715bcedd3afd97c88f8112cce5",
+    "plateau-router.js": "2c9d44ec2e5d2d2da78d199df886844b603161e523f19085e97cead651d8e082",
+    "plateau-rue-centrale.js": "292ac29706da7fbd0444adab190e8ed54c313c870cbc6278d02f566eea3818c6",
+    "plateau-social-pnj.js": "76407102ad6655d1593f55073f93f90b56f38825f35c291f6d245e2f887e907f",
+    "plateau-terrain-banque.js": "ea4174007c85623fd3c5da0602f24a0762ebe8e87b753e368d3eac834fd423e3",
+    "plateau-universite.js": "8e1ac529a9473dfbfc9f6d8b63d0eb3b10f939d1319fe72f1502c4338d2d1670",
+    "plateau-variantes-pieces.js": "545805e54ddca4edbc12ae4bb0dfe136ca3cb7e25909d0bd8ee56c93c97a29c4"
+  },
+  "sites": [
+    {
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 1692,
+      "fonction": "confirmerSubtilisationExplosif",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = lignes[0].inventory"
+    },
+    {
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 1693,
+      "fonction": "confirmerSubtilisationExplosif",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.char.inventory = state.inventory"
+    },
+    {
+      "fichier": "plateau-actions-illegales-rumeurs.js",
+      "ligne": 2886,
+      "fonction": "commerceApporterMatiere",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = v.inventory || state.inventory"
+    },
+    {
+      "fichier": "plateau-assemblee-presidence.js",
+      "ligne": 82,
+      "fonction": "presidenceAdopterLeTitre",
+      "type": "changement_objet_candidat",
+      "extrait": "!state.char.name"
+    },
+    {
+      "fichier": "plateau-assemblee.js",
+      "ligne": 786,
+      "fonction": "assembleeAppliquerEtatServeur",
+      "type": "changement_objet_candidat",
+      "extrait": "lot.qty = res.sels_restants"
+    },
+    {
+      "fichier": "plateau-assemblee.js",
+      "ligne": 1052,
+      "fonction": "sebLexConsulter",
+      "type": "changement_objet_candidat",
+      "extrait": "typeof d.etat"
+    },
+    {
+      "fichier": "plateau-commerce-pj.js",
+      "ligne": 2131,
+      "fonction": "commercePjActualiserPersonnage",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = rows[0].inventory"
+    },
+    {
+      "fichier": "plateau-commerce-pj.js",
+      "ligne": 2217,
+      "fonction": "commercePjDecorPleinEcran",
+      "type": "changement_objet_candidat",
+      "extrait": "fermer.type = 'button'"
+    },
+    {
+      "fichier": "plateau-commerce-pj.js",
+      "ligne": 2402,
+      "fonction": "commercePjDecorQuestion",
+      "type": "changement_objet_candidat",
+      "extrait": "reponse.type = 'text'"
+    },
+    {
+      "fichier": "plateau-commerce-pj.js",
+      "ligne": 2533,
+      "fonction": "commercePjDecorVersions",
+      "type": "changement_objet_candidat",
+      "extrait": "b.type='button'"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 639,
+      "fonction": "verifierObjetsRecus / callback",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = v.inventory"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 757,
+      "fonction": "confirmerDonTracts",
+      "type": "changement_objet_candidat",
+      "extrait": "tract.quantite -= quantite"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 758,
+      "fonction": "confirmerDonTracts",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory.splice(state.inventory.indexOf(tract), 1)"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 759,
+      "fonction": "confirmerDonTracts",
+      "type": "retrait_ou_remplacement",
+      "extrait": "!pjSim.inventory"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 759,
+      "fonction": "confirmerDonTracts",
+      "type": "retrait_ou_remplacement",
+      "extrait": "pjSim.inventory = []"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 761,
+      "fonction": "confirmerDonTracts",
+      "type": "changement_objet_candidat",
+      "extrait": "existing.quantite += quantite"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 762,
+      "fonction": "confirmerDonTracts",
+      "type": "ajout_local",
+      "extrait": "pjSim.inventory.push({...tract, quantite})"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 776,
+      "fonction": "confirmerDonTracts / callback",
+      "type": "ajout_local",
+      "extrait": "state.inventory.push(tract)"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 777,
+      "fonction": "confirmerDonTracts / callback",
+      "type": "changement_objet_candidat",
+      "extrait": "tract.quantite += quantite"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 783,
+      "fonction": "confirmerDonTracts",
+      "type": "changement_objet_candidat",
+      "extrait": "tract.quantite -= quantite"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 784,
+      "fonction": "confirmerDonTracts",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory.splice(state.inventory.indexOf(tract), 1)"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 815,
+      "fonction": "recevoirLotTracts",
+      "type": "changement_objet_candidat",
+      "extrait": "identique.quantite = (identique.quantite || 0) + (objet.quantite || 0)"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 819,
+      "fonction": "recevoirLotTracts",
+      "type": "ajout_local",
+      "extrait": "recevoirObjetAutomatique(objet)"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 820,
+      "fonction": "recevoirLotTracts",
+      "type": "ajout_local",
+      "extrait": "addToInventory(objet)"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 934,
+      "fonction": "confirmerTractageCollectifStade",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory=res.inventory"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 984,
+      "fonction": "confirmerDistribuerTractElectoral",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = res.inventory"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 1093,
+      "fonction": "confirmerDistribuerTractCalomnieux",
+      "type": "changement_objet_candidat",
+      "extrait": "tract.quantite -= 1"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 1094,
+      "fonction": "confirmerDistribuerTractCalomnieux",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = state.inventory.filter(i => i !== tract)"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 1129,
+      "fonction": "confirmerDistribuerTractCalomnieux",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = (state.inventory || []).filter(i => i.type !== 'tract_calomnieux')"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 1647,
+      "fonction": "recupererVolsEnAttente",
+      "type": "changement_objet_candidat",
+      "extrait": "stack.qty = (stack.qty || 0) - perte"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 1648,
+      "fonction": "recupererVolsEnAttente",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = state.inventory.filter(i => i !== stack)"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 1670,
+      "fonction": "recupererVolsEnAttente",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory.splice(idx, 1)"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 1187,
+      "fonction": "loadCharacter",
+      "type": "changement_objet_candidat",
+      "extrait": "!char.name"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 1581,
+      "fonction": "afficherBandeauReconnexion / callback",
+      "type": "changement_objet_candidat",
+      "extrait": "email.type = 'email'"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 1584,
+      "fonction": "afficherBandeauReconnexion / callback",
+      "type": "changement_objet_candidat",
+      "extrait": "motDePasse.type = 'password'"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 1594,
+      "fonction": "afficherBandeauReconnexion / callback",
+      "type": "changement_objet_candidat",
+      "extrait": "confirmer.type = 'submit'"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 1667,
+      "fonction": "recupererPersonnageDuCompte",
+      "type": "changement_objet_candidat",
+      "extrait": "!fiche.char.name"
+    },
+    {
+      "fichier": "plateau-divers.js",
+      "ligne": 977,
+      "fonction": "addToInventory",
+      "type": "changement_objet_candidat",
+      "extrait": "existant.qty = (existant.qty || 1) + qteReelle"
+    },
+    {
+      "fichier": "plateau-divers.js",
+      "ligne": 979,
+      "fonction": "addToInventory",
+      "type": "ajout_local",
+      "extrait": "state.inventory.push({ ...item, qty: qteReelle })"
+    },
+    {
+      "fichier": "plateau-divers.js",
+      "ligne": 989,
+      "fonction": "addToInventory",
+      "type": "ajout_local",
+      "extrait": "state.inventory.push(item)"
+    },
+    {
+      "fichier": "plateau-divers.js",
+      "ligne": 1006,
+      "fonction": "recevoirObjetAutomatique",
+      "type": "ajout_local",
+      "extrait": "addToInventory(item, { automatique: true })"
+    },
+    {
+      "fichier": "plateau-divers.js",
+      "ligne": 1093,
+      "fonction": "removeFromInventory",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = r.inventory || []"
+    },
+    {
+      "fichier": "plateau-effort-guerre.js",
+      "ligne": 852,
+      "fonction": "confirmerRetraitMilitaire",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = lignes[0].inventory"
+    },
+    {
+      "fichier": "plateau-effort-guerre.js",
+      "ligne": 853,
+      "fonction": "confirmerRetraitMilitaire",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.char.inventory = state.inventory"
+    },
+    {
+      "fichier": "plateau-enigme-portrait.js",
+      "ligne": 780,
+      "fonction": "doPresenterAutorisationCoffre",
+      "type": "retrait_ou_remplacement",
+      "extrait": "!state.inventory"
+    },
+    {
+      "fichier": "plateau-enigme-portrait.js",
+      "ligne": 780,
+      "fonction": "doPresenterAutorisationCoffre",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = []"
+    },
+    {
+      "fichier": "plateau-enigme-portrait.js",
+      "ligne": 781,
+      "fonction": "doPresenterAutorisationCoffre",
+      "type": "ajout_local",
+      "extrait": "state.inventory.push({ id: 'cle-debarras-musee', name: 'Clé du débarras', icon: 'ti-key', desc: \"Une vieille clé, retrouvée dans un coffre lié à la succession de Pierre Thibault. Elle semble correspondre à une porte du Musée de la Ville de "
+    },
+    {
+      "fichier": "plateau-enigme-portrait.js",
+      "ligne": 909,
+      "fonction": "enigme1VerifierDeclenchement",
+      "type": "retrait_ou_remplacement",
+      "extrait": "!state.inventory"
+    },
+    {
+      "fichier": "plateau-enigme-portrait.js",
+      "ligne": 909,
+      "fonction": "enigme1VerifierDeclenchement",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = []"
+    },
+    {
+      "fichier": "plateau-enigme-portrait.js",
+      "ligne": 911,
+      "fonction": "enigme1VerifierDeclenchement",
+      "type": "ajout_local",
+      "extrait": "state.inventory.push({ id: 'calepin-enigme1', name: \"Calepin de l'enquête\", icon: 'ti-notebook', imageUrl: 'images/calepin-enigme-musee.webp', desc: \"Un petit calepin. Chaque page se remplit au fil de ce que vous découvrez.\", calepinEnigme1"
+    },
+    {
+      "fichier": "plateau-etat-civil.js",
+      "ligne": 310,
+      "fonction": "etatCivilDelivrerActe",
+      "type": "retrait_ou_remplacement",
+      "extrait": "!state.inventory"
+    },
+    {
+      "fichier": "plateau-etat-civil.js",
+      "ligne": 310,
+      "fonction": "etatCivilDelivrerActe",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = []"
+    },
+    {
+      "fichier": "plateau-etat-civil.js",
+      "ligne": 311,
+      "fonction": "etatCivilDelivrerActe",
+      "type": "ajout_local",
+      "extrait": "state.inventory.push({ id: etatCivilCleActe(acte, nomConcerne) + '-' + Date.now(), acteCle: etatCivilCleActe(acte, nomConcerne), type: 'acte_officiel_' + acte.type, name: acte.titre, icon: 'ti-file-certificate', legal: true, concerne: nomCo"
+    },
+    {
+      "fichier": "plateau-etat-civil.js",
+      "ligne": 427,
+      "fonction": "etatCivilImprimerFiche",
+      "type": "retrait_ou_remplacement",
+      "extrait": "!state.inventory"
+    },
+    {
+      "fichier": "plateau-etat-civil.js",
+      "ligne": 427,
+      "fonction": "etatCivilImprimerFiche",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = []"
+    },
+    {
+      "fichier": "plateau-etat-civil.js",
+      "ligne": 436,
+      "fonction": "etatCivilImprimerFiche",
+      "type": "ajout_local",
+      "extrait": "state.inventory.push({ id: 'fiche-etat-civil-' + fiche.nom.replace(/\\s+/g, '-').toLowerCase() + '-' + Date.now(), name: 'Fiche d\\'état-civil — ' + fiche.nom, icon: 'ti-file-text', desc: texteComplet })"
+    },
+    {
+      "fichier": "plateau-fonds.js",
+      "ligne": 73,
+      "fonction": "memeTitulaire",
+      "type": "changement_objet_candidat",
+      "extrait": "!da.type"
+    },
+    {
+      "fichier": "plateau-fonds.js",
+      "ligne": 216,
+      "fonction": "verdictVenteFonds",
+      "type": "changement_objet_candidat",
+      "extrait": "!da.type"
+    },
+    {
+      "fichier": "plateau-gouvernement.js",
+      "ligne": 1343,
+      "fonction": "verdictDissolutionAssociation",
+      "type": "changement_objet_candidat",
+      "extrait": "!o.type"
+    },
+    {
+      "fichier": "plateau-gouvernement.js",
+      "ligne": 1712,
+      "fonction": "verdictCandidatureCommandant",
+      "type": "changement_objet_candidat",
+      "extrait": "typeof p.name"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 5807,
+      "fonction": "confirmerAchatEntrepot",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = v.inventory || state.inventory"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 5928,
+      "fonction": "confirmerVendreBoisImprimerie",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = r.inventory"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 6162,
+      "fonction": "confirmerVenteDirecteUsine",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = v.inventory || state.inventory"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 6526,
+      "fonction": "vendreMatierePremiereUsine",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = v.inventory || state.inventory"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 6783,
+      "fonction": "confirmerAchatArmoireSouvenirs",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = v.inventory || state.inventory"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 8401,
+      "fonction": "confirmerDepotPermis",
+      "type": "changement_objet_candidat",
+      "extrait": "!r.etat"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 9746,
+      "fonction": "confirmerAcheterCriee",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = v.inventory || state.inventory"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 10736,
+      "fonction": "confisquerObjets",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = r.inventory || state.inventory || []"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 12676,
+      "fonction": "confirmerVolMateriaux",
+      "type": "ajout_local",
+      "extrait": "addToInventory({ name: res.label || matiere, icon: res.icon, stackable: true, stackKey: matiere, qty: qte, desc: 'Dérobé sur un chantier.' })"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 14841,
+      "fonction": "rafraichirInventaireDepuisServeur",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = inv"
+    },
+    {
+      "fichier": "plateau-multijoueur.js",
+      "ligne": 148,
+      "fonction": "filtrerPnjPostesPourvus / callback",
+      "type": "changement_objet_candidat",
+      "extrait": "!p.name"
+    },
+    {
+      "fichier": "plateau-organisations-quetes.js",
+      "ligne": 101,
+      "fonction": "calculerBonusOrga / callback",
+      "type": "changement_objet_candidat",
+      "extrait": "!def.bonus"
+    },
+    {
+      "fichier": "plateau-organisations-quetes.js",
+      "ligne": 380,
+      "fonction": "remettreRecompenseQuete",
+      "type": "ajout_local",
+      "extrait": "addToInventory({ id: 'quete-obj-' + Date.now(), name: obj.name, icon: obj.icon, desc: obj.desc, type: obj.compromettant ? 'kompromat' : 'objet', legal: !obj.compromettant, imageUrl: obj.imageUrl || null })"
+    },
+    {
+      "fichier": "plateau-organisations-quetes.js",
+      "ligne": 399,
+      "fonction": "remettreRecompenseQuete",
+      "type": "ajout_local",
+      "extrait": "addToInventory({ id: 'dossier-' + Date.now(), name: 'Dossier de surveillance — ' + quete.cible_dossier, icon: 'ti-folder-search', desc: 'Compilation d\\'actions réelles concernant ' + quete.cible_dossier + ' :\\n' + contenu, type: 'kompromat'"
+    },
+    {
+      "fichier": "plateau-organisations-quetes.js",
+      "ligne": 9492,
+      "fonction": "changerTypeGreve",
+      "type": "changement_objet_candidat",
+      "extrait": "_greve.type = nouveauType"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 775,
+      "fonction": "_compteEstProprietaireDuPersonnage",
+      "type": "changement_objet_candidat",
+      "extrait": "!state.char.name"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 2942,
+      "fonction": "vendreRessourceMedicaleStructure",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = v.inventory || state.inventory"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 3886,
+      "fonction": "ramasserObjetAbandonne",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = v.inventory"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 4173,
+      "fonction": "confirmerSoinTrousse",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = l[0].inventory"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 4174,
+      "fonction": "confirmerSoinTrousse",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.char.inventory = state.inventory"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 4207,
+      "fonction": "doConsommerRationCombat",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = l[0].inventory"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 4208,
+      "fonction": "doConsommerRationCombat",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.char.inventory = state.inventory"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 4240,
+      "fonction": "doRetirerTrousse",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = l[0].inventory"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 4241,
+      "fonction": "doRetirerTrousse",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.char.inventory = state.inventory"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 4285,
+      "fonction": "doRetirerRations",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = l[0].inventory"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 4286,
+      "fonction": "doRetirerRations",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.char.inventory = state.inventory"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 355,
+      "fonction": "declencherMissionPatHounette",
+      "type": "ajout_local",
+      "extrait": "addToInventory({ type: 'colis_secret_pat', name: 'Colis secret', icon: 'ti-package', desc: \"Un colis remis par Pat Hounette. Vous ignorez ce qu'il contient.\" })"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 512,
+      "fonction": "declencherMissionJeanLou / callback / callback",
+      "type": "ajout_local",
+      "extrait": "addToInventory({ type: 'tract', name: 'Tracts POUR ' + (state.char?.name || 'vous'), icon: 'ti-file-description', tractType: 'pour', cible: state.char?.name || '', quantite: 3, legal: true, origineQuete: 'jean_lou' })"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 603,
+      "fonction": "distribuerTractJeanLou",
+      "type": "changement_objet_candidat",
+      "extrait": "lot.quantite -= 1"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 606,
+      "fonction": "distribuerTractJeanLou",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory.splice(idx, 1)"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 2113,
+      "fonction": "doEscortInfos",
+      "type": "ajout_local",
+      "extrait": "addToInventory({ id: 'kompromat-' + Date.now(), name: 'Kompromat sur ' + cible.name, icon: 'ti-file-shredder', desc: info, type: 'kompromat', cible: cible.name, legal: false })"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 2246,
+      "fonction": "changerTypeRumeur",
+      "type": "changement_objet_candidat",
+      "extrait": "_rumeur.type = nouveauType"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 2517,
+      "fonction": "changerTypeCibleLobbying",
+      "type": "changement_objet_candidat",
+      "extrait": "_lobbyingPresse.type = nouveauType"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 3135,
+      "fonction": "confirmerFabriquerKompromat",
+      "type": "ajout_local",
+      "extrait": "addToInventory({ id: 'kompromat-' + Date.now(), name: 'Kompromat sur ' + nomCible, icon: 'ti-file-shredder', desc: info, type: 'kompromat', cible: nomCible, legal: false })"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 3522,
+      "fonction": "confirmerEscortPiege",
+      "type": "ajout_local",
+      "extrait": "addToInventory({ name: 'Kompromat sur ' + nomCible, icon: 'ti-file-shredder', type: 'kompromat', cible: nomCible, desc: scandale, legal: false, expireDay: (state.day||1) + 10 })"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 3650,
+      "fonction": "chargerPnjTerrain",
+      "type": "changement_objet_candidat",
+      "extrait": "!r.etat"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 1956,
+      "fonction": "tractsElectorauxDistribuablesIci / callback",
+      "type": "changement_objet_candidat",
+      "extrait": "!i.tractType"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 5054,
+      "fonction": "ouvrirConferenceDePresse",
+      "type": "changement_objet_candidat",
+      "extrait": "conferenceEnCours.etat = 'panne'"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 5064,
+      "fonction": "ouvrirConferenceDePresse",
+      "type": "changement_objet_candidat",
+      "extrait": "conferenceEnCours.etat = 'close'"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 5076,
+      "fonction": "avancerConferenceDePresse",
+      "type": "changement_objet_candidat",
+      "extrait": "conferenceEnCours.etat = 'attente'"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 5088,
+      "fonction": "avancerConferenceDePresse",
+      "type": "changement_objet_candidat",
+      "extrait": "conferenceEnCours.etat = 'panne'"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 5095,
+      "fonction": "avancerConferenceDePresse",
+      "type": "changement_objet_candidat",
+      "extrait": "conferenceEnCours.etat = 'close'"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 5101,
+      "fonction": "avancerConferenceDePresse",
+      "type": "changement_objet_candidat",
+      "extrait": "conferenceEnCours.etat = 'question'"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 5118,
+      "fonction": "repondreConferenceDePresse",
+      "type": "changement_objet_candidat",
+      "extrait": "conferenceEnCours.etat = 'envoi'"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 5127,
+      "fonction": "repondreConferenceDePresse",
+      "type": "changement_objet_candidat",
+      "extrait": "conferenceEnCours.etat = 'question'"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 11947,
+      "fonction": "rafraichirApresRound",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = l[0].inventory"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 11947,
+      "fonction": "rafraichirApresRound",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.char.inventory = state.inventory"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 12271,
+      "fonction": "equiperSoldat",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.inventory = lignes[0].inventory"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 12272,
+      "fonction": "equiperSoldat",
+      "type": "retrait_ou_remplacement",
+      "extrait": "state.char.inventory = state.inventory"
+    },
+    {
+      "fichier": "plateau-publicite-premium.js",
+      "ligne": 131,
+      "fonction": "publicitePremiumVersions",
+      "type": "changement_objet_candidat",
+      "extrait": "b.type='button'"
+    },
+    {
+      "fichier": "plateau-universite.js",
+      "ligne": 6,
+      "fonction": "(global) / callback / callback",
+      "type": "changement_objet_candidat",
+      "extrait": "e.type='button'"
+    },
+    {
+      "fichier": "plateau-variantes-pieces.js",
+      "ligne": 567,
+      "fonction": "varianteEtatPiece",
+      "type": "changement_objet_candidat",
+      "extrait": "typeof famille.etat"
+    }
+  ]
+}
