@@ -8,6 +8,14 @@ Règles : voir `AGENTS.md`.
 **Ambassades et Bureau de l'Emploi : chantiers de Claude seul** (Fred, 25/10). Ces
 notes sont la trace du travail, pour reprendre l'historique. **Codex : ne pas toucher aux
 ambassades ni au Bureau de l'Emploi.**
+- **Nuit du 26 au 27/10 (Claude)** : `CONSTITUTION.md` et `ARCHITECTURE.md` ajoutés (à lire,
+  `AGENTS.md` y renvoie ; tenir `ARCHITECTURE.md` à jour). Fusionnés : ordre générique par le
+  serveur (`ordre_generique_executer`) ; couvre-feu et recherche militaire dans la passe de nuit
+  (`minuit_couvre_feu_recherche`) ; code mort supprimé ; inventaire vérifié. **En attente
+  d'application (Supabase demandait une confirmation, sans réponse)** : branche
+  `claude/objets-abandonnes-20261027`, migration `20261027030000` (ramassage des objets par le
+  serveur, suppression des votes et des dons retirée aux joueurs) — ne pas fusionner avant
+  application.
 - **Corrections « une seule vérité » (Fred, 26/10 : « fais dans l'ordre que tu veux »)** — Claude.
   Fait : caisses adossées (`fonds_en_transit`, `batiment_caisse_client_crediter`, primitives de
   caisse retirées au navigateur, `usine_virer_vers_ministere`, `ministere_virer_vers_usine`,
