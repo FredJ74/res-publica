@@ -7,6 +7,9 @@ Règles : voir `AGENTS.md`.
 
 ### Sécurité privée #135 — arbitrages du 27/10 (ChatGPT)
 
+- **Validation du groupement PNJ (27/10)** : nouveau test de deux agents privés réellement liés par `leader_pnj_id`, sélectionnés comme un groupe de 2 avec PER moyen +1 ; test transactionnel Supabase réussi. La présence commune sans lien ne suffit pas à grouper les unités. Branche `chatgpt/securite-privee-20261027` / PR #212 toujours en brouillon, sans migration appliquée durablement.
+
+
 - **Implémentation des priorités (27/10)** : migration SQL #135 enrichie d'un ordre d'unités (police avant privé ; taille décroissante ; ex aequo aléatoires), jets séquentiels au premier succès, et `police_interceptions.intervenants` pour limiter fuite et combat aux seuls agents détecteurs. Le regroupement des PNJ privés repose sur `leader_pnj_id`; côté policier, les unités sans `groupeId` explicite restent isolées, même dans la même salle. Six réexécutions transactionnelles réussies des 3 bancs sur Supabase (deux passes de chaque), sans modification durable. Spécification versionnée : `GAME-DESIGN-SECURITE-PRIVEE-135.md`. Reste à raccorder la constitution effective de groupes policiers sans inventer une mécanique, recette finale puis fusion/déploiement. Aucun fichier Codex modifié.
 
 
