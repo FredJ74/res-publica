@@ -1,9 +1,17 @@
 -- PREPAREE #135. Aucun agent cree, aucun joueur deplace. Prevol vivant requis.
 BEGIN;
-DO $garde$ BEGIN
+DO $garde$ DECLARE cible text;role_client text;BEGIN
  IF to_regclass('public.chantier_vigiles_affectations') IS NOT NULL
  AND obj_description(to_regclass('public.chantier_vigiles_affectations'),'pg_class') IS DISTINCT FROM 'HG chantier vigiles v1' THEN
   RAISE EXCEPTION 'chantier_affectations_schema_inconnu';END IF;
+ FOREACH cible IN ARRAY ARRAY['terrains_etat','pnj_membres','pnj_employes_metier'] LOOP
+  FOREACH role_client IN ARRAY ARRAY['anon','authenticated'] LOOP
+   IF has_table_privilege(role_client,'public.'||cible,'INSERT,DELETE,TRUNCATE') OR EXISTS(
+    SELECT 1 FROM pg_attribute WHERE attrelid=('public.'||cible)::regclass AND attnum>0 AND NOT attisdropped
+    AND has_column_privilege(role_client,attrelid,attname,'UPDATE')) THEN
+    RAISE EXCEPTION 'chantier_vigiles_sources_modifiables: % %',cible,role_client;END IF;
+  END LOOP;
+ END LOOP;
 END;$garde$;
 CREATE TABLE IF NOT EXISTS public.chantier_vigiles_affectations (
  pnj_id text PRIMARY KEY REFERENCES public.pnj_membres(id) ON DELETE CASCADE,

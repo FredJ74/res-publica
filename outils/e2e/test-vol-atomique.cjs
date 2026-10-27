@@ -10,7 +10,7 @@ function fixture(){
  chargerTerrainState:async()=>true,rafraichirRuntimeHelvetia:async()=>({pa:48,recherche:[],journal:[]}),
  sbInventaireReceptionEtat:async()=>({ok:true,inventory:[{stackKey:'bois',qty:2}],revision:1}),
  sbAdopterInventaireServeur:r=>{c.state.inventory=r.inventory;return true;}});
- c.sbRpcVerdict=async(fn,p)=>{appels.push({fn,p});return {ok:true,reussite:true,quantite:2,message:'Deux bois accordés.'};};
+ c.sbRpcVerdict=async(fn,p)=>{appels.push({fn,p});return {ok:true,reussite:true,detecte:false,quantite:2,message:'Deux bois accordés.'};};
  vm.runInContext(fonction('plateau-rue-centrale.js','contexteNavigationRue')+'\n'+fonction('plateau-rue-centrale.js','contexteNavigationRueValide')+'\nlet constructionCommandeEnCours=false;\n'+fonction('plateau-construction-commandes.js','constructionExecuterCommande')+'\n'+fonction('plateau-justice-economie.js','confirmerVolMateriaux'),c);
  return {c,stockage,appels,messages};
 }
@@ -22,14 +22,14 @@ test('handler actuel : commande commune seule, inventaire relu, aucun coût ou j
  assert.equal(x.messages.at(-1)[1],'Deux bois accordés.');assert.equal(x.stockage.size,0);
 });
 test('réponse perdue : intention conservée et même identifiant à la reprise',async()=>{
- const x=fixture();let n=0;x.c.sbRpcVerdict=async(fn,p)=>{x.appels.push({fn,p});return ++n===1?{ok:false,transport:{etat:'reseau'}}:{ok:true,rejeu:true,reussite:true,message:'Reçu existant.'};};
+ const x=fixture();let n=0;x.c.sbRpcVerdict=async(fn,p)=>{x.appels.push({fn,p});return ++n===1?{ok:false,transport:{etat:'reseau'}}:{ok:true,rejeu:true,reussite:true,detecte:false,quantite:2,message:'Reçu existant.'};};
  await x.c.confirmerVolMateriaux('bois',2,0);assert.equal(x.stockage.size,1);assert.equal(x.c.state.inventory,undefined);
  await x.c.confirmerVolMateriaux('bois',2,0);assert.equal(x.appels[0].p.p_requete,x.appels[1].p.p_requete);assert.equal(x.stockage.size,0);
 });
 test('double clic pendant traitement : une seule commande',async()=>{
  const x=fixture();let finir;x.c.sbRpcVerdict=async(fn,p)=>{x.appels.push({fn,p});return new Promise(r=>finir=r);};
  const a=x.c.confirmerVolMateriaux('bois',2,0);await x.c.confirmerVolMateriaux('bois',2,0);
- assert.equal(x.appels.length,1);finir({ok:true,reussite:true,message:'Accordé'});await a;
+ assert.equal(x.appels.length,1);finir({ok:true,reussite:true,detecte:false,quantite:2,message:'Accordé'});await a;
 });
 for(const changement of ['personnage','ville','piece'])test('réponse tardive/'+changement+' : aucun inventaire ni succès pour le nouveau contexte',async()=>{
  const x=fixture();let finir;x.c.sbRpcVerdict=()=>new Promise(r=>finir=r);
@@ -66,4 +66,21 @@ test('lecture de protection indisponible : pas de faux compteur nul ni de formul
  const x=fixture();let ouvert=false;x.c.sbRpcVerdict=async()=>null;x.c.constructionFenetre=()=>ouvert=true;
  vm.runInContext(fonction('plateau-justice-economie.js','doVolerMaterielChantier'),x.c);
  await x.c.doVolerMaterielChantier(2,0);assert.equal(ouvert,false);assert.equal(x.messages.at(-1)[0],'Chantier indisponible');
+});
+
+test('changement de personnage pendant renouvellement auth : aucune requête envoyée',async()=>{
+ const x=fixture();let finir,jeton=null,requêtes=0;
+ x.c.rpAuthUid=()=> 'uid-fixture';x.c.rpAuthSessionIdentifiant=()=> 'session-stable';
+ x.c.rpAuthJeton=()=>jeton;x.c.RP_RPC_PUBLIQUES=new Set();
+ x.c.rpAuthAssurerSession=()=>new Promise(r=>finir=r);
+ x.c.fetch=async()=>{requêtes++;throw Error('requête interdite dans ce cas');};
+ vm.runInContext(fonction('supabase.js','sbTransportRpc'),x.c);
+ x.c.sbRpcVerdict=async(fn,p,options)=>{assert.equal(typeof options?.encoreValide,'function');const env=await x.c.sbTransportRpc(fn,p,options);return {ok:false,transport:env};};
+ const a=x.c.confirmerVolMateriaux('bois',2,0);x.c.state.char={name:'Autre'};jeton='jeton-fixture';finir();await a;
+ assert.equal(requêtes,0);assert.equal(x.c.state.inventory,undefined);assert.equal(x.messages.length,0);
+});
+
+test('réponse de succès incomplète : intention gardée sans inventaire ou succès fabriqué',async()=>{
+ const x=fixture();x.c.sbRpcVerdict=async()=>({ok:true});await x.c.confirmerVolMateriaux('bois',2,0);
+ assert.equal(x.c.state.inventory,undefined);assert.equal(x.stockage.size,1);assert.equal(x.messages.at(-1)[0],'Résultat non confirmé');
 });

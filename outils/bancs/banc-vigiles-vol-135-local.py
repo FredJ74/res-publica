@@ -38,10 +38,14 @@ def suite(db,q,srv):
  fn('baseline/domaines/personnage-et-presence/20_fonctions.sql','employe_liberer')
  q.execute((R/'baseline/seeds/90_socle/pnj_axes_autorite.sql').read_text())
  q.execute((R/'baseline/seeds/90_socle/pnj_mouvement_individuel.sql').read_text())
- for f,path in [('payer_ordre','economie/20_fonctions-2.sql'),('inventaire_ajouter','socle/20_fonctions.sql'),('indice_ville_ajuster_interne','politique-et-elections/20_fonctions.sql'),('recherche_inscrire','justice/20_fonctions-2.sql')]:fn('baseline/domaines/'+path,f)
+ for f,path in [('payer_ordre','economie/20_fonctions-2.sql'),('inventaire_ajouter','socle/20_fonctions.sql'),('inventaire_place_restante','socle/20_fonctions.sql'),('inventaire_quantite','socle/20_fonctions.sql'),('indice_ville_ajuster_interne','politique-et-elections/20_fonctions.sql'),('recherche_inscrire','justice/20_fonctions-2.sql')]:fn('baseline/domaines/'+path,f)
  q.execute("ALTER TABLE personnages_donnees ADD COLUMN recherche jsonb DEFAULT '[]'")
  fn('migrations/20261016131932_reception_objets_atomique.sql','inventaire_revision_garder')
  q.execute('CREATE TRIGGER zzzz_hg_inventory_revision BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION inventaire_revision_garder()')
+ q.execute('GRANT UPDATE(building_id) ON pnj_membres TO authenticated')
+ try:q.execute((R/'migrations/20261027121000_chantier_vigiles_socle.sql').read_text());raise AssertionError('source PNJ modifiable doit refuser')
+ except psycopg2.Error as e:check('sources_modifiables' in str(e),'prevol refuse une presence PNJ directement falsifiable par le navigateur');q.execute('ROLLBACK')
+ q.execute('REVOKE UPDATE(building_id) ON pnj_membres FROM authenticated')
  for _ in range(2):q.execute((R/'migrations/20261027121000_chantier_vigiles_socle.sql').read_text())
  sql=(R/'migrations/20261027122000_chantier_vol_transaction_interne.sql').read_text()
  try:q.execute(sql);raise AssertionError('dependance absente doit refuser')
@@ -160,10 +164,22 @@ def suite(db,q,srv):
  identite('VoleurA');r=commande('benediction1');check(r['reussite'] and r['score']==50,'bonus historique +5 consomme dans transaction sous contrat explicite')
  admin("SELECT benediction->>'actif' FROM personnages_donnees WHERE name='VoleurA'");check(q.fetchone()[0]=='false','benediction consommee persistante sur fixture de contrat')
  avant=photo();identite('VoleurA');check(commande('benediction1')['rejeu'],'reponse perdue ne consomme pas une autre benediction');check(photo()==avant,'rejeu de benediction sans effet supplementaire')
+ # Capacité volontaire et empilements historiques : ne retirer que ce qui entre réellement.
+ reset();jet(100);admin("UPDATE personnages_donnees SET inventory='[{\"stackable\":true,\"stackKey\":\"autre\",\"qty\":100}]' WHERE name='VoleurA'")
+ avant=photo();identite('VoleurA');check(commande('inventplein1')['raison']=='inventaire_plein','inventaire plein refuse avant paiement');check(photo()==avant,'aucun stock ni PA perdu si inventaire plein')
+ reset();jet(100);admin("UPDATE personnages_donnees SET inventory='[{\"stackable\":true,\"stackKey\":\"autre\",\"qty\":98}]' WHERE name='VoleurA'")
+ identite('VoleurA');r=commande('placeborne1');check(r['quantite']==2,'quantite volee bornee par la capacite volontaire existante')
+ admin("SELECT (data::jsonb->'chantier'->'stockMateriaux'->>'bois')::integer FROM terrains_etat WHERE id=%s",(terrain(),));check(q.fetchone()[0]==18,'le chantier ne perd que les deux objets reellement recus')
+ reset();jet(100);pile1={'stackable':True,'stackKey':'bois','qty':2,'id':'origine1','note':'a conserver'};pile2={'stackable':True,'stackKey':'bois','qty':3,'id':'origine2'}
+ admin("UPDATE personnages_donnees SET inventory=%s WHERE name='VoleurA'",(Json([pile1,pile2]),));identite('VoleurA');r=commande('empilements1')
+ admin("SELECT inventory FROM personnages_donnees WHERE name='VoleurA'");inv=q.fetchone()[0]
+ check(inv[0]['qty']==2+r['quantite'] and inv[1]==pile2 and inv[0]['note']=='a conserver','deux piles historiques : un seul credit, identifiants et metadonnees preserves')
+ reset();jet(100);admin("UPDATE personnages_donnees SET benediction='{\"actif\":true,\"expire\":1}' WHERE name='VoleurA'");identite('VoleurA');commande('benediction1')
  # Reconnexion par une NOUVELLE connexion SQL, pas adoption d'un cache.
  with psycopg2.connect(srv.get_uri()) as cc:
   cur=cc.cursor();identite('VoleurA',cur);r=commande('benediction1',cur=cur)
   check(r['rejeu'] and r['quantite']>=1,'reconnexion retrouve recu du vol sans le rejouer')
+ q.execute('RESET ROLE')
  for nom in ['inventaire_reception_etat','inventaire_sauver_revision']:fn('migrations/20261016131932_reception_objets_atomique.sql',nom)
  identite('VoleurA');inv=lire("SELECT inventaire_reception_etat('VoleurA')")
  check(inv['inventory'][0]['qty']>=1 and inv['revision']>0,'rechargement inventaire et revision persistants')
@@ -173,8 +189,49 @@ def suite(db,q,srv):
  check(lire("SELECT inventaire_reception_etat('VoleurA')")['inventory']==inv['inventory'],'ancienne sauvegarde generale ne retire pas les objets voles')
  for sig in ['chantier_vigiles_presents_interne(text)','chantier_vol_executer_interne(text,jsonb,text)','chantier_vol_jet_interne()']:
   q.execute('RESET ROLE');check(not lire("SELECT has_function_privilege('authenticated',%s,'EXECUTE')",('public.'+sig,)),'moteur interne non executable '+sig)
+ # Retrouve dans Git : preuve historique, pas preuve de definition vivante.
+ q.execute('RESET ROLE');installer_detection_historique(q)
+ admin("UPDATE pnj_membres SET building_id='terrain-a-batir-1',room_id='terrain',ville='capitale',leader_pj=NULL,statut='actif',pa=12 WHERE id='g1';UPDATE pnj_membres SET statut='disparu' WHERE id='g2'")
+ identite('VoleurA');r=lire('SELECT chantier_vigiles_detecter(%s)',(terrain(),));check(r['raison']=='non_recherche','securite privee : aucune detection inventee contre un PJ sans recherche opposable')
+ admin("INSERT INTO jugements(id,country,city,accuse,motif,data) VALUES('j-vol135','republic','capitale','VoleurA','fixture','{}')")
+ admin("CREATE OR REPLACE FUNCTION securite_detection_jet_interne() RETURNS double precision LANGUAGE sql AS $$SELECT 0::double precision$$")
+ identite('VoleurA');r=lire('SELECT chantier_vigiles_detecter(%s)',(terrain(),));check(r['ok'] and not r['detecte'],'jet commun defavorable aux gardes : aucune preuve de detection')
+ admin("CREATE OR REPLACE FUNCTION securite_detection_jet_interne() RETURNS double precision LANGUAGE sql AS $$SELECT 99::double precision$$")
+ identite('VoleurA');r=lire('SELECT chantier_vigiles_detecter(%s)',(terrain(),));check(not r['detecte'] and r['raison']=='detection_deja_tentee','anti-relance du registre commun conservee')
+ admin("UPDATE police_detection_attempts SET attempted_at=now()-interval '3 minutes'")
+ identite('VoleurA');r=lire('SELECT chantier_vigiles_detecter(%s)',(terrain(),));check(r['detecte'] and r['preuve'],'detection effective par les agents affectes, preuve persistante')
+ preuve=r['preuve'];r=lire('SELECT chantier_vigiles_detecter(%s)',(terrain(),));check(r['rejeu'] and r['preuve']==preuve,'reconnexion meme preuve sans seconde detection')
+ q.execute('RESET ROLE');check(lire("SELECT chantier_vigiles_detection_confirmer_interne(%s,gen_random_uuid())",(terrain(),))['raison']=='detection_non_confirmee','preuve inventee refusee avant toute intervention')
+ identite('VoleurA');q.execute('RESET ROLE');r=lire('SELECT chantier_vigiles_detection_confirmer_interne(%s,%s)',(terrain(),preuve));check(r['ok'] and r['autorite']=='securite_privee','preuve valide ouvre seulement les prerogatives privees, aucune detention')
+ admin("UPDATE pnj_membres SET statut='disparu' WHERE id='g1'")
+ check(not lire('SELECT chantier_vigiles_detection_confirmer_interne(%s,%s)',(terrain(),preuve))['ok'],'agent licencie invalide la preuve d intervention')
+ admin("UPDATE pnj_membres SET statut='actif' WHERE id='g1';UPDATE personnages_donnees SET current_room='autre' WHERE name='VoleurA'")
+ check(not lire('SELECT chantier_vigiles_detection_confirmer_interne(%s,%s)',(terrain(),preuve))['ok'],'preuve ne peut intervenir dans une autre piece')
+ admin("UPDATE personnages_donnees SET current_room='terrain' WHERE name='VoleurA';UPDATE jugements SET executee=true WHERE id='j-vol135'")
+ check(not lire('SELECT chantier_vigiles_detection_confirmer_interne(%s,%s)',(terrain(),preuve))['ok'],'recherche levee invalide les prerogatives d intervention')
+ # Comparer le sous-calcul partage a l'expression EXTRAITE de la fonction historique.
+ photo=json.loads((R/'outils/bancs/fixtures/securite-commune-historique-135.json').read_text())['sources'][-1]['sql']
+ formule=re.search(r'v_chance:=(.*?);',photo).group(1)
+ for dis in [8,10,13,18]:
+  for per in [6,12,16,25]:
+   for jet in [0,9.99,10,50,89.99,90,99.99]:
+    vrai=lire('SELECT securite_detection_calcul_interne(%s,%s,%s)',(dis,per,jet))
+    attendu=lire('SELECT NOT (%s<('+formule+')) FROM (SELECT %s::numeric v_dis,%s::numeric v_per) x',(jet,dis,per));assert vrai==attendu
+ check(True,'112 comparaisons du detecteur commun avec sa vraie formule historique')
+ formule_per=re.search(r'v_per:=(v_per/v_count.*?);',photo).group(1)
+ for nb in [1,2,3,4]:
+  for somme in [nb*12,nb*12+4]:
+   for rue in [False,True]:
+    vrai=lire('SELECT securite_perception_groupe_interne(%s,%s,%s)',(somme,nb,rue))
+    attendu=lire('SELECT '+formule_per+' FROM (SELECT %s::numeric v_per,%s::integer v_count,%s::text p_rue) x',(somme,nb,'rue' if rue else None));assert vrai==attendu
+ check(True,'16 comparaisons de perception de groupe : pieces et rues policieres preservees')
+ for _ in range(20):
+  coup=lire('SELECT combat_coup_resoudre(16,12,12,0,12)');assert coup['ok'] and 0<=coup['pa_apres']<=12 and coup['perte']==12-coup['pa_apres']
+ check(True,'primitive de combat commune retrouvee dans Git et executee avec les vrais taux degres et degats militaires')
+ check(not lire("SELECT combat_coup_resoudre(-1,12,12,0,12)")['ok'],'primitive commune refuse les parametres invalides')
+ check(not lire("SELECT has_function_privilege('authenticated','public.chantier_vigiles_detection_confirmer_interne(text,uuid)','EXECUTE')"),'aucun client ne peut auto-confirmer une detection')
+ check(lire('SELECT count(*) FROM police_interceptions')==0,'aucune rencontre policiere ni arrestation fictive creee par la detection privee')
  print(json.dumps({'assertions_vigiles_vol':n,'production':False,'formules_comparees':len(grille),'intervention_privee_non_verifiee':True,'benediction_schema_hypothetique':True}))
-if __name__=='__main__':base.main(suite)
 
 
 def installer_sur_parcours(q):
@@ -201,9 +258,42 @@ def installer_sur_parcours(q):
  for nom in ['pnj_autorite_de_perimetre','pnj_autorite_de','pnj_peut_administrer','pnj_peut_conduire','pnj_position_effective','pnj_co_present','pnj_axe_au_socle','pnj_axe_verrouille','pnj_axe_position_refus','pnj_mouvement_individuel_refus','pnj_quitter_groupe']:
   q.execute(base.fn('baseline/domaines/socle-PNJ/20_fonctions.sql',nom))
  for nom in ['pnj_axes_autorite','pnj_mouvement_individuel']:q.execute((R/f'baseline/seeds/90_socle/{nom}.sql').read_text())
- for fichier,nom in [('migrations/20261016131932_reception_objets_atomique.sql','inventaire_revision_garder'),('baseline/domaines/socle/20_fonctions.sql','inventaire_ajouter'),('baseline/domaines/justice/20_fonctions-2.sql','recherche_inscrire'),('baseline/domaines/politique-et-elections/20_fonctions.sql','indice_ville_ajuster_interne')]:q.execute(base.fn(fichier,nom))
+ for fichier,nom in [('migrations/20261016131932_reception_objets_atomique.sql','inventaire_revision_garder'),('baseline/domaines/socle/20_fonctions.sql','inventaire_ajouter'),('baseline/domaines/socle/20_fonctions.sql','inventaire_place_restante'),('baseline/domaines/socle/20_fonctions.sql','inventaire_quantite'),('baseline/domaines/justice/20_fonctions-2.sql','recherche_inscrire'),('baseline/domaines/politique-et-elections/20_fonctions.sql','indice_ville_ajuster_interne')]:q.execute(base.fn(fichier,nom))
  q.execute('CREATE TRIGGER zzzz_hg_inventory_revision BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION inventaire_revision_garder()')
  q.execute("INSERT INTO ordres_couts(fn,pa,cost) VALUES('voler_materiel_chantier',2,0);INSERT INTO pnj_employeurs(employeur_id,pays,nom) VALUES('integration135','republic','Agence fixture');INSERT INTO pnj_candidats_catalogue(candidat_id,employeur_id,metier,nom) VALUES('integration135','integration135','agent_securite','Agent integration')")
  for fichier in ['20261027121000_chantier_vigiles_socle.sql','20261027122000_chantier_vol_transaction_interne.sql','20261027122100_chantier_vol_commande_et_fermeture.sql']:
   q.execute((R/'migrations'/fichier).read_text());q.execute((R/'migrations'/fichier).read_text())
  q.execute("CREATE OR REPLACE FUNCTION chantier_vol_jet_interne() RETURNS integer LANGUAGE sql AS $$SELECT 40$$")
+ installer_detection_historique(q)
+
+
+def installer_detection_historique(q):
+ """Photographies Git uniquement, JAMAIS appliquables en production par ce banc."""
+ import hashlib
+ archives=json.loads((R/'outils/bancs/fixtures/securite-commune-historique-135.json').read_text())['sources']
+ for r in archives:assert hashlib.sha256(r['sql'].encode()).hexdigest()==r['sha256']
+ for cle,ty in [('resources',"jsonb DEFAULT '{\"dis\":50}'"),('current_street','text'),('est_emprisonne','jsonb')]:q.execute('ALTER TABLE personnages_donnees ADD COLUMN IF NOT EXISTS '+cle+' '+ty)
+ q.execute('ALTER TABLE batiments_etat ADD COLUMN IF NOT EXISTS building_id text')
+ for index in [1,2]:
+  sql=archives[index]['sql'];q.execute(sql[:sql.index('CREATE OR REPLACE FUNCTION public.police_detection_verifier')])
+ q.execute(archives[3]['sql'])
+ q.execute("SELECT to_regclass('public.jugements')")
+ if q.fetchone()[0] is None:q.execute(re.search(r'CREATE TABLE public.jugements \(.*?\n\);',(R/'baseline/domaines/justice/10_tables.sql').read_text(),re.S)[0])
+ q.execute(base.fn('baseline/domaines/justice/20_fonctions-2.sql','justice_recherches'))
+ for path,nom in [('baseline/domaines/militaire/20_fonctions-3.sql','militaire_taux_combat'),('baseline/domaines/militaire/20_fonctions-2.sql','militaire_degre_combat'),('baseline/domaines/militaire/20_fonctions-2.sql','militaire_degats_pct'),('baseline/domaines/militaire/20_fonctions-2.sql','militaire_pa_restants')]:q.execute(base.fn(path,nom))
+ q.execute(archives[0]['sql'])
+ # Un moteur dont la formule a change n'est jamais ecrase par le patch prepare.
+ import psycopg2
+ migration=(R/'migrations/20261027130336_securite_detection_partagee.sql').read_text()
+ q.execute("SELECT proacl FROM pg_proc WHERE oid='police_detection_verifier(text,text,text)'::regprocedure");acl=q.fetchone()[0]
+ ancienne=archives[3]['sql'];variante=ancienne.replace('v_per/v_count+(v_count-1)-CASE','v_per/v_count+(v_count-1)*2-CASE');assert variante!=ancienne;q.execute(variante)
+ q.execute("SELECT count(*) FROM pg_attribute WHERE attrelid='police_detection_attempts'::regclass AND attnum>0 AND NOT attisdropped");colonnes=q.fetchone()[0]
+ try:q.execute(migration);raise AssertionError('formule inconnue doit refuser')
+ except psycopg2.Error as e:assert 'definition_non_examinee' in str(e);q.execute('ROLLBACK')
+ q.execute("SELECT count(*) FROM pg_attribute WHERE attrelid='police_detection_attempts'::regclass AND attnum>0 AND NOT attisdropped");assert q.fetchone()[0]==colonnes
+ q.execute(ancienne)
+ for _ in range(2):q.execute(migration)
+ q.execute("SELECT proacl FROM pg_proc WHERE oid='police_detection_verifier(text,text,text)'::regprocedure");assert q.fetchone()[0]==acl
+
+
+if __name__=='__main__':base.main(suite)

@@ -22,12 +22,17 @@ async function constructionExecuterCommande(action,parametres={}){
   }catch(_){showToast('Commande non lancée','La reprise sûre de cette opération ne peut pas être enregistrée.',false);return null;}
   constructionCommandeEnCours=true;
   try{
-    const r=await sbRpcVerdict('chantier_commande',{p_requete:intention.requete,p_terrain_id:id,p_action:action,p_parametres:intention.parametres}).catch(()=>null);
+    const r=await sbRpcVerdict('chantier_commande',{p_requete:intention.requete,p_terrain_id:id,p_action:action,p_parametres:intention.parametres},{encoreValide:()=>contexteNavigationRueValide(contexte)}).catch(()=>null);
     if(!contexteNavigationRueValide(contexte))return null;
     if(!r?.ok){
       // Ne pas perdre l'intention sur une erreur HTTP/transport dont le resultat est inconnu.
       if(r&&!r.transport)sessionStorage.removeItem(cle);
       showToast('Commande non confirmée',r?.transport||!r?'La réponse est incertaine. Reprenez la même commande pour vérifier son résultat sans second traitement.':(r.raison||'Le serveur a refusé cette commande.'),false);return null;
+    }
+    if(action==='voler'&&(typeof r.reussite!=='boolean'||typeof r.detecte!=='boolean'
+      ||!Number.isSafeInteger(r.quantite)||r.quantite<0||typeof r.message!=='string'
+      ||(r.reussite?r.quantite===0:r.quantite!==0))){
+      showToast('Résultat non confirmé','La réponse du vol est incomplète. La même intention est conservée pour vérifier son reçu sans second traitement.',false);return null;
     }
     // Le recu peut etre ancien : relire le terrain et les finances, jamais adopter son snapshot.
     const frais=await chargerTerrainState(id,true);
@@ -173,7 +178,7 @@ async function confirmerVigileChantier(id){
  if(constructionVigileEnCours)return;
  const c=contexteNavigationRue();constructionVigileEnCours=true;
  try{
-  const r=await sbRpcVerdict('chantier_vigiles_affecter',{p_terrain:c.batiment,p_ids:[id]}).catch(()=>null);
+  const r=await sbRpcVerdict('chantier_vigiles_affecter',{p_terrain:c.batiment,p_ids:[id]},{encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
   if(!contexteNavigationRueValide(c))return;
   showToast(r?.ok?'Affectation confirmée':'Affectation non confirmée',r?.ok?'L’agent est affecté ici.':(r?.raison||'Réponse incertaine ; vérifiez la présence avant de recommencer.'),!!r?.ok);
  }finally{constructionVigileEnCours=false;}

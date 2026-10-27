@@ -99,6 +99,7 @@ def suite(db,q,srv):
    q.execute("UPDATE personnages_donnees SET current_room='terrain' WHERE name='Parcours terrain fixture';INSERT INTO pnj_membres(id,famille,classe,nom,pays,proprietaire_pj,leader_pj,statut,pa) VALUES('vigile-integration135','employe','alpha','Agent integration','republic','Parcours terrain fixture','Parcours terrain fixture','actif',12) ON CONFLICT(id) DO UPDATE SET leader_pj=excluded.leader_pj,ville=NULL,building_id=NULL,room_id=NULL;INSERT INTO pnj_employes_metier(pnj_id,job,role_libelle,candidat_id) VALUES('vigile-integration135','agent_securite','Agent','integration135') ON CONFLICT(pnj_id) DO NOTHING")
    a=lire('SELECT chantier_vigiles_affecter(%s,ARRAY[\'vigile-integration135\'])',(terrain,));check(a['ok'],'affectation commune dans le parcours '+terrain)
    check(lire('SELECT chantier_securite_lire(%s)',(terrain,))['nombre']==1,'presence reelle du vigile dans le parcours '+terrain)
+   check(lire('SELECT chantier_vigiles_detecter(%s)',(terrain,))['raison']=='non_recherche','detecteur commun ne cree aucune intervention sans recherche '+terrain)
    avant=fonds();avant_ch=etat()['chantier'];r=commande('voler',{'matiere':'bois'},'tentative-vol-135')
    check(r['ok'] and not r['reussite'] and r['vigiles']==1,'vol serveur avec protection dans le parcours '+terrain)
    check(fonds()==avant and etat()['chantier']==avant_ch,'tentative echouee conserve financement et stock '+terrain)
@@ -135,6 +136,6 @@ def suite(db,q,srv):
    cur.execute('SELECT chantier_commande_recu(%s)',('ch-'+terrain+'-parcours-reception-135',));recu=cur.fetchone()[0]
    check(recharge==e and recu['ok'] and recu['terminee'],'nouvelle session retrouve titre permis lots et recu de reception')
  for terrain,palier,occupation in [('terrain-a-batir-1','hangar','squatter_cool'),('terrain-a-batir-2','commerce_standard',None),('terrain-a-batir-3','commerce_premium','squatter_agr'),('terrain-a-batir-4','building',None),('terrain-a-batir-5','hangar',None)]:parcours(terrain,palier,occupation)
- print(json.dumps({'parcours_terrain_construction':True,'assertions':n,'production':False,'temps_simule_sur_fixture':True,'contrat_vol_prepare':('--vol135' in sys.argv),'benediction_hypothetique':('--vol135' in sys.argv)}))
+ print(json.dumps({'parcours_terrain_construction':True,'assertions':n,'production':False,'temps_simule_sur_fixture':True,'contrat_vol_prepare':('--vol135' in sys.argv),'detection_sur_photographie_historique':('--vol135' in sys.argv),'benediction_hypothetique':('--vol135' in sys.argv)}))
 def tout(db,q,srv):banque.suite(db,q,srv);suite(db,q,srv)
 if __name__=='__main__':banque.m.main(tout)

@@ -13,7 +13,8 @@ SET TRANSACTION READ ONLY;
 SELECT signature, to_regprocedure(signature) IS NOT NULL AS presente
 FROM unnest(ARRAY['public.mon_personnage()','public.payer_ordre(text,text,integer,integer)',
  'public.pnj_position_effective(text)','public.pnj_quitter_groupe(text[])',
- 'public.inventaire_ajouter(jsonb,text,integer,text)',
+ 'public.inventaire_ajouter(jsonb,text,integer,text)','public.inventaire_quantite(jsonb,text)',
+ 'public.inventaire_place_restante(jsonb)',
  'public.inventaire_revision_garder()',
  'public.chantier_commande(text,text,text,jsonb)',
  'public.terrain_chantier_acte(text,text,text,integer,integer)']) signature;
@@ -23,6 +24,7 @@ FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
 WHERE n.nspname='public' AND p.proname IN
  ('chantier_commande','terrain_chantier_acte','chantier_autorite_exiger_interne',
  'inventaire_revision_garder','inventaire_ajouter','payer_ordre','recherche_inscrire',
+ 'securite_detection_calcul_interne','securite_perception_groupe_interne','chantier_vigiles_detecter',
  'pnj_position_effective','pnj_quitter_groupe','pnj_prendre','employe_liberer','employeur_embaucher')
 ORDER BY p.proname,arguments;
 SELECT c.relname,c.relrowsecurity,c.relacl,a.attname,format_type(a.atttypid,a.atttypmod) AS type
@@ -42,7 +44,7 @@ SELECT c.relname,k.conname,k.contype,pg_get_constraintdef(k.oid)
 FROM pg_constraint k JOIN pg_class c ON c.oid=k.conrelid
 WHERE k.connamespace='public'::regnamespace AND c.relname IN
  ('pnj_membres','pnj_employes_metier','pnj_candidats_catalogue','pnj_employeurs',
- 'chantier_commandes_recus','chantier_vigiles_affectations','personnages_donnees','terrains_etat');
+ 'chantier_commandes_recus','chantier_vigiles_affectations','personnages_donnees','terrains_etat','police_detection_attempts');
 -- Identifier les producteurs/consommateurs vivants avant d'adopter un stockage de bonus.
 SELECT p.oid::regprocedure::text,p.prosecdef,p.proacl,md5(p.prosrc)
 FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosrc ~* 'benediction';

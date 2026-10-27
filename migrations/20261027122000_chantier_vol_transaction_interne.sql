@@ -39,7 +39,7 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp A
 DECLARE acteur text:=public.mon_personnage();p record;t record;etat jsonb;ch jsonb;inv jsonb;
  matiere text:=p_params->>'matiere';stock integer;jour integer;numero integer;vigiles integer;
  dup double precision;isn double precision;bonus double precision;jet integer;r jsonb;pay jsonb;cout record;trace text;
- v_benediction jsonb;recherche jsonb;msg text;avant_revision bigint;
+ v_benediction jsonb;recherche jsonb;msg text;avant_revision bigint;place integer;pos integer;
 BEGIN
  IF p_params-ARRAY['matiere']<>'{}' OR matiere IS NULL OR matiere NOT IN('bois','minerai','metal') THEN
  RETURN jsonb_build_object('ok',false,'raison','matiere_invalide');END IF;
@@ -70,6 +70,12 @@ BEGIN
  stock:=coalesce((ch->'stockMateriaux'->>matiere)::integer,0);
  IF stock<=0 THEN RETURN jsonb_build_object('ok',false,'raison','stock_vide');END IF;
  IF jsonb_typeof(p.inventory) IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'inventaire_format_a_reexaminer';END IF;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(p.inventory) e WHERE
+   (e ? 'qty' AND ((e->>'qty')::numeric<=0 OR (e->>'qty')::numeric<>trunc((e->>'qty')::numeric)))
+   OR (e ? 'encombrement' AND ((e->>'encombrement')::numeric<=0 OR (e->>'encombrement')::numeric<>trunc((e->>'encombrement')::numeric)))) THEN
+  RAISE EXCEPTION 'inventaire_quantite_invalide';END IF;
+ place:=public.inventaire_place_restante(p.inventory);
+ IF place<=0 THEN RETURN jsonb_build_object('ok',false,'raison','inventaire_plein');END IF;
  SELECT * INTO cout FROM public.ordres_couts WHERE fn='voler_materiel_chantier';
  IF NOT FOUND OR (SELECT count(*) FROM public.ordres_couts WHERE fn='voler_materiel_chantier')<>1 THEN
  RETURN jsonb_build_object('ok',false,'raison','cout_indisponible');END IF;
@@ -93,13 +99,24 @@ BEGIN
  numero:=floor(coalesce((ch->>'progressionJours')::numeric,0))::integer+1;
  jet:=public.chantier_vol_jet_interne();
  r:=public.chantier_vol_calcul_interne(bonus,vigiles,jet,matiere,numero,stock);
+ r:=jsonb_set(r,'{quantite}',to_jsonb(least((r->>'quantite')::integer,place)));
  pay:=public.payer_ordre(acteur,'voler_materiel_chantier',cout.pa,cout.cost);
  IF NOT coalesce((pay->>'ok')::boolean,false) THEN RETURN pay;END IF;
  IF (v_benediction->>'actif')::boolean AND (NOT v_benediction ? 'expire' OR jour<=(v_benediction->>'expire')::integer) THEN
   UPDATE public.personnages_donnees SET benediction=jsonb_set(v_benediction,'{actif}','false') WHERE name=acteur;END IF;
  trace:='vol-chantier-'||p.id::text||'-'||p_requete;
  IF (r->>'reussite')::boolean THEN
-  inv:=public.inventaire_ajouter(p.inventory,matiere,(r->>'quantite')::integer,'Dérobé sur un chantier.');
+  -- Meme premier empilement compatible que addToInventory. Le helper commun est
+  -- applique a CE slot seulement, pour ne pas crediter plusieurs piles historiques.
+  SELECT ord::integer-1 INTO pos FROM jsonb_array_elements(p.inventory) WITH ORDINALITY e(objet,ord)
+   WHERE objet->>'stackKey'=matiere AND coalesce((objet->>'stackable')::boolean,false) ORDER BY ord LIMIT 1;
+  IF pos IS NULL THEN
+   inv:=p.inventory||public.inventaire_ajouter('[]',matiere,(r->>'quantite')::integer,'Dérobé sur un chantier.');
+  ELSE
+   inv:=jsonb_set(p.inventory,ARRAY[pos::text],public.inventaire_ajouter(jsonb_build_array(p.inventory->pos),matiere,(r->>'quantite')::integer,'Dérobé sur un chantier.')->0);
+  END IF;
+  IF public.inventaire_quantite(inv,matiere)-public.inventaire_quantite(p.inventory,matiere)<>(r->>'quantite')::integer THEN
+   RAISE EXCEPTION 'inventaire_quantite_non_confirmee';END IF;
   ch:=jsonb_set(ch,ARRAY['stockMateriaux',matiere],to_jsonb(stock-(r->>'quantite')::integer));
   ch:=ch||jsonb_build_object('evenements',coalesce(ch->'evenements','[]')||jsonb_build_array(jsonb_build_object('cle','vol_materiaux','jour',jour,'matiere',matiere,'quantite',(r->>'quantite')::integer)));
   UPDATE public.terrains_etat SET data=jsonb_set(etat,'{chantier}',ch)::text,updated_at=now() WHERE id=t.id;
