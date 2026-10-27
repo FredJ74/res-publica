@@ -24,6 +24,19 @@ async function openCharSheet() {
     ? await sbGetPretsEnCours(char.name).catch(() => [])
     : [];
   const totalRestantPrets = pretsEnCours.reduce((s, p) => s + (p.montant_restant || 0), 0);
+  // Droits payes : lecture serveur a chaque ouverture, jamais un compteur local.
+  const listeHotelBrute = (typeof sbRpc === 'function') ? await sbRpc('hotel_reservations_lire', {}).catch(() => null) : null;
+  const reservationsHotel = Array.isArray(listeHotelBrute) ? listeHotelBrute : [];
+  const groupesHotel = [];
+  for (const n of reservationsHotel) {
+    if (!n || !n.buildingId) continue;
+    const k = [n.country,n.ville,n.buildingId].join('|');
+    let g = groupesHotel.find(x => x.cle === k);
+    if (!g) { g = {cle:k,batiment:n.buildingId,ville:n.ville,nuits:0,bonus:n.bonus||{}}; groupesHotel.push(g); }
+    g.nuits++;
+  }
+  const sansBalisesHotel = v => String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
 
   const photo = char.photoUrl
     ? `<img src="${char.photoUrl}" style="width:70px;height:70px;border-radius:50%;border:2px solid #8a6a20;object-fit:cover">`
@@ -91,6 +104,16 @@ async function openCharSheet() {
         : (char.motto
           ? `<div style="font-size:.78rem;color:#5a5040;font-style:italic">Pas de signature personnalisée — ta devise ("${char.motto}") sera utilisée par défaut.</div>`
           : `<div style="font-size:.75rem;color:#9a8a68;font-style:italic">Aucune signature. Elle apparaîtra automatiquement en bas de tes posts sur le forum.</div>`)}
+    </div>
+    <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
+      <div class="cs-title" style="margin-bottom:.4rem">Réservations d'hôtel</div>
+      ${listeHotelBrute === null
+        ? '<div style="font-size:.75rem;color:#c0a060">Lecture des réservations indisponible. Aucun droit n’est effacé.</div>'
+        : groupesHotel.length === 0
+          ? '<div style="font-size:.75rem;color:#9a8a68">Aucune nuit réservée.</div>'
+          : groupesHotel.map(g => `
+            <div class="cs-stat-row"><span class="cs-stat-name">${sansBalisesHotel(BUILDINGS[g.batiment]?.shortName || g.batiment)} — ${sansBalisesHotel(g.ville)}</span>
+            <span class="cs-stat-val">${g.nuits} nuit${g.nuits>1?'s':''} (+${g.bonus.paBonus||0} PA, +${g.bonus.moral||0} Moral/nuit)</span></div>`).join('')}
     </div>
     <div style="padding:.8rem 1rem;border-top:1px solid #1a1810">
       <div class="cs-title" style="margin-bottom:.4rem">Inventaire</div>
@@ -3053,7 +3076,13 @@ function signalerRefusReservationChambre(r, cout) {
   console.warn('[chambre] reservation refusee — raison serveur :', raison, r);
 }
 
+let reservationHotelEnCours = false;
 async function doReserverChambreHotel(pa) {
+  // Un double clic sur un achat payant ne doit pas lancer deux transactions.
+  if (reservationHotelEnCours) return;
+  reservationHotelEnCours = true;
+  try {
+
   const confortMap = {
     'hotel-republica': { moral: 3, paBonus: 2 },
     'hotel-port':      { moral: 3, paBonus: 2 },
@@ -3139,17 +3168,29 @@ async function doReserverChambreHotel(pa) {
   // aucune mecanique de sauvegarde parallele. sauvegarderPersonnageImmediat() (au lieu du seul
   // updateUI(), dont la sauvegarde Supabase est debounced 3s) : une chambre payee doit survivre
   // a un refresh immediat, pas seulement au prochain autosave.
-  if (state.char) state.char.reservationHotel = { buildingId: state.currentBuilding, bonus };
+  // Le paiement ET le droit sont crees par le serveur dans la meme transaction.
+  // Ne jamais re-ecrire le champ legacy reservationHotel depuis le navigateur.
+  const droitsServeur = (typeof sbRpc === 'function') ? await sbRpc('hotel_reservations_lire', {}).catch(() => null) : null;
   updateUI();
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  if (!Array.isArray(droitsServeur)) {
+    showToast('Paiement enregistré', 'Le serveur a accepté l’achat. La liste des nuits est temporairement indisponible ; ne repaye pas avant de consulter ta fiche.', true);
+    return;
+  }
   showToast('Chambre reservee', 'Vous obtiendrez un bonus de +' + bonus.paBonus + ' PA et +' + bonus.moral + ' Moral en passant l\'ordre Dormir <strong>dans cette chambre</strong>.', true, true);
   addJournalEntry('Vous avez reserve une chambre d\'hotel. Vous obtiendrez un bonus de ' + bonus.paBonus + ' PA + ' + bonus.moral + ' moral en passant l\'ordre dormir <strong>dans cette chambre</strong>.', 'event-good');
   if (typeof queteAccueilApresReservationChambre === 'function') queteAccueilApresReservationChambre();
+  } finally {
+    reservationHotelEnCours = false;
+  }
 }
 
 async function doServiceEtage(pa) {
-  const reservation = state.char?.reservationHotel;
-  if (!reservation || reservation.buildingId !== state.currentBuilding) {
+  const nuitsService = (typeof sbRpc === 'function') ? await sbRpc('hotel_reservations_lire', {}).catch(() => null) : null;
+  if (!Array.isArray(nuitsService)) {
+    showToast('Réservations indisponibles', 'Le serveur ne confirme pas votre réservation.', false);
+    return;
+  }
+  if (!nuitsService.some(n => n.buildingId === state.currentBuilding && n.country === state.country && n.ville === state.currentCity)) {
     showToast('Chambre non reservee', 'Vous devez d\'abord reserver une chambre a l\'accueil pour beneficier du service d\'etage.', false);
     return;
   }
@@ -3171,61 +3212,40 @@ async function doServiceEtage(pa) {
 }
 
 async function doDormirChambre() {
-  const personnageInitial = state.char, paysInitial = state.country;
-  const uidInitial = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
-  const jetonInitial = (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null));
-  const retourActif = () => state.char === personnageInitial && state.country === paysInitial
-    && (typeof rpAuthUid !== 'function' || rpAuthUid() === uidInitial)
-    && (typeof rpAuthJeton !== 'function' || (typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : (typeof rpAuthJeton === 'function' ? rpAuthJeton() : null)) === jetonInitial);
-
-  // Le repos quotidien est validé par doDormir() auprès du serveur.
-  // La réservation est contrôlée ici pour le bonus hôtelier uniquement.
-  const reservation = state.char?.reservationHotel;
-  if (!reservation || reservation.buildingId !== state.currentBuilding) {
-    showToast('Chambre non reservee', 'Vous n\'avez pas reserve la chambre. Vous devez passer l\'ordre Dormir a partir de votre fiche personnage.', false);
+  // Le serveur possede les droits et valide la chambre au moment du repos.
+  const salle = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
+  if (!salle?.orders?.some(o => o.fn === 'dormir_chambre')) {
+    showToast('Chambre non réservée', 'Il faut être dans la chambre de l’hôtel.', false);
     return;
   }
-  // Garde-fou explicite (23 aout 2026, dernier point avant GO) : verifie que le personnage est
-  // REELLEMENT dans la chambre de l'hotel reserve, pas seulement que le bouton dormir_chambre
-  // n'est affiche que la -- une verification cote fonction, pas seulement cote UI. Reutilise la
-  // configuration DEJA existante plutot que d'ajouter une nouvelle table buildingId->roomId en
-  // parallele (qui pourrait diverger de data.js) : dormir_chambre n'est declare que par les 3
-  // rooms chambre reelles (chambres/chambre_port/chambre_mineur, verifie -- aucune autre room ne
-  // porte cet ordre), donc controler que la room courante offre bien cet ordre est strictement
-  // equivalent au mapping explicite hotel-republica->chambres/hotel-port->chambre_port/
-  // hotel-mineur->chambre_mineur, sans le dupliquer.
-  const roomActuelle = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-  const estDansLaChambre = roomActuelle?.orders?.some(o => o.fn === 'dormir_chambre');
-  if (!estDansLaChambre) {
-    showToast('Chambre non reservee', 'Vous devez etre physiquement dans la chambre de l\'hotel reserve pour beneficier du bonus.', false);
+  const nuits = (typeof sbRpc === 'function') ? await sbRpc('hotel_reservations_lire', {}).catch(() => null) : null;
+  if (!Array.isArray(nuits)) {
+    showToast('Réservations indisponibles', 'Impossible de confirmer votre nuit payée. Aucun droit consommé.', false);
     return;
   }
-  const reussi = await doDormir();
-  if (!retourActif()) return;
-  if (reussi) {
-    // Plafonne a PA_MAX (Lot 1) : doDormir() a deja plafonne sa propre recuperation, mais ce
-    // bonus de chambre s'applique dans un second temps, en dehors de doDormir() -- sans ce
-    // Math.min, il pourrait a lui seul faire depasser la reserve maximale.
-    // Bonus de chambre : montant DECLARE cote serveur par batiment, et reservation consommee
-    // dans la meme transaction -- le blob de reservation, que le client ecrit, ne decide plus
-    // du montant (16 septembre 2026).
-    const rCh = (typeof sbRpc === 'function' && state.char?.name)
-      ? await sbRpc('pa_bonus_chambre', { p_acteur: state.char.name,
-                                          p_batiment: state.currentBuilding }).catch(() => null) : null;
-    if (!retourActif()) return;
-    const vCh = Array.isArray(rCh) ? rCh[0] : rCh;
-    if (vCh && typeof vCh.pa === 'number') state.pa = vCh.pa;
-    state.moral = Math.min(100, (state.moral || 0) + reservation.bonus.moral);
-    // Consommation de la reservation (urgence du 27 aout 2026) : nullifiee sur state.char (meme
-    // champ que la creation ci-dessus), persistee immediatement -- une reservation deja
-    // consommee ne doit jamais reapparaitre "encore valide" a un refresh suivant.
-    if (state.char) state.char.reservationHotel = null;
-    updateUI();
-    if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-    showToast('Bonus de chambre applique', '+' + reservation.bonus.paBonus + ' PA, +' + reservation.bonus.moral + ' Moral.', true, true);
-    addJournalEntry('Bonus de la chambre reservee applique : +' + reservation.bonus.paBonus + ' PA, +' + reservation.bonus.moral + ' moral.', 'event-good');
+  if (!nuits.some(n => n.buildingId === state.currentBuilding && n.ville === state.currentCity && n.country === state.country)) {
+    showToast('Chambre non réservée', 'Aucune nuitée disponible ici. Les nuits réservées ailleurs sont conservées.', false);
+    return;
   }
+  const perso = state.char, hotel = state.currentBuilding, ville = state.currentCity;
+  const termine = await doDormir();
+  if (!termine || state.char !== perso || state.currentBuilding !== hotel || state.currentCity !== ville) return;
+  let bonus = await sbRpc('pa_bonus_chambre', {p_acteur:perso.name,p_batiment:hotel}).catch(()=>null);
+  if (!bonus) bonus = await sbRpc('pa_bonus_chambre', {p_acteur:perso.name,p_batiment:hotel}).catch(()=>null);
+  const resultat = Array.isArray(bonus) ? bonus[0] : bonus;
+  if (state.char !== perso || state.currentBuilding !== hotel || state.currentCity !== ville) return;
+  if (!resultat?.ok) {
+    showToast('Bonus hôtel à vérifier','Le repos est enregistré. Consultez vos nuits dans la fiche avant de repayer.',false);
+    return;
+  }
+  if (typeof resultat.pa === 'number') state.pa = resultat.pa;
+  if (typeof resultat.moral === 'number') state.moral = resultat.moral;
+  updateUI();
+  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
+  showToast('Bonus chambre appliqué','+'+resultat.montant+' PA, +'+resultat.moralBonus+' Moral.',true,true);
+  addJournalEntry('Bonus hôtel : +'+resultat.montant+' PA, +'+resultat.moralBonus+' Moral.', 'event-good');
 }
+
 
 function verifierProgressionHospitalisation() {
   if (!state.hospitalisation) return;
