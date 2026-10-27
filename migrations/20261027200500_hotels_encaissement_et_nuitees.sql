@@ -82,4 +82,4 @@ BEGIN
     'caisse', p_caisse,
     'ville', v_ville);
 END;
-$function$
+$function$;
