@@ -37,7 +37,7 @@ INSERT INTO auth.users(id,instance_id,aud,role)
 VALUES ('c1350000-0000-4000-8000-000000000135','00000000-0000-0000-0000-000000000000','authenticated','authenticated');
 SELECT set_config('request.jwt.claim.sub','c1350000-0000-4000-8000-000000000135',true);
 INSERT INTO public.personnages_donnees(name,user_id,country,current_city,current_building,current_room,hp,pa,resources,stats)
-VALUES ('__test_pj_135__','c1350000-0000-4000-8000-000000000135','republic','capitale','__test_bat_135__','terrain',100,1000,'{"dis":0}'::jsonb,'{"PER":8,"VOL":8}'::jsonb);
+VALUES ('__test_pj_135__','c1350000-0000-4000-8000-000000000135','republic','capitale','__test_bat_135__','terrain',100,10000,'{"dis":0}'::jsonb,'{"PER":8,"VOL":8}'::jsonb);
 -- Escorte : la position du PNJ suit celle de son chef PJ, sans affectation chantier.
 INSERT INTO public.pnj_membres(id,famille,classe,nom,pays,proprietaire_pj,leader_pj,statut,pa,car_per,car_vol)
 VALUES('__test_135_suiveur__','employe','beta','Escorte fictive','republic','__test_employeur_135__','__test_pj_135__','actif',12,22,19);
