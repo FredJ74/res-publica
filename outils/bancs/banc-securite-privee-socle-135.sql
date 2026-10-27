@@ -75,6 +75,34 @@ BEGIN
  END LOOP;
  IF NOT trouve THEN RAISE EXCEPTION 'aucune_detection_privee_sur_60_tirages'; END IF;
 END $t$;
+-- Mixité : priorité de groupe policier et exclusion des agents privés du combat policier.
+INSERT INTO public.batiments_etat(id,country,city,building_id,data)
+VALUES('__test_commissariat_135__','republic','capitale','commissariat',
+ jsonb_build_object('effectifsPolice',jsonb_build_object('policiers',jsonb_build_array(
+ jsonb_build_object('matricule','POL-135-A','groupeId','POL-135-G','pa',12,'stats',jsonb_build_object('PER',100,'VOL',10),'buildingId','__test_bat_135__','roomId','terrain'),
+ jsonb_build_object('matricule','POL-135-B','groupeId','POL-135-G','pa',12,'stats',jsonb_build_object('PER',100,'VOL',10),'buildingId','__test_bat_135__','roomId','terrain'),
+ jsonb_build_object('matricule','POL-135-S','pa',12,'stats',jsonb_build_object('PER',100,'VOL',10),'buildingId','__test_bat_135__','roomId','terrain')
+ ))));
+DO $t$ DECLARE r jsonb; membres jsonb; i integer; trouve boolean:=false;
+BEGIN
+ FOR i IN 1..60 LOOP
+   DELETE FROM public.police_detection_attempts WHERE personnage='__test_pj_135__';
+   r:=public.police_detection_verifier('__test_bat_135__','terrain',NULL);
+   IF coalesce((r->>'detecte')::boolean,false) THEN
+     SELECT intervenants INTO membres FROM public.police_interceptions
+       WHERE rencontre=r->>'rencontre' AND personnage='__test_pj_135__';
+     IF r->>'rencontre' LIKE 'police-%' AND (r->>'effectif')::integer=2 THEN
+       IF (SELECT count(*) FROM jsonb_array_elements_text(membres) x WHERE x IN ('POL-135-A','POL-135-B'))<>2
+          OR jsonb_array_length(membres)<>2
+       THEN RAISE EXCEPTION 'groupe_police_incorrect: %',membres; END IF;
+       trouve:=true;
+     END IF;
+     DELETE FROM public.police_interceptions WHERE rencontre=r->>'rencontre' AND personnage='__test_pj_135__';
+     IF trouve THEN EXIT; END IF;
+   END IF;
+ END LOOP;
+ IF NOT trouve THEN RAISE EXCEPTION 'groupe_police_jamais_prioritaire_sur_60_tirages'; END IF;
+END $t$;
 INSERT INTO public.police_interceptions(personnage,rencontre,country,city,building,room,street)
 VALUES ('__test_pj_135__','prive-test-135','republic','capitale','__test_bat_135__','terrain',NULL);
 SET LOCAL ROLE authenticated;
