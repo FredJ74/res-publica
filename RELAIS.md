@@ -19,7 +19,9 @@ ambassades ni au Bureau de l'Emploi.**
   comptage à la sauvegarde suivante). **Bancs SQL : se placer au rôle `authenticated`** (`set_config('role','authenticated',true)`),
   sinon `est_appel_serveur()` est vrai et masque les défauts (c'est ainsi que l'annulation des
   gains de popularité écrits par le serveur est passée inaperçue ; corrigé, `20261027050000`).
-  Démenti et rumeurs politiques par le serveur (`dementi_executer`, `20261027060000`).
+  Démenti et rumeurs politiques par le serveur (`dementi_executer`, `20261027060000`). **Scrutins fermés aux joueurs** (`cycles_electoraux`) : engendrement, dissolution et
+  contestation par le serveur (`20261027070000`/`070100`) ; la passe de nuit pose
+  `cycle.dernierScrutin` à chaque proclamation (ne pas le retirer : la contestation en dépend).
 - **Corrections « une seule vérité » (Fred, 26/10 : « fais dans l'ordre que tu veux »)** — Claude.
   Fait : caisses adossées (`fonds_en_transit`, `batiment_caisse_client_crediter`, primitives de
   caisse retirées au navigateur, `usine_virer_vers_ministere`, `ministere_virer_vers_usine`,

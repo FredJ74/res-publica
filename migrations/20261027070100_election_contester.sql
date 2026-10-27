@@ -1,4 +1,5 @@
--- A APPLIQUER par Claude via MCP apply_migration, APRES 20261027070000.
+-- APPLIQUEE le 27/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261027104731.
+-- Eprouvee avant application en transaction annulee, au role authenticated (fraude revelee, recomptage, elu corrige). Baseline NON reextrait.
 -- ============================================================================
 -- CONTESTATION DES RESULTATS PAR LE SERVEUR, FERMETURE DE cycles_electoraux (27 octobre 2026)
 -- ============================================================================
