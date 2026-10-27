@@ -55,6 +55,7 @@ def main():
   q.execute("SELECT count(*) FROM terrain_visites_actives");check(q.fetchone()[0]==2)
   q.execute("UPDATE personnages_donnees SET current_building=NULL WHERE name='Fixture'")
   q.execute('SELECT count(*) FROM terrain_visites_actives');check(q.fetchone()[0]==1)
+  q.execute("SET hg.fixture='Autre'")
   check(appel()['etat']==avant)
   q.execute("UPDATE personnages_donnees SET current_building=NULL WHERE name='Autre'")
   q.execute('SELECT count(*) FROM terrain_visites_actives');check(q.fetchone()[0]==0)
