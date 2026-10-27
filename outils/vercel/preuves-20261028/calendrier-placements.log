@@ -1,0 +1,19 @@
+✔ cron calcule les peines sur des dates Paris, non 24h (0.811659ms)
+✔ client laisse le serveur trancher la peine (0.299844ms)
+✔ SQL contrôle le calendrier et garde la clôture atomique (0.105706ms)
+✔ une fermeture datée ne dépend pas du jour personnel (18.58422ms)
+✔ la date de fin est décidée par PostgreSQL (0.390928ms)
+✔ la suppression d antenne est uniquement dans le contexte de Luthecia (14.62508ms)
+✔ la consommation sur place est possible pour les boissons (0.244952ms)
+✔ une seule transaction debite les especes ou le compte national (1.019246ms)
+✔ les operations repetées gardent leur id et ne repassent pas par le debit (0.202018ms)
+✔ pas de nouvelle interdiction de plusieurs placements actifs (0.191944ms)
+✔ l interface unifiee presente les deux sources et conserve une intention en attente (0.583792ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 112.799104

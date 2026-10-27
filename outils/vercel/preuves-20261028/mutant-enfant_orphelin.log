@@ -1,0 +1,13 @@
+F
+======================================================================
+FAIL: test_timeout_tue_enfant_ignorant_sigterm_et_preserve_autre_session (__main__.ControleurProcessus.test_timeout_tue_enfant_ignorant_sigterm_et_preserve_autre_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/hg-ci-mutant-628imx09/test-controleur-processus.py", line 69, in test_timeout_tue_enfant_ignorant_sigterm_et_preserve_autre_session
+    self.assertTrue(arrete, 'un descendant ignore TERM et continue après le timeout')
+AssertionError: False is not true : un descendant ignore TERM et continue après le timeout
+
+----------------------------------------------------------------------
+Ran 1 test in 1.722s
+
+FAILED (failures=1)

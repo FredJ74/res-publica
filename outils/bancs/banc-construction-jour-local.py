@@ -54,13 +54,13 @@ def main(suite_supplementaire=None):
    for migration in sorted((R/'migrations').glob('202610221259*.sql')):c.execute(migration.read_text());c.execute(migration.read_text())
    # Etat reel AVANT les migrations testees, independant du baseline vivant.
    for nom,fixture in [('terrain_permis_acte','terrain-permis-acte-avant-depot.sql'),('terrain_chantier_acte','terrain-chantier-acte-avant-commandes.sql')]:
-    c.execute(fn('outils/bancs/fixtures/'+fixture,nom))
+    c.execute(fn('outils/bancs/banc-fixture-'+fixture,nom))
    c.execute(fn('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','terrain_etat_lire'))
    c.execute(fn('baseline/domaines/economie/20_fonctions-1.sql','chantier_travailler'))
    c.execute(fn('migrations/20261020214955_construction_materiaux_prix_et_dons.sql','chantier_prix_definir'))
    if '--permis112' in sys.argv:
     # Definition exacte du garde #112, sans embarquer sa migration ni ses paiements.
-    definition=fn('outils/bancs/fixtures/terrain-permis-acte-avant-depot.sql','terrain_permis_acte')
+    definition=fn('outils/bancs/banc-fixture-terrain-permis-acte-avant-depot.sql','terrain_permis_acte')
     garde="  IF p_acte = 'permis_deposer' THEN\n    RETURN jsonb_build_object('ok',false,'raison','commande_versionnee_requise');\n  END IF;\n"
     c.execute(definition.replace('  v_moi := public.mon_personnage();',garde+'  v_moi := public.mon_personnage();'))
    for migration in sorted((R/'migrations').glob('202610221304*.sql')):c.execute(migration.read_text());c.execute(migration.read_text())

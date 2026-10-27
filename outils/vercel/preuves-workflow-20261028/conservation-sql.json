@@ -1,0 +1,37 @@
+[
+  {
+    "ancien": "outils/bancs/fixtures/terrain-permis-acte-avant-depot.sql",
+    "nouveau": "outils/bancs/banc-fixture-terrain-permis-acte-avant-depot.sql",
+    "sha256_original": "31799486db7275895020d3dc8012c26b08603f659dd01cca90b4c76d1658f47d",
+    "contenu_original_conserve": true,
+    "deplacement_octet_identique": false
+  },
+  {
+    "ancien": "outils/bancs/fixtures/terrain-chantier-acte-avant-commandes.sql",
+    "nouveau": "outils/bancs/banc-fixture-terrain-chantier-acte-avant-commandes.sql",
+    "sha256_original": "6d50e5f5f5e29e6682f15300b7865d96a38281e4d963c33e5bea68434603ca05",
+    "contenu_original_conserve": true,
+    "deplacement_octet_identique": false
+  },
+  {
+    "ancien": "outils/bancs/fixtures/ced-football-schema.sql",
+    "nouveau": "historique/fixtures-bancs/ced-football-schema.sql",
+    "sha256_original": "efd03cf0c21ddcba205d881b8cd37acfe9b1212452253b7daf96bd9fd2f5f06d",
+    "contenu_original_conserve": true,
+    "deplacement_octet_identique": true
+  },
+  {
+    "ancien": "outils/bancs/fixtures/historique-135/20261024072349_occupation_actions_et_echeances.sql",
+    "nouveau": "historique/fixtures-bancs/historique-135/20261024072349_occupation_actions_et_echeances.sql",
+    "sha256_original": "b7c4d99c7259328328ab7135cc55b8ece87f57b1f8cde37c2b3399596460739e",
+    "contenu_original_conserve": true,
+    "deplacement_octet_identique": true
+  },
+  {
+    "ancien": "outils/bancs/fixtures/historique-135/20261023090017_location_lot_legacy_avant_paiement.sql",
+    "nouveau": "historique/fixtures-bancs/historique-135/20261023090017_location_lot_legacy_avant_paiement.sql",
+    "sha256_original": "87452f46faf23e91ae2f1c2344704c7b780b2425eddcb68cf925840e9c225ae5",
+    "contenu_original_conserve": true,
+    "deplacement_octet_identique": true
+  }
+]
