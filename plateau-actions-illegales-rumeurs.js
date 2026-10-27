@@ -87,233 +87,51 @@ function ouvrirModalVoler(encodedCible, genre) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-// Eligibilite au vol -- un seul point d'exclusion central (correctif ordre Voler, 22 aout 2026),
-// reutilise par la selection du butin ci-dessous plutot que reecrit par branche. Exclusions
-// absolues : actes officiels (jamais transferables, meme convention que les dons/ventes de
-// matieres partout ailleurs dans le projet) et objets de quete non transferables
-// (colis_secret_pat, destine uniquement a Brigitte Menottes -- voir confirmerDonObjetPj,
-// plateau-justice-economie.js). Categories volables (les 3 seules validees) : matieres premieres
-// empilables (stackable+stackKey -- signal deja utilise partout ailleurs pour identifier une
-// matiere, jamais un champ type dedie, verifie sur tous les points d'ajout du projet) ; objets
-// provenant du systeme Objets Trouves, identifies par le marqueur origine:'objets_trouves' pose
-// par reclamerObjetTrouve() plus bas dans ce lot (type:'kompromat'/'objet' NE SUFFISAIENT PAS :
-// type:'kompromat' est produit par au moins 4 autres mecanismes sans rapport -- voir audit) ;
-// armes (type:'arme').
-function estObjetVolableParVol(item) {
-  if (!item) return false;
-  if (item.type === 'acte_officiel') return false;
-  if (item.type === 'colis_secret_pat') return false;
-  if (item.stackable && item.stackKey) return true;
-  if (item.origine === 'objets_trouves') return true;
-  if (item.type === 'arme') return true;
-  return false;
-}
-
-const CONSEQUENCES_VOL_ECHEC = {
-  republic: (nomCible) => {
-    const amende = 300;
-    state.arg = Math.max(0, state.arg - amende);
-    if (!state.historiqueCrimes) state.historiqueCrimes = [];
-    state.historiqueCrimes.push({ acte: 'vol', cible: nomCible, jour: state.day, expireJour: state.day + 8 });
-    return 'Un agent vous verbalise sur-le-champ. -' + amende + ' FR. Inscrit au registre administratif.';
-  },
-  narco: (nomCible) => {
-    const perte = Math.floor((state.arg || 0) * 0.5);
-    state.arg = Math.max(0, state.arg - perte);
-    return 'Deux messieurs interviennent sans discussion. Vous perdez ' + perte + ' liquide. "La prochaine fois, on sera moins gentils."';
-  },
-  soviet: (nomCible) => {
-    state.pop = Math.max(0, (state.pop || 0) - 10);
-    const amende = 100;
-    state.arg = Math.max(0, state.arg - amende);
-    return 'Le collectif vous denonce publiquement. -10 POP, -' + amende + ' FR (amende symbolique).';
-  },
-  khalija: (nomCible) => {
-    if (!state.historiqueCrimes) state.historiqueCrimes = [];
-    state.historiqueCrimes.push({ acte: 'vol', cible: nomCible, jour: state.day, expireJour: state.day + 15 });
-    return 'Sanction par decret. Affaire consignee pour 15 jours — la memoire du Sheikh est longue.';
-  }
-};
-
+// VOLER PAR LE SERVEUR (27 octobre 2026) : crime_voler fait le jet, lit le butin sur la fiche
+// reelle de la victime (eligibilite : matieres empilables, objets trouves, armes ; jamais les
+// actes officiels ni le colis de quete), applique la sanction d'echec de l'empire, credite
+// l'argent au voleur, depose le retrait differe chez la victime (vols_en_attente) et la previent
+// selon le palier. L'ecran ne fait plus qu'annoncer le resultat. La benediction (+5) reste tenue
+// par l'ecran : elle est consommee ici et signalee au serveur.
 async function confirmerVol(encodedCible, jetBase, genre) {
   let cible;
   try { cible = JSON.parse(decodeURIComponent(encodedCible)); } catch(e) { return; }
   document.getElementById('modal-postes').classList.remove('open');
-
   const nomCible = cible.name.replace(' (PNJ)', '');
-
-  // Jet final (refonte du 22 aout 2026) : jetBase (deterministe, calcule dans ouvrirModalVoler) +
-  // benediction (consommee ICI, a la resolution reelle, jamais a l'ouverture du modal -- meme
-  // doctrine que l'ancien code) + part aleatoire uniforme +/-25 (meme largeur qu'un palier :
-  // verifie qu'un jet parfaitement neutre en caracteristiques/carriere/ISN reste borne
-  // exactement dans la fenetre [25,75], jamais hors des paliers centraux -- voir le rapport pour
-  // les 3 exemples chiffres).
-  let jetFinal = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(jetBase) : jetBase;
-  jetFinal += (Math.random() * 50 - 25);
-  jetFinal = Math.max(0, Math.min(100, Math.round(jetFinal)));
-
-  if (jetFinal < 25) {
-    // ECHEC COMPLET -- conserve integralement les consequences existantes par empire (compatibles
-    // telles quelles, aucune modification demandee ni necessaire).
-    const consequence = CONSEQUENCES_VOL_ECHEC[state.country] || CONSEQUENCES_VOL_ECHEC.republic;
-    const msg = consequence(nomCible);
-    updateUI();
-    showToast('Vol échoué !', msg, false, true);
-    addJournalEntry('Tentative de vol sur ' + nomCible + ' échouée. ' + msg, 'event-bad');
+  const benediction = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(0) > 0 : false;
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('crime_voler', { p_cible: nomCible, p_genre: genre === 'objet' ? 'objet' : 'argent', p_benediction: benediction,
+        p_per_pnj: Math.round(cible.stats?.PER || 9), p_int_pnj: Math.round(cible.stats?.INT || 9) }).catch(() => null)
+    : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v && v.raison === 'pas_au_meme_endroit') showToast('Vol impossible', nomCible + ' n\'est plus là.', false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
     return;
   }
+  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+  if (typeof v.arg === 'number') appliquerPaiementServeur({ arg: v.arg });
+  if (typeof v.pop === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.pop);
 
-  // REUSSITE (jetFinal >= 25) — palier de CONNAISSANCE DE LA VICTIME uniquement. La verite du
-  // moteur (tracerActionPourRumeur plus bas) reste toujours la vraie identite, quel que soit ce
-  // palier -- ne jamais melanger les deux (verite du moteur != connaissance de la victime).
-  const identifie = jetFinal < 50;                          // 25-49
-  const detecteAnonyme = jetFinal >= 50 && jetFinal < 75;    // 50-74
-  // jetFinal >= 75 : discret -- aucune des deux, aucune notification a la victime.
-  const reveleALaVictime = identifie || detecteAnonyme;
-
-  if (cible.isPJ) {
-    // Vol sur un vrai joueur — lecture reelle EN LECTURE SEULE de son etat courant, necessaire
-    // pour (a) ne jamais deroben plus d'argent qu'il n'en possede reellement, (b) choisir un
-    // objet reellement present dans son inventaire. Jamais d'ecriture directe sur l'etat d'un
-    // autre joueur : uniquement via vols_en_attente, applique par SON PROPRE client a sa
-    // prochaine connexion (recupererVolsEnAttente, plateau-communication.js) -- meme doctrine
-    // que le reste du projet (dons, impacts differes).
-    const victimeRows = typeof sbGet === 'function'
-      ? await sbGet('personnages', `name=eq.${encodeURIComponent(nomCible)}&select=arg,inventory`).catch(() => null)
-      : null;
-    const argVictime = victimeRows?.[0]?.arg || 0;
-    const inventaireVictime = victimeRows?.[0]?.inventory || [];
-    const objetsEligibles = inventaireVictime.filter(estObjetVolableParVol);
-
-    // LE GENRE EST CELUI QUE LE JOUEUR A ANNONCE (12 octobre 2026). Le tirage 60/40 et ses DEUX
-    // REPLIS croises sont retires : un repli renseignait sur ce que la cible possede, puisque
-    // demander un objet et recevoir de l'argent prouvait qu'elle n'avait aucun objet. Il n'y a
-    // plus de repli -- si le genre demande n'est pas disponible, le vol aboutit a RIEN, et c'est
-    // la meme issue que sur une cible entierement vide. Rien n'est fabrique, et rien n'est
-    // revele.
-    let butin = (genre === 'objet') ? 'objet' : 'argent';
-    if (butin === 'objet' && objetsEligibles.length === 0) butin = 'rien';
-    if (butin === 'argent' && argVictime <= 0) butin = 'rien';
-
-    if (butin === 'rien') {
-      // Rien a voler chez cette cible precise : le jet a reussi mais aucune ressource ne peut
-      // etre transferee -- aucun butin fabrique, aucune trace, aucune notification (rien ne s'est
-      // reellement passe pour la victime).
-      showToast('Vol infructueux', nomCible + ' n\'avait rien de volable pour l\'instant.', false);
-      addJournalEntry('Tentative de vol sur ' + nomCible + ' : rien a voler.', 'event-info');
-      return;
-    }
-
-    let vol, descButin;
-
-    if (butin === 'argent') {
-      // Argent : plafonne a ce que la cible possede reellement (verifie ci-dessus, jamais 0 ici
-      // puisque le repli 'rien' l'a deja exclu). Seul le cas argent reste credite immediatement
-      // au voleur (apres confirmation du depot ci-dessous) : la monnaie est fongible, aucun
-      // risque de duplication d'un objet unique.
-      const montantVole = Math.min(Math.floor(Math.random() * 150) + 50, argVictime);
-      vol = { id: 'vol-' + Date.now(), victime: nomCible, voleur: state.char?.name || 'Anonyme', type_butin: 'argent', montant: montantVole, objet_id: null, traite: false };
-      descButin = montantVole + ' FR';
-    } else {
-      // Objet/matiere -- AUCUN credit immediat au voleur (correctif anti-duplication, revue du
-      // 22 aout 2026). Crediter immediatement pendant que le retrait restait differe cote
-      // victime laissait une fenetre ou l'objet existait potentiellement en double : la victime
-      // pouvait le vendre/donner/consommer avant le traitement differe (qui devenait alors un
-      // no-op), tandis que le voleur avait deja recu sa copie -- duplication definitive. Aucun
-      // mecanisme du projet ne permet d'ecrire l'etat d'un autre joueur en toute securite
-      // (sbSavePersonnage ecrase la ligne entiere ; un patch cible resterait ecrase par la
-      // prochaine sauvegarde complete du client de la victime si elle est en session). Le butin
-      // est donc entierement resolu au moment ou LA VICTIME ELLE-MEME traite vols_en_attente
-      // (recupererVolsEnAttente, plateau-communication.js, sur son propre etat frais a sa
-      // connexion) : cette meme etape retire l'objet SEULEMENT s'il est encore reellement present
-      // ET, seulement dans ce cas, le met en file pour le voleur via objets_recus -- le
-      // mecanisme deja existant et deja sur pour les dons entre joueurs
-      // (sbDonnerObjetJoueur/verifierObjetsRecus), jamais une seconde architecture de transfert.
-      // Si l'objet a deja ete vendu/donne/consomme par la victime avant sa prochaine connexion,
-      // rien n'est retire ET rien n'est jamais credite au voleur : aucune duplication possible,
-      // au prix d'une livraison differee (le voleur ne recoit sa prise, si elle existe encore,
-      // qu'a la prochaine connexion de la victime -- jamais immediatement pour cette categorie).
-      const objet = objetsEligibles[Math.floor(Math.random() * objetsEligibles.length)];
-      if (objet.stackable && objet.stackKey) {
-        const qteVoulue = Math.min(Math.floor(Math.random() * 5) + 1, objet.qty || 1);
-        vol = { id: 'vol-' + Date.now(), victime: nomCible, voleur: state.char?.name || 'Anonyme', type_butin: 'matiere', montant: qteVoulue, objet_id: objet.stackKey, traite: false };
-        descButin = qteVoulue + 'x ' + (objet.name || objet.stackKey);
-      } else {
-        vol = { id: 'vol-' + Date.now(), victime: nomCible, voleur: state.char?.name || 'Anonyme', type_butin: 'objet', montant: 0, objet_id: objet.id, traite: false };
-        descButin = '"' + objet.name + '"';
-      }
-    }
-
-    // Depot CONFIRME avant toute recompense (correctif bloquant, revue du 22 aout 2026) :
-    // sbInsert() peut echouer et renvoyer null SANS jamais lever d'exception -- verifier
-    // explicitement le retour est la seule facon de savoir si vols_en_attente a reellement recu
-    // cette ligne. Si le depot echoue : aucun argent credite, aucun objet mis en transfert,
-    // aucune trace objective, aucun mail -- le jet a reussi mecaniquement mais le mecanisme
-    // metier n'a pas pu etre persiste. Ni un echec de jet (CONSEQUENCES_VOL_ECHEC non concerne,
-    // le palier reste inchange) ni une reussite : un simple echec technique, invitant a reessayer
-    // -- l'argent ne peut plus jamais etre cree ex nihilo sur un INSERT rate.
-    const depotOk = typeof sbDeposerVol === 'function'
-      ? await sbDeposerVol(vol).then(r => !!r).catch(() => false)
-      : false;
-
-    if (!depotOk) {
-      showToast('Erreur technique', 'Le vol n\'a pas pu être enregistré. Réessayez.', false);
-      addJournalEntry('Tentative de vol sur ' + nomCible + ' : échec technique, aucune ressource transférée.', 'event-bad');
-      return;
-    }
-
-    if (butin === 'argent') {
-      crediterFondsOrdinaires(vol.montant);
-      updateUI();
-      showToast('Vol réussi !', descButin + ' dérobé(s) à ' + nomCible + '.', true, true);
-      addJournalEntry('Vol réussi sur ' + nomCible + '. ' + descButin + '.', 'event-good');
-    } else {
-      showToast('Vol tenté avec succès !', descButin + ' — butin en cours de récupération.', true, true);
-      addJournalEntry('Vol réussi sur ' + nomCible + '. ' + descButin + ' (livraison différée, confirmation a la prochaine connexion de la cible).', 'event-good');
-    }
-
-    // Verite objective du moteur (actions_tracables) : TOUJOURS la vraie identite du voleur,
-    // quel que soit le palier de connaissance accorde a la victime ci-dessus -- section 5 de la
-    // decision de game design. Politique de tracage des echecs/tentatives inchangee (seuls les
-    // succes reellement persistes sont traces, aucun changement de politique sans validation
-    // prealable).
-    tracerActionPourRumeur('vol', nomCible);
-
-    // Notification IMMEDIATE a la victime — seule cette partie varie selon le palier, jamais la
-    // trace objective ci-dessus. jetFinal >= 75 : aucun mail, le vol reste invisible pour la
-    // victime pour l'instant (le retrait reel objet/matiere n'est de toute facon applique qu'a sa
-    // prochaine connexion, voir recupererVolsEnAttente ; pour l'argent, la deduction differee
-    // reste egalement silencieuse a ce palier).
-    if (typeof sbSendMail === 'function' && reveleALaVictime) {
-      const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
-      if (identifie) {
-        const nomVoleur = state.char?.name || 'Quelqu\'un';
-        sbSendMail('Système', nomCible, 'Vous avez été volé(e)', nomVoleur + ' vous a dérobé ' + descButin + '. Vous l\'avez reconnu(e) sur le fait.', time).catch(() => {});
-      } else {
-        sbSendMail('Système', nomCible, 'Vous avez été volé(e)', 'Quelqu\'un vous a discrètement dérobé ' + descButin + '. Vous n\'avez pas pu identifier l\'auteur.', time).catch(() => {});
-      }
-    }
-  } else {
-    // VOL SUR UN PNJ — LA CREATION MONETAIRE EST RETIREE (arbitrage GD du 20 septembre 2026).
-    //
-    // CE QUI SE PASSAIT. `Math.floor(Math.random()*200)+50` FR etaient credites au voleur sans
-    // qu'aucun detenteur ne soit debite : de la monnaie fabriquee. Le bouton « Voler » etant
-    // ajoute SANS CONDITION a la fiche de toute personne (plateau-pnj.js), et aucun PA n'etant
-    // reellement preleve, c'etait une source gratuite, intracable et illimitee sur 123 cibles.
-    //
-    // LE PRINCIPE ARBITRE : le butin d'un vol sur PNJ provient EXCLUSIVEMENT de ce que ce PNJ
-    // possede reellement. L'audit de reutilisation a etabli qu'un PNJ *personnage* ne possede
-    // aujourd'hui aucun argent : ni les employes salaries, ni les informateurs, ni les PNJ
-    // d'ambiance n'ont de champ monetaire, et donner de l'argent a un PNJ le DETRUIT au lieu de
-    // le lui remettre. Appliquer le principe donne donc, aujourd'hui, un butin vide.
-    //
-    // CE N'EST PAS UNE MECANIQUE DE REMPLACEMENT : on reprend mot pour mot l'issue « rien a
-    // voler » que la branche PJ applique deja quand la cible n'a rien (voir plus haut). La
-    // mecanique du vol sur PNJ reste VOULUE ; ce qu'elle deviendra depend d'arbitrages encore
-    // ouverts (quelles populations de PNJ sont volables, quelle part est prenable, qui porte
-    // plainte). Rien ici ne les prejuge.
+  if (v.issue === 'echec') {
+    updateUI();
+    showToast('Vol échoué !', v.message || '', false, true);
+    addJournalEntry('Tentative de vol sur ' + nomCible + ' échouée. ' + (v.message || ''), 'event-bad');
+    return;
+  }
+  if (v.issue === 'rien') {
+    updateUI();
     showToast('Vol infructueux', nomCible + ' n\'avait rien de volable pour l\'instant.', false);
-    addJournalEntry('Tentative de vol sur ' + nomCible + ' (PNJ) : rien à voler.', 'event-info');
+    addJournalEntry('Tentative de vol sur ' + nomCible + ' : rien a voler.', 'event-info');
+    return;
+  }
+  updateUI();
+  if (v.butin === 'argent') {
+    showToast('Vol réussi !', v.description + ' dérobé(s) à ' + nomCible + '.', true, true);
+    addJournalEntry('Vol réussi sur ' + nomCible + '. ' + v.description + '.', 'event-good');
+  } else {
+    showToast('Vol tenté avec succès !', v.description + ' — butin en cours de récupération.', true, true);
+    addJournalEntry('Vol réussi sur ' + nomCible + '. ' + v.description + ' (livraison différée, confirmation a la prochaine connexion de la cible).', 'event-good');
   }
 }
 
@@ -2363,100 +2181,40 @@ function ouvrirModalEmpoisonner() {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// EMPOISONNER PAR LE SERVEUR (27 octobre 2026) : crime_empoisonner consomme le poison, fait le jet
+// (4 paliers), depose l'effet chez la victime (poison_start, type de poison et deux statistiques
+// touchees), la previent, annonce le malaise, trace le crime et tire la detection. Avant, tout
+// etait decide ici -- et l'effet n'atteignait jamais la victime (impact refuse par le serveur).
+// Le prealable « Se cacher » reste verifie par l'ecran (ouvrirModalEmpoisonner).
 async function confirmerEmpoisonnement(cibleNom) {
   document.getElementById('modal-postes').classList.remove('open');
-  const pays = state.country || 'republic';
-  const empMod = { republic:0, narco:20, soviet:-10, khalija:0 }[pays] || 0;
-  const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
-  const perCible = 50;
-  const taux = Math.max(5, 40 - Math.floor(perCible/10) + empMod + careerBonus - getMalusISN());
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  // Supprimer l'objet poison de l'inventaire (usage unique) — entonnoir serveur (chantier C,
-  // 14 septembre 2026). Si le serveur refuse, l'empoisonnement n'a pas lieu : mieux vaut une
-  // action annulee qu'un poison consomme sans effet, ou un effet sans poison consomme.
-  const poisonObj = (state.inventory || []).find(i => i.type === 'poison');
-  const poisonIdx = (state.inventory || []).findIndex(i => i.type === 'poison');
-  if (poisonIdx >= 0) {
-    const rSortie = await removeFromInventory(poisonIdx, 'consommer');
-    if (!rSortie.ok) { showToast('Impossible', messageRefusSortieInventaire(rSortie.raison), false); return; }
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_empoisonner', { p_cible: cibleNom }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    const raison = v?.raison;
+    if (raison === 'poison_manquant') showToast('Objet manquant', 'Vous n\'avez pas d\'objet poison dans votre inventaire.', false);
+    else if (raison === 'pas_au_meme_endroit') showToast('Cible absente', cibleNom + ' n\'est plus dans la pièce.', false);
+    else showToast('Impossible', 'L\'empoisonnement n\'a pas pu avoir lieu.', false);
+    return;
   }
-
-  const poisonType = poisonObj?.poisonType || 'parapluie';
-
-  // 4 paliers identiques au systeme d'assassinat
-  const seuilReussiteTotale = taux / 2;
-  const seuilReussitePartielle = taux;
-  const seuilEchecPartiel = taux + (100 - taux) / 2;
-
-  let palier, pvCible;
-  if (roll <= seuilReussiteTotale)       { palier = 'totale';       pvCible = 0;  }
-  else if (roll <= seuilReussitePartielle) { palier = 'partielle';    pvCible = 25; }
-  else if (roll <= seuilEchecPartiel)      { palier = 'echec_partiel'; pvCible = 50; }
-  else                                     { palier = 'echec_total';   pvCible = null; }
-
+  if (Array.isArray(v.inventaire) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur({ inventory: v.inventaire });
   state.estCache = false;
-
-  const reussi = palier === 'totale' || palier === 'partielle';
-
-  if (reussi || palier === 'echec_partiel') {
-    if (typeof sbDeposerImpactIndice === 'function') {
-      const STATS_POSSIBLES = ['INT','CHA','VOL','PER','DUP','ENT'];
-      const statsTouchees = STATS_POSSIBLES.slice().sort(() => Math.random() - 0.5).slice(0, 2);
-      await sbDeposerImpactIndice({
-        id: 'poison-' + Date.now(),
-        victime: cibleNom,
-        indice: 'poison_start',
-        palier: palier,
-        poisonType: poisonType,
-        statsTouchees: statsTouchees,
-        traite: false
-      }).catch(() => {});
-    }
-
-    // Notification narrative a la victime (mail)
-    if (typeof sbSendMail === 'function') {
-      const msg = (POISON_MESSAGES && POISON_MESSAGES[poisonType]) || 'Vous vous sentez soudainement très mal...';
-      const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + state.day;
-      await sbSendMail('Événement mystérieux', cibleNom, 'Vous vous sentez mal...', msg, time).catch(() => {});
-    }
-
-    addExternalEvent('MYSTÈRE : ' + cibleNom + ' se sent soudainement très mal...');
-
-    if (!state.historiqueCrimes) state.historiqueCrimes = [];
-    state.historiqueCrimes.push({ acte:'empoisonnement', cible:cibleNom, jour:state.day, expireJour: state.day + 8 });
-    tracerActionPourRumeur('empoisonnement', cibleNom);
-
-    const msgPalier = reussi
+  const palier = v.palier;
+  if (palier !== 'echec_total') {
+    const reussi = !!v.reussi;
+    showToast('Poison administré', reussi
       ? cibleNom + ' commence à ressentir les effets du poison. Objet utilisé.'
-      : cibleNom + ' ressent une légère gêne mais l\'empoisonnement est partiel.';
-    showToast('Poison administré', msgPalier, true, reussi);
+      : cibleNom + ' ressent une légère gêne mais l\'empoisonnement est partiel.', true, reussi);
     addJournalEntry('Empoisonnement de ' + cibleNom + ' (' + palier + '). Objet utilisé.', 'event-bad');
-
-    // Detection potentielle
-    checkDetection('empoisonnement', 'success');
-
+    if (v.repere) {
+      showToast('Repéré(e) !', 'Un témoin vous a vu(e). Vous êtes désormais recherché(e).', false, true);
+      addJournalEntry('Vous avez été repéré(e) après l\'empoisonnement.', 'event-bad');
+    }
   } else {
-    // Echec total — identifie sur le coup
-    //
-    // HORS PERIMETRE INITIAL, corrige ici parce que c'est EXACTEMENT le meme defaut que celui
-    // que le §25 demandait de corriger sur Neutraliser, decouvert par le controle automatique
-    // des formules (.scratch/verif_formules_assemblee.py) :
-    // ouvrirModalArrestation recevait 'crime', un TYPE, la ou getPeineParActe attend un ACTE. La
-    // recherche etait pourtant bien enregistree sous 'tentative_empoisonnement', acte qui existe
-    // dans PEINES_ACTES.republic avec {jours:2, amende:2000} -- mais ce bareme n'etait jamais
-    // atteint : le type ne figurant pas dans PEINES_ACTES, on retombait sur PEINES.crime, soit
-    // 8 JOURS et 5 000 FR.
-    //
-    // Ce n'est pas une regle nouvelle : c'est la valeur que le jeu declare deja pour cet acte
-    // precis, et qui n'etait simplement jamais lue. Signale au rapport pour arbitrage.
-    // AJOUT, jamais remplacement (13/09/2026) -- meme correctif que les tentatives d'assassinat.
-    await inscrireRecherche({ acte: 'tentative_empoisonnement', type: 'crime', jour: state.day });
     showToast('Échec ! Repéré(e)', 'L\'empoisonnement a échoué. Objet perdu. Vous avez été identifié(e).', false);
     addJournalEntry('Tentative d\'empoisonnement échouée. Recherché(e).', 'event-bad');
     setTimeout(() => ouvrirModalArrestation('tentative_empoisonnement'), 800);
   }
-
   updateUI();
 }
 

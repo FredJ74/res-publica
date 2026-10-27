@@ -841,7 +841,7 @@ async function reclamerObjetTrouve(pa, cost) {
     // origine (correctif ordre Voler, 22 aout 2026) : seul marqueur fiable identifiant un objet
     // comme provenant reellement des Objets Trouves -- type:'kompromat'/'objet' ne suffit pas
     // (kompromat est aussi produit par au moins 4 autres mecanismes sans rapport, voir l'audit
-    // dedie). Utilise par estObjetVolableParVol() (plateau-actions-illegales-rumeurs.js).
+    // dedie). Lu par le serveur (crime_voler) pour l'eligibilite au vol.
     origine: 'objets_trouves',
     cible: null,
     legal: !objet.compromettant,

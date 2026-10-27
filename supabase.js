@@ -563,7 +563,9 @@ function sbPayloadPersonnage(charState) {
     employes:         charState.employes || [],
     escort_active:    charState.escortActive || [],
     locations_actives: charState.locationsActives || [],
-    poison_actif:     charState.poisonActif || null,
+    // L'empoisonnement en cours est persiste (27/10/2026) : il vivait seulement en memoire, un
+    // rechargement guerissait la victime.
+    poison_actif:     charState.empoisonnement || null,
     day:              charState.day || 1,
     dernier_dormir:   charState.dernierDormir || 0,
     recherche:        charState.recherche || [],
@@ -893,7 +895,7 @@ async function sbLoadPersonnage(name) {
     employes:      r.employes || [],
     escortActive:  r.escort_active || [],
     locationsActives: r.locations_actives || [],
-    poisonActif:   r.poison_actif,
+    empoisonnement: r.poison_actif || null,
     day:           r.day,
     dernierDormir: r.dernier_dormir || 0,
     recherche:     r.recherche || [],
@@ -3210,9 +3212,7 @@ async function sbTraiterDemandeNaturalisation(id, statut) {
 // =====================
 // VOLS EN ATTENTE (vol effectif sur un vrai joueur, applique a sa prochaine connexion)
 // =====================
-async function sbDeposerVol(vol) {
-  return sbInsert('vols_en_attente', vol);
-}
+// Le depot d'un vol est fait par le serveur (crime_voler, 27/10/2026) : sbDeposerVol supprimee.
 
 async function sbRecupererVolsEnAttente(victime) {
   const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false`;
