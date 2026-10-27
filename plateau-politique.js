@@ -1061,49 +1061,10 @@ async function filtrerCandidaturesDePersonnagesExistants(candidatures) {
 // stable qui identifie CE scrutin precis a travers les renouvellements de cycles_electoraux
 // (qui ecrase la meme ligne a chaque nouveau cycle).
 // =====================
-async function sbCompterFraudesParType(country, posteId, city, cycleDebut, type) {
-  if (typeof sbGet !== 'function') return 0;
-  const filtreCity = city ? `&city=eq.${encodeURIComponent(city)}` : '&city=is.null';
-  const rows = await sbGet('fraudes_electorales',
-    `country=eq.${encodeURIComponent(country)}&poste_id=eq.${encodeURIComponent(posteId)}${filtreCity}&cycle_debut=eq.${cycleDebut}&type=eq.${encodeURIComponent(type)}`
-  ).catch(() => []);
-  return (rows || []).length;
-}
-
-// Detectabilite fixee UNE FOIS, au moment de la fraude, selon le rang (1re/2e/3e/4e/5e+) de CE
-// type de fraude sur CE scrutin -- jamais recalculee plus tard (une fraude ancienne reste aussi
-// detectable qu'au jour de sa commission, meme si d'autres fraudes du meme type suivent).
-const DETECTABILITE_PAR_RANG = [10, 30, 60, 90, 100];
-function detectabilitePourRang(rang) {
-  return DETECTABILITE_PAR_RANG[Math.min(rang - 1, DETECTABILITE_PAR_RANG.length - 1)];
-}
-
-async function sbEnregistrerFraudeElectorale(fraude) {
-  if (typeof sbInsert !== 'function') return null;
-  return sbInsert('fraudes_electorales', {
-    id: 'fraude-' + fraude.type + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000000),
-    country: fraude.country, poste_id: fraude.posteId, city: fraude.city || null,
-    cycle_debut: fraude.cycleDebut, type: fraude.type,
-    auteur: fraude.auteur, candidat: fraude.candidat, delta_voix: fraude.deltaVoix,
-    etat: 'non_revelee', detectabilite_pct: fraude.detectabilitePct,
-    created_at: new Date().toISOString()
-  }).catch(() => null);
-}
-
-async function sbGetFraudesNonRevelees(country, posteId, city, cycleDebut) {
-  if (typeof sbGet !== 'function') return [];
-  const filtreCity = city ? `&city=eq.${encodeURIComponent(city)}` : '&city=is.null';
-  return await sbGet('fraudes_electorales',
-    `country=eq.${encodeURIComponent(country)}&poste_id=eq.${encodeURIComponent(posteId)}${filtreCity}&cycle_debut=eq.${cycleDebut}&etat=eq.non_revelee`
-  ).catch(() => []) || [];
-}
-
-async function sbRevelerFraude(id, revelateur) {
-  if (typeof sbUpdate !== 'function') return null;
-  return sbUpdate('fraudes_electorales', `id=eq.${encodeURIComponent(id)}`, {
-    etat: 'revelee', revelee_par: revelateur, revelee_le: new Date().toISOString()
-  }).catch(() => null);
-}
+// sbCompterFraudesParType, la detectabilite par rang, sbEnregistrerFraudeElectorale,
+// sbGetFraudesNonRevelees et sbRevelerFraude SUPPRIMEES le 27 octobre 2026 : les fraudes sont
+// inscrites, comptees et revelees par le serveur (fraude_electorale_tenter, election_contester).
+// Les fraudes non revelees ne sont d'ailleurs plus lisibles par les autres joueurs.
 
 // =====================
 // VOTE DE CONFIANCE — PERSISTANCE (chantier "Hotel de Ville / elections", 4 septembre 2026).
@@ -2339,26 +2300,8 @@ function deposerCandidatureDepuisSalle(el) {
   deposerCandidature(el.dataset.poste, el.dataset.country, el.dataset.city || null);
 }
 
-// ---- Modificateur standard reutilise par l'ordre electoral sensible restant sur cette echelle
-// (contestation, qui utilise INT -- enquete, explicitement demande) : meme convention deja
-// etablie ailleurs dans le jeu (base + N*(stat-13), clampe [5,95]).
-function tauxAvecModificateurStat(base, stat) {
-  const valeur = typeof getStatEffective === 'function' ? getStatEffective(stat) : 13;
-  return Math.max(5, Math.min(95, Math.round(base + 5 * (valeur - 13))));
-}
-
-// ---- Modificateur DIS pour les 3 fraudes electorales (falsifier/bourrer/truquer) -- correctif
-// du 4 septembre 2026 apres verification factuelle : DIS existe reellement (state.dis, ressource
-// de Discretion 0-100, deja utilisee ailleurs dans le jeu pour moduler des taux de detection
-// d'actes illegaux, ex. plateau-justice-economie.js), mais PAS sur l'echelle centree-13 des 6
-// autres caracteristiques -- DUP (utilise a tort avant cette correction) abandonne. Formule
-// validee : modificateur en points = round((DIS-50)/5) -- DIS 0 => -10 pts, 50 => neutre,
-// 100 => +10 pts. Repli sur 50 (convention deja etablie ailleurs pour state.dis) si absent.
-function tauxAvecDIS(base) {
-  const dis = (typeof state !== 'undefined' && typeof state.dis === 'number') ? state.dis : 50;
-  const modificateur = Math.round((dis - 50) / 5);
-  return Math.max(5, Math.min(95, base + modificateur));
-}
+// tauxAvecModificateurStat et tauxAvecDIS SUPPRIMEES le 27 octobre 2026 : la contestation
+// (INT) et les fraudes (discretion) sont jugees par le serveur, avec les memes formules.
 
 // =====================
 // MOTEUR DE DEPOUILLEMENT PARTAGE (chantier "Hotel de Ville / elections", 4 septembre 2026).
@@ -2470,34 +2413,32 @@ function departageCandidats(candidats, nomA, nomB) {
 // est effectivement clos (liberationElection, verifie cote serveur). "24h reelles" (bourrage
 // d'urnes) reprend exactement l'idiome deja existant du jeu pour une peine de ce type (jours:1,
 // voir plateau-communication.js/distribuerTractCalomnieux).
-async function emprisonnerPourFraude(joursPlafond, raison, liberationElection) {
-  // DETENTION CANONIQUE (16 septembre 2026). Ce bloc posait un est_emprisonne fabrique a la main,
-  // SANS detentionId ni debutTs : la peine etait donc invisible du registre du commissariat ET du
-  // filet de liberation nocturne, qui s'ancre sur debutTs. Une detention fantome, que seule la
-  // navigation voyait. enregistrerDetention cree la vraie ligne `detentions` et le miroir, comme
-  // toutes les autres incarcerations -- le fraudeur s'emprisonne lui-meme, l'ecriture est donc
-  // autorisee sur sa propre fiche.
-  //
-  // La sanction ne change pas d'un jour. liberationElection est simplement REPOSE apres coup :
-  // c'est lui qui permet au cron de liberer des que CE scrutin est clos, avant le plafond.
-  const jourFin = (state.day || 1) + joursPlafond;
-  const idDetention = (typeof enregistrerDetention === 'function')
-    ? await enregistrerDetention(state.char?.name, raison, jourFin, undefined, state.currentCity, {
-        country: state.country || 'republic',
-        source: 'fraude_electorale',
-        motifs: [{ type: raison, jour_fait: state.day || 1, city: state.currentCity || 'capitale',
-                   jours: joursPlafond, source: 'fraude_electorale',
-                   date_evenement: new Date().toISOString() }]
-      }).catch(() => null)
-    : null;
-  // VERDICT CONSOMME (9 octobre 2026) : sans peine ouverte en base, aucun etat de detention n'est
-  // pose localement. Sinon le fraudeur se retrouvait enferme par la navigation sans aucune ligne
-  // a liberer -- ni par le scrutin, ni par le filet nocturne.
-  if (!idDetention) return;
-  if (!state.estEmprisonne) state.estEmprisonne = { jours: joursPlafond, jourFin, raison };
-  state.estEmprisonne.liberationElection = liberationElection || null;
-  if (state.char) state.char.estEmprisonne = state.estEmprisonne;
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
+// FRAUDES ELECTORALES PAR LE SERVEUR (27 octobre 2026). Poste, fenetre, candidat, paiement, jet
+// (module par la discretion), nombre de voix, detectabilite, inscription de la fraude, prison du
+// fraudeur pris sur le fait et fait public : tout est decide par fraude_electorale_tenter.
+// L'ecran garde ses verifications pour refuser vite, mais ne decide plus rien.
+const MOTIFS_FRAUDE = { acces_refuse: 'Vous n\'avez pas qualité pour cela.', hors_fenetre: 'Ce n\'est pas le moment de ce scrutin.',
+                        candidat_invalide: 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.',
+                        scrutin_introuvable: 'Ce scrutin n\'est pas consultable.' };
+async function tenterFraudeServeur(type, posteId, city, candidatNom, sens) {
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('fraude_electorale_tenter', { p_type: type, p_poste: posteId, p_city: city || null,
+                                                 p_candidat: candidatNom, p_sens: sens || 1 }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v && MOTIFS_FRAUDE[v.raison]) showToast('Impossible', MOTIFS_FRAUDE[v.raison], false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+    return null;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie || {});
+  // Pris sur le fait : la detention est ouverte par le serveur ; l'ecran la reflete sans l'ecrire.
+  if (!v.reussi && v.detention_ouverte && !state.estEmprisonne) {
+    const jours = Number(v.jours) || 1;
+    state.estEmprisonne = { jours, jourFin: (state.day || 1) + jours, raison: 'Fraude électorale — pris(e) sur le fait',
+                            detentionId: v.detention_id || null };
+    if (state.char) state.char.estEmprisonne = state.estEmprisonne;
+  }
+  return v;
 }
 
 async function listerScrutinsPourFraude(filtrePoste) {
@@ -2576,23 +2517,12 @@ async function confirmerFalsifierListes(posteId, city, candidatNom) {
     showToast('Candidat invalide', 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const taux = tauxAvecDIS(70);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= taux) {
-    const cycleDebut = cycle.dateDebutCandidatures;
-    const rang = (await sbCompterFraudesParType(country, posteId, city || null, cycleDebut, 'falsification_listes')) + 1;
-    const deltaVoix = Math.floor(Math.random() * 10) + 1;
-    await sbEnregistrerFraudeElectorale({
-      country, posteId, city: city || null, cycleDebut, type: 'falsification_listes',
-      auteur: state.char?.name, candidat: candidatNom, deltaVoix, detectabilitePct: detectabilitePourRang(rang)
-    });
+  const v = await tenterFraudeServeur('falsification_listes', posteId, city, candidatNom);
+  if (!v) return;
+  if (v.reussi) {
     showToast('Listes falsifiées', 'La fraude a réussi. Les voix seront comptabilisées au dépouillement.', true, true);
     addJournalEntry('🗳️ Listes électorales falsifiées en faveur de ' + candidatNom + '.', 'event-good');
   } else {
-    await emprisonnerPourFraude(20, 'Falsification des listes électorales — pris(e) sur le fait', { country, posteId, city: city || null, cycleDebut: cycle.dateDebutCandidatures });
     showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. Emprisonnement jusqu\'à la fin du processus électoral.', false);
     addJournalEntry('🚨 Tentative de falsification des listes électorales déjouée.', 'event-bad');
   }
@@ -2642,23 +2572,12 @@ async function confirmerBourrerUrnes(posteId, city, candidatNom) {
     showToast('Candidat invalide', 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const taux = tauxAvecDIS(60);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= taux) {
-    const cycleDebut = cycle.dateDebutCandidatures;
-    const rang = (await sbCompterFraudesParType(country, posteId, city || null, cycleDebut, 'bourrage_urnes')) + 1;
-    const deltaVoix = Math.floor(Math.random() * 3) + 1;
-    await sbEnregistrerFraudeElectorale({
-      country, posteId, city: city || null, cycleDebut, type: 'bourrage_urnes',
-      auteur: state.char?.name, candidat: candidatNom, deltaVoix, detectabilitePct: detectabilitePourRang(rang)
-    });
+  const v = await tenterFraudeServeur('bourrage_urnes', posteId, city, candidatNom);
+  if (!v) return;
+  if (v.reussi) {
     showToast('Urnes bourrées', 'La fraude a réussi. Les voix seront comptabilisées au dépouillement.', true, true);
     addJournalEntry('🗳️ Urnes bourrées en faveur de ' + candidatNom + '.', 'event-good');
   } else {
-    await emprisonnerPourFraude(1, 'Bourrage d\'urnes — pris(e) sur le fait');
     showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. 24h de prison.', false);
     addJournalEntry('🚨 Tentative de bourrage d\'urnes déjouée. 24h de prison.', 'event-bad');
   }
@@ -2736,38 +2655,15 @@ async function confirmerTruquerDepouillement(posteId, city, candidatNom, sens) {
     showToast('Candidat invalide', 'Ce candidat ne fait pas partie du tour actuellement en lice pour ce scrutin.', false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa: 2, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const taux = tauxAvecDIS(75);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= taux) {
-    const cycleDebut = cycle.dateDebutCandidatures;
-    const rang = (await sbCompterFraudesParType(country, posteId, city || null, cycleDebut, 'trucage_depouillement')) + 1;
-    const ampleur = Math.floor(Math.random() * 10) + 1;
-    const deltaVoix = sens * ampleur;
-    await sbEnregistrerFraudeElectorale({
-      country, posteId, city: city || null, cycleDebut, type: 'trucage_depouillement',
-      auteur: state.char?.name, candidat: candidatNom, deltaVoix, detectabilitePct: detectabilitePourRang(rang)
-    });
-    showToast('Dépouillement truqué', 'La fraude a réussi (' + (sens > 0 ? '+' : '') + deltaVoix + ' voix pour ' + candidatNom + ').', true, true);
-    addJournalEntry('🗳️ Dépouillement truqué : ' + (sens > 0 ? '+' : '') + deltaVoix + ' voix pour ' + candidatNom + '.', 'event-good');
+  const v = await tenterFraudeServeur('trucage_depouillement', posteId, city, candidatNom, sens);
+  if (!v) return;
+  if (v.reussi) {
+    const deltaVoix = Number(v.delta) || 0;
+    showToast('Dépouillement truqué', 'La fraude a réussi (' + (deltaVoix > 0 ? '+' : '') + deltaVoix + ' voix pour ' + candidatNom + ').', true, true);
+    addJournalEntry('🗳️ Dépouillement truqué : ' + (deltaVoix > 0 ? '+' : '') + deltaVoix + ' voix pour ' + candidatNom + '.', 'event-good');
   } else {
-    await emprisonnerPourFraude(20, 'Trucage du dépouillement — pris(e) sur le fait', { country, posteId, city: city || null, cycleDebut: cycle.dateDebutCandidatures });
     showToast('Pris(e) sur le fait !', 'Aucune voix modifiée. Emprisonnement jusqu\'à la fin du processus électoral. Vous conservez votre poste.', false);
     addJournalEntry('🚨 Tentative de trucage du dépouillement déjouée.', 'event-bad');
-    // Evenement public prioritaire pour La Tribune (demande explicite, section 7C) : jamais
-    // invente, alimente le pipeline factuel existant via chronique_nationale (deja lu par
-    // collecterChroniqueNationale, api/_journal-collecte.js).
-    if (typeof sbEnregistrerEvenementPublic === 'function') {
-      const roleFraudeur = estJugeCourant() ? 'le juge' : 'le commissaire';
-      sbEnregistrerEvenementPublic(country, 'fraude_electorale_dejouee', {
-        city: city || null,
-        personnages: [state.char?.name].filter(Boolean),
-        libelle: (state.char?.name || 'Un fonctionnaire') + ', ' + roleFraudeur + (city ? ' de ' + (WORLD[country]?.[city]?.name || city) : '') + ', a été pris(e) sur le fait en tentant de truquer le dépouillement d\'un scrutin.',
-        data: { poste_id: posteId, candidat_vise: candidatNom }
-      }).catch(() => {});
-    }
   }
   updateUI();
 }

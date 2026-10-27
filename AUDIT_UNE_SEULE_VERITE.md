@@ -334,4 +334,10 @@ tirés au hasard et les effets purement visuels sont exclus.
   scrutin proclamé (`dernierScrutin`), et le serveur y recompte. `fraude_electorale_sanctionner`
   n'est plus appelable seule. Migrations `20261027070000` et `070100`. Reste :
   `fraudes_electorales` encore écrite par l'écran (création des fraudes).
+- **27/10 (midi)** — §1.1 : `fraudes_electorales` n'est plus écrite par les joueurs. Falsifier
+  les listes, bourrer les urnes, truquer le dépouillement : poste, fenêtre, jet, nombre de voix,
+  détectabilité, prison et fait public par `fraude_electorale_tenter` (migration
+  `20261027080000`). Tout joueur pouvait inscrire une « fraude » de n'importe quelle ampleur, que
+  le dépouillement appliquait. Les fraudes non révélées ne sont plus lisibles par les autres
+  joueurs (auteur compris).
 
