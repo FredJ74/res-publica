@@ -20,6 +20,7 @@ def main():
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:
    a=source.index('CREATE OR REPLACE FUNCTION public.'+fn+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',source[a:],re.S);q.execute(source[a:a+m.end()])
   sql=(R/'migrations/20261022222907_terrain_occupation_visites.sql').read_text();q.execute(sql)
+  q.execute((R/'migrations/20261027104800_terrain_visites_fermeture_changement_ville.sql').read_text())
   n=0
   def check(v):
    nonlocal n
@@ -40,8 +41,21 @@ def main():
   q.execute("UPDATE personnages_donnees SET current_city=current_city WHERE name='Fixture'");check(appel()['etat']==avant)
   # Aucune nouvelle generation si un autre visiteur est encore sur le terrain.
   q.execute("SET hg.fixture='Autre'");check(appel()['etat']==avant)
+  # Changement de la fiche sans changement effectif de lieu : aucune visite perdue.
+  q.execute('SELECT count(*) FROM terrain_visites_actives');check(q.fetchone()[0]==2)
+  q.execute("UPDATE personnages_donnees SET current_building=current_building,current_city=current_city WHERE name='Fixture'")
+  q.execute('SELECT count(*) FROM terrain_visites_actives');check(q.fetchone()[0]==2)
+  # Le changement de ville, meme sans changement de batiment, ferme seulement
+  # la visite de son auteur : declencheur reel sur PostgreSQL jetable.
+  q.execute("UPDATE personnages_donnees SET current_city='autre' WHERE name='Fixture'")
+  q.execute('SELECT count(*) FROM terrain_visites_actives');check(q.fetchone()[0]==1)
+  q.execute("UPDATE personnages_donnees SET current_city='capitale' WHERE name='Fixture'")
+  q.execute("SET hg.fixture='Fixture'")
+  check(appel()['etat']==avant)
+  q.execute("SELECT count(*) FROM terrain_visites_actives");check(q.fetchone()[0]==2)
   q.execute("UPDATE personnages_donnees SET current_building=NULL WHERE name='Fixture'")
   q.execute('SELECT count(*) FROM terrain_visites_actives');check(q.fetchone()[0]==1)
+  q.execute("SET hg.fixture='Autre'")
   check(appel()['etat']==avant)
   q.execute("UPDATE personnages_donnees SET current_building=NULL WHERE name='Autre'")
   q.execute('SELECT count(*) FROM terrain_visites_actives');check(q.fetchone()[0]==0)
