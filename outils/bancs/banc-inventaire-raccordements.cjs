@@ -57,3 +57,12 @@ test('fiche imprimee par RPC, sans sauvegarde generale ni ajout local',async()=>
 test('confirmation d acte attend la reponse sans paiement separe et sans fausse reussite',async()=>{
  let toasts=0;const c=vm.createContext({_acteOfficielChoixCache:[{type:'naissance'}],etatCivilDelivrerActe:async()=>null,deduireCoutOrdre:()=>assert.fail('debit separe'),showToast:()=>toasts++});vm.runInContext(fonction('plateau-justice-economie.js','confirmerActeOfficiel'),c);await c.confirmerActeOfficiel(0,'Fixture',1,100);assert.equal(toasts,0);
 });
+test('Pat : etape et inventaire ne sont pas avances si le serveur refuse',async()=>{
+ const char={queteCarriere:{ambition:'criminel',etape:'a_rencontrer'}},c=vm.createContext({state:{char},executerReceptionInventaire:async()=>null,addToInventory:()=>assert.fail('ajout local')});vm.runInContext(fonction('plateau-pnj.js','declencherMissionPatHounette'),c);await c.declencherMissionPatHounette();assert.equal(char.queteCarriere.etape,'a_rencontrer');
+});
+test('Jean-Lou : aucun tract ou etape avant la derniere confirmation serveur',async()=>{
+ const char={queteCarriere:{ambition:'politique',etape:'a_rencontrer'}};let popup,requete=0;const c=vm.createContext({state:{char},QUETE_CARRIERE_BRIEFS:{politique:{}},document:{getElementById:()=>({classList:{remove(){}}})},afficherPopupQueteAccueil:p=>popup=p,executerReceptionInventaire:async()=>{requete++;return null;}});vm.runInContext(fonction('plateau-pnj.js','declencherMissionJeanLou'),c);c.declencherMissionJeanLou();assert.equal(requete,0);popup.suivant();assert.equal(requete,0);await popup.suivant();assert.equal(requete,1);assert.equal(char.queteCarriere.etape,'a_rencontrer');
+});
+test('enigme : variante et temps viennent du serveur, pas de tirage navigateur',async()=>{
+ let demande;const c=vm.createContext({state:{char:{enigme1:null},_inventaireRevision:0},executerReceptionInventaire:async(f,p)=>{demande=p;return {ok:true,statut:'declenchee',enigme:{etape:'declenchee',variante:'plume'}};},ENIGME1_RUMEURS:{plume:'Rumeur du serveur'},showToast(){},addJournalEntry(){},updateUI(){},renderInventory(){},Date:{now:()=>assert.fail('horloge navigateur')}});vm.runInContext(fonction('plateau-enigme-portrait.js','enigme1VerifierDeclenchement'),c);await c.enigme1VerifierDeclenchement();assert.equal(demande.p_action,'verifier');assert.equal(c.state.char.enigme1.variante,'plume');
+});

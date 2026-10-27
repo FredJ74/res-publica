@@ -343,28 +343,14 @@ function verifierProgressionCarriere(branche, succes) {
 // Declenchee depuis talkToPnj() des que le joueur mentionne Jeremy a Pat Hounette (question
 // libre, pas de bouton). Cree le vrai objet d'inventaire, journalise, trace l'action pour le
 // pipeline de rumeurs (fait detectable, pas une annonce publique), et bascule l'etape.
-function declencherMissionPatHounette() {
-  const qc = state.char?.queteCarriere;
-  if (!qc || qc.ambition !== 'criminel' || qc.etape !== 'a_rencontrer') return;
+async function declencherMissionPatHounette() {
+  const v = await executerReceptionInventaire('mission_carriere_recevoir', { p_mission: 'pat' });
+  if (!v) return;
+  state.char.queteCarriere = v.quete_carriere;
   const b = QUETE_CARRIERE_BRIEFS.criminel;
-
-  qc.etape = 'colis_recu';
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-
-  if (typeof addToInventory === 'function') {
-    addToInventory({ type: 'colis_secret_pat', name: 'Colis secret', icon: 'ti-package', desc: "Un colis remis par Pat Hounette. Vous ignorez ce qu'il contient." });
-  }
-  if (typeof addJournalEntry === 'function') {
-    addJournalEntry('Pat Hounette vous a confié un colis secret à remettre à Brigitte Menottes au commissariat de Luthécia.', 'event-info');
-  }
-  // Fait potentiellement compromettant (quelqu'un a pu voir la remise), pas une rumeur diffusee
-  // automatiquement -- alimente le meme pipeline que les autres actions detectables du jeu.
-  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('colis_recu_pat_hounette', 'Pat Hounette');
-
+  addJournalEntry('Pat Hounette vous a confié un colis secret à remettre à Brigitte Menottes au commissariat de Luthécia.', 'event-info');
   document.getElementById('modal-pnj')?.classList.remove('open');
-  if (typeof afficherPopupQueteAccueil === 'function') {
-    afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.texte, suivant: null });
-  }
+  if (typeof afficherPopupQueteAccueil === 'function') afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.texte, suivant: null });
 }
 
 // Declenchee depuis confirmerDonObjetPnj/confirmerDonObjetPj (plateau-justice-economie.js)
@@ -485,43 +471,22 @@ function queteCarriereObjectifActuel() {
 // origineQuete:'jean_lou' pour que la quete puisse suivre precisement LEURS distributions sans
 // interferer avec d'eventuels autres tracts que le joueur possederait par ailleurs).
 function declencherMissionJeanLou() {
-  const qc = state.char?.queteCarriere;
+  const personnage = state.char;
+  const qc = personnage?.queteCarriere;
   if (!qc || qc.ambition !== 'politique' || qc.etape !== 'a_rencontrer') return;
   const b = QUETE_CARRIERE_BRIEFS.politique;
-
   document.getElementById('modal-pnj')?.classList.remove('open');
   if (typeof afficherPopupQueteAccueil !== 'function') return;
-
-  afficherPopupQueteAccueil({
-    image: b.image,
-    titre: b.titre,
-    texte: b.introduction,
-    suivant: function() {
-      afficherPopupQueteAccueil({
-        image: b.image,
-        titre: b.titre,
-        texte: b.texte,
-        suivant: function() {
-          qc.etape = 'tracts_recus';
-          qc.electionCible = null;
-          qc.ciblesJeanLou = [];
-          qc.resultatsJeanLou = [];
-          if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-
-          if (typeof addToInventory === 'function') {
-            addToInventory({
-              type: 'tract', name: 'Tracts POUR ' + (state.char?.name || 'vous'),
-              icon: 'ti-file-description', tractType: 'pour', cible: state.char?.name || '',
-              quantite: 3, legal: true, origineQuete: 'jean_lou'
-            });
-          }
-          if (typeof addJournalEntry === 'function') {
-            addJournalEntry('Jean-Lou Zeure vous a confié 3 tracts électoraux à votre nom.', 'event-info');
-          }
-        }
-      });
-    }
-  });
+  afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.introduction, suivant: function() {
+    afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.texte, suivant: async function() {
+      if (state.char !== personnage) return;
+      const v = await executerReceptionInventaire('mission_carriere_recevoir', { p_mission: 'jean_lou' });
+      if (!v) return;
+      state.char.queteCarriere = v.quete_carriere;
+      addJournalEntry('Jean-Lou Zeure vous a confié 3 tracts électoraux à votre nom.', 'event-info');
+      updateUI();
+    }});
+  }});
 }
 
 // Cherche une candidature REELLE et active du joueur (CYCLES_ELECTORAUX, jamais

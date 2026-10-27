@@ -31,7 +31,7 @@ INSERT INTO public.objets_modeles(id,objet) VALUES
 ('acte:succession','{"type":"acte_officiel_succession","icon":"ti-file-certificate","legal":true}'::jsonb)
 ON CONFLICT(id) DO UPDATE SET objet=excluded.objet;
 CREATE OR REPLACE FUNCTION public.etat_civil_document_recevoir(p_requete uuid,p_nom text,p_type text,p_reference text,p_pa integer,p_cost integer)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $function$
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp SET TimeZone TO 'UTC' AS $function$
 DECLARE a public.personnages_donnees; v jsonb; o jsonb; params jsonb; paiement jsonb;
  dt timestamptz; ville text; titre text; texte text; cle text; ordre text; cout integer;
  m public.mariages; s public.successions; d jsonb; e record; evenements jsonb:='[]'; conjoint text; motif text; devise text;

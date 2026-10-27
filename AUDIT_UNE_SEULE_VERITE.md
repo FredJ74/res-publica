@@ -496,3 +496,13 @@ tirés au hasard et les effets purement visuels sont exclus.
   copiées dans le catalogue, fiches PJ produites depuis leurs événements réels ; aucun mariage,
   décès ou dossier de succession créé pour livrer un objet. 46 assertions PostgreSQL, dont 29
   communes, transaction annulée sous authenticated. Le verrou final reste inchangé.
+
+- **27/10 — missions et énigme préparées NON appliquées** (`20261027214213`) :
+  Pat et Jean-Lou déposent objets et étapes ensemble depuis leur emplacement réel ; calepin,
+  variante et relance selon l'horloge serveur (72/144 heures réelles), clé et ouverture du
+  coffre dans la transaction de présentation existante. Pas de second moteur de quête.
+  Reçus empêchant une ancienne sauvegarde de réémettre colis/clé. 46 assertions PostgreSQL,
+  dont 29 communes, authenticated et rollback. **Les autres écritures de progression restent
+  legacy** ; leur autorité complète n'est pas déclarée vérifiée et reste un préalable au verrou.
+  Le type réel de created_at est sans fuseau : interprétation UTC explicite, anciens producteurs
+  à confirmer au prévol. Les échanges IA/escort et récompenses générales restent à traiter.

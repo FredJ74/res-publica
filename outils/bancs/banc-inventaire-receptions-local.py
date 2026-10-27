@@ -51,15 +51,15 @@ def main(extra=None):
   before=snapshot();v=call('sels_ammoniaque_acheter',[uid(1),2,0]);check(v['ok'] and v['qte']==2 and v['total']==60,'depot et debit exacts de deux sels');check(v['revision']==1,'revision serveur avancee')
   check(own("SELECT (data->>'solde')::integer FROM caisses_batiments")==60,'recette dans la seule caisse pharma')
   after=snapshot();v=call('sels_ammoniaque_acheter',[uid(1),2,0]);check(v['rejeu'] and snapshot()==after,'reponse perdue : aucun second debit ni depot')
-  check(call('sels_ammoniaque_acheter',[uid(1),3,0])['raison']=='requete_reutilisee','nonce lie aux parametres')
+  check(call('sels_ammoniaque_acheter',[uid(1),3,0]).get('raison')=='requete_reutilisee','nonce lie aux parametres')
   for quantity in [0,21,None]:
    before=snapshot();check(not call('sels_ammoniaque_acheter',[uid(2),quantity,0])['ok'] and snapshot()==before,'quantite invalide sans mutation')
   for col,val in [('current_room','bureau'),('current_building','assemblee'),('country','soviet')]:
    old=own('SELECT '+col+" FROM personnages_donnees WHERE name='Fixture'");own('UPDATE personnages_donnees SET '+col+'=%s WHERE name=\'Fixture\'',(val,));before=snapshot()
-   check(call('sels_ammoniaque_acheter',[uid(2),1,0])['raison']=='pas_sur_place' and snapshot()==before,'lieu reel requis : '+col);own('UPDATE personnages_donnees SET '+col+'=%s WHERE name=\'Fixture\'',(old,))
+   check(call('sels_ammoniaque_acheter',[uid(2),1,0]).get('raison')=='pas_sur_place' and snapshot()==before,'lieu reel requis : '+col);own('UPDATE personnages_donnees SET '+col+'=%s WHERE name=\'Fixture\'',(old,))
   own('UPDATE fixture_lois SET interdit=true');before=snapshot();check(not call('sels_ammoniaque_acheter',[uid(2),1,0])['ok'] and snapshot()==before,'loi controlee dans la transaction');own('UPDATE fixture_lois SET interdit=false')
-  before=snapshot();check(call('sels_ammoniaque_acheter',[uid(2),1,9])['raison']=='cout_non_declare','faux cout refuse');check(own("SELECT pa FROM personnages_donnees WHERE name='Fixture'")==30,'aucune perte de PA sur refus')
-  before=snapshot();check(call('sels_ammoniaque_acheter',[uid(2),20,0])['raison']=='fonds_insuffisants' and snapshot()==before,'fonds insuffisants avant toute contrepartie')
+  before=snapshot();check(call('sels_ammoniaque_acheter',[uid(2),1,9]).get('raison')=='cout_non_declare','faux cout refuse');check(own("SELECT pa FROM personnages_donnees WHERE name='Fixture'")==30,'aucune perte de PA sur refus')
+  before=snapshot();check(call('sels_ammoniaque_acheter',[uid(2),20,0]).get('raison')=='fonds_insuffisants' and snapshot()==before,'fonds insuffisants avant toute contrepartie')
   # Une panne de caisse apres paiement doit annuler paiement et inventaire.
   own('DELETE FROM caisses_batiments');before=snapshot();q.execute('SAVEPOINT panne')
   try:call('sels_ammoniaque_acheter',[uid(2),1,0]);raise AssertionError('panne non detectee')
@@ -69,11 +69,11 @@ def main(extra=None):
   stacks=[{'name':'sels ancien','stackKey':'sels_ammoniaque','stackable':True,'qty':3,'id':'a','memoire':'conservee'},{'name':'autre pile','stackKey':'sels_ammoniaque','stackable':True,'qty':2,'id':'b'}]
   own("UPDATE personnages_donnees SET inventory=%s WHERE name='Fixture'",(Json(stacks),));v=call('sels_ammoniaque_acheter',[uid(2),1,0]);check(sum(i['qty'] for i in v['inventory'])==6 and v['inventory'][1]==stacks[1],'piles historiques : une seule unite ajoutee, metadonnees intactes')
   own("UPDATE personnages_donnees SET inventory=%s WHERE name='Fixture'",(Json([{'stackable':True,'stackKey':'bois','qty':99}]),));v=call('sels_ammoniaque_acheter',[uid(3),2,0]);check(v['qte']==1 and v['total']==30,'plafond : seule la quantite reellement deposee est facturee')
-  before=snapshot();check(call('sels_ammoniaque_acheter',[uid(4),1,0])['raison']=='inventaire_plein' and snapshot()==before,'inventaire plein : aucun cout')
+  before=snapshot();check(call('sels_ammoniaque_acheter',[uid(4),1,0]).get('raison')=='inventaire_plein' and snapshot()==before,'inventaire plein : aucun cout')
   own("UPDATE personnages_donnees SET inventory='[]',current_building='mairie-capitale',current_room='hall_mairie' WHERE name='Fixture'")
   v=call('objet_trouve_reclamer',[uid(5),1,0]);check(v['ok'] and isinstance(v['trouve'],bool) and 'revision' in v,'tirage objets trouves par le serveur')
   after=snapshot();check(call('objet_trouve_reclamer',[uid(5),1,0])['rejeu'] and snapshot()==after,'rejeu objet trouve sans nouveau jet ni PA')
-  check(call('objet_trouve_reclamer',[uid(6),1,0])['raison']=='deja_fait_aujourdhui','limite quotidienne serveur meme si aucun objet')
+  check(call('objet_trouve_reclamer',[uid(6),1,0]).get('raison')=='deja_fait_aujourdhui','limite quotidienne serveur meme si aucun objet')
   # Forcer uniquement le RNG PostgreSQL pour couvrir les deux branches sans changer le moteur.
   own("SELECT setseed(0.1234)");outcomes=set()
   for k in range(20):
@@ -84,7 +84,7 @@ def main(extra=None):
    if len(outcomes)==2:break
   check(len(outcomes)==2,'succes et rien trouve executes')
   own("UPDATE personnages_donnees SET current_room=NULL,dernier_objet_trouve_jour=NULL WHERE name='Fixture'");own('DELETE FROM objets_trouves_jours');before=snapshot()
-  check(call('objet_trouve_reclamer',[uid(50),1,0])['raison']=='pas_sur_place' and snapshot()==before,'lieu absent refuse sans mutation')
+  check(call('objet_trouve_reclamer',[uid(50),1,0]).get('raison')=='pas_sur_place' and snapshot()==before,'lieu absent refuse sans mutation')
   for fn in ['inventaire_deposer_interne(text,jsonb,boolean)','inventaire_action_rejouer_interne(text,uuid,text,jsonb)']:
    check(not own("SELECT has_function_privilege('authenticated',%s,'EXECUTE')",(fn,)),'primitive interne inaccessible : '+fn)
   check(not own("SELECT has_table_privilege('authenticated','inventaire_actions_recus','INSERT')"),'registre non forgeable depuis navigateur')

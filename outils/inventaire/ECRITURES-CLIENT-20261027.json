@@ -25,7 +25,7 @@
     "plateau-core.js": "e9dd8d02d63bf0af7ffdf2b05428c64562945f86790c6867f17459c63da9201d",
     "plateau-divers.js": "62616dc1cf65f9fc38224a5c367cd1c7d4922d2fda91f5ae1a30311488ff1dd2",
     "plateau-effort-guerre.js": "14551258c0c7ac25f8dbe520e35267ed98a6ba29a4c47f16f3db0eababdc61ab",
-    "plateau-enigme-portrait.js": "31e29c06bb12c18d4789e6c1abd398306000a75bd6b03db09dd2d0d9edc289fb",
+    "plateau-enigme-portrait.js": "37746f1468656d69ea03dea82e89d8dcac262acd3034a94f378c62f8022dab1f",
     "plateau-entrepots.js": "71dd697a6072be62528bc02769811363dcab82351325c60628264dc5fb210bc1",
     "plateau-equipements-collectifs.js": "ae9fab392fe6101da00d4d4df5af4cd4e177746c8287d56e5194fa9f90f89c5d",
     "plateau-equipements.js": "816b693bcd30699791f8585948224eba326edfbbfde3945ba16c83356f5bea48",
@@ -49,7 +49,7 @@
     "plateau-open-space.js": "6c0c55da7e01aa9cb93b827f693a95560a032b79084363c1508f44712cacc362",
     "plateau-organisations-quetes.js": "0a696ed146b82379a321fc41cdec92a6b7ac45737acb442fa6c11e650a20803f",
     "plateau-personnage.js": "bf9108a62aa194e90c7d2cc5a2c2a28426f39611df9339773882cd563de2dbee",
-    "plateau-pnj.js": "4978ad83c3cf5363bf162d5e030add43765c8eaf1e52c9eb5da5f69b073f02a2",
+    "plateau-pnj.js": "8bcd2751219713620a2e614a1cdb8ddd601c7481ff67048cfc230b5c5a21680e",
     "plateau-politique.js": "23137ed99fc4f2555febe87d80adf12df68b2dee06407ec0131a298d2e649f69",
     "plateau-publicite-premium.js": "ccb383f01a2f134a70da3b593df6b32ae885afbf15d7abfbcd6c2c26187f5ea3",
     "plateau-quete-accueil.js": "ea428dddeb28d632bb55e9669e5f57266ea8e18b1b66917b1bb5e3960d3678f8",
@@ -372,48 +372,6 @@
       "extrait": "state.char.inventory = state.inventory"
     },
     {
-      "fichier": "plateau-enigme-portrait.js",
-      "ligne": 780,
-      "fonction": "doPresenterAutorisationCoffre",
-      "type": "retrait_ou_remplacement",
-      "extrait": "!state.inventory"
-    },
-    {
-      "fichier": "plateau-enigme-portrait.js",
-      "ligne": 780,
-      "fonction": "doPresenterAutorisationCoffre",
-      "type": "retrait_ou_remplacement",
-      "extrait": "state.inventory = []"
-    },
-    {
-      "fichier": "plateau-enigme-portrait.js",
-      "ligne": 781,
-      "fonction": "doPresenterAutorisationCoffre",
-      "type": "ajout_local",
-      "extrait": "state.inventory.push({ id: 'cle-debarras-musee', name: 'Clé du débarras', icon: 'ti-key', desc: \"Une vieille clé, retrouvée dans un coffre lié à la succession de Pierre Thibault. Elle semble correspondre à une porte du Musée de la Ville de "
-    },
-    {
-      "fichier": "plateau-enigme-portrait.js",
-      "ligne": 909,
-      "fonction": "enigme1VerifierDeclenchement",
-      "type": "retrait_ou_remplacement",
-      "extrait": "!state.inventory"
-    },
-    {
-      "fichier": "plateau-enigme-portrait.js",
-      "ligne": 909,
-      "fonction": "enigme1VerifierDeclenchement",
-      "type": "retrait_ou_remplacement",
-      "extrait": "state.inventory = []"
-    },
-    {
-      "fichier": "plateau-enigme-portrait.js",
-      "ligne": 911,
-      "fonction": "enigme1VerifierDeclenchement",
-      "type": "ajout_local",
-      "extrait": "state.inventory.push({ id: 'calepin-enigme1', name: \"Calepin de l'enquête\", icon: 'ti-notebook', imageUrl: 'images/calepin-enigme-musee.webp', desc: \"Un petit calepin. Chaque page se remplit au fil de ce que vous découvrez.\", calepinEnigme1"
-    },
-    {
       "fichier": "plateau-fonds.js",
       "ligne": 73,
       "fonction": "memeTitulaire",
@@ -625,70 +583,56 @@
     },
     {
       "fichier": "plateau-pnj.js",
-      "ligne": 355,
-      "fonction": "declencherMissionPatHounette",
-      "type": "ajout_local",
-      "extrait": "addToInventory({ type: 'colis_secret_pat', name: 'Colis secret', icon: 'ti-package', desc: \"Un colis remis par Pat Hounette. Vous ignorez ce qu'il contient.\" })"
-    },
-    {
-      "fichier": "plateau-pnj.js",
-      "ligne": 512,
-      "fonction": "declencherMissionJeanLou / callback / callback",
-      "type": "ajout_local",
-      "extrait": "addToInventory({ type: 'tract', name: 'Tracts POUR ' + (state.char?.name || 'vous'), icon: 'ti-file-description', tractType: 'pour', cible: state.char?.name || '', quantite: 3, legal: true, origineQuete: 'jean_lou' })"
-    },
-    {
-      "fichier": "plateau-pnj.js",
-      "ligne": 603,
+      "ligne": 568,
       "fonction": "distribuerTractJeanLou",
       "type": "changement_objet_candidat",
       "extrait": "lot.quantite -= 1"
     },
     {
       "fichier": "plateau-pnj.js",
-      "ligne": 606,
+      "ligne": 571,
       "fonction": "distribuerTractJeanLou",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory.splice(idx, 1)"
     },
     {
       "fichier": "plateau-pnj.js",
-      "ligne": 2113,
+      "ligne": 2078,
       "fonction": "doEscortInfos",
       "type": "ajout_local",
       "extrait": "addToInventory({ id: 'kompromat-' + Date.now(), name: 'Kompromat sur ' + cible.name, icon: 'ti-file-shredder', desc: info, type: 'kompromat', cible: cible.name, legal: false })"
     },
     {
       "fichier": "plateau-pnj.js",
-      "ligne": 2246,
+      "ligne": 2211,
       "fonction": "changerTypeRumeur",
       "type": "changement_objet_candidat",
       "extrait": "_rumeur.type = nouveauType"
     },
     {
       "fichier": "plateau-pnj.js",
-      "ligne": 2517,
+      "ligne": 2482,
       "fonction": "changerTypeCibleLobbying",
       "type": "changement_objet_candidat",
       "extrait": "_lobbyingPresse.type = nouveauType"
     },
     {
       "fichier": "plateau-pnj.js",
-      "ligne": 3135,
+      "ligne": 3100,
       "fonction": "confirmerFabriquerKompromat",
       "type": "ajout_local",
       "extrait": "addToInventory({ id: 'kompromat-' + Date.now(), name: 'Kompromat sur ' + nomCible, icon: 'ti-file-shredder', desc: info, type: 'kompromat', cible: nomCible, legal: false })"
     },
     {
       "fichier": "plateau-pnj.js",
-      "ligne": 3522,
+      "ligne": 3487,
       "fonction": "confirmerEscortPiege",
       "type": "ajout_local",
       "extrait": "addToInventory({ name: 'Kompromat sur ' + nomCible, icon: 'ti-file-shredder', type: 'kompromat', cible: nomCible, desc: scandale, legal: false, expireDay: (state.day||1) + 10 })"
     },
     {
       "fichier": "plateau-pnj.js",
-      "ligne": 3650,
+      "ligne": 3615,
       "fonction": "chargerPnjTerrain",
       "type": "changement_objet_candidat",
       "extrait": "!r.etat"

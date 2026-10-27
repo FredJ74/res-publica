@@ -2,6 +2,9 @@
 -- N'applique rien, ne cree aucun PJ/objet, ne lit aucun mot de passe/secret.
 BEGIN TRANSACTION READ ONLY;
 SELECT version();
+SHOW TimeZone;
+-- created_at est sans fuseau dans le baseline : confirmer les anciens producteurs UTC
+-- avant activation des delais de quete ; les nouvelles fonctions lisent explicitement UTC.
 SELECT version,name FROM supabase_migrations.schema_migrations
  WHERE version>='20261027000000' ORDER BY version;
 SELECT p.oid::regprocedure AS signature,p.prosecdef,p.proconfig,p.proacl,pg_get_functiondef(p.oid) AS definition

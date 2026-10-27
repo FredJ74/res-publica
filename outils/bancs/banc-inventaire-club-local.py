@@ -15,10 +15,10 @@ def scenario(q,own,call,check,uid,snapshot,Json):
  v=achat(301);check(v['ok'] and v['prix']==80 and v['inventory'][0]['name']=='Écharpe — Club fictif','club et objet issus des catalogues serveur')
  check(own("SELECT (data->>'caisse')::integer FROM budgets_clubs")==80,'credit exact du budget existant')
  before=snap();check(achat(301)['rejeu'] and snap()==before,'accessoire reponse perdue sans second debit credit objet')
- before=snap();check(achat(302,'pirate')['raison']=='accessoire_inconnu' and snap()==before,'modele inconnu refuse sans contrepartie')
- check(achat(302,'maillot',3)['raison']=='cout_non_declare','cout non declare refuse')
- own("UPDATE personnages_donnees SET current_room='vestiaires' WHERE name='Fixture'");before=snap();check(achat(303)['raison']=='pas_sur_place' and snap()==before,'achat hors buvette refuse')
- own("UPDATE personnages_donnees SET current_room='buvette',liquide=0,arg=0 WHERE name='Fixture'");own("UPDATE comptes_bancaires SET solde=0 WHERE personnage='Fixture'");before=snap();check(achat(303)['raison']=='fonds_insuffisants' and snap()==before,'fonds insuffisants sans depot ni credit')
+ before=snap();check(achat(302,'pirate').get('raison')=='accessoire_inconnu' and snap()==before,'modele inconnu refuse sans contrepartie')
+ check(achat(302,'maillot',3).get('raison')=='cout_non_declare','cout non declare refuse')
+ own("UPDATE personnages_donnees SET current_room='vestiaires' WHERE name='Fixture'");before=snap();check(achat(303).get('raison')=='pas_sur_place' and snap()==before,'achat hors buvette refuse')
+ own("UPDATE personnages_donnees SET current_room='buvette',liquide=0,arg=0 WHERE name='Fixture'");own("UPDATE comptes_bancaires SET solde=0 WHERE personnage='Fixture'");before=snap();check(achat(303).get('raison')=='fonds_insuffisants' and snap()==before,'fonds insuffisants sans depot ni credit')
  own("UPDATE personnages_donnees SET liquide=100,arg=300 WHERE name='Fixture'");own("UPDATE comptes_bancaires SET solde=200 WHERE personnage='Fixture'")
  # Budget mal forme : le debit qui precede ne doit jamais survivre a l'erreur.
  own("UPDATE budgets_clubs SET data='\"historique illisible\"'");before=snap();q.execute('SAVEPOINT panne_club')
@@ -28,6 +28,6 @@ def scenario(q,own,call,check,uid,snapshot,Json):
  own("UPDATE budgets_clubs SET data=%s",(Json({'caisse':80,'salaires':{'titulaire':123},'historique':[{'jour':i} for i in range(55)]}),))
  v=achat(305,'casquette');check(v['prix']==60,'tarif casquette historique conserve')
  budget=own('SELECT data FROM budgets_clubs');check(len(budget['historique'])==50 and budget['salaires']['titulaire']==123 and budget['caisse']==140,'historique borne et salaires existants preserves')
- own("UPDATE personnages_donnees SET inventory=%s WHERE name='Fixture'",(Json([{'stackable':True,'stackKey':'stock','qty':100}]),));before=snap();check(achat(306)['raison']=='inventaire_plein' and snap()==before,'inventaire plein sans paiement de l accessoire')
+ own("UPDATE personnages_donnees SET inventory=%s WHERE name='Fixture'",(Json([{'stackable':True,'stackKey':'stock','qty':100}]),));before=snap();check(achat(306).get('raison')=='inventaire_plein' and snap()==before,'inventaire plein sans paiement de l accessoire')
 if __name__=='__main__':
  spec=importlib.util.spec_from_file_location('base',R/'outils/bancs/banc-inventaire-receptions-local.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);m.main(scenario)

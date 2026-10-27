@@ -60,6 +60,7 @@ jobs:
           python3 outils/bancs/banc-inventaire-employes-local.py
           python3 outils/bancs/banc-inventaire-club-local.py
           python3 outils/bancs/banc-inventaire-etat-civil-local.py
+          python3 outils/bancs/banc-inventaire-missions-local.py
       - name: Assemblage electronique sur PostgreSQL local
         run: python3 outils/bancs/banc-assemblage-electronique-local.py
       - name: Publications Jodie sur PostgreSQL local
