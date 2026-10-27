@@ -21,7 +21,10 @@ ambassades ni au Bureau de l'Emploi.**
   gains de popularité écrits par le serveur est passée inaperçue ; corrigé, `20261027050000`).
   Démenti et rumeurs politiques par le serveur (`dementi_executer`, `20261027060000`). **Scrutins fermés aux joueurs** (`cycles_electoraux`) : engendrement, dissolution et
   contestation par le serveur (`20261027070000`/`070100`) ; la passe de nuit pose
-  `cycle.dernierScrutin` à chaque proclamation (ne pas le retirer : la contestation en dépend). Fraudes électorales par le serveur (`fraude_electorale_tenter`, `20261027080000`). Vote de confiance par le serveur (`20261027090000`).
+  `cycle.dernierScrutin` à chaque proclamation (ne pas le retirer : la contestation en dépend). Fraudes électorales par le serveur (`fraude_electorale_tenter`, `20261027080000`). Vote de confiance par le serveur (`20261027090000`). **Justice** (`20261027100000`-`100200`) : `recherche_retirer` refuse le retrait libre (seulement
+  juste après un écrou, ou désertion éteinte) — **Codex : tout nouveau retrait de motif passe par
+  une fonction serveur qui sait pourquoi** ; `enquete_garde_a_vue` n'est plus appelable ;
+  convocations tenues par le serveur (`convocation_se_justifier`, `minuit_convocations`).
 - **Corrections « une seule vérité » (Fred, 26/10 : « fais dans l'ordre que tu veux »)** — Claude.
   Fait : caisses adossées (`fonds_en_transit`, `batiment_caisse_client_crediter`, primitives de
   caisse retirées au navigateur, `usine_virer_vers_ministere`, `ministere_virer_vers_usine`,

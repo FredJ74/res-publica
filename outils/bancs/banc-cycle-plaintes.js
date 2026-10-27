@@ -105,12 +105,11 @@ att('un rejeu ne republie rien sur le forum',
     && bTrans.indexOf('vAff.deja_transmise === true') < bTrans.indexOf('FORUM_TOPICS[forumKey]'));
 // SES DEUX APPELANTS L'ATTENDENT, ET LISENT SON RESULTAT. Sans cela la fonction serait async pour
 // rien et les deux annonces publiques resteraient inconditionnelles.
-var bEnq = sansCommentaires(bloc('plateau-justice-economie.js', 'traiterEnquetes'));
+// traiterEnquetes a disparu le 27 octobre 2026 (enquetes inscrites par le joueur sur sa propre
+// fiche, garde a vue obtenue contre n'importe qui) : seul l'appelant « demasquage » demeure.
 var bDem = sansCommentaires(bloc('plateau-justice-economie.js', 'confirmerMenerEnquete'));
-att("l'appelant « enquete conclue » attend la transmission",
-    bEnq.indexOf('await transmettreAffaireAuTribunal(') >= 0);
-att('et son evenement public dit la verite',
-    bEnq.indexOf('transmise ?') >= 0);
+att("traiterEnquetes n'existe plus",
+    SRC['plateau-justice-economie.js'].indexOf('async function traiterEnquetes(') < 0);
 att("l'appelant « demasquage » attend la transmission",
     bDem.indexOf('await transmettreAffaireAuTribunal(') >= 0);
 att('et son journal dit la verite',

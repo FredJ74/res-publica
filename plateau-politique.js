@@ -2412,11 +2412,8 @@ async function tenterFraudeServeur(type, posteId, city, candidatNom, sens) {
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie || {});
   // Pris sur le fait : la detention est ouverte par le serveur ; l'ecran la reflete sans l'ecrire.
-  if (!v.reussi && v.detention_ouverte && !state.estEmprisonne) {
-    const jours = Number(v.jours) || 1;
-    state.estEmprisonne = { jours, jourFin: (state.day || 1) + jours, raison: 'Fraude électorale — pris(e) sur le fait',
-                            detentionId: v.detention_id || null };
-    if (state.char) state.char.estEmprisonne = state.estEmprisonne;
+  if (!v.reussi && v.detention_ouverte && typeof adopterDetentionServeur === 'function') {
+    adopterDetentionServeur(v.jours, 'Fraude électorale — pris(e) sur le fait', v.detention_id);
   }
   return v;
 }
@@ -7554,23 +7551,26 @@ async function executerOrdreFiscalCible(action, typeCible, idCible) {
 
   if (action === 'ouvrir_enquete') {
     document.getElementById('modal-postes')?.classList.remove('open');
-    const pays = state.country || 'republic';
-    const cout = 400;
-    // Deduction PA+cout centralisee (Lot 2C) via payeur institutionnel (caisse du ministere de
-    // la justice), avant toute mutation (jet, mails).
-    const r = await deduireCoutOrdre({ pa: 2, cost: cout, payeur: { type: 'institution', pays, buildingId: 'gouvernement-min_just' } });
-    if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Caisse insuffisante', r.raison === 'pa_insuffisants' ? '2 PA requis.' : 'La caisse du gouvernement ne peut pas couvrir les frais d\'enquête (' + cout + ' FR).', false); return; }
-
-    const reussite = Math.random() < 0.9;
+    // PAR LE SERVEUR (27 octobre 2026) : poste, 2 PA, 400 FR sur la caisse du ministere, jet (90 %),
+    // annonce et courrier -- enquete_ouvrir.
+    const brut = (typeof sbRpc === 'function')
+      ? await sbRpc('enquete_ouvrir', { p_type_cible: typeCible, p_cible: idCible, p_nom_cible: nomCible }).catch(() => null) : null;
+    const v = Array.isArray(brut) ? brut[0] : brut;
+    if (!v || v.ok !== true) {
+      const motifs = { reserve_min_just: 'Réservé au Ministre de la Justice.', cible_invalide: 'Cible introuvable.',
+                       caisse_insuffisante: 'La caisse du gouvernement ne peut pas couvrir les frais d\'enquête (400 FR).' };
+      if (v && motifs[v.raison]) showToast('Enquête impossible', motifs[v.raison], false);
+      else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+      return;
+    }
+    if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
     updateUI();
-    if (reussite) {
-      showToast('Enquête ouverte', 'Une enquête judiciaire est ouverte sur ' + nomCible + '. -' + cout + ' FR.', true, true);
-      addJournalEntry('Enquête judiciaire ouverte sur ' + nomCible + ' (-' + cout + ' FR).', 'event-info');
-      addExternalEvent('🔍 Le Ministère de la Justice ouvre une enquête sur ' + nomCible + '.');
-      if (typeCible === 'citoyen' && typeof sbSendMail === 'function') sbSendMail('Ministère de la Justice', idCible, 'Enquête ouverte', 'Une enquête judiciaire a été ouverte à votre sujet.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
+    if (v.reussi) {
+      showToast('Enquête ouverte', 'Une enquête judiciaire est ouverte sur ' + nomCible + '. -400 FR.', true, true);
+      addJournalEntry('Enquête judiciaire ouverte sur ' + nomCible + ' (-400 FR).', 'event-info');
     } else {
-      showToast('Enquête classée sans suite', 'Aucune charge retenue contre ' + nomCible + '. -' + cout + ' FR.', false);
-      addJournalEntry('Enquête sur ' + nomCible + ' classée sans suite (-' + cout + ' FR).', 'event-info');
+      showToast('Enquête classée sans suite', 'Aucune charge retenue contre ' + nomCible + '. -400 FR.', false);
+      addJournalEntry('Enquête sur ' + nomCible + ' classée sans suite (-400 FR).', 'event-info');
     }
     return;
   }
@@ -8014,25 +8014,6 @@ function executerOrdreContact(action, nomCible) {
       addJournalEntry('Subvention de ' + montantVerse + ' FR accordée à ' + nomCible + '.', 'event-good');
       if (typeof sbSendMail === 'function') sbSendMail('Ministère des Finances', nomCible, 'Subvention accordée', 'Vous avez reçu une subvention de ' + montantVerse.toLocaleString('fr-FR') + ' ' + cur + ' du Ministre des Finances.', typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
     })();
-  } else if (action === 'ouvrir_enquete') {
-    // getBudgetInstitution() etait appele pour rien : depenseBudget() fait deja son propre
-    // controle de solde juste apres, et la valeur lue n'etait jamais utilisee.
-    if (!depenseBudget('tribunal', 600)) return;
-    if (!state.enquetesEnCours) state.enquetesEnCours = [];
-    // motif / country / city etaient absents. En aval, traiterEnquetes() les consomme tous les
-    // trois : verifierPreuveReelle(country, cible, motif) renvoyait toujours false faute de
-    // motif, enregistrerDetention() recevait une ville undefined, et transmettreAffaireAuTribunal()
-    // repliait sur state.currentCity du joueur qui declenchait le traitement -- c'est-a-dire
-    // exactement le bug que le correctif A3 du 16 aout 2026 avait supprime partout ailleurs.
-    state.enquetesEnCours.push({
-      cible: nomCible,
-      motif: 'Enquete judiciaire ouverte par le Ministre de la Justice',
-      country: state.country || 'republic',
-      city: state.currentCity,
-      day: state.day + 1, status: 'pending', initiateur: 'Ministre Justice'
-    });
-    showToast('Enquete ouverte', 'Enquete judiciaire lancee contre ' + nomCible + '. Resultat dans 24h.', true);
-    addJournalEntry('Enquete judiciaire ouverte contre ' + nomCible, 'event-info');
   } else {
     showToast(action.replace(/_/g,' '), 'Action menee sur ' + nomCible, true);
     addJournalEntry(action.replace(/_/g,' ') + ' : ' + nomCible, 'event-info');

@@ -2557,8 +2557,8 @@ async function runMidnightUpdate() {
   state.salaireTouche = false;
   // Traiter les plaintes et enquetes en cours
   traiterPlaintes();
-  traiterEnquetes();
-  traiterConvocations();
+  // traiterEnquetes et traiterConvocations retirees le 27/10/2026 : enquetes par enquete_ouvrir,
+  // convocations sanctionnees par la passe de nuit du serveur (minuit_convocations).
   // Attendue depuis le 9 octobre 2026 : la liberation est desormais prononcee par le serveur
   // (detention_clore_purgee), et la suite de la passe de minuit lit state.estEmprisonne.
   await verifierLiberationPrisonniers();

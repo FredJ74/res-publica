@@ -356,4 +356,17 @@ tirés au hasard et les effets purement visuels sont exclus.
     passée au serveur reprend la sienne (`annonce_publique_interne`) ;
   - registre de `personnage_ajuster_pop_inf` : causes `rumeur_pj`, `rumeur_gouvernement`,
     `excommunication`, `football_match` dont l'ampleur est encore tirée par l'écran.
+- **27/10 (après-midi)** — §3.3, passe de minuit cliente, **trois failles fermées** :
+  - `recherche_retirer` : un joueur recherché effaçait lui-même ses motifs. Retrait admis
+    seulement juste après un écrou (détention ouverte depuis moins de 15 min) ou pour la
+    désertion qui s'éteint ; `procederArrestation` attend désormais l'ouverture de la détention ;
+  - `enquete_garde_a_vue` : garde à vue de n'importe qui, sur la foi d'une « enquête » écrite par
+    l'appelant sur sa propre fiche. Plus appelable (le chemin légitime n'avait plus de bouton) ;
+    `traiterEnquetes` supprimée ; ouverture d'enquête du Ministre par `enquete_ouvrir` ;
+  - convocations : échéance réelle (24 h) et statut « traitée » imposés par le serveur ; la
+    justification par `convocation_se_justifier` ; la non-présentation sanctionnée par la passe
+    de nuit (`minuit_convocations`) ; `traiterConvocations` supprimée.
+  Migrations `20261027100000`, `100100`, `100200`. Reste de la passe cliente :
+  `verifierDecouverteCrimesPasses`, `checkScandale`, `checkEffacementCrimes`, `payerInformateurs`
+  — liées à l'historique des crimes, que l'écran écrit encore (famille « Crime »).
 

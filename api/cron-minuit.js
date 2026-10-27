@@ -4123,6 +4123,20 @@ async function traiterQuotidienNationalServeur(pays) {
   await traiterAudiencesAmbassadesServeur();
   await traiterVirementsAutomatiquesServeur();
   await traiterCouvreFeuRechercheServeur(pays);
+  await traiterConvocationsServeur();
+}
+
+// --- CONVOCATIONS NON HONOREES (27 octobre 2026, audit « une seule verite ») --------------------
+// La sanction (2 jours) n'etait appliquee que par le navigateur du convoque, a minuit ou au reveil.
+// minuit_convocations est globale (tous pays) et sanctionne au plus une convocation par personne :
+// on ne l'appelle donc qu'une fois par passe, meme si cette fonction tourne pour chaque pays.
+let convocationsTraiteesCettePasse = false;
+async function traiterConvocationsServeur() {
+  if (convocationsTraiteesCettePasse) return;
+  convocationsTraiteesCettePasse = true;
+  const v = await sbRpc('minuit_convocations', {}, HEADERS_SERVICE).catch(() => null);
+  const r = Array.isArray(v) ? v[0] : v;
+  if (!r || r.ok !== true) signalerEchec('convocations', JSON.stringify(v));
 }
 
 // --- COUVRE-FEU ET RECHERCHE MILITAIRE (27 octobre 2026, audit « une seule verite » §3.3) -------
