@@ -82,12 +82,35 @@ BEGIN
     ||chr(10)||' v_agents:=v_agents || public.securite_agents_prives_presents_interne(v_pj.country,v_pj.current_city,p_batiment,p_piece,p_rue,v_nom);';
  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'detecteur_effectifs_conflit'; END IF;
  s:=replace(s,a,b);
- a:='v_id:=''police-''||md5(';
- b:='v_id:=(CASE WHEN EXISTS (SELECT 1 FROM jsonb_array_elements(v_agents) x WHERE NOT (x ? ''pnj_prive_id'') AND coalesce((x->>''pa'')::integer,12)>0 AND ((p_rue IS NOT NULL AND x->>''rueNoeudId''=p_rue) OR (p_rue IS NULL AND x->>''buildingId''=p_batiment AND x->>''roomId''=p_piece))) THEN ''police-'' ELSE ''prive-'' END)||md5(';
- IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'detecteur_identifiant_conflit'; END IF;
+ a:=' FOR v_agent IN SELECT value FROM jsonb_array_elements(v_agents) LOOP'
+   ||chr(10)||' IF ((p_rue IS NOT NULL AND v_agent->>''rueNoeudId''=p_rue)'
+   ||chr(10)||' OR (p_rue IS NULL AND v_agent->>''buildingId''=p_batiment AND v_agent->>''roomId''=p_piece)) AND coalesce((v_agent->>''pa'')::integer,12)>0 THEN'
+   ||chr(10)||' v_count:=v_count+1; v_per:=v_per+coalesce((v_agent->''stats''->>''PER'')::numeric,12);'
+   ||chr(10)||' END IF; END LOOP;'
+   ||chr(10)||' IF v_count=0 THEN RETURN jsonb_build_object(''ok'',false,''raison'',''aucun_policier_present''); END IF;'
+   ||chr(10)||' v_per:=v_per/v_count+(v_count-1)-CASE WHEN p_rue IS NOT NULL THEN 2 ELSE 0 END;';
+ b:=' v_count:=jsonb_array_length(public.securite_ordre_detection_interne(v_agents,p_batiment,p_piece,p_rue));'
+   ||chr(10)||' IF v_count=0 THEN RETURN jsonb_build_object(''ok'',false,''raison'',''aucun_policier_present''); END IF;';
+ IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'detecteur_groupes_conflit'; END IF;
  s:=replace(s,a,b);
- a:='''rencontre'',v_id);'; b:='''rencontre'',v_id,''effectif'',v_count);';
- IF (length(s)-length(replace(s,a,'')))/length(a)<>2 THEN RAISE EXCEPTION 'detecteur_reponse_conflit'; END IF;
+ a:=' v_chance:=greatest(10,least(90,50+5*(v_dis-v_per)));'
+   ||chr(10)||' IF random()*100 < v_chance THEN RETURN jsonb_build_object(''ok'',true,''detecte'',false); END IF;'
+   ||chr(10)||' v_id:=''police-''||md5(v_nom||clock_timestamp()::text||random()::text);'
+   ||chr(10)||' INSERT INTO public.police_interceptions(personnage,rencontre,country,city,building,room,street)'
+   ||chr(10)||' VALUES(v_nom,v_id,v_pj.country,v_pj.current_city,p_batiment,p_piece,p_rue);'
+   ||chr(10)||' RETURN jsonb_build_object(''ok'',true,''detecte'',true,''rencontre'',v_id);';
+ b:=' FOR v_agent IN SELECT value FROM jsonb_array_elements(public.securite_ordre_detection_interne(v_agents,p_batiment,p_piece,p_rue)) LOOP'
+   ||chr(10)||'   v_per:=(v_agent->>''perception'')::numeric;'
+   ||chr(10)||'   v_chance:=greatest(10,least(90,50+5*(v_dis-v_per)));'
+   ||chr(10)||'   IF random()*100 < v_chance THEN CONTINUE; END IF;'
+   ||chr(10)||'   v_id:=(CASE WHEN (v_agent->>''categorie'')::integer=0 THEN ''police-'' ELSE ''prive-'' END)'
+   ||chr(10)||'     ||md5(v_nom||clock_timestamp()::text||random()::text);'
+   ||chr(10)||'   INSERT INTO public.police_interceptions(personnage,rencontre,country,city,building,room,street,intervenants)'
+   ||chr(10)||'   VALUES(v_nom,v_id,v_pj.country,v_pj.current_city,p_batiment,p_piece,p_rue,v_agent->''matricules'');'
+   ||chr(10)||'   RETURN jsonb_build_object(''ok'',true,''detecte'',true,''rencontre'',v_id,''effectif'',(v_agent->>''effectif'')::integer);'
+   ||chr(10)||' END LOOP;'
+   ||chr(10)||' RETURN jsonb_build_object(''ok'',true,''detecte'',false);';
+ IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'detecteur_jet_sequence_conflit'; END IF;
  s:=replace(s,a,b);
  EXECUTE s;
 END $patch$;
