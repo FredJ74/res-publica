@@ -1,3 +1,9 @@
+-- Sécurité : la fonction auxiliaire est réservée aux appels internes SECURITY DEFINER.
+DO $t$ BEGIN
+ IF has_function_privilege('authenticated','public.securite_agents_prives_presents_interne(text,text,text,text,text,text)','EXECUTE')
+    OR has_function_privilege('anon','public.securite_agents_prives_presents_interne(text,text,text,text,text,text)','EXECUTE')
+ THEN RAISE EXCEPTION 'exposition_publique_des_agents'; END IF;
+END $t$;
 -- Banc #135, à lancer dans la MÊME transaction que la migration préparée,
 -- avant ROLLBACK (aucune donnée permanente). Ne touche aucun PJ existant.
 INSERT INTO public.pnj_membres (id,famille,classe,nom,pays,proprietaire_pj,statut,pa,car_per,car_vol,ville,building_id,room_id)
