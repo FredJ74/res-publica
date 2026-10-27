@@ -70,6 +70,13 @@ BEGIN
 END $t$;
 SELECT set_config('request.jwt.claim.sub','c1350000-0000-4000-8000-000000000135',true);
 RESET ROLE;
+-- Après un round valide, l'état des PA du garde reste dans le socle PNJ.
+DO $t$
+DECLARE v_pa integer;
+BEGIN
+ SELECT pa INTO v_pa FROM public.pnj_membres WHERE id='__test_135_private__';
+ IF v_pa IS NULL OR v_pa NOT BETWEEN 0 AND 12 THEN RAISE EXCEPTION 'pa_garde_hors_bornes: %',v_pa; END IF;
+END $t$;
 -- Contre-épreuve : un agent déplacé hors de la zone ne peut poursuivre le combat.
 UPDATE public.pnj_membres SET building_id='__autre__' WHERE id='__test_135_private__';
 SET LOCAL ROLE authenticated;
