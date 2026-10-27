@@ -4124,6 +4124,19 @@ async function traiterQuotidienNationalServeur(pays) {
   await traiterVirementsAutomatiquesServeur();
   await traiterCouvreFeuRechercheServeur(pays);
   await traiterConvocationsServeur();
+  await traiterDecouverteCrimesServeur();
+}
+
+// --- DECOUVERTE DIFFEREE DES CRIMES (27 octobre 2026) -------------------------------------------
+// Les traces d'origine serveur (neutralisation, incendie, explosifs...) peuvent etre mises au jour
+// chaque nuit. Globale : une seule fois par passe.
+let decouverteCrimesTraiteeCettePasse = false;
+async function traiterDecouverteCrimesServeur() {
+  if (decouverteCrimesTraiteeCettePasse) return;
+  decouverteCrimesTraiteeCettePasse = true;
+  const v = await sbRpc('minuit_decouverte_crimes', {}, HEADERS_SERVICE).catch(() => null);
+  const r = Array.isArray(v) ? v[0] : v;
+  if (!r || r.ok !== true) signalerEchec('decouverte_crimes', JSON.stringify(v));
 }
 
 // --- CONVOCATIONS NON HONOREES (27 octobre 2026, audit « une seule verite ») --------------------

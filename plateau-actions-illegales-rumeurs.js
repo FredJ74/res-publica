@@ -471,114 +471,37 @@ async function confirmerAssassinatArme(encodedCible, mode) {
     return;
   }
 
-  const paCost = m.paPJ;
-  // Deduction PA centralisee (Lot 2A) -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la
-  // disponibilite des PA (poche historique jamais migree au Lot 1). Appelee ICI, avant toute
-  // mutation (DIS, historique d'assassinats, ecriture Supabase d'impact) : fail-closed.
-  const rPa = await deduireCoutOrdre({ pa: paCost, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', paCost + ' PA requis.', false); return; }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  // 4 paliers de resultat, repartis sur l'echelle du taux de reussite
-  // roll <= taux/2            -> reussite totale (PV a 0)
-  // taux/2 < roll <= taux     -> reussite partielle (PV a 25)
-  // taux < roll <= taux + (100-taux)/2  -> echec partiel, demasque (PV a 50)
-  // au-dela                  -> echec total, demasque (pas de perte de PV)
-  const seuilReussiteTotale = taux / 2;
-  const seuilReussitePartielle = taux;
-  const seuilEchecPartiel = taux + (100 - taux) / 2;
-
-  let palier, pvCible, reussi;
-  if (roll <= seuilReussiteTotale) { palier = 'totale'; pvCible = 0; reussi = true; }
-  else if (roll <= seuilReussitePartielle) { palier = 'partielle'; pvCible = 25; reussi = true; }
-  else if (roll <= seuilEchecPartiel) { palier = 'echec_partiel'; pvCible = 50; reussi = false; }
-  else { palier = 'echec_total'; pvCible = null; reussi = false; }
-
-  if (mode === 'feu') state.dis = Math.max(0, state.dis - 20);
-
-  if (reussi) {
-    // Marquer la cible comme attaquee (cote attaquant, pour son propre suivi)
+  // PAR LE SERVEUR (27 octobre 2026) : PA, arme, jet, palier, PV de la victime, trace du crime,
+  // detection et avis de recherche sont decides par crime_neutraliser. L'ecran deposait lui-meme
+  // les degats chez la victime (impact « hp_set »), porte desormais fermee.
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('crime_neutraliser', { p_cible: cible.name, p_mode: mode, p_per_pnj: neutraliserPerCible(cible) }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    const motifs = { arme_manquante: 'Vous n\'avez pas l\'arme nécessaire dans votre inventaire.',
+                     pas_au_meme_endroit: 'Votre cible n\'est plus là.', cible_invalide: 'Cible invalide.' };
+    if (v && motifs[v.raison]) showToast('Impossible', motifs[v.raison], false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+    return;
+  }
+  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+  if (typeof v.dis === 'number') state.dis = v.dis;
+  const palier = v.palier;
+  if (v.reussi) {
     if (!state.assassinats) state.assassinats = [];
     state.assassinats.push({ cible: cible.name, jour: state.day, mode, palier, decouvert: false });
-
-    // Transmission REELLE des PV a la victime
-    // - PJ simule : effet direct
-    // - Vrai PJ : passe par le systeme d'impact differe (applique a sa prochaine connexion)
-    const pjSimule = state.pjSimules?.find(p => p.name === cible.name);
-    if (pjSimule) {
-      pjSimule.resources.hp = pvCible;
-      pjSimule.estAssassine = { jour: state.day, ville: state.currentCity };
-    } else if (cible.isPJ && typeof sbDeposerImpactIndice === 'function') {
-      await sbDeposerImpactIndice({
-        id: 'agression-' + Date.now(),
-        victime: cible.name,
-        indice: 'hp_set',
-        delta: pvCible,
-        palier: palier,
-        traite: false
-      }).catch(() => {});
-    }
-
-    // Reduction population si PNJ
     if (!cible.isPJ) {
       const pop = CITY_POPULATION[state.country]?.[state.currentCity];
       if (pop) pop.total = Math.max(0, pop.total - 1);
     }
-
     const messagePalier = palier === 'totale'
-      ? cible.name + ' s\'effondre, hors de combat. Vous n\'êtes pas identifié(e).'
-      : cible.name + ' est touché(e) mais reste conscient(e). Vous n\'êtes pas identifié(e).';
-    showToast('Acte commis', messagePalier, false);
-    addJournalEntry('Vous avez neutralisé ' + cible.name + ' (' + mode + ', réussite ' + palier + '). Non identifié(e) pour l\'instant.', 'event-bad');
+      ? cible.name + ' s\'effondre, hors de combat.' : cible.name + ' est touché(e) mais reste conscient(e).';
+    showToast('Acte commis', messagePalier + (v.repere ? ' Un témoin vous a reconnu.' : ' Vous n\'êtes pas identifié(e).'), false);
+    addJournalEntry('Vous avez neutralisé ' + cible.name + ' (' + mode + ', réussite ' + palier + ').'
+      + (v.repere ? ' Vous êtes recherché(e).' : ' Non identifié(e) pour l\'instant.'), 'event-bad');
     tracerActionPourRumeur('assassinat', cible.name.replace(' (PNJ)',''));
-
-    // §25 — BUG CORRIGE : le chemin vivant n'ecrivait JAMAIS historiqueCrimes. Consequence
-    // etablie a l'audit du 9 septembre : 'assassinat' figure bien dans ACTES_DECOUVRABLES, mais
-    // comme rien ne l'y inscrivait, verifierDecouverteCrimesPasses ne pouvait jamais decouvrir
-    // une neutralisation apres coup. La trace differee etait donc morte. Elle existe desormais.
-    if (!state.historiqueCrimes) state.historiqueCrimes = [];
-    state.historiqueCrimes.push({
-      acte: 'assassinat',
-      cible: cible.name,
-      jour: state.day,
-      expireJour: (state.day || 1) + 8
-    });
-
-    // Detection immediate (peut mener a un statut Recherche). Taux par methode inchanges :
-    // mains 30 %, arme blanche 40 %, arme a feu 60 %, modules par la discretion (§25).
-    checkDetection('assassiner_' + mode, 'success');
-
   } else {
-    if (palier === 'echec_partiel' && cible.isPJ && typeof sbDeposerImpactIndice === 'function') {
-      // Echec partiel : la cible est quand meme legerement blessee, meme si l'attaque echoue globalement
-      await sbDeposerImpactIndice({
-        id: 'agression-' + Date.now(),
-        victime: cible.name,
-        indice: 'hp_set',
-        delta: pvCible,
-        palier: palier,
-        traite: false
-      }).catch(() => {});
-    }
-    // Echec — identifie sur le coup, arrestation immediate (pas de detention preventive ici,
-    // c'est une prise sur le fait, pas une enquete ulterieure).
-    //
-    // §25 — DEUX BUGS CORRIGES ICI, etablis a l'audit du 9 septembre 2026 :
-    //
-    //   1. La cle 'tentative_homicide' etait un FANTOME : absente de PEINES_ACTES comme de
-    //      ACTES_ILLEGAUX, elle ne resolvait aucun bareme.
-    //   2. ouvrirModalArrestation('crime') recevait un TYPE au lieu d'un ACTE. getPeineParActe
-    //      ne trouvait donc rien dans PEINES_ACTES, retombait sur PEINES.crime, et appliquait
-    //      8 JOURS / 5 000 FR -- au lieu des 2 jours / 1 500 FR du bareme prevu pour cet acte.
-    //
-    // 'tentative_assassinat' existe deja dans PEINES_ACTES.republic ({jours:2, amende:1500}) et
-    // correspond exactement a la sanction voulue. La cle technique est CONSERVEE telle quelle :
-    // c'est un identifiant de bareme, jamais un libelle montre au joueur (§17).
-    addExternalEvent('Tentative de neutralisation sur ' + cible.name + ' ! Vous avez été identifié(e). Arrestation imminente.');
-    // AJOUT, jamais remplacement (13/09/2026) : un `state.recherche = [...]` effacait ici tous
-    // les autres motifs de poursuite, dont une condamnation en attente d'execution.
-    await inscrireRecherche({ acte: 'tentative_assassinat', type: 'crime', jour: state.day });
+    addJournalEntry('Tentative de neutralisation sur ' + cible.name + ' : vous avez été identifié(e).', 'event-bad');
     setTimeout(() => ouvrirModalArrestation('tentative_assassinat'), 800);
   }
   updateUI();
@@ -2195,56 +2118,23 @@ async function confirmerIncendier() {
   const buildingId = state.currentBuilding;
   const b = BUILDINGS[buildingId];
   if (!b) return;
-  // Deduction PA centralisee (Lot 2A) -- deduireCoutOrdre() est l'AUTORITE UNIQUE sur la
-  // disponibilite des PA (poche historique jamais migree au Lot 1). Appelee ICI, avant toute
-  // mutation (fermeture du batiment, historique de crimes) : fail-closed.
-  const rPa = await deduireCoutOrdre({ pa: 3, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '3 PA requis.', false); return; }
-
-  const malusISN = getMalusISN();
-  const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
-  const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(buildingId) ? MALUS_CENTRE_POUVOIR : 0;
-  const taux = Math.max(5, 30 + careerBonus - malusISN - malusCentre);
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  let joursFermeture = 0;
-  if (roll <= taux * 0.5) joursFermeture = 3;
-  else if (roll <= taux * 0.8) joursFermeture = 2;
-  else if (roll <= taux) joursFermeture = 1;
-
+  // PAR LE SERVEUR (27 octobre 2026) : PA, jet, fermeture du batiment, annonce, detection et trace
+  // -- crime_incendier. L'ecran ecrivait lui-meme la fermeture (table ouverte a tous).
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_incendier', { p_nom_batiment: b.name }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
+  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+  const joursFermeture = Number(v.jours) || 0;
   if (joursFermeture > 0) {
-    const fermeture = { pays: state.country, ville: state.currentCity, batiment_id: buildingId, duree_jours: joursFermeture, motif: 'incendie', auteur: state.char?.name || 'Anonyme' };
-    // La base fixe la date de réouverture, sans dépendre du compteur personnel.
-    if (typeof sbFermerBatiment === 'function') {
-      const enregistrement = await sbFermerBatiment(fermeture).catch(() => null);
-      if (enregistrement) {
-        // Recharger la date calculée par la base plutôt que simuler une fermeture locale.
-        if (typeof chargerBatimentsFermes === 'function') await chargerBatimentsFermes();
-      } else {
-        console.error('[batiments_fermes] Echec enregistrement fermeture incendie');
-      }
-    }
-
-    addExternalEvent('INCENDIE : ' + b.name + ' ravagé par les flammes. Fermé ' + joursFermeture + ' jour(s).');
+    if (typeof chargerBatimentsFermes === 'function') await chargerBatimentsFermes();
     showToast('Incendie déclenché', b.name + ' fermé ' + joursFermeture + ' jour(s).', true, true);
     addJournalEntry('Incendie déclenché sur ' + b.name + '. Fermeture : ' + joursFermeture + ' jour(s).', 'event-bad');
+    if (!v.repere) tracerActionPourRumeur('incendier', b.name);
   } else {
     showToast('Incendie raté', 'Le feu ne prend pas. Rien ne se passe.', false);
     addJournalEntry('Tentative d\'incendie ratée sur ' + b.name + '.', 'event-bad');
   }
-
-  // Risque d'etre repere sur le fait, independamment du resultat de l'incendie
-  const detectRate = ACTES_ILLEGAUX['incendier']?.detectRate || 70;
-  const repere = (Math.floor(Math.random() * 100) + 1) <= detectRate;
-  if (repere) {
-    await inscrireRecherche({ acte: 'incendier', type: 'crime', jour: state.day });
-    addExternalEvent('ALERTE : un témoin vous a reconnu près de l\'incendie.');
-  } else if (joursFermeture > 0) {
-    // Reussi et non repere sur le champ -> reste decouvrable plus tard via enquete
-    if (!state.historiqueCrimes) state.historiqueCrimes = [];
-    state.historiqueCrimes.push({ acte: 'incendier', cible: buildingId, jour: state.day, expireJour: state.day + 8 });
-    tracerActionPourRumeur('incendier', b.name);
-  }
+  if (v.repere) addJournalEntry('Un témoin vous a reconnu près de l\'incendie. Vous êtes recherché(e).', 'event-bad');
   updateUI();
 }
 
@@ -2274,91 +2164,33 @@ function doUtiliserExplosifs() {
 
 async function confirmerUtiliserExplosifs() {
   document.getElementById('modal-postes').classList.remove('open');
-  const explosifIdx = (state.inventory || []).findIndex(i => i.type === 'explosif');
-  if (explosifIdx === -1) return;
   const buildingId = state.currentBuilding;
   const b = BUILDINGS[buildingId];
   if (!b) return;
-
-  // Deduction PA centralisee (Lot 2A, correctif suite a revue Lot 1) -- deduireCoutOrdre() est
-  // l'AUTORITE UNIQUE sur la disponibilite des PA. Appelee ICI, AVANT la consommation de
-  // l'objet (mutation irreversible de l'inventaire, jusqu'ici prealable a la deduction PA) :
-  // fail-closed, l'explosif reste en inventaire si les PA manquent.
-  const rPa = await deduireCoutOrdre({ pa: 3, cost: 0 });
-  if (!rPa.ok) { showToast('PA insuffisants', '3 PA requis.', false); return; }
-
-  // Consommer l'objet (usage unique) — entonnoir serveur (chantier C, 14 septembre 2026).
-  // Reste APRES la deduction PA et AVANT tout effet, l'ordre fail-closed du Lot 2A est conserve.
-  const rSortie = await removeFromInventory(explosifIdx, 'consommer');
-  if (!rSortie.ok) { showToast('Impossible', messageRefusSortieInventaire(rSortie.raison), false); return; }
-
-  const malusISN = getMalusISN();
-  const careerBonus = state.char?.career === 'criminal_c' ? 15 : 0;
-  const malusCentre = BATIMENTS_CENTRES_POUVOIR.includes(buildingId) ? MALUS_CENTRE_POUVOIR : 0;
-  const taux = Math.max(5, 35 + careerBonus - malusISN - malusCentre);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const reussi = roll <= taux;
-
-  const autresPresents = getCurrentRoomPersons().filter(p => p.isPJ && p.name !== state.char?.name);
-
+  // PAR LE SERVEUR (27 octobre 2026) : explosif consomme, PA, jet, fermeture, blessures des
+  // personnes presentes, annonce, detection et trace -- crime_explosifs. L'ecran ecrivait lui-meme
+  // la fermeture et deposait les degats chez les victimes.
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_explosifs', { p_nom_batiment: b.name }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v && v.raison === 'explosif_manquant') showToast('Objet manquant', 'Vous n\'avez pas d\'explosifs dans votre inventaire.', false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+    return;
+  }
+  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+  if (Array.isArray(v.inventaire) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur({ inventory: v.inventaire });
+  const reussi = !!v.reussi, repere = !!v.repere;
+  const autresPresents = (Array.isArray(v.victimes) ? v.victimes : []).map(n => ({ name: n }));
   if (reussi) {
-    const fermeture = { pays: state.country, ville: state.currentCity, batiment_id: buildingId, duree_jours: 5, motif: 'explosifs', auteur: state.char?.name || 'Anonyme' };
-    // La base fixe la date de réouverture, sans dépendre du compteur personnel.
-    if (typeof sbFermerBatiment === 'function') {
-      const enregistrement = await sbFermerBatiment(fermeture).catch(() => null);
-      if (enregistrement) {
-        // Recharger la date calculée par la base plutôt que simuler une fermeture locale.
-        if (typeof chargerBatimentsFermes === 'function') await chargerBatimentsFermes();
-      } else {
-        console.error('[batiments_fermes] Echec enregistrement fermeture explosifs');
-      }
-    }
-
-    // Victimes : toutes les personnes reelles presentes dans la piece, sauf l'auteur
-    for (const p of autresPresents) {
-      if (typeof sbDeposerImpactIndice === 'function') {
-        await sbDeposerImpactIndice({
-          id: 'explosion-' + Date.now() + '-' + Math.floor(Math.random()*1000),
-          victime: p.name,
-          indice: 'hp_set',
-          delta: 15,
-          traite: false
-        }).catch(() => {});
-      }
-      // BUG CORRIGE (12 septembre 2026) : l'horodatage appelait formatJourHeure(), fonction qui
-      // n'existe nulle part (la vraie s'appelle formatDateHeureJeu). L'argument etant evalue avant
-      // l'appel, une ReferenceError interrompait la fonction des qu'un AUTRE PJ etait present :
-      // PA et explosifs deja consommes, batiment ferme, mais aucun toast ni entree de journal.
-      if (typeof sbSendMail === 'function') {
-        sbSendMail('Événement', p.name, 'Explosion !', 'Une explosion s\'est produite dans la pièce où vous vous trouviez. Vous êtes gravement blessé(e).', (typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '')).catch(() => {});
-      }
-    }
-
-    addExternalEvent('EXPLOSION : ' + b.name + ' dévasté par un attentat à l\'explosif. Fermé 5 jours.' + (autresPresents.length ? ' ' + autresPresents.length + ' blessé(s).' : ''));
+    if (typeof chargerBatimentsFermes === 'function') await chargerBatimentsFermes();
     showToast('Explosifs déclenchés', b.name + ' fermé 5 jours.' + (autresPresents.length ? ' ' + autresPresents.length + ' victime(s).' : ''), true, true);
     addJournalEntry('Explosifs utilisés sur ' + b.name + '. Fermeture : 5 jours.', 'event-bad');
+    if (!repere) tracerActionPourRumeur('utiliser_explosifs', b.name);
   } else {
     // Echec : l'auteur seul est blesse, progressivement (a partir du prochain dormir)
     state.explosifBlesse = { jourDebut: state.day };
     showToast('Explosifs ratés', 'Le dispositif vous explose entre les mains. Vous êtes blessé(e).', false);
     addJournalEntry('Tentative ratée d\'utilisation d\'explosifs sur ' + b.name + '. Vous êtes blessé(e).', 'event-bad');
-  }
-
-  // Risque d'etre repere sur le fait -- INCHANGE en cas de reussite (roll existant, detectRate).
-  // En cas d'echec en revanche, le chantier "animations de resolution d'ordres" (26 aout 2026)
-  // rend la regle explicite : un depot de bombe rate DOIT entrainer un signalement (plus un
-  // simple risque probabiliste) -- reutilise integralement le mecanisme existant de
-  // recherche/detection (state.recherche, deja le canal utilise partout ailleurs dans le jeu pour
-  // un acte illegal detecte), aucune seconde mecanique creee.
-  const detectRate = ACTES_ILLEGAUX['utiliser_explosifs']?.detectRate || 65;
-  const repere = reussi ? ((Math.floor(Math.random() * 100) + 1) <= detectRate) : true;
-  if (repere) {
-    await inscrireRecherche({ acte: 'utiliser_explosifs', type: 'crime', jour: state.day });
-    addExternalEvent(reussi ? 'ALERTE : un témoin vous a reconnu près de l\'explosion.' : 'ALERTE : l\'échec de l\'attentat a été signalé à la police.');
-  } else if (reussi) {
-    if (!state.historiqueCrimes) state.historiqueCrimes = [];
-    state.historiqueCrimes.push({ acte: 'utiliser_explosifs', cible: buildingId, jour: state.day, expireJour: state.day + 8 });
-    tracerActionPourRumeur('utiliser_explosifs', b.name);
   }
   updateUI();
 

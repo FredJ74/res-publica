@@ -84,8 +84,10 @@ att("un seul appel a sbRpc('recherche_retirer') cote client",
 att('le cron a son propre appel, avec sa cible nommee',
     compte(CODE['api/cron-minuit.js'], /sbRpc\('recherche_inscrire'/g) === 1
     && CODE['api/cron-minuit.js'].indexOf('p_cible: entree.nom') >= 0);
-att('les treize inscriptions passent par le helper',
-    partout(/inscrireRecherche\(/g) >= 12, partout(/inscrireRecherche\(/g) + ' appel(s)');
+// 27 octobre 2026 : neutralisation et explosifs inscrivent l'avis au serveur (crime_neutraliser,
+// crime_explosifs, crime_incendier), sans passer par l'ecran.
+att('les inscriptions restantes passent par le helper',
+    partout(/inscrireRecherche\(/g) >= 10, partout(/inscrireRecherche\(/g) + ' appel(s)');
 // 27 octobre 2026 : le retrait apres justification a quitte l'ecran (convocation_se_justifier).
 att('les retraits restants passent par le helper',
     partout(/retirerRecherche\(/g) >= 4, partout(/retirerRecherche\(/g) + ' appel(s)');

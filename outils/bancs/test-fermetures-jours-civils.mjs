@@ -36,6 +36,8 @@ test('une fermeture datée ne dépend pas du jour personnel', () => {
 test('la date de fin est décidée par PostgreSQL', () => {
   assert.match(sql, /NEW\.date_fin_universelle := \(now\(\) AT TIME ZONE 'Europe\/Paris'\)::date \+ NEW\.duree_jours/);
   assert.match(sql, /BEFORE INSERT ON public\.batiments_fermes/);
-  assert.match(db, /duree_jours: duree/);
-  assert.doesNotMatch(db.slice(db.indexOf('async function sbFermerBatiment'), db.indexOf('async function sbChargerBatimentsFermes')), /dateFin\.toISOString/);
+  // 27 octobre 2026 : la fermeture n'est plus ecrite par le navigateur (crime_incendier,
+  // crime_explosifs) ; il n'existe donc plus de calcul de date cote client.
+  assert.equal(db.indexOf('async function sbFermerBatiment'), -1);
+  assert.doesNotMatch(db, /dateFin\.toISOString/);
 });
