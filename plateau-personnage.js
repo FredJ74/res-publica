@@ -2325,15 +2325,7 @@ async function doDormir() {
   // Moral de base (correctif du 23 aout 2026) : constante unique, plus aucun bonus lie a la
   // simple presence dans un hotel (voir commentaire plus haut) -- seul doDormirChambre() ajoute
   // desormais un bonus hotelier, apres cet appel, jamais ici.
-  // La nuitee, si elle existe, a ete consommee et creditee DANS pa_repos_nocturne.
-  // Le retour sert uniquement a recopier la verite du serveur (aucune seconde RPC).
-  if (vRepos.hotel?.ok === true) {
-    state.moral = Math.min(100, Number(vRepos.hotel.moral) + 1 + (bonusLogement.moral || 0));
-    addJournalEntry('Nuit d’hôtel utilisée : +' + vRepos.hotel.montant + ' PA et +' + vRepos.hotel.moralBonus + ' Moral.', 'event-good');
-    showToast('Bonus hôtel appliqué', '+' + vRepos.hotel.montant + ' PA et +' + vRepos.hotel.moralBonus + ' Moral.', true);
-  } else {
-    state.moral = Math.min(100, state.moral + 1 + (bonusLogement.moral || 0));
-  }
+  state.moral = Math.min(100, state.moral + 1 + (bonusLogement.moral || 0));
 
   // RECUPERATION DES PA — DESORMAIS TRANCHEE PAR LE SERVEUR (16 septembre 2026).
   //
