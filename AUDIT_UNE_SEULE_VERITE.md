@@ -299,3 +299,7 @@ tirés au hasard et les effets purement visuels sont exclus.
   `sbCreerEngagement`, `sbCreerFaitArmes`, `sbArchiverLoi`, `sbCreerPari`, `sbSavePresidentClub`,
   `calculerResultatElection`, `doCorrompreGardien`, `doFalsifierDocs`) ; `interagirPnjTerrain`
   laissé (testé par un banc du chantier terrains de Codex).
+- **27/10 (matin)** — §1.1 en partie : ramasser un objet trouvé passe par le serveur
+  (`objet_abandonne_ramasser`), l'objet arrive dans l'inventaire réel ; `objets_abandonnes` n'est
+  plus écrite par les joueurs ; plus aucun joueur ne peut supprimer les votes électoraux ni les
+  dons en attente des autres (migration `20261027030000`).

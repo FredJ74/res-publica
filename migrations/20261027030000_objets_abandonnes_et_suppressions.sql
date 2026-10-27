@@ -1,3 +1,5 @@
+-- APPLIQUEE le 27/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261027094104.
+-- Eprouvee apres application en transaction annulee (ramassage d'un objet et d'une pile, lieu refuse, objet deja pris, droits retires). Baseline NON reextrait.
 -- ============================================================================
 -- TABLES OUVERTES : OBJETS ABANDONNES, VOTES, DONS EN ATTENTE (27 octobre 2026)
 -- ============================================================================
