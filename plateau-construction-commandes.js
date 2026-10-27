@@ -22,12 +22,17 @@ async function constructionExecuterCommande(action,parametres={}){
   }catch(_){showToast('Commande non lancée','La reprise sûre de cette opération ne peut pas être enregistrée.',false);return null;}
   constructionCommandeEnCours=true;
   try{
-    const r=await sbRpcVerdict('chantier_commande',{p_requete:intention.requete,p_terrain_id:id,p_action:action,p_parametres:intention.parametres}).catch(()=>null);
+    const r=await sbRpcVerdict('chantier_commande',{p_requete:intention.requete,p_terrain_id:id,p_action:action,p_parametres:intention.parametres},{encoreValide:()=>contexteNavigationRueValide(contexte)}).catch(()=>null);
     if(!contexteNavigationRueValide(contexte))return null;
     if(!r?.ok){
       // Ne pas perdre l'intention sur une erreur HTTP/transport dont le resultat est inconnu.
       if(r&&!r.transport)sessionStorage.removeItem(cle);
       showToast('Commande non confirmée',r?.transport||!r?'La réponse est incertaine. Reprenez la même commande pour vérifier son résultat sans second traitement.':(r.raison||'Le serveur a refusé cette commande.'),false);return null;
+    }
+    if(action==='voler'&&(typeof r.reussite!=='boolean'||typeof r.detecte!=='boolean'
+      ||!Number.isSafeInteger(r.quantite)||r.quantite<0||typeof r.message!=='string'
+      ||(r.reussite?r.quantite===0:r.quantite!==0))){
+      showToast('Résultat non confirmé','La réponse du vol est incomplète. La même intention est conservée pour vérifier son reçu sans second traitement.',false);return null;
     }
     // Le recu peut etre ancien : relire le terrain et les finances, jamais adopter son snapshot.
     const frais=await chargerTerrainState(id,true);
@@ -37,6 +42,16 @@ async function constructionExecuterCommande(action,parametres={}){
     if(!finance){showToast('Commande acquise','La relecture financière reste à confirmer. L’intention de reprise est conservée.',true);return null;}
     if(!contexteNavigationRueValide(contexte))return null;
     if(typeof finance.pa==='number'){state.pa=finance.pa;state.char.pa=finance.pa;}
+    if(action==='voler'){
+      const inventaire=await sbInventaireReceptionEtat(contexte.nom).catch(()=>null);
+      if(!contexteNavigationRueValide(contexte))return null;
+      if(!inventaire?.ok||!sbAdopterInventaireServeur(inventaire)){
+        showToast('Commande acquise','L’inventaire reste à relire. Reprenez la même commande ; aucun second vol ne sera exécuté.',true);return null;
+      }
+      // Les recherches et le journal sont ceux relus par le chargeur commun.
+      if(Array.isArray(finance.recherche))state.recherche=finance.recherche;
+      if(Array.isArray(finance.char?.journal))state.char.journal=finance.char.journal;
+    }
     sessionStorage.removeItem(cle);updateUI();return r;
   }finally{constructionCommandeEnCours=false;}
 }
@@ -80,7 +95,7 @@ if (typeof window !== 'undefined') {
     const plan={fn:'modifier_plan_chantier',label:'Définir les lots intérieurs',icon:'ti-layout-grid',pa:0,cost:0,type:'legal',successRate:100};
     if (!ch) return ts.niveau_construction && !ts.planInitialValide && !(ts.subdivisions||[]).length ? [plan] : [];
     if (!chantierTermine(ch)) {
-      const ordres=[{fn:'prix_chantier',label:'Prix d’achat des matériaux',icon:'ti-coins',pa:0,cost:0,type:'legal',successRate:100},
+      const ordres=[{fn:'vigiles_chantier',label:'Affecter mes agents de sécurité',icon:'ti-shield',pa:0,cost:0,type:'legal',successRate:100},{fn:'prix_chantier',label:'Prix d’achat des matériaux',icon:'ti-coins',pa:0,cost:0,type:'legal',successRate:100},
         // Salaire des ouvriers (Fred, 25/10/2026) : taux horaire fixe par le titulaire, minimum 50 FR.
         {fn:'taux_chantier',label:'Salaire horaire des ouvriers',icon:'ti-cash',pa:0,cost:0,type:'legal',successRate:100}];
       if(verdictModificationPlan(ch).ok) ordres.push(plan);
@@ -147,4 +162,24 @@ async function confirmerPrixChantier(){
     await chargerTerrainState(id);if(contexteNavigationRueValide(contexte))ouvrirApprovisionnementChantier();
   }catch(_){if(contexteNavigationRueValide(contexte))showToast('Prix non confirmés','Relisez les prix sur le serveur avant de réessayer.',false);}
   finally{constructionPrixEnCours=false;}
+}
+
+// Le recrutement, le statut et le detachement restent ceux du socle PNJ existant.
+async function ouvrirVigilesChantier(){
+ const c=contexteNavigationRue();
+ const r=await sbRpcVerdict('employe_mes_employes',{}).catch(()=>null);
+ if(!contexteNavigationRueValide(c))return;
+ if(!r?.ok){showToast('Agents indisponibles','La liste des employés ne peut pas être confirmée.',false);return;}
+ const agents=(r.employes||[]).filter(e=>['agent_securite','maitre_chien'].includes(e.metier));
+ constructionFenetre('Agents de sécurité du chantier','<p class="cpj-note">Amenez vos agents ici par le groupe existant. Le serveur vérifie leur présence et les détache pour les affecter au chantier. Pour les rappeler, utilisez la gestion commune du groupe.</p>'+agents.map(e=>constructionBouton('Affecter '+e.nom,'confirmerVigileChantier('+JSON.stringify(e.pnj_id)+')')).join(''));
+}
+let constructionVigileEnCours=false;
+async function confirmerVigileChantier(id){
+ if(constructionVigileEnCours)return;
+ const c=contexteNavigationRue();constructionVigileEnCours=true;
+ try{
+  const r=await sbRpcVerdict('chantier_vigiles_affecter',{p_terrain:c.batiment,p_ids:[id]},{encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
+  if(!contexteNavigationRueValide(c))return;
+  showToast(r?.ok?'Affectation confirmée':'Affectation non confirmée',r?.ok?'L’agent est affecté ici.':(r?.raison||'Réponse incertaine ; vérifiez la présence avant de recommencer.'),!!r?.ok);
+ }finally{constructionVigileEnCours=false;}
 }

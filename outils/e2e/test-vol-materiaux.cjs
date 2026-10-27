@@ -1,8 +1,9 @@
 'use strict';
-// Fonction réelle, contreparties fictives en mémoire : aucun appel de production.
+// Contre-épreuves historiques #194 conservées sur la fixture du handler remplacé.
+// Les raccordements du handler actuel sont dans test-vol-atomique.cjs.
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),acorn=require('acorn');
-const source=fs.readFileSync(path.join(__dirname,'../../plateau-justice-economie.js'),'utf8');
+const source=fs.readFileSync(path.join(__dirname,'fixtures/vol-materiaux-avant-atomique.js'),'utf8');
 const n=acorn.parse(source,{ecmaVersion:'latest'}).body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='confirmerVolMateriaux');
 assert.ok(n,'handler réel requis');
 const code=source.slice(n.start,n.end);

@@ -138,30 +138,28 @@ REGRESSIONS_SUCCESSIONS = [
      "la porte n est pas appelee"),
 ]
 
-REGRESSIONS_TERRAIN = [
-    ("terrain -- le verdict de la mutation n'est plus lu",
-     "  if (!vMut || vMut.ok !== true) {",
-     "  if (false) {",
-     # Sans la lecture du verdict, `vMut.etat` leve sur un verdict nul : la promesse est rejetee et
-     # la fonction ne rend plus false. C'est cette epreuve-la qui tombe la premiere.
-     "verdict absent : la fonction rend false"),
-
-    ("terrain -- l'ecriture directe du blob revient",
-     "  const vMut = typeof sbRpc === 'function'",
-     "  await sbSetTerrainState(state.country, id, patch).catch(() => {});\n"
-     "  const vMut = typeof sbRpc === 'function'",
-     "finaliserAchatTerrain ne fait plus aucune ecriture directe de terrain"),
-
-    ("terrain -- la purge de la reservation retombe hors du patch",
-     "  for (const k in (purge || {})) patch[k] = purge[k];",
-     "  if (false) { for (const k in (purge || {})) patch[k] = purge[k]; }",
-     "LA PURGE DE LA RESERVATION EST DANS LE MEME PATCH"),
-
-    ("terrain -- le cache local reprend le patch au lieu de l'etat serveur",
-     "  if (typeof setTerrainState === 'function' && vMut.etat) setTerrainState(id, vMut.etat);",
-     "  if (typeof setTerrainState === 'function') setTerrainState(id, patch);",
-     "le cache local recopie l'etat RENDU PAR LE SERVEUR"),
-]
+# #135 : memes quatre risques, ancrages sur l'adaptateur atomique actuel.
+# Aucun retrait d'epreuve ; les mutations touchent le code reel, pas une ancienne porte.
+REGRESSIONS_TERRAIN = [("terrain -- le verdict de la commande commune n'est plus lu",
+  "return !!await finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis');",
+  "await finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis');return true;",
+  'refus sans fausse propriete'),
+ ("terrain -- l'ecriture directe du blob revient",
+  "return !!await finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis');",
+  'await sbSetTerrainState(state.country,id,{});return !!await '
+  "finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis');",
+  'aucune ancienne primitive'),
+ ('terrain -- la purge de reservation redevient dictee par le client',
+  "return !!await finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis');",
+  'return !!await '
+  "finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis',{p_patch:{achatDirect:null}});",
+  'purge etat exclusivement serveur dans les parametres'),
+ ('terrain -- le cache local reprend un patch invente apres la commande',
+  "return !!await finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis');",
+  'const r=await '
+  "finance135Acquerir(id,titre==='achat_direct'?'acte_direct':'acte_compromis');remplacerTerrainState(id,{proprietaire:'Ben'});return "
+  '!!r;',
+  'cache actuel du serveur')]
 
 REGRESSIONS_TOURNEE = [
     ("tournee -- le verdict de la cloture n'est plus lu",
@@ -396,10 +394,10 @@ REGRESSIONS_TERRAIN_JUSTICE = [
      "  await deduireCoutOrdre({pa,cost});\n  showToast('Délai incompressible',",
      "l'acceleration interdite ne preleve ni PA ni argent"),
 
-    ("terrain -- le vol credite la quantite calculee ici, pas celle que le serveur a arretee",
-     "    qte = Number(vVol.quantite) || 0;",
-     "    void vVol;",
-     "le vol credite la quantite REELLEMENT emportee"),
+    ("terrain -- le vol recommence a crediter l'inventaire depuis le navigateur",
+     "const r = await constructionExecuterCommande('voler', { matiere });",
+     "addToInventory({stackKey: matiere, qty: 20}); const r = await constructionExecuterCommande('voler', { matiere });",
+     "le vol delegue la transaction sans credit ni paiement local"),
 
     ("terrain -- l'ajout d'un lot renvoie le tableau entier",
      "    p_terrain_id: id, p_acte: 'lot_ajouter', p_lots: [lotNeuf]",

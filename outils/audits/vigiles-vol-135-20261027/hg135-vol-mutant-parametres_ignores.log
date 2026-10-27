@@ -1,0 +1,102 @@
+OK journee reelle, matieres et PNJ payes
+OK recette entrepot dans seule caisse canonique
+OK aucune caisse parasite dans le blob
+OK reponse perdue : meme jour aucun double achat travail debit mail
+OK premier tiers : appel automatique 35 pour cent
+OK appel banque prioritaire, liquide preserve
+OK liquide inchange quand banque suffit
+OK deux tiers : 30 pour cent puis 6 jours incompressibles
+OK achevement sans livraison ni locaux avant reception
+OK invitation reception unique
+OK lendemain acheve : aucun nouvel achat salaire ni invitation
+OK fonds insuffisants : pause sans progression
+OK aucun debit partiel en refus
+OK manque persistant : pas de mail duplique
+OK fonds arrives : reprise automatique, temps utile conserve
+OK financeur et propriete stables orga:orga
+OK financeur et propriete stables ville:republic:capitale
+OK caisse organisation reelle debitee
+OK caisse municipale reelle debitee
+OK changement de maire : chantier autonome et communal
+OK deux cron concurrents : une seule journee
+OK panne finale : rollback fonds stocks caisses notifications et temps
+OK appel navigateur refuse sans mutation
+OK droits : cron seul, primitives financieres privees
+OK anciennes commandes sans recu inaccessibles au navigateur
+OK lancement commun, prix miroir arrondis au franc superieur
+OK lancement : reponse perdue sans second debit
+OK reutilisation du recu pour un autre montant refusee
+OK reception prematuree refusee sans mutation
+OK reception hors site refusee
+OK reception sur place active le batiment une seule fois
+OK reliquat financier a la caisse du batiment, jamais au PJ
+OK rechargement : recu confirme consultable sans rejouer la commande
+OK autre acteur : aucun recu divulgue
+OK reception reponse perdue : aucun second reliquat
+OK reliquat materiaux au stock du batiment sans passage par inventaire PJ
+OK surface et prix propres preserves
+OK adjoint ne peut engager une construction communale
+OK faux poste maire sans mandat atteste refuse
+OK maire decide seul, finance communal, aucune appropriation personnelle
+OK organisation : membre sans representation refuse
+OK organisation : chef via porte commune, caisse et maitrise ouvrage organisationnelles
+OK plan gratuit interdit avant dernier tiers
+OK plan dernier tiers enregistre sans activer les locaux
+OK archive et recepisse remis par sas commun dans la transaction
+OK plan : reponse perdue sans seconde archive ni document
+OK brouillon initial encore modifiable gratuitement
+OK surface excedentaire refusee sans archive ni document
+OK validation initiale explicite fige le plan
+OK nouvelle modification gratuite apres validation refusee
+OK travail PJ : moteur commun paie 70 FR par heure
+OK salaire et PA atomiques
+OK reponse de travail perdue : aucun double PA ou salaire
+OK travail distant refuse
+OK ancienne porte de plan ne contourne pas les phases
+OK construction Republia : aucune acceleration du delai incompressible
+OK maire : tarifs du chantier communal via meme moteur
+OK fraction de franc refusee sans nouvelle ecriture
+OK delai incompressible avant mutation dans republic
+OK delai incompressible avant mutation dans soviet
+OK delai incompressible avant mutation dans narco
+OK delai incompressible avant mutation dans khalija
+OK vol/vigiles prevol refuse une presence PNJ directement falsifiable par le navigateur
+OK vol/vigiles prevol refuse le stockage de benediction absent, aucune hypothese cachee
+OK vol/vigiles sans affectation aucun vigile fictif
+OK vol/vigiles agent du socle detache et affecte, presence effective
+OK vol/vigiles reconnexion/rejeu affectation sans agent duplique
+OK vol/vigiles plusieurs agents reels, pas un nombre dans le blob
+OK vol/vigiles agent absent ne protege plus
+OK vol/vigiles licenciement commun retire protection sans copie de statut
+OK vol/vigiles tiers ne peut affecter employe d autrui
+OK vol/vigiles agent sans PA indisponible
+OK vol/vigiles affectation et presence generiques sur parcelle 1
+OK vol/vigiles affectation et presence generiques sur parcelle 2
+OK vol/vigiles affectation et presence generiques sur parcelle 3
+OK vol/vigiles affectation et presence generiques sur parcelle 4
+OK vol/vigiles affectation et presence generiques sur parcelle 5
+OK vol/vigiles rappel par le groupe commun, pas un second moteur
+OK vol/vigiles agent repris dans groupe ne garde plus le chantier
+OK vol/vigiles agent porte/non affecte a ce chantier sans protection fantome
+OK vol/vigiles mutation de propriete invalide les anciennes affectations
+OK vol/vigiles 720 comparaisons exactes des formules historiques JS/SQL, malus inchanges
+OK vol/vigiles vol decide par serveur avec vigile reel
+OK vol/vigiles stock et inventaire persistant avec deux PA
+OK vol/vigiles reponse perdue meme commande retourne recu
+OK vol/vigiles aucun deuxieme objet PA trace indice ou evenement
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+Traceback (most recent call last):
+  File "/workspace/res-publica-recette135/outils/bancs/banc-vigiles-vol-135-local.py", line 303, in <module>
+    if __name__=='__main__':base.main(suite)
+                            ^^^^^^^^^^^^^^^^
+  File "/workspace/res-publica-recette135/outils/bancs/banc-construction-jour-local.py", line 185, in main
+    if suite_supplementaire is not None:suite_supplementaire(db,c,server)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/res-publica-recette135/outils/bancs/banc-vigiles-vol-135-local.py", line 117, in suite
+    identite('VoleurA');check(not commande('succes0001',{'matiere':'metal'})['ok'],'identifiant reutilise avec autre matiere refuse')
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/res-publica-recette135/outils/bancs/banc-vigiles-vol-135-local.py", line 19, in check
+    assert v,texte;n+=1;print('OK vol/vigiles',texte,flush=True)
+           ^
+AssertionError: identifiant reutilise avec autre matiere refuse

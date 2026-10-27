@@ -5,6 +5,19 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### #135 — Vigiles et vol atomique (branche de préparation)
+
+- Branche `codex/vigiles-vol-135-20261027`, départ #194 `83b5c78`, main documentaire #195 `051e6ad` intégré. Commits de code sauvegardés : `1a3edb2`, `2ddf174`, `47e02b6` ; voir le dernier commit pour preuves et consolidation. Aucun fichier métier ambassades/BNE ou refonte transversale de Claude modifié.
+- Codé : affectation de vrais employés PNJ par le socle existant, présence/mandat revalidés ; vol dans `chantier_commande` et son reçu unique, coûts/stock/inventaire/traces/indices/journal atomiques. Refus métier figés, paramètres et identité liés au reçu, ancienne porte fermée. Capacité volontaire et piles historiques préservées. Client sans jet/débit/ajout local, reprise et transport protégés contre l’ancien contexte et les réponses incomplètes.
+- Détection : sources communes retrouvées dans Git, fixture JSON tracée ; patch exact partageant perception/jet avec la police, registre commun de tentatives, preuve privée et garde interne. Primitive commune de combat militaire réutilisée sur fixture. Aucune rencontre policière fictive ni détention créée.
+- Référence des décisions : `GAME-DESIGN-SECURITE-CHANTIERS-135.md`, conforme à #195. Le droit d'intervenir est décidé. Reste l'orchestration terminale ; question précise en attente sur la retenue/remise à la police après neutralisation. Le détecteur privé n'est pas automatiquement activé dans la navigation tant que cette suite n'est pas sûre.
+- Résultats : 118/118 pilote (Chromium local inclus), 105/105 bancs clients ; 81 assertions natives sécurité/vol + 62 historiques, grilles 720+112+16 ; 354 assertions du parcours intégré (324 conservées + 30, avec 61 bancaires sous-jacentes). Six mutants métier détectés. Contre-épreuves historiques 89/91, contre 84/91 sur main ; deux ancrages préexistants hors immobilier restent rouges, aucun test retiré.
+- Globaux 4/12 : huit familles rouges préexistantes, avec écarts supplémentaires attendus de la préparation (85 RPC absentes du baseline contre 83, nouvel ordre gratuit). Aucune référence/empreinte modifiée pour verdir ces écarts.
+- Ne pas fusionner/déployer : contrat persistant de bénédiction absent des sources archivées, présence réelle à vérifier ; migration refuse cette absence. Les bancs signalent une hypothèse de colonne, qui n'autorise pas à contourner le prévol ni à ignorer le producteur du bonus. Détecteur historique non substituable à la base vivante.
+- Quatre migrations préparées, aucune appliquée. Prévol : `outils/bancs/prevol-vigiles-vol-135.py`. Rapport : `outils/audits/VIGILES-VOL-ATOMIQUE-135-20261027.md`, preuves sous `outils/audits/vigiles-vol-135-20261027/`.
+- PR en brouillon tentée : GraphQL Forbidden ; aucun numéro créé par cette session, aucune fusion. Lecture issue GitHub également refusée, Vercel inaccessible via proxy, aucun outil Supabase exposé. Aucun joueur connecté, déplacé ou modifié ; aucun compte/secret touché. #135 reste ouvert, recette authentifiée et déploiement non attestés.
+
+
 ### #135 — Recette de clôture du 27 octobre
 
 - Branche `codex/cloture-immobilier-135-20261027`, issue de main `74128ee` : #174/#175/#178/#188 conservées, aucun ancien correctif réimporté. Aucun fichier métier ambassades/BNE ni socle transversal de Claude modifié.
