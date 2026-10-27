@@ -7,17 +7,18 @@ SET search_path TO 'public','pg_temp' AS $hg$
  SELECT coalesce(jsonb_agg(jsonb_build_object(
    'pnj_prive_id',m.id, 'matricule','prive:'||m.id,
    'pa',m.pa, 'stats',jsonb_build_object('PER',m.car_per,'VOL',m.car_vol),
-   'buildingId',p.building_id,'roomId',p.room_id,'rueNoeudId',p.rue_noeud_id
+   'buildingId',p.building_id,'roomId',p.room_id,'rueNoeudId',coalesce(leader.current_street,p.rue_noeud_id)
  ) ORDER BY m.id),'[]'::jsonb)
  FROM public.pnj_membres m
  JOIN public.pnj_employes_metier e ON e.pnj_id=m.id
  CROSS JOIN LATERAL public.pnj_position_effective(m.id) p
+ LEFT JOIN public.personnages_donnees leader ON leader.name=m.leader_pj
  WHERE e.job IN ('agent_securite','maitre_chien')
    AND m.famille='employe' AND m.statut='actif'
    AND m.proprietaire_pj IS NOT NULL AND m.proprietaire_pj IS DISTINCT FROM p_cible
    AND m.pa>0 AND m.car_per IS NOT NULL AND m.car_vol IS NOT NULL
    AND m.pays=p_pays AND p.pays=p_pays AND p.ville=p_ville
-   AND ( (p_rue IS NOT NULL AND p.rue_noeud_id=p_rue AND p.building_id IS NULL)
+   AND ( (p_rue IS NOT NULL AND coalesce(leader.current_street,p.rue_noeud_id)=p_rue AND p.building_id IS NULL)
       OR (p_rue IS NULL AND p.building_id=p_batiment AND p.room_id=p_piece) );
 $hg$;
 REVOKE ALL ON FUNCTION public.securite_agents_prives_presents_interne(text,text,text,text,text,text)
