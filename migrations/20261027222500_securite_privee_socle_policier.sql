@@ -1,4 +1,7 @@
--- #135 : adaptateur de présence uniquement. Aucune affectation, aucun moteur de détection parallèle.
+-- #135 : adaptateur commun de présence et de déploiement.
+ALTER TABLE public.pnj_membres
+ ADD COLUMN IF NOT EXISTS groupe_deploiement_id text;
+
 -- Les policiers et les agents privés sont arbitrés par les mêmes RPC police_*.
 CREATE OR REPLACE FUNCTION public.securite_agents_prives_presents_interne(
   p_pays text, p_ville text, p_batiment text, p_piece text, p_rue text, p_cible text
@@ -28,8 +31,6 @@ REVOKE ALL ON FUNCTION public.securite_agents_prives_presents_interne(text,text,
 -- Socle universel : identité du détachement au sol, distincte du chef qui se déplace.
 -- NULL signifie agent isolé. Une même clé pour les membres d'un détachement
 -- conserve l'unité de groupe après le départ de leur chef PJ.
-ALTER TABLE public.pnj_membres
- ADD COLUMN IF NOT EXISTS groupe_deploiement_id text;
 
 CREATE OR REPLACE FUNCTION public.pnj_deployer_unite(
  p_pnj_ids text[], p_groupe boolean DEFAULT true
