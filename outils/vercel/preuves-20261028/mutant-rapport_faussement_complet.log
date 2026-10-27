@@ -1,0 +1,22 @@
+NON banc-a.cjs
+diagnostic partiel
+
+F
+======================================================================
+FAIL: test_bilan_partiel_persiste_et_echec_ne_devient_pas_succes (__main__.ControleurProcessus.test_bilan_partiel_persiste_et_echec_ne_devient_pas_succes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/hg-ci-mutant-d3m19lri/test-controleur-processus.py", line 155, in test_bilan_partiel_persiste_et_echec_ne_devient_pas_succes
+    self.assertEqual(bilan, {'etat': 'interrompue', 'bancs_prevus': 2,
+AssertionError: {'etat': 'terminee', 'bancs_prevus': 2, 'bancs_termines': 1, 'echecs': 1} != {'etat': 'interrompue', 'bancs_prevus': 2, 'bancs_termines': 1, 'echecs': 1}
+- {'bancs_prevus': 2, 'bancs_termines': 1, 'echecs': 1, 'etat': 'terminee'}
+?                                                                    ^^^
+
++ {'bancs_prevus': 2, 'bancs_termines': 1, 'echecs': 1, 'etat': 'interrompue'}
+?                                                                ++   ++ ^^
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.002s
+
+FAILED (failures=1)

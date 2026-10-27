@@ -1,0 +1,32 @@
+✔ le contrôleur conserve les diagnostics et arrête son groupe sans faux succès (7512.225319ms)
+✔ documentation seule ignoree, sur main comme sur une branche Preview (62.980874ms)
+✔ build conserve pour api/chat.js (35.287774ms)
+✔ build conserve pour images/test.webp (31.545112ms)
+✔ build conserve pour migrations/20261018000000_test.sql (30.687827ms)
+✔ build conserve pour vercel.json (31.174535ms)
+✔ build conserve pour .github/workflows/test.yml (31.138587ms)
+✔ build conserve pour vercel-ignore-build.cjs (31.680002ms)
+✔ build conserve pour api/prompt.md (29.94662ms)
+✔ build conserve pour inconnu.txt (31.859552ms)
+✔ tous les commits depuis le dernier deploiement sont examines, pas seulement HEAD^ (38.27569ms)
+✔ suppression ou renommage de code ne sont pas caches par une extension documentaire (34.687006ms)
+✔ premier deploiement, SHA absent/invalide, HEAD incoherent ou diff vide : build (30.395824ms)
+✔ historique reecrit ou commit precedent indisponible : build (64.875575ms)
+✔ re-inclusion documentaire ou disparition de son exclusion : build (58.057257ms)
+✔ commande Vercel : codes de sortie reels 0=ignorer et 1=construire (110.110871ms)
+✔ syntaxe API portable : vrai module accepte, syntaxe invalide refusee (136.077488ms)
+✔ referentiels : derive reste en echec sans faux miroir absent (33.848052ms)
+✔ referentiels : orpheline reste en echec sans faux miroir absent (41.89787ms)
+✔ referentiels : non-declaree reste en echec sans faux miroir absent (42.140893ms)
+✔ referentiels : disparue reste en echec sans faux miroir absent (35.736187ms)
+✔ referentiels : muet reste en echec sans faux miroir absent (37.211527ms)
+✔ configuration raccordee au script teste, deploiements automatiques limites a main (1.200965ms)
+✔ CI : Playwright installe une seule fois avant les bancs client et le pilote (0.160977ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7571.647974

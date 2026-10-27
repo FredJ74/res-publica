@@ -1,0 +1,17 @@
+[
+  {
+    "mutant": "journaux_perdus",
+    "detecte": true,
+    "exit_code": 1
+  },
+  {
+    "mutant": "enfant_orphelin",
+    "detecte": true,
+    "exit_code": 1
+  },
+  {
+    "mutant": "rapport_faussement_complet",
+    "detecte": true,
+    "exit_code": 1
+  }
+]

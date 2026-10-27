@@ -5,6 +5,15 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Fiabilisation GitHub / Vercel — 28/10, Codex
+
+- Branche isolée **`codex/fiabilisation-ci-20261028`**, issue du main `da5ecc0`. Aucun fichier du jeu, de l'inventaire, des ambassades/BNE ou aucune migration modifié. Fred confie l'inventaire et son contrôle Workflow à Claude : ne pas les reprendre dans ce lot.
+- Défaut reproduit du contrôleur : enfant encore actif après expiration du délai, diagnostics partiels jetés. Correction de l'arrêt du groupe privé, journaux conservés après timeout, distinction lancement/timeout/assertion et résultats JSON progressifs avec état complet/interrompu ; TERM nettoie aussi. Aucun verrou métier ni délai assoupli.
+- Deux workflows coûteux rejoignent la politique existante d'annulation des seules anciennes exécutions d'une même PR (parcours immobilier et placements). Tests et noms de contrôles conservés ; main n'est pas annulé. Configuration distante et `vercel.json` inchangés.
+- Vérifié localement : **106/106 bancs** avec le lanceur Linux du dépôt sans adaptateur externe ; **105/105 pilote local**, **7 régressions Python**, **24 tests ciblés**, **3 mutants détectés**, **3 passages Chromium (27/27 scénarios)**, **11 tests calendrier/placements**, **23 API** syntaxiquement valides ; payload **256,5/330 Mo**, 12 YAML analysés. Les comptes se recouvrent, ne pas les additionner.
+- Rapport et preuves : `outils/vercel/FIABILISATION-20261028.md`, `outils/vercel/preuves-20261028/`. API GitHub runs/PR refusée ; HTTPS Vercel refusé par le proxy. Pas de résultat distant observé, pas de fusion/déploiement demandé ni effectué. Création de PR à tenter après push ; en cas de refus, conserver la branche et les preuves pour sa reprise.
+
+
 ### Sécurité privée #135 — arbitrages du 27/10 (ChatGPT)
 
 - Fred confirme : **seulement deux socles**, embauche/déplacement des PNJ et mécanique policière (malus actes illégaux, détection, interpellation, prison). « Vigile de chantier » est cosmétique. **Aucune affectation au chantier**, aucun moteur/table d'affectation propre aux vigiles. Le PJ employeur déplace librement son PNJ. En cas d'interpellation réussie, mécanisme carcéral policier existant et message RP « remis à la police, conduit en prison ».

@@ -1,0 +1,49 @@
+{
+  "main": "da5ecc0c1f102c46ea74640d07f700db29d4c656",
+  "date_locale": "2026-10-28",
+  "zone": "Europe/Paris",
+  "branche": "codex/fiabilisation-ci-20261028",
+  "sources_sha256": {
+    "outils/bancs/controler-client.py": "d925054248b8c69292eed3dc2e830214d1c47a3fd1aaa045b41de275d264ba49",
+    "outils/bancs/test-controleur-processus.py": "f07643f425feef9bee7ead7b679e19176f89b889dffe2a82020726c49b078fb4",
+    "outils/bancs/banc-controleur-processus.cjs": "f45ddb9ee98a060f00f822ac08239d6d5c1a9d7d3da6d4459581419ca1f1aa77",
+    "outils/bancs/banc-deploiement-sobre.cjs": "522a20f516f412fa6622852ae2aa942569006ed35a8769c57d9bfe1cfe084b47",
+    ".github/workflows/garde-placement-national.yml": "8c3f9e1ddf4aa136643b784980e36b0613f12fb740b8a6e33486304efa525cfd",
+    ".github/workflows/test-parcours-immobilier-135.yml": "53c0b642ef9f20702c911e98185f8a100bfabe71e4737489dc948c7e610e0d08",
+    "vercel.json": "a65e94d51d177cfabd3c645de24633d19b58fc6def620a90e65ee0789cdd044f",
+    "vercel-ignore-build.cjs": "e19752ee2ffef4ef996eb25c87e05e4ba7da5e631e71f0c7c49fa6eb68e9c8fc"
+  },
+  "preuves_sha256": {
+    "acces-vercel.log": "3804f13c3dd81464ba131562bf8b97cd862f560f530e211ce0f85a0c48d975c0",
+    "bundle-vercel.log": "2e872fa3fe664cb9c94047d94c86cc4b34f32ebcdf82f44b229067aaaa60578e",
+    "calendrier-placements.log": "e689c2ef2a2f949dc817498f02c848613089de3c2852923acfb69449c6799a78",
+    "chromium-1.log": "fb49351b99444f3a6fce97abc5c5e878e742b3447d5d22f141505c3271a6b3aa",
+    "chromium-2.log": "d1a0dd0c954257e4521dab24279a2d16efb85cd61a06f094482b90aee50b2712",
+    "chromium-3.log": "caf9ee5a9dcb74a856467f7d01fea59cb3790d8847e89ae36b580403d8fbde1d",
+    "chromium-repetitions.json": "4e9ce09d9d8d7a8d7d52045d970466de28b12d30bdd4a04fc2e24b7bafff16fa",
+    "client-execution.json": "f5c02e753945a45b45f22f98c5f8150991097d18945e03e7e2c96297802d124b",
+    "client-linux.log": "8ce8611026f6273a982defaab24be589a1759b3eb84d9b5f03ae105a0d19fb7b",
+    "client-resultats.json": "8de092f1c604e3b9b93b869b1a2c92cb6bbb71792d3bf6624955532c8ecfc1e2",
+    "contre-epreuves.json": "a0324097649b855210b58c836962aae4e539690459c905630c3010550fed1b72",
+    "controleur-python.log": "9c81ba047b732cbb656d40f10b58974ac8ee8f3ae6437dd12618a23eda579ca5",
+    "mutant-enfant_orphelin.log": "48cc5f3ddfc78714f640a43f871e7d3fda0b6c2df20658e02e2b07a4f9569ba0",
+    "mutant-journaux_perdus.log": "9578262f9b58ef72154815bbac3fab12508b2d5737ac0ec8a71032e4e340e99c",
+    "mutant-rapport_faussement_complet.log": "c3f5ea54012b60fac26849971da6a581492da36e2cd08c7911a686ebe7def19d",
+    "payload.log": "2dc16933ba54bb6e394d70bcbe726b3cf2f5f33bdfed10204bc6e346768b0a3e",
+    "pilote-local.log": "d3e649a80553aeb1fb9ebba56a472cf701059085e0177e113cae36b56a9cd971",
+    "reproduction.json": "f7a5e27d59cb8617f56403d978d7588ad8a1cc50a08594bb34bcbcc92519ec06",
+    "syntaxe-api.log": "2c5defa5f188881887498e17220ff476bb24d48fd139f80c6a8a662d81f507d2",
+    "tests-cibles.log": "bf6eb167953be94695355158c7dd67807bbbee6a86d760814d79fcce67f76349",
+    "yaml.json": "9de12c6d94c261ed7f525e5c1f7634d4941cbeb1fb237f82be5b9b839737c535"
+  },
+  "controller": {
+    "etat": "terminee",
+    "bancs_prevus": 106,
+    "bancs_termines": 106,
+    "echecs": 0
+  },
+  "production_verifiee": false,
+  "migrations_appliquees": [],
+  "fusion": false,
+  "donnees_production_modifiees": false
+}

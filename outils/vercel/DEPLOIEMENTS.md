@@ -2,7 +2,7 @@
 
 ## Politique versionnée
 
-Le déploiement automatique Git de `main` reste conservé. Les branches et PR gardent leurs Preview ; aucun branchement distant ni forfait n'est modifié. Aucun workflow du dépôt n'appelle `vercel deploy`, un Deploy Hook ou l'API de déploiement. Le constructeur `@vercel/node` du banc est uniquement local : il compile des fixtures, sans publier.
+Le déploiement automatique Git de `main` reste conservé. **État versionné vérifié le 28/10 :** `vercel.json` autorise les déploiements Git de `main` et désactive ceux des autres branches (`deploymentEnabled: {"*": false, "main": true}`). La mention antérieure de Preview automatiques conservées ne correspondait donc plus à cette configuration. Les réglages distants et les possibilités de Preview manuelles ne sont pas observables ici ; ce chantier ne les modifie pas. Aucun forfait n'est modifié. Aucun workflow du dépôt n'appelle `vercel deploy`, un Deploy Hook ou l'API de déploiement. Le constructeur `@vercel/node` du banc est uniquement local : il compile des fixtures, sans publier.
 
 `vercel.json` raccorde `ignoreCommand` à `node vercel-ignore-build.cjs`. Selon le contrat Vercel, sortie **0 = ignorer**, **1 = construire**. Le script est disponible à la racine, sans dépendance npm. Il n'ignore que les changements constitués exclusivement de Markdown racine ou sous `outils/`, `historique/`, `baseline/`, déjà exclus du payload. Les autres documents restent volontairement conservateurs.
 
@@ -86,3 +86,18 @@ Contrôle effectué depuis l'intégration connectée à Supabase (projet `jxpwoo
 - Le même catalogue **ne contient pas** `inventaire_reception_etat`, `inventaire_reclamer_livraison`, `inventaire_sauver_revision`. Leur présence dans `migrations/20261016131932_reception_objets_atomique.sql` n'est donc pas une preuve de déploiement. L'écart Authority est réel pour ces trois RPC ; ne pas modifier la base sans audit de dépendances et procédure de migration.
 - Les tables `public.ordres_couts` et `public.postes_nommes_regles` existent ; cela ne résout pas les deux divergences d'empreintes Referential, qui nécessitent une comparaison des données et du générateur.
 - Aucun déploiement de production ni migration n'a été déclenché par cette vérification.
+
+
+## Suivi du 28 octobre — cycle de vie du contrôleur CI
+
+Voir `FIABILISATION-20261028.md` et ses preuves : le contrôleur conserve les journaux
+en cas de délai dépassé, arrête son groupe de processus et écrit les résultats
+progressivement avec un état d'exécution explicite. Une annulation TERM passe par
+le nettoyage ; une terminaison forcée KILL reste non interceptable. Le délai de
+120 secondes par banc et les verdicts métier restent inchangés.
+
+Les workflows existants « Parcours immobilier cinq terrains » et « Placement
+national transactionnel » annulent maintenant les seules exécutions dépassées
+d'une même PR, comme les quatre contrôles qui le faisaient déjà. Aucun nom de
+contrôle, déclencheur, test ou déploiement n'est supprimé. Cela économise du temps
+Actions ; aucun gain de builds ou de facturation Vercel n'est démontré.

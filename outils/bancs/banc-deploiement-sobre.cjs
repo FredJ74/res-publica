@@ -76,7 +76,7 @@ test('configuration raccordee au script teste, deploiements automatiques limites
  assert.equal(v.ignoreCommand,'node vercel-ignore-build.cjs');
  assert.deepEqual(v.git?.deploymentEnabled,{'*':false,main:true});assert.equal(v.github?.enabled,undefined);
  assert.equal(v.crons.length,2);assert.equal(v.functions['api/chat.js'].maxDuration,30);
- for(const f of ['coherence-client','garde-payload-vercel','test-detention-jours-civils','test-fermetures-jours-civils']){
+ for(const f of ['coherence-client','garde-payload-vercel','test-detention-jours-civils','test-fermetures-jours-civils','test-parcours-immobilier-135','garde-placement-national']){
   const y=readFileSync(path.join(root,`.github/workflows/${f}.yml`),'utf8');
   assert.match(y,/cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
   assert.match(y,/group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/);

@@ -1,0 +1,15 @@
+test_bilan_partiel_persiste_et_echec_ne_devient_pas_succes (__main__.ControleurProcessus.test_bilan_partiel_persiste_et_echec_ne_devient_pas_succes) ... NON banc-a.cjs
+ok
+test_executable_absent (__main__.ControleurProcessus.test_executable_absent) ... ok
+test_parent_ignore_sigterm (__main__.ControleurProcessus.test_parent_ignore_sigterm) ... ok
+test_signal_term_cleanup_et_bilan_interrompu (__main__.ControleurProcessus.test_signal_term_cleanup_et_bilan_interrompu) ... ok
+test_succes_et_refus_assertion_distincts (__main__.ControleurProcessus.test_succes_et_refus_assertion_distincts) ... ok
+test_timeout_conserve_les_deux_flux (__main__.ControleurProcessus.test_timeout_conserve_les_deux_flux) ... ok
+test_timeout_tue_enfant_ignorant_sigterm_et_preserve_autre_session (__main__.ControleurProcessus.test_timeout_tue_enfant_ignorant_sigterm_et_preserve_autre_session) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 7.440s
+
+OK
+diagnostic partiel
+
