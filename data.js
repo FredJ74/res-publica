@@ -8668,18 +8668,8 @@ const OBJETS_SPECIAUX = [
 // =====================
 // SCANDALES PREDEFINIS
 // =====================
-const SCANDALES_PREDEFINIS = [
-  "Le Ministre des Finances a été surpris à frauder sa propre déclaration d'impôts. Il invoque 'une erreur de formulaire en triple exemplaire'.",
-  "Le Premier Ministre a été aperçu au Laboratoire de Prière d'El Estado. Il parle d'un 'voyage diplomatique culturel intensif'.",
-  "Le Président refuse de signer un décret car il manque le tampon numéro 7. Le pays est paralysé depuis 48 heures.",
-  "Le Grand Prêtre du Papyrusisme a été surpris sans ses formulaires. Le Tabernacle est en état de choc.",
-  "Un député s'est endormi pendant le vote d\'une loi et a voté Pour et Contre simultanément. La loi est en suspens.",
-  "Le Commissaire Raoul Toufaud a perdu ses menottes. Il s'est menotté lui-même par erreur en cherchant à les retrouver.",
-  "Le Ministre de l'Information a censuré son propre communiqué de presse par inadvertance.",
-  "Un loukoum contaminé sème la panique à Al-Khalija. Le Grand Confiseur Abdul Loukoum est introuvable.",
-  "Le Camarade Pontife Tractorenko a béni un tracteur privé par erreur. L'hérésie est totale.",
-  "Le Juge Honoré Cozetoujours a condamné son propre greffier avant d'entendre l'affaire. Il 'assume pleinement'."
-];
+// SCANDALES_PREDEFINIS : deplacee le 27/10/2026 dans la table serveur scandales_predefinis
+// (tirage de la nuit par minuit_scandale).
 
 // #135 : meme gabarit de commandes pour les cinq parcelles de La Chataigneraie.
 // Les prix/labels d'achat, superficies, descriptions et images restent propres a chaque parcelle.

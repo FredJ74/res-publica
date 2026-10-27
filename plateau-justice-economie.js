@@ -970,7 +970,9 @@ function adopterDetectionServeur(v, fn) {
 function adopterEtatCrimeServeur(v) {
   if (!v) return;
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
-  if (Array.isArray(v.inventaire) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur({ inventory: v.inventaire });
+  // La reponse elle-meme (marquee par sbRpc, avec inventory et revision) : un objet recompose
+  // ici serait refuse pour un inventaire versionne.
+  if (Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
 }
 
 async function appelerCrimeServeur(nom, params) {

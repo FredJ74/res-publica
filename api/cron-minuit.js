@@ -4123,6 +4123,7 @@ async function traiterQuotidienNationalServeur(pays) {
   await traiterAudiencesAmbassadesServeur();
   await traiterVirementsAutomatiquesServeur();
   await traiterCouvreFeuRechercheServeur(pays);
+  await traiterScandaleServeur(pays);
   await traiterConvocationsServeur();
   await traiterDecouverteCrimesServeur();
 }
@@ -4155,6 +4156,15 @@ async function traiterConvocationsServeur() {
 // --- COUVRE-FEU ET RECHERCHE MILITAIRE (27 octobre 2026, audit « une seule verite » §3.3) -------
 // Faits auparavant par le navigateur du joueur connecte a minuit (runMidnightUpdate). La fonction
 // serveur est idempotente sur le jour civil de Paris.
+// --- LE SCANDALE DE LA NUIT (27 octobre 2026, audit « une seule verite ») ---------------------
+// Tire une fois par pays et par date de Paris (15 %) par minuit_scandale, idempotente. Avant, chaque
+// navigateur connecte a minuit tirait le sien (checkScandale).
+async function traiterScandaleServeur(pays) {
+  const v = await sbRpc('minuit_scandale', { p_pays: pays }, HEADERS_SERVICE).catch(() => null);
+  const r = Array.isArray(v) ? v[0] : v;
+  if (!r || r.ok !== true) signalerEchec('scandale:' + pays, JSON.stringify(v));
+}
+
 async function traiterCouvreFeuRechercheServeur(pays) {
   const v = await sbRpc('minuit_couvre_feu_recherche', { p_pays: pays }, HEADERS_SERVICE).catch(() => null);
   const r = Array.isArray(v) ? v[0] : v;

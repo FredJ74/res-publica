@@ -2610,7 +2610,8 @@ async function runMidnightUpdate() {
   // verifierDesertionsQuotidien() retiree ici : miroir serveur traiterDesertionsServeur().
   // verifierExpulsionsAmbassadeursQuotidien() retiree le 25/10/2026 (audit R11) : seule la passe
   // de nuit du serveur (traiterExpulsionsAmbassadeursServeur) met fin a une mission.
-  checkScandale();
+  // checkScandale() retiree le 27/10/2026 : le scandale de la nuit est tire une fois par pays par
+  // le serveur (minuit_scandale), non plus par chaque navigateur connecte.
   checkEffacementCrimes();
   payerInformateurs();
   // Revenus fiscaux
