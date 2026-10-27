@@ -70,7 +70,7 @@ DO $t$ DECLARE r jsonb; g jsonb; BEGIN
  g:=public.securite_ordre_detection_interne(r,'__test_bat_135__','terrain',NULL);
  IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(g) x WHERE (x->>'effectif')::integer=2
  AND x->>'groupe' LIKE 'prive:deploiement-%') THEN RAISE EXCEPTION 'groupe_collectif_perdu: %',g; END IF;
- UPDATE public.pnj_membres SET leader_pj='__test_pj_135__',groupe_deploiement_id=NULL
+ UPDATE public.pnj_membres SET leader_pj='__test_pj_135__',groupe_deploiement_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,rue_noeud_id=NULL
  WHERE id IN ('__test_135_deploiement_a__','__test_135_deploiement_b__');
 END $t$;
 SET LOCAL ROLE authenticated;
