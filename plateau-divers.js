@@ -788,11 +788,9 @@ async function doAcheterRelique(pa, cost) {
   // Vente legale : regle generale des interdictions (arbitrage du 11 septembre 2026), avant tout debit.
   if (typeof assembleeControlerVenteLegale === 'function'
       && !(await assembleeControlerVenteLegale([{ type: 'relique' }]))) return;
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false); return; }
-
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({ type:'relique', name:'Relique du Loukoum Sacré', icon:'ti-star', legal:true, effet:'ip+10', desc:'Accès facilité aux zones réservées d\'Al-Khalija.' });
+  // Deposee par le serveur (objet_acheter, 27/10/2026).
+  const r = await acheterObjetServeur('acheter_relique', 'relique_loukoum', pa || 0, cost || 0);
+  if (!r) return;
   modifierIP(10);
   updateUI();
   showToast('Relique acquise !', 'Relique du Loukoum Sacré ajoutée à votre inventaire. +10 IP.', true, true);
@@ -949,6 +947,23 @@ function getTotalInventaire() {
 // joueur en Surcharge (voir enSurcharge ci-dessous). Le plafond de 100 reste integralement
 // applicable a toutes les acquisitions VOLONTAIRES : achat, ramassage, transfert, fabrication.
 // Aucun appelant existant ne passe ce parametre -- comportement byte-identique pour eux.
+// ACHAT D'UN OBJET PAR LE SERVEUR (27 octobre 2026, chantier inventaire). objet_acheter preleve
+// l'ordre declare et depose l'objet de son catalogue (objets_modeles) dans la meme transaction ;
+// l'ecran adopte l'inventaire rendu. Rend la reponse, ou null apres avoir prevenu le joueur.
+async function acheterObjetServeur(ordre, modele, pa, cost) {
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('objet_acheter', { p_ordre: ordre, p_modele: modele, p_pa: pa || 0, p_cost: cost || 0 }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v?.raison === 'inventaire_plein') showToast('Inventaire plein', 'Libérez de la place avant d\'acheter.', false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+    return null;
+  }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
+  return v;
+}
+
 function addToInventory(item, options) {
   const automatique = !!(options && options.automatique);
   const dejaEnStock = getTotalInventaire();

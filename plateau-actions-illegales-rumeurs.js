@@ -1319,29 +1319,22 @@ async function confirmerAchatArme(armeId) {
   // arme est fixe par le proprietaire de l'armurerie, il n'existe dans aucun catalogue statique,
   // et payer_ordre le refusait donc ('cout_non_declare'). Les deux composantes sont desormais
   // separees : 1 PA declare pour l'ordre choisir_arme, et le prix relu dans le blob par la RPC.
-  const r = await commerceVendreProduit(data.id, [{ produit: armeId, qte: 1 }],
-                                        'comptoir', 'choisir_arme', 1, 0);
-  if (!r.ok) {
+  // L'ARME EST DEPOSEE PAR LE SERVEUR (27 octobre 2026, chantier inventaire) : arme_acheter vend
+  // (stock, prix, caisse, 1 PA) et depose l'objet du catalogue serveur dans la meme transaction.
+  const brutAchat = (typeof sbRpc === 'function')
+    ? await sbRpc('arme_acheter', { p_entreprise: data.id, p_arme: armeId }).catch(() => null) : null;
+  const r = Array.isArray(brutAchat) ? brutAchat[0] : brutAchat;
+  if (!r || r.ok !== true) {
     const messages = { pa_insuffisants: '1 PA requis.',
       fonds_insuffisants: prixApplique.toLocaleString('fr-FR') + ' ' + cur + ' requis.',
-      stock_insuffisant: 'Rupture de stock.', prix_non_defini: 'Cette arme n\'a pas de prix fixe.' };
-    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Achat refusé',
-              messages[r.raison] || '', false);
+      stock_insuffisant: 'Rupture de stock.', prix_non_defini: 'Cette arme n\'a pas de prix fixe.',
+      inventaire_plein: 'Votre inventaire est plein.' };
+    showToast(r?.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Achat refusé',
+              messages[r?.raison] || '', false);
     return;
   }
-
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({
-    id: 'arme-' + Date.now(),
-    type: 'arme',
-    sousType: arme.type,
-    name: armeAffichee.name,
-    icon: arme.icon,
-    desc: armeAffichee.desc,
-    legal: true,
-    bonus: arme.bonus,
-    imageUrl: armeAffichee.imageUrl
-  });
+  appliquerPaiementServeur({ pa: r.pa, liquide: r.liquide, arg: r.arg });
+  if (Array.isArray(r.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r);
 
   // Inscription au registre officiel de vente d'armes — systematique pour tout achat legal.
   // Registre local par armurerie (A2, 16 aout 2026) : city = ville reelle de l'armurerie ou la
@@ -1456,19 +1449,8 @@ async function confirmerAchatArmeIllegal(armeId) {
     return;
   }
   appliquerPaiementServeur({ pa: r.pa, liquide: r.liquide, arg: r.arg });
-
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({
-    id: 'arme-' + Date.now(),
-    type: 'arme',
-    sousType: arme.type,
-    name: armeAffichee.name,
-    icon: arme.icon,
-    desc: armeAffichee.desc,
-    legal: false,
-    bonus: arme.bonus,
-    imageUrl: armeAffichee.imageUrl
-  });
+  // L'arme est deposee par le serveur (27/10/2026) : on adopte l'inventaire rendu.
+  if (Array.isArray(r.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r);
 
   updateUI();
   showToast('Arme acquise (marché noir)', arme.name + ' obtenue discrètement. Non enregistrée au registre.', true, true);
@@ -1606,15 +1588,9 @@ async function confirmerAchatGilet() {
   if (typeof assembleeControlerVenteLegale === 'function'
       && !(await assembleeControlerVenteLegale([{ type: 'protection' }]))) return;
 
-  // Deduction PA+cout centralisee (Lot 2C) -- avant toute mutation.
-  const r = await deduireCoutOrdre({ pa: 1, cost: prix });
-  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? '1 PA requis.' : prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({
-    type: 'protection', name: 'Gilet pare-balles', icon: 'ti-shield-check', legal: true,
-    desc: 'Protection physique. Enregistré dans le registre.',
-    imageUrl: 'images/arme-gilet-republic.webp'
-  });
+  // Depose par le serveur (objet_acheter, 27/10/2026) : paiement et objet dans la meme transaction.
+  const r = await acheterObjetServeur('acheter_gilet', 'gilet', 1, prix);
+  if (!r) return;
   updateUI();
   showToast('Objet acquis', 'Gilet pare-balles ajouté à votre inventaire.', true, true);
   addJournalEntry('Achat légal : Gilet pare-balles (-' + prix.toLocaleString('fr-FR') + ' ' + cur + ').', 'event-info');
@@ -2033,23 +2009,9 @@ async function confirmerAchatPoison(type, pa, cost) {
 
   if (getFondsDisponiblesOrdinaires() < obj.cout) { showToast('Fonds insuffisants', obj.cout + ' ' + cur + ' requis.', false); return; }
 
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const debit = await debiterFondsOrdinaires(obj.cout);
-  if (!debit.ok) { showToast('Fonds insuffisants', obj.cout + ' ' + cur + ' requis.', false); return; }
-  if (!state.inventory) state.inventory = [];
-  state.inventory.push({
-    type: 'poison', name: obj.name, icon: obj.icon,
-    poisonType: type, legal: false, usageUnique: true,
-    desc: obj.msg,
-    imageUrl: {
-      parapluie: 'images/parapluie-republicain.webp',
-      polonium:  'images/polonium-sovarka.webp',
-      ghb:       'images/ghb-narco.jpg',
-      vipere:    'images/vipere-des-sables-khalija.webp'
-    }[type] || ''
-  });
+  // Depose par le serveur (objet_acheter, 27/10/2026) : le prix est le cout declare de l'ordre.
+  const r = await acheterObjetServeur('acheter_' + type, 'poison:' + type, pa || 0, (typeof cost === 'number' && cost > 0) ? cost : obj.cout);
+  if (!r) return;
   updateUI();
   showToast('Objet acquis', obj.name + ' ajouté à votre inventaire. Usage unique.', true, true);
   addJournalEntry('Achat : ' + obj.name, 'event-bad');
