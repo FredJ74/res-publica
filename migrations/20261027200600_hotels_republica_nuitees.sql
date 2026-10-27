@@ -154,4 +154,4 @@ BEGIN
     'paMetier', v_pa_metier,
     'arg', v_arg, 'liquide', v_liquide, 'pa', v_pa_reste,
     'livraison', v_livraison);
-END; $function$
+END; $function$;
