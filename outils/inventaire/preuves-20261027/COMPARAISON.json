@@ -1,0 +1,10 @@
+{
+  "reference_main": "da5ecc0c1f102c46ea74640d07f700db29d4c656",
+  "bancs_historiques": 105,
+  "sources_historiques_identiques": true,
+  "ecarts_de_verdict": [],
+  "nouveaux_bancs": [
+    "banc-inventaire-raccordements.cjs",
+    "banc-inventaire-receptions.cjs"
+  ]
+}

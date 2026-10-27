@@ -515,3 +515,17 @@ tirés au hasard et les effets purement visuels sont exclus.
   révision et émission dans `objets_recus`, sans objet dicté ni compensation cliente. La collecte
   atomique existante reste seule voie de réception. Aucun objet réel pour les PJ de simulation.
   Dépôt commun : format historique illisible conservé/refusé, jamais remplacé silencieusement.
+
+- **Bilan de reprise Codex, 27/10 — non déployé** : rapport et ordre exact des dix
+  migrations sous `outils/inventaire/REPRISE-20261027.md`, avec preuves brutes. Le socle
+  de reçus est éprouvé sous RLS malgré des privilèges de table larges ; huit assertions à
+  deux sessions vérifient l'exclusion et l'absence d'état intermédiaire, actes annulés.
+  État civil scindé en `20261027214000`/`214001` pour respecter la limite MCP.
+  Restent **quatre réceptions actives locales** : vol de chantier et trois remises IA.
+  Charges anciennes, écrivains de budgets/caisses, progressions et sas restent des
+  dépendances ouvertes ; aucun verrou final, aucune migration appliquée, aucune fusion.
+
+- Contrôle Workflow de cette reprise : **rouge comme main**, six signalements de classement
+  des cinq anciennes fixtures SQL. Chemins et sorties sous les preuves, aucun contrôle modifié
+  pour les cacher. Le nouveau prévol est rangé dans `outils/bancs/`, sous transaction READ ONLY
+  annulée, conformément au workflow.

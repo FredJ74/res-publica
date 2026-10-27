@@ -1,6 +1,7 @@
 -- LECTURE SEULE, NON EXECUTE ICI. Projet attendu : jxpwoosmmhohoihxpbuc.
 -- N'applique rien, ne cree aucun PJ/objet, ne lit aucun mot de passe/secret.
-BEGIN TRANSACTION READ ONLY;
+BEGIN;
+SET TRANSACTION READ ONLY;
 SELECT version();
 SHOW TimeZone;
 -- created_at est sans fuseau dans le baseline : confirmer les anciens producteurs UTC
@@ -12,7 +13,7 @@ SELECT p.oid::regprocedure AS signature,p.prosecdef,p.proconfig,p.proacl,pg_get_
  WHERE n.nspname='public' AND p.proname IN('inventaire_deposer_interne','inventaire_sauver_revision','inventaire_revision_garder',
  'objet_acheter','arme_acheter','recolte_effectuer','tracts_imprimer','objet_sas_deposer','pnj_objet_transferer','pnj_possessions_lire',
  'sels_ammoniaque_acheter','objet_trouve_reclamer','fret_objet_agir','club_accessoire_acheter','etat_civil_document_recevoir','mission_carriere_recevoir','enigme_objet_recevoir','quete_objet_reclamer','tracts_donner_joueur',
- 'payer_ordre','helvetia_debiter_fonds_ordinaires','caisse_institution_mouvement','fret_dedouaner','mon_personnage','est_appel_serveur') ORDER BY 1;
+ 'payer_ordre','helvetia_debiter_fonds_ordinaires','caisse_institution_mouvement','fret_dedouaner','mon_personnage','est_appel_serveur','poste_est_atteste','pnj_peut_administrer','pnj_co_present','pnj_position_effective','inventaire_retirer') ORDER BY 1;
 SELECT c.relname,c.relrowsecurity,c.relacl,pg_get_userbyid(c.relowner) AS proprietaire
  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'
  AND c.relname IN('objets_modeles','objets_achetables','objets_recus','pnj_possessions','pnj_membres','caisses_fret','contenu_caisses_fret',

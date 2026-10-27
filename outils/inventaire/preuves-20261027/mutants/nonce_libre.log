@@ -1,0 +1,16 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK 1 depot et debit exacts de deux sels
+OK 2 revision serveur avancee
+OK 3 recette dans la seule caisse pharma
+OK 4 reponse perdue : aucun second debit ni depot
+Traceback (most recent call last):
+  File "/workspace/res-publica-inventaire/outils/bancs/banc-inventaire-receptions-local.py", line 117, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/workspace/res-publica-inventaire/outils/bancs/banc-inventaire-receptions-local.py", line 57, in main
+    check(call('sels_ammoniaque_acheter',[uid(1),3,0]).get('raison')=='requete_reutilisee','nonce lie aux parametres')
+  File "/workspace/res-publica-inventaire/outils/bancs/banc-inventaire-receptions-local.py", line 45, in check
+    assert value,msg;n+=1;print('OK',n,msg,flush=True)
+           ^^^^^
+AssertionError: nonce lie aux parametres
