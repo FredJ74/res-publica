@@ -7,6 +7,7 @@ Règles : voir `AGENTS.md`.
 
 ### Sécurité privée #135 — arbitrages du 27/10 (ChatGPT)
 
+- **27/10, combat à plusieurs rounds** : banc enrichi d'un second round authentifié avec deux agents privés simultanés ; un troisième round est refusé après leur départ collectif. Migration + banc SQL exécutés sur la base réelle dans `BEGIN/ROLLBACK` : succès ; aucun fichier de Codex touché, aucun déploiement durable.
 - **27/10, poursuite sans relance** : banc du combat enrichi des assertions de PA persistants, d'un deuxième agent de type `maitre_chien`, et de la présence simultanée de deux agents ; refus du second round seulement si tous les agents ont quitté la zone. Migration + banc joués dans une transaction Supabase annulée : succès. Aucune intervention dans les fichiers de Codex.
 - **27/10, escorte PNJ** : banc d'un agent fictif suivant son leader PJ testé avec `pnj_position_effective` : présent dans la salle du PJ, mais non hostile à l'employeur ; aucun ordre d'affectation nouveau. Le test respecte les protections contre la suppression d'un PNJ vivant (statut `detenu` puis transaction annulée). Contrôle SQL complet OK.
 - **27/10, recette des issues versionnée** : nouveau `outils/bancs/banc-securite-privee-issues-135.sql`, tests authentifiés séparés pour reddition conduisant à `detention_id` et fuite arbitrée par `police_fuite_resoudre`. Savepoints, migration et jeu fictif exécutés ensemble dans une transaction annulée Supabase : OK. Les tests ne modifient aucune donnée permanente.
