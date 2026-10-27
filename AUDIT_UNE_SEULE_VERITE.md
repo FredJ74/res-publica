@@ -312,3 +312,16 @@ tirés au hasard et les effets purement visuels sont exclus.
   influence rendues par le serveur : la sauvegarde suivante les comptait une seconde fois,
   corrigé (`adopterJaugeServeur`). Migrations `20261027040000` et `040100`. Les trois autres
   empires gardent l'ancien fonctionnement (feuille de route).
+- **27/10 (fin de matinée)** — **Défaut grave trouvé et corrigé** : le garde-fou qui empêche le
+  navigateur de fixer sa popularité ou son influence annulait aussi, en silence, celles écrites
+  par une fonction du serveur appelée par un joueur (don à l'église, ordre générique, dîner au
+  restaurant, tournée, tirage d'une candidature, torture au QHS...). Il ne vise plus que les
+  écritures directes de la fiche (migration `20261027050000`, éprouvée au rôle joueur).
+  Leçon pour les bancs SQL : se placer au rôle `authenticated` (`set_config('role', ...)`),
+  sinon le garde-fou croit à un appel du serveur.
+- **27/10** — §1.1 : `rumeurs_actives` n'est plus écrite par les joueurs. Le démenti officiel
+  (jet, ampleur, résolution) passe par `dementi_executer` ; la rumeur et la sanction du Ministre
+  après une torture au QHS sont posées par `qhs_pouvoir` (migration `20261027060000`). Reste
+  dans le même registre : les rumeurs entre joueurs (causes `rumeur_pj`, `rumeur_gouvernement`,
+  ampleur tirée par l'écran dans une fourchette) et `football_match`.
+

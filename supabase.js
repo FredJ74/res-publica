@@ -4284,18 +4284,7 @@ async function sbGetFaitsArmes() {
 
 // sbSaveCompagnie SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
-async function sbCreerRumeurPolitique(data) {
-  const id = 'rumeur-' + Date.now() + '-' + Math.floor(Math.random()*10000);
-  const ecrit = await sbInsert('rumeurs_actives', { id, resolu: false, data });
-  // L'ID N'EST RENDU QUE SI L'ECRITURE A ABOUTI (chantier 5, 7 octobre 2026). Ces douze
-  // fonctions rendaient leur identifiant sans jamais lire le resultat de sbInsert : un refus
-  // RLS, un 500 ou une coupure reseau produisaient donc un id parfaitement credible pour une
-  // ligne qui n'existait pas. Cote forum, c'est ce qui faisait afficher « Vous avez cree le
-  // sujet ... », l'ajoutait a la liste locale et le journalisait, pour qu'il disparaisse au
-  // rechargement -- et cela rendait MORTE la garde `if (!topicId)` de forum.js.
-  if (!ecrit) return null;
-  return id;
-}
+// sbCreerRumeurPolitique supprimee le 27/10/2026 : la rumeur de torture est posee par qhs_pouvoir.
 
 async function sbGetRumeursActivesCible(cible) {
   const rows = await sbGet('rumeurs_actives', 'resolu=eq.false&select=id,data');
@@ -4303,9 +4292,7 @@ async function sbGetRumeursActivesCible(cible) {
   return rows.filter(r => r.data?.cible === cible).map(r => ({ id: r.id, ...r.data }));
 }
 
-async function sbResoudreRumeur(id) {
-  return sbUpdate('rumeurs_actives', `id=eq.${encodeURIComponent(id)}`, { resolu: true });
-}
+// sbResoudreRumeur supprimee le 27/10/2026 : seule dementi_executer resout une rumeur.
 
 // Fix 9 aout 2026 : lisait/ecrivait une colonne personnages.pop qui n'existe pas (verifie en
 // direct sur Supabase : "column personnages.pop does not exist") - la vraie POP vit dans
