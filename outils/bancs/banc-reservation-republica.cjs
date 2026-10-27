@@ -51,18 +51,37 @@ test('refus paiement : aucun droit, aucune fausse reussite',async()=>{
   assert.equal(droits.length,0);
   assert.equal(sauvegardes.length,0);
 });
-test('deux nuits dans le meme hotel, puis chambre : aucune seconde RPC de bonus',async()=>{
-  const {c,droits}=jeu();
+test('deux nuits : repos acheve puis consommation atomique serveur',async()=>{
+  const {c,droits,sauvegardes}=jeu();
   await c.doReserverChambreHotel(0);
   await c.doReserverChambreHotel(0);
   assert.equal(droits.length,2);
   c.state.currentRoom='chambres';
-  const appels=[];c.doDormir=async()=>{appels.push('pa_repos_nocturne');return true;};
+  let repos=0,bonus=0;
+  c.doDormir=async()=>{repos++;return true;};
+  c.sbRpc=async fn=>{
+    if(fn==='hotel_reservations_lire')return droits.map(x=>({...x}));
+    if(fn==='pa_bonus_chambre'){bonus++;droits.shift();return {ok:true,pa:24,moral:53,montant:2,moralBonus:3};}
+  };
   await c.doDormirChambre();
-  assert.deepEqual(appels,['pa_repos_nocturne']);
-  assert.equal(c.state.pa,10);
-  assert.equal(c.state.moral,50);
-  assert.equal(droits.length,2); // Le serveur, et lui seul, consomme lors du repos.
+  assert.equal(repos,1);
+  assert.equal(bonus,1);
+  assert.equal(droits.length,1);
+  assert.equal(c.state.pa,24);
+  assert.equal(c.state.moral,53);
+  assert.equal(sauvegardes.length,1);
+});
+test('repos interrompu : aucune consommation de nuit payee',async()=>{
+  const {c,droits}=jeu();
+  await c.doReserverChambreHotel(0);
+  c.state.currentRoom='chambres';
+  c.doDormir=async()=>false;
+  let bonus=0;
+  c.sbRpc=async fn=>fn==='hotel_reservations_lire'?droits:(
+    bonus++,{ok:true,pa:24,moral:53});
+  await c.doDormirChambre();
+  assert.equal(bonus,0);
+  assert.equal(droits.length,1);
 });
 test('reconnexion/F5 : la liste serveur reste la source de verite',async()=>{
   const premier=jeu();
