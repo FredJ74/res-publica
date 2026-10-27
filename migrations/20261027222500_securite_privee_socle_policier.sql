@@ -112,6 +112,15 @@ BEGIN
    ||chr(10)||' RETURN jsonb_build_object(''ok'',true,''detecte'',false);';
  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'detecteur_jet_sequence_conflit'; END IF;
  s:=replace(s,a,b);
+ a:=' SELECT rencontre INTO v_id FROM public.police_interceptions';
+ b:=' SELECT rencontre,CASE WHEN jsonb_typeof(intervenants)=''array'' THEN jsonb_array_length(intervenants) ELSE 1 END'
+   ||chr(10)||' INTO v_id,v_count FROM public.police_interceptions';
+ IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'detecteur_reprise_effectif_conflit'; END IF;
+ s:=replace(s,a,b);
+ a:='IF v_id IS NOT NULL THEN RETURN jsonb_build_object(''ok'',true,''detecte'',true,''rencontre'',v_id); END IF;';
+ b:='IF v_id IS NOT NULL THEN RETURN jsonb_build_object(''ok'',true,''detecte'',true,''rencontre'',v_id,''effectif'',v_count); END IF;';
+ IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'detecteur_reprise_reponse_conflit'; END IF;
+ s:=replace(s,a,b);
  EXECUTE s;
 END $patch$;
 
