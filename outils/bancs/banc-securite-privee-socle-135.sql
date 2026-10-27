@@ -17,7 +17,13 @@ BEGIN
  UPDATE public.pnj_membres SET statut='detenu' WHERE id='__test_135_private__';
  r:=public.securite_agents_prives_presents_interne('republic','capitale','__test_bat_135__','terrain',NULL,'__test_cible_135__');
  IF jsonb_array_length(r)<>0 THEN RAISE EXCEPTION 'agent_detenu_actif'; END IF;
- RAISE NOTICE 'Banc #135 : 4 assertions réussies en transaction annulée';
+ UPDATE public.pnj_membres SET statut='actif',pa=0 WHERE id='__test_135_private__';
+ r:=public.securite_agents_prives_presents_interne('republic','capitale','__test_bat_135__','terrain',NULL,'__test_cible_135__');
+ IF jsonb_array_length(r)<>0 THEN RAISE EXCEPTION 'agent_sans_pa_actif'; END IF;
+ UPDATE public.pnj_membres SET pa=12 WHERE id='__test_135_private__';
+ r:=public.securite_agents_prives_presents_interne('republic','autre_ville','__test_bat_135__','terrain',NULL,'__test_cible_135__');
+ IF jsonb_array_length(r)<>0 THEN RAISE EXCEPTION 'agent_autre_ville_actif'; END IF;
+ RAISE NOTICE 'Banc #135 : 6 assertions de présence réussies en transaction annulée';
 END $t$;
 
 -- Cas authentifié : avis de recherche fictif, rencontre et combat commun.
