@@ -303,3 +303,12 @@ tirés au hasard et les effets purement visuels sont exclus.
   (`objet_abandonne_ramasser`), l'objet arrive dans l'inventaire réel ; `objets_abandonnes` n'est
   plus écrite par les joueurs ; plus aucun joueur ne peut supprimer les votes électoraux ni les
   dons en attente des autres (migration `20261027030000`).
+- **27/10 (matin)** — §1.1 en partie : la carrière religieuse de Républia passe par le serveur
+  (`religion_agir` : prière, don, piété de la ville, grade, charge de prêtre, Grand Prêtre). Les
+  joueurs n'écrivent plus `contributions_piete` ni `titulaires_pnj` ; la piété d'une ville est
+  toujours recalculée depuis le registre (déclencheur sur `indices_villes`), les autres indices
+  de ville restent écrits par le navigateur (à reprendre). Révocation d'un PNJ non municipal :
+  passait par une suppression refusée en silence, désormais par `poste_revoquer`. Popularité et
+  influence rendues par le serveur : la sauvegarde suivante les comptait une seconde fois,
+  corrigé (`adopterJaugeServeur`). Migrations `20261027040000` et `040100`. Les trois autres
+  empires gardent l'ancien fonctionnement (feuille de route).

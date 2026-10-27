@@ -1,4 +1,5 @@
--- A APPLIQUER par Claude via MCP apply_migration, APRES 20261027040000.
+-- APPLIQUEE le 27/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261027101940.
+-- Eprouvee avant application en transaction annulee (refus hors eglise et au mauvais prix, grade, conquete stricte de la charge et du Grand Pretre, piete forcee remise au registre, excommunie sans piete). Baseline NON reextrait.
 -- ============================================================================
 -- LA CARRIERE RELIGIEUSE DE REPUBLIA PAR LE SERVEUR, 2e partie (27 octobre 2026)
 -- ============================================================================
