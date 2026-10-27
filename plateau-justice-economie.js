@@ -12820,32 +12820,22 @@ async function confirmerVenteMateriauxChantier(mode = 'vente') {
 // Le vol ne porte plus sur une valeur monetaire abstraite mais sur des UNITES REELLES du stock du
 // chantier. Le joueur choisit la matiere ; seules celles reellement presentes sont proposees.
 async function doVolerMaterielChantier(pa, cost) {
-  const id = state.currentBuilding;
-  if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Voler du matériel')) return;
-  await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  const ch = ts.chantier;
+  const c = contexteNavigationRue(), id = c.batiment;
+  const frais = await chargerTerrainState(id, true);
+  if (!contexteNavigationRueValide(c)) return;
+  const securite = await sbRpcVerdict('chantier_securite_lire', { p_terrain: id }).catch(() => null);
+  if (!contexteNavigationRueValide(c)) return;
+  if (!frais || !securite?.ok || !Number.isSafeInteger(securite.nombre)) {
+    showToast('Chantier indisponible', 'Les stocks et la présence des agents ne peuvent pas être confirmés.', false); return;
+  }
+  const ch = getTerrainState(id).chantier;
   if (!ch) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
-
   const stock = ch.stockMateriaux || {};
-  const dispo = ['bois', 'minerai', 'metal'].filter(function (m) { return (Number(stock[m]) || 0) > 0; });
-  if (dispo.length === 0) { showToast('Rien à voler', "Le chantier n'a aucun matériau en stock.", false); return; }
-
-  const jourNum = numeroJourChantier(ch);
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Choisissez la matière à dérober. La quantité dépendra de votre discrétion' + (vigilesDuChantier(ch) > 0 ? ' — et des vigiles présents sur le chantier' : '') + '.</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:.4rem">';
-  dispo.forEach(function (m) {
-    const label = m === 'bois' ? 'Bois' : (m === 'minerai' ? 'Minerai' : 'Métal');
-    html += '<div onclick="confirmerVolMateriaux(\'' + m + '\',' + pa + ',' + cost + ')" style="cursor:pointer;padding:.6rem;border:1px solid #2a2010;background:#0f0d05">';
-    html += '<span style="font-size:.85rem;color:#c0b090">' + label + '</span> — ' + (Number(stock[m]) || 0)
-         + ' en stock <span style="color:#6a5a30">(au plus ' + plafondVolMatiere(m, jourNum) + ' dérobables)</span>';
-    html += '</div>';
-  });
-  html += '</div></div>';
-  document.getElementById('postes-modal-title').textContent = 'Voler du matériel';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  const dispo = ['bois', 'minerai', 'metal'].filter(m => Number(stock[m]) > 0);
+  if (!dispo.length) { showToast('Rien à voler', 'Le chantier n’a aucun matériau en stock.', false); return; }
+  constructionFenetre('Voler du matériel', '<p class="cpj-note">La réussite et la quantité sont décidées par le serveur. Agents affectés et présents : ' + securite.nombre + '.</p>' +
+    dispo.map(m => '<p>' + constructionEchapper(m) + ' : ' + constructionEchapper(stock[m]) + ' en stock</p>' +
+      constructionBouton('Tenter le vol de ' + m, 'confirmerVolMateriaux(' + JSON.stringify(m) + ')')).join(''));
 }
 
 async function confirmerVolMateriaux(matiere, pa, cost) {

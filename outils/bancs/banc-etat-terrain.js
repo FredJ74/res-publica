@@ -97,12 +97,12 @@ att('un verdict absent est dit comme une panne de transport, pas comme un refus 
 print('');
 print('3. LES VINGT-DEUX ECRITURES PASSENT PAR HUIT PORTES, UNE PAR MECANISME');
 var ACTES = {
-  'terrain_compromis_acte': 4, 'acquisition_versionnee':2, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 1,
+  'terrain_compromis_acte': 4, 'acquisition_versionnee':2, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'chantier_commande_vol': 1,
   'terrain_lots_acte': 5, 'chantier_commande_location': 1, 'chantier_commande_reamenagement': 1
 };
 var totalPortes = 0;
 Object.keys(ACTES).sort().forEach(function (porte) {
-  var n = porte==='chantier_commande_location' ? partout(/constructionExecuterCommande\('louer'/g) : porte==='chantier_commande_reamenagement' ? partout(/constructionExecuterCommande\('reamenager'/g) : porte==='chantier_commande_plan' ? partout(/constructionExecuterCommande\('plan'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
+  var n = porte==='chantier_commande_vol' ? partout(/constructionExecuterCommande\('voler'/g) : porte==='chantier_commande_location' ? partout(/constructionExecuterCommande\('louer'/g) : porte==='chantier_commande_reamenagement' ? partout(/constructionExecuterCommande\('reamenager'/g) : porte==='chantier_commande_plan' ? partout(/constructionExecuterCommande\('plan'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
   if(porte==='acquisition_versionnee')n=partout(/finance135Acquerir\(id,'(?:depot|compromis)'/g);
   if(porte==='terrain_permis_acte') n+=partout(/sbRpcVerdict\('terrain_permis_deposer'/g); // meme depot, porte versionnee de #112
   totalPortes += n;
@@ -150,6 +150,7 @@ var ACTES_NOMMES = [
 var manquants = ACTES_NOMMES.filter(function (a) {
   if(a==='compromis_signer')return partout(/finance135Acquerir\(id,'compromis'/g)!==1;
   if(a==='achat_direct_deposer')return partout(/finance135Acquerir\(id,'depot'/g)!==1;
+  if(a==='chantier_materiaux_voler')return partout(/constructionExecuterCommande\('voler'/g)!==1;
   if(a==='permis_deposer')return partout(/sbRpcVerdict\('terrain_permis_deposer'/g)!==1;
   if(a==='lot_louer')return partout(/constructionExecuterCommande\('louer'/g)!==1;
   if(a==='permis_plan_modifier')return partout(/constructionExecuterCommande\('plan'/g)!==1;
@@ -202,9 +203,16 @@ att("l'acceleration interdite ne preleve ni PA ni argent",
 att("appliquerVerrouPlan n'est plus appele dans ce chemin",
     bCh.indexOf('appliquerVerrouPlan(') < 0);
 var bVol = sansCommentaires(bloc('plateau-justice-economie.js', 'confirmerVolMateriaux'));
-att("le vol credite la quantite REELLEMENT emportee, pas celle que ce navigateur avait calculee",
-    bVol.indexOf('qte = Number(vVol.quantite) || 0;') >= 0
-    && bVol.indexOf('qte = Number(vVol.quantite) || 0;') < bVol.lastIndexOf('addToInventory('));
+// #135 : la protection est renforcee : aucun credit local, meme issu du verdict.
+// Le stock ET l'inventaire appartiennent maintenant a la transaction commune.
+att("le vol delegue la transaction sans credit ni paiement local",
+    bVol.indexOf("await constructionExecuterCommande('voler', { matiere })") >= 0
+    && bVol.indexOf('if (!r) return;') >= 0
+    && bVol.indexOf('addToInventory(') < 0
+    && bVol.indexOf('deduireCoutOrdre(') < 0
+    && bVol.indexOf('Math.random(') < 0);
+att("aucun contournement par l'ancienne porte de vol",
+    partout(/sbTerrainActe\('terrain_chantier_acte'/g) === 0);
 att("et il ne decremente plus le stock lui-meme",
     bVol.indexOf('stock[matiere] = Math.max(0,') < 0);
 

@@ -45,7 +45,7 @@ async function constructionExecuterCommande(action,parametres={}){
       }
       // Les recherches et le journal sont ceux relus par le chargeur commun.
       if(Array.isArray(finance.recherche))state.recherche=finance.recherche;
-      if(Array.isArray(finance.journal))state.char.journal=finance.journal;
+      if(Array.isArray(finance.char?.journal))state.char.journal=finance.char.journal;
     }
     sessionStorage.removeItem(cle);updateUI();return r;
   }finally{constructionCommandeEnCours=false;}

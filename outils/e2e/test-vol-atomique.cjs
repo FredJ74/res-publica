@@ -53,3 +53,17 @@ test('refus métier : aucune attribution et intention libérée',async()=>{
  const x=fixture();x.c.sbRpcVerdict=async()=>({ok:false,raison:'stock_vide'});await x.c.confirmerVolMateriaux('bois',2,0);
  assert.equal(x.c.state.inventory,undefined);assert.equal(x.stockage.size,0);assert.equal(x.messages.at(-1)[0],'Commande non confirmée');
 });
+
+test('ouverture du vol : presence serveur plutot que compteur JSON historique',async()=>{
+ const x=fixture();let contenu;
+ x.c.getTerrainState=()=>({chantier:{stockMateriaux:{bois:20},vigiles:999}});
+ x.c.sbRpcVerdict=async()=>({ok:true,nombre:2});x.c.constructionFenetre=(titre,html)=>contenu=html;
+ x.c.constructionEchapper=String;x.c.constructionBouton=(label,js)=>label+js;
+ vm.runInContext(fonction('plateau-justice-economie.js','doVolerMaterielChantier'),x.c);
+ await x.c.doVolerMaterielChantier(2,0);assert.match(contenu,/présents : 2/);assert.doesNotMatch(contenu,/999/);
+});
+test('lecture de protection indisponible : pas de faux compteur nul ni de formulaire',async()=>{
+ const x=fixture();let ouvert=false;x.c.sbRpcVerdict=async()=>null;x.c.constructionFenetre=()=>ouvert=true;
+ vm.runInContext(fonction('plateau-justice-economie.js','doVolerMaterielChantier'),x.c);
+ await x.c.doVolerMaterielChantier(2,0);assert.equal(ouvert,false);assert.equal(x.messages.at(-1)[0],'Chantier indisponible');
+});

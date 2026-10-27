@@ -35,6 +35,10 @@ def suite(db,q,srv):
  q.execute(fn('outils/bancs/banc-fixture-terrain-chantier-acte-avant-commandes.sql','terrain_chantier_acte'))
  migrations=['20261022123319_chantier_financeurs_et_appels.sql','20261022123320_chantier_jour_transactionnel.sql','20261022123321_chantier_approvisionnement_caisse_unique.sql','20261022124055_chantier_autorite_et_recus.sql','20261022124056_chantier_commandes_et_reception.sql','20261022125121_chantier_recu_relecture.sql','20261022125728_chantier_fermer_commandes_non_versionnees.sql','20261022125942_chantier_plan_initial.sql','20261022125943_chantier_plan_raccordement.sql','20261022130417_chantier_gardes_legacy_et_travail.sql','20261022143001_construction_delais_quatre_empires.sql','20261025070000_chantier_taux_horaire.sql']
  for nom in migrations:q.execute((R/'migrations'/nom).read_text());q.execute((R/'migrations'/nom).read_text())
+ if '--vol135' in sys.argv:
+  spec_vol=importlib.util.spec_from_file_location('vol135',R/'outils/bancs/banc-vigiles-vol-135-local.py')
+  module_vol=importlib.util.module_from_spec(spec_vol);spec_vol.loader.exec_module(module_vol)
+  module_vol.installer_sur_parcours(q)
  if MUTANT:
   nom,avant,apres={
    'jour_rejoue':('chantier_jour_traiter(text)',"IF ch->>'jourTraite'=jour THEN",'IF false THEN'),
@@ -89,6 +93,16 @@ def suite(db,q,srv):
   check(fonds()[2]==avant[2]-apport and fonds()[1]==avant[1],'lancement prioritairement bancaire sans toucher au liquide')
   apres=fonds();check(commande('lancer',{'palier':palier,'apport':str(apport)},nonce)['rejeu'] and fonds()==apres,'reponse lancement perdue sans second apport')
   r=commande('receptionner',{},'parcours-trop-tot-135');check(not r['ok'],'reception prematuree refusee')
+  if '--vol135' in sys.argv:
+   # Meme chantier reel : affectation, tentative non destructive sur son stock,
+   # puis tous les jours, lots et reception. Identite/horloge de ce banc restent fictives.
+   q.execute("UPDATE personnages_donnees SET current_room='terrain' WHERE name='Parcours terrain fixture';INSERT INTO pnj_membres(id,famille,classe,nom,pays,proprietaire_pj,leader_pj,statut,pa) VALUES('vigile-integration135','employe','alpha','Agent integration','republic','Parcours terrain fixture','Parcours terrain fixture','actif',12) ON CONFLICT(id) DO UPDATE SET leader_pj=excluded.leader_pj,ville=NULL,building_id=NULL,room_id=NULL;INSERT INTO pnj_employes_metier(pnj_id,job,role_libelle,candidat_id) VALUES('vigile-integration135','agent_securite','Agent','integration135') ON CONFLICT(pnj_id) DO NOTHING")
+   a=lire('SELECT chantier_vigiles_affecter(%s,ARRAY[\'vigile-integration135\'])',(terrain,));check(a['ok'],'affectation commune dans le parcours '+terrain)
+   check(lire('SELECT chantier_securite_lire(%s)',(terrain,))['nombre']==1,'presence reelle du vigile dans le parcours '+terrain)
+   avant=fonds();avant_ch=etat()['chantier'];r=commande('voler',{'matiere':'bois'},'tentative-vol-135')
+   check(r['ok'] and not r['reussite'] and r['vigiles']==1,'vol serveur avec protection dans le parcours '+terrain)
+   check(fonds()==avant and etat()['chantier']==avant_ch,'tentative echouee conserve financement et stock '+terrain)
+   r=commande('voler',{'matiere':'bois'},'tentative-vol-135');check(r['rejeu'],'reprise du vol sans doublon avant travaux '+terrain)
   for jour in range(jours):
    q.execute("UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{chantier,jourTraite}',to_jsonb(((now() AT TIME ZONE 'Europe/Paris')::date-1)::text))::text WHERE id=%s",(cle,))
    r=lire('SELECT chantier_jour_traiter(%s)',(cle,));check(r['ok'] and etat()['chantier']['progressionJours']==jour+1,'jour construction '+str(jour+1))
@@ -121,6 +135,6 @@ def suite(db,q,srv):
    cur.execute('SELECT chantier_commande_recu(%s)',('ch-'+terrain+'-parcours-reception-135',));recu=cur.fetchone()[0]
    check(recharge==e and recu['ok'] and recu['terminee'],'nouvelle session retrouve titre permis lots et recu de reception')
  for terrain,palier,occupation in [('terrain-a-batir-1','hangar','squatter_cool'),('terrain-a-batir-2','commerce_standard',None),('terrain-a-batir-3','commerce_premium','squatter_agr'),('terrain-a-batir-4','building',None),('terrain-a-batir-5','hangar',None)]:parcours(terrain,palier,occupation)
- print(json.dumps({'parcours_terrain_construction':True,'assertions':n,'production':False,'temps_simule_sur_fixture':True}))
+ print(json.dumps({'parcours_terrain_construction':True,'assertions':n,'production':False,'temps_simule_sur_fixture':True,'contrat_vol_prepare':('--vol135' in sys.argv),'benediction_hypothetique':('--vol135' in sys.argv)}))
 def tout(db,q,srv):banque.suite(db,q,srv);suite(db,q,srv)
 if __name__=='__main__':banque.m.main(tout)

@@ -39,7 +39,7 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp A
 DECLARE acteur text:=public.mon_personnage();p record;t record;etat jsonb;ch jsonb;inv jsonb;
  matiere text:=p_params->>'matiere';stock integer;jour integer;numero integer;vigiles integer;
  dup double precision;isn double precision;bonus double precision;jet integer;r jsonb;pay jsonb;cout record;trace text;
- benediction jsonb;recherche jsonb;msg text;avant_revision bigint;
+ v_benediction jsonb;recherche jsonb;msg text;avant_revision bigint;
 BEGIN
  IF p_params-ARRAY['matiere']<>'{}' OR matiere IS NULL OR matiere NOT IN('bois','minerai','metal') THEN
  RETURN jsonb_build_object('ok',false,'raison','matiere_invalide');END IF;
@@ -84,17 +84,19 @@ BEGIN
  SELECT coalesce((data->>'isn')::numeric,30) INTO isn FROM public.indices_villes WHERE id=p.country||'_'||p.current_city;
  bonus:=(dup-10)*2-(coalesce(isn,30)-45)/3
  +CASE WHEN p.reputation_criminelle>=70 THEN 15 WHEN p.reputation_criminelle>=40 THEN 10 WHEN p.reputation_criminelle>=20 THEN 5 ELSE 0 END;
- benediction:=to_jsonb(p)->'benediction';
+ v_benediction:=to_jsonb(p)->'benediction';
  jour:=public.jour_de_jeu_pays(p.country);
- IF (benediction->>'actif')::boolean AND (NOT benediction ? 'expire' OR jour<=(benediction->>'expire')::integer) THEN bonus:=bonus+5;END IF;
+ -- Conserver l'ordre des operations du bonus consommable historique.
+ bonus:=(50+bonus+CASE WHEN (v_benediction->>'actif')::boolean AND (NOT v_benediction ? 'expire' OR jour<=(v_benediction->>'expire')::integer) THEN 5 ELSE 0 END)-50;
+ IF bonus::text IN('NaN','Infinity','-Infinity') THEN RAISE EXCEPTION 'caracteristique_invalide';END IF;
  SELECT count(*) INTO vigiles FROM public.chantier_vigiles_presents_interne(t.id);
  numero:=floor(coalesce((ch->>'progressionJours')::numeric,0))::integer+1;
  jet:=public.chantier_vol_jet_interne();
  r:=public.chantier_vol_calcul_interne(bonus,vigiles,jet,matiere,numero,stock);
  pay:=public.payer_ordre(acteur,'voler_materiel_chantier',cout.pa,cout.cost);
  IF NOT coalesce((pay->>'ok')::boolean,false) THEN RETURN pay;END IF;
- IF (benediction->>'actif')::boolean AND (NOT benediction ? 'expire' OR jour<=(benediction->>'expire')::integer) THEN
-  UPDATE public.personnages_donnees SET benediction=jsonb_set(benediction,'{actif}','false') WHERE name=acteur;END IF;
+ IF (v_benediction->>'actif')::boolean AND (NOT v_benediction ? 'expire' OR jour<=(v_benediction->>'expire')::integer) THEN
+  UPDATE public.personnages_donnees SET benediction=jsonb_set(v_benediction,'{actif}','false') WHERE name=acteur;END IF;
  trace:='vol-chantier-'||p.id::text||'-'||p_requete;
  IF (r->>'reussite')::boolean THEN
   inv:=public.inventaire_ajouter(p.inventory,matiere,(r->>'quantite')::integer,'Dérobé sur un chantier.');

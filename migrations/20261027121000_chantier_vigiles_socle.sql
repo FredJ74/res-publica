@@ -1,11 +1,18 @@
 -- PREPAREE #135. Aucun agent cree, aucun joueur deplace. Prevol vivant requis.
 BEGIN;
+DO $garde$ BEGIN
+ IF to_regclass('public.chantier_vigiles_affectations') IS NOT NULL
+ AND obj_description(to_regclass('public.chantier_vigiles_affectations'),'pg_class') IS DISTINCT FROM 'HG chantier vigiles v1' THEN
+  RAISE EXCEPTION 'chantier_affectations_schema_inconnu';END IF;
+END;$garde$;
 CREATE TABLE IF NOT EXISTS public.chantier_vigiles_affectations (
  pnj_id text PRIMARY KEY REFERENCES public.pnj_membres(id) ON DELETE CASCADE,
  terrain_id text NOT NULL REFERENCES public.terrains_etat(id) ON DELETE CASCADE,
  employeur_pj text NOT NULL, maitre_ouvrage text NOT NULL,
  affecte_le timestamptz NOT NULL DEFAULT now()
 );
+COMMENT ON TABLE public.chantier_vigiles_affectations IS 'HG chantier vigiles v1';
+CREATE INDEX IF NOT EXISTS chantier_vigiles_par_terrain ON public.chantier_vigiles_affectations(terrain_id);
 ALTER TABLE public.chantier_vigiles_affectations ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.chantier_vigiles_affectations FROM PUBLIC,anon,authenticated,service_role;
 
@@ -24,7 +31,7 @@ SET search_path=public,pg_temp AS $f$
  CROSS JOIN LATERAL public.pnj_position_effective(m.id) pos
  WHERE t.id=p_terrain AND a.maitre_ouvrage=t.data::jsonb->>'proprietaire'
  AND m.proprietaire_pj=a.employeur_pj AND m.famille='employe'
- AND m.statut='actif' AND m.pa>0 AND emp.actif
+ AND m.statut='actif' AND m.pa>0
  AND e.job IN ('agent_securite','maitre_chien') AND c.metier=e.job
  AND emp.pays=t.country AND m.pays=t.country
  AND m.leader_pj IS NULL AND m.leader_pnj_id IS NULL
@@ -63,7 +70,7 @@ BEGIN
  JOIN public.pnj_candidats_catalogue c ON c.candidat_id=e.candidat_id
  JOIN public.pnj_employeurs emp ON emp.employeur_id=c.employeur_id
  WHERE n.id=ANY(p_ids) AND n.proprietaire_pj=acteur AND n.famille='employe'
- AND n.statut='actif' AND n.pa>0 AND n.pays=t.country AND emp.pays=t.country AND emp.actif
+ AND n.statut='actif' AND n.pa>0 AND n.pays=t.country AND emp.pays=t.country
  AND c.metier=e.job AND e.job IN('agent_securite','maitre_chien')
  AND public.pnj_peut_conduire(acteur,n.id) AND public.pnj_co_present(acteur,n.id))<>cardinality(p_ids) THEN
   RETURN jsonb_build_object('ok',false,'raison','agents_non_disponibles');END IF;
@@ -98,4 +105,7 @@ BEGIN
 END;$f$;
 REVOKE ALL ON FUNCTION public.chantier_securite_lire(text) FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.chantier_securite_lire(text) TO authenticated;
+-- Triple gratuit extrait de l'ordre dynamique du client ; aucune empreinte avancee.
+INSERT INTO public.ordres_couts(fn,pa,cost) SELECT 'vigiles_chantier',0,0
+ WHERE NOT EXISTS(SELECT 1 FROM public.ordres_couts WHERE fn='vigiles_chantier' AND pa=0 AND cost=0);
 COMMIT;

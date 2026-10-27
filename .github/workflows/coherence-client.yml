@@ -85,8 +85,10 @@ jobs:
         run: |
           python3 outils/bancs/banc-construction-taux-135-local.py
           python3 outils/bancs/banc-construction-materiaux-local.py
+      - name: Vigiles et vol sur contrat PostgreSQL jetable, prevol production requis
+        run: python3 outils/bancs/banc-vigiles-vol-135-local.py
       - name: Chaîne immobilière complète sur PostgreSQL jetable, cinq terrains
-        run: python3 outils/bancs/banc-parcours-terrain-construction-135-local.py
+        run: python3 outils/bancs/banc-parcours-terrain-construction-135-local.py --vol135
       - name: Conserver les résultats des bancs
         if: always()
         uses: actions/upload-artifact@v4
