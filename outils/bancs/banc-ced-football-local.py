@@ -14,7 +14,7 @@ SOURCES=[
  ('migrations/20261016131932_reception_objets_atomique.sql','inventaire_reception_etat'),
  ('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')]
 def setup_sql():
- s=(R/'outils/bancs/fixtures/ced-football-schema.sql').read_text()
+ s=(R/'historique/fixtures-bancs/ced-football-schema.sql').read_text()
  for path,fn in SOURCES:
   src=(R/path).read_text()
   for x in re.finditer(r'CREATE OR REPLACE FUNCTION public\.'+fn+r'\(',src):

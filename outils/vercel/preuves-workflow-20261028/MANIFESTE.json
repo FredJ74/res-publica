@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-28",
+  "zone": "Europe/Paris",
+  "base_avant_correction": "0ee48bee3ca9cd77bc047f911d420b8db07b0873",
+  "controleur_workflow_inchange": true,
+  "inventaire_modifie": false,
+  "migrations_appliquees": [],
+  "production": false,
+  "sources_sha256": {
+    "outils/baseline/verifier-workflow.py": "81bc25aa5e31b12aca5862d8549c9806bc95fc37d6f6862770ae914fe4109fe0",
+    "outils/bancs/banc-workflow-rangement.cjs": "67129b7db51c931ba5c9281fb29ff43df3aef9b5df86ab769990c50b79c16187",
+    "outils/bancs/banc-ced-football-local.py": "1a3dc157e1885dabd6be487f1db0731f438bbd9dd7b09a57da7aeb0889eb2010",
+    "outils/bancs/banc-construction-jour-local.py": "7476574d8ba803067b81a2674b124ec263475d7407b88a788be8af7984b76f2b",
+    "outils/bancs/banc-permis-depot-local.py": "df1e6dba18cf5fe68bcea904c1a1581cae9b6c6276b63a69c76ebe79a513620a",
+    "outils/bancs/banc-terrain-banque-135-local.py": "75e377595191d9e05bf8775e255f9647e64343535a5e83e3996b5624b7985784"
+  },
+  "preuves_sha256": {
+    "client-execution.json": "ad316957b849cd572482668be027cb7a8b76d4312f336bcf183993589c1ec865",
+    "client-resultats.json": "27840ec5c6f63298525edba5df5f5daae4d79f1ce629c1f124c26be639f40418",
+    "client.log": "dc21c50b692651b56c22ae535ea6641f9f114107b16576408930ae9c382a20ec",
+    "conservation-sql.json": "2e3627731dbe488bd13a00e931a409d30c6643b3abec8044f855861dd55697f0",
+    "postgres-banque-location.log": "2b0e313e3604f0230c345225bdc03779b38c1c80d2079ae3d9940638a9c0a038",
+    "postgres-banque.log": "2b0e313e3604f0230c345225bdc03779b38c1c80d2079ae3d9940638a9c0a038",
+    "postgres-ced.log": "d135380bc897d6a73f0ac909e6487d76b936f49a85c89d1f0ffb6f7760222e54",
+    "postgres-construction-permis112.log": "928a606c49986f6144e4f9f71335ce93a0197678ab30b09e3654ed2c4b1ed973",
+    "postgres-construction.log": "928a606c49986f6144e4f9f71335ce93a0197678ab30b09e3654ed2c4b1ed973",
+    "postgres-parcours.log": "6e77cf14c5a305a33fdd6446856bc99ce957431686f230604c86f8a32b2b389a",
+    "postgres-permis.log": "1ddd528dccf50e068dd354f46ad1622bf3fa8f87353a7493d38492600414eddb",
+    "regressions.log": "8c5f96b0f910af43e28777f6ebc4eb2fa6e89a3fd3c408fe67b198e83bd90965",
+    "workflow-apres.log": "ae24fdb4f124500cd9f16e939409e892caf6c02dfb808fa4a7331204713bb6db",
+    "workflow-avant.log": "dace1e2727f16e1f58c6946bb97347cd55c0b75b4da18464abeec2819ae55903"
+  }
+}

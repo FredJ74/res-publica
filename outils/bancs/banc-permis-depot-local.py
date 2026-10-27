@@ -33,7 +33,7 @@ def main():
    src=(R/path).read_text();a=src.index('CREATE OR REPLACE FUNCTION public.'+fn+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[a:],re.S);q.execute(src[a:a+m.end()])
   for fn in ['terrain_etat_verrouiller_interne','terrain_etat_fusionner_interne']:
    charger('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn)
-  charger('outils/bancs/fixtures/terrain-permis-acte-avant-depot.sql','terrain_permis_acte')
+  charger('outils/bancs/banc-fixture-terrain-permis-acte-avant-depot.sql','terrain_permis_acte')
   charger('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
   charger('baseline/domaines/socle/20_fonctions.sql','objet_sas_deposer')
   charger('baseline/domaines/socle/20_fonctions.sql','titulaire_est_moi')

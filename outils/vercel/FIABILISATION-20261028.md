@@ -126,3 +126,48 @@ https://github.com/FredJ74/res-publica/compare/main...codex/fiabilisation-ci-202
 
 Aucune fusion ou publication de production. Les éléments de ce rapport ne
 constituent pas une validation distante Actions/Vercel.
+
+
+## Complément : rangement des cinq SQL, autorisé par Fred le 28/10
+
+La PR a été créée manuellement par Fred. Sa demande suivante autorise la
+correction de ce rouge précis, **sans reprise du chantier inventaire**.
+
+Le contrôle n'avait pas de faux positif : cinq sources SQL se trouvaient dans
+`outils/bancs/fixtures/`, sous-dossier non autorisé. Changer le vérificateur pour
+les accepter aurait affaibli la règle. Il reste donc strictement inchangé.
+
+- Les deux fichiers `terrain-permis-acte-avant-depot.sql` et
+  `terrain-chantier-acte-avant-commandes.sql` étaient des doublons : leur contenu
+  complet se trouve déjà dans les fixtures `outils/bancs/banc-fixture-*`, sous
+  enveloppe BEGIN/ROLLBACK. Les doublons sont retirés ; leurs lecteurs utilisent
+  les fichiers existants, sans changer les fonctions SQL extraites.
+- `ced-football-schema.sql` et les deux sources `historique-135/*.sql` sont
+  déplacés dans `historique/fixtures-bancs/`. **Aucun octet SQL changé**, aucun
+  enregistrement d'application inventé. Ce dossier documentaire n'est ni un
+  baseline ni une liste de migrations à installer. Les scripts de bancs jetables
+  sont les seuls lecteurs modifiés.
+- Les quatre bancs Python ne changent que leurs chemins, six lignes au total.
+  Aucune assertion existante, règle métier, migration ou fonction d'inventaire
+  modifiée.
+
+Le contrôle Workflow est **CONFORME sur ses neuf familles**, code de sortie 0.
+Le nouveau banc de rangement garde trois contre-exemples effectivement refusés :
+SQL nu en sous-dossier, même sous-dossier avec enveloppe, banc direct sans
+annulation. Il vérifie aussi le dépôt réel, le banc direct annulé et l'archive.
+**Six tests réussis**, sans changer les attentes du vérificateur.
+
+Les lecteurs corrigés sont éprouvés sur PostgreSQL natif jetable : permis **56**,
+Céd/football **45**, construction **62** et sa variante #112 **62**, banque **61**
+et sa variante location **61**, parcours immobilier des cinq terrains **324**.
+Les identités/authentifications sont fictives ; ce ne sont pas des validations
+Supabase réelles. Les variantes réutilisent des assertions, ne pas additionner
+ces chiffres comme des scénarios distincts.
+
+Preuves avant/après, conservation des contenus et logs des bancs :
+`preuves-workflow-20261028/`. La prochaine exécution distante de la PR reste à
+observer ; un succès local ne remplace pas ce résultat. L'inventaire, sa branche,
+ses migrations et son verrou restent intacts. Aucune fusion ni déploiement.
+
+Après ces changements, le contrôleur client complet repasse : **107/107 bancs**,
+zéro échec, dont les six nouveaux tests de rangement.
