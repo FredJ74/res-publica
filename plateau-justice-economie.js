@@ -952,6 +952,32 @@ async function checkDetection(fn, resultType) {
   }
 }
 
+// DETECTION RENDUE PAR LE SERVEUR (27 octobre 2026). Les actes qui passent par une fonction
+// serveur (ordres generiques, corruptions, contrebande, falsification, crimes) tirent leur
+// detection la-bas : un tricheur ne pouvait pas etre repere quand l'ecran la tirait apres coup.
+// L'ecran recopie l'avis de recherche rendu et previent le joueur. checkDetection ne sert plus
+// qu'aux actes encore decides ici (tracts calomnieux, fausse rumeur).
+function adopterDetectionServeur(v, fn) {
+  if (!v) return;
+  if (Array.isArray(v.recherche)) state.recherche = v.recherche;
+  if (typeof v.dis === 'number') state.dis = v.dis;
+  if (v.repere) {
+    showToast('Repéré(e) !', 'Votre activité illégale (' + String(fn || '').replace(/_/g, ' ') + ') a été détectée. Vous êtes recherché(e).', false, true);
+    addJournalEntry('ALERTE : votre activité illégale (' + String(fn || '').replace(/_/g, ' ') + ') a été détectée. Vous êtes recherché(e).', 'event-bad');
+  }
+}
+
+function adopterEtatCrimeServeur(v) {
+  if (!v) return;
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (Array.isArray(v.inventaire) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur({ inventory: v.inventaire });
+}
+
+async function appelerCrimeServeur(nom, params) {
+  const brut = (typeof sbRpc === 'function') ? await sbRpc(nom, params).catch(() => null) : null;
+  return Array.isArray(brut) ? brut[0] : brut;
+}
+
 // Republia : l'interception exige un policier physiquement present.
 // Les controles aleatoires historiques ne peuvent plus creer une arrestation.
 // Les autres empires conservent provisoirement leur comportement existant.
@@ -2213,35 +2239,21 @@ async function doDefense(pa, cost) {
 // inchange, deduit uniquement en cas de reussite (comportement d'origine, non signale comme
 // anomalie, non touche).
 async function doCorruption(fn, pa, cost) {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  // FONDS REELS (corrige le 12 septembre 2026) : ce flux testait puis debitait state.arg, qui n'est
-  // qu'un TOTAL AFFICHE (liquide + comptes + placements) et non un moyen de paiement. Ni le liquide
-  // ni le compte national ne bougeaient : la corruption etait gratuite en pouvoir d'achat reel tout
-  // en cassant l'invariant de fortune verifie au chargement (verifierCoherenceFortune).
-  const fondsDisponibles = typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (fondsDisponibles < cost) { showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false); return; }
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const taux = Math.max(5, 65 - getMalusISN());
-  if (roll <= taux) {
-    // Cout en argent toujours preleve a la seule reussite (comportement d'origine inchange).
-    const paiement = typeof debiterFondsOrdinaires === 'function' ? await debiterFondsOrdinaires(cost) : null;
-    if (paiement && paiement.ok === false) {
-      showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + cur, false);
-      return;
-    }
-    if (!paiement) state.arg = (state.arg || 0) - cost;
-    state.dis = Math.max(0, state.dis - 5);
-    updateUI();
+  // PAR LE SERVEUR (27 octobre 2026) : crime_corrompre preleve les PA a la tentative et le prix a
+  // la seule reussite, tire le jet (65 - securite), la discretion, la trace et la detection.
+  const v = await appelerCrimeServeur('crime_corrompre', { p_fn: fn, p_pa: pa, p_cost: cost });
+  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
+  adopterEtatCrimeServeur(v);
+  if (v.reussi) {
     showToast('Corruption reussie', 'Le service a ete obtenu. -5 DIS.', true);
     addJournalEntry('Corruption : ' + fn.replace(/_/g,' '), 'event-bad');
-    tracerActionPourRumeur('corruption', null);
-    checkDetection(fn, 'success');
+  } else if (v.raison === 'fonds_insuffisants') {
+    showToast('Fonds insuffisants', 'Il vous faut ' + cost + ' ' + (COUNTRIES[state.country]?.cur || 'FR'), false);
   } else {
     showToast('Echec', 'La tentative de corruption a echoue.', false);
-    checkDetection(fn, 'fail');
   }
+  adopterDetectionServeur(v, fn);
+  updateUI();
 }
 
 function doSeReposer(fn) {
@@ -2863,36 +2875,22 @@ function ouvrirFalsifierDocument(pa, cost) {
 // des la tentative, FR uniquement en cas de reussite.
 async function confirmerFalsification(docId, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
-  const doc = DOCUMENTS_FALSIFIABLES.find(d => d.id === docId);
-  if (!doc) return;
-
-  const rPa = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!rPa.ok) { signalerRefusCout(rPa); return; }
-
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const taux = Math.max(5, 45 - getMalusISN());
-
-  if (roll <= taux) {
-    const rCost = await deduireCoutOrdre({ pa: 0, cost });
-    if (!rCost.ok) { showToast('Fonds insuffisants', '', false); return; }
-    if (!state.inventory) state.inventory = [];
-    state.inventory.push({
-      type: 'document_falsifie',
-      name: doc.name,
-      icon: doc.icon,
-      docId: doc.id,
-      legal: false,
-      desc: doc.desc
-    });
-    updateUI();
-    showToast('Document falsifie !', doc.name + ' ajoute a votre inventaire.', true, true);
-    addJournalEntry('Falsification : ' + doc.name, 'event-bad');
-    checkDetection('falsifier_document', 'success');
+  // PAR LE SERVEUR (27 octobre 2026) : crime_falsifier (PA a la tentative, prix a la reussite,
+  // jet 45 - securite, document depose en inventaire, detection).
+  const v = await appelerCrimeServeur('crime_falsifier', { p_doc: docId, p_pa: pa, p_cost: cost });
+  if (!v || v.ok !== true) { signalerRefusCout(v || { raison: 'paiement_indisponible' }); return; }
+  adopterEtatCrimeServeur(v);
+  if (v.reussi) {
+    showToast('Document falsifie !', v.nom_document + ' ajoute a votre inventaire.', true, true);
+    addJournalEntry('Falsification : ' + v.nom_document, 'event-bad');
+  } else if (v.raison === 'fonds_insuffisants') {
+    showToast('Fonds insuffisants', '', false);
   } else {
-    showToast('Echec !', 'La falsification a echoue. Vous etes peut-etre repere(e).', false);
-    checkDetection('falsifier_document', 'fail');
+    showToast('Echec !', 'La falsification a echoue.', false);
     addJournalEntry('Tentative de falsification echouee.', 'event-bad');
   }
+  adopterDetectionServeur(v, 'falsifier_document');
+  updateUI();
 }
 
 // `ouvrirRendreSentence` A ETE SUPPRIMEE (12 octobre 2026 au soir) -- QUARANTE LIGNES RETIREES.

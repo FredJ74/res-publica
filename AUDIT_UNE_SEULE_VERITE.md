@@ -393,4 +393,12 @@ tirés au hasard et les effets purement visuels sont exclus.
   - neutraliser et explosifs déposent de nouveau l'impact `hp_set` (hospitalisation de la victime).
   Restent à l'écran : « Se cacher », la bénédiction, les suites chez la victime (sommeil, centre
   anti-poison), et le retrait différé du butin chez la victime.
+- **27/10 (soir)** — famille « Crime », **troisième lot** (`20261027130000`) : la **détection**
+  n'est plus tirée par l'écran après coup (un tricheur s'en dispensait) mais dans la fonction
+  serveur de l'acte : ordres génériques illégaux (`ordre_generique_executer`), corruption de
+  fonctionnaire / police / gardien (`crime_corrompre`), douanier (`crime_corrompre_douanier`),
+  contrebande (`crime_contrebande`), falsification (`crime_falsifier`, objet déposé par le
+  serveur). L'alerte « repéré » n'est plus publiée dans le fil public (elle l'était par erreur).
+  Reste à l'écran : tracts calomnieux et fausse rumeur (chantier des rumeurs), neutralisation
+  d'un député, `checkScandale`, `checkEffacementCrimes`, `payerInformateurs`.
 

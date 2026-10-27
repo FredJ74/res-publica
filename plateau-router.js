@@ -871,10 +871,8 @@ async function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
   addJournalEntry(`${label} — ${buildResultLabel(resultType, roll)}. ${msg}`,
     resultType === 'crit' || resultType === 'success' ? 'event-good' : resultType === 'crit-fail' ? 'event-bad' : '');
 
-  // Verifier detection si acte illegal
-  if (ACTES_ILLEGAUX[fn] && resultType !== 'crit-fail') {
-    checkDetection(fn, resultType);
-  }
+  // Detection tiree par le serveur (ordre_generique_executer, 27/10/2026) : on recopie son verdict.
+  if (typeof adopterDetectionServeur === 'function') adopterDetectionServeur({ recherche: v.recherche, repere: v.repere }, fn);
 
   advanceTime(Math.max(0, pa));
   updateUI();
