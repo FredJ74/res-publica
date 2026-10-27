@@ -12397,7 +12397,7 @@ async function conclureArrestationJudiciaire() {
     if (typeof updateUI === 'function') updateUI();
     if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
       ouvrirResolutionSpectaculaire({type:'arrestation',succes:true,titre:'VOUS ÊTES EN ÉTAT D’ARRESTATION',
-        resultatHtml:construireResultatArrestationHtml(i.eligible.motifs || [],i.ville,state.country)});
+        resultatHtml:construireResultatArrestationHtml(i.eligible?.motifs || [],i.ville,state.country)});
     }
   } finally {
     interceptionJudiciaireOccupee = false;
