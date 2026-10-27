@@ -7,6 +7,9 @@ Règles : voir `AGENTS.md`.
 
 ### Sécurité privée #135 — arbitrages du 27/10 (ChatGPT)
 
+- **28/10, règle universelle des groupes PJ+PNJ (Fred)** : chaque groupe est commandé par un PJ ; seul ce chef déplace le groupe, entraînant ses membres ; le chef peut déployer tout ou partie de ses membres à sa position. Ceci vaut pour **tous les joueurs/PNJ**, pas seulement militaires, policiers ou privés. La source Kraland est inspiration, sans copie des quotas, coûts, interdictions ou capture. Spécification versionnée dans `GAME-DESIGN-SECURITE-PRIVEE-135.md`. Audit : les liens `pnj_membres.leader_pj/leader_pnj_id` et groupes de bataille existent, mais le regroupement PJ universel et le déploiement ne sont pas encore localisés/vérifiés ; ne pas assimiler le `groupe_id` de bataille à un groupe persistant. Préserver la PR brouillon, et ne pas inventer de moteur/tables parallèles ni modifier les fichiers de Codex.
+
+
 - **28/10, raccordement au socle militaire confirmé** : `militaire_bataille_groupes_constituer(bigint)` utilise déjà `batailles_engagements.groupe_id` pour regrouper compagnie, section et chef. Dans la migration #135, le détecteur accepte désormais le même `groupe_id` explicite pour les policiers (avec alias historique `groupeId`) ; les privés restent attachés au `leader_pnj_id` du socle PNJ. Le banc de priorités utilisant `groupe_id` passe dans `BEGIN/ROLLBACK` sur Supabase. Attention : `batailles_groupes` est limité aux batailles, donc la preuve de constitution et de circulation de groupes policiers hors bataille reste à établir avant clôture. Codex non touché.
 
 
