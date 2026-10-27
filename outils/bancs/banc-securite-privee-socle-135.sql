@@ -19,3 +19,25 @@ BEGIN
  IF jsonb_array_length(r)<>0 THEN RAISE EXCEPTION 'agent_detenu_actif'; END IF;
  RAISE NOTICE 'Banc #135 : 4 assertions réussies en transaction annulée';
 END $t$;
+
+-- Cas authentifié : avis de recherche fictif, rencontre et combat commun.
+INSERT INTO auth.users(id,instance_id,aud,role)
+VALUES ('c1350000-0000-4000-8000-000000000135','00000000-0000-0000-0000-000000000000','authenticated','authenticated');
+SELECT set_config('request.jwt.claim.sub','c1350000-0000-4000-8000-000000000135',true);
+INSERT INTO public.personnages_donnees(name,user_id,country,current_city,current_building,current_room,hp,pa,resources,stats)
+VALUES ('__test_pj_135__','c1350000-0000-4000-8000-000000000135','republic','capitale','__test_bat_135__','terrain',100,12,'{"dis":0}'::jsonb,'{"PER":8,"VOL":8}'::jsonb);
+UPDATE public.pnj_membres SET statut='actif' WHERE id='__test_135_private__';
+INSERT INTO public.jugements(id,country,city,accuse,motif,executee,data)
+VALUES ('__test_jugement_135__','republic','capitale','__test_pj_135__','test',false,'{"motifs":[{"jours":1}]}'::jsonb);
+INSERT INTO public.police_interceptions(personnage,rencontre,country,city,building,room,street)
+VALUES ('__test_pj_135__','prive-test-135','republic','capitale','__test_bat_135__','terrain',NULL);
+SET LOCAL ROLE authenticated;
+DO $t$
+DECLARE r jsonb;
+BEGIN
+ r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',1);
+ IF r->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'combat_prive_refuse: %',r; END IF;
+ r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',1);
+ IF r->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'combat_idempotence_refuse: %',r; END IF;
+END $t$;
+RESET ROLE;
