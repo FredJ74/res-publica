@@ -3084,7 +3084,13 @@ function signalerRefusReservationChambre(r, cout) {
   console.warn('[chambre] reservation refusee — raison serveur :', raison, r);
 }
 
+let reservationHotelEnCours = false;
 async function doReserverChambreHotel(pa) {
+  // Un double clic sur un achat payant ne doit pas lancer deux transactions.
+  if (reservationHotelEnCours) return;
+  reservationHotelEnCours = true;
+  try {
+
   const confortMap = {
     'hotel-republica': { moral: 3, paBonus: 2 },
     'hotel-port':      { moral: 3, paBonus: 2 },
@@ -3181,6 +3187,9 @@ async function doReserverChambreHotel(pa) {
   showToast('Chambre reservee', 'Vous obtiendrez un bonus de +' + bonus.paBonus + ' PA et +' + bonus.moral + ' Moral en passant l\'ordre Dormir <strong>dans cette chambre</strong>.', true, true);
   addJournalEntry('Vous avez reserve une chambre d\'hotel. Vous obtiendrez un bonus de ' + bonus.paBonus + ' PA + ' + bonus.moral + ' moral en passant l\'ordre dormir <strong>dans cette chambre</strong>.', 'event-good');
   if (typeof queteAccueilApresReservationChambre === 'function') queteAccueilApresReservationChambre();
+  } finally {
+    reservationHotelEnCours = false;
+  }
 }
 
 async function doServiceEtage(pa) {
