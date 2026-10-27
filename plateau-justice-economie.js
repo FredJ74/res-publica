@@ -11072,17 +11072,16 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
   const contexteDetection = contexteInterceptionJudiciaire();
   const effectifs = await chargerEffectifsPolice(pays, ville).catch(() => null);
   if (!contexteInterceptionJudiciaireValide(contexteDetection)) return;
-  if (!effectifs || !Array.isArray(effectifs.policiers) || !effectifs.policiers.length) return;
+  // Le serveur arbitre aussi la présence éventuelle d'agents privés : l'absence de police ne bloque pas sa vérification.
+  const policiersDisponibles = Array.isArray(effectifs?.policiers) ? effectifs.policiers : [];
 
   const enRue = !!rueNoeudId;
   const zoneSurveillee = { pays, ville, batiment: buildingId || null,
     piece: roomId || null, rue: rueNoeudId || null };
   const presents = enRue
-    ? effectifs.policiers.filter(p => p.rueNoeudId === rueNoeudId && Number(p.pa ?? 12) > 0)
-    : effectifs.policiers.filter(p => p.buildingId === buildingId && p.roomId === roomId && Number(p.pa ?? 12) > 0);
-  if (presents.length === 0) return;
-
-  let perGroupe = calculerPerGroupePolice(presents);
+    ? policiersDisponibles.filter(p => p.rueNoeudId === rueNoeudId && Number(p.pa ?? 12) > 0)
+    : policiersDisponibles.filter(p => p.buildingId === buildingId && p.roomId === roomId && Number(p.pa ?? 12) > 0);
+  let perGroupe = presents.length ? calculerPerGroupePolice(presents) : 0;
   if (enRue) perGroupe -= DILUTION_RUE_PER_POLICE; // dilution rue uniquement, jamais en piece
 
   // La recherche et le jet de detection sont exclusivement arbitres par le serveur.
@@ -11100,12 +11099,15 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
         (enRue ? (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== zoneSurveillee.rue) :
           (state.currentBuilding !== zoneSurveillee.batiment || state.currentRoom !== zoneSurveillee.piece))) return;
     const intervention = await verifierArrestationRecherchePolice({
-      detecte: true, rencontreId: detection.rencontre, policiers: presents, rueNoeudId,
+      detecte: true, rencontreId: detection.rencontre,
+      policiers: presents.length ? presents : Array.from({length:Math.max(1, Number(detection.effectif || 1))}, () => ({})), rueNoeudId,
       zone: zoneSurveillee
     });
     if (intervention === true) return;
   }
   if (pays === 'republic' && detection?.raison !== 'non_recherche') return;
+  // Les contrôles de police non judiciaires restent réservés aux policiers réellement présents.
+  if (presents.length === 0) return;
   const disEff = calculerDisEffective();
   const chanceDetection = calculerChancePJ(disEff, perGroupe);
   const tirage = Math.floor(Math.random() * 100) + 1;
@@ -12312,7 +12314,8 @@ function afficherInterceptionJudiciaire() {
   if (!modal || !titre || !body) return;
   // Un dossier ouvert ne peut pas disparaître par un changement de fenêtre :
   // l'interception est conservée et réaffichée à la prochaine vérification.
-  titre.textContent = 'INTERCEPTION POLICIÈRE';
+  const agentPrive = String(i.rencontreId || '').startsWith('prive-');
+  titre.textContent = agentPrive ? 'INTERPELLATION PAR LA SÉCURITÉ PRIVÉE' : 'INTERCEPTION POLICIÈRE';
   const btn = (action, label) => '<button '+(interceptionJudiciaireOccupee?'disabled aria-disabled="true" ':'')+'type="button" class="ibtn" onclick="choisirInterceptionJudiciaire(&quot;' + action + '&quot;)">' + label + '</button>';
   body.innerHTML = '<div class="hg-interception" style="padding:1.1rem;display:grid;gap:.8rem">' +
     '<p>Vous avez été reconnu(e). Une condamnation est en attente d’exécution.</p>' +
@@ -12382,7 +12385,9 @@ async function conclureArrestationJudiciaire() {
     interceptionJudiciaire = null;
     document.getElementById('modal-postes')?.classList.remove('open');
     const nomVille = (typeof WORLD !== 'undefined' && WORLD[state.country]?.[i.ville]?.name) || i.ville;
-    addJournalEntry('Vous êtes arrêté(e) et conduit(e) à la prison de ' + nomVille + '.', 'event-bad');
+    addJournalEntry((String(i.rencontreId || '').startsWith('prive-') ?
+      'Un agent de sécurité privée vous a interpellé(e) et remis(e) à la police, qui vous a conduit(e) à la prison de ' :
+      'Vous êtes arrêté(e) et conduit(e) à la prison de ') + nomVille + '.', 'event-bad');
     addExternalEvent(state.char.name + ' a été arrêté(e) après une interception policière.', 'local');
     // Utiliser le transport carcéral commun : il connaît les cellules de chaque ville.
     // Le trajet manuel commissariat/prison était incorrect hors de Luthécia.
@@ -12392,7 +12397,7 @@ async function conclureArrestationJudiciaire() {
     if (typeof updateUI === 'function') updateUI();
     if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
       ouvrirResolutionSpectaculaire({type:'arrestation',succes:true,titre:'VOUS ÊTES EN ÉTAT D’ARRESTATION',
-        resultatHtml:construireResultatArrestationHtml(i.eligible.motifs || [],i.ville,state.country)});
+        resultatHtml:construireResultatArrestationHtml(i.eligible?.motifs || [],i.ville,state.country)});
     }
   } finally {
     interceptionJudiciaireOccupee = false;
