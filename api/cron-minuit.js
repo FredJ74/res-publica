@@ -5913,6 +5913,14 @@ export default async function handler(req, res) {
       // la fenetre serait devenue inatteignable. Ce champ est l'instant reel, et il ne bouge plus
       // apres.
       cycle.dernierResultatTs = dateResultats;
+      // PHOTOGRAPHIE DU SCRUTIN PROCLAME (27 octobre 2026). La proclamation rouvre aussitot le
+      // scrutin suivant (nouvelle cle, bulletins remis a zero) : sans cette copie, la contestation
+      // des 24 h suivantes cherchait les fraudes dans un scrutin vide. election_contester (serveur)
+      // y lit les candidats, les bulletins, le tour des tracts et la cle des fraudes.
+      cycle.dernierScrutin = JSON.parse(JSON.stringify({
+        debut: cycleDebutCle, dateVote: cycle.dateVote || null,
+        candidats: cycle.candidats || [], votes: cycle.votes || {}, votesPNJ: cycle.votesPNJ || {}
+      }));
 
       const sortantSimple = cycle.eluId || null;
       const sortantsDepute = Array.isArray(cycle.elus) ? cycle.elus.filter(Boolean) : [];

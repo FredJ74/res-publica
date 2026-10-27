@@ -93,20 +93,17 @@ att('le nombre de revoques vient du SERVEUR, jamais du compteur de boucle',
     bDis.indexOf('Number(vRevoc.revoques)') >= 0);
 att("le drapeau recopie l'etat arrete par le serveur",
     bDis.indexOf("CYCLES_ELECTORAUX[pays]['president'] = vRevoc.cycle_president") >= 0);
-att('la troisieme vague LIT desormais son resultat',
-    bDis.indexOf('const posee = (typeof sbSaveCycleElectoral') >= 0
-    && bDis.indexOf('if (!posee) {') >= 0);
-att('et une circonscription non relancee est NOMMEE au joueur',
-    bDis.indexOf('circonscriptionsNonRelancees.join') >= 0);
-att('le compteur ne compte plus les tours de boucle mais les ecritures reussies',
-    bDis.indexOf('circonscriptionsNonRelancees.push(ville)') >= 0);
-
-// SANS CE CORRECTIF, LA TROISIEME VAGUE ETAIT INVERIFIABLE PAR CONSTRUCTION.
-var bSave = sansCommentaires(bloc('plateau-politique.js', 'sbSaveCycleElectoral'));
-att('sbSaveCycleElectoral rend enfin un verdict',
-    compte(bSave, /return await sb(Update|Insert)\(/g) === 2,
-    compte(bSave, /return await sb(Update|Insert)\(/g) + ' retour(s)');
-att("et son catch rend null au lieu de rien", bSave.indexOf('catch(e) { return null; }') >= 0);
+// 27 OCTOBRE 2026 : LA TROISIEME VAGUE EST FAITE PAR LE SERVEUR. assemblee_dissoudre relance les
+// scrutins legislatifs dans la meme transaction que la revocation ; le navigateur n'ecrit plus
+// aucun scrutin (sbSaveCycleElectoral supprimee).
+att('la troisieme vague est faite par le serveur, et son resultat vient de lui',
+    bDis.indexOf('Number(vRevoc.circonscriptions_relancees)') >= 0);
+att('plus aucune ecriture cliente de scrutin dans la dissolution',
+    compte(bDis, /sbSaveCycleElectoral\(/g) === 0 && compte(bDis, /sbUpdate\('cycles_electoraux'/g) === 0);
+att('les scrutins sont relus tels que le serveur les a poses',
+    bDis.indexOf('sbLoadCyclesElectoraux(pays)') >= 0);
+att("sbSaveCycleElectoral n'existe plus",
+    SRC['plateau-politique.js'].indexOf('async function sbSaveCycleElectoral') < 0);
 
 print('');
 print('19. CANDIDATURE : LES DEUX REPRESENTATIONS DANS UNE TRANSACTION');

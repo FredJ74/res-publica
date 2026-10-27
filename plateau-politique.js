@@ -856,28 +856,9 @@ function deposerCandidatureBtn2(posteId, country, city) {
 // =====================
 // PERSISTANCE ÉLECTORALE SUPABASE
 // =====================
-async function sbSaveCycleElectoral(country, posteId, cycle, city) {
-  if (typeof sbInsert !== 'function' || typeof sbGet !== 'function') return;
-  const cle = getCleCycle(posteId, city);
-  const id = country + '_' + cle;
-  try {
-    const existing = await sbGet('cycles_electoraux', `id=eq.${encodeURIComponent(id)}`);
-    const payload = {
-      id, country, poste_id: posteId, city: posteEstLocal(posteId) ? (city || null) : null,
-      data: JSON.stringify(cycle),
-      updated_at: new Date().toISOString()
-    };
-    // ELLE NE RENDAIT RIEN (chantier 5, chaine 18, 10 octobre 2026). `async function` sans
-    // `return`, plus un `catch(e) {}` vide : succes et echec rendaient tous les deux `undefined`.
-    // Aucun appelant ne POUVAIT verifier cette ecriture, meme en le voulant -- c'est ce qui rendait
-    // la troisieme vague de la dissolution invérifiable par construction. Elle rend desormais le
-    // resultat de l'ecriture, ou `null` si elle n'a pas abouti.
-    if (existing && existing.length > 0) {
-      return await sbUpdate('cycles_electoraux', `id=eq.${encodeURIComponent(id)}`, payload);
-    }
-    return await sbInsert('cycles_electoraux', payload);
-  } catch(e) { return null; }
-}
+// sbSaveCycleElectoral SUPPRIMEE le 27 octobre 2026 : les joueurs n'ecrivent plus les scrutins
+// (cycle_electoral_initialiser, assemblee_dissoudre, election_contester, election_voter,
+// candidature_deposer et la passe de nuit les tiennent).
 
 async function sbLoadCyclesElectoraux(country) {
   if (typeof sbGet !== 'function') return null;
@@ -1307,10 +1288,13 @@ async function initCycleElectoral(country, posteId, city) {
   if (!CYCLES_ELECTORAUX[country]) CYCLES_ELECTORAUX[country] = {};
   if (CYCLES_ELECTORAUX[country][cle]) return;
 
-  CYCLES_ELECTORAUX[country][cle] = construireNouveauCycleElectoral(posteId, city, Date.now());
-  if (typeof sbSaveCycleElectoral === 'function') {
-    await sbSaveCycleElectoral(country, posteId, CYCLES_ELECTORAUX[country][cle], city).catch(() => {});
-  }
+  // LE SERVEUR ENGENDRE LE SCRUTIN (27 octobre 2026) : cycle_electoral_initialiser ne fait rien si
+  // le scrutin existe deja -- l'ancien chemin pouvait ecraser un scrutin existant, titulaire compris,
+  // quand ce cache etait vide. On recopie ce que le serveur detient.
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('cycle_electoral_initialiser', { p_poste: posteId, p_city: city || null }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (v?.ok && v.cycle && typeof v.cycle === 'object') CYCLES_ELECTORAUX[country][cle] = v.cycle;
 }
 
 // Meme forme exacte que le corps de initCycleElectoral ci-dessus (memes champs, memes delais),
@@ -2831,160 +2815,62 @@ async function ouvrirContesterResultatsElection(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// CONTESTATION PAR LE SERVEUR (27 octobre 2026). Fenetre de 24 h, paiement, jet (60 % + INT),
+// tirage de la fraude, sanction, recomptage et changement d'elu sont faits par election_contester,
+// sur la photographie du scrutin proclame que garde la passe de nuit. Auparavant l'ecran tirait
+// tout, cherchait les fraudes dans le scrutin SUIVANT (deja rouvert, donc vide) et reecrivait
+// lui-meme l'elu dans le scrutin.
+const MOTIFS_CONTESTATION = {
+  hors_delai: 'Ce scrutin n\'est plus contestable (au-delà des 24h suivant la proclamation, ou résultats pas encore proclamés).',
+  scrutin_non_consultable: 'Ce scrutin n\'est plus consultable.',
+  scrutin_introuvable: 'Ce scrutin n\'est plus consultable.'
+};
 async function confirmerContesterResultats(posteId, city) {
   document.getElementById('modal-postes').classList.remove('open');
   const country = state.country;
-  const cle = getCleCycle(posteId, city || null);
-
-  // Controle A L'EXECUTION, sur donnee FRAICHE (correctif du 4 septembre 2026, audit dedie) :
-  // ouvrirContesterResultatsElection filtrait deja a l'affichage sur les 24h reelles depuis
-  // dateResultats, mais confirmerContesterResultats ne revalidait rien elle-meme -- un appel
-  // direct (ou une simple lenteur entre l'ouverture du panneau et le clic) pouvait contester une
-  // "vieille" election bien au-dela des 24h. Chargee et verifiee ICI, avant toute depense de
-  // PA/FR, jamais uniquement par le masquage du bouton cote interface.
-  const rows = await sbGet('cycles_electoraux', `id=eq.${encodeURIComponent(country + '_' + cle)}`).catch(() => []);
-  const row = rows && rows[0];
-  if (!row) { showToast('Indisponible', 'Ce scrutin n\'est plus consultable.', false); return; }
-  const cycle = JSON.parse(row.data);
-  const cycleDebut = cycle.dateDebutCandidatures;
-  const nowContestation = Date.now();
-  const proclameFrais = Number(cycle.dernierResultatTs);
-  const dansLaFenetre24h = !!proclameFrais
-    && (nowContestation - proclameFrais) >= 0 && (nowContestation - proclameFrais) <= 24 * 60 * 60 * 1000;
-  if (!dansLaFenetre24h) {
-    showToast('Hors délai', 'Ce scrutin n\'est plus contestable (au-delà des 24h suivant la proclamation, ou résultats pas encore proclamés).', false);
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('election_contester', { p_poste: posteId, p_city: city || null, p_pa: 2, p_cost: 200 }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v && MOTIFS_CONTESTATION[v.raison]) showToast('Indisponible', MOTIFS_CONTESTATION[v.raison], false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
     return;
   }
-
-  const r = await deduireCoutOrdre({ pa: 2, cost: 200 });
-  if (!r.ok) {
-    showToast(r.raison === 'fonds_insuffisants' ? 'Fonds insuffisants' : 'PA insuffisants', r.raison === 'fonds_insuffisants' ? '200 FR requis.' : '2 PA requis.', false);
-    return;
-  }
-
-  const taux = tauxAvecModificateurStat(60, 'INT');
-  const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll > taux) {
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie || {});
+  if (v.issue === 'rejetee') {
     showToast('Contestation rejetée', 'Le dossier n\'a pas abouti.', false);
     addJournalEntry('⚖️ Contestation des résultats rejetée.', 'event-bad');
     return;
   }
-
-  const nonRevelees = await sbGetFraudesNonRevelees(country, posteId, city || null, cycleDebut);
-  if (nonRevelees.length === 0) {
-    showToast('Contestation menée', 'Aucune fraude n\'a été détectée cette fois.', true);
+  if (v.issue !== 'fraude_revelee') {
+    showToast('Contestation menée', v.issue === 'sans_suite'
+      ? 'Cette fraude a déjà été révélée par quelqu\'un d\'autre.' : 'Aucune fraude n\'a été détectée cette fois.', true);
     addJournalEntry('⚖️ Contestation menée : aucune fraude détectée.', 'event-info');
     return;
   }
-
-  // Selection NON BIAISEE parmi les fraudes encore non revelees (jamais la plus recente/la plus
-  // grosse en priorite -- un tirage uniforme, exactement comme demande).
-  const fraudeChoisie = nonRevelees[Math.floor(Math.random() * nonRevelees.length)];
-  const rollDetection = Math.random() * 100;
-  if (rollDetection >= fraudeChoisie.detectabilite_pct) {
-    showToast('Contestation menée', 'Aucune fraude n\'a été détectée cette fois.', true);
-    addJournalEntry('⚖️ Contestation menée : aucune fraude détectée.', 'event-info');
-    return;
+  if (typeof v.arg === 'number') {
+    state.arg = Number(v.arg);
+    if (state.char) state.char.arg = state.arg;
   }
-
-  // ---- Fraude detectee : revelation, sanction et recompense, en une seule transaction ----
-  //
-  // La revelation et la sanction etaient separees : la premiere aboutissait, la seconde -- amende
-  // et detention du fraudeur -- passait par une ecriture sur SA fiche, refusee depuis le chantier
-  // B et avalee par un .catch() muet. On annoncait la chute d'un fraudeur qui n'etait ni amende
-  // ni detenu. fraude_electorale_sanctionner retrouve la fraude dans fraudes_electorales, verifie
-  // qu'elle n'est pas deja revelee -- c'est le verrou contre le rejeu et la concurrence -- puis
-  // applique les trois effets ensemble. Les montants et la duree viennent du serveur.
-  const rSanction = await sbRpc('fraude_electorale_sanctionner',
-    { p_fraude_id: fraudeChoisie.id, p_ville: city || null })
-    .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
-  if (!rSanction || rSanction.ok !== true) {
-    showToast('Contestation sans suite',
-      (rSanction && rSanction.raison === 'fraude_deja_revelee')
-        ? 'Cette fraude a déjà été révélée par quelqu\'un d\'autre.'
-        : "La fraude n'a pas pu être établie. Aucune sanction n'a été prononcée.", false);
-    return;
+  const issueChangee = !!v.issue_changee;
+  if (issueChangee && typeof sbLoadCyclesElectoraux === 'function') {
+    const frais = await sbLoadCyclesElectoraux(country).catch(() => null);
+    if (frais) CYCLES_ELECTORAUX[country] = frais;
   }
-
-  const fraudesRestantes = (await sbGetFraudesNonRevelees(country, posteId, city || null, cycleDebut))
-    .filter(f => f.id !== fraudeChoisie.id);
+  const typeFraude = String(v.type || 'fraude').replace(/_/g, ' ');
   const posteNom = (posteId === 'depute') ? 'Législatives' : (posteId === 'maire' ? 'Municipales' : (posteId === 'president' ? 'Présidentielle' : posteId));
   const villeNom = city ? (WORLD[country]?.[city]?.name || city) : null;
-
-  let issueChangee = false, ancienneIssue = null, nouvelleIssue = null;
-  if (posteId === 'depute') {
-    ancienneIssue = Array.isArray(cycle.elus) ? cycle.elus.slice() : [];
-    const recalcul = resoudreScrutinDepute(cycle, fraudesRestantes);
-    if (recalcul && !recalcul.egalite3eSiege && !recalcul.blancMajoritaire) {
-      let nouveauxElus = recalcul.elus.slice();
-      if (nouveauxElus.length < 3) {
-        const pool = (ancienneIssue.filter(n => (n||'').indexOf('(PNJ)') !== -1)).concat([]);
-        while (nouveauxElus.length < 3 && pool.length) nouveauxElus.push(pool.shift());
-      }
-      nouvelleIssue = nouveauxElus;
-      issueChangee = JSON.stringify(ancienneIssue.slice().sort()) !== JSON.stringify(nouveauxElus.slice().sort());
-      if (issueChangee) cycle.elus = nouveauxElus;
-    }
-  } else {
-    ancienneIssue = cycle.eluId;
-    const recalcul = resoudreScrutinSimple(cycle, fraudesRestantes);
-    if (recalcul && recalcul.elu && !recalcul.blancMajoritaire) {
-      nouvelleIssue = recalcul.elu;
-      issueChangee = ancienneIssue !== recalcul.elu;
-      if (issueChangee) cycle.eluId = recalcul.elu;
-    }
-  }
-  if (issueChangee) {
-    await sbUpdate('cycles_electoraux', `id=eq.${row.id}`, { data: JSON.stringify(cycle), updated_at: new Date().toISOString() }).catch(() => {});
-  }
-
-  // Sanctions (correctif du 4 septembre 2026, audit dedie) : fraudeur (-500 FR reels + VRAIE
-  // detention) ; contestataire (+200 FR). La detention reutilise integralement le mecanisme
-  // reel existant (personnages.est_emprisonne, meme forme que emprisonnerPourFraude et que
-  // confirmerArrestation quelques ecrans plus loin dans ce jeu) au lieu d'un champ separe
-  // seulement informatif comme dans la version precedente -- le fraudeur n'a pas besoin d'etre
-  // connecte : au prochain chargement de son personnage, supabase.js relit est_emprisonne et
-  // plateau-navigation.js bloque alors reellement sa navigation hors de sa cellule, exactement
-  // comme pour n'importe quelle autre detention de ce jeu. jourFin est calcule a partir du
-  // dernier "day" reellement persiste du fraudeur (jamais state.day de CETTE session, qui est
-  // celle du contestataire) : state.day etant personnel et non partage entre joueurs, c'est la
-  // seule valeur de depart correcte pour calculer SA propre echeance. Peine fixe de 2 jours
-  // REELS, quelle que soit la categorie de fraude (arbitrage du 4 septembre 2026, distinct des
-  // peines du flagrant delit -- emprisonnerPourFraude, 20j falsification/trucage ou 1j bourrage
-  // -- qui restent, elles, propres a chaque ordre et ne s'appliquent qu'a une fraude prise sur
-  // le fait, jamais a une decouverte a posteriori par contestation).
-  //
-  // IMPORTANT -- valeur passee TELLE QUELLE (objet), jamais via JSON.stringify() manuel : sbUpdate
-  // serialise deja tout le corps de la requete une fois (voir supabase.js, JSON.stringify(data)) ;
-  // un JSON.stringify() supplementaire ici double-encoderait la valeur et casserait sa relecture
-  // cote client (r.est_emprisonne redeviendrait une chaine, jamais un objet, faisant echouer tout
-  // controle sur .jourFin/.city) -- meme piege que confirmerArrestation (plateau-justice-economie.js),
-  // qui semble deja l'avoir, hors perimetre de cette correction.
-  // L'amende (-500 FR), la detention de 2 jours du fraudeur et la recompense du contestataire
-  // (+200 FR) ont ete appliquees ensemble par le serveur, plus haut. On se contente de refleter
-  // la fortune qu'il a arretee : sans cela, la prochaine sauvegarde de fiche republierait
-  // l'ancienne valeur et effacerait la recompense.
-  if (typeof rSanction.arg_contestataire === 'number') {
-    state.arg = Number(rSanction.arg_contestataire);
-    if (state.char) state.char.arg = state.arg;
-    if (typeof updateUI === 'function') updateUI();
-  }
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-
-  // Fait public pour La Tribune (demande explicite, section 8) : jamais invente, meme si la
-  // correction ne change finalement pas le vainqueur.
   if (typeof sbEnregistrerEvenementPublic === 'function') {
     sbEnregistrerEvenementPublic(country, 'fraude_electorale_revelee', {
       city: city || null,
-      personnages: [fraudeChoisie.auteur].filter(Boolean),
-      libelle: 'Une fraude électorale (' + fraudeChoisie.type.replace(/_/g, ' ') + ') commise par ' + fraudeChoisie.auteur + ' lors du scrutin ' + posteNom + (villeNom ? ' de ' + villeNom : '') + ' a été révélée par une contestation.' + (issueChangee ? ' Le résultat officiel a été corrigé.' : ''),
-      data: { poste_id: posteId, type_fraude: fraudeChoisie.type, issue_changee: issueChangee }
+      personnages: [v.fraudeur].filter(Boolean),
+      libelle: 'Une fraude électorale (' + typeFraude + ') commise par ' + v.fraudeur + ' lors du scrutin ' + posteNom + (villeNom ? ' de ' + villeNom : '') + ' a été révélée par une contestation.' + (issueChangee ? ' Le résultat officiel a été corrigé.' : ''),
+      data: { poste_id: posteId, type_fraude: v.type, issue_changee: issueChangee }
     }).catch(() => {});
   }
-
   updateUI();
   showToast('Fraude révélée !', 'Une fraude électorale a été démasquée. +200 FR. ' + (issueChangee ? 'Le résultat officiel a changé.' : 'Le résultat officiel reste inchangé.'), true, true);
-  addJournalEntry('⚖️ Fraude électorale révélée (' + fraudeChoisie.type.replace(/_/g, ' ') + ', ' + fraudeChoisie.auteur + '). +200 FR.' + (issueChangee ? ' Résultat corrigé.' : ''), 'event-good');
+  addJournalEntry('⚖️ Fraude électorale révélée (' + typeFraude + ', ' + v.fraudeur + '). +200 FR.' + (issueChangee ? ' Résultat corrigé.' : ''), 'event-good');
 }
 
 async function ouvrirTableauElectoral() {
@@ -6763,33 +6649,14 @@ async function doDissoudreAssemblee(pa, cost) {
     if (state.char) state.char.posteDepute = null;
   }
 
-  // 2. Relancer immediatement un cycle electoral frais pour CHAQUE circonscription de depute
-  // EXISTANTE de ce pays (lues directement dans cycles_electoraux, jamais une liste de villes
-  // devinee) -- candidatures -> campagne -> vote -> resultats -> mandat, exactement le moteur
-  // normal, repris par le cron quotidien comme n'importe quel autre cycle.
-  let nbCirconscriptionsRelancees = 0;
+  // 2. LA RELANCE DES SCRUTINS LEGISLATIFS EST FAITE PAR assemblee_dissoudre (27 octobre 2026),
+  // dans la meme transaction que la revocation : le navigateur n'ecrit plus les scrutins. On relit
+  // les scrutins tels que le serveur les a poses.
+  const nbCirconscriptionsRelancees = Number(vRevoc.circonscriptions_relancees) || 0;
   const circonscriptionsNonRelancees = [];
-  if (typeof sbGet === 'function') {
-    try {
-      const lignesDepute = await sbGet('cycles_electoraux', `country=eq.${encodeURIComponent(pays)}&poste_id=eq.depute`) || [];
-      for (const ligne of lignesDepute) {
-        const ville = ligne.city || null;
-        const cycleFrais = construireNouveauCycleElectoral('depute', ville, Date.now());
-        const cle = getCleCycle('depute', ville);
-        CYCLES_ELECTORAUX[pays][cle] = cycleFrais;
-        // TROISIEME VAGUE : son echec n'est plus avale (chaine 18). Elle reste au client parce
-        // que `construireNouveauCycleElectoral` vit dans data.js et que le serveur ne connait pas
-        // le calendrier electoral -- dette consignee dans l'en-tete de la migration.
-        const posee = (typeof sbSaveCycleElectoral === 'function')
-          ? await sbSaveCycleElectoral(pays, 'depute', cycleFrais, ville).catch(() => null)
-          : null;
-        if (!posee) {
-          circonscriptionsNonRelancees.push(ville);
-          continue;
-        }
-        nbCirconscriptionsRelancees++;
-      }
-    } catch (e) {}
+  if (typeof sbLoadCyclesElectoraux === 'function') {
+    const frais = await sbLoadCyclesElectoraux(pays).catch(() => null);
+    if (frais) CYCLES_ELECTORAUX[pays] = frais;
   }
 
   updateUI();

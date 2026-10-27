@@ -238,9 +238,11 @@ att('candidaturesOuvertes ne regarde plus que le gel',
 // la cloture du vote et la passe du cron qui disparait.
 att('la queue de getPhaseActuelle rend DEPOUILLEMENT quand un titulaire existe',
     pol.indexOf('return cycleAUnTitulaire(cycle, posteId) ? PHASES_ELECTORALES.DEPOUILLEMENT : PHASES_ELECTORALES.VACANT;') >= 0);
+// Depuis le 27 octobre 2026 la contestation est jugee par le serveur (election_contester), qui lit
+// la meme fenetre ; l'ecran ne s'en sert plus que pour proposer les scrutins contestables.
 att('la fenetre de contestation se lit sur dernierResultatTs',
     pol.indexOf('Number(c.dernierResultatTs)') >= 0
-    && pol.indexOf('Number(cycle.dernierResultatTs)') >= 0);
+    && pol.indexOf("sbRpc('election_contester'") >= 0);
 
 print('');
 print('6 ter. IL N EXISTE QU UN SEUL FABRICANT DE TITULAIRE, ET C EST LE SOCLE');
