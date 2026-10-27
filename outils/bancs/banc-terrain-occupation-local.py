@@ -20,6 +20,7 @@ def main():
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:
    a=source.index('CREATE OR REPLACE FUNCTION public.'+fn+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',source[a:],re.S);q.execute(source[a:a+m.end()])
   sql=(R/'migrations/20261022222907_terrain_occupation_visites.sql').read_text();q.execute(sql)
+  q.execute((R/'migrations/20261027104800_terrain_visites_fermeture_changement_ville.sql').read_text())
   n=0
   def check(v):
    nonlocal n
