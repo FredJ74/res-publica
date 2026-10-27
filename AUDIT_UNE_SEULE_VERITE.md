@@ -345,4 +345,15 @@ tirés au hasard et les effets purement visuels sont exclus.
   gouvernement). Déclenchement et bulletins par `vote_confiance_declencher` et
   `vote_confiance_voter` ; mails aux députés et annonce posés par le serveur (migration
   `20261027090000`).
+- **État au 27/10 (midi), ce qui reste ouvert** :
+  - `organisations` et `prets` : non touchées, chantiers en cours de Codex (contrat serveur des
+    organisations ; prêts liés aux successions) ;
+  - `indices_villes` (sécurité, économie, social, moral ; la piété est désormais imposée par le
+    serveur) : 8 écritures de l'écran (manifestations, répression, rumeurs) ;
+  - `budgets_municipaux` (taux foncier, interdiction de manifester) et `niveaux_prison`
+    (rébellion des détenus, dont la mécanique entière est encore à l'écran) ;
+  - `evenements_globaux` : environ 140 annonces publiques écrites par l'écran ; chaque action
+    passée au serveur reprend la sienne (`annonce_publique_interne`) ;
+  - registre de `personnage_ajuster_pop_inf` : causes `rumeur_pj`, `rumeur_gouvernement`,
+    `excommunication`, `football_match` dont l'ampleur est encore tirée par l'écran.
 

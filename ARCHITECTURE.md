@@ -111,9 +111,9 @@ ligne trouvée fausse se corrige ici.
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
 | Postes et nominations | Candidatures, nomination, protection de 7 jours, révocation. | Serveur | Postes du pays et leurs recruteurs. |
-| Élections | Cycles, candidatures, votes, fraudes. | Mixte | Calendrier, postes électifs. |
+| Élections | Cycles, candidatures, votes, fraudes, contestation (tout par le serveur depuis le 27/10). | Serveur | Calendrier, postes électifs. |
 | Assemblée nationale | Sièges, lois, séances, votes. | Serveur | Sièges et calendrier ; fermée sans eux. |
-| Gouvernement et présidence | Ministères, décrets, mesures d'exception, vote de confiance, banquets. | Mixte | Ministères, palais. |
+| Gouvernement et présidence | Ministères, décrets, mesures d'exception, vote de confiance (par le serveur depuis le 27/10), banquets. | Mixte | Ministères, palais. |
 
 ### Justice et ordre
 
@@ -146,7 +146,7 @@ ligne trouvée fausse se corrige ici.
 |---|---|---|---|
 | Journal et rédaction | Journal du matin généré, articles, petites annonces, étouffement. | Mixte | Titres de presse du pays. |
 | Communication officielle | Tribunes, conférences de presse, propagande. | Serveur | Tribunes et salles. |
-| Rumeurs et scandales | Rumeurs, calomnies, scandales, démentis. | Écran | Scandales types. |
+| Rumeurs et scandales | Rumeurs, calomnies, scandales, démentis (démenti et rumeurs politiques par le serveur depuis le 27/10). | Mixte | Scandales types. |
 
 ### Organisations
 
