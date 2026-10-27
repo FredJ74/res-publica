@@ -433,4 +433,10 @@ tirés au hasard et les effets purement visuels sont exclus.
   documents. C'est le prochain grand chantier « une seule vérité » : chaque ajout d'objet doit
   avoir son passage serveur, puis la sauvegarde de l'inventaire ne doit plus accepter que des
   retraits (ou disparaître).
+- **27/10 (nuit)** — **chantier inventaire, lot 1 (achats)** (`20261027180000`) : dépôt serveur
+  unique (`inventaire_deposer_interne`), catalogue serveur des objets (`objets_modeles`), achats
+  d'armes au comptoir (`arme_acheter`) et au marché noir, gilet, poisons et relique
+  (`objet_acheter`) déposent l'objet par le serveur. Reste (lots suivants) : récolte, tracts,
+  objets trouvés, fret, employés, état civil, énigmes, missions de PNJ, effort de guerre,
+  sels de l'Assemblée, puis le verrou final de `inventaire_sauver_revision`.
 
