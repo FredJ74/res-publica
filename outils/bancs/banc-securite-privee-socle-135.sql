@@ -59,12 +59,15 @@ INSERT INTO public.police_interceptions(personnage,rencontre,country,city,buildi
 VALUES ('__test_pj_135__','prive-test-135','republic','capitale','__test_bat_135__','terrain',NULL);
 SET LOCAL ROLE authenticated;
 DO $t$
-DECLARE r jsonb;
+DECLARE r jsonb; premier jsonb; pa_avant integer; pa_apres integer;
 BEGIN
+ premier:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',1);
+ IF premier->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'combat_prive_refuse: %',premier; END IF;
+ SELECT pa INTO pa_avant FROM public.pnj_membres WHERE id='__test_135_private__';
  r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',1);
- IF r->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'combat_prive_refuse: %',r; END IF;
- r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',1);
- IF r->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'combat_idempotence_refuse: %',r; END IF;
+ SELECT pa INTO pa_apres FROM public.pnj_membres WHERE id='__test_135_private__';
+ IF r IS DISTINCT FROM premier OR pa_apres IS DISTINCT FROM pa_avant
+ THEN RAISE EXCEPTION 'combat_idempotence_refuse: avant %, apres %, pa %/%',premier,r,pa_avant,pa_apres; END IF;
 END $t$;
 -- Contre-épreuve : un autre personnage authentifié ne peut rejouer la rencontre.
 SELECT set_config('request.jwt.claim.sub','c1350000-0000-4000-8000-000000000136',true);
