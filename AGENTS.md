@@ -17,6 +17,39 @@ Ce fichier s'adresse à **tous les agents de code** qui travaillent sur ce dép�
 - Toute question de design (règle du jeu, prix, équilibrage, texte RP) se
   pose à Fred **avant** de coder, jamais tranchée par l'agent.
 
+## Décisions de game design : aucune décision oubliée
+
+**Avant de solliciter un arbitrage de Fred, rechercher si la question a déjà été tranchée.**
+L'agent consulte, selon le sujet, `CONSTITUTION.md`, les documents de game design,
+`ARCHITECTURE.md`, `RELAIS.md`, les issues GitHub, les échanges et comptes rendus
+accessibles, ainsi que les discussions des PR. Il distingue clairement **règle décidée**,
+**règle implémentée** et **règle testée** : l'absence d'une fonction dans le code ne
+constitue jamais la preuve qu'une décision de gameplay n'existe pas.
+
+- Une décision antérieure retrouvée s'applique sans reposer la même question.
+  Citer sa source dans le chantier et signaler l'écart entre décision et code.
+- Si les documents se contredisent, rechercher la décision explicite la plus
+  récente de Fred ; **ne jamais remplacer silencieusement une règle par une
+  hypothèse technique**. Ne demander à Fred que l'arbitrage qui reste réellement
+  indéterminé, après cette recherche.
+- Toute nouvelle décision explicite de Fred, ou décision ancienne retrouvée mais
+  absente des références, doit être **consignée dans un document de game design
+  versionné et reliée à l'issue concernée**. Mettre aussi `RELAIS.md` à jour pour
+  assurer la transmission aux autres agents, sans transformer un compte rendu
+  de session en seule source de vérité.
+- Lors de la reprise d'un chantier, vérifier les règles qui le concernent
+  **avant** de modifier le code ou de demander un nouvel arbitrage.
+
+**Précédent #135 — sécurité privée des chantiers (décision de Fred déjà prise).**
+Les vigiles de chantier sont des agents de sécurité privée : leurs mécanismes
+communs de détection, intervention et combat sont réutilisés, et les prérogatives
+dépendent de leur employeur et de leur affectation. Ils peuvent intervenir
+face à un personnage recherché **après détection effective**, jamais avant.
+Cela n'autorise ni l'invention de pouvoirs policiers, ni une détention privée
+nouvelle : si les modalités exactes de retenue ou de remise à la police ne sont
+pas déjà définies, demander uniquement cet arbitrage précis. Ne pas créer de
+moteur parallèle.
+
 ## Une seule réalité : celle du serveur (règle de Fred, 24/10/2026)
 
 - **L'écran ne doit jamais pouvoir afficher autre chose que ce que le
