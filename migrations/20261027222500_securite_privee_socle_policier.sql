@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION public.securite_agents_prives_presents_interne(
 SET search_path TO 'public','pg_temp' AS $hg$
  SELECT coalesce(jsonb_agg(jsonb_build_object(
    'pnj_prive_id',m.id, 'matricule','prive:'||m.id,
-   'groupeCle',coalesce(m.leader_pnj_id,m.id),
+   'groupeCle',coalesce(m.groupe_deploiement_id,m.leader_pnj_id,m.id),
    'pa',m.pa, 'stats',jsonb_build_object('PER',m.car_per,'VOL',m.car_vol),
    'buildingId',p.building_id,'roomId',p.room_id,'rueNoeudId',coalesce(leader.current_street,p.rue_noeud_id)
  ) ORDER BY m.id),'[]'::jsonb)
@@ -24,6 +24,53 @@ SET search_path TO 'public','pg_temp' AS $hg$
 $hg$;
 REVOKE ALL ON FUNCTION public.securite_agents_prives_presents_interne(text,text,text,text,text,text)
  FROM PUBLIC,anon,authenticated,service_role;
+
+-- Socle universel : identité du détachement au sol, distincte du chef qui se déplace.
+-- NULL signifie agent isolé. Une même clé pour les membres d'un détachement
+-- conserve l'unité de groupe après le départ de leur chef PJ.
+ALTER TABLE public.pnj_membres
+ ADD COLUMN IF NOT EXISTS groupe_deploiement_id text;
+
+CREATE OR REPLACE FUNCTION public.pnj_deployer_unite(
+ p_pnj_ids text[], p_groupe boolean DEFAULT true
+) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public','pg_temp' AS $hg$
+DECLARE v_chef text; v_lieu public.personnages_donnees%ROWTYPE;
+ v_nb integer; v_ids text[]; v_cle text; v_pnj text;
+BEGIN
+ v_chef:=public.mon_personnage();
+ IF v_chef IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
+ IF p_pnj_ids IS NULL OR array_length(p_pnj_ids,1) IS NULL OR array_length(p_pnj_ids,1)>50
+ THEN RETURN jsonb_build_object('ok',false,'raison','effectif_invalide'); END IF;
+ SELECT array_agg(DISTINCT z ORDER BY z) INTO v_ids FROM unnest(p_pnj_ids) z WHERE z IS NOT NULL AND length(z)>0;
+ IF v_ids IS NULL OR cardinality(v_ids)<>cardinality(p_pnj_ids)
+ THEN RETURN jsonb_build_object('ok',false,'raison','identifiants_invalides'); END IF;
+ SELECT * INTO v_lieu FROM public.personnages_donnees WHERE name=v_chef FOR UPDATE;
+ IF NOT FOUND OR v_lieu.current_city IS NULL OR
+  (v_lieu.current_building IS NULL AND v_lieu.current_street IS NULL)
+ THEN RETURN jsonb_build_object('ok',false,'raison','position_invalide'); END IF;
+ SELECT count(*) INTO v_nb FROM public.pnj_membres m
+ WHERE m.id=ANY(v_ids) AND m.statut='actif' AND m.leader_pj=v_chef
+   AND m.leader_pnj_id IS NULL;
+ IF v_nb<>cardinality(v_ids) THEN
+  RETURN jsonb_build_object('ok',false,'raison','groupe_non_commande');
+ END IF;
+ v_cle:='deploiement-'||md5(v_chef||clock_timestamp()::text||random()::text);
+ UPDATE public.pnj_membres m SET
+   leader_pj=NULL,leader_pnj_id=NULL,
+   groupe_deploiement_id=CASE WHEN coalesce(p_groupe,true) THEN v_cle ELSE NULL END,
+   ville=v_lieu.current_city,
+   building_id=v_lieu.current_building,
+   room_id=v_lieu.current_room,
+   rue_noeud_id=v_lieu.current_street,
+   maj_le=now()
+ WHERE m.id=ANY(v_ids);
+ RETURN jsonb_build_object('ok',true,'deployes',v_nb,
+   'ensemble',coalesce(p_groupe,true),'groupe',
+   CASE WHEN coalesce(p_groupe,true) THEN v_cle ELSE NULL END);
+END $hg$;
+REVOKE ALL ON FUNCTION public.pnj_deployer_unite(text[],boolean) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.pnj_deployer_unite(text[],boolean) TO authenticated;
 
 -- #135 : les groupes constitués et les patrouilles isolées sont différents.
 -- Les policiers du catalogue actuel n'ont pas de chef de groupe : chaque matricule
