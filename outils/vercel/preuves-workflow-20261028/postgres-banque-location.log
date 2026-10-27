@@ -1,0 +1,64 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK terrain banque depot reel 1000 FR
+OK terrain banque 2 PA du depot
+OK terrain banque courrier de rendez vous serveur conserve
+OK terrain banque reponse perdue depot sans nouveau debit
+OK terrain banque UUID parametres differents refuse
+OK terrain banque prix officiel moins le depot exactement une fois
+OK terrain banque cout total 25800, jamais 26800
+OK terrain banque rejeu du titre ne paye ni archive une seconde fois
+OK terrain banque fonds insuffisants aucun PA ni reservation
+OK terrain banque cadavre aucune depense
+OK terrain banque deux acheteurs une seule reservation
+OK terrain banque panne apres debit injectee
+OK terrain banque rollback fonds PA titre historique recu
+OK terrain banque compromis financement immobilier distinct des travaux
+OK terrain banque credit reel puis acquisition dans la meme commande
+OK terrain banque deux ventes legitimes meme jour archives distinctes
+OK terrain banque dette immobiliere conservee
+OK terrain banque compte national reellement credite
+OK terrain banque rejeu aucun second pret ni versement
+OK terrain banque consommation disponible au guichet
+OK terrain banque taux consommation 12 pour cent
+OK terrain banque credit consommation idempotent
+OK terrain banque second dossier independant
+OK terrain banque panne apres credit avant titre
+OK terrain banque credit dette paiement titre et recu annules ensemble
+OK terrain banque depot sans compte peut demander un financement
+OK terrain banque financement refuse faute de compte
+OK terrain banque acompte rembourse reellement sans perte de fonds
+OK terrain banque refus et remboursement non rejouables
+OK terrain banque compromis ordinaire
+OK terrain banque compromis expire sans mutation finale
+OK terrain banque UUID bancaire avec montant different refuse
+OK terrain banque echeance reservee au serveur
+OK terrain banque recus prives sans lecture croisee
+OK terrain banque compromis avant refus PA a la signature finale
+OK terrain banque refus PA apres accord annule credit dette et decision
+OK terrain banque meme intention refusee puis PA disponibles un seul financement
+OK terrain banque permis joint par le moteur existant
+OK terrain banque archive et document de permis concordants
+OK terrain banque clause incluse dans les 2 PA et 1000 FR historiques
+OK terrain banque instruction interdite au navigateur sans mutation
+OK terrain banque instruction jour commun sans sommeil
+OK terrain banque rejeu instruction aucun second jour
+OK terrain banque panne document tacite annule archive compteur et autorisation
+OK terrain banque accord tacite archive SAS et etat dans une transaction
+OK terrain banque instruction preserve les changements apres le releve cron
+OK terrain banque attestation tacite persistante unique
+OK terrain banque accord tacite non reemis
+OK terrain banque ancien permis sans numero conserve sans numero invente
+OK terrain banque archive historique inconnue sans faux destinataire ni objet
+OK terrain banque jour Paris suivant sans sommeil et concurrence une seule echeance
+OK terrain banque dormir ne donne aucune seconde echeance 0
+OK terrain banque dormir ne donne aucune seconde echeance 1
+OK terrain banque dormir ne donne aucune seconde echeance 2
+OK terrain banque dormir ne donne aucune seconde echeance 3
+OK terrain banque capital plus interets soldes exactement
+OK terrain banque ancienne sauvegarde ne reecrit pas une dette versionnee
+OK terrain banque PA refuses apres creation interne rollback credit dette et recu
+OK terrain banque pret travaux preserve et UUID refuse non consomme
+OK terrain banque panne apres debit echeance rollback argent dette et marqueur
+OK terrain banque reliquat non divisible solde exactement sans surprelevement
+{"terrain_banque": true, "assertions": 61, "production": false}

@@ -1,0 +1,13 @@
+F
+======================================================================
+FAIL: test_timeout_conserve_les_deux_flux (__main__.ControleurProcessus.test_timeout_conserve_les_deux_flux)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/hg-ci-mutant-l30d0kvn/test-controleur-processus.py", line 41, in test_timeout_conserve_les_deux_flux
+    self.assertIn('stdout partiel', sortie)
+AssertionError: 'stdout partiel' not found in '\nDelai de 0.3 secondes depasse : banc non valide (groupe arrete).\n'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.302s
+
+FAILED (failures=1)

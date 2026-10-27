@@ -1,0 +1,18 @@
+✔ initialisation lente (>5 s), fichier partiel et aucun message DevTools stderr : API verifiee (5590.699289ms)
+✔ processus qui sort avant DevTools : echec de lancement, pas echec assertion (53.764957ms)
+✔ executable absent : erreur spawn traitee sans evenement error non capture (53.819728ms)
+✔ initialisation bloquee et SIGTERM ignore : delai distinct, SIGKILL et fermeture confirmes (1534.830793ms)
+✔ port publie sans API DevTools : ne pas declarer le navigateur pret (524.825075ms)
+✔ Chromium reel : avertissements eventuels D-Bus et readiness controles separement (263.721303ms)
+ℹ DevTools verifie en 219 ms ; messages D-Bus presents : true
+✔ reproduction Chromium de la bulle persistante avec les anciens composants (498.417936ms)
+✔ Chromium 1280px : transitions, modal, evenement tardif et defilement (452.590102ms)
+✔ Chromium 390px : transitions, modal, evenement tardif et defilement (401.146232ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8074.486849

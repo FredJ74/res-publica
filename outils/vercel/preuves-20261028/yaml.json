@@ -1,0 +1,17 @@
+{
+  "analyseur": "PyYAML BaseLoader",
+  "fichiers": [
+    ".github/workflows/ajuster-heure-cron.yml",
+    ".github/workflows/audit-png-webp.yml",
+    ".github/workflows/beta-testeur-luthecia.yml",
+    ".github/workflows/coherence-client.yml",
+    ".github/workflows/garde-decoration-webp.yml",
+    ".github/workflows/garde-payload-vercel.yml",
+    ".github/workflows/garde-placement-national.yml",
+    ".github/workflows/test-detention-jours-civils.yml",
+    ".github/workflows/test-fermetures-jours-civils.yml",
+    ".github/workflows/test-parcours-immobilier-135.yml",
+    ".github/workflows/verify-webp-compat.yml"
+  ],
+  "validation_distante": false
+}
