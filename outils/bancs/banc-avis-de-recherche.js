@@ -86,8 +86,9 @@ att('le cron a son propre appel, avec sa cible nommee',
     && CODE['api/cron-minuit.js'].indexOf('p_cible: entree.nom') >= 0);
 att('les treize inscriptions passent par le helper',
     partout(/inscrireRecherche\(/g) >= 12, partout(/inscrireRecherche\(/g) + ' appel(s)');
-att('les quatre retraits passent par le helper',
-    partout(/retirerRecherche\(/g) >= 5, partout(/retirerRecherche\(/g) + ' appel(s)');
+// 27 octobre 2026 : le retrait apres justification a quitte l'ecran (convocation_se_justifier).
+att('les retraits restants passent par le helper',
+    partout(/retirerRecherche\(/g) >= 4, partout(/retirerRecherche\(/g) + ' appel(s)');
 
 print('');
 print('3. LES HELPERS RECOPIENT L ETAT DU SERVEUR, ILS NE LE RECALCULENT PAS');

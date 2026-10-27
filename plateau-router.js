@@ -798,7 +798,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acte_rachat_entreprise_preemption') { doActeRachatEntreprisePreemption(pa, cost); return; }
   if (fn === 'interdire_manif')         { ouvrirInterdireManif(pa, cost); return; }
   if (fn === 'reprimer_manif')          { ouvrirReprimerManif(pa, cost); return; }
-  if (fn === 'ouvrir_enquete_cible')    { ouvrirModalCibleRepertoire('ouvrir_enquete', 'Ouvrir une enquete sur'); return; }
   if (fn === 'nommer_juge_cible')       { ouvrirModalNommerJuge(); return; }
   if (fn === 'cessez_le_feu_empire')    { ouvrirModalEmpireCible('cessez_le_feu', 'Negocier un cessez-le-feu avec'); return; }
   if (fn === 'renseignement_cible')     { ouvrirModalRenseignement(); return; }

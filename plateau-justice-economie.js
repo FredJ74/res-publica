@@ -788,48 +788,12 @@ async function traiterPlaintes() {
   return;
 }
 
-async function traiterEnquetes() {
-  if (!state.enquetesEnCours) return;
-  const traitees = state.enquetesEnCours.filter(e => e.day <= state.day && e.status === 'pending');
-  for (const e of traitees) {
-    e.status = 'done';
-    let roll = Math.floor(Math.random() * 100) + 1;
-    const preuveReelle = await verifierPreuveReelle(e.country || state.country, e.cible, e.motif);
-    if (preuveReelle) roll = Math.max(roll, 60);
-    let result = '';
-    if (roll < 50) {
-      result = `Enquete conclue : non-lieu pour ${e.cible}. Aucune preuve suffisante.`;
-    } else {
-      result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. Mise en garde a vue immediate. Affaire transmise au tribunal pour jugement.`;
-      // GARDE A VUE PAR LE SERVEUR (16 septembre 2026). Cette ligne ouvrait la detention par une
-      // ecriture directe sur la fiche de la cible -- refusee depuis le chantier B et avalee par
-      // un .catch() muet : on annoncait « mise en garde a vue immediate » et la personne
-      // continuait de jouer. enquete_garde_a_vue passe par la primitive canonique, apres avoir
-      // verifie SUR LA FICHE DE L'APPELANT que cette enquete existe et est arrivee a terme.
-      const rGav = await sbRpc('enquete_garde_a_vue', {
-        p_cible: e.cible, p_motif: e.motif || 'Garde a vue suite a enquete', p_ville: e.city
-      }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
-      if (!rGav || rGav.ok !== true) {
-        // Le serveur a refuse : on ne raconte pas une arrestation qui n'a pas eu lieu.
-        result = `Enquete conclue : actes illegaux confirmes pour ${e.cible}. La garde a vue n'a pas pu etre executee.`;
-      }
-      // LA TRANSMISSION EST ATTENDUE, ET ELLE EST ANNONCEE APRES (10 octobre 2026) : l'evenement
-      // public disait « Affaire transmise au tribunal » avant que l'ecriture n'ait abouti, et sans
-      // jamais lire son resultat.
-      const transmise = await transmettreAffaireAuTribunal(
-        e.cible, e.motif || 'Enquete policiere ayant confirme des actes illegaux.', e.city);
-      addExternalEvent(`${e.cible} a ete place(e) en garde a vue.`
-        + (transmise ? ' Affaire transmise au tribunal.' : " L'affaire n'a PAS pu etre transmise au tribunal."), 'local');
-      if (!transmise) result += " L'affaire n'a pas pu etre transmise au tribunal.";
-    }
-    // Meme correctif que traiterPlaintes : state.mails n'est jamais rendu nulle part, les
-    // conclusions d'enquete n'etaient donc lisibles par personne.
-    if (state.char?.name && typeof sbSendMail === 'function') {
-      await sbSendMail('Brigade Criminelle', state.char.name, `Conclusions enquete : ${e.cible}`, result,
-        typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '').catch(() => {});
-    }
-  }
-}
+// traiterEnquetes SUPPRIMEE le 27 octobre 2026 : elle resolvait, dans le navigateur du ministre et
+// a son minuit, des enquetes inscrites sur sa propre fiche, puis demandait une garde a vue au
+// serveur (enquete_garde_a_vue). Le seul chemin qui creait ces enquetes n'avait plus de bouton, et
+// la garde a vue pouvait etre obtenue contre n'importe qui en ecrivant soi-meme une « enquete » sur
+// sa fiche : enquete_garde_a_vue n'est plus appelable. L'ouverture d'enquete du Ministre de la
+// Justice passe par enquete_ouvrir.
 
 // A3 (lot judiciaire, 16 aout 2026) : city desormais un parametre explicite -- une affaire
 // appartient a la ville ou elle a ete constatee (plainte/enquete d'origine), jamais a
@@ -1069,87 +1033,45 @@ function doSeJustifier(pa, cost) {
 
 async function confirmerSeJustifier(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
-  const convocation = (typeof assembleeConvocationEnAttente === 'function')
-    ? assembleeConvocationEnAttente()
-    : (state.convocations || []).find(c => !c.traitee);
-  if (!convocation) { showToast('Rien à signaler', '', false); return; }
-
-  // §41 : se presenter APRES l'echeance, c'est ne pas s'etre presente dans les 36 heures.
-  // traiterConvocations ne tourne qu'au passage de journee et a l'ordre Dormir : sans cette garde,
-  // un joueur revenant apres le delai pouvait se justifier AVANT qu'elle ne s'execute et echapper
-  // aux deux jours. Le verdict serveur (echue) est ici determinant -- il ne depend pas de l'horloge
-  // du navigateur. On applique la non-presentation, sans rien facturer : ce n'est pas une
-  // tentative de justification, c'est une interpellation.
-  if (typeof assembleeConvocationEchue === 'function' && assembleeConvocationEchue(convocation)) {
-    showToast('Délai dépassé',
-      'Le délai de présentation est écoulé. Vous êtes interpellé(e) pour non-présentation.', false, true);
-    traiterConvocations();
+  // PAR LE SERVEUR (27 octobre 2026) : delai, paiement, jet (50 % + (CHA + DUP) / 2), retrait du
+  // motif ou detention -- convocation_se_justifier. L'ecran ne fait plus que la confiscation
+  // (inventaire_confisquer, deja serveur) et l'affichage.
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('convocation_se_justifier', { p_pa: pa || 1, p_cost: cost || 0 }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v && v.raison === 'aucune_convocation') showToast('Rien à signaler', "Vous n'avez aucune convocation en attente.", false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
     return;
   }
-
-  const r = await deduireCoutOrdre({ pa: pa || 1, cost: cost || 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // §42 : UNE SEULE tentative, quoi qu'il arrive. On marque avant de tirer.
-  convocation.traitee = true;
-
-  const cha = getStatEffective('CHA');
-  const dup = getStatEffective('DUP');
-  const taux = Math.max(0, Math.min(100, Math.round(50 + (cha + dup) / 2)));
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const reussi = roll <= taux;
-
+  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+  const enAttente = (state.convocations || []).find(c => c && !c.traitee);
+  if (enAttente) enAttente.traitee = true;
+  if (v.issue === 'non_presentation') {
+    showToast('Délai dépassé', 'Le délai de présentation est écoulé. Vous êtes interpellé(e) pour non-présentation : 2 jours.', false, true);
+    addJournalEntry('Non-présentation à une convocation : 2 jours de détention.', 'event-bad');
+    adopterDetentionServeur(2, 'Non-présentation à une convocation', v.detention_id);
+    return;
+  }
   // Confiscation dans les DEUX cas (§42) : se justifier evite la prison, jamais la saisie.
-  const noms = (typeof assembleeConfisquerInterdits === 'function')
-    ? await assembleeConfisquerInterdits() : '';
-
-  // LE RETRAIT EST UNE PORTE (chaine 14) : un filtre cible cote serveur, et l'etat local recopie
-  // le verdict. Se justifier eteint le SEUL motif de la convocation, jamais un autre.
-  await retirerRecherche([convocation.motif]);
-  if (typeof sauvegarderPersonnageImmediat === 'function') await sauvegarderPersonnageImmediat();
-  updateUI();
-
-  if (reussi) {
-    showToast('Affaire classée',
-      'Vos explications ont convaincu.' + (noms ? ' Marchandise confisquée : ' + noms + '.' : ''),
-      true, true);
+  const noms = (typeof assembleeConfisquerInterdits === 'function') ? await assembleeConfisquerInterdits() : '';
+  if (v.issue === 'classee') {
+    if (Array.isArray(v.recherche)) state.recherche = v.recherche;   // l'avis arrete par le serveur
+    updateUI();
+    showToast('Affaire classée', 'Vos explications ont convaincu.' + (noms ? ' Marchandise confisquée : ' + noms + '.' : ''), true, true);
     addJournalEntry('Justification acceptée au commissariat. Affaire close.' + (noms ? ' Confiscation : ' + noms + '.' : ''), 'event-good');
   } else {
-    showToast('Explications rejetées',
-      'Le commissaire n\'a pas cru un mot. 1 jour de détention.' + (noms ? ' Marchandise confisquée : ' + noms + '.' : ''),
-      false, true);
+    updateUI();
+    showToast('Explications rejetées', 'Le commissaire n\'a pas cru un mot. 1 jour de détention.' + (noms ? ' Marchandise confisquée : ' + noms + '.' : ''), false, true);
     addJournalEntry('Justification rejetée. 1 jour de détention.' + (noms ? ' Confiscation : ' + noms + '.' : ''), 'event-bad');
-    // 1 jour ferme (§42). transaction_interdite porte deja ce bareme (voir PEINES_ACTES).
-    if (typeof procederArrestation === 'function') procederArrestation('justification_rejetee', false, false);
+    adopterDetentionServeur(1, 'Justification rejetée au commissariat', v.detention_id);
   }
 }
 
-// Verification periodique : convocations non honorees dans le delai.
-//
-// DEUX BUGS CORRIGES (audit du 9 septembre 2026) :
-//   1. Le delai reposait sur state.day/state.hour et n'etait evalue qu'au passage de minuit : le
-//      « sous 24h » annonce valait en realite entre 24 et 48 h. Les nouvelles convocations
-//      portent limiteTs, un instant ABSOLU (voir assembleeConvocationEchue).
-//   2. TOUTES les convocations echues etaient marquees traitees d'un coup, mais UNE SEULE
-//      produisait une peine -- les autres s'eteignaient sans consequence. Desormais on n'en
-//      traite qu'une par passage, et les suivantes restent en attente pour la passe d'apres :
-//      une sanction par convocation, jamais moins (§41).
-function traiterConvocations() {
-  if (!state.convocations) return;
-  // Sans la fonction canonique de calcul d'echeance, ne jamais condamner
-  // sur la base d'un ancien compteur personnel devenu obsolète.
-  if (typeof assembleeConvocationEchue !== 'function') return;
-  const echue = state.convocations.find(c => assembleeConvocationEchue(c));
-  if (!echue) return;
-
-  echue.traitee = true;
-  if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-
-  // §41 : non-presentation = 2 jours. Motif dedie, distinct de l'acte d'origine.
-  procederArrestation('non_presentation_convocation', false, false);
-  addMailNotification('Commissariat', 'Non-présentation',
-    "Vous ne vous êtes pas présenté(e) dans le délai imparti suite à votre convocation. Vous êtes arrêté(e) pour deux jours.");
-}
+// traiterConvocations SUPPRIMEE le 27 octobre 2026 : la sanction d'une convocation non honoree
+// (2 jours) est appliquee par la passe de nuit du serveur (minuit_convocations), et par
+// convocation_se_justifier si le convoque se presente trop tard. Seul l'ecran du convoque
+// l'appliquait jusque-la, et seulement s'il jouait.
 
 function ouvrirModalArrestation(acte) {
   const peine = getPeineParActe(acte, false);
@@ -1296,7 +1218,9 @@ async function procederArrestation(acte, resistanceAggravante, demasque) {
   const dateArrestation = new Date().toISOString();
   const motifsArrestation = [{ type: peineCalc.label, jour_fait: state.day, city: state.currentCity, jours: peineCalc.jours, source: 'flagrant_delit', date_evenement: dateArrestation }];
   if (resistanceAggravante) motifsArrestation.push({ type: 'Résistance à l\'arrestation', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'flagrant_delit', date_evenement: dateArrestation });
-  enregistrerDetention(state.char?.name, peineCalc.label, state.day + jours, undefined, state.currentCity, {
+  // ATTENDUE (27 octobre 2026) : le serveur n'accepte de retirer le motif juge (plus bas) que si une
+  // detention vient d'etre ouverte au nom du joueur.
+  await enregistrerDetention(state.char?.name, peineCalc.label, state.day + jours, undefined, state.currentCity, {
     country: state.country,
     motifs: motifsArrestation
   }).catch(() => {});
@@ -1363,6 +1287,18 @@ function celluleDeDetention(detention) {
   const buildingId = (typeof getBuildingIdCommissariatNavigation === 'function')
     ? getBuildingIdCommissariatNavigation(ville) : 'commissariat';
   return { city: ville, buildingId: buildingId, roomId: (buildingId === 'commissariat') ? 'prison' : 'geoles' };
+}
+
+// DETENTION OUVERTE PAR LE SERVEUR (27 octobre 2026). Quand une fonction du serveur ecroue le
+// joueur (convocation, fraude prise sur le fait...), l'ecran reflete la detention et conduit en
+// cellule, sans rien ecrire lui-meme.
+function adopterDetentionServeur(jours, raison, detentionId) {
+  if (state.estEmprisonne) return;
+  const j = Number(jours) || 1;
+  state.estEmprisonne = { jours: j, jourFin: (state.day || 1) + j, raison: raison || 'Détention', detentionId: detentionId || null,
+                          city: state.currentCity || 'capitale' };
+  if (state.char) state.char.estEmprisonne = state.estEmprisonne;
+  if (typeof teleporterVersCellule === 'function') teleporterVersCellule(state.estEmprisonne);
 }
 
 function teleporterVersCellule(detention) {
