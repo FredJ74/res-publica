@@ -7,9 +7,14 @@ BEGIN
  ancien:=$a$ SELECT * INTO t FROM public.terrains_etat WHERE country=a.country AND$a$;
  nouveau:=$b$ IF p_action='voler' THEN
   resultat:=public.chantier_vol_executer_interne(p_terrain_id,p_parametres,p_requete);
-  IF NOT coalesce((resultat->>'ok')::boolean,false) THEN RETURN resultat;END IF;
-  INSERT INTO public.chantier_commandes_recus(personnage_id,acteur,requete,terrain_id,commande,resultat)
-  VALUES(a.id,acteur,p_requete,p_terrain_id,commande,resultat);
+  -- Une intention valide garde aussi son refus metier : le meme identifiant
+  -- ne peut pas devenir une autre tentative lorsque le stock ou les PA changent.
+  -- Un payload mal forme n'entre pas dans le registre.
+  IF p_parametres-ARRAY['matiere']='{}' AND jsonb_typeof(p_parametres->'matiere')='string'
+  AND p_parametres->>'matiere' IN('bois','minerai','metal') THEN
+   INSERT INTO public.chantier_commandes_recus(personnage_id,acteur,requete,terrain_id,commande,resultat)
+   VALUES(a.id,acteur,p_requete,p_terrain_id,commande,resultat);
+  END IF;
   RETURN resultat;
  END IF;
  SELECT * INTO t FROM public.terrains_etat WHERE country=a.country AND$b$;

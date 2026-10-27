@@ -81,6 +81,8 @@ def suite(db,q,srv):
  def commande(k,params={'matiere':'bois'},cur=q):return lire('SELECT chantier_commande(%s,%s,\'voler\',%s)',('ch-vol135-'+k,terrain(),Json(params)),cur)
  def photo():
   q.execute('RESET ROLE');r=lire("SELECT jsonb_build_array((SELECT jsonb_agg(x ORDER BY name) FROM personnages_donnees x),(SELECT jsonb_agg(x ORDER BY id) FROM terrains_etat x),(SELECT jsonb_agg(x ORDER BY requete) FROM chantier_commandes_recus x),(SELECT jsonb_agg(x ORDER BY id) FROM actions_tracables x),(SELECT jsonb_agg(x ORDER BY id) FROM evenements_globaux x),(SELECT data FROM indices_villes WHERE id='republic_capitale'))");return r
+ def photo_metier():
+  p=photo();p[2]=None;return p # Le recu de refus est technique ; tous les etats metier restent compares.
  def jet(j):admin('CREATE OR REPLACE FUNCTION chantier_vol_jet_interne() RETURNS integer LANGUAGE sql AS $$SELECT '+str(j)+'$$')
  def reset():
   admin("UPDATE personnages_donnees SET pa=50,hp=100,inventory='[]',journal='[]',benediction=NULL,recherche='[]',current_city='capitale',current_building='terrain-a-batir-1',current_room='terrain' WHERE name IN('Chef','VoleurA','VoleurB');UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{chantier,stockMateriaux,bois}','20')::text WHERE id='republic_terrain-a-batir-1';DELETE FROM chantier_commandes_recus WHERE requete LIKE 'ch-vol135-%';DELETE FROM actions_tracables;DELETE FROM evenements_globaux")
@@ -116,16 +118,18 @@ def suite(db,q,srv):
  reset();jet(1);identite('VoleurA');r=commande('echec00001');check(r['ok'] and not r['reussite'] and r['detecte'],'echec detecte serveur')
  admin("SELECT inventory,pa,jsonb_array_length(recherche) FROM personnages_donnees WHERE name='VoleurA'");check(q.fetchone()==([],48,1),'echec: aucun objet, cout et recherche uniques')
  reset();admin("UPDATE pnj_membres SET building_id='ailleurs' WHERE id='g1'");jet(100);admin("UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{chantier,stockMateriaux,bois}','2')::text WHERE id=%s",(terrain(),));identite('VoleurA');r=commande('stockborne1');check(r['quantite']==2,'stock reel borne attribution')
- avant=photo();identite('VoleurA');check(commande('stockvide01')['raison']=='stock_vide','stock vide refuse');check(photo()==avant,'stock vide aucun prelevement')
+ avant=photo_metier();identite('VoleurA');check(commande('stockvide01')['raison']=='stock_vide','stock vide refuse');check(photo_metier()==avant,'stock vide aucun prelevement metier')
+ identite('VoleurA');r=commande('stockvide01',{'matiere':'metal'});check(not r['ok'] and r['raison']=='requete_reutilisee','identifiant du refus conserve interdit aussi le changement de parametres')
+ admin("UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{chantier,stockMateriaux,bois}','20')::text WHERE id=%s",(terrain(),));identite('VoleurA');r=commande('stockvide01');check(not r['ok'] and r.get('rejeu') and r['raison']=='stock_vide','reponse perdue du refus reste le meme verdict apres reapprovisionnement')
  reset();jet(100)
  def concurrent(nom):
   with psycopg2.connect(srv.get_uri()) as c:
    cur=c.cursor();identite(nom,cur);return commande('concurrent1',cur=cur)
  with ThreadPoolExecutor(max_workers=2) as pool:rs=list(pool.map(concurrent,['VoleurA','VoleurA']))
  check(all(x['ok'] for x in rs) and sum(bool(x.get('rejeu')) for x in rs)==1,'double clic concurrent un seul acte')
- reset();jet(100);admin("UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{chantier,stockMateriaux,bois}','3')::text WHERE id=%s",(terrain(),))
+ reset();jet(100);admin('DELETE FROM chantier_vigiles_affectations');admin("UPDATE terrains_etat SET data=jsonb_set(data::jsonb,'{chantier,stockMateriaux,bois}','3')::text WHERE id=%s",(terrain(),))
  with ThreadPoolExecutor(max_workers=2) as pool:rs=list(pool.map(concurrent,['VoleurA','VoleurB']))
- check(sum(x.get('quantite',0) for x in rs)==3,'deux voleurs concurrents aucun stock negatif ni duplication')
+ check(sum(x.get('quantite',0) for x in rs)==3,'deux voleurs sans aucun vigile ni verrou PNJ parasite : stock jamais negatif ou duplique')
  reset();jet(100);avant=photo()
  admin("CREATE FUNCTION panne_vol() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN IF NEW.inventory IS DISTINCT FROM OLD.inventory THEN RAISE EXCEPTION 'panne_apres_stock';END IF;RETURN NEW;END$$;CREATE TRIGGER panne_vol BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION panne_vol()")
  identite('VoleurA')
@@ -133,8 +137,8 @@ def suite(db,q,srv):
  except psycopg2.Error as e:check('panne_apres_stock' in str(e),'panne injectee entre stock et inventaire')
  check(photo()==avant,'rollback total PA stock inventaire recu traces indices')
  admin('DROP TRIGGER panne_vol ON personnages_donnees');reset();jet(100)
- admin("UPDATE personnages_donnees SET current_building='rue' WHERE name='VoleurA'");avant=photo();identite('VoleurA');check(not commande('distant001')['ok'],'position serveur distante refusee');check(photo()==avant,'refus distant sans paiement')
- admin("UPDATE personnages_donnees SET current_building='terrain-a-batir-1',pa=1 WHERE name='VoleurA'");avant=photo();identite('VoleurA');check(not commande('paepuise01')['ok'],'PA insuffisants refuses');check(photo()==avant,'aucune mutation en fonds/PA insuffisants')
+ admin("UPDATE personnages_donnees SET current_building='rue' WHERE name='VoleurA'");avant=photo_metier();identite('VoleurA');check(not commande('distant001')['ok'],'position serveur distante refusee');check(photo_metier()==avant,'refus distant sans paiement')
+ admin("UPDATE personnages_donnees SET current_building='terrain-a-batir-1',pa=1 WHERE name='VoleurA'");avant=photo_metier();identite('VoleurA');check(not commande('paepuise01')['ok'],'PA insuffisants refuses');check(photo_metier()==avant,'aucune mutation metier en fonds/PA insuffisants')
  identite('VoleurA');check(lire("SELECT terrain_chantier_acte('terrain-a-batir-1','chantier_materiaux_voler','bois',999,1)")['raison']=='vol_commande_versionnee_requise','ancienne porte ne peut contourner commande atomique')
  # Une mauvaise route HTTP ne peut retirer le stock sans l'inventaire.
  reset();jet(100);avant=photo();identite('VoleurA');q.execute("SET request.path='/personnages'")
@@ -153,7 +157,7 @@ def suite(db,q,srv):
  reset();jet(70)
  admin("UPDATE pnj_membres SET building_id='terrain-a-batir-1',room_id='terrain',ville='capitale',leader_pj=NULL,statut='actif',pa=12 WHERE id='g1'")
  admin("UPDATE pnj_membres SET statut='actif',pa=12,leader_pj='Chef',ville=NULL,building_id=NULL,room_id=NULL WHERE id='g2'")
- identite('Chef');check(affect(['g2'])['ok'],'second agent affecte par la commande commune')
+ identite('Chef');check(affect(['g1','g2'])['ok'],'deux agents affectes par la commande commune apres le cas sans vigile')
  identite('VoleurA');r=commande('deuxgardes1');check(r['vigiles']==2 and not r['reussite'] and r['score']==40,'deux agents presents : malus historique de 30 effectif serveur')
  reset();jet(70);admin("UPDATE pnj_membres SET statut='disparu' WHERE id='g2'")
  identite('VoleurA');r=commande('ungarde0001');check(r['vigiles']==1 and r['reussite'] and r['score']==50,'un seul agent : malus de 20 et reussite au seuil historique')
@@ -166,7 +170,7 @@ def suite(db,q,srv):
  avant=photo();identite('VoleurA');check(commande('benediction1')['rejeu'],'reponse perdue ne consomme pas une autre benediction');check(photo()==avant,'rejeu de benediction sans effet supplementaire')
  # Capacité volontaire et empilements historiques : ne retirer que ce qui entre réellement.
  reset();jet(100);admin("UPDATE personnages_donnees SET inventory='[{\"stackable\":true,\"stackKey\":\"autre\",\"qty\":100}]' WHERE name='VoleurA'")
- avant=photo();identite('VoleurA');check(commande('inventplein1')['raison']=='inventaire_plein','inventaire plein refuse avant paiement');check(photo()==avant,'aucun stock ni PA perdu si inventaire plein')
+ avant=photo_metier();identite('VoleurA');check(commande('inventplein1')['raison']=='inventaire_plein','inventaire plein refuse avant paiement');check(photo_metier()==avant,'aucun stock ni PA perdu si inventaire plein')
  reset();jet(100);admin("UPDATE personnages_donnees SET inventory='[{\"stackable\":true,\"stackKey\":\"autre\",\"qty\":98}]' WHERE name='VoleurA'")
  identite('VoleurA');r=commande('placeborne1');check(r['quantite']==2,'quantite volee bornee par la capacite volontaire existante')
  admin("SELECT (data::jsonb->'chantier'->'stockMateriaux'->>'bois')::integer FROM terrains_etat WHERE id=%s",(terrain(),));check(q.fetchone()[0]==18,'le chantier ne perd que les deux objets reellement recus')

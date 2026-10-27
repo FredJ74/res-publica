@@ -1,0 +1,77 @@
+{
+  "production": false,
+  "nouvelle_campagne_authentifiee": false,
+  "benediction_schema_hypothetique": true,
+  "detection_photographie_historique": true,
+  "intervention_privee_terminale_implementee": false,
+  "pret_pour_production": false,
+  "parent_code": "47e02b65f0a96d0232d1b1cfd7d937fa652f46e9",
+  "resultats": {
+    "pilote": 118,
+    "clients": 105,
+    "postgres_vigiles_vol": 81,
+    "postgres_historique": 62,
+    "parcours": 354,
+    "banque_sous_jacente": 61,
+    "grilles": [
+      720,
+      112,
+      16
+    ],
+    "mutants_detectes": 6,
+    "contre_historiques": [
+      89,
+      91
+    ],
+    "globaux": [
+      4,
+      12
+    ]
+  },
+  "blocages": [
+    "Modalite terminale de retenue/remise a la police en attente",
+    "Contrat persistant et producteur de benediction non verifies",
+    "Catalogue Supabase vivant et recette authentifiee indisponibles",
+    "API GitHub GraphQL Forbidden ; proxy Vercel 403"
+  ],
+  "sha256_preuves": {
+    "PR-A-OUVRIR.md": "6e01228bae53feaace65827ea7fcbfa66ad5baba5261cd4c27baf37c3d3327c7",
+    "clients.json": "8aa38284b5e5d205fdd936b186a1aae048dbeda44e0ce3c3f2e388b142f5eb3c",
+    "clients.txt": "973025f3193c39be25cc1127cf1d8c9fa3dfcab6fbd98729684294354fba5f58",
+    "contre-historiques.txt": "b3c434697c7a20efe56e065177d4ecb8d30ca26c90236887b127efe5010e7526",
+    "contre-main.txt": "cb9b95a66a08f6069a5e41693297940fa086ef327b13b8219bec97d6094f072c",
+    "globaux-branche.txt": "6890ac8bd2681f974dac61274620e85c6ab66c513b25ade034c606aa767d478f",
+    "globaux-main.txt": "c82833129547784d236213cdbad85474527d8218fdcc3f1185ef5f8870336a07",
+    "hg135-vol-mutant-parametres_ignores.log": "ca507bbd70a6b4c4c6c413b1273ace3999da69d0544cd79b2d5765ffc95b4254",
+    "hg135-vol-mutant-parcours-jour_rejoue.log": "4bbf262456eb3859316d1bd58ed345aadb7c42c24be6cac344336520aea84342",
+    "hg135-vol-mutant-parcours-prix_uniformises.log": "bbe27110efb2a1ef17cad405c33d30f49be43add43d31b3abf803710fe787ac1",
+    "hg135-vol-mutant-parcours-tranche_modifiee.log": "80d05ec375d9619d15afc4e754b9eeb479fa9ce25e0929254b5a2e99c245139f",
+    "hg135-vol-mutant-sans_credit.log": "4cf0dc80445b475faef82334ebf5332713dd3f42ef63debb1aa0c7e97a62e80a",
+    "hg135-vol-mutant-sans_statut.log": "1702a4e8f3e0a1397726e87d4087422e7facb78f2a0f306fd871b67092fd0a99",
+    "pilote.txt": "fdcafa9fef2c1371c71e286eb527a5483eb76b8489a33fd4a0f3ffde2e44759b",
+    "postgres-cinq-parcours.txt": "86e070f917d74f6c699f6296774e22bbd5ed85f6879fe298b01c202d27570e44",
+    "postgres-vigiles-vol.txt": "0387c9c8cfde03b11da4ceaf07397ce8dea0cce859c6cb45647d59c004030d2f",
+    "syntaxe-api.txt": "2c5defa5f188881887498e17220ff476bb24d48fd139f80c6a8a662d81f507d2"
+  },
+  "sha256_migrations": {
+    "migrations/20261027010000_ordre_generique_serveur.sql": "2c256a1304c1678993785e3ed1397bcd7399b9dc2a7e7245a34f7b2bf6b24e37",
+    "migrations/20261027020000_minuit_couvre_feu_recherche_serveur.sql": "996c581f391daf18d06d985f1a65d60781b5c93dae16153d148b57e00e71a185",
+    "migrations/20261027030000_objets_abandonnes_et_suppressions.sql": "8c986a7db31640681d3e56706f5bf2bbb9765f943fbc298a4390c2e3b760993a",
+    "migrations/20261027040000_religion_par_le_serveur.sql": "81049d784ef3677dd3288f4503f6073bb3c5060b71746888556c1d42ee0a9f1b",
+    "migrations/20261027040100_religion_agir.sql": "0c0aa2ebabd28f280de28f879f059145f0a40284e331860d2e1c41389630e445",
+    "migrations/20261027050000_jauges_ecrites_par_le_serveur.sql": "3023ecb531a2643118a611c94e59ba40781a1ec550fded08b6cf1bdac9d9b5cf",
+    "migrations/20261027060000_dementi_et_rumeurs_serveur.sql": "1b5081694a5f7185bffde0df474e3e75649a144d8293580b115eebb0b1aa6dd8",
+    "migrations/20261027070000_elections_fermees_aux_joueurs.sql": "d1cea201352534ea9c3fe5d5bb4a7ec61e0dcd170aaf43e274f2ec690d0dc786",
+    "migrations/20261027070100_election_contester.sql": "73b1a1143a145a30fade3b5f13aa68f77036ca864e5da9bc7c340214fd7e6a50",
+    "migrations/20261027080000_fraudes_electorales_serveur.sql": "862fbadc1aec2b692abb753167fae3daf421a0a841c86a9e23d531af4b7587f1",
+    "migrations/20261027090000_vote_confiance_serveur.sql": "4dfb9b29fddfa4ac07e3f63ce667982681dd9142fcdcc49d947c1a61ac66e252",
+    "migrations/20261027100000_recherche_et_enquetes_serveur.sql": "cd055a157b3851e2ac3c4dad69bd90e915c67b5f267bbdb58b3cc5370756662b",
+    "migrations/20261027100100_convocations_serveur.sql": "bdd46ddc2f61f28c56e91c07701f2fc946a13534237219eba922ce9e699d2c3d",
+    "migrations/20261027100200_justifier_rend_recherche.sql": "cebf29910525b8f3dd47ff6ec20be37229bad0d220ef7f2146f64461b77ef608",
+    "migrations/20261027104800_terrain_visites_fermeture_changement_ville.sql": "0bd634bea48d68fb655bfbb42b28ae0341a44b4aa75fdc0911b7449ee7acf740",
+    "migrations/20261027121000_chantier_vigiles_socle.sql": "af3ec0e9b38d1531aef89c398c5bd381d0d8eec46cab7c90cf57ee3db70d6823",
+    "migrations/20261027122000_chantier_vol_transaction_interne.sql": "0e3aa62fd568572843a51546caf9985649d04ef8fcf0e87759ab340b5c936240",
+    "migrations/20261027122100_chantier_vol_commande_et_fermeture.sql": "0ddb73aae52f738add213d9e96cf98eddc4c417e9fa64680982aa87a6fe1c907",
+    "migrations/20261027130336_securite_detection_partagee.sql": "165f43b4e31b94781fc8a7e5b4e436b028863a0cde9658a4efbf9e8a84d92a81"
+  }
+}

@@ -1,0 +1,153 @@
+DETENTION -- reference VERTE sur le fichier de production :
+  ok   chaine 9 -- le verdict d'ouverture n'est plus lu               l'epreuve attendue tombe
+  ok   chaine 9 -- le jour de fin redevient celui du navigateur       l'epreuve attendue tombe
+  ok   chaine 9 -- une peine sans terme redevient possible            l'epreuve attendue tombe
+  ok   chaine 12 -- le verdict de prolongation n'est plus lu          l'epreuve attendue tombe
+  ok   chaine 11 -- la liberation redevient inconditionnelle          l'epreuve attendue tombe
+  ok   chaine 10 -- le transfert au QHS redevient inconditionnel      l'epreuve attendue tombe
+  ok   chaine 10 -- le client repose lui-meme le drapeau QHS          l'epreuve attendue tombe
+  ok   chaine 13 -- la sentence redevient une annonce                 l'epreuve attendue tombe
+  ok   chaine 13 -- la competence n'est plus verifiee avant la sanction l'epreuve attendue tombe
+  ok   verrou de l avocat -- le handler supprime est reinjecte        l'epreuve attendue tombe
+  ok   verrou de l avocat -- l appel a la porte serveur est reinjecte l'epreuve attendue tombe
+  ok   verrou de l avocat -- le drapeau avocatUtilise est reinjecte   l'epreuve attendue tombe
+  ok   chaine de l'evasion -- le verdict de la cloture n'est plus lu  l'epreuve attendue tombe
+  ok   chaine 13 -- la sanction n'est plus exigee avant l'archivage   l'epreuve attendue tombe
+
+VOTE ELECTORAL -- reference VERTE sur le fichier de production :
+  ok   vote -- « Vote enregistre ! » redevient inconditionnel         l'epreuve attendue tombe
+  ok   vote -- une coupure reseau redevient un silence                l'epreuve attendue tombe
+  ok   vote -- le bulletin est marque AVANT la confirmation           l'epreuve attendue tombe
+
+LIBERATIONS DE DESERTION -- reference VERTE sur le fichier de production :
+  ok   demobilisation -- le verdict de la cloture n'est plus lu       l'epreuve attendue tombe
+  ok   incorporation -- le verdict de la cloture n'est plus lu        l'epreuve attendue tombe
+  ok   incorporation -- l'incorporation posee en memoire n'est plus annulee l'epreuve attendue tombe
+
+COTISATIONS D'ORGANISATION -- reference VERTE sur le fichier de production :
+  ok   cotisations -- la fiche du membre est a nouveau relue avant la porte l'epreuve attendue tombe
+  ok   cotisations -- le debit redevient une ecriture directe         l'epreuve attendue tombe
+  ok   cotisations -- un verdict absent redevient un succes           l'epreuve attendue tombe
+  ok   cotisations -- la saison n'est plus transmise a la porte       l'epreuve attendue tombe
+
+REGLEMENT DES SUCCESSIONS -- reference VERTE sur le fichier de production :
+  ok   successions -- un verdict absent redevient une cloture         l'epreuve attendue tombe
+  ok   successions -- les etapes refusees redeviennent silencieuses   l'epreuve attendue tombe
+  ok   successions -- une succession non tranchee est quand meme presentee a la porte l'epreuve attendue tombe
+
+TAUX D'IMPOSITION -- reference VERTE sur le fichier de production :
+  ok   impots -- le succes redevient inconditionnel                   l'epreuve attendue tombe
+  ok   impots -- un verdict absent redevient un taux fixe             l'epreuve attendue tombe
+  ok   impots -- le taux annonce redevient celui du curseur           l'epreuve attendue tombe
+  ok   impots -- la cle du budget redevient transmise par le client   l'epreuve attendue tombe
+
+CLOTURE D'UNE TOURNEE -- reference VERTE sur le fichier de production :
+  ok   tournee -- le verdict de la cloture n'est plus lu              l'epreuve attendue tombe
+  ok   tournee -- la suppression ligne par ligne revient dans la resolution l'epreuve attendue tombe
+  ok   tournee -- le gain local est pose AVANT la cloture             l'epreuve attendue tombe
+  ok   tournee -- une vente refusee est cloturee comme SERVIE         l'epreuve attendue tombe
+
+MUTATION DE PROPRIETE D'UN TERRAIN -- reference VERTE sur le fichier de production :
+  ***  terrain -- le verdict de la mutation n'est plus lu             ancrage introuvable
+  ***  terrain -- l'ecriture directe du blob revient                  ancrage introuvable
+  ***  terrain -- la purge de la reservation retombe hors du patch    ancrage introuvable
+  ***  terrain -- le cache local reprend le patch au lieu de l'etat serveur ancrage introuvable
+
+CYCLE D'UNE AFFAIRE -- justice -- reference VERTE sur le fichier de production :
+  ok   transmission -- l'annonce du forum redevient inconditionnelle  l'epreuve attendue tombe
+  ok   transmission -- un rejeu republie l'affaire sur le forum       l'epreuve attendue tombe
+  ok   transmission -- l'etat local ne recopie plus l'affaire du serveur l'epreuve attendue tombe
+  ***  transmission -- l'appelant « enquete conclue » n'attend plus la porte ancrage introuvable
+  ok   defense -- le verdict de la porte n'est plus lu                l'epreuve attendue tombe
+  ok   defense -- le statut de l'affaire redevient pose en memoire    l'epreuve attendue tombe
+  ok   defense -- l'affaire ne recopie plus l'etat arrete par le serveur l'epreuve attendue tombe
+
+CYCLE D'UNE AFFAIRE -- supabase -- reference VERTE sur le fichier de production :
+  ok   cycle -- l'upsert du blob entier revient dans supabase.js      l'epreuve attendue tombe
+
+ETAT D'UN TERRAIN -- supabase -- reference VERTE sur le fichier de production :
+  ok   terrain -- la plus grosse surface d'ecriture cliente revient dans supabase.js l'epreuve attendue tombe
+
+ETAT D'UN TERRAIN -- justice -- reference VERTE sur le fichier de production :
+  ok   permis -- un paiement client separe revient avant la commande atomique l'epreuve attendue tombe
+  ok   terrain -- le verdict du transfert de compromis n'est plus lu  l'epreuve attendue tombe
+  ok   terrain -- la decision du permis renvoie l'etat ENTIER au serveur l'epreuve attendue tombe
+  ok   terrain -- l'acceleration interdite preleve quand meme PA et argent l'epreuve attendue tombe
+  ***  terrain -- le vol credite la quantite calculee ici, pas celle que le serveur a arretee ancrage introuvable
+  ok   terrain -- l'ajout d'un lot renvoie le tableau entier          l'epreuve attendue tombe
+  ok   terrain -- le lot absorbe est de nouveau designe par un indice l'epreuve attendue tombe
+
+ETAT D'UN TERRAIN -- personnage -- reference VERTE sur le fichier de production :
+  ok   terrain -- le gel successoral redevient une ecriture de blob   l'epreuve attendue tombe
+
+SUBVENTIONS MUNICIPALES -- organisations -- reference VERTE sur le fichier de production :
+  ok   l'ancienne mecanique gelee ressuscite                          l'epreuve attendue tombe
+  ok   un bouton envoie un STATUT au lieu d'un verbe                  l'epreuve attendue tombe
+  ok   l'ecran du club credite la caisse lui-meme                     l'epreuve attendue tombe
+  ok   l'ecran ne demande plus au serveur de quoi je suis gestionnaire l'epreuve attendue tombe
+
+SUBVENTIONS MUNICIPALES -- politique -- reference VERTE sur le fichier de production :
+  ok   l'ecran facture les PA que la porte facture deja               l'epreuve attendue tombe
+  ok   l'ecran recalcule le disponible au lieu de le recevoir         l'epreuve attendue tombe
+  ok   l'ecran n applique plus le paiement rendu par le serveur       l'epreuve attendue tombe
+  ok   une panne de lecture devient une enveloppe vide                l'epreuve attendue tombe
+
+SUBVENTIONS MUNICIPALES -- supabase -- reference VERTE sur le fichier de production :
+  ok   le navigateur annonce la commune du maire                      l'epreuve attendue tombe
+  ok   les archives exposent les negociations en cours                l'epreuve attendue tombe
+
+SUBVENTIONS MUNICIPALES -- routeur -- reference VERTE sur le fichier de production :
+  ok   le routeur retransmet pa et cost, invitant au double prelevement l'epreuve attendue tombe
+
+SUBVENTIONS MUNICIPALES -- cron -- reference VERTE sur le fichier de production :
+  ok   la passe de minuit n expire plus rien                          l'epreuve attendue tombe
+
+GREFFE ET UNIVERSITE -- catalogue -- reference VERTE sur le fichier de production :
+  ok   le navigateur refabrique un faux casier                        l'epreuve attendue tombe
+  ok   la salle de reunion redevient un local a louer                 l'epreuve attendue tombe
+  ***  « Suivre une formation » perd son drapeau `bientot`            ancrage introuvable
+  ok   les frais de greffe de la domiciliation disparaissent          l'epreuve attendue tombe
+
+GREFFE ET UNIVERSITE -- routeur -- reference VERTE sur le fichier de production :
+  ok   une route mene a l'ordre differe                               l'epreuve attendue tombe
+
+GREFFE ET UNIVERSITE -- justice -- reference VERTE sur le fichier de production :
+  ok   un handler du greffe ecrit l'objet lui-meme                    l'epreuve attendue tombe
+  ok   la fiche d'un document revele son authenticite                 l'epreuve attendue tombe
+
+GREFFE ET UNIVERSITE -- politique -- reference VERTE sur le fichier de production :
+  ok   un ordre differe redevient cliquable                           l'epreuve attendue tombe
+  ok   l'ecran module un taux que le serveur tient fixe               l'epreuve attendue tombe
+
+GREFFE ET UNIVERSITE -- organisations -- reference VERTE sur le fichier de production :
+  ok   le navigateur ecrit l'organisation a la place de la porte      l'epreuve attendue tombe
+  ok   l'ecran reintroduit une exclusivite de local                   l'epreuve attendue tombe
+
+DIALOGUE PNJ -- personnalites serveur -- reference VERTE sur le fichier de production :
+  ok   Jeremy redevient muet -- le guide de la quete d'accueil        l'epreuve attendue tombe
+  ok   Maxence redevient muet                                         l'epreuve attendue tombe
+
+DIALOGUE PNJ -- navigateur -- reference VERTE sur le fichier de production :
+  ok   une lecture hors try/catch remet tous les PNJ en panne silencieuse l'epreuve attendue tombe
+  ok   un refus definitif promet de nouveau de reessayer              l'epreuve attendue tombe
+  ok   l'ecran invite encore a ecrire a un PNJ qui ne repondra jamais l'epreuve attendue tombe
+  ok   une panne passagere efface la boite de question                l'epreuve attendue tombe
+  ok   le navigateur se remet a construire un prompt systeme          l'epreuve attendue tombe
+
+DIALOGUE PNJ -- assemblage du prompt -- reference VERTE sur le fichier de production :
+  ok   le miroir des objectifs de la visite derive d'une phrase       l'epreuve attendue tombe
+  ok   une etape disparait du miroir serveur                          l'epreuve attendue tombe
+  ok   le prompt systeme cesse de placer le bloc de la visite         l'epreuve attendue tombe
+
+DIALOGUE PNJ -- endpoint -- reference VERTE sur le fichier de production :
+  ok   le sixieme canal est demande pour TOUS les PNJ                 l'epreuve attendue tombe
+  ok   la porte de la visite recoit un nom de joueur                  l'epreuve attendue tombe
+
+ECHEC : 7 contre-epreuve(s) en defaut.
+  - terrain -- le verdict de la mutation n'est plus lu : la chaine cherchee apparait 0 fois (1 attendue)
+  - terrain -- l'ecriture directe du blob revient : la chaine cherchee apparait 0 fois (1 attendue)
+  - terrain -- la purge de la reservation retombe hors du patch : la chaine cherchee apparait 0 fois (1 attendue)
+  - terrain -- le cache local reprend le patch au lieu de l'etat serveur : la chaine cherchee apparait 0 fois (1 attendue)
+  - transmission -- l'appelant « enquete conclue » n'attend plus la porte : la chaine cherchee apparait 0 fois (1 attendue)
+  - terrain -- le vol credite la quantite calculee ici, pas celle que le serveur a arretee : la chaine cherchee apparait 0 fois (1 attendue)
+  - « Suivre une formation » perd son drapeau `bientot` : la chaine cherchee apparait 2 fois (1 attendue)
