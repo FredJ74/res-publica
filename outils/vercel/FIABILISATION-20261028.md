@@ -114,3 +114,15 @@ signalée, sans supprimer le contrôle ni toucher au calendrier du jeu.
 Aucune donnée de joueur lue ou modifiée, aucun compte utilisé, aucune migration,
 aucune modification d'argent, d'inventaire, de navigation ou de règle métier.
 Aucun fichier JavaScript servi n'est modifié : pas de version de cache à relever.
+
+
+### Livraison constatée
+
+Code et preuves sauvegardés sur la branche distante au commit `7777b42`.
+`gh pr create --base main --head codex/fiabilisation-ci-20261028` a réellement
+été tenté après ce push : refus GraphQL `Forbidden`, **aucune PR créée par cette
+session**. La branche reste disponible pour la revue :
+https://github.com/FredJ74/res-publica/compare/main...codex/fiabilisation-ci-20261028
+
+Aucune fusion ou publication de production. Les éléments de ce rapport ne
+constituent pas une validation distante Actions/Vercel.
