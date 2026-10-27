@@ -55,6 +55,26 @@ UPDATE public.pnj_membres SET statut='detenu' WHERE id='__test_135_suiveur__';
 UPDATE public.pnj_membres SET statut='actif' WHERE id='__test_135_private__';
 INSERT INTO public.jugements(id,country,city,accuse,motif,executee,data)
 VALUES ('__test_jugement_135__','republic','capitale','__test_pj_135__','test',false,'{"motifs":[{"jours":1}]}'::jsonb);
+-- La détection choisit le groupe puis mémorise uniquement les matricules retenus.
+-- Le test reste isolé : il supprime ses propres rencontres fictives avant le combat existant.
+DO $t$ DECLARE r jsonb; membres jsonb; i integer; trouve boolean:=false;
+BEGIN
+ FOR i IN 1..60 LOOP
+   DELETE FROM public.police_detection_attempts WHERE personnage='__test_pj_135__';
+   r:=public.police_detection_verifier('__test_bat_135__','terrain',NULL);
+   IF coalesce((r->>'detecte')::boolean,false) THEN
+     IF r->>'rencontre' NOT LIKE 'prive-%' OR (r->>'effectif')::integer<>1 THEN
+       RAISE EXCEPTION 'categorie_de_detection_incorrecte: %',r; END IF;
+     SELECT intervenants INTO membres FROM public.police_interceptions
+     WHERE rencontre=r->>'rencontre' AND personnage='__test_pj_135__';
+     IF membres<>jsonb_build_array('prive:__test_135_private__') THEN
+       RAISE EXCEPTION 'intervenants_non_figes: %',membres; END IF;
+     DELETE FROM public.police_interceptions WHERE rencontre=r->>'rencontre' AND personnage='__test_pj_135__';
+     trouve:=true; EXIT;
+   END IF;
+ END LOOP;
+ IF NOT trouve THEN RAISE EXCEPTION 'aucune_detection_privee_sur_60_tirages'; END IF;
+END $t$;
 INSERT INTO public.police_interceptions(personnage,rencontre,country,city,building,room,street)
 VALUES ('__test_pj_135__','prive-test-135','republic','capitale','__test_bat_135__','terrain',NULL);
 SET LOCAL ROLE authenticated;
