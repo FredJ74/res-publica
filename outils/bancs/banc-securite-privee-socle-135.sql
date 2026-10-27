@@ -40,4 +40,13 @@ BEGIN
  r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',1);
  IF r->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'combat_idempotence_refuse: %',r; END IF;
 END $t$;
+-- Contre-épreuve : un autre personnage authentifié ne peut rejouer la rencontre.
+SELECT set_config('request.jwt.claim.sub','c1350000-0000-4000-8000-000000000136',true);
+DO $t$
+DECLARE r jsonb;
+BEGIN
+ r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',2);
+ IF r->>'ok' IS DISTINCT FROM 'false' THEN RAISE EXCEPTION 'combat_access_non_autorise: %',r; END IF;
+END $t$;
+SELECT set_config('request.jwt.claim.sub','c1350000-0000-4000-8000-000000000135',true);
 RESET ROLE;
