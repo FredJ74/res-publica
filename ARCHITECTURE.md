@@ -159,7 +159,7 @@ ligne trouvée fausse se corrige ici.
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
-| Cultes | Prière, dons, confession, pèlerinage, reliques ; excommunication par le Grand Prêtre. La bénédiction n'a pas de bouton dans les lieux de culte (seulement par un contact). | Mixte | Religion d'État et lieux de culte. |
+| Cultes | Prière, dons, confession, pèlerinage, reliques ; excommunication par le Grand Prêtre. La bénédiction n'a pas de bouton dans les lieux de culte (seulement par un contact). | Mixte (prière, don, piété, grades et charges par le serveur depuis le 27/10 pour Républia) | Religion d'État et lieux de culte. |
 
 ### Sport
 

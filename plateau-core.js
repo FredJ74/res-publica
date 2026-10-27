@@ -2396,6 +2396,20 @@ function appliquerPaiementServeur(r) {
   return true;
 }
 
+// POPULARITE ET INFLUENCE RENDUES PAR LE SERVEUR (27 octobre 2026). La fiche les sauvegarde en
+// VARIATION (popBase / infBase, voir ressourcesAvecBasePop dans supabase.js) : la base ajoute
+// (valeur - base) a SA valeur courante. Recopier la valeur du serveur dans state.pop sans deplacer
+// la base faisait donc ajouter une seconde fois l'effet a la sauvegarde suivante. On adopte la
+// valeur du serveur, on garde la part locale pas encore envoyee, et la base devient la valeur du serveur.
+function adopterJaugeServeur(cle, valeur) {
+  if (typeof valeur !== 'number' || (cle !== 'pop' && cle !== 'inf')) return;
+  const champBase = cle === 'pop' ? '_popEnvoye' : '_infEnvoye';
+  const envoye = typeof state[champBase] === 'number' ? state[champBase] : null;
+  const nonEnvoye = (envoye !== null && typeof state[cle] === 'number') ? state[cle] - envoye : 0;
+  state[cle] = Math.max(0, Math.min(100, valeur + nonEnvoye));
+  if (envoye !== null) state[champBase] = valeur;
+}
+
 async function deduireCoutOrdre({ pa = 0, cost = 0, payeur = 'joueur', fn = null } = {}) {
   // ===========================================================================
   // CHANTIER C / PHASE 1 — LE PRELEVEMENT PASSE PAR LE SERVEUR (13 septembre 2026)

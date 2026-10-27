@@ -6104,8 +6104,10 @@ async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, c
   const r = await deduireCoutOrdre(coutActionPosteNomme(posteId, 'revoquer', pa, cost));
   if (!r.ok) { signalerRefusCout(r); return; }
 
-  if (estPJ || POSTES_NOMINATIONS_MUNICIPALES.includes(posteId)) {
-    // PJ et PNJ municipaux passent par la meme porte : un DELETE client est refuse par la RLS.
+  {
+    // PJ et PNJ passent tous par la meme porte : un DELETE client est refuse par la RLS. Le cas
+    // « PNJ d'un poste non municipal » supprimait la ligne depuis le navigateur -- ecriture refusee
+    // en silence, la revocation etait annoncee sans avoir lieu (corrige le 27 octobre 2026).
     // REVOCATION SERVEUR (15 septembre 2026). L'ecriture directe de la fiche d'autrui est refusee
     // depuis le chantier B (trigger de la vue, 403 avale par le .catch) : cette revocation ne
     // revoquait donc plus personne. La RPC revalide l'autorite, la protection de 3 jours, et
@@ -6123,10 +6125,6 @@ async function confirmerRevocationPosteNomme(posteId, nomTitulaire, estPJ, pa, c
       const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1) + ' · ' + h + 'h';
       await sbSendMail(revoqueurNom, nomTitulaire, 'Revocation de poste',
         'Vous avez ete revoque(e) du poste de ' + regle.label + ' par ' + revoqueurNom + '.', time).catch(() => {});
-    }
-  } else {
-    if (typeof sbSupprimerTitulairePnj === 'function') {
-      await sbSupprimerTitulairePnj(state.country, posteId, villeCourante).catch(() => {});
     }
   }
 
@@ -9273,7 +9271,7 @@ function signalerRefusAmbassadeur(v, titre) {
 }
 function appliquerResultatAmbassadeur(v) {
   if (v?.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
-  if (typeof v?.pop === 'number') state.pop = v.pop;
+  if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v?.pop);
   chargerIndicesDiplomatiques().catch(() => {});
   if (typeof updateUI === 'function') updateUI();
 }

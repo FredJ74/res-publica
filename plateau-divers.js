@@ -168,12 +168,11 @@ let INDICES_VILLES_CACHE = {};
 //
 // Piete glissante (lot "carriere religieuse Republia", lot 2, 26 aout 2026) : isn/ie/social/moral
 // restent lus tels quels depuis indices_villes (accumulateurs permanents, inchanges). piete en
-// revanche est desormais une valeur DERIVEE du ledger contributions_piete (recalculerPieteVille),
-// jamais du delta permanent charge ici -- recalculee a CHAQUE appel de cette fonction (donc a
-// chaque entree de batiment/chargement de personnage) pour que la decroissance a J+7 soit visible
-// sans necessiter de cron serveur supplementaire. La valeur recalculee est aussi re-ecrite dans
-// indices_villes (sbSaveIndicesVille) : le reste du jeu (football compris) continue de lire un
-// SEUL indice via getIndiceVille, jamais un deuxieme indice concurrent.
+// revanche est une valeur DERIVEE du registre contributions_piete, calculee par le SERVEUR (40 +
+// contributions des 7 derniers jours) : un declencheur de indices_villes l'impose a chaque
+// ecriture, et piete_villes_actualiser la rafraichit a chaque appel de cette fonction (donc a
+// chaque entree de batiment / chargement de personnage) pour que la decroissance a J+7 soit
+// visible. Le navigateur ne la calcule plus (27 octobre 2026).
 async function chargerIndicesRepublia() {
   for (const ville of VILLES_REPUBLIA) {
     const key = 'republic_' + ville;
@@ -181,9 +180,12 @@ async function chargerIndicesRepublia() {
     const data = await sbGetIndicesVille(key).catch(() => null);
     INDICES_VILLES_CACHE[key] = data ? { ...INDICE_VILLE_DEFAUT, ...data } : { ...INDICE_VILLE_DEFAUT };
   }
-  if (typeof recalculerPieteVille === 'function') {
+  // La piete est recalculee par le serveur depuis le registre (les contributions expirent a 7 jours).
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('piete_villes_actualiser', {}).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (v?.ok && v.piete) {
     for (const ville of VILLES_REPUBLIA) {
-      await recalculerPieteVille('republic', ville).catch(() => {});
+      if (typeof v.piete[ville] === 'number') INDICES_VILLES_CACHE['republic_' + ville].piete = v.piete[ville];
     }
   }
 }
@@ -383,10 +385,6 @@ const TITULAIRES_RELIGIEUX_PNJ_DEFAUT = {
   pretre: { capitale: 'Père Ception', ville_a: 'Père Iscope', ville_b: 'Abbé Tonnière' },
   grand_pretre: { national: 'Père Ception' }
 };
-// Reference de score des titulaires PNJ initiaux -- valeurs de jeu fixes, jamais calculees. Un
-// Pretre PJ doit les DEPASSER STRICTEMENT (jamais egaler) pour conquerir la charge locale.
-const REFERENCE_TITULAIRE_PRETRE = { capitale: 50, ville_a: 40, ville_b: 40 };
-const VILLES_EGLISES_REPUBLIA = { capitale: 'tabernacle-impots', ville_a: 'notre-dame-mer', ville_b: 'eglise-montrouge' };
 
 async function getTitulaireReligieux(posteId, city) {
   const pays = 'republic'; // carriere religieuse Republia uniquement (§1-2 du lot)
@@ -404,151 +402,48 @@ async function getTitulaireReligieux(posteId, city) {
   return { nom, estPJ };
 }
 
-// ---- LEDGER DE CONTRIBUTIONS PERSONNELLES (lot "carriere religieuse Republia", lot 2,
-// 26 aout 2026 -- table contributions_piete, migration executee) ----
-const SEPT_JOURS_MS = 7 * 24 * 3600 * 1000;
-
-// Lit toutes les contributions d'un auteur (tous villes confondues) et derive en un seul passage
-// le total LIFETIME (jamais purge, sert au grade -- §3) et le total ACTIF par ville sur les 7
-// derniers jours reels (sert a la conquete de charge -- §4/§5). Jamais reconstruit a partir d'un
-// historique anterieur a ce lot (aucune contribution n'existait avant la migration).
-async function calculerPieteAuteur(pays, auteur) {
-  if (typeof sbGetContributionsPieteAuteur !== 'function') return { lifetime: 0, actifParVille: {} };
-  const toutes = await sbGetContributionsPieteAuteur(pays, auteur).catch(() => []) || [];
-  const seuil = Date.now() - SEPT_JOURS_MS;
-  let lifetime = 0;
-  const actifParVille = {};
-  toutes.forEach(c => {
-    lifetime += c.quantite || 0;
-    if (new Date(c.created_at).getTime() >= seuil) {
-      actifParVille[c.ville] = (actifParVille[c.ville] || 0) + (c.quantite || 0);
-    }
-  });
-  return { lifetime, actifParVille };
-}
-
-// Grade acquis, fonde sur le total LIFETIME uniquement -- jamais sur le score actif, pour que
-// l'expiration d'une contribution a J+7 ne retrograde jamais un grade deja acquis (§3).
+// ---- CARRIERE RELIGIEUSE DE REPUBLIA : TOUT EST DECIDE PAR LE SERVEUR (27 octobre 2026) ----
+// Prier et donner dans une eglise de Republia passe par la RPC religion_agir : lieu, paiement,
+// moral ou popularite, contribution au registre contributions_piete, piete de la ville (40 + les
+// contributions des 7 derniers jours), grade (10 / 25 / 45), conquete de la charge de pretre et du
+// titre de Grand Pretre, annonces publiques. Le navigateur ne fait plus qu'afficher le verdict.
+// Auparavant il ecrivait lui-meme sa contribution, la piete de la ville et sa propre nomination
+// (audit « une seule verite »).
 const GRADES_RELIGIEUX_LABELS = { enfant_de_choeur: 'Enfant de chœur', clerc: 'Clerc', pretre: 'Prêtre' };
-function gradeReligieuxDepuisLifetime(lifetime) {
-  if (lifetime >= 45) return 'pretre';
-  if (lifetime >= 25) return 'clerc';
-  if (lifetime >= 10) return 'enfant_de_choeur';
-  return null;
-}
+const MOTIFS_RELIGION = { pas_sur_place: 'Il faut être dans l\'église de la ville.',
+                          hors_republia: 'Cette action ne passe pas par ce chemin dans votre empire.' };
 
-// Recalcule la piete MUNICIPALE (glissante, §2 du lot 2) : 40 de base + somme des contributions
-// RELIGIEUSES encore actives sur 7 jours reels dans cette ville, plafonnee a 100. Reecrit
-// directement dans INDICES_VILLES_CACHE + indices_villes (sbSaveIndicesVille) -- piete reste un
-// SEUL indice, exactement celui deja lu par getIndiceVille/tout le reste du jeu (football compris,
-// via multiplicateurPiete). isn/ie/social/moral ne sont jamais touches ici.
-async function recalculerPieteVille(pays, ville) {
-  if (pays !== 'republic' || typeof sbGetContributionsPieteVille !== 'function') return;
-  const depuisISO = new Date(Date.now() - SEPT_JOURS_MS).toISOString();
-  const actives = await sbGetContributionsPieteVille(pays, ville, depuisISO).catch(() => []);
-  const somme = (actives || []).reduce((s, c) => s + (c.quantite || 0), 0);
-  const valeur = Math.max(0, Math.min(100, (INDICE_VILLE_DEFAUT.piete || 40) + somme));
-  const key = pays + '_' + ville;
-  if (!INDICES_VILLES_CACHE[key]) INDICES_VILLES_CACHE[key] = { ...INDICE_VILLE_DEFAUT };
-  INDICES_VILLES_CACHE[key].piete = valeur;
-  if (typeof sbSaveIndicesVille === 'function') await sbSaveIndicesVille(key, INDICES_VILLES_CACHE[key]).catch(() => {});
-  return valeur;
-}
-
-// ---- CONQUETE DES CHARGES RELIGIEUSES (§4/§5 du lot 2) ----
-
-// Score de comparaison du titulaire ACTUEL d'une charge : reference fixe pour un PNJ, score actif
-// (dans SA ville de charge) pour un PJ. Le Grand Pretre ne possede jamais de score national
-// distinct (§5, "les titulaires locaux sont les candidats") : sa comparaison est celle de sa
-// propre charge locale, retrouvee en identifiant laquelle des 3 villes il detient.
-async function scoreTitulaireActuel(pays, posteId, city) {
-  if (posteId === 'pretre') {
-    const titulaire = await getTitulaireReligieux('pretre', city);
-    if (!titulaire) return -Infinity;
-    if (!titulaire.estPJ) return REFERENCE_TITULAIRE_PRETRE[city] ?? 0;
-    const { actifParVille } = await calculerPieteAuteur(pays, titulaire.nom);
-    return actifParVille[city] || 0;
+async function religionAgirServeur(fn, pa, cost) {
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('religion_agir', { p_fn: fn, p_pa: pa, p_cost: cost }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v && MOTIFS_RELIGION[v.raison]) showToast('Action impossible', MOTIFS_RELIGION[v.raison], false);
+    else if (typeof signalerRefusCout === 'function') signalerRefusCout(v || { raison: 'paiement_indisponible' });
+    return null;
   }
-  const grandPretre = await getTitulaireReligieux('grand_pretre', null);
-  if (!grandPretre) return -Infinity;
-  if (!grandPretre.estPJ) return REFERENCE_TITULAIRE_PRETRE.capitale;
-  for (const ville of Object.keys(VILLES_EGLISES_REPUBLIA)) {
-    const titulaireLocal = await getTitulaireReligieux('pretre', ville);
-    if (titulaireLocal?.nom === grandPretre.nom) {
-      const { actifParVille } = await calculerPieteAuteur(pays, grandPretre.nom);
-      return actifParVille[ville] || 0;
-    }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
+  if (typeof v.moral === 'number') state.moral = v.moral;
+  if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.pop);
+  const key = 'republic_' + v.ville;
+  if (typeof v.piete_ville === 'number') {
+    if (!INDICES_VILLES_CACHE[key]) INDICES_VILLES_CACHE[key] = { ...INDICE_VILLE_DEFAUT };
+    INDICES_VILLES_CACHE[key].piete = v.piete_ville;
   }
-  return -Infinity;
-}
-
-// Verifie, apres CHAQUE contribution personnelle, si son AUTEUR vient de franchir un palier de
-// grade (notification seule, le grade lui-meme n'est jamais persiste separement -- toujours
-// recalcule depuis le lifetime, cf. calculerPieteAuteur), puis si son AUTEUR conquiert la charge
-// locale de pretre de la ville ou il vient d'agir, puis (s'il en devient/est deja titulaire
-// local) la fonction nationale de Grand Pretre. Declenchement uniquement par l'action propre de
-// l'auteur (jamais un balayage global periodique qui destituerait un titulaire sans action
-// adverse) : c'est exactement la garantie de stabilite demandee (§4/§5, pas de destitution
-// automatique par simple expiration -- seul un concurrent qui AGIT et depasse peut remplacer un
-// titulaire).
-async function verifierConqueteReligieuse(pays, ville, auteur, quantiteAjoutee) {
-  if (pays !== 'republic' || !VILLES_EGLISES_REPUBLIA[ville]) return;
-  const { lifetime, actifParVille } = await calculerPieteAuteur(pays, auteur);
-
-  const gradeApres = gradeReligieuxDepuisLifetime(lifetime);
-  const gradeAvant = gradeReligieuxDepuisLifetime(lifetime - (quantiteAjoutee || 0));
-  if (gradeApres && gradeApres !== gradeAvant) {
-    showToast('Nouveau grade !', 'Vous êtes désormais ' + GRADES_RELIGIEUX_LABELS[gradeApres] + '.', true, true);
-    addJournalEntry('Vous devenez ' + GRADES_RELIGIEUX_LABELS[gradeApres] + '.', 'event-good');
+  if (v.grade && v.grade !== v.grade_avant) {
+    showToast('Nouveau grade !', 'Vous êtes désormais ' + GRADES_RELIGIEUX_LABELS[v.grade] + '.', true, true);
+    addJournalEntry('Vous devenez ' + GRADES_RELIGIEUX_LABELS[v.grade] + '.', 'event-good');
   }
-
-  if (gradeApres !== 'pretre') return; // seul un Pretre peut conquerir une charge (§4)
-
-  const scoreAuteur = actifParVille[ville] || 0;
-  const titulaireLocal = await getTitulaireReligieux('pretre', ville);
-  if (titulaireLocal?.nom !== auteur) {
-    const scoreTitulaire = await scoreTitulaireActuel(pays, 'pretre', ville);
-    if (scoreAuteur > scoreTitulaire) { // strictement -- une egalite ne suffit jamais
-      // ANNONCE APRES CONFIRMATION (17 septembre 2026, audit des frontieres d'autorite).
-      // L'attribution partait en .catch(() => {}) et la conquete etait annoncee NATIONALEMENT
-      // (addExternalEvent, irreversible aux yeux des autres joueurs) sans qu'on sache si elle
-      // avait ete ecrite. Or sbSetTitulairePnj ne leve jamais : il rend null. Un joueur pouvait
-      // donc etre proclame Pretre titulaire sans jamais le devenir en base -- et sans pouvoir
-      // exercer la moindre prerogative de la charge.
-      const attribue = (typeof sbSetTitulairePnj === 'function')
-        ? await sbSetTitulairePnj(pays, 'pretre', ville, auteur) : null;
-      if (attribue) {
-        const nomVille = villeNom(pays, ville) || ville;
-        showToast('Charge conquise !', 'Vous devenez Prêtre titulaire de ' + nomVille + '.', true, true);
-        addJournalEntry('Vous devenez Prêtre titulaire de ' + nomVille + '.', 'event-good');
-        if (typeof addExternalEvent === 'function') addExternalEvent('⛪ ' + auteur + ' devient Prêtre titulaire de ' + nomVille + '.');
-      } else {
-        console.error('[religion] attribution de la charge de pretre non enregistree', { pays, ville, auteur });
-      }
-    }
+  if (v.charge_conquise) {
+    showToast('Charge conquise !', 'Vous devenez Prêtre titulaire de ' + v.nom_ville + '.', true, true);
+    addJournalEntry('Vous devenez Prêtre titulaire de ' + v.nom_ville + '.', 'event-good');
   }
-
-  // Competition nationale : ne s'evalue que si l'auteur est (ou vient de devenir) titulaire local
-  // de cette ville -- les candidats au Grand Pretre sont exclusivement les 3 titulaires locaux (§5).
-  const titulaireLocalApres = await getTitulaireReligieux('pretre', ville);
-  if (titulaireLocalApres?.nom !== auteur) return;
-  const grandPretre = await getTitulaireReligieux('grand_pretre', null);
-  if (grandPretre?.nom === auteur) return;
-  const scoreGrandPretre = await scoreTitulaireActuel(pays, 'grand_pretre', null);
-  if (scoreAuteur > scoreGrandPretre) {
-    // Meme correctif : la charge nationale la plus visible du jeu ne doit pas etre proclamee
-    // avant d'exister. Sans cela, le « Grand Pretre » annonce ne pouvait exercer aucun de ses
-    // pouvoirs (excommunication...), puisque ceux-ci relisent le titulaire reel.
-    const attribueGP = (typeof sbSetTitulairePnj === 'function')
-      ? await sbSetTitulairePnj(pays, 'grand_pretre', null, auteur) : null;
-    if (attribueGP) {
-      showToast('Grand Prêtre national !', 'Vous devenez Grand Prêtre de Républia, sans perdre votre charge locale.', true, true);
-      addJournalEntry('Vous devenez Grand Prêtre national de Républia.', 'event-good');
-      if (typeof addExternalEvent === 'function') addExternalEvent('⛪ ' + auteur + ' devient le nouveau Grand Prêtre national de Républia.');
-    } else {
-      console.error('[religion] attribution du Grand Pretre non enregistree', { pays, auteur });
-    }
+  if (v.grand_pretre_conquis) {
+    showToast('Grand Prêtre national !', 'Vous devenez Grand Prêtre de Républia, sans perdre votre charge locale.', true, true);
+    addJournalEntry('Vous devenez Grand Prêtre national de Républia.', 'event-good');
   }
+  if (typeof updateUI === 'function') updateUI();
+  return v;
 }
 
 // ---- EXCOMMUNICATION (§6 du lot 2, 26 aout 2026) ----
@@ -634,30 +529,22 @@ async function ouvrirLeverExcommunicationCible() {
 }
 
 async function doPrier(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
   const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
   const religion = RELIGIONS[pays];
-  // Republia (lot "carriere religieuse", lot 2) : la piete municipale n'est plus un accumulateur
-  // permanent (modifierIP) -- elle est desormais entierement derivee du ledger contributions_piete
-  // (recalculerPieteVille). Un excommunie continue de prier (Moral inchange), mais §6 du lot 2
-  // est explicite : "une priere reste possible mais ne produit aucune piete" -- ni pour la ville,
-  // ni pour son propre score personnel. Les 3 autres empires gardent modifierIP tel quel, aucun
-  // ledger ni palier n'existe pour eux.
-  const excommunie = pays === 'republic' && !!state.char?.excommunie;
+  let excommunie = false;
   if (pays === 'republic') {
-    if (!excommunie) {
-      const nom = state.char?.name;
-      if (nom && typeof sbEnregistrerContributionPiete === 'function') await sbEnregistrerContributionPiete(pays, ville, nom, 3).catch(() => {});
-      if (typeof recalculerPieteVille === 'function') await recalculerPieteVille(pays, ville).catch(() => {});
-      if (nom && typeof verifierConqueteReligieuse === 'function') verifierConqueteReligieuse(pays, ville, nom, 3).catch(() => {});
-    }
+    // Republia : tout est fait par le serveur (religionAgirServeur, ci-dessus). Un excommunie
+    // prie toujours (+2 moral) mais ne produit aucune piete (§6 du lot 2).
+    const v = await religionAgirServeur('prier', pa, cost);
+    if (!v) return;
+    excommunie = !!v.excommunie;
   } else {
+    const r = await deduireCoutOrdre({ pa, cost });
+    if (!r.ok) { signalerRefusCout(r); return; }
     modifierIP(3);
+    state.moral = Math.min(100, state.moral + 2);
+    updateUI();
   }
-  state.moral = Math.min(100, state.moral + 2);
-  updateUI();
   const msgs = {
     republic: 'Vous remplissez un formulaire en 12 exemplaires. La grâce administrative vous envahit. +3 IP +2 Moral.',
     narco:    'Vous communiez avec la Feuille Sacrée. Vous vous sentez soudainement très... éveillé. +3 IP +2 Moral.',
@@ -696,53 +583,25 @@ async function doSeConfeser(pa, cost) {
 // sur le budget de la presidence plutot que sur le portefeuille personnel. Desormais paiement
 // exclusivement personnel, PA et argent tous deux verifies/deduits par le meme mecanisme standard
 // que tous les autres ordres -- coherent pour les 4 empires (fonction partagee, RELIGIONS[pays]).
-// Caisses des 3 eglises de Republia (lot "carriere religieuse Republia", 26 aout 2026) : reutilise
-// integralement le systeme institutionnel generique existant (crediterCaisseBatiment, table
-// caisses_batiments, meme cle pays+buildingId que taxes/salaires/etc.) -- aucune caisse
-// parallele. Un don n'alimente QUE la caisse du batiment ou il est fait ; PSM n'alimente jamais
-// Luthecia. Hors de ces 3 batiments (les 3 autres empires), comportement strictement inchange.
-const EGLISES_REPUBLIA_CAISSE = ['tabernacle-impots', 'notre-dame-mer', 'eglise-montrouge'];
 
 async function doFaireDon(pa, cost) {
   const pays = state.country || 'republic';
-  const ville = state.currentCity || 'capitale';
-  // Le don a une eglise de Republia alimente la caisse du batiment : prelevement et recette
-  // doivent alors se faire dans la MEME transaction serveur (lot « ventes a une structure »,
-  // 17 septembre 2026). Auparavant le credit etait un appel separe en tir-et-oublie : un don
-  // pouvait etre preleve au joueur sans jamais arriver dans la caisse de l'eglise. Un don n'est
-  // pas une vente : il n'est pas taxe, et le serveur le sait (registre de vente_structure_encaisser).
-  // Hors de ces 3 batiments, aucune caisse n'existe et le chemin ordinaire reste inchange.
-  const versEgliseRepublia = (pays === 'republic'
-                              && EGLISES_REPUBLIA_CAISSE.includes(state.currentBuilding));
-  const parVenteStructure = (versEgliseRepublia && cost > 0
-                             && typeof encaisserVenteStructure === 'function');
-  const r = parVenteStructure
-    ? await encaisserVenteStructure('faire_don', pa, cost, pays + '_' + state.currentBuilding, ville)
-    : await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) {
-    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false);
-    return;
-  }
-  // Republia : meme derivation depuis le ledger que doPrier ci-dessus, jamais modifierIP.
-  // §6 du lot 2 ne restreint QUE la priere pour un excommunie -- le don continue de produire de
-  // la piete meme pour un excommunie (non mentionne par la regle validee, comportement inchange).
   if (pays === 'republic') {
-    const nom = state.char?.name;
-    if (nom && typeof sbEnregistrerContributionPiete === 'function') await sbEnregistrerContributionPiete(pays, ville, nom, 5).catch(() => {});
-    if (typeof recalculerPieteVille === 'function') await recalculerPieteVille(pays, ville).catch(() => {});
-    if (nom && typeof verifierConqueteReligieuse === 'function') verifierConqueteReligieuse(pays, ville, nom, 5).catch(() => {});
+    // Republia : religionAgirServeur fait tout -- prelevement et credit de la caisse de l'eglise
+    // dans la meme transaction (un don n'est pas taxe), +3 popularite, +5 piete (meme pour un
+    // excommunie), grade et conquete des charges.
+    const v = await religionAgirServeur('faire_don', pa, cost);
+    if (!v) return;
   } else {
+    const r = await deduireCoutOrdre({ pa, cost });
+    if (!r.ok) {
+      showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', '', false);
+      return;
+    }
     modifierIP(5);
+    state.pop = Math.min(100, state.pop + 3);
+    updateUI();
   }
-  state.pop = Math.min(100, state.pop + 3);
-  // Dans le cas normal la caisse de l'eglise a deja ete creditee par vente_structure_encaisser,
-  // dans la meme transaction que le prelevement. Le bloc ci-dessous est un repli pour le seul cas
-  // ou cette RPC serait indisponible : sans lui, un don a une eglise de Republia serait preleve
-  // sans jamais alimenter sa caisse.
-  if (versEgliseRepublia && !parVenteStructure && typeof crediterCaisseBatiment === 'function') {
-    await crediterCaisseBatiment('republic', state.currentBuilding, cost).catch(() => {});
-  }
-  updateUI();
   showToast('Don effectué', '+5 IP +3 POP. Le ' + (RELIGIONS[pays]?.grandPretre||'Grand Prêtre') + ' vous bénit.', true);
 }
 
