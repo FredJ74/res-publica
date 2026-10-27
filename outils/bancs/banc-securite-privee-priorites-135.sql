@@ -6,8 +6,8 @@ BEGIN
  agents:=jsonb_build_array(
   jsonb_build_object('matricule','pol-solo-1','pa',12,'stats',jsonb_build_object('PER',12),'buildingId','test','roomId','salle'),
   jsonb_build_object('matricule','pol-solo-2','pa',12,'stats',jsonb_build_object('PER',12),'buildingId','test','roomId','salle'),
-  jsonb_build_object('matricule','pol-g1','groupeId','pol-grp','pa',12,'stats',jsonb_build_object('PER',14),'buildingId','test','roomId','salle'),
-  jsonb_build_object('matricule','pol-g2','groupeId','pol-grp','pa',12,'stats',jsonb_build_object('PER',16),'buildingId','test','roomId','salle'),
+  jsonb_build_object('matricule','pol-g1','groupe_id','pol-grp','pa',12,'stats',jsonb_build_object('PER',14),'buildingId','test','roomId','salle'),
+  jsonb_build_object('matricule','pol-g2','groupe_id','pol-grp','pa',12,'stats',jsonb_build_object('PER',16),'buildingId','test','roomId','salle'),
   jsonb_build_object('matricule','prive:a','pnj_prive_id','a','groupeCle','a','pa',12,'stats',jsonb_build_object('PER',20),'buildingId','test','roomId','salle'),
   jsonb_build_object('matricule','prive:b','pnj_prive_id','b','groupeCle','a','pa',12,'stats',jsonb_build_object('PER',20),'buildingId','test','roomId','salle'),
   jsonb_build_object('matricule','prive:c','pnj_prive_id','c','groupeCle','a','pa',12,'stats',jsonb_build_object('PER',20),'buildingId','test','roomId','salle')
