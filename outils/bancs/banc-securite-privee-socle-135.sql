@@ -86,11 +86,18 @@ DO $t$ DECLARE r jsonb; BEGIN
  r:=public.securite_agents_prives_presents_interne('republic','capitale','__test_bat_135__','terrain',NULL,'__test_pj_135__');
  IF jsonb_array_length(r)<>2 THEN RAISE EXCEPTION 'effectif_multiple_manquant: %',r; END IF;
 END $t$;
+-- Le deuxième round avec deux agents utilise le combat commun ; il ne crée aucun état de chantier.
+SET LOCAL ROLE authenticated;
+DO $t$ DECLARE r jsonb; BEGIN
+ r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',2);
+ IF r->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'combat_deux_agents_refuse: %',r; END IF;
+END $t$;
+RESET ROLE;
 -- Contre-épreuve : un agent déplacé hors de la zone ne peut poursuivre le combat.
 UPDATE public.pnj_membres SET building_id='__autre__' WHERE id IN ('__test_135_private__','__test_135_renfort__');
 SET LOCAL ROLE authenticated;
 DO $t$ DECLARE r jsonb; BEGIN
- r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',2);
+ r:=public.police_combat_resoudre('prive-test-135',NULL,'__test_bat_135__','terrain',3);
  IF r->>'ok' IS DISTINCT FROM 'false' THEN RAISE EXCEPTION 'agent_eloigne_combat_accepte: %',r; END IF;
 END $t$;
 RESET ROLE;
