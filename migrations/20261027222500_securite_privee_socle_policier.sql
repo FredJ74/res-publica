@@ -126,7 +126,11 @@ BEGIN
  a:='v_agents:=v_b.data::jsonb->''effectifsPolice''->''policiers'';'
     ||chr(10)||' IF jsonb_typeof(v_agents) IS DISTINCT FROM ''array'' THEN RETURN jsonb_build_object(''ok'',false,''raison'',''effectifs_invalides''); END IF;';
  b:='v_agents:=CASE WHEN jsonb_typeof(v_b.data::jsonb->''effectifsPolice''->''policiers'')=''array'' THEN v_b.data::jsonb->''effectifsPolice''->''policiers'' ELSE ''[]''::jsonb END;'
-    ||chr(10)||' v_agents:=v_agents || public.securite_agents_prives_presents_interne(v_i.country,v_i.city,v_i.building,v_i.room,v_i.street,v_nom);';
+    ||chr(10)||' v_agents:=v_agents || public.securite_agents_prives_presents_interne(v_i.country,v_i.city,v_i.building,v_i.room,v_i.street,v_nom);'
+   ||chr(10)||' IF jsonb_typeof(v_i.intervenants)=''array'' THEN'
+   ||chr(10)||'   SELECT coalesce(jsonb_agg(x),''[]''::jsonb) INTO v_agents FROM jsonb_array_elements(v_agents) x'
+   ||chr(10)||'   WHERE x->>''matricule'' IN (SELECT jsonb_array_elements_text(v_i.intervenants));'
+   ||chr(10)||' END IF;';
  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'fuite_effectifs_conflit'; END IF;
  EXECUTE replace(s,a,b);
 END $patch$;
@@ -144,7 +148,11 @@ BEGIN
     ||chr(10)||'   RETURN jsonb_build_object(''ok'',false,''raison'',''effectifs_invalides'');'
     ||chr(10)||' END IF;';
  b:='v_agents := CASE WHEN jsonb_typeof(v_police->''policiers'')=''array'' THEN v_police->''policiers'' ELSE ''[]''::jsonb END;'
-    ||chr(10)||' v_agents := v_agents || public.securite_agents_prives_presents_interne(v_pj.country,v_pj.current_city,p_batiment,p_piece,p_rue,v_nom);';
+    ||chr(10)||' v_agents := v_agents || public.securite_agents_prives_presents_interne(v_pj.country,v_pj.current_city,p_batiment,p_piece,p_rue,v_nom);'
+   ||chr(10)||' IF jsonb_typeof(v_interception.intervenants)=''array'' THEN'
+   ||chr(10)||'   SELECT coalesce(jsonb_agg(x),''[]''::jsonb) INTO v_agents FROM jsonb_array_elements(v_agents) x'
+   ||chr(10)||'   WHERE x->>''matricule'' IN (SELECT jsonb_array_elements_text(v_interception.intervenants));'
+   ||chr(10)||' END IF;';
  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'combat_effectifs_conflit'; END IF;
  s:=replace(s,a,b);
  -- Les PNJ privés combattent avec les mêmes PA, mais leur état reste dans pnj_membres.
