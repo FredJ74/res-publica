@@ -31,28 +31,21 @@ BEGIN
  EXECUTE replace(d,old,neu);
  END IF;
 
- -- Consommation et attribution de +PA/+moral liees au meme commit que le
- -- seul repos journalier autorise (France/Paris). Un refus ne mange rien.
- SELECT pg_get_functiondef('public.pa_repos_nocturne(text)'::regprocedure) INTO d;
- IF position('hotel_nuitee_consommation_interne' IN d)=0 THEN
- old:='  v_pa integer; v_qhs jsonb;';neu:='  v_pa integer; v_chambre jsonb; v_qhs jsonb;';
- IF strpos(d,old)=0 THEN RAISE EXCEPTION 'hotel_repos_variables_inconnues';END IF;
- d:=replace(d,old,neu);
- old:='  RETURN jsonb_build_object(''ok'', true, ''pa'', v_nouveau, ''bonus_consomme'', v_bonus,';
- neu:='  v_chambre:=public.hotel_nuitee_consommation_interne(p_acteur);'||chr(10)||
- '  IF coalesce((v_chambre->>''ok'')::boolean,false) THEN v_nouveau:=(v_chambre->>''pa'')::integer; END IF;'||chr(10)||
- '  RETURN jsonb_build_object(''ok'', true, ''pa'', v_nouveau, ''hotel'', v_chambre, ''bonus_consomme'', v_bonus,';
- IF strpos(d,old)=0 THEN RAISE EXCEPTION 'hotel_repos_retour_inconnu';END IF;
- EXECUTE replace(d,old,neu);
- END IF;
+ -- Le repos journalier reste le socle existant.
+ -- Le bonus est credite et la nuit consommee par une seule RPC apres retour positif du sommeil.
 END;$patch$;
 
--- Compatibilite: l'ancienne porte NE peut plus consommer une seconde nuit;
--- toute consommation passe dans la transaction du repos.
+-- Remplace la porte historique destructive par un credit atomique et rejouable.
+-- Une réponse perdue ne consomme jamais une seconde nuit le meme jour.
 CREATE OR REPLACE FUNCTION public.pa_bonus_chambre(p_acteur text,p_batiment text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $f$
+DECLARE p record;
 BEGIN
  PERFORM public.exiger_acteur(p_acteur);
- RETURN jsonb_build_object('ok',false,'raison','bonus_inclus_dans_repos');
+ SELECT current_building INTO p FROM public.personnages_donnees WHERE name=p_acteur FOR UPDATE;
+ IF NOT FOUND OR p.current_building IS DISTINCT FROM p_batiment THEN
+ RETURN jsonb_build_object('ok',false,'raison','pas_dans_hotel');
+ END IF;
+ RETURN public.hotel_nuitee_consommation_interne(p_acteur);
 END;$f$;
 COMMIT;
