@@ -324,4 +324,14 @@ tirés au hasard et les effets purement visuels sont exclus.
   après une torture au QHS sont posées par `qhs_pouvoir` (migration `20261027060000`). Reste
   dans le même registre : les rumeurs entre joueurs (causes `rumeur_pj`, `rumeur_gouvernement`,
   ampleur tirée par l'écran dans une fourchette) et `football_match`.
+- **27/10 (midi)** — §1.1, **faille majeure fermée** : `cycles_electoraux` était écrite par tout
+  joueur, y compris `eluId` / `elus`, que `poste_est_atteste` lit pour reconnaître un Président,
+  un maire, un chef syndical ou un député. Les trois écritures légitimes passent par le serveur :
+  engendrer un scrutin absent (`cycle_electoral_initialiser`, sans jamais écraser un scrutin
+  existant), relance des législatives à la dissolution (`assemblee_dissoudre`), contestation
+  (`election_contester`). La contestation ne pouvait rien révéler (elle cherchait les fraudes
+  dans le scrutin suivant, déjà rouvert) : la passe de nuit garde désormais une photographie du
+  scrutin proclamé (`dernierScrutin`), et le serveur y recompte. `fraude_electorale_sanctionner`
+  n'est plus appelable seule. Migrations `20261027070000` et `070100`. Reste :
+  `fraudes_electorales` encore écrite par l'écran (création des fraudes).
 
