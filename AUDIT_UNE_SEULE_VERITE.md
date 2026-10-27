@@ -439,4 +439,8 @@ tirés au hasard et les effets purement visuels sont exclus.
   (`objet_acheter`) déposent l'objet par le serveur. Reste (lots suivants) : récolte, tracts,
   objets trouvés, fret, employés, état civil, énigmes, missions de PNJ, effort de guerre,
   sels de l'Assemblée, puis le verrou final de `inventaire_sauver_revision`.
+  Lots 2 et 3 (`20261027180100`-`180300`) : récolte (`recolte_effectuer`, limite de 2 par date
+  de Paris tenue par le serveur), produits du marché non alimentaires (déposés par
+  `commerce_vendre_produit_interne`), tracts électoraux et calomnieux (`tracts_imprimer`,
+  détection des calomnieux par le serveur).
 
