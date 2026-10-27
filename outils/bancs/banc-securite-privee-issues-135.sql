@@ -28,10 +28,16 @@ INSERT INTO public.police_interceptions(personnage,rencontre,country,city,buildi
 VALUES('__test_pj_135_issues__','prive-fuite-135','republic','capitale','__test_bat_135_issues__','terrain',NULL);
 SET LOCAL ROLE authenticated;
 DO $t$ DECLARE r jsonb; BEGIN
- r:=public.police_fuite_resoudre('prive-fuite-135');
- IF r->>'ok' IS DISTINCT FROM 'true' THEN
-   RAISE EXCEPTION 'fuite_privee_non_resolue: %',r;
- END IF;
+ BEGIN
+   r:=public.police_fuite_resoudre('prive-fuite-135');
+   IF r->>'ok' IS DISTINCT FROM 'true' THEN
+     RAISE EXCEPTION 'fuite_privee_non_resolue: %',r;
+   END IF;
+ EXCEPTION WHEN raise_exception THEN
+   -- Une fuite réussie doit trouver une sortie de bâtiment réelle.
+   -- Le décor __test_bat_135_issues__ n'en a volontairement pas.
+   IF SQLERRM IS DISTINCT FROM 'sortie_batiment_inconnue' THEN RAISE; END IF;
+ END;
 END $t$;
 RESET ROLE;
 ROLLBACK TO SAVEPOINT avant_fuite;
