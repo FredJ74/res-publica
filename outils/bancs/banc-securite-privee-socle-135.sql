@@ -60,6 +60,12 @@ VALUES('__test_135_deploiement_a__','agent_securite','A',0),
 ('__test_135_deploiement_b__','agent_securite','B',0);
 SET LOCAL ROLE authenticated;
 DO $t$ DECLARE r jsonb; BEGIN
+ r:=public.pnj_deployer_unite(ARRAY['__test_135_private__'],true);
+ IF r->>'ok' IS DISTINCT FROM 'false' THEN RAISE EXCEPTION 'deployeur_pas_chef_autorise: %',r; END IF;
+END $t$;
+RESET ROLE;
+SET LOCAL ROLE authenticated;
+DO $t$ DECLARE r jsonb; BEGIN
  r:=public.pnj_deployer_unite(ARRAY['__test_135_deploiement_a__','__test_135_deploiement_b__'],true);
  IF r->>'ok' IS DISTINCT FROM 'true' OR (r->>'deployes')::integer<>2 OR r->>'groupe' IS NULL
  THEN RAISE EXCEPTION 'deploiement_collectif_refuse: %',r; END IF;
