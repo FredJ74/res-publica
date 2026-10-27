@@ -861,8 +861,7 @@ async function executerOrdreGenerique(fn, pa, cost, label, desc, successRate) {
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg, solde_national: v.solde_national });
   if (typeof v.hp === 'number') state.hp = v.hp;
   if (typeof v.moral === 'number') state.moral = v.moral;
-  if (typeof v.pop === 'number') state.pop = v.pop;
-  if (typeof v.inf === 'number') state.inf = v.inf;
+  if (typeof adopterJaugeServeur === 'function') { adopterJaugeServeur('pop', v.pop); adopterJaugeServeur('inf', v.inf); }
   if (typeof v.dis === 'number') state.dis = v.dis;
   const resultType = v.resultat;
   const roll = v.jet;

@@ -1721,29 +1721,8 @@ async function sbSaveIndicesVille(key, data) {
   return sbUpsert('indices_villes', { id: key, data, updated_at: new Date().toISOString() });
 }
 
-// =====================
-// LEDGER DES CONTRIBUTIONS PERSONNELLES DE PIETE (lot "carriere religieuse Republia", lot 2,
-// 26 aout 2026 -- table contributions_piete, migration executee manuellement). Jamais purge :
-// le total lifetime (grade) et le total actif 7 jours (score de carriere) sont tous deux
-// calcules cote client a partir des memes lignes brutes, jamais recalcules/reecrits ici.
-// =====================
-async function sbEnregistrerContributionPiete(pays, ville, auteur, quantite) {
-  return sbInsert('contributions_piete', { pays, ville, auteur, quantite, created_at: new Date().toISOString() });
-}
-
-// Toutes les contributions d'un auteur, tous villes confondues (necessaire pour le total
-// lifetime, qui n'est jamais scope a une seule ville).
-async function sbGetContributionsPieteAuteur(pays, auteur) {
-  const filtre = `pays=eq.${encodeURIComponent(pays)}&auteur=eq.${encodeURIComponent(auteur)}`;
-  return sbGet('contributions_piete', filtre) || [];
-}
-
-// Toutes les contributions actives (created_at >= depuisISO) d'une ville, tous auteurs confondus
-// -- necessaire pour recalculer la piete municipale glissante (§2 du lot 2).
-async function sbGetContributionsPieteVille(pays, ville, depuisISO) {
-  const filtre = `pays=eq.${encodeURIComponent(pays)}&ville=eq.${encodeURIComponent(ville)}&created_at=gte.${encodeURIComponent(depuisISO)}`;
-  return sbGet('contributions_piete', filtre) || [];
-}
+// LEDGER DES CONTRIBUTIONS DE PIETE : ecrit et lu par le serveur seul depuis le 27 octobre 2026
+// (religion_agir, piete_villes_actualiser). Les anciens acces directs sont supprimes.
 
 // =====================
 // INVESTIR / PLACEMENT (chantier "refonte des ordres" / Doctrine V2) — un seul actif a la
@@ -3404,22 +3383,14 @@ async function sbGetStatCHA(nom) {
   return rows?.[0]?.char?.stats?.CHA ?? 9;
 }
 
-async function sbSetTitulairePnj(country, posteId, city, nomPnj) {
-  const id = country + '_' + posteId + '_' + (city || 'national');
-  return sbUpsert('titulaires_pnj', { id, country, poste_id: posteId, city: city || null,
-                                      nom_pnj: nomPnj, updated_at: new Date().toISOString() });
-}
-
+// sbSetTitulairePnj et sbSupprimerTitulairePnj supprimees le 27 octobre 2026 : les joueurs
+// n'ecrivent plus titulaires_pnj (religion_agir, poste_nommer, poste_revoquer).
 async function sbGetTitulairePnj(country, posteId, city) {
   const id = country + '_' + posteId + '_' + (city || 'national');
   const rows = await sbGet('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`).catch(() => []);
   return rows?.[0]?.nom_pnj || null;
 }
 
-async function sbSupprimerTitulairePnj(country, posteId, city) {
-  const id = country + '_' + posteId + '_' + (city || 'national');
-  return sbDelete('titulaires_pnj', `id=eq.${encodeURIComponent(id)}`);
-}
 
 async function sbCreerDemandeMariage(demande) {
   return sbInsert('demandes_mariage', demande);
