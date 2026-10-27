@@ -42,7 +42,7 @@ BEGIN
  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'detecteur_identifiant_conflit'; END IF;
  s:=replace(s,a,b);
  a:='''rencontre'',v_id);'; b:='''rencontre'',v_id,''effectif'',v_count);';
- IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'detecteur_reponse_conflit'; END IF;
+ IF (length(s)-length(replace(s,a,'')))/length(a)<>2 THEN RAISE EXCEPTION 'detecteur_reponse_conflit'; END IF;
  s:=replace(s,a,b);
  EXECUTE s;
 END $patch$;
