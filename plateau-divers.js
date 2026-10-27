@@ -904,10 +904,10 @@ function getTotalInventaire() {
 const receptionsInventaireEnCours = new Set();
 async function executerReceptionInventaire(fn, parametres) {
   const origine = sbContexteInventaire();
-  const lieu = JSON.stringify([state.country, state.city, state.currentBuilding, state.currentRoom]);
+  const lieu = JSON.stringify([state.country, state.currentCity, state.currentBuilding, state.currentRoom]);
   const encoreValide = () => { const actuel = sbContexteInventaire(); return actuel.personnage === origine.personnage
     && actuel.uid === origine.uid && actuel.jeton === origine.jeton && actuel.generation === origine.generation
-    && JSON.stringify([state.country, state.city, state.currentBuilding, state.currentRoom]) === lieu; };
+    && JSON.stringify([state.country, state.currentCity, state.currentBuilding, state.currentRoom]) === lieu; };
   const cle = 'hg-inventaire:' + origine.uid + ':' + (origine.personnage?.name || '') + ':' + fn;
   if (receptionsInventaireEnCours.has(cle)) return null;
   receptionsInventaireEnCours.add(cle);

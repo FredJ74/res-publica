@@ -10081,7 +10081,7 @@ async function deposerDansCaisseFret(caisseId) {
   const index = state.inventory.indexOf(objet);
   if (index < 0) { showToast('Sélection périmée', 'Rouvrez la caisse.', false); return; }
   const v = await executerReceptionInventaire('fret_objet_agir', { p_caisse: caisseId, p_action: 'deposer',
-    p_index: index, p_quantite: Number(document.getElementById('fret-depot-qty')?.value || 1), p_revision: state._inventaireRevision });
+    p_index: index, p_quantite: Number(document.getElementById('fret-depot-qty')?.value || 1), p_revision: state._inventaireRevision ?? null });
   if (!v) return;
   updateUI(); showToast('Déposé', v.qte + ' unité(s) déposée(s).', true);
   await afficherGestionCaisseOuverteFret(caisseId);

@@ -470,3 +470,12 @@ tirés au hasard et les effets purement visuels sont exclus.
   `doImprimerLivre` correspond à un ordre retiré, `doImprimerClandestin` à un ordre remplacé,
   `doAcheterEntreprise` à un ancien handler non raccordé (l'ordre usine reste bientôt).
   Ces quatre producteurs morts sont retirés sans inventer de nouvelles actions serveur.
+
+- **27/10 — lot employés/groupe préparé NON appliqué** (`20261027215500`) :
+  extension de `pnj_objet_transferer`, réutilisation du lecteur et du dépôt commun. Sélection
+  versionnée côté PJ, identifiant stable côté PNJ, quantité partielle, protection des objets
+  de quête et des équipements miroirs, reçus et rollback. Les quatre boutons concernés ne
+  modifient plus les inventaires à l'écran. Banc SQL : 48 assertions, dont 29 communes.
+  **Dépendance ouverte** : rapprochement des charges historiques du profil avec les possessions
+  PNJ. Elles sont conservées, les transferts concernés refusés, jamais convertis silencieusement.
+  Le lot ne doit pas être activé avant ce rapprochement et la protection de ses anciennes écritures.

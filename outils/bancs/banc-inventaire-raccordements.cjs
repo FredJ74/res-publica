@@ -29,3 +29,16 @@ test('anciens producteurs inactifs supprimes, les ordres actifs restent raccorde
  const router=fs.readFileSync(path.join(root,'plateau-router.js'),'utf8');assert(router.includes('doRachatEntreprise()'));assert(router.includes('imprimer_tracts_calomnieux'));
  assert(fonction('plateau-effort-guerre.js','confirmerRetraitMilitaire').includes('sbMilitaireRetrait'));
 });
+test('employe donne la quantite choisie par le moteur commun, sans modifier sa charge locale',async()=>{
+ let demande;const emp={nom:'Porteur',pnjId:'pnj-fixture',charge:{}},objet={stackable:true,qty:4};const c=vm.createContext({state:{employes:[emp],inventory:[objet],_inventaireRevision:7},document:{getElementById:()=>({value:'2',classList:{remove(){}}})},
+ executerReceptionInventaire:async(fn,p)=>{demande={fn,p};return {ok:true,qte:2};},renderInventory(){},showToast(){}});
+ vm.runInContext(fonction('plateau-multijoueur.js','confirmerDonnerEmploye'),c);await c.confirmerDonnerEmploye('Porteur',0);assert.equal(demande.fn,'pnj_objet_transferer');assert.equal(demande.p.p_quantite,2);assert.equal(demande.p.p_revision,7);assert.equal(objet.qty,4);assert.deepEqual(emp.charge,{});
+});
+test('ancienne charge employe reste intacte, sans copie automatique de contenu',async()=>{
+ const emp={nom:'Porteur',pnjId:'pnj-fixture',charge:{bois:3}},c=vm.createContext({state:{employes:[emp]},showToast(){},ouvrirGroupePnjRetirer:()=>assert.fail('ancienne charge non reconciliee')});
+ vm.runInContext(fonction('plateau-multijoueur.js','ouvrirReprendreEmploye'),c);await c.ouvrirReprendreEmploye('Porteur');assert.equal(emp.charge.bois,3);
+});
+test('reprise de groupe adresse une possession stable, jamais un seul index perime',async()=>{
+ let demande;const c=vm.createContext({RP_GROUPE_COURANT:[{id:'pnj-fixture',nom:'Porteur'}],RP_GROUPE_POSSESSIONS:{'pnj-fixture':[{index:2,possession_id:91}]},executerReceptionInventaire:async(fn,p)=>{demande=p;return null;},showToast(){}});
+ vm.runInContext(fonction('plateau-multijoueur.js','confirmerGroupePnjRetirerObjet'),c);await c.confirmerGroupePnjRetirerObjet(0,2);assert.equal(demande.p_possession,91);demande=null;await c.confirmerGroupePnjRetirerObjet(0,0);assert.equal(demande,null);
+});

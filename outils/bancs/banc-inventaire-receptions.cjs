@@ -4,7 +4,7 @@ const root=require('node:path').resolve(__dirname,'../..');
 function extrait(file,start,end){const s=fs.readFileSync(root+'/'+file,'utf8'),a=s.indexOf(start),b=s.indexOf(end,a);assert(a>=0&&b>a);return s.slice(a,b);}
 function monde(rpc){
  const stockage=new Map(),appels=[];let nonce=0;
- const c=vm.createContext({state:{char:{name:'Fixture'},country:'republic',city:'capitale',currentBuilding:'mairie-capitale',currentRoom:'hall_mairie',inventory:[],_inventaireVersionne:true},
+ const c=vm.createContext({state:{char:{name:'Fixture'},country:'republic',currentCity:'capitale',currentBuilding:'mairie-capitale',currentRoom:'hall_mairie',inventory:[],_inventaireVersionne:true},
   rpAuthUid:()=> 'fixture-uid',rpAuthSessionIdentifiant:()=> 'fixture-session',
   sessionStorage:{getItem:k=>stockage.get(k),setItem:(k,v)=>stockage.set(k,v),removeItem:k=>stockage.delete(k)},crypto:{randomUUID:()=> 'nonce-'+(++nonce)},
   showToast:(...a)=>appels.push(['toast',...a]),signalerRefusCout:v=>appels.push(['refus',v]),updateUI:()=>appels.push(['ui']),appliquerPaiementServeur:v=>appels.push(['paie',v])});
@@ -21,10 +21,11 @@ test('double clic : une seule demande en cours',async()=>{let finir;const m=mond
 test('reponse perdue : nonce et parametres conserves pour le rejeu',async()=>{let k=0;const m=monde(async()=>++k===1?{ok:false,transport:{etat:'reseau'}}:succes());assert.equal(await m.c.executerReceptionInventaire('x',{n:2}),null);assert.equal(m.stockage.size,1);await m.c.executerReceptionInventaire('x',{n:2});const r=m.appels.filter(a=>a[0]==='rpc');assert.equal(r[0][2].p_requete,r[1][2].p_requete);});
 test('selection ou revision modifiee : termine seulement le rejeu de la demande precedente',async()=>{let k=0;const m=monde(async()=>++k===1?{ok:false,transport:{etat:'reseau'}}:succes());await m.c.executerReceptionInventaire('x',{n:2});assert.equal(await m.c.executerReceptionInventaire('x',{n:3}),null);const r=m.appels.filter(a=>a[0]==='rpc');assert.equal(r.length,2);assert.equal(r[1][2].n,2);assert.equal(r[0][2].p_requete,r[1][2].p_requete);assert.equal(m.stockage.size,0);});
 test('refus metier ne donne aucun objet ni paiement local',async()=>{const m=monde(async()=>({ok:false,raison:'fonds_insuffisants'}));assert.equal(await m.c.executerReceptionInventaire('x',{}),null);assert.equal(m.c.state.inventory.length,0);assert.equal(m.appels.filter(a=>a[0]==='paie').length,0);assert.equal(m.stockage.size,0);});
-for(const changement of ['personnage','lieu','generation','session']) test('reponse tardive ignoree apres changement de '+changement,async()=>{
+for(const changement of ['personnage','lieu','ville','generation','session']) test('reponse tardive ignoree apres changement de '+changement,async()=>{
  let finir;const m=monde(()=>new Promise(r=>finir=r));const p=m.c.executerReceptionInventaire('x',{});
  if(changement==='personnage')m.c.state.char={name:'Autre'};
  if(changement==='lieu')m.c.state.currentRoom='rue';
+ if(changement==='ville')m.c.state.currentCity='ville_a';
  if(changement==='generation')m.c.state._inventaireGeneration=2;
  if(changement==='session')m.c.rpAuthSessionIdentifiant=()=> 'autre';
  finir(succes());assert.equal(await p,null);assert.equal(m.c.state.inventory.length,0);assert.equal(m.stockage.size,1);assert.equal(m.appels.filter(a=>a[0]==='paie').length,0);
