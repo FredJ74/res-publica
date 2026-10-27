@@ -1,4 +1,5 @@
--- A APPLIQUER par Claude via MCP apply_migration, APRES 20261027120000 (dont l'en-tete explique le lot).
+-- APPLIQUEE le 27/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261027183230 (lot explique dans 20261027120000).
+-- Eprouvee au role authenticated : poison consomme, poison_start depose avec type et statistiques, second essai refuse.
 -- Empoisonner par le serveur : crime_empoisonner. Idempotente. Aucun acte de joueur.
 
 -- 2. Empoisonner.

@@ -1,4 +1,5 @@
--- A APPLIQUER par Claude via MCP apply_migration, APRES 20261027110100.
+-- APPLIQUEE le 27/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261027183208.
+-- Eprouvee au role authenticated : vols reussis (butin lu sur la victime), echecs sovietiques (-100 FR -10 POP), PNJ sans butin, insertion directe refusee.
 -- ============================================================================
 -- VOLER ET EMPOISONNER : PAR LE SERVEUR (27 octobre 2026)
 -- ============================================================================
