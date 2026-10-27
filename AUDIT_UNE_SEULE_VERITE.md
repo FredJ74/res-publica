@@ -382,4 +382,15 @@ tirés au hasard et les effets purement visuels sont exclus.
   Reste : vol, empoisonnement, corruption, falsification, contrebande, tracts, fausse rumeur
   (détection encore par l'écran) ; neutralisation d'un député (`assemblee_neutraliser_depute`,
   détection cliente) ; `checkScandale`, `checkEffacementCrimes`, `payerInformateurs`.
+- **27/10 (soir)** — famille « Crime », **second lot** (`20261027120000`/`120100`) :
+  - **vol** par `crime_voler` : jet, butin lu sur la fiche réelle de la victime, sanction d'échec
+    de l'empire, crédit du voleur, courrier selon le palier ; 2 PA enfin prélevés. **Faille
+    fermée** : `vols_en_attente` acceptait n'importe quel montant déclaré par le voleur (vider une
+    victime, ou s'offrir de l'argent par un montant négatif) ; la victime ne peut plus que marquer
+    « traité » ;
+  - **empoisonnement** par `crime_empoisonner` ; l'effet atteint enfin la victime (`poison_start`
+    avec `details`) et l'empoisonnement en cours est persisté (`poison_actif`) ;
+  - neutraliser et explosifs déposent de nouveau l'impact `hp_set` (hospitalisation de la victime).
+  Restent à l'écran : « Se cacher », la bénédiction, les suites chez la victime (sommeil, centre
+  anti-poison), et le retrait différé du butin chez la victime.
 

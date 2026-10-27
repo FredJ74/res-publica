@@ -1786,9 +1786,12 @@ async function recupererImpactsEnAttente() {
         else if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
       }
       if (imp.indice === 'poison_start') {
-        state.empoisonnement = { actif: true, palier: imp.palier, poisonType: imp.poisonType };
+        // Depose par crime_empoisonner (27/10/2026) : type de poison et statistiques touchees dans details.
+        const det = imp.details || {};
+        state.empoisonnement = { actif: true, palier: imp.palier, poisonType: det.poisonType || null };
         if (!state.statsAffaiblies) state.statsAffaiblies = {};
-        (imp.statsTouchees || []).forEach(s => { state.statsAffaiblies[s] = true; });
+        (det.statsTouchees || []).forEach(s => { state.statsAffaiblies[s] = true; });
+        if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
         resume.push('☠️ Empoisonnement en cours...');
       }
       if (typeof sbMarquerImpactTraite === 'function') await sbMarquerImpactTraite(imp.id).catch(() => {});

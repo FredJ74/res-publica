@@ -171,25 +171,22 @@ att('les deux genres sont proposes explicitement',
     illegal.indexOf('Voler de l\\\'argent</button>') >= 0 && illegal.indexOf('Voler un objet</button>') >= 0);
 att('le tirage 60/40 a disparu',
     codeIll.indexOf('Math.random() < 0.6') < 0);
-att('le genre annonce est celui qui est applique',
-    codeIll.indexOf("let butin = (genre === 'objet') ? 'objet' : 'argent';") >= 0);
-// LE POINT LE PLUS IMPORTANT : plus aucun repli croise, donc l issue ne renseigne plus sur ce
-// que la cible possede.
-att('aucun repli croise argent<->objet ne subsiste',
-    codeIll.indexOf("butin = 'argent';\n") < 0
-    && compte(codeIll, /butin = objetsEligibles\.length > 0/g) === 0);
-att("les deux genres indisponibles aboutissent a la MEME issue : rien",
-    compte(codeIll, /butin = 'rien';/g) === 2,
-    compte(codeIll, /butin = 'rien';/g) + ' issue(s) rien');
+// 27/10/2026 : le butin, le jet et les paliers sont tranches par le serveur (crime_voler). Le
+// genre annonce lui est transmis tel quel ; l ecran ne lit plus l inventaire de la cible.
+att('le genre annonce est celui qui est transmis au serveur',
+    codeIll.indexOf("p_genre: genre === 'objet' ? 'objet' : 'argent'") >= 0);
+att('le vol passe par le serveur',
+    codeIll.indexOf("sbRpc('crime_voler'") >= 0);
+att("l ecran ne lit plus la fiche de la victime pour choisir le butin",
+    codeIll.indexOf('objetsEligibles') < 0 && codeIll.indexOf('sbDeposerVol') < 0);
 att("l inventaire de la cible n est jamais affiche avant le vol",
     illegal.indexOf('Vous ne saurez ce qu\\\'elle porte qu\\\'en le prenant') >= 0);
 att('la tentative reste possible : le choix ne depend pas de ce que la cible possede',
     codeIll.indexOf('function ouvrirModalVolerChoix') >= 0
     && codeIll.slice(codeIll.indexOf('function ouvrirModalVolerChoix'),
                      codeIll.indexOf('function ouvrirModalVoler(')).indexOf('inventory') < 0);
-att('les quatre paliers de detection sont intacts',
-    codeIll.indexOf('const identifie = jetFinal < 50;') >= 0
-    && codeIll.indexOf('const detecteAnonyme = jetFinal >= 50 && jetFinal < 75;') >= 0);
+att("l issue « rien a voler » est annoncee",
+    codeIll.indexOf("v.issue === 'rien'") >= 0);
 att('le bonus de carriere au vol est intact',
     codeIll.indexOf('BONUS_CARRIERE_VOL[char?.career]') >= 0);
 
