@@ -408,4 +408,10 @@ tirés au hasard et les effets purement visuels sont exclus.
   d'un inventaire versionné refusait d'adopter le nouvel inventaire. Restent à l'écran :
   `checkEffacementCrimes` et `verifierDecouverteCrimesPasses` (traces d'achats d'armes et
   d'explosifs, corruption de permis, hooliganisme encore écrites par l'écran), `payerInformateurs`.
+- **27/10 (soir)** — **informateurs tenus par le serveur** (`20261027150000`/`150100`) : la liste
+  n'est plus écrite par l'écran (déclencheur), recrutement par `informateur_recruter`, salaires
+  prélevés chaque nuit par `minuit_informateurs` sur l'argent réel (et non plus sur le total
+  affiché, par le seul navigateur connecté). **Interroger coûte 1 PA (décision de Fred)** : c'était
+  une source d'influence illimitée. « Consulter la Taupe N4 » recrutait par erreur ; c'est désormais
+  l'interrogation. Les informations données restent des textes d'ambiance tirés par l'écran.
 

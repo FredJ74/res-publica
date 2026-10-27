@@ -2261,7 +2261,7 @@ function getInfomateurInfo(niveau) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
-function ouvrirRecruterInformateur(niveau, pa) {
+function ouvrirRecruterInformateur(niveau, pa, cost) {
   const cfg = INFORMATEUR_NIVEAUX[niveau];
   if (!cfg) return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -2282,89 +2282,60 @@ function ouvrirRecruterInformateur(niveau, pa) {
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1.2rem">' +
     '<div style="font-size:.85rem;color:#c0b090;line-height:1.7;font-family:Crimson Pro,serif;margin-bottom:.8rem">' + cfg.desc + '</div>' +
-    '<div style="font-size:.75rem;color:#8a6a20;margin-bottom:1rem">Coût : <strong>' + cfg.cout + ' ' + cur + '/jour</strong> · Prélevé à chaque Dormir · Max 2 informateurs simultanés</div>' +
-    '<button onclick="confirmerRecrutementInformateur(' + niveau + ',' + pa + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
+    '<div style="font-size:.75rem;color:#8a6a20;margin-bottom:1rem">Coût : <strong>' + cfg.cout + ' ' + cur + '/jour</strong> · Prélevé chaque nuit · Max 2 informateurs simultanés</div>' +
+    '<button onclick="confirmerRecrutementInformateur(' + niveau + ',' + (pa || 0) + ',' + (cost || 0) + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.4rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Recruter</button>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
 }
 
-async function confirmerRecrutementInformateur(niveau, pa) {
+const RAISONS_INFORMATEUR = {
+  maximum_atteint: 'Vous ne pouvez avoir que 2 informateurs simultanément.',
+  deja_actif: 'Vous avez déjà un informateur de ce niveau.',
+  fonds_insuffisants: 'Fonds insuffisants pour le premier jour de salaire.',
+  niveau_indisponible: 'Ce niveau d\'informateur ne se recrute pas ici.',
+  pas_d_informateur: 'Vous n\'avez pas d\'informateur de ce niveau.'
+};
+
+// INFORMATEURS TENUS PAR LE SERVEUR (27 octobre 2026) : la liste n'est plus ecrite par l'ecran.
+// informateur_recruter preleve les PA, le prix de l'ordre et le premier jour de salaire, ajoute
+// l'informateur et l'influence ; la passe de nuit preleve ensuite chaque salaire (minuit_informateurs).
+async function recruterInformateurServeur(niveau, pa, cost) {
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('informateur_recruter', { p_niveau: niveau, p_pa: pa || 0, p_cost: cost || 0 }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v && RAISONS_INFORMATEUR[v.raison]) showToast('Recrutement impossible', RAISONS_INFORMATEUR[v.raison], false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+    return null;
+  }
+  if (Array.isArray(v.informateurs)) state.informateurs = v.informateurs;
+  appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
+  if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', v.inf);
+  updateUI();
+  return v;
+}
+
+async function confirmerRecrutementInformateur(niveau, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const cfg = INFORMATEUR_NIVEAUX[niveau];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-  if (state.arg < cfg.cout) {
-    showToast('Fonds insuffisants', cfg.cout + ' ' + cur + ' requis.', false);
-    return;
-  }
-  // Deduction PA+cout centralisee (Lot 2C) -- pa vient du dispatch (2 pour recruter_info_3,
-  // 3 pour recruter_info_4, exactement les valeurs declarees dans data.js), debite une seule
-  // fois. cout = le premier jour du salaire recurrent (deja preleve immediatement avant ce lot,
-  // logique financiere inchangee).
-  const r = await deduireCoutOrdre({ pa, cost: cfg.cout });
-  if (!r.ok) { showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', r.raison === 'pa_insuffisants' ? pa + ' PA requis.' : cfg.cout + ' ' + cur + ' requis.', false); return; }
-  if (!state.informateurs) state.informateurs = [];
-  state.informateurs.push({ niveau, label: cfg.label, cout: cfg.cout, actif: true, joursActif: 0 });
-  updateUI();
-  showToast('Informateur recruté !', cfg.label + ' est maintenant actif. -' + cfg.cout + ' ' + cur + '/jour via Dormir.', true);
+  const v = await recruterInformateurServeur(niveau, pa, cost || 0);
+  if (!v) return;
+  showToast('Informateur recruté !', cfg.label + ' est maintenant actif. -' + v.cout + ' ' + cur + '/jour, prélevés chaque nuit.', true);
   addJournalEntry('Informateur niveau ' + niveau + ' recruté : ' + cfg.label, 'event-info');
 }
 
-function payerInformateurs() {
-  if (!state.informateurs?.length) return;
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  let total = 0;
-  state.informateurs = state.informateurs.filter(inf => {
-    if (state.arg >= inf.cout) {
-      state.arg -= inf.cout;
-      total += inf.cout;
-      inf.joursActif++;
-      return true;
-    } else {
-      addJournalEntry('Votre informateur niveau ' + inf.niveau + ' (' + inf.label + ') a quitté faute de paiement.', 'event-bad');
-      showToast('Informateur parti', inf.label + ' est parti — fonds insuffisants.', false);
-      return false;
-    }
-  });
-  if (total > 0) addJournalEntry('Salaires informateurs : -' + total + ' ' + cur, 'event-info');
-}
+// payerInformateurs SUPPRIMEE (27/10/2026) : salaires preleves par la passe de nuit du serveur
+// (minuit_informateurs), sur l'argent reel et non plus sur le total affiche.
 
-async function consulterInformateur(niveau, pa) {
-  if (!state.informateurs) state.informateurs = [];
-
-  // Max 2 informateurs simultanés
-  if (state.informateurs.length >= 2) {
-    showToast('Limite atteinte', 'Vous avez deja 2 informateurs actifs. Licenciez-en un avant d\'en recruter un autre.', false);
-    return;
-  }
-
-  // Vérifier si niveau déjà actif
-  if (state.informateurs.find(i => i.niveau === niveau)) {
-    showToast('Déjà actif', `Vous avez déjà un informateur de niveau ${niveau}.`, false);
-    return;
-  }
-
+async function consulterInformateur(niveau, pa, cost) {
   const config = INFORMATEUR_NIVEAUX[niveau];
   if (!config) return;
   const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  // Vérifier les fonds pour le premier paiement
-  if (state.arg < config.cout) {
-    showToast('Fonds insuffisants', `${config.cout} ${cur} requis pour recruter cet informateur.`, false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // Premier paiement immédiat
-  state.arg -= config.cout;
-  state.informateurs.push({ niveau, jourRecrutement: state.day || 1 });
-
-  // Obtenir une info immédiatement
+  const v = await recruterInformateurServeur(niveau, pa, cost || 0);
+  if (!v) return;
   const info = getInfomateurInfo(niveau);
-  state.inf = Math.min(100, (state.inf || 0) + niveau);
-  updateUI();
-
-  addJournalEntry(`Informateur niveau ${niveau} recruté. -${config.cout} ${cur}.`, 'event-info');
+  addJournalEntry(`Informateur niveau ${niveau} recruté. -${v.cout} ${cur}.`, 'event-info');
 
   document.getElementById('postes-modal-title').textContent = `Informateur Niveau ${niveau} — ${config.label}`;
   document.getElementById('postes-body').innerHTML =
@@ -2372,7 +2343,7 @@ async function consulterInformateur(niveau, pa) {
     '<div style="font-size:.75rem;color:#6a5a30;font-family:Bebas Neue,sans-serif;letter-spacing:.1em;margin-bottom:.6rem">INFORMATION REÇUE</div>' +
     '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">"' + info + '"</div>' +
     '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem;border-top:1px solid #2a2010;padding-top:.6rem">' +
-    'Source : ' + config.label + ' · +' + niveau + ' INF · Coût : ' + config.cout + ' ' + cur + '/jour · Paye lors de l\'ordre Dormir</div>' +
+    'Source : ' + config.label + ' · +' + niveau + ' INF · Coût : ' + v.cout + ' ' + cur + '/jour · Prélevé chaque nuit</div>' +
     '<div style="margin-top:.8rem;display:flex;gap:.5rem">' +
     '<button onclick="licencierInformateur(' + niveau + ')" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #8a3a2a;background:transparent;color:#8a3a2a;cursor:pointer">Licencier</button>' +
     '<button onclick="document.getElementById(&quot;modal-postes&quot;).classList.remove(&quot;open&quot;)" style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.08em;padding:.4rem .8rem;border:1px solid #4a4030;background:transparent;color:#8a8060;cursor:pointer">Fermer</button>' +
@@ -2380,29 +2351,37 @@ async function consulterInformateur(niveau, pa) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function licencierInformateur(niveau) {
-  if (!state.informateurs) return;
-  state.informateurs = state.informateurs.filter(i => i.niveau !== niveau);
+async function licencierInformateur(niveau) {
   document.getElementById('modal-postes').classList.remove('open');
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('informateur_congedier', { p_niveau: niveau }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) { showToast('Impossible', 'Le congé n\'a pas pu être enregistré.', false); return; }
+  if (Array.isArray(v.informateurs)) state.informateurs = v.informateurs;
+  updateUI();
   showToast('Informateur licencié', `Votre informateur niveau ${niveau} est congédié.`, true);
   addJournalEntry(`Informateur niveau ${niveau} licencié.`, 'event-info');
 }
 
-function interrogerInformateur(niveau) {
-  // Obtenir une nouvelle info d'un informateur déjà recruté
-  if (!state.informateurs?.find(i => i.niveau === niveau)) {
-    showToast('Pas d\'informateur', `Vous n'vez pas d'nformateur de niveau ${niveau} actif.`, false);
+// Interroger coute 1 PA (decision de Fred, 27/10/2026) : c'etait une source d'influence illimitee.
+async function interrogerInformateur(niveau, pa) {
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('informateur_interroger', { p_niveau: niveau, p_pa: (typeof pa === 'number') ? pa : 1 }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    if (v && RAISONS_INFORMATEUR[v.raison]) showToast('Pas d\'informateur', RAISONS_INFORMATEUR[v.raison], false);
+    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
     return;
   }
+  if (typeof v.pa === 'number') state.pa = v.pa;
+  if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', v.inf);
   const info = getInfomateurInfo(niveau);
-  state.inf = Math.min(100, (state.inf || 0) + Math.ceil(niveau / 2));
   updateUI();
 
   document.getElementById('postes-modal-title').textContent = `Rapport — Informateur Niveau ${niveau}`;
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1.2rem">' +
     '<div style="font-size:.88rem;color:#c0b090;font-style:italic;line-height:1.8;font-family:Crimson Pro,serif">"' + info + '"</div>' +
-    '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">+' + Math.ceil(niveau/2) + ' INF · ' + INFORMATEUR_NIVEAUX[niveau]?.label + '</div>' +
+    '<div style="font-size:.68rem;color:#9a8a68;margin-top:.8rem">+' + v.gain + ' INF · -1 PA · ' + INFORMATEUR_NIVEAUX[niveau]?.label + '</div>' +
     '</div>';
   document.getElementById('modal-postes').classList.add('open');
   addJournalEntry(`Rapport reçu de votre informateur niveau ${niveau}.`, 'event-info');
@@ -2430,13 +2409,8 @@ function ouvrirGestionInformateurs() {
 }
 
 function congediерInformateur(idx) {
-  if (!state.informateurs) return;
-  const inf = state.informateurs[idx];
-  if (!inf) return;
-  state.informateurs.splice(idx, 1);
-  document.getElementById('modal-postes').classList.remove('open');
-  showToast('Informateur congédié', inf.label + ' ne travaille plus pour vous.', true);
-  addJournalEntry('Informateur niveau ' + inf.niveau + ' congédié.', 'event-info');
+  const inf = (state.informateurs || [])[idx];
+  if (inf) licencierInformateur(inf.niveau);
 }
 
 

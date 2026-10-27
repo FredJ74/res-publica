@@ -2613,7 +2613,7 @@ async function runMidnightUpdate() {
   // checkScandale() retiree le 27/10/2026 : le scandale de la nuit est tire une fois par pays par
   // le serveur (minuit_scandale), non plus par chaque navigateur connecte.
   checkEffacementCrimes();
-  payerInformateurs();
+  // payerInformateurs() retiree le 27/10/2026 : salaires preleves par minuit_informateurs (cron).
   // Revenus fiscaux
   const pop = CITY_POPULATION[state.country]?.[state.currentCity];
   if (pop) {
