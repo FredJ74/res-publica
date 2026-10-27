@@ -4529,44 +4529,10 @@ async function commanderProduitCommerce(commerceType, pays, ville, buildingId, r
   // charge 1 naturelle, aucune extension du systeme d'inventaire.
   const effets = recette.familleProduitMarche ? {} : (recette.effets || {});
   if (recette.familleProduitMarche) {
-    if (typeof addToInventory === 'function') {
-      const objet = {
-        id: recetteId + '_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-        type: recetteId,
-        name: recette.label,
-        icon: recette.icon || 'ti-package',
-        // imageUrl (Lot 5B, 24 aout 2026, raccordement des visuels) : deja lu generiquement par
-        // ouvrirDetailObjetInventaire/ouvrirEcrireCartePostale (plateau-personnage.js), jamais
-        // pose auparavant sur ces objets individualises -- recette.image restait donc toujours
-        // ignore, meme une fois renseigne dans PRODUITS_MARCHE. Simple recopie, jamais de mecanique
-        // ajoutee.
-        imageUrl: recette.image || null,
-        // desc (chantier souvenirs Luthecia, 4 septembre 2026) : recopiee telle quelle si la
-        // recette en fournit une (aucune n'en avait besoin jusqu'ici) -- deja lue generiquement
-        // par ouvrirDetailObjetInventaire ('(item.desc || '')'), jamais affichee auparavant faute
-        // d'etre posee ici. Reste 'null' pour toute recette sans description (T-shirt/Casquette/
-        // Echarpe existantes inchangees, comportement identique a avant : chaine vide affichee).
-        desc: recette.desc || null,
-        villeOrigine: ville,
-        familleProduitMarche: recette.familleProduitMarche,
-        bonusIntegrationVille: recette.bonusIntegrationVille || null
-      };
-      // Aliment a emporter (Lot 3, 23 aout 2026) : horodatage REEL (Date.now(), jamais l'horloge
-      // PA/le jour du jeu) pose ICI, au tout premier instant ou l'exemplaire entre dans un
-      // inventaire -- audit dedie : aucune autre notion de "date de fabrication" n'est
-      // techniquement disponible (data.stockProduits n'est qu'un compteur agrege, sans identite
-      // par unite), dateAchat est donc a la fois la seule donnee reellement exacte ET celle
-      // demandee par la regle de design. Jamais reinitialise ensuite (depot/ramassage/don ne
-      // touchent jamais ce champ, simple metadonnee JSON transportee telle quelle).
-      if (recette.familleProduitMarche === 'aliment') objet.dateAchat = Date.now();
-      // Carte postale (Lot 4, 23 aout 2026) : etatCarte est la SEULE metadonnee qui distingue une
-      // carte vierge d'une carte ecrite -- familleProduitMarche seul ne suffit pas (partage par
-      // les 9 modeles). Aucune autre donnee posee ici : auteur/destinataire/message/dateEnvoi
-      // n'existent qu'a partir de l'envoi (envoyerCartePostale, plateau-personnage.js), jamais
-      // avant. bonusDeclenche n'est ajoute qu'a l'envoi egalement (inutile sur une carte vierge).
-      if (recette.familleProduitMarche === 'carte_postale') objet.etatCarte = 'vierge';
-      addToInventory(objet);
-    }
+    // L'OBJET EST DEPOSE PAR LA VENTE ELLE-MEME (27 octobre 2026, chantier inventaire) :
+    // commerce_vendre_produit_interne pose l'exemplaire (id unique, ville d'origine, dateAchat
+    // d'un aliment, carte postale vierge) et rend l'inventaire, que l'ecran adopte.
+    if (Array.isArray(vente.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(vente);
   } else {
     if (effets.hp) state.hp = Math.min(100, Math.max(0, (state.hp || 0) + effets.hp));
     if (effets.moral) state.moral = Math.min(100, Math.max(0, (state.moral || 0) + effets.moral));
@@ -6501,28 +6467,23 @@ async function confirmerRecolte(matiere, pa, cost) {
   if (cleRecolte && typeof assembleeControlerVenteLegale === 'function'
       && !(await assembleeControlerVenteLegale([{ stackKey: cleRecolte }]))) return;
 
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  state.char.recoltesJour.nb = (state.char.recoltesJour.nb || 0) + 1;
-
-  const quantite = 1 + Math.floor(Math.random() * 2); // 1 a 2 unites
-  if (!state.inventory) state.inventory = [];
-
-  // Format empilable (stackable/stackKey), identique aux matieres achetees a l'entrepot (A3,
-  // chantier commerces alimentaires, 17 aout 2026) -- corrige la coupure auditee : la recolte
-  // produisait auparavant un objet non empilable par unite, invendable a l'armurerie/aux
-  // commerces qui lisent stackKey. Repli sur l'ancien format legacy pour toute matiere sans
-  // equivalent RESSOURCES_ECONOMIE (aucune casse des objets deja en inventaire -- coexistence
-  // pure, aucune migration).
-  const cle = MATIERE_RECOLTE_VERS_CLE[matiere];
-  const res = cle && typeof RESSOURCES_ECONOMIE !== 'undefined' ? RESSOURCES_ECONOMIE[cle] : null;
-  if (res && typeof addToInventory === 'function') {
-    addToInventory({ name: res.label, icon: res.icon, stackable: true, stackKey: cle, qty: quantite, desc: 'Récolté localement.' });
-  } else {
-    for (let i = 0; i < quantite; i++) {
-      state.inventory.push({ type: 'matiere_premiere', matiere, name: matiere, icon: 'ti-package' });
-    }
+  // PAR LE SERVEUR (27 octobre 2026, chantier inventaire) : recolte_effectuer verifie la matiere
+  // de la ville, tient la limite de 2 par jour (date de Paris), preleve l'ordre, tire 1 ou 2 unites
+  // et les depose. L'ecran ne fait plus qu'adopter l'inventaire rendu.
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('recolte_effectuer', { p_matiere: matiere, p_pa: pa || 0, p_cost: cost || 0 }).catch(() => null) : null;
+  const r = Array.isArray(brut) ? brut[0] : brut;
+  if (!r || r.ok !== true) {
+    if (r?.raison === 'limite_atteinte') showToast('Limite atteinte', 'Maximum 2 récoltes par jour.', false);
+    else if (r?.raison === 'rien_a_recolter_ici') showToast('Indisponible', 'Cette ressource ne se récolte pas ici.', false);
+    else if (r?.raison === 'inventaire_plein') showToast('Inventaire plein', 'Libérez de la place avant de récolter.', false);
+    else signalerRefusCout(r || { raison: 'paiement_indisponible' });
+    return;
   }
+  const quantite = r.quantite;
+  if (typeof r.pa === 'number') state.pa = r.pa;
+  state.char.recoltesJour = { jour: state.day || 1, nb: r.recoltes_jour };
+  if (Array.isArray(r.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r);
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
