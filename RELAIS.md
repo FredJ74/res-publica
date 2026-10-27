@@ -7,6 +7,9 @@ Règles : voir `AGENTS.md`.
 
 ### Sécurité privée #135 — arbitrages du 27/10 (ChatGPT)
 
+- **28/10, raccordement au socle militaire confirmé** : `militaire_bataille_groupes_constituer(bigint)` utilise déjà `batailles_engagements.groupe_id` pour regrouper compagnie, section et chef. Dans la migration #135, le détecteur accepte désormais le même `groupe_id` explicite pour les policiers (avec alias historique `groupeId`) ; les privés restent attachés au `leader_pnj_id` du socle PNJ. Le banc de priorités utilisant `groupe_id` passe dans `BEGIN/ROLLBACK` sur Supabase. Attention : `batailles_groupes` est limité aux batailles, donc la preuve de constitution et de circulation de groupes policiers hors bataille reste à établir avant clôture. Codex non touché.
+
+
 - **Validation du groupement PNJ (27/10)** : nouveau test de deux agents privés réellement liés par `leader_pnj_id`, sélectionnés comme un groupe de 2 avec PER moyen +1 ; test transactionnel Supabase réussi. La présence commune sans lien ne suffit pas à grouper les unités. Branche `chatgpt/securite-privee-20261027` / PR #212 toujours en brouillon, sans migration appliquée durablement.
 
 
