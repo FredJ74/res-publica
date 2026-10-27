@@ -44,7 +44,8 @@ DO $t$ DECLARE r jsonb; BEGIN
  r:=public.securite_agents_prives_presents_interne('republic','capitale','__test_bat_135__','terrain',NULL,'__test_employeur_135__');
  IF jsonb_array_length(r)<>0 THEN RAISE EXCEPTION 'escorte_hostile_employeur'; END IF;
 END $t$;
-DELETE FROM public.pnj_membres WHERE id='__test_135_suiveur__';
+-- Un PNJ vivant ne se supprime jamais : le neutraliser dans la transaction de test.
+UPDATE public.pnj_membres SET statut='detenu' WHERE id='__test_135_suiveur__';
 UPDATE public.pnj_membres SET statut='actif' WHERE id='__test_135_private__';
 INSERT INTO public.jugements(id,country,city,accuse,motif,executee,data)
 VALUES ('__test_jugement_135__','republic','capitale','__test_pj_135__','test',false,'{"motifs":[{"jours":1}]}'::jsonb);
