@@ -35,7 +35,7 @@ ambassades ni au Bureau de l'Emploi.**
   `cycle.dernierScrutin` à chaque proclamation (ne pas le retirer : la contestation en dépend). Fraudes électorales par le serveur (`fraude_electorale_tenter`, `20261027080000`). Vote de confiance par le serveur (`20261027090000`). **Justice** (`20261027100000`-`100200`) : `recherche_retirer` refuse le retrait libre (seulement
   juste après un écrou, ou désertion éteinte) — **Codex : tout nouveau retrait de motif passe par
   une fonction serveur qui sait pourquoi** ; `enquete_garde_a_vue` n'est plus appelable ;
-  convocations tenues par le serveur (`convocation_se_justifier`, `minuit_convocations`).
+  convocations tenues par le serveur (`convocation_se_justifier`, `minuit_convocations`). **Crime** (`20261027110000`/`110100`) : socle pénal serveur (détection, trace, découverte de nuit) ; neutraliser, incendier, explosifs par le serveur ; `impact_deposer('hp_set')` refusé et `batiments_fermes` fermée aux joueurs — **Codex : un dégât ou une fermeture se pose dans la fonction serveur de l'acte**.
 - **Corrections « une seule vérité » (Fred, 26/10 : « fais dans l'ordre que tu veux »)** — Claude.
   Fait : caisses adossées (`fonds_en_transit`, `batiment_caisse_client_crediter`, primitives de
   caisse retirées au navigateur, `usine_virer_vers_ministere`, `ministere_virer_vers_usine`,
