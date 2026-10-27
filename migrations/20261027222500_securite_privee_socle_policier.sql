@@ -6,6 +6,7 @@ CREATE OR REPLACE FUNCTION public.securite_agents_prives_presents_interne(
 SET search_path TO 'public','pg_temp' AS $hg$
  SELECT coalesce(jsonb_agg(jsonb_build_object(
    'pnj_prive_id',m.id, 'matricule','prive:'||m.id,
+   'groupeCle',coalesce(m.leader_pnj_id,m.id),
    'pa',m.pa, 'stats',jsonb_build_object('PER',m.car_per,'VOL',m.car_vol),
    'buildingId',p.building_id,'roomId',p.room_id,'rueNoeudId',coalesce(leader.current_street,p.rue_noeud_id)
  ) ORDER BY m.id),'[]'::jsonb)
@@ -23,6 +24,49 @@ SET search_path TO 'public','pg_temp' AS $hg$
 $hg$;
 REVOKE ALL ON FUNCTION public.securite_agents_prives_presents_interne(text,text,text,text,text,text)
  FROM PUBLIC,anon,authenticated,service_role;
+
+-- #135 : les groupes constitués et les patrouilles isolées sont différents.
+-- Les policiers du catalogue actuel n'ont pas de chef de groupe : chaque matricule
+-- constitue donc une unité isolée, sauf si un regroupement explicite est déjà indiqué.
+-- Les PNJ privés réutilisent leader_pnj_id (socle de déplacement/embauche).
+CREATE OR REPLACE FUNCTION public.securite_ordre_detection_interne(
+ p_agents jsonb,p_batiment text,p_piece text,p_rue text
+) RETURNS jsonb LANGUAGE sql VOLATILE SECURITY DEFINER
+SET search_path TO 'public','pg_temp' AS $hg$
+ WITH presents AS (
+  SELECT x AS agent,
+    CASE WHEN x ? 'pnj_prive_id' THEN 1 ELSE 0 END AS categorie,
+    CASE WHEN x ? 'pnj_prive_id'
+      THEN 'prive:'||coalesce(x->>'groupeCle',x->>'pnj_prive_id')
+      ELSE 'police:'||coalesce(nullif(x->>'groupeId',''),x->>'matricule')
+    END AS groupe
+  FROM jsonb_array_elements(coalesce(p_agents,'[]'::jsonb)) AS x
+  WHERE coalesce((x->>'pa')::integer,12)>0
+    AND ((p_rue IS NOT NULL AND x->>'rueNoeudId'=p_rue)
+      OR (p_rue IS NULL AND x->>'buildingId'=p_batiment AND x->>'roomId'=p_piece))
+ ), groupes AS (
+  SELECT categorie,groupe,count(*)::integer AS effectif,
+    avg(coalesce((agent->'stats'->>'PER')::numeric,12))+(count(*)-1)
+      -CASE WHEN p_rue IS NOT NULL THEN 2 ELSE 0 END AS perception,
+    jsonb_agg(agent->>'matricule') AS matricules
+  FROM presents GROUP BY categorie,groupe
+ ), ordonnes AS (
+  SELECT *,random() AS tirage FROM groupes
+ )
+ SELECT coalesce(jsonb_agg(jsonb_build_object(
+   'categorie',categorie,'groupe',groupe,'effectif',effectif,
+   'perception',perception,'matricules',matricules
+ ) ORDER BY categorie,effectif DESC,tirage),'[]'::jsonb)
+ FROM ordonnes;
+$hg$;
+REVOKE ALL ON FUNCTION public.securite_ordre_detection_interne(jsonb,text,text,text)
+ FROM PUBLIC,anon,authenticated,service_role;
+
+-- L'identité des seuls intervenants retenus est jointe à la rencontre policière
+-- existante : ni registre d'affectation ni nouveau moteur d'arrestation.
+ALTER TABLE public.police_interceptions
+ ADD COLUMN IF NOT EXISTS intervenants jsonb;
+
 -- La RPC police_detection_verifier demeure seule responsable du jet et du registre.
 DO $patch$
 DECLARE s text; a text; b text; old text;
