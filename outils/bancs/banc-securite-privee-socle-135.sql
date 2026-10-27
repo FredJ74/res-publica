@@ -103,6 +103,8 @@ BEGIN
  END LOOP;
  IF NOT trouve THEN RAISE EXCEPTION 'groupe_police_jamais_prioritaire_sur_60_tirages'; END IF;
 END $t$;
+-- Retour au décor sans policiers pour les anciens tests de combat privé.
+DELETE FROM public.batiments_etat WHERE id='__test_commissariat_135__';
 INSERT INTO public.police_interceptions(personnage,rencontre,country,city,building,room,street)
 VALUES ('__test_pj_135__','prive-test-135','republic','capitale','__test_bat_135__','terrain',NULL);
 SET LOCAL ROLE authenticated;
