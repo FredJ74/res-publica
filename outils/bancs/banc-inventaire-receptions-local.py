@@ -88,6 +88,12 @@ def main(extra=None):
   for fn in ['inventaire_deposer_interne(text,jsonb,boolean)','inventaire_action_rejouer_interne(text,uuid,text,jsonb)']:
    check(not own("SELECT has_function_privilege('authenticated',%s,'EXECUTE')",(fn,)),'primitive interne inaccessible : '+fn)
   check(not own("SELECT has_table_privilege('authenticated','inventaire_actions_recus','INSERT')"),'registre non forgeable depuis navigateur')
+  # Un depot automatique ne doit jamais effacer un ancien inventaire de format inconnu.
+  own("CREATE FUNCTION fixture_depot_objet(p_q numeric) RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $$ SELECT public.inventaire_deposer_interne('Fixture',jsonb_build_object('name','Fixture','stackable',true,'stackKey','fixture','qty',p_q),true) $$")
+  before=snapshot();check(call('fixture_depot_objet',[1.5]).get('raison')=='quantite_invalide' and snapshot()==before,'depot commun refuse la fraction sans arrondi')
+  own("UPDATE personnages_donnees SET inventory='{\"ancien\":\"a examiner\"}' WHERE name='Fixture'");before=snapshot()
+  check(call('fixture_depot_objet',[1]).get('raison')=='inventaire_format_a_examiner' and snapshot()==before,'depot automatique ne remplace pas un inventaire historique illisible')
+  own("UPDATE personnages_donnees SET inventory='[]' WHERE name='Fixture'")
   if extra:extra(q,own,call,check,uid,snapshot,Json)
   c.rollback();q.execute("SELECT to_regclass('public.inventaire_actions_recus')");check(q.fetchone()[0] is None,'transaction de banc entierement annulee')
   print(json.dumps({'assertions':n,'production':False,'role_appels':'authenticated','schema_et_jwt':'fixtures','rollback':True}))

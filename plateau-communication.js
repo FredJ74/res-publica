@@ -741,84 +741,21 @@ function donnerTracts(pjName) {
 //   3. en cas d'echec, restitution exacte et nouvelle sauvegarde : jamais de perte.
 // Toutes les donnees du lot voyagent telles quelles (type, cible, POUR/CONTRE, legal...).
 async function confirmerDonTracts(tractIdx, pjName) {
-  const tracts = lotsTractsDonnables();
-  const tract = tracts[tractIdx];
-  if (!tract) return;
-  const quantite = parseInt(document.getElementById('don-tract-' + tractIdx)?.value || '1');
-  if (!(quantite >= 1 && quantite <= tract.quantite)) {
-    showToast('Quantite invalide', 'Entre 1 et ' + tract.quantite, false);
-    return;
-  }
-  document.getElementById('modal-postes').classList.remove('open');
-
-  // PJ simules : comportement inchange (inventaire local de la simulation).
-  const pjSim = state.pjSimules?.find(p => p.name === pjName);
-  if (pjSim) {
-    tract.quantite -= quantite;
-    if (tract.quantite <= 0) state.inventory.splice(state.inventory.indexOf(tract), 1);
-    if (!pjSim.inventory) pjSim.inventory = [];
-    const existing = pjSim.inventory.find(i => i.type === tract.type && i.cible === tract.cible && i.tractType === tract.tractType);
-    if (existing) { existing.quantite += quantite; }
-    else { pjSim.inventory.push({...tract, quantite}); }
-    updateUI();
-    showToast('Tracts donnes', quantite + ' tracts remis a ' + pjName + '.', true);
-    addJournalEntry('Don de ' + quantite + ' tracts a ' + pjName, 'event-info');
-    return;
-  }
-
-  if (typeof sbTractsDonnerJoueur !== 'function' || typeof sbSavePersonnage !== 'function' || !state.char?.name) {
-    showToast('Don impossible', 'Le transfert ne peut pas être effectué pour le moment.', false);
-    return;
-  }
-  const objet = { ...tract, quantite };
-  const requete = 'don-tracts-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-  const restituer = async () => {
-    if (state.inventory.indexOf(tract) < 0) state.inventory.push(tract);
-    tract.quantite += quantite;
-    await sbSavePersonnage(state).catch(() => null);
-    updateUI();
-  };
-
-  // 1. Retrait local, puis sauvegarde CONFIRMEE avant tout envoi.
-  tract.quantite -= quantite;
-  if (tract.quantite <= 0) state.inventory.splice(state.inventory.indexOf(tract), 1);
-  const sauve = await sbSavePersonnage(state).catch(() => null);
-  if (!sauve) {
-    await restituer();
-    showToast('Don impossible', 'Votre inventaire n\'a pas pu être enregistré. Aucun tract n\'a été donné.', false);
-    return;
-  }
-
-  // 2. Envoi (une relance avec le meme id, sans risque de doublon).
-  let res = await sbTractsDonnerJoueur(requete, state.char.name, pjName, objet).catch(() => null);
-  if (!res) res = await sbTractsDonnerJoueur(requete, state.char.name, pjName, objet).catch(() => null);
-  if (!res || !res.ok) {
-    // 3. Echec : restitution exacte.
-    await restituer();
-    const motifs = { destinataire_introuvable: pjName + ' n\'existe plus.', destinataire_invalide: 'Destinataire invalide.' };
-    showToast('Don impossible', (res && motifs[res.raison]) || 'Le transfert n\'a pas pu être effectué. Vos tracts vous sont rendus.', false);
-    return;
-  }
-
-  updateUI();
-  showToast('Tracts donnes', quantite + ' tracts remis a ' + pjName + '.', true);
-  addJournalEntry('Don de ' + quantite + ' tracts a ' + pjName, 'event-info');
+  const tract = lotsTractsDonnables()[tractIdx]; if (!tract) return;
+  const index = state.inventory.indexOf(tract);
+  const quantite = Number(document.getElementById('don-tract-' + tractIdx)?.value || 1);
+  if (!Number.isInteger(quantite) || quantite < 1) { showToast('Quantité invalide', '', false); return; }
+  const v = await executerReceptionInventaire('tracts_donner_joueur', { p_index: index, p_revision: state._inventaireRevision ?? null,
+    p_destinataire: pjName, p_quantite: quantite });
+  if (!v) return;
+  document.getElementById('modal-postes').classList.remove('open'); updateUI();
+  showToast('Tracts donnés', v.quantite + ' tracts remis à ' + v.destinataire + '.', true);
+  addJournalEntry('Don de ' + v.quantite + ' tracts à ' + v.destinataire, 'event-info');
 }
 
 // Reception d'un lot de tracts : fusionne avec un lot identique (meme type, cible, sens, legalite)
 // plutot que d'empiler un second lot ; sinon entre comme tout objet recu automatiquement.
-function recevoirLotTracts(objet) {
-  const identique = (state.inventory || []).find(i => i.type === objet.type && i.cible === objet.cible
-    && (i.tractType || null) === (objet.tractType || null) && (i.legal !== false) === (objet.legal !== false)
-    && !i.origineQuete && !objet.origineQuete);
-  if (identique) {
-    identique.quantite = (identique.quantite || 0) + (objet.quantite || 0);
-    if (typeof renderInventory === 'function') renderInventory();
-    return objet.quantite || 0;
-  }
-  return typeof recevoirObjetAutomatique === 'function' ? recevoirObjetAutomatique(objet)
-       : (typeof addToInventory === 'function' ? addToInventory(objet) : 0);
-}
+// recevoirLotTracts retiree : aucun appelant, reception versionnee existante dans verifierObjetsRecus.
 
 // =====================
 // DISTRIBUTION DE TRACTS A UN PNJ PRESENT (lot du 24 aout 2026)

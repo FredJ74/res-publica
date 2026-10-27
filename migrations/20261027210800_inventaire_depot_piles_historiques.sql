@@ -5,9 +5,10 @@ AS $function$
 DECLARE v_inv jsonb; v_place integer; v_q integer; v_cle text; v_obj jsonb := p_objet; v_pile bigint;
 BEGIN
   IF p_objet IS NULL OR jsonb_typeof(p_objet) <> 'object' THEN RETURN jsonb_build_object('ok', false, 'raison', 'objet_invalide'); END IF;
-  SELECT CASE WHEN jsonb_typeof(inventory) = 'array' THEN inventory ELSE '[]'::jsonb END INTO v_inv
+  SELECT coalesce(inventory,'[]'::jsonb) INTO v_inv
     FROM public.personnages_donnees WHERE name = p_nom FOR UPDATE;
   IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable'); END IF;
+  IF jsonb_typeof(v_inv) IS DISTINCT FROM 'array' THEN RETURN jsonb_build_object('ok',false,'raison','inventaire_format_a_examiner'); END IF;
   v_place := CASE WHEN p_automatique THEN 1000000 ELSE public.inventaire_place_restante(v_inv) END;
   v_cle := nullif(p_objet ->> 'stackKey', '');
   IF coalesce((p_objet ->> 'stackable')::boolean, false) AND v_cle IS NOT NULL THEN

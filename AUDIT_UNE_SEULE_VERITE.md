@@ -506,3 +506,12 @@ tirés au hasard et les effets purement visuels sont exclus.
   legacy** ; leur autorité complète n'est pas déclarée vérifiée et reste un préalable au verrou.
   Le type réel de created_at est sans fuseau : interprétation UTC explicite, anciens producteurs
   à confirmer au prévol. Les échanges IA/escort et récompenses générales restent à traiter.
+
+- **27/10 — récompenses objets et dons de tracts préparés NON appliqués** :
+  `20261027215214` lie dépôt et résolution de la quête existante ; le dossier contient seulement
+  les traces réelles encore valides de la ville. Les autres récompenses ne sont pas modifiées.
+  **La création/progression des quêtes reste legacy**, donc ce transfert ne prouve pas leur
+  autorité globale. `20261027215539` prolonge `tracts_donner_joueur` : retrait du vrai lot sous
+  révision et émission dans `objets_recus`, sans objet dicté ni compensation cliente. La collecte
+  atomique existante reste seule voie de réception. Aucun objet réel pour les PJ de simulation.
+  Dépôt commun : format historique illisible conservé/refusé, jamais remplacé silencieusement.

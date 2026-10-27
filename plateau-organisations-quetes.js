@@ -288,6 +288,14 @@ async function progresserQuete(queteId) {
 }
 
 async function remettreRecompenseQuete(quete) {
+  if (['objet', 'dossier_surveillance'].includes(quete.recompense_type)) {
+    const v = await executerReceptionInventaire('quete_objet_reclamer', { p_quete: quete.id });
+    if (!v) return;
+    updateUI(); showToast('Affaire résolue !', v.message, true);
+    addJournalEntry('Affaire résolue : "' + v.titre + '". ' + v.message, 'event-good');
+    addExternalEvent((state.char?.name || 'Quelqu’un') + ' a résolu l’affaire "' + v.titre + '" !', 'national');
+    return;
+  }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   let msg = '';
 
@@ -373,36 +381,12 @@ async function remettreRecompenseQuete(quete) {
     const montant = Math.floor(Math.random() * 2000) + 200; // 200 a 2200, large echelle
     state.arg = (state.arg || 0) + montant;
     msg = '+' + montant + ' ' + cur + ' !';
-  } else if (quete.recompense_type === 'objet') {
-    const objetsPossibles = (typeof OBJETS_TROUVES_ASSEMBLEE !== 'undefined') ? OBJETS_TROUVES_ASSEMBLEE : [];
-    if (objetsPossibles.length > 0) {
-      const obj = objetsPossibles[Math.floor(Math.random() * objetsPossibles.length)];
-      addToInventory({ id: 'quete-obj-' + Date.now(), name: obj.name, icon: obj.icon, desc: obj.desc, type: obj.compromettant ? 'kompromat' : 'objet', legal: !obj.compromettant, imageUrl: obj.imageUrl || null });
-      msg = 'Vous obtenez : ' + obj.name + '.';
-    } else {
-      msg = 'Un mystérieux colis vous est remis.';
-    }
   } else if (quete.recompense_type === 'titre') {
     if (!state.titresHonorifiques) state.titresHonorifiques = [];
     const titreObtenu = 'Résolveur de "' + quete.titre + '"';
     state.titresHonorifiques.push({ titre: titreObtenu, jour: state.day || 1 });
     msg = 'Titre honorifique obtenu : "' + titreObtenu + '" (cosmétique).';
-  } else if (quete.recompense_type === 'dossier_surveillance' && quete.cible_dossier) {
-    let actions = [];
-    if (typeof sbGetActionsTracables === 'function') {
-      try { actions = await sbGetActionsTracables(state.country, state.currentCity, state.day || 1); } catch(e) {}
-    }
-    const actionsCible = actions.filter(a => a.auteur === quete.cible_dossier);
-    const contenu = actionsCible.length > 0
-      ? actionsCible.map(a => '- ' + a.type_action + (a.cible ? ' (cible: ' + a.cible + ')' : '') + ' — Jour ' + a.jour).join('\n')
-      : 'Aucune action notable recensée récemment.';
-    addToInventory({
-      id: 'dossier-' + Date.now(), name: 'Dossier de surveillance — ' + quete.cible_dossier,
-      icon: 'ti-folder-search', desc: 'Compilation d\'actions réelles concernant ' + quete.cible_dossier + ' :\n' + contenu,
-      type: 'kompromat', legal: false
-    });
-    msg = 'Vous obtenez un dossier de surveillance complet sur ' + quete.cible_dossier + ' !';
-  }
+  } else { /* Recompenses objets : la porte serveur est appelee avant le CAS legacy. */ }
 
   if (typeof sbMettreAJourQuete === 'function') {
     await sbMettreAJourQuete(quete.id, { statut: 'resolue', resolu_par: state.char?.name, recompense_detail: msg }).catch(() => {});

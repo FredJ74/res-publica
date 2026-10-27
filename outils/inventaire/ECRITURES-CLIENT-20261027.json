@@ -19,7 +19,7 @@
     "plateau-chantiers.js": "861bbd073747fdd7c2cd0440358a0230a91b1ab7a2feec4c8df69d5c41ebd35d",
     "plateau-commerce-pj.js": "57ea1891e32e499c47b34efbea8ed4df4dd9497d428ab3902f98e65ed059f069",
     "plateau-commerce.js": "e77ddd1e7f6871480cfd210089873d38d396ad7eff6f89fb5aaa6305be8f68cb",
-    "plateau-communication.js": "da8005b4d217b7663b0981263a7eafcf3eb24241fb8cb09cfaf7a3fa80c1e0d5",
+    "plateau-communication.js": "f444a8d27fa7e61a6a7eb88e065347f129dec2a8d596a1924d2bc41004af1c94",
     "plateau-construction-commandes.js": "a9244d75e40243d16153bd70b52ec6a74aada0c16e67f34e7708b0ebf12d7a88",
     "plateau-contact-organisation.js": "11c906ad0358cb93135cbd0c5843f84e3e9c1d6010272d440a25f53588fbcad9",
     "plateau-core.js": "e9dd8d02d63bf0af7ffdf2b05428c64562945f86790c6867f17459c63da9201d",
@@ -47,7 +47,7 @@
     "plateau-navigation.js": "051c30a902a6a1cee7fc80175b6828816633d89c4021018d54774622aeb6adb6",
     "plateau-objets.js": "8295442e71551baf83293623dfdff88047c9bbcd0f02faa462607bd8f7619bfe",
     "plateau-open-space.js": "6c0c55da7e01aa9cb93b827f693a95560a032b79084363c1508f44712cacc362",
-    "plateau-organisations-quetes.js": "0a696ed146b82379a321fc41cdec92a6b7ac45737acb442fa6c11e650a20803f",
+    "plateau-organisations-quetes.js": "30a6c7a4d3008b694b829359d093d687ae4322237802a9740f11d0c56bf985a2",
     "plateau-personnage.js": "bf9108a62aa194e90c7d2cc5a2c2a28426f39611df9339773882cd563de2dbee",
     "plateau-pnj.js": "8bcd2751219713620a2e614a1cdb8ddd601c7481ff67048cfc230b5c5a21680e",
     "plateau-politique.js": "23137ed99fc4f2555febe87d80adf12df68b2dee06407ec0131a298d2e649f69",
@@ -142,147 +142,56 @@
     },
     {
       "fichier": "plateau-communication.js",
-      "ligne": 757,
-      "fonction": "confirmerDonTracts",
-      "type": "changement_objet_candidat",
-      "extrait": "tract.quantite -= quantite"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 758,
-      "fonction": "confirmerDonTracts",
-      "type": "retrait_ou_remplacement",
-      "extrait": "state.inventory.splice(state.inventory.indexOf(tract), 1)"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 759,
-      "fonction": "confirmerDonTracts",
-      "type": "retrait_ou_remplacement",
-      "extrait": "!pjSim.inventory"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 759,
-      "fonction": "confirmerDonTracts",
-      "type": "retrait_ou_remplacement",
-      "extrait": "pjSim.inventory = []"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 761,
-      "fonction": "confirmerDonTracts",
-      "type": "changement_objet_candidat",
-      "extrait": "existing.quantite += quantite"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 762,
-      "fonction": "confirmerDonTracts",
-      "type": "ajout_local",
-      "extrait": "pjSim.inventory.push({...tract, quantite})"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 776,
-      "fonction": "confirmerDonTracts / callback",
-      "type": "ajout_local",
-      "extrait": "state.inventory.push(tract)"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 777,
-      "fonction": "confirmerDonTracts / callback",
-      "type": "changement_objet_candidat",
-      "extrait": "tract.quantite += quantite"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 783,
-      "fonction": "confirmerDonTracts",
-      "type": "changement_objet_candidat",
-      "extrait": "tract.quantite -= quantite"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 784,
-      "fonction": "confirmerDonTracts",
-      "type": "retrait_ou_remplacement",
-      "extrait": "state.inventory.splice(state.inventory.indexOf(tract), 1)"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 815,
-      "fonction": "recevoirLotTracts",
-      "type": "changement_objet_candidat",
-      "extrait": "identique.quantite = (identique.quantite || 0) + (objet.quantite || 0)"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 819,
-      "fonction": "recevoirLotTracts",
-      "type": "ajout_local",
-      "extrait": "recevoirObjetAutomatique(objet)"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 820,
-      "fonction": "recevoirLotTracts",
-      "type": "ajout_local",
-      "extrait": "addToInventory(objet)"
-    },
-    {
-      "fichier": "plateau-communication.js",
-      "ligne": 934,
+      "ligne": 871,
       "fonction": "confirmerTractageCollectifStade",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory=res.inventory"
     },
     {
       "fichier": "plateau-communication.js",
-      "ligne": 984,
+      "ligne": 921,
       "fonction": "confirmerDistribuerTractElectoral",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = res.inventory"
     },
     {
       "fichier": "plateau-communication.js",
-      "ligne": 1093,
+      "ligne": 1030,
       "fonction": "confirmerDistribuerTractCalomnieux",
       "type": "changement_objet_candidat",
       "extrait": "tract.quantite -= 1"
     },
     {
       "fichier": "plateau-communication.js",
-      "ligne": 1094,
+      "ligne": 1031,
       "fonction": "confirmerDistribuerTractCalomnieux",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = state.inventory.filter(i => i !== tract)"
     },
     {
       "fichier": "plateau-communication.js",
-      "ligne": 1129,
+      "ligne": 1066,
       "fonction": "confirmerDistribuerTractCalomnieux",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = (state.inventory || []).filter(i => i.type !== 'tract_calomnieux')"
     },
     {
       "fichier": "plateau-communication.js",
-      "ligne": 1647,
+      "ligne": 1584,
       "fonction": "recupererVolsEnAttente",
       "type": "changement_objet_candidat",
       "extrait": "stack.qty = (stack.qty || 0) - perte"
     },
     {
       "fichier": "plateau-communication.js",
-      "ligne": 1648,
+      "ligne": 1585,
       "fonction": "recupererVolsEnAttente",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory = state.inventory.filter(i => i !== stack)"
     },
     {
       "fichier": "plateau-communication.js",
-      "ligne": 1670,
+      "ligne": 1607,
       "fonction": "recupererVolsEnAttente",
       "type": "retrait_ou_remplacement",
       "extrait": "state.inventory.splice(idx, 1)"
@@ -485,21 +394,7 @@
     },
     {
       "fichier": "plateau-organisations-quetes.js",
-      "ligne": 380,
-      "fonction": "remettreRecompenseQuete",
-      "type": "ajout_local",
-      "extrait": "addToInventory({ id: 'quete-obj-' + Date.now(), name: obj.name, icon: obj.icon, desc: obj.desc, type: obj.compromettant ? 'kompromat' : 'objet', legal: !obj.compromettant, imageUrl: obj.imageUrl || null })"
-    },
-    {
-      "fichier": "plateau-organisations-quetes.js",
-      "ligne": 399,
-      "fonction": "remettreRecompenseQuete",
-      "type": "ajout_local",
-      "extrait": "addToInventory({ id: 'dossier-' + Date.now(), name: 'Dossier de surveillance — ' + quete.cible_dossier, icon: 'ti-folder-search', desc: 'Compilation d\\'actions réelles concernant ' + quete.cible_dossier + ' :\\n' + contenu, type: 'kompromat'"
-    },
-    {
-      "fichier": "plateau-organisations-quetes.js",
-      "ligne": 9492,
+      "ligne": 9476,
       "fonction": "changerTypeGreve",
       "type": "changement_objet_candidat",
       "extrait": "_greve.type = nouveauType"
