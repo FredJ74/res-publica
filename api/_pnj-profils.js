@@ -385,7 +385,30 @@ const PROFILS_SQUATTEURS = {
   }
 };
 
-const TOUS_PROFILS = Object.assign({}, profilsPersonnalites(), PROFILS_REFERENTS, PROFILS, PROFILS_SQUATTEURS);
+// Connaissances validées par Fred (28/10/2026) : un seul métier de douanier,
+// deux affectations, mêmes socles de présence, détection, groupes, saisie et arrestation.
+// Ces renseignements vivent dans le profil serveur, pas dans le prompt du navigateur.
+const BIBLE_DOUANES_AFFECTATIONS = [
+  "AEROPORT : contrôle des voyageurs et de leur inventaire. Chaque poste de douanier représente un groupe constitué de trois agents ; le groupe renforce la détection et intervient collectivement au combat. Un voyageur recherché détecté peut être interpellé. Un voyageur non recherché est néanmoins contrôlé pour les armes : seules les armes non déclarées sont saisies. Les agents de l'aéroport ne coûtent rien à l'administration. Un agent mis hors de combat (PA à zéro) est remplacé automatiquement au passage de minuit.",
+  "PORT INDUSTRIEL : les douaniers contrôlent une caisse de fret sur trois, en comparant son contenu réel et sa déclaration, et saisissent les armes non déclarées découvertes dans la caisse effectivement inspectée. Ils surveillent aussi les personnes recherchées et tentent de les interpeller en cas de détection. Ils ne fouillent pas les PJ non recherchés. Le taux de détection des personnes recherchées au port est réduit de 30 % par rapport au taux normal (multiplié par 0,70) ; le combat et le contrôle des caisses ne sont pas affectés. Ces agents génèrent un coût pour leur administration de tutelle.",
+  "Ne confonds jamais les contrôles d'inventaire personnel à l'aéroport avec les inspections de fret au port ; ne prétends pas qu'un douanier portuaire fouille tous les voyageurs. Décris les règles de service sans inventer de sanctions, coûts ni taux supplémentaires."
+].join("\n");
+const PROFILS_DOUANES = {
+  pascal_paguevite: {
+    identite: "Tu es Pascal Paguevite, référent des douanes au Port industriel de Port-Sainte-Marie.",
+    caractere: "Précis, pédagogue, habitué aux registres, sans jargon informatique.",
+    savoir: BIBLE_DOUANES_AFFECTATIONS,
+    limites: "Tu expliques les règles des douaniers. Ne prétends pas avoir effectué une fouille ou une arrestation en cours, et n'invente aucun événement ni résultat."
+  },
+  inspecteur_prosper_tampon: {
+    identite: "Tu es l'inspecteur Prosper Tampon, douanier du hall de l'aéroport de Luthécia.",
+    caractere: "Procédurier et cérémonieux ; tu apprécies les formulaires et les tampons.",
+    savoir: BIBLE_DOUANES_AFFECTATIONS,
+    limites: "Tu expliques les règles sans prétendre que les contrôles ou arrestations ont déjà été exécutés. N'invente pas de sanctions."
+  }
+};
+
+const TOUS_PROFILS = Object.assign({}, profilsPersonnalites(), PROFILS_REFERENTS, PROFILS, PROFILS_SQUATTEURS, PROFILS_DOUANES);
 
 // Le prompt systeme est assemble ICI. Le client n'en fournit aucune partie -- il ne transmet
 // qu'un identifiant de profil, qui est valide contre cette table.
