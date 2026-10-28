@@ -157,6 +157,20 @@ def extension(ctx):
    sql('ROLLBACK TO SAVEPOINT avant_miroir')
   q.execute("SELECT leader_pj,ville FROM pnj_membres WHERE id='police-republic-capitale-P1'");assert q.fetchone()==('B',None)
  cas('blocage_reproduit_miroir_police_et_groupe_ne_sont_pas_raccordes',police_miroir_bloquant)
+ # Porte de combat originale, sans round simulé ni faux helper de combat.
+ mt=(R/'baseline/domaines/militaire/10_tables.sql').read_text()
+ for nom in ['services_militaires','batailles','guerres','mutineries','mutineries_membres']:
+  q.execute(re.search(r'CREATE TABLE public\.'+nom+r' \(.*?\n\);',mt,re.S)[0])
+ q.execute('ALTER TABLE personnages_donnees ADD COLUMN pa integer DEFAULT 12')
+ q.execute("INSERT INTO services_militaires(personnage,pays,grade,compagnie_id,section_id) VALUES('A','republic','lieutenant','cie','cie-s1')")
+ for nom in ['mutinerie_camp_de','mutinerie_est_camp','mutinerie_camps_presents']:
+  q.execute(a.fonction('baseline/domaines/militaire/20_fonctions-3.sql',nom))
+ q.execute(a.fonction('baseline/domaines/militaire/20_fonctions-1.sql','militaire_bataille_engager'))
+ if '--contre-soldats' not in sys.argv:
+  patch=(R/'migrations/20261028165000_groupes_bataille_pays_adverse.sql').read_text();q.execute(patch);q.execute(patch)
+ cas('porte_bataille_sans_ennemi_refuse_sans_erreur_alias_ni_mutation',lambda:exige(rpc('militaire_bataille_engager'),'aucun_ennemi_ici'))
+ cas('porte_bataille_conserve_refus_non_militaire',lambda:exige(rpc('militaire_bataille_engager',qui='C'),'pas_militaire'))
+
 
 
 
