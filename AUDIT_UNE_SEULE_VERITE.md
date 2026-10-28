@@ -543,6 +543,6 @@ tirés au hasard et les effets purement visuels sont exclus.
   retrait d'objet décidé par l'écran (28/10 : vol entre joueurs, tracts calomnieux et tracts de
   Jean-Lou passés au serveur ; anciennes charges d'employés : aucune en base). Le verrou lui-même
   attend l'accord de Fred. Hors inventaire : quêtes, budgets de club et autorisations de l'énigme
-  encore écrits par l'écran ; **voix « conférence » enregistrable sans jet**
-  (`elections_voix_pnj_enregistrer`), à traiter avec les élections.
-- Après la livraison de la PR #213 : `20261028210000`, `210500`, `210600`, `210700`, `210800`.
+  encore écrits par l'écran ; voix « conférence » passée au serveur (`conference_soutenir`,
+  `20261028226000`).
+- Après la livraison de la PR #213 : `20261028210000`, `210500`, `210600`, `210700`, `210800`, `210900`.

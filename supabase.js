@@ -4670,13 +4670,8 @@ async function sbChargerEffetsTractsPNJ(country) {
 // meme table atomique que les tracts, meme contrainte d'unicite par tour. Remplace la reecriture
 // du blob electoral depuis le client (migration_voix_pnj_canaux.sql). Aucune regle de jeu n'y est
 // portee : les couts, jets, phases et geographies restent decides par l'appelant.
-async function sbEnregistrerVoixPnj(requete, joueur, cycleId, candidat, pnjNom, canal, cleExplicite) {
-  const rows = await sbRpc('elections_voix_pnj_enregistrer', {
-    p_requete: requete, p_joueur: joueur, p_cycle_id: cycleId, p_candidat: candidat,
-    p_pnj_nom: pnjNom, p_canal: canal, p_cle: cleExplicite || null
-  });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
+// sbEnregistrerVoixPnj SUPPRIME (28/10/2026) : les voix d'electeurs PNJ ne sont plus ecrites
+// que par le serveur (conference_soutenir, jean_lou_tract_distribuer).
 
 // Reception exclusive d'un don de tracts : supprime ET renvoie la ligne en une instruction. null si
 // deja recue (autre onglet) ou absente -- ne rien ajouter a l'inventaire dans ce cas.
