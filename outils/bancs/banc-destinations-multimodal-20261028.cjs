@@ -13,6 +13,8 @@ assert.match(fn,/ville\.nom/,'afficher le libellé canonique');
 assert.doesNotMatch(fn,/ville\.name/,'ancienne propriété inexistant dans villesDe');
 console.log('OK destinations multimodales: attribut nom du catalogue canonique');
 
-const bloc = data.slice(data.indexOf("'centre-multimodal-luthecia':"));
+const ancre = data.indexOf('imageUrl: "images/hall-centre-multimodal-luthecia.webp"');
+assert.ok(ancre >= 0, "hall du centre multimodal présent");
+const bloc = data.slice(ancre, ancre + 3500);
 assert.ok(bloc.includes("Mireille Guichet (PNJ)"), 'Mireille reste dans les personnages');
-assert.ok(!bloc.slice(0,5000).includes("Demander conseil à Mireille"), 'aucun ordre de conseil automatique dans le hall');
+assert.ok(!bloc.includes("Demander conseil à Mireille"), 'aucun ordre de conseil automatique dans le hall');
