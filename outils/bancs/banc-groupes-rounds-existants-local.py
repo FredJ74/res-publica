@@ -6,7 +6,7 @@ import importlib.util,sys,re
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('interieur',R/'outils/bancs/banc-groupes-interieurs-local.py');interieur=importlib.util.module_from_spec(sp);sp.loader.exec_module(interieur)
-def suite(ctx):
+def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
  a=interieur.natif.rue.force.corps.g.audit
  # Mêmes tables militaires ; compléter seulement la table de fixture allégée.
@@ -90,6 +90,8 @@ def suite(ctx):
  cas('round_existant_acl_helpers_et_identite_authentifiee',droits)
  ctx['preuves_extension']['round_militaire']='Corps existants, deux PJ militaires fictifs puis un PJ et quatre soldats contre un PJ. Ne prouve pas le recrutement des policiers ni une agression générale.'
  ctx['preuves_extension']['fonctions_rounds_chargees']=sorted(nouvelles)
+ ctx['installer_fonction_canonique']=installer
+ if suivante is not None:suivante(ctx)
 if __name__=='__main__':
  natif=interieur.natif;rue=natif.rue;f=rue.force
  sys.exit(f.corps.g.main(lambda c:f.corps.extension(c,lambda c:f.suite(c,lambda c:rue.suite(c,lambda c:natif.suite(c,lambda c:interieur.suite(c,suite)))))))

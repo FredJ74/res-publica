@@ -697,7 +697,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   // du chargement. verifierAccesBureauAmbassade (plateau-politique.js) rappelle enterRoom une fois
   // l'acces confirme ; le jeton est consomme a ce second passage.
   const AMBASSADE_ROOM_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
-  if (buildingId === 'quartier-ambassades' && AMBASSADE_ROOM_EMPIRE[roomId]) {
+  if (!positionServeurConfirmee&&buildingId === 'quartier-ambassades' && AMBASSADE_ROOM_EMPIRE[roomId]) {
     if (state._accesBureauAmbassade !== roomId) {
       if (typeof verifierAccesBureauAmbassade === 'function') verifierAccesBureauAmbassade(buildingId, roomId, tabEl);
       return;
@@ -2653,7 +2653,48 @@ function ouvrirModalTransport(mode) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+let transportServeurEnCours=null;
+async function commanderTransportServeur(mode,pays,ville) {
+ const c=contexteNavigationRue();
+ if(transportServeurEnCours&&contexteNavigationRueValide(transportServeurEnCours))return false;
+ transportServeurEnCours=c;
+ const cle='hg-transport:'+JSON.stringify([c.uid,c.nom,c.pays,c.ville,c.batiment,c.piece,mode,pays,ville]);
+ try {
+  let requete;
+  try{requete=localStorage.getItem(cle);if(!requete){requete=crypto.randomUUID();localStorage.setItem(cle,requete);}}
+  catch(_){showToast('Voyage non confirmé','Le reçu du voyage ne peut pas être conservé. Aucun paiement envoyé.',false);return false;}
+  const v=await sbRpcVerdict('transport_effectuer',{p_mode:mode,p_pays:pays,p_ville:ville,p_requete:requete},
+    {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
+  if(!contexteNavigationRueValide(c))return false;
+  if(v?.ok!==true){
+   const motifs={tarification_pnj_a_preciser:'Les conditions de transport des accompagnants PNJ ne sont pas encore disponibles.',
+    controle_douanier_requis:'Le contrôle douanier doit être confirmé avant ce voyage.',
+    chef_de_groupe_requis:'Seul le chef du groupe peut engager ce voyage.',fonds_insuffisants:'Un voyageur ne dispose pas des fonds nécessaires.',
+    pa_insuffisants:'Un voyageur ne dispose pas des PA nécessaires.'};
+   showToast('Voyage non confirmé',motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',false);return false;
+  }
+  // Un reçu rejoué peut contenir d'anciens soldes : réutiliser le chargement
+  // officiel au lieu d'appliquer ces montants ou de fabriquer une position.
+  const [frais,comptes]=await Promise.all([sbLoadPersonnage(c.nom).catch(()=>null),sbGetComptesBancaires(c.nom).catch(()=>null)]);
+  if(!contexteNavigationRueValide(c))return false;
+  if(!frais||frais.userId!==c.uid||!Array.isArray(comptes)||frais.country!==pays||frais.currentCity!==ville||frais.currentBuilding!==v.building||frais.currentRoom!==v.room){
+   showToast('Voyage enregistré','La position doit encore être relue. Aucun second paiement ne sera envoyé pour ce reçu.',false);return false;
+  }
+  if(typeof appliquerPaiementServeur==='function')appliquerPaiementServeur({ok:true,pa:frais.pa,liquide:frais.liquide,arg:frais.arg});
+  if(typeof construireMapComptesBancaires==='function')state.comptesBancaires=construireMapComptesBancaires(comptes);
+  state.country=frais.country;state.currentCity=frais.currentCity;state.currentBuilding=frais.currentBuilding;state.currentRoom=frais.currentRoom;
+  state.group=frais.group;state._groupeConfirme=frais._groupeConfirme;
+  if(frais.updatedAt)state._dernierUpdatedAtConnu=frais.updatedAt;
+  navigationInterieureRendu={buildingId:frais.currentBuilding,roomId:frais.currentRoom};
+  try{applyEmpireTheme(state.country);buildCityTabs();enterBuilding(state.currentBuilding,true);enterRoom(state.currentBuilding,state.currentRoom,null);}
+  finally{navigationInterieureRendu=null;}
+  try{localStorage.removeItem(cle);}catch(_){}
+  return true;
+ } finally {if(transportServeurEnCours===c)transportServeurEnCours=null;}
+}
+
 async function executerVoyage(mode, empireId, villeId) {
+  if(state._navigationServeur===true)return commanderTransportServeur(mode,empireId,villeId);
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   // Surcharge (Lot 1.5.4) : dernier verrou avant le debit et le deplacement reel. confirmerTransport
@@ -2727,6 +2768,7 @@ function ouvrirRenseignementMireilleGuichet() {
 }
 
 async function confirmerTransport(mode, empireId, villeId) {
+  if(state._navigationServeur===true)return commanderTransportServeur(mode,empireId,villeId);
   document.getElementById('modal-postes').classList.remove('open');
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
