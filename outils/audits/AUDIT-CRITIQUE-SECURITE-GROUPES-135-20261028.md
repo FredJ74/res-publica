@@ -149,8 +149,11 @@ trigger anti-sous-hiérarchie. Identité/Auth, verdicts judiciaires et coups de 
 sont des dépendances **simulées** ; le détecteur manquant n'est pas reconstitué.
 Les appels métier sont faits sous `authenticated` avec `request.path`.
 
-- Proposition originale : **9 contre-tests échouent** : S1 (deux cas), S2, S3, S4,
-  les deux limites de rue préexistantes S5, l’identité manquante S6, et l’absence de garde contre une ancienne préparation déjà installée. Les autres cas peuvent passer : les bancs
+- Proposition originale : **8 contre-tests échouent** : S1 (deux cas), S2, S3, S4,
+  les deux limites de rue préexistantes S5, et l’identité manquante S6. La garde contre une ancienne préparation est un
+  test supplémentaire propre au changement de représentation : l’originale
+  reconnaît normalement son propre schéma, elle n’est pas accusée d’un défaut
+  pour cela. Les autres cas peuvent passer : les bancs
   originaux n'étaient pas tous inutiles et tous les ajouts n'étaient pas erronés.
 - Préparation corrigée : **19/19 scénarios PostgreSQL** passent, dont priorités
   police→privé, droits des auxiliaires, refus d'un autre chef, absence de l'agent,

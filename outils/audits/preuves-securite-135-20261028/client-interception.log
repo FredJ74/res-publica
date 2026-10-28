@@ -1,0 +1,43 @@
+✔ rendre : double clic, perte de reponse et appel direct ne rejouent jamais l'acte (128.041268ms)
+✔ fuir : double clic, perte de reponse et appel direct ne rejouent jamais l'acte (70.491063ms)
+✔ combattre : double clic, perte de reponse et appel direct ne rejouent jamais l'acte (62.797056ms)
+✔ rendre : relecture du reçu après perte de réponse sans rejouer l'action (79.699882ms)
+✔ fuir : relecture du reçu après perte de réponse sans rejouer l'action (62.522854ms)
+✔ combattre : relecture du reçu après perte de réponse sans rejouer l'action (40.836821ms)
+✔ reconnexion : rencontre active restauree en lecture seule sans nouvelle detection (42.090199ms)
+✔ reconnexion : aucun dossier si verdict terminal ou rencontre inactive (78.735202ms)
+✔ reddition : detention confirmee avant transfert (39.890753ms)
+✔ reddition incomplete ne libere pas la navigation (39.734425ms)
+✔ rendre : retour d'un ancien personnage ignore (37.989954ms)
+✔ fuir : retour d'un ancien personnage ignore (55.78281ms)
+✔ combattre : retour d'un ancien personnage ignore (36.75304ms)
+✔ fuite reussie : rendu confirme sans rejouer un deplacement serveur (35.31763ms)
+✔ fuite echouee : choix restant sans nouveau jet (42.489094ms)
+✔ fuite confirmee sans destination exploitable : blocage conserve (40.59248ms)
+✔ round suivant seulement apres verdict complet, PA et effectifs viennent du serveur (41.437408ms)
+✔ neutralisation : cloture sans inventer de detention (39.438583ms)
+✔ arrestation et neutralisation simultanees : detention serveur prioritaire (42.32171ms)
+✔ combat sans PA valides ou sans detention confirmee : pas de faux succes (87.589222ms)
+✔ interception active : enterBuilding bloque avant toute ecriture (50.522651ms)
+✔ interception active : enterRoom bloque avant toute ecriture (52.843154ms)
+✔ interception active : sortirBatiment bloque avant toute ecriture (53.068347ms)
+✔ interception active : afficherNoeudRue bloque avant toute ecriture (51.342334ms)
+✔ la garde est levee seulement apres cloture (47.05623ms)
+✔ aucune interception judiciaire sans detection serveur (36.440572ms)
+✔ detection : non_recherche (36.122223ms)
+✔ detection : non_detecte (37.096091ms)
+✔ detection : detecte (35.246719ms)
+✔ detection : absent (37.042011ms)
+✔ detection : sans_pa (36.657323ms)
+✔ un agent privé peut déclencher une rencontre sans policier présent, sur décision serveur seule (37.823756ms)
+✔ restauration de rue : lecture de position seule, aucun ordre de mouvement (36.910297ms)
+✔ un dossier appartient a sa connexion, pas au personnage suivant (34.102339ms)
+✔ la rencontre affiche uniquement l effectif confirme, pas tous les policiers co presents (37.164071ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1809.103148
