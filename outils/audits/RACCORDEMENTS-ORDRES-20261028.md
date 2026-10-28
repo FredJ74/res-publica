@@ -49,3 +49,7 @@ Ces deux déploiements sont **des situations particulières raccordées au socle
 - **Ils ne fouillent jamais un PJ qui n'est pas recherché.** Le contrôle de cargaison n'autorise pas à fouiller indistinctement les voyageurs au port.
 - Ne pas confondre : contrôle d'inventaire personnel à l'aéroport, inspection de cargaison au port. Le taux d'inspection (une caisse sur trois) concerne les caisses, pas les PJ.
 - La règle d'inspection corporelle d'un PJ recherché au port n'est pas détaillée au-delà de sa détection/interpellation ; ne pas inventer de conséquences supplémentaires.
+
+### Arbitrage définitif — détection des personnes au port industriel (28/10/2026)
+
+Fred valide un **malus de 30 % au jet de détection** des personnes recherchées par les douaniers **affectés au port industriel** par rapport au taux normal du socle. Application : `taux_effectif = taux_de_detection_normal × 0,70` (réduction relative de 30 %, et non soustraction de 30 points). Par exemple, un taux normal de 60 % devient 42 %. Ce malus concerne exclusivement la détection des personnes recherchées au port ; il ne modifie ni le tirage d'inspection d'une caisse sur trois, ni la détection douanière en aéroport, ni les combats. **Ne pas créer un nouveau moteur de détection** : appliquer ce coefficient au résultat du calcul commun, lorsque le raccordement existant est identifié et testé. Ce document enregistre la décision ; aucune modification de production n'en résulte pour l'instant.
