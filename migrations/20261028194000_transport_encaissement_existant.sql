@@ -1,15 +1,19 @@
--- #219 : même encaissement, isoler seulement la garde d'identité publique.
--- Le moteur interne reste inaccessible ; le transport valide sa liste canonique.
+-- #219 : encaissement existant, tarif unitaire contrôlé, quantité interne.
+-- Fred 28/10 : le leader paie pour tous, PA de l'ordre inchangés.
 DO $prevol$
 BEGIN
  IF (SELECT md5(prosrc) FROM pg_proc WHERE oid='public.payer_ordre(text,text,integer,integer)'::regprocedure)
  NOT IN ('92234a6b14ff176d2c2c2236f705683e','ca7abc6ac27e864f723b25e73dacd665') THEN
- RAISE EXCEPTION 'payer_ordre_vivant_non_examine'; END IF;
+ RAISE EXCEPTION 'payer_ordre_vivant_non_examine';END IF;
  IF to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)') IS NOT NULL AND
- (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)'))<>'f9cbbdfce4b37082483b496298419df6' THEN
- RAISE EXCEPTION 'payer_ordre_interne_non_examine'; END IF;
+ (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)'))
+ NOT IN ('f9cbbdfce4b37082483b496298419df6','f315b77059d65b1ccd1879e800d18c22') THEN
+ RAISE EXCEPTION 'payer_ordre_interne_non_examine';END IF;
+ IF to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)') IS NOT NULL AND
+ (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)'))<>'2e69447a8e911756d2223414327db42b' THEN
+ RAISE EXCEPTION 'payer_quantite_interne_non_examine';END IF;
 END $prevol$;
-CREATE OR REPLACE FUNCTION public.payer_ordre_interne(p_acteur text, p_fn text DEFAULT NULL::text, p_pa integer DEFAULT 0, p_cost integer DEFAULT 0)
+CREATE OR REPLACE FUNCTION public.payer_ordre_interne(p_acteur text, p_fn text, p_pa integer, p_cost integer, p_quantite integer)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -48,6 +52,10 @@ BEGIN
                               'fn', v_fn, 'pa', p_pa, 'cost', p_cost);
   END IF;
 
+  -- Quantité résolue par la porte métier, après validation du tarif unitaire.
+  IF p_quantite IS NULL OR p_quantite<1 OR coalesce(p_cost,0)::bigint*p_quantite>2147483647 THEN
+    RETURN jsonb_build_object('ok',false,'raison','quantite_de_paiement_invalide'); END IF;
+  p_cost:=coalesce(p_cost,0)*p_quantite;
   SELECT pa, liquide, arg INTO v_pa, v_liquide, v_arg
   FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;
   IF v_pa IS NULL THEN
@@ -103,6 +111,11 @@ BEGIN
     'pa_preleves', coalesce(p_pa,0), 'montant_preleve', coalesce(p_cost,0));
 END;
 $function$;
+REVOKE ALL ON FUNCTION public.payer_ordre_interne(text,text,integer,integer,integer) FROM PUBLIC,anon,authenticated,service_role;
+CREATE OR REPLACE FUNCTION public.payer_ordre_interne(p_acteur text,p_fn text,p_pa integer,p_cost integer)
+RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $g$
+ SELECT public.payer_ordre_interne(p_acteur,p_fn,p_pa,p_cost,1);
+$g$;
 REVOKE ALL ON FUNCTION public.payer_ordre_interne(text,text,integer,integer) FROM PUBLIC,anon,authenticated,service_role;
 CREATE OR REPLACE FUNCTION public.payer_ordre(p_acteur text,p_fn text DEFAULT NULL,p_pa integer DEFAULT 0,p_cost integer DEFAULT 0)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $g$

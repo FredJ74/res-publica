@@ -2626,6 +2626,7 @@ function ouvrirModalTransport(mode) {
   document.getElementById('postes-modal-title').textContent = 'Prendre le ' + config.label;
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + config.pa + ' PA · ' + config.cost + ' ' + cur + ' · ' + config.desc + '</div>';
+  if(state._navigationServeur===true)html += '<p class="cpj-note">Tarif par voyageur, PJ et PNJ compris. Le chef paie pour tout le groupe ; le coût en PA de cet ordre reste inchangé.</p>';
 
   if (isInter) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION — EMPIRE</div>';
@@ -2667,10 +2668,10 @@ async function commanderTransportServeur(mode,pays,ville) {
     {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
   if(!contexteNavigationRueValide(c))return false;
   if(v?.ok!==true){
-   const motifs={tarification_pnj_a_preciser:'Les conditions de transport des accompagnants PNJ ne sont pas encore disponibles.',
+   const motifs={
     controle_douanier_requis:'Le contrôle douanier doit être confirmé avant ce voyage.',
-    chef_de_groupe_requis:'Seul le chef du groupe peut engager ce voyage.',fonds_insuffisants:'Un voyageur ne dispose pas des fonds nécessaires.',
-    pa_insuffisants:'Un voyageur ne dispose pas des PA nécessaires.'};
+    chef_de_groupe_requis:'Seul le chef du groupe peut engager ce voyage.',fonds_insuffisants:'Le chef du groupe ne dispose pas des fonds nécessaires pour tous les voyageurs.',
+    pa_insuffisants:'Le chef du groupe ne dispose pas des PA nécessaires.'};
    showToast('Voyage non confirmé',motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',false);return false;
   }
   // Un reçu rejoué peut contenir d'anciens soldes : réutiliser le chargement
@@ -2685,6 +2686,7 @@ async function commanderTransportServeur(mode,pays,ville) {
   state.country=frais.country;state.currentCity=frais.currentCity;state.currentBuilding=frais.currentBuilding;state.currentRoom=frais.currentRoom;
   state.group=frais.group;state._groupeConfirme=frais._groupeConfirme;
   if(frais.updatedAt)state._dernierUpdatedAtConnu=frais.updatedAt;
+  if(typeof document!=='undefined')document.getElementById('modal-postes')?.classList.remove('open');
   navigationInterieureRendu={buildingId:frais.currentBuilding,roomId:frais.currentRoom};
   try{applyEmpireTheme(state.country);buildCityTabs();enterBuilding(state.currentBuilding,true);enterRoom(state.currentBuilding,state.currentRoom,null);}
   finally{navigationInterieureRendu=null;}

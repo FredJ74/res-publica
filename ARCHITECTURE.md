@@ -273,3 +273,15 @@ le verdict avant rendu et n'active ce contrat que sur capacité serveur.
 dynamiques et transports restent à raccorder ; recrutement/rounds et interception
 universels restent ouverts. Des rounds militaires complets ont tourné sur des
 identités fictives : ce n'est pas une preuve de combat universel ni de production.
+
+### #219 — transports et accès particuliers, préparation non déployée
+
+Train/bus réutilisent l'encaissement existant avec tarif unitaire validé puis
+quantité des participants serveur : le leader paie tous les PJ/PNJ, PA de l'ordre
+inchangés (Fred, 28/10). Reçu technique dans la transaction des positions et des
+projections ; rejeu sans second débit. Bureaux d'ambassades : contrôle audience/
+asile existant par identité, sans substitution JWT. Lots dynamiques : lecture de
+`terrain_etat_lire`, pas un catalogue parallèle. 141 scénarios locaux éprouvent
+la chaîne ; aucune production. Douanes/international, déplacements spéciaux,
+combats et interceptions universels restent inachevés : ne pas activer la garde
+des positions isolément. Voir RELAIS et le rapport #219 pour l'état le plus récent.

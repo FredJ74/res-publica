@@ -44,3 +44,20 @@ Ne pas multiplier les moteurs de déplacement autonome par métier. Raccorder la
 ## Portée géographique de la radio — précision de Fred (28/10/2026)
 
 **La liaison radio est strictement limitée à une même ville.** Un ordre de rappel par radio d'un groupe PNJ ne peut être exécuté que si le PJ appelant et le groupe appelé se trouvent dans **la même ville**. Deux villes différentes : **aucune liaison, aucun déplacement autonome**. Cette condition est à contrôler par le serveur avant tout mouvement. La présence de radios des deux côtés et l'autorité du PJ restent nécessaires, mais ne suffisent pas à contourner la limite géographique. Aucun rayon supplémentaire ni exception inter-villes n'est défini.
+
+## Transports payants collectifs — arbitrage explicite de Fred, 28/10/2026
+
+Le leader prend en charge le coût du transport de **tous** les membres PJ et PNJ,
+lui compris. Payeur unique : le leader. Prix total = tarif existant × nombre total
+de voyageurs. Chaque PJ et chaque PNJ compte pour un voyageur payant. Le coût en
+PA reste celui de l'ordre de transport existant ; aucun nouveau barème n'est créé.
+
+Si les fonds du leader ne couvrent pas tout le groupe, tout le transport est
+refusé, sans débit ni déplacement partiel. Paiement et déplacement forment une
+transaction unique. Les conditions habituelles d'accès et de voyage s'appliquent
+à chacun ; rejoindre un groupe ne fournit pas de dispense. Réutiliser le moteur
+de paiement et de déplacement, sans deuxième billetterie ni nouveau tarif.
+
+Exemple validé : tarif 100 FR, leader + deux PJ + quatre PNJ = sept voyageurs,
+soit **700 FR payés par le leader**. Cette décision remplace l'attente d'arbitrage
+consignée au point de sauvegarde `8c2904dc` ; aucun transport PNJ gratuit n'est retenu.

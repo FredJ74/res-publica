@@ -4,6 +4,53 @@
 la branche de #219. La rue collective est testée localement ; les entrées/pièces,
 anciens écrivains de position et combats mixtes restent à terminer. Aucune production.
 
+## Dernier complément — transports et accès particuliers après `8c2904dc`
+
+La règle validée par Fred est raccordée aux transports intra-empire préparés :
+**le leader paie le tarif existant multiplié par tous les voyageurs PJ et PNJ,
+leader compris ; les PA de l'ordre ne sont pas multipliés**. Le serveur résout
+les membres, garde leur disponibilité, contrôle la surcharge de chacun et
+encaisse via le moteur existant, dans la transaction du déplacement. Aucun
+paiement individuel supplémentaire, tarif client ou solde d'un passager exposé.
+
+Le paiement public historique reste unitaire. Son identité et ses droits sont
+conservés ; seules deux portes internes privées réutilisent le même corps.
+Les signatures internes n'ont pas de paramètres par défaut ambigus. Le reçu
+persisté évite un deuxième paiement après réponse perdue/concurrente. Le client
+relit position et soldes actuels avant rendu ; il n'adopte pas les anciens soldes
+d'un reçu. Prix affiché comme un tarif par voyageur, payeur nommé. Aucun timer.
+
+Les accès aux bureaux d'ambassade utilisent le contrôle existant d'audience et
+d'asile pour chaque PJ, avec la même identité publique. Les lots dynamiques sont
+lus via `terrain_etat_lire`, sans second catalogue immobilier, et leur terrain
+est verrouillé avant le groupe. Ces adaptations ciblées ne réécrivent pas les
+travaux de Claude.
+
+**141/141 scénarios PostgreSQL locaux**, incluant les 112 acquis. Deux PJ et sept
+PNJ : train 675 FR/2 PA au seul leader ; bus 1 350 FR/1 PA. Billet individuel,
+complément bancaire, refus faute de fonds pour tout le groupe, passager sans PA,
+surcharge, prison, verrou concurrent réellement observé et rollback sur erreur
+de projection sont éprouvés. Une sortie et un transport fictifs sont committés
+uniquement dans PostgreSQL éphémère pour la visibilité après attente ; les autres
+scénarios sont annulés. Rôle authenticated aux portes, aucun compte réel.
+Contre-épreuve du tarif unique réintroduit : **5 échecs sur les mêmes 141 cas** ;
+ce sont des régressions provoquées, pas cinq défauts historiques distincts.
+
+**114/114 bancs clients**, **8/8 cas transport**, **105/105 pilote local**.
+Grammaire SQL, YAML, syntaxe JS et Workflow conformes. Contrôle global : **5/12** ;
+les sept familles rouges restent signalées. Authority compte 107 RPC absentes du
+baseline, dont `transport_effectuer` préparée dans cette branche. Aucune référence
+ou empreinte de contrôle ajustée. Preuves :
+`preuves-groupes-219-transports-20261028/` (empreintes SHA-256 du contenu).
+
+**Toujours NON TERMINÉ / NON DÉPLOYABLE.** Train/bus et accès particuliers ne
+clôturent ni douanes/avion/bateau, ni taxis spéciaux, ni tous les écrivains de
+position, ni le combat/interception universels. Le refus explicite des parcours
+douaniers non raccordés est une garde de développement, pas une fonctionnalité
+livrée. Les migrations restent préparées et interdépendantes ; aucun prévol
+vivant exécuté, aucune fusion ou application Supabase, aucune recette réelle.
+La tarification des PNJ n'est plus un arbitrage en attente.
+
 ## Reprise suivante — état le plus récent après `04efd8e5`
 
 **CHANTIER NON TERMINÉ.** Ce complément prévaut sur les bilans historiques

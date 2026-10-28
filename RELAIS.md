@@ -1,3 +1,11 @@
+## #219 — transports collectifs : arbitrage raccordé, Codex 28/10, EN COURS
+
+- Même branche `codex/groupes-universels-20261028`, PR #219 ; ce lot remplace explicitement l'attente de tarification du point de sauvegarde `8c2904dc`. Règle de Fred consignée dans `outils/audits/REGLES-GROUPES-UNIVERSELS-20261028.md` : le leader paie tous les PJ/PNJ, coût en PA de l'ordre inchangé.
+- Train/bus : quantité calculée exclusivement depuis les participants serveur ; tarif unitaire validé par `payer_ordre` existant avant multiplication interne. Aucun coût reçu du navigateur. Une seule dépense de PA au leader. Passagers sans fonds/PA acceptés si disponibles et habilités. Paiement historique individuel conservé, helpers non accessibles sur le réseau.
+- **141/141 scénarios PostgreSQL jetable**, dont neuf voyageurs (2 PJ + 7 PNJ), train 675 FR/2 PA et bus 1 350 FR/1 PA, compte national complémentaire, refus collectif, surcharge du passager, rollback aval des positions/débit/reçu, vrai verrou concurrent puis même reçu sans second débit. Un transport fictif et la sortie historique committés seulement dans pgserver pour les snapshots, autres scénarios annulés. Contre-épreuve du billet unique : cinq échecs attendus, aucun scénario désactivé.
+- **114/114 bancs clients**, **8/8 transport ciblé**, **105/105 pilote local**. CI existante utilise maintenant la chaîne complète (aucun second job). Prévol vivant étendu aux signatures/ACL et triggers de paiement/transport/terrain. Cache JS remonté. **Globaux 5/12**, Authority 107 RPC absentes du baseline ; aucune empreinte ni référence modifiée. Preuves : `outils/audits/preuves-groupes-219-transports-20261028/`.
+- **NON TERMINÉ, NON DÉPLOYABLE.** Pas de fusion ni migration Supabase ni donnée réelle. Restent douanes/avion/bateau et taxis spéciaux, tous les écrivains de position, recrutement/rounds universels et interception/prison collective. Ne pas activer la garde générale isolément ; le nouveau transport refuse les parcours douaniers encore non raccordés. Aucun raccordement partiel déclaré opérationnel en production.
+
 ## Groupes universels — continuité transports et accès, Codex 28/10, EN COURS
 
 - Branche #219 conservée après `c5ce1c78`, main vérifié par fetch. Aucune fusion, application Supabase ou donnée réelle. Ne pas prendre ce point de sauvegarde pour un compte rendu de clôture.
