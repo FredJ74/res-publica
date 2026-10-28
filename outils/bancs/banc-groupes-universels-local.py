@@ -43,6 +43,8 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
   q.execute('CREATE TRIGGER sous_hierarchie BEFORE INSERT OR UPDATE ON pnj_membres FOR EACH ROW EXECUTE FUNCTION pnj_pas_de_sous_hierarchie()')
   # Seulement le patch de position existant de #216, pas de faux détecteur/combat.
   socle=(R/audit.M).read_text();q.execute(re.search(r'DO \$position\$.*?END \$position\$;',socle,re.S)[0])
+  # Installer la reprise en deux boucles de #216 (déjà auditée), sans le détecteur.
+  q.execute(re.search(r'DO \$reprise\$.*?END \$reprise\$;',socle,re.S)[0])
   original='--contre-217' in sys.argv
   for nom in ['20261028122500_reprise_pnj_autorite_administrative.sql','20261028123000_groupe_pj_adhesion_volontaire.sql','20261028123500_pnj_rappel_radio_universel.sql','20261028124000_transfert_pnj_autorite_origine.sql']:
    if original:
@@ -136,6 +138,40 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
      un.rollback();exige(fut.result(timeout=7))
    finally:un.rollback();deux.rollback();un.close();deux.close()
   cas('adhesions_concurrentes_sans_deadlock',concurrent)
+  def prendre_inconnu():
+   avant=photo();exige(rpc('pnj_prendre',(['ancre','inexistant'],)),'identifiants_invalides');assert avant==photo()
+  cas('prise_liste_incomplete_aucune_mutation',prendre_inconnu)
+  def pret():
+   sql("UPDATE personnages_donnees SET current_building='bar',current_room='salle'")
+   proprietaires=[x['proprietaire_pj'] for x in photo()[0]]
+   exige(rpc('pnj_transferer',(['ancre','autre'],'B',False)))
+   assert [x['proprietaire_pj'] for x in photo()[0]]==proprietaires
+   exige(rpc('pnj_transferer',(['ancre'],'C',False),qui='B'),'autorite_insuffisante')
+   exige(rpc('pnj_quitter_groupe',(['ancre','autre'],),qui='B'))
+   exige(rpc('pnj_prendre',(['ancre'],),qui='B'),'autorite_insuffisante')
+   exige(rpc('pnj_prendre',(['ancre','autre'],)))
+   assert all(x['leader_pj']=='A' for x in photo()[0])
+  cas('pret_conduite_sans_transfert_autorite_et_reprise',pret)
+  def partiel():
+   sql("UPDATE personnages_donnees SET current_building='bar',current_room='salle';UPDATE pnj_membres SET proprietaire_pj='C' WHERE id='autre'")
+   avant=photo();exige(rpc('pnj_transferer',(['ancre','autre'],'B',False)),'autorite_insuffisante');assert avant==photo()
+  cas('pret_refus_second_membre_sans_mutation',partiel)
+  def depose():
+   sql("UPDATE personnages_donnees SET current_building='bar',current_room='salle';UPDATE pnj_membres SET proprietaire_pj='C',leader_pj='B',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL WHERE id='autre'")
+   avant=photo();exige(rpc('pnj_quitter_groupe',(['ancre','autre'],)),'autorite_insuffisante');assert avant==photo()
+  cas('depose_refus_second_membre_sans_mutation',depose)
+  def rue_pret():
+   sql("UPDATE personnages_donnees SET current_building=NULL,current_room=NULL,current_street='rue';UPDATE pnj_membres SET building_id=NULL,room_id=NULL,rue_noeud_id='rue' WHERE id='ancre'")
+   exige(rpc('pnj_transferer',(['ancre','autre'],'B',False)))
+   sql("UPDATE personnages_donnees SET current_street='destination' WHERE name='B'")
+   q.execute("SELECT rue_noeud_id FROM pnj_position_effective('autre')");assert q.fetchone()[0]=='destination'
+   exige(rpc('pnj_quitter_groupe',(['ancre','autre'],),qui='B'))
+   q.execute("SELECT array_agg(rue_noeud_id) FROM pnj_membres");assert q.fetchone()[0]==['destination','destination']
+  cas('suivi_pnj_et_depose_rue_reelle',rue_pret)
+  def rue_distante():
+   sql("UPDATE personnages_donnees SET current_building=NULL,current_room=NULL,current_street='rue';UPDATE personnages_donnees SET current_street='ailleurs' WHERE name='B';UPDATE pnj_membres SET building_id=NULL,room_id=NULL,rue_noeud_id='rue' WHERE id='ancre'")
+   avant=photo();exige(rpc('pnj_transferer',(['ancre','autre'],'B',False)),'pas_co_presents');assert avant==photo()
+  cas('pret_autre_rue_refuse',rue_distante)
   c.rollback()
   print(json.dumps({'tests':tests,'production':False,'authentification':'identite JWT de fixture, role authenticated','rollback':True,'migrations_appliquees':[],'original217':original},ensure_ascii=False,indent=2))
   return int(any(not x['ok'] for x in tests))

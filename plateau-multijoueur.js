@@ -1282,51 +1282,44 @@ function payerEmployes() {
 // =====================
 // LAISSER UN PNJ EN PLACE / RÉCUPÉRER
 // =====================
-function laisserPnjEnPlace(nomPnj) {
+let RP_EMPLOYE_MOUVEMENT = null;
+async function commanderMouvementEmploye(nomPnj, prendre) {
   const emp = getEmployes().find(e => e.nom === nomPnj);
-  if (!emp) return;
-  emp.inGroupe = false;
-  emp.buildingId = state.currentBuilding;
-  emp.roomId = state.currentRoom;
-  emp.city = state.currentCity;
-
-  // Compter combien de PNJ sont déjà laissés dans cette pièce
-  const memeEndroit = getEmployes().filter(e =>
-    !e.inGroupe && e.buildingId === state.currentBuilding && e.roomId === state.currentRoom && e.nom !== nomPnj
-  );
-  const msgGroupe = memeEndroit.length > 0
-    ? ' Il/elle rejoint ' + memeEndroit.map(e => e.nom).join(', ') + ' sur place.'
-    : ' Il/elle reste seul(e) dans cette pièce.';
-
-  updateUI();
-  renderEmployesPanel();
-  // Rafraîchir la liste des personnes
-  if (state.currentBuilding && state.currentRoom) {
-    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-    const ctx = WORLD[state.country]?.[state.currentCity]?.buildingContext?.[state.currentBuilding];
-    renderPersonsList((ctx?.persons?.length > 0) ? ctx.persons : (room?.persons || []));
+  if (!emp?.pnjId) {
+    showToast('Mouvement non confirmé', 'Cet accompagnant doit être identifié par le serveur.', false);
+    return false;
   }
-  showToast(nomPnj + ' laissé(e) ici', 'Vous pouvez le/la récupérer à tout moment.' + msgGroupe, false);
+  const c = contexteGroupePj();
+  if (RP_EMPLOYE_MOUVEMENT && contexteGroupePjValide(RP_EMPLOYE_MOUVEMENT)) return false;
+  RP_EMPLOYE_MOUVEMENT = c;
+  try {
+    const r = prendre
+      ? (typeof sbPnjPrendre === 'function' ? await sbPnjPrendre([emp.pnjId]).catch(() => null) : null)
+      : (typeof sbPnjQuitterGroupe === 'function' ? await sbPnjQuitterGroupe([emp.pnjId]).catch(() => null) : null);
+    if (!contexteGroupePjValide(c)) return false;
+    // Toujours relire les employés, aussi après réponse perdue. Aucun rejeu implicite.
+    const etat = typeof sbEmployeMesEmployes === 'function'
+      ? await sbEmployeMesEmployes().catch(() => null) : null;
+    if (!contexteGroupePjValide(c)) return false;
+    const reel = etat?.employes?.find(e => e.pnj_id === emp.pnjId);
+    if (reel && typeof reel.porte === 'boolean') emp.inGroupe = reel.porte;
+    if (!r || r.ok !== true || !reel || typeof reel.porte !== 'boolean') {
+      showToast('Mouvement non confirmé', 'Le serveur n’a pas confirmé le mouvement et son état. Réessayez la consultation.', false);
+      if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+      return false;
+    }
+    updateUI();
+    renderEmployesPanel();
+    showToast('Mouvement confirmé', prendre ? nomPnj + ' vous accompagne.' : nomPnj + ' reste sur place.', true);
+    if (prendre && nomPnj === 'Jérémy' && typeof queteAccueilExpliquerLicenciement === 'function') queteAccueilExpliquerLicenciement();
+    return true;
+  } finally { if (RP_EMPLOYE_MOUVEMENT === c) RP_EMPLOYE_MOUVEMENT = null; }
 }
-
-function recupererPnjDansGroupe(nomPnj) {
-  const emp = getEmployes().find(e => e.nom === nomPnj);
-  if (!emp) return;
-  // Vérifier que le PJ est dans la même pièce
-  if (emp.buildingId !== state.currentBuilding || emp.roomId !== state.currentRoom) {
-    showToast('Absent(e)', nomPnj + ' n\'est pas dans cette pièce.', false);
-    return;
-  }
-  emp.inGroupe = true;
-  updateUI();
-  renderEmployesPanel();
-  showToast(nomPnj + ' rejoint le groupe !', '', true);
-
-  // Quete d'accueil : la premiere fois qu'un joueur recupere un employe via ce systeme,
-  // on explique comment s'en separer plus tard (icone X dans Mes Employes).
-  if (nomPnj === 'Jérémy' && typeof queteAccueilExpliquerLicenciement === 'function') {
-    queteAccueilExpliquerLicenciement();
-  }
+async function laisserPnjEnPlace(nomPnj) {
+  return commanderMouvementEmploye(nomPnj, false);
+}
+async function recupererPnjDansGroupe(nomPnj) {
+  return commanderMouvementEmploye(nomPnj, true);
 }
 
 async function licencierPnj(nomPnj) {
@@ -1537,26 +1530,40 @@ function renderEmployesPanel() {
 
 // Rappel par radio : aucune téléportation navigateur, le serveur déplace
 // l'unité sous contrôle de l'autorité, des équipements et de la ville.
+let RP_RAPPEL_RADIO = null;
 async function rappelerEmployeParRadio(ancreId) {
-  const r = typeof sbPnjRappelerRadio === 'function'
-    ? await sbPnjRappelerRadio(ancreId).catch(() => null) : null;
-  if (!r || r.ok !== true) {
-    const messages = {
-      radio_hors_ville: 'Le groupe est dans une autre ville : aucune liaison radio.',
-      radio_appelant_absente: 'Vous devez posséder une radio.',
-      radio_unite_absente: 'Au moins un agent du groupe doit porter une radio.',
-      autorite_insuffisante: 'Vous ne disposez pas de l’autorité sur tous les agents de ce groupe.',
-      unite_non_stationnaire: 'Le groupe doit être en position et disposer d’un chef PNJ stationnaire.',
-      position_invalide: 'Votre emplacement ne permet pas le rappel.'
-    };
-    showToast('Rappel refusé', messages[r?.raison] || 'Le serveur n’a pas autorisé le rappel.', false);
-    return;
-  }
-  // L'affichage local est mis à jour uniquement après confirmation serveur.
-  const emp = (state.employes || []).find(e => e.pnjId === ancreId);
-  if (emp) emp.inGroupe = true;
-  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
-  showToast('Rappel confirmé', (r.rappeles || 1) + ' agent(s) vous ont rejoint.', true);
+  const c = contexteGroupePj();
+  if (RP_RAPPEL_RADIO && contexteGroupePjValide(RP_RAPPEL_RADIO)) return;
+  RP_RAPPEL_RADIO = c;
+  try {
+    const r = typeof sbPnjRappelerRadio === 'function'
+      ? await sbPnjRappelerRadio(ancreId).catch(() => null) : null;
+    if (!contexteGroupePjValide(c)) return;
+    if (!r || r.ok !== true) {
+      const messages = { radio_hors_ville: 'Le groupe est dans une autre ville : aucune liaison radio.',
+        radio_appelant_absente: 'Vous devez posséder une radio.',
+        radio_unite_absente: 'Au moins un agent du groupe doit porter une radio.',
+        autorite_insuffisante: 'Vous ne disposez pas de l’autorité sur tous les agents.',
+        axe_position_hors_socle: 'Cette famille utilise encore son circuit de position propre.',
+        unite_non_stationnaire: 'Le groupe doit être en position.',
+        unite_modifiee: 'Le groupe a changé. Relisez sa composition.' };
+      showToast('Rappel non confirmé', messages[r?.raison] || 'Le serveur n’a pas confirmé le rappel.', false);
+      return;
+    }
+    // Le rejeu ne reconstruit pas l'ancienne unité : relecture de la projection existante.
+    const employes = typeof sbEmployeMesEmployes === 'function'
+      ? await sbEmployeMesEmployes().catch(() => null) : null;
+    if (!contexteGroupePjValide(c)) return;
+    if (Array.isArray(employes?.employes)) {
+      for (const emp of state.employes || []) {
+        const reel = employes.employes.find(e => e.pnj_id === emp.pnjId);
+        if (reel && typeof reel.porte === 'boolean') emp.inGroupe = reel.porte;
+      }
+    }
+    if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+    showToast('Rappel confirmé', r.deja_present ? 'Cet agent vous suit déjà.' :
+      String(r.rappeles) + ' agent(s) vous ont rejoint.', true);
+  } finally { if (RP_RAPPEL_RADIO === c) RP_RAPPEL_RADIO = null; }
 }
 
 // Confier un accompagnant a un autre joueur PRESENT. La liste vient de la presence
@@ -1976,41 +1983,78 @@ function calculerBonusCombatGroupe() {
 // =====================
 // SYSTEME DE GROUPE
 // =====================
-// Adhésion PJ volontaire : le serveur est la seule vérité.
-// Aucun effet de groupe appliqué sans acquittement de la RPC.
+// Groupe PJ : toutes les lectures/commandes sont liées au personnage ET à la session.
+let RP_GROUPE_COMMANDE = null;
+let RP_GROUPE_LECTURE = 0;
+function contexteGroupePj() {
+  return { personnage: state.char, nom: state.char?.name,
+    uid: typeof rpAuthUid === 'function' ? rpAuthUid() : null,
+    session: typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : null };
+}
+function contexteGroupePjValide(c) {
+  const n = contexteGroupePj();
+  return !!c.nom && c.personnage === n.personnage && c.nom === n.nom
+    && c.uid === n.uid && c.session === n.session;
+}
+function adopterGroupePj(v, contexte) {
+  if (!contexteGroupePjValide(contexte)) return false;
+  const groupe = typeof sbGroupePjNormaliser === 'function' ? sbGroupePjNormaliser(v, contexte.nom) : null;
+  const valide = typeof sbGroupePjValide === 'function' && sbGroupePjValide(v, contexte.nom);
+  state.group = valide ? groupe : null;
+  state._groupeConfirme = valide;
+  return valide;
+}
+async function rafraichirGroupePj() {
+  if (typeof sbGroupePjLire !== 'function') return false;
+  const c = contexteGroupePj(), numero = ++RP_GROUPE_LECTURE;
+  const r = await sbGroupePjLire().catch(() => null);
+  if (numero !== RP_GROUPE_LECTURE || RP_GROUPE_COMMANDE) return false;
+  return adopterGroupePj(r, c);
+}
+async function commanderGroupePj(fonction, params, titre) {
+  if (typeof sbRpc !== 'function') return false;
+  const c = contexteGroupePj();
+  if (RP_GROUPE_COMMANDE && contexteGroupePjValide(RP_GROUPE_COMMANDE)) return false;
+  RP_GROUPE_COMMANDE = c;
+  ++RP_GROUPE_LECTURE; // Invalider les lectures antérieures à cette commande.
+  try {
+    const r = await sbRpc(fonction, params).catch(() => null);
+    if (!contexteGroupePjValide(c)) return false;
+    if (!r || r.ok !== true) {
+      const motifs = { pas_co_presents: 'Le joueur doit être présent au même endroit.',
+        chef_deja_membre: 'Ce joueur suit déjà un autre chef.',
+        chef_de_groupe: 'Séparez votre groupe avant de rejoindre un autre chef.',
+        chef_invalide: 'Chef de groupe invalide.' };
+      // Une réponse perdue n'est pas un refus métier : relire sans rejouer la mutation.
+      const etat = !r && typeof sbGroupePjLire === 'function'
+        ? await sbGroupePjLire().catch(() => null) : null;
+      if (!contexteGroupePjValide(c)) return false;
+      if (etat) adopterGroupePj(etat,c);
+      else if (!r) { state.group = null; state._groupeConfirme = false; }
+      showToast('Groupe non confirmé', motifs[r?.raison] ||
+        'La commande n’est pas confirmée. L’appartenance a été relue si possible ; ne présumez pas sa réussite.', false);
+      return false;
+    }
+    if (!adopterGroupePj(r,c)) {
+      showToast('Groupe non confirmé', 'Le serveur ne fournit pas une appartenance valide.', false);
+      return false;
+    }
+    closePnjModal();
+    showToast(titre, 'Appartenance confirmée par le serveur.', true);
+    addJournalEntry(titre + '.', 'event-info');
+    return true;
+  } finally {
+    if (RP_GROUPE_COMMANDE === c) RP_GROUPE_COMMANDE = null;
+  }
+}
 async function rejoindrePJ(encodedPnj) {
   let pj;
   try { pj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
-  if (!pj || !pj.name || typeof sbRpc !== 'function') return;
-  const r = await sbRpc('groupe_pj_rejoindre', { p_chef: pj.name }).catch(() => null);
-  if (!r || r.ok !== true) {
-    const motifs = {
-      pas_co_presents: 'Le chef doit être présent au même endroit.',
-      chef_deja_membre: 'Ce joueur appartient déjà à un autre groupe.',
-      chef_de_groupe: 'Quittez le commandement de votre groupe avant de rejoindre un autre groupe.',
-      chef_invalide: 'Chef de groupe invalide.'
-    };
-    showToast('Groupe non rejoint', motifs[r?.raison] || 'Raccordement serveur indisponible.', false);
-    return;
-  }
-  const etat = await sbRpc('groupe_pj_lire', {}).catch(() => null);
-  state.group = etat?.ok && etat.membres ? { leader: etat.chef, members: etat.membres } : null;
-  closePnjModal();
-  showToast('Groupe rejoint', 'Vous avez rejoint le groupe de ' + pj.name + '.', true);
-  addJournalEntry('Vous avez rejoint le groupe de ' + pj.name + '.', 'event-info');
+  if (!pj || !pj.name || pj.name === state.char?.name) return;
+  return commanderGroupePj('groupe_pj_rejoindre', {p_chef: pj.name}, 'Groupe rejoint');
 }
-
 async function quitterGroupe() {
-  if (typeof sbRpc !== 'function') return;
-  const r = await sbRpc('groupe_pj_quitter', {}).catch(() => null);
-  if (!r || r.ok !== true) {
-    showToast('Départ impossible', 'Le serveur n’a pas confirmé votre départ.', false);
-    return;
-  }
-  state.group = null;
-  closePnjModal();
-  showToast('Groupe quitté', 'Vous avez quitté le groupe.', true);
-  addJournalEntry('Vous avez quitté le groupe.', '');
+  return commanderGroupePj('groupe_pj_quitter', {}, 'Groupe quitté');
 }
 
 // Jeremy (quete d'accueil) rejoint le groupe via le meme systeme que les PNJ employes

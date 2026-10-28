@@ -42,7 +42,7 @@ BEGIN
    RETURN jsonb_build_object('ok',false,'raison','chef_de_groupe'); END IF;
  INSERT INTO public.groupes_pj_adhesions(membre,chef) VALUES(moi,p_chef)
  ON CONFLICT(membre) DO UPDATE SET chef=excluded.chef,cree_le=now();
- RETURN jsonb_build_object('ok',true,'chef',p_chef);
+ RETURN public.groupe_pj_lire();
 END $g$;
 CREATE OR REPLACE FUNCTION public.groupe_pj_quitter()
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER
@@ -54,7 +54,7 @@ BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended('groupe_pj:graphe',0));
  -- Un chef se sépare de ses membres ; leur position réelle ne change pas.
  DELETE FROM public.groupes_pj_adhesions WHERE membre=moi OR chef=moi;
- RETURN jsonb_build_object('ok',true);
+ RETURN public.groupe_pj_lire();
 END $g$;
 CREATE OR REPLACE FUNCTION public.groupe_pj_lire()
 RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER
@@ -65,7 +65,7 @@ BEGIN
  IF moi IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
  SELECT chef INTO chef_courant FROM public.groupes_pj_adhesions WHERE membre=moi;
  chef_courant:=coalesce(chef_courant,moi);
- RETURN jsonb_build_object('ok',true,'chef',chef_courant,'membres',
+ RETURN jsonb_build_object('ok',true,'contrat',1,'chef',chef_courant,'membres',
     (SELECT coalesce(jsonb_agg(membre ORDER BY membre),'[]'::jsonb) FROM (
       SELECT chef_courant AS membre UNION ALL
       SELECT membre FROM public.groupes_pj_adhesions WHERE chef=chef_courant

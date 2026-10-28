@@ -2,7 +2,7 @@
 
 - Branche isolée `codex/groupes-universels-20261028`, issue de #217 (`c85d36d5`), contient les corrections #216 et le main `3a9b0c5d` (heure hiver/été conservée). Ne pas fusionner #212 ni appliquer les migrations isolément.
 - Premier lot : correction des adhésions (verrou de graphe, lieu réel, départ du chef) et du rappel (gardes communes, unité complète, équipements réels verrouillés, reprise après réponse perdue). **24 scénarios PostgreSQL jetables annulés réussis**, identité JWT de fixture au rôle authenticated, pas de connexion Supabase réelle. Catalogue vivant inaccessible dans cette session : nouvelle table d'adhésion reste conditionnée à son audit.
-- Suite active : prises/déposes/prêts atomiques, interfaces et hydratation ; déplacements PJ et combat collectif à raccorder aux définitions réelles, sans moteur parallèle. Aucun inventaire, fiche, ambassade ou BNE modifié ; aucune migration appliquée. Ne pas annoncer un groupe universel opérationnel.
+- Deuxième lot : prises/déposes/prêts atomiques sans mutation partielle, rue effective ; employés ne déplacent plus leur projection sans verdict, adhésion liée au personnage/session, hydratation à la connexion. **30 scénarios PostgreSQL annulés et 21 cas clients passent** ; les 19 scénarios #216 passent aussi. Le contrôleur complet est en cours. Déplacements PJ et combat collectif restent à raccorder aux définitions réelles, sans moteur parallèle. Aucun inventaire, fiche, ambassade ou BNE modifié ; aucune migration appliquée. Ne pas annoncer un groupe universel opérationnel.
 
 # Relais entre agents
 

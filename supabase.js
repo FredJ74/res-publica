@@ -834,12 +834,18 @@ async function sbLoadPersonnage(name) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(name)}`);
   if (!rows || rows.length === 0) return null;
   const r = rows[0];
+  // Appartenance PJ relue au chargement/reconnexion, jamais depuis une sauvegarde locale.
+  // Aucun groupe d'autrui consulté, aucun minuteur ajouté.
+  const groupePj = r.user_id && typeof rpAuthUid === 'function' && rpAuthUid() === r.user_id
+    ? await sbGroupePjLire().catch(() => null) : null;
   const inventaire = r.user_id && typeof rpAuthUid === 'function' && rpAuthUid() === r.user_id
     ? await sbInventaireReceptionEtat(name).catch(() => null) : null;
   const inventaireVersionne = inventaire?.ok && inventaire.contrat === 1
     && Array.isArray(inventaire.inventory) && Number.isSafeInteger(inventaire.revision);
   return {
     updatedAt: r.updated_at || null,
+    group: sbGroupePjNormaliser(groupePj, r.name),
+    _groupeConfirme: sbGroupePjValide(groupePj, r.name),
     // PROPRIETAIRE DE LA FICHE (21 septembre 2026). Cette colonne etait la, dans la reponse, et
     // le mapping la jetait. Elle est pourtant la seule qui permette de savoir, SANS aucun appel
     // supplementaire, si la fiche recue est bien celle du compte connecte : personnages_donnees
@@ -6405,6 +6411,17 @@ async function sbPnjPrendre(pnjIds) {
 // Le serveur recompose le groupe ; ne jamais simuler son déplacement côté client.
 async function sbPnjRappelerRadio(ancreId) {
   return await sbRpc('pnj_rappeler_radio', { p_ancre: ancreId });
+}
+
+function sbGroupePjValide(v, nom) {
+  return !!(v && v.ok === true && v.contrat === 1 && typeof v.chef === 'string'
+    && Array.isArray(v.membres) && v.membres.includes(nom) && v.membres.includes(v.chef)
+    && v.membres.every(n => typeof n === 'string' && n)
+    && new Set(v.membres).size === v.membres.length);
+}
+function sbGroupePjNormaliser(v, nom) {
+  if (!sbGroupePjValide(v, nom)) return null;
+  return v.membres.length > 1 ? { leader: v.chef, members: v.membres.slice() } : null;
 }
 
 async function sbGroupePjLire() {
