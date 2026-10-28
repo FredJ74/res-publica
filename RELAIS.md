@@ -5,6 +5,25 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Groupes universels — progression complémentaire (28/10, ChatGPT)
+
+- **Préparé en code, non appliqué** : `20261028123000_groupe_pj_adhesion_volontaire.sql` (adhésion volontaire PJ persistée, présence identique vérifiée par serveur, sortie et lecture), `20261028123500_pnj_rappel_radio_universel.sql` (rappel d'une unité PNJ via la radio du PJ et d'au moins un membre, autorité sur tous, même ville), `20261028124000_transfert_pnj_autorite_origine.sql` (transfert de PNJ exige l'autorité administrative, pas le commandement seul).
+- **Interface** : `plateau-multijoueur.js` lie « Rejoindre » et « Quitter » à la confirmation RPC et ajoute le bouton 📻 sur les employés PNJ détachés dotés d'un identifiant socle ; `supabase.js` expose le rappel radio et la lecture du groupe. Le serveur vérifie les radios, l'autorité, l'état de l'unité et la même ville. Ce bouton ne simule aucun déplacement, mais la validation UI et le serveur n'ont pas encore fait l'objet d'une recette de bout en bout.
+- **Important : incomplet** : mouvement synchronisé de plusieurs PJ, groupe PJ+PNJ en combat, interception d'un PJ recherché accompagné, UX de rappel radio des PNJ, persistance/hydratation `state.group`, tests PostgreSQL authentifiés et contrôle des migrations avec vraie exécution. Le seul ajout d'une table d'adhésion ne constitue **pas** un groupe universel complet. Ne pas mettre en production.
+- **Vestiges de l'ancienne règle** : ne pas supprimer avant que tous les mécanismes de remplacement soient codés/testés conformément à la demande de Fred. Le flux local `state.group` et la reprise cliente `recupererPnjDansGroupe` restent à remplacer.
+- Prévol Supabase confirme `personnages_donnees.name` unique et l'ancre de patch `pnj_transferer`. Aucune donnée PJ modifiée.
+
+
+### Groupes universels — vérification radio (28/10, ChatGPT)
+
+- Branche `chatgpt/reprise-securite-135-20261028`, dérivée de l'audit corrigé de Codex ; PR #217 de prévol. Ne pas fusionner l'ensemble du #135 sans tests serveur et recette authentifiée.
+- Décisions de Fred consignées dans `outils/audits/REGLES-GROUPES-UNIVERSELS-20261028.md` : autorité administrative distincte du commandement, groupes PJ/PNJ, engagement collectif, rappel radio unique déplacement autonome, deux radios nécessaires et **même ville obligatoire**.
+- **Code ajouté :** migration `20261028122000_radio_ordres_meme_ville.sql` appliquant la restriction *même ville* dans la RPC existante `militaire_ordre_collectif` pour ses ordres transmis par radio. `plateau-politique.js` annonce explicitement `radio_hors_ville`. Aucun nouveau moteur ni déplacement créé. Banc `banc-radio-ordres-meme-ville-20261028.sql` exécuté en lecture seule sur la production, ancre unique validée.
+- Reprise PNJ : migration `20261028122500_reprise_pnj_autorite_administrative.sql` créée, avec banc `banc-reprise-autorite-universelle-20261028.sql` vérifié en lecture seule. Elle sépare l'autorité administrative du simple commandement : un chef ne peut reprendre des PNJ prêtés après les avoir détachés. Non déployée.
+- **Reste essentiel :** implémenter le groupe PJ persistant, les prêts inter-administrations, le rappel universel d'un groupe PNJ et son déplacement autorisé, le combat collectif, la prise en compte des groupes lors des interceptions, vérifier les affectations et les radios d'équipement des PNJ hors armée. Le correctif de portée radio est **préparé mais non appliqué** en production.
+- Éviter de fusionner indépendamment les PR #212/#216/#217 tant que leur dépendance et leur faisabilité n'ont pas été testées. Aucun joueur réel modifié.
+
+
 ### Audit indépendant sécurité #135 / PR #212 — Codex, 28/10
 
 - **Audit local livré, non déployable.** Code sauvegardé : `ba3d267f`, `2f4b6551`, `b95b29ef` ; contre-épreuves et preuves : `9198e6ec`. Huit échecs techniques sur l'original, distincts de la nouvelle garde de reprise (testée sans imputer un faux défaut au schéma initial). Création d'une PR d'audit en brouillon réellement tentée : GraphQL Forbidden, aucun numéro créé. Branche distante disponible pour relecture ; #212 reste inchangée à `7c91ef1b`, main inchangé à `3efca838` lors de la vérification Git finale. Pas de fusion ni application en production. Les dépendances encore ouvertes sont détaillées dans le rapport A–F.

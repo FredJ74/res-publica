@@ -6401,6 +6401,16 @@ async function sbPnjPrendre(pnjIds) {
   return await sbRpc('pnj_prendre', { p_ids: pnjIds });
 }
 
+// Rappel radio : même ville, autorité administrative et radios des deux côtés.
+// Le serveur recompose le groupe ; ne jamais simuler son déplacement côté client.
+async function sbPnjRappelerRadio(ancreId) {
+  return await sbRpc('pnj_rappeler_radio', { p_ancre: ancreId });
+}
+
+async function sbGroupePjLire() {
+  return await sbRpc('groupe_pj_lire', {});
+}
+
 // DONNER / RETIRER de l'argent. 'donner' va du PJ vers le PNJ. Atomique cote serveur.
 async function sbPnjArgentTransferer(pnjId, montant, sens) {
   return await sbRpc('pnj_argent_transferer', {
