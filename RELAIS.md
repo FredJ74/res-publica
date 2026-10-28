@@ -1,3 +1,11 @@
+## #219 — pays physiques et autorité en voyage, Codex 28/10, EN COURS
+
+- Reprise après `d2682feb`, même branche/PR, main inchangé `c10c1083`. #215 lue par Git : profils de dialogue, pas une porte d'embarquement. API commentaires #219 Forbidden, un seul essai ; aucun connecteur Supabase exposé. Aucun déploiement.
+- Préparé et testé : `position_pays` au socle PNJ pour la position détachée, pays effectif du chef pendant le suivi ; jamais changement du pays institutionnel. Dépose/ancre, co-présence et reprises à l'étranger conservées, gardes de navigation lisant le lieu effectif. Trigger interdit un PATCH direct et prévol refuse sa désactivation. Résolveur policier lit le registre existant `postes_attribues`, pas le pays courant du personnage ; prévol refuse les mandats historiques non attestés, aucune attribution automatique.
+- **148/148 SQL natifs locaux**, dont les 141 acquis. Contre-épreuves précédant les deux derniers contrôles : 4/146 rouges avec le pays d'origine forcé comme position ; 3/146 avec l'ancien résolveur policier. Preuves dédiées `preuves-groupes-219-pays-20261028/`. Pas une preuve de billet international : le décor de changement de pays est explicite.
+- Nouvel arbitrage de Fred consigné : les PNJ ne sont pas convoqués, seuls les PJ le sont ; aucun transfert automatique de responsabilité au payeur. Douanes et billet international à poursuivre puis combats/interceptions. Les corps historiques de `justice_executer_condamnation_soi` et des RPC police de #46 ont été retrouvés dans Git ; ils ne sont pas déclarés identiques au serveur vivant.
+- **Toujours NON TERMINÉ, aucune fusion ni migration Supabase.** Le lot ne clôture ni le contrôle douanier ni les combats. Les essais/recherche du prochain lot se poursuivent ; ne pas redémarrer l'inventaire de Claude.
+
 ## #219 — transports collectifs : arbitrage raccordé, Codex 28/10, EN COURS
 
 - Même branche `codex/groupes-universels-20261028`, PR #219 ; ce lot remplace explicitement l'attente de tarification du point de sauvegarde `8c2904dc`. Règle de Fred consignée dans `outils/audits/REGLES-GROUPES-UNIVERSELS-20261028.md` : le leader paie tous les PJ/PNJ, coût en PA de l'ordre inchangé.

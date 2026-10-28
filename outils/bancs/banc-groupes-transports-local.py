@@ -4,7 +4,7 @@ import importlib.util,re,sys,subprocess,json
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('lots',R/'outils/bancs/banc-groupes-lots-dynamiques-local.py');lots=importlib.util.module_from_spec(sp);sp.loader.exec_module(lots)
-def suite(ctx):
+def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
  q.execute("CREATE SCHEMA IF NOT EXISTS auth;CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$")
  q.execute('ALTER TABLE personnages_donnees ADD COLUMN arg integer DEFAULT 500, ADD COLUMN liquide integer DEFAULT 500')
@@ -155,6 +155,7 @@ def suite(ctx):
    q.execute('SELECT count(*) FROM navigation_requetes');assert q.fetchone()[0]==1
   finally:un.rollback();deux.rollback();un.close();deux.close()
  cas('transport_deux_commandes_concurrentes_meme_recu_un_seul_debit',concurrence)
+ if suivante is not None:suivante(ctx)
 
 if __name__=='__main__':
  amb=lots.amb;rondes=amb.rondes;interieur=rondes.interieur;natif=interieur.natif;rue=natif.rue;f=rue.force

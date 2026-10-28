@@ -61,3 +61,11 @@ de paiement et de déplacement, sans deuxième billetterie ni nouveau tarif.
 Exemple validé : tarif 100 FR, leader + deux PJ + quatre PNJ = sept voyageurs,
 soit **700 FR payés par le leader**. Cette décision remplace l'attente d'arbitrage
 consignée au point de sauvegarde `8c2904dc` ; aucun transport PNJ gratuit n'est retenu.
+
+## Convocations douanières des accompagnants — Fred, 28/10/2026
+
+Un PNJ accompagnant n'est pas convoqué : seuls les PJ le sont. Un PNJ n'a pas
+de mobilité autonome ordinaire. La responsabilité judiciaire n'est pas transférée
+à un PJ du seul fait qu'il paie le transport ou commande le groupe. Les contrôles
+des objets et les confiscations existantes restent applicables ; cette décision
+ne crée pas de dispense de contrôle pour les possessions PNJ.
