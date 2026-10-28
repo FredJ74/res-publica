@@ -9,6 +9,6 @@ const fin = src.indexOf('function ', debut + 25);
 const code = src.slice(debut, fin < 0 ? undefined : fin);
 assert.match(code, /state\\.personnageChargeDepuisServeur = !!sbState/, 'seule une fiche reelle revalide la sauvegarde');
 assert.match(code, /fiche masquée : aucune autorité locale/);
-assert.match(code, /echec reseau[\\s\\S]{0,180}personnageChargeDepuisServeur = false|personnageChargeDepuisServeur = false;[\\s\\S]{0,200}Pas de nom/, 'le rejet reseau ferme le portillon');
+assert.match(code, /rpDiagId\\('reconciliation', 'EXCEPTION[\\s\\S]{0,320}personnageChargeDepuisServeur = false/, 'le rejet reseau ferme le portillon');
 assert.doesNotMatch(code, /personnageChargeDepuisServeur = true; \\/\\/ echec reseau/);
 console.log('OK — cache sans autorite apres echec de reconciliation');
