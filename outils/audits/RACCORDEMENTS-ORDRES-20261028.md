@@ -41,3 +41,11 @@ Les chantiers de sécurité privée #135 et d'inventaire sont en cours chez Code
 - Distinguer contrôle aléatoire de conformité d'une caisse et procédure de dédouanement/paiement : ne pas confondre les deux fonctions ni modifier leurs règles par simple analogie.
 
 Ces deux déploiements sont **des situations particulières raccordées au socle existant**, pas deux métiers ou moteurs de douane différents. Les règles non précisées (ex : sanctions suite à discordance de cargaison, paramètres de malus) ne doivent pas être inventées.
+
+### Complément de Fred — inspection portuaire et armes (28/10/2026)
+
+- **Port industriel :** sur la **caisse sur trois effectivement inspectée**, les douaniers vérifient aussi la présence d'armes ; toute **arme non déclarée découverte dans cette caisse est saisie** en utilisant le mécanisme de saisie existant, après vérification de sa déclaration.
+- Les douaniers du port peuvent également détecter un PJ recherché et tenter de l'interpeller selon les mécanismes communs.
+- **Ils ne fouillent jamais un PJ qui n'est pas recherché.** Le contrôle de cargaison n'autorise pas à fouiller indistinctement les voyageurs au port.
+- Ne pas confondre : contrôle d'inventaire personnel à l'aéroport, inspection de cargaison au port. Le taux d'inspection (une caisse sur trois) concerne les caisses, pas les PJ.
+- La règle d'inspection corporelle d'un PJ recherché au port n'est pas détaillée au-delà de sa détection/interpellation ; ne pas inventer de conséquences supplémentaires.
