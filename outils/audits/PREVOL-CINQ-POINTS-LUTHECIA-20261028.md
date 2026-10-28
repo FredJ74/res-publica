@@ -40,3 +40,9 @@ Périmètre indépendant des travaux groupes (Codex) et inventaire (Claude). Lec
 ## État et règles de sauvegarde
 
 Banc versionné : `outils/bancs/banc-luthecia-controle-navigation-banque-20261028.sql`, exécuté en lecture seule sur Supabase. Un correctif défensif du transport REST est codé dans `supabase.js` mais non exécuté en production. Aucun mouvement fictif, aucune migration appliquée, aucun déploiement engagé. **L'origine des interruptions de réception réelles reste à confirmer par des traces et des tests.**
+
+## Complément de vérification — 28/10
+
+- PR #218, commit `d5893c21a1f6fb08ab308847119c613dc33fcece` : cinq workflows associés au commit terminés en **succès** (cohérence client/transports simulés, placements, calendrier, payload Vercel, cinq terrains). Journal du job `122922916172` : exécution explicite `OK  banc-reception-rest-20261028.cjs`. Cela valide le banc dans la CI, **pas** un scénario connecté en jeu.
+- Supabase vivant, requêtes **SELECT uniquement** : prêt national `travaux` de **Jean Jaaj** de 100 000 FR, créé le 18/10/2026 à 19:54 UTC, capital restant 76 997 FR et statut `en_cours`. Deux comptes rattachés à ce nom, banque `nationale` (solde 2 711 FR) et `helvetia` (88 920 FR). Le prêt apparaît deux fois **uniquement à cause de la jointure sur les deux comptes** : aucune preuve de prêt dupliqué. Les soldes instantanés ne prouvent ni le versement initial ni sa destination. Ne rien créditer manuellement.
+- Recherche de tables de mouvements bancaires par nom : aucune table générale explicite `transactions_bancaires` ou `mouvements_bancaires` détectée ; l'audit du flux de crédit doit se poursuivre à partir des RPC et de leur journalisation réelle, plutôt que d'inférer un transfert depuis les soldes actuels.
