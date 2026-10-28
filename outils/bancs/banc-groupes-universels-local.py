@@ -78,7 +78,7 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
   c.commit()
   def sql(s):q.execute(s)
   def rpc(nom,args=(),qui='A',cur=q):
-   uid={'A':1,'B':2,'C':3}.get(qui)
+   uid={'A':1,'B':2,'C':3,'D':4}.get(qui)
    cur.execute("SELECT set_config('request.jwt.claim.sub',%s,true),set_config('request.path',%s,true),set_config('role','authenticated',true)",(f'00000000-0000-4000-8000-{uid:012d}' if uid else '', '/rpc/'+nom))
    cur.execute('SELECT '+nom+'('+','.join(['%s']*len(args))+')',args);v=cur.fetchone()[0];cur.execute('RESET ROLE');return v
   def exige(v,raison=None):

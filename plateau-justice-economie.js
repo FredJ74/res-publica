@@ -8987,6 +8987,7 @@ async function doRecruterPolicierCynophile(pa, cost) {
 
 // ---- GESTION / AFFECTATION ----
 async function ouvrirGererEffectifsPolice() {
+  const origine = contexteGroupePj();
   const check = commissaireLocalValide();
   if (!check.ok) {
     showToast(check.raison === 'poste' ? 'Réservé au Commissaire' : 'Hors juridiction', '', false);
@@ -8995,6 +8996,7 @@ async function ouvrirGererEffectifsPolice() {
   const pays = state.country || 'republic';
   const ville = check.ville;
   const effectifs = await chargerEffectifsPolice(pays, ville);
+  if (!contexteGroupePjValide(origine)) return;
 
   document.getElementById('postes-modal-title').textContent = 'Gérer mes effectifs';
   let html = '<div style="padding:1rem">';
@@ -9009,9 +9011,8 @@ async function ouvrirGererEffectifsPolice() {
       html += '<div style="font-size:.82rem;color:#c0b090;margin-bottom:.3rem">' + p.matricule + ' — PER ' + p.stats.PER + ', VOL ' + p.stats.VOL + (p.type === 'cynophile' ? ' — Unité cynophile (' + p.maitreNom + ' & ' + p.chienNom + ')' : '') + '</div>';
       html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.4rem">' + affectation + '</div>';
       html += '<div style="display:flex;gap:.4rem">';
-      html += '<button onclick="doOuvrirAffectationRoom(\'' + p.matricule + '\')" style="flex:1;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter (pièce)</button>';
-      html += '<button onclick="doOuvrirAffectationRue(\'' + p.matricule + '\')" style="flex:1;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter (rue)</button>';
-      if (p.buildingId || p.rueNoeudId) html += '<button onclick="doRappelerPolicier(\'' + p.matricule + '\')" style="flex:1;font-size:.72rem;padding:.35rem;border:1px solid #4a6a8a;background:transparent;color:#5a8ad0;cursor:pointer">Rappeler</button>';
+      html += '<button onclick="doOuvrirAffectationRoom(\'' + p.matricule + '\')" style="flex:1;font-size:.72rem;padding:.35rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Déployer / conduire</button>';
+      if (p.buildingId || p.rueNoeudId) html += '<button onclick="doRappelerPolicier(\'' + p.matricule + '\')" style="flex:1;font-size:.72rem;padding:.35rem;border:1px solid #4a6a8a;background:transparent;color:#5a8ad0;cursor:pointer">Reprendre / radio</button>';
       html += '</div></div>';
     });
   }
@@ -9021,25 +9022,7 @@ async function ouvrirGererEffectifsPolice() {
 }
 
 async function doOuvrirAffectationRoom(matricule) {
-  const check = commissaireLocalValide();
-  if (!check.ok) return;
-  const pays = state.country || 'republic';
-  const ville = check.ville;
-  const buildings = (WORLD[pays]?.[ville]?.buildings || []);
-
-  document.getElementById('postes-modal-title').textContent = 'Affecter ' + matricule + ' à une pièce';
-  let html = '<div style="padding:1rem">';
-  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Bâtiment</label>';
-  html += '<select id="affect-building" onchange="majSelectRoomsAffectation()" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.6rem">';
-  buildings.forEach(bId => { if (BUILDINGS[bId]) html += '<option value="' + bId + '">' + (BUILDINGS[bId].shortName || BUILDINGS[bId].name) + '</option>'; });
-  html += '</select>';
-  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Pièce</label>';
-  html += '<select id="affect-room" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem"></select>';
-  html += '<button onclick="confirmerAffectationRoom(\'' + matricule + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter</button>';
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
-  majSelectRoomsAffectation();
+  return ouvrirDepotPoliceCommun(matricule);
 }
 
 // Fusionne BUILDINGS[bId].rooms avec les rooms ajoutees localement via
@@ -9062,22 +9045,9 @@ function majSelectRoomsAffectation() {
   roomSelect.innerHTML = Object.keys(rooms).map(rId => '<option value="' + rId + '">' + (rooms[rId].name || rId) + '</option>').join('');
 }
 
-async function confirmerAffectationRoom(matricule) {
-  const buildingId = document.getElementById('affect-building')?.value;
-  const roomId = document.getElementById('affect-room')?.value;
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const check = commissaireLocalValide();
-  if (!check.ok || !buildingId || !roomId) return;
-  const pays = state.country || 'republic';
-  const ville = check.ville;
-  const effectifs = await chargerEffectifsPolice(pays, ville);
-  const p = effectifs.policiers.find(x => x.matricule === matricule);
-  if (!p) return;
-  p.buildingId = buildingId; p.roomId = roomId; p.rueNoeudId = null;
-  await sauvegarderEffectifsPolice(pays, ville, effectifs);
-  updateUI();
-  showToast('Policier affecté', matricule + ' surveille désormais ' + (resoudreNomRoomAffectation(buildingId, roomId) || roomId) + '.', true, true);
-  addJournalEntry('Policier ' + matricule + ' affecté à ' + (BUILDINGS[buildingId]?.shortName || buildingId) + '.', 'event-info');
+async function confirmerAffectationRoom(matricule, encode) {
+  if (encode) { try { matricule = decodeURIComponent(matricule); } catch (_) { return false; } }
+  return commanderPoliceGroupe(matricule, 'deposer');
 }
 
 // Prefixes d'id de noeuds de rue par ville (republic uniquement, seul empire couvert par
@@ -9086,58 +9056,16 @@ async function confirmerAffectationRoom(matricule) {
 const PREFIXE_RUE_PAR_VILLE = { capitale: 'luthecia-', ville_a: 'psm-', ville_b: 'montrouge-' };
 
 async function doOuvrirAffectationRue(matricule) {
-  const check = commissaireLocalValide();
-  if (!check.ok) return;
-  const ville = check.ville;
-  const prefixe = PREFIXE_RUE_PAR_VILLE[ville];
-  const noeuds = (typeof RUE_CENTRALE_NOEUDS !== 'undefined' && prefixe)
-    ? Object.keys(RUE_CENTRALE_NOEUDS.republic || {}).filter(id => id.startsWith(prefixe))
-    : [];
-
-  document.getElementById('postes-modal-title').textContent = 'Affecter ' + matricule + ' à une rue';
-  let html = '<div style="padding:1rem">';
-  if (noeuds.length === 0) {
-    html += '<div style="font-size:.85rem;color:#8a8060">Aucune vue de rue disponible pour cette ville.</div>';
-  } else {
-    html += '<select id="affect-rue" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.8rem">';
-    noeuds.forEach(id => { html += '<option value="' + id + '">' + id + '</option>'; });
-    html += '</select>';
-    html += '<button onclick="confirmerAffectationRue(\'' + matricule + '\')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Affecter</button>';
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  return ouvrirDepotPoliceCommun(matricule);
 }
 
 async function confirmerAffectationRue(matricule) {
-  const rueNoeudId = document.getElementById('affect-rue')?.value;
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const check = commissaireLocalValide();
-  if (!check.ok || !rueNoeudId) return;
-  const pays = state.country || 'republic';
-  const ville = check.ville;
-  const effectifs = await chargerEffectifsPolice(pays, ville);
-  const p = effectifs.policiers.find(x => x.matricule === matricule);
-  if (!p) return;
-  p.buildingId = null; p.roomId = null; p.rueNoeudId = rueNoeudId;
-  await sauvegarderEffectifsPolice(pays, ville, effectifs);
-  updateUI();
-  showToast('Policier affecté', matricule + ' patrouille désormais cette rue.', true, true);
-  addJournalEntry('Policier ' + matricule + ' affecté en patrouille de rue.', 'event-info');
+  return commanderPoliceGroupe(matricule, 'deposer');
 }
 
-async function doRappelerPolicier(matricule) {
-  const check = commissaireLocalValide();
-  if (!check.ok) return;
-  const pays = state.country || 'republic';
-  const ville = check.ville;
-  const effectifs = await chargerEffectifsPolice(pays, ville);
-  const p = effectifs.policiers.find(x => x.matricule === matricule);
-  if (!p) return;
-  p.buildingId = null; p.roomId = null; p.rueNoeudId = null;
-  await sauvegarderEffectifsPolice(pays, ville, effectifs);
-  updateUI();
-  showToast('Policier rappelé', matricule + ' revient disponible au commissariat.', true, true);
+async function doRappelerPolicier(matricule, encode) {
+  if (encode) { try { matricule = decodeURIComponent(matricule); } catch (_) { return false; } }
+  return commanderPoliceGroupe(matricule, 'reprendre');
 }
 
 // ---- AFFICHAGE DE PRESENCE (piece / rue) ----
@@ -15396,4 +15324,70 @@ async function confirmerGreffeCorrompreFauxCasier() {
     addJournalEntry('Faux casier vierge obtenu au greffe.', 'event-bad');
   }
   updateUI();
+}
+
+// Anciennes affectations : seules les portes PNJ communes décident de la position.
+// Pas de téléportation d'un agent depuis un blob fourni par le navigateur.
+let RP_POLICE_GROUPE_COMMANDE = null;
+function referencePnjPolice(pays, ville, matricule) {
+  return 'police-' + pays + '-' + ville + '-' + matricule;
+}
+async function lireAgentPoliceCommun(matricule) {
+  const check = commissaireLocalValide();
+  if (!check.ok || typeof sbPnjUnitesAdministrablesLire !== 'function') return null;
+  const r = await sbPnjUnitesAdministrablesLire().catch(() => null);
+  if (!r || r.ok !== true || !Array.isArray(r.membres)) return null;
+  const id = referencePnjPolice(state.country, check.ville, matricule);
+  const agent = r.membres.find(m => m.id === id && m.famille === 'policier');
+  if (!agent || agent.peut_administrer !== true || agent.mouvement_individuel !== true) return null;
+  return {agent, membres: r.membres};
+}
+async function ouvrirDepotPoliceCommun(matricule) {
+  const c = contexteGroupePj();
+  const reel = await lireAgentPoliceCommun(matricule);
+  if (!contexteGroupePjValide(c)) return;
+  if (!reel) {
+    showToast('Commandes indisponibles', 'Le serveur ne confirme pas votre autorité ou le raccordement de cet agent.', false);
+    return;
+  }
+  const ech = typeof escapeHtmlText === 'function' ? escapeHtmlText : t => String(t).replace(/[&<>"']/g, v => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[v]));
+  const code = encodeURIComponent(matricule).replace(/'/g, '%27');
+  document.getElementById('postes-modal-title').textContent = 'Conduite de ' + matricule;
+  document.getElementById('postes-body').innerHTML = '<div class="cpj-note">Conduisez cet agent avec votre groupe, puis déployez-le sur votre position réelle. Un rappel à distance nécessite les radios et la même ville.</div>'
+    + (reel.agent.leader_pj === c.nom
+      ? '<button class="cpj-touche" onclick="confirmerAffectationRoom(\'' + code + '\',true)">Déployer sur ma position</button>'
+      : '<button class="cpj-touche" onclick="doRappelerPolicier(\'' + code + '\',true)">Reprendre / rappeler par radio</button>')
+    + '<div class="cpj-note">Agent : ' + ech(reel.agent.nom) + '</div>';
+  document.getElementById('modal-postes').classList.add('open');
+}
+async function commanderPoliceGroupe(matricule, action) {
+  const c = contexteGroupePj();
+  if (RP_POLICE_GROUPE_COMMANDE && contexteGroupePjValide(RP_POLICE_GROUPE_COMMANDE)) return false;
+  RP_POLICE_GROUPE_COMMANDE = c;
+  try {
+    const reel = await lireAgentPoliceCommun(matricule);
+    if (!contexteGroupePjValide(c)) return false;
+    if (!reel) {
+      showToast('Commande refusée', 'Le serveur ne confirme pas votre autorité ou le raccordement de cet agent.', false);
+      return false;
+    }
+    let r;
+    try {
+      if (action === 'deposer') {
+        // Aucun lieu demandé par le navigateur : « ici » est résolu côté serveur.
+        r = await sbRpc('pnj_deployer_unite', {p_pnj_ids: [reel.agent.id], p_groupe: false}, {encoreValide: () => contexteGroupePjValide(c)});
+      } else if (action === 'reprendre' && reel.agent.co_present === true) {
+        const ids = reel.agent.leader_pnj_id ? [reel.agent.id]
+          : reel.membres.filter(m => m.id === reel.agent.id || m.leader_pnj_id === reel.agent.id).map(m => m.id);
+        r = await sbPnjPrendre(ids, {encoreValide: () => contexteGroupePjValide(c)});
+      } else if (action === 'reprendre') {
+        r = await sbPnjRappelerRadio(reel.agent.id, {encoreValide: () => contexteGroupePjValide(c)});
+      } else return false;
+    } catch (_) { r = null; }
+    if (!contexteGroupePjValide(c)) return false;
+    const ok = signalerResultatGroupePnj(r, 'Commande confirmée', 'Le serveur a confirmé la position de cet agent.');
+    // Une perte de réponse impose une lecture, jamais un second ordre.
+    await ouvrirGererEffectifsPolice();
+    return ok;
+  } finally { if (RP_POLICE_GROUPE_COMMANDE === c) RP_POLICE_GROUPE_COMMANDE = null; }
 }

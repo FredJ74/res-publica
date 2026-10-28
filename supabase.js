@@ -6332,8 +6332,8 @@ async function sbPnjMembresIci(pays, ville, building, room, rueNoeud) {
 
 // Quitter le groupe : la position est MATERIALISEE avant que le lien soit rompu, donc le PNJ
 // reste exactement la ou il etait. La propriete ne change pas.
-async function sbPnjQuitterGroupe(pnjIds) {
-  return await sbRpc('pnj_quitter_groupe', { p_ids: pnjIds });
+async function sbPnjQuitterGroupe(pnjIds, options) {
+  return await sbRpc('pnj_quitter_groupe', { p_ids: pnjIds }, options);
 }
 
 // =====================================================================
@@ -6417,14 +6417,14 @@ async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj) {
 }
 
 // Reprendre dans son groupe des PNJ laisses sur place (co-presence exigee).
-async function sbPnjPrendre(pnjIds) {
-  return await sbRpc('pnj_prendre', { p_ids: pnjIds });
+async function sbPnjPrendre(pnjIds, options) {
+  return await sbRpc('pnj_prendre', { p_ids: pnjIds }, options);
 }
 
 // Rappel radio : même ville, autorité administrative et radios des deux côtés.
 // Le serveur recompose le groupe ; ne jamais simuler son déplacement côté client.
-async function sbPnjRappelerRadio(ancreId) {
-  return await sbRpc('pnj_rappeler_radio', { p_ancre: ancreId });
+async function sbPnjRappelerRadio(ancreId, options) {
+  return await sbRpc('pnj_rappeler_radio', { p_ancre: ancreId }, options);
 }
 
 function sbGroupePjValide(v, nom) {
@@ -6436,6 +6436,11 @@ function sbGroupePjValide(v, nom) {
 function sbGroupePjNormaliser(v, nom) {
   if (!sbGroupePjValide(v, nom)) return null;
   return v.membres.length > 1 ? { leader: v.chef, members: v.membres.slice() } : null;
+}
+
+// Projection d'autorité/commandement pour les consultations et rappels explicites.
+async function sbPnjUnitesAdministrablesLire() {
+  return await sbRpc('pnj_unites_administrables_lire', {});
 }
 
 async function sbGroupePjLire() {

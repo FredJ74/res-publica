@@ -7,7 +7,7 @@ from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('groupes',R/'outils/bancs/banc-groupes-universels-local.py');g=importlib.util.module_from_spec(sp);sp.loader.exec_module(g)
 
-def extension(ctx):
+def extension(ctx, suite=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
  a=g.audit
  tables=(R/'baseline/domaines/socle-PNJ/10_tables.sql').read_text()
@@ -183,6 +183,8 @@ def extension(ctx):
    assert 'ordre_militaire_definition_non_examinee' in str(e),e
    sql('ROLLBACK TO SAVEPOINT derive')
  cas('migration_refuse_porte_militaire_vivante_differente',derive_refusee)
+
+ if suite is not None:suite(ctx)
 
 
 
