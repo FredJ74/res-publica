@@ -279,7 +279,51 @@ function batimentHospitalisation() {
   return state.hospitalisation.lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
 }
 
+// Le jeton ci-dessous autorise uniquement le rendu du verdict qui vient d'être lu.
+// Il ne donne aucun droit au serveur ; aucun champ financier/inventaire n'est adopté.
+let navigationInterieureEnCours=null;
+let navigationInterieureRendu=null;
+async function commanderNavigationInterieure(buildingId,roomId) {
+  const c=contexteNavigationRue();
+  if(navigationInterieureEnCours&&contexteNavigationRueValide(navigationInterieureEnCours))return false;
+  navigationInterieureEnCours=c;
+  try {
+    const options={encoreValide:()=>contexteNavigationRueValide(c)};
+    let v=await sbRpcVerdict('navigation_interieure',{p_batiment:buildingId,p_piece:roomId},options).catch(()=>null);
+    if(!contexteNavigationRueValide(c))return false;
+    let r=v&&typeof v.ok==='boolean'&&!v.transport?v:null;
+    if(Array.isArray(r))r=r[0];
+    // Une réponse perdue se vérifie par lecture, jamais par une seconde mutation.
+    if(!r){
+      const lu=await sbRpcVerdict('rue_position_lire',{},options).catch(()=>null);
+      if(!contexteNavigationRueValide(c))return false;
+      const p=Array.isArray(lu)?lu[0]:lu;
+      if(p?.ok===true&&p.city===state.currentCity&&p.country===state.country&&p.building===buildingId&&p.room===roomId)
+        r={ok:true,building:p.building,room:p.room,positions:[],reconcilie:true};
+    }
+    if(r?.ok!==true||r.building!==buildingId||r.room!==roomId){
+      if(typeof showToast==='function')showToast('Déplacement non confirmé',r?.raison||'La position serveur n’a pas confirmé cette entrée. Réessayez la consultation.',false);
+      return false;
+    }
+    const moi=r.positions?.find(p=>p.name===state.char?.name);
+    if(moi?.updated_at)state._dernierUpdatedAtConnu=moi.updated_at;
+    navigationInterieureRendu={buildingId,roomId};
+    try {
+      if(state.currentBuilding!==buildingId)enterBuilding(buildingId,true);
+      enterRoom(buildingId,roomId,null);
+    } finally {navigationInterieureRendu=null;}
+    return true;
+  } finally {if(navigationInterieureEnCours===c)navigationInterieureEnCours=null;}
+}
+
 function enterBuilding(buildingId, skipAutoRoom) {
+  if(state._navigationServeur===true&&state.currentBuilding!==buildingId
+      &&navigationInterieureRendu?.buildingId!==buildingId){
+    const b=BUILDINGS[buildingId],ctx=getBuildingContext(buildingId);
+    const piece=Object.keys({...b?.rooms,...ctx?.roomsExtra}).find(r=>!ctx?.roomsExclues?.includes(r)&&!ctx?.roomsMasquees?.includes(r));
+    if(!piece)return;
+    return commanderNavigationInterieure(buildingId,piece);
+  }
   if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
@@ -577,6 +621,9 @@ function renderOngletsPieces(buildingId, roomActifId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  if(state._navigationServeur===true&&(state.currentBuilding!==buildingId||state.currentRoom!==roomId)
+      &&!(navigationInterieureRendu?.buildingId===buildingId&&navigationInterieureRendu?.roomId===roomId))
+    return commanderNavigationInterieure(buildingId,roomId);
   if ((buildingId === 'terrain-a-batir-2' && roomId === 'terrain2') ||
       (buildingId === 'terrain-a-batir-3' && roomId === 'terrain3')) roomId = 'terrain';
   if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;

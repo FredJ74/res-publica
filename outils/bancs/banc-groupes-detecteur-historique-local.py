@@ -7,7 +7,7 @@ import importlib.util,json,hashlib,sys
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('rue',R/'outils/bancs/banc-groupes-rue-local.py');rue=importlib.util.module_from_spec(sp);sp.loader.exec_module(rue)
-def suite(ctx):
+def suite(ctx, suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']];audit=rue.force.corps.g.audit
  sources=json.loads((R/'outils/bancs/fixtures/groupes-corps-git-20261028.json').read_text())['sources']
  for s in sources:assert hashlib.sha256(s['sql'].encode()).hexdigest()==s['sha256']
@@ -76,6 +76,7 @@ def suite(ctx):
  cas('combat_coup_authentique_primitif_inaccessible_au_client',prive)
  ctx['preuves_extension']['detecteur']='Corps historique Git, pas le dernier relevé vivant ; justice éligibilité fictive, vrai hasard PostgreSQL.'
  ctx['preuves_extension']['combat']='Calcul du coup authentique et dépendances militaires, pas un round mixte ni une détention.'
+ if suivante is not None:suivante(ctx)
 if __name__=='__main__':
  f=rue.force
  sys.exit(f.corps.g.main(lambda c:f.corps.extension(c,lambda c:f.suite(c,lambda c:rue.suite(c,suite)))))

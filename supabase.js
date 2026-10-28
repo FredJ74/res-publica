@@ -655,6 +655,9 @@ function sbPayloadPersonnage(charState) {
     reservation_hotel: charState.char?.reservationHotel || null,
     updated_at:       new Date().toISOString()
   };
+  if (charState._navigationServeur === true) {
+    for (const cle of ['country','current_city','current_building','current_room','current_street']) delete data[cle];
+  }
   return data;
 }
 
@@ -695,7 +698,7 @@ function sbEnfilerEcriturePersonnage(charState, data) {
     // Les autres champs restent le snapshot original (notamment les deltas de POP).
     // La position est lue au MOMENT de l'ecriture, apres les taches precedentes.
     // On ne la prend que si ce personnage est toujours le personnage actif.
-    if (typeof state !== 'undefined' && state.char?.name === data.name
+    if (charState._navigationServeur !== true && typeof state !== 'undefined' && state.char?.name === data.name
         && state.personnageChargeDepuisServeur !== false) {
       data.country = state.country || data.country;
       data.current_city = state.currentCity || data.current_city;
@@ -860,6 +863,7 @@ async function sbLoadPersonnage(name) {
     updatedAt: r.updated_at || null,
     group: sbGroupePjNormaliser(groupePj, r.name),
     _groupeConfirme: sbGroupePjValide(groupePj, r.name),
+    _navigationServeur: groupePj?.navigation_serveur === true,
     // PROPRIETAIRE DE LA FICHE (21 septembre 2026). Cette colonne etait la, dans la reponse, et
     // le mapping la jetait. Elle est pourtant la seule qui permette de savoir, SANS aucun appel
     // supplementaire, si la fiche recue est bien celle du compte connecte : personnages_donnees
@@ -2009,10 +2013,10 @@ function sbSauvegardeUrgenceDechargement() {
     hp: state.hp ?? 100,
     moral: state.moral ?? 75,
     resources: ressourcesAvecBasePop(state, { inf: state.inf ?? 0, pop: state.pop ?? 0, dis: state.dis ?? 50 }),
-    country: state.country || 'republic',
-    current_city: state.currentCity || 'capitale',
-    current_building: state.currentBuilding || null,
-    current_room: state.currentRoom || null
+    country: state._navigationServeur === true ? undefined : (state.country || 'republic'),
+    current_city: state._navigationServeur === true ? undefined : (state.currentCity || 'capitale'),
+    current_building: state._navigationServeur === true ? undefined : (state.currentBuilding || null),
+    current_room: state._navigationServeur === true ? undefined : (state.currentRoom || null)
   });
   try {
     // Fermer un onglet oublie ne doit pas republier ses soldes sur un etat

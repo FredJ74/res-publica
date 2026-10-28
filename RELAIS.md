@@ -1,3 +1,11 @@
+## Groupes universels — reprise entrées et protection des positions, Codex 28/10, EN COURS
+
+- Branche #219 conservée à partir de `31218e65` ; fetch main inchangé `c10c1083`. **Aucune fusion, migration appliquée ou production.**
+- Préparation du catalogue des pièces dérivé de WORLD/BUILDINGS (284 bâtiments, génération contrôlable), validation intérieure, composition et verrous uniques pour rue et intérieur. L'ancien moteur de rue reste la seule résolution des itinéraires ; garde commune prison/interception/combat/hospitalisation.
+- **101/101 SQL locaux**, dont les 86 acquis : deux PJ et sept PNJ font rue → hôtel → bar → restaurant → accueil → sortie → rue. Refus d'accès sans raccord, pièce inconnue, groupe dispersé, combat/incapacité et surcharge ; surcharge n'interdit pas de changer de pièce. Sauvegarde de position ancienne via une vue au rôle authenticated neutralisée par le garde de la table canonique, sans réécrire la fiche.
+- Client préparé derrière capacité annoncée par `groupe_pj_lire` : confirmation serveur avant rendu, double clic, garde de session, réponse perdue réconciliée par lecture. Payload normal/file/fermeture omet les positions après activation. Banc ciblé en cours et contrôleur complet lancé.
+- **Non déployable :** les portes spéciales (loge, embarquement, bureaux d'ambassades, chambres de clinique) restent explicitement refusées, pas ouvertes sur simple cache ; leurs validations existantes par membre restent à factoriser. Transports et autres écrivains RPC de position à vérifier avant activation du garde. Le catalogue ne remplace pas encore tous les locaux dynamiques. Combats mixtes/interception complète restent à réaliser ; ne pas présenter ce lot comme clôture.
+
 ## Groupes universels — lot unités distantes et preuves finales locales, 28/10, Codex
 
 - Même branche `codex/groupes-universels-20261028`, PR #219. Sauvegarde précédente `00b537f2`, après `e80efd80`. **CHANTIER NON TERMINÉ, aucune fusion ni migration ni livraison.**
