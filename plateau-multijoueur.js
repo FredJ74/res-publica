@@ -1948,33 +1948,41 @@ function calculerBonusCombatGroupe() {
 // =====================
 // SYSTEME DE GROUPE
 // =====================
-function rejoindrePJ(encodedPnj) {
-  let pnj;
-  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
-  const myName = state.char && state.char.name ? state.char.name : 'Joueur';
-  if (!state.group) {
-    state.group = { leader: pnj.name, members: [pnj.name, myName] };
-  } else {
-    if (!state.group.members.includes(myName)) state.group.members.push(myName);
+// Adhésion PJ volontaire : le serveur est la seule vérité.
+// Aucun effet de groupe appliqué sans acquittement de la RPC.
+async function rejoindrePJ(encodedPnj) {
+  let pj;
+  try { pj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+  if (!pj || !pj.name || typeof sbRpc !== 'function') return;
+  const r = await sbRpc('groupe_pj_rejoindre', { p_chef: pj.name }).catch(() => null);
+  if (!r || r.ok !== true) {
+    const motifs = {
+      pas_co_presents: 'Le chef doit être présent au même endroit.',
+      chef_deja_membre: 'Ce joueur appartient déjà à un autre groupe.',
+      chef_de_groupe: 'Quittez le commandement de votre groupe avant de rejoindre un autre groupe.',
+      chef_invalide: 'Chef de groupe invalide.'
+    };
+    showToast('Groupe non rejoint', motifs[r?.raison] || 'Raccordement serveur indisponible.', false);
+    return;
   }
-  if (state.employees && state.employees.length > 0) {
-    state.employees.forEach(function(e) {
-      if (!state.group.members.includes(e.name)) state.group.members.push(e.name);
-    });
-  }
+  const etat = await sbRpc('groupe_pj_lire', {}).catch(() => null);
+  state.group = etat?.ok && etat.membres ? { leader: etat.chef, members: etat.membres } : null;
   closePnjModal();
-  showToast('Groupe rejoint !', 'Vous avez rejoint le groupe de ' + pnj.name + '. Il est le leader.', true);
-  addJournalEntry('Vous avez rejoint le groupe de ' + pnj.name + '.', 'event-info');
+  showToast('Groupe rejoint', 'Vous avez rejoint le groupe de ' + pj.name + '.', true);
+  addJournalEntry('Vous avez rejoint le groupe de ' + pj.name + '.', 'event-info');
 }
 
-function quitterGroupe() {
-  const myName = state.char && state.char.name ? state.char.name : 'Joueur';
-  if (!state.group) return;
-  state.group.members = state.group.members.filter(function(m) { return m !== myName; });
-  if (state.group.members.length <= 1) state.group = null;
+async function quitterGroupe() {
+  if (typeof sbRpc !== 'function') return;
+  const r = await sbRpc('groupe_pj_quitter', {}).catch(() => null);
+  if (!r || r.ok !== true) {
+    showToast('Départ impossible', 'Le serveur n’a pas confirmé votre départ.', false);
+    return;
+  }
+  state.group = null;
   closePnjModal();
-  showToast('Groupe quitte', 'Vous avez quitte le groupe.', false);
-  addJournalEntry('Vous avez quitte le groupe.', '');
+  showToast('Groupe quitté', 'Vous avez quitté le groupe.', true);
+  addJournalEntry('Vous avez quitté le groupe.', '');
 }
 
 // Jeremy (quete d'accueil) rejoint le groupe via le meme systeme que les PNJ employes
