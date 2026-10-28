@@ -1,5 +1,7 @@
 -- Groupe PJ persistant : adhésion volontaire et autorité indépendante.
 -- L'appartenance n'accorde aucun droit d'administration sur les PNJ.
+-- PRÉPARATION SEULEMENT : l'absence de relation PJ équivalente doit être
+-- confirmée par export du catalogue vivant avant toute création en production.
 CREATE TABLE IF NOT EXISTS public.groupes_pj_adhesions (
  membre text PRIMARY KEY REFERENCES public.personnages_donnees(name) ON DELETE CASCADE,
  chef text NOT NULL REFERENCES public.personnages_donnees(name) ON DELETE CASCADE,
@@ -19,16 +21,20 @@ BEGIN
  IF p_chef IS NULL OR p_chef=moi THEN
    RETURN jsonb_build_object('ok',false,'raison','chef_invalide'); END IF;
  -- Le demandeur rejoint lui-même, aucun chef ne peut l'y contraindre.
- PERFORM pg_advisory_xact_lock(hashtextextended('groupe_pj:'||least(moi,p_chef),0));
+ PERFORM pg_advisory_xact_lock(hashtextextended('groupe_pj:graphe',0));
+ -- Un verrou de graphe commun aux adhésions et départs évite les cycles concurrents.
+ PERFORM name FROM public.personnages_donnees
+  WHERE name IN (moi,p_chef) ORDER BY name FOR UPDATE;
  SELECT country,current_city,current_building,current_room,current_street
  INTO a FROM public.personnages_donnees WHERE name=moi FOR UPDATE;
  SELECT country,current_city,current_building,current_room,current_street
  INTO b FROM public.personnages_donnees WHERE name=p_chef FOR UPDATE;
- IF a.current_city IS NULL OR b.current_city IS NULL
+ IF a.country IS NULL OR b.country IS NULL OR a.current_city IS NULL OR b.current_city IS NULL
     OR a.country IS DISTINCT FROM b.country OR a.current_city IS DISTINCT FROM b.current_city
     OR a.current_building IS DISTINCT FROM b.current_building
-    OR a.current_room IS DISTINCT FROM b.current_room
-    OR a.current_street IS DISTINCT FROM b.current_street THEN
+    OR (a.current_building IS NOT NULL AND a.current_room IS DISTINCT FROM b.current_room)
+    OR (a.current_building IS NULL AND (a.current_street IS NULL
+        OR a.current_street IS DISTINCT FROM b.current_street)) THEN
    RETURN jsonb_build_object('ok',false,'raison','pas_co_presents'); END IF;
  IF EXISTS(SELECT 1 FROM public.groupes_pj_adhesions WHERE membre=p_chef) THEN
    RETURN jsonb_build_object('ok',false,'raison','chef_deja_membre'); END IF;
@@ -45,7 +51,9 @@ DECLARE moi text;
 BEGIN
  moi:=public.mon_personnage();
  IF moi IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
- DELETE FROM public.groupes_pj_adhesions WHERE membre=moi;
+ PERFORM pg_advisory_xact_lock(hashtextextended('groupe_pj:graphe',0));
+ -- Un chef se sépare de ses membres ; leur position réelle ne change pas.
+ DELETE FROM public.groupes_pj_adhesions WHERE membre=moi OR chef=moi;
  RETURN jsonb_build_object('ok',true);
 END $g$;
 CREATE OR REPLACE FUNCTION public.groupe_pj_lire()
