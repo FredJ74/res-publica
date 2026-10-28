@@ -1,3 +1,21 @@
+-- Ne jamais remplacer une porte métier vivante différente du corps archivé examiné.
+-- Empreintes de prosrc calculées depuis ces corps, pas le relevé global du baseline.
+DO $prevol$
+DECLARE r record; p record;
+BEGIN
+ FOR r IN SELECT * FROM (VALUES
+ ('militaire_deposer_soldats(text,text,integer)','e4a5d169a3b0360c87434c58a97452d6','0f0625a217e96c312a1f94bdfe25d056'),
+ ('militaire_recuperer_soldats(text,text,integer)','b6fc2e40db24547f23c603938469b44d','75ae0d3956076c294e09c5e796cbba56'),
+ ('militaire_affecter_leader(text,text,integer,text)','31e7d4ecac7681f26e68be1c22eea016','2a0662cc1c638afd7161eaf8c4184ae8')
+ ) t(signature,ancienne,nouvelle) LOOP
+  SELECT prosrc,prosecdef,prorettype INTO p FROM pg_proc
+   WHERE oid=('public.'||r.signature)::regprocedure;
+  IF NOT p.prosecdef OR p.prorettype<>'jsonb'::regtype
+   OR md5(p.prosrc) NOT IN (r.ancienne,r.nouvelle) THEN
+   RAISE EXCEPTION 'ordre_militaire_definition_non_examinee: %',r.signature; END IF;
+ END LOOP;
+END $prevol$;
+
 -- #219 : conserver les interfaces historiques par nombre, déléguer les actes
 -- aux portes universelles. Aucune écriture de position dans ces trois adaptateurs.
 CREATE OR REPLACE FUNCTION public.militaire_deposer_soldats(p_compagnie_id text,p_section_id text,p_nb integer)

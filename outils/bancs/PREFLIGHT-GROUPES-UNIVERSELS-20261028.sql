@@ -1,3 +1,5 @@
+-- #219 : le MD5 annoncé 5e819694359c4bf2f11470c7f9f95ad8 est une information
+-- documentaire, pas un substitut aux corps complets ni une autorisation DDL.
 -- Lecture seule préparée, NON EXÉCUTÉE sur Supabase dans la session Codex.
 -- Complète PREFLIGHT-AUDIT-SECURITE-135.sql avant tout DDL d'adhésion PJ.
 BEGIN;
@@ -13,12 +15,15 @@ WHERE a.attnum>0 AND NOT a.attisdropped AND c.relkind IN ('r','p','v','m')
 ORDER BY 1,2,3;
 -- Tous les lecteurs/écrivains candidats : ne pas prendre une empreinte pour un corps.
 SELECT n.nspname,p.proname,p.oid::regprocedure::text AS signature,
- md5(pg_get_functiondef(p.oid)) AS empreinte,pg_get_functiondef(p.oid) AS definition,
+ md5(pg_get_functiondef(p.oid)) AS empreinte,md5(p.prosrc) AS empreinte_corps,
+ pg_get_functiondef(p.oid) AS definition,
  p.proacl,p.prosecdef,p.provolatile,p.proconfig
 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
 WHERE n.nspname='public' AND p.prokind IN ('f','p') AND
  (p.proname ~* '^(pnj_|groupe_|rue_position_|militaire_bataille_|police_)'
-  OR p.proname IN ('deplacement_enregistrer','personnages_vue_modifier')
+  OR p.proname IN ('deplacement_enregistrer','personnages_vue_modifier','mon_personnage','est_appel_serveur',
+   'militaire_blob_projeter','militaire_section_de_moi','militaire_autorite_de_perimetre',
+   'militaire_deposer_soldats','militaire_recuperer_soldats','militaire_affecter_leader','militaire_ordre_collectif')
   OR p.prosrc ~* '(leader_pj|leader_pnj_id|groupes_pj_adhesions|current_street|current_building)')
 ORDER BY p.proname,p.oid;
 -- Les triggers sur les positions et les deux projections police/soldats sont indispensables.
@@ -33,6 +38,6 @@ ORDER BY c.relname,t.tgname;
 SELECT version,name FROM supabase_migrations.schema_migrations
 WHERE version IN ('20261027222500','20261028074753','20261028074754',
  '20261028122000','20261028122500','20261028123000','20261028123500',
- '20261028124000','20261028135642','20261028135643','20261028140626','20261028141500')
+ '20261028124000','20261028135642','20261028135643','20261028140626','20261028141500','20261028161732','20261028163800','20261028164500','20261028165000')
 ORDER BY version;
 ROLLBACK;

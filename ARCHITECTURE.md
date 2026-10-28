@@ -234,3 +234,14 @@ déplacement collectif PJ, projections police/douanes et recrutement du groupe
 mixte dans les rounds restent à raccorder ; catalogue vivant et recette
 authentifiée indispensables. Rapport et résultats :
 `outils/audits/FINALISATION-GROUPES-UNIVERSELS-20261028.md`.
+
+### Reprise #219 — pont militaire préparé, 28 octobre 2026
+
+Les soldats rejoignent les portes communes de prise, séparation, prêt et radio
+dans les tests PostgreSQL jetables, avec l'autorité de section et le miroir
+militaire existants. Les trois ordres historiques par nombre délèguent à ces
+portes ; les capacités serveur pilotent le menu. **Préparé, non déployé** :
+le déplacement collectif PJ, les policiers/douaniers et le recrutement des
+groupes mixtes en combat/interception restent ouverts. Les corrections de main
+`c10c1083` (transport, création et sorties) sont conservées. État et limites :
+`outils/audits/FINALISATION-GROUPES-UNIVERSELS-20261028.md`, section reprise #219.

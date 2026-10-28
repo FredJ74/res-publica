@@ -4,6 +4,168 @@
 sauvegardés. Aucun groupe universel n'est annoncé en production. Les déplacements
 collectifs des PJ et les combats de groupes mixtes restent à raccorder au serveur.
 
+## Reprise de la PR #219 — état le plus récent
+
+**Cette section remplace l'état historique ci-dessous pour les soldats et leurs
+interfaces. Le chantier global reste NON TERMINÉ et NON DÉPLOYÉ.**
+
+Branche conservée, PR #219 existante (aucune nouvelle PR tentée). Départ `cb3957fe`,
+commits supplémentaires `e46ea788`, `d5c7c327`, `c1b18f0a`, intégration du main
+`c10c10832b5bf6a7ee90895bc4160e2591782190` au merge `3c464794`.
+Le seul conflit concernait le relais : les notes des deux agents sont conservées.
+Le transport REST, la création de personnage et les bancs de sortie de ChatGPT
+ne sont pas remplacés par les versions antérieures de la branche. Cache remonté.
+
+### TERMINÉ ET VÉRIFIÉ SUR POSTGRESQL JETABLE / FIXTURES
+
+- Prise, prêt, dépose et rappel de **quatre véritables soldats** de
+  `pnj_soldats_metier`, sous autorité du véritable résolveur de section
+  `militaire_autorite_de_perimetre`. Leur chef emprunteur porte le poste
+  `commissaire` dans la fiche fictive. Après dépose il ne peut pas les reprendre ;
+  le lieutenant conserve ce droit. Aucun employé renommé en soldat.
+- Projection transactionnelle par **`militaire_blob_projeter` existant**, et
+  vrai déclencheur `pnj_miroir_compagnie_trg` conservé. Position des ancrages/rues
+  projetée ; représentation des suiveurs PJ compatible avec la contrainte
+  `pnj_position_deux_etats`. Pas de désactivation de hiérarchie ni de miroir.
+- Verrou de compagnie avant PJ/PNJ, observé sur deux connexions. Les helpers
+  de projection ne sont exécutables ni par anon, authenticated, ni service_role.
+- Une panne de projection annule la prise dans sa totalité. Rappel de l'unité
+  entière et rejeu sans objet ni droit créé ; métadonnées et propriété préservées.
+- `militaire_deposer_soldats`, `militaire_recuperer_soldats`,
+  `militaire_affecter_leader` restent les adaptateurs des interfaces par nombre,
+  mais délèguent désormais les actes aux portes communes, au lieu de réécrire
+  les positions eux-mêmes. La garde de section existante est conservée ; la
+  restriction du destinataire à un soldat de la même section, contradictoire
+  avec la décision universelle, est retirée au profit des contrôles communs.
+- Reprise d'une ancre seule : refus nommé `unite_incomplete`, sans mutation ni
+  exception de contrainte ; reprise de l'unité complète par nombre testée.
+- L'interface de conduite lit les capacités et droits serveur : dépose du
+  membre commandé, reprise/prêt sous autorité administrative, rappel d'une
+  ancre. Soldat non activé tant que la capacité serveur n'est pas confirmée.
+  Double clic bloqué ; anciennes sessions/personnages et lectures de panneau
+  périmées ignorés. Une réponse perdue déclenche une lecture, jamais un rejeu.
+- Défaut reproductible de **la porte militaire de combat archivée** : sa requête
+  utilisait `c.data->>'pays'` alors que seul `pnj_membres m` y est défini. Patch
+  ciblé vers `m.pays`, sans changer le prédicat de guerre. Test du vrai corps
+  sans ennemi et du refus non-militaire, **pas un round collectif réussi**.
+
+### CODÉ MAIS NON DÉPLOYÉ
+
+Quatre migrations supplémentaires :
+
+1. `20261028161732_groupes_soldats_projection_commune.sql` : verrou/projection
+   dans les cinq portes PNJ, réutilisation du projecteur, ouverture de la seule
+   restriction métier soldat contredite par les décisions de Fred.
+2. `20261028163800_groupes_capacite_conduite_serveur.sql` : capacités et droit
+   d'administration dans la projection de présence existante.
+3. `20261028164500_groupes_ordres_militaires_adaptateurs.sql` : anciens ordres
+   par nombre et reprise d'ancre. Refuse tout corps vivant différent de
+   l'ancien corps archivé ou du nouveau corps exact. Empreintes de `prosrc`
+   dérivées des sources testées, aucune empreinte globale retouchée.
+4. `20261028165000_groupes_bataille_pays_adverse.sql` : correction de l'alias
+   de pays adverse de la porte existante.
+
+Appliquer uniquement après les migrations déjà préparées et après prévol complet,
+**pas maintenant** : les raccordements essentiels du groupe universel manquent.
+Les neuf étapes antérieures ne sont pas prétendues installées. Aucune version
+Supabase appliquée ou estampillée ici. La comparaison au catalogue doit aussi
+écarter un patch déjà présent ou une définition désormais différente.
+
+### Résultats finaux de cette reprise
+
+- **49/49 SQL** : 35 précédents + 9 militaires + 2 diagnostics policiers +
+  2 contrôles de porte de combat + 1 refus de dérive de définition.
+  Les deux diagnostics policiers n'indiquent PAS que leur déplacement fonctionne.
+- **27/27 contrats clients ciblés** ; **111/111 bancs clients complets** après
+  le nouveau main, dont les trois bancs de ChatGPT ; **105/105 pilote local**.
+- Protections d'interception #216 : **19/19** ; variante concurrence **20/20**
+  avec un acte fictif committé dans le serveur éphémère seulement ; **35/35**
+  interception côté client avec réponses simulées.
+- Contre-épreuve `--contre-soldats` : les nouvelles attentes militaires et le
+  défaut d'alias échouent avant le raccordement. Les absences de nouveaux
+  contrats ne sont pas comptées comme des bugs historiques. Code de sortie
+  d'échec conservé, aucun test neutralisé.
+- Quatre nouveaux SQL analysés par PostgreSQL (`pglast`), taille <12 500 chacun,
+  rejeu des étapes testé ; YAML et API contrôlés. Workflow existant réutilisé,
+  le banc étendu remplace son invocation précédente pour éviter de le doubler.
+- **Contrôles globaux : 5/12**, mêmes sept rouges. Authority conserve 103
+  écarts RPC au baseline ; les quatre préparations PJ/radio ne sont pas
+  déclarées déployées. Referential/fonctions : JavaScriptCore absent ;
+  classification/fidélité/assemblage/reconstruction restent rouges.
+  Aucun vérificateur ni baseline modifié.
+
+Toutes les identités et données de scénario sont fictives. Les véritables tables,
+contraintes, résolveurs, corps et triggers sont utilisés sur un PostgreSQL jetable.
+Le décor local est committé pour les connexions concurrentes ; les actions testées
+sont annulées. Aucune authentification Supabase réelle, aucun mouvement/solde réel.
+Les tests d'interception hérités simulent les coups et la justice ; les nouveaux
+cas de porte militaire ne les remplacent pas par une fausse preuve de rounds.
+
+### NON TERMINÉ
+
+- Déplacement collectif de PJ, validation commune de tous les membres et
+  protection de tous les anciens écrivains de position : aucun raccordement
+  sûr au moteur vivant n'a pu être codé sans son corps complet.
+- Groupe simultané **quatre soldats + trois policiers**, police et douanes dans
+  les mêmes portes, projections/anciens ordres de placement à raccorder ensemble.
+- Combat collectif PJ/PNJ non militaires, recrutement des bons participants
+  dans les rounds et interception du groupe du recherché. Ne pas utiliser le
+  correctif d'alias comme preuve de ces fonctions.
+- Recette authentifiée et vérification de prison/radio/déplacements en jeu.
+
+Les vrais policiers de deux commissariats ont été construits dans leurs tables
+et miroirs réels. Le résolveur territorial est vérifié. Le test reproduit aussi
+l'échec de `pnj_miroir_police` avec un suiveur : il tente de recopier une position
+fixe incompatible avec le lien de suivi et la contrainte échoue. **Cette preuve
+est celle d'un raccordement absent, pas d'un policier déplacé avec succès.**
+Lever la garde institutionnelle seule rendrait donc le socle incohérent. Les
+anciens boutons policiers écrivent encore le blob ; les changer partiellement
+sans le détecteur et les portes de déplacement ne constituerait pas un socle
+universel sûr. Les règles douanières et la PR #215 ne sont pas réécrites.
+
+### BLOQUÉ EXTÉRIEUREMENT
+
+Aucun outil Supabase exposé. Lecture des commentaires #219 tentée par GraphQL et
+par GET REST `/repos/FredJ74/res-publica/issues/219/comments` : **Forbidden** dans
+les deux cas ; aucune autre tentative ni contournement. Push Git fonctionnel.
+
+Le MD5 `5e819694359c4bf2f11470c7f9f95ad8`, fourni par Fred, ne donne pas le corps
+complet de `rue_position_enregistrer`. Une recherche dans les worktrees et les
+fichiers SQL/JSON/MD accessibles a retrouvé une ancienne enveloppe **préparée**
+`20261021120231_rue_garde_realites.sql` dans un ancien checkout : elle délègue à un
+moteur non fourni. Elle n'est pas importée comme définition vivante. Les derniers
+rapports de ChatGPT sur main décrivent les gardes mais ne fournissent pas non
+plus les corps complets. Aucun moteur manquant n'est inventé pour faire un test.
+
+**Opération technique précise restante pour l'agent disposant du connecteur :**
+exécuter en lecture seule `outils/bancs/PREFLIGHT-GROUPES-UNIVERSELS-20261028.sql`
+et `PREFLIGHT-AUDIT-SECURITE-135.sql`, puis verser les résultats complets versionnés
+sur la branche de #219. Le premier export inclut la définition complète, les empreintes distinctes du
+corps et de la définition, les droits, triggers et les quatre versions nouvelles.
+Il faut notamment les corps de `rue_position_enregistrer`, de son/ses écrivains
+sur la fiche, de `police_detection_verifier`, des RPC d'interception et des miroirs.
+Cette opération est une collecte, pas une application de migration. Aucune
+manipulation SQL ou de secret n'est demandée au game designer.
+
+### ANCIENS MÉCANISMES
+
+- Trois écritures de mouvement des anciens ordres militaires sont remplacées par
+  les appels aux portes existantes. Les noms d'ordres et interfaces par nombre
+  restent utilisables ; pas de deuxième moteur.
+- Le projecteur et le miroir militaires restent nécessaires et sont testés,
+  pas supprimés. La sélection par grade et les groupes de bataille ne sont pas
+  transformés arbitrairement en un nouveau combat.
+- `state.group` reste une projection ; l'adhésion n'est pas restaurée comme une
+  autorité locale. Les autres vieux calculs et placements encore actifs ne sont
+  pas supprimés avant leur remplacement effectif. Nettoyage global non achevé.
+
+**Pas de fusion, pas de migration Supabase, pas de déploiement en production
+engagé par Codex.** Les éventuelles Preview automatiques de la branche ne sont
+pas observées et ne sont pas prises pour une validation du jeu. Aucun inventaire,
+solde, authentification, ambassade ou BNE modifié par ces nouveaux lots.
+
+---
+
 ## Base et périmètre
 
 Branche `codex/groupes-universels-20261028`, créée depuis #217

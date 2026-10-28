@@ -15,6 +15,8 @@ def extension(ctx):
  contraintes=(R/'baseline/domaines/socle-PNJ/30_contraintes.sql').read_text()
  for nom in ['pnj_soldats_metier_pkey','pnj_soldats_section_dans_sa_compagnie','soldat_reserve_coherente','pnj_soldats_metier_pnj_id_fkey']:
   q.execute(re.search(r'ALTER TABLE public.pnj_soldats_metier ADD CONSTRAINT '+nom+r' .*?;',contraintes,re.S)[0])
+ q.execute('ALTER TABLE personnages_donnees ADD COLUMN poste jsonb')
+ q.execute("UPDATE personnages_donnees SET poste='{\"id\":\"commissaire\",\"city\":\"capitale\"}' WHERE name='B';UPDATE personnages_donnees SET poste='{\"id\":\"commissaire\",\"city\":\"ville_a\"}' WHERE name='C'")
  q.execute("INSERT INTO pnj_institutions VALUES('militaire','militaire_autorite_de_perimetre','resolveur reel')")
  for f,nom in [('militaire/20_fonctions-1.sql','militaire_autorite_de_perimetre'),('militaire/20_fonctions-1.sql','militaire_blob_projeter'),('socle-PNJ/20_fonctions.sql','pnj_miroir_possessions_si_axe_blob'),('socle-PNJ/20_fonctions.sql','pnj_miroir_compagnie'),('socle-PNJ/20_fonctions.sql','pnj_miroir_compagnie_trg')]:
   q.execute(a.fonction('baseline/domaines/'+f,nom))
@@ -42,6 +44,7 @@ def extension(ctx):
  def proprietes():
   q.execute("SELECT id,proprietaire_pj,proprietaire_institution,proprietaire_perimetre FROM pnj_membres WHERE famille='soldat' ORDER BY id");return q.fetchall()
  def pret():
+  q.execute("SELECT poste->>'id' FROM personnages_donnees WHERE name='B'");assert q.fetchone()[0]=='commissaire'
   avant=proprietes();exige(rpc('pnj_prendre',(ids,)));exige(rpc('pnj_transferer',(ids,'B',False)))
   assert proprietes()==avant
   b=etat();assert b['autre']==99 and all(x['leaderCourant']=='B' for x in b['sections'][0]['soldats']),b
@@ -122,8 +125,7 @@ def extension(ctx):
   finally:un.rollback();deux.rollback();trois.rollback();un.close();deux.close();trois.close()
  cas('compagnie_verrouillee_avant_acteur_commun',verrou_compagnie)
  # Vraies structures policières, sans les ouvrir artificiellement aux groupes.
- q.execute('ALTER TABLE personnages_donnees ADD COLUMN poste jsonb')
- q.execute("UPDATE personnages_donnees SET poste='{\"id\":\"commissaire\",\"city\":\"capitale\"}' WHERE name='B';UPDATE personnages_donnees SET poste='{\"id\":\"commissaire\",\"city\":\"ville_a\"}' WHERE name='C'")
+
  for nom in ['pnj_force_publique_metier','pnj_metiers_profils']:
   q.execute(re.search(r'CREATE TABLE public\.'+nom+r' \(.*?\n\);',tables,re.S)[0])
   q.execute(re.search(r'ALTER TABLE public\.'+nom+' ADD CONSTRAINT '+nom+r'_pkey .*?;',contraintes,re.S)[0])
@@ -170,6 +172,18 @@ def extension(ctx):
   patch=(R/'migrations/20261028165000_groupes_bataille_pays_adverse.sql').read_text();q.execute(patch);q.execute(patch)
  cas('porte_bataille_sans_ennemi_refuse_sans_erreur_alias_ni_mutation',lambda:exige(rpc('militaire_bataille_engager'),'aucun_ennemi_ici'))
  cas('porte_bataille_conserve_refus_non_militaire',lambda:exige(rpc('militaire_bataille_engager',qui='C'),'pas_militaire'))
+ def derive_refusee():
+  q.execute("SELECT pg_get_functiondef('militaire_recuperer_soldats(text,text,integer)'::regprocedure)")
+  ancien=q.fetchone()[0];q.execute(ancien.replace('BEGIN','BEGIN\n -- definition modifiee de fixture',1))
+  q.execute('SAVEPOINT derive')
+  try:
+   q.execute((R/'migrations/20261028164500_groupes_ordres_militaires_adaptateurs.sql').read_text())
+   raise AssertionError('ancienne porte inconnue remplacee')
+  except Exception as e:
+   assert 'ordre_militaire_definition_non_examinee' in str(e),e
+   sql('ROLLBACK TO SAVEPOINT derive')
+ cas('migration_refuse_porte_militaire_vivante_differente',derive_refusee)
+
 
 
 
