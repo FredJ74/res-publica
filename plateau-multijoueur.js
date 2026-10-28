@@ -2430,7 +2430,10 @@ function pnjGroupeNiveauEntrainement(formation) {
   return axes.join(' · ');
 }
 
+let RP_GROUPE_PNJ_LECTURE = 0;
 async function ouvrirGroupePnj() {
+  const c = contexteGroupePj(), lecture = ++RP_GROUPE_PNJ_LECTURE;
+  const valide = () => contexteGroupePjValide(c) && lecture === RP_GROUPE_PNJ_LECTURE;
   const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t ?? '')) : String(t ?? '');
   const pays = state.country || 'republic';
   const titre = document.getElementById('postes-modal-title');
@@ -2441,6 +2444,7 @@ async function ouvrirGroupePnj() {
 
   const res = await sbPnjMembresIci(pays, state.currentCity, state.currentBuilding, state.currentRoom)
                     .catch(() => null);
+  if (!valide()) return;
   if (res === null || res === undefined) {
     corps.innerHTML = '<div style="padding:1rem;color:#cc4444;font-size:.85rem">'
       + 'Lecture du groupe impossible — l\'appel au serveur n\'a pas abouti. Réessayez.</div>';
@@ -2466,6 +2470,7 @@ async function ouvrirGroupePnj() {
 
   const metier = miens.some(m => m.famille === 'soldat')
     ? await pnjGroupeMetierSoldats(pays) : {};
+  if (!valide()) return;
 
   let html = '<div style="padding:1rem">';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.12em;'
@@ -2525,6 +2530,7 @@ async function ouvrirGroupePnj() {
   // (equipement militaire) : on accepte les deux a l'affichage, sans rien reecrire en base.
   miens.forEach((m, i) => {
     sbPnjPossessions(m.id).then(liste => {
+      if (!valide()) return;
       const el = document.getElementById('grp-poss-' + i);
       if (!el) return;
       // null = lecture impossible ou autorite refusee (chantier 5) ; [] = ce PNJ ne porte rien.
@@ -2748,20 +2754,23 @@ async function ouvrirGroupePnjConduite(i) {
     html += '<div class="cpj-note">Le serveur n’a pas encore activé les déplacements communs '
       + 'pour cette famille. Utilisez son circuit métier existant.</div>';
   } else {
-    html += '<div style="display:flex;flex-direction:column;gap:.4rem">'
-         +  '<button onclick="confirmerGroupePnjQuitter(' + i + ')" style="padding:.35rem .7rem;'
-         +  'border:1px solid #6a4a2a;background:transparent;color:#c08a5a;cursor:pointer;'
-         +  'text-align:left;font-size:.78rem">Le faire quitter le groupe — il reste ici</button>'
-         +  '</div>';
-    html += '<div id="grp-leaders" style="margin-top:.7rem;font-size:.74rem;color:#8a8060">'
-         +  'Leaders présents : lecture…</div>';
+    html += '<div class="cpj-note">Le commandement ne transfère pas l’autorité administrative.</div>';
+    if (m.leader_pj === state.char?.name) {
+      html += '<button class="cpj-touche" onclick="confirmerGroupePnjQuitter(' + i + ')">Le laisser ici</button>';
+    } else if (m.peut_administrer === true) {
+      html += '<button class="cpj-touche" onclick="confirmerGroupePnjPrendre(' + i + ')">Reprendre dans mon groupe</button>';
+    }
+    if (m.peut_administrer === true && !m.leader_pj && !m.leader_pnj_id) {
+      html += '<button class="cpj-touche" onclick="confirmerGroupePnjRadio(' + i + ')">Rappeler cette unité par radio</button>';
+    }
+    if (m.peut_administrer === true) html += '<div id="grp-leaders" class="cpj-note">Leaders présents : lecture…</div>';
   }
   html += '<div style="margin-top:.9rem"><button onclick="ouvrirGroupePnj()" '
        +  'style="padding:.3rem .7rem;border:1px solid #6a5a2a;background:transparent;'
        +  'color:#C9A84C;cursor:pointer;font-size:.75rem">Retour au groupe</button></div></div>';
   corps.innerHTML = html;
 
-  if (conduite) {
+  if (conduite && m.peut_administrer === true) {
     // Le menu de destination ne contient que des leaders REELLEMENT presents dans la piece.
     const autres = await leadersPresentsDansPiece(state.country || 'republic', state.currentCity,
       state.currentBuilding, state.currentRoom).catch(() => []);
@@ -2780,16 +2789,34 @@ async function ouvrirGroupePnjConduite(i) {
   }
 }
 
+let RP_GROUPE_PNJ_COMMANDE = null;
+async function commanderConduitePnj(i, commande, titre, message) {
+  const m = RP_GROUPE_COURANT[i]; if (!m) return false;
+  const c = contexteGroupePj();
+  if (RP_GROUPE_PNJ_COMMANDE && contexteGroupePjValide(RP_GROUPE_PNJ_COMMANDE)) return false;
+  RP_GROUPE_PNJ_COMMANDE = c;
+  try {
+    let r;
+    try { r = await commande(m); } catch (_) { r = null; }
+    if (!contexteGroupePjValide(c)) return false;
+    const ok = signalerResultatGroupePnj(r, titre, message(m));
+    // Relecture après verdict/refus/perte de réponse, jamais un rejeu automatique.
+    await ouvrirGroupePnj();
+    return ok;
+  } finally { if (RP_GROUPE_PNJ_COMMANDE === c) RP_GROUPE_PNJ_COMMANDE = null; }
+}
 async function confirmerGroupePnjQuitter(i) {
-  const m = RP_GROUPE_COURANT[i]; if (!m) return;
-  const r = await sbPnjQuitterGroupe([m.id]).catch(() => null);
-  signalerResultatGroupePnj(r, 'Détaché', m.nom + ' quitte votre groupe et reste ici.');
-  await ouvrirGroupePnj();
+  return commanderConduitePnj(i, m => sbPnjQuitterGroupe([m.id]), 'Détaché', m => m.nom + ' reste ici.');
+}
+async function confirmerGroupePnjPrendre(i) {
+  return commanderConduitePnj(i, m => sbPnjPrendre([m.id]), 'Repris', m => m.nom + ' rejoint votre groupe.');
+}
+async function confirmerGroupePnjRadio(i) {
+  return commanderConduitePnj(i, m => sbPnjRappelerRadio(m.id), 'Rappel confirmé', m => m.nom + ' vous accompagne.');
 }
 async function confirmerGroupePnjTransferer(i, destEncode) {
-  const m = RP_GROUPE_COURANT[i]; if (!m) return;
-  const dest = decodeURIComponent(destEncode || '');
-  const r = await sbPnjTransferer([m.id], dest, false).catch(() => null);
-  signalerResultatGroupePnj(r, 'Confié', m.nom + ' suit désormais ' + dest + '.');
-  await ouvrirGroupePnj();
+  let dest;
+  try { dest = decodeURIComponent(destEncode || ''); } catch (_) { return false; }
+  if (!dest) return false;
+  return commanderConduitePnj(i, m => sbPnjTransferer([m.id], dest, false), 'Confié', m => m.nom + ' suit désormais ' + dest + '.');
 }

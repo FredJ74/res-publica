@@ -28,6 +28,12 @@ def extension(ctx):
  if '--contre-soldats' not in sys.argv:
   q.execute(nouveau);q.execute(nouveau)
   cap=(R/'migrations/20261028163800_groupes_capacite_conduite_serveur.sql').read_text();q.execute(cap);q.execute(cap)
+ q.execute(a.fonction('baseline/domaines/militaire/20_fonctions-2.sql','militaire_section_de_moi'))
+ for nom in ['militaire_deposer_soldats','militaire_recuperer_soldats']:
+  q.execute(a.fonction('baseline/domaines/militaire/20_fonctions-2.sql',nom))
+ q.execute(a.fonction('baseline/domaines/militaire/20_fonctions-1.sql','militaire_affecter_leader'))
+ if '--contre-soldats' not in sys.argv:
+  adapt=(R/'migrations/20261028164500_groupes_ordres_militaires_adaptateurs.sql').read_text();q.execute(adapt);q.execute(adapt)
  # Seul le décor et le DDL fictifs sont committés pour les deux connexions.
  ctx['c'].commit()
  ids=['cie-S1','cie-S2','cie-S3','cie-S4']
@@ -59,6 +65,19 @@ def extension(ctx):
   assert all(x['leaderCourant']=='A' for x in etat()['sections'][0]['soldats'])
   exige(rpc('pnj_rappeler_radio',('cie-S1',)))
  cas('vrais_soldats_radio_collective_et_rejeu',radio)
+ def anciens_ordres():
+  exige(rpc('pnj_prendre',(ids,)))
+  exige(rpc('militaire_deposer_soldats',('cie','cie-s1',4)))
+  exige(rpc('militaire_recuperer_soldats',('cie','cie-s1',4)))
+  exige(rpc('militaire_affecter_leader',('cie','cie-s1',4,'B')))
+  assert all(x['leaderCourant']=='B' for x in etat()['sections'][0]['soldats'])
+ cas('ordres_historiques_par_nombre_deleguent_aux_portes_communes',anciens_ordres)
+ def ancienne_reprise_ancre():
+  exige(rpc('pnj_prendre',(ids,)));exige(rpc('pnj_deployer_unite',(ids,True)))
+  exige(rpc('militaire_recuperer_soldats',('cie','cie-s1',1)),'unite_incomplete')
+  exige(rpc('militaire_recuperer_soldats',('cie','cie-s1',4)))
+ cas('ordre_par_nombre_reprend_unite_liee_sans_violer_hierarchie',ancienne_reprise_ancre)
+
  def panne():
   sql("CREATE FUNCTION panne_projection() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne_projection_fixture';END$$;CREATE TRIGGER panne BEFORE UPDATE ON compagnies_militaires FOR EACH ROW EXECUTE FUNCTION panne_projection()")
   q.execute("SELECT to_jsonb(m) FROM pnj_membres m WHERE id='cie-S1'");avant=q.fetchone()[0]
@@ -102,6 +121,43 @@ def extension(ctx):
     exige(fut.result(timeout=7))
   finally:un.rollback();deux.rollback();trois.rollback();un.close();deux.close();trois.close()
  cas('compagnie_verrouillee_avant_acteur_commun',verrou_compagnie)
+ # Vraies structures policières, sans les ouvrir artificiellement aux groupes.
+ q.execute('ALTER TABLE personnages_donnees ADD COLUMN poste jsonb')
+ q.execute("UPDATE personnages_donnees SET poste='{\"id\":\"commissaire\",\"city\":\"capitale\"}' WHERE name='B';UPDATE personnages_donnees SET poste='{\"id\":\"commissaire\",\"city\":\"ville_a\"}' WHERE name='C'")
+ for nom in ['pnj_force_publique_metier','pnj_metiers_profils']:
+  q.execute(re.search(r'CREATE TABLE public\.'+nom+r' \(.*?\n\);',tables,re.S)[0])
+  q.execute(re.search(r'ALTER TABLE public\.'+nom+' ADD CONSTRAINT '+nom+r'_pkey .*?;',contraintes,re.S)[0])
+ q.execute((R/'baseline/seeds/90_socle/pnj_metiers_profils.sql').read_text())
+ etat=(R/'baseline/domaines/immobilier-et-territoire/10_tables.sql').read_text()
+ q.execute(re.search(r'CREATE TABLE public\.batiments_etat \(.*?\n\);',etat,re.S)[0])
+ for f,nom in [('socle-PNJ/20_fonctions.sql','pnj_metier_profil'),('justice/20_fonctions-2.sql','police_autorite_de_perimetre'),('justice/20_fonctions-2.sql','police_pnj_id'),('justice/20_fonctions-2.sql','police_caracteristiques_metier'),('immobilier-et-territoire/20_fonctions.sql','batiment_etat_lire'),('socle-PNJ/20_fonctions.sql','pnj_miroir_police'),('socle-PNJ/20_fonctions.sql','pnj_miroir_police_declencheur')]:
+  q.execute(a.fonction('baseline/domaines/'+f,nom))
+ q.execute("INSERT INTO pnj_institutions VALUES('police','police_autorite_de_perimetre','resolveur reel')")
+ q.execute("CREATE TRIGGER miroir_police AFTER INSERT OR UPDATE ON batiments_etat FOR EACH ROW EXECUTE FUNCTION pnj_miroir_police_declencheur()")
+ for ville,bat,mat in [('capitale','commissariat',['P1','P2','P3']),('ville_a','commissariat-local',['E1'])]:
+  import json
+  agents=[{'matricule':m,'buildingId':'mairie','roomId':'accueil','type':'standard'} for m in mat]
+  q.execute("INSERT INTO batiments_etat(id,country,city,building_id,data) VALUES(%s,'republic',%s,%s,%s::jsonb)",(ville,ville,bat,json.dumps({'effectifsPolice':{'policiers':agents},'autre':42})))
+ def police_autorite():
+  for matricule in ['P1','P2','P3']:
+   assert rpc('pnj_peut_administrer',('B','police-republic-capitale-'+matricule)) is True
+   assert rpc('pnj_peut_administrer',('C','police-republic-capitale-'+matricule)) is False
+  assert rpc('pnj_peut_administrer',('B','police-republic-ville_a-E1')) is False
+  assert rpc('pnj_peut_administrer',('C','police-republic-ville_a-E1')) is True
+ cas('vrais_policiers_autorite_commissariat_territoriale',police_autorite)
+ def police_miroir_bloquant():
+  # Décor de diagnostic, PAS une prise de policier prétendument autorisée.
+  sql("UPDATE pnj_membres SET leader_pj='B',ville=NULL,building_id=NULL,room_id=NULL,rue_noeud_id=NULL WHERE id='police-republic-capitale-P1';SAVEPOINT avant_miroir")
+  import psycopg2
+  try:
+   q.execute("SELECT pnj_miroir_police('republic','capitale','commissariat')")
+   raise AssertionError('le raccordement institutionnel ancien a changé : réexaminer le diagnostic')
+  except psycopg2.errors.CheckViolation as e:
+   assert e.diag.constraint_name=='pnj_position_deux_etats',e
+   sql('ROLLBACK TO SAVEPOINT avant_miroir')
+  q.execute("SELECT leader_pj,ville FROM pnj_membres WHERE id='police-republic-capitale-P1'");assert q.fetchone()==('B',None)
+ cas('blocage_reproduit_miroir_police_et_groupe_ne_sont_pas_raccordes',police_miroir_bloquant)
+
 
 
 if __name__=='__main__':sys.exit(g.main(extension))

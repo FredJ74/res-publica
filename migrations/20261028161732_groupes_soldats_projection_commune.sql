@@ -64,10 +64,10 @@ END $projection$;
 DO $portes$
 DECLARE r record; s text; a text; b text; i integer; pos_fin integer;
 BEGIN
- FOR r IN SELECT t.*,CASE WHEN signature='pnj_rappeler_radio(text)' THEN 'ids' ELSE selection END AS projection FROM (VALUES
+ FOR r IN SELECT t.*,CASE WHEN signature='pnj_rappeler_radio(text)' THEN 'ids' WHEN signature='pnj_transferer(text[],text,boolean)' THEN 'p_ids' ELSE selection END AS projection FROM (VALUES
  ('pnj_prendre(text[])','p_ids','  PERFORM name FROM public.personnages_donnees WHERE name=v_moi FOR UPDATE;'),
  ('pnj_quitter_groupe(text[])','p_ids',' -- Même ordre de verrous que la prise/transmission : PJ puis PNJ triés.'),
- ('pnj_transferer(text[],text,boolean)','p_ids',' PERFORM name FROM public.personnages_donnees WHERE name=moi'),
+ ('pnj_transferer(text[],text,boolean)','p_ids || CASE WHEN p_dest_est_pnj THEN ARRAY[p_dest] ELSE ARRAY[]::text[] END',' PERFORM name FROM public.personnages_donnees WHERE name=moi'),
  ('pnj_deployer_unite(text[],boolean)','p_pnj_ids',' SELECT * INTO v_lieu FROM public.personnages_donnees WHERE name=v_chef FOR UPDATE;'),
  ('pnj_rappeler_radio(text)','ARRAY(SELECT id FROM public.pnj_membres WHERE id=p_ancre OR leader_pnj_id=p_ancre)',
   ' SELECT * INTO lieu FROM public.personnages_donnees WHERE name=moi FOR UPDATE;')
