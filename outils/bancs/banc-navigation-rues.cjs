@@ -75,3 +75,8 @@ test('31 scenes Luthecia/PSM : images et destinations existent sans imposer la m
  }
  assert.equal(nombre,31);
 });
+
+test('authentification différée : la garde transmise interdit un nouvel ordre après changement de session',async()=>{
+ const c=jeu();let garde; c.sbRpc=async(fn,p,options)=>{garde=options.encoreValide;assert.equal(garde(),true);c.session='autre';assert.equal(garde(),false);return null;};
+ await c.afficherNoeudRue('republic','luthecia-terrains-lots');assert.equal(typeof garde,'function');assert.equal(c.lire('rueCentraleNoeudActuel'),null);
+});
