@@ -5,6 +5,15 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Groupes universels — vérification radio (28/10, ChatGPT)
+
+- Branche `chatgpt/reprise-securite-135-20261028`, dérivée de l'audit corrigé de Codex ; PR #217 de prévol. Ne pas fusionner l'ensemble du #135 sans tests serveur et recette authentifiée.
+- Décisions de Fred consignées dans `outils/audits/REGLES-GROUPES-UNIVERSELS-20261028.md` : autorité administrative distincte du commandement, groupes PJ/PNJ, engagement collectif, rappel radio unique déplacement autonome, deux radios nécessaires et **même ville obligatoire**.
+- **Code ajouté :** migration `20261028122000_radio_ordres_meme_ville.sql` appliquant la restriction *même ville* dans la RPC existante `militaire_ordre_collectif` pour ses ordres transmis par radio. `plateau-politique.js` annonce explicitement `radio_hors_ville`. Aucun nouveau moteur ni déplacement créé. Banc `banc-radio-ordres-meme-ville-20261028.sql` exécuté en lecture seule sur la production, ancre unique validée.
+- **Reste essentiel :** implémenter le groupe PJ persistant, les prêts inter-administrations, le rappel universel d'un groupe PNJ et son déplacement autorisé, le combat collectif, la prise en compte des groupes lors des interceptions, vérifier les affectations et les radios d'équipement des PNJ hors armée. Le correctif de portée radio est **préparé mais non appliqué** en production.
+- Éviter de fusionner indépendamment les PR #212/#216/#217 tant que leur dépendance et leur faisabilité n'ont pas été testées. Aucun joueur réel modifié.
+
+
 ### Audit indépendant sécurité #135 / PR #212 — Codex, 28/10
 
 - **Audit local livré, non déployable.** Code sauvegardé : `ba3d267f`, `2f4b6551`, `b95b29ef` ; contre-épreuves et preuves : `9198e6ec`. Huit échecs techniques sur l'original, distincts de la nouvelle garde de reprise (testée sans imputer un faux défaut au schéma initial). Création d'une PR d'audit en brouillon réellement tentée : GraphQL Forbidden, aucun numéro créé. Branche distante disponible pour relecture ; #212 reste inchangée à `7c91ef1b`, main inchangé à `3efca838` lors de la vérification Git finale. Pas de fusion ni application en production. Les dépendances encore ouvertes sont détaillées dans le rapport A–F.
