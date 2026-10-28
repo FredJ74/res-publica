@@ -97,7 +97,7 @@ att('un verdict absent est dit comme une panne de transport, pas comme un refus 
 print('');
 print('3. LES VINGT-DEUX ECRITURES PASSENT PAR HUIT PORTES, UNE PAR MECANISME');
 var ACTES = {
-  'terrain_compromis_acte': 4, 'acquisition_versionnee':2, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 1,
+  'terrain_compromis_acte': 4, 'acquisition_versionnee':2, 'terrain_permis_acte': 4, 'chantier_commande_plan': 1, 'terrain_chantier_acte': 0, // vol : crime_voler_materiaux (28/10)
   'terrain_lots_acte': 5, 'chantier_commande_location': 1, 'chantier_commande_reamenagement': 1
 };
 var totalPortes = 0;
@@ -114,8 +114,8 @@ att('terrain_succession_geler : 1 appel',
     partout(/sbRpc\('terrain_succession_geler'/g) === 1);
 att('terrain_succession_annuler_compromis : 1 appel',
     partout(/sbRpc\('terrain_succession_annuler_compromis'/g) === 1);
-att('VINGT-ET-UNE ecritures routees, acceleration interdite retiree du releve historique',
-    totalPortes + 2 === 21, (totalPortes + 2) + ' routee(s)');
+att('VINGT ecritures routees (acceleration interdite et vol de materiaux sortis du releve)',
+    totalPortes + 2 === 20, (totalPortes + 2) + ' routee(s)');
 
 // CHAQUE APPEL LIT SON VERDICT, ET AUCUN NE L'AVALE. Cette epreuve manquait : une contre-epreuve
 // qui supprimait la lecture du verdict du transfert de compromis laissait ce banc VERT. Un banc
@@ -143,7 +143,7 @@ var ACTES_NOMMES = [
   'compromis_signer', 'compromis_pret_demander', 'compromis_transfert_proposer',
   'compromis_transfert_accepter', 'achat_direct_deposer', 'achat_direct_accelerer',
   'permis_deposer', 'permis_prevenir_maire', 'permis_decider', 'permis_accelerer',
-  'permis_plan_modifier', 'chantier_materiaux_voler',
+  'permis_plan_modifier',
   'lot_ajouter', 'lot_fusion_proposer', 'lot_fusion_accepter', 'lot_fusion_refuser',
   'lot_louer', 'lot_bail_libere'
 ];
@@ -155,7 +155,7 @@ var manquants = ACTES_NOMMES.filter(function (a) {
   if(a==='permis_plan_modifier')return partout(/constructionExecuterCommande\('plan'/g)!==1;
   return partout(new RegExp("p_acte: '" + a + "'", 'g')) === 0;
 });
-att('les dix-huit actes encore autorises des quatre portes sont tous appeles',
+att('les dix-sept actes encore autorises des quatre portes sont tous appeles (le vol de materiaux passe par crime_voler_materiaux depuis le 28/10)',
     manquants.length === 0, 'manquants : ' + manquants.join(', '));
 
 print('');
@@ -202,11 +202,11 @@ att("l'acceleration interdite ne preleve ni PA ni argent",
 att("appliquerVerrouPlan n'est plus appele dans ce chemin",
     bCh.indexOf('appliquerVerrouPlan(') < 0);
 var bVol = sansCommentaires(bloc('plateau-justice-economie.js', 'confirmerVolMateriaux'));
-att("le vol credite la quantite REELLEMENT emportee, pas celle que ce navigateur avait calculee",
-    bVol.indexOf('qte = Number(vVol.quantite) || 0;') >= 0
-    && bVol.indexOf('qte = Number(vVol.quantite) || 0;') < bVol.lastIndexOf('addToInventory('));
+att("le vol passe entier par le serveur : crime_voler_materiaux, ni acte terrain ni depot a l'ecran",
+    bVol.indexOf("appelerCrimeServeur('crime_voler_materiaux'") >= 0
+    && bVol.indexOf('sbTerrainActe(') < 0 && bVol.indexOf('addToInventory(') < 0);
 att("et il ne decremente plus le stock lui-meme",
-    bVol.indexOf('stock[matiere] = Math.max(0,') < 0);
+    bVol.indexOf('stock[matiere] = Math.max(0,') < 0 && bVol.indexOf('Math.random') < 0);
 
 print('');
 print('7. LES LOTS : UN LOT, PAS LE TABLEAU');

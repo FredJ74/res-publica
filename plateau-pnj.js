@@ -2022,78 +2022,8 @@ async function afficherReactionJournaliste() {
   );
 }
 
-function getAllPJsAndPNJs() {
-  const result = [];
-  // PJ connus (depuis state.pjConnus ou contacts)
-  const pjConnus = state.pjConnus || [];
-  pjConnus.forEach(nom => {
-    if (!result.some(r => r.name === nom)) {
-      result.push({ name: nom, role: 'Joueur', isPJ: true });
-    }
-  });
-  // Contacts du répertoire
-  (state.contacts || []).forEach(c => {
-    if (!result.some(r => r.name === c.name)) {
-      result.push({ name: c.name, role: c.role || 'Contact', isPJ: false });
-    }
-  });
-  // PNJ du bâtiment actuel
-  if (state.currentBuilding && state.currentRoom) {
-    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-    (room?.persons || []).forEach(p => {
-      if (!result.some(r => r.name === p.name)) {
-        result.push({ name: p.name, role: p.role || 'PNJ', isPJ: false });
-      }
-    });
-  }
-  // Si toujours vide, retourner une cible générique
-  if (result.length === 0) {
-    result.push({ name: 'Un notable local', role: 'Personnage politique', isPJ: false });
-  }
-  return result;
-}
-
-async function doEscortInfos() {
-  const cibles = getAllPJsAndPNJs().filter(c => c.name !== state.char?.name);
-  if (cibles.length === 0) { showToast('Personne à cibler', 'Aucune cible disponible.', false); return; }
-
-  const co = COUNTRIES[state.country];
-  const cur = co?.cur || 'FR';
-
-  const debit = await debiterFondsOrdinaires(300);
-  if (!debit.ok) { showToast('Fonds insuffisants', `300 ${cur} requis.`, false); return; }
-
-  // Choisir une cible au hasard parmi les PJ/PNJ connus
-  const cible = cibles[Math.floor(Math.random() * Math.min(3, cibles.length))];
-
-  const prompt = `Tu joues dans Res Publica, jeu politique parodique.
-Une escort de luxe (${state.country === 'republic' ? 'Roxane Velours' : state.country === 'narco' ? 'Lola Discreta' : 'Natasha Privilege'}) a recueilli des informations compromettantes sur ${cible.name} (${cible.role || 'personnage politique'}) dans l'empire ${co?.n}.
-Génère UNE révélation compromettante, parodique et drôle (2 phrases max). Style scandale politique. Pas de vrais noms de personnes réelles. Pas de religions réelles.`;
-
-  try {
-    const r = await rpRedaction('escort_infos', prompt);
-    const info = (r.texte || '').trim() || 'Information confidentielle obtenue.';
-
-    // Créer un kompromat dans l'inventaire
-    addToInventory({
-      id: 'kompromat-' + Date.now(),
-      name: 'Kompromat sur ' + cible.name,
-      icon: 'ti-file-shredder',
-      desc: info,
-      type: 'kompromat',
-      cible: cible.name,
-      legal: false
-    });
-
-    state.inf = Math.min(100, (state.inf || 0) + 5);
-    updateUI();
-    addJournalEntry('Kompromat obtenu sur ' + cible.name + '. Ajouté à l\'inventaire.', 'event-info');
-    showToast('Information obtenue !', info.substring(0, 100) + (info.length > 100 ? '...' : ''), true, true);
-
-  } catch(e) {
-    showToast('Erreur', 'Impossible d\'obtenir l\'information.', false);
-  }
-}
+// doEscortInfos SUPPRIME (28/10/2026, chantier inventaire) : aucun menu ne proposait l'ordre
+// « escort_infos », et la fonction fabriquait un kompromat a l'ecran sans aucun cout serveur.
 
 // =====================
 // LANCER UNE RUMEUR — refonte complete (chantier "refonte Lancer une rumeur", 2 septembre 2026)
@@ -3086,42 +3016,33 @@ async function confirmerFabriquerKompromat(nomAgent, nomCible) {
   document.getElementById('modal-postes').classList.remove('open');
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
-  const debit = await debiterFondsOrdinaires(300);
-  if (!debit.ok) { showToast('Fonds insuffisants', '300 ' + cur + ' requis.', false); return; }
-
+  // PAR LE SERVEUR (28/10/2026, chantier inventaire) : kompromat_fabriquer preleve les 300, verifie
+  // la cible, depose le kompromat et ajoute l'influence dans la meme transaction. Le texte de l'IA
+  // n'est qu'un habillage, pose ensuite une seule fois par kompromat_rediger.
+  const v = await executerReceptionInventaire('kompromat_fabriquer', { p_agent: nomAgent, p_cible: nomCible });
+  if (!v) return;
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ arg: v.arg, liquide: v.liquide });
+  if (typeof v.inf === 'number') state.inf = v.inf;
+  updateUI();
   const prompt = `Tu joues dans Res Publica, jeu politique parodique.
 ${nomAgent} a recueilli des informations compromettantes sur ${nomCible} dans l'empire ${co?.n}.
 Génère UNE révélation compromettante, parodique et drôle (2 phrases max). Style scandale politique. Pas de vrais noms de personnes réelles. Pas de religions réelles. Réponds en texte brut uniquement, sans markdown (pas de #, pas de **, pas de titre).`;
+  const info = await redigerKompromatServeur(v.objet_id, 'kompromat', prompt) || 'Information confidentielle obtenue.';
+  addJournalEntry('Kompromat obtenu sur ' + nomCible + ' via ' + nomAgent + '. Ajouté à l\'inventaire.', 'event-info');
+  showToast('Kompromat fabriqué !', info.substring(0, 100) + (info.length > 100 ? '...' : ''), true, true);
+}
 
-  try {
-    const r = await rpRedaction('kompromat', prompt);
-    const info = (r.texte || '').trim() || 'Information confidentielle obtenue.';
-
-    addToInventory({
-      id: 'kompromat-' + Date.now(),
-      name: 'Kompromat sur ' + nomCible,
-      icon: 'ti-file-shredder',
-      desc: info,
-      type: 'kompromat',
-      cible: nomCible,
-      legal: false
-    });
-
-    state.inf = Math.min(100, (state.inf || 0) + 5);
-    updateUI();
-    addJournalEntry('Kompromat obtenu sur ' + nomCible + ' via ' + nomAgent + '. Ajouté à l\'inventaire.', 'event-info');
-    showToast('Kompromat fabriqué !', info.substring(0, 100) + (info.length > 100 ? '...' : ''), true, true);
-  } catch(e) {
-    // Remboursement ATTESTE (§6.1) : le serveur annule le debit qu'il a inscrit, il ne recoit
-    // pas un montant du navigateur. La source « remboursement_kompromat » declare 300 FR, mais
-    // le serveur plafonne au prelevement reel.
-    if (typeof rembourserFondsOrdinaires === 'function') {
-      await rembourserFondsOrdinaires(debit.debitId, 'remboursement_kompromat', 300);
-    } else {
-      crediterFondsOrdinaires(300);
-    }
-    showToast('Erreur', 'Impossible de fabriquer le kompromat pour le moment. Remboursé.', false);
-  }
+// Fait ecrire par l'IA le texte d'un kompromat que le serveur vient de deposer, puis le pose une
+// seule fois. Rend le texte retenu, ou null (le texte provisoire du serveur reste alors en place).
+async function redigerKompromatServeur(objetId, usage, prompt) {
+  if (!objetId) return null;
+  let texte = null;
+  try { const r = await rpRedaction(usage, prompt); texte = (r && r.texte || '').trim() || null; } catch (_) {}
+  if (!texte) return null;
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('kompromat_rediger', { p_objet: objetId, p_texte: texte }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (v && v.ok === true && typeof sbAdopterInventaireServeur === 'function') { sbAdopterInventaireServeur(v); updateUI(); }
+  return texte;
 }
 
 const ETAPES_ESCORT = {
@@ -3454,75 +3375,32 @@ async function confirmerEscortPiege(nomCible, pa, cost) {
 
   document.getElementById('modal-postes').classList.remove('open');
 
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PAR LE SERVEUR (28/10/2026, chantier inventaire) : escort_piege_tenter preleve l'ordre, tire le
+  // jet (memes regles, statistiques de la cible toujours simulees), applique les effets et depose le
+  // kompromat. L'ecran n'affiche que le resultat.
+  const v = await executerReceptionInventaire('escort_piege_tenter', { p_cible: nomCible, p_pa: pa, p_cost: cost });
+  if (!v) return;
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, arg: v.arg, liquide: v.liquide });
+  ['inf', 'pop', 'dis'].forEach(function (k) { if (typeof v[k] === 'number') state[k] = v[k]; });
+  updateUI();
 
-  // Stats commanditaire
-  const dup = getStatEffective('DUP');
-  const dis = state.dis || 50;
-
-  // On simule les stats de la cible (on ne les a pas côté client)
-  const cibleDUP = Math.floor(Math.random() * 6) + 6; // entre 6 et 12
-  const cibleDIS = Math.floor(Math.random() * 40) + 30; // entre 30 et 70
-
-  // Jet de succès
-  const taux = Math.min(80, 30 + Math.floor(dup * 2) - Math.floor(cibleDUP * 1.5));
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    // SUCCÈS
+  if (v.reussi) {
     const prompt = 'Res Publica, jeu politique parodique. ' + nomCible + ' vient d\'être piégé(e) par une escort dans un scandale compromettant. Génère UN titre de scandale parodique (1 phrase max, style journal à scandales). Réponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
-    let scandale = nomCible + ' impliqué(e) dans un scandale compromettant avec une escort.';
-    try {
-      const r = await rpRedaction('escort_piege', prompt);
-      scandale = (r.texte || '').trim() || scandale;
-    } catch(e) {}
-
-    // Effets sur commanditaire
-    state.inf = Math.min(100, (state.inf||0) + 10);
-    state.pop = Math.min(100, (state.pop||0) + 5);
-
-    // Kompromat généré
-    addToInventory({
-      name: 'Kompromat sur ' + nomCible,
-      icon: 'ti-file-shredder',
-      type: 'kompromat',
-      cible: nomCible,
-      desc: scandale,
-      legal: false,
-      expireDay: (state.day||1) + 10
-    });
-
-    updateUI();
+    const scandale = await redigerKompromatServeur(v.objet_id, 'escort_piege', prompt)
+      || (nomCible + ' impliqué(e) dans un scandale compromettant avec une escort.');
     addExternalEvent('📰 SCANDALE : ' + scandale);
     addJournalEntry('Piège réussi sur ' + nomCible + '. Scandale : "' + scandale.substring(0,60) + '"', 'event-good');
     showToast('Piège réussi !', scandale, true, true);
-
-  } else {
-    // ÉCHEC — argent perdu, la cible peut enquêter
-    updateUI();
-    addJournalEntry('Piège raté sur ' + nomCible + '. -' + cost + ' ' + cur + ' perdus.', 'event-bad');
-    showToast('Piège raté', nomCible + ' a éventé la manœuvre. Argent perdu.', false);
-
-    // Jet d\'enquête de la cible contre le commanditaire
-    const tauxEnquete = Math.min(70, Math.floor(cibleDUP * 4) + Math.floor(cibleDIS / 10));
-    const rollEnquete = Math.floor(Math.random() * 100) + 1;
-    if (rollEnquete <= tauxEnquete) {
-      // Cible trouve le commanditaire
-      const tauxIdentif = Math.min(80, tauxEnquete - Math.floor(dup * 2) - Math.floor(dis / 10));
-      const rollIdentif = Math.floor(Math.random() * 100) + 1;
-      if (rollIdentif <= tauxIdentif) {
-        state.pop = Math.max(0, (state.pop||0) - 15);
-        state.dis = Math.max(0, (state.dis||50) - 10);
-        updateUI();
-        addExternalEvent('📰 ' + nomCible + ' révèle avoir été la cible d\'un complot orchestré par ' + (state.char?.name||'un personnage politique') + ' !');
-        addJournalEntry('Enquête de ' + nomCible + ' : vous avez été identifié(e). -15 POP -10 DIS.', 'event-bad');
-        showToast('Identifié(e) !', nomCible + ' vous a démasqué(e). -15 POP -10 DIS.', false);
-      } else {
-        addJournalEntry('La cible enquête mais ne vous retrouve pas.', 'event-info');
-      }
-    }
+    return;
+  }
+  addJournalEntry('Piège raté sur ' + nomCible + '. -' + cost + ' ' + cur + ' perdus.', 'event-bad');
+  showToast('Piège raté', nomCible + ' a éventé la manœuvre. Argent perdu.', false);
+  if (v.identifie) {
+    addExternalEvent('📰 ' + nomCible + ' révèle avoir été la cible d\'un complot orchestré par ' + (state.char?.name||'un personnage politique') + ' !');
+    addJournalEntry('Enquête de ' + nomCible + ' : vous avez été identifié(e). -15 POP -10 DIS.', 'event-bad');
+    showToast('Identifié(e) !', nomCible + ' vous a démasqué(e). -15 POP -10 DIS.', false);
+  } else if (v.enquete) {
+    addJournalEntry('La cible enquête mais ne vous retrouve pas.', 'event-info');
   }
 }
 
