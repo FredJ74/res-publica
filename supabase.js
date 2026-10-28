@@ -702,6 +702,19 @@ function sbEnfilerEcriturePersonnage(charState, data) {
       data.current_building = state.currentBuilding || null;
       data.current_room = state.currentRoom || null;
     }
+    // File de sauvegarde : l'autorisation obtenue au chargement n'est pas éternelle.
+    // Un cron ou une autre session peut avoir écrit depuis la capture de cet état.
+    // Dans ce cas, on refuse de republier le blob local périmé.
+    const repereServeur = charState._dernierUpdatedAtConnu;
+    if (!repereServeur || charState.personnageChargeDepuisServeur !== true) return null;
+    const actuel = await sbGet('personnages',
+      `name=eq.${encodeURIComponent(data.name)}&select=updated_at`);
+    if (!contexteActif() || !Array.isArray(actuel) || actuel.length !== 1
+        || actuel[0].updated_at !== repereServeur) {
+      charState.personnageChargeDepuisServeur = false;
+      console.warn('Sauvegarde personnage bloquée : version serveur non confirmée ou modifiée.');
+      return null;
+    }
     return sbEcrirePersonnage(data);
   }).then((resultat) => {
     if (!contexteActif()) return resultat;
