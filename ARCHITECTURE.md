@@ -223,3 +223,14 @@ PJ+PNJ n'a été retrouvé dans les sources auditées : ne pas le présenter com
 L'audit retire l'identifiant de détachement supplémentaire proposé dans #212 et
 réutilise les liens PNJ existants. Ce correctif préparé n'est pas une migration
 appliquée ; voir `outils/audits/AUDIT-CRITIQUE-SECURITE-GROUPES-135-20261028.md`.
+
+### Préparation des groupes universels — Codex, 28 octobre 2026
+
+La reprise #217 sur `codex/groupes-universels-20261028` prépare l'adhésion PJ
+persistée et son hydratation, durcit les portes PNJ communes (prêt, prise,
+séparation), le rappel radio et les projections de présence. Aucun moteur de
+combat ou de déplacement supplémentaire. **Non déployé et non terminé** :
+déplacement collectif PJ, projections police/douanes et recrutement du groupe
+mixte dans les rounds restent à raccorder ; catalogue vivant et recette
+authentifiée indispensables. Rapport et résultats :
+`outils/audits/FINALISATION-GROUPES-UNIVERSELS-20261028.md`.

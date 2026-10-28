@@ -2023,14 +2023,14 @@ async function rafraichirGroupePj() {
   if (numero !== RP_GROUPE_LECTURE || RP_GROUPE_COMMANDE) return false;
   return adopterGroupePj(r, c);
 }
-async function commanderGroupePj(fonction, params, titre) {
+async function commanderGroupePj(commande, titre) {
   if (typeof sbRpc !== 'function') return false;
   const c = contexteGroupePj();
   if (RP_GROUPE_COMMANDE && contexteGroupePjValide(RP_GROUPE_COMMANDE)) return false;
   RP_GROUPE_COMMANDE = c;
   ++RP_GROUPE_LECTURE; // Invalider les lectures antérieures à cette commande.
   try {
-    const r = await sbRpc(fonction, params).catch(() => null);
+    const r = await commande().catch(() => null);
     if (!contexteGroupePjValide(c)) return false;
     if (!r || r.ok !== true) {
       const motifs = { pas_co_presents: 'Le joueur doit être présent au même endroit.',
@@ -2063,10 +2063,10 @@ async function rejoindrePJ(encodedPnj) {
   let pj;
   try { pj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
   if (!pj || !pj.name || pj.name === state.char?.name) return;
-  return commanderGroupePj('groupe_pj_rejoindre', {p_chef: pj.name}, 'Groupe rejoint');
+  return commanderGroupePj(() => sbRpc('groupe_pj_rejoindre', {p_chef: pj.name}), 'Groupe rejoint');
 }
 async function quitterGroupe() {
-  return commanderGroupePj('groupe_pj_quitter', {}, 'Groupe quitté');
+  return commanderGroupePj(() => sbRpc('groupe_pj_quitter', {}), 'Groupe quitté');
 }
 
 // Jeremy (quete d'accueil) rejoint le groupe via le meme systeme que les PNJ employes

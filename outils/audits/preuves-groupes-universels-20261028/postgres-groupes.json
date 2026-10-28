@@ -1,0 +1,149 @@
+{
+  "tests": [
+    {
+      "cas": "rappel_collectif_et_reponse_perdue",
+      "ok": true
+    },
+    {
+      "cas": "radio_pj_absente",
+      "ok": true
+    },
+    {
+      "cas": "radio_unite_absente",
+      "ok": true
+    },
+    {
+      "cas": "radio_pj_quantite_nulle",
+      "ok": true
+    },
+    {
+      "cas": "radio_pnj_quantite_nulle",
+      "ok": true
+    },
+    {
+      "cas": "radio_autre_ville",
+      "ok": true
+    },
+    {
+      "cas": "radio_autre_pays",
+      "ok": true
+    },
+    {
+      "cas": "radio_autorites_reparties_aucun_mouvement",
+      "ok": true
+    },
+    {
+      "cas": "radio_axe_institution_preserve",
+      "ok": true
+    },
+    {
+      "cas": "radio_regle_metier_preservee",
+      "ok": true
+    },
+    {
+      "cas": "radio_membre_inactif",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_volontaire",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_non_authentifiee",
+      "ok": true
+    },
+    {
+      "cas": "auto_adhesion_interdite",
+      "ok": true
+    },
+    {
+      "cas": "chef_absent",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_autre_piece",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_interieur_ignore_ancienne_rue",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_rue_ignore_ancienne_piece",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_position_absente",
+      "ok": true
+    },
+    {
+      "cas": "lecture_reconnexion_et_depart",
+      "ok": true
+    },
+    {
+      "cas": "chef_separe_sans_mouvement",
+      "ok": true
+    },
+    {
+      "cas": "cycle_refuse",
+      "ok": true
+    },
+    {
+      "cas": "aucune_adhesion_imposee_ni_fuite_table",
+      "ok": true
+    },
+    {
+      "cas": "adhesions_concurrentes_sans_deadlock",
+      "ok": true
+    },
+    {
+      "cas": "prise_liste_incomplete_aucune_mutation",
+      "ok": true
+    },
+    {
+      "cas": "pret_conduite_sans_transfert_autorite_et_reprise",
+      "ok": true
+    },
+    {
+      "cas": "pret_refus_second_membre_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "depose_refus_second_membre_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "suivi_pnj_et_depose_rue_reelle",
+      "ok": true
+    },
+    {
+      "cas": "pret_autre_rue_refuse",
+      "ok": true
+    },
+    {
+      "cas": "ordre_radio_militaire_hors_ville_refuse_avant_effet",
+      "ok": true
+    },
+    {
+      "cas": "ordre_radio_meme_ville_conserve_garde_equipement",
+      "ok": true
+    },
+    {
+      "cas": "projection_employes_position_effective",
+      "ok": true
+    },
+    {
+      "cas": "prives_suiveurs_meme_groupe_reel",
+      "ok": true
+    },
+    {
+      "cas": "prives_copresence_distincte_puis_adhesion_reelle",
+      "ok": true
+    }
+  ],
+  "production": false,
+  "authentification": "identite JWT de fixture, role authenticated",
+  "rollback": true,
+  "migrations_appliquees": [],
+  "original217": false
+}

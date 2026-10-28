@@ -1,0 +1,30 @@
+✔ adhésion : seulement le verdict serveur (90.193071ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : null (42.786492ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":false,"raison":"pas_co_presents"} (32.448536ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":true} (31.0275ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":true,"contrat":1,"chef":"B","membres":["B"]} (25.446722ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":true,"contrat":1,"chef":"B","membres":["B","A","A"]} (25.329372ms)
+✔ double clic : une seule commande (24.054024ms)
+✔ réponse tardive après changement personnage (27.328755ms)
+✔ réponse tardive après changement session (23.161029ms)
+✔ perte de réponse : relecture sans rejouer ni annoncer une réussite (29.873282ms)
+✔ lecture tardive ne remplace pas une commande plus récente (19.940072ms)
+✔ départ : le serveur conserve son autorité sur le résultat (21.872806ms)
+✔ rechargement : sbLoadPersonnage reprend le groupe officiel (32.300104ms)
+✔ rappel collectif : met à jour tous les employés depuis le contrat existant (20.947313ms)
+✔ rappel tardif après changement personnage (19.823474ms)
+✔ rappel tardif après changement session (21.879427ms)
+✔ rappel double clic bloqué (20.420051ms)
+✔ employé : aucune mutation avant le serveur true (25.053919ms)
+✔ employé : aucune mutation avant le serveur false (20.111683ms)
+✔ absence de PNJ serveur : aucun mouvement inventé (36.009169ms)
+✔ refus de reprise serveur : pas de succès ni appartenance locale inventée (21.516137ms)
+✔ dépose : position affichée relue du serveur, pas celle du navigateur (28.79398ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 652.002465
