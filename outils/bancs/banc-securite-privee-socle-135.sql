@@ -77,11 +77,13 @@ DO $t$ DECLARE r jsonb; g jsonb; BEGIN
  g:=public.securite_ordre_detection_interne(r,'__test_bat_135__','terrain',NULL);
  IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(g) x WHERE (x->>'effectif')::integer=2
  AND x->>'groupe'='prive:__test_135_deploiement_a__') THEN RAISE EXCEPTION 'groupe_collectif_perdu: %',g; END IF;
- UPDATE public.pnj_membres SET leader_pj='__test_pj_135__',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,rue_noeud_id=NULL
- WHERE id IN ('__test_135_deploiement_a__','__test_135_deploiement_b__');
 END $t$;
 SET LOCAL ROLE authenticated;
 DO $t$ DECLARE r jsonb; BEGIN
+ PERFORM set_config('request.path','/rpc/pnj_prendre',true);
+ r:=public.pnj_prendre(ARRAY['__test_135_deploiement_a__','__test_135_deploiement_b__']);
+ IF r->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'reprise_collective_refusee: %',r; END IF;
+ PERFORM set_config('request.path','/rpc/pnj_deployer_unite',true);
  r:=public.pnj_deployer_unite(ARRAY['__test_135_deploiement_a__','__test_135_deploiement_b__'],false);
  IF r->>'ok' IS DISTINCT FROM 'true' OR r->>'groupe' IS NOT NULL
  THEN RAISE EXCEPTION 'deploiement_individuel_refuse: %',r; END IF;

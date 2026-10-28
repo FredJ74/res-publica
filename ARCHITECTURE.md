@@ -211,3 +211,15 @@ Al-Khalija) ; la structure à huit empires (quatre non payants, quatre pay-to-wi
 Fred n'y figure pas encore.
 
 *Tenir ce fichier à jour à chaque mécanique ajoutée, retirée ou passée au serveur.*
+
+
+### Note d'audit #135 — 28 octobre 2026, non déployée
+
+Les liens de suivi `pnj_membres.leader_pj/leader_pnj_id`, la position effective,
+la dépose/reprise commune et les commandes militaires existent déjà. Les groupes
+`batailles_engagements.groupe_id` sont propres à une bataille. `state.group` possède
+ses ordres clients, mais aucun raccordement serveur complet du groupe universel
+PJ+PNJ n'a été retrouvé dans les sources auditées : ne pas le présenter comme livré.
+L'audit retire l'identifiant de détachement supplémentaire proposé dans #212 et
+réutilise les liens PNJ existants. Ce correctif préparé n'est pas une migration
+appliquée ; voir `outils/audits/AUDIT-CRITIQUE-SECURITE-GROUPES-135-20261028.md`.

@@ -10,7 +10,7 @@
 6. En cas de reddition ou de défaite, même circuit judiciaire et pénitentiaire que la police. Lorsqu'il s'agit d'un agent privé, le récit précise sa remise du PJ à la police.
 7. Aucun statut ni placement « vigile de chantier » : la sécurité privée utilise les socles PNJ existants (embauche, groupe et déplacement) et police existants (détection, fuite, combat, détention).
 
-## Implémentation de travail — PR #212 (non déployée)
+## Historique de la proposition initiale — PR #212 (révisée par l’audit ci-dessous)
 
 - `securite_ordre_detection_interne` constitue les unités par appartenance explicite, puis les ordonne police avant privé, effectif décroissant et tirage aléatoire à égalité.
 - Les PNJ privés utilisent `leader_pnj_id` ; les policiers sont isolés par matricule, sauf présence d'un `groupe_id` explicite issu du socle militaire (ancien alias `groupeId` accepté).
@@ -47,7 +47,7 @@ Dans la base existante, `pnj_membres.leader_pj` et `pnj_membres.leader_pnj_id` r
 
 Conséquence : **ne pas confondre** `groupe_id` d'un engagement militaire (éphémère et lié à une bataille) avec l'identité persistante d'un groupe PJ/PNJ en exploration. Ne pas créer un moteur concurrent, une table ad hoc de vigiles, ni déduire un groupe de la seule co-présence.
 
-### Déploiement collectif ou individuel : implémentation du 28/10
+### Historique du déploiement proposé le 28/10 (remplacé par l’audit)
 
 La migration de travail #135 ajoute **au socle universel PNJ** l'identité facultative `pnj_membres.groupe_deploiement_id`, indépendante de l'employeur et du métier. L'ordre serveur commun `pnj_deployer_unite(p_pnj_ids, p_groupe)` exige que tous les PNJ sélectionnés suivent réellement le PJ authentifié, puis fixe leur position sur celle du chef :
 - `p_groupe=true` : **une seule identité de détachement** partagée, conservée lors du départ du chef ;
@@ -56,3 +56,37 @@ La migration de travail #135 ajoute **au socle universel PNJ** l'identité facul
 Le moteur de détection lit cette identité, ou les liens de chef PNJ existants, sans regrouper artificiellement les agents co-présents. Le banc SQL exerce les deux options dans une transaction annulée, sans PNJ réel modifié.
 
 **Portée actuelle et limites** : ce raccordement est effectif pour les PNJ qui suivent un PJ, et pour l'arbitrage de sécurité privée. La mécanique universelle de groupe entre **plusieurs PJ**, la réintégration collective d'unités déjà déposées et le branchement de toutes les interfaces (notamment `militaire_deposer_soldats` qui efface encore le groupe au dépôt) restent à traiter. Le socle militaire a révélé le mécanisme de dépose/reprise par nombre et le suivi `leader_pj`; il ne suffit pas à prouver le regroupement universel des PJ. **Ne pas annoncer un déploiement complet IG ou une production.**
+
+
+## Audit indépendant Codex du 28/10 — préparation, aucune production
+
+Les décisions de Fred ci-dessus sont inchangées. L'audit de `7c91ef1b` a reproduit
+plusieurs défauts serveur ; rapport :
+`outils/audits/AUDIT-CRITIQUE-SECURITE-GROUPES-135-20261028.md`.
+
+- La colonne proposée `groupe_deploiement_id` est supprimée de la migration **non
+  appliquée**. Un détachement PNJ au sol peut être représenté par les liens
+  `leader_pnj_id` déjà existants, avec une ancre immobile et ses membres.
+- `pnj_deployer_unite` reste un adaptateur de **`pnj_quitter_groupe`**, en conservant
+  autorité et gardes de famille ; aucun moteur de déplacement parallèle. La reprise
+  collective prépare les liens via le même ordre, sans modifier le déclencheur
+  qui interdit les sous-hiérarchies. Les RPC militaires spécialisées sont conservées.
+- Le combat garde le registre policier **complet** et ne change que les intervenants.
+  Les PNJ sélectionnés sont verrouillés avant lecture de leurs PA ; les reçus et les
+  RPC policières existantes restent les seuls circuits d'action.
+- Le champ `police_interceptions.intervenants` est conservé : il fige les participants
+  d'une rencontre, **pas** un groupe de déplacement ni une nouvelle autorité.
+- La reconnaissance de `groupe_id`/`groupeId` dans une entrée policière n'établit
+  toujours pas sa provenance. Aucun producteur de ces champs dans les effectifs
+  policiers n'a été retrouvé. Un groupe de bataille ne devient pas une patrouille.
+
+**Pas de groupe universel livré** : `rejoindrePJ`, `quitterGroupe`, `getGroupSize`
+et `isGroupLeader` existent côté écran ; leur présence ne prouve pas une adhésion
+persistée et un déplacement collectif validés côté serveur. Les règles de famille
+historiques interdisent encore certains déplacements policiers/militaires par la
+porte individuelle. Elles doivent être raccordées aux décisions universelles de
+Fred, sans fabriquer un autre groupe ni supprimer les autorités de métier.
+
+Les trois étapes SQL doivent être revues et prévolées ensemble ; le détecteur
+vivant n'est pas dans le baseline disponible et n'a pas été simulé pour obtenir
+un faux feu vert. Aucune migration appliquée, aucune PR fusionnée pendant l'audit.
