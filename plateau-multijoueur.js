@@ -1282,6 +1282,18 @@ function payerEmployes() {
 // =====================
 // LAISSER UN PNJ EN PLACE / RÉCUPÉRER
 // =====================
+// La présence de chaque employé vient de sa projection serveur existante.
+function adopterPresenceEmploye(emp, reel) {
+  if (!emp || !reel || reel.pnj_id !== emp.pnjId || typeof reel.porte !== 'boolean') return false;
+  emp.inGroupe = reel.porte;
+  if (reel.position && typeof reel.position === 'object') {
+    emp.city = reel.position.ville;
+    emp.buildingId = reel.position.building_id;
+    emp.roomId = reel.position.room_id;
+    emp.rueNoeudId = reel.position.rue_noeud_id;
+  }
+  return true;
+}
 let RP_EMPLOYE_MOUVEMENT = null;
 async function commanderMouvementEmploye(nomPnj, prendre) {
   const emp = getEmployes().find(e => e.nom === nomPnj);
@@ -1302,7 +1314,7 @@ async function commanderMouvementEmploye(nomPnj, prendre) {
       ? await sbEmployeMesEmployes().catch(() => null) : null;
     if (!contexteGroupePjValide(c)) return false;
     const reel = etat?.employes?.find(e => e.pnj_id === emp.pnjId);
-    if (reel && typeof reel.porte === 'boolean') emp.inGroupe = reel.porte;
+    adopterPresenceEmploye(emp, reel);
     if (!r || r.ok !== true || !reel || typeof reel.porte !== 'boolean') {
       showToast('Mouvement non confirmé', 'Le serveur n’a pas confirmé le mouvement et son état. Réessayez la consultation.', false);
       if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
@@ -1557,7 +1569,7 @@ async function rappelerEmployeParRadio(ancreId) {
     if (Array.isArray(employes?.employes)) {
       for (const emp of state.employes || []) {
         const reel = employes.employes.find(e => e.pnj_id === emp.pnjId);
-        if (reel && typeof reel.porte === 'boolean') emp.inGroupe = reel.porte;
+        adopterPresenceEmploye(emp, reel);
       }
     }
     if (typeof renderEmployesPanel === 'function') renderEmployesPanel();

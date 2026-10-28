@@ -17,7 +17,9 @@ BEGIN
     || chr(10) || '                    AND appelant.current_city = receveur.current_city) THEN'
     || chr(10) || '      RETURN jsonb_build_object(''ok'',false,''raison'',''radio_hors_ville'');'
     || chr(10) || '    END IF;';
-  IF position('radio_hors_ville' IN s) > 0 THEN RETURN; END IF;
+  IF position(b IN s)>0 THEN RETURN; END IF;
+  IF position('radio_hors_ville' IN s)>0 THEN
+    RAISE EXCEPTION 'ordre_radio_garde_inattendue'; END IF;
   IF (length(s)-length(replace(s,a,'')))/length(a) <> 1 THEN
     RAISE EXCEPTION 'ordre_radio_definition_non_examinee';
   END IF;

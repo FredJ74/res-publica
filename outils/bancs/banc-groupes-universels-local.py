@@ -45,6 +45,11 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
   socle=(R/audit.M).read_text();q.execute(re.search(r'DO \$position\$.*?END \$position\$;',socle,re.S)[0])
   # Installer la reprise en deux boucles de #216 (déjà auditée), sans le détecteur.
   q.execute(re.search(r'DO \$reprise\$.*?END \$reprise\$;',socle,re.S)[0])
+  q.execute('CREATE TABLE compagnies_militaires(id text PRIMARY KEY,data jsonb)')
+  q.execute(audit.fonction('baseline/domaines/militaire/20_fonctions-2.sql','militaire_ordre_collectif'))
+  q.execute((R/'migrations/20261028122000_radio_ordres_meme_ville.sql').read_text())
+  q.execute((R/'migrations/20261028122000_radio_ordres_meme_ville.sql').read_text())
+  q.execute("INSERT INTO compagnies_militaires VALUES('compagnie','{\"sections\":[{\"id\":\"s\",\"lieutenantNom\":\"A\"}]}')")
   original='--contre-217' in sys.argv
   for nom in ['20261028122500_reprise_pnj_autorite_administrative.sql','20261028123000_groupe_pj_adhesion_volontaire.sql','20261028123500_pnj_rappel_radio_universel.sql','20261028124000_transfert_pnj_autorite_origine.sql']:
    if original:
@@ -57,6 +62,19 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
    if not original:q.execute(p.read_text());q.execute(p.read_text())
   q.execute('REVOKE ALL ON ALL TABLES IN SCHEMA public FROM authenticated,anon,service_role')
   q.execute('GRANT EXECUTE ON FUNCTION pnj_prendre(text[]),pnj_quitter_groupe(text[]),pnj_transferer(text[],text,boolean) TO authenticated')
+  q.execute('ALTER TABLE pnj_membres ADD COLUMN pa integer DEFAULT 12, ADD COLUMN liquide numeric DEFAULT 0, ADD COLUMN car_int integer, ADD COLUMN car_cha integer, ADD COLUMN car_vol integer, ADD COLUMN car_per integer, ADD COLUMN car_dup integer, ADD COLUMN car_ent integer')
+  tables=(R/'baseline/domaines/socle-PNJ/10_tables.sql').read_text()
+  q.execute(re.search(r'CREATE TABLE public\.pnj_employes_metier \(.*?\n\);',tables,re.S)[0])
+  q.execute("INSERT INTO pnj_employes_metier(pnj_id,job,role_libelle) VALUES('ancre','agent_securite','agent'),('autre','agent_securite','agent')")
+  q.execute(audit.fonction('baseline/domaines/socle-PNJ/20_fonctions.sql','pnj_caracteristiques_base'))
+  q.execute(audit.fonction('baseline/domaines/personnage-et-presence/20_fonctions.sql','employe_mes_employes'))
+  if not original:
+   q.execute((R/'migrations/20261028140626_groupes_employes_position_confirmee.sql').read_text())
+   q.execute((R/'migrations/20261028140626_groupes_employes_position_confirmee.sql').read_text())
+  q.execute(audit.fonction(audit.M,'securite_agents_prives_presents_interne'))
+  if not original:
+   q.execute((R/'migrations/20261028141500_groupes_presence_privee_chef_reel.sql').read_text())
+   q.execute((R/'migrations/20261028141500_groupes_presence_privee_chef_reel.sql').read_text())
   c.commit()
   def sql(s):q.execute(s)
   def rpc(nom,args=(),qui='A',cur=q):
@@ -139,6 +157,7 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
    finally:un.rollback();deux.rollback();un.close();deux.close()
   cas('adhesions_concurrentes_sans_deadlock',concurrent)
   def prendre_inconnu():
+   sql("UPDATE personnages_donnees SET current_building='bar',current_room='salle' WHERE name='A'")
    avant=photo();exige(rpc('pnj_prendre',(['ancre','inexistant'],)),'identifiants_invalides');assert avant==photo()
   cas('prise_liste_incomplete_aucune_mutation',prendre_inconnu)
   def pret():
@@ -172,6 +191,31 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
    sql("UPDATE personnages_donnees SET current_building=NULL,current_room=NULL,current_street='rue';UPDATE personnages_donnees SET current_street='ailleurs' WHERE name='B';UPDATE pnj_membres SET building_id=NULL,room_id=NULL,rue_noeud_id='rue' WHERE id='ancre'")
    avant=photo();exige(rpc('pnj_transferer',(['ancre','autre'],'B',False)),'pas_co_presents');assert avant==photo()
   cas('pret_autre_rue_refuse',rue_distante)
+  def ordre_radio(ville,raison):
+   sql("UPDATE personnages_donnees SET inventory='[{\"produitMilitaire\":\"radio\"}]',current_city='"+ville+"' WHERE name='B'")
+   if raison=='radio_manquante':sql("UPDATE personnages_donnees SET inventory='[]' WHERE name='A'")
+   exige(rpc('militaire_ordre_collectif',('compagnie','s','ration','B',None)),raison)
+  cas('ordre_radio_militaire_hors_ville_refuse_avant_effet',lambda:ordre_radio('port','radio_hors_ville'))
+  cas('ordre_radio_meme_ville_conserve_garde_equipement',lambda:ordre_radio('capitale','radio_manquante'))
+  def projection():
+   v=exige(rpc('employe_mes_employes'));assert len(v['employes'])==2
+   assert all(e['position']['building_id']=='bar' for e in v['employes']),v
+  cas('projection_employes_position_effective',projection)
+  def prives_groupes():
+   exige(rpc('pnj_rappeler_radio',('ancre',)))
+   sql("UPDATE pnj_membres SET car_per=12,car_vol=12")
+   q.execute("SELECT securite_agents_prives_presents_interne('republic','capitale','mairie','accueil',NULL,'B')");v=q.fetchone()[0]
+   assert len(v)==2 and v[0]['groupeCle']==v[1]['groupeCle'],v
+  cas('prives_suiveurs_meme_groupe_reel',prives_groupes)
+  def groupes_distincts():
+   exige(rpc('pnj_rappeler_radio',('ancre',)))
+   sql("UPDATE pnj_membres SET leader_pj=CASE WHEN id='ancre' THEN 'A' ELSE 'B' END,car_per=12,car_vol=12")
+   q.execute("SELECT securite_agents_prives_presents_interne('republic','capitale','mairie','accueil',NULL,'C')");v=q.fetchone()[0]
+   assert len(v)==2 and v[0]['groupeCle']!=v[1]['groupeCle'],v
+   exige(rpc('groupe_pj_rejoindre',('B',)))
+   q.execute("SELECT securite_agents_prives_presents_interne('republic','capitale','mairie','accueil',NULL,'C')");v=q.fetchone()[0]
+   assert v[0]['groupeCle']==v[1]['groupeCle'],v
+  cas('prives_copresence_distincte_puis_adhesion_reelle',groupes_distincts)
   c.rollback()
   print(json.dumps({'tests':tests,'production':False,'authentification':'identite JWT de fixture, role authenticated','rollback':True,'migrations_appliquees':[],'original217':original},ensure_ascii=False,indent=2))
   return int(any(not x['ok'] for x in tests))
