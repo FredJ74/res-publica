@@ -7,7 +7,7 @@ from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('corps',R/'outils/bancs/banc-groupes-corps-local.py');corps=importlib.util.module_from_spec(sp);sp.loader.exec_module(corps)
 
-def suite(ctx):
+def suite(ctx, suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']];a=corps.g.audit
  for nom in ['douane_autorite_de_perimetre','douane_caracteristiques_metier','douane_pnj_id']:
   q.execute(a.fonction('baseline/domaines/renseignement/20_fonctions.sql',nom))
@@ -97,5 +97,6 @@ def suite(ctx):
   for role in ['anon','authenticated','service_role']:
    q.execute("SELECT has_function_privilege(%s,'pnj_groupes_projeter_institutions_interne(text[])','EXECUTE')",(role,));assert q.fetchone()[0] is False
  cas('projection_institutionnelle_inaccessible_du_reseau',aucun_droit_interne)
+ if suivante is not None:suivante(ctx)
 
 if __name__=='__main__':sys.exit(corps.g.main(lambda ctx:corps.extension(ctx,suite)))

@@ -1,3 +1,11 @@
+## Groupes universels — rue commune récupérée et testée, 28/10, Codex
+
+- Même branche `codex/groupes-universels-20261028`, PR #219, après `e80efd80`. **Non terminé, aucune fusion/application/déploiement.**
+- Corps Git de `rue_position_enregistrer` retrouvé au commit `5e23f714` : son `pg_get_functiondef` donne exactement le MD5 communiqué `5e819694359c4bf2f11470c7f9f95ad8`. Source et provenance archivées dans `outils/bancs/fixtures/groupes-corps-git-20261028.json`. Les autres sources historiques (détecteur/coup/lecture) ne sont pas prétendues des relevés vivants récents.
+- Migration préparée `20261028183000_groupes_rue_transaction_commune.sql` : le moteur de rue existant devient privé et paramétrable, gardes communes conservées, validation de chaque PJ avant mutation, positions atomiques du chef et des membres, projections PNJ existantes, verrou du graphe et ordre de verrous commun. Prison, interception et hospitalisation bloquent tout le groupe ; actualisation de `updated_at`. Rejeu sans nouvelle mutation ; dérive de définition publique ou privée refusée. Aucune porte d'identité arbitraire exposée.
+- **77/77 cas PostgreSQL jetable**, incluant les 59 précédents, sortie/marche réelle de deux PJ et sept PNJ, refus et rollback aval, concurrence réellement observée. Un acte fictif committé dans le serveur éphémère pour le snapshot concurrent, jamais Supabase. **21/21 navigation cliente**, contexte transmis au transport pendant le renouvellement d'authentification. CI existante étendue, cache remonté.
+- **Restent de vrais développements :** entrées et pièces pour groupes, anciens écrivains de position/sauvegardes périmées, recrutement et rounds mixtes, interception du groupe recherché. Le déplacement rue ne démontre pas ces parcours. Pas de recette authentifiée. Aucun joueur réel, fiche financière ou inventaire modifié.
+
 ## Nouvelle reprise #219 — 28/10/2026, Codex, EN COURS
 
 - Branche `codex/groupes-universels-20261028`, départ `6a72c964`, main `c10c1083` contrôlé. Une seule tentative REST de lecture des nouveaux commentaires : Forbidden. Aucun moteur de rue ou détecteur reconstruit ; leurs corps restent indispensables pour l'étape PJ/interception.

@@ -228,9 +228,10 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
    q.execute("SELECT securite_agents_prives_presents_interne('republic','capitale','mairie','accueil',NULL,'C')");v=q.fetchone()[0]
    assert v[0]['groupeCle']==v[1]['groupeCle'],v
   cas('prives_copresence_distincte_puis_adhesion_reelle',groupes_distincts)
+  preuves_extension={}
   if extension is not None:extension(locals())
   c.rollback()
-  print(json.dumps({'tests':tests,'production':False,'authentification':'identite JWT de fixture, role authenticated','rollback':True,'migrations_appliquees':[],'original217':original},ensure_ascii=False,indent=2))
+  print(json.dumps({'tests':tests,'production':False,'authentification':'identite JWT de fixture, role authenticated','rollback':not preuves_extension.get('action_fictive_committee',False),'preuves_extension':preuves_extension,'migrations_appliquees':[],'original217':original},ensure_ascii=False,indent=2))
   return int(any(not x['ok'] for x in tests))
  finally:c.close();serveur.cleanup()
 if __name__=='__main__':sys.exit(main())

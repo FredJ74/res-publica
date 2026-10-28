@@ -4,6 +4,30 @@
 sauvegardés. Aucun groupe universel n'est annoncé en production. Les déplacements
 collectifs des PJ et les combats de groupes mixtes restent à raccorder au serveur.
 
+## Dernier complément — rue collective et force publique
+
+L'état historique ci-dessous est dépassé pour la projection police/douanes et
+le déplacement en rue. `e80efd80` apporte leurs portes et projection : 59 cas
+SQL et 12 contrats clients ciblés. Le corps Git authentique du moteur de rue a
+ensuite été retrouvé et son MD5 de définition reproduit à l'identique du relevé
+communiqué : `5e819694359c4bf2f11470c7f9f95ad8`.
+
+`20261028183000_groupes_rue_transaction_commune.sql` prépare sa factorisation
+privée et l'appel collectif, avec gardes, verrous, validation préalable de tous
+les PJ et rollback des projections. Refus des définitions divergentes, y compris
+au rejeu. 77 cas SQL passent (59 antérieurs + 18 nouveaux), dont deux PJ, quatre
+soldats et trois policiers dans le vrai moteur de rue, refus prison/interception/
+coma/hôpital/itinéraire, panne de projection, doubles commandes concurrentes et
+réponse perdue. Un acte fictif est committé dans la base éphémère pour observer
+le snapshot après attente ; les autres scénarios sont annulés. 21 cas navigation
+client passent ; la garde de contexte atteint désormais le transport existant.
+
+**Ce complément ne clôt pas le chantier.** Les anciens écrivains de position et
+les entrées/pièces ne sont pas encore sécurisés pour les groupes ; les rounds
+mixtes et l'interception collective restent à développer. Les sources historiques
+de combat/détection archivées ne remplacent pas une nouvelle lecture de leurs
+corps vivants. Aucun changement Supabase, joueur réel, fusion ou déploiement.
+
 ## Reprise de la PR #219 — état le plus récent
 
 **Cette section remplace l'état historique ci-dessous pour les soldats et leurs

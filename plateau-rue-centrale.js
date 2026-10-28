@@ -1179,7 +1179,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
     ++rueCentraleLecturePosition;
     let position;
     try{
-      position=await sbRpc('rue_position_enregistrer',{p_noeud:noeudId})
+      position=await sbRpc('rue_position_enregistrer',{p_noeud:noeudId},{encoreValide:()=>contexteNavigationRueValide(contexte)})
         .then(rows=>Array.isArray(rows)?rows[0]:rows).catch(()=>null);
     }finally{if(rueCentraleDeplacementEnCours===contexte)rueCentraleDeplacementEnCours=null;}
     if(!contexteNavigationRueValide(contexte))return;
