@@ -529,3 +529,18 @@ tirés au hasard et les effets purement visuels sont exclus.
   des cinq anciennes fixtures SQL. Chemins et sorties sous les preuves, aucun contrôle modifié
   pour les cacher. Le nouveau prévol est rangé dans `outils/bancs/`, sous transaction READ ONLY
   annulée, conformément au workflow.
+
+- **28/10 — inventaire, Claude : plus aucun objet ajouté par l'écran.** Les dix migrations de la
+  reprise Codex sont appliquées et estampillées (registre `20261028204032` → `20261028205317`,
+  trois correctifs : caisses de l'usine et du port créées au besoin, acte citoyen à 50). Les quatre
+  réceptions locales restantes sont fermées : `kompromat_fabriquer`, `escort_piege_tenter`,
+  `crime_voler_materiaux` (jet, stock, dépôt, traces serveur), texte de l'IA posé une seule fois par
+  `kompromat_rediger` ; `doEscortInfos` supprimé (aucun menu). Relevé statique refait : les seuls
+  ajouts restants passent par la réponse du serveur. **PR #213 prête, fusion suspendue par Fred
+  (livraison groupée).** Après la livraison : `20261028210000`, `210500`, `210600` (anciennes
+  portes, garde du fret, ancien acte de vol terrain).
+- **Encore ouvert avant le verrou final de `inventaire_sauver_revision`** : trois *retraits*
+  laissés à l'écran, qu'un tricheur peut éviter — tracts calomnieux distribués, tracts de
+  Jean-Lou, butin retiré chez la victime d'un vol (`recupererVolsEnAttente`) ; réconciliation des
+  anciennes charges d'employés ; quêtes, budgets de club et autorisations de l'énigme encore
+  écrits par l'écran (hors inventaire).
