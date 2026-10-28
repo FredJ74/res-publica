@@ -1347,7 +1347,7 @@ function loadCharacter() {
             }
             // state reste donc exactement tel que le cache local l'a pose : aucun montant
             // etranger, aucun 4250 invente, aucun 0, et aucune reecriture de localStorage.
-            state.personnageChargeDepuisServeur = true; // ne jamais bloquer indefiniment
+            state.personnageChargeDepuisServeur = false; // fiche masquée : aucune autorité locale
             return diagnostiquerIdentite(char.name);
           }
 
@@ -1464,10 +1464,9 @@ function loadCharacter() {
           // arg sur la somme reelle des poches, ne modifie jamais liquide/comptes/placements
           // eux-memes (voir verifierCoherenceFortune ci-dessous).
           if (typeof verifierCoherenceFortune === 'function') verifierCoherenceFortune();
-          // Reconciliation terminee (reussie ou sbState vide) : les sauvegardes redeviennent
-          // normales des cet instant, y compris pour la navigation qui vient de se produire
-          // pendant l'attente ci-dessus (enterRoom l'a deja affichee sans la sauvegarder).
-          state.personnageChargeDepuisServeur = true;
+          // Seule une fiche serveur réellement reçue et validée autorise les écritures.
+          // En cas d'absence/réponse perdue, aucun cache local ne devient autoritaire.
+          state.personnageChargeDepuisServeur = !!sbState;
           // CORRECTIF DU 14 septembre 2026. Jusqu'ici, un sbState vide ne declenchait RIEN : le
           // jeu continuait sur le cache local, sans personnage cote serveur. Toutes les actions
           // echouaient alors en silence, et leurs refus etaient presentes comme un manque
