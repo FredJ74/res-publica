@@ -7,6 +7,9 @@ Règles : voir `AGENTS.md`.
 
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
+- **Connexion/création PJ (nouveau correctif) :** dans `sbCreerPersonnageUnique`, un rejet réseau de `fetch` pouvait remonter comme exception non gérée plutôt que réponse métier. Gestion explicite `creation_incertaine`, sans rejeu d'INSERT (il peut avoir été effectué). Quatre scénarios sur fonction réelle ajoutés dans `banc-creation-personnage-reseau-20261028.cjs`, raccordés au workflow client. Vérification CI en attente à ce stade ; aucun compte réel touché.
+
+
 - **CI du nouveau banc navigation :** `coherence-client.yml` lance désormais explicitement `node outils/bancs/banc-sortie-reponse-perdue-20261028.cjs` (commit `c0365a6`). Workflow GitHub #40725306741 déclenché, état initial `pending` ; ne pas présenter le banc comme réussi avant conclusion. Aucun déploiement ni donnée joueur modifiée.
 
 
