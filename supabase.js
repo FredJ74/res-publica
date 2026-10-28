@@ -466,11 +466,18 @@ async function sbCreerPersonnageUnique(data, dejaRejoue) {
   // vaut alors null au lieu d'un objet, ce qui ne change rien puisque nul ne la lit. Le corps
   // d'ERREUR, lui, continue d'etre renvoye par PostgREST : les codes 23505/23503 et le nom de la
   // contrainte restent lisibles plus bas, et c'est d'eux que depend tout l'aiguillage.
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/personnages`, {
-    method: 'POST',
-    headers: { ...sbEnTetes(), 'Prefer': 'return=minimal' },
-    body: JSON.stringify(data)
-  });
+  let res;
+  try {
+    res = await fetch(`${SUPABASE_URL}/rest/v1/personnages`, {
+      method: 'POST',
+      headers: { ...sbEnTetes(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify(data)
+    });
+  } catch (_) {
+    // Une connexion interrompue ne prouve pas que la création a échoué.
+    // Ne jamais rejouer un INSERT de personnage sans relecture serveur.
+    return { ok: false, raison: 'creation_incertaine' };
+  }
   if (res.ok) {
     const lignes = await res.json().catch(() => null);
     return { ok: true, ligne: (lignes && lignes[0]) || null };
