@@ -40,3 +40,7 @@ Cette possibilité est **universelle et non réservée à l'armée** : elle s'ap
 Ne pas multiplier les moteurs de déplacement autonome par métier. Raccorder la règle à la gestion existante de radio, d'inventaire/équipement, de suivi, de groupe, d'autorité et de déplacement. Vérifier la réalisation effective du déplacement côté serveur avant de retirer tout ancien parcours.
 
 **Important :** le texte antérieur « aucun déplacement autonome PNJ » admet expressément cette unique exception. Le document n'établit pas les coûts, délais, obstacles ou limites de portée radio, qui ne doivent pas être inventés.
+
+## Portée géographique de la radio — précision de Fred (28/10/2026)
+
+**La liaison radio est strictement limitée à une même ville.** Un ordre de rappel par radio d'un groupe PNJ ne peut être exécuté que si le PJ appelant et le groupe appelé se trouvent dans **la même ville**. Deux villes différentes : **aucune liaison, aucun déplacement autonome**. Cette condition est à contrôler par le serveur avant tout mouvement. La présence de radios des deux côtés et l'autorité du PJ restent nécessaires, mais ne suffisent pas à contourner la limite géographique. Aucun rayon supplémentaire ni exception inter-villes n'est défini.
