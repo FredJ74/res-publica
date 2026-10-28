@@ -7,6 +7,9 @@ Règles : voir `AGENTS.md`.
 
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
+- **Navigation (nouveau banc) :** corps vivants `rue_position_enregistrer`, `rue_position_lire`, `rue_sortie_batiment_lire` relus en lecture seule ; banc `banc-sortie-reponse-perdue-20261028.cjs` poussé commit `4fa955f` pour vérifier réponse perdue sans double mutation. Exécution CI du nouveau banc non encore confirmée ; recette authentifiée toujours à faire.
+
+
 - **Nouveau rapprochement vivant banque, 28/10 :** `fonds_credits_uniques` enregistre une régularisation de 100 000 FR pour le prêt travaux de Jean Jaaj, le 18/10 à 20:27 UTC (`pret-1792353270892`). Un deuxième prêt de 10 000 FR existe aussi, distinct. Les soldes actuels ne prouvent pas le crédit initial ou son affichage. **Ne pas régulariser une seconde fois** ; audit dans `PREVOL-CINQ-POINTS-LUTHECIA-20261028.md`, commit `358aedb`. Aucun solde modifié.
 
 - **Complément vérifié CI / banque (commit `fe952ac`) :** cinq workflows PR #218 au vert ; le journal confirme `OK banc-reception-rest-20261028.cjs`. Prêt travaux national de Jean Jaaj de 100 000 FR présent dans Supabase, restant 76 997 FR, deux comptes distincts ; versement initial non démontré. Rapport prévol enrichi. Aucune écriture en base ni déploiement.
