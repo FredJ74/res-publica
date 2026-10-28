@@ -5,7 +5,9 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Chantier inventaire EN COURS — reprise Codex du 27/10
+### Chantier inventaire EN COURS — reprise Codex du 27/10, appliquée par Claude le 28/10
+
+- **28/10, Claude :** les dix migrations de la PR #213 sont APPLIQUÉES et estampillées (registre 20261028204032 → 20261028205317), chacune éprouvée au rôle authenticated en transaction annulée sur la vraie base. Trois correctifs : caisse de l'usine pharmaceutique et caisse du port créées au besoin (elles n'existaient pas, l'achat aurait toujours échoué) ; acte officiel citoyen au tarif du jeu (1 PA + 50, Codex attendait 0). Les deux fermetures d'anciens contrats (`pnj_objet_transferer` à trois arguments, ancien `tracts_donner_joueur`) sont dans `20261028210000`, à appliquer **juste après** la fusion. Les points ci-dessous datent de la préparation par Codex ; « non appliquées » n'est plus vrai.
 
 - Branche **`codex/inventaire-serveur-20261027`**, issue de `5c9e41e` ; main `da5ecc0` (#209/#210/#211) intégré. Lots Claude #206/#207 conservés, aucun travail recommencé. Aucune modification de la sauvegarde de fiche, santé/moral, ni de `supabase.js`/`plateau-core.js`/`plateau-personnage.js`. Aucun joueur réel modifié.
 - **Tout est préparé, rien appliqué/fusionné/déployé en production par cette session.** Outil Supabase absent ; création de PR en brouillon réellement tentée, GraphQL Forbidden. Ne pas publier le client avant vérification/installation des RPC et de leurs dépendances.
@@ -20,6 +22,38 @@ Règles : voir `AGENTS.md`.
 - Workflow non conforme : six signalements identiques au main (cinq fixtures SQL hors des maisons reconnues et agrégat). Aucune modification du contrôle ni de ses références. Nouveau prévol dans le dossier autorisé, accepté ; voir preuves.
 - Prévol en lecture seule : `outils/bancs/PREFLIGHT-INVENTAIRE-RECEPTIONS-20261027.sql` ; non exécuté. Vérifier les catalogues/ACL/RLS/triggers, registre, ordre des migrations, triples de coûts et données historiques. `created_at` sans fuseau est testé comme tel et lu explicitement UTC ; anciens producteurs à confirmer.
 - Relevé reproductible : `outils/inventaire/inventorier.cjs` et `ECRITURES-CLIENT-20261027.json` : 4 réceptions actives locales restantes, 3 occurrences des aides génériques, 24 changements candidats (dont paramètres d'écran, pas 24 défauts). Quantités encore modifiées notamment au réveil de député, à la distribution calomnieuse/Jean-Lou et au retrait du butin chez la victime. Examiner ces alias, puis présenter les vrais changements à Fred **après** les réceptions restantes ; **verrou final ni préparé ni posé**.
+### Stabilisation Luthécia cinq points — ChatGPT 28/10
+
+- **Connexion/création PJ (nouveau correctif) :** dans `sbCreerPersonnageUnique`, un rejet réseau de `fetch` pouvait remonter comme exception non gérée plutôt que réponse métier. Gestion explicite `creation_incertaine`, sans rejeu d'INSERT (il peut avoir été effectué). Quatre scénarios sur fonction réelle ajoutés dans `banc-creation-personnage-reseau-20261028.cjs`, raccordés au workflow client. Vérification CI en attente à ce stade ; aucun compte réel touché.
+
+
+- **CI du nouveau banc navigation :** `coherence-client.yml` lance désormais explicitement `node outils/bancs/banc-sortie-reponse-perdue-20261028.cjs` (commit `c0365a6`). Workflow GitHub #40725306741 déclenché, état initial `pending` ; ne pas présenter le banc comme réussi avant conclusion. Aucun déploiement ni donnée joueur modifiée.
+
+
+- **Navigation (nouveau banc) :** corps vivants `rue_position_enregistrer`, `rue_position_lire`, `rue_sortie_batiment_lire` relus en lecture seule ; banc `banc-sortie-reponse-perdue-20261028.cjs` poussé commit `4fa955f` pour vérifier réponse perdue sans double mutation. Exécution CI du nouveau banc non encore confirmée ; recette authentifiée toujours à faire.
+
+
+- **Nouveau rapprochement vivant banque, 28/10 :** `fonds_credits_uniques` enregistre une régularisation de 100 000 FR pour le prêt travaux de Jean Jaaj, le 18/10 à 20:27 UTC (`pret-1792353270892`). Un deuxième prêt de 10 000 FR existe aussi, distinct. Les soldes actuels ne prouvent pas le crédit initial ou son affichage. **Ne pas régulariser une seconde fois** ; audit dans `PREVOL-CINQ-POINTS-LUTHECIA-20261028.md`, commit `358aedb`. Aucun solde modifié.
+
+- **Complément vérifié CI / banque (commit `fe952ac`) :** cinq workflows PR #218 au vert ; le journal confirme `OK banc-reception-rest-20261028.cjs`. Prêt travaux national de Jean Jaaj de 100 000 FR présent dans Supabase, restant 76 997 FR, deux comptes distincts ; versement initial non démontré. Rapport prévol enrichi. Aucune écriture en base ni déploiement.
+
+- Branche isolée `chatgpt/fiabilisation-luthecia-20261028` issue de main, hors inventaire et groupes. Audit détaillé `outils/audits/PREVOL-CINQ-POINTS-LUTHECIA-20261028.md`.
+- **Navigation :** sortie serveur `rue_sortie_batiment_lire` / `rue_position_enregistrer` vérifiée ; zéro noeud de sortie orphelin sur 36 sorties Luthécia, 33 PSM, 41 Montrouge. Les sorties manquantes et cas d'écran bloqué restent à tester authentifié.
+- **Réception :** le transport REST transformait un HTTP 200 à JSON illisible en succès `donnees:true` ; correction dans `supabase.js` : `reponse_invalide`, pas de réessai aveugle d'écriture ; 204 conservé. Banc isolé `banc-reception-rest-20261028.cjs` ajouté, non exécuté ici. La panne remontée par les joueurs n'est pas déclarée résolue.
+- **Banque :** contrôle agrégé, 2 prêts, 3 placements, aucun montant négatif ; versements / écarts de solde pas encore rapprochés. **Vercel :** production `READY` sur main `3a9b0c5d`, les previews Codex ne sont pas la production. Contrôle SQL réutilisable `banc-luthecia-controle-navigation-banque-20261028.sql` exécuté en lecture seule.
+- **Recette générale** : priorités et défauts restants inscrits dans le rapport. Aucune migration ni déploiement production ; aucun personnage modifié.
+
+
+### Fiabilisation GitHub / Vercel — 28/10, Codex
+
+- **Complément demandé par Fred après création manuelle de la PR : Workflow corrigé.** Deux doublons SQL supprimés au profit des fixtures existantes `banc-fixture-*` (mêmes corps), trois sources déplacées octet pour octet dans `historique/fixtures-bancs/`, quatre bancs Python raccordés. Aucun SQL métier ni inventaire modifié. Le vérificateur `verifier-workflow.py` reste strictement inchangé ; les neuf familles passent. Nouveau banc de rangement : six tests dont trois refus explicites des mauvais rangements/enveloppes. PostgreSQL jetable : permis 56, Céd/football 45, construction 62 (et variante #112 : 62), banque 61 (et variante location : 61), parcours cinq terrains 324. Les variantes partagent leurs assertions : ne pas additionner comme des cas distincts. Contrôleur client complet après rangement : **107/107 bancs réussis**. Aucun accès production ni migration appliquée.
+
+- Branche isolée **`codex/fiabilisation-ci-20261028`**, issue du main `da5ecc0`. Aucun fichier du jeu, de l'inventaire, des ambassades/BNE ou aucune migration modifié. L'inventaire reste confié à Claude ; Fred a ensuite autorisé explicitement la correction du seul rangement des cinq fixtures SQL (28/10), sans toucher à l'inventaire.
+- Défaut reproduit du contrôleur : enfant encore actif après expiration du délai, diagnostics partiels jetés. Correction de l'arrêt du groupe privé, journaux conservés après timeout, distinction lancement/timeout/assertion et résultats JSON progressifs avec état complet/interrompu ; TERM nettoie aussi. Aucun verrou métier ni délai assoupli.
+- Deux workflows coûteux rejoignent la politique existante d'annulation des seules anciennes exécutions d'une même PR (parcours immobilier et placements). Tests et noms de contrôles conservés ; main n'est pas annulé. Configuration distante et `vercel.json` inchangés.
+- Vérifié localement : **106/106 bancs** avec le lanceur Linux du dépôt sans adaptateur externe ; **105/105 pilote local**, **7 régressions Python**, **24 tests ciblés**, **3 mutants détectés**, **3 passages Chromium (27/27 scénarios)**, **11 tests calendrier/placements**, **23 API** syntaxiquement valides ; payload **256,5/330 Mo**, 12 YAML analysés. Les comptes se recouvrent, ne pas les additionner.
+- Rapport et preuves : `outils/vercel/FIABILISATION-20261028.md`, `outils/vercel/preuves-20261028/`. API GitHub runs/PR refusée ; HTTPS Vercel refusé par le proxy. Pas de résultat distant observé, pas de fusion/déploiement demandé ni effectué. Code et preuves poussés au commit `7777b42`. Création de PR réellement tentée après push : GraphQL `Forbidden`, aucun numéro créé. Branche prête pour revue, non fusionnée.
+
 
 ### Sécurité privée #135 — arbitrages du 27/10 (ChatGPT)
 
