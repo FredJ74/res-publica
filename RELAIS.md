@@ -5,6 +5,15 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Stabilisation Luthécia cinq points — ChatGPT 28/10
+
+- Branche isolée `chatgpt/fiabilisation-luthecia-20261028` issue de main, hors inventaire et groupes. Audit détaillé `outils/audits/PREVOL-CINQ-POINTS-LUTHECIA-20261028.md`.
+- **Navigation :** sortie serveur `rue_sortie_batiment_lire` / `rue_position_enregistrer` vérifiée ; zéro noeud de sortie orphelin sur 36 sorties Luthécia, 33 PSM, 41 Montrouge. Les sorties manquantes et cas d'écran bloqué restent à tester authentifié.
+- **Réception :** le transport REST transformait un HTTP 200 à JSON illisible en succès `donnees:true` ; correction dans `supabase.js` : `reponse_invalide`, pas de réessai aveugle d'écriture ; 204 conservé. Banc isolé `banc-reception-rest-20261028.cjs` ajouté, non exécuté ici. La panne remontée par les joueurs n'est pas déclarée résolue.
+- **Banque :** contrôle agrégé, 2 prêts, 3 placements, aucun montant négatif ; versements / écarts de solde pas encore rapprochés. **Vercel :** production `READY` sur main `3a9b0c5d`, les previews Codex ne sont pas la production. Contrôle SQL réutilisable `banc-luthecia-controle-navigation-banque-20261028.sql` exécuté en lecture seule.
+- **Recette générale** : priorités et défauts restants inscrits dans le rapport. Aucune migration ni déploiement production ; aucun personnage modifié.
+
+
 ### Fiabilisation GitHub / Vercel — 28/10, Codex
 
 - **Complément demandé par Fred après création manuelle de la PR : Workflow corrigé.** Deux doublons SQL supprimés au profit des fixtures existantes `banc-fixture-*` (mêmes corps), trois sources déplacées octet pour octet dans `historique/fixtures-bancs/`, quatre bancs Python raccordés. Aucun SQL métier ni inventaire modifié. Le vérificateur `verifier-workflow.py` reste strictement inchangé ; les neuf familles passent. Nouveau banc de rangement : six tests dont trois refus explicites des mauvais rangements/enveloppes. PostgreSQL jetable : permis 56, Céd/football 45, construction 62 (et variante #112 : 62), banque 61 (et variante location : 61), parcours cinq terrains 324. Les variantes partagent leurs assertions : ne pas additionner comme des cas distincts. Contrôleur client complet après rangement : **107/107 bancs réussis**. Aucun accès production ni migration appliquée.
