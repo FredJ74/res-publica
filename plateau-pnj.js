@@ -503,21 +503,6 @@ function declencherMissionJeanLou() {
 // candidat. Etre reellement liste dans cycle.candidats suffit desormais a etre considere
 // candidat pour les interactions electorales (tracts/prospectus) -- aucune autre condition
 // electorale modifiee.
-function trouverElectionCandidatJoueur() {
-  const country = state.country;
-  const cycles = (typeof CYCLES_ELECTORAUX !== 'undefined' && CYCLES_ELECTORAUX[country]) || {};
-  const nom = state.char?.name;
-  if (!nom) return null;
-  const cles = Object.keys(cycles).sort();
-  for (const cle of cles) {
-    const cycle = cycles[cle];
-    if (!cycle || !cycle.candidats) continue;
-    if (!cycle.candidats.some(c => c.nom === nom)) continue;
-    return { posteId: cycle.posteId, city: cycle.city || null, country };
-  }
-  return null;
-}
-
 // Meme principe que trouverElectionCandidatJoueur ci-dessus, parametre par un nom de candidat
 // arbitraire (lot tracts electoraux PSM, 24 aout 2026) -- trouve le cycle electoral ou une
 // personne nommee est effectivement candidate, quel que soit le joueur courant. Reutilise pour
@@ -542,70 +527,27 @@ function trouverElectionParCandidat(nomCandidat) {
 // pour CETTE quete, et n'ecrit une voix reelle QUE via enregistrerVotePNJ (plateau-politique.js)
 // -- jamais dans state.electionsEnCours. Les 3 tracts restent rattaches a la meme election
 // (qc.electionCible, fixee au premier tract distribue).
-function distribuerTractJeanLou(pnjName) {
+async function distribuerTractJeanLou(pnjName) {
   const qc = state.char?.queteCarriere;
   if (!qc || qc.ambition !== 'politique' || qc.etape !== 'tracts_recus') return;
-
-  const ciblesDeja = qc.ciblesJeanLou || [];
-  if (ciblesDeja.includes(pnjName)) {
+  if ((qc.ciblesJeanLou || []).includes(pnjName)) {
     if (typeof showToast === 'function') showToast('Déjà tenté', pnjName + ' a déjà été démarché(e) pour cette mission.', false);
     return;
   }
-
-  const election = qc.electionCible || trouverElectionCandidatJoueur();
-  if (!election) {
-    if (typeof showToast === 'function') showToast('Pas encore candidat', 'Présentez-vous d\'abord à une élection à la mairie avant de distribuer vos tracts.', false);
-    return;
-  }
-  if (!qc.electionCible) {
-    qc.electionCible = election;
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-  }
-
-  const lot = (state.inventory || []).find(i => i.type === 'tract' && i.origineQuete === 'jean_lou' && (i.quantite || 0) > 0);
-  if (!lot) return; // plus de tract de mission -- le bouton ne devrait plus etre visible a ce stade
-
-  lot.quantite -= 1;
-  if (lot.quantite <= 0) {
-    const idx = state.inventory.indexOf(lot);
-    state.inventory.splice(idx, 1);
+  // PAR LE SERVEUR (28/10/2026, chantier inventaire) : jean_lou_tract_distribuer retire le tract de
+  // mission, tire le jet (memes regles : 50 % + INF/10, plafond 80 %), enregistre la voix du PNJ et
+  // fait avancer la quete, dans une seule transaction. L'ecran adopte l'inventaire et la quete.
+  const v = await executerReceptionInventaire('jean_lou_tract_distribuer', { p_pnj: pnjName });
+  if (!v) return;
+  if (v.quete_carriere && state.char) state.char.queteCarriere = v.quete_carriere;
+  const convaincu = !!v.convaincu;
+  if (convaincu && v.voix && v.voix.ok && v.quete_carriere?.electionCible) {
+    const el = v.quete_carriere.electionCible;
+    const cle = (typeof getCleCycle === 'function') ? getCleCycle(el.posteId, el.city) : null;
+    const cycle = cle && (typeof CYCLES_ELECTORAUX !== 'undefined') ? CYCLES_ELECTORAUX[el.country]?.[cle] : null;
+    if (cycle && typeof ajouterEffetTractLocal === 'function') ajouterEffetTractLocal(cycle, state.char.name, 1, v.voix.tour);
   }
   if (typeof renderInventory === 'function') renderInventory();
-
-  // Meme mecanisme probabiliste que le tractage existant (distribuerTractPNJ, plateau-
-  // communication.js) : 50% de base + bonus INF/10, plafonne a 80%. Seule la destination du
-  // succes change (vrai systeme electoral, pas state.electionsEnCours).
-  const bonusInf = Math.floor((state.inf || 0) / 10);
-  const taux = Math.min(80, 50 + bonusInf);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  let convaincu = roll <= taux;
-
-  if (convaincu) {
-    // Verification synchrone (pas d'attente reseau) : ce PNJ ne peut deja figurer dans
-    // cycle.votesPNJ pour cette election puisque la quete garantit 3 cibles distinctes, sauf
-    // cas rarissime ou il a ete convaincu par un tout autre biais (ex: distribuerProspectus)
-    // avant meme cette mission -- dans ce cas, aucune nouvelle voix n'est ecrite et le tract
-    // ne compte pas comme un succes pour la quete. La persistance reelle (asynchrone) est
-    // lancee ensuite, mais cette decision synchrone conditionne deja le score/message affiches
-    // immediatement ci-dessous.
-    const cleCycle = (typeof getCleCycle === 'function') ? getCleCycle(election.posteId, election.city) : null;
-    const cycleCible = cleCycle && (typeof CYCLES_ELECTORAUX !== 'undefined') ? CYCLES_ELECTORAUX[election.country]?.[cleCycle] : null;
-    if (cycleCible && typeof pnjDejaEngage === 'function' && pnjDejaEngage(cycleCible, pnjName)) {
-      convaincu = false;
-    } else if (typeof enregistrerVotePNJ === 'function') {
-      // Canal 'jean_lou' : meme registre atomique que les tracts et les prospectus (la voix ne
-      // passe plus par une reecriture du blob electoral, ou elle pouvait etre ecrasee).
-      enregistrerVotePNJ(election.country, election.posteId, election.city, pnjName, state.char.name, 'jean_lou').catch(() => {});
-    }
-  }
-
-  qc.ciblesJeanLou = ciblesDeja.concat([pnjName]);
-  qc.resultatsJeanLou = (qc.resultatsJeanLou || []).concat([convaincu]);
-  if (qc.ciblesJeanLou.length >= 3) {
-    qc.etape = 'tracts_termines';
-  }
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-
   if (typeof addJournalEntry === 'function') {
     addJournalEntry(convaincu
       ? 'Tract distribué à ' + pnjName + ' — convaincu(e).'

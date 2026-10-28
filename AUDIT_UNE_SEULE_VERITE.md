@@ -539,9 +539,10 @@ tirés au hasard et les effets purement visuels sont exclus.
   ajouts restants passent par la réponse du serveur. **PR #213 prête, fusion suspendue par Fred
   (livraison groupée).** Après la livraison : `20261028210000`, `210500`, `210600`, `210700` (anciennes
   portes, garde du fret, ancien acte de vol terrain, ancienne distribution calomnieuse).
-- **Encore ouvert avant le verrou final de `inventaire_sauver_revision`** : un *retrait*
-  laissé à l'écran, qu'un tricheur peut éviter — tracts de Jean-Lou (quête de carrière encore écrite par l'écran ; le butin d'un vol est transféré
-  par `crime_voler` depuis `20261028223000`, les tracts calomnieux sont consommés par
-  `calomnie_distribuer_consommer` depuis `20261028224000`) ; réconciliation des
-  anciennes charges d'employés ; quêtes, budgets de club et autorisations de l'énigme encore
-  écrits par l'écran (hors inventaire).
+- **Encore ouvert avant le verrou final de `inventaire_sauver_revision`** : plus aucun ajout ni
+  retrait d'objet décidé par l'écran (28/10 : vol entre joueurs, tracts calomnieux et tracts de
+  Jean-Lou passés au serveur ; anciennes charges d'employés : aucune en base). Le verrou lui-même
+  attend l'accord de Fred. Hors inventaire : quêtes, budgets de club et autorisations de l'énigme
+  encore écrits par l'écran ; **voix « conférence » enregistrable sans jet**
+  (`elections_voix_pnj_enregistrer`), à traiter avec les élections.
+- Après la livraison de la PR #213 : `20261028210000`, `210500`, `210600`, `210700`, `210800`.

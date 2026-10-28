@@ -946,7 +946,10 @@ async function executerReceptionInventaire(fn, parametres) {
           objet_non_cessible: 'Cet objet ne peut pas être transféré par cet ordre.',
           objet_protege: 'Cet objet doit être remis au destinataire de votre mission.',
           autorite_insuffisante: 'Vous ne pouvez pas donner cet ordre à ce porteur.',
-          charge_maximale: 'Ce porteur a atteint sa charge maximale.'
+          charge_maximale: 'Ce porteur a atteint sa charge maximale.',
+          pas_candidat: 'Présentez-vous d\'abord à une élection à la mairie avant de distribuer vos tracts.',
+          deja_tente: 'Cette personne a déjà été démarchée pour cette mission.',
+          tract_absent: 'Vous n\'avez plus de tract pour cette mission.'
         };
         if (motifs[v?.raison]) showToast('Action refusée', motifs[v.raison], false);
         else signalerRefusCout(v || { raison: 'connexion_indisponible' });
