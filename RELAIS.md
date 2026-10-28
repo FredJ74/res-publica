@@ -7,6 +7,9 @@ Règles : voir `AGENTS.md`.
 
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
+- **CI du nouveau banc navigation :** `coherence-client.yml` lance désormais explicitement `node outils/bancs/banc-sortie-reponse-perdue-20261028.cjs` (commit `c0365a6`). Workflow GitHub #40725306741 déclenché, état initial `pending` ; ne pas présenter le banc comme réussi avant conclusion. Aucun déploiement ni donnée joueur modifiée.
+
+
 - **Navigation (nouveau banc) :** corps vivants `rue_position_enregistrer`, `rue_position_lire`, `rue_sortie_batiment_lire` relus en lecture seule ; banc `banc-sortie-reponse-perdue-20261028.cjs` poussé commit `4fa955f` pour vérifier réponse perdue sans double mutation. Exécution CI du nouveau banc non encore confirmée ; recette authentifiée toujours à faire.
 
 
