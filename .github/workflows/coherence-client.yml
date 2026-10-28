@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Contrôle politique Vercel sans déploiement
+        run: node outils/bancs/banc-politique-deploiement-vercel-20261028.cjs
       - name: Syntaxe des fonctions API, sans appel distant
         run: python3 outils/bancs/verifier-syntaxe-api.py
       - name: Calendrier sur main (PR couvertes par les controles dedies)
