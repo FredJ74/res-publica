@@ -27,3 +27,16 @@ Un lieutenant affecte quatre de ses soldats à un groupe de trois policiers diri
 - Tester les frontières d'autorité entre commissariats, la délégation lieutenant → commissaire, la séparation et reprise, la présence effective, les combats collectifs et le PJ recherché protégé par son groupe.
 
 **Statut : spécification de game design enregistrée ; aucune fonction n'est prétendue modifiée ou testée par ce document.**
+
+## Exception unique : rappel par radio (précision explicite de Fred, 28/10/2026)
+
+**Des PNJ peuvent effectuer seuls un déplacement uniquement lorsqu'un responsable habilité les rappelle par radio.** Exemples validés :
+
+- Un lieutenant détache un groupe de soldats PNJ, dont au moins un possède une radio. Le lieutenant possède lui-même une radio et peut rappeler le groupe pour qu'il le rejoigne à son emplacement actuel.
+- Un employeur PJ peut équiper ses agents de sécurité PNJ d'une radio et, avec sa propre radio, les appeler pour qu'ils viennent le rejoindre.
+
+Cette possibilité est **universelle et non réservée à l'armée** : elle s'applique aux groupes PNJ d'autres métiers, avec les mêmes conditions. Un seul membre du groupe rappelé doit être doté d'une radio ; le PJ donneur d'ordre aussi. Le déplacement est commandé à distance par radio, pas décidé spontanément par les PNJ. Les règles d'autorité continuent à s'appliquer : la radio ne donne aucun droit de commander ou de reprendre des agents d'autrui.
+
+Ne pas multiplier les moteurs de déplacement autonome par métier. Raccorder la règle à la gestion existante de radio, d'inventaire/équipement, de suivi, de groupe, d'autorité et de déplacement. Vérifier la réalisation effective du déplacement côté serveur avant de retirer tout ancien parcours.
+
+**Important :** le texte antérieur « aucun déplacement autonome PNJ » admet expressément cette unique exception. Le document n'établit pas les coûts, délais, obstacles ou limites de portée radio, qui ne doivent pas être inventés.
