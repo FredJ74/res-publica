@@ -112,7 +112,14 @@ async function sbTransportRest(methode, table, filtres, corps, preferResolution)
     return { etat: 'ok', donnees: true, http: res.status, code: null, envoyee: true };
   }
   let donnees = null;
-  try { donnees = await res.json(); } catch (e) { donnees = true; }
+  try { donnees = await res.json(); }
+  catch (e) {
+    // Une réponse HTTP 200 illisible n'est pas une confirmation métier.
+    // Seul 204, traité plus haut, signifie une réussite sans corps.
+    // Ne jamais relancer ici l'écriture : elle a peut-être été effectuée.
+    return { etat: 'reponse_invalide', raison: 'reponse_invalide',
+             http: res.status, code: null, message: null, envoyee: true, donnees: null };
+  }
   return { etat: 'ok', donnees, http: res.status, code: null, envoyee: true };
 }
 
