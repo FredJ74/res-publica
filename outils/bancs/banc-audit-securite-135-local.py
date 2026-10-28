@@ -186,7 +186,15 @@ INSERT INTO police_interceptions(personnage,rencontre,country,city,building,room
   def identites_unites():
    q.execute("SELECT securite_ordre_detection_interne('[{\"pa\":12,\"buildingId\":\"test\",\"roomId\":\"salle\"},{\"pa\":12,\"buildingId\":\"test\",\"roomId\":\"salle\"}]','test','salle',NULL)")
    assert q.fetchone()[0]==[],'des entrées sans identité ont constitué un groupe par seule co-présence'
-  extras=[('priorites',priorites),('droits_auxiliaires',droits),('autre_chef',intrus),('intervenant_absent',absent),('employeur_exempte',employeur),('panne_recu',panne),('detecteur_absent_refuse',preconditions),('reddition_rejeu',reddition),('fuite_deux_issues_rejeu',fuite),('position_rue',position_rue),('deploiement_reprise_rue',deploiement_rue),('identites_unites',identites_unites)]
+  def ancien_deploiement():
+   q.execute('ALTER TABLE pnj_membres ADD COLUMN IF NOT EXISTS groupe_deploiement_id text;SAVEPOINT avant_ancien')
+   try:
+    q.execute(sql[:sql.index('-- La RPC police_detection_verifier')])
+    raise AssertionError('ancienne identité de déploiement ignorée sans prévol')
+   except psycopg2.Error as e:
+    assert 'audit135_ancien_deploiement_a_reconcilier' in str(e)
+    q.execute('ROLLBACK TO SAVEPOINT avant_ancien')
+  extras=[('priorites',priorites),('droits_auxiliaires',droits),('autre_chef',intrus),('intervenant_absent',absent),('employeur_exempte',employeur),('panne_recu',panne),('detecteur_absent_refuse',preconditions),('reddition_rejeu',reddition),('fuite_deux_issues_rejeu',fuite),('position_rue',position_rue),('deploiement_reprise_rue',deploiement_rue),('identites_unites',identites_unites),('ancien_deploiement_refuse',ancien_deploiement)]
   for nom,fn in [('registre_prive',registre_prive),('registre_police',registre_police),('rejeu_pa',rejeu),('gardes_communes',axes),('reprise_separation',groupes)]+extras:cas(nom,fn)
   c.rollback()
   # Deux vraies transactions métier concurrentes, toutes deux annulées.

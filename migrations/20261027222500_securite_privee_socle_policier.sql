@@ -1,3 +1,16 @@
+-- Garde de reprise : aucun effacement ni conversion implicite d'un ancien déploiement.
+DO $prevol$
+BEGIN
+ IF EXISTS(SELECT 1 FROM pg_attribute
+   WHERE attrelid=to_regclass('public.pnj_membres') AND attname='groupe_deploiement_id'
+     AND attnum>0 AND NOT attisdropped) THEN
+  RAISE EXCEPTION 'audit135_ancien_deploiement_a_reconcilier';
+ END IF;
+ IF to_regclass('public.chantier_vigiles_affectations') IS NOT NULL THEN
+  RAISE EXCEPTION 'audit135_ancien_socle_196_a_auditer';
+ END IF;
+END $prevol$;
+
 -- #135 : adaptateur commun de présence et de déploiement.
 -- Aucun identifiant parallèle : les liens leader_pnj_id existants portent l'unité.
 

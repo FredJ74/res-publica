@@ -134,8 +134,9 @@ Scission technique, sans nouveau mécanisme :
 
 Chaque fichier reste sous 12 500 caractères. Ils ne doivent pas être activés
 isolément. Aucune version du registre n'est inventée ; il faut d'abord vérifier
-si une ancienne variante a été appliquée. Les gardes doivent alors refuser une
-source différente ; surtout pas supprimer automatiquement une colonne réelle.
+si une ancienne variante a été appliquée. La première étape refuse explicitement toute ancienne colonne de détachement ou
+table de vigiles spécifique déjà présente : aucune conversion ni suppression
+automatique de données réelles. Les fragments différents restent aussi refusés.
 Les trois bancs SQL existants ont aussi une enveloppe explicite BEGIN/ROLLBACK ;
 leurs assertions ne sont pas supprimées. Workflow passe sans modification de son
 vérificateur, de son baseline ou de ses références.
@@ -148,16 +149,16 @@ trigger anti-sous-hiérarchie. Identité/Auth, verdicts judiciaires et coups de 
 sont des dépendances **simulées** ; le détecteur manquant n'est pas reconstitué.
 Les appels métier sont faits sous `authenticated` avec `request.path`.
 
-- Proposition originale : **8 contre-tests échouent** : S1 (deux cas), S2, S3, S4,
-  les deux limites de rue préexistantes S5, et l’identité manquante S6. Les autres cas peuvent passer : les bancs
+- Proposition originale : **9 contre-tests échouent** : S1 (deux cas), S2, S3, S4,
+  les deux limites de rue préexistantes S5, l’identité manquante S6, et l’absence de garde contre une ancienne préparation déjà installée. Les autres cas peuvent passer : les bancs
   originaux n'étaient pas tous inutiles et tous les ajouts n'étaient pas erronés.
-- Préparation corrigée : **18/18 scénarios PostgreSQL** passent, dont priorités
+- Préparation corrigée : **19/19 scénarios PostgreSQL** passent, dont priorités
   police→privé, droits des auxiliaires, refus d'un autre chef, absence de l'agent,
   immunité de l'employeur, reçu perdu/rejoué, panne de reçu annulant PA et registre,
   reddition, fuite réussie et échouée, reprise/séparation et concurrence réelle.
 - Par défaut, **toutes les opérations métier sont annulées**. Le décor fictif est
   installé dans un serveur PostgreSQL local temporaire, puis entièrement détruit.
-- Option explicite `--concurrence-commit-jetable` : **19/19**, avec une opération
+- Option explicite `--concurrence-commit-jetable` : **20/20**, avec une opération
   committée **uniquement dans cette base éphémère** pour vérifier le snapshot après
   attente. Aucun joueur réel ni serveur Supabase n'y participe ; ce cas est distinct
   des transactions annulées et n'est pas présenté comme tel.
@@ -229,7 +230,7 @@ contrat et raccordement du groupe PJ universel, recette authentifiée. Ce sont
 pour partie des travaux de code/raccordement et pour partie des accès manquants :
 ils ne sont pas tous imputés à l'environnement.
 
-**Aucune migration appliquée, aucun déploiement ni fusion de #196/#212, aucune
+**Aucune migration appliquée, aucune mise en production ni fusion de #196/#212, aucune
 donnée réelle de joueur modifiée.** Les preuves brutes sont dans
 `outils/audits/preuves-securite-135-20261028/` ; les empreintes lient les résultats
 aux sources et ne remplacent aucune empreinte du baseline Supabase.
