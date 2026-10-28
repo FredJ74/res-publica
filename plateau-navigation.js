@@ -2567,7 +2567,7 @@ function ouvrirModalTransport(mode) {
     villes.forEach(ville => {
       if (ville.id === state.currentCity) return;
       html += '<div onclick="confirmerTransport(\'' + mode + '\',\'' + pays + '\',\'' + ville.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
-      html += '<div style="font-size:.85rem;color:#c0b090">' + ville.name + '</div>';
+      html += '<div style="font-size:.85rem;color:#c0b090">' + ville.nom + '</div>';
       html += '<div style="font-size:.7rem;color:#5a4030">' + (ville.capitale ? 'Capitale' : 'Ville') + '</div>';
       html += '</div>';
     });
