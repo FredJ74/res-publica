@@ -52,3 +52,9 @@ Banc versionné : `outils/bancs/banc-luthecia-controle-navigation-banque-2026102
 - La fonction de production `pret_national_creer_interne` crée dans sa transaction un prêt, une ligne de `fonds_credits_uniques`, puis crédite `comptes_bancaires` banque `nationale` **et** `personnages_donnees.arg` de `p_montant`. Ne pas interpréter ces deux champs automatiquement comme deux versements séparés : comparer leur contrat de synchronisation.
 - **Découverte capitale :** `fonds_credits_uniques` contient déjà pour `Jean Jaaj` une ligne `source=regularisation_pret_national`, `reference=pret-1792353270892`, `ordre=emprunter_construction`, `montant=100000`, `cree_le=2026-10-18 20:27:24.88506+00`. Cette ligne confirme qu'une régularisation a été enregistrée après la création du prêt (19:54 UTC), **mais ne démontre pas seule le solde effectivement crédité ni l'affichage client**.
 - Conséquence : ne surtout pas ajouter une deuxième régularisation sans rapprochement des écritures, du contrat courant et des soldes. Conserver la vérification authentifiée dans la recette.
+
+## Navigation — preuve complémentaire en cours
+
+Lecture des fonctions **vivantes** `rue_position_enregistrer`, `rue_position_lire`, `rue_sortie_batiment_lire` : sortie depuis un bâtiment conditionnée par une référence de `rue_sorties_batiments`, cible existante et restrictions d'interception/détention. L'enregistrement efface `current_building/current_room` côté serveur. Le client ne doit pas réémettre cet ordre si la réponse réseau est perdue : il relit la position.
+
+Banc de non-régression ajouté `outils/bancs/banc-sortie-reponse-perdue-20261028.cjs` (cinq scénarios : succès, réponse perdue puis lecture, déjà sorti, sortie non référencée, lecture impossible). **Son exécution GitHub reste à vérifier** ; il ne simule aucun déplacement d'un joueur réel.
