@@ -5,6 +5,15 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Douanes — référents et architecture existante (28/10, ChatGPT)
+
+- Travail isolé sur `chatgpt/raccordements-ordres-20261028`, **non fusionné / non déployé**. Règles de Fred sur les douanes aéroport/port consignées dans `outils/audits/RACCORDEMENTS-ORDRES-20261028.md`.
+- `api/_pnj-profils.js` : Pascal Paguevite et l'Inspecteur Prosper Tampon disposent désormais, sur cette branche, de la connaissance serveur des différences d'affectation et des règles de contrôle ; branchement sur la construction existante des prompts PNJ, sans nouveau moteur de dialogue.
+- Audit production lecture seule : `douane_effectifs_publics`, `douane_payer_effectifs`, `pnj_miroir_douane`, `fret_dedouaner`, `inventaire_confisquer`, `police_detection_verifier` existent. La détection policière ne remplace pas à elle seule un contrôle douanier, car elle exige une présence policière réelle ; ne pas créer de faux policiers.
+- **À faire avant fusion :** raccorder au serveur le contrôle des personnes et armes déclarées à l'aéroport (groupe de trois, arrestation effective, remplacement minuit), contrôle d'une caisse sur trois au port (contenu déclaré / réel, saisie armes non déclarées), détection au port à 70 % du taux commun, coût du service portuaire, tests transactionnels et parcours joueur ; retirer ensuite les jets et annonces hérités du navigateur, sans toucher au #135 sécurité privée tant que Codex l'audite.
+- Pas de migration appliquée, aucune donnée de joueurs touchée. Ce chantier n'est **pas terminé**.
+
+
 ### Fiabilisation GitHub / Vercel — 28/10, Codex
 
 - **Complément demandé par Fred après création manuelle de la PR : Workflow corrigé.** Deux doublons SQL supprimés au profit des fixtures existantes `banc-fixture-*` (mêmes corps), trois sources déplacées octet pour octet dans `historique/fixtures-bancs/`, quatre bancs Python raccordés. Aucun SQL métier ni inventaire modifié. Le vérificateur `verifier-workflow.py` reste strictement inchangé ; les neuf familles passent. Nouveau banc de rangement : six tests dont trois refus explicites des mauvais rangements/enveloppes. PostgreSQL jetable : permis 56, Céd/football 45, construction 62 (et variante #112 : 62), banque 61 (et variante location : 61), parcours cinq terrains 324. Les variantes partagent leurs assertions : ne pas additionner comme des cas distincts. Contrôleur client complet après rangement : **107/107 bancs réussis**. Aucun accès production ni migration appliquée.
