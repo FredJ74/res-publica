@@ -279,8 +279,80 @@ function batimentHospitalisation() {
   return state.hospitalisation.lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
 }
 
+// Le jeton ci-dessous autorise uniquement le rendu du verdict qui vient d'être lu.
+// Il ne donne aucun droit au serveur ; aucun champ financier/inventaire n'est adopté.
+let navigationInterieureEnCours=null;
+let navigationInterieureRendu=null;
+async function commanderNavigationInterieure(buildingId,roomId) {
+  const c=contexteNavigationRue();
+  if(navigationInterieureEnCours&&contexteNavigationRueValide(navigationInterieureEnCours))return false;
+  navigationInterieureEnCours=c;
+  try {
+    const options={encoreValide:()=>contexteNavigationRueValide(c)};
+    let v=await sbRpcVerdict('navigation_interieure',{p_batiment:buildingId,p_piece:roomId},options).catch(()=>null);
+    if(!contexteNavigationRueValide(c))return false;
+    let r=v&&typeof v.ok==='boolean'&&!v.transport?v:null;
+    if(Array.isArray(r))r=r[0];
+    // Une réponse perdue se vérifie par lecture, jamais par une seconde mutation.
+    if(!r){
+      const lu=await sbRpcVerdict('rue_position_lire',{},options).catch(()=>null);
+      if(!contexteNavigationRueValide(c))return false;
+      const p=Array.isArray(lu)?lu[0]:lu;
+      if(p?.ok===true&&p.city===state.currentCity&&p.country===state.country&&p.building===buildingId&&p.room===roomId)
+        r={ok:true,building:p.building,room:p.room,positions:[],reconcilie:true};
+    }
+    if(r?.ok!==true||r.building!==buildingId||r.room!==roomId){
+      const motifs={chef_de_groupe_requis:'Seul le chef du groupe peut le déplacer.',
+        personnage_indisponible:'Un membre du groupe ne peut pas se déplacer.',
+        acteur_incapacite:'Un membre du groupe est incapable de se déplacer.',
+        combat_en_cours:'Un membre est engagé dans un combat.',combat_membre_pnj:'Un accompagnant est engagé dans un combat.',
+        interception_en_cours:'Une interception doit être résolue avant de partir.',
+        inventaire_surcharge:'Un membre porte trop d’objets pour changer de bâtiment.',
+        membre_loge_requis:'Tous les membres du groupe doivent être admis dans la loge.',
+        visite_refusee:'Les visites sont interdites à un membre de ce groupe.',
+        acces_collectif_a_raccorder:'Cet accès particulier n’est pas encore disponible pour un groupe.',
+        batiment_ferme:'Ce bâtiment est fermé.',destination_inconnue:'Cette destination n’est pas référencée.',
+        entree_non_accessible:'Ce bâtiment n’est pas accessible depuis votre position.',groupe_disperse:'Les membres du groupe ne sont plus réunis.'};
+      const incident=r||v;
+      const perdu=['non_authentifie','acteur_non_authentifie','session_perdue'].includes(incident?.raison)||incident?.transport?.etat==='session_perdue';
+      if(typeof showToast==='function')showToast(perdu?'Session expirée':'Déplacement non confirmé',
+        perdu?'Reconnectez-vous pour poursuivre.':motifs[r?.raison]||'La position serveur n’a pas confirmé cette entrée. Réessayez la consultation.',false);
+      if(perdu&&typeof afficherBandeauReconnexion==='function')afficherBandeauReconnexion();
+      // Conserver la rencontre existante avec le portier pour le demandeur
+      // refusé lui-même ; ne jamais la déclencher pour payer à la place d'un membre.
+      if(r?.raison==='membre_loge_requis'&&r.membre===state.char?.name
+          &&buildingId==='loge-maconnique'&&typeof doLogePortail==='function')doLogePortail();
+      return false;
+    }
+    const moi=r.positions?.find(p=>p.name===state.char?.name);
+    if(!r.reconcilie&&(!Array.isArray(r.membres)||!Array.isArray(r.positions)||!moi
+        ||r.membres.length!==r.positions.length||new Set(r.membres).size!==r.membres.length
+        ||new Set(r.positions.map(p=>p.name)).size!==r.positions.length
+        ||!r.positions.every(p=>r.membres.includes(p.name)&&p.country===state.country&&p.city===state.currentCity
+          &&p.building===buildingId&&p.room===roomId&&p.street===null))){
+      if(typeof showToast==='function')showToast('Déplacement non confirmé','La composition et les positions du groupe ne sont pas confirmées.',false);
+      return false;
+    }
+    if(moi?.updated_at)state._dernierUpdatedAtConnu=moi.updated_at;
+    navigationInterieureRendu={buildingId,roomId};
+    try {
+      if(state.currentBuilding!==buildingId)enterBuilding(buildingId,true);
+      enterRoom(buildingId,roomId,null);
+    } finally {navigationInterieureRendu=null;}
+    return true;
+  } finally {if(navigationInterieureEnCours===c)navigationInterieureEnCours=null;}
+}
+
 function enterBuilding(buildingId, skipAutoRoom) {
-  if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
+  if(state._navigationServeur===true&&state.currentBuilding!==buildingId
+      &&navigationInterieureRendu?.buildingId!==buildingId){
+    const b=BUILDINGS[buildingId],ctx=getBuildingContext(buildingId);
+    const piece=Object.keys({...b?.rooms,...ctx?.roomsExtra}).find(r=>!ctx?.roomsExclues?.includes(r)&&!ctx?.roomsMasquees?.includes(r));
+    if(!piece)return;
+    return commanderNavigationInterieure(buildingId,piece);
+  }
+  const positionServeurConfirmee=state._navigationServeur===true&&typeof navigationInterieureRendu!=='undefined'&&navigationInterieureRendu?.buildingId===buildingId;
+  if (!positionServeurConfirmee&&typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   const b = BUILDINGS[buildingId];
@@ -303,13 +375,13 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // detenu de Montrouge/PSM hors de son propre commissariat, et ignorait le QHS.
   const batimentCellule = (typeof celluleDeDetention === 'function')
     ? celluleDeDetention(state.estEmprisonne).buildingId : 'commissariat';
-  if (state.estEmprisonne && buildingId !== batimentCellule) {
+  if (!positionServeurConfirmee&&state.estEmprisonne && buildingId !== batimentCellule) {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
     return;
   }
 
   // Verrou : hospitalisation — jour 1 uniquement, aucun deplacement sauf transfert vers la clinique privee
-  if (state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation() && buildingId !== 'clinique-privee') {
+  if (!positionServeurConfirmee&&state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation() && buildingId !== 'clinique-privee') {
     showToast('Hospitalisé(e)', 'Vous êtes encore trop faible pour vous déplacer aujourd\'hui. Seul un transfert vers une clinique privée est possible.', false);
     return;
   }
@@ -317,20 +389,20 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // Verrou : surcharge d'inventaire (Lot 1.5.4) — au-dela de 100 objets, plus aucun changement de
   // batiment. Place ici, avec les autres verrous d'etat du personnage, et jamais dans enterRoom :
   // le joueur doit pouvoir continuer a circuler dans le batiment ou il se trouve pour se delester.
-  if (typeof refuserSiSurcharge === 'function' && buildingId !== state.currentBuilding
+  if (!positionServeurConfirmee&&typeof refuserSiSurcharge === 'function' && buildingId !== state.currentBuilding
       && refuserSiSurcharge('Changer de bâtiment')) {
     return;
   }
 
   // Verrou : batiment ferme suite a un incendie ou des explosifs
   const fermeture = typeof batimentEstFerme === 'function' ? batimentEstFerme(buildingId) : null;
-  if (fermeture) {
+  if (!positionServeurConfirmee&&fermeture) {
     const joursRestants = Math.max(1, fermeture.jour_fin - (state.day || 1));
     showToast('Bâtiment fermé', (b.name || buildingId) + ' est fermé suite à un ' + (fermeture.motif === 'explosifs' ? 'attentat à l\'explosif' : 'incendie') + '. Réouverture dans ' + joursRestants + ' jour(s).', false);
     return;
   }
 
-  if (b.locked) {
+  if (!positionServeurConfirmee&&b.locked) {
     showToast('Accès restreint', "Vous n'êtes pas membre de cet établissement.", false);
     addJournalEntry("Vous tentez d'entrer mais l'accès vous est refusé.", 'event-bad');
     return;
@@ -339,7 +411,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // Controle acces loge maconnique : les membres actifs d'une loge entrent directement
   // (pour ne pas alourdir la navigation) ; les non-membres declenchent une rencontre
   // avec le portier (doLogePortail, avec son propre jet de chance) plutot qu'un refus sec.
-  if (b.requiresMembership === 'loge') {
+  if (!positionServeurConfirmee&&b.requiresMembership === 'loge') {
     const orgas = state.organisations || [];
     const loge = orgas.find(o => o.type === 'loge' && o.statut === 'actif');
     const estMembre = loge?.membres?.some(m => m.nom === state.char?.name);
@@ -577,9 +649,13 @@ function renderOngletsPieces(buildingId, roomActifId) {
 }
 
 function enterRoom(buildingId, roomId, tabEl) {
+  if(state._navigationServeur===true&&(state.currentBuilding!==buildingId||state.currentRoom!==roomId)
+      &&!(navigationInterieureRendu?.buildingId===buildingId&&navigationInterieureRendu?.roomId===roomId))
+    return commanderNavigationInterieure(buildingId,roomId);
   if ((buildingId === 'terrain-a-batir-2' && roomId === 'terrain2') ||
       (buildingId === 'terrain-a-batir-3' && roomId === 'terrain3')) roomId = 'terrain';
-  if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
+  const positionServeurConfirmee=state._navigationServeur===true&&typeof navigationInterieureRendu!=='undefined'&&navigationInterieureRendu?.buildingId===buildingId&&navigationInterieureRendu?.roomId===roomId;
+  if (!positionServeurConfirmee&&typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   // Position AVANT le changement : le raccordement d'entree en a besoin pour faire reculer un
@@ -602,12 +678,12 @@ function enterRoom(buildingId, roomId, tabEl) {
     estDansSaCellule = state.currentCity === c.city && buildingId === c.buildingId && roomId === c.roomId;
   }
   // Verrou : emprisonnement — reste bloque en cellule, aucun changement de piece
-  if (state.estEmprisonne && !estDansSaCellule) {
+  if (!positionServeurConfirmee&&state.estEmprisonne && !estDansSaCellule) {
     showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule. ' + joursRestantsPeine() + ' jour(s) restant(s) avant votre libération.', false);
     return;
   }
   // Verrou : hospitalisation — jour 1 uniquement, reste dans sa chambre
-  if (state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation()) {
+  if (!positionServeurConfirmee&&state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation()) {
     showToast('Hospitalisé(e)', 'Vous êtes encore alité(e) aujourd\'hui.', false);
     return;
   }
@@ -621,7 +697,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   // du chargement. verifierAccesBureauAmbassade (plateau-politique.js) rappelle enterRoom une fois
   // l'acces confirme ; le jeton est consomme a ce second passage.
   const AMBASSADE_ROOM_EMPIRE = { bureau_al_khalija: 'khalija', bureau_sovarka: 'soviet', bureau_el_estado: 'narco' };
-  if (buildingId === 'quartier-ambassades' && AMBASSADE_ROOM_EMPIRE[roomId]) {
+  if (!positionServeurConfirmee&&buildingId === 'quartier-ambassades' && AMBASSADE_ROOM_EMPIRE[roomId]) {
     if (state._accesBureauAmbassade !== roomId) {
       if (typeof verifierAccesBureauAmbassade === 'function') verifierAccesBureauAmbassade(buildingId, roomId, tabEl);
       return;
@@ -635,7 +711,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   // n'est pas attribuee (rien a proteger). Les PNJ (Sophie Stiquay, Docteur Bistouri...) ne
   // sont jamais concernes : ce sont des donnees d'affichage statiques (room.persons), jamais des
   // appelants de enterRoom().
-  if (buildingId === 'clinique-privee' && /^chambre_(?:[1-9]|10)$/.test(roomId)) {
+  if (!positionServeurConfirmee&&buildingId === 'clinique-privee' && /^chambre_(?:[1-9]|10)$/.test(roomId)) {
     const locChambre = (typeof getLocationPourRoom === 'function') ? getLocationPourRoom(buildingId, roomId, 'capitale') : null;
     if (locChambre && locChambre.locataire !== state.char?.name && locChambre.visitesAutorisees === false) {
       showToast('Visite refusée', 'Le patient de cette chambre a interdit les visites pour le moment.', false);
@@ -2550,6 +2626,7 @@ function ouvrirModalTransport(mode) {
   document.getElementById('postes-modal-title').textContent = 'Prendre le ' + config.label;
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.8rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">' + config.pa + ' PA · ' + config.cost + ' ' + cur + ' · ' + config.desc + '</div>';
+  if(state._navigationServeur===true)html += '<p class="cpj-note">Tarif par voyageur, PJ et PNJ compris. Le chef paie pour tout le groupe ; le coût en PA de cet ordre reste inchangé.</p>';
 
   if (isInter) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.12em;color:#8a6a20;margin-bottom:.4rem">DESTINATION — EMPIRE</div>';
@@ -2567,7 +2644,7 @@ function ouvrirModalTransport(mode) {
     villes.forEach(ville => {
       if (ville.id === state.currentCity) return;
       html += '<div onclick="confirmerTransport(\'' + mode + '\',\'' + pays + '\',\'' + ville.id + '\')" style="padding:.6rem .8rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
-      html += '<div style="font-size:.85rem;color:#c0b090">' + ville.name + '</div>';
+      html += '<div style="font-size:.85rem;color:#c0b090">' + ville.nom + '</div>';
       html += '<div style="font-size:.7rem;color:#5a4030">' + (ville.capitale ? 'Capitale' : 'Ville') + '</div>';
       html += '</div>';
     });
@@ -2577,7 +2654,49 @@ function ouvrirModalTransport(mode) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+let transportServeurEnCours=null;
+async function commanderTransportServeur(mode,pays,ville) {
+ const c=contexteNavigationRue();
+ if(transportServeurEnCours&&contexteNavigationRueValide(transportServeurEnCours))return false;
+ transportServeurEnCours=c;
+ const cle='hg-transport:'+JSON.stringify([c.uid,c.nom,c.pays,c.ville,c.batiment,c.piece,mode,pays,ville]);
+ try {
+  let requete;
+  try{requete=localStorage.getItem(cle);if(!requete){requete=crypto.randomUUID();localStorage.setItem(cle,requete);}}
+  catch(_){showToast('Voyage non confirmé','Le reçu du voyage ne peut pas être conservé. Aucun paiement envoyé.',false);return false;}
+  const v=await sbRpcVerdict('transport_effectuer',{p_mode:mode,p_pays:pays,p_ville:ville,p_requete:requete},
+    {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
+  if(!contexteNavigationRueValide(c))return false;
+  if(v?.ok!==true){
+   const motifs={
+    controle_douanier_requis:'Le contrôle douanier doit être confirmé avant ce voyage.',
+    chef_de_groupe_requis:'Seul le chef du groupe peut engager ce voyage.',fonds_insuffisants:'Le chef du groupe ne dispose pas des fonds nécessaires pour tous les voyageurs.',
+    pa_insuffisants:'Le chef du groupe ne dispose pas des PA nécessaires.'};
+   showToast('Voyage non confirmé',motifs[v?.raison]||'Le voyage n’est pas confirmé. Le même reçu sera utilisé si vous réessayez.',false);return false;
+  }
+  // Un reçu rejoué peut contenir d'anciens soldes : réutiliser le chargement
+  // officiel au lieu d'appliquer ces montants ou de fabriquer une position.
+  const [frais,comptes]=await Promise.all([sbLoadPersonnage(c.nom).catch(()=>null),sbGetComptesBancaires(c.nom).catch(()=>null)]);
+  if(!contexteNavigationRueValide(c))return false;
+  if(!frais||frais.userId!==c.uid||!Array.isArray(comptes)||frais.country!==pays||frais.currentCity!==ville||frais.currentBuilding!==v.building||frais.currentRoom!==v.room){
+   showToast('Voyage enregistré','La position doit encore être relue. Aucun second paiement ne sera envoyé pour ce reçu.',false);return false;
+  }
+  if(typeof appliquerPaiementServeur==='function')appliquerPaiementServeur({ok:true,pa:frais.pa,liquide:frais.liquide,arg:frais.arg});
+  if(typeof construireMapComptesBancaires==='function')state.comptesBancaires=construireMapComptesBancaires(comptes);
+  state.country=frais.country;state.currentCity=frais.currentCity;state.currentBuilding=frais.currentBuilding;state.currentRoom=frais.currentRoom;
+  state.group=frais.group;state._groupeConfirme=frais._groupeConfirme;
+  if(frais.updatedAt)state._dernierUpdatedAtConnu=frais.updatedAt;
+  if(typeof document!=='undefined')document.getElementById('modal-postes')?.classList.remove('open');
+  navigationInterieureRendu={buildingId:frais.currentBuilding,roomId:frais.currentRoom};
+  try{applyEmpireTheme(state.country);buildCityTabs();enterBuilding(state.currentBuilding,true);enterRoom(state.currentBuilding,state.currentRoom,null);}
+  finally{navigationInterieureRendu=null;}
+  try{localStorage.removeItem(cle);}catch(_){}
+  return true;
+ } finally {if(transportServeurEnCours===c)transportServeurEnCours=null;}
+}
+
 async function executerVoyage(mode, empireId, villeId) {
+  if(state._navigationServeur===true)return commanderTransportServeur(mode,empireId,villeId);
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   // Surcharge (Lot 1.5.4) : dernier verrou avant le debit et le deplacement reel. confirmerTransport
@@ -2651,6 +2770,7 @@ function ouvrirRenseignementMireilleGuichet() {
 }
 
 async function confirmerTransport(mode, empireId, villeId) {
+  if(state._navigationServeur===true)return commanderTransportServeur(mode,empireId,villeId);
   document.getElementById('modal-postes').classList.remove('open');
   const config = TRANSPORT_CONFIG[mode];
   const cur = COUNTRIES[state.country]?.cur || 'FR';
