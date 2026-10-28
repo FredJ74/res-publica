@@ -13,7 +13,7 @@ Périmètre indépendant des travaux groupes (Codex) et inventaire (Claude). Lec
 
 - Aucun libellé littéral « réception indisponible » retrouvé dans `plateau-navigation.js`, `plateau-router.js`, `plateau-justice-economie.js`, `plateau-core.js`, `plateau-multijoueur.js`, `supabase.js`. Le problème peut provenir d'un autre module, d'une réponse réseau ou d'un libellé indirect.
 - `sbTransportRest` distingue erreurs HTTP, réseau et session perdue ; refuse une mutation sans jeton et ne réessaie pas les écritures non idempotentes. `signalerEchecSortie` donne un message et un diagnostic sans identité ni jeton.
-- **Non résolu** : aucune trace d'incident d'une session réelle ni code HTTP reproduit. Ne pas considérer une absence de texte littéral comme une correction.
+- **Défaut de transport démontré dans le code** : dans `sbTransportRest`, une réponse HTTP 200 au JSON illisible était transformée en `etat:'ok', donnees:true`, ce qui peut faire apparaître une mutation non confirmée comme réussie. Correction préparée sur la branche : réponse `reponse_invalide`, sans relance automatique des mutations ; le cas 204 sans corps reste explicitement accepté. Banc Node `outils/bancs/banc-reception-rest-20261028.cjs` ajouté (5 cas), **non exécuté dans cette session**. Cela ne prouve pas la résolution des messages exacts « réception indisponible » en jeu ; absence de trace HTTP authentifiée.
 
 ## 3. Banque
 
@@ -39,4 +39,4 @@ Périmètre indépendant des travaux groupes (Codex) et inventaire (Claude). Lec
 
 ## État et règles de sauvegarde
 
-Banc versionné : `outils/bancs/banc-luthecia-controle-navigation-banque-20261028.sql`, exécuté en lecture seule sur Supabase. Aucun fichier métier modifié, aucun mouvement fictif, aucune migration appliquée, aucun déploiement engagé. **Aucune correction fonctionnelle démontrée dans cette passe : il s'agit d'un prévol exécuté, pas d'une clôture.**
+Banc versionné : `outils/bancs/banc-luthecia-controle-navigation-banque-20261028.sql`, exécuté en lecture seule sur Supabase. Un correctif défensif du transport REST est codé dans `supabase.js` mais non exécuté en production. Aucun mouvement fictif, aucune migration appliquée, aucun déploiement engagé. **L'origine des interruptions de réception réelles reste à confirmer par des traces et des tests.**
