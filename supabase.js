@@ -413,8 +413,12 @@ function reporterDeltaPopNonEcrit(charState, ressources) {
 // rattachement au compte (sbCreerPersonnageUnique / sbCreerPersonnageInitial). Si la ligne
 // n'existe pas, la sauvegarde ne fait rien et le dit -- l'appelant, lui, verra simplement que
 // rien n'a ete ecrit, ce qu'il sait deja gerer (voir reporterDeltaPopNonEcrit).
-async function sbEcrirePersonnage(data) {
-  const r = await sbUpdate('personnages', `name=eq.${encodeURIComponent(data.name)}`, data);
+async function sbEcrirePersonnage(data, versionAttendue) {
+  // Le compare-and-swap est executé dans le PATCH PostgreSQL lui-meme :
+  // une lecture préalable ne suffit pas à protéger une écriture concurrente.
+  if (!versionAttendue) return null;
+  const filtre = `name=eq.${encodeURIComponent(data.name)}&updated_at=eq.${encodeURIComponent(versionAttendue)}`;
+  const r = await sbUpdate('personnages', filtre, data);
   // PostgREST rend un tableau VIDE quand le filtre ne trouve rien -- valeur truthy, que
   // l'appelant prendrait pour une reussite. On rend explicitement null : c'est le signal que
   // sbSavePersonnage sait deja interpreter (report du delta de POP non ecrit).
@@ -707,20 +711,19 @@ function sbEnfilerEcriturePersonnage(charState, data) {
     // Dans ce cas, on refuse de republier le blob local périmé.
     const repereServeur = charState._dernierUpdatedAtConnu;
     if (!repereServeur || charState.personnageChargeDepuisServeur !== true) return null;
-    const actuel = await sbGet('personnages',
-      `name=eq.${encodeURIComponent(data.name)}&select=updated_at`);
-    if (!contexteActif() || !Array.isArray(actuel) || actuel.length !== 1
-        || actuel[0].updated_at !== repereServeur) {
-      charState.personnageChargeDepuisServeur = false;
-      console.warn('Sauvegarde personnage bloquée : version serveur non confirmée ou modifiée.');
-      return null;
-    }
-    return sbEcrirePersonnage(data);
+    if (!contexteActif()) return null;
+    return sbEcrirePersonnage(data, repereServeur);
   }).then((resultat) => {
     if (!contexteActif()) return resultat;
     // Ecriture refusee (sbUpdate/sbInsert renvoient null) : le delta de POP de cette sauvegarde
     // n'a pas ete applique -- il est reporte sur la suivante (voir ressourcesAvecBasePop).
-    if (!resultat) { reporterDeltaPopNonEcrit(charState, data.resources); return resultat; }
+    if (!resultat) {
+      // Une version périmée, une lecture impossible ou une réponse perdue
+      // interdisent de republier d'autres snapshots en attente.
+      charState.personnageChargeDepuisServeur = false;
+      reporterDeltaPopNonEcrit(charState, data.resources);
+      return resultat;
+    }
     // Repere de fraicheur (lot du 25 aout 2026, correctif filet de securite 30s) : des qu'une
     // ecriture reussit, cette session SAIT que le updated_at serveur vaut desormais celui
     // qu'elle vient d'ecrire -- utilise par sbVerifierEtSauvegarderPersonnage ci-dessous pour
