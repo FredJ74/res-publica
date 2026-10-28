@@ -1,0 +1,29 @@
+✔ lots/capitale : fleche en bas, destination et retour valides (14.036142ms)
+✔ lots/ville_a : fleche en bas, destination et retour valides (2.704776ms)
+✔ carrefour PSM/psm-carrefour-artisanal-scierie : image, zones et quatre directions preservees (3.250223ms)
+✔ carrefour PSM/psm-ecole-phare : image, zones et quatre directions preservees (7.206058ms)
+✔ carrefour PSM/psm-tribunal-banque : image, zones et quatre directions preservees (3.212082ms)
+✔ carrefour PSM/psm-eglise-cimetiere : image, zones et quatre directions preservees (3.569825ms)
+✔ reponse de deplacement tardive/personnage : pas de contamination (1.094858ms)
+✔ reponse de deplacement tardive/nom : pas de contamination (2.803613ms)
+✔ reponse de deplacement tardive/compte : pas de contamination (1.554988ms)
+✔ reponse de deplacement tardive/session : pas de contamination (1.895481ms)
+✔ reponse de deplacement tardive/ville : pas de contamination (1.881465ms)
+✔ reponse de deplacement tardive/batiment : pas de contamination (1.227554ms)
+✔ double clic : un seul ordre serveur simultane (2.061086ms)
+✔ animation differee/deplacerRueCentrale : aucun ordre sur le nouveau personnage (1.514609ms)
+✔ animation differee/naviguerVersNoeudRue : aucun ordre sur le nouveau personnage (1.797837ms)
+✔ refus du serveur : scene conservee et verrou libere pour une nouvelle tentative (1.181416ms)
+✔ restauration : la lecture la plus recente gagne sans envoyer de deplacement (1.510281ms)
+✔ une lecture partie pendant un deplacement ne restaure pas une ancienne position (1.778859ms)
+✔ restauration d un ancien personnage : ni scene ni position locale appliquee (0.964615ms)
+✔ 31 scenes Luthecia/PSM : images et destinations existent sans imposer la meme orientation aux quatre vues (4.598205ms)
+✔ authentification différée : la garde transmise interdit un nouvel ordre après changement de session (2.243686ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77.234107

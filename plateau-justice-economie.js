@@ -9036,24 +9036,10 @@ function resoudreNomRoomAffectation(buildingId, roomId) {
   return room?.name || null;
 }
 
-function majSelectRoomsAffectation() {
-  const bId = document.getElementById('affect-building')?.value;
-  const roomSelect = document.getElementById('affect-room');
-  if (!roomSelect || !bId || !BUILDINGS[bId]) return;
-  const roomsExtra = (typeof getBuildingContext === 'function' ? getBuildingContext(bId)?.roomsExtra : null) || {};
-  const rooms = { ...(BUILDINGS[bId].rooms || {}), ...roomsExtra };
-  roomSelect.innerHTML = Object.keys(rooms).map(rId => '<option value="' + rId + '">' + (rooms[rId].name || rId) + '</option>').join('');
-}
-
 async function confirmerAffectationRoom(matricule, encode) {
   if (encode) { try { matricule = decodeURIComponent(matricule); } catch (_) { return false; } }
   return commanderPoliceGroupe(matricule, 'deposer');
 }
-
-// Prefixes d'id de noeuds de rue par ville (republic uniquement, seul empire couvert par
-// RUE_CENTRALE_NOEUDS a ce jour -- voir plateau-rue-centrale.js) -- derives directement de la
-// convention de nommage deja en place, aucune nouvelle donnee inventee.
-const PREFIXE_RUE_PAR_VILLE = { capitale: 'luthecia-', ville_a: 'psm-', ville_b: 'montrouge-' };
 
 async function doOuvrirAffectationRue(matricule) {
   return ouvrirDepotPoliceCommun(matricule);

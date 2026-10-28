@@ -6410,10 +6410,10 @@ async function sbEmployeMesEmployes() {
 
 // Transferer la conduite a un autre leader. Co-presence exigee par le serveur, AUCUNE
 // acceptation du nouveau leader, et le PROPRIETAIRE NE CHANGE PAS.
-async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj) {
+async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj, options) {
   return await sbRpc('pnj_transferer', {
     p_ids: pnjIds, p_dest: destinataire, p_dest_est_pnj: !!destinataireEstPnj
-  });
+  }, options);
 }
 
 // Reprendre dans son groupe des PNJ laisses sur place (co-presence exigee).

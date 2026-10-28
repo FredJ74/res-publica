@@ -1,42 +1,57 @@
--- #219 : factoriser le moteur de rue EXACTEMENT examiné, puis grouper ses appels.
--- MD5 de pg_get_functiondef confirmé par Fred et retrouvé à l'identique dans Git.
--- Aucune copie de coordonnées : chaque membre passe les mêmes gardes du moteur.
+-- #219 : moteur de rue existant factorisé ; aucune activation isolée.
+-- Corps Git et empreinte communiquée concordants, prévol vivant indispensable.
 DO $moteur$
-DECLARE s text; a text; b text;
 BEGIN
  IF to_regprocedure('public.rue_position_personnage_interne(text,text,boolean)') IS NULL THEN
-  s:=pg_get_functiondef('public.rue_position_enregistrer(text)'::regprocedure);
-  IF md5(s)<>'5e819694359c4bf2f11470c7f9f95ad8' THEN
+  IF md5(pg_get_functiondef('public.rue_position_enregistrer(text)'::regprocedure))<>'5e819694359c4bf2f11470c7f9f95ad8' THEN
    RAISE EXCEPTION 'rue_definition_vivante_non_examinee'; END IF;
-  a:='public.rue_position_enregistrer(p_noeud text)';
-  b:='public.rue_position_personnage_interne(p_nom text, p_noeud text, p_verifier boolean)';
-  IF position(a IN s)=0 THEN RAISE EXCEPTION 'rue_signature_non_examinee'; END IF;
-  s:=replace(s,a,b);
-  a:='v_nom:=public.mon_personnage();';b:='v_nom:=p_nom;';
-  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'rue_identite_non_examinee'; END IF;
-  s:=replace(s,a,b);
-  a:=' SELECT * INTO v_noeud FROM public.rue_noeuds_serveur';
-  b:=$garde$ -- groupes_moteur_rue_v1 : garde commune déjà utilisée par les ordres de chantier.
+ ELSE
+  IF md5(pg_get_functiondef('public.rue_position_personnage_interne(text,text,boolean)'::regprocedure))<>'03020fe045ce82c9a9e7533da696e6ee' THEN
+   RAISE EXCEPTION 'rue_moteur_interne_inconnu'; END IF;
+  IF md5(pg_get_functiondef('public.rue_position_enregistrer(text)'::regprocedure))<>'3b5ca4b8717525bbd1ab4b59e4da4e9c' THEN
+   RAISE EXCEPTION 'rue_enveloppe_non_examinee'; END IF;
+ END IF;
+END $moteur$;
+
+CREATE OR REPLACE FUNCTION public.rue_position_personnage_interne(p_nom text, p_noeud text, p_verifier boolean)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $fn$
+DECLARE v_nom text; v_pj public.personnages_donnees%ROWTYPE; v_noeud public.rue_noeuds_serveur%ROWTYPE;
+ v_depart text;
+BEGIN
+ v_nom:=p_nom;
+ IF v_nom IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
+ SELECT * INTO v_pj FROM public.personnages_donnees WHERE name=v_nom FOR UPDATE;
+ IF NOT FOUND OR v_pj.est_emprisonne IS NOT NULL AND v_pj.est_emprisonne<>'null'::jsonb THEN
+ RETURN jsonb_build_object('ok',false,'raison','personnage_indisponible'); END IF;
+ IF EXISTS(SELECT 1 FROM public.police_interceptions WHERE personnage=v_nom AND expires_at>now()) THEN
+ RETURN jsonb_build_object('ok',false,'raison','interception_en_cours'); END IF;
+ -- groupes_moteur_rue_v1 : garde commune déjà utilisée par les ordres de chantier.
  IF coalesce(v_pj.hp,100)<=0
  OR coalesce(v_pj.hospitalisation->>'dateFinParis','')>(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text
  OR (CASE WHEN coalesce(v_pj.hospitalisation->>'jourFin','')~'^[0-9]+$'
    THEN (v_pj.hospitalisation->>'jourFin')::numeric>coalesce(v_pj.day,1) ELSE false END) THEN
   RETURN jsonb_build_object('ok',false,'raison','acteur_incapacite'); END IF;
-$garde$||a;
-  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'rue_garde_ancre_absente'; END IF;
-  s:=replace(s,a,b);
-  a:=' UPDATE public.personnages_donnees SET current_building=NULL,current_room=NULL,current_street=p_noeud WHERE id=v_pj.id;';
-  b:=' IF p_verifier THEN RETURN jsonb_build_object(''ok'',true,''verifie'',true); END IF;'
-   ||chr(10)||' UPDATE public.personnages_donnees SET current_building=NULL,current_room=NULL,current_street=p_noeud,updated_at=clock_timestamp() WHERE id=v_pj.id;';
-  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'rue_mutation_ancre_absente'; END IF;
-  EXECUTE replace(s,a,b);
- ELSE
-  s:=pg_get_functiondef('public.rue_position_personnage_interne(text,text,boolean)'::regprocedure);
-  IF md5(s)<>'03020fe045ce82c9a9e7533da696e6ee' THEN RAISE EXCEPTION 'rue_moteur_interne_inconnu'; END IF;
-  IF md5(pg_get_functiondef('public.rue_position_enregistrer(text)'::regprocedure))<>'3b5ca4b8717525bbd1ab4b59e4da4e9c' THEN
-   RAISE EXCEPTION 'rue_enveloppe_non_examinee'; END IF;
+ SELECT * INTO v_noeud FROM public.rue_noeuds_serveur WHERE country=v_pj.country AND city=v_pj.current_city AND noeud=p_noeud;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','noeud_inconnu'); END IF;
+ IF v_pj.current_building IS NOT NULL THEN
+ IF NOT EXISTS(SELECT 1 FROM public.rue_sorties_batiments
+ WHERE country=v_pj.country AND city=v_pj.current_city AND building=v_pj.current_building AND noeud=p_noeud) THEN
+ RETURN jsonb_build_object('ok',false,'raison','sortie_invalide'); END IF;
+ ELSIF v_pj.current_street IS NOT NULL AND v_pj.current_street<>p_noeud THEN
+ IF NOT EXISTS(SELECT 1 FROM public.rue_noeuds_serveur
+ WHERE country=v_pj.country AND city=v_pj.current_city AND noeud=v_pj.current_street
+ AND p_noeud=ANY(voisins)) THEN RETURN jsonb_build_object('ok',false,'raison','trajet_invalide'); END IF;
+ ELSIF v_pj.current_street IS NULL THEN
+ v_depart:=CASE v_pj.current_city WHEN 'capitale' THEN 'luthecia-palais-presidentiel'
+ WHEN 'ville_a' THEN 'psm-centre-multimodal' WHEN 'ville_b' THEN 'montrouge-vue-3' ELSE NULL END;
+ IF p_noeud IS DISTINCT FROM v_depart THEN RETURN jsonb_build_object('ok',false,'raison','position_initiale_invalide'); END IF;
  END IF;
-END $moteur$;
+ IF p_verifier THEN RETURN jsonb_build_object('ok',true,'verifie',true); END IF;
+ UPDATE public.personnages_donnees SET current_building=NULL,current_room=NULL,current_street=p_noeud,updated_at=clock_timestamp() WHERE id=v_pj.id;
+ UPDATE public.police_interceptions SET expires_at=now() WHERE personnage=v_nom AND expires_at>now();
+ RETURN jsonb_build_object('ok',true,'noeud',p_noeud);
+END;
+$fn$;
 REVOKE ALL ON FUNCTION public.rue_position_personnage_interne(text,text,boolean) FROM PUBLIC,anon,authenticated,service_role;
 
 CREATE OR REPLACE FUNCTION public.rue_position_enregistrer(p_noeud text)

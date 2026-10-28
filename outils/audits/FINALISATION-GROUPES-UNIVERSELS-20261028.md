@@ -1,8 +1,115 @@
 # Groupes universels — reprise de #216 et #217, 28 octobre 2026
 
-**CHANTIER NON TERMINÉ.** Trois lots de corrections sont codés, testés localement et
-sauvegardés. Aucun groupe universel n'est annoncé en production. Les déplacements
-collectifs des PJ et les combats de groupes mixtes restent à raccorder au serveur.
+**CHANTIER NON TERMINÉ.** Les corrections et leurs preuves sont sauvegardées sur
+la branche de #219. La rue collective est testée localement ; les entrées/pièces,
+anciens écrivains de position et combats mixtes restent à terminer. Aucune production.
+
+## État final de cette reprise — A à F
+
+**CHANTIER NON TERMINÉ / NON DÉPLOYÉ.** Cette section remplace les constats
+historiques suivants. Les obstacles de code restent distincts des accès manquants.
+
+### A. Terminé et vérifié localement
+
+- Portes communes et projections des vrais soldats, policiers et douaniers,
+  autorité institutionnelle distincte du commandement ; prêt de quatre soldats
+  à un commissaire et conduite avec trois policiers, droits de reprise préservés.
+- Sortie et marche de deux PJ avec ces sept PNJ par le moteur de rue existant,
+  dont le corps Git complet reproduit exactement l'empreinte communiquée.
+  Tous les PJ sont validés avant mutation ; prison, interception, coma/hôpital,
+  dispersion et itinéraires invalides bloquent sans mouvement partiel. Échec
+  de projection : rollback total. Deux requêtes concurrentes ont réellement
+  attendu le verrou ; la seconde reconnaît le mouvement déjà enregistré.
+- Menu commun des unités distantes, sans leur inventer de bourse/possessions,
+  reprise de l'ancre avec ses membres, radio et délégation via les portes
+  existantes. Gardes de session/personnage transmises jusqu'au transport,
+  y compris adhésion PJ et employés. Aucun polling ajouté.
+- Défaut supplémentaire reproduit : ancienne rue projetée alors que le chef
+  est dans une pièce. Correction dans le projecteur institutionnel commun,
+  test avant/après conservé, aucun autre pouvoir municipal ou métier changé.
+
+Résultats : **86/86 SQL**, incluant les 77 précédents ; **40/40 groupe client**,
+**12/12 police**, **21/21 navigation**, **112/112 bancs clients**, **105/105 pilote
+local**. Audit #216 **20/20** avec ses coups/justice simulés, donc distinct de
+la preuve de calcul réel. La nouvelle suite utilise le détecteur historique
+Git et le vrai coup + taux/degrés/dégâts militaires ; justice d'éligibilité
+fictive. Ce n'est ni une authentification Supabase ni un round mixte complet.
+Un seul acte fictif committé sur PostgreSQL éphémère pour observer le snapshot
+concurrent ; aucune production. Les autres scénarios métier sont annulés.
+
+Contre-épreuves : **12/77 rouges** sans le raccordement de rue ; **10/59 rouges**
+sans le pont public. Certaines vérifient de nouveaux contrats absents, elles
+ne représentent pas 22 bugs historiques. La présence fantôme est reproduite
+séparément avant correction. Aucune attente ni empreinte globale affaiblie.
+
+### B. Codé mais non déployé
+
+Migrations `20261028180000`, `20261028180100`, `20261028183000` et leurs clients,
+en complément des préparations précédentes. Le moteur privé de rue possède
+une déclaration explicite, un prévol exact de la fonction remplacée et un
+contrôle des deux définitions au rejeu. Cela élimine le faux inconnu de cette
+création dynamique dans Authority sans modifier le contrôleur.
+Le prévol de lecture seule inclut ces trois versions. Elles restent
+interdépendantes ; aucune application individuelle n'est autorisée ici.
+
+### C. Non terminé
+
+1. Entrées dans les bâtiments et changements de pièces pour le groupe entier.
+2. Protection de tous les anciens écrivains de position/sauvegardes périmées.
+   `updated_at` est actualisé par le mouvement commun, mais ne constitue pas
+   seul une protection complète de tous ces chemins. La fiche est laissée
+   intacte pour ne pas écraser le chantier parallèle.
+3. Recrutement de tous les PJ/PNJ mixtes dans les rounds et persistance commune
+   de leurs conséquences. Le calcul réel du coup ne démontre pas ce branchement.
+4. Groupe du recherché et groupe complet de la force intervenante. Le détecteur
+   historique lit encore le registre du commissariat de la ville : il ne résout
+   pas toutes les origines de policiers ni toutes les compositions canoniques.
+   La fuite/le combat persistent encore certains PA par matricule local. Les
+   collisions d'identités et les prêts entre services doivent être traités
+   ensemble, puis la prison testée par la justice existante.
+5. Recette authentifiée isolée, sur identités de test autorisées exclusivement.
+
+Ce sont des travaux restant à coder et tester, pas uniquement une ouverture
+Supabase. **Ne pas fusionner ni activer ces préparations en l'état.**
+
+### D. Bloqué extérieurement
+
+Aucun outil Supabase n'est exposé dans cette session. Les commentaires #219 sont
+refusés par l'API GitHub ; Git fetch/push fonctionne. Le corps de rue est bien
+retrouvé, donc son absence ne constitue plus un blocage local. Le détecteur
+historique diffère de l'empreinte vivante précédemment communiquée : il ne vaut
+pas relevé actuel. L'agent connecté devra exécuter le prévol de lecture seule
+versionné, exporter les corps/ACL/RLS/triggers, comparer chaque précondition,
+puis seulement envisager la recette et l'application de l'ensemble terminé.
+Aucune manipulation SQL ou de secret n'est demandée à Fred.
+
+### E. Anciens mécanismes
+
+Deux auxiliaires sans référence des anciens sélecteurs policiers retirés
+(`majSelectRoomsAffectation`, `PREFIXE_RUE_PAR_VILLE`). Les anciens points
+publics de menu sont des adaptateurs des commandes communes. Miroirs et
+projecteur militaire restent nécessaires et conservés. `state.group` reste
+un miroir de présentation hydraté ; ne pas le confondre avec une position
+serveur. Les anciens écrivains de position et recruteurs de combat ne sont
+pas supprimés tant que leur remplacement complet n'est pas opérationnel.
+
+### F. Intégration et déploiement
+
+Branche unique `codex/groupes-universels-20261028`, PR #219 conservée. Sauvegardes
+`e80efd80` puis `00b537f2`, suivies du commit contenant ce rapport et les preuves.
+Fetch final : main `c10c10832b5bf6a7ee90895bc4160e2591782190`, déjà intégré et
+préservé. Aucun changement aux inventaires, fiches/finances, ambassades ou BNE.
+Aucune fusion, migration Supabase, authentification réelle ou livraison Vercel.
+Les résultats distants Actions et le statut de revue ne sont pas observables ici.
+
+**Globaux : 5/12**, Workflow vert. Sept rouges inchangés par catégorie :
+classification 325/319 ; fidélité 21 écarts du relevé ; Authority (garde de bail,
+quatre signatures antérieures et 105 RPC absentes du baseline) ; Referential et
+fonctions sans JavaScriptCore ; assemblage et reconstruction avec leurs
+incompatibilités/dépendances préexistantes. Ne pas retoucher le baseline pour
+faire disparaître des RPC seulement préparées. Les preuves détaillées et les
+empreintes des sources testées sont dans
+`outils/audits/preuves-groupes-219-suite-20261028/MANIFESTE.json`.
 
 ## Dernier complément — rue collective et force publique
 

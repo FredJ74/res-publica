@@ -7,7 +7,7 @@ import importlib.util,json,sys,hashlib,subprocess
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('force',R/'outils/bancs/banc-groupes-force-publique-local.py');force=importlib.util.module_from_spec(sp);sp.loader.exec_module(force)
-def suite(ctx):
+def suite(ctx, suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
  source=json.loads((R/'outils/bancs/fixtures/groupes-corps-git-20261028.json').read_text())['sources'][0]
  brut=source['sql'].encode()
@@ -90,8 +90,6 @@ def suite(ctx):
   groupe();sql("UPDATE personnages_donnees SET hospitalisation='{\"jourFin\":\"ancien\"}' WHERE name='B'")
   exige(rpc('rue_position_enregistrer',('rue-1',),qui='B'))
  cas('rue_hospitalisation_legacy_non_numerique_sans_exception',legacy_invalide)
- ctx['preuves_extension']['action_fictive_committee']=True
- ctx['preuves_extension']['precision']='Une sortie fictive committée dans PostgreSQL éphémère pour vérifier le snapshot du second appel ; autres cas annulés, aucune production.'
  # Décor de concurrence committé dans cette seule base jetable ; aucun joueur.
  groupe();ctx['c'].commit()
  def concurrence():
@@ -113,12 +111,16 @@ def suite(ctx):
       if f.done():break
       time.sleep(.01)
      assert bloque,'la seconde commande ne rencontre pas réellement le verrou'
-    finally:un.commit() # acte fictif, nécessaire au snapshot après attente
+    finally:
+     un.commit() # acte fictif, nécessaire au snapshot après attente
+     ctx['preuves_extension']['action_fictive_committee']=True
+     ctx['preuves_extension']['precision']='Une sortie fictive committée dans PostgreSQL éphémère pour vérifier le snapshot du second appel ; autres cas annulés, aucune production.'
     v=exige(f.result(timeout=8));assert v.get('deja_present') is True,v
    deux.rollback()
    q.execute("SELECT count(*) FROM personnages_donnees WHERE name IN ('A','B') AND current_street='rue-1'");assert q.fetchone()[0]==2
   finally:un.rollback();deux.rollback();un.close();deux.close()
  cas('rue_deux_commandes_concurrentes_un_deplacement_et_un_rejeu',concurrence)
+ if suivante is not None:suivante(ctx)
 
 
 if __name__=='__main__':sys.exit(force.corps.g.main(lambda c:force.corps.extension(c,lambda c:force.suite(c,suite))))

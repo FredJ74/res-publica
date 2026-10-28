@@ -42,17 +42,17 @@ def suite(ctx, suivante=None):
  cas('sept_vrais_pnj_suivi_derive_depose_et_reprise_par_autorite',sept)
  def miroir():
   exige(rpc('pnj_prendre',(policiers,),qui='B'))
-  sql("UPDATE personnages_donnees SET current_building='bar',current_room='salle-fixture' WHERE name='B'")
+  sql("UPDATE personnages_donnees SET current_building='bar',current_room='salle-fixture',current_street='ancienne-rue' WHERE name='B'")
   sql("UPDATE batiments_etat SET data=jsonb_set(data,'{autre}','77') WHERE id='capitale'")
   q.execute("SELECT count(*) FROM pnj_membres WHERE id=ANY(%s) AND leader_pj='B' AND ville IS NULL",(policiers,));assert q.fetchone()[0]==3
   q.execute("SELECT data FROM batiments_etat WHERE id='capitale'");v=q.fetchone()[0]
   assert v['autre']==77 and len(v['effectifsPolice']['policiers'])==3
-  assert all(p['buildingId']=='bar' for p in v['effectifsPolice']['policiers']),v
+  assert all(p['buildingId']=='bar' and p['rueNoeudId'] is None for p in v['effectifsPolice']['policiers']),v
  cas('miroir_police_preserve_suiveurs_et_projette_position_commune',miroir)
  def ancien_cache():
   q.execute("SELECT data FROM batiments_etat WHERE id='capitale'");ancien=q.fetchone()[0]
   exige(rpc('pnj_prendre',(policiers,),qui='B'))
-  sql("UPDATE personnages_donnees SET current_building='bar',current_room='salle-fixture' WHERE name='B'")
+  sql("UPDATE personnages_donnees SET current_building='bar',current_room='salle-fixture',current_street='ancienne-rue' WHERE name='B'")
   q.execute("UPDATE batiments_etat SET data=%s::jsonb WHERE id='capitale'",(json.dumps(ancien),))
   q.execute("SELECT data->'effectifsPolice'->'policiers' FROM batiments_etat WHERE id='capitale'")
   assert all(x['buildingId']=='bar' for x in q.fetchone()[0])

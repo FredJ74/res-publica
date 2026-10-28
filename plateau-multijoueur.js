@@ -1306,8 +1306,8 @@ async function commanderMouvementEmploye(nomPnj, prendre) {
   RP_EMPLOYE_MOUVEMENT = c;
   try {
     const r = prendre
-      ? (typeof sbPnjPrendre === 'function' ? await sbPnjPrendre([emp.pnjId]).catch(() => null) : null)
-      : (typeof sbPnjQuitterGroupe === 'function' ? await sbPnjQuitterGroupe([emp.pnjId]).catch(() => null) : null);
+      ? (typeof sbPnjPrendre === 'function' ? await sbPnjPrendre([emp.pnjId], {encoreValide:()=>contexteGroupePjValide(c)}).catch(() => null) : null)
+      : (typeof sbPnjQuitterGroupe === 'function' ? await sbPnjQuitterGroupe([emp.pnjId], {encoreValide:()=>contexteGroupePjValide(c)}).catch(() => null) : null);
     if (!contexteGroupePjValide(c)) return false;
     // Toujours relire les employés, aussi après réponse perdue. Aucun rejeu implicite.
     const etat = typeof sbEmployeMesEmployes === 'function'
@@ -1549,7 +1549,7 @@ async function rappelerEmployeParRadio(ancreId) {
   RP_RAPPEL_RADIO = c;
   try {
     const r = typeof sbPnjRappelerRadio === 'function'
-      ? await sbPnjRappelerRadio(ancreId).catch(() => null) : null;
+      ? await sbPnjRappelerRadio(ancreId, {encoreValide:()=>contexteGroupePjValide(c)}).catch(() => null) : null;
     if (!contexteGroupePjValide(c)) return;
     if (!r || r.ok !== true) {
       const messages = { radio_hors_ville: 'Le groupe est dans une autre ville : aucune liaison radio.',
@@ -2030,7 +2030,7 @@ async function commanderGroupePj(commande, titre) {
   RP_GROUPE_COMMANDE = c;
   ++RP_GROUPE_LECTURE; // Invalider les lectures antérieures à cette commande.
   try {
-    const r = await commande().catch(() => null);
+    const r = await commande({encoreValide:()=>contexteGroupePjValide(c)}).catch(() => null);
     if (!contexteGroupePjValide(c)) return false;
     if (!r || r.ok !== true) {
       const motifs = { pas_co_presents: 'Le joueur doit être présent au même endroit.',
@@ -2063,10 +2063,10 @@ async function rejoindrePJ(encodedPnj) {
   let pj;
   try { pj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
   if (!pj || !pj.name || pj.name === state.char?.name) return;
-  return commanderGroupePj(() => sbRpc('groupe_pj_rejoindre', {p_chef: pj.name}), 'Groupe rejoint');
+  return commanderGroupePj(options => sbRpc('groupe_pj_rejoindre', {p_chef: pj.name}, options), 'Groupe rejoint');
 }
 async function quitterGroupe() {
-  return commanderGroupePj(() => sbRpc('groupe_pj_quitter', {}), 'Groupe quitté');
+  return commanderGroupePj(options => sbRpc('groupe_pj_quitter', {}, options), 'Groupe quitté');
 }
 
 // Jeremy (quete d'accueil) rejoint le groupe via le meme systeme que les PNJ employes
@@ -2431,6 +2431,39 @@ function pnjGroupeNiveauEntrainement(formation) {
 }
 
 let RP_GROUPE_PNJ_LECTURE = 0;
+function boutonUnitesPnjAdministrables() {
+  return '<div class="cpj-note"><button class="cpj-touche" onclick="ouvrirUnitesPnjAdministrables()">Unités sous mon autorité</button></div>';
+}
+async function ouvrirUnitesPnjAdministrables() {
+  const c=contexteGroupePj(),lecture=++RP_GROUPE_PNJ_LECTURE;
+  const valide=()=>contexteGroupePjValide(c)&&lecture===RP_GROUPE_PNJ_LECTURE;
+  const corps=document.getElementById('postes-body');
+  const titre=document.getElementById('postes-modal-title');
+  if(titre)titre.textContent='Unités sous mon autorité';
+  if(!corps)return;
+  corps.innerHTML='<div class="cpj-note">Lecture des unités…</div>';
+  document.getElementById('modal-postes').classList.add('open');
+  let v;try{v=await sbPnjUnitesAdministrablesLire();}catch(_){v=null;}
+  if(!valide())return;
+  if(v?.ok!==true){corps.innerHTML='<div class="cpj-note">Lecture impossible. Réessayez.</div>';return;}
+  // Cette lecture ne contient ni possessions ni bourse. Ne pas l'utiliser dans
+  // les panneaux d'inventaire ou de paiement qui exigent leurs propres lectures.
+  RP_GROUPE_COURANT=v.membres||[];
+  const ech=t=>typeof escapeHtmlText==='function'?escapeHtmlText(String(t??'')):String(t??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+  corps.innerHTML='<div class="cpj-dialogue">'+(RP_GROUPE_COURANT.length?RP_GROUPE_COURANT.map((m,i)=>
+    '<div class="cpj-note">'+ech(m.nom)+' · '+(m.co_present?'ici':'à distance')+
+    (m.peut_administrer?'':' · commandement seulement')+
+    ' <button class="cpj-touche" onclick="ouvrirGroupePnjConduite('+i+')">Conduite</button></div>').join(''):
+    '<div class="cpj-note">Aucune unité accessible.</div>')+
+    '<button class="cpj-touche" onclick="ouvrirGroupePnj()">Retour au groupe présent</button></div>';
+}
+function idsRepriseUnitePnj(m) {
+  // Une ancre et ses suiveurs forment l'unité persistante existante. Le serveur
+  // refuse la liste si un membre manque ou si l'autorité n'est pas complète.
+  if(m.leader_pj||m.leader_pnj_id)return [m.id];
+  return RP_GROUPE_COURANT.filter(x=>x.id===m.id||x.leader_pnj_id===m.id).map(x=>x.id);
+}
+
 async function ouvrirGroupePnj() {
   const c = contexteGroupePj(), lecture = ++RP_GROUPE_PNJ_LECTURE;
   const valide = () => contexteGroupePjValide(c) && lecture === RP_GROUPE_PNJ_LECTURE;
@@ -2464,7 +2497,7 @@ async function ouvrirGroupePnj() {
 
   if (miens.length === 0) {
     corps.innerHTML = '<div style="padding:1rem;font-size:.85rem;color:#8a8060;font-style:italic">'
-      + 'Aucun PNJ ne vous accompagne ici.</div>';
+      + 'Aucun PNJ ne vous accompagne ici.</div>'+boutonUnitesPnjAdministrables();
     return;
   }
 
@@ -2519,7 +2552,7 @@ async function ouvrirGroupePnj() {
     html += '</div>';
   });
   html += '</div>';
-  corps.innerHTML = html;
+  corps.innerHTML = html+boutonUnitesPnjAdministrables();
 
   // Les possessions sont chargees apres coup : la liste s'affiche sans attendre.
   // UNE SEULE SOURCE (26 septembre 2026) : pnj_possessions. Les accessoires militaires y ont
@@ -2743,6 +2776,7 @@ function signalerResultatGroupePnj(r, titreOk, messageOk) {
 // Un soldat n'est activé que si le serveur confirme sa capacité après bascule
 // et projection militaire. Les contrôles d'autorité restent dans chaque RPC.
 async function ouvrirGroupePnjConduite(i) {
+  const contexte=contexteGroupePj();
   const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t ?? '')) : String(t ?? '');
   const m = RP_GROUPE_COURANT[i]; if (!m) return;
   const conduite = m.mouvement_individuel === true || (m.mouvement_individuel === undefined && m.famille !== 'soldat');
@@ -2774,6 +2808,7 @@ async function ouvrirGroupePnjConduite(i) {
     // Le menu de destination ne contient que des leaders REELLEMENT presents dans la piece.
     const autres = await leadersPresentsDansPiece(state.country || 'republic', state.currentCity,
       state.currentBuilding, state.currentRoom).catch(() => []);
+    if(!contexteGroupePjValide(contexte)||RP_GROUPE_COURANT[i]!==m)return;
     const el = document.getElementById('grp-leaders');
     if (!el) return;
     const cibles = (autres || []).filter(n => n && n !== state.char?.name);
@@ -2783,7 +2818,7 @@ async function ouvrirGroupePnjConduite(i) {
     }
     el.innerHTML = 'Confier à un leader présent :<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem">'
       + cibles.map(n => '<button onclick="confirmerGroupePnjTransferer(' + i + ',\''
-          + encodeURIComponent(n) + '\')" style="padding:.25rem .55rem;border:1px solid #3a3a4a;'
+          + encodeURIComponent(n).replace(/'/g,'%27') + '\')" style="padding:.25rem .55rem;border:1px solid #3a3a4a;'
           + 'background:transparent;color:#8a8aa0;cursor:pointer;font-size:.72rem">'
           + ech(n) + '</button>').join('') + '</div>';
   }
@@ -2797,7 +2832,7 @@ async function commanderConduitePnj(i, commande, titre, message) {
   RP_GROUPE_PNJ_COMMANDE = c;
   try {
     let r;
-    try { r = await commande(m); } catch (_) { r = null; }
+    try { r = await commande(m, {encoreValide:()=>contexteGroupePjValide(c)}); } catch (_) { r = null; }
     if (!contexteGroupePjValide(c)) return false;
     const ok = signalerResultatGroupePnj(r, titre, message(m));
     // Relecture après verdict/refus/perte de réponse, jamais un rejeu automatique.
@@ -2806,17 +2841,17 @@ async function commanderConduitePnj(i, commande, titre, message) {
   } finally { if (RP_GROUPE_PNJ_COMMANDE === c) RP_GROUPE_PNJ_COMMANDE = null; }
 }
 async function confirmerGroupePnjQuitter(i) {
-  return commanderConduitePnj(i, m => sbPnjQuitterGroupe([m.id]), 'Détaché', m => m.nom + ' reste ici.');
+  return commanderConduitePnj(i, (m, options) => sbPnjQuitterGroupe([m.id], options), 'Détaché', m => m.nom + ' reste ici.');
 }
 async function confirmerGroupePnjPrendre(i) {
-  return commanderConduitePnj(i, m => sbPnjPrendre([m.id]), 'Repris', m => m.nom + ' rejoint votre groupe.');
+  return commanderConduitePnj(i, (m, options) => sbPnjPrendre(idsRepriseUnitePnj(m), options), 'Repris', m => m.nom + ' rejoint votre groupe.');
 }
 async function confirmerGroupePnjRadio(i) {
-  return commanderConduitePnj(i, m => sbPnjRappelerRadio(m.id), 'Rappel confirmé', m => m.nom + ' vous accompagne.');
+  return commanderConduitePnj(i, (m, options) => sbPnjRappelerRadio(m.id, options), 'Rappel confirmé', m => m.nom + ' vous accompagne.');
 }
 async function confirmerGroupePnjTransferer(i, destEncode) {
   let dest;
   try { dest = decodeURIComponent(destEncode || ''); } catch (_) { return false; }
   if (!dest) return false;
-  return commanderConduitePnj(i, m => sbPnjTransferer([m.id], dest, false), 'Confié', m => m.nom + ' suit désormais ' + dest + '.');
+  return commanderConduitePnj(i, (m, options) => sbPnjTransferer([m.id], dest, false, options), 'Confié', m => m.nom + ' suit désormais ' + dest + '.');
 }

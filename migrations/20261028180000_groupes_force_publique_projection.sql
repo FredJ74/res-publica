@@ -20,7 +20,7 @@ BEGIN
    RAISE EXCEPTION 'projection_service_liste_invalide'; END IF;
   SELECT coalesce(jsonb_agg(CASE WHEN m.id IS NULL OR m.statut<>'actif' THEN d.objet
     ELSE d.objet||jsonb_build_object('buildingId',pe.building_id,'roomId',pe.room_id,
-      'rueNoeudId',pe.rue_noeud_id) END ORDER BY d.rang),'[]'::jsonb) INTO liste
+      'rueNoeudId',CASE WHEN pe.building_id IS NULL THEN pe.rue_noeud_id ELSE NULL END) END ORDER BY d.rang),'[]'::jsonb) INTO liste
    FROM jsonb_array_elements(etat->cle->agents) WITH ORDINALITY d(objet,rang)
    LEFT JOIN public.pnj_membres m ON m.id=CASE WHEN cle='effectifsPolice'
     THEN public.police_pnj_id(b.country,b.city,d.objet->>'matricule')

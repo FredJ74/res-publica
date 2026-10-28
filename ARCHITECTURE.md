@@ -245,3 +245,18 @@ le déplacement collectif PJ, les policiers/douaniers et le recrutement des
 groupes mixtes en combat/interception restent ouverts. Les corrections de main
 `c10c1083` (transport, création et sorties) sont conservées. État et limites :
 `outils/audits/FINALISATION-GROUPES-UNIVERSELS-20261028.md`, section reprise #219.
+
+### Reprise #219 — projections publiques et rue collective préparées
+
+Les policiers et douaniers utilisent les portes communes de conduite, avec
+projection transactionnelle dans leurs registres métier et droit administratif
+séparé du commandement. Le menu commun propose aussi la consultation des unités
+à distance, sans reconstruire leur bourse ni leur inventaire. Tous ces ordres
+transmettent au transport existant leur garde de session/personnage.
+Le corps historique du moteur de rue, dont le MD5 de définition reproduit le
+relevé communiqué, est factorisé en moteur privé et porte collective : contrôle
+de tous les membres avant toute mutation, projections et rollback communs.
+**Préparation non déployée :** entrées/pièces, autres écrivains de position,
+rounds mixtes et interception du groupe recherché restent à terminer. Les essais
+de détecteur historique et du calcul de coup ne prouvent pas leur branchement
+complet ni le catalogue vivant. Voir le rapport de finalisation #219.

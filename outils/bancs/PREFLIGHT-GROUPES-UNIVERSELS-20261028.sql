@@ -1,5 +1,6 @@
 -- #219 : le MD5 annoncé 5e819694359c4bf2f11470c7f9f95ad8 est une information
--- documentaire, pas un substitut aux corps complets ni une autorisation DDL.
+-- documentaire, pas une autorisation DDL. Le corps Git correspondant est archivé
+-- dans fixtures/groupes-corps-git-20261028.json ; comparer encore au catalogue.
 -- Lecture seule préparée, NON EXÉCUTÉE sur Supabase dans la session Codex.
 -- Complète PREFLIGHT-AUDIT-SECURITE-135.sql avant tout DDL d'adhésion PJ.
 BEGIN;
@@ -38,6 +39,6 @@ ORDER BY c.relname,t.tgname;
 SELECT version,name FROM supabase_migrations.schema_migrations
 WHERE version IN ('20261027222500','20261028074753','20261028074754',
  '20261028122000','20261028122500','20261028123000','20261028123500',
- '20261028124000','20261028135642','20261028135643','20261028140626','20261028141500','20261028161732','20261028163800','20261028164500','20261028165000')
+ '20261028124000','20261028135642','20261028135643','20261028140626','20261028141500','20261028161732','20261028163800','20261028164500','20261028165000','20261028180000','20261028180100','20261028183000')
 ORDER BY version;
 ROLLBACK;
