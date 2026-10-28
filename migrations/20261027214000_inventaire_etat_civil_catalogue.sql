@@ -1,4 +1,6 @@
--- PREPAREE NON APPLIQUEE. Actes authentifies et fiches issus des sources existantes.
+-- APPLIQUEE le 28/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261028205106.
+-- Eprouvee au role authenticated en transaction annulee : catalogue appliqué (données seules).
+-- (Preparee par Codex.) PREPAREE NON APPLIQUEE. Actes authentifies et fiches issus des sources existantes.
 -- Requiert depot/recus communs, registres d'etat civil, successions et autorite des postes.
 CREATE OR REPLACE FUNCTION public.etat_civil_date_interne(p_date timestamptz) RETURNS text
 LANGUAGE sql STABLE SET search_path=public,pg_temp AS $$

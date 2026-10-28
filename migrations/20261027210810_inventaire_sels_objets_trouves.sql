@@ -1,4 +1,6 @@
--- PREPAREE, NON APPLIQUEE. Suite des lots inventaire 1-3 de Claude.
+-- APPLIQUEE le 28/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261028204248 (+ correctif 20261028204519 inventaire_sels_caisse_creee).
+-- Eprouvee au role authenticated en transaction annulee : achat de sels (rejeu sans double paiement) et objet trouvé une fois par jour.
+-- (Preparee par Codex.) PREPAREE, NON APPLIQUEE. Suite des lots inventaire 1-3 de Claude.
 -- Aucun verrou de sauvegarde ; aucun acte reel. Depot uniquement par inventaire_deposer_interne.
 -- Requiert les migrations 20261027180000-180300 et les primitives de caisse existantes.
 CREATE TABLE IF NOT EXISTS public.inventaire_actions_recus (
@@ -68,7 +70,10 @@ BEGIN
  IF (paiement->>'ok')::boolean IS DISTINCT FROM true THEN RETURN paiement; END IF;
  IF NOT public.helvetia_debiter_fonds_ordinaires(a.name,q*30) THEN
   RAISE EXCEPTION 'fonds_insuffisants' USING ERRCODE='P0001'; END IF;
- v:=public.caisse_institution_mouvement(a.country||'_usine-pharmaceutique-luthecia',q*30,true);
+ -- 28/10/2026 : la caisse de l'usine est creee au premier achat, comme le faisait l'ecran.
+ PERFORM set_config('rp.caisse_interne','on',true);
+ v:=public.caisse_institution_mouvement(a.country||'_usine-pharmaceutique-luthecia',q*30,false);
+ PERFORM set_config('rp.caisse_interne','',true);
  IF (v->>'ok')::boolean IS DISTINCT FROM true THEN RAISE EXCEPTION 'sels: caisse refusee'; END IF;
  depot:=public.inventaire_deposer_interne(a.name,o||jsonb_build_object('qty',q));
  IF (depot->>'ok')::boolean IS DISTINCT FROM true OR (depot->>'qte')::integer<>q THEN RAISE EXCEPTION 'sels: depot incomplet'; END IF;

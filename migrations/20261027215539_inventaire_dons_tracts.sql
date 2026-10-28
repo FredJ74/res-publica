@@ -1,4 +1,6 @@
--- PREPAREE NON APPLIQUEE. Don de tracts : meme RPC, meme sas objets_recus, reception existante.
+-- APPLIQUEE le 28/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261028205317.
+-- Eprouvee au role authenticated en transaction annulee : don de tracts : pile diminuée, envoi dans objets_recus.
+-- (Preparee par Codex.) PREPAREE NON APPLIQUEE. Don de tracts : meme RPC, meme sas objets_recus, reception existante.
 -- Retrait de la pile et emission du don dans UNE transaction, aucune compensation cliente.
 CREATE OR REPLACE FUNCTION public.tracts_donner_joueur(p_requete uuid,p_index integer,p_revision bigint,p_destinataire text,p_quantite integer)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $function$
@@ -31,6 +33,4 @@ BEGIN
 END; $function$;
 REVOKE ALL ON FUNCTION public.tracts_donner_joueur(uuid,integer,bigint,text,integer) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.tracts_donner_joueur(uuid,integer,bigint,text,integer) TO authenticated;
-CREATE OR REPLACE FUNCTION public.tracts_donner_joueur(p_requete text,p_expediteur text,p_destinataire text,p_objet jsonb)
-RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path=public,pg_temp AS $$
- SELECT jsonb_build_object('ok',false,'raison','contrat_versionne_requis'); $$;
+-- (Fermeture de l'ancien contrat : deplacee dans 20261028210000.)

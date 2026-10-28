@@ -1,4 +1,6 @@
--- PREPAREE NON APPLIQUEE. Prolonge pnj_objet_transferer, aucun second porteur/moteur.
+-- APPLIQUEE le 28/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261028204929.
+-- Eprouvee au role authenticated en transaction annulee : PNJ : donner, reprendre une partie de pile, identifiant stable de possession.
+-- (Preparee par Codex.) PREPAREE NON APPLIQUEE. Prolonge pnj_objet_transferer, aucun second porteur/moteur.
 -- Depend du depot et des recus inventaire ; verifier les charges historiques avant activation.
 -- Les charges encore dans personnages_donnees.employes ne sont ni effacees ni reconstruites.
 CREATE OR REPLACE FUNCTION public.pnj_objet_transferer(p_pnj text,p_index integer,p_sens text,
@@ -65,10 +67,7 @@ BEGIN
 END; $function$;
 REVOKE ALL ON FUNCTION public.pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid) TO authenticated;
--- L'ancien index seul pourrait designer un autre objet apres la perte d'une reponse.
-CREATE OR REPLACE FUNCTION public.pnj_objet_transferer(p_pnj text,p_index integer,p_sens text)
-RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path=public,pg_temp AS $$
- SELECT jsonb_build_object('ok',false,'raison','contrat_versionne_requis'); $$;
+-- (Fermeture de l'ancien contrat a trois arguments : deplacee dans 20261028210000.)
 -- Meme lecteur commun ; ajouter l'identifiant stable sans changer index/origine/cessible.
 DO $do$
 DECLARE s text; ancien text:=$a$jsonb_build_object('index', t.rang, 'objet', t.objet,$a$;

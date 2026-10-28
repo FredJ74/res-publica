@@ -1,4 +1,6 @@
--- PREPAREE NON APPLIQUEE. Emissions d'objets dans les progressions existantes, pas de moteur de quete nouveau.
+-- APPLIQUEE le 28/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261028205241.
+-- Eprouvee au role authenticated en transaction annulee : mission Pat (une seule fois), énigme déclenchée, coffre (clé une seule fois).
+-- (Preparee par Codex.) PREPAREE NON APPLIQUEE. Emissions d'objets dans les progressions existantes, pas de moteur de quete nouveau.
 -- Les autres etapes de quete restent legacy : leur autorite complete est un prevol avant verrou final.
 INSERT INTO public.objets_modeles(id,objet) VALUES
  ('mission:pat','{"type":"colis_secret_pat","name":"Colis secret","icon":"ti-package","desc":"Un colis remis par Pat Hounette. Vous ignorez ce qu''il contient."}'::jsonb),

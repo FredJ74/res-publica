@@ -1,4 +1,6 @@
--- PREPAREE NON APPLIQUEE. Suite obligatoire de 20261027214000 (catalogue et dates).
+-- APPLIQUEE le 28/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261028205154.
+-- Eprouvee au role authenticated en transaction annulee : acte citoyen (1 PA + 50), doublon refusé, fiche historique et fiche PJ, personne inconnue refusée.
+-- (Preparee par Codex.) PREPAREE NON APPLIQUEE. Suite obligatoire de 20261027214000 (catalogue et dates).
 CREATE OR REPLACE FUNCTION public.etat_civil_document_recevoir(p_requete uuid,p_nom text,p_type text,p_reference text,p_pa integer,p_cost integer)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp SET TimeZone TO 'UTC' AS $function$
 DECLARE a public.personnages_donnees; v jsonb; o jsonb; params jsonb; paiement jsonb;
@@ -23,7 +25,7 @@ BEGIN
   ELSIF a.current_building IN('tribunal','tribunal-local') AND a.current_room='bureau_magistrats'
     AND a.poste->>'id'='juge' AND (a.poste->>'city' IS NULL OR a.poste->>'city'=a.current_city)
     AND public.poste_est_atteste(a.name,a.poste,a.country) THEN ordre:='acte_officiel_juge';cout:=0;
-  ELSIF a.current_building IN('mairie','mairie-capitale') AND a.current_room IN('hall_mairie','accueil_mairie') AND p_nom=a.name THEN ordre:='acte_officiel';cout:=0;
+  ELSIF a.current_building IN('mairie','mairie-capitale') AND a.current_room IN('hall_mairie','accueil_mairie') AND p_nom=a.name THEN ordre:='acte_officiel';cout:=50; -- 28/10/2026 : tarif du jeu (1 PA + 50)
   ELSE RETURN jsonb_build_object('ok',false,'raison','lieu_ou_autorite_refuse');END IF;
   IF p_pa IS DISTINCT FROM 1 OR p_cost IS DISTINCT FROM cout THEN RETURN jsonb_build_object('ok',false,'raison','cout_non_declare');END IF;
  END IF;

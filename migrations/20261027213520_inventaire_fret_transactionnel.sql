@@ -1,4 +1,6 @@
--- PREPAREE, NON APPLIQUEE. Suite inventaire : quatre transferts dans les caisses existantes.
+-- APPLIQUEE le 28/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261028204832.
+-- Eprouvee au role authenticated en transaction annulee : fret : déposer, reprendre, retirer ; INSERT navigateur refusé.
+-- (Preparee par Codex.) PREPAREE, NON APPLIQUEE. Suite inventaire : quatre transferts dans les caisses existantes.
 -- Requiert 20261027210800/210810, et les schemas/lois/caisse du fret vivant.
 -- Aucun calendrier, tarif douanier ni moteur de transport nouveau ; aucun acte reel.
 CREATE OR REPLACE FUNCTION public.fret_deposer_objet_interne(p_acteur text,p_objet jsonb,p_quantite integer)
@@ -94,7 +96,10 @@ BEGIN
   IF prix<0 THEN RETURN jsonb_build_object('ok',false,'raison','valeur_invalide'); END IF;
   IF NOT public.helvetia_debiter_fonds_ordinaires(a.name,prix) THEN RETURN jsonb_build_object('ok',false,'raison','fonds_insuffisants'); END IF;
   IF prix>0 THEN
-   v:=public.caisse_institution_mouvement(c.pays_destination||'_'||c.building_destination,prix,true);
+   -- 28/10/2026 (Claude) : la caisse du port est creee si besoin, comme pour les autres recettes.
+   PERFORM set_config('rp.caisse_interne','on',true);
+   v:=public.caisse_institution_mouvement(c.pays_destination||'_'||c.building_destination,prix,false);
+   PERFORM set_config('rp.caisse_interne','',true);
    IF (v->>'ok')::boolean IS DISTINCT FROM true THEN RAISE EXCEPTION 'fret: caisse port refusee'; END IF;
   END IF;
   FOR l IN SELECT * FROM public.contenu_caisses_fret WHERE caisse_id=c.id AND quantite>0 ORDER BY id LOOP

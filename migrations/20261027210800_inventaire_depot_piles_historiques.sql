@@ -1,4 +1,6 @@
--- PREPAREE NON APPLIQUEE. Meme depot commun : quantites entieres, une seule pile incrementee. Aucun verrou final.
+-- APPLIQUEE le 28/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261028204032.
+-- Eprouvee au role authenticated en transaction annulee : dépôt : pile unique, quantités entières, refus des inventaires mal formés.
+-- (Preparee par Codex.) PREPAREE NON APPLIQUEE. Meme depot commun : quantites entieres, une seule pile incrementee. Aucun verrou final.
 CREATE OR REPLACE FUNCTION public.inventaire_deposer_interne(p_nom text, p_objet jsonb, p_automatique boolean DEFAULT false)
  RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp'
 AS $function$

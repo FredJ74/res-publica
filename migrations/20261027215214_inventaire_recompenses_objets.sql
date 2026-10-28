@@ -1,4 +1,6 @@
--- PREPAREE NON APPLIQUEE. Recompenses OBJETS de la quete existante, aucun moteur de quete nouveau.
+-- APPLIQUEE le 28/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261028205306.
+-- Eprouvee au role authenticated en transaction annulee : récompense objet remise une seule fois.
+-- (Preparee par Codex.) PREPAREE NON APPLIQUEE. Recompenses OBJETS de la quete existante, aucun moteur de quete nouveau.
 -- Les recompenses argent/terrain/titre restent dans leurs circuits, hors ce transfert d'objet.
 -- La creation/progression de quetes_actives est encore legacy : dependance explicite avant verrou final.
 INSERT INTO public.objets_modeles(id,objet) VALUES('quete:dossier','{"icon":"ti-folder-search","type":"kompromat","legal":false}'::jsonb)

@@ -1,4 +1,6 @@
--- PREPAREE NON APPLIQUEE. Meme catalogue/depot/recus, meme budget de club.
+-- APPLIQUEE le 28/10/2026 par Claude via MCP apply_migration -- registre Supabase 20261028205033.
+-- Eprouvee au role authenticated en transaction annulee : accessoire de club : achat, crédit du budget du club, accessoire inconnu refusé.
+-- (Preparee par Codex.) PREPAREE NON APPLIQUEE. Meme catalogue/depot/recus, meme budget de club.
 -- Requiert les lots inventaire precedents. Ne modifie ni les tarifs ni les salaires.
 -- Prevol vivant obligatoire : catalogue des clubs et anciens ecrivains de budgets_clubs.
 INSERT INTO public.objets_modeles(id,objet) VALUES
