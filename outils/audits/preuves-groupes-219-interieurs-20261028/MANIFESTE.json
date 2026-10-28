@@ -1,0 +1,47 @@
+{
+  "base_commit": "04efd8e56e1e7837bbcd14be0ad1af2127eb2431",
+  "production": false,
+  "authentification_reelle": false,
+  "sources_sha256": {
+    "supabase.js": "c65f95d94dfe8ee57459f85d622a6e01e8f308f363ab4478cde5da662b647979",
+    "plateau-navigation.js": "e082676ef59af7fe2e3bf96e87d2576d934dd563247d3cb15c02b8dfc5ec65a3",
+    "plateau.html": "73ca5337e16af16122a25b0044d26009e1d48b6a36306cef8b9c3891e45ef819",
+    ".github/workflows/coherence-client.yml": "1a8392a3d7c1f635d9c7509956166ca92d9fd888f1798b093d8cc86461daa3cc",
+    "outils/generateurs/navigation-lieux.cjs": "6f445f2c5406ff4c477d162daa03f123ad25f03bf63ee27e3c3fe4cbb90bdf17",
+    "data.js": "ef87ae31552247045f5af91bb100fe7984d170c921af05f3fd9b276e47d3240d",
+    "outils/bancs/banc-groupes-interieurs-local.py": "b2bba74ebad9416228f2ad4022ffc56f53e23084f49c08b9132da81ec09254d8",
+    "outils/bancs/banc-groupes-interieurs-client.cjs": "ed574f5dd38b91c02b698382f580bf7784410173027c7642459cf5d513006441",
+    "outils/bancs/banc-groupes-rounds-existants-local.py": "20747256e7d50afca429e667a0ab836cb6571f8dbdf25b880ce001c10965d22a",
+    "outils/bancs/banc-groupes-detecteur-historique-local.py": "d3d5a2a5ad45f3467315fd1dd59cbabd060ba55937da755e30a73f746904ddeb",
+    "migrations/20261028185301_navigation_lieux_reference.sql": "5b63bf9f1d1ea6c4324dd2284e19f6bff7310c6c66bba93b62c0ac04cd4b13bc",
+    "migrations/20261028185600_navigation_interieure_groupe.sql": "5a7825bc3591c281a830e2f2e34735fec40da33e631209ecf1cd33ab14c66cec",
+    "migrations/20261028185304_navigation_lieux_reference.sql": "179e42711898d6d601ddfd410d7feecf21b7160693c98f10f456d217ba477d2a",
+    "migrations/20261028185303_navigation_lieux_reference.sql": "2b2acb28325c5d7713ab0ba2b1cac30885bdefb8ecefd0bf297cb7e7bd82a850",
+    "migrations/20261028185302_navigation_lieux_reference.sql": "7ac01dd7aac20d2d466c0df32e1c1f5bfd1b594228b4aa817ff269cabfc278b8",
+    "migrations/20261028185305_navigation_lieux_reference.sql": "a09a869c8ee2b859016719388fc91d0e21e0e34a7d1be4140cde1b3c0dc2b393",
+    "migrations/20261028185800_navigation_positions_sauvegardes.sql": "787b52846f9084e08081ba301c048bfe36e916cae1c11d3f6c445df8e5578b2a",
+    "migrations/20261028185300_navigation_reference_commune.sql": "211296c09e497da4b347ebe48cfad9056f04cd2bf114ce2f432aa92c5c8d9cbb",
+    "migrations/20261028185500_navigation_interieure_validation.sql": "02bcb3550f39c38849af0fd5c4096e15674cc170f250d06c657b85fb113ffb74",
+    "migrations/20261028191900_groupes_participants_canoniques.sql": "9065da9c174627e12f806068acb14295a804738906409570c33224aec41d0ce2"
+  },
+  "preuves_sha256": {
+    "sql112.json": "e236c393450b8b492e12c2c7d47db0d7a60c6f3746c49d126b8d3f9ed26b067c",
+    "contre-interieurs109.json": "6c4f39188dc127deb0c4e9aa08bdd8faae5bf1484d92e907381fda812127e5f7",
+    "clients113.json": "6e91f29024bff8b61baf18d533cc963a2771773c7d2870cdb102015b11e6f349",
+    "clients113.log": "13287391431734f202955852c72705647966acfd6c81d1c24e066a47db75b63e",
+    "interieurs-client13.log": "a8d8549edc7e7f00eb9be20f28f988d4610d3d40e71fd8bea2b7483591cf4e7a",
+    "pilote105.log": "79b9855a85e6742b065e0143f9dd47a875dc6c0f66e8703106a0981dcc3652a2",
+    "globaux5-sur12.log": "ac289a2d9e3969b261006a8ece0d74d7892dc4732631cf9bb7a44292f8d63cc2",
+    "api23.log": "2c5defa5f188881887498e17220ff476bb24d48fd139f80c6a8a662d81f507d2"
+  },
+  "portee": [
+    "112 scénarios SQL incluent les 86 acquis, les intérieurs, le lecteur de participants et trois cas du vrai moteur militaire.",
+    "Les rounds exécutés ne prouvent pas le recrutement universel des policiers/douaniers ni les interceptions collectives.",
+    "109 contre-épreuves : 23 rouges attendues, principalement contrats intérieurs absents, pas 23 défauts historiques.",
+    "113 bancs clients complets après modifications de navigation ; contrôle ciblé porté ensuite de 11 à 13 cas pour préserver le portier existant.",
+    "Pilote 105 local, aucune connexion joueur ; pas une recette authentifiée.",
+    "Un seul acte fictif de la suite historique est committé dans PostgreSQL éphémère pour son snapshot concurrent. Aucun acte réel.",
+    "Catalogue de 284 bâtiments dérivé de data.js, contrôle de génération passé.",
+    "Les règles particulières d’embarquement/ambassades et les transports restent bloquants pour une livraison."
+  ]
+}

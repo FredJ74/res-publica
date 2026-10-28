@@ -302,10 +302,37 @@ async function commanderNavigationInterieure(buildingId,roomId) {
         r={ok:true,building:p.building,room:p.room,positions:[],reconcilie:true};
     }
     if(r?.ok!==true||r.building!==buildingId||r.room!==roomId){
-      if(typeof showToast==='function')showToast('Déplacement non confirmé',r?.raison||'La position serveur n’a pas confirmé cette entrée. Réessayez la consultation.',false);
+      const motifs={chef_de_groupe_requis:'Seul le chef du groupe peut le déplacer.',
+        personnage_indisponible:'Un membre du groupe ne peut pas se déplacer.',
+        acteur_incapacite:'Un membre du groupe est incapable de se déplacer.',
+        combat_en_cours:'Un membre est engagé dans un combat.',combat_membre_pnj:'Un accompagnant est engagé dans un combat.',
+        interception_en_cours:'Une interception doit être résolue avant de partir.',
+        inventaire_surcharge:'Un membre porte trop d’objets pour changer de bâtiment.',
+        membre_loge_requis:'Tous les membres du groupe doivent être admis dans la loge.',
+        visite_refusee:'Les visites sont interdites à un membre de ce groupe.',
+        acces_collectif_a_raccorder:'Cet accès particulier n’est pas encore disponible pour un groupe.',
+        batiment_ferme:'Ce bâtiment est fermé.',destination_inconnue:'Cette destination n’est pas référencée.',
+        entree_non_accessible:'Ce bâtiment n’est pas accessible depuis votre position.',groupe_disperse:'Les membres du groupe ne sont plus réunis.'};
+      const incident=r||v;
+      const perdu=['non_authentifie','acteur_non_authentifie','session_perdue'].includes(incident?.raison)||incident?.transport?.etat==='session_perdue';
+      if(typeof showToast==='function')showToast(perdu?'Session expirée':'Déplacement non confirmé',
+        perdu?'Reconnectez-vous pour poursuivre.':motifs[r?.raison]||'La position serveur n’a pas confirmé cette entrée. Réessayez la consultation.',false);
+      if(perdu&&typeof afficherBandeauReconnexion==='function')afficherBandeauReconnexion();
+      // Conserver la rencontre existante avec le portier pour le demandeur
+      // refusé lui-même ; ne jamais la déclencher pour payer à la place d'un membre.
+      if(r?.raison==='membre_loge_requis'&&r.membre===state.char?.name
+          &&buildingId==='loge-maconnique'&&typeof doLogePortail==='function')doLogePortail();
       return false;
     }
     const moi=r.positions?.find(p=>p.name===state.char?.name);
+    if(!r.reconcilie&&(!Array.isArray(r.membres)||!Array.isArray(r.positions)||!moi
+        ||r.membres.length!==r.positions.length||new Set(r.membres).size!==r.membres.length
+        ||new Set(r.positions.map(p=>p.name)).size!==r.positions.length
+        ||!r.positions.every(p=>r.membres.includes(p.name)&&p.country===state.country&&p.city===state.currentCity
+          &&p.building===buildingId&&p.room===roomId&&p.street===null))){
+      if(typeof showToast==='function')showToast('Déplacement non confirmé','La composition et les positions du groupe ne sont pas confirmées.',false);
+      return false;
+    }
     if(moi?.updated_at)state._dernierUpdatedAtConnu=moi.updated_at;
     navigationInterieureRendu={buildingId,roomId};
     try {
@@ -324,7 +351,8 @@ function enterBuilding(buildingId, skipAutoRoom) {
     if(!piece)return;
     return commanderNavigationInterieure(buildingId,piece);
   }
-  if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
+  const positionServeurConfirmee=state._navigationServeur===true&&typeof navigationInterieureRendu!=='undefined'&&navigationInterieureRendu?.buildingId===buildingId;
+  if (!positionServeurConfirmee&&typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   const b = BUILDINGS[buildingId];
@@ -347,13 +375,13 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // detenu de Montrouge/PSM hors de son propre commissariat, et ignorait le QHS.
   const batimentCellule = (typeof celluleDeDetention === 'function')
     ? celluleDeDetention(state.estEmprisonne).buildingId : 'commissariat';
-  if (state.estEmprisonne && buildingId !== batimentCellule) {
+  if (!positionServeurConfirmee&&state.estEmprisonne && buildingId !== batimentCellule) {
     showToast('Emprisonné(e)', 'Vous êtes en détention. Impossible de sortir avant la fin de votre peine (' + joursRestantsPeine() + ' jour(s) restant(s), ou tentez une évasion).', false);
     return;
   }
 
   // Verrou : hospitalisation — jour 1 uniquement, aucun deplacement sauf transfert vers la clinique privee
-  if (state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation() && buildingId !== 'clinique-privee') {
+  if (!positionServeurConfirmee&&state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation() && buildingId !== 'clinique-privee') {
     showToast('Hospitalisé(e)', 'Vous êtes encore trop faible pour vous déplacer aujourd\'hui. Seul un transfert vers une clinique privée est possible.', false);
     return;
   }
@@ -361,20 +389,20 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // Verrou : surcharge d'inventaire (Lot 1.5.4) — au-dela de 100 objets, plus aucun changement de
   // batiment. Place ici, avec les autres verrous d'etat du personnage, et jamais dans enterRoom :
   // le joueur doit pouvoir continuer a circuler dans le batiment ou il se trouve pour se delester.
-  if (typeof refuserSiSurcharge === 'function' && buildingId !== state.currentBuilding
+  if (!positionServeurConfirmee&&typeof refuserSiSurcharge === 'function' && buildingId !== state.currentBuilding
       && refuserSiSurcharge('Changer de bâtiment')) {
     return;
   }
 
   // Verrou : batiment ferme suite a un incendie ou des explosifs
   const fermeture = typeof batimentEstFerme === 'function' ? batimentEstFerme(buildingId) : null;
-  if (fermeture) {
+  if (!positionServeurConfirmee&&fermeture) {
     const joursRestants = Math.max(1, fermeture.jour_fin - (state.day || 1));
     showToast('Bâtiment fermé', (b.name || buildingId) + ' est fermé suite à un ' + (fermeture.motif === 'explosifs' ? 'attentat à l\'explosif' : 'incendie') + '. Réouverture dans ' + joursRestants + ' jour(s).', false);
     return;
   }
 
-  if (b.locked) {
+  if (!positionServeurConfirmee&&b.locked) {
     showToast('Accès restreint', "Vous n'êtes pas membre de cet établissement.", false);
     addJournalEntry("Vous tentez d'entrer mais l'accès vous est refusé.", 'event-bad');
     return;
@@ -383,7 +411,7 @@ function enterBuilding(buildingId, skipAutoRoom) {
   // Controle acces loge maconnique : les membres actifs d'une loge entrent directement
   // (pour ne pas alourdir la navigation) ; les non-membres declenchent une rencontre
   // avec le portier (doLogePortail, avec son propre jet de chance) plutot qu'un refus sec.
-  if (b.requiresMembership === 'loge') {
+  if (!positionServeurConfirmee&&b.requiresMembership === 'loge') {
     const orgas = state.organisations || [];
     const loge = orgas.find(o => o.type === 'loge' && o.statut === 'actif');
     const estMembre = loge?.membres?.some(m => m.nom === state.char?.name);
@@ -626,7 +654,8 @@ function enterRoom(buildingId, roomId, tabEl) {
     return commanderNavigationInterieure(buildingId,roomId);
   if ((buildingId === 'terrain-a-batir-2' && roomId === 'terrain2') ||
       (buildingId === 'terrain-a-batir-3' && roomId === 'terrain3')) roomId = 'terrain';
-  if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
+  const positionServeurConfirmee=state._navigationServeur===true&&typeof navigationInterieureRendu!=='undefined'&&navigationInterieureRendu?.buildingId===buildingId&&navigationInterieureRendu?.roomId===roomId;
+  if (!positionServeurConfirmee&&typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
   // Position AVANT le changement : le raccordement d'entree en a besoin pour faire reculer un
@@ -649,12 +678,12 @@ function enterRoom(buildingId, roomId, tabEl) {
     estDansSaCellule = state.currentCity === c.city && buildingId === c.buildingId && roomId === c.roomId;
   }
   // Verrou : emprisonnement — reste bloque en cellule, aucun changement de piece
-  if (state.estEmprisonne && !estDansSaCellule) {
+  if (!positionServeurConfirmee&&state.estEmprisonne && !estDansSaCellule) {
     showToast('Emprisonné(e)', 'Vous êtes confiné(e) à votre cellule. ' + joursRestantsPeine() + ' jour(s) restant(s) avant votre libération.', false);
     return;
   }
   // Verrou : hospitalisation — jour 1 uniquement, reste dans sa chambre
-  if (state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation()) {
+  if (!positionServeurConfirmee&&state.hospitalisation && joursEcoulesHospitalisation() === 1 && buildingId !== batimentHospitalisation()) {
     showToast('Hospitalisé(e)', 'Vous êtes encore alité(e) aujourd\'hui.', false);
     return;
   }
@@ -682,7 +711,7 @@ function enterRoom(buildingId, roomId, tabEl) {
   // n'est pas attribuee (rien a proteger). Les PNJ (Sophie Stiquay, Docteur Bistouri...) ne
   // sont jamais concernes : ce sont des donnees d'affichage statiques (room.persons), jamais des
   // appelants de enterRoom().
-  if (buildingId === 'clinique-privee' && /^chambre_(?:[1-9]|10)$/.test(roomId)) {
+  if (!positionServeurConfirmee&&buildingId === 'clinique-privee' && /^chambre_(?:[1-9]|10)$/.test(roomId)) {
     const locChambre = (typeof getLocationPourRoom === 'function') ? getLocationPourRoom(buildingId, roomId, 'capitale') : null;
     if (locChambre && locChambre.locataire !== state.char?.name && locChambre.visitesAutorisees === false) {
       showToast('Visite refusée', 'Le patient de cette chambre a interdit les visites pour le moment.', false);

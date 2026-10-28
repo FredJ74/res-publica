@@ -4,6 +4,134 @@
 la branche de #219. La rue collective est testée localement ; les entrées/pièces,
 anciens écrivains de position et combats mixtes restent à terminer. Aucune production.
 
+## Reprise suivante — état le plus récent après `04efd8e5`
+
+**CHANTIER NON TERMINÉ.** Ce complément prévaut sur les bilans historiques
+suivants. Il ajoute du code et des tests ; il ne prétend pas clore les points
+encore absents. Aucun accès ou solde réel utilisé/modifié.
+
+### Terminé et vérifié localement
+
+- **Parcours intérieur ordinaire** raccordé : deux PJ, quatre soldats prêtés et
+  trois policiers font rue → hôtel → accueil → bar → restaurant → accueil →
+  sortie → rue. Même moteur de composition/verrous que la rue, validation de
+  tous avant mutation, garde commune de disponibilité et projections existantes.
+  Échec de projection : rollback. Commandes concurrentes réellement bloquées
+  puis annulées sur deux connexions ; aucune position partielle.
+- Catalogue serveur technique de **284 bâtiments**, dérivé de `data.js`, sans
+  modifier le contenu du jeu. Générateur et contrôle de conformité fournis.
+  Superficies, prix, images et règles économiques ne sont pas modifiés.
+- Contrôles existants d'adhésion à la loge et de visites de clinique, vérifiés
+  pour tous les PJ ; un membre refusé bloque le groupe. Rencontre avec le
+  portier conservée pour le seul demandeur concerné, pas aux frais d'un autre
+  membre. Les restrictions d'embarquement et d'ambassade non raccordées sont
+  refusées explicitement, jamais ouvertes sur une donnée du navigateur.
+- **Anciennes sauvegardes de position** : garde sur la table canonique,
+  neutralisant pays/ville/bâtiment/pièce/rue venant des PATCH généraux. Test
+  via une vue au rôle authenticated, après mouvement collectif. Aucun corps
+  de sauvegarde de fiche réécrit et aucun verrou d'inventaire ajouté. Payload,
+  file différée et fermeture omettent les lieux après activation du contrat ;
+  création initiale conserve son insertion normale. Le garde ne constitue pas
+  encore une clôture des autres écrivains RPC/transport.
+- Client : confirmation avant rendu, garde jusqu'au transport, double clic,
+  réponses tardives, contrat incomplet refusé, perte de réponse réconciliée par
+  lecture sans rejouer l'ordre. Les caches locaux ne vetoent plus le rendu
+  d'une position confirmée. Activation annoncée par la lecture de groupe déjà
+  faite au chargement, aucun timer ajouté.
+- Lecteur privé commun `groupe_participants_interne(text)` : les neuf membres
+  sont distingués par leurs clés PJ/PNJ, pas par des matricules ambigus ou un
+  filtre métier. Navigation raccordée à ce lecteur. **Le combat ne l'utilise
+  pas encore pour son recrutement complet.**
+
+### Tests et contre-épreuves
+
+**112/112 scénarios SQL** : les 86 acquis, les nouveaux parcours intérieurs,
+le lecteur de participants et trois cas du moteur de rounds existant. Deux
+rounds complets réellement exécutés par `militaire_bataille_poursuivre` sous
+`authenticated` : deux PJ militaires, puis un PJ avec quatre vrais soldats
+contre un PJ. Coups, rapports et PA réels du moteur archivé ; aucune substitution
+de coup. ACL canoniques copiées et accès direct au helper interdit vérifié.
+**Cela ne démontre pas le recrutement universel, les policiers, les douaniers,
+la fuite ou la prison collective.** L'unique acte fictif committé reste celui
+du scénario historique de snapshot ; les nouveaux actes sont annulés.
+
+**113/113 bancs clients complets**, puis **13/13 tests ciblés** après la
+conservation finale du portier ; **105/105 pilote local**. Aucune connexion de
+joueur ni recette authentifiée. **23/109 contre-épreuves rouges** sans le
+raccordement intérieur, comprenant des fonctions/contrats nouveaux absents :
+pas 23 défauts historiques. SQL/YAML, tailles des migrations, générateur et
+analyse des 23 API contrôlés. CI existante étendue, pas de nouveau pipeline.
+
+**Globaux 5/12 :** Workflow vert ; sept familles rouges conservées. Authority
+compte **106 RPC absentes du baseline** (dont la porte intérieure préparée),
+quatre signatures antérieures et la garde d'identité du bail déjà signalée.
+Referential/fonctions non mesurables sans JavaScriptCore ; classification,
+fidélité, assemblage et reconstruction restent décrits dans le journal. Aucun
+contrôle, résultat ni baseline modifié pour obtenir un feu vert.
+
+### Migrations et dépendances
+
+Après toutes les préparations précédentes de #219 :
+
+1. `20261028185300_navigation_reference_commune.sql` : référence privée des lieux.
+2. `20261028185301` à `20261028185305_navigation_lieux_reference.sql` : déclaration
+   générée, découpée selon la limite de taille existante, vérifiable depuis data.js.
+3. `20261028185500_navigation_interieure_validation.sql` : disponibilité et accès,
+   garde de rue factorisée ; dépend des tables de bataille/fermeture, organisations
+   et locations existantes.
+4. `20261028185600_navigation_interieure_groupe.sql` : moteur de composition unique,
+   portes de rue et pièce ; l'ancienne porte conserve ses droits.
+5. `20261028185800_navigation_positions_sauvegardes.sql` : garde et annonce de capacité.
+6. `20261028191900_groupes_participants_canoniques.sql` : lecteur partagé de membres.
+
+**Aucune appliquée. Ne pas activer ce lot :** le garde général bloquerait encore
+les déplacements légitimes de certains transports clients après leur paiement.
+Il faut terminer leurs portes serveur avant toute livraison. La séquence a été
+rejouée étape par étape sur base jetable, pas réappliquée à une production.
+
+### Toujours non terminé — travaux de code, pas seulement accès
+
+- Embarquement : `doPasserDouanesAeroport` conserve une autorisation locale
+  `state.douanePassee` ; la future navigation ne doit pas lui faire confiance.
+  Son passage doit être attesté par son circuit serveur, sans refaire les saisies.
+- Bureaux d'ambassades : `ambassade_acces_bureau(text)` contrôle l'appelant.
+  L'accès de chaque membre exige de réutiliser sa logique sans usurper son JWT,
+  sans copier une autorisation du chef et sans remplacer le travail de Claude.
+- Locaux dynamiques absents des déclarations statiques et transmissions de
+  ville/pays : conserver leurs règles propres via leurs moteurs existants.
+- Tous les écrivains de position RPC et transports : le garde distingue RPC et
+  PATCH, mais n'atteste pas la sûreté de chaque écrivain RPC. Le recensement
+  `POSITIONS-GROUPES-219-20261028.json` est volontairement limité aux sources
+  disponibles et aux UPDATE directs, pas un inventaire vivant exhaustif.
+- Recrutement de combats universels : le recruteur militaire demeure limité à
+  ses combattants militaires ; le lecteur neuf ne l'a pas remplacé. Verrouillage
+  de tous les participants et protections de round à compléter dans les portes
+  existantes. Ne pas transformer les deux tests militaires réussis en preuve
+  de tous les groupes mixtes.
+- Interceptions : composition entière des forces et du recherché, identités
+  inter-commissariats, fuite/reddition/round/prison toujours à raccorder ensemble.
+  Les tests de calcul ou de lecture de groupe ne les rendent pas opérationnels.
+
+### Accès, intégration et livraison
+
+Une seule nouvelle tentative de lecture des commentaires #219 : **Forbidden**.
+Aucun outil Supabase exposé. Le prévol versionné inclut maintenant navigation,
+triggers et nouvelles versions ; l'agent connecté doit comparer les corps
+vivants avant toute application, notamment les portes de position, d'accès
+spécial et de combat/interception. Aucune manipulation ni aucun secret demandé
+à Fred. L'absence d'accès ne masque pas les développements restants ci-dessus.
+
+Branche conservée, PR #219 non fusionnée. Fetch final : main `c10c1083` toujours
+ancêtre. Sauvegarde `04efd8e5` puis commit de ce complément ; preuves dans
+`preuves-groupes-219-interieurs-20261028/`. Aucun inventaire, solde, ambassade
+ou BNE modifié ; aucune migration ou opération de production. Éventuels Preview
+et nouveaux résultats Actions non observés ; pas de lancement Vercel manuel.
+
+**Conditions de livraison :** terminer les accès/transport/combats/interceptions,
+tester leurs interactions et les reçus, recueillir le prévol vivant conforme,
+réaliser la recette isolée authentifiée, puis seulement préparer une revue de
+clôture. La PR ne doit pas être présentée comme prête à fusionner.
+
 ## État final de cette reprise — A à F
 
 **CHANTIER NON TERMINÉ / NON DÉPLOYÉ.** Cette section remplace les constats

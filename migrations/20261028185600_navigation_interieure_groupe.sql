@@ -42,6 +42,11 @@ BEGIN
  IF EXISTS(SELECT 1 FROM public.pnj_membres WHERE id=ANY(pnjs)
   AND (statut<>'actif' OR pays IS DISTINCT FROM a.country)) THEN
   RETURN jsonb_build_object('ok',false,'raison','membre_pnj_indisponible'); END IF;
+ IF EXISTS(SELECT 1 FROM public.batailles_engagements e
+  JOIN public.batailles b ON b.id=e.bataille_id
+  JOIN public.pnj_soldats_metier sm ON sm.compagnie_id=e.compagnie_id AND sm.section_id=e.section_id AND sm.matricule=e.matricule
+  WHERE sm.pnj_id=ANY(pnjs) AND e.sorti_round IS NULL AND b.statut='en_cours') THEN
+  RETURN jsonb_build_object('ok',false,'raison','combat_membre_pnj'); END IF;
  -- Phase de validation : même moteur, aucune écriture ni dépense.
  FOREACH nom IN ARRAY ids LOOP
   r:=CASE WHEN p_mode='rue' THEN public.rue_position_personnage_interne(nom,p_destination,true) ELSE public.navigation_interieure_personnage_interne(nom,p_destination,p_piece,true) END;

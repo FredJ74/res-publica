@@ -705,6 +705,9 @@ function sbEnfilerEcriturePersonnage(charState, data) {
       data.current_building = state.currentBuilding || null;
       data.current_room = state.currentRoom || null;
     }
+    if (charState._navigationServeur === true) {
+      for (const cle of ['country','current_city','current_building','current_room','current_street']) delete data[cle];
+    }
     return sbEcrirePersonnage(data);
   }).then((resultat) => {
     if (!contexteActif()) return resultat;
@@ -739,7 +742,8 @@ async function sbCreerPersonnageInitial(charState) {
   // On emprunte le constructeur de payload de sbSavePersonnage en neutralisant son ecriture :
   // la garde de bootstrap est inoperante ici (personnage tout neuf), on passe donc par une
   // capture directe du meme objet.
-  const data = sbPayloadPersonnage(charState);
+  // Une création reste un INSERT initial, pas une sauvegarde de position.
+  const data = sbPayloadPersonnage({...charState, _navigationServeur:false});
   if (!data || !data.name) return { ok: false, raison: 'nom_manquant' };
   return await sbCreerPersonnageUnique(data);
 }

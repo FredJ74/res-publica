@@ -20,8 +20,8 @@ BEGIN
  IF NOT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.personnages_donnees'::regclass AND tgname='navigation_positions_garder') THEN
   CREATE TRIGGER navigation_positions_garder BEFORE UPDATE ON public.personnages_donnees
   FOR EACH ROW EXECUTE FUNCTION public.navigation_positions_garder();
- ELSIF (SELECT tgfoid FROM pg_trigger WHERE tgrelid='public.personnages_donnees'::regclass AND tgname='navigation_positions_garder')
- IS DISTINCT FROM 'public.navigation_positions_garder()'::regprocedure THEN
+ ELSIF NOT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.personnages_donnees'::regclass AND tgname='navigation_positions_garder'
+ AND tgfoid='public.navigation_positions_garder()'::regprocedure AND tgtype=19 AND tgenabled='O' AND tgqual IS NULL) THEN
   RAISE EXCEPTION 'navigation_trigger_existant_inconnu'; END IF;
 END $trigger$;
 -- Annoncer la capacité dans la lecture d'appartenance déjà effectuée au login.

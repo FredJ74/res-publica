@@ -260,3 +260,16 @@ de tous les membres avant toute mutation, projections et rollback communs.
 rounds mixtes et interception du groupe recherché restent à terminer. Les essais
 de détecteur historique et du calcul de coup ne prouvent pas leur branchement
 complet ni le catalogue vivant. Voir le rapport de finalisation #219.
+
+### #219 — intérieurs et positions, préparation du 28/10
+
+Le même moteur de composition/verrous sert désormais à la rue et aux pièces,
+avec la référence des bâtiments issue de WORLD/BUILDINGS et un lecteur privé
+commun des participants (identités PJ/PNJ explicites). Les sauvegardes générales
+ne sont plus autorité de position dans la préparation ; un garde de table les
+neutralise, les autres champs de fiche ne sont pas réécrits. Le client attend
+le verdict avant rendu et n'active ce contrat que sur capacité serveur.
+**Non déployable :** embarquement, bureaux d'ambassades par membre, locaux
+dynamiques et transports restent à raccorder ; recrutement/rounds et interception
+universels restent ouverts. Des rounds militaires complets ont tourné sur des
+identités fictives : ce n'est pas une preuve de combat universel ni de production.

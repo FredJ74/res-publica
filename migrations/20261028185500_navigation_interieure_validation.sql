@@ -34,9 +34,19 @@ BEGIN
  IF l.ferme THEN RETURN jsonb_build_object('ok',false,'raison','acces_restreint'); END IF;
  -- Les restrictions sans porte serveur pour une identité arbitraire restent
  -- fermées, jamais déduites d'un cache ou d'une attestation du navigateur.
- IF l.membership IS NOT NULL OR p_piece='zone_embarquement'
- OR (p_batiment='quartier-ambassades' AND p_piece IN ('bureau_al_khalija','bureau_sovarka','bureau_el_estado'))
- OR (p_batiment='clinique-privee' AND p_piece~'^chambre_([1-9]|10)$') THEN
+ IF l.membership='loge' AND NOT EXISTS(
+   SELECT 1 FROM public.organisations o
+   WHERE o.data::jsonb->>'type'='loge' AND o.data::jsonb->>'statut'='actif'
+   AND EXISTS(SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(o.data::jsonb->'membres')='array'
+       THEN o.data::jsonb->'membres' ELSE '[]'::jsonb END) m WHERE m->>'nom'=p_nom)) THEN
+  RETURN jsonb_build_object('ok',false,'raison','membre_loge_requis'); END IF;
+ IF p_batiment='clinique-privee' AND p_piece~'^chambre_([1-9]|10)$' AND EXISTS(
+   SELECT 1 FROM public.locations_actives loc WHERE loc.country=p.country
+   AND loc.data->>'buildingId'=p_batiment AND loc.data->>'roomId'=p_piece AND loc.data->>'city'='capitale'
+   AND loc.data->>'locataire' IS DISTINCT FROM p_nom AND loc.data->'visitesAutorisees'='false'::jsonb) THEN
+  RETURN jsonb_build_object('ok',false,'raison','visite_refusee'); END IF;
+ IF (l.membership IS NOT NULL AND l.membership<>'loge') OR p_piece='zone_embarquement'
+ OR (p_batiment='quartier-ambassades' AND p_piece IN ('bureau_al_khalija','bureau_sovarka','bureau_el_estado')) THEN
   RETURN jsonb_build_object('ok',false,'raison','acces_collectif_a_raccorder'); END IF;
  IF EXISTS(SELECT 1 FROM public.batiments_fermes f WHERE f.pays=p.country AND f.ville=p.current_city AND f.batiment_id=p_batiment
  AND (f.date_fin_universelle>(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date
