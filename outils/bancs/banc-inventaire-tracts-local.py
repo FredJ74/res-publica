@@ -6,7 +6,7 @@ R=Path(__file__).resolve().parents[2]
 def scenario(q,own,call,check,uid,snapshot,Json):
  import psycopg2
  src=(R/'baseline/domaines/personnage-et-presence/10_tables.sql').read_text();own(re.search(r'CREATE TABLE public.objets_recus \([\s\S]*?\n\);',src)[0]);own('ALTER TABLE objets_recus ADD PRIMARY KEY(id)')
- for _ in range(2):own((R/'migrations/20261027215539_inventaire_dons_tracts.sql').read_text())
+ for _ in range(2):own((R/'migrations/20261027215539_inventaire_dons_tracts.sql').read_text());own((R/'migrations/20261028210000_inventaire_anciens_contrats_fermes.sql').read_text())
  own("UPDATE personnages_donnees SET current_building='mairie-capitale',current_room='hall_mairie'")
  objet={'id':'tract-ancien','type':'tract','tractType':'pour','name':'Tracts','cible':'Autre','quantite':5,'memoire':'conservee','legal':True}
  own("UPDATE personnages_donnees SET inventory=%s WHERE name='Fixture'",(Json([objet]),));rev=own("SELECT inventory_revision FROM personnages_donnees WHERE name='Fixture'")

@@ -63,11 +63,11 @@ def main(extra=None):
   own('UPDATE fixture_lois SET interdit=true');before=snapshot();check(not call('sels_ammoniaque_acheter',[uid(2),1,0])['ok'] and snapshot()==before,'loi controlee dans la transaction');own('UPDATE fixture_lois SET interdit=false')
   before=snapshot();check(call('sels_ammoniaque_acheter',[uid(2),1,9]).get('raison')=='cout_non_declare','faux cout refuse');check(own("SELECT pa FROM personnages_donnees WHERE name='Fixture'")==30,'aucune perte de PA sur refus')
   before=snapshot();check(call('sels_ammoniaque_acheter',[uid(2),20,0]).get('raison')=='fonds_insuffisants' and snapshot()==before,'fonds insuffisants avant toute contrepartie')
-  # Une panne de caisse apres paiement doit annuler paiement et inventaire.
-  own('DELETE FROM caisses_batiments');before=snapshot();q.execute('SAVEPOINT panne')
-  try:call('sels_ammoniaque_acheter',[uid(2),1,0]);raise AssertionError('panne non detectee')
-  except psycopg2.Error:q.execute('ROLLBACK TO SAVEPOINT panne')
-  check(snapshot()==before,'panne caisse : rollback de toutes les contreparties')
+  # 28/10 (Claude) : la caisse de l'usine n'existe pas encore en production ; elle est creee au
+  # premier achat, comme le faisait l'ecran. Essai annule ensuite pour garder la suite inchangee.
+  own('DELETE FROM caisses_batiments');q.execute('SAVEPOINT caisse_absente')
+  check(call('sels_ammoniaque_acheter',[uid(2),1,0])['ok'] and own("SELECT (data->>'solde')::integer FROM caisses_batiments WHERE id='republic_usine-pharmaceutique-luthecia'")==30,'caisse absente creee avec la recette')
+  q.execute('ROLLBACK TO SAVEPOINT caisse_absente')
   own("INSERT INTO caisses_batiments VALUES('republic_usine-pharmaceutique-luthecia','{\"solde\":60}',now())")
   stacks=[{'name':'sels ancien','stackKey':'sels_ammoniaque','stackable':True,'qty':3,'id':'a','memoire':'conservee'},{'name':'autre pile','stackKey':'sels_ammoniaque','stackable':True,'qty':2,'id':'b'}]
   own("UPDATE personnages_donnees SET inventory=%s WHERE name='Fixture'",(Json(stacks),));v=call('sels_ammoniaque_acheter',[uid(2),1,0]);check(sum(i['qty'] for i in v['inventory'])==6 and v['inventory'][1]==stacks[1],'piles historiques : une seule unite ajoutee, metadonnees intactes')
