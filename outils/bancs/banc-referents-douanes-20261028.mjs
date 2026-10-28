@@ -12,5 +12,7 @@ for (const id of ['pascal_paguevite', 'inspecteur_prosper_tampon']) {
   assert.match(prompt, /trois agents/);
   assert.match(prompt, /non recherchés/);
   assert.match(prompt, /non déclarées/);
+  assert.doesNotMatch(prompt, /Tu es undefined/);
+  assert.match(prompt, id === 'pascal_paguevite' ? /Tu es Pascal Paguevite/ : /Tu es Inspecteur Prosper Tampon/);
 }
 console.log('OK : référents douanes informés par le prompt serveur commun');
