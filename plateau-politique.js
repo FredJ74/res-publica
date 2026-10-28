@@ -12134,6 +12134,7 @@ async function confirmerOrdreCollectif(compagnieId, sectionId, chef, action) {
     const motifs = {
       autorite_insuffisante: 'Vous ne commandez pas ce groupe.',
       radio_manquante: 'Commander à distance exige que vous et le chef du groupe portiez chacun une radio.',
+      radio_hors_ville: 'La liaison radio ne fonctionne que dans la même ville. Rapprochez-vous du groupe.',
       aucun_soldat_concerne: 'Aucun soldat de ce groupe n\'a besoin de cet ordre aujourd\'hui.',
       rations_insuffisantes: 'Rations insuffisantes : il en faut une par soldat (' + ((r && r.requis) || '?') + ' requises, ' + ((r && r.disponibles) || 0) + ' disponibles).',
       tentes_insuffisantes: 'Tentes insuffisantes : ' + ((r && r.requis) || '?') + ' requise(s) pour ce groupe, ' + ((r && r.disponibles) || 0) + ' disponible(s).',
