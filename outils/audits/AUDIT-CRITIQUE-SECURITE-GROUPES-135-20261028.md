@@ -237,3 +237,18 @@ ils ne sont pas tous imputés à l'environnement.
 donnée réelle de joueur modifiée.** Les preuves brutes sont dans
 `outils/audits/preuves-securite-135-20261028/` ; les empreintes lient les résultats
 aux sources et ne remplacent aucune empreinte du baseline Supabase.
+
+
+### État de sauvegarde vérifié
+
+- Correctifs : `ba3d267f`, `2f4b6551`, `b95b29ef`.
+- Contre-épreuves, comparaison loyale des formats et archives : `9198e6ec`.
+- Branche distante : `codex/audit-securite-135-20261028` ; SHA vérifié par Git.
+- Création d'une PR d'audit en brouillon réellement tentée après push : GraphQL
+  `Forbidden`, **aucune nouvelle PR créée par cette session**.
+- Dernière vérification Git : main `3efca838`, source #212 `7c91ef1b`, inchangés.
+  Aucun état Actions/Vercel distant n'est déduit de ces SHA.
+
+La jonction des malus passifs et du vol de matériaux n'est pas démontrée par cet
+audit de l'interception ; les fichiers d'inventaire repris par Claude restent
+intacts. La clôture complète de #135 n'est pas revendiquée.
