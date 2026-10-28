@@ -540,7 +540,8 @@ tirés au hasard et les effets purement visuels sont exclus.
   (livraison groupée).** Après la livraison : `20261028210000`, `210500`, `210600` (anciennes
   portes, garde du fret, ancien acte de vol terrain).
 - **Encore ouvert avant le verrou final de `inventaire_sauver_revision`** : trois *retraits*
-  laissés à l'écran, qu'un tricheur peut éviter — tracts calomnieux distribués, tracts de
-  Jean-Lou (le butin d'un vol est transféré par `crime_voler` depuis `20261028223000`) ; réconciliation des
+  laissés à l'écran, qu'un tricheur peut éviter — tracts de Jean-Lou (quête de carrière encore écrite par l'écran ; le butin d'un vol est transféré
+  par `crime_voler` depuis `20261028223000`, les tracts calomnieux sont consommés par
+  `calomnie_distribuer_consommer` depuis `20261028224000`) ; réconciliation des
   anciennes charges d'employés ; quêtes, budgets de club et autorisations de l'énigme encore
   écrits par l'écran (hors inventaire).

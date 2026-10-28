@@ -998,7 +998,7 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
   if (!encodedPnj) encodedPnj = window._calomnieEncodedPnj || null;
   const tract = (state.inventory || []).find(i => i.type === 'tract_calomnieux' && i.cible === cible && (i.quantite || 0) > 0);
   if (!tract) { showToast('Lot épuisé', 'Ce lot de tracts n\'est plus disponible.', false); return; }
-  if (typeof sbCalomnieDistribuer !== 'function' || typeof sbSavePersonnage !== 'function' || !state.char?.name) {
+  if (typeof sbRpc !== 'function' || !state.char?.name) {
     showToast('Action impossible', 'La distribution ne peut pas être effectuée pour le moment.', false);
     return;
   }
@@ -1006,29 +1006,26 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
     showToast('PA insuffisants', MOTIFS_REFUS_TRACT_CALOMNIEUX.pa_insuffisants, false);
     return;
   }
-  // Le serveur lit les PA et l'inventaire ENREGISTRES du joueur : on les ecrit d'abord.
-  const sauve = await sbSavePersonnage(state).catch(() => null);
-  if (!sauve) {
-    showToast('Action impossible', 'Votre situation n\'a pas pu être enregistrée. Aucun tract n\'a été utilisé.', false);
-    return;
-  }
+  // PAR LE SERVEUR (28/10/2026, chantier inventaire) : calomnie_distribuer_consommer tranche le jet
+  // ET retire, dans la meme transaction, 1 PA et 1 tract (tous les tracts calomnieux sur un
+  // flagrant delit). L'ecran adopte l'inventaire rendu ; il ne retire plus rien lui-meme. La meme
+  // requete rejouee apres une reponse perdue rend le meme resultat, sans second retrait.
   const requete = 'tract-cal-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
   const vol = typeof volontePnjElectorale === 'function' ? volontePnjElectorale(encodedPnj) : 10;
-  let res = await sbCalomnieDistribuer(requete, state.char.name, cible, pnjName, vol).catch(() => null);
-  if (!res) res = await sbCalomnieDistribuer(requete, state.char.name, cible, pnjName, vol).catch(() => null);
+  const appeler = async () => { const b = await sbRpc('calomnie_distribuer_consommer',
+    { p_requete: requete, p_cible: cible, p_pnj_nom: pnjName, p_vol_pnj: vol }).catch(() => null); return Array.isArray(b) ? b[0] : b; };
+  let res = await appeler();
+  if (!res) res = await appeler();
   if (!res) {
-    showToast('Réseau indisponible', 'La distribution n\'a pas pu être vérifiée. Aucun tract n\'a été utilisé.', false);
+    showToast('Réseau indisponible', 'La distribution n\'a pas pu être vérifiée. Réessayez : aucun tract ne sera retiré deux fois.', false);
     return;
   }
   if (!res.ok) {
     showToast('Distribution impossible', MOTIFS_REFUS_TRACT_CALOMNIEUX[res.raison] || 'La distribution a été refusée.', false);
     return;
   }
-
-  // Tentative reellement effectuee (reussite ou echec) : 1 PA et 1 tract, jamais plus.
-  if (typeof deduireCoutOrdre === 'function') await deduireCoutOrdre({ pa: 1, cost: 0 });
-  tract.quantite -= 1;
-  if (tract.quantite <= 0) state.inventory = state.inventory.filter(i => i !== tract);
+  if (Array.isArray(res.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(res);
+  if (typeof res.pa_restants === 'number' && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: res.pa_restants });
 
   if (res.reussi) {
     showToast('Tract distribué !', pnjName + ' relaie la calomnie. -5 POP et -2 INF pour ' + cible + '.', true, true);
@@ -1063,7 +1060,7 @@ async function confirmerDistribuerTractCalomnieux(cible, pnjName, encodedPnj) {
       // forme que procederArrestation) plutot que cette derniere : celle-ci calculerait 2 jours
       // via PEINES.delit_mineur (pas 1) et ouvrirait un choix corruption/fuite/resistance non
       // souhaite ici (flagrant delit, sanction immediate et non negociable).
-      state.inventory = (state.inventory || []).filter(i => i.type !== 'tract_calomnieux');
+      // Tous les tracts calomnieux ont ete detruits par le serveur (inventaire deja adopte).
       if (state.immuniteMilitaireActuelle) {
         showToast('Immunité militaire', 'Flagrant délit, mais votre immunité militaire vous protège de toute poursuite.', true);
         addJournalEntry('Distribution de tract calomnieux — flagrant délit, immunité militaire invoquée.', 'event-info');
