@@ -1,0 +1,27 @@
+SYNTAXE DES MODULES api/ -- Node, modules originaux
+======================================================================
+  OK   _bible-assemblee.js                  
+  OK   _bible-gouvernement.js               
+  OK   _bible-militaire.js                  
+  OK   _bible-presidence.js                 
+  OK   _deepseek.js                         
+  OK   _journal-collecte.js                 
+  OK   _journal-generation.js               
+  OK   _pnj-personnalites.js                
+  OK   _pnj-profils.js                      
+  OK   _pnj-referents.js                    
+  OK   _referentiels-generes.js             
+  OK   _supabase.js                         
+  OK   assemblee-seblex.js                  
+  OK   chat.js                              
+  OK   conference.js                        
+  OK   conseiller-creation.js               
+  OK   cron-assemblee.js                    
+  OK   cron-minuit.js                       
+  OK   journal-generer.js                   
+  OK   journal-interview.js                 
+  OK   redaction.js                         
+  OK   renseignements.js                    
+  OK   upload-org-avatar.js                 
+======================================================================
+LES 23 MODULES PASSENT L'ANALYSEUR.

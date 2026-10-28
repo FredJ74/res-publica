@@ -1,0 +1,236 @@
+TAP version 13
+# Subtest: rendre : double clic, perte de reponse et appel direct ne rejouent jamais l'acte
+ok 1 - rendre : double clic, perte de reponse et appel direct ne rejouent jamais l'acte
+  ---
+  duration_ms: 117.810915
+  type: 'test'
+  ...
+# Subtest: fuir : double clic, perte de reponse et appel direct ne rejouent jamais l'acte
+ok 2 - fuir : double clic, perte de reponse et appel direct ne rejouent jamais l'acte
+  ---
+  duration_ms: 56.813955
+  type: 'test'
+  ...
+# Subtest: combattre : double clic, perte de reponse et appel direct ne rejouent jamais l'acte
+ok 3 - combattre : double clic, perte de reponse et appel direct ne rejouent jamais l'acte
+  ---
+  duration_ms: 41.818641
+  type: 'test'
+  ...
+# Subtest: rendre : relecture du reçu après perte de réponse sans rejouer l'action
+ok 4 - rendre : relecture du reçu après perte de réponse sans rejouer l'action
+  ---
+  duration_ms: 38.389288
+  type: 'test'
+  ...
+# Subtest: fuir : relecture du reçu après perte de réponse sans rejouer l'action
+ok 5 - fuir : relecture du reçu après perte de réponse sans rejouer l'action
+  ---
+  duration_ms: 38.916304
+  type: 'test'
+  ...
+# Subtest: combattre : relecture du reçu après perte de réponse sans rejouer l'action
+ok 6 - combattre : relecture du reçu après perte de réponse sans rejouer l'action
+  ---
+  duration_ms: 65.95793
+  type: 'test'
+  ...
+# Subtest: reconnexion : rencontre active restauree en lecture seule sans nouvelle detection
+ok 7 - reconnexion : rencontre active restauree en lecture seule sans nouvelle detection
+  ---
+  duration_ms: 46.572057
+  type: 'test'
+  ...
+# Subtest: reconnexion : aucun dossier si verdict terminal ou rencontre inactive
+ok 8 - reconnexion : aucun dossier si verdict terminal ou rencontre inactive
+  ---
+  duration_ms: 127.884036
+  type: 'test'
+  ...
+# Subtest: reddition : detention confirmee avant transfert
+ok 9 - reddition : detention confirmee avant transfert
+  ---
+  duration_ms: 61.877572
+  type: 'test'
+  ...
+# Subtest: reddition incomplete ne libere pas la navigation
+ok 10 - reddition incomplete ne libere pas la navigation
+  ---
+  duration_ms: 60.299661
+  type: 'test'
+  ...
+# Subtest: rendre : retour d'un ancien personnage ignore
+ok 11 - rendre : retour d'un ancien personnage ignore
+  ---
+  duration_ms: 48.489185
+  type: 'test'
+  ...
+# Subtest: fuir : retour d'un ancien personnage ignore
+ok 12 - fuir : retour d'un ancien personnage ignore
+  ---
+  duration_ms: 59.520449
+  type: 'test'
+  ...
+# Subtest: combattre : retour d'un ancien personnage ignore
+ok 13 - combattre : retour d'un ancien personnage ignore
+  ---
+  duration_ms: 41.220249
+  type: 'test'
+  ...
+# Subtest: fuite reussie : rendu confirme sans rejouer un deplacement serveur
+ok 14 - fuite reussie : rendu confirme sans rejouer un deplacement serveur
+  ---
+  duration_ms: 43.553686
+  type: 'test'
+  ...
+# Subtest: fuite echouee : choix restant sans nouveau jet
+ok 15 - fuite echouee : choix restant sans nouveau jet
+  ---
+  duration_ms: 41.066008
+  type: 'test'
+  ...
+# Subtest: fuite confirmee sans destination exploitable : blocage conserve
+ok 16 - fuite confirmee sans destination exploitable : blocage conserve
+  ---
+  duration_ms: 39.401247
+  type: 'test'
+  ...
+# Subtest: round suivant seulement apres verdict complet, PA et effectifs viennent du serveur
+ok 17 - round suivant seulement apres verdict complet, PA et effectifs viennent du serveur
+  ---
+  duration_ms: 38.282969
+  type: 'test'
+  ...
+# Subtest: neutralisation : cloture sans inventer de detention
+ok 18 - neutralisation : cloture sans inventer de detention
+  ---
+  duration_ms: 40.857137
+  type: 'test'
+  ...
+# Subtest: arrestation et neutralisation simultanees : detention serveur prioritaire
+ok 19 - arrestation et neutralisation simultanees : detention serveur prioritaire
+  ---
+  duration_ms: 40.187338
+  type: 'test'
+  ...
+# Subtest: combat sans PA valides ou sans detention confirmee : pas de faux succes
+ok 20 - combat sans PA valides ou sans detention confirmee : pas de faux succes
+  ---
+  duration_ms: 85.186159
+  type: 'test'
+  ...
+# Subtest: interception active : enterBuilding bloque avant toute ecriture
+ok 21 - interception active : enterBuilding bloque avant toute ecriture
+  ---
+  duration_ms: 52.533794
+  type: 'test'
+  ...
+# Subtest: interception active : enterRoom bloque avant toute ecriture
+ok 22 - interception active : enterRoom bloque avant toute ecriture
+  ---
+  duration_ms: 46.673297
+  type: 'test'
+  ...
+# Subtest: interception active : sortirBatiment bloque avant toute ecriture
+ok 23 - interception active : sortirBatiment bloque avant toute ecriture
+  ---
+  duration_ms: 56.114652
+  type: 'test'
+  ...
+# Subtest: interception active : afficherNoeudRue bloque avant toute ecriture
+ok 24 - interception active : afficherNoeudRue bloque avant toute ecriture
+  ---
+  duration_ms: 53.270633
+  type: 'test'
+  ...
+# Subtest: la garde est levee seulement apres cloture
+ok 25 - la garde est levee seulement apres cloture
+  ---
+  duration_ms: 58.724332
+  type: 'test'
+  ...
+# Subtest: aucune interception judiciaire sans detection serveur
+ok 26 - aucune interception judiciaire sans detection serveur
+  ---
+  duration_ms: 41.797669
+  type: 'test'
+  ...
+# Subtest: detection : non_recherche
+ok 27 - detection : non_recherche
+  ---
+  duration_ms: 42.614637
+  type: 'test'
+  ...
+# Subtest: detection : non_detecte
+ok 28 - detection : non_detecte
+  ---
+  duration_ms: 40.653293
+  type: 'test'
+  ...
+# Subtest: detection : detecte
+ok 29 - detection : detecte
+  ---
+  duration_ms: 47.614871
+  type: 'test'
+  ...
+# Subtest: detection : absent
+ok 30 - detection : absent
+  ---
+  duration_ms: 38.26942
+  type: 'test'
+  ...
+# Subtest: detection : sans_pa
+ok 31 - detection : sans_pa
+  ---
+  duration_ms: 35.815351
+  type: 'test'
+  ...
+# Subtest: un agent privé peut déclencher une rencontre sans policier présent, sur décision serveur seule
+ok 32 - un agent privé peut déclencher une rencontre sans policier présent, sur décision serveur seule
+  ---
+  duration_ms: 39.820952
+  type: 'test'
+  ...
+# Subtest: restauration de rue : lecture de position seule, aucun ordre de mouvement
+ok 33 - restauration de rue : lecture de position seule, aucun ordre de mouvement
+  ---
+  duration_ms: 47.005928
+  type: 'test'
+  ...
+# Subtest: un dossier appartient a sa connexion, pas au personnage suivant
+ok 34 - un dossier appartient a sa connexion, pas au personnage suivant
+  ---
+  duration_ms: 48.370652
+  type: 'test'
+  ...
+# Subtest: la rencontre affiche uniquement l effectif confirme, pas tous les policiers co presents
+not ok 35 - la rencontre affiche uniquement l effectif confirme, pas tous les policiers co presents
+  ---
+  duration_ms: 45.725465
+  type: 'test'
+  location: '/workspace/res-publica-audit-securite/outils/bancs/banc-interception-reseau.cjs:85:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    3 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/res-publica-audit-securite/outils/bancs/banc-interception-reseau.cjs:90:9)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..35
+# tests 35
+# suites 0
+# pass 34
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1936.776165
