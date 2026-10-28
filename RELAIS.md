@@ -7,6 +7,8 @@ Règles : voir `AGENTS.md`.
 
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
+- **Complément vérifié CI / banque (commit `fe952ac`) :** cinq workflows PR #218 au vert ; le journal confirme `OK banc-reception-rest-20261028.cjs`. Prêt travaux national de Jean Jaaj de 100 000 FR présent dans Supabase, restant 76 997 FR, deux comptes distincts ; versement initial non démontré. Rapport prévol enrichi. Aucune écriture en base ni déploiement.
+
 - Branche isolée `chatgpt/fiabilisation-luthecia-20261028` issue de main, hors inventaire et groupes. Audit détaillé `outils/audits/PREVOL-CINQ-POINTS-LUTHECIA-20261028.md`.
 - **Navigation :** sortie serveur `rue_sortie_batiment_lire` / `rue_position_enregistrer` vérifiée ; zéro noeud de sortie orphelin sur 36 sorties Luthécia, 33 PSM, 41 Montrouge. Les sorties manquantes et cas d'écran bloqué restent à tester authentifié.
 - **Réception :** le transport REST transformait un HTTP 200 à JSON illisible en succès `donnees:true` ; correction dans `supabase.js` : `reponse_invalide`, pas de réessai aveugle d'écriture ; 204 conservé. Banc isolé `banc-reception-rest-20261028.cjs` ajouté, non exécuté ici. La panne remontée par les joueurs n'est pas déclarée résolue.
