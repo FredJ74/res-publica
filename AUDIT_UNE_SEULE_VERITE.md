@@ -537,10 +537,10 @@ tirés au hasard et les effets purement visuels sont exclus.
   `crime_voler_materiaux` (jet, stock, dépôt, traces serveur), texte de l'IA posé une seule fois par
   `kompromat_rediger` ; `doEscortInfos` supprimé (aucun menu). Relevé statique refait : les seuls
   ajouts restants passent par la réponse du serveur. **PR #213 prête, fusion suspendue par Fred
-  (livraison groupée).** Après la livraison : `20261028210000`, `210500`, `210600` (anciennes
-  portes, garde du fret, ancien acte de vol terrain).
-- **Encore ouvert avant le verrou final de `inventaire_sauver_revision`** : trois *retraits*
-  laissés à l'écran, qu'un tricheur peut éviter — tracts de Jean-Lou (quête de carrière encore écrite par l'écran ; le butin d'un vol est transféré
+  (livraison groupée).** Après la livraison : `20261028210000`, `210500`, `210600`, `210700` (anciennes
+  portes, garde du fret, ancien acte de vol terrain, ancienne distribution calomnieuse).
+- **Encore ouvert avant le verrou final de `inventaire_sauver_revision`** : un *retrait*
+  laissé à l'écran, qu'un tricheur peut éviter — tracts de Jean-Lou (quête de carrière encore écrite par l'écran ; le butin d'un vol est transféré
   par `crime_voler` depuis `20261028223000`, les tracts calomnieux sont consommés par
   `calomnie_distribuer_consommer` depuis `20261028224000`) ; réconciliation des
   anciennes charges d'employés ; quêtes, budgets de club et autorisations de l'énigme encore
