@@ -1,3 +1,4 @@
+BEGIN;
 -- Priorité #135 : un groupe constitué n'est pas une co-présence dans la même salle.
 -- Aucun test ne nécessite de créer des policiers réels ou des affectations.
 DO $t$
@@ -34,3 +35,5 @@ BEGIN
  IF jsonb_array_length(groupes)<>3 OR (groupes->0->>'categorie')::integer<>0 OR (groupes->0->>'effectif')::integer<>1
  THEN RAISE EXCEPTION 'groupes_inactifs_pris_en_compte: %',groupes; END IF;
 END $t$;
+
+ROLLBACK;

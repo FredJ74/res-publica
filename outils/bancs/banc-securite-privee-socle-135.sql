@@ -1,3 +1,4 @@
+BEGIN;
 -- Sécurité : la fonction auxiliaire est réservée aux appels internes SECURITY DEFINER.
 DO $t$ BEGIN
  IF has_function_privilege('authenticated','public.securite_agents_prives_presents_interne(text,text,text,text,text,text)','EXECUTE')
@@ -75,8 +76,8 @@ DO $t$ DECLARE r jsonb; g jsonb; BEGIN
  r:=public.securite_agents_prives_presents_interne('republic','capitale','__test_bat_135__','terrain',NULL,'__test_cible_135__');
  g:=public.securite_ordre_detection_interne(r,'__test_bat_135__','terrain',NULL);
  IF NOT EXISTS(SELECT 1 FROM jsonb_array_elements(g) x WHERE (x->>'effectif')::integer=2
- AND x->>'groupe' LIKE 'prive:deploiement-%') THEN RAISE EXCEPTION 'groupe_collectif_perdu: %',g; END IF;
- UPDATE public.pnj_membres SET leader_pj='__test_pj_135__',groupe_deploiement_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,rue_noeud_id=NULL
+ AND x->>'groupe'='prive:__test_135_deploiement_a__') THEN RAISE EXCEPTION 'groupe_collectif_perdu: %',g; END IF;
+ UPDATE public.pnj_membres SET leader_pj='__test_pj_135__',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,rue_noeud_id=NULL
  WHERE id IN ('__test_135_deploiement_a__','__test_135_deploiement_b__');
 END $t$;
 SET LOCAL ROLE authenticated;
@@ -214,3 +215,5 @@ DO $t$ DECLARE r jsonb; BEGIN
  IF r->>'ok' IS DISTINCT FROM 'false' THEN RAISE EXCEPTION 'agent_eloigne_combat_accepte: %',r; END IF;
 END $t$;
 RESET ROLE;
+
+ROLLBACK;

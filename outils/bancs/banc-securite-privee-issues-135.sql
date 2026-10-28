@@ -1,3 +1,4 @@
+BEGIN;
 -- Banc indépendant des inventaires. À exécuter APRÈS la migration, dans BEGIN/ROLLBACK.
 -- Les données sont exclusivement fictives. Les savepoints isolent chaque issue.
 INSERT INTO auth.users(id,instance_id,aud,role)
@@ -42,3 +43,5 @@ END $t$;
 RESET ROLE;
 ROLLBACK TO SAVEPOINT avant_fuite;
 -- Les contrôles sans policiers utilisent la même fuite et la même détention judiciaire.
+
+ROLLBACK;

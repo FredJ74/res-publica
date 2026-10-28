@@ -81,3 +81,11 @@ test('restauration de rue : lecture de position seule, aucun ordre de mouvement'
  await c.initialiserRueCentrale('republic','destination',null);assert.deepEqual(appels,['rue_position_lire']);assert.equal(c.navigation[3],true);
 });
 test('un dossier appartient a sa connexion, pas au personnage suivant',()=>{const c=contexte();vm.runInContext('interceptionJudiciaire.contexte=contexteInterceptionJudiciaire()',c);c.state.char={name:'Bob'};assert.equal(c.interceptionJudiciaireBloqueDeplacement(),false);assert.equal(c.dossier(),null);});
+
+test('la rencontre affiche uniquement l effectif confirme, pas tous les policiers co presents',async()=>{
+ const c=contexte();vm.runInContext('interceptionJudiciaire=null; const PER_GROUPE_BONUS_PAR_MEMBRE=1;',c);
+ c.chargerEffectifsPolice=async()=>({policiers:Array.from({length:3},()=>({buildingId:'mairie',roomId:'accueil',pa:12}))});
+ c.sbRpc=async nom=>nom==='police_reprise_lire'?{ok:true,active:false}:nom==='police_detection_verifier'?{ok:true,detecte:true,rencontre:'police-test-unite',effectif:1}:[{id:'j',country:'republic',data:{motifs:[]}}];
+ await c.verifierSurveillancePolicePJUnique('mairie','accueil');
+ assert.equal(c.dossier().policiers.length,1);
+});

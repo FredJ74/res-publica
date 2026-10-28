@@ -11100,7 +11100,7 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
           (state.currentBuilding !== zoneSurveillee.batiment || state.currentRoom !== zoneSurveillee.piece))) return;
     const intervention = await verifierArrestationRecherchePolice({
       detecte: true, rencontreId: detection.rencontre,
-      policiers: presents.length ? presents : Array.from({length:Math.max(1, Number(detection.effectif || 1))}, () => ({})), rueNoeudId,
+      policiers: Array.from({length:Math.max(1, Number(detection.effectif || presents.length || 1))}, () => ({})), rueNoeudId,
       zone: zoneSurveillee
     });
     if (intervention === true) return;

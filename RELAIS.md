@@ -5,6 +5,14 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Audit indépendant sécurité #135 / PR #212 — Codex, 28/10
+
+- Branche **`codex/audit-securite-135-20261028`**, issue du HEAD réel #212 `7c91ef1b`, main `3efca838` (#214) intégré sans conflit. Aucun travail de #213/inventaire importé ou modifié. PR #196 seulement examinée, jamais fusionnée ; aucune migration appliquée, aucun joueur réel utilisé.
+- Audit demandé par Fred : ne pas présumer l'architecture de #212 correcte. Cinq défauts serveur reproduits sur ses sources : suppression de policiers non participants dans deux parcours, dépose contournant les gardes communes, ancienne identité de groupe conservée après séparation, lecture concurrente des PA avant verrou. Six scénarios PostgreSQL corrigés passent ; rôle authenticated + request.path, opérations métier annulées, décor/identité/justice/coups fictifs. Le détecteur vivant n'est PAS reconstruit ni testé, sa définition manque au dépôt et aucun outil Supabase n'est exposé.
+- Préparation : colonne `groupe_deploiement_id` retirée du SQL non appliqué ; déploiement limité à un adaptateur de `pnj_quitter_groupe`, liens PNJ existants ; reprise collective valide avant de déplacer puis détache via le même ordre, avec déclencheur réel anti-sous-hiérarchie conservé. Registre policier intégral préservé au combat ; verrou PNJ avant lecture des PA ; relecture de reçu inchangée. Aucun moteur de combat/prison nouveau.
+- Client : effectif affiché = unité confirmée par le serveur, pas tous les policiers co-présents ; cache actualisé. 35 tests interception locaux passent. Trois anciens bancs SQL maintenant auto-annulés, Workflow conforme. Migration encore à scinder sous la limite de transport ; audit des dépendances, limites du groupe PJ et rapport final en cours. **Ne pas fusionner ni appliquer #212 ou cette branche.**
+
+
 ### Fiabilisation GitHub / Vercel — 28/10, Codex
 
 - **Complément demandé par Fred après création manuelle de la PR : Workflow corrigé.** Deux doublons SQL supprimés au profit des fixtures existantes `banc-fixture-*` (mêmes corps), trois sources déplacées octet pour octet dans `historique/fixtures-bancs/`, quatre bancs Python raccordés. Aucun SQL métier ni inventaire modifié. Le vérificateur `verifier-workflow.py` reste strictement inchangé ; les neuf familles passent. Nouveau banc de rangement : six tests dont trois refus explicites des mauvais rangements/enveloppes. PostgreSQL jetable : permis 56, Céd/football 45, construction 62 (et variante #112 : 62), banque 61 (et variante location : 61), parcours cinq terrains 324. Les variantes partagent leurs assertions : ne pas additionner comme des cas distincts. Contrôleur client complet après rangement : **107/107 bancs réussis**. Aucun accès production ni migration appliquée.
