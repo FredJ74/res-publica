@@ -12,3 +12,13 @@ assert.match(code, /fiche masquée : aucune autorité locale/);
 assert.match(code, /rpDiagId\\('reconciliation', 'EXCEPTION[\\s\\S]{0,320}personnageChargeDepuisServeur = false/, 'le rejet reseau ferme le portillon');
 assert.doesNotMatch(code, /personnageChargeDepuisServeur = true; \\/\\/ echec reseau/);
 console.log('OK — cache sans autorite apres echec de reconciliation');
+
+// La file ne doit plus envoyer une fiche sans comparaison préalable à la version serveur.
+const sb = fs.readFileSync('supabase.js','utf8');
+const fileStart = sb.indexOf('function sbEnfilerEcriturePersonnage(');
+const fileEnd = sb.indexOf('function ',fileStart+35);
+const queue = sb.slice(fileStart,fileEnd<0?undefined:fileEnd);
+assert.match(queue,/const repereServeur = charState\._dernierUpdatedAtConnu/);
+assert.match(queue,/select=updated_at/);
+assert.match(queue,/actuel\[0\]\.updated_at !== repereServeur/);
+assert.match(queue,/charState\.personnageChargeDepuisServeur = false/);
