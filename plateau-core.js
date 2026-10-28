@@ -1503,13 +1503,14 @@ function loadCharacter() {
           // exception du corps ci-dessus. Il nomme desormais la panne (instrumentation).
         }).catch(e => {
           rpDiagId('reconciliation', 'EXCEPTION : ' + (e && e.message));
-          state.personnageChargeDepuisServeur = true; // echec reseau : ne jamais bloquer les sauvegardes indefiniment
+          // Une lecture serveur échouée ne vaut PAS une réconciliation. Garder les
+          // écritures génériques bloquées : le cache local n'a aucune autorité.
+          state.personnageChargeDepuisServeur = false;
         });
       } else {
-        // Pas de nom ou sbLoadPersonnage indisponible : aucune reconciliation ne viendra jamais,
-        // rien a attendre -- autoriser les sauvegardes immediatement (comportement inchange par
-        // rapport a avant ce correctif dans ce cas precis).
-        state.personnageChargeDepuisServeur = true;
+        // Pas de lecteur serveur : on peut afficher un cache provisoire, jamais
+        // l'enregistrer comme source d'autorité. Une reconnexion sera nécessaire.
+        state.personnageChargeDepuisServeur = false;
       }
     } else {
       // ===================================================================================
