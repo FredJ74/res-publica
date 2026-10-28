@@ -2733,27 +2733,20 @@ function signalerResultatGroupePnj(r, titreOk, messageOk) {
   return true;
 }
 
-// ---- CONDUITE : quitter le groupe / rejoindre un leader.
-// Pour un SOLDAT en phase miroir, l'action individuelle n'est pas exprimable : les RPC
-// militaires (militaire_deposer_soldats, militaire_recuperer_soldats) prennent un NOMBRE, pas
-// un soldat designe. On le dit, et on renvoie vers l'ordre de section. Ce n'est pas une
-// limitation du socle -- la primitive generique existe et fonctionne -- c'est le modele
-// militaire qui reste l'autorite pendant cette phase.
+// ---- CONDUITE : même menu pour les familles raccordées aux portes communes.
+// Un soldat n'est activé que si le serveur confirme sa capacité après bascule
+// et projection militaire. Les contrôles d'autorité restent dans chaque RPC.
 async function ouvrirGroupePnjConduite(i) {
   const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t ?? '')) : String(t ?? '');
   const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const conduite = m.mouvement_individuel === true || (m.mouvement_individuel === undefined && m.famille !== 'soldat');
   const corps = document.getElementById('postes-body');
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.85rem;color:#e0d5b8;margin-bottom:.7rem">Conduite de '
        +  ech(m.nom) + '</div>';
-  if (m.famille === 'soldat') {
-    html += '<div style="border:1px solid #2a2010;background:#0b0a06;padding:.6rem .8rem;'
-         +  'font-size:.76rem;color:#8a8060;line-height:1.55">'
-         +  'Les mouvements de soldats passent encore par les ordres de section, qui opèrent '
-         +  '<em>par nombre</em> et non soldat par soldat. Utilisez « Gérer la section » pour '
-         +  'laisser sur place ou reprendre des hommes.<br><br>'
-         +  'L\'action individuelle — faire quitter le groupe à ce soldat précis, ou le confier '
-         +  'à un autre chef présent — arrivera avec la bascule finale du moteur.</div>';
+  if (!conduite) {
+    html += '<div class="cpj-note">Le serveur n’a pas encore activé les déplacements communs '
+      + 'pour cette famille. Utilisez son circuit métier existant.</div>';
   } else {
     html += '<div style="display:flex;flex-direction:column;gap:.4rem">'
          +  '<button onclick="confirmerGroupePnjQuitter(' + i + ')" style="padding:.35rem .7rem;'
@@ -2768,7 +2761,7 @@ async function ouvrirGroupePnjConduite(i) {
        +  'color:#C9A84C;cursor:pointer;font-size:.75rem">Retour au groupe</button></div></div>';
   corps.innerHTML = html;
 
-  if (m.famille !== 'soldat') {
+  if (conduite) {
     // Le menu de destination ne contient que des leaders REELLEMENT presents dans la piece.
     const autres = await leadersPresentsDansPiece(state.country || 'republic', state.currentCity,
       state.currentBuilding, state.currentRoom).catch(() => []);

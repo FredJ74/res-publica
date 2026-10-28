@@ -1,3 +1,10 @@
+## Reprise PR #219 — 28/10/2026, Codex, EN COURS
+
+- Branche conservée `codex/groupes-universels-20261028`, départ `cb3957fe`, main contrôlé `3a9b0c5d` inchangé. PR #219 créée par ChatGPT ; aucune nouvelle PR tentée. Commentaires inaccessibles (`GraphQL Forbidden`). Le nouveau prompt rapporte le MD5 vivant `rue_position_enregistrer = 5e819694359c4bf2f11470c7f9f95ad8`, mais ne fournit pas son corps ; aucune définition inventée.
+- **Premier raccordement supplémentaire codé, non déployé** : soldats dans les portes communes de prise/dépose/prêt/radio, autorité réelle de section conservée ; projecteur militaire existant appelé transactionnellement et rendu compatible avec les ancrages/rues. Verrou compagnie AVANT PJ/PNJ pour rester compatible avec les écrivains historiques. Restriction individuelle soldat levée seulement avec cette projection, décision universelle de Fred ; autres axes/familles inchangés.
+- Capacité de conduite publiée par `pnj_membres_ici` selon les gardes serveur, menu soldat activé seulement après confirmation. Aucun inventaire ni règle de combat modifié. **42 scénarios PostgreSQL passent** (35 précédents + 7 militaires), vrais `pnj_soldats_metier`, résolveur lieutenant, miroir/trigger et projecteur archivés ; deux connexions observent l'ordre des verrous. **25 cas clients ciblés passent**. Actions annulées, seul décor local committé pour concurrence, aucune donnée distante.
+- Suite active : contre-épreuves, frontières policières réelles et maximum de raccordements sûrs, contrôles globaux/client. Toujours PAS de déplacement collectif PJ ni de combat mixte livré ; aucun déploiement tant que ces raccordements essentiels restent absents. Supabase non exposé ici, registre vivant non relu.
+
 ## Groupes universels EN COURS — Codex, 28/10/2026
 
 - Branche isolée **`codex/groupes-universels-20261028`**, issue de #217 `c85d36d5`, conserve #216 et main `3a9b0c5d` (horaire été/hiver). Poussés : `e0e03084`, `84e2dad7`, `b404cf38`, puis preuves/finalisation. Ne pas fusionner #212 ni appliquer de migration isolément.

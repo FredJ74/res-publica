@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 R=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('audit',R/'outils/bancs/banc-audit-securite-135-local.py')
 audit=importlib.util.module_from_spec(spec);spec.loader.exec_module(audit)
-def main():
+def main(extension=None):
  import pgserver,psycopg2
  serveur=pgserver.get_server(tempfile.mkdtemp(prefix='hg-groupes-'),cleanup_mode='delete')
  c=psycopg2.connect(serveur.get_uri());q=c.cursor();tests=[]
@@ -228,6 +228,7 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
    q.execute("SELECT securite_agents_prives_presents_interne('republic','capitale','mairie','accueil',NULL,'C')");v=q.fetchone()[0]
    assert v[0]['groupeCle']==v[1]['groupeCle'],v
   cas('prives_copresence_distincte_puis_adhesion_reelle',groupes_distincts)
+  if extension is not None:extension(locals())
   c.rollback()
   print(json.dumps({'tests':tests,'production':False,'authentification':'identite JWT de fixture, role authenticated','rollback':True,'migrations_appliquees':[],'original217':original},ensure_ascii=False,indent=2))
   return int(any(not x['ok'] for x in tests))
