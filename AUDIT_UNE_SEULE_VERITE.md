@@ -541,6 +541,6 @@ tirés au hasard et les effets purement visuels sont exclus.
   portes, garde du fret, ancien acte de vol terrain).
 - **Encore ouvert avant le verrou final de `inventaire_sauver_revision`** : trois *retraits*
   laissés à l'écran, qu'un tricheur peut éviter — tracts calomnieux distribués, tracts de
-  Jean-Lou, butin retiré chez la victime d'un vol (`recupererVolsEnAttente`) ; réconciliation des
+  Jean-Lou (le butin d'un vol est transféré par `crime_voler` depuis `20261028223000`) ; réconciliation des
   anciennes charges d'employés ; quêtes, budgets de club et autorisations de l'énigme encore
   écrits par l'écran (hors inventaire).
