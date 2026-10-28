@@ -1523,12 +1523,40 @@ function renderEmployesPanel() {
           ? '<button onclick="laisserPnjEnPlace(\'' + emp.nom.replace(/'/g,'') + '\')" title="Laisser dans cette piece — sort du groupe mais reste votre employe" style="background:none;border:1px solid #2a3a2a;color:#4a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📍</button>'
           : '<button onclick="recupererPnjDansGroupe(\'' + emp.nom.replace(/'/g,'') + '\')" title="Faire rejoindre votre groupe" style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">🔄</button>'
         ) +
+        (!emp.inGroupe && emp.pnjId
+          ? '<button onclick="rappelerEmployeParRadio(\'' + String(emp.pnjId).replace(/'/g,'') + '\')" title="Rappeler par radio — nécessite une radio de chaque côté et la même ville" style="background:none;border:1px solid #425a75;color:#92b5db;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📻</button>'
+          : '') +
         '<button onclick="ouvrirDonnerEmploye(\'' + emp.nom.replace(/'/g,'') + '\')" title="Donner un objet a porter (plafond 100 unites au total)" style="background:none;border:1px solid #2a3a3a;color:#4a7a7a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📦</button>' +
         '<button onclick="ouvrirReprendreEmploye(\'' + emp.nom.replace(/'/g,'') + '\')" title="Reprendre ce que porte cet employe" style="background:none;border:1px solid #3a3a2a;color:#7a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">↩️</button>' +
         '<button onclick="licencierPnj(\'' + emp.nom.replace(/'/g,'') + '\')" title="Renvoyer cet employe — arret du contrat et du salaire. Ce qu\'il porte est perdu." style="background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">✕</button>' +
       '</div>' +
     '</div>';
   }).join('') + htmlAgents;
+}
+
+
+// Rappel par radio : aucune téléportation navigateur, le serveur déplace
+// l'unité sous contrôle de l'autorité, des équipements et de la ville.
+async function rappelerEmployeParRadio(ancreId) {
+  const r = typeof sbPnjRappelerRadio === 'function'
+    ? await sbPnjRappelerRadio(ancreId).catch(() => null) : null;
+  if (!r || r.ok !== true) {
+    const messages = {
+      radio_hors_ville: 'Le groupe est dans une autre ville : aucune liaison radio.',
+      radio_appelant_absente: 'Vous devez posséder une radio.',
+      radio_unite_absente: 'Au moins un agent du groupe doit porter une radio.',
+      autorite_insuffisante: 'Vous ne disposez pas de l’autorité sur tous les agents de ce groupe.',
+      unite_non_stationnaire: 'Le groupe doit être en position et disposer d’un chef PNJ stationnaire.',
+      position_invalide: 'Votre emplacement ne permet pas le rappel.'
+    };
+    showToast('Rappel refusé', messages[r?.raison] || 'Le serveur n’a pas autorisé le rappel.', false);
+    return;
+  }
+  // L'affichage local est mis à jour uniquement après confirmation serveur.
+  const emp = (state.employes || []).find(e => e.pnjId === ancreId);
+  if (emp) emp.inGroupe = true;
+  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+  showToast('Rappel confirmé', (r.rappeles || 1) + ' agent(s) vous ont rejoint.', true);
 }
 
 // Confier un accompagnant a un autre joueur PRESENT. La liste vient de la presence
