@@ -20,3 +20,24 @@ Travail de lecture seule et qualification du premier écart provenant de `ARCHIT
 Les chantiers de sécurité privée #135 et d'inventaire sont en cours chez Codex. Ce constat n'autorise ni nouvelle structure douanière, ni patch du mécanisme policier en parallèle. Le projet doit faire primer l'état du serveur ; un texte de « capture » dans un toast n'est pas une capture effective.
 
 **Statut** : écart démontré, mécanisme existant partiellement identifié ; correctif métier non réalisé et non déployé.
+
+
+## Arbitrages de Fred — douaniers aéroport et port industriel (28/10/2026)
+
+**Aéroport** :
+- Mission : contrôle des personnes **et** des inventaires.
+- Chaque douanier en poste représente en réalité un **groupe constitué de trois douaniers** (renforcement de la détection et de la force collective au combat).
+- Si un PJ est recherché et détecté : tentative d'interpellation, en réutilisant les mécanismes communs de détection, combat et justice.
+- Si un PJ non recherché transporte une arme : saisie **uniquement si l'arme n'est pas déclarée**. Ne pas assimiler possession d'arme et illégalité sans vérifier la déclaration.
+- Aucun coût pour l'administration de tutelle.
+- Si des douaniers sont mis hors de combat (PA à zéro), remplacement automatique à la passe de minuit.
+- À déterminer lors du raccordement : représentation technique du groupe de trois via le **socle universel de groupes**, sans inventer de groupe fictif ni une autre mécanique ; source serveur de la déclaration des armes ; vérification de la saisie existante.
+
+**Port industriel** :
+- Mission première : contrôler les marchandises du fret ; mission secondaire : détecter les personnes recherchées.
+- Contrôle physique **non systématique : une caisse sur trois** ; comparaison du contenu réel au contenu déclaré.
+- Génère un coût pour l'administration de tutelle.
+- Efficacité de détection des personnes recherchées moindre que les douaniers aéroportuaires. **Le « malus à la détection ? » est une hypothèse de Fred, PAS un taux ni une formule validée.** Ne pas inventer sa valeur ou son mécanisme avant arbitrage ; chercher d'abord si le socle commun porte une pondération de mission.
+- Distinguer contrôle aléatoire de conformité d'une caisse et procédure de dédouanement/paiement : ne pas confondre les deux fonctions ni modifier leurs règles par simple analogie.
+
+Ces deux déploiements sont **des situations particulières raccordées au socle existant**, pas deux métiers ou moteurs de douane différents. Les règles non précisées (ex : sanctions suite à discordance de cargaison, paramètres de malus) ne doivent pas être inventées.
