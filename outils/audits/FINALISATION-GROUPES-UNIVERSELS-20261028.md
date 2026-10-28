@@ -119,7 +119,8 @@ au rôle `authenticated` avec `/rpc/<fonction>` ; l'identité JWT est une fixtur
 Les helpers internes sont testés comme helpers, pas présentés comme RPC publiques.
 Le test de suivi PNJ vérifie une position dérivée après modification fictive du
 chef, **pas un déplacement collectif PJ via la porte réelle de production**.
-La concurrence d'adhésion teste deux connexions avec annulation, pas une campagne
+La concurrence d'adhésion observe le verrou de la seconde connexion dans
+`pg_stat_activity` avant l'annulation de la première ; ce n'est pas une campagne
 authentifiée distante. Le nouveau banc ne prétend pas tester le moteur de combat.
 
 Un premier lancement dans la sandbox a refusé les sockets locales ; le contrôleur
@@ -207,5 +208,6 @@ du groupe de rue.
 Commits de code poussés : `e0e03084`, `84e2dad7`, `b404cf38` (plus la finalisation
 et les preuves). Branche autonome, **aucune fusion, aucune migration appliquée,
 aucun déploiement ni donnée réelle modifiée**. GitHub GraphQL refuse la lecture de
-PR ; la création est tentée une seule fois après sauvegarde finale. Les PR #212,
+PR ; la création en brouillon a été tentée une seule fois après le push `01acc471` :
+**GraphQL Forbidden**, aucune PR créée par Codex. Les PR #212,
 #216 et #217 ne sont pas modifiées par cette session.

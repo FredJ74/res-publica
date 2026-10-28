@@ -1,6 +1,6 @@
 {
   "branche": "codex/groupes-universels-20261028",
-  "parent_avant_finalisation": "b404cf38b13de1b056aa5db543c724e329a3e6a1",
+  "parent_avant_finalisation": "01acc4718e624577208c43c5f804c62e16fe3143",
   "source217": "c85d36d53a3419d4f2bbabbffc32a01ed36f0664",
   "main": "3a9b0c5d5f09901e310358f91165ec78ba1de0d1",
   "sources_sha256": {
@@ -9,7 +9,7 @@
     "plateau-politique.js": "359ae2fda47ed041444156f0c79d4e65555d13f809af22d156af2766242dda0e",
     "plateau.html": "7cb3848dad7dd4666893aa2b9cc25cf82f005e01c83ce6799dc297566264c695",
     ".github/workflows/coherence-client.yml": "ac15c25de5a3098724f71d0510254820c4d874a9d1fcd01bafb42b0d55beb8e2",
-    "outils/bancs/banc-groupes-universels-local.py": "2792960a2c19006bd8874a82cfcd5da79e3b504c057010da0e8310665ecae831",
+    "outils/bancs/banc-groupes-universels-local.py": "3d43498ce16dc7766f8da613248a821f9ec7d615c249913cf6956abdfbbaa566",
     "outils/bancs/banc-groupes-universels.cjs": "976672ec3e0ebe5d9a3419f7c97d09f603a1061e845e20a413de8892a5458e8a",
     "outils/bancs/PREFLIGHT-GROUPES-UNIVERSELS-20261028.sql": "68c804165841af5314d6fdcb44309ec268bcac17bad25fa8644eac65454d7bbc",
     "migrations/20261028122000_radio_ordres_meme_ville.sql": "54f0f3bdfc3bf45fc18386a671653ad3e83575e6b212c0aa5999dab0d071477a",

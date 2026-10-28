@@ -152,6 +152,18 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
     a=rpc('groupe_pj_rejoindre',('B',),cur=un.cursor());exige(a)
     with ThreadPoolExecutor(1) as pool:
      fut=pool.submit(rpc,'groupe_pj_rejoindre',('A',),'B',deux.cursor())
+     # Observer réellement le chevauchement, pas seulement lancer deux threads.
+     import time
+     limite=time.monotonic()+3
+     verrou=False
+     while time.monotonic()<limite:
+      q.execute('SELECT pg_stat_clear_snapshot()')
+      q.execute("SELECT wait_event_type FROM pg_stat_activity WHERE pid=%s",(deux.get_backend_pid(),))
+      ligne=q.fetchone()
+      if ligne and ligne[0]=='Lock':verrou=True;break
+      if fut.done():break
+      time.sleep(.02)
+     assert verrou,'la deuxième adhésion ne se sérialise pas sur la première'
      # Annuler l'opération fictive : la seconde peut rejoindre A, aucun cycle ne persiste.
      un.rollback();exige(fut.result(timeout=7))
    finally:un.rollback();deux.rollback();un.close();deux.close()
