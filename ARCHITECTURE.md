@@ -285,3 +285,16 @@ asile existant par identité, sans substitution JWT. Lots dynamiques : lecture d
 la chaîne ; aucune production. Douanes/international, déplacements spéciaux,
 combats et interceptions universels restent inachevés : ne pas activer la garde
 des positions isolément. Voir RELAIS et le rapport #219 pour l'état le plus récent.
+
+### #219 — transport international, préparation du 29/10
+
+Le même `transport_effectuer` couvre désormais train/bus/avion/bateau dans la
+préparation. Contrôle de tous les voyageurs, attestation serveur par PJ, saisie
+existante et exécution judiciaire réutilisées derrière des adaptateurs privés ;
+convocations uniquement aux PJ. Le passage expire en quittant le terminal.
+Corruption individuelle avec reçu, coût/jets existants ; ancien appel sans reçu
+refusé avant paiement. L'écrou et le QHS enregistrent aussi leur position réelle,
+les sauvegardes clientes ne terminent plus ce déplacement. 167 scénarios locaux,
+aucun déploiement ; recrutement/combats et interception universels restent ouverts.
+Le 29/10, Fred transfère tout l'immobilier à Claude ; références dans la transmission
+versionnée, Codex poursuit seulement les socles et ChatGPT orchestre l'intégration #230.

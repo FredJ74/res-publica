@@ -623,7 +623,7 @@ function renderOngletsPieces(buildingId, roomActifId) {
   if (conteneur) {
     conteneur.innerHTML = rooms.map(([roomId, room], i) => {
       const isZoneEmb = roomId === 'zone_embarquement';
-      const locked = isZoneEmb && !state.douanePassee;
+      const locked = isZoneEmb && state._navigationServeur!==true && !state.douanePassee;
       const style = locked ? 'opacity:.4;pointer-events:none;cursor:not-allowed' : '';
       const icon = locked ? '🔒 ' : '';
       // Meme regle de nom que le titre de la piece (plateau-variantes-pieces.js) :
@@ -1454,6 +1454,7 @@ function doAllerDouanesAeroport() {
 
 // Devient async (chantier C, 14 septembre 2026) : la confiscation passe par le guichet serveur.
 async function doPasserDouanesAeroport() {
+  if(state._navigationServeur===true)return commanderDouanesServeur();
   const pays = state.country || 'republic';
   const msgs = {
     republic: "L'inspecteur Prosper Tampon examine vos papiers, tamponne trois formulaires et vous laisse passer.",
@@ -1546,6 +1547,8 @@ async function doPasserDouanesAeroport() {
 }
 
 function checkZoneEmbarquementAcces(buildingId, roomId) {
+  // Le chemin serveur valide chaque membre avant le rendu, y compris au reload.
+  if(state._navigationServeur===true)return true;
   // Verrouiller la zone embarquement si douane non passée
   if (roomId === 'zone_embarquement' && !state.douanePassee) {
     showToast('Accès refusé', 'Vous devez d\'abord passer le contrôle douanier.', false);
@@ -2655,6 +2658,46 @@ function ouvrirModalTransport(mode) {
 }
 
 let transportServeurEnCours=null;
+function afficherPositionNavigationConfirmee(frais) {
+ state.country=frais.country;state.currentCity=frais.currentCity;state.currentBuilding=frais.currentBuilding;state.currentRoom=frais.currentRoom;
+ state.group=frais.group;state._groupeConfirme=frais._groupeConfirme;
+ if(Object.prototype.hasOwnProperty.call(frais,'estEmprisonne'))state.estEmprisonne=frais.estEmprisonne;
+ if(state.char){state.char.country=frais.country;state.char.currentCity=frais.currentCity;state.char.currentBuilding=frais.currentBuilding;state.char.currentRoom=frais.currentRoom;}
+ if(frais.updatedAt)state._dernierUpdatedAtConnu=frais.updatedAt;
+ navigationInterieureRendu={buildingId:frais.currentBuilding,roomId:frais.currentRoom};
+ try{applyEmpireTheme(state.country);buildCityTabs();enterBuilding(state.currentBuilding,true);enterRoom(state.currentBuilding,state.currentRoom,null);}
+ finally{navigationInterieureRendu=null;}
+}
+let douanesServeurEnCours=null;
+async function commanderDouanesServeur() {
+ const c=contexteNavigationRue();
+ if(douanesServeurEnCours&&contexteNavigationRueValide(douanesServeurEnCours))return false;
+ douanesServeurEnCours=c;
+ const cle='hg-douanes:'+JSON.stringify([c.uid,c.nom,c.pays,c.ville,c.batiment]);
+ try {
+  let requete;
+  try{requete=localStorage.getItem(cle);if(!requete){requete=crypto.randomUUID();localStorage.setItem(cle,requete);}}
+  catch(_){showToast('Contrôle non confirmé','Le reçu ne peut pas être conservé. Aucun contrôle envoyé.',false);return false;}
+  const v=await sbRpcVerdict('douane_controle_groupe',{p_mode:'avion',p_requete:requete},
+   {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
+  if(!contexteNavigationRueValide(c))return false;
+  if(!v||v.transport){showToast('Contrôle non confirmé','La réponse est incertaine. Réessayez avec le même reçu.',false);return false;}
+  if(Array.isArray(v.inventory)&&typeof sbAdopterInventaireServeur==='function'&&!sbAdopterInventaireServeur(v))return false;
+  try{localStorage.removeItem(cle);}catch(_){}
+  if(v.ok!==true){
+   if(v.arrestation){
+    const frais=await sbLoadPersonnage(c.nom).catch(()=>null);
+    if(!contexteNavigationRueValide(c))return false;
+    if(frais?.userId===c.uid)afficherPositionNavigationConfirmee(frais);
+   }
+   showToast('Contrôle refusé',v.arrestation?'Un membre du groupe a été intercepté. Aucun voyage effectué.':
+    v.raison==='controle_a_renouveler'?'Un nouveau contrôle est nécessaire. Réessayez.':'Le serveur refuse ce contrôle : '+(v.raison||'état indisponible')+'.',false);return false;
+  }
+  const entre=await commanderNavigationInterieure(c.batiment,'zone_embarquement');
+  if(entre===true)showToast('Contrôle confirmé','Le serveur a autorisé l’embarquement du groupe.',true);
+  return entre===true;
+ } finally {if(douanesServeurEnCours===c)douanesServeurEnCours=null;}
+}
 async function commanderTransportServeur(mode,pays,ville) {
  const c=contexteNavigationRue();
  if(transportServeurEnCours&&contexteNavigationRueValide(transportServeurEnCours))return false;
@@ -2668,6 +2711,11 @@ async function commanderTransportServeur(mode,pays,ville) {
     {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
   if(!contexteNavigationRueValide(c))return false;
   if(v?.ok!==true){
+   if(v?.arrestation){
+    const frais=await sbLoadPersonnage(c.nom).catch(()=>null);
+    if(!contexteNavigationRueValide(c))return false;
+    if(frais?.userId===c.uid)afficherPositionNavigationConfirmee(frais);
+   }
    const motifs={
     controle_douanier_requis:'Le contrôle douanier doit être confirmé avant ce voyage.',
     chef_de_groupe_requis:'Seul le chef du groupe peut engager ce voyage.',fonds_insuffisants:'Le chef du groupe ne dispose pas des fonds nécessaires pour tous les voyageurs.',
@@ -2676,21 +2724,25 @@ async function commanderTransportServeur(mode,pays,ville) {
   }
   // Un reçu rejoué peut contenir d'anciens soldes : réutiliser le chargement
   // officiel au lieu d'appliquer ces montants ou de fabriquer une position.
-  const [frais,comptes]=await Promise.all([sbLoadPersonnage(c.nom).catch(()=>null),sbGetComptesBancaires(c.nom).catch(()=>null)]);
+  const international=mode==='avion'||mode==='bateau';
+  const [frais,comptes,inventaire]=await Promise.all([sbLoadPersonnage(c.nom).catch(()=>null),sbGetComptesBancaires(c.nom).catch(()=>null),
+   international&&typeof sbInventaireReceptionEtat==='function'?sbInventaireReceptionEtat(c.nom).catch(()=>null):null]);
   if(!contexteNavigationRueValide(c))return false;
   if(!frais||frais.userId!==c.uid||!Array.isArray(comptes)||frais.country!==pays||frais.currentCity!==ville||frais.currentBuilding!==v.building||frais.currentRoom!==v.room){
    showToast('Voyage enregistré','La position doit encore être relue. Aucun second paiement ne sera envoyé pour ce reçu.',false);return false;
   }
+  if(international&&(!inventaire||inventaire.ok!==true||typeof sbAdopterInventaireServeur!=='function'||!sbAdopterInventaireServeur(inventaire))){
+   showToast('Voyage enregistré','L’inventaire doit encore être relu. Le reçu empêche un second paiement.',false);return false;
+  }
   if(typeof appliquerPaiementServeur==='function')appliquerPaiementServeur({ok:true,pa:frais.pa,liquide:frais.liquide,arg:frais.arg});
   if(typeof construireMapComptesBancaires==='function')state.comptesBancaires=construireMapComptesBancaires(comptes);
-  state.country=frais.country;state.currentCity=frais.currentCity;state.currentBuilding=frais.currentBuilding;state.currentRoom=frais.currentRoom;
-  state.group=frais.group;state._groupeConfirme=frais._groupeConfirme;
-  if(frais.updatedAt)state._dernierUpdatedAtConnu=frais.updatedAt;
   if(typeof document!=='undefined')document.getElementById('modal-postes')?.classList.remove('open');
-  navigationInterieureRendu={buildingId:frais.currentBuilding,roomId:frais.currentRoom};
-  try{applyEmpireTheme(state.country);buildCityTabs();enterBuilding(state.currentBuilding,true);enterRoom(state.currentBuilding,state.currentRoom,null);}
-  finally{navigationInterieureRendu=null;}
+  afficherPositionNavigationConfirmee(frais);
   try{localStorage.removeItem(cle);}catch(_){}
+  const lieu=typeof villeNom==='function'?(villeNom(pays,ville)||ville):ville;
+  if(typeof addJournalEntry==='function')addJournalEntry('Voyage en '+mode+' → '+lieu,'event-info');
+  if(typeof addExternalEvent==='function')addExternalEvent((state.char?.name||'Anonyme')+' est arrivé(e) à '+lieu+'.');
+  showToast('Voyage confirmé',String(v.voyageurs||1)+' voyageur(s). Transport confirmé par le serveur.',true);
   return true;
  } finally {if(transportServeurEnCours===c)transportServeurEnCours=null;}
 }
@@ -2938,6 +2990,7 @@ function doControlDouanes() {
 // pot-de-vin fonctionne ou non -- l'ancien comportement "gratuit en cas d'echec" etait
 // l'anomalie, pas l'inverse).
 async function doCorrompreDoanier(pa, cost) {
+  if(state._navigationServeur===true)return commanderCorruptionDouanesServeur(pa,cost);
   // PAR LE SERVEUR (27 octobre 2026) : crime_corrompre_douanier (PA et prix a la tentative, jet
   // 55 + DUP/10 + INF/10 + 20, discretion, detection). Le passage debloque reste tenu ici.
   const v = await appelerCrimeServeur('crime_corrompre_douanier', { p_pa: pa, p_cost: cost });
@@ -2954,6 +3007,38 @@ async function doCorrompreDoanier(pa, cost) {
     showToast('Refus !', 'L\'agent n\'a pas mordu. Tentative notée.', false);
     updateUI();
   }
+}
+
+let corruptionDouanesServeurEnCours=null;
+async function commanderCorruptionDouanesServeur(pa,cost) {
+ const c=contexteNavigationRue();
+ if((corruptionDouanesServeurEnCours&&contexteNavigationRueValide(corruptionDouanesServeurEnCours))||
+   (douanesServeurEnCours&&contexteNavigationRueValide(douanesServeurEnCours)))return false;
+ corruptionDouanesServeurEnCours=c;
+ const cle='hg-corruption-douanes:'+JSON.stringify([c.uid,c.nom,c.pays,c.ville,c.batiment]);
+ try {
+  let requete;
+  try{requete=localStorage.getItem(cle);if(!requete){requete=crypto.randomUUID();localStorage.setItem(cle,requete);}}
+  catch(_){showToast('Tentative non envoyée','Le reçu ne peut pas être conservé.',false);return false;}
+  const v=await sbRpcVerdict('crime_corrompre_douanier',{p_pa:pa,p_cost:cost,p_requete:requete},
+   {encoreValide:()=>contexteNavigationRueValide(c)}).catch(()=>null);
+  if(!contexteNavigationRueValide(c))return false;
+  if(!v||v.transport){showToast('Tentative non confirmée','La réponse est incertaine. Le même reçu empêchera un nouveau paiement.',false);return false;}
+  if(v.ok!==true){try{localStorage.removeItem(cle);}catch(_){}showToast('Tentative refusée',v.raison||'Le serveur refuse cette tentative.',false);return false;}
+  const [frais,comptes]=await Promise.all([sbLoadPersonnage(c.nom).catch(()=>null),sbGetComptesBancaires(c.nom).catch(()=>null)]);
+  if(!contexteNavigationRueValide(c))return false;
+  if(frais?.userId!==c.uid||!Array.isArray(comptes)){showToast('Tentative enregistrée','Les soldes doivent encore être relus. Le reçu est conservé.',false);return false;}
+  if(typeof appliquerPaiementServeur==='function')appliquerPaiementServeur({ok:true,pa:frais.pa,liquide:frais.liquide,arg:frais.arg});
+  if(typeof construireMapComptesBancaires==='function')state.comptesBancaires=construireMapComptesBancaires(comptes);
+  if(typeof frais.dis==='number')state.dis=frais.dis;
+  if(Array.isArray(frais.recherche))state.recherche=frais.recherche;
+  try{localStorage.removeItem(cle);}catch(_){}
+  if(typeof adopterDetectionServeur==='function')adopterDetectionServeur(v,'corrompre_douanier');
+  if(v.reussi===true)return await commanderDouanesServeur();
+  showToast('Tentative échouée','Le serveur a refusé la corruption. Le coût de la tentative a été prélevé.',false);
+  if(typeof updateUI==='function')updateUI();
+  return false;
+ } finally {if(corruptionDouanesServeurEnCours===c)corruptionDouanesServeurEnCours=null;}
 }
 
 // =====================

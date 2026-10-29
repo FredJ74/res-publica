@@ -75,6 +75,7 @@ def suite(ctx,suivante=None):
   else:raise AssertionError('trigger désactivé accepté au rejeu')
  cas('international_rejeu_refuse_garde_desactivee',garde_rejeu)
  if suivante is not None:suivante(ctx)
-if __name__=='__main__':
+def lancer(suivante=None):
  amb=t.lots.amb;rondes=amb.rondes;interieur=rondes.interieur;natif=interieur.natif;rue=natif.rue;f=rue.force
- sys.exit(f.corps.g.main(lambda c:f.corps.extension(c,lambda c:f.suite(c,lambda c:rue.suite(c,lambda c:natif.suite(c,lambda c:interieur.suite(c,lambda c:rondes.suite(c,lambda c:amb.suite(c,lambda c:t.lots.suite(c,lambda c:t.suite(c,suite)))))))))))
+ return f.corps.g.main(lambda c:f.corps.extension(c,lambda c:f.suite(c,lambda c:rue.suite(c,lambda c:natif.suite(c,lambda c:interieur.suite(c,lambda c:rondes.suite(c,lambda c:amb.suite(c,lambda c:t.lots.suite(c,lambda c:t.suite(c,lambda c:suite(c,suivante)))))))))))
+if __name__=='__main__':sys.exit(lancer())

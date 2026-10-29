@@ -1,8 +1,77 @@
 # Groupes universels — reprise de #216 et #217, 28 octobre 2026
 
-**CHANTIER NON TERMINÉ.** Les corrections et leurs preuves sont sauvegardées sur
-la branche de #219. La rue collective est testée localement ; les entrées/pièces,
-anciens écrivains de position et combats mixtes restent à terminer. Aucune production.
+**CHANTIER NON TERMINÉ.** Préparation sauvegardée sur la branche #219 pour
+l'intégration #230 par ChatGPT ; aucune fusion ni migration de production ici.
+Les transports internationaux passent localement ; combats et interceptions
+collectifs restent inachevés. Aucun nouveau développement immobilier après
+l'arbitrage `main` 9e8901b : transmission à Claude documentée séparément.
+
+## État le plus récent — 29 octobre, lot international
+
+Le code étend les moteurs existants, sans deuxième déplacement, billetterie,
+douane ou prison. PJ/PNJ réels du décor sont identifiés par le lecteur commun.
+Passage douanier enregistré par le serveur pour chaque PJ ; un booléen du
+navigateur ne peut autoriser l'embarquement. Le passage est annulé à la sortie.
+Avion et bateau contrôlent de nouveau les objets avant paiement/déplacement,
+avec annulation des nouvelles saisies/convocations si le paiement global échoue.
+Les biens de quête protégés restent protégés. Les PNJ ne sont pas convoqués,
+et leur payeur ne reçoit pas leur responsabilité judiciaire. Les étiquettes
+historiques d'accessoires ne supplantent pas l'axe de possession déjà au socle.
+
+Le leader paie tous les voyageurs, PA existants une seule fois : neuf voyageurs
+= **2 700 FR/2 PA en avion**, **900 FR/5 PA en bateau**. Vol individuel et train
+conservés. Le reçu empêche le double paiement. Le client relit les comptes,
+la position et l'inventaire par les portes existantes ; aucun inventaire reconstruit.
+La corruption conserve ses coûts/jets/détection et ne dispense que son auteur.
+Son ancien appel sans reçu est refusé avant débit ; le client actuel transmet
+un reçu, dont le rejeu ne répète pas le paiement ni le jet.
+
+Les corps de confiscation et de justice sont factorisés en adaptateurs internes
+privés ; droits/identité des portes publiques conservés. Des empreintes strictes
+refusent une définition différente. **La version de confiscation de #213 et le
+catalogue vivant doivent être rapprochés avant toute application.** Ne pas
+prendre un corps Git pour une définition actuellement installée. La source
+judiciaire provient de `bfae7cf0`, la source police retrouvée de `5c3a7743`.
+
+Défaut de raccordement corrigé : l'ancien écrou posait la peine et laissait
+l'écran terminer la position. Le serveur pose maintenant aussi la cellule,
+QHS compris. Les anciennes portes d'auto-incarcération ne donnent pas un
+transport vers une ville arbitraire ou par une peine nulle. Pas de sanction
+fictive créée pour un joueur réel.
+
+**167/167 scénarios PostgreSQL jetable**, dont 19 nouveaux après les 148 acquis.
+Les nouveaux tests utilisent les vraies lois, saisies, jets, jugements, exécution,
+écrou et transfert QHS. La justice fictive des anciennes contre-épreuves de
+détection est renommée avant ces scénarios, pas réutilisée comme preuve.
+Identités et données de décor seulement, rôle authenticated aux portes ; aucune
+authentification Supabase réelle. Les deux actes fictifs déjà committés dans
+pgserver pour les snapshots concurrents restent explicitement signalés.
+
+**115/115 bancs client**, **105/105 pilote local**, **12/12 douanes client** et
+**8/8 transport client** (comptes qui se recouvrent). Contre-épreuves sur la même
+suite de 167 : un échec lorsque le passage du chef couvre un autre PJ ; trois
+échecs sans les nouvelles positions/gardes carcérales. Aucun scénario désactivé.
+SQL/YAML/JS analysés. CI existante raccordée à la chaîne complète ; résultats
+GitHub de ce nouveau SHA non observés, pas assimilés aux six workflows antérieurs.
+
+**Contrôles globaux : 5/12.** Sept familles rouges maintenues : classification,
+fidélité du baseline, Authority, Referential, Fonctions, Assemblage, Reconstruction.
+Authority compte 109 RPC absentes du baseline, pas 109 nouvelles failles ; deux
+appels explicites préparés s'ajoutent au lot précédent. Le détail des écarts
+historiques et les refus JavaScriptCore sont conservés dans les sorties brutes.
+Aucun baseline, empreinte ou vérificateur modifié pour masquer un écart.
+
+Preuves : `preuves-groupes-219-international-20261029/` et manifeste SHA-256.
+Transmission immobilière : `TRANSMISSION-IMMOBILIER-CLAUDE-20261029.md`.
+
+**NON TERMINÉ / NON DÉPLOYABLE en bloc.** Recrutement/rounds réellement mixtes,
+interception du groupe entier, anciens écrivains et taxis particuliers restent
+à traiter. Le miroir policier qui remet le statut actif, confirmé dans le prévol
+#230, doit aussi être corrigé avant activation. Aucun personnage connecté dans
+cette session. Accès aux commentaires GitHub refusé, Supabase non exposé ; les
+prévols actualisés sont destinés à l'agent connecté, pas à Fred. ChatGPT garde
+les applications, tests combinés, fusion et livraison. Ne pas appliquer un
+sous-ensemble de ces migrations interdépendantes.
 
 ## Dernier complément — transports et accès particuliers après `8c2904dc`
 

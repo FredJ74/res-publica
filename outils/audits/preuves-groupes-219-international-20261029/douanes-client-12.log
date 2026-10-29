@@ -1,0 +1,20 @@
+✔ douanes : réponse originale adoptée et entrée confirmée, aucun booléen local créé (60.041114ms)
+✔ douanes : aucun succès si le moteur commun refuse ensuite un membre (25.396865ms)
+✔ douanes : réponse perdue garde le reçu, pas de rendu ni de saisie locale (19.265587ms)
+✔ douanes : double clic ne lance qu’un contrôle (19.84501ms)
+✔ douanes : réponse tardive ignorée après personnage (16.795614ms)
+✔ douanes : réponse tardive ignorée après session (16.623379ms)
+✔ douanes : inventaire refusé par sa garde ne force pas l’embarquement (16.682572ms)
+✔ douanes : l’interception d’un compagnon ne téléporte pas le chef en prison (15.869115ms)
+✔ corruption : appel moderne avec reçu, solde frais et contrôle des autres voyageurs (14.752342ms)
+✔ corruption : réponse perdue ne génère pas un nouveau reçu de paiement (18.756246ms)
+✔ corruption : comptes indisponibles, reçu conservé et aucun faux accès (13.469155ms)
+✔ zone : un ancien douanePassee ne sert pas d’autorité au nouveau chemin (18.889948ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 269.442062
