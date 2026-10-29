@@ -6,6 +6,14 @@ Les transports internationaux passent localement ; combats et interceptions
 collectifs restent inachevés. Aucun nouveau développement immobilier après
 l'arbitrage `main` 9e8901b : transmission à Claude documentée séparément.
 
+## 29 octobre — miroirs institutionnels et transmission
+
+L'arbitrage immobilier est transmis à Claude dans `TRANSMISSION-IMMOBILIER-CLAUDE-20261029.md` ; aucun nouveau développement immobilier. Le lot préparé `20261029100000` conserve morts, détenus et PA canoniques à travers les miroirs police/douane. Il reprend une seule fois les PA historiques valides, sans réimport au rejeu. Les rounds policiers existants enregistrent leurs dégâts dans le socle avant projection, sans second coup ni dépense additionnelle.
+
+173/173 cas locaux passent ; sans correctif, six des mêmes 173 cas échouent. Les vrais corps historiques de police sont archivés avec SHA256 dans `fixtures/groupes-police-corps-git-20261028.json`. Les ACL du décor authenticated sont explicites : aucune preuve d'identité au catalogue vivant. Le banc n'établit pas encore le recrutement/combat mixte complet. Globaux 5/12, sans modification des références. Preuves : `preuves-groupes-219-miroirs-20261029/`.
+
+Les anciennes écritures d'effectifs restent à fermer après raccordement de leurs ordres ; le lot ne doit pas être activé isolément. Les autres travaux de rounds mixtes, interception et transports spéciaux restent ouverts. ChatGPT organise #230, les prévols et la production.
+
 ## État le plus récent — 29 octobre, lot international
 
 Le code étend les moteurs existants, sans deuxième déplacement, billetterie,
