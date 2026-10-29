@@ -1347,7 +1347,7 @@ function loadCharacter() {
             }
             // state reste donc exactement tel que le cache local l'a pose : aucun montant
             // etranger, aucun 4250 invente, aucun 0, et aucune reecriture de localStorage.
-            state.personnageChargeDepuisServeur = true; // ne jamais bloquer indefiniment
+            state.personnageChargeDepuisServeur = false; // fiche serveur masquée : cache non autoritaire
             return diagnostiquerIdentite(char.name);
           }
 
@@ -1467,7 +1467,7 @@ function loadCharacter() {
           // Reconciliation terminee (reussie ou sbState vide) : les sauvegardes redeviennent
           // normales des cet instant, y compris pour la navigation qui vient de se produire
           // pendant l'attente ci-dessus (enterRoom l'a deja affichee sans la sauvegarder).
-          state.personnageChargeDepuisServeur = true;
+          state.personnageChargeDepuisServeur = !!sbState;
           // CORRECTIF DU 14 septembre 2026. Jusqu'ici, un sbState vide ne declenchait RIEN : le
           // jeu continuait sur le cache local, sans personnage cote serveur. Toutes les actions
           // echouaient alors en silence, et leurs refus etaient presentes comme un manque
@@ -1503,13 +1503,12 @@ function loadCharacter() {
           // exception du corps ci-dessus. Il nomme desormais la panne (instrumentation).
         }).catch(e => {
           rpDiagId('reconciliation', 'EXCEPTION : ' + (e && e.message));
-          state.personnageChargeDepuisServeur = true; // echec reseau : ne jamais bloquer les sauvegardes indefiniment
+          state.personnageChargeDepuisServeur = false; // réponse serveur perdue : aucune écriture depuis le cache
         });
       } else {
-        // Pas de nom ou sbLoadPersonnage indisponible : aucune reconciliation ne viendra jamais,
-        // rien a attendre -- autoriser les sauvegardes immediatement (comportement inchange par
-        // rapport a avant ce correctif dans ce cas precis).
-        state.personnageChargeDepuisServeur = true;
+        // Lecture serveur indisponible : le cache n'a pas autorité.
+        // Une nouvelle lecture authentifiée doit précéder toute écriture générique.
+        state.personnageChargeDepuisServeur = false;
       }
     } else {
       // ===================================================================================
