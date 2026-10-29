@@ -5,11 +5,18 @@
 -- les suites de la défaite (hôpital, PA) ; il appelle ensuite cette fonction, réservée au serveur.
 -- Identification et contexte : `terrain_occupation_lire` (existante) rend l'occupation
 -- (squatter_cool / squatter_agr) et le terrain ; aucun ajout nécessaire.
--- DÉPENDANCES : (1) Codex — résolution d'un combat collectif PJ (+ gros bras) contre un groupe
--- de PNJ rendant un score 0-100 ; (2) Fred — acte pénal du délit (voir RELAIS.md), d'où le
--- paramètre `p_acte_delit` : sans acte déclaré dans `actes_illegaux`, seule la trace est posée.
+-- QUALIFICATION PÉNALE (décision de Fred, 29/10/2026) : neutralisation = AGRESSION (délit mineur,
+-- 25 % de détection, 1 jour, 500 FR, comme le hooliganisme) ; mort des squatteurs = requalification
+-- en MEURTRE (crime, 25 %, 2 jours, 1 500 FR, comme l'assassinat). Le combat ne cesse que lorsqu'un
+-- des deux camps tombe à 0 PA (règle de Fred, pour le moteur de Codex).
+-- DÉPENDANCE : Codex — résolution d'un combat collectif PJ (+ gros bras) contre un groupe de PNJ
+-- rendant un score 0-100, jusqu'à 0 PA d'un camp.
+INSERT INTO public.actes_illegaux (fn, type, detect_rate, peine_jours, amende, decouvrable, maj_le) VALUES
+  ('agression', 'delit_mineur', 25, 1, 500, true, now()),
+  ('meurtre',   'crime',        25, 2, 1500, true, now())
+ON CONFLICT (fn) DO NOTHING;
 CREATE OR REPLACE FUNCTION public.terrain_squatteurs_issue_interne(
-  p_terrain text, p_acteur text, p_jet integer, p_requete uuid, p_acte_delit text DEFAULT NULL)
+  p_terrain text, p_acteur text, p_jet integer, p_requete uuid)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp'
 AS $function$
 DECLARE p record; t record; a record; e jsonb; occ text; issue text; r jsonb; repere boolean := false;
@@ -33,15 +40,13 @@ BEGIN
     -- Terrain libéré pour cette visite ; le tirage de la visite suivante reste celui du socle
     -- d'occupation (aucune réapparition après compromis ou achat).
     e := public.terrain_etat_fusionner_interne(t.id, jsonb_build_object('pnj', NULL, 'pnjData', NULL), t.country);
-    PERFORM public.crime_tracer_interne(p_acteur, 'neutralisation_squatteurs', p_terrain);
-    IF p_acte_delit IS NOT NULL AND EXISTS (SELECT 1 FROM public.actes_illegaux WHERE fn = p_acte_delit) THEN
-      repere := public.crime_detecter_interne(p_acteur, p_acte_delit, true);
-    END IF;
+    PERFORM public.crime_tracer_interne(p_acteur, 'agression', p_terrain);
+    repere := public.crime_detecter_interne(p_acteur, 'agression', true);
   ELSIF issue = 'tues' THEN
     -- Les cadavres restent : le parcours existant (police, enquête, dissimulation) s'applique.
     e := public.terrain_etat_fusionner_interne(t.id, jsonb_build_object('pnj', 'cadavre', 'pnjData', NULL), t.country);
-    PERFORM public.crime_tracer_interne(p_acteur, 'assassinat', p_terrain);
-    repere := public.crime_detecter_interne(p_acteur, 'assassinat', true);
+    PERFORM public.crime_tracer_interne(p_acteur, 'meurtre', p_terrain);
+    repere := public.crime_detecter_interne(p_acteur, 'meurtre', true);
   END IF;
   r := jsonb_build_object('ok',true,'issue',issue,'jet',p_jet,'occupation',occ,'repere',repere,
          'terrainLibre', issue = 'neutralises', 'cadavres', issue = 'tues');
@@ -49,4 +54,4 @@ BEGIN
   RETURN r || jsonb_build_object('etat', e);
 END;
 $function$;
-REVOKE ALL ON FUNCTION public.terrain_squatteurs_issue_interne(text,text,integer,uuid,text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.terrain_squatteurs_issue_interne(text,text,integer,uuid) FROM PUBLIC, anon, authenticated;
