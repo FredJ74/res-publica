@@ -3,6 +3,10 @@
 
 **Responsable unique : ChatGPT (coordination avec Codex pour socle inventaire/groupes).** La clôture Luthécia exige : (1) cartographier les valeurs calculées, sauvegardées ou affichées localement sans confirmation serveur ; (2) supprimer/adapter les anciennes écritures qui écrasent positions, inventaire, soldes, santé, moral, sanctions et état du PJ ; (3) sécuriser chargement, autosauvegarde, perte de réponse, reconnexion, changement de version après déploiement ; (4) tester égalité état UI / état canonique après action, refresh, reconnexion et deux sessions, sans mutation d'un PJ réel lors de l'audit. **Ne pas confondre suppression d'une double autorité avec simple actualisation cosmétique.** Les six fermetures liées à #213 restent subordonnées à prévol et validation. Toute régression de cette catégorie bloque la promotion en production.
 
+## 29 octobre — verrouillage des combattants avant les coups (#219)
+
+Complément de `20261029190000` : les projections, PJ et PNJ des deux camps sont verrouillés avant de relire/appliquer les PA. Le verrou de graphe seul ne remplace pas ces verrous de lignes face aux autres écrivains serveur. Prévol complété pour examiner aussi le traitement militaire de calendrier vivant. Validation finale répétée : **272/272 SQL**, contres **9/272** et **2/272** échecs attendus, **122/122 bancs clients**. Pas de production.
+
 ## 29 octobre — commandes de bataille et reprise réseau (#219, EN COURS)
 
 Après `b9b5ad45`, `20261029191000` fournit reçus et round attendu aux trois portes existantes : engager, poursuivre, décider. Les corps historiques sont privés, les anciens appels sans reçu refusés. Deux commandes concurrentes = un round ; une réponse perdue retrouve son résultat, un round obsolète ne relance aucun coup. Les décisions du chef exigent sa disponibilité/présence ; l'observation/poursuite par un participant évacué reste permise comme avant, sans le faire combattre. Le lecteur exclut les indisponibles et le round clôt leurs engagements avant ses coups.

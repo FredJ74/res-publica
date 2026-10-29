@@ -254,7 +254,7 @@ BEGIN
  s:=pg_get_functiondef('public.militaire_bataille_round(bigint)'::regprocedure);
  IF position('-- bataille_sorties_indisponibles_v1' IN s)=0 THEN
   a:='  SELECT coalesce(array_agg(DISTINCT camp), ''{}'') INTO v_camps';
-  b:=E' -- bataille_sorties_indisponibles_v1\n UPDATE public.batailles_engagements e SET sorti_round=v_round,etat_final=''indisponible'' WHERE e.bataille_id=p_bataille_id AND e.sorti_round IS NULL AND NOT EXISTS(SELECT 1 FROM public.militaire_bataille_combattants(p_bataille_id,e.camp) c WHERE c.eng_id=e.id);\n'||a;
+  b:=E' -- bataille_sorties_indisponibles_v1\n PERFORM public.pnj_groupes_verrouiller_projections_interne(ARRAY(SELECT pnj_id FROM public.batailles_engagements WHERE bataille_id=p_bataille_id AND sorti_round IS NULL AND pnj_id IS NOT NULL ORDER BY pnj_id));\n PERFORM d.name FROM public.personnages_donnees d WHERE d.name IN (SELECT personnage FROM public.batailles_engagements WHERE bataille_id=p_bataille_id AND sorti_round IS NULL) ORDER BY d.name FOR UPDATE;\n PERFORM m.id FROM public.pnj_membres m WHERE m.id IN (SELECT pnj_id FROM public.batailles_engagements WHERE bataille_id=p_bataille_id AND sorti_round IS NULL) ORDER BY m.id FOR UPDATE;\n UPDATE public.batailles_engagements e SET sorti_round=v_round,etat_final=''indisponible'' WHERE e.bataille_id=p_bataille_id AND e.sorti_round IS NULL AND NOT EXISTS(SELECT 1 FROM public.militaire_bataille_combattants(p_bataille_id,e.camp) c WHERE c.eng_id=e.id);\n'||a;
   IF position(a IN s)=0 THEN RAISE EXCEPTION 'bataille_round_sorties_non_examinees';END IF;EXECUTE replace(s,a,b);
  END IF;
 END $disponibles$;
