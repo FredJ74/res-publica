@@ -11898,7 +11898,7 @@ async function ouvrirPanneauCombat(batailleId) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;margin-bottom:.4rem">BILAN DU ROUND ' + dernier.round + '</div>';
     html += '<div style="font-size:.76rem;color:#c0b090">Vos pertes : ' + (dernier.mes_pa_perdus || 0) +
             ' PA sur ' + (dernier.mes_combattants_touches || 0) + ' combattant(s) touché(s).</div>';
-    if (dernier.mes_morts_pnj > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_morts_pnj + ' soldat(s) tué(s).</div>';
+    if (dernier.mes_morts_pnj > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_morts_pnj + ' PNJ tué(s).</div>';
     if (dernier.mes_pj_neutralises > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_pj_neutralises + ' des vôtres évacué(s) à l\'infirmerie.</div>';
     html += '<div style="font-size:.76rem;color:#8ac05a;margin-top:.3rem">En face : ' + (dernier.adversaires_tombes || 0) + ' adversaire(s) tombé(s) sous vos yeux.</div>';
     html += '<div style="font-size:.74rem;color:#8a8060">Encore debout : ' + escapeHtmlText(dernier.adversaire_estime?.libelle || '—') + '.</div>';
@@ -11906,29 +11906,7 @@ async function ouvrirPanneauCombat(batailleId) {
   }
 
   if (!fini) {
-    if (b.mon_groupe_replie) {
-      html += '<div style="font-size:.76rem;color:#C9A84C;padding:.5rem;border:1px solid #6a5420;margin-bottom:.6rem">Votre groupe a décroché. Le combat continue sans vous.</div>';
-    } else if (b.decision_attendue && b.je_suis_leader) {
-      // Seuil des 50 % de pertes atteint : le chef a 90 secondes pour trancher,
-      // et AUCUN round ne part tant qu'il n'a pas repondu. Passe ce delai, son
-      // groupe -- et lui seul -- se replie automatiquement.
-      html += '<div style="border:1px solid #8a2f2f;background:rgba(138,47,47,.12);padding:.6rem;margin-bottom:.7rem">';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#e08a8a;margin-bottom:.25rem">Votre groupe a perdu la moitié de son effectif</div>';
-      html += '<div style="font-size:.74rem;color:#a89870;margin-bottom:.5rem">' + (b.mon_groupe_restants || 0) + ' sur ' + (b.mon_groupe_effectif_initial || 0) + ' encore debout. Sans réponse de votre part, le repli est ordonné automatiquement.</div>';
-      if (typeof b.secondes_restantes === 'number') {
-        html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.5rem">' + b.secondes_restantes + ' s</div>';
-      }
-      html += '<div style="display:flex;gap:.4rem">';
-      html += '<button onclick="deciderCombat(' + b.id + ',\'tenir\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Tenir la position</button>';
-      html += '<button onclick="deciderCombat(' + b.id + ',\'replier\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ordonner le repli</button>';
-      html += '</div></div>';
-    } else if (b.je_suis_leader) {
-      html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem">Vous commandez ce groupe. Tant qu\'il n\'a pas perdu la moitié de son effectif, le combat suit son cours.</div>';
-      html += '<button onclick="poursuivreCombat(' + b.id + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Passer au round suivant</button>';
-    } else {
-      html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem">Vous ne commandez pas ce groupe' + (b.mon_chef ? ' — ' + escapeHtmlText(b.mon_chef) + ' en décide' : ', et aucun officier ne le mène : il se repliera de lui-même à la moitié de ses pertes') + '.</div>';
-      html += '<button onclick="poursuivreCombat(' + b.id + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Passer au round suivant</button>';
-    }
+    html += htmlDecisionsCombat(b);
   } else if (b.issue) {
     html += '<div style="font-size:.8rem;color:#C9A84C;text-align:center;padding:.5rem">Issue : ' + escapeHtmlText(b.issue) + '</div>';
   }
@@ -11936,6 +11914,30 @@ async function ouvrirPanneauCombat(batailleId) {
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
+}
+
+// Le contrat serveur décide des commandes affichées ; aucun membre ne reçoit
+// un pouvoir de chef à partir de son statut d'employeur ou de son grade.
+function htmlDecisionsCombat(b) {
+  if (b.contrat_combat !== 2) return '<p class="cpj-note">Contrat de combat à synchroniser. Aucune décision envoyée.</p>';
+  if (b.mon_groupe_replie) return '<p class="cpj-note">Votre groupe a quitté l’affrontement.</p>';
+  const bouton = (action,label) => '<button class="cpj-touche" onclick="' + action + '">' + label + '</button>';
+  if (b.peut_decider !== true) {
+    return '<p class="cpj-note">Le chef conserve le commandement.</p>' +
+      (b.resolution_automatique === true
+       ? bouton('poursuivreCombat('+b.id+')','Constater la résolution automatique')
+       : bouton('ouvrirPanneauCombat('+b.id+')','Consulter le combat'));
+  }
+  let h = '<div class="cpj-dialogue">';
+  h += Number(b.round_courant)<5
+    ? '<p>Les cinq premiers rounds se poursuivent sans désengagement volontaire.</p>'
+    : '<p>Vous pouvez continuer, tenter la fuite ou vous rendre.</p>';
+  h += bouton('poursuivreCombat('+b.id+')','Continuer le combat');
+  if (Number(b.round_courant)>=5) {
+    h += bouton('deciderCombat('+b.id+',&quot;replier&quot;)','Fuir');
+    h += bouton('deciderCombat('+b.id+',&quot;rendre&quot;)','Se rendre');
+  }
+  return h+'</div>';
 }
 
 async function confirmerEngagementCombat() {
@@ -11966,7 +11968,8 @@ function messageRefusCombat(r) {
     commande_en_cours:'Une commande est déjà en cours.',
     requete_requise:'Cette page doit être actualisée pour utiliser les reçus de combat.',
     recu_non_conserve:'Aucun ordre envoyé : le reçu ne peut pas être conservé.',
-    etat_non_confirme:'Le combat doit être relu avant de poursuivre.'
+    etat_non_confirme:'Le combat doit être relu avant de poursuivre.',
+    cinq_rounds_obligatoires:'Les cinq premiers rounds ne permettent aucun désengagement volontaire.'
   };
   return raisons[r?.raison] || 'Le résultat reste à confirmer. Réessayez avec le même reçu.';
 }

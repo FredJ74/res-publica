@@ -11703,9 +11703,9 @@ function afficherInterceptionJudiciaire() {
     (i.reponseIncertaine ? '<p>La réponse du serveur a été perdue. Rechargez le jeu pour retrouver la situation confirmée, sans répéter votre action.</p>' :
       (i.fuiteEchouee ? '<p>Votre tentative de fuite a échoué : vous devez vous rendre ou combattre.</p>' : '')) +
     (i.reponseIncertaine ? '' : '<div style="display:grid;gap:.5rem">' +
-    (i.peutSeRendre === false ? '' : btn('rendre','Se rendre')) +
+    (i.peutSeRendre === false || (i.round > 1 && i.round <= 5) ? '' : btn('rendre','Se rendre')) +
     (i.peutCommander === false ? '<p>Le chef du groupe commande le combat ou la fuite.</p>' :
-      btn('combattre','Combattre') + (i.fuiteEchouee ? '' : btn('fuir','Fuir'))) + '</div>') + '</div>';
+      btn('combattre',i.round > 1 ? 'Continuer le combat' : 'Engager le combat') + (i.fuiteEchouee || (i.round > 1 && i.round <= 5) ? '' : btn('fuir','Fuir'))) + '</div>') + '</div>';
   modal.classList.add('open');
 }
 
@@ -11767,11 +11767,12 @@ async function conclureArrestationJudiciaire() {
     if (i.contratGroupes === 1) {
       const frais = await synchroniserInterceptionCollectiveServeur(contexte, i);
       if (!contexteInterceptionJudiciaireValide(contexte, i)) return;
-      if (!frais || !frais.estEmprisonne) { marquerInterceptionIncertaine(i); return; }
+      if (!frais || (i.cible === contexte.nom && !frais.estEmprisonne)) { marquerInterceptionIncertaine(i); return; }
       interceptionJudiciaire = null;
       document.getElementById('modal-postes')?.classList.remove('open');
       if (typeof afficherPositionNavigationConfirmee === 'function') afficherPositionNavigationConfirmee(frais);
-      addJournalEntry(String(i.rencontreId || '').startsWith('prive-') ?
+      if (i.cible !== contexte.nom) addJournalEntry('Votre groupe s’est rendu. '+i.cible+' a été conduit(e) en prison par les autorités.', 'event-bad');
+      else addJournalEntry(String(i.rencontreId || '').startsWith('prive-') ?
         'Un agent privé vous a remis(e) à la police, qui vous a conduit(e) en prison.' :
         'Vous êtes conduit(e) en prison après votre reddition.', 'event-bad');
       if (typeof updateUI === 'function') updateUI();

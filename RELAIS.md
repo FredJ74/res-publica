@@ -1,3 +1,11 @@
+## #219 — cinq rounds et commandement, reprise du 29 octobre (NON DÉPLOYÉ)
+
+Main `85999f29` intégré sans rétablir les anciens raccordements inventaire. Nouveau lot préparé : `20261029223000`, `223100`, `223200` (dans cet ordre, après `20261029220100`). Cinq rounds sans fuite/reddition volontaire ; seul le chef décide ; chef à zéro PA conserve groupe et place pendant que les compagnons combattent. Suites militaires terminales communes différées jusqu’à la sortie effective. Reddition policière collective : seul le PJ condamné est écroué, pas le chef innocent. UI liée au contrat serveur, pas au titre présenté.
+
+Validation locale : **306/306 cas SQL PostgreSQL jetable**, dont neuf nouveaux cas de bataille et six de reddition policière ; **9/9 cas clients de décisions**. Les 291 cas historiques sont exécutés avant installation des trois nouveaux compléments ; les quinze nouveaux cas après, ce n’est pas une attestation que tous les anciens scénarios restent inchangés sous les nouvelles règles. Décors corrigés sans résurrection d’un PNJ mort. PR #235 inspectée par Git en lecture seule : son diff concerne l’hydratation client, pas un moteur judiciaire d’amendes. PR #246 intacte.
+
+**Reste à faire :** fuite réelle vers sortie/gauche, progression autonome, PNJ unique squatteurs (profils numériques non définis), raccordements judiciaires et contrôles globaux. Ne pas fusionner ni déployer : la règle complète n’est pas encore implémentée. Aucun joueur réel touché, aucune migration appliquée. Question de profils posée à Fred, autres travaux poursuivis.
+
 ## #219 — reprise du socle policier, 29 octobre (EN COURS, NON DÉPLOYÉ)
 
 Main `416f275b` intégré sur `codex/groupes-universels-20261028`. Les contrôles ordinaires utilisent maintenant le détecteur commun, le dossier `police_interceptions` et les portes/reçus de reddition et fuite existants. DUP/PER après détection effective, saisie/convocation ou écrou +1 jour dans une transaction. Aucun jet ni sanction ordinaire à l’écran ; inventaire versionné relu, sans adopter l’inventaire ancien du reçu. `procederArrestation` attend confirmation/relecture de la détention et n’anticipe plus argent, poste ou téléportation ; réponses tardives ignorées. Immunité locale existante conservée, aucun pouvoir ajouté aux agents privés.

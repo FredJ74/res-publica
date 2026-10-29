@@ -13,7 +13,7 @@ def suite(ctx,suivante=None):
  def decor():
   sql("UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='mairie',current_room='accueil',current_street=NULL,pa=100,hp=100,stats='{\"VOL\":15,\"PER\":15}',resources='{\"dis\":0}' WHERE name IN ('A','B','C','D')")
   exige(rpc('groupe_pj_rejoindre',('C',),qui='D'))
-  sql("UPDATE pnj_membres SET leader_pnj_id=NULL,ville='capitale',building_id='mairie',room_id='accueil' WHERE id='autre'")
+  sql("UPDATE pnj_membres SET leader_pj=NULL,leader_pnj_id=NULL,rue_noeud_id=NULL,ville='capitale',building_id='mairie',room_id='accueil' WHERE id='autre'")
   sql("UPDATE pnj_membres SET proprietaire_pj='C',leader_pj='C',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,pa=12,car_per=(pnj_metier_profil('agent_securite')->>'PER')::integer,car_vol=(pnj_metier_profil('agent_securite')->>'VOL')::integer WHERE id IN ('ancre','autre')")
   sql("INSERT INTO jugements(id,country,city,accuse,motif,data,executee) VALUES('jugement-mixte-fixture','republic','capitale','C','Peine fictive','{\"motifs\":[{\"jours\":2}]}',false)")
   q.execute("SELECT pnj_groupes_projeter_interne(ARRAY['police-republic-capitale-P1','police-republic-capitale-P2','police-republic-capitale-P3'])")

@@ -30,7 +30,7 @@ def suite(ctx,suivante=None):
   exige(rpc('groupe_pj_rejoindre',('C',),qui='D'))
   sql("UPDATE pnj_membres SET leader_pj='A',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,pa=12 WHERE id='ancre'")
   sql("UPDATE pnj_membres m SET car_per=(pnj_metier_profil(e.job)->>'PER')::int,car_dup=(pnj_metier_profil(e.job)->>'DUP')::int,car_vol=(pnj_metier_profil(e.job)->>'VOL')::int FROM pnj_employes_metier e WHERE e.pnj_id=m.id")
-  sql("UPDATE pnj_membres SET leader_pj='C',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,pa=12 WHERE id='douane-republic-ville_a-D1'")
+  sql("UPDATE pnj_membres SET leader_pj='C',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,pa=12 WHERE id='douane-republic-ville_a-D1' AND statut='actif'")
   sql("INSERT INTO services_militaires(personnage,pays,grade) VALUES('C','soviet','soldat')")
   sql("INSERT INTO guerres(id,statut,data) VALUES('mixte-native','active','{\"attaquant\":\"republic\",\"attaque\":\"soviet\"}')")
   sql("INSERT INTO batailles(id,pays,ville,batiment,piece,camp_a,camp_b,initiative,leader_a,leader_b) VALUES(71,'republic','capitale','hotel-republica','bar','republic','soviet','simultane','A','C')")
