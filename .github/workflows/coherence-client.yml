@@ -37,6 +37,8 @@ jobs:
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
       - name: Bancs JavaScript, transports simulés
         run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
+      - name: Destinations du centre multimodal
+        run: node outils/bancs/banc-destinations-multimodal-20261028.cjs
       - name: Création de personnage après réponse réseau perdue
         run: node outils/bancs/banc-creation-personnage-reseau-20261028.cjs
       - name: Régression de sortie de bâtiment avec réponse perdue
