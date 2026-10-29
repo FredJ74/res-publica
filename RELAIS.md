@@ -18,6 +18,14 @@
 
 ---
 
+## #219 — sauvegarde finale sélection et contrôles portables, Codex 29/10
+
+- Lot précédent poussé `b40d54d4`. Ordre des verrous du round policier complété : ressources du groupe avant le verrou propre au PJ ; reçu conservé avant la garde d'éligibilité. La concurrence finale cible une vraie prise PNJ, pas seulement le départ PJ déjà verrouillé.
+- **200/200 SQL**, **117/117 bancs clients**, contre-épreuves sur les mêmes 200 cas : **8**, **6**, **2** échecs attendus selon la protection retirée. Preuves finales séparées `outils/audits/preuves-groupes-219-selection-finale-20261029/` ; les preuves précédentes ne sont pas réécrites. Identités fictives/authenticated dans PostgreSQL jetable, aucune connexion de joueur réel.
+- Les contrôles Référentiels/Fonctions et le générateur associé peuvent maintenant utiliser l'adaptateur Node existant si JavaScriptCore macOS est absent. Aucun seuil, donnée, empreinte, déclaration ou assertion affaibli. Banc d'exécution réelle/calcul/exception ajouté. **Globaux toujours 5/12** : classification/base/catalogue incohérents, Authority (109 RPC sans baseline et autres écarts), miroirs/référentiels (certains autres générateurs restent dépendants de JSC), copie de `tauxHoraireChantierServeur` non déclarée et contrôle d'expulsion ambassadeur à rapprocher, deux fonctions de triggers absentes, reconstruction en échec. Ni immobilier ni ambassades corrigés sous couvert des contrôles.
+- Derniers distants relus : main `dc92077f` déjà ancêtre de la branche ; PR230 `b054264f`, complément d'audit ACL, aucune réécriture de son travail ni de PR225. Lecture API GitHub des commentaires toujours Forbidden ; aucun connecteur Supabase accessible pour le prévol vivant.
+- **NON PRÊT pour intégration/activation complète.** Le code restant (rounds mixtes à deux groupes, recherché accompagnant/chef innocent, reddition et séparation à l'écrou, anciens écrivains d'effectifs, trajets spéciaux) n'est pas réduit à un défaut d'accès Supabase. Sélection/gardes ne clôturent pas ces circuits. Pas de migration, fusion ou déploiement. ChatGPT conserve #230 et la livraison.
+
 ## #219 — sélection et composition sous confrontation, Codex 29/10, EN COURS
 
 - Reprise `ca72fe22`, même branche. Références PR230 relues via Git (`b054264f`, nouvel audit ACL) ; API PR219 Forbidden, aucune nouvelle tentative répétée. Aucun connecteur Supabase exposé, aucune production. Les six workflows antérieurs sont l'information de Fred, pas une nouvelle observation CI de ces commits.

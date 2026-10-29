@@ -6,6 +6,24 @@ Les transports internationaux passent localement ; combats et interceptions
 collectifs restent inachevés. Aucun nouveau développement immobilier après
 l'arbitrage `main` 9e8901b : transmission à Claude documentée séparément.
 
+## Vérification finale du lot de sélection — 29 octobre
+
+Branche conservée, sauvegarde `b40d54d4` puis complément de verrous et contrôles portables. Main `dc92077f` est intégré ; PR230 relue par Git à `b054264f` (audit ACL supplémentaire). API des commentaires Forbidden et aucun connecteur Supabase exposé : prévol réel non exécuté, aucun déploiement.
+
+**200/200 SQL natifs**, **117/117 bancs clients**. Contres sur le même ensemble final : 8 échecs sans garde de composition/verrou PNJ, 6 sans recrutement militaire corrigé, 2 sans garde d'état policier. Le banc utilise les vrais corps historiques des coups/rounds, des comptes et personnages de décor ; pas une authentification Supabase. Preuves immuables finales `preuves-groupes-219-selection-finale-20261029/`.
+
+Les contrôles de fonctions/référentiels utilisent désormais le repli Node du lanceur existant lorsque JSC macOS est absent. Leurs critères restent intacts. Globaux **5/12**, détails dans `globaux.log`. Ils ne sont pas présentés comme corrigés : l'exécution dévoile encore une copie de calcul chantier non déclarée et une source canonique d'expulsion absente ; les défauts de catalogue, dépendances/miroirs et générateurs encore spécifiques à JSC restent distincts. Pas de réécriture de baseline ou d'observation.
+
+**Migrations nouvelles non appliquées**, dans cet ordre après toute la chaîne #219 existante et rapprochement #213/#230 :
+- `migrations/20261029110000_groupes_recrutement_combattants.sql`
+- `migrations/20261029110100_groupes_composition_sous_confrontation.sql`
+- `migrations/20261029110200_militaire_recrutement_presence_et_etat.sql`
+- `migrations/20261029110300_police_combattant_etat_canonique.sql`
+
+Le prévol versionné demande toujours les corps/ACL/RLS/triggers/registre vivants. Ne pas appliquer seulement les quatre fichiers : les anciens écrivains et parcours encore incomplets empêchent d'activer l'ensemble. Aucun retour arrière par restauration d'une sauvegarde de joueurs n'est proposé ; en cas d'échec de prévol, aucune activation.
+
+**NON PRÊT.** Restent du code et des scénarios à terminer : résolution de rounds mixtes entre les deux groupes, interception d'un recherché accompagnant un chef innocent, reddition et séparation lors d'un écrou, fermeture des vieux écrivains d'effectifs et transports spéciaux. Les droits du chef sur la reddition d'un autre PJ ne sont pas inventés. Le défaut d'accès au vivant empêche aussi le prévol ; il n'explique pas à lui seul ces raccordements inachevés.
+
 ## 29 octobre — sélection de combat et composition gelée
 
 Préparation `20261029110000` à `20261029110300` : sélection canonique privée des membres présents/disponibles ; pas de valeur inventée pour les caractéristiques militaires absentes (leurs moteurs conservent leurs profils). Les portes de composition ne permettent plus de quitter/rejoindre/déposer/transmettre/rappeler pendant une confrontation existante ; verrous de graphe communs. Recrutement militaire distinguant service national et position physique, excluant les incapables/détenus/interceptés ou engagés ailleurs. Le combat policier réutilise la sélection pour contrôler l'état de l'acteur après lecture d'un éventuel reçu, avant les coups.

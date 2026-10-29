@@ -83,6 +83,8 @@ import tempfile
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(os.path.dirname(ICI))
+sys.path.insert(0, os.path.join(RACINE, 'outils'))
+from moteur_javascript import choisir_moteur, commande_moteur
 DECLARATION = os.path.join(ICI, "referentiels.json")
 
 JSC_CANDIDATS = [
@@ -92,10 +94,7 @@ JSC_CANDIDATS = [
 
 
 def jsc():
-    for c in JSC_CANDIDATS:
-        if os.path.exists(c):
-            return c
-    return None
+    return choisir_moteur(JSC_CANDIDATS)
 
 
 def evaluer(script, moteur):
@@ -104,7 +103,7 @@ def evaluer(script, moteur):
     f.write(script)
     f.close()
     try:
-        p = subprocess.run([moteur, f.name], capture_output=True, text=True, timeout=120)
+        p = subprocess.run(commande_moteur(moteur, f.name), capture_output=True, text=True, timeout=120)
     finally:
         os.unlink(f.name)
     if p.returncode != 0 or not p.stdout.strip():

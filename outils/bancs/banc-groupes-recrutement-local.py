@@ -117,7 +117,7 @@ def suite(ctx,suivante=None):
    un.cursor().execute("SELECT pg_advisory_xact_lock(hashtextextended('groupe_pj:graphe',0))")
    cur=deux.cursor();cur.execute("SET statement_timeout='5s'")
    with ThreadPoolExecutor(1) as pool:
-    fut=pool.submit(rpc,'groupe_pj_quitter',(),'A',cur)
+    fut=pool.submit(rpc,'pnj_prendre',(['police-republic-capitale-P1'],),'B',cur)
     limite=time.monotonic()+3;attend=False
     while time.monotonic()<limite:
      q.execute('SELECT pg_stat_clear_snapshot()');q.execute('SELECT wait_event_type FROM pg_stat_activity WHERE pid=%s',(deux.get_backend_pid(),))
@@ -128,7 +128,7 @@ def suite(ctx,suivante=None):
     assert attend,'absence de sérialisation des compositions'
     un.rollback();exige(fut.result(timeout=6))
   finally:un.rollback();deux.rollback();un.close();deux.close()
- cas('composition_concurrente_serialisee_graphe_entre_deux_sessions',verrou_graphe)
+ cas('prise_PNJ_concurrente_serialisee_graphe_entre_deux_sessions',verrou_graphe)
  ctx['preuves_extension']['recrutement']='Lecteur privé du groupe canonique et gardes de composition. Ne prouve pas encore les rounds mixtes universels ni la reddition collective.'
  if suivante is not None:suivante(ctx)
 if __name__=='__main__':sys.exit(p.v.d.i.lancer(lambda c:p.v.d.suite(c,lambda c:p.v.suite(c,lambda c:p.suite(c,suite)))))
