@@ -4310,16 +4310,68 @@ function ouvrirInformationsTerrainLuthecia(nature) {
     const lots = Array.isArray(ts?.subdivisions) ? ts.subdivisions : [];
     html += ligne('Bâtiment livré', ts.niveau_construction);
     html += ligne('Nombre de lots', lots.length);
-    html += lots.map((lot,i) => ligne('Lot ' + (i+1), (lot.label || lot.nom || lot.name || 'Sans nom') +
-      ' — ' + (lot.surface ?? lot.superficie ?? 'surface inconnue') + ' m²' +
-      ' — loyer : ' + (lot.loyer ?? 'non défini') + ' FR' +
-      (lot.locataire ? ' — occupé par ' + lot.locataire : ' — disponible'))).join('');
+    // Le titulaire des murs fixe le loyer journalier de chaque lot LIBRE (29/10/2026) : les lots
+    // nés du plan valent 0 FR et ne se louent pas tant qu'il ne l'a pas fait. Le loyer d'un lot
+    // occupé ne change pas en cours de bail ; le serveur le refuse de toute façon.
+    const gere = typeof constructionPeutGerer === 'function' && constructionPeutGerer(ts);
+    html += lots.map((lot,i) => {
+      const loyer = Number(lot.loyer) > 0 ? lot.loyer + ' FR/jour' : 'non fixé';
+      let l = ligne('Lot ' + (i+1), (lot.label || lot.nom || lot.name || 'Sans nom') +
+        ' — ' + (lot.surface ?? lot.superficie ?? 'surface inconnue') + ' m²' +
+        ' — loyer : ' + loyer +
+        (lot.locataire ? ' — occupé par ' + lot.locataire : ' — disponible'));
+      if (gere && !lot.locataire && lot.id) {
+        const idLot = ech(lot.id).replace(/'/g, '&#39;');
+        l += '<p style="display:flex;gap:.5rem;align-items:center;margin:-.2rem 0 .8rem">' +
+          '<input type="number" min="1" max="100000" step="1" class="cpj-champ" style="width:8rem" ' +
+          'id="loyer-lot-' + i + '" value="' + (Number(lot.loyer) > 0 ? Number(lot.loyer) : '') + '" placeholder="FR / jour">' +
+          '<button type="button" class="cpj-touche cpj-primaire" onclick="confirmerLoyerLotTerrain(\'' + idLot + '\',' + i + ')">Fixer le loyer</button></p>';
+      }
+      return l;
+    }).join('');
+    if (gere && lots.some(l => !l.locataire && !(Number(l.loyer) > 0))) {
+      html += '<p class="cpj-note">Un lot sans loyer fixé n’est pas proposé à la location.</p>';
+    }
   } else return;
   document.getElementById('postes-modal-title').textContent =
     nature === 'chantier' ? 'Information sur le chantier' : 'Information sur les locaux';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' + html + '</div>';
   document.getElementById('modal-postes').classList.add('open');
+}
+
+let loyerLotEnCours = false;
+async function confirmerLoyerLotTerrain(lotId, index) {
+  if (loyerLotEnCours) return;
+  const id = state.currentBuilding;
+  const brut = (document.getElementById('loyer-lot-' + index)?.value || '').trim();
+  if (!/^[1-9][0-9]{0,5}$/.test(brut) || Number(brut) > 100000) {
+    showToast('Loyer refusé', 'Indiquez un loyer journalier en francs entiers, entre 1 et 100 000.', false);
+    return;
+  }
+  loyerLotEnCours = true;
+  try {
+    const v = typeof sbRpcVerdict === 'function'
+      ? await sbRpcVerdict('terrain_lot_loyer_fixer', { p_terrain_id: id, p_lot: lotId, p_loyer: Number(brut) }).catch(() => null)
+      : null;
+    if (state.currentBuilding !== id) return;
+    if (!v || v.ok !== true) {
+      const motifs = {
+        lot_occupe: 'Ce lot est loué : son loyer ne change pas en cours de bail.',
+        pas_titulaire_des_murs: 'Seul le titulaire des murs fixe les loyers.',
+        lot_en_travaux: 'Ce lot est en travaux.',
+        loyer_invalide: 'Indiquez un loyer journalier entre 1 et 100 000 FR.'
+      };
+      showToast('Loyer non enregistré', motifs[v?.raison] || 'Le serveur n’a pas confirmé le loyer. Rouvrez la fiche pour vérifier.', false);
+      return;
+    }
+    if (v.etat && typeof remplacerTerrainState === 'function') remplacerTerrainState(id, v.etat);
+    else if (typeof chargerTerrainState === 'function') await chargerTerrainState(id, true);
+    showToast('Loyer enregistré', 'Le lot est proposé à la location à ' + Number(brut).toLocaleString('fr-FR') + ' FR par jour.', true);
+    ouvrirInformationsTerrainLuthecia('locaux');
+  } finally {
+    loyerLotEnCours = false;
+  }
 }
 
 function expliquerAchatTerrainBloque() {
@@ -6608,47 +6660,49 @@ async function confirmerDemandeMariage(pa, cost) {
   if (!rawSelect) return;
   const [destinataire, estPJRaw] = rawSelect.split('|');
   const estPJ = estPJRaw === '1';
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
+  if (!destinataire) return;
+  // MARIAGE PAR LE SERVEUR (29/10/2026). « En Républia, on ne peut pas être marié contre son gré » :
+  // l'écran n'écrit plus ni demande ni union. mariage_demander prélève 1 PA ; pour un PNJ, le tirage
+  // et les 200 FR de la cérémonie se font au serveur. Seule la relation (allié / ennemi) part d'ici.
+  let relation = null;
   if (!estPJ) {
-    const estDansMonGroupeMariage = typeof getMonGroupePNJ === 'function' && getMonGroupePNJ().some(g => g.nom === destinataire);
     const roomActuelleMariage2 = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
     const pnjInfoMariage = (roomActuelleMariage2?.persons || []).find(pp => pp.name.replace(' (PNJ)', '') === destinataire);
-    const rel = pnjInfoMariage?.rel || 'neutral';
-    const chance = estDansMonGroupeMariage ? 80 : (rel === 'ally' ? 70 : rel === 'enemy' ? 5 : 35);
-    const roll = Math.floor(Math.random() * 100) + 1;
-    if (roll <= chance) {
-      const cout = 200;
-      if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' FR requis pour officialiser.', false); return; }
-      state.arg -= cout;
-      // city (17 aout 2026, mini-lot etat-civil) : ville de la ceremonie, celle ou le joueur se
-      // trouve reellement au moment de l'acceptation instantanee (action synchrone).
-      const mariagePnj = { id: 'mariage-' + Date.now(), conjoint1: state.char?.name, conjoint2: destinataire, country: state.country, statut: 'actif', jour_union: state.day || 1, city: state.currentCity };
-      if (typeof sbCreerMariage === 'function') await sbCreerMariage(mariagePnj).catch(() => {});
-      updateUI();
+    relation = pnjInfoMariage?.rel || null;
+  }
+  const cleDem = 'mariage-demande:' + (state.char?.name || '') + ':' + destinataire;
+  let requete;
+  try { requete = sessionStorage.getItem(cleDem) || crypto.randomUUID(); sessionStorage.setItem(cleDem, requete); }
+  catch (_) { showToast('Demande non envoyée', 'Le navigateur ne peut pas conserver la référence de cette demande.', false); return; }
+  const v = await sbRpcVerdict('mariage_demander', { p_requete: requete, p_destinataire: destinataire, p_relation: relation }).catch(() => null);
+  if (!v || v.ok !== true) {
+    if (v && !v.transport) { try { sessionStorage.removeItem(cleDem); } catch (_) {} }
+    const motifs = { deja_marie: 'Vous êtes déjà marié(e).', destinataire_deja_marie: destinataire + ' est déjà marié(e).',
+      demande_deja_en_cours: 'Une demande est déjà en cours entre vous deux.', pa_insuffisants: 'Points d’action insuffisants.' };
+    showToast('Demande non envoyée', v?.transport || !v
+      ? 'Réponse incertaine. Relancez : la demande ne sera pas payée deux fois.'
+      : (motifs[v.raison] || 'Le serveur a refusé (' + v.raison + ').'), false);
+    return;
+  }
+  try { sessionStorage.removeItem(cleDem); } catch (_) {}
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
+  if (v.rejeu) { showToast('Demande déjà traitée', 'Cette demande avait déjà été enregistrée.', true); return; }
+
+  if (v.pnj) {
+    updateUI();
+    if (!v.accepte) {
+      showToast('Demande refusée', destinataire + ' a decline votre demande en mariage.', false);
+      addJournalEntry('Demande en mariage a ' + destinataire + ' (PNJ) refusee.', 'event-info');
+    } else if (!v.celebre) {
+      showToast('Fonds insuffisants', destinataire + ' a accepté, mais 200 FR sont requis pour officialiser.', false);
+    } else {
       showToast('Félicitations !', destinataire + ' a accepté. Union officialisée sur le champ !', true, true);
       addJournalEntry('Mariage celebre avec ' + destinataire + ' (PNJ).', 'event-good');
       addExternalEvent((state.char?.name || '') + ' et ' + destinataire + ' se sont maries.', 'local');
-    } else {
-      showToast('Demande refusée', destinataire + ' a decline votre demande en mariage.', false);
-      addJournalEntry('Demande en mariage a ' + destinataire + ' (PNJ) refusee.', 'event-info');
     }
     return;
   }
-  if (!destinataire) return;
-
-  const demande = {
-    id: 'demande-mariage-' + Date.now(),
-    demandeur: state.char?.name || 'Anonyme',
-    destinataire,
-    country: state.country,
-    statut: 'en_attente'
-  };
-
-  if (typeof sbCreerDemandeMariage === 'function') {
-    await sbCreerDemandeMariage(demande).catch(() => {});
-  }
+  const demande = { id: v.demandeId };
 
   if (typeof sbSendMail === 'function') {
     const h = String(state.hour || 8).padStart(2,'0');
@@ -6664,8 +6718,11 @@ async function confirmerDemandeMariage(pa, cost) {
 
 async function accepterDemandeMariage(demandeId) {
   document.getElementById('modal-pnj')?.classList.remove('open');
-  if (typeof sbUpdateDemandeMariage === 'function') {
-    await sbUpdateDemandeMariage(demandeId, 'acceptee').catch(() => {});
+  const v = await sbRpcVerdict('mariage_repondre', { p_demande: demandeId, p_accepter: true }).catch(() => null);
+  if (!v || v.ok !== true) {
+    showToast('Réponse non enregistrée', v?.raison === 'demande_introuvable' ? 'Cette demande ne vous est pas adressée.'
+      : v?.raison === 'deja_repondu' ? 'Vous avez déjà répondu à cette demande.' : 'Réponse incertaine. Réessayez.', false);
+    return;
   }
   showToast('Demande acceptée !', 'Rendez-vous tous les deux à la mairie pour officialiser votre union.', true, true);
   addJournalEntry('Vous avez accepté la demande en mariage. Rendez-vous à la mairie pour officialiser.', 'event-good');
@@ -6673,8 +6730,10 @@ async function accepterDemandeMariage(demandeId) {
 
 async function refuserDemandeMariage(demandeId) {
   document.getElementById('modal-pnj')?.classList.remove('open');
-  if (typeof sbUpdateDemandeMariage === 'function') {
-    await sbUpdateDemandeMariage(demandeId, 'refusee').catch(() => {});
+  const v = await sbRpcVerdict('mariage_repondre', { p_demande: demandeId, p_accepter: false }).catch(() => null);
+  if (!v || v.ok !== true) {
+    showToast('Réponse non enregistrée', v?.raison === 'deja_repondu' ? 'Vous avez déjà répondu à cette demande.' : 'Réponse incertaine. Réessayez.', false);
+    return;
   }
   showToast('Demande refusée', '', false);
   addJournalEntry('Vous avez refusé une demande en mariage.', '');
@@ -6724,28 +6783,27 @@ async function confirmerOfficialisationMariage(pa, cost) {
   const conjoint = document.getElementById('mariage-officialiser-select')?.value;
   if (!conjoint) return;
 
-  const cout = 200;
-  if (state.arg < cout) { showToast('Fonds insuffisants', cout + ' requis.', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // MARIAGE PAR LE SERVEUR (29/10/2026) : mariage_officialiser exige une demande ACCEPTÉE entre les
+  // deux, leur présence dans la même pièce et aucun mariage en cours ; 2 PA + 200 FR prélevés là-bas.
   document.getElementById('modal-postes').classList.remove('open');
-
-  // city (17 aout 2026, mini-lot etat-civil) : ville de la ceremonie -- les deux epoux doivent
-  // etre physiquement presents dans cette piece pour officialiser (verifie plus haut dans cette
-  // fonction), state.currentCity est donc la localisation reellement pertinente de l'acte.
-  const mariage = {
-    id: 'mariage-' + Date.now(),
-    conjoint1: state.char?.name,
-    conjoint2: conjoint,
-    country: state.country,
-    statut: 'actif',
-    jour_union: state.day || 1,
-    city: state.currentCity
-  };
-
-  if (typeof sbCreerMariage === 'function') {
-    await sbCreerMariage(mariage).catch(() => {});
+  const cleOff = 'mariage-officialiser:' + (state.char?.name || '') + ':' + conjoint;
+  let requete;
+  try { requete = sessionStorage.getItem(cleOff) || crypto.randomUUID(); sessionStorage.setItem(cleOff, requete); }
+  catch (_) { showToast('Union non célébrée', 'Le navigateur ne peut pas conserver la référence de cette cérémonie.', false); return; }
+  const v = await sbRpcVerdict('mariage_officialiser', { p_requete: requete, p_conjoint: conjoint }).catch(() => null);
+  if (!v || v.ok !== true) {
+    if (v && !v.transport) { try { sessionStorage.removeItem(cleOff); } catch (_) {} }
+    const motifs = { consentement_absent: conjoint + ' n’a pas accepté de demande en mariage avec vous.',
+      conjoint_absent: conjoint + ' doit être présent(e) dans cette pièce.', deja_marie: 'L’un de vous deux est déjà marié.',
+      fonds_insuffisants: '200 FR requis.', pa_insuffisants: 'Points d’action insuffisants.' };
+    showToast('Union non célébrée', v?.transport || !v
+      ? 'Réponse incertaine. Relancez : la cérémonie ne sera pas payée deux fois.'
+      : (motifs[v.raison] || 'Le serveur a refusé (' + v.raison + ').'), false);
+    return;
   }
+  try { sessionStorage.removeItem(cleOff); } catch (_) {}
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
+  if (v.rejeu) return;
 
   updateUI();
   showToast('Félicitations !', 'Vous êtes désormais marié(e) à ' + conjoint + ' !', true, true);
