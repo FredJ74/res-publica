@@ -82,3 +82,6 @@ CREATE OR REPLACE FUNCTION public.militaire_bataille_poursuivre(p_bataille_id bi
 RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $g$ SELECT jsonb_build_object('ok',false,'raison','requete_requise'); $g$;
 CREATE OR REPLACE FUNCTION public.militaire_bataille_decider(p_bataille_id bigint,p_decision text)
 RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $g$ SELECT jsonb_build_object('ok',false,'raison','requete_requise'); $g$;
+
+-- Rendre visibles les surcharges après la transaction de migration.
+NOTIFY pgrst, 'reload schema';

@@ -8,14 +8,22 @@ def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
  ctx['installer_fonction_canonique']('militaire_bataille_decider')
  ctx['installer_fonction_canonique']('militaire_bataille_etat')
- q.execute((R/'migrations/20261029190000_batailles_groupes_identites_universelles.sql').read_text())
- q.execute((R/'migrations/20261029190000_batailles_groupes_identites_universelles.sql').read_text())
+ q.execute((R/'migrations/20261029210000_batailles_groupes_identites_universelles.sql').read_text())
+ q.execute((R/'migrations/20261029210000_batailles_groupes_identites_universelles.sql').read_text())
+ cas('bataille_installation_partielle_refuse_sans_round',lambda:exige(rpc('militaire_bataille_poursuivre',(999,)),'installation_incomplete'))
+ q.execute((R/'migrations/20261029210100_batailles_effets_replis_et_verrous.sql').read_text())
+ q.execute((R/'migrations/20261029210100_batailles_effets_replis_et_verrous.sql').read_text())
+ q.execute((R/'migrations/20261029211000_batailles_commandes_et_reprises.sql').read_text())
  if '--contre-bataille-metier-seul' in sys.argv:
   q.execute("SELECT pg_get_functiondef('militaire_bataille_recruter_metier_interne(bigint,text,text,text,text)'::regprocedure)")
   q.execute(q.fetchone()[0].replace('public.militaire_bataille_recruter_metier_interne(','public.militaire_bataille_recruter('))
  ctx['c'].commit()
  def decor():
   sql("UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='hotel-republica',current_room='bar',current_street=NULL,pa=100,hp=100,stats='{\"PER\":12,\"DUP\":12,\"VOL\":12}' WHERE name IN ('A','B','C','D')")
+  # Le banc parent committe une confrontation fictive pour sa concurrence.
+  # Ses dégâts ne sont pas les conditions initiales de CETTE autre bataille.
+  # Réinitialiser le décor, sans changer métier, identité ni statut canonique.
+  sql("UPDATE pnj_membres SET pa=12 WHERE id IN ('ancre','autre','cie-S1','cie-S2','cie-S3','cie-S4','police-republic-capitale-P1','police-republic-capitale-P2','police-republic-capitale-P3','douane-republic-ville_a-D1','douane-republic-ville_a-D2')")
   # A militaire et B commissaire forment le même groupe volontaire ; aucune
   # famille ni affectation professionnelle n'est changée pour fabriquer le cas.
   exige(rpc('groupe_pj_quitter',(),qui='A'));exige(rpc('groupe_pj_rejoindre',('A',),qui='B'))
@@ -44,7 +52,7 @@ def suite(ctx,suivante=None):
   q.execute("SELECT militaire_bataille_actions(71,'republic',1,false)");actions=q.fetchone()[0]
   assert any(a.get('att_mat')=='ancre' for a in actions),actions
   q.execute('SELECT setseed(0.3)')
-  v=exige(rpc('militaire_bataille_poursuivre',(71,),qui='A'));assert v['round']==1,v
+  v=exige(rpc('militaire_bataille_poursuivre',(71,0,'00000000-0000-4000-8000-000000019301'),qui='A'));assert v['round']==1,v
   q.execute('SELECT count(*) FROM batailles_rounds WHERE bataille_id=71 AND numero=1');assert q.fetchone()[0]==2
  cas('bataille_round_reel_et_rapports_mixtes_persistes',rounds)
  def chute(ident):
@@ -68,7 +76,7 @@ def suite(ctx,suivante=None):
   q.execute("UPDATE batailles_groupes SET repli='{\"ville\":\"caserne\",\"batiment\":\"caserne-militaire\",\"piece\":\"corps_garde\"}' WHERE bataille_id=71")
   q.execute("SELECT leader FROM batailles_groupes WHERE bataille_id=71 AND groupe_id='republic|pj:A'");assert q.fetchone()[0]=='A'
   q.execute("SELECT count(*) FROM batailles_engagements WHERE bataille_id=71 AND camp='republic'");n=q.fetchone()[0]
-  exige(rpc('militaire_bataille_decider',(71,'replier'),qui='A'))
+  exige(rpc('militaire_bataille_decider',(71,'replier',0,'00000000-0000-4000-8000-000000019302'),qui='A'))
   q.execute("SELECT count(*) FROM batailles_engagements WHERE bataille_id=71 AND camp='republic' AND etat_final='replie'");assert q.fetchone()[0]==n
   q.execute("SELECT count(*) FROM personnages_donnees WHERE name IN ('A','B') AND current_city='caserne'");assert q.fetchone()[0]==2
   q.execute("SELECT count(*) FROM batailles_engagements e CROSS JOIN LATERAL pnj_position_effective(e.pnj_id) pe WHERE e.bataille_id=71 AND e.camp='republic' AND e.pnj_id IS NOT NULL AND pe.ville='caserne'");assert q.fetchone()[0]==n-2
@@ -77,11 +85,7 @@ def suite(ctx,suivante=None):
  def repli_refuse():
   decor();sql("UPDATE personnages_donnees SET est_emprisonne='{}' WHERE name='B'")
   q.execute("SELECT jsonb_agg(to_jsonb(d) ORDER BY name) FROM personnages_donnees d");avant=q.fetchone()[0]
-  q.execute('SAVEPOINT repli_refuse')
-  try:rpc('militaire_bataille_decider',(71,'replier'),qui='A')
-  except Exception as exc:
-   q.execute('ROLLBACK TO SAVEPOINT repli_refuse');assert 'repli_refuse' in str(exc),str(exc)
-  else:raise AssertionError('un détenu a suivi le repli')
+  exige(rpc('militaire_bataille_decider',(71,'replier',0,'00000000-0000-4000-8000-000000019303'),qui='A'),'repli_refuse')
   q.execute("SELECT jsonb_agg(to_jsonb(d) ORDER BY name) FROM personnages_donnees d");assert q.fetchone()[0]==avant
   q.execute("SELECT count(*) FROM batailles_engagements WHERE bataille_id=71 AND sorti_round IS NOT NULL");assert q.fetchone()[0]==0
  cas('bataille_repli_refus_detenu_annule_positions_et_sorties',repli_refuse)

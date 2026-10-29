@@ -25,17 +25,17 @@ END $camps$;
 DO $issue$
 DECLARE s text;a text;b text;
 BEGIN
- IF to_regprocedure('public.terrain_squatteurs_issue_interne(text,text,integer,uuid)') IS NULL THEN RAISE EXCEPTION 'squatteurs_dependance_PR233_absente';END IF;
- s:=pg_get_functiondef('public.terrain_squatteurs_issue_interne(text,text,integer,uuid)'::regprocedure);
+ IF to_regprocedure('public.terrain_squatteurs_issue_interne(text,text,text,uuid)') IS NULL THEN RAISE EXCEPTION 'squatteurs_dependance_PR233_absente';END IF;
+ s:=pg_get_functiondef('public.terrain_squatteurs_issue_interne(text,text,text,uuid)'::regprocedure);
  s:=replace(s,'CREATE OR REPLACE FUNCTION public.terrain_squatteurs_issue_interne(','CREATE OR REPLACE FUNCTION public.terrain_squatteurs_issue_bataille_interne(');
- a:='p_jet integer, p_requete uuid)';
+ a:='p_issue text, p_requete uuid)';
  IF position(a IN s)=0 THEN RAISE EXCEPTION 'squatteurs_signature_non_examinee';END IF;
  s:=replace(s,a,'p_issue text, p_requete uuid, p_bataille bigint)');
  a:='DECLARE p record;';
  IF position(a IN s)=0 THEN RAISE EXCEPTION 'squatteurs_declaration_non_examinee';END IF;
  s:=replace(s,a,'DECLARE v_b public.batailles%ROWTYPE; v_constate text; '||substring(a FROM 9));
  a:=$a$  IF NOT public.est_appel_serveur() THEN RETURN jsonb_build_object('ok',false,'raison','reserve_au_serveur'); END IF;
-  IF p_jet IS NULL OR p_jet < 0 OR p_jet > 100 OR p_requete IS NULL THEN$a$;
+  IF p_issue IS NULL OR p_issue NOT IN ('defaite','neutralises','tues') OR p_requete IS NULL THEN$a$;
  b:=$b$  -- Autorité : helper privé, appelé par le moteur, sans modifier le JWT.
   SELECT * INTO v_b FROM public.batailles WHERE id=p_bataille FOR UPDATE;
   IF NOT FOUND OR v_b.statut<>'terminee' OR v_b.contexte->>'type' IS DISTINCT FROM 'squatteurs'
@@ -71,11 +71,8 @@ BEGIN
  a:=$a$  IF p.current_building IS DISTINCT FROM p_terrain OR p.current_city IS DISTINCT FROM e->>'city' THEN$a$;
  b:=$b$  IF v_b.batiment IS DISTINCT FROM p_terrain OR v_b.ville IS DISTINCT FROM e->>'city' THEN$b$;
  IF position(a IN s)=0 THEN RAISE EXCEPTION 'squatteurs_lieu_non_examine';END IF;s:=replace(s,a,b);
- a:=$a$  issue := CASE WHEN p_jet < 50 THEN 'defaite' WHEN p_jet < 90 THEN 'neutralises' ELSE 'tues' END;$a$;
- IF position(a IN s)=0 THEN RAISE EXCEPTION 'squatteurs_issue_non_examinee';END IF;s:=replace(s,a,'  issue := p_issue;');
- s:=replace(s,'''jet'',p_jet','''bataille'',p_bataille');
- s:=replace(s,'jsonb_build_object(''bataille'',p_bataille), r','jsonb_build_object(''issue'',p_issue,''bataille'',p_bataille), r');
- IF position('p_jet' IN s)>0 THEN RAISE EXCEPTION 'squatteurs_score_residuel';END IF;
+ s:=replace(s,'''issue'',issue,''occupation''','''issue'',issue,''bataille'',p_bataille,''occupation''');
+ s:=replace(s,'jsonb_build_object(''issue'',p_issue), r','jsonb_build_object(''issue'',p_issue,''bataille'',p_bataille), r');
  EXECUTE s;
 END $issue$;
 REVOKE ALL ON FUNCTION public.terrain_squatteurs_issue_bataille_interne(text,text,text,uuid,bigint) FROM PUBLIC,anon,authenticated,service_role;

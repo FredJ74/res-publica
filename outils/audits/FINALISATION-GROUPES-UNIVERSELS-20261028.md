@@ -62,9 +62,9 @@ Les 11 RPC supplémentaires signalées (pas cachées) : `crime_corrompre_douanie
 
 Les treize migrations précédentes demeurent **préparées, non appliquées**. Après leurs prérequis, ajouter dans l'ordre :
 
-14. `20261029190000_batailles_groupes_identites_universelles.sql` — engagements PNJ, lecteurs/effets/replis ; dépend des moteurs et projections #219 antérieurs.
-15. `20261029191000_batailles_commandes_et_reprises.sql` — corps privés et portes à reçu ; dépend de 14, `navigation_requetes` et du client actuel. Ne pas fermer les signatures anciennes sans livrer ces wrappers et leur cache.
-16. `20261029192000_squatteurs_issue_reelle_bataille.sql` — adaptateur seulement ; dépend en plus de **PR233 `20261029181000_squatteurs_issue_combat.sql`**. Refuse ses barèmes divergents ; ne termine pas l'amorçage des squatteurs.
+14. `20261029210000_batailles_groupes_identites_universelles.sql` — engagements PNJ, lecteurs/effets/replis ; dépend des moteurs et projections #219 antérieurs.
+15. `20261029211000_batailles_commandes_et_reprises.sql` — corps privés et portes à reçu ; dépend de 14, `navigation_requetes` et du client actuel. Ne pas fermer les signatures anciennes sans livrer ces wrappers et leur cache.
+16. `20261029212000_squatteurs_issue_reelle_bataille.sql` — adaptateur seulement ; dépend en plus de **PR233 `20261029181000_squatteurs_issue_combat.sql`**. Refuse ses barèmes divergents ; ne termine pas l'amorçage des squatteurs.
 
 `PREFLIGHT-GROUPES-UNIVERSELS-20261028.sql` est complété : corps/ACL/RLS/triggers, signatures surchargées et helpers privés, colonnes/contraintes/index des batailles, registre, barèmes de PR233 et profils de squatteurs éventuellement déjà configurés. **Non exécuté sur Supabase ici.** Comparer aussi les corps privés déjà présents avant d'accepter leur réutilisation. Le corps PJ du gilet est préservé ; sa compatibilité avec le verrou d'inventaire fait partie du rapprochement #213/#235.
 
@@ -74,7 +74,7 @@ Les sections suivantes sont historiques. Les anciens chiffres et anciens blocage
 
 ## Reprise suivante — bataille mixte, 29 octobre (en cours)
 
-`20261029190000_batailles_groupes_identites_universelles.sql` raccorde les compagnons non militaires aux engagements, lectures, dégâts, décès et replis du moteur existant. **253/253 SQL jetables** ; preuves `preuves-groupes-219-bataille-mixte-20261029/`. Le blocage de recrutement décrit dans l'état précédent est corrigé localement ; les commandes réseau et l'interface sont encore en cours de sécurisation. Pas d'application Supabase. Claude #233 n'est pas importée : son contrat de score final et les profils distincts des squatteurs restent à rapprocher sans fabriquer de barème.
+`20261029210000_batailles_groupes_identites_universelles.sql` raccorde les compagnons non militaires aux engagements, lectures, dégâts, décès et replis du moteur existant. **253/253 SQL jetables** ; preuves `preuves-groupes-219-bataille-mixte-20261029/`. Le blocage de recrutement décrit dans l'état précédent est corrigé localement ; les commandes réseau et l'interface sont encore en cours de sécurisation. Pas d'application Supabase. Claude #233 n'est pas importée : son contrat de score final et les profils distincts des squatteurs restent à rapprocher sans fabriquer de barème.
 
 ## État consolidé le plus récent — 29 octobre, après les lots A à E
 
