@@ -32,7 +32,7 @@ async function finance135Executer(domaine,cible,parametres) {
   if(!contexteNavigationRueValide(c))return null;
   if(!r?.ok){
    if(r&&!r.transport){await finance135Relire(domaine,cible,c);if(!contexteNavigationRueValide(c))return null;sessionStorage.removeItem(cle);}
-   showToast('Opération non confirmée',r?.transport||!r?'Réponse incertaine : vérifiez la même opération, sans nouveau paiement.':(r.raison||'Refus du serveur.'),false);return null;
+   showToast('Opération non confirmée',r?.transport||!r?'Réponse incertaine : vérifiez la même opération, sans nouveau paiement.':((typeof TERRAIN_RAISONS_COMMUNE!=='undefined'&&TERRAIN_RAISONS_COMMUNE[r.raison])||r.raison||'Refus du serveur.'),false);return null;
   }
   if(!await finance135Relire(domaine,cible,c)){if(contexteNavigationRueValide(c))showToast('Opération enregistrée','La relecture reste à confirmer. La reprise est conservée.',true);return null;}
   sessionStorage.removeItem(cle);return r;
@@ -64,7 +64,34 @@ async function finance135ContracterPret(type){
  const r=await finance135Executer('pret','banque-nationale',{p_montant:montant,p_duree_jours:duree,p_type_pret:type,p_building_id:state.currentBuilding});
  if(!r)return;document.getElementById('modal-postes')?.classList.remove('open');showToast('Prêt accordé','La dette et le crédit sur le compte national sont enregistrés.',true);addJournalEntry('Prêt '+type+' accordé : '+montant+' FR.','event-good');
 }
+// ACHAT POUR LA COMMUNE (29/10/2026, décision de Fred : « une mairie suit le même cheminement
+// qu'un PJ particulier »). Le maire qui dépose ou signe un compromis dans SA ville choisit s'il
+// achète pour la commune (caisse de la mairie, titre au nom de la ville) ou en son nom propre.
+// Le serveur revérifie le mandat ; une commune n'emprunte pas.
+function terrainEstMaireIci(){const p=state.poste||state.char?.poste;return p?.id==='maire'&&p?.city===state.currentCity;}
+let terrainAcquereurAttente=null;
+function terrainChoisirAcquereur(){
+ if(!terrainEstMaireIci())return Promise.resolve('personnel');
+ return new Promise(resoudre=>{
+  terrainAcquereurAttente=resoudre;
+  const bouton=(choix,texte)=>'<button onclick="terrainAcquereurRepondre(\''+choix+'\')" style="display:block;width:100%;margin-top:.6rem;padding:.6rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;font-family:Bebas Neue,sans-serif;letter-spacing:.08em">'+texte+'</button>';
+  document.getElementById('postes-modal-title').textContent='Pour qui achetez-vous ?';
+  document.getElementById('postes-body').innerHTML='<div style="padding:1rem"><div style="font-size:.85rem;color:#8a8060">Vous êtes maire de cette ville. Achetez-vous ce terrain au titre de maire, pour la commune, ou en votre nom propre ?</div>'
+   +bouton('commune','Au titre de maire, pour la commune')+bouton('personnel','En mon nom propre')
+   +'<div style="font-size:.75rem;color:#6a6040;font-style:italic;margin-top:.7rem">Pour la commune : dépôt et solde payés par la caisse de la mairie, sans prêt ; le terrain appartient à la ville.</div></div>';
+  document.getElementById('modal-postes').classList.add('open');
+ });
+}
+function terrainAcquereurRepondre(choix){const r=terrainAcquereurAttente;terrainAcquereurAttente=null;if(r)r(choix);}
+const TERRAIN_RAISONS_COMMUNE={pas_maire_de_la_commune:'Vous n’êtes plus le maire de cette ville.',commune_sans_pret:'Une commune n’emprunte pas : retirez la demande de prêt.',caisse_communale_insuffisante:'La caisse de la mairie ne couvre pas ce paiement.',caisse_mairie_introuvable:'La caisse de la mairie est introuvable.'};
 async function finance135Acquerir(id,action,params={}){
+ if(action==='depot'||action==='compromis'){
+  const qui=await terrainChoisirAcquereur();
+  if(qui==='commune'){
+   if(params.pret){showToast('Prêt impossible',TERRAIN_RAISONS_COMMUNE.commune_sans_pret,false);return null;}
+   params={...params,acquereur:'commune'};
+  }
+ }
  const r=await finance135Executer('acquisition',id,{p_terrain:id,p_action:action,p_parametres:params});
  if(!r)return null;
  document.getElementById('modal-postes')?.classList.remove('open');
