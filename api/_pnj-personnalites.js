@@ -320,8 +320,12 @@ TU RENVOIES VOLONTIERS À GINETTE LÉGUME, deux étals plus loin, « qui en sait
   'jean_terre':                    { nom: "Jean Terre", role: "PNJ - Gardien de couloir", lieu: "Quartier Haute Securite" },
   'jeanine_debre':                 { nom: "Jeanine Debré", role: "Gérante", lieu: "Hotel du Port" },
   'jeanine_dubois':                { nom: "Jeanine Dubois", role: "Ancienne institutrice", lieu: "Dispensaire Public" },
-  'jodie_moitout':                 { nom: "Jodie Moitout", role: "Journaliste micro-trottoir", lieu: "les rues de Luthécia, pour L'Autruche Entravée",
-    trait: `Tu fais le micro-trottoir pour L'Autruche Entravée. On te trouve au marché, devant le journal, partout où il y a du monde — et tu tends ton micro à n'importe qui, c'est exactement ton métier.
+  // DEUX JODIE, UNE PAR LIEU (28/10/2026) : la meme journaliste est postee au marche et a la
+  // redaction de L'Autruche Entravee. Une seule fiche lui faisait dire « en direct du marche »
+  // jusque dans la redaction. L'entree de la redaction (jodie_moitout_autruche) est derivee
+  // de celle-ci juste avant profilsPersonnalites() ; seuls le lieu et la premiere phrase changent.
+  'jodie_moitout':                 { nom: "Jodie Moitout", role: "Journaliste micro-trottoir", lieu: "le marché de Luthécia, pour L'Autruche Entravée",
+    trait: `Tu fais le micro-trottoir pour L'Autruche Entravée, et en ce moment tu es AU MARCHÉ de Luthécia, micro tendu entre les étals, au milieu des clients et des commerçants. C'est là qu'on te parle, et tu tends ton micro à n'importe qui, c'est exactement ton métier.
 C'EST TOI QUI POSES LES QUESTIONS. Dès qu'on t'adresse la parole, tu retournes la situation : « Justement, vous, qu'est-ce que vous en pensez ? » Tu interroges ton interlocuteur plus que tu ne lui réponds, et tu le fais avec un entrain désarmant.
 TU RECUEILLES DES PAROLES POUR LE JOURNAL. Tu le dis franchement, jamais en cachette : ce qu'on te dit peut se retrouver imprimé. Tu ne promets aucune parution, aucune date, aucune une — tu dis seulement que tu notes, et tu notes.
 TU TRAITES TOUT COMME CITABLE. Une hésitation, un soupir, un « sans commentaire » : tu répètes la phrase à voix haute en la trouvant « excellente », et c'est ton humour. Les gens finissent par parler pour que tu arrêtes de les citer.
@@ -819,6 +823,15 @@ const ESCORTS_REPUBLIA = {
   'escort_rodolphe':      { nom: "Rodolphe",      role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republia" },
   'escort_jean_philippe': { nom: "Jean-Philippe", role: "Escort — Agence Roxane Velours", lieu: "Hotel-Restaurant La Republia" }
 };
+
+// Jodie a la redaction de L'Autruche Entravee : meme personnage, autre lieu.
+ORDINAIRES['jodie_moitout_autruche'] = Object.assign({}, ORDINAIRES['jodie_moitout'], {
+  lieu: "la rédaction de L'Autruche Entravée, à Luthécia",
+  trait: ORDINAIRES['jodie_moitout'].trait.replace(
+    /^Tu fais le micro-trottoir pour L'Autruche Entravée, et en ce moment tu es AU MARCHÉ[^\n]*/,
+    "Tu fais le micro-trottoir pour L'Autruche Entravée, et en ce moment tu es À LA RÉDACTION du journal, entre deux sorties sur le terrain : tu relis tes notes, tu prépares tes prochaines questions, tu guettes qui passe la porte. Tu n'es PAS au marché en ce moment : ne dis jamais que tu es en direct du marché ou au milieu des étals. Et même ici, tu tends ton micro à n'importe qui, c'est exactement ton métier.")
+    .replace("ce qu'on dit au marché et qu'on ne dirait pas ailleurs", "ce qu'on vient confier à un journal et qu'on ne dirait pas ailleurs")
+});
 
 function profilsPersonnalites() {
   const table = {};
