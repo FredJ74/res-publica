@@ -4310,16 +4310,68 @@ function ouvrirInformationsTerrainLuthecia(nature) {
     const lots = Array.isArray(ts?.subdivisions) ? ts.subdivisions : [];
     html += ligne('Bâtiment livré', ts.niveau_construction);
     html += ligne('Nombre de lots', lots.length);
-    html += lots.map((lot,i) => ligne('Lot ' + (i+1), (lot.label || lot.nom || lot.name || 'Sans nom') +
-      ' — ' + (lot.surface ?? lot.superficie ?? 'surface inconnue') + ' m²' +
-      ' — loyer : ' + (lot.loyer ?? 'non défini') + ' FR' +
-      (lot.locataire ? ' — occupé par ' + lot.locataire : ' — disponible'))).join('');
+    // Le titulaire des murs fixe le loyer journalier de chaque lot LIBRE (29/10/2026) : les lots
+    // nés du plan valent 0 FR et ne se louent pas tant qu'il ne l'a pas fait. Le loyer d'un lot
+    // occupé ne change pas en cours de bail ; le serveur le refuse de toute façon.
+    const gere = typeof constructionPeutGerer === 'function' && constructionPeutGerer(ts);
+    html += lots.map((lot,i) => {
+      const loyer = Number(lot.loyer) > 0 ? lot.loyer + ' FR/jour' : 'non fixé';
+      let l = ligne('Lot ' + (i+1), (lot.label || lot.nom || lot.name || 'Sans nom') +
+        ' — ' + (lot.surface ?? lot.superficie ?? 'surface inconnue') + ' m²' +
+        ' — loyer : ' + loyer +
+        (lot.locataire ? ' — occupé par ' + lot.locataire : ' — disponible'));
+      if (gere && !lot.locataire && lot.id) {
+        const idLot = ech(lot.id).replace(/'/g, '&#39;');
+        l += '<p style="display:flex;gap:.5rem;align-items:center;margin:-.2rem 0 .8rem">' +
+          '<input type="number" min="1" max="100000" step="1" class="cpj-champ" style="width:8rem" ' +
+          'id="loyer-lot-' + i + '" value="' + (Number(lot.loyer) > 0 ? Number(lot.loyer) : '') + '" placeholder="FR / jour">' +
+          '<button type="button" class="cpj-touche cpj-primaire" onclick="confirmerLoyerLotTerrain(\'' + idLot + '\',' + i + ')">Fixer le loyer</button></p>';
+      }
+      return l;
+    }).join('');
+    if (gere && lots.some(l => !l.locataire && !(Number(l.loyer) > 0))) {
+      html += '<p class="cpj-note">Un lot sans loyer fixé n’est pas proposé à la location.</p>';
+    }
   } else return;
   document.getElementById('postes-modal-title').textContent =
     nature === 'chantier' ? 'Information sur le chantier' : 'Information sur les locaux';
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' + html + '</div>';
   document.getElementById('modal-postes').classList.add('open');
+}
+
+let loyerLotEnCours = false;
+async function confirmerLoyerLotTerrain(lotId, index) {
+  if (loyerLotEnCours) return;
+  const id = state.currentBuilding;
+  const brut = (document.getElementById('loyer-lot-' + index)?.value || '').trim();
+  if (!/^[1-9][0-9]{0,5}$/.test(brut) || Number(brut) > 100000) {
+    showToast('Loyer refusé', 'Indiquez un loyer journalier en francs entiers, entre 1 et 100 000.', false);
+    return;
+  }
+  loyerLotEnCours = true;
+  try {
+    const v = typeof sbRpcVerdict === 'function'
+      ? await sbRpcVerdict('terrain_lot_loyer_fixer', { p_terrain_id: id, p_lot: lotId, p_loyer: Number(brut) }).catch(() => null)
+      : null;
+    if (state.currentBuilding !== id) return;
+    if (!v || v.ok !== true) {
+      const motifs = {
+        lot_occupe: 'Ce lot est loué : son loyer ne change pas en cours de bail.',
+        pas_titulaire_des_murs: 'Seul le titulaire des murs fixe les loyers.',
+        lot_en_travaux: 'Ce lot est en travaux.',
+        loyer_invalide: 'Indiquez un loyer journalier entre 1 et 100 000 FR.'
+      };
+      showToast('Loyer non enregistré', motifs[v?.raison] || 'Le serveur n’a pas confirmé le loyer. Rouvrez la fiche pour vérifier.', false);
+      return;
+    }
+    if (v.etat && typeof remplacerTerrainState === 'function') remplacerTerrainState(id, v.etat);
+    else if (typeof chargerTerrainState === 'function') await chargerTerrainState(id, true);
+    showToast('Loyer enregistré', 'Le lot est proposé à la location à ' + Number(brut).toLocaleString('fr-FR') + ' FR par jour.', true);
+    ouvrirInformationsTerrainLuthecia('locaux');
+  } finally {
+    loyerLotEnCours = false;
+  }
 }
 
 function expliquerAchatTerrainBloque() {

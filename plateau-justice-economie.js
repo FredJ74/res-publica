@@ -7426,9 +7426,11 @@ async function doOuvrirLouerLot(pa, cost) {
   // chantier, pas un local. Les AUTRES lots du meme immeuble restent parfaitement louables : on ne
   // ferme jamais le batiment entier. L'indisponibilite est derivee du chantier, jamais d'un
   // drapeau porte par le lot.
-  const lotsLibres = lotsDisponiblesALaLocation(ts, id);
+  // Un lot dont le titulaire n'a pas encore fixé le loyer n'est pas proposé : le serveur le
+  // refuse (`loyer_non_fixe`, 29/10/2026), un bail a 0 FR ne serait jamais preleve.
+  const lotsLibres = lotsDisponiblesALaLocation(ts, id).filter(function (l) { return Number(l.loyer) > 0; });
   if (lotsLibres.length === 0) {
-    showToast('Aucun lot disponible', "Ce terrain n'a pas (encore) été divisé, ou tous les lots sont déjà loués.", false);
+    showToast('Aucun lot disponible', "Aucun lot n'est proposé à la location : le terrain n'est pas encore divisé, tous les lots sont loués, ou le propriétaire n'a pas encore fixé leur loyer.", false);
     return;
   }
 

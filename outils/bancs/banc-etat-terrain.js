@@ -105,6 +105,7 @@ Object.keys(ACTES).sort().forEach(function (porte) {
   var n = porte==='chantier_commande_location' ? partout(/constructionExecuterCommande\('louer'/g) : porte==='chantier_commande_reamenagement' ? partout(/constructionExecuterCommande\('reamenager'/g) : porte==='chantier_commande_plan' ? partout(/constructionExecuterCommande\('plan'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
   if(porte==='acquisition_versionnee')n=partout(/finance135Acquerir\(id,'(?:depot|compromis)'/g);
   if(porte==='terrain_permis_acte') n+=partout(/sbRpcVerdict\('terrain_permis_deposer'/g); // meme depot, porte versionnee de #112
+  if(porte==='terrain_compromis_acte') n+=partout(/sbRpcVerdict\('terrain_rdv_notaire_accelerer'/g); // 29/10/2026 : acceleration du rendez-vous, porte serveur dediee
   totalPortes += n;
   att(porte + ' : ' + ACTES[porte] + ' appel(s)', n === ACTES[porte], n + ' trouve(s)');
 });
@@ -150,6 +151,8 @@ var ACTES_NOMMES = [
 var manquants = ACTES_NOMMES.filter(function (a) {
   if(a==='compromis_signer')return partout(/finance135Acquerir\(id,'compromis'/g)!==1;
   if(a==='achat_direct_deposer')return partout(/finance135Acquerir\(id,'depot'/g)!==1;
+  // 29/10/2026 : l'acceleration du rendez-vous passe par sa porte serveur (date, paiement, recu).
+  if(a==='achat_direct_accelerer')return partout(/sbRpcVerdict\('terrain_rdv_notaire_accelerer'/g)!==1||partout(/p_acte: 'achat_direct_accelerer'/g)!==0;
   if(a==='permis_deposer')return partout(/sbRpcVerdict\('terrain_permis_deposer'/g)!==1;
   if(a==='lot_louer')return partout(/constructionExecuterCommande\('louer'/g)!==1;
   if(a==='permis_plan_modifier')return partout(/constructionExecuterCommande\('plan'/g)!==1;

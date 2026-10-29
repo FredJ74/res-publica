@@ -4301,24 +4301,34 @@ async function doCorrompreRdvNotaire(pa, cost) {
     return;
   }
 
-  const maintenant = Date.now();
-  const restant = ts.achatDirect.dateAchat - maintenant;
-  if (restant <= 0) { showToast('Inutile', 'Le rendez-vous est déjà arrivé.', false); return; }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  const nouvelleDateAchat = maintenant + Math.floor(restant / 2);
-  const achatDirect = { ...ts.achatDirect, dateAchat: nouvelleDateAchat, dateLimite: nouvelleDateAchat + 24 * 3600000 };
-  // LA MEME REGLE QU'ICI, MAIS EN BASE (10 octobre 2026) : `ts.achatDirect.demandeur !== moi`
-  // etait verifie sur ce cache, donc sur rien. Le serveur rend `pas_mon_achat_direct`.
-  const vAcc = await sbTerrainActe('terrain_compromis_acte', {
-    p_terrain_id: id, p_acte: 'achat_direct_accelerer', p_patch: { achatDirect }
-  });
-  if (!vAcc || vAcc.ok !== true) {
-    signalerRefusTerrain(vAcc, "L'accélération du rendez-vous");
+  // LE SERVEUR DECIDE TOUT (29/10/2026) : paiement (2 PA + 800 FR), nouvelle date calculee depuis
+  // le rendez-vous ENREGISTRE, reçu idempotent. L'ecran n'envoie plus de date : l'ancien acte
+  // `achat_direct_accelerer` acceptait celle qu'on lui donnait, et se payait a part.
+  const cle = 'rdv-notaire:' + (state.char?.name || '') + ':' + id + ':' + ts.achatDirect.dateAchat;
+  let requete;
+  try {
+    requete = sessionStorage.getItem(cle) || crypto.randomUUID();
+    sessionStorage.setItem(cle, requete);
+  } catch (_) {
+    showToast('Ordre non envoyé', 'Le navigateur ne peut pas conserver la référence de cet ordre.', false);
     return;
   }
-  remplacerTerrainState(id, vAcc.etat);
+  const vAcc = await sbRpcVerdict('terrain_rdv_notaire_accelerer', { p_terrain: id, p_requete: requete }).catch(() => null);
+  if (state.currentBuilding !== id) return;
+  if (!vAcc || vAcc.ok !== true) {
+    if (vAcc && !vAcc.transport) { try { sessionStorage.removeItem(cle); } catch (_) {} }
+    const motifs = { rendez_vous_deja_arrive: 'Le rendez-vous est déjà arrivé.',
+      pas_mon_achat_direct: "Vous n'avez pas de rendez-vous en attente ici.",
+      fonds_insuffisants: cost + ' ' + cur + ' requis.', pa_insuffisants: 'Points d’action insuffisants.' };
+    showToast('Délai inchangé', vAcc?.transport || !vAcc
+      ? 'Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.'
+      : (motifs[vAcc.raison] || 'Le serveur a refusé (' + vAcc.raison + ').'), false);
+    return;
+  }
+  try { sessionStorage.removeItem(cle); } catch (_) {}
+  if (vAcc.etat) remplacerTerrainState(id, vAcc.etat);
+  if (vAcc.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(vAcc.paiement);
+  const nouvelleDateAchat = Number(vAcc.dateAchat);
 
   const dateTxt = new Date(nouvelleDateAchat).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
   updateUI();

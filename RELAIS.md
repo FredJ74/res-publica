@@ -5,6 +5,33 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Terrains, parcours immobilier, prêts, placements — Claude 29/10 (branche `claude/terrains-immobilier-20261029`)
+
+Mission confiée par Fred le 29/10 (plan ChatGPT « finir Luthécia d'ici dimanche ») : **Claude reprend les terrains et le parcours immobilier** (cédés par Codex), plus prêts et placements. Codex garde le socle universel (déplacements, détection, combats, inventaire #213, groupes #219, sécurité privée).
+
+**Méthode** : parcours rejoués sur la vraie base, au rôle authenticated, en transactions annulées (Arnie, Jean Jaaj ; aucun joueur réel modifié) : achat direct, compromis + prêt + permis, permis et accord tacite, chantiers hangar et commerce premium jour par jour, plan des lots au dernier tiers, réception, location, loyer de nuit, prêts consommation/travaux, placements.
+
+**Fonctionne déjà** : achat direct et acte notarié, compromis avec prêt et permis joints, dépôt de permis (100 FR + 1 PA) et accord tacite, lancement, appels de fonds 35/70/100 %, journées de chantier, plan au dernier tiers, réception, location d'un lot, prêts nationaux, occupation des terrains redessinée à chaque visite, négociation.
+
+**Défauts reproduits et corrigés (migrations APPLIQUÉES, compatibles avec l'écran en ligne)** :
+- `20261029094119` : on pouvait **lancer un chantier avec un permis encore en instruction** (terrains 1-3 gardaient `constructionAutorisee` d'anciens essais) → lancement exige un permis `valide`, reliquat remis à faux. **Les lots nés du plan valaient 0 FR et rien ne permettait de fixer leur loyer** → porte `terrain_lot_loyer_fixer` (titulaire des murs, lot libre), un lot sans loyer ne se loue plus (`loyer_non_fixe`). **Toute location à loyer positif échouait** : `prelever_loyer_bail` créditait le propriétaire par la vue `personnages` (refus « personnage_non_possede » quand le locataire signe) → écrit la table.
+- `20261029094135` : **rendement des placements dicté par l'écran** (intelligence et ville envoyées → +12 % garantis avec une intelligence forgée) → lues sur la fiche ; ancienne `creer_placement_national` fermée aux joueurs.
+- `20261029094215` : **impossible d'avoir deux placements** malgré la règle #86 (index unique resté en base) → index retiré.
+- `20261029095142` : **« Accélérer le rendez-vous (corruption) »** : l'écran envoyait la nouvelle date et payait à part → porte `terrain_rdv_notaire_accelerer` (paiement 2 PA + 800 FR, date calculée par le serveur, reçu).
+
+**Écran (branche, non fusionnée)** : « Information sur les locaux » permet au titulaire de fixer le loyer de chaque lot libre ; la liste « Louer un lot » n'affiche que les lots à loyer fixé ; l'accélération du rendez-vous appelle la porte serveur. Caches : `plateau-politique.js`, `plateau-justice-economie.js`, `plateau-pnj.js` → `?v=terrains-20261029`. Banc `banc-etat-terrain.js` mis à jour (43/43). Bancs clients : mêmes 19 échecs d'environnement que main (dépendances npm indisponibles ici), aucun nouveau.
+
+**À appliquer JUSTE APRÈS la livraison de cette branche** : `20261029160000` (ferme l'ancien acte `achat_direct_accelerer`). Répétée à blanc : OK.
+
+**Constats non corrigés (à arbitrer ou à raccorder)** :
+- **#224 loyers non prélevés** : cause trouvée. Au passage à l'heure d'hiver (25/10), le cron Vercel est resté sur `0 22 * * *` UTC = 23 h à Paris : les passes des 26 et 27 ont tourné une heure AVANT minuit, et la journée du 28 n'a eu **aucune passe** (cron_journal : 25, 26, 27, 29). Le réglage est déjà rattrapé (`0 23 * * *`, commit 3a9b0c5). Pas de rattrapage rétroactif sans accord de Fred. Fragilité restante (transversal, ChatGPT) : une passe lancée avant minuit Paris se compte pour la veille.
+- **Prêt immobilier national débloqué trop tôt** : la règle #57-11 dit « déblocage seulement à la signature définitive » ; le code vire l'argent dès l'accord tacite à l'échéance du compromis. Écart signalé, non modifié.
+- **Neutralisation des squatteurs par le combat** (#57-5) : pas d'ordre ; dépend du combat commun (Codex). Les trois actions validées de « Gestion des intrus » (négocier, police, cadavre) existent.
+- **Matériaux** : un commerce premium ou un immeuble consomme 33 métal/jour ; l'entrepôt de Luthécia en tient 200 et se réapprovisionne la nuit. Deux chantiers simultanés peuvent stagner sans courrier d'alerte (aucune règle décidée pour ce cas).
+- Le maire décide d'un permis avec un statut envoyé par l'écran (`terrain_permis_acte('permis_decider')`), autorité vérifiée mais contenu client : à passer au serveur.
+
+**Parcours à vérifier en jeu** (Fred, Angie, Vince) : acheter un terrain (dépôt puis notaire), y déposer un permis à la mairie et vérifier que « Construire » reste refusé tant que le permis n'est pas accordé ; après réception d'un commerce premium, fixer le loyer d'un lot dans « Information sur les locaux », le faire louer par un autre joueur et vérifier le crédit du loyer ; souscrire deux placements à la Banque nationale ; accélérer un rendez-vous chez le notaire.
+
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
 - **Connexion/création PJ (nouveau correctif) :** dans `sbCreerPersonnageUnique`, un rejet réseau de `fetch` pouvait remonter comme exception non gérée plutôt que réponse métier. Gestion explicite `creation_incertaine`, sans rejeu d'INSERT (il peut avoir été effectué). Quatre scénarios sur fonction réelle ajoutés dans `banc-creation-personnage-reseau-20261028.cjs`, raccordés au workflow client. Vérification CI en attente à ce stade ; aucun compte réel touché.
