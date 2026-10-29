@@ -1342,7 +1342,7 @@ function loadCharacter() {
             if (uidDiscordant) {
               rpPurgerCachePersonnage('fiche appartenant a un autre compte');
               rpOublierIdentiteCourante();
-              state.personnageChargeDepuisServeur = true;
+              state.personnageChargeDepuisServeur = false; // changement de compte : attendre la fiche liée au nouvel UID
               return recupererPersonnageDuCompte().catch(() => {});
             }
             // state reste donc exactement tel que le cache local l'a pose : aucun montant
