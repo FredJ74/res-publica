@@ -1,0 +1,24 @@
+✔ adopte la reponse marquee elle-meme et supprime seulement une intention confirmee (3.995229ms)
+✔ double clic : une seule demande en cours (3.000581ms)
+✔ reponse perdue : nonce et parametres conserves pour le rejeu (2.1396ms)
+✔ selection ou revision modifiee : termine seulement le rejeu de la demande precedente (2.70858ms)
+✔ refus metier ne donne aucun objet ni paiement local (2.081393ms)
+✔ reponse tardive ignoree apres changement de personnage (2.310541ms)
+✔ reponse tardive ignoree apres changement de personnage_muté (1.972002ms)
+✔ reponse tardive ignoree apres changement de lieu (2.61387ms)
+✔ reponse tardive ignoree apres changement de ville (2.406414ms)
+✔ reponse tardive ignoree apres changement de generation (3.144904ms)
+✔ reponse tardive ignoree apres changement de session (2.367065ms)
+✔ authentification retardee : garde fournie au transport existant (2.476487ms)
+✔ inventaire incomplet : pas de faux succes ni de nouveau nonce (2.421776ms)
+✔ adoption refuse un inventaire recompose sans marque serveur (3.008712ms)
+✔ session perdue sans envoi : aucune intention fantome ne bloque ou rejoue une autre selection (2.177766ms)
+✔ reponse transport perdue apres envoi : ne pretend pas que le paiement a ete refuse (2.38396ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 48.443174

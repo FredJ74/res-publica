@@ -125,8 +125,15 @@ async function confirmerVol(encodedCible, jetBase, genre) {
     addJournalEntry('Tentative de vol sur ' + nomCible + ' : rien a voler.', 'event-info');
     return;
   }
+  // Depuis le 28/10/2026, le serveur transfere le butin dans la meme transaction que le jet :
+  // l'inventaire rendu est celui du voleur, adopte tel quel (reponse marquee par sbRpc).
+  if (v.livre && Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
   updateUI();
   if (v.butin === 'argent') {
+    showToast('Vol réussi !', v.description + ' dérobé(s) à ' + nomCible + '.', true, true);
+    addJournalEntry('Vol réussi sur ' + nomCible + '. ' + v.description + '.', 'event-good');
+  } else if (v.livre) {
+    if (typeof renderInventory === 'function') renderInventory();
     showToast('Vol réussi !', v.description + ' dérobé(s) à ' + nomCible + '.', true, true);
     addJournalEntry('Vol réussi sur ' + nomCible + '. ' + v.description + '.', 'event-good');
   } else {

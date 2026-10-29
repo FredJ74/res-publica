@@ -1,0 +1,130 @@
+GARDE-FOU DU WORKFLOW SUPABASE
+
+1. AUCUN .sql A LA RACINE
+  --------------------------------------------------------------------
+  fichiers .sql a la racine du depot                    0 / 0        OK 
+  c'est la dispersion de 184 fichiers ici qui avait rendu l'histoire illisible
+
+2. ARCHIVE DES SQL DE LA RACINE
+  --------------------------------------------------------------------
+  migrations historiques archivees                    184 / 184      OK 
+  fichiers non appliques archives                       3 / 3        OK 
+  archives au nom inattendu                             0 / 0        OK 
+
+3. MIGRATIONS FUTURES : NOMMAGE
+  --------------------------------------------------------------------
+  migrations au nom non conforme                        0 / 0        OK 
+  horodatages en double                                 0 / 0        OK 
+  136 migration(s) en attente d'application ou deja appliquee(s)
+
+4. MIGRATIONS POSTERIEURES AU POINT DE COUPE
+  --------------------------------------------------------------------
+  point de coupe du baseline : 2026-10-13T17:41:36.000139
+  migrations anterieures au point de coupe              0 / 0        OK 
+
+5. SQL DANS SES TROIS MAISONS
+  --------------------------------------------------------------------
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-secretaires-referents.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-carrieres-et-audience.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-construction-moteur-94.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-arnie.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-1.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-avocat-et-temoins.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunes-officielles.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-equipements-collectifs.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-nominations-municipales.sql
+  outils/bancs/     6 blocs DO, 6 RAISE, 0 ordre(s) nu(s)  banc-budget-cascade.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-assemblee-regards.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-palais-contexte-et-eligibilite.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-suspension-partis.sql
+  outils/bancs/     1 blocs DO, 4 RAISE, 17 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-greffe-et-universite.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-quatrieme-passe.sql
+  outils/bancs/     3 blocs DO, 13 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  contre-epreuves-subventions.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-election.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-justice-peine-serveur.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-INTERCEPTION-46.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-renouvellement-legislature.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-quete-accueil-contexte.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-etat-terrain-2.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-universite-socle.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-construction-permis.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-etat-terrain-1.sql
+  outils/bancs/     1 blocs DO, 4 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-caserne-autorites.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-reservation-republica-prevol.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-dependances-coherence-lecture.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-2.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 1 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-fixture-terrain-chantier-acte-avant-commandes.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-2.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-fontaine-110.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-administration-tribunal.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunal-pv-et-delai.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-garde-republicaine.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-defense-simplifiee.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-tribunal-appel-indemnite-signalement.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-credit-tournee.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-seance-parole-discipline.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-succession-sans-vacance.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-cycle-plaintes-3.sql
+  outils/bancs/     1 blocs DO, 3 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-conference-de-presse.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 1 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-fixture-terrain-permis-acte-avant-depot.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  controle-coherence-rues-sorties.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-3.sql
+  outils/bancs/     1 blocs DO, 13 RAISE, 25 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-parcours-judiciaires.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  prevol-catalogue-boire.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-parquet-serveur.sql
+  outils/bancs/     1 blocs DO, 4 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-subventions-1.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-restaurant-luthecia-prevol.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-reception-contrat-lecture.sql
+  outils/bancs/     0 blocs DO, 0 RAISE, 0 ordre(s) nu(s) sous BEGIN/ROLLBACK  PREFLIGHT-INVENTAIRE-RECEPTIONS-20261027.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-seance-protestation-suspension.sql
+  outils/bancs/     1 blocs DO, 2 RAISE, 4 ordre(s) nu(s) sous BEGIN/ROLLBACK  banc-presidence-memoire.sql
+  fichiers .sql hors des trois maisons                  5 / 0        NON
+  baseline/       237 fichiers  l'etat canonique, genere -- jamais edite a la main
+  historique/     905 fichiers  l'archive documentaire, non rejouable
+  migrations/     136 fichiers  les evolutions futures, une par fichier horodate
+
+6. LE PROCESSUS EST ECRIT
+  --------------------------------------------------------------------
+  WORKFLOW-SUPABASE.md present                          1 / 1        OK 
+  longueur du processus, en lignes                    575 / 575      OK 
+  README renvoyant au processus                         4 / 4        OK 
+
+7. UN SEUL OUTIL PAR RESPONSABILITE
+  --------------------------------------------------------------------
+  controle global                verifier-baseline.py       OK 
+  reconstruction                 reconstruire.py            OK 
+  rendu des seeds                seeds.py                   OK 
+  rendu du schema                rendre.py                  OK 
+  requetes d'introspection       requetes.py                OK 
+
+8. AUCUN SCRIPT TECHNIQUE A LA RACINE
+  --------------------------------------------------------------------
+  fichiers .py a la racine du depot                     0 / 0        OK 
+  correctifs ponctuels archives                       342 / 342      OK 
+  generateurs dans outils/generateurs                  13 / 13       OK 
+  generateurs restes dans .scratch                      0 / 0        OK 
+  fichiers citant encore l'ancien chemin                0 / 0        OK 
+
+9. LE DEPLOIEMENT RESTE DEPLOYABLE
+  --------------------------------------------------------------------
+  taches cron declarees                         2 / 2 au plus
+  planifications a plus d'une invocation par jour        0 / 0        OK 
+
+========================================================================
+  1. AUCUN .sql A LA RACINE                            CONFORME
+  2. ARCHIVE DES SQL DE LA RACINE                      CONFORME
+  3. MIGRATIONS FUTURES : NOMMAGE                      CONFORME
+  4. MIGRATIONS POSTERIEURES AU POINT DE COUPE         CONFORME
+  5. SQL DANS SES TROIS MAISONS                        ECHEC (6)
+  6. LE PROCESSUS EST ECRIT                            CONFORME
+  7. UN SEUL OUTIL PAR RESPONSABILITE                  CONFORME
+  8. AUCUN SCRIPT TECHNIQUE A LA RACINE                CONFORME
+  9. LE DEPLOIEMENT RESTE DEPLOYABLE                   CONFORME
+
+ECHEC : 6 regression(s) du workflow
+  - [5] fichiers .sql hors des trois maisons : 5 au lieu de 0
+  - [5] fichier .sql egare : outils/bancs/fixtures/terrain-permis-acte-avant-depot.sql
+  - [5] fichier .sql egare : outils/bancs/fixtures/ced-football-schema.sql
+  - [5] fichier .sql egare : outils/bancs/fixtures/terrain-chantier-acte-avant-commandes.sql
+  - [5] fichier .sql egare : outils/bancs/fixtures/historique-135/20261024072349_occupation_actions_et_echeances.sql
+  - [5] fichier .sql egare : outils/bancs/fixtures/historique-135/20261023090017_location_lot_legacy_avant_paiement.sql
