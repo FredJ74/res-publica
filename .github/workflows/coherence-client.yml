@@ -35,8 +35,16 @@ jobs:
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Installer les dépendances du pilote navigateur avant les bancs client
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Commerce Premium PSM après lecture des baux
+        run: node outils/bancs/banc-psm-premium-bail.cjs
+      - name: Boutiques PSM — mêmes ordres et variantes que Luthécia
+        run: node outils/bancs/banc-psm-boutiques-location.cjs
+      - name: Garde du pays et de la ville serveur après F5
+        run: node outils/bancs/banc-position-ville-serveur-f5.cjs
       - name: Bancs JavaScript, transports simulés
         run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
+      - name: Destinations du centre multimodal
+        run: node outils/bancs/banc-destinations-multimodal-20261028.cjs
       - name: Création de personnage après réponse réseau perdue
         run: node outils/bancs/banc-creation-personnage-reseau-20261028.cjs
       - name: Régression de sortie de bâtiment avec réponse perdue

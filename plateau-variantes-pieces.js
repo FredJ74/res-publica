@@ -547,6 +547,13 @@ const PIECE_VARIANTES = {
 };
 
 
+// Port-Sainte-Marie utilise les memes quatre gabarits de surface que Luthecia,
+// avec les deux etats libre/loue et la personnalisation d'enseigne du socle.
+// La declaration reste une seule source ; aucune copie de mecanique ni de loyer.
+PIECE_VARIANTES.republic.ville_a = {
+  'centre-commercial': PIECE_VARIANTES.republic.capitale['centre-commercial']
+};
+
 /* ---------------------------------------------------------------------------
    3. LE MOTEUR
    --------------------------------------------------------------------------- */
