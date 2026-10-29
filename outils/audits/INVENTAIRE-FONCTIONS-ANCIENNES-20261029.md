@@ -93,3 +93,36 @@ La fonction `groupe_pj_lire` ne figurait pas parmi les fonctions vivantes retrou
 **P0 — Ne pas livrer de double autorité :** arrêter toute promotion de #230 tant que le miroir police et les sauvegardes de position ne sont pas verrouillés atomiquement. **P1 — Déployer après validations les remplacements déjà réalisés dans #213 :** achat de fret via transaction serveur et inventaire. **P1 — Purger le minuit client restant :** migrer le traitement des anciennes traces vers la seule passe de nuit, puis retirer ses déclenchements locaux. **P2 — Poursuivre l'inventaire des autres écrivains par table et autorisation réelle.**
 
 **Accès au catalogue vivant :** les deux nouvelles requêtes SQL ont été bloquées par les contrôles d'outils pendant cette session. Aucune conclusion nouvelle sur les droits PostgreSQL actuels n'a été inventée. Cette partie prouve la **présence et l'appel de code côté dépôt**, pas son effet serveur final.
+
+## G. Contrôle direct du catalogue et des ACL Supabase — reprise du 29/10/2026
+
+**Nature : preuve du catalogue de production en lecture seule.** Projet `jxpwoosmmhohoihxpbuc`. Aucun personnage, droit, déclencheur ou schéma modifié par les requêtes.
+
+- `pg_proc` : **1 147 fonctions du schéma public**, toutes catégories confondues ; ceci n'est pas un nombre de fonctions anciennes ni de fonctions effectivement appelées.
+- Les définitions ont été retrouvées pour `pnj_miroir_police`, `rue_position_enregistrer`, `inventaire_sauver_revision`, `militaire_blob_projeter`. `groupe_pj_lire` est absente du résultat par nom (et aucune installation de ses migrations n'est démontrée).
+- ACL RPC : `rue_position_enregistrer`, `inventaire_sauver_revision`, `fret_objet_agir` et `militaire_bataille_poursuivre` sont exécutables par `authenticated`, pas `anon`. `pnj_miroir_police`, `militaire_blob_projeter` et `personnages_vue_modifier` ne sont exécutables directement par aucun de ces deux rôles. Les sept fonctions sondées sont `SECURITY DEFINER` : contrôler leurs propres gardes et leurs appelants internes.
+- `personnages_donnees` et `pnj_membres` : pas de privilège direct `INSERT/UPDATE/DELETE` accordé à `authenticated`; présence de déclencheurs protecteurs à ne pas neutraliser sans inspection.
+
+### Portes RLS confirmées — action prioritaire
+
+| Table | Privilèges authenticated | Politique d'écriture constatée | Qualification |
+|---|---|---|---|
+| `prets` | INSERT/UPDATE | `acteur_identifie()` | V — accès général, trigger `pret_versionne_ecriture_proteger` à analyser avant conclusion d'exploitation |
+| `organisations` | INSERT/UPDATE/DELETE | `acteur_identifie()` | V — porte générale, vérifier les autres triggers/gardes métier |
+| `budgets_clubs` | INSERT/UPDATE | `acteur_identifie()` | V — porte générale |
+| `transferts_clubs` | INSERT/UPDATE | politiques présentes, corps non extrait ici | V — privilège direct, qualification des politiques à compléter |
+| `budgets_municipaux` | INSERT/UPDATE | `acteur_identifie()` | V — porte générale |
+| `indices_villes` | INSERT/UPDATE | `acteur_identifie()` | V — porte générale |
+| `niveaux_prison` | INSERT/UPDATE | `acteur_identifie()` | V — porte générale |
+| `caisses_fret` | INSERT/UPDATE | `acteur_identifie()` | V — porte générale, trigger `assemblee_fret_vente_legale` sur mise à jour de `statut` |
+| `contenu_caisses_fret` | INSERT/UPDATE | `acteur_identifie()` | V — porte générale |
+| `evenements_globaux` | INSERT | `acteur_identifie()` | V — porte générale |
+
+**Distinction indispensable :** un privilège SQL + une politique permissive démontrent une voie d'accès, non le succès d'une écriture arbitraire dans tous les cas : déclencheurs, contraintes et fonctions peuvent encore la rejeter. Les sondages étaient exclusivement des SELECT système, aucun essai destructif réalisé sur les données réelles.
+
+### Décisions techniques à réaliser et vérifier, sans précipiter la production
+
+1. Répertorier chaque appelant client/serveur des tables ci-dessus ; préparer pour chaque écriture utile son RPC canonique transactionnelle (réutiliser les RPC existantes).
+2. Vérifier les triggers (`pret_versionne_ecriture_proteger`, `assemblee_fret_vente_legale`) et les effets exacts de `pnj_miroir_police` ; ne pas casser les prêts ni les ventes de fret.
+3. Retirer **après** remplacement effectif les permissions directes et politiques permissives. Tester en contexte `authenticated` que les anciennes écritures sont refusées et les parcours officiels acceptés.
+4. Clôturer la migration groupes atomique et les bancs de concurrence, puis réexaminer la PR #230 sur son SHA actuel, avant fusion ou déploiement.
