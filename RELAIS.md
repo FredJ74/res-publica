@@ -3,6 +3,12 @@
 
 **Responsable unique : ChatGPT (coordination avec Codex pour socle inventaire/groupes).** La clôture Luthécia exige : (1) cartographier les valeurs calculées, sauvegardées ou affichées localement sans confirmation serveur ; (2) supprimer/adapter les anciennes écritures qui écrasent positions, inventaire, soldes, santé, moral, sanctions et état du PJ ; (3) sécuriser chargement, autosauvegarde, perte de réponse, reconnexion, changement de version après déploiement ; (4) tester égalité état UI / état canonique après action, refresh, reconnexion et deux sessions, sans mutation d'un PJ réel lors de l'audit. **Ne pas confondre suppression d'une double autorité avec simple actualisation cosmétique.** Les six fermetures liées à #213 restent subordonnées à prévol et validation. Toute régression de cette catégorie bloque la promotion en production.
 
+## 29 octobre — suite #219 : miroir militaire et anciennes écritures
+
+Branche `codex/groupes-universels-20261028`, sans fusion/application. `20261029130000` conserve les identités et statuts des soldats morts/détenus au miroir, y compris après le cycle de mort puis retrait du document de compagnie. Garde des écritures de compagnie : ordres existants conservés, remplacement brut authenticated refusé même avec chemin RPC falsifié. **230/230 SQL jetables**, **117/117 bancs clients** ; sans ce correctif **5 des mêmes 230 cas échouent**. Preuves `preuves-groupes-219-miroir-militaire-20261029/`. Globaux toujours **5/12**, détails préservés, aucun résultat ajusté. Ce n'est pas une authentification Supabase.
+
+Restent en développement le remplacement des recrutements/licenciements police/douane avant fermeture de leurs anciens écrivains, puis le recrutement de tous les types de compagnons dans les batailles militaires (les rounds policiers mixtes passent déjà). Prévol vivant à ChatGPT. PR225/235 et immobilier non touchés.
+
 ## Arbitrage du 29 octobre 2026 — clôture Luthécia au 1er novembre
 
 **Décision explicite du game designer : Claude reprend les cinq terrains et l'intégralité du parcours immobilier.** Codex cesse les nouveaux changements sur ce périmètre (parcelles, occupation, compromis, notaire, permis, construction, approvisionnement, division, livraison, rénovation), y compris dans ses PR historiques ; il transmet à Claude les branches/PR, commits, migrations et résultats de tests existants. Claude repart du dernier main et incorpore les modifications vérifiées sans écraser les travaux du socle.

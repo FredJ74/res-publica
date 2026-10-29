@@ -42,4 +42,5 @@ def suite(ctx,suivante=None):
  cas('taxi_special_ne_permet_pas_destination_arbitraire',detour)
  ctx['preuves_extension']['taxis']='Même transport/paiement/reçu, tarifs extraits du dépôt, zones spéciales du catalogue réel et non de villes. Neuf voyageurs, entrée/sortie publique et bus retour, refus atomiques.'
  if suivante is not None:suivante(ctx)
-if __name__=='__main__':sys.exit(c.lancer(suite))
+def lancer(suivante=None):return c.lancer(lambda ctx:suite(ctx,suivante))
+if __name__=='__main__':sys.exit(lancer())
