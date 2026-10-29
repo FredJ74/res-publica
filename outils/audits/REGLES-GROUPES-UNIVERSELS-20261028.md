@@ -69,3 +69,11 @@ de mobilité autonome ordinaire. La responsabilité judiciaire n'est pas transf�
 à un PJ du seul fait qu'il paie le transport ou commande le groupe. Les contrôles
 des objets et les confiscations existantes restent applicables ; cette décision
 ne crée pas de dispense de contrôle pour les possessions PNJ.
+
+## Squatteurs — issue réelle, Fred, 29 octobre 2026
+
+Arbitrage explicite donné pendant cette reprise : **« Issue réelle du combat »**. Le sort du terrain et la qualification pénale suivent le résultat constaté des rounds, sans tirage final distinct ni score agrégé inventé. Le contrat de PR233 attendait un score final 0–100 : préparer un adaptateur typé vers ses suites immobilières/judiciaires. Les règles pénales de PR233 demeurent : neutralisation = agression, détection 25 %, 1 jour/500 FR ; décès = meurtre, détection 25 %, 2 jours/1 500 FR. Cet arbitrage ne fournit pas de valeurs nouvelles de résistance ni de taille des groupes de squatteurs.
+
+## Observation et commandement d'une bataille — règle existante conservée
+
+Le contrat documenté de `sbMilitaireBataillePoursuivre` autorise tout participant engagé à faire avancer la bataille pour qu'elle ne dépende pas de la connexion d'un chef. Un participant évacué peut encore consulter/faire avancer cette résolution ; il n'est jamais recruté comme combattant et ne donne plus d'ordre « tenir/replier ». Ces décisions exigent un chef réellement disponible sur place. La nouvelle porte à reçu conserve cette distinction, au lieu de bloquer les derniers rounds dès que tous les PJ sont hors de combat. Aucun nouveau barème.

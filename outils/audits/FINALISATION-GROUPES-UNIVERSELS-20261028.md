@@ -2,11 +2,75 @@
 
 **CHANTIER NON TERMINÉ.** Préparation sauvegardée sur la branche #219 pour
 l'intégration #230 par ChatGPT ; aucune fusion ni migration de production ici.
-Les rounds policiers opposent désormais les deux groupes PJ/PNJ réels ;
-interception, fuite, écrou, taxis spéciaux et effectifs police/douane sont raccordés
-et testés localement. La guerre militaire n'enrôle pas encore les compagnons
-non militaires ; les protections générales de fiche sont suivies par ChatGPT.
-Aucun nouveau développement immobilier après l'arbitrage `main` 9e8901b.
+Les batailles militaires et interceptions enrôlent maintenant les groupes PJ/PNJ
+mixtes dans leurs moteurs existants. Les blocages restants sont l'amorçage des
+combats de squatteurs, le contrôle policier ordinaire encore partiellement client,
+et les protections transversales/prévol de livraison. Aucune production ici.
+
+## Dernier état vérifié — reprise du 29 octobre après 4ee72dea
+
+**PR #219 NON PRÊTE.** Recrutement militaire mixte et reprises réseau sont codés/testés. Les combats de squatteurs ne sont pas raccordés de bout en bout. Cette limite est fonctionnelle, elle ne se réduit pas à l'absence d'accès Supabase.
+
+**272/272 scénarios PostgreSQL jetable**, deux exécutions finales réussies ; **122/122 bancs clients**, dont **13 cas de client de bataille**. Deux contre-épreuves sur les mêmes 272 scénarios : neuf échecs quand on remet le recrutement militaire seul, deux quand on retire le reçu de poursuite. Les coups/rounds militaires sont les vrais corps SQL ; les bornes de décès sont aussi testées séparément via helpers privés. Les sept cas squatteurs sont des **tests de contrat avec états terminaux fictifs**, pas une bataille réelle de squatteurs. Les comptes/claims authenticated sont ceux du décor PostgreSQL, pas une authentification Supabase. Des commits fictifs sont nécessaires pour deux connexions concurrentes.
+
+Preuves : `preuves-groupes-219-cloture-locale-20261029/`, empreintes des sources testées incluses. Une instabilité intermédiaire de scénario a été corrigée : il exigeait une victoire improbable d'une petite équipe contre dix adversaires. Le décor de fin de bataille laisse maintenant un PJ et un PNJ encore debout dans le camp épuisé ; les deux issues et les décès sont toujours exigés, avec de vrais jets. Aucun test retiré ni faux succès.
+
+### Ce qui est raccordé
+
+- Même `militaire_bataille_recruter` et mêmes tables d'engagement : référence au PNJ canonique, sans fabriquer une compagnie/carrière militaire aux policiers, douaniers et employés. Groupe volontaire, métier/employeur et commandement restent distincts. Profil militaire des soldats conservé ; compétences militaires non apprises = le zéro déjà utilisé pour les PJ non entraînés ; défenses métier et armes réellement possédées pour les autres PNJ. Profil incomplet refusé, pas de valeurs arbitraires.
+- Même moteur de coups/rapports : PA individuels, décès par `pnj_mourir`, gilets PNJ factorisés depuis l'implémentation existante, possessions/historique préservés. Morts/détenus non ressuscités par les miroirs. Les nouvelles disponibilités sont relues à chaque round ; un indisponible ne reste pas un engagement fantôme.
+- Repli par l'acte militaire existant, groupe complet ou refus avant mouvement. Chef neutralisé séparé avant évacuation ; ses compagnons ne sont pas téléportés à l'infirmerie. Ordres/permissions et portées radio conservés. La poursuite du monde demeure accessible aux participants historiques ; être observateur évacué ne fait pas combattre à nouveau le PJ.
+- Reçu et round attendu aux trois portes de bataille existantes : engagement, poursuite, décision. Aucun deuxième round après rejeu/concurrence, aucun coup futur/obsolète. Anciennes signatures sans reçu refusées après raccordement client. Anciennes réponses ignorées après changement de compte/personnage/session ; relecture des PA, position et réponse inventaire versionnée exacte. Fenêtre d'interception à la charte commune. Pas de copie de fiche ni delta financier.
+
+### Squatteurs — ce qui manque réellement
+
+Fred a confirmé **l'issue réelle du combat, sans tirage final supplémentaire**. L'arbitrage est consigné dans `REGLES-GROUPES-UNIVERSELS-20261028.md`. L'hostilité civile peut être décrite dans le contexte de la bataille existante sans créer de fausse guerre entre pays. L'adaptateur privé `terrain_squatteurs_issue_bataille_interne(text,text,text,uuid,bigint)` dérive et vérifie l'issue enregistrée dans une bataille terminée, puis réutilise le corps immobilier/judiciaire de Claude #233. Neutralisés : agression, 25 %, 1 jour/500 FR ; tués : meurtre, 25 %, 2 jours/1500 FR. Un refus de correspondance, une interruption ou un combat non terminé ne libère rien. Le lieu est celui du combat confirmé, pas la position du PJ déjà évacué. Reçu et traces ne se répètent pas.
+
+**Cet adaptateur n'est pas encore appelé depuis un ouvrant opérationnel de combat de squatteurs.** Les occupations actuelles sont des profils d'affichage collectifs, pas des groupes PNJ persistants chiffrés. Les références examinées donnent le même métier « citoyen » aux deux groupes et aucune résistance distincte ; Fred a déjà demandé de ne pas inventer de nombres. Il reste à raccorder leur persistance/configuration, l'ordre d'engagement et le contexte de neutralisation non létale (la guerre tue les PNJ à zéro PA). Le cas corps + survivants n'est pas représenté par le contrat scalaire d'occupation de #233 : l'adaptateur le refuse plutôt que remplacer abusivement tous les occupants par un cadavre. PR233 n'a pas été importée en bloc ; son SQL exact est épinglé comme fixture de contrat.
+
+### Contrôles globaux : comparaison réelle avec main
+
+Main de référence **4648840e**, exécuté en worktree isolé : **5/12**. Branche : **5/12**. Les fichiers de contrôle et leurs critères ne sont pas modifiés par cette reprise.
+
+| Contrôle rouge | Faits et classement | Suite responsable |
+| --- | --- | --- |
+| Classification | Deux anomalies sur main comme sur la branche ; pas de nouveau changement de classification. | Catalogue/baseline, ChatGPT. |
+| Fidélité du baseline | 21 anomalies déjà sur main ; photographie non synchronisée. | Extraction vivante et régénération, aucune empreinte bricolée. |
+| Authority | Identité `resilier_bail_volontaire` et quatre signatures inconnues déjà rouges sur main. Huit écarts de signatures introduits par les adaptateurs #219 corrigés en rendant leur DDL réellement exécuté explicite. RPC absentes du baseline : 99 main, 110 branche ; les 11 supplémentaires ont leurs migrations préparées et ne sont pas prétendues déployées. | Prévol/applications contrôlées/extraction ; ancien bail à Claude. |
+| Referential | Main s'abstient faute de JSC. Le repli Node de la branche exécute davantage de vérifications, mais plusieurs générateurs restent liés à JSC macOS et les empreintes ne sont pas validées. | Portabilité/générateurs et comparaison des vraies données ; pas de faux vert. |
+| Fonctions | Main ne peut les exécuter sans JSC. La branche révèle une copie chantier non déclarée et une source canonique d'expulsion absente, déjà présentes dans les sources de main. | Claude pour immobilier/ambassades et référentiels communs. |
+| Assemblage | Deux fonctions de triggers immobiliers absentes, identiques sur main. | Claude + synchronisation du baseline. |
+| Reconstruction | Deux dépendances manquantes et six attentes du monde non tenues déjà sur main. | Baseline/seed après prévol vivant. |
+
+Les 11 RPC supplémentaires signalées (pas cachées) : `crime_corrompre_douanier`, `douane_controle_groupe`, `force_publique_effectif_acte`, `groupe_pj_lire`, `groupe_pj_quitter`, `groupe_pj_rejoindre`, `navigation_interieure`, `pnj_deployer_unite`, `pnj_rappeler_radio`, `pnj_unites_administrables_lire`, `transport_effectuer`. Les preuves distinguent déclaration préparée et présence réelle dans le catalogue.
+
+### Vestiges ciblés et suites bloquantes
+
+| Circuit | État réel |
+| --- | --- |
+| `state.group` / `adopterGroupePj` / chargement | Projection de l'état serveur nécessaire à l'interface ; pas une autorité de composition. |
+| Menus `deposerSoldats` / `recupererSoldats` par nombre | Conservés : leurs adaptateurs sélectionnent de vrais identifiants puis passent par les portes PNJ communes. Ne pas rétablir l'ancien écrivain de compagnie. |
+| `sbSaveCompagnie` | Déjà retirée de main ; commentaires historiques seulement. Garde de document et statuts militaires préparée. |
+| Miroirs police/douane/soldats | Projections métier conservées, états canoniques protégés. Recrutements/licenciements clients remplacés par l'ordre transactionnel ; anciens documents fermés. |
+| Radio / ration / bivouac | Rappel commun et limite même ville déjà testés. Ration/bivouac sont des ordres métier utiles, pas des moteurs de position concurrents ; ne pas les supprimer. |
+| `calculerPerGroupePolice`, `resoudreControlePoliceAutomatique`, `doTenterFuitePolice` | **Encore actifs pour les contrôles ordinaires non judiciaires**, avec jets côté client. Pas le circuit judiciaire moderne de détection/interception, déjà raccordé. À porter côté serveur avant activation globale. |
+| `procederArrestation`, `appliquerConsequencesFuiteRatee`, `ajouterJourFuiteRatee` | **Ancien chemin dangereux restant** : état de détention posé avant confirmation, fuite ratée et prolongation encore locales ; à transactionnaliser par les portes existantes. Ne pas retirer simplement ces règles sans remplacement. |
+| Neutralisation générique des squatteurs | Ancienne route `crime_neutraliser` ; son corps vivant n'est pas disponible dans les sources examinées. Le prévol doit le lire avant tout remplacement, sans présumer de son paiement ou de ses protections. |
+| Fiche/sauvegardes générales | Prévol et fermeture globale confiés à ChatGPT (#235) ; aucune affirmation de protection générale en production ici. |
+
+### Migrations et livraison
+
+Les treize migrations précédentes demeurent **préparées, non appliquées**. Après leurs prérequis, ajouter dans l'ordre :
+
+14. `20261029190000_batailles_groupes_identites_universelles.sql` — engagements PNJ, lecteurs/effets/replis ; dépend des moteurs et projections #219 antérieurs.
+15. `20261029191000_batailles_commandes_et_reprises.sql` — corps privés et portes à reçu ; dépend de 14, `navigation_requetes` et du client actuel. Ne pas fermer les signatures anciennes sans livrer ces wrappers et leur cache.
+16. `20261029192000_squatteurs_issue_reelle_bataille.sql` — adaptateur seulement ; dépend en plus de **PR233 `20261029181000_squatteurs_issue_combat.sql`**. Refuse ses barèmes divergents ; ne termine pas l'amorçage des squatteurs.
+
+`PREFLIGHT-GROUPES-UNIVERSELS-20261028.sql` est complété : corps/ACL/RLS/triggers, signatures surchargées et helpers privés, colonnes/contraintes/index des batailles, registre, barèmes de PR233 et profils de squatteurs éventuellement déjà configurés. **Non exécuté sur Supabase ici.** Comparer aussi les corps privés déjà présents avant d'accepter leur réutilisation. Le corps PJ du gilet est préservé ; sa compatibilité avec le verrou d'inventaire fait partie du rapprochement #213/#235.
+
+Branche unique `codex/groupes-universels-20261028`, PR219 non fusionnée ; PR225/235 et immobilier de Claude non modifiés. Main 4648840e reste intégré. Aucun déploiement Vercel, aucune migration ni donnée de joueur modifiée. Les Actions distantes de ces nouveaux commits ne sont pas observées ; six anciens workflows verts ne sont pas utilisés comme preuve de ce lot.
+
+Les sections suivantes sont historiques. Les anciens chiffres et anciens blocages ne remplacent pas ce dernier état.
 
 ## Reprise suivante — bataille mixte, 29 octobre (en cours)
 
