@@ -190,13 +190,17 @@ print('2. CHAQUE PNJ VISIBLE A-T-IL UN PROFIL SERVEUR ?');
 // s'allume -- se reproduise a la prochaine piece ajoutee. Raccorder l'un d'eux, c'est retirer sa
 // ligne d'ici le meme jour.
 var MUETS_DECLARES = {
-  'bernard_piluler':       "Directeur de l'Usine Pharmaceutique — titulaire_poste, aucune personnalite ecrite",
-  'marcel_silo':           "Directeur de l'Entrepot de Luthecia — idem",
-  'yvon_paletier':         "Directeur de l'Entrepot de Port-Sainte-Marie — idem",
+  // bernard_piluler et marcel_silo raccordes le 29/10/2026 (fiches dans _pnj-personnalites.js).
+  'yvon_paletier':         "Directeur de l'Entrepot de Port-Sainte-Marie — titulaire_poste, aucune personnalite ecrite",
   'norbert_charton':       "Directeur de l'Entrepot de Montrouge — idem",
   'maitre_ali_bihanbeton': "Avocat commis d'office de Port-Sainte-Marie — aucune personnalite ecrite",
   'maitre_henri_nossant':  "Avocat commis d'office de Montrouge — idem"
 };
+// Jean Bonde vit dans une scene de rue (plateau-rue-centrale.js), que cet inventaire ne parcourt pas :
+// on verifie donc sa fiche nommement, avec celles des deux directeurs raccordes le meme jour.
+['bernard_piluler', 'marcel_silo', 'jean_bonde'].forEach(function (id) {
+  att('le PNJ ' + id + ' a une fiche de personnalite', !!(__TOUS[id] && /TU /.test(JSON.stringify(__TOUS[id]))));
+});
 var sansProfil = [], inattendus = [];
 Object.keys(noms).sort().forEach(function (nom) {
   var x = noms[nom];
