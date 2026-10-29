@@ -444,3 +444,105 @@ tirés au hasard et les effets purement visuels sont exclus.
   `commerce_vendre_produit_interne`), tracts électoraux et calomnieux (`tracts_imprimer`,
   détection des calomnieux par le serveur).
 
+
+- **27/10 — reprise Codex, lot 4 préparé NON appliqué** : branche
+  `codex/inventaire-serveur-20261027`. `sels_ammoniaque_acheter` lie paiement exact de la
+  quantité réellement déposée (30 FR), caisse pharma et dépôt commun ; `objet_trouve_reclamer`
+  porte le tirage, la limite quotidienne et le souvenir. Réponses versionnées adoptées telles
+  quelles ; reçus protégés contre le rejeu. Le dépôt commun ne crédite plus toutes les anciennes
+  piles d'une même clé et refuse les fractions d'unité. Migrations `20261027210800`/`210810`
+  préparées, **aucune version de registre**, aucun prévol vivant accessible. Banc SQL annulé :
+  29 assertions sous authenticated ; 12 tests Node. Fret et autres sites restent à traiter.
+  `inventaire_sauver_revision` reste inchangée, conformément à Fred.
+
+- **27/10 — lot fret préparé NON appliqué** (`20261027213520`) : dépôt, reprise,
+  retrait et achat du lot indivisible rejoignent les reçus et le dépôt commun. L'index d'inventaire
+  est lié à sa révision ; caisse, paiement, objets et lignes sont dans une seule transaction.
+  Les contenus ne sont plus créables/augmentables par REST ; la diminution douanière existante
+  reste possible. 47 assertions SQL (29 du lot précédent incluses), rôle authenticated,
+  transaction annulée. Prévol vivant impératif des transitions et autorisations de caisse ;
+  le calendrier de fret et les contrôles douaniers historiques ne sont pas remplacés.
+
+- **27/10 — lot raccordements/nettoyage** : `delivrerDocumentUrbanisme` passe aussi par
+  `objet_sas_deposer` pour soi, sans ajout local ni repli permissif. Huit tests des vrais handlers
+  couvrent les quatre routes fret, les deux destinataires du sas, refus/panne et les routes actives
+  conservées. `poserObjetMilitaire` n'avait plus d'appelant depuis le retrait serveur ;
+  `doImprimerLivre` correspond à un ordre retiré, `doImprimerClandestin` à un ordre remplacé,
+  `doAcheterEntreprise` à un ancien handler non raccordé (l'ordre usine reste bientôt).
+  Ces quatre producteurs morts sont retirés sans inventer de nouvelles actions serveur.
+
+- **27/10 — lot employés/groupe préparé NON appliqué** (`20261027213521`) :
+  extension de `pnj_objet_transferer`, réutilisation du lecteur et du dépôt commun. Sélection
+  versionnée côté PJ, identifiant stable côté PNJ, quantité partielle, protection des objets
+  de quête et des équipements miroirs, reçus et rollback. Les quatre boutons concernés ne
+  modifient plus les inventaires à l'écran. Banc SQL : 48 assertions, dont 29 communes.
+  **Dépendance ouverte** : rapprochement des charges historiques du profil avec les possessions
+  PNJ. Elles sont conservées, les transferts concernés refusés, jamais convertis silencieusement.
+  Le lot ne doit pas être activé avant ce rapprochement et la protection de ses anciennes écritures.
+
+- **27/10 — accessoires de club préparés NON appliqués** (`20261027213522`) :
+  modèles de catalogue, prix historiques 80/60/150, club réel de la ville, loi, capacité,
+  paiement, budget existant et dépôt dans une seule transaction avec reçu. Banc : 40 assertions
+  SQL dont 29 communes, au rôle authenticated, transaction annulée. Les anciens écrivains de
+  budget restent une dépendance de déploiement ; ils ne sont pas réputés sûrs par ce lot.
+  Relevé statique des écritures et prévol vivant en lecture seule sous `outils/inventaire/`.
+  **Le verrou final n'est ni préparé ni appliqué : les autres réceptions et changements
+  d'objets ne sont pas encore tous passés sous autorité serveur.**
+
+- **27/10 — état civil préparé NON appliqué** (`20261027214000`) : actes de naissance,
+  mariage/dissolution, décès d'un PJ absent et successions définitivement réglées établis depuis
+  les tables existantes, poste attesté (pas le seul libellé affiché), coût du site, unicité,
+  dépôt et reçu. Les textes d'acte ne sont plus envoyés par le navigateur. Fiches historiques
+  copiées dans le catalogue, fiches PJ produites depuis leurs événements réels ; aucun mariage,
+  décès ou dossier de succession créé pour livrer un objet. 46 assertions PostgreSQL, dont 29
+  communes, transaction annulée sous authenticated. Le verrou final reste inchangé.
+
+- **27/10 — missions et énigme préparées NON appliquées** (`20261027214213`) :
+  Pat et Jean-Lou déposent objets et étapes ensemble depuis leur emplacement réel ; calepin,
+  variante et relance selon l'horloge serveur (72/144 heures réelles), clé et ouverture du
+  coffre dans la transaction de présentation existante. Pas de second moteur de quête.
+  Reçus empêchant une ancienne sauvegarde de réémettre colis/clé. 46 assertions PostgreSQL,
+  dont 29 communes, authenticated et rollback. **Les autres écritures de progression restent
+  legacy** ; leur autorité complète n'est pas déclarée vérifiée et reste un préalable au verrou.
+  Le type réel de created_at est sans fuseau : interprétation UTC explicite, anciens producteurs
+  à confirmer au prévol. Les échanges IA/escort et récompenses générales restent à traiter.
+
+- **27/10 — récompenses objets et dons de tracts préparés NON appliqués** :
+  `20261027215214` lie dépôt et résolution de la quête existante ; le dossier contient seulement
+  les traces réelles encore valides de la ville. Les autres récompenses ne sont pas modifiées.
+  **La création/progression des quêtes reste legacy**, donc ce transfert ne prouve pas leur
+  autorité globale. `20261027215539` prolonge `tracts_donner_joueur` : retrait du vrai lot sous
+  révision et émission dans `objets_recus`, sans objet dicté ni compensation cliente. La collecte
+  atomique existante reste seule voie de réception. Aucun objet réel pour les PJ de simulation.
+  Dépôt commun : format historique illisible conservé/refusé, jamais remplacé silencieusement.
+
+- **Bilan de reprise Codex, 27/10 — non déployé** : rapport et ordre exact des dix
+  migrations sous `outils/inventaire/REPRISE-20261027.md`, avec preuves brutes. Le socle
+  de reçus est éprouvé sous RLS malgré des privilèges de table larges ; huit assertions à
+  deux sessions vérifient l'exclusion et l'absence d'état intermédiaire, actes annulés.
+  État civil scindé en `20261027214000`/`214001` pour respecter la limite MCP.
+  Restent **quatre réceptions actives locales** : vol de chantier et trois remises IA.
+  Charges anciennes, écrivains de budgets/caisses, progressions et sas restent des
+  dépendances ouvertes ; aucun verrou final, aucune migration appliquée, aucune fusion.
+
+- Contrôle Workflow de cette reprise : **rouge comme main**, six signalements de classement
+  des cinq anciennes fixtures SQL. Chemins et sorties sous les preuves, aucun contrôle modifié
+  pour les cacher. Le nouveau prévol est rangé dans `outils/bancs/`, sous transaction READ ONLY
+  annulée, conformément au workflow.
+
+- **28/10 — inventaire, Claude : plus aucun objet ajouté par l'écran.** Les dix migrations de la
+  reprise Codex sont appliquées et estampillées (registre `20261028204032` → `20261028205317`,
+  trois correctifs : caisses de l'usine et du port créées au besoin, acte citoyen à 50). Les quatre
+  réceptions locales restantes sont fermées : `kompromat_fabriquer`, `escort_piege_tenter`,
+  `crime_voler_materiaux` (jet, stock, dépôt, traces serveur), texte de l'IA posé une seule fois par
+  `kompromat_rediger` ; `doEscortInfos` supprimé (aucun menu). Relevé statique refait : les seuls
+  ajouts restants passent par la réponse du serveur. **PR #213 prête, fusion suspendue par Fred
+  (livraison groupée).** Après la livraison : `20261028210000`, `210500`, `210600`, `210700` (anciennes
+  portes, garde du fret, ancien acte de vol terrain, ancienne distribution calomnieuse).
+- **Encore ouvert avant le verrou final de `inventaire_sauver_revision`** : plus aucun ajout ni
+  retrait d'objet décidé par l'écran (28/10 : vol entre joueurs, tracts calomnieux et tracts de
+  Jean-Lou passés au serveur ; anciennes charges d'employés : aucune en base). Le verrou lui-même
+  attend l'accord de Fred. Hors inventaire : quêtes, budgets de club et autorisations de l'énigme
+  encore écrits par l'écran ; voix « conférence » passée au serveur (`conference_soutenir`,
+  `20261028226000`).
+- Après la livraison de la PR #213 : `20261028210000`, `210500`, `210600`, `210700`, `210800`, `210900`.

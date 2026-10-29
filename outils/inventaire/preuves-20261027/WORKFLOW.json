@@ -1,0 +1,16 @@
+{
+  "codes": {
+    "branche": 1,
+    "main": 1
+  },
+  "signalements_identiques": true,
+  "signalements": [
+    "- [5] fichier .sql egare : outils/bancs/fixtures/ced-football-schema.sql",
+    "- [5] fichier .sql egare : outils/bancs/fixtures/historique-135/20261023090017_location_lot_legacy_avant_paiement.sql",
+    "- [5] fichier .sql egare : outils/bancs/fixtures/historique-135/20261024072349_occupation_actions_et_echeances.sql",
+    "- [5] fichier .sql egare : outils/bancs/fixtures/terrain-chantier-acte-avant-commandes.sql",
+    "- [5] fichier .sql egare : outils/bancs/fixtures/terrain-permis-acte-avant-depot.sql",
+    "- [5] fichiers .sql hors des trois maisons : 5 au lieu de 0"
+  ],
+  "conforme": false
+}

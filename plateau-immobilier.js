@@ -908,42 +908,18 @@ function objetInventaireDocumentUrbanisme(doc) {
 
 // Remet le document a son destinataire.
 //
-// DEUX CANAUX, tous deux preexistants, aucun invente ici :
-//   - destinataire = le joueur courant  -> push direct dans state.inventory, exactement comme
-//     etatCivilDelivrerActe (plateau-etat-civil.js) pour les actes officiels ;
-//   - destinataire = un autre joueur    -> objets_recus (sbDonnerObjetJoueur), collecte a sa
-//     prochaine connexion par verifierObjetsRecus.
-//
-// CAPACITE D'INVENTAIRE (resolu au Lot 1.5.4) : les deux canaux passent desormais par la reception
-// automatique, qui ignore le plafond de 100. Un document administratif n'est donc jamais perdu ni
-// bloque dans la file objets_recus ; il entre, et son destinataire passe en Surcharge tant qu'il
-// n'est pas redescendu a 100. Aucune regle propre aux documents d'urbanisme : c'est le mecanisme
-// generique de tout objet recu automatiquement.
+// Un seul canal, y compris pour soi : objet_sas_deposer atteste l'archive et le demandeur.
+// La reception automatique existante collecte ensuite le document sans perte au plafond.
 async function delivrerDocumentUrbanisme(doc, destinataire, referenceArchive) {
   const objet = objetInventaireDocumentUrbanisme(doc);
-  const pourMoi = (typeof estTitulaire === 'function') && destinataire && estTitulaire(destinataire);
-
-  if (pourMoi) {
-    // Lot 1.5.4 : on passe desormais par le mecanisme GENERIQUE de reception automatique, au lieu
-    // du push direct qu'imposait le Lot 1.5.3 faute de mieux. Un document d'urbanisme n'a plus
-    // aucun traitement particulier : il beneficie de la meme regle que tout objet recu
-    // automatiquement -- il entre meme au-dela de 100, et son destinataire passe en Surcharge.
-    if (typeof recevoirObjetAutomatique === 'function') { recevoirObjetAutomatique(objet); return objet; }
-    if (typeof state === 'undefined') return objet;
-    if (!state.inventory) state.inventory = [];       // repli si le module n'est pas charge
-    state.inventory.push(objet);
-    if (typeof renderInventory === 'function') renderInventory();
-    return objet;
-  }
-
   // Depot atteste (17 septembre 2026) : le serveur verifie que referenceArchive designe bien une
   // ligne de dossiers_urbanisme dont le demandeur est ce destinataire. L'archive COMMANDE deja --
   // un joueur ne doit jamais detenir un recepisse d'un acte que la mairie n'a pas enregistre --
   // c'est donc elle qui fait foi.
   if (destinataire && typeof sbObjetSasDeposer === 'function') {
-    const r = await sbObjetSasDeposer('document_urbanisme', destinataire, objet, referenceArchive);
+    const r = await sbObjetSasDeposer('document_urbanisme', destinataire, objet, referenceArchive).catch(() => null);
     if (!r || r.ok !== true) doc.documentRemis = false;
-  }
+  } else doc.documentRemis = false;
   return objet;
 }
 

@@ -1,0 +1,42 @@
+[
+  {
+    "mutant": "piles_dupliquees",
+    "detecte": true,
+    "code": 1
+  },
+  {
+    "mutant": "nonce_libre",
+    "detecte": true,
+    "code": 1
+  },
+  {
+    "mutant": "fret_sans_depot",
+    "detecte": true,
+    "code": 1
+  },
+  {
+    "mutant": "colis_non_protege",
+    "detecte": true,
+    "code": 1
+  },
+  {
+    "mutant": "budget_non_credite",
+    "detecte": true,
+    "code": 1
+  },
+  {
+    "mutant": "succession_non_resolue",
+    "detecte": true,
+    "code": 1
+  },
+  {
+    "mutant": "mission_reemise",
+    "detecte": true,
+    "code": 1
+  },
+  {
+    "mutant": "delai_ignore",
+    "detecte": true,
+    "code": 1
+  }
+]

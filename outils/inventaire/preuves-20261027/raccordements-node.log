@@ -1,0 +1,28 @@
+✔ deposerDansCaisseFret delegue la commande et ne fabrique rien (117.133135ms)
+✔ reprendreDeCaisseFret delegue la commande et ne fabrique rien (65.8049ms)
+✔ retirerDeCaisseFret delegue la commande et ne fabrique rien (50.577825ms)
+✔ acheterLotNonReclameeFret delegue la commande et ne fabrique rien (37.392104ms)
+✔ urbanisme pour Fixture passe exclusivement par le sas (5.640994ms)
+✔ urbanisme pour Autre passe exclusivement par le sas (5.346879ms)
+✔ sas refuse ou injoignable : document non annonce comme remis (7.929465ms)
+✔ anciens producteurs inactifs supprimes, les ordres actifs restent raccordes (43.867591ms)
+✔ employe donne la quantite choisie par le moteur commun, sans modifier sa charge locale (9.830414ms)
+✔ ancienne charge employe reste intacte, sans copie automatique de contenu (7.886311ms)
+✔ reprise de groupe adresse une possession stable, jamais un seul index perime (7.402817ms)
+✔ accessoire : le client ne transmet ni tarif ni nom ni objet au serveur (34.301337ms)
+✔ acte officiel : le contenu affiche ne peut pas devenir un objet dicte au serveur (3.964928ms)
+✔ fiche imprimee par RPC, sans sauvegarde generale ni ajout local (3.261499ms)
+✔ confirmation d acte attend la reponse sans paiement separe et sans fausse reussite (38.85855ms)
+✔ Pat : etape et inventaire ne sont pas avances si le serveur refuse (16.886839ms)
+✔ Jean-Lou : aucun tract ou etape avant la derniere confirmation serveur (12.240164ms)
+✔ enigme : variante et temps viennent du serveur, pas de tirage navigateur (3.484107ms)
+✔ recompense objet : pas de CAS irreversible avant la confirmation du depot (28.266672ms)
+✔ don tracts : aucun retrait, ajout ou remboursement a l ecran, meme reponse perdue (16.372349ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 523.580106

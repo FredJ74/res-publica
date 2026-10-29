@@ -1,0 +1,497 @@
+{
+  "note": "Recensement statique, non preuve du catalogue vivant. Les affectations locales incluent le rendu. Les fonctions du baseline peuvent avoir évolué ; aucune n’est présentée comme sécurisée par ce recensement.",
+  "lectures_locales": [
+    {
+      "fichier": "supabase.js",
+      "ligne": 568,
+      "extrait": "current_city:     charState.currentCity || 'capitale',"
+    },
+    {
+      "fichier": "supabase.js",
+      "ligne": 569,
+      "extrait": "current_building: charState.currentBuilding || null,"
+    },
+    {
+      "fichier": "supabase.js",
+      "ligne": 570,
+      "extrait": "current_room:     charState.currentRoom || null,"
+    },
+    {
+      "fichier": "supabase.js",
+      "ligne": 2021,
+      "extrait": "current_city: state._navigationServeur === true ? undefined : (state.currentCity || 'capitale'),"
+    },
+    {
+      "fichier": "supabase.js",
+      "ligne": 2022,
+      "extrait": "current_building: state._navigationServeur === true ? undefined : (state.currentBuilding || null),"
+    },
+    {
+      "fichier": "supabase.js",
+      "ligne": 2023,
+      "extrait": "current_room: state._navigationServeur === true ? undefined : (state.currentRoom || null)"
+    },
+    {
+      "fichier": "plateau-ced.js",
+      "ligne": 6,
+      "extrait": "return state.country === 'republic' && state.currentCity === 'capitale'"
+    },
+    {
+      "fichier": "plateau-ced.js",
+      "ligne": 7,
+      "extrait": "&& state.currentBuilding === 'centre-artisanal' && state.currentRoom === 'travees';"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 1334,
+      "extrait": "state.currentCity = c.city;"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 1335,
+      "extrait": "state.currentBuilding = c.buildingId;"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 1336,
+      "extrait": "state.currentRoom = c.roomId;"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 1447,
+      "extrait": "state.currentCity = retourVille;"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 1450,
+      "extrait": "state.currentBuilding = batiments[0];"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 1451,
+      "extrait": "state.currentRoom = null;"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 2839,
+      "extrait": "state.currentCity = cityKey;"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 2840,
+      "extrait": "state.currentBuilding = null;"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 2841,
+      "extrait": "state.currentRoom = null;"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 4568,
+      "extrait": "// state.currentBuilding==='banque-privee', voir plateau-router.js) -- un seul parcours, jamais"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 8402,
+      "extrait": "&& state.country === origine.pays && state.currentCity === origine.ville"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 8403,
+      "extrait": "&& state.currentBuilding === origine.terrain && rpAuthUid() === origine.uid;"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 9135,
+      "extrait": "if (nbPartis > 0 && typeof addJournalEntry === 'function' && state.currentCity === ville) {"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 9395,
+      "extrait": "if (nbPartis > 0 && typeof addJournalEntry === 'function' && state.currentCity === VILLE_ID_PORT) {"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 12369,
+      "extrait": "state.currentBuilding = null;"
+    },
+    {
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 12370,
+      "extrait": "state.currentRoom = null;"
+    },
+    {
+      "fichier": "plateau-multijoueur.js",
+      "ligne": 447,
+      "extrait": "const actionTractsStade = targetId === 'persons-list' && state.currentBuilding === 'stade'"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 4260,
+      "extrait": "((buildingId === 'la-tribune' && roomId === 'redaction' && state.currentCity === 'capitale') ||"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 7872,
+      "extrait": "html += '<div style=\"font-size:.7rem;color:#a89870\">' + (domicilie ? 'Domicilié(e)' : 'De passage') + (c.current_city ? ' · ' + c.current_city : '') + '</div></div>';"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 8244,
+      "extrait": "if (state.currentCity === ville && state.country === pays) {"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 9166,
+      "extrait": "if (state.currentBuilding === buildingId && state.currentRoom === roomId) {"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 11136,
+      "extrait": "if (state.currentCity === ville && state.currentBuilding === buildingId"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 11137,
+      "extrait": "&& state.currentRoom === roomId && state.char?.name) {"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 11949,
+      "extrait": "state.currentCity = l[0].current_city;"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 13728,
+      "extrait": "state.currentCity = 'caserne';"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 13729,
+      "extrait": "state.currentBuilding = 'caserne-militaire';"
+    },
+    {
+      "fichier": "plateau-politique.js",
+      "ligne": 13730,
+      "extrait": "state.currentRoom = 'corps_garde';"
+    },
+    {
+      "fichier": "plateau-rue-centrale.js",
+      "ligne": 1019,
+      "extrait": "return state.char===c.personnage&&state.char?.name===c.nom&&state.country===c.pays&&state.currentCity===c.ville&&"
+    },
+    {
+      "fichier": "plateau-rue-centrale.js",
+      "ligne": 1020,
+      "extrait": "state.currentBuilding===c.batiment&&state.currentRoom===c.piece&&"
+    },
+    {
+      "fichier": "plateau-camion-militaire.js",
+      "ligne": 280,
+      "extrait": "state.currentCity = villeId;"
+    },
+    {
+      "fichier": "plateau-camion-militaire.js",
+      "ligne": 301,
+      "extrait": "state.currentCity = villeId;"
+    },
+    {
+      "fichier": "plateau-camion-militaire.js",
+      "ligne": 371,
+      "extrait": "state.currentCity = e.camion.ville;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 154,
+      "extrait": "state.currentBuilding = null;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 155,
+      "extrait": "state.currentRoom = null;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 425,
+      "extrait": "state.currentBuilding = buildingId;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 678,
+      "extrait": "estDansSaCellule = state.currentCity === c.city && buildingId === c.buildingId && roomId === c.roomId;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 738,
+      "extrait": "state.currentRoom = roomId;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 779,
+      "extrait": "if (confirmee && state.currentRoom === roomId && state.currentBuilding === buildingId) {"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 1017,
+      "extrait": "if (state.country === 'republic' && state.currentCity === 'capitale' && buildingId === 'la-tribune' && roomId === 'accueil_tribune') {"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 1151,
+      "extrait": "if (state.currentBuilding === buildingId && state.currentRoom === roomId) renderRoomActions(room, buildingId, roomId);"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 1190,
+      "extrait": "if (state.currentBuilding === buildingId && state.currentRoom === roomId) {"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 1561,
+      "extrait": "state.currentCity===c.ville&&state.currentBuilding===c.batiment&&state.currentRoom===c.piece&&"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 1677,
+      "extrait": "if (s.city && state.currentCity !== s.city) state.currentCity = s.city;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 1699,
+      "extrait": "state.currentBuilding = null;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 1700,
+      "extrait": "state.currentRoom = null;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 2682,
+      "extrait": "state.currentCity = villeId;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 2683,
+      "extrait": "state.currentBuilding = null;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 2684,
+      "extrait": "state.currentRoom = null;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 2800,
+      "extrait": "state.currentCity = villeId;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 2801,
+      "extrait": "state.currentBuilding = null;"
+    },
+    {
+      "fichier": "plateau-navigation.js",
+      "ligne": 2802,
+      "extrait": "state.currentRoom = null;"
+    },
+    {
+      "fichier": "plateau-communication.js",
+      "ligne": 73,
+      "extrait": "joueurs.unshift({ name: myName, country: state.country, current_city: state.currentCity, poste: state.poste, domicile: state.domicile });"
+    },
+    {
+      "fichier": "plateau-restaurant-luthecia.js",
+      "ligne": 3,
+      "extrait": "return state.country==='republic'&&state.currentCity==='capitale'&&state.currentBuilding==='hotel-republica'&&state.currentRoom==='restaurant';"
+    },
+    {
+      "fichier": "plateau-router.js",
+      "ligne": 107,
+      "extrait": "if (state.currentBuilding === 'banque-privee' && typeof ouvrirGestionHelvetia === 'function') { ouvrirGestionHelvetia(pa, cost); return; }"
+    },
+    {
+      "fichier": "plateau-router.js",
+      "ligne": 297,
+      "extrait": "const typeBanque = state.currentBuilding === 'banque-privee' ? 'privee' : 'nationale';"
+    },
+    {
+      "fichier": "plateau-assemblee-seance.js",
+      "ligne": 685,
+      "extrait": "state.currentRoom = piece;"
+    },
+    {
+      "fichier": "plateau-organisations-quetes.js",
+      "ligne": 7735,
+      "extrait": "const dansEnceinte = state.country === clubHome.country && state.currentCity === clubHome.city"
+    },
+    {
+      "fichier": "plateau-organisations-quetes.js",
+      "ligne": 7736,
+      "extrait": "&& state.currentBuilding === (clubHome.stadeBuilding || 'stade');"
+    },
+    {
+      "fichier": "plateau-commerce-pj.js",
+      "ligne": 2088,
+      "extrait": "&& state.currentCity === tx.ville && state.currentBuilding === tx.batiment && state.currentRoom === tx.piece"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 2573,
+      "extrait": "state.currentCity = 'capitale';"
+    },
+    {
+      "fichier": "plateau-personnage.js",
+      "ligne": 3103,
+      "extrait": "const viaEntreprise = (state.currentBuilding === 'hotel-republica'"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 790,
+      "extrait": "if (!state.currentCity) state.currentCity = 'capitale';"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 964,
+      "extrait": "if (state.currentBuilding === 'assemblee' && typeof rafraichirAssemblee === 'function') {"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 1140,
+      "extrait": "state.currentBuilding = null;"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 1141,
+      "extrait": "state.currentRoom = null;"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 1440,
+      "extrait": "state.currentCity = positionLocaleVille;"
+    },
+    {
+      "fichier": "plateau-core.js",
+      "ligne": 1840,
+      "extrait": "state.currentCity = char.currentCity || 'capitale';"
+    },
+    {
+      "fichier": "plateau-quete-accueil.js",
+      "ligne": 435,
+      "extrait": "if (etape === 'stade_attente_action' && state.currentBuilding === 'stade') {"
+    },
+    {
+      "fichier": "plateau-quete-accueil.js",
+      "ligne": 919,
+      "extrait": "&& !(state.country === 'republic' && state.currentCity === 'capitale')) return null;"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 1162,
+      "extrait": "&& state.country === 'republic' && state.currentCity === 'capitale'"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 1163,
+      "extrait": "&& state.currentBuilding === 'centre-artisanal' && state.currentRoom === 'travees') {"
+    },
+    {
+      "fichier": "plateau-pnj.js",
+      "ligne": 3939,
+      "extrait": "&& state.currentCity === c.ville && state.currentBuilding === c.terrain"
+    },
+    {
+      "fichier": "plateau-assemblee-presidence.js",
+      "ligne": 488,
+      "extrait": "&& state.currentBuilding === 'assemblee') {"
+    }
+  ],
+  "statuts": {
+    "REST personnages/personnages_donnees": "garde de table préparé ; neutralise les positions, pas la fiche entière",
+    "rue_position_enregistrer": "moteur existant raccordé à la composition commune",
+    "navigation_interieure": "nouvelle porte du même moteur de composition, accès spéciaux encore incomplets",
+    "RPC de justice/prison/combat": "conservées par le garde, validation de tous les écrivains non close",
+    "transports client": "raccordement serveur nécessaire avant activation du garde, sinon déplacement légitime refusé après paiement"
+  },
+  "ecrivains_sql_directs": [
+    {
+      "fonction": "camion_deplacer",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "origine": "baseline archivé",
+      "ligne": 21,
+      "corps_sha256": "ac743499c04b6b81e14d4c925df20d0592d2d73d468dfc4f6e131a5120cefef4"
+    },
+    {
+      "fonction": "camion_descendre",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "origine": "baseline archivé",
+      "ligne": 188,
+      "corps_sha256": "7e20873ea20c983b8263c0f43caa1ad15d8a633c142a5ff9756661b5c93216a0"
+    },
+    {
+      "fonction": "camion_monter",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "origine": "baseline archivé",
+      "ligne": 300,
+      "corps_sha256": "82b29cfc91ae2a10b0768b2fcc9903e2a411f08fec5f6ac0413db4d8c810ca50"
+    },
+    {
+      "fonction": "militaire_bataille_appliquer",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "origine": "baseline archivé",
+      "ligne": 2225,
+      "corps_sha256": "22498c40b3b61da7df91512201df9cc05ff4f31a79c705a8c93340e1caed94c5"
+    },
+    {
+      "fonction": "militaire_bataille_decrocher_groupe",
+      "source": "baseline/domaines/militaire/20_fonctions-1.sql",
+      "origine": "baseline archivé",
+      "ligne": 2545,
+      "corps_sha256": "b2b7fdbd1a9308f5859dbd5218933fcaeeca796b9bc85bf98bce0ca353823955"
+    },
+    {
+      "fonction": "assemblee_protester",
+      "source": "baseline/domaines/assemblee/20_fonctions-1.sql",
+      "origine": "baseline archivé",
+      "ligne": 2236,
+      "corps_sha256": "7b0bf93a9f266c46303e24532e4f03c90f073b95887bc7d0264b84c3a62d7f46"
+    },
+    {
+      "fonction": "assemblee_revenir",
+      "source": "baseline/domaines/assemblee/20_fonctions-1.sql",
+      "origine": "baseline archivé",
+      "ligne": 2913,
+      "corps_sha256": "e63c65eea95beb43109222a336499e421dea030869d82ce55d145aa633eb3aba"
+    },
+    {
+      "fonction": "personnages_vue_modifier",
+      "source": "baseline/domaines/personnage-et-presence/20_fonctions.sql",
+      "origine": "baseline archivé",
+      "ligne": 1772,
+      "corps_sha256": "81de19b89cce2a451c3c562d521e593774e278aeec95f71c88c829903c0d9bff"
+    },
+    {
+      "fonction": "police_fuite_resoudre",
+      "source": "migrations/20261018093000_police_interception_reprise_transactionnelle.sql",
+      "origine": "migration, registre à confirmer",
+      "ligne": 130,
+      "corps_sha256": "9765663d233425c47cff5438ddf181e64ca58812e5fe8740d8b0b0a7a3532aa7"
+    },
+    {
+      "fonction": "rue_position_personnage_interne",
+      "source": "migrations/20261028183000_groupes_rue_transaction_commune.sql",
+      "origine": "migration, registre à confirmer",
+      "ligne": 16,
+      "corps_sha256": "b4084ef2dc086612483d784ba9d38995d193986afdda6abec782ab94fb07dc66"
+    },
+    {
+      "fonction": "navigation_interieure_personnage_interne",
+      "source": "migrations/20261028185500_navigation_interieure_validation.sql",
+      "origine": "migration, registre à confirmer",
+      "ligne": 24,
+      "corps_sha256": "8019594c2603c5039de77b90c0678bfe894748d90c22f039d1893150064e855d"
+    }
+  ],
+  "limites": "Liste des UPDATE directs à cible littérale seulement : exclut SQL dynamique, écritures via des objets JSON, procédures indirectes et définitions absentes du dépôt. Les versions actives doivent être déterminées par le registre vivant, pas par le nom du dernier fichier."
+}

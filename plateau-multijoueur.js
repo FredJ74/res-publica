@@ -1282,51 +1282,56 @@ function payerEmployes() {
 // =====================
 // LAISSER UN PNJ EN PLACE / RÉCUPÉRER
 // =====================
-function laisserPnjEnPlace(nomPnj) {
-  const emp = getEmployes().find(e => e.nom === nomPnj);
-  if (!emp) return;
-  emp.inGroupe = false;
-  emp.buildingId = state.currentBuilding;
-  emp.roomId = state.currentRoom;
-  emp.city = state.currentCity;
-
-  // Compter combien de PNJ sont déjà laissés dans cette pièce
-  const memeEndroit = getEmployes().filter(e =>
-    !e.inGroupe && e.buildingId === state.currentBuilding && e.roomId === state.currentRoom && e.nom !== nomPnj
-  );
-  const msgGroupe = memeEndroit.length > 0
-    ? ' Il/elle rejoint ' + memeEndroit.map(e => e.nom).join(', ') + ' sur place.'
-    : ' Il/elle reste seul(e) dans cette pièce.';
-
-  updateUI();
-  renderEmployesPanel();
-  // Rafraîchir la liste des personnes
-  if (state.currentBuilding && state.currentRoom) {
-    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-    const ctx = WORLD[state.country]?.[state.currentCity]?.buildingContext?.[state.currentBuilding];
-    renderPersonsList((ctx?.persons?.length > 0) ? ctx.persons : (room?.persons || []));
+// La présence de chaque employé vient de sa projection serveur existante.
+function adopterPresenceEmploye(emp, reel) {
+  if (!emp || !reel || reel.pnj_id !== emp.pnjId || typeof reel.porte !== 'boolean') return false;
+  emp.inGroupe = reel.porte;
+  if (reel.position && typeof reel.position === 'object') {
+    emp.city = reel.position.ville;
+    emp.buildingId = reel.position.building_id;
+    emp.roomId = reel.position.room_id;
+    emp.rueNoeudId = reel.position.rue_noeud_id;
   }
-  showToast(nomPnj + ' laissé(e) ici', 'Vous pouvez le/la récupérer à tout moment.' + msgGroupe, false);
+  return true;
 }
-
-function recupererPnjDansGroupe(nomPnj) {
+let RP_EMPLOYE_MOUVEMENT = null;
+async function commanderMouvementEmploye(nomPnj, prendre) {
   const emp = getEmployes().find(e => e.nom === nomPnj);
-  if (!emp) return;
-  // Vérifier que le PJ est dans la même pièce
-  if (emp.buildingId !== state.currentBuilding || emp.roomId !== state.currentRoom) {
-    showToast('Absent(e)', nomPnj + ' n\'est pas dans cette pièce.', false);
-    return;
+  if (!emp?.pnjId) {
+    showToast('Mouvement non confirmé', 'Cet accompagnant doit être identifié par le serveur.', false);
+    return false;
   }
-  emp.inGroupe = true;
-  updateUI();
-  renderEmployesPanel();
-  showToast(nomPnj + ' rejoint le groupe !', '', true);
-
-  // Quete d'accueil : la premiere fois qu'un joueur recupere un employe via ce systeme,
-  // on explique comment s'en separer plus tard (icone X dans Mes Employes).
-  if (nomPnj === 'Jérémy' && typeof queteAccueilExpliquerLicenciement === 'function') {
-    queteAccueilExpliquerLicenciement();
-  }
+  const c = contexteGroupePj();
+  if (RP_EMPLOYE_MOUVEMENT && contexteGroupePjValide(RP_EMPLOYE_MOUVEMENT)) return false;
+  RP_EMPLOYE_MOUVEMENT = c;
+  try {
+    const r = prendre
+      ? (typeof sbPnjPrendre === 'function' ? await sbPnjPrendre([emp.pnjId], {encoreValide:()=>contexteGroupePjValide(c)}).catch(() => null) : null)
+      : (typeof sbPnjQuitterGroupe === 'function' ? await sbPnjQuitterGroupe([emp.pnjId], {encoreValide:()=>contexteGroupePjValide(c)}).catch(() => null) : null);
+    if (!contexteGroupePjValide(c)) return false;
+    // Toujours relire les employés, aussi après réponse perdue. Aucun rejeu implicite.
+    const etat = typeof sbEmployeMesEmployes === 'function'
+      ? await sbEmployeMesEmployes().catch(() => null) : null;
+    if (!contexteGroupePjValide(c)) return false;
+    const reel = etat?.employes?.find(e => e.pnj_id === emp.pnjId);
+    adopterPresenceEmploye(emp, reel);
+    if (!r || r.ok !== true || !reel || typeof reel.porte !== 'boolean') {
+      showToast('Mouvement non confirmé', 'Le serveur n’a pas confirmé le mouvement et son état. Réessayez la consultation.', false);
+      if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+      return false;
+    }
+    updateUI();
+    renderEmployesPanel();
+    showToast('Mouvement confirmé', prendre ? nomPnj + ' vous accompagne.' : nomPnj + ' reste sur place.', true);
+    if (prendre && nomPnj === 'Jérémy' && typeof queteAccueilExpliquerLicenciement === 'function') queteAccueilExpliquerLicenciement();
+    return true;
+  } finally { if (RP_EMPLOYE_MOUVEMENT === c) RP_EMPLOYE_MOUVEMENT = null; }
+}
+async function laisserPnjEnPlace(nomPnj) {
+  return commanderMouvementEmploye(nomPnj, false);
+}
+async function recupererPnjDansGroupe(nomPnj) {
+  return commanderMouvementEmploye(nomPnj, true);
 }
 
 async function licencierPnj(nomPnj) {
@@ -1523,12 +1528,54 @@ function renderEmployesPanel() {
           ? '<button onclick="laisserPnjEnPlace(\'' + emp.nom.replace(/'/g,'') + '\')" title="Laisser dans cette piece — sort du groupe mais reste votre employe" style="background:none;border:1px solid #2a3a2a;color:#4a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📍</button>'
           : '<button onclick="recupererPnjDansGroupe(\'' + emp.nom.replace(/'/g,'') + '\')" title="Faire rejoindre votre groupe" style="background:none;border:1px solid #3a2a10;color:#8a6a20;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">🔄</button>'
         ) +
+        (!emp.inGroupe && emp.pnjId
+          ? '<button onclick="rappelerEmployeParRadio(\'' + String(emp.pnjId).replace(/'/g,'') + '\')" title="Rappeler par radio — nécessite une radio de chaque côté et la même ville" style="background:none;border:1px solid #425a75;color:#92b5db;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📻</button>'
+          : '') +
         '<button onclick="ouvrirDonnerEmploye(\'' + emp.nom.replace(/'/g,'') + '\')" title="Donner un objet a porter (plafond 100 unites au total)" style="background:none;border:1px solid #2a3a3a;color:#4a7a7a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">📦</button>' +
         '<button onclick="ouvrirReprendreEmploye(\'' + emp.nom.replace(/'/g,'') + '\')" title="Reprendre ce que porte cet employe" style="background:none;border:1px solid #3a3a2a;color:#7a7a4a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">↩️</button>' +
         '<button onclick="licencierPnj(\'' + emp.nom.replace(/'/g,'') + '\')" title="Renvoyer cet employe — arret du contrat et du salaire. Ce qu\'il porte est perdu." style="background:none;border:1px solid #3a1a1a;color:#6a3a2a;cursor:pointer;padding:.15rem .3rem;font-size:.8rem">✕</button>' +
       '</div>' +
     '</div>';
   }).join('') + htmlAgents;
+}
+
+
+// Rappel par radio : aucune téléportation navigateur, le serveur déplace
+// l'unité sous contrôle de l'autorité, des équipements et de la ville.
+let RP_RAPPEL_RADIO = null;
+async function rappelerEmployeParRadio(ancreId) {
+  const c = contexteGroupePj();
+  if (RP_RAPPEL_RADIO && contexteGroupePjValide(RP_RAPPEL_RADIO)) return;
+  RP_RAPPEL_RADIO = c;
+  try {
+    const r = typeof sbPnjRappelerRadio === 'function'
+      ? await sbPnjRappelerRadio(ancreId, {encoreValide:()=>contexteGroupePjValide(c)}).catch(() => null) : null;
+    if (!contexteGroupePjValide(c)) return;
+    if (!r || r.ok !== true) {
+      const messages = { radio_hors_ville: 'Le groupe est dans une autre ville : aucune liaison radio.',
+        radio_appelant_absente: 'Vous devez posséder une radio.',
+        radio_unite_absente: 'Au moins un agent du groupe doit porter une radio.',
+        autorite_insuffisante: 'Vous ne disposez pas de l’autorité sur tous les agents.',
+        axe_position_hors_socle: 'Cette famille utilise encore son circuit de position propre.',
+        unite_non_stationnaire: 'Le groupe doit être en position.',
+        unite_modifiee: 'Le groupe a changé. Relisez sa composition.' };
+      showToast('Rappel non confirmé', messages[r?.raison] || 'Le serveur n’a pas confirmé le rappel.', false);
+      return;
+    }
+    // Le rejeu ne reconstruit pas l'ancienne unité : relecture de la projection existante.
+    const employes = typeof sbEmployeMesEmployes === 'function'
+      ? await sbEmployeMesEmployes().catch(() => null) : null;
+    if (!contexteGroupePjValide(c)) return;
+    if (Array.isArray(employes?.employes)) {
+      for (const emp of state.employes || []) {
+        const reel = employes.employes.find(e => e.pnj_id === emp.pnjId);
+        adopterPresenceEmploye(emp, reel);
+      }
+    }
+    if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
+    showToast('Rappel confirmé', r.deja_present ? 'Cet agent vous suit déjà.' :
+      String(r.rappeles) + ' agent(s) vous ont rejoint.', true);
+  } finally { if (RP_RAPPEL_RADIO === c) RP_RAPPEL_RADIO = null; }
 }
 
 // Confier un accompagnant a un autre joueur PRESENT. La liste vient de la presence
@@ -1606,110 +1653,37 @@ function ouvrirDonnerEmploye(nomEmploye) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerDonnerEmploye(nomEmploye, idx) {
+async function confirmerDonnerEmploye(nomEmploye, idx) {
   const emp = (state.employes || []).find(e => e.nom === nomEmploye);
   const item = state.inventory[idx];
-  if (!emp || !item) return;
-
-  // TROU DE PROTECTION COMBLE (chantier C, 14 septembre 2026). Les quatre autres sorties
-  // d'inventaire refusaient le colis secret ; celle-ci ne verifiait rien, et permettait donc de
-  // s'en separer malgre tout -- rendant la quete criminelle impossible a terminer.
-  // Garde CLIENT et non serveur, faute de mieux : la charge d'un employe vit dans state.employes,
-  // un blob encore entierement cote navigateur. Cette sortie ne pourra passer par l'entonnoir
-  // serveur que lorsque les employes y seront eux-memes -- voir le rapport, familles restantes.
-  if (typeof colisSecretProtege === 'function' && colisSecretProtege(item)) {
-    showToast('Impossible', 'Ce colis est indispensable à votre mission en cours. Remettez-le à son destinataire avant de vous en séparer.', false);
-    return;
-  }
-
-  const chargeActuelle = getTotalChargeEmploye(emp);
-  const placeRestante = Math.max(0, PLAFOND_CHARGE_EMPLOYE - chargeActuelle);
-  if (placeRestante <= 0) {
-    showToast('Charge maximale', emp.nom + ' ne peut plus rien porter de plus.', false);
-    return;
-  }
-
-  if (!emp.charge) emp.charge = {};
-
-  if (item.stackable && item.stackKey) {
-    const qteVoulue = parseInt(document.getElementById('donner-emp-qty-' + idx)?.value || item.qty || 1);
-    const qteReelle = Math.min(qteVoulue, item.qty || 1, placeRestante);
-    if (qteReelle <= 0) return;
-
-    emp.charge[item.stackKey] = (emp.charge[item.stackKey] || 0) + qteReelle;
-    item.qty = (item.qty || 1) - qteReelle;
-    if (item.qty <= 0) state.inventory.splice(idx, 1);
-  } else {
-    // Objet unique : cle basee sur le nom, compte pour 1 unite de charge
-    const cle = '_unique_' + item.name;
-    if (!emp.chargeUnique) emp.chargeUnique = [];
-    emp.chargeUnique.push(item);
-    emp.charge[cle] = (emp.charge[cle] || 0) + 1;
-    state.inventory.splice(idx, 1);
-  }
-
-  renderInventory();
-  document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Objet confié', emp.nom + ' porte maintenant "' + item.name + '".', true);
-  addJournalEntry('Vous avez confié "' + item.name + '" à ' + emp.nom + '.', 'event-info');
+  if (!emp?.pnjId || !item) { showToast('Transfert indisponible', 'Ce porteur n’est pas disponible. Rouvrez sa fiche.', false); return; }
+  const v = await executerReceptionInventaire('pnj_objet_transferer', { p_pnj: emp.pnjId, p_index: idx, p_sens: 'donner',
+    p_quantite: item.stackable ? Number(document.getElementById('donner-emp-qty-' + idx)?.value || 1) : 1,
+    p_revision: state._inventaireRevision ?? null, p_possession: null });
+  if (!v) return;
+  renderInventory(); document.getElementById('modal-postes')?.classList.remove('open');
+  showToast('Objet confié', v.qte + ' unité(s) confiée(s) à ' + emp.nom + '.', true);
 }
 
-function ouvrirReprendreEmploye(nomEmploye) {
+
+async function ouvrirReprendreEmploye(nomEmploye) {
   const emp = (state.employes || []).find(e => e.nom === nomEmploye);
-  if (!emp || !emp.charge || Object.keys(emp.charge).length === 0) {
-    showToast('Rien à reprendre', emp?.nom + ' ne porte rien pour l\'instant.', false);
-    return;
+  if (!emp?.pnjId) { showToast('Transfert indisponible', 'Ce porteur n’est pas disponible. Rouvrez sa fiche.', false); return; }
+  if (Object.keys(emp.charge || {}).length || (emp.chargeUnique || []).length) {
+    showToast('Ancienne charge conservée', 'Ces objets sont conservés. Leur transfert est momentanément indisponible.', false); return;
   }
-
-  let html = '<div style="padding:1rem"><div style="display:flex;flex-direction:column;gap:.4rem">';
-  Object.entries(emp.charge).forEach(([cle, qte]) => {
-    if (qte <= 0) return;
-    const estUnique = cle.startsWith('_unique_');
-    const label = estUnique ? cle.replace('_unique_', '') : (RESSOURCES_ECONOMIE[cle]?.label || cle);
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem;border:1px solid #2a2010;background:#0f0d05">';
-    html += '<span style="font-size:.85rem;color:#c0b090">' + label + (qte > 1 ? ' (×' + qte + ')' : '') + '</span>';
-    if (!estUnique && qte > 1) {
-      html += '<div style="display:flex;gap:.3rem;align-items:center"><input type="number" min="1" max="' + qte + '" id="reprendre-emp-qty-' + cle + '" value="' + qte + '" style="width:60px;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.2rem" /><button class="pnj-action-btn" onclick="confirmerReprendreEmploye(\'' + nomEmploye + '\',\'' + cle + '\')" style="padding:.3rem .6rem">Reprendre</button></div>';
-    } else {
-      html += '<button class="pnj-action-btn" onclick="confirmerReprendreEmploye(\'' + nomEmploye + '\',\'' + cle + '\')" style="padding:.3rem .6rem">Reprendre</button>';
-    }
-    html += '</div>';
-  });
-  html += '</div></div>';
-
-  document.getElementById('postes-modal-title').textContent = 'Reprendre à ' + emp.nom;
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  // Reutilise exactement l'ecran et les controles du groupe commun, pas un second inventaire.
+  let i = RP_GROUPE_COURANT.findIndex(m => m.id === emp.pnjId);
+  if (i < 0) { i = RP_GROUPE_COURANT.length; RP_GROUPE_COURANT.push({ id: emp.pnjId, nom: emp.nom }); }
+  await ouvrirGroupePnjRetirer(i);
 }
 
-function confirmerReprendreEmploye(nomEmploye, cle) {
-  const emp = (state.employes || []).find(e => e.nom === nomEmploye);
-  if (!emp || !emp.charge || !emp.charge[cle]) return;
 
-  const estUnique = cle.startsWith('_unique_');
-
-  if (estUnique) {
-    const item = (emp.chargeUnique || []).find(i => ('_unique_' + i.name) === cle);
-    if (!item) return;
-    const qteAjoutee = addToInventory(item);
-    if (qteAjoutee > 0) {
-      emp.chargeUnique = emp.chargeUnique.filter(i => i !== item);
-      delete emp.charge[cle];
-    }
-  } else {
-    const qteVoulue = parseInt(document.getElementById('reprendre-emp-qty-' + cle)?.value || emp.charge[cle]);
-    const res = RESSOURCES_ECONOMIE[cle];
-    const qteAjoutee = addToInventory({ name: res?.label || cle, icon: res?.icon, stackable: true, stackKey: cle, qty: Math.min(qteVoulue, emp.charge[cle]) });
-    if (qteAjoutee > 0) {
-      emp.charge[cle] -= qteAjoutee;
-      if (emp.charge[cle] <= 0) delete emp.charge[cle];
-    }
-  }
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-  showToast('Objet récupéré', 'Repris à ' + emp.nom + '.', true);
-  addJournalEntry('Vous avez repris ce que portait ' + emp.nom + '.', 'event-info');
+async function confirmerReprendreEmploye(nomEmploye, cle) {
+  // Une ancienne modale ne peut reprendre par une cle de presentation : relire les possessions.
+  await ouvrirReprendreEmploye(nomEmploye);
 }
+
 
 // =====================
 // DÉPLACEMENT — PNJ en groupe suivent le PJ
@@ -1948,33 +1922,78 @@ function calculerBonusCombatGroupe() {
 // =====================
 // SYSTEME DE GROUPE
 // =====================
-function rejoindrePJ(encodedPnj) {
-  let pnj;
-  try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
-  const myName = state.char && state.char.name ? state.char.name : 'Joueur';
-  if (!state.group) {
-    state.group = { leader: pnj.name, members: [pnj.name, myName] };
-  } else {
-    if (!state.group.members.includes(myName)) state.group.members.push(myName);
-  }
-  if (state.employees && state.employees.length > 0) {
-    state.employees.forEach(function(e) {
-      if (!state.group.members.includes(e.name)) state.group.members.push(e.name);
-    });
-  }
-  closePnjModal();
-  showToast('Groupe rejoint !', 'Vous avez rejoint le groupe de ' + pnj.name + '. Il est le leader.', true);
-  addJournalEntry('Vous avez rejoint le groupe de ' + pnj.name + '.', 'event-info');
+// Groupe PJ : toutes les lectures/commandes sont liées au personnage ET à la session.
+let RP_GROUPE_COMMANDE = null;
+let RP_GROUPE_LECTURE = 0;
+function contexteGroupePj() {
+  return { personnage: state.char, nom: state.char?.name,
+    uid: typeof rpAuthUid === 'function' ? rpAuthUid() : null,
+    session: typeof rpAuthSessionIdentifiant === 'function' ? rpAuthSessionIdentifiant() : null };
 }
-
-function quitterGroupe() {
-  const myName = state.char && state.char.name ? state.char.name : 'Joueur';
-  if (!state.group) return;
-  state.group.members = state.group.members.filter(function(m) { return m !== myName; });
-  if (state.group.members.length <= 1) state.group = null;
-  closePnjModal();
-  showToast('Groupe quitte', 'Vous avez quitte le groupe.', false);
-  addJournalEntry('Vous avez quitte le groupe.', '');
+function contexteGroupePjValide(c) {
+  const n = contexteGroupePj();
+  return !!c.nom && c.personnage === n.personnage && c.nom === n.nom
+    && c.uid === n.uid && c.session === n.session;
+}
+function adopterGroupePj(v, contexte) {
+  if (!contexteGroupePjValide(contexte)) return false;
+  const groupe = typeof sbGroupePjNormaliser === 'function' ? sbGroupePjNormaliser(v, contexte.nom) : null;
+  const valide = typeof sbGroupePjValide === 'function' && sbGroupePjValide(v, contexte.nom);
+  state.group = valide ? groupe : null;
+  state._groupeConfirme = valide;
+  return valide;
+}
+async function rafraichirGroupePj() {
+  if (typeof sbGroupePjLire !== 'function') return false;
+  const c = contexteGroupePj(), numero = ++RP_GROUPE_LECTURE;
+  const r = await sbGroupePjLire().catch(() => null);
+  if (numero !== RP_GROUPE_LECTURE || RP_GROUPE_COMMANDE) return false;
+  return adopterGroupePj(r, c);
+}
+async function commanderGroupePj(commande, titre) {
+  if (typeof sbRpc !== 'function') return false;
+  const c = contexteGroupePj();
+  if (RP_GROUPE_COMMANDE && contexteGroupePjValide(RP_GROUPE_COMMANDE)) return false;
+  RP_GROUPE_COMMANDE = c;
+  ++RP_GROUPE_LECTURE; // Invalider les lectures antérieures à cette commande.
+  try {
+    const r = await commande({encoreValide:()=>contexteGroupePjValide(c)}).catch(() => null);
+    if (!contexteGroupePjValide(c)) return false;
+    if (!r || r.ok !== true) {
+      const motifs = { pas_co_presents: 'Le joueur doit être présent au même endroit.',
+        chef_deja_membre: 'Ce joueur suit déjà un autre chef.',
+        chef_de_groupe: 'Séparez votre groupe avant de rejoindre un autre chef.',
+        chef_invalide: 'Chef de groupe invalide.' };
+      // Une réponse perdue n'est pas un refus métier : relire sans rejouer la mutation.
+      const etat = !r && typeof sbGroupePjLire === 'function'
+        ? await sbGroupePjLire().catch(() => null) : null;
+      if (!contexteGroupePjValide(c)) return false;
+      if (etat) adopterGroupePj(etat,c);
+      else if (!r) { state.group = null; state._groupeConfirme = false; }
+      showToast('Groupe non confirmé', motifs[r?.raison] ||
+        'La commande n’est pas confirmée. L’appartenance a été relue si possible ; ne présumez pas sa réussite.', false);
+      return false;
+    }
+    if (!adopterGroupePj(r,c)) {
+      showToast('Groupe non confirmé', 'Le serveur ne fournit pas une appartenance valide.', false);
+      return false;
+    }
+    closePnjModal();
+    showToast(titre, 'Appartenance confirmée par le serveur.', true);
+    addJournalEntry(titre + '.', 'event-info');
+    return true;
+  } finally {
+    if (RP_GROUPE_COMMANDE === c) RP_GROUPE_COMMANDE = null;
+  }
+}
+async function rejoindrePJ(encodedPnj) {
+  let pj;
+  try { pj = JSON.parse(decodeURIComponent(encodedPnj)); } catch(e) { return; }
+  if (!pj || !pj.name || pj.name === state.char?.name) return;
+  return commanderGroupePj(options => sbRpc('groupe_pj_rejoindre', {p_chef: pj.name}, options), 'Groupe rejoint');
+}
+async function quitterGroupe() {
+  return commanderGroupePj(options => sbRpc('groupe_pj_quitter', {}, options), 'Groupe quitté');
 }
 
 // Jeremy (quete d'accueil) rejoint le groupe via le meme systeme que les PNJ employes
@@ -2301,6 +2320,7 @@ function demarrerPollingNotificationChat() {
 // Ne pas « corriger » ce refus en croyant lever un vestige de migration : il n'en est pas un.
 
 let RP_GROUPE_COURANT = [];
+const RP_GROUPE_POSSESSIONS = Object.create(null);
 
 function pnjGroupeLibelleFamille(f) {
   return ({ soldat: 'Soldat', employe: 'Employé', agent: 'Agent',
@@ -2338,7 +2358,43 @@ function pnjGroupeNiveauEntrainement(formation) {
   return axes.join(' · ');
 }
 
+let RP_GROUPE_PNJ_LECTURE = 0;
+function boutonUnitesPnjAdministrables() {
+  return '<div class="cpj-note"><button class="cpj-touche" onclick="ouvrirUnitesPnjAdministrables()">Unités sous mon autorité</button></div>';
+}
+async function ouvrirUnitesPnjAdministrables() {
+  const c=contexteGroupePj(),lecture=++RP_GROUPE_PNJ_LECTURE;
+  const valide=()=>contexteGroupePjValide(c)&&lecture===RP_GROUPE_PNJ_LECTURE;
+  const corps=document.getElementById('postes-body');
+  const titre=document.getElementById('postes-modal-title');
+  if(titre)titre.textContent='Unités sous mon autorité';
+  if(!corps)return;
+  corps.innerHTML='<div class="cpj-note">Lecture des unités…</div>';
+  document.getElementById('modal-postes').classList.add('open');
+  let v;try{v=await sbPnjUnitesAdministrablesLire();}catch(_){v=null;}
+  if(!valide())return;
+  if(v?.ok!==true){corps.innerHTML='<div class="cpj-note">Lecture impossible. Réessayez.</div>';return;}
+  // Cette lecture ne contient ni possessions ni bourse. Ne pas l'utiliser dans
+  // les panneaux d'inventaire ou de paiement qui exigent leurs propres lectures.
+  RP_GROUPE_COURANT=v.membres||[];
+  const ech=t=>typeof escapeHtmlText==='function'?escapeHtmlText(String(t??'')):String(t??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+  corps.innerHTML='<div class="cpj-dialogue">'+(RP_GROUPE_COURANT.length?RP_GROUPE_COURANT.map((m,i)=>
+    '<div class="cpj-note">'+ech(m.nom)+' · '+(m.co_present?'ici':'à distance')+
+    (m.peut_administrer?'':' · commandement seulement')+
+    ' <button class="cpj-touche" onclick="ouvrirGroupePnjConduite('+i+')">Conduite</button></div>').join(''):
+    '<div class="cpj-note">Aucune unité accessible.</div>')+
+    '<button class="cpj-touche" onclick="ouvrirGroupePnj()">Retour au groupe présent</button></div>';
+}
+function idsRepriseUnitePnj(m) {
+  // Une ancre et ses suiveurs forment l'unité persistante existante. Le serveur
+  // refuse la liste si un membre manque ou si l'autorité n'est pas complète.
+  if(m.leader_pj||m.leader_pnj_id)return [m.id];
+  return RP_GROUPE_COURANT.filter(x=>x.id===m.id||x.leader_pnj_id===m.id).map(x=>x.id);
+}
+
 async function ouvrirGroupePnj() {
+  const c = contexteGroupePj(), lecture = ++RP_GROUPE_PNJ_LECTURE;
+  const valide = () => contexteGroupePjValide(c) && lecture === RP_GROUPE_PNJ_LECTURE;
   const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t ?? '')) : String(t ?? '');
   const pays = state.country || 'republic';
   const titre = document.getElementById('postes-modal-title');
@@ -2349,6 +2405,7 @@ async function ouvrirGroupePnj() {
 
   const res = await sbPnjMembresIci(pays, state.currentCity, state.currentBuilding, state.currentRoom)
                     .catch(() => null);
+  if (!valide()) return;
   if (res === null || res === undefined) {
     corps.innerHTML = '<div style="padding:1rem;color:#cc4444;font-size:.85rem">'
       + 'Lecture du groupe impossible — l\'appel au serveur n\'a pas abouti. Réessayez.</div>';
@@ -2368,12 +2425,13 @@ async function ouvrirGroupePnj() {
 
   if (miens.length === 0) {
     corps.innerHTML = '<div style="padding:1rem;font-size:.85rem;color:#8a8060;font-style:italic">'
-      + 'Aucun PNJ ne vous accompagne ici.</div>';
+      + 'Aucun PNJ ne vous accompagne ici.</div>'+boutonUnitesPnjAdministrables();
     return;
   }
 
   const metier = miens.some(m => m.famille === 'soldat')
     ? await pnjGroupeMetierSoldats(pays) : {};
+  if (!valide()) return;
 
   let html = '<div style="padding:1rem">';
   html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.12em;'
@@ -2422,7 +2480,7 @@ async function ouvrirGroupePnj() {
     html += '</div>';
   });
   html += '</div>';
-  corps.innerHTML = html;
+  corps.innerHTML = html+boutonUnitesPnjAdministrables();
 
   // Les possessions sont chargees apres coup : la liste s'affiche sans attendre.
   // UNE SEULE SOURCE (26 septembre 2026) : pnj_possessions. Les accessoires militaires y ont
@@ -2433,6 +2491,7 @@ async function ouvrirGroupePnj() {
   // (equipement militaire) : on accepte les deux a l'affichage, sans rien reecrire en base.
   miens.forEach((m, i) => {
     sbPnjPossessions(m.id).then(liste => {
+      if (!valide()) return;
       const el = document.getElementById('grp-poss-' + i);
       if (!el) return;
       // null = lecture impossible ou autorite refusee (chantier 5) ; [] = ce PNJ ne porte rien.
@@ -2502,10 +2561,13 @@ async function confirmerGroupePnjDonnerArgent(i) {
 }
 async function confirmerGroupePnjDonnerObjet(i, index) {
   const m = RP_GROUPE_COURANT[i]; if (!m) return;
-  const r = await sbPnjObjetTransferer(m.id, index, 'donner').catch(() => null);
-  signalerResultatGroupePnj(r, 'Objet remis', (r?.objet?.nom || 'Objet') + ' remis à ' + m.nom + '.');
+  const r = await executerReceptionInventaire('pnj_objet_transferer', { p_pnj: m.id, p_index: index, p_sens: 'donner',
+    p_quantite: null, p_revision: state._inventaireRevision ?? null, p_possession: null });
+  if (!r) return;
+  signalerResultatGroupePnj(r, 'Objet remis', (r.objet?.name || r.objet?.nom || 'Objet') + ' remis à ' + m.nom + '.');
   await ouvrirGroupePnj();
 }
+
 
 // ---- RETIRER : du PNJ vers le PJ.
 async function ouvrirGroupePnjRetirer(i) {
@@ -2533,6 +2595,7 @@ async function ouvrirGroupePnjRetirer(i) {
        +  'border:1px solid #6a5a2a;background:transparent;color:#C9A84C;cursor:pointer;'
        +  'font-size:.75rem">Retirer cet argent</button></div>';
   const objets = p.possessions || [];
+  RP_GROUPE_POSSESSIONS[m.id] = objets;
   if (objets.length === 0) {
     html += '<div style="font-size:.76rem;color:#8a8060;font-style:italic">Il ne porte aucun objet.</div>';
   } else {
@@ -2588,10 +2651,15 @@ async function ordonnerGroupePnj(i, action) {
 
 async function confirmerGroupePnjRetirerObjet(i, index) {
   const m = RP_GROUPE_COURANT[i]; if (!m) return;
-  const r = await sbPnjObjetTransferer(m.id, index, 'retirer').catch(() => null);
-  signalerResultatGroupePnj(r, 'Objet récupéré', (r?.objet?.nom || 'Objet') + ' récupéré sur ' + m.nom + '.');
+  const objet = (RP_GROUPE_POSSESSIONS[m.id] || []).find(o => o.index === index);
+  if (!objet?.possession_id) { showToast('Sélection périmée', 'Rouvrez les possessions du porteur.', false); return; }
+  const r = await executerReceptionInventaire('pnj_objet_transferer', { p_pnj: m.id, p_index: index, p_sens: 'retirer',
+    p_quantite: null, p_revision: null, p_possession: objet.possession_id });
+  if (!r) return;
+  signalerResultatGroupePnj(r, 'Objet récupéré', (r.objet?.name || r.objet?.nom || 'Objet') + ' récupéré sur ' + m.nom + '.');
   await ouvrirGroupePnj();
 }
+
 
 // Les refus du serveur sont NOMMES, jamais collapses en un message invente -- et un appel qui
 // n'aboutit pas se distingue d'un refus metier.
@@ -2641,45 +2709,43 @@ function signalerResultatGroupePnj(r, titreOk, messageOk) {
   return true;
 }
 
-// ---- CONDUITE : quitter le groupe / rejoindre un leader.
-// Pour un SOLDAT en phase miroir, l'action individuelle n'est pas exprimable : les RPC
-// militaires (militaire_deposer_soldats, militaire_recuperer_soldats) prennent un NOMBRE, pas
-// un soldat designe. On le dit, et on renvoie vers l'ordre de section. Ce n'est pas une
-// limitation du socle -- la primitive generique existe et fonctionne -- c'est le modele
-// militaire qui reste l'autorite pendant cette phase.
+// ---- CONDUITE : même menu pour les familles raccordées aux portes communes.
+// Un soldat n'est activé que si le serveur confirme sa capacité après bascule
+// et projection militaire. Les contrôles d'autorité restent dans chaque RPC.
 async function ouvrirGroupePnjConduite(i) {
+  const contexte=contexteGroupePj();
   const ech = (t) => (typeof escapeHtmlText === 'function') ? escapeHtmlText(String(t ?? '')) : String(t ?? '');
   const m = RP_GROUPE_COURANT[i]; if (!m) return;
+  const conduite = m.mouvement_individuel === true || (m.mouvement_individuel === undefined && m.famille !== 'soldat');
   const corps = document.getElementById('postes-body');
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.85rem;color:#e0d5b8;margin-bottom:.7rem">Conduite de '
        +  ech(m.nom) + '</div>';
-  if (m.famille === 'soldat') {
-    html += '<div style="border:1px solid #2a2010;background:#0b0a06;padding:.6rem .8rem;'
-         +  'font-size:.76rem;color:#8a8060;line-height:1.55">'
-         +  'Les mouvements de soldats passent encore par les ordres de section, qui opèrent '
-         +  '<em>par nombre</em> et non soldat par soldat. Utilisez « Gérer la section » pour '
-         +  'laisser sur place ou reprendre des hommes.<br><br>'
-         +  'L\'action individuelle — faire quitter le groupe à ce soldat précis, ou le confier '
-         +  'à un autre chef présent — arrivera avec la bascule finale du moteur.</div>';
+  if (!conduite) {
+    html += '<div class="cpj-note">Le serveur n’a pas encore activé les déplacements communs '
+      + 'pour cette famille. Utilisez son circuit métier existant.</div>';
   } else {
-    html += '<div style="display:flex;flex-direction:column;gap:.4rem">'
-         +  '<button onclick="confirmerGroupePnjQuitter(' + i + ')" style="padding:.35rem .7rem;'
-         +  'border:1px solid #6a4a2a;background:transparent;color:#c08a5a;cursor:pointer;'
-         +  'text-align:left;font-size:.78rem">Le faire quitter le groupe — il reste ici</button>'
-         +  '</div>';
-    html += '<div id="grp-leaders" style="margin-top:.7rem;font-size:.74rem;color:#8a8060">'
-         +  'Leaders présents : lecture…</div>';
+    html += '<div class="cpj-note">Le commandement ne transfère pas l’autorité administrative.</div>';
+    if (m.leader_pj === state.char?.name) {
+      html += '<button class="cpj-touche" onclick="confirmerGroupePnjQuitter(' + i + ')">Le laisser ici</button>';
+    } else if (m.peut_administrer === true) {
+      html += '<button class="cpj-touche" onclick="confirmerGroupePnjPrendre(' + i + ')">Reprendre dans mon groupe</button>';
+    }
+    if (m.peut_administrer === true && !m.leader_pj && !m.leader_pnj_id) {
+      html += '<button class="cpj-touche" onclick="confirmerGroupePnjRadio(' + i + ')">Rappeler cette unité par radio</button>';
+    }
+    if (m.peut_administrer === true) html += '<div id="grp-leaders" class="cpj-note">Leaders présents : lecture…</div>';
   }
   html += '<div style="margin-top:.9rem"><button onclick="ouvrirGroupePnj()" '
        +  'style="padding:.3rem .7rem;border:1px solid #6a5a2a;background:transparent;'
        +  'color:#C9A84C;cursor:pointer;font-size:.75rem">Retour au groupe</button></div></div>';
   corps.innerHTML = html;
 
-  if (m.famille !== 'soldat') {
+  if (conduite && m.peut_administrer === true) {
     // Le menu de destination ne contient que des leaders REELLEMENT presents dans la piece.
     const autres = await leadersPresentsDansPiece(state.country || 'republic', state.currentCity,
       state.currentBuilding, state.currentRoom).catch(() => []);
+    if(!contexteGroupePjValide(contexte)||RP_GROUPE_COURANT[i]!==m)return;
     const el = document.getElementById('grp-leaders');
     if (!el) return;
     const cibles = (autres || []).filter(n => n && n !== state.char?.name);
@@ -2689,22 +2755,40 @@ async function ouvrirGroupePnjConduite(i) {
     }
     el.innerHTML = 'Confier à un leader présent :<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem">'
       + cibles.map(n => '<button onclick="confirmerGroupePnjTransferer(' + i + ',\''
-          + encodeURIComponent(n) + '\')" style="padding:.25rem .55rem;border:1px solid #3a3a4a;'
+          + encodeURIComponent(n).replace(/'/g,'%27') + '\')" style="padding:.25rem .55rem;border:1px solid #3a3a4a;'
           + 'background:transparent;color:#8a8aa0;cursor:pointer;font-size:.72rem">'
           + ech(n) + '</button>').join('') + '</div>';
   }
 }
 
+let RP_GROUPE_PNJ_COMMANDE = null;
+async function commanderConduitePnj(i, commande, titre, message) {
+  const m = RP_GROUPE_COURANT[i]; if (!m) return false;
+  const c = contexteGroupePj();
+  if (RP_GROUPE_PNJ_COMMANDE && contexteGroupePjValide(RP_GROUPE_PNJ_COMMANDE)) return false;
+  RP_GROUPE_PNJ_COMMANDE = c;
+  try {
+    let r;
+    try { r = await commande(m, {encoreValide:()=>contexteGroupePjValide(c)}); } catch (_) { r = null; }
+    if (!contexteGroupePjValide(c)) return false;
+    const ok = signalerResultatGroupePnj(r, titre, message(m));
+    // Relecture après verdict/refus/perte de réponse, jamais un rejeu automatique.
+    await ouvrirGroupePnj();
+    return ok;
+  } finally { if (RP_GROUPE_PNJ_COMMANDE === c) RP_GROUPE_PNJ_COMMANDE = null; }
+}
 async function confirmerGroupePnjQuitter(i) {
-  const m = RP_GROUPE_COURANT[i]; if (!m) return;
-  const r = await sbPnjQuitterGroupe([m.id]).catch(() => null);
-  signalerResultatGroupePnj(r, 'Détaché', m.nom + ' quitte votre groupe et reste ici.');
-  await ouvrirGroupePnj();
+  return commanderConduitePnj(i, (m, options) => sbPnjQuitterGroupe([m.id], options), 'Détaché', m => m.nom + ' reste ici.');
+}
+async function confirmerGroupePnjPrendre(i) {
+  return commanderConduitePnj(i, (m, options) => sbPnjPrendre(idsRepriseUnitePnj(m), options), 'Repris', m => m.nom + ' rejoint votre groupe.');
+}
+async function confirmerGroupePnjRadio(i) {
+  return commanderConduitePnj(i, (m, options) => sbPnjRappelerRadio(m.id, options), 'Rappel confirmé', m => m.nom + ' vous accompagne.');
 }
 async function confirmerGroupePnjTransferer(i, destEncode) {
-  const m = RP_GROUPE_COURANT[i]; if (!m) return;
-  const dest = decodeURIComponent(destEncode || '');
-  const r = await sbPnjTransferer([m.id], dest, false).catch(() => null);
-  signalerResultatGroupePnj(r, 'Confié', m.nom + ' suit désormais ' + dest + '.');
-  await ouvrirGroupePnj();
+  let dest;
+  try { dest = decodeURIComponent(destEncode || ''); } catch (_) { return false; }
+  if (!dest) return false;
+  return commanderConduitePnj(i, (m, options) => sbPnjTransferer([m.id], dest, false, options), 'Confié', m => m.nom + ' suit désormais ' + dest + '.');
 }

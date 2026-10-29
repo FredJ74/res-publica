@@ -64,8 +64,16 @@ for(const cas of ['non_recherche','non_detecte','detecte','absent','sans_pa'])te
  c.calculerPerGroupePolice=()=>12;c.calculerVolGroupePolice=()=>12;c.calculerDisEffective=()=>8;c.calculerChancePJ=()=>90;c.resoudreControlePoliceAutomatique=()=>{};
  c.sbRpc=async(f)=>{appels.push(f);if(f==='justice_recherches')return [{id:'j',country:'republic',data:{motifs:[]}}];return cas==='non_recherche'?{ok:false,raison:'non_recherche'}:{ok:true,detecte:cas==='detecte',rencontre:'police-rencontre'};};
  await c.verifierSurveillancePolicePJUnique('mairie','accueil');assert.equal(!!c.dossier(),cas==='detecte');
- if(cas==='absent'||cas==='sans_pa')assert.deepEqual(appels,['police_reprise_lire']);
+ if(cas==='absent'||cas==='sans_pa')assert.deepEqual(appels,['police_reprise_lire','police_detection_verifier']);
  if(cas==='detecte')assert.deepEqual(appels,['police_reprise_lire','police_detection_verifier','justice_recherches']);
+});
+test('un agent privé peut déclencher une rencontre sans policier présent, sur décision serveur seule',async()=>{
+ const c=contexte();vm.runInContext('interceptionJudiciaire=null',c);const appels=[];
+ c.chargerEffectifsPolice=async()=>({policiers:[]});
+ c.sbRpc=async nom=>{appels.push(nom);if(nom==='police_reprise_lire')return {ok:true,active:false};if(nom==='police_detection_verifier')return {ok:true,detecte:true,rencontre:'prive-test-135',effectif:1};if(nom==='justice_recherches')return [{id:'j',country:'republic',data:{motifs:[]}}];throw Error(nom);};
+ await c.verifierSurveillancePolicePJUnique('mairie','accueil');
+ assert.deepEqual(appels,['police_reprise_lire','police_detection_verifier','justice_recherches']);
+ assert.equal(c.dossier()?.rencontreId,'prive-test-135');assert.match(c.html(),/INTERPELLATION|Vous avez été reconnu/);
 });
 test('restauration de rue : lecture de position seule, aucun ordre de mouvement',async()=>{
  const c=contexte();let appels=[];c.sbRpc=async(f)=>{appels.push(f);return {ok:true,country:'republic',city:'capitale',street:'destination',building:null};};
@@ -73,3 +81,11 @@ test('restauration de rue : lecture de position seule, aucun ordre de mouvement'
  await c.initialiserRueCentrale('republic','destination',null);assert.deepEqual(appels,['rue_position_lire']);assert.equal(c.navigation[3],true);
 });
 test('un dossier appartient a sa connexion, pas au personnage suivant',()=>{const c=contexte();vm.runInContext('interceptionJudiciaire.contexte=contexteInterceptionJudiciaire()',c);c.state.char={name:'Bob'};assert.equal(c.interceptionJudiciaireBloqueDeplacement(),false);assert.equal(c.dossier(),null);});
+
+test('la rencontre affiche uniquement l effectif confirme, pas tous les policiers co presents',async()=>{
+ const c=contexte();vm.runInContext('interceptionJudiciaire=null; const PER_GROUPE_BONUS_PAR_MEMBRE=1;',c);
+ c.chargerEffectifsPolice=async()=>({policiers:Array.from({length:3},()=>({buildingId:'mairie',roomId:'accueil',pa:12}))});
+ c.sbRpc=async nom=>nom==='police_reprise_lire'?{ok:true,active:false}:nom==='police_detection_verifier'?{ok:true,detecte:true,rencontre:'police-test-unite',effectif:1}:[{id:'j',country:'republic',data:{motifs:[]}}];
+ await c.verifierSurveillancePolicePJUnique('mairie','accueil');
+ assert.equal(c.dossier().policiers.length,1);
+});

@@ -655,6 +655,9 @@ function sbPayloadPersonnage(charState) {
     reservation_hotel: charState.char?.reservationHotel || null,
     updated_at:       new Date().toISOString()
   };
+  if (charState._navigationServeur === true) {
+    for (const cle of ['country','current_city','current_building','current_room','current_street']) delete data[cle];
+  }
   return data;
 }
 
@@ -695,12 +698,15 @@ function sbEnfilerEcriturePersonnage(charState, data) {
     // Les autres champs restent le snapshot original (notamment les deltas de POP).
     // La position est lue au MOMENT de l'ecriture, apres les taches precedentes.
     // On ne la prend que si ce personnage est toujours le personnage actif.
-    if (typeof state !== 'undefined' && state.char?.name === data.name
+    if (charState._navigationServeur !== true && typeof state !== 'undefined' && state.char?.name === data.name
         && state.personnageChargeDepuisServeur !== false) {
       data.country = state.country || data.country;
       data.current_city = state.currentCity || data.current_city;
       data.current_building = state.currentBuilding || null;
       data.current_room = state.currentRoom || null;
+    }
+    if (charState._navigationServeur === true) {
+      for (const cle of ['country','current_city','current_building','current_room','current_street']) delete data[cle];
     }
     return sbEcrirePersonnage(data);
   }).then((resultat) => {
@@ -736,7 +742,8 @@ async function sbCreerPersonnageInitial(charState) {
   // On emprunte le constructeur de payload de sbSavePersonnage en neutralisant son ecriture :
   // la garde de bootstrap est inoperante ici (personnage tout neuf), on passe donc par une
   // capture directe du meme objet.
-  const data = sbPayloadPersonnage(charState);
+  // Une création reste un INSERT initial, pas une sauvegarde de position.
+  const data = sbPayloadPersonnage({...charState, _navigationServeur:false});
   if (!data || !data.name) return { ok: false, raison: 'nom_manquant' };
   return await sbCreerPersonnageUnique(data);
 }
@@ -848,12 +855,19 @@ async function sbLoadPersonnage(name) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(name)}`);
   if (!rows || rows.length === 0) return null;
   const r = rows[0];
+  // Appartenance PJ relue au chargement/reconnexion, jamais depuis une sauvegarde locale.
+  // Aucun groupe d'autrui consulté, aucun minuteur ajouté.
+  const groupePj = r.user_id && typeof rpAuthUid === 'function' && rpAuthUid() === r.user_id
+    ? await sbGroupePjLire().catch(() => null) : null;
   const inventaire = r.user_id && typeof rpAuthUid === 'function' && rpAuthUid() === r.user_id
     ? await sbInventaireReceptionEtat(name).catch(() => null) : null;
   const inventaireVersionne = inventaire?.ok && inventaire.contrat === 1
     && Array.isArray(inventaire.inventory) && Number.isSafeInteger(inventaire.revision);
   return {
     updatedAt: r.updated_at || null,
+    group: sbGroupePjNormaliser(groupePj, r.name),
+    _groupeConfirme: sbGroupePjValide(groupePj, r.name),
+    _navigationServeur: groupePj?.navigation_serveur === true,
     // PROPRIETAIRE DE LA FICHE (21 septembre 2026). Cette colonne etait la, dans la reponse, et
     // le mapping la jetait. Elle est pourtant la seule qui permette de savoir, SANS aucun appel
     // supplementaire, si la fiche recue est bien celle du compte connecte : personnages_donnees
@@ -2003,10 +2017,10 @@ function sbSauvegardeUrgenceDechargement() {
     hp: state.hp ?? 100,
     moral: state.moral ?? 75,
     resources: ressourcesAvecBasePop(state, { inf: state.inf ?? 0, pop: state.pop ?? 0, dis: state.dis ?? 50 }),
-    country: state.country || 'republic',
-    current_city: state.currentCity || 'capitale',
-    current_building: state.currentBuilding || null,
-    current_room: state.currentRoom || null
+    country: state._navigationServeur === true ? undefined : (state.country || 'republic'),
+    current_city: state._navigationServeur === true ? undefined : (state.currentCity || 'capitale'),
+    current_building: state._navigationServeur === true ? undefined : (state.currentBuilding || null),
+    current_room: state._navigationServeur === true ? undefined : (state.currentRoom || null)
   });
   try {
     // Fermer un onglet oublie ne doit pas republier ses soldes sur un etat
@@ -4670,13 +4684,8 @@ async function sbChargerEffetsTractsPNJ(country) {
 // meme table atomique que les tracts, meme contrainte d'unicite par tour. Remplace la reecriture
 // du blob electoral depuis le client (migration_voix_pnj_canaux.sql). Aucune regle de jeu n'y est
 // portee : les couts, jets, phases et geographies restent decides par l'appelant.
-async function sbEnregistrerVoixPnj(requete, joueur, cycleId, candidat, pnjNom, canal, cleExplicite) {
-  const rows = await sbRpc('elections_voix_pnj_enregistrer', {
-    p_requete: requete, p_joueur: joueur, p_cycle_id: cycleId, p_candidat: candidat,
-    p_pnj_nom: pnjNom, p_canal: canal, p_cle: cleExplicite || null
-  });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
+// sbEnregistrerVoixPnj SUPPRIME (28/10/2026) : les voix d'electeurs PNJ ne sont plus ecrites
+// que par le serveur (conference_soutenir, jean_lou_tract_distribuer).
 
 // Reception exclusive d'un don de tracts : supprime ET renvoie la ligne en une instruction. null si
 // deja recue (autre onglet) ou absente -- ne rien ajouter a l'inventaire dans ce cas.
@@ -6326,8 +6335,8 @@ async function sbPnjMembresIci(pays, ville, building, room, rueNoeud) {
 
 // Quitter le groupe : la position est MATERIALISEE avant que le lien soit rompu, donc le PNJ
 // reste exactement la ou il etait. La propriete ne change pas.
-async function sbPnjQuitterGroupe(pnjIds) {
-  return await sbRpc('pnj_quitter_groupe', { p_ids: pnjIds });
+async function sbPnjQuitterGroupe(pnjIds, options) {
+  return await sbRpc('pnj_quitter_groupe', { p_ids: pnjIds }, options);
 }
 
 // =====================================================================
@@ -6404,15 +6413,41 @@ async function sbEmployeMesEmployes() {
 
 // Transferer la conduite a un autre leader. Co-presence exigee par le serveur, AUCUNE
 // acceptation du nouveau leader, et le PROPRIETAIRE NE CHANGE PAS.
-async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj) {
+async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj, options) {
   return await sbRpc('pnj_transferer', {
     p_ids: pnjIds, p_dest: destinataire, p_dest_est_pnj: !!destinataireEstPnj
-  });
+  }, options);
 }
 
 // Reprendre dans son groupe des PNJ laisses sur place (co-presence exigee).
-async function sbPnjPrendre(pnjIds) {
-  return await sbRpc('pnj_prendre', { p_ids: pnjIds });
+async function sbPnjPrendre(pnjIds, options) {
+  return await sbRpc('pnj_prendre', { p_ids: pnjIds }, options);
+}
+
+// Rappel radio : même ville, autorité administrative et radios des deux côtés.
+// Le serveur recompose le groupe ; ne jamais simuler son déplacement côté client.
+async function sbPnjRappelerRadio(ancreId, options) {
+  return await sbRpc('pnj_rappeler_radio', { p_ancre: ancreId }, options);
+}
+
+function sbGroupePjValide(v, nom) {
+  return !!(v && v.ok === true && v.contrat === 1 && typeof v.chef === 'string'
+    && Array.isArray(v.membres) && v.membres.includes(nom) && v.membres.includes(v.chef)
+    && v.membres.every(n => typeof n === 'string' && n)
+    && new Set(v.membres).size === v.membres.length);
+}
+function sbGroupePjNormaliser(v, nom) {
+  if (!sbGroupePjValide(v, nom)) return null;
+  return v.membres.length > 1 ? { leader: v.chef, members: v.membres.slice() } : null;
+}
+
+// Projection d'autorité/commandement pour les consultations et rappels explicites.
+async function sbPnjUnitesAdministrablesLire() {
+  return await sbRpc('pnj_unites_administrables_lire', {});
+}
+
+async function sbGroupePjLire() {
+  return await sbRpc('groupe_pj_lire', {});
 }
 
 // DONNER / RETIRER de l'argent. 'donner' va du PJ vers le PNJ. Atomique cote serveur.

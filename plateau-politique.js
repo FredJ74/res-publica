@@ -1565,34 +1565,26 @@ async function confirmerConference(cle, candidatNom, pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   const cycle = CYCLES_ELECTORAUX[state.country]?.[cle];
   if (!cycle) return;
-  const candidat = cycle.candidats.find(c => c.nom === candidatNom);
-  if (!candidat || candidat.aideConference) { showToast('Indisponible', 'Ce candidat a déjà bénéficié d\'une conférence.', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  candidat.aideConference = true;
-  state.char.derniereConferenceJour = state.day;
-  sauvegarderPersonnageImmediat();
-
-  // ECRITURE ATOMIQUE (12 septembre 2026) : les 3 electeurs convaincus etaient ecrits dans
-  // cycle.votesPNJ sous des identifiants contenant Date.now(), puis TOUT le blob du cycle etait
-  // reecrit depuis le client -- deux conferences simultanees s'ecrasaient, et un double-clic
-  // creait 6 voix. Chaque electeur est desormais une ligne de elections_tracts_pnj sous une cle
-  // STABLE (joueur + candidat + rang) : rejouer la meme conference n'ajoute plus rien. Le verrou
-  // « une conference par candidat » (aideConference) et celui « une par jour »
-  // (derniereConferenceJour) restent exactement ou ils etaient, cote client.
-  // BUG CORRIGE au passage : la ligne de sauvegarde re-decoupait la cle du cycle
-  // (cle.split('_')), ce qui pour chef_syndicat produisait posteId='chef'/city='syndicat' et
-  // ecrivait dans une ligne fantome « republic_chef » -- les 3 voix n'etaient jamais persistees.
-  const NB_ELECTEURS_CONVERTIS = 3;
-  let convertis = 0;
-  for (let i = 0; i < NB_ELECTEURS_CONVERTIS; i++) {
-    const cleElecteur = 'conference:' + (state.char?.name || '') + ':' + candidatNom + ':' + i;
-    const ok = await enregistrerVotePNJ(state.country, cycle.posteId, cycle.city || null,
-      'Un auditeur de la conférence', candidatNom, 'conference', cleElecteur).catch(() => false);
-    if (ok) convertis++;
+  // PAR LE SERVEUR (28/10/2026) : conference_soutenir verifie le lieu, preleve les PA, tient les
+  // deux limites (une conference par jour, un seul soutien par candidat) et ecrit les 3 voix dans
+  // la meme transaction. Le canal de voix « conference » sera reserve au serveur.
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('conference_soutenir', { p_cycle: cle, p_candidat: candidatNom, p_pa: pa, p_cost: cost }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) {
+    const motifs = { deja_fait_aujourdhui: 'Une seule conférence par jour.', deja_soutenu: 'Ce candidat a déjà bénéficié d\'une conférence.',
+      scrutin_clos: 'Ce scrutin est clos.', candidat_hors_scrutin: 'Ce candidat ne se présente plus.', pas_sur_place: 'Vous devez être dans l\'amphithéâtre.' };
+    if (v && motifs[v.raison]) showToast('Indisponible', motifs[v.raison], false);
+    else signalerRefusCout(v || { raison: 'connexion_indisponible' });
+    return;
   }
-  candidat.prospectusDistribues = (candidat.prospectusDistribues || 0) + convertis;
+  if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
+  const candidat = (cycle.candidats || []).find(c => c.nom === candidatNom);
+  if (candidat) candidat.aideConference = true;
+  state.char.derniereConferenceJour = state.day;
+  const convertis = Number(v.convertis) || 0;
+  if (convertis > 0 && typeof ajouterEffetTractLocal === 'function') ajouterEffetTractLocal(cycle, candidatNom, convertis, v.tour);
+  if (candidat) candidat.prospectusDistribues = (candidat.prospectusDistribues || 0) + convertis;
 
   updateUI();
   if (convertis === 0) {
@@ -1980,25 +1972,8 @@ function pnjDejaEngage(cycle, pnjNom) {
 // elections_tracts_pnj (canal renseigne), exactement comme un tract : meme contrainte d'unicite,
 // meme decompte au depouillement. Aucune regle de jeu ne change : couts, jets, phases, geographie
 // et textes restent decides par les appelants, inchanges.
-async function enregistrerVotePNJ(country, posteId, city, pnjId, candidatNom, canal, cleExplicite) {
-  const cle = getCleCycle(posteId, city);
-  const cycle = CYCLES_ELECTORAUX[country]?.[cle];
-  if (!cycle) return false;
-  if (!cleExplicite && pnjDejaEngage(cycle, pnjId)) return false;
-  if (typeof sbEnregistrerVoixPnj !== 'function') return false;
-  const requete = 'voix-pnj-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-  // Le canal est toujours fourni par l'appelant ('conference' ou 'jean_lou') : le repli sur
-  // 'prospectus' a disparu avec la mecanique du meme nom (12 septembre 2026).
-  if (!canal) return false;
-  const r = await sbEnregistrerVoixPnj(requete, state.char?.name, country + '_' + cle, candidatNom,
-                                       pnjId, canal, cleExplicite || null).catch(() => null);
-  if (!r || !r.ok) return false;
-  // Echo local immediat : le decompte affiche tient compte de la voix sans attendre un rechargement.
-  if (typeof ajouterEffetTractLocal === 'function') ajouterEffetTractLocal(cycle, candidatNom, 1, r.tour);
-  const effets = cycle._effetsTracts;
-  if (effets) { if (!effets.engages) effets.engages = {}; effets.engages[r.cle] = candidatNom; }
-  return true;
-}
+// enregistrerVotePNJ SUPPRIME (28/10/2026) : les voix d'electeurs PNJ ne sont plus ecrites
+// que par le serveur (conference_soutenir, jean_lou_tract_distribuer).
 
 // Liste les candidats actuellement en campagne (lot tracts electoraux PSM, 24 aout 2026).
 // NE FILTRE PLUS L'IMPRESSION depuis le 16 septembre 2026 : l'imprimerie accepte n'importe quelle
@@ -12159,6 +12134,7 @@ async function confirmerOrdreCollectif(compagnieId, sectionId, chef, action) {
     const motifs = {
       autorite_insuffisante: 'Vous ne commandez pas ce groupe.',
       radio_manquante: 'Commander à distance exige que vous et le chef du groupe portiez chacun une radio.',
+      radio_hors_ville: 'La liaison radio ne fonctionne que dans la même ville. Rapprochez-vous du groupe.',
       aucun_soldat_concerne: 'Aucun soldat de ce groupe n\'a besoin de cet ordre aujourd\'hui.',
       rations_insuffisantes: 'Rations insuffisantes : il en faut une par soldat (' + ((r && r.requis) || '?') + ' requises, ' + ((r && r.disponibles) || 0) + ' disponibles).',
       tentes_insuffisantes: 'Tentes insuffisantes : ' + ((r && r.requis) || '?') + ' requise(s) pour ce groupe, ' + ((r && r.disponibles) || 0) + ' disponible(s).',
