@@ -300,3 +300,5 @@ Le 29/10, Fred transfère tout l'immobilier à Claude ; références dans la tra
 versionnée, Codex poursuit seulement les socles et ChatGPT orchestre l'intégration #230.
 
 Préparation #219 du 29/10 : miroirs police/douane conservant morts/détenus et PA canoniques ; import historique unique, dégâts des rounds policiers préexistants écrits au socle avant projection. 173 scénarios PostgreSQL jetable ; non installé, comparaison des corps vivants et fermeture des anciens écrivains encore nécessaires. Référence : `FINALISATION-GROUPES-UNIVERSELS-20261028.md`.
+
+Préparation #219, sélection/composition du 29/10 : `groupe_combattants_interne` réutilise le groupe canonique et ses lieux/états ; gardes de recomposition pendant une confrontation ; recrutement militaire distinguant camp national et pays physique ; round policier gardé par l'état réel. 200 cas natifs locaux, sans déploiement ni clôture des rounds universels.

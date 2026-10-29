@@ -18,6 +18,14 @@
 
 ---
 
+## #219 — sélection et composition sous confrontation, Codex 29/10, EN COURS
+
+- Reprise `ca72fe22`, même branche. Références PR230 relues via Git (`b054264f`, nouvel audit ACL) ; API PR219 Forbidden, aucune nouvelle tentative répétée. Aucun connecteur Supabase exposé, aucune production. Les six workflows antérieurs sont l'information de Fred, pas une nouvelle observation CI de ces commits.
+- Quatre migrations préparées `20261029110000` à `20261029110300` : lecteur privé des combattants depuis le groupe serveur (position réelle, HP/PA, prison, hospitalisation, interception et autre bataille), pas de métier inventé ni de caractéristiques militaires de repli. Gardes sur rejoindre/quitter/prendre/déposer/transmettre/radio : pas d'évasion par recomposition pendant une confrontation. Même verrou de graphe avant les ressources ; forces sélectionnées également protégées.
+- Recrutement militaire existant corrigé : camp lu dans le service, pays physique contrôlé sur le champ de bataille ; morts/incapables/détenus/interceptés/engagés ailleurs exclus. Le round policier existant réutilise la sélection pour refuser les états incompatibles avant les coups, après relecture d'un reçu existant. Aucun nouveau moteur de combat ni barème.
+- **200/200 scénarios PostgreSQL jetable** passent, dont round militaire réel de deux camps dans un même pays, deux rounds police réels et rejeu, composition concurrente sur deux sessions, 173 acquis conservés. CI existante raccordée à la nouvelle chaîne. Contre-épreuves sur les mêmes 200 cas : 7 échecs sans garde de composition, 6 sans correction militaire, 2 sans garde d’état policier. Preuves `outils/audits/preuves-groupes-219-recrutement-20261029/`.
+- **NON TERMINÉ** : le lecteur de groupe n'est pas encore un round mixte universel. Toute la résolution à deux groupes, les droits du chef face à une reddition d'un autre PJ, la séparation à l'écrou, les vieux écrivains d'effectifs et les trajets spéciaux restent ouverts. Ne pas activer partiellement. Aucune modification de la PR225 ni de l'immobilier.
+
 ## #219 → #230 — transports internationaux, Codex 29/10, EN COURS
 
 - Arbitrage `main` **9e8901b** lu. **Tout l'immobilier est transmis à Claude** : `outils/audits/TRANSMISSION-IMMOBILIER-CLAUDE-20261029.md` (branches distantes/SHAs vérifiés, PR historiques, 38 références SQL, tests et limites). Aucun nouveau code immobilier. Codex conserve inventaire/socles groupes, déplacements, transports, police/armée/sécurité et combats ; ChatGPT orchestre #230, prévol réel, fermetures identifiées et livraisons. Pas de nouvelle PR, fusion ou production par ce lot.

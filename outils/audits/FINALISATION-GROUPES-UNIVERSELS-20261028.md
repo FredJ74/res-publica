@@ -6,6 +6,14 @@ Les transports internationaux passent localement ; combats et interceptions
 collectifs restent inachevés. Aucun nouveau développement immobilier après
 l'arbitrage `main` 9e8901b : transmission à Claude documentée séparément.
 
+## 29 octobre — sélection de combat et composition gelée
+
+Préparation `20261029110000` à `20261029110300` : sélection canonique privée des membres présents/disponibles ; pas de valeur inventée pour les caractéristiques militaires absentes (leurs moteurs conservent leurs profils). Les portes de composition ne permettent plus de quitter/rejoindre/déposer/transmettre/rappeler pendant une confrontation existante ; verrous de graphe communs. Recrutement militaire distinguant service national et position physique, excluant les incapables/détenus/interceptés ou engagés ailleurs. Le combat policier réutilise la sélection pour contrôler l'état de l'acteur après lecture d'un éventuel reçu, avant les coups.
+
+**200/200 PostgreSQL jetable** : 173 acquis plus sélection réelle 2 PJ/4 soldats/3 policiers, exclusions et non-participants, round militaire de deux camps dans le même pays avec rapports, deux vrais rounds policiers/rejeu après raccordement et concurrence de deux sessions. Contres : 7, 6 et 2 échecs respectivement en retirant les trois protections. Preuves `preuves-groupes-219-recrutement-20261029/`. Pas une recette Supabase.
+
+**Toujours incomplet** : sélection disponible ne signifie pas résolution mixte universelle achevée. Les deux groupes d'une interception, le chef innocent avec recherché accompagnant, la reddition, la séparation à l'écrou, les anciens écrivains d'effectifs et les transports spéciaux demandent encore un raccordement. Aucune activation ou fusion. Aucun immobilier/PR225 touché.
+
 ## 29 octobre — miroirs institutionnels et transmission
 
 L'arbitrage immobilier est transmis à Claude dans `TRANSMISSION-IMMOBILIER-CLAUDE-20261029.md` ; aucun nouveau développement immobilier. Le lot préparé `20261029100000` conserve morts, détenus et PA canoniques à travers les miroirs police/douane. Il reprend une seule fois les PA historiques valides, sans réimport au rejeu. Les rounds policiers existants enregistrent leurs dégâts dans le socle avant projection, sans second coup ni dépense additionnelle.

@@ -74,5 +74,6 @@ def suite(ctx,suivante=None):
    finally:q.execute('ROLLBACK TO SAVEPOINT rounds_police')
   assert succes,'aucun scénario de deux rounds réels obtenu'
  cas('police_deux_rounds_historiques_reels_detection_justice_et_PA_sans_stub',deux_rounds)
+ ctx['police_deux_rounds_reels']=deux_rounds
  if suivante is not None:suivante(ctx)
 if __name__=='__main__':sys.exit(v.d.i.lancer(lambda c:v.d.suite(c,lambda c:v.suite(c,suite))))
