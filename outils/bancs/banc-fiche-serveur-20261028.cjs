@@ -7,7 +7,7 @@ const debut = src.indexOf('function loadCharacter()');
 assert.ok(debut >= 0, 'loadCharacter doit exister');
 const fin = src.indexOf('function ', debut + 25);
 const code = src.slice(debut, fin < 0 ? undefined : fin);
-assert.match(code, /state\\.personnageChargeDepuisServeur = !!sbState/, 'seule une fiche reelle revalide la sauvegarde');
+assert.ok(code.includes('state.personnageChargeDepuisServeur = !!sbState'), 'seule une fiche reelle revalide la sauvegarde');
 assert.match(code, /fiche masquée : aucune autorité locale/);
 assert.match(code, /rpDiagId\('reconciliation', 'EXCEPTION[\s\S]{0,500}personnageChargeDepuisServeur = false/, 'le rejet reseau ferme le portillon');
 assert.ok(!code.includes('personnageChargeDepuisServeur = true; // echec reseau'), 'un echec reseau ne doit pas autoriser une sauvegarde');
