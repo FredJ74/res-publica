@@ -11832,7 +11832,9 @@ async function recupererSoldats(compagnieId, sectionId) {
 // peut donc decrocher pendant qu'un autre tient la position.
 
 async function ouvrirPanneauCombat(batailleId) {
+  const contexte = contexteGroupePj();
   const e = await sbMilitaireBatailleEtat(batailleId || null);
+  if (!contexteGroupePjValide(contexte)) return;
   if (!e || e.ok !== true) { showToast('Combat indisponible', 'Le serveur n\'a pas répondu.', false); return; }
   const b = e.bataille;
 
@@ -11904,8 +11906,10 @@ async function ouvrirPanneauCombat(batailleId) {
 }
 
 async function confirmerEngagementCombat() {
+  const contexte = contexteGroupePj();
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await sbMilitaireBatailleEngager();
+  if (!contexteGroupePjValide(contexte)) return;
   if (!r || r.ok !== true) {
     const motifs = { pas_militaire: 'Seul un militaire en service peut engager le combat.',
                      aucun_ennemi_ici: 'Aucune force ennemie ici, ou vos deux pays ne sont pas en guerre.',
@@ -11916,45 +11920,73 @@ async function confirmerEngagementCombat() {
   }
   showToast('Combat engagé', r.mon_effectif + ' contre ' + r.effectif_adverse +
     (r.initiative === 'a' ? ' — vous ouvrez le feu sans avoir été repéré(e).' : ' — vous vous êtes vus.'), false, true);
-  addJournalEntry('Combat engagé contre les troupes de ' + r.camp_adverse + '.', 'event-bad');
+  addJournalEntry('Combat engagé contre les troupes de ' + (r.camps_adverses?.join(' / ') || r.camp_adverse || 'vos adversaires') + '.', 'event-bad');
   await ouvrirPanneauCombat(r.bataille_id);
 }
 
+function messageRefusCombat(r) {
+  const raisons = {
+    reponse_incertaine:'La réponse a été perdue. Réessayez : le même reçu empêchera de rejouer le round.',
+    round_obsolete:'Le combat a déjà progressé. Son état vient d’être relu.',
+    pas_chef_de_groupe:'Vous ne commandez pas ce groupe.',
+    acteur_indisponible:'Votre état actuel ne permet pas de donner cet ordre.',
+    commande_en_cours:'Une commande est déjà en cours.',
+    requete_requise:'Cette page doit être actualisée pour utiliser les reçus de combat.',
+    recu_non_conserve:'Aucun ordre envoyé : le reçu ne peut pas être conservé.',
+    etat_non_confirme:'Le combat doit être relu avant de poursuivre.'
+  };
+  return raisons[r?.raison] || 'Le résultat reste à confirmer. Réessayez avec le même reçu.';
+}
+
 async function deciderCombat(batailleId, decision) {
+  const contexte = contexteGroupePj();
   const r = await sbMilitaireBatailleDecider(batailleId, decision);
+  if (!contexteGroupePjValide(contexte)) return;
   if (!r || r.ok !== true) {
-    showToast('Décision refusée', (r && r.raison === 'pas_leader_de_ce_camp')
-      ? 'Vous ne commandez pas ce groupe.' : 'Opération refusée.', false);
+    if (r?.raison === 'round_obsolete') await rafraichirApresRound(batailleId);
+    if (!contexteGroupePjValide(contexte)) return;
+    showToast('Décision non confirmée', messageRefusCombat(r), false);
     return;
   }
   await rafraichirApresRound(batailleId);
 }
 
 async function poursuivreCombat(batailleId) {
+  const contexte = contexteGroupePj();
   const r = await sbMilitaireBataillePoursuivre(batailleId);
-  if (!r || r.ok !== true) { showToast('Impossible', 'Le round n\'a pas pu être résolu.', false); return; }
+  if (!contexteGroupePjValide(contexte)) return;
+  if (!r || r.ok !== true) {
+    if (r?.raison === 'round_obsolete') await rafraichirApresRound(batailleId);
+    if (!contexteGroupePjValide(contexte)) return;
+    showToast('Round non confirmé', messageRefusCombat(r), false); return;
+  }
   await rafraichirApresRound(batailleId);
 }
 
 // Les PA et la position du joueur ont pu changer cote SERVEUR pendant le round : on les relit au
 // lieu de les deviner. Un PJ neutralise se retrouve a l'infirmerie de sa caserne.
 async function rafraichirApresRound(batailleId) {
-  if (typeof sbGet === 'function' && state.char?.name) {
-    const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) +
-      '&select=pa,current_city,current_building,current_room,inventory').catch(() => null);
-    if (l && l[0]) {
-      state.pa = l[0].pa;
-      if (Array.isArray(l[0].inventory)) { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; } if (state.char) state.char.inventory = state.inventory; }
-      if (l[0].current_room !== state.currentRoom || l[0].current_building !== state.currentBuilding) {
-        state.currentCity = l[0].current_city;
-        if (typeof enterBuilding === 'function') enterBuilding(l[0].current_building, true);
-        if (typeof enterRoom === 'function') enterRoom(l[0].current_building, l[0].current_room, null);
-        showToast('Hors de combat', 'Vous avez été évacué(e) à l\'infirmerie de votre caserne.', false, true);
-      }
-      updateUI();
-    }
+  const c = contexteGroupePj();
+  const [frais, inventaire] = await Promise.all([
+    sbLoadPersonnage(c.nom).catch(()=>null),
+    typeof sbInventaireReceptionEtat === 'function' ? sbInventaireReceptionEtat(c.nom).catch(()=>null) : null
+  ]);
+  if (!contexteGroupePjValide(c)) return false;
+  if (!frais || frais.userId !== c.uid || !Number.isInteger(frais.pa) || frais.pa < 0) {
+    showToast('État non confirmé','Le résultat du combat doit encore être relu.',false); return false;
   }
+  state.pa = frais.pa;
+  state.group = frais.group;
+  state._groupeConfirme = frais._groupeConfirme;
+  if (Object.prototype.hasOwnProperty.call(frais,'estEmprisonne')) state.estEmprisonne = frais.estEmprisonne;
+  if (inventaire?.ok === true && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(inventaire);
+  if (frais.country !== state.country || frais.currentCity !== state.currentCity ||
+      frais.currentBuilding !== state.currentBuilding || frais.currentRoom !== state.currentRoom) {
+    afficherPositionNavigationConfirmee(frais);
+  }
+  updateUI();
   await ouvrirPanneauCombat(batailleId);
+  return true;
 }
 
 // changerDoctrineCombat a ete retiree avec la doctrine de camp : le seuil de

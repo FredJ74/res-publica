@@ -4489,24 +4489,52 @@ async function sbMilitaireBatailleEtat(batailleId) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
-async function sbMilitaireBatailleEngager() {
-  const rows = await sbRpc('militaire_bataille_engager', {});
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+// Les commandes de bataille réutilisent le transport conservant les erreurs.
+// Le reçu et le round initial restent ensemble après une réponse perdue.
+let SB_BATAILLE_COMMANDE_EN_COURS = null;
+async function sbMilitaireCommande(batailleId, action) {
+  const c = contexteGroupePj();
+  if (!contexteGroupePjValide(c)) return null;
+  if (SB_BATAILLE_COMMANDE_EN_COURS && contexteGroupePjValide(SB_BATAILLE_COMMANDE_EN_COURS))
+    return {ok:false,raison:'commande_en_cours'};
+  SB_BATAILLE_COMMANDE_EN_COURS = c;
+  const cle = 'hg-bataille:' + JSON.stringify([c.uid,c.nom,batailleId,action]);
+  try {
+    let pending;
+    try {
+      const conserve = localStorage.getItem(cle);
+      if (conserve) pending = JSON.parse(conserve);
+      if (!pending) {
+        let round = null;
+        if (action !== 'engager') {
+          const etat = await sbMilitaireBatailleEtat(batailleId);
+          if (!contexteGroupePjValide(c)) return null;
+          if (!etat?.ok || !Number.isInteger(etat.bataille?.round_courant)) return {ok:false,raison:'etat_non_confirme'};
+          round = etat.bataille.round_courant;
+        }
+        pending = {requete:crypto.randomUUID(),round};
+        localStorage.setItem(cle,JSON.stringify(pending));
+      }
+      if (typeof pending.requete !== 'string' || (action !== 'engager' && !Number.isInteger(pending.round)))
+        return {ok:false,raison:'recu_invalide'};
+    } catch (_) { return {ok:false,raison:'recu_non_conserve'}; }
+    if (!contexteGroupePjValide(c)) return null;
+    const fn = action === 'engager' ? 'militaire_bataille_engager' :
+      action === 'continuer' ? 'militaire_bataille_poursuivre' : 'militaire_bataille_decider';
+    const params = {p_requete:pending.requete};
+    if (action !== 'engager') { params.p_bataille_id=batailleId; params.p_round_attendu=pending.round; }
+    if (action === 'tenir' || action === 'replier') params.p_decision=action;
+    const v = await sbRpcVerdict(fn,params,{encoreValide:()=>contexteGroupePjValide(c)}).catch(()=>null);
+    if (!contexteGroupePjValide(c)) return null;
+    if (v?.ok === true || v?.raison === 'round_obsolete') localStorage.removeItem(cle);
+    return v || {ok:false,raison:'reponse_incertaine'};
+  } finally { if (SB_BATAILLE_COMMANDE_EN_COURS === c) SB_BATAILLE_COMMANDE_EN_COURS = null; }
 }
-
-// Reserve au leader du camp : sa decision est ECRITE avant que le serveur ne regarde, et c'est
-// ainsi qu'elle prime sur la doctrine.
-async function sbMilitaireBatailleDecider(batailleId, decision) {
-  const rows = await sbRpc('militaire_bataille_decider', { p_bataille_id: batailleId, p_decision: decision });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
-
-// Ouvert a tout participant engage : une bataille ne doit jamais s'arreter parce que le chef
-// d'en face n'est pas connecte. La doctrine du camp absent repond a sa place.
-async function sbMilitaireBataillePoursuivre(batailleId) {
-  const rows = await sbRpc('militaire_bataille_poursuivre', { p_bataille_id: batailleId });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
+async function sbMilitaireBatailleEngager() { return sbMilitaireCommande(null,'engager'); }
+// La décision reste réservée au chef réel ; le serveur vérifie ses droits.
+async function sbMilitaireBatailleDecider(batailleId, decision) { return sbMilitaireCommande(batailleId,decision); }
+// Tout participant disponible peut faire avancer le round (règle existante).
+async function sbMilitaireBataillePoursuivre(batailleId) { return sbMilitaireCommande(batailleId,'continuer'); }
 
 async function sbMilitaireBatailleDoctrine(batailleId, doctrine) {
   const rows = await sbRpc('militaire_bataille_doctrine', { p_bataille_id: batailleId, p_doctrine: doctrine });

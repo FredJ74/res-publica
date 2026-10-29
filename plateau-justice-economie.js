@@ -12212,8 +12212,8 @@ function afficherInterceptionJudiciaire() {
   // l'interception est conservée et réaffichée à la prochaine vérification.
   const agentPrive = String(i.rencontreId || '').startsWith('prive-');
   titre.textContent = agentPrive ? 'INTERPELLATION PAR LA SÉCURITÉ PRIVÉE' : 'INTERCEPTION POLICIÈRE';
-  const btn = (action, label) => '<button '+(interceptionJudiciaireOccupee?'disabled aria-disabled="true" ':'')+'type="button" class="ibtn" onclick="choisirInterceptionJudiciaire(&quot;' + action + '&quot;)">' + label + '</button>';
-  body.innerHTML = '<div class="hg-interception" style="padding:1.1rem;display:grid;gap:.8rem">' +
+  const btn = (action, label) => '<button '+(interceptionJudiciaireOccupee?'disabled aria-disabled="true" ':'')+'type="button" class="cpj-touche" onclick="choisirInterceptionJudiciaire(&quot;' + action + '&quot;)">' + label + '</button>';
+  body.innerHTML = '<div class="cpj-dialogue hg-interception" style="display:grid;gap:.8rem">' +
     (i.cible && i.cible !== state.char?.name
       ? '<p>Un membre de votre groupe a été reconnu : ' + justiceEch(i.cible) + '. Sa condamnation est en attente d’exécution.</p>'
       : '<p>Vous avez été reconnu(e). Une condamnation est en attente d’exécution.</p>') +

@@ -35,7 +35,7 @@ $mouvement$;
  b:='v_receipt:=jsonb_build_object(''ok'',true,''contrat_groupes'',1,''commandeur'',public.mon_personnage(),''personnage_intercepte'',v_nom,''reussite'',false);';
  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'fuite_recu_non_examine';END IF;
  s:=replace(s,a,b);
- EXECUTE format('CREATE FUNCTION public.police_fuite_personnage_interne(p_rencontre text,p_cible text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO public,pg_temp AS %L',s);
+ EXECUTE format('CREATE OR REPLACE FUNCTION public.police_fuite_personnage_interne(p_rencontre text,p_cible text) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO public,pg_temp AS %L',s);
 END $fuite$;
 REVOKE ALL ON FUNCTION public.police_fuite_personnage_interne(text,text) FROM PUBLIC,anon,authenticated,service_role;
 CREATE OR REPLACE FUNCTION public.police_fuite_resoudre(p_rencontre text)

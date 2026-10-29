@@ -10,6 +10,9 @@ def suite(ctx,suivante=None):
  ctx['installer_fonction_canonique']('militaire_bataille_etat')
  q.execute((R/'migrations/20261029190000_batailles_groupes_identites_universelles.sql').read_text())
  q.execute((R/'migrations/20261029190000_batailles_groupes_identites_universelles.sql').read_text())
+ if '--contre-bataille-metier-seul' in sys.argv:
+  q.execute("SELECT pg_get_functiondef('militaire_bataille_recruter_metier_interne(bigint,text,text,text,text)'::regprocedure)")
+  q.execute(q.fetchone()[0].replace('public.militaire_bataille_recruter_metier_interne(','public.militaire_bataille_recruter('))
  ctx['c'].commit()
  def decor():
   sql("UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='hotel-republica',current_room='bar',current_street=NULL,pa=100,hp=100,stats='{\"PER\":12,\"DUP\":12,\"VOL\":12}' WHERE name IN ('A','B','C','D')")
@@ -95,6 +98,7 @@ def suite(ctx,suivante=None):
  def pas_de_retrait_pnj():
   decor();exige(rpc('pnj_quitter_groupe',(['ancre'],),qui='A'),'combat_en_cours')
  cas('bataille_garde_PNJ_non_militaire_interdit_evasion',pas_de_retrait_pnj)
+ ctx['bataille_mixte_decor']=decor
  ctx['preuves_extension']['bataille_mixte']='Vrais métiers conservés ; recrutement, round militaire réel, rapports ; bornes terminales testées séparément par helper privé.'
  if suivante is not None:suivante(ctx)
 def lancer(suivante=None):return e.lancer(lambda ctx:suite(ctx,suivante))

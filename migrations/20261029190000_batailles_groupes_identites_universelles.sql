@@ -17,7 +17,7 @@ BEGIN
   s:=replace(s,'(bataille_id, camp, compagnie_id, section_id, matricule, grade, pa_initial, groupe_id)',
     '(bataille_id, camp, compagnie_id, section_id, matricule, grade, pa_initial, groupe_id, pnj_id)');
   s:=replace(s,'m.pa, p_camp || ''|'' || cm.id || '':'' || sm.section_id','m.pa, p_camp || ''|'' || cm.id || '':'' || sm.section_id, m.id');
-  EXECUTE replace(s,'public.militaire_bataille_recruter(','public.militaire_bataille_recruter_metier_interne(');
+  EXECUTE replace(s,'CREATE OR REPLACE FUNCTION public.militaire_bataille_recruter(','CREATE OR REPLACE FUNCTION public.militaire_bataille_recruter_metier_interne(');
  END IF;
 END $adapter$;
 REVOKE ALL ON FUNCTION public.militaire_bataille_recruter_metier_interne(bigint,text,text,text,text) FROM PUBLIC,anon,authenticated,service_role;
@@ -235,3 +235,26 @@ BEGIN
   END IF;
  END LOOP;
 END $verrous$;
+
+-- L'observation d'un round ne permet jamais de faire combattre un PJ évacué,
+-- détenu, hospitalisé ou ailleurs, ni un PNJ déjà mort/neutralisé.
+DO $disponibles$
+DECLARE s text;a text;b text;
+BEGIN
+ s:=pg_get_functiondef('public.militaire_bataille_combattants(bigint,text)'::regprocedure);
+ IF position('-- bataille_disponibilite_round_v1' IN s)=0 THEN
+  a:='     AND e.personnage IS NOT NULL AND e.sorti_round IS NULL';
+  b:=a||E'\n -- bataille_disponibilite_round_v1\n AND pd.pa>0 AND coalesce(pd.hp,100)>0 AND (pd.est_emprisonne IS NULL OR pd.est_emprisonne=''null''::jsonb)\n AND coalesce(pd.hospitalisation->>''dateFinParis'','''')<=(statement_timestamp() AT TIME ZONE ''Europe/Paris'')::date::text\n AND NOT CASE WHEN coalesce(pd.hospitalisation->>''jourFin'','''')~''^[0-9]+$'' THEN (pd.hospitalisation->>''jourFin'')::numeric>coalesce(pd.day,1) ELSE false END\n AND EXISTS(SELECT 1 FROM public.batailles bb WHERE bb.id=e.bataille_id AND (pd.country,pd.current_city,pd.current_building,pd.current_room) IS NOT DISTINCT FROM (bb.pays,bb.ville,bb.batiment,bb.piece))';
+  IF position(a IN s)=0 THEN RAISE EXCEPTION 'bataille_disponibilite_PJ_non_examinee';END IF;s:=replace(s,a,b);
+  a:='m.statut=''actif'' AND m.pa>0';
+  b:=a||' AND EXISTS(SELECT 1 FROM public.pnj_position_effective(m.id) pe JOIN public.batailles bb ON bb.id=e.bataille_id WHERE (pe.pays,pe.ville,pe.building_id,pe.room_id) IS NOT DISTINCT FROM (bb.pays,bb.ville,bb.batiment,bb.piece))';
+  IF (length(s)-length(replace(s,a,'')))/length(a)<>2 THEN RAISE EXCEPTION 'bataille_disponibilite_PNJ_non_examinee';END IF;
+  EXECUTE replace(s,a,b);
+ END IF;
+ s:=pg_get_functiondef('public.militaire_bataille_round(bigint)'::regprocedure);
+ IF position('-- bataille_sorties_indisponibles_v1' IN s)=0 THEN
+  a:='  SELECT coalesce(array_agg(DISTINCT camp), ''{}'') INTO v_camps';
+  b:=E' -- bataille_sorties_indisponibles_v1\n UPDATE public.batailles_engagements e SET sorti_round=v_round,etat_final=''indisponible'' WHERE e.bataille_id=p_bataille_id AND e.sorti_round IS NULL AND NOT EXISTS(SELECT 1 FROM public.militaire_bataille_combattants(p_bataille_id,e.camp) c WHERE c.eng_id=e.id);\n'||a;
+  IF position(a IN s)=0 THEN RAISE EXCEPTION 'bataille_round_sorties_non_examinees';END IF;EXECUTE replace(s,a,b);
+ END IF;
+END $disponibles$;

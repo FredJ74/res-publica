@@ -8,7 +8,7 @@ BEGIN
  ||chr(10)||' IF NOT FOUND THEN RETURN resultat;END IF;';
  IF (length(s)-length(replace(s,a,'')))/length(a)<>1 THEN RAISE EXCEPTION 'force_description_non_examinee';END IF;
  s:=replace(s,a,' i:=p_interception;');
- EXECUTE format('CREATE FUNCTION public.police_force_decrire_interne(p_nom text,p_rencontre text,p_interception public.police_interceptions) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO public,pg_temp AS %L',s);
+ EXECUTE format('CREATE OR REPLACE FUNCTION public.police_force_decrire_interne(p_nom text,p_rencontre text,p_interception public.police_interceptions) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO public,pg_temp AS %L',s);
 END $force$;
 REVOKE ALL ON FUNCTION public.police_force_decrire_interne(text,text,public.police_interceptions) FROM PUBLIC,anon,authenticated,service_role;
 CREATE OR REPLACE FUNCTION public.police_force_combattants_interne(p_nom text,p_rencontre text)

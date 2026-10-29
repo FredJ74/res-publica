@@ -4,10 +4,10 @@ DO $adaptateurs$
 DECLARE s text;f record;nom text;a text;b text;
 BEGIN
  FOR f IN SELECT * FROM (VALUES
- ('police_detection_verifier(text,text,text)','police_detection_personnage_interne','p_batiment text,p_piece text,p_rue text,p_cible text'),
- ('police_combat_resoudre(text,text,text,text,integer)','police_combat_personnage_interne','p_rencontre text,p_rue text,p_batiment text,p_piece text,p_round integer,p_cible text'),
- ('police_reprise_lire(text)','police_reprise_personnage_interne','p_rencontre text,p_cible text')
- ) t(signature,prive,args) LOOP
+ ('police_detection_verifier(text,text,text)','police_detection_personnage_interne','p_batiment text,p_piece text,p_rue text,p_cible text','CREATE OR REPLACE FUNCTION public.police_detection_personnage_interne('),
+ ('police_combat_resoudre(text,text,text,text,integer)','police_combat_personnage_interne','p_rencontre text,p_rue text,p_batiment text,p_piece text,p_round integer,p_cible text','CREATE OR REPLACE FUNCTION public.police_combat_personnage_interne('),
+ ('police_reprise_lire(text)','police_reprise_personnage_interne','p_rencontre text,p_cible text','CREATE OR REPLACE FUNCTION public.police_reprise_personnage_interne(')
+ ) t(signature,prive,args,declaration) LOOP
   IF EXISTS(SELECT 1 FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=f.prive) THEN CONTINUE;END IF;
   SELECT prosrc INTO s FROM pg_proc WHERE oid=('public.'||f.signature)::regprocedure AND prolang=(SELECT oid FROM pg_language WHERE lanname='plpgsql');
   IF s IS NULL THEN RAISE EXCEPTION 'police_adaptateur_corps_non_examine: %',f.signature;END IF;
@@ -25,7 +25,7 @@ BEGIN
    s:=replace(s,'v_receipt:=jsonb_build_object(''ok'',true,''pa'',v_pj_pa,',
     'v_receipt:=jsonb_build_object(''ok'',true,''contrat_groupes'',1,''commandeur'',public.mon_personnage(),''personnage_intercepte'',v_nom,''pa'',(SELECT pa FROM public.personnages_donnees WHERE name=public.mon_personnage()),');
   END IF;
-  EXECUTE format('CREATE FUNCTION public.%I(%s) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO public,pg_temp AS %L',f.prive,f.args,s);
+  EXECUTE format('%s%s) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO public,pg_temp AS %L',f.declaration,f.args,s);
  END LOOP;
 END $adaptateurs$;
 REVOKE ALL ON FUNCTION public.police_detection_personnage_interne(text,text,text,text) FROM PUBLIC,anon,authenticated,service_role;
