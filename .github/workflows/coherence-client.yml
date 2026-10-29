@@ -39,6 +39,8 @@ jobs:
         run: node outils/bancs/banc-psm-premium-bail.cjs
       - name: Boutiques PSM — mêmes ordres et variantes que Luthécia
         run: node outils/bancs/banc-psm-boutiques-location.cjs
+      - name: Garde du pays et de la ville serveur après F5
+        run: node outils/bancs/banc-position-ville-serveur-f5.cjs
       - name: Bancs JavaScript, transports simulés
         run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
       - name: Destinations du centre multimodal
