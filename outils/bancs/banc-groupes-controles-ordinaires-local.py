@@ -110,6 +110,13 @@ def suite(c):
   v=choix();exige(rpc('police_reddition_resoudre',(v['rencontre'],),qui='C'))
   q.execute("SELECT pa FROM personnages_donnees WHERE name='C'");assert q.fetchone()[0]==0
  cas('controle_PA_nuls_ne_sont_ni_restaurees_ni_depensees_par_soumission',pa_nuls)
+ def disponibilite_invalide():
+  decor();rid=choix()['rencontre']
+  q.execute("CREATE OR REPLACE FUNCTION public.navigation_disponibilite_interne(p_nom text) RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path TO public,pg_temp AS $$ SELECT '{}'::jsonb $$")
+  v=rpc('police_reddition_resoudre',(rid,),qui='C');assert not v.get('ok'),v
+  q.execute("SELECT jsonb_array_length(inventory),jsonb_array_length(convocations) FROM personnages_donnees WHERE name='C'");assert q.fetchone()==(1,0)
+  q.execute("SELECT count(*) FROM police_action_receipts WHERE rencontre=%s",(rid,));assert q.fetchone()[0]==0
+ cas('controle_disponibilite_sans_verdict_refuse_avant_saisie',disponibilite_invalide)
  def installation():
   decor();q.execute('ALTER FUNCTION public.police_controle_action_interne(text,text) RENAME TO fixture_action_non_installee')
   exige(rpc('police_detection_verifier',('mairie','accueil',None),qui='C'),'installation_incomplete')

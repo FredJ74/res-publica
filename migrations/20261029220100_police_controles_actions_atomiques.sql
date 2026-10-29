@@ -22,7 +22,7 @@ BEGIN
  OR (CASE WHEN i.building IS NULL THEN i.street IS DISTINCT FROM p.current_street ELSE i.room IS DISTINCT FROM p.current_room END) THEN
  RETURN jsonb_build_object('ok',false,'raison','rencontre_invalide');END IF;
  v:=public.navigation_disponibilite_interne(moi);
- IF NOT coalesce((v->>'ok')::boolean,false) AND v->>'raison'<>'interception_en_cours' THEN RETURN v;END IF;
+ IF NOT coalesce((v->>'ok')::boolean,false) AND v->>'raison' IS DISTINCT FROM 'interception_en_cours' THEN RETURN v;END IF;
  forces:=public.police_force_combattants_interne(moi,p_rencontre);
  IF jsonb_array_length(forces)=0 THEN RETURN jsonb_build_object('ok',false,'raison','aucun_policier_present');END IF;
  IF p_action='fuite' THEN

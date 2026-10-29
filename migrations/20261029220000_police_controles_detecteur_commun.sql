@@ -16,7 +16,7 @@ BEGIN
  s:=replace(s,a,replace(a,'IF NOT EXISTS','IF NOT p_controle AND NOT EXISTS'));
  a:=' SELECT * INTO v_bat FROM public.batiments_etat';
  b:=' v_agent:=public.navigation_disponibilite_interne(v_nom);'||chr(10)
- ||' IF NOT coalesce((v_agent->>''ok'')::boolean,false) AND v_agent->>''raison''<>''interception_en_cours'' THEN RETURN v_agent;END IF;'||chr(10)||a;
+ ||' IF NOT coalesce((v_agent->>''ok'')::boolean,false) AND v_agent->>''raison'' IS DISTINCT FROM ''interception_en_cours'' THEN RETURN v_agent;END IF;'||chr(10)||a;
  IF position(a IN s)=0 THEN RAISE EXCEPTION 'detection_disponibilite_non_examinee';END IF;s:=replace(s,a,b);
 
  a:=' -- police_detection_groupes_reels_v1';
