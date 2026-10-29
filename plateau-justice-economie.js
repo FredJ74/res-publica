@@ -8923,26 +8923,49 @@ function calculerVolGroupePolice(policiers) {
 }
 
 // ---- RECRUTEMENT ----
+let effectifServeurEnCours = null;
+async function commanderEffectifServeur(service, action, type = null, matricule = null) {
+  const c = contexteGroupePj();
+  if (effectifServeurEnCours && contexteGroupePjValide(effectifServeurEnCours)) return false;
+  if (!contexteGroupePjValide(c) || typeof sbRpcVerdict !== 'function') return false;
+  effectifServeurEnCours = c;
+  const cle = 'hg-effectif:' + JSON.stringify([c.uid,c.nom,service,action,type,matricule]);
+  try {
+    let requete;
+    try {
+      requete = localStorage.getItem(cle);
+      if (!requete) { requete = crypto.randomUUID(); localStorage.setItem(cle,requete); }
+    } catch (_) {
+      showToast('Ordre non envoyé','Le reçu ne peut pas être conservé. Aucun paiement envoyé.',false); return false;
+    }
+    const v = await sbRpcVerdict('force_publique_effectif_acte',
+      {p_service:service,p_action:action,p_type:type,p_matricule:matricule,p_requete:requete},
+      {encoreValide:()=>contexteGroupePjValide(c)}).catch(()=>null);
+    if (!contexteGroupePjValide(c)) return false;
+    if (v?.ok !== true) {
+      const raisons = {autorite_insuffisante:'Votre mandat ne permet pas cet ordre.',
+        pa_insuffisants:'Vous ne disposez pas des PA nécessaires.',
+        interception_en_cours:'Une interception est en cours.',combat_en_cours:'Un combat est en cours.'};
+      showToast('Ordre non confirmé',raisons[v?.raison] || 'La décision doit être confirmée. Réessayez avec le même reçu.',false);
+      return false;
+    }
+    // Un ancien reçu ne fournit pas les PA actuels. Relecture du compte réel.
+    const frais = await sbLoadPersonnage(c.nom).catch(()=>null);
+    if (!contexteGroupePjValide(c)) return false;
+    if (!frais || frais.userId !== c.uid || !Number.isInteger(frais.pa) || frais.pa < 0) {
+      showToast('Ordre enregistré','Les PA doivent encore être relus. Réessayez : le reçu évite un second paiement.',false); return false;
+    }
+    state.pa = frais.pa;
+    localStorage.removeItem(cle);
+    updateUI();
+    showToast(action === 'recruter' ? 'Agent recruté' : 'Agent licencié',v.matricule || '',true);
+    addJournalEntry(action === 'recruter' ? 'Recrutement confirmé par le service.' : 'Licenciement confirmé par le service.','event-info');
+    return true;
+  } finally { if (effectifServeurEnCours === c) effectifServeurEnCours = null; }
+}
+
 async function doRecruterPolicier(pa, cost) {
-  const check = commissaireLocalValide();
-  if (!check.ok) {
-    showToast(check.raison === 'poste' ? 'Réservé au Commissaire' : 'Hors juridiction',
-      check.raison === 'juridiction' ? 'Vous ne pouvez recruter que dans le commissariat de votre propre ville.' : '', false);
-    return;
-  }
-  const pays = state.country || 'republic';
-  const ville = check.ville;
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const effectifs = await chargerEffectifsPolice(pays, ville);
-  const matricule = 'POL-' + ville + '-' + Date.now();
-  effectifs.policiers.push({ matricule, type: 'standard', stats: { PER: 12, VOL: 12 }, buildingId: null, roomId: null, rueNoeudId: null, recruteLe: Date.now() });
-  await sauvegarderEffectifsPolice(pays, ville, effectifs);
-
-  updateUI();
-  showToast('Policier recruté', 'PER 12, VOL 12. Entretien : ' + COUT_ENTRETIEN_POLICIER_JOUR + ' FR/jour prélevés sur la caisse du commissariat.', true, true);
-  addJournalEntry('Recrutement d\'un policier (matricule ' + matricule + ').', 'event-good');
+  return commanderEffectifServeur('police','recruter','standard');
 }
 
 // Cout journalier reel d'un policier, en fonction de son type -- unite cynophile (maitre-chien +
@@ -8963,30 +8986,7 @@ function coutJournalierPolicier(agent) {
 // resoudreControlePoliceAutomatique est un controle d'identite generique qui fouille TOUT objet
 // illegal reconnu, pas une recherche ciblee anti-drogue) -- voir rapport final, §B.
 async function doRecruterPolicierCynophile(pa, cost) {
-  const check = commissaireLocalValide();
-  if (!check.ok) {
-    showToast(check.raison === 'poste' ? 'Réservé au Commissaire' : 'Hors juridiction',
-      check.raison === 'juridiction' ? 'Vous ne pouvez recruter que dans le commissariat de votre propre ville.' : '', false);
-    return;
-  }
-  const pays = state.country || 'republic';
-  const ville = check.ville;
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const effectifs = await chargerEffectifsPolice(pays, ville);
-  const matricule = 'POL-CYNO-' + ville + '-' + Date.now();
-  effectifs.policiers.push({
-    matricule, type: 'cynophile',
-    maitreNom: 'Maître-chien ' + matricule.slice(-4),
-    chienNom: 'Chien ' + matricule.slice(-4),
-    stats: { PER: 12, VOL: 12 }, buildingId: null, roomId: null, rueNoeudId: null, recruteLe: Date.now()
-  });
-  await sauvegarderEffectifsPolice(pays, ville, effectifs);
-
-  updateUI();
-  showToast('Unité cynophile recrutée', 'PER 12, VOL 12. Entretien : ' + (COUT_ENTRETIEN_POLICIER_JOUR * 2) + ' FR/jour prélevés sur la caisse du commissariat.', true, true);
-  addJournalEntry('Recrutement d\'une unité cynophile de police (matricule ' + matricule + ').', 'event-good');
+  return commanderEffectifServeur('police','recruter','cynophile');
 }
 
 // ---- GESTION / AFFECTATION ----
@@ -9181,12 +9181,9 @@ function coutJournalierDouanier(agent) {
 // persiste -- meme reduit a 0 par la suite (licenciement/impayes) -- ce chemin ne se redeclenche
 // plus jamais : l'effectif n'est JAMAIS reconstitue automatiquement a 4.
 async function chargerEffectifsDouane(pays) {
-  const etat = await sbGetBatimentEtat(pays, VILLE_ID_PORT, BUILDING_ID_PORT).catch(() => ({}));
-  if (etat && etat.effectifsDouane) return etat.effectifsDouane;
-  const numeros = Array.from({ length: EFFECTIF_DOUANE_INITIAL }, (_, i) => i + 1);
-  const effectifsInitiaux = { douaniers: numeros.map(creerDouanierPnjInitial), dernierPaiementJour: null };
-  await sauvegarderEffectifsDouane(pays, effectifsInitiaux);
-  return effectifsInitiaux;
+  const etat = await sbGetBatimentEtat(pays, VILLE_ID_PORT, BUILDING_ID_PORT);
+  if (!etat || !etat.effectifsDouane) throw new Error('effectifs_douane_non_initialises');
+  return etat.effectifsDouane;
 }
 
 async function sauvegarderEffectifsDouane(pays, effectifs) {
@@ -9205,20 +9202,7 @@ function chefDouanesValide() {
 // Affectation FIXE a port-sainte-marie/douanes des la creation : aucune etape de choix,
 // contrairement a doRecruterPolicier (les douaniers ne patrouillent jamais ailleurs).
 async function doRecruterDouanier(pa, cost) {
-  const check = chefDouanesValide();
-  if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
-  const pays = state.country || 'republic';
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const effectifs = await chargerEffectifsDouane(pays);
-  const matricule = 'DOU-' + Date.now();
-  effectifs.douaniers.push({ matricule, type: 'standard', stats: { PER: 12, VOL: 12 }, buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_DOUANES, recruteLe: Date.now() });
-  await sauvegarderEffectifsDouane(pays, effectifs);
-
-  updateUI();
-  showToast('Douanier recruté', 'PER 12, VOL 12. Rattaché au service des douanes du port. Payé directement par le Ministère de l\'Intérieur.', true, true);
-  addJournalEntry('Recrutement d\'un douanier (matricule ' + matricule + ').', 'event-good');
+  return commanderEffectifServeur('douane','recruter','standard');
 }
 
 // ---- UNITE CYNOPHILE (maitre-chien + chien anti-stupefiants, lot du 25 aout 2026, §6-7) ----
@@ -9230,26 +9214,7 @@ async function doRecruterDouanier(pa, cost) {
 // stupefiants) applique uniquement au moment de la resolution du controle (doControlerCaisseFret,
 // plus bas), jamais ici au recrutement.
 async function doRecruterDouanierCynophile(pa, cost) {
-  const check = chefDouanesValide();
-  if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
-  const pays = state.country || 'republic';
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const effectifs = await chargerEffectifsDouane(pays);
-  const matricule = 'DOU-CYNO-' + Date.now();
-  effectifs.douaniers.push({
-    matricule, type: 'cynophile',
-    maitreNom: 'Maître-chien ' + matricule.slice(-4),
-    chienNom: 'Chien ' + matricule.slice(-4),
-    stats: { PER: 12, VOL: 12 },
-    buildingId: BUILDING_ID_PORT, roomId: ROOM_ID_DOUANES, recruteLe: Date.now()
-  });
-  await sauvegarderEffectifsDouane(pays, effectifs);
-
-  updateUI();
-  showToast('Unité cynophile recrutée', 'Rattachée au service des douanes du port (' + (COUT_ENTRETIEN_DOUANIER_JOUR * 2) + ' FR/jour). Payée directement par le Ministère de l\'Intérieur.', true, true);
-  addJournalEntry('Recrutement d\'une unité cynophile (matricule ' + matricule + ').', 'event-good');
+  return commanderEffectifServeur('douane','recruter','cynophile');
 }
 
 // ---- GESTION (Chef des Douanes uniquement — garde UI via requiresPost dans data.js + garde
@@ -9293,17 +9258,8 @@ async function ouvrirGererEffectifsDouane() {
 }
 
 async function doLicencierDouanier(matricule) {
-  const check = chefDouanesValide();
-  if (!check.ok) { showToast('Réservé au Chef des Douanes', '', false); return; }
-  const pays = state.country || 'republic';
-  const effectifs = await chargerEffectifsDouane(pays);
-  const idx = effectifs.douaniers.findIndex(d => d.matricule === matricule);
-  if (idx < 0) return;
-  effectifs.douaniers.splice(idx, 1);
-  await sauvegarderEffectifsDouane(pays, effectifs);
-  showToast('Douanier licencié', matricule + ' quitte le service des douanes.', true);
-  addJournalEntry('Licenciement du douanier ' + matricule + '.', 'event-info');
-  ouvrirGererEffectifsDouane();
+  const ok = await commanderEffectifServeur('douane','licencier',null,matricule);
+  if (ok) await ouvrirGererEffectifsDouane();
 }
 
 // ---- CONSULTATION PUBLIQUE (visible/accessible a tout PJ, 0 PA/0 FR — n'affiche jamais PER/VOL,

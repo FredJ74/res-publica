@@ -24,6 +24,7 @@ WHERE n.nspname='public' AND p.prokind IN ('f','p') AND
  (p.proname ~* '^(pnj_|groupe_|navigation_|transport_|douane_|rue_position_|militaire_bataille_|police_)'
   OR p.proname IN ('deplacement_enregistrer','personnages_vue_modifier','mon_personnage','est_appel_serveur',
    'militaire_blob_projeter','militaire_section_de_moi','militaire_autorite_de_perimetre',
+   'force_publique_effectif_acte','effectifs_ecriture_metier_garder','compagnie_ecriture_metier_garder','batiment_etat_sous_cle_ecrire',
    'militaire_deposer_soldats','militaire_recuperer_soldats','militaire_affecter_leader','militaire_ordre_collectif',
    'payer_ordre','payer_ordre_interne','ambassade_acces_bureau','ambassade_acces_bureau_interne','terrain_etat_lire',
    'inventaire_confisquer','justice_recherches','justice_executer_condamnation_soi',
@@ -48,7 +49,7 @@ SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,c.relacl,
 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
 LEFT JOIN pg_policy p ON p.polrelid=c.oid
 WHERE n.nspname='public' AND c.relname IN ('personnages_donnees','pnj_membres','pnj_possessions',
- 'postes_attribues','navigation_requetes','navigation_passages_douaniers','jugements','detentions','prisonniers_qhs','confiscations_douanieres')
+ 'postes_attribues','compagnies_militaires','batiments_etat','navigation_requetes','navigation_passages_douaniers','jugements','detentions','prisonniers_qhs','confiscations_douanieres')
 ORDER BY c.relname,p.polname;
 -- Le mandat ne doit pas être reconstruit depuis une position de voyage.
 -- Compte agrégé, aucune identité de joueur extraite.
@@ -57,11 +58,24 @@ FROM public.personnages_donnees d WHERE d.poste->>'id'='commissaire'
 AND NOT EXISTS(SELECT 1 FROM public.postes_attribues a WHERE a.country=coalesce(d.country,'republic')
  AND a.poste_id='commissaire' AND a.city=d.poste->>'city' AND a.titulaire=d.name)
 AND NOT EXISTS(SELECT 1 FROM public.postes_attribues a WHERE a.poste_id='commissaire' AND a.titulaire=d.name);
+SELECT count(*) AS mandats_douane_historiques_non_attestes
+FROM public.personnages_donnees d WHERE d.poste->>'id'='chef_douanes'
+AND NOT EXISTS(SELECT 1 FROM public.postes_attribues a
+ WHERE a.poste_id='chef_douanes' AND a.city IS NULL AND a.titulaire=d.name);
+SELECT country,city,building_id,count(*) AS etats_ambigus
+FROM public.batiments_etat WHERE building_id IN ('commissariat','commissariat-local','port-sainte-marie')
+GROUP BY country,city,building_id HAVING count(*)>1;
+SELECT poste_id,country,city,count(*) AS mandats_ambigus
+FROM public.postes_attribues WHERE poste_id IN ('commissaire','chef_douanes')
+GROUP BY poste_id,country,city HAVING count(*)>1;
+-- Les tarifs de recrutement doivent être uniques et inchangés : 1 PA, 0 FR.
+SELECT fn,count(*) AS definitions,min(pa) AS pa_min,max(pa) AS pa_max,min(cost) AS cout_min,max(cost) AS cout_max
+FROM public.ordres_couts WHERE fn IN ('recruter_policier','recruter_policier_cynophile','recruter_douanier','recruter_douanier_cynophile') GROUP BY fn ORDER BY fn;
 SELECT version,name FROM supabase_migrations.schema_migrations
 WHERE version IN ('20261027222500','20261028074753','20261028074754',
  '20261028122000','20261028122500','20261028123000','20261028123500',
  '20261028124000','20261028135642','20261028135643','20261028140626','20261028141500','20261028161732','20261028163800','20261028164500','20261028165000','20261028180000','20261028180100','20261028183000','20261028185300','20261028185301','20261028185302','20261028185303','20261028185304','20261028185305','20261028185500','20261028185600','20261028185800','20261028191900',
  '20261028193000','20261028193500','20261028194000','20261028194100','20261028213200','20261028213400',
- '20261028215000','20261028215100','20261028215200','20261028215400','20261028215500','20261028215600','20261028215800','20261028215900','20261028222000','20261029100000','20261029110000','20261029110100','20261029110200','20261029110300','20261029120000','20261029121000','20261029122000','20261029123000','20261029124000','20261029125000','20261029130000')
+ '20261028215000','20261028215100','20261028215200','20261028215400','20261028215500','20261028215600','20261028215800','20261028215900','20261028222000','20261029100000','20261029110000','20261029110100','20261029110200','20261029110300','20261029120000','20261029121000','20261029122000','20261029123000','20261029124000','20261029125000','20261029130000','20261029131000')
 ORDER BY version;
 ROLLBACK;

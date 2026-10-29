@@ -2,9 +2,43 @@
 
 **CHANTIER NON TERMINÉ.** Préparation sauvegardée sur la branche #219 pour
 l'intégration #230 par ChatGPT ; aucune fusion ni migration de production ici.
-Les transports internationaux passent localement ; combats et interceptions
-collectifs restent inachevés. Aucun nouveau développement immobilier après
-l'arbitrage `main` 9e8901b : transmission à Claude documentée séparément.
+Les rounds policiers opposent désormais les deux groupes PJ/PNJ réels ;
+interception, fuite, écrou, taxis spéciaux et effectifs police/douane sont raccordés
+et testés localement. La guerre militaire n'enrôle pas encore les compagnons
+non militaires ; les protections générales de fiche sont suivies par ChatGPT.
+Aucun nouveau développement immobilier après l'arbitrage `main` 9e8901b.
+
+## État consolidé le plus récent — 29 octobre, après les lots A à E
+
+**243/243 scénarios PostgreSQL jetable**, **118/118 bancs clients**, dont 11 cas propres aux nouveaux ordres d'effectifs. Les deux groupes d'une interception comprennent effectivement PJ, soldats, policiers et agents privés. Détection collective, commandement du chef innocent, sanctions personnelles, reddition personnelle, séparation au même endroit avant écrou et fuite par le moteur commun. Taxis caserne/QHS : neuf voyageurs, paiement unique, entrée/sortie et bus retour. Miroir militaire : ni résurrection ni effacement d'un mort/détenu. Effectifs : recrutement/licenciement entiers, mandat canonique, reçus, rollback et concurrence réelle de deux connexions. Pas de réponse simulée pour les coups/rounds SQL ; transport RPC simulé dans les tests clients, explicitement distinct de la production.
+
+Les preuves récentes sont archivées dans `preuves-groupes-219-interception-20261029/`, `preuves-groupes-219-miroir-militaire-20261029/` et `preuves-groupes-219-effectifs-20261029/`. Des opérations fictives ont été committées dans PostgreSQL jetable pour les tests concurrents ; ne pas présenter tous les scénarios comme des transactions annulées. Aucune identité ni donnée réelle, aucune migration Supabase appliquée. Le résultat distant des Actions n'a pas été vérifié.
+
+**Globaux : 5/12**, Workflow conforme. Classification/photographie du baseline, Authority, Referential, fonctions, assemblage et reconstruction restent rouges. Leurs diagnostics sont archivés sans modifier empreintes/observations : notamment des RPC appelées par le navigateur mais absentes du baseline signalées par Authority, références client/serveur divergentes, copie chantier non déclarée, source canonique d'expulsion absente et deux fonctions de triggers immobiliers absentes. Les problèmes immobiliers sont transmis à Claude ; la réextraction du catalogue vivant relève du prévol ChatGPT. Ce résultat ne vaut pas autorisation de déploiement.
+
+**Ordre des migrations nouvelles de cette reprise**, après les prérequis du 28/10 listés dans le prévol (ne pas rejouer aveuglément les versions déjà installées) :
+
+1. `20261029100000_groupes_miroirs_statuts_et_pa.sql`
+2. `20261029110000_groupes_recrutement_combattants.sql`
+3. `20261029110100_groupes_composition_sous_confrontation.sql`
+4. `20261029110200_militaire_recrutement_presence_et_etat.sql`
+5. `20261029110300_police_combattant_etat_canonique.sql`
+6. `20261029120000_groupes_separation_ecrou.sql`
+7. `20261029121000_police_rounds_groupes_mixtes.sql`
+8. `20261029122000_police_interception_groupe_et_commandement.sql`
+9. `20261029123000_police_detection_groupes_reels.sql`
+10. `20261029124000_police_fuite_collective_commune.sql`
+11. `20261029125000_transport_taxis_speciaux_communs.sql`
+12. `20261029130000_militaire_miroir_et_ecrivains_historiques.sql`
+13. `20261029131000_effectifs_recrutement_et_licenciement_atomiques.sql`
+
+Le lecteur de combattants précède les adaptateurs de rounds/détection ; la séparation précède l'écrou ; le miroir et les gardes de compagnie précèdent les nouvelles commandes d'effectifs. Le dernier lot ferme les anciennes sous-clés police/douane et les paiements isolés nommés, après avoir fourni leur remplacement serveur et les cinq handlers clients. Les autres sous-clés et coûts restent inchangés. Dotation douanière initiale : quatre seulement s'il n'existe aucun état historique ; jamais recréée pour un effectif vide. Une divergence socle/projection bloque la préparation, pas de reconstruction arbitraire des agents.
+
+**Prévol et critères après application** : `outils/bancs/PREFLIGHT-GROUPES-UNIVERSELS-20261028.sql` fournit en lecture seule corps, ACL, RLS, triggers, registre, mandats manquants/ambigus, états ambigus et quatre tarifs. ChatGPT doit comparer les définitions complètes (y compris adaptateurs internes déjà présents) et rapprocher #213/#230/#235 ; un simple MD5 annoncé ou une version déclarée n'autorise pas le DDL. Après application isolée validée : accès authenticated seulement aux portes publiques ; helpers privés inaccessibles ; garde de document brut active ; même reçu = même recrutement et un seul PA ; positions/PA/statuts identiques après relecture ; innocence préservée à l'écrou ; aucun second paiement après réponse perdue ; transport complet ou aucun mouvement/débit. Les journaux et échéances restent accessibles. Ce prévol n'est pas exécuté sur Supabase ici.
+
+**NON PRÊT pour activation globale** : le recrutement d'une bataille militaire et ses lecteurs/appliqueurs restent spécialisés PJ militaires/soldats ; les compagnons policiers/privés/civils ne sont pas encore recrutés dans ce contexte. Les tests de rounds militaires historiques ne prouvent pas cette généralisation ni ses issues mort/blessure/repli. La fermeture générale des anciennes sauvegardes de fiche et le contrôle de version des onglets restent le chantier ChatGPT (#235) : pas de blocage global arbitraire des paiements génériques de même coût. Ne pas activer ce socle partiellement. Les sept contrôles rouges et le prévol vivant restent également bloquants.
+
+Les paragraphes ci-dessous sont des états historiques ; les chiffres précédents de 173/200/209 ne remplacent pas le résultat consolidé ci-dessus.
 
 ## Vérification finale du lot de sélection — 29 octobre
 
