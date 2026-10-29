@@ -22,7 +22,8 @@ DROP POLICY IF EXISTS organisations_lecture_publique ON public.organisations;
 CREATE POLICY organisations_lecture_publique ON public.organisations
 FOR SELECT TO anon, authenticated
 USING (
-  coalesce(data::jsonb->>'visible','false') = 'true'
+  (coalesce(data::jsonb->>'visible','false') = 'true'
+    AND coalesce(data::jsonb->>'type','') <> 'criminelle')
   OR (
     public.mon_personnage() IS NOT NULL
     AND (
