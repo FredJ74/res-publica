@@ -1365,8 +1365,6 @@ function loadCharacter() {
             // currentRoom, jamais country/currentCity, laissant un voyage inter-villes revenir a
             // l'ancienne ville/pays sur un refresh rapide malgre une position batiment/piece correcte.
             // Batiment et piece ne sont plus captures : le serveur en est seul maitre (voir plus bas).
-            const positionLocaleCountry = state.char?.country;
-            const positionLocaleVille = state.char?.currentCity;
             // Pont de migration (chantier C, 14 septembre 2026) : queteCarriere n'a JAMAIS ete
             // persiste en base jusqu'a ce lot -- il ne vivait que dans localStorage. La colonne
             // existe desormais, mais elle est vide pour tout personnage anterieur. Sans cette
@@ -1428,19 +1426,9 @@ function loadCharacter() {
             // pas, c'est qu'elle n'a pas ete validee : retrouver la rue est alors la bonne
             // reponse, pas une regression.
             //
-            // PAYS ET VILLE gardent leur garde-fou ci-dessous : ils ne sont JAMAIS mis a null par
-            // le chargement (contrairement a batiment/piece, cf. lignes 764-765), donc leur valeur
-            // locale reste un temoin fiable -- c'est ce qui protege un voyage inter-villes d'un
-            // rafraichissement rapide, et ce cas-la n'a jamais dysfonctionne.
-            if (positionLocaleCountry) {
-              state.country = positionLocaleCountry;
-              if (state.char) state.char.country = positionLocaleCountry;
-            }
-            if (positionLocaleVille) {
-              state.currentCity = positionLocaleVille;
-              if (state.char) state.char.currentCity = positionLocaleVille;
-            }
-
+            // PAYS / VILLE : même autorité serveur que le bâtiment et la pièce.
+            // Ne jamais réimposer la ville d'un ancien localStorage après lecture
+            // Supabase : une actualisation ne doit pas téléporter le PJ.
             applyCharToState(state.char);
             updateUI();
             restaurerPositionApresChargement(state.char);
