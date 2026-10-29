@@ -2204,14 +2204,16 @@ async function chargerPjPourRumeur() {
 }
 
 async function chargerOrganisationsPourRumeur() {
-  const toutes = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
-  // Seule la cible publique de la rumeur est exposée à ce sélecteur.
-  // Une organisation criminelle peut être citée sans rendre publique sa
-  // hiérarchie, ses membres ou sa fiche interne (visible:false).
-  return (toutes || [])
-    .filter(o => o && (o.visible === true || o.type === 'criminelle'))
+  // La projection est construite PAR LE SERVEUR ; ne jamais faire select=*
+  // sur organisations pour alimenter un select visible par tous.
+  // Si la migration n'est pas encore appliquée, refuser l'affichage plutôt
+  // que de retomber sur une lecture indiscrète du JSON des groupes secrets.
+  if (typeof sbRpc !== 'function') return [];
+  const cibles = await sbRpc('rumeurs_organisations_cibles', {}).catch(() => null);
+  if (!Array.isArray(cibles)) return [];
+  return cibles
+    .filter(o => o && o.id && o.nom && typeof o.id === 'string' && typeof o.nom === 'string')
     .map(o => ({ id: o.id, nom: o.nom, country: o.country }))
-    .filter(o => o.id && o.nom)
     .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
 }
 
