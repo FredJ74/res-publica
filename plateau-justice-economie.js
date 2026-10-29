@@ -1202,101 +1202,51 @@ function tenterCorruptionArrestation(peineType, cout, taux) {
   }
 }
 
+let arrestationHistoriqueEnCours = null;
 async function procederArrestation(acte, resistanceAggravante, demasque) {
-  if (state.immuniteMilitaireActuelle) {
-    showToast('Immunité militaire', 'En tant que militaire déployé en zone de guerre ou de mobilisation nationale, vous ne pouvez pas être poursuivi(e) pour cet acte.', true);
-    addJournalEntry('Immunité militaire invoquée — aucune poursuite pour : ' + (ACTES_ILLEGAUX[acte]?.label || acte) + '.', 'event-info');
-    return;
-  }
-  const peineCalc = getPeineParActe(acte, demasque);
-  const jours = peineCalc.jours + (resistanceAggravante ? 2 : 0);
-  const amende = peineCalc.amende;
-  const typeBase = ACTES_ILLEGAUX[acte]?.type || acte;
-
-  state.estEmprisonne = { jours, jourFin: state.day + jours, raison: peineCalc.label };
-  // UN MOTIF N'EN EFFACE JAMAIS UN AUTRE (correctif du 13 septembre 2026). Cette ligne etait un
-  // `state.recherche = []` : etre arrete une journee pour violation de couvre-feu effacait toutes
-  // les autres poursuites, y compris une condamnation a trente jours en attente d'execution et
-  // les motifs relevant d'un AUTRE empire, que le reste du code prend pourtant soin de ne jamais
-  // traiter hors de sa competence territoriale. Seul le motif reellement juge ici s'eteint ;
-  // chaque autre motif continue de vivre pour son propre compte.
-  // LE RETRAIT EST DEPLACE A LA FIN DE CETTE FONCTION, et c'est deliberе (chantier 5, chaine 14,
-  // 10 octobre 2026). `procederArrestation` devient `async` pour attendre la porte ; or un `await`
-  // rend la main a l'appelant des qu'il est atteint. DEUX de ses onze appelants lisent
-  // `state.estEmprisonne` dans les lignes qui suivent leur appel (mesure faite) : si l'attente
-  // etait ici, ils liraient un etat incomplet. Place en DERNIER, tout ce que les appelants
-  // peuvent observer est deja ecrit quand la main leur revient.
-  // Une detention qui ne tient QU'A LA DESERTION peut etre levee par l'incorporation ou par la
-  // demobilisation ; une detention qui porte autre chose ne le peut jamais. Le drapeau est pose
-  // ici, au seul endroit qui connaisse le motif reellement juge.
-  state.estEmprisonne.motifDesertionSeul = (acte === 'desertion');
-  if (amende > 0) state.arg = Math.max(0, state.arg - amende);
-  if (state.poste && typeBase === 'crime') {
-    addExternalEvent('Votre poste de ' + state.poste.name + ' vous a ete retire suite a votre arrestation.');
-    state.poste = null;
-    if (state.char) state.char.poste = null;
-  }
-  updateUI();
-  addExternalEvent('Vous avez ete arrete(e) pour ' + peineCalc.label + '. ' + jours + ' jour(s) d\'emprisonnement. Amende : ' + amende.toLocaleString('fr-FR') + ' FR.');
-  // Auto-referent : l'arrestation a lieu ici et maintenant, sur le joueur lui-meme -- city
-  // explicite plutot qu'implicite (A3, lot judiciaire), meme comportement qu'avant.
-  // Resistance aggravante = un second motif distinct, jamais fusionne dans le premier : le code
-  // connait deja separement les deux durees (peineCalc.jours et le +2 fixe de la resistance),
-  // rien n'est reparti arbitrairement (registre carcerale, 26 aout 2026).
-  const dateArrestation = new Date().toISOString();
-  const motifsArrestation = [{ type: peineCalc.label, jour_fait: state.day, city: state.currentCity, jours: peineCalc.jours, source: 'flagrant_delit', date_evenement: dateArrestation }];
-  if (resistanceAggravante) motifsArrestation.push({ type: 'Résistance à l\'arrestation', jour_fait: state.day, city: state.currentCity, jours: 2, source: 'flagrant_delit', date_evenement: dateArrestation });
-  // ATTENDUE (27 octobre 2026) : le serveur n'accepte de retirer le motif juge (plus bas) que si une
-  // detention vient d'etre ouverte au nom du joueur.
-  await enregistrerDetention(state.char?.name, peineCalc.label, state.day + jours, undefined, state.currentCity, {
-    country: state.country,
-    motifs: motifsArrestation
-  }).catch(() => {});
-
-  // Teleportation en cellule de garde a vue -- vers la prison/geoles de la ville REELLE de
-  // l'arrestation (lot "ordres carceraux hors Luthecia", 26 aout 2026), plus jamais codee en dur
-  // sur le batiment 'commissariat' de Luthecia : une arrestation a Montrouge/PSM tele-portait
-  // jusqu'ici le joueur vers un batiment inexistant pour sa ville, avec un verrou de navigation
-  // (enterRoom) qui ne reconnaissait de toute facon que 'commissariat'/'prison' comme cellule
-  // valide -- le joueur restait alors bloque sans pouvoir jamais atteindre une piece coherente.
-  // FOUILLE A L'ECROU (13 septembre 2026). Une arrestation conduit en cellule : le circuit
-  // comporte donc bien une fouille, et la regle generale s'applique -- tout materiel illegal
-  // decouvert est confisque. procederArrestation ne touchait jusqu'ici RIEN a l'inventaire :
-  // un joueur arrete gardait armes non enregistrees, poisons et explosifs de chantier.
-  // La saisie n'ajoute aucune peine : celle de l'acte juge ci-dessus reste la seule.
-  // Le materiel militaire reglementaire (legal:true) n'est pas concerne.
-  // confisquerObjets est devenue serveur, donc asynchrone (chantier C, 14 septembre 2026).
-  // procederArrestation reste SYNCHRONE : 13 appelants en dependent, et l'arrestation elle-meme
-  // ne doit pas attendre la saisie pour teleporter en cellule. La saisie s'acheve donc en
-  // arriere-plan et n'annonce ses noms qu'une fois le serveur d'accord -- jamais avant.
-  if (typeof objetsSaisissables === 'function' && typeof confisquerObjets === 'function') {
-    const saisis = objetsSaisissables(state.inventory);
-    if (Array.isArray(saisis) && saisis.length > 0) {
-      confisquerObjets(saisis).then(function (noms) {
-        if (!noms) return;
-        addExternalEvent('Fouille a l\'ecrou : ' + noms + ' confisque(s).');
-        addJournalEntry('Fouille à l\'écrou : objets prohibés confisqués (' + noms + ').', 'event-bad');
-      }).catch(function () {});
+  // La porte historique décide toujours de la détention. Aucun état anticipé,
+  // débit local, perte de poste ou téléportation en cas de refus/réponse perdue.
+  const contexte = contexteInterceptionJudiciaire();
+  if (!contexte.nom || arrestationHistoriqueEnCours) return false;
+  arrestationHistoriqueEnCours = contexte;
+  try {
+    if (state.immuniteMilitaireActuelle) {
+      showToast('Immunité militaire', 'Vérifiez la situation militaire avant toute poursuite.', false);
+      return false;
     }
+    const peine = getPeineParActe(acte, demasque);
+    const jours = peine.jours + (resistanceAggravante ? 2 : 0);
+    const motifs = [{type:peine.label, jour_fait:state.day, city:state.currentCity,
+      jours:peine.jours, source:'flagrant_delit', date_evenement:new Date().toISOString()}];
+    if (resistanceAggravante) motifs.push({type:'Résistance à l’arrestation',
+      jour_fait:state.day, city:state.currentCity, jours:2, source:'flagrant_delit'});
+    const id = await enregistrerDetention(contexte.nom, peine.label, state.day + jours,
+      undefined, state.currentCity, {country:state.country, motifs}).catch(() => null);
+    if (!contexteInterceptionJudiciaireValide(contexte)) return false;
+    // Même en cas de réponse perdue, la relecture peut retrouver une détention
+    // commise. Elle ne rejoue jamais l'ordre et n'invente aucune conséquence.
+    const frais = typeof sbLoadPersonnage === 'function'
+      ? await sbLoadPersonnage(contexte.nom).catch(() => null) : null;
+    if (!contexteInterceptionJudiciaireValide(contexte)) return false;
+    if (!frais || (contexte.uid && frais.userId !== contexte.uid) || !frais.estEmprisonne ||
+        (id && frais.estEmprisonne.detentionId !== id)) {
+      showToast('Arrestation non confirmée',
+        'La détention n’a pas pu être confirmée. Resynchronisez le jeu avant de poursuivre.', false);
+      return false;
+    }
+    state.estEmprisonne = frais.estEmprisonne;
+    state.pa = frais.pa;
+    state.group = frais.group;
+    state._groupeConfirme = frais._groupeConfirme;
+    // Le serveur a déjà déplacé le PJ par le circuit carcéral commun.
+    if (typeof afficherPositionNavigationConfirmee === 'function') afficherPositionNavigationConfirmee(frais);
+    if (typeof updateUI === 'function') updateUI();
+    addJournalEntry('Détention confirmée : ' + frais.estEmprisonne.raison + '.', 'event-bad');
+    if (id) await retirerRecherche([acte]);
+    return true;
+  } finally {
+    if (arrestationHistoriqueEnCours === contexte) arrestationHistoriqueEnCours = null;
   }
-
-  teleporterVersCellule(state.estEmprisonne);
-
-  // Resolution spectaculaire (chantier "animations de resolution d'ordres", 26 aout 2026) :
-  // appelee APRES la persistance (enregistrerDetention) et la teleportation ci-dessus -- ne
-  // conditionne jamais la verite de l'arrestation (§8), presentation uniquement.
-  if (typeof ouvrirResolutionSpectaculaire === 'function' && typeof construireResultatArrestationHtml === 'function') {
-    ouvrirResolutionSpectaculaire({
-      type: 'arrestation',
-      succes: true,
-      titre: 'VOUS ÊTES EN ÉTAT D\'ARRESTATION',
-      resultatHtml: construireResultatArrestationHtml(motifsArrestation, state.currentCity, state.country)
-    });
-  }
-
-  // LE SEUL MOTIF REELLEMENT JUGE S'ETEINT, et c'est le serveur qui l'applique : un motif n'en
-  // efface jamais un autre, ni celui d'un autre acte, ni celui d'un autre empire.
-  await retirerRecherche([acte]);
 }
 
 // Verification periodique (a minuit / au reveil) : liberation automatique en fin de peine
@@ -8847,20 +8797,6 @@ function commissaireLocalValide() {
   return { ok: true, ville };
 }
 
-// PER groupe = moyenne PER + (nombre-1). Dilution rue (-2) appliquee separement par l'appelant,
-// jamais ici, pour rester reutilisable tel quel dans les deux contextes (piece/rue).
-function calculerPerGroupePolice(policiers) {
-  if (!policiers || policiers.length === 0) return 0;
-  const moyenne = policiers.reduce((s, p) => s + (p.stats?.PER || 0), 0) / policiers.length;
-  return moyenne + (policiers.length - 1) * PER_GROUPE_BONUS_PAR_MEMBRE;
-}
-
-// VOL groupe = simple moyenne, aucun bonus d'effectif (regle explicite, distincte de PER).
-function calculerVolGroupePolice(policiers) {
-  if (!policiers || policiers.length === 0) return 0;
-  return policiers.reduce((s, p) => s + (p.stats?.VOL || 0), 0) / policiers.length;
-}
-
 // ---- RECRUTEMENT ----
 let effectifServeurEnCours = null;
 async function commanderEffectifServeur(service, action, type = null, matricule = null) {
@@ -10777,63 +10713,6 @@ async function confisquerObjets(objetsConnus) {
   return r.noms || '';
 }
 
-// Se soumettre au controle : confiscation + convocation deferee, EXACTEMENT la meme consequence
-// que le controle douanier (motif possession_illegale_douane reutilise tel quel, aucune peine
-// inventee).
-async function appliquerConsequencesSoumissionFouille(objetsConnus) {
-  const noms = await confisquerObjets(objetsConnus);
-  if (!noms) return;
-
-  if (!state.convocations) state.convocations = [];
-  state.convocations.push({
-    // id stable, lu par le trigger personnages_preserver_judiciaire (chantier Assemblee).
-    id: 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-    motif: 'possession_illegale_douane',
-    jourEmission: state.day || 1,
-    heureEmission: state.hour || 8,
-    jourLimite: (state.day || 1) + 1,
-    heureLimite: state.hour || 8,
-    traitee: false
-  });
-  updateUI();
-  showToast('Objets confisqués', noms + ' confisqué(s). Convocation au commissariat sous 24h.', false, true);
-  addJournalEntry('Contrôle policier : objets prohibés confisqués (' + noms + '). Convocation reçue.', 'event-bad');
-}
-
-// Fuite ratee : confiscation + peine IMMEDIATE (procederArrestation, meme motif
-// possession_illegale_douane que la convocation deferee ci-dessus -- aucune peine inventee) puis
-// +1 jour cumulatif (ajouterJourFuiteRatee, precedent additif existant). La peine immediate est
-// necessaire ici : sans elle, ajouterJourFuiteRatee n'aurait aucune detention de base sur
-// laquelle cumuler (state.estEmprisonne serait absent).
-async function appliquerConsequencesFuiteRatee(objetsConnus) {
-  const noms = await confisquerObjets(objetsConnus);
-  if (typeof procederArrestation === 'function') procederArrestation('possession_illegale_douane', false, false);
-  ajouterJourFuiteRatee();
-  updateUI();
-  showToast('Fuite ratée', (noms ? noms + ' confisqué(s). ' : '') + 'Vous êtes arrêté(e) et écroué(e).', false, true);
-  addJournalEntry('Fuite ratée face à un contrôle policier' + (noms ? ' — objets confisqués (' + noms + ')' : '') + '.', 'event-bad');
-}
-
-// Echec de fuite : +1 jour de detention CUMULATIF (jamais substitutif). Reutilise l'unique
-// precedent additif existant du jeu (evasion ratee/rebellion reussie, memes lignes plus haut
-// dans ce fichier -- state.estEmprisonne.jours += 1 uniquement si une peine est deja active).
-// A appeler APRES que la peine de base (procederArrestation) ait ete posee dans le meme flux.
-function ajouterJourFuiteRatee() {
-  if (state.estEmprisonne) {
-    state.estEmprisonne.jours += 1;
-    state.estEmprisonne.jourFin += 1;
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-  }
-}
-
-// ---- FORMULE COMMUNE DES JETS OPPOSES (arbitrage valide du 24 aout 2026) ----
-// chancePJ = clamp(50 + 5*(caracPJ - caracAdversaire), 10, 90). Tirage 1-100, succes PJ si
-// tirage <= chancePJ. Utilisee identiquement pour DIS vs PER (surveillance), DUP vs PER
-// (controle) et VOL vs VOL (fuite) -- seule la paire de caracteristiques change.
-function calculerChancePJ(caracPJ, caracAdversaire) {
-  return Math.max(10, Math.min(90, 50 + 5 * (caracPJ - caracAdversaire)));
-}
-
 // Normalisation de la Discretion (ressource 0-100, pas une caracteristique sur l'echelle
 // habituelle) : DIS_effective = 8 + (state.dis/10). Arbitrage valide, verifie sur les 3 exemples
 // de controle fournis (DIS 0/50/100 -> 8/13/18).
@@ -10883,20 +10762,8 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
   if (!ville) return;
 
   const contexteDetection = contexteInterceptionJudiciaire();
-  const effectifs = await chargerEffectifsPolice(pays, ville).catch(() => null);
-  if (!contexteInterceptionJudiciaireValide(contexteDetection)) return;
-  // Le serveur arbitre aussi la présence éventuelle d'agents privés : l'absence de police ne bloque pas sa vérification.
-  const policiersDisponibles = Array.isArray(effectifs?.policiers) ? effectifs.policiers : [];
-
   const enRue = !!rueNoeudId;
-  const zoneSurveillee = { pays, ville, batiment: buildingId || null,
-    piece: roomId || null, rue: rueNoeudId || null };
-  const presents = enRue
-    ? policiersDisponibles.filter(p => p.rueNoeudId === rueNoeudId && Number(p.pa ?? 12) > 0)
-    : policiersDisponibles.filter(p => p.buildingId === buildingId && p.roomId === roomId && Number(p.pa ?? 12) > 0);
-  let perGroupe = presents.length ? calculerPerGroupePolice(presents) : 0;
-  if (enRue) perGroupe -= DILUTION_RUE_PER_POLICE; // dilution rue uniquement, jamais en piece
-
+  const zoneSurveillee = {pays, ville, batiment:buildingId || null, piece:roomId || null, rue:rueNoeudId || null};
   // La recherche et le jet de detection sont exclusivement arbitres par le serveur.
   // Aucune interception judiciaire n'est autorisee sur un tirage du navigateur.
   const detection = (pays === 'republic' && typeof sbRpc === 'function')
@@ -10907,6 +10774,12 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
       }).then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null)
     : null;
   if (!contexteInterceptionJudiciaireValide(contexteDetection)) return;
+  if (detection?.ok === true && detection.controle) {
+    if (detection.controle.phase === 'choix') await reprendreInterceptionJudiciaireServeur();
+    else showToast('Contrôle terminé', detection.controle.phase === 'persuasion'
+      ? 'La patrouille vous laisse repartir.' : 'Aucun objet prohibé trouvé.', true);
+    return;
+  }
   if (pays === 'republic' && detection?.ok === true && detection.detecte === true) {
     if (state.country !== zoneSurveillee.pays || state.currentCity !== zoneSurveillee.ville ||
         (enRue ? (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== zoneSurveillee.rue) :
@@ -10919,105 +10792,12 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
     }
     const intervention = await verifierArrestationRecherchePolice({
       detecte: true, rencontreId: detection.rencontre,
-      policiers: Array.from({length:Math.max(1, Number(detection.effectif || presents.length || 1))}, () => ({})), rueNoeudId,
+      policiers: Array.from({length:Math.max(1, Number(detection.effectif || 1))}, () => ({})), rueNoeudId,
       zone: zoneSurveillee
     });
     if (intervention === true) return;
   }
-  if (pays === 'republic' && detection?.raison !== 'non_recherche') return;
-  // Les contrôles de police non judiciaires restent réservés aux policiers réellement présents.
-  if (presents.length === 0) return;
-  const disEff = calculerDisEffective();
-  const chanceDetection = calculerChancePJ(disEff, perGroupe);
-  const tirage = Math.floor(Math.random() * 100) + 1;
-  if (tirage <= chanceDetection) return;
-  // Le chargement des effectifs est asynchrone : ne jamais intercepter dans une autre zone.
-  if (state.country !== zoneSurveillee.pays || state.currentCity !== zoneSurveillee.ville ||
-      (enRue && (typeof rueCentraleNoeudActuel !== 'undefined' && rueCentraleNoeudActuel !== zoneSurveillee.rue)) ||
-      (!enRue && (state.currentBuilding !== zoneSurveillee.batiment ||
-                   state.currentRoom !== zoneSurveillee.piece))) return;
-
-  const volGroupe = calculerVolGroupePolice(presents);
-  resoudreControlePoliceAutomatique(perGroupe, volGroupe);
-}
-
-// Etape 2 : controle (DUP PJ vs PER groupe police). Succes PJ = relache sans fouille. Echec =
-// fouille (aucun jet supplementaire, la fouille elle-meme est automatique et certaine une fois
-// le controle perdu -- seule la decouverte d'objets reconnus declenche une suite).
-function resoudreControlePoliceAutomatique(perGroupe, volGroupe) {
-  showToast('Contrôle de police', 'Une patrouille vous arrête pour un contrôle d\'identité.', false);
-  addJournalEntry('Contrôlé(e) par une patrouille de police.', 'event-bad');
-
-  const dup = getStatEffective('DUP');
-  const chanceConvaincre = calculerChancePJ(dup, perGroupe);
-  const tirage = Math.floor(Math.random() * 100) + 1;
-  if (tirage <= chanceConvaincre) {
-    showToast('Contrôle terminé', 'Vous convainquez la patrouille de vous laisser repartir.', true, true);
-    addJournalEntry('Contrôle de police évité par la persuasion.', 'event-good');
-    return;
-  }
-
-  const connus = objetsSaisissables(state.inventory);
-  if (connus.length === 0) {
-    showToast('Fouille effectuée', 'Rien d\'illégal trouvé sur vous. Vous êtes relâché(e).', true, true);
-    addJournalEntry('Fouille policière : rien trouvé.', '');
-    return;
-  }
-
-  ouvrirChoixSoumissionFuite(connus, volGroupe);
-}
-
-// Etape 3 : choix explicite du joueur (jamais automatique) -- reutilise le gabarit du modal
-// d'interception existant (memes ids #postes-modal-title/#postes-body/#modal-postes, voir
-// l'arrestation classique un peu plus haut dans ce fichier). L'etat transitoire (objets trouves,
-// VOL adverse) est stocke le temps du choix dans une variable de module dediee, aucune autre
-// fonction ne le lit.
-let _policeFouilleEnCours = null;
-function ouvrirChoixSoumissionFuite(objetsConnus, volAdversaire) {
-  _policeFouilleEnCours = { objetsConnus, volAdversaire };
-  const noms = objetsConnus.map(o => o.name).join(', ');
-  document.getElementById('postes-modal-title').textContent = 'Fouille policière';
-  document.getElementById('postes-body').innerHTML =
-    '<div style="padding:1rem">' +
-    '<div style="font-size:.85rem;color:#cc4444;margin-bottom:.8rem">Objets prohibés découverts : ' + noms + '</div>' +
-    '<div style="display:flex;flex-direction:column;gap:.5rem">' +
-    '<button onclick="doSeSoumettrePolice()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #4a6a4a;background:transparent;color:#6a9a6a;cursor:pointer"><i class="ti ti-check" style="font-size:.8rem"></i> Se soumettre</button>' +
-    '<button onclick="doTenterFuitePolice()" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1rem;border:1px solid #8a6a20;background:transparent;color:#8a8060;cursor:pointer"><i class="ti ti-run" style="font-size:.8rem"></i> Tenter de fuir</button>' +
-    '</div></div>';
-  document.getElementById('modal-postes').classList.add('open');
-}
-
-// Devient async (chantier C, 14 septembre 2026) : la confiscation passe par le guichet serveur.
-// Seuls des boutons appellent cette fonction, aucun appelant a adapter -- mais l'await est
-// necessaire pour que la convocation ne soit posee qu'apres une saisie reellement acceptee.
-async function doSeSoumettrePolice() {
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (!_policeFouilleEnCours) return;
-  const objets = _policeFouilleEnCours.objetsConnus;
-  _policeFouilleEnCours = null;
-  await appliquerConsequencesSoumissionFouille(objets);
-}
-
-// Etape 4 (si fuite choisie) : VOL PJ vs VOL groupe police, AUCUN bonus d'effectif (regle
-// explicite, distincte de PER). Fuite reussie = le PJ garde tout, aucune trace/enquete inventee.
-// Fuite ratee = confiscation + peine immediate + jour cumulatif (appliquerConsequencesFuiteRatee).
-// Devient async pour la meme raison que doSeSoumettrePolice ci-dessus : la peine de la fuite
-// ratee ne doit tomber qu'apres une saisie reellement acceptee par le serveur.
-async function doTenterFuitePolice() {
-  document.getElementById('modal-postes')?.classList.remove('open');
-  if (!_policeFouilleEnCours) return;
-  const { objetsConnus, volAdversaire } = _policeFouilleEnCours;
-  _policeFouilleEnCours = null;
-
-  const vol = getStatEffective('VOL');
-  const chanceFuite = calculerChancePJ(vol, volAdversaire);
-  const tirage = Math.floor(Math.random() * 100) + 1;
-  if (tirage <= chanceFuite) {
-    showToast('Fuite réussie !', 'Vous échappez à la patrouille avec vos objets.', true, true);
-    addJournalEntry('Fuite réussie face à un contrôle policier.', 'event-good');
-    return;
-  }
-  await appliquerConsequencesFuiteRatee(objetsConnus);
+  // Aucun repli par un jet, une saisie ou une peine calculés dans le navigateur.
 }
 
 // LE RESOLVEUR DEMANDE AU REFERENTIEL, IL NE DEVINE PLUS (chantier 4G, 8 octobre 2026).
@@ -11343,6 +11123,8 @@ async function confirmerSubventionMinInt(pa, cost) {
 // fiable -- voir jour_fait, jamais affiche). L'affichage (ouvrirDetailDetention) choisit le
 // libelle honnete selon `source`, jamais "date des faits" pour un motif dont ce n'est pas le cas.
 async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
+  const contexte = contexteInterceptionJudiciaire();
+  if (nom !== contexte.nom) return null;
   opts = opts || {};
   const jourDebut = state.day || 1;
   const country = opts.country || state.country || 'republic';
@@ -11407,7 +11189,7 @@ async function enregistrerDetention(nom, raison, jourFin, qhs, city, opts) {
   // VERDICT CONSOMME : sans peine en base, rien n'est pose localement. Le cas « cible_deja_detenue »
   // n'est pas un echec de transport mais la garde de rejeu de la primitive : la peine en cours
   // reste celle qui vaut.
-  if (!vOuv || vOuv.ok !== true) return null;
+  if (!contexteInterceptionJudiciaireValide(contexte) || !vOuv || vOuv.ok !== true || !vOuv.detention_id) return null;
 
   const detentionId = vOuv.detention_id || null;
   const jourFinReel = (vOuv.jour_fin != null) ? vOuv.jour_fin : Number(jourFin);
@@ -11595,10 +11377,11 @@ async function inscrireRecherche(entree) {
 // Retire les motifs dont l'acte figure dans `actes`. `pays` optionnel : quand il est fourni, une
 // entree portant un AUTRE pays est conservee -- aucun acte d'un empire n'efface celui d'un autre.
 async function retirerRecherche(actes, pays) {
+  const contexte = contexteInterceptionJudiciaire();
   if (typeof sbRpc !== 'function') return false;
   const v = await sbRpc('recherche_retirer', { p_actes: actes, p_pays: pays || null })
     .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
-  if (!v || v.ok !== true) return false;
+  if (!contexteInterceptionJudiciaireValide(contexte) || !v || v.ok !== true) return false;
   if (Array.isArray(v.recherche)) state.recherche = v.recherche;
   return true;
 }
@@ -12108,6 +11891,7 @@ async function reprendreInterceptionJudiciaireServeur() {
       (verdict?.reussite === true)) return false;
   interceptionJudiciaire = {
     contexte, rencontreId: reprise.rencontre, ville: reprise.city,
+    controleOrdinaire: reprise.controle_ordinaire === true,
     contratGroupes: reprise.contrat_groupes,
     cible: reprise.personnage_intercepte || state.char.name,
     peutCommander: reprise.peut_commander,
@@ -12137,6 +11921,15 @@ function afficherInterceptionJudiciaire() {
   if (!modal || !titre || !body) return;
   // Un dossier ouvert ne peut pas disparaître par un changement de fenêtre :
   // l'interception est conservée et réaffichée à la prochaine vérification.
+  if (i.controleOrdinaire) {
+    titre.textContent = 'CONTRÔLE POLICIER';
+    body.innerHTML = '<div class="cpj-dialogue"><p>La patrouille a découvert des objets prohibés.</p>' +
+      (i.reponseIncertaine ? '<p class="cpj-note">Réponse incertaine. Rechargez la situation serveur avant de poursuivre.</p>' :
+      '<button class="cpj-touche" '+(interceptionJudiciaireOccupee?'disabled ':'')+'onclick="choisirInterceptionJudiciaire(&quot;rendre&quot;)">Se soumettre</button>' +
+      '<button class="cpj-touche" '+(interceptionJudiciaireOccupee?'disabled ':'')+'onclick="choisirInterceptionJudiciaire(&quot;fuir&quot;)">Tenter de fuir</button>') + '</div>';
+    modal.classList.add('open');
+    return;
+  }
   const agentPrive = String(i.rencontreId || '').startsWith('prive-');
   titre.textContent = agentPrive ? 'INTERPELLATION PAR LA SÉCURITÉ PRIVÉE' : 'INTERCEPTION POLICIÈRE';
   const btn = (action, label) => '<button '+(interceptionJudiciaireOccupee?'disabled aria-disabled="true" ':'')+'type="button" class="cpj-touche" onclick="choisirInterceptionJudiciaire(&quot;' + action + '&quot;)">' + label + '</button>';
@@ -12265,6 +12058,38 @@ async function choisirInterceptionJudiciaire(choix) {
     return;
   }
   const contexte = contexteInterceptionJudiciaire();
+  if (i.controleOrdinaire) {
+    if (!['rendre','fuir'].includes(choix)) return;
+    interceptionJudiciaireOccupee = true;
+    afficherInterceptionJudiciaire();
+    try {
+      const action = choix === 'rendre' ? 'reddition' : 'fuite';
+      const v = await ordreInterceptionAvecReprise(choix === 'rendre' ? 'police_reddition_resoudre' : 'police_fuite_resoudre',
+        {p_rencontre:i.rencontreId}, action);
+      if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
+      if (!v) { marquerInterceptionIncertaine(i); return; }
+      if (v.ok !== true) { showToast('Contrôle non résolu',v.raison || 'Refus serveur.',false); return; }
+      const frais = await synchroniserInterceptionCollectiveServeur(contexte,i);
+      if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
+      const inventaire = typeof sbInventaireReceptionEtat === 'function' ? await sbInventaireReceptionEtat(contexte.nom).catch(() => null) : null;
+      if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
+      if (!frais || !inventaire || inventaire.ok !== true ||
+          (v.phase === 'detention' && !frais.estEmprisonne)) { marquerInterceptionIncertaine(i); return; }
+      if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(inventaire);
+      state.convocations = frais.convocations;
+      interceptionJudiciaire = null;
+      document.getElementById('modal-postes')?.classList.remove('open');
+      if (typeof afficherPositionNavigationConfirmee === 'function') afficherPositionNavigationConfirmee(frais);
+      if (typeof updateUI === 'function') updateUI();
+      showToast('Contrôle terminé', {detention:'Détention confirmée après votre fuite ratée.',
+        convocation:'Objets confisqués. Présentez-vous au commissariat sous 24h.',
+        fuite:'Vous avez échappé au contrôle.',rien:'Aucun objet prohibé à saisir.'}[v.phase] || 'Décision enregistrée.',true);
+    } finally {
+      interceptionJudiciaireOccupee = false;
+      if (interceptionJudiciaire) afficherInterceptionJudiciaire();
+    }
+    return;
+  }
   if (choix === 'rendre') {
     if (i.peutSeRendre === false) return;
     await conclureArrestationJudiciaire(); return;

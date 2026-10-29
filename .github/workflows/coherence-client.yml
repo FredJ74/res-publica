@@ -59,6 +59,8 @@ jobs:
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
       - name: Groupes et batailles mixtes sur PostgreSQL jetable
         run: python3 outils/bancs/banc-groupes-squatteurs-contrat-local.py
+      - name: Contrôles policiers ordinaires et sanctions atomiques sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-groupes-controles-ordinaires-local.py
       - name: Audit securite privee et groupes sur PostgreSQL jetable
         run: python3 outils/bancs/banc-audit-securite-135-local.py
       - name: Achat sur PostgreSQL local, sans identifiant Supabase

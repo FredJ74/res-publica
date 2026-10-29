@@ -55,6 +55,9 @@ def suite(ctx,suivante=None):
   sql("UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='mairie',current_room='accueil',current_street=NULL,hp=100,pa=100,stats='{\"VOL\":15,\"PER\":15}',resources='{\"dis\":0}' WHERE name IN ('A','B','C')")
   sql("INSERT INTO jugements(id,country,city,accuse,motif,data,executee) VALUES('jugement-combat-fixture','republic','capitale','C','Peine fictive','{\"motifs\":[{\"jours\":2}]}',false)")
   q.execute("SELECT pnj_groupes_projeter_interne(ARRAY['police-republic-capitale-P1','police-republic-capitale-P2','police-republic-capitale-P3'])")
+  q.execute("SELECT m.id FROM pnj_membres m JOIN pnj_force_publique_metier f ON f.pnj_id=m.id WHERE m.famille='policier' AND m.statut='actif' AND m.pays='republic' AND m.proprietaire_perimetre='capitale:commissariat'")
+  identites_attendues={x[0] for x in q.fetchall()}
+  assert identites_attendues,'aucun policier canonique dans le décor'
   succes=False
   for seed in range(30):
    q.execute('SAVEPOINT rounds_police');q.execute('SELECT setseed(%s)',(seed/30,))
@@ -65,7 +68,7 @@ def suite(ctx,suivante=None):
     if un.get('arrestation') or un.get('police_neutralisee'):continue
     deux=exige(rpc('police_combat_resoudre',(rencontre,None,'mairie','accueil',2),qui='C'))
     q.execute("SELECT m.id,m.pa,(p->>'pa')::integer FROM pnj_membres m JOIN batiments_etat b ON b.id='capitale' CROSS JOIN LATERAL jsonb_array_elements(b.data->'effectifsPolice'->'policiers') p WHERE m.id=police_pnj_id(b.country,b.city,p->>'matricule') ORDER BY m.id")
-    etats=q.fetchall();assert len(etats)==3 and all(pa==miroir for _,pa,miroir in etats),etats
+    etats=q.fetchall();assert {ident for ident,_,_ in etats}==identites_attendues and all(pa==miroir for _,pa,miroir in etats),etats
     q.execute("SELECT pa FROM personnages_donnees WHERE name='C'");assert q.fetchone()[0]==deux['pa']
     assert rpc('police_combat_resoudre',(rencontre,None,'mairie','accueil',2),qui='C')==deux
     q.execute('SELECT count(*) FROM police_action_receipts WHERE personnage=%s AND rencontre=%s AND action=\'combat\'',('C',rencontre));assert q.fetchone()[0]==2
