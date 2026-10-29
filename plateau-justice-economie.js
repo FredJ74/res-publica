@@ -3400,13 +3400,11 @@ async function chargerLocations() {
     // Si sa lecture arrive après le premier affichage, recalculer seulement
     // les boutons de la pièce toujours affichée, sans mouvement ni sauvegarde.
     const batiment = state.currentBuilding, piece = state.currentRoom;
-    if (state.country === 'republic' && state.currentCity === 'ville_a' &&
-        batiment === 'centre-commercial' &&
-        ['vitrine_principale','boutique_milieu','arriere_boutique','cave_reserve'].includes(piece) &&
-        typeof renderRoomActions === 'function' &&
-        typeof BUILDINGS !== 'undefined') {
+    // Toutes les villes (29/10/2026) : tout local a loyer fixe, et plus seulement le centre
+    // commercial de Port-Sainte-Marie. La mecanique ne depend que du bail, jamais de la ville.
+    if (typeof renderRoomActions === 'function' && typeof BUILDINGS !== 'undefined') {
       const room = BUILDINGS[batiment]?.rooms?.[piece];
-      if (room) renderRoomActions(room, batiment, piece);
+      if (room && room.locationData) renderRoomActions(room, batiment, piece);
     }
   } catch (e) { console.warn('chargerLocations error', e); }
 }
@@ -3515,48 +3513,29 @@ async function confirmerLocation(pa, cost) {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const orgaId = document.getElementById('loc-orga-select')?.value || '';
 
-  if (getFondsDisponiblesOrdinaires() < loc.prix) {
-    showToast('Fonds insuffisants', loc.prix + ' ' + cur + ' requis pour le premier loyer.', false);
+  // LE SERVEUR SIGNE LE BAIL (29/10/2026) : lieu reel, local libre, organisation dont on est membre,
+  // 1 PA, premier loyer par le moteur commun (banque puis especes, caisse municipale), recu. Le bail
+  // n'est plus ecrit par l'ecran : prix et bonus viennent du referentiel serveur, toutes villes.
+  const cle = 'location:' + (state.char?.name || '') + ':' + state.currentCity + ':' + buildingId + ':' + roomId;
+  let requete;
+  try { requete = sessionStorage.getItem(cle) || crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
+  catch (_) { showToast('Bail non signé', 'Le navigateur ne peut pas conserver la référence de cette location.', false); return; }
+  const v = await sbRpcVerdict('local_louer', { p_requete: requete, p_orga: orgaId || null }).catch(() => null);
+  if (state.currentBuilding !== buildingId || state.currentRoom !== roomId) return;
+  if (!v || v.ok !== true) {
+    if (v && !v.transport) { try { sessionStorage.removeItem(cle); } catch (_) {} }
+    const motifs = { fonds_insuffisants: loc.prix + ' ' + cur + ' requis pour le premier loyer.',
+      local_occupe: 'Ce local vient d’être loué.', orga_non_membre: 'Vous n’êtes pas membre de cette organisation.',
+      pa_insuffisants: 'Points d’action insuffisants.', pas_un_local_a_louer: 'Ce lieu ne se loue pas.' };
+    showToast('Bail non signé', v?.transport || !v
+      ? 'Réponse incertaine. Relancez : la location ne sera pas payée deux fois.'
+      : (motifs[v.raison] || 'Le serveur a refusé (' + v.raison + ').'), false);
     return;
   }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const debitLoyer = await debiterFondsOrdinaires(loc.prix);
-  if (!debitLoyer.ok) { showToast('Fonds insuffisants', loc.prix + ' ' + cur + ' requis pour le premier loyer.', false); return; }
+  try { sessionStorage.removeItem(cle); } catch (_) {}
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v);
   if (!state.locationsActives) state.locationsActives = [];
-
-  state.locationsActives.push({
-    buildingId, roomId,
-    localLabel: loc.label,
-    batimentLabel: BUILDINGS[buildingId]?.shortName || buildingId,
-    prix: loc.prix,
-    bonusPOP: loc.bonusPOP || 0,
-    bonusINF: loc.bonusINF || 0,
-    bonusDIS: loc.bonusDIS || 0,
-    orgaId,
-    locataire: state.char?.name,
-    country: state.country,
-    // Ajoute le 2026-08-16 : un batiment generique (ex. 'centre-affaires') est partage par
-    // plusieurs villes du meme pays. Sans cette dimension, une location a Montrouge occupait
-    // le meme local qu'a Luthecia/PSM. Les anciennes locations persistees (sans city) restent
-    // gerees par un repli de compatibilite dans getLocationPourRoom -- voir ce commentaire la.
-    city: state.currentCity,
-    // Modele de bail unifie (Lot 1.3) : identite canonique du local, destination du loyer et
-    // autorisation de domiciliation. Les 7 baux historiques ne les portent pas -- ils sont
-    // DERIVES a la lecture (localKeyDuBail / destinationLoyerDuBail / orgaAutoriseeDuBail,
-    // plateau-immobilier.js), donc aucune migration n'est necessaire.
-    localKey: typeof localKeyDe === 'function' ? localKeyDe(state.country, state.currentCity, buildingId, roomId) : null,
-    lotId: null,
-    destinationLoyer: typeof destinationLoyerPourLocal === 'function'
-      ? destinationLoyerPourLocal(buildingId, roomId, state.currentCity, state.country, {}) : null,
-    orgaAutorisee: typeof orgaAutoriseePourLocal === 'function' ? orgaAutoriseePourLocal(buildingId, roomId) : true,
-    depuis: state.day || 1,
-    visible: true
-  });
-  if (typeof sbSaveLocation === 'function') {
-    sbSaveLocation(state.locationsActives[state.locationsActives.length - 1]).catch(() => {});
-  }
+  if (v.bail && !state.locationsActives.some(l => l.buildingId === buildingId && l.roomId === roomId && l.city === v.bail.city)) state.locationsActives.push(v.bail);
 
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();

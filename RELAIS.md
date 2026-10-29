@@ -25,6 +25,14 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Centres des trois villes et location par le serveur — Claude 29/10 soir (branche `claude/centres-villes-20261029`)
+
+Mission de Fred : généraliser les raccordements métier à Montrouge et PSM, fermer les vestiges. **Constat** : les centres commercial, artisanal et d'affaires des trois villes utilisent UN gabarit (`BUILDINGS`) ; les villes ne surchargent que nom et images (banc). Les 11 fonctions serveur du commerce (fonds, références, production, vente, sur place, Premium, loyers) n'ont aucune ville en dur.
+
+**Défaut reproduit (toutes villes)** : le bail d'un local à loyer fixe (centres, suites de La Republica, coffre) était écrit par l'écran ; un joueur absent de Montrouge s'est inscrit locataire de la Vitrine Principale à 1 FR/jour, +99 POP/INF, sans premier loyer. **Correctif** (`20261029190000`, PRÊTE, NON APPLIQUÉE — application par ChatGPT, compatible avec l'écran en ligne) : référentiel `locaux_loyers_referentiel` (équivalence avec data.js prouvée par `banc-locaux-loyers.cjs`), porte `local_louer` (lieu réel, local libre, organisation dont on est membre, 1 PA, premier loyer par `prelever_loyer_bail`, reçu), garde immédiate imposant prix et bonus du référentiel aux baux écrits par l'écran (box portuaire compris, 15 FR). Écran : `confirmerLocation` appelle `local_louer` ; rafraîchissement des ordres Premium après chargement des baux généralisé (était réservé au centre commercial de PSM). **Après livraison** : `20261029190100` (l'écran ne crée plus ces baux ; box exclu).
+Répétition à blanc : hall refusé ; fonds insuffisants sans PA ni bail ; Montrouge vitrine 800 FR + organisation + reçu ; local occupé ; organisation d'autrui refusée ; PSM bureau prestige 1 000 FR ; open space de Luthécia refusé, poste B accepté ; bail forgé ramené au tarif ; box forgé ramené à 15 FR ; après fermeture, échoppe écrite par l'écran refusée.
+**À vérifier en jeu** : louer un local dans chaque centre de Montrouge et de PSM, installer un commerce dans un local commercial ou artisanal, ouvrir l'Option Commerce (décoration) en titulaire, vérifier qu'un autre joueur ne la voit pas.
+
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
 - **Connexion/création PJ (nouveau correctif) :** dans `sbCreerPersonnageUnique`, un rejet réseau de `fetch` pouvait remonter comme exception non gérée plutôt que réponse métier. Gestion explicite `creation_incertaine`, sans rejeu d'INSERT (il peut avoir été effectué). Quatre scénarios sur fonction réelle ajoutés dans `banc-creation-personnage-reseau-20261028.cjs`, raccordés au workflow client. Vérification CI en attente à ce stade ; aucun compte réel touché.
