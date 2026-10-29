@@ -7,7 +7,20 @@ mixtes dans leurs moteurs existants. Les blocages restants sont l'amorçage des
 combats de squatteurs, le contrôle policier ordinaire encore partiellement client,
 et les protections transversales/prévol de livraison. Aucune production ici.
 
-## Dernier état vérifié — reprise du 29 octobre après 4ee72dea
+## État final faisant foi — après main cbae23ff, 29 octobre
+
+**PR #219 NON PRÊTE.** Code testé : `2bae98028cd9637b0cd0ff8e8997a1d1fd5c9ae9`. Les comptes et références antérieurs ci-dessous sont historiques.
+
+- **273/273 scénarios PostgreSQL jetable, deux exécutions ; 124/124 bancs clients**, dont treize cas du client de bataille. Contre-épreuves : neuf échecs en retirant le recrutement mixte, deux en retirant le reçu, sur le même corpus de 273 cas. Aucun test désactivé. Sept cas squatteurs sont des contrats à états terminaux fictifs, pas des combats configurés.
+- **Globaux : 5/12 sur la branche et 5/12 sur main cbae23ff**, exécuté séparément. Classification : deux anomalies communes ; baseline : 21 communes ; Authority : une anomalie d'identité et quatre signatures inconnues communes. RPC absentes du baseline : **108 main / 119 branche** ; les onze supplémentaires sont préparées, pas prétendues déployées. Referential reste non validé (générateurs JSC et treize empreintes). Fonctions, Assemblage et Reconstruction restent rouges pour les causes détaillées plus bas. Aucun résultat ou baseline falsifié.
+- **Dix-sept migrations préparées, aucune appliquée en production** : treize précédentes puis `20261029210000`, `20261029210100`, `20261029211000`, `20261029212000`. Compléments sous 12 500 caractères ; collision évitée avec la migration locative `20261029190000`. Le nouveau test exige le refus pendant l'installation partielle, jusqu'au contrat à reçus ; rechargement PostgREST prévu.
+- Main contient désormais le contrat **textuel** de Claude #233 (`20261029181000`). L'adaptateur réutilise ce corps après vérification de l'issue réelle enregistrée, sans tirage supplémentaire. L'ancienne fixture à score reste historique.
+- **Restant à coder** : ouverture/persistance et profils des squatteurs, résistance différenciée sans nombres inventés, neutralisation civile non létale et cas corps + survivants ; contrôle policier ordinaire et anciennes conséquences de fuite/arrestation encore partiellement clientes. Le circuit judiciaire mixte testé ne ferme pas ces autres chemins. Le corps vivant de `crime_neutraliser` reste à examiner. Ce ne sont pas seulement des blocages d'accès.
+- Aucun compte réel connecté, aucune recette Supabase/Vercel, fusion ou migration de production. Les tests authenticated utilisent des claims fictifs ; la concurrence committe uniquement son décor jetable. Modifications de Claude préservées. CI distante non attestée.
+
+Preuves finales et empreintes : `preuves-groupes-219-main-cbae-20261029/`. Prévol préparé, non exécuté : `outils/bancs/PREFLIGHT-GROUPES-UNIVERSELS-20261028.sql`. Les anciens dossiers et sections ci-dessous restent historiques et sont remplacés par cet état final.
+
+## Historique — reprise du 29 octobre après 4ee72dea
 
 **PR #219 NON PRÊTE.** Recrutement militaire mixte et reprises réseau sont codés/testés. Les combats de squatteurs ne sont pas raccordés de bout en bout. Cette limite est fonctionnelle, elle ne se réduit pas à l'absence d'accès Supabase.
 

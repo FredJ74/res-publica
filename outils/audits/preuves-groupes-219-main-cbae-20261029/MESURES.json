@@ -1,0 +1,33 @@
+{
+  "code_commit_teste": "2bae98028cd9637b0cd0ff8e8997a1d1fd5c9ae9",
+  "main_compare": "cbae23ffbb9678757e82558d3b5f257723e4f90d",
+  "mesures": {
+    "postgres-273.json": {
+      "cas": 273,
+      "echecs": 0
+    },
+    "postgres-273-repetition.json": {
+      "cas": 273,
+      "echecs": 0
+    },
+    "contre-recrutement.json": {
+      "cas": 273,
+      "echecs": 9
+    },
+    "contre-recu.json": {
+      "cas": 273,
+      "echecs": 2
+    }
+  },
+  "bancs_clients": 124,
+  "controles_globaux_branche": {
+    "reussis": 5,
+    "total": 12
+  },
+  "controles_globaux_main": {
+    "reussis": 5,
+    "total": 12
+  },
+  "authentification": "claims fictifs PostgreSQL, aucune connexion Supabase",
+  "migration_production": false
+}

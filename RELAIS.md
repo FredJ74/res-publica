@@ -1,3 +1,9 @@
+## Référence finale #219 — 29 octobre, NON PRÊTE
+
+Branche `codex/groupes-universels-20261028`, main `cbae23ff` intégré, code testé `2bae9802`. **273/273 SQL répétés ; 124/124 bancs clients ; contres neuf et deux échecs attendus ; globaux 5/12 contre 5/12 sur main.** Dix-sept migrations préparées, aucune appliquée. Preuves : `outils/audits/preuves-groupes-219-main-cbae-20261029/`. Rapport faisant foi : `outils/audits/FINALISATION-GROUPES-UNIVERSELS-20261028.md`.
+
+Batailles mixtes/reçus/verrous testés localement ; contrat textuel squatteurs de Claude repris depuis main. Ouverture/profils persistants, différenciation de résistance, neutralisation civile et anciens contrôles policiers ordinaires restent incomplets. Ne pas promouvoir #219. Aucun joueur réel, fusion, déploiement ou migration de production ; CI distante non attestée. ChatGPT conserve prévol/intégration #230, immobilier à Claude. **Les états précédents ci-dessous sont historiques.**
+
 
 ### Priorité P0 explicite — affichage navigateur / vérité serveur (29/10)
 
