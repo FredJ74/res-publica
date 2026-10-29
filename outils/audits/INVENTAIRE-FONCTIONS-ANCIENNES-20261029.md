@@ -132,3 +132,16 @@ La fonction `groupe_pj_lire` ne figurait pas parmi les fonctions vivantes retrou
 - `pret_versionne_ecriture_proteger()` : ne refuse l'écriture directe sans entrée dans `prets_ecritures_internes` **que lorsque `contrat_version = 2`**. Les contrats de version différente (notamment hérités) ne sont pas couverts par ce contrôle ; les possibilités exactes restent soumises aux autres contraintes. **P0** : préserver lecture/remboursement des prêts historiques et déplacer toutes leurs mutations vers une RPC canonique avant retrait des privilèges directs.
 - `assemblee_fret_vente_legale()` : déclenché seulement pour `UPDATE OF statut`, examine le passage `a_vendre` vers `vendue` et la présence d'une interdiction légale. **Il ne prouve ni le débit du prix, ni la livraison des objets, ni une transaction d'achat complète.** Couplé aux droits INSERT/UPDATE très ouverts sur les deux tables de fret, c'est un P0 à auditer.
 - `pnj_miroir_police()` : définition intégrale relue : son `ON CONFLICT (id) DO UPDATE` réécrit explicitement `ville`, `building_id`, `room_id`, `rue_noeud_id` depuis l'ancien JSON. Il remet également `statut='actif'` et met certains policiers `disparu` hors miroir. **Conflit d'autorité confirmé au niveau du code SQL vivant**, sous réserve des situations d'appel. Fixer une source unique de position et rendre le miroir non destructif avant toute installation groupes.
+
+## H. Extension du sondage des permissions — 29/10
+
+Une seconde interrogation `pg_class` / `pg_policies` sur vingt tables historiquement à risque confirme les **privilèges SQL d'écriture** du rôle `authenticated` :
+
+- **INSERT + UPDATE** : `budgets_nationaux`, `budgets_municipaux`, `budgets_clubs`, `prets`, `mariages`, `demandes_mariage`, `successions`, `logements_demandes`, `petites_annonces`, `championnat`, `quetes_actives`, `rapports_renseignement`, `caisses_fret`.
+- **INSERT + UPDATE + DELETE** : `organisations`.
+- **INSERT** : `dossiers_urbanisme`, `evenements_globaux`.
+- **Aucun privilège direct INSERT/UPDATE/DELETE** : `cycles_electoraux`, `fraudes_electorales`, `votes_confiance`. **Ne pas réouvrir artificiellement ces anomalies historiques : fermeture effective côté ACL confirmée.**
+
+Toutes les tables trouvées ont `relrowsecurity=true`. Les tables dotées de privilèges directs disposent aussi de politiques d'écriture dédiées à `authenticated`. Cela indique une **surface à qualifier avant verrouillage**, pas une preuve de réussite d'une falsification (triggers, contraintes et vérifications supplémentaires non exhaustivement testés).
+
+**Conséquence pour la livraison :** les lots PNJ #227/#231 sont indépendants de ces migrations mais #231 exige explicitement validation du game designer ; les PR #213/#219/#230 ne doivent pas être livrées sur la seule foi de CI verte. Inspecter les appels légitimes avant de fermer les tables ; conserver la marche existante pour l'immobilier, les crédits, et les événements serveur.
