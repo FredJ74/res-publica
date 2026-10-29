@@ -2204,8 +2204,17 @@ async function chargerPjPourRumeur() {
 }
 
 async function chargerOrganisationsPourRumeur() {
-  const toutes = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
-  return (toutes || []).filter(o => o.visible).sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr'));
+  // La projection est construite PAR LE SERVEUR ; ne jamais faire select=*
+  // sur organisations pour alimenter un select visible par tous.
+  // Si la migration n'est pas encore appliquée, refuser l'affichage plutôt
+  // que de retomber sur une lecture indiscrète du JSON des groupes secrets.
+  if (typeof sbRpc !== 'function') return [];
+  const cibles = await sbRpc('rumeurs_organisations_cibles', {}).catch(() => null);
+  if (!Array.isArray(cibles)) return [];
+  return cibles
+    .filter(o => o && o.id && o.nom && typeof o.id === 'string' && typeof o.nom === 'string')
+    .map(o => ({ id: o.id, nom: o.nom, country: o.country }))
+    .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
 }
 
 // Balaye les 4 empires x 5 zones a batiments (capitale/ville_a/ville_b/caserne/qhs, structure
