@@ -1174,9 +1174,8 @@ const WORLD = {
         'hotel-mineur':                 { name: "Hôtel de la Victoire" },
         'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge", roomOverrides: { magasin: { imageUrl: "images/montrouge/montrouge-armurerie-interieur.jpg" } } },
         'commissariat-local':           { name: "Commissariat de Montrouge",
-          // Bureau du commissaire (29/10/2026) : ordres du gabarit commun, PNJ propre à Montrouge.
-          roomOverrides: { bureau_commissaire: { desc: "Le bureau du commissaire de Montrouge, en tension permanente avec le syndicat local.",
-            persons: [{name: "Commissaire Charbon (PNJ)", role: "Commissaire local", rel: "neutral", job: "commissaire"}] } } },
+          // Bureau du commissaire (29/10/2026) : ordres du gabarit commun ; aucun PNJ tant qu'il n'a pas de profil de dialogue.
+          roomOverrides: { bureau_commissaire: { desc: "Le bureau du commissaire de Montrouge, en tension permanente avec le syndicat local." } } },
         'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
@@ -1275,10 +1274,8 @@ const WORLD = {
             // ajoute au tableau orders de BUILDINGS['mairie'] lui-meme (base partagee par
             // plusieurs villes, ex. PSM/ville_a), pour ne jamais apparaitre ailleurs qu'a Montrouge.
             bureau_maire_adjoint:{
-              imageUrl: "images/montrouge/montrouge-mairie-bureau-maire-adjoint.jpg",
-              orders: [
-                {fn:'traiter_demandes_logement_social', label:'Examiner les demandes de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'}
-              ]
+              // 29/10/2026 : demande et tableau de bord des logements sociaux sont dans le gabarit commun.
+              imageUrl: "images/montrouge/montrouge-mairie-bureau-maire-adjoint.jpg"
             }
           },
           roomsExtra: {
@@ -3885,6 +3882,7 @@ const BUILDINGS = {
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
           // Trois villes (29/10/2026) ; hors Montrouge : « Il n'y a pas de logements sociaux dans la ville. »
           {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
+          {fn:'traiter_demandes_logement_social', label:'Tableau de bord des logements sociaux', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
         ]
@@ -4448,6 +4446,7 @@ const BUILDINGS = {
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
           // Trois villes (29/10/2026) ; hors Montrouge : « Il n'y a pas de logements sociaux dans la ville. »
           {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
+          {fn:'traiter_demandes_logement_social', label:'Tableau de bord des logements sociaux', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
         ]

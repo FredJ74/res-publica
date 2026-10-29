@@ -4167,6 +4167,9 @@ async function doSignerCompromis(pa, cost) {
     html += '<div id="compromis-permis-champs" style="display:none;margin-top:.5rem">';
     html += '<select id="compromis-permis-type" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.4rem .6rem;font-size:.78rem;outline:none">';
     Object.entries(NIVEAUX_CONSTRUCTION || {}).forEach(function([key, niv]) {
+      // Logements sociaux : seulement pour le maire de la ville (achat pour la commune), dans la
+      // limite de la surface du terrain. Le serveur revérifie à la signature.
+      if (niv.logementSocial && !((typeof terrainEstMaireIci === 'function' && terrainEstMaireIci()) && Number(ts?.surface || 0) >= niv.surfaceMin)) return;
       html += '<option value="' + key + '">' + niv.label + ' (' + niv.cout.toLocaleString('fr-FR') + ' ' + cur + ')</option>';
     });
     html += '</select>';

@@ -22,9 +22,13 @@ for (const [v, g] of Object.entries(villes)) {
   const f = ordresVille(v, g), nom = W.republic[v].name;
   t(nom + ' : services communs presents une seule fois', communs.every(c => f.filter(x => x === c).length === 1));
   t(nom + ' : ni postuler, ni gerer_finances, ni corrompre_fonct', !['postuler', 'gerer_finances', 'corrompre_fonct'].some(x => f.includes(x)));
-  t(nom + ' : examen des logements sociaux seulement a Montrouge', f.includes('traiter_demandes_logement_social') === (v === 'ville_b'));
+  // 29/10/2026 : tableau de bord des logements sociaux de l'adjoint dans les trois mairies.
+  t(nom + ' : tableau de bord des logements sociaux present une seule fois', f.filter(x => x === 'traiter_demandes_logement_social').length === 1);
 }
-t('hors Montrouge, la demande affiche « Il n y a pas de logements sociaux dans la ville. » avant tout cout',
-  /fn === 'demander_logement_social'\) \{\s*if \([^)]*state\.currentCity !== LOGEMENTS_SOCIAUX_MONTROUGE_VILLE\) \{\s*showToast\('Logements sociaux', "Il n'y a pas de logements sociaux dans la ville\.", false\); return;/.test(routeur));
+const ls = lire('plateau-logements-sociaux.js');
+t('sans logements sociaux, la demande affiche « Il n y a pas de logements sociaux dans la ville. » avant tout cout',
+  /fn === 'demander_logement_social'\) \{ demanderLogementSocialCommun\(pa, cost\)/.test(routeur)
+  && /aucun_logement_social: "Il n'y a pas de logements sociaux dans la ville\."/.test(ls)
+  && /sbRpcVerdict\('logements_sociaux_offre'[\s\S]{0,160}offre\.offre === false\) \{\s*showToast\('Logements sociaux', LOGEMENTS_SOCIAUX_MOTIFS\.aucun_logement_social/.test(ls));
 t('archives des maires lues pour la ville courante', /sbGetArchivesMandatsMaires\(paysArchives, villeArchives\)/.test(enigme) && !/sbGetArchivesMandatsMaires\('republic', 'capitale'\)/.test(enigme));
 console.log(`\n${n - ko}/${n} tests passes`); process.exit(ko ? 1 : 0);

@@ -36,7 +36,16 @@ Règles : voir `AGENTS.md`.
   - **Migration `20261029210000` (non appliquée, compatible) :** elle corrige au passage la caisse de Luthécia dans le moteur de chantier (`republic_mairie-capitale`).
   - **Répétition annulée sur le terrain 4 de Luthécia :** caisse 115 508 → 114 508 au dépôt, puis → 93 308 à l'acte ; francs du maire inchangés.
   - **Banc :** `banc-mairie-acquereur.cjs` (9 tests).
-  - **Reste ouvert :** le type de bâtiment « logements », pour que le maire y lance un chantier de logements sociaux.
+- **Logements sociaux communaux, socle (Claude, 29/10, branche `claude/logements-sociaux-20261029`, contient #246, #244 et #243)** : décisions de Fred.
+  - **Trois bâtiments, réservés aux terrains de la commune :** petit (4 appartements, 12 j, 60 000 FR), moyen (6, 18 j, 90 000 FR, 2 000 m² et plus), barre (10, 24 j, 120 000 FR, plus de 2 200 m²). On peut toujours construire plus petit.
+  - **Appartements :** générés à la réception, comme à Montrouge : moitié petits (30 FR, +3 moral / +4 santé), moitié grands (60 FR, +5 / +7). Les loyers vont à la caisse de la mairie (`recette_municipale`).
+  - **Demande :** dans les trois mairies (résident, 1 PA, une seule en attente). Sans logements dans la ville : « Il n'y a pas de logements sociaux dans la ville. »
+  - **Adjoint au maire :** son tableau de bord sert à attribuer un appartement (premier loyer payé par le bénéficiaire, courrier) et à fixer le loyer de chaque appartement. Un bail en cours est mis à jour, et chaque changement est inscrit dans l'historique du bâtiment. Le joueur ne loue jamais lui-même un logement social, et le titulaire des murs n'en fixe pas le loyer.
+  - **Le maire élu** dépose le permis d'un terrain de la commune (titulaire_est_moi ne reconnaît jamais une commune).
+  - **Migration `20261029220000`** (non appliquée, compatible, **après 210000**). Répétée à blanc sur le terrain 4 : 14 cas plus l'offre dans les trois villes.
+  - **Banc :** `banc-logements-sociaux.cjs` (17 tests).
+  - **Au passage :** le PNJ Commissaire Charbon est retiré du bureau de Montrouge, faute de profil de dialogue.
+  - **Restent à décider ou à faire :** le permis de la commune est payé par le maire (100 FR) ; la résiliation automatique au départ de la ville n'existe qu'à Montrouge ; les quatre appartements historiques de Montrouge gardent leur loyer fixe.
 
 - **Commissariats de Montrouge et PSM (Claude, 29/10, branche `claude/commissariats-pouvoirs-20261029`)** : décision de Fred, « chaque commissaire dispose des mêmes pouvoirs ». Le gabarit `commissariat-local` reçoit les ordres de Luthécia : archives et arrestation d'urgence à l'accueil ; bureau du commissaire avec dossiers de plainte, enquête, filature, chasse à l'homme et commandement des effectifs. Les écrans et les portes serveur étaient déjà bornés à la ville du commissaire. Plainte rejouée dans les trois villes. PSM et Montrouge ne gardent que leur habillage. Banc : `banc-commissariats-pouvoirs.cjs`. Migration `20261029203000` (non appliquée, compatible) : le commissariat, le tribunal et la banque des villes deviennent des bâtiments sensibles pour l'incendie et les explosifs, comme à Luthécia.
 

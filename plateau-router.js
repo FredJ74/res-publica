@@ -168,14 +168,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_dossiers_urbanisme') { doConsulterDossiersUrbanisme(); return; }
   // Ordre présent dans les trois mairies (décision de Fred, 29/10/2026) ; seule Montrouge a des
   // logements sociaux aujourd'hui. Aucun coût n'est prélevé avant ce message.
-  if (fn === 'demander_logement_social') {
-    if (typeof LOGEMENTS_SOCIAUX_MONTROUGE_VILLE === 'undefined' || state.currentCity !== LOGEMENTS_SOCIAUX_MONTROUGE_VILLE) {
-      showToast('Logements sociaux', "Il n'y a pas de logements sociaux dans la ville.", false); return;
-    }
-    demanderLogementSocial(pa, cost); return;
-  }
+  // Socle (29/10/2026) : le serveur dit s'il existe des logements sociaux dans la ville, avant tout coût.
+  if (fn === 'demander_logement_social') { demanderLogementSocialCommun(pa, cost); return; }
   if (fn === 'gerer_logement_social') { gererLogementSocial(); return; }
-  if (fn === 'traiter_demandes_logement_social') { traiterDemandesLogementSocial(pa, cost); return; }
+  if (fn === 'traiter_demandes_logement_social') { ouvrirTableauLogementsSociaux(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   // « Subtiliser des explosifs » (refonte du 13 septembre 2026). Ce n'etait PAS un vol : l'ordre

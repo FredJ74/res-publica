@@ -83,14 +83,14 @@ function terrainChoisirAcquereur(){
  });
 }
 function terrainAcquereurRepondre(choix){const r=terrainAcquereurAttente;terrainAcquereurAttente=null;if(r)r(choix);}
-const TERRAIN_RAISONS_COMMUNE={pas_maire_de_la_commune:'Vous n’êtes plus le maire de cette ville.',commune_sans_pret:'Une commune n’emprunte pas : retirez la demande de prêt.',caisse_communale_insuffisante:'La caisse de la mairie ne couvre pas ce paiement.',caisse_mairie_introuvable:'La caisse de la mairie est introuvable.'};
+const TERRAIN_RAISONS_COMMUNE={pas_maire_de_la_commune:'Vous n’êtes plus le maire de cette ville.',commune_sans_pret:'Une commune n’emprunte pas : retirez la demande de prêt.',caisse_communale_insuffisante:'La caisse de la mairie ne couvre pas ce paiement.',caisse_mairie_introuvable:'La caisse de la mairie est introuvable.',logements_reserves_commune:'Les logements sociaux sont réservés aux terrains de la commune.',terrain_trop_petit:'Ce terrain est trop petit pour ce type de logements.'};
 async function finance135Acquerir(id,action,params={}){
  if(action==='depot'||action==='compromis'){
   const qui=await terrainChoisirAcquereur();
   if(qui==='commune'){
    if(params.pret){showToast('Prêt impossible',TERRAIN_RAISONS_COMMUNE.commune_sans_pret,false);return null;}
    params={...params,acquereur:'commune'};
-  }
+  }else if(String(params.permis||'').startsWith('logements_')){showToast('Logements sociaux',TERRAIN_RAISONS_COMMUNE.logements_reserves_commune,false);return null;}
  }
  const r=await finance135Executer('acquisition',id,{p_terrain:id,p_action:action,p_parametres:params});
  if(!r)return null;
