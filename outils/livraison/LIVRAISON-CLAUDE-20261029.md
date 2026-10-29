@@ -46,8 +46,8 @@ Méthode : `apply_migration` avec le corps du fichier, puis renommer le fichier 
 5. Après réception d'un commerce premium : fixer le loyer d'un lot dans « Information sur les locaux », le faire louer par un autre joueur, vérifier le crédit du loyer ; réorganiser un lot libre.
 6. Banque nationale : deux placements ; prêt immobilier sous compromis versé seulement à la signature.
 7. Chez SLAVA (Angie) : fontaine de chocolat et chocolat chaud sur place ; ballotin à emporter ; journal des ventes.
-9. Mariage entre deux joueurs : demande, acceptation par l'autre, célébration à la mairie à deux ; célébration refusée sans acceptation ; divorce.
 8. Louer un local dans chaque centre de Montrouge et de PSM ; y installer un commerce ; Option Commerce visible pour le titulaire seulement.
+9. Mariage entre deux joueurs : demande, acceptation par l'autre, célébration à la mairie à deux ; célébration refusée sans acceptation ; divorce.
 
 ## 5. Ce qui reste hors de ce lot
 
