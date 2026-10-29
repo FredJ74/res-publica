@@ -1,3 +1,108 @@
+# Reprise du 29/10 — cinq rounds et fuites policières, PR #219 NON PRÊTE
+
+Code testé : `e52f4adef8c5d016d7d77a17017aab5fe4b1d029`, après intégration de main
+`85999f29` par `4d25ea16`. Implémentations : `871926d2`, `eb02c821` ; test concurrent
+supplémentaire : `e52f4ade`. Les états ci-dessous cette entrée sont historiques.
+
+## Modifications effectivement codées
+
+- Même moteur militaire : cinq rounds avant désengagement volontaire ; vrai chef
+  seul ; chef à zéro PA maintenu avec son groupe, suites terminales communes
+  différées jusqu’à sa sortie. Fenêtre existante de 90 secondes réutilisée.
+- Reddition collective : neutralisation sans nouveaux morts ni remise à zéro des
+  blessures/inventaires ; en police, seule la personne condamnée est écrouée.
+- Même fuite judiciaire et même navigation : sortie déclarée du bâtiment ou
+  direction gauche dérivée du catalogue. Les quatre vues PSM restent distinctes.
+  La provenance est établie par le serveur ; aucune orientation inventée lorsque
+  l’historique manque. Refus sans consommation du jet si la destination manque.
+- Contrôles ordinaires : commandement du chef y compris lorsque le porteur est
+  un compagnon ; saisie/convocation/écrou du porteur uniquement ; fuite réussie
+  réellement déplacée par le moteur commun. Annulation du jet et du déplacement
+  si une garde d’un participant refuse. Reprise et interface raccordées.
+- Main inventaire #249 conservé. Aucune activation de son verrou final ; aucune
+  intervention sur #246. Le nouveau test complet est ajouté à la CI sans retirer
+  les entrées historiques.
+
+## Vérifications et portée exacte
+
+Preuves brutes : `preuves-groupes-219-cinq-rounds-20261029/`.
+
+- **317/317 cas SQL**, PostgreSQL jetable, dont deux vraies connexions concurrentes
+  du chef : un seul acte et même reçu. Deux passages précédents : 316/316.
+- Parmi eux : **291 scénarios historiques exécutés avant** les nouveaux compléments,
+  puis 26 cas après installations successives. Ce n’est pas une déclaration que
+  les anciennes attentes contradictoires avec les nouveaux arbitrages passent
+  toutes après activation. Les cinq vrais rounds sont exercés, sans réponse du
+  défenseur ; les bornes 1–4 et 5 de police sont aussi vérifiées par décors de reçus.
+- Les RPC sont exécutées avec rôle `authenticated` et chemin `/rpc/...` sur comptes
+  fictifs. Les helpers privés de géographie sont vérifiés par le propriétaire de
+  la base jetable, puis les parcours publics par `authenticated` ; leurs ACL réseau
+  sont refusées. Certains décors/résultats fictifs sont committés uniquement pour
+  la concurrence ; les autres cas sont annulés. Aucun compte Supabase réel.
+- Contre-épreuves sur les mêmes 317 cas : une gauche fixe échoue sur les quatre
+  vues PSM ; une fausse fuite immobile échoue sur deux cas (mouvement et rollback).
+- **130/130 bancs clients** sur le passage final, dont Chromium local ; 9 tests
+  ciblés de décisions et 10 de contrôle. Aucune visite authentifiée de production.
+- Douze nouveaux fichiers SQL : grammaire PostgreSQL analysée, chacun inférieur
+  à 12 500 caractères, installations répétées en base jetable. Générateur des
+  64 nœuds vérifié contre `plateau-rue-centrale.js`.
+- Globaux : **5/12**, comme main 85999f29 contrôlé séparément. Workflow est vert.
+  Classification, fidélité du baseline, Authority, Referential, fonctions,
+  assemblage et reconstruction restent rouges. Authority : 123 RPC absentes du
+  baseline contre 112 sur main, onze préparations de #219 supplémentaires, non
+  dissimulées. Le baseline n’a pas été édité.
+
+## Ordre du complément préparé — aucune application Supabase
+
+Après les dépendances historiques de #219 et `20261029220100` :
+
+1. `20261029223000_combats_cinq_rounds_et_commandement.sql`
+2. `20261029223100_combats_chef_neutralise_effets_differes.sql`
+3. `20261029223200_police_commandement_et_cinq_rounds.sql`
+4. `20261029223300_navigation_provenance_et_destination_fuite.sql`
+5. Les six références générées `20261029223400` à `20261029223405`.
+6. `20261029223500_police_fuite_direction_commune.sql`
+7. `20261029223600_police_controles_chef_et_fuite_reelle.sql`
+
+Ne pas appliquer les compléments séparément sans le prévol, les dépendances et
+le client correspondant. Les nouveaux helpers restent privés ; aucun droit de
+table retiré. Les scripts ne prétendent pas être des migrations déjà enregistrées.
+Le prévol en lecture seule inspecte aussi structures de provenance, sorties
+ambiguës, directions absentes et extensions d’ordonnancement déjà disponibles.
+
+## Obstacles et travail restant — interdiction de promotion
+
+1. **PNJ unique « squatteurs »** : règle consignée, ancien modèle multi-PNJ rejeté.
+   Profil citoyen sans VOL/PER et sans statistiques distinctes. Pas de valeurs
+   inventées ; question précise de profils posée à Fred. L’entité persistante,
+   l’ouverture et le combat complet de squatteurs ne sont pas raccordés. Le test
+   historique d’issue immobilière reste un test de contrat, pas ce combat réel.
+2. **Fuite militaire** : conserve encore son ancien repli ; elle ne satisfait pas
+   la nouvelle destination géographique. Le bouton préparé ne prouve donc pas
+   un parcours conforme en production. L’ouverture universelle flee/surrender/fight
+   n’est pas terminée non plus. Ne pas activer ce lot comme combat universel fini.
+3. **Progression sans navigateur** : fenêtres de 90 s résolues à l’appel serveur,
+   mais aucune tâche existante de combat retrouvée dans les crons du dépôt.
+   Vercel est quotidien ; l’utiliser ne démontrerait pas une résolution à 90 s.
+   Les extensions/tâches Supabase vivantes restent à inspecter. Aucune nouvelle
+   horloge ou service inventé, aucun navigateur inactif mis en polling.
+4. **Suites judiciaires** : #235 récupérée en lecture seule à `d410fb93` : son diff
+   porte sur l’hydratation, pas le prélèvement d’amendes. Le baseline judiciaire
+   mentionne explicitement la dette de prélèvement (`justice_peine_calcul`) ;
+   `detention_ouvrir_interne` ne suffit pas à prouver amendes ou perte de mandat.
+   Aucun débit/retrait de poste simulé côté écran rétabli. Contrats vivants et
+   barèmes de recouvrement à rapprocher avant toute extension.
+5. **Production** : aucun outil Supabase callable dans cette session ; Git fetch
+   et push fonctionnent, API GitHub de PR précédemment refusée. Prévol réel,
+   comparaison des corps et déclencheurs, test authentifié et revue d’intégration
+   restent nécessaires. La PR #219 reste non fusionnée, aucun déploiement.
+
+**Verdict : CHANTIER NON TERMINÉ.** Les deux lots sont codés/testés/sauvegardés ;
+ils ne suffisent pas à la clôture du combat universel. Ne pas faire passer les
+blocages fonctionnels restants pour de simples contrôles de production manquants.
+
+---
+
 # Groupes universels — reprise de #216 et #217, 28 octobre 2026
 
 **CHANTIER NON TERMINÉ.** Préparation sauvegardée sur la branche #219 pour
