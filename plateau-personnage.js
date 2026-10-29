@@ -1987,12 +1987,16 @@ async function confirmerDivorce(pa, cost) {
   }
   const conjoint = mariage.conjoint1 === nom ? mariage.conjoint2 : mariage.conjoint1;
 
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
-
-  if (typeof sbDissoudreMariage === 'function') {
-    await sbDissoudreMariage(mariage.id, 'divorce').catch(() => {});
+  // DIVORCE PAR LE SERVEUR (29/10/2026) : 1 PA + 200 FR et dissolution dans la même transaction.
+  // L'ancienne écriture visait une colonne absente et échouait en silence après paiement.
+  const r = await sbRpcVerdict('mariage_dissoudre', { p_raison: 'divorce' }).catch(() => null);
+  if (!r || r.ok !== true) {
+    showToast('Divorce non prononcé', r?.raison === 'fonds_insuffisants' ? '200 FR requis.'
+      : r?.raison === 'pa_insuffisants' ? 'Points d\u2019action insuffisants.'
+      : r?.raison === 'non_marie' ? "Vous n'êtes plus marié(e)." : 'Réponse incertaine. Réessayez.', false);
+    return;
   }
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r);
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -2039,8 +2043,8 @@ async function confirmerDestructionPersonnage() {
   // engagements nettoyes) -- la destruction du personnage peut se poursuivre. Dissolution du
   // mariage : best-effort (bookkeeping, pas un actif transmissible), n'entre pas dans la chaine
   // stricte d'ouverture.
-  if (ouvertureResult.mariageId && typeof sbDissoudreMariage === 'function') {
-    await sbDissoudreMariage(ouvertureResult.mariageId, 'veuvage').catch(() => {});
+  if (ouvertureResult.mariageId) {
+    await sbRpcVerdict('mariage_dissoudre', { p_raison: 'veuvage' }).catch(() => {});
   }
 
   // Archive permanente du deces, pour l'etat-civil (le personnage lui-meme va etre supprime

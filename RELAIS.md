@@ -25,6 +25,8 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+- **Écritures de l'écran (Claude, 29/10, branche `claude/ecritures-ecran-20261029`)** : migration `20261029200000` préparée, non appliquée et compatible avec l'écran en ligne. Elle garde `prets` et `budgets_municipaux`. Mariage par le serveur (Fred : pas de mariage contre son gré) : `201000` tout de suite, `201100` après déploiement de l'écran. Restent ouverts et signalés : `budgets_clubs` et `organisations.caisse` (Codex), `budgets_nationaux`, `quetes_actives`. Bilan : `outils/bancs/ECRITURES-ECRAN-20261029.md`.
+
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
 - **Connexion/création PJ (nouveau correctif) :** dans `sbCreerPersonnageUnique`, un rejet réseau de `fetch` pouvait remonter comme exception non gérée plutôt que réponse métier. Gestion explicite `creation_incertaine`, sans rejeu d'INSERT (il peut avoir été effectué). Quatre scénarios sur fonction réelle ajoutés dans `banc-creation-personnage-reseau-20261028.cjs`, raccordés au workflow client. Vérification CI en attente à ce stade ; aucun compte réel touché.
