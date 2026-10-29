@@ -27,6 +27,23 @@ Règles : voir `AGENTS.md`.
 
 - **Écritures de l'écran (Claude, 29/10, branche `claude/ecritures-ecran-20261029`)** : migration `20261029200000` préparée, non appliquée et compatible avec l'écran en ligne. Elle garde `prets` et `budgets_municipaux`. Mariage par le serveur (Fred : pas de mariage contre son gré) : `201000` tout de suite, `201100` après déploiement de l'écran. Restent ouverts et signalés : `budgets_clubs` et `organisations.caisse` (Codex), `budgets_nationaux`, `quetes_actives`. Bilan : `outils/bancs/ECRITURES-ECRAN-20261029.md`.
 
+### Vérification commerces, électronique, premium, ventes, presse, PNJ, douanes — Claude 29/10 (branche `claude/verif-luthecia-20261029`)
+
+Suite de la mission du 29/10 (le premier bloc, terrains/immobilier/prêts/placements, est sur `claude/terrains-immobilier-20261029`, PR #233). Même méthode : parcours rejoués sur la vraie base au rôle authenticated, en transactions annulées (Angie, Arnie, Jean Jaaj ; rien de conservé). **Piège de test** : sans `request.path` = `/rpc/...`, le garde `inventaire_revision_garder` annule toute écriture d'inventaire faite au rôle authenticated ; ce n'est pas un défaut du jeu.
+
+**Défaut reproduit et corrigé (migration APPLIQUÉE, compatible avec l'écran en ligne)** : `20261029095808` — dans un commerce de joueur, **« Consommer sur place » refusait toute boisson, tout encas servi, tout plat et tout menu** (`generique_regime_indetermine` : le moteur d'achat commun refuse les génériques ni individualisés ni empilables, c'est-à-dire toute la restauration servie). La « Dégustation à notre fontaine de chocolat » d'Angie (sur place uniquement) ne se vendait donc pas du tout. Corrigé par un drapeau de transaction posé par la consommation sur place ; l'achat à emporter de ces génériques reste refusé.
+
+**Vérifié, fonctionne** : achat à emporter (prix, taxes locale et nationale, caisse du commerce au net, livraison en « objets à recevoir », stock), consommation sur place des produits à emporter (effets PV/moral), refus de l'achat à emporter d'un produit « sur place uniquement », journal des ventes (bonne identité acheteur/enseigne/article/prix, réservé au propriétaire), production des références (refus de dépassement du stock maximum), chaîne électronique complète (composants → ordinateur et téléphone, prix plafonné au coût de revient, vente), plafonds premium de la bêta (3 types / 10 références pour tous), achat à l'entrepôt et vente directe d'usine.
+
+**Presse (#221)** : même cause que les loyers (#224) — au passage à l'heure d'hiver la passe de minuit tournait à 23 h ; aucune passe, donc aucune édition, pour la journée du 28. Éditions du 29 présentes. Réglage déjà rattrapé.
+
+**PNJ** : Marcel Silo, Bernard Piluler et Jean Bonde ont leur fiche (PR #231, empilée sur #227). Restent muets hors Luthécia : Yvon Paletier, Norbert Charton, deux avocats commis d'office.
+
+**Douanes** : portes vérifiées gardées (paie des douaniers et convocations réservées au Chef des Douanes en exercice, ou au serveur). Le voyage entre empires n'existe pas encore (décision : raccordé avec les autres empires).
+
+**Parcours à vérifier en jeu** : chez SLAVA (Angie), consommer la fontaine de chocolat et un chocolat chaud sur place, acheter un ballotin à emporter et le retrouver dans les objets à recevoir ; Angie consulte son journal des ventes.
+
+
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
 - **Connexion/création PJ (nouveau correctif) :** dans `sbCreerPersonnageUnique`, un rejet réseau de `fetch` pouvait remonter comme exception non gérée plutôt que réponse métier. Gestion explicite `creation_incertaine`, sans rejeu d'INSERT (il peut avoir été effectué). Quatre scénarios sur fonction réelle ajoutés dans `banc-creation-personnage-reseau-20261028.cjs`, raccordés au workflow client. Vérification CI en attente à ce stade ; aucun compte réel touché.
