@@ -25,6 +25,8 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+- **Commissariats de Montrouge et PSM (Claude, 29/10, branche `claude/commissariats-pouvoirs-20261029`)** : décision de Fred, « chaque commissaire dispose des mêmes pouvoirs ». Le gabarit `commissariat-local` reçoit les ordres de Luthécia : archives et arrestation d'urgence à l'accueil ; bureau du commissaire avec dossiers de plainte, enquête, filature, chasse à l'homme et commandement des effectifs. Les écrans et les portes serveur étaient déjà bornés à la ville du commissaire. Plainte rejouée dans les trois villes. PSM et Montrouge ne gardent que leur habillage. Banc : `banc-commissariats-pouvoirs.cjs`. Migration `20261029203000` (non appliquée, compatible) : le commissariat, le tribunal et la banque des villes deviennent des bâtiments sensibles pour l'incendie et les explosifs, comme à Luthécia.
+
 - **Écritures de l'écran (Claude, 29/10, branche `claude/ecritures-ecran-20261029`)** : migration `20261029200000` préparée, non appliquée et compatible avec l'écran en ligne. Elle garde `prets` et `budgets_municipaux`. Mariage par le serveur (Fred : pas de mariage contre son gré) : `201000` tout de suite, `201100` après déploiement de l'écran. Restent ouverts et signalés : `budgets_clubs` et `organisations.caisse` (Codex), `budgets_nationaux`, `quetes_actives`. Bilan : `outils/bancs/ECRITURES-ECRAN-20261029.md`.
 
 ### Centres des trois villes et location par le serveur — Claude 29/10 soir (branche `claude/centres-villes-20261029`)

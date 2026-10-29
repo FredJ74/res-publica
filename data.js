@@ -975,17 +975,9 @@ const WORLD = {
               persons: [
                 {name:'Loïc Karamel (PNJ)', role:'Prisonnier — Contrebandier', rel:'neutral', job:'detenu', photoUrl:'images/port-sainte-marie-commissariat-loic-karamel.webp', photoPos:'50% 15%'}
               ]
-            }
-          },
-          // Bureau du commissaire PROPRE A PSM (lot du 24 aout 2026), memes pattern/precedent que
-          // salle_elections/salle_archives (mairie ci-dessus) ou bureau_emploi_annexe
-          // (centre-affaires ci-dessus) : roomsExtra isole cette piece a PSM sans jamais toucher
-          // BUILDINGS['commissariat-local'] (template partage avec Montrouge, inchange). orders
-          // volontairement vide : mener_enquete/organiser_filature/organiser_chasse_homme sont
-          // des mecaniques propres a Luthecia (bureau_commissaire de BUILDINGS['commissariat']),
-          // recruter_policier/gerer_effectifs_police existent deja sur accueil_loc -- aucune
-          // decision de game design prise ici sur d'eventuels ordres futurs pour ce bureau.
-          roomsExtra: {
+            },
+            // Bureau du commissaire : piece et ordres viennent du gabarit commun (29/10/2026, décision de
+            // Fred : mêmes pouvoirs pour chaque commissaire). PSM n'en garde que l'habillage.
             bureau_commissaire: {
               name: "Bureau du Commissaire",
               imageBg: "linear-gradient(135deg,#0f1018,#151822)",
@@ -993,8 +985,7 @@ const WORLD = {
               desc: "Le bureau du commissaire de Port-Sainte-Marie. Vue sur le port.",
               persons: [
                 {name:'Martial Morvan (PNJ)', role:'Commissaire de Port-Sainte-Marie', rel:'neutral', job:'commissaire', photoUrl:'images/port-sainte-marie-commissariat-martial-morvan.webp', photoPos:'50% 20%'}
-              ],
-              orders: []
+              ]
             }
           }
         },
@@ -1187,7 +1178,10 @@ const WORLD = {
         // techniques ne sont pas touches.
         'hotel-mineur':                 { name: "Hôtel de la Victoire" },
         'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge", roomOverrides: { magasin: { imageUrl: "images/montrouge/montrouge-armurerie-interieur.jpg" } } },
-        'commissariat-local':           { name: "Commissariat de Montrouge" },
+        'commissariat-local':           { name: "Commissariat de Montrouge",
+          // Bureau du commissaire (29/10/2026) : ordres du gabarit commun, PNJ propre à Montrouge.
+          roomOverrides: { bureau_commissaire: { desc: "Le bureau du commissaire de Montrouge, en tension permanente avec le syndicat local.",
+            persons: [{name: "Commissaire Charbon (PNJ)", role: "Commissaire local", rel: "neutral", job: "commissaire"}] } } },
         'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
@@ -4735,15 +4729,15 @@ const BUILDINGS = {
         // ville, isolation garantie par (pays, ville) a l'interieur des fonctions elles-memes.
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
+          // MÊMES POUVOIRS QUE LUTHÉCIA (décision de Fred, 29/10/2026 : « chaque commissaire dispose des
+          // mêmes pouvoirs »). Handlers et portes serveur déjà bornés à la ville du commissaire.
+          {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Archives judiciaires et detentions passees, consultables par tous. Ne contient aucune information policiere operationnelle.'},
+          {fn:'arreter',          label:"Arrestation d'urgence",  pa:3, cost:0,   type:'legal',   icon:'ti-handcuffs', successRate:100, requiresPost:['president','min_int','min_just','commissaire'], desc:'Pouvoir extrajudiciaire : place immediatement une personne en detention 1 jour, sans condamnation. Securite +1, indice social -1 dans la ville.'},
           // §43 : "Se justifier" n'existait qu'au commissariat de Luthecia (audit du 9 septembre).
           // Un joueur convoque a Montrouge ou Port-Sainte-Marie devait donc traverser le pays pour
           // honorer une convocation de 36 h. Le handler n'a jamais eu la moindre garde de lieu :
           // seule l'entree d'ordre manquait ici. Ce template est partage par les deux villes.
           {fn:'se_justifier',     label:'Se justifier (convocation)', pa:1, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation. Une seule tentative : 50% + (CHA+DUP)/2. Echec = 1 jour de detention.'},
-          {fn:'recruter_policier',      label:'Recruter un policier', pa:1, cost:0, type:'legal', icon:'ti-user-plus',   successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
-          {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
-          {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'commissaire', desc:'Intervention des forces de l\'ordre dans VOTRE ville : blocus, encadrement, quartier sensible, dispersion.'},
-          {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',  pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'},
           // LE TEMOIN SE PRESENTE AU COMMISSARIAT, et c'est la qu'il depose (12 octobre 2026,
           // soir). L'ordre est le MEME dans les deux gabarits de commissariat ; c'est la porte
           // serveur qui verifie que c'est bien le commissariat de la ville du tribunal COMPETENT
@@ -4773,6 +4767,25 @@ const BUILDINGS = {
         orders: [
           {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
+        ]
+      },
+      // Bureau du commissaire (29/10/2026) : mêmes ordres que BUILDINGS['commissariat'].bureau_commissaire.
+      // Les ordres de commandement quittent l'accueil pour ce bureau, comme à Luthécia. Visuels et PNJ
+      // propres à chaque ville par roomOverrides (PSM, Montrouge).
+      bureau_commissaire: {
+        name: "Bureau du Commissaire",
+        imageBg: "linear-gradient(135deg,#0f1018,#151822)",
+        desc: "Dossiers, rapports de filature et avis de recherche s'y accumulent. Acces reserve.",
+        persons: [],
+        orders: [
+          {fn:'dossiers_plaintes',      label:'Dossiers de plainte',         pa:0, cost:0,   type:'legal', icon:'ti-folders',      successRate:100, requiresPost:'commissaire', desc:'Plaintes deposees dans votre ville. Classer sans suite, ou ouvrir une enquete.'},
+          {fn:'mener_enquete',          label:"Mener l'enquete",             pa:2, cost:250, type:'legal', icon:'ti-search',       successRate:35,  requiresPost:'commissaire', desc:"Enqueter sur une personne ou un lieu suite a une plainte deposee. Taux ajuste par PER, influence et securite locale."},
+          {fn:'organiser_filature',     label:'Organiser une filature',       pa:2, cost:150, type:'legal', icon:'ti-eye',          successRate:50,  requiresPost:'commissaire', desc:"Obtenir un rapport des deplacements d'un PJ sur les dernieres 24h."},
+          {fn:'organiser_chasse_homme', label:"Organiser une chasse a l'homme", pa:3, cost:300, type:'legal', icon:'ti-target-arrow', successRate:100, requiresPost:'commissaire', desc:'Localiser et arreter un PJ recherche.'},
+          {fn:'recruter_policier',      label:'Recruter un policier',         pa:1, cost:0,   type:'legal', icon:'ti-user-plus',    successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'commissaire', desc:'Intervention des forces de l\'ordre dans VOTRE ville : blocus, encadrement, quartier sensible, dispersion.'},
+          {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',          pa:0, cost:0,   type:'legal', icon:'ti-users-group',  successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
         ]
       }
     }
