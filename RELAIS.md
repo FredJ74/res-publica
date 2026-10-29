@@ -30,7 +30,13 @@ Règles : voir `AGENTS.md`.
   - **Retirés de Montrouge et PSM :** « Corrompre un employé », plus les vestiges « Postuler à un poste » et « Gérer les finances locales ».
   - **Logement social :** la demande est présente dans les trois mairies ; hors Montrouge, elle affiche « Il n'y a pas de logements sociaux dans la ville. » sans rien prélever.
   - **Bancs :** `banc-mairies-communes.cjs` (11 tests), `banc-nominations-municipales` mis à jour.
-  - **Reste ouvert :** la construction de logements par le maire, payée par la caisse de la mairie. Le moteur de chantier sait déjà faire payer la commune et faire décider le maire sur un terrain de la ville, mais une commune ne peut pas encore acquérir de terrain et il n'existe pas de type « logements ».
+- **Terrain acheté par la commune (Claude, 29/10, branche `claude/mairie-acquereur-20261029`, contient #244 et #243)** : décision de Fred, « une mairie suit le même cheminement qu'un PJ particulier ».
+  - **Question posée au maire :** au dépôt comme au compromis, dans sa ville, on lui demande s'il achète au titre de maire pour la commune ou en son nom propre.
+  - **Achat pour la commune :** le serveur exige le maire élu de la ville du terrain, et refuse tout prêt. Le dépôt et le solde sont pris dans la caisse de la mairie (`salaire_caisse_de`). Le titre est `ville:<pays>:<ville>`, sans copropriétaire, et à l'acte le signataire doit encore être maire.
+  - **Migration `20261029210000` (non appliquée, compatible) :** elle corrige au passage la caisse de Luthécia dans le moteur de chantier (`republic_mairie-capitale`).
+  - **Répétition annulée sur le terrain 4 de Luthécia :** caisse 115 508 → 114 508 au dépôt, puis → 93 308 à l'acte ; francs du maire inchangés.
+  - **Banc :** `banc-mairie-acquereur.cjs` (9 tests).
+  - **Reste ouvert :** le type de bâtiment « logements », pour que le maire y lance un chantier de logements sociaux.
 
 - **Commissariats de Montrouge et PSM (Claude, 29/10, branche `claude/commissariats-pouvoirs-20261029`)** : décision de Fred, « chaque commissaire dispose des mêmes pouvoirs ». Le gabarit `commissariat-local` reçoit les ordres de Luthécia : archives et arrestation d'urgence à l'accueil ; bureau du commissaire avec dossiers de plainte, enquête, filature, chasse à l'homme et commandement des effectifs. Les écrans et les portes serveur étaient déjà bornés à la ville du commissaire. Plainte rejouée dans les trois villes. PSM et Montrouge ne gardent que leur habillage. Banc : `banc-commissariats-pouvoirs.cjs`. Migration `20261029203000` (non appliquée, compatible) : le commissariat, le tribunal et la banque des villes deviennent des bâtiments sensibles pour l'incendie et les explosifs, comme à Luthécia.
 
