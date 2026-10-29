@@ -8403,7 +8403,8 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
       if (r && !r.transport) sessionStorage.removeItem(cle);
       showToast('Dépôt non confirmé', r?.transport
         ? 'Réponse incertaine. Réessayez le même dépôt : son identifiant sera conservé.'
-        : 'Le serveur a refusé le dépôt (' + (r?.raison || 'réponse invalide') + ').', false);
+        : (({ caisse_communale_insuffisante: 'La caisse de la mairie ne couvre pas les 100 FR du permis.', logements_reserves_commune: 'Les logements sociaux sont réservés aux terrains de la commune.', terrain_trop_petit: 'Ce terrain est trop petit pour ce type de logements.' })[r?.raison]
+          || 'Le serveur a refusé le dépôt (' + (r?.raison || 'réponse invalide') + ').'), false);
       return;
     }
     if (!r.etat || !r.document || !r.paiement) {

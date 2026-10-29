@@ -45,7 +45,8 @@ Règles : voir `AGENTS.md`.
   - **Migration `20261029220000`** (non appliquée, compatible, **après 210000**). Répétée à blanc sur le terrain 4 : 14 cas plus l'offre dans les trois villes.
   - **Banc :** `banc-logements-sociaux.cjs` (17 tests).
   - **Au passage :** le PNJ Commissaire Charbon est retiré du bureau de Montrouge, faute de profil de dialogue.
-  - **Restent à décider ou à faire :** le permis de la commune est payé par le maire (100 FR) ; la résiliation automatique au départ de la ville n'existe qu'à Montrouge ; les quatre appartements historiques de Montrouge gardent leur loyer fixe.
+  - **Permis d'un terrain de la commune (décision de Fred) :** les 100 FR sont payés par la caisse de la mairie, le maire ne dépense que son PA ; si la caisse est insuffisante, rien n'est prélevé. Migration `20261029222000` (non appliquée, après 220000).
+  - **Restent à décider ou à faire :** la résiliation automatique au départ de la ville n'existe qu'à Montrouge ; les quatre appartements historiques de Montrouge gardent leur loyer fixe.
 
 - **Commissariats de Montrouge et PSM (Claude, 29/10, branche `claude/commissariats-pouvoirs-20261029`)** : décision de Fred, « chaque commissaire dispose des mêmes pouvoirs ». Le gabarit `commissariat-local` reçoit les ordres de Luthécia : archives et arrestation d'urgence à l'accueil ; bureau du commissaire avec dossiers de plainte, enquête, filature, chasse à l'homme et commandement des effectifs. Les écrans et les portes serveur étaient déjà bornés à la ville du commissaire. Plainte rejouée dans les trois villes. PSM et Montrouge ne gardent que leur habillage. Banc : `banc-commissariats-pouvoirs.cjs`. Migration `20261029203500` (non appliquée, compatible) : le commissariat, le tribunal et la banque des villes deviennent des bâtiments sensibles pour l'incendie et les explosifs, comme à Luthécia.
 

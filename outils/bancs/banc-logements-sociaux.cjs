@@ -16,6 +16,9 @@ t('attribution, loyer et tableau reserves a l adjoint atteste', (m.match(/public
 t('chaque changement de loyer est historise', /'acte','loyer_social','acteur',moi,'lot',p_lot,'ancien',ancien,'nouveau',p_loyer/.test(m));
 t('demande : residence, une seule en attente, 1 PA', /residence_requise/.test(m) && /demande_deja_en_cours/.test(m) && /payer_ordre\(moi, 'demander_logement_social', 1, 0\)/.test(m));
 t('fragments remplaces une seule fois', (m.match(/fragment_introuvable_/g) || []).length >= 7);
+const pc = lire('migrations/20261029222000_permis_commune_par_caisse.sql');
+t('permis d un terrain de la commune paye par la caisse de la mairie, PA du maire', /ELSIF etat->>''proprietaire''=''ville:''\|\|pays\|\|'':''\|\|ville THEN paiement:=public\.permis_commune_payer_interne/.test(pc) && /caisse_institution_mouvement\(caisse, -100, true\)/.test(pc) && /SET pa = pa - 1/.test(pc));
+t('caisse insuffisante : rien n est preleve', /IF coalesce\(solde,0\) < 100 THEN RETURN jsonb_build_object\('ok',false,'raison','caisse_communale_insuffisante'\); END IF;\s*UPDATE public\.personnages_donnees SET pa/.test(pc));
 // Écran
 const ctx = { window: {}, console, document: {}, localStorage: { getItem() {} } }; vm.createContext(ctx);
 vm.runInContext(ch, ctx); const D = vm.runInContext('DUREES_CONSTRUCTION', ctx);
