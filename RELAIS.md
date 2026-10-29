@@ -25,6 +25,75 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+- **Écritures de l'écran (Claude, 29/10, branche `claude/ecritures-ecran-20261029`)** : migration `20261029200000` préparée, non appliquée et compatible avec l'écran en ligne. Elle garde `prets` et `budgets_municipaux`. Mariage par le serveur (Fred : pas de mariage contre son gré) : `201000` tout de suite, `201100` après déploiement de l'écran. Restent ouverts et signalés : `budgets_clubs` et `organisations.caisse` (Codex), `budgets_nationaux`, `quetes_actives`. Bilan : `outils/bancs/ECRITURES-ECRAN-20261029.md`.
+
+### Centres des trois villes et location par le serveur — Claude 29/10 soir (branche `claude/centres-villes-20261029`)
+
+Mission de Fred : généraliser les raccordements métier à Montrouge et PSM, fermer les vestiges. **Constat** : les centres commercial, artisanal et d'affaires des trois villes utilisent UN gabarit (`BUILDINGS`) ; les villes ne surchargent que nom et images (banc). Les 11 fonctions serveur du commerce (fonds, références, production, vente, sur place, Premium, loyers) n'ont aucune ville en dur.
+
+**Défaut reproduit (toutes villes)** : le bail d'un local à loyer fixe (centres, suites de La Republica, coffre) était écrit par l'écran ; un joueur absent de Montrouge s'est inscrit locataire de la Vitrine Principale à 1 FR/jour, +99 POP/INF, sans premier loyer. **Correctif** (`20261029190000`, PRÊTE, NON APPLIQUÉE — application par ChatGPT, compatible avec l'écran en ligne) : référentiel `locaux_loyers_referentiel` (équivalence avec data.js prouvée par `banc-locaux-loyers.cjs`), porte `local_louer` (lieu réel, local libre, organisation dont on est membre, 1 PA, premier loyer par `prelever_loyer_bail`, reçu), garde immédiate imposant prix et bonus du référentiel aux baux écrits par l'écran (box portuaire compris, 15 FR). Écran : `confirmerLocation` appelle `local_louer` ; rafraîchissement des ordres Premium après chargement des baux généralisé (était réservé au centre commercial de PSM). **Après livraison** : `20261029190100` (l'écran ne crée plus ces baux ; box exclu).
+Répétition à blanc : hall refusé ; fonds insuffisants sans PA ni bail ; Montrouge vitrine 800 FR + organisation + reçu ; local occupé ; organisation d'autrui refusée ; PSM bureau prestige 1 000 FR ; open space de Luthécia refusé, poste B accepté ; bail forgé ramené au tarif ; box forgé ramené à 15 FR ; après fermeture, échoppe écrite par l'écran refusée.
+**À vérifier en jeu** : louer un local dans chaque centre de Montrouge et de PSM, installer un commerce dans un local commercial ou artisanal, ouvrir l'Option Commerce (décoration) en titulaire, vérifier qu'un autre joueur ne la voit pas.
+
+
+### Terrains, parcours immobilier, prêts, placements — Claude 29/10 (branche `claude/terrains-immobilier-20261029`)
+
+Mission confiée par Fred le 29/10 (plan ChatGPT « finir Luthécia d'ici dimanche ») : **Claude reprend les terrains et le parcours immobilier** (cédés par Codex), plus prêts et placements. Codex garde le socle universel (déplacements, détection, combats, inventaire #213, groupes #219, sécurité privée).
+
+**Méthode** : parcours rejoués sur la vraie base, au rôle authenticated, en transactions annulées (Arnie, Jean Jaaj ; aucun joueur réel modifié) : achat direct, compromis + prêt + permis, permis et accord tacite, chantiers hangar et commerce premium jour par jour, plan des lots au dernier tiers, réception, location, loyer de nuit, prêts consommation/travaux, placements.
+
+**Fonctionne déjà** : achat direct et acte notarié, compromis avec prêt et permis joints, dépôt de permis (100 FR + 1 PA) et accord tacite, lancement, appels de fonds 35/70/100 %, journées de chantier, plan au dernier tiers, réception, location d'un lot, prêts nationaux, occupation des terrains redessinée à chaque visite, négociation.
+
+**Défauts reproduits et corrigés (migrations APPLIQUÉES, compatibles avec l'écran en ligne)** :
+- `20261029094119` : on pouvait **lancer un chantier avec un permis encore en instruction** (terrains 1-3 gardaient `constructionAutorisee` d'anciens essais) → lancement exige un permis `valide`, reliquat remis à faux. **Les lots nés du plan valaient 0 FR et rien ne permettait de fixer leur loyer** → porte `terrain_lot_loyer_fixer` (titulaire des murs, lot libre), un lot sans loyer ne se loue plus (`loyer_non_fixe`). **Toute location à loyer positif échouait** : `prelever_loyer_bail` créditait le propriétaire par la vue `personnages` (refus « personnage_non_possede » quand le locataire signe) → écrit la table.
+- `20261029094135` : **rendement des placements dicté par l'écran** (intelligence et ville envoyées → +12 % garantis avec une intelligence forgée) → lues sur la fiche ; ancienne `creer_placement_national` fermée aux joueurs.
+- `20261029094215` : **impossible d'avoir deux placements** malgré la règle #86 (index unique resté en base) → index retiré.
+- `20261029095142` : **« Accélérer le rendez-vous (corruption) »** : l'écran envoyait la nouvelle date et payait à part → porte `terrain_rdv_notaire_accelerer` (paiement 2 PA + 800 FR, date calculée par le serveur, reçu).
+
+**Écran (branche, non fusionnée)** : « Information sur les locaux » permet au titulaire de fixer le loyer de chaque lot libre ; la liste « Louer un lot » n'affiche que les lots à loyer fixé ; l'accélération du rendez-vous appelle la porte serveur. Caches : `plateau-politique.js`, `plateau-justice-economie.js`, `plateau-pnj.js` → `?v=terrains-20261029`. Banc `banc-etat-terrain.js` mis à jour (43/43). Bancs clients : mêmes 19 échecs d'environnement que main (dépendances npm indisponibles ici), aucun nouveau.
+
+- `20261029122342` : **« Corrompre un fonctionnaire (accélérer) » le permis** : l'écran envoyait le permis entier ; un demandeur pouvait se poser lui-même `statut: valide` ou une instruction d'un jour, sans payer (reproduit) → porte `terrain_permis_corrompre` (2 PA + 800 FR, découverte 25 % tirée par le serveur avec détection pénale commune, durée divisée par deux sur le dossier enregistré). Écran raccordé.
+
+- `20261029122748` : **décision du maire adjoint sur un permis** : l'acte fusionnait le permis entier envoyé par l'écran (palier, demandeur, durées modifiables), l'écran archivait et écrivait le courrier → porte `terrain_permis_decider` (décision + motif seulement ; statut, archive, arrêté remis, courrier et 1 PA dans une transaction). Éprouvé : refus à un non-adjoint, motif court refusé, dossier tranché une seule fois, lancement possible après accord. Écran raccordé.
+- Le maire constate encore : aucune autre écriture cliente sur le permis n'est restée ouverte hors `permis_plan_modifier` (plan, autorité vérifiée).
+
+**Réorganisation payante des lots (29/10 soir) : VALIDÉE**, essai annulé sur la base réelle : 10 FR/m² touché (200 m² → 2 000 FR = 600 matériaux + 1 400 travail), débit unique et atomique (banque puis espèces), refus nommés (fonds insuffisants, lot loué touché `local_occupe`, surface du terrain dépassée et lot sous le minimum `plan_invalide`, simple renommage `aucun_changement`, second réaménagement, construction ou loyer pendant les travaux), réception requise, nouveau découpage persistant, lot loué et son bail intacts. Ancienne porte `terrain_reamenagement_poser` déjà fermée. Aucun défaut.
+
+**PRÊTES, NON APPLIQUÉES (à appliquer par ChatGPT, consigne de Fred du 29/10) :**
+- `20261029180000` — **à appliquer tout de suite** (compatible avec l'écran en ligne) : raccorde les anciens actes `achat_direct_accelerer` et `permis_accelerer` à la règle serveur (plus de date ni de dossier venant de l'écran, délai enregistré divisé par deux, une seule fois, dossier du seul demandeur). Répétée à blanc : date forgée ignorée (48 h → 24 h, prix intact), permis « valide » forgé ignoré (7 → 3 jours, statut et palier intacts), second essai `deja_accelere`, autre joueur `pas_mon_dossier`.
+- `20261029181000` — raccordement immobilier du **combat des squatteurs** : `terrain_squatteurs_issue_interne(terrain, acteur, issue, requete)`, serveur seulement, appelée par le moteur commun de Codex. **CONTRAT (Fred, 29/10) : l'issue réelle du combat remplace définitivement le score final de 0 à 100** — `defaite` (rien ne change), `neutralises` (terrain libéré, délit **agression** : 25 %, 1 j, 500 FR), `tues` (cadavres laissés, requalification en **meurtre** : 25 %, 2 j, 1 500 FR). Le combat ne cesse que lorsqu'un des deux camps tombe à 0 PA. Reçu idempotent. **Dépend de Codex** : la résolution d'un combat collectif PJ (+ gros bras) contre un groupe de PNJ rendant cette issue.
+
+**État d'intégration (29/10, 19 h)** : #233 et #234 à jour avec main (#238 inclus et intact : aucun écart sur ses fichiers ; seul conflit `plateau.html`, cache de `plateau-justice-economie.js` renouvelé en `terrains-psm-20261029`). #231 : fiches PNJ et Jodie **déjà livrées par #232**, la PR ne porte plus qu'une note de relais → à fermer. Bancs ciblés : `banc-etat-terrain` 43/43, `banc-dialogue-pnj-republia` 43/43.
+
+**À appliquer JUSTE APRÈS la livraison de cette branche** : `20261029160000` (ferme les anciens actes `achat_direct_accelerer`, `permis_accelerer` et `permis_decider`). Répétées à blanc : OK.
+
+**Constats non corrigés (à arbitrer ou à raccorder)** :
+- **#224 loyers non prélevés** : cause trouvée. Au passage à l'heure d'hiver (25/10), le cron Vercel est resté sur `0 22 * * *` UTC = 23 h à Paris : les passes des 26 et 27 ont tourné une heure AVANT minuit, et la journée du 28 n'a eu **aucune passe** (cron_journal : 25, 26, 27, 29). Le réglage est déjà rattrapé (`0 23 * * *`, commit 3a9b0c5). Pas de rattrapage rétroactif sans accord de Fred. Fragilité restante (transversal, ChatGPT) : une passe lancée avant minuit Paris se compte pour la veille.
+- **Prêt immobilier national débloqué trop tôt** (règle #57-11 : versement seulement à la signature) : CORRIGÉ par `20261029121752` (appliquée) — l'échéance du compromis n'accorde plus que le statut, le prêt est créé et versé dans la transaction de l'acte notarié. Éprouvé : aucun prêt à l'accord, prêt de 60 000 FR créé et acte payé à la signature.
+- **Neutralisation des squatteurs par le combat** (#57-5) : pas d'ordre ; dépend du combat commun (Codex). Les trois actions validées de « Gestion des intrus » (négocier, police, cadavre) existent.
+- **Matériaux** : un commerce premium ou un immeuble consomme 33 métal/jour ; l'entrepôt de Luthécia en tient 200 et se réapprovisionne la nuit. Deux chantiers simultanés peuvent manquer de matériaux : **décision de Fred (29/10) : courrier au maître d'ouvrage**, comme pour le manque d'argent — fait par `20261029122005` (appliquée, un courrier par arrêt, marqueur retiré à la reprise).
+- Le maire décide d'un permis avec un statut envoyé par l'écran (`terrain_permis_acte('permis_decider')`), autorité vérifiée mais contenu client : à passer au serveur.
+
+**Parcours à vérifier en jeu** (Fred, Angie, Vince) : acheter un terrain (dépôt puis notaire), y déposer un permis à la mairie et vérifier que « Construire » reste refusé tant que le permis n'est pas accordé ; après réception d'un commerce premium, fixer le loyer d'un lot dans « Information sur les locaux », le faire louer par un autre joueur et vérifier le crédit du loyer ; souscrire deux placements à la Banque nationale ; accélérer un rendez-vous chez le notaire.
+
+
+### Vérification commerces, électronique, premium, ventes, presse, PNJ, douanes — Claude 29/10 (branche `claude/verif-luthecia-20261029`)
+
+Suite de la mission du 29/10 (le premier bloc, terrains/immobilier/prêts/placements, est sur `claude/terrains-immobilier-20261029`, PR #233). Même méthode : parcours rejoués sur la vraie base au rôle authenticated, en transactions annulées (Angie, Arnie, Jean Jaaj ; rien de conservé). **Piège de test** : sans `request.path` = `/rpc/...`, le garde `inventaire_revision_garder` annule toute écriture d'inventaire faite au rôle authenticated ; ce n'est pas un défaut du jeu.
+
+**Défaut reproduit et corrigé (migration APPLIQUÉE, compatible avec l'écran en ligne)** : `20261029095808` — dans un commerce de joueur, **« Consommer sur place » refusait toute boisson, tout encas servi, tout plat et tout menu** (`generique_regime_indetermine` : le moteur d'achat commun refuse les génériques ni individualisés ni empilables, c'est-à-dire toute la restauration servie). La « Dégustation à notre fontaine de chocolat » d'Angie (sur place uniquement) ne se vendait donc pas du tout. Corrigé par un drapeau de transaction posé par la consommation sur place ; l'achat à emporter de ces génériques reste refusé.
+
+**Vérifié, fonctionne** : achat à emporter (prix, taxes locale et nationale, caisse du commerce au net, livraison en « objets à recevoir », stock), consommation sur place des produits à emporter (effets PV/moral), refus de l'achat à emporter d'un produit « sur place uniquement », journal des ventes (bonne identité acheteur/enseigne/article/prix, réservé au propriétaire), production des références (refus de dépassement du stock maximum), chaîne électronique complète (composants → ordinateur et téléphone, prix plafonné au coût de revient, vente), plafonds premium de la bêta (3 types / 10 références pour tous), achat à l'entrepôt et vente directe d'usine.
+
+**Presse (#221)** : même cause que les loyers (#224) — au passage à l'heure d'hiver la passe de minuit tournait à 23 h ; aucune passe, donc aucune édition, pour la journée du 28. Éditions du 29 présentes. Réglage déjà rattrapé.
+
+**PNJ** : Marcel Silo, Bernard Piluler et Jean Bonde ont leur fiche (PR #231, empilée sur #227). Restent muets hors Luthécia : Yvon Paletier, Norbert Charton, deux avocats commis d'office.
+
+**Douanes** : portes vérifiées gardées (paie des douaniers et convocations réservées au Chef des Douanes en exercice, ou au serveur). Le voyage entre empires n'existe pas encore (décision : raccordé avec les autres empires).
+
+**Parcours à vérifier en jeu** : chez SLAVA (Angie), consommer la fontaine de chocolat et un chocolat chaud sur place, acheter un ballotin à emporter et le retrouver dans les objets à recevoir ; Angie consulte son journal des ventes.
+
+
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
 - **Connexion/création PJ (nouveau correctif) :** dans `sbCreerPersonnageUnique`, un rejet réseau de `fetch` pouvait remonter comme exception non gérée plutôt que réponse métier. Gestion explicite `creation_incertaine`, sans rejeu d'INSERT (il peut avoir été effectué). Quatre scénarios sur fonction réelle ajoutés dans `banc-creation-personnage-reseau-20261028.cjs`, raccordés au workflow client. Vérification CI en attente à ce stade ; aucun compte réel touché.
