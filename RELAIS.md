@@ -5,6 +5,14 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### PNJ de Luthécia sans profil — Claude 29/10 (branche `claude/pnj-profils-luthecia-20261029`, empilée sur #227)
+
+- Fiches de personnalité DeepSeek écrites dans `api/_pnj-personnalites.js` pour **Marcel Silo** (directeur de l'Entrepôt Logistique, validé par Fred le 29/10 : intendant tatillon, soupçonné de laisser filer des palettes, ne l'avoue ni ne propose rien), **Bernard Piluler** (directeur de l'Usine Pharmaceutique : une pilule pour tout, langue de communiqué) et **Jean Bonde** (espion, rue du Quartier des Ambassades : se croit invisible, phrases codées). Les deux dernières écrites sur délégation de Fred, à sa relecture.
+- Aucune règle de jeu : ils restent sous la consigne des PNJ ordinaires (ni prix, ni marchandise, ni renseignement vendu). Les « hôtes de l'agence » restent sans profil, volontairement.
+- Banc `banc-dialogue-pnj-republia.js` : les deux directeurs retirés des muets déclarés, contrôle nominatif des trois fiches (Jean Bonde est dans une scène de rue que l'inventaire ne parcourt pas). 43/43 ; bancs de dialogue voisins verts. Inventaire des PNJ mis à jour.
+- **À inclure dans la livraison groupée avec #227** (cette branche la contient). Test : parler à chacun des trois, vérifier le ton et qu'aucun ne promet de marchandise ni de renseignement.
+- Restent muets, hors Luthécia : Yvon Paletier, Norbert Charton (entrepôts de PSM et Montrouge), deux avocats commis d'office.
+
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
 - **Connexion/création PJ (nouveau correctif) :** dans `sbCreerPersonnageUnique`, un rejet réseau de `fetch` pouvait remonter comme exception non gérée plutôt que réponse métier. Gestion explicite `creation_incertaine`, sans rejeu d'INSERT (il peut avoir été effectué). Quatre scénarios sur fonction réelle ajoutés dans `banc-creation-personnage-reseau-20261028.cjs`, raccordés au workflow client. Vérification CI en attente à ce stade ; aucun compte réel touché.

@@ -59,7 +59,7 @@ capitale;dispensaire-public;ehpad_tilleuls;Louis Chevillard;louis_chevillard;Pol
 capitale;dispensaire-public;ehpad_tilleuls;Noël Chauchay;noel_chauchay;Agriculteur à la retraite;pensionnaire_ehpad;aucune famille (decor);piece de data.js;DeepSeek + reponses deterministes;oui;oui;metier et lieu;
 capitale;dispensaire-public;salle_attente;Anne Tibiotique;anne_tibiotique;Infirmière;infirmier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
 capitale;dispensaire-public;salle_attente;Docteur Aspirine;docteur_aspirine;Généraliste;medecin;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
-capitale;entrepot-logistique-luthecia;bureau_direction;Marcel Silo;marcel_silo;Directeur de l'Entrepôt Logistique;directeur_entrepot;gamma (titulaire de poste);piece de data.js;MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;entrepot-logistique-luthecia;bureau_direction;Marcel Silo;marcel_silo;Directeur de l'Entrepôt Logistique;directeur_entrepot;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;metier et lieu;
 capitale;hotel-republica;accueil;Isidore Trébien;isidore_trebien;Bagagiste;bagagiste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
 capitale;hotel-republica;accueil;Nathalie Ondor;nathalie_ondor;Réceptionniste;hotelier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
 capitale;hotel-republica;bar;Marc Hantile;marc_hantile;Lobbyiste — Conseil en affaires et économie;lobbyiste;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
@@ -141,7 +141,7 @@ capitale;tribunal;salle_audience;Maître Plaidoyer;maitre_plaidoyer;Avocat commi
 capitale;tribunal;salle_audience;Procureur Saad;procureur_saad;Procureur de la République;procureur;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;referent (corpus de domaine);
 capitale;universite;amphi;Assistante Mémoire;assistante_memoire;Assistante;professeur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
 capitale;universite;amphi;Professeur Charabia;professeur_charabia;Doyen;professeur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
-capitale;usine-pharmaceutique-luthecia;bureau_direction;Bernard Piluler;bernard_piluler;Directeur de l'Usine Pharmaceutique;directeur_pharma;gamma (titulaire de poste);piece de data.js;MUET;non;non;aucune;aucune personnalite ecrite -- arbitrage GD requis
+capitale;usine-pharmaceutique-luthecia;bureau_direction;Bernard Piluler;bernard_piluler;Directeur de l'Usine Pharmaceutique;directeur_pharma;gamma (titulaire de poste);piece de data.js;DeepSeek;oui;oui;metier et lieu;
 ville_a;banque-locale;bureau_directeur;Marie Le Roux;marie_le_roux;Directrice de la banque de Port-Sainte-Marie;directeur;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
 ville_a;banque-locale;guichet;Guichetier;guichetier;Employe bancaire;banquier;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
 ville_a;bar-des-pecheurs;salle_bar;Jean-Lou Demer;jean_lou_demer;Vieux marin, habitué du bar;;aucune famille (decor);piece de data.js;DeepSeek;oui;oui;metier et lieu;
