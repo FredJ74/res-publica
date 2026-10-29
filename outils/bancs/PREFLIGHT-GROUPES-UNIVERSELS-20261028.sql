@@ -28,7 +28,7 @@ WHERE n.nspname='public' AND p.prokind IN ('f','p') AND
    'payer_ordre','payer_ordre_interne','ambassade_acces_bureau','ambassade_acces_bureau_interne','terrain_etat_lire',
    'inventaire_confisquer','justice_recherches','justice_executer_condamnation_soi',
    'detention_ouvrir_interne','detention_ouvrir_soi','detention_transferer_qhs','detention_qhs_poser_interne',
-   'crime_corrompre_douanier','crime_detecter_interne','crime_malus_isn_interne','crime_etat_acteur_interne')
+   'combat_membre_decrire_interne','crime_corrompre_douanier','crime_detecter_interne','crime_malus_isn_interne','crime_etat_acteur_interne')
   OR p.prosrc ~* '(leader_pj|leader_pnj_id|groupes_pj_adhesions|current_street|current_building)')
 ORDER BY p.proname,p.oid;
 -- Les triggers sur les positions et les deux projections police/soldats sont indispensables.
@@ -62,6 +62,6 @@ WHERE version IN ('20261027222500','20261028074753','20261028074754',
  '20261028122000','20261028122500','20261028123000','20261028123500',
  '20261028124000','20261028135642','20261028135643','20261028140626','20261028141500','20261028161732','20261028163800','20261028164500','20261028165000','20261028180000','20261028180100','20261028183000','20261028185300','20261028185301','20261028185302','20261028185303','20261028185304','20261028185305','20261028185500','20261028185600','20261028185800','20261028191900',
  '20261028193000','20261028193500','20261028194000','20261028194100','20261028213200','20261028213400',
- '20261028215000','20261028215100','20261028215200','20261028215400','20261028215500','20261028215600','20261028215800','20261028215900','20261028222000','20261029100000','20261029110000','20261029110100','20261029110200','20261029110300')
+ '20261028215000','20261028215100','20261028215200','20261028215400','20261028215500','20261028215600','20261028215800','20261028215900','20261028222000','20261029100000','20261029110000','20261029110100','20261029110200','20261029110300','20261029120000','20261029121000')
 ORDER BY version;
 ROLLBACK;

@@ -18,6 +18,13 @@
 
 ---
 
+## #219 — rounds mixtes et séparation à l'écrou, Codex 29/10, EN COURS
+
+- Après `df3ee78d`, préparation `20261029120000` / `20261029121000`. Même branche/PR219, aucune production. Séparation extraite de la porte PNJ commune puis réutilisée par l'écrou existant ; chef/membre emprisonné quitte son groupe, ses PNJ restent à leur position précédente sans changement d'emploi/propriété. Une panne aval annule détention et séparation.
+- Le **même `police_combat_resoudre`** utilise maintenant les deux groupes canoniques ; chaque membre conserve ses PA. Même `combat_coup_resoudre`, mêmes formules et reçus. Soldats : formation/defense militaires existantes ; profils agents du catalogue. Composition figée dans l'interception existante, pas de nouvelle bataille parallèle. Le recherché n'est pas récupéré tant que ses compagnons combattent ; seul son jugement est exécuté après la défaite du groupe. PNJ neutralisés en PA selon le contexte policier, pas de nouveau barème de mort.
+- **209/209 SQL jetables** : les 200 acquis, séparation chef/membre, refus/rejeu/rollback et portes privées, deux rounds opposant groupes PJ/policiers/soldats/agents privés, victoire de groupe et défaite avec écrou du seul recherché. Retour au registre pour chaque PA, sans impact sur les soldes/inventaires. Preuves `preuves-groupes-219-rounds-mixtes-20261029/`.
+- **Suite en cours, NON PRÊT** : recherché accompagnant un chef innocent et UI collective/reprise, reddition/fuite, concurrence supplémentaire et contres, vieux écrivains d'effectifs, transports spéciaux et contrôles globaux restent à terminer. Aucun arbitrage immobilier ni PR225/235 touché. Prévol vivant à ChatGPT, pas de tentative Supabase renouvelée.
+
 ## #219 — sauvegarde finale sélection et contrôles portables, Codex 29/10
 
 - Lot précédent poussé `b40d54d4`. Ordre des verrous du round policier complété : ressources du groupe avant le verrou propre au PJ ; reçu conservé avant la garde d'éligibilité. La concurrence finale cible une vraie prise PNJ, pas seulement le départ PJ déjà verrouillé.
