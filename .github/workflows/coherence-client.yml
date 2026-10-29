@@ -37,6 +37,8 @@ jobs:
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
       - name: Commerce Premium PSM après lecture des baux
         run: node outils/bancs/banc-psm-premium-bail.cjs
+      - name: Contrats des trois centres dans les trois villes de Républia
+        run: node outils/bancs/banc-centres-republia-raccordements.cjs
       - name: Boutiques PSM — mêmes ordres et variantes que Luthécia
         run: node outils/bancs/banc-psm-boutiques-location.cjs
       - name: Bancs JavaScript, transports simulés
