@@ -27,6 +27,15 @@ Règles : voir `AGENTS.md`.
 
 - **Écritures de l'écran (Claude, 29/10, branche `claude/ecritures-ecran-20261029`)** : migration `20261029200000` préparée, non appliquée et compatible avec l'écran en ligne. Elle garde `prets` et `budgets_municipaux`. Mariage par le serveur (Fred : pas de mariage contre son gré) : `201000` tout de suite, `201100` après déploiement de l'écran. Restent ouverts et signalés : `budgets_clubs` et `organisations.caisse` (Codex), `budgets_nationaux`, `quetes_actives`. Bilan : `outils/bancs/ECRITURES-ECRAN-20261029.md`.
 
+### Centres des trois villes et location par le serveur — Claude 29/10 soir (branche `claude/centres-villes-20261029`)
+
+Mission de Fred : généraliser les raccordements métier à Montrouge et PSM, fermer les vestiges. **Constat** : les centres commercial, artisanal et d'affaires des trois villes utilisent UN gabarit (`BUILDINGS`) ; les villes ne surchargent que nom et images (banc). Les 11 fonctions serveur du commerce (fonds, références, production, vente, sur place, Premium, loyers) n'ont aucune ville en dur.
+
+**Défaut reproduit (toutes villes)** : le bail d'un local à loyer fixe (centres, suites de La Republica, coffre) était écrit par l'écran ; un joueur absent de Montrouge s'est inscrit locataire de la Vitrine Principale à 1 FR/jour, +99 POP/INF, sans premier loyer. **Correctif** (`20261029190000`, PRÊTE, NON APPLIQUÉE — application par ChatGPT, compatible avec l'écran en ligne) : référentiel `locaux_loyers_referentiel` (équivalence avec data.js prouvée par `banc-locaux-loyers.cjs`), porte `local_louer` (lieu réel, local libre, organisation dont on est membre, 1 PA, premier loyer par `prelever_loyer_bail`, reçu), garde immédiate imposant prix et bonus du référentiel aux baux écrits par l'écran (box portuaire compris, 15 FR). Écran : `confirmerLocation` appelle `local_louer` ; rafraîchissement des ordres Premium après chargement des baux généralisé (était réservé au centre commercial de PSM). **Après livraison** : `20261029190100` (l'écran ne crée plus ces baux ; box exclu).
+Répétition à blanc : hall refusé ; fonds insuffisants sans PA ni bail ; Montrouge vitrine 800 FR + organisation + reçu ; local occupé ; organisation d'autrui refusée ; PSM bureau prestige 1 000 FR ; open space de Luthécia refusé, poste B accepté ; bail forgé ramené au tarif ; box forgé ramené à 15 FR ; après fermeture, échoppe écrite par l'écran refusée.
+**À vérifier en jeu** : louer un local dans chaque centre de Montrouge et de PSM, installer un commerce dans un local commercial ou artisanal, ouvrir l'Option Commerce (décoration) en titulaire, vérifier qu'un autre joueur ne la voit pas.
+
+
 ### Terrains, parcours immobilier, prêts, placements — Claude 29/10 (branche `claude/terrains-immobilier-20261029`)
 
 Mission confiée par Fred le 29/10 (plan ChatGPT « finir Luthécia d'ici dimanche ») : **Claude reprend les terrains et le parcours immobilier** (cédés par Codex), plus prêts et placements. Codex garde le socle universel (déplacements, détection, combats, inventaire #213, groupes #219, sécurité privée).
