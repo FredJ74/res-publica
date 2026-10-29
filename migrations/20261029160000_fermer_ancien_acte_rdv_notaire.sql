@@ -15,3 +15,17 @@ BEGIN
   v_new := replace(v_def, $a$'achat_direct_deposer', 'achat_direct_accelerer') THEN$a$, $n$'achat_direct_deposer') THEN$n$);
   EXECUTE v_new;
 END $mig$;
+
+-- Même livraison : ferme `permis_accelerer` de `terrain_permis_acte` (remplacé par
+-- `terrain_permis_corrompre`, 20261029122342) ; l'écran n'y envoie plus le permis.
+DO $mig$
+DECLARE v_def text; v_new text;
+BEGIN
+  v_def := pg_get_functiondef('public.terrain_permis_acte(text,text,jsonb)'::regprocedure);
+  IF strpos(v_def, $f$'permis_decider',
+                    'permis_accelerer', 'permis_plan_modifier') THEN$f$) = 0 THEN RETURN; END IF;
+  v_new := replace(v_def, $a$'permis_decider',
+                    'permis_accelerer', 'permis_plan_modifier') THEN$a$, $n$'permis_decider',
+                    'permis_plan_modifier') THEN$n$);
+  EXECUTE v_new;
+END $mig$;

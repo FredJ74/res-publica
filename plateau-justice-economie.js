@@ -8767,44 +8767,35 @@ function ouvrirDossierUrbanisme(index) {
 async function doCorrompreFonctionnairePermis(pa, cost) {
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Corrompre le fonctionnaire')) return;
-  await chargerTerrainState(id);
-  const ts = getTerrainState(id);
-  if (!ts.permis || ts.permis.statut !== 'instruction') { showToast('Indisponible', 'Aucune instruction en cours ici.', false); return; }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', cost + ' FR requis.', false); return; }
-
-  const decouvert = Math.random() < 0.25;
-
-  if (decouvert) {
-    if (!state.historiqueCrimes) state.historiqueCrimes = [];
-    state.historiqueCrimes.push({ acte: 'corruption_fonctionnaire', cible: null, jour: state.day, expireJour: (state.day||1) + 8 });
-    updateUI();
+  // LE SERVEUR DECIDE TOUT (29/10/2026) : paiement (2 PA + 800 FR), decouverte (25 %) tiree en base
+  // et detection par le socle penal commun, duree divisee par deux sur le dossier ENREGISTRE.
+  // L'ancien acte `permis_accelerer` fusionnait le permis envoye par l'ecran (statut compris).
+  const cle = 'permis-corruption:' + (state.char?.name || '') + ':' + id;
+  let requete;
+  try { requete = sessionStorage.getItem(cle) || crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
+  catch (_) { showToast('Ordre non envoyé', 'Le navigateur ne peut pas conserver la référence de cet ordre.', false); return; }
+  const v = await sbRpcVerdict('terrain_permis_corrompre', { p_terrain: id, p_requete: requete }).catch(() => null);
+  if (state.currentBuilding !== id) return;
+  if (!v || v.ok !== true) {
+    if (v && !v.transport) { try { sessionStorage.removeItem(cle); } catch (_) {} }
+    const motifs = { aucune_instruction: 'Aucune instruction en cours ici.', fonds_insuffisants: cost + ' FR requis.',
+      pa_insuffisants: 'Points d’action insuffisants.', pas_sur_place: 'Rendez-vous sur le terrain concerné.' };
+    showToast('Corruption non engagée', v?.transport || !v
+      ? 'Réponse incertaine. Relancez le même ordre : il ne sera pas payé deux fois.'
+      : (motifs[v.raison] || 'Le serveur a refusé (' + v.raison + ').'), false);
+    return;
+  }
+  try { sessionStorage.removeItem(cle); } catch (_) {}
+  if (typeof adopterEtatCrimeServeur === 'function') adopterEtatCrimeServeur(v);
+  if (v.etat) remplacerTerrainState(id, v.etat);
+  updateUI();
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (v.decouvert) {
     showToast('Corruption découverte !', 'Le fonctionnaire vous dénonce.', false);
+    addJournalEntry('Tentative de corruption d\'un fonctionnaire découverte (-' + cost + ' FR).', 'event-bad');
     if (typeof procederArrestation === 'function') procederArrestation('corruption_fonctionnaire', false, false);
     return;
   }
-
-  // Lot 1.5.13 : l'acceleration agit sur la DUREE exigee, pas sur une date-cible -- l'instruction
-  // se compte desormais en journees reellement instruites (joursInstructionFaits). Raccourcir la
-  // duree rapproche donc reellement l'echeance, y compris pour l'accord tacite, et sans jamais
-  // faire "sauter" une journee d'enquete suspendue. dateInstructionTerminee est mise a jour pour
-  // l'affichage seul.
-  ts.permis.dureeInstruction = Math.max(1, Math.floor(ts.permis.dureeInstruction / 2));
-  ts.permis.dateInstructionTerminee = (ts.permis.dateDepot || 0) + ts.permis.dureeInstruction;
-  // ENCORE UN `ts` ENTIER (10 octobre 2026). La porte ne laisse toucher que `permis`, et revoit
-  // sous verrou la condition que ce code lisait sur son cache : un dossier encore en instruction.
-  const vAccP = await sbTerrainActe('terrain_permis_acte', {
-    p_terrain_id: id, p_acte: 'permis_accelerer', p_patch: { permis: ts.permis }
-  });
-  if (!vAccP || vAccP.ok !== true) {
-    signalerRefusTerrain(vAccP, "L'accélération du dossier");
-    return;
-  }
-  remplacerTerrainState(id, vAccP.etat);
-
-  updateUI();
-  document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Dossier accéléré', 'Le fonctionnaire a fait remonter votre dossier. Instruction raccourcie.', true, true);
   addJournalEntry('Corruption d\'un fonctionnaire pour accélérer un permis de construire (-' + cost + ' FR).', 'event-bad');
 }

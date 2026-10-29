@@ -21,7 +21,9 @@ Mission confiée par Fred le 29/10 (plan ChatGPT « finir Luthécia d'ici dimanc
 
 **Écran (branche, non fusionnée)** : « Information sur les locaux » permet au titulaire de fixer le loyer de chaque lot libre ; la liste « Louer un lot » n'affiche que les lots à loyer fixé ; l'accélération du rendez-vous appelle la porte serveur. Caches : `plateau-politique.js`, `plateau-justice-economie.js`, `plateau-pnj.js` → `?v=terrains-20261029`. Banc `banc-etat-terrain.js` mis à jour (43/43). Bancs clients : mêmes 19 échecs d'environnement que main (dépendances npm indisponibles ici), aucun nouveau.
 
-**À appliquer JUSTE APRÈS la livraison de cette branche** : `20261029160000` (ferme l'ancien acte `achat_direct_accelerer`). Répétée à blanc : OK.
+- `20261029122342` : **« Corrompre un fonctionnaire (accélérer) » le permis** : l'écran envoyait le permis entier ; un demandeur pouvait se poser lui-même `statut: valide` ou une instruction d'un jour, sans payer (reproduit) → porte `terrain_permis_corrompre` (2 PA + 800 FR, découverte 25 % tirée par le serveur avec détection pénale commune, durée divisée par deux sur le dossier enregistré). Écran raccordé.
+
+**À appliquer JUSTE APRÈS la livraison de cette branche** : `20261029160000` (ferme les anciens actes `achat_direct_accelerer` et `permis_accelerer`). Répétée à blanc pour le premier ; le second suit le même modèle.
 
 **Constats non corrigés (à arbitrer ou à raccorder)** :
 - **#224 loyers non prélevés** : cause trouvée. Au passage à l'heure d'hiver (25/10), le cron Vercel est resté sur `0 22 * * *` UTC = 23 h à Paris : les passes des 26 et 27 ont tourné une heure AVANT minuit, et la journée du 28 n'a eu **aucune passe** (cron_journal : 25, 26, 27, 29). Le réglage est déjà rattrapé (`0 23 * * *`, commit 3a9b0c5). Pas de rattrapage rétroactif sans accord de Fred. Fragilité restante (transversal, ChatGPT) : une passe lancée avant minuit Paris se compte pour la veille.
