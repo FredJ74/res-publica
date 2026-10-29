@@ -9,8 +9,8 @@ const fin = src.indexOf('function ', debut + 25);
 const code = src.slice(debut, fin < 0 ? undefined : fin);
 assert.match(code, /state\\.personnageChargeDepuisServeur = !!sbState/, 'seule une fiche reelle revalide la sauvegarde');
 assert.match(code, /fiche masquée : aucune autorité locale/);
-assert.match(code, /rpDiagId\\('reconciliation', 'EXCEPTION[\\s\\S]{0,320}personnageChargeDepuisServeur = false/, 'le rejet reseau ferme le portillon');
-assert.doesNotMatch(code, /personnageChargeDepuisServeur = true; \\/\\/ echec reseau/);
+assert.match(code, /rpDiagId\('reconciliation', 'EXCEPTION[\s\S]{0,500}personnageChargeDepuisServeur = false/, 'le rejet reseau ferme le portillon');
+assert.ok(!code.includes('personnageChargeDepuisServeur = true; // echec reseau'), 'un echec reseau ne doit pas autoriser une sauvegarde');
 console.log('OK — cache sans autorite apres echec de reconciliation');
 
 // La file ne doit plus envoyer une fiche sans comparaison préalable à la version serveur.
