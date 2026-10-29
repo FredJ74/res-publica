@@ -11,6 +11,7 @@ assert.ok(begin >= 0, 'loadCharacter présent');
 const end = core.indexOf('\nfunction ', begin + 25);
 const load = core.slice(begin, end < 0 ? undefined : end);
 assert.match(load, /state\.personnageChargeDepuisServeur = !!sbState;/, 'un seul serveur chargé autorise une sauvegarde');
+assert.match(load, /state\.personnageChargeDepuisServeur = false; \/\/ changement de compte/, 'changement de compte');
 assert.match(load, /state\.personnageChargeDepuisServeur = false; \/\/ fiche serveur masquée/, 'fiche masquée');
 assert.match(load, /\.catch\(e => \{\s*rpDiagId\('reconciliation', 'EXCEPTION[^\n]*\n[^]*?state\.personnageChargeDepuisServeur = false;/, 'rejet réseau');
 assert.match(load, /\/\/ Lecture serveur indisponible[^]*?state\.personnageChargeDepuisServeur = false;/, 'lecteur absent');
