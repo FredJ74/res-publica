@@ -27,6 +27,7 @@ const LOGEMENTS_SOCIAUX_MOTIFS = {
   demande_introuvable: 'Cette demande n’est plus en attente.',
   local_occupe: 'Ce logement est déjà occupé.',
   premier_loyer_refuse: 'Le demandeur ne peut pas payer le premier loyer.',
+  demandeur_non_resident: 'Le demandeur n\u2019est plus domicilié dans la ville.',
   loyer_invalide: 'Le loyer doit être un nombre entier positif.',
   attribution_refusee: 'Le serveur a refusé l’attribution.'
 };
