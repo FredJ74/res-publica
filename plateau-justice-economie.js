@@ -3400,6 +3400,18 @@ async function chargerLocations() {
   try {
     const locations = await sbLoadLocations(state.country);
     state.locationsActives = locations;
+    // Les ordres dynamiques (dont l'Option Commerce Premium) dépendent du bail.
+    // Si sa lecture arrive après le premier affichage, recalculer seulement
+    // les boutons de la pièce toujours affichée, sans mouvement ni sauvegarde.
+    const batiment = state.currentBuilding, piece = state.currentRoom;
+    if (state.country === 'republic' && state.currentCity === 'ville_a' &&
+        batiment === 'centre-commercial' &&
+        ['vitrine_principale','boutique_milieu','arriere_boutique','cave_reserve'].includes(piece) &&
+        typeof renderRoomActions === 'function' &&
+        typeof BUILDINGS !== 'undefined') {
+      const room = BUILDINGS[batiment]?.rooms?.[piece];
+      if (room) renderRoomActions(room, batiment, piece);
+    }
   } catch (e) { console.warn('chargerLocations error', e); }
 }
 

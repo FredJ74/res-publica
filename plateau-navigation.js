@@ -2806,6 +2806,24 @@ async function executerVoyage(mode, empireId, villeId) {
   } else {
     forceRenderCity(villeId);
   }
+  // Le paiement ne prouve pas que la nouvelle position est en base.
+  // Entrer dans la salle déclenche déjà une sauvegarde asynchrone ; attendre
+  // explicitement la file commune avant d'annoncer l'arrivée comme acquise.
+  // Aucun nouveau débit, aucune nouvelle RPC de déplacement.
+  let positionConfirmee = false;
+  if (typeof sbSavePersonnage === 'function' && state?.char?.name &&
+      state.personnageChargeDepuisServeur !== false) {
+    try {
+      positionConfirmee = !!(await sbSavePersonnage(state));
+    } catch (erreurPosition) {
+      console.warn('Persistance de la position après transport impossible', erreurPosition);
+    }
+  }
+  if (!positionConfirmee) {
+    showToast('Position non confirmée',
+      'Le trajet a été payé, mais la position serveur n’a pas été confirmée. N’actualisez pas la page : une reconnexion pourrait vous replacer dans l’ancienne ville.', false);
+    return;
+  }
   const villeName = villeNom(empireId, villeId) || villeId;
   const empireName = EMPIRES_CONFIG[empireId]?.name || empireId;
   showToast('Bienvenue à ' + villeName + ' !', empireName + ' · -' + config.cost + ' ' + cur, true, true);
