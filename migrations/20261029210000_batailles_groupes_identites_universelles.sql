@@ -139,4 +139,3 @@ $branche$;
  s:=replace(s,a,b);
  EXECUTE s;
 END $lecteur$;
-
