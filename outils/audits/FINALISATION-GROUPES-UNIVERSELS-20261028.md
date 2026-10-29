@@ -3,11 +3,54 @@
 **CHANTIER NON TERMINÉ.** Préparation sauvegardée sur la branche #219 pour
 l'intégration #230 par ChatGPT ; aucune fusion ni migration de production ici.
 Les batailles militaires et interceptions enrôlent maintenant les groupes PJ/PNJ
-mixtes dans leurs moteurs existants. Les blocages restants sont l'amorçage des
-combats de squatteurs, le contrôle policier ordinaire encore partiellement client,
-et les protections transversales/prévol de livraison. Aucune production ici.
+mixtes dans leurs moteurs existants. Les blocages restants sont l'amorçage des combats de squatteurs, les effets
+historiques d'arrestation et les protections transversales/prévol de livraison.
+Le contrôle policier ordinaire est désormais préparé côté serveur. Aucune production ici.
 
-## État final faisant foi — après main cbae23ff, 29 octobre
+## État faisant foi — contrôles policiers, main 416f275b intégré
+
+**PR #219 NON PRÊTE.** Sources testées et sauvegardées : `657709a174252b27472715a0d9643507f8664a73`. Cette section remplace les états historiques ci-dessous ; aucun déploiement ni application Supabase.
+
+### Code livré sur la branche
+
+Le contrôle policier ordinaire réutilise le détecteur commun (une seule implémentation privée), le dossier `police_interceptions`, ses reçus et les portes publiques de reddition/fuite. Détection effective, puis DUP/PER ; aucune persuasion ni fouille tirée par le navigateur. Les agents privés ne reçoivent pas le droit institutionnel de contrôle ordinaire. La soumission réunit saisie et convocation dans la transaction ; la fuite ratée réunit saisie et écrou avec le jour supplémentaire dans la même ouverture. La fuite réussie conserve le comportement du contrôle ordinaire existant : fin du contrôle, pas de téléportation inventée. Le reçu rejoue le verdict, jamais la sanction ; l'inventaire versionné est relu après le résultat, pas restauré depuis un ancien reçu.
+
+Les autres empires conservent leurs contrôles ordinaires via ce même moteur : le barème générique existant de `getPeineParActe` est lu dans `infractions_categories`, sans leur attribuer les pouvoirs judiciaires particuliers de Républia. Les six anciens calculs/conséquences de contrôle nommés dans la mission ont disparu de ce chemin. `calculerDisEffective` est conservée pour le fret, où elle sert encore ; les poursuites historiques d'autres circuits ne sont pas assimilées à ce contrôle.
+
+`procederArrestation` ne pose plus de détention, de débit local, de perte de poste ou de téléportation avant verdict. Elle relit la détention et sa position canonique ; une réponse perdue peut être réconciliée sans rejouer l'acte. Les adoptions de détention et de recherche ignorent les anciennes sessions. La fenêtre ordinaire utilise le dossier et les composants de l'interception existante. Un verdict incomplet n'est pas un succès. La trace du contrôle est ajoutée après confirmation.
+
+### Tests locaux du lot
+
+- **291/291 scénarios PostgreSQL, deux exécutions**, y compris les 273 acquis et 18 nouveaux cas : vrais jets, persuasion/fouille, soumission, inventaire légal, reprises, fuite réussie/ratée, droits et position, panne après saisie, indisponibilité, PA nuls conservés, verdict incomplet, installation partielle, deux sessions concurrentes, maintien de vrais rounds judiciaires et d'un contrôle dans un autre empire.
+- **18 cas clients ciblés** : dix sur l'arrestation confirmée et huit sur le contrôle ordinaire (dont réponse invalide, double clic et session remplacée).
+- **126/127 bancs clients**. L'unique échec est `banc-workflow-rangement.cjs` : `main` porte deux migrations `20261029190000`, locations et rumeurs. Ce contrôle n'a pas été affaibli.
+- Contre-épreuves sur les mêmes 291 cas : **3 échecs** du contrat de reprise sans lecture du reçu policier ; **9** sans recrutement militaire mixte ; **2** sans reçu de poursuite. Ce sont des régressions provoquées, pas quatorze défauts de production.
+- Grammaire SQL, YAML et syntaxe JS contrôlées. Les nouveaux SQL font moins de 12 500 caractères. Le banc judiciaire compare maintenant **toutes les identités actives du périmètre canonique**, pas un nombre figé de trois : un autre scénario peut avoir recruté un policier ou enregistré un décès. Aucun mort n'est ressuscité pour obtenir le résultat.
+
+Les RPC sont exécutées au rôle authenticated et sous request.path avec identités fictives. Les scénarios concurrents committent uniquement dans PostgreSQL jetable. Les sept contrats squatteurs restent des états terminaux fictifs : ils ne prouvent pas un combat jouable de squatteurs.
+
+### Contrôles globaux et dépendances
+
+**4/12 sur la branche et 4/12 sur main 416f275b**, testé dans un worktree distinct. Workflow rejoint les sept familles rouges précédentes à cause du doublon déjà sur main. Authority : une anomalie d'identité et quatre signatures inconnues communes ; RPC absentes du baseline **109 main / 120 branche**, les onze préparations déjà listées dans l'historique. Classification, baseline, Referential, Fonctions, Assemblage et Reconstruction demeurent rouges ; détails bruts conservés. Aucun baseline, référence, observation ni critère modifié.
+
+Deux migrations supplémentaires après le lot précédent :
+
+1. `migrations/20261029220000_police_controles_detecteur_commun.sql` : étendre le détecteur et le dossier, avec refus d'installation partielle.
+2. `migrations/20261029220100_police_controles_actions_atomiques.sql` : portes existantes et conséquences transactionnelles.
+
+Elles exigent le lot groupes précédent, les moteurs de saisie/écrou et les tables pénales existantes ; déployer le client avec le lot complet, jamais un sous-ensemble. CREATE OR REPLACE conserve les ACL des portes ; nouveaux helpers fermés à PUBLIC, anon, authenticated et service_role. Aucun privilège de table élargi. **La compatibilité des corps/triggers vivants avec #213/#235 reste à vérifier**, notamment révision d'inventaire, filtrage de saisie, état judiciaire et sauvegardes périmées. Le prévol SQL versionné inclut ces fonctions, droits/RLS et le registre ; il n'est pas exécuté ici.
+
+### Ce qui interdit encore la fusion
+
+- **Squatteurs** : pas d'ouverture complète ni d'effectifs/profils persistants validés, pas de valeurs différenciées de résistance inventées. Le choix qui détermine décès ou neutralisation n'a pas été retrouvé : le moteur militaire tue le PNJ à zéro PA, le policier le neutralise. Question précise posée à Fred, sans imposer une règle. Le cas corps + survivants demeure à raccorder avec le contrat de Claude. Aucun nouvel ordre immobilier ni seconde persistance créé.
+- **Effets historiques d'arrestation à rapprocher de #235** : l'ancien écran retirait une amende de `state.arg` et effaçait un poste sans verdict ; le moteur d'écrou disponible ne suffit pas à prouver leur encaissement/révocation. Ce lot ne simule plus ces effets et n'invente aucun prélèvement financier. Leur prise en charge serveur, l'immunité et les modalités de désertion doivent être confirmées/raccordées avant de qualifier l'ensemble du parcours d'arrestation de terminé.
+- **Catalogue vivant** : absent de cette session. La définition Git de `crime_neutraliser` a été retrouvée (`20261027110100` et correctifs suivants) ; ce n'est pas une lecture de sa définition actuelle sur Supabase. Ne pas utiliser son paramètre client de perception comme profil persistant de squatteurs. Aucun ancien mécanisme supprimé en base à l'aveugle.
+- **Collision de registre de main** : ne pas renuméroter les migrations locatives/rumeurs sans connaître la version réellement enregistrée. Collecte et réconciliation à ChatGPT ; aucune commande SQL demandée à Fred.
+- Commentaires/modification de PR refusés par GitHub GraphQL (**Forbidden**), donc revue versionnée dans ce rapport. Git push fonctionne ; nouveaux résultats CI distants non observés. Aucune recette authentifiée, fusion, migration ou livraison Vercel attestée.
+
+Preuves finales : `preuves-groupes-219-controles-20261029/`, avec journaux bruts et empreintes des sources. Les commits suivants ne changent que documentation/preuves. La PR #219 doit rester en attente ; les réussites locales ne valent ni activation ni recette en jeu.
+
+## Historique — après main cbae23ff, 29 octobre
 
 **PR #219 NON PRÊTE.** Code testé : `2bae98028cd9637b0cd0ff8e8997a1d1fd5c9ae9`. Les comptes et références antérieurs ci-dessous sont historiques.
 
