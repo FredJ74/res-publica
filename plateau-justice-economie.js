@@ -12069,6 +12069,9 @@ async function choisirInterceptionJudiciaire(choix) {
       if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
       if (!v) { marquerInterceptionIncertaine(i); return; }
       if (v.ok !== true) { showToast('Contrôle non résolu',v.raison || 'Refus serveur.',false); return; }
+      if (v.controle_ordinaire !== true || !['detention','convocation','fuite','rien'].includes(v.phase)) {
+        marquerInterceptionIncertaine(i); return;
+      }
       const frais = await synchroniserInterceptionCollectiveServeur(contexte,i);
       if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
       const inventaire = typeof sbInventaireReceptionEtat === 'function' ? await sbInventaireReceptionEtat(contexte.nom).catch(() => null) : null;
@@ -12084,6 +12087,7 @@ async function choisirInterceptionJudiciaire(choix) {
       showToast('Contrôle terminé', {detention:'Détention confirmée après votre fuite ratée.',
         convocation:'Objets confisqués. Présentez-vous au commissariat sous 24h.',
         fuite:'Vous avez échappé au contrôle.',rien:'Aucun objet prohibé à saisir.'}[v.phase] || 'Décision enregistrée.',true);
+      addJournalEntry('Contrôle policier : ' + v.phase + '.', v.phase === 'detention' || v.phase === 'convocation' ? 'event-bad' : 'event-info');
     } finally {
       interceptionJudiciaireOccupee = false;
       if (interceptionJudiciaire) afficherInterceptionJudiciaire();

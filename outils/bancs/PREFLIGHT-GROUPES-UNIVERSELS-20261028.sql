@@ -28,7 +28,7 @@ WHERE n.nspname='public' AND p.prokind IN ('f','p') AND
    'militaire_deposer_soldats','militaire_recuperer_soldats','militaire_affecter_leader','militaire_ordre_collectif',
    'payer_ordre','payer_ordre_interne','ambassade_acces_bureau','ambassade_acces_bureau_interne','terrain_etat_lire',
    'crime_neutraliser','inventaire_confisquer','justice_recherches','justice_executer_condamnation_soi',
-   'detention_ouvrir_interne','detention_ouvrir_soi','detention_transferer_qhs','detention_qhs_poser_interne',
+   'inventaire_reception_etat','inventaire_sauver_revision','inventaire_objet_protege','assemblee_loi_en_vigueur','detention_ouvrir_interne','detention_ouvrir_soi','detention_transferer_qhs','detention_qhs_poser_interne',
    'terrain_squatteurs_issue_interne','terrain_squatteurs_issue_bataille_interne','combat_gilet_pnj_absorber_interne','combat_membre_decrire_interne','crime_corrompre_douanier','crime_detecter_interne','crime_malus_isn_interne','crime_etat_acteur_interne')
   OR p.prosrc ~* '(leader_pj|leader_pnj_id|groupes_pj_adhesions|current_street|current_building)')
 ORDER BY p.proname,p.oid;
@@ -49,7 +49,7 @@ SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,c.relacl,
 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
 LEFT JOIN pg_policy p ON p.polrelid=c.oid
 WHERE n.nspname='public' AND c.relname IN ('personnages_donnees','pnj_membres','pnj_possessions',
- 'batailles','batailles_engagements','batailles_groupes','batailles_rounds','terrain_acquisitions_recus','postes_attribues','compagnies_militaires','batiments_etat','navigation_requetes','navigation_passages_douaniers','jugements','detentions','prisonniers_qhs','confiscations_douanieres')
+ 'batailles','batailles_engagements','batailles_groupes','batailles_rounds','terrain_acquisitions_recus','postes_attribues','compagnies_militaires','batiments_etat','navigation_requetes','navigation_passages_douaniers','jugements','detentions','prisonniers_qhs','confiscations_douanieres','police_interceptions','police_detection_attempts','police_action_receipts','infractions')
 ORDER BY c.relname,p.polname;
 -- Le mandat ne doit pas être reconstruit depuis une position de voyage.
 -- Compte agrégé, aucune identité de joueur extraite.
@@ -88,6 +88,13 @@ WHERE version IN ('20261027222500','20261028074753','20261028074754',
  '20261028122000','20261028122500','20261028123000','20261028123500',
  '20261028124000','20261028135642','20261028135643','20261028140626','20261028141500','20261028161732','20261028163800','20261028164500','20261028165000','20261028180000','20261028180100','20261028183000','20261028185300','20261028185301','20261028185302','20261028185303','20261028185304','20261028185305','20261028185500','20261028185600','20261028185800','20261028191900',
  '20261028193000','20261028193500','20261028194000','20261028194100','20261028213200','20261028213400',
- '20261028215000','20261028215100','20261028215200','20261028215400','20261028215500','20261028215600','20261028215800','20261028215900','20261028222000','20261029100000','20261029110000','20261029110100','20261029110200','20261029110300','20261029120000','20261029121000','20261029122000','20261029123000','20261029124000','20261029125000','20261029130000','20261029131000','20261029210000','20261029210100','20261029211000','20261029181000','20261029212000','20261029220000','20261029220100')
+ '20261028215000','20261028215100','20261028215200','20261028215400','20261028215500','20261028215600','20261028215800','20261028215900','20261028222000','20261029100000','20261029110000','20261029110100','20261029110200','20261029110300','20261029120000','20261029121000','20261029122000','20261029123000','20261029124000','20261029125000','20261029130000','20261029131000','20261029210000','20261029210100','20261029211000','20261029181000','20261029212000','20261029220000','20261029220100','20261029190000')
 ORDER BY version;
+-- Contrats supplémentaires du contrôle ordinaire et collision de main :
+-- le registre 190000 doit être rapproché des deux fichiers locaux avant tout DDL.
+SELECT c.relname,a.attname,format_type(a.atttypid,a.atttypmod) AS type
+FROM pg_class c JOIN pg_attribute a ON a.attrelid=c.oid
+WHERE c.oid IN (to_regclass('public.police_interceptions'),to_regclass('public.infractions'))
+ AND a.attnum>0 AND NOT a.attisdropped ORDER BY c.relname,a.attnum;
+SELECT id,jours_reference,amende_reference FROM public.infractions WHERE id='possession_illegale_douane';
 ROLLBACK;
