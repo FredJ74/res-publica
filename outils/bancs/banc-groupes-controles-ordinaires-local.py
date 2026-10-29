@@ -14,6 +14,8 @@ def suite(c):
   q.execute("SELECT pg_get_functiondef('police_controle_action_interne(text,text)'::regprocedure)");s=q.fetchone()[0]
   s=s.replace('IF FOUND THEN RETURN v;END IF;',"IF FOUND THEN RETURN jsonb_build_object('ok',false,'raison','recu_ignore');END IF;",1)
   q.execute(s)
+ q.execute(re.search(r'CREATE TABLE public.infractions_categories \(.*?\n\);',(R/'baseline/domaines/justice/10_tables.sql').read_text(),re.S)[0])
+ q.execute("INSERT INTO infractions_categories VALUES('delit_mineur','Délit mineur',2,500)")
  c['c'].commit()
  def decor():
   sql("DELETE FROM batailles_rounds; DELETE FROM batailles_groupes; DELETE FROM batailles_engagements; DELETE FROM batailles; DELETE FROM police_interceptions; DELETE FROM police_detection_attempts; DELETE FROM police_action_receipts; DELETE FROM groupes_pj_adhesions; DELETE FROM jugements;")
@@ -141,6 +143,21 @@ def suite(c):
   q.execute("SELECT jsonb_array_length(convocations) FROM personnages_donnees WHERE name='C'");assert q.fetchone()[0]==1
   q.execute("SELECT count(*) FROM police_action_receipts WHERE personnage='C' AND rencontre=%s",(rid,));assert q.fetchone()[0]==1
  cas('controle_deux_sessions_concurrentes_une_seule_saisie_et_convocation',concurrence)
+ def autre_empire():
+  decor();sql("UPDATE personnages_donnees SET country='soviet' WHERE name='C'")
+  sql("INSERT INTO batiments_etat(id,country,city,building_id,data) VALUES('controle-soviet-fixture','soviet','capitale','commissariat','{\"effectifsPolice\":{\"policiers\":[{\"matricule\":\"SOV1\",\"buildingId\":\"mairie\",\"roomId\":\"accueil\"}]}}')")
+  rid=choix()['rencontre'];termine=False
+  for n in range(100):
+   q.execute('SAVEPOINT peine_pays');q.execute('SELECT setseed(%s)',(n/100,))
+   v=exige(rpc('police_fuite_resoudre',(rid,),qui='C'))
+   if v['phase']=='detention':
+    q.execute("SELECT est_emprisonne FROM personnages_donnees WHERE name='C'");d=q.fetchone()[0]
+    assert d['country']=='soviet' and d['jours']==3,d
+    termine=True
+   q.execute('ROLLBACK TO SAVEPOINT peine_pays');q.execute('RELEASE SAVEPOINT peine_pays')
+   if termine:break
+  assert termine,'aucune fuite ratée dans le décor du second empire'
+ cas('controle_autre_empire_preserve_bareme_generique_sans_pouvoir_judiciaire_nouveau',autre_empire)
  def droits():
   for sig in ['police_controle_action_interne(text,text)','police_detection_contexte_interne(text,text,text,text,boolean)']:
    for role in ['anon','authenticated','service_role']:

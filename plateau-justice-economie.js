@@ -10766,7 +10766,7 @@ async function verifierSurveillancePolicePJUnique(buildingId, roomId, rueNoeudId
   const zoneSurveillee = {pays, ville, batiment:buildingId || null, piece:roomId || null, rue:rueNoeudId || null};
   // La recherche et le jet de detection sont exclusivement arbitres par le serveur.
   // Aucune interception judiciaire n'est autorisee sur un tirage du navigateur.
-  const detection = (pays === 'republic' && typeof sbRpc === 'function')
+  const detection = (typeof sbRpc === 'function')
     ? await sbRpc('police_detection_verifier', {
         p_batiment: enRue ? null : buildingId,
         p_piece: enRue ? null : roomId,

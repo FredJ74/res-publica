@@ -49,7 +49,7 @@ SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,c.relacl,
 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
 LEFT JOIN pg_policy p ON p.polrelid=c.oid
 WHERE n.nspname='public' AND c.relname IN ('personnages_donnees','pnj_membres','pnj_possessions',
- 'batailles','batailles_engagements','batailles_groupes','batailles_rounds','terrain_acquisitions_recus','postes_attribues','compagnies_militaires','batiments_etat','navigation_requetes','navigation_passages_douaniers','jugements','detentions','prisonniers_qhs','confiscations_douanieres','police_interceptions','police_detection_attempts','police_action_receipts','infractions')
+ 'batailles','batailles_engagements','batailles_groupes','batailles_rounds','terrain_acquisitions_recus','postes_attribues','compagnies_militaires','batiments_etat','navigation_requetes','navigation_passages_douaniers','jugements','detentions','prisonniers_qhs','confiscations_douanieres','police_interceptions','police_detection_attempts','police_action_receipts','infractions','infractions_categories')
 ORDER BY c.relname,p.polname;
 -- Le mandat ne doit pas être reconstruit depuis une position de voyage.
 -- Compte agrégé, aucune identité de joueur extraite.
@@ -97,4 +97,5 @@ FROM pg_class c JOIN pg_attribute a ON a.attrelid=c.oid
 WHERE c.oid IN (to_regclass('public.police_interceptions'),to_regclass('public.infractions'))
  AND a.attnum>0 AND NOT a.attisdropped ORDER BY c.relname,a.attnum;
 SELECT id,jours_reference,amende_reference FROM public.infractions WHERE id='possession_illegale_douane';
+SELECT id,jours_reference,amende_reference FROM public.infractions_categories WHERE id='delit_mineur';
 ROLLBACK;

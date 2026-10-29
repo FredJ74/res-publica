@@ -11,6 +11,11 @@ BEGIN
  IF position(a IN s)=0 THEN RAISE EXCEPTION 'detection_signature_non_examinee';END IF;
  s:=replace(s,a,'p_rue text, p_cible text, p_controle boolean)');
  s:=replace(s,'CREATE OR REPLACE FUNCTION public.police_detection_personnage_interne(', 'CREATE OR REPLACE FUNCTION public.police_detection_contexte_interne(');
+  a:='OR v_pj.country<>''republic''';
+
+ IF position(a IN s)=0 THEN RAISE EXCEPTION 'detection_pays_non_examine';END IF;
+ s:=replace(s,a,'OR (v_pj.country<>''republic'' AND NOT p_controle)');
+
  a:=' IF NOT EXISTS(SELECT 1 FROM public.douane_recherches_interne(v_nom) r WHERE r.country=v_pj.country) THEN';
  IF position(a IN s)=0 THEN RAISE EXCEPTION 'detection_recherche_non_examinee';END IF;
  s:=replace(s,a,replace(a,'IF NOT EXISTS','IF NOT p_controle AND NOT EXISTS'));
@@ -63,5 +68,10 @@ BEGIN
  IF position('-- controle_ordinaire_serveur_v1' IN s)>0 THEN RETURN;END IF;
  a:=' RETURN jsonb_build_object(''ok'',true,''detecte'',false,''raison'',''non_recherche'');';
  b:=' -- controle_ordinaire_serveur_v1'||chr(10)||' IF to_regprocedure(''public.police_controle_action_interne(text,text)'') IS NULL THEN RETURN jsonb_build_object(''ok'',false,''raison'',''installation_incomplete'');END IF;'||chr(10)||' RETURN public.police_detection_contexte_interne(p_batiment,p_piece,p_rue,moi,true);';
- IF position(a IN s)=0 THEN RAISE EXCEPTION 'detection_porte_non_examinee';END IF;EXECUTE replace(s,a,b);
+ IF position(a IN s)=0 THEN RAISE EXCEPTION 'detection_porte_non_examinee';END IF;s:=replace(s,a,b);
+ a:=' FOR n IN SELECT g.identifiant';
+ b:=' IF p.country<>''republic'' THEN'
+ ||' IF to_regprocedure(''public.police_controle_action_interne(text,text)'') IS NULL THEN RETURN jsonb_build_object(''ok'',false,''raison'',''installation_incomplete'');END IF;'
+ ||' RETURN public.police_detection_contexte_interne(p_batiment,p_piece,p_rue,moi,true);END IF;'||chr(10)||a;
+ IF position(a IN s)=0 THEN RAISE EXCEPTION 'detection_autres_pays_non_examinee';END IF;EXECUTE replace(s,a,b);
 END $porte$;

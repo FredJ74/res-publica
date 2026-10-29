@@ -50,7 +50,8 @@ BEGIN
    v:=v||jsonb_build_object('controle_ordinaire',true,'phase','convocation');
   ELSE
    -- Le +1 jour appartient à la même ouverture de peine, jamais à une sauvegarde.
-   SELECT * INTO peine FROM public.infractions WHERE id='possession_illegale_douane';
+   IF p.country='republic' THEN SELECT libelle,jours_reference INTO peine FROM public.infractions WHERE id='possession_illegale_douane';
+   ELSE SELECT libelle,jours_reference INTO peine FROM public.infractions_categories WHERE id='delit_mineur';END IF;
    IF NOT FOUND OR peine.jours_reference IS NULL OR peine.jours_reference<1 THEN RAISE EXCEPTION 'bareme_possession_absent';END IF;
    motifs:=jsonb_build_array(jsonb_build_object('type',peine.libelle,'jours',peine.jours_reference,'source','controle_police'),
     jsonb_build_object('type','Fuite ratée','jours',1,'source','controle_police'));
