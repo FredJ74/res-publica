@@ -1,3 +1,9 @@
+## #219 — raccordement aux corps vivants et repli commun (29/10, EN COURS)
+
+Commentaire `6509677067` récupéré par la page HTML de #219 (API refusée). Les trois MD5 de corps concordent exactement : rue `e84a0ba5…`, détection `06f258fc…`, miroir policier `22e615ce…`. Fixture attribuée, aucun baseline modifié. **317 cas conservés rejoués sur ces corps**, puis **322/322** avec asile après adaptations, replis militaires mixtes, garde individuelle/rollback et unité PNJ autonome. La dépendance d’asile est une table de décor, pas une reproduction du système des ambassades.
+
+Nouveaux compléments préparés après `223600` : `20261029223700` et `20261029223800`. Un seul corps de navigation (identité explicite privée), une seule géométrie rue/sortie/gauche ; les unités militaires ne sont plus téléportées à la caserne pour se replier. Même primitive PNJ pour matérialiser les ancres, liens institutionnels conservés, pas de faux PJ. Le repli existant ne contenait aucun jet ; aucun taux de fuite inventé dans ce raccordement. Sources et contraintes individuelles préservées. **Non déployé, non intégrable à ce stade** : suite des affrontements non militaires, progression autonome et conséquences judiciaires encore à terminer. PNJ unique squatteurs toujours sans caractéristiques validées. Définitions judiciaires vivantes demandées en parallèle, autres travaux poursuivis. Aucun joueur réel ni PR #246 touchés.
+
 ## #219 — fuites directionnelles et contrôles collectifs (29/10, NON DÉPLOYÉ)
 
 Code final testé `e52f4ade`, deux lots `871926d2` / `eb02c821`, preuves `outils/audits/preuves-groupes-219-cinq-rounds-20261029/`. Le rapport principal commence par le verdict et les limites actuels.

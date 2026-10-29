@@ -330,3 +330,8 @@ La provenance est conservée sur le personnage par un trigger serveur, après la
 garde de sauvegarde des positions. `223500/223600` réutilisent cette lecture pour
 la fuite policière, les contrôles collectifs et leur reprise. Aucun nouveau moteur
 ni déplacement de fuite militaire ajouté par ce complément.
+
+Compléments #219 préparés `20261029223700/223800` : les replis militaires suivent
+la navigation et la géométrie communes, y compris les unités PNJ autonomes.
+Les trois corps vivants communiqués le 29/10 sont conservés en fixture attribuée,
+avec leurs empreintes exactes ; ils ne remplacent pas un prévol d’installation.

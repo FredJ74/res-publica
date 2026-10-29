@@ -19,7 +19,11 @@ def suite(ctx, suivante=None):
  CREATE TABLE police_interceptions(personnage text,expires_at timestamptz);
  INSERT INTO rue_noeuds_serveur VALUES('republic','capitale','rue-1',ARRAY['rue-2']),('republic','capitale','rue-2',ARRAY['rue-1']),('republic','capitale','loin','{}');
  INSERT INTO rue_sorties_batiments VALUES('republic','capitale','mairie','rue-1');''')
- q.execute(source['sql'])
+ if '--catalogue-20261029' in sys.argv:
+  vivant=next(x for x in json.loads((R/'outils/bancs/fixtures/groupes-catalogue-communique-20261029.json').read_text())['fonctions'] if x['nom']=='rue_position_enregistrer')
+  assert hashlib.sha256(vivant['sql'].encode()).hexdigest()==vivant['sha256'];q.execute(vivant['sql'])
+  q.execute("SELECT md5(prosrc) FROM pg_proc WHERE oid='rue_position_enregistrer(text)'::regprocedure");assert q.fetchone()[0]=='e84a0ba5b5a4760414873b269c3cba4a'
+ else:q.execute(source['sql'])
  q.execute("SELECT md5(pg_get_functiondef('rue_position_enregistrer(text)'::regprocedure))");assert q.fetchone()[0]==source['fonction'][1]
  migration=(R/'migrations/20261028183000_groupes_rue_transaction_commune.sql').read_text()
  def derive_refusee():

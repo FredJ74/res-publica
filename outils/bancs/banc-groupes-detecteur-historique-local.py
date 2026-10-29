@@ -18,8 +18,16 @@ def suite(ctx, suivante=None):
  CREATE TABLE recherches_fixture(personnage text,country text);
  INSERT INTO recherches_fixture VALUES('C','republic');
  CREATE FUNCTION justice_recherches(text) RETURNS TABLE(country text) LANGUAGE sql STABLE AS $$ SELECT country FROM recherches_fixture WHERE personnage=$1 $$;''')
- q.execute(sources[1]['sql'])
- q.execute("SELECT md5(pg_get_functiondef('police_detection_verifier(text,text,text)'::regprocedure))");assert q.fetchone()[0]==sources[1]['fonction'][1]
+ if '--catalogue-20261029' in sys.argv:
+  vivant=next(x for x in json.loads((R/'outils/bancs/fixtures/groupes-catalogue-communique-20261029.json').read_text())['fonctions'] if x['nom']=='police_detection_verifier')
+  assert hashlib.sha256(vivant['sql'].encode()).hexdigest()==vivant['sha256']
+  # Le prédicat d'asile est une dépendance isolée du décor ; le garde lui-même
+  # est celui du corps vivant communiqué, et reste présent après les adaptations.
+  q.execute("CREATE TABLE asile_fixture(nom text PRIMARY KEY);CREATE FUNCTION ambassade_refugie_protege(text) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER AS $$SELECT EXISTS(SELECT 1 FROM asile_fixture WHERE nom=$1)$$")
+  q.execute(vivant['sql']);q.execute("SELECT md5(prosrc) FROM pg_proc WHERE oid='police_detection_verifier(text,text,text)'::regprocedure");assert q.fetchone()[0]=='06f258fc5b28b6b58e18908d6bc1b0fe'
+ else:
+  q.execute(sources[1]['sql'])
+  q.execute("SELECT md5(pg_get_functiondef('police_detection_verifier(text,text,text)'::regprocedure))");assert q.fetchone()[0]==sources[1]['fonction'][1]
  q.execute(audit.fonction(audit.M,'securite_ordre_detection_interne'))
  patch=(R/'migrations/20261028074753_securite_privee_detection_unites.sql').read_text();q.execute(patch);q.execute(patch)
  for nom,f in [('militaire_taux_combat','20_fonctions-3.sql'),('militaire_degre_combat','20_fonctions-2.sql'),('militaire_degats_pct','20_fonctions-2.sql'),('militaire_pa_restants','20_fonctions-2.sql')]:q.execute(audit.fonction('baseline/domaines/militaire/'+f,nom))

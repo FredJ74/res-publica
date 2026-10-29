@@ -135,6 +135,11 @@ def extension(ctx, suite=None):
  for f,nom in [('socle-PNJ/20_fonctions.sql','pnj_metier_profil'),('justice/20_fonctions-2.sql','police_autorite_de_perimetre'),('justice/20_fonctions-2.sql','police_pnj_id'),('justice/20_fonctions-2.sql','police_caracteristiques_metier'),('immobilier-et-territoire/20_fonctions.sql','batiment_etat_lire'),('socle-PNJ/20_fonctions.sql','pnj_miroir_police'),('socle-PNJ/20_fonctions.sql','pnj_miroir_police_declencheur')]:
   q.execute(a.fonction('baseline/domaines/'+f,nom))
  q.execute("INSERT INTO pnj_institutions VALUES('police','police_autorite_de_perimetre','resolveur reel')")
+ if '--catalogue-20261029' in sys.argv:
+  import json,hashlib
+  vivant=next(x for x in json.loads((R/'outils/bancs/fixtures/groupes-catalogue-communique-20261029.json').read_text())['fonctions'] if x['nom']=='pnj_miroir_police')
+  assert hashlib.sha256(vivant['sql'].encode()).hexdigest()==vivant['sha256'];q.execute(vivant['sql'])
+  q.execute("SELECT md5(prosrc) FROM pg_proc WHERE oid='pnj_miroir_police(text,text,text)'::regprocedure");assert q.fetchone()[0]=='22e615ce9027190a6e592ac27644d8fe'
  q.execute("CREATE TRIGGER miroir_police AFTER INSERT OR UPDATE ON batiments_etat FOR EACH ROW EXECUTE FUNCTION pnj_miroir_police_declencheur()")
  for ville,bat,mat in [('capitale','commissariat',['P1','P2','P3']),('ville_a','commissariat-local',['E1'])]:
   import json
