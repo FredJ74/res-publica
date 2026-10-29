@@ -1,0 +1,957 @@
+{
+  "tests": [
+    {
+      "cas": "rappel_collectif_et_reponse_perdue",
+      "ok": true
+    },
+    {
+      "cas": "radio_pj_absente",
+      "ok": true
+    },
+    {
+      "cas": "radio_unite_absente",
+      "ok": true
+    },
+    {
+      "cas": "radio_pj_quantite_nulle",
+      "ok": true
+    },
+    {
+      "cas": "radio_pnj_quantite_nulle",
+      "ok": true
+    },
+    {
+      "cas": "radio_autre_ville",
+      "ok": true
+    },
+    {
+      "cas": "radio_autre_pays",
+      "ok": true
+    },
+    {
+      "cas": "radio_autorites_reparties_aucun_mouvement",
+      "ok": true
+    },
+    {
+      "cas": "radio_axe_institution_preserve",
+      "ok": true
+    },
+    {
+      "cas": "radio_regle_metier_preservee",
+      "ok": true
+    },
+    {
+      "cas": "radio_membre_inactif",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_volontaire",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_non_authentifiee",
+      "ok": true
+    },
+    {
+      "cas": "auto_adhesion_interdite",
+      "ok": true
+    },
+    {
+      "cas": "chef_absent",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_autre_piece",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_interieur_ignore_ancienne_rue",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_rue_ignore_ancienne_piece",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_position_absente",
+      "ok": true
+    },
+    {
+      "cas": "lecture_reconnexion_et_depart",
+      "ok": true
+    },
+    {
+      "cas": "chef_separe_sans_mouvement",
+      "ok": true
+    },
+    {
+      "cas": "cycle_refuse",
+      "ok": true
+    },
+    {
+      "cas": "aucune_adhesion_imposee_ni_fuite_table",
+      "ok": true
+    },
+    {
+      "cas": "adhesions_concurrentes_sans_deadlock",
+      "ok": true
+    },
+    {
+      "cas": "prise_liste_incomplete_aucune_mutation",
+      "ok": true
+    },
+    {
+      "cas": "pret_conduite_sans_transfert_autorite_et_reprise",
+      "ok": true
+    },
+    {
+      "cas": "pret_refus_second_membre_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "depose_refus_second_membre_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "suivi_pnj_et_depose_rue_reelle",
+      "ok": true
+    },
+    {
+      "cas": "pret_autre_rue_refuse",
+      "ok": true
+    },
+    {
+      "cas": "ordre_radio_militaire_hors_ville_refuse_avant_effet",
+      "ok": true
+    },
+    {
+      "cas": "ordre_radio_meme_ville_conserve_garde_equipement",
+      "ok": true
+    },
+    {
+      "cas": "projection_employes_position_effective",
+      "ok": true
+    },
+    {
+      "cas": "prives_suiveurs_meme_groupe_reel",
+      "ok": true
+    },
+    {
+      "cas": "prives_copresence_distincte_puis_adhesion_reelle",
+      "ok": true
+    },
+    {
+      "cas": "vrais_soldats_section_pret_depose_reprise_autorite",
+      "ok": true
+    },
+    {
+      "cas": "vrais_soldats_groupe_detache_rue_et_projection",
+      "ok": true
+    },
+    {
+      "cas": "vrais_soldats_radio_collective_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "ordres_historiques_par_nombre_deleguent_aux_portes_communes",
+      "ok": true
+    },
+    {
+      "cas": "ordre_par_nombre_reprend_unite_liee_sans_violer_hierarchie",
+      "ok": true
+    },
+    {
+      "cas": "panne_projecteur_annule_prise_soldat",
+      "ok": true
+    },
+    {
+      "cas": "adaptateurs_projection_injoignables_du_reseau",
+      "ok": true
+    },
+    {
+      "cas": "capacite_soldat_confirmee_par_les_gardes_serveur",
+      "ok": true
+    },
+    {
+      "cas": "compagnie_verrouillee_avant_acteur_commun",
+      "ok": true
+    },
+    {
+      "cas": "vrais_policiers_autorite_commissariat_territoriale",
+      "ok": true
+    },
+    {
+      "cas": "blocage_reproduit_miroir_police_et_groupe_ne_sont_pas_raccordes",
+      "ok": true
+    },
+    {
+      "cas": "porte_bataille_sans_ennemi_refuse_sans_erreur_alias_ni_mutation",
+      "ok": true
+    },
+    {
+      "cas": "porte_bataille_conserve_refus_non_militaire",
+      "ok": true
+    },
+    {
+      "cas": "migration_refuse_porte_militaire_vivante_differente",
+      "ok": true
+    },
+    {
+      "cas": "sept_vrais_pnj_suivi_derive_depose_et_reprise_par_autorite",
+      "ok": true
+    },
+    {
+      "cas": "miroir_police_preserve_suiveurs_et_projette_position_commune",
+      "ok": true
+    },
+    {
+      "cas": "ancien_blob_de_position_ne_retablit_pas_une_ancienne_faction",
+      "ok": true
+    },
+    {
+      "cas": "commissaire_ne_reprend_pas_agent_autre_commissariat",
+      "ok": true
+    },
+    {
+      "cas": "vrais_douaniers_portes_communes_et_projection_rue",
+      "ok": true
+    },
+    {
+      "cas": "radio_unite_douaniere_et_rejeu_sans_dupliquer_objet",
+      "ok": true
+    },
+    {
+      "cas": "unite_mixte_radio_exige_toutes_les_autorites",
+      "ok": true
+    },
+    {
+      "cas": "lecture_groupe_reservee_autorite_ou_commandement_sans_transfert",
+      "ok": true
+    },
+    {
+      "cas": "projection_preserve_format_json_chaine_et_effectifs",
+      "ok": true
+    },
+    {
+      "cas": "projection_institutionnelle_inaccessible_du_reseau",
+      "ok": true
+    },
+    {
+      "cas": "rue_prevol_refuse_definition_non_examinee",
+      "ok": true
+    },
+    {
+      "cas": "rue_2_PJ_7_PNJ_sortie_marche_et_reponse_perdue",
+      "ok": true
+    },
+    {
+      "cas": "rue_membre_ne_commande_pas_le_chef",
+      "ok": true
+    },
+    {
+      "cas": "rue_prison_second_membre_refuse_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "rue_interception_membre_refuse_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "rue_coma_membre_refuse_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "rue_hopital_membre_refuse_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "rue_hopital_legacy_refuse_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "rue_noeud_inconnu_refuse",
+      "ok": true
+    },
+    {
+      "cas": "rue_sortie_non_referencee_refuse",
+      "ok": true
+    },
+    {
+      "cas": "rue_groupe_disperse_refuse",
+      "ok": true
+    },
+    {
+      "cas": "rue_saut_non_adjacent_refuse",
+      "ok": true
+    },
+    {
+      "cas": "rue_echec_projection_annule_toutes_positions",
+      "ok": true
+    },
+    {
+      "cas": "rue_moteur_interne_non_appelable_sur_reseau",
+      "ok": true
+    },
+    {
+      "cas": "rue_rejeu_refuse_moteur_interne_modifie",
+      "ok": true
+    },
+    {
+      "cas": "rue_rejeu_refuse_enveloppe_modifiee",
+      "ok": true
+    },
+    {
+      "cas": "rue_hospitalisation_legacy_non_numerique_sans_exception",
+      "ok": true
+    },
+    {
+      "cas": "rue_deux_commandes_concurrentes_un_deplacement_et_un_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "detecteur_historique_absence_agents_ne_cree_pas_rencontre",
+      "ok": true
+    },
+    {
+      "cas": "detecteur_historique_non_authentifie_refuse",
+      "ok": true
+    },
+    {
+      "cas": "detecteur_historique_fausse_piece_refuse",
+      "ok": true
+    },
+    {
+      "cas": "detecteur_historique_justice_eligibilite_refusee",
+      "ok": true
+    },
+    {
+      "cas": "detecteur_historique_vrais_jets_reprise_et_tempo_sans_faux_detecteur",
+      "ok": true
+    },
+    {
+      "cas": "detecteur_moteur_ordre_police_avant_prives_meme_plus_nombreux",
+      "ok": true
+    },
+    {
+      "cas": "combat_coup_authentique_reutilise_taux_degres_et_degats_militaires",
+      "ok": true
+    },
+    {
+      "cas": "combat_coup_authentique_refuse_parametres_invalides",
+      "ok": true
+    },
+    {
+      "cas": "combat_coup_authentique_primitif_inaccessible_au_client",
+      "ok": true
+    },
+    {
+      "cas": "interieur_parcours_2PJ_7PNJ_rue_accueil_bar_restaurant_sortie_rue",
+      "ok": true
+    },
+    {
+      "cas": "interieur_membre_ne_commande_pas",
+      "ok": true
+    },
+    {
+      "cas": "interieur_piece_inconnue_refusee",
+      "ok": true
+    },
+    {
+      "cas": "interieur_entree_sans_raccord_rue_refusee",
+      "ok": true
+    },
+    {
+      "cas": "interieur_prison_membre_refusee",
+      "ok": true
+    },
+    {
+      "cas": "interieur_combat_membre_refuse",
+      "ok": true
+    },
+    {
+      "cas": "interieur_soldat_emprunte_engage_combat_refuse",
+      "ok": true
+    },
+    {
+      "cas": "interieur_interception_membre_refusee",
+      "ok": true
+    },
+    {
+      "cas": "interieur_surcharge_membre_refusee",
+      "ok": true
+    },
+    {
+      "cas": "interieur_surcharge_ne_bloque_pas_changement_piece",
+      "ok": true
+    },
+    {
+      "cas": "interieur_fermeture_refusee",
+      "ok": true
+    },
+    {
+      "cas": "interieur_coma_membre_refuse",
+      "ok": true
+    },
+    {
+      "cas": "interieur_groupe_disperse_refuse",
+      "ok": true
+    },
+    {
+      "cas": "rue_meme_garde_combat_que_interieur",
+      "ok": true
+    },
+    {
+      "cas": "interieur_helpers_non_appelables_par_client",
+      "ok": true
+    },
+    {
+      "cas": "interieur_sauvegarde_ancienne_via_vue_ne_retablit_pas_position",
+      "ok": true
+    },
+    {
+      "cas": "interieur_acces_special_pas_contourne",
+      "ok": true
+    },
+    {
+      "cas": "interieur_echec_projection_annule_tous_les_deplacements",
+      "ok": true
+    },
+    {
+      "cas": "interieur_commandes_concurrentes_verrouillees_et_annulees",
+      "ok": true
+    },
+    {
+      "cas": "interieur_loge_tous_membres_autorises",
+      "ok": true
+    },
+    {
+      "cas": "interieur_loge_un_membre_sans_droit_annule_groupe",
+      "ok": true
+    },
+    {
+      "cas": "interieur_chambre_respecte_visites_et_tous_les_membres",
+      "ok": true
+    },
+    {
+      "cas": "participants_canoniques_2PJ_7PNJ_sans_filtre_metier_ni_collision",
+      "ok": true
+    },
+    {
+      "cas": "round_militaire_existant_deux_PJ_coups_reels_et_rapports_persistes",
+      "ok": true
+    },
+    {
+      "cas": "round_militaire_existant_PJ_et_quatre_vrais_soldats_contre_PJ",
+      "ok": true
+    },
+    {
+      "cas": "round_existant_acl_helpers_et_identite_authentifiee",
+      "ok": true
+    },
+    {
+      "cas": "ambassade_audience_chef_ne_couvre_pas_membre",
+      "ok": true
+    },
+    {
+      "cas": "ambassade_deux_autorisations_distinctes_autorisent_groupe",
+      "ok": true
+    },
+    {
+      "cas": "ambassade_audience_membre_expiree_refuse_groupe",
+      "ok": true
+    },
+    {
+      "cas": "ambassade_ancienne_porte_conserve_identite_appelant",
+      "ok": true
+    },
+    {
+      "cas": "ambassade_asile_et_audience_reutilisent_memes_controles",
+      "ok": true
+    },
+    {
+      "cas": "ambassade_identite_parametree_inaccessible_clients",
+      "ok": true
+    },
+    {
+      "cas": "lot_persistant_visitable_sans_modifier_propriete_ni_bail",
+      "ok": true
+    },
+    {
+      "cas": "lot_invente_refuse",
+      "ok": true
+    },
+    {
+      "cas": "lot_autre_ville_refuse",
+      "ok": true
+    },
+    {
+      "cas": "lot_autre_pays_refuse",
+      "ok": true
+    },
+    {
+      "cas": "lot_identites_assainies_ambigues_refusees",
+      "ok": true
+    },
+    {
+      "cas": "lot_renomme_conserve_identite_piece",
+      "ok": true
+    },
+    {
+      "cas": "transport_train_leader_paie_neuf_voyageurs_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "transport_leader_insuffisant_aucun_debit_ni_position",
+      "ok": true
+    },
+    {
+      "cas": "transport_prison_membre_refuse_avant_tout_debit",
+      "ok": true
+    },
+    {
+      "cas": "transport_requete_ne_peut_changer_de_destination",
+      "ok": true
+    },
+    {
+      "cas": "transport_aucun_contournement_douanier",
+      "ok": true
+    },
+    {
+      "cas": "transport_encaissement_parametre_non_expose",
+      "ok": true
+    },
+    {
+      "cas": "transport_bus_neuf_voyageurs_PA_de_l_ordre_une_fois",
+      "ok": true
+    },
+    {
+      "cas": "paiement_public_historique_garde_le_tarif_unitaire",
+      "ok": true
+    },
+    {
+      "cas": "transport_fonds_pour_un_billet_mais_pas_pour_tous_refuse",
+      "ok": true
+    },
+    {
+      "cas": "transport_encaissement_liquide_et_compte_national_existants",
+      "ok": true
+    },
+    {
+      "cas": "transport_depuis_rue_refuse_meme_si_batiment_NULL",
+      "ok": true
+    },
+    {
+      "cas": "transport_passager_pas_de_debit_financier_ni_PA",
+      "ok": true
+    },
+    {
+      "cas": "transport_surcharge_passager_refuse_avant_tout_debit",
+      "ok": true
+    },
+    {
+      "cas": "transport_individuel_conserve_tarif_et_PA_historiques",
+      "ok": true
+    },
+    {
+      "cas": "transport_membre_ne_peut_engager_paiement_du_chef",
+      "ok": true
+    },
+    {
+      "cas": "transport_panne_aval_annule_debit_positions_PJ_PNJ_et_recu",
+      "ok": true
+    },
+    {
+      "cas": "transport_deux_commandes_concurrentes_meme_recu_un_seul_debit",
+      "ok": true
+    },
+    {
+      "cas": "international_position_7_PNJ_suit_pays_reel_sans_transferer_autorite",
+      "ok": true
+    },
+    {
+      "cas": "international_depose_conserve_pays_physique_et_copresence",
+      "ok": true
+    },
+    {
+      "cas": "international_unite_detachee_ancre_et_suiveur_meme_pays",
+      "ok": true
+    },
+    {
+      "cas": "international_reprise_police_propre_soldat_reserve_autorite_origine",
+      "ok": true
+    },
+    {
+      "cas": "international_mandat_revoque_pas_recree_par_ancien_cache_poste",
+      "ok": true
+    },
+    {
+      "cas": "international_pays_physique_pas_modifiable_par_PATCH_client",
+      "ok": true
+    },
+    {
+      "cas": "international_rejeu_refuse_garde_desactivee",
+      "ok": true
+    },
+    {
+      "cas": "douane_2PJ_7PNJ_controles_sans_debit_ni_faux_deplacement",
+      "ok": true
+    },
+    {
+      "cas": "douane_saisie_PJ_PNJ_colis_protege_convocation_PJ_seulement_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "douane_pas_de_dispense_collective_si_un_PJ_absent",
+      "ok": true
+    },
+    {
+      "cas": "douane_controle_refuse_hors_piece_reelle",
+      "ok": true
+    },
+    {
+      "cas": "douane_sortie_annule_attestation_et_recu_ne_reautorise_pas",
+      "ok": true
+    },
+    {
+      "cas": "douane_adaptateurs_identite_prives_non_appelables",
+      "ok": true
+    },
+    {
+      "cas": "douane_vrais_jets_vraie_condamnation_ecrou_cellule_rejeu_sans_faux_joueur",
+      "ok": true
+    },
+    {
+      "cas": "douane_corruption_vrais_jets_cout_unique_et_dispense_personnelle_seulement",
+      "ok": true
+    },
+    {
+      "cas": "douane_ancienne_corruption_sans_recu_refusee_avant_paiement",
+      "ok": true
+    },
+    {
+      "cas": "douane_accessoire_historique_socle_confisque_sans_reapparaitre_au_miroir",
+      "ok": true
+    },
+    {
+      "cas": "justice_vraie_reddition_puis_transfert_QHS_enregistre_position_et_chaine",
+      "ok": true
+    },
+    {
+      "cas": "justice_ancienne_porte_soi_ne_permet_pas_peine_nulle_ou_teleportation",
+      "ok": true
+    },
+    {
+      "cas": "voyage_vol_complet_controle_embarquement_9_paiement_unique_arrivee_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "voyage_faux_douanePassee_ne_permet_pas_embarquement",
+      "ok": true
+    },
+    {
+      "cas": "voyage_autorisation_du_chef_ne_couvre_pas_autre_PJ",
+      "ok": true
+    },
+    {
+      "cas": "voyage_fonds_insuffisants_annule_ensemble_nouvelle_saisie_debit_positions",
+      "ok": true
+    },
+    {
+      "cas": "voyage_bateau_controle_existants_9_voyageurs_tarif_et_PA_historiques",
+      "ok": true
+    },
+    {
+      "cas": "voyage_extension_internationale_ne_casse_pas_train_collectif",
+      "ok": true
+    },
+    {
+      "cas": "voyage_vol_individuel_conserve_tarif_et_PA_existants",
+      "ok": true
+    },
+    {
+      "cas": "police_PA_historiques_importes_une_seule_fois",
+      "ok": true
+    },
+    {
+      "cas": "police_miroir_ne_ressuscite_pas_mort_ni_ne_le_garde_dans_effectif",
+      "ok": true
+    },
+    {
+      "cas": "police_miroir_ne_libere_pas_un_detenu",
+      "ok": true
+    },
+    {
+      "cas": "douane_miroir_ne_libere_pas_un_detenu",
+      "ok": true
+    },
+    {
+      "cas": "police_pa_zero_projete_sans_reimport_au_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "police_deux_rounds_historiques_reels_detection_justice_et_PA_sans_stub",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_groupe_reel_2PJ_4soldats_3policiers_sans_tiers",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_absent_et_ses_suiveurs_non_participants",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_PJ_exclu_pa",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_PJ_exclu_hp",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_PJ_exclu_est_emprisonne",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_PJ_exclu_hospitalisation",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_PNJ_morts_detenus_sans_PA_exclus",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_interception_uniquement_rencontre_concernee",
+      "ok": true
+    },
+    {
+      "cas": "interception_interdit_depart_groupe_A",
+      "ok": true
+    },
+    {
+      "cas": "interception_interdit_depart_groupe_B",
+      "ok": true
+    },
+    {
+      "cas": "interception_interdit_nouveau_membre",
+      "ok": true
+    },
+    {
+      "cas": "interception_interdit_pnj_quitter_groupe",
+      "ok": true
+    },
+    {
+      "cas": "interception_interdit_pnj_transferer",
+      "ok": true
+    },
+    {
+      "cas": "interception_interdit_pnj_deployer_unite",
+      "ok": true
+    },
+    {
+      "cas": "interception_interdit_retirer_force_policier_selectionne",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_porte_interne_inaccessible_au_navigateur",
+      "ok": true
+    },
+    {
+      "cas": "round_militaire_reel_deux_camps_physiquement_presents_meme_pays",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_militaire_exclut_PJ_hp",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_militaire_exclut_PJ_est_emprisonne",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_militaire_exclut_PJ_hospitalisation",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_militaire_interception_prioritaire",
+      "ok": true
+    },
+    {
+      "cas": "recrutement_militaire_PNJ_presence_physique_pas_origine",
+      "ok": true
+    },
+    {
+      "cas": "rounds_police_reels_apres_raccordement_selection_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "police_refus_avant_coups_et_mutations_hp",
+      "ok": true
+    },
+    {
+      "cas": "police_refus_avant_coups_et_mutations_est_emprisonne",
+      "ok": true
+    },
+    {
+      "cas": "police_refus_avant_coups_et_mutations_hospitalisation",
+      "ok": true
+    },
+    {
+      "cas": "prise_PNJ_concurrente_serialisee_graphe_entre_deux_sessions",
+      "ok": true
+    },
+    {
+      "cas": "ecrou_chef_ne_transporte_pas_PJ_innocent_ni_ses_7PNJ_rejeu_sans_double_peine",
+      "ok": true
+    },
+    {
+      "cas": "ecrou_membre_detache_uniquement_ses_suiveurs_sans_sanction_du_chef",
+      "ok": true
+    },
+    {
+      "cas": "ecrou_refuse_ne_separe_pas_le_groupe",
+      "ok": true
+    },
+    {
+      "cas": "ecrou_panne_aval_annule_peine_positions_et_separation",
+      "ok": true
+    },
+    {
+      "cas": "ecrou_primitives_privees_sans_porte_de_teleportation",
+      "ok": true
+    },
+    {
+      "cas": "rounds_police_preexistants_conserves_apres_extension_mixte",
+      "ok": true
+    },
+    {
+      "cas": "rounds_mixtes_2groupes_PJ_policiers_soldats_agents_prives_PA_rejeu_et_gel",
+      "ok": true
+    },
+    {
+      "cas": "rounds_mixtes_victoire_ensemble_force_neutralisee_pas_seulement_detecteur",
+      "ok": true
+    },
+    {
+      "cas": "rounds_mixtes_defaite_ecrou_recherche_uniquement_separation_PNJ",
+      "ok": true
+    },
+    {
+      "cas": "interception_compagnon_recherche_detecte_sans_sanction_automatique_du_chef",
+      "ok": true
+    },
+    {
+      "cas": "interception_chef_innocent_commande_round_du_groupe_recu_et_PA_propres",
+      "ok": true
+    },
+    {
+      "cas": "round_futur_ou_obsolete_refuse_avant_coup_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "reddition_personnelle_compagnon_ecroue_pas_chef_ni_PNJ",
+      "ok": true
+    },
+    {
+      "cas": "fuite_collective_jet_reel_ensemble_PJ_PNJ_moteur_commun_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "fuite_collective_refusee_jet_reel_personne_ne_bouge_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "fuite_collective_incapacite_annule_jet_tentative_et_tous_mouvements",
+      "ok": true
+    },
+    {
+      "cas": "interception_victoire_force_entiere_PJ_PNJ_pas_seulement_policiers",
+      "ok": true
+    },
+    {
+      "cas": "interception_defaite_compagnon_ecroue_pas_chef_recu_apres_separation",
+      "ok": true
+    },
+    {
+      "cas": "round_collectif_concurrent_deux_sessions_un_seul_round_et_relecture",
+      "ok": true
+    },
+    {
+      "cas": "taxi_caserne_9voyageurs_1800FR_1PA_entree_sortie_retour_bus_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "taxi_qhs_9voyageurs_1800FR_1PA_entree_sortie_retour_bus_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "taxi_special_insuffisant_annule_ensemble",
+      "ok": true
+    },
+    {
+      "cas": "taxi_special_membre_detenu_refuse_avant_paiement",
+      "ok": true
+    },
+    {
+      "cas": "taxi_special_ne_permet_pas_destination_arbitraire",
+      "ok": true
+    }
+  ],
+  "production": false,
+  "authentification": "identite JWT de fixture, role authenticated",
+  "rollback": false,
+  "preuves_extension": {
+    "action_fictive_committee": true,
+    "precision": "Une sortie et un transport fictifs committés uniquement dans PostgreSQL éphémère pour les snapshots concurrents ; autres scénarios annulés, aucune production.",
+    "detecteur": "Corps historique Git, pas le dernier relevé vivant ; justice éligibilité fictive, vrai hasard PostgreSQL.",
+    "combat": "Calcul du coup authentique et dépendances militaires, pas un round mixte ni une détention.",
+    "contre_interieurs": false,
+    "round_militaire": "Corps existants, deux PJ militaires fictifs puis un PJ et quatre soldats contre un PJ. Ne prouve pas le recrutement des policiers ni une agression générale.",
+    "fonctions_rounds_chargees": [
+      "agent_position_effective",
+      "assemblee_stat_base",
+      "cellule_alerter_ministre",
+      "contre_espionnage_niveau_connu",
+      "detention_cible_pnj",
+      "detention_ouvrir_interne",
+      "jour_de_jeu_pays",
+      "mail_systeme_poser_interne",
+      "militaire_bataille_actions",
+      "militaire_bataille_appliquer",
+      "militaire_bataille_arbitrer_groupes",
+      "militaire_bataille_avancer",
+      "militaire_bataille_combattants",
+      "militaire_bataille_decrocher_groupe",
+      "militaire_bataille_groupes_constituer",
+      "militaire_bataille_mon_camp",
+      "militaire_bataille_poursuivre",
+      "militaire_bataille_rapport",
+      "militaire_bataille_recruter",
+      "militaire_bataille_round",
+      "militaire_bonus_arme",
+      "militaire_camps_hostiles",
+      "militaire_defense_pnj",
+      "militaire_degrader",
+      "militaire_degre_par_rang",
+      "militaire_degre_rang",
+      "militaire_gilet_absorber",
+      "militaire_groupe_sous_seuil",
+      "militaire_position_repli",
+      "militaire_sections_remplacer",
+      "militaire_soldat_pa_fixer",
+      "militaire_soldat_supprimer",
+      "mutinerie_pays_du_camp",
+      "pnj_classe_de",
+      "pnj_mourir",
+      "pnj_pa_fixer",
+      "pnj_pa_garde",
+      "pnj_pa_max"
+    ],
+    "recrutement": "Lecteur privé du groupe canonique et gardes de composition. Ne prouve pas encore les rounds mixtes universels ni la reddition collective.",
+    "ecrou": "Vraie exécution de jugement et écrou sur PJ fictifs : séparation atomique du chef/membre et PNJ, refus/rejeu/panne aval. Aucun test production.",
+    "rounds_mixtes": "Extension du même police_combat_resoudre et combat_coup_resoudre : groupes PJ/policiers/soldats/agents, victoire/défaite, reçus et écrou réel. Dégâts PA du contexte policier conservés, pas de mort artificielle.",
+    "taxis": "Même transport/paiement/reçu, tarifs extraits du dépôt, zones spéciales du catalogue réel et non de villes. Neuf voyageurs, entrée/sortie publique et bus retour, refus atomiques."
+  },
+  "migrations_appliquees": [],
+  "original217": false
+}

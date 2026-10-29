@@ -71,9 +71,14 @@ def suite(ctx,suivante=None):
   if not victoire:
    q.execute("SELECT current_building,current_room FROM personnages_donnees WHERE name='D'");assert q.fetchone()==('mairie','accueil')
    q.execute("SELECT leader_pj FROM pnj_membres WHERE id='ancre'");assert q.fetchone()[0] is None
+   q.execute("SELECT pa FROM personnages_donnees WHERE name='D'");assert q.fetchone()[0]==0,'compagnon encore debout lors de l’écrou'
+  else:
+   q.execute("SELECT count(*) FROM personnages_donnees WHERE name IN ('A','B') AND pa>0");assert q.fetchone()[0]==0,'PJ de la force oublié'
+   q.execute("SELECT count(*) FROM pnj_membres WHERE leader_pj='B' AND pa>0");assert q.fetchone()[0]==0,'PNJ de la force oublié'
  cas('rounds_mixtes_victoire_ensemble_force_neutralisee_pas_seulement_detecteur',lambda:issue(True))
  cas('rounds_mixtes_defaite_ecrou_recherche_uniquement_separation_PNJ',lambda:issue(False))
  ctx['preparer_combat_mixte']=decor;ctx['detecter_combat_mixte']=detecter
  ctx['preuves_extension']['rounds_mixtes']='Extension du même police_combat_resoudre et combat_coup_resoudre : groupes PJ/policiers/soldats/agents, victoire/défaite, reçus et écrou réel. Dégâts PA du contexte policier conservés, pas de mort artificielle.'
  if suivante is not None:suivante(ctx)
-if __name__=='__main__':sys.exit(e.lancer(suite))
+def lancer(suivante=None):return e.lancer(lambda c:suite(c,suivante))
+if __name__=='__main__':sys.exit(lancer())

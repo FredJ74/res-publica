@@ -15,3 +15,9 @@ test('contrat incomplet : un seul chef confirmé pour deux membres ne permet auc
 test('création initiale : conserve la position de départ malgré une ancienne capacité de session',async()=>{const c=vm.createContext({localStorage:{getItem:()=>null},ressourcesAvecBasePop:()=>({}),Date,sbCreerPersonnageUnique:async d=>d});vm.runInContext(fonctions('supabase.js',['sbPayloadPersonnage','sbCreerPersonnageInitial']),c);const st={char:{name:'fictif'},country:'republic',currentCity:'capitale',_navigationServeur:true};const r=await c.sbCreerPersonnageInitial(st);assert.equal(r.country,'republic');assert.equal(r.current_city,'capitale');assert.equal(st._navigationServeur,true);});
 
 for(const membre of ['A','B'])test('portier conservé seulement pour le demandeur non membre '+membre,async()=>{const c=jeu();let portier=0;c.doLogePortail=()=>portier++;c.sbRpcVerdict=async()=>({ok:false,raison:'membre_loge_requis',membre});await c.commanderNavigationInterieure('loge-maconnique','hall_loge');assert.equal(portier,membre==='B'?1:0);assert.equal(c.renders.length,0);});
+test('zone spéciale : sortie confirmée vers aperçu par le même moteur intérieur',async()=>{
+ const c=jeu();c.state.currentCity='caserne';c.state.currentBuilding='caserne-militaire';c.state.currentRoom='corps_garde';
+ c.showVueRue=(b,p)=>{c.renders.push(['apercu',b,p]);c.state.currentBuilding=null;c.state.currentRoom=null;};
+ c.sbRpcVerdict=async()=>({ok:true,building:null,room:null,membres:['B'],positions:[{name:'B',country:'republic',city:'caserne',building:null,room:null,street:null}]});
+ assert.equal(await c.commanderNavigationInterieure(null,null),true);assert.equal(c.renders[0][0],'apercu');assert.equal(c.state.currentBuilding,null);
+});

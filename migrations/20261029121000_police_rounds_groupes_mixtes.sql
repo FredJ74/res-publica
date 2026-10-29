@@ -5,17 +5,22 @@ ALTER TABLE public.police_interceptions ADD COLUMN IF NOT EXISTS combattants_for
 CREATE OR REPLACE FUNCTION public.combat_membre_decrire_interne(p_pj boolean,p_id text)
 RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $g$
  SELECT jsonb_build_object('cle','pj:'||d.name,'pj_nom',d.name,'matricule','pj:'||d.name,'pa',d.pa,
+  'groupeCle','pj:'||coalesce((SELECT chef FROM public.groupes_pj_adhesions WHERE membre=d.name),d.name),
+  'pays',d.country,'ville',d.current_city,'buildingId',d.current_building,'roomId',d.current_room,'rueNoeudId',d.current_street,
   'stats',jsonb_build_object('VOL',coalesce((d.stats->>'VOL')::numeric,8),'PER',coalesce((d.stats->>'PER')::numeric,8)))
  FROM public.personnages_donnees d WHERE p_pj AND d.name=p_id
  UNION ALL
  SELECT jsonb_build_object('cle','pnj:'||m.id,'pnj_socle_id',m.id,
   'matricule',CASE WHEN m.famille='policier' THEN pm.matricule ELSE 'pnj:'||m.id END,
+  'groupeCle',CASE WHEN m.leader_pj IS NOT NULL THEN 'pj:'||coalesce((SELECT chef FROM public.groupes_pj_adhesions WHERE membre=m.leader_pj),m.leader_pj) ELSE 'pnj:'||coalesce(m.leader_pnj_id,m.id) END,
+  'pays',pe.pays,'ville',pe.ville,'buildingId',pe.building_id,'roomId',pe.room_id,'rueNoeudId',pe.rue_noeud_id,
   'pa',m.pa,'stats',jsonb_build_object(
    'VOL',CASE WHEN m.famille='soldat' THEN coalesce((sm.formation->>'combat_rapproche')::numeric,0) ELSE m.car_vol END,
    'PER',CASE WHEN m.famille='soldat' THEN public.militaire_defense_pnj('PER') ELSE m.car_per END))
  FROM public.pnj_membres m
  LEFT JOIN public.pnj_soldats_metier sm ON sm.pnj_id=m.id
  LEFT JOIN public.pnj_force_publique_metier pm ON pm.pnj_id=m.id
+ CROSS JOIN LATERAL public.pnj_position_effective(m.id) pe
  WHERE NOT p_pj AND m.id=p_id AND (m.famille='soldat' OR (m.car_vol IS NOT NULL AND m.car_per IS NOT NULL));
 $g$;
 REVOKE ALL ON FUNCTION public.combat_membre_decrire_interne(boolean,text) FROM PUBLIC,anon,authenticated,service_role;
@@ -48,7 +53,7 @@ BEGIN
    resultat:=resultat||public.police_groupe_combattants_interne(m.leader_pj,p_rencontre);
   ELSE
    FOR ident IN SELECT id FROM public.pnj_membres WHERE statut='actif' AND pa>0
-    AND (id=coalesce(m.leader_pnj_id,m.id) OR leader_pnj_id=coalesce(m.leader_pnj_id,m.id)) ORDER BY id LOOP
+    AND (id=coalesce(m.leader_pnj_id,m.id) OR leader_pnj_id=coalesce(m.leader_pnj_id,m.id)) ORDER BY id FOR UPDATE LOOP
     SELECT * INTO pe FROM public.pnj_position_effective(ident);
     IF (pe.pays,pe.ville,pe.building_id) IS DISTINCT FROM (lieu.country,lieu.current_city,lieu.current_building)
       OR (lieu.current_building IS NOT NULL AND pe.room_id IS DISTINCT FROM lieu.current_room)
@@ -60,7 +65,9 @@ BEGIN
   END IF;
  END LOOP;
  SELECT coalesce(jsonb_agg(x ORDER BY x->>'cle'),'[]'::jsonb) INTO resultat
- FROM (SELECT DISTINCT value AS x FROM jsonb_array_elements(resultat)) t;
+ FROM (SELECT DISTINCT value AS x FROM jsonb_array_elements(resultat)) t
+ WHERE (x->>'pays',x->>'ville',x->>'buildingId') IS NOT DISTINCT FROM (lieu.country,lieu.current_city,lieu.current_building)
+ AND CASE WHEN lieu.current_building IS NULL THEN x->>'rueNoeudId'=lieu.current_street ELSE x->>'roomId' IS NOT DISTINCT FROM lieu.current_room END;
  RETURN resultat;
 END $g$;
 REVOKE ALL ON FUNCTION public.police_force_combattants_interne(text,text) FROM PUBLIC,anon,authenticated,service_role;

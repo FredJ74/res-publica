@@ -18,6 +18,14 @@
 
 ---
 
+## #219 — interception collective et taxis raccordés, Codex 29/10, EN COURS
+
+- Après `8848048f`, adaptations privées du détecteur et du round existants, sans JWT substitué. Chef non recherché / compagnon recherché : détection effective, groupes complets, commandement du chef, reddition personnelle, seul le jugement du recherché exécuté. Rébellion du commandeur qui choisit de combattre conservée, pas de peine automatique du compagnon au chef. Reçus lisibles par leur commandeur après séparation, rounds futurs/obsolètes refusés avant coup.
+- Même recrutement avant/après détection ; perception du groupe réel et priorité police existantes, sans créer de faux dossier avant le jet ni laisser un groupe se détecter lui-même. Gel des deux compositions dès détection. Même jet/reçu de fuite, puis même navigation commune : tous passent ou aucun, incapacité annule l'ensemble. Une transaction concurrente par round, réponse identique relue sans second coup.
+- Taxis Caserne/QHS raccordés à `transport_effectuer` : 9 voyageurs, 1 PA et 1 800 FR au leader, aucune dépense séparée à l'écran. Zones spéciales réelles, sans les introduire dans `villes`. Entrées publiques et sortie vers aperçu utilisent `navigation_interieure`, puis bus retour existant (9 voyageurs, 1 PA / 1 350 FR). Aucune prison ni restriction contournée.
+- Client : distingue cible/chef, droits des boutons et peine personnelle ; PA et détention du compte connecté relus avant affichage, pas ceux du compagnon. Anciennes réponses ignorées après changement de personnage/session. Cache des deux JS monté. **224/224 SQL jetables**, **41 tests réseau/interception**, **14 tests intérieurs client**. Contres mêmes 224 cas sur oubli des membres de l'un ou l'autre camp, preuves `preuves-groupes-219-interception-20261029/`. Une rencontre fictive commitée seulement dans PostgreSQL jetable pour deux connexions concurrentes ; aucune donnée réelle.
+- **Suite en cours, NON PRÊT** : anciennes écritures d'effectifs à fermer après remplacement de leurs actions utiles, miroirs militaires/statuts, derniers contrôles et recette globale. Prévol vivant/extraction à ChatGPT (#230), aucune tentative Supabase renouvelée. Aucune fusion ni migration appliquée, aucun immobilier ni PR225/235 touché.
+
 ## #219 — rounds mixtes et séparation à l'écrou, Codex 29/10, EN COURS
 
 - Après `df3ee78d`, préparation `20261029120000` / `20261029121000`. Même branche/PR219, aucune production. Séparation extraite de la porte PNJ commune puis réutilisée par l'écrou existant ; chef/membre emprisonné quitte son groupe, ses PNJ restent à leur position précédente sans changement d'emploi/propriété. Une panne aval annule détention et séparation.

@@ -334,6 +334,12 @@ async function commanderNavigationInterieure(buildingId,roomId) {
       return false;
     }
     if(moi?.updated_at)state._dernierUpdatedAtConnu=moi.updated_at;
+    if (buildingId === null && roomId === null) {
+      const ancien = state.currentBuilding;
+      if (state.char) { state.char.currentBuilding = null; state.char.currentRoom = null; }
+      showVueRue(ancien, { ok:true, country:state.country, city:state.currentCity, building:null, room:null, street:null });
+      return true;
+    }
     navigationInterieureRendu={buildingId,roomId};
     try {
       if(state.currentBuilding!==buildingId)enterBuilding(buildingId,true);
@@ -1633,6 +1639,9 @@ async function confirmerSortieBatimentServeur(contexte) {
 }
 
 async function sortirBatiment() {
+  if (state._navigationServeur && ['caserne','qhs'].includes(state.currentCity)) {
+    return commanderNavigationInterieure(null, null);
+  }
   if (typeof interceptionJudiciaireBloqueDeplacement === 'function' && interceptionJudiciaireBloqueDeplacement()) return;
   // Nettoyer toute infobulle de survol héritée de la vue précédente.
   if (typeof hideBuildingTooltip === 'function') hideBuildingTooltip();
@@ -2740,7 +2749,7 @@ async function commanderTransportServeur(mode,pays,ville) {
   afficherPositionNavigationConfirmee(frais);
   try{localStorage.removeItem(cle);}catch(_){}
   const lieu=typeof villeNom==='function'?(villeNom(pays,ville)||ville):ville;
-  if(typeof addJournalEntry==='function')addJournalEntry('Voyage en '+mode+' → '+lieu,'event-info');
+  if(typeof addJournalEntry==='function')addJournalEntry('Voyage en '+(mode.startsWith('taxi_')?'taxi':mode)+' → '+lieu,'event-info');
   if(typeof addExternalEvent==='function')addExternalEvent((state.char?.name||'Anonyme')+' est arrivé(e) à '+lieu+'.');
   showToast('Voyage confirmé',String(v.voyageurs||1)+' voyageur(s). Transport confirmé par le serveur.',true);
   return true;
