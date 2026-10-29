@@ -105,7 +105,7 @@ Object.keys(ACTES).sort().forEach(function (porte) {
   var n = porte==='chantier_commande_location' ? partout(/constructionExecuterCommande\('louer'/g) : porte==='chantier_commande_reamenagement' ? partout(/constructionExecuterCommande\('reamenager'/g) : porte==='chantier_commande_plan' ? partout(/constructionExecuterCommande\('plan'/g) : partout(new RegExp("sbTerrainActe\\('" + porte + "'", 'g'));
   if(porte==='acquisition_versionnee')n=partout(/finance135Acquerir\(id,'(?:depot|compromis)'/g);
   if(porte==='terrain_permis_acte') n+=partout(/sbRpcVerdict\('terrain_permis_deposer'/g); // meme depot, porte versionnee de #112
-  if(porte==='terrain_permis_acte') n+=partout(/sbRpcVerdict\('terrain_permis_corrompre'/g); // 29/10/2026 : corruption du fonctionnaire, porte serveur dediee
+  if(porte==='terrain_permis_acte') n+=partout(/sbRpcVerdict\('terrain_permis_corrompre'/g)+partout(/sbRpcVerdict\('terrain_permis_decider'/g); // 29/10/2026 : corruption du fonctionnaire, porte serveur dediee
   if(porte==='terrain_compromis_acte') n+=partout(/sbRpcVerdict\('terrain_rdv_notaire_accelerer'/g); // 29/10/2026 : acceleration du rendez-vous, porte serveur dediee
   totalPortes += n;
   att(porte + ' : ' + ACTES[porte] + ' appel(s)', n === ACTES[porte], n + ' trouve(s)');
@@ -153,6 +153,7 @@ var manquants = ACTES_NOMMES.filter(function (a) {
   if(a==='compromis_signer')return partout(/finance135Acquerir\(id,'compromis'/g)!==1;
   if(a==='achat_direct_deposer')return partout(/finance135Acquerir\(id,'depot'/g)!==1;
   // 29/10/2026 : l'acceleration du rendez-vous passe par sa porte serveur (date, paiement, recu).
+  if(a==='permis_decider')return partout(/sbRpcVerdict\('terrain_permis_decider'/g)!==1||partout(/p_acte: 'permis_decider'/g)!==0;
   if(a==='permis_accelerer')return partout(/sbRpcVerdict\('terrain_permis_corrompre'/g)!==1||partout(/p_acte: 'permis_accelerer'/g)!==0;
   if(a==='achat_direct_accelerer')return partout(/sbRpcVerdict\('terrain_rdv_notaire_accelerer'/g)!==1||partout(/p_acte: 'achat_direct_accelerer'/g)!==0;
   if(a==='permis_deposer')return partout(/sbRpcVerdict\('terrain_permis_deposer'/g)!==1;
@@ -186,12 +187,12 @@ att("prevenir le maire n'envoie plus rien d'autre que l'acte",
 att("et `rien_a_signaler` est traite comme le cas NORMAL, sans toast",
     bPrev.indexOf('signalerRefusTerrain') < 0 && bPrev.indexOf('vPrev.ok !== true') >= 0);
 var bDec = sansCommentaires(bloc('plateau-justice-economie.js', 'traiterPermis'));
-att('la decision du permis ne transmet que `permis` (et `constructionAutorisee` si valide)',
-    bDec.indexOf('p_patch: valide') >= 0
-    && bDec.indexOf("{ permis: etat.permis, constructionAutorisee: true }") >= 0);
-att("et son verdict est lu : un refus ARRETE la decision",
-    bDec.indexOf('vDec.ok !== true') >= 0
-    && bDec.indexOf('vDec.ok !== true') < bDec.indexOf('remplacerTerrainState(buildingId, vDec.etat)'));
+// 29/10/2026 : la decision passe par sa porte serveur ; l'ecran ne transmet plus de permis.
+att('la decision du permis ne transmet que la decision et le motif',
+    bDec.indexOf("sbRpcVerdict('terrain_permis_decider'") >= 0 && bDec.indexOf('p_patch') < 0
+    && bDec.indexOf('emettreDocumentUrbanisme(') < 0 && bDec.indexOf('sbSendMail(') < 0);
+att('et lit son verdict avant de remplacer l etat',
+    bDec.indexOf('v.ok !== true') >= 0 && bDec.indexOf('v.ok !== true') < bDec.indexOf('remplacerTerrainState(buildingId, v.etat)'));
 var bCorr = sansCommentaires(bloc('plateau-justice-economie.js', 'doCorrompreFonctionnairePermis'));
 // 29/10/2026 : plus aucun permis transmis -- la porte serveur paie, tire et divise elle-meme.
 att("la corruption du fonctionnaire ne transmet plus aucun permis, la porte serveur decide",

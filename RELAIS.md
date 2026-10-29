@@ -23,7 +23,10 @@ Mission confiée par Fred le 29/10 (plan ChatGPT « finir Luthécia d'ici dimanc
 
 - `20261029122342` : **« Corrompre un fonctionnaire (accélérer) » le permis** : l'écran envoyait le permis entier ; un demandeur pouvait se poser lui-même `statut: valide` ou une instruction d'un jour, sans payer (reproduit) → porte `terrain_permis_corrompre` (2 PA + 800 FR, découverte 25 % tirée par le serveur avec détection pénale commune, durée divisée par deux sur le dossier enregistré). Écran raccordé.
 
-**À appliquer JUSTE APRÈS la livraison de cette branche** : `20261029160000` (ferme les anciens actes `achat_direct_accelerer` et `permis_accelerer`). Répétées à blanc : OK.
+- `20261029122748` : **décision du maire adjoint sur un permis** : l'acte fusionnait le permis entier envoyé par l'écran (palier, demandeur, durées modifiables), l'écran archivait et écrivait le courrier → porte `terrain_permis_decider` (décision + motif seulement ; statut, archive, arrêté remis, courrier et 1 PA dans une transaction). Éprouvé : refus à un non-adjoint, motif court refusé, dossier tranché une seule fois, lancement possible après accord. Écran raccordé.
+- Le maire constate encore : aucune autre écriture cliente sur le permis n'est restée ouverte hors `permis_plan_modifier` (plan, autorité vérifiée).
+
+**À appliquer JUSTE APRÈS la livraison de cette branche** : `20261029160000` (ferme les anciens actes `achat_direct_accelerer`, `permis_accelerer` et `permis_decider`). Répétées à blanc : OK.
 
 **Constats non corrigés (à arbitrer ou à raccorder)** :
 - **#224 loyers non prélevés** : cause trouvée. Au passage à l'heure d'hiver (25/10), le cron Vercel est resté sur `0 22 * * *` UTC = 23 h à Paris : les passes des 26 et 27 ont tourné une heure AVANT minuit, et la journée du 28 n'a eu **aucune passe** (cron_journal : 25, 26, 27, 29). Le réglage est déjà rattrapé (`0 23 * * *`, commit 3a9b0c5). Pas de rattrapage rétroactif sans accord de Fred. Fragilité restante (transversal, ChatGPT) : une passe lancée avant minuit Paris se compte pour la veille.

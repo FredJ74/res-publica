@@ -8583,8 +8583,6 @@ async function traiterPermis(buildingId, valide, pa, cost, motif) {
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', buildingId, 'Traiter ce permis')) return;
   const etat = await sbGetTerrainState(state.country, buildingId).catch(() => null);
   if (!etat?.permis) return;
-
-  // Verdict unique : dossier encore ouvert, et motif ecrit obligatoire en cas de refus.
   const motifSaisi = valide ? null
     : ((typeof motif === 'string' && motif) || document.getElementById('permis-motif-refus')?.value || '');
   const vDecision = verdictDecisionPermis(etat.permis, valide, motifSaisi);
@@ -8595,68 +8593,25 @@ async function traiterPermis(buildingId, valide, pa, cost, motif) {
         : 'Ce dossier a déjà été tranché.', false);
     return;
   }
-  // Lot 1.5.5 : la decision est archivee AVANT toute mutation du permis et avant le prelevement.
-  // Si l'archive municipale n'enregistre pas l'acte, la decision n'a pas lieu : le permis reste
-  // EXACTEMENT dans l'etat ou il etait -- rien n'est perdu, le maire adjoint peut retrancher plus
-  // tard -- et aucun cout n'est preleve. Meme pre-controle du cout qu'au depot, pour ne pas laisser
-  // une ligne d'archive sans decision.
-  const paDispoDecision = TEST_MODE || (state.pa || 0) >= (pa || 0);
-  const fondsDispoDecision = (cost || 0) <= 0
-    || (typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() >= cost : true);
-  if (!paDispoDecision || !fondsDispoDecision) {
-    signalerRefusCout({ ok: false, raison: paDispoDecision ? 'fonds_insuffisants' : 'pa_insuffisants', pa, cost });
+  // LE SERVEUR DECIDE ET ARCHIVE (29/10/2026) : l'adjoint ne transmet que sa decision et son motif.
+  // Statut, archive, document remis, courrier et cout de l'ordre sont poses dans une seule
+  // transaction ; l'ancien acte `permis_decider` fusionnait le permis entier envoye par l'ecran.
+  const cle = 'permis-decision:' + (state.char?.name || '') + ':' + buildingId + ':' + (etat.permis.numeroDossier || '');
+  let requete;
+  try { requete = sessionStorage.getItem(cle) || crypto.randomUUID(); sessionStorage.setItem(cle, requete); }
+  catch (_) { showToast('Décision non envoyée', 'Le navigateur ne peut pas conserver la référence de cette décision.', false); return; }
+  const v = await sbRpcVerdict('terrain_permis_decider', {
+    p_terrain: buildingId, p_valide: valide === true, p_motif: valide ? null : vDecision.motif, p_requete: requete
+  }).catch(() => null);
+  if (!v || v.ok !== true) {
+    if (v && !v.transport) { try { sessionStorage.removeItem(cle); } catch (_) {} }
+    if (v && !v.transport) signalerRefusTerrain(v, 'La décision sur ce permis');
+    else showToast('Décision incertaine', 'Réponse incertaine. Relancez la même décision : elle ne sera pas comptée deux fois.', false);
     return;
   }
-
-  // Le snapshot archive porte la decision : on le construit sur une COPIE du permis, sans encore
-  // toucher a l'etat vivant.
-  const permisDecide = { ...etat.permis, statut: valide ? 'valide' : 'refuse', motifRefus: vDecision.motif };
-  const emisDecision = (typeof emettreDocumentUrbanisme === 'function')
-    ? await emettreDocumentUrbanisme(etat, permisDecide, valide ? 'acceptation' : 'refus',
-        { buildingId: buildingId, pays: state.country, ville: etat.city || state.currentCity,
-          jour: state.day || 1 })
-    : null;
-  if (!emisDecision) {
-    showToast('Décision impossible', "Les archives municipales n'ont pas pu enregistrer cette décision. Le dossier reste en l'état — réessayez.", false);
-    return;
-  }
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  etat.permis.statut = valide ? 'valide' : 'refuse';
-  if (!valide) {
-    etat.permis.motifRefus = vDecision.motif;
-    // Jour du refus : point de depart de la carence de trois jours avant un nouveau depot.
-    etat.permis.jourRefus = state.day || 1;
-  }
-  // L'AUTORITE DE LA DECISION EST ENFIN VERIFIEE (10 octobre 2026). Cette fonction ne verifiait
-  // RIEN : `requiresPost: 'maire_adjoint'` et « dans cette ville uniquement » vivaient dans
-  // data.js, cote navigateur. N'importe quel joueur connecte pouvait donc valider ou refuser
-  // n'importe quel permis du jeu -- la policy d'UPDATE de `terrains_etat` le laisse ecrire. Et
-  // l'ecriture envoyait `etat` ENTIER, donc effacait la nuit du cron.
-  const vDec = await sbTerrainActe('terrain_permis_acte', {
-    p_terrain_id: buildingId, p_acte: 'permis_decider',
-    p_patch: valide
-      ? { permis: etat.permis, constructionAutorisee: true }
-      : { permis: etat.permis }
-  });
-  if (!vDec || vDec.ok !== true) {
-    signalerRefusTerrain(vDec, 'La décision sur ce permis');
-    return;
-  }
-  if (valide) etat.constructionAutorisee = true;
-  remplacerTerrainState(buildingId, vDec.etat);
-
-  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
-  if (typeof sbSendMail === 'function') {
-    const msg = valide
-      ? 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été validé. Vous pouvez construire.'
-      : 'Votre permis de construire (' + NIVEAUX_CONSTRUCTION[etat.permis.palierDemande].label + ') a été refusé.\n\nMotif retenu par le service d\'urbanisme : '
-        + vDecision.motif + '\n\nVous pourrez déposer une nouvelle demande dans ' + PERMIS_COOLDOWN_REFUS_JOURS + ' jours.';
-    await sbSendMail('Mairie', etat.permis.demandeur, valide ? 'Permis validé' : 'Permis refusé', msg, time).catch(() => {});
-  }
-
+  try { sessionStorage.removeItem(cle); } catch (_) {}
+  if (v.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paiement);
+  if (v.etat) remplacerTerrainState(buildingId, v.etat);
   document.getElementById('modal-postes')?.classList.remove('open');
   showToast(valide ? 'Permis validé' : 'Permis refusé', '', true, true);
   addJournalEntry((valide ? 'Permis de construire validé' : 'Permis de construire refusé') + ' pour ' + etat.permis.demandeur + '.', valide ? 'event-good' : 'event-bad');
