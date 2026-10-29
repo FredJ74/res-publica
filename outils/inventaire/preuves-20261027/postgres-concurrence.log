@@ -1,0 +1,11 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK 1 premier appel execute dans une transaction encore ouverte
+OK 2 autre session ne voit ni objet ni debit ou credit intermediaire
+OK 3 verrou reel de personnage pour la meme requete
+OK 4 deux transactions annulees sans effet permanent
+OK 5 premier appel execute dans une transaction encore ouverte
+OK 6 autre session ne voit ni objet ni debit ou credit intermediaire
+OK 7 verrou reel de caisse entre deux acheteurs
+OK 8 deux transactions annulees sans effet permanent
+{"assertions": 8, "production": false, "role_appels": "authenticated", "metier_committe": false, "schema_et_jwt": "fixtures"}

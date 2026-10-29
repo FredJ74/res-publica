@@ -343,28 +343,14 @@ function verifierProgressionCarriere(branche, succes) {
 // Declenchee depuis talkToPnj() des que le joueur mentionne Jeremy a Pat Hounette (question
 // libre, pas de bouton). Cree le vrai objet d'inventaire, journalise, trace l'action pour le
 // pipeline de rumeurs (fait detectable, pas une annonce publique), et bascule l'etape.
-function declencherMissionPatHounette() {
-  const qc = state.char?.queteCarriere;
-  if (!qc || qc.ambition !== 'criminel' || qc.etape !== 'a_rencontrer') return;
+async function declencherMissionPatHounette() {
+  const v = await executerReceptionInventaire('mission_carriere_recevoir', { p_mission: 'pat' });
+  if (!v) return;
+  state.char.queteCarriere = v.quete_carriere;
   const b = QUETE_CARRIERE_BRIEFS.criminel;
-
-  qc.etape = 'colis_recu';
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-
-  if (typeof addToInventory === 'function') {
-    addToInventory({ type: 'colis_secret_pat', name: 'Colis secret', icon: 'ti-package', desc: "Un colis remis par Pat Hounette. Vous ignorez ce qu'il contient." });
-  }
-  if (typeof addJournalEntry === 'function') {
-    addJournalEntry('Pat Hounette vous a confié un colis secret à remettre à Brigitte Menottes au commissariat de Luthécia.', 'event-info');
-  }
-  // Fait potentiellement compromettant (quelqu'un a pu voir la remise), pas une rumeur diffusee
-  // automatiquement -- alimente le meme pipeline que les autres actions detectables du jeu.
-  if (typeof tracerActionPourRumeur === 'function') tracerActionPourRumeur('colis_recu_pat_hounette', 'Pat Hounette');
-
+  addJournalEntry('Pat Hounette vous a confié un colis secret à remettre à Brigitte Menottes au commissariat de Luthécia.', 'event-info');
   document.getElementById('modal-pnj')?.classList.remove('open');
-  if (typeof afficherPopupQueteAccueil === 'function') {
-    afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.texte, suivant: null });
-  }
+  if (typeof afficherPopupQueteAccueil === 'function') afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.texte, suivant: null });
 }
 
 // Declenchee depuis confirmerDonObjetPnj/confirmerDonObjetPj (plateau-justice-economie.js)
@@ -485,43 +471,22 @@ function queteCarriereObjectifActuel() {
 // origineQuete:'jean_lou' pour que la quete puisse suivre precisement LEURS distributions sans
 // interferer avec d'eventuels autres tracts que le joueur possederait par ailleurs).
 function declencherMissionJeanLou() {
-  const qc = state.char?.queteCarriere;
+  const personnage = state.char;
+  const qc = personnage?.queteCarriere;
   if (!qc || qc.ambition !== 'politique' || qc.etape !== 'a_rencontrer') return;
   const b = QUETE_CARRIERE_BRIEFS.politique;
-
   document.getElementById('modal-pnj')?.classList.remove('open');
   if (typeof afficherPopupQueteAccueil !== 'function') return;
-
-  afficherPopupQueteAccueil({
-    image: b.image,
-    titre: b.titre,
-    texte: b.introduction,
-    suivant: function() {
-      afficherPopupQueteAccueil({
-        image: b.image,
-        titre: b.titre,
-        texte: b.texte,
-        suivant: function() {
-          qc.etape = 'tracts_recus';
-          qc.electionCible = null;
-          qc.ciblesJeanLou = [];
-          qc.resultatsJeanLou = [];
-          if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-
-          if (typeof addToInventory === 'function') {
-            addToInventory({
-              type: 'tract', name: 'Tracts POUR ' + (state.char?.name || 'vous'),
-              icon: 'ti-file-description', tractType: 'pour', cible: state.char?.name || '',
-              quantite: 3, legal: true, origineQuete: 'jean_lou'
-            });
-          }
-          if (typeof addJournalEntry === 'function') {
-            addJournalEntry('Jean-Lou Zeure vous a confié 3 tracts électoraux à votre nom.', 'event-info');
-          }
-        }
-      });
-    }
-  });
+  afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.introduction, suivant: function() {
+    afficherPopupQueteAccueil({ image: b.image, titre: b.titre, texte: b.texte, suivant: async function() {
+      if (state.char !== personnage) return;
+      const v = await executerReceptionInventaire('mission_carriere_recevoir', { p_mission: 'jean_lou' });
+      if (!v) return;
+      state.char.queteCarriere = v.quete_carriere;
+      addJournalEntry('Jean-Lou Zeure vous a confié 3 tracts électoraux à votre nom.', 'event-info');
+      updateUI();
+    }});
+  }});
 }
 
 // Cherche une candidature REELLE et active du joueur (CYCLES_ELECTORAUX, jamais
@@ -538,21 +503,6 @@ function declencherMissionJeanLou() {
 // candidat. Etre reellement liste dans cycle.candidats suffit desormais a etre considere
 // candidat pour les interactions electorales (tracts/prospectus) -- aucune autre condition
 // electorale modifiee.
-function trouverElectionCandidatJoueur() {
-  const country = state.country;
-  const cycles = (typeof CYCLES_ELECTORAUX !== 'undefined' && CYCLES_ELECTORAUX[country]) || {};
-  const nom = state.char?.name;
-  if (!nom) return null;
-  const cles = Object.keys(cycles).sort();
-  for (const cle of cles) {
-    const cycle = cycles[cle];
-    if (!cycle || !cycle.candidats) continue;
-    if (!cycle.candidats.some(c => c.nom === nom)) continue;
-    return { posteId: cycle.posteId, city: cycle.city || null, country };
-  }
-  return null;
-}
-
 // Meme principe que trouverElectionCandidatJoueur ci-dessus, parametre par un nom de candidat
 // arbitraire (lot tracts electoraux PSM, 24 aout 2026) -- trouve le cycle electoral ou une
 // personne nommee est effectivement candidate, quel que soit le joueur courant. Reutilise pour
@@ -577,70 +527,27 @@ function trouverElectionParCandidat(nomCandidat) {
 // pour CETTE quete, et n'ecrit une voix reelle QUE via enregistrerVotePNJ (plateau-politique.js)
 // -- jamais dans state.electionsEnCours. Les 3 tracts restent rattaches a la meme election
 // (qc.electionCible, fixee au premier tract distribue).
-function distribuerTractJeanLou(pnjName) {
+async function distribuerTractJeanLou(pnjName) {
   const qc = state.char?.queteCarriere;
   if (!qc || qc.ambition !== 'politique' || qc.etape !== 'tracts_recus') return;
-
-  const ciblesDeja = qc.ciblesJeanLou || [];
-  if (ciblesDeja.includes(pnjName)) {
+  if ((qc.ciblesJeanLou || []).includes(pnjName)) {
     if (typeof showToast === 'function') showToast('Déjà tenté', pnjName + ' a déjà été démarché(e) pour cette mission.', false);
     return;
   }
-
-  const election = qc.electionCible || trouverElectionCandidatJoueur();
-  if (!election) {
-    if (typeof showToast === 'function') showToast('Pas encore candidat', 'Présentez-vous d\'abord à une élection à la mairie avant de distribuer vos tracts.', false);
-    return;
-  }
-  if (!qc.electionCible) {
-    qc.electionCible = election;
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-  }
-
-  const lot = (state.inventory || []).find(i => i.type === 'tract' && i.origineQuete === 'jean_lou' && (i.quantite || 0) > 0);
-  if (!lot) return; // plus de tract de mission -- le bouton ne devrait plus etre visible a ce stade
-
-  lot.quantite -= 1;
-  if (lot.quantite <= 0) {
-    const idx = state.inventory.indexOf(lot);
-    state.inventory.splice(idx, 1);
+  // PAR LE SERVEUR (28/10/2026, chantier inventaire) : jean_lou_tract_distribuer retire le tract de
+  // mission, tire le jet (memes regles : 50 % + INF/10, plafond 80 %), enregistre la voix du PNJ et
+  // fait avancer la quete, dans une seule transaction. L'ecran adopte l'inventaire et la quete.
+  const v = await executerReceptionInventaire('jean_lou_tract_distribuer', { p_pnj: pnjName });
+  if (!v) return;
+  if (v.quete_carriere && state.char) state.char.queteCarriere = v.quete_carriere;
+  const convaincu = !!v.convaincu;
+  if (convaincu && v.voix && v.voix.ok && v.quete_carriere?.electionCible) {
+    const el = v.quete_carriere.electionCible;
+    const cle = (typeof getCleCycle === 'function') ? getCleCycle(el.posteId, el.city) : null;
+    const cycle = cle && (typeof CYCLES_ELECTORAUX !== 'undefined') ? CYCLES_ELECTORAUX[el.country]?.[cle] : null;
+    if (cycle && typeof ajouterEffetTractLocal === 'function') ajouterEffetTractLocal(cycle, state.char.name, 1, v.voix.tour);
   }
   if (typeof renderInventory === 'function') renderInventory();
-
-  // Meme mecanisme probabiliste que le tractage existant (distribuerTractPNJ, plateau-
-  // communication.js) : 50% de base + bonus INF/10, plafonne a 80%. Seule la destination du
-  // succes change (vrai systeme electoral, pas state.electionsEnCours).
-  const bonusInf = Math.floor((state.inf || 0) / 10);
-  const taux = Math.min(80, 50 + bonusInf);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  let convaincu = roll <= taux;
-
-  if (convaincu) {
-    // Verification synchrone (pas d'attente reseau) : ce PNJ ne peut deja figurer dans
-    // cycle.votesPNJ pour cette election puisque la quete garantit 3 cibles distinctes, sauf
-    // cas rarissime ou il a ete convaincu par un tout autre biais (ex: distribuerProspectus)
-    // avant meme cette mission -- dans ce cas, aucune nouvelle voix n'est ecrite et le tract
-    // ne compte pas comme un succes pour la quete. La persistance reelle (asynchrone) est
-    // lancee ensuite, mais cette decision synchrone conditionne deja le score/message affiches
-    // immediatement ci-dessous.
-    const cleCycle = (typeof getCleCycle === 'function') ? getCleCycle(election.posteId, election.city) : null;
-    const cycleCible = cleCycle && (typeof CYCLES_ELECTORAUX !== 'undefined') ? CYCLES_ELECTORAUX[election.country]?.[cleCycle] : null;
-    if (cycleCible && typeof pnjDejaEngage === 'function' && pnjDejaEngage(cycleCible, pnjName)) {
-      convaincu = false;
-    } else if (typeof enregistrerVotePNJ === 'function') {
-      // Canal 'jean_lou' : meme registre atomique que les tracts et les prospectus (la voix ne
-      // passe plus par une reecriture du blob electoral, ou elle pouvait etre ecrasee).
-      enregistrerVotePNJ(election.country, election.posteId, election.city, pnjName, state.char.name, 'jean_lou').catch(() => {});
-    }
-  }
-
-  qc.ciblesJeanLou = ciblesDeja.concat([pnjName]);
-  qc.resultatsJeanLou = (qc.resultatsJeanLou || []).concat([convaincu]);
-  if (qc.ciblesJeanLou.length >= 3) {
-    qc.etape = 'tracts_termines';
-  }
-  if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-
   if (typeof addJournalEntry === 'function') {
     addJournalEntry(convaincu
       ? 'Tract distribué à ' + pnjName + ' — convaincu(e).'
@@ -2057,78 +1964,8 @@ async function afficherReactionJournaliste() {
   );
 }
 
-function getAllPJsAndPNJs() {
-  const result = [];
-  // PJ connus (depuis state.pjConnus ou contacts)
-  const pjConnus = state.pjConnus || [];
-  pjConnus.forEach(nom => {
-    if (!result.some(r => r.name === nom)) {
-      result.push({ name: nom, role: 'Joueur', isPJ: true });
-    }
-  });
-  // Contacts du répertoire
-  (state.contacts || []).forEach(c => {
-    if (!result.some(r => r.name === c.name)) {
-      result.push({ name: c.name, role: c.role || 'Contact', isPJ: false });
-    }
-  });
-  // PNJ du bâtiment actuel
-  if (state.currentBuilding && state.currentRoom) {
-    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-    (room?.persons || []).forEach(p => {
-      if (!result.some(r => r.name === p.name)) {
-        result.push({ name: p.name, role: p.role || 'PNJ', isPJ: false });
-      }
-    });
-  }
-  // Si toujours vide, retourner une cible générique
-  if (result.length === 0) {
-    result.push({ name: 'Un notable local', role: 'Personnage politique', isPJ: false });
-  }
-  return result;
-}
-
-async function doEscortInfos() {
-  const cibles = getAllPJsAndPNJs().filter(c => c.name !== state.char?.name);
-  if (cibles.length === 0) { showToast('Personne à cibler', 'Aucune cible disponible.', false); return; }
-
-  const co = COUNTRIES[state.country];
-  const cur = co?.cur || 'FR';
-
-  const debit = await debiterFondsOrdinaires(300);
-  if (!debit.ok) { showToast('Fonds insuffisants', `300 ${cur} requis.`, false); return; }
-
-  // Choisir une cible au hasard parmi les PJ/PNJ connus
-  const cible = cibles[Math.floor(Math.random() * Math.min(3, cibles.length))];
-
-  const prompt = `Tu joues dans Res Publica, jeu politique parodique.
-Une escort de luxe (${state.country === 'republic' ? 'Roxane Velours' : state.country === 'narco' ? 'Lola Discreta' : 'Natasha Privilege'}) a recueilli des informations compromettantes sur ${cible.name} (${cible.role || 'personnage politique'}) dans l'empire ${co?.n}.
-Génère UNE révélation compromettante, parodique et drôle (2 phrases max). Style scandale politique. Pas de vrais noms de personnes réelles. Pas de religions réelles.`;
-
-  try {
-    const r = await rpRedaction('escort_infos', prompt);
-    const info = (r.texte || '').trim() || 'Information confidentielle obtenue.';
-
-    // Créer un kompromat dans l'inventaire
-    addToInventory({
-      id: 'kompromat-' + Date.now(),
-      name: 'Kompromat sur ' + cible.name,
-      icon: 'ti-file-shredder',
-      desc: info,
-      type: 'kompromat',
-      cible: cible.name,
-      legal: false
-    });
-
-    state.inf = Math.min(100, (state.inf || 0) + 5);
-    updateUI();
-    addJournalEntry('Kompromat obtenu sur ' + cible.name + '. Ajouté à l\'inventaire.', 'event-info');
-    showToast('Information obtenue !', info.substring(0, 100) + (info.length > 100 ? '...' : ''), true, true);
-
-  } catch(e) {
-    showToast('Erreur', 'Impossible d\'obtenir l\'information.', false);
-  }
-}
+// doEscortInfos SUPPRIME (28/10/2026, chantier inventaire) : aucun menu ne proposait l'ordre
+// « escort_infos », et la fonction fabriquait un kompromat a l'ecran sans aucun cout serveur.
 
 // =====================
 // LANCER UNE RUMEUR — refonte complete (chantier "refonte Lancer une rumeur", 2 septembre 2026)
@@ -3130,42 +2967,33 @@ async function confirmerFabriquerKompromat(nomAgent, nomCible) {
   document.getElementById('modal-postes').classList.remove('open');
   const co = COUNTRIES[state.country];
   const cur = co?.cur || 'FR';
-  const debit = await debiterFondsOrdinaires(300);
-  if (!debit.ok) { showToast('Fonds insuffisants', '300 ' + cur + ' requis.', false); return; }
-
+  // PAR LE SERVEUR (28/10/2026, chantier inventaire) : kompromat_fabriquer preleve les 300, verifie
+  // la cible, depose le kompromat et ajoute l'influence dans la meme transaction. Le texte de l'IA
+  // n'est qu'un habillage, pose ensuite une seule fois par kompromat_rediger.
+  const v = await executerReceptionInventaire('kompromat_fabriquer', { p_agent: nomAgent, p_cible: nomCible });
+  if (!v) return;
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ arg: v.arg, liquide: v.liquide });
+  if (typeof v.inf === 'number') state.inf = v.inf;
+  updateUI();
   const prompt = `Tu joues dans Res Publica, jeu politique parodique.
 ${nomAgent} a recueilli des informations compromettantes sur ${nomCible} dans l'empire ${co?.n}.
 Génère UNE révélation compromettante, parodique et drôle (2 phrases max). Style scandale politique. Pas de vrais noms de personnes réelles. Pas de religions réelles. Réponds en texte brut uniquement, sans markdown (pas de #, pas de **, pas de titre).`;
+  const info = await redigerKompromatServeur(v.objet_id, 'kompromat', prompt) || 'Information confidentielle obtenue.';
+  addJournalEntry('Kompromat obtenu sur ' + nomCible + ' via ' + nomAgent + '. Ajouté à l\'inventaire.', 'event-info');
+  showToast('Kompromat fabriqué !', info.substring(0, 100) + (info.length > 100 ? '...' : ''), true, true);
+}
 
-  try {
-    const r = await rpRedaction('kompromat', prompt);
-    const info = (r.texte || '').trim() || 'Information confidentielle obtenue.';
-
-    addToInventory({
-      id: 'kompromat-' + Date.now(),
-      name: 'Kompromat sur ' + nomCible,
-      icon: 'ti-file-shredder',
-      desc: info,
-      type: 'kompromat',
-      cible: nomCible,
-      legal: false
-    });
-
-    state.inf = Math.min(100, (state.inf || 0) + 5);
-    updateUI();
-    addJournalEntry('Kompromat obtenu sur ' + nomCible + ' via ' + nomAgent + '. Ajouté à l\'inventaire.', 'event-info');
-    showToast('Kompromat fabriqué !', info.substring(0, 100) + (info.length > 100 ? '...' : ''), true, true);
-  } catch(e) {
-    // Remboursement ATTESTE (§6.1) : le serveur annule le debit qu'il a inscrit, il ne recoit
-    // pas un montant du navigateur. La source « remboursement_kompromat » declare 300 FR, mais
-    // le serveur plafonne au prelevement reel.
-    if (typeof rembourserFondsOrdinaires === 'function') {
-      await rembourserFondsOrdinaires(debit.debitId, 'remboursement_kompromat', 300);
-    } else {
-      crediterFondsOrdinaires(300);
-    }
-    showToast('Erreur', 'Impossible de fabriquer le kompromat pour le moment. Remboursé.', false);
-  }
+// Fait ecrire par l'IA le texte d'un kompromat que le serveur vient de deposer, puis le pose une
+// seule fois. Rend le texte retenu, ou null (le texte provisoire du serveur reste alors en place).
+async function redigerKompromatServeur(objetId, usage, prompt) {
+  if (!objetId) return null;
+  let texte = null;
+  try { const r = await rpRedaction(usage, prompt); texte = (r && r.texte || '').trim() || null; } catch (_) {}
+  if (!texte) return null;
+  const brut = (typeof sbRpc === 'function') ? await sbRpc('kompromat_rediger', { p_objet: objetId, p_texte: texte }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (v && v.ok === true && typeof sbAdopterInventaireServeur === 'function') { sbAdopterInventaireServeur(v); updateUI(); }
+  return texte;
 }
 
 const ETAPES_ESCORT = {
@@ -3498,75 +3326,32 @@ async function confirmerEscortPiege(nomCible, pa, cost) {
 
   document.getElementById('modal-postes').classList.remove('open');
 
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  // PAR LE SERVEUR (28/10/2026, chantier inventaire) : escort_piege_tenter preleve l'ordre, tire le
+  // jet (memes regles, statistiques de la cible toujours simulees), applique les effets et depose le
+  // kompromat. L'ecran n'affiche que le resultat.
+  const v = await executerReceptionInventaire('escort_piege_tenter', { p_cible: nomCible, p_pa: pa, p_cost: cost });
+  if (!v) return;
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, arg: v.arg, liquide: v.liquide });
+  ['inf', 'pop', 'dis'].forEach(function (k) { if (typeof v[k] === 'number') state[k] = v[k]; });
+  updateUI();
 
-  // Stats commanditaire
-  const dup = getStatEffective('DUP');
-  const dis = state.dis || 50;
-
-  // On simule les stats de la cible (on ne les a pas côté client)
-  const cibleDUP = Math.floor(Math.random() * 6) + 6; // entre 6 et 12
-  const cibleDIS = Math.floor(Math.random() * 40) + 30; // entre 30 et 70
-
-  // Jet de succès
-  const taux = Math.min(80, 30 + Math.floor(dup * 2) - Math.floor(cibleDUP * 1.5));
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    // SUCCÈS
+  if (v.reussi) {
     const prompt = 'Res Publica, jeu politique parodique. ' + nomCible + ' vient d\'être piégé(e) par une escort dans un scandale compromettant. Génère UN titre de scandale parodique (1 phrase max, style journal à scandales). Réponds en texte brut uniquement, sans markdown (pas de #, pas de **).';
-    let scandale = nomCible + ' impliqué(e) dans un scandale compromettant avec une escort.';
-    try {
-      const r = await rpRedaction('escort_piege', prompt);
-      scandale = (r.texte || '').trim() || scandale;
-    } catch(e) {}
-
-    // Effets sur commanditaire
-    state.inf = Math.min(100, (state.inf||0) + 10);
-    state.pop = Math.min(100, (state.pop||0) + 5);
-
-    // Kompromat généré
-    addToInventory({
-      name: 'Kompromat sur ' + nomCible,
-      icon: 'ti-file-shredder',
-      type: 'kompromat',
-      cible: nomCible,
-      desc: scandale,
-      legal: false,
-      expireDay: (state.day||1) + 10
-    });
-
-    updateUI();
+    const scandale = await redigerKompromatServeur(v.objet_id, 'escort_piege', prompt)
+      || (nomCible + ' impliqué(e) dans un scandale compromettant avec une escort.');
     addExternalEvent('📰 SCANDALE : ' + scandale);
     addJournalEntry('Piège réussi sur ' + nomCible + '. Scandale : "' + scandale.substring(0,60) + '"', 'event-good');
     showToast('Piège réussi !', scandale, true, true);
-
-  } else {
-    // ÉCHEC — argent perdu, la cible peut enquêter
-    updateUI();
-    addJournalEntry('Piège raté sur ' + nomCible + '. -' + cost + ' ' + cur + ' perdus.', 'event-bad');
-    showToast('Piège raté', nomCible + ' a éventé la manœuvre. Argent perdu.', false);
-
-    // Jet d\'enquête de la cible contre le commanditaire
-    const tauxEnquete = Math.min(70, Math.floor(cibleDUP * 4) + Math.floor(cibleDIS / 10));
-    const rollEnquete = Math.floor(Math.random() * 100) + 1;
-    if (rollEnquete <= tauxEnquete) {
-      // Cible trouve le commanditaire
-      const tauxIdentif = Math.min(80, tauxEnquete - Math.floor(dup * 2) - Math.floor(dis / 10));
-      const rollIdentif = Math.floor(Math.random() * 100) + 1;
-      if (rollIdentif <= tauxIdentif) {
-        state.pop = Math.max(0, (state.pop||0) - 15);
-        state.dis = Math.max(0, (state.dis||50) - 10);
-        updateUI();
-        addExternalEvent('📰 ' + nomCible + ' révèle avoir été la cible d\'un complot orchestré par ' + (state.char?.name||'un personnage politique') + ' !');
-        addJournalEntry('Enquête de ' + nomCible + ' : vous avez été identifié(e). -15 POP -10 DIS.', 'event-bad');
-        showToast('Identifié(e) !', nomCible + ' vous a démasqué(e). -15 POP -10 DIS.', false);
-      } else {
-        addJournalEntry('La cible enquête mais ne vous retrouve pas.', 'event-info');
-      }
-    }
+    return;
+  }
+  addJournalEntry('Piège raté sur ' + nomCible + '. -' + cost + ' ' + cur + ' perdus.', 'event-bad');
+  showToast('Piège raté', nomCible + ' a éventé la manœuvre. Argent perdu.', false);
+  if (v.identifie) {
+    addExternalEvent('📰 ' + nomCible + ' révèle avoir été la cible d\'un complot orchestré par ' + (state.char?.name||'un personnage politique') + ' !');
+    addJournalEntry('Enquête de ' + nomCible + ' : vous avez été identifié(e). -15 POP -10 DIS.', 'event-bad');
+    showToast('Identifié(e) !', nomCible + ' vous a démasqué(e). -15 POP -10 DIS.', false);
+  } else if (v.enquete) {
+    addJournalEntry('La cible enquête mais ne vous retrouve pas.', 'event-info');
   }
 }
 

@@ -415,7 +415,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'decret_inutile')         { signerDecretInutile(pa, cost); return; }
   if (fn === 'elections_tableau')      { ouvrirTableauElectoral(); return; }
   if (fn === 'changer_domicile')       { changerDomicile(state.country, state.currentCity); return; }
-  if (fn === 'escort_infos')           { doEscortInfos(); return; }
   if (fn === 'escort_piege')           { doEscortPiege(pa, cost); return; }
   // INFORMATEURS PAR LE SERVEUR (27/10/2026). Seuls trois ordres existent dans data.js :
   // recruter_informateur_2, recruter_info_4 et consulter_info_4. « Consulter la Taupe N4 »

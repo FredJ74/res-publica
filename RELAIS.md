@@ -47,7 +47,7 @@ Règles : voir `AGENTS.md`.
   - **Au passage :** le PNJ Commissaire Charbon est retiré du bureau de Montrouge, faute de profil de dialogue.
   - **Restent à décider ou à faire :** le permis de la commune est payé par le maire (100 FR) ; la résiliation automatique au départ de la ville n'existe qu'à Montrouge ; les quatre appartements historiques de Montrouge gardent leur loyer fixe.
 
-- **Commissariats de Montrouge et PSM (Claude, 29/10, branche `claude/commissariats-pouvoirs-20261029`)** : décision de Fred, « chaque commissaire dispose des mêmes pouvoirs ». Le gabarit `commissariat-local` reçoit les ordres de Luthécia : archives et arrestation d'urgence à l'accueil ; bureau du commissaire avec dossiers de plainte, enquête, filature, chasse à l'homme et commandement des effectifs. Les écrans et les portes serveur étaient déjà bornés à la ville du commissaire. Plainte rejouée dans les trois villes. PSM et Montrouge ne gardent que leur habillage. Banc : `banc-commissariats-pouvoirs.cjs`. Migration `20261029203000` (non appliquée, compatible) : le commissariat, le tribunal et la banque des villes deviennent des bâtiments sensibles pour l'incendie et les explosifs, comme à Luthécia.
+- **Commissariats de Montrouge et PSM (Claude, 29/10, branche `claude/commissariats-pouvoirs-20261029`)** : décision de Fred, « chaque commissaire dispose des mêmes pouvoirs ». Le gabarit `commissariat-local` reçoit les ordres de Luthécia : archives et arrestation d'urgence à l'accueil ; bureau du commissaire avec dossiers de plainte, enquête, filature, chasse à l'homme et commandement des effectifs. Les écrans et les portes serveur étaient déjà bornés à la ville du commissaire. Plainte rejouée dans les trois villes. PSM et Montrouge ne gardent que leur habillage. Banc : `banc-commissariats-pouvoirs.cjs`. Migration `20261029203500` (non appliquée, compatible) : le commissariat, le tribunal et la banque des villes deviennent des bâtiments sensibles pour l'incendie et les explosifs, comme à Luthécia.
 
 - **Écritures de l'écran (Claude, 29/10, branche `claude/ecritures-ecran-20261029`)** : migration `20261029200000` préparée, non appliquée et compatible avec l'écran en ligne. Elle garde `prets` et `budgets_municipaux`. Mariage par le serveur (Fred : pas de mariage contre son gré) : `201000` tout de suite, `201100` après déploiement de l'écran. Restent ouverts et signalés : `budgets_clubs` et `organisations.caisse` (Codex), `budgets_nationaux`, `quetes_actives`. Bilan : `outils/bancs/ECRITURES-ECRAN-20261029.md`.
 
@@ -317,3 +317,9 @@ existantes, à reprendre si Fred le demande) :
 
 - 24/10/2026 — Mise en place du relais Codex/Claude (`AGENTS.md`,
   `CLAUDE.md`, `RELAIS.md`).
+
+### Intégration inventaire #213 — 29/10/2026
+
+- PR #249 : branche dédiée, issue du `main` 27198955, sans importer les groupes inachevés #219. Les raccordements d'inventaire de #213 sont réconciliés avec le code récent des écrans. Aucun déploiement, aucune migration de fermeture à cette étape.
+- Dix migrations métier déjà installées en base ; six fermetures différées au déploiement d'un client compatible : `20261028210000`, `20261028210500`, `20261028210600`, `20261028210700`, `20261028210800`, `20261028210900`. Ne pas activer le verrou final sans observation et accord du game designer.
+- CI au SHA de la PR #249 et validation des chemins d'inventaire impératives avant fusion. La garde fret `hg_fret_contenu_source` demeure désactivée en attendant le nouveau client.
