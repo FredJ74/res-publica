@@ -34,3 +34,16 @@ order by p.proname;
 -- La fermeture de #225 exige un jeton de version monotone pour TOUS les
 -- chemins d'écriture canonique ou une séparation stricte des champs.
 -- Ne pas mettre en production une comparaison CAS updated_at isolée.
+
+-- Inspection exhaustive des 16 triggers non internes au 29/10 :
+-- aucun des seize corps de fonction déclencheur ne contient 'updated_at'.
+-- Confirmation : le DEFAULT now() n'est pas une version de mutation fiable.
+select t.tgname, p.proname,
+       position('updated_at' in lower(pg_get_functiondef(p.oid))) as touches_updated_at
+from pg_trigger t join pg_proc p on p.oid=t.tgfoid
+where t.tgrelid='public.personnages_donnees'::regclass and not t.tgisinternal
+order by t.tgname;
+
+-- Avant livraison : établir un protocole de version atomique applicable à
+-- toute écriture serveur (y compris les UPDATE via SECURITY DEFINER), puis
+-- éprouver un conflit entre deux sessions authentifiées sur la même fiche.
