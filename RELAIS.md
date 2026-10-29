@@ -9,7 +9,7 @@
 
 **243/243 SQL natifs**, dont deux connexions concurrentes pour un seul recrutement/paiement, panne aval avec rollback, licenciement/rejeu et dotation vide préservée ; **118/118 bancs clients**, dont 11 cas réseau propres aux effectifs. Contre-épreuves : oubli des forces, du groupe recherché et réouverture du document. Décor fictif local committé pour concurrence, aucune identité Supabase. Aucun DDL de production.
 
-Main `4648840e` (#236–238) intégré à la branche de travail : correctifs PSM et rechargement de position préservés, versions de cache combinées. Validation après intégration en cours. Les protections générales de fiche et de version restent à ChatGPT (#235), le recrutement des compagnons non militaires dans une bataille militaire reste ouvert. **NON PRÊT pour activation globale.**
+Main `4648840e` (#236–238) intégré à la branche de travail : correctifs PSM et rechargement de position préservés, versions de cache combinées. Après intégration : **243/243 SQL**, **121/121 bancs clients**, contrôles globaux **5/12**. Preuves finales `preuves-groupes-219-integration-20261029/`. Les protections générales de fiche et de version restent à ChatGPT (#235), le recrutement des compagnons non militaires dans une bataille militaire reste ouvert. **NON PRÊT pour activation globale.**
 
 ## 29 octobre — suite #219 : miroir militaire et anciennes écritures
 
