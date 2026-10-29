@@ -745,13 +745,7 @@ const WORLD = {
         // salle_elections/salle_archives (emoji provisoire retire), imageBg conserve en repli.
         'mairie': {
           name: "Hôtel de Ville de Port-Sainte-Marie",
-          roomOverrides: {
-            accueil_mairie: {
-              orders: [
-                {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'}
-              ]
-            }
-          },
+          // L'objet trouvé est dans le gabarit commun depuis le 29/10/2026.
           roomsExtra: {
             salle_elections: {
               name: "Salle des Élections",
@@ -779,7 +773,8 @@ const WORLD = {
               desc: "L'état-civil et les archives administratives de la ville. Poussiéreux, mais tout y est.",
               persons: [],
               orders: [
-                {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."}
+                {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."},
+                {fn:'consulter_mandats_maires', label:'Consulter les résumés de mandats', pa:0, cost:0, type:'legal', icon:'ti-book', successRate:100, desc:'Bilans officiels des mandats achevés des maires de la ville.'}
               ]
             }
           }
@@ -1282,7 +1277,6 @@ const WORLD = {
             bureau_maire_adjoint:{
               imageUrl: "images/montrouge/montrouge-mairie-bureau-maire-adjoint.jpg",
               orders: [
-                {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
                 {fn:'traiter_demandes_logement_social', label:'Examiner les demandes de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'}
               ]
             }
@@ -1323,7 +1317,8 @@ const WORLD = {
                 {name:'Archiviste Municipal (PNJ)', role:'PNJ - Archives', rel:'neutral', job:'archiviste'}
               ],
               orders: [
-                {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."}
+                {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."},
+                {fn:'consulter_mandats_maires', label:'Consulter les résumés de mandats', pa:0, cost:0, type:'legal', icon:'ti-book', successRate:100, desc:'Bilans officiels des mandats achevés des maires de la ville.'}
               ]
             }
           }
@@ -3888,6 +3883,8 @@ const BUILDINGS = {
         orders: [
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
+          // Trois villes (29/10/2026) ; hors Montrouge : « Il n'y a pas de logements sociaux dans la ville. »
+          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
         ]
@@ -4407,9 +4404,11 @@ const BUILDINGS = {
           {name:'Secretaire Municipal', role:'PNJ - Administration', rel:'neutral', job:'secretaire'}
         ],
         orders: [
-          {fn:'postuler',      label:'Postuler a un poste',   pa:1, cost:0,  type:'legal', icon:'ti-id-badge',   successRate:100},
-          {fn:'gerer_finances',label:'Gerer les finances locales',pa:1,cost:0,type:'legal', icon:'ti-chart-bar',  successRate:100, requiresPost:true},
-          {fn:'corrompre_fonct',label:'Corrompre un employ',   pa:2, cost:200,type:'illegal',icon:'ti-coins',     successRate:65},
+          // 29/10/2026 (décision de Fred) : « Postuler à un poste » (relié à rien), « Gérer les finances
+          // locales » (ouvrait le compte de la Banque nationale) et « Corrompre un employé » sont retirés ;
+          // calendrier électoral et objets trouvés deviennent communs aux trois villes.
+          {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
+          {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'},
           // etat_civil (chantier finition ergonomique Hotel de Ville, 4 septembre 2026) : regroupe
           // les 3 anciens boutons separes (demander_naturalisation/demander_mariage/
           // officialiser_mariage, retires de cette liste -- Montrouge/PSM n'ont jamais eu
@@ -4447,6 +4446,8 @@ const BUILDINGS = {
         orders: [
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
+          // Trois villes (29/10/2026) ; hors Montrouge : « Il n'y a pas de logements sociaux dans la ville. »
+          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
         ]

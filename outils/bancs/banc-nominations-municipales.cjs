@@ -48,7 +48,8 @@ test('les bureaux partages ont un seul bouton Nominations ; les autres pouvoirs 
     assert.ok(!ordres.some(o=>['commissaire_gestion','maire_adjoint_gestion','entrepot_direction'].includes(o.fn)));
     assert.deepEqual(simple(ordres.map(o=>o.fn)),['fixer_impots_locaux','repartition_budget_local','subvention_proposer','campagne_securite','nominations_municipales']);
     const adj=j.run(`BUILDINGS['${bid}'].rooms.bureau_maire_adjoint.orders`);
-    assert.deepEqual(simple(adj.map(o=>o.fn)),['traiter_demandes_permis','consulter_dossiers_urbanisme','acte_officiel_mairie','financer_communal']);
+    // 29/10/2026 (décision de Fred) : la demande de logement social est présente dans les trois mairies.
+    assert.deepEqual(simple(adj.map(o=>o.fn)),['traiter_demandes_permis','consulter_dossiers_urbanisme','demander_logement_social','acte_officiel_mairie','financer_communal']);
   }
 });
 test('audit des contextes locaux : aucun ancien bouton reintroduit par une surcharge',()=>{
