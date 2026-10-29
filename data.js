@@ -6524,8 +6524,7 @@ const BUILDINGS = {
           {fn:'prendre_bus_taxi', label:'Prendre un bus ou taxi', pa:1, cost:150, type:'legal', icon:'ti-bus', successRate:100, desc:'150 FR. 1 PA. Transport intra-empire uniquement.'},
           {fn:'aller_douanes_aeroport', label:'Prendre l\'avion', pa:0, cost:0, type:'legal', icon:'ti-plane', successRate:100, desc:'Vous conduit au Hall des Douanes — contrôle obligatoire avant tout vol international.'},
           {fn:'taxi_caserne', label:'Taxi vers la Caserne', pa:1, cost:200, type:'legal', icon:'ti-military-rank', successRate:100, desc:'200 FR. 1 PA. Accès conditionné sur place.'},
-          {fn:'taxi_qhs', label:'Taxi vers le QHS', pa:1, cost:200, type:'legal', icon:'ti-lock', successRate:100, desc:'200 FR. 1 PA. Accès conditionné sur place.'},
-          {fn:'renseignement_transport_intl', label:'Demander conseil à Mireille', pa:0, cost:0, type:'legal', icon:'ti-info-circle', successRate:100, desc:'Se renseigner sur les moyens de transport internationaux.'}
+          {fn:'taxi_qhs', label:'Taxi vers le QHS', pa:1, cost:200, type:'legal', icon:'ti-lock', successRate:100, desc:'200 FR. 1 PA. Accès conditionné sur place.'}
         ]
       },
       hall_douanes: {
