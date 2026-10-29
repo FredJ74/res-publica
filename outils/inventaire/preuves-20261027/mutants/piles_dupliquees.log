@@ -1,0 +1,29 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK 1 depot et debit exacts de deux sels
+OK 2 revision serveur avancee
+OK 3 recette dans la seule caisse pharma
+OK 4 reponse perdue : aucun second debit ni depot
+OK 5 nonce lie aux parametres
+OK 6 quantite invalide sans mutation
+OK 7 quantite invalide sans mutation
+OK 8 quantite invalide sans mutation
+OK 9 lieu reel requis : current_room
+OK 10 lieu reel requis : current_building
+OK 11 lieu reel requis : country
+OK 12 loi controlee dans la transaction
+OK 13 faux cout refuse
+OK 14 aucune perte de PA sur refus
+OK 15 fonds insuffisants avant toute contrepartie
+OK 16 panne caisse : rollback de toutes les contreparties
+Traceback (most recent call last):
+  File "/workspace/res-publica-inventaire/outils/bancs/banc-inventaire-receptions-local.py", line 117, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/workspace/res-publica-inventaire/outils/bancs/banc-inventaire-receptions-local.py", line 73, in main
+    own("UPDATE personnages_donnees SET inventory=%s WHERE name='Fixture'",(Json(stacks),));v=call('sels_ammoniaque_acheter',[uid(2),1,0]);check(sum(i['qty'] for i in v['inventory'])==6 and v['inventory'][1]==stacks[1],'piles historiques : une seule unite ajoutee, metadonnees intactes')
+                                                                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/res-publica-inventaire/outils/bancs/banc-inventaire-receptions-local.py", line 45, in check
+    assert value,msg;n+=1;print('OK',n,msg,flush=True)
+           ^^^^^
+AssertionError: piles historiques : une seule unite ajoutee, metadonnees intactes

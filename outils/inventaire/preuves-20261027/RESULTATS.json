@@ -1,0 +1,174 @@
+{
+  "etat": "CHANTIER_EN_COURS_NON_DEPLOYE",
+  "branche": "codex/inventaire-serveur-20261027",
+  "commit_code": "d202dc73a686fb7a2c53a4168249534d25b8acf1",
+  "production": false,
+  "nouveaux_tests_authentifies_supabase": false,
+  "migrations_appliquees": [],
+  "verrou_final_prepare": false,
+  "verrou_final_applique": false,
+  "lecture_catalogue_vivant_effectuee": false,
+  "reference_client": {
+    "reference_main": "da5ecc0c1f102c46ea74640d07f700db29d4c656",
+    "bancs_historiques": 105,
+    "sources_historiques_identiques": true,
+    "ecarts_de_verdict": [],
+    "nouveaux_bancs": [
+      "banc-inventaire-raccordements.cjs",
+      "banc-inventaire-receptions.cjs"
+    ]
+  },
+  "postgres": {
+    "receptions": {
+      "assertions": 33,
+      "production": false,
+      "role_appels": "authenticated",
+      "schema_et_jwt": "fixtures",
+      "rollback": true
+    },
+    "fret": {
+      "assertions": 51,
+      "production": false,
+      "role_appels": "authenticated",
+      "schema_et_jwt": "fixtures",
+      "rollback": true
+    },
+    "employes": {
+      "assertions": 52,
+      "production": false,
+      "role_appels": "authenticated",
+      "schema_et_jwt": "fixtures",
+      "rollback": true
+    },
+    "club": {
+      "assertions": 44,
+      "production": false,
+      "role_appels": "authenticated",
+      "schema_et_jwt": "fixtures",
+      "rollback": true
+    },
+    "etat-civil": {
+      "assertions": 50,
+      "production": false,
+      "role_appels": "authenticated",
+      "schema_et_jwt": "fixtures",
+      "rollback": true
+    },
+    "missions": {
+      "assertions": 50,
+      "production": false,
+      "role_appels": "authenticated",
+      "schema_et_jwt": "fixtures",
+      "rollback": true
+    },
+    "quetes": {
+      "assertions": 42,
+      "production": false,
+      "role_appels": "authenticated",
+      "schema_et_jwt": "fixtures",
+      "rollback": true
+    },
+    "tracts": {
+      "assertions": 43,
+      "production": false,
+      "role_appels": "authenticated",
+      "schema_et_jwt": "fixtures",
+      "rollback": true
+    },
+    "concurrence": {
+      "assertions": 8,
+      "production": false,
+      "role_appels": "authenticated",
+      "metier_committe": false,
+      "schema_et_jwt": "fixtures"
+    }
+  },
+  "pilote_local": {
+    "tests": 105,
+    "reussis": 105,
+    "ignores": 0
+  },
+  "node_specifiques": {
+    "transport": 16,
+    "raccordements": 20
+  },
+  "contre_epreuves": {
+    "reussies": 8,
+    "total": 8
+  },
+  "client_interrompu": {
+    "verdict": null,
+    "retenu_comme_reussite": false
+  },
+  "limites": [
+    "Schemas, identites JWT et lois de fixture ; aucune authentification Supabase reelle.",
+    "Quatre receptions actives restent locales : vol et trois remises IA.",
+    "Charges anciennes, budgets/caisses, progressions et provenance du sas restent des dependances ouvertes."
+  ],
+  "sha256_migrations": {
+    "migrations/20261027210800_inventaire_depot_piles_historiques.sql": "f967b282bc1c0f02a140423d0450505b4633e745f7a2475075e03702e87b40c2",
+    "migrations/20261027210810_inventaire_sels_objets_trouves.sql": "cc3ca81fee129b515bd3f83dc66b0fbe779283aa32d60fc1f35795a2194de6e5",
+    "migrations/20261027213520_inventaire_fret_transactionnel.sql": "d817493e960980d8af567e653abf4c5c81ae44579e06a3aff4986ba0b6a70fe2",
+    "migrations/20261027213521_inventaire_employes_socle.sql": "fa3b1ea36f916fb7af38f9c1225fc57000b1133e44cb6278e8a23910ea15782a",
+    "migrations/20261027213522_inventaire_accessoires_club.sql": "ce1974a69fc31d4c2ae806f6ea8bd54bb693b11dd1931095192ac6c2b5bf91c7",
+    "migrations/20261027214000_inventaire_etat_civil_catalogue.sql": "73af820edcb059d636cdabaf5ab85135a2d6feed9f049a3259f6d05acf1b762d",
+    "migrations/20261027214001_inventaire_etat_civil_documents.sql": "cd0acadb5f8ed54f3efdc41192aacab13779c0d42cf6f72fda0555410577f635",
+    "migrations/20261027214213_inventaire_missions_et_enigme.sql": "7e496d583e9041c5a2258d187d00b0401755de65d1e01c092cc8c20e62c0b178",
+    "migrations/20261027215214_inventaire_recompenses_objets.sql": "2f526e6d6d3ac3cdaaf1541a5dad506ada51c2d3f5a7c1c18fda589e08905a86",
+    "migrations/20261027215539_inventaire_dons_tracts.sql": "781b9b1fe70759cfa14669948203eb1b264eeec8d0c15089d0fc940683c56238"
+  },
+  "sha256_preuves": {
+    "COMPARAISON.json": "19890bab3a159cf3bd40d4b92265287256da97ab6d775351dbadc21daa54618d",
+    "WORKFLOW.json": "e014f6f31813957e7d14fab65ef27b28b516e808991fed4b4e78635e1f5c31ad",
+    "api-syntaxe.log": "2c5defa5f188881887498e17220ff476bb24d48fd139f80c6a8a662d81f507d2",
+    "client-complet.json": "34a7e9bfa437b1f4ff4fd1bcfdc8929e7421f592eba36774d6d9053244c56497",
+    "client-complet.log": "754f3a8c907d68d99b7d1b1b567b951ec9ed7dc83310ad8179d56ae494d2476b",
+    "client-interrompu.log": "f06286d229104155441a508a42cc0d08029f45636be32ce5eee6e8eb2ea9994b",
+    "contre-epreuves.log": "9e96a784f0220528a637c4cf0f371b2d78cd5ebbacb757acaee36d93c856c403",
+    "mutants/budget_non_credite.log": "fe3ab84e35fab1ea5ad92a7be1016639ee8ef9fe945d049e83e6ee6226c8a73e",
+    "mutants/colis_non_protege.log": "a3462deac87fc66d5c145be5e60070b7200fccc537e173bb5ad4bf7aec6b6eef",
+    "mutants/delai_ignore.log": "211ed3625cb93d719f34bfd919a57b00c273f377c7cf280ef6ab86d7f0e419a7",
+    "mutants/fret_sans_depot.log": "4b7498dff4b6ac77b7bf9f39b1aab98bfd3c1e1192a106fdb617d8ba53b1985f",
+    "mutants/mission_reemise.log": "f5a3a3fdcce6e79fa46f4ff3d44e6ab1b31dffa6bcbb99d1f83aee78c2003612",
+    "mutants/nonce_libre.log": "1def8c5c05baacb2ce898e99cf247fed59f9d559ee3fbde40075ba1cace4c038",
+    "mutants/piles_dupliquees.log": "f832b48da0ec441fa233c9a3251d588b9a9ebfef573f0bf60f9416747032a121",
+    "mutants/resultats.json": "fd42a1768040f4ac641b9b586388b04c39fb75db866f048e4b3a490110fa3e9b",
+    "mutants/succession_non_resolue.log": "a407f09fac2110f16471f65b9c3154e9e7a2a59afce2e4b34ef39758d8778734",
+    "pilote-local.log": "d221e3c0a5cb5790718a8c2d243a1f87c59ae15d36911f766250fc269f4da62b",
+    "postgres-club.log": "448000eae8188791667c2ae00c1b8735c9d379a209a4ad47d90252596090c3e3",
+    "postgres-concurrence.log": "3eb65f74413b85fb582b43825077944d1bdb7db8a43acd9d4b903950e8ccf2ca",
+    "postgres-employes.log": "ad62e181fa99696c0d521519ced221e76bc21f241615133fa2a14e67ada4cd72",
+    "postgres-etat-civil.log": "1eaf7af793d87ef50be3a21c7d0d2c3d48da9bcc905a4ecb8b5dd34e10ba6ea7",
+    "postgres-fret.log": "5e177747d4f767344c6930f6d4f82e5ec2baaa02464c50626bd2c6af0d34fc0f",
+    "postgres-missions.log": "c74288652276ae26aa3a3c82b3e723a22a39a75a67ea869606e3f873588f51aa",
+    "postgres-quetes.log": "b7463e7c7b3d500af19f342ab7067cbe443ac220e1a517fcaa2affa71330d843",
+    "postgres-receptions.log": "69f1c9f4c15c32e2334d7dcf425bfb68465e10c237ddcc870d0c05caa30cc324",
+    "postgres-tracts.log": "7fd3e4e13eadd5a47e27911c22e25ef69b14a294eb7809670151e970e425f4ec",
+    "raccordements-node.log": "1e6cd06171a8019b06e7f5b8f7435a55fe16b313277f80033098588b9cd96819",
+    "reference-main.json": "0c80140faf86c58d8b61f9d925cee0a5bb112d9247cac889cc81a8219d37e0bd",
+    "reference-main.log": "973025f3193c39be25cc1127cf1d8c9fa3dfcab6fbd98729684294354fba5f58",
+    "sql-grammaire.log": "46aa2eb6c5c738f851a7cb2ee0e2da22c9951dc729058c246d98d50ac9a6212f",
+    "transport-node.log": "82b048b539684e86e8320dd633b3a1caea8ff9cd90dfa25c9eec58d96ce1797b",
+    "workflow-branche.log": "a38cc38acbc3ef0481408fe5ce0a17912c409812ac0bbe94d7172ac36f129053",
+    "workflow-main.log": "c7b8e6a34b62277194e24f5da724fa6fadadfeed9e3e7c7e8253e2524387c65e"
+  },
+  "workflow": {
+    "codes": {
+      "branche": 1,
+      "main": 1
+    },
+    "signalements_identiques": true,
+    "signalements": [
+      "- [5] fichier .sql egare : outils/bancs/fixtures/ced-football-schema.sql",
+      "- [5] fichier .sql egare : outils/bancs/fixtures/historique-135/20261023090017_location_lot_legacy_avant_paiement.sql",
+      "- [5] fichier .sql egare : outils/bancs/fixtures/historique-135/20261024072349_occupation_actions_et_echeances.sql",
+      "- [5] fichier .sql egare : outils/bancs/fixtures/terrain-chantier-acte-avant-commandes.sql",
+      "- [5] fichier .sql egare : outils/bancs/fixtures/terrain-permis-acte-avant-depot.sql",
+      "- [5] fichiers .sql hors des trois maisons : 5 au lieu de 0"
+    ],
+    "conforme": false
+  },
+  "sha256_prevol": {
+    "outils/bancs/PREFLIGHT-INVENTAIRE-RECEPTIONS-20261027.sql": "b240baa475b065203b170c1dca27a3f2f8cb82b0b001c526e366f55094aaed54"
+  }
+}
