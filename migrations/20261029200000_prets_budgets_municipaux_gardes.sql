@@ -14,11 +14,14 @@
 --    ville (clés `key`, `tauxFoncier` = 0,05) et poser / lever `manifestationInterdite`
 --    (ordre « Gérer les manifestations », réservé au ministre de l'Intérieur).
 -- =====================================================================================
+-- Garde en SECURITY INVOKER : current_user vaut le rôle du joueur pour une écriture directe de l'écran,
+-- et le propriétaire de la fonction pour une fonction serveur SECURITY DEFINER (Helvetia, prêt
+-- national, taux_imposition_fixer, mariage_*). est_appel_serveur() ne fait pas cette différence.
 CREATE OR REPLACE FUNCTION public.prets_ecriture_ecran_garder()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp'
+RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path TO 'public', 'pg_temp'
 AS $function$
 BEGIN
-  IF public.est_appel_serveur() THEN RETURN coalesce(NEW, OLD); END IF;
+  IF current_user NOT IN ('authenticated', 'anon') THEN RETURN coalesce(NEW, OLD); END IF;
   IF TG_OP = 'UPDATE'
      AND OLD.emprunteur = public.mon_personnage()
      AND NEW.statut = 'succession'
@@ -33,11 +36,11 @@ CREATE TRIGGER prets_ecriture_ecran_garder BEFORE INSERT OR UPDATE OR DELETE ON 
   FOR EACH ROW EXECUTE FUNCTION public.prets_ecriture_ecran_garder();
 
 CREATE OR REPLACE FUNCTION public.budgets_municipaux_ecran_garder()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp'
+RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path TO 'public', 'pg_temp'
 AS $function$
 DECLARE v_pays text := split_part(NEW.id, '_', 1);
 BEGIN
-  IF public.est_appel_serveur() THEN RETURN NEW; END IF;
+  IF current_user NOT IN ('authenticated', 'anon') THEN RETURN NEW; END IF;
   IF TG_OP = 'INSERT' THEN
     -- L'écran écrit par upsert : une ligne existante sera jugée par la garde UPDATE.
     IF EXISTS (SELECT 1 FROM public.budgets_municipaux b WHERE b.id = NEW.id) THEN RETURN NEW; END IF;
