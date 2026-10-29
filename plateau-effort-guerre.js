@@ -868,22 +868,7 @@ async function confirmerRetraitMilitaire(produit) {
 // PLUS APPELEE PAR LE RETRAIT depuis le 18 septembre 2026 : militaire_retrait ecrit desormais les
 // objets cote serveur, et les refabriquer ici les DOUBLERAIT. La forme de l'objet reste la source
 // de verite recopiee dans la RPC -- toute evolution doit etre faite des DEUX cotes.
-function poserObjetMilitaire(produit, lot) {
-  const r = recetteMilitaire(produit);
-  if (!r) return false;
-  if (!state.inventory) state.inventory = [];
-  const objet = {
-    id: 'mil-' + Date.now() + '-' + Math.floor(Math.random() * 100000),
-    type: r.typeObjet, sousType: r.sousType,
-    origineMilitaire: true, lot: lot || 'legacy', produitMilitaire: produit,
-    name: r.label, icon: r.icon, legal: true,
-    imageUrl: r.imageUrl || null,
-    desc: r.desc + ' Lot ' + (lot || 'legacy') + '.'
-  };
-  if (typeof addToInventory === 'function') return addToInventory(objet, { automatique: true }) > 0;
-  state.inventory.push(objet);
-  return true;
-}
+// poserObjetMilitaire : ancien ajout local sans appelant retire (chantier inventaire, 27/10).
 
 function libelleRefusMilitaire(res) {
   const raison = res && res.raison;

@@ -2689,25 +2689,12 @@ function ouvrirModalChoixActeOfficiel(actes, nomPersonne, opts) {
 }
 
 async function confirmerActeOfficiel(idx, nomPersonne, pa, cost) {
-  const acte = _acteOfficielChoixCache[idx];
-  if (!acte) return;
-  if (typeof etatCivilActeDejaPossede === 'function' && etatCivilActeDejaPossede(acte, nomPersonne)) {
-    document.getElementById('modal-postes').classList.remove('open');
-    showToast('Déjà en poche', 'Vous avez déjà cet acte dans votre inventaire.', false);
-    return;
-  }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) {
-    const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
-    showToast(r.raison === 'fonds_insuffisants' ? 'Fonds insuffisants' : 'PA insuffisants', r.raison === 'fonds_insuffisants' ? cost + ' ' + cur + ' requis.' : pa + ' PA requis.', false);
-    return;
-  }
-  document.getElementById('modal-postes').classList.remove('open');
-  if (typeof etatCivilDelivrerActe === 'function') etatCivilDelivrerActe(acte, nomPersonne);
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-  updateUI();
-  showToast('Acte délivré', acte.titre + ' ajouté à votre inventaire.', true, true);
-  addJournalEntry('Acte officiel obtenu : ' + acte.titre + (nomPersonne !== state.char?.name ? ' (' + nomPersonne + ')' : ''), 'event-info');
+  const acte = _acteOfficielChoixCache[idx]; if (!acte) return;
+  const v = await etatCivilDelivrerActe(acte, nomPersonne, pa, cost);
+  if (!v) return;
+  document.getElementById('modal-postes').classList.remove('open'); updateUI();
+  showToast('Acte délivré', v.objet + ' ajouté à votre inventaire.', true);
+  addJournalEntry('Acte officiel obtenu : ' + v.objet, 'event-info');
 }
 
 function ouvrirContesterResultats(pa, cost) {
@@ -4266,18 +4253,7 @@ async function confirmerDonObjetPnj(objIdx, encodedPnj) {
   if (pnj.isPJ) tracerActionPourRumeur('don_objet', nomCourt);
 }
 
-function doAcheterEntreprise() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 8000;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  state.pop = Math.min(100, (state.pop||0) + 5);
-  state.inf = Math.min(100, (state.inf||0) + 8);
-  addToInventory({ name: "Acte d'acquisition d'entreprise", icon: 'ti-building-factory', type: 'acte_officiel', legal: true, desc: 'Vous êtes propriétaire d\'une entreprise locale.' });
-  updateUI();
-  showToast('Entreprise achetée !', '-' + cost.toLocaleString('fr-FR') + ' ' + cur + '. +5 POP +8 INF.', true);
-  addJournalEntry('Achat entreprise. -' + cost.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
-}
+// doAcheterEntreprise : ancien ajout local sans appelant retire (chantier inventaire, 27/10).
 
 function doCompteOffshore() {
   const cur = COUNTRIES[state.country]?.cur || 'FR';
@@ -4294,31 +4270,9 @@ function doCompteOffshore() {
 
 // doFalsifierDocs SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).
 
-async function doImprimerClandestin() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 300;
-  const debit = await debiterFondsOrdinaires(cost);
-  if (!debit.ok) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.dis = Math.max(0, (state.dis||50) - 5);
-  addToInventory({ name: 'Publication clandestine', icon: 'ti-file-description', type: 'tract', legal: false, quantite: 20, desc: 'Pamphlet imprimé clandestinement.' });
-  updateUI();
-  showToast('Impression clandestine !', '-' + cost + ' ' + cur + '. 20 tracts clandestins. -5 DIS.', true);
-  addJournalEntry('Impression clandestine. -' + cost + ' ' + cur + '.', 'event-bad');
-}
+// doImprimerClandestin : ancien ajout local sans appelant retire (chantier inventaire, 27/10).
 
-function doImprimerLivre() {
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  const cost = 500;
-  if (state.arg < cost) { showToast('Fonds insuffisants', cost + ' ' + cur + ' requis.', false); return; }
-  state.arg -= cost;
-  state.pop = Math.min(100, (state.pop||0) + 6);
-  state.inf = Math.min(100, (state.inf||0) + 4);
-  addToInventory({ name: 'Livre publié', icon: 'ti-book', type: 'document', legal: true, desc: 'Votre ouvrage, publié à compte d\'auteur.' });
-  updateUI();
-  showToast('Livre publié !', '-' + cost + ' ' + cur + '. +6 POP +4 INF.', true);
-  addExternalEvent((state.char?.name||'Anonyme') + ' publie un ouvrage.');
-  addJournalEntry('Publication livre. -' + cost + ' ' + cur + '.', 'event-good');
-}
+// doImprimerLivre : ancien ajout local sans appelant retire (chantier inventaire, 27/10).
 
 // Placement Banque nationale : montant libre (min 500, pas de max), immobilise 7 jours, resolu
 // par le cron de minuit. Plusieurs investissements peuvent desormais coexister et s'additionnent
@@ -9858,124 +9812,21 @@ async function afficherGestionCaisseOuverteFret(caisseId) {
 }
 
 async function deposerDansCaisseFret(caisseId) {
-  const idx = parseInt(document.getElementById('fret-depot-objet')?.value || '0');
-  const qte = Math.max(1, parseInt(document.getElementById('fret-depot-qty')?.value || '1'));
-  const obj = (window._fretEligiblesDepot || [])[idx];
-  if (!obj) { showToast('Sélection invalide', '', false); return; }
-
-  const itemActuel = (state.inventory || []).find(i => i === obj);
-  if (!itemActuel || (itemActuel.qty || 1) < qte) { showToast('Quantité indisponible', 'Votre inventaire a changé.', false); return; }
-
-  // CORRECTIF R4 (19 septembre 2026) — LE CONTENU N'ETAIT JAMAIS FIGE.
-  // Cette fonction ne relisait JAMAIS caisses_fret : ni statut, ni autorite.
-  // Une modale restee ouverte permettait donc de deposer dans une caisse DEJA
-  // FERMEE ET DECLAREE -- apres le figeage de la declaration douaniere et de la
-  // DIS de dissimulation. On relit, et on exige 'ouverte'.
-  const etatCaisse = typeof sbGet === 'function'
-    ? (await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []))?.[0] : null;
-  if (!etatCaisse || etatCaisse.statut !== 'ouverte') {
-    showToast('Dépôt impossible', 'Cette caisse est fermée.', false); return;
-  }
-  const moiDepot = state.char?.name || '';
-  if (etatCaisse.leader !== moiDepot && !(etatCaisse.chargeurs_autorises || []).includes(moiDepot)) {
-    showToast('Accès refusé', 'Vous n\'êtes pas chargeur de cette caisse.', false); return;
-  }
-
-  const lignes = await chargerContenuCaisseFret(caisseId);
-  const totalActuel = totalContenuFret(lignes);
-  if (totalActuel + qte > CAPACITE_MAX_CAISSE_FRET) {
-    showToast('Caisse pleine', 'Capacité restante : ' + (CAPACITE_MAX_CAISSE_FRET - totalActuel) + ' unité(s).', false);
-    return;
-  }
-
-  const { qty, ...objetSansQty } = itemActuel;
-  if ((itemActuel.qty || 1) <= qte) {
-    state.inventory = state.inventory.filter(i => i !== itemActuel);
-  } else {
-    itemActuel.qty -= qte;
-  }
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-  updateUI();
-
-  const inserted = typeof sbInsert === 'function'
-    ? await sbInsert('contenu_caisses_fret', {
-        caisse_id: caisseId, deposant: state.char?.name || 'Inconnu', objet: objetSansQty, quantite: qte
-      }).catch(() => null)
-    : null;
-  const nouvelleLigne = inserted && inserted[0];
-
-  // CORRECTIF R5 — DESTRUCTION D'OBJET. L'inventaire etait ampute et sauvegarde
-  // AVANT l'INSERT ; si celui-ci echouait, la compensation plus bas etait sautee
-  // (elle teste nouvelleLigne) et le toast annoncait quand meme « Déposé ».
-  // L'objet disparaissait purement et simplement. On le rend.
-  if (!nouvelleLigne) {
-    const rendu = { ...objetSansQty };
-    if (qte > 1) rendu.qty = qte;
-    { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; }
-    state.inventory.push(rendu);
-    if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-    updateUI();
-    showToast('Dépôt échoué', 'La marchandise vous a été rendue.', false);
-    return;
-  }
-
-  // Re-verification post-insertion : la caisse n'a ni verrou ni contrainte au niveau base
-  // (INSERT, pas de compare-and-swap possible sur une SOMME multi-lignes comme pour un simple
-  // retrait). Si deux depots concurrents ont chacun valide "totalActuel + qte <= 500" avant
-  // d'inserer, le total reel apres peut depasser 500. Chaque depot annule alors UNIQUEMENT SA
-  // PROPRE ligne (jamais celle d'un autre PJ) et rembourse son propre inventaire -- garantit
-  // que la capacite ne reste jamais durablement depassee, sans nouvelle migration/verrou DB.
-  if (nouvelleLigne) {
-    const lignesApres = await chargerContenuCaisseFret(caisseId);
-    if (totalContenuFret(lignesApres) > CAPACITE_MAX_CAISSE_FRET) {
-      if (typeof sbUpdate === 'function') await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(nouvelleLigne.id), { quantite: 0 }).catch(() => {});
-      if (typeof addToInventory === 'function') addToInventory({ ...objetSansQty, qty: qte });
-      else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...objetSansQty, qty: qte }); }
-      if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-      updateUI();
-      showToast('Dépôt annulé', 'La caisse a atteint sa capacité maximale entre-temps (dépôt concurrent). Votre marchandise a été restituée.', false);
-      await afficherGestionCaisseOuverteFret(caisseId);
-      return;
-    }
-  }
-
-  showToast('Déposé', qte + ' × ' + objetSansQty.name + ' déposé(e) dans la caisse.', true, true);
+  const idx = Number(document.getElementById('fret-depot-objet')?.value || 0);
+  const objet = (window._fretEligiblesDepot || [])[idx];
+  const index = state.inventory.indexOf(objet);
+  if (index < 0) { showToast('Sélection périmée', 'Rouvrez la caisse.', false); return; }
+  const v = await executerReceptionInventaire('fret_objet_agir', { p_caisse: caisseId, p_action: 'deposer',
+    p_index: index, p_quantite: Number(document.getElementById('fret-depot-qty')?.value || 1), p_revision: state._inventaireRevision ?? null });
+  if (!v) return;
+  updateUI(); showToast('Déposé', v.qte + ' unité(s) déposée(s).', true);
   await afficherGestionCaisseOuverteFret(caisseId);
 }
 
 async function reprendreDeCaisseFret(caisseId, contenuId) {
-  const moi = state.char?.name || '';
-  const rows = typeof sbGet === 'function' ? await sbGet('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(contenuId)).catch(() => []) : [];
-  const ligne = rows && rows[0];
-  if (!ligne || ligne.caisse_id !== caisseId || ligne.deposant !== moi || ligne.quantite <= 0) {
-    showToast('Reprise impossible', 'Vous ne pouvez reprendre que vos propres dépôts.', false);
-    return;
-  }
-  // CORRECTIF R4 (19 septembre 2026) — LA CAISSE N'ETAIT JAMAIS RELUE ICI NON
-  // PLUS. Le seul filtre etait « c'est mon depot », sans aucun controle de
-  // statut : un deposant pouvait donc vider sa part d'une caisse 'fermee',
-  // 'en_transit', 'arrivee' (APRES que le destinataire a paye 10 % de droits
-  // sur la valeur declaree) ou 'a_vendre'. On exige desormais 'ouverte' :
-  // une fois la caisse fermee, son contenu est fige.
-  const etatCaisseReprise = typeof sbGet === 'function'
-    ? (await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []))?.[0] : null;
-  if (!etatCaisseReprise || etatCaisseReprise.statut !== 'ouverte') {
-    showToast('Reprise impossible', 'La caisse est fermée : son contenu ne peut plus être repris.', false);
-    return;
-  }
-  // Meme verrou optimiste que retirerDeCaisseFret : le PATCH ne reussit que si la ligne vaut
-  // toujours ce qu'on vient de lire (double-clic, ou reprise concurrente improbable mais non
-  // exclue puisque deposant est toujours le meme nom -- pas de faux negatif possible).
-  const maj = typeof sbUpdate === 'function'
-    ? await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(contenuId) + '&quantite=eq.' + ligne.quantite, { quantite: 0 }).catch(() => null)
-    : null;
-  if (!maj || maj.length === 0) { showToast('Conflit', 'Cette ligne vient d\'être modifiée. Réessayez.', false); return; }
-
-  if (typeof addToInventory === 'function') addToInventory({ ...ligne.objet, qty: ligne.quantite });
-  else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...ligne.objet, qty: ligne.quantite }); }
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-  updateUI();
-  showToast('Repris', ligne.quantite + ' × ' + (ligne.objet?.name || '') + ' repris(e) dans votre inventaire.', true, true);
+  const v = await executerReceptionInventaire('fret_objet_agir', { p_caisse: caisseId, p_action: 'reprendre', p_ligne: contenuId });
+  if (!v) return;
+  updateUI(); showToast('Repris', v.qte + ' unité(s) reprise(s).', true);
   await afficherGestionCaisseOuverteFret(caisseId);
 }
 
@@ -10490,57 +10341,10 @@ async function dedouanerCaisseFret(caisseId, pa) {
 }
 
 async function retirerDeCaisseFret(caisseId, contenuId, pa) {
-  const moi = state.char?.name || '';
-  const caisseRows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = caisseRows && caisseRows[0];
-  if (!caisse || caisse.statut !== 'arrivee' || !caisse.dedouanee) { showToast('Retrait impossible', '', false); return; }
-  const estAutorise = caisse.destinataire === moi || (caisse.receptionnaires_autorises || []).includes(moi);
-  if (!estAutorise) { showToast('Accès refusé', '', false); return; }
-  const presentIci = await jeSuisPresentDansRoomFret(caisse.pays_destination, caisse.ville_destination, caisse.building_destination);
-  if (!presentIci) { showToast('Absent du port', '', false); return; }
-
-  const ligneRows = typeof sbGet === 'function' ? await sbGet('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(contenuId)).catch(() => []) : [];
-  const ligne = ligneRows && ligneRows[0];
-  if (!ligne || ligne.caisse_id !== caisseId || ligne.quantite <= 0) { showToast('Ligne indisponible', '', false); return; }
-
-  const qteDemandee = Math.max(1, parseInt(document.getElementById('fret-retrait-qty-' + contenuId)?.value || '1'));
-  const qte = Math.min(qteDemandee, ligne.quantite);
-
-  const placeDisponible = (typeof PLAFOND_INVENTAIRE_EMPILABLE !== 'undefined' ? PLAFOND_INVENTAIRE_EMPILABLE : 100) - (typeof getTotalInventaire === 'function' ? getTotalInventaire() : 0);
-  if (placeDisponible < qte) { showToast('Inventaire plein', 'Libérez de la place avant de retirer.', false); return; }
-
-  const r = await deduireCoutOrdre({ pa, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // Verrouillage optimiste (compare-and-swap applicatif) : le PATCH ne reussit que si
-  // 'quantite' vaut toujours EXACTEMENT ce qu'on vient de lire. Si un autre PJ a deja retire
-  // sur cette meme ligne entre notre lecture et cet appel, le filtre ne matche plus aucune
-  // ligne (0 resultat) -- on annule tout AVANT de toucher a l'inventaire, jamais apres. Evite
-  // deux retraits concurrents de recreer ou dupliquer les memes unites (perte de mise a jour
-  // classique sur un simple PATCH inconditionnel).
-  const nouvelleQte = ligne.quantite - qte;
-  const maj = typeof sbUpdate === 'function'
-    ? await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(contenuId) + '&quantite=eq.' + ligne.quantite, { quantite: nouvelleQte }).catch(() => null)
-    : null;
-  if (!maj || maj.length === 0) {
-    showToast('Conflit de retrait', 'Cette ligne vient d\'être modifiée par quelqu\'un d\'autre. Réessayez.', false);
-    return;
-  }
-
-  if (typeof addToInventory === 'function') addToInventory({ ...ligne.objet, qty: qte });
-  else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...ligne.objet, qty: qte }); }
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-
-  // Passage a 'videe' si le contenu total de la caisse atteint 0 -- transition evenementielle
-  // (declenchee par l'action elle-meme), pas temporelle : pas besoin de cron ici.
-  const lignesRestantes = await chargerContenuCaisseFret(caisseId);
-  if (totalContenuFret(lignesRestantes) <= 0 && typeof sbUpdate === 'function') {
-    await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId), { statut: 'videe' }).catch(() => {});
-  }
-
-  updateUI();
-  showToast('Retiré', qte + ' × ' + (ligne.objet?.name || '') + ' ajouté(e) à votre inventaire.', true, true);
-  addJournalEntry('Marchandise retirée au port : ' + qte + ' × ' + (ligne.objet?.name || '') + '.', 'event-good');
+  const v = await executerReceptionInventaire('fret_objet_agir', { p_caisse: caisseId, p_action: 'retirer', p_ligne: contenuId,
+    p_quantite: Number(document.getElementById('fret-retrait-qty-' + contenuId)?.value || 1) });
+  if (!v) return;
+  updateUI(); showToast('Retiré', v.qte + ' unité(s) retirée(s).', true);
   await afficherCaisseArriveeFret(caisseId, pa);
 }
 
@@ -10598,53 +10402,10 @@ async function ouvrirMarchandisesNonReclamees() {
 }
 
 async function acheterLotNonReclameeFret(caisseId) {
-  const rows = typeof sbGet === 'function' ? await sbGet('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId)).catch(() => []) : [];
-  const caisse = rows && rows[0];
-  if (!caisse || caisse.statut !== 'a_vendre' || caisse.pays_destination !== (state.country || 'republic')) {
-    showToast('Indisponible', '', false);
-    return;
-  }
-  const lignes = await chargerContenuCaisseFret(caisseId);
-  const disponibles = lignes.filter(l => l.quantite > 0);
-  const restant = totalContenuFret(disponibles);
-  if (restant <= 0) { showToast('Lot déjà vendu', '', false); return; }
-
-  // Le lot est indivisible (achat en bloc du contenu restant) : si la capacite individuelle ne
-  // suffit pas, STOP plutot que de fractionner/supprimer silencieusement des objets (exigence
-  // explicite du 24 aout 2026).
-  const placeDisponible = (typeof PLAFOND_INVENTAIRE_EMPILABLE !== 'undefined' ? PLAFOND_INVENTAIRE_EMPILABLE : 100) - (typeof getTotalInventaire === 'function' ? getTotalInventaire() : 0);
-  if (placeDisponible < restant) {
-    showToast('Capacité insuffisante', 'Ce lot contient ' + restant + ' unité(s) ; il ne peut être vendu qu\'en bloc. Libérez au moins ' + (restant - placeDisponible) + ' place(s) avant d\'acheter.', false);
-    return;
-  }
-
-  const valeurAdmin = (caisse.valeur_declaree || 0) * (restant / (caisse.quantite_arrivee || restant || 1));
-  const prix = Math.round(valeurAdmin * RATIO_PRIX_LIQUIDATION_FRET);
-  if ((state.arg || 0) < prix) { showToast('Fonds insuffisants', '', false); return; }
-
-  // Reservation optimiste (meme tolerance de course que le reste du jeu) : on marque 'vendue'
-  // avant de crediter/transferer, la relecture ci-dessus limite le risque de double-achat.
-  // Vente institutionnelle d'un lot : refusee si une marchandise du lot est interdite. Le trigger
-  // trg_assemblee_fret_vente_legale refuse de toute facon la transition 'a_vendre' -> 'vendue'
-  // cote base, quel que soit l'ecrivain ; ce controle ne sert qu'a informer avant tout debit.
-  if (typeof assembleeControlerVenteLegale === 'function'
-      && !(await assembleeControlerVenteLegale((lignes || []).filter(l => (l.quantite || 0) > 0).map(l => l.objet || {})))) return;
-  const maj = typeof sbUpdate === 'function' ? await sbUpdate('caisses_fret', 'id=eq.' + encodeURIComponent(caisseId) + '&statut=eq.a_vendre', { statut: 'vendue' }).catch(() => null) : null;
-  if (!maj || maj.length === 0) { showToast('Indisponible', 'Ce lot vient d\'être acheté par quelqu\'un d\'autre.', false); return; }
-
-  state.arg -= prix;
-  if (typeof crediterCaisseBatiment === 'function') await crediterCaisseBatiment(caisse.pays_destination, caisse.building_destination, prix).catch(() => {});
-  for (const l of disponibles) {
-    if (typeof addToInventory === 'function') addToInventory({ ...l.objet, qty: l.quantite });
-    else { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(state); else state.inventory = state.inventory || []; } state.inventory.push({ ...l.objet, qty: l.quantite }); }
-    if (typeof sbUpdate === 'function') await sbUpdate('contenu_caisses_fret', 'id=eq.' + encodeURIComponent(l.id), { quantite: 0 }).catch(() => {});
-  }
-  if (typeof sbSavePersonnage === 'function') await sbSavePersonnage(state).catch(() => {});
-
-  updateUI();
-  document.getElementById('modal-postes').classList.remove('open');
-  showToast('Lot acheté !', restant + ' unité(s) ajoutée(s) à votre inventaire.', true, true);
-  addJournalEntry('Achat d\'un lot de marchandises non réclamées au port (' + prix + ' FR versés à la caisse du port).', 'event-good');
+  const v = await executerReceptionInventaire('fret_objet_agir', { p_caisse: caisseId, p_action: 'acheter' });
+  if (!v) return;
+  updateUI(); document.getElementById('modal-postes').classList.remove('open');
+  showToast('Lot acheté', v.qte + ' unité(s), ' + v.prix + ' FR versés à la caisse du port.', true);
 }
 
 // ---- FOUILLE GENERIQUE (inventaire) ----
@@ -12578,98 +12339,42 @@ async function confirmerVolMateriaux(matiere, pa, cost) {
   const id = state.currentBuilding;
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, 'Voler du matériel')) return;
   const ts = getTerrainState(id);
-  const ch = ts.chantier;
-  if (!ch) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
-  const pays = state.country, ville = state.currentCity || 'capitale';
-
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
+  if (!ts.chantier) { showToast('Impossible', 'Aucun chantier en cours ici.', false); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
 
-  // Bonus/malus de discretion du voleur : exactement les termes deja utilises par l'ancien jet,
-  // simplement rebases sur 50 au lieu de 60. Aucune formule de discretion nouvelle.
-  const dup = getStatEffective('DUP');
-  const isn = (typeof getIndiceVille === 'function') ? getIndiceVille(pays, ville, 'isn')
-            : ((typeof INDICES_NATIONAUX !== 'undefined' && INDICES_NATIONAUX[pays]?.ISN) || 30);
-  let bonus = (dup - 10) * 2 - (isn - 45) / 3
-            + (typeof getBonusReputationCriminelle === 'function' ? getBonusReputationCriminelle() : 0);
-  if (typeof consommerBonusBenediction === 'function') bonus = consommerBonusBenediction(50 + bonus) - 50;
+  // PAR LE SERVEUR (28/10/2026, chantier inventaire) : crime_voler_materiaux preleve l'ordre, tire
+  // l'UNIQUE jet (memes termes : DUP, securite, reputation criminelle, vigiles, benediction), retire
+  // le stock reel du chantier, depose les materiaux, trace l'acte et emet l'avis de recherche.
+  // L'ecran n'ecrit plus ni l'inventaire, ni la trace, ni l'indice social.
+  const benediction = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(50) > 50 : false;
+  const v = await appelerCrimeServeur('crime_voler_materiaux',
+    { p_terrain: id, p_matiere: matiere, p_pa: pa, p_cost: cost, p_benediction: benediction });
+  if (!v || v.ok !== true) {
+    if (v && v.raison === 'stock_vide') { showToast('Rien à emporter', 'Le stock a été vidé entre-temps.', false); return; }
+    signalerRefusCout(v || { raison: 'connexion_indisponible' }); return;
+  }
+  adopterEtatCrimeServeur(v);
+  if (v.etat) remplacerTerrainState(id, v.etat);
 
-  // UN SEUL JET. La detection decoule du meme score final, jamais d'un second tirage.
-  const jet = (Math.floor(Math.random() * 100) + 1) - 50;
-  const score = scoreVolMateriaux(bonus, vigilesDuChantier(ch), jet);
-  const verdict = verdictVolMateriaux(score);
-
-  if (verdict.reussite) {
-    const jourNum = numeroJourChantier(ch);
-    const stock = ch.stockMateriaux || { bois: 0, minerai: 0, metal: 0 };
-    const quantiteDemandee = quantiteVolMateriaux(score, matiere, jourNum, stock[matiere]);
-    if (quantiteDemandee <= 0) { showToast('Rien à emporter', "Le stock a été vidé entre-temps.", false); return; }
-
-    // LE STOCK EST REPLAFONNE SUR L'ETAT REEL, SOUS VERROU (10 octobre 2026). `qte` etait
-    // plafonnee par le stock que CE navigateur avait lu : deux voleurs simultanes emportaient donc
-    // chacun tout le stock, et un cache perime pouvait RESSUSCITER un stock que le cron avait
-    // consomme. La porte rend la quantite REELLEMENT emportee -- c'est elle, et non `qte`, que
-    // l'inventaire credite ci-dessous. Elle consigne aussi l'evenement, sans l'identite du voleur.
-    const vVol = await sbTerrainActe('terrain_chantier_acte', {
-      p_terrain_id: id, p_acte: 'chantier_materiaux_voler',
-      p_matiere: matiere, p_quantite: quantiteDemandee, p_jour: state.day || 1
-    });
-    if (!vVol || vVol.ok !== true) {
-      signalerRefusTerrain(vVol, 'Le vol de matériaux');
-      return;
-    }
-    remplacerTerrainState(id, vVol.etat);
-    const qte = Number(vVol.quantite) || 0;
-    if (qte <= 0) { showToast('Rien à emporter', "Le stock a été vidé entre-temps.", false); return; }
-
-    const res = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[matiere]) || {};
-    if (typeof addToInventory === 'function') {
-      addToInventory({ name: res.label || matiere, icon: res.icon, stackable: true, stackKey: matiere,
-                       qty: qte, desc: 'Dérobé sur un chantier.' });
-    }
-    if (typeof modifierIndiceVille === 'function') modifierIndiceVille(pays, ville, 'social', -1);
-    // Toujours tracable sur enquete, meme reussi -- mecanique existante, inchangee.
-    if (typeof sbTracerAction === 'function') {
-      await sbTracerAction({ id: 'vol-chantier-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-        auteur: state.char?.name, cible: ts.proprietaire, type_action: 'vol_materiel_chantier',
-        country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15 }).catch(() => {});
-    }
-    if (typeof addExternalEvent === 'function') {
-      addExternalEvent('Des matériaux ont disparu sur un chantier de la ville.', 'local');
-    }
+  if (v.reussi) {
+    const res = (typeof RESSOURCES_ECONOMIE !== 'undefined' && RESSOURCES_ECONOMIE[v.matiere]) || {};
+    if (typeof addExternalEvent === 'function') addExternalEvent('Des matériaux ont disparu sur un chantier de la ville.', 'local');
     updateUI();
-    showToast('Vol réussi !', '+' + qte + ' ' + (res.label || matiere) + '.', true, true);
-    addJournalEntry('Vol de matériaux réussi sur un chantier : ' + qte + ' ' + (res.label || matiere) + '.', 'event-good');
+    showToast('Vol réussi !', '+' + v.quantite + ' ' + (res.label || v.matiere) + '.', true, true);
+    addJournalEntry('Vol de matériaux réussi sur un chantier : ' + v.quantite + ' ' + (res.label || v.matiere) + '.', 'event-good');
     return;
   }
-
-  // ECHEC. Detecte ou non selon le MEME score, sans second jet.
-  if (verdict.detecte) {
-    // Trace judiciaire existante, a l'identique : avis de recherche, jamais une sanction ad hoc.
-    if (!state.recherche) state.recherche = [];
-    // Trace generique, meme forme que les autres actes illegaux (cambriolage_caisse, etc.) :
-    // { acte, type, jour }. AUCUNE peine ad hoc : peineMaxJours n'etait lu par personne et le
-    // type 'delit' n'existait dans aucune typologie. getPeineParActe lit ACTES_ILLEGAUX puis
-    // applique le bareme generique du type -- ici delit_mineur, comme le vol ordinaire.
-    const typeActe = (typeof ACTES_ILLEGAUX !== 'undefined' && ACTES_ILLEGAUX.vol_materiel_chantier)
-      ? ACTES_ILLEGAUX.vol_materiel_chantier.type : 'delit_mineur';
-    await inscrireRecherche({ acte: 'vol_materiel_chantier', type: typeActe, jour: state.day || 1 });
+  if (v.detecte) {
+    adopterDetectionServeur(v, null);
     if (typeof addExternalEvent === 'function') {
       addExternalEvent((state.char?.name || 'Quelqu\'un') + ' a été pris en flagrant délit de vol de matériel sur un chantier !', 'local');
     }
+    updateUI();
     addJournalEntry('Vol raté et découvert immédiatement. Avis de recherche émis contre vous (peine max 2 jours).', 'event-bad');
     showToast('Démasqué !', 'Avis de recherche émis (peine max 2 jours).', false);
     return;
   }
-
-  // Echec discret : aucun transfert, aucune identification. La tentative reste tracable sur
-  // enquete, comme avant, mais rien ne designe le voleur.
-  if (typeof sbTracerAction === 'function') {
-    await sbTracerAction({ id: 'voltentative-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-      auteur: state.char?.name, cible: ts.proprietaire, type_action: 'tentative_vol_materiel_chantier',
-      country: pays, city: ville, jour: state.day || 1, jour_expiration: (state.day || 1) + 15 }).catch(() => {});
-  }
+  updateUI();
   addJournalEntry('Tentative de vol de matériaux manquée. Personne ne vous a vu.', 'event-info');
   showToast('Échec', 'Vous repartez les mains vides, mais personne ne vous a repéré.', false);
 }

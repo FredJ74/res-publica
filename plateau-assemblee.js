@@ -1859,43 +1859,16 @@ async function doAcheterSelsAmmoniaque(pa, cost) {
 }
 
 async function confirmerAcheterSels(pa) {
-  const cur = (typeof COUNTRIES !== 'undefined' && COUNTRIES[state.country]?.cur) || 'FR';
-  const qte = Math.max(1, Math.min(20, parseInt(document.getElementById('sels-qte')?.value || 1, 10)));
-  const total = qte * SELS_AMMONIAQUE.prix;
-
-  const dispo = (typeof getFondsDisponiblesOrdinaires === 'function') ? getFondsDisponiblesOrdinaires() : (state.arg || 0);
-  if (dispo < total) { showToast('Fonds insuffisants', total + ' ' + cur + ' requis.', false); return; }
-  // Vente legale de l'usine : soumise a la regle generale des interdictions, avant tout debit.
-  if (!(await assembleeControlerVenteLegale([{ stackKey: SELS_AMMONIAQUE.stackKey }]))) return;
-
-  const r = await deduireCoutOrdre({ pa: pa || 0, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  // addToInventory renvoie la quantite REELLEMENT ajoutee (l'inventaire a une limite globale) :
-  // on ne facture que ce qui est effectivement entre (§23).
-  const ajoute = (typeof addToInventory === 'function')
-    ? addToInventory({
-        name: SELS_AMMONIAQUE.nom, icon: SELS_AMMONIAQUE.icon,
-        stackable: true, stackKey: SELS_AMMONIAQUE.stackKey, qty: qte,
-        legal: true, desc: SELS_AMMONIAQUE.desc
-      })
-    : 0;
-
-  if (!ajoute) { showToast('Inventaire plein', 'Impossible d\'emporter davantage.', false); return; }
-
-  const paye = ajoute * SELS_AMMONIAQUE.prix;
-  if (typeof debiterFondsOrdinaires === 'function') await debiterFondsOrdinaires(paye);
-  else state.arg = Math.max(0, (state.arg || 0) - paye);
-
-  // Le produit de la vente alimente la caisse de l'usine, comme la vente directe.
-  if (typeof crediterCaisseBatiment === 'function') {
-    await crediterCaisseBatiment(state.country || 'republic', 'usine-pharmaceutique-luthecia', paye).catch(() => {});
+  const qte = Number(document.getElementById('sels-qte')?.value || 1);
+  if (!Number.isInteger(qte) || qte < 1 || qte > 20) {
+    showToast('Quantité invalide', 'Choisissez de 1 à 20 flacons.', false); return;
   }
-
+  const v = await executerReceptionInventaire('sels_ammoniaque_acheter', { p_quantite: qte, p_pa: pa || 0 });
+  if (!v) return;
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
-  showToast('Achat effectué', ajoute + ' flacon(s) de sels d\'ammoniaque. -' + paye + ' ' + cur + '.', true);
-  addJournalEntry('Achat de ' + ajoute + ' sels d\'ammoniaque à l\'usine pharmaceutique.', 'event-info');
+  showToast('Achat effectué', v.qte + ' flacon(s) de sels d’ammoniaque. -' + v.total + ' FR.', true);
+  addJournalEntry('Achat de ' + v.qte + ' sels d’ammoniaque à l’usine pharmaceutique.', 'event-info');
 }
 
 // §22 : 1 PA + 1 sels. Reussite 100 %. Restaure la capacite a voter et CONSERVE l'intention

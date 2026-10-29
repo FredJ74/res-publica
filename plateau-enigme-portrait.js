@@ -762,38 +762,19 @@ async function doDemanderJugeInstruction(pa, cost) {
 // =====================
 
 async function doPresenterAutorisationCoffre(pa, cost) {
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const autorise = state.char && state.char.enigme1 && state.char.enigme1.autorisationCoffre;
-
-  let html = '<div style="padding:1.2rem">';
-  html += '<div style="font-size:1rem;color:#C9A84C;font-family:Bebas Neue,sans-serif;letter-spacing:.05em;margin-bottom:.6rem">Laurent Barre</div>';
-
-  if (!autorise) {
-    html += '<div style="font-size:.88rem;color:#e0d8c0;line-height:1.5">« Je suis navré, mais sans une autorisation en bonne et due forme, je ne peux rien vous dire sur un quelconque coffre. »</div>';
-  } else if (state.char.enigme1.coffreOuvert) {
-    html += '<div style="font-size:.88rem;color:#e0d8c0;line-height:1.5">« Le coffre a déjà été ouvert, il n\'y a plus rien à y trouver. »</div>';
-  } else {
-    html += '<div style="font-size:.88rem;color:#e0d8c0;line-height:1.5">« Voyons... oui, effectivement, un coffre lié à cette succession existe toujours, et sa location est réglée à ce jour. Mais je ne peux vous révéler l\'identité de son locataire actuel — secret bancaire oblige. Voici son contenu, puisque le juge en a autorisé l\'ouverture. »</div>';
-
-    state.char.enigme1.coffreOuvert = true;
-    if (!state.inventory) state.inventory = [];
-    state.inventory.push({
-      id: 'cle-debarras-musee',
-      name: 'Clé du débarras',
-      icon: 'ti-key',
-      desc: "Une vieille clé, retrouvée dans un coffre lié à la succession de Pierre Thibault. Elle semble correspondre à une porte du Musée de la Ville de Luthécia."
-    });
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(function() {});
-    if (typeof updateUI === 'function') updateUI();
-    if (typeof renderInventory === 'function') renderInventory();
-    if (typeof showToast === 'function') showToast('Clé obtenue', 'Une clé mystérieuse a été ajoutée à votre inventaire.', true);
-  }
-  html += '</div>';
-
+  const v = await executerReceptionInventaire('enigme_objet_recevoir', { p_action: 'coffre', p_pa: pa, p_cost: cost });
+  if (!v) return;
+  state.char.enigme1 = v.enigme;
+  const textes = {
+    sans_autorisation: '« Je suis navré, mais sans une autorisation en bonne et due forme, je ne peux rien vous dire sur un quelconque coffre. »',
+    deja_ouvert: '« Le coffre a déjà été ouvert, il n’y a plus rien à y trouver. »',
+    cle_remise: '« Voyons... oui, effectivement, un coffre lié à cette succession existe toujours, et sa location est réglée à ce jour. Mais je ne peux vous révéler l’identité de son locataire actuel — secret bancaire oblige. Voici son contenu, puisque le juge en a autorisé l’ouverture. »'
+  };
   document.getElementById('postes-modal-title').textContent = 'Banque Nationale — Coffre';
-  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('postes-body').innerHTML = '<div class="cpj-note">' + (textes[v.statut] || '') + '</div>';
   document.getElementById('modal-postes').classList.add('open');
+  if (v.statut === 'cle_remise') showToast('Clé obtenue', 'Une clé mystérieuse a été ajoutée à votre inventaire.', true);
+  updateUI(); renderInventory();
 }
 
 // =====================
@@ -887,54 +868,19 @@ const ENIGME1_DELAI_RELANCE_JOURS = 6; // 3 jours apres le declenchement
 // delai est ecoule et declenche/relance le mystere du musee si besoin. Base sur la vraie date
 // de creation du personnage (createdAt), pas sur un minuteur JS ni sur state.day (qui pourrait
 // etre partage/different selon le contexte).
-function enigme1VerifierDeclenchement() {
-  if (typeof state === 'undefined' || !state.char || !state.char.createdAt) return;
-
-  if (!state.char.enigme1) {
-    state.char.enigme1 = { etape: 'non_commencee', variante: null };
+async function enigme1VerifierDeclenchement() {
+  if (typeof state === 'undefined' || !state.char) return;
+  const avant = state.char.enigme1;
+  if (avant && !['non_commencee', 'declenchee'].includes(avant.etape)) return;
+  const revision = state._inventaireRevision;
+  const v = await executerReceptionInventaire('enigme_objet_recevoir', { p_action: 'verifier', p_pa: 0, p_cost: 0 });
+  if (!v) return;
+  state.char.enigme1 = v.enigme;
+  if (v.statut === 'declenchee' && (!avant || avant.etape === 'non_commencee') && v.enigme?.etape === 'declenchee') {
+    showToast("L'enquête commence", "Un calepin pour recueillir vos notes est apparu dans votre inventaire.", true);
+    addJournalEntry(ENIGME1_RUMEURS[v.enigme.variante] || ENIGME1_RUMEURS.maire, 'event-secret');
+  } else if (v.changement && v.statut === 'relancee') {
+    addJournalEntry("La rumeur persiste : le mystère du musée de la ville n'est toujours pas éclairci...", 'event-secret');
   }
-  const e = state.char.enigme1;
-
-  const maintenant = Date.now();
-  const creation = new Date(state.char.createdAt).getTime();
-  const joursEcoules = (maintenant - creation) / (1000 * 60 * 60 * 24);
-
-  if (e.etape === 'non_commencee' && joursEcoules >= ENIGME1_DELAI_DECLENCHEMENT_JOURS) {
-    // Tirage aleatoire de la variante — fixe definitivement pour ce joueur. Ne change RIEN
-    // aux salles affichees (les 4 sont toujours vides pour un joueur concerne) : sert
-    // uniquement a varier le texte de la rumeur/du journal, pour alimenter les echanges
-    // entre joueurs sans changer la mecanique de jeu.
-    const variante = ENIGME1_VARIANTES[Math.floor(Math.random() * ENIGME1_VARIANTES.length)];
-    state.char.enigme1 = { etape: 'declenchee', variante: variante, dateDeclenchement: new Date().toISOString() };
-    if (!state.inventory) state.inventory = [];
-    if (!state.inventory.some(function(it) { return it.calepinEnigme1; })) {
-      state.inventory.push({
-        id: 'calepin-enigme1',
-        name: "Calepin de l'enquête",
-        icon: 'ti-notebook',
-        imageUrl: 'images/calepin-enigme-musee.webp',
-        desc: "Un petit calepin. Chaque page se remplit au fil de ce que vous découvrez.",
-        calepinEnigme1: true
-      });
-    }
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-    if (typeof updateUI === 'function') updateUI();
-    if (typeof renderInventory === 'function') renderInventory();
-    if (typeof showToast === 'function') {
-      showToast("L'enquête commence", "Un calepin pour recueillir vos notes est apparu dans votre inventaire.", true);
-    }
-    if (typeof addJournalEntry === 'function') {
-      const rumeur = ENIGME1_RUMEURS[variante] || ENIGME1_RUMEURS.maire;
-      addJournalEntry(rumeur, 'event-secret');
-    }
-    return;
-  }
-
-  if (e.etape === 'declenchee' && joursEcoules >= ENIGME1_DELAI_RELANCE_JOURS) {
-    state.char.enigme1.etape = 'relancee';
-    if (typeof sbSavePersonnage === 'function') sbSavePersonnage(state).catch(() => {});
-    if (typeof addJournalEntry === 'function') {
-      addJournalEntry("La rumeur persiste : le mystère du musée de la ville n'est toujours pas éclairci...", 'event-secret');
-    }
-  }
+  if (JSON.stringify(avant) !== JSON.stringify(v.enigme) || revision !== state._inventaireRevision) { updateUI(); renderInventory(); }
 }

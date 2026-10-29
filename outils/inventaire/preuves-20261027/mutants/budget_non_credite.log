@@ -1,0 +1,48 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+OK 1 depot et debit exacts de deux sels
+OK 2 revision serveur avancee
+OK 3 recette dans la seule caisse pharma
+OK 4 reponse perdue : aucun second debit ni depot
+OK 5 nonce lie aux parametres
+OK 6 quantite invalide sans mutation
+OK 7 quantite invalide sans mutation
+OK 8 quantite invalide sans mutation
+OK 9 lieu reel requis : current_room
+OK 10 lieu reel requis : current_building
+OK 11 lieu reel requis : country
+OK 12 loi controlee dans la transaction
+OK 13 faux cout refuse
+OK 14 aucune perte de PA sur refus
+OK 15 fonds insuffisants avant toute contrepartie
+OK 16 panne caisse : rollback de toutes les contreparties
+OK 17 piles historiques : une seule unite ajoutee, metadonnees intactes
+OK 18 plafond : seule la quantite reellement deposee est facturee
+OK 19 inventaire plein : aucun cout
+OK 20 tirage objets trouves par le serveur
+OK 21 rejeu objet trouve sans nouveau jet ni PA
+OK 22 limite quotidienne serveur meme si aucun objet
+OK 23 modele serveur et identifiant unique
+OK 24 succes et rien trouve executes
+OK 25 lieu absent refuse sans mutation
+OK 26 primitive interne inaccessible : inventaire_deposer_interne(text,jsonb,boolean)
+OK 27 primitive interne inaccessible : inventaire_action_rejouer_interne(text,uuid,text,jsonb)
+OK 28 registre invisible au navigateur meme avec privilege SELECT
+OK 29 registre non forgeable avec privilege INSERT mais sans politique RLS
+OK 30 migration refuse un registre preexistant expose plutot que reutiliser ses politiques
+OK 31 depot commun refuse la fraction sans arrondi
+OK 32 depot automatique ne remplace pas un inventaire historique illisible
+OK 33 club et objet issus des catalogues serveur
+Traceback (most recent call last):
+  File "/workspace/res-publica-inventaire/outils/bancs/banc-inventaire-club-local.py", line 33, in <module>
+    spec=importlib.util.spec_from_file_location('base',R/'outils/bancs/banc-inventaire-receptions-local.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);m.main(scenario)
+                                                                                                                                                                                ^^^^^^^^^^^^^^^^
+  File "/workspace/res-publica-inventaire/outils/bancs/banc-inventaire-receptions-local.py", line 113, in main
+    if extra:extra(q,own,call,check,uid,snapshot,Json)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/res-publica-inventaire/outils/bancs/banc-inventaire-club-local.py", line 16, in scenario
+    check(own("SELECT (data->>'caisse')::integer FROM budgets_clubs")==80,'credit exact du budget existant')
+  File "/workspace/res-publica-inventaire/outils/bancs/banc-inventaire-receptions-local.py", line 45, in check
+    assert value,msg;n+=1;print('OK',n,msg,flush=True)
+           ^^^^^
+AssertionError: credit exact du budget existant

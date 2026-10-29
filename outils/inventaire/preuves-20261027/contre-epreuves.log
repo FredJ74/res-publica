@@ -1,0 +1,10 @@
+OK piles_dupliquees
+OK nonce_libre
+OK fret_sans_depot
+OK colis_non_protege
+OK budget_non_credite
+OK succession_non_resolue
+OK mission_reemise
+OK delai_ignore
+Preuves : /tmp/hg-contre-inventaire-my6blp1z
+8/8 contre-epreuves detectees, fichiers restaures, aucune connexion distante.
