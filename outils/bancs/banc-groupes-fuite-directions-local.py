@@ -110,4 +110,27 @@ def suite(ctx):
   for role in ['anon','authenticated','service_role']:
    q.execute("SELECT has_function_privilege(%s,'navigation_destination_fuite_interne(text)','execute')",(role,));assert not q.fetchone()[0]
  cas('fuite_lecteur_interne_inaccessible_aux_roles_reseau',acl)
+ ctx['controle_ordinaire_decor']()
+ sql("UPDATE personnages_donnees SET current_building='mairie',current_room='accueil',current_street=NULL,current_city='capitale',hp=100,pa=100 WHERE name='D'")
+ exige(rpc('groupe_pj_rejoindre',('D',),qui='C'))
+ rid=ctx['controle_ordinaire_choix']()['rencontre'];ctx['c'].commit()
+ def concurrence():
+  import psycopg2
+  from threading import Barrier
+  from concurrent.futures import ThreadPoolExecutor
+  barriere=Barrier(2)
+  def agir():
+   cn=psycopg2.connect(ctx['serveur'].get_uri())
+   try:
+    cur=cn.cursor();cur.execute("SET statement_timeout='15s'");barriere.wait(timeout=5)
+    v=rpc('police_reddition_resoudre',(rid,),qui='D',cur=cur);cn.commit();return v
+   finally:cn.close()
+  with ThreadPoolExecutor(2) as pool:
+   a=pool.submit(agir);b=pool.submit(agir);un=exige(a.result(timeout=20));deux=exige(b.result(timeout=20))
+  assert un==deux and un['commandeur']=='D'
+  q.execute("SELECT jsonb_array_length(convocations) FROM personnages_donnees WHERE name='C'");assert q.fetchone()[0]==1
+  q.execute("SELECT count(*) FROM police_action_receipts WHERE rencontre=%s",(rid,));assert q.fetchone()[0]==1
+ cas('controle_collectif_deux_sessions_du_chef_un_seul_acte',concurrence)
+ ctx['preuves_extension']['phases_et_fuites']='Cinq rounds réels et contrats de phase ; chef seul ; reddition et fuite judiciaires, contrôles ordinaires collectifs, vraies directions dont les quatre vues PSM, provenance, rejouabilité et concurrence. Pas de fuite militaire ni de combat squatteurs réel.'
+
 if __name__=='__main__':sys.exit(c.c.lancer(suite))
