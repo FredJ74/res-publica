@@ -25,6 +25,8 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+- **Écritures de l'écran (Claude, 29/10, branche `claude/ecritures-ecran-20261029`)** : migration `20261029200000` préparée, non appliquée et compatible avec l'écran en ligne. Elle garde `prets` et `budgets_municipaux`. Mariage par le serveur (Fred : pas de mariage contre son gré) : `201000` tout de suite, `201100` après déploiement de l'écran. Restent ouverts et signalés : `budgets_clubs` et `organisations.caisse` (Codex), `budgets_nationaux`, `quetes_actives`. Bilan : `outils/bancs/ECRITURES-ECRAN-20261029.md`.
+
 ### Vérification commerces, électronique, premium, ventes, presse, PNJ, douanes — Claude 29/10 (branche `claude/verif-luthecia-20261029`)
 
 Suite de la mission du 29/10 (le premier bloc, terrains/immobilier/prêts/placements, est sur `claude/terrains-immobilier-20261029`, PR #233). Même méthode : parcours rejoués sur la vraie base au rôle authenticated, en transactions annulées (Angie, Arnie, Jean Jaaj ; rien de conservé). **Piège de test** : sans `request.path` = `/rpc/...`, le garde `inventaire_revision_garder` annule toute écriture d'inventaire faite au rôle authenticated ; ce n'est pas un défaut du jeu.
@@ -40,6 +42,7 @@ Suite de la mission du 29/10 (le premier bloc, terrains/immobilier/prêts/placem
 **Douanes** : portes vérifiées gardées (paie des douaniers et convocations réservées au Chef des Douanes en exercice, ou au serveur). Le voyage entre empires n'existe pas encore (décision : raccordé avec les autres empires).
 
 **Parcours à vérifier en jeu** : chez SLAVA (Angie), consommer la fontaine de chocolat et un chocolat chaud sur place, acheter un ballotin à emporter et le retrouver dans les objets à recevoir ; Angie consulte son journal des ventes.
+
 
 ### Stabilisation Luthécia cinq points — ChatGPT 28/10
 
