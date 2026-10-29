@@ -35,6 +35,8 @@ jobs:
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Installer les dépendances du pilote navigateur avant les bancs client
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Boutiques PSM — mêmes ordres et variantes que Luthécia
+        run: node outils/bancs/banc-psm-boutiques-location.cjs
       - name: Bancs JavaScript, transports simulés
         run: python3 outils/bancs/controler-client.py --rapport /tmp/hg-bancs
       - name: Destinations du centre multimodal
