@@ -8,6 +8,10 @@ et testés localement. La guerre militaire n'enrôle pas encore les compagnons
 non militaires ; les protections générales de fiche sont suivies par ChatGPT.
 Aucun nouveau développement immobilier après l'arbitrage `main` 9e8901b.
 
+## Reprise suivante — bataille mixte, 29 octobre (en cours)
+
+`20261029190000_batailles_groupes_identites_universelles.sql` raccorde les compagnons non militaires aux engagements, lectures, dégâts, décès et replis du moteur existant. **253/253 SQL jetables** ; preuves `preuves-groupes-219-bataille-mixte-20261029/`. Le blocage de recrutement décrit dans l'état précédent est corrigé localement ; les commandes réseau et l'interface sont encore en cours de sécurisation. Pas d'application Supabase. Claude #233 n'est pas importée : son contrat de score final et les profils distincts des squatteurs restent à rapprocher sans fabriquer de barème.
+
 ## État consolidé le plus récent — 29 octobre, après les lots A à E
 
 **243/243 scénarios PostgreSQL jetable**, **121/121 bancs clients après intégration de main 4648840e** (118 avant ses trois nouveaux bancs), dont 11 cas propres aux nouveaux ordres d'effectifs. Les deux groupes d'une interception comprennent effectivement PJ, soldats, policiers et agents privés. Détection collective, commandement du chef innocent, sanctions personnelles, reddition personnelle, séparation au même endroit avant écrou et fuite par le moteur commun. Taxis caserne/QHS : neuf voyageurs, paiement unique, entrée/sortie et bus retour. Miroir militaire : ni résurrection ni effacement d'un mort/détenu. Effectifs : recrutement/licenciement entiers, mandat canonique, reçus, rollback et concurrence réelle de deux connexions. Pas de réponse simulée pour les coups/rounds SQL ; transport RPC simulé dans les tests clients, explicitement distinct de la production.
