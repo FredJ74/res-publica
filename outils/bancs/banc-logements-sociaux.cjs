@@ -23,6 +23,12 @@ const rd = lire('migrations/20261029223000_logements_sociaux_resiliation_domicil
 t('depart de la ville : baux sociaux hors nouvelle ville resilies, appartement libere', /AFTER UPDATE OF domicile ON public\.personnages_donnees/.test(rd) && /data->>'logementSocial' = 'true'/.test(rd) && /'acte','resiliation_depart'/.test(rd));
 t('attribution refusee a un demandeur qui n habite plus la ville', /demandeur_non_resident/.test(rd)
   && m.includes("  idb := t.country||':'||t.building_id||':lot_dyn_'||regexp_replace(p_lot,'[^A-Za-z0-9_-]','_','g')||':'||ville;\n  SELECT coalesce(day,1) INTO jour"));
+const hm = lire('migrations/20261029224000_logements_historiques_montrouge.sql');
+t('Montrouge historique : 4 fiches au serveur (30/30/60/60)', (hm.match(/'logements-montrouge','(petit|grand)_appartement_[12]'/g) || []).length === 4);
+t('Montrouge historique : attribution et loyer par les memes portes, residents seulement', /logement_historique_attribuer_interne\(moi, ville, p_terrain, p_lot, p_demande\)/.test(hm) && /logement_historique_loyer_fixer_interne\(moi, ville, p_terrain, p_lot, p_loyer\)/.test(hm) && /demandeur_non_resident/.test(hm));
+t('Montrouge historique : changements de loyer historises', /INSERT INTO public\.logements_loyers_historique/.test(hm));
+t('Montrouge historique : fragments des portes presents dans 220000', m.includes("  IF ville IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','reserve_adjoint'); END IF;") && m.includes("  IF p_loyer IS NULL OR p_loyer < 1 OR p_loyer > 100000 THEN RETURN jsonb_build_object('ok',false,'raison','loyer_invalide'); END IF;") && m.includes("    'demandes', coalesce("));
+t('ecran : historiques fusionnes dans le tableau, ancien ecran plus ouvert', /concat\(Array\.isArray\(v\.historiques\)/.test(ls) && !/traiterDemandesLogementSocial\(0,0\)/.test(ls));
 // Écran
 const ctx = { window: {}, console, document: {}, localStorage: { getItem() {} } }; vm.createContext(ctx);
 vm.runInContext(ch, ctx); const D = vm.runInContext('DUREES_CONSTRUCTION', ctx);

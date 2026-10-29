@@ -7,8 +7,9 @@
 //   sont attribués par l'adjoint au maire, qui fixe aussi le loyer appartement par appartement.
 // - Tout passe par le serveur : logements_sociaux_offre, logement_social_demander,
 //   logements_sociaux_tableau, logement_social_attribuer, logement_social_loyer_fixer.
-//   Les quatre appartements historiques de Montrouge gardent leur écran
-//   (traiterDemandesLogementSocial, plateau-logements-montrouge.js), ouvert depuis ce tableau.
+//   Les quatre appartements historiques de Montrouge figurent dans le même tableau et suivent
+//   les mêmes règles (logements_sociaux_historiques, 20261029224000) ; l'ancien écran
+//   traiterDemandesLogementSocial n'est plus ouvert.
 // =====================================================================================
 
 function logementsSociauxEchapper(t) {
@@ -76,7 +77,8 @@ async function ouvrirTableauLogementsSociaux() {
   }
   const cur = COUNTRIES[state.country]?.cur || 'FR';
   const nomVille = (typeof WORLD !== 'undefined' && WORLD[v.pays]?.[v.ville]?.name) || v.ville;
-  const appartements = Array.isArray(v.appartements) ? v.appartements : [];
+  // Logements de la commune + appartements historiques (Montrouge), mêmes règles depuis le 29/10/2026.
+  const appartements = (Array.isArray(v.appartements) ? v.appartements : []).concat(Array.isArray(v.historiques) ? v.historiques : []);
   const demandes = Array.isArray(v.demandes) ? v.demandes : [];
   const libres = appartements.filter(a => !a.locataire);
   const nomBatiment = t => (typeof BUILDINGS !== 'undefined' && BUILDINGS[t]?.name) || t;
@@ -108,9 +110,6 @@ async function ouvrirTableauLogementsSociaux() {
         : '<div style="color:#6a6040;font-style:italic;margin-top:.2rem">Aucun appartement libre.</div>')
       + '</div>';
   });
-  if (v.logementsMontrouge && typeof traiterDemandesLogementSocial === 'function') {
-    html += '<button onclick="traiterDemandesLogementSocial(0,0)" style="width:100%;margin-top:.8rem;padding:.5rem;border:1px solid #2a2010;background:transparent;color:#c0b090;cursor:pointer">Logements historiques de Montrouge</button>';
-  }
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
