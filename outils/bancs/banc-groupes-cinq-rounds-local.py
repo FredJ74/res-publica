@@ -14,6 +14,9 @@ def suite(ctx,suivante=None):
  def pret():
   sql('DELETE FROM police_interceptions; DELETE FROM police_action_receipts')
   sql("UPDATE personnages_donnees SET est_emprisonne=NULL,hospitalisation=NULL WHERE name IN ('A','B','C','D')")
+  # PNJ de ce décor, distinct de ceux qu'un scénario parent a pu tuer.
+  sql("INSERT INTO pnj_membres(id,famille,nom,pays,proprietaire_pj,leader_pj,pa,car_per,car_vol,car_dup) VALUES('compagnon-cinq','employe','Compagnon de fixture','republic','A','A',12,12,16,8)")
+  sql("INSERT INTO pnj_employes_metier(pnj_id,job,role_libelle) VALUES('compagnon-cinq','agent_securite','agent')")
   decor()
  for n in range(5):
   def limite(n=n):
@@ -39,7 +42,7 @@ def suite(ctx,suivante=None):
   q.execute('SELECT militaire_bataille_appliquer(71,%s::jsonb,1)',(json.dumps([{'cib_eng':eng,'cib_nom':'A','cib_pj':True,'cib_camp':'republic','degre':'critique','mode':'cac'}]),))
   q.execute("SELECT current_city,current_building,pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()==('capitale','hotel-republica',0)
   q.execute("SELECT chef FROM groupes_pj_adhesions WHERE membre='B'");assert q.fetchone()[0]=='A'
-  q.execute("SELECT leader_pj FROM pnj_membres WHERE id='ancre'");assert q.fetchone()[0]=='A'
+  q.execute("SELECT leader_pj FROM pnj_membres WHERE id='compagnon-cinq'");assert q.fetchone()[0]=='A'
   exige(rpc('militaire_bataille_decider',(71,'tenir',0,req(25012)),qui='B'),'pas_chef_de_groupe')
   v=exige(rpc('militaire_bataille_poursuivre',(71,0,req(25013)),qui='B'));assert v['round']==1
   q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==0

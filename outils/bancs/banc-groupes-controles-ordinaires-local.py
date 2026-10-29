@@ -163,4 +163,5 @@ def suite(c):
    for role in ['anon','authenticated','service_role']:
     q.execute('SELECT has_function_privilege(%s,%s,\'EXECUTE\')',(role,sig));assert not q.fetchone()[0]
  cas('controle_helpers_inaccessibles_aux_roles_reseau',droits)
+ c['controle_ordinaire_decor']=decor;c['controle_ordinaire_choix']=choix
 if __name__=='__main__':sys.exit(b.lancer(suite))

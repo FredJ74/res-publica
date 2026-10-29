@@ -322,3 +322,11 @@ les reçus et l’écrou existants pour la règle des cinq rounds et du chef uni
 La neutralisation du chef n’emporte plus immédiatement ses compagnons à l’infirmerie.
 La fuite géographique et le PNJ unique squatteurs restent à raccorder : ce lot ne
 constitue pas une activation du combat universel en production. État actuel dans `RELAIS.md`.
+
+Le complément `20261029223300` étend la table existante `rue_noeuds_serveur`
+avec les directions dérivées du même catalogue que l’écran. Le générateur
+`outils/generateurs/navigation-directions.cjs --verifier` en contrôle la fidélité.
+La provenance est conservée sur le personnage par un trigger serveur, après la
+garde de sauvegarde des positions. `223500/223600` réutilisent cette lecture pour
+la fuite policière, les contrôles collectifs et leur reprise. Aucun nouveau moteur
+ni déplacement de fuite militaire ajouté par ce complément.

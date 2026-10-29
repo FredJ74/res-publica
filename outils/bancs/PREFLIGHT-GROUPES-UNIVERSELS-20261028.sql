@@ -88,14 +88,24 @@ WHERE version IN ('20261027222500','20261028074753','20261028074754',
  '20261028122000','20261028122500','20261028123000','20261028123500',
  '20261028124000','20261028135642','20261028135643','20261028140626','20261028141500','20261028161732','20261028163800','20261028164500','20261028165000','20261028180000','20261028180100','20261028183000','20261028185300','20261028185301','20261028185302','20261028185303','20261028185304','20261028185305','20261028185500','20261028185600','20261028185800','20261028191900',
  '20261028193000','20261028193500','20261028194000','20261028194100','20261028213200','20261028213400',
- '20261028215000','20261028215100','20261028215200','20261028215400','20261028215500','20261028215600','20261028215800','20261028215900','20261028222000','20261029100000','20261029110000','20261029110100','20261029110200','20261029110300','20261029120000','20261029121000','20261029122000','20261029123000','20261029124000','20261029125000','20261029130000','20261029131000','20261029210000','20261029210100','20261029211000','20261029181000','20261029212000','20261029220000','20261029220100','20261029190000')
+ '20261028215000','20261028215100','20261028215200','20261028215400','20261028215500','20261028215600','20261028215800','20261028215900','20261028222000','20261029100000','20261029110000','20261029110100','20261029110200','20261029110300','20261029120000','20261029121000','20261029122000','20261029123000','20261029124000','20261029125000','20261029130000','20261029131000','20261029210000','20261029210100','20261029211000','20261029181000','20261029212000','20261029220000','20261029220100','20261029184321','20261029184923','20261029223000','20261029223100','20261029223200','20261029223300','20261029223400','20261029223401','20261029223402','20261029223403','20261029223404','20261029223405','20261029223500','20261029223600')
 ORDER BY version;
 -- Contrats supplémentaires du contrôle ordinaire et collision de main :
--- le registre 190000 doit être rapproché des deux fichiers locaux avant tout DDL.
+-- les deux versions de main ont été renumérotées par #247/#248 ; vérifier leur registre.
 SELECT c.relname,a.attname,format_type(a.atttypid,a.atttypmod) AS type
 FROM pg_class c JOIN pg_attribute a ON a.attrelid=c.oid
 WHERE c.oid IN (to_regclass('public.police_interceptions'),to_regclass('public.infractions'))
  AND a.attnum>0 AND NOT a.attisdropped ORDER BY c.relname,a.attnum;
 SELECT id,jours_reference,amende_reference FROM public.infractions WHERE id='possession_illegale_douane';
 SELECT id,jours_reference,amende_reference FROM public.infractions_categories WHERE id='delit_mineur';
+-- Provenance et directions de fuite : structures seulement, sans données de joueur.
+SELECT a.attname,format_type(a.atttypid,a.atttypmod) AS type
+FROM pg_attribute a WHERE a.attrelid=to_regclass('public.personnages_donnees') AND a.attname='current_street_from' AND NOT a.attisdropped;
+SELECT country,city,noeud,count(*) AS doublons FROM public.rue_noeuds_serveur GROUP BY country,city,noeud HAVING count(*)<>1;
+SELECT country,city,building,count(*) AS sorties FROM public.rue_sorties_batiments GROUP BY country,city,building HAVING count(*)<>1;
+SELECT country,city,count(*) FILTER(WHERE to_jsonb(r)->'directions' IS NULL OR to_jsonb(r)->'directions'='null'::jsonb) AS directions_absentes
+FROM public.rue_noeuds_serveur r GROUP BY country,city;
+-- Un déclenchement Vercel quotidien ne prouve pas une progression à 90 secondes.
+-- Vérifier les extensions et tâches déjà installées avant de proposer un raccordement.
+SELECT extname,extversion FROM pg_extension WHERE extname IN ('pg_cron','pg_net');
 ROLLBACK;

@@ -28,7 +28,7 @@ def suite(ctx,suivante=None):
   # famille ni affectation professionnelle n'est changée pour fabriquer le cas.
   exige(rpc('groupe_pj_quitter',(),qui='A'));exige(rpc('groupe_pj_rejoindre',('A',),qui='B'))
   exige(rpc('groupe_pj_rejoindre',('C',),qui='D'))
-  sql("UPDATE pnj_membres SET leader_pj='A',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,pa=12 WHERE id='ancre'")
+  sql("UPDATE pnj_membres SET leader_pj='A',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,pa=12 WHERE id='ancre' AND statut='actif'")
   sql("UPDATE pnj_membres m SET car_per=(pnj_metier_profil(e.job)->>'PER')::int,car_dup=(pnj_metier_profil(e.job)->>'DUP')::int,car_vol=(pnj_metier_profil(e.job)->>'VOL')::int FROM pnj_employes_metier e WHERE e.pnj_id=m.id")
   sql("UPDATE pnj_membres SET leader_pj='C',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,pa=12 WHERE id='douane-republic-ville_a-D1' AND statut='actif'")
   sql("INSERT INTO services_militaires(personnage,pays,grade) VALUES('C','soviet','soldat')")
@@ -97,7 +97,7 @@ def suite(ctx,suivante=None):
   q.execute("SELECT pa,current_city FROM personnages_donnees WHERE name='A'");assert q.fetchone()==(0,'caserne')
   q.execute("SELECT current_city FROM personnages_donnees WHERE name='B'");assert q.fetchone()[0]=='capitale'
   q.execute("SELECT count(*) FROM groupes_pj_adhesions WHERE chef='A' OR membre='A'");assert q.fetchone()[0]==0
-  q.execute("SELECT leader_pj,ville FROM pnj_membres WHERE id='ancre'");assert q.fetchone()==(None,'capitale')
+  q.execute("SELECT leader_pj,ville FROM pnj_membres WHERE id='ancre' AND statut='actif'");assert q.fetchone()==(None,'capitale')
  cas('bataille_chef_neutralise_seul_evacue_et_groupes_separes',neutralise)
  def pas_de_retrait_pnj():
   decor();exige(rpc('pnj_quitter_groupe',(['ancre'],),qui='A'),'combat_en_cours')

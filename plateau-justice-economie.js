@@ -11685,7 +11685,7 @@ function afficherInterceptionJudiciaire() {
   if (i.controleOrdinaire) {
     titre.textContent = 'CONTRÔLE POLICIER';
     body.innerHTML = '<div class="cpj-dialogue"><p>La patrouille a découvert des objets prohibés.</p>' +
-      (i.reponseIncertaine ? '<p class="cpj-note">Réponse incertaine. Rechargez la situation serveur avant de poursuivre.</p>' :
+      (i.peutCommander === false ? '<p class="cpj-note">Le chef du groupe décide de la réponse au contrôle.</p>' : i.reponseIncertaine ? '<p class="cpj-note">Réponse incertaine. Rechargez la situation serveur avant de poursuivre.</p>' :
       '<button class="cpj-touche" '+(interceptionJudiciaireOccupee?'disabled ':'')+'onclick="choisirInterceptionJudiciaire(&quot;rendre&quot;)">Se soumettre</button>' +
       '<button class="cpj-touche" '+(interceptionJudiciaireOccupee?'disabled ':'')+'onclick="choisirInterceptionJudiciaire(&quot;fuir&quot;)">Tenter de fuir</button>') + '</div>';
     modal.classList.add('open');
@@ -11821,7 +11821,7 @@ async function choisirInterceptionJudiciaire(choix) {
   }
   const contexte = contexteInterceptionJudiciaire();
   if (i.controleOrdinaire) {
-    if (!['rendre','fuir'].includes(choix)) return;
+    if (i.peutCommander === false || !['rendre','fuir'].includes(choix)) return;
     interceptionJudiciaireOccupee = true;
     afficherInterceptionJudiciaire();
     try {
@@ -11839,7 +11839,7 @@ async function choisirInterceptionJudiciaire(choix) {
       const inventaire = typeof sbInventaireReceptionEtat === 'function' ? await sbInventaireReceptionEtat(contexte.nom).catch(() => null) : null;
       if (!contexteInterceptionJudiciaireValide(contexte,i)) return;
       if (!frais || !inventaire || inventaire.ok !== true ||
-          (v.phase === 'detention' && !frais.estEmprisonne)) { marquerInterceptionIncertaine(i); return; }
+          (v.phase === 'detention' && (!v.personnage_intercepte || v.personnage_intercepte === contexte.nom) && !frais.estEmprisonne)) { marquerInterceptionIncertaine(i); return; }
       if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(inventaire);
       state.convocations = frais.convocations;
       interceptionJudiciaire = null;
