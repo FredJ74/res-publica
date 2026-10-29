@@ -2205,7 +2205,14 @@ async function chargerPjPourRumeur() {
 
 async function chargerOrganisationsPourRumeur() {
   const toutes = (typeof sbLoadOrganisations === 'function') ? await sbLoadOrganisations().catch(() => []) : [];
-  return (toutes || []).filter(o => o.visible).sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr'));
+  // Seule la cible publique de la rumeur est exposée à ce sélecteur.
+  // Une organisation criminelle peut être citée sans rendre publique sa
+  // hiérarchie, ses membres ou sa fiche interne (visible:false).
+  return (toutes || [])
+    .filter(o => o && (o.visible === true || o.type === 'criminelle'))
+    .map(o => ({ id: o.id, nom: o.nom, country: o.country }))
+    .filter(o => o.id && o.nom)
+    .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'));
 }
 
 // Balaye les 4 empires x 5 zones a batiments (capitale/ville_a/ville_b/caserne/qhs, structure
