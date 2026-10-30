@@ -81,6 +81,14 @@ export default async function handler(req, res) {
     const proprio = await lire('personnages_donnees',
       'name=eq.' + encodeURIComponent(nom) + '&user_id=eq.' + encodeURIComponent(utilisateur.id) + '&select=name&limit=1');
     if (!proprio.length) return res.status(403).json({ ok: false, error: 'Personnage non autorisé.' });
+    // Le courrier du jeu peut être envoyé par une session PJ : il ne fait donc
+    // pas foi, à lui seul, pour l'éligibilité. Imposer aussi l'ancienneté serveur.
+    const fiches = await lire('personnages',
+      'name=eq.' + encodeURIComponent(nom) + '&select=created_at&limit=1');
+    const naissance = fiches[0]?.created_at ? Date.parse(fiches[0].created_at) : NaN;
+    if (!Number.isFinite(naissance) || Date.now() - naissance < 86400000) {
+      return res.status(403).json({ok:false,error:'Portrait disponible après le premier jour.'});
+    }
     const dossier = await etat(nom);
     if (!dossier.invite || dossier.refuse) return res.status(403).json({ ok: false, error: 'Interview non autorisée.' });
     // Garder aussi l'unicité métier si le personnage a changé de compte propriétaire.
