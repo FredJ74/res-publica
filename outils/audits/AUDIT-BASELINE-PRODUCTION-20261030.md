@@ -42,3 +42,7 @@ La table `public.acquisitions_transactions_internes` est **présente** en produc
 ## Verdict
 
 **Audit initial terminé ; re-génération du baseline non terminée.** Le référentiel daté du 13 octobre est obsolète, les divergences de trois corps et l'absence de DDL rejouable pour `acquisitions_transactions_internes` sont documentées. Aucune migration ou donnée joueur n'a été touchée pendant cet audit. La production reste la source de vérité.
+
+## Détail structurel confirmé de la table manquante dans le rejeu
+
+`public.acquisitions_transactions_internes` comporte six colonnes : `transaction_id bigint NOT NULL`, `acteur text NOT NULL`, `terrain text`, `ordre text`, `pa integer`, `montant integer`. La clé primaire composite est `(transaction_id, acteur)`, portée par l'index unique `acquisitions_transactions_internes_pkey`. RLS activée (non forcée), `relacl` explicite `{postgres=arwdDxtm/postgres}`, aucun trigger utilisateur. Ce constat **ne suffit pas** à publier un DDL de référence : les éventuelles policies, commentaires, dépendances et privilèges par défaut doivent être extraits par les requêtes canoniques.
