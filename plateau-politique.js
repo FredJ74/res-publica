@@ -3778,7 +3778,7 @@ function renderRoomActions(room, buildingId, roomId) {
       Promise.resolve().then(async () => {
         const reponse = categorie === 'commissariat'
           ? (typeof lireCaisseCommissariat === 'function' ? await lireCaisseCommissariat(state.country, caisseId) : null)
-          : (typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(state.country, caisseId) : null);
+          : (typeof sbGetCaisseBatiment === 'function' ? await sbGetCaisseBatiment(state.country + '_' + caisseId) : null);
         if ([state.char?.name, state.currentCity, state.country, state.currentBuilding, state.currentRoom].join('|') !== identite ||
             !element.isConnected) return;
         const solde = reponse && (categorie !== 'commissariat' || reponse.ok) && Number.isFinite(Number(reponse.solde))
