@@ -3744,6 +3744,9 @@ const CATEGORIES_CAISSE_BATIMENTS_LOCAUX = {
 };
 function categorieCaisseAccueilCommunal(buildingId, ville, pays) {
   if (!buildingId) return null;
+  // La mairie est elle aussi un bâtiment public doté de sa propre caisse territoriale.
+  if (buildingId === 'mairie-capitale' && ville === 'capitale') return 'mairie';
+  if (buildingId === 'mairie' && (ville === 'ville_a' || ville === 'ville_b')) return 'mairie';
   const categories = [...CATEGORIES_BUDGET_MAIRIE, 'tribunal'];
   const declaree = (typeof STRUCTURES_MEDICALES !== 'undefined' && STRUCTURES_MEDICALES[buildingId]?.categorieCaisse)
     || CATEGORIES_CAISSE_BATIMENTS_LOCAUX[buildingId] || null;
@@ -3787,7 +3790,9 @@ function renderRoomActions(room, buildingId, roomId) {
       roomId === Object.keys(BUILDINGS[buildingId]?.rooms || {})[0])) {
     const categorie = categorieCaisseAccueilCommunal(buildingId, state.currentCity, state.country);
     if (categorie) {
-      const caisseId = getBuildingIdPourCategorieBudget(categorie, state.currentCity, state.country);
+      const caisseId = categorie === 'mairie'
+        ? (typeof caisseTerritorialeId === 'function' ? caisseTerritorialeId('mairie', state.currentCity) : null)
+        : getBuildingIdPourCategorieBudget(categorie, state.currentCity, state.country);
       const element = document.getElementById('action-context-bat');
       const identite = [state.char?.name, state.currentCity, state.country, buildingId, roomId].join('|');
       const titre = element.textContent;
