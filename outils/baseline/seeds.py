@@ -679,6 +679,8 @@ def colonnes_a_seeder(exp, tbl):
     gardees, omises = [], []
     for c in sorted([x for x in exp["colonnes"] if x["tbl"] == tbl], key=lambda x: x["attnum"]):
         defaut = (c.get("defaut") or "")
+        if c.get("generee"):
+            omises.append(c["attname"]); continue
         if "timestamp" in c["type"] and defaut.startswith("now()"):
             omises.append(c["attname"]); continue
         gardees.append(c)
@@ -726,23 +728,40 @@ def requete(exp, tables):
                 valeurs.append("quote_nullable(z.%s::text)" % n)
         pk = cles_primaires(exp, tbl) or noms
         ou = filtres_dynamiques().get(tbl, {}).get("ou")
+        surcharge = " OVERRIDING SYSTEM VALUE" if any(c.get("identity")=="a" for c in cols) else ""
         branches.append(
-            "select %s as tbl, %s as rang, 'INSERT INTO public.%s (%s) VALUES (' || "
+            "select %s as tbl, %s as rang, 'INSERT INTO public.%s (%s)%s VALUES (' || "
             "array_to_string(array[%s], ', ') || ');' as ligne\nfrom public.%s z%s"
             % ("'" + tbl + "'",
                "row_number() over (order by %s)" % ", ".join("z." + c for c in pk),
-               tbl, ", ".join(noms), ", ".join(valeurs), tbl,
+               tbl, ", ".join(noms), surcharge, ", ".join(valeurs), tbl,
                ("\nwhere " + ou) if ou else ""))
     return ("select jsonb_build_object('export_seeds', jsonb_agg(jsonb_build_object("
             "'tbl', tbl, 'rang', rang, 'ligne', ligne) order by tbl, rang)) as export_seeds\n"
             "from (\n" + "\nunion all\n".join(branches) + "\n) tout")
 
 
+def recalage_sequence(col, exp):
+    seq=next((x for x in exp.get('sequences',[]) if x.get('tbl')==col['tbl'] and x.get('colonne')==col['attname'] and x.get('lien') in ('a','i')),None)
+    if seq is None:
+        if (col.get('defaut') or '').startswith('nextval(') or col.get('identity'):
+            raise ValueError('Séquence sans propriétaire canonique : '+col['tbl']+'.'+col['attname'])
+        return ''
+    inc,start=seq.get('increment'),seq.get('start')
+    if not isinstance(inc,int) or not inc or not isinstance(start,int):
+        raise ValueError('Options de recalage manquantes : '+seq['sequence'])
+    ident=lambda x:'"'+x.replace('"','""')+'"'
+    nom=('public.'+ident(seq['sequence'])).replace("'","''")
+    borne='max' if inc>0 else 'min'
+    return "select setval('"+nom+"', (select coalesce("+borne+"("+ident(col['attname'])+"), "+str(start-inc)+") + ("+str(inc)+") from public."+ident(col['tbl'])+"), false);\n"
+
+
 def rendre(exp, resultat):
     cls = classification()
     libelles = {"A": "socle generique", "B": "contenu initial d'empire",
                 "C": "etat vivant", "D": "mixte"}
-    brut = open(resultat, encoding="utf-8").read()
+    with open(resultat, encoding="utf-8") as fh:
+        brut = fh.read()
     try:
         externe = json.loads(brut)["result"]
     except Exception:
@@ -814,13 +833,9 @@ def rendre(exp, resultat):
         # Une sequence possedee par une colonne seedee doit etre recalee, sinon
         # le premier INSERT applicatif entre en collision avec un id seede.
         for c in sorted([x for x in exp["colonnes"] if x["tbl"] == tbl], key=lambda x: x["attnum"]):
-            d = c.get("defaut") or ""
-            if d.startswith("nextval("):
-                seq = re.search(r"nextval\('([^']+)'", d).group(1)
-                corps += ("\n-- Recalage de la sequence : sans lui, le premier INSERT "
-                          "applicatif\n-- entrerait en collision avec un identifiant seede.\n"
-                          "select setval('%s', (select coalesce(max(%s), 0) + 1 "
-                          "from public.%s), false);\n" % (seq, c["attname"], tbl))
+            recalage=recalage_sequence(c,exp)
+            if recalage:
+                corps += "\n-- Recalage depuis les identifiants initiaux, jamais le compteur de bêta.\n" + recalage
         chemin = os.path.join(rep, tbl + ".sql")
         with open(chemin, "w", encoding="utf-8", newline="") as fh:
             fh.write(tete + corps)

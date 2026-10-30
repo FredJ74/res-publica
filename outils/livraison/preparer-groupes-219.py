@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Vérifie le manifeste #219 ; produit du SQL à relire, ne se connecte à rien."""
 import argparse,hashlib,json,re
+from datetime import datetime
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 MAN=R/'outils/audits/LIVRAISON-GROUPES-219-20261030.json'
 def preparer(destination=None):
  m=json.loads(MAN.read_text());versions=set();blocs=[]
+ coupe=datetime.fromisoformat(json.loads((R/'baseline/CONTROLE-GLOBAL.json').read_text())['releve_le']).strftime('%Y%m%d%H%M%S')
+ assert all(e['version']>coupe for e in m['migrations']), 'Versions préparées antérieures au nouveau baseline : rehorodater le lot, jamais reculer le point de coupe'
  for e in m['migrations']:
   p=R/e['fichier'];s=p.read_text()
   assert re.fullmatch(r'\d{14}',e['version']) and e['version'] not in versions,e

@@ -88,7 +88,8 @@ def charger_exports(rep):
     exp, vus, ensembles = {}, [], {}
     fichiers = sorted(glob.glob(os.path.join(rep, "*.txt")) + glob.glob(os.path.join(rep, "*.json")))
     for f in fichiers:
-        brut = open(f, encoding="utf-8").read()
+        with open(f, encoding="utf-8") as fh:
+            brut = fh.read()
         try:
             valeur = json.loads(brut)
             if isinstance(valeur, dict) and isinstance(valeur.get("result"), str):
@@ -110,6 +111,7 @@ def charger_exports(rep):
                 raise ValueError(os.path.basename(f) + " : " + cle + " incomplet")
             if any(not isinstance(contenu[k], (list, type(None))) for k in EXPORTS_ATTENDUS[cle]):
                 raise ValueError(cle + " : catégories non tabulaires")
+            contenu = {k:([] if v is None else v) for k,v in contenu.items()}
             if cle in ensembles and ensembles[cle] != contenu:
                 raise ValueError(cle + " : deux relevés contradictoires")
             ensembles[cle] = contenu
@@ -127,7 +129,9 @@ def charger_exports(rep):
 
 def charger_classification():
     tbl_dom, tbl_strat, tbl_cat = {}, {}, {}
-    for l in csv.DictReader(open(CLASSIF, encoding="utf-8"), delimiter=";"):
+    with open(CLASSIF, encoding="utf-8") as fh:
+        lignes=list(csv.DictReader(fh,delimiter=";"))
+    for l in lignes:
         tbl_dom[l["table"]] = l["domaine"]
         tbl_strat[l["table"]] = l["strategie"]
         tbl_cat[l["table"]] = l["categorie"]
@@ -155,6 +159,10 @@ def rendre_colonne(col, seq_par_col):
         if not seq or seq.get("lien") != "i":
             raise ValueError("Séquence IDENTITY absente de l'export : " + col["tbl"] + "." + nom)
         bouts.append("GENERATED " + mode + " AS IDENTITY (SEQUENCE NAME public." + identifiant(seq["sequence"]) + " " + options_sequence(seq) + ")")
+    elif col.get("generee"):
+        if col["generee"] != "s" or not defaut:
+            raise ValueError("Colonne générée non prise en charge : " + col["tbl"] + "." + nom)
+        bouts.append("GENERATED ALWAYS AS (" + defaut + ") STORED")
     elif defaut:
         bouts.append("DEFAULT " + defaut)
     if col.get("collation"):
