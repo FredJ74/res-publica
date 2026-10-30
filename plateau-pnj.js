@@ -1346,7 +1346,7 @@ async function talkToPnj(encodedPnj, action) {
 
   // Conseil immobilier commun : mêmes chiffres que le chantier réel, sans deuxième barème.
   // Les trois interlocuteurs compétents répondent aussi si l'IA est indisponible.
-  const interlocuteur = String(pnj.name || '').replace(/\\s*\\(PNJ\\)\\s*$/i, '').trim();
+  const interlocuteur = String(pnj.name || '').replace(/\s*\(PNJ\)\s*$/i, '').trim();
   if (['Marc Hantile', 'Laurent Barre', 'Hans Von Discret'].includes(interlocuteur)
       && /construc|b[aâ]ti|chantier|hangar|commerce premium|commerce standard|dur[eé]e.*immeuble|co[uû]t.*immeuble/i.test(action)) {
     const niveaux = typeof NIVEAUX_CONSTRUCTION !== 'undefined' ? NIVEAUX_CONSTRUCTION : {};
