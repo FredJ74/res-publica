@@ -220,8 +220,10 @@ def main():
             # ET L'ENVELOPPE `BEGIN; ... ROLLBACK;` EST UNE GARANTIE PLUS FORTE QUE LE BLOC DO :
             # elle annule TOUT, y compris les ordres nus du decor. Un banc qui la porte n'a plus
             # besoin qu'on compte ses ordres nus -- ils ne survivront pas davantage.
+            # Une enveloppe ne vaut que si rien ne la referme avant le ROLLBACK : aucun COMMIT.
             enveloppe = (re.search(r"(?mi)^\s*BEGIN\s*;", nu) is not None
-                         and re.search(r"(?mi)^\s*ROLLBACK\s*;", nu) is not None)
+                         and re.search(r"(?mi)^\s*ROLLBACK\s*;", nu) is not None
+                         and re.search(r"(?mi)^\s*(COMMIT|END\s+TRANSACTION)\b", nu) is None)
             # Les ordres a l'INTERIEUR d'un bloc DO sont annules avec lui : ce qu'on cherche,
             # ce sont les ordres NUS, ceux qui s'executeraient seuls. On retire donc les corps
             # des blocs avant de regarder. Premier jet de ce controle : il comptait l'INSERT de
@@ -232,7 +234,9 @@ def main():
             if blocs == 0 and not enveloppe:
                 r.anomalie("banc sans bloc DO ni enveloppe BEGIN/ROLLBACK, donc applicable tel "
                            "quel : " + rel)
-            elif raises < blocs:
+            # L'enveloppe annule aussi ce qu'ecrivent les blocs DO qui ne levent pas : un banc qui
+            # la porte peut avoir des blocs d'epreuve intermediaires sans exception propre.
+            elif raises < blocs and not enveloppe:
                 r.anomalie("banc dont %d bloc(s) sur %d ne levent pas : %s -- ce qu'ils "
                            "ecrivent resterait ecrit" % (blocs - raises, blocs, rel))
             elif hors and not enveloppe:
