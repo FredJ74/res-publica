@@ -655,10 +655,88 @@ function sbPayloadPersonnage(charState) {
     reservation_hotel: charState.char?.reservationHotel || null,
     updated_at:       new Date().toISOString()
   };
+  // Champs transactionnels : une seule définition (sbFicheChampsFusion), pour que la base de la
+  // fusion et la valeur envoyée soient calculées exactement de la même façon.
+  Object.assign(data, sbFicheChampsFusion(charState));
+  if (charState.ficheFusion === true && charState._ficheBase && typeof charState._ficheBase === 'object') {
+    data.fiche_base = charState._ficheBase;
+  }
   if (charState._navigationServeur === true) {
     for (const cle of ['country','current_city','current_building','current_room','current_street']) delete data[cle];
   }
   return data;
+}
+
+// =====================================================================================
+// FUSION À TROIS VOIES DE LA FICHE (30/10/2026, clôture Luthécia)
+// La sauvegarde générique envoie, pour chaque champ transactionnel, la nouvelle valeur ET la
+// valeur reçue du serveur (fiche_base). Le serveur (personnages_vue_modifier) garde sa propre
+// valeur pour tout champ que cet écran n'a pas modifié : une copie ancienne ne défait plus une
+// recharge de PA, une arrestation, une hospitalisation… La ligne renvoyée porte le résultat réel,
+// sur lequel l'écran se recale.
+// =====================================================================================
+const SB_FICHE_FUSION = {
+  pa:                { lire: c => (typeof c.pa === 'number') ? c.pa : 10, poser: (c, v) => { c.pa = v; } },
+  hp:                { lire: c => c.hp ?? 100, poser: (c, v) => { c.hp = v; } },
+  moral:             { lire: c => c.moral ?? 75, poser: (c, v) => { c.moral = v; } },
+  current_city:      { lire: c => c.currentCity || 'capitale', poser: (c, v) => { c.currentCity = v; } },
+  current_building:  { lire: c => c.currentBuilding || null, poser: (c, v) => { c.currentBuilding = v; } },
+  current_room:      { lire: c => c.currentRoom || null, poser: (c, v) => { c.currentRoom = v; } },
+  est_emprisonne:    { lire: c => c.estEmprisonne || null, poser: (c, v) => { c.estEmprisonne = v; } },
+  hospitalisation:   { lire: c => c.hospitalisation || null, poser: (c, v) => { c.hospitalisation = v; } },
+  poison_actif:      { lire: c => c.empoisonnement || null, poser: (c, v) => { c.empoisonnement = v; } },
+  stats_affaiblies:  { lire: c => c.statsAffaiblies || {}, poser: (c, v) => { c.statsAffaiblies = v || {}; } },
+  regen_jour:        { lire: c => (typeof c.regenJour === 'number') ? c.regenJour : null, poser: (c, v) => { c.regenJour = v; } },
+  requisition:       { lire: c => c.requisition || null, poser: (c, v) => { c.requisition = v; } },
+  domicile:          { lire: c => c.domicile || null, poser: (c, v) => { c.domicile = v; } },
+  employes:          { lire: c => c.employes || [], poser: (c, v) => { c.employes = v || []; } },
+  escort_active:     { lire: c => c.escortActive || [], poser: (c, v) => { c.escortActive = v || []; } },
+  locations_actives: { lire: c => c.locationsActives || [], poser: (c, v) => { c.locationsActives = v || []; } },
+  dernier_dormir:    { lire: c => c.dernierDormir || 0, poser: (c, v) => { c.dernierDormir = v || 0; } },
+  reservation_hotel: { lire: c => c.char?.reservationHotel || null, poser: (c, v) => { if (c.char) c.char.reservationHotel = v; } },
+  excommunie:        { lire: c => c.char?.excommunie || null, poser: (c, v) => { if (c.char) c.char.excommunie = v; } }
+};
+
+function sbFicheChampsFusion(charState) {
+  const r = {};
+  for (const k of Object.keys(SB_FICHE_FUSION)) r[k] = JSON.parse(JSON.stringify(SB_FICHE_FUSION[k].lire(charState) ?? null));
+  return r;
+}
+
+// L'écran vient d'adopter une valeur que le serveur lui a renvoyée (paiement, déplacement dans la
+// rue…) : c'est désormais la valeur connue du serveur, la base de la fusion avance avec elle.
+// Sans cela, le changement local suivant du même champ passerait pour un conflit et le serveur
+// garderait l'ancienne valeur.
+function sbFicheBaseAdopter(valeurs) {
+  if (typeof state === 'undefined' || !state._ficheBase || !valeurs || typeof valeurs !== 'object') return;
+  for (const k of Object.keys(valeurs)) {
+    if (Object.prototype.hasOwnProperty.call(SB_FICHE_FUSION, k)) state._ficheBase[k] = valeurs[k] ?? null;
+  }
+}
+
+// Après une écriture acceptée : la base devient la vérité serveur renvoyée ; si le serveur a
+// gardé une autre valeur que celle envoyée, l'écran l'adopte -- sauf si le joueur a changé ce
+// champ depuis l'envoi (sa prochaine sauvegarde le présentera, avec la bonne base).
+function sbFicheRecaler(charState, envoye, ligne) {
+  if (!ligne || typeof ligne !== 'object' || !envoye?.fiche_base) return false;
+  const base = {};
+  let recale = false;
+  for (const k of Object.keys(SB_FICHE_FUSION)) {
+    if (!Object.prototype.hasOwnProperty.call(ligne, k)) { base[k] = charState._ficheBase?.[k] ?? null; continue; }
+    const serveur = ligne[k] ?? null;
+    base[k] = serveur;
+    if (JSON.stringify(serveur) === JSON.stringify(envoye[k] ?? null)) continue;
+    const actuel = SB_FICHE_FUSION[k].lire(charState) ?? null;
+    if (JSON.stringify(actuel) !== JSON.stringify(envoye[k] ?? null)) continue;
+    SB_FICHE_FUSION[k].poser(charState, serveur);
+    recale = true;
+  }
+  charState._ficheBase = base;
+  if (recale) {
+    if (typeof rpDiagId === 'function') rpDiagId('fiche', 'recalage sur la vérité serveur après sauvegarde');
+    if (typeof updateUI === 'function') { try { updateUI(); } catch (e) {} }
+  }
+  return recale;
 }
 
 function sbEnfilerEcriturePersonnage(charState, data) {
@@ -720,6 +798,7 @@ function sbEnfilerEcriturePersonnage(charState, data) {
     // detecter qu'UNE AUTRE session/onglet a ecrit depuis, avant de republier aveuglement.
     const ligne = Array.isArray(resultat) ? resultat[0] : resultat;
     charState._dernierUpdatedAtConnu = typeof ligne?.updated_at === 'string' ? ligne.updated_at : null;
+    sbFicheRecaler(charState, data, ligne);
     return resultat;
   }, (err) => { if (contexteActif()) reporterDeltaPopNonEcrit(charState, data.resources); throw err; });
   sbSaveQueue = tache.catch(() => {}); // ne bloque jamais la file suite a un echec
@@ -879,6 +958,10 @@ async function sbLoadPersonnage(name) {
     _groupeConfirme: sbGroupePjValide(groupePj, r.name),
     _navigationServeur: groupePj?.navigation_serveur === true,
     _positionNavigationServeur: positionGroupe,
+    // Fusion à trois voies (30/10/2026) : le serveur l'accepte dès que la vue expose `fiche_base`.
+    // Tant que la migration 20261030160000 n'est pas appliquée, rien n'est envoyé (aucun PATCH
+    // refusé pour colonne inconnue).
+    ficheFusion: Object.prototype.hasOwnProperty.call(r, 'fiche_base'),
     // PROPRIETAIRE DE LA FICHE (21 septembre 2026). Cette colonne etait la, dans la reponse, et
     // le mapping la jetait. Elle est pourtant la seule qui permette de savoir, SANS aucun appel
     // supplementaire, si la fiche recue est bien celle du compte connecte : personnages_donnees
@@ -2031,7 +2114,8 @@ function sbSauvegardeUrgenceDechargement() {
     country: state._navigationServeur === true ? undefined : (state.country || 'republic'),
     current_city: state._navigationServeur === true ? undefined : (state.currentCity || 'capitale'),
     current_building: state._navigationServeur === true ? undefined : (state.currentBuilding || null),
-    current_room: state._navigationServeur === true ? undefined : (state.currentRoom || null)
+    current_room: state._navigationServeur === true ? undefined : (state.currentRoom || null),
+    fiche_base: state.ficheFusion === true && state._ficheBase ? state._ficheBase : undefined
   });
   try {
     // Fermer un onglet oublie ne doit pas republier ses soldes sur un etat
@@ -5156,7 +5240,50 @@ const RP_RPC_PUBLIQUES = new Set([
 //   'reseau'         -> `fetch` a rejete : hors ligne, DNS, TLS, requete bloquee.
 // Le statut HTTP et le code PostgREST/PostgreSQL sont conserves pour le diagnostic, jamais
 // pour l'affichage : c'est l'appelant qui choisit une phrase pour le joueur.
+// DOUBLE CLIC ET RÉPONSE PERDUE (30/10/2026, clôture Luthécia).
+// 1. Un même appel (même fonction, mêmes paramètres) déjà en vol n'est pas renvoyé une seconde
+//    fois : le second clic reçoit la réponse du premier. Les achats sans clé d'unicité ne sont
+//    donc plus payés deux fois par un double clic.
+// 2. Quand la réponse d'un appel envoyé est perdue (panne réseau, erreur 5xx), l'écran ne sait pas
+//    ce que le serveur a fait : il relit l'inventaire et les compteurs de la fiche au lieu de
+//    supposer un échec. Aucune valeur n'est inventée, aucune sauvegarde n'est déclenchée.
+const SB_RPC_EN_VOL = new Map();
+let sbResynchroTimer = null;
+function sbResynchroniserApresIncertitude() {
+  if (sbResynchroTimer) clearTimeout(sbResynchroTimer);
+  sbResynchroTimer = setTimeout(async () => {
+    sbResynchroTimer = null;
+    if (typeof state === 'undefined' || !state.char?.name || state.personnageChargeDepuisServeur !== true) return;
+    try {
+      if (typeof rafraichirInventaireDepuisServeur === 'function') await rafraichirInventaireDepuisServeur();
+      const rows = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) + '&select=pa,hp,arg,liquide');
+      const r = Array.isArray(rows) ? rows[0] : null;
+      if (!r) return;
+      if (typeof r.pa === 'number') { state.pa = r.pa; sbFicheBaseAdopter({ pa: r.pa }); }
+      if (typeof r.hp === 'number') { state.hp = r.hp; sbFicheBaseAdopter({ hp: r.hp }); }
+      if (typeof r.liquide === 'number') state.liquide = r.liquide;
+      if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }
+      if (typeof updateUI === 'function') updateUI();
+    } catch (e) {}
+  }, 1500);
+}
+
 async function sbTransportRpc(fn, params, options) {
+  let cle = null;
+  try { cle = fn + '|' + JSON.stringify(params ?? null); } catch (e) { cle = null; }
+  if (cle && SB_RPC_EN_VOL.has(cle)) return SB_RPC_EN_VOL.get(cle);
+  const appel = sbTransportRpcBrut(fn, params, options).then(env => {
+    if (env && env.envoyee && (env.etat === 'reseau' || (Number(env.http) >= 500))) sbResynchroniserApresIncertitude();
+    return env;
+  });
+  if (cle) {
+    SB_RPC_EN_VOL.set(cle, appel);
+    appel.finally(() => { if (SB_RPC_EN_VOL.get(cle) === appel) SB_RPC_EN_VOL.delete(cle); }).catch(() => {});
+  }
+  return appel;
+}
+
+async function sbTransportRpcBrut(fn, params, options) {
   const opts = options || {};
   const publique = (opts.publique === true) || RP_RPC_PUBLIQUES.has(fn);
 
