@@ -1,4 +1,4 @@
--- #219 PRÉPARÉE, après 20261030212000. Aucun tarif ni coût en PA modifié.
+-- #219 PRÉPARÉE, après 20261030223558. Aucun tarif ni coût en PA modifié.
 -- Les trois actes historiques restent le moteur camion ; leur composition rejoint le socle.
 DO $corps$
 DECLARE f record;s text;a text;b text;

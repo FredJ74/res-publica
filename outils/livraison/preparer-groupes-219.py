@@ -10,6 +10,7 @@ def preparer(destination=None):
   p=R/e['fichier'];s=p.read_text()
   assert re.fullmatch(r'\d{14}',e['version']) and e['version'] not in versions,e
   assert p.name.startswith(e['version']+'_') and p.parent==R/'migrations',p
+  assert list((R/'migrations').glob(e['version']+'_*.sql'))==[p], 'Collision de version dans le dépôt : '+e['version']
   assert hashlib.sha256(p.read_bytes()).hexdigest()==e['sha256'],'Contenu changé : '+str(p)
   assert len(s)<=12500,p
   assert not re.search(r'^\s*(BEGIN|COMMIT|ROLLBACK)\s*;',s,re.M|re.I),'transaction interne : '+str(p)

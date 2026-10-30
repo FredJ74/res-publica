@@ -652,7 +652,8 @@ EXPORTS = {
    join pg_namespace n on n.oid=ic.relnamespace and n.nspname='public'
    left join pg_constraint co on co.conindid=ic.oid and co.contype in ('p','u','x')),
  'sequences', (select jsonb_agg(jsonb_build_object('sequence',s.relname,'tbl',tc.relname,'colonne',a.attname,'lien',d.deftype,
-      'start',sq.seqstart,'increment',sq.seqincrement,'cache',sq.seqcache,'cycle',sq.seqcycle) order by s.relname collate "C")
+      'start',sq.seqstart,'increment',sq.seqincrement,'cache',sq.seqcache,'cycle',sq.seqcycle,
+      'type',format_type(sq.seqtypid,NULL),'min',sq.seqmin,'max',sq.seqmax) order by s.relname collate "C")
    from pg_class s join pg_namespace n on n.oid=s.relnamespace and n.nspname='public' and s.relkind='S'
    join pg_sequence sq on sq.seqrelid=s.oid
    left join lateral (select dep.deptype as deftype, dep.refobjid, dep.refobjsubid from pg_depend dep

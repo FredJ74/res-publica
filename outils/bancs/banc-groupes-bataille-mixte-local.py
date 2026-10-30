@@ -8,12 +8,12 @@ def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
  ctx['installer_fonction_canonique']('militaire_bataille_decider')
  ctx['installer_fonction_canonique']('militaire_bataille_etat')
- q.execute((R/'migrations/20261030210000_batailles_groupes_identites_universelles.sql').read_text())
- q.execute((R/'migrations/20261030210000_batailles_groupes_identites_universelles.sql').read_text())
+ q.execute((R/'migrations/20261030223538_batailles_groupes_identites_universelles.sql').read_text())
+ q.execute((R/'migrations/20261030223538_batailles_groupes_identites_universelles.sql').read_text())
  cas('bataille_installation_partielle_refuse_sans_round',lambda:exige(rpc('militaire_bataille_poursuivre',(999,)),'installation_incomplete'))
- q.execute((R/'migrations/20261030210100_batailles_effets_replis_et_verrous.sql').read_text())
- q.execute((R/'migrations/20261030210100_batailles_effets_replis_et_verrous.sql').read_text())
- q.execute((R/'migrations/20261030210200_batailles_commandes_et_reprises.sql').read_text())
+ q.execute((R/'migrations/20261030223539_batailles_effets_replis_et_verrous.sql').read_text())
+ q.execute((R/'migrations/20261030223539_batailles_effets_replis_et_verrous.sql').read_text())
+ q.execute((R/'migrations/20261030223540_batailles_commandes_et_reprises.sql').read_text())
  if '--contre-bataille-metier-seul' in sys.argv:
   q.execute("SELECT pg_get_functiondef('militaire_bataille_recruter_metier_interne(bigint,text,text,text,text)'::regprocedure)")
   q.execute(q.fetchone()[0].replace('public.militaire_bataille_recruter_metier_interne(','public.militaire_bataille_recruter('))

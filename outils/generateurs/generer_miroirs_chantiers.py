@@ -24,7 +24,11 @@ ou du panier de materiaux.
 """
 import hashlib, json, os, subprocess, sys
 
-JSC = "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc"
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from moteur_javascript import choisir_moteur, commande_moteur
+JSC = choisir_moteur(['/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc'])
+if not JSC:
+    raise SystemExit('Aucun moteur JavaScript réel disponible (JavaScriptCore ou Node).')
 def _racine():
     """La racine du depot, trouvee en REMONTANT jusqu'a data.js, et non en
     comptant des niveaux de repertoire. Le comptage a casse les HUIT generateurs
@@ -96,10 +100,7 @@ print(JSON.stringify(out));
 
 
 def extraire():
-    if not os.path.exists(JSC):
-        print("JavaScriptCore introuvable : %s" % JSC, file=sys.stderr)
-        sys.exit(2)
-    p = subprocess.run([JSC, "-e", EXTRACTEUR], cwd=RACINE,
+    p = subprocess.run(commande_moteur(JSC, "-e") + [EXTRACTEUR], cwd=RACINE,
                        capture_output=True, text=True, timeout=120)
     if p.returncode != 0 or not p.stdout.strip():
         print("Extraction impossible :\n%s\n%s" % (p.stdout[-3000:], p.stderr[-3000:]),

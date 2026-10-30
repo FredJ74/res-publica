@@ -46,7 +46,11 @@ import subprocess
 import sys
 import tempfile
 
-JSC = "/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc"
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from moteur_javascript import choisir_moteur, commande_moteur
+JSC = choisir_moteur(['/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc'])
+if not JSC:
+    raise SystemExit('Aucun moteur JavaScript réel disponible (JavaScriptCore ou Node).')
 
 
 def _racine():
@@ -136,7 +140,7 @@ def extraire():
     f.write(EXTRACTEUR)
     f.close()
     try:
-        p = subprocess.run([JSC, f.name], capture_output=True, text=True, timeout=120)
+        p = subprocess.run(commande_moteur(JSC, f.name), capture_output=True, text=True, timeout=120)
     finally:
         os.unlink(f.name)
     if p.returncode != 0:

@@ -30,7 +30,11 @@ Usage :  python3 outils/generateurs/generer_ordres_couts.py            -> resume
 """
 import hashlib, json, os, re, subprocess, sys, tempfile
 
-JSC = "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc"
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from moteur_javascript import choisir_moteur, commande_moteur
+JSC = choisir_moteur(['/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc'])
+if not JSC:
+    raise SystemExit('Aucun moteur JavaScript réel disponible (JavaScriptCore ou Node).')
 def _racine():
     """La racine du depot, trouvee en REMONTANT jusqu'a data.js, et non en
     comptant des niveaux de repertoire. Le comptage a casse les HUIT generateurs
@@ -107,7 +111,7 @@ def executer_jsc(script):
         f.write(script)
         chemin = f.name
     try:
-        r = subprocess.run([JSC, chemin], capture_output=True, text=True, cwd=RACINE, timeout=120)
+        r = subprocess.run(commande_moteur(JSC, chemin), capture_output=True, text=True, cwd=RACINE, timeout=120)
     finally:
         os.unlink(chemin)
     if r.returncode != 0 or not r.stdout.strip():

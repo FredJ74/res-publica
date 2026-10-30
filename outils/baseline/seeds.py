@@ -653,24 +653,11 @@ def plier(texte, largeur=74, prefixe="-- "):
 
 
 def charger_exports(rep):
-    exp = {}
-    for f in sorted(glob.glob(os.path.join(rep, "*.txt"))):
-        try:
-            externe = json.loads(open(f, encoding="utf-8").read())["result"]
-        except Exception:
-            continue
-        m = re.search(r"<untrusted-data-[0-9a-f-]+>\n(.*)\n</untrusted-data-", externe, re.S)
-        if not m:
-            continue
-        try:
-            lignes = json.loads(m.group(1))
-        except Exception:
-            continue
-        if lignes and isinstance(lignes[0], dict):
-            cle = next(iter(lignes[0]))
-            if cle.startswith("export_"):
-                exp.update(lignes[0][cle] or {})
-    return exp
+    # Même acquisition stricte que le schéma : pas de deuxième interprétation
+    # des quatre exports ni de droits silencieusement absents.
+    sys.path.insert(0, ICI)
+    from rendre import charger_exports as charger_schema
+    return charger_schema(rep)[0]
 
 
 def classification():

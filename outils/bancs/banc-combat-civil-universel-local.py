@@ -12,7 +12,7 @@ def suite(ctx):
  # Conserver la séparation commune sur le corps judiciaire vivant réinstallé.
  q.execute((R/'migrations/20261028222000_justice_position_cellule_serveur.sql').read_text())
  q.execute((R/'migrations/20261029120000_groupes_separation_ecrou.sql').read_text())
- for f in ['20261030212300_combats_profils_et_occupation_unique.sql','20261030212400_combat_ouverture_civile_commune.sql','20261030212500_combat_civil_rounds_et_issues_communes.sql','20261030212600_combat_fermeture_ancienne_porte_et_automates.sql','20261030212700_combat_composition_commune_depuis_graines.sql','20261030212800_combat_cibles_presence_canonique.sql']:
+ for f in ['20261030223601_combats_profils_et_occupation_unique.sql','20261030223602_combat_ouverture_civile_commune.sql','20261030223603_combat_civil_rounds_et_issues_communes.sql','20261030223604_combat_fermeture_ancienne_porte_et_automates.sql','20261030223605_combat_composition_commune_depuis_graines.sql','20261030223606_combat_cibles_presence_canonique.sql']:
   q.execute((R/'migrations'/f).read_text());q.execute((R/'migrations'/f).read_text())
  # Fonctions pures réelles #258 : compatibilité avec les soldes/positions
  # confirmés, sans rejouer la migration déjà appliquée ni toucher un joueur.

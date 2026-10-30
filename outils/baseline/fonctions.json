@@ -151,6 +151,18 @@
    "_pourquoi": "Nom de base different, paire declaree a la main. Aiguillage construction / reamenagement."
   },
   {
+   "cle": "chantiers/taux-horaire",
+   "famille": "chantiers",
+   "module": "api/cron-minuit.js",
+   "portee": "CRON",
+   "symbole_serveur": "tauxHoraireChantierServeur",
+   "canon_fichier": "plateau-chantiers.js",
+   "symbole_canon": "tauxHoraireChantier",
+   "mecanisme": "comparee",
+   "grille": "[null,{}, {tauxHoraire:0},{tauxHoraire:-1},{tauxHoraire:49},{tauxHoraire:50},{tauxHoraire:70},{tauxHoraire:125},{tauxHoraire:'50.5'},{tauxHoraire:'invalide'},{tauxHoraire:Infinity},{tauxHoraire:NaN}].map(function(x){return [x];})",
+   "_pourquoi": "Copie préexistante : rémunération commune avec salaire minimal. Mesure des valeurs nulles, invalides et des seuils, sans modifier de tarif ni désactiver les autres comparaisons."
+  },
+  {
    "cle": "chantiers/reliquat-npc",
    "famille": "chantiers",
    "module": "api/cron-minuit.js",
