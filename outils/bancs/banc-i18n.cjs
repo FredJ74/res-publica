@@ -39,8 +39,8 @@ test('repli français en cas de traduction manquante', () => {
 });
 test('catalogues valides et non mutables de l extérieur', () => {
   const i = boot();
-  assert.throws(() => i.register('fr', { bad: 5 }), TypeError);
-  assert.throws(() => i.register('bad_TAG', {}), TypeError);
+  assert.throws(() => i.register('fr', { bad: 5 }), /Catalogue|Entrée/);
+  assert.throws(() => i.register('bad_TAG', {}), /Catalogue invalide/);
   const languages = i.supported();
   assert.deepEqual(Array.from(languages), ['fr', 'en']);
 });
