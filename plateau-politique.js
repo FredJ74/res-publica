@@ -3761,6 +3761,34 @@ function renderRoomActions(room, buildingId, roomId) {
   document.getElementById('action-context-bat').textContent =
     room.name.toUpperCase() + ' — ACTIONS DISPONIBLES';
 
+  // Solde visible à l'accueil du bâtiment communal lui-même, et non à la mairie.
+  // Le commissariat conserve impérativement son contrôle de lecture côté serveur.
+  // Aucune caisse n'est créée ni créditée pour afficher une information.
+  if (state.country === 'republic' && /^(accueil|hall|entree|reception)$/.test(roomId)) {
+    const categories = [...CATEGORIES_BUDGET_MAIRIE, 'tribunal'];
+    const categorie = categories.find(cat => getBuildingIdPourCategorieBudget(cat, state.currentCity, state.country) === buildingId);
+    if (categorie) {
+      const element = document.getElementById('action-context-bat');
+      const identite = [state.char?.name, state.currentCity, state.country, buildingId, roomId].join('|');
+      const titre = element.textContent;
+      element.textContent = titre + ' — Caisse : chargement...';
+      Promise.resolve().then(async () => {
+        const reponse = categorie === 'commissariat'
+          ? (typeof lireCaisseCommissariat === 'function' ? await lireCaisseCommissariat(state.country, buildingId) : null)
+          : (typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(state.country, buildingId) : null);
+        if ([state.char?.name, state.currentCity, state.country, state.currentBuilding, state.currentRoom].join('|') !== identite ||
+            !element.isConnected) return;
+        const solde = reponse && (categorie !== 'commissariat' || reponse.ok) && Number.isFinite(Number(reponse.solde))
+          ? Number(reponse.solde).toLocaleString('fr-FR') + ' FR'
+          : 'non disponible ou accès réservé';
+        element.textContent = titre + ' — Caisse : ' + solde;
+      }).catch(() => {
+        if ([state.char?.name, state.currentCity, state.country, state.currentBuilding, state.currentRoom].join('|') === identite &&
+            element.isConnected) element.textContent = titre + ' — Caisse : indisponible';
+      });
+    }
+  }
+
   // Fusionner avec les ordres du buildingContext (specifiques a l'empire courant)
   const world = WORLD[state.country];
   const city = world?.[state.currentCity];
