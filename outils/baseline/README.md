@@ -329,3 +329,18 @@ reculer `releve_le` pour faire passer Workflow. Le générateur du lot refuse ce
 rendus et les séquences sur PostgreSQL jetable. Les dépendances épinglées sont
 dans `outils/bancs/requirements-postgres-local.txt` ; pglast 7.21 utilise réellement
 la grammaire PostgreSQL 17.7. Cet analyseur n'est pas le moteur PostgreSQL 17.
+
+Le verrou de moteur local a été levé durant cette reprise : PostgreSQL **17.6**
+a été compilé depuis le tag officiel `REL_17_6` (commit épinglé), puis utilisé
+pour les 16 tests canoniques et les 379 scénarios de groupes/combats. La recette
+reproductible sans sudo est `outils/bancs/installer-postgresql17-local.sh` ; elle
+réutilise un préfixe déjà installé à cette version et ne crée aucun service.
+Le téléchargement source direct refusé HTTP403 a été remplacé par le miroir
+officiel GitHub, GNU m4 provenant du paquet officiel Debian vérifié par SHA-256.
+
+`outils/bancs/lancer-postgresql-local.py --postgres-bin <binaires> <banc.py> ...`
+réutilise le même gestionnaire jetable `pgserver` en sélectionnant ses binaires.
+Il ne modifie ni les fixtures, ni les assertions, ni les codes de sortie. Les
+contre-épreuves doivent toujours échouer pour être considérées comme détectées.
+Cette réussite du moteur et des tests de fixtures n'est **pas** la reconstruction
+du catalogue vivant : sans ses exports complets, le vieux baseline reste refusé.

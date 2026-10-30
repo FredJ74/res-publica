@@ -107,6 +107,17 @@ def comparer_catalogues(q, repertoire):
     return differences
 
 
+def configurer_binaires(chemin):
+    """Même gestionnaire pgserver épinglé ; seuls ses binaires locaux changent."""
+    import pgserver._commands as commandes
+    import pgserver.postgres_server as serveurs
+    chemin=Path(chemin).resolve()
+    for nom in ['postgres','initdb','pg_ctl']:
+        if not (chemin/nom).is_file():raise ValueError('Binaire local absent : '+nom)
+    commandes.POSTGRES_BIN_PATH=chemin
+    serveurs.POSTGRES_BIN_PATH=chemin
+
+
 def main():
     a=argparse.ArgumentParser(description=__doc__)
     a.add_argument('--rapport',type=Path,required=True)
@@ -118,12 +129,7 @@ def main():
     args=a.parse_args()
     import pgserver,psycopg2
     if args.postgres_bin:
-        for nom in ['postgres','initdb','pg_ctl']:
-            if not (args.postgres_bin/nom).is_file():a.error('Binaire local absent : '+nom)
-        import pgserver._commands as commandes
-        import pgserver.postgres_server as serveurs
-        commandes.POSTGRES_BIN_PATH=args.postgres_bin.resolve()
-        serveurs.POSTGRES_BIN_PATH=args.postgres_bin.resolve()
+        configurer_binaires(args.postgres_bin)
     rapport={'production':False,'historique_rejoue':False,'donnees_joueurs_copiees':False,'reconstruction':False,'lot_219_installe':False,'fidelite_catalogue_vivant':False,'plateforme_auth':'Primitives SQL locales de fixture ; pas de service GoTrue ni de connexion réelle.'}
     c=None
     try:
