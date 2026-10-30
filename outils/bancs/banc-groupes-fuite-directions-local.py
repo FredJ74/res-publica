@@ -7,7 +7,7 @@ sp=importlib.util.spec_from_file_location('police',R/'outils/bancs/banc-groupes-
 def suite(ctx):
  c.suite(ctx)
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
- for pattern in ['20261030200900_navigation_provenance_et_destination_fuite.sql','20261030201000_navigation_directions_reference.sql','20261030201100_navigation_directions_reference.sql','20261030201200_navigation_directions_reference.sql','20261030201300_navigation_directions_reference.sql','20261030201400_navigation_directions_reference.sql','20261030201500_navigation_directions_reference.sql','20261030201600_police_fuite_direction_commune.sql','20261030201700_police_controles_chef_et_fuite_reelle.sql']:
+ for pattern in ['20261030210900_navigation_provenance_et_destination_fuite.sql','20261030211000_navigation_directions_reference.sql','20261030211100_navigation_directions_reference.sql','20261030211200_navigation_directions_reference.sql','20261030211300_navigation_directions_reference.sql','20261030211400_navigation_directions_reference.sql','20261030211500_navigation_directions_reference.sql','20261030211600_police_fuite_direction_commune.sql','20261030211700_police_controles_chef_et_fuite_reelle.sql']:
   for f in sorted((R/'migrations').glob(pattern)):
    q.execute(f.read_text());q.execute(f.read_text())
  if '--contre-gauche-fixe' in sys.argv:

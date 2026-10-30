@@ -1,6 +1,6 @@
 {
   "branche": "codex/groupes-universels-20261028",
-  "main": "888eb386887d4ffad8e9a4cf1d43512be72e7abb",
+  "main": "44357f24f9fea0d69a1b7fd38bad1c2d262bffdf",
   "production_appliquee": false,
   "perimetre": "Ajouts SQL propres à #219, dont dépendances #212/#217 ; main #255 à #260 exclu.",
   "registre_vivant": "996 versions signalées par commentaire 6530637637, liste intégrale non fournie. La collision réelle doit être testée avant DDL.",
@@ -301,148 +301,148 @@
       "sha256": "a6d7a0c78790d7be3f30ff263ca374ae517aac1c7f76ec03493dbde7ae1c97f8"
     },
     {
-      "version": "20261030200000",
-      "fichier": "migrations/20261030200000_batailles_groupes_identites_universelles.sql",
+      "version": "20261030210000",
+      "fichier": "migrations/20261030210000_batailles_groupes_identites_universelles.sql",
       "sha256": "099d2e935f3727c7ef636159c02bf867a8a7cc8ca5cda031eff17cb0b46a5dcb"
     },
     {
-      "version": "20261030200100",
-      "fichier": "migrations/20261030200100_batailles_effets_replis_et_verrous.sql",
-      "sha256": "cc5ee428b81993e54ca91384e98fcdbfb7099ba74f46e7c871b9645a38d063b8"
+      "version": "20261030210100",
+      "fichier": "migrations/20261030210100_batailles_effets_replis_et_verrous.sql",
+      "sha256": "da74012e57a75246bf3c0b2d6b2bb91c214d03972eb9c69979b5b1363c192139"
     },
     {
-      "version": "20261030200200",
-      "fichier": "migrations/20261030200200_batailles_commandes_et_reprises.sql",
+      "version": "20261030210200",
+      "fichier": "migrations/20261030210200_batailles_commandes_et_reprises.sql",
       "sha256": "037a1fa6fabfc93722d716e2120861c653e4e68b386d84eb2c91de83fbd2ea95"
     },
     {
-      "version": "20261030200300",
-      "fichier": "migrations/20261030200300_squatteurs_issue_reelle_bataille.sql",
+      "version": "20261030210300",
+      "fichier": "migrations/20261030210300_squatteurs_issue_reelle_bataille.sql",
       "sha256": "27ccadf187ed96e1c73dea64322acdd405301e29227e826c7f53fcb787ac480b"
     },
     {
-      "version": "20261030200400",
-      "fichier": "migrations/20261030200400_police_controles_detecteur_commun.sql",
+      "version": "20261030210400",
+      "fichier": "migrations/20261030210400_police_controles_detecteur_commun.sql",
       "sha256": "4b966b520aca8d20145bd46e95d2d71a497bd814c65f8dfb82054546ae4f61ab"
     },
     {
-      "version": "20261030200500",
-      "fichier": "migrations/20261030200500_police_controles_actions_atomiques.sql",
+      "version": "20261030210500",
+      "fichier": "migrations/20261030210500_police_controles_actions_atomiques.sql",
       "sha256": "e8794c311c295777acd7d06c3d00ec21c0c84481cdf55201d72fbb06b058dd3c"
     },
     {
-      "version": "20261030200600",
-      "fichier": "migrations/20261030200600_combats_cinq_rounds_et_commandement.sql",
-      "sha256": "f02b99bf33399e7e75715fc1ee4347ade9cb379729df3c8b277b177e57df67c6"
+      "version": "20261030210600",
+      "fichier": "migrations/20261030210600_combats_cinq_rounds_et_commandement.sql",
+      "sha256": "5c4c758c21525a6b15fb337e00a99af20351f12bbb16a589f0d124ca63b8412b"
     },
     {
-      "version": "20261030200700",
-      "fichier": "migrations/20261030200700_combats_chef_neutralise_effets_differes.sql",
+      "version": "20261030210700",
+      "fichier": "migrations/20261030210700_combats_chef_neutralise_effets_differes.sql",
       "sha256": "b15334fb9ce661fcb0473971457b47aea7e128557c54a99fd5f22d1774effac7"
     },
     {
-      "version": "20261030200800",
-      "fichier": "migrations/20261030200800_police_commandement_et_cinq_rounds.sql",
+      "version": "20261030210800",
+      "fichier": "migrations/20261030210800_police_commandement_et_cinq_rounds.sql",
       "sha256": "b8704a357ca1be9768ef79c3b4ee7daf37346725b8f1dce56239383f554c7a73"
     },
     {
-      "version": "20261030200900",
-      "fichier": "migrations/20261030200900_navigation_provenance_et_destination_fuite.sql",
+      "version": "20261030210900",
+      "fichier": "migrations/20261030210900_navigation_provenance_et_destination_fuite.sql",
       "sha256": "982b9b17afbd59523b1a5729f121ba4f3524965cdce5f1eb4af029bec41ba877"
     },
     {
-      "version": "20261030201000",
-      "fichier": "migrations/20261030201000_navigation_directions_reference.sql",
+      "version": "20261030211000",
+      "fichier": "migrations/20261030211000_navigation_directions_reference.sql",
       "sha256": "790030c2cd28e4d85508e53aa494eff4c7bb46c7685734d70fcd4b5c221ade93"
     },
     {
-      "version": "20261030201100",
-      "fichier": "migrations/20261030201100_navigation_directions_reference.sql",
+      "version": "20261030211100",
+      "fichier": "migrations/20261030211100_navigation_directions_reference.sql",
       "sha256": "da3f9257a256835baf8b2b460794edfed80da073dec2549e7fb959115e68d07f"
     },
     {
-      "version": "20261030201200",
-      "fichier": "migrations/20261030201200_navigation_directions_reference.sql",
+      "version": "20261030211200",
+      "fichier": "migrations/20261030211200_navigation_directions_reference.sql",
       "sha256": "599727205bd330064373dabefa2d5ff0b3a0833a235a8c0fb978747765d83527"
     },
     {
-      "version": "20261030201300",
-      "fichier": "migrations/20261030201300_navigation_directions_reference.sql",
+      "version": "20261030211300",
+      "fichier": "migrations/20261030211300_navigation_directions_reference.sql",
       "sha256": "2b8e6e9de478c73354843041c630bf292e68bfc6773c1f6e6e9f0e8d5e9abb0e"
     },
     {
-      "version": "20261030201400",
-      "fichier": "migrations/20261030201400_navigation_directions_reference.sql",
+      "version": "20261030211400",
+      "fichier": "migrations/20261030211400_navigation_directions_reference.sql",
       "sha256": "6bdd09d6496165a91322363e8b335e3d683d2028783f804b1270c9a1b22d6e35"
     },
     {
-      "version": "20261030201500",
-      "fichier": "migrations/20261030201500_navigation_directions_reference.sql",
+      "version": "20261030211500",
+      "fichier": "migrations/20261030211500_navigation_directions_reference.sql",
       "sha256": "7d30d19915dd9836c28ab427da70b74b67670588e43085c98b10e89ef0ebfb76"
     },
     {
-      "version": "20261030201600",
-      "fichier": "migrations/20261030201600_police_fuite_direction_commune.sql",
+      "version": "20261030211600",
+      "fichier": "migrations/20261030211600_police_fuite_direction_commune.sql",
       "sha256": "eb0eaaee680a81ee09eca6354ebf56180ff1328ac8664a2c283f08315448408e"
     },
     {
-      "version": "20261030201700",
-      "fichier": "migrations/20261030201700_police_controles_chef_et_fuite_reelle.sql",
+      "version": "20261030211700",
+      "fichier": "migrations/20261030211700_police_controles_chef_et_fuite_reelle.sql",
       "sha256": "ce4ba2a24b86049045deb3d630cc16d0be2aa20251a12c63792759ca0dcef14d"
     },
     {
-      "version": "20261030201800",
-      "fichier": "migrations/20261030201800_batailles_repli_navigation_commune.sql",
+      "version": "20261030211800",
+      "fichier": "migrations/20261030211800_batailles_repli_navigation_commune.sql",
       "sha256": "ff925ad8b286bdb831037e67722206c37919f3f6809fd03f34dcef3a12ae462b"
     },
     {
-      "version": "20261030201900",
-      "fichier": "migrations/20261030201900_navigation_geometrie_commune_et_replis_pnj.sql",
+      "version": "20261030211900",
+      "fichier": "migrations/20261030211900_navigation_geometrie_commune_et_replis_pnj.sql",
       "sha256": "610212401588bdfbe2d89ea9b96275f25e1adf4e1e9b31ec0a929b31ecd50c4a"
     },
     {
-      "version": "20261030202000",
-      "fichier": "migrations/20261030202000_batailles_progression_serveur_existante.sql",
+      "version": "20261030212000",
+      "fichier": "migrations/20261030212000_batailles_progression_serveur_existante.sql",
       "sha256": "76c9fc17f262d649e6e8a3353ca2974460023de1522b1699f421ffb91d5daee6"
     },
     {
-      "version": "20261030202100",
-      "fichier": "migrations/20261030202100_camions_groupes_et_refus_atomiques.sql",
-      "sha256": "bb0769351400fbbda7ab16a940658456da2ab0835ead6a879d192b987cf24647"
+      "version": "20261030212100",
+      "fichier": "migrations/20261030212100_camions_groupes_et_refus_atomiques.sql",
+      "sha256": "e97a23d4790b83e5203c50e6b2f4fe9ed0a22532b39924b367bcbec3166f3cb7"
     },
     {
-      "version": "20261030202200",
-      "fichier": "migrations/20261030202200_navigation_provenance_pnj_et_lecture_commune.sql",
-      "sha256": "a3fdd38cac6ef25390dfeb06f5985dd70cf75685a7f38b0d20a60ca1a1d5b5a6"
+      "version": "20261030212200",
+      "fichier": "migrations/20261030212200_navigation_provenance_pnj_et_lecture_commune.sql",
+      "sha256": "7c380e3e8d9c643ae472621011a65180ef85945d75c01a7785b2ce01f13975fe"
     },
     {
-      "version": "20261030202300",
-      "fichier": "migrations/20261030202300_combats_profils_et_occupation_unique.sql",
+      "version": "20261030212300",
+      "fichier": "migrations/20261030212300_combats_profils_et_occupation_unique.sql",
       "sha256": "7392049b7934dd8b9a496211a7f8e8bd6a4ae68bfb9b5c629fd8e09e9100e259"
     },
     {
-      "version": "20261030202400",
-      "fichier": "migrations/20261030202400_combat_ouverture_civile_commune.sql",
+      "version": "20261030212400",
+      "fichier": "migrations/20261030212400_combat_ouverture_civile_commune.sql",
       "sha256": "671abb60e84faa230ed54179fbc26d0db8c8d39efca012316c38fb81bcb3d096"
     },
     {
-      "version": "20261030202500",
-      "fichier": "migrations/20261030202500_combat_civil_rounds_et_issues_communes.sql",
+      "version": "20261030212500",
+      "fichier": "migrations/20261030212500_combat_civil_rounds_et_issues_communes.sql",
       "sha256": "46e8572245a7361e94f5417976f16061a48c2861a8d2fff36dff479a11eb3440"
     },
     {
-      "version": "20261030202600",
-      "fichier": "migrations/20261030202600_combat_fermeture_ancienne_porte_et_automates.sql",
+      "version": "20261030212600",
+      "fichier": "migrations/20261030212600_combat_fermeture_ancienne_porte_et_automates.sql",
       "sha256": "395c49b5a54f4b0a9aba1ab9a66bb86ff5dec25a076f3ab8e55333d81db1737f"
     },
     {
-      "version": "20261030202700",
-      "fichier": "migrations/20261030202700_combat_composition_commune_depuis_graines.sql",
+      "version": "20261030212700",
+      "fichier": "migrations/20261030212700_combat_composition_commune_depuis_graines.sql",
       "sha256": "58d3e92bb9711fdb67babac8782df56a0543ec95aabf665bc0aeedce7eef7829"
     },
     {
-      "version": "20261030202800",
-      "fichier": "migrations/20261030202800_combat_cibles_presence_canonique.sql",
+      "version": "20261030212800",
+      "fichier": "migrations/20261030212800_combat_cibles_presence_canonique.sql",
       "sha256": "a2517d762941e8f6b2502cdb8c713b82058a69432958312c95b9ecac8d8a5407"
     }
   ]

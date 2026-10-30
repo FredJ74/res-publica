@@ -14,7 +14,7 @@ def suite(ctx,suivante=None):
    q.execute("SELECT count(*) FROM police_interceptions WHERE personnage='C'");assert q.fetchone()[0]==0
   cas('catalogue_asile_reel_preserve_apres_tous_les_adaptateurs',asile)
  ctx['installer_fonction_canonique']('militaire_bataille_decision_effective')
- for f in ['20261030201800_batailles_repli_navigation_commune.sql','20261030201900_navigation_geometrie_commune_et_replis_pnj.sql','20261030202000_batailles_progression_serveur_existante.sql']:
+ for f in ['20261030211800_batailles_repli_navigation_commune.sql','20261030211900_navigation_geometrie_commune_et_replis_pnj.sql','20261030212000_batailles_progression_serveur_existante.sql']:
   q.execute((R/'migrations'/f).read_text());q.execute((R/'migrations'/f).read_text())
  if '--contre-repli-sans-mouvement' in sys.argv:
   q.execute("CREATE OR REPLACE FUNCTION navigation_commander_personnage_interne(p_nom text,p_mode text,p_destination text,p_piece text) RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $$SELECT '{\"ok\":true}'::jsonb$$")

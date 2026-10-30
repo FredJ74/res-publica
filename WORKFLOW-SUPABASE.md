@@ -577,6 +577,6 @@ projet jetable sera disponible.
 **Levé en partie le 30/10/2026** : un PostgreSQL 16 local suffit pour les bancs à
 plusieurs sessions. `outils/bancs/monter-base-jetable.sh` applique le baseline puis
 toutes les migrations, puis les écarts relevés en production
-(`jetable-ecarts-production-*.sql`). La base n'est pas une copie exacte (PG16 contre
+(photographie `historique/photographies/20261030-fonctions-achat-communiquees.sql`). La base n'est pas une copie exacte (PG16 contre
 PG17, quelques erreurs d'ordre) : avant de conclure, comparer les empreintes des
 fonctions concernées avec `jetable-empreintes.sql`, sur les deux bases.

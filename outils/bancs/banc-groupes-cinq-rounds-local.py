@@ -7,7 +7,7 @@ sp=importlib.util.spec_from_file_location('controle',R/'outils/bancs/banc-groupe
 def suite(ctx,suivante=None):
  c.suite(ctx)
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
- for f in ['20261030200600_combats_cinq_rounds_et_commandement.sql','20261030200700_combats_chef_neutralise_effets_differes.sql']:
+ for f in ['20261030210600_combats_cinq_rounds_et_commandement.sql','20261030210700_combats_chef_neutralise_effets_differes.sql']:
   q.execute((R/'migrations'/f).read_text());q.execute((R/'migrations'/f).read_text())
  ctx['c'].commit()
  decor=ctx['bataille_mixte_decor'];req=lambda n:f'00000000-0000-4000-8000-{n:012d}'

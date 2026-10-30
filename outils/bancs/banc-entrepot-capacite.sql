@@ -82,3 +82,5 @@ BEGIN
   ELSE r := r || E'\nC6 ok : 1 place -> 1 bois livre sur 4 demandes, paye ' || (v->>'paye') || ' FR'; END IF;
   RAISE EXCEPTION 'BANC entrepot-capacite : % controles, % echec(s)%', n, ko, r;
 END $banc$;
+
+ROLLBACK;

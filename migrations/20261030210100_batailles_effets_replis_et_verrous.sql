@@ -1,4 +1,4 @@
--- #219 : deuxième partie indispensable de 20261030200000.
+-- #219 : deuxième partie indispensable de 20261030210000.
 -- La fin active la garde d’installation seulement une fois tous les effets prêts.
 DO $effets$
 DECLARE s text;a text;b text;

@@ -41,6 +41,6 @@ PY
 $P -d jet -f $D/baseline.sql > $D/baseline.log 2>&1
 for f in $(ls migrations/*.sql | sort); do (echo "SET check_function_bodies = off;"; sed -E 's/,\s*MAINTAIN\b//g' "$f") | $P -d jet >> $D/migrations.log 2>&1; done
 sed -n 3,5p migrations/20261024122600_acquisitions_capacites_et_gardes.sql | $P -d jet
-$P -d jet -f outils/bancs/jetable-ecarts-production-20261030.sql >/dev/null
+$P -d jet -f historique/photographies/20261030-fonctions-achat-communiquees.sql >/dev/null
 echo "baseline : $(grep -c ERROR $D/baseline.log) erreur(s) ; migrations : $(grep -c ERROR $D/migrations.log) erreur(s) (attendues, voir en-tete)"
 psql -h $D -p 54329 -U postgres -d jet -X -At -f outils/bancs/jetable-empreintes.sql | sed 's/=\([0-9a-f]\{8\}\) /=\1\n/g'

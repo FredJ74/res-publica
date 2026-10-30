@@ -21,7 +21,7 @@ def suite(ctx,suivante=None):
  for nom in ['camions_militaires_pkey','camions_ordres_pkey','camions_embarquements_pkey']:
   q.execute(re.search(r'ALTER TABLE public\.\w+ ADD CONSTRAINT '+nom+r' .*?;',contraintes,re.S)[0])
  q.execute("GRANT EXECUTE ON FUNCTION camion_monter(text,text),camion_descendre(text),camion_deplacer(text,text,boolean,text) TO authenticated")
- q.execute((R/'migrations/20261030202100_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030202100_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030202200_navigation_provenance_pnj_et_lecture_commune.sql').read_text());q.execute((R/'migrations/20261030202200_navigation_provenance_pnj_et_lecture_commune.sql').read_text());ctx['c'].commit()
+ q.execute((R/'migrations/20261030212100_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030212100_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030212200_navigation_provenance_pnj_et_lecture_commune.sql').read_text());q.execute((R/'migrations/20261030212200_navigation_provenance_pnj_et_lecture_commune.sql').read_text());ctx['c'].commit()
  if '--contre-repli-provenance-oubliee' in sys.argv:
   q.execute("SELECT pg_get_functiondef('militaire_repli_pnj_interne(bigint,text,integer)'::regprocedure)");s=q.fetchone()[0]
   a='r.rue_noeud_id,r.rue_depuis)';assert a in s;q.execute(s.replace(a,'r.rue_noeud_id,NULL)'))

@@ -694,3 +694,9 @@ existantes, à reprendre si Fred le demande) :
 - PostgreSQL jetable : 379/379 assertions réussies, rôle authenticated pour les RPC. Les six contre-épreuves et le contrôleur complet sont relancés ; bilan final dans le rapport de livraison suivant.
 - 88 migrations propres au lot recensées et empreintes vérifiées ; deux anciens fichiers trop longs scindés sans changement de règle. Générateur hors ligne et prévol catalogue en une réponse JSON préparés. Ne pas exécuter les migrations séparément ni confondre un accès catalogue communiqué avec une vérification directe complète.
 - Aucune fusion de PR ni migration de production. Aucun joueur réel utilisé.
+
+### #219 — main concurrent #261/#264 et ordre de livraison
+
+- `main` 44357f24 intégré par `697a6ca8` : capacité d'entrepôt et coût de construction avant achat préservés. Nouvelle collision avec la version entrepôt 20261030200000 : nos 29 fichiers préparés de 20h sont déplacés à 21h (20261030210000 à 212800), jamais une version appliquée. Correspondance complète dans VERSIONS-GROUPES-219-20261030.json.
+- Workflow : les deux bancs d'achat reçus de main ont désormais une enveloppe intégrale BEGIN/ROLLBACK ; la lecture d'empreintes est explicitement en transaction read-only. La photographie des fonctions d'achat communiquées est rangée dans historique/photographies et le montage jetable pointe dessus. Aucun test supprimé, aucun contrôle relâché.
+- Le parcours PostgreSQL avec `--catalogue-20261029` reste à 379/379 ; les profils incomplets sont refusés avant paiement. Le pilote Chromium local conserve ses 105/105 tests, sans authentification réelle.

@@ -6,7 +6,7 @@ R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('cinq',R/'outils/bancs/banc-groupes-cinq-rounds-local.py');c=importlib.util.module_from_spec(sp);sp.loader.exec_module(c)
 def suite(ctx):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
- q.execute((R/'migrations/20261030200800_police_commandement_et_cinq_rounds.sql').read_text());q.execute((R/'migrations/20261030200800_police_commandement_et_cinq_rounds.sql').read_text());ctx['c'].commit()
+ q.execute((R/'migrations/20261030210800_police_commandement_et_cinq_rounds.sql').read_text());q.execute((R/'migrations/20261030210800_police_commandement_et_cinq_rounds.sql').read_text());ctx['c'].commit()
  def pret():
   sql('DELETE FROM batailles_rounds;DELETE FROM batailles_groupes;DELETE FROM batailles_engagements;DELETE FROM batailles;DELETE FROM police_action_receipts;DELETE FROM police_interceptions;DELETE FROM police_detection_attempts;DELETE FROM jugements;DELETE FROM groupes_pj_adhesions')
   sql("UPDATE personnages_donnees SET est_emprisonne=NULL,hospitalisation=NULL WHERE name IN ('A','B','C','D')")
