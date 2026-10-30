@@ -96,6 +96,20 @@ for (const [ville, batiments] of Object.entries(ATTENDU)) {
   });
 }
 
+test('la propre caisse des mairies est affichée sans restaurer la consultation centralisée', () => {
+  const mairies = { capitale: ['mairie-capitale', 'mairie-capitale'],
+    ville_a: ['mairie', 'mairie_ville_a'], ville_b: ['mairie', 'mairie_ville_b'] };
+  const bloc = extraire(politique, 'function renderRoomActions(');
+  assert.match(bloc, /categorie === 'mairie'/);
+  assert.match(bloc, /caisseTerritorialeId\('mairie', state\.currentCity\)/);
+  for (const [ville, [batiment, caisseId]] of Object.entries(mairies)) {
+    assert.ok(ctx.W.republic[ville].buildings.includes(batiment), batiment + ' absent de ' + ville);
+    assert.strictEqual(ctx.cat(batiment, ville, 'republic'), 'mairie');
+    assert.strictEqual(ctx.caisseTerritorialeId('mairie', ville), caisseId);
+    assert.ok(Object.keys(ctx.B[batiment].rooms).length > 0);
+  }
+});
+
 test("l'accueil de chaque bâtiment communal est reconnu (première salle ou salle d'accueil)", () => {
   const bids = new Set(Object.values(ATTENDU).flatMap(o => Object.keys(o)));
   for (const bid of bids) {
@@ -107,7 +121,7 @@ test("l'accueil de chaque bâtiment communal est reconnu (première salle ou sal
 });
 
 test('bâtiments sans caisse communale : rien affiché', () => {
-  for (const bid of ['banque-nationale', 'mairie-capitale', 'mairie', 'clinique-privee', 'office-notarial', 'hotel-republica'])
+  for (const bid of ['banque-nationale', 'clinique-privee', 'office-notarial', 'hotel-republica'])
     assert.strictEqual(ctx.cat(bid, 'capitale', 'republic'), null, bid);
 });
 
