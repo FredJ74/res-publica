@@ -1328,10 +1328,12 @@ async function confirmerAchatArme(armeId) {
   // separees : 1 PA declare pour l'ordre choisir_arme, et le prix relu dans le blob par la RPC.
   // L'ARME EST DEPOSEE PAR LE SERVEUR (27 octobre 2026, chantier inventaire) : arme_acheter vend
   // (stock, prix, caisse, 1 PA) et depose l'objet du catalogue serveur dans la meme transaction.
-  const brutAchat = (typeof sbRpc === 'function')
-    ? await sbRpc('arme_acheter', { p_entreprise: data.id, p_arme: armeId }).catch(() => null) : null;
-  const r = Array.isArray(brutAchat) ? brutAchat[0] : brutAchat;
+  // CLE D'UNICITE (30/10/2026) : la meme cle est rejouee apres une reponse perdue (jamais deux achats).
+  let r = null;
+  r = (await executerReceptionInventaire('arme_acheter', { p_entreprise: data.id, p_arme: armeId },
+        { surRefus: (x) => { r = x; return true; } })) || r;
   if (!r || r.ok !== true) {
+    if (!r) return;
     const messages = { pa_insuffisants: '1 PA requis.',
       fonds_insuffisants: prixApplique.toLocaleString('fr-FR') + ' ' + cur + ' requis.',
       stock_insuffisant: 'Rupture de stock.', prix_non_defini: 'Cette arme n\'a pas de prix fixe.',
@@ -1340,8 +1342,7 @@ async function confirmerAchatArme(armeId) {
               messages[r?.raison] || '', false);
     return;
   }
-  appliquerPaiementServeur({ pa: r.pa, liquide: r.liquide, arg: r.arg });
-  if (Array.isArray(r.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r);
+  // Inventaire et soldes deja adoptes par executerReceptionInventaire (etat relu au serveur).
 
   // Inscription au registre officiel de vente d'armes — systematique pour tout achat legal.
   // Registre local par armurerie (A2, 16 aout 2026) : city = ville reelle de l'armurerie ou la
@@ -1438,10 +1439,12 @@ async function confirmerAchatArmeIllegal(armeId) {
   // securite / 3 + benediction), denonce et convoque sur un echec, vend au triple du prix et pose
   // la trace decouvrable sur une reussite. La benediction reste tenue ici, consommee et signalee.
   const benediction = (typeof consommerBonusBenediction === 'function') ? consommerBonusBenediction(0) > 0 : false;
-  const brut = (typeof sbRpc === 'function')
-    ? await sbRpc('crime_acheter_arme_noire', { p_entreprise: data.id, p_arme: armeId, p_benediction: benediction }).catch(() => null) : null;
-  const r = Array.isArray(brut) ? brut[0] : brut;
+  // CLE D'UNICITE (30/10/2026) : la meme cle est rejouee apres une reponse perdue (jamais deux achats).
+  let r = null;
+  r = (await executerReceptionInventaire('crime_acheter_arme_noire', { p_entreprise: data.id, p_arme: armeId, p_benediction: benediction },
+        { surRefus: (x) => { r = x; return true; } })) || r;
   if (!r || r.ok !== true) {
+    if (!r) return;
     showToast(r?.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Achat refusé',
               r?.raison === 'fonds_insuffisants' ? prixIllegal.toLocaleString('fr-FR') + ' ' + cur + ' requis (marché noir).'
               : (r?.raison === 'stock_insuffisant' ? 'Rupture de stock.' : ''), false);
@@ -1455,9 +1458,7 @@ async function confirmerAchatArmeIllegal(armeId) {
     addJournalEntry('Tentative d\'achat d\'arme au marché noir échouée. Dénoncé(e) par l\'armurier.', 'event-bad');
     return;
   }
-  appliquerPaiementServeur({ pa: r.pa, liquide: r.liquide, arg: r.arg });
-  // L'arme est deposee par le serveur (27/10/2026) : on adopte l'inventaire rendu.
-  if (Array.isArray(r.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(r);
+  // Inventaire et soldes deja adoptes par executerReceptionInventaire (etat relu au serveur).
 
   updateUI();
   showToast('Arme acquise (marché noir)', arme.name + ' obtenue discrètement. Non enregistrée au registre.', true, true);
@@ -1823,14 +1824,17 @@ async function confirmerAchatExplosifs(pa, cost) {
   document.getElementById('modal-postes').classList.remove('open');
   // PAR LE SERVEUR (27 octobre 2026) : crime_acheter_explosifs (PA, jet, alerte, prix a la
   // reussite, explosif depose en inventaire, trace decouvrable).
-  const brut = (typeof sbRpc === 'function') ? await sbRpc('crime_acheter_explosifs', { p_pa: pa, p_cost: cost }).catch(() => null) : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
+  // CLE D'UNICITE (30/10/2026) : la meme cle est rejouee apres une reponse perdue (jamais deux achats).
+  let v = null;
+  v = (await executerReceptionInventaire('crime_acheter_explosifs', { p_pa: pa, p_cost: cost },
+        { surRefus: (x) => { v = x; return true; } })) || v;
   if (!v || v.ok !== true) {
+    if (!v) return;
     if (v?.raison === 'fonds_insuffisants') showToast('Fonds insuffisants', prix.toLocaleString('fr-FR') + ' ' + cur + ' requis.', false);
     else signalerRefusCout(v || { raison: 'paiement_indisponible' });
     return;
   }
-  adopterEtatCrimeServeur(v);
+  // Inventaire et soldes deja adoptes par executerReceptionInventaire (etat relu, meme au rejeu).
   if (Array.isArray(v.recherche)) state.recherche = v.recherche;
   if (!v.reussi) {
     updateUI();

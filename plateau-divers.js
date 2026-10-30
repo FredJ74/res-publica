@@ -902,7 +902,8 @@ function getTotalInventaire() {
 // Reprise des receptions serveur : conserve la meme intention apres une reponse perdue.
 // La reponse marquee par sbRpcVerdict est adoptee telle quelle, jamais reconstruite.
 const receptionsInventaireEnCours = new Set();
-async function executerReceptionInventaire(fn, parametres) {
+// options.surRefus(verdict) : refus NOMME par le serveur, affiche par l'appelant (rend true si traite).
+async function executerReceptionInventaire(fn, parametres, options) {
   const origine = sbContexteInventaire();
   const nomOrigine = origine.personnage?.name || '';
   const lieu = JSON.stringify([state.country, state.currentCity, state.currentBuilding, state.currentRoom]);
@@ -934,8 +935,11 @@ async function executerReceptionInventaire(fn, parametres) {
           sessionStorage.removeItem(cle);
           showToast('Demande non envoyée', 'Votre connexion doit être rétablie avant de réessayer.', false);
         } else showToast('Confirmation incertaine', 'Réessayez la même demande pour vérifier son résultat.', false);
+      } else if (v && typeof options?.surRefus === 'function' && options.surRefus(v)) {
+        // refus affiche par l'appelant, avec ses propres mots
       } else {
         const motifs = {
+          requete_reutilisee: 'Cette demande a déjà été traitée avec d\'autres paramètres. Rouvrez l\'écran avant de réessayer.',
           inventaire_plein: 'Votre inventaire est plein.',
           inventaire_perime: 'Vos objets ont changé. Rouvrez votre inventaire avant de réessayer.',
           pas_sur_place: 'Vous devez être sur place pour effectuer cette action.',
@@ -973,18 +977,16 @@ async function executerReceptionInventaire(fn, parametres) {
 // ACHAT D'UN OBJET PAR LE SERVEUR (27 octobre 2026, chantier inventaire). objet_acheter preleve
 // l'ordre declare et depose l'objet de son catalogue (objets_modeles) dans la meme transaction ;
 // l'ecran adopte l'inventaire rendu. Rend la reponse, ou null apres avoir prevenu le joueur.
+// CLE D'UNICITE (30/10/2026) : executerReceptionInventaire garde la meme cle apres une reponse
+// perdue ; la seconde tentative rejoue l'achat au serveur au lieu de le payer deux fois. Elle
+// adopte aussi l'inventaire et les soldes rendus.
 async function acheterObjetServeur(ordre, modele, pa, cost) {
-  const brut = (typeof sbRpc === 'function')
-    ? await sbRpc('objet_acheter', { p_ordre: ordre, p_modele: modele, p_pa: pa || 0, p_cost: cost || 0 }).catch(() => null) : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
-  if (!v || v.ok !== true) {
-    if (v?.raison === 'inventaire_plein') showToast('Inventaire plein', 'Libérez de la place avant d\'acheter.', false);
-    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
-    return null;
-  }
-  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, liquide: v.liquide, arg: v.arg });
-  if (Array.isArray(v.inventory) && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v);
-  return v;
+  return executerReceptionInventaire('objet_acheter', { p_ordre: ordre, p_modele: modele, p_pa: pa || 0, p_cost: cost || 0 }, {
+    surRefus: (v) => {
+      if (v.raison !== 'inventaire_plein') return false;
+      showToast('Inventaire plein', 'Libérez de la place avant d\'acheter.', false); return true;
+    }
+  });
 }
 
 function addToInventory(item, options) {
