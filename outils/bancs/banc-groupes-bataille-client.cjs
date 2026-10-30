@@ -34,3 +34,15 @@ test('rendu confirmé extérieur : utilise la rue existante, jamais enterBuildin
 
 test('ouverture civile : reçu conservé après perte de réponse, aucun round lu',async()=>{const c=jeu();c.sbRpcVerdict=async(fn,p)=>{c.rpc.push([fn,p]);return null;};await c.sbCombatOuvrir('C','mains');await c.sbCombatOuvrir('C','mains');assert.equal(c.lus,0);assert.equal(c.rpc[0][0],'combat_ouvrir');assert.deepEqual(c.rpc[0][1],c.rpc[1][1]);assert.equal(c.rpc[0][1].p_cible,'C');assert.equal(c.rpc[0][1].p_mode,'mains');assert.equal(c.storage.size,1);});
 test('reddition : décision explicite transmise, même contrat de reçu',async()=>{const c=jeu();await c.sbMilitaireBatailleDecider(71,'rendre');assert.equal(c.rpc[0][1].p_decision,'rendre');assert.equal(c.rpc[0][1].p_round_attendu,3);});
+
+for(const [titre,cible,attendu] of [
+ ['PJ identifié par nom serveur',{isPJ:true,id:'uid-ne-pas-envoyer',name:'C'},'C'],
+ ['squatteurs par occupation courante',{id:'squatter_cool',name:'squatteurs'},'mairie'],
+ ['PNJ par identité canonique',{id:'presentation',socleId:'pnj-canonique'},'pnj-canonique']
+])test('ouverture depuis fiche : '+titre,async()=>{
+ const c=jeu();c.document={getElementById:()=>({classList:{remove(){}}})};c.NEUTRALISER_MODES={mains:{}};
+ c.neutraliserPossedeArme=()=>true;c.neutraliserCibleEstDepute=()=>null;c.neutraliserTaux=()=>0;
+ vm.runInContext(fonctions('plateau-actions-illegales-rumeurs.js',['confirmerAssassinatArme']),c);
+ await c.confirmerAssassinatArme(encodeURIComponent(JSON.stringify(cible)),'mains');
+ assert.equal(c.rpc[0][0],'combat_ouvrir');assert.equal(c.rpc[0][1].p_cible,attendu);assert.equal(c.state.pa,99);
+});

@@ -12,8 +12,15 @@ def suite(ctx):
  # Conserver la séparation commune sur le corps judiciaire vivant réinstallé.
  q.execute((R/'migrations/20261028222000_justice_position_cellule_serveur.sql').read_text())
  q.execute((R/'migrations/20261029120000_groupes_separation_ecrou.sql').read_text())
- for f in ['20261030202300_combats_profils_et_occupation_unique.sql','20261030202400_combat_ouverture_civile_commune.sql','20261030202500_combat_civil_rounds_et_issues_communes.sql','20261030202600_combat_fermeture_ancienne_porte_et_automates.sql']:
+ for f in ['20261030202300_combats_profils_et_occupation_unique.sql','20261030202400_combat_ouverture_civile_commune.sql','20261030202500_combat_civil_rounds_et_issues_communes.sql','20261030202600_combat_fermeture_ancienne_porte_et_automates.sql','20261030202700_combat_composition_commune_depuis_graines.sql']:
   q.execute((R/'migrations'/f).read_text());q.execute((R/'migrations'/f).read_text())
+ # Contre-épreuves : mutations de la base jetable seulement.
+ if '--contre-issue-fausse' in sys.argv:
+  q.execute("SELECT pg_get_functiondef('combat_finaliser_interne(bigint)'::regprocedure)");source=q.fetchone()[0];assert "issue:='tues'" in source;q.execute(source.replace("issue:='tues'","issue:='neutralises'"))
+ if '--contre-double-paiement' in sys.argv:
+  q.execute("SELECT pg_get_functiondef('combat_ouvrir_interne(text,text,uuid)'::regprocedure)");source=q.fetchone()[0];a='IF FOUND THEN RETURN v;END IF;';assert a in source;q.execute(source.replace(a,"IF FOUND THEN PERFORM public.payer_ordre(moi,'neutraliser_'||p_mode,2,0);RETURN v;END IF;"))
+ if '--contre-PNJ-immobile' in sys.argv:
+  q.execute("SELECT pg_get_functiondef('militaire_repli_pnj_interne(bigint,text,integer)'::regprocedure)");source=q.fetchone()[0];a=' PERFORM public.pnj_positions_separer_interne(positions);';assert a in source;q.execute(source.replace(a,' -- mouvement omis par la contre-épreuve'))
  q.execute(re.search(r'INSERT INTO public.ordres_couts .*?ON CONFLICT DO NOTHING;', (R/'migrations/20261027110100_crimes_actes_serveur.sql').read_text(),re.S)[0])
  # Le vrai détecteur de crime remplace le substitut du vieux banc de contrat.
  q.execute("SELECT to_regprocedure('public.crime_detecter_interne(text,text,boolean)')")
@@ -22,6 +29,8 @@ def suite(ctx):
  for nom in ['crime_rechercher_interne','crime_detecter_interne']:
   q.execute(re.search(r'CREATE OR REPLACE FUNCTION public\.'+nom+r'\(.*?\$function\$;',source,re.S)[0])
  q.execute('ALTER TABLE terrains_etat ADD CONSTRAINT terrains_etat_pkey PRIMARY KEY(id)')
+ for ligne in (R/'baseline/seeds/92_mixte/militaire_armes_bonus.sql').read_text().splitlines():
+  if ligne.startswith('INSERT INTO'):q.execute(ligne[:-1]+' ON CONFLICT DO NOTHING;')
  ctx['c'].commit()
  req=lambda n:f'00000000-0000-4000-8000-{n:012d}'
  def pret(occupation=None):
@@ -121,5 +130,117 @@ def suite(ctx):
   q.execute("SELECT contexte->'resultat_civil'->>'issue' FROM batailles WHERE id=%s",(b,));v=q.fetchone()[0];assert v=='neutralises',v
   q.execute("SELECT m.rue_noeud_id,m.building_id FROM pnj_membres m JOIN batailles_engagements e ON e.pnj_id=m.id WHERE e.bataille_id=%s",(b,));v=q.fetchone();assert v==('rue-1',None),v
  cas('squatteurs_fuite_automate_deplacement_reel_pas_une_mort',fuite_pnj)
+ def cinq(action):
+  # Les rounds peuvent légitimement finir tôt. Trouver un seed où les deux
+  # camps survivent cinq rounds, sans retoucher leurs caractéristiques.
+  for seed in range(50):
+   q.execute('SAVEPOINT recherche_cinq');b=ouvrir()['bataille'];q.execute('SELECT setseed(%s)',(seed/50-0.5,))
+   termine=False
+   for n in range(5):
+    if n:
+     exige(rpc('militaire_bataille_decider',(b,'rendre',n,req(150000+n))),'cinq_rounds_obligatoires')
+     exige(rpc('militaire_bataille_decider',(b,'replier',n,req(151000+n))),'cinq_rounds_obligatoires')
+    v=exige(rpc('militaire_bataille_poursuivre',(b,n,req(152000+n))))
+    assert v['round']==n+1,v
+    if v.get('terminee'):termine=True;break
+   if not termine:q.execute('RELEASE SAVEPOINT recherche_cinq');break
+   q.execute('ROLLBACK TO SAVEPOINT recherche_cinq');q.execute('RELEASE SAVEPOINT recherche_cinq')
+  else:raise AssertionError('Aucun combat resté ouvert après cinq rounds réels')
+  et=exige(rpc('militaire_bataille_etat',(b,)))['bataille'];assert et['round_courant']==5 and not et['phase_initiale']
+  v=exige(rpc('militaire_bataille_decider',(b,action,5,req(153000))))
+  assert rpc('militaire_bataille_decider',(b,action,5,req(153000)))==v
+  q.execute("SELECT pa,hp,current_building,current_street FROM personnages_donnees WHERE name='A'");pa,hp,bat,rue=q.fetchone()
+  if action=='replier':assert (bat,rue)==(None,'rue-1')
+  elif action=='rendre':assert pa==0 and hp>0 and bat=='terrain-a-batir'
+ for action in ['replier','rendre']:cas('civil_cinq_vrais_rounds_puis_'+action,lambda action=action:cinq(action))
+ def panne():
+  pret();q.execute("CREATE FUNCTION panne_ouverture_fixture() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'panne_fixture';END$$")
+  q.execute('CREATE TRIGGER panne_ouverture_fixture BEFORE INSERT ON batailles_engagements FOR EACH ROW EXECUTE FUNCTION panne_ouverture_fixture()')
+  q.execute('SAVEPOINT panne')
+  try:rpc('combat_ouvrir',('C','mains',req(154000)))
+  except Exception as e:assert 'panne_fixture' in str(e);q.execute('ROLLBACK TO SAVEPOINT panne')
+  else:raise AssertionError('la panne aval a été ignorée')
+  q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==100
+  q.execute('SELECT count(*) FROM batailles');assert q.fetchone()[0]==0
+  q.execute('SELECT count(*) FROM navigation_requetes');assert q.fetchone()[0]==0
+ cas('civil_panne_aval_annule_paiement_bataille_et_recu',panne)
+ def prive():
+  for fonction in ['combat_ouvrir_interne(text,text,uuid)','combat_agression_preparer_interne(text,text,integer)','combat_finaliser_interne(bigint)']:
+   for role in ['anon','authenticated','service_role']:
+    q.execute("SELECT has_function_privilege(%s,%s,'execute')",(role,fonction));assert not q.fetchone()[0],(fonction,role)
+ cas('civil_aucune_porte_interne_accessible_au_navigateur',prive)
+ def obsolete():
+  b=ouvrir('squatter_cool')['bataille'];q.execute("SELECT pnj_id FROM batailles_engagements WHERE bataille_id=%s AND pnj_id IS NOT NULL",(b,));pnj=q.fetchone()[0]
+  sql("DELETE FROM batailles_groupes;DELETE FROM batailles_engagements;DELETE FROM batailles;DELETE FROM navigation_requetes")
+  sql("UPDATE terrains_etat SET data=(data::jsonb-'pnj') WHERE id='republic_terrain-a-batir'")
+  exige(rpc('combat_ouvrir',(pnj,'mains',req(160000))),'occupation_obsolete')
+  q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==98
+ cas('occupation_resolue_ancien_identifiant_refuse_sans_second_paiement',obsolete)
+ def accompagnant():
+  pret();sql("UPDATE pnj_membres SET leader_pj='C',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,rue_noeud_id=NULL WHERE id='ancre'")
+  b=exige(rpc('combat_ouvrir',('ancre','mains',req(161000))))['bataille']
+  q.execute("SELECT personnage,pnj_id,groupe_id FROM batailles_engagements WHERE bataille_id=%s AND camp='defenseur' ORDER BY personnage NULLS LAST",(b,));assert q.fetchall()==[('C',None,'defenseur|pj:C'),(None,'ancre','defenseur|pj:C')]
+  q.execute("SELECT leader FROM batailles_groupes WHERE bataille_id=%s AND camp='defenseur'",(b,));assert q.fetchone()[0]=='C'
+ cas('civil_cibler_un_accompagnant_engage_le_groupe_reel_et_son_chef',accompagnant)
+ for mode in ['mains','arme','feu']:
+  def armes(mode=mode):
+   pret();sql("UPDATE personnages_donnees SET inventory='[{\"name\":\"Revolver .38\",\"type\":\"arme\",\"sousType\":\"poing\"},{\"name\":\"Couteau de poche\",\"type\":\"arme\",\"sousType\":\"blanche\"}]',resources='{\"dis\":50}' WHERE name IN ('A','C')")
+   v=exige(rpc('combat_ouvrir',('C',mode,req(162000))));b=v['bataille']
+   q.execute("SELECT arme_feu,arme_cle,bonus_arme FROM militaire_bataille_combattants(%s,'acteur')",(b,));feu,cle,bonus=q.fetchone()
+   assert feu==(mode=='feu') and bonus==({'mains':0,'arme':5,'feu':8}[mode]),(mode,feu,cle,bonus)
+   q.execute("SELECT arme_feu,bonus_arme FROM militaire_bataille_combattants(%s,'defenseur')",(b,));assert q.fetchone()==(True,8)
+   assert rpc('combat_ouvrir',('C',mode,req(162000)))==v
+   q.execute("SELECT pa,resources->>'dis' FROM personnages_donnees WHERE name='A'");assert q.fetchone()==(97 if mode=='feu' else 98,'30' if mode=='feu' else '50')
+  cas('civil_mode_'+mode+'_borne_arme_et_paiement_sans_modifier_defenseur',armes)
+ def chef_reel():
+  for seed in range(50):
+   q.execute('SAVEPOINT recherche_chef');pret();q.execute('SELECT setseed(%s)',(seed/50-0.5,))
+   exige(rpc('groupe_pj_rejoindre',('A',),qui='B'));sql("UPDATE personnages_donnees SET pa=3 WHERE name='A'")
+   b=exige(rpc('combat_ouvrir',('C','mains',req(163000))))['bataille'];trouve=False
+   for n in range(10):
+    q.execute('SELECT round_courant,statut FROM batailles WHERE id=%s',(b,));nr,statut=q.fetchone()
+    if statut=='terminee':break
+    v=exige(rpc('militaire_bataille_poursuivre',(b,nr,req(164000+n))))
+    q.execute("SELECT a.pa,b.pa,a.current_building FROM personnages_donnees a CROSS JOIN personnages_donnees b WHERE a.name='A' AND b.name='B'");pa,pa_b,lieu=q.fetchone()
+    q.execute('SELECT round_courant,statut FROM batailles WHERE id=%s',(b,));nr,statut=q.fetchone()
+    if pa==0 and pa_b>0 and statut=='en_cours':
+     assert lieu=='terrain-a-batir'
+     q.execute("SELECT chef FROM groupes_pj_adhesions WHERE membre='B'");assert q.fetchone()[0]=='A'
+     exige(rpc('militaire_bataille_decider',(b,'tenir',nr,req(165000)),qui='B'),'pas_chef_de_groupe')
+     exige(rpc('militaire_bataille_poursuivre',(b,nr,req(166000)),qui='B'));trouve=True;break
+   if trouve:q.execute('RELEASE SAVEPOINT recherche_chef');return
+   q.execute('ROLLBACK TO SAVEPOINT recherche_chef');q.execute('RELEASE SAVEPOINT recherche_chef')
+  raise AssertionError('Aucun chef neutralisé avec compagnon encore engagé')
+ cas('civil_chef_zero_reel_ne_dissout_pas_groupe_et_compagnon_continue',chef_reel)
+ def gamma():
+  pret();sql("UPDATE pnj_membres SET classe='gamma',building_id='terrain-a-batir',room_id='terrain' WHERE id='ancre'")
+  exige(rpc('combat_ouvrir',('ancre','mains',req(167000))),'cible_protegee')
+  q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==100
+ cas('civil_PNJ_gamma_protege_meme_par_appel_direct',gamma)
+ def historique():
+  pret();sql("DELETE FROM services_militaires WHERE personnage='C';DELETE FROM guerres")
+  ctx['bataille_mixte_decor']()
+  q.execute('SELECT count(*) FROM batailles_engagements WHERE bataille_id=71');assert q.fetchone()[0]>4
+  v=exige(rpc('militaire_bataille_poursuivre',(71,0,req(168000))));assert v['round']==1,v
+ cas('armee_recrutement_et_round_mixte_preserves_apres_extraction_commune',historique)
+ # Deux connexions et reçus réellement concurrents, décor fictif seulement.
+ pret();ctx['c'].commit()
+ def concurrence():
+  import psycopg2
+  from threading import Barrier
+  from concurrent.futures import ThreadPoolExecutor
+  barriere=Barrier(2)
+  def agir():
+   cn=psycopg2.connect(ctx['serveur'].get_uri())
+   try:
+    cur=cn.cursor();cur.execute("SET statement_timeout='15s'");barriere.wait(timeout=5)
+    v=rpc('combat_ouvrir',('C','mains',req(155000)),cur=cur);cn.commit();return v
+   finally:cn.close()
+  with ThreadPoolExecutor(2) as pool:
+   un=pool.submit(agir);deux=pool.submit(agir);a=exige(un.result(timeout=20));b=exige(deux.result(timeout=20));assert a==b
+  q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==98
+  q.execute('SELECT count(*) FROM batailles');assert q.fetchone()[0]==1
+  q.execute('SELECT count(*) FROM navigation_requetes');assert q.fetchone()[0]==1
+ cas('civil_deux_connexions_un_combat_un_paiement_un_recu',concurrence)
  ctx['preuves_extension']['civil']='Ouverture, paiement, mêmes rounds, profils uniques et décisions initiales réels ; base jetable, corps vivants communiqués.'
 if __name__=='__main__':sys.exit(c.f.d.c.c.lancer(lambda ctx:c.f.suite(ctx,lambda ctx:c.suite(ctx,suite))))

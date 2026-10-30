@@ -17,8 +17,8 @@ test('cadavre affiche des le rendu et conserve au rafraichissement',()=>{
 });
 test('squatteur affiche une seule fois si deja fourni par la navigation',()=>{
  const p={name:'Les Gars du Bas (PNJ)',job:'citoyen',role:'Squatteurs',terrainPnjId:'squatter_cool'};
- assert.equal((afficher(p,{personnes:[p]}).html.match(/Les Gars du Bas/g)||[]).length,1);
- assert.match(afficher(p).html,/Les Gars du Bas/);
+ assert.equal((afficher(p,{personnes:[p]}).html.match(/squatteurs \(PNJ\)/g)||[]).length,1);
+ assert.match(afficher(p).html,/squatteurs \(PNJ\)/);assert.doesNotMatch(afficher(p).html,/Les Gars du Bas/);
 });
 test('aucun intrus sur terrain vide ou dans les locaux livres',()=>{
  assert.doesNotMatch(afficher(null).html,/Individu non identifié/);
@@ -28,7 +28,7 @@ test('aucun intrus sur terrain vide ou dans les locaux livres',()=>{
 test('ancien cadavre en cache mais squatteurs courants : seules les cartes courantes',()=>{
  const r=afficher(cadavre,{personnes:[cadavre],etat:{pnj:'squatter_cool',pnjData:{id:'cadavre',name:'Ancien cadavre'}}});
  assert.doesNotMatch(r.html,/Individu non identifié|Ancien cadavre|ouvrirCadavreListe/);
- assert.match(r.html,/Squatteurs courants/);
+ assert.match(r.html,/squatteurs \(PNJ\)/);assert.doesNotMatch(r.html,/Squatteurs courants/);
 });
 test('ancien profil squatteur mais cadavre courant : aucune carte de squat',()=>{
  const p={name:'Ancien squat (PNJ)',job:'citoyen',terrainPnjId:'squatter_cool'};

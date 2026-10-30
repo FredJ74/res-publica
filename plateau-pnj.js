@@ -3359,9 +3359,7 @@ function genererPnjTerrain(buildingId) {
   // Compatibilite : presenter seulement l'occupation deja confirmee, sans tirage client.
   const occupation = getTerrainState(buildingId)?.pnj;
   if (!['squatter_cool','squatter_agr','cadavre'].includes(occupation)) return null;
-  const pays = state.country || 'republic';
-  return (TERRAIN_PNJ_PROFILES[pays] || TERRAIN_PNJ_PROFILES.republic || [])
-    .find(profil => profil.id === occupation) || null;
+  return profilOccupationTerrain(getTerrainState(buildingId), state.country || 'republic');
 }
 
 async function interagirPnjTerrain(pnjId) {
@@ -3485,8 +3483,11 @@ async function getTerrainsVraimentLibres(country) {
 
 function profilOccupationTerrain(etat, pays = state.country) {
   if (!['squatter_cool','squatter_agr','cadavre'].includes(etat?.pnj)) return null;
-  if (etat.pnjData?.id === etat.pnj) return etat.pnjData;
-  return (TERRAIN_PNJ_PROFILES[pays] || []).find(p => p.id === etat.pnj) || null;
+  const profil = etat.pnjData?.id === etat.pnj ? etat.pnjData
+    : (TERRAIN_PNJ_PROFILES[pays] || []).find(p => p.id === etat.pnj) || null;
+  // Un occupant unique, identité canonique conservée ; aucun escadron présenté.
+  return profil && etat.pnj !== 'cadavre'
+    ? {...profil, name:'squatteurs', socleId:etat.pnjSocleId || null} : profil;
 }
 
 function terrainOrdreDisponible(fn, buildingId) {

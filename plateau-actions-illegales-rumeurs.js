@@ -241,6 +241,20 @@ function ouvrirModalAssassinat(encodedCible) {
 
   const siegeDepute = neutraliserCibleEstDepute(cible);
   const estDepute = !!siegeDepute;
+  if (!estDepute) {
+    document.getElementById('postes-modal-title').textContent = 'Affronter — ' + cible.name;
+    let choix = '<div class="cpj-dialogue"><p class="cpj-note">Le serveur ouvre un affrontement par rounds. Les conséquences dépendent de son issue réelle. Aucun taux de réussite instantanée ne s’applique.</p>';
+    for (const [cle, m] of Object.entries(NEUTRALISER_MODES)) {
+      const dispo = neutraliserPossedeArme(cle);
+      choix += '<button class="cpj-touche" ' + (dispo ? '' : 'disabled ') +
+        'onclick="confirmerAssassinatArme(\'' + encodedCible + '\',\'' + cle + '\')">' +
+        m.label + ' — ouverture : ' + m.paPJ + ' PA' +
+        (cle === 'feu' ? ' · -20 DIS' : '') + (dispo ? '' : ' (arme absente)') + '</button>';
+    }
+    document.getElementById('postes-body').innerHTML = choix + '</div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
 
   document.getElementById('postes-modal-title').textContent = 'Neutraliser — ' + cible.name;
   let html = '<div style="padding:1rem">';
@@ -297,7 +311,7 @@ async function confirmerAssassinatArme(encodedCible, mode) {
   }
 
   const contexte = contexteGroupePj();
-  const identifiant = !cible.isPJ && /^squatter_/.test(cible.id || '')
+  const identifiant = cible.isPJ ? cible.name : /^squatter_/.test(cible.terrainPnjId || cible.id || '')
     ? state.currentBuilding : (cible.socleId || cible.pnjSocleId || cible.id || cible.name);
   const v = await sbCombatOuvrir(identifiant, mode);
   if (!contexteGroupePjValide(contexte)) return;

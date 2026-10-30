@@ -11900,7 +11900,7 @@ async function ouvrirPanneauCombat(batailleId) {
     html += '<div style="font-size:.76rem;color:#c0b090">Vos pertes : ' + (dernier.mes_pa_perdus || 0) +
             ' PA sur ' + (dernier.mes_combattants_touches || 0) + ' combattant(s) touché(s).</div>';
     if (dernier.mes_morts_pnj > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_morts_pnj + ' PNJ tué(s).</div>';
-    if (dernier.mes_pj_neutralises > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_pj_neutralises + ' des vôtres évacué(s) à l\'infirmerie.</div>';
+    if (dernier.mes_pj_neutralises > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_pj_neutralises + ' des vôtres hors de combat ; leur situation est confirmée par le serveur.</div>';
     html += '<div style="font-size:.76rem;color:#8ac05a;margin-top:.3rem">En face : ' + (dernier.adversaires_tombes || 0) + ' adversaire(s) tombé(s) sous vos yeux.</div>';
     html += '<div style="font-size:.74rem;color:#8a8060">Encore debout : ' + escapeHtmlText(dernier.adversaire_estime?.libelle || '—') + '.</div>';
     html += '</div>';

@@ -1,3 +1,13 @@
+## #219 — raccords civils et squatteurs, 30 octobre, EN COURS / NON DÉPLOYÉS
+
+Deuxième étape locale après `3be18e1a` : **364/364 cas PostgreSQL jetables**. Cinq vrais rounds civils, fuite/reddition au choix suivant, ouverture concurrente sur deux connexions, panne aval annulant paiement/bataille/reçu, chef neutralisé sans dissolution et poursuite par compagnon, armes mains/blanche/feu et coûts/DIS/rejeu, groupe réel du PNJ ciblé, refus d'une occupation obsolète et protection serveur des gamma. Le recrutement militaire appelle désormais le même parcours d'accompagnement extrait dans `20261030202700`, sans nouvelle logique de recrutement. Son round mixte historique reste testé après cette extraction.
+
+Fenêtre civile sans faux taux instantané ni peine fixe annoncée ; seuls les députés conservent leur ordre institutionnel existant. Nom visible unique « squatteurs », identité serveur transmise, anciennes cartes remplacées. Le client transmet le nom officiel des PJ et non leur identifiant de présentation. Caches augmentés. Nouvelle étape CI ajoutée, toutes les anciennes conservées.
+
+**137/137 bancs clients** au dernier contrôleur complet avant ajout des trois derniers cas du pilote d'ouverture (ces trois cas passent aussi). Contre-épreuves sur 358 cas : issue fausse → 4 échecs ; double paiement → 2 ; PNJ immobile → 1. Les mutations sont confinées aux bases jetables. Elles doivent être rejouées sur l'état final. Contrôles globaux comparés à main `987b112f` : mêmes 7 catégories rouges / 12 ; Authority compte davantage de préparations hors baseline dans #219 (127 RPC contre 117 et 10 signatures contre 5), pas une réussite. Aucune référence ajustée pour masquer ces écarts.
+
+Main vient d'avancer à `d4ee7224` (#257, sanctions communes de Claude) : intégrer ce commit et relancer la validation finale. Les migrations de ce commit sont marquées **NON APPLIQUÉES**, ne pas en déduire un déploiement. Le prévol Supabase réel et les essais authentifiés restent indisponibles dans cette session ; aucune migration ni donnée de production touchée. Pas de fusion #219.
+
 ## #219 — reprise civile du 30 octobre, EN COURS, NON DÉPLOYÉE
 
 Main `987b112f` intégré par `496454ff` : finances #255/#256 et mairies conservées. Les 23 migrations **préparées seulement** qui entraient en collision avec les versions municipales appliquées ont été déplacées vers `20261030200000` à `20261030202200` ; correspondance exacte dans `outils/audits/VERSIONS-GROUPES-219-20261030.json`. Les anciennes preuves gardent leurs noms historiques. Références de navigation régénérées depuis le vrai `data.js` de main, pas de baseline falsifié.

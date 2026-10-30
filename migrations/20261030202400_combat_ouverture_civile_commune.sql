@@ -20,6 +20,19 @@ BEGIN
  IF cible IS NOT NULL AND EXISTS(SELECT 1 FROM public.groupe_participants_interne(moi) WHERE est_pj AND identifiant=cible)
  OR pnj IS NOT NULL AND EXISTS(SELECT 1 FROM public.groupe_participants_interne(moi) WHERE NOT est_pj AND identifiant=pnj) THEN RETURN jsonb_build_object('ok',false,'raison','meme_groupe');END IF;
  IF cible IS NOT NULL THEN SELECT coalesce((SELECT chef FROM public.groupes_pj_adhesions WHERE membre=cible),cible) INTO racine;END IF;
+ IF pnj IS NOT NULL THEN
+  IF EXISTS(SELECT 1 FROM public.pnj_membres WHERE id=pnj AND classe='gamma') THEN RETURN jsonb_build_object('ok',false,'raison','cible_protegee');END IF;
+  -- Un accompagnant appartient au vrai groupe de son leader PJ, pas à un
+  -- nouveau groupe d'un seul PNJ créé pour les besoins de l'agression.
+  SELECT leader_pj INTO racine FROM public.pnj_membres WHERE id=pnj;
+  IF racine IS NOT NULL THEN SELECT coalesce((SELECT chef FROM public.groupes_pj_adhesions WHERE membre=racine),racine) INTO racine;END IF;
+  IF pnj LIKE 'occupation:%' THEN
+   SELECT t.building_id INTO terrain FROM public.terrains_etat t WHERE t.country=p.country
+    AND t.building_id=p.current_building AND t.data::jsonb->>'city'=p.current_city
+    AND t.data::jsonb->>'pnjSocleId'=pnj AND t.data::jsonb->>'pnj' IN ('squatter_cool','squatter_agr');
+   IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','occupation_obsolete');END IF;
+  END IF;
+ END IF;
  PERFORM public.pnj_groupes_verrouiller_projections_interne(ARRAY(SELECT identifiant FROM public.groupe_participants_interne(moi) WHERE NOT est_pj UNION SELECT identifiant FROM public.groupe_participants_interne(racine) WHERE NOT est_pj UNION SELECT pnj WHERE pnj IS NOT NULL));
  PERFORM name FROM public.personnages_donnees WHERE name IN (SELECT identifiant FROM public.groupe_participants_interne(moi) WHERE est_pj UNION SELECT identifiant FROM public.groupe_participants_interne(racine) WHERE est_pj) ORDER BY name FOR UPDATE;
  FOR g IN SELECT * FROM public.groupe_participants_interne(moi) UNION SELECT * FROM public.groupe_participants_interne(racine) LOOP
@@ -44,7 +57,7 @@ BEGIN
    IF g.est_pj THEN INSERT INTO public.batailles_engagements(bataille_id,camp,personnage,groupe_id,pa_initial) SELECT b_id,v_camp,g.identifiant,gid,pa FROM public.personnages_donnees WHERE name=g.identifiant;
    ELSE INSERT INTO public.batailles_engagements(bataille_id,camp,pnj_id,matricule,groupe_id,pa_initial) SELECT b_id,v_camp,g.identifiant,g.identifiant,gid,pa FROM public.pnj_membres WHERE id=g.identifiant;END IF;
   END LOOP;
-  IF pnj IS NOT NULL THEN INSERT INTO public.batailles_engagements(bataille_id,camp,pnj_id,matricule,groupe_id,pa_initial) SELECT b_id,'defenseur',pnj,pnj,'defenseur|pnj:'||pnj,pa FROM public.pnj_membres WHERE id=pnj;END IF;
+  IF pnj IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.batailles_engagements WHERE bataille_id=b_id AND pnj_id=pnj) THEN INSERT INTO public.batailles_engagements(bataille_id,camp,pnj_id,matricule,groupe_id,pa_initial) SELECT b_id,'defenseur',pnj,pnj,'defenseur|pnj:'||pnj,pa FROM public.pnj_membres WHERE id=pnj;END IF;
   -- Les doctrines historiques exigent une sortie référencée. Sa géographie
   -- provient du même moteur de navigation, jamais d'une ancienne caserne.
   trajet:=public.navigation_destination_fuite_interne(moi);
@@ -52,6 +65,8 @@ BEGIN
   IF racine IS NOT NULL THEN trajet:=public.navigation_destination_fuite_interne(racine);
   ELSE trajet:=public.navigation_destination_fuite_position_interne(pe.pays,pe.ville,pe.building_id,pe.rue_noeud_id,NULL);END IF;
   IF coalesce((trajet->>'ok')::boolean,false) THEN UPDATE public.batailles SET repli_b=trajet WHERE id=b_id;END IF;
+  PERFORM public.combat_bataille_completer_groupes_interne(b_id,'acteur',p.current_city,p.current_building,p.current_room);
+  PERFORM public.combat_bataille_completer_groupes_interne(b_id,'defenseur',p.current_city,p.current_building,p.current_room);
   PERFORM public.militaire_bataille_groupes_constituer(b_id);
   UPDATE public.batailles SET effectif_initial_a=(SELECT count(*) FROM public.batailles_engagements WHERE bataille_id=b_id AND camp='acteur'),effectif_initial_b=(SELECT count(*) FROM public.batailles_engagements WHERE bataille_id=b_id AND camp='defenseur') WHERE id=b_id;
   v:=v||jsonb_build_object('ok',true,'bataille',b_id,'phase','choix');
