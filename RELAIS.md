@@ -25,7 +25,7 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-- **Argent écrit par les fonctions serveur (Claude, 30/10 soir, branche `claude/argent-serveur-helvetia-20261030`, PR #264)** : signalement de Fred, 150 000 FR empruntés chez Helvetia par Jean Jaaj ont disparu au retrait en liquide.
+- **Argent écrit par les fonctions serveur (Claude, 30/10 soir, branche `claude/argent-serveur-helvetia-20261030`, PR #265)** : signalement de Fred, 150 000 FR empruntés chez Helvetia par Jean Jaaj ont disparu au retrait en liquide.
   - **Cause** : depuis `verrouiller_soldes_lors_sauvegarde_personnage` (14/10), la porte de la fiche (`personnages_vue_modifier`) remet espèces et fortune à leur valeur enregistrée pour tout appel joueur. Or dix fonctions serveur écrivaient l'argent par cette porte : leurs crédits et leurs débits étaient annulés en silence dès qu'un joueur les déclenchait. Sont touchés : prêt, dépôt, retrait, ouverture, fermeture et remboursement Helvetia, vente de matériaux de chantier, débits et crédits de l'Assemblée (dont la solde militaire perçue), compromis expiré. Traces : `fiche_hausses_observees` n° 1370 (prêt) et 1371 (retrait). Depuis le 14/10, seul Jaaj a perdu de l'argent ; il est le seul titulaire d'un compte Helvetia, donc personne n'a pu créer d'argent par un dépôt.
   - **Migration `20261030210000` (NON APPLIQUÉE, compatible avec l'écran)** : ces fonctions écrivent la table `personnages_donnees`, comme `prelever_loyer_bail` le 29/10. Chaque corps est vérifié par son empreinte de production. Les anciennes portes `deposer_helvetia(text,numeric)` et `retirer_helvetia(text,numeric)` sont retirées aux joueurs ; l'écran ne s'en sert plus.
   - **Banc annulé en production** : `outils/bancs/banc-argent-fonctions-serveur.sql`, 6/6, contre-épreuve comprise.
