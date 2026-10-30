@@ -88,3 +88,11 @@ Les tests concurrents committent exclusivement dans PostgreSQL jetable ; ne pas 
 8. Préparer la livraison coordonnée et la PR, sans fusion ni activation tant que les preuves requises manquent. Déploiement de production uniquement après autorisation et prévol conforme.
 
 **Verdict : chantier non terminé.** Les verrous locaux corrigeables ont été traités et les tests exécutés sur le bon moteur ; la reconstruction fidèle et l'installation du lot restent bloquées par le transfert des exports complets. Aucune donnée ni aucun schéma de production modifié, aucune ressource payante créée, aucune fusion.
+
+## État GitHub au dernier envoi
+
+Le code, l'intégration #276 et les corrections de contrôle ont été **poussés avec succès jusqu'à `4efa7e88`** (réponse Git conservée). Le dernier envoi des preuves actualisées a ensuite échoué : authentification Git devenue indisponible, `Invalid username or token`. La cause de ce changement (expiration, révocation ou autre) n'est pas établie. Les identifiants existants ont été essayés une fois avec le helper GitHub ; aucun secret affiché, aucun compte ou paramètre d'authentification modifié. Pas de tentative répétée ni de contournement.
+
+Les commits suivants de documentation/preuves restent **locaux**, pas annoncés comme publiés. Une sauvegarde Git incrémentale vérifiée est préparée dans `/workspace/groupes-219-relais-final-20261030.bundle`, à partir du parent déjà poussé `4efa7e88`. Elle contient les dernières preuves et ce relais, sans données de joueurs. L'intégrateur disposant d'un accès GitHub valide peut reprendre ces commits sans reconstruction ni perte de travail. Aucun déploiement ni fusion.
+
+Outre la transmission des exports, l'accès GitHub de l'environnement doit donc être rétabli pour publier les seuls derniers artefacts. Le dernier main effectivement lu reste `bd1673ca` ; son évolution postérieure n'est pas vérifiable pendant ce refus d'accès.

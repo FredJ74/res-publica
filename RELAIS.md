@@ -765,3 +765,9 @@ existantes, à reprendre si Fred le demande) :
 - Manifeste des 88 fichiers inchangé en contenu SQL, référence main actualisée. Les exports complets restent le passage de relais extérieur bloquant ; aucun prévol incomplet transformé en autorisation de fusion ou d'application.
 
 - Preuves finales après #276 : `outils/audits/preuves-reconstruction-219-main276-20261030/`, code `4efa7e88`, main `bd1673ca`. Bilan **18/18 PG17 canoniques, 379/379 SQL, 143/143 bancs clients, 105/105 Chromium**, Fonctions/Workflow verts, globaux **6/12**. Anciens artefacts conservés à part. Rapport courant mis à jour ; aucune fusion ou migration.
+
+### Dernier envoi #219 : accès GitHub refusé après sauvegarde du code
+
+- **Push réussi confirmé jusqu'à `4efa7e88`**, incluant le main #276 et les correctifs de portée AST. La réponse du processus d'envoi a été récupérée : aucune ambiguïté sur la sauvegarde de ce code.
+- Envoi suivant refusé : `Invalid username or token` avec les identifiants déjà disponibles ; ni la cause précise ni l'évolution du main après `bd1673ca` ne sont vérifiables. Aucun secret affiché ni authentification modifiée.
+- Les derniers commits de rapports/preuves restent locaux ; sauvegarde incrémentale vérifiée `/workspace/groupes-219-relais-final-20261030.bundle`, parent distant déjà poussé `4efa7e88`. L'intégrateur doit reprendre ce bundle ou rétablir l'accès de l'environnement, puis pousser. Ne pas prétendre ces derniers artefacts déjà publiés. Les exports complets restent nécessaires à la reconstruction fidèle et au lot de 88.
