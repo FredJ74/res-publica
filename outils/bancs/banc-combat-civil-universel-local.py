@@ -31,6 +31,12 @@ def suite(ctx):
  q.execute('ALTER TABLE terrains_etat ADD CONSTRAINT terrains_etat_pkey PRIMARY KEY(id)')
  for ligne in (R/'baseline/seeds/92_mixte/militaire_armes_bonus.sql').read_text().splitlines():
   if ligne.startswith('INSERT INTO'):q.execute(ligne[:-1]+' ON CONFLICT DO NOTHING;')
+ # Courrier réel du dépôt ; tables de décor selon leurs DDL canoniques.
+ for table in ['mails','mails_envois_systeme']:
+  q.execute('SELECT to_regclass(%s)',('public.'+table,))
+  if q.fetchone()[0] is None:q.execute(re.search(r'CREATE TABLE public\.'+table+r' \(.*?\n\);',(R/'baseline/domaines/communication/10_tables.sql').read_text(),re.S)[0])
+ q.execute(re.search(r'CREATE OR REPLACE FUNCTION public\.mail_systeme_poser_interne\(.*?\$function\$;',(R/'baseline/domaines/communication/20_fonctions.sql').read_text(),re.S)[0])
+ ctx['installer_fonction_canonique']('militaire_mes_batailles')
  ctx['c'].commit()
  req=lambda n:f'00000000-0000-4000-8000-{n:012d}'
  def pret(occupation=None):
@@ -223,6 +229,35 @@ def suite(ctx):
   q.execute('SELECT count(*) FROM batailles_engagements WHERE bataille_id=71');assert q.fetchone()[0]>4
   v=exige(rpc('militaire_bataille_poursuivre',(71,0,req(168000))));assert v['round']==1,v
  cas('armee_recrutement_et_round_mixte_preserves_apres_extraction_commune',historique)
+ def partiel():
+  pret('squatter_cool');q.execute('ALTER FUNCTION combat_bataille_completer_groupes_interne(bigint,text,text,text,text) RENAME TO composition_absente_fixture')
+  exige(rpc('combat_ouvrir',('terrain-a-batir','mains',req(169000))),'installation_incomplete')
+  q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==100
+  q.execute("SELECT count(*) FROM pnj_membres WHERE id LIKE 'occupation:%'");assert q.fetchone()[0]==0
+  q.execute('SELECT count(*) FROM batailles');assert q.fetchone()[0]==0
+ cas('civil_installation_partielle_refuse_avant_PNJ_paiement_et_bataille',partiel)
+ for action in ['replier','rendre']:
+  def defenseur(action=action):
+   b=ouvrir()['bataille'];v=exige(rpc('militaire_bataille_etat',(b,),qui='C'))['bataille'];assert v['phase_initiale'] and v['peut_decider']
+   exige(rpc('militaire_bataille_decider',(b,action,0,req(170000)),qui='C'))
+   q.execute("SELECT pa,current_building,current_street FROM personnages_donnees WHERE name='C'");pa,bat,rue=q.fetchone()
+   if action=='replier':assert (bat,rue)==(None,'rue-1')
+   else:assert pa==0 and bat=='terrain-a-batir'
+   q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==98
+  cas('civil_defenseur_connecte_decision_initiale_'+action,defenseur)
+ def notification():
+  b=ouvrir()['bataille'];q.execute("SELECT to_player,count(*) FROM mails WHERE subject='Affrontement' AND body LIKE %s GROUP BY to_player ORDER BY to_player",('%Référence : '+str(b)+'.%',));assert q.fetchall()==[('A',1),('C',1)]
+  exige(rpc('combat_ouvrir',('C','mains',req(100001))))
+  q.execute("SELECT count(*) FROM mails WHERE subject='Affrontement' AND body LIKE %s",('%Référence : '+str(b)+'.%',));assert q.fetchone()[0]==2
+ cas('civil_notification_persistante_reelle_aux_deux_PJ_sans_doublon',notification)
+ def rapports():
+  b=ouvrir()['bataille'];jusquau_bout(b,171000)
+  for qui in ['A','C']:
+   v=exige(rpc('militaire_mes_batailles',(10,),qui=qui));bt=next(x for x in v['batailles'] if x['id']==b);assert bt['statut']=='terminee' and len(bt['rounds'])>0
+   v=exige(rpc('militaire_bataille_etat',(b,),qui=qui));assert v['bataille']['statut']=='terminee' and len(v['bataille']['rounds'])>0
+  exige(rpc('militaire_bataille_etat',(b,),qui='D'),'non_engage')
+  assert not any(x['id']==b for x in exige(rpc('militaire_mes_batailles',(10,),qui='D'))['batailles'])
+ cas('civil_rapports_persistants_deux_participants_absents_et_tiers_exclu',rapports)
  # Deux connexions et reçus réellement concurrents, décor fictif seulement.
  pret();ctx['c'].commit()
  def concurrence():
@@ -242,5 +277,5 @@ def suite(ctx):
   q.execute('SELECT count(*) FROM batailles');assert q.fetchone()[0]==1
   q.execute('SELECT count(*) FROM navigation_requetes');assert q.fetchone()[0]==1
  cas('civil_deux_connexions_un_combat_un_paiement_un_recu',concurrence)
- ctx['preuves_extension']['civil']='Ouverture, paiement, mêmes rounds, profils uniques et décisions initiales réels ; base jetable, corps vivants communiqués.'
+ ctx['preuves_extension']['civil']='Ouverture et paiement atomiques, mêmes rounds civils/militaires et composition ; PNJ unique, mort/défaite/fuite/reddition réelles, cinq rounds puis décisions, chef neutralisé, armes, concurrence, panne et installation partielle. Base jetable ; aucun essai authentifié de production.'
 if __name__=='__main__':sys.exit(c.f.d.c.c.lancer(lambda ctx:c.f.suite(ctx,lambda ctx:c.suite(ctx,suite))))

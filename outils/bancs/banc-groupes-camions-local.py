@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 """Anciens actes camion réels, vrais groupes, PostgreSQL jetable, pas de production."""
-import importlib.util,sys,re
+import importlib.util,sys,re,ast
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('finaux',R/'outils/bancs/banc-groupes-raccordements-finaux-local.py');f=importlib.util.module_from_spec(sp);sp.loader.exec_module(f)
 def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
+ # Réutiliser le décor initial du banc corps : un décès précédent a aussi
+ # retiré le matricule du blob, que le projecteur ne doit pas ressusciter.
+ source_corps=ast.parse((R/'outils/bancs/banc-groupes-corps-local.py').read_text())
+ inserts=[n.args[0].value for n in ast.walk(source_corps) if isinstance(n,ast.Call) and ((isinstance(n.func,ast.Name) and n.func.id=='sql') or (isinstance(n.func,ast.Attribute) and n.func.attr=='execute')) and n.args and isinstance(n.args[0],ast.Constant) and isinstance(n.args[0].value,str) and n.args[0].value.startswith("INSERT INTO compagnies_militaires VALUES('cie',")]
+ assert len(inserts)==1
+ blob_initial=re.search(r"VALUES\('cie',('.*')\)$",inserts[0])[1]
+
  for nom in ['camion_monter','camion_descendre','camion_deplacer']:
   ctx['installer_fonction_canonique'](nom)
  source=(R/'baseline/domaines/militaire/20_fonctions-2.sql').read_text()
@@ -25,6 +32,13 @@ def suite(ctx,suivante=None):
  def pret():
   sql("DELETE FROM police_interceptions;DELETE FROM police_action_receipts;DELETE FROM batailles_rounds;DELETE FROM batailles_groupes;DELETE FROM batailles_engagements;DELETE FROM batailles;DELETE FROM groupes_pj_adhesions;DELETE FROM camions_ordres;DELETE FROM camions_embarquements;DELETE FROM camions_militaires;DELETE FROM camions_destinations")
   sql("UPDATE personnages_donnees SET est_emprisonne=NULL,hospitalisation=NULL,country='republic',current_city='capitale',current_building='mairie',current_room='accueil',current_street=NULL,hp=100,pa=100 WHERE name IN ('A','B','C','D')")
+  # Réinitialiser les QUATRE soldats fictifs de ce décor indépendant, comme
+  # les quatre PJ ci-dessus : leurs anciennes morts/positions dans un autre
+  # cas ne sont pas les conditions initiales d'un trajet de section apte.
+  # Aucun de ces identifiants ni aucune écriture n'existe en production.
+  sql("UPDATE pnj_membres SET pa=12,statut='actif',leader_pj='A',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,rue_noeud_id=NULL WHERE id IN ('cie-S1','cie-S2','cie-S3','cie-S4')")
+  q.execute("UPDATE compagnies_militaires SET data="+blob_initial+"::jsonb WHERE id='cie'")
+  q.execute("SELECT pnj_groupes_projeter_interne(ARRAY['cie-S1','cie-S2','cie-S3','cie-S4'])")
   sql("UPDATE personnages_donnees SET poste='{\"id\":\"lieutenant\"}' WHERE name='A'")
   exige(rpc('groupe_pj_rejoindre',('A',),qui='B'))
   sql("INSERT INTO camions_militaires(id,pays,libelle,capacite,caserne_ville,caserne_building,caserne_room,caserne_libelle,ville,building_id,room_id) VALUES('camion-test','republic','Camion de fixture',25,'caserne','caserne-militaire','corps_garde','Caserne','capitale','mairie','accueil')")
@@ -47,6 +61,16 @@ def suite(ctx,suivante=None):
   exige(rpc('camion_descendre',('camion-test',)))
   q.execute("SELECT current_building,current_room FROM personnages_donnees WHERE name IN ('A','B') ORDER BY name");assert q.fetchall()==[('hotel-republica','bar')]*2
  cas('camion_voyage_reel_cout_historique_2PA_par_PJ_et_rejeu_sans_double_debit',voyage)
+ def section_epuisee():
+  pret();exige(rpc('camion_monter',('camion-test','monter-section-epuisee')))
+  q.execute("SELECT count(*) FROM camion_occupants('camion-test') WHERE NOT est_pj");assert q.fetchone()[0]>=1
+  sql("UPDATE pnj_membres SET pa=1 WHERE id='cie-S2'")
+  q.execute("SELECT pnj_groupes_projeter_interne(ARRAY['cie-S2'])")
+  v=exige(rpc('camion_deplacer',('camion-test','destination-test',True,'section-epuisee')),'pa_insuffisants_section');assert 'S2' in v['manquants']
+  q.execute("SELECT pa FROM personnages_donnees WHERE name IN ('A','B') ORDER BY name");assert q.fetchall()==[(100,),(100,)]
+  q.execute("SELECT building_id,room_id FROM camions_militaires WHERE id='camion-test'");assert q.fetchone()==('mairie','accueil')
+ cas('camion_section_epuisee_refuse_sans_debit_ni_deplacement',section_epuisee)
+
  def incapacite():
   pret();sql("UPDATE personnages_donnees SET hp=0 WHERE name='B'");exige(rpc('camion_monter',('camion-test','incapable-fixture')),'acteur_incapacite')
   q.execute("SELECT count(*) FROM personnages_donnees WHERE name IN ('A','B') AND current_building='mairie'");assert q.fetchone()[0]==2

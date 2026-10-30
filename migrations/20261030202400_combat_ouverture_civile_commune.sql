@@ -9,6 +9,12 @@ BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended('groupe_pj:graphe',0));
  SELECT verdict INTO v FROM public.navigation_requetes WHERE acteur=moi AND requete=p_requete AND arguments=args;IF FOUND THEN RETURN v;END IF;
  IF EXISTS(SELECT 1 FROM public.navigation_requetes WHERE acteur=moi AND requete=p_requete) THEN RETURN jsonb_build_object('ok',false,'raison','requete_reutilisee');END IF;
+ -- Refus explicite pendant une installation partielle ; aucune création de PNJ,
+ -- paiement ou bataille avant disponibilité de l'ensemble du contrat.
+ IF to_regprocedure('public.combat_bataille_completer_groupes_interne(bigint,text,text,text,text)') IS NULL
+ OR NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid='public.militaire_bataille_combattants(bigint,text)'::regprocedure AND position('-- combat_mode_ouverture_v1' IN prosrc)>0)
+ OR NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid='public.crime_neutraliser(text,text,integer)'::regprocedure AND position('combat_universel_requis' IN prosrc)>0) THEN
+  RETURN jsonb_build_object('ok',false,'raison','installation_incomplete');END IF;
  IF EXISTS(SELECT 1 FROM public.groupes_pj_adhesions WHERE membre=moi) THEN RETURN jsonb_build_object('ok',false,'raison','chef_de_groupe_requis');END IF;
  SELECT * INTO p FROM public.personnages_donnees WHERE name=moi;
  IF p.current_building=p_cible AND p_cible LIKE 'terrain-a-batir%' THEN
@@ -69,6 +75,13 @@ BEGIN
   PERFORM public.combat_bataille_completer_groupes_interne(b_id,'defenseur',p.current_city,p.current_building,p.current_room);
   PERFORM public.militaire_bataille_groupes_constituer(b_id);
   UPDATE public.batailles SET effectif_initial_a=(SELECT count(*) FROM public.batailles_engagements WHERE bataille_id=b_id AND camp='acteur'),effectif_initial_b=(SELECT count(*) FROM public.batailles_engagements WHERE bataille_id=b_id AND camp='defenseur') WHERE id=b_id;
+  -- Même courrier système que l'agression historique ; une notification par
+  -- participant, uniquement lors de la première ouverture confirmée.
+  FOR g IN SELECT personnage FROM public.batailles_engagements WHERE bataille_id=b_id AND personnage IS NOT NULL ORDER BY personnage LOOP
+   PERFORM public.mail_systeme_poser_interne('Événement',g.personnage,'Affrontement',
+    'Vous êtes engagé(e) dans un affrontement. Référence : '||b_id||'. Retrouvez ses rounds dans le journal, bouton Rapports de combat.',
+    to_char(now() AT TIME ZONE 'Europe/Paris','DD/MM/YYYY HH24:MI'));
+  END LOOP;
   v:=v||jsonb_build_object('ok',true,'bataille',b_id,'phase','choix');
   INSERT INTO public.navigation_requetes(acteur,requete,arguments,verdict) VALUES(moi,p_requete,args,v);
   RETURN v;

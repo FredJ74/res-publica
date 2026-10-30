@@ -318,6 +318,7 @@ async function commanderNavigationInterieure(buildingId,roomId) {
       if(typeof showToast==='function')showToast(perdu?'Session expirée':'Déplacement non confirmé',
         perdu?'Reconnectez-vous pour poursuivre.':motifs[r?.raison]||'La position serveur n’a pas confirmé cette entrée. Réessayez la consultation.',false);
       if(perdu&&typeof afficherBandeauReconnexion==='function')afficherBandeauReconnexion();
+      if(['combat_en_cours','combat_membre_pnj'].includes(r?.raison)&&typeof reprendreCombatConfirme==='function')await reprendreCombatConfirme().catch(()=>false);
       // Conserver la rencontre existante avec le portier pour le demandeur
       // refusé lui-même ; ne jamais la déclencher pour payer à la place d'un membre.
       if(r?.raison==='membre_loge_requis'&&r.membre===state.char?.name
@@ -1353,13 +1354,8 @@ async function declencherEntreeZone(buildingId, roomId, zonePrecedente) {
   // 3. COMBAT. Une bataille en cours a laquelle je participe s'impose : on n'entre pas dans une
   // fusillade sans s'en apercevoir. Le panneau est le seul endroit ou l'on decide -- et il
   // n'affiche jamais les mathematiques du moteur.
-  if (typeof sbMilitaireBatailleEtat === 'function' && typeof ouvrirPanneauCombat === 'function') {
-    try {
-      const e = await sbMilitaireBatailleEtat(null);
-      if (e && e.ok === true && e.bataille && e.bataille.statut === 'en_cours') {
-        await ouvrirPanneauCombat(e.bataille.id);
-      }
-    } catch (err) { /* un panneau qui echoue ne bloque jamais la navigation */ }
+  if (typeof reprendreCombatConfirme === 'function') {
+    await reprendreCombatConfirme().catch(()=>false);
   }
 
   // 4. PNJ SOCIAUX (29 septembre 2026). Un PNJ qui se souvient du joueur peut avoir
@@ -1584,6 +1580,7 @@ function sortieBatimentMessage(verdict, incertaine = false) {
 function signalerEchecSortie(etape, verdict, incertaine = false) {
   const [titre,message]=sortieBatimentMessage(verdict,incertaine);
   showToast(titre,message,false);
+  if(['combat_en_cours','combat_membre_pnj'].includes(verdict?.raison)&&typeof reprendreCombatConfirme==='function')reprendreCombatConfirme().catch(()=>false);
   // Une sortie refusée faute de session doit donner accès à la reconnexion
   // directement sur le plateau : aucun F5 ni nouvel ordre de sortie automatique.
   if (verdict?.transport?.etat === 'session_perdue' ||

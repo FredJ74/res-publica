@@ -27,7 +27,7 @@ WHERE n.nspname='public' AND p.prokind IN ('f','p') AND
    'force_publique_effectif_acte','effectifs_ecriture_metier_garder','compagnie_ecriture_metier_garder','batiment_etat_sous_cle_ecrire',
    'militaire_deposer_soldats','militaire_recuperer_soldats','militaire_affecter_leader','militaire_ordre_collectif',
    'payer_ordre','payer_ordre_interne','ambassade_acces_bureau','ambassade_acces_bureau_interne','terrain_etat_lire',
-   'crime_neutraliser','inventaire_confisquer','justice_recherches','justice_executer_condamnation_soi',
+   'mail_systeme_poser_interne','mails_journaliser_envoi_systeme','militaire_mes_batailles','crime_neutraliser','inventaire_confisquer','justice_recherches','justice_executer_condamnation_soi',
    'inventaire_reception_etat','inventaire_sauver_revision','inventaire_objet_protege','assemblee_loi_en_vigueur','detention_ouvrir_interne','detention_ouvrir_soi','detention_transferer_qhs','detention_qhs_poser_interne',
    'terrain_squatteurs_issue_interne','terrain_squatteurs_issue_bataille_interne','combat_gilet_pnj_absorber_interne','combat_membre_decrire_interne','crime_corrompre_douanier','crime_detecter_interne','crime_malus_isn_interne','crime_etat_acteur_interne')
   OR p.prosrc ~* '(leader_pj|leader_pnj_id|groupes_pj_adhesions|current_street|current_building)')
@@ -40,7 +40,7 @@ JOIN pg_namespace n ON n.oid=c.relnamespace
 WHERE NOT t.tgisinternal AND n.nspname='public'
  AND c.relname IN ('personnages','personnages_donnees','presences','pnj_membres',
  'pnj_possessions','compagnies_militaires','batiments_etat','groupes_pj_adhesions','navigation_lieux_regles',
- 'batailles','batailles_engagements','batailles_groupes','batailles_rounds','terrains_etat','comptes_bancaires','navigation_requetes','navigation_passages_douaniers','jugements','detentions','prisonniers_qhs')
+ 'mails','mails_envois_systeme','batailles','batailles_engagements','batailles_groupes','batailles_rounds','terrains_etat','comptes_bancaires','navigation_requetes','navigation_passages_douaniers','jugements','detentions','prisonniers_qhs')
 ORDER BY c.relname,t.tgname;
 -- Droits et RLS des magasins lus/écrits par les adaptateurs. Métadonnées seules.
 SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,c.relacl,
@@ -49,7 +49,7 @@ SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,c.relacl,
 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
 LEFT JOIN pg_policy p ON p.polrelid=c.oid
 WHERE n.nspname='public' AND c.relname IN ('personnages_donnees','pnj_membres','pnj_possessions',
- 'batailles','batailles_engagements','batailles_groupes','batailles_rounds','terrain_acquisitions_recus','postes_attribues','compagnies_militaires','batiments_etat','navigation_requetes','navigation_passages_douaniers','jugements','detentions','prisonniers_qhs','confiscations_douanieres','police_interceptions','police_detection_attempts','police_action_receipts','infractions','infractions_categories')
+ 'mails','mails_envois_systeme','batailles','batailles_engagements','batailles_groupes','batailles_rounds','terrain_acquisitions_recus','postes_attribues','compagnies_militaires','batiments_etat','navigation_requetes','navigation_passages_douaniers','jugements','detentions','prisonniers_qhs','confiscations_douanieres','police_interceptions','police_detection_attempts','police_action_receipts','infractions','infractions_categories')
 ORDER BY c.relname,p.polname;
 -- Le mandat ne doit pas être reconstruit depuis une position de voyage.
 -- Compte agrégé, aucune identité de joueur extraite.

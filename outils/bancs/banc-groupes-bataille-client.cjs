@@ -46,3 +46,36 @@ for(const [titre,cible,attendu] of [
  await c.confirmerAssassinatArme(encodeURIComponent(JSON.stringify(cible)),'mains');
  assert.equal(c.rpc[0][0],'combat_ouvrir');assert.equal(c.rpc[0][1].p_cible,attendu);assert.equal(c.state.pa,99);
 });
+
+test('après combat : occupation exacte relue sans génération ni ordre immobilier',async()=>{
+ const c=jeu();c.state.currentBuilding='terrain-a-batir-1';c.state.currentRoom='terrain';
+ const occupation={pnj:'cadavre',pnjSocleId:'occupation-canonique'};let adopte;
+ c.sbGetTerrainState=async()=>occupation;c.remplacerTerrainState=(id,v)=>adopte=[id,v];c.chargerPnjTerrain=()=>{throw Error('visite interdite');};
+ c.sbLoadPersonnage=async()=>({userId:'uid',pa:7,hp:0,country:'republic',currentCity:'capitale',currentBuilding:'terrain-a-batir-1',currentRoom:'terrain'});
+ assert.equal(await c.rafraichirApresRound(71),true);assert.equal(adopte[0],'terrain-a-batir-1');assert.equal(adopte[1],occupation);assert.equal(c.state.hp,0);assert.equal(c.rpc.length,0);
+});
+test('occupation tardive : jamais appliquée à un autre personnage',async()=>{
+ const c=jeu();c.state.currentBuilding='terrain-a-batir-1';let adoptes=0;
+ c.sbGetTerrainState=async()=>{c.state.char={name:'B'};return {pnj:'cadavre'};};c.remplacerTerrainState=()=>adoptes++;
+ assert.equal(await c.rafraichirApresRound(71),false);assert.equal(adoptes,0);assert.equal(c.state.pa,99);
+});
+
+test('interaction après attaque : même panneau confirmé, aucun ordre automatique',async()=>{
+ const c=jeu();let ouvre;c.sbMilitaireBatailleEtat=async()=>({ok:true,bataille:{id:83,statut:'en_cours'}});c.ouvrirPanneauCombat=async id=>ouvre=id;
+ vm.runInContext(fonctions('plateau-politique.js',['reprendreCombatConfirme']),c);
+ assert.equal(await c.reprendreCombatConfirme(),true);assert.equal(ouvre,83);assert.equal(c.rpc.length,0);assert.equal(c.state.pa,99);
+});
+test('reprise tardive après changement de session : aucun panneau étranger',async()=>{
+ const c=jeu();let ouvre=0;c.sbMilitaireBatailleEtat=async()=>{c.session='nouvelle';return {ok:true,bataille:{id:83,statut:'en_cours'}};};c.ouvrirPanneauCombat=async()=>ouvre++;
+ vm.runInContext(fonctions('plateau-politique.js',['reprendreCombatConfirme']),c);
+ assert.equal(await c.reprendreCombatConfirme(),false);assert.equal(ouvre,0);
+});
+
+test('journal : historique commun et accès aux vrais rounds sans ordre de combat',async()=>{
+ const c=jeu(),elements=new Map();c.document={getElementById:id=>{if(!elements.has(id))elements.set(id,{textContent:'',innerHTML:'',classList:{add(){}}});return elements.get(id);}};
+ c.escapeHtmlText=x=>String(x);c.LIBELLES_GRADES_MILITAIRES={};c.LIBELLES_DOMAINES_MILITAIRES={};c.LIBELLES_NIVEAUX_DECORATION={};
+ c.sbMilitaireCalepin=async()=>({ok:true,nom:'A'});c.sbMilitaireMesBatailles=async()=>({ok:true,batailles:[{id:83,statut:'terminee',lieu:{ville:'capitale'},rounds:[{mes_pa_perdus:2}]}]});
+ vm.runInContext(fonctions('plateau-politique.js',['ouvrirCalepinCampagne']),c);await c.ouvrirCalepinCampagne();
+ assert.match(elements.get('postes-body').innerHTML,/ouvrirPanneauCombat\(83\)/);assert.match(elements.get('postes-body').innerHTML,/Lire les rounds/);assert.equal(c.rpc.length,0);
+ assert.match(fs.readFileSync(path.join(root,'plateau.html'),'utf8'),/onclick="ouvrirCalepinCampagne\(\)"[^>]*>Rapports de combat/);
+});

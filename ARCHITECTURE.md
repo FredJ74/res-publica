@@ -350,3 +350,30 @@ Complément #219 préparé `20261030001100` : provenance des PNJ sur leur ligne 
 conservée lors d’une dépose ; position personnelle ajoutée à la lecture commune déjà
 utilisée. La restauration des rues réemploie cette lecture et garde les quatre vues PSM,
 sans nouvelle interrogation périodique. Les valeurs nulles de bâtiment restent nulles.
+
+### #219 — ouverture civile commune préparée le 30 octobre, non déployée
+
+`combat_ouvrir` ouvre les mêmes batailles/engagements que l'armée, avec son reçu
+par acteur et paramètres dans `navigation_requetes`. La préparation de
+`crime_neutraliser` fournit seulement ses préconditions, coût PA et bruit ; son
+ancien jet final est fermé. `combat_bataille_completer_groupes_interne` contient
+l'unique parcours d'accompagnement extrait du recrutement militaire, désormais
+appelé par les deux contextes. Les profils validés des squatteurs alimentent un
+PNJ bêta unique par occupation ; famille technique employé sans poste, contrat,
+salaire ou propriétaire fictif. END utilise ENT. Les mêmes rounds constatent
+fuite, reddition, neutralisation et décès ; l'adaptateur du terrain n'effectue
+ni second jet ni second paiement. Les sanctions financières restent les
+contrats de Claude, jamais un nouveau circuit de caisse.
+
+Le courrier système et l'historique existant rendent les affrontements
+consultables depuis le journal. Aucun minuteur navigateur. La reprise d'un
+combat à une interaction et les relectures après round restent liées au
+personnage/session. Le calendrier nocturne rattrape les batailles ; il ne
+promet pas une tâche exécutée exactement à la 90e seconde.
+
+Versions préparées renumérotées uniquement pour éviter les collisions avec les
+mairies appliquées : correspondance dans
+`outils/audits/VERSIONS-GROUPES-219-20261030.json`, puis compléments civils
+`20261030202300` à `20261030202700`. Avant activation : prévol réel des corps,
+triggers, droits et registre, et recette authentifiée autorisée. Les bancs
+PostgreSQL jetables ne démontrent pas le fonctionnement en production.

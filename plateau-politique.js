@@ -11865,6 +11865,16 @@ async function recupererSoldats(compagnieId, sectionId) {
 // chef PJ, repli automatique pour un groupe mene par des PNJ. Un groupe allie
 // peut donc decrocher pendant qu'un autre tient la position.
 
+// Même reprise à l'entrée et après refus de déplacement : aucune commande de
+// combat ni dépense. Un joueur attaqué retrouve ses choix à son interaction.
+async function reprendreCombatConfirme() {
+  const c=contexteGroupePj();
+  const e=await sbMilitaireBatailleEtat(null).catch(()=>null);
+  if (!contexteGroupePjValide(c) || e?.ok!==true || e.bataille?.statut!=='en_cours') return false;
+  await ouvrirPanneauCombat(e.bataille.id);
+  return true;
+}
+
 async function ouvrirPanneauCombat(batailleId) {
   const contexte = contexteGroupePj();
   const e = await sbMilitaireBatailleEtat(batailleId || null);
@@ -11872,7 +11882,7 @@ async function ouvrirPanneauCombat(batailleId) {
   if (!e || e.ok !== true) { showToast('Combat indisponible', 'Le serveur n\'a pas répondu.', false); return; }
   const b = e.bataille;
 
-  document.getElementById('postes-modal-title').textContent = b ? 'Combat en cours' : 'Engagement';
+  document.getElementById('postes-modal-title').textContent = b ? (b.statut==='en_cours' ? 'Combat en cours' : 'Rapport de combat') : 'Engagement';
   let html = '<div style="padding:1rem">';
 
   if (!b) {
@@ -12005,15 +12015,20 @@ async function poursuivreCombat(batailleId) {
 // lieu de les deviner. Un PJ neutralise se retrouve a l'infirmerie de sa caserne.
 async function rafraichirApresRound(batailleId) {
   const c = contexteGroupePj();
-  const [frais, inventaire] = await Promise.all([
+  const terrain = /^terrain-a-batir/.test(state.currentBuilding || '')
+    ? {id:state.currentBuilding,pays:state.country,ville:state.currentCity,piece:state.currentRoom} : null;
+  const [frais, inventaire, occupation] = await Promise.all([
     sbLoadPersonnage(c.nom).catch(()=>null),
-    typeof sbInventaireReceptionEtat === 'function' ? sbInventaireReceptionEtat(c.nom).catch(()=>null) : null
+    typeof sbInventaireReceptionEtat === 'function' ? sbInventaireReceptionEtat(c.nom).catch(()=>null) : null,
+    terrain && typeof sbGetTerrainState === 'function' ? sbGetTerrainState(terrain.pays,terrain.id).catch(()=>null) : null
   ]);
   if (!contexteGroupePjValide(c)) return false;
   if (!frais || frais.userId !== c.uid || !Number.isInteger(frais.pa) || frais.pa < 0) {
     showToast('État non confirmé','Le résultat du combat doit encore être relu.',false); return false;
   }
   state.pa = frais.pa;
+  if (Number.isFinite(frais.hp)) state.hp = frais.hp;
+  if (Object.prototype.hasOwnProperty.call(frais,'hospitalisation')) state.hospitalisation = frais.hospitalisation;
   state.group = frais.group;
   state._groupeConfirme = frais._groupeConfirme;
   if (Object.prototype.hasOwnProperty.call(frais,'estEmprisonne')) state.estEmprisonne = frais.estEmprisonne;
@@ -12021,6 +12036,17 @@ async function rafraichirApresRound(batailleId) {
   if (!frais.currentBuilding || frais.country !== state.country || frais.currentCity !== state.currentCity ||
       frais.currentBuilding !== state.currentBuilding || frais.currentRoom !== state.currentRoom) {
     afficherPositionNavigationConfirmee(frais);
+  }
+  if (terrain && state.country===terrain.pays && state.currentCity===terrain.ville &&
+      state.currentBuilding===terrain.id && state.currentRoom===terrain.piece) {
+    // Lecture seule de l'occupation effective, sans rouvrir une visite ni rejouer
+    // une commande immobilière. Le moteur de combat a déjà décidé son issue.
+    if (occupation && typeof remplacerTerrainState==='function') {
+      remplacerTerrainState(terrain.id,occupation);
+      const room=typeof BUILDINGS!=='undefined' ? BUILDINGS[terrain.id]?.rooms?.[terrain.piece] : null;
+      if (room && typeof renderPersonsList==='function') renderPersonsList(room.persons || []);
+      if (room && typeof renderRoomActions==='function') renderRoomActions(room,terrain.id,terrain.piece);
+    } else if (typeof sbGetTerrainState==='function') showToast('Occupation non confirmée','Le combat est enregistré ; la situation du terrain doit encore être relue.',false);
   }
   updateUI();
   await ouvrirPanneauCombat(batailleId);
@@ -12096,7 +12122,9 @@ async function confirmerDecoration() {
 }
 
 async function ouvrirCalepinCampagne() {
+  const contexteCombat=contexteGroupePj();
   const c = await sbMilitaireCalepin();
+  if (!contexteGroupePjValide(contexteCombat)) return;
   if (!c || c.ok !== true) { showToast('Calepin indisponible', 'Le serveur n\'a pas répondu.', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Calepin de campagne';
@@ -12137,6 +12165,7 @@ async function ouvrirCalepinCampagne() {
   // apres un combat resolu en son absence le relit ici -- l'evenement est canonique et unique, il
   // n'en existe pas une copie par participant.
   const hb = await sbMilitaireMesBatailles(10);
+  if (!contexteGroupePjValide(contexteCombat)) return;
   const batailles = (hb && hb.ok === true && Array.isArray(hb.batailles)) ? hb.batailles : [];
   if (batailles.length) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.4rem">BATAILLES</div>';
@@ -12150,7 +12179,8 @@ async function ouvrirCalepinCampagne() {
       html += '<div style="font-size:.7rem;color:#8a8060">' + String(bt.debut || '').slice(0, 10) +
               ' · ' + rds.length + ' round(s) · ' + (bt.issue ? escapeHtmlText(bt.issue) : 'en cours') + '</div>';
       html += '<div style="font-size:.72rem;color:#c0b090;margin-top:.2rem">' + paPerdus + ' PA perdus par votre camp, ' +
-              morts + ' soldat(s) tué(s)' + (bt.mon_etat ? ' · vous : ' + escapeHtmlText(bt.mon_etat) : '') + '.</div>';
+              morts + ' PNJ tué(s)' + (bt.mon_etat ? ' · vous : ' + escapeHtmlText(bt.mon_etat) : '') + '.</div>';
+      if (Number.isSafeInteger(Number(bt.id))) html += '<button class="cpj-touche" onclick="ouvrirPanneauCombat('+Number(bt.id)+')">Lire les rounds</button>';
       html += '</div>';
     }
     html += '<div style="height:.5rem"></div>';

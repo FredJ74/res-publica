@@ -1193,6 +1193,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
     ++rueCentraleLecturePosition;
     if(position?.ok!==true){
       if(typeof showToast==='function')showToast('Déplacement refusé',position?.raison||'Position serveur inaccessible.',false);
+      if(['combat_en_cours','combat_membre_pnj'].includes(position?.raison)&&typeof reprendreCombatConfirme==='function')await reprendreCombatConfirme().catch(()=>false);
       return;
     }
   }
