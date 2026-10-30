@@ -3734,6 +3734,28 @@ async function afficherJournalDuJour(force) {
 // ROOM ACTIONS
 // =====================
 function renderRoomActions(room, buildingId, roomId) {
+  // La liste des PNJ et l'interdiction d'achat doivent refléter le même état confirmé.
+  // Le chargement d'occupation, auparavant déclenché seulement par « Vérifier le terrain »,
+  // est désormais déclenché automatiquement à l'entrée. La garde évite une boucle
+  // enterRoom -> renderRoomActions -> chargerPnjTerrain -> enterRoom.
+  if (/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain' &&
+      typeof chargerPnjTerrain === 'function') {
+    const cle = [state.country, state.currentCity, buildingId].join('/');
+    const maintenant = Date.now();
+    const memo = window._terrainOccupationSynchro;
+    if (!memo || memo.cle !== cle || maintenant - memo.depuis > 5000) {
+      window._terrainOccupationSynchro = { cle, depuis: maintenant };
+      Promise.resolve().then(() => chargerPnjTerrain(buildingId)).then(ok => {
+        if (ok && state.currentBuilding === buildingId && state.currentRoom === roomId &&
+            [state.country, state.currentCity, buildingId].join('/') === cle) {
+          enterRoom(buildingId, roomId);
+        }
+      }).catch(() => {
+        // Le lecteur serveur a déjà son message « Terrain non vérifié » ;
+        // jamais de création ou suppression locale d'occupant en cas d'échec.
+      });
+    }
+  }
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
 
   document.getElementById('action-context-bat').textContent =
@@ -4207,7 +4229,7 @@ function renderRoomActions(room, buildingId, roomId) {
       entries.forEach(e => deja.add(e.o.fn));
       window._terrainOrdresGroupes[index] = { titre: g.titre, entries };
       if (g.titre === 'Achat de terrains' && achatTerrainBloqueParIntrus) {
-        return '<button type="button" class="action-btn legal blocked" aria-disabled="true" onclick="expliquerAchatTerrainBloque()">' +
+        return '<button type="button" class="action-btn legal blocked" aria-disabled="true" onclick="doVerifierTerrain()">' +
           '<i class="ti ti-layout-list"></i> ' + g.titre + '</button>';
       }
       return '<button class="action-btn legal" onclick="ouvrirMenuOrdresTerrain(' + index +
