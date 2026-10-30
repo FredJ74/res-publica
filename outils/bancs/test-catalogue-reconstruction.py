@@ -45,6 +45,12 @@ class Exports(unittest.TestCase):
  def test_ancien_export_sequence_refuse_avant_rendu(self):
   self.valeurs['export_structure']['sequences']=[{'sequence':'serie_fixture','start':1,'increment':1}];self.ecrire()
   with self.assertRaisesRegex(ValueError,'réextraire'):rendre.charger_exports(str(self.rep))
+ def test_retrait_client_verifie_par_AST_et_reintroduction_refusee(self):
+  sp=importlib.util.spec_from_file_location('fonctions',R/'outils/baseline/verifier-fonctions.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  p=self.rep/'client.js';p.write_text('// ancienMecanisme() est retiré\nconst x=1;')
+  self.assertEqual(m.references_client_interdites('ancienMecanisme',[p]),[])
+  for contenu in ['function ancienMecanisme() {}','ancienMecanisme();','window["ancienMecanisme"]();']:
+   p.write_text(contenu);self.assertEqual(m.references_client_interdites('ancienMecanisme',[p]),[str(p)])
  def test_sequence_incomplete_refusee_sans_valeur_inventee(self):
   with self.assertRaisesRegex(ValueError,'réextraire'):rendre.options_sequence({'sequence':'x','start':1})
 

@@ -295,6 +295,33 @@ def programme(decl):
     return "\n".join(morceaux)
 
 
+def references_client_interdites(symbole, fichiers=None):
+    """AST réel : un ancien mécanisme retiré ne doit pas réapparaître côté client.
+
+    Les commentaires ne sont pas du code ; une référence (même entre guillemets)
+    est refusée plutôt que présumée inoffensive. Pas d'exception par fichier.
+    """
+    if fichiers is None:
+        import glob
+        fichiers=sorted(glob.glob(os.path.join(RACINE,'*.js'))+glob.glob(os.path.join(RACINE,'*.mjs')))
+    programme_ast=r"""
+const fs=require('node:fs');
+const [racine,symbole,...fichiers]=process.argv.slice(1);
+const acorn=require(require.resolve('acorn',{paths:[racine+'/outils/e2e',racine+'/outils/vercel']}));
+const resultats=[];
+for(const fichier of fichiers){
+ let trouve=false;
+ const ast=acorn.parse(fs.readFileSync(fichier,'utf8'),{ecmaVersion:'latest',sourceType:'module'});
+ const visiter=n=>{if(!n||typeof n!=='object')return;if(n.type==='Identifier'&&n.name===symbole||n.type==='Literal'&&n.value===symbole)trouve=true;for(const v of Object.values(n)){if(Array.isArray(v))v.forEach(visiter);else if(v&&typeof v==='object')visiter(v);}};
+ visiter(ast);if(trouve)resultats.push(fichier);
+}
+process.stdout.write(JSON.stringify(resultats));
+"""
+    r=subprocess.run(['node','-e',programme_ast,RACINE,symbole,*map(str,fichiers)],capture_output=True,text=True,timeout=60)
+    if r.returncode:raise RuntimeError('Analyse AST des références clientes impossible : '+r.stderr[-500:])
+    return json.loads(r.stdout)
+
+
 def mesurer(decl, moteur):
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as fh:
         fh.write(programme(decl))
@@ -462,6 +489,21 @@ def main():
         fc = fonctions_du_fichier(os.path.join(RACINE, c["canon_fichier"]))
         ts = fs.get(c["symbole_serveur"])
         tc = fc.get(c["symbole_canon"])
+        if c.get("canon_absent") is True:
+            if ts is None:
+                echecs.append(c["cle"]+" : serveur exclusif absent")
+                continue
+            es=empreinte(ts)
+            try:
+                references=references_client_interdites(c["symbole_canon"])
+            except Exception as e:
+                echecs.append(c["cle"]+" : "+str(e));continue
+            if references:
+                echecs.append(c["cle"]+" : ancien mécanisme client réintroduit dans "+", ".join(os.path.basename(x) for x in references))
+            if es!=c["empreinte_serveur"]:
+                echecs.append(c["cle"]+" : corps serveur exclusif modifié")
+            print("  %-56s %s" % (c["cle"],"serveur épinglé / ancien client absent" if not references and es==c["empreinte_serveur"] else "ECHEC serveur exclusif"))
+            continue
         if ts is None or tc is None:
             echecs.append("%s : texte introuvable (%s)" % (
                 c["cle"], "serveur" if ts is None else "canon"))

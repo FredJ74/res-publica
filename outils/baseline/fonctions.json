@@ -698,6 +698,7 @@
   },
   {
    "cle": "nocturne/expulsions-ambassadeurs",
+   "canon_absent": true,
    "famille": "nocturne",
    "module": "api/cron-minuit.js",
    "portee": "CRON",
@@ -707,7 +708,7 @@
    "mecanisme": "epinglee",
    "empreinte_serveur": "ea9ad27fc33daebe",
    "empreinte_canon": "9ac899fef513d180",
-   "_pourquoi": "MIROIR D'UN TRAITEMENT QUOTIDIEN, et le seul de la famille dont LES DEUX COTES TOURNENT ENCORE : le navigateur met a jour l'ambassade (ecriture idempotente, effet immediat pour le joueur present) et le serveur emet l'avis d'expulsion. Le partage est ecrit dans les deux fichiers et date du 20 septembre 2026 : ce n'est pas un doublon oublie. Epinglee pour qu'un deplacement de cette frontiere ne passe pas inapercu."
+   "_pourquoi": "Ancien miroir retiré du client le 25/10/2026 (audit R11, commentaires concordants plateau-core.js et plateau-politique.js). Seul le cron termine la mission. Le corps serveur garde SON EMPREINTE ORIGINALE inchangée ; l'ancienne empreinte canon reste historique. Le contrôle exige désormais l'absence de toute référence AST à cet ancien mécanisme dans les JS clients et détecte sa réintroduction, au lieu d'exiger de recréer le doublon."
   }
  ],
  "constantes_homonymes": [
