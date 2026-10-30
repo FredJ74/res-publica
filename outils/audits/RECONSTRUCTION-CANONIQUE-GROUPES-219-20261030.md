@@ -8,7 +8,7 @@ Ce rapport actualise `LIVRAISON-CONTROLEE-GROUPES-219-20261030.md`. Les anciens 
 
 AGENTS.md, RELAIS.md, WORKFLOW-SUPABASE.md et les commentaires des PR #262/#219 ont été lus. La PR #262 contient un rapport de 48 lignes, pas les quatre exports. Ses commentaires précisent explicitement que les requêtes ont répondu mais que les résultats ne sont pas matérialisés.
 
-Main `7ddce4ee4f9c4e9d2280bf3918f6543b50aa5050` intégré par `40d6ca8d` : protections #258/#260, écritures financières serveur de #265, notaire, occupation, caisses et interview de Jodie conservés. Aucun nouveau développement immobilier ou métier d'ambassade. Le contrôle de #265 interdisant les écritures de fiche serveur par la vue passe.
+Main `7ddce4ee4f9c4e9d2280bf3918f6543b50aa5050` intégré par `40d6ca8d`, puis **main `bd1673ca` (#276) par `c069f987`** : protections #258/#260, écritures financières serveur de #265, notaire, occupation, caisses et interview de Jodie conservés. Aucun nouveau développement immobilier ou métier d'ambassade. Le contrôle de #265 interdisant les écritures de fiche serveur par la vue passe.
 
 La version 20261030210000 de #265 entrait à nouveau en collision avec une préparation de #219. Les 29 préparations concernées passent à leurs horodatages UTC de reprise, **20261030223538 à 20261030223606** ; correspondance dans `VERSIONS-GROUPES-219-20261030.json`, manifeste et bancs raccordés. Aucune version appliquée n'est renumérotée. Zéro collision avec les fichiers du main intégré ; la nouvelle liste doit encore être confrontée au registre vivant complet. Le relevé extérieur « zéro déjà appliquée » concernait la liste précédente, pas une homologation automatique de toutes les suivantes.
 
@@ -20,6 +20,7 @@ La version 20261030210000 de #265 entrait à nouveau en collision avec une prép
 - **Seeds** : colonnes calculées exclues des INSERT, identités ALWAYS importées explicitement, séquences possédées recalées depuis les identifiants initiaux avec leur vrai incrément positif ou négatif. Aucun compteur de bêta copié. Le premier INSERT après import est réellement testé. Une séquence partagée sans propriétaire exige une stratégie explicite ; elle n'est pas recalée arbitrairement.
 - **Linux** : les générateurs réutilisent le moteur JavaScript portable déjà présent, sans toucher leurs extracteurs ni leurs résultats attendus. Les divergences réelles deviennent mesurables.
 - **Fonctions** : copie préexistante du taux horaire déclarée et comparée sur 12 cas. L'ancien miroir client d'expulsion, supprimé le 25/10 (audit R11), n'est plus exigé. Le contrôle conserve l'empreinte serveur et l'ancienne empreinte historique à l'identique ; il exige l'absence AST du mécanisme retiré et détecte sa réintroduction. Aucun code métier d'ambassade modifié, aucune empreinte ajustée pour obtenir un vert.
+- **Détection de copies** après #276 : la lecture REST `lire` et une aide numérique locale homonyme ne sont pas le même calcul. La portée des déclarations est désormais vérifiée par AST ; une fonction locale ne devient plus un faux canon de module. Test de non-régression ajouté, aucune exclusion et aucun changement de métier Jodie.
 - **Fixtures clientes** : les nouveaux référentiels/résolveurs de caisse de main sont chargés depuis les vraies sources par les bancs Commerce et immobilier. Les assertions sont conservées ; aucun faux résultat réseau ajouté.
 
 **Aucun SQL généré de baseline/domaines ou baseline/seeds n'a été modifié.** Le rendu complet de production reste volontairement en attente de ses sources ; rendre.py et seeds.py ont été exercés sur de vrais exports d'une base de fixture, en répertoire temporaire.
@@ -39,14 +40,14 @@ La reconstruction stricte du **vieux** baseline sur 17.6 échoue réellement : `
 
 ## Résultats vérifiés
 
-Code des corrections : `add82a1b`, précédé de `5ae16451`, `c28e7482`, `0c6a885a`, `6b24656b`. Preuves et empreintes : `outils/audits/preuves-reconstruction-219-20261030/`.
+Code des corrections : `4efa7e88` (main #276 conservé), précédé de `add82a1b`, `5ae16451`, `c28e7482`, `0c6a885a`, `6b24656b`. Preuves après #276 : `outils/audits/preuves-reconstruction-219-main276-20261030/`. Étapes antérieures, compilation du moteur et six contre-épreuves : `outils/audits/preuves-reconstruction-219-20261030/`, conservées sans retouche.
 
 | Épreuve | Résultat et portée |
 |---|---|
-| Acquisition, rendu, séquences, seeds, compilation et contrôle de retrait client | **17/17**, PostgreSQL **17.6 natif** ; fixtures, aucun état réel |
+| Acquisition, rendu, séquences, seeds, compilation et contrôle de retrait client | **18/18**, PostgreSQL **17.6 natif** ; fixtures, aucun état réel |
 | Groupes/combats mixtes, détection, interception, prison, radio, transports et conséquences | **379/379**, PostgreSQL **17.6 natif**, RPC au rôle authenticated ; identités/JWT de fixture |
 | Six mutations défectueuses | **6/6 détectées**, 379 cas chacune sur 17.6 ; codes non nuls et erreurs conservés |
-| Contrôleur client complet | **142/142** après correction des fixtures reçues de main |
+| Contrôleur client complet | **143/143** après correction des fixtures reçues de main |
 | Pilote Chromium | **105/105**, local, aucun compte réel connecté |
 | Constructeur Vercel | **12/12 locaux**, aucune demande de déploiement |
 | Écritures serveur de fiche #265 | Réussite, aucune réintroduction d'écriture par la vue |
