@@ -335,3 +335,8 @@ Compléments #219 préparés `20261029223700/223800` : les replis militaires sui
 la navigation et la géométrie communes, y compris les unités PNJ autonomes.
 Les trois corps vivants communiqués le 29/10 sont conservés en fixture attribuée,
 avec leurs empreintes exactes ; ils ne remplacent pas un prévol d’installation.
+
+Complément #219 préparé `20261029223900` : même doctrine pour les choix automatiques
+adverses, rattrapage par le calendrier quotidien existant, sans nouveau polling.
+Ne pas assimiler ce passage quotidien à une garantie de traitement à 90 secondes.
+Le rendu des replis reprend la vue de rue existante, pas un faux bâtiment nul.

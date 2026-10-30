@@ -1,3 +1,9 @@
+## #219 — progression et rendu des replis (30 octobre, EN COURS)
+
+Après `27dcbb60`, complément préparé `20261029223900` : la doctrine existante résout le choix du défenseur lors d’une poursuite par un chef, sans exiger son clic ; fenêtre de 90 s et rounds conservés. Le calendrier `cron-minuit` existant appelle le même moteur pour rattraper les batailles sans navigateur. Pas de nouvel horaire ni de polling client. **Ce rattrapage quotidien n’est pas une tâche temps réel à la 90e seconde.** Une évacuation mutuelle ne produit plus un faux « anéantissement ». Un refus du moteur est journalisé comme échec, sans arrêter les autres tâches du calendrier.
+
+**325/325 SQL locaux** sur les trois corps vivants communiqués ; cas sans clic du défenseur, appel service sans JWT joueur, fin/rejeu et ACL du calendrier. Trois tests clients du raccord cron et quinze du client de bataille passent, dont retour réel à la vue de rue : ne plus appeler `enterBuilding(null)` ni manquer un changement de rue dans la même ville. Cache augmenté pour navigation et politique. Le rapport/contrôleur complet et les contre-épreuves doivent être relancés après intégration du dernier main #252. Aucune migration appliquée, fusion ou production ; #246 intacte. Demande de trois corps judiciaires vivants en attente, profil squatteurs non chiffré : autres raccordements poursuivis.
+
 ## #219 — raccordement aux corps vivants et repli commun (29/10, EN COURS)
 
 Commentaire `6509677067` récupéré par la page HTML de #219 (API refusée). Les trois MD5 de corps concordent exactement : rue `e84a0ba5…`, détection `06f258fc…`, miroir policier `22e615ce…`. Fixture attribuée, aucun baseline modifié. **317 cas conservés rejoués sur ces corps**, puis **322/322** avec asile après adaptations, replis militaires mixtes, garde individuelle/rollback et unité PNJ autonome. La dépendance d’asile est une table de décor, pas une reproduction du système des ambassades.

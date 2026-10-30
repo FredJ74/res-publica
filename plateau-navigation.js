@@ -2674,7 +2674,7 @@ function afficherPositionNavigationConfirmee(frais) {
  if(state.char){state.char.country=frais.country;state.char.currentCity=frais.currentCity;state.char.currentBuilding=frais.currentBuilding;state.char.currentRoom=frais.currentRoom;}
  if(frais.updatedAt)state._dernierUpdatedAtConnu=frais.updatedAt;
  navigationInterieureRendu={buildingId:frais.currentBuilding,roomId:frais.currentRoom};
- try{applyEmpireTheme(state.country);buildCityTabs();enterBuilding(state.currentBuilding,true);enterRoom(state.currentBuilding,state.currentRoom,null);}
+ try{applyEmpireTheme(state.country);buildCityTabs();if(!state.currentBuilding){showVueRue(null);return;}enterBuilding(state.currentBuilding,true);enterRoom(state.currentBuilding,state.currentRoom,null);}
  finally{navigationInterieureRendu=null;}
 }
 let douanesServeurEnCours=null;

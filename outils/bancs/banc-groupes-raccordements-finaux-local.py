@@ -13,7 +13,8 @@ def suite(ctx):
    v=rpc('police_detection_verifier',('mairie','accueil',None),qui='C');assert v.get('raison')=='refugie_protege',v
    q.execute("SELECT count(*) FROM police_interceptions WHERE personnage='C'");assert q.fetchone()[0]==0
   cas('catalogue_asile_reel_preserve_apres_tous_les_adaptateurs',asile)
- for f in ['20261029223700_batailles_repli_navigation_commune.sql','20261029223800_navigation_geometrie_commune_et_replis_pnj.sql']:
+ ctx['installer_fonction_canonique']('militaire_bataille_decision_effective')
+ for f in ['20261029223700_batailles_repli_navigation_commune.sql','20261029223800_navigation_geometrie_commune_et_replis_pnj.sql','20261029223900_batailles_progression_serveur_existante.sql']:
   q.execute((R/'migrations'/f).read_text());q.execute((R/'migrations'/f).read_text())
  if '--contre-repli-sans-mouvement' in sys.argv:
   q.execute("CREATE OR REPLACE FUNCTION navigation_commander_personnage_interne(text,text,text,text) RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $$SELECT '{\"ok\":true}'::jsonb$$")
@@ -47,6 +48,28 @@ def suite(ctx):
   q.execute("SELECT militaire_bataille_decrocher_groupe(71,groupe_id,5) FROM batailles_groupes WHERE bataille_id=71 AND camp='republic'");valeurs=q.fetchall();assert valeurs and all(n>0 for (n,) in valeurs),valeurs
   q.execute("SELECT count(*) FROM pnj_membres WHERE statut='actif' AND id IN ('cie-S1','cie-S2','cie-S3','cie-S4') AND (building_id IS NOT NULL OR rue_noeud_id IS DISTINCT FROM 'rue-1')");assert q.fetchone()[0]==0
  cas('repli_unite_PNJ_sans_faux_PJ_meme_geometrie_et_projection',autonome)
+ def adverse_absent():
+  pret();v=exige(rpc('militaire_bataille_poursuivre',(71,5,'00000000-0000-4000-8000-000000090003')))
+  assert not v.get('en_attente'),v
+  q.execute('SELECT round_courant FROM batailles WHERE id=71');assert q.fetchone()[0]==6
+ cas('poursuite_apres_cinq_sans_clic_du_defenseur_doctrine_existante',adverse_absent)
+ def calendrier():
+  pret();sql("UPDATE batailles_groupes SET attente_depuis=now()-interval '91 seconds' WHERE bataille_id=71")
+  q.execute("SELECT set_config('role','service_role',true),set_config('request.jwt.claim.sub','',true),set_config('request.path','/rpc/militaire_batailles_echues_traiter',true)")
+  # Le prédicat d'autorité service est celui du dépôt, pas celui simplifié du décor.
+  q.execute('RESET ROLE')
+  source=(R/'baseline/domaines/socle/20_fonctions.sql').read_text()
+  import re
+  q.execute(re.search(r'CREATE OR REPLACE FUNCTION public.est_appel_serveur\(\).*?\$function\$;',source,re.S)[0])
+  q.execute("SELECT set_config('role','service_role',true),set_config('request.jwt.claim.sub','',true),set_config('request.path','/rpc/militaire_batailles_echues_traiter',true)")
+  q.execute('SELECT militaire_batailles_echues_traiter()');v=exige(q.fetchone()[0]);q.execute('RESET ROLE');assert v['traitees']==1,v
+  q.execute("SELECT statut,issue FROM batailles WHERE id=71");assert q.fetchone()==('terminee',None)
+  q.execute('SELECT militaire_batailles_echues_traiter()');v=q.fetchone()[0];assert v['traitees']==0,v
+ cas('calendrier_serveur_sans_JWT_joueur_resout_et_rejoue_sans_effet',calendrier)
+ def droits_calendrier():
+  for role in ['anon','authenticated']:
+   q.execute("SELECT has_function_privilege(%s,'militaire_batailles_echues_traiter()','execute')",(role,));assert not q.fetchone()[0]
+ cas('calendrier_non_declenchable_par_le_navigateur',droits_calendrier)
  def acces():
   for role in ['anon','authenticated','service_role']:
    q.execute("SELECT has_function_privilege(%s,'navigation_commander_personnage_interne(text,text,text,text)','execute')",(role,));assert not q.fetchone()[0]

@@ -12016,7 +12016,7 @@ async function rafraichirApresRound(batailleId) {
   state._groupeConfirme = frais._groupeConfirme;
   if (Object.prototype.hasOwnProperty.call(frais,'estEmprisonne')) state.estEmprisonne = frais.estEmprisonne;
   if (inventaire?.ok === true && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(inventaire);
-  if (frais.country !== state.country || frais.currentCity !== state.currentCity ||
+  if (!frais.currentBuilding || frais.country !== state.country || frais.currentCity !== state.currentCity ||
       frais.currentBuilding !== state.currentBuilding || frais.currentRoom !== state.currentRoom) {
     afficherPositionNavigationConfirmee(frais);
   }
