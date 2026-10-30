@@ -1188,6 +1188,8 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
       if(typeof showToast==='function')showToast('Déplacement refusé',position?.raison||'Position serveur inaccessible.',false);
       return;
     }
+    // Le serveur vient de poser le PJ dans la rue (bâtiment et salle vidés) : base de fusion à jour.
+    if(typeof sbFicheBaseAdopter==='function')sbFicheBaseAdopter({current_building:null,current_room:null});
   }
   rueCentraleNoeudActuel = noeudId;
   rueCentraleDepuisNoeud = depuisNoeudId || null;
