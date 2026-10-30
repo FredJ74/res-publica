@@ -12,8 +12,12 @@ def suite(ctx):
  # Conserver la séparation commune sur le corps judiciaire vivant réinstallé.
  q.execute((R/'migrations/20261028222000_justice_position_cellule_serveur.sql').read_text())
  q.execute((R/'migrations/20261029120000_groupes_separation_ecrou.sql').read_text())
- for f in ['20261030202300_combats_profils_et_occupation_unique.sql','20261030202400_combat_ouverture_civile_commune.sql','20261030202500_combat_civil_rounds_et_issues_communes.sql','20261030202600_combat_fermeture_ancienne_porte_et_automates.sql','20261030202700_combat_composition_commune_depuis_graines.sql']:
+ for f in ['20261030202300_combats_profils_et_occupation_unique.sql','20261030202400_combat_ouverture_civile_commune.sql','20261030202500_combat_civil_rounds_et_issues_communes.sql','20261030202600_combat_fermeture_ancienne_porte_et_automates.sql','20261030202700_combat_composition_commune_depuis_graines.sql','20261030202800_combat_cibles_presence_canonique.sql']:
   q.execute((R/'migrations'/f).read_text());q.execute((R/'migrations'/f).read_text())
+ # Fonctions pures réelles #258 : compatibilité avec les soldes/positions
+ # confirmés, sans rejouer la migration déjà appliquée ni toucher un joueur.
+ for nom in ['fiche_valeur_normalisee','fiche_fusionner_ecran']:
+  q.execute(re.search(r'CREATE OR REPLACE FUNCTION public\.'+nom+r'\(.*?\$function\$;',(R/'migrations/20261030160000_fiche_fusion_trois_voies.sql').read_text(),re.S)[0])
  # Contre-épreuves : mutations de la base jetable seulement.
  if '--contre-issue-fausse' in sys.argv:
   q.execute("SELECT pg_get_functiondef('combat_finaliser_interne(bigint)'::regprocedure)");source=q.fetchone()[0];assert "issue:='tues'" in source;q.execute(source.replace("issue:='tues'","issue:='neutralises'"))
@@ -276,6 +280,54 @@ def suite(ctx):
   q.execute('SELECT combat_finaliser_interne(%s)',(b,));assert q.fetchone()[0]['issue']=='defaite'
   q.execute("SELECT count(*) FROM personnages_donnees d CROSS JOIN LATERAL jsonb_array_elements(coalesce(recherche,'[]')) x WHERE name='A' AND x->>'acte'='tentative_assassinat'");assert q.fetchone()[0]==avant+1
  cas('civil_echec_conserve_motif_penal_historique_sans_double_traitement',tentative)
+ def cibles():
+  pret();sql("UPDATE pnj_membres SET nom='Garde republicain',statut='actif',classe='beta',pa=pnj_pa_max(),car_vol=(pnj_metier_profil('agent_securite')->>'VOL')::int,car_per=(pnj_metier_profil('agent_securite')->>'PER')::int,car_dup=(pnj_metier_profil('agent_securite')->>'DUP')::int,ville='capitale',building_id='terrain-a-batir',room_id='terrain' WHERE id IN ('ancre','autre')")
+  v=exige(rpc('combat_cibles_lire'));x=[x for x in v['cibles'] if x['nom']=='Garde republicain'];assert {x['id'] for x in x}=={'ancre','autre'}
+  assert all(set(x)=={'id','nom','classe'} for x in x)
+  sql("UPDATE pnj_membres SET building_id='autre-lieu' WHERE id='autre'")
+  v=exige(rpc('combat_cibles_lire'));assert [x['id'] for x in v['cibles'] if x['nom']=='Garde republicain']==['ancre']
+ cas('cibles_homonymes_identifiants_et_presence_sans_donnees_privees',cibles)
+ def absent():
+  pret('squatter_cool');v=exige(rpc('combat_cibles_lire'));assert any(x.get('occupation')=='squatter_cool' for x in v['cibles'])
+  q.execute("SELECT count(*) FROM pnj_membres WHERE id LIKE 'occupation:%'");assert q.fetchone()[0]==0
+ cas('cibles_lecture_squatteurs_ne_cree_aucune_entite',absent)
+ def fiche():
+  q.execute("SELECT fiche_fusionner_ecran(%s::jsonb,%s::jsonb,%s::jsonb)",(json.dumps({'pa':99,'hp':100,'current_building':'ancien','current_room':'accueil'}),json.dumps({'pa':99,'hp':100,'current_building':'ancien','current_room':'accueil'}),json.dumps({'pa':0,'hp':0,'current_building':None,'current_room':None})))
+  v=q.fetchone()[0];assert v['pa']==v['hp']==0 and v['current_building'] is None and v['current_room'] is None
+ cas('fiche_258_sauvegarde_perimee_ne_defait_pas_combat_ni_fuite',fiche)
+ def livraison_refuse():
+  import importlib.util
+  sp=importlib.util.spec_from_file_location('livraison219',R/'outils/livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  import tempfile
+  with tempfile.TemporaryDirectory() as d:
+   f=Path(d)/'lot.sql';nb=m.preparer(str(f));assert nb==88
+   texte=f.read_text();prevol=re.search(r'DO \$prevol\$.*?\$prevol\$;',texte,re.S)[0]
+  q.execute('CREATE SCHEMA IF NOT EXISTS supabase_migrations;CREATE TABLE IF NOT EXISTS supabase_migrations.schema_migrations(version text,name text)')
+  q.execute('INSERT INTO supabase_migrations.schema_migrations(version) VALUES(%s)',('20261028123000',))
+  q.execute('SAVEPOINT collision')
+  try:q.execute(prevol)
+  except Exception as e:assert '219_version_deja_enregistree' in str(e);q.execute('ROLLBACK TO SAVEPOINT collision')
+  else:raise AssertionError('collision de registre non refusée')
+ cas('livraison_88_versions_collision_refusee_avant_DDL',livraison_refuse)
+ def integrite_lot():
+  import importlib.util,tempfile
+  sp=importlib.util.spec_from_file_location('lot219',R/'outils/livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  with tempfile.TemporaryDirectory() as d:
+   f=Path(d)/'lot.sql';m.preparer(str(f));texte=f.read_text()
+  empreinte=re.search(r'CREATE TEMP TABLE hg219_integrite.*?personnages_donnees d;',texte,re.S)[0]
+  garde=re.search(r'DO \$integrite\$.*?\$integrite\$;',texte,re.S)[0]
+  q.execute(empreinte);q.execute('ALTER TABLE personnages_donnees ADD COLUMN nouveaute_structurelle_fixture text');q.execute(garde)
+  q.execute('SAVEPOINT mutation_interdite');q.execute("UPDATE personnages_donnees SET pa=pa+1 WHERE name='A'")
+  try:q.execute(garde)
+  except Exception as e:assert '219_fiche_PJ_modifiee_par_DDL' in str(e);q.execute('ROLLBACK TO SAVEPOINT mutation_interdite')
+  else:raise AssertionError('la garde a accepté une mutation de PA')
+ cas('livraison_empreinte_accepte_ajout_colonne_refuse_mutation_PJ',integrite_lot)
+ def profil_manquant():
+  pret();sql("UPDATE pnj_membres SET statut='actif',building_id='terrain-a-batir',room_id='terrain',car_vol=NULL WHERE id='ancre'")
+  v=exige(rpc('combat_cibles_lire'));assert not any(x.get('id')=='ancre' for x in v['cibles'])
+  exige(rpc('combat_ouvrir',('ancre','mains',req(180001))),'profil_combattant_incomplet')
+  q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==100
+ cas('PNJ_profil_absent_ni_bouton_ni_debit_meme_par_appel_direct',profil_manquant)
  # Deux connexions et reçus réellement concurrents, décor fictif seulement.
  pret();ctx['c'].commit()
  def concurrence():

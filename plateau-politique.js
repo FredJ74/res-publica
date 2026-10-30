@@ -12027,6 +12027,11 @@ async function rafraichirApresRound(batailleId) {
     showToast('État non confirmé','Le résultat du combat doit encore être relu.',false); return false;
   }
   state.pa = frais.pa;
+  if (typeof sbFicheBaseAdopter==='function') {
+    const base={pa:frais.pa};
+    for (const [source,cle] of [['hp','hp'],['hospitalisation','hospitalisation'],['estEmprisonne','est_emprisonne']]) if(Object.prototype.hasOwnProperty.call(frais,source))base[cle]=frais[source];
+    sbFicheBaseAdopter(base);
+  }
   if (Number.isFinite(frais.hp)) state.hp = frais.hp;
   if (Object.prototype.hasOwnProperty.call(frais,'hospitalisation')) state.hospitalisation = frais.hospitalisation;
   state.group = frais.group;

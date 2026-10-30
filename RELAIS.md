@@ -679,3 +679,11 @@ existantes, à reprendre si Fred le demande) :
 - PR #249 : branche dédiée, issue du `main` 27198955, sans importer les groupes inachevés #219. Les raccordements d'inventaire de #213 sont réconciliés avec le code récent des écrans. Aucun déploiement, aucune migration de fermeture à cette étape.
 - Dix migrations métier déjà installées en base ; six fermetures différées au déploiement d'un client compatible : `20261028210000`, `20261028210500`, `20261028210600`, `20261028210700`, `20261028210800`, `20261028210900`. Ne pas activer le verrou final sans observation et accord du game designer.
 - CI au SHA de la PR #249 et validation des chemins d'inventaire impératives avant fusion. La garde fret `hg_fret_contenu_source` demeure désactivée en attendant le nouveau client.
+
+### #219 — reprise du 30/10, main #258/#260 intégré
+
+- Merge `ea9794c7` de main `888eb386`, protections de fiche trois voies et achats conservées. Les positions/PA/états confirmés par navigation ou combat mettent à jour la base de fusion uniquement pour les champs effectivement reçus. La déduplication RPC distingue désormais les sessions authentifiées.
+- Les boutons d’attaque PNJ attendent une cible canonique présente côté serveur ; les trois gardes homonymes ne sont pas renommés. Profils incomplets refusés avant paiement. Aucun PNJ créé par une consultation.
+- PostgreSQL jetable : 379/379 assertions réussies, rôle authenticated pour les RPC. Les six contre-épreuves et le contrôleur complet sont relancés ; bilan final dans le rapport de livraison suivant.
+- 88 migrations propres au lot recensées et empreintes vérifiées ; deux anciens fichiers trop longs scindés sans changement de règle. Générateur hors ligne et prévol catalogue en une réponse JSON préparés. Ne pas exécuter les migrations séparément ni confondre un accès catalogue communiqué avec une vérification directe complète.
+- Aucune fusion de PR ni migration de production. Aucun joueur réel utilisé.

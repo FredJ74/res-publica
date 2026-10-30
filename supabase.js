@@ -5270,7 +5270,7 @@ function sbResynchroniserApresIncertitude() {
 
 async function sbTransportRpc(fn, params, options) {
   let cle = null;
-  try { cle = fn + '|' + JSON.stringify(params ?? null); } catch (e) { cle = null; }
+  try { cle = JSON.stringify([typeof rpAuthUid==='function'?rpAuthUid():null,typeof rpAuthSessionIdentifiant==='function'?rpAuthSessionIdentifiant():null,fn,params ?? null]); } catch (e) { cle = null; }
   if (cle && SB_RPC_EN_VOL.has(cle)) return SB_RPC_EN_VOL.get(cle);
   const appel = sbTransportRpcBrut(fn, params, options).then(env => {
     if (env && env.envoyee && (env.etat === 'reseau' || (Number(env.http) >= 500))) sbResynchroniserApresIncertitude();

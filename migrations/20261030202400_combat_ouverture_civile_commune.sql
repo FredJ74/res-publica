@@ -34,6 +34,7 @@ BEGIN
  IF cible IS NOT NULL THEN SELECT coalesce((SELECT chef FROM public.groupes_pj_adhesions WHERE membre=cible),cible) INTO racine;END IF;
  IF pnj IS NOT NULL THEN
   IF EXISTS(SELECT 1 FROM public.pnj_membres WHERE id=pnj AND classe='gamma') THEN RETURN jsonb_build_object('ok',false,'raison','cible_protegee');END IF;
+  IF EXISTS(SELECT 1 FROM public.pnj_membres WHERE id=pnj AND famille<>'soldat' AND (car_vol IS NULL OR car_per IS NULL OR car_dup IS NULL)) THEN RETURN jsonb_build_object('ok',false,'raison','profil_combattant_incomplet');END IF;
   -- Un accompagnant appartient au vrai groupe de son leader PJ, pas à un
   -- nouveau groupe d'un seul PNJ créé pour les besoins de l'agression.
   SELECT leader_pj INTO racine FROM public.pnj_membres WHERE id=pnj;

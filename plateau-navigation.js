@@ -2667,6 +2667,7 @@ let transportServeurEnCours=null;
 function afficherPositionNavigationConfirmee(frais) {
  state.country=frais.country;state.currentCity=frais.currentCity;state.currentBuilding=frais.currentBuilding;state.currentRoom=frais.currentRoom;
  state.group=frais.group;state._groupeConfirme=frais._groupeConfirme;
+ if(typeof sbFicheBaseAdopter==='function'){const base={};for(const [source,cle] of [['currentCity','current_city'],['currentBuilding','current_building'],['currentRoom','current_room'],['pa','pa'],['hp','hp'],['estEmprisonne','est_emprisonne'],['hospitalisation','hospitalisation']])if(Object.prototype.hasOwnProperty.call(frais,source))base[cle]=frais[source];sbFicheBaseAdopter(base);}
  if(Object.prototype.hasOwnProperty.call(frais,'estEmprisonne'))state.estEmprisonne=frais.estEmprisonne;
  if(state.char){state.char.country=frais.country;state.char.currentCity=frais.currentCity;state.char.currentBuilding=frais.currentBuilding;state.char.currentRoom=frais.currentRoom;}
  if(frais.updatedAt)state._dernierUpdatedAtConnu=frais.updatedAt;

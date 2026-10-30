@@ -700,6 +700,35 @@ function colisSecretProtege(item) {
   return !!(qc && qc.ambition === 'criminel' && qc.etape !== 'terminee');
 }
 
+// Seulement à l'ouverture de la fiche, jamais par minuteur. Les homonymes
+// se distinguent par leur présence serveur ; le clic envoie toujours leur ID.
+function choisirCibleCombatPnj(pnj,cibles,batiment) {
+  if (!Array.isArray(cibles)) return null;
+  const ident=pnj.socleId || pnj.pnjSocleId || pnj.id;
+  const direct=cibles.find(x=>x.id && x.id===ident);
+  if (direct) return direct.classe==='gamma' ? null : {...pnj,socleId:direct.id};
+  const occupation=pnj.terrainPnjId || pnj.id;
+  if (['squatter_cool','squatter_agr'].includes(occupation)) {
+    return cibles.some(x=>x.terrain===batiment && x.occupation===occupation) ? {...pnj,id:occupation} : null;
+  }
+  const normaliser=x=>String(x||'').replace(/ \(PNJ\)$/, '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+  const memes=cibles.filter(x=>x.id && normaliser(x.nom)===normaliser(pnj.name));
+  return memes.length===1 && memes[0].classe!=='gamma' ? {...pnj,socleId:memes[0].id} : null;
+}
+async function actualiserCibleCombatPnj(pnj) {
+  const c=contexteGroupePj(),zone=document.getElementById('combat-cible-pnj');
+  if (!zone || typeof sbRpcVerdict!=='function') return false;
+  const lieu=[state.country,state.currentCity,state.currentBuilding,state.currentRoom].join('|');
+  const v=await sbRpcVerdict('combat_cibles_lire',{}, {encoreValide:()=>contexteGroupePjValide(c)}).catch(()=>null);
+  if (!contexteGroupePjValide(c) || document.getElementById('combat-cible-pnj')!==zone || lieu!==[state.country,state.currentCity,state.currentBuilding,state.currentRoom].join('|')) return false;
+  if (v?.ok!==true) { zone.textContent='La présence n’a pas pu être confirmée.';return false; }
+  const cible=v?.ok===true ? choisirCibleCombatPnj(pnj,v.cibles,state.currentBuilding) : null;
+  if (!cible) { zone.textContent='Cette personne ne peut pas être ciblée ici.';return false; }
+  const bouton=document.createElement('button');bouton.className='cpj-touche';bouton.textContent='Neutraliser';
+  bouton.onclick=()=>{document.getElementById('modal-pnj').classList.remove('open');ouvrirModalAssassinat(encodePnjSafe(cible));};
+  zone.replaceChildren(bouton);return true;
+}
+
 function openPnjModal(encodedPnj) {
   let pnj;
   try { pnj = JSON.parse(decodeURIComponent(encodedPnj)); }
@@ -1035,7 +1064,7 @@ function openPnjModal(encodedPnj) {
   const gammaCible = pnjEstGamma(pnj);
   const siegeGamma = (typeof neutraliserCibleEstDepute === 'function') ? neutraliserCibleEstDepute(pnj) : null;
   if (!gammaCible) {
-    actionBtns += '<button class="pnj-action-btn" style="color:#cc4444;border-color:#3a1010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-zzz" style="font-size:.85rem"></i> Neutraliser</button>';
+    actionBtns += '<div id="combat-cible-pnj" class="cpj-note">Vérification de la présence…</div>';
   } else if (siegeGamma) {
     actionBtns += '<button class="pnj-action-btn" style="color:#aa6a44;border-color:#3a2010" onclick="document.getElementById(\'modal-pnj\').classList.remove(\'open\');ouvrirModalAssassinat(\'' + encCible + '\')"><i class="ti ti-zzz" style="font-size:.85rem"></i> Endormir ce député (Assemblée)</button>';
   }
@@ -1095,6 +1124,7 @@ function openPnjModal(encodedPnj) {
 
   // Stocker l'enc pour envoyerQuestion
   state._currentPnjEnc = enc;
+  if (!isPJ && !gammaCible && typeof actualiserCibleCombatPnj==='function') actualiserCibleCombatPnj(pnj).catch(()=>{});
 
   // Recharger l'historique de la conversation du jour (uniquement pour les PNJ — jamais pour un vrai joueur)
   if (!isPJ) {
