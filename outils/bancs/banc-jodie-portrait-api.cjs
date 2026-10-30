@@ -18,6 +18,7 @@ async function scenario({user=true,owner=true,invite=true,refuse=false,postFailu
     if (mode==='GET') {
       let rows=[];
       if(table==='personnages_donnees') rows=owner?[{name:'Arnie'}]:[];
+      if(table==='personnages') rows=[{created_at:new Date(Date.now()-2*86400000).toISOString()}];
       if(table==='mails') rows=[...(invite?[{subject:INVITE}]:[]),...(refuse?[{subject:REFUS}]:[])];
       if(table==='forum_topics') rows=[...topics.values()];
       if(table==='forum_posts') rows=[...posts.values()];
