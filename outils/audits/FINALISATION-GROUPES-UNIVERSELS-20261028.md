@@ -1,3 +1,5 @@
+> **Dernier état : [reprise du 30 octobre](REPRISE-GROUPES-219-20261030.md), code `bc6cbd5f`, 337 SQL et 132 bancs clients. #219 non intégrable ; états ci-dessous historiques.**
+
 # Reprise du 29/10 — cinq rounds et fuites policières, PR #219 NON PRÊTE
 
 Code testé : `e52f4adef8c5d016d7d77a17017aab5fe4b1d029`, après intégration de main

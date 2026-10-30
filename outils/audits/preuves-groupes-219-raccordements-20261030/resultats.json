@@ -1,0 +1,56 @@
+{
+  "code_teste": "bc6cbd5f",
+  "main_integre": "aab0cfb7",
+  "sql_et_contre_epreuves": {
+    "sql-337": {
+      "cas": 337,
+      "echecs": []
+    },
+    "contre-repli": {
+      "cas": 337,
+      "echecs": [
+        "repli_militaire_meme_navigation_PJ_PNJ_sortie_reelle_et_rejeu",
+        "repli_militaire_refus_individuel_annule_sortie_et_tous_mouvements"
+      ]
+    },
+    "contre-camion": {
+      "cas": 337,
+      "echecs": [
+        "camion_ancien_acte_embarque_et_debarque_groupe_PJ_entier_rejeu",
+        "camion_voyage_reel_cout_historique_2PA_par_PJ_et_rejeu_sans_double_debit",
+        "camion_deux_sessions_du_chef_un_embarquement_et_un_recu"
+      ]
+    },
+    "contre-provenance": {
+      "cas": 337,
+      "echecs": [
+        "repli_PNJ_PSM_vraie_gauche_selon_provenance_serveur"
+      ]
+    }
+  },
+  "clients": {
+    "bancs": 132,
+    "reussis": 132
+  },
+  "globaux": {
+    "branche": "5/12",
+    "main": "5/12",
+    "Authority_RPC_absentes_baseline": {
+      "branche": 123,
+      "main": 112
+    }
+  },
+  "production": false,
+  "migrations_appliquees": [],
+  "PR_fusionnee": false,
+  "corps_communiques": "PR219 commentaire6509677067, empreintes de corps concordantes",
+  "precisions": "Les 317 cas conservés précèdent les nouveaux compléments. Les cas supplémentaires vérifient les raccordements après installations successives. Identités JWT de décor, pas authentification Supabase réelle.",
+  "sha256_sources": {
+    "supabase.js": "29fec85f6280083785ad46ecc06e6692b558a6655ead06a3b7d0ad4319de49a7",
+    "plateau-navigation.js": "63c6fe6ea8c9ffac73b8bb1d6c1133f29b93f3f92e430d3fcca14c08ce1cdc8c",
+    "plateau-rue-centrale.js": "9e9fb364f8b7aa5424b61109c857a78f16b6062215af3986f1855bf3c731e6ee",
+    "plateau-politique.js": "6b4d992ea2b0d75e7280df1de136afeeea609a42d8debf9cd381a81e465ba50d",
+    "api/cron-minuit.js": "6597b113e405e0a121fedb87ba3e2264711c8c61cfb4eb2e914125b8185a900e",
+    "outils/bancs/banc-groupes-camions-local.py": "7f1bcb590f85a087e4798d2b3c871a1031b3cae21e0f9d5370e4d594b6fd731b"
+  }
+}

@@ -117,7 +117,7 @@ FROM pg_proc p WHERE p.oid IN (
  to_regprocedure('public.militaire_bataille_decision_effective(bigint,text)'),to_regprocedure('public.rue_position_lire()'),
  to_regprocedure('public.justice_executer_condamnation_soi(text)'),
  to_regprocedure('public.detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text,jsonb)'),
- to_regprocedure('public.crime_neutraliser(text,text,integer)')) ORDER BY signature::text;
+ to_regprocedure('public.crime_neutraliser(text,text,integer)')) ORDER BY p.oid::regprocedure::text;
 SELECT a.attname,format_type(a.atttypid,a.atttypmod) AS type
 FROM pg_attribute a WHERE a.attrelid=to_regclass('public.pnj_membres') AND a.attname='rue_depuis' AND NOT a.attisdropped;
 SELECT version,name FROM supabase_migrations.schema_migrations WHERE version IN

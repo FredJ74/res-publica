@@ -1,3 +1,5 @@
+**Reprise faisant foi :** `outils/audits/REPRISE-GROUPES-219-20261030.md`, code `bc6cbd5f`, preuves `preuves-groupes-219-raccordements-20261030/`. #219 non intégrable, aucune production. Prévol corrigé sur son tri de signature (alias casté remplacé par expression de catalogue).
+
 ## #219 — provenance commune et reprise des scènes (30 octobre, EN COURS)
 
 Complément `20261030001100` préparé après `30001000`. La provenance d’un PNJ autonome est dérivée de ses mouvements et reprise lors d’une dépose depuis son vrai leader. La lecture `groupe_pj_lire` déjà utilisée rend sa position personnelle (pas celle du chef) ; chargement et restauration de rue réutilisent cette lecture, sans minuteur ni table parallèle. Les nulls de bâtiment sont conservés. Les quatre vues PSM reprennent la provenance serveur ; un état local périmé ne choisit plus leur orientation dans ce contrat. Aucune modification des finances, de la santé ou des données d’inventaire. Cache augmenté pour les trois JS modifiés.
