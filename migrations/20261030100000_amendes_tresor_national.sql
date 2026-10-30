@@ -72,6 +72,19 @@ END;
 $function$;
 REVOKE ALL ON FUNCTION public.amende_prelever_interne(text) FROM PUBLIC, anon, authenticated;
 
+-- Sanction hors tribunal (fraude électorale…) : amende due tout de suite, même dette et même canal.
+CREATE OR REPLACE FUNCTION public.amende_imposer_interne(p_id text, p_pays text, p_condamne text, p_montant integer)
+RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF p_montant IS NULL OR p_montant <= 0 THEN RETURN 0; END IF;
+  INSERT INTO public.amendes_tresor(jugement_id, pays, condamne, montant, statut)
+  VALUES (p_id, p_pays, p_condamne, p_montant, 'due') ON CONFLICT (jugement_id) DO NOTHING;
+  RETURN public.amende_prelever_interne(p_id);
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.amende_imposer_interne(text,text,text,integer) FROM PUBLIC, anon, authenticated;
+
 -- Chaque jugement portant une amende ouvre sa ligne au Trésor.
 CREATE OR REPLACE FUNCTION public.amende_jugement_enregistrer()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_temp'
