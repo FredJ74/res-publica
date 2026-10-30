@@ -16,7 +16,8 @@
 --     débitées (création d'argent ; un seul compte Helvetia en production, aucun abus constaté) ;
 --   . vente de matériaux de chantier : matériaux retirés, produit jamais versé ;
 --   . Assemblée (dépenses du député, indemnité, solde militaire perçue) : débits et crédits annulés.
--- Les mêmes fonctions lancées par le cron (service_role) n'étaient pas touchées.
+-- Les mêmes fonctions lancées par le cron (service_role) n'étaient pas touchées. Les neuf fonctions
+-- de la passe de nuit qui écrivaient aussi l'argent par la vue passent à la même règle.
 --
 -- CORRECTIF. Précédent : prelever_loyer_bail (29/10). Ces fonctions serveur écrivent désormais la
 -- table personnages_donnees. Patch en place : seule la cible des UPDATE change, chaque corps est
@@ -41,7 +42,18 @@ BEGIN
     ('public.assemblee_crediter_joueur(text,integer)',                                'f6b050f1db9f4d8a82cfb1060d4d8dec'),
     ('public.assemblee_debiter_joueur(text,integer,integer)',                         'f5b03c64c215507809518855f726fd2a'),
     ('public.compromis_expire_resoudre(text,text)',                                   'ab003f202185ab1a8074fba1153e376a'),
-    ('public.vendre_materiaux_chantier(text,text,text,text,integer,integer)',         '35f6f7a12a756e118e6c25ff032075f5')
+    ('public.vendre_materiaux_chantier(text,text,text,text,integer,integer)',         '35f6f7a12a756e118e6c25ff032075f5'),
+    -- Fonctions de la passe de nuit (service_role) : non touchées aujourd'hui, mais le même piège
+    -- se refermerait le jour où un joueur les déclencherait. Une seule règle pour toutes.
+    ('public.cotisation_renouveler(text,text,integer)',                               'e5a0366ba94b3c387baf911e70ae7f7b'),
+    ('public.regler_creances_helvetia_quotidien(text)',                               'b0b0cf7d8b36a563fa3a07b4cf475c65'),
+    ('public.resoudre_compromis_helvetia_expire(text)',                               '0a222d11bc2adfb8e2fd5349ad080174'),
+    ('public.resoudre_placement_helvetia(text)',                                      'fb15c0a29344914ca918b23795304c37'),
+    ('public.resoudre_placement_national(text,numeric)',                              '912a72c669e721eb8dbd50eb7978071d'),
+    ('public.restituer_reliquats_chantier(text,text)',                                '17fbaf9f5c57464d21909617ce9a83ac'),
+    ('public.succession_regler(text)',                                                'd9a7dadfac1e0fa61033d9f7741b4df8'),
+    ('public.taxe_fonciere_prelever(text)',                                           'd42145292864a17d8254b50f9f840969'),
+    ('public.traiter_prets_helvetia_quotidien()',                                     'b2bbd5cd3f17ac8ada786e62e7b0c357')
   ) AS t(sig, empreinte) LOOP
     d := pg_get_functiondef(r.sig::regprocedure);
     IF md5(d) <> r.empreinte THEN
@@ -58,7 +70,10 @@ BEGIN
               AND p.proname IN ('creer_pret_helvetia','fermer_compte_helvetia','ouvrir_compte_helvetia',
                                 'rembourser_pret_helvetia_integral','helvetia_crediter_destination',
                                 'helvetia_debiter_source','assemblee_crediter_joueur','assemblee_debiter_joueur',
-                                'compromis_expire_resoudre','vendre_materiaux_chantier')
+                                'compromis_expire_resoudre','vendre_materiaux_chantier','cotisation_renouveler',
+                                'regler_creances_helvetia_quotidien','resoudre_compromis_helvetia_expire',
+                                'resoudre_placement_helvetia','resoudre_placement_national','restituer_reliquats_chantier',
+                                'succession_regler','taxe_fonciere_prelever','traiter_prets_helvetia_quotidien')
               AND p.prosrc ~* '\mupdate\s+(public\.)?personnages\M') THEN
     RAISE EXCEPTION 'écriture par la vue restante';
   END IF;

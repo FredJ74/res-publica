@@ -1,24 +1,34 @@
--- Banc : argent des fonctions serveur écrit dans la table (migration 20261030210000), 30/10/2026.
--- Exécutable sur la production : tout est annulé (exception finale). Compte de test : Jean Jaaj
--- (seul compte Helvetia). Contre-épreuve AVANT la migration : un dépôt depuis les espèces crédite
--- le compte sans débiter les espèces. APRÈS : dépôt et retrait en liquide équilibrés, ancienne porte
--- à deux paramètres refusée au joueur, plus aucune écriture par la vue.
--- Résultat du 30/10/2026 (production, annulé) : 6 contrôles, 0 échec. AVANT : compte 10000->11000,
--- espèces 2800->2800. APRÈS : dépôt 2800->1800, retrait 1800->2800, fortune inchangée.
+-- Banc : argent des fonctions serveur (20261030210000), refus bruyant de la vue (211000),
+-- régularisation de Jean Jaaj (212000). 30/10/2026. Exécutable sur la production : tout est annulé
+-- (exception finale). Compte de test : Jean Jaaj (seul compte Helvetia). Les trois migrations sont
+-- recopiées sans leurs commentaires depuis les fichiers.
+-- Résultat du 30/10/2026 (production, annulé) : 11 contrôles, 0 échec. AVANT : dépôt non débité,
+-- fonction fautive annulée sans erreur. APRÈS : dépôt et retrait justes, fonction fautive refusée
+-- (fiche_ecriture_serveur_par_la_vue), sauvegarde d'écran inchangée, régularisation unique
+-- (espèces 2800 -> 152800, fortune 50730 -> 200730, un courrier).
 BEGIN;
 CREATE TEMP TABLE banc_res(n serial, ok boolean, quoi text);
-CREATE OR REPLACE FUNCTION pg_temp.jaaj() RETURNS void LANGUAGE plpgsql AS $f$
+CREATE OR REPLACE FUNCTION pg_temp.jaaj(p_path text DEFAULT '/rpc/banc') RETURNS void LANGUAGE plpgsql AS $f$
 BEGIN
   PERFORM set_config('request.jwt.claims', json_build_object('sub', (SELECT user_id FROM public.personnages_donnees WHERE name='Jean Jaaj'), 'role','authenticated')::text, true);
   PERFORM set_config('role', 'authenticated', true);
-  PERFORM set_config('request.path', '/rpc/banc', true);
+  PERFORM set_config('request.path', p_path, true);
 END $f$;
 CREATE OR REPLACE FUNCTION pg_temp.serveur() RETURNS void LANGUAGE plpgsql AS $f$
 BEGIN PERFORM set_config('role','postgres',true); PERFORM set_config('request.jwt.claims','',true); PERFORM set_config('request.path','',true); END $f$;
 GRANT EXECUTE ON FUNCTION pg_temp.serveur() TO PUBLIC;
+-- Une fonction serveur fautive (écrit l'argent par la vue), lancée par un joueur.
+CREATE OR REPLACE FUNCTION pg_temp.fautive() RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $f$
+BEGIN UPDATE public.personnages SET liquide = coalesce(liquide,0) + 1 WHERE name = 'Jean Jaaj'; END $f$;
+GRANT EXECUTE ON FUNCTION pg_temp.fautive() TO PUBLIC;
+-- Une fonction serveur qui ne touche que des champs non protégés par la vue.
+CREATE OR REPLACE FUNCTION pg_temp.anodine() RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $f$
+BEGIN UPDATE public.personnages SET resources = resources WHERE name = 'Jean Jaaj'; END $f$;
+GRANT EXECUTE ON FUNCTION pg_temp.anodine() TO PUBLIC;
 CREATE OR REPLACE FUNCTION pg_temp.etat() RETURNS jsonb LANGUAGE sql AS $f$
   SELECT jsonb_build_object('liq', coalesce(d.liquide,0), 'arg', coalesce(d.arg,0),
-    'h', (SELECT solde FROM public.comptes_bancaires WHERE personnage='Jean Jaaj' AND banque='helvetia'))
+    'h', (SELECT solde FROM public.comptes_bancaires WHERE personnage='Jean Jaaj' AND banque='helvetia'),
+    'mails', (SELECT count(*) FROM public.mails m WHERE to_jsonb(m)::text ILIKE '%Régularisation de votre retrait%'))
   FROM public.personnages_donnees d WHERE d.name='Jean Jaaj' $f$;
 CREATE OR REPLACE FUNCTION pg_temp.note(p_ok boolean, p_quoi text) RETURNS void LANGUAGE sql AS $f$
   INSERT INTO banc_res(ok, quoi) VALUES (coalesce(p_ok,false), p_quoi) $f$;
@@ -29,37 +39,17 @@ DO $b$ DECLARE a jsonb; b jsonb; BEGIN
   PERFORM pg_temp.jaaj(); PERFORM public.deposer_helvetia('Jean Jaaj', 1000, 'liquide'); PERFORM pg_temp.serveur();
   b := pg_temp.etat();
   PERFORM pg_temp.note((b->>'h')::numeric - (a->>'h')::numeric = 1000 AND (b->>'liq') = (a->>'liq'),
-    'AVANT : dépôt 1000 en liquide -> compte ' || (a->>'h') || '->' || (b->>'h') || ', espèces ' || (a->>'liq') || '->' || (b->>'liq') || ' (défaut attendu : espèces inchangées)');
+    'AVANT : dépôt 1000 -> compte ' || (a->>'h') || '->' || (b->>'h') || ', espèces ' || (a->>'liq') || '->' || (b->>'liq') || ' (défaut reproduit)');
+END $b$;
+DO $b$ DECLARE a jsonb; b jsonb; BEGIN
+  a := pg_temp.etat();
+  PERFORM pg_temp.jaaj(); PERFORM pg_temp.fautive(); PERFORM pg_temp.serveur();
+  b := pg_temp.etat();
+  PERFORM pg_temp.note((b->>'liq') = (a->>'liq'), 'AVANT : fonction fautive -> aucune erreur, crédit annulé en silence (défaut reproduit)');
 END $b$;
 
--- 2. Migration, texte identique au fichier.
--- =====================================================================================
--- ARGENT ÉCRIT PAR LES FONCTIONS SERVEUR : LA TABLE, PAS LA PORTE DE L'ÉCRAN (30/10/2026, Claude).
--- NON APPLIQUÉE. Application par ChatGPT après prévol. Compatible avec l'écran en ligne (aucun
--- contrat client modifié).
---
--- DÉFAUT (signalé par Fred : 150 000 FR empruntés chez Helvetia par Jean Jaaj, disparus au retrait
--- en liquide). Depuis `verrouiller_soldes_lors_sauvegarde_personnage` (14/10), la garde de la vue
--- `personnages` (personnages_vue_modifier) remet `arg` et `liquide` à leur valeur enregistrée pour
--- tout appel qui n'est pas du serveur : est_appel_serveur() regarde le rôle de la requête, qui reste
--- `authenticated` dans une fonction SECURITY DEFINER lancée par un joueur. Les fonctions ci-dessous
--- écrivaient l'argent PAR CETTE VUE : quand un joueur les déclenche, leurs crédits ET leurs débits
--- d'espèces ou de fortune sont silencieusement annulés, le reste de la transaction passe.
---   . retrait Helvetia en liquide : compte débité, espèces jamais créditées (cas de Jean Jaaj,
---     trace fiche_hausses_observees n° 1371) ; prêt Helvetia : fortune non créditée (n° 1370) ;
---   . dépôt et ouverture de compte Helvetia depuis les espèces : compte crédité, espèces jamais
---     débitées (création d'argent ; un seul compte Helvetia en production, aucun abus constaté) ;
---   . vente de matériaux de chantier : matériaux retirés, produit jamais versé ;
---   . Assemblée (dépenses du député, indemnité, solde militaire perçue) : débits et crédits annulés.
--- Les mêmes fonctions lancées par le cron (service_role) n'étaient pas touchées.
---
--- CORRECTIF. Précédent : prelever_loyer_bail (29/10). Ces fonctions serveur écrivent désormais la
--- table personnages_donnees. Patch en place : seule la cible des UPDATE change, chaque corps est
--- vérifié par son empreinte de production avant modification (refus si le texte a bougé).
--- Les anciennes portes à deux paramètres deposer_helvetia(text,numeric) et
--- retirer_helvetia(text,numeric), que l'écran n'appelle plus (il passe la source/destination),
--- sont retirées aux joueurs : la première permettait de créer de l'argent par le même défaut.
--- =====================================================================================
+-- 2. Les trois migrations.
+CREATE TEMP TABLE banc_avant_reg AS SELECT pg_temp.etat() e;
 DO $migration$
 DECLARE
   r record;
@@ -76,7 +66,18 @@ BEGIN
     ('public.assemblee_crediter_joueur(text,integer)',                                'f6b050f1db9f4d8a82cfb1060d4d8dec'),
     ('public.assemblee_debiter_joueur(text,integer,integer)',                         'f5b03c64c215507809518855f726fd2a'),
     ('public.compromis_expire_resoudre(text,text)',                                   'ab003f202185ab1a8074fba1153e376a'),
-    ('public.vendre_materiaux_chantier(text,text,text,text,integer,integer)',         '35f6f7a12a756e118e6c25ff032075f5')
+    ('public.vendre_materiaux_chantier(text,text,text,text,integer,integer)',         '35f6f7a12a756e118e6c25ff032075f5'),
+    -- Fonctions de la passe de nuit (service_role) : non touchées aujourd'hui, mais le même piège
+    -- se refermerait le jour où un joueur les déclencherait. Une seule règle pour toutes.
+    ('public.cotisation_renouveler(text,text,integer)',                               'e5a0366ba94b3c387baf911e70ae7f7b'),
+    ('public.regler_creances_helvetia_quotidien(text)',                               'b0b0cf7d8b36a563fa3a07b4cf475c65'),
+    ('public.resoudre_compromis_helvetia_expire(text)',                               '0a222d11bc2adfb8e2fd5349ad080174'),
+    ('public.resoudre_placement_helvetia(text)',                                      'fb15c0a29344914ca918b23795304c37'),
+    ('public.resoudre_placement_national(text,numeric)',                              '912a72c669e721eb8dbd50eb7978071d'),
+    ('public.restituer_reliquats_chantier(text,text)',                                '17fbaf9f5c57464d21909617ce9a83ac'),
+    ('public.succession_regler(text)',                                                'd9a7dadfac1e0fa61033d9f7741b4df8'),
+    ('public.taxe_fonciere_prelever(text)',                                           'd42145292864a17d8254b50f9f840969'),
+    ('public.traiter_prets_helvetia_quotidien()',                                     'b2bbd5cd3f17ac8ada786e62e7b0c357')
   ) AS t(sig, empreinte) LOOP
     d := pg_get_functiondef(r.sig::regprocedure);
     IF md5(d) <> r.empreinte THEN
@@ -93,7 +94,10 @@ BEGIN
               AND p.proname IN ('creer_pret_helvetia','fermer_compte_helvetia','ouvrir_compte_helvetia',
                                 'rembourser_pret_helvetia_integral','helvetia_crediter_destination',
                                 'helvetia_debiter_source','assemblee_crediter_joueur','assemblee_debiter_joueur',
-                                'compromis_expire_resoudre','vendre_materiaux_chantier')
+                                'compromis_expire_resoudre','vendre_materiaux_chantier','cotisation_renouveler',
+                                'regler_creances_helvetia_quotidien','resoudre_compromis_helvetia_expire',
+                                'resoudre_placement_helvetia','resoudre_placement_national','restituer_reliquats_chantier',
+                                'succession_regler','taxe_fonciere_prelever','traiter_prets_helvetia_quotidien')
               AND p.prosrc ~* '\mupdate\s+(public\.)?personnages\M') THEN
     RAISE EXCEPTION 'écriture par la vue restante';
   END IF;
@@ -101,8 +105,86 @@ END $migration$;
 
 REVOKE EXECUTE ON FUNCTION public.deposer_helvetia(text, numeric) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.retirer_helvetia(text, numeric) FROM PUBLIC, anon, authenticated;
+DO $migration$
+DECLARE
+  d text;
+  v_source text := $s$    NEW.user_id := v_canon.user_id;
+$s$;
+  v_cible text := $c$    NEW.user_id := v_canon.user_id;
 
--- 3. Après la migration.
+    -- REFUS BRUYANT (30/10/2026) : une fonction serveur lancée par un joueur n'écrit jamais
+    -- l'argent ni les champs protégés par cette porte ; sinon l'effet serait annulé en silence.
+    IF coalesce(current_setting('request.path', true), '') LIKE '/rpc/%' AND (
+         NEW.arg IS DISTINCT FROM OLD.arg
+      OR NEW.liquide IS DISTINCT FROM OLD.liquide
+      OR NEW.banque IS DISTINCT FROM OLD.banque
+      OR NEW.stats IS DISTINCT FROM OLD.stats
+      OR NEW.free_pts_restants IS DISTINCT FROM OLD.free_pts_restants
+      OR NEW.qualifications IS DISTINCT FROM OLD.qualifications
+      OR coalesce(NEW.pa, 0) > coalesce(OLD.pa, 0)) THEN
+      RAISE EXCEPTION 'fiche_ecriture_serveur_par_la_vue'
+        USING ERRCODE = 'P0001',
+              DETAIL = 'Une fonction serveur doit écrire public.personnages_donnees, pas la vue de l''écran.';
+    END IF;
+$c$;
+BEGIN
+  d := pg_get_functiondef('public.personnages_vue_modifier()'::regprocedure);
+  IF position('fiche_ecriture_serveur_par_la_vue' IN d) > 0 THEN RETURN; END IF;
+  IF md5(d) <> '0faa799957826bedba20ba372d0bd8ae' THEN
+    RAISE EXCEPTION 'personnages_vue_modifier : corps différent de celui relevé le 30/10 (md5 %)', md5(d);
+  END IF;
+  IF (length(d) - length(replace(d, v_source, ''))) / length(v_source) <> 1 THEN
+    RAISE EXCEPTION 'personnages_vue_modifier : point d''insertion absent ou multiple';
+  END IF;
+  EXECUTE replace(d, v_source, v_cible);
+END $migration$;
+CREATE TABLE IF NOT EXISTS public.regularisations_fiche (
+  reference   text PRIMARY KEY,
+  personnage  text NOT NULL,
+  liquide     numeric NOT NULL DEFAULT 0,
+  arg         numeric NOT NULL DEFAULT 0,
+  motif       text NOT NULL,
+  decide_par  text NOT NULL,
+  applique_le timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.regularisations_fiche ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.regularisations_fiche FROM PUBLIC, anon, authenticated;
+
+DO $migration$
+DECLARE
+  v_ref text := 'helvetia-retrait-jaaj-20261030';
+  v_inseree text;
+BEGIN
+  -- Les faits doivent être ceux relevés : sinon, on n'invente rien.
+  IF NOT EXISTS (SELECT 1 FROM public.fiche_hausses_observees
+                  WHERE id = 1371 AND personnage = 'Jean Jaaj' AND colonne = 'liquide' AND delta = 150000)
+     OR NOT EXISTS (SELECT 1 FROM public.fiche_hausses_observees
+                  WHERE id = 1370 AND personnage = 'Jean Jaaj' AND colonne = 'arg' AND delta = 150000) THEN
+    RAISE EXCEPTION 'régularisation Jaaj : traces 1370/1371 introuvables ou différentes';
+  END IF;
+
+  INSERT INTO public.regularisations_fiche (reference, personnage, liquide, arg, motif, decide_par)
+  VALUES (v_ref, 'Jean Jaaj', 150000, 150000,
+          'Prêt Helvetia retiré en liquide le 30/10 : espèces jamais créditées (défaut corrigé par 20261030210000). Prêt maintenu.',
+          'Fred (game designer), 30/10/2026')
+  ON CONFLICT (reference) DO NOTHING
+  RETURNING reference INTO v_inseree;
+
+  IF v_inseree IS NULL THEN RETURN; END IF;  -- déjà appliquée
+
+  UPDATE public.personnages_donnees
+     SET liquide = coalesce(liquide, 0) + 150000,
+         arg     = coalesce(arg, 0) + 150000
+   WHERE name = 'Jean Jaaj';
+  IF NOT FOUND THEN RAISE EXCEPTION 'régularisation Jaaj : personnage introuvable'; END IF;
+
+  PERFORM public.mail_systeme_poser_interne('Banque Helvetia', 'Jean Jaaj', 'Régularisation de votre retrait',
+    'Votre retrait de 150 000 FR du 30 octobre n''avait pas été remis en espèces à la suite d''une erreur '
+    || 'de nos services. La somme vient de vous être versée en liquide. Votre prêt reste en vigueur '
+    || 'aux conditions signées.');
+END $migration$;
+
+-- 3. Après.
 DO $b$ DECLARE a jsonb; b jsonb; c jsonb; BEGIN
   a := pg_temp.etat();
   PERFORM pg_temp.jaaj(); PERFORM public.deposer_helvetia('Jean Jaaj', 1000, 'liquide'); PERFORM pg_temp.serveur();
@@ -113,22 +195,69 @@ DO $b$ DECLARE a jsonb; b jsonb; c jsonb; BEGIN
     'APRÈS : dépôt 1000 -> compte ' || (a->>'h') || '->' || (b->>'h') || ', espèces ' || (a->>'liq') || '->' || (b->>'liq'));
   PERFORM pg_temp.note((b->>'h')::numeric - (c->>'h')::numeric = 1000 AND (c->>'liq')::numeric - (b->>'liq')::numeric = 1000,
     'APRÈS : retrait 1000 en liquide -> compte ' || (b->>'h') || '->' || (c->>'h') || ', espèces ' || (b->>'liq') || '->' || (c->>'liq'));
-  PERFORM pg_temp.note((c->>'arg') = (a->>'arg'), 'APRÈS : fortune (arg) inchangée par un aller-retour : ' || (a->>'arg') || '->' || (c->>'arg'));
+  PERFORM pg_temp.note((c->>'arg') = (a->>'arg'), 'APRÈS : fortune inchangée par l''aller-retour');
 END $b$;
-DO $b$ BEGIN
+DO $b$ DECLARE a jsonb; b jsonb; v_err text; BEGIN
+  a := pg_temp.etat();
   PERFORM pg_temp.jaaj();
+  BEGIN PERFORM pg_temp.fautive(); EXCEPTION WHEN OTHERS THEN v_err := SQLERRM; END;
+  PERFORM pg_temp.serveur();
+  b := pg_temp.etat();
+  PERFORM pg_temp.note(v_err = 'fiche_ecriture_serveur_par_la_vue' AND (b->>'liq') = (a->>'liq'),
+    'APRÈS : fonction fautive lancée par un joueur -> refus nommé (' || coalesce(v_err,'aucune erreur') || '), rien d''écrit');
+END $b$;
+DO $b$ DECLARE v_err text; BEGIN
+  PERFORM pg_temp.jaaj();
+  BEGIN PERFORM pg_temp.anodine(); EXCEPTION WHEN OTHERS THEN v_err := SQLERRM; END;
+  PERFORM pg_temp.serveur();
+  PERFORM pg_temp.note(v_err IS NULL, 'APRÈS : fonction qui n''écrit que des champs libres -> acceptée (' || coalesce(v_err,'ok') || ')');
+END $b$;
+DO $b$ DECLARE a jsonb; b jsonb; v_err text; BEGIN
+  a := pg_temp.etat();
+  PERFORM pg_temp.jaaj('/personnages');
   BEGIN
-    PERFORM public.deposer_helvetia('Jean Jaaj', 1000);
-    PERFORM pg_temp.serveur(); PERFORM pg_temp.note(false, 'ancienne porte deposer_helvetia(text,numeric) encore ouverte');
-  EXCEPTION WHEN insufficient_privilege THEN
-    PERFORM pg_temp.serveur(); PERFORM pg_temp.note(true, 'ancienne porte deposer_helvetia(text,numeric) refusée au joueur');
+    UPDATE public.personnages SET liquide = coalesce(liquide,0) + 999999 WHERE name = 'Jean Jaaj';
+  EXCEPTION WHEN OTHERS THEN v_err := SQLERRM;
   END;
+  PERFORM pg_temp.serveur();
+  b := pg_temp.etat();
+  PERFORM pg_temp.note(v_err IS NULL AND (b->>'liq') = (a->>'liq'),
+    'APRÈS : sauvegarde d''écran aux espèces gonflées -> corrigée en silence comme avant (' || coalesce(v_err,'pas d''erreur') || ')');
 END $b$;
 DO $b$ BEGIN
-  PERFORM pg_temp.note(has_function_privilege('authenticated', 'public.retirer_helvetia(text,numeric,text)', 'EXECUTE')
-    AND has_function_privilege('authenticated', 'public.deposer_helvetia(text,numeric,text)', 'EXECUTE')
-    AND NOT has_function_privilege('authenticated', 'public.retirer_helvetia(text,numeric)', 'EXECUTE'),
-    'portes de l''écran conservées, ancienne porte de retrait fermée');
+  PERFORM pg_temp.note(NOT EXISTS (SELECT 1 FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prokind='f'
+      AND p.proname NOT IN ('personnages_vue_modifier','deposer_helvetia','retirer_helvetia')
+      AND p.prosrc ~* '\mupdate\s+(public\.)?personnages\M[^;]*\m(arg|liquide|banque|stats|free_pts_restants|qualifications)\s*='),
+    'APRÈS : plus aucune fonction n''écrit l''argent ou un champ protégé par la vue');
+END $b$;
+
+-- 4. Régularisation : effet unique, puis rejouée sans effet.
+DO $b$ DECLARE a jsonb; b jsonb; BEGIN
+  SELECT e INTO a FROM banc_avant_reg;
+  b := pg_temp.etat();
+  -- l'aller-retour de la section 3 est neutre ; seule la régularisation a changé espèces et fortune
+  PERFORM pg_temp.note((b->>'liq')::numeric - (a->>'liq')::numeric = 150000 AND (b->>'arg')::numeric - (a->>'arg')::numeric = 150000
+      AND (b->>'mails')::int - (a->>'mails')::int = 1,
+    'RÉGULARISATION : espèces ' || (a->>'liq') || '->' || (b->>'liq') || ', fortune ' || (a->>'arg') || '->' || (b->>'arg') || ', courriers +' || ((b->>'mails')::int - (a->>'mails')::int));
+  TRUNCATE banc_avant_reg; INSERT INTO banc_avant_reg VALUES (b);
+END $b$;
+-- Rejeu de la clé de la régularisation : le registre l'a déjà, rien ne doit bouger.
+DO $migration$
+DECLARE
+  v_ref text := 'helvetia-retrait-jaaj-20261030';
+  v_inseree text;
+BEGIN
+  INSERT INTO public.regularisations_fiche (reference, personnage, liquide, arg, motif, decide_par)
+  VALUES (v_ref, 'Jean Jaaj', 150000, 150000, 'rejeu', 'banc')
+  ON CONFLICT (reference) DO NOTHING
+  RETURNING reference INTO v_inseree;
+  IF v_inseree IS NULL THEN RETURN; END IF;
+  UPDATE public.personnages_donnees SET liquide = coalesce(liquide, 0) + 150000, arg = coalesce(arg, 0) + 150000 WHERE name = 'Jean Jaaj';
+END $migration$;
+DO $b$ DECLARE a jsonb; b jsonb; BEGIN
+  SELECT e INTO a FROM banc_avant_reg;
+  b := pg_temp.etat();
+  PERFORM pg_temp.note(a = b, 'RÉGULARISATION rejouée : aucun effet (espèces ' || (b->>'liq') || ')');
 END $b$;
 
 DO $b$ DECLARE nb int; ko int; r text; BEGIN

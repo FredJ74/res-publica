@@ -63,6 +63,13 @@ Le raccordement reste à tester en production, ne pas le présenter comme réali
 - Pas de message de succès avant la réponse du serveur ; un refus est nommé.
 - Pas de montant ou d'effet annoncé que l'écran a calculé lui-même : il
   affiche ce que le serveur renvoie.
+- **Une fonction serveur écrit la fiche dans `personnages_donnees`, jamais par
+  la vue `personnages`** (porte de l'écran, qui corrige en silence l'argent et
+  les champs protégés). Leçon du 30/10/2026 : 150 000 FR d'un joueur perdus au
+  retrait Helvetia. La base refuse désormais cette écriture dans une RPC
+  (`fiche_ecriture_serveur_par_la_vue`) et le test
+  `outils/bancs/test-ecritures-fiche-serveur.mjs` bloque toute migration qui la
+  réintroduit.
 
 ## Le relais entre agents
 
