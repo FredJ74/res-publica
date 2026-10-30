@@ -477,6 +477,7 @@
       <i class="ti ti-x"></i>
     </button>
   </div>
+  <button class="cpj-touche" onclick="ouvrirCalepinCampagne()">Rapports de combat</button>
   <div class="journal" id="journal" style="flex:1;overflow-y:auto;padding:.4rem">
     <div class="journal-entry">
       <span class="journal-time">--/--/---- &middot; --h--</span>
@@ -657,7 +658,7 @@
 <script src="world-map.js?v=126"></script>
 <!-- auth.js AVANT supabase.js : sbEnTetes() y lit le jeton de session a chaque requete. -->
 <script src="auth.js?v=8"></script>
-<script src="supabase.js?v=fiche-verite-serveur-20261030"></script>
+<script src="supabase.js?v=groupes-fiche-20261030"></script>
 <!-- Tiptap (Lot C2) : chargé en ESM depuis un CDN, comme déjà validé dans les prototypes
      prototype-tiptap-image.html et prototype-canvas-composition.html. forum-canvas.js reste
      un script classique (comme tout le reste du jeu) ; ce petit module se contente d'exposer
@@ -759,7 +760,7 @@
 </script>
 <script src="forum-canvas.js?v=36"></script>
 <script src="forum.js?v=ambassades-fin-20261025"></script>
-<script src="plateau-core.js?v=fiche-verite-serveur-20261030"></script>
+<script src="plateau-core.js?v=groupes-fiche-20261030"></script>
 <script src="plateau-immobilier.js?v=inventaire-213-integration-20261029"></script>
 <script src="plateau-chantiers.js?v=integration-logements-20261029"></script>
 <script src="plateau-fonds.js?v=1"></script>
@@ -770,7 +771,7 @@
 <script src="plateau-commerce-pj.js?v=22"></script>
 <script src="plateau-journal-ventes.js?v=20261022-96"></script>
 <script src="plateau-resolution.js?v=3"></script>
-<script src="plateau-rue-centrale.js?v=fiche-verite-serveur-20261030"></script>
+<script src="plateau-rue-centrale.js?v=groupes-fiche-20261030"></script>
 <script src="plateau-quete-accueil.js?v=32"></script>
 <script src="plateau-enigme-portrait.js?v=integration-logements-20261029"></script>
 <script src="plateau-logements-montrouge.js?v=3"></script>
@@ -790,20 +791,20 @@
 <!-- Equipements de bureau : interface d'attente seule, aucune mecanique. AVANT le
      routeur, qui resout ouvrirModalEquipements(). -->
 <script src="plateau-equipements.js?v=1"></script>
-<script src="plateau-navigation.js?v=crimes-ordres-20261027"></script>
+<script src="plateau-navigation.js?v=combats-reprise-20261030-3"></script>
 <script src="plateau-personnage.js?v=mariage-20261029"></script>
-<script src="plateau-pnj.js?v=integration-logements-20261029"></script>
+<script src="plateau-pnj.js?v=squatteurs-uniques-20261030"></script>
 <script src="plateau-ced.js?v=ced-20261024"></script>
-<script src="plateau-multijoueur.js?v=inventaire-213-integration-20261029"></script>
+<script src="plateau-multijoueur.js?v=groupes-inventaire-20261029"></script>
 <script src="plateau-communication.js?v=inventaire-213-integration-20261029"></script>
-<script src="plateau-politique.js?v=integration-logements-20261029"></script>
+<script src="plateau-politique.js?v=combats-reprise-20261030-3"></script>
 <script src="plateau-gouvernement.js?v=6"></script>
 <script src="plateau-effort-guerre.js?v=inventaire-213-integration-20261029"></script>
-<script src="plateau-justice-economie.js?v=integration-logements-20261029"></script>
-<script src="plateau-terrain-banque.js?v=integration-logements-20261029"></script>
+<script src="plateau-justice-economie.js?v=groupes-mairies-20261030"></script>
+<script src="plateau-terrain-banque.js?v=groupes-mairies-20261030"></script>
 <script src="plateau-construction-commandes.js?v=2"></script>
 <script src="plateau-entrepots.js?v=1"></script>
-<script src="plateau-actions-illegales-rumeurs.js?v=inventaire-213-integration-20261029"></script>
+<script src="plateau-actions-illegales-rumeurs.js?v=combats-identite-20261030-4"></script>
 <script src="plateau-restaurant-luthecia.js?v=1"></script>
 <script src="plateau-football-realisateur-ia.js?v=1"></script>
 <script src="plateau-equipements-collectifs.js?v=1"></script>

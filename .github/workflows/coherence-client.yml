@@ -59,6 +59,18 @@ jobs:
         run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
+      - name: Groupes et batailles mixtes sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-groupes-squatteurs-contrat-local.py
+      - name: Contrôles policiers ordinaires et sanctions atomiques sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-groupes-controles-ordinaires-local.py
+      - name: Cinq rounds, commandement et fuites directionnelles sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-groupes-fuite-directions-local.py
+      - name: Replis, calendrier et anciens camions sur les corps SQL communiqués
+        run: python3 outils/bancs/banc-groupes-camions-local.py --catalogue-20261029
+      - name: Combats civils et squatteurs dans les mêmes rounds, PostgreSQL jetable
+        run: python3 outils/bancs/banc-combat-civil-universel-local.py --catalogue-20261029
+      - name: Audit securite privee et groupes sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-audit-securite-135-local.py
       - name: Achat sur PostgreSQL local, sans identifiant Supabase
         run: python3 outils/bancs/banc-achat-commerce-local.py --local-jetable
       - name: Restaurant gastronomique sur PostgreSQL local, sans identifiant Supabase

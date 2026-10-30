@@ -1,0 +1,20 @@
+✔ dépose : aucun blob ni lieu demandé, porte commune seulement (136.687624ms)
+✔ reprise présente : pnj_prendre, sans radio obligatoire (60.727592ms)
+✔ reprise distante : radio commune, refus serveur préservé (53.693683ms)
+✔ aucune commande sans confirmation serveur de peut_administrer (49.272286ms)
+✔ aucune commande sans confirmation serveur de mouvement_individuel (50.613078ms)
+✔ lecture tardive après changement de personnage : aucun ordre envoyé (55.569786ms)
+✔ double clic et réponse perdue : une mutation, puis lecture (55.172099ms)
+✔ changement de session après envoi : aucune adoption ou réouverture du panneau (51.550704ms)
+✔ menu : matricule encodé sans exécution HTML/JS (64.580358ms)
+✔ transport réel : contexte expiré pendant authentification, zéro fetch (17.150006ms)
+✔ sbPnjPrendre transmet la garde au transport existant (18.462175ms)
+✔ sbPnjRappelerRadio transmet la garde au transport existant (15.666391ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 640.231822

@@ -1,0 +1,35 @@
+✔ adhésion : seulement le verdict serveur (102.274938ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : null (45.061537ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":false,"raison":"pas_co_presents"} (31.718531ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":true} (33.923558ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":true,"contrat":1,"chef":"B","membres":["B"]} (23.146261ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":true,"contrat":1,"chef":"B","membres":["B","A","A"]} (23.997037ms)
+✔ double clic : une seule commande (24.390075ms)
+✔ réponse tardive après changement personnage (25.928175ms)
+✔ réponse tardive après changement session (23.515786ms)
+✔ perte de réponse : relecture sans rejouer ni annoncer une réussite (25.732366ms)
+✔ lecture tardive ne remplace pas une commande plus récente (21.989205ms)
+✔ départ : le serveur conserve son autorité sur le résultat (28.946477ms)
+✔ rechargement : sbLoadPersonnage reprend le groupe officiel (41.374478ms)
+✔ rappel collectif : met à jour tous les employés depuis le contrat existant (23.569686ms)
+✔ rappel tardif après changement personnage (24.824907ms)
+✔ rappel tardif après changement session (25.69815ms)
+✔ rappel double clic bloqué (25.581883ms)
+✔ employé : aucune mutation avant le serveur true (36.91446ms)
+✔ employé : aucune mutation avant le serveur false (25.178308ms)
+✔ absence de PNJ serveur : aucun mouvement inventé (22.905296ms)
+✔ refus de reprise serveur : pas de succès ni appartenance locale inventée (23.174292ms)
+✔ dépose : position affichée relue du serveur, pas celle du navigateur (25.153928ms)
+✔ conduite soldat : dépend de la capacité serveur undefined (33.513303ms)
+✔ conduite soldat : dépend de la capacité serveur false (35.704229ms)
+✔ conduite soldat : dépend de la capacité serveur true (35.024552ms)
+✔ conduite commune : double clic et réponse d’un autre personnage ignorés (32.814151ms)
+✔ conduite commune : perte de réponse relit sans rejouer (31.611302ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 863.806611

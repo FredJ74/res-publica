@@ -1,0 +1,94 @@
+{
+  "source": "audit-corrige",
+  "tests": [
+    {
+      "cas": "registre_prive",
+      "ok": true
+    },
+    {
+      "cas": "registre_police",
+      "ok": true
+    },
+    {
+      "cas": "rejeu_pa",
+      "ok": true
+    },
+    {
+      "cas": "gardes_communes",
+      "ok": true
+    },
+    {
+      "cas": "reprise_separation",
+      "ok": true
+    },
+    {
+      "cas": "priorites",
+      "ok": true
+    },
+    {
+      "cas": "droits_auxiliaires",
+      "ok": true
+    },
+    {
+      "cas": "autre_chef",
+      "ok": true
+    },
+    {
+      "cas": "intervenant_absent",
+      "ok": true
+    },
+    {
+      "cas": "employeur_exempte",
+      "ok": true
+    },
+    {
+      "cas": "panne_recu",
+      "ok": true
+    },
+    {
+      "cas": "detecteur_absent_refuse",
+      "ok": true
+    },
+    {
+      "cas": "reddition_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "fuite_deux_issues_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "position_rue",
+      "ok": true
+    },
+    {
+      "cas": "deploiement_reprise_rue",
+      "ok": true
+    },
+    {
+      "cas": "identites_unites",
+      "ok": true
+    },
+    {
+      "cas": "ancienne_preparation_compatibilite",
+      "ok": true
+    },
+    {
+      "cas": "concurrence_lecture_pa",
+      "ok": true,
+      "lectures_avant_liberation": 1
+    },
+    {
+      "cas": "snapshot_apres_commit_jetable",
+      "ok": true,
+      "pa_apres_deux_coups": 10
+    }
+  ],
+  "production": false,
+  "role": "authenticated",
+  "rollback": false,
+  "detecteur_vivant_teste": false,
+  "coups_et_justice": "simules",
+  "decor_fictif_committe": true,
+  "acl_portes_preservees": true
+}

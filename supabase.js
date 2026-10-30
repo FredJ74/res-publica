@@ -655,9 +655,21 @@ function sbPayloadPersonnage(charState) {
     reservation_hotel: charState.char?.reservationHotel || null,
     updated_at:       new Date().toISOString()
   };
+  if (charState._navigationServeur === true) {
+    for (const cle of ['country','current_city','current_building','current_room','current_street']) delete data[cle];
+  }
   // Champs transactionnels : une seule définition (sbFicheChampsFusion), pour que la base de la
   // fusion et la valeur envoyée soient calculées exactement de la même façon.
   Object.assign(data, sbFicheChampsFusion(charState));
+  // Le déplacement de groupe est entièrement confirmé par la RPC : la sauvegarde
+  // générique ne doit jamais réémettre une ancienne position après cette capacité.
+  if (charState._navigationServeur === true) {
+    delete data.country;
+    delete data.current_city;
+    delete data.current_building;
+    delete data.current_room;
+    delete data.current_street;
+  }
   if (charState.ficheFusion === true && charState._ficheBase && typeof charState._ficheBase === 'object') {
     data.fiche_base = charState._ficheBase;
   }
@@ -773,12 +785,15 @@ function sbEnfilerEcriturePersonnage(charState, data) {
     // Les autres champs restent le snapshot original (notamment les deltas de POP).
     // La position est lue au MOMENT de l'ecriture, apres les taches precedentes.
     // On ne la prend que si ce personnage est toujours le personnage actif.
-    if (typeof state !== 'undefined' && state.char?.name === data.name
+    if (charState._navigationServeur !== true && typeof state !== 'undefined' && state.char?.name === data.name
         && state.personnageChargeDepuisServeur !== false) {
       data.country = state.country || data.country;
       data.current_city = state.currentCity || data.current_city;
       data.current_building = state.currentBuilding || null;
       data.current_room = state.currentRoom || null;
+    }
+    if (charState._navigationServeur === true) {
+      for (const cle of ['country','current_city','current_building','current_room','current_street']) delete data[cle];
     }
     return sbEcrirePersonnage(data);
   }).then((resultat) => {
@@ -815,7 +830,8 @@ async function sbCreerPersonnageInitial(charState) {
   // On emprunte le constructeur de payload de sbSavePersonnage en neutralisant son ecriture :
   // la garde de bootstrap est inoperante ici (personnage tout neuf), on passe donc par une
   // capture directe du meme objet.
-  const data = sbPayloadPersonnage(charState);
+  // Une création reste un INSERT initial, pas une sauvegarde de position.
+  const data = sbPayloadPersonnage({...charState, _navigationServeur:false});
   if (!data || !data.name) return { ok: false, raison: 'nom_manquant' };
   return await sbCreerPersonnageUnique(data);
 }
@@ -923,20 +939,35 @@ async function sbEtatIdentitePersonnage(nomLocal) {
   return rows.length > 0 ? { etat: 'appartient_a_autrui' } : { etat: 'orphelin' };
 }
 
+// La lecture commune rend la position personnelle du compte, jamais celle du chef.
+function sbPositionNavigationConfirmee(groupe, nom) {
+  const p=groupe?.position_personnelle;
+  if(typeof nom!=='string' || !nom || groupe?.ok!==true || groupe.contrat!==1 || p?.ok!==true || p.personnage!==nom ||
+     typeof p.country!=='string' || typeof p.city!=='string' ||
+     !['building','room','street','depuis'].every(k=>p[k]===null || typeof p[k]==='string')) return null;
+  return p;
+}
+
 async function sbLoadPersonnage(name) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(name)}`);
   if (!rows || rows.length === 0) return null;
   const r = rows[0];
+  // Appartenance PJ relue au chargement/reconnexion, jamais depuis une sauvegarde locale.
+  // Aucun groupe d'autrui consulté, aucun minuteur ajouté.
+  const groupePj = r.user_id && typeof rpAuthUid === 'function' && rpAuthUid() === r.user_id
+    ? await sbGroupePjLire().catch(() => null) : null;
   const inventaire = r.user_id && typeof rpAuthUid === 'function' && rpAuthUid() === r.user_id
     ? await sbInventaireReceptionEtat(name).catch(() => null) : null;
+  const positionGroupe = sbPositionNavigationConfirmee(groupePj, r.name);
   const inventaireVersionne = inventaire?.ok && inventaire.contrat === 1
     && Array.isArray(inventaire.inventory) && Number.isSafeInteger(inventaire.revision);
   return {
     updatedAt: r.updated_at || null,
-    // Fusion à trois voies (30/10/2026) : le serveur l'accepte dès que la vue expose `fiche_base`.
-    // Tant que la migration 20261030160000 n'est pas appliquée, rien n'est envoyé (aucun PATCH
-    // refusé pour colonne inconnue).
     ficheFusion: Object.prototype.hasOwnProperty.call(r, 'fiche_base'),
+    group: sbGroupePjNormaliser(groupePj, r.name),
+    _groupeConfirme: sbGroupePjValide(groupePj, r.name),
+    _navigationServeur: groupePj?.navigation_serveur === true,
+    _positionNavigationServeur: positionGroupe,
     // PROPRIETAIRE DE LA FICHE (21 septembre 2026). Cette colonne etait la, dans la reponse, et
     // le mapping la jetait. Elle est pourtant la seule qui permette de savoir, SANS aucun appel
     // supplementaire, si la fiche recue est bien celle du compte connecte : personnages_donnees
@@ -956,14 +987,14 @@ async function sbLoadPersonnage(name) {
              // etatCivilChargerJoueurs, plateau-etat-civil.js).
              createdAt: r.created_at || null,
              photoUrl: r.photo_url || null, bio: r.bio || null, poste: r.poste || null, posteDepute: r.poste_depute || null,
-             country: r.country, currentCity: r.current_city, currentBuilding: r.current_building,
-             currentRoom: r.current_room || null, motto: r.motto || null,
+             country: positionGroupe ? positionGroupe.country : r.country, currentCity: positionGroupe ? positionGroupe.city : r.current_city, currentBuilding: positionGroupe ? positionGroupe.building : r.current_building,
+             currentRoom: positionGroupe ? positionGroupe.room : (r.current_room || null), motto: r.motto || null,
              licenceSportive: r.licence_sportive || null, performance: r.performance_sportive || null, blessureSportive: r.blessure_sportive || null,
              signatureHtml: r.signature_html || null, signatureBlocks: r.signature_blocks || [],
              queteAccueil: r.quete_accueil || null, queteCarriere: r.quete_carriere || null,
              enigme1: r.enigme1 || null, maxence: r.maxence || null, succesMaxence: r.succes_maxence || null,
              journal: r.journal || [], excommunie: r.excommunie || null, reservationHotel: r.reservation_hotel || null },
-    country:       r.country,
+    country:       positionGroupe ? positionGroupe.country : r.country,
     inf:           r.resources?.inf || 0,
     pop:           r.resources?.pop || 0,
     dis:           r.resources?.dis ?? 50,
@@ -975,9 +1006,9 @@ async function sbLoadPersonnage(name) {
     moral:         r.moral,
     poste:         r.poste,
     posteDepute:   r.poste_depute || null,
-    currentCity:   r.current_city,
-    currentBuilding: r.current_building,
-    currentRoom:   r.current_room || null,
+    currentCity:   positionGroupe ? positionGroupe.city : r.current_city,
+    currentBuilding: positionGroupe ? positionGroupe.building : r.current_building,
+    currentRoom:   positionGroupe ? positionGroupe.room : (r.current_room || null),
     inventory:     inventaireVersionne ? inventaire.inventory : (r.inventory || []),
     _inventaireBase: sbEmpreinteInventaire(inventaireVersionne ? inventaire.inventory : (r.inventory || [])),
     _inventaireRevision: inventaireVersionne ? inventaire.revision : null,
@@ -2086,11 +2117,10 @@ function sbSauvegardeUrgenceDechargement() {
     hp: state.hp ?? 100,
     moral: state.moral ?? 75,
     resources: ressourcesAvecBasePop(state, { inf: state.inf ?? 0, pop: state.pop ?? 0, dis: state.dis ?? 50 }),
-    country: state.country || 'republic',
-    current_city: state.currentCity || 'capitale',
-    current_building: state.currentBuilding || null,
-    current_room: state.currentRoom || null,
-    // Même fusion que la sauvegarde ordinaire : sans base, le serveur garde ses propres valeurs.
+    country: state._navigationServeur === true ? undefined : (state.country || 'republic'),
+    current_city: state._navigationServeur === true ? undefined : (state.currentCity || 'capitale'),
+    current_building: state._navigationServeur === true ? undefined : (state.currentBuilding || null),
+    current_room: state._navigationServeur === true ? undefined : (state.currentRoom || null),
     fiche_base: state.ficheFusion === true && state._ficheBase ? state._ficheBase : undefined
   });
   try {
@@ -4560,24 +4590,54 @@ async function sbMilitaireBatailleEtat(batailleId) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
-async function sbMilitaireBatailleEngager() {
-  const rows = await sbRpc('militaire_bataille_engager', {});
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+// Les commandes de bataille réutilisent le transport conservant les erreurs.
+// Le reçu et le round initial restent ensemble après une réponse perdue.
+let SB_BATAILLE_COMMANDE_EN_COURS = null;
+async function sbMilitaireCommande(batailleId, action, ouverture = null) {
+  const c = contexteGroupePj();
+  if (!contexteGroupePjValide(c)) return null;
+  if (SB_BATAILLE_COMMANDE_EN_COURS && contexteGroupePjValide(SB_BATAILLE_COMMANDE_EN_COURS))
+    return {ok:false,raison:'commande_en_cours'};
+  SB_BATAILLE_COMMANDE_EN_COURS = c;
+  const cle = 'hg-bataille:' + JSON.stringify(ouverture ? [c.uid,c.nom,batailleId,action,ouverture] : [c.uid,c.nom,batailleId,action]);
+  try {
+    let pending;
+    try {
+      const conserve = localStorage.getItem(cle);
+      if (conserve) pending = JSON.parse(conserve);
+      if (!pending) {
+        let round = null;
+        if (action !== 'engager' && action !== 'ouvrir') {
+          const etat = await sbMilitaireBatailleEtat(batailleId);
+          if (!contexteGroupePjValide(c)) return null;
+          if (!etat?.ok || !Number.isInteger(etat.bataille?.round_courant)) return {ok:false,raison:'etat_non_confirme'};
+          round = etat.bataille.round_courant;
+        }
+        pending = {requete:crypto.randomUUID(),round};
+        localStorage.setItem(cle,JSON.stringify(pending));
+      }
+      if (typeof pending.requete !== 'string' || (action !== 'engager' && action !== 'ouvrir' && !Number.isInteger(pending.round)))
+        return {ok:false,raison:'recu_invalide'};
+    } catch (_) { return {ok:false,raison:'recu_non_conserve'}; }
+    if (!contexteGroupePjValide(c)) return null;
+    const fn = action === 'ouvrir' ? 'combat_ouvrir' : action === 'engager' ? 'militaire_bataille_engager' :
+      action === 'continuer' ? 'militaire_bataille_poursuivre' : 'militaire_bataille_decider';
+    const params = {p_requete:pending.requete};
+    if (action === 'ouvrir') { params.p_cible=ouverture.cible;params.p_mode=ouverture.mode; }
+    else if (action !== 'engager') { params.p_bataille_id=batailleId; params.p_round_attendu=pending.round; }
+    if (['tenir','replier','rendre'].includes(action)) params.p_decision=action;
+    const v = await sbRpcVerdict(fn,params,{encoreValide:()=>contexteGroupePjValide(c)}).catch(()=>null);
+    if (!contexteGroupePjValide(c)) return null;
+    if (v?.ok === true || v?.raison === 'round_obsolete') localStorage.removeItem(cle);
+    return v || {ok:false,raison:'reponse_incertaine'};
+  } finally { if (SB_BATAILLE_COMMANDE_EN_COURS === c) SB_BATAILLE_COMMANDE_EN_COURS = null; }
 }
-
-// Reserve au leader du camp : sa decision est ECRITE avant que le serveur ne regarde, et c'est
-// ainsi qu'elle prime sur la doctrine.
-async function sbMilitaireBatailleDecider(batailleId, decision) {
-  const rows = await sbRpc('militaire_bataille_decider', { p_bataille_id: batailleId, p_decision: decision });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
-
-// Ouvert a tout participant engage : une bataille ne doit jamais s'arreter parce que le chef
-// d'en face n'est pas connecte. La doctrine du camp absent repond a sa place.
-async function sbMilitaireBataillePoursuivre(batailleId) {
-  const rows = await sbRpc('militaire_bataille_poursuivre', { p_bataille_id: batailleId });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
+async function sbCombatOuvrir(cible, mode) { return sbMilitaireCommande(null,'ouvrir',{cible,mode}); }
+async function sbMilitaireBatailleEngager() { return sbMilitaireCommande(null,'engager'); }
+// La décision reste réservée au chef réel ; le serveur vérifie ses droits.
+async function sbMilitaireBatailleDecider(batailleId, decision) { return sbMilitaireCommande(batailleId,decision); }
+// Tout participant disponible peut faire avancer le round (règle existante).
+async function sbMilitaireBataillePoursuivre(batailleId) { return sbMilitaireCommande(batailleId,'continuer'); }
 
 async function sbMilitaireBatailleDoctrine(batailleId, doctrine) {
   const rows = await sbRpc('militaire_bataille_doctrine', { p_bataille_id: batailleId, p_doctrine: doctrine });
@@ -6449,8 +6509,8 @@ async function sbPnjMembresIci(pays, ville, building, room, rueNoeud) {
 
 // Quitter le groupe : la position est MATERIALISEE avant que le lien soit rompu, donc le PNJ
 // reste exactement la ou il etait. La propriete ne change pas.
-async function sbPnjQuitterGroupe(pnjIds) {
-  return await sbRpc('pnj_quitter_groupe', { p_ids: pnjIds });
+async function sbPnjQuitterGroupe(pnjIds, options) {
+  return await sbRpc('pnj_quitter_groupe', { p_ids: pnjIds }, options);
 }
 
 // =====================================================================
@@ -6527,15 +6587,41 @@ async function sbEmployeMesEmployes() {
 
 // Transferer la conduite a un autre leader. Co-presence exigee par le serveur, AUCUNE
 // acceptation du nouveau leader, et le PROPRIETAIRE NE CHANGE PAS.
-async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj) {
+async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj, options) {
   return await sbRpc('pnj_transferer', {
     p_ids: pnjIds, p_dest: destinataire, p_dest_est_pnj: !!destinataireEstPnj
-  });
+  }, options);
 }
 
 // Reprendre dans son groupe des PNJ laisses sur place (co-presence exigee).
-async function sbPnjPrendre(pnjIds) {
-  return await sbRpc('pnj_prendre', { p_ids: pnjIds });
+async function sbPnjPrendre(pnjIds, options) {
+  return await sbRpc('pnj_prendre', { p_ids: pnjIds }, options);
+}
+
+// Rappel radio : même ville, autorité administrative et radios des deux côtés.
+// Le serveur recompose le groupe ; ne jamais simuler son déplacement côté client.
+async function sbPnjRappelerRadio(ancreId, options) {
+  return await sbRpc('pnj_rappeler_radio', { p_ancre: ancreId }, options);
+}
+
+function sbGroupePjValide(v, nom) {
+  return !!(v && v.ok === true && v.contrat === 1 && typeof v.chef === 'string'
+    && Array.isArray(v.membres) && v.membres.includes(nom) && v.membres.includes(v.chef)
+    && v.membres.every(n => typeof n === 'string' && n)
+    && new Set(v.membres).size === v.membres.length);
+}
+function sbGroupePjNormaliser(v, nom) {
+  if (!sbGroupePjValide(v, nom)) return null;
+  return v.membres.length > 1 ? { leader: v.chef, members: v.membres.slice() } : null;
+}
+
+// Projection d'autorité/commandement pour les consultations et rappels explicites.
+async function sbPnjUnitesAdministrablesLire() {
+  return await sbRpc('pnj_unites_administrables_lire', {});
+}
+
+async function sbGroupePjLire() {
+  return await sbRpc('groupe_pj_lire', {});
 }
 
 // DONNER / RETIRER de l'argent. 'donner' va du PJ vers le PNJ. Atomique cote serveur.

@@ -1,0 +1,167 @@
+{
+  "tests": [
+    {
+      "cas": "rappel_collectif_et_reponse_perdue",
+      "ok": false,
+      "erreur": "{'ok': False, 'raison': 'unite_non_stationnaire'}"
+    },
+    {
+      "cas": "radio_pj_absente",
+      "ok": true
+    },
+    {
+      "cas": "radio_unite_absente",
+      "ok": true
+    },
+    {
+      "cas": "radio_pj_quantite_nulle",
+      "ok": false,
+      "erreur": "{'ok': True, 'ville': 'capitale', 'rappeles': 2}"
+    },
+    {
+      "cas": "radio_pnj_quantite_nulle",
+      "ok": false,
+      "erreur": "{'ok': True, 'ville': 'capitale', 'rappeles': 2}"
+    },
+    {
+      "cas": "radio_autre_ville",
+      "ok": true
+    },
+    {
+      "cas": "radio_autre_pays",
+      "ok": true
+    },
+    {
+      "cas": "radio_autorites_reparties_aucun_mouvement",
+      "ok": true
+    },
+    {
+      "cas": "radio_axe_institution_preserve",
+      "ok": false,
+      "erreur": "{'ok': True, 'ville': 'capitale', 'rappeles': 2}"
+    },
+    {
+      "cas": "radio_regle_metier_preservee",
+      "ok": false,
+      "erreur": "{'ok': True, 'ville': 'capitale', 'rappeles': 2}"
+    },
+    {
+      "cas": "radio_membre_inactif",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_volontaire",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_non_authentifiee",
+      "ok": true
+    },
+    {
+      "cas": "auto_adhesion_interdite",
+      "ok": true
+    },
+    {
+      "cas": "chef_absent",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_autre_piece",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_interieur_ignore_ancienne_rue",
+      "ok": false,
+      "erreur": "{'ok': False, 'raison': 'pas_co_presents'}"
+    },
+    {
+      "cas": "adhesion_rue_ignore_ancienne_piece",
+      "ok": false,
+      "erreur": "{'ok': False, 'raison': 'pas_co_presents'}"
+    },
+    {
+      "cas": "adhesion_position_absente",
+      "ok": false,
+      "erreur": "{'ok': True, 'chef': 'B'}"
+    },
+    {
+      "cas": "lecture_reconnexion_et_depart",
+      "ok": true
+    },
+    {
+      "cas": "chef_separe_sans_mouvement",
+      "ok": false,
+      "erreur": ""
+    },
+    {
+      "cas": "cycle_refuse",
+      "ok": true
+    },
+    {
+      "cas": "aucune_adhesion_imposee_ni_fuite_table",
+      "ok": true
+    },
+    {
+      "cas": "adhesions_concurrentes_sans_deadlock",
+      "ok": true
+    },
+    {
+      "cas": "prise_liste_incomplete_aucune_mutation",
+      "ok": false,
+      "erreur": "pnj_sous_hierarchie_interdite: ancre conduit deja des membres\nCONTEXT:  PL/pgSQL function pnj_pas_de_sous_hierarchie() line 5 at RAISE\nSQL statement \"UPDATE public.pnj_membres SET leader_pj = v_moi, leader_pnj_id = NULL,\n      ville = NULL, building_id = NULL, room_id = NULL, rue_noeud_id = NULL WHERE id = r.id\"\nPL/pgSQL function pnj_prendre(text[]"
+    },
+    {
+      "cas": "pret_conduite_sans_transfert_autorite_et_reprise",
+      "ok": false,
+      "erreur": "pnj_sous_hierarchie_interdite: ancre conduit deja des membres\nCONTEXT:  PL/pgSQL function pnj_pas_de_sous_hierarchie() line 5 at RAISE\nSQL statement \"UPDATE public.pnj_membres SET leader_pnj_id = NULL, leader_pj = p_dest,\n        ville = NULL, building_id = NULL, room_id = NULL, rue_noeud_id = NULL WHERE id = r.id\"\nPL/pgSQL function pnj_transferer("
+    },
+    {
+      "cas": "pret_refus_second_membre_sans_mutation",
+      "ok": false,
+      "erreur": "pnj_sous_hierarchie_interdite: ancre conduit deja des membres\nCONTEXT:  PL/pgSQL function pnj_pas_de_sous_hierarchie() line 5 at RAISE\nSQL statement \"UPDATE public.pnj_membres SET leader_pnj_id = NULL, leader_pj = p_dest,\n        ville = NULL, building_id = NULL, room_id = NULL, rue_noeud_id = NULL WHERE id = r.id\"\nPL/pgSQL function pnj_transferer("
+    },
+    {
+      "cas": "depose_refus_second_membre_sans_mutation",
+      "ok": false,
+      "erreur": ""
+    },
+    {
+      "cas": "suivi_pnj_et_depose_rue_reelle",
+      "ok": false,
+      "erreur": ""
+    },
+    {
+      "cas": "pret_autre_rue_refuse",
+      "ok": false,
+      "erreur": "{'ok': True, 'transferes': 2, 'nouveau_leader': 'B'}"
+    },
+    {
+      "cas": "ordre_radio_militaire_hors_ville_refuse_avant_effet",
+      "ok": true
+    },
+    {
+      "cas": "ordre_radio_meme_ville_conserve_garde_equipement",
+      "ok": true
+    },
+    {
+      "cas": "projection_employes_position_effective",
+      "ok": false,
+      "erreur": "'position'"
+    },
+    {
+      "cas": "prives_suiveurs_meme_groupe_reel",
+      "ok": false,
+      "erreur": "[{'pa': 12, 'stats': {'PER': 12, 'VOL': 12}, 'roomId': 'accueil', 'groupeCle': 'ancre', 'matricule': 'prive:ancre', 'buildingId': 'mairie', 'rueNoeudId': None, 'pnj_prive_id': 'ancre'}, {'pa': 12, 'stats': {'PER': 12, 'VOL': 12}, 'roomId': 'accueil', 'groupeCle': 'autre', 'matricule': 'prive:autre', 'buildingId': 'mairie', 'rueNoeudId': None, 'pnj_"
+    },
+    {
+      "cas": "prives_copresence_distincte_puis_adhesion_reelle",
+      "ok": false,
+      "erreur": "[{'pa': 12, 'stats': {'PER': 12, 'VOL': 12}, 'roomId': 'accueil', 'groupeCle': 'ancre', 'matricule': 'prive:ancre', 'buildingId': 'mairie', 'rueNoeudId': None, 'pnj_prive_id': 'ancre'}, {'pa': 12, 'stats': {'PER': 12, 'VOL': 12}, 'roomId': 'accueil', 'groupeCle': 'autre', 'matricule': 'prive:autre', 'buildingId': 'mairie', 'rueNoeudId': None, 'pnj_"
+    }
+  ],
+  "production": false,
+  "authentification": "identite JWT de fixture, role authenticated",
+  "rollback": true,
+  "migrations_appliquees": [],
+  "original217": true
+}

@@ -69,6 +69,8 @@ def _racine():
 
 
 RACINE = _racine()
+sys.path.insert(0, os.path.join(RACINE, 'outils'))
+from moteur_javascript import choisir_moteur, commande_moteur
 DECLARATION = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            "referentiels-serveur.json")
 ARTEFACT = os.path.join(RACINE, "api", "_referentiels-generes.js")
@@ -141,10 +143,7 @@ function ordonner(o, ordre) {
 
 
 def jsc():
-    for c in JSC_CANDIDATS:
-        if os.path.exists(c):
-            return c
-    return None
+    return choisir_moteur(JSC_CANDIDATS)
 
 
 def jouer(script, moteur):
@@ -152,7 +151,7 @@ def jouer(script, moteur):
     f.write(script)
     f.close()
     try:
-        p = subprocess.run([moteur, f.name], capture_output=True, text=True, timeout=300)
+        p = subprocess.run(commande_moteur(moteur, f.name), capture_output=True, text=True, timeout=300)
     finally:
         os.unlink(f.name)
     if p.returncode != 0:

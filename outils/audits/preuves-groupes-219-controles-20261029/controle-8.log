@@ -1,0 +1,16 @@
+✔ soumission : même RPC, inventaire versionné original relu, convocation serveur (3.708523ms)
+✔ fuite : même RPC de fuite et aucun jet navigateur (0.888278ms)
+✔ commande perdue : reste bloquée sans peine ou objet simulé (0.762433ms)
+✔ double clic : aucune deuxième commande (0.731297ms)
+✔ réponse d’une ancienne session : aucun inventaire adopté (0.660263ms)
+✔ arrestation annoncée seulement après lecture de la détention effective (0.676116ms)
+✔ disparition des décisions et sanctions clientes de contrôle (4.726814ms)
+✔ réponse positive mais contrat invalide : aucune fausse réussite (0.853498ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22.897262

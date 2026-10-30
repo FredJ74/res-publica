@@ -98,6 +98,8 @@ import tempfile
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(os.path.dirname(ICI))
+sys.path.insert(0, os.path.join(RACINE, 'outils'))
+from moteur_javascript import choisir_moteur, commande_moteur
 DECLARATION = os.path.join(ICI, "fonctions.json")
 
 JSC_CANDIDATS = [
@@ -130,10 +132,7 @@ var state = { day: 1 };
 
 
 def jsc():
-    for c in JSC_CANDIDATS:
-        if os.path.exists(c):
-            return c
-    return None
+    return choisir_moteur(JSC_CANDIDATS)
 
 
 # --- lecture du depot -------------------------------------------------------
@@ -301,7 +300,7 @@ def mesurer(decl, moteur):
         fh.write(programme(decl))
         tmp = fh.name
     try:
-        p = subprocess.run([moteur, tmp], capture_output=True, text=True)
+        p = subprocess.run(commande_moteur(moteur, tmp), capture_output=True, text=True)
         for l in p.stdout.split("\n"):
             if l.startswith("RESULTAT_JSON="):
                 return json.loads(l[len("RESULTAT_JSON="):]), None

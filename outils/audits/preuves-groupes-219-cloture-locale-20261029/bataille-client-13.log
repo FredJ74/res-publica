@@ -1,0 +1,21 @@
+✔ round attendu lu avant commande et reçu durable avant envoi (173.126795ms)
+✔ réponse perdue : conserve aussi ancien round, ne relit pas un round neuf (93.226804ms)
+✔ round obsolète refusé : le prochain ordre peut obtenir un nouveau reçu (72.585351ms)
+✔ double clic pendant la lecture : une seule commande (75.404503ms)
+✔ session changée pendant la lecture : aucun coup envoyé (66.874526ms)
+✔ réponse tardive pour ancien personnage : ignorée et reçu conservé (64.131751ms)
+✔ engagement : reçu même sans bataille existante (66.215071ms)
+✔ décision : même porte avec round et reçu (63.348418ms)
+✔ stockage impossible : aucun ordre envoyé (62.030585ms)
+✔ après round : PA réels et réponse inventaire exacte, aucun objet recomposé (64.054197ms)
+✔ rafraîchissement tardif : ne touche pas le nouveau personnage (52.812405ms)
+✔ position relue après évacuation : même rendu confirmé, pas de nouvelle commande (53.378568ms)
+✔ réponse incertaine : le texte ne prétend pas que le round a échoué (50.782113ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 966.081469

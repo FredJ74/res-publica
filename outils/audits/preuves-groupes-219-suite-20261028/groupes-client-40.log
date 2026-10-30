@@ -1,0 +1,48 @@
+✔ adhésion : seulement le verdict serveur (79.961587ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : null (43.066732ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":false,"raison":"pas_co_presents"} (33.858454ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":true} (26.935944ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":true,"contrat":1,"chef":"B","membres":["B"]} (25.192828ms)
+✔ réponse absente/refusée/invalide ne vaut pas adhésion : {"ok":true,"contrat":1,"chef":"B","membres":["B","A","A"]} (24.698523ms)
+✔ double clic : une seule commande (34.754749ms)
+✔ réponse tardive après changement personnage (27.736868ms)
+✔ réponse tardive après changement session (27.536661ms)
+✔ perte de réponse : relecture sans rejouer ni annoncer une réussite (27.677756ms)
+✔ lecture tardive ne remplace pas une commande plus récente (27.543902ms)
+✔ départ : le serveur conserve son autorité sur le résultat (21.993996ms)
+✔ rechargement : sbLoadPersonnage reprend le groupe officiel (39.940461ms)
+✔ rappel collectif : met à jour tous les employés depuis le contrat existant (24.241272ms)
+✔ rappel tardif après changement personnage (21.056506ms)
+✔ rappel tardif après changement session (24.914667ms)
+✔ rappel double clic bloqué (24.879606ms)
+✔ employé : aucune mutation avant le serveur true (27.86066ms)
+✔ employé : aucune mutation avant le serveur false (25.367617ms)
+✔ absence de PNJ serveur : aucun mouvement inventé (20.482798ms)
+✔ refus de reprise serveur : pas de succès ni appartenance locale inventée (23.487338ms)
+✔ dépose : position affichée relue du serveur, pas celle du navigateur (22.745161ms)
+✔ conduite soldat : dépend de la capacité serveur undefined (29.40307ms)
+✔ conduite soldat : dépend de la capacité serveur false (32.597781ms)
+✔ conduite soldat : dépend de la capacité serveur true (40.863365ms)
+✔ conduite commune : double clic et réponse d’un autre personnage ignorés (27.61664ms)
+✔ conduite commune : perte de réponse relit sans rejouer (32.863824ms)
+✔ unités distantes : consultation commune sans bourse ni possessions inventées (32.797507ms)
+✔ unités distantes : une ancienne lecture ne remplace pas la récente (27.390606ms)
+✔ unités distantes : changement de personnage bloque le résultat (28.051623ms)
+✔ reprise d’une ancre : la liste contient ses suiveurs, pas les autres unités (28.292759ms)
+✔ conduite transmet le contexte au transport : confirmerGroupePnjPrendre (71.917275ms)
+✔ conduite transmet le contexte au transport : confirmerGroupePnjQuitter (32.491644ms)
+✔ conduite transmet le contexte au transport : confirmerGroupePnjRadio (39.591035ms)
+✔ conduite transmet le contexte au transport : confirmerGroupePnjTransferer (33.527214ms)
+✔ adhésion et départ transmettent la garde : rejoindrePJ (20.433395ms)
+✔ adhésion et départ transmettent la garde : quitterGroupe (20.608494ms)
+✔ employé transmet la garde : radio (23.516271ms)
+✔ employé transmet la garde : prise (24.553133ms)
+✔ employé transmet la garde : dépose (18.56885ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1231.749111
