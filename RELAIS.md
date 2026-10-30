@@ -31,7 +31,7 @@ Règles : voir `AGENTS.md`.
   - **Réserve transmise** : le baseline Supabase est à réextraire depuis la production (PR #262, ChatGPT ; écarts relevés dans `outils/bancs/jetable-ecarts-production-20261030.sql`).
   - **#265 appliquée et fusionnée (ChatGPT, 30/10, 20 h 22)** : `210000`, `211000`, `212000` en production. Contrôle Claude : Jean Jaaj a reçu le courrier d'Helvetia (lu) ; espèces 151 800 FR (152 800 attendus, 1 000 dépensés après la régularisation). Deux tentatives de l'écran d'ajouter 1 000 000 FR à Jaaj (19 h 14, `fiche_hausses_observees` 1393-1396) ne viennent d'aucun code du dépôt (écriture manuelle) : bloquées par le verrou.
   - **Contrôle « Cohérence client » rouge sur main depuis le 30/10, corrigé ici** : cinq fichiers SQL de `outils/bancs/` (Claude, 30/10) n'avaient pas d'enveloppe d'annulation. Ils portent désormais `BEGIN; … ROLLBACK;` ; la base jetable applique ses écarts en remplaçant explicitement le `ROLLBACK` final par `COMMIT`. Règle de `verifier-workflow.py` : une enveloppe sans aucun `COMMIT` dispense aussi du comptage des exceptions (elle annule tout).
-  - **Caisse d'Helvetia débitée deux fois (examiné, non bloquant, issue dédiée)** : voir l'issue « Helvetia : double sortie de caisse ».
+  - **Caisse d'Helvetia débitée deux fois (examiné, non bloquant, issue dédiée)** : issue #267 (caisse = argent détenu ; correction proposée après la clôture).
 
 ### Centres des trois villes et location par le serveur — Claude 29/10 soir (branche `claude/centres-villes-20261029`)
 
