@@ -2289,44 +2289,40 @@ function renderJodieInterviewForm() {
 // repli en cas d'echec) -- aucun second moteur IA construit ici. On ne fournit au modele QUE les
 // 5 reponses et le nom du PJ, jamais d'autre donnee de personnage (aucun fait invente en dehors
 // des reponses fournies).
+async function jodiePortraitAppelApi(payload) {
+  try {
+    if (typeof rpAuthAssurerSession === 'function') await rpAuthAssurerSession();
+    const jeton = typeof rpAuthJeton === 'function' ? rpAuthJeton() : null;
+    if (!jeton) return {ok:false,error:'Connexion requise.'};
+    const resp = await fetch('/api/jodie-portrait', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+jeton},
+      body:JSON.stringify(payload)
+    });
+    const data = await resp.json().catch(() => null);
+    return data || {ok:false,error:'Réponse serveur indisponible.'};
+  } catch (e) {
+    return {ok:false,error:'Connexion au serveur indisponible.'};
+  }
+}
 async function jodiePortraitGenererApercu() {
   const reponses = (window._jodieInterviewReponses || []).map(r => (r || '').trim());
-  if (reponses.some(r => !r)) {
+  if (reponses.length !== 5 || reponses.some(r => !r)) {
     showToast('Réponses incomplètes', 'Merci de répondre à chacune des 5 questions.', false);
     return;
   }
   const nom = state.char?.name || '';
   document.getElementById('forum-main').innerHTML = '<div style="padding:2rem;text-align:center;color:#8a8060">Jodie rédige...</div>';
-
-  const prompt = "Tu es Jodie Moitout, journaliste micro-trottoir pour le journal L'Autruche Entravee (groupe La Tribune), dans le jeu Res Publica. Le pays s'appelle Républia, avec un accent aigu sur le e (jamais \"Republia\" sans accent). " +
-    "Tu viens d'interviewer " + nom + ", un nouvel habitant, en lui posant 5 questions. Voici ses reponses :\n\n" +
-    JODIE_QUESTIONS_INTERVIEW.map((q, i) => (i + 1) + ". " + q + "\nReponse : \"" + reponses[i].replace(/"/g, "'") + "\"").join("\n\n") + "\n\n" +
-    "Redige un COURT portrait journalistique (120 a 200 mots), a la troisieme personne, dans un ton enjoue et un peu malicieux, fidele aux reponses fournies SANS inventer de faits substantiels supplementaires sur " + nom + ". Pas de titre (il sera ajoute separement). " +
-    "Texte BRUT uniquement, sans aucune mise en forme Markdown : pas d'astérisque (ni simple * pour l'italique, ni double ** pour le gras), pas de dièse # en début de ligne, pas de liste à puces. La ponctuation française normale reste bienvenue (guillemets « », tirets, points de suspension). " +
-    "Reponds UNIQUEMENT avec le texte de l'article, sans introduction ni commentaire.";
-
-  let texte = null;
-  try {
-    // Modele corrige le 21 aout 2026 : 'claude-sonnet-4-20250514' (mai 2025) est desormais
-    // retire par Anthropic (confirme en production, HTTP 404 not_found_error) -- remplace par
-    // 'claude-haiku-4-5-20251001', deja utilise et fonctionnel ailleurs dans le jeu (plateau-pnj.js).
-    const r = await rpRedaction('jodie_portrait', prompt);
-    if (!r.ok) throw new Error('redaction indisponible');
-    texte = r.texte || null;
-  } catch (e) { texte = null; }
-
-  if (!texte) {
-    showToast('Indisponible', "Jodie n'arrive pas à mettre ses idées en ordre pour le moment. Réessayez plus tard.", false);
+  // L'IA et la preuve de publication sont générées par le serveur authentifié.
+  const resultat = await jodiePortraitAppelApi({action:'apercu',personnage:nom,reponses});
+  if (!resultat.ok || !resultat.texte || !resultat.jeton) {
+    showToast('Indisponible', resultat.error || "Jodie n'arrive pas à rédiger.", false);
     mailView = 'jodie-interview';
     document.getElementById('forum-main').innerHTML = renderForumContent();
     return;
   }
-
-  // Nettoyage defensif AVANT stockage (audit du 21 aout 2026) : un seul point d'ecriture de
-  // window._jodiePortraitTexte dans toute cette fonction -- l'apercu (renderJodiePortraitPreview)
-  // et la publication (jodiePortraitPublier) le relisent tel quel, jamais recalcule ni renettoye
-  // separement : impossible d'avoir une version nettoyee a l'ecran et une version brute publiee.
-  window._jodiePortraitTexte = jodieNettoyerMarkdown(texte);
+  window._jodiePortraitTexte = resultat.texte;
+  window._jodiePortraitJeton = resultat.jeton;
   mailView = 'jodie-preview';
   document.getElementById('forum-main').innerHTML = renderForumContent();
 }
@@ -2377,42 +2373,26 @@ function renderJodiePortraitPreview() {
 // se derouler entierement sans jamais reverifier avant l'ecriture definitive.
 async function jodiePortraitPublier() {
   const nom = state.char?.name || '';
-  const titre = JODIE_PORTRAIT_TITRE_PREFIXE + nom;
-  const texte = window._jodiePortraitTexte;
-  if (!texte) { showToast('Erreur', 'Aucun portrait à publier.', false); return; }
-
-  if (await jodiePortraitDejaPublie(nom)) {
-    showToast('Déjà publié', 'Ce portrait a déjà été publié.', false);
-    mailView = 'inbox'; document.getElementById('forum-main').innerHTML = renderForumContent();
-    return;
+  if (!window._jodiePortraitTexte || !window._jodiePortraitJeton) {
+    showToast('Aperçu expiré', 'Veuillez régénérer le portrait avant de publier.', false); return;
   }
-
-  if (typeof sbCreateTopic !== 'function' || typeof sbCreatePost !== 'function') {
-    showToast('Indisponible', "La publication n'a pas pu être enregistrée. Réessayez plus tard.", false);
-    return;
+  if (window._jodiePublicationEnCours) return;
+  window._jodiePublicationEnCours = true;
+  try {
+    const r = await jodiePortraitAppelApi({action:'publier',personnage:nom,jeton:window._jodiePortraitJeton});
+    if (!r.ok) {
+      showToast('Échec', r.error || "La publication n'a pas été enregistrée.", false);
+      return;
+    }
+    window._jodiePortraitTexte = null;
+    window._jodiePortraitJeton = null;
+    window._jodieInterviewReponses = null;
+    showToast('Portrait publié !', 'Jodie a publié votre portrait dans Presse & Médias.', true, true);
+    mailView = 'inbox';
+    document.getElementById('forum-main').innerHTML = renderForumContent();
+  } finally {
+    window._jodiePublicationEnCours = false;
   }
-  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : new Date().toISOString();
-  // NOTE (limite preexistante, signalee et non corrigee ici -- hors perimetre de ce lot) :
-  // sbCreateTopic() renvoie TOUJOURS un id genere localement, meme si l'ecriture Supabase
-  // sous-jacente echoue reellement (defaut deja identifie et explicitement laisse hors perimetre
-  // par un correctif anterieur, commit 458c334) -- ce controle est donc best-effort, comme pour
-  // tous les autres appelants existants de cette primitive. sbCreatePost(), en revanche, renvoie
-  // bien null sur un echec reel (verifie ici explicitement, pas seulement via .catch() qui ne
-  // couvrirait qu'un rejet, jamais un retour null resolu) : le texte de l'article est le contenu
-  // reellement visible du portrait, sa perte silencieuse serait le defaut le plus genant.
-  const topicId = await sbCreateTopic('presse', titre, 'Jodie Moitout', state.country || 'republic', time, false, false, null, null, null);
-  if (!topicId) { showToast('Échec', "La publication n'a pas pu être enregistrée. Réessayez plus tard.", false); return; }
-  const postId = await sbCreatePost(topicId, 'Jodie Moitout', texte, time, false, false, [], null, null, null, null).catch(() => null);
-  if (!postId) {
-    showToast('Publication incomplète', "Le sujet a été créé mais le texte n'a pas pu être enregistré. Réessayez.", false);
-    return;
-  }
-
-  window._jodiePortraitTexte = null;
-  window._jodieInterviewReponses = null;
-  showToast('Portrait publié !', 'Jodie a publié votre portrait dans Presse & Médias.', true, true);
-  mailView = 'inbox';
-  document.getElementById('forum-main').innerHTML = renderForumContent();
 }
 
 // =====================
