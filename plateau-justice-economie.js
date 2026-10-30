@@ -5744,9 +5744,6 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
   if (typeof assembleeControlerVenteLegale === 'function'
       && !(await assembleeControlerVenteLegale(Object.keys(quantites).map(cle => ({ stackKey: cle }))))) return;
 
-  const r = await deduireCoutOrdre({ pa, cost, fn: 'acheter_ressources_entrepot' });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
   // « ACHAT REFUSE (INDISPONIBLE) » ETAIT UN ECHEC DE SESSION DEGUISE EN REGLE DU JEU.
   // Diagnostic du 30 septembre 2026, sur un cas reel : l'ecran annonçait 73 cereales
   // en stock, le joueur en demandait 2, et l'achat etait refuse « indisponible » --
@@ -5768,11 +5765,15 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
   // On passe donc a sbRpcVerdict, qui conserve le motif reel, et on nomme les trois
   // etats de transport. Le stock, le prix et les regles d'achat ne changent pas d'une
   // ligne : c'est l'HONNETETE du message qui est corrigee, pas l'economie.
-  const v = await sbRpcVerdict('acheter_a_entrepot', {
+  // CLE D'UNICITE (30/10/2026) : PA et achat dans UNE operation serveur, sous une cle que
+  // executerReceptionInventaire conserve apres une reponse perdue (rejeu, jamais double paiement).
+  let v = null;
+  v = (await executerReceptionInventaire('acheter_a_entrepot', {
     p_acteur: state.char?.name, p_pays: state.country, p_ville: state.currentCity,
-    p_batiment: buildingId, p_achats: quantites
-  });
+    p_batiment: buildingId, p_achats: quantites, p_pa: pa || 0, p_cost: cost || 0
+  }, { surRefus: (x) => { v = x; return true; } })) || v;
   if (!v || v.ok !== true) {
+    if (!v) return;
     const raison = (v && v.raison) || 'indisponible';
     const libelles = {
       stock_insuffisant: 'Il ne reste pas assez de ' + (v && v.cle ? (RESSOURCES_ECONOMIE[v.cle]?.label || v.cle) : 'cette ressource')
@@ -5798,14 +5799,7 @@ async function confirmerAchatEntrepot(buildingId, pa, cost) {
     return;
   }
 
-  // On recopie l'etat arrete par le serveur, jamais un calcul local.
-  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
-  state.liquide = v.liquide;
-  state.arg = v.arg;
-  if (state.char) state.char.arg = state.arg;
-  if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
-    state.comptesBancaires.nationale.solde = v.solde_national;
-  }
+  // Inventaire et soldes deja adoptes par executerReceptionInventaire (etat relu au serveur).
   if (typeof renderInventory === 'function') renderInventory();
 
   document.getElementById('modal-postes')?.classList.remove('open');
@@ -5907,10 +5901,13 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   // la caisse mais l'argent n'arrivait que sur l'ecran, et le bois restait dans l'inventaire reel.
   if (VENTE_BOIS_EN_COURS) return;
   VENTE_BOIS_EN_COURS = true;
-  let r;
-  try { r = await sbRpcVerdict('imprimerie_acheter_bois', { p_qte: qteVoulue }).catch(() => null); }
+  // CLE D'UNICITE (30/10/2026) : la meme cle est rejouee apres une reponse perdue (jamais deux ventes).
+  let r = null;
+  try { r = (await executerReceptionInventaire('imprimerie_acheter_bois', { p_qte: qteVoulue },
+          { surRefus: (x) => { r = x; return true; } })) || r; }
   finally { VENTE_BOIS_EN_COURS = false; }
   if (!r || r.ok !== true) {
+    if (!r) return;
     showToast(r && r.raison === 'stock_plafond' ? 'Entrepôt plein' : r && r.raison === 'stock_personnel_insuffisant' ? 'Stock personnel insuffisant' : 'Caisse vide',
       r && r.raison === 'stock_plafond'
         ? (imprimeur || 'L\'imprimerie') + ' a déjà ' + (r.plafond || plafond) + ' bois en stock : elle ne peut plus en prendre.'
@@ -5920,8 +5917,7 @@ async function confirmerVendreBoisImprimerie(pa, cost) {
   }
   const qte = Number(r.qte) || 0;
   const montantPaye = Number(r.total) || 0;
-  if (Array.isArray(r.inventory)) state.inventory = r.inventory;
-  appliquerPaiementServeur({ arg: r.arg, liquide: r.liquide });
+  // Inventaire et soldes deja adoptes par executerReceptionInventaire (etat relu au serveur).
   if (typeof renderInventory === 'function') renderInventory();
   updateUI();
 
@@ -6135,14 +6131,14 @@ async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
   }
   if (typeof assembleeControlerVenteLegale === 'function'
       && !(await assembleeControlerVenteLegale(Object.keys(quantites).map(cle => ({ stackKey: cle }))))) return;
-  const r = await deduireCoutOrdre({ pa, cost, fn: 'vente_directe_usine' });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const rows = await sbRpc('acheter_vente_directe_usine', {
+  // CLE D'UNICITE (30/10/2026) : PA et achat dans UNE operation serveur, sous une cle que
+  // executerReceptionInventaire conserve apres une reponse perdue (rejeu, jamais double paiement).
+  let v = null;
+  v = (await executerReceptionInventaire('acheter_vente_directe_usine', {
     p_acteur: state.char?.name, p_pays: state.country, p_ville: state.currentCity,
-    p_batiment: buildingId, p_achats: quantites });
-  const v = Array.isArray(rows) ? rows[0] : rows;
+    p_batiment: buildingId, p_achats: quantites, p_pa: pa || 0, p_cost: cost || 0 }, { surRefus: (x) => { v = x; return true; } })) || v;
   if (!v || v.ok !== true) {
+    if (!v) return;
     const raison = (v && v.raison) || 'indisponible';
     const libelles = {
       stock_insuffisant: 'Il ne reste que ' + ((v && v.disponible) || 0) + ' unité(s) de '
@@ -6154,12 +6150,7 @@ async function confirmerVenteDirecteUsine(buildingId, pa, cost) {
     showToast('Achat impossible', libelles[raison] || ('Achat refusé (' + raison + ').'), false);
     return;
   }
-  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
-  state.liquide = v.liquide; state.arg = v.arg;
-  if (state.char) state.char.arg = state.arg;
-  if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
-    state.comptesBancaires.nationale.solde = v.solde_national;
-  }
+  // Inventaire et soldes deja adoptes par executerReceptionInventaire (etat relu au serveur).
   if (typeof renderInventory === 'function') renderInventory();
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -6758,10 +6749,13 @@ async function confirmerAchatArmoireSouvenirs() {
       && !(await assembleeControlerVenteLegale([{ type: p.type }]))) {
     document.getElementById('modal-postes')?.classList.remove('open'); return; }
 
-  const v = await sbRpc('acheter_produit_manufacture', {
-    p_acteur: state.char?.name, p_pays: p.pays, p_produit: p.type
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
+  // CLE D'UNICITE (30/10/2026) : achat une cle que
+  // executerReceptionInventaire conserve apres une reponse perdue (rejeu, jamais double paiement).
+  let v = null;
+  v = (await executerReceptionInventaire('acheter_produit_manufacture', {
+    p_acteur: state.char?.name, p_pays: p.pays, p_produit: p.type }, { surRefus: (x) => { v = x; return true; } })) || v;
   if (!v || v.ok !== true) {
+    if (!v) { document.getElementById('modal-postes')?.classList.remove('open'); return; }
     const raison = (v && v.raison) || 'indisponible';
     const libelles = {
       rupture_stock: '',
@@ -6775,12 +6769,7 @@ async function confirmerAchatArmoireSouvenirs() {
     document.getElementById('modal-postes')?.classList.remove('open');
     return;
   }
-  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
-  state.liquide = v.liquide; state.arg = v.arg;
-  if (state.char) state.char.arg = state.arg;
-  if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
-    state.comptesBancaires.nationale.solde = v.solde_national;
-  }
+  // Inventaire et soldes deja adoptes par executerReceptionInventaire (etat relu au serveur).
   if (typeof renderInventory === 'function') renderInventory();
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -9679,14 +9668,14 @@ async function confirmerAcheterCriee(pa, cost) {
   if (Object.keys(quantites).length === 0) { showToast('Rien à acheter', 'Indiquez au moins une quantité.', false); return; }
   if (typeof assembleeControlerVenteLegale === 'function'
       && !(await assembleeControlerVenteLegale(Object.keys(quantites).map(cle => ({ stackKey: cle }))))) return;
-  const r = await deduireCoutOrdre({ pa, cost, fn: 'acheter_criee' });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const rows = await sbRpc('acheter_a_la_criee', {
+  // CLE D'UNICITE (30/10/2026) : PA et achat dans UNE operation serveur, sous une cle que
+  // executerReceptionInventaire conserve apres une reponse perdue (rejeu, jamais double paiement).
+  let v = null;
+  v = (await executerReceptionInventaire('acheter_a_la_criee', {
     p_acteur: state.char?.name, p_pays: 'republic', p_ville: VILLE_ID_PORT,
-    p_batiment: BUILDING_ID_PORT, p_achats: quantites });
-  const v = Array.isArray(rows) ? rows[0] : rows;
+    p_batiment: BUILDING_ID_PORT, p_achats: quantites, p_pa: pa || 0, p_cost: cost || 0 }, { surRefus: (x) => { v = x; return true; } })) || v;
   if (!v || v.ok !== true) {
+    if (!v) return;
     const raison = (v && v.raison) || 'indisponible';
     const libelles = {
       stock_insuffisant: 'Il ne reste que ' + Math.round((v && v.disponible) || 0) + ' unité(s) de '
@@ -9698,12 +9687,7 @@ async function confirmerAcheterCriee(pa, cost) {
     showToast('Achat impossible', libelles[raison] || ('Achat refusé (' + raison + ').'), false);
     return;
   }
-  { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(v); else state.inventory = v.inventory || state.inventory; }
-  state.liquide = v.liquide; state.arg = v.arg;
-  if (state.char) state.char.arg = state.arg;
-  if (state.comptesBancaires?.nationale && typeof v.solde_national === 'number') {
-    state.comptesBancaires.nationale.solde = v.solde_national;
-  }
+  // Inventaire et soldes deja adoptes par executerReceptionInventaire (etat relu au serveur).
   if (typeof renderInventory === 'function') renderInventory();
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
