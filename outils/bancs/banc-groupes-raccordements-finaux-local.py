@@ -74,5 +74,6 @@ def suite(ctx,suivante=None):
   for role in ['anon','authenticated','service_role']:
    q.execute("SELECT has_function_privilege(%s,'navigation_commander_personnage_interne(text,text,text,text)','execute')",(role,));assert not q.fetchone()[0]
  cas('navigation_identite_explicite_reste_privee',acces)
+ ctx['preparer_bataille_repli']=pret
  if suivante is not None:suivante(ctx)
 if __name__=='__main__':sys.exit(d.c.c.lancer(suite))

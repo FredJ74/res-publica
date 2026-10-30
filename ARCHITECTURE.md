@@ -345,3 +345,8 @@ Complément #219 préparé `20261030001000` : les actes historiques des camions
 utilisent la composition canonique pour embarquer, débarquer et évincer les groupes.
 Les coûts, priorités et grades du moteur camion restent inchangés ; ses refus tardifs
 annulent aussi les positions et embarquements. Aucun nouveau moteur de transport.
+
+Complément #219 préparé `20261030001100` : provenance des PNJ sur leur ligne existante,
+conservée lors d’une dépose ; position personnelle ajoutée à la lecture commune déjà
+utilisée. La restauration des rues réemploie cette lecture et garde les quatre vues PSM,
+sans nouvelle interrogation périodique. Les valeurs nulles de bâtiment restent nulles.

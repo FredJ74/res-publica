@@ -851,6 +851,15 @@ async function sbEtatIdentitePersonnage(nomLocal) {
   return rows.length > 0 ? { etat: 'appartient_a_autrui' } : { etat: 'orphelin' };
 }
 
+// La lecture commune rend la position personnelle du compte, jamais celle du chef.
+function sbPositionNavigationConfirmee(groupe, nom) {
+  const p=groupe?.position_personnelle;
+  if(typeof nom!=='string' || !nom || groupe?.ok!==true || groupe.contrat!==1 || p?.ok!==true || p.personnage!==nom ||
+     typeof p.country!=='string' || typeof p.city!=='string' ||
+     !['building','room','street','depuis'].every(k=>p[k]===null || typeof p[k]==='string')) return null;
+  return p;
+}
+
 async function sbLoadPersonnage(name) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(name)}`);
   if (!rows || rows.length === 0) return null;
@@ -861,6 +870,7 @@ async function sbLoadPersonnage(name) {
     ? await sbGroupePjLire().catch(() => null) : null;
   const inventaire = r.user_id && typeof rpAuthUid === 'function' && rpAuthUid() === r.user_id
     ? await sbInventaireReceptionEtat(name).catch(() => null) : null;
+  const positionGroupe = sbPositionNavigationConfirmee(groupePj, r.name);
   const inventaireVersionne = inventaire?.ok && inventaire.contrat === 1
     && Array.isArray(inventaire.inventory) && Number.isSafeInteger(inventaire.revision);
   return {
@@ -868,6 +878,7 @@ async function sbLoadPersonnage(name) {
     group: sbGroupePjNormaliser(groupePj, r.name),
     _groupeConfirme: sbGroupePjValide(groupePj, r.name),
     _navigationServeur: groupePj?.navigation_serveur === true,
+    _positionNavigationServeur: positionGroupe,
     // PROPRIETAIRE DE LA FICHE (21 septembre 2026). Cette colonne etait la, dans la reponse, et
     // le mapping la jetait. Elle est pourtant la seule qui permette de savoir, SANS aucun appel
     // supplementaire, si la fiche recue est bien celle du compte connecte : personnages_donnees
@@ -887,14 +898,14 @@ async function sbLoadPersonnage(name) {
              // etatCivilChargerJoueurs, plateau-etat-civil.js).
              createdAt: r.created_at || null,
              photoUrl: r.photo_url || null, bio: r.bio || null, poste: r.poste || null, posteDepute: r.poste_depute || null,
-             country: r.country, currentCity: r.current_city, currentBuilding: r.current_building,
-             currentRoom: r.current_room || null, motto: r.motto || null,
+             country: positionGroupe ? positionGroupe.country : r.country, currentCity: positionGroupe ? positionGroupe.city : r.current_city, currentBuilding: positionGroupe ? positionGroupe.building : r.current_building,
+             currentRoom: positionGroupe ? positionGroupe.room : (r.current_room || null), motto: r.motto || null,
              licenceSportive: r.licence_sportive || null, performance: r.performance_sportive || null, blessureSportive: r.blessure_sportive || null,
              signatureHtml: r.signature_html || null, signatureBlocks: r.signature_blocks || [],
              queteAccueil: r.quete_accueil || null, queteCarriere: r.quete_carriere || null,
              enigme1: r.enigme1 || null, maxence: r.maxence || null, succesMaxence: r.succes_maxence || null,
              journal: r.journal || [], excommunie: r.excommunie || null, reservationHotel: r.reservation_hotel || null },
-    country:       r.country,
+    country:       positionGroupe ? positionGroupe.country : r.country,
     inf:           r.resources?.inf || 0,
     pop:           r.resources?.pop || 0,
     dis:           r.resources?.dis ?? 50,
@@ -906,9 +917,9 @@ async function sbLoadPersonnage(name) {
     moral:         r.moral,
     poste:         r.poste,
     posteDepute:   r.poste_depute || null,
-    currentCity:   r.current_city,
-    currentBuilding: r.current_building,
-    currentRoom:   r.current_room || null,
+    currentCity:   positionGroupe ? positionGroupe.city : r.current_city,
+    currentBuilding: positionGroupe ? positionGroupe.building : r.current_building,
+    currentRoom:   positionGroupe ? positionGroupe.room : (r.current_room || null),
     inventory:     inventaireVersionne ? inventaire.inventory : (r.inventory || []),
     _inventaireBase: sbEmpreinteInventaire(inventaireVersionne ? inventaire.inventory : (r.inventory || [])),
     _inventaireRevision: inventaireVersionne ? inventaire.revision : null,

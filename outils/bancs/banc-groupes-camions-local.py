@@ -14,7 +14,10 @@ def suite(ctx):
  for nom in ['camions_militaires_pkey','camions_ordres_pkey','camions_embarquements_pkey']:
   q.execute(re.search(r'ALTER TABLE public\.\w+ ADD CONSTRAINT '+nom+r' .*?;',contraintes,re.S)[0])
  q.execute("GRANT EXECUTE ON FUNCTION camion_monter(text,text),camion_descendre(text),camion_deplacer(text,text,boolean,text) TO authenticated")
- q.execute((R/'migrations/20261030001000_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030001000_camions_groupes_et_refus_atomiques.sql').read_text());ctx['c'].commit()
+ q.execute((R/'migrations/20261030001000_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030001000_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030001100_navigation_provenance_pnj_et_lecture_commune.sql').read_text());q.execute((R/'migrations/20261030001100_navigation_provenance_pnj_et_lecture_commune.sql').read_text());ctx['c'].commit()
+ if '--contre-repli-provenance-oubliee' in sys.argv:
+  q.execute("SELECT pg_get_functiondef('militaire_repli_pnj_interne(bigint,text,integer)'::regprocedure)");s=q.fetchone()[0]
+  a='r.rue_noeud_id,r.rue_depuis)';assert a in s;q.execute(s.replace(a,'r.rue_noeud_id,NULL)'))
  if '--contre-camion-solo' in sys.argv:
   q.execute("SELECT pg_get_functiondef('camion_monter_corps_interne(text,text)'::regprocedure)");s=q.fetchone()[0]
   a='WHERE name IN (SELECT identifiant FROM public.groupe_participants_interne(v_moi) WHERE est_pj);';assert a in s
@@ -72,6 +75,40 @@ def suite(ctx):
   for role in ['anon','authenticated','service_role']:
    q.execute("SELECT has_function_privilege(%s,'camion_monter_corps_interne(text,text)','execute')",(role,));assert not q.fetchone()[0]
  cas('camion_corps_historiques_prives_pas_de_chemin_ancien_parallele',droits)
+ def position_personnelle():
+  pret()
+  for qui in ['A','B']:
+   v=exige(rpc('groupe_pj_lire',(),qui=qui));p=v['position_personnelle'];assert p['personnage']==qui and p['building']=='mairie' and p['depuis'] is None,p
+ cas('lecture_commune_position_personnelle_pas_celle_du_chef',position_personnelle)
+ def provenance_pnj():
+  pret();sql("INSERT INTO pnj_membres(id,famille,nom,pays,proprietaire_pj,ville,rue_noeud_id) VALUES('pnj-provenance-fixture','employe','Fixture de provenance','republic','A','capitale','rue-1')")
+  sql("UPDATE pnj_membres SET rue_noeud_id='rue-2' WHERE id='pnj-provenance-fixture'")
+  q.execute("SELECT rue_depuis FROM pnj_membres WHERE id='pnj-provenance-fixture'");assert q.fetchone()[0]=='rue-1'
+  sql("UPDATE pnj_membres SET rue_depuis='mensonge' WHERE id='pnj-provenance-fixture'")
+  q.execute("SELECT rue_depuis FROM pnj_membres WHERE id='pnj-provenance-fixture'");assert q.fetchone()[0]=='rue-1'
+ cas('provenance_PNJ_derivee_du_mouvement_pas_d_une_ecriture_declaree',provenance_pnj)
+ def depose_provenance():
+  pret()
+  sql("UPDATE personnages_donnees SET current_city='ville_a',current_building=NULL,current_room=NULL,current_street='psm-tribunal-banque' WHERE name IN ('A','B')")
+  sql("UPDATE personnages_donnees SET current_street='psm-carrefour-musee' WHERE name IN ('A','B')")
+  sql("INSERT INTO pnj_membres(id,famille,nom,pays,proprietaire_pj,leader_pj) VALUES('pnj-depose-provenance','employe','Fixture de dépose','republic','A','A')")
+  exige(rpc('pnj_quitter_groupe',(['pnj-depose-provenance'],)))
+  q.execute("SELECT rue_noeud_id,rue_depuis FROM pnj_membres WHERE id='pnj-depose-provenance'");assert q.fetchone()==('psm-carrefour-musee','psm-tribunal-banque')
+ cas('depose_PNJ_reprend_provenance_effective_du_groupe_sans_invention',depose_provenance)
+ def psm_repli():
+  import subprocess,json
+  ctx['preparer_bataille_repli']()
+  source=subprocess.check_output(['node','-e',"const fs=require('fs'),vm=require('vm'),c=vm.createContext({});vm.runInContext(fs.readFileSync('plateau-rue-centrale.js','utf8'),c);console.log(vm.runInContext(\"JSON.stringify(RUE_CENTRALE_NOEUDS.republic['psm-carrefour-musee'])\",c))"],cwd=R,text=True)
+  node=json.loads(source);depuis='psm-tribunal-banque';gauche=node['liensParArrivee'][depuis]['gauche']
+  q.execute("INSERT INTO rue_noeuds_serveur(country,city,noeud,voisins,directions) VALUES('republic','ville_a','psm-carrefour-musee',%s,%s::jsonb),('republic','ville_a',%s,ARRAY['psm-carrefour-musee'],'{}')",(list(node['liensParArrivee']),json.dumps({'liens':node['liens'],'parArrivee':node['liensParArrivee']}),gauche))
+  q.execute("SELECT e.id,e.pnj_id FROM batailles_engagements e JOIN pnj_membres m ON m.id=e.pnj_id WHERE e.bataille_id=71 AND e.camp='republic' AND m.statut='actif' LIMIT 1");ident,pnj=q.fetchone()
+  q.execute('DELETE FROM batailles_engagements WHERE bataille_id=71 AND id<>%s',(ident,));sql('DELETE FROM batailles_groupes WHERE bataille_id=71;SELECT militaire_bataille_groupes_constituer(71)')
+  sql("UPDATE batailles SET ville='ville_a',batiment=NULL,piece=NULL WHERE id=71")
+  q.execute("UPDATE pnj_membres SET leader_pj=NULL,leader_pnj_id=NULL,ville='ville_a',building_id=NULL,room_id=NULL,rue_noeud_id=%s WHERE id=%s",(depuis,pnj))
+  q.execute("UPDATE pnj_membres SET rue_noeud_id='psm-carrefour-musee' WHERE id=%s",(pnj,))
+  q.execute('SELECT militaire_bataille_decrocher_groupe(71,groupe_id,5) FROM batailles_groupes WHERE bataille_id=71');assert q.fetchone()[0]==1
+  q.execute('SELECT rue_noeud_id,rue_depuis FROM pnj_membres WHERE id=%s',(pnj,));assert q.fetchone()==(gauche,'psm-carrefour-musee')
+ cas('repli_PNJ_PSM_vraie_gauche_selon_provenance_serveur',psm_repli)
  # Décor fictif committé pour deux connexions réellement concurrentes.
  pret();ctx['c'].commit()
  def concurrence():

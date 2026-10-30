@@ -108,4 +108,18 @@ FROM public.rue_noeuds_serveur r GROUP BY country,city;
 -- Un déclenchement Vercel quotidien ne prouve pas une progression à 90 secondes.
 -- Vérifier les extensions et tâches déjà installées avant de proposer un raccordement.
 SELECT extname,extversion FROM pg_extension WHERE extname IN ('pg_cron','pg_net');
+-- Compléments 30/10 : comparer les corps avant application, sans effet sur les joueurs.
+SELECT p.oid::regprocedure AS signature,md5(p.prosrc) AS md5_corps,pg_get_functiondef(p.oid) AS definition,p.proacl
+FROM pg_proc p WHERE p.oid IN (
+ to_regprocedure('public.camion_monter(text,text)'),to_regprocedure('public.camion_descendre(text)'),
+ to_regprocedure('public.camion_deplacer(text,text,boolean,text)'),to_regprocedure('public.camion_occupants(text)'),
+ to_regprocedure('public.camion_grade_commandant(text)'),to_regprocedure('public.militaire_grade_effectif(text)'),
+ to_regprocedure('public.militaire_bataille_decision_effective(bigint,text)'),to_regprocedure('public.rue_position_lire()'),
+ to_regprocedure('public.justice_executer_condamnation_soi(text)'),
+ to_regprocedure('public.detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text,jsonb)'),
+ to_regprocedure('public.crime_neutraliser(text,text,integer)')) ORDER BY signature::text;
+SELECT a.attname,format_type(a.atttypid,a.atttypmod) AS type
+FROM pg_attribute a WHERE a.attrelid=to_regclass('public.pnj_membres') AND a.attname='rue_depuis' AND NOT a.attisdropped;
+SELECT version,name FROM supabase_migrations.schema_migrations WHERE version IN
+ ('20261029223700','20261029223800','20261029223900','20261030001000','20261030001100') ORDER BY version;
 ROLLBACK;

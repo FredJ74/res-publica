@@ -1126,7 +1126,14 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     // Une reconnexion ne reprend jamais une position provenant du localStorage.
     // Le cache ne sert qu'a choisir l'orientation de la scene, pas le lieu.
     if (typeof sbRpc !== 'function') return;
-    const position = await sbRpc('rue_position_lire', {})
+    let position;
+    if(state._navigationServeur===true && typeof sbGroupePjLire==='function' && typeof sbPositionNavigationConfirmee==='function') {
+      const groupe=await sbGroupePjLire().catch(()=>null);
+      position=sbPositionNavigationConfirmee(groupe,state.char?.name);
+      // Compatibilité avec le contrat préparé antérieur sans provenance.
+      if(groupe?.ok===true && !Object.prototype.hasOwnProperty.call(groupe,'position_personnelle'))
+        position=await sbRpc('rue_position_lire',{}).then(rows=>Array.isArray(rows)?rows[0]:rows).catch(()=>null);
+    } else position = await sbRpc('rue_position_lire', {})
       .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
     if(!contexteNavigationRueValide(contexte)||lecture!==rueCentraleLecturePosition)return;
     if (position?.ok !== true || position.country !== pays ||
@@ -1137,7 +1144,7 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     }
     if (position.street && !position.building) {
       if (!RUE_CENTRALE_NOEUDS[pays]?.[position.street]) return;
-      const orientation = position.street === noeudDepart ? depuisNoeud : null;
+      const orientation = Object.prototype.hasOwnProperty.call(position,'depuis') ? position.depuis : (position.street === noeudDepart ? depuisNoeud : null);
       await afficherNoeudRue(pays, position.street, orientation, true);
       return;
     }
