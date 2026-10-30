@@ -83,6 +83,13 @@ export default async function handler(req, res) {
     if (!proprio.length) return res.status(403).json({ ok: false, error: 'Personnage non autorisé.' });
     const dossier = await etat(nom);
     if (!dossier.invite || dossier.refuse) return res.status(403).json({ ok: false, error: 'Interview non autorisée.' });
+    // Garder aussi l'unicité métier si le personnage a changé de compte propriétaire.
+    const memePortrait = await lire('forum_topics',
+      'forum_id=eq.presse&author=eq.' + encodeURIComponent(EDITEUR) +
+      '&title=eq.' + encodeURIComponent(TITRE + nom) + '&select=id&limit=1');
+    if (memePortrait.length && body.action === 'apercu') {
+      return res.status(409).json({ok:false,error:'Portrait déjà publié.'});
+    }
     const identifiant = createHash('sha256').update(utilisateur.id + ':' + nom).digest('hex').slice(0, 28);
     const topicId = 'topic-jodie-' + identifiant;
     const postId = 'post-jodie-' + identifiant;
