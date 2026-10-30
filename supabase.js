@@ -661,6 +661,15 @@ function sbPayloadPersonnage(charState) {
   // Champs transactionnels : une seule définition (sbFicheChampsFusion), pour que la base de la
   // fusion et la valeur envoyée soient calculées exactement de la même façon.
   Object.assign(data, sbFicheChampsFusion(charState));
+  // Le déplacement de groupe est entièrement confirmé par la RPC : la sauvegarde
+  // générique ne doit jamais réémettre une ancienne position après cette capacité.
+  if (charState._navigationServeur === true) {
+    delete data.country;
+    delete data.current_city;
+    delete data.current_building;
+    delete data.current_room;
+    delete data.current_street;
+  }
   if (charState.ficheFusion === true && charState._ficheBase && typeof charState._ficheBase === 'object') {
     data.fiche_base = charState._ficheBase;
   }
