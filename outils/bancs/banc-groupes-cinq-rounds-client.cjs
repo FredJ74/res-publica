@@ -5,3 +5,5 @@ test('round cinq : trois choix du chef',()=>{const h=c.htmlDecisionsCombat({id:7
 test('membre sans pouvoir de décision : consultation seule',()=>{const h=c.htmlDecisionsCombat({id:71,contrat_combat:2,peut_decider:false,round_courant:5});assert.match(h,/Consulter le combat/);assert.doesNotMatch(h,/poursuivreCombat|deciderCombat/);});
 test('chef hors combat : constater une résolution automatique sans prendre son titre',()=>{const h=c.htmlDecisionsCombat({id:71,contrat_combat:2,peut_decider:false,resolution_automatique:true,round_courant:5});assert.match(h,/Constater la résolution automatique/);assert.doesNotMatch(h,/Fuir|Se rendre/);});
 test('ancien contrat : aucun ordre déduit du navigateur',()=>assert.doesNotMatch(c.htmlDecisionsCombat({id:71,je_suis_leader:true,round_courant:5}),/onclick/));
+
+test('phase initiale attestée par serveur : trois choix avant engagement',()=>{const h=c.htmlDecisionsCombat({id:71,contrat_combat:2,peut_decider:true,phase_initiale:true,round_courant:0});for(const label of ['Combattre','Fuir','Se rendre'])assert.ok(h.includes(label),h);});

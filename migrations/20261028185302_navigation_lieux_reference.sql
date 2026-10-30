@@ -11,7 +11,7 @@ INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,memb
 ('republic','ville_b','mairie','["accueil_mairie","bureau_maire_local","bureau_maire_adjoint","salle_elections","salle_archives"]'::jsonb,false,NULL),
 ('republic','ville_b','banque-locale','["guichet","bureau_directeur"]'::jsonb,false,NULL),
 ('republic','ville_b','dispensaire-public-v','["attente","ehpad"]'::jsonb,false,NULL),
-('republic','ville_b','commissariat-local','["accueil_loc","geoles"]'::jsonb,false,NULL),
+('republic','ville_b','commissariat-local','["accueil_loc","geoles","bureau_commissaire"]'::jsonb,false,NULL),
 ('republic','ville_b','tribunal-local','["salle_audience_locale","bureau_magistrats","greffe"]'::jsonb,false,NULL),
 ('republic','ville_b','siege-syndical','["bureau_syndical"]'::jsonb,false,NULL),
 ('republic','ville_b','usine-principale','["direction_usine"]'::jsonb,false,NULL),

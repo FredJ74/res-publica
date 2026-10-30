@@ -1,4 +1,4 @@
--- #219 PRÉPARÉE, après 20261030001000. Aucune valeur de position inventée.
+-- #219 PRÉPARÉE, après 20261030202100. Aucune valeur de position inventée.
 ALTER TABLE public.pnj_membres ADD COLUMN IF NOT EXISTS rue_depuis text;
 CREATE OR REPLACE FUNCTION public.pnj_navigation_provenance_garder_interne()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO public,pg_temp AS $g$

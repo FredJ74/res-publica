@@ -4,7 +4,7 @@ import importlib.util,sys,re
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('finaux',R/'outils/bancs/banc-groupes-raccordements-finaux-local.py');f=importlib.util.module_from_spec(sp);sp.loader.exec_module(f)
-def suite(ctx):
+def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
  for nom in ['camion_monter','camion_descendre','camion_deplacer']:
   ctx['installer_fonction_canonique'](nom)
@@ -14,7 +14,7 @@ def suite(ctx):
  for nom in ['camions_militaires_pkey','camions_ordres_pkey','camions_embarquements_pkey']:
   q.execute(re.search(r'ALTER TABLE public\.\w+ ADD CONSTRAINT '+nom+r' .*?;',contraintes,re.S)[0])
  q.execute("GRANT EXECUTE ON FUNCTION camion_monter(text,text),camion_descendre(text),camion_deplacer(text,text,boolean,text) TO authenticated")
- q.execute((R/'migrations/20261030001000_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030001000_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030001100_navigation_provenance_pnj_et_lecture_commune.sql').read_text());q.execute((R/'migrations/20261030001100_navigation_provenance_pnj_et_lecture_commune.sql').read_text());ctx['c'].commit()
+ q.execute((R/'migrations/20261030202100_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030202100_camions_groupes_et_refus_atomiques.sql').read_text());q.execute((R/'migrations/20261030202200_navigation_provenance_pnj_et_lecture_commune.sql').read_text());q.execute((R/'migrations/20261030202200_navigation_provenance_pnj_et_lecture_commune.sql').read_text());ctx['c'].commit()
  if '--contre-repli-provenance-oubliee' in sys.argv:
   q.execute("SELECT pg_get_functiondef('militaire_repli_pnj_interne(bigint,text,integer)'::regprocedure)");s=q.fetchone()[0]
   a='r.rue_noeud_id,r.rue_depuis)';assert a in s;q.execute(s.replace(a,'r.rue_noeud_id,NULL)'))
@@ -128,5 +128,6 @@ def suite(ctx):
   q.execute("SELECT count(*) FROM camions_ordres WHERE requete='concurrent-fixture'");assert q.fetchone()[0]==1
   q.execute("SELECT count(*) FROM personnages_donnees WHERE name IN ('A','B') AND current_building='camion-militaire'");assert q.fetchone()[0]==2
  cas('camion_deux_sessions_du_chef_un_embarquement_et_un_recu',concurrence)
+ if suivante is not None:suivante(ctx)
 
 if __name__=='__main__':sys.exit(f.d.c.c.lancer(lambda ctx:f.suite(ctx,suite)))

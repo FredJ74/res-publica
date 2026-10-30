@@ -1,0 +1,28 @@
+{
+  "raison": "Collisions avec les migrations municipales déjà appliquées sur main 987b112f. Seules nos migrations préparées et non appliquées sont renumérotées. Les historiques et preuves antérieures restent inchangés.",
+  "fichiers": {
+    "20261029210000_batailles_groupes_identites_universelles.sql": "20261030200000_batailles_groupes_identites_universelles.sql",
+    "20261029210100_batailles_effets_replis_et_verrous.sql": "20261030200100_batailles_effets_replis_et_verrous.sql",
+    "20261029211000_batailles_commandes_et_reprises.sql": "20261030200200_batailles_commandes_et_reprises.sql",
+    "20261029212000_squatteurs_issue_reelle_bataille.sql": "20261030200300_squatteurs_issue_reelle_bataille.sql",
+    "20261029220000_police_controles_detecteur_commun.sql": "20261030200400_police_controles_detecteur_commun.sql",
+    "20261029220100_police_controles_actions_atomiques.sql": "20261030200500_police_controles_actions_atomiques.sql",
+    "20261029223000_combats_cinq_rounds_et_commandement.sql": "20261030200600_combats_cinq_rounds_et_commandement.sql",
+    "20261029223100_combats_chef_neutralise_effets_differes.sql": "20261030200700_combats_chef_neutralise_effets_differes.sql",
+    "20261029223200_police_commandement_et_cinq_rounds.sql": "20261030200800_police_commandement_et_cinq_rounds.sql",
+    "20261029223300_navigation_provenance_et_destination_fuite.sql": "20261030200900_navigation_provenance_et_destination_fuite.sql",
+    "20261029223400_navigation_directions_reference.sql": "20261030201000_navigation_directions_reference.sql",
+    "20261029223401_navigation_directions_reference.sql": "20261030201100_navigation_directions_reference.sql",
+    "20261029223402_navigation_directions_reference.sql": "20261030201200_navigation_directions_reference.sql",
+    "20261029223403_navigation_directions_reference.sql": "20261030201300_navigation_directions_reference.sql",
+    "20261029223404_navigation_directions_reference.sql": "20261030201400_navigation_directions_reference.sql",
+    "20261029223405_navigation_directions_reference.sql": "20261030201500_navigation_directions_reference.sql",
+    "20261029223500_police_fuite_direction_commune.sql": "20261030201600_police_fuite_direction_commune.sql",
+    "20261029223600_police_controles_chef_et_fuite_reelle.sql": "20261030201700_police_controles_chef_et_fuite_reelle.sql",
+    "20261029223700_batailles_repli_navigation_commune.sql": "20261030201800_batailles_repli_navigation_commune.sql",
+    "20261029223800_navigation_geometrie_commune_et_replis_pnj.sql": "20261030201900_navigation_geometrie_commune_et_replis_pnj.sql",
+    "20261029223900_batailles_progression_serveur_existante.sql": "20261030202000_batailles_progression_serveur_existante.sql",
+    "20261030001000_camions_groupes_et_refus_atomiques.sql": "20261030202100_camions_groupes_et_refus_atomiques.sql",
+    "20261030001100_navigation_provenance_pnj_et_lecture_commune.sql": "20261030202200_navigation_provenance_pnj_et_lecture_commune.sql"
+  }
+}

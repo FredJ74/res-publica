@@ -83,3 +83,13 @@ Le contrat documenté de `sbMilitaireBataillePoursuivre` autorise tout participa
 Cette décision remplace les règles d'observation/commandement ci-dessus : seul le chef décide volontairement de poursuivre, fuir ou se rendre. Un membre peut seulement faire constater une résolution automatique lorsque le chef est hors de combat ; il ne devient pas chef. Cinq premiers rounds sans désengagement volontaire ; un combat terminé avant cinq rounds s'arrête. Après cinq : continuer, fuite, reddition. Défenseur absent résolu par le serveur, avec le mécanisme d'expiration existant. Chef à zéro PA : groupe conservé et autres membres encore capables engagés. La fuite déplace réellement le groupe : rue du bâtiment/terrain, ou rue immédiatement à gauche si combat de rue. La reddition neutralise sans décès supplémentaire ni déplacement automatique. Les suites institutionnelles déjà acquises restent applicables.
 
 Les squatteurs sont **un unique PNJ**, de classe bêta, représentant collectivement les occupants. Aucun groupe, chef, effectif artificiel ou division corps/survivants. Fuite : départ du terrain ; reddition : neutralisation ; défaite : issue réelle des rounds. Jamais de second jet de `crime_neutraliser` ni second paiement. Ces règles ne chiffrent pas les caractéristiques des deux variantes, toujours à reprendre d'un profil validé ou à arbitrer, sans invention.
+
+## Arbitrage du 30 octobre — profils et issues définitifs
+
+PR #219, commentaire 6518723961 et mission de Fred : PNJ unique « squatteurs »,
+classe bêta ; calme INT/CHA/VOL/PER/DUP/END = 10 ; agressif identique sauf VOL 13.
+END est stocké dans `car_ent`, clé ENT du socle existant (endurance), sans indice ajouté.
+PA initiaux : plafond commun `pnj_pa_max()`, pas un nouveau barème.
+Défaite PJ → defaite ; fuite/reddition occupant → neutralises ; décès réel → tues.
+Cinq rounds engagés, choix de désengagement uniquement après cinq rounds accomplis.
+Amendes/dettes : contrats #255/#256, aucun circuit financier parallèle.

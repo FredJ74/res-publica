@@ -1,3 +1,13 @@
+## #219 — reprise civile du 30 octobre, EN COURS, NON DÉPLOYÉE
+
+Main `987b112f` intégré par `496454ff` : finances #255/#256 et mairies conservées. Les 23 migrations **préparées seulement** qui entraient en collision avec les versions municipales appliquées ont été déplacées vers `20261030200000` à `20261030202200` ; correspondance exacte dans `outils/audits/VERSIONS-GROUPES-219-20261030.json`. Les anciennes preuves gardent leurs noms historiques. Références de navigation régénérées depuis le vrai `data.js` de main, pas de baseline falsifié.
+
+Nouveaux compléments préparés `20261030202300` à `20261030202600` : PNJ unique « squatteurs », bêta, six caractéristiques 10 sauf VOL13 pour agressif (END = ENT), ouverture civile dans les mêmes batailles et engagements, paiement préalable extrait du corps vivant de `crime_neutraliser` sans son jet final, reçu durable, trois choix initiaux, mêmes rounds et conséquences réelles. Ancienne porte instantanée refusée ; branche institutionnelle député conservée. Chef neutralisé reste avec ses compagnons, sans tentative de repli impossible. Les décisions PNJ réutilisent les doctrines ; fuite référencée par le moteur de navigation. Aucun second circuit d'amendes : le résiduel judiciaire financier appartient à Claude (#255/#256).
+
+**351/351 cas PostgreSQL jetables réussis**, dont les 337 antérieurs conservés, profils, mort réelle/cadavre, défaite réelle/occupation conservée, reddition, vraie fuite du PNJ, paiement et rejeu. Les corps judiciaires communiqués sont archivés avec empreintes dans `outils/bancs/fixtures/groupes-justice-communiquee-20261030.json`. **27/27 tests clients ciblés** réussis. Contrôleur complet : 136/137 avant adaptation de son repère obsolète `crime_neutraliser` vers `sbCombatOuvrir` (même règle de retour anticipé député, aucune assertion supprimée), nouveau passage requis. Contrôles globaux 5/12 ; rouges nommés dans le rapport, non masqués. Prévol vivant non exécuté : aucun connecteur Supabase exposé ici. Aucun joueur réel touché, aucune migration appliquée, fusion ou déploiement.
+
+À poursuivre avant intégration : couverture des cinq rounds civils et choix suivants, concurrence de l'ouverture, modes d'arme avec possessions, garde des anciennes occupations, raccords PNJ généraux et contre-épreuves. Ne pas présenter ces points comme validés de bout en bout.
+
 **Reprise faisant foi :** `outils/audits/REPRISE-GROUPES-219-20261030.md`, code `bc6cbd5f`, preuves `preuves-groupes-219-raccordements-20261030/`. #219 non intégrable, aucune production. Prévol corrigé sur son tri de signature (alias casté remplacé par expression de catalogue).
 
 ## #219 — provenance commune et reprise des scènes (30 octobre, EN COURS)

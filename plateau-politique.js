@@ -11930,6 +11930,7 @@ function htmlDecisionsCombat(b) {
        : bouton('ouvrirPanneauCombat('+b.id+')','Consulter le combat'));
   }
   let h = '<div class="cpj-dialogue">';
+  if (b.phase_initiale === true) return h + bouton('poursuivreCombat('+b.id+')','Combattre') + bouton('deciderCombat('+b.id+',&quot;replier&quot;)','Fuir') + bouton('deciderCombat('+b.id+',&quot;rendre&quot;)','Se rendre') + '</div>';
   h += Number(b.round_courant)<5
     ? '<p>Les cinq premiers rounds se poursuivent sans désengagement volontaire.</p>'
     : '<p>Vous pouvez continuer, tenter la fuite ou vous rendre.</p>';

@@ -6,7 +6,7 @@ R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('mixte',R/'outils/bancs/banc-groupes-bataille-mixte-local.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
 def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
- migration=R/'migrations/20261029211000_batailles_commandes_et_reprises.sql'
+ migration=R/'migrations/20261030200200_batailles_commandes_et_reprises.sql'
  q.execute(migration.read_text());q.execute(migration.read_text());ctx['c'].commit()
  if '--contre-poursuite-sans-recu' in sys.argv:
   q.execute("CREATE OR REPLACE FUNCTION public.militaire_bataille_poursuivre(p_bataille_id bigint,p_round_attendu integer,p_requete uuid) RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path TO public,pg_temp AS $$ SELECT public.militaire_bataille_poursuivre_interne(p_bataille_id) $$")

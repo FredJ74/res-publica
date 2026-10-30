@@ -4503,13 +4503,13 @@ async function sbMilitaireBatailleEtat(batailleId) {
 // Les commandes de bataille réutilisent le transport conservant les erreurs.
 // Le reçu et le round initial restent ensemble après une réponse perdue.
 let SB_BATAILLE_COMMANDE_EN_COURS = null;
-async function sbMilitaireCommande(batailleId, action) {
+async function sbMilitaireCommande(batailleId, action, ouverture = null) {
   const c = contexteGroupePj();
   if (!contexteGroupePjValide(c)) return null;
   if (SB_BATAILLE_COMMANDE_EN_COURS && contexteGroupePjValide(SB_BATAILLE_COMMANDE_EN_COURS))
     return {ok:false,raison:'commande_en_cours'};
   SB_BATAILLE_COMMANDE_EN_COURS = c;
-  const cle = 'hg-bataille:' + JSON.stringify([c.uid,c.nom,batailleId,action]);
+  const cle = 'hg-bataille:' + JSON.stringify(ouverture ? [c.uid,c.nom,batailleId,action,ouverture] : [c.uid,c.nom,batailleId,action]);
   try {
     let pending;
     try {
@@ -4517,7 +4517,7 @@ async function sbMilitaireCommande(batailleId, action) {
       if (conserve) pending = JSON.parse(conserve);
       if (!pending) {
         let round = null;
-        if (action !== 'engager') {
+        if (action !== 'engager' && action !== 'ouvrir') {
           const etat = await sbMilitaireBatailleEtat(batailleId);
           if (!contexteGroupePjValide(c)) return null;
           if (!etat?.ok || !Number.isInteger(etat.bataille?.round_courant)) return {ok:false,raison:'etat_non_confirme'};
@@ -4526,21 +4526,23 @@ async function sbMilitaireCommande(batailleId, action) {
         pending = {requete:crypto.randomUUID(),round};
         localStorage.setItem(cle,JSON.stringify(pending));
       }
-      if (typeof pending.requete !== 'string' || (action !== 'engager' && !Number.isInteger(pending.round)))
+      if (typeof pending.requete !== 'string' || (action !== 'engager' && action !== 'ouvrir' && !Number.isInteger(pending.round)))
         return {ok:false,raison:'recu_invalide'};
     } catch (_) { return {ok:false,raison:'recu_non_conserve'}; }
     if (!contexteGroupePjValide(c)) return null;
-    const fn = action === 'engager' ? 'militaire_bataille_engager' :
+    const fn = action === 'ouvrir' ? 'combat_ouvrir' : action === 'engager' ? 'militaire_bataille_engager' :
       action === 'continuer' ? 'militaire_bataille_poursuivre' : 'militaire_bataille_decider';
     const params = {p_requete:pending.requete};
-    if (action !== 'engager') { params.p_bataille_id=batailleId; params.p_round_attendu=pending.round; }
-    if (action === 'tenir' || action === 'replier') params.p_decision=action;
+    if (action === 'ouvrir') { params.p_cible=ouverture.cible;params.p_mode=ouverture.mode; }
+    else if (action !== 'engager') { params.p_bataille_id=batailleId; params.p_round_attendu=pending.round; }
+    if (['tenir','replier','rendre'].includes(action)) params.p_decision=action;
     const v = await sbRpcVerdict(fn,params,{encoreValide:()=>contexteGroupePjValide(c)}).catch(()=>null);
     if (!contexteGroupePjValide(c)) return null;
     if (v?.ok === true || v?.raison === 'round_obsolete') localStorage.removeItem(cle);
     return v || {ok:false,raison:'reponse_incertaine'};
   } finally { if (SB_BATAILLE_COMMANDE_EN_COURS === c) SB_BATAILLE_COMMANDE_EN_COURS = null; }
 }
+async function sbCombatOuvrir(cible, mode) { return sbMilitaireCommande(null,'ouvrir',{cible,mode}); }
 async function sbMilitaireBatailleEngager() { return sbMilitaireCommande(null,'engager'); }
 // La décision reste réservée au chef réel ; le serveur vérifie ses droits.
 async function sbMilitaireBatailleDecider(batailleId, decision) { return sbMilitaireCommande(batailleId,decision); }
