@@ -4316,9 +4316,10 @@ function ouvrirInformationsTerrainLuthecia(nature) {
     const montant = v => Number(v).toLocaleString('fr-FR') + ' ' + devise;
     const autorises = ordre.filter((key, index) => (maxIndex < 0 || index <= maxIndex) && niveaux[key]);
     html += '<p>Coût prévisionnel de construction, hors prix d’achat du terrain. Ce barème est consultable avant toute acquisition.</p>';
-    html += '<table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left">Bâtiment</th><th style="text-align:right">Construction</th></tr></thead><tbody>' +
+    html += '<table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left">Bâtiment</th><th style="text-align:right">Construction</th><th style="text-align:right">Durée</th></tr></thead><tbody>' +
       autorises.map(key => '<tr><td style="padding:.35rem 0">' + ech(niveaux[key].label) + '</td>' +
-        '<td style="padding:.35rem 0;text-align:right">' + ech(montant(niveaux[key].cout)) + '</td></tr>').join('') +
+        '<td style="padding:.35rem 0;text-align:right">' + ech(montant(niveaux[key].cout)) + '</td>' +
+        '<td style="padding:.35rem 0;text-align:right">' + ech(typeof dureeConstruction === 'function' ? dureeConstruction(key) + ' jours' : '—') + '</td></tr>').join('') +
       '</tbody></table>';
     html += '<p class="cpj-note">Le coût du terrain s’ajoute à celui du bâtiment. Les dépenses de construction suivent le calendrier et les approvisionnements du chantier.</p>';
   } else if (nature === 'chantier' && ch) {

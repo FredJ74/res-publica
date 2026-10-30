@@ -1344,6 +1344,24 @@ async function talkToPnj(encodedPnj, action) {
 
   if (!action || action.trim() === '') return;
 
+  // Conseil immobilier commun : mêmes chiffres que le chantier réel, sans deuxième barème.
+  // Les trois interlocuteurs compétents répondent aussi si l'IA est indisponible.
+  const interlocuteur = String(pnj.name || '').replace(/\s*\(PNJ\)\s*$/i, '').trim();
+  if (['Marc Hantile', 'Laurent Barre', 'Hans Von Discret'].includes(interlocuteur)
+      && /construc|b[aâ]ti|chantier|hangar|commerce premium|commerce standard|dur[eé]e.*immeuble|co[uû]t.*immeuble/i.test(action)) {
+    const niveaux = typeof NIVEAUX_CONSTRUCTION !== 'undefined' ? NIVEAUX_CONSTRUCTION : {};
+    const codes = ['hangar', 'commerce_standard', 'commerce_premium', 'building'];
+    const lignes = codes.filter(code => niveaux[code]).map(code =>
+      niveaux[code].label + ' : ' + Number(niveaux[code].cout).toLocaleString('fr-FR') +
+      ' FR, ' + (typeof dureeConstruction === 'function' ? dureeConstruction(code) : '—') + ' jours');
+    const message = 'Voici le barème de construction : ' + lignes.join(' ; ') +
+      '. Ces durées sont incompressibles en Républia. Le terrain est payé séparément ; ' +
+      'la construction exige un permis et des approvisionnements. Les types autorisés dépendent du zonage de la ville.';
+    const speech = document.getElementById('pnj-speech');
+    if (speech) speech.textContent = message;
+    return;
+  }
+
   if (['squatter_cool', 'squatter_agr'].includes(pnj.terrainPnjId || pnj.id)
       && (action === 'bonjour' || /n[ée]goci|propos(?:er|ition)|combien.*part|quitter.*terrain/i.test(action))) {
     document.getElementById('pnj-speech').textContent = repliqueNegociationSquatteurs(pnj.terrainPnjId || pnj.id);
