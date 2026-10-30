@@ -42,6 +42,9 @@ class Exports(unittest.TestCase):
   sp=importlib.util.spec_from_file_location('lot',R/'outils/livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
   m.R=self.rep;(self.rep/'baseline').mkdir();(self.rep/'baseline/CONTROLE-GLOBAL.json').write_text('{"releve_le":"2099-01-01T00:00:00"}')
   with self.assertRaisesRegex(AssertionError,'rehorodater'):m.preparer()
+ def test_ancien_export_sequence_refuse_avant_rendu(self):
+  self.valeurs['export_structure']['sequences']=[{'sequence':'serie_fixture','start':1,'increment':1}];self.ecrire()
+  with self.assertRaisesRegex(ValueError,'réextraire'):rendre.charger_exports(str(self.rep))
  def test_sequence_incomplete_refusee_sans_valeur_inventee(self):
   with self.assertRaisesRegex(ValueError,'réextraire'):rendre.options_sequence({'sequence':'x','start':1})
 

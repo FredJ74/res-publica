@@ -268,3 +268,64 @@ cette colonne (`pg_depend.deptype = 'a'`) et que le type est entier, le rendu
 écrit `bigserial` plutôt que `bigint DEFAULT nextval(...)`. C'est strictement
 équivalent — PostgreSQL recrée la séquence, le défaut et le lien de propriété —
 et c'est lisible. Une séquence autonome, elle, serait émise séparément.
+
+## Épreuve PostgreSQL isolée et acquisition stricte — #219, 30/10/2026
+
+`rendre.py` et `seeds.py` partagent désormais le même chargeur des quatre exports.
+Il accepte les JSON natifs (objet ou ligne unique), ainsi que les anciennes
+réponses MCP dans leur enveloppe `untrusted-data`. Il refuse un export absent,
+tronqué, contradictoire ou privé de ses catégories de droits, avant tout rendu.
+Ne jamais remplacer un export manquant par une liste vide. Une catégorie
+réellement vide (`null` renvoyé par `jsonb_agg`) est normalisée en liste vide.
+
+La requête `export_structure` de `requetes.py` extrait aussi le type, le minimum
+et le maximum des séquences. **Réexécuter cette requête** pour un ancien export
+qui ne porte pas ces trois champs : les deviner serait perdre la fidélité.
+Le rendu conserve séquences ordinaires/serial/IDENTITY, propriété, nom et options ;
+une IDENTITY n'est jamais créée deux fois. Les colonnes calculées STORED restent
+calculées et sont omises des INSERT de seed. Les identités ALWAYS sont importées
+avec `OVERRIDING SYSTEM VALUE`, puis les séquences possédées sont recalées depuis
+les seuls identifiants initiaux, selon leur vrai incrément, jamais depuis le
+compteur de la bêta. Une séquence partagée sans propriétaire nécessite une
+stratégie explicite ; elle n'est pas recalée arbitrairement.
+
+`epreuve-postgresql.py` réutilise `reconstruire.assembler()` et son découpage par
+l'analyseur PostgreSQL. Il ne rejoue aucun SQL de `historique/` ou de `migrations/`.
+Il n'accepte **aucune adresse de base distante** : seulement un serveur local
+éphémère, détruit après l'épreuve. `--postgres-bin` sélectionne des binaires locaux
+PostgreSQL 17, sans créer de ressource Supabase. Le moteur livré par pgserver
+0.1.4 est PostgreSQL 16.2 : il est refusé en mode strict ; le mode
+`--diagnostic-version-differente` ne certifie jamais une reconstruction fidèle.
+Aucun privilège MAINTAIN n'est retiré et aucune erreur SQL n'est ignorée.
+
+Les fonctions sont déclarées avant les vues selon les phases du baseline, puis
+**toutes** sont recompilées avec `check_function_bodies=on`. L'assouplissement
+initial ne sert qu'à l'ordre de déclaration, pas à accepter un corps invalide.
+Les primitives `auth.*` du décor sont explicites : ce n'est pas une copie de
+GoTrue ni une preuve d'authentification réelle.
+
+`--exports` confronte le schéma reconstruit aux quatre exports, en retirant
+uniquement les exclusions `hors_baseline` explicitement classées. Tout écart
+bloque l'installation. `--lot-219` exige en plus `--registre` (JSON natif du
+prévol avec `registre`, éventuellement sous `prevol_219`), complet et non vide.
+Il génère puis installe le manifeste dans une transaction. Un faux registre
+vide n'est jamais créé pour éviter une collision. Le rapport distingue schéma
+local, concordance d'exports, installation du lot et absence de recette réelle.
+
+Exécution par l'intégrateur technique, après acquisition et génération conformes :
+
+```
+python3 outils/baseline/epreuve-postgresql.py \
+  --postgres-bin <binaires-PG17-locaux> --exports <exports-complets> \
+  --registre <registre-vivant.json> --lot-219 --rapport <rapport-local.json>
+```
+
+Les préparations doivent rester postérieures au **vrai** point de coupe du
+nouveau baseline : si l'extraction actuelle les dépasse, rehorodater tout le lot
+avec une correspondance explicite et mettre ses références à jour. Ne jamais
+reculer `releve_le` pour faire passer Workflow. Le générateur du lot refuse ce cas.
+
+`outils/bancs/test-catalogue-reconstruction.py` exerce l'acquisition, les deux
+rendus et les séquences sur PostgreSQL jetable. Les dépendances épinglées sont
+dans `outils/bancs/requirements-postgres-local.txt` ; pglast 7.21 utilise réellement
+la grammaire PostgreSQL 17.7. Cet analyseur n'est pas le moteur PostgreSQL 17.

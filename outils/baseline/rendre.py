@@ -124,6 +124,10 @@ def charger_exports(rep):
             if k in exp and exp[k] != v:
                 raise ValueError("catégorie contradictoire : " + k)
             exp[k] = v
+    # Les nouvelles options sont obligatoires avant le moindre fichier écrit.
+    # Un ancien export n'autorise pas à inventer min/max/type d'une séquence.
+    for seq in exp["sequences"]:
+        options_sequence(seq)
     return exp, vus
 
 
