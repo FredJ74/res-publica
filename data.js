@@ -3850,7 +3850,7 @@ const BUILDINGS = {
           // fn/handler consulter_elections/ouvrirTableauElectoral restent intacts, toujours
           // utilises par cette salle (data.js, 3 occurrences villes, non touchees).
           {fn:'etat_civil', label:'État civil', pa:0, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Acte officiel, naturalisation, demande en mariage, officialisation.'},
-          {fn:'consulter_indices_locaux', label:'Consulter les caisses communales', pa:0, cost:0, type:'legal', icon:'ti-chart-histogram', successRate:100, desc:'Voir le solde reel des caisses du Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal.'},
+
           {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'},
           {fn:'consulter_organigramme_mairie', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Organigramme national ou municipal, en temps reel. Public et gratuit, aucun poste requis.'}
         ]
@@ -4413,7 +4413,7 @@ const BUILDINGS = {
           // acte_officiel dans cet accueil, jamais invente ici) derriere le meme point d'entree
           // que Luthecia -- voir ouvrirEtatCivil() (plateau-politique.js).
           {fn:'etat_civil', label:'État civil', pa:0, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, desc:'Naturalisation, demande en mariage, officialisation.'},
-          {fn:'consulter_indices_locaux', label:'Consulter les caisses communales', pa:0, cost:0, type:'legal', icon:'ti-chart-histogram', successRate:100, desc:'Voir le solde reel des caisses du Commissariat, Centre Multimodal, Stade, Marche, Dispensaire et Tribunal.'},
+
           {fn:'consulter_organigramme_mairie', label:'Consulter l\'organigramme', pa:0, cost:0, type:'legal', icon:'ti-sitemap', successRate:100, desc:'Organigramme national ou municipal, en temps reel. Public et gratuit, aucun poste requis.'}
         ]
       },
