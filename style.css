@@ -1185,6 +1185,10 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .forum-sousgroupe-label:hover{color:#8a7040}
 .forum-sousgroupe .forum-nav-item{padding-left:1.1rem}
 .forum-main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg2)}
+/* Dans le courrier, le panneau principal doit defiler independamment de la barre laterale.
+   Sans ceci, une proposition longue de Jodie masque les boutons en bas de page. */
+#modal-forum.forum-mail-scroll .forum-main{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+#modal-forum.forum-mail-scroll #forum-main{min-height:0;overflow-y:auto}
 .forum-header-bar{display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;border-bottom:1px solid var(--border2);background:var(--bg);flex-shrink:0}
 .forum-title-main{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--gold);display:flex;align-items:center;gap:.4rem}
 .forum-subtitle{font-size:.82rem;color:var(--text4);font-style:italic}

@@ -833,7 +833,11 @@ function renderForumContent() {
   // ici plutôt qu'à chaque site d'appel : renderForumContent() est le seul point de passage
   // commun à tous les changements d'écran du forum.
   const modalForumEl = document.getElementById('modal-forum');
-  if (modalForumEl) modalForumEl.classList.toggle('forum-compose-grow', forumView === 'compose-canvas');
+  if (modalForumEl) {
+    modalForumEl.classList.toggle('forum-compose-grow', forumView === 'compose-canvas');
+    // Les mails (dont la proposition de Jodie) doivent pouvoir defiler jusqu'aux actions.
+    modalForumEl.classList.toggle('forum-mail-scroll', forumView === 'mail');
+  }
   if (forumView === 'mail')      return renderMailView();
   if (forumView === 'list' && !currentForumId) return renderForumAccueil();
   if (forumView === 'list')      return renderTopicList();

@@ -3742,11 +3742,21 @@ async function afficherJournalDuJour(force) {
 const CATEGORIES_CAISSE_BATIMENTS_LOCAUX = {
   'commissariat-local': 'commissariat', 'tribunal-local': 'tribunal', 'marche-psm': 'marche'
 };
+// L'ACCUEIL D'UN BATIMENT : une salle nommée accueil/hall/entree/reception, ou à défaut la
+// première salle déclarée (tribunal : salle d'audience ; marché : étals ; stade : terrain).
+function estAccueilBatiment(buildingId, roomId) {
+  if (!roomId) return false;
+  return /^(accueil|hall|entree|reception)(_|$)/.test(roomId)
+    || roomId === Object.keys((typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingId]?.rooms) || {})[0];
+}
 function categorieCaisseAccueilCommunal(buildingId, ville, pays) {
   if (!buildingId) return null;
-  // La mairie est elle aussi un bâtiment public doté de sa propre caisse territoriale.
-  if (buildingId === 'mairie-capitale' && ville === 'capitale') return 'mairie';
-  if (buildingId === 'mairie' && (ville === 'ville_a' || ville === 'ville_b')) return 'mairie';
+  // La mairie est elle aussi un bâtiment public doté de sa propre caisse territoriale
+  // (décision de Fred, 31/10/2026) : « mairie-capitale » à Luthécia, « mairie » dans les autres
+  // villes. On exige une vraie ville (référentiel VILLES) dont la liste de bâtiments la contient.
+  if ((buildingId === 'mairie' || buildingId.startsWith('mairie-'))
+      && typeof villeEstReelle === 'function' && villeEstReelle(pays, ville)
+      && (typeof WORLD === 'undefined' || (WORLD[pays]?.[ville]?.buildings || []).includes(buildingId))) return 'mairie';
   const categories = [...CATEGORIES_BUDGET_MAIRIE, 'tribunal'];
   const declaree = (typeof STRUCTURES_MEDICALES !== 'undefined' && STRUCTURES_MEDICALES[buildingId]?.categorieCaisse)
     || CATEGORIES_CAISSE_BATIMENTS_LOCAUX[buildingId] || null;
@@ -3783,11 +3793,10 @@ function renderRoomActions(room, buildingId, roomId) {
   document.getElementById('action-context-bat').textContent =
     room.name.toUpperCase() + ' — ACTIONS DISPONIBLES';
 
-  // Solde visible à l'accueil du bâtiment communal lui-même, et non à la mairie.
-  // Le commissariat conserve impérativement son contrôle de lecture côté serveur.
+  // Solde visible à l'accueil de chaque bâtiment communal, mairie comprise, et plus jamais par un
+  // écran centralisé. Le commissariat conserve impérativement son contrôle de lecture côté serveur.
   // Aucune caisse n'est créée ni créditée pour afficher une information.
-  if (state.country === 'republic' && (/^(accueil|hall|entree|reception)(_|$)/.test(roomId) ||
-      roomId === Object.keys(BUILDINGS[buildingId]?.rooms || {})[0])) {
+  if (state.country === 'republic' && estAccueilBatiment(buildingId, roomId)) {
     const categorie = categorieCaisseAccueilCommunal(buildingId, state.currentCity, state.country);
     if (categorie) {
       const caisseId = categorie === 'mairie'

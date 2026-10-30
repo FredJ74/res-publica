@@ -47,6 +47,7 @@ vm.runInContext([
   extraire(personnage, 'const STRUCTURES_MEDICALES'),
   extraire(politique, 'const CATEGORIES_BUDGET_MAIRIE'),
   extraire(politique, 'const CATEGORIES_CAISSE_BATIMENTS_LOCAUX'),
+  extraire(politique, 'function estAccueilBatiment('),
   extraire(politique, 'function categorieCaisseAccueilCommunal('),
   extraire(politique, 'function getBuildingIdPourCategorieBudget('),
   extraire(justice, 'function getBuildingIdCommissariat('),
@@ -54,7 +55,7 @@ vm.runInContext([
   extraire(justice, 'function getBuildingIdDispensaire('),
   extraire(justice, 'function getBuildingIdTribunal('),
   extraire(justice, 'function getCaisseLocaleId('),
-  'this.cat = categorieCaisseAccueilCommunal; this.caisse = getBuildingIdPourCategorieBudget;',
+  'this.accueil = estAccueilBatiment; this.cat = categorieCaisseAccueilCommunal; this.caisse = getBuildingIdPourCategorieBudget;',
   'this.B = BUILDINGS; this.W = WORLD;'
 ].join('\n'), ctx);
 
@@ -110,14 +111,30 @@ test('la propre caisse des mairies est affichée sans restaurer la consultation 
   }
 });
 
-test("l'accueil de chaque bâtiment communal est reconnu (première salle ou salle d'accueil)", () => {
-  const bids = new Set(Object.values(ATTENDU).flatMap(o => Object.keys(o)));
-  for (const bid of bids) {
-    const salles = Object.keys(ctx.B[bid]?.rooms || {});
-    assert.ok(salles.length > 0, bid + ' sans salle');
+test("les 21 accueils publics affichent leur caisse, les salles intérieures non", () => {
+  const MAIRIES = { capitale: 'mairie-capitale', ville_a: 'mairie', ville_b: 'mairie' };
+  let n = 0;
+  for (const [ville, batiments] of Object.entries(ATTENDU)) {
+    for (const bid of [...Object.keys(batiments), MAIRIES[ville]]) {
+      const salles = Object.keys(ctx.B[bid]?.rooms || {});
+      assert.ok(salles.length > 0, bid + ' sans salle');
+      assert.ok(ctx.accueil(bid, salles[0]), bid + ' : accueil ' + salles[0] + ' non reconnu');
+      assert.ok(ctx.cat(bid, ville, 'republic'), bid + ' (' + ville + ') : aucune caisse');
+      n++;
+    }
   }
+  assert.strictEqual(n, 21);
+  for (const [bid, salle] of [['mairie-capitale', 'bureau_maire'], ['mairie', 'bureau_maire_local'],
+    ['commissariat', 'bureau_commissaire'], ['tribunal', 'greffe'], ['stade', 'vestiaires']])
+    assert.strictEqual(ctx.accueil(bid, salle), false, bid + '/' + salle);
   const bloc = extraire(politique, 'function renderRoomActions(');
-  assert.match(bloc, /roomId === Object\.keys\(BUILDINGS\[buildingId\]\?\.rooms \|\| \{\}\)\[0\]/);
+  assert.match(bloc, /state\.country === 'republic' && estAccueilBatiment\(buildingId, roomId\)/);
+});
+
+test('une mairie hors ville réelle ou hors liste de la ville n\'a pas de caisse', () => {
+  assert.strictEqual(ctx.cat('mairie', 'caserne', 'republic'), null);
+  assert.strictEqual(ctx.cat('mairie-capitale', 'ville_a', 'republic'), null);
+  assert.strictEqual(ctx.cat('mairie', 'capitale', 'republic'), null);
 });
 
 test('bâtiments sans caisse communale : rien affiché', () => {
