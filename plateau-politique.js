@@ -3733,6 +3733,25 @@ async function afficherJournalDuJour(force) {
 // =====================
 // ROOM ACTIONS
 // =====================
+// QUELLE CAISSE COMMUNALE S'AFFICHE A L'ACCUEIL DE CE BATIMENT (30/10/2026).
+// Le batiment physique ne porte pas toujours le nom de sa categorie : le dispensaire de Luthecia
+// est « dispensaire-public » (caisse dispensaire_capitale), ceux de Montrouge et de PSM
+// « dispensaire-public-v ». On reutilise la declaration existante STRUCTURES_MEDICALES
+// (categorieCaisse) ; seuls les trois batiments locaux sans declaration equivalente sont nommes
+// ici. Rend null pour tout batiment qui n'a pas de caisse communale. Aucune caisse n'est creee.
+const CATEGORIES_CAISSE_BATIMENTS_LOCAUX = {
+  'commissariat-local': 'commissariat', 'tribunal-local': 'tribunal', 'marche-psm': 'marche'
+};
+function categorieCaisseAccueilCommunal(buildingId, ville, pays) {
+  if (!buildingId) return null;
+  const categories = [...CATEGORIES_BUDGET_MAIRIE, 'tribunal'];
+  const declaree = (typeof STRUCTURES_MEDICALES !== 'undefined' && STRUCTURES_MEDICALES[buildingId]?.categorieCaisse)
+    || CATEGORIES_CAISSE_BATIMENTS_LOCAUX[buildingId] || null;
+  if (declaree && categories.includes(declaree)) return declaree;
+  return categories.find(cat => cat === buildingId ||
+    getBuildingIdPourCategorieBudget(cat, ville, pays) === buildingId) || null;
+}
+
 function renderRoomActions(room, buildingId, roomId) {
   // La liste des PNJ et l'interdiction d'achat doivent refléter le même état confirmé.
   // Le chargement d'occupation, auparavant déclenché seulement par « Vérifier le terrain »,
@@ -3766,9 +3785,7 @@ function renderRoomActions(room, buildingId, roomId) {
   // Aucune caisse n'est créée ni créditée pour afficher une information.
   if (state.country === 'republic' && (/^(accueil|hall|entree|reception)(_|$)/.test(roomId) ||
       roomId === Object.keys(BUILDINGS[buildingId]?.rooms || {})[0])) {
-    const categories = [...CATEGORIES_BUDGET_MAIRIE, 'tribunal'];
-    const categorie = categories.find(cat => cat === buildingId ||
-      getBuildingIdPourCategorieBudget(cat, state.currentCity, state.country) === buildingId);
+    const categorie = categorieCaisseAccueilCommunal(buildingId, state.currentCity, state.country);
     if (categorie) {
       const caisseId = getBuildingIdPourCategorieBudget(categorie, state.currentCity, state.country);
       const element = document.getElementById('action-context-bat');
@@ -10436,46 +10453,13 @@ async function chargerBudgetMunicipalPourVille(pays, ville) {
 // peut perdre.
 //
 // CATEGORIES_BUDGET_MAIRIE et getBuildingIdPourCategorieBudget RESTENT, et ne sont plus lues que
-// par l'ecran public « Caisses communales » et par l'ecran de virement du maire : ce sont
+// par l'affichage des caisses a l'accueil des batiments communaux et par l'ecran de virement du maire : ce sont
 // desormais des categories d'AFFICHAGE et de financement ponctuel, plus une regle de
 // repartition.
 
-async function doConsulterIndicesLocaux() {
-  const ville = state.currentCity;
-  const pays = state.country;
-  document.getElementById('postes-modal-title').textContent = 'Caisses communales — ' + (WORLD[pays]?.[ville]?.name || ville);
-  document.getElementById('postes-body').innerHTML = '<div style="padding:1.5rem;text-align:center;color:#8a8060">Chargement...</div>';
-  document.getElementById('modal-postes').classList.add('open');
-
-  const cur = COUNTRIES[pays]?.cur || 'FR';
-  let html = '<div style="padding:1rem">';
-  for (const cat of CATEGORIES_BUDGET_MAIRIE) {
-    const buildingId = getBuildingIdPourCategorieBudget(cat, ville, pays);
-    // LE COMMISSARIAT FAIT EXCEPTION DEPUIS LE 15 SEPTEMBRE 2026. Cet ecran est public et gratuit
-    // a l'Hotel de Ville : il exposait donc le solde du commissariat a n'importe quel joueur, ce
-    // qui aurait rendu cosmetique la restriction posee sur l'ordre du commissariat lui-meme. La
-    // caisse est desormais lue par une RPC qui tranche l'autorisation (commissaire de la ville,
-    // maire et adjoint, ministre de l'Interieur, president) ; les cinq autres caisses communales
-    // restent publiques, c'est un choix de game design propre a leurs batiments.
-    let libelleSolde;
-    if (cat === 'commissariat') {
-      const r = (typeof lireCaisseCommissariat === 'function')
-        ? await lireCaisseCommissariat(pays, buildingId) : { ok: false };
-      libelleSolde = r && r.ok
-        ? Number(r.solde || 0).toLocaleString('fr-FR') + ' ' + cur
-        : 'reserve';
-    } else {
-      const caisse = typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(pays, buildingId) : { solde: 0 };
-      libelleSolde = (caisse?.solde || 0).toLocaleString('fr-FR') + ' ' + cur;
-    }
-    html += '<div style="display:flex;justify-content:space-between;padding:.5rem .7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem">';
-    html += '<span style="font-size:.82rem;color:#c0b090">' + LABELS_BUDGET_MAIRIE[cat] + '</span>';
-    html += '<strong style="font-size:.82rem;color:' + (libelleSolde === 'reserve' ? '#6a5a30' : '#C9A84C') + '">' + libelleSolde + '</strong>';
-    html += '</div>';
-  }
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-}
+// L'ancien ecran public « Caisses communales » de l'Hotel de Ville est retire (decision de Fred,
+// 30/10/2026) : chaque batiment communal affiche sa propre caisse a l'accueil
+// (categorieCaisseAccueilCommunal, renderRoomActions).
 
 // LA SOURCE DE LA REPARTITION MUNICIPALE, c'est-a-dire le suffixe de la caisse de la mairie.
 // caisseTerritorialeId (data.js) porte la convention ET son unique exception -- la capitale ecrit
