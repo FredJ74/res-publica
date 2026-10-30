@@ -3734,6 +3734,28 @@ async function afficherJournalDuJour(force) {
 // ROOM ACTIONS
 // =====================
 function renderRoomActions(room, buildingId, roomId) {
+  // La liste des PNJ et l'interdiction d'achat doivent refléter le même état confirmé.
+  // Le chargement d'occupation, auparavant déclenché seulement par « Vérifier le terrain »,
+  // est désormais déclenché automatiquement à l'entrée. La garde évite une boucle
+  // enterRoom -> renderRoomActions -> chargerPnjTerrain -> enterRoom.
+  if (/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain' &&
+      typeof chargerPnjTerrain === 'function') {
+    const cle = [state.country, state.currentCity, buildingId].join('/');
+    const maintenant = Date.now();
+    const memo = window._terrainOccupationSynchro;
+    if (!memo || memo.cle !== cle || maintenant - memo.depuis > 5000) {
+      window._terrainOccupationSynchro = { cle, depuis: maintenant };
+      Promise.resolve().then(() => chargerPnjTerrain(buildingId)).then(ok => {
+        if (ok && state.currentBuilding === buildingId && state.currentRoom === roomId &&
+            [state.country, state.currentCity, buildingId].join('/') === cle) {
+          enterRoom(buildingId, roomId);
+        }
+      }).catch(() => {
+        // Le lecteur serveur a déjà son message « Terrain non vérifié » ;
+        // jamais de création ou suppression locale d'occupant en cas d'échec.
+      });
+    }
+  }
   const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
 
   document.getElementById('action-context-bat').textContent =
@@ -4207,7 +4229,7 @@ function renderRoomActions(room, buildingId, roomId) {
       entries.forEach(e => deja.add(e.o.fn));
       window._terrainOrdresGroupes[index] = { titre: g.titre, entries };
       if (g.titre === 'Achat de terrains' && achatTerrainBloqueParIntrus) {
-        return '<button type="button" class="action-btn legal blocked" aria-disabled="true" onclick="expliquerAchatTerrainBloque()">' +
+        return '<button type="button" class="action-btn legal blocked" aria-disabled="true" onclick="doVerifierTerrain()">' +
           '<i class="ti ti-layout-list"></i> ' + g.titre + '</button>';
       }
       return '<button class="action-btn legal" onclick="ouvrirMenuOrdresTerrain(' + index +
@@ -4223,6 +4245,10 @@ function renderRoomActions(room, buildingId, roomId) {
   if (/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain') {
     const tsInfo = typeof getTerrainState === 'function' ? getTerrainState(buildingId) : null;
     const btnInfo = (titre, nature) => `<button class="action-btn legal" onclick="ouvrirInformationsTerrainLuthecia('${nature}')" title="${titre}"><i class="ti ti-info-circle"></i> ${titre}</button>`;
+    // Avant toute acquisition : afficher le barème de construction sans exiger d'être propriétaire.
+    if (!tsInfo?.proprietaire && !tsInfo?.chantier && !tsInfo?.niveau_construction) {
+      buttons.push(btnInfo('Coût de construction', 'budget'));
+    }
     if (tsInfo?.chantier) buttons.push(btnInfo('Information sur le chantier', 'chantier'));
     if (tsInfo?.niveau_construction && !tsInfo?.chantier) buttons.push(btnInfo('Information sur les locaux', 'locaux'));
     if (tsInfo?.chantier && typeof ouvrirApprovisionnementChantier === 'function' &&
@@ -4278,7 +4304,24 @@ function ouvrirInformationsTerrainLuthecia(nature) {
   const ech = v => String(v ?? '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const ligne = (k,v) => '<p><strong>' + ech(k) + ' :</strong> ' + ech(v) + '</p>';
   let html = ligne('Terrain', BUILDINGS[id]?.shortName || id) + ligne('Propriétaire', ts?.proprietaire || 'Non attribué');
-  if (nature === 'chantier' && ch) {
+  if (nature === 'budget' && !ts?.proprietaire && !ch && !ts?.niveau_construction) {
+    // Le même barème que le lancement du chantier : aucune estimation autonome.
+    // Les niveaux affichés respectent le zonage de la ville ; les logements sociaux
+    // restent réservés à la commune et ne sont pas proposés à un acquéreur privé.
+    const niveaux = typeof NIVEAUX_CONSTRUCTION !== 'undefined' ? NIVEAUX_CONSTRUCTION : {};
+    const ordre = typeof PALIER_ORDRE !== 'undefined' ? PALIER_ORDRE : [];
+    const zonage = typeof ZONAGE_VILLES !== 'undefined' ? ZONAGE_VILLES[state.country]?.[state.currentCity] : null;
+    const maxIndex = ordre.indexOf(zonage?.maxPalier);
+    const devise = COUNTRIES[state.country]?.cur || 'FR';
+    const montant = v => Number(v).toLocaleString('fr-FR') + ' ' + devise;
+    const autorises = ordre.filter((key, index) => (maxIndex < 0 || index <= maxIndex) && niveaux[key]);
+    html += '<p>Coût prévisionnel de construction, hors prix d’achat du terrain. Ce barème est consultable avant toute acquisition.</p>';
+    html += '<table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left">Bâtiment</th><th style="text-align:right">Construction</th></tr></thead><tbody>' +
+      autorises.map(key => '<tr><td style="padding:.35rem 0">' + ech(niveaux[key].label) + '</td>' +
+        '<td style="padding:.35rem 0;text-align:right">' + ech(montant(niveaux[key].cout)) + '</td></tr>').join('') +
+      '</tbody></table>';
+    html += '<p class="cpj-note">Le coût du terrain s’ajoute à celui du bâtiment. Les dépenses de construction suivent le calendrier et les approvisionnements du chantier.</p>';
+  } else if (nature === 'chantier' && ch) {
     html += ligne('Bâtiment prévu', ts?.niveau_construction || ch?.niveau || ch?.type || 'En construction');
     html += ligne('Jours de progression', ch?.progressionJours ?? 'Non disponibles');
     html += ligne('État', ch?.etat || ch?.statut || 'En cours');
@@ -4310,7 +4353,7 @@ function ouvrirInformationsTerrainLuthecia(nature) {
     }
   } else return;
   document.getElementById('postes-modal-title').textContent =
-    nature === 'chantier' ? 'Information sur le chantier' : 'Information sur les locaux';
+    nature === 'budget' ? 'Coût de construction avant achat' : (nature === 'chantier' ? 'Information sur le chantier' : 'Information sur les locaux');
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem">' + html + '</div>';
   document.getElementById('modal-postes').classList.add('open');
