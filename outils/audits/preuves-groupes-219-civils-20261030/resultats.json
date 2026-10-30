@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-30",
+  "code": "678f7c81413a671932f54169099b030e9f45cd89",
+  "main_compare": "d4ee7224b266d054b8184fe06e3393444b8bdc63",
+  "production": false,
+  "migrations_production": [],
+  "recette_authentifiee_production": false,
+  "sql_jetable": {
+    "cas": 373,
+    "reussis": 373,
+    "role_rpc": "authenticated",
+    "identites": "A/B/C/D fictifs ; JWT de décor",
+    "transactions": "Cas avec SAVEPOINT annulés ; concurrence avec commits seulement dans PostgreSQL jetable, détruit ensuite."
+  },
+  "clients": {
+    "bancs": 138,
+    "reussis": 138
+  },
+  "contre_epreuves": {
+    "issue": {
+      "cas": 373,
+      "echecs_detectes": 1,
+      "cas_en_echec": [
+        "squatteurs_issue_reelle_obligatoire_tues"
+      ]
+    },
+    "paiement": {
+      "cas": 373,
+      "echecs_detectes": 5,
+      "cas_en_echec": [
+        "civil_ouverture_reelle_choix_paiement_unique_rejeu",
+        "civil_mode_mains_borne_arme_et_paiement_sans_modifier_defenseur",
+        "civil_mode_arme_borne_arme_et_paiement_sans_modifier_defenseur",
+        "civil_mode_feu_borne_arme_et_paiement_sans_modifier_defenseur",
+        "civil_deux_connexions_un_combat_un_paiement_un_recu"
+      ]
+    },
+    "immobile": {
+      "cas": 373,
+      "echecs_detectes": 1,
+      "cas_en_echec": [
+        "squatteurs_fuite_automate_deplacement_reel_pas_une_mort"
+      ]
+    },
+    "repli": {
+      "cas": 373,
+      "echecs_detectes": 5,
+      "cas_en_echec": [
+        "repli_militaire_meme_navigation_PJ_PNJ_sortie_reelle_et_rejeu",
+        "repli_militaire_refus_individuel_annule_sortie_et_tous_mouvements",
+        "civil_fuite_initiale_deplacement_reel",
+        "civil_cinq_vrais_rounds_puis_replier",
+        "civil_defenseur_connecte_decision_initiale_replier"
+      ]
+    },
+    "camion": {
+      "cas": 373,
+      "echecs_detectes": 4,
+      "cas_en_echec": [
+        "camion_ancien_acte_embarque_et_debarque_groupe_PJ_entier_rejeu",
+        "camion_voyage_reel_cout_historique_2PA_par_PJ_et_rejeu_sans_double_debit",
+        "camion_section_epuisee_refuse_sans_debit_ni_deplacement",
+        "camion_deux_sessions_du_chef_un_embarquement_et_un_recu"
+      ]
+    },
+    "provenance": {
+      "cas": 373,
+      "echecs_detectes": 1,
+      "cas_en_echec": [
+        "repli_PNJ_PSM_vraie_gauche_selon_provenance_serveur"
+      ]
+    }
+  },
+  "globaux": {
+    "branche": "5/12",
+    "main": "5/12",
+    "workflow": "conforme",
+    "authority": {
+      "branche_rpc_absentes_baseline": 127,
+      "main_rpc_absentes_baseline": 117,
+      "branche_signatures_inconnues": 10,
+      "main_signatures_inconnues": 5
+    },
+    "referential": "rouge ; plusieurs extracteurs exigent un JavaScriptCore macOS absent ici, pas de prétendue mesure actualisée"
+  },
+  "limites": [
+    "Prévol Supabase réel non exécuté : aucun connecteur exposé dans cette session.",
+    "Les sources judiciaires communiquées ne sont pas un relevé complet du catalogue actuel.",
+    "PNJ de présentation sans identité canonique : refus sûr ; référencement vivant à vérifier.",
+    "Droits/RLS/triggers vivants, coexistence des migrations financières #257 et recette authentifiée isolée à confirmer.",
+    "Le calendrier existant ne garantit pas un traitement exactement à 90 secondes."
+  ],
+  "fusion_main": false
+}

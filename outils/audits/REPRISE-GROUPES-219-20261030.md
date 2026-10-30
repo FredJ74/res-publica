@@ -1,3 +1,5 @@
+> État historique avant reprise civile. Voir désormais [la validation locale du 30 octobre](CLOTURE-LOCALE-GROUPES-219-20261030.md) et ses preuves. Les caractéristiques et corps judiciaires annoncés manquants ci-dessous ont depuis été fournis et exploités ; ne pas les redemander.
+
 # #219 — Raccordements du 30 octobre : non intégrable
 
 Branche `codex/groupes-universels-20261028`, code testé `bc6cbd5f`, main
