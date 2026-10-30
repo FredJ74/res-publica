@@ -1083,31 +1083,65 @@ function assemblerDernierePage(paquet, une, articles) {
   return { indices_economiques, arrivees, carnet, chiens_ecrases, petites_annonces };
 }
 
-// Refonte "4 dernieres interviews" (4 septembre 2026) : recalculee a CHAQUE generation par lecture
-// directe de interviews_jodie (jamais reportee depuis une edition precedente ni depuis une file --
-// voir api/journal-interview.js, qui persiste desormais article_titre/article_texte/publie_le sur
-// la ligne elle-meme). Remplace l'ancienne page a interview unique (paquet.INTERVIEW_JODIE, systeme
-// "Un jour, un portrait" par mail -- laisse intact, continue de publier sur le forum "presse", mais
-// ne double plus jamais dans le Journal a partir de cette refonte).
+// Les portraits sollicités par mail, publiés dans Presse & Médias, alimentent
+// désormais la même avant-dernière page que les interviews sur rendez-vous.
+// Aucun article inventé et aucun retour vers le générateur IA : reprendre le texte
+// réellement publié. Maximum 4 portraits/interviews, classés par date.
 const MAX_INTERVIEWS_AVANT_DERNIERE_PAGE = 4;
+const TITRE_PORTRAIT_JODIE = 'Un jour, un portrait : ';
 
 async function assemblerAvantDernierePage(pays) {
   if (!SUPABASE_SERVICE_ROLE) return { interviews: [] };
-  const rows = await sbGet(
-    'interviews_jodie',
-    `country=eq.${encodeURIComponent(pays)}&publie=eq.true&article_texte=not.is.null&order=publie_le.desc.nullslast&limit=${MAX_INTERVIEWS_AVANT_DERNIERE_PAGE}`,
-    SB_HEADERS_SERVICE
-  ).catch(() => []);
-  if (!rows || rows.length === 0) return { interviews: [] };
-  const noms = [...new Set(rows.map(r => r.personnage))];
-  const persos = await sbGet('personnages', `name=in.(${noms.map(encodeURIComponent).join(',')})&select=name,photo_url`).catch(() => []);
-  const photoParNom = {};
-  (persos || []).forEach(p => { photoParNom[p.name] = p.photo_url || null; });
-  const interviews = rows.map(r => ({
+  const borne = MAX_INTERVIEWS_AVANT_DERNIERE_PAGE;
+  const [classiques, topics] = await Promise.all([
+    sbGet('interviews_jodie',
+      `country=eq.${encodeURIComponent(pays)}&publie=eq.true&article_texte=not.is.null&order=publie_le.desc.nullslast&limit=${borne}`,
+      SB_HEADERS_SERVICE),
+    sbGet('forum_topics',
+      `country=eq.${encodeURIComponent(pays)}&forum_id=eq.presse&author=eq.${encodeURIComponent('Jodie Moitout')}&title=like.${encodeURIComponent(TITRE_PORTRAIT_JODIE + '*')}&select=id,title,time,created_at&order=created_at.desc&limit=${borne * 4}`,
+      SB_HEADERS_SERVICE)
+  ]);
+  const candidats = (classiques || []).filter(r => r.personnage && r.article_texte).map(r => ({
     nom: r.personnage, titre: r.article_titre || null, texte: r.article_texte,
-    photo_url: photoParNom[r.personnage] || null, publie_le: r.publie_le || null
+    publie_le: r.publie_le || r.created_at || null,
+    origine: 'interview_jodie'
   }));
-  return { interviews };
+  const topicIds = (topics || []).map(t => t.id).filter(Boolean);
+  if (topicIds.length) {
+    const posts = await sbGet('forum_posts',
+      `topic_id=in.(${topicIds.map(encodeURIComponent).join(',')})&author=eq.${encodeURIComponent('Jodie Moitout')}&select=topic_id,content,created_at&order=created_at.asc&limit=${borne * 4}`,
+      SB_HEADERS_SERVICE);
+    const parTopic = new Map();
+    for (const post of posts || []) {
+      if (post.content && !parTopic.has(post.topic_id)) parTopic.set(post.topic_id, post);
+    }
+    for (const topic of topics || []) {
+      const post = parTopic.get(topic.id);
+      const nom = String(topic.title || '').startsWith(TITRE_PORTRAIT_JODIE)
+        ? topic.title.slice(TITRE_PORTRAIT_JODIE.length).trim() : '';
+      if (!nom || !post) continue; // Sujet créé mais texte non écrit : jamais publier un vide.
+      candidats.push({nom, titre:topic.title, texte:post.content,
+        publie_le: topic.time || topic.created_at || post.created_at || null,
+        origine:'portrait_courrier'});
+    }
+  }
+  // Un seul portrait du personnage par édition ; priorité à la publication récente.
+  candidats.sort((a,b) => new Date(b.publie_le || 0).getTime() - new Date(a.publie_le || 0).getTime());
+  const vus = new Set();
+  const retenus = candidats.filter(r => {
+    if (vus.has(r.nom)) return false;
+    vus.add(r.nom); return true;
+  }).slice(0, borne);
+  if (!retenus.length) return { interviews: [] };
+  const noms = retenus.map(r => r.nom);
+  const persos = await sbGet('personnages',
+    `name=in.(${noms.map(encodeURIComponent).join(',')})&select=name,photo_url`,
+    SB_HEADERS_SERVICE);
+  const photos = new Map((persos || []).map(p => [p.name,p.photo_url || null]));
+  return { interviews: retenus.map(r => ({
+    nom:r.nom, titre:r.titre, texte:r.texte,
+    photo_url:photos.get(r.nom) || null, publie_le:r.publie_le, origine:r.origine
+  })) };
 }
 
 // =====================================================================
