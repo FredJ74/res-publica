@@ -4181,9 +4181,14 @@ let amendesTraiteesCettePasse = false;
 async function traiterAmendesServeur() {
   if (amendesTraiteesCettePasse) return;
   amendesTraiteesCettePasse = true;
+  const debut = Date.now();
   const v = await sbRpc('minuit_amendes', {}, HEADERS_SERVICE).catch(() => null);
   const r = Array.isArray(v) ? v[0] : v;
-  if (!r || r.ok !== true) signalerEchec('amendes', JSON.stringify(v));
+  const reussi = !!(r && r.ok === true);
+  if (!reussi) signalerEchec('amendes', JSON.stringify(v));
+  // Trace durable de la passe (le serveur garantit un seul prélèvement par jour et par amende).
+  await journaliserCron('amendes_tresor', jourParisISO(), reussi ? 'ok' : 'echec',
+    reussi ? null : JSON.stringify(v), resumeContexte(r), Date.now() - debut);
 }
 
 // --- COUVRE-FEU ET RECHERCHE MILITAIRE (27 octobre 2026, audit « une seule verite » §3.3) -------
@@ -6324,7 +6329,13 @@ export default async function handler(req, res) {
 
     // 5. Loyers de TOUS les baux (Lot 1.4) -- source unique locations_actives, destination
     //    portee par le bail, chaque prelevement atomique via la RPC prelever_loyer_bail.
+    const debutLoyers = Date.now();
     const loyersLots = await preleverLoyersBaux();
+    // #224 : trace durable de la passe des loyers (examines, payes, impayes, erreurs). Observateur
+    // seulement : chaque bail reste protege d'un double debit par prelever_loyer_bail elle-meme.
+    await journaliserCron('loyers_baux', jourParisISO(), loyersLots.erreurs > 0 ? 'echec' : 'ok',
+      loyersLots.erreurs > 0 ? loyersLots.erreurs + ' bail(s) en erreur' : null,
+      resumeContexte(loyersLots), Date.now() - debutLoyers);
 
     // 5 bis. TRAITEMENTS NATIONAUX QUOTIDIENS (Lot 4.3) : redistribution fiscale, virement vers la
     //    caserne, solde des soldats. Ils ne tournaient que si un joueur passait minuit connecte --

@@ -2217,6 +2217,7 @@ async function jodiePortraitOuvrirInterview() {
     return;
   }
   window._jodieInterviewReponses = ['', '', '', '', ''];
+  window._jodieInterviewPage = 0;
   mailView = 'jodie-interview';
   document.getElementById('forum-main').innerHTML = renderForumContent();
 }
@@ -2258,23 +2259,27 @@ async function jodiePortraitRafraichirEtatMail() {
 // forum-field-label deja utilisees ailleurs dans ce fichier (renderEnvoyerMailEnTantQue) : aucun
 // nouvel editeur, un simple formulaire dans la vue mail deja existante (meme pattern que
 // mailView 'inbox'/'read'/'compose', voir renderMailView(), forum.js).
+function jodieInterviewAllerPage(page) {
+  const actuelle = Math.max(0, Math.min(4, Number(window._jodieInterviewPage) || 0));
+  const champ = document.getElementById('jodie-reponse-' + actuelle);
+  if (!Array.isArray(window._jodieInterviewReponses)) window._jodieInterviewReponses = ['', '', '', '', ''];
+  if (champ) window._jodieInterviewReponses[actuelle] = champ.value;
+  window._jodieInterviewPage = Math.max(0, Math.min(4, Number(page) || 0));
+  mailView = 'jodie-interview';
+  document.getElementById('forum-main').innerHTML = renderForumContent();
+}
 function renderJodieInterviewForm() {
   if (!window._jodieInterviewReponses) window._jodieInterviewReponses = ['', '', '', '', ''];
-  let html = '<div class="forum-header-bar">' +
-    '<button class="forum-back-btn" onclick="mailView=\'inbox\';document.getElementById(\'forum-main\').innerHTML=renderForumContent()"><i class="ti ti-arrow-left"></i> Retour</button>' +
-    '<div class="forum-title-main" style="flex:1">Interview avec Jodie Moitout</div>' +
-    '</div>';
-  html += '<div style="padding:.8rem">';
-  html += '<div style="font-size:.8rem;color:#8a8060;margin-bottom:1rem">Jodie prend des notes. Répondez avec vos mots — c\'est ce qui fera un bon portrait.</div>';
-  JODIE_QUESTIONS_INTERVIEW.forEach((q, i) => {
-    html += '<div class="forum-field" style="margin-bottom:.8rem">';
-    html += '<label class="forum-field-label">' + (i + 1) + '. ' + escapeHtmlText(q) + '</label>';
-    html += '<textarea id="jodie-reponse-' + i + '" rows="3" maxlength="500" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem .6rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;resize:vertical;box-sizing:border-box" oninput="window._jodieInterviewReponses[' + i + ']=this.value">' + escapeHtmlText(window._jodieInterviewReponses[i] || '') + '</textarea>';
-    html += '</div>';
-  });
-  html += '<button class="forum-new-btn" onclick="jodiePortraitGenererApercu()"><i class="ti ti-feather"></i> Envoyer mes réponses à Jodie</button>';
-  html += '</div>';
-  return html;
+  const page = Math.max(0, Math.min(4, Number(window._jodieInterviewPage) || 0));
+  let html = `<div class="forum-header-bar"><button class="forum-back-btn" onclick="mailView='inbox';document.getElementById('forum-main').innerHTML=renderForumContent()">Retour au courrier</button><div class="forum-title-main" style="flex:1">Interview avec Jodie Moitout</div></div>`;
+  html += '<div style="padding:.8rem"><p>Question ' + (page + 1) + ' sur 5 — Les réponses sont conservées entre les pages.</p>';
+  html += '<div class="forum-field"><label class="forum-field-label">' + (page + 1) + '. ' + escapeHtmlText(JODIE_QUESTIONS_INTERVIEW[page]) + '</label>';
+  html += '<textarea id="jodie-reponse-' + page + '" rows="5" maxlength="500" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem .6rem;box-sizing:border-box" oninput="window._jodieInterviewReponses[' + page + ']=this.value">' + escapeHtmlText(window._jodieInterviewReponses[page] || '') + '</textarea></div>';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem">';
+  if (page > 0) html += '<button class="forum-back-btn" onclick="jodieInterviewAllerPage(' + (page - 1) + ')">Précédent</button>';
+  if (page < 4) html += '<button class="forum-new-btn" onclick="jodieInterviewAllerPage(' + (page + 1) + ')">Suivant</button>';
+  else html += '<button class="forum-new-btn" onclick="jodieInterviewAllerPage(4);jodiePortraitGenererApercu()">Envoyer mes réponses à Jodie</button>';
+  return html + '</div></div>';
 }
 
 // Validation (aucun envoi vide, section 4 du lot) puis generation IA du portrait -- reutilise

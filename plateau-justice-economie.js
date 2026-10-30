@@ -5229,6 +5229,8 @@ function afficherRecapActeVente(candidat) {
   if (acompte > 0) html += '<div style="font-size:.85rem;color:#c0b090"><strong>Acompte déjà versé :</strong> ' + acompte.toLocaleString('fr-FR') + ' ' + cur + '</div>';
   html += '<div style="font-size:.85rem;color:#C9A84C"><strong>Solde restant à payer :</strong> ' + solde.toLocaleString('fr-FR') + ' ' + cur + '</div>';
   if (financementTxt) html += '<div style="font-size:.8rem;color:#8a8060">' + financementTxt + '</div>';
+  if (ts.pretDemande && ts.pretDemande.statut === 'accorde') html += '<div style="font-size:.8rem;color:#8a8060">Le prêt est versé à la signature, juste avant le paiement du solde.</div>';
+  html += '<div style="font-size:.8rem;color:#8a8060">Le solde et 1 PA sont prélevés à la signature (espèces, puis compte de la Banque nationale).</div>';
   if (permisTxt) html += '<div style="font-size:.8rem;color:#8a8060">' + permisTxt + '</div>';
   html += '</div>';
   html += '<button onclick="traiterActeVente(window._candidatActeVenteAConfirmer)" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;margin-right:.5rem">Confirmer la transaction</button>';
@@ -5248,35 +5250,12 @@ async function traiterActeVente(candidat) {
   if (typeof refuserSiGele === 'function' && await refuserSiGele('terrain', id, "Officialiser l'acte")) return;
 
   if (candidat.type === 'achatDirect') {
-    const ad = ts.achatDirect;
-    if (Date.now() < ad.dateAchat) {
-      showToast('Trop tôt', 'Votre rendez-vous n\'est pas encore arrivé.', false);
-      return;
-    }
-    if (Date.now() > ad.dateLimite) {
-      showToast('Rendez-vous manqué', 'Le délai de rattrapage de 24h est dépassé. Le dépôt est perdu.', false);
-      return;
-    }
-    const solde = ad.prix - ad.acompte;
-    if (state.arg < solde) {
-      showToast('Fonds insuffisants', solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false);
-      return;
-    }
-    // Deduction PA+cout centralisee (Lot 2C) -- au moment ou l'acte est effectivement traite
-    // (pas lors de la simple consultation/presentation des candidats dans doActeVenteTerrain),
-    // avant la premiere mutation irreversible (finalisation de l'achat).
-    const rAd = await deduireCoutOrdre({ pa: 1, cost: solde });
-    if (!rAd.ok) { showToast(rAd.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rAd.raison === 'pa_insuffisants' ? '1 PA requis.' : solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false); return; }
-    // LA MUTATION ET LA PURGE DE LA RESERVATION SONT UN SEUL ACTE (chantier 5, 10 octobre 2026).
-    //
-    // Le commentaire « Lot 1.5.0 » qui vivait ici decrivait un vrai defaut -- sbSetTerrainState
-    // ECRIT LE BLOB ENTIER, donc { achatDirect: null } effacait tout -- et sa correction consistait
-    // a renvoyer l'etat COMPLET fusionne depuis le cache. Ce correctif tenait, mais il laissait
-    // DEUX ecritures : la mutation, puis la purge, toutes deux avalees. Si la seconde se perdait,
-    // ts.achatDirect survivait, doActeVenteTerrain (qui filtre sur achatDirect.demandeur sans
-    // jamais regarder ts.proprietaire) reproposait l'acte, et le joueur REPAYAIT LE SOLDE.
-    // Les deux cles voyagent desormais dans le MEME patch, vers la meme transaction serveur, qui
-    // fusionne sur l'etat reel -- plus de blob de cache, plus de seconde ecriture.
+    const ad = ts.achatDirect || {};
+    // LE SERVEUR ENCAISSE A L'ACTE (30/10/2026) : terrain_acquisition_commande ('acte_direct')
+    // verifie le rendez-vous, calcule le solde et preleve solde + 1 PA dans la meme transaction
+    // que le transfert de propriete. L'ecran ne paie plus rien lui-meme : son ancien
+    // deduireCoutOrdre({cost: solde}) etait refuse (cout non declare pour l'ordre) et
+    // s'affichait « X restants a payer », sans aucun moyen de signer.
     const mute = await finaliserAchatTerrain(id, ad.prix, ad.surface, false, 'achat_direct',
                                             { achatDirect: null });
     if (!mute) return;
@@ -5327,17 +5306,8 @@ async function traiterActeVente(candidat) {
     return;
   }
 
-  const solde = ts.valeur_totale - (ts.acompte || 0);
-  if (state.arg < solde) {
-    showToast('Fonds insuffisants', solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false);
-    return;
-  }
-  // Deduction PA+cout centralisee (Lot 2C) -- au moment ou l'acte est effectivement traite,
-  // avant la premiere mutation irreversible (finalisation de l'achat).
-  const rCompromis = await deduireCoutOrdre({ pa: 1, cost: solde });
-  if (!rCompromis.ok) { showToast(rCompromis.raison === 'pa_insuffisants' ? 'PA insuffisants' : 'Fonds insuffisants', rCompromis.raison === 'pa_insuffisants' ? '1 PA requis.' : solde.toLocaleString('fr-FR') + ' ' + cur + ' restants à payer.', false); return; }
-  // MEME TRAITEMENT QUE L'ACHAT DIRECT CI-DESSUS, pour la meme raison : les cinq cles du compromis
-  // consomme voyagent dans le MEME patch que la mutation de propriete, vers la meme transaction.
+  // Meme regle que l'achat direct : le serveur ('acte_compromis') verse d'abord le pret accorde,
+  // puis preleve le solde et 1 PA avec le transfert de propriete. Aucun prelevement ici.
   const muteC = await finaliserAchatTerrain(id, ts.valeur_totale, ts.surface,
     ts.constructionAutorisee, 'compromis',
     { compromis: null, compromisPar: null, acompte: null, compromisAt: null, compromisExpireAt: null });
