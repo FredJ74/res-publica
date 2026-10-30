@@ -1196,8 +1196,8 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
       if(['combat_en_cours','combat_membre_pnj'].includes(position?.raison)&&typeof reprendreCombatConfirme==='function')await reprendreCombatConfirme().catch(()=>false);
       return;
     }
+    if(typeof sbFicheBaseAdopter==='function')sbFicheBaseAdopter({current_building:null,current_room:null});
   }
-  if(typeof sbFicheBaseAdopter==='function')sbFicheBaseAdopter({current_building:null,current_room:null});
   rueCentraleNoeudActuel = noeudId;
   rueCentraleDepuisNoeud = depuisNoeudId || null;
   if (typeof state !== 'undefined' && state.currentCity) {
