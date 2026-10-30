@@ -1,3 +1,9 @@
+## #219 — anciens camions raccordés (30 octobre, EN COURS, NON DÉPLOYÉ)
+
+Main #252 `aab0cfb7` intégré par `918c41d2`, sans rétablir les enquêtes aléatoires. Complément `20261030001000` préparé après `20261029223900` : mêmes trois actes camion, composition canonique et verrou graphe ; embarquement/descente/éviction de groupes complets, disponibilité de tous les passagers, refus aval entièrement annulé, reçus propres à l’acteur et aux paramètres. Coûts existants préservés (2 PA/PJ pour le trajet), grade du conducteur inchangé, projections autorisées seulement depuis les RPC contrôlées. Pas de second transport.
+
+**333/333 SQL jetables** sur le catalogue communiqué, dont 8 cas camion avec trajet réel, refus aval et deux sessions concurrentes ; les 317 cas antérieurs restent exécutés. Contre-épreuves sur ces 333 : faux repli immobile → 2 échecs attendus ; embarquement du seul chef → 3 échecs attendus. **131/131 bancs clients** après main #252. Le contrôle automatique a refusé le remplacement d’une étape CI ; celle-ci est conservée et la nouvelle suite est ajoutée séparément, sans suppression de couverture. Aucun joueur réel, migration appliquée, fusion ou déploiement. PR #246 intacte. Les corps judiciaires demandés et les valeurs des squatteurs restent en attente ; autres raccordements poursuivis.
+
 ## #219 — progression et rendu des replis (30 octobre, EN COURS)
 
 Après `27dcbb60`, complément préparé `20261029223900` : la doctrine existante résout le choix du défenseur lors d’une poursuite par un chef, sans exiger son clic ; fenêtre de 90 s et rounds conservés. Le calendrier `cron-minuit` existant appelle le même moteur pour rattraper les batailles sans navigateur. Pas de nouvel horaire ni de polling client. **Ce rattrapage quotidien n’est pas une tâche temps réel à la 90e seconde.** Une évacuation mutuelle ne produit plus un faux « anéantissement ». Un refus du moteur est journalisé comme échec, sans arrêter les autres tâches du calendrier.

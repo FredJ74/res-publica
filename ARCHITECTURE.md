@@ -340,3 +340,8 @@ Complément #219 préparé `20261029223900` : même doctrine pour les choix auto
 adverses, rattrapage par le calendrier quotidien existant, sans nouveau polling.
 Ne pas assimiler ce passage quotidien à une garantie de traitement à 90 secondes.
 Le rendu des replis reprend la vue de rue existante, pas un faux bâtiment nul.
+
+Complément #219 préparé `20261030001000` : les actes historiques des camions
+utilisent la composition canonique pour embarquer, débarquer et évincer les groupes.
+Les coûts, priorités et grades du moteur camion restent inchangés ; ses refus tardifs
+annulent aussi les positions et embarquements. Aucun nouveau moteur de transport.

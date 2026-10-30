@@ -4,7 +4,7 @@ import importlib.util,sys,json
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('directions',R/'outils/bancs/banc-groupes-fuite-directions-local.py');d=importlib.util.module_from_spec(sp);sp.loader.exec_module(d)
-def suite(ctx):
+def suite(ctx,suivante=None):
  d.suite(ctx)
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
  if '--catalogue-20261029' in sys.argv:
@@ -17,7 +17,7 @@ def suite(ctx):
  for f in ['20261029223700_batailles_repli_navigation_commune.sql','20261029223800_navigation_geometrie_commune_et_replis_pnj.sql','20261029223900_batailles_progression_serveur_existante.sql']:
   q.execute((R/'migrations'/f).read_text());q.execute((R/'migrations'/f).read_text())
  if '--contre-repli-sans-mouvement' in sys.argv:
-  q.execute("CREATE OR REPLACE FUNCTION navigation_commander_personnage_interne(text,text,text,text) RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $$SELECT '{\"ok\":true}'::jsonb$$")
+  q.execute("CREATE OR REPLACE FUNCTION navigation_commander_personnage_interne(p_nom text,p_mode text,p_destination text,p_piece text) RETURNS jsonb LANGUAGE sql SECURITY DEFINER AS $$SELECT '{\"ok\":true}'::jsonb$$")
  ctx['c'].commit()
  def pret():
   sql("DELETE FROM police_interceptions;DELETE FROM police_action_receipts;DELETE FROM batailles_rounds;DELETE FROM batailles_groupes;DELETE FROM batailles_engagements;DELETE FROM batailles;DELETE FROM groupes_pj_adhesions;DELETE FROM services_militaires WHERE personnage='C';DELETE FROM guerres;DELETE FROM jugements")
@@ -74,4 +74,5 @@ def suite(ctx):
   for role in ['anon','authenticated','service_role']:
    q.execute("SELECT has_function_privilege(%s,'navigation_commander_personnage_interne(text,text,text,text)','execute')",(role,));assert not q.fetchone()[0]
  cas('navigation_identite_explicite_reste_privee',acces)
+ if suivante is not None:suivante(ctx)
 if __name__=='__main__':sys.exit(d.c.c.lancer(suite))
