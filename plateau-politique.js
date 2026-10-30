@@ -3764,18 +3764,21 @@ function renderRoomActions(room, buildingId, roomId) {
   // Solde visible à l'accueil du bâtiment communal lui-même, et non à la mairie.
   // Le commissariat conserve impérativement son contrôle de lecture côté serveur.
   // Aucune caisse n'est créée ni créditée pour afficher une information.
-  if (state.country === 'republic' && /^(accueil|hall|entree|reception)$/.test(roomId)) {
+  if (state.country === 'republic' && (/^(accueil|hall|entree|reception)(_|$)/.test(roomId) ||
+      roomId === Object.keys(BUILDINGS[buildingId]?.rooms || {})[0])) {
     const categories = [...CATEGORIES_BUDGET_MAIRIE, 'tribunal'];
-    const categorie = categories.find(cat => getBuildingIdPourCategorieBudget(cat, state.currentCity, state.country) === buildingId);
+    const categorie = categories.find(cat => cat === buildingId ||
+      getBuildingIdPourCategorieBudget(cat, state.currentCity, state.country) === buildingId);
     if (categorie) {
+      const caisseId = getBuildingIdPourCategorieBudget(categorie, state.currentCity, state.country);
       const element = document.getElementById('action-context-bat');
       const identite = [state.char?.name, state.currentCity, state.country, buildingId, roomId].join('|');
       const titre = element.textContent;
       element.textContent = titre + ' — Caisse : chargement...';
       Promise.resolve().then(async () => {
         const reponse = categorie === 'commissariat'
-          ? (typeof lireCaisseCommissariat === 'function' ? await lireCaisseCommissariat(state.country, buildingId) : null)
-          : (typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(state.country, buildingId) : null);
+          ? (typeof lireCaisseCommissariat === 'function' ? await lireCaisseCommissariat(state.country, caisseId) : null)
+          : (typeof chargerCaisseBatiment === 'function' ? await chargerCaisseBatiment(state.country, caisseId) : null);
         if ([state.char?.name, state.currentCity, state.country, state.currentBuilding, state.currentRoom].join('|') !== identite ||
             !element.isConnected) return;
         const solde = reponse && (categorie !== 'commissariat' || reponse.ok) && Number.isFinite(Number(reponse.solde))
