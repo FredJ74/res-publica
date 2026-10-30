@@ -2361,16 +2361,9 @@ function renderJodiePortraitPreview() {
   return html;
 }
 
-// Publication reelle -- appelle DIRECTEMENT sbCreateTopic()/sbCreatePost() (supabase.js), jamais
-// showNewTopicForm()/submitComposeCanvas() (forum.js, chemin UI reserve aux PJ dont
-// career==='press') : ces primitives elles-memes n'imposent AUCUNE restriction de career (verifie
-// avant implementation), la restriction n'existe que cote UI joueur -- rester entierement en
-// dehors de ce chemin UI garantit de ne jamais l'affaiblir pour les joueurs ordinaires.
-// author:'Jodie Moitout' explicitement fige EN DUR ici, jamais state.char?.name -- c'est
-// precisement le bug (faux auteur PJ sur un article systeme) que ce lot doit ne jamais reproduire.
-// Second controle anti-republication juste avant l'ecriture (le premier a lieu a l'ouverture de
-// l'interview, jodiePortraitOuvrirInterview() ci-dessus) : aucune fenetre ou l'interview aurait pu
-// se derouler entierement sans jamais reverifier avant l'ecriture definitive.
+// Publication via l'API protegee : le navigateur ne peut pas ecrire au nom de Jodie.
+// Le serveur verifie le proprietaire, l'invitation, le refus, la signature de
+// l'apercu et l'unicite du portrait avant toute ecriture avec son compte de service.
 async function jodiePortraitPublier() {
   const nom = state.char?.name || '';
   if (!window._jodiePortraitTexte || !window._jodiePortraitJeton) {
