@@ -89,7 +89,11 @@ export default async function handler(req, res) {
     const ancien = await lire('forum_topics', 'id=eq.' + encodeURIComponent(topicId) + '&select=id&limit=1');
     if (ancien.length) {
       const posts = await lire('forum_posts', 'id=eq.' + encodeURIComponent(postId) + '&select=id&limit=1');
-      if (posts.length) return res.status(409).json({ ok: false, error: 'Portrait déjà publié.' });
+      if (posts.length) {
+        // Si la réponse précédente a été perdue, publier est une réussite idempotente.
+        if (body.action === 'publier') return res.status(200).json({ok:true,dejaPublie:true});
+        return res.status(409).json({ok:false,error:'Portrait déjà publié.'});
+      }
     }
     if (body.action === 'apercu') {
       if (!Array.isArray(body.reponses) || body.reponses.length !== 5 ||
