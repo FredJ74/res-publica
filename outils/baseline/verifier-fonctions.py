@@ -338,20 +338,42 @@ def mesurer(decl, moteur):
 
 # --- exhaustivite -----------------------------------------------------------
 
+def fonctions_premier_niveau(chemin):
+    """Noms déclarés au niveau module, pas les aides locales homonymes.
+
+    Le repérage textuel historique acceptait aussi une fonction locale indentée
+    de deux espaces, et la prenait pour un canon public sans rapport.
+    """
+    js=r"""
+const fs=require('node:fs');const [racine,fichier]=process.argv.slice(1);
+const acorn=require(require.resolve('acorn',{paths:[racine+'/outils/e2e',racine+'/outils/vercel']}));
+const code=fs.readFileSync(fichier,'utf8');let ast;
+try{ast=acorn.parse(code,{ecmaVersion:'latest',sourceType:'module'});}catch(e){ast=acorn.parse(code,{ecmaVersion:'latest',sourceType:'script'});}
+const noms=[];
+for(let n of ast.body){if(n.type==='ExportNamedDeclaration'||n.type==='ExportDefaultDeclaration')n=n.declaration;if(!n)continue;if(n.type==='FunctionDeclaration'&&n.id)noms.push(n.id.name);if(n.type==='VariableDeclaration')for(const d of n.declarations)if(d.id.type==='Identifier'&&d.init&&['FunctionExpression','ArrowFunctionExpression'].includes(d.init.type))noms.push(d.id.name);}
+process.stdout.write(JSON.stringify(noms));
+"""
+    p=subprocess.run(['node','-e',js,RACINE,str(chemin)],capture_output=True,text=True,timeout=60)
+    if p.returncode:raise RuntimeError('Analyse AST des fonctions de module impossible : '+p.stderr[-500:])
+    return set(json.loads(p.stdout))
+
+
 def copies_du_depot(decl):
     """Toute fonction d'un module de `api/` dont le nom de base existe aussi au
     navigateur. C'est la mesure qui decide, pas la declaration."""
     nav = {}
     for f in sorted(os.listdir(RACINE)):
         if f.endswith(".js"):
-            for n in fonctions_du_fichier(os.path.join(RACINE, f)):
+            chemin=os.path.join(RACINE,f)
+            for n in sorted(fonctions_du_fichier(chemin).keys() & fonctions_premier_niveau(chemin)):
                 nav.setdefault(n, f)
     trouvees = []
     api = os.path.join(RACINE, "api")
     for f in sorted(os.listdir(api)):
         if not f.endswith(".js"):
             continue
-        for n in fonctions_du_fichier(os.path.join(api, f)):
+        chemin=os.path.join(api,f)
+        for n in sorted(fonctions_du_fichier(chemin).keys() & fonctions_premier_niveau(chemin)):
             base = re.sub(r"(Serveur|Server)$", "", n)
             canon = nav.get(base) or nav.get(n)
             if canon:

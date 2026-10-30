@@ -1,6 +1,6 @@
 {
   "branche": "codex/groupes-universels-20261028",
-  "main": "7ddce4ee",
+  "main": "bd1673cafa2cda4d97961146c26523fff278eb98",
   "production_appliquee": false,
   "perimetre": "Ajouts SQL propres à #219, dont dépendances #212/#217 ; main #255 à #260 exclu.",
   "registre_vivant": "1002 versions et zéro collision des 88 précédentes, communiqués le 30/10 dans #262/#219. Liste complète toujours non matérialisée ; contrôler les nouvelles versions.",

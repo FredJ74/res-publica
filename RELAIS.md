@@ -757,3 +757,9 @@ existantes, à reprendre si Fred le demande) :
 - Sur PostgreSQL **17.6 natif** : **17/17 tests canoniques**, **379/379 scénarios métier**, six contre-épreuves détectées. **142/142 bancs clients**, **105/105 Chromium**, constructeur Vercel local et contrôle des écritures serveur validés. **6/12 contrôles globaux**, Fonctions et Workflow verts ; six échecs détaillés sans toucher aux observations ni SQL générés.
 - Aucun export complet de production transféré à cette session. Le moteur est prêt ; le transfert d'une archive des quatre JSON, contrôle global daté et registre complet par la session connectée est l'unique passage de relais nécessaire pour poursuivre la génération fidèle. Ne pas remplacer ces fichiers par les totaux/MD5 de commentaires.
 - Lot de 88 non installé sur copie fidèle, recette authentifiée non réalisée, PR toujours non autorisée à fusionner/déployer. Aucune mutation de production, de joueur ni d'authentification, aucune ressource payante créée.
+
+### #219 — dernier main #276 conservé et vérifié
+
+- Main `bd1673ca` (#276, courrier/publication Jodie) intégré par `c069f987`, sans écraser ses protections ni les groupes. Cache de plateau-communication réconcilié. **143/143 bancs clients**, **105/105 Chromium**, **379/379 SQL sur PG17.6** relancés après cette intégration.
+- Le nouveau lecteur REST `lire` a révélé un faux doublon du contrôle Fonctions : il confondait une aide numérique LOCALE de plateau-effort-guerre avec une fonction de module. Détection de portée désormais fondée sur l'AST, test de non-régression, aucune exclusion ajoutée ni fonction métier modifiée. Fonctions restent vertes : mêmes 56 entrées/43 comparaisons/1 894 cas. **18/18 tests canoniques** sur PG17.6.
+- Manifeste des 88 fichiers inchangé en contenu SQL, référence main actualisée. Les exports complets restent le passage de relais extérieur bloquant ; aucun prévol incomplet transformé en autorisation de fusion ou d'application.

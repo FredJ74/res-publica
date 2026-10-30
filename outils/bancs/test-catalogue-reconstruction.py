@@ -51,6 +51,12 @@ class Exports(unittest.TestCase):
   self.assertEqual(m.references_client_interdites('ancienMecanisme',[p]),[])
   for contenu in ['function ancienMecanisme() {}','ancienMecanisme();','window["ancienMecanisme"]();']:
    p.write_text(contenu);self.assertEqual(m.references_client_interdites('ancienMecanisme',[p]),[str(p)])
+ def test_homonyme_local_ne_devient_pas_canon_global(self):
+  sp=importlib.util.spec_from_file_location('fonctions',R/'outils/baseline/verifier-fonctions.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  p=self.rep/'client.js';p.write_text('function calcul(x){return x;}\nfunction externe(){\n  const lire = function(v){return Number(v)||0;};\n return lire(1);\n}\n')
+  self.assertEqual(m.fonctions_premier_niveau(p),{'calcul','externe'})
+  serveur=self.rep/'serveur.js';serveur.write_text('async function lire(table,filtre){return fetch(table+filtre);}')
+  self.assertEqual(m.fonctions_premier_niveau(serveur),{'lire'})
  def test_sequence_incomplete_refusee_sans_valeur_inventee(self):
   with self.assertRaisesRegex(ValueError,'réextraire'):rendre.options_sequence({'sequence':'x','start':1})
 
