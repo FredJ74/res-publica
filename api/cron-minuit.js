@@ -4126,6 +4126,7 @@ async function traiterQuotidienNationalServeur(pays) {
   await traiterScandaleServeur(pays);
   await traiterConvocationsServeur();
   await traiterDecouverteCrimesServeur();
+  await traiterAmendesServeur();
   await traiterInformateursServeur();
 }
 
@@ -4164,6 +4165,18 @@ async function traiterConvocationsServeur() {
   const v = await sbRpc('minuit_convocations', {}, HEADERS_SERVICE).catch(() => null);
   const r = Array.isArray(v) ? v[0] : v;
   if (!r || r.ok !== true) signalerEchec('convocations', JSON.stringify(v));
+}
+
+// --- AMENDES AU TRÉSOR NATIONAL (30 octobre 2026, décisions de Fred) ---------------------------
+// minuit_amendes est globale (tous pays) : fin du délai d'appel (appel suspensif), puis prélèvement
+// des amendes dues, au plus une fois par jour de Paris et par amende, versé au Trésor national.
+let amendesTraiteesCettePasse = false;
+async function traiterAmendesServeur() {
+  if (amendesTraiteesCettePasse) return;
+  amendesTraiteesCettePasse = true;
+  const v = await sbRpc('minuit_amendes', {}, HEADERS_SERVICE).catch(() => null);
+  const r = Array.isArray(v) ? v[0] : v;
+  if (!r || r.ok !== true) signalerEchec('amendes', JSON.stringify(v));
 }
 
 // --- COUVRE-FEU ET RECHERCHE MILITAIRE (27 octobre 2026, audit « une seule verite » §3.3) -------

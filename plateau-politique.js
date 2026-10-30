@@ -432,6 +432,7 @@ const DEMARCHES_ETAT_CIVIL_PAR_BATIMENT = {
     { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
   ],
   'mairie': [
+    { fn:'acte_officiel', label:'Demander un acte officiel', pa:1, cost:50, icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.' },
     { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.' },
     { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
     { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }

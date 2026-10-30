@@ -53,7 +53,11 @@ const DUREES_CONSTRUCTION = {
   hangar: 6,
   commerce_standard: 12,
   commerce_premium: 18,
-  building: 24
+  building: 24,
+  // Logements sociaux communaux (29/10/2026, décision de Fred) : même barème, réservés à la commune.
+  logements_petit: 12,
+  logements_moyen: 18,
+  logements_barre: 24
 };
 
 // Seuils de financement CUMULE d'une construction, en pourcentage du cout total. Le joueur peut

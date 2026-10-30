@@ -745,13 +745,7 @@ const WORLD = {
         // salle_elections/salle_archives (emoji provisoire retire), imageBg conserve en repli.
         'mairie': {
           name: "Hôtel de Ville de Port-Sainte-Marie",
-          roomOverrides: {
-            accueil_mairie: {
-              orders: [
-                {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'}
-              ]
-            }
-          },
+          // L'objet trouvé est dans le gabarit commun depuis le 29/10/2026.
           roomsExtra: {
             salle_elections: {
               name: "Salle des Élections",
@@ -779,7 +773,8 @@ const WORLD = {
               desc: "L'état-civil et les archives administratives de la ville. Poussiéreux, mais tout y est.",
               persons: [],
               orders: [
-                {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."}
+                {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."},
+                {fn:'consulter_mandats_maires', label:'Consulter les résumés de mandats', pa:0, cost:0, type:'legal', icon:'ti-book', successRate:100, desc:'Bilans officiels des mandats achevés des maires de la ville.'}
               ]
             }
           }
@@ -975,17 +970,9 @@ const WORLD = {
               persons: [
                 {name:'Loïc Karamel (PNJ)', role:'Prisonnier — Contrebandier', rel:'neutral', job:'detenu', photoUrl:'images/port-sainte-marie-commissariat-loic-karamel.webp', photoPos:'50% 15%'}
               ]
-            }
-          },
-          // Bureau du commissaire PROPRE A PSM (lot du 24 aout 2026), memes pattern/precedent que
-          // salle_elections/salle_archives (mairie ci-dessus) ou bureau_emploi_annexe
-          // (centre-affaires ci-dessus) : roomsExtra isole cette piece a PSM sans jamais toucher
-          // BUILDINGS['commissariat-local'] (template partage avec Montrouge, inchange). orders
-          // volontairement vide : mener_enquete/organiser_filature/organiser_chasse_homme sont
-          // des mecaniques propres a Luthecia (bureau_commissaire de BUILDINGS['commissariat']),
-          // recruter_policier/gerer_effectifs_police existent deja sur accueil_loc -- aucune
-          // decision de game design prise ici sur d'eventuels ordres futurs pour ce bureau.
-          roomsExtra: {
+            },
+            // Bureau du commissaire : piece et ordres viennent du gabarit commun (29/10/2026, décision de
+            // Fred : mêmes pouvoirs pour chaque commissaire). PSM n'en garde que l'habillage.
             bureau_commissaire: {
               name: "Bureau du Commissaire",
               imageBg: "linear-gradient(135deg,#0f1018,#151822)",
@@ -993,8 +980,7 @@ const WORLD = {
               desc: "Le bureau du commissaire de Port-Sainte-Marie. Vue sur le port.",
               persons: [
                 {name:'Martial Morvan (PNJ)', role:'Commissaire de Port-Sainte-Marie', rel:'neutral', job:'commissaire', photoUrl:'images/port-sainte-marie-commissariat-martial-morvan.webp', photoPos:'50% 20%'}
-              ],
-              orders: []
+              ]
             }
           }
         },
@@ -1187,7 +1173,9 @@ const WORLD = {
         // techniques ne sont pas touches.
         'hotel-mineur':                 { name: "Hôtel de la Victoire" },
         'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge", roomOverrides: { magasin: { imageUrl: "images/montrouge/montrouge-armurerie-interieur.jpg" } } },
-        'commissariat-local':           { name: "Commissariat de Montrouge" },
+        'commissariat-local':           { name: "Commissariat de Montrouge",
+          // Bureau du commissaire (29/10/2026) : ordres du gabarit commun ; aucun PNJ tant qu'il n'a pas de profil de dialogue.
+          roomOverrides: { bureau_commissaire: { desc: "Le bureau du commissaire de Montrouge, en tension permanente avec le syndicat local." } } },
         'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
@@ -1286,11 +1274,8 @@ const WORLD = {
             // ajoute au tableau orders de BUILDINGS['mairie'] lui-meme (base partagee par
             // plusieurs villes, ex. PSM/ville_a), pour ne jamais apparaitre ailleurs qu'a Montrouge.
             bureau_maire_adjoint:{
-              imageUrl: "images/montrouge/montrouge-mairie-bureau-maire-adjoint.jpg",
-              orders: [
-                {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
-                {fn:'traiter_demandes_logement_social', label:'Examiner les demandes de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'}
-              ]
+              // 29/10/2026 : demande et tableau de bord des logements sociaux sont dans le gabarit commun.
+              imageUrl: "images/montrouge/montrouge-mairie-bureau-maire-adjoint.jpg"
             }
           },
           roomsExtra: {
@@ -1329,7 +1314,8 @@ const WORLD = {
                 {name:'Archiviste Municipal (PNJ)', role:'PNJ - Archives', rel:'neutral', job:'archiviste'}
               ],
               orders: [
-                {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."}
+                {fn:'consulter_etat_civil', label:"Consulter l'état-civil", pa:0, cost:0, type:'legal', icon:'ti-file-search', successRate:100, desc:"Rechercher par nom ou par décennie dans le registre d'état-civil de Republia."},
+                {fn:'consulter_mandats_maires', label:'Consulter les résumés de mandats', pa:0, cost:0, type:'legal', icon:'ti-book', successRate:100, desc:'Bilans officiels des mandats achevés des maires de la ville.'}
               ]
             }
           }
@@ -3894,6 +3880,9 @@ const BUILDINGS = {
         orders: [
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
+          // Trois villes (29/10/2026) ; hors Montrouge : « Il n'y a pas de logements sociaux dans la ville. »
+          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
+          {fn:'traiter_demandes_logement_social', label:'Tableau de bord des logements sociaux', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
         ]
@@ -4413,9 +4402,11 @@ const BUILDINGS = {
           {name:'Secretaire Municipal', role:'PNJ - Administration', rel:'neutral', job:'secretaire'}
         ],
         orders: [
-          {fn:'postuler',      label:'Postuler a un poste',   pa:1, cost:0,  type:'legal', icon:'ti-id-badge',   successRate:100},
-          {fn:'gerer_finances',label:'Gerer les finances locales',pa:1,cost:0,type:'legal', icon:'ti-chart-bar',  successRate:100, requiresPost:true},
-          {fn:'corrompre_fonct',label:'Corrompre un employ',   pa:2, cost:200,type:'illegal',icon:'ti-coins',     successRate:65},
+          // 29/10/2026 (décision de Fred) : « Postuler à un poste » (relié à rien), « Gérer les finances
+          // locales » (ouvrait le compte de la Banque nationale) et « Corrompre un employé » sont retirés ;
+          // calendrier électoral et objets trouvés deviennent communs aux trois villes.
+          {fn:'calendrier_elections', label:'Calendrier electoral',       pa:0, cost:0, type:'legal', icon:'ti-calendar', successRate:100, desc:'Consulter le calendrier des elections en cours et a venir.'},
+          {fn:'objet_trouve', label:'Reclamer un objet trouve', pa:1, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Le service des objets trouves. On ne sait jamais ce qui finit dans une boite en carton...'},
           // etat_civil (chantier finition ergonomique Hotel de Ville, 4 septembre 2026) : regroupe
           // les 3 anciens boutons separes (demander_naturalisation/demander_mariage/
           // officialiser_mariage, retires de cette liste -- Montrouge/PSM n'ont jamais eu
@@ -4453,6 +4444,9 @@ const BUILDINGS = {
         orders: [
           {fn:'traiter_demandes_permis', label:'Traiter les demandes de permis', pa:1, cost:0, type:'legal', icon:'ti-stamp', successRate:100, requiresPost:'maire_adjoint', desc:'Valider ou refuser les permis de construire arrives a instruction terminee, dans cette ville uniquement.'},
           {fn:'consulter_dossiers_urbanisme', label:"Consulter les dossiers d'urbanisme", pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, requiresPost:'maire_adjoint', desc:"Archives municipales : historique complet des demandes de permis de cette ville. Consultation seule."},
+          // Trois villes (29/10/2026) ; hors Montrouge : « Il n'y a pas de logements sociaux dans la ville. »
+          {fn:'demander_logement_social', label:'Déposer une demande de logement social', pa:1, cost:0, type:'legal', icon:'ti-home-plus', successRate:100, desc:"Réservé aux résidents officiels de Montrouge (domicile officiel). L'attribution est décidée par l'adjoint au maire — jamais automatique."},
+          {fn:'traiter_demandes_logement_social', label:'Tableau de bord des logements sociaux', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, requiresPost:'maire_adjoint', desc:'Voir les demandes en attente, l\'état des 4 logements, et attribuer un logement libre à un bénéficiaire.'},
           {fn:'acte_officiel_mairie',  label:'Delivrer un acte officiel',     pa:1, cost:0, type:'legal', icon:'ti-file-certificate', successRate:100, requiresPost:'maire_adjoint', desc:'Choisir le type d\'acte a delivrer a un administre.'},
           {fn:'financer_communal',       label:'Financer un batiment communal', pa:1, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'maire_adjoint', desc:'Virement instantane depuis la caisse municipale vers un batiment de la ville.'}
         ]
@@ -4735,15 +4729,15 @@ const BUILDINGS = {
         // ville, isolation garantie par (pays, ville) a l'interieur des fonctions elles-memes.
         orders: [
           {fn:'plainte_police',   label:'Porter plainte',      pa:1, cost:0,   type:'legal',   icon:'ti-file-text', successRate:100},
+          // MÊMES POUVOIRS QUE LUTHÉCIA (décision de Fred, 29/10/2026 : « chaque commissaire dispose des
+          // mêmes pouvoirs »). Handlers et portes serveur déjà bornés à la ville du commissaire.
+          {fn:'archives_police',  label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive',   successRate:100, desc:'Archives judiciaires et detentions passees, consultables par tous. Ne contient aucune information policiere operationnelle.'},
+          {fn:'arreter',          label:"Arrestation d'urgence",  pa:3, cost:0,   type:'legal',   icon:'ti-handcuffs', successRate:100, requiresPost:['president','min_int','min_just','commissaire'], desc:'Pouvoir extrajudiciaire : place immediatement une personne en detention 1 jour, sans condamnation. Securite +1, indice social -1 dans la ville.'},
           // §43 : "Se justifier" n'existait qu'au commissariat de Luthecia (audit du 9 septembre).
           // Un joueur convoque a Montrouge ou Port-Sainte-Marie devait donc traverser le pays pour
           // honorer une convocation de 36 h. Le handler n'a jamais eu la moindre garde de lieu :
           // seule l'entree d'ordre manquait ici. Ce template est partage par les deux villes.
           {fn:'se_justifier',     label:'Se justifier (convocation)', pa:1, cost:0, type:'legal', icon:'ti-message-question', successRate:100, desc:'Se presenter suite a une convocation. Une seule tentative : 50% + (CHA+DUP)/2. Echec = 1 jour de detention.'},
-          {fn:'recruter_policier',      label:'Recruter un policier', pa:1, cost:0, type:'legal', icon:'ti-user-plus',   successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
-          {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
-          {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'commissaire', desc:'Intervention des forces de l\'ordre dans VOTRE ville : blocus, encadrement, quartier sensible, dispersion.'},
-          {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',  pa:0, cost:0, type:'legal', icon:'ti-users-group', successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'},
           // LE TEMOIN SE PRESENTE AU COMMISSARIAT, et c'est la qu'il depose (12 octobre 2026,
           // soir). L'ordre est le MEME dans les deux gabarits de commissariat ; c'est la porte
           // serveur qui verifie que c'est bien le commissariat de la ville du tribunal COMPETENT
@@ -4773,6 +4767,25 @@ const BUILDINGS = {
         orders: [
           {fn:'se_rebeller',     label:'Se rebeller',                        pa:2, cost:0,    type:'illegal', icon:'ti-flame',      successRate:30,  desc:'Reserve aux emprisonnes. Defi bruyant aux gardiens : succes = +DIS mais peine allongee, echec = transfert au QHS. Endommage les grilles dans tous les cas.'},
           {fn:'tentative_evasion',label:'Tenter de s\'evader',               pa:3, cost:0,    type:'illegal', icon:'ti-run',        successRate:10,  desc:'Tres risque, une tentative par jour. Succes : liberte. Echec : transferement en prison.'}
+        ]
+      },
+      // Bureau du commissaire (29/10/2026) : mêmes ordres que BUILDINGS['commissariat'].bureau_commissaire.
+      // Les ordres de commandement quittent l'accueil pour ce bureau, comme à Luthécia. Visuels et PNJ
+      // propres à chaque ville par roomOverrides (PSM, Montrouge).
+      bureau_commissaire: {
+        name: "Bureau du Commissaire",
+        imageBg: "linear-gradient(135deg,#0f1018,#151822)",
+        desc: "Dossiers, rapports de filature et avis de recherche s'y accumulent. Acces reserve.",
+        persons: [],
+        orders: [
+          {fn:'dossiers_plaintes',      label:'Dossiers de plainte',         pa:0, cost:0,   type:'legal', icon:'ti-folders',      successRate:100, requiresPost:'commissaire', desc:'Plaintes deposees dans votre ville. Classer sans suite, ou ouvrir une enquete.'},
+          {fn:'mener_enquete',          label:"Mener l'enquete",             pa:2, cost:250, type:'legal', icon:'ti-search',       successRate:35,  requiresPost:'commissaire', desc:"Enqueter sur une personne ou un lieu suite a une plainte deposee. Taux ajuste par PER, influence et securite locale."},
+          {fn:'organiser_filature',     label:'Organiser une filature',       pa:2, cost:150, type:'legal', icon:'ti-eye',          successRate:50,  requiresPost:'commissaire', desc:"Obtenir un rapport des deplacements d'un PJ sur les dernieres 24h."},
+          {fn:'organiser_chasse_homme', label:"Organiser une chasse a l'homme", pa:3, cost:300, type:'legal', icon:'ti-target-arrow', successRate:100, requiresPost:'commissaire', desc:'Localiser et arreter un PJ recherche.'},
+          {fn:'recruter_policier',      label:'Recruter un policier',         pa:1, cost:0,   type:'legal', icon:'ti-user-plus',    successRate:100, requiresPost:'commissaire', desc:'PER 12, VOL 12. Entretien : 50 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'recruter_policier_cynophile', label:'Recruter une unite cynophile', pa:1, cost:0, type:'legal', icon:'ti-dog', successRate:100, requiresPost:'commissaire', desc:'Maitre-chien + chien anti-stupefiants. Membre normal du groupe (memes regles PER/VOL). Entretien : 100 FR/jour preleves sur la caisse du commissariat.'},
+          {fn:'mobiliser_police',     label:'Faire intervenir les forces de l\'ordre', pa:2, cost:0, type:'legal', icon:'ti-shield', successRate:100, requiresPost:'commissaire', desc:'Intervention des forces de l\'ordre dans VOTRE ville : blocus, encadrement, quartier sensible, dispersion.'},
+          {fn:'gerer_effectifs_police', label:'Gerer mes effectifs',          pa:0, cost:0,   type:'legal', icon:'ti-users-group',  successRate:100, requiresPost:'commissaire', desc:'Affecter ou rappeler vos policiers (piece ou rue de votre ville).'}
         ]
       }
     }

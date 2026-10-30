@@ -4881,8 +4881,25 @@ const NIVEAUX_CONSTRUCTION = {
   hangar:            { label: 'Hangar',             cout: coutTotalConstruction('hangar'),            imageUrl: 'images/hangar-construction-terrain.webp' },
   commerce_standard: { label: 'Commerce standard',  cout: coutTotalConstruction('commerce_standard'), imageUrl: 'images/commerce-standard-construction-terrain.webp' },
   commerce_premium:  { label: 'Commerce premium',   cout: coutTotalConstruction('commerce_premium'),  imageUrl: 'images/commerce-premium-construction-terrain.webp' },
-  building:          { label: 'Building',           cout: coutTotalConstruction('building'),          imageUrl: 'images/building-construction-terrain.webp' }
+  building:          { label: 'Building',           cout: coutTotalConstruction('building'),          imageUrl: 'images/building-construction-terrain.webp' },
+  // Logements sociaux (29/10/2026, décision de Fred) : terrains de la commune seulement ; la
+  // surface fixe le plus grand type permis (petit partout, moyen dès 2 000 m², barre au-delà de
+  // 2 200 m²). Appartements générés à la réception, attribués par l'adjoint au maire.
+  logements_petit:   { label: 'Logements sociaux — petit bâtiment (4 appartements)', cout: coutTotalConstruction('logements_petit'), imageUrl: 'images/commerce-standard-construction-terrain.webp', logementSocial: true, surfaceMin: 0 },
+  logements_moyen:   { label: 'Logements sociaux — bâtiment moyen (6 appartements)', cout: coutTotalConstruction('logements_moyen'), imageUrl: 'images/commerce-premium-construction-terrain.webp', logementSocial: true, surfaceMin: 2000 },
+  logements_barre:   { label: "Logements sociaux — barre d'immeuble (10 appartements)", cout: coutTotalConstruction('logements_barre'), imageUrl: 'images/building-construction-terrain.webp', logementSocial: true, surfaceMin: 2201 }
 };
+
+// Un palier est-il proposable sur ce terrain ? Les logements sociaux ne le sont que sur un
+// terrain de la commune (ou un compromis signé pour elle), dans la limite de la surface. Le
+// serveur revérifie tout (terrain_permis_deposer).
+function palierProposable(key, ts) {
+  const niv = NIVEAUX_CONSTRUCTION[key];
+  if (!niv) return false;
+  if (!niv.logementSocial) return true;
+  const communal = String(ts?.proprietaire || '').startsWith('ville:') || String(ts?.acquisitionAcquereur || '').startsWith('ville:');
+  return communal && Number(ts?.surface || 0) >= niv.surfaceMin;
+}
 
 // Zonage fixe par ville — verrouille des la conception, pour que la justice ait un critere
 // objectif face a un refus de permis du maire (voir obstruction). Pas de zonage cliquable :
@@ -7373,7 +7390,12 @@ async function doOuvrirLouerLot(pa, cost) {
   // drapeau porte par le lot.
   // Un lot dont le titulaire n'a pas encore fixé le loyer n'est pas proposé : le serveur le
   // refuse (`loyer_non_fixe`, 29/10/2026), un bail a 0 FR ne serait jamais preleve.
-  const lotsLibres = lotsDisponiblesALaLocation(ts, id).filter(function (l) { return Number(l.loyer) > 0; });
+  // Un logement social ne se loue pas soi-même : l'adjoint au maire l'attribue (29/10/2026).
+  const lotsLibres = lotsDisponiblesALaLocation(ts, id).filter(function (l) { return Number(l.loyer) > 0 && l.destination !== 'logement_social'; });
+  if (lotsLibres.length === 0 && subdivisions.some(function (l) { return l.destination === 'logement_social'; })) {
+    showToast('Logements sociaux', "Ces logements sont attribués par l'adjoint au maire : déposez une demande à la mairie.", false);
+    return;
+  }
   if (lotsLibres.length === 0) {
     showToast('Aucun lot disponible', "Aucun lot n'est proposé à la location : le terrain n'est pas encore divisé, tous les lots sont loués, ou le propriétaire n'a pas encore fixé leur loyer.", false);
     return;
@@ -7492,6 +7514,7 @@ async function ouvrirModalConstruire() {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Choisissez le type de construction. Vous versez librement ce que vous voulez dans la trésorerie du chantier, au minimum 35 % pour le lancer, et vous complétez ensuite à votre rythme : 70 % pour franchir le premier tiers, 100 % pour les deux tiers.</div>';
   Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
+    if (!palierProposable(key, ts)) return;
     html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center">';
     const mini = montantMinimalLancement(niv.cout);
     html += '<div><div style="font-size:.85rem;color:#c0b090">' + niv.label + '</div>'
@@ -8200,7 +8223,10 @@ const DUREE_INSTRUCTION_PERMIS = {
   hangar: 2,
   commerce_standard: 4,
   commerce_premium: 6,
-  building: 7
+  building: 7,
+  logements_petit: 4,
+  logements_moyen: 6,
+  logements_barre: 7
 };
 
 async function doDeposerDemandePermis(pa, cost) {
@@ -8227,7 +8253,9 @@ async function doDeposerDemandePermis(pa, cost) {
   document.getElementById('postes-modal-title').textContent = 'Déposer une demande de permis';
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.8rem">Passé le délai d\'instruction, l\'absence de décision vaut accord : le permis est accordé tacitement. Le service d\'urbanisme peut accepter ou refuser tant que le dossier est ouvert — un refus doit être motivé par écrit.</div>';
+  const tsPermis = getTerrainState(state.currentBuilding);
   Object.entries(NIVEAUX_CONSTRUCTION).forEach(([key, niv]) => {
+    if (!palierProposable(key, tsPermis)) return;
     const duree = DUREE_INSTRUCTION_PERMIS[key];
     // Aucun plan au depot : le decoupage intervient dans le dernier tiers du chantier.
     const action = 'confirmerDepotPermis(\'' + key + '\',1,100)';
@@ -8375,7 +8403,8 @@ async function confirmerDepotPermis(palierDemande, pa, cost) {
       if (r && !r.transport) sessionStorage.removeItem(cle);
       showToast('Dépôt non confirmé', r?.transport
         ? 'Réponse incertaine. Réessayez le même dépôt : son identifiant sera conservé.'
-        : 'Le serveur a refusé le dépôt (' + (r?.raison || 'réponse invalide') + ').', false);
+        : (({ caisse_communale_insuffisante: 'La caisse de la mairie ne couvre pas les 100 FR du permis.', logements_reserves_commune: 'Les logements sociaux sont réservés aux terrains de la commune.', terrain_trop_petit: 'Ce terrain est trop petit pour ce type de logements.' })[r?.raison]
+          || 'Le serveur a refusé le dépôt (' + (r?.raison || 'réponse invalide') + ').'), false);
       return;
     }
     if (!r.etat || !r.document || !r.paiement) {

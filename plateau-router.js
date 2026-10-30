@@ -166,9 +166,12 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(pa, cost); return; }
   if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(pa, cost); return; }
   if (fn === 'consulter_dossiers_urbanisme') { doConsulterDossiersUrbanisme(); return; }
-  if (fn === 'demander_logement_social') { demanderLogementSocial(pa, cost); return; }
+  // Ordre présent dans les trois mairies (décision de Fred, 29/10/2026) ; seule Montrouge a des
+  // logements sociaux aujourd'hui. Aucun coût n'est prélevé avant ce message.
+  // Socle (29/10/2026) : le serveur dit s'il existe des logements sociaux dans la ville, avant tout coût.
+  if (fn === 'demander_logement_social') { demanderLogementSocialCommun(pa, cost); return; }
   if (fn === 'gerer_logement_social') { gererLogementSocial(); return; }
-  if (fn === 'traiter_demandes_logement_social') { traiterDemandesLogementSocial(pa, cost); return; }
+  if (fn === 'traiter_demandes_logement_social') { ouvrirTableauLogementsSociaux(); return; }
   if (fn === 'consulter_registre_armes') { doConsulterRegistre(); return; }
   if (fn === 'acheter_gilet') { doAcheterGilet(); return; }
   // « Subtiliser des explosifs » (refonte du 13 septembre 2026). Ce n'etait PAS un vol : l'ordre
@@ -229,7 +232,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'organiser_manifestation_syndicat') { doOrganiserManifestationSyndicat(); return; }
   if (fn === 'consulter_etat_civil') { doConsulterEtatCivil(); return; }
   if (fn === 'consulter_personnalites_musee') { doConsulterPersonnalitesMusee(); return; }
-  if (fn === 'consulter_mandats_maires') { doConsulterResumesMandats(); return; }
+  if (fn === 'consulter_mandats_maires') { if ((state.currentCity || 'capitale') !== 'capitale') { enigme1AfficherArchivesReelles(); return; } doConsulterResumesMandats(); return; }
   if (fn === 'consulter_archives_notariales') { doConsulterArchivesNotariales(); return; }
   // consulter_succession (Bureau des Successions) retire (refonte notaire, 20 aout 2026 -- audit
   // Ordres) : doublon exact de consulter_archives_notariales, payant pour rien de plus. Le

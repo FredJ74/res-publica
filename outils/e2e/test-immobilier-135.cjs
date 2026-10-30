@@ -14,7 +14,7 @@ function selection(fichier,noms){
  for(const nom of noms)assert.ok(vus.has(nom),'source réelle manquante : '+fichier+' / '+nom);
  return code;
 }
-const justice=selection('plateau-justice-economie.js',['PRIX_TERRAIN','NIVEAUX_CONSTRUCTION','DUREE_INSTRUCTION_PERMIS','TYPES_PRET','getTerrainState','ouvrirModalConstruire','doDeposerDemandePermis','getTauxPret','pretBancaireDisponibilite','ouvrirModalPretBancaire']);
+const justice=selection('plateau-justice-economie.js',['PRIX_TERRAIN','NIVEAUX_CONSTRUCTION','palierProposable','DUREE_INSTRUCTION_PERMIS','TYPES_PRET','getTerrainState','ouvrirModalConstruire','doDeposerDemandePermis','getTauxPret','pretBancaireDisponibilite','ouvrirModalPretBancaire']);
 const sources=[fs.readFileSync(path.join(R,'data.js'),'utf8'),fs.readFileSync(path.join(R,'plateau-chantiers.js'),'utf8'),
  selection('plateau-immobilier.js',['PERMIS_COOLDOWN_REFUS_JOURS','PERMIS_STATUT_INSTRUCTION','PERMIS_STATUT_LEGACY_ATTENTE','permisEnInstruction','cooldownRefusActif','verdictNouvelleDemandePermis']),justice,
  selection('plateau-pnj.js',['ACOMPTE_COMPROMIS','PLAFOND_PRET_COMPROMIS','SURFACE_TERRAINS','terrainOrdreDisponible','doSignerCompromis']),
