@@ -1,0 +1,11 @@
+{
+  "production": false,
+  "historique_rejoue": false,
+  "donnees_joueurs_copiees": false,
+  "reconstruction": false,
+  "lot_219_installe": false,
+  "fidelite_catalogue_vivant": false,
+  "plateforme_auth": "Primitives SQL locales de fixture ; pas de service GoTrue ni de connexion réelle.",
+  "version_moteur": 170006,
+  "erreur": "divers-et-technique/10_tables.sql, ordre 58, SQLSTATE 42P07 : relation \"registre_ventes_armes_id_seq\" already exists"
+}

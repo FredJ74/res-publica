@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-30",
+  "projet": "jxpwoosmmhohoihxpbuc",
+  "supabase_callable": false,
+  "catalogue_production_interroge_par_cette_session": false,
+  "github_api": "Forbidden",
+  "github_pages_publiques": "accessibles",
+  "git_fetch_push": "accessibles",
+  "exports_complets_retrouves": false,
+  "source_constat": "https://github.com/FredJ74/res-publica/pull/262",
+  "commentaire_source": "Les quatre requêtes ont répondu ; leurs résultats n’ont pas encore été matérialisés en fichiers.",
+  "variables_db_presentes": false,
+  "secrets_exportes": false,
+  "source_postgresql_directe": "HTTP 403",
+  "miroir_officiel_postgresql": "succès, REL_17_6 / 7885b94dd81b98bbab9ed878680d156df7bf857f",
+  "action_externe": "Transférer les quatre exports JSON complets, contrôle global daté et registre complet ; structure à réexécuter avec les options de séquence. Aucune donnée de joueur."
+}

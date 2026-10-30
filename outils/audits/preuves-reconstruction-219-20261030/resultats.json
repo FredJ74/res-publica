@@ -1,0 +1,198 @@
+{
+  "date": "2026-10-30",
+  "code": "add82a1b",
+  "main": "7ddce4ee4f9c4e9d2280bf3918f6543b50aa5050",
+  "production": false,
+  "donnees_joueurs_copiees": false,
+  "deploiement_demande": false,
+  "migrations_production": [],
+  "exports_production_materiels": false,
+  "baseline_regenere_depuis_production": false,
+  "moteur": {
+    "version": "17.6",
+    "source_officielle": "https://github.com/postgres/postgres",
+    "tag": "REL_17_6",
+    "commit": "7885b94dd81b98bbab9ed878680d156df7bf857f",
+    "binaire_sha256": "c3444d8a426f1d0399e726913c6758f4e0c16514ec4666c7fb649499a910699b"
+  },
+  "parseur": {
+    "paquet": "pglast==7.21",
+    "grammaire": "PostgreSQL 17.7"
+  },
+  "generateurs": {
+    "tests": 17,
+    "reussis": 17,
+    "moteur": "17.6",
+    "donnees": "Fixtures créées localement ; rendre.py/seeds.py exercés en répertoire temporaire, aucun état réel"
+  },
+  "sql": {
+    "tests": 379,
+    "reussis": 379,
+    "moteur": "17.6",
+    "role_rpc": "authenticated",
+    "identites": "A/B/C/D fictives",
+    "authentification_joueur_reelle": false
+  },
+  "clients": {
+    "etat": "terminee",
+    "bancs_prevus": 142,
+    "bancs_termines": 142,
+    "echecs": 0
+  },
+  "chromium": {
+    "tests": 105,
+    "reussis": 105,
+    "fixtures_locales": true
+  },
+  "globaux": {
+    "reussis": 6,
+    "total": 12,
+    "baseline_fidele": false,
+    "referential_ecarts_mesures": 5,
+    "fonctions_ecarts": 0
+  },
+  "lot_88_installe_sur_copie_fidele": false,
+  "reconstruction_complete": false,
+  "contre_epreuves": [
+    {
+      "mutation": "issue-fausse",
+      "tests": 379,
+      "detectee": true,
+      "echecs": [
+        {
+          "cas": "squatteurs_rounds_reels_issue_et_unique_trace_squatter_cool",
+          "ok": false,
+          "erreur": "terrain_issue_non_confirmee:{\"ok\": false, \"raison\": \"issue_non_constatee\"}\nCONTEXT:  PL/pgSQL function combat_finaliser_interne(bigint) line 12 at RAISE\nSQL statement \"SELECT public.combat_finaliser_interne(p_bataille_id)\"\nPL/pgSQL function militaire_bataille_round(bigint) line 95 at PERFORM\nPL/pgSQL function militaire_bataille_avancer(bigint) line"
+        },
+        {
+          "cas": "squatteurs_issue_reelle_obligatoire_tues",
+          "ok": false,
+          "erreur": "terrain_issue_non_confirmee:{\"ok\": false, \"raison\": \"issue_non_constatee\"}\nCONTEXT:  PL/pgSQL function combat_finaliser_interne(bigint) line 12 at RAISE\nSQL statement \"SELECT public.combat_finaliser_interne(p_bataille_id)\"\nPL/pgSQL function militaire_bataille_round(bigint) line 95 at PERFORM\nSQL expression \"public.militaire_bataille_round(p_bataill"
+        }
+      ]
+    },
+    {
+      "mutation": "double-paiement",
+      "tests": 379,
+      "detectee": true,
+      "echecs": [
+        {
+          "cas": "civil_ouverture_reelle_choix_paiement_unique_rejeu",
+          "ok": false,
+          "erreur": ""
+        },
+        {
+          "cas": "civil_mode_mains_borne_arme_et_paiement_sans_modifier_defenseur",
+          "ok": false,
+          "erreur": ""
+        },
+        {
+          "cas": "civil_mode_arme_borne_arme_et_paiement_sans_modifier_defenseur",
+          "ok": false,
+          "erreur": ""
+        },
+        {
+          "cas": "civil_mode_feu_borne_arme_et_paiement_sans_modifier_defenseur",
+          "ok": false,
+          "erreur": "there is no unique or exclusion constraint matching the ON CONFLICT specification\nCONTEXT:  SQL statement \"INSERT INTO public.ordres_couts_ecarts (fn, pa, cost)\n    VALUES (v_fn, coalesce(p_pa,0), coalesce(p_cost,0))\n    ON CONFLICT (fn, pa, cost)\n      DO UPDATE SET occurrences = public.ordres_couts_ecarts.occurrences + 1, vu_le = now()\"\nPL/pgSQL "
+        },
+        {
+          "cas": "civil_deux_connexions_un_combat_un_paiement_un_recu",
+          "ok": false,
+          "erreur": ""
+        }
+      ]
+    },
+    {
+      "mutation": "PNJ-immobile",
+      "tests": 379,
+      "detectee": true,
+      "echecs": [
+        {
+          "cas": "squatteurs_fuite_automate_deplacement_reel_pas_une_mort",
+          "ok": false,
+          "erreur": "(None, 'terrain-a-batir')"
+        }
+      ]
+    },
+    {
+      "mutation": "repli-sans-mouvement",
+      "tests": 379,
+      "detectee": true,
+      "echecs": [
+        {
+          "cas": "repli_militaire_meme_navigation_PJ_PNJ_sortie_reelle_et_rejeu",
+          "ok": false,
+          "erreur": ""
+        },
+        {
+          "cas": "repli_militaire_refus_individuel_annule_sortie_et_tous_mouvements",
+          "ok": false,
+          "erreur": "{'ok': True, 'terminee': True, 'mon_groupe': 'republic|pj:A', 'ma_decision': 'replier', 'camps_debout': 1}"
+        },
+        {
+          "cas": "civil_fuite_initiale_deplacement_reel",
+          "ok": false,
+          "erreur": ""
+        },
+        {
+          "cas": "civil_cinq_vrais_rounds_puis_replier",
+          "ok": false,
+          "erreur": ""
+        },
+        {
+          "cas": "civil_defenseur_connecte_decision_initiale_replier",
+          "ok": false,
+          "erreur": ""
+        }
+      ]
+    },
+    {
+      "mutation": "camion-solo",
+      "tests": 379,
+      "detectee": true,
+      "echecs": [
+        {
+          "cas": "camion_ancien_acte_embarque_et_debarque_groupe_PJ_entier_rejeu",
+          "ok": false,
+          "erreur": ""
+        },
+        {
+          "cas": "camion_voyage_reel_cout_historique_2PA_par_PJ_et_rejeu_sans_double_debit",
+          "ok": false,
+          "erreur": "{'ok': False, 'raison': 'groupe_disperse'}"
+        },
+        {
+          "cas": "camion_section_epuisee_refuse_sans_debit_ni_deplacement",
+          "ok": false,
+          "erreur": "{'ok': False, 'raison': 'groupe_disperse'}"
+        },
+        {
+          "cas": "camion_deux_sessions_du_chef_un_embarquement_et_un_recu",
+          "ok": false,
+          "erreur": ""
+        }
+      ]
+    },
+    {
+      "mutation": "repli-provenance-oubliee",
+      "tests": 379,
+      "detectee": true,
+      "echecs": [
+        {
+          "cas": "repli_PNJ_PSM_vraie_gauche_selon_provenance_serveur",
+          "ok": false,
+          "erreur": "repli_destination_PNJ_refusee\nDETAIL:  {\"ok\": false, \"raison\": \"provenance_non_referencee\"}\nCONTEXT:  PL/pgSQL function militaire_repli_pnj_interne(bigint,text,integer) line 21 at RAISE\nPL/pgSQL function militaire_bataille_decrocher_groupe(bigint,text,integer) line 10 at RETURN\n"
+        }
+      ]
+    }
+  ],
+  "fonctions": {
+    "entrees": 56,
+    "comparaisons": 43,
+    "cas": 1894,
+    "resultat": "conforme",
+    "empreintes_existantes_modifiees": false,
+    "ancien_client_absence_AST_testee": true
+  }
+}
