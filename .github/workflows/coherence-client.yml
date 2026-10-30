@@ -28,6 +28,8 @@ jobs:
           python-version: '3.12'
       - name: Syntaxe des fonctions API, sans appel distant
         run: python3 outils/bancs/verifier-syntaxe-api.py
+      - name: "Portrait Jodie — autorisation, contenu signé, anti-doublons"
+        run: node outils/bancs/banc-jodie-portrait-api.cjs
       - name: Calendrier sur main (PR couvertes par les controles dedies)
         if: github.event_name == 'push'
         run: node --test outils/bancs/test-*.mjs
