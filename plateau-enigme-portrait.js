@@ -196,11 +196,15 @@ function doConsulterResumesMandats() {
 // reste intact. Alimente uniquement par archiverMandatMaireTermine (api/cron-minuit.js) a
 // partir d'indicateurs reellement persistes (budgets_municipaux) ; n'invente aucune donnee.
 async function enigme1AfficherArchivesReelles() {
-  document.getElementById('postes-modal-title').textContent = 'Archives officielles — Maires de Luthécia';
+  // Archives communes aux trois villes (décision de Fred, 29/10/2026) : les bilans affichés sont
+  // ceux de la ville où se trouve la mairie consultée. La recherche historique (énigme) reste à Luthécia.
+  const paysArchives = state.country || 'republic', villeArchives = state.currentCity || 'capitale';
+  const nomVilleArchives = (typeof WORLD !== 'undefined' && WORLD[paysArchives]?.[villeArchives]?.name) || 'Luthécia';
+  document.getElementById('postes-modal-title').textContent = 'Archives officielles — Maires de ' + nomVilleArchives;
   document.getElementById('postes-body').innerHTML = '<div style="padding:1rem;font-size:.85rem;color:#8a8060;font-style:italic">Chargement des archives...</div>';
 
   const mandats = (typeof sbGetArchivesMandatsMaires === 'function')
-    ? await sbGetArchivesMandatsMaires('republic', 'capitale').catch(() => [])
+    ? await sbGetArchivesMandatsMaires(paysArchives, villeArchives).catch(() => [])
     : [];
 
   let html = '<div style="padding:1rem">';
@@ -229,7 +233,7 @@ async function enigme1AfficherArchivesReelles() {
     html += '</div>';
   }
 
-  html += '<button class="pnj-action-btn" onclick="doConsulterResumesMandats()" style="margin-top:1rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Retour</button>';
+  if (villeArchives === 'capitale') html += '<button class="pnj-action-btn" onclick="doConsulterResumesMandats()" style="margin-top:1rem;opacity:.8"><i class="ti ti-arrow-left" style="font-size:.85rem"></i> Retour</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
 }
