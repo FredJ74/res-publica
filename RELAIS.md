@@ -25,6 +25,7 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+- **Amendes au Trésor national (Claude, 30/10, branche `claude/amendes-tresor-20261030`)** : défaut confirmé par ChatGPT, le tribunal fixait l'amende sans la prélever. Décisions de Fred : l'argent va au Trésor national (même canal que la taxe nationale, `reserveJour`) ; ce qui ne peut pas être payé devient une dette, prélevée chaque nuit sur ce que possède le condamné jusqu'à extinction ; l'appel est suspensif et sa décision remplace l'amende de première instance. Migration `20261030100000` (non appliquée, compatible) : table `amendes_tresor` (une ligne par jugement), déclencheur sur `jugements`, `minuit_amendes` appelée par `api/cron-minuit.js`. Répétition annulée : simplifiée partielle puis soldée, pas de double prélèvement la même nuit, délai d'appel, appel réduisant l'amende, relaxe en appel. Banc : `banc-amendes-tresor.cjs` (9 tests).
 - **Mairies des trois villes (Claude, 29/10, branche `claude/mairies-communes-20261029`, contient #243)** : décisions de Fred.
   - **Communs aux trois villes :** calendrier électoral, objets trouvés, demande d'acte officiel, résumés des mandats aux archives (bilans réels de la ville consultée ; la recherche historique de l'énigme reste à Luthécia).
   - **Retirés de Montrouge et PSM :** « Corrompre un employé », plus les vestiges « Postuler à un poste » et « Gérer les finances locales ».
