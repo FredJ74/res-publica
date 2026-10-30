@@ -3,6 +3,7 @@
 --   BEGIN; <migration>; <ce banc>
 -- Le banc se termine TOUJOURS par une exception portant le rapport : tout est annule,
 -- y compris la migration. Compte de test : Arnie (personnage d'essai des agents).
+BEGIN;  -- enveloppe : rien ne survit, meme lance seul
 CREATE OR REPLACE FUNCTION pg_temp.je_suis(p_uuid text) RETURNS void LANGUAGE plpgsql AS $f$
 BEGIN
   PERFORM set_config('request.jwt.claims', json_build_object('sub', p_uuid, 'role', 'authenticated')::text, true);
@@ -149,3 +150,4 @@ BEGIN
 
   RAISE EXCEPTION 'BANC achats-cle-unicite : % controles, % echec(s)%', n, ko, r;
 END $banc$;
+ROLLBACK;

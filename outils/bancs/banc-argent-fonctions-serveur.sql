@@ -265,3 +265,4 @@ DO $b$ DECLARE nb int; ko int; r text; BEGIN
     INTO nb, ko, r FROM banc_res;
   RAISE EXCEPTION E'BANC argent-serveur : % controles, % echec(s)\n%', nb, ko, r;
 END $b$;
+ROLLBACK;

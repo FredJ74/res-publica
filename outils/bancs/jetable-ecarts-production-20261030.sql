@@ -1,6 +1,9 @@
 -- Versions de PRODUCTION (relevees le 30/10/2026) de fonctions modifiees hors du depot.
 -- Appliquees par monter-base-jetable.sh apres baseline + migrations. A rafraichir si la
 -- comparaison d empreintes (jetable-empreintes.sql) signale un nouvel ecart.
+-- Enveloppe BEGIN/ROLLBACK : lance tel quel, ce fichier n ecrit rien. Seul monter-base-jetable.sh
+-- remplace le ROLLBACK final par COMMIT, et uniquement sur la base jetable locale.
+BEGIN;
 CREATE OR REPLACE FUNCTION public.inventaire_place_restante(p_inv jsonb)
  RETURNS integer
  LANGUAGE sql
@@ -152,3 +155,4 @@ BEGIN
   RETURN NEW;
 END; $function$
 ;
+ROLLBACK;
