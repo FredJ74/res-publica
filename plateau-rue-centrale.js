@@ -1197,6 +1197,7 @@ async function afficherNoeudRue(pays, noeudId, depuisNoeudId, positionDejaConfir
       return;
     }
   }
+  if(typeof sbFicheBaseAdopter==='function')sbFicheBaseAdopter({current_building:null,current_room:null});
   rueCentraleNoeudActuel = noeudId;
   rueCentraleDepuisNoeud = depuisNoeudId || null;
   if (typeof state !== 'undefined' && state.currentCity) {
