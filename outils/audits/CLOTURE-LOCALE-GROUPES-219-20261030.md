@@ -1,5 +1,7 @@
 # #219 — Raccordements civils, groupes et squatteurs — 30 octobre 2026
 
+> Mise à jour de livraison : [rapport après intégration de main #258/#260/#261/#264](LIVRAISON-CONTROLEE-GROUPES-219-20261030.md). Les chiffres et conditions ci-dessous décrivent la passe antérieure.
+
 **Code raccordé et testé localement ; PR non autorisée à fusionner ou déployer à ce stade.**
 Le prévol du catalogue réel et la recette authentifiée isolée restent nécessaires.
 Aucun accès Supabase callable n'est exposé dans cette session ; les commentaires
