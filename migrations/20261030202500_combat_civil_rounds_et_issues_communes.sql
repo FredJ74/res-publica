@@ -81,6 +81,10 @@ BEGIN
   IF issue<>'defaite' THEN
    PERFORM public.crime_tracer_interne(b.contexte->>'acteur',CASE WHEN issue='tues' THEN 'meurtre' ELSE 'agression' END,b.contexte->>'cible');
    PERFORM public.crime_detecter_interne(b.contexte->>'acteur',CASE WHEN issue='tues' THEN 'meurtre' ELSE 'agression' END,true);
+  ELSE
+   -- Conserver le motif d'échec du corps vivant de crime_neutraliser, sans
+   -- rejouer son jet ni prélever une amende dans ce résolveur.
+   PERFORM public.crime_rechercher_interne(b.contexte->>'acteur','tentative_assassinat','crime');
   END IF;
   v:=jsonb_build_object('ok',true,'issue',issue);
  END IF;

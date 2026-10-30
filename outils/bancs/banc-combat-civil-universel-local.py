@@ -258,6 +258,24 @@ def suite(ctx):
   exige(rpc('militaire_bataille_etat',(b,),qui='D'),'non_engage')
   assert not any(x['id']==b for x in exige(rpc('militaire_mes_batailles',(10,),qui='D'))['batailles'])
  cas('civil_rapports_persistants_deux_participants_absents_et_tiers_exclu',rapports)
+ def nom_pnj():
+  pret();sql("UPDATE pnj_membres SET nom='Nom unique de fixture',building_id='terrain-a-batir',room_id='terrain' WHERE id='ancre'")
+  b=exige(rpc('combat_ouvrir',('Nom unique de fixture','mains',req(172000))))['bataille']
+  q.execute("SELECT pnj_id FROM batailles_engagements WHERE bataille_id=%s AND camp='defenseur'",(b,));assert q.fetchone()[0]=='ancre'
+ cas('civil_nom_PNJ_unique_resolu_vers_identite_canonique',nom_pnj)
+ def ambigu():
+  pret();sql("UPDATE pnj_membres SET nom='Nom ambigu de fixture',statut='actif' WHERE id IN ('ancre','autre')")
+  exige(rpc('combat_ouvrir',('Nom ambigu de fixture','mains',req(173000))),'cible_ambigue')
+  q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==100
+ cas('civil_nom_PNJ_ambigu_refuse_avant_tout_paiement',ambigu)
+ def tentative():
+  b=ouvrir()['bataille']
+  q.execute("SELECT count(*) FROM personnages_donnees d CROSS JOIN LATERAL jsonb_array_elements(coalesce(recherche,'[]')) x WHERE name='A' AND x->>'acte'='tentative_assassinat'");avant=q.fetchone()[0]
+  exige(rpc('militaire_bataille_decider',(b,'rendre',0,req(174000))))
+  q.execute("SELECT count(*) FROM personnages_donnees d CROSS JOIN LATERAL jsonb_array_elements(coalesce(recherche,'[]')) x WHERE name='A' AND x->>'acte'='tentative_assassinat'");assert q.fetchone()[0]==avant+1
+  q.execute('SELECT combat_finaliser_interne(%s)',(b,));assert q.fetchone()[0]['issue']=='defaite'
+  q.execute("SELECT count(*) FROM personnages_donnees d CROSS JOIN LATERAL jsonb_array_elements(coalesce(recherche,'[]')) x WHERE name='A' AND x->>'acte'='tentative_assassinat'");assert q.fetchone()[0]==avant+1
+ cas('civil_echec_conserve_motif_penal_historique_sans_double_traitement',tentative)
  # Deux connexions et reçus réellement concurrents, décor fictif seulement.
  pret();ctx['c'].commit()
  def concurrence():

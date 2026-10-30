@@ -312,7 +312,7 @@ async function confirmerAssassinatArme(encodedCible, mode) {
 
   const contexte = contexteGroupePj();
   const identifiant = cible.isPJ ? cible.name : /^squatter_/.test(cible.terrainPnjId || cible.id || '')
-    ? state.currentBuilding : (cible.socleId || cible.pnjSocleId || cible.id || cible.name);
+    ? state.currentBuilding : (cible.socleId || cible.pnjSocleId || (cible.name ? cible.name.replace(/ \(PNJ\)$/, '') : cible.id));
   const v = await sbCombatOuvrir(identifiant, mode);
   if (!contexteGroupePjValide(contexte)) return;
   if (v?.ok !== true || !Number.isSafeInteger(Number(v.bataille))) {

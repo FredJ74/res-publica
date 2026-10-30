@@ -38,7 +38,8 @@ test('reddition : décision explicite transmise, même contrat de reçu',async()
 for(const [titre,cible,attendu] of [
  ['PJ identifié par nom serveur',{isPJ:true,id:'uid-ne-pas-envoyer',name:'C'},'C'],
  ['squatteurs par occupation courante',{id:'squatter_cool',name:'squatteurs'},'mairie'],
- ['PNJ par identité canonique',{id:'presentation',socleId:'pnj-canonique'},'pnj-canonique']
+ ['PNJ par identité canonique',{id:'presentation',socleId:'pnj-canonique'},'pnj-canonique'],
+ ['PNJ présenté par nom officiel',{id:'ancien-id-ecran',name:'Un (PNJ)'},'Un']
 ])test('ouverture depuis fiche : '+titre,async()=>{
  const c=jeu();c.document={getElementById:()=>({classList:{remove(){}}})};c.NEUTRALISER_MODES={mains:{}};
  c.neutraliserPossedeArme=()=>true;c.neutraliserCibleEstDepute=()=>null;c.neutraliserTaux=()=>0;

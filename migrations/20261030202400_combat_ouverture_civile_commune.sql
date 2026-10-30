@@ -20,7 +20,13 @@ BEGIN
  IF p.current_building=p_cible AND p_cible LIKE 'terrain-a-batir%' THEN
   terrain:=p_cible;pnj:=public.combat_occupant_terrain_interne(terrain,moi);
  ELSE SELECT name INTO cible FROM public.personnages_donnees WHERE name=p_cible;
-  IF cible IS NULL THEN SELECT id INTO pnj FROM public.pnj_membres WHERE id=p_cible AND statut='actif';END IF;
+  IF cible IS NULL THEN
+   SELECT id INTO pnj FROM public.pnj_membres WHERE id=p_cible AND statut='actif';
+   IF pnj IS NULL THEN
+    IF (SELECT count(*) FROM public.pnj_membres WHERE nom=p_cible AND statut='actif')>1 THEN RETURN jsonb_build_object('ok',false,'raison','cible_ambigue');END IF;
+    SELECT id INTO pnj FROM public.pnj_membres WHERE nom=p_cible AND statut='actif';
+   END IF;
+  END IF;
  END IF;
  IF cible=moi OR (cible IS NULL AND pnj IS NULL) THEN RETURN jsonb_build_object('ok',false,'raison','cible_non_referencee');END IF;
  IF cible IS NOT NULL AND EXISTS(SELECT 1 FROM public.groupe_participants_interne(moi) WHERE est_pj AND identifiant=cible)
