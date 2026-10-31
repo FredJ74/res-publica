@@ -87,8 +87,10 @@ att('le cron a son propre appel, avec sa cible nommee',
 // 27 octobre 2026 : neutralisation et explosifs inscrivent l'avis au serveur (crime_neutraliser,
 // crime_explosifs, crime_incendier), sans passer par l'ecran.
 // 27 octobre 2026 (soir) : achats au marche noir, deputes et empoisonnement aussi, au serveur.
+// 31 octobre 2026 : l'echec de la dissimulation d'un cadavre inscrit l'avis au serveur
+// (terrain_occupation_action -> recherche_inscrire), plus par l'ecran.
 att('les inscriptions restantes passent par le helper',
-    partout(/inscrireRecherche\(/g) >= 6, partout(/inscrireRecherche\(/g) + ' appel(s)');
+    partout(/inscrireRecherche\(/g) >= 5, partout(/inscrireRecherche\(/g) + ' appel(s)');
 // 27 octobre 2026 : le retrait apres justification a quitte l'ecran (convocation_se_justifier).
 att('les retraits restants passent par le helper',
     partout(/retirerRecherche\(/g) >= 4, partout(/retirerRecherche\(/g) + ' appel(s)');
