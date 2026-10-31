@@ -38,6 +38,19 @@ class Exports(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,'complet absent'):m.lire_registre(p)
   p.write_text(json.dumps({'registre':[{'version':'20261030160000'},{'version':'20261030160000'}]}))
   with self.assertRaisesRegex(ValueError,'dupliquée'):m.lire_registre(p)
+ def test_registre_tableau_brut_du_relais_et_enveloppes_compatibles(self):
+  sp=importlib.util.spec_from_file_location('epreuve',R/'outils/baseline/epreuve-postgresql.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  lignes=[{'version':'20261030160000','name':'fixture_1'},{'version':'20261030161000','name':'fixture_2'}];p=self.rep/'registre.json'
+  for valeur in [lignes,{'registre':lignes},[{'registre':lignes}],{'prevol_219':{'registre':lignes}}]:
+   p.write_text(json.dumps(valeur));self.assertEqual(m.lire_registre(p),lignes)
+  for valeur in [[],[{'version':20261030160000}],lignes+[lignes[0]]]:
+   p.write_text(json.dumps(valeur))
+   with self.assertRaises(ValueError):m.lire_registre(p)
+ def test_omission_d_une_migration_du_manifeste_refusee(self):
+  from unittest.mock import patch
+  sp=importlib.util.spec_from_file_location('lot',R/'outils/livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  d=json.loads(m.MAN.read_text());d['migrations'].pop();p=self.rep/'manifeste.json';p.write_text(json.dumps(d))
+  with patch.object(m,'MAN',p),self.assertRaisesRegex(AssertionError,'88 migrations'):m.preparer()
  def test_nouveau_point_de_coupe_refuse_anciennes_preparations(self):
   sp=importlib.util.spec_from_file_location('lot',R/'outils/livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
   m.R=self.rep;(self.rep/'baseline').mkdir();(self.rep/'baseline/CONTROLE-GLOBAL.json').write_text('{"releve_le":"2099-01-01T00:00:00"}')

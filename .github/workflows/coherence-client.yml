@@ -67,6 +67,8 @@ jobs:
         run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
       - name: Exports canoniques complets et reconstruction des séquences, PostgreSQL jetable
         run: python3 outils/bancs/test-catalogue-reconstruction.py
+      - name: Relais canonique exact, snapshot et exclusion des fichiers privés
+        run: python3 outils/bancs/test-relais-canonique-219.py
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
       - name: Groupes et batailles mixtes sur PostgreSQL jetable

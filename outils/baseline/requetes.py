@@ -582,7 +582,7 @@ select jsonb_build_object(
     'empreinte', md5(string_agg(version || ':' || coalesce(name, ''), '|'
                                 order by (version || ':' || coalesce(name, '')) collate "C")))
    from supabase_migrations.schema_migrations),
- 'releve_le', now() at time zone 'Europe/Paris'
+ 'releve_le', now() at time zone 'UTC'
 ) as controle_global
 """
 

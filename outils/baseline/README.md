@@ -344,3 +344,35 @@ Il ne modifie ni les fixtures, ni les assertions, ni les codes de sortie. Les
 contre-épreuves doivent toujours échouer pour être considérées comme détectées.
 Cette réussite du moteur et des tests de fixtures n'est **pas** la reconstruction
 du catalogue vivant : sans ses exports complets, le vieux baseline reste refusé.
+
+## Relais cohérent de #219 — 31 octobre 2026
+
+`outils/livraison/relais-canonique-219.py --sql` assemble les quatre requêtes
+canoniques, le contrôle global et le registre dans **un seul SELECT**, donc un
+seul snapshot PostgreSQL. Les options des séquences restent des chaînes décimales
+exactes ; le point de coupe est exprimé en UTC, comme les noms des migrations.
+Il ajoute les dix référentiels authored relus pour #219, avec comptes et
+empreintes des lignes d'INSERT produites par le moteur existant `seeds.requete`.
+Les deux tables `commerce_decors_sources` et `publicites_premium_sources` sont
+**C / structure seule** : références de téléversements rattachés à des comptes,
+jamais seeds, y compris lorsque leur compte réel est nul.
+
+Le banc `outils/bancs/RELAIS-CANONIQUE-219.sql` contient exactement ce SELECT sous
+`BEGIN; SET TRANSACTION READ ONLY; ... ROLLBACK;`. Il ne contient aucun export.
+L'intégrateur connecté exécute cette extraction en lecture seule et remet le
+résultat complet par fichier privé ; aucune manipulation n'est demandée à Fred.
+
+Le mode `--verifier <fichier-prive>` refuse export absent, borne invalide,
+comptes/empreintes contradictoires, relevés non simultanés, registre incomplet
+et lignes hors liste blanche. Avec `--sortie-privee <dossier-neuf>`, il produit
+les quatre JSON sous `canoniques/`, plus contrôle, registre, seeds et provenance,
+hors de **tout** dépôt Git, dossiers 0700/fichiers 0600, sans écrasement. Il
+n'applique ni SQL ni migration. Le validateur utilise les dépendances de
+`outils/bancs/requirements-postgres-local.txt`.
+
+Ce transfert ne constitue ni une revue du contenu reçu, ni un rendu complet des
+seeds : les autres seeds existants restent à confronter au nouveau point de
+coupe. Aucun SQL généré du baseline n'est modifié tant que les nouveaux exports
+cohérents ne sont pas reçus. Le rendu refuse dorénavant toute table reclassée
+privée/hors surface avant de créer le moindre fichier, même si un ancien export
+la contenait encore.

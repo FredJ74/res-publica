@@ -7,6 +7,8 @@ R=Path(__file__).resolve().parents[2]
 MAN=R/'outils/audits/LIVRAISON-GROUPES-219-20261030.json'
 def preparer(destination=None):
  m=json.loads(MAN.read_text());versions=set();blocs=[]
+ assert len(m['migrations'])==88, 'Le lot #219 doit conserver ses 88 migrations ; aucune omission silencieuse'
+ assert [e['version'] for e in m['migrations']]==sorted(e['version'] for e in m['migrations']), 'Ordre des migrations incohérent'
  coupe=datetime.fromisoformat(json.loads((R/'baseline/CONTROLE-GLOBAL.json').read_text())['releve_le']).strftime('%Y%m%d%H%M%S')
  assert all(e['version']>coupe for e in m['migrations']), 'Versions préparées antérieures au nouveau baseline : rehorodater le lot, jamais reculer le point de coupe'
  for e in m['migrations']:

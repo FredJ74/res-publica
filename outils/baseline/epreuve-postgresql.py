@@ -72,15 +72,20 @@ def installer(q, morceaux):
 def lire_registre(chemin):
     """Registre réel communiqué ; jamais une liste vide pour forcer le prévol."""
     valeur=json.loads(Path(chemin).read_text())
-    if isinstance(valeur,list):
-        if len(valeur)!=1:raise ValueError('Un relevé de registre attendu')
-        valeur=valeur[0]
-    if isinstance(valeur,dict) and 'prevol_219' in valeur:valeur=valeur['prevol_219']
-    lignes=valeur.get('registre') if isinstance(valeur,dict) else None
+    # Le relais Git communiqué contient directement les 1 002 lignes, pas
+    # une seule ligne MCP enveloppant un champ registre.
+    if isinstance(valeur,list) and valeur and all(isinstance(x,dict) and 'version' in x for x in valeur):
+        lignes=valeur
+    else:
+        if isinstance(valeur,list):
+            if len(valeur)!=1:raise ValueError('Un relevé de registre attendu')
+            valeur=valeur[0]
+        if isinstance(valeur,dict) and 'prevol_219' in valeur:valeur=valeur['prevol_219']
+        lignes=valeur.get('registre') if isinstance(valeur,dict) else None
     if not isinstance(lignes,list) or not lignes:raise ValueError('Registre vivant complet absent, installation du lot refusée')
     versions=set()
     for ligne in lignes:
-        if not isinstance(ligne,dict) or not re.fullmatch(r'\d{14}',str(ligne.get('version',''))) or ligne['version'] in versions:
+        if not isinstance(ligne,dict) or not isinstance(ligne.get('version'),str) or not re.fullmatch(r'\d{14}',ligne.get('version','')) or ligne['version'] in versions:
             raise ValueError('Version de registre invalide ou dupliquée')
         versions.add(ligne['version'])
     return lignes

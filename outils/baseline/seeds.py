@@ -777,6 +777,13 @@ def rendre(exp, resultat):
         donnees = donnees[0]["export_seeds"] if isinstance(donnees, list) else donnees["export_seeds"]
     lignes = donnees
 
+    # Contrôler toute la livraison avant le PREMIER fichier. Un export ancien
+    # peut encore contenir une table reclassée privée/état vivant depuis sa
+    # capture : ni ses lignes ni un rendu partiel ne doivent être publiés.
+    for x in lignes:
+        l = cls.get(x.get("tbl")) if isinstance(x, dict) else None
+        if not l or l["categorie"] == "C" or l["strategie"] not in ("seed_complet", "seed_filtre"):
+            raise ValueError("Table de seed hors surface autorisée ; aucun rendu effectué")
     par_table = {}
     for x in lignes:
         par_table.setdefault(x["tbl"], []).append(x["ligne"])
