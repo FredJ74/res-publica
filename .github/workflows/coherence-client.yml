@@ -63,6 +63,8 @@ jobs:
         run: node outils/bancs/banc-forum-auteur-institutionnel.cjs
       - name: Avis personnels signés d'expéditeurs déclarés
         run: node --test outils/bancs/banc-avis-personnels-expediteurs.mjs
+      - name: Caisses des clubs et organisations tenues par le serveur (écran, #295)
+        run: node outils/bancs/banc-caisses-collectives-client.cjs
       - name: Caisses entières, dialogues lisibles et genre non supposé
         run: node outils/bancs/banc-caisses-dialogue-lisibilite-20261031.cjs
       - name: Fiche PJ jamais autoritaire (fusion à trois voies, double clic, réponse perdue)
@@ -85,6 +87,8 @@ jobs:
         run: python3 outils/bancs/banc-couts-reconciliation-219-local.py
       - name: Relais canonique exact, snapshot et exclusion des fichiers privés
         run: python3 outils/bancs/test-relais-canonique-219.py
+      - name: Caisses collectives sur PostgreSQL jetable, contre-épreuve et fermeture (#295)
+        run: python3 outils/bancs/banc-caisses-collectives-local.py --local-jetable
       - name: Verrou final inventaire sur PostgreSQL jetable, données fictives
         run: python3 outils/bancs/banc-verrou-inventaire-local.py
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle

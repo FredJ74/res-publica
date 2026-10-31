@@ -7662,8 +7662,12 @@ async function ajusterSoldeCibleFiscale(typeCible, idCible, delta) {
         return null;
       }
     }
-  } else if (typeCible === 'club_sportif') {
-    await crediterBudgetClub(idCible, montantReel, montantReel >= 0 ? 'Subvention ministérielle' : 'Redressement fiscal');
+  } else if (typeCible === 'club_sportif' || typeCible === 'organisation') {
+    // Plus aucune ecriture de caisse collective par l'ecran (#295) : subvention_collective_verser
+    // et redressement_fiscal_appliquer sont les seules portes. Refus explicite plutot qu'un
+    // credit local que la base ignorerait.
+    console.error('ajusterSoldeCibleFiscale : ' + typeCible + ' passe par le serveur, rien n\'est ajuste ici');
+    return null;
   } else if (typeCible === 'entreprise') {
     // CHANTIER C / PHASE 3. Cette branche relisait la caisse, la recalculait et reecrivait le
     // blob entier -- sans controle de poste dans la fonction elle-meme (il n'existait qu'a
@@ -7675,9 +7679,6 @@ async function ajusterSoldeCibleFiscale(typeCible, idCible, delta) {
     }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
     if (!rFisc || rFisc.ok !== true) return 0;
     return rFisc.montantReel;
-  } else if (typeCible === 'organisation') {
-    const o = (state.organisations || []).find(x => x.id === idCible);
-    if (o) { o.caisse = Math.max(0, (o.caisse||0) + montantReel); sauvegarderOrga(o); }
   }
   return montantReel;
 }
@@ -7870,6 +7871,26 @@ async function confirmerSubventionMontant(typeCible, idCible, plafond) {
     if (resultat.conflitInterets === true) {
       addJournalEntry('Conflit d’intérêts public : le ministre subventionne son propre commerce (' +
         nomCible + ', ' + montantVerse + ' FR).', 'event-info');
+    }
+  } else if (typeCible === 'club_sportif' || typeCible === 'organisation') {
+    // CLUB OU ORGANISATION : DEBIT DU MINISTERE ET CREDIT DE LA CAISSE EN UNE TRANSACTION
+    // (31/10/2026, #295). L'ecran ne reecrit plus la caisse ; versement partiel tolere, comme pour
+    // le citoyen, et une seule fois par geste.
+    const r = typeof sbCaisseCollective === 'function'
+      ? await sbCaisseCollective('subvention_collective_verser', { p_type: typeCible, p_id: idCible, p_montant: montant },
+          ['subvention', typeCible, idCible, montant])
+      : { ok: false, raison: 'reponse_absente' };
+    if (!r.ok) {
+      showToast(r.raison === 'caisse_insuffisante' ? 'Caisse insuffisante' : 'Subvention non confirmée',
+        r.raison === 'caisse_insuffisante' ? 'Le budget du gouvernement ne peut pas financer cette subvention actuellement.'
+          : r.raison === 'reponse_absente' ? "Le serveur n'a pas confirmé le versement. Réessayez : il ne sera jamais compté deux fois."
+          : 'Le versement a été refusé (' + (r.raison || 'motif inconnu') + ').', false);
+      return;
+    }
+    montantVerse = Number(r.verse || 0);
+    if (typeCible === 'organisation') {
+      const o = (state.organisations || []).find(x => x.id === idCible);
+      if (o && typeof r.caisse === 'number') o.caisse = r.caisse;
     }
   } else {
     montantVerse = typeof debiterCaisseBatimentPlafonne === 'function' ? await debiterCaisseBatimentPlafonne(pays, 'gouvernement-min_fin', montant) : 0;
