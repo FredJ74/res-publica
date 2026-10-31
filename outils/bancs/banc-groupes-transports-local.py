@@ -27,7 +27,7 @@ def suite(ctx,suivante=None):
  g,villes=extraire('villes')
  assert not villes['desaccords'],villes['desaccords']
  for v in villes['villes']:q.execute('INSERT INTO villes(pays,ville,nom,est_capitale,rang) VALUES(%s,%s,%s,%s,%s)',(v['pays'],v['ville'],v['nom'],v['est_capitale'],v['rang']))
- for nom in ['20261028194000_transport_encaissement_existant.sql','20261028194100_transport_intra_atomique.sql']:
+ for nom in ['20261031115805_transport_encaissement_existant.sql','20261031115806_transport_intra_atomique.sql']:
   q.execute((R/'migrations'/nom).read_text());q.execute((R/'migrations'/nom).read_text())
  if '--contre-tarif-collectif' in sys.argv:
   # Réintroduire seulement le défaut « un billet pour tout le groupe ». Aucun

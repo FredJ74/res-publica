@@ -32,7 +32,8 @@ DO $prevol$
 BEGIN
  IF EXISTS(SELECT 1 FROM supabase_migrations.schema_migrations WHERE version IN ("""+liste+""")) THEN
   RAISE EXCEPTION '219_version_deja_enregistree_reconcilier_avant_application';END IF;
- IF to_regprocedure('public.pnj_position_effective(text)') IS NULL
+ IF to_regprocedure('public.terrain_squatteurs_issue_interne(text,text,text,uuid)') IS NULL
+ OR to_regprocedure('public.pnj_position_effective(text)') IS NULL
  OR to_regprocedure('public.crime_neutraliser(text,text,integer)') IS NULL
  OR to_regprocedure('public.militaire_bataille_combattants(bigint,text)') IS NULL
  OR to_regprocedure('public.sanction_financiere_imposer_interne(text,text,text,text,integer,text)') IS NULL

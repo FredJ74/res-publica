@@ -11,6 +11,7 @@
 -- ============================================================================
 
 CREATE TRIGGER trg_forum_verrou_message_ligue BEFORE INSERT ON forum_posts FOR EACH ROW EXECUTE FUNCTION forum_verrou_message_ligue();
+CREATE TRIGGER trg_jodie_portrait_vers_journal AFTER INSERT ON forum_posts FOR EACH ROW EXECUTE FUNCTION jodie_portrait_vers_journal();
 CREATE TRIGGER trg_forum_local_territorial BEFORE INSERT ON forum_topics FOR EACH ROW EXECUTE FUNCTION forum_verrou_local_territorial();
 CREATE TRIGGER trg_forum_verrou_compte_rendu BEFORE INSERT ON forum_topics FOR EACH ROW EXECUTE FUNCTION forum_verrou_compte_rendu_journee();
 CREATE TRIGGER trg_forum_verrou_programme BEFORE INSERT ON forum_topics FOR EACH ROW EXECUTE FUNCTION forum_verrou_programme_officiel();

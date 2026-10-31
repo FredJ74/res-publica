@@ -24,6 +24,32 @@
 -- le registre lui-meme, pas un etat de partie.
 -- ============================================================================
 
+-- SEED -- greffes_tribunaux
+-- ============================================================================
+-- Table      : public.greffes_tribunaux
+-- Domaine    : justice
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 3
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- LE GREFFIER DE CHAQUE TRIBUNAL, et le fait qu'il soit un PNJ PERMANENT.
+-- Trois lignes, une par ville de Republia. `greffier_pnj` nomme le PNJ quand
+-- il est incarne, et vaut NULL sinon -- `greffe_signataire` replie alors sur
+-- « Greffe du tribunal de <ville> », de sorte qu'un document est toujours
+-- signe. Le greffe n'est JAMAIS un poste de PJ : la contrainte
+-- `postes_attribues_jamais_greffier` l'interdit en base, pas seulement a
+-- l'ecran.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- SOCLE : tout tribunal a un greffe, dans tout empire. Les trois lignes sont
+-- le registre lui-meme, pas un etat de partie.
+-- ============================================================================
+
 INSERT INTO public.greffes_tribunaux (pays, ville, greffier_pnj) VALUES ('republic', 'capitale', 'Greffier Petit');
 INSERT INTO public.greffes_tribunaux (pays, ville, greffier_pnj) VALUES ('republic', 'ville_a', NULL);
 INSERT INTO public.greffes_tribunaux (pays, ville, greffier_pnj) VALUES ('republic', 'ville_b', NULL);

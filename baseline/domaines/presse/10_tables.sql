@@ -10,8 +10,18 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."calomnies_actes_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."corruptions_presse_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."fuites_journalistiques_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."presse_membres_rang_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."scandales_presse_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
 CREATE TABLE public.calomnies_actes (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('calomnies_actes_id_seq'::regclass) NOT NULL,
   auteur text NOT NULL,
   cible text NOT NULL,
   pnj_cle text NOT NULL,
@@ -39,7 +49,7 @@ CREATE TABLE public.chronique_nationale (
 );
 
 CREATE TABLE public.corruptions_presse (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('corruptions_presse_id_seq'::regclass) NOT NULL,
   affaire_ref text NOT NULL,
   affaire_type text NOT NULL,
   affaire_pj text NOT NULL,
@@ -54,7 +64,7 @@ CREATE TABLE public.corruptions_presse (
 );
 
 CREATE TABLE public.fuites_journalistiques (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('fuites_journalistiques_id_seq'::regclass) NOT NULL,
   trace_cle text NOT NULL,
   source text NOT NULL,
   cible text NOT NULL,
@@ -123,6 +133,12 @@ CREATE TABLE public.journal_editions (
   journal_id text NOT NULL
 );
 
+CREATE TABLE public.journal_ventes_lectures (
+  titulaire uuid NOT NULL,
+  vente uuid NOT NULL,
+  lu_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.journaux (
   id text NOT NULL,
   groupe_id text NOT NULL,
@@ -161,12 +177,62 @@ CREATE TABLE public.presse_membres (
   grade text NOT NULL,
   entre_le timestamp with time zone DEFAULT now() NOT NULL,
   grade_depuis timestamp with time zone DEFAULT now() NOT NULL,
-  rang bigserial NOT NULL,
+  rang bigint DEFAULT nextval('presse_membres_rang_seq'::regclass) NOT NULL,
   nomme_par text
 );
 
+CREATE TABLE public.publicites_premium_presse (
+  id uuid DEFAULT gen_random_uuid() NOT NULL,
+  acheteur_user_id uuid NOT NULL,
+  personnage text NOT NULL,
+  journal_id text DEFAULT 'republic_autruche-entravee'::text NOT NULL,
+  pays text DEFAULT 'republic'::text NOT NULL,
+  formule text NOT NULL,
+  prix_centimes integer NOT NULL,
+  nb_parutions integer GENERATED ALWAYS AS (
+CASE
+    WHEN (formule = 'cinq'::text) THEN 5
+    ELSE 10
+END) STORED,
+  etat text DEFAULT 'brouillon'::text NOT NULL,
+  instructions text,
+  assistance_ia boolean DEFAULT true NOT NULL,
+  image_path text,
+  apercu_path text,
+  retouches integer DEFAULT 0 NOT NULL,
+  paiement_fournisseur text,
+  paiement_reference text,
+  paiement_confirme_le timestamp with time zone,
+  premiere_parution date,
+  derniere_parution date,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL,
+  modifie_le timestamp with time zone DEFAULT now() NOT NULL,
+  mode_beta_gratuit boolean DEFAULT false NOT NULL,
+  consentement_sources_le timestamp with time zone,
+  origine_image text DEFAULT 'ia'::text NOT NULL,
+  retiree_le timestamp with time zone,
+  motif_retrait text
+);
+
+CREATE TABLE public.publicites_premium_sources (
+  id uuid DEFAULT gen_random_uuid() NOT NULL,
+  publicite_id uuid NOT NULL,
+  proprietaire_user_id uuid NOT NULL,
+  chemin text NOT NULL,
+  nom_original text NOT NULL,
+  type_mime text NOT NULL,
+  taille_octets bigint NOT NULL,
+  empreinte_sha256 text NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.scandales_predefinis (
+  id integer NOT NULL,
+  texte text NOT NULL
+);
+
 CREATE TABLE public.scandales_presse (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('scandales_presse_id_seq'::regclass) NOT NULL,
   auteur text NOT NULL,
   cible text NOT NULL,
   pays text,
@@ -190,6 +256,22 @@ CREATE TABLE public.scandales_tentatives (
   cree_le timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.scandales_tirages (
+  pays text NOT NULL,
+  jour date NOT NULL,
+  scandale integer,
+  tire_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.tracts_pnj_catalogue (
+  pays text NOT NULL,
+  ville text NOT NULL,
+  building_id text NOT NULL,
+  room_id text NOT NULL,
+  nom text NOT NULL,
+  car_vol integer DEFAULT 10 NOT NULL
+);
+
 CREATE TABLE public.tribune_articles_etouffes (
   id text NOT NULL,
   cible_type text NOT NULL,
@@ -199,3 +281,13 @@ CREATE TABLE public.tribune_articles_etouffes (
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   expire_le timestamp with time zone NOT NULL
 );
+
+ALTER SEQUENCE public."calomnies_actes_id_seq" OWNED BY public."calomnies_actes"."id";
+
+ALTER SEQUENCE public."corruptions_presse_id_seq" OWNED BY public."corruptions_presse"."id";
+
+ALTER SEQUENCE public."fuites_journalistiques_id_seq" OWNED BY public."fuites_journalistiques"."id";
+
+ALTER SEQUENCE public."presse_membres_rang_seq" OWNED BY public."presse_membres"."rang";
+
+ALTER SEQUENCE public."scandales_presse_id_seq" OWNED BY public."scandales_presse"."id";

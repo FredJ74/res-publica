@@ -6,8 +6,8 @@ from pathlib import Path
 import re, tempfile, json, sys, subprocess, time
 from concurrent.futures import ThreadPoolExecutor
 R=Path(__file__).resolve().parents[2]
-M='migrations/20261027222500_securite_privee_socle_policier.sql'
-ETAPES=[M,'migrations/20261028074753_securite_privee_detection_unites.sql','migrations/20261028074754_securite_privee_combat_pa_et_registre.sql']
+M='migrations/20261031115734_securite_privee_socle_policier.sql'
+ETAPES=[M,'migrations/20261031115735_securite_privee_detection_unites.sql','migrations/20261031115736_securite_privee_combat_pa_et_registre.sql']
 
 def fonction(f,nom):
  s=(R/f).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(')

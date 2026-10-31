@@ -1,0 +1,445 @@
+{
+  "raison": "88 préparations non appliquées déplacées après le nouveau point de coupe canonique, historique conservé",
+  "fichiers": [
+    {
+      "ancien": "migrations/20261027222500_securite_privee_socle_policier.sql",
+      "nouveau": "migrations/20261031115734_securite_privee_socle_policier.sql",
+      "sha256_avant": "dc4c69fb53552df5df78ab3d87e72cfe2d0903567e95ca4bc6b7e0c617263972"
+    },
+    {
+      "ancien": "migrations/20261028074753_securite_privee_detection_unites.sql",
+      "nouveau": "migrations/20261031115735_securite_privee_detection_unites.sql",
+      "sha256_avant": "661516374512a9ab334b271589237d4d3e6c857c928123550ff4f272a47ab237"
+    },
+    {
+      "ancien": "migrations/20261028074754_securite_privee_combat_pa_et_registre.sql",
+      "nouveau": "migrations/20261031115736_securite_privee_combat_pa_et_registre.sql",
+      "sha256_avant": "121f8f029a0922a36803062373bb56626354b7e4cb7eb325a6b6f97cbc2f1b32"
+    },
+    {
+      "ancien": "migrations/20261028122000_radio_ordres_meme_ville.sql",
+      "nouveau": "migrations/20261031115737_radio_ordres_meme_ville.sql",
+      "sha256_avant": "54f0f3bdfc3bf45fc18386a671653ad3e83575e6b212c0aa5999dab0d071477a"
+    },
+    {
+      "ancien": "migrations/20261028122500_reprise_pnj_autorite_administrative.sql",
+      "nouveau": "migrations/20261031115738_reprise_pnj_autorite_administrative.sql",
+      "sha256_avant": "05118310ce5c53ab192f3c4f24fa0fd6b860ec28a7cc8fc70eb4f5e127734ae0"
+    },
+    {
+      "ancien": "migrations/20261028123000_groupe_pj_adhesion_volontaire.sql",
+      "nouveau": "migrations/20261031115739_groupe_pj_adhesion_volontaire.sql",
+      "sha256_avant": "1bef1cc64a582690b049bef88c6725dbcda77a417b04bcca5784b7d8bbb3b8cf"
+    },
+    {
+      "ancien": "migrations/20261028123500_pnj_rappel_radio_universel.sql",
+      "nouveau": "migrations/20261031115740_pnj_rappel_radio_universel.sql",
+      "sha256_avant": "083e176a1787697fe373c31f5c4312a90bcbb6a0ab9db8f7aedce9b16b820152"
+    },
+    {
+      "ancien": "migrations/20261028124000_transfert_pnj_autorite_origine.sql",
+      "nouveau": "migrations/20261031115741_transfert_pnj_autorite_origine.sql",
+      "sha256_avant": "1bf3bd34318794f790bb0b7370c11f9724a68dc1ff840db23a9de1529e33298b"
+    },
+    {
+      "ancien": "migrations/20261028135642_groupes_pnj_transferts_atomiques.sql",
+      "nouveau": "migrations/20261031115742_groupes_pnj_transferts_atomiques.sql",
+      "sha256_avant": "099ba4d3c5894563b7143f59d97310233105c29fa0443cec25a89d1a971999fe"
+    },
+    {
+      "ancien": "migrations/20261028135643_groupes_reprise_complete.sql",
+      "nouveau": "migrations/20261031115743_groupes_reprise_complete.sql",
+      "sha256_avant": "4aa7583d2f671e1aea540135e7f708915be51d552e1dd8e676fd7d3432a9a243"
+    },
+    {
+      "ancien": "migrations/20261028140626_groupes_employes_position_confirmee.sql",
+      "nouveau": "migrations/20261031115744_groupes_employes_position_confirmee.sql",
+      "sha256_avant": "11c36a786f54574faefa1c3c4e19d8cae4275ca7b9099cbe90ac8d90fbb7a8ae"
+    },
+    {
+      "ancien": "migrations/20261028141500_groupes_presence_privee_chef_reel.sql",
+      "nouveau": "migrations/20261031115745_groupes_presence_privee_chef_reel.sql",
+      "sha256_avant": "181258f89424096d69c3d71dffba43b0e076ed804c6a312603bb0959e72cca64"
+    },
+    {
+      "ancien": "migrations/20261028161732_groupes_soldats_projection_commune.sql",
+      "nouveau": "migrations/20261031115746_groupes_soldats_projection_commune.sql",
+      "sha256_avant": "2d0a981c6312057e73df31cc3d912e1eb58eb59228feed0d7fab68212f55cc07"
+    },
+    {
+      "ancien": "migrations/20261028163800_groupes_capacite_conduite_serveur.sql",
+      "nouveau": "migrations/20261031115747_groupes_capacite_conduite_serveur.sql",
+      "sha256_avant": "d2f87a2614623d79519b72f6aa458882d18c3e2f86027988166a6167b99d0d24"
+    },
+    {
+      "ancien": "migrations/20261028164500_groupes_ordres_militaires_adaptateurs.sql",
+      "nouveau": "migrations/20261031115748_groupes_ordres_militaires_adaptateurs.sql",
+      "sha256_avant": "f2cec9e4f69b636cc5a57733fedf630ac9d4e7624f17024912cb0b4d5b5fb1ef"
+    },
+    {
+      "ancien": "migrations/20261028165000_groupes_bataille_pays_adverse.sql",
+      "nouveau": "migrations/20261031115749_groupes_bataille_pays_adverse.sql",
+      "sha256_avant": "829689674e844e205fbe63428c63d14ee2aaaa4f27750b8a1e3c7633e6caa0dd"
+    },
+    {
+      "ancien": "migrations/20261028180000_groupes_force_publique_projection.sql",
+      "nouveau": "migrations/20261031115750_groupes_force_publique_projection.sql",
+      "sha256_avant": "465b790ed97f055c9ba8f11ecffa81e3c5b755a60efc708ea0d7359fb395e7f8"
+    },
+    {
+      "ancien": "migrations/20261028180100_groupes_force_publique_portes.sql",
+      "nouveau": "migrations/20261031115751_groupes_force_publique_portes.sql",
+      "sha256_avant": "d0c23676bc6996bd3eb73dfde40587f5f95bf3e386a531e75324c47a044c1d53"
+    },
+    {
+      "ancien": "migrations/20261028183000_groupes_rue_transaction_commune.sql",
+      "nouveau": "migrations/20261031115752_groupes_rue_transaction_commune.sql",
+      "sha256_avant": "906324776b845d2468168522cba81f45553e3d37750dbcc3dc0fe3192601aacb"
+    },
+    {
+      "ancien": "migrations/20261028185300_navigation_reference_commune.sql",
+      "nouveau": "migrations/20261031115753_navigation_reference_commune.sql",
+      "sha256_avant": "211296c09e497da4b347ebe48cfad9056f04cd2bf114ce2f432aa92c5c8d9cbb"
+    },
+    {
+      "ancien": "migrations/20261028185301_navigation_lieux_reference.sql",
+      "nouveau": "migrations/20261031115754_navigation_lieux_reference.sql",
+      "sha256_avant": "5b63bf9f1d1ea6c4324dd2284e19f6bff7310c6c66bba93b62c0ac04cd4b13bc"
+    },
+    {
+      "ancien": "migrations/20261028185302_navigation_lieux_reference.sql",
+      "nouveau": "migrations/20261031115755_navigation_lieux_reference.sql",
+      "sha256_avant": "e492b5f355e70308d1a0bc20b1c6d6a37c2e5ef23aa5693db9edcba51ef9901c"
+    },
+    {
+      "ancien": "migrations/20261028185303_navigation_lieux_reference.sql",
+      "nouveau": "migrations/20261031115756_navigation_lieux_reference.sql",
+      "sha256_avant": "907d0507b1aef4122f4c543244174b4ac9a36cfbb5d158f4da1492f722fbdcdc"
+    },
+    {
+      "ancien": "migrations/20261028185304_navigation_lieux_reference.sql",
+      "nouveau": "migrations/20261031115757_navigation_lieux_reference.sql",
+      "sha256_avant": "37b9fdf8c7a5c43f180ee3ae408f4ca8a29650a7b05c33aafb9e3ac9d7e7dfda"
+    },
+    {
+      "ancien": "migrations/20261028185305_navigation_lieux_reference.sql",
+      "nouveau": "migrations/20261031115758_navigation_lieux_reference.sql",
+      "sha256_avant": "dd3bf948c1b8cb20807cc17d3871c94a7709b2d7d88dc774b1060002b180bb1b"
+    },
+    {
+      "ancien": "migrations/20261028185500_navigation_interieure_validation.sql",
+      "nouveau": "migrations/20261031115759_navigation_interieure_validation.sql",
+      "sha256_avant": "02bcb3550f39c38849af0fd5c4096e15674cc170f250d06c657b85fb113ffb74"
+    },
+    {
+      "ancien": "migrations/20261028185600_navigation_interieure_groupe.sql",
+      "nouveau": "migrations/20261031115800_navigation_interieure_groupe.sql",
+      "sha256_avant": "5a7825bc3591c281a830e2f2e34735fec40da33e631209ecf1cd33ab14c66cec"
+    },
+    {
+      "ancien": "migrations/20261028185800_navigation_positions_sauvegardes.sql",
+      "nouveau": "migrations/20261031115801_navigation_positions_sauvegardes.sql",
+      "sha256_avant": "787b52846f9084e08081ba301c048bfe36e916cae1c11d3f6c445df8e5578b2a"
+    },
+    {
+      "ancien": "migrations/20261028191900_groupes_participants_canoniques.sql",
+      "nouveau": "migrations/20261031115802_groupes_participants_canoniques.sql",
+      "sha256_avant": "9065da9c174627e12f806068acb14295a804738906409570c33224aec41d0ce2"
+    },
+    {
+      "ancien": "migrations/20261028193000_navigation_ambassades_par_membre.sql",
+      "nouveau": "migrations/20261031115803_navigation_ambassades_par_membre.sql",
+      "sha256_avant": "c1048e1bcf95791d47803441f4158c20b756ced6047e4529421be73f152f8c0d"
+    },
+    {
+      "ancien": "migrations/20261028193500_navigation_lots_dynamiques.sql",
+      "nouveau": "migrations/20261031115804_navigation_lots_dynamiques.sql",
+      "sha256_avant": "b7220fdaa3157772ed0059e31d5968fae309e97e5f35d1396c28bc49818e720d"
+    },
+    {
+      "ancien": "migrations/20261028194000_transport_encaissement_existant.sql",
+      "nouveau": "migrations/20261031115805_transport_encaissement_existant.sql",
+      "sha256_avant": "08f8ca99d63579c202fcdd8affea510d363fbc6713caf95c74b4b534b7f88706"
+    },
+    {
+      "ancien": "migrations/20261028194100_transport_intra_atomique.sql",
+      "nouveau": "migrations/20261031115806_transport_intra_atomique.sql",
+      "sha256_avant": "feb337426892a3e3271f554e2f0d92583be81d36f3d76ac7a720cdf8197f9962"
+    },
+    {
+      "ancien": "migrations/20261028213200_pnj_position_pays_physique.sql",
+      "nouveau": "migrations/20261031115807_pnj_position_pays_physique.sql",
+      "sha256_avant": "940cf561299de772375b013bff27a51cd178c70b0cf234f80f3d180aeeac3f0c"
+    },
+    {
+      "ancien": "migrations/20261028213400_police_autorite_registre_poste.sql",
+      "nouveau": "migrations/20261031115808_police_autorite_registre_poste.sql",
+      "sha256_avant": "5e9de05342e4c5b59bdc63cdd93249e67e9944f3c7b7e9c84a26b866918b9ce8"
+    },
+    {
+      "ancien": "migrations/20261028215000_transport_adaptateur_confiscation.sql",
+      "nouveau": "migrations/20261031115809_transport_adaptateur_confiscation.sql",
+      "sha256_avant": "e803bc292c032c53b0d989f74b4a4f7ce68dd78311f139d0bb985a344980100e"
+    },
+    {
+      "ancien": "migrations/20261028215100_transport_adaptateur_recherches.sql",
+      "nouveau": "migrations/20261031115810_transport_adaptateur_recherches.sql",
+      "sha256_avant": "9a26cf4799ede41943f27383f0de70a21cf1bcd97d0f6fdf1432be22fa878848"
+    },
+    {
+      "ancien": "migrations/20261028215200_transport_adaptateur_execution.sql",
+      "nouveau": "migrations/20261031115811_transport_adaptateur_execution.sql",
+      "sha256_avant": "61d8df0681550b0e3a568b52fcbbcf5796ff34502b0ce4ef1da532962dd10ff5"
+    },
+    {
+      "ancien": "migrations/20261028215400_transport_passages_douaniers.sql",
+      "nouveau": "migrations/20261031115812_transport_passages_douaniers.sql",
+      "sha256_avant": "8d7d2bf9406cd8551c068b039bee26917cb28d6cca6937b58b05cf92c30462a6"
+    },
+    {
+      "ancien": "migrations/20261028215500_transport_controle_douanier_commun.sql",
+      "nouveau": "migrations/20261031115813_transport_controle_douanier_commun.sql",
+      "sha256_avant": "e560fd5aaac65d8751adfd0d6be04e6b03aa9e96c66d495a9c69b5407cd51137"
+    },
+    {
+      "ancien": "migrations/20261028215600_transport_zone_embarquement.sql",
+      "nouveau": "migrations/20261031115814_transport_zone_embarquement.sql",
+      "sha256_avant": "66c1115f4719115a99ec12a69d225fee5b0be03cc62f1a8bb49e34d11d6b283a"
+    },
+    {
+      "ancien": "migrations/20261028215800_transport_international_moteur_commun.sql",
+      "nouveau": "migrations/20261031115815_transport_international_moteur_commun.sql",
+      "sha256_avant": "32b4c2ebb6e22c8eb1837f20ed0c150834e660077e994f906920b3e5d0c3caa2"
+    },
+    {
+      "ancien": "migrations/20261028215900_transport_corruption_passage_serveur.sql",
+      "nouveau": "migrations/20261031115816_transport_corruption_passage_serveur.sql",
+      "sha256_avant": "11b09b589d148b8b72009cba4be1b2afc23a4850864d25f4b24b56bbc5985f38"
+    },
+    {
+      "ancien": "migrations/20261028222000_justice_position_cellule_serveur.sql",
+      "nouveau": "migrations/20261031115817_justice_position_cellule_serveur.sql",
+      "sha256_avant": "3c4acc259a2587e84874613aa696da0b92cbb6af007f2e49ad973d69c2c969c1"
+    },
+    {
+      "ancien": "migrations/20261029100000_groupes_miroirs_statuts_et_pa.sql",
+      "nouveau": "migrations/20261031115818_groupes_miroirs_statuts_et_pa.sql",
+      "sha256_avant": "e8e68463a4347c2df513590e90dd3cfd569c712a065109af92e5c34011146268"
+    },
+    {
+      "ancien": "migrations/20261029110000_groupes_recrutement_combattants.sql",
+      "nouveau": "migrations/20261031115819_groupes_recrutement_combattants.sql",
+      "sha256_avant": "b794fb55998fd4df2ae7089d379a6361cf319719502d8c7bb4036b3c7d483a3f"
+    },
+    {
+      "ancien": "migrations/20261029110100_groupes_composition_sous_confrontation.sql",
+      "nouveau": "migrations/20261031115820_groupes_composition_sous_confrontation.sql",
+      "sha256_avant": "dfb8c9cb2cbe3af84eb39720aace939bea23d499927faea6f6c6b033ec714c1c"
+    },
+    {
+      "ancien": "migrations/20261029110200_militaire_recrutement_presence_et_etat.sql",
+      "nouveau": "migrations/20261031115821_militaire_recrutement_presence_et_etat.sql",
+      "sha256_avant": "e9873b8f4947a8e7703dd29dc0ba53f89cfda9fcb93423d7c607ad5e17a42b1f"
+    },
+    {
+      "ancien": "migrations/20261029110300_police_combattant_etat_canonique.sql",
+      "nouveau": "migrations/20261031115822_police_combattant_etat_canonique.sql",
+      "sha256_avant": "073e55463a0b8f4f6bdba2e3a50089618e7d36032590f6c4232802ac66710f31"
+    },
+    {
+      "ancien": "migrations/20261029120000_groupes_separation_ecrou.sql",
+      "nouveau": "migrations/20261031115823_groupes_separation_ecrou.sql",
+      "sha256_avant": "badf8738845bda5e6caa65cdabfa00e2e8e00d33c5f67b9abf3a07767eacbfe9"
+    },
+    {
+      "ancien": "migrations/20261029121000_police_rounds_groupes_mixtes.sql",
+      "nouveau": "migrations/20261031115824_police_rounds_groupes_mixtes.sql",
+      "sha256_avant": "0b6b538cff3cd942aac69e5b4f6a659c4f5817df3997f1623ec4893cde2f2c64"
+    },
+    {
+      "ancien": "migrations/20261029121001_police_rounds_suites.sql",
+      "nouveau": "migrations/20261031115825_police_rounds_suites.sql",
+      "sha256_avant": "96c8f6bb54f6e7804a32ebab1ff5f2c07deb4fa894ded6150da1d4e3a1b316ff"
+    },
+    {
+      "ancien": "migrations/20261029122000_police_interception_groupe_et_commandement.sql",
+      "nouveau": "migrations/20261031115826_police_interception_groupe_et_commandement.sql",
+      "sha256_avant": "cf308572ac5d37e63271bb140e0ec611ff3a84c786ce403aed77294abf426f68"
+    },
+    {
+      "ancien": "migrations/20261029123000_police_detection_groupes_reels.sql",
+      "nouveau": "migrations/20261031115827_police_detection_groupes_reels.sql",
+      "sha256_avant": "b1aefdcccfc0bbc3f21f75ac4f4a4e18f3920c957c267ce8685761da0e2199a0"
+    },
+    {
+      "ancien": "migrations/20261029124000_police_fuite_collective_commune.sql",
+      "nouveau": "migrations/20261031115828_police_fuite_collective_commune.sql",
+      "sha256_avant": "6150d990f09b20cf165c17ac6c43ebce3104267ba042dbaad276f35bb5ff3fe4"
+    },
+    {
+      "ancien": "migrations/20261029125000_transport_taxis_speciaux_communs.sql",
+      "nouveau": "migrations/20261031115829_transport_taxis_speciaux_communs.sql",
+      "sha256_avant": "83594bfd0fed9415c528bd005832986d4c606e883d487b15d20df07e37608b61"
+    },
+    {
+      "ancien": "migrations/20261029130000_militaire_miroir_et_ecrivains_historiques.sql",
+      "nouveau": "migrations/20261031115830_militaire_miroir_et_ecrivains_historiques.sql",
+      "sha256_avant": "08cde24a1987dde7499853edefc7c6cd25f3cc1c34c25e30e4b5a3dcde505d81"
+    },
+    {
+      "ancien": "migrations/20261029131000_effectifs_recrutement_et_licenciement_atomiques.sql",
+      "nouveau": "migrations/20261031115831_effectifs_recrutement_et_licenciement_atomiques.sql",
+      "sha256_avant": "29319cfc803fd54d93aa1bc16b1afc473b131fa99e93b4a9ae6f2e42dc4b3497"
+    },
+    {
+      "ancien": "migrations/20261029131001_effectifs_gardes_historiques.sql",
+      "nouveau": "migrations/20261031115832_effectifs_gardes_historiques.sql",
+      "sha256_avant": "a6d7a0c78790d7be3f30ff263ca374ae517aac1c7f76ec03493dbde7ae1c97f8"
+    },
+    {
+      "ancien": "migrations/20261030223538_batailles_groupes_identites_universelles.sql",
+      "nouveau": "migrations/20261031115833_batailles_groupes_identites_universelles.sql",
+      "sha256_avant": "099d2e935f3727c7ef636159c02bf867a8a7cc8ca5cda031eff17cb0b46a5dcb"
+    },
+    {
+      "ancien": "migrations/20261030223539_batailles_effets_replis_et_verrous.sql",
+      "nouveau": "migrations/20261031115834_batailles_effets_replis_et_verrous.sql",
+      "sha256_avant": "cd17bf15634127338d4b609aa131add64e6f294bd76a7d3a8e41e6e0a663b649"
+    },
+    {
+      "ancien": "migrations/20261030223540_batailles_commandes_et_reprises.sql",
+      "nouveau": "migrations/20261031115835_batailles_commandes_et_reprises.sql",
+      "sha256_avant": "037a1fa6fabfc93722d716e2120861c653e4e68b386d84eb2c91de83fbd2ea95"
+    },
+    {
+      "ancien": "migrations/20261030223541_squatteurs_issue_reelle_bataille.sql",
+      "nouveau": "migrations/20261031115836_squatteurs_issue_reelle_bataille.sql",
+      "sha256_avant": "27ccadf187ed96e1c73dea64322acdd405301e29227e826c7f53fcb787ac480b"
+    },
+    {
+      "ancien": "migrations/20261030223542_police_controles_detecteur_commun.sql",
+      "nouveau": "migrations/20261031115837_police_controles_detecteur_commun.sql",
+      "sha256_avant": "4b966b520aca8d20145bd46e95d2d71a497bd814c65f8dfb82054546ae4f61ab"
+    },
+    {
+      "ancien": "migrations/20261030223543_police_controles_actions_atomiques.sql",
+      "nouveau": "migrations/20261031115838_police_controles_actions_atomiques.sql",
+      "sha256_avant": "e8794c311c295777acd7d06c3d00ec21c0c84481cdf55201d72fbb06b058dd3c"
+    },
+    {
+      "ancien": "migrations/20261030223544_combats_cinq_rounds_et_commandement.sql",
+      "nouveau": "migrations/20261031115839_combats_cinq_rounds_et_commandement.sql",
+      "sha256_avant": "a01492722b96e09ffba5e424466a8905f48a130874ac3817354ed62068ddfe1b"
+    },
+    {
+      "ancien": "migrations/20261030223545_combats_chef_neutralise_effets_differes.sql",
+      "nouveau": "migrations/20261031115840_combats_chef_neutralise_effets_differes.sql",
+      "sha256_avant": "b15334fb9ce661fcb0473971457b47aea7e128557c54a99fd5f22d1774effac7"
+    },
+    {
+      "ancien": "migrations/20261030223546_police_commandement_et_cinq_rounds.sql",
+      "nouveau": "migrations/20261031115841_police_commandement_et_cinq_rounds.sql",
+      "sha256_avant": "b8704a357ca1be9768ef79c3b4ee7daf37346725b8f1dce56239383f554c7a73"
+    },
+    {
+      "ancien": "migrations/20261030223547_navigation_provenance_et_destination_fuite.sql",
+      "nouveau": "migrations/20261031115842_navigation_provenance_et_destination_fuite.sql",
+      "sha256_avant": "982b9b17afbd59523b1a5729f121ba4f3524965cdce5f1eb4af029bec41ba877"
+    },
+    {
+      "ancien": "migrations/20261030223548_navigation_directions_reference.sql",
+      "nouveau": "migrations/20261031115843_navigation_directions_reference.sql",
+      "sha256_avant": "790030c2cd28e4d85508e53aa494eff4c7bb46c7685734d70fcd4b5c221ade93"
+    },
+    {
+      "ancien": "migrations/20261030223549_navigation_directions_reference.sql",
+      "nouveau": "migrations/20261031115844_navigation_directions_reference.sql",
+      "sha256_avant": "da3f9257a256835baf8b2b460794edfed80da073dec2549e7fb959115e68d07f"
+    },
+    {
+      "ancien": "migrations/20261030223550_navigation_directions_reference.sql",
+      "nouveau": "migrations/20261031115845_navigation_directions_reference.sql",
+      "sha256_avant": "599727205bd330064373dabefa2d5ff0b3a0833a235a8c0fb978747765d83527"
+    },
+    {
+      "ancien": "migrations/20261030223551_navigation_directions_reference.sql",
+      "nouveau": "migrations/20261031115846_navigation_directions_reference.sql",
+      "sha256_avant": "2b8e6e9de478c73354843041c630bf292e68bfc6773c1f6e6e9f0e8d5e9abb0e"
+    },
+    {
+      "ancien": "migrations/20261030223552_navigation_directions_reference.sql",
+      "nouveau": "migrations/20261031115847_navigation_directions_reference.sql",
+      "sha256_avant": "6bdd09d6496165a91322363e8b335e3d683d2028783f804b1270c9a1b22d6e35"
+    },
+    {
+      "ancien": "migrations/20261030223553_navigation_directions_reference.sql",
+      "nouveau": "migrations/20261031115848_navigation_directions_reference.sql",
+      "sha256_avant": "7d30d19915dd9836c28ab427da70b74b67670588e43085c98b10e89ef0ebfb76"
+    },
+    {
+      "ancien": "migrations/20261030223554_police_fuite_direction_commune.sql",
+      "nouveau": "migrations/20261031115849_police_fuite_direction_commune.sql",
+      "sha256_avant": "eb0eaaee680a81ee09eca6354ebf56180ff1328ac8664a2c283f08315448408e"
+    },
+    {
+      "ancien": "migrations/20261030223555_police_controles_chef_et_fuite_reelle.sql",
+      "nouveau": "migrations/20261031115850_police_controles_chef_et_fuite_reelle.sql",
+      "sha256_avant": "ce4ba2a24b86049045deb3d630cc16d0be2aa20251a12c63792759ca0dcef14d"
+    },
+    {
+      "ancien": "migrations/20261030223556_batailles_repli_navigation_commune.sql",
+      "nouveau": "migrations/20261031115851_batailles_repli_navigation_commune.sql",
+      "sha256_avant": "ff925ad8b286bdb831037e67722206c37919f3f6809fd03f34dcef3a12ae462b"
+    },
+    {
+      "ancien": "migrations/20261030223557_navigation_geometrie_commune_et_replis_pnj.sql",
+      "nouveau": "migrations/20261031115852_navigation_geometrie_commune_et_replis_pnj.sql",
+      "sha256_avant": "610212401588bdfbe2d89ea9b96275f25e1adf4e1e9b31ec0a929b31ecd50c4a"
+    },
+    {
+      "ancien": "migrations/20261030223558_batailles_progression_serveur_existante.sql",
+      "nouveau": "migrations/20261031115853_batailles_progression_serveur_existante.sql",
+      "sha256_avant": "76c9fc17f262d649e6e8a3353ca2974460023de1522b1699f421ffb91d5daee6"
+    },
+    {
+      "ancien": "migrations/20261030223559_camions_groupes_et_refus_atomiques.sql",
+      "nouveau": "migrations/20261031115854_camions_groupes_et_refus_atomiques.sql",
+      "sha256_avant": "5fc14ef46725a439fea90dadf254b70d4b825cc186d9848a4810685749d08f44"
+    },
+    {
+      "ancien": "migrations/20261030223600_navigation_provenance_pnj_et_lecture_commune.sql",
+      "nouveau": "migrations/20261031115855_navigation_provenance_pnj_et_lecture_commune.sql",
+      "sha256_avant": "c362279eece8b344d98c8fd8ee0933eeca0277bc04a8545b35c9b07f3b667115"
+    },
+    {
+      "ancien": "migrations/20261030223601_combats_profils_et_occupation_unique.sql",
+      "nouveau": "migrations/20261031115856_combats_profils_et_occupation_unique.sql",
+      "sha256_avant": "7392049b7934dd8b9a496211a7f8e8bd6a4ae68bfb9b5c629fd8e09e9100e259"
+    },
+    {
+      "ancien": "migrations/20261030223602_combat_ouverture_civile_commune.sql",
+      "nouveau": "migrations/20261031115857_combat_ouverture_civile_commune.sql",
+      "sha256_avant": "671abb60e84faa230ed54179fbc26d0db8c8d39efca012316c38fb81bcb3d096"
+    },
+    {
+      "ancien": "migrations/20261030223603_combat_civil_rounds_et_issues_communes.sql",
+      "nouveau": "migrations/20261031115858_combat_civil_rounds_et_issues_communes.sql",
+      "sha256_avant": "46e8572245a7361e94f5417976f16061a48c2861a8d2fff36dff479a11eb3440"
+    },
+    {
+      "ancien": "migrations/20261030223604_combat_fermeture_ancienne_porte_et_automates.sql",
+      "nouveau": "migrations/20261031115859_combat_fermeture_ancienne_porte_et_automates.sql",
+      "sha256_avant": "395c49b5a54f4b0a9aba1ab9a66bb86ff5dec25a076f3ab8e55333d81db1737f"
+    },
+    {
+      "ancien": "migrations/20261030223605_combat_composition_commune_depuis_graines.sql",
+      "nouveau": "migrations/20261031115900_combat_composition_commune_depuis_graines.sql",
+      "sha256_avant": "58d3e92bb9711fdb67babac8782df56a0543ec95aabf665bc0aeedce7eef7829"
+    },
+    {
+      "ancien": "migrations/20261030223606_combat_cibles_presence_canonique.sql",
+      "nouveau": "migrations/20261031115901_combat_cibles_presence_canonique.sql",
+      "sha256_avant": "a2517d762941e8f6b2502cdb8c713b82058a69432958312c95b9ecac8d8a5407"
+    }
+  ]
+}

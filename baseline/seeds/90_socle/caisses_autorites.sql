@@ -18,6 +18,26 @@
 -- debite donc que par la porte de reponse, jamais a la main par le maire.
 -- ============================================================================
 
+-- SEED -- caisses_autorites
+-- ============================================================================
+-- Table      : public.caisses_autorites
+-- Domaine    : finances publiques
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 18
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Quel poste controle quelle caisse. Regle d'autorite, aucune fonction ne
+-- l'ecrit. LA DIX-HUITIEME LIGNE est le motif `subventions` (registre 624) :
+-- prefixe, et liste de postes VIDE -- ce qui vaut
+-- caisse_reservee_au_serveur. L'enveloppe municipale des subventions ne se
+-- debite donc que par la porte de reponse, jamais a la main par le maire.
+-- ============================================================================
+
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('agence-', 'true', '{}', 'Agences privees (Grobras Securite et suivantes) : caisse reservee au serveur. Aucun poste public ne debite la caisse d''une entreprise privee.');
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('assemblee', 'false', '{}', 'assemblee : chemin serveur dedie (assemblee_debiter_caisse_plafonne)');
 INSERT INTO public.caisses_autorites (motif, est_prefixe, postes_debit, note) VALUES ('caserne-militaire', 'false', '{commandant}', 'caserne : le ministre ALIMENTE, le Commandant DEPENSE (arbitrage du 10 octobre 2026)');

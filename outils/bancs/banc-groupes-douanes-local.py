@@ -30,8 +30,8 @@ def suite(ctx,suivante=None):
  q.execute(re.search(r'INSERT INTO public.actes_illegaux .*?maj_le = now\(\);',src,re.S)[0])
  for nom,fichier in [('crime_rechercher_interne','20261027110000_crimes_socle_serveur.sql'),('crime_detecter_interne','20261027110000_crimes_socle_serveur.sql'),('crime_dis_ajuster_interne','20261027130000_crimes_ordres_detection.sql'),('crime_etat_acteur_interne','20261027130000_crimes_ordres_detection.sql'),('crime_corrompre_douanier','20261027130000_crimes_ordres_detection.sql')]:
   q.execute(a.fonction('migrations/'+fichier,nom))
- for nom in ['20261028215000_transport_adaptateur_confiscation.sql','20261028215100_transport_adaptateur_recherches.sql','20261028215200_transport_adaptateur_execution.sql','20261028215400_transport_passages_douaniers.sql','20261028215500_transport_controle_douanier_commun.sql','20261028215900_transport_corruption_passage_serveur.sql','20261028222000_justice_position_cellule_serveur.sql']:
-  if '--contre-position-cellule' in sys.argv and nom=='20261028222000_justice_position_cellule_serveur.sql':continue
+ for nom in ['20261031115809_transport_adaptateur_confiscation.sql','20261031115810_transport_adaptateur_recherches.sql','20261031115811_transport_adaptateur_execution.sql','20261031115812_transport_passages_douaniers.sql','20261031115813_transport_controle_douanier_commun.sql','20261031115816_transport_corruption_passage_serveur.sql','20261031115817_justice_position_cellule_serveur.sql']:
+  if '--contre-position-cellule' in sys.argv and nom=='20261031115817_justice_position_cellule_serveur.sql':continue
   q.execute((R/'migrations'/nom).read_text());q.execute((R/'migrations'/nom).read_text())
  ctx['c'].commit()
  req='00000000-0000-4000-8000-000000000600'

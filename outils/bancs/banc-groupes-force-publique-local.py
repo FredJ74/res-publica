@@ -19,7 +19,7 @@ def suite(ctx, suivante=None):
  q.execute("INSERT INTO batiments_etat(id,country,city,building_id,data) VALUES('douane-fixture','republic','ville_a','port-sainte-marie','{\"effectifsDouane\":{\"douaniers\":[{\"matricule\":\"D1\",\"buildingId\":\"port-sainte-marie\",\"roomId\":\"controle-fixture\"},{\"matricule\":\"D2\",\"buildingId\":\"port-sainte-marie\",\"roomId\":\"controle-fixture\"}]},\"autre\":99}')")
  original='--contre-force-publique' in sys.argv
  if not original:
-  for f in ['20261028180000_groupes_force_publique_projection.sql','20261028180100_groupes_force_publique_portes.sql']:
+  for f in ['20261031115750_groupes_force_publique_projection.sql','20261031115751_groupes_force_publique_portes.sql']:
    q.execute((R/'migrations'/f).read_text());q.execute((R/'migrations'/f).read_text())
  ctx['c'].commit() # Décor seulement, nouvelles connexions possibles.
  soldats=['cie-S1','cie-S2','cie-S3','cie-S4'];policiers=['police-republic-capitale-P'+str(n) for n in range(1,4)]

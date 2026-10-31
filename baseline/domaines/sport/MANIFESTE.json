@@ -272,6 +272,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "club_accessoire_acheter(uuid,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_accessoire_acheter(uuid,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_accessoire_acheter(uuid,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "club_capitaine(text)",
    "privileges": "EXECUTE"
   },
@@ -693,13 +711,13 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "afc6f86acbaaccd38e635e071c5e98aa",
-  "20_fonctions.sql": "baad8636a1819c8982f755d5d1f9e451",
+  "10_tables.sql": "dc5fc3716a3b0fc24be7dc83a690809d",
+  "20_fonctions.sql": "c55be5a29eca6c8131dcf3f871b1a489",
   "30_contraintes.sql": "a945d6b8dc14bd0b29fb832a4652cdec",
   "35_index.sql": "ccff8c87f33b369e4ac2e7f4cf4b1ac0",
   "50_triggers.sql": "a28e75c4ebe093dff38fb2bdd3abf71a",
   "60_rls-policies.sql": "8be2fd6b8c93f9b08a9302d92cdf68b3",
-  "70_droits.sql": "563f768c0e9b4eba99085b922b847c39",
+  "70_droits.sql": "a87ec1f1d3ec553cee2f59fb6ed6b52d",
   "80_commentaires.sql": "7e25fdd2e2677d8b23473fbea48f1be6"
  },
  "fonctions": [
@@ -742,6 +760,11 @@
    "empreinte": "fbf6c2853337014f91fbc6f7417aa6c8",
    "security_definer": true,
    "signature": "championnat_verrou_calendrier()"
+  },
+  {
+   "empreinte": "05cf6f596971ed4abcd4e5da71769f68",
+   "security_definer": true,
+   "signature": "club_accessoire_acheter(uuid,text,integer,integer)"
   },
   {
    "empreinte": "d5c744e01b9318cc8493b4ac509efb24",
@@ -960,7 +983,7 @@
   {
    "colonnes": 10,
    "empreinte_catalogue": "a80000e0d3fd25034a777847c8794461",
-   "empreinte_texte": "83717549a983027630d2a32235525868",
+   "empreinte_texte": "929f6d15f3eef27023e04655ae26f4a2",
    "nom": "championnat_tentatives"
   },
   {

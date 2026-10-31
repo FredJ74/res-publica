@@ -17,6 +17,25 @@
 -- Voir catalogue_types.
 -- ============================================================================
 
+-- SEED -- catalogue_generiques
+-- ============================================================================
+-- Table      : public.catalogue_generiques
+-- Domaine    : economie
+-- Categorie  : D (mixte)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 84
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 84 generiques d'objets.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Voir catalogue_types.
+-- ============================================================================
+
 INSERT INTO public.catalogue_generiques (id, libelle, famille_id, regime, est_service, empilable, individualise, consommable, equipable, encombrement, effets, capacites, durabilite, conditions, contraintes, note) VALUES ('accessoire-automobile', 'Accessoire automobile', 'pieces-accessoires', 'libre', 'false', 'false', 'true', 'false', 'false', NULL, NULL, NULL, NULL, NULL, NULL, 'Aucun antecedent.');
 INSERT INTO public.catalogue_generiques (id, libelle, famille_id, regime, est_service, empilable, individualise, consommable, equipable, encombrement, effets, capacites, durabilite, conditions, contraintes, note) VALUES ('accessoire-d-arme', 'Accessoire d''arme', 'accessoires-armes', 'reglemente', 'false', 'false', 'true', 'false', 'false', NULL, NULL, NULL, NULL, NULL, NULL, 'Aucun antecedent.');
 INSERT INTO public.catalogue_generiques (id, libelle, famille_id, regime, est_service, empilable, individualise, consommable, equipable, encombrement, effets, capacites, durabilite, conditions, contraintes, note) VALUES ('accessoire-de-mode', 'Accessoire de mode', 'bijoux-accessoires', 'libre', 'false', 'false', 'true', 'false', 'false', NULL, NULL, NULL, NULL, NULL, NULL, 'Aucun antecedent.');

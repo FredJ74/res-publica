@@ -17,8 +17,8 @@ def suite(ctx,suivante=None):
  src=(R/'migrations/20261024122600_acquisitions_capacites_et_gardes.sql').read_text()
  q.execute(re.search(r'CREATE TABLE IF NOT EXISTS public.terrain_acquisitions_recus.*?;',src,re.S)[0])
  q.execute((R/'migrations/20261029181000_squatteurs_issue_combat.sql').read_text())
- q.execute((R/'migrations/20261030223541_squatteurs_issue_reelle_bataille.sql').read_text())
- q.execute((R/'migrations/20261030223541_squatteurs_issue_reelle_bataille.sql').read_text())
+ q.execute((R/'migrations/20261031115836_squatteurs_issue_reelle_bataille.sql').read_text())
+ q.execute((R/'migrations/20261031115836_squatteurs_issue_reelle_bataille.sql').read_text())
  # Entrée propre au décor, jamais déployée : appelle le helper privé comme le
  # fera le moteur, sous authenticated et sans remplacer son identité JWT.
  q.execute("CREATE FUNCTION fixture_cloture_squatteurs(p_issue text,p_requete uuid) RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path TO public,pg_temp AS $$ SELECT terrain_squatteurs_issue_bataille_interne('terrain-a-batir','A',p_issue,p_requete,72) $$")

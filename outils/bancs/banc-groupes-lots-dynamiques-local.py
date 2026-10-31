@@ -10,7 +10,7 @@ def suite(ctx,suivante=None):
  if not existe:
   s=(R/'baseline/domaines/immobilier-et-territoire/10_tables.sql').read_text();q.execute(re.search(r'CREATE TABLE public\.terrains_etat \(.*?\n\);',s,re.S)[0])
  q.execute(a.fonction('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','terrain_etat_lire'))
- migration=(R/'migrations/20261028193500_navigation_lots_dynamiques.sql').read_text();
+ migration=(R/'migrations/20261031115804_navigation_lots_dynamiques.sql').read_text();
  if '--contre-lots' not in sys.argv:q.execute(migration);q.execute(migration)
  sql("INSERT INTO rue_sorties_batiments VALUES('republic','capitale','immeuble-fixture','rue-1')")
  ctx['c'].commit()

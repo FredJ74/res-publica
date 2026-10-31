@@ -10,6 +10,24 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."audience_messages_rang_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."defenses_demandes_rang_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."justice_indemnites_rang_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."temoins_citations_rang_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE TABLE public.actes_illegaux (
+  fn text NOT NULL,
+  type text NOT NULL,
+  detect_rate integer NOT NULL,
+  peine_jours integer,
+  amende integer,
+  decouvrable boolean DEFAULT false NOT NULL,
+  maj_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.actions_tracables (
   id text NOT NULL,
   auteur text NOT NULL,
@@ -23,8 +41,25 @@ CREATE TABLE public.actions_tracables (
   decouvert boolean DEFAULT false
 );
 
+CREATE TABLE public.amendes_tresor (
+  jugement_id text NOT NULL,
+  pays text NOT NULL,
+  condamne text NOT NULL,
+  affaire_id text,
+  montant integer NOT NULL,
+  paye integer DEFAULT 0 NOT NULL,
+  statut text NOT NULL,
+  appel_jusqu_au_jour_pays integer,
+  dernier_prelevement date,
+  paiements jsonb DEFAULT '[]'::jsonb NOT NULL,
+  created_at timestamp with time zone DEFAULT now() NOT NULL,
+  updated_at timestamp with time zone DEFAULT now() NOT NULL,
+  origine text,
+  destinataire text DEFAULT 'tresor'::text NOT NULL
+);
+
 CREATE TABLE public.audience_messages (
-  rang bigserial NOT NULL,
+  rang bigint DEFAULT nextval('audience_messages_rang_seq'::regclass) NOT NULL,
   affaire text NOT NULL,
   pays text NOT NULL,
   ville text NOT NULL,
@@ -50,7 +85,7 @@ CREATE TABLE public.avocats_barreau (
 );
 
 CREATE TABLE public.defenses_demandes (
-  rang bigserial NOT NULL,
+  rang bigint DEFAULT nextval('defenses_demandes_rang_seq'::regclass) NOT NULL,
   affaire text NOT NULL,
   pays text NOT NULL,
   prevenu text NOT NULL,
@@ -84,11 +119,14 @@ CREATE TABLE public.detentions (
   ville_condamnation text,
   jour_fin_effective integer,
   mode_fin text,
+  "__baseline_attribut_supprime_17" integer,
   detention_precedente_id text,
   reliquat_jours integer,
   date_fin_effective timestamp with time zone,
   provenance text
 );
+
+ALTER TABLE public."detentions" DROP COLUMN "__baseline_attribut_supprime_17";
 
 CREATE TABLE public.documents_officiels (
   id text NOT NULL,
@@ -158,7 +196,8 @@ CREATE TABLE public.impacts_indices_attente (
   raison text,
   traite boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
-  palier text
+  palier text,
+  details jsonb
 );
 
 CREATE TABLE public.infractions (
@@ -232,7 +271,7 @@ CREATE TABLE public.justice_indemnites (
   etat text DEFAULT 'due'::text NOT NULL,
   cree_le timestamp with time zone DEFAULT now() NOT NULL,
   regle_le timestamp with time zone,
-  rang bigserial NOT NULL
+  rang bigint DEFAULT nextval('justice_indemnites_rang_seq'::regclass) NOT NULL
 );
 
 CREATE TABLE public.niveaux_prison (
@@ -247,6 +286,43 @@ CREATE TABLE public.plaintes_en_cours (
   city text,
   data text NOT NULL,
   created_at timestamp with time zone DEFAULT now()
+);
+
+CREATE TABLE public.police_action_receipts (
+  personnage text NOT NULL,
+  rencontre text NOT NULL,
+  action text NOT NULL,
+  round_key integer DEFAULT 0 NOT NULL,
+  verdict jsonb NOT NULL,
+  created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.police_combat_rounds (
+  personnage text NOT NULL,
+  rencontre text NOT NULL,
+  round_key integer NOT NULL,
+  created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.police_detection_attempts (
+  personnage text NOT NULL,
+  country text NOT NULL,
+  city text NOT NULL,
+  building text NOT NULL,
+  room text NOT NULL,
+  attempted_at timestamp with time zone NOT NULL
+);
+
+CREATE TABLE public.police_interceptions (
+  personnage text NOT NULL,
+  rencontre text NOT NULL,
+  country text NOT NULL,
+  city text NOT NULL,
+  building text,
+  room text,
+  street text,
+  expires_at timestamp with time zone DEFAULT (now() + '00:10:00'::interval) NOT NULL,
+  fuite_tentee boolean DEFAULT false NOT NULL
 );
 
 CREATE TABLE public.prisonniers_qhs (
@@ -278,7 +354,7 @@ CREATE TABLE public.signalements_police (
 );
 
 CREATE TABLE public.temoins_citations (
-  rang bigserial NOT NULL,
+  rang bigint DEFAULT nextval('temoins_citations_rang_seq'::regclass) NOT NULL,
   affaire text NOT NULL,
   pays text NOT NULL,
   ville text,
@@ -303,3 +379,11 @@ CREATE TABLE public.vols_en_attente (
   traite boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now()
 );
+
+ALTER SEQUENCE public."audience_messages_rang_seq" OWNED BY public."audience_messages"."rang";
+
+ALTER SEQUENCE public."defenses_demandes_rang_seq" OWNED BY public."defenses_demandes"."rang";
+
+ALTER SEQUENCE public."justice_indemnites_rang_seq" OWNED BY public."justice_indemnites"."rang";
+
+ALTER SEQUENCE public."temoins_citations_rang_seq" OWNED BY public."temoins_citations"."rang";

@@ -29,7 +29,7 @@ def suite(ctx, suivante=None):
   q.execute(sources[1]['sql'])
   q.execute("SELECT md5(pg_get_functiondef('police_detection_verifier(text,text,text)'::regprocedure))");assert q.fetchone()[0]==sources[1]['fonction'][1]
  q.execute(audit.fonction(audit.M,'securite_ordre_detection_interne'))
- patch=(R/'migrations/20261028074753_securite_privee_detection_unites.sql').read_text();q.execute(patch);q.execute(patch)
+ patch=(R/'migrations/20261031115735_securite_privee_detection_unites.sql').read_text();q.execute(patch);q.execute(patch)
  for nom,f in [('militaire_taux_combat','20_fonctions-3.sql'),('militaire_degre_combat','20_fonctions-2.sql'),('militaire_degats_pct','20_fonctions-2.sql'),('militaire_pa_restants','20_fonctions-2.sql')]:q.execute(audit.fonction('baseline/domaines/militaire/'+f,nom))
  q.execute(sources[2]['sql'])
  q.execute("SELECT md5(pg_get_functiondef('combat_coup_resoudre(numeric,numeric,numeric,integer,integer)'::regprocedure))");assert q.fetchone()[0]==sources[2]['fonction'][1]

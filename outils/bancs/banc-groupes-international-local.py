@@ -12,9 +12,9 @@ def suite(ctx,suivante=None):
   src=(R/'baseline/domaines/postes-et-institutions/10_tables.sql').read_text();q.execute(re.search(r'CREATE TABLE public.postes_attribues \(.*?\n\);',src,re.S)[0])
  # Mandats fictifs attestés au registre existant, cohérents avec le décor acquis.
  q.execute("INSERT INTO postes_attribues(id,country,poste_id,city,titulaire,source) VALUES('comm-B','republic','commissaire','capitale','B','fixture'),('comm-C','republic','commissaire','ville_a','C','fixture')")
- p=R/'migrations/20261028213200_pnj_position_pays_physique.sql'
+ p=R/'migrations/20261031115807_pnj_position_pays_physique.sql'
  q.execute(p.read_text());q.execute(p.read_text())
- p=R/'migrations/20261028213400_police_autorite_registre_poste.sql';q.execute(p.read_text());q.execute(p.read_text())
+ p=R/'migrations/20261031115808_police_autorite_registre_poste.sql';q.execute(p.read_text());q.execute(p.read_text())
  if '--contre-pays' in sys.argv:
   q.execute("SELECT pg_get_functiondef('public.pnj_position_effective(text)'::regprocedure)")
   ancien=q.fetchone()[0];a="SELECT CASE WHEN m.leader_pj IS NOT NULL THEN d.country\n    WHEN m.leader_pnj_id IS NOT NULL THEN coalesce(l.position_pays,l.pays)\n    ELSE coalesce(m.position_pays,m.pays) END,"
@@ -69,7 +69,7 @@ def suite(ctx,suivante=None):
  cas('international_pays_physique_pas_modifiable_par_PATCH_client',ecriture_directe)
  def garde_rejeu():
   q.execute('ALTER TABLE pnj_membres DISABLE TRIGGER pnj_position_pays_garde');q.execute('SAVEPOINT garde')
-  try:q.execute((R/'migrations/20261028213200_pnj_position_pays_physique.sql').read_text())
+  try:q.execute((R/'migrations/20261031115807_pnj_position_pays_physique.sql').read_text())
   except Exception as e:
    q.execute('ROLLBACK TO SAVEPOINT garde');assert 'garde_pays_pnj_non_conforme' in str(e),e
   else:raise AssertionError('trigger désactivé accepté au rejeu')

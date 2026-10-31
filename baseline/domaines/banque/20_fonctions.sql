@@ -107,6 +107,71 @@ BEGIN
     'liquide', v_liquide, 'solde', v_solde, 'arg', v_arg, 'compte', v_compte_id);
 END; $function$;
 
+-- banque_virement(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.banque_virement(p_beneficiaire text, p_montant integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_bat text; v_paie jsonb; v_res jsonb; v_b text := btrim(coalesce(p_beneficiaire, ''));
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT current_building INTO v_bat FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_bat IS DISTINCT FROM 'banque-nationale' THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  IF v_b = v_moi THEN RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_invalide'); END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = v_b) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_introuvable'); END IF;
+  IF p_montant IS NULL OR p_montant <= 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'montant_invalide'); END IF;
+  BEGIN
+    v_paie := public.payer_ordre(v_moi, 'virement_joueur', 1, 0);
+    IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+    v_res := public.virement_executer_interne(v_moi, v_b, p_montant);
+    IF coalesce((v_res ->> 'ok')::boolean, false) IS NOT TRUE THEN
+      RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'hg_virement_refuse';
+    END IF;
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM = 'hg_virement_refuse' THEN RETURN v_res; END IF;
+    RAISE;
+  END;
+  PERFORM public.mail_systeme_poser_interne('Banque Nationale', v_b, 'Virement reçu',
+    '<strong>' || v_moi || '</strong> vous a viré <strong>' || p_montant || ' FR</strong> sur votre compte de la Banque Nationale.<br><br>Laurent Barre, directeur d''agence');
+  RETURN jsonb_build_object('ok', true, 'montant', p_montant, 'beneficiaire', v_b,
+                            'pa', v_paie -> 'pa', 'solde_national', v_res -> 'solde',
+                            'arg', (SELECT arg FROM public.personnages_donnees WHERE name = v_moi));
+END; $function$;
+
+-- banque_virement_automatique_creer(text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.banque_virement_automatique_creer(p_beneficiaire text, p_montant integer, p_frequence text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_bat text; v_paie jsonb; v_id uuid; v_b text := btrim(coalesce(p_beneficiaire, ''));
+        v_demain date := ((now() AT TIME ZONE 'Europe/Paris')::date + 1);
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT current_building INTO v_bat FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_bat IS DISTINCT FROM 'banque-nationale' THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  IF v_b = v_moi THEN RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_invalide'); END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = v_b) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_introuvable'); END IF;
+  IF p_montant IS NULL OR p_montant NOT BETWEEN 1 AND 10000000 THEN RETURN jsonb_build_object('ok', false, 'raison', 'montant_invalide'); END IF;
+  IF p_frequence NOT IN ('jour', 'semaine') THEN RETURN jsonb_build_object('ok', false, 'raison', 'frequence_invalide'); END IF;
+  v_paie := public.payer_ordre(v_moi, 'virement_automatique', 1, 0);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+  INSERT INTO public.virements_automatiques (emetteur, beneficiaire, montant, frequence, prochain_le)
+  VALUES (v_moi, v_b, p_montant, p_frequence, v_demain) RETURNING id INTO v_id;
+  PERFORM public.mail_systeme_poser_interne('Banque Nationale', v_b, 'Virement automatique mis en place',
+    '<strong>' || v_moi || '</strong> a mis en place un virement automatique de <strong>' || p_montant || ' FR</strong> '
+    || CASE WHEN p_frequence = 'jour' THEN 'par jour' ELSE 'par semaine' END
+    || ' en votre faveur. Premier versement dans la nuit.<br><br>Laurent Barre, directeur d''agence');
+  RETURN jsonb_build_object('ok', true, 'id', v_id, 'prochain_le', v_demain, 'pa', v_paie -> 'pa');
+END; $function$;
+
 -- compromis_expire_resoudre(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.compromis_expire_resoudre(p_type text, p_cible text)
  RETURNS jsonb
@@ -130,6 +195,9 @@ BEGIN
   IF btrim(coalesce(p_cible,'')) = '' THEN
     RAISE EXCEPTION 'compromis_expire_resoudre : la cible est obligatoire'; END IF;
 
+  IF v_type='terrain' THEN
+    PERFORM 1 FROM public.personnages_donnees WHERE name=(SELECT data::jsonb->>'compromisPar' FROM public.terrains_etat WHERE id=p_cible) FOR UPDATE;
+  END IF;
   -- LE VERROU SUR LE BIEN est ce qui serialise deux passes simultanees.
   IF v_type = 'terrain' THEN
     SELECT t.data::jsonb, t.country, t.building_id INTO v_data, v_pays, v_bat
@@ -178,13 +246,26 @@ BEGIN
   -- LE TIRAGE DU PRET EST ICI, pas chez l'appelant : un rejeu ne peut plus le rejouer.
   IF jsonb_typeof(v_pret) = 'object' AND v_pret->>'statut' = 'attente_validation' THEN
     v_montant := coalesce((v_pret->>'montant')::numeric, 0);
+    IF v_type='terrain' AND v_data->>'acquisitionVersion'='2' THEN
+      SELECT r.resultat->'pretCapture' INTO v_pret FROM public.terrain_acquisitions_recus r
+      WHERE r.terrain=p_cible AND r.requete::text=v_data->>'acquisitionRequete' AND r.action='compromis';
+      IF v_pret IS NULL OR v_pret='null'::jsonb THEN RAISE EXCEPTION 'financement_non_atteste';END IF;
+      -- Le bénéficiaire peut avoir changé par transfert légitime, pas les termes payés/capturés.
+      v_pret:=v_pret||jsonb_build_object('demandeur',v_data->>'compromisPar');
+      v_montant:=(v_pret->>'montant')::numeric;
+    END IF;
     SELECT true, coalesce(arg,0) INTO v_existe, v_arg FROM public.personnages
      WHERE name = v_pret->>'demandeur' FOR UPDATE;
     v_arg := coalesce(v_arg, 0);
-    IF v_arg >= v_montant * 0.10 OR random() < 0.5 THEN
+    IF v_type='terrain' AND (NOT EXISTS(SELECT 1 FROM public.comptes_bancaires WHERE personnage=v_pret->>'demandeur' AND banque='nationale') OR EXISTS(SELECT 1 FROM public.prets WHERE emprunteur=v_pret->>'demandeur' AND type_pret='immobilier' AND statut='en_cours')) THEN v_refus:=true;END IF;
+    IF NOT v_refus AND (v_arg >= v_montant * 0.10 OR random() < 0.5) THEN
       v_data := jsonb_set(v_data, '{pretDemande,statut}', '"accorde"');
+      IF v_type='terrain' THEN
+        IF NOT coalesce(v_existe,false) OR v_pret->>'demandeur' IS DISTINCT FROM v_data->>'compromisPar' THEN RAISE EXCEPTION 'demandeur_incoherent';END IF;
+        -- pret verse a la signature (acte notarie), plus a l'accord
+      ELSE
       IF coalesce(v_existe, false) THEN
-        UPDATE public.personnages SET arg = coalesce(arg,0) + v_montant
+        UPDATE public.personnages_donnees SET arg = coalesce(arg,0) + v_montant
          WHERE name = v_pret->>'demandeur';
         INSERT INTO public.prets (id, emprunteur, country, building_id, type_banque,
             montant_initial, montant_restant, duree_jours, mensualite, jours_impayes, statut)
@@ -193,7 +274,8 @@ BEGIN
             (v_pret->>'duree')::integer, (v_pret->>'mensualite')::numeric, 0, 'en_cours')
         ON CONFLICT (id) DO NOTHING;
       END IF;
-      v_detail := array_append(v_detail, 'prêt accordé (+' || v_montant::text || ' FR virés)');
+      END IF;
+      v_detail := array_append(v_detail, CASE WHEN v_type='terrain' THEN 'prêt accordé (' || v_montant::text || ' FR versés à la signature)' ELSE 'prêt accordé (+' || v_montant::text || ' FR virés)' END);
       v_gele := true;
     ELSE
       v_data := jsonb_set(v_data, '{pretDemande,statut}', '"refuse"');
@@ -216,14 +298,15 @@ BEGIN
   v_acompte := coalesce((v_data->>'acompte')::numeric, 0);
   v_par := v_data->>'compromisPar';
   IF v_refus AND v_par IS NOT NULL AND v_acompte > 0 THEN
-    UPDATE public.personnages SET arg = coalesce(arg,0) + v_acompte WHERE name = v_par;
+    IF v_type='terrain' THEN PERFORM public.helvetia_crediter_destination(v_par,v_acompte,'liquide');END IF;
+    UPDATE public.personnages_donnees SET arg = coalesce(arg,0) + v_acompte WHERE name = v_par;
     v_detail := array_append(v_detail, 'acompte remboursé (' || v_acompte::text || ' FR)');
   ELSE
     v_detail := array_append(v_detail, 'acompte perdu (' || v_acompte::text || ' FR)');
   END IF;
 
   INSERT INTO public.compromis_historique (id, country, building_id, demandeur, resultat, detail)
-  VALUES (v_prefixe || p_cible || '-' || v_jour, v_pays, v_bat, coalesce(v_par,'inconnu'),
+  VALUES (v_prefixe || p_cible || '-' || v_jour || coalesce('-'||(v_data->>'acquisitionRequete'),''), v_pays, v_bat, coalesce(v_par,'inconnu'),
           CASE WHEN v_refus THEN 'rembourse' ELSE 'perdu' END,
           coalesce(nullif(array_to_string(v_detail,' · '),''),
                    CASE WHEN v_type='entreprise'
@@ -481,6 +564,79 @@ BEGIN
 END;
 $function$;
 
+-- creer_placement_national_securise(text,numeric,integer,text,text,uuid) -> placements_bancaires | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.creer_placement_national_securise(p_personnage text, p_montant numeric, p_int_snapshot integer, p_ville text, p_source text, p_intention uuid)
+ RETURNS placements_bancaires
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare
+  v_id text;
+  v_exist public.placements_bancaires%rowtype;
+  v_compte public.comptes_bancaires%rowtype;
+  v_liquide numeric;
+  v_pays text;
+  v_ville text;
+  v_int integer;
+  v_placement public.placements_bancaires%rowtype;
+begin
+  perform public.exiger_acteur(p_personnage);
+  -- p_int_snapshot et p_ville restent dans la signature pour l'écran en ligne ; ils ne décident
+  -- plus rien (29/10/2026) : l'intelligence vient de la fiche, la ville du lieu réel.
+  if p_intention is null or p_personnage is null or btrim(p_personnage) = ''
+     or p_montant is null or p_montant < 500 or p_montant <> trunc(p_montant)
+     or p_montant > 100000000 or p_source not in ('liquide','nationale') then
+    raise exception 'Parametres de placement invalides';
+  end if;
+  v_id := 'terme_' || replace(p_intention::text, '-', '');
+
+  select coalesce(liquide,0), country, current_city,
+         case when (stats->>'INT') ~ '^[0-9]{1,3}$' then (stats->>'INT')::integer else 8 end
+    into v_liquide, v_pays, v_ville, v_int
+  from public.personnages_donnees where name = p_personnage for update;
+  if not found then raise exception 'Personnage introuvable'; end if;
+  if v_ville is null or btrim(v_ville) = '' then raise exception 'Parametres de placement invalides'; end if;
+
+  -- Rejeu sur la meme intention : rendre le resultat original sans debit.
+  select * into v_exist from public.placements_bancaires where id = v_id;
+  if found then
+    if v_exist.personnage <> p_personnage or v_exist.banque <> 'nationale'
+       or v_exist.type <> 'terme' or v_exist.montant <> p_montant
+       or v_exist.source_fonds is distinct from p_source then
+      raise exception 'Intention deja utilisee avec autres parametres';
+    end if;
+    return v_exist;
+  end if;
+
+  if p_source = 'liquide' then
+    if v_liquide < p_montant then raise exception 'Liquide insuffisant'; end if;
+    update public.personnages_donnees
+      set liquide = v_liquide - p_montant, updated_at = now()
+      where name = p_personnage;
+  else
+    select * into v_compte from public.comptes_bancaires
+      where personnage = p_personnage and banque = 'nationale' for update;
+    if not found or v_compte.solde < p_montant then
+      raise exception 'Solde Banque nationale insuffisant';
+    end if;
+    update public.comptes_bancaires
+      set solde = solde - p_montant, updated_at = now() where id = v_compte.id;
+  end if;
+
+  insert into public.placements_bancaires
+    (id, personnage, pays, ville, banque, type, libelle, montant,
+     visible_fiscalement, date_placement, prochaine_echeance, statut,
+     int_snapshot, source_fonds)
+  values
+    (v_id, p_personnage, v_pays, v_ville, 'nationale', 'terme',
+     'Placement Banque nationale', p_montant, true, now(),
+     now() + interval '7 days', 'actif', v_int, p_source)
+  returning * into v_placement;
+  return v_placement;
+end;
+$function$;
+
 -- creer_pret_helvetia(text,numeric,integer) -> prets | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.creer_pret_helvetia(p_personnage text, p_montant numeric, p_duree_jours integer)
  RETURNS prets
@@ -540,7 +696,7 @@ BEGIN
   UPDATE public.comptes_bancaires SET solde = solde + p_montant, updated_at = now()
     WHERE personnage = p_personnage AND banque = 'helvetia';
 
-  UPDATE public.personnages SET arg = COALESCE(arg,0) + p_montant WHERE name = p_personnage;
+  UPDATE public.personnages_donnees SET arg = COALESCE(arg,0) + p_montant WHERE name = p_personnage;
 
   RETURN v_pret;
 END;
@@ -753,7 +909,7 @@ BEGIN
   END IF;
 
   IF v_applique_a_la_dette > 0 THEN
-    UPDATE public.personnages SET arg = GREATEST(0, COALESCE(arg,0) - v_applique_a_la_dette) WHERE name = p_personnage;
+    UPDATE public.personnages_donnees SET arg = GREATEST(0, COALESCE(arg,0) - v_applique_a_la_dette) WHERE name = p_personnage;
   END IF;
 
   RETURN jsonb_build_object('net', v_net, 'applique_a_la_dette', v_applique_a_la_dette,
@@ -859,6 +1015,25 @@ BEGIN
 END;
 $function$;
 
+-- finance_terrain_banque_recu(uuid,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.finance_terrain_banque_recu(p_requete uuid, p_domaine text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE moi text:=public.mon_personnage();r jsonb;e jsonb;terrain text;
+BEGIN
+ IF moi IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie');END IF;
+ IF p_domaine='acquisition' THEN
+  SELECT resultat,a.terrain INTO r,terrain FROM public.terrain_acquisitions_recus a WHERE a.acteur=moi AND a.requete=p_requete;
+  IF FOUND THEN SELECT data::jsonb INTO e FROM public.terrains_etat WHERE id=terrain;END IF;
+ ELSIF p_domaine='pret' THEN
+  SELECT resultat INTO r FROM public.prets_nationaux_demandes WHERE acteur=moi AND requete=p_requete;
+ ELSE RETURN jsonb_build_object('ok',false,'raison','domaine_inconnu');END IF;
+ RETURN jsonb_build_object('ok',true,'terminee',r IS NOT NULL,'resultat',r,'etat',e);
+END;$function$;
+
 -- helvetia_assurer_liquidite(text,numeric,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.helvetia_assurer_liquidite(p_pays text, p_montant_necessaire numeric, p_motif text)
  RETURNS boolean
@@ -932,7 +1107,7 @@ CREATE OR REPLACE FUNCTION public.helvetia_crediter_destination(p_personnage tex
 AS $function$
 BEGIN
   IF p_destination_type = 'liquide' THEN
-    UPDATE public.personnages SET liquide = COALESCE(liquide,0) + p_montant WHERE name = p_personnage;
+    UPDATE public.personnages_donnees SET liquide = COALESCE(liquide,0) + p_montant WHERE name = p_personnage;
   ELSIF p_destination_type = 'national' THEN
     UPDATE public.comptes_bancaires SET solde = solde + p_montant, updated_at = now()
       WHERE personnage = p_personnage AND banque = 'nationale';
@@ -943,17 +1118,29 @@ BEGIN
 END;
 $function$;
 
--- helvetia_debiter_fonds_ordinaires(text,numeric) -> boolean | plpgsql | SECURITY DEFINER | search_path=public
+-- helvetia_debiter_fonds_ordinaires(text,numeric) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.helvetia_debiter_fonds_ordinaires(p_personnage text, p_montant numeric)
  RETURNS boolean
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  RETURN public.helvetia_debiter_fonds_ordinaires(p_personnage,p_montant,'liquide');
+END;$function$;
+
+-- helvetia_debiter_fonds_ordinaires(text,numeric,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.helvetia_debiter_fonds_ordinaires(p_personnage text, p_montant numeric, p_priorite text)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 DECLARE
   v_liquide numeric; v_arg numeric; v_solde numeric;
   v_preleve_liquide numeric; v_preleve_national numeric;
 BEGIN
+  IF p_priorite NOT IN ('liquide','nationale') OR p_priorite IS NULL THEN RAISE EXCEPTION 'priorite_invalide'; END IF;
   IF p_montant IS NULL OR p_montant <= 0 THEN RETURN true; END IF;
 
   SELECT COALESCE(liquide,0), COALESCE(arg,0) INTO v_liquide, v_arg
@@ -963,10 +1150,19 @@ BEGIN
   SELECT COALESCE(solde,0) INTO v_solde FROM public.comptes_bancaires
    WHERE personnage = p_personnage AND banque = 'nationale' FOR UPDATE;
 
+  -- Les circuits historiques conservent leur priorite liquide et leur representation.
+  -- La construction requiert des francs entiers : ne jamais arrondir un solde historique.
+  IF p_priorite='nationale' AND (p_montant<>trunc(p_montant) OR v_liquide<>trunc(v_liquide)
+      OR coalesce(v_solde,0)<>trunc(coalesce(v_solde,0)) OR v_liquide<0 OR coalesce(v_solde,0)<0) THEN
+    RAISE EXCEPTION 'etat_financier_non_entier'; END IF;
   IF (v_liquide + COALESCE(v_solde,0)) < p_montant THEN RETURN false; END IF;
-
-  v_preleve_liquide  := LEAST(v_liquide, p_montant);
-  v_preleve_national := p_montant - v_preleve_liquide;
+  IF p_priorite='nationale' THEN
+    v_preleve_national:=LEAST(coalesce(v_solde,0),p_montant);
+    v_preleve_liquide:=p_montant-v_preleve_national;
+  ELSE
+    v_preleve_liquide:=LEAST(v_liquide,p_montant);
+    v_preleve_national:=p_montant-v_preleve_liquide;
+  END IF;
 
   UPDATE public.personnages_donnees
      SET liquide = v_liquide - v_preleve_liquide,
@@ -998,7 +1194,7 @@ BEGIN
 
   IF p_source_type = 'liquide' THEN
     IF COALESCE(v_perso.liquide,0) < p_montant THEN RETURN false; END IF;
-    UPDATE public.personnages SET liquide = liquide - p_montant WHERE name = p_personnage;
+    UPDATE public.personnages_donnees SET liquide = liquide - p_montant WHERE name = p_personnage;
     RETURN true;
   ELSIF p_source_type = 'national' THEN
     SELECT * INTO v_compte FROM public.comptes_bancaires
@@ -1151,7 +1347,7 @@ begin
   v_preleve_liquide := least(v_liquide, 10000);
   v_preleve_national := 10000 - v_preleve_liquide;
 
-  update public.personnages
+  UPDATE public.personnages_donnees
   set liquide = v_liquide - v_preleve_liquide
   where name = p_personnage;
 
@@ -1188,6 +1384,185 @@ begin
 
   return v_nouveau_compte;
 end;
+$function$;
+
+-- pret_national_contracter(numeric,integer,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.pret_national_contracter(p_montant numeric, p_duree_jours integer, p_type_pret text, p_building_id text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_nom text; v_pj public.personnages_donnees%ROWTYPE; v_taux numeric; v_total numeric; v_mensualite numeric; v_id text; v_solde numeric; v_arg numeric; v_liquide numeric;
+BEGIN
+ RETURN jsonb_build_object('ok',false,'raison','commande_versionnee_requise');
+ v_nom:=public.mon_personnage();
+ IF v_nom IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
+ SELECT * INTO v_pj FROM public.personnages_donnees WHERE name=v_nom FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','personnage_absent'); END IF;
+ IF p_montant IS NULL OR p_montant<>trunc(p_montant) OR p_montant<1000 OR p_montant>1000000
+    OR p_duree_jours NOT IN (10,15,20,25,30)
+    OR p_type_pret <> 'travaux' OR v_pj.country<>'republic'
+    OR v_pj.current_building <> 'banque-nationale' THEN
+  RETURN jsonb_build_object('ok',false,'raison','parametres_invalides');
+ END IF;
+ IF EXISTS(SELECT 1 FROM public.prets WHERE emprunteur=v_nom AND type_pret=p_type_pret AND statut='en_cours') THEN
+  RETURN jsonb_build_object('ok',false,'raison','pret_deja_actif');
+ END IF;
+ SELECT solde INTO v_solde FROM public.comptes_bancaires WHERE personnage=v_nom AND banque='nationale' FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','compte_national_absent'); END IF;
+ RETURN public.pret_national_creer_interne(v_nom,p_montant,p_duree_jours,p_type_pret,v_pj.current_building,gen_random_uuid()::text);
+END; $function$;
+
+-- pret_national_contracter_versionne(numeric,integer,text,text,uuid) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.pret_national_contracter_versionne(p_montant numeric, p_duree_jours integer, p_type_pret text, p_building_id text, p_requete uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE moi text:=public.mon_personnage();p record;ancien record;r jsonb;cout jsonb;param jsonb:=jsonb_build_array(p_montant,p_duree_jours,p_type_pret,p_building_id);solde numeric;
+BEGIN
+ IF moi IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie');END IF;
+ IF p_requete IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','requete_absente');END IF;
+ SELECT * INTO p FROM public.personnages_donnees WHERE name=moi FOR UPDATE;
+ SELECT * INTO ancien FROM public.prets_nationaux_demandes WHERE acteur=moi AND requete=p_requete;
+ IF FOUND THEN
+  IF ancien.parametres IS DISTINCT FROM param THEN RETURN jsonb_build_object('ok',false,'raison','requete_reutilisee');END IF;
+  r:=ancien.resultat||'{"rejeu":true}';
+ ELSE
+  IF p.country IS DISTINCT FROM 'republic' OR p.current_building IS DISTINCT FROM 'banque-nationale' OR p_building_id IS DISTINCT FROM p.current_building
+   OR coalesce(p.hp,0)<=0 OR EXISTS(SELECT 1 FROM public.detention_active(moi))
+   OR coalesce(p.hospitalisation->>'dateFinParis','')>(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text THEN RETURN jsonb_build_object('ok',false,'raison','pas_sur_place_ou_indisponible');END IF;
+  IF p_type_pret IS NULL OR p_type_pret NOT IN('travaux','consommation') THEN RETURN jsonb_build_object('ok',false,'raison','produit_invalide');END IF;
+  -- La creation souleve en cas de refus : la sous-transaction annule aussi le PA.
+  BEGIN
+   INSERT INTO public.acquisitions_transactions_internes VALUES(txid_current(),moi,p.country||'_banque-nationale','emprunter',1,0);
+   r:=public.pret_national_creer_interne(moi,p_montant,p_duree_jours,p_type_pret,p.current_building,p_requete::text);
+   cout:=public.payer_ordre(moi,'emprunter',1,0);
+   IF cout->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION USING MESSAGE=coalesce(cout->>'raison','paiement_refuse');END IF;
+   DELETE FROM public.acquisitions_transactions_internes WHERE transaction_id=txid_current() AND acteur=moi;
+   INSERT INTO public.prets_nationaux_demandes VALUES(moi,p_requete,param,r);
+  EXCEPTION WHEN raise_exception THEN RETURN jsonb_build_object('ok',false,'raison',SQLERRM);END;
+ END IF;
+ SELECT * INTO p FROM public.personnages_donnees WHERE name=moi;
+ SELECT cb.solde INTO solde FROM public.comptes_bancaires cb WHERE cb.personnage=moi AND cb.banque='nationale';
+ RETURN r||jsonb_build_object('pa',p.pa,'arg',p.arg,'liquide',p.liquide,'solde_banque',solde);
+END;$function$;
+
+-- pret_national_creer_interne(text,numeric,integer,text,text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.pret_national_creer_interne(p_nom text, p_montant numeric, p_duree_jours integer, p_type_pret text, p_building_id text, p_reference text, p_taux_capture numeric DEFAULT NULL::numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_pj public.personnages_donnees%ROWTYPE;v_taux numeric;v_total numeric;v_mensualite numeric;v_id text;v_solde numeric;v_arg numeric;v_liquide numeric;ancien public.prets%ROWTYPE;
+BEGIN
+ SELECT * INTO v_pj FROM public.personnages_donnees WHERE name=p_nom FOR UPDATE;
+ IF NOT FOUND OR p_reference IS NULL THEN RAISE EXCEPTION 'acteur_ou_reference_absent';END IF;
+ SELECT * INTO ancien FROM public.prets WHERE id='pret-national-'||p_reference FOR UPDATE;
+ IF FOUND THEN
+  IF (ancien.emprunteur,ancien.montant_initial,ancien.duree_jours,ancien.type_pret,ancien.building_id) IS DISTINCT FROM (p_nom,p_montant,p_duree_jours,p_type_pret,p_building_id) THEN RAISE EXCEPTION 'requete_reutilisee';END IF;
+  RETURN jsonb_build_object('ok',true,'rejeu',true,'pret_id',ancien.id);
+ END IF;
+ IF p_montant IS NULL OR p_montant::text IN('NaN','Infinity','-Infinity') OR p_montant<>trunc(p_montant) OR p_montant<1000 OR p_duree_jours IS NULL OR p_duree_jours<=0
+ OR p_type_pret NOT IN('travaux','consommation','immobilier') OR p_type_pret IS NULL
+ OR (p_type_pret='travaux' AND (p_montant>1000000 OR p_duree_jours NOT IN(10,15,20,25,30)))
+ OR (p_type_pret='consommation' AND (p_montant>10000 OR p_duree_jours NOT IN(5,10,15,20,25,30)))
+ OR (p_type_pret='immobilier' AND p_montant>150000) THEN RAISE EXCEPTION 'parametres_pret_invalides';END IF;
+ IF EXISTS(SELECT 1 FROM public.prets WHERE emprunteur=p_nom AND type_pret=p_type_pret AND statut='en_cours') THEN RAISE EXCEPTION 'pret_deja_actif';END IF;
+ SELECT solde INTO v_solde FROM public.comptes_bancaires WHERE personnage=p_nom AND banque='nationale' FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'compte_national_absent';END IF;
+
+ IF v_solde IS NULL OR v_solde<>trunc(v_solde) OR v_solde::text IN('NaN','Infinity','-Infinity') THEN RAISE EXCEPTION 'compte_non_exploitable';END IF;
+ INSERT INTO public.prets_ecritures_internes VALUES(txid_current()) ON CONFLICT DO NOTHING;
+ v_taux:=CASE WHEN p_type_pret='consommation' THEN 12 ELSE coalesce(p_taux_capture,CASE WHEN v_pj.country='republic' THEN public.taux_pret_nationale(v_pj.country) ELSE (SELECT 5+(data->'indices'->v_pj.country->>'IE')::numeric/10 FROM public.terrain_actions_regles WHERE id) END) END;
+ v_total:=round(p_montant*(1+v_taux/100));
+ v_mensualite:=ceil(v_total/p_duree_jours);
+ v_id:='pret-national-'||p_reference;
+ INSERT INTO public.prets(id,emprunteur,country,building_id,type_banque,type_pret,montant_initial,montant_restant,duree_jours,mensualite,jours_impayes,jour_dernier_prelevement,statut,contrat_version)
+ VALUES(v_id,p_nom,v_pj.country,p_building_id,'nationale',p_type_pret,p_montant,v_total,p_duree_jours,v_mensualite,0,(now() at time zone 'Europe/Paris')::date::text,'en_cours',2);
+ INSERT INTO public.fonds_credits_uniques(acteur,source,reference,ordre,montant) VALUES(p_nom,'pret_national',v_id,CASE WHEN p_type_pret='travaux' THEN 'emprunter_construction' ELSE 'emprunter' END,p_montant);
+ UPDATE public.comptes_bancaires SET solde=solde+p_montant,updated_at=now() WHERE personnage=p_nom AND banque='nationale' RETURNING solde INTO v_solde;
+ UPDATE public.personnages_donnees SET arg=COALESCE(arg,0)+p_montant,updated_at=now() WHERE name=p_nom RETURNING arg,COALESCE(liquide,0) INTO v_arg,v_liquide;
+ DELETE FROM public.prets_ecritures_internes WHERE transaction_id=txid_current();
+ RETURN jsonb_build_object('ok',true,'pret_id',v_id,'montant',p_montant,'solde_banque',v_solde,'arg',v_arg,'liquide',v_liquide);
+END;$function$;
+
+-- pret_national_jour_traiter(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.pret_national_jour_traiter(p_pret text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE nom text;p public.prets%ROWTYPE;pj record;jour text:=(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text;du numeric;solde numeric;imp integer;penalite numeric;terrain record;etat jsonb;
+BEGIN
+ IF NOT public.est_appel_serveur() THEN DELETE FROM public.prets_ecritures_internes WHERE transaction_id=txid_current();RETURN jsonb_build_object('ok',false,'raison','serveur_requis');END IF;
+ SELECT emprunteur INTO nom FROM public.prets WHERE id=p_pret;
+ SELECT * INTO pj FROM public.personnages_donnees WHERE name=nom FOR UPDATE;
+ SELECT * INTO p FROM public.prets WHERE id=p_pret FOR UPDATE;
+ IF p.emprunteur IS DISTINCT FROM nom OR p.contrat_version IS DISTINCT FROM 2 OR p.type_banque IS DISTINCT FROM 'nationale' THEN DELETE FROM public.prets_ecritures_internes WHERE transaction_id=txid_current();RETURN jsonb_build_object('ok',false,'raison','contrat_non_versionne');END IF;
+ IF p.statut<>'en_cours' OR p.jour_dernier_prelevement=jour THEN DELETE FROM public.prets_ecritures_internes WHERE transaction_id=txid_current();RETURN jsonb_build_object('ok',true,'rejeu',true);END IF;
+ INSERT INTO public.prets_ecritures_internes VALUES(txid_current()) ON CONFLICT DO NOTHING;
+ du:=least(p.mensualite,p.montant_restant);
+ IF du<=0 THEN UPDATE public.prets SET statut='remboursé',jour_dernier_prelevement=jour WHERE id=p.id;DELETE FROM public.prets_ecritures_internes WHERE transaction_id=txid_current();RETURN jsonb_build_object('ok',true,'montant',0);END IF;
+ IF du<>trunc(du) OR du::text IN('NaN','Infinity','-Infinity') THEN RAISE EXCEPTION 'dette_non_entiere';END IF;
+ SELECT cb.solde INTO solde FROM public.comptes_bancaires cb WHERE cb.personnage=nom AND cb.banque='nationale' FOR UPDATE;
+ IF coalesce(pj.liquide,0)+coalesce(solde,0)>=du THEN
+  IF public.helvetia_debiter_fonds_ordinaires(nom,du) IS NOT TRUE THEN RAISE EXCEPTION 'debit_non_confirme';END IF;
+  UPDATE public.prets SET montant_restant=montant_restant-du,jours_impayes=0,jour_dernier_prelevement=jour,statut=CASE WHEN montant_restant-du<=0 THEN 'remboursé' ELSE 'en_cours' END WHERE id=p.id;
+  DELETE FROM public.prets_ecritures_internes WHERE transaction_id=txid_current();RETURN jsonb_build_object('ok',true,'montant',du,'statut',CASE WHEN p.montant_restant-du<=0 THEN 'remboursé' ELSE 'en_cours' END);
+ END IF;
+ imp:=coalesce(p.jours_impayes,0)+1;penalite:=CASE WHEN imp=2 THEN round(p.montant_restant*.10) ELSE 0 END;
+ UPDATE public.prets SET jours_impayes=imp,montant_restant=montant_restant+penalite,jour_dernier_prelevement=jour,statut=CASE WHEN imp>=4 THEN 'saisi' ELSE statut END WHERE id=p.id;
+ IF imp>=4 THEN
+  SELECT * INTO terrain FROM public.terrains_etat WHERE country=p.country AND building_id=coalesce(p.bien_cible_id,p.building_id) FOR UPDATE;
+  IF FOUND THEN
+   etat:=terrain.data::jsonb;
+   IF etat->>'proprietaire' IN(nom,'pj:'||nom) THEN
+    etat:=etat||jsonb_build_object('proprietaire',NULL,'coproprietaire',NULL,'enVenteParBanque',true,'prixVenteBanque',round(coalesce((etat->>'valeur_totale')::numeric,0)*.7));
+    UPDATE public.terrains_etat SET proprietaire=NULL,data=etat::text,updated_at=now() WHERE id=terrain.id;
+   END IF;
+  END IF;
+ END IF;
+ PERFORM public.mail_systeme_poser_interne('Banque Nationale',nom,CASE imp WHEN 1 THEN 'Impayé' WHEN 2 THEN 'Mise en demeure' WHEN 3 THEN 'ULTIMATUM' ELSE 'SAISIE' END,
+  CASE imp WHEN 1 THEN 'Votre mensualité ne peut pas être prélevée.' WHEN 2 THEN 'Une pénalité de 10 % est appliquée.' WHEN 3 THEN 'Remboursez sous 24 heures ou le bien sera saisi.' ELSE 'Le contrat est transmis au contentieux ; seul le bien appartenant encore à l’emprunteur peut être repris.' END,NULL);
+ DELETE FROM public.prets_ecritures_internes WHERE transaction_id=txid_current();RETURN jsonb_build_object('ok',true,'impaye',imp,'penalite',penalite,'saisi',imp>=4);
+END;$function$;
+
+-- pret_versionne_ecriture_proteger() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.pret_versionne_ecriture_proteger()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE version integer;
+BEGIN
+ IF TG_OP='DELETE' THEN version:=OLD.contrat_version;ELSE version:=NEW.contrat_version;END IF;
+ IF TG_OP='UPDATE' THEN version:=coalesce(OLD.contrat_version,NEW.contrat_version);END IF;
+ IF version=2 AND NOT EXISTS(SELECT 1 FROM public.prets_ecritures_internes WHERE transaction_id=txid_current()) THEN RAISE EXCEPTION 'pret_commande_versionnee_requise';END IF;
+ IF TG_OP='DELETE' THEN RETURN OLD;ELSE RETURN NEW;END IF;
+END;$function$;
+
+-- prets_ecriture_ecran_garder() -> trigger | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.prets_ecriture_ecran_garder()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF current_user NOT IN ('authenticated', 'anon') THEN RETURN coalesce(NEW, OLD); END IF;
+  IF TG_OP = 'UPDATE'
+     AND OLD.emprunteur = public.mon_personnage()
+     AND NEW.statut = 'succession'
+     AND (to_jsonb(NEW) - 'statut') = (to_jsonb(OLD) - 'statut') THEN
+    RETURN NEW;
+  END IF;
+  RAISE EXCEPTION 'pret_ecrit_par_le_serveur' USING ERRCODE = '42501';
+END;
 $function$;
 
 -- regler_creances_helvetia_quotidien(text) -> TABLE(creance_id text, type_creance text, action text) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
@@ -1227,7 +1602,7 @@ BEGIN
 
         v_caisse := v_caisse - v_paye;
         PERFORM public.helvetia_crediter_destination(v_obl.beneficiaire, v_paye, v_obl.destination_type);
-        UPDATE public.personnages SET arg = COALESCE(arg,0) + v_paye WHERE name = v_obl.beneficiaire;
+        UPDATE public.personnages_donnees SET arg = COALESCE(arg,0) + v_paye WHERE name = v_obl.beneficiaire;
 
         IF v_paye >= v_obl.montant_du THEN
           UPDATE public.obligations_helvetia SET statut = 'soldee', montant_du = 0, updated_at = now() WHERE id = v_obl.id;
@@ -1347,7 +1722,7 @@ BEGIN
   END IF;
 
   IF v_liquide_requis > 0 THEN
-    UPDATE public.personnages SET liquide = liquide - v_liquide_requis WHERE name = p_personnage;
+    UPDATE public.personnages_donnees SET liquide = liquide - v_liquide_requis WHERE name = p_personnage;
   END IF;
   IF v_national_requis > 0 THEN
     UPDATE public.comptes_bancaires SET solde = solde - v_national_requis, updated_at = now()
@@ -1366,7 +1741,7 @@ BEGIN
     INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_caisse_id, jsonb_build_object('solde', v_total), now());
   END IF;
 
-  UPDATE public.personnages SET arg = GREATEST(0, COALESCE(arg,0) - v_total) WHERE name = p_personnage;
+  UPDATE public.personnages_donnees SET arg = GREATEST(0, COALESCE(arg,0) - v_total) WHERE name = p_personnage;
 
   UPDATE public.prets SET montant_restant = 0, statut = 'rembourse' WHERE id = p_pret_id RETURNING * INTO v_pret;
   RETURN v_pret;
@@ -1414,7 +1789,7 @@ BEGIN
     v_accorde := (NOT v_risque) OR (random() < 0.5);
 
     IF v_accorde THEN
-      UPDATE public.personnages SET arg = COALESCE(arg,0) + v_montant WHERE name = v_pret_demande->>'demandeur';
+      UPDATE public.personnages_donnees SET arg = COALESCE(arg,0) + v_montant WHERE name = v_pret_demande->>'demandeur';
       INSERT INTO public.prets (id, emprunteur, country, building_id, type_banque, type_pret,
           montant_initial, montant_restant, duree_jours, mensualite, jours_impayes, statut)
         VALUES ('pret-' || extract(epoch from clock_timestamp())::bigint, v_pret_demande->>'demandeur',
@@ -1436,7 +1811,7 @@ BEGIN
 
   IF v_refus THEN
     IF v_compromis_par IS NOT NULL AND v_acompte > 0 THEN
-      UPDATE public.personnages SET liquide = COALESCE(liquide,0) + v_acompte,
+      UPDATE public.personnages_donnees SET liquide = COALESCE(liquide,0) + v_acompte,
           arg = COALESCE(arg,0) + v_acompte
         WHERE name = v_compromis_par;
     END IF;
@@ -1560,7 +1935,7 @@ begin
       updated_at = now()
   where id = v_compte.id;
 
-  update public.personnages
+  UPDATE public.personnages_donnees
   set arg = coalesce(arg, 0) + v_gain_net
   where name = v_placement.personnage;
 
@@ -1672,7 +2047,7 @@ BEGIN
   WHERE id = v_compte.id;
 
   -- La fortune globale ne varie QUE du résultat net.
-  UPDATE personnages
+  UPDATE public.personnages_donnees
   SET arg = COALESCE(arg, 0) + v_delta
   WHERE name = v_placement.personnage;
 
@@ -1950,7 +2325,7 @@ BEGIN
         IF NOT FOUND THEN
           INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_caisse_id, jsonb_build_object('solde', v_a_prelever), now());
         END IF;
-        UPDATE public.personnages SET arg = GREATEST(0, COALESCE(arg,0) - v_a_prelever) WHERE name = v_pret.emprunteur;
+        UPDATE public.personnages_donnees SET arg = GREATEST(0, COALESCE(arg,0) - v_a_prelever) WHERE name = v_pret.emprunteur;
 
         IF v_pret.montant_restant - v_a_prelever <= 0 THEN
           UPDATE public.prets SET montant_restant = 0, jours_impayes = 0, statut = 'rembourse' WHERE id = v_pret.id;
@@ -1991,7 +2366,7 @@ BEGIN
         IF NOT FOUND THEN
           INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_caisse_id, jsonb_build_object('solde', v_seize), now());
         END IF;
-        UPDATE public.personnages SET arg = GREATEST(0, COALESCE(arg,0) - v_seize) WHERE name = v_pret.emprunteur;
+        UPDATE public.personnages_donnees SET arg = GREATEST(0, COALESCE(arg,0) - v_seize) WHERE name = v_pret.emprunteur;
         v_du := v_du - v_seize;
       END IF;
 
@@ -2006,14 +2381,14 @@ BEGIN
           IF NOT FOUND THEN
             INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_caisse_id, jsonb_build_object('solde', v_seize), now());
           END IF;
-          UPDATE public.personnages SET arg = GREATEST(0, COALESCE(arg,0) - v_seize) WHERE name = v_pret.emprunteur;
+          UPDATE public.personnages_donnees SET arg = GREATEST(0, COALESCE(arg,0) - v_seize) WHERE name = v_pret.emprunteur;
           v_du := v_du - v_seize;
         END IF;
       END IF;
 
       IF v_du > 0 AND COALESCE(v_perso.liquide,0) > 0 THEN
         v_seize := LEAST(v_perso.liquide, v_du);
-        UPDATE public.personnages SET liquide = liquide - v_seize, arg = GREATEST(0, COALESCE(arg,0) - v_seize)
+        UPDATE public.personnages_donnees SET liquide = liquide - v_seize, arg = GREATEST(0, COALESCE(arg,0) - v_seize)
           WHERE name = v_pret.emprunteur;
         UPDATE public.caisses_batiments
           SET data = jsonb_set(data,'{solde}', to_jsonb(COALESCE((data->>'solde')::numeric,0)+v_seize)), updated_at = now()
@@ -2176,3 +2551,114 @@ BEGIN
   RETURN;
 END;
 $function$;
+
+-- virement_automatique_arreter(uuid) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.virement_automatique_arreter(p_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  UPDATE public.virements_automatiques SET actif = false, arrete_le = now()
+   WHERE id = p_id AND emetteur = v_moi AND actif RETURNING * INTO v;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'virement_introuvable'); END IF;
+  PERFORM public.mail_systeme_poser_interne('Banque Nationale', v.beneficiaire, 'Virement automatique arrêté',
+    '<strong>' || v.emetteur || '</strong> a arrêté le virement automatique de ' || v.montant || ' FR qu''il vous versait.<br><br>Laurent Barre, directeur d''agence');
+  RETURN jsonb_build_object('ok', true);
+END; $function$;
+
+-- virement_executer_interne(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.virement_executer_interne(p_emetteur text, p_beneficiaire text, p_montant numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_solde numeric; v_compte text; v_pays_b text; v_compte_b text;
+BEGIN
+  IF p_montant IS NULL OR p_montant <= 0 OR p_montant <> trunc(p_montant) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'montant_invalide'); END IF;
+  PERFORM 1 FROM public.personnages_donnees WHERE name IN (p_emetteur, p_beneficiaire) ORDER BY name FOR UPDATE;
+  SELECT country INTO v_pays_b FROM public.personnages_donnees WHERE name = p_beneficiaire;
+  IF v_pays_b IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_introuvable'); END IF;
+  SELECT id, coalesce(solde, 0) INTO v_compte, v_solde FROM public.comptes_bancaires
+   WHERE personnage = p_emetteur AND banque = 'nationale' FOR UPDATE;
+  IF v_compte IS NULL OR v_solde < p_montant THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'solde_insuffisant', 'solde', coalesce(v_solde, 0)); END IF;
+  SELECT id INTO v_compte_b FROM public.comptes_bancaires
+   WHERE personnage = p_beneficiaire AND banque = 'nationale' FOR UPDATE;
+  IF v_compte_b IS NULL THEN
+    v_compte_b := 'nationale_' || p_beneficiaire;
+    INSERT INTO public.comptes_bancaires (id, personnage, pays, banque, solde, updated_at)
+    VALUES (v_compte_b, p_beneficiaire, coalesce(v_pays_b, 'republic'), 'nationale', 0, now())
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
+  UPDATE public.comptes_bancaires SET solde = solde - p_montant, updated_at = now() WHERE id = v_compte;
+  UPDATE public.comptes_bancaires SET solde = solde + p_montant, updated_at = now() WHERE id = v_compte_b;
+  UPDATE public.personnages_donnees SET arg = coalesce(arg, 0) - p_montant, updated_at = now() WHERE name = p_emetteur;
+  UPDATE public.personnages_donnees SET arg = coalesce(arg, 0) + p_montant, updated_at = now() WHERE name = p_beneficiaire;
+  RETURN jsonb_build_object('ok', true, 'montant', p_montant, 'solde', v_solde - p_montant);
+END; $function$;
+
+-- virements_automatiques_executer() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.virements_automatiques_executer()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v record; v_res jsonb; v_auj date := (now() AT TIME ZONE 'Europe/Paris')::date;
+        v_ok integer := 0; v_ko integer := 0; v_freq text;
+BEGIN
+  IF NOT public.est_appel_serveur() THEN RETURN jsonb_build_object('ok', false, 'raison', 'reserve_au_serveur'); END IF;
+  FOR v IN SELECT * FROM public.virements_automatiques WHERE actif AND prochain_le <= v_auj
+            ORDER BY prochain_le, cree_le FOR UPDATE SKIP LOCKED
+  LOOP
+    v_freq := CASE WHEN v.frequence = 'jour' THEN 'par jour' ELSE 'par semaine' END;
+    IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = v.emetteur)
+       OR NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = v.beneficiaire) THEN
+      UPDATE public.virements_automatiques SET actif = false, arrete_le = now() WHERE id = v.id;
+      CONTINUE;
+    END IF;
+    v_res := public.virement_executer_interne(v.emetteur, v.beneficiaire, v.montant);
+    IF coalesce((v_res ->> 'ok')::boolean, false) THEN
+      v_ok := v_ok + 1;
+      UPDATE public.virements_automatiques SET dernier_le = v_auj,
+             prochain_le = v_auj + CASE WHEN v.frequence = 'jour' THEN 1 ELSE 7 END WHERE id = v.id;
+    ELSE
+      v_ko := v_ko + 1;
+      UPDATE public.virements_automatiques
+         SET prochain_le = v_auj + CASE WHEN v.frequence = 'jour' THEN 1 ELSE 7 END WHERE id = v.id;
+      PERFORM public.mail_systeme_poser_interne('Banque Nationale', v.emetteur, 'Virement automatique non versé',
+        'Votre virement automatique de ' || v.montant || ' FR ' || v_freq || ' à <strong>' || v.beneficiaire
+        || '</strong> n''a pas pu être versé : votre compte ne suffisait pas. Il reste actif.<br><br>Laurent Barre, directeur d''agence');
+      PERFORM public.mail_systeme_poser_interne('Banque Nationale', v.beneficiaire, 'Virement automatique non versé',
+        'Le virement automatique de ' || v.montant || ' FR ' || v_freq || ' que vous verse <strong>' || v.emetteur
+        || '</strong> n''a pas pu être versé : son compte ne suffisait pas.<br><br>Laurent Barre, directeur d''agence');
+    END IF;
+  END LOOP;
+  RETURN jsonb_build_object('ok', true, 'verses', v_ok, 'non_verses', v_ko);
+END; $function$;
+
+-- virements_automatiques_mes() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.virements_automatiques_mes()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  RETURN jsonb_build_object('ok', true, 'virements', coalesce((
+    SELECT jsonb_agg(jsonb_build_object('id', v.id, 'emetteur', v.emetteur, 'beneficiaire', v.beneficiaire,
+             'montant', v.montant, 'frequence', v.frequence, 'prochain_le', v.prochain_le,
+             'dernier_le', v.dernier_le, 'emis', v.emetteur = v_moi) ORDER BY v.cree_le)
+      FROM public.virements_automatiques v
+     WHERE v.actif AND (v.emetteur = v_moi OR v.beneficiaire = v_moi)), '[]'::jsonb));
+END; $function$;

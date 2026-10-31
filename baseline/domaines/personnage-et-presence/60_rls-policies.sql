@@ -13,6 +13,8 @@
 -- Activation de la RLS. Une table dont la RLS est active SANS policy est
 -- fermee a tout role soumis a la RLS : c'est un etat VOULU, pas un oubli.
 
+ALTER TABLE public.ambassades_asiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ambassades_audiences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contacts_organisations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contacts_organisations_passeurs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.demandes_mariage ENABLE ROW LEVEL SECURITY;
@@ -27,6 +29,8 @@ ALTER TABLE public.etat_civil_naissances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fiche_hausses_observees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fiche_inventaire_observe ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.historique_deplacements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.indices_diplomatiques ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.indices_diplomatiques_journal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invitations_diner ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mariages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.objets_abandonnes ENABLE ROW LEVEL SECURITY;
@@ -39,6 +43,7 @@ ALTER TABLE public.presences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.qualifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.quetes_actives ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reconciliation_fantomes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.regularisations_fiche ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.souvenirs_accueil ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.successions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testaments ENABLE ROW LEVEL SECURITY;
@@ -72,8 +77,6 @@ CREATE POLICY "dons consommation destinataire" ON public.dons_en_attente FOR UPD
   WITH CHECK (destinataire = mon_personnage());
 CREATE POLICY "dons lecture destinataire" ON public.dons_en_attente FOR SELECT TO authenticated
   USING (destinataire = mon_personnage());
-CREATE POLICY dons_en_attente_suppression_acteur ON public.dons_en_attente FOR DELETE TO authenticated
-  USING (acteur_identifie());
 
 -- etat_civil_deces
 CREATE POLICY etat_civil_deces_ecriture_acteur ON public.etat_civil_deces FOR INSERT TO authenticated
@@ -108,12 +111,8 @@ CREATE POLICY mariages_maj_acteur ON public.mariages FOR UPDATE TO authenticated
   WITH CHECK (acteur_identifie());
 
 -- objets_abandonnes
-CREATE POLICY objets_abandonnes_ecriture_acteur ON public.objets_abandonnes FOR INSERT TO authenticated
-  WITH CHECK (acteur_identifie());
 CREATE POLICY objets_abandonnes_lecture_publique ON public.objets_abandonnes FOR SELECT TO anon, authenticated
   USING (true);
-CREATE POLICY objets_abandonnes_suppression_acteur ON public.objets_abandonnes FOR DELETE TO authenticated
-  USING (acteur_identifie());
 
 -- objets_recus
 CREATE POLICY objets_recus_lire_le_sien ON public.objets_recus FOR SELECT TO authenticated
@@ -125,7 +124,13 @@ CREATE POLICY objets_recus_reclamer_le_sien ON public.objets_recus FOR DELETE TO
 CREATE POLICY organisations_ecriture_acteur ON public.organisations FOR INSERT TO authenticated
   WITH CHECK (acteur_identifie());
 CREATE POLICY organisations_lecture_publique ON public.organisations FOR SELECT TO anon, authenticated
-  USING (true);
+  USING (COALESCE(data::jsonb ->> 'visible'::text, 'false'::text) = 'true'::text AND COALESCE(data::jsonb ->> 'type'::text, ''::text) <> 'criminelle'::text OR mon_personnage() IS NOT NULL AND ((data::jsonb ->> 'chef'::text) = mon_personnage() OR (data::jsonb ->> 'fondateur'::text) = mon_personnage() OR (EXISTS ( SELECT 1
+   FROM jsonb_array_elements(
+        CASE
+            WHEN jsonb_typeof(organisations.data::jsonb -> 'membres'::text) = 'array'::text THEN organisations.data::jsonb -> 'membres'::text
+            ELSE '[]'::jsonb
+        END) membre(obj)
+  WHERE (membre.obj ->> 'nom'::text) = mon_personnage()))));
 CREATE POLICY organisations_maj_acteur ON public.organisations FOR UPDATE TO authenticated
   USING (acteur_identifie())
   WITH CHECK (acteur_identifie());

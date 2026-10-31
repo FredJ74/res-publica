@@ -224,5 +224,29 @@ ALTER SEQUENCE fixture_catalogue_n_seq RENAME TO serie_nom_personnalise;''')
   sp=importlib.util.spec_from_file_location('epreuve',R/'outils/baseline/epreuve-postgresql.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
   v=m.installer(self.q,[('fixture','CREATE FUNCTION public.fixture_valide() RETURNS int LANGUAGE sql AS $$SELECT n FROM vue_fixture$$;CREATE VIEW vue_fixture AS SELECT 42 AS n;')])
   self.assertEqual(v['fonctions_recompilees'],1);self.q.execute('SELECT fixture_valide()');self.assertEqual(self.q.fetchone()[0],42)
+ def test_attribut_supprime_conserve_les_rangs_reels(self):
+  self.q.execute('CREATE TABLE fixture_catalogue(a int, perdu text, c text);ALTER TABLE fixture_catalogue DROP COLUMN perdu')
+  self.q.execute(requetes.EXPORTS['export_structure']);exp=self.q.fetchone()[0]
+  man={'tables':[],'sequences':[],'sequences_autonomes':[]}
+  ddl=rendre.phase_tables({'colonnes':exp['colonnes'],'sequences':[]},man,exp)
+  self.q.execute('DROP TABLE fixture_catalogue')
+  for sql in ddl:self.q.execute(sql)
+  self.q.execute(requetes.EXPORTS['export_structure']);self.assertEqual(self.q.fetchone()[0]['colonnes'],exp['colonnes'])
+ def test_grant_ne_laisse_pas_PUBLIC_EXECUTE_sur_RPC_fermee(self):
+  self.q.execute('CREATE FUNCTION fixture_fermee() RETURNS int LANGUAGE sql AS $$SELECT 1$$;REVOKE ALL ON FUNCTION fixture_fermee() FROM PUBLIC')
+  self.q.execute(requetes.EXPORTS['export_droits']);droits=self.q.fetchone()[0]
+  self.q.execute('DROP FUNCTION fixture_fermee();CREATE FUNCTION fixture_fermee() RETURNS int LANGUAGE sql AS $$SELECT 1$$')
+  man={'droits':[],'droits_colonnes':[]}
+  from reconstruire import decouper
+  for sql in rendre.phase_droits({'droits':droits['droits_fonctions'],'droits_colonnes':[]},man,{}):
+   for _,ordre in decouper(sql):self.q.execute(ordre)
+  self.q.execute("SELECT has_function_privilege('public','fixture_fermee()','EXECUTE')");self.assertFalse(self.q.fetchone()[0])
+ def test_CHECK_associatif_ne_masque_pas_une_borne_modifiee(self):
+  sp=importlib.util.spec_from_file_location('epreuve',R/'outils/baseline/epreuve-postgresql.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  a='CHECK (((x >= 0 AND x <= 100) AND (x <> 42 AND x <> 43)))'
+  b='CHECK ((x >= 0 AND x <= 100 AND (x <> 42 AND x <> 43)))'
+  self.assertEqual(m.expression_check(a),m.expression_check(b))
+  self.assertNotEqual(m.expression_check(a),m.expression_check(b.replace('100','101')))
+  self.assertNotEqual(m.expression_check(a),m.expression_check(b.replace('AND','OR',1)))
 
 if __name__=='__main__':unittest.main(verbosity=2)

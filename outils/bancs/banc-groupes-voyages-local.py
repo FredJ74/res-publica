@@ -6,7 +6,7 @@ R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('douanes',R/'outils/bancs/banc-groupes-douanes-local.py');d=importlib.util.module_from_spec(sp);sp.loader.exec_module(d)
 def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
- for nom in ['20261028215600_transport_zone_embarquement.sql','20261028215800_transport_international_moteur_commun.sql']:
+ for nom in ['20261031115814_transport_zone_embarquement.sql','20261031115815_transport_international_moteur_commun.sql']:
   q.execute((R/'migrations'/nom).read_text());q.execute((R/'migrations'/nom).read_text())
  if '--contre-controle-par-membre' in sys.argv:
   q.execute("SELECT pg_get_functiondef('public.navigation_interieure_personnage_interne(text,text,text,boolean)'::regprocedure)")

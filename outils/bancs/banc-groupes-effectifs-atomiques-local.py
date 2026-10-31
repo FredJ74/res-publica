@@ -10,7 +10,7 @@ def suite(ctx,suivante=None):
  sp_a=importlib.util.spec_from_file_location('audit',R/'outils/bancs/banc-audit-securite-135-local.py');a=importlib.util.module_from_spec(sp_a);sp_a.loader.exec_module(a)
  q.execute(a.fonction('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','batiment_etat_sous_cle_ecrire'))
  sql("INSERT INTO postes_attribues(id,country,poste_id,city,titulaire,source) VALUES('chef-D-fixture','republic','chef_douanes',NULL,'D','fixture') ON CONFLICT DO NOTHING")
- q.execute(((R/'migrations/20261029131000_effectifs_recrutement_et_licenciement_atomiques.sql').read_text()+(R/'migrations/20261029131001_effectifs_gardes_historiques.sql').read_text()))
+ q.execute(((R/'migrations/20261031115831_effectifs_recrutement_et_licenciement_atomiques.sql').read_text()+(R/'migrations/20261031115832_effectifs_gardes_historiques.sql').read_text()))
  if '--contre-document-effectifs' in sys.argv:
   # Retire la protection, jamais le scénario : l'écriture brute doit alors
   # être acceptée et rendre rouge le même test de sécurité.
@@ -82,7 +82,7 @@ def suite(ctx,suivante=None):
  cas('effectif_panne_creation_annule_aussi_paiement',panne)
  def vide_rejeu():
   sql("UPDATE batiments_etat SET data=jsonb_set(data,'{effectifsDouane,douaniers}','[]') WHERE building_id='port-sainte-marie'")
-  q.execute(((R/'migrations/20261029131000_effectifs_recrutement_et_licenciement_atomiques.sql').read_text()+(R/'migrations/20261029131001_effectifs_gardes_historiques.sql').read_text()))
+  q.execute(((R/'migrations/20261031115831_effectifs_recrutement_et_licenciement_atomiques.sql').read_text()+(R/'migrations/20261031115832_effectifs_gardes_historiques.sql').read_text()))
   q.execute("SELECT public.batiment_etat_lire(data)->'effectifsDouane'->'douaniers' FROM batiments_etat WHERE country='republic' AND building_id='port-sainte-marie'");assert q.fetchone()[0]==[]
  cas('effectif_douane_vide_non_reconstitue_au_rejeu',vide_rejeu)
  def concurrence():

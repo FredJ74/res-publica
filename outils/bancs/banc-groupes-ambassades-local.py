@@ -15,7 +15,7 @@ def suite(ctx,suivante=None):
   if m:q.execute(m[0]);break
  for f,nom in [('20261024184500_ambassades_audiences.sql','ambassade_identite'),('20261024184500_ambassades_audiences.sql','ambassades_audiences_echoir'),('20261025020000_ambassades_asile.sql','ambassade_refuge_de'),('20261025020000_ambassades_asile.sql','ambassades_asiles_echoir'),('20261025020100_ambassades_asile_acces.sql','ambassade_acces_bureau')]:q.execute(a.fonction('migrations/'+f,nom))
  q.execute('REVOKE ALL ON FUNCTION ambassade_acces_bureau(text) FROM PUBLIC,anon;GRANT EXECUTE ON FUNCTION ambassade_acces_bureau(text) TO authenticated')
- migration=(R/'migrations/20261028193000_navigation_ambassades_par_membre.sql').read_text();
+ migration=(R/'migrations/20261031115803_navigation_ambassades_par_membre.sql').read_text();
  if '--contre-ambassades' not in sys.argv:q.execute(migration);q.execute(migration)
  sql("INSERT INTO rue_sorties_batiments VALUES('republic','capitale','quartier-ambassades','rue-1')")
  ctx['c'].commit()

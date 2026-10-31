@@ -10,9 +10,9 @@ def suite(ctx):
  for x in vivants:
   assert hashlib.sha256(x['sql'].encode()).hexdigest()==x['sha256'];q.execute(x['sql'])
  # Conserver la séparation commune sur le corps judiciaire vivant réinstallé.
- q.execute((R/'migrations/20261028222000_justice_position_cellule_serveur.sql').read_text())
- q.execute((R/'migrations/20261029120000_groupes_separation_ecrou.sql').read_text())
- for f in ['20261030223601_combats_profils_et_occupation_unique.sql','20261030223602_combat_ouverture_civile_commune.sql','20261030223603_combat_civil_rounds_et_issues_communes.sql','20261030223604_combat_fermeture_ancienne_porte_et_automates.sql','20261030223605_combat_composition_commune_depuis_graines.sql','20261030223606_combat_cibles_presence_canonique.sql']:
+ q.execute((R/'migrations/20261031115817_justice_position_cellule_serveur.sql').read_text())
+ q.execute((R/'migrations/20261031115823_groupes_separation_ecrou.sql').read_text())
+ for f in ['20261031115856_combats_profils_et_occupation_unique.sql','20261031115857_combat_ouverture_civile_commune.sql','20261031115858_combat_civil_rounds_et_issues_communes.sql','20261031115859_combat_fermeture_ancienne_porte_et_automates.sql','20261031115900_combat_composition_commune_depuis_graines.sql','20261031115901_combat_cibles_presence_canonique.sql']:
   q.execute((R/'migrations'/f).read_text());q.execute((R/'migrations'/f).read_text())
  # Fonctions pures réelles #258 : compatibilité avec les soldes/positions
  # confirmés, sans rejouer la migration déjà appliquée ni toucher un joueur.
@@ -303,7 +303,7 @@ def suite(ctx):
    f=Path(d)/'lot.sql';nb=m.preparer(str(f));assert nb==88
    texte=f.read_text();prevol=re.search(r'DO \$prevol\$.*?\$prevol\$;',texte,re.S)[0]
   q.execute('CREATE SCHEMA IF NOT EXISTS supabase_migrations;CREATE TABLE IF NOT EXISTS supabase_migrations.schema_migrations(version text,name text)')
-  q.execute('INSERT INTO supabase_migrations.schema_migrations(version) VALUES(%s)',('20261028123000',))
+  q.execute('INSERT INTO supabase_migrations.schema_migrations(version) VALUES(%s)',('20261031115739',))
   q.execute('SAVEPOINT collision')
   try:q.execute(prevol)
   except Exception as e:assert '219_version_deja_enregistree' in str(e);q.execute('ROLLBACK TO SAVEPOINT collision')

@@ -804,6 +804,84 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "informateur_congedier(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "informateur_congedier(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "informateur_congedier(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "informateur_inf_ajouter_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "informateur_inf_ajouter_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "informateur_interroger(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "informateur_interroger(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "informateur_interroger(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "informateur_niveau_interne(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "informateur_niveau_interne(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "informateur_recruter(integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "informateur_recruter(integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "informateur_recruter(integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "PUBLIC",
    "genre": "FUNCTION",
    "objet": "renseignement_agents_disponibles()",
@@ -1000,12 +1078,12 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "b24f9a9b62abc0a393d37752fda0b15a",
-  "20_fonctions.sql": "36ee541eb005f7f86b62e308acee4cc6",
+  "20_fonctions.sql": "ddae4a6f667c4c7a130859e8c60f5239",
   "30_contraintes.sql": "a32c4c0981a04979dcc6ed2b0434d8d8",
   "35_index.sql": "f497a9065521793aaf3e2eb09c104783",
   "50_triggers.sql": "7572e5d6c6fed52f7debb92b077dc520",
   "60_rls-policies.sql": "1af68eb19e83f0ce1366ca3bd1e66040",
-  "70_droits.sql": "927e57d19b9b089b4afbb8ec9c089899",
+  "70_droits.sql": "6809fe48f2df8fe5063feff23be3958c",
   "80_commentaires.sql": "014910c7d8af57fe442ee182721db843"
  },
  "fonctions": [
@@ -1203,6 +1281,31 @@
    "empreinte": "b2225f74cd2e7771a8229d5f33342e19",
    "security_definer": true,
    "signature": "filature_deplacements(text)"
+  },
+  {
+   "empreinte": "4a4a059394f00c5b02e60c76b72bb3f4",
+   "security_definer": true,
+   "signature": "informateur_congedier(integer)"
+  },
+  {
+   "empreinte": "c9f3bd7fc4ba1d4e7ff567b1ae99192d",
+   "security_definer": true,
+   "signature": "informateur_inf_ajouter_interne(text,integer)"
+  },
+  {
+   "empreinte": "aab45772cc573a3efe61cea6e015724a",
+   "security_definer": true,
+   "signature": "informateur_interroger(integer,integer)"
+  },
+  {
+   "empreinte": "5e03002c164a7239d290f35ea7c3082e",
+   "security_definer": false,
+   "signature": "informateur_niveau_interne(integer)"
+  },
+  {
+   "empreinte": "3c7d79217091e592f585707003e86bdd",
+   "security_definer": true,
+   "signature": "informateur_recruter(integer,integer,integer)"
   },
   {
    "empreinte": "707464b71933bc60fc8b3edcda52e843",

@@ -49,7 +49,7 @@ WHERE schemaname='public' AND tablename IN
  'police_interceptions','police_detection_attempts','police_action_receipts','batiments_etat')
 ORDER BY tablename,policyname;
 SELECT version,name FROM supabase_migrations.schema_migrations
-WHERE version IN ('20261027222500','20261028074753','20261028074754')
+WHERE version IN ('20261031115734','20261031115735','20261031115736')
  OR name ILIKE '%securite_privee%' ORDER BY version;
 -- Règles publiques et agrégats seulement : aucun nom de joueur ni contenu de fiche.
 SELECT famille,axe,autorite FROM public.pnj_axes_autorite

@@ -11,6 +11,8 @@
 -- ============================================================================
 
 -- CLES PRIMAIRES
+ALTER TABLE public.ambassades_asiles ADD CONSTRAINT ambassades_asiles_pkey PRIMARY KEY (id);
+ALTER TABLE public.ambassades_audiences ADD CONSTRAINT ambassades_audiences_pkey PRIMARY KEY (id);
 ALTER TABLE public.contacts_organisations ADD CONSTRAINT contacts_organisations_pkey PRIMARY KEY (joueur, passeur, type_organisation);
 ALTER TABLE public.contacts_organisations_passeurs ADD CONSTRAINT contacts_organisations_passeurs_pkey PRIMARY KEY (passeur, type_organisation);
 ALTER TABLE public.demandes_mariage ADD CONSTRAINT demandes_mariage_pkey PRIMARY KEY (id);
@@ -25,6 +27,8 @@ ALTER TABLE public.etat_civil_naissances ADD CONSTRAINT etat_civil_naissances_pk
 ALTER TABLE public.fiche_hausses_observees ADD CONSTRAINT fiche_hausses_observees_pkey PRIMARY KEY (id);
 ALTER TABLE public.fiche_inventaire_observe ADD CONSTRAINT fiche_inventaire_observe_pkey PRIMARY KEY (id);
 ALTER TABLE public.historique_deplacements ADD CONSTRAINT historique_deplacements_pkey PRIMARY KEY (id);
+ALTER TABLE public.indices_diplomatiques ADD CONSTRAINT indices_diplomatiques_pkey PRIMARY KEY (pays);
+ALTER TABLE public.indices_diplomatiques_journal ADD CONSTRAINT indices_diplomatiques_journal_pkey PRIMARY KEY (id);
 ALTER TABLE public.invitations_diner ADD CONSTRAINT invitations_diner_pkey PRIMARY KEY (id);
 ALTER TABLE public.mariages ADD CONSTRAINT mariages_pkey PRIMARY KEY (id);
 ALTER TABLE public.objets_abandonnes ADD CONSTRAINT objets_abandonnes_pkey PRIMARY KEY (id);
@@ -37,6 +41,7 @@ ALTER TABLE public.presences ADD CONSTRAINT presences_pkey PRIMARY KEY (name);
 ALTER TABLE public.qualifications ADD CONSTRAINT qualifications_pkey PRIMARY KEY (id);
 ALTER TABLE public.quetes_actives ADD CONSTRAINT quetes_actives_pkey PRIMARY KEY (id);
 ALTER TABLE public.reconciliation_fantomes ADD CONSTRAINT reconciliation_fantomes_pkey PRIMARY KEY (user_id);
+ALTER TABLE public.regularisations_fiche ADD CONSTRAINT regularisations_fiche_pkey PRIMARY KEY (reference);
 ALTER TABLE public.souvenirs_accueil ADD CONSTRAINT souvenirs_accueil_pkey PRIMARY KEY (id);
 ALTER TABLE public.successions ADD CONSTRAINT successions_pkey PRIMARY KEY (id);
 ALTER TABLE public.testaments ADD CONSTRAINT testaments_pkey PRIMARY KEY (id);
@@ -51,8 +56,17 @@ ALTER TABLE public.escorts_catalogue ADD CONSTRAINT escorts_catalogue_pays_nom_k
 ALTER TABLE public.personnages_donnees ADD CONSTRAINT personnages_name_key UNIQUE (name);
 
 -- CONTRAINTES DE VALIDATION
+ALTER TABLE public.ambassades_asiles ADD CONSTRAINT ambassades_asiles_check CHECK (((statut = 'demandee'::text) OR (decide_le IS NOT NULL)));
+ALTER TABLE public.ambassades_asiles ADD CONSTRAINT ambassades_asiles_empire_check CHECK ((empire = ANY (ARRAY['khalija'::text, 'soviet'::text, 'narco'::text])));
+ALTER TABLE public.ambassades_asiles ADD CONSTRAINT ambassades_asiles_statut_check CHECK ((statut = ANY (ARRAY['demandee'::text, 'accorde'::text, 'refuse'::text])));
+ALTER TABLE public.ambassades_audiences ADD CONSTRAINT ambassades_audiences_check CHECK (((ambassadeur_pj IS NOT NULL) OR (accord_prevu_le IS NOT NULL)));
+ALTER TABLE public.ambassades_audiences ADD CONSTRAINT ambassades_audiences_check1 CHECK (((statut = 'demandee'::text) OR ((accordee_le IS NOT NULL) AND (expire_le IS NOT NULL))));
+ALTER TABLE public.ambassades_audiences ADD CONSTRAINT ambassades_audiences_empire_check CHECK ((empire = ANY (ARRAY['khalija'::text, 'soviet'::text, 'narco'::text])));
+ALTER TABLE public.ambassades_audiences ADD CONSTRAINT ambassades_audiences_statut_check CHECK ((statut = ANY (ARRAY['demandee'::text, 'accordee'::text, 'expiree'::text])));
 ALTER TABLE public.escort_evenements_commerciaux ADD CONSTRAINT escort_evenements_commerciaux_type_evenement_check CHECK ((type_evenement = ANY (ARRAY['embauche'::text, 'prestation'::text])));
 ALTER TABLE public.escorts_catalogue ADD CONSTRAINT escorts_catalogue_genre_check CHECK ((genre = ANY (ARRAY['F'::text, 'H'::text])));
+ALTER TABLE public.indices_diplomatiques ADD CONSTRAINT indices_diplomatiques_pays_check CHECK ((pays = ANY (ARRAY['republic'::text, 'narco'::text, 'soviet'::text, 'khalija'::text])));
+ALTER TABLE public.indices_diplomatiques ADD CONSTRAINT indices_diplomatiques_valeur_check CHECK (((valeur >= 0) AND (valeur <= 100)));
 ALTER TABLE public.personnages_qualifications ADD CONSTRAINT personnages_qualifications_source_check CHECK ((source = ANY (ARRAY['creation'::text, 'autre'::text])));
 ALTER TABLE public.successions ADD CONSTRAINT successions_statut_check CHECK ((statut = ANY (ARRAY['en_attente'::text, 'resolue'::text])));
 ALTER TABLE public.testaments ADD CONSTRAINT testaments_statut_check CHECK ((statut = ANY (ARRAY['actif'::text, 'remplace'::text, 'revoque'::text, 'execute'::text])));

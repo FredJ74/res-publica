@@ -47,11 +47,11 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
   q.execute(re.search(r'DO \$reprise\$.*?END \$reprise\$;',socle,re.S)[0])
   q.execute('CREATE TABLE compagnies_militaires(id text PRIMARY KEY,data jsonb)')
   q.execute(audit.fonction('baseline/domaines/militaire/20_fonctions-2.sql','militaire_ordre_collectif'))
-  q.execute((R/'migrations/20261028122000_radio_ordres_meme_ville.sql').read_text())
-  q.execute((R/'migrations/20261028122000_radio_ordres_meme_ville.sql').read_text())
+  q.execute((R/'migrations/20261031115737_radio_ordres_meme_ville.sql').read_text())
+  q.execute((R/'migrations/20261031115737_radio_ordres_meme_ville.sql').read_text())
   q.execute("INSERT INTO compagnies_militaires VALUES('compagnie','{\"sections\":[{\"id\":\"s\",\"lieutenantNom\":\"A\"}]}')")
   original='--contre-217' in sys.argv
-  for nom in ['20261028122500_reprise_pnj_autorite_administrative.sql','20261028123000_groupe_pj_adhesion_volontaire.sql','20261028123500_pnj_rappel_radio_universel.sql','20261028124000_transfert_pnj_autorite_origine.sql']:
+  for nom in ['20261031115738_reprise_pnj_autorite_administrative.sql','20261031115739_groupe_pj_adhesion_volontaire.sql','20261031115740_pnj_rappel_radio_universel.sql','20261031115741_transfert_pnj_autorite_origine.sql']:
    if original:
     import subprocess
     sql=subprocess.check_output(['git','show','c85d36d5:migrations/'+nom],cwd=R,text=True)
@@ -69,12 +69,12 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
   q.execute(audit.fonction('baseline/domaines/socle-PNJ/20_fonctions.sql','pnj_caracteristiques_base'))
   q.execute(audit.fonction('baseline/domaines/personnage-et-presence/20_fonctions.sql','employe_mes_employes'))
   if not original:
-   q.execute((R/'migrations/20261028140626_groupes_employes_position_confirmee.sql').read_text())
-   q.execute((R/'migrations/20261028140626_groupes_employes_position_confirmee.sql').read_text())
+   q.execute((R/'migrations/20261031115744_groupes_employes_position_confirmee.sql').read_text())
+   q.execute((R/'migrations/20261031115744_groupes_employes_position_confirmee.sql').read_text())
   q.execute(audit.fonction(audit.M,'securite_agents_prives_presents_interne'))
   if not original:
-   q.execute((R/'migrations/20261028141500_groupes_presence_privee_chef_reel.sql').read_text())
-   q.execute((R/'migrations/20261028141500_groupes_presence_privee_chef_reel.sql').read_text())
+   q.execute((R/'migrations/20261031115745_groupes_presence_privee_chef_reel.sql').read_text())
+   q.execute((R/'migrations/20261031115745_groupes_presence_privee_chef_reel.sql').read_text())
   c.commit()
   def sql(s):q.execute(s)
   def rpc(nom,args=(),qui='A',cur=q):

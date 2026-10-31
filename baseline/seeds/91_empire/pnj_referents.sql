@@ -20,6 +20,28 @@
 -- ici serait une voix sans souvenir. Compte RELEVE EN BASE.
 -- ============================================================================
 
+-- SEED -- pnj_referents
+-- ============================================================================
+-- Table      : public.pnj_referents
+-- Domaine    : socle PNJ
+-- Categorie  : B (contenu initial d'empire)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 28
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 19 referents de Republia, identifiants et domaine. Colonne pays presente.
+-- LE DIX-NEUVIEME est commandant_tom_hawak (registre 637, migration
+-- 20261010215442) : le Commandant de la caserne devient referent militaire a
+-- la cloture du batiment. Cette table est la LISTE FERMEE qui autorise la
+-- memoire pedagogique -- referent_pedagogie_noter rend `referent: false`
+-- sans rien ecrire pour un identifiant absent -- donc une voix sans ligne
+-- ici serait une voix sans souvenir. Compte RELEVE EN BASE.
+-- ============================================================================
+
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('alain_bordage', 'voyages internationaux', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('alain_theret', 'ministere des Finances — fiscalite, budget national, subventions, preemption', 'republic');
 INSERT INTO public.pnj_referents (referent_id, domaine, pays) VALUES ('alfredo_mifassole', 'role social et politique du club — Luthecia', 'republic');

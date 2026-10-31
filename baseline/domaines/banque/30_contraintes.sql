@@ -19,6 +19,9 @@ ALTER TABLE public.obligations_helvetia ADD CONSTRAINT obligations_helvetia_pkey
 ALTER TABLE public.placements_bancaires ADD CONSTRAINT placements_bancaires_pkey PRIMARY KEY (id);
 ALTER TABLE public.prets ADD CONSTRAINT prets_pkey PRIMARY KEY (id);
 ALTER TABLE public.prets_bancaires ADD CONSTRAINT prets_bancaires_pkey PRIMARY KEY (id);
+ALTER TABLE public.prets_ecritures_internes ADD CONSTRAINT prets_ecritures_internes_pkey PRIMARY KEY (transaction_id);
+ALTER TABLE public.prets_nationaux_demandes ADD CONSTRAINT prets_nationaux_demandes_pkey PRIMARY KEY (acteur, requete);
+ALTER TABLE public.virements_automatiques ADD CONSTRAINT virements_automatiques_pkey PRIMARY KEY (id);
 
 -- CONTRAINTES DE VALIDATION
 ALTER TABLE public.comptes_bancaires ADD CONSTRAINT comptes_bancaires_banque_check CHECK ((banque = ANY (ARRAY['nationale'::text, 'helvetia'::text])));
@@ -34,3 +37,6 @@ ALTER TABLE public.placements_bancaires ADD CONSTRAINT placements_bancaires_pers
 ALTER TABLE public.placements_bancaires ADD CONSTRAINT placements_bancaires_statut_check CHECK ((statut = ANY (ARRAY['actif'::text, 'retire'::text, 'resolu'::text])));
 ALTER TABLE public.placements_bancaires ADD CONSTRAINT placements_bancaires_type_check CHECK ((type = ANY (ARRAY['terme'::text, 'declare'::text, 'offshore'::text])));
 ALTER TABLE public.placements_bancaires ADD CONSTRAINT placements_montant_final_check CHECK (((montant_final IS NULL) OR (montant_final >= (0)::numeric)));
+ALTER TABLE public.virements_automatiques ADD CONSTRAINT virements_automatiques_check CHECK ((emetteur <> beneficiaire));
+ALTER TABLE public.virements_automatiques ADD CONSTRAINT virements_automatiques_frequence_check CHECK ((frequence = ANY (ARRAY['jour'::text, 'semaine'::text])));
+ALTER TABLE public.virements_automatiques ADD CONSTRAINT virements_automatiques_montant_check CHECK (((montant >= 1) AND (montant <= 10000000)));

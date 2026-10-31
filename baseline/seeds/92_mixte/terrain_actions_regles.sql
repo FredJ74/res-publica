@@ -1,0 +1,29 @@
+-- SEED -- terrain_actions_regles
+-- ============================================================================
+-- Table      : public.terrain_actions_regles
+-- Domaine    : immobilier et territoire
+-- Categorie  : D (mixte)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 1
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Catalogue mixte : structure et règles communes, modèles ou paramètres
+-- contextualisés par empire. Aucun inventaire ni état individuel de joueur.
+-- Le JSON reçu doit encore être relu avant rendu.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Structure constatée dans les exports canoniques du 31/10/2026. Aucun
+-- compte de lignes déduit du schéma. Compte SQL relevé en lecture seule par
+-- ChatGPT, commit 2a71eaf77dac83370a02c4f12cd71b502a20d772, 31/10/2026 ; ne
+-- prouve pas la possession des lignes ni leur actualité au prochain point de
+-- coupe. Séparation : garder distincts les identifiants/modèles/paramètres
+-- de chaque empire ; ne modifier ni prix, ni superficies, ni indices pour
+-- uniformiser le moteur. Source : Constitution article 7 et définitions SQL
+-- existantes.
+-- ============================================================================
+
+INSERT INTO public.terrain_actions_regles (id, data) VALUES ('true', '{"bonus": {"loge": [{"grade": 2, "valeur": 10}], "syndicale": [], "criminelle": [{"grade": 0, "valeur": 5}, {"grade": 1, "valeur": 10}, {"grade": 2, "valeur": 15}, {"grade": 3, "valeur": 20}], "economique": [], "religieuse": []}, "indices": {"narco": {"ID": 20, "IE": 30, "IP": 40, "IS": 25, "ISN": 15}, "soviet": {"ID": 30, "IE": 40, "IP": 40, "IS": 35, "ISN": 70}, "khalija": {"ID": 50, "IE": 65, "IP": 40, "IS": 40, "ISN": 60}, "republic": {"ID": 40, "IE": 50, "IP": 40, "IS": 45, "ISN": 30}}}');

@@ -1471,6 +1471,10 @@ BEGIN
          data   = g.data || jsonb_build_object('ceasefire', v_cf || jsonb_build_object('actifPar', v_actif))
    WHERE id = p_guerre_id;
 
+  -- Indice Diplomatique (25/10/2026) : +10, une fois par camp.
+  IF NOT (coalesce(v_cf -> 'actifPar', '{}'::jsonb) ? v_pays) THEN
+    PERFORM public.indice_diplomatique_varier_interne(v_pays, 10, 'cessez_le_feu', public.mon_personnage());
+  END IF;
   RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'terminee', v_tous);
 END;
 $function$;
@@ -1516,6 +1520,9 @@ BEGIN
     p_pays_attaque, 'contexte', 'guerre_subie',
     'la guerre declaree par ' || v_pays,
     jsonb_build_object('guerre', v_id, 'attaquant', v_pays), NULL);
+
+  -- Indice Diplomatique (25/10/2026) : -20 pour le pays qui declare la guerre.
+  PERFORM public.indice_diplomatique_varier_interne(v_pays, -20, 'guerre_declaree', v_moi);
 
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'attaquant', v_pays, 'attaque', p_pays_attaque);
 END;
@@ -3134,24 +3141,4 @@ AS $function$
               THEN 20.0 * least(1.0, greatest(0, coalesce(p_equipes,0))::numeric / p_effectif)
               ELSE 0 END
        + public.militaire_malus_taille(p_effectif);
-$function$;
-
--- militaire_camps_hostiles(bigint,text) -> text[] | sql | SECURITY DEFINER | search_path=public
-CREATE OR REPLACE FUNCTION public.militaire_camps_hostiles(p_bataille_id bigint, p_camp text)
- RETURNS text[]
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-  SELECT coalesce(array_agg(DISTINCT e.camp), '{}')
-    FROM public.batailles_engagements e
-   WHERE e.bataille_id = p_bataille_id
-     AND e.sorti_round IS NULL
-     AND e.camp IS DISTINCT FROM p_camp
-     AND ( EXISTS (SELECT 1 FROM public.guerres g
-                    WHERE g.statut = 'active'
-                      AND ((g.data->>'attaquant' = p_camp AND g.data->>'attaque'  = e.camp)
-                        OR (g.data->>'attaque'  = p_camp AND g.data->>'attaquant' = e.camp)))
-        OR ( public.mutinerie_pays_du_camp(p_camp) = public.mutinerie_pays_du_camp(e.camp)
-             AND (public.mutinerie_est_camp(p_camp) OR public.mutinerie_est_camp(e.camp)) ) );
 $function$;

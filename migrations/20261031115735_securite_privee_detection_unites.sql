@@ -1,5 +1,5 @@
 -- Scission technique sous 12 500 caractères, pas une nouvelle mécanique.
--- Dépend de 20261027222500 ; vérifier le détecteur vivant avant toute application.
+-- Dépend de 20261031115734 ; vérifier le détecteur vivant avant toute application.
 -- La RPC police_detection_verifier demeure seule responsable du jet et du registre.
 DO $patch$
 DECLARE s text; a text; b text; old text;

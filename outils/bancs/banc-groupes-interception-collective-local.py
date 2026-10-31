@@ -6,12 +6,12 @@ R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('mixtes',R/'outils/bancs/banc-groupes-rounds-mixtes-local.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
 def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
- q.execute((R/'migrations/20261029122000_police_interception_groupe_et_commandement.sql').read_text())
- q.execute((R/'migrations/20261029122000_police_interception_groupe_et_commandement.sql').read_text())
- q.execute((R/'migrations/20261029123000_police_detection_groupes_reels.sql').read_text())
- q.execute((R/'migrations/20261029123000_police_detection_groupes_reels.sql').read_text())
- q.execute((R/'migrations/20261029124000_police_fuite_collective_commune.sql').read_text())
- q.execute((R/'migrations/20261029124000_police_fuite_collective_commune.sql').read_text())
+ q.execute((R/'migrations/20261031115826_police_interception_groupe_et_commandement.sql').read_text())
+ q.execute((R/'migrations/20261031115826_police_interception_groupe_et_commandement.sql').read_text())
+ q.execute((R/'migrations/20261031115827_police_detection_groupes_reels.sql').read_text())
+ q.execute((R/'migrations/20261031115827_police_detection_groupes_reels.sql').read_text())
+ q.execute((R/'migrations/20261031115828_police_fuite_collective_commune.sql').read_text())
+ q.execute((R/'migrations/20261031115828_police_fuite_collective_commune.sql').read_text())
  if '--contre-force-solo' in sys.argv or '--contre-victime-solo' in sys.argv:
   q.execute("SELECT pg_get_functiondef('police_combat_personnage_interne(text,text,text,text,integer,text)'::regprocedure)");s=q.fetchone()[0]
   if '--contre-force-solo' in sys.argv:

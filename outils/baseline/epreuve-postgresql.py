@@ -23,7 +23,7 @@ from reconstruire import assembler, decouper
 PLATEFORME = """
 CREATE SCHEMA auth;
 CREATE TABLE auth.users(id uuid PRIMARY KEY, email text, raw_user_meta_data jsonb,
- raw_app_meta_data jsonb, created_at timestamptz, is_anonymous boolean);
+ raw_app_meta_data jsonb, created_at timestamptz, is_anonymous boolean, email_confirmed_at timestamptz);
 CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS
  $$ SELECT coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS
@@ -91,6 +91,29 @@ def lire_registre(chemin):
     return lignes
 
 
+def expression_check(definition):
+    """Arbre syntaxique d'un CHECK, avec associativité AND/OR seulement.
+
+    PostgreSQL aplatit les deux premiers termes lors du retour DDL/catalogue.
+    Ni opérateur, ni constante, ni ordre, ni cast ne sont ignorés.
+    """
+    from pglast.parser import parse_sql_json
+    arbre=json.loads(parse_sql_json('CREATE TABLE t (x integer, '+definition+')'))
+    def normaliser(x):
+        if isinstance(x,list):return [normaliser(v) for v in x]
+        if not isinstance(x,dict):return x
+        y={k:normaliser(v) for k,v in x.items() if k not in ('location','stmt_location','stmt_len')}
+        if 'BoolExpr' in y:
+            b=y['BoolExpr'];args=[]
+            for v in b.get('args',[]):
+                if isinstance(v,dict) and v.get('BoolExpr',{}).get('boolop')==b.get('boolop') and b.get('boolop') in ('AND_EXPR','OR_EXPR'):
+                    args.extend(v['BoolExpr']['args'])
+                else:args.append(v)
+            b['args']=args
+        return y
+    return normaliser(arbre)
+
+
 def comparer_catalogues(q, repertoire):
     # Les mêmes requêtes, jamais une photographie SQL reconstruite de mémoire.
     from rendre import charger_exports
@@ -101,14 +124,31 @@ def comparer_catalogues(q, repertoire):
     def retenue(x):
         if x.get('tbl') in exclues:return False
         return not (x.get('genre') in ('TABLE','SEQUENCE','COLUMN','CONSTRAINT') and x.get('objet') in exclues)
+    def dans_perimetre(categorie,x):
+        if categorie=='droits_par_defaut':
+            # Même périmètre EXPLICITE que rendre.phase_defauts : les ACL
+            # des services Supabase et du schéma storage ne sont pas rejouées.
+            return x['administrable'] and x['portee'] in (None,'public')
+        return retenue(x)
+    def comparable(categorie,x):
+        if categorie=='contraintes' and x.get('genre')=='c':
+            return {**{k:v for k,v in x.items() if k not in ('definition','empreinte')},
+                    'expression':expression_check(x['definition'])}
+        return x
     differences=[]
     for export,requete in EXPORTS.items():
         q.execute(requete);obtenu=q.fetchone()[0]
         for categorie,lignes in obtenu.items():
-            source=[x for x in (attendu[categorie] or []) if retenue(x)]
-            cible=[x for x in (lignes or []) if retenue(x)]
-            if source!=cible:
-                differences.append({'export':export,'categorie':categorie,'source':len(source),'local':len(cible)})
+            source=[x for x in (attendu[categorie] or []) if dans_perimetre(categorie,x)]
+            cible=[x for x in (lignes or []) if dans_perimetre(categorie,x)]
+            if [comparable(categorie,x) for x in source]!=[comparable(categorie,x) for x in cible]:
+                exemples=[]
+                for i in range(max(len(source),len(cible))):
+                    a=source[i] if i<len(source) else None;b=cible[i] if i<len(cible) else None
+                    if a!=b:
+                        exemples.append({'source':a,'local':b})
+                        if len(exemples)==2:break
+                differences.append({'export':export,'categorie':categorie,'source':len(source),'local':len(cible),'exemples':exemples})
     return differences
 
 
@@ -123,11 +163,29 @@ def configurer_binaires(chemin):
     serveurs.POSTGRES_BIN_PATH=chemin
 
 
+def installer_prerequis_233(q):
+    """Dépendance préparée sur main, explicitement distincte du catalogue reçu.
+
+    Absente des 1003 versions et du catalogue : ni présumée appliquée, ni
+    confondue avec les 88 migrations #219. Installée uniquement sur base jetable.
+    """
+    p=ICI.parents[1]/'migrations/20261029181000_squatteurs_issue_combat.sql'
+    texte=p.read_text()
+    if q.execute("SELECT to_regprocedure('public.terrain_squatteurs_issue_interne(text,text,text,uuid)')") is not None:
+        raise RuntimeError('Erreur de lecture du prérequis')
+    if q.fetchone()[0] is not None:raise RuntimeError('Prérequis #233 déjà présent : réconcilier, ne pas écraser')
+    q.execute(texte)
+    return {'source':str(p.relative_to(ICI.parents[1])),'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),
+            'portee':'Dépendance préparée #233 distincte des 88 migrations, installée seulement en local.'}
+
+
 def main():
     a=argparse.ArgumentParser(description=__doc__)
     a.add_argument('--rapport',type=Path,required=True)
     a.add_argument('--diagnostic-version-differente',action='store_true',help='Ne certifie jamais la fidélité si le moteur diffère de PG17.')
     a.add_argument('--lot-219',action='store_true',help='Après reconstruction et compilation réussies seulement.')
+    a.add_argument('--prerequis-233',action='store_true',help='Installer explicitement la dépendance #233 manquante sur le décor local, sans la déclarer en production.')
+    a.add_argument('--schema-seul',action='store_true',help='Épreuve explicite du catalogue, sans prétendre avoir installé les seeds du monde.')
     a.add_argument('--registre',type=Path,help='Export JSON du registre vivant complet, métadonnées seulement, requis avec --lot-219.')
     a.add_argument('--exports',type=Path,help='Quatre exports complets servant à comparer le catalogue reconstruit.')
     a.add_argument('--postgres-bin',type=Path,help='Répertoire de binaires PostgreSQL locaux ; aucune adresse de base distante.')
@@ -149,6 +207,8 @@ def main():
                     q.execute('CREATE ROLE '+role)
                 q.execute(PLATEFORME)
                 morceaux,_=assembler()
+                if args.schema_seul:morceaux=[(n,s) for n,s in morceaux if not n.startswith('seeds/')]
+                rapport['seeds_installes']=not args.schema_seul
                 rapport.update(installer(q,morceaux));rapport['reconstruction']=True
                 if args.exports:
                     rapport['ecarts_catalogue']=comparer_catalogues(q,args.exports)
@@ -158,6 +218,7 @@ def main():
                     if not args.exports:raise RuntimeError('Quatre exports complets requis avant installation du lot')
                     if not args.registre:raise RuntimeError('Export du registre vivant requis ; aucun faux registre vide créé')
                     registre=lire_registre(args.registre)
+                    if args.prerequis_233:rapport['prerequis_233_local']=installer_prerequis_233(q)
                     rapport['registre_sha256']=hashlib.sha256(args.registre.read_bytes()).hexdigest()
                     rapport['registre_versions']=len(registre)
                     q.execute('CREATE SCHEMA supabase_migrations;CREATE TABLE supabase_migrations.schema_migrations(version text PRIMARY KEY,name text,statements text[])')
@@ -167,7 +228,7 @@ def main():
                     # Métadonnées du registre réel, pas une liste vide inventée.
                     c.commit();q.execute(f.read_text());rapport['lot_219_installe']=True
                 c.commit()
-                rapport['limite']='Schéma local installé, mais fidélité au catalogue vivant à établir avec les quatre exports et le contrôle global correspondant.'
+                rapport['limite']='Catalogue public comparé dans le périmètre déclaré du baseline (hors cinq tables exclues et services plateforme). Auth SQL locale : aucune recette GoTrue authentifiée réelle.'
             finally:
                 if c is not None:c.close()
                 serveur._cleanup()

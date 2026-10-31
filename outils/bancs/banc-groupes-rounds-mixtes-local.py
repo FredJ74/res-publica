@@ -6,8 +6,8 @@ R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('ecrou',R/'outils/bancs/banc-groupes-ecrou-local.py');e=importlib.util.module_from_spec(sp);sp.loader.exec_module(e)
 def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
- q.execute(((R/'migrations/20261029121000_police_rounds_groupes_mixtes.sql').read_text()+(R/'migrations/20261029121001_police_rounds_suites.sql').read_text()))
- q.execute(((R/'migrations/20261029121000_police_rounds_groupes_mixtes.sql').read_text()+(R/'migrations/20261029121001_police_rounds_suites.sql').read_text()))
+ q.execute(((R/'migrations/20261031115824_police_rounds_groupes_mixtes.sql').read_text()+(R/'migrations/20261031115825_police_rounds_suites.sql').read_text()))
+ q.execute(((R/'migrations/20261031115824_police_rounds_groupes_mixtes.sql').read_text()+(R/'migrations/20261031115825_police_rounds_suites.sql').read_text()))
  ctx['c'].commit()
  cas('rounds_police_preexistants_conserves_apres_extension_mixte',ctx['police_deux_rounds_reels'])
  def decor():

@@ -19,11 +19,11 @@ def suite(ctx,suivante=None):
  for p in sorted((R/'migrations').glob('20261028185*.sql')):
   if '185800_' not in p.name and not ('--contre-interieurs' in sys.argv and ('185500_' in p.name or '185600_' in p.name)):q.execute(p.read_text());q.execute(p.read_text())
  if '--contre-interieurs' not in sys.argv:
-  q.execute((R/'migrations/20261028185800_navigation_positions_sauvegardes.sql').read_text());q.execute((R/'migrations/20261028185800_navigation_positions_sauvegardes.sql').read_text())
+  q.execute((R/'migrations/20261031115801_navigation_positions_sauvegardes.sql').read_text());q.execute((R/'migrations/20261031115801_navigation_positions_sauvegardes.sql').read_text())
  q.execute("""CREATE VIEW sauvegarde_fixture AS SELECT name,country,current_city,current_building,current_room,current_street FROM personnages_donnees;
  GRANT SELECT,UPDATE ON sauvegarde_fixture TO authenticated;""")
  if '--contre-interieurs' not in sys.argv:
-  q.execute((R/'migrations/20261028191900_groupes_participants_canoniques.sql').read_text());q.execute((R/'migrations/20261028191900_groupes_participants_canoniques.sql').read_text())
+  q.execute((R/'migrations/20261031115802_groupes_participants_canoniques.sql').read_text());q.execute((R/'migrations/20261031115802_groupes_participants_canoniques.sql').read_text())
  ctx['c'].commit()
  def photo():
   q.execute('SELECT jsonb_agg(to_jsonb(d) ORDER BY name) FROM personnages_donnees d');a=q.fetchone()[0]

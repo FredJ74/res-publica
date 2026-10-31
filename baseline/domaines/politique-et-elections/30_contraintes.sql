@@ -13,6 +13,7 @@
 -- CLES PRIMAIRES
 ALTER TABLE public.candidatures ADD CONSTRAINT candidatures_pkey PRIMARY KEY (id);
 ALTER TABLE public.communications_salles ADD CONSTRAINT communications_salles_pkey PRIMARY KEY (building_id, room_id);
+ALTER TABLE public.conferences_jours ADD CONSTRAINT conferences_jours_pkey PRIMARY KEY (acteur, jour);
 ALTER TABLE public.conferences_presse ADD CONSTRAINT conferences_presse_pkey PRIMARY KEY (id);
 ALTER TABLE public.conferences_presse_echanges ADD CONSTRAINT conferences_presse_echanges_pkey PRIMARY KEY (conference_id, rang);
 ALTER TABLE public.cycles_electoraux ADD CONSTRAINT cycles_electoraux_pkey PRIMARY KEY (id);

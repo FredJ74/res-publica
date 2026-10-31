@@ -11,7 +11,9 @@
 -- ============================================================================
 
 -- CLES PRIMAIRES
+ALTER TABLE public.actes_illegaux ADD CONSTRAINT actes_illegaux_pkey PRIMARY KEY (fn);
 ALTER TABLE public.actions_tracables ADD CONSTRAINT actions_tracables_pkey PRIMARY KEY (id);
+ALTER TABLE public.amendes_tresor ADD CONSTRAINT amendes_tresor_pkey PRIMARY KEY (jugement_id);
 ALTER TABLE public.audience_messages ADD CONSTRAINT audience_messages_pkey PRIMARY KEY (rang);
 ALTER TABLE public.audience_paroles ADD CONSTRAINT audience_paroles_pk PRIMARY KEY (affaire, personne);
 ALTER TABLE public.avocats_barreau ADD CONSTRAINT avocats_barreau_pk PRIMARY KEY (nom);
@@ -34,6 +36,10 @@ ALTER TABLE public.justice_faits_publics ADD CONSTRAINT justice_faits_publics_pk
 ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_pkey PRIMARY KEY (id);
 ALTER TABLE public.niveaux_prison ADD CONSTRAINT niveaux_prison_pkey PRIMARY KEY (id);
 ALTER TABLE public.plaintes_en_cours ADD CONSTRAINT plaintes_en_cours_pkey PRIMARY KEY (id);
+ALTER TABLE public.police_action_receipts ADD CONSTRAINT police_action_receipts_pkey PRIMARY KEY (personnage, rencontre, action, round_key);
+ALTER TABLE public.police_combat_rounds ADD CONSTRAINT police_combat_rounds_pkey PRIMARY KEY (personnage, rencontre, round_key);
+ALTER TABLE public.police_detection_attempts ADD CONSTRAINT police_detection_attempts_pkey PRIMARY KEY (personnage, country, city, building, room);
+ALTER TABLE public.police_interceptions ADD CONSTRAINT police_interceptions_pkey PRIMARY KEY (personnage, rencontre);
 ALTER TABLE public.prisonniers_qhs ADD CONSTRAINT prisonniers_qhs_pkey PRIMARY KEY (id);
 ALTER TABLE public.rumeurs_actives ADD CONSTRAINT rumeurs_actives_pkey PRIMARY KEY (id);
 ALTER TABLE public.signalements_police ADD CONSTRAINT signalements_police_pkey PRIMARY KEY (id);
@@ -47,6 +53,10 @@ ALTER TABLE public.impacts_indices_attente ADD CONSTRAINT impacts_indices_attent
 ALTER TABLE public.temoins_citations ADD CONSTRAINT temoins_citations_une_par_affaire UNIQUE (affaire, temoin);
 
 -- CONTRAINTES DE VALIDATION
+ALTER TABLE public.amendes_tresor ADD CONSTRAINT amendes_tresor_destinataire_valide CHECK (((destinataire = 'tresor'::text) OR ((destinataire ~~ 'caisse:%'::text) AND (length(destinataire) > 7))));
+ALTER TABLE public.amendes_tresor ADD CONSTRAINT amendes_tresor_montant_check CHECK ((montant > 0));
+ALTER TABLE public.amendes_tresor ADD CONSTRAINT amendes_tresor_paye_check CHECK ((paye >= 0));
+ALTER TABLE public.amendes_tresor ADD CONSTRAINT amendes_tresor_statut_check CHECK ((statut = ANY (ARRAY['suspendue'::text, 'due'::text, 'soldee'::text, 'remplacee_appel'::text])));
 ALTER TABLE public.audience_messages ADD CONSTRAINT audience_messages_qualite_check CHECK ((qualite = ANY (ARRAY['juge'::text, 'procureur'::text, 'prevenu'::text, 'avocat'::text, 'temoin'::text])));
 ALTER TABLE public.audience_messages ADD CONSTRAINT audience_messages_texte_borne CHECK ((length(texte) <= 4000));
 ALTER TABLE public.audience_messages ADD CONSTRAINT audience_messages_texte_non_vide CHECK ((btrim(texte) <> ''::text));
@@ -76,6 +86,8 @@ ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_jours_po
 ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_montant_positif CHECK ((montant_du > 0));
 ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_paye_borne CHECK (((montant_paye >= 0) AND (montant_paye <= montant_du)));
 ALTER TABLE public.justice_indemnites ADD CONSTRAINT justice_indemnites_porteur_connu CHECK ((porteur = ANY (ARRAY['min_just'::text, 'min_fin'::text])));
+ALTER TABLE public.police_action_receipts ADD CONSTRAINT police_action_receipts_action_check CHECK ((action = ANY (ARRAY['reddition'::text, 'fuite'::text, 'combat'::text])));
+ALTER TABLE public.police_action_receipts ADD CONSTRAINT police_action_receipts_round_valid CHECK ((((action = 'combat'::text) AND ((round_key >= 1) AND (round_key <= 100))) OR ((action <> 'combat'::text) AND (round_key = 0))));
 ALTER TABLE public.signalements_police ADD CONSTRAINT signalements_police_issue_connue CHECK (((issue IS NULL) OR (issue = ANY (ARRAY['arrestation'::text, 'cible_partie'::text, 'abandonne'::text]))));
 ALTER TABLE public.signalements_police ADD CONSTRAINT signalements_police_pas_soi CHECK ((signaleur <> cible));
 ALTER TABLE public.signalements_police ADD CONSTRAINT signalements_police_resolution_coherente CHECK (((resolu_le IS NULL) = (issue IS NULL)));

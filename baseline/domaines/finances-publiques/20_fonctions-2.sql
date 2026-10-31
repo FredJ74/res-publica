@@ -10,6 +10,371 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- salaire_civil_percevoir() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.salaire_civil_percevoir()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi text; v_pays text; v_poste text; v_ville text; v_grade text;
+  v_jour date; v_id text; v_cle text; v_origine text; v_montant integer;
+  v_offres jsonb; v_offre text; v_caisse text; v_solde numeric;
+  v_arg numeric; v_liquide numeric; v_paye numeric;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+  SELECT coalesce(country,'republic'), poste ->> 'id',
+         public.salaire_ville_du_poste(poste ->> 'id', poste ->> 'city')
+    INTO v_pays, v_poste, v_ville
+    FROM public.personnages_donnees WHERE name = v_moi;
+  v_grade := public.militaire_grade_effectif(v_moi);
+  IF v_grade IS NOT NULL OR coalesce(v_poste,'') IN ('soldat','lieutenant','capitaine','commandant') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'paye_par_la_caserne');
+  END IF;
+  IF v_poste IS NOT NULL THEN
+    SELECT s.cle, s.categorie, s.montant INTO v_cle, v_origine, v_montant
+      FROM public.salaires_civils_declares s
+     WHERE s.pays = v_pays AND s.cle = v_poste AND s.categorie = 'poste';
+  END IF;
+  IF v_cle IS NULL THEN
+    SELECT coalesce(public.batiment_etat_lire(e.data) -> 'offres', public.batiment_etat_lire(e.data) -> 'bne' -> 'offres')
+      INTO v_offres FROM public.batiments_etat e WHERE e.id = v_pays || '_national_bne';
+    IF v_offres IS NOT NULL AND jsonb_typeof(v_offres) = 'object' THEN
+      SELECT t.k INTO v_offre
+        FROM jsonb_each(v_offres) AS t(k, v)
+        WHERE EXISTS (
+          SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(t.v)='array' THEN t.v ELSE '[]'::jsonb END) o
+           WHERE o ->> 'pjNom' = v_moi AND coalesce(o ->> 'statut','actif') = 'actif')
+        LIMIT 1;
+      IF v_offre IS NOT NULL THEN
+        SELECT s.cle, s.categorie, s.montant INTO v_cle, v_origine, v_montant
+          FROM public.salaires_civils_declares s
+         WHERE s.pays = v_pays AND s.cle = v_offre AND s.categorie = 'emploi';
+      END IF;
+    END IF;
+  END IF;
+  IF v_cle IS NULL THEN
+    SELECT s.cle, s.categorie, s.montant INTO v_cle, v_origine, v_montant
+      FROM public.salaires_civils_declares s
+     WHERE s.pays = v_pays AND s.cle = 'default';
+  END IF;
+  IF v_montant IS NULL OR v_montant <= 0 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'bareme_absent', 'pays', v_pays);
+  END IF;
+  v_jour := (now() AT TIME ZONE 'Europe/Paris')::date;
+  v_id   := v_moi || ':' || v_jour::text;
+  IF v_origine = 'poste' THEN
+    v_caisse := public.salaire_caisse_de(v_poste, v_pays, v_ville);
+    IF v_caisse IS NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'caisse_payeuse_non_declaree', 'poste', v_poste);
+    END IF;
+  END IF;
+  -- Emplois du Bureau de l'Emploi (25/10/2026, decision de Fred) : payes par leur employeur.
+  IF v_origine = 'emploi' THEN
+    v_caisse := public.salaire_caisse_de(v_cle, v_pays, NULL);
+    IF v_caisse IS NULL THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'caisse_payeuse_non_declaree', 'poste', v_cle);
+    END IF;
+  END IF;
+  BEGIN
+    INSERT INTO public.salaires_civils_verses (id, personnage, jour, origine, cle, montant)
+    VALUES (v_id, v_moi, v_jour, v_origine, v_cle, v_montant);
+  EXCEPTION WHEN unique_violation THEN
+    SELECT coalesce(arg,0), coalesce(liquide,0) INTO v_arg, v_liquide
+      FROM public.personnages_donnees WHERE name = v_moi;
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_percu_aujourdhui',
+                              'jour', v_jour, 'arg', v_arg, 'liquide', v_liquide);
+  END;
+  v_paye := v_montant;
+  IF v_caisse IS NOT NULL THEN
+    SELECT (data->>'solde')::numeric INTO v_solde
+      FROM public.caisses_batiments WHERE id = v_caisse FOR UPDATE;
+    v_paye := floor(least(v_montant, greatest(coalesce(v_solde, 0), 0)));
+    IF v_paye <= 0 THEN
+      DELETE FROM public.salaires_civils_verses WHERE id = v_id;
+      RETURN jsonb_build_object('ok', false, 'raison', 'caisse_vide',
+                                'caisse', v_caisse, 'solde', coalesce(v_solde,0), 'du', v_montant);
+    END IF;
+    UPDATE public.caisses_batiments
+       SET data = coalesce(data,'{}'::jsonb) || jsonb_build_object('solde', v_solde - v_paye),
+           updated_at = now()
+     WHERE id = v_caisse;
+    IF v_paye <> v_montant THEN
+      UPDATE public.salaires_civils_verses SET montant = v_paye WHERE id = v_id;
+    END IF;
+  END IF;
+  UPDATE public.personnages_donnees
+     SET liquide = coalesce(liquide,0) + v_paye, arg = coalesce(arg,0) + v_paye,
+         updated_at = now()
+   WHERE name = v_moi
+   RETURNING arg, liquide INTO v_arg, v_liquide;
+  RETURN jsonb_build_object('ok', true, 'montant', v_paye, 'du', v_montant,
+                            'partiel', v_paye <> v_montant, 'origine', v_origine,
+                            'cle', v_cle, 'jour', v_jour, 'caisse', v_caisse,
+                            'arg', v_arg, 'liquide', v_liquide);
+END; $function$;
+
+-- salaire_religieux_percevoir() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.salaire_religieux_percevoir()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_moi     text;
+  v_pays    text;
+  v_jour    date := (now() AT TIME ZONE 'Europe/Paris')::date;
+  v_total   numeric := 0;
+  v_details jsonb := '[]'::jsonb;
+  r         record;
+  v_titulaire text;
+  v_id      text;
+  v_solde   numeric;
+  v_verse   numeric;
+  v_arg     numeric;
+  v_liquide numeric;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
+  END IF;
+
+  SELECT coalesce(country, 'republic') INTO v_pays
+    FROM public.personnages_donnees WHERE name = v_moi;
+  IF coalesce(v_pays, 'republic') <> 'republic' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'carriere_religieuse_republia_uniquement');
+  END IF;
+
+  FOR r IN SELECT * FROM public.salaires_religieux_declares ORDER BY cle LOOP
+    -- LE TITULAIRE FAIT AUTORITE, PAS L'APPELANT. Le repli PNJ par defaut n'est
+    -- jamais le joueur : une charge sans titulaire enregistre ne paie personne.
+    SELECT t.nom_pnj INTO v_titulaire
+      FROM public.titulaires_pnj t
+     WHERE t.country = 'republic'
+       AND t.poste_id = split_part(r.cle, ':', 1)
+       AND ((r.ville IS NULL AND t.city IS NULL) OR t.city = r.ville)
+     LIMIT 1;
+
+    CONTINUE WHEN v_titulaire IS NULL OR v_titulaire <> v_moi;
+
+    v_id := v_moi || ':' || r.cle || ':' || v_jour::text;
+    BEGIN
+      INSERT INTO public.salaires_religieux_verses (id, personnage, cle, jour, montant)
+      VALUES (v_id, v_moi, r.cle, v_jour, r.montant);
+    EXCEPTION WHEN unique_violation THEN
+      CONTINUE;  -- deja percu aujourd'hui pour CETTE charge
+    END;
+
+    SELECT (data->>'solde')::numeric INTO v_solde
+      FROM public.caisses_batiments WHERE id = r.caisse FOR UPDATE;
+
+    -- Plafonne : la caisse paie ce qu'elle peut, jamais a decouvert.
+    v_verse := least(coalesce(v_solde, 0), r.montant);
+    IF v_verse <= 0 THEN
+      -- Rien verse : on retire la ligne d'anti-rejeu pour que le titulaire puisse
+      -- retenter si sa caisse est realimentee dans la journee.
+      DELETE FROM public.salaires_religieux_verses WHERE id = v_id;
+      v_details := v_details || jsonb_build_object('cle', r.cle, 'verse', 0, 'raison', 'caisse_vide');
+      CONTINUE;
+    END IF;
+
+    UPDATE public.caisses_batiments
+       SET data = coalesce(data, '{}'::jsonb) || jsonb_build_object('solde', v_solde - v_verse),
+           updated_at = now()
+     WHERE id = r.caisse;
+    UPDATE public.salaires_religieux_verses SET montant = v_verse WHERE id = v_id;
+
+    v_total   := v_total + v_verse;
+    v_details := v_details || jsonb_build_object('cle', r.cle, 'verse', v_verse, 'caisse', r.caisse);
+  END LOOP;
+
+  IF v_total > 0 THEN
+    UPDATE public.personnages_donnees
+       SET liquide = coalesce(liquide, 0) + v_total,
+           arg     = coalesce(arg, 0)     + v_total,
+           updated_at = now()
+     WHERE name = v_moi
+     RETURNING arg, liquide INTO v_arg, v_liquide;
+  ELSE
+    SELECT coalesce(arg, 0), coalesce(liquide, 0) INTO v_arg, v_liquide
+      FROM public.personnages_donnees WHERE name = v_moi;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'total', v_total, 'jour', v_jour,
+                            'details', v_details, 'arg', v_arg, 'liquide', v_liquide);
+END;
+$function$;
+
+-- salaire_ville_du_poste(text,text) -> text | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.salaire_ville_du_poste(p_poste_id text, p_ville_fiche text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT CASE
+    WHEN coalesce(btrim(p_ville_fiche), '') <> '' THEN p_ville_fiche
+    ELSE (SELECT s.ville_defaut FROM public.salaires_caisses s WHERE s.poste_id = p_poste_id)
+  END;
+$function$;
+
+-- salaires_coherence() -> TABLE(probleme text, cles text) | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.salaires_coherence()
+ RETURNS TABLE(probleme text, cles text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT 'bareme de poste sans caisse payeuse', string_agg(s.pays || '/' || s.cle, ', ' ORDER BY s.pays, s.cle)
+    FROM public.salaires_civils_declares s
+   WHERE s.categorie = 'poste'
+     AND NOT EXISTS (SELECT 1 FROM public.salaires_caisses c WHERE c.poste_id = s.cle)
+  HAVING count(*) > 0
+  UNION ALL
+  SELECT 'caisse payeuse sans bareme', string_agg(c.poste_id, ', ' ORDER BY c.poste_id)
+    FROM public.salaires_caisses c
+   WHERE NOT EXISTS (SELECT 1 FROM public.salaires_civils_declares s
+                      WHERE s.cle = c.poste_id AND s.categorie = 'poste')
+  HAVING count(*) > 0
+  UNION ALL
+  SELECT 'poste de direction declare en bareme de poste : SUPPRIME le cumul avec le revenu universel',
+         string_agg(s.pays || '/' || s.cle, ', ' ORDER BY s.pays, s.cle)
+    FROM public.salaires_civils_declares s
+   WHERE s.categorie = 'poste'
+     AND EXISTS (SELECT 1 FROM public.directions_etablissements d
+                  WHERE d.pays = s.pays AND d.poste_id = s.cle)
+  HAVING count(*) > 0
+  UNION ALL
+  SELECT 'bareme sans empire declare', string_agg(s.cle, ', ' ORDER BY s.cle)
+    FROM public.salaires_civils_declares s
+   WHERE coalesce(btrim(s.pays), '') = ''
+  HAVING count(*) > 0;
+$function$;
+
+-- sanction_financiere_imposer_interne(text,text,text,text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.sanction_financiere_imposer_interne(p_reference text, p_origine text, p_pays text, p_debiteur text, p_montant integer, p_destinataire text DEFAULT 'tresor'::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a public.amendes_tresor; dest text := coalesce(nullif(btrim(p_destinataire), ''), 'tresor');
+  cree boolean; pris integer := 0;
+BEGIN
+  IF coalesce(btrim(p_reference), '') = '' OR coalesce(btrim(p_origine), '') = '' OR coalesce(btrim(p_pays), '') = ''
+     OR p_montant IS NULL OR p_montant <= 0 OR p_montant > 100000000 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = p_debiteur) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'debiteur_introuvable');
+  END IF;
+  IF dest = 'tresor' THEN
+    IF NOT EXISTS (SELECT 1 FROM public.budgets_nationaux WHERE id = p_pays) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'tresor_introuvable'); END IF;
+  ELSIF dest LIKE 'caisse:_%' THEN
+    IF NOT EXISTS (SELECT 1 FROM public.caisses_batiments WHERE id = substr(dest, 8)) THEN
+      RETURN jsonb_build_object('ok', false, 'raison', 'caisse_introuvable'); END IF;
+  ELSE
+    RETURN jsonb_build_object('ok', false, 'raison', 'destinataire_invalide');
+  END IF;
+  INSERT INTO public.amendes_tresor(jugement_id, pays, condamne, montant, statut, origine, destinataire)
+  VALUES (p_reference, p_pays, p_debiteur, p_montant, 'due', p_origine, dest)
+  ON CONFLICT (jugement_id) DO NOTHING RETURNING true INTO cree;
+  SELECT * INTO a FROM public.amendes_tresor WHERE jugement_id = p_reference;
+  IF cree IS NOT TRUE AND (a.condamne, a.pays, a.montant, a.destinataire) IS DISTINCT FROM (p_debiteur, p_pays, p_montant, dest) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'reference_deja_utilisee', 'reference', p_reference);
+  END IF;
+  IF cree THEN
+    pris := public.amende_prelever_interne(p_reference);
+    SELECT * INTO a FROM public.amendes_tresor WHERE jugement_id = p_reference;
+  END IF;
+  RETURN jsonb_build_object('ok', true, 'reference', p_reference, 'deja_enregistree', cree IS NOT TRUE,
+    'montant', a.montant, 'preleve', pris, 'paye', a.paye, 'reste', a.montant - a.paye, 'statut', a.statut,
+    'destinataire', a.destinataire);
+END;
+$function$;
+
+-- subvention_beneficiaire_verdict(text,text,text,text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.subvention_beneficiaire_verdict(p_pays text, p_ville text, p_famille text, p_id text)
+ RETURNS text
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_eligible boolean; v_pays text; v_ville text;
+BEGIN
+  -- LE VERDICT QUE LA PORTE APPLIQUERA. Il rend NULL quand tout va bien, et un MOTIF NOMME
+  -- sinon. Quatre refus distincts, parce qu'« action impossible » n'apprend rien a un joueur.
+  SELECT f.eligible INTO v_eligible FROM public.subventions_familles f WHERE f.famille = p_famille;
+  IF v_eligible IS NULL THEN RETURN 'famille_inconnue'; END IF;
+  IF NOT v_eligible THEN RETURN 'famille_non_eligible'; END IF;
+
+  SELECT e.pays, e.ville INTO v_pays, v_ville
+    FROM public.subvention_entites(p_famille) e WHERE e.id = p_id;
+  IF v_pays IS NULL THEN RETURN 'beneficiaire_introuvable'; END IF;
+
+  -- STRICTE TERRITORIALITE : le pays ET la ville. Un maire de Luthecia ne subventionne pas un
+  -- club de Montrouge, et encore moins un club d'un autre empire.
+  IF v_pays IS DISTINCT FROM p_pays OR v_ville IS DISTINCT FROM p_ville THEN
+    RETURN 'beneficiaire_hors_commune';
+  END IF;
+  RETURN NULL;
+END $function$;
+
+-- subvention_caisse_crediter(text,text,numeric,text,integer) -> numeric | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.subvention_caisse_crediter(p_famille text, p_id text, p_montant numeric, p_motif text, p_jour integer)
+ RETURNS numeric
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_data jsonb; v_hist jsonb; v_n integer; v_solde numeric;
+BEGIN
+  -- BRANCHE 3 SUR 3. LE CREDIT. Reservee au serveur : aucun GRANT n'est accorde, et une fonction
+  -- neuve n'est appelable par personne depuis le registre 561. Elle n'est atteinte que par la
+  -- porte de reponse, dans la meme transaction que le debit de l'enveloppe municipale.
+  IF p_montant IS NULL OR p_montant <= 0 THEN
+    RAISE EXCEPTION 'montant_invalide : %', p_montant;
+  END IF;
+
+  IF p_famille = 'club_football' THEN
+    -- FOR UPDATE : le credit lit puis reecrit un blob. Sans verrou, deux credits simultanes se
+    -- perdraient l'un l'autre -- c'est la lecon du chantier des blobs.
+    SELECT b.data INTO v_data FROM public.budgets_clubs b WHERE b.id = p_id FOR UPDATE;
+    IF v_data IS NULL THEN
+      RAISE EXCEPTION 'caisse_introuvable : le club % n''a pas de ligne budgets_clubs', p_id;
+    END IF;
+
+    v_solde := greatest(0, coalesce((v_data->>'caisse')::numeric, 0) + p_montant);
+
+    -- L'HISTORIQUE SUIT LA CONVENTION DU JEU, A LA LETTRE : {jour, montant, motif} ajoute en
+    -- queue, puis les 50 derniers conserves -- exactement ce que fait `crediterBudgetClub`
+    -- (plateau-organisations-quetes.js). On ne cree pas une seconde convention d'historique.
+    v_hist := coalesce(v_data->'historique', '[]'::jsonb)
+              || jsonb_build_array(jsonb_build_object(
+                   'jour', p_jour, 'montant', p_montant, 'motif', p_motif));
+    v_n := jsonb_array_length(v_hist);
+    IF v_n > 50 THEN
+      SELECT jsonb_agg(e ORDER BY n) INTO v_hist
+        FROM jsonb_array_elements(v_hist) WITH ORDINALITY t(e, n) WHERE n > v_n - 50;
+    END IF;
+
+    UPDATE public.budgets_clubs
+       SET data = jsonb_set(jsonb_set(v_data, '{caisse}', to_jsonb(v_solde)),
+                            '{historique}', v_hist),
+           updated_at = now()
+     WHERE id = p_id;
+    RETURN v_solde;
+  END IF;
+
+  RAISE EXCEPTION 'famille_sans_branche_de_credit : %', p_famille;
+END $function$;
+
 -- subvention_citoyen_verser(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.subvention_citoyen_verser(p_beneficiaire text, p_montant integer)
  RETURNS jsonb
@@ -96,6 +461,88 @@ BEGIN
   END IF;
   RETURN;  -- famille non eligible : aucune entite, et c'est le comportement voulu
 END $function$;
+
+-- subvention_entreprise_verser(text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.subvention_entreprise_verser(p_entreprise text, p_montant integer, p_requete text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_acteur text;
+  v_pays text;
+  v_caisse_id text;
+  v_caisse_data jsonb;
+  v_fonds_data jsonb;
+  v_solde numeric;
+  v_verse numeric;
+  v_fonds_solde numeric;
+  v_proprio text;
+  v_jour integer;
+  v_recu record;
+  v_insere text;
+BEGIN
+  v_acteur := public.exiger_poste('min_fin');
+  IF v_acteur IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
+  IF p_montant IS NULL OR p_montant < 1 OR p_montant > 5000 THEN
+    RETURN jsonb_build_object('ok',false,'raison','montant_invalide');
+  END IF;
+  IF p_requete IS NULL OR p_requete !~ '^subv-ent-[A-Za-z0-9-]{8,100}$' THEN
+    RETURN jsonb_build_object('ok',false,'raison','requete_invalide');
+  END IF;
+  SELECT country, coalesce(day,1) INTO v_pays,v_jour FROM public.personnages_donnees WHERE name=v_acteur;
+  IF coalesce(v_pays,'')='' THEN RETURN jsonb_build_object('ok',false,'raison','pays_indetermine'); END IF;
+  SELECT * INTO v_recu FROM public.subventions_entreprises_traces WHERE requete=p_requete;
+  IF FOUND THEN
+    IF v_recu.acteur <> v_acteur OR v_recu.beneficiaire <> p_entreprise OR v_recu.montant > p_montant THEN
+      RETURN jsonb_build_object('ok',false,'raison','requete_deja_utilisee');
+    END IF;
+    RETURN jsonb_build_object('ok',true,'rejeu',true,'verse',v_recu.montant,
+      'proprietaire',v_recu.proprietaire,'conflitInterets',v_recu.conflit_interets);
+  END IF;
+  v_caisse_id := v_pays || '_gouvernement-min_fin';
+  SELECT data INTO v_caisse_data FROM public.caisses_batiments WHERE id=v_caisse_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','caisse_insuffisante'); END IF;
+  SELECT data INTO v_fonds_data FROM public.entreprises WHERE id=p_entreprise FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','entreprise_introuvable'); END IF;
+  IF coalesce(v_fonds_data->>'statut','actif') <> 'actif' THEN
+    RETURN jsonb_build_object('ok',false,'raison','entreprise_inactive');
+  END IF;
+  v_solde := greatest(0,coalesce((v_caisse_data->>'solde')::numeric,0));
+  v_verse := least(v_solde,p_montant);
+  IF v_verse <= 0 THEN RETURN jsonb_build_object('ok',false,'raison','caisse_insuffisante'); END IF;
+  v_proprio := v_fonds_data->>'proprietaire';
+  IF (v_fonds_data->'implantation'->>'country') IS DISTINCT FROM v_pays THEN
+    RETURN jsonb_build_object('ok',false,'raison','entreprise_hors_pays');
+  END IF;
+  INSERT INTO public.subventions_entreprises_traces
+    (requete,acteur,beneficiaire,proprietaire,montant,conflit_interets,pays)
+  VALUES (p_requete,v_acteur,p_entreprise,v_proprio,v_verse,
+    (v_proprio IN (v_acteur,'pj:'||v_acteur)),v_pays)
+  ON CONFLICT (requete) DO NOTHING RETURNING requete INTO v_insere;
+  IF v_insere IS NULL THEN
+    SELECT * INTO v_recu FROM public.subventions_entreprises_traces WHERE requete=p_requete;
+    IF v_recu.acteur <> v_acteur OR v_recu.beneficiaire <> p_entreprise THEN
+      RETURN jsonb_build_object('ok',false,'raison','requete_deja_utilisee');
+    END IF;
+    RETURN jsonb_build_object('ok',true,'rejeu',true,'verse',v_recu.montant,
+      'proprietaire',v_recu.proprietaire,'conflitInterets',v_recu.conflit_interets);
+  END IF;
+  UPDATE public.caisses_batiments SET
+    data=jsonb_set(v_caisse_data,'{solde}',to_jsonb(v_solde-v_verse),true),
+    updated_at=now() WHERE id=v_caisse_id;
+  v_fonds_solde := greatest(0,coalesce((v_fonds_data->>'caisse')::numeric,0));
+  v_fonds_data := jsonb_set(v_fonds_data,'{caisse}',to_jsonb(v_fonds_solde+v_verse),true);
+  v_fonds_data := public.entreprise_ajouter_historique(v_fonds_data,v_verse,
+    'Subvention ministérielle de '||v_acteur||
+    CASE WHEN v_proprio IN (v_acteur,'pj:'||v_acteur)
+      THEN ' — entreprise du ministre bénéficiaire' ELSE '' END,v_jour);
+  UPDATE public.entreprises SET data=v_fonds_data,updated_at=now() WHERE id=p_entreprise;
+  RETURN jsonb_build_object('ok',true,'rejeu',false,'verse',v_verse,
+    'proprietaire',v_proprio,'conflitInterets',(v_proprio IN (v_acteur,'pj:'||v_acteur)));
+END;
+$function$;
 
 -- subvention_enveloppe_lire() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.subvention_enveloppe_lire()
@@ -596,7 +1043,7 @@ BEGIN
                        (v_data->>'surface')::numeric * 12);
 
   IF v_arg >= v_taxe THEN
-    UPDATE public.personnages SET arg = v_arg - v_taxe WHERE name = v_proprio;
+    UPDATE public.personnages_donnees SET arg = v_arg - v_taxe WHERE name = v_proprio;
     v_data := jsonb_set(v_data, '{dette_fonciere}', '0'::jsonb, true);
     v_action := 'collectee';
     -- LE CREDIT DE LA MAIRIE EST INSEPARABLE DU DEBIT. Si elle ne peut pas encaisser, on LEVE :
@@ -628,6 +1075,54 @@ BEGIN
   UPDATE public.terrains_etat SET data = v_data::text, updated_at = now() WHERE id = p_terrain_id;
   RETURN jsonb_build_object('ok',true,'action',v_action,'montant',v_taxe,
                             'ville',v_ville,'proprietaire',v_proprio);
+END; $function$;
+
+-- usine_du_directeur_interne(text) -> jsonb | sql | SECURITY INVOKER
+CREATE OR REPLACE FUNCTION public.usine_du_directeur_interne(p_poste text)
+ RETURNS jsonb
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+  SELECT CASE p_poste
+    WHEN 'directeur_pharma' THEN jsonb_build_object('ville', 'capitale', 'batiment', 'usine-pharmaceutique-luthecia')
+    WHEN 'directeur_tabac_alcools' THEN jsonb_build_object('ville', 'ville_a', 'batiment', 'pole-tabac-alcools-psm')
+    WHEN 'directeur_raffinerie' THEN jsonb_build_object('ville', 'ville_b', 'batiment', 'raffinerie-montrouge')
+  END;
+$function$;
+
+-- usine_virer_vers_ministere(numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.usine_virer_vers_ministere(p_montant numeric)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_poste text; v_bat text; u jsonb; v_res jsonb; v_paie jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT coalesce(country, 'republic'), poste ->> 'id', current_building INTO v_pays, v_poste, v_bat
+    FROM public.personnages_donnees WHERE name = v_moi;
+  u := public.usine_du_directeur_interne(v_poste);
+  IF u IS NULL OR NOT public.mon_poste_est_dans(v_poste, v_pays) THEN RETURN jsonb_build_object('ok', false, 'raison', 'reserve_directeur'); END IF;
+  IF v_bat IS DISTINCT FROM u ->> 'batiment' THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  IF p_montant IS NULL OR p_montant <= 0 OR p_montant <> trunc(p_montant) OR p_montant > 100000000 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'montant_invalide'); END IF;
+  v_paie := public.payer_ordre(v_moi, 'virement_usine_ministere', 1, 0);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+  v_res := public.batiment_caisse_mouvement(v_pays, u ->> 'ville', u ->> 'batiment', 'usine', -p_montant, NULL, 0, NULL, true);
+  IF NOT coalesce((v_res ->> 'ok')::boolean, false) THEN
+    RAISE EXCEPTION USING MESSAGE = 'hg_caisse_usine_insuffisante';
+  END IF;
+  v_res := public.caisse_institution_mouvement(v_pays || '_gouvernement-min_fin', p_montant, false);
+  IF NOT coalesce((v_res ->> 'ok')::boolean, false) THEN
+    RAISE EXCEPTION USING MESSAGE = 'hg_caisse_ministere_refus';
+  END IF;
+  RETURN jsonb_build_object('ok', true, 'montant', p_montant, 'paie', v_paie);
+EXCEPTION WHEN raise_exception THEN
+  IF SQLERRM = 'hg_caisse_usine_insuffisante' THEN RETURN jsonb_build_object('ok', false, 'raison', 'caisse_insuffisante'); END IF;
+  IF SQLERRM = 'hg_caisse_ministere_refus' THEN RETURN jsonb_build_object('ok', false, 'raison', 'caisse_ministere_refus'); END IF;
+  RAISE;
 END; $function$;
 
 -- vente_structure_encaisser(text,integer,integer,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
@@ -694,6 +1189,11 @@ BEGIN
       RAISE EXCEPTION 'vente_structure: credit impossible sur % (%)',
         p_caisse, coalesce(v_credit->>'raison', 'motif inconnu');
     END IF;
+  END IF;
+
+  IF p_fn = 'reserver_chambre_hotel' THEN
+    PERFORM public.hotel_nuitee_ajouter_interne(v_acteur,
+      (SELECT current_building FROM public.personnages_donnees WHERE name=v_acteur));
   END IF;
 
   RETURN jsonb_build_object(

@@ -1,5 +1,5 @@
 -- Scission technique sous 12 500 caractères, pas une nouvelle mécanique.
--- Dépend de 20261027222500 et 20261028074753. Aucun test sur joueur réel.
+-- Dépend de 20261031115734 et 20261031115735. Aucun test sur joueur réel.
 DO $patch$
 DECLARE s text; a text; b text;
 BEGIN

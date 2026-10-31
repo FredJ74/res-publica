@@ -7,8 +7,8 @@ sp=importlib.util.spec_from_file_location('recrutement',R/'outils/bancs/banc-gro
 def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
  if '--contre-separation-ecrou' not in sys.argv:
-  q.execute((R/'migrations/20261029120000_groupes_separation_ecrou.sql').read_text())
-  q.execute((R/'migrations/20261029120000_groupes_separation_ecrou.sql').read_text())
+  q.execute((R/'migrations/20261031115823_groupes_separation_ecrou.sql').read_text())
+  q.execute((R/'migrations/20261031115823_groupes_separation_ecrou.sql').read_text())
  sql("UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='mairie',current_room='accueil',current_street=NULL WHERE name IN ('A','B')")
  ctx['c'].commit()
  def jugement(nom):

@@ -17,6 +17,25 @@
 -- Voir catalogue_types.
 -- ============================================================================
 
+-- SEED -- catalogue_familles
+-- ============================================================================
+-- Table      : public.catalogue_familles
+-- Domaine    : economie
+-- Categorie  : D (mixte)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 40
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 40 familles commerciales. Meme absence de dimension empire.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Voir catalogue_types.
+-- ============================================================================
+
 INSERT INTO public.catalogue_familles (id, libelle) VALUES ('accessoires-armes', 'Accessoires d''armes');
 INSERT INTO public.catalogue_familles (id, libelle) VALUES ('animaux', 'Animaux');
 INSERT INTO public.catalogue_familles (id, libelle) VALUES ('armes', 'Armes');

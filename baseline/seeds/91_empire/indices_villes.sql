@@ -50,6 +50,58 @@
 -- jour ou le monde est ne. Omettre la colonne laisse le defaut jouer.
 -- ============================================================================
 
+-- SEED -- indices_villes
+-- ============================================================================
+-- Table      : public.indices_villes
+-- Domaine    : politique et elections
+-- Categorie  : B (contenu initial d'empire)
+-- Strategie  : seed_filtre (classification du chantier 2C)
+-- Lignes     : 3
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- ARBITRAGE RENDU LE 5 OCTOBRE 2026 pour Republia : IE 50, ISN 30, Moral 50,
+-- valeurs communes aux trois villes (Luthecia, Montrouge,
+-- Port-Sainte-Marie). Ces trois valeurs sont deja celles des trois lignes en
+-- base. La 4e ligne, republic_zzville-cmr, est une ligne de test et est
+-- ecartee du seed.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Valide pour Republia UNIQUEMENT : ne pas generaliser aux autres empires.
+-- Le blob porte deux indices supplementaires non arbitres, piete 40 et
+-- social 45, identiques sur les quatre lignes y compris celle de test --
+-- indice fort qu'ils sont d'origine. A confirmer.
+--
+-- FILTRE APPLIQUE
+-- ARBITRAGE COMPLET RENDU LE 5 OCTOBRE 2026 pour Republia. Les CINQ indices
+-- sont decides et communs aux trois villes -- Luthecia, Port-Sainte-Marie,
+-- Montrouge : IE 50, ISN 30, Moral 50, PIETE 40, SOCIAL 45. LE SEED LES
+-- ECRIT, IL NE LES COPIE PLUS -- voir la colonne arbitree ci-dessous. La 4e
+-- ligne, republic_zzville-cmr, est une ligne de TEST et est ecartee.
+-- Decision valide pour REPUBLIA uniquement : ne pas generaliser aux autres
+-- empires.
+--
+-- COLONNE ECRITE PAR ARBITRAGE : data
+-- ARBITRAGE DU 5 OCTOBRE 2026. Les cinq indices sont DECIDES et communs aux
+-- trois villes de Republia : IE 50, ISN 30, Moral 50, Piete 40, Social 45.
+-- Le seed les ECRIT depuis cette decision, il ne les copie plus de la base.
+-- POURQUOI CE CHANGEMENT, LE 7 OCTOBRE 2026. Le seed recopiait la base, et
+-- les cinq valeurs y etaient encore celles de l'arbitrage -- jusqu'a ce que
+-- la partie les fasse bouger. La relecture du diff du baseline a montre la
+-- piete de Port-Sainte-Marie passee de 40 a 43 : une derive de PARTIE EN
+-- COURS, qui allait etre canonisee dans tous les mondes a venir et effacer
+-- silencieusement une decision ecrite. Un indice de ville est de l'etat
+-- VIVANT ; sa valeur de depart est un arbitrage. Les deux ne doivent pas
+-- passer par le meme canal.
+--
+-- COLONNES OMISES (defaut now()) : updated_at
+-- La date de creation d'une ligne n'est pas du contenu authored : c'est le
+-- jour ou le monde est ne. Omettre la colonne laisse le defaut jouer.
+-- ============================================================================
+
 INSERT INTO public.indices_villes (id, data) VALUES ('republic_capitale', '{"ie": 50, "isn": 30, "moral": 50, "piete": 40, "social": 45}'::jsonb);
 INSERT INTO public.indices_villes (id, data) VALUES ('republic_ville_a', '{"ie": 50, "isn": 30, "moral": 50, "piete": 40, "social": 45}'::jsonb);
 INSERT INTO public.indices_villes (id, data) VALUES ('republic_ville_b', '{"ie": 50, "isn": 30, "moral": 50, "piete": 40, "social": 45}'::jsonb);

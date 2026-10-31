@@ -13,6 +13,18 @@
    "sous": "pays"
   },
   {
+   "empreinte": "946c2a4c30c2c34527e83a9ca46b07a1",
+   "genre": "COLUMN",
+   "objet": "objets_recus",
+   "sous": "reception_token"
+  },
+  {
+   "empreinte": "946c2a4c30c2c34527e83a9ca46b07a1",
+   "genre": "COLUMN",
+   "objet": "personnages_donnees",
+   "sous": "inventory_revision"
+  },
+  {
    "empreinte": "969d27dc80e4c0533c40b0167f3363e3",
    "genre": "COLUMN",
    "objet": "personnages_donnees",
@@ -109,6 +121,18 @@
    "sous": ""
   },
   {
+   "empreinte": "bf0ee82a8f2dc5d7b8c0363353699d8a",
+   "genre": "TABLE",
+   "objet": "ambassades_asiles",
+   "sous": ""
+  },
+  {
+   "empreinte": "afaa33b1a0da368cab9be0ea5dfef7d9",
+   "genre": "TABLE",
+   "objet": "ambassades_audiences",
+   "sous": ""
+  },
+  {
    "empreinte": "ca031f2f47569d9b9a541243eed5de49",
    "genre": "TABLE",
    "objet": "contacts_organisations",
@@ -164,6 +188,18 @@
   }
  ],
  "contraintes": [
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "ambassades_asiles_pkey",
+   "tbl": "ambassades_asiles"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "ambassades_audiences_pkey",
+   "tbl": "ambassades_audiences"
+  },
   {
    "empreinte": "e07956d61cf3afe5f999d1c9506fc8da",
    "genre": "p",
@@ -249,6 +285,18 @@
    "tbl": "historique_deplacements"
   },
   {
+   "empreinte": "db363208cf9cb0a9adba07c0a9eb50b7",
+   "genre": "p",
+   "nom": "indices_diplomatiques_pkey",
+   "tbl": "indices_diplomatiques"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "indices_diplomatiques_journal_pkey",
+   "tbl": "indices_diplomatiques_journal"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "invitations_diner_pkey",
@@ -321,6 +369,12 @@
    "tbl": "reconciliation_fantomes"
   },
   {
+   "empreinte": "3c7425a830accfc5bf57ba3e07f57cd5",
+   "genre": "p",
+   "nom": "regularisations_fiche_pkey",
+   "tbl": "regularisations_fiche"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "souvenirs_accueil_pkey",
@@ -381,6 +435,48 @@
    "tbl": "personnages_donnees"
   },
   {
+   "empreinte": "233bc02ee4259ad5b9dfe50940334bde",
+   "genre": "c",
+   "nom": "ambassades_asiles_check",
+   "tbl": "ambassades_asiles"
+  },
+  {
+   "empreinte": "ed7f1804e9de63c9765c26baf4949f57",
+   "genre": "c",
+   "nom": "ambassades_asiles_empire_check",
+   "tbl": "ambassades_asiles"
+  },
+  {
+   "empreinte": "f87968c9ed5dc89687624457bf3e1bce",
+   "genre": "c",
+   "nom": "ambassades_asiles_statut_check",
+   "tbl": "ambassades_asiles"
+  },
+  {
+   "empreinte": "a8538adc361f86d820bf279f6253e9e2",
+   "genre": "c",
+   "nom": "ambassades_audiences_check",
+   "tbl": "ambassades_audiences"
+  },
+  {
+   "empreinte": "a0a9c5a92471cc4025c30de1552061ff",
+   "genre": "c",
+   "nom": "ambassades_audiences_check1",
+   "tbl": "ambassades_audiences"
+  },
+  {
+   "empreinte": "ed7f1804e9de63c9765c26baf4949f57",
+   "genre": "c",
+   "nom": "ambassades_audiences_empire_check",
+   "tbl": "ambassades_audiences"
+  },
+  {
+   "empreinte": "8d4a4cd1bbd243893e62698f82479807",
+   "genre": "c",
+   "nom": "ambassades_audiences_statut_check",
+   "tbl": "ambassades_audiences"
+  },
+  {
    "empreinte": "a9c51f570b365e608480b92695c8178e",
    "genre": "c",
    "nom": "escort_evenements_commerciaux_type_evenement_check",
@@ -391,6 +487,18 @@
    "genre": "c",
    "nom": "escorts_catalogue_genre_check",
    "tbl": "escorts_catalogue"
+  },
+  {
+   "empreinte": "e8e1ada3f2beff46723b4a5bb7970b50",
+   "genre": "c",
+   "nom": "indices_diplomatiques_pays_check",
+   "tbl": "indices_diplomatiques"
+  },
+  {
+   "empreinte": "ba57b5bc7a772a30b9eb7c09a26a0205",
+   "genre": "c",
+   "nom": "indices_diplomatiques_valeur_check",
+   "tbl": "indices_diplomatiques"
   },
   {
    "empreinte": "4bedc6c3eb779bd1854078dde840d693",
@@ -522,6 +630,384 @@
  "domaine": "personnage et presence",
  "droits": [
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_acces_bureau(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_acces_bureau(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_acces_bureau(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_acces_bureaux()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_acces_bureaux()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_acces_bureaux()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_accorder_audience(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_accorder_audience(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_accorder_audience(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_ambassadeur_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_ambassadeur_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_demander_asile(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_demander_asile(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_demander_asile(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_demander_audience(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_demander_audience(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_demander_audience(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_demettre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_demettre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_demettre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_dossier_menace(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_dossier_menace(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_expulser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_expulser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_expulser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_identite(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_identite(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_mecenat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_mecenat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_mecenat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_mes_audiences()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_mes_audiences()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_mes_audiences()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_ministre_interne()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_ministre_interne()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_mon_statut()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_mon_statut()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_mon_statut()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_nommer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_nommer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_nommer(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_ouvrir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_ouvrir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_ouvrir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_reception_organiser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_reception_organiser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_reception_organiser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_refuge_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_refuge_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_refugie_protege(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_refugie_protege(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_reserver_salle(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_reserver_salle(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_reserver_salle(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ambassade_trancher_asile(uuid,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassade_trancher_asile(uuid,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassade_trancher_asile(uuid,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassades_asiles_echoir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassades_asiles_echoir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassades_audiences_echoir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassades_audiences_echoir(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ambassades_audiences_echoir_toutes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ambassades_audiences_echoir_toutes()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "contact_organisation_choisir(text,text,jsonb)",
@@ -596,6 +1082,42 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "diplomatie_repondre(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "diplomatie_repondre(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "diplomatie_repondre(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "diplomatie_traites_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "diplomatie_traites_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "diplomatie_traites_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "don_argent_deposer(text,text,integer)",
    "privileges": "EXECUTE"
   },
@@ -609,6 +1131,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "don_argent_deposer(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "empire_nom_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "empire_nom_interne(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -752,6 +1286,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "escort_piege_tenter(uuid,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "escort_piege_tenter(uuid,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "escort_piege_tenter(uuid,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "escort_recruter(text)",
    "privileges": "EXECUTE"
   },
@@ -819,6 +1371,216 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "escorts_agence()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "etat_civil_date_interne(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "etat_civil_date_interne(timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "etat_civil_document_recevoir(uuid,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "etat_civil_document_recevoir(uuid,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "etat_civil_document_recevoir(uuid,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "etat_civil_ville_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "etat_civil_ville_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fermeture_definir_date_universelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fermeture_definir_date_universelle()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "indice_diplomatique_ordre(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "indice_diplomatique_ordre(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "indice_diplomatique_ordre(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "indice_diplomatique_varier_interne(text,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "indice_diplomatique_varier_interne(text,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "indices_diplomatiques_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "indices_diplomatiques_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "indices_diplomatiques_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "indices_villes_piete_du_registre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "indices_villes_piete_du_registre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mariage_actif_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mariage_actif_de(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mariage_demander(uuid,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mariage_demander(uuid,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mariage_demander(uuid,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mariage_dissoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mariage_dissoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mariage_dissoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mariage_ecriture_ecran_refuser()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mariage_ecriture_ecran_refuser()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mariage_officialiser(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mariage_officialiser(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mariage_officialiser(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mariage_repondre(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mariage_repondre(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mariage_repondre(text,boolean)",
    "privileges": "EXECUTE"
   },
   {
@@ -944,6 +1706,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "personnages_convocations_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_convocations_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "personnages_fusionner_pop()",
    "privileges": "EXECUTE"
   },
@@ -951,6 +1725,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "personnages_fusionner_pop()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "personnages_informateurs_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_informateurs_garder()",
    "privileges": "EXECUTE"
   },
   {
@@ -1028,6 +1814,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "personnages_proteger_refugie()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "personnages_proteger_refugie()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "personnages_vue_inserer()",
    "privileges": "EXECUTE"
   },
@@ -1062,6 +1860,48 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "piete_score_actif_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "piete_score_actif_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "piete_ville_calculee_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "piete_ville_calculee_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "piete_villes_actualiser()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "piete_villes_actualiser()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "piete_villes_actualiser()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "quete_accueil_contexte()",
@@ -1131,6 +1971,60 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "referent_pedagogie_noter_sujet(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "religion_agir(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "religion_agir(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "religion_agir(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "religion_grade_interne(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "religion_grade_interne(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "religion_titulaire_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "religion_titulaire_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "religion_titulaire_poser_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "religion_titulaire_poser_interne(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1242,12 +2136,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "universite_inscrire(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "universite_inscrire(text,text)",
@@ -1257,12 +2145,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "universite_inscrire(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "universite_jalon_accomplir(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1308,6 +2190,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "universite_prochaine_etape()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "universite_prochaine_etape()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "universite_prochaine_etape()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "universite_slot_consomme(text)",
@@ -1317,6 +2217,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "universite_slot_consomme(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "universite_valider_etape(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "universite_valider_etape(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1406,6 +2318,30 @@
   {
    "beneficiaire": "anon",
    "genre": "SEQUENCE",
+   "objet": "indices_diplomatiques_journal_id_seq",
+   "privileges": "SELECT, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "indices_diplomatiques_journal_id_seq",
+   "privileges": "SELECT, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "indices_diplomatiques_journal_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "indices_diplomatiques_journal_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
    "objet": "invitations_diner_id_seq",
    "privileges": "SELECT, USAGE"
   },
@@ -1438,6 +2374,30 @@
    "genre": "SEQUENCE",
    "objet": "personnages_supprimes_archive_id_seq",
    "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ambassades_asiles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ambassades_asiles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ambassades_audiences",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ambassades_audiences",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -1521,7 +2481,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "dons_en_attente",
-   "privileges": "DELETE, SELECT, UPDATE"
+   "privileges": "SELECT, UPDATE"
   },
   {
    "beneficiaire": "postgres",
@@ -1692,6 +2652,30 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "indices_diplomatiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "indices_diplomatiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "indices_diplomatiques_journal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "indices_diplomatiques_journal",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "invitations_diner",
@@ -1743,7 +2727,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "objets_abandonnes",
-   "privileges": "DELETE, INSERT, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1761,7 +2745,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "objets_recus",
-   "privileges": "DELETE, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1905,7 +2889,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "quetes_actives",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1929,6 +2913,18 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "reconciliation_fantomes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "regularisations_fiche",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "regularisations_fiche",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -2061,17 +3057,138 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "d566e996751096dc8274fcad6de3ae59",
-  "20_fonctions.sql": "c8073245874f1c00fc47a7764f87354d",
-  "30_contraintes.sql": "e44e4568f45b4d5f77867ad9e6e385db",
-  "35_index.sql": "c39f88873aa18751777e33552ec8830d",
-  "40_vues.sql": "b59ee62583b183cae707bb385db72570",
-  "50_triggers.sql": "5bf60588e847e0893b8fc78b79437ecc",
-  "60_rls-policies.sql": "e3ea354131587a713876db85347fcfab",
-  "70_droits.sql": "1ff0f7a6a5e16c1916b8086410d874e8",
-  "80_commentaires.sql": "0497386836a0fda49fd2b24aa686c4b7"
+  "10_tables.sql": "2603b2905f4b6cb9292ba73f4a1f4fff",
+  "20_fonctions-1.sql": "203536df5c6dab39a8d8acf76106aba6",
+  "20_fonctions-2.sql": "f7eee1d9f84f1eed8ddcb133d83d52f9",
+  "30_contraintes.sql": "e92a70b014c89e27d3455829a3229772",
+  "35_index.sql": "dc8c6ef0bb82245f0eb1367d75ba5588",
+  "40_vues.sql": "70c1cbc0ae3b307eb2a5ebaab01cffb4",
+  "50_triggers.sql": "9e09fa9a555f8529b2268cc221ee45f0",
+  "60_rls-policies.sql": "88559a9cced73dc7a7d6f14fdf889196",
+  "70_droits.sql": "b36770672bd4afb8ed1e25194c57f5b4",
+  "80_commentaires.sql": "bf627de04b639cc6344db7fb713bc234"
  },
  "fonctions": [
+  {
+   "empreinte": "583041b90913679b0148e3d59ee18736",
+   "security_definer": true,
+   "signature": "ambassade_acces_bureau(text)"
+  },
+  {
+   "empreinte": "1383fa3151ff454b1d7786155bec1c99",
+   "security_definer": true,
+   "signature": "ambassade_acces_bureaux()"
+  },
+  {
+   "empreinte": "4f664346858f10137be31b2fe20be2ab",
+   "security_definer": true,
+   "signature": "ambassade_accorder_audience(uuid)"
+  },
+  {
+   "empreinte": "36cb09e5ca1b642df245e33c9ce6c237",
+   "security_definer": true,
+   "signature": "ambassade_ambassadeur_interne(text)"
+  },
+  {
+   "empreinte": "962808c367f25e37101486aab3b163af",
+   "security_definer": true,
+   "signature": "ambassade_demander_asile(text)"
+  },
+  {
+   "empreinte": "ac1f046a51744cb421986703cadddfa4",
+   "security_definer": true,
+   "signature": "ambassade_demander_audience(text)"
+  },
+  {
+   "empreinte": "a2ec22e392bc4d2e7673e9f1139e07fa",
+   "security_definer": true,
+   "signature": "ambassade_demettre(text)"
+  },
+  {
+   "empreinte": "a744db39cb3e994319d0291607c9327b",
+   "security_definer": true,
+   "signature": "ambassade_dossier_menace(text,text)"
+  },
+  {
+   "empreinte": "890a076d942abf374a2e63f027f82695",
+   "security_definer": true,
+   "signature": "ambassade_expulser(text)"
+  },
+  {
+   "empreinte": "54d4c7425655aa4d4c25165d6848651d",
+   "security_definer": false,
+   "signature": "ambassade_identite(text)"
+  },
+  {
+   "empreinte": "cdc877feb2f48ea6bd408b06e18853fd",
+   "security_definer": true,
+   "signature": "ambassade_mecenat(text)"
+  },
+  {
+   "empreinte": "f8ce23cbc4150d2a48281ce0e6f1c749",
+   "security_definer": true,
+   "signature": "ambassade_mes_audiences()"
+  },
+  {
+   "empreinte": "7e6cc7006b3ff1fcebd1574064bf2902",
+   "security_definer": true,
+   "signature": "ambassade_ministre_interne()"
+  },
+  {
+   "empreinte": "7e27e7ac915739cc57e90f1b5ede097a",
+   "security_definer": true,
+   "signature": "ambassade_mon_statut()"
+  },
+  {
+   "empreinte": "d6820e39a9766241b44a8e9591281724",
+   "security_definer": true,
+   "signature": "ambassade_nommer(text,text)"
+  },
+  {
+   "empreinte": "1d6af24ae0193b69d655d85ac05407df",
+   "security_definer": true,
+   "signature": "ambassade_ouvrir(text)"
+  },
+  {
+   "empreinte": "c9a67b31782925228f09c1984d2e51a3",
+   "security_definer": true,
+   "signature": "ambassade_reception_organiser(text)"
+  },
+  {
+   "empreinte": "8db4c830655a5dd656704e93137f25a1",
+   "security_definer": true,
+   "signature": "ambassade_refuge_de(text)"
+  },
+  {
+   "empreinte": "59ad9aaeedf94bdcbdf1097808845a4e",
+   "security_definer": true,
+   "signature": "ambassade_refugie_protege(text)"
+  },
+  {
+   "empreinte": "e6a4ae6f4bd3a380c80448463320627e",
+   "security_definer": true,
+   "signature": "ambassade_reserver_salle(text)"
+  },
+  {
+   "empreinte": "8968eba1ad31814524d9dcbb449d5aa6",
+   "security_definer": true,
+   "signature": "ambassade_trancher_asile(uuid,boolean)"
+  },
+  {
+   "empreinte": "7f1f61ba613d25ffac9ee74b7738d822",
+   "security_definer": true,
+   "signature": "ambassades_asiles_echoir(text)"
+  },
+  {
+   "empreinte": "c629eb107011e0af0e8b49ecc14da232",
+   "security_definer": true,
+   "signature": "ambassades_audiences_echoir(text)"
+  },
+  {
+   "empreinte": "8f0c362e621dd6f5645d81b98540e450",
+   "security_definer": true,
+   "signature": "ambassades_audiences_echoir_toutes()"
+  },
   {
    "empreinte": "e8aaa72f67c3a606b15d0f3a3e874f89",
    "security_definer": true,
@@ -2088,7 +3205,7 @@
    "signature": "contact_organisation_etat(text,text)"
   },
   {
-   "empreinte": "e5a0366ba94b3c387baf911e70ae7f7b",
+   "empreinte": "01e2881eeb6f61107a7a4776cb521aa9",
    "security_definer": true,
    "signature": "cotisation_renouveler(text,text,integer)"
   },
@@ -2098,9 +3215,24 @@
    "signature": "cron_journal_ecrire(text,date,text,text,jsonb,integer)"
   },
   {
+   "empreinte": "d21a4e2efc84f2a89f8e63ffc4f9bf62",
+   "security_definer": true,
+   "signature": "diplomatie_repondre(text,boolean)"
+  },
+  {
+   "empreinte": "f8bba532c2af5b2023fd304f9c4e2bf1",
+   "security_definer": true,
+   "signature": "diplomatie_traites_lire(text)"
+  },
+  {
    "empreinte": "d096072acb8ac92af7d09f2a5537d8b4",
    "security_definer": true,
    "signature": "don_argent_deposer(text,text,integer)"
+  },
+  {
+   "empreinte": "e650ec9fa42ec013afa133b6da58da9e",
+   "security_definer": false,
+   "signature": "empire_nom_interne(text)"
   },
   {
    "empreinte": "e0a4bb88af2409571105f0eddbc31958",
@@ -2138,6 +3270,11 @@
    "signature": "employeur_embaucher(text)"
   },
   {
+   "empreinte": "1cea53c6033ea3d952db3cc2f290bff4",
+   "security_definer": true,
+   "signature": "escort_piege_tenter(uuid,text,integer,integer)"
+  },
+  {
    "empreinte": "693bcfae325f18306562cc65d64981ae",
    "security_definer": true,
    "signature": "escort_recruter(text)"
@@ -2156,6 +3293,76 @@
    "empreinte": "be9a189c44293fd55bfb45404bdb8efe",
    "security_definer": true,
    "signature": "escorts_agence()"
+  },
+  {
+   "empreinte": "5f387c190da3dc5bb82e1e877febe5bb",
+   "security_definer": false,
+   "signature": "etat_civil_date_interne(timestamp with time zone)"
+  },
+  {
+   "empreinte": "b21eac63c48ff9c7f53e35df6adb098f",
+   "security_definer": true,
+   "signature": "etat_civil_document_recevoir(uuid,text,text,text,integer,integer)"
+  },
+  {
+   "empreinte": "ad9d9d03851681407e8b7f5973d6c954",
+   "security_definer": true,
+   "signature": "etat_civil_ville_interne(text,text)"
+  },
+  {
+   "empreinte": "167b11e777155332d27cecc66d1a40fd",
+   "security_definer": false,
+   "signature": "fermeture_definir_date_universelle()"
+  },
+  {
+   "empreinte": "4637214727822e02b9dcf326e02d11c0",
+   "security_definer": true,
+   "signature": "indice_diplomatique_ordre(text,integer,integer)"
+  },
+  {
+   "empreinte": "02c37e6531173b71f3f8a947133522bb",
+   "security_definer": true,
+   "signature": "indice_diplomatique_varier_interne(text,integer,text,text)"
+  },
+  {
+   "empreinte": "0964f77af12f8b6b3be2d730cc84ef87",
+   "security_definer": true,
+   "signature": "indices_diplomatiques_lire()"
+  },
+  {
+   "empreinte": "3e039728ac838279d217c3d9d3a2eebd",
+   "security_definer": true,
+   "signature": "indices_villes_piete_du_registre()"
+  },
+  {
+   "empreinte": "02b693eb6dc2d9bba84c658670636331",
+   "security_definer": true,
+   "signature": "mariage_actif_de(text)"
+  },
+  {
+   "empreinte": "b574a5dce196970b4ef1b3df16512af6",
+   "security_definer": true,
+   "signature": "mariage_demander(uuid,text,text)"
+  },
+  {
+   "empreinte": "053db37df96bfc4dbc9e195e47c28743",
+   "security_definer": true,
+   "signature": "mariage_dissoudre(text)"
+  },
+  {
+   "empreinte": "6254c517c5571ae0d1454f4f24f00f1d",
+   "security_definer": false,
+   "signature": "mariage_ecriture_ecran_refuser()"
+  },
+  {
+   "empreinte": "68c4187d599899a65cd7f03dbfdc1848",
+   "security_definer": true,
+   "signature": "mariage_officialiser(uuid,text)"
+  },
+  {
+   "empreinte": "1eacd7551893714a5c376aa1baece8ca",
+   "security_definer": true,
+   "signature": "mariage_repondre(text,boolean)"
   },
   {
    "empreinte": "a37689af93e0a6a2945e4e377009da4d",
@@ -2178,7 +3385,7 @@
    "signature": "personnage_ajuster_pop_inf(text,text,integer,integer)"
   },
   {
-   "empreinte": "c09b194e305befe91c4bde5940327eef",
+   "empreinte": "61699a2ef93605c682eab9ef47ac677b",
    "security_definer": true,
    "signature": "personnage_ajuster_pop_inf(text,text,integer,integer,text)"
   },
@@ -2203,9 +3410,19 @@
    "signature": "personnages_borner_jour()"
   },
   {
-   "empreinte": "6039ac8c922e88ec90415281aed72fdd",
+   "empreinte": "87802621d1618e1739143831523f090b",
+   "security_definer": true,
+   "signature": "personnages_convocations_garder()"
+  },
+  {
+   "empreinte": "a28e9624dd7d97fb53a5751fe94c41de",
    "security_definer": true,
    "signature": "personnages_fusionner_pop()"
+  },
+  {
+   "empreinte": "36989ff87ca43e4b6b55cd79cab37ec0",
+   "security_definer": false,
+   "signature": "personnages_informateurs_garder()"
   },
   {
    "empreinte": "9427422980f2fbdb0abe0241c1da267e",
@@ -2238,12 +3455,17 @@
    "signature": "personnages_preserver_judiciaire()"
   },
   {
-   "empreinte": "52f4f9fb342ffa3796b081c2a5d22251",
+   "empreinte": "eab63a5b41080e623fe8e3b3f439a7e6",
+   "security_definer": true,
+   "signature": "personnages_proteger_refugie()"
+  },
+  {
+   "empreinte": "9ccb74409ce98721859fb5e89ba0192a",
    "security_definer": true,
    "signature": "personnages_vue_inserer()"
   },
   {
-   "empreinte": "95baa2afa9e1e335fcbb58fa8de63a3b",
+   "empreinte": "6d6760b047527597688cb2881bf984b7",
    "security_definer": true,
    "signature": "personnages_vue_modifier()"
   },
@@ -2251,6 +3473,21 @@
    "empreinte": "f2d2d22b6883dfcfbbc99a919641d06a",
    "security_definer": true,
    "signature": "personnages_vue_supprimer()"
+  },
+  {
+   "empreinte": "9a650217751aca2945b771570ad606fa",
+   "security_definer": true,
+   "signature": "piete_score_actif_interne(text,text)"
+  },
+  {
+   "empreinte": "b2dcc8d3cb7c3b832144c9801a7dcbe3",
+   "security_definer": true,
+   "signature": "piete_ville_calculee_interne(text)"
+  },
+  {
+   "empreinte": "6d9fa7140420be45216d6f65ccda3d89",
+   "security_definer": true,
+   "signature": "piete_villes_actualiser()"
   },
   {
    "empreinte": "27a43d9507d445d4470b03c48f474f82",
@@ -2273,12 +3510,32 @@
    "signature": "referent_pedagogie_noter_sujet(text,text)"
   },
   {
+   "empreinte": "f8f3a7f1600aa3811373b3ce705547af",
+   "security_definer": true,
+   "signature": "religion_agir(text,integer,integer)"
+  },
+  {
+   "empreinte": "4ba99b4c721605e798264984fcbd4d22",
+   "security_definer": false,
+   "signature": "religion_grade_interne(numeric)"
+  },
+  {
+   "empreinte": "3e1ecc3d7e0b67209da490e4fec6dd0c",
+   "security_definer": true,
+   "signature": "religion_titulaire_interne(text,text)"
+  },
+  {
+   "empreinte": "fb27d673759c165e8b7469f0ebb14371",
+   "security_definer": true,
+   "signature": "religion_titulaire_poser_interne(text,text,text)"
+  },
+  {
    "empreinte": "705eec237d03463b93c3a6d5fa928531",
    "security_definer": true,
    "signature": "souvenir_accueil_tirer(text,date)"
   },
   {
-   "empreinte": "d9a7dadfac1e0fa61033d9f7741b4df8",
+   "empreinte": "c08f88f92c6e003ca04143f4427c8d91",
    "security_definer": true,
    "signature": "succession_regler(text)"
   },
@@ -2288,7 +3545,7 @@
    "signature": "syndicat_etudiant_domicilier(text,text)"
   },
   {
-   "empreinte": "3ab55ed0fe18113871a9ac5d9d5b24cd",
+   "empreinte": "740487ac258a3eca18ef711b408543b2",
    "security_definer": true,
    "signature": "tournee_cloturer(text,boolean)"
   },
@@ -2328,12 +3585,34 @@
    "signature": "universite_plus_semaines(timestamp with time zone,integer)"
   },
   {
+   "empreinte": "fcd778bb956e7121371a62efe36f3d18",
+   "security_definer": true,
+   "signature": "universite_prochaine_etape()"
+  },
+  {
    "empreinte": "5ba14d2d03bfb5c617dca03cc97e1ec1",
    "security_definer": true,
    "signature": "universite_slot_consomme(text)"
+  },
+  {
+   "empreinte": "90e538012ae0d9d4e560823d830bd98a",
+   "security_definer": true,
+   "signature": "universite_valider_etape(text,text)"
   }
  ],
  "index_autonomes": [
+  {
+   "empreinte": "a9ea5848e320d2e0a1bff9f552e291fa",
+   "nom": "ambassades_asiles_un_actif"
+  },
+  {
+   "empreinte": "98cdbf37f36b03acbe864420e3468dff",
+   "nom": "ambassades_audiences_echeances"
+  },
+  {
+   "empreinte": "43a9148f1e30ce6512ec35db4fc56d5f",
+   "nom": "ambassades_audiences_une_en_cours"
+  },
   {
    "empreinte": "43e2a96966c6db262d80ed5008d8d0c2",
    "nom": "escorts_catalogue_ecran"
@@ -2391,6 +3670,14 @@
    "nom": "idx_testaments_testateur"
   },
   {
+   "empreinte": "f1b0a5ee116fa38935cdbb453b975469",
+   "nom": "invitations_requete_restaurant"
+  },
+  {
+   "empreinte": "e5724c19ad9f36ab20cfeae9ca999b12",
+   "nom": "objets_recus_reception_token_uidx"
+  },
+  {
    "empreinte": "b620c46394a19613fe4d170e52b9700c",
    "nom": "personnages_requisition_idx"
   },
@@ -2420,6 +3707,8 @@
   }
  ],
  "index_portes": [
+  "ambassades_asiles_pkey",
+  "ambassades_audiences_pkey",
   "contacts_organisations_passeurs_pkey",
   "contacts_organisations_pkey",
   "demandes_mariage_pkey",
@@ -2435,6 +3724,8 @@
   "fiche_hausses_observees_pkey",
   "fiche_inventaire_observe_pkey",
   "historique_deplacements_pkey",
+  "indices_diplomatiques_journal_pkey",
+  "indices_diplomatiques_pkey",
   "invitations_diner_pkey",
   "mariages_pkey",
   "objets_abandonnes_pkey",
@@ -2448,6 +3739,7 @@
   "qualifications_pkey",
   "quetes_actives_pkey",
   "reconciliation_fantomes_pkey",
+  "regularisations_fiche_pkey",
   "souvenirs_accueil_pkey",
   "successions_pkey",
   "testaments_pkey",
@@ -2459,7 +3751,8 @@
  ],
  "ordre": [
   "10_tables.sql",
-  "20_fonctions.sql",
+  "20_fonctions-1.sql",
+  "20_fonctions-2.sql",
   "30_contraintes.sql",
   "35_index.sql",
   "40_vues.sql",
@@ -2515,12 +3808,6 @@
    "empreinte": "ba7b45106c7e0c6472f0645d8d918712",
    "empreinte_avec_roles": "bddd469c545f99644479dd685a0cfefd",
    "nom": "dons lecture destinataire",
-   "tbl": "dons_en_attente"
-  },
-  {
-   "empreinte": "ccfe96b9ad415942836be4b667d03f72",
-   "empreinte_avec_roles": "e317aac6e3ab54154b54ddd9fa12d564",
-   "nom": "dons_en_attente_suppression_acteur",
    "tbl": "dons_en_attente"
   },
   {
@@ -2590,21 +3877,9 @@
    "tbl": "mariages"
   },
   {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "83148c9fa54c1b8500e1941c0fedb343",
-   "nom": "objets_abandonnes_ecriture_acteur",
-   "tbl": "objets_abandonnes"
-  },
-  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "50cec9464367a9ab21410d3de71c6214",
    "nom": "objets_abandonnes_lecture_publique",
-   "tbl": "objets_abandonnes"
-  },
-  {
-   "empreinte": "ccfe96b9ad415942836be4b667d03f72",
-   "empreinte_avec_roles": "376576ae1644a5a9b912c9741e634c32",
-   "nom": "objets_abandonnes_suppression_acteur",
    "tbl": "objets_abandonnes"
   },
   {
@@ -2626,8 +3901,8 @@
    "tbl": "organisations"
   },
   {
-   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
-   "empreinte_avec_roles": "f5dcd16b51a2c287fa88a29866770160",
+   "empreinte": "ba3c0abe49fe9aef5489a9d492e79620",
+   "empreinte_avec_roles": "c080b52a8d7b5f9aa33a4de05bdcc3c8",
    "nom": "organisations_lecture_publique",
    "tbl": "organisations"
   },
@@ -2786,6 +4061,16 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "ambassades_asiles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "ambassades_audiences"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "contacts_organisations"
   },
   {
@@ -2856,6 +4141,16 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "indices_diplomatiques"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "indices_diplomatiques_journal"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "invitations_diner"
   },
   {
@@ -2912,6 +4207,11 @@
    "active": true,
    "forcee": false,
    "tbl": "reconciliation_fantomes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "regularisations_fiche"
   },
   {
    "active": true,
@@ -2976,8 +4276,13 @@
    "tbl": "historique_deplacements"
   },
   {
+   "nom": "indices_diplomatiques_journal_id_seq",
+   "possedee": true,
+   "tbl": "indices_diplomatiques_journal"
+  },
+  {
    "nom": "invitations_diner_id_seq",
-   "possedee": false,
+   "possedee": true,
    "tbl": "invitations_diner"
   },
   {
@@ -2986,10 +4291,20 @@
    "tbl": "personnages_supprimes"
   }
  ],
- "sequences_autonomes": [
-  "invitations_diner_id_seq"
- ],
+ "sequences_autonomes": [],
  "tables": [
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "e4de3e217044c4f29c7b3906e702ebd9",
+   "empreinte_texte": "62fc9aa7d976744a7567bde6a4e11b64",
+   "nom": "ambassades_asiles"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "2ea9a4e54ea1cddaa675649b503d6a57",
+   "empreinte_texte": "1971e2f791dc781990b9e8e0d71718ff",
+   "nom": "ambassades_audiences"
+  },
   {
    "colonnes": 5,
    "empreinte_catalogue": "209ad301f6799f4e83fe9feb35916841",
@@ -3017,7 +4332,7 @@
   {
    "colonnes": 6,
    "empreinte_catalogue": "3a076c821897999b78538f40e5bfea77",
-   "empreinte_texte": "43c888d455b68c834828aeddfc2f1e4a",
+   "empreinte_texte": "a34136faeeaa3da9431e89745a6a6644",
    "nom": "dons_en_attente"
   },
   {
@@ -3059,31 +4374,43 @@
   {
    "colonnes": 9,
    "empreinte_catalogue": "6e003a54832ad854b55307eca4c5e68e",
-   "empreinte_texte": "beb6bac8c7773be69bbd41244f4f0c07",
+   "empreinte_texte": "4f3e92a0e5afd28f3b2d6c625a05a634",
    "nom": "fiche_hausses_observees"
   },
   {
    "colonnes": 9,
    "empreinte_catalogue": "d9b7b3c7bf98b42ee3c9de2b3ffb8a5f",
-   "empreinte_texte": "e5cdff383dee92a03c34b1a6ec6dcdfc",
+   "empreinte_texte": "1d67f4d52ac14ca3a7da17142e9ff252",
    "nom": "fiche_inventaire_observe"
   },
   {
    "colonnes": 9,
    "empreinte_catalogue": "ae56bfdb24a52ea321d822c3e4025750",
-   "empreinte_texte": "59ff93c3ee54c7f5f20a8a9a4103b7b7",
+   "empreinte_texte": "1cdd2cfb2114facd9150c0858cdfbc2d",
    "nom": "historique_deplacements"
   },
   {
-   "colonnes": 14,
-   "empreinte_catalogue": "95554c36c8780792b665b115ad9c5a88",
-   "empreinte_texte": "10ceb2944f34d8b4f7977d333d5df10a",
+   "colonnes": 3,
+   "empreinte_catalogue": "012c78cb421e639863dc90b3f419d982",
+   "empreinte_texte": "16ce906f66352e69096091550bb33d89",
+   "nom": "indices_diplomatiques"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "a65d0721d443918ea674bc5573d051d5",
+   "empreinte_texte": "a6dd5716f71cbf96fc679384bf061650",
+   "nom": "indices_diplomatiques_journal"
+  },
+  {
+   "colonnes": 20,
+   "empreinte_catalogue": "224d7bac8af02167e61fd0e111a364ed",
+   "empreinte_texte": "c0a5995dad9ce7d38357f6d2772992ec",
    "nom": "invitations_diner"
   },
   {
-   "colonnes": 9,
-   "empreinte_catalogue": "9ee199d6864f6160e57a96e8e7d5be42",
-   "empreinte_texte": "03d59643dce6baaaf5e6f531d909cc6b",
+   "colonnes": 10,
+   "empreinte_catalogue": "e41bdfec238849a56b7d91072c875ff9",
+   "empreinte_texte": "fd54364d1968f1425ae46d795d9b0ea3",
    "nom": "mariages"
   },
   {
@@ -3093,9 +4420,9 @@
    "nom": "objets_abandonnes"
   },
   {
-   "colonnes": 5,
-   "empreinte_catalogue": "b9ade740c69487ee2b77f5d1a34814ef",
-   "empreinte_texte": "3fcc33c22a2e807dbdb4befb82d10900",
+   "colonnes": 6,
+   "empreinte_catalogue": "a0eb64a4a68d7a9c3041d18847d52d3c",
+   "empreinte_texte": "4c9be2c706646c3764b1ebc7ec8f7638",
    "nom": "objets_recus"
   },
   {
@@ -3105,9 +4432,9 @@
    "nom": "organisations"
   },
   {
-   "colonnes": 74,
-   "empreinte_catalogue": "81bdc969521d46a506de41c30ab9a602",
-   "empreinte_texte": "aa15328c7c15bb505f2d68a23869906f",
+   "colonnes": 76,
+   "empreinte_catalogue": "7bfd975edb5d889c2e438a9aeb3830c1",
+   "empreinte_texte": "52fae864872ff72c9803659c5f560038",
    "nom": "personnages_donnees"
   },
   {
@@ -3119,7 +4446,7 @@
   {
    "colonnes": 17,
    "empreinte_catalogue": "fc5847f7f5db93acf6f800edbe8d6990",
-   "empreinte_texte": "31b39c6cdb2d1daecf1d4823a29cfd17",
+   "empreinte_texte": "925b8f6c54f93f67f0ded279a4836142",
    "nom": "personnages_supprimes"
   },
   {
@@ -3147,6 +4474,12 @@
    "nom": "reconciliation_fantomes"
   },
   {
+   "colonnes": 7,
+   "empreinte_catalogue": "d8b648acfa97e93738a16c370abd9082",
+   "empreinte_texte": "4d8428a2a9e34ddf546d68f7669c38c6",
+   "nom": "regularisations_fiche"
+  },
+  {
    "colonnes": 8,
    "empreinte_catalogue": "340154b7dc3dc47a68f46ac1beddf3f6",
    "empreinte_texte": "fbe0f2f2efc6c1c6d66fbc730c178a6c",
@@ -3165,9 +4498,9 @@
    "nom": "testaments"
   },
   {
-   "colonnes": 15,
-   "empreinte_catalogue": "415fe9762bf0c90693dbe03ddee7f851",
-   "empreinte_texte": "fa4414ceec7066011a947821df1e7688",
+   "colonnes": 19,
+   "empreinte_catalogue": "9129e905040c818b2c68a7dc7c9e7156",
+   "empreinte_texte": "3912585e03d4f82851e78e4fff00b70a",
    "nom": "tournees"
   },
   {
@@ -3197,6 +4530,30 @@
  ],
  "triggers": [
   {
+   "empreinte": "f5fea871a5aba57ef5ca002071808cbd",
+   "fonction": "mariage_ecriture_ecran_refuser()",
+   "nom": "demandes_mariage_ecran_refuser",
+   "tbl": "demandes_mariage"
+  },
+  {
+   "empreinte": "fd9befc533f03bd677d4f26727db13cf",
+   "fonction": "tournee_proteger_contrat()",
+   "nom": "invitation_tournee_contrat_protege",
+   "tbl": "invitations_diner"
+  },
+  {
+   "empreinte": "8e86dcbcfbc7c576fff43d91ef8dea3f",
+   "fonction": "restaurant_diner_proteger()",
+   "nom": "invitations_restaurant_protege",
+   "tbl": "invitations_diner"
+  },
+  {
+   "empreinte": "6c400e555301be1d0e0232069af68633",
+   "fonction": "mariage_ecriture_ecran_refuser()",
+   "nom": "mariages_ecran_refuser",
+   "tbl": "mariages"
+  },
+  {
    "empreinte": "89b48cd6d2c10348d295a7994f31e7bf",
    "fonction": "organisations_politique_autorite()",
    "nom": "trg_organisations_politique_autorite",
@@ -3219,6 +4576,18 @@
    "fonction": "personnages_vue_supprimer()",
    "nom": "trg_personnages_vue_supprimer",
    "tbl": "personnages"
+  },
+  {
+   "empreinte": "a45e31335b85b0e6861a889ce1c92458",
+   "fonction": "logements_sociaux_domicile_resilier()",
+   "nom": "logements_sociaux_domicile_resilier",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "d40c8164e72a67390f7d3887d8eeda8d",
+   "fonction": "terrain_visites_clore_interne()",
+   "nom": "terrain_visites_deplacement",
+   "tbl": "personnages_donnees"
   },
   {
    "empreinte": "d9d5d4675cb255e87552fbd56bf7913d",
@@ -3248,6 +4617,12 @@
    "empreinte": "734f33a38deaefa254ed7f740decad41",
    "fonction": "personnages_fusionner_pop()",
    "nom": "trg_personnages_fusionner_pop",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "406aace2ef34f27586ef5ecfc3be9b42",
+   "fonction": "personnages_informateurs_garder()",
+   "nom": "trg_personnages_informateurs_garder",
    "tbl": "personnages_donnees"
   },
   {
@@ -3285,11 +4660,35 @@
    "fonction": "personnages_preserver_judiciaire()",
    "nom": "trg_personnages_preserver_judiciaire",
    "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "2edf70f6fb6ef127735825127daabe88",
+   "fonction": "personnages_proteger_refugie()",
+   "nom": "trg_personnages_proteger_refugie",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "fddc2b7bd643f0b975801783c434eb4e",
+   "fonction": "personnages_convocations_garder()",
+   "nom": "trg_personnages_zz_convocations_garder",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "f9f2e5d885ea8f1c2bf1f1cb7f21315c",
+   "fonction": "inventaire_revision_garder()",
+   "nom": "zzzz_hg_inventory_revision",
+   "tbl": "personnages_donnees"
+  },
+  {
+   "empreinte": "0aaf56ebdbbdfc9c8acc5e2da540b753",
+   "fonction": "tournee_proteger_contrat()",
+   "nom": "tournee_contrat_protege",
+   "tbl": "tournees"
   }
  ],
  "vues": [
   {
-   "empreinte": "ff3058dda59a859cb40a40297a7d8149",
+   "empreinte": "4ccba233962801b24ca7d0c1e2b0e1cc",
    "nom": "personnages",
    "reloptions": null
   }

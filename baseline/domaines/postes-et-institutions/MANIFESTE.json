@@ -218,7 +218,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "titulaires_pnj",
-   "privileges": "DELETE, INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -239,8 +239,8 @@
   "10_tables.sql": "6df9925cd479e2b709d9f3d7f1fa7448",
   "30_contraintes.sql": "2d7853d3e9bb36989fc3eeea010a2904",
   "35_index.sql": "39735b93f3a42d8625f32f9d3554ff53",
-  "60_rls-policies.sql": "9fdb4aeabb1736c4be0bce88e8c86285",
-  "70_droits.sql": "fd6ed4085a2d1a2a025343f9412bccc3",
+  "60_rls-policies.sql": "894ccf9e25be05e81ce22a0cad386798",
+  "70_droits.sql": "814fea266cf67752b5a1b8048963260e",
   "80_commentaires.sql": "5e35abad14624c873750d2bccfb548d6"
  },
  "fonctions": [],
@@ -305,27 +305,9 @@
    "tbl": "postes_nommes_regles_empreinte"
   },
   {
-   "empreinte": "55592a1972a4496c12af1f2bd721b15a",
-   "empreinte_avec_roles": "b5043813f7372cdd322e8b98d39b14a3",
-   "nom": "titulaires_pnj_ecriture_non_politique",
-   "tbl": "titulaires_pnj"
-  },
-  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "06fea3548d91c397afefb22766fd057e",
    "nom": "titulaires_pnj_lecture",
-   "tbl": "titulaires_pnj"
-  },
-  {
-   "empreinte": "ad91aa25596231b3fdd9e95c066574b1",
-   "empreinte_avec_roles": "5293feaf3664b485dbecc482668f069c",
-   "nom": "titulaires_pnj_maj_non_politique",
-   "tbl": "titulaires_pnj"
-  },
-  {
-   "empreinte": "ce4f5b20495650ba48708dccb27292fc",
-   "empreinte_avec_roles": "0ebb7dbf9609d67b0f9b387182d2844b",
-   "nom": "titulaires_pnj_suppression_non_politique",
    "tbl": "titulaires_pnj"
   }
  ],

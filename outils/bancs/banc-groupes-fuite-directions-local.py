@@ -7,7 +7,7 @@ sp=importlib.util.spec_from_file_location('police',R/'outils/bancs/banc-groupes-
 def suite(ctx):
  c.suite(ctx)
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
- for pattern in ['20261030223547_navigation_provenance_et_destination_fuite.sql','20261030223548_navigation_directions_reference.sql','20261030223549_navigation_directions_reference.sql','20261030223550_navigation_directions_reference.sql','20261030223551_navigation_directions_reference.sql','20261030223552_navigation_directions_reference.sql','20261030223553_navigation_directions_reference.sql','20261030223554_police_fuite_direction_commune.sql','20261030223555_police_controles_chef_et_fuite_reelle.sql']:
+ for pattern in ['20261031115842_navigation_provenance_et_destination_fuite.sql','20261031115843_navigation_directions_reference.sql','20261031115844_navigation_directions_reference.sql','20261031115845_navigation_directions_reference.sql','20261031115846_navigation_directions_reference.sql','20261031115847_navigation_directions_reference.sql','20261031115848_navigation_directions_reference.sql','20261031115849_police_fuite_direction_commune.sql','20261031115850_police_controles_chef_et_fuite_reelle.sql']:
   for f in sorted((R/'migrations').glob(pattern)):
    q.execute(f.read_text());q.execute(f.read_text())
  if '--contre-gauche-fixe' in sys.argv:

@@ -12,4 +12,5 @@
 
 COMMENT ON COLUMN public.batiments_fermes.date_fin_universelle IS 'Premier jour civil Europe/Paris de réouverture, indépendant des compteurs de PJ.';
 COMMENT ON FUNCTION public.ville_est_reelle(text,text) IS 'Ce couple (pays, ville) designe-t-il une VRAIE ville ? Refuse les zones hors-ville (caserne, QHS), les pseudo-villes techniques et les empires inconnus. Ne replie jamais sur Republia ni sur la capitale.';
+COMMENT ON TABLE public.bne_annonces IS 'HG annonces du Bureau de l''Emploi (25/10/2026) : lue et ecrite uniquement par les fonctions bne_annonce*';
 COMMENT ON TABLE public.villes IS 'Les douze vraies villes du jeu, une ligne par couple (pays, ville). Miroir de VILLES (data.js), seme par outils/generateurs/generer_villes.py. Les zones hors-ville (caserne, QHS) en sont volontairement absentes : elles ne relevent d''aucune mairie.';

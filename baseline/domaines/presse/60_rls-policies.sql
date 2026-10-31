@@ -21,12 +21,18 @@ ALTER TABLE public.groupes_presse ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.interviews_jodie ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journal_articles_en_attente ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journal_editions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.journal_ventes_lectures ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journaux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.journaux_redacteurs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.petites_annonces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.presse_membres ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.publicites_premium_presse ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.publicites_premium_sources ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.scandales_predefinis ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.scandales_presse ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.scandales_tentatives ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.scandales_tirages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tracts_pnj_catalogue ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tribune_articles_etouffes ENABLE ROW LEVEL SECURITY;
 
 -- calomnies_actes
@@ -75,6 +81,10 @@ CREATE POLICY petites_annonces_maj_acteur ON public.petites_annonces FOR UPDATE 
 -- presse_membres
 CREATE POLICY presse_membres_lecture ON public.presse_membres FOR SELECT TO anon, authenticated
   USING (true);
+
+-- publicites_premium_presse
+CREATE POLICY publicites_premium_mes_commandes ON public.publicites_premium_presse FOR SELECT TO authenticated
+  USING (acheteur_user_id = auth.uid());
 
 -- scandales_presse
 CREATE POLICY scandales_presse_lecture ON public.scandales_presse FOR SELECT TO PUBLIC

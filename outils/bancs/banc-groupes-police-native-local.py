@@ -19,8 +19,8 @@ def suite(ctx,suivante=None):
  for sig in ['police_combat_resoudre(text,text,text,text,integer)','police_fuite_resoudre(text)','police_reddition_resoudre(text)']:
   q.execute('REVOKE ALL ON FUNCTION '+sig+' FROM PUBLIC,anon,authenticated,service_role');q.execute('GRANT EXECUTE ON FUNCTION '+sig+' TO authenticated')
  ctx['installer_fonction_canonique']('recherche_inscrire')
- q.execute((R/'migrations/20261028074754_securite_privee_combat_pa_et_registre.sql').read_text())
- nouveau=R/'migrations/20261029100000_groupes_miroirs_statuts_et_pa.sql'
+ q.execute((R/'migrations/20261031115736_securite_privee_combat_pa_et_registre.sql').read_text())
+ nouveau=R/'migrations/20261031115818_groupes_miroirs_statuts_et_pa.sql'
  # Donnée historique antérieure à la bascule, pas un dégât inventé après elle.
  q.execute("UPDATE batiments_etat SET data=jsonb_set(data,'{effectifsPolice,policiers}',(SELECT jsonb_agg(CASE WHEN p->>'matricule'='P2' THEN p||'{\"pa\":5}'::jsonb ELSE p END) FROM jsonb_array_elements(data->'effectifsPolice'->'policiers') p)) WHERE id='capitale'")
  if '--contre-etats-miroir' not in sys.argv:q.execute(nouveau.read_text());q.execute(nouveau.read_text())

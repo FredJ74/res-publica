@@ -6,7 +6,7 @@ R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('socle',R/'outils/bancs/banc-groupes-squatteurs-contrat-local.py');b=importlib.util.module_from_spec(sp);sp.loader.exec_module(b)
 def suite(c):
  q,cas,rpc,exige,sql=[c[x] for x in ['q','cas','rpc','exige','sql']]
- for f in ['20261030223542_police_controles_detecteur_commun.sql','20261030223543_police_controles_actions_atomiques.sql']:
+ for f in ['20261031115837_police_controles_detecteur_commun.sql','20261031115838_police_controles_actions_atomiques.sql']:
   q.execute((R/'migrations'/f).read_text());q.execute((R/'migrations'/f).read_text())
  q.execute(re.search(r'CREATE TABLE public.infractions \(.*?\n\);',(R/'baseline/domaines/justice/10_tables.sql').read_text(),re.S)[0])
  q.execute("INSERT INTO infractions(id,libelle,jours_reference,amende_reference,bareme_propre,detectable) VALUES('possession_illegale_douane','Possession d’objets prohibés',1,500,true,false)")

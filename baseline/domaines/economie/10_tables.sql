@@ -10,6 +10,10 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."catalogue_correspondance_legacy_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."entrepot_journal_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
 CREATE TABLE public.apports_matieres (
   requete text NOT NULL,
   cree_le timestamp with time zone DEFAULT now() NOT NULL,
@@ -49,7 +53,7 @@ CREATE TABLE public.caisses_fret (
 );
 
 CREATE TABLE public.catalogue_correspondance_legacy (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('catalogue_correspondance_legacy_id_seq'::regclass) NOT NULL,
   motif text NOT NULL,
   valeur text NOT NULL,
   generique_id text NOT NULL,
@@ -114,6 +118,24 @@ CREATE TABLE public.chaines_production_usine (
   salaire_pa numeric NOT NULL
 );
 
+CREATE TABLE public.chantier_commandes_recus (
+  personnage_id uuid NOT NULL,
+  acteur text NOT NULL,
+  requete text NOT NULL,
+  terrain_id text NOT NULL,
+  commande jsonb NOT NULL,
+  resultat jsonb NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.chantier_requetes (
+  id text NOT NULL,
+  acteur text NOT NULL,
+  charge jsonb NOT NULL,
+  resultat jsonb NOT NULL,
+  created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.chantiers_besoins_jour (
   position_cycle integer NOT NULL,
   bois numeric NOT NULL,
@@ -131,6 +153,31 @@ CREATE TABLE public.chantiers_paliers (
   heures_totales numeric NOT NULL,
   apport_minimal numeric NOT NULL,
   gabarit jsonb NOT NULL
+);
+
+CREATE TABLE public.commerce_decors (
+  fonds_id text NOT NULL,
+  owner_user_id uuid NOT NULL,
+  image_path text,
+  preview_path text,
+  retouches integer DEFAULT 0 NOT NULL,
+  generations integer DEFAULT 0 NOT NULL,
+  updated_at timestamp with time zone DEFAULT now() NOT NULL,
+  consentement_sources_le timestamp with time zone,
+  retiree_le timestamp with time zone,
+  motif_retrait text
+);
+
+CREATE TABLE public.commerce_decors_sources (
+  id uuid DEFAULT gen_random_uuid() NOT NULL,
+  fonds_id text NOT NULL,
+  proprietaire_user_id uuid NOT NULL,
+  chemin text NOT NULL,
+  nom_original text NOT NULL,
+  type_mime text NOT NULL,
+  taille_octets bigint NOT NULL,
+  empreinte_sha256 text NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE TABLE public.commerces_dotations (
@@ -179,7 +226,7 @@ CREATE TABLE public.directeurs_usine (
 );
 
 CREATE TABLE public.entrepot_journal (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('entrepot_journal_id_seq'::regclass) NOT NULL,
   entrepot_id text NOT NULL,
   horodatage timestamp with time zone DEFAULT now() NOT NULL,
   jour date DEFAULT ((now() AT TIME ZONE 'utc'::text))::date NOT NULL,
@@ -242,6 +289,19 @@ CREATE TABLE public.entreprises_constantes (
 CREATE TABLE public.entreprises_prix_rachat (
   batiment text NOT NULL,
   prix numeric NOT NULL
+);
+
+CREATE TABLE public.hotel_nuitees (
+  id uuid DEFAULT gen_random_uuid() NOT NULL,
+  personnage_id uuid NOT NULL,
+  country text NOT NULL,
+  city text NOT NULL,
+  building_id text NOT NULL,
+  pa_bonus integer NOT NULL,
+  moral_bonus integer NOT NULL,
+  reference text DEFAULT (gen_random_uuid())::text NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL,
+  consommee_le date
 );
 
 CREATE TABLE public.imprimeries_declarees (
@@ -378,7 +438,8 @@ CREATE TABLE public.recettes_commerce (
   famille_produit_marche text,
   bonus_integration_ville text,
   generique_id text,
-  label_forme text
+  label_forme text,
+  intermediaires jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 CREATE TABLE public.recettes_production (
@@ -388,6 +449,12 @@ CREATE TABLE public.recettes_production (
   pays text DEFAULT ''::text NOT NULL,
   materiaux jsonb DEFAULT '{}'::jsonb NOT NULL,
   generique_id text
+);
+
+CREATE TABLE public.recoltes_journalieres (
+  nom text NOT NULL,
+  jour date NOT NULL,
+  nb integer DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE public.ressources_economie (
@@ -437,5 +504,11 @@ CREATE TABLE public.ventes_snapshots (
   quantite integer NOT NULL,
   prix_unitaire integer NOT NULL,
   montant_total integer NOT NULL,
-  fiche_officielle jsonb NOT NULL
+  fiche_officielle jsonb NOT NULL,
+  journal_titulaire uuid,
+  journal_enseigne text
 );
+
+ALTER SEQUENCE public."catalogue_correspondance_legacy_id_seq" OWNED BY public."catalogue_correspondance_legacy"."id";
+
+ALTER SEQUENCE public."entrepot_journal_id_seq" OWNED BY public."entrepot_journal"."id";

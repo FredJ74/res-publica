@@ -10,6 +10,26 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- militaire_camps_hostiles(bigint,text) -> text[] | sql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.militaire_camps_hostiles(p_bataille_id bigint, p_camp text)
+ RETURNS text[]
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  SELECT coalesce(array_agg(DISTINCT e.camp), '{}')
+    FROM public.batailles_engagements e
+   WHERE e.bataille_id = p_bataille_id
+     AND e.sorti_round IS NULL
+     AND e.camp IS DISTINCT FROM p_camp
+     AND ( EXISTS (SELECT 1 FROM public.guerres g
+                    WHERE g.statut = 'active'
+                      AND ((g.data->>'attaquant' = p_camp AND g.data->>'attaque'  = e.camp)
+                        OR (g.data->>'attaque'  = p_camp AND g.data->>'attaquant' = e.camp)))
+        OR ( public.mutinerie_pays_du_camp(p_camp) = public.mutinerie_pays_du_camp(e.camp)
+             AND (public.mutinerie_est_camp(p_camp) OR public.mutinerie_est_camp(e.camp)) ) );
+$function$;
+
 -- militaire_candidater_soldat(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_candidater_soldat(p_compagnie_id text, p_section_id text)
  RETURNS jsonb
@@ -19,7 +39,7 @@ CREATE OR REPLACE FUNCTION public.militaire_candidater_soldat(p_compagnie_id tex
 AS $function$
 DECLARE
   v_moi text; v_pays text; v_bat text; v_poste text;
-  v_data jsonb; v_sec jsonb; v_id text;
+  v_data jsonb; v_sec jsonb; v_id text; v_paie jsonb;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
@@ -58,6 +78,9 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'candidature_en_cours');
   END IF;
 
+  -- 1 PA par candidature (Fred, 25/10/2026), preleve en dernier : un refus ne coute rien.
+  v_paie := public.payer_ordre(v_moi, 's_engager_armee', 1, 0);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
   v_id := 'engsold-' || replace(gen_random_uuid()::text, '-', '');
   INSERT INTO public.engagements_militaires (id, statut, data)
   VALUES (v_id, 'soldat_attente_lieutenant', jsonb_build_object(
@@ -65,7 +88,7 @@ BEGIN
     'compagnieId', p_compagnie_id, 'sectionId', p_section_id,
     'lieutenantNom', v_sec->>'lieutenantNom', 'depuis', to_jsonb(now())));
 
-  RETURN jsonb_build_object('ok', true, 'engagement', v_id,
+  RETURN jsonb_build_object('ok', true, 'pa', v_paie -> 'pa', 'engagement', v_id,
                             'lieutenant', v_sec->>'lieutenantNom');
 END; $function$;
 
@@ -155,7 +178,9 @@ BEGIN
   SELECT coalesce(country,'republic'), coalesce(current_building,'')
     INTO v_pays, v_bat FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
   IF v_pays IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'personnage_introuvable'); END IF;
-  IF v_bat <> 'caserne-militaire' THEN
+  -- Bureau de l'Emploi (25/10/2026, decision de Fred) : on peut y postuler comme officier.
+  IF v_bat <> 'caserne-militaire'
+     AND NOT (p_grade IN ('capitaine','lieutenant') AND v_bat IN ('bureau-national-emploi','centre-affaires')) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place');
   END IF;
 
@@ -169,7 +194,7 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'candidature_deja_active', 'grade', p_grade);
   END IF;
 
-  v_paie := public.payer_ordre(v_moi, 's_engager_armee', 2, 0);
+  v_paie := public.payer_ordre(v_moi, 's_engager_armee', 1, 0);
   IF coalesce((v_paie->>'ok')::boolean, false) IS NOT TRUE THEN
     RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paie->>'raison','paiement_refuse'));
   END IF;
@@ -179,7 +204,7 @@ BEGIN
   VALUES (v_id, v_pays, v_moi, p_grade, now());
 
   RETURN jsonb_build_object('ok', true, 'id', v_id, 'grade', p_grade,
-                            'pa', v_paie->'pa', 'pa_preleves', 2);
+                            'pa', v_paie->'pa', 'pa_preleves', 1);
 END;
 $function$;
 
@@ -3037,38 +3062,4 @@ BEGIN
 
   RETURN jsonb_build_object('ok', true, 'motif', v_par, 'nom', p_nom,
     'effectif', v_apres, 'places_libres', 24 - v_apres);
-END; $function$;
-
--- militaire_soldat_supprimer(text,text,text) -> void | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.militaire_soldat_supprimer(p_compagnie_id text, p_section_id text, p_matricule text)
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE v_data jsonb; v_sec jsonb; v_sols jsonb; v_pnj text;
-BEGIN
-  SELECT data INTO v_data FROM public.compagnies_militaires WHERE id = p_compagnie_id FOR UPDATE;
-  IF v_data IS NULL THEN RETURN; END IF;
-  SELECT s INTO v_sec FROM jsonb_array_elements(coalesce(v_data->'sections','[]'::jsonb)) s
-   WHERE s->>'id' = p_section_id;
-  IF v_sec IS NULL THEN RETURN; END IF;
-
-  -- LE CYCLE DE MORT D'ABORD, LE RETRAIT DU BLOB ENSUITE. Dans cet ordre seulement : apres le
-  -- retrait, le declencheur miroir aurait deja supprime la ligne du socle et il n'y aurait plus
-  -- ni possessions a poser au sol ni proprietaire a prevenir.
-  v_pnj := p_compagnie_id || '-' || p_matricule;
-  IF EXISTS (SELECT 1 FROM public.pnj_membres WHERE id = v_pnj) THEN
-    PERFORM public.pnj_mourir(v_pnj, 'degats');
-  END IF;
-
-  SELECT coalesce(jsonb_agg(sol ORDER BY pos), '[]'::jsonb) INTO v_sols
-    FROM jsonb_array_elements(
-      CASE WHEN jsonb_typeof(v_sec->'soldats')='array' THEN v_sec->'soldats' ELSE '[]'::jsonb END)
-      WITH ORDINALITY AS t(sol, pos)
-   WHERE sol->>'matricule' IS DISTINCT FROM p_matricule;
-  UPDATE public.compagnies_militaires
-     SET data = public.militaire_sections_remplacer(v_data, p_section_id,
-                  v_sec || jsonb_build_object('soldats', v_sols))
-   WHERE id = p_compagnie_id;
 END; $function$;

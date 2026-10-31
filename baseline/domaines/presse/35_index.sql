@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 19 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 26 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   calomnies_actes_pkey  (contrainte calomnies_actes_pkey)
 --   chronique_nationale_pkey  (contrainte chronique_nationale_pkey)
 --   corruptions_presse_affaire_ref_corrupteur_key  (contrainte corruptions_presse_affaire_ref_corrupteur_key)
@@ -23,12 +23,19 @@
 --   journal_articles_en_attente_pkey  (contrainte journal_articles_en_attente_pkey)
 --   journal_editions_journal_date_unique  (contrainte journal_editions_journal_date_unique)
 --   journal_editions_pkey  (contrainte journal_editions_pkey)
+--   journal_ventes_lectures_pkey  (contrainte journal_ventes_lectures_pkey)
 --   journaux_pkey  (contrainte journaux_pkey)
 --   journaux_redacteurs_pkey  (contrainte journaux_redacteurs_pkey)
 --   petites_annonces_pkey  (contrainte petites_annonces_pkey)
 --   presse_membres_pkey  (contrainte presse_membres_pkey)
+--   publicites_premium_presse_paiement_reference_key  (contrainte publicites_premium_presse_paiement_reference_key)
+--   publicites_premium_presse_pkey  (contrainte publicites_premium_presse_pkey)
+--   publicites_premium_sources_pkey  (contrainte publicites_premium_sources_pkey)
+--   scandales_predefinis_pkey  (contrainte scandales_predefinis_pkey)
 --   scandales_presse_pkey  (contrainte scandales_presse_pkey)
 --   scandales_tentatives_pkey  (contrainte scandales_tentatives_pkey)
+--   scandales_tirages_pkey  (contrainte scandales_tirages_pkey)
+--   tracts_pnj_catalogue_pkey  (contrainte tracts_pnj_catalogue_pkey)
 --   tribune_articles_etouffes_pkey  (contrainte tribune_articles_etouffes_pkey)
 
 -- Index autonomes :
@@ -38,6 +45,8 @@ CREATE UNIQUE INDEX chronique_nationale_une_proclamation_par_scrutin ON public.c
 CREATE INDEX corruptions_presse_affaire ON public.corruptions_presse USING btree (affaire_ref) WHERE reussite;
 CREATE INDEX fuites_journalistiques_cible ON public.fuites_journalistiques USING btree (cible, cree_le DESC);
 CREATE INDEX idx_journal_articles_en_attente_country ON public.journal_articles_en_attente USING btree (country) WHERE (integree_le IS NULL);
+CREATE INDEX idx_publicites_premium_acheteur ON public.publicites_premium_presse USING btree (acheteur_user_id, cree_le DESC);
+CREATE INDEX idx_publicites_premium_parution ON public.publicites_premium_presse USING btree (pays, journal_id, premiere_parution, derniere_parution) WHERE (etat = ANY (ARRAY['programmee'::text, 'terminee'::text]));
 CREATE INDEX interviews_jodie_personnage_idx ON public.interviews_jodie USING btree (personnage, created_at DESC);
 CREATE INDEX journal_editions_par_journal ON public.journal_editions USING btree (journal_id, date_edition);
 CREATE INDEX journaux_par_groupe ON public.journaux USING btree (groupe_id);

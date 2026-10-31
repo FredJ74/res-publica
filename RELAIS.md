@@ -823,3 +823,11 @@ Rapport courant `outils/audits/REPRISE-219-MAIN280-20261031.md`, preuves sous `p
 ### #219 — relais canonique complet reçu, #281 conservée (31/10)
 
 Reprise sur `13bd120a`. Commentaire de relais 6542866046 lu ; quatorze fragments récupérés hors Git, sans publier leurs identifiants. Snapshot annoncé 345374:345374:, coupe UTC 2026-10-31 11:35:45.899473 et registre 1003 à vérifier intégralement. Main #281 intégré, y compris genre contrôlé serveur à la création, contexte PNJ et conférence, sans recréer la migration appliquée. Plus aucun export demandé à Fred ; poursuivre reconstruction, réconciliation et tests. Aucune production ni fusion de #219.
+
+### #219 — reconstruction canonique et première installation réelle locale (31/10, EN COURS)
+
+Relais complet validé hors dépôt (14 fragments, snapshot UTC 11:35:45, registre 1003), main #281 intégré dans 2175f16a. PostgreSQL **17.6 natif** : baseline rendu par les générateurs, 1199 fonctions recompilées, 10913 ordres avec seeds, comparaison sans écart dans le périmètre déclaré (371 tables publiques, cinq exclues documentées ; plateforme hors périmètre). Dix captures de seeds ajoutées ; provenance des 82 tables anciennes conservée, aucune prétendue réextraction. 33 tests outillage passent, dont rangs des colonnes supprimées, fermeture PUBLIC EXECUTE et contre-épreuve sur les bornes CHECK.
+
+Les 88 préparations non appliquées sont rehorodatées après la nouvelle coupe, correspondance versionnée. Défaut réel de paiement corrigé : adaptation du corps examiné actuel, préservant les verrous acquisitions/permis et les fonds en transit. **Première installation atomique des 88 réussie sur cette copie locale**, après installation EXPLICITE du prérequis #233 (présent sur main, mais absent du registre et du catalogue reçus). Ce prérequis n'est pas déclaré déployé. Rapport local /tmp/hg219-lot-fidele-nouveau.json.
+
+Ce n'est PAS la clôture : poursuivre recette sur schéma complet, bancs/contre-épreuves, classement des migrations déjà appliquées, contrôles globaux et cohérence des référentiels. Pas de production, pas de fusion, pas de Vercel, pas de compte réel utilisé. Les exports et identifiants des fragments restent privés hors Git.

@@ -10,6 +10,10 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."elections_tracts_pnj_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."presidence_memoire_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
 CREATE TABLE public.candidatures (
   id text NOT NULL,
   country text,
@@ -31,6 +35,11 @@ CREATE TABLE public.communications_salles (
   libelle text NOT NULL,
   note text,
   ordres text[] DEFAULT ARRAY[]::text[] NOT NULL
+);
+
+CREATE TABLE public.conferences_jours (
+  acteur text NOT NULL,
+  jour date NOT NULL
 );
 
 CREATE TABLE public.conferences_presse (
@@ -79,7 +88,7 @@ CREATE TABLE public.demandes_manifestation (
 );
 
 CREATE TABLE public.elections_tracts_pnj (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('elections_tracts_pnj_id_seq'::regclass) NOT NULL,
   cycle_id text NOT NULL,
   tour bigint NOT NULL,
   pnj_cle text NOT NULL,
@@ -154,7 +163,7 @@ CREATE TABLE public.militants_recrutes (
 );
 
 CREATE TABLE public.presidence_memoire (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('presidence_memoire_id_seq'::regclass) NOT NULL,
   pays text NOT NULL,
   president text NOT NULL,
   mandat_depuis timestamp with time zone NOT NULL,
@@ -232,3 +241,7 @@ CREATE TABLE public.votes_electoraux (
   city text,
   tour bigint
 );
+
+ALTER SEQUENCE public."elections_tracts_pnj_id_seq" OWNED BY public."elections_tracts_pnj"."id";
+
+ALTER SEQUENCE public."presidence_memoire_id_seq" OWNED BY public."presidence_memoire"."id";

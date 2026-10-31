@@ -1,5 +1,5 @@
 -- #219 NON APPLIQUEE. Fred : cinq rounds sans désengagement volontaire ; chef seul.
--- Dépend de 20261030223540 et 20261030223541. Aucun nouveau moteur/jet/horloge.
+-- Dépend de 20261031115835 et 20261031115836. Aucun nouveau moteur/jet/horloge.
 CREATE OR REPLACE FUNCTION public.combat_desengagement_autorise_interne(p_round integer,p_engage boolean)
 RETURNS boolean LANGUAGE sql IMMUTABLE SET search_path TO public,pg_temp AS $g$
  SELECT coalesce(NOT p_engage OR p_round>=5,false);

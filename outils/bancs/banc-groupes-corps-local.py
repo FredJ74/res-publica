@@ -25,17 +25,17 @@ def extension(ctx, suite=None):
  q.execute("INSERT INTO compagnies_militaires VALUES('cie','{\"pays\":\"republic\",\"autre\":99,\"sections\":[{\"id\":\"cie-s1\",\"lieutenantNom\":\"A\",\"soldats\":[{\"matricule\":\"S1\",\"ville\":\"capitale\",\"buildingId\":\"mairie\",\"roomId\":\"accueil\",\"pa\":12},{\"matricule\":\"S2\",\"ville\":\"capitale\",\"buildingId\":\"mairie\",\"roomId\":\"accueil\",\"pa\":12},{\"matricule\":\"S3\",\"ville\":\"capitale\",\"buildingId\":\"mairie\",\"roomId\":\"accueil\",\"pa\":12},{\"matricule\":\"S4\",\"ville\":\"capitale\",\"buildingId\":\"mairie\",\"roomId\":\"accueil\",\"pa\":12}]}],\"reserve\":[]}')")
  # Déploiement commun réellement présent dans #216 ; même garde de hiérarchie.
  q.execute(a.fonction(a.M,'pnj_deployer_unite'))
- nouveau=(R/'migrations/20261028161732_groupes_soldats_projection_commune.sql').read_text()
+ nouveau=(R/'migrations/20261031115746_groupes_soldats_projection_commune.sql').read_text()
  q.execute(a.fonction('baseline/domaines/socle-PNJ/20_fonctions.sql','pnj_membres_ici'))
  if '--contre-soldats' not in sys.argv:
   q.execute(nouveau);q.execute(nouveau)
-  cap=(R/'migrations/20261028163800_groupes_capacite_conduite_serveur.sql').read_text();q.execute(cap);q.execute(cap)
+  cap=(R/'migrations/20261031115747_groupes_capacite_conduite_serveur.sql').read_text();q.execute(cap);q.execute(cap)
  q.execute(a.fonction('baseline/domaines/militaire/20_fonctions-2.sql','militaire_section_de_moi'))
  for nom in ['militaire_deposer_soldats','militaire_recuperer_soldats']:
   q.execute(a.fonction('baseline/domaines/militaire/20_fonctions-2.sql',nom))
  q.execute(a.fonction('baseline/domaines/militaire/20_fonctions-1.sql','militaire_affecter_leader'))
  if '--contre-soldats' not in sys.argv:
-  adapt=(R/'migrations/20261028164500_groupes_ordres_militaires_adaptateurs.sql').read_text();q.execute(adapt);q.execute(adapt)
+  adapt=(R/'migrations/20261031115748_groupes_ordres_militaires_adaptateurs.sql').read_text();q.execute(adapt);q.execute(adapt)
  # Seul le décor et le DDL fictifs sont committés pour les deux connexions.
  ctx['c'].commit()
  ids=['cie-S1','cie-S2','cie-S3','cie-S4']
@@ -174,7 +174,7 @@ def extension(ctx, suite=None):
   q.execute(a.fonction('baseline/domaines/militaire/20_fonctions-3.sql',nom))
  q.execute(a.fonction('baseline/domaines/militaire/20_fonctions-1.sql','militaire_bataille_engager'))
  if '--contre-soldats' not in sys.argv:
-  patch=(R/'migrations/20261028165000_groupes_bataille_pays_adverse.sql').read_text();q.execute(patch);q.execute(patch)
+  patch=(R/'migrations/20261031115749_groupes_bataille_pays_adverse.sql').read_text();q.execute(patch);q.execute(patch)
  cas('porte_bataille_sans_ennemi_refuse_sans_erreur_alias_ni_mutation',lambda:exige(rpc('militaire_bataille_engager'),'aucun_ennemi_ici'))
  cas('porte_bataille_conserve_refus_non_militaire',lambda:exige(rpc('militaire_bataille_engager',qui='C'),'pas_militaire'))
  def derive_refusee():
@@ -182,7 +182,7 @@ def extension(ctx, suite=None):
   ancien=q.fetchone()[0];q.execute(ancien.replace('BEGIN','BEGIN\n -- definition modifiee de fixture',1))
   q.execute('SAVEPOINT derive')
   try:
-   q.execute((R/'migrations/20261028164500_groupes_ordres_militaires_adaptateurs.sql').read_text())
+   q.execute((R/'migrations/20261031115748_groupes_ordres_militaires_adaptateurs.sql').read_text())
    raise AssertionError('ancienne porte inconnue remplacee')
   except Exception as e:
    assert 'ordre_militaire_definition_non_examinee' in str(e),e

@@ -8,13 +8,13 @@ R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('police_native',R/'outils/bancs/banc-groupes-police-native-local.py');p=importlib.util.module_from_spec(sp);sp.loader.exec_module(p)
 def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
- selection=R/'migrations/20261029110000_groupes_recrutement_combattants.sql'
- garde=R/'migrations/20261029110100_groupes_composition_sous_confrontation.sql'
- militaire=R/'migrations/20261029110200_militaire_recrutement_presence_et_etat.sql'
+ selection=R/'migrations/20261031115819_groupes_recrutement_combattants.sql'
+ garde=R/'migrations/20261031115820_groupes_composition_sous_confrontation.sql'
+ militaire=R/'migrations/20261031115821_militaire_recrutement_presence_et_etat.sql'
  q.execute(selection.read_text())
  if '--contre-composition' not in sys.argv:q.execute(garde.read_text());q.execute(garde.read_text())
  if '--contre-recrutement-militaire' not in sys.argv:q.execute(militaire.read_text());q.execute(militaire.read_text())
- if '--contre-etat-police' not in sys.argv:q.execute((R/'migrations/20261029110300_police_combattant_etat_canonique.sql').read_text())
+ if '--contre-etat-police' not in sys.argv:q.execute((R/'migrations/20261031115822_police_combattant_etat_canonique.sql').read_text())
  ctx['c'].commit()
  def liste():
   q.execute("SELECT cle,pa FROM groupe_combattants_interne('B')")

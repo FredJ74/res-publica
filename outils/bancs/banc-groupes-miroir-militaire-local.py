@@ -11,7 +11,7 @@ sp=importlib.util.spec_from_file_location('transports',R/'outils/bancs/banc-grou
 def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
  ctx['installer_fonction_canonique']('militaire_soldat_supprimer')
- migration=R/'migrations/20261029130000_militaire_miroir_et_ecrivains_historiques.sql'
+ migration=R/'migrations/20261031115830_militaire_miroir_et_ecrivains_historiques.sql'
  if '--contre-miroir-militaire' not in sys.argv:q.execute(migration.read_text());q.execute(migration.read_text())
  ctx['c'].commit()
  def photo():

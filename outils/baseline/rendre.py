@@ -234,8 +234,23 @@ def phase_tables(objets, man, exp):
            for x in sorted(objets.get("sequences", []), key=lambda x:x["sequence"]) if x.get("lien") != "i"]
     for tbl in sorted(par_table):
         cols = sorted(par_table[tbl], key=lambda c: c["attnum"])
-        corps = ",\n  ".join(rendre_colonne(c, seq_par_col) for c in cols)
+        # Les attributs supprimés laissent des trous dans attnum. Les conserver
+        # est indispensable aux empreintes et aux objets dépendants du catalogue.
+        # Aucun contenu supprimé n'est reconstitué : seulement des emplacements.
+        presentes = {c['attnum']: c for c in cols}
+        reservees = {c['attname'] for c in cols}
+        trous = {}
+        for rang in range(1, max(presentes, default=0) + 1):
+            if rang not in presentes:
+                nom = '__baseline_attribut_supprime_' + str(rang)
+                while nom in reservees: nom += '_'
+                reservees.add(nom); trous[rang] = nom
+        corps = ",\n  ".join(rendre_colonne(presentes[r], seq_par_col) if r in presentes
+                            else identifiant(trous[r]) + ' integer'
+                            for r in range(1, max(presentes, default=0) + 1))
         out.append("CREATE TABLE public.%s (\n  %s\n);" % (tbl, corps))
+        for nom in trous.values():
+            out.append('ALTER TABLE public.%s DROP COLUMN %s;' % (identifiant(tbl), identifiant(nom)))
         man["tables"].append({
             "nom": tbl, "colonnes": len(cols),
             # Empreinte des FAITS du catalogue, meme formule que CONTROLE_GLOBAL.
@@ -397,6 +412,10 @@ def phase_rls(objets, man, exp):
 
 def phase_droits(objets, man, exp):
     out, courant = [], None
+    # CREATE FUNCTION accorde nativement EXECUTE à PUBLIC. Rejouer seulement
+    # les GRANT du catalogue ouvrirait des RPC que la source a fermées.
+    for signature in sorted({d['objet'] for d in objets['droits'] if d['genre'] == 'FUNCTION'}):
+        out.append('REVOKE ALL ON FUNCTION public.%s FROM PUBLIC;' % signature)
     for d in sorted(objets["droits"], key=lambda x: (x["genre"], x["objet"], x["beneficiaire"])):
         if d["genre"] != courant:
             out.append("\n-- DROITS SUR LES %sS" % d["genre"])

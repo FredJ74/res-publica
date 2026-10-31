@@ -1,5 +1,5 @@
 -- #219 NON APPLIQUÉE. Étend le détecteur commun, pas de second jet navigateur.
--- Dépend de 20261029123000. Installer avec 220100 et le client correspondant.
+-- Dépend de 20261031115827. Installer avec 220100 et le client correspondant.
 ALTER TABLE public.police_interceptions ADD COLUMN IF NOT EXISTS nature text NOT NULL DEFAULT 'judiciaire';
 ALTER TABLE public.police_interceptions ADD COLUMN IF NOT EXISTS controle jsonb;
 DO $adapter$

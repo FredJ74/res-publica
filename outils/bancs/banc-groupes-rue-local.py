@@ -25,7 +25,7 @@ def suite(ctx, suivante=None):
   q.execute("SELECT md5(prosrc) FROM pg_proc WHERE oid='rue_position_enregistrer(text)'::regprocedure");assert q.fetchone()[0]=='e84a0ba5b5a4760414873b269c3cba4a'
  else:q.execute(source['sql'])
  q.execute("SELECT md5(pg_get_functiondef('rue_position_enregistrer(text)'::regprocedure))");assert q.fetchone()[0]==source['fonction'][1]
- migration=(R/'migrations/20261028183000_groupes_rue_transaction_commune.sql').read_text()
+ migration=(R/'migrations/20261031115752_groupes_rue_transaction_commune.sql').read_text()
  def derive_refusee():
   q.execute("ALTER FUNCTION rue_position_enregistrer(text) SET search_path TO public")
   q.execute('SAVEPOINT derive')

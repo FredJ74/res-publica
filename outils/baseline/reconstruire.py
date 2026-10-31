@@ -81,14 +81,25 @@ def assembler():
         d = os.path.basename(os.path.dirname(chemin))
         mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
 
-    morceaux = []
+    morceaux, fk_differees = [], []
     for phase in PHASES:
         for d in sorted(mans):
             man, rep = mans[d]
             for nom in man["ordre"]:
                 if nom.startswith(phase):
                     chemin = os.path.join(rep, nom)
-                    morceaux.append(("%s/%s" % (d, nom), open(chemin, encoding="utf-8").read()))
+                    texte = open(chemin, encoding="utf-8").read()
+                    origine = "%s/%s" % (d, nom)
+                    if phase == '30_contraintes':
+                        # Une FK peut viser un index UNIQUE autonome (phase 35),
+                        # pas seulement une contrainte UNIQUE/PK de phase 30.
+                        for stmt, sql in decouper(texte):
+                            fk = type(stmt).__name__ == 'AlterTableStmt' and any(getattr(getattr(c, 'def_', None), 'pktable', None) is not None for c in stmt.cmds)
+                            (fk_differees if fk else morceaux).append((origine, sql))
+                    else:
+                        morceaux.append((origine, texte))
+        if phase == '35_index':
+            morceaux.extend(fk_differees)
     graines = []
     for lot in LOTS_SEEDS:
         for chemin in sorted(glob.glob(os.path.join(SEEDS, lot, "*.sql"))):

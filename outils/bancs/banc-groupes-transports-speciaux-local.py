@@ -6,8 +6,8 @@ R=Path(__file__).resolve().parents[2]
 sp=importlib.util.spec_from_file_location('collectif',R/'outils/bancs/banc-groupes-interception-collective-local.py');c=importlib.util.module_from_spec(sp);sp.loader.exec_module(c)
 def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']]
- q.execute((R/'migrations/20261029125000_transport_taxis_speciaux_communs.sql').read_text())
- q.execute((R/'migrations/20261029125000_transport_taxis_speciaux_communs.sql').read_text())
+ q.execute((R/'migrations/20261031115829_transport_taxis_speciaux_communs.sql').read_text())
+ q.execute((R/'migrations/20261031115829_transport_taxis_speciaux_communs.sql').read_text())
  ctx['c'].commit()
  req=lambda n:f'00000000-0000-4000-8000-{n:012d}'
  def depart():
