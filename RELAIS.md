@@ -214,3 +214,5 @@ Main `c44f5c40` intégré sans perdre les publications de Claude ni les étapes 
 ### #219 — preuves complémentaires et garde financière à transmettre (31/10)
 
 Rapport courant : `outils/audits/COMPLEMENTS-LIVRAISON-219-20261031.md`. **45/45 commandes Python, 154/154 bancs clients, 105/105 pilote, 379/379 groupes, six mutants détectés**. Globaux **10/12**. Garde Node de push exécutée explicitement : **13/14** après réparation des chemins archivés ; deux préparations immobilières hors des 95 contiennent encore des écritures par la vue protégée (113610 et 113631), à reprendre avec Claude avant activation ; test non désactivé. Prévol actualisé 1008 et recette authentifiée toujours absents. Ne pas déclarer le lot prêt en production sur la seule CI de PR. Aucune production modifiée.
+
+Précision de preuve : sortie détaillée des 14 assertions Node obtenue avec les sous-processus locaux autorisés (13 réussies, 1 refus de sécurité conservé). Sur le SHA `971cf43e`, cinq workflows distants déjà réussis, Cohérence encore en cours lors de la lecture ; ne pas convertir cette attente en succès. La preuve CI du dernier SHA doit être relue après ce complément documentaire.
