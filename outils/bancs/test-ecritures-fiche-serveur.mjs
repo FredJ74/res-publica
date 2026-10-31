@@ -40,8 +40,8 @@ test('aucune migration récente n\'écrit la fiche par la vue de l\'écran', () 
 });
 
 test('les correctifs du 30/10 sont présents', () => {
-  const m210 = readFileSync(new URL('20261030210000_argent_fonctions_serveur_table.sql', DOSSIER), 'utf8');
-  const m211 = readFileSync(new URL('20261030211000_fiche_vue_refus_bruyant.sql', DOSSIER), 'utf8');
+  const m210 = readFileSync(new URL('../../historique/migrations-appliquees/20261030210000_argent_fonctions_serveur_table.sql', import.meta.url), 'utf8');
+  const m211 = readFileSync(new URL('../../historique/migrations-appliquees/20261030211000_fiche_vue_refus_bruyant.sql', import.meta.url), 'utf8');
   assert.match(m210, /'UPDATE public\.personnages_donnees'/);
   assert.equal((m210.match(/^    \('public\./gm) || []).length, 19);
   assert.match(m211, /request\.path', true\), ''\) LIKE '\/rpc\/%'/);

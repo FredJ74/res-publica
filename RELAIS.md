@@ -210,3 +210,7 @@ Composition **95 versions (5 + prérequis et 88 + tarifs)** préparée dans une 
 ### #219 — main #297 intégré, garde de rejeu corrigée (31/10)
 
 Main `c44f5c40` intégré sans perdre les publications de Claude ni les étapes CI. La passe des 45 commandes Python a détecté un refus du propre rejeu de la migration événements après modification de sa garde de paiement. Garde limitée aux deux corps examinés (ancien et nouveau), corps tiers toujours refusé ; contre-épreuve ajoutée. Les 27 scénarios événements, 36 du paquet organisations et 44 d’outillage passent après correction sur PostgreSQL 17.6. Pas de modification de référence pour masquer Authority ou Referential ; prévol 1008 toujours nécessaire.
+
+### #219 — preuves complémentaires et garde financière à transmettre (31/10)
+
+Rapport courant : `outils/audits/COMPLEMENTS-LIVRAISON-219-20261031.md`. **45/45 commandes Python, 154/154 bancs clients, 105/105 pilote, 379/379 groupes, six mutants détectés**. Globaux **10/12**. Garde Node de push exécutée explicitement : **13/14** après réparation des chemins archivés ; deux préparations immobilières hors des 95 contiennent encore des écritures par la vue protégée (113610 et 113631), à reprendre avec Claude avant activation ; test non désactivé. Prévol actualisé 1008 et recette authentifiée toujours absents. Ne pas déclarer le lot prêt en production sur la seule CI de PR. Aucune production modifiée.
