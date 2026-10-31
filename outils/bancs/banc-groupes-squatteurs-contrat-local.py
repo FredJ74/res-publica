@@ -14,7 +14,7 @@ def suite(ctx,suivante=None):
  ctx['installer_fonction_canonique']('terrain_etat_fusionner_interne')
  q.execute('ALTER TABLE personnages_donnees ADD COLUMN IF NOT EXISTS historique_crimes jsonb')
  q.execute(a.fonction('historique/migrations-appliquees/20261027110000_crimes_socle_serveur.sql','crime_tracer_interne'))
- src=(R/'migrations/20261031113630_acquisitions_capacites_et_gardes.sql').read_text()
+ src=a.chemin_source('migrations/20261031113630_acquisitions_capacites_et_gardes.sql').read_text()
  q.execute(re.search(r'CREATE TABLE IF NOT EXISTS public.terrain_acquisitions_recus.*?;',src,re.S)[0])
  q.execute((R/'migrations/20261031113650_squatteurs_issue_combat.sql').read_text())
  q.execute((R/'migrations/20261031115836_squatteurs_issue_reelle_bataille.sql').read_text())
