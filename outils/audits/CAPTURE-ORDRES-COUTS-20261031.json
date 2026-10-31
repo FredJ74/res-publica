@@ -1,0 +1,2196 @@
+{
+  "snapshot": "346064:346064:",
+  "releve_utc": "2026-10-31T17:18:48.876502+00:00",
+  "ordres_couts": [
+    {
+      "fn": "acheter_accessoire_personnalise",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "acheter_armoire_souvenirs",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "acheter_bombe_illegale",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "acheter_bombe_illegale#reussite",
+      "pa": 0,
+      "cost": 1200
+    },
+    {
+      "fn": "acheter_criee",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "acheter_criee",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "acheter_ghb",
+      "pa": 0,
+      "cost": 300
+    },
+    {
+      "fn": "acheter_ghb",
+      "pa": 1,
+      "cost": 300
+    },
+    {
+      "fn": "acheter_gilet",
+      "pa": 0,
+      "cost": 380
+    },
+    {
+      "fn": "acheter_gilet",
+      "pa": 0,
+      "cost": 600
+    },
+    {
+      "fn": "acheter_gilet",
+      "pa": 1,
+      "cost": 600
+    },
+    {
+      "fn": "acheter_parapluie",
+      "pa": 0,
+      "cost": 400
+    },
+    {
+      "fn": "acheter_polonium",
+      "pa": 2,
+      "cost": 600
+    },
+    {
+      "fn": "acheter_relique",
+      "pa": 0,
+      "cost": 500
+    },
+    {
+      "fn": "acheter_relique",
+      "pa": 1,
+      "cost": 500
+    },
+    {
+      "fn": "acheter_ressources_entrepot",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "acheter_ressources_entrepot",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "acheter_sels_ammoniaque",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 3500
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 18000
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 21600
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 22200
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 25000
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 25800
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 26400
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 27600
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 30000
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 33000
+    },
+    {
+      "fn": "acheter_terrain",
+      "pa": 2,
+      "cost": 36000
+    },
+    {
+      "fn": "acheter_vipere",
+      "pa": 0,
+      "cost": 350
+    },
+    {
+      "fn": "acheter_vipere",
+      "pa": 1,
+      "cost": 350
+    },
+    {
+      "fn": "acte_officiel",
+      "pa": 1,
+      "cost": 50
+    },
+    {
+      "fn": "acte_officiel_juge",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "acte_officiel_mairie",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "acte_officiel_notaire",
+      "pa": 1,
+      "cost": 100
+    },
+    {
+      "fn": "acte_rachat_entreprise_preemption",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "activer_cessez_le_feu",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "adresse_a_la_nation",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "aller_douanes_aeroport",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "amender_projet",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "annuler_non_renouvellement_licence",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "appeler_police_terrain",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "archives",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "archives_police",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "arreter",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "article",
+      "pa": 1,
+      "cost": 500
+    },
+    {
+      "fn": "assigner_mission",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "banquet_diplo",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "banquet_diplo",
+      "pa": 3,
+      "cost": 2000
+    },
+    {
+      "fn": "blanchiment",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "blocus_portuaire",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "bne_caisse_prelever",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "bne_passer_annonce",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "bne_passer_annonce_presse",
+      "pa": 1,
+      "cost": 30
+    },
+    {
+      "fn": "boire_verre",
+      "pa": 0,
+      "cost": 50
+    },
+    {
+      "fn": "bourrer_urnes",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "calendrier_elections",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "campagne_securite",
+      "pa": 2,
+      "cost": 500
+    },
+    {
+      "fn": "casier_extrait_enquete",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "casier_mon_extrait",
+      "pa": 1,
+      "cost": 100
+    },
+    {
+      "fn": "censurer_media",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "centre_anti_poison",
+      "pa": 1,
+      "cost": 60
+    },
+    {
+      "fn": "centre_anti_poison",
+      "pa": 1,
+      "cost": 150
+    },
+    {
+      "fn": "choisir_accessoire_club",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "choisir_accessoire_club",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "choisir_arme",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "choisir_arme",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "choisir_suite",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "commanditer_sondage",
+      "pa": 1,
+      "cost": 200
+    },
+    {
+      "fn": "compte_offshore",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "conference_presse",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "conseil_entraineur_adjoint",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consommer_buvette",
+      "pa": 1,
+      "cost": 50
+    },
+    {
+      "fn": "construire_sur_terrain",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_administration_port",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_archives_notariales",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_archives_presse",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_budget_club",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_bureau_president",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_caisse_usine",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_carte_commerce",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_carte_commerce",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_classement_joueurs_club",
+      "pa": 0,
+      "cost": 75
+    },
+    {
+      "fn": "consulter_dossier_notarial",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_dossiers_gouv",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_dossiers_urbanisme",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_effectifs_douane",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_elections",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_etat_civil",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_faits_armes",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_indices_locaux",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_info_4",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_lobbyiste",
+      "pa": 1,
+      "cost": 150
+    },
+    {
+      "fn": "consulter_mandats_maires",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_manifeste",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_offres_emploi",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_organigramme_mairie",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_organigramme_supporters",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_organigramme_syndicat",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_palmares",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_personnalites_musee",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_registre_armes",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_stock_usine",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "contester_resultats",
+      "pa": 2,
+      "cost": 200
+    },
+    {
+      "fn": "contrebande_port",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "controler_caisse_douane",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "corrompre_chantier",
+      "pa": 2,
+      "cost": 1500
+    },
+    {
+      "fn": "corrompre_douanier",
+      "pa": 1,
+      "cost": 300
+    },
+    {
+      "fn": "corrompre_fonct",
+      "pa": 2,
+      "cost": 200
+    },
+    {
+      "fn": "corrompre_fonct",
+      "pa": 3,
+      "cost": 500
+    },
+    {
+      "fn": "corrompre_fonct",
+      "pa": 3,
+      "cost": 1500
+    },
+    {
+      "fn": "corrompre_fonct#reussite",
+      "pa": 0,
+      "cost": 200
+    },
+    {
+      "fn": "corrompre_fonct#reussite",
+      "pa": 0,
+      "cost": 500
+    },
+    {
+      "fn": "corrompre_fonct#reussite",
+      "pa": 0,
+      "cost": 1500
+    },
+    {
+      "fn": "corrompre_fonct#tentative",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "corrompre_fonct#tentative",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "corrompre_fonctionnaire_permis",
+      "pa": 2,
+      "cost": 800
+    },
+    {
+      "fn": "corrompre_gardien",
+      "pa": 2,
+      "cost": 800
+    },
+    {
+      "fn": "corrompre_gardien#reussite",
+      "pa": 0,
+      "cost": 800
+    },
+    {
+      "fn": "corrompre_gardien#tentative",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "corrompre_journaliste",
+      "pa": 2,
+      "cost": 500
+    },
+    {
+      "fn": "corrompre_rdv_notaire",
+      "pa": 2,
+      "cost": 800
+    },
+    {
+      "fn": "declencher_election_club",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "declencher_election_syndicat",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "declencher_vote_confiance",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "decouvrir_affectation",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "defense",
+      "pa": 2,
+      "cost": 300
+    },
+    {
+      "fn": "deliberer_loge",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "demander_asile_politique",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "demander_audience_ambassadeur",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "demander_autorisation_manifester",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "demander_divorce",
+      "pa": 1,
+      "cost": 200
+    },
+    {
+      "fn": "demander_juge_instruction",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "demander_logement_social",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "demander_mariage",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "demander_naturalisation",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "demander_non_renouvellement_licence",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "demander_parler_loge",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "demandes_naturalisation",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "dementi",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "demettre_lieutenant",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "demettre_lieutenant",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "deposer_candidature",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "deposer_demande_permis",
+      "pa": 1,
+      "cost": 100
+    },
+    {
+      "fn": "deposer_petite_annonce",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "diner_affaires",
+      "pa": 2,
+      "cost": 150
+    },
+    {
+      "fn": "diner_affaires",
+      "pa": 2,
+      "cost": 300
+    },
+    {
+      "fn": "diplomatie_bilaterale",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "diplomatie_bilaterale",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "diplomatie_bilaterale",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "diplomatie_bilaterale",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "diviser_construction",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "donner_argent_pnj",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "donner_conf",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "dormir_chambre",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "dossiers_plaintes",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "ecouter_rumeurs",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "ecouter_rumeurs",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "effort_national",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "embaucher_agent_securite",
+      "pa": 1,
+      "cost": 500
+    },
+    {
+      "fn": "embaucher_maitre_chien",
+      "pa": 1,
+      "cost": 700
+    },
+    {
+      "fn": "emprunter",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "emprunter_construction",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "emprunter_prive",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "entrainer_section",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "entrainer_section",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "equiper_section",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "escort_piege",
+      "pa": 3,
+      "cost": 800
+    },
+    {
+      "fn": "etat_civil",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "etouffer",
+      "pa": 1,
+      "cost": 1000
+    },
+    {
+      "fn": "expedier_colis",
+      "pa": 2,
+      "cost": 200
+    },
+    {
+      "fn": "fabriquer_armoire_souvenirs",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "fabriquer_scandale",
+      "pa": 3,
+      "cost": 800
+    },
+    {
+      "fn": "faire_achats_marche",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "faire_disparaitre_cadavre",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "faire_don",
+      "pa": 1,
+      "cost": 200
+    },
+    {
+      "fn": "falsifier_document",
+      "pa": 3,
+      "cost": 300
+    },
+    {
+      "fn": "falsifier_document#reussite",
+      "pa": 0,
+      "cost": 300
+    },
+    {
+      "fn": "falsifier_document#tentative",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "falsifier_listes_electorales",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "financer_communal",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "financer_oeuvre_culturelle",
+      "pa": 1,
+      "cost": 600
+    },
+    {
+      "fn": "fixer_impots_locaux",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "fixer_prix_achat_entrepot",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "fixer_prix_vente_directe",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "fixer_repartition_production",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "fuite_info",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_ambassades",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_box",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_budget_caserne",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_candidature_directeur_entrepot",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_candidature_maire_adjoint",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_chef_douanes",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_commandement",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_commerce",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_couvre_feu",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_detachement",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_effectifs_douane",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_effectifs_police",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_finances",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_finances",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_fonds_commerce",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_informateurs",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_juges",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_local",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_logement_social",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_logistique_port",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_lot_loue",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_offres_transfert",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_salaires_club",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_testament",
+      "pa": 1,
+      "cost": 200
+    },
+    {
+      "fn": "gerer_visites_chambre",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gestion_industrielle_portuaire",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "gestion_manifestations",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gestion_premier_ministre",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gestion_qhs",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gracier",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "greffe_corrompre_dossier",
+      "pa": 3,
+      "cost": 300
+    },
+    {
+      "fn": "greffe_corrompre_faux_casier",
+      "pa": 3,
+      "cost": 300
+    },
+    {
+      "fn": "greve_faim",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "greve_generale_appeler",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "greve_generale_retirer",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "greve_lancer",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "greve_terminer",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "imprimer_tracts_calomnieux",
+      "pa": 1,
+      "cost": 150
+    },
+    {
+      "fn": "imprimer_tracts_choix",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "imprimer_tracts_electoraux",
+      "pa": 1,
+      "cost": 150
+    },
+    {
+      "fn": "incendier",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "informateur_salaire_1",
+      "pa": 0,
+      "cost": 150
+    },
+    {
+      "fn": "informateur_salaire_2",
+      "pa": 0,
+      "cost": 400
+    },
+    {
+      "fn": "informateur_salaire_3",
+      "pa": 0,
+      "cost": 700
+    },
+    {
+      "fn": "informateur_salaire_4",
+      "pa": 0,
+      "cost": 1500
+    },
+    {
+      "fn": "inspecter_cargaisons",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "inspecter_troupes",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "inspecter_troupes",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "interroger",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "interroger_informateur",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "interview",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "investir",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "lancer_rumeur_cible",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "louer_box",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "louer_local",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "louer_lot_ici",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "manger_ration",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "marchander_vote",
+      "pa": 1,
+      "cost": 100
+    },
+    {
+      "fn": "marchandises_non_reclamees",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "marche_noir",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "mener_enquete",
+      "pa": 2,
+      "cost": 250
+    },
+    {
+      "fn": "mobilisation_nationale",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "mobilisation_nationale",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "mobilisation_nationale",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "mobilisation_nationale",
+      "pa": 4,
+      "cost": 0
+    },
+    {
+      "fn": "mobiliser",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "mobiliser_police",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "modifier_plan_chantier",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "negocier_squatteurs",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "neutraliser_arme",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "neutraliser_feu",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "neutraliser_mains",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_capitaine",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_capitaine",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_commissaire",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_directeur_entrepot",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_directeur_pharma",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_directeur_raffinerie",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_directeur_tabac_alcools",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_lieutenant",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_lieutenant",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_ministre_pm",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "objet_trouve",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "observer_debats",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "observer_match",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "officialiser_mariage",
+      "pa": 2,
+      "cost": 200
+    },
+    {
+      "fn": "officialiser_transaction",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "offrir_tournee",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "orga_anatheme",
+      "pa": 2,
+      "cost": 200
+    },
+    {
+      "fn": "orga_audit",
+      "pa": 2,
+      "cost": 500
+    },
+    {
+      "fn": "orga_benediction",
+      "pa": 2,
+      "cost": 200
+    },
+    {
+      "fn": "orga_blocus",
+      "pa": 3,
+      "cost": 1000
+    },
+    {
+      "fn": "orga_campagne_presse",
+      "pa": 2,
+      "cost": 500
+    },
+    {
+      "fn": "orga_collecte",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "orga_cooptation",
+      "pa": 2,
+      "cost": 1000
+    },
+    {
+      "fn": "orga_dividendes",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "orga_excommunier",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "orga_extrait_duplicata",
+      "pa": 1,
+      "cost": 75
+    },
+    {
+      "fn": "orga_fake_news",
+      "pa": 2,
+      "cost": 300
+    },
+    {
+      "fn": "orga_hooliganisme",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "orga_intimidation",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "orga_meeting",
+      "pa": 3,
+      "cost": 500
+    },
+    {
+      "fn": "orga_motion_supporters",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "orga_pelerinage",
+      "pa": 3,
+      "cost": 1000
+    },
+    {
+      "fn": "orga_petition",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "orga_rehabilitation",
+      "pa": 3,
+      "cost": 1000
+    },
+    {
+      "fn": "orga_reseau",
+      "pa": 2,
+      "cost": 300
+    },
+    {
+      "fn": "orga_rituel",
+      "pa": 2,
+      "cost": 500
+    },
+    {
+      "fn": "orga_scoop",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "orga_silence",
+      "pa": 3,
+      "cost": 2000
+    },
+    {
+      "fn": "organiser_boycott",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "organiser_chasse_homme",
+      "pa": 3,
+      "cost": 300
+    },
+    {
+      "fn": "organiser_filature",
+      "pa": 2,
+      "cost": 150
+    },
+    {
+      "fn": "organiser_manifestation",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "organiser_manifestation_syndicat",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "organiser_reception_diplomatique",
+      "pa": 2,
+      "cost": 1200
+    },
+    {
+      "fn": "ouvrir_chambres_clinique",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "ouvrir_enquete",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "parier_match",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "passer_douanes_aeroport",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "payer_versement_chantier",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "pelerin",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "pilotage_fiscal_budgetaire",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "plainte",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "plainte",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "plainte_police",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "postes_par_decret",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "postuler",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "postuler_president_club",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "pouls_populaire",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "pouvoirs_exceptionnels",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "preempter_entreprise",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "prendre_avion",
+      "pa": 2,
+      "cost": 300
+    },
+    {
+      "fn": "prendre_bateau",
+      "pa": 5,
+      "cost": 100
+    },
+    {
+      "fn": "prendre_bus_taxi",
+      "pa": 1,
+      "cost": 150
+    },
+    {
+      "fn": "prendre_licence_sportive",
+      "pa": 1,
+      "cost": 150
+    },
+    {
+      "fn": "prendre_train",
+      "pa": 2,
+      "cost": 75
+    },
+    {
+      "fn": "presenter_autorisation_coffre",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "prier",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "produire_alcool",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "produire_arme",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "produire_carburant",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "produire_commerce",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "produire_desinfectant",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "produire_fuite",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "produire_medicaments",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "produire_tabac",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "projet_loi",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "propagande_etat",
+      "pa": 3,
+      "cost": 500
+    },
+    {
+      "fn": "proposer_abrogation",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "proposer_grace",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "proposer_transfert",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "proposer_treve",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "quitter_armee",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "racheter_entreprise",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "racheter_terrain",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "reception_etat",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "reception_etat",
+      "pa": 2,
+      "cost": 1000
+    },
+    {
+      "fn": "receptionner_commande",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "recherche_militaire",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "reclamer_heritage",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "recolter_matiere",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "reconfigurer_lots",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "recruter_compagnie",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "recruter_douanier",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "recruter_douanier_cynophile",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "recruter_etud",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "recruter_info_4",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "recruter_informateur_2",
+      "pa": 1,
+      "cost": 400
+    },
+    {
+      "fn": "recruter_informateur_pnj",
+      "pa": 1,
+      "cost": 150
+    },
+    {
+      "fn": "recruter_policier",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "recruter_policier_cynophile",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "regarder_live",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "registre_assemblee",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "rejoindre_club_supporters",
+      "pa": 1,
+      "cost": 50
+    },
+    {
+      "fn": "relations_bilaterales",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "remonter_renseignement",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "rendre_sentence",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "renseignement",
+      "pa": 3,
+      "cost": 500
+    },
+    {
+      "fn": "renseignement_transport_intl",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "repartir_armement",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "repartition_budget_local",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "requete_avocat",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "reserver_chambre_hotel",
+      "pa": 0,
+      "cost": 60
+    },
+    {
+      "fn": "reserver_chambre_hotel",
+      "pa": 0,
+      "cost": 80
+    },
+    {
+      "fn": "reserver_salle_reception",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "retirer_armes_militaires",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "retirer_explosifs_militaires",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "reveiller_depute",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "revoquer_commissaire",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "revoquer_directeur_entrepot",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "revoquer_directeur_pharma",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "revoquer_directeur_raffinerie",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "revoquer_directeur_tabac_alcools",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "revoquer_maire_adjoint",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "revoquer_ministre_pm",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "s_engager_armee",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "se_confesser",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "se_justifier",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "se_nourrir",
+      "pa": 0,
+      "cost": 8
+    },
+    {
+      "fn": "se_nourrir",
+      "pa": 1,
+      "cost": 30
+    },
+    {
+      "fn": "se_porter_candidat",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "se_presenter_affectation",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "se_rebeller",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "se_renseigner",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "se_reposer",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "se_syndiquer",
+      "pa": 1,
+      "cost": 50
+    },
+    {
+      "fn": "service_etage",
+      "pa": 0,
+      "cost": 150
+    },
+    {
+      "fn": "signer_compromis",
+      "pa": 2,
+      "cost": 1000
+    },
+    {
+      "fn": "societe_ecran",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "soin_public",
+      "pa": 0,
+      "cost": 25
+    },
+    {
+      "fn": "soins",
+      "pa": 0,
+      "cost": 100
+    },
+    {
+      "fn": "soins_discrets",
+      "pa": 1,
+      "cost": 800
+    },
+    {
+      "fn": "soins_urgence",
+      "pa": 0,
+      "cost": 500
+    },
+    {
+      "fn": "solliciter_audience_president",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "sponsoriser_club",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "stage_caserne",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "subvention",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "subvention_min_int",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "subvention_proposer",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "syndicat_etudiant_creer",
+      "pa": 2,
+      "cost": 150
+    },
+    {
+      "fn": "tableau_bord_entrepot",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "tableau_effort_guerre",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "taxi_caserne",
+      "pa": 1,
+      "cost": 200
+    },
+    {
+      "fn": "taxi_qhs",
+      "pa": 1,
+      "cost": 200
+    },
+    {
+      "fn": "tentative_evasion",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "tenue_entrainement",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "tenue_match",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "traiter_candidatures",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "traiter_demandes_logement_social",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "traiter_demandes_permis",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "transfert_clinique_privee",
+      "pa": 0,
+      "cost": 1000
+    },
+    {
+      "fn": "transfert_compromis",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "travailler_chantier",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "truquer_depouillement",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "utiliser_explosifs",
+      "pa": 3,
+      "cost": 0
+    },
+    {
+      "fn": "vendre_bois_imprimerie",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "vendre_materiaux_chantier",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "vendre_matiere_commerce",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "vendre_matiere_usine",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "vendre_ressource_medicale",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "vente_directe_usine",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "virement_automatique",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "virement_joueur",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "virement_usine_ministere",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "visiter_prisonnier",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "voir_ma_section",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "voler",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "voler_materiel_chantier",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "voter_election",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "voter_loi",
+      "pa": 0,
+      "cost": 0
+    }
+  ]
+}
