@@ -789,6 +789,7 @@ function sbEnfilerEcriturePersonnage(charState, data) {
         charState._inventaireRevision = v.revision;
         charState._inventaireBase = sbEmpreinteInventaire(v.inventory);
         charState._inventaireConflit = false;
+        charState._inventaireRefusAjout = false;
       }
       delete data.inventory; // le PATCH de fiche ne possede plus l'inventaire
     } else if (charState._inventaireVersionne) {
