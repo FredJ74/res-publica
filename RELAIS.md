@@ -27,6 +27,10 @@ Règles : voir `AGENTS.md`.
 
 Rubrique nettoyée le 31/10 (Claude) : les chantiers livrés sont passés dans « Derniers chantiers » ; l'ancien texte détaillé reste dans l'historique Git de ce fichier (`git log -p RELAIS.md`).
 
+### Codex — #219 : reconstruction réussie, livraison retenue
+
+Branche `codex/groupes-universels-20261028`, PR #219, main intégré jusqu’à `3aa6ceef` (#290). Rapport de reprise : `outils/audits/RECONSTRUCTION-CANONIQUE-GROUPES-219-20261031.md`, preuves sous `preuves-canonique-219-20261031/`. PostgreSQL 17.6 natif, 88 migrations atomiques et 30 parcours sur catalogue entier validés ; 149 bancs clients et 105 Chromium passent. **Global 10/12, prérequis #233 et recette authentifiée isolée encore à valider : ne pas fusionner ni déployer.** Aucun nouvel export canonique à demander, aucune production modifiée par cette intervention. Ne pas ouvrir le chantier suivant.
+
 ### Migrations fusionnées, en attente d'application (ChatGPT)
 
 **Prises en charge par ChatGPT (Fred, 31/10)** : `20261031130000` et `20261031140000`.
@@ -128,3 +132,7 @@ Poursuivre les vérifications finales et l'enregistrement des preuves avant rapp
 Rapport courant : `outils/audits/RECONSTRUCTION-CANONIQUE-GROUPES-219-20261031.md`. Main intégré `9a821b1b` (#281/#284/#285/#286), sans perdre les adaptations des groupes. La reconstruction native 17.6 et l'installation atomique des 88 ne sont plus bloquées. **30/30 cas sur le catalogue entier** sans remplacement de moteurs, avec fiche fictive préexistante ; une panne après les 88 inscriptions annule les quatre catalogues, le registre et préserve la fiche. 379/379 cas de décors et six contre-épreuves, 148/148 bancs clients, 105/105 Chromium, 35/35 outillage, 19/19 relais et quatre régressions SQL passent. Preuves détaillées dans `preuves-canonique-219-20261031/`.
 
 **NON LIVRABLE en production : global 10/12 (Authority, Referential rouges)** ; prérequis #233 absent du registre/capture, installé uniquement sur le décor ; aucun compte isolé de recette GoTrue. RPC : 29 incompatibilités statiques avant, 17 après, 12 corrigées et zéro nouvelle ; ne pas présenter les autres chemins historiques/non activés comme corrigés. Générateur des coûts 427 triples contre 438 mesurés en base : ne pas régénérer en production pour verdir la référence. Les mesures fraîches sont dans le rapport sans falsifier les anciennes observations. Aucune migration/fusion/commande Vercel de production. API GitHub GraphQL refusée ; Git push reste possible. **Ne pas redemander les exports canoniques, déjà complets et privés.** Ne pas ouvrir un autre chantier.
+
+### #219 — intégration finale de main #290 (31/10)
+
+Main `3aa6ceef` intégré dans `c129bc6c`, après sauvegarde des preuves dans `3e963bcd`. Les protections #283 du refus d'ajout inventaire et les suppressions d'écritures mortes de quêtes #290 sont préservées, ainsi que les changements bancaires #287–#289 (aucune migration appliquée par Codex). Les nouvelles étapes CI sont conservées avec celles de #219 ; caches index/plateau distincts, préfixés par `verrou-inventaire-20261031`. Sur cet arbre : **149/149 bancs clients, 105/105 Chromium, 30/30 sur catalogue entier, huit assertions du verrou #283**. Les 88 sources SQL restent identiques à celles de la dernière passe 379/379 + six mutants ; empreintes vérifiées. Global toujours **10/12**, jamais un feu vert de production. Rapport et preuves actualisés ; aucun nouveau chantier ouvert.

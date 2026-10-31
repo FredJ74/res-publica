@@ -94,5 +94,13 @@
   "outils/baseline/regenerer-seeds-miroirs.py": "89a060e7904eba9a9dda31ec5532d16b6d272dc1955be3b2b429b41eba8d41a7",
   "outils/baseline/actualiser-attentes-catalogue.py": "d1ebaedbe23cce0dc244e56d0968efaf01fbda5d9890e728754c4021e7513be1",
   "outils/livraison/preparer-groupes-219.py": "c123d623d4d36c5aec885e30ea0cf8f40495c1885c1769ee7dfb8c1db839d506",
-  "outils/bancs/recette-groupes-catalogue-219.py": "d8bfb456016f85aaabf3cd338999183d247649bd6cc1edf772e827d3e623942e"
+  "outils/bancs/recette-groupes-catalogue-219.py": "d8bfb456016f85aaabf3cd338999183d247649bd6cc1edf772e827d3e623942e",
+  "supabase.js": "381194cd43d367cfca769d32835ef537a76d76105f591e32daa78fc93bbfef15",
+  "index.html": "0627f458737e7175b8a0aa51b2bae41c66421e58a00c2465383145a11bad49d5",
+  "plateau.html": "bfd3746b55cb2f00de34f359af84bd71a79e1b5715bda454d3aa0ea360aa518e",
+  ".github/workflows/coherence-client.yml": "d5f0cb8a9fa46e4d59c93fdad614c85372c1d9294b7a723ea285be8ff17a3dec",
+  "api/cron-minuit.js": "5e22bf140691c270912bc7c7874744135e4ea3b48ae22677928f5b5ea4662875",
+  "plateau-pnj.js": "701dd47d6ac222eecc1c0da7b4252dc102f7ef68535b167cbcac354b4c162d23",
+  "plateau-occupation-commandes.js": "b1fefc35c414b3666894ac6db5a2bb3d42df2da203caa2eb955e378646a69520",
+  "outils/audits/LIVRAISON-GROUPES-219-20261030.json": "f03f9cf4e632cdb71799b3143f0231311b2fa134923a8b405ccb448ea9a4ad8c"
 }

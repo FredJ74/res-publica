@@ -1,6 +1,6 @@
 # #219 — reconstruction canonique réussie, livraison toujours retenue
 
-État du 31 octobre 2026. Branche `codex/groupes-universels-20261028`, PR #219. Main intégré : `9a821b1b93e4eb638146d0eb1e3280980c16b840` (#281, #284, #285 et #286 compris). Aucune fusion de #219, aucune écriture de production, aucun compte réel connecté, aucune commande de déploiement Vercel. Le statut distant de Vercel n'a pas été vérifié.
+État du 31 octobre 2026. Branche `codex/groupes-universels-20261028`, PR #219. Main intégré : `3aa6ceef21d93653c55bc82bcc623db9a6e36937` (#281, #283 à #290 compris). Aucune fusion de #219, aucune écriture de production, aucun compte réel connecté, aucune commande de déploiement Vercel. Le statut distant de Vercel n'a pas été vérifié.
 
 **Le blocage des exports et de la reconstruction est résolu. Le chantier n'est pas déclaré terminé : contrôles globaux 10/12, prérequis #233 absent du catalogue reçu et recette authentifiée isolée encore manquante.**
 
@@ -40,12 +40,14 @@ Les **88 migrations** s'installent dans une transaction indivisible sur cette re
 | Recette sur le catalogue entier après installation | **30/30** | Fonctions et triggers réels, aucun moteur remplacé ; rôle authenticated et JWT SQL fictifs |
 | Suite groupes, transports, police, rounds, prison et radio | **379/379** | Décors PostgreSQL conservés, services périphériques de fixture explicités |
 | Six contre-épreuves | **6/6 détectées** | Chacune exécute les 379 cas et échoue sur les assertions attendues |
-| Bancs clients sur main intégré | **148/148** | Dont Workflow et bundle Vercel local |
+| Bancs clients sur main intégré | **149/149** | Dont Workflow et bundle Vercel local |
 | Pilote Chromium | **105/105** | Local, aucun compte réel connecté |
 | Outillage catalogue | **35/35** | Dont trois nouveaux cas droits/attributs/CHECK et deux cas FK/IDENTITY |
 | Relais canonique | **19/19** | Refus des données incomplètes, incohérentes ou privées |
 | Achat historique, réception, concurrence, fret | **4 bancs réussis** | Respectivement 12 groupes, 31 groupes, 8 assertions, 51 assertions ; bases jetables |
 | Contrôles globaux | **10/12** | Authority et Referential restent rouges |
+
+Le banc supplémentaire du verrou inventaire de #283 passe également : **8/8 assertions SQL** sur PostgreSQL 17.6 jetable, sans appliquer ce verrou en production. Les nouveaux refus/resynchronisations du client et le retrait des écritures de quête de #290 sont conservés. Les versions de cache portent aussi le préfixe du verrou, sans perdre les groupes.
 
 Les 30 cas sur le catalogue complet couvrent identités, groupes volontaires, cycles et distance, absence de mutation au refus, maintien des six protections de paiement immobilier, sorties/prison/coma, ouverture de combat PJ/PJ et PJ/PNJ, vrais rounds, rejeux sans double paiement ni double effet, tiers non engagé, lecture des cibles, radio sans équipement, détecteur sans policier, écrou et séparation réelle, doubles écrous et fermeture des portes internes. La recette n'injecte aucun substitut à ces fonctions. Elle ne couvre pas tous les parcours de l'application ni toutes les lignes vivantes des PNJ.
 

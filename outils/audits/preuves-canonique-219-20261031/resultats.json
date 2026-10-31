@@ -1,5 +1,5 @@
 {
-  "main_integre": "9a821b1b93e4eb638146d0eb1e3280980c16b840",
+  "main_integre": "3aa6ceef21d93653c55bc82bcc623db9a6e36937",
   "production_modifiee": false,
   "authentification_reelle_effectuee": false,
   "controles_globaux": {
@@ -16,7 +16,7 @@
   "recette_catalogue_entier": 30,
   "sql_decors": 379,
   "contre_epreuves_detectees": 6,
-  "clients": 148,
+  "clients": 149,
   "chromium_local": 105,
   "catalogue_outillage": 35,
   "relais": 19,
@@ -42,5 +42,6 @@
     "corriges": 12,
     "nouveaux": 0,
     "preexistants_restants": 17
-  }
+  },
+  "verrou_inventaire_main_283": 8
 }

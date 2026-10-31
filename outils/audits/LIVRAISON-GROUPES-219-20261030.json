@@ -1,6 +1,6 @@
 {
   "branche": "codex/groupes-universels-20261028",
-  "main": "9a821b1b93e4eb638146d0eb1e3280980c16b840",
+  "main": "3aa6ceef21d93653c55bc82bcc623db9a6e36937",
   "production_appliquee": false,
   "perimetre": "Ajouts SQL propres à #219, dont dépendances #212/#217 ; main #255 à #260 exclu.",
   "registre_vivant": {
