@@ -23,7 +23,7 @@ def verifier_empreinte_complete(observe,reference):
  for cle in ('version_serveur','registre','categories'):
   if observe.get(cle)!=attendu.get(cle):
    if cle=='categories':
-    for famille in sorted(set(observe.get(cle,{})|set(attendu.get(cle,{})))):
+    for famille in sorted((set(observe.get(cle,{})) | set(attendu.get(cle,{})))):
      if observe.get(cle,{}).get(famille)!=attendu.get(cle,{}).get(famille):
       ecarts['categorie:'+famille]={'observé':observe.get(cle,{}).get(famille),'attendu':attendu.get(cle,{}).get(famille)}
    else:ecarts[cle]={'observé':observe.get(cle),'attendu':attendu.get(cle)}
@@ -81,10 +81,17 @@ def main():
     attendus={'organisation_ordre_financier':'73b9d936361d5c158b0bdfae44cf0db8','organisation_adhesion_payante':'f47b4e550f62fe6e1cfbf6c1d0c10cb7','club_supporters_cotiser':'b9324e4f910534fa6f03056bf91da5a7','club_sponsoriser':'d5a1250fbf53e53a32169bbbc8245b12','club_transfert_conclure':'fe760fbedd1bd7cafbf691bdccc45481'}
     q.execute("SELECT proname,md5(regexp_replace(prosrc,E'\\n[ \\t]*--[^\\n]*','','g')),has_function_privilege('authenticated',oid,'EXECUTE') FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=ANY(%s)",(list(attendus),));finances=q.fetchall();rapport['contrats_financiers_candidat']=finances;rapport['contrats_financiers_attendus_releve']=attendus;q.execute("SELECT proname,md5(prosrc),md5(pg_get_functiondef(oid)) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=ANY(%s)",(list(attendus),));rapport['objets_haches_distincts_candidat']=q.fetchall();assert len(finances)==5 and all(h==attendus[n] and droit for n,h,droit in finances),finances
    if o.empreinte_reference:
-    # Épreuve par définitions normalisées, ACL/RLS, déclencheurs, index et registre.
-    # Le SQL référentiel est strictement SELECT ; il ne modifie pas de joueur.
+    # Vérification exhaustive des empreintes de production AVANT les 95 migrations.
     racines=(R/'outils/bancs/empreinte-catalogue-racine.sql').read_text()
-    racines=re.sub(r'(?im)^\\s*(?:BEGIN;|ROLLBACK;|SET TRANSACTION READ ONLY;)\\s*   q.execute('DELETE FROM ordres_couts');q.executemany('INSERT INTO ordres_couts(fn,pa,cost) VALUES(%s,%s,%s)',triples)
+    racines=re.sub(r'(?im)^\s*(?:BEGIN;|ROLLBACK;|SET TRANSACTION READ ONLY;)\s*$', '', racines)
+    c.commit();q.execute(racines)
+    reference=json.loads(o.empreinte_reference.read_text(encoding='utf-8'))
+    rapport['empreinte_complete_avant95']=verifier_empreinte_complete(q.fetchone()[0],reference)
+    rapport['catalogue_1012_certifie']=(reference.get('empreinte',reference).get('registre',{}).get('lignes')==1012)
+    assert rapport['catalogue_1012_certifie'],'La référence doit concerner le catalogue vivant 1012'
+    c.commit()
+   # Prix capturés contrôlés séparément, jamais générés depuis des données de joueur.
+   q.execute('DELETE FROM ordres_couts');q.executemany('INSERT INTO ordres_couts(fn,pa,cost) VALUES(%s,%s,%s)',triples)
    q.execute("INSERT INTO ordres_couts_empreinte(seul,empreinte) VALUES(true,'6de4a84c58ed9b2b') ON CONFLICT(seul) DO UPDATE SET empreinte=excluded.empreinte")
    e.temoin_integrite_local(q);q.execute("SELECT to_jsonb(p) FROM personnages_donnees p WHERE name='__hg219_canari_avant'");temoin=q.fetchone()[0];c.commit();avant=e.empreinte_installation(q);rapport['registre_local_avant95']=avant['registre'];c.commit()
    sql,entrees=lot.preparer();assert len(entrees)==95
