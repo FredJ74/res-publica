@@ -10,3 +10,6 @@ Décisions explicites de Fred, consignées pour tous les agents.
 - **Décision de Fred (31/10/2026)** : le refinancement BNR contracté en trop à cause du défaut
   (environ 150 000 FR sur 223 320 FR en cours pour la République) **n'est pas annulé** : il se
   rembourse normalement, selon les échéances existantes. Aucune régularisation à écrire.
+- **Placement Helvetia (Claude, 31/10/2026, technique)** : règles inchangées (gain brut 8 %, frais
+  30 % du gain, impôt 50 % du reste si déclaré). Le montant final va sur le compte Helvetia seul ;
+  la caisse reçoit frais + gain net. Migration `20261031150000_placement_helvetia_gain_unique`.

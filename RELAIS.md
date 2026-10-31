@@ -35,6 +35,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 - `20261031130000_reliquats_immobilier_accord_tacite_succession` (PR #284, fusionnée) : accord tacite de nuit (aujourd'hui toujours en échec : le permis de Jean Jaaj, terrain 5, en dépend dans environ 6 jours) et colonnes `proprietaire` / `coproprietaire` à la succession. Indépendante de l'écran. Banc : `outils/bancs/banc-reliquats-immobilier.sql`.
 - `20261031140000_helvetia_caisse_argent_detenu` (PR #285, fusionnée, #267) : la caisse d'Helvetia représente l'argent détenu (prêt sans débit de caisse, sommes prises sur le compte Helvetia sans recrédit, dépôt d'ouverture crédité). Indépendante de l'écran. Banc : `outils/bancs/banc-caisse-helvetia.sql`.
+- `20261031150000_placement_helvetia_gain_unique` (Claude, 31/10, suite de #267) : à la résolution d'un placement Helvetia, le gain net n'est plus ajouté à `arg` (argent total liquide + Banque nationale, où il apparaissait en double) et entre dans la caisse avec les frais. Indépendante de l'écran ; **à appliquer avant le 6/11** (échéance du placement actif de Jean Jaaj). Banc : `outils/bancs/banc-placement-helvetia.sql` (attendu sur ce placement : caisse +6 314, compte +83 340, `arg` +0).
 - `20261029181000_squatteurs_issue_combat` : **attend le combat de groupe de Codex (#219)** ; ne pas appliquer avant.
 
 ### Décisions attendues de Fred
@@ -46,7 +47,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 - **Décidé (Fred, 31/10)** : le refinancement BNR en trop d'Helvetia (~150 000 FR, #267) se rembourse normalement, rien à annuler. Consigné dans `GAME-DESIGN-BANQUES.md`.
 
-- **Helvetia, même famille que #267** : `resoudre_placement_helvetia` crédite la caisse des frais d'un placement et `finaliser_achat_bien_helvetia` du prix entier, même quand l'argent venait déjà du compte Helvetia. À examiner.
+- **Helvetia, même famille que #267 (examiné le 31/10)** : `finaliser_achat_bien_helvetia` est juste (acompte et solde viennent du liquide ou de la Banque nationale, jamais du compte Helvetia). `resoudre_placement_helvetia` corrigé par `20261031150000`. Le seul placement déjà résolu (Jean Jaaj, 25/10) a ajouté 3 920 FR fantômes à son `arg` ; non régularisé, car son `arg` s'écarte déjà de liquide + Banque nationale de bien plus (≈ 47 000 FR ; Angie aussi, en sens inverse) : écart général de `arg` à examiner côté fiche (ChatGPT).
 - **Codex** : `minuit_decouverte_crimes` (police) retire des amendes de `arg` sans les verser nulle part ; il peut appeler `amende_imposer_interne`. Le hooliganisme (organisations) écrit encore sa trace de crime à l'écran (à passer par `crime_tracer_interne`). Écritures de l'écran encore ouvertes : `budgets_clubs`, `organisations.caisse` (bilan `outils/bancs/ECRITURES-ECRAN-20261029.md`).
 - **Écriture encore ouverte côté Claude** : `quetes_actives`.
 - **Budget national** : répéter en production une écriture légitime par un titulaire de poste (garde `20261030110000` appliquée ; la répétition avait été interrompue).
