@@ -39,6 +39,13 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - `20261029181000_squatteurs_issue_combat` : **attend le combat de groupe de Codex (#219)** ; ne pas appliquer avant.
 - `20261031190000_avis_personnels_expediteurs_declares` (Claude, 31/10, PR #297) : neuf identités d'avis personnels (expulsion, libération, candidature, convocation douanière…) déclarées pour l'envoi **à soi seulement** ; sans elle ces courriers sont refusés en silence. Indépendante de l'écran. Banc annulé : `outils/bancs/banc-avis-personnels-expediteurs.sql` (joué le 31/10 : avant refus, après accepté pour soi, refusé vers un tiers).
 
+### Caisses des clubs et organisations (#295, Claude, PR #300)
+
+- **Étape 1 appliquée le 31/10** (`caisses_collectives_portes_serveur_20261031200000`) : sept portes serveur (collecte, dividendes, adhésion dockers, cotisation supporters, sponsoring, transfert, salaires, subvention ministérielle) + reçus anti-rejeu.
+- **Étape 2 `20261031201000_caisses_collectives_fermer_ecran` : à appliquer UNIQUEMENT après Vercel READY de la PR #300** (l'écran d'avant écrit encore `budgets_clubs`). Ferme INSERT/UPDATE de `budgets_clubs`, réserve la dissolution au chef/fondateur, pose `organisations_finances_garder` et `transferts_clubs_garder`.
+- Banc : `outils/bancs/banc-caisses-collectives-local.py --local-jetable` (46/46, contre-épreuve incluse) ; `banc-caisses-collectives-client.cjs` (9/9).
+- **Codex (#219)** : les commandes `organisation_commande_membres/_administrative/_evenement` sont absentes en production ; adhésions, grades, élections et dissolution passent encore par la sauvegarde du blob, désormais gardée. Une fois ces commandes installées, fermer aussi INSERT/UPDATE directs de `organisations`.
+
 ### Décisions attendues de Fred
 
 - **Fonds et murs des commerces (#66)** : règles décidées le 21/10 (murs à 150 FR/m², La Republica 1 200 m², fonds et murs indépendants, achat conjoint atomique, murs des commerces PNJ à la commune), **rien n'est en production**. La PR #71 qui les implémentait est périmée (laissée ouverte, commentaire du 31/10) : à reconstruire depuis main si Fred en fait une priorité.
