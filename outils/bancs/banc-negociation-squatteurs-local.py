@@ -40,7 +40,7 @@ def main(suite_callback=None):
    for texte in definitions if tous else definitions[:1]:q.execute(texte)
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:charger('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn)
   charger('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
-  charger('migrations/20261031113611_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires',True)
+  charger('historique/migrations-appliquees/rehorodatees-219/20261031113611_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires',True)
   sql=(R/'historique/migrations-appliquees/20261023231127_squatteurs_negociation_transactionnelle.sql').read_text();q.execute(sql);q.execute(sql)
   if suite_callback is not None:
    suite_callback(c,q,srv)
