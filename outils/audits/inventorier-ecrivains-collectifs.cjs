@@ -4,7 +4,9 @@
 // Lecture du code uniquement, sans réseau ni mutation de données.
 const fs = require('node:fs');
 const path = require('node:path');
-const root = path.resolve(__dirname, '../..');
+const rootArg = process.argv.indexOf('--root');
+const root = rootArg >= 0 ? path.resolve(process.argv[rootArg + 1] || '') : path.resolve(__dirname, '../..');
+if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) throw new Error('Répertoire source invalide');
 const targets = [
   { table: 'organisations', facade: 'sbSaveOrganisation' },
   { table: 'budgets_clubs', facade: 'sbSaveBudgetClub' }
@@ -14,7 +16,9 @@ const lines = [];
 for (const file of js) {
   const text = fs.readFileSync(path.join(root, file), 'utf8');
   for (const t of targets) {
-    for (const symbol of [t.facade, `sbUpsert('${t.table}'`, `sbPatch('${t.table}'`, `sbPost('${t.table}'`]) {
+    for (const symbol of [t.facade, ...['sbUpsert', 'sbPatch', 'sbPost', 'sbDelete'].flatMap(fn => [
+      `${fn}('${t.table}'`, `${fn}(\"${t.table}\"`, `${fn}(\x60${t.table}\x60`
+    ])]) {
       let offset = 0;
       while ((offset = text.indexOf(symbol, offset)) !== -1) {
         const line = text.slice(0, offset).split('\n').length;
@@ -29,7 +33,7 @@ const result = {chantier:295,lecture_seule:true,source:root,occurrences:lines,
   limitation:'Repérage lexical des chemins connus ; compléter par analyse des appels indirects et des RPC.'};
 console.log(JSON.stringify(result, null, 2));
 if (process.argv.includes('--enforce')) {
-  const direct = lines.filter(x => x.symbol.startsWith('sbUpsert(') || x.symbol.startsWith('sbPatch(') || x.symbol.startsWith('sbPost('));
+  const direct = lines.filter(x => x.symbol.startsWith('sbUpsert(') || x.symbol.startsWith('sbPatch(') || x.symbol.startsWith('sbPost(') || x.symbol.startsWith('sbDelete('));
   if (direct.length) {
     console.error(`#295: ${direct.length} écrivains directs détectés — fermeture non autorisée.`);
     process.exitCode = 1;
