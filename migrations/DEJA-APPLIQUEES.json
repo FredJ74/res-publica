@@ -1,5 +1,5 @@
 {
-  "_lisezmoi": "Préparations de migrations déjà appliquées en production sous un AUTRE nom de registre. Une copie rehorodatée de l'un de ces fichiers ne doit jamais revenir dans migrations/ (elle rejouerait un état dépassé ; ses propres gardes d'empreinte échouent contre la production). Preuve : outils/audits/CLASSEMENT-299-20261031.md, prévol relisible outils/audits/PREVOL-299-20261031.sql. Test : outils/bancs/test-preparations-deja-appliquees.mjs (issue #299).",
+  "_lisezmoi": "Préparations de migrations déjà appliquées en production sous un AUTRE nom de registre. Une copie rehorodatée de l'un de ces fichiers ne doit jamais revenir dans migrations/ (elle rejouerait un état dépassé ; ses propres gardes d'empreinte échouent contre la production). Preuve : outils/audits/CLASSEMENT-299-20261031.md, prévol relisible outils/bancs/prevol-299-prime-signature.sql. Test : outils/bancs/test-preparations-deja-appliquees.mjs (issue #299).",
   "20261020214955_construction_materiaux_prix_et_dons.sql": {
     "registre": "20261023164824 construction_materiaux_prix_et_dons_94",
     "complement": "20261023164942 chantier_prix_representants_94",

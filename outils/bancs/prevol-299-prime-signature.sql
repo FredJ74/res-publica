@@ -1,7 +1,8 @@
 -- PRÉVOL #299 + PRIME DE SIGNATURE (31/10/2026) — LECTURE SEULE, aucune écriture.
 -- À jouer dans l'éditeur SQL Supabase (ou execute_sql) avant toute décision ; résultats attendus
 -- relevés le 31/10/2026 vers 21 h 30 en commentaire.
-BEGIN READ ONLY;
+BEGIN;
+SET TRANSACTION READ ONLY;
 
 -- 1. Les deux préparations de #299 sont déjà au registre sous d'autres noms.
 SELECT version, name FROM supabase_migrations.schema_migrations
