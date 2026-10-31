@@ -1,0 +1,78 @@
+{
+  "statut": "candidat_1002_vers_1012_avec_genre_necessite_empreinte_complete_avant95",
+  "source": "Exports privés 1002 confirmés accessibles comme objets Git non référencés, ajout de la migration genre et des 9 deltas certifiés #302",
+  "registre_base": 1002,
+  "registre_candidat": 1012,
+  "migrations": [
+    {
+      "version_observee": "20261031113025",
+      "nom_rapporte": "genre_personnage_serveur_20261031100000",
+      "fichier": "historique/migrations-appliquees/20261031100000_genre_personnage_serveur.sql",
+      "statut": "schema_source_publique",
+      "sha256": "148fc34874e41edf1fa52802a8d9e8242d7979e9e4479696d0627facb9d39927"
+    },
+    {
+      "version_observee": "20261031123713",
+      "nom_rapporte": "verrou_ajouts_inventaire_20261031124000",
+      "fichier": "migrations/20261031124000_verrou_ajouts_inventaire_prepare.sql",
+      "statut": "schema_source_publique",
+      "sha256": "533be4935b4fb069a5b24a46597ea5d1d540cfb25689504ac67c9f83c6cd9564"
+    },
+    {
+      "version_observee": "20261031124014",
+      "nom_rapporte": "reliquats_immobilier_accord_tacite_succession_20261031130000",
+      "fichier": "migrations/20261031130000_reliquats_immobilier_accord_tacite_succession.sql",
+      "statut": "schema_source_publique",
+      "sha256": "ee3d974676cfd38f04e811520f90b13253737e09509956c2f03517dbd9d5f3c2"
+    },
+    {
+      "version_observee": "20261031124019",
+      "nom_rapporte": "helvetia_caisse_argent_detenu_20261031140000",
+      "fichier": "migrations/20261031140000_helvetia_caisse_argent_detenu.sql",
+      "statut": "schema_source_publique",
+      "sha256": "ed891ab5b1ce1f516c35c8469de9fa61ba54c59ade116de0fe1835fc5809b858"
+    },
+    {
+      "version_observee": "20261031125200",
+      "nom_rapporte": "regularisation_bnr_helvetia_excedent_20261031150000",
+      "fichier": null,
+      "statut": "donnees_uniquement_non_rejouees",
+      "source_documentaire": "e6c3b504:migrations/20261031150000_helvetia_bnr_excedent_regulariser.sql"
+    },
+    {
+      "version_observee": "20261031131427",
+      "nom_rapporte": "placement_helvetia_gain_unique_20261031151000",
+      "fichier": "migrations/20261031151000_placement_helvetia_gain_unique.sql",
+      "statut": "schema_source_publique",
+      "sha256": "e5bb3ab0c88213533858231cf90e4ec9d920dff024540c4a5fbe06b90a3ad46a"
+    },
+    {
+      "version_observee": "20261031190352",
+      "nom_rapporte": "avis_personnels_expediteurs_declares_20261031190000",
+      "fichier": "migrations/20261031190000_avis_personnels_expediteurs_declares.sql",
+      "statut": "schema_source_publique",
+      "sha256": "0c94188de8a3ef4c389623e03284c8548d6f951b00a361ed103be8f0f815803a"
+    },
+    {
+      "version_observee": "20261031195210",
+      "nom_rapporte": "caisses_collectives_portes_serveur_20261031200000",
+      "fichier": "migrations/20261031200000_caisses_collectives_portes_serveur.sql",
+      "statut": "schema_source_publique",
+      "sha256": "490197e5c857baeaacad1df021953f5b143ced13e60718163e393b5f765e955f"
+    },
+    {
+      "version_observee": "20261031200630",
+      "nom_rapporte": "caisses_collectives_fermer_ecran_20261031201000",
+      "fichier": "migrations/20261031201000_caisses_collectives_fermer_ecran.sql",
+      "statut": "schema_source_publique",
+      "sha256": "3aa5d8b144384196f4123de28457fa4b50c92c280840b7aa0ad06c56bfb860aa"
+    },
+    {
+      "version_observee": "20261031211256",
+      "nom_rapporte": "transfert_prime_signature_serveur_20261031220000",
+      "fichier": "migrations/20261031220000_transfert_prime_signature_serveur.sql",
+      "statut": "schema_source_publique",
+      "sha256": "6dfab7cfc2b34dcbf649703b40a77558cf29174e3bd6767c4f30a8105fcdb015"
+    }
+  ]
+}
