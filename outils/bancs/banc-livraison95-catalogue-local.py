@@ -80,12 +80,12 @@ def main():
    if o.delta_candidat:
     delta=json.loads(o.delta_candidat.read_text())
     if 'registre_base' not in delta:
-     # Format certifié de Claude #302 : 10 lignes, dont « genre » déjà dans le registre 1003.
-     assert len(registre)==1003 and len(delta['migrations'])==10,'Delta 1012 réservé au registre privé 1003'
+     # Format certifié de Claude #302 : 10 lignes, « genre » déjà présent seulement si base 1003.
+     assert len(registre) in (1002,1003) and len(delta['migrations'])==10,'Delta 1012 réservé aux registres privés 1002/1003'
      assert all(x['concorde'] and x['md5_normalise_registre']==(x['md5_normalise_fichier_sans_enveloppe'] if x['enveloppe_retiree_par_supabase'] else x['md5_normalise_fichier']) for x in delta['migrations']),'Delta non certifié'
      versions_base={x['version'] for x in registre}
-     delta={**delta,'registre_base':1003,'migrations':[{'fichier':x['fichier'],'sha256':x['sha256_fichier'],'version_observee':x['version_registre'],'nom_rapporte':x['nom_registre'],'statut':'deja_dans_1003' if x['version_registre'] in versions_base else 'appliquee'} for x in delta['migrations']]}
-     assert sum(x['statut']=='deja_dans_1003' for x in delta['migrations'])==1,'Une seule migration préexistante attendue'
+     delta={**delta,'registre_base':len(registre),'migrations':[{'fichier':x['fichier'],'sha256':x['sha256_fichier'],'version_observee':x['version_registre'],'nom_rapporte':x['nom_registre'],'statut':'deja_dans_1003' if x['version_registre'] in versions_base else 'appliquee'} for x in delta['migrations']]}
+     assert {x['version_observee'] for x in delta['migrations'] if x['statut']=='deja_dans_1003'}==({'20261031113025'} if len(registre)==1003 else set()),'Delta privé : migration préexistante inattendue'
     assert delta['registre_base']==len(registre);c.commit()
     for entree in delta['migrations']:
      if entree['fichier']:
