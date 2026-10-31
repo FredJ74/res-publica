@@ -150,10 +150,27 @@ def valider(document):
     return document
 
 
+def marqueur_git_actif(repertoire):
+    """Fichier worktree ou métadonnées présents ; un dossier vide n'est pas un dépôt.
+
+    Certains environnements posent un .git vide en lecture seule à leur racine.
+    Ne pas contourner un dépôt réel, un lien symbolique ou un marqueur illisible.
+    """
+    marqueur = Path(repertoire) / '.git'
+    if marqueur.is_symlink() or marqueur.is_file():
+        return True
+    if marqueur.is_dir():
+        try:
+            return next(marqueur.iterdir(), None) is not None
+        except OSError:
+            return True
+    return False
+
+
 def materialiser(document, destination):
     d = valider(document)
     destination = Path(destination).resolve()
-    if any((p/'.git').exists() for p in (destination,*destination.parents)):
+    if any(marqueur_git_actif(p) for p in (destination,*destination.parents)):
         raise ValueError('Exports privés interdits dans un dépôt ou worktree Git')
     # Aucun export reçu n'est retouché ni écrasé. Les fichiers partiels ne sont
     # pas une livraison valide : le chargeur requiert les quatre catégories.

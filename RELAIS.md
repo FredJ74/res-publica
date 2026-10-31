@@ -247,3 +247,9 @@ Nouvelle passe : 45/45 Python, 154/154 clients, 105/105 pilote, 48/48 outillage,
 ### #219 — main #300 intégré réellement
 
 Main `586ae9ea` intégré dans `ba4d0843`. Conflits CI/relais résolus en conservant tous les bancs, une seule installation des dépendances et les statuts réels Helvetia/courriers/caisses signalés par Claude. Les trois scripts partagés sont fusionnés sans retour des anciennes sauvegardes de secours ; caches index/plateau montés avec suffixe caisses300. #300 est déjà sur main, étape 1 annoncée appliquée par Claude : le prochain prévol doit viser l'état vivant **après cette étape**, pas supposer que la dernière coupe reste 1009. Pas d'application par Codex. Nouvelle passe en cours sur cet arbre combiné.
+
+### #219 — garde finale des effectifs et relais réparés
+
+L'élection ajoutée au catalogue intégré révèle le wrapper final du payeur après 115831 (protection recrutements) : `d5c9f4e8…`. La commande événement le reconnaît seulement avec ses deux internes exactes/fermées ; la garde initiale transport et le payeur ne changent pas. Origine dérivée des sources publiques, mutation tierce refusée. **30+5 cas avant et après #300, 26 HTTP authentifiés**, rollback tardif 95 et rejeu sans mutation.
+
+Le banc des caisses passe 46/46 ; l'échec de workflow était le relais, trompé par les `.git` vides d'environnement. Détection des vrais dépôts/worktrees/liens conservée, **21/21 relais**, **49/49 outillage**, **155/155 bancs clients** après main #300. Relance complète des 46 commandes en cours, aucune référence falsifiée. Reste prévol complet après #300/données référentielles, #299 réservé à Claude, pas de certification production.

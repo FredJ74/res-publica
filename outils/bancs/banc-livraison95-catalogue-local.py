@@ -59,6 +59,7 @@ def main():
     c.rollback()
    assert e.empreinte_installation(q)==avant,'installation partielle après panne';c.commit();rapport['rollback_95']=True
    q.execute(sql);rapport['95_installees']=True;c.commit()
+   q.execute("SELECT md5(prosrc) FROM pg_proc WHERE oid='public.payer_ordre(text,text,integer,integer)'::regprocedure");rapport['payeur_final_md5_corps']=q.fetchone()[0];assert rapport['payeur_final_md5_corps']=='d5c9f4e8bdbdc2858c8b908fd6c460c5'
    apres=e.empreinte_installation(q);assert apres['registre']==len(registre)+95;q.execute("SELECT to_jsonb(p) FROM personnages_donnees p WHERE name='__hg219_canari_avant'");temoin_apres=q.fetchone()[0];rapport.update(verifier_temoin(temoin,temoin_apres));c.commit()
    try:q.execute(sql);raise AssertionError('rejeu du paquet non refusé')
    except psycopg2.Error as ex:

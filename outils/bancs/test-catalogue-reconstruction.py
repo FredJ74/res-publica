@@ -47,6 +47,16 @@ class Exports(unittest.TestCase):
   service=m.Services('postgresql://p@/db?host=/tmp/socket',self.rep,Path('/absent'),Path('/absent'))
   with self.assertRaisesRegex(ValueError,'Origine'):service.http('https://production.invalid/rpc/payer_ordre',{})
   self.assertEqual(service.processus,[]);service.fermer()
+ def test_payeur_final_derive_de_la_garde_effectifs_pas_du_catalogue_capture(self):
+  import re,hashlib
+  transport=(R/'migrations/20261031115805_transport_encaissement_existant.sql').read_text()
+  corps=re.search(r'CREATE OR REPLACE FUNCTION public.payer_ordre\(.*?AS \$g\$(.*?)\$g\$;',transport,re.S)[1]
+  source=(R/'migrations/20261031115831_effectifs_recrutement_et_licenciement_atomiques.sql').read_text()
+  injection=re.search(r"overlay\(s placing E'((?:[^']|'')*)' FROM position",source,re.S)[1].replace("''", "'").replace('\\n','\n')
+  final=hashlib.md5(corps.replace('BEGIN',injection,1).encode()).hexdigest()
+  self.assertEqual(final,'d5c9f4e8bdbdc2858c8b908fd6c460c5')
+  evenement=(R/'migrations/20261031113604_organisations_invitations_elections_atomiques.sql').read_text();self.assertIn(final,evenement)
+  self.assertIn("has_function_privilege('authenticated'",evenement);self.assertIn("has_function_privilege('anon'",evenement)
  def test_lot_organisations_selectionne_cinq_sources_sans_transactions_internes(self):
   sp=importlib.util.spec_from_file_location('lotorg',R/'outils/livraison/preparer-organisations-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
   from pglast import parse_sql

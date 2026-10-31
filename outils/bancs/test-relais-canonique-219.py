@@ -114,6 +114,16 @@ class Relais(unittest.TestCase):
  def test_publication_des_exports_dans_git_refusee(self):
   with self.assertRaisesRegex(ValueError,'Git'):m.materialiser(self.d,R/'ne-jamais-creer-ce-dossier')
   self.assertFalse((R/'ne-jamais-creer-ce-dossier').exists())
+ def test_marqueur_vide_n_est_pas_un_depot_mais_metadonnees_refusees(self):
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d);(p/'.git').mkdir();self.assertFalse(m.marqueur_git_actif(p))
+   (p/'.git/HEAD').write_text('ref: refs/heads/main\n');self.assertTrue(m.marqueur_git_actif(p))
+   with self.assertRaisesRegex(ValueError,'Git'):m.materialiser(copy.deepcopy(self.d),p/'prive')
+   self.assertFalse((p/'prive').exists())
+ def test_marqueur_worktree_ou_lien_est_toujours_refuse(self):
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d);(p/'.git').write_text('gitdir: /absent\n');self.assertTrue(m.marqueur_git_actif(p))
+   (p/'.git').unlink();(p/'.git').symlink_to(p/'absent');self.assertTrue(m.marqueur_git_actif(p))
  def test_contenus_territoriaux_ne_sont_pas_classes_socle_commun(self):
   cls=m.seeds.classification()
   for t in ['locaux_loyers_referentiel','rue_noeuds_serveur','rue_sorties_batiments','scandales_predefinis','terrains_referentiel','tracts_pnj_catalogue']:self.assertEqual(cls[t]['categorie'],'B')

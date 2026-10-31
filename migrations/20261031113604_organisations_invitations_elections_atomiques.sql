@@ -6,7 +6,7 @@ BEGIN;
 DO $garde$
 BEGIN
  IF obj_description(to_regclass('public.organisation_commandes_recus'),'pg_class') IS DISTINCT FROM 'HG commandes administratives v1' THEN RAISE EXCEPTION 'registre_administratif_requis'; END IF;
- IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='organisation_commande_evenement' AND md5(p.prosrc) NOT IN ('ce4d518be2d0545b10a43757a6e48550','e2e11e6ac212e75a13a36d55e8b239cc')) THEN RAISE EXCEPTION 'evenement_definition_a_reexaminer'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='organisation_commande_evenement' AND md5(p.prosrc) NOT IN ('ce4d518be2d0545b10a43757a6e48550','e2e11e6ac212e75a13a36d55e8b239cc','d33c8282c2fa559dd5596dcaf6c004c6')) THEN RAISE EXCEPTION 'evenement_definition_a_reexaminer'; END IF;
 END;
 $garde$;
 CREATE OR REPLACE FUNCTION public.organisation_commande_evenement(p_requete text,p_organisation text,p_action text,p_parametres jsonb)
@@ -52,7 +52,7 @@ BEGIN
  -- Corps examinés : historique, fiche protégée actuelle, ou adaptateur #219
  -- avec SES DEUX fonctions internes strictement attestées. Rien n'est remplacé.
  IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre(text,text,integer,integer)') AND md5(prosrc) IN ('92234a6b14ff176d2c2c2236f705683e','5cf45c19e4b9559f6b29e2b9207d3969'))
- AND NOT (coalesce((SELECT md5(prosrc)='ca7abc6ac27e864f723b25e73dacd665' FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre(text,text,integer,integer)')),false)
+ AND NOT (coalesce((SELECT md5(prosrc) IN ('ca7abc6ac27e864f723b25e73dacd665','d5c9f4e8bdbdc2858c8b908fd6c460c5') FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre(text,text,integer,integer)')),false)
  AND coalesce((SELECT md5(prosrc)='f315b77059d65b1ccd1879e800d18c22' FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)')),false)
  AND coalesce((SELECT md5(prosrc)='716e233a2b71a4c7be1d1227200765e6' FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)')),false)
  AND NOT coalesce(has_function_privilege('authenticated',to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)'),'EXECUTE'),false)
