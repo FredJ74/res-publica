@@ -63,6 +63,8 @@ jobs:
         run: node outils/bancs/banc-forum-auteur-institutionnel.cjs
       - name: Avis personnels signés d'expéditeurs déclarés
         run: node --test outils/bancs/banc-avis-personnels-expediteurs.mjs
+      - name: Purge certifiée et manifeste 95 migrations avant livraison
+        run: node outils/bancs/test-purge-migrations-219.mjs
       - name: Caisses des clubs et organisations tenues par le serveur (écran, #295)
         run: node outils/bancs/banc-caisses-collectives-client.cjs
       - name: Caisses entières, dialogues lisibles et genre non supposé
