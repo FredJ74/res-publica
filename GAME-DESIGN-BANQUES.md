@@ -12,4 +12,4 @@ Décisions explicites de Fred, consignées pour tous les agents.
   rembourse normalement, selon les échéances existantes. Aucune régularisation à écrire.
 - **Placement Helvetia (Claude, 31/10/2026, technique)** : règles inchangées (gain brut 8 %, frais
   30 % du gain, impôt 50 % du reste si déclaré). Le montant final va sur le compte Helvetia seul ;
-  la caisse reçoit frais + gain net. Migration `20261031150000_placement_helvetia_gain_unique`.
+  la caisse reçoit frais + gain net. Migration `20261031151000_placement_helvetia_gain_unique`.
