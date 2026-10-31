@@ -6,7 +6,7 @@ BEGIN;
 DO $garde$
 BEGIN
  IF obj_description(to_regclass('public.organisation_commandes_recus'),'pg_class') IS DISTINCT FROM 'HG commandes administratives v1' THEN RAISE EXCEPTION 'registre_administratif_requis'; END IF;
- IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='organisation_commande_evenement' AND md5(p.prosrc)<>'ce4d518be2d0545b10a43757a6e48550') THEN RAISE EXCEPTION 'evenement_definition_a_reexaminer'; END IF;
+ IF EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='organisation_commande_evenement' AND md5(p.prosrc) NOT IN ('ce4d518be2d0545b10a43757a6e48550','e2e11e6ac212e75a13a36d55e8b239cc')) THEN RAISE EXCEPTION 'evenement_definition_a_reexaminer'; END IF;
 END;
 $garde$;
 CREATE OR REPLACE FUNCTION public.organisation_commande_evenement(p_requete text,p_organisation text,p_action text,p_parametres jsonb)

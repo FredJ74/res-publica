@@ -28,6 +28,13 @@ def main():
  q.execute("CREATE TRIGGER audit BEFORE INSERT ON mails FOR EACH ROW EXECUTE FUNCTION mails_journaliser_envoi_systeme();CREATE TRIGGER territorial BEFORE INSERT ON forum_topics FOR EACH ROW EXECUTE FUNCTION forum_verrou_local_territorial();CREATE TRIGGER compte_rendu BEFORE INSERT ON forum_topics FOR EACH ROW EXECUTE FUNCTION forum_verrou_compte_rendu_journee();CREATE TRIGGER programme BEFORE INSERT ON forum_topics FOR EACH ROW EXECUTE FUNCTION forum_verrou_programme_officiel();CREATE TRIGGER message_ligue BEFORE INSERT ON forum_posts FOR EACH ROW EXECUTE FUNCTION forum_verrou_message_ligue()")
  q.execute((r/'migrations/20261031113600_organisations_commandes_administratives.sql').read_text())
  sql=(r/'migrations/20261031113604_organisations_invitations_elections_atomiques.sql').read_text();q.execute(sql);q.execute(sql)
+ # Le rejeu accepte le corps exact produit, mais jamais une definition tierce.
+ q.execute("SELECT pg_get_functiondef('organisation_commande_evenement(text,text,text,jsonb)'::regprocedure)");definition_evenement=q.fetchone()[0]
+ q.execute(definition_evenement.replace('DECLARE acteur text;', 'DECLARE acteur text; /* corps non examine */',1))
+ try:q.execute(sql);raise AssertionError('definition evenement inconnue acceptee')
+ except psycopg2.Error as e:
+  assert 'evenement_definition_a_reexaminer' in str(e),str(e);q.execute('ROLLBACK')
+ q.execute(definition_evenement);q.execute(sql)
  def acteur(nom):q.execute("SELECT set_config('hg.acteur',%s,false)",(nom,))
  def creer(id,type='supporters',visible=True):
   q.execute('INSERT INTO organisations VALUES(%s,%s)',(id,json.dumps({'id':id,'chef':'Alice','nom':'<Club>','country_origine':'republic','type':type,'visible':visible,'caisse':1050.5,'membres':[{'nom':'Alice'},{'nom':'Bob'}]})))

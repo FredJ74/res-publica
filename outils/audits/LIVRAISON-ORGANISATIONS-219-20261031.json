@@ -25,7 +25,7 @@
     {
       "version": "20261031113604",
       "fichier": "migrations/20261031113604_organisations_invitations_elections_atomiques.sql",
-      "sha256": "dab53121bc8353a83d844cc98ffab2147f450465a5ab601b08115c87a6e0915c"
+      "sha256": "8aeed4f76930fd2b25df034d35d68b426dfe301bc13a92fc0bd52546bf058cb3"
     },
     {
       "version": "20261031113605",

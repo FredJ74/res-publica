@@ -19,7 +19,7 @@
     {
       "version": "20261031113604",
       "fichier": "migrations/20261031113604_organisations_invitations_elections_atomiques.sql",
-      "sha256": "dab53121bc8353a83d844cc98ffab2147f450465a5ab601b08115c87a6e0915c"
+      "sha256": "8aeed4f76930fd2b25df034d35d68b426dfe301bc13a92fc0bd52546bf058cb3"
     },
     {
       "version": "20261031113605",
@@ -478,7 +478,7 @@
     }
   ],
   "nombre": 95,
-  "sha256_sql": "3e70ddae1872c26e30c1344490e3a5aa2f5390cf11969348f890e7d2c6aee845",
-  "octets": 976709,
+  "sha256_sql": "3b5877e9e6f0c03cbb6d885e84bf37b96700c0c1e17bcb1c2dfa407520676f4a",
+  "octets": 976797,
   "production_modifiee": false
 }
