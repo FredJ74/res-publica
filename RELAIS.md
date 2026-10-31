@@ -797,3 +797,7 @@ La revue distingue les contenus d'empire (rues, superficies/prix territoriaux, P
 ### #219 — dernier main #279/#280 conservé (31/10)
 
 Intégration de `5082d6e4` : caisses affichées en francs entiers sans changer les montants, contexte PNJ sans genre supposé, lisibilité et accessibilité. Retrait du vieux statut « #275 prête à fusionner » conformément au relais main, sans perdre les historiques groupes. Cache du script commun renouvelé. Aucune migration ajoutée par ces PR. Refaire les bancs clients/Chromium sur cet état avant verdict ; pas de déploiement de #219.
+
+### #219 — compatibilité du cache après #280 (31/10)
+
+Le nouveau contenu de `plateau-politique.js` conserve les caisses entières de #280 et les raccordements groupes. Clé de cache distincte de main, préfixée par la version des caisses et suffixée `groupes-219-main280` ; le banc de #280 est conservé inchangé. Résultats sur l'arbre intégré : 146/146 bancs clients, 105/105 Chromium, 379/379 SQL de décors ; aucun compte réel ni production. Les neuf cas caisses et les trois cas genre/lisibilité passent. Le blocage reste l'absence de l'extraction canonique complète, pas le cache.
