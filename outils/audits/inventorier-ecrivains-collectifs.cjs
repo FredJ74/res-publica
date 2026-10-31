@@ -23,10 +23,17 @@ const extraPatterns = [
 const lines = [];
 for (const file of js) {
   const text = fs.readFileSync(path.join(root, file), 'utf8');
-  for (const t of [...targets, ...extraPatterns.map(p => ({table:p.table, facade:p.symbol}))]) {
-    for (const symbol of [...new Set([t.facade, ...['sbUpsert', 'sbPatch', 'sbPost', 'sbDelete'].flatMap(fn => [
-      `${fn}('${t.table}'`, `${fn}(\"${t.table}\"`, `${fn}(\x60${t.table}\x60`
-    ])])] ) {
+  for (const t of targets) {
+    const patterns = [
+      t.facade,
+      ...extraPatterns.filter(p => p.table === t.table).map(p => p.symbol),
+      ...['sbUpsert', 'sbPatch', 'sbPost', 'sbDelete'].flatMap(fn => [
+        fn + "('" + t.table + "'",
+        fn + '("' + t.table + '"',
+        fn + '(' + String.fromCharCode(96) + t.table + String.fromCharCode(96)
+      ])
+    ];
+    for (const symbol of new Set(patterns)) {
       let offset = 0;
       while ((offset = text.indexOf(symbol, offset)) !== -1) {
         const line = text.slice(0, offset).split('\n').length;
