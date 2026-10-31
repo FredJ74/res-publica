@@ -1,0 +1,41 @@
+{
+  "production_appliquee": false,
+  "perimetre": "Trois contrats d’organisations déjà préparés, quatre contrats d’équipements exclus",
+  "contrats": [
+    "organisation_commande_administrative",
+    "organisation_commande_membres",
+    "organisation_commande_evenement"
+  ],
+  "migrations": [
+    {
+      "version": "20261031113600",
+      "fichier": "migrations/20261031113600_organisations_commandes_administratives.sql",
+      "sha256": "10ad42657395efab37bc58ed36c9a0da859947d72f76af77fbcce90233b71ecf"
+    },
+    {
+      "version": "20261031113602",
+      "fichier": "migrations/20261031113602_organisations_adhesions_grades.sql",
+      "sha256": "a481c6e5be46931886613751b310a4e957bb149f4a2beafba0685181e9c9dcdd"
+    },
+    {
+      "version": "20261031113603",
+      "fichier": "migrations/20261031113603_organisations_progression_elections.sql",
+      "sha256": "ea1c2e4f0f71442afdc64da86168803c10ffd81afdd9c2bc4cafda8793512d17"
+    },
+    {
+      "version": "20261031113604",
+      "fichier": "migrations/20261031113604_organisations_invitations_elections_atomiques.sql",
+      "sha256": "525697ead58c11358e9970d1c894ee15f0f8db0055692b3361fcc65929a3d5e2"
+    },
+    {
+      "version": "20261031113605",
+      "fichier": "migrations/20261031113605_organisations_refus_silencieux.sql",
+      "sha256": "8d337259d08c37d553d6e699fdce8e8ae9e30553dee1bc262788ae3d3ea51e83"
+    }
+  ],
+  "exclus": [
+    "organisations_equipements_collectifs",
+    "achat_equipements_collectifs"
+  ],
+  "prevol": "Registre et catalogue vivants requis, aucune installation implicite des autres préparations."
+}

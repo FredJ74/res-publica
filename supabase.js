@@ -2751,9 +2751,7 @@ async function sbGetOrganisationParId(orgaId) {
 
 async function sbDeleteOrganisation(orgaId) {
   const commande=await sbOrganisationCommande(orgaId,'dissoudre',{});
-  if(commande.disponible!==false)return commande.ok===true&&commande.dissoute===orgaId;
-  const r=await sbDeleteVerdict('organisations', `id=eq.${encodeURIComponent(orgaId)}`);
-  return r.ok===true && Array.isArray(r.donnees) && r.donnees.some(o=>o.id===orgaId);
+  return commande.disponible!==false&&commande.ok===true&&commande.dissoute===orgaId;
 }
 
 // =====================

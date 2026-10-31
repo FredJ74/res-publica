@@ -2140,18 +2140,15 @@ async function commercePjActualiserPersonnage(options = {}) {
 async function commercePjAcheter(referenceId, requete) {
   return commercePjTransaction('achat', async (tx) => {
   const payeur=document.getElementById('cpj-payeur-collectif')?.value||'';
+  const collectif=payeur.startsWith('orga:');
+  if(collectif){showToast('Équipements collectifs indisponibles','Le paiement par une organisation n’est pas encore activé.',false);return;}
   const ctx = await commercePjContexte();
   if (!commercePjTransactionActive(tx)) return;
   const qte = Math.max(1, Math.floor(Number((document.getElementById('cpj-qte') || {}).value) || 1));
   if(payeur && !payeur.startsWith('orga:'))return;
-  const collectif=payeur.startsWith('orga:');
-  const reprise=collectif?equipementsCollectifsCleAchat(payeur.slice(5),ctx.fondsId,referenceId,qte,requete):null;
-  const r = collectif
-    ? await sbRpcVerdict('organisation_equipement_acheter',{p_requete:reprise.requete,p_organisation:payeur.slice(5),p_fonds:ctx.fondsId,p_reference:referenceId,p_quantite:qte})
-    : await sbAcheterProduitCommerce(requete, state.char.name, ctx.fondsId, referenceId, qte);
+  const r = await sbAcheterProduitCommerce(requete, state.char.name, ctx.fondsId, referenceId, qte);
   if (!commercePjTransactionActive(tx)) return;
   if (!r || !r.ok) { showToast('—', commercePjRefus(r), false); return; }
-  if(collectif)equipementsCollectifsAchatConfirme(reprise);
   await commercePjActualiserPersonnage();
   if (!commercePjTransactionActive(tx)) return;
   if (typeof updateUI === 'function') updateUI();
