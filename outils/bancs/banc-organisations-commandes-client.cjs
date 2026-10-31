@@ -50,7 +50,7 @@ for(const action of ['candidature','vote'])test(`election/${action} : la confirm
  c.state.organisations[0].election={enCours:true,phase:action==='vote'?'vote':'candidatures',candidats:[],votes:{}};
  c.state.organisations[0].membres=[{nom:'Alice'}];c.updateUI=()=>{};
  c.sbRpcVerdict=async(fn,p)=>{assert.equal(p.p_action,action);assert.equal(Object.hasOwn(p.p_parametres,'acteur'),false);return {ok:false};};
- if(action==='vote')await c.voterElection('o','Bob');else await c.seProsenterCandidat('o');
+ if(action==='vote')await c.voterElectionOrganisation('o','Bob');else await c.seProsenterCandidat('o');
  assert.equal(c.sauvegardes.length,0);assert.equal(c.state.organisations[0].election.candidats.length,0);assert.equal(Object.keys(c.state.organisations[0].election.votes).length,0);
  assert.equal(c.toasts[0][2],false);
 });

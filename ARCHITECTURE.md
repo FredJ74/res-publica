@@ -211,3 +211,7 @@ Al-Khalija) ; la structure à huit empires (quatre non payants, quatre pay-to-wi
 Fred n'y figure pas encore.
 
 *Tenir ce fichier à jour à chaque mécanique ajoutée, retirée ou passée au serveur.*
+
+### Compatibilité des anciennes interfaces — 31 octobre 2026
+
+Les anciens points d'entrée de candidature et vote nationaux consultent le tableau électoral existant ; ils ne fabriquent plus de scrutin ou de voix dans le navigateur. Le vote d'organisation conserve son moteur distinct `voterElectionOrganisation`, avec adaptateur pour les anciens appels à deux arguments. L'analyse des scripts chargés interdit désormais les doubles définitions de fonctions globales (banc `banc-chemins-historiques.cjs`). Cela ne vaut pas fermeture des anciennes autorités serveur : voir l'audit `outils/audits/CHEMINS-HISTORIQUES-20261031.md` et les dépendances #219.

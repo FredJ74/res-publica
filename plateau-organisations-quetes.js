@@ -555,7 +555,7 @@ function renderOngletOrgas() {
             ? '<button onclick="seProsenterCandidat(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;padding:.3rem .6rem;border:1px solid #4a3a1a;background:transparent;color:#C9A84C;cursor:pointer">Se présenter</button>'
             : '') +
           (orga.election.phase === 'vote'
-            ? orga.election.candidats.map(c => '<button onclick="voterElection(\'' + orga.id + '\',\'' + c.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + c.nom + '</button>').join('')
+            ? orga.election.candidats.map(c => '<button onclick="voterElectionOrganisation(\'' + orga.id + '\',\'' + c.nom + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.68rem;margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;border:1px solid ' + (orga.election.votes[state.char?.name] === c.nom ? '#C9A84C' : '#2a2010') + ';background:transparent;color:#c0b090;cursor:pointer">' + c.nom + '</button>').join('')
             : '') +
           '</div>'
         ) : (
@@ -7787,7 +7787,7 @@ async function seProsenterCandidat(orgaId) {
   if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
 }
 
-async function voterElection(orgaId, candidatNom) {
+async function voterElectionOrganisation(orgaId, candidatNom) {
   const orga = getOrgaById(orgaId);
   if (!orga?.election?.enCours || orga.election.phase !== 'vote') { showToast('Indisponible', 'Le vote n\'est pas ouvert.', false); return; }
   const estMembre = orga.membres?.some(m => m.nom === state.char?.name);

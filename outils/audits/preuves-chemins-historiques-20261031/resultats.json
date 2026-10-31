@@ -1,0 +1,24 @@
+{
+  "main": "9f6deee541ae5bfbc4083a7a7951e2743e75e5a7",
+  "production": false,
+  "migrations_creees": [],
+  "migrations_production": [],
+  "scripts_analyses": 58,
+  "operations_statistiques": 931,
+  "doublons_globaux": [],
+  "tests_cibles": 25,
+  "bancs_clients": 131,
+  "chromium": 105,
+  "postgres_organisations": {
+    "assertions": 41,
+    "version": "17.6",
+    "identites": "fixtures",
+    "authentification_reelle": false
+  },
+  "workflow": "conforme",
+  "limites": [
+    "Analyse statique conservatrice, pas un test de production",
+    "Anciennes réceptions/soins/recrutement/déplacements à contrôler dans le vrai catalogue",
+    "Autorités de #219 non activées ; aucun ancien ordre légitime fermé avant sa relève"
+  ]
+}

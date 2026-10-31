@@ -14,12 +14,12 @@ function selection(fichier,noms){
  for(const nom of noms)assert.ok(vus.has(nom),'source réelle manquante : '+fichier+' / '+nom);
  return code;
 }
-const justice=selection('plateau-justice-economie.js',['PRIX_TERRAIN','NIVEAUX_CONSTRUCTION','palierProposable','DUREE_INSTRUCTION_PERMIS','TYPES_PRET','getTerrainState','ouvrirModalConstruire','doDeposerDemandePermis','getTauxPret','pretBancaireDisponibilite','ouvrirModalPretBancaire']);
+const justice=selection('plateau-justice-economie.js',['PRIX_TERRAIN','NIVEAUX_CONSTRUCTION','palierProposable','DUREE_INSTRUCTION_PERMIS','TYPES_PRET','getTerrainState','ouvrirModalConstruire','doDeposerDemandePermis','getTauxPret','pretBancaireDisponibilite','ouvrirModalPretBancaire','getBuildingIdCommissariat','getBuildingIdCentreMultimodal','getBuildingIdDispensaire','getBuildingIdTribunal','getCaisseLocaleId']);
 const sources=[fs.readFileSync(path.join(R,'data.js'),'utf8'),fs.readFileSync(path.join(R,'plateau-chantiers.js'),'utf8'),
  selection('plateau-immobilier.js',['PERMIS_COOLDOWN_REFUS_JOURS','PERMIS_STATUT_INSTRUCTION','PERMIS_STATUT_LEGACY_ATTENTE','permisEnInstruction','cooldownRefusActif','verdictNouvelleDemandePermis']),justice,
  selection('plateau-pnj.js',['ACOMPTE_COMPROMIS','PLAFOND_PRET_COMPROMIS','SURFACE_TERRAINS','terrainOrdreDisponible','doSignerCompromis']),
  fs.readFileSync(path.join(R,'plateau-construction-commandes.js'),'utf8'),
- selection('plateau-politique.js',['renderRoomActions','ouvrirMenuOrdresTerrain','expliquerAchatTerrainBloque']),selection('plateau-router.js',['doOrder'])];
+ selection('plateau-politique.js',['CATEGORIES_BUDGET_MAIRIE','getBuildingIdPourCategorieBudget','renderRoomActions','ouvrirMenuOrdresTerrain','expliquerAchatTerrainBloque']),selection('plateau-router.js',['doOrder'])];
 test('cinq terrains : rendu et formulaires réels dans Chromium, contreparties uniquement en fixtures',async t=>{
  const profil=fs.mkdtempSync(path.join(os.tmpdir(),'hg-immobilier135-'));let chrome,browser;const erreurs=[],reseau=[];
  const serveur=http.createServer((req,res)=>{reseau.push(req.method+' '+req.url);res.setHeader('Content-Type','text/html');res.end('<!doctype html><style>.modal-overlay{display:none}.modal-overlay.open{display:block}</style><div id="action-context-bat"></div><div id="actions-row-bat"></div><div id="toast"></div><div id="modal-postes" class="modal-overlay"><h2 id="postes-modal-title"></h2><div id="postes-body"></div></div>');});

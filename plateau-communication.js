@@ -1164,159 +1164,32 @@ async function validerNomination() {
 }
 
 function openCandidatureModal() {
-  // Verifier que les elections sont en phase candidatures
-  const elections = state.electionsEnCours || [];
-  const electionsOuvertes = elections.filter(e => e.phase === 'candidatures');
-  if (elections.length > 0 && electionsOuvertes.length === 0) {
-    showToast('Candidatures fermees', 'La periode de candidature est terminee. Les campagnes sont en cours.', false);
-    return;
-  }
-  document.getElementById('postes-modal-title').textContent = 'Deposer une candidature';
-  document.getElementById('postes-body').innerHTML = `
-    <div style="padding:1rem">
-      ${elections.length === 0
-        ? `<div style="font-size:.85rem;color:#8a8060;font-style:italic">Aucune election n'est actuellement en cours. Revenez lorsqu'une election sera declaree.</div>`
-        : elections.map(e => `
-            <div style="padding:.7rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.5rem">
-              <div style="font-family:'Playfair Display',serif;font-size:.9rem;color:#E8C97A;margin-bottom:.2rem">${e.nom}</div>
-              <div style="font-size:.72rem;color:#6a5a30">Date : ${e.date} · Candidats : ${e.candidats?.length || 0}</div>
-              <button onclick="confirmerCandidature('${e.id}')" style="margin-top:.5rem;font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">
-                Me declarer candidat
-              </button>
-            </div>`).join('')}
-      <div style="margin-top:.8rem;font-size:.72rem;color:#9a8a68;font-style:italic">
-        Pour lancer une election, contactez le Maire ou le Responsable electoral.
-      </div>
-    </div>`;
-  document.getElementById('modal-postes').classList.add('open');
+  // Compatibilité d'une ancienne entrée : le scrutin reste celui du serveur.
+  return ouvrirTableauElectoral();
 }
 
-function confirmerCandidatureLegacy_MORT(electionId) {
-  document.getElementById('modal-postes').classList.remove('open');
-  if (!state.electionsEnCours) return;
-  const election = state.electionsEnCours.find(e => e.id === electionId);
-  if (!election) return;
-  if (!election.candidats) election.candidats = [];
-  const nom = state.char?.name || 'Anonyme';
-  if (election.candidats.find(c => c.nom === nom)) {
-    showToast('Deja candidat', 'Vous etes deja candidat a cette election.', false);
-    return;
-  }
-  election.candidats.push({ nom, voix: 0, isPJ: true });
-  showToast('Candidature enregistree !', 'Vous etes officiellement candidat a ' + election.nom, true, true);
-  addJournalEntry('Candidature deposee pour : ' + election.nom, 'event-good');
-  addMailNotification('Commission Electorale', 'Confirmation de candidature', 'Votre candidature pour le poste de ' + election.nom + ' a bien ete enregistree. La campagne electorale debute dans ' + (election.joursAvantCampagne || 0) + ' jour(s).');
-}
+
 
 function openElectionsModal() {
-  document.getElementById('postes-modal-title').textContent = 'Elections en cours';
-
-  // Initialiser des elections de demo si aucune
-  if (!state.electionsEnCours || state.electionsEnCours.length === 0) {
-    state.electionsEnCours = [
-      {
-        id: 'election-president-1',
-        nom: 'President de la Republique',
-        type: 'president',
-        phase: 'campagne', // candidatures | campagne | depouillement | termine
-        jourDebut: 1,
-        jourCampagne: 4,
-        jourResultat: 7,
-        joursAvantCampagne: 0,
-        candidats: [
-          { nom: 'Bertrand (PNJ)', voix: 0, isPJ: false },
-          { nom: 'Leroux (PNJ)', voix: 0, isPJ: false }
-        ],
-        tour: 1,
-        resultat: null
-      }
-    ];
-  }
-
-  const elections = state.electionsEnCours;
-  let html = '<div style="padding:1rem">';
-
-  elections.forEach(e => {
-    const phaseLabel = { candidatures: 'Depot des candidatures', campagne: 'Campagne electorale', depouillement: 'Depouillement', termine: 'Termine' }[e.phase] || e.phase;
-    const phaseColor = { candidatures: '#6a9a5a', campagne: '#C9A84C', depouillement: '#aa6a4a', termine: '#4a4030' }[e.phase] || '#8a8060';
-
-    html += '<div style="border:1px solid #2a2010;background:#0f0d05;padding:.8rem;margin-bottom:.8rem">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.9rem;color:#E8C97A">' + e.nom + '</div>';
-    html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.68rem;letter-spacing:.1em;color:' + phaseColor + ';border:1px solid;padding:.1rem .4rem">' + phaseLabel + '</div>';
-    html += '</div>';
-    html += '<div style="font-size:.72rem;color:#6a5a30;margin-bottom:.5rem">Tour ' + (e.tour||1) + ' · Resultats a venir</div>';
-
-    // Candidats et voix
-    if (e.candidats && e.candidats.length > 0) {
-      const totalVoix = e.candidats.reduce((s, c) => s + (c.voix||0), 0) || 1;
-      html += '<div style="margin-bottom:.5rem">';
-      e.candidats.forEach(c => {
-        const pct = Math.round((c.voix||0) / totalVoix * 100);
-        const isMoi = c.nom === (state.char?.name);
-        html += '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem">';
-        html += '<div style="font-size:.75rem;color:' + (isMoi ? '#C9A84C' : '#c0b090') + ';width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + c.nom + (isMoi ? ' (Vous)' : '') + '</div>';
-        html += '<div style="flex:1;height:6px;background:#1a1810;border-radius:3px"><div style="height:100%;background:' + (isMoi ? '#C9A84C' : '#4a6a4a') + ';width:' + pct + '%;border-radius:3px"></div></div>';
-        html += '<div style="font-size:.7rem;color:#6a5a30;width:30px;text-align:right">' + pct + '%</div>';
-        html += '</div>';
-      });
-      html += '</div>';
-    }
-
-    // Boutons selon phase
-    const dejaCandidatObj = e.candidats && e.candidats.find(c => c.nom === (state.char?.name));
-    if (e.phase === 'candidatures' && !dejaCandidatObj) {
-      html += '<button onclick="confirmerCandidature(\'' + e.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer;margin-right:.4rem">Me declarer candidat</button>';
-    }
-    if (e.phase === 'campagne') {
-      html += '<button onclick="voterElection(\'' + e.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.3rem .7rem;border:1px solid #4a8a4a;background:transparent;color:#6a9a6a;cursor:pointer;margin-right:.4rem">' + (state.aVote?.[e.id] ? 'Vote deja exprime' : 'Voter') + '</button>';
-    }
-    html += '</div>';
-  });
-
-  html += '<div style="font-size:.72rem;color:#9a8a68;font-style:italic;margin-top:.5rem">Calendrier : candidatures semaine 1-3 · campagne semaine 4-5 · resultats dimanche soir.</div>';
-  html += '</div>';
-
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  return ouvrirTableauElectoral();
 }
 
-function voterElection(electionId) {
-  if (state.aVote?.[electionId]) {
-    showToast('Vote deja exprime', 'Vous avez deja vote pour cette election.', false);
-    return;
+function voterElection(identifiant, candidatNom) {
+  // Anciennes cartes : deux arguments = organisation ; un = ancien tableau national.
+  // Aucun vote n'est décidé ici, et aucun ID historique n'est converti en bulletin.
+  if (arguments.length > 1) {
+    if (typeof voterElectionOrganisation !== 'function') {
+      showToast('Vote indisponible', 'Rechargez la page avant de voter.', false);
+      return false;
+    }
+    return voterElectionOrganisation(identifiant, candidatNom);
   }
-  const election = (state.electionsEnCours||[]).find(e => e.id === electionId);
-  if (!election || !election.candidats || election.candidats.length === 0) return;
-
-  // Afficher la liste des candidats pour voter
-  document.getElementById('modal-postes').classList.remove('open');
-  document.getElementById('postes-modal-title').textContent = 'Voter — ' + election.nom;
-  let html = '<div style="padding:1rem"><div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:1rem">Vous ne pouvez voter qu\'une seule fois.</div>';
-  election.candidats.forEach((c, i) => {
-    html += '<div style="padding:.6rem;border:1px solid #2a2010;background:#0f0d05;margin-bottom:.4rem;cursor:pointer;transition:background .2s" onclick="confirmerVote(\'' + electionId + '\',' + i + ')" onmouseover="this.style.background=\'#151005\'" onmouseout="this.style.background=\'#0f0d05\'">';
-    html += '<div style="font-family:Playfair Display,serif;font-size:.85rem;color:#c0b090">' + c.nom + '</div>';
-    html += '<div style="font-size:.7rem;color:#5a5040">' + (c.isPJ ? 'Joueur' : 'PNJ') + '</div>';
-    html += '</div>';
-  });
-  html += '</div>';
-  document.getElementById('postes-body').innerHTML = html;
-  document.getElementById('modal-postes').classList.add('open');
+  return ouvrirTableauElectoral();
 }
 
-function confirmerVote(electionId, candidatIdx) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const election = (state.electionsEnCours||[]).find(e => e.id === electionId);
-  if (!election) return;
-  if (!state.aVote) state.aVote = {};
-  state.aVote[electionId] = true;
-  election.candidats[candidatIdx].voix = (election.candidats[candidatIdx].voix||0) + 1;
-  // Ajouter voix aleatoires PNJ pour simulation
-  election.candidats.forEach((c, i) => {
-    if (i !== candidatIdx) c.voix = (c.voix||0) + Math.floor(Math.random() * 5);
-  });
-  showToast('Vote enregistre !', 'Vous avez vote pour ' + election.candidats[candidatIdx].nom, true, true);
-  addJournalEntry('Vote exprime pour ' + election.candidats[candidatIdx].nom + ' (' + election.nom + ')', 'event-info');
+function confirmerVote() {
+  // Un ancien bulletin ne confirme rien : ouvrir la sélection officielle à renouveler.
+  return ouvrirTableauElectoral();
 }
 
 // calculerResultatElection SUPPRIMEE le 27/10/2026 : aucun appelant (audit « une seule verite », §5).

@@ -2755,23 +2755,8 @@ const BONUS_CARRIERE_VOL = {
 //
 // La suppression retablit l'original, qui applique bien PEINES_ACTES.
 
-// DOUBLON de doSesoigner (plateau-personnage.js:2544), corps identique. Les deux fichiers
-// etant charges a la suite, c'est CETTE definition qui l'emporte a l'execution. Migre vers
-// l'entonnoir serveur comme l'autre (chantier C, 14 septembre 2026) : tant que le doublon
-// existe, laisser l'une des deux ecrire en direct suffirait a rouvrir le contournement.
-// Le doublon lui-meme n'est pas supprime ici -- ce serait une modification de structure sans
-// rapport avec la securisation, a faire dans une passe dediee.
-async function doSesoigner() {
-  const medocs = (state.inventory || []).filter(i => i.type === 'medicament');
-  if (medocs.length === 0) { showToast('Aucun medicament', '', false); return; }
-  const idx = state.inventory.indexOf(medocs[0]);
-  const r = await removeFromInventory(idx, 'consommer');
-  if (!r.ok) { showToast('Soins impossibles', messageRefusSortieInventaire(r.raison), false); return; }
-  state.hp = Math.min(100, state.hp + 20);
-  updateUI();
-  showToast('Soins', '+20 Sante. ' + (state.inventory.filter(i=>i.type==='medicament').length) + ' medicament(s) restant(s).', true);
-  switchSelfTab('inventaire', null);
-}
+// doSesoigner est défini uniquement dans plateau-personnage.js.
+
 
 // =====================
 // MOTEUR D'ENTREPRISE PRIVEE (fondations)
