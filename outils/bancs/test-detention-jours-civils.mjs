@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const cron = readFileSync(new URL('../../api/cron-minuit.js', import.meta.url), 'utf8');
 const client = readFileSync(new URL('../../plateau-justice-economie.js', import.meta.url), 'utf8');
-const sql = readFileSync(new URL('../../migrations/20261031113547_detention_jours_civils_universels.sql', import.meta.url), 'utf8');
+const sql = readFileSync(new URL('../../historique/migrations-appliquees/rehorodatees-219/20261031113547_detention_jours_civils_universels.sql', import.meta.url), 'utf8');
 test('cron calcule les peines sur des dates Paris, non 24h', () => {
   assert.match(cron, /jourParisISO\(new Date\(debutTs\)\)/);
   assert.match(cron, /decalerJourISO\(jourDebut, Math\.ceil\(jours\)\)/);
