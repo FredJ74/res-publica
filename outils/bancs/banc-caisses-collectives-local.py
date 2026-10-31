@@ -273,7 +273,10 @@ def main():
     essai("UPDATE organisations SET data=jsonb_set(data::jsonb,'{tresorier}','\"Vince Kubrick\"')::text WHERE id='orga_eco'")
     verifie('C7 Vince ne se nomme pas trésorier', orga('orga_eco').get('tresorier'), None)
     qui('Vince Kubrick')
-    verifie('C8 Vince ne supprime pas l organisation de Jean', essai("DELETE FROM organisations WHERE id='orga_eco' RETURNING 1"), refus)
+    essai("DELETE FROM organisations WHERE id='orga_eco'")
+    serveur(); q.execute("SELECT count(*) FROM organisations WHERE id='orga_eco'")
+    verifie('C8 Vince ne supprime pas l organisation de Jean', str(q.fetchone()[0]), '1')
+    qui('Vince Kubrick')
     verifie('C9 pas de fondation avec une caisse garnie',
             essai("""INSERT INTO organisations VALUES ('orga_x','republic','{"type":"economique","chef":"Vince Kubrick","fondateur":"Vince Kubrick","caisse":5000,"membres":[]}') RETURNING 1"""),
             lambda r: refus(r) and 'caisse_initiale' in r)
@@ -382,10 +385,13 @@ def main():
     r = json.loads(essai("SELECT club_transfert_conclure('t1')::text"))
     verifie('D23 transfert rejoué : rien ne bouge', (r.get('rejeu'), caisse_club('cheminote-montrouge'), caisse_club('olympique-luthecia')), (True, 100.0, 2950.0))
 
+    qui('Angie Porcelana')
+    verifie('D24 la cheffe dissout sa propre organisation', essai("DELETE FROM organisations WHERE id='orga_rel' RETURNING id"), 'orga_rel')
+
     # ========================================================= E. DROITS FINAUX
     serveur()
     q.execute("""SELECT has_table_privilege('authenticated','budgets_clubs','INSERT'), has_table_privilege('authenticated','budgets_clubs','UPDATE'),
-                        has_table_privilege('authenticated','organisations','DELETE'), has_table_privilege('authenticated','caisses_collectives_operations','SELECT'),
+                        EXISTS (SELECT 1 FROM pg_policies WHERE policyname='organisations_suppression_acteur'), has_table_privilege('authenticated','caisses_collectives_operations','SELECT'),
                         has_function_privilege('authenticated','club_caisse_ajuster_interne(text,numeric,text,integer)','EXECUTE'),
                         has_function_privilege('authenticated','organisation_caisse_ajuster_interne(text,numeric)','EXECUTE'),
                         has_function_privilege('anon','club_sponsoriser(text,text,integer)','EXECUTE')""")

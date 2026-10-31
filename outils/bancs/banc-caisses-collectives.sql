@@ -73,8 +73,8 @@ SELECT pg_temp.note('C6 Vince exclut Jean (membre conservé)',
    RETURNING (SELECT count(*)::text FROM jsonb_array_elements(data::jsonb->'membres') e WHERE e->>'nom'='Jean Jaaj')$$), '1');
 SELECT pg_temp.note('C7 Vince se nomme trésorier (trésorier conservé)',
   pg_temp.essai($$UPDATE public.organisations SET data = jsonb_set(data::jsonb,'{tresorier}','"Vince Kubrick"')::text WHERE id='orga_1792355539137' RETURNING coalesce(data::jsonb->>'tresorier','aucun')$$), 'aucun');
-SELECT pg_temp.note('C8 Vince supprime l''organisation de Jean',
-  pg_temp.essai($$DELETE FROM public.organisations WHERE id='orga_1792355539137' RETURNING id$$), 'ERR:permission denied');
+SELECT pg_temp.note('C8 Vince supprime l''organisation de Jean (aucune ligne)',
+  pg_temp.essai($$DELETE FROM public.organisations WHERE id='orga_1792355539137' RETURNING id$$), 'ok');
 SELECT pg_temp.note('C9 Vince fonde une organisation avec 5000 FR en caisse',
   pg_temp.essai($$INSERT INTO public.organisations(id,country_origine,data) VALUES ('orga_banc','republic','{"type":"economique","chef":"Vince Kubrick","fondateur":"Vince Kubrick","caisse":5000,"membres":[]}') RETURNING id$$), 'ERR:organisation_caisse_initiale_interdite');
 SELECT pg_temp.note('C10 Vince verse les dividendes de l''organisation de Jean',

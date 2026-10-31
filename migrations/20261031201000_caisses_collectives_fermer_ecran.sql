@@ -4,7 +4,8 @@
 --
 -- 1. budgets_clubs : plus aucune écriture de l'écran (toutes passent par une fonction serveur).
 --    INSERT et UPDATE retirés à anon/authenticated, politiques d'écriture supprimées.
--- 2. organisations : DELETE retiré (aucun écran ne supprime d'organisation). INSERT/UPDATE restent
+-- 2. organisations : DELETE réservé au chef ou au fondateur (dissolution, repli de
+--    sbDeleteOrganisation tant que la commande serveur « dissoudre » n'existe pas). INSERT/UPDATE restent
 --    nécessaires aux commandes d'adhésion, de grades et d'élection tant que les contrats serveur de
 --    Codex (#219 : organisation_commande_membres / _administrative / _evenement) ne sont pas en
 --    production. Le déclencheur organisations_finances_garder protège, pour TOUTE écriture directe
@@ -33,8 +34,11 @@ DROP POLICY IF EXISTS budgets_clubs_ecriture_acteur ON public.budgets_clubs;
 DROP POLICY IF EXISTS budgets_clubs_maj_acteur ON public.budgets_clubs;
 
 -- -------------------------------------------------------------------------- 2. organisations
-REVOKE DELETE ON public.organisations FROM anon, authenticated;
 DROP POLICY IF EXISTS organisations_suppression_acteur ON public.organisations;
+DROP POLICY IF EXISTS organisations_suppression_chef ON public.organisations;
+CREATE POLICY organisations_suppression_chef ON public.organisations FOR DELETE TO authenticated
+  USING (public.mon_personnage() IS NOT NULL AND (data IS JSON OBJECT)
+         AND public.mon_personnage() IN (data::jsonb->>'chef', data::jsonb->>'fondateur'));
 
 CREATE OR REPLACE FUNCTION public.organisation_vainqueur_election(p_election jsonb) RETURNS text
 LANGUAGE plpgsql IMMUTABLE SET search_path = public, pg_temp AS $$
@@ -212,7 +216,7 @@ DO $$
 BEGIN
   IF has_table_privilege('authenticated', 'public.budgets_clubs', 'UPDATE')
      OR has_table_privilege('authenticated', 'public.budgets_clubs', 'INSERT')
-     OR has_table_privilege('authenticated', 'public.organisations', 'DELETE') THEN
+     OR EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'organisations' AND policyname = 'organisations_suppression_acteur') THEN
     RAISE EXCEPTION 'caisses_collectives: un droit direct subsiste';
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_organisations_finances_garder')
