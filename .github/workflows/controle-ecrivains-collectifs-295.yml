@@ -1,0 +1,23 @@
+name: Controle ecrivains collectifs 295
+on:
+  pull_request:
+    paths:
+      - 'outils/audits/inventorier-ecrivains-collectifs.cjs'
+      - 'outils/bancs/banc-ecrivains-collectifs-295.cjs'
+      - '.github/workflows/controle-ecrivains-collectifs-295.yml'
+  workflow_dispatch:
+jobs:
+  banc-scanner:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Tests inventaire ecrivains
+        run: node --test outils/bancs/banc-ecrivains-collectifs-295.cjs
+      - name: Inventaire observatoire des chemins restants
+        run: node outils/audits/inventorier-ecrivains-collectifs.cjs > /tmp/ecrivains-295.json
