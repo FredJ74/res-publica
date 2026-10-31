@@ -19,7 +19,7 @@ def main():
  for nom in ['restaurant_luthecia_est_commerce','restaurant_luthecia_carte','restaurant_luthecia_vente_verifier','commerce_vendre_produit_interne']:c.execute(restaurant.definition(nom,ORIGINAL))
  c.execute(restaurant.definition('commerce_vendre_produit',ROOT/'migrations/20261031113607_catalogue_et_offrir_a_boire.sql'))
  c.execute('REVOKE ALL ON FUNCTION commerce_vendre_produit_interne(text,text,jsonb,text,text,integer,integer,text,numeric) FROM PUBLIC,anon,authenticated,service_role')
- for nom in ['pa_bonus_chambre','pa_crediter_interne']:c.execute(restaurant.definition(nom,ROOT/'baseline/domaines/finances-publiques/20_fonctions-1.sql'))
+ for nom in ['pa_bonus_chambre','pa_crediter_interne']:c.execute(restaurant._sources.entree_historique(nom))
  # Le moteur appelle une fois le paiement, qui refuse sans mutation si le tarif/fonds sont invalides.
  c.execute('''CREATE TABLE paiements(acteur text,montant integer);
  CREATE OR REPLACE FUNCTION payer_ordre(text,text,integer,integer) RETURNS jsonb LANGUAGE plpgsql AS $$ BEGIN

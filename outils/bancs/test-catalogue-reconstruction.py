@@ -15,6 +15,18 @@ class Exports(unittest.TestCase):
    row={cle:v}
    if mode=='mcp':row={'result':'<untrusted-data-0000-1111>\n'+json.dumps([row])+'\n</untrusted-data-0000-1111>'}
    (self.rep/(cle+('.txt' if mode=='mcp' else '.json'))).write_text(json.dumps(row))
+ def test_lecteur_migration_ne_substitue_pas_une_entree_baseline(self):
+  spec=importlib.util.spec_from_file_location('restaurant_fixture',R/'outils/bancs/banc-restaurant-luthecia-local.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+  n='commerce_vendre_produit';f=R/'migrations/20261031113607_catalogue_et_offrir_a_boire.sql'
+  self.assertEqual(m.definition(n,f),m._sources.fonction(str(f.relative_to(R)),n))
+  self.assertNotEqual(m.definition(n,f),m._sources.entree_historique(n))
+ def test_ecart_net_onze_ne_prouve_pas_onze_lignes_manquantes(self):
+  spec=importlib.util.spec_from_file_location('couts',R/'outils/baseline/comparer-couts-captures.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+  a=[{'fn':'ancien','pa':1,'cost':2}];b=[{'fn':'ordre'+str(i),'pa':1,'cost':2} for i in range(12)]
+  r=m.comparer(a,b);self.assertEqual(r['difference_nette'],11);self.assertEqual(len(r['capture_seulement']),12);self.assertEqual(len(r['source_seulement']),1);self.assertFalse(r['coherents'])
+  self.assertTrue(m.comparer(b,list(reversed(b)))['coherents'])
+  with self.assertRaises(ValueError):m.comparer(a,a+a)
+  with self.assertRaises(ValueError):m.comparer(a,[{'fn':'x','pa':True,'cost':2}])
  def test_json_et_mcp_meme_resultat_schema_et_seeds(self):
   self.ecrire();exp,_=rendre.charger_exports(str(self.rep));self.assertEqual(exp,seeds.charger_exports(str(self.rep)))
   for p in self.rep.iterdir():p.unlink()

@@ -9,7 +9,7 @@ _sources=importlib.util.module_from_spec(_sources_spec);_sources_spec.loader.exe
 PARENT=ROOT/'migrations/20261031113607_catalogue_et_offrir_a_boire.sql'
 MIGRATION=ROOT/'migrations/20261031113608_luthecia_cartes_et_diners.sql'
 def definition(nom,f):
- if nom in ('commerce_vendre_produit','commerce_produire','commerce_cout_revient_portion','tournee_cloturer'):return _sources.entree_historique(nom)
+ if 'baseline' in f.relative_to(ROOT).parts and nom in ('commerce_vendre_produit','commerce_produire','commerce_cout_revient_portion','tournee_cloturer'):return _sources.entree_historique(nom)
  return _sources.fonction(str(f.relative_to(ROOT)),nom)
 
 def table(nom,f):

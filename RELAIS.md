@@ -154,3 +154,13 @@ Le diagnostic des cinq mesures est STRICTEMENT en lecture seule (`diagnostiquer-
 Mails : défilement déjà présent, testé dans Chromium avec rendu/CSS réels, deux largeurs et contre-épreuve de l’ancien défaut (3/3) ; aucun écran recodé. Caisses à l’accueil déjà intégrées #275 ; fonds/murs #71 non intégrés selon le relais actuel. API Actions refusée et ressources Vercel refusées (403) depuis cet environnement : aucun statut distant vert ni recette authentifiée revendiqué. Les exports restent privés hors Git.
 
 Dernière passe complète après ces corrections : **150/150 bancs clients**, zéro échec, sockets locaux autorisés. Une première exécution confinée avait neuf échecs d’infrastructure navigateur/HTTP ; elle ne constitue pas le verdict fonctionnel. Preuves clients et complément du rapport enregistrés.
+
+### #219 — correction de la CI réservation et inventaire des 19 écarts (31/10, EN COURS)
+
+Le lecteur de la fixture restaurant substituait l’entrée historique `commerce_vendre_produit` même lorsqu’une migration explicite était demandée : contre-épreuve exécutée contre le mauvais moteur, retour sans `raison`. Substitution limitée au baseline ; versions historiques des deux fonctions de bonus épinglées au même commit public que le décor. **49/49 réservation** sur PostgreSQL 17.6 et sur le moteur 16.2 de CI, **94/94 restaurant**, **40/40 outillage** dont contre-épreuve de non-substitution. Aucun affaiblissement d’assertion.
+
+`AUTHORITY-19-219-20261031.json` détaille les 19 : **12 résolus après installation locale des 89**, sept contrats d’organisations restent hors lot. Ne pas les masquer ni importer les 65 préparations. L’inventaire plus strict du catalogue après lot conserve 17 formes à examiner (dont arguments spread et anciens appels), distinctes de ces 19.
+
+Le relais canonique contient cinq nombres/empreintes et dix tables de seeds, mais **aucun contenu des 438 triples `ordres_couts`**. Impossible d’attribuer les onze de différence nette à des clés sans ces lignes. `comparer-couts-captures.py` compare les ensembles réels, refuse doublons/types invalides, et fournit la requête strictement en lecture seule ; ne touche à aucun vérificateur ni référence. Contre-épreuve : +11 peut signifier +12/-1, pas forcément onze absences.
+
+Main relu via le credential helper GitHub CLI existant : toujours `59ea6d90`, déjà intégré. API Actions encore Forbidden, pas de conclusion distante revendiquée. Aucun accès Supabase vivant exposé, aucune production modifiée. Continuer contrôles et preuves, puis pousser par le même helper ; pas de fusion.
