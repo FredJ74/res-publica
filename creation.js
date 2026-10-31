@@ -1197,6 +1197,10 @@ async function validateChar(){
             'compte. Changer de nom n\'y changera rien.<br><br>' +
             '<em>Retournez a l\'accueil pour le reprendre. Pour en creer un autre, il faut ' +
             'd\'abord detruire celui que vous possedez, depuis sa fiche.</em>');
+        } else if (creation.raison === 'genre_requis') {
+          afficherErreurCreation('Genre manquant',
+            'Le genre de votre personnage est obligatoire. Revenez a l\'etape de l\'identite pour ' +
+            'le choisir, puis validez de nouveau.<br><br><em>Rien n\'a ete perdu.</em>');
         } else if (creation.raison === 'session_perimee') {
           afficherErreurCreation('Session expiree',
             'La session de ce navigateur n\'est plus reconnue par le serveur. Rechargez la page : ' +

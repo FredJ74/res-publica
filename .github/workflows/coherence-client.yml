@@ -61,6 +61,8 @@ jobs:
         run: node outils/bancs/banc-fiche-verite-serveur-20261030.cjs
       - name: Création de personnage après réponse réseau perdue
         run: node outils/bancs/banc-creation-personnage-reseau-20261028.cjs
+      - name: Genre du personnage dans les dialogues PNJ (handler réel, IA simulée)
+        run: node --test outils/bancs/banc-genre-pnj-dialogue.mjs
       - name: Régression de sortie de bâtiment avec réponse perdue
         run: node outils/bancs/banc-sortie-reponse-perdue-20261028.cjs
       - name: Pilote joueur, fixtures locales sans compte ni Supabase
