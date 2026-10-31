@@ -7432,7 +7432,7 @@ async function ouvrirModalConstruire() {
 
   if (!ts.constructionAutorisee) {
     // Sans permis joint, ouvrir le dossier existant, sans débiter à l'ouverture.
-    return doDeposerDemandePermis(ORDRE_DEPOSER_PERMIS.pa, ORDRE_DEPOSER_PERMIS.cost);
+    return doDeposerDemandePermis(1, 100); // cout declare par ORDRE_DEPOSER_PERMIS
   }
 
   document.getElementById('postes-modal-title').textContent = 'Construire sur ce terrain';
@@ -8156,7 +8156,8 @@ const DUREE_INSTRUCTION_PERMIS = {
 
 // Le depot de permis n'a plus de bouton propre sur les parcelles (01/11/2026) : il s'ouvre par
 // « Construire ». Son cout reste declare ici, la ou il est employe, pour que le miroir
-// ordres_couts (payer_ordre, appele par terrain_permis_deposer) le connaisse toujours.
+// ordres_couts (payer_ordre, appele par terrain_permis_deposer) le connaisse toujours. Les
+// bancs e2e chargent ouvrirModalConstruire seule : l'appel y garde donc les valeurs litterales.
 const ORDRE_DEPOSER_PERMIS = {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100};
 
 async function doDeposerDemandePermis(pa, cost) {
