@@ -21,8 +21,8 @@ def main():
   # Découpage du catalogue résolu par le lecteur commun.
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:
    q.execute(_sources['fonction']('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn))
-  sql=(R/'migrations/20261031113627_terrain_occupation_visites.sql').read_text();q.execute(sql)
-  q.execute((R/'migrations/20261031113643_terrain_visites_fermeture_changement_ville.sql').read_text())
+  sql=(R/'historique/migrations-appliquees/rehorodatees-219/20261031113627_terrain_occupation_visites.sql').read_text();q.execute(sql)
+  q.execute((R/'historique/migrations-appliquees/rehorodatees-219/20261031113643_terrain_visites_fermeture_changement_ville.sql').read_text())
   n=0
   def check(v):
    nonlocal n
