@@ -248,5 +248,31 @@ ALTER SEQUENCE fixture_catalogue_n_seq RENAME TO serie_nom_personnalise;''')
   self.assertEqual(m.expression_check(a),m.expression_check(b))
   self.assertNotEqual(m.expression_check(a),m.expression_check(b.replace('100','101')))
   self.assertNotEqual(m.expression_check(a),m.expression_check(b.replace('AND','OR',1)))
+ def test_FK_attend_un_index_UNIQUE_autonome(self):
+  import reconstruire
+  from unittest.mock import patch
+  import psycopg2
+  tables='CREATE TABLE parent_fk(id text);CREATE TABLE enfant_fk(parent text);'
+  fk='ALTER TABLE enfant_fk ADD CONSTRAINT lien_fk FOREIGN KEY(parent) REFERENCES parent_fk(id);'
+  index='CREATE UNIQUE INDEX parent_fk_unique ON parent_fk(id);'
+  self.q.execute('SAVEPOINT ancien_ordre');self.q.execute(tables)
+  with self.assertRaises(psycopg2.errors.InvalidForeignKey):self.q.execute(fk)
+  self.q.execute('ROLLBACK TO SAVEPOINT ancien_ordre')
+  with tempfile.TemporaryDirectory() as d:
+   racine=Path(d);dom=racine/'domaines'/'fixture';dom.mkdir(parents=True);graines=racine/'seeds';graines.mkdir()
+   fichiers={'10_tables.sql':tables,'30_contraintes.sql':fk,'35_index.sql':index}
+   for nom,s in fichiers.items():(dom/nom).write_text(s)
+   (dom/'MANIFESTE.json').write_text(json.dumps({'ordre':list(fichiers)}))
+   with patch.object(reconstruire,'DOM',str(dom.parent)),patch.object(reconstruire,'SEEDS',str(graines)):
+    morceaux,_=reconstruire.assembler()
+   for _,s in morceaux:self.q.execute(s)
+  self.q.execute("INSERT INTO parent_fk VALUES('parent');INSERT INTO enfant_fk VALUES('parent')")
+  with self.assertRaises(psycopg2.errors.ForeignKeyViolation):self.q.execute("INSERT INTO enfant_fk VALUES('absent')")
+ def test_simulateur_compte_les_sequences_IDENTITY_du_catalogue(self):
+  import reconstruire
+  texte='CREATE TABLE fixture_catalogue(id bigint GENERATED ALWAYS AS IDENTITY(SEQUENCE NAME public.fixture_catalogue_id_seq));'
+  cat,erreurs,*_=reconstruire.simuler([('fixture/10_tables.sql',texte)])
+  self.assertFalse(erreurs)
+  self.assertIn('fixture_catalogue_id_seq',cat.sequences)
 
 if __name__=='__main__':unittest.main(verbosity=2)

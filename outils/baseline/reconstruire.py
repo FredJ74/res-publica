@@ -18,12 +18,10 @@ que l'on peut passer SANS creer de base :
      la table avant sa policy. Un ordre qui arrive trop tot est signale avec son
      rang exact.
 
-CE QUE CET OUTIL NE FAIT PAS, ET C'EST A SAVOIR : il n'execute rien. Aucun
-moteur PostgreSQL n'est joignable depuis cette machine -- ni local, ni conteneur,
-ni second projet -- et la base de production est interdite en ecriture. Une
-reconstruction REELLE reste donc a faire le jour ou un projet jetable sera
-disponible. Les deux epreuves ci-dessus couvrent la syntaxe et l'ordre des
-dependances, pas le comportement du moteur a l'execution.
+CE QUE CET OUTIL NE FAIT PAS : il n'exécute rien. L'épreuve réelle, distincte,
+est outils/baseline/epreuve-postgresql.py sur PostgreSQL 17.6 local jetable.
+Le présent contrôle couvre syntaxe et dépendances, jamais l'exécution ni
+une connexion à la production.
 
 Usage :
     python3 outils/baseline/reconstruire.py            # assemble, valide, simule

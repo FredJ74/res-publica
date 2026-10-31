@@ -1,0 +1,801 @@
+{
+  "production": false,
+  "historique_rejoue": false,
+  "donnees_joueurs_copiees": false,
+  "reconstruction": true,
+  "lot_219_installe": true,
+  "fidelite_catalogue_vivant": true,
+  "plateforme_auth": "Primitives SQL locales de fixture ; pas de service GoTrue ni de connexion réelle.",
+  "version_moteur": 170006,
+  "seeds_installes": true,
+  "ordres": 10921,
+  "fonctions_recompilees": 1199,
+  "normalisations_checks": [
+    {
+      "table": "pnj_membres",
+      "contrainte": "pnj_car_bornes",
+      "empreinte_source": "e415c8f7b6264c59364bb00e5e214d7a",
+      "empreinte_locale": "3abdf97f799cca567d21ace6e9696c0d",
+      "preuve": "AST CHECK identique après associativité AND/OR ; empreintes textuelles conservées distinctes."
+    },
+    {
+      "table": "pnj_metiers_profils",
+      "contrainte": "pnj_metiers_profils_bornes",
+      "empreinte_source": "aa95261334d357880d36cdd2314d5159",
+      "empreinte_locale": "984e7924bc1fec72a97657edf11aaff2",
+      "preuve": "AST CHECK identique après associativité AND/OR ; empreintes textuelles conservées distinctes."
+    }
+  ],
+  "ecarts_catalogue": [],
+  "prerequis_233_local": {
+    "source": "migrations/20261031113650_squatteurs_issue_combat.sql",
+    "sha256": "ba0d95b00bb19bdf8e285debeafb17870ec0ff4b5579b6556239bbbde861116f",
+    "portee": "Dépendance préparée #233 distincte des 88 migrations, installée seulement en local."
+  },
+  "registre_sha256": "06eb96d755bdd57f0f45190ec038384885aa92e1a955bdbc0d9110157fe43444",
+  "registre_versions": 1003,
+  "migrations_preparees": 88,
+  "rpc_clients_avant_lot": {
+    "fonctions": 496,
+    "formes": 498,
+    "ecarts": [
+      {
+        "fonction": "tournee_creer",
+        "parametres": [
+          "p_id"
+        ],
+        "sites": [
+          "plateau-actions-illegales-rumeurs.js:4987"
+        ]
+      },
+      {
+        "fonction": "organisation_equipement_acheter",
+        "parametres": [
+          "p_fonds",
+          "p_organisation",
+          "p_quantite",
+          "p_reference",
+          "p_requete"
+        ],
+        "sites": [
+          "plateau-commerce-pj.js:2150"
+        ]
+      },
+      {
+        "fonction": "organisation_equipements_etat",
+        "parametres": [
+          "p_organisation"
+        ],
+        "sites": [
+          "plateau-equipements-collectifs.js:19"
+        ]
+      },
+      {
+        "fonction": "organisation_equipement_deplacer",
+        "parametres": [
+          "p_action",
+          "p_destination",
+          "p_objet",
+          "p_organisation",
+          "p_requete"
+        ],
+        "sites": [
+          "plateau-equipements-collectifs.js:36"
+        ]
+      },
+      {
+        "fonction": "organisation_equipements_payeurs",
+        "parametres": [],
+        "sites": [
+          "plateau-equipements-collectifs.js:62"
+        ]
+      },
+      {
+        "fonction": "force_publique_effectif_acte",
+        "parametres": [
+          "p_action",
+          "p_matricule",
+          "p_requete",
+          "p_service",
+          "p_type"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:8718"
+        ]
+      },
+      {
+        "fonction": "chantier_travailler",
+        "parametres": [
+          "p_acteur",
+          "p_batiment",
+          "p_heures",
+          "p_pays"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:12155"
+        ]
+      },
+      {
+        "fonction": "vendre_materiaux_chantier",
+        "parametres": [
+          "p_building_id",
+          "p_country",
+          "p_matiere",
+          "p_prix",
+          "p_quantite",
+          "p_vendeur"
+        ],
+        "sites": [
+          "supabase.js:5637"
+        ]
+      },
+      {
+        "fonction": "taux_imposition_fixer",
+        "parametres": [
+          "p_cost",
+          "p_pa",
+          "p_portee",
+          "p_taux"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:12737"
+        ]
+      },
+      {
+        "fonction": "pnj_deployer_unite",
+        "parametres": [
+          "p_groupe",
+          "p_pnj_ids"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:14820"
+        ]
+      },
+      {
+        "fonction": "groupe_pj_rejoindre",
+        "parametres": [
+          "p_chef"
+        ],
+        "sites": [
+          "plateau-multijoueur.js:1993"
+        ]
+      },
+      {
+        "fonction": "groupe_pj_quitter",
+        "parametres": [],
+        "sites": [
+          "plateau-multijoueur.js:1996"
+        ]
+      },
+      {
+        "fonction": "navigation_interieure",
+        "parametres": [
+          "p_batiment",
+          "p_piece"
+        ],
+        "sites": [
+          "plateau-navigation.js:292"
+        ]
+      },
+      {
+        "fonction": "douane_controle_groupe",
+        "parametres": [
+          "p_mode",
+          "p_requete"
+        ],
+        "sites": [
+          "plateau-navigation.js:2688"
+        ]
+      },
+      {
+        "fonction": "transport_effectuer",
+        "parametres": [
+          "p_mode",
+          "p_pays",
+          "p_requete",
+          "p_ville"
+        ],
+        "sites": [
+          "plateau-navigation.js:2717"
+        ]
+      },
+      {
+        "fonction": "crime_corrompre_douanier",
+        "parametres": [
+          "p_cost",
+          "p_pa",
+          "p_requete"
+        ],
+        "sites": [
+          "plateau-navigation.js:3048"
+        ]
+      },
+      {
+        "fonction": "combat_cibles_lire",
+        "parametres": [],
+        "sites": [
+          "plateau-pnj.js:722"
+        ]
+      },
+      {
+        "fonction": "vendre_fonds_commerce",
+        "parametres": [
+          "p_acheteur",
+          "p_fonds_id",
+          "p_prix",
+          "p_vendeur"
+        ],
+        "sites": [
+          "supabase.js:2948"
+        ]
+      },
+      {
+        "fonction": "tracts_appliquer_effet_pop",
+        "parametres": [
+          "p_cible",
+          "p_delta"
+        ],
+        "sites": [
+          "supabase.js:4431"
+        ]
+      },
+      {
+        "fonction": "batiment_caisse_mouvement",
+        "parametres": [
+          "p_building",
+          "p_delta",
+          "p_exiger_existant",
+          "p_pays",
+          "p_souscle",
+          "p_stock",
+          "p_stock_cle",
+          "p_stock_max",
+          "p_ville"
+        ],
+        "sites": [
+          "supabase.js:4470"
+        ]
+      },
+      {
+        "fonction": "militaire_subtiliser",
+        "parametres": [
+          "p_joueur",
+          "p_pays"
+        ],
+        "sites": [
+          "supabase.js:4553"
+        ]
+      },
+      {
+        "fonction": "tracts_reclamer_don",
+        "parametres": [
+          "p_destinataire",
+          "p_id"
+        ],
+        "sites": [
+          "supabase.js:4821"
+        ]
+      },
+      {
+        "fonction": "creer_placement_national",
+        "parametres": [
+          "p_int_snapshot",
+          "p_montant",
+          "p_personnage",
+          "p_ville"
+        ],
+        "sites": [
+          "supabase.js:5531"
+        ]
+      },
+      {
+        "fonction": "pnj_rappeler_radio",
+        "parametres": [
+          "p_ancre"
+        ],
+        "sites": [
+          "supabase.js:6601"
+        ]
+      },
+      {
+        "fonction": "pnj_unites_administrables_lire",
+        "parametres": [],
+        "sites": [
+          "supabase.js:6617"
+        ]
+      },
+      {
+        "fonction": "groupe_pj_lire",
+        "parametres": [],
+        "sites": [
+          "supabase.js:6621"
+        ]
+      },
+      {
+        "fonction": "organisation_commande_evenement",
+        "parametres": [
+          "p_action",
+          "p_organisation",
+          "p_parametres",
+          "p_requete"
+        ],
+        "sites": [
+          "supabase.js:6912"
+        ]
+      },
+      {
+        "fonction": "organisation_commande_membres",
+        "parametres": [
+          "p_action",
+          "p_organisation",
+          "p_parametres",
+          "p_requete"
+        ],
+        "sites": [
+          "supabase.js:6914"
+        ]
+      },
+      {
+        "fonction": "organisation_commande_administrative",
+        "parametres": [
+          "p_action",
+          "p_organisation",
+          "p_parametres",
+          "p_requete"
+        ],
+        "sites": [
+          "supabase.js:6916"
+        ]
+      }
+    ],
+    "portee": "Catalogue local APRÈS lot ; ne remplace pas Authority sur le catalogue de production."
+  },
+  "contre_epreuve_rollback_lot": {
+    "ok": true,
+    "registre_avant": 1003,
+    "registre_apres": 1003,
+    "fonctions_et_relations_inchangees": true,
+    "fiche_fictive_preservee": true
+  },
+  "rpc_clients_catalogue_local": {
+    "fonctions": 496,
+    "formes": 498,
+    "ecarts": [
+      {
+        "fonction": "tournee_creer",
+        "parametres": [
+          "p_id"
+        ],
+        "sites": [
+          "plateau-actions-illegales-rumeurs.js:4987"
+        ]
+      },
+      {
+        "fonction": "organisation_equipement_acheter",
+        "parametres": [
+          "p_fonds",
+          "p_organisation",
+          "p_quantite",
+          "p_reference",
+          "p_requete"
+        ],
+        "sites": [
+          "plateau-commerce-pj.js:2150"
+        ]
+      },
+      {
+        "fonction": "organisation_equipements_etat",
+        "parametres": [
+          "p_organisation"
+        ],
+        "sites": [
+          "plateau-equipements-collectifs.js:19"
+        ]
+      },
+      {
+        "fonction": "organisation_equipement_deplacer",
+        "parametres": [
+          "p_action",
+          "p_destination",
+          "p_objet",
+          "p_organisation",
+          "p_requete"
+        ],
+        "sites": [
+          "plateau-equipements-collectifs.js:36"
+        ]
+      },
+      {
+        "fonction": "organisation_equipements_payeurs",
+        "parametres": [],
+        "sites": [
+          "plateau-equipements-collectifs.js:62"
+        ]
+      },
+      {
+        "fonction": "chantier_travailler",
+        "parametres": [
+          "p_acteur",
+          "p_batiment",
+          "p_heures",
+          "p_pays"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:12155"
+        ]
+      },
+      {
+        "fonction": "vendre_materiaux_chantier",
+        "parametres": [
+          "p_building_id",
+          "p_country",
+          "p_matiere",
+          "p_prix",
+          "p_quantite",
+          "p_vendeur"
+        ],
+        "sites": [
+          "supabase.js:5637"
+        ]
+      },
+      {
+        "fonction": "taux_imposition_fixer",
+        "parametres": [
+          "p_cost",
+          "p_pa",
+          "p_portee",
+          "p_taux"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:12737"
+        ]
+      },
+      {
+        "fonction": "vendre_fonds_commerce",
+        "parametres": [
+          "p_acheteur",
+          "p_fonds_id",
+          "p_prix",
+          "p_vendeur"
+        ],
+        "sites": [
+          "supabase.js:2948"
+        ]
+      },
+      {
+        "fonction": "tracts_appliquer_effet_pop",
+        "parametres": [
+          "p_cible",
+          "p_delta"
+        ],
+        "sites": [
+          "supabase.js:4431"
+        ]
+      },
+      {
+        "fonction": "batiment_caisse_mouvement",
+        "parametres": [
+          "p_building",
+          "p_delta",
+          "p_exiger_existant",
+          "p_pays",
+          "p_souscle",
+          "p_stock",
+          "p_stock_cle",
+          "p_stock_max",
+          "p_ville"
+        ],
+        "sites": [
+          "supabase.js:4470"
+        ]
+      },
+      {
+        "fonction": "militaire_subtiliser",
+        "parametres": [
+          "p_joueur",
+          "p_pays"
+        ],
+        "sites": [
+          "supabase.js:4553"
+        ]
+      },
+      {
+        "fonction": "tracts_reclamer_don",
+        "parametres": [
+          "p_destinataire",
+          "p_id"
+        ],
+        "sites": [
+          "supabase.js:4821"
+        ]
+      },
+      {
+        "fonction": "creer_placement_national",
+        "parametres": [
+          "p_int_snapshot",
+          "p_montant",
+          "p_personnage",
+          "p_ville"
+        ],
+        "sites": [
+          "supabase.js:5531"
+        ]
+      },
+      {
+        "fonction": "organisation_commande_evenement",
+        "parametres": [
+          "p_action",
+          "p_organisation",
+          "p_parametres",
+          "p_requete"
+        ],
+        "sites": [
+          "supabase.js:6912"
+        ]
+      },
+      {
+        "fonction": "organisation_commande_membres",
+        "parametres": [
+          "p_action",
+          "p_organisation",
+          "p_parametres",
+          "p_requete"
+        ],
+        "sites": [
+          "supabase.js:6914"
+        ]
+      },
+      {
+        "fonction": "organisation_commande_administrative",
+        "parametres": [
+          "p_action",
+          "p_organisation",
+          "p_parametres",
+          "p_requete"
+        ],
+        "sites": [
+          "supabase.js:6916"
+        ]
+      }
+    ],
+    "portee": "Catalogue local APRÈS lot ; ne remplace pas Authority sur le catalogue de production.",
+    "ecarts_nouveaux": [],
+    "ecarts_corriges": [
+      {
+        "fonction": "force_publique_effectif_acte",
+        "parametres": [
+          "p_action",
+          "p_matricule",
+          "p_requete",
+          "p_service",
+          "p_type"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:8718"
+        ]
+      },
+      {
+        "fonction": "pnj_deployer_unite",
+        "parametres": [
+          "p_groupe",
+          "p_pnj_ids"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:14820"
+        ]
+      },
+      {
+        "fonction": "groupe_pj_rejoindre",
+        "parametres": [
+          "p_chef"
+        ],
+        "sites": [
+          "plateau-multijoueur.js:1993"
+        ]
+      },
+      {
+        "fonction": "groupe_pj_quitter",
+        "parametres": [],
+        "sites": [
+          "plateau-multijoueur.js:1996"
+        ]
+      },
+      {
+        "fonction": "navigation_interieure",
+        "parametres": [
+          "p_batiment",
+          "p_piece"
+        ],
+        "sites": [
+          "plateau-navigation.js:292"
+        ]
+      },
+      {
+        "fonction": "douane_controle_groupe",
+        "parametres": [
+          "p_mode",
+          "p_requete"
+        ],
+        "sites": [
+          "plateau-navigation.js:2688"
+        ]
+      },
+      {
+        "fonction": "transport_effectuer",
+        "parametres": [
+          "p_mode",
+          "p_pays",
+          "p_requete",
+          "p_ville"
+        ],
+        "sites": [
+          "plateau-navigation.js:2717"
+        ]
+      },
+      {
+        "fonction": "crime_corrompre_douanier",
+        "parametres": [
+          "p_cost",
+          "p_pa",
+          "p_requete"
+        ],
+        "sites": [
+          "plateau-navigation.js:3048"
+        ]
+      },
+      {
+        "fonction": "combat_cibles_lire",
+        "parametres": [],
+        "sites": [
+          "plateau-pnj.js:722"
+        ]
+      },
+      {
+        "fonction": "pnj_rappeler_radio",
+        "parametres": [
+          "p_ancre"
+        ],
+        "sites": [
+          "supabase.js:6601"
+        ]
+      },
+      {
+        "fonction": "pnj_unites_administrables_lire",
+        "parametres": [],
+        "sites": [
+          "supabase.js:6617"
+        ]
+      },
+      {
+        "fonction": "groupe_pj_lire",
+        "parametres": [],
+        "sites": [
+          "supabase.js:6621"
+        ]
+      }
+    ]
+  },
+  "recette_catalogue": [
+    {
+      "cas": "identite_SQL_sans_remplacement_mon_personnage",
+      "ok": true
+    },
+    {
+      "cas": "lecture_groupe_reelle",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_volontaire_et_rejeu_sans_depense",
+      "ok": true
+    },
+    {
+      "cas": "cycle_PJ_refuse",
+      "ok": true
+    },
+    {
+      "cas": "auto_adhesion_refusee",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_distante_refusee_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "depart_groupe_sans_mouvement_ni_debit",
+      "ok": true
+    },
+    {
+      "cas": "protection_paiement_main_acheter_terrain",
+      "ok": true
+    },
+    {
+      "cas": "protection_paiement_main_signer_compromis",
+      "ok": true
+    },
+    {
+      "cas": "protection_paiement_main_acte_vente_terrain",
+      "ok": true
+    },
+    {
+      "cas": "protection_paiement_main_emprunter",
+      "ok": true
+    },
+    {
+      "cas": "protection_paiement_main_deposer_demande_permis",
+      "ok": true
+    },
+    {
+      "cas": "protection_paiement_main_louer_lot_ici",
+      "ok": true
+    },
+    {
+      "cas": "sortie_inconnue_aucune_mutation",
+      "ok": true
+    },
+    {
+      "cas": "sortie_coma_refusee_sans_debit",
+      "ok": true
+    },
+    {
+      "cas": "sortie_prison_refusee_sans_debit",
+      "ok": true
+    },
+    {
+      "cas": "combat_cible_inconnue_refuse_sans_debit",
+      "ok": true
+    },
+    {
+      "cas": "lecture_cibles_depuis_schema_complet",
+      "ok": true
+    },
+    {
+      "cas": "combat_PJ_reel_ouverture_paiement_unique_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "round_reel_et_reponse_perdue_sans_double_effet",
+      "ok": true
+    },
+    {
+      "cas": "tiers_non_engage_refuse_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "combat_mixte_PJ_PNJ_reel_sans_substitut",
+      "ok": true
+    },
+    {
+      "cas": "rappel_radio_sans_equipement_refuse_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "detecteur_reel_sans_recherche_ni_fausse_interception",
+      "ok": true
+    },
+    {
+      "cas": "ecrou_reel_position_separation_et_double_appel",
+      "ok": true
+    },
+    {
+      "cas": "paiement_installation_partielle_refusee_avant_remplacement",
+      "ok": true
+    },
+    {
+      "cas": "porte_interne_fermee_payer_ordre_interne(text,text,integer,integer,integer)",
+      "ok": true
+    },
+    {
+      "cas": "porte_interne_fermee_navigation_disponibilite_interne(text)",
+      "ok": true
+    },
+    {
+      "cas": "porte_interne_fermee_navigation_commander_personnage_interne(text,text,text,text)",
+      "ok": true
+    },
+    {
+      "cas": "porte_interne_fermee_terrain_squatteurs_issue_bataille_interne(text,text,text,uuid,bigint)",
+      "ok": true
+    }
+  ],
+  "limite": "Catalogue public comparé dans le périmètre déclaré du baseline (hors cinq tables exclues et services plateforme). Auth SQL locale : aucune recette GoTrue authentifiée réelle."
+}

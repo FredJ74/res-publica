@@ -208,6 +208,34 @@ def verifier_rpc_clients(q):
     return {'fonctions':len(appels),'formes':n,'ecarts':ecarts,'portee':'Catalogue local APRÈS lot ; ne remplace pas Authority sur le catalogue de production.'}
 
 
+def temoin_integrite_local(q):
+    """Fiche totalement fictive AVANT les DDL : la garde ne porte pas sur le vide."""
+    uid='00000219-1000-4000-8000-000000000001'
+    q.execute("SELECT set_config('request.jwt.claim.sub',%s,true),set_config('request.jwt.claims',%s,true)",
+              (uid,'{"sub":"'+uid+'","role":"authenticated"}'))
+    q.execute("INSERT INTO auth.users(id,email,is_anonymous,email_confirmed_at) VALUES(%s,'canari-219@example.invalid',false,now())",(uid,))
+    q.execute("INSERT INTO personnages_donnees(name,user_id,country,current_city,current_building,current_room,pa,arg,liquide,hp,inventory) VALUES('__hg219_canari_avant',%s,'republic','capitale','mairie','accueil',17,83,83,82,'[{\"id\":\"objet-canari-fictif-219\",\"qty\":1,\"memoire\":{\"preuve\":\"conserver\"}}]')",(uid,))
+
+
+def empreinte_installation(q):
+    q.execute("""SELECT jsonb_build_object(
+     'fonctions',(SELECT md5(string_agg(pg_get_functiondef(p.oid)||coalesce(p.proacl::text,''),'|' ORDER BY p.oid::regprocedure::text COLLATE "C")) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.prokind IN ('f','p')),
+     'relations',(SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'),
+     'registre',(SELECT count(*) FROM supabase_migrations.schema_migrations),
+     'fiche_fictive',(SELECT md5(to_jsonb(p)::text) FROM personnages_donnees p WHERE name='__hg219_canari_avant'))""")
+    valeur=q.fetchone()[0]
+    # Pas seulement les comptes : comparer les quatre catalogues complets
+    # après l'annulation (colonnes, corps, contraintes, index, RLS, ACL...).
+    # Aucune donnée de joueur ne traverse ces requêtes de métadonnées.
+    from requetes import EXPORTS
+    valeur['catalogues_sha256']={}
+    for nom,requete in EXPORTS.items():
+        q.execute(requete)
+        brut=json.dumps(q.fetchone()[0],ensure_ascii=False,sort_keys=True,separators=(',',':'))
+        valeur['catalogues_sha256'][nom]=hashlib.sha256(brut.encode()).hexdigest()
+    return valeur
+
+
 def main():
     a=argparse.ArgumentParser(description=__doc__)
     a.add_argument('--rapport',type=Path,required=True)
@@ -220,6 +248,8 @@ def main():
     a.add_argument('--exports',type=Path,help='Quatre exports complets servant à comparer le catalogue reconstruit.')
     a.add_argument('--postgres-bin',type=Path,help='Répertoire de binaires PostgreSQL locaux ; aucune adresse de base distante.')
     args=a.parse_args()
+    if args.schema_seul and (args.lot_219 or args.recette_219):a.error('--schema-seul exclut installation et recette du lot')
+    if (args.prerequis_233 or args.recette_219) and not args.lot_219:a.error('Pré-requis et recette exigent --lot-219')
     import pgserver,psycopg2
     if args.postgres_bin:
         configurer_binaires(args.postgres_bin)
@@ -231,8 +261,8 @@ def main():
             try:
                 c=psycopg2.connect(serveur.get_uri());q=c.cursor()
                 q.execute('SHOW server_version_num');version=int(q.fetchone()[0]);rapport['version_moteur']=version
-                if version//10000!=17 and not args.diagnostic_version_differente:
-                    raise RuntimeError('Moteur PostgreSQL 17 requis ; aucune substitution de grammaire/privilège autorisée. Diagnostic explicite possible sans certification.')
+                if version!=170006 and not args.diagnostic_version_differente:
+                    raise RuntimeError('Moteur PostgreSQL 17.6 exact requis ; aucune substitution de grammaire/privilège autorisée. Diagnostic explicite possible sans certification.')
                 for role in ['anon','authenticated','service_role','authenticator','supabase_auth_admin','supabase_admin','dashboard_user','supabase_read_only_user']:
                     q.execute('CREATE ROLE '+role)
                 q.execute(PLATEFORME)
@@ -257,8 +287,23 @@ def main():
                     spec=importlib.util.spec_from_file_location('lot219',ICI.parent/'livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
                     f=Path(d)/'lot.sql';rapport['migrations_preparees']=m.preparer(str(f))
                     rapport['rpc_clients_avant_lot']=verifier_rpc_clients(q)
+                    if args.recette_219:temoin_integrite_local(q)
                     # Métadonnées du registre réel, pas une liste vide inventée.
-                    c.commit();q.execute(f.read_text());rapport['lot_219_installe']=True
+                    c.commit()
+                    if args.recette_219:
+                        avant=empreinte_installation(q);c.commit()
+                        sql=f.read_text();fin="NOTIFY pgrst,'reload schema';\nCOMMIT;"
+                        if sql.count(fin)!=1:raise RuntimeError('Fin transactionnelle du lot ambiguë')
+                        contre=sql.replace(fin,"DO $contre$ BEGIN RAISE EXCEPTION '219_echec_tardif_volontaire';END $contre$;\n"+fin)
+                        try:q.execute(contre)
+                        except psycopg2.Error as e:
+                            if e.pgcode!='P0001' or '219_echec_tardif_volontaire' not in str(e):raise
+                            c.rollback()
+                        else:raise RuntimeError('Contre-épreuve sans échec attendu')
+                        apres=empreinte_installation(q);c.commit()
+                        if avant!=apres:raise RuntimeError('Installation partielle après échec tardif')
+                        rapport['contre_epreuve_rollback_lot']={'ok':True,'registre_avant':avant['registre'],'registre_apres':apres['registre'],'fonctions_et_relations_inchangees':True,'fiche_fictive_preservee':True}
+                    q.execute(f.read_text());rapport['lot_219_installe']=True
                     q.execute('BEGIN')
                     rapport['rpc_clients_catalogue_local']=verifier_rpc_clients(q)
                     cle=lambda x:(x['fonction'],tuple(x['parametres']))
@@ -282,6 +327,6 @@ def main():
     args.rapport.write_text(json.dumps(rapport,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps(rapport,ensure_ascii=False,indent=2))
     # Une reconstruction n'est pas une homologation du catalogue externe.
-    return 0 if 'erreur' not in rapport and rapport['reconstruction'] and rapport.get('version_moteur',0)//10000==17 and (not args.lot_219 or rapport['lot_219_installe']) else 1
+    return 0 if 'erreur' not in rapport and rapport['reconstruction'] and rapport.get('version_moteur',0)==170006 and (not args.lot_219 or rapport['lot_219_installe']) else 1
 
 if __name__=='__main__':sys.exit(main())

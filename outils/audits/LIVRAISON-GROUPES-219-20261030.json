@@ -1,6 +1,6 @@
 {
   "branche": "codex/groupes-universels-20261028",
-  "main": "d214ea5a47372a8d537f748f5479393468076f51",
+  "main": "9a821b1b93e4eb638146d0eb1e3280980c16b840",
   "production_appliquee": false,
   "perimetre": "Ajouts SQL propres à #219, dont dépendances #212/#217 ; main #255 à #260 exclu.",
   "registre_vivant": {
@@ -167,7 +167,7 @@
     {
       "version": "20261031115805",
       "fichier": "migrations/20261031115805_transport_encaissement_existant.sql",
-      "sha256": "1a6e91267abf08658921795048fb440480acf4caf648d0b8b2573caede9e9be3"
+      "sha256": "39541f872078f1721aa355b0dd565556356d4f8c316c4a372971340a86a72dcc"
     },
     {
       "version": "20261031115806",

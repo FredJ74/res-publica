@@ -30,6 +30,13 @@ def initialiser(q):
   UPDATE personnages_donnees SET current_building='usine-pharmaceutique-luthecia',current_room='salle_ventes';
   INSERT INTO rp_epoques VALUES('republic','2026-09-13');''')
  q.execute(fonction('baseline/domaines/finances-publiques/20_fonctions-1.sql','caisse_institution_mouvement'))
+ # Le paiement canonique conserve désormais les attestations des acquisitions
+ # et permis. Même dans ce décor partiel, leurs vraies tables doivent exister.
+ for nom in ['permis_transactions_internes','acquisitions_transactions_internes']:
+  sources=[p.read_text() for p in (R/'baseline/domaines').glob('*/10_tables.sql')]
+  declarations=[m[0] for src in sources for m in re.finditer(r'CREATE TABLE public\.'+nom+r' \(.*?\n\);',src,re.S)]
+  assert len(declarations)==1,nom
+  q.execute(declarations[0])
  for _ in range(2):
   for m in MIGS:q.execute((R/'migrations'/m).read_text())
 def main(extra=None):

@@ -1,16 +1,24 @@
 -- #219 : encaissement existant, tarif unitaire contrôlé, quantité interne.
 -- Fred 28/10 : le leader paie pour tous, PA de l'ordre inchangés.
 DO $prevol$
+DECLARE adapte boolean;
 BEGIN
+ SELECT md5(prosrc)='ca7abc6ac27e864f723b25e73dacd665' INTO adapte FROM pg_proc
+ WHERE oid='public.payer_ordre(text,text,integer,integer)'::regprocedure;
+ IF adapte IS TRUE AND (to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)') IS NULL
+ OR to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)') IS NULL)
+ OR adapte IS FALSE AND (to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)') IS NOT NULL
+ OR to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)') IS NOT NULL) THEN
+ RAISE EXCEPTION 'payer_ordre_installation_partielle';END IF;
  IF (SELECT md5(prosrc) FROM pg_proc WHERE oid='public.payer_ordre(text,text,integer,integer)'::regprocedure)
- NOT IN ('92234a6b14ff176d2c2c2236f705683e','ca7abc6ac27e864f723b25e73dacd665','5cf45c19e4b9559f6b29e2b9207d3969') THEN
+ NOT IN ('ca7abc6ac27e864f723b25e73dacd665','5cf45c19e4b9559f6b29e2b9207d3969') THEN
  RAISE EXCEPTION 'payer_ordre_vivant_non_examine';END IF;
  IF to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)') IS NOT NULL AND
  (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)'))
- NOT IN ('f9cbbdfce4b37082483b496298419df6','f315b77059d65b1ccd1879e800d18c22') THEN
+ NOT IN ('f315b77059d65b1ccd1879e800d18c22') THEN
  RAISE EXCEPTION 'payer_ordre_interne_non_examine';END IF;
  IF to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)') IS NOT NULL AND
- (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)')) NOT IN ('2e69447a8e911756d2223414327db42b','716e233a2b71a4c7be1d1227200765e6') THEN
+ (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)')) NOT IN ('716e233a2b71a4c7be1d1227200765e6') THEN
  RAISE EXCEPTION 'payer_quantite_interne_non_examine';END IF;
 END $prevol$;
 -- Adapter le corps EXAMINÉ, plutôt que réintroduire une ancienne copie.

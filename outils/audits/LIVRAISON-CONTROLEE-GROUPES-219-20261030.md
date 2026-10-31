@@ -1,5 +1,7 @@
 # PR #219 — livraison contrôlée, reprise du 30 octobre 2026
 
+> Rapport courant du 31/10 : [reconstruction réelle, 88 migrations et recette](RECONSTRUCTION-CANONIQUE-GROUPES-219-20261031.md). Les résultats ci-dessous restent historiques.
+
 > État courant : [reconstruction canonique, moteur PostgreSQL 17.6 et bilan des contrôles](RECONSTRUCTION-CANONIQUE-GROUPES-219-20261030.md). Les observations ci-dessous restent celles de la passe précédente.
 
 **Code sauvegardé et validé localement. Fusion et production encore bloquées par le prévol réel complet et la recette authentifiée isolée.** Ce rapport remplace le verdict courant du rapport `CLOTURE-LOCALE-GROUPES-219-20261030.md`, dont les observations antérieures sont conservées. Ni migration ni action sur un joueur réel pendant cette reprise.

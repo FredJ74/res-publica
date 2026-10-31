@@ -6,6 +6,7 @@ le lot atomique. JWT SQL fictifs, rôle authenticated réel, transactions annul�
 Ce n'est pas une connexion à GoTrue ni une recette en jeu de production.
 """
 import uuid
+from pathlib import Path
 
 
 def recette(q):
@@ -127,6 +128,18 @@ def recette(q):
         exige(q.fetchone()[0],False,'cible_deja_detenue')
         q.execute('SELECT count(*) FROM detentions WHERE nom=%s',(noms[0],));assert q.fetchone()[0]==1
     cas('ecrou_reel_position_separation_et_double_appel',prison)
+    def paiement_partiel():
+        import psycopg2
+        source=list((Path(__file__).resolve().parents[2]/'migrations').glob('*_transport_encaissement_existant.sql'))
+        assert len(source)==1
+        q.execute('SAVEPOINT paiement_partiel')
+        q.execute('ALTER FUNCTION payer_ordre_interne(text,text,integer,integer,integer) RENAME TO payer_ordre_interne_debranchee_fixture')
+        try:q.execute(source[0].read_text())
+        except psycopg2.Error as e:
+            assert e.pgcode=='P0001' and 'payer_ordre_installation_partielle' in str(e),str(e)
+            q.execute('ROLLBACK TO SAVEPOINT paiement_partiel')
+        else:raise AssertionError('Installation partielle acceptée')
+    cas('paiement_installation_partielle_refusee_avant_remplacement',paiement_partiel)
     for signature in ['payer_ordre_interne(text,text,integer,integer,integer)',
                       'navigation_disponibilite_interne(text)',
                       'navigation_commander_personnage_interne(text,text,text,text)',

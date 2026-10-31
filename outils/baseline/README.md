@@ -393,3 +393,20 @@ est reproduit sur PostgreSQL ; la cible D est chargée avant la relation A.
 Les cycles sont signalés, les contraintes ne sont pas désactivées, un parent
 absent n'est jamais créé artificiellement. L'analyseur statique et l'épreuve
 réelle réutilisent le même ordonnanceur.
+
+
+## Reconstruction canonique #219 — 31 octobre 2026
+
+`epreuve-postgresql.py` utilise désormais un **moteur PostgreSQL 17.6 réel et jetable**. Il ne prend aucune URL distante. L'option de diagnostic d'une autre version ne donne jamais une certification. `--schema-seul` exclut installation et recette du lot.
+
+La chaîne reproductible est : valider le relais privé avec `outils/livraison/relais-canonique-219.py`, rendre les quatre exports avec `rendre.py`, préparer l'entrée complète de seeds avec `fusionner-seeds-captures.py`, la rendre avec `seeds.py --rendre`, puis exécuter `regenerer-seeds-miroirs.py`. Ce dernier réutilise les générateurs existants ; `--verifier` les réexécute sans écrire et compare leurs sorties intégrales. Les 82 anciens seeds ne deviennent pas des captures fraîches : la provenance reste distincte des dix tables réextraites. Les deux sources privées restent exclues.
+
+`actualiser-attentes-catalogue.py` calcule les attentes depuis les exports, indépendamment du SQL rendu : il ne retouche aucune observation pour suivre les résultats du simulateur. Les constantes métier du monde neuf ne sont pas remplacées par les comptes de la bêta.
+
+L'ordre réel est : tables/séquences, fonctions, contraintes hors FK, index autonomes UNIQUE, FK, vues, triggers, RLS, droits, commentaires, privilèges par défaut, puis seeds triés par dépendances (y compris les miroirs régénérés). Les trous visibles de `attnum` sont conservés par création/suppression d'emplacements sans contenu ; aucun attribut supprimé n'est recopié. Les fonctions à ACL explicite perdent d'abord le droit natif PUBLIC avant leurs GRANT capturés.
+
+La comparaison porte sur le périmètre déclaré : 371 tables publiques et trois vues ; cinq tables explicitement hors baseline et les services Supabase ne sont pas recréés. Les ACL par défaut de `storage` et des autres propriétaires restent inventoriées mais hors rendu. Deux CHECK changent de parenthésage au retour DDL/catalogue : seules les associations AND/OR sont normalisées par AST ; leurs deux empreintes textuelles demeurent consignées, et des bornes ou opérateurs différents sont refusés.
+
+`--lot-219 --prerequis-233 --recette-219` ajoute explicitement le prérequis préparé #233, absent du registre reçu, puis installe les 88 migrations dans une transaction. Il vérifie les appels RPC avant/après et conserve les écarts préexistants ; une nouvelle incompatibilité échoue. Une fiche **fictive** préexiste à l'installation pour éprouver la garde d'intégrité. Une panne injectée après les 88 inscriptions de registre doit annuler les quatre catalogues, les inscriptions et la fiche ; l'installation nominale suit sur la même base. Les scénarios de recette ne remplacent aucune fonction serveur et sont annulés. L'authentification SQL de fixture n'est pas une connexion GoTrue.
+
+Ne jamais rejouer `migrations/*.sql` en bloc : les 65 préparations non attestées restent distinctes du manifeste #219. Le classement du 31/10 est documenté dans `outils/audits/CLASSEMENT-MIGRATIONS-219-20261031.json` ; seules 131 correspondances attestées ont été archivées avec leur version réelle. Voir le rapport courant #219 pour les conditions de livraison.
