@@ -23,6 +23,23 @@ class Exports(unittest.TestCase):
   self.assertIn('--empreinte-reference',p.stderr)
   self.assertIn('--referentiels-reference',p.stderr)
   self.assertFalse((self.rep/'rapport.json').exists())
+ def test_livraison95_refuse_http_non_authentifie(self):
+  script=R/'outils/bancs/banc-livraison95-catalogue-local.py'
+  args=[sys.executable,str(script),'--exports',str(self.rep),'--registre',str(self.rep/'registre.json'),'--capture-couts',str(self.rep/'couts.json'),'--postgres-bin',str(self.rep),'--rapport',str(self.rep/'rapport.json'),'--empreinte-reference',str(self.rep/'racines.json'),'--referentiels-reference',str(self.rep/'referentiels.json')]
+  p=subprocess.run(args,text=True,capture_output=True,check=False)
+  self.assertNotEqual(p.returncode,0)
+  self.assertIn('GoTrue et PostgREST obligatoires',p.stderr)
+  self.assertFalse((self.rep/'rapport.json').exists())
+
+ def test_livraison95_exige_27_http_distincts(self):
+  spec=importlib.util.spec_from_file_location('livraison95',R/'outils/bancs/banc-livraison95-catalogue-local.py')
+  m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+  cas=[{'cas':f'http_{i}','ok':True} for i in range(27)]
+  self.assertEqual(m.verifier_http_27({'cas':cas}),{'cas':27,'conformes':True})
+  with self.assertRaises(AssertionError):m.verifier_http_27({'cas':cas[:-1]})
+  with self.assertRaises(AssertionError):m.verifier_http_27({'cas':cas[:-1]+[cas[0]]})
+  with self.assertRaises(AssertionError):m.verifier_http_27({'cas':cas[:-1]+[{'cas':'http_26','ok':False}]})
+
  def test_referentiel_refuse_un_seul_ecart(self):
   spec=importlib.util.spec_from_file_location('livraison95',R/'outils/bancs/banc-livraison95-catalogue-local.py')
   m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
