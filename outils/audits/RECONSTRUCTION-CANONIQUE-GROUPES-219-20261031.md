@@ -1,6 +1,6 @@
 # #219 — reconstruction canonique réussie, livraison toujours retenue
 
-État du 31 octobre 2026. Branche `codex/groupes-universels-20261028`, PR #219. Main intégré : `3aa6ceef21d93653c55bc82bcc623db9a6e36937` (#281, #283 à #290 compris). Aucune fusion de #219, aucune écriture de production, aucun compte réel connecté, aucune commande de déploiement Vercel. Le statut distant de Vercel n'a pas été vérifié.
+État du 31 octobre 2026. Branche `codex/groupes-universels-20261028`, PR #219. Main intégré : `59ea6d90` (#291 et #292 compris ; protections #283 à #290 conservées). Aucune fusion de #219, aucune écriture de production, aucun compte réel connecté, aucune commande de déploiement Vercel. Le statut distant de Vercel n'a pas été vérifié.
 
 **Le blocage des exports et de la reconstruction est résolu. Le chantier n'est pas déclaré terminé : contrôles globaux 10/12, prérequis #233 absent du catalogue reçu et recette authentifiée isolée encore manquante.**
 
@@ -82,3 +82,34 @@ Aucun compte isolé ni accès GoTrue de recette n'est disponible ici ; aucune re
 ## Preuves et reprise
 
 `preuves-canonique-219-20261031/` contient le rapport JSON du moteur, les résultats détaillés, journaux compressés et empreintes des sources. Les exports bruts restent privés hors dépôt. Reprendre ce rapport et `RELAIS.md`, sans refaire la reconstruction déjà réussie, sans redemander les quatre exports et sans ouvrir le chantier suivant tant que le périmètre #219 reste en validation.
+
+
+## Complément de clôture technique après #292
+
+### Terminé et vérifié localement
+
+- Réparation de la CI : lecteur SQL commun adapté aux morceaux du baseline, surcharges, archives et séquences. Banc immobilier : 324 assertions ; restaurant : 94. Les deux passent sur PostgreSQL 17.6 natif et sur le PostgreSQL 16.2 du gestionnaire CI. Les transformations historiques utilisent leurs entrées publiques d’origine épinglées et vérifiées par SHA256 ; elles ne démontrent pas la compatibilité des anciennes migrations avec le catalogue actuel. Gardes inchangées.
+- Cinq faux signalements Authority corrigés : reconnaissance des déclarations CREATE FUNCTION et des créations explicites dans DO. Contre-exemples sur commentaires, mauvaises colonnes de VALUES et simples mentions. Invariant 12 passe ; invariant 13 n’est pas ignoré.
+- Paquet complet : `preparer-groupes-219.py --inclure-prerequis-233`, puis `epreuve-postgresql.py --lot-219 --paquet-complet-219 --recette-219`. Prérequis #233 et 88 migrations sous le même BEGIN/COMMIT ; 30 cas sur le catalogue entier, sans remplacement des moteurs. Échec tardif : registre revenu à 1003, fonctions/relations inchangées, fiche fictive préservée. Preuve : `preuves-canonique-219-20261031/paquet-complet-89.json`.
+- Outillage reconstruction : 38/38. Bancs clients : **150/150**, dont les trois tests Chromium des longs mails (390/1280 pixels et reproduction du défaut sans la classe de défilement). Le CSS/rendu réel est utilisé ; l’envoi reste une fixture sans compte ni réseau. Le code du jeu n’a pas été modifié pour ce défaut déjà corrigé.
+- 379 scénarios groupes repassés après modification du lecteur commun. Les six contre-épreuves et 105 tests Chromium antérieurs restent documentés dans les preuves précédentes ; aucune nouvelle modification des moteurs SQL de combat dans ce complément.
+
+### Terminé mais non vérifié en production
+
+Les correctifs des lecteurs CI, du détecteur Authority et la préparation atomique complète sont poussés sur #219. Les caisses d’accueil et le défilement des mails étaient déjà codés sur main ; les tests locaux les protègent. Aucun compte joueur connecté ni nouvelle confirmation en jeu. Les ressources Vercel répondent 403 depuis cet environnement ; cela ne prouve pas une panne générale du site. API GitHub Actions refusée ; Git push fonctionne. Aucun résultat distant de CI revendiqué.
+
+### Bloqué — ne pas fusionner ni déployer
+
+Global **10/12**. Authority conserve **19 formes RPC** absentes ou incompatibles dans le catalogue capturé ; les écarts après installation locale restent détaillés dans la preuve du paquet. Le catalogue de production ne doit pas être remplacé dans le contrôle par l’état local après migrations.
+
+Referential conserve cinq échecs. Diagnostic strictement en lecture seule : `diagnostiquer-mesures-referentiels.py`, preuve `diagnostic-mesures-lecture-seule.json`. Coûts : 427 triples générés contre 438 capturés, empreintes distinctes. Postes : contenu capturé conforme au générateur, anciennes observation/attente et sentinelle périmées. Ressources : contenu conforme mais sentinelle périmée. PA et villes concordent. Les trois miroirs chantiers/entreprises/BNE nécessitent encore une comparaison canonique vivante dédiée. Aucune empreinte n’a été remplacée pour obtenir du vert.
+
+Une tentative d’actualisation du contrôle Referential a été refusée par la revue automatique, au motif qu’elle risquait de masquer les écarts sans réconcilier le contenu. Les changements ont été retirés ; le vérificateur et les observations sont inchangés. Le diagnostic publié ne les modifie pas.
+
+Le paquet complet est éprouvé localement, pas autorisé pour la production. Son exécution atomique par le canal distant doit être validée : la limite d’un appel MCP ne permet pas de promettre que le bundle complet y tient. Ne pas découper en 89 validations indépendantes et ne pas activer #233 isolément.
+
+### Restant à réaliser
+
+Recette isolée réellement authentifiée GoTrue, mise en cohérence des référentiels fondée sur leurs données canoniques, vérification distante de CI, puis livraison autorisée avec prévol frais. Aucun export privé ajouté à Git. Aucune migration, fusion ou modification de production.
+
+La revue élargie des autres domaines de Luthécia reste subordonnée à ces blocages #219, conformément à l’ordre demandé. En particulier, #71 n’est pas livré : `RELAIS.md` indique que la PR est périmée et que fonds/murs restent à reconstruire depuis main ; `plateau-immobilier-ventes.js` n’est pas présent. Ne pas confondre les actes de terrains existants avec un moteur livré de vente de fonds et de murs.
