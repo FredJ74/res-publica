@@ -36,7 +36,7 @@ def main():
  # Contre-epreuves sur le vrai moteur archive.
  reset(split=True);assert appel()['raison']=='composants_insuffisants'
  reset();assert appel()['ok'];assert etat()[0]['stockMatieres']['composants-electroniques']==-2
- migration=next((R/'migrations').glob('*_assemblage_composants_stocks_reels.sql'));q.execute(migration.read_text());q.execute(migration.read_text())
+ migration=R/'historique/migrations-appliquees/rehorodatees-219/20261031113552_assemblage_composants_stocks_reels.sql';assert migration.is_file(), f'Migration fixture manquante : {migration}';q.execute(migration.read_text());q.execute(migration.read_text())
  n=0
  for nom,pa,rendement,mat,comp in RECETTES:
   reset();v=appel(nom);assert v['ok'],v;d,pj=etat();assert d['stockReferences'][nom]==rendement;assert pj[0]==100-pa
