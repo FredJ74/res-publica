@@ -25,7 +25,7 @@
 -- 3. transferts_clubs : l'écran n'écrit plus que les étapes de négociation qui lui reviennent
 --    (offre du président d'arrivée, réponse du président de départ, refus du joueur). Le
 --    règlement passe par club_transfert_conclure.
--- Banc : outils/bancs/banc-caisses-collectives.sql (transaction annulée).
+-- Banc : outils/bancs/banc-caisses-collectives-local.py --local-jetable (PostgreSQL jetable).
 BEGIN;
 
 -- ------------------------------------------------------------------------- 1. budgets_clubs

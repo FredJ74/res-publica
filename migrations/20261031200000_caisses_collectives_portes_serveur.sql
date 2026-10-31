@@ -24,7 +24,7 @@
 --     citoyen) à un club ou une organisation.
 -- Changement voulu : un club d'arrivée qui n'a pas de quoi payer un transfert voit l'opération
 -- refusée ; l'écran mettait sa caisse à zéro et créait la différence.
--- Banc : outils/bancs/banc-caisses-collectives.sql (transaction annulée).
+-- Banc : outils/bancs/banc-caisses-collectives-local.py --local-jetable (PostgreSQL jetable).
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.caisses_collectives_operations (
