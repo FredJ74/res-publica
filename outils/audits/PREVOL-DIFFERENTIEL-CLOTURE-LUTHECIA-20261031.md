@@ -1,5 +1,8 @@
 # Clôture Luthécia — rapprochement différentiel contrôlé du 31 octobre 2026
 
+> **RECTIFICATIF CONFIRMÉ LE 31/10 — PRIORITAIRE SUR LES CONSTATS CI-DESSOUS.** L'absence de 24 *versions* n'est pas l'absence de 24 migrations métier : Supabase les a réhorodatées tout en conservant leur `name`. Le rapprochement par nom relevé par Claude confirme **23/24 déjà appliquées**. **Seul le raccordement de l'issue des combats de squatteurs `20261029181000` attend #219**. Les lots argent/Helvetia (régularisation de 150 000 FR de Jaaj), amendes/Trésor, budgets, entrepôt, mairies, logements sociaux, locations et les six fermetures inventaire sont **déjà déployés**. L'inventaire initial qui les listait comme manquants était méthodologiquement incorrect ; ne pas programmer leur réapplication. Le présent document conserve la liste des versions comme trace historique uniquement. Le registre a été relu directement en lecture seule sur Supabase et confirme les noms de ces déploiements (notamment `argent_fonctions_serveur_table`, `regularisation_jaaj_helvetia`, `amendes_tresor_national`, `logements_sociaux_communaux`, `inventaire_anciens_contrats_fermes`). #281 est par ailleurs fusionnée et Vercel `READY`; #224 fermée après passe nocturne 4/4 loyers (2 350 FR), et PR #263 fermée comme reprise dans `main` (constats Claude).
+
+
 ## Statut de livraison
 Critère du game designer : **toutes les fonctionnalités arrêtées pour Luthécia déployées** ; les PJ bêta-testeurs assurent la recette fonctionnelle en jeu. Le présent prévol est une photographie de vérifications techniques, pas une attestation de clôture.
 
