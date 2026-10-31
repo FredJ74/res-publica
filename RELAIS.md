@@ -29,6 +29,8 @@ Rubrique nettoyée le 31/10 (Claude) : les chantiers livrés sont passés dans �
 
 ### Migrations fusionnées, en attente d'application (ChatGPT)
 
+**Prises en charge par ChatGPT (Fred, 31/10)** : `20261031130000` et `20261031140000`.
+
 Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schema_migrations`, jamais par son numéro.
 
 - `20261031130000_reliquats_immobilier_accord_tacite_succession` (PR #284, fusionnée) : accord tacite de nuit (aujourd'hui toujours en échec : le permis de Jean Jaaj, terrain 5, en dépend dans environ 6 jours) et colonnes `proprietaire` / `coproprietaire` à la succession. Indépendante de l'écran. Banc : `outils/bancs/banc-reliquats-immobilier.sql`.
@@ -37,11 +39,12 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ### Décisions attendues de Fred
 
-- **Refinancement BNR d'Helvetia** : 223 320 FR en cours pour la République, dont environ 150 000 FR dus au défaut #267. Le ramener ou non est une décision d'économie.
 - **Fonds et murs des commerces (#66)** : règles décidées le 21/10 (murs à 150 FR/m², La Republica 1 200 m², fonds et murs indépendants, achat conjoint atomique, murs des commerces PNJ à la commune), **rien n'est en production**. La PR #71 qui les implémentait est périmée (laissée ouverte, commentaire du 31/10) : à reconstruire depuis main si Fred en fait une priorité.
 - **Ambassades** : griser « Bientôt disponible » les ordres non raccordables tant que le voyage entre empires n'existe pas (immunité, arrestation de l'expulsé, transfert de détenus, naturalisation). Référence : `GAME-DESIGN-AMBASSADES.md`.
 
 ### Points ouverts transmis (non bloquants)
+
+- **Décidé (Fred, 31/10)** : le refinancement BNR en trop d'Helvetia (~150 000 FR, #267) se rembourse normalement, rien à annuler. Consigné dans `GAME-DESIGN-BANQUES.md`.
 
 - **Helvetia, même famille que #267** : `resoudre_placement_helvetia` crédite la caisse des frais d'un placement et `finaliser_achat_bien_helvetia` du prix entier, même quand l'argent venait déjà du compte Helvetia. À examiner.
 - **Codex** : `minuit_decouverte_crimes` (police) retire des amendes de `arg` sans les verser nulle part ; il peut appeler `amende_imposer_interne`. Le hooliganisme (organisations) écrit encore sa trace de crime à l'écran (à passer par `crime_tracer_interne`). Écritures de l'écran encore ouvertes : `budgets_clubs`, `organisations.caisse` (bilan `outils/bancs/ECRITURES-ECRAN-20261029.md`).
