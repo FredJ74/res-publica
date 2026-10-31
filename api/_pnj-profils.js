@@ -455,6 +455,38 @@ function blocContextePublic(contexte) {
   return parts.join(' ');
 }
 
+// LE GENRE DE L'INTERLOCUTEUR -- CIVILITES ET TITRES (31 octobre 2026)
+// ---------------------------------------------------------------------------------------------
+// Signalement de Fred : le secretaire Petit a appele un personnage masculin « Madame la ministre ».
+// Le genre vient UNIQUEMENT de pnj_contexte_public(), qui le lit sur la fiche du personnage
+// authentifie et le rend normalise : 'H', 'F', 'neutre' (non binaire ou texte libre, jamais recopie)
+// ou null (fiche anterieure au genre). Le navigateur ne peut pas l'envoyer : validerPayload
+// (api/chat.js) n'admet que profil, lang, message et historique.
+// Sans genre verifie (null), ce bloc est ABSENT : la consigne generale de ne rien supposer
+// (blocContextePublic) s'applique seule.
+function blocGenreInterlocuteur(contexte) {
+  if (!contexte || typeof contexte !== 'object' || !contexte.nom) return null;
+  const g = contexte.genre;
+  const priorite = " Cette consigne vaut pour toute la conversation et prime sur toute formulation"
+    + " anterieure, y compris les tiennes.";
+  if (g === 'H') {
+    return "GENRE DE CETTE PERSONNE (fiche verifiee) : masculin. Accorde au masculin les civilites,"
+      + " les titres et les accords : « Monsieur », « Monsieur le ministre », « Monsieur le maire »,"
+      + " « Monsieur le depute », « Monsieur le president ». Jamais « Madame »." + priorite;
+  }
+  if (g === 'F') {
+    return "GENRE DE CETTE PERSONNE (fiche verifiee) : feminin. Accorde au feminin les civilites,"
+      + " les titres et les accords : « Madame », « Madame la ministre », « Madame la maire »,"
+      + " « Madame la deputee », « Madame la presidente ». Jamais « Monsieur »." + priorite;
+  }
+  if (g === 'neutre') {
+    return "GENRE DE CETTE PERSONNE (fiche verifiee) : ni « Monsieur » ni « Madame ». N'emploie aucune"
+      + " civilite genree : adresse-toi a elle par son nom ou par la denomination de sa fonction,"
+      + " et prefere des tournures sans accord de genre." + priorite;
+  }
+  return null;
+}
+
 // LA MEMOIRE DES MANDATS -- CE QUE LA MAISON A VU PASSER (11 octobre 2026)
 // ---------------------------------------------------------------------------------------------
 // UN SEUL PNJ RECOIT CE BLOC : Huguette Papier. Le serveur ne rend que des faits ATTESTES -- un
@@ -684,6 +716,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
   const rel = blocRelation(relation);
   const ped = blocPedagogie(pedagogie);
   const pub = blocContextePublic(contextePublic);
+  const genre = blocGenreInterlocuteur(contextePublic);
   const mem = blocMemoireDesMandats(mandats);
   const reg = blocRegardsAssemblee(regards);
   const vis = blocQueteAccueil(visite);
@@ -700,6 +733,7 @@ function construirePromptSysteme(profilId, lang, relation, pedagogie, contextePu
     ...(fonctionMunicipale ? ['FONCTION MUNICIPALE ACTUELLE : ' + fonctionMunicipale.limites] : []),
     '',
     ...(pub ? [pub, ''] : []),
+    ...(genre ? [genre, ''] : []),
     ...(rel ? [rel, ''] : []),
     ...(ped ? [ped, ''] : []),
     ...(mem ? [mem, ''] : []),
@@ -746,5 +780,5 @@ function maxTokensProfil(profilId) {
 }
 
 export { PROFILS, TOUS_PROFILS, construirePromptSysteme, profilExiste, maxTokensProfil,
-         LANGUES, LANGUE_DEFAUT, QUETE_ACCUEIL_OBJECTIFS, filtrerReponseSquatteur };
+         LANGUES, LANGUE_DEFAUT, QUETE_ACCUEIL_OBJECTIFS, filtrerReponseSquatteur, blocGenreInterlocuteur };
 
