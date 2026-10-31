@@ -123,7 +123,8 @@ def main():
     assert reference.get('registre')==1012,'Référence statique de mauvaise version'
     rapport['referentiels_1012']=verifier_referentiels(q,reference)
     c.commit()
-   assert rapport.get('catalogue_1012_certifie') is True and rapport.get('referentiels_1012',{}).get('conformes') is True, 'Certification complète 1012 et 12 référentiels obligatoire avant installation 95'\n   # Prix capturés contrôlés séparément, jamais générés depuis des données de joueur.
+   assert rapport.get('catalogue_1012_certifie') is True and rapport.get('referentiels_1012',{}).get('conformes') is True, 'Certification complète 1012 et 12 référentiels obligatoire avant installation 95'
+   # Prix capturés contrôlés séparément, jamais générés depuis des données de joueur.
    q.execute('DELETE FROM ordres_couts');q.executemany('INSERT INTO ordres_couts(fn,pa,cost) VALUES(%s,%s,%s)',triples)
    q.execute("INSERT INTO ordres_couts_empreinte(seul,empreinte) VALUES(true,'6de4a84c58ed9b2b') ON CONFLICT(seul) DO UPDATE SET empreinte=excluded.empreinte")
    e.temoin_integrite_local(q);q.execute("SELECT to_jsonb(p) FROM personnages_donnees p WHERE name='__hg219_canari_avant'");temoin=q.fetchone()[0];c.commit();avant=e.empreinte_installation(q);rapport['registre_local_avant95']=avant['registre'];c.commit()
