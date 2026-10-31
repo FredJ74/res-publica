@@ -6441,6 +6441,9 @@ export default async function handler(req, res) {
     // un permis accorde cette nuit doit pouvoir servir des le lendemain, et l'ordre inverse ferait
     // simplement attendre un jour de plus sans raison.
     const permis = await traiterInstructionsPermis();
+    // Interventions de police echues sur les terrains occupes (aussi traitees a la visite).
+    const occupationsPolice = await sbRpc('terrain_police_echeances_traiter', {}, HEADERS_SERVICE).catch(() => null);
+    if (!(Array.isArray(occupationsPolice)?occupationsPolice[0]:occupationsPolice)?.ok) signalerEchec('terrain_police', 'verdict_absent_ou_refus');
 
     // 8. Progression quotidienne des chantiers (versements, alea, livraison)
     const chantiers = await avancerChantiersQuotidien();
