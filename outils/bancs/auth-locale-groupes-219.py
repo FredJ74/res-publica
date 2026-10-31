@@ -68,7 +68,9 @@ class Services:
   def rpc(fn,params=None,qui=0):
    status,v=self.http(self.rest_url+'/rpc/'+fn,params or {},comptes[qui]['token']);assert status==200,fn+' HTTP '+str(status);return v
   cas('trois_logins_GoTrue_UID_et_personnage',all(rpc('mon_personnage',qui=i)==c['nom'] for i,c in enumerate(comptes)))
-  status,v=self.http(self.rest_url+'/rpc/groupe_pj_rejoindre',{'p_chef':comptes[0]['nom']});cas('anonyme_refuse',status>=400 or v.get('ok') is False)
+  status,v=self.http(self.rest_url+'/rpc/groupe_pj_rejoindre',{'p_chef':comptes[0]['nom']});cas('anonyme_refuse',status in (401,403) or (status==200 and v.get('ok') is False and v.get('raison')=='non_authentifie'))
+  parties=comptes[0]['token'].split('.');parties[2]=('A' if parties[2][0]!='A' else 'B')+parties[2][1:]
+  status,v=self.http(self.rest_url+'/rpc/groupe_pj_rejoindre',{'p_chef':comptes[1]['nom']},'.'.join(parties));cas('signature_JWT_falsifiee_refusee',status==401)
   avant=photo();cas('adhesion_HTTP',rpc('groupe_pj_rejoindre',{'p_chef':comptes[0]['nom']},1)['ok']);cas('adhesion_repetee_sans_depense',rpc('groupe_pj_rejoindre',{'p_chef':comptes[0]['nom']},1)['ok'] and photo()==avant)
   b=comptes[1];status,v=self.http(self.auth_url+'/token?grant_type=password',{'email':b['email'],'password':b['password']});cas('reconnexion_meme_UID',status==200 and v['user']['id']==b['uid']);b['token']=v['access_token'];cas('groupe_persistant_apres_reconnexion',len(rpc('groupe_pj_lire',qui=1)['membres'])==2)
   cas('depart_groupe_HTTP',rpc('groupe_pj_quitter',qui=1)['ok'] and photo()==avant)

@@ -253,3 +253,9 @@ Main `586ae9ea` intégré dans `ba4d0843`. Conflits CI/relais résolus en conser
 L'élection ajoutée au catalogue intégré révèle le wrapper final du payeur après 115831 (protection recrutements) : `d5c9f4e8…`. La commande événement le reconnaît seulement avec ses deux internes exactes/fermées ; la garde initiale transport et le payeur ne changent pas. Origine dérivée des sources publiques, mutation tierce refusée. **30+5 cas avant et après #300, 26 HTTP authentifiés**, rollback tardif 95 et rejeu sans mutation.
 
 Le banc des caisses passe 46/46 ; l'échec de workflow était le relais, trompé par les `.git` vides d'environnement. Détection des vrais dépôts/worktrees/liens conservée, **21/21 relais**, **49/49 outillage**, **155/155 bancs clients** après main #300. Relance complète des 46 commandes en cours, aucune référence falsifiée. Reste prévol complet après #300/données référentielles, #299 réservé à Claude, pas de certification production.
+
+### #219 — validation finale de la reprise après #300
+
+**46/46 commandes Python, 155/155 bancs clients, 105/105 pilote, 49/49 outillage, 21/21 relais.** Les 95 passent en une transaction sur le décor déclaré ; 30+5 scénarios avant et après #300 ; **27/27 HTTP authentifiés** avec GoTrue/PostgREST, dont JWT falsifié refusé (401), double clic concurrent/reçu unique et élection un PA/rejeu. Source initiale du payeur et garde 115805 inchangées. Six mutations détectées conservées. Services locaux nettoyés ; aucun compte réel touché.
+
+Rapport courant `outils/audits/INTEGRATION95-ET-CAISSES300-219-20261031.md`, manifeste et preuves actualisés. **NON TERMINÉ : globaux 10/12, garde #299 13/14 maintenue, catalogue vivant complet après #300 absent de cet environnement**. Les exports privés locaux restent 1003 ; ne pas les baptiser 1009. La demande technique précise de métadonnées pour ChatGPT est prête ; aucune intervention de design requise. Pas de fusion de #219 ni de déploiement par Codex.

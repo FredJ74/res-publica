@@ -1,5 +1,5 @@
 {
-  "statut": "prepare_non_execute_non_verifie_catalogue1008",
+  "statut": "installe_teste_localement_catalogue1003_et_couts438_non_certifie_vivant_apres300",
   "migrations": [
     {
       "version": "20261031113600",
@@ -485,8 +485,10 @@
     "registre": 1009,
     "source_commit": "26a10c3b",
     "compatible": false,
-    "blocage": "catalogue1009_complet_non_recu",
+    "blocage": "catalogue_vivant_complet_apres300_non_recu",
     "voir": "PREVOL-1009-BLOCAGE-219-20261031.json",
     "compatible_payeur": true
-  }
+  },
+  "preuve_integration": "outils/audits/preuves-integration95-219-20261031/hg219-validation-auth27.json.gz",
+  "recette_authentifiee_locale": 27
 }

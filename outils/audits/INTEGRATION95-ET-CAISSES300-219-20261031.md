@@ -1,5 +1,8 @@
 # #219 — épreuve intégrée des 95 et compatibilité #300
 
+**État final de cette reprise :** main #300 (`586ae9ea`) intégré ; 95 versions installées atomiquement sur le décor privé explicitement daté, 70 scénarios de catalogue combinés réussis et **27/27 vrais scénarios GoTrue/PostgREST locaux**. **46/46 commandes Python, 155/155 bancs clients, 105/105 pilote, 49/49 outillage, 21/21 relais**. Globaux **10/12**, garde immobilière #299 **13/14**, sans neutralisation. Ni catalogue vivant actualisé certifié, ni fusion de #219, ni production modifiée. Les sections suivantes conservent la progression et ses rectifications ; cet encadré et les dernières preuves font foi.
+
+
 ## Rectification du payeur
 
 Le précédent blocage annoncé est retiré. La preuve ChatGPT [6548347589](https://github.com/FredJ74/res-publica/pull/219#issuecomment-6548347589) distingue `md5(prosrc)` = `5cf45c19e4b9559f6b29e2b9207d3969` et `md5(pg_get_functiondef)` = `37eca91d6eb08c2a6ea97cbe717a216a`. Le premier est bien celui de la garde existante. Le test intégré reproduit les DEUX valeurs sur la vraie fonction reconstruite, sans la remplacer. Pas d'élargissement d'empreinte ni de retrait de garde. Le diagnostic initial JSON est conservé comme rétracté, pas effacé.
@@ -65,3 +68,11 @@ Après correction : **30 scénarios de groupes + 5 d'organisations**, avant et a
 L'autre échec de la première passe combinée n'était pas le banc des caisses (46/46), mais le relais privé (18/19 à ce moment) : des `.git` **vides et en lecture seule** sont apparus aux racines /tmp et /workspace de l'environnement. Ils ne constituent pas des dépôts. La détection refuse toujours fichiers de worktree, liens même cassés, répertoires Git contenant des métadonnées et marqueurs illisibles. Seul un répertoire vide sans métadonnées n'est plus confondu avec un dépôt. **21/21 tests relais** : publication dans le vrai dépôt et dans un worktree toujours refusée avant création de fichier. Aucun export brut publié.
 
 L'outillage passe à **49/49**, les bancs clients à **155/155** après #300. Les 46 commandes Python du workflow combiné sont relancées après réparation ; leur résultat final est à lire dans la preuve dédiée, pas déduit du succès isolé des cas. Les globaux restent 10/12 contre le baseline de production disponible et la garde #299 reste active. Aucune prétention de 12/12 ni de catalogue vivant complet.
+
+### Dernière preuve
+
+La signature JWT falsifiée est rejetée avec HTTP 401 ; le refus anonyme doit être 401/403 ou un refus métier explicite, jamais une simple erreur 500 considérée comme succès. La recette authentifiée finale comporte **27 cas** et utilise le code commité. Les services ont été arrêtés ; aucun processus GoTrue/PostgREST de ce banc ne subsiste.
+
+La passe complète du workflow combiné passe désormais **46/46** (dont le relais réparé), résultats bruts conservés sans modifier un ancien échec. Le manifeste donne le SHA256 actualisé des 95 sources, l'empreinte du paquet et la référence à la preuve finale. #299 reste isolée par une assertion d'absence des deux préparations dans ces 95, tout en gardant le test global qui les signale.
+
+**Action technique restante pour l'intégrateur :** fournir hors Git les résultats complets de `DEMANDE-PREVOL-ACTUALISE-219-20261031.md`, contre l'état vivant **après les opérations #300** (registre complet et définitions/contraintes/ACL/RLS/triggers, plus référentiels statiques). L'accès connecteur et les variables Supabase ne sont pas disponibles dans ce processus ; les seuls quatre exports locaux sont toujours ceux de la coupe 1003. Sans ces résultats, aucune certification de fidélité 1009 ou plus récente, aucun 12/12 fabriqué. La suite sera une comparaison du delta, reconstruction fidèle par les outils existants, nouvelle passe atomique et autorisation de livraison ; pas un nouveau diagnostic du payeur.
