@@ -1,0 +1,128 @@
+{
+  "main": "5082d6e44f2bfca8b37e528b227c1a83e2f57705",
+  "production_modifiee": false,
+  "deploiement_vercel": false,
+  "code": "1e5d0ec2",
+  "tests": {
+    "postgres17_outillage": 30,
+    "postgres17_relais": 19,
+    "postgres16_ci_outillage": 30,
+    "postgres16_ci_relais": 19,
+    "clients": 146,
+    "chromium": 105,
+    "sql_groupes_fixtures": 379,
+    "regressions_sql_4_bancs": [
+      {
+        "banc": "banc-achat-commerce-local.py",
+        "code": 0
+      },
+      {
+        "banc": "banc-reception-atomique-local.py",
+        "code": 0
+      },
+      {
+        "banc": "banc-inventaire-concurrence-local.py",
+        "code": 0
+      },
+      {
+        "banc": "banc-inventaire-fret-local.py",
+        "code": 0
+      }
+    ],
+    "contre_epreuves": [
+      {
+        "mutation": "issue-fausse",
+        "code": 1,
+        "cas": 379,
+        "echecs": [
+          "squatteurs_rounds_reels_issue_et_unique_trace_squatter_cool",
+          "squatteurs_issue_reelle_obligatoire_tues"
+        ],
+        "detectee": true
+      },
+      {
+        "mutation": "double-paiement",
+        "code": 1,
+        "cas": 379,
+        "echecs": [
+          "civil_ouverture_reelle_choix_paiement_unique_rejeu",
+          "civil_mode_mains_borne_arme_et_paiement_sans_modifier_defenseur",
+          "civil_mode_arme_borne_arme_et_paiement_sans_modifier_defenseur",
+          "civil_mode_feu_borne_arme_et_paiement_sans_modifier_defenseur",
+          "civil_deux_connexions_un_combat_un_paiement_un_recu"
+        ],
+        "detectee": true
+      },
+      {
+        "mutation": "PNJ-immobile",
+        "code": 1,
+        "cas": 379,
+        "echecs": [
+          "squatteurs_fuite_automate_deplacement_reel_pas_une_mort"
+        ],
+        "detectee": true
+      },
+      {
+        "mutation": "repli-sans-mouvement",
+        "code": 1,
+        "cas": 379,
+        "echecs": [
+          "repli_militaire_meme_navigation_PJ_PNJ_sortie_reelle_et_rejeu",
+          "repli_militaire_refus_individuel_annule_sortie_et_tous_mouvements",
+          "civil_fuite_initiale_deplacement_reel",
+          "civil_cinq_vrais_rounds_puis_replier",
+          "civil_defenseur_connecte_decision_initiale_replier"
+        ],
+        "detectee": true
+      },
+      {
+        "mutation": "camion-solo",
+        "code": 1,
+        "cas": 379,
+        "echecs": [
+          "camion_ancien_acte_embarque_et_debarque_groupe_PJ_entier_rejeu",
+          "camion_voyage_reel_cout_historique_2PA_par_PJ_et_rejeu_sans_double_debit",
+          "camion_section_epuisee_refuse_sans_debit_ni_deplacement",
+          "camion_deux_sessions_du_chef_un_embarquement_et_un_recu"
+        ],
+        "detectee": true
+      },
+      {
+        "mutation": "repli-provenance-oubliee",
+        "code": 1,
+        "cas": 379,
+        "echecs": [
+          "repli_PNJ_PSM_vraie_gauche_selon_provenance_serveur"
+        ],
+        "detectee": true
+      }
+    ]
+  },
+  "global": {
+    "reussis": 7,
+    "total": 12,
+    "rouges": [
+      "baseline",
+      "authority",
+      "referential",
+      "assemblage",
+      "reconstruction"
+    ]
+  },
+  "acquisition": {
+    "nouveaux_exports_canoniques_recus": false,
+    "nouveaux_seeds_recus": false,
+    "anciens_exports_repares": false,
+    "releves_source": "2a71eaf77dac83370a02c4f12cd71b502a20d772"
+  },
+  "migrations_219": {
+    "nombre": 88,
+    "installees_sur_copie_fidele": false,
+    "appliquees_en_production": 0,
+    "rehorodatees_apres_nouveau_point": false
+  },
+  "authentification_reelle": false,
+  "limite": "Fixtures SQL/JWT et Chromium ; aucune homologation du catalogue ni visite réelle. Les mêmes tests outillage sont rejoués sur 16.2 sans homologation 17.",
+  "pr219_fusionnee_dans_main": false,
+  "contre_epreuves_source": "Exécutées sur main #275 ; 88 contenus SQL identiques après #280, contrôlés par SHA."
+}
