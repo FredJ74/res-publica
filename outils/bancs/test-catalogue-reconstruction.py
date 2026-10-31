@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Chargeur strict + véritable extraction/rendu de séquences sur PostgreSQL jetable."""
-import importlib.util,json,sys,tempfile,unittest
+import importlib.util,json,subprocess,sys,tempfile,unittest
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(R/'outils/baseline'))
@@ -15,6 +15,14 @@ class Exports(unittest.TestCase):
    row={cle:v}
    if mode=='mcp':row={'result':'<untrusted-data-0000-1111>\n'+json.dumps([row])+'\n</untrusted-data-0000-1111>'}
    (self.rep/(cle+('.txt' if mode=='mcp' else '.json'))).write_text(json.dumps(row))
+ def test_livraison95_refuse_les_references_manquantes(self):
+  script=R/'outils/bancs/banc-livraison95-catalogue-local.py'
+  args=[sys.executable,str(script),'--exports',str(self.rep),'--registre',str(self.rep/'registre.json'),'--capture-couts',str(self.rep/'couts.json'),'--postgres-bin',str(self.rep),'--rapport',str(self.rep/'rapport.json')]
+  p=subprocess.run(args,text=True,capture_output=True,check=False)
+  self.assertNotEqual(p.returncode,0)
+  self.assertIn('--empreinte-reference',p.stderr)
+  self.assertIn('--referentiels-reference',p.stderr)
+  self.assertFalse((self.rep/'rapport.json').exists())
  def test_referentiel_refuse_un_seul_ecart(self):
   spec=importlib.util.spec_from_file_location('livraison95',R/'outils/bancs/banc-livraison95-catalogue-local.py')
   m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
