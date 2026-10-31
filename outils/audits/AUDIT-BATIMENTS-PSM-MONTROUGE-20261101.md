@@ -59,7 +59,7 @@ de province doivent les offrir aussi. Rien n'a été ajouté sans décision.
 
 | Bâtiment (PSM et Montrouge) | Absent par rapport à Luthécia |
 |---|---|
-| Banque locale / Banque cheminote | virement à un joueur, virement automatique, autorisation judiciaire de coffre, coffre à louer |
+| Banque locale / Banque cheminote | **tranché le 01/11** : guichets de la Banque Nationale, mêmes procédures (compte, placements, prêt, virements ponctuels et automatiques) ; Helvetia seule garde un fonctionnement unique. Corrigé dans ce chantier (écran + migration `20261031235500`). Restent à Luthécia : coffre à louer et autorisation judiciaire (énigme du musée) |
 | Dispensaire / Hôpital | centre antipoison, transfert vers la clinique privée |
 | Tribunal municipal | falsifier un document, demander un juge d'instruction |
 | Hôtel du Port / Hôtel de la Victoire | suite, dîner d'affaires, rumeurs, informateur, escort, tournée, service d'étage, local à louer |

@@ -7982,9 +7982,12 @@ const TYPES_PRET = {
   consommation: { label: 'Consommation', desc: 'Petite somme, remboursement rapide, taux élevé.', montantMax: 10000, tauxFixe: 12, dureeMax: 30 }
 };
 
+// Guichets de la Banque Nationale (decision de Fred, 01/11/2026) : la banque locale de chaque ville
+// de province applique les memes procedures. Le serveur tient la meme liste (pret, virements).
+// Liste ecrite dans la fonction : les bancs la chargent seule.
 function pretBancaireDisponibilite(typeBanque, typePret) {
   if ((typeBanque || 'nationale') !== 'nationale') return {ok:true};
-  if (state.currentBuilding !== 'banque-nationale') return {ok:false,raison:'Rendez-vous à la Banque Nationale pour demander votre prêt travaux. Aucun financement n’est prélevé ici.'};
+  if (!['banque-nationale', 'banque-locale'].includes(state.currentBuilding)) return {ok:false,raison:'Rendez-vous à la Banque Nationale ou à la banque locale de votre ville pour demander votre prêt. Aucun financement n’est prélevé ici.'};
   if (typePret && !['travaux','consommation'].includes(typePret)) return {ok:false,raison:'Le prêt consommation n’est pas actuellement disponible à ce guichet. Aucun montant ni PA ne sera prélevé.'};
   return {ok:true};
 }
@@ -13135,7 +13138,7 @@ function choisirVirementJoueur(i) {
 }
 
 const REFUS_VIREMENT = {
-  pas_sur_place: ['À la banque', 'Les virements se font à la Banque Nationale.'],
+  pas_sur_place: ['À la banque', 'Les virements se font à la Banque Nationale ou à la banque locale de votre ville.'],
   beneficiaire_introuvable: ['Destinataire introuvable', 'Choisissez un joueur dans la recherche.'],
   beneficiaire_invalide: ['Destinataire invalide', 'Vous ne pouvez pas vous virer de l\'argent à vous-même.'],
   montant_invalide: ['Montant invalide', 'Indiquez un nombre entier de francs, positif.'],
