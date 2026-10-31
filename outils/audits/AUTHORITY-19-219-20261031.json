@@ -1,0 +1,728 @@
+{
+  "catalogue_capture": "2026-10-31T11:35:45.899473Z",
+  "preuve_installation_sha256": "1386903b5b586ae141c4c3232af74810cfd928e81117a65b6946eac72158ec23",
+  "paquet_migrations": 89,
+  "ecarts_au_catalogue_capture": 19,
+  "corriges_apres_lot": 12,
+  "residuels": 7,
+  "ecarts": [
+    {
+      "fonction": "combat_cibles_lire",
+      "parametres": [],
+      "sites": [
+        "plateau-pnj.js:722"
+      ],
+      "declarations": [
+        "migrations/20261031115901_combat_cibles_presence_canonique.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115901_combat_cibles_presence_canonique.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "plateau-pnj.js:722",
+          "fonctions_englobantes": [
+            "actualiserCibleCombatPnj"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "crime_corrompre_douanier",
+      "parametres": [
+        "p_cost",
+        "p_pa",
+        "p_requete"
+      ],
+      "sites": [
+        "plateau-navigation.js:3048"
+      ],
+      "declarations": [
+        "migrations/20261031115816_transport_corruption_passage_serveur.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115816_transport_corruption_passage_serveur.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "plateau-navigation.js:3048",
+          "fonctions_englobantes": [
+            "commanderCorruptionDouanesServeur"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "douane_controle_groupe",
+      "parametres": [
+        "p_mode",
+        "p_requete"
+      ],
+      "sites": [
+        "plateau-navigation.js:2688"
+      ],
+      "declarations": [
+        "migrations/20261031115813_transport_controle_douanier_commun.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115813_transport_controle_douanier_commun.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "plateau-navigation.js:2688",
+          "fonctions_englobantes": [
+            "commanderDouanesServeur"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "force_publique_effectif_acte",
+      "parametres": [
+        "p_action",
+        "p_matricule",
+        "p_requete",
+        "p_service",
+        "p_type"
+      ],
+      "sites": [
+        "plateau-justice-economie.js:8718"
+      ],
+      "declarations": [
+        "migrations/20261031115831_effectifs_recrutement_et_licenciement_atomiques.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115831_effectifs_recrutement_et_licenciement_atomiques.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "plateau-justice-economie.js:8718",
+          "fonctions_englobantes": [
+            "commanderEffectifServeur"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "groupe_pj_lire",
+      "parametres": [],
+      "sites": [
+        "supabase.js:6628"
+      ],
+      "declarations": [
+        "migrations/20261031115739_groupe_pj_adhesion_volontaire.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115739_groupe_pj_adhesion_volontaire.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "supabase.js:6628",
+          "fonctions_englobantes": [
+            "sbGroupePjLire"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "groupe_pj_quitter",
+      "parametres": [],
+      "sites": [
+        "plateau-multijoueur.js:1996"
+      ],
+      "declarations": [
+        "migrations/20261031115739_groupe_pj_adhesion_volontaire.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115739_groupe_pj_adhesion_volontaire.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "plateau-multijoueur.js:1996",
+          "fonctions_englobantes": [
+            "quitterGroupe"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "groupe_pj_rejoindre",
+      "parametres": [
+        "p_chef"
+      ],
+      "sites": [
+        "plateau-multijoueur.js:1993"
+      ],
+      "declarations": [
+        "migrations/20261031115739_groupe_pj_adhesion_volontaire.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115739_groupe_pj_adhesion_volontaire.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "plateau-multijoueur.js:1993",
+          "fonctions_englobantes": [
+            "rejoindrePJ"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "navigation_interieure",
+      "parametres": [
+        "p_batiment",
+        "p_piece"
+      ],
+      "sites": [
+        "plateau-navigation.js:292"
+      ],
+      "declarations": [
+        "migrations/20261031115800_navigation_interieure_groupe.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115800_navigation_interieure_groupe.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "plateau-navigation.js:292",
+          "fonctions_englobantes": [
+            "commanderNavigationInterieure"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "organisation_commande_administrative",
+      "parametres": [
+        "p_action",
+        "p_organisation",
+        "p_parametres",
+        "p_requete"
+      ],
+      "sites": [
+        "supabase.js:6923"
+      ],
+      "declarations": [
+        "migrations/20261031113600_organisations_commandes_administratives.sql"
+      ],
+      "dans_lot_219": [],
+      "statut_apres_installation_locale": "non_resolu",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Contrat organisations hors lot #219 ; ne pas importer les 65 preparations historiques",
+      "entrees_client": [
+        {
+          "site": "supabase.js:6923",
+          "fonctions_englobantes": [
+            "sbOrganisationCommande"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "organisation_commande_evenement",
+      "parametres": [
+        "p_action",
+        "p_organisation",
+        "p_parametres",
+        "p_requete"
+      ],
+      "sites": [
+        "supabase.js:6919"
+      ],
+      "declarations": [
+        "migrations/20261031113604_organisations_invitations_elections_atomiques.sql"
+      ],
+      "dans_lot_219": [],
+      "statut_apres_installation_locale": "non_resolu",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Contrat organisations hors lot #219 ; ne pas importer les 65 preparations historiques",
+      "entrees_client": [
+        {
+          "site": "supabase.js:6919",
+          "fonctions_englobantes": [
+            "sbOrganisationCommande"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "organisation_commande_membres",
+      "parametres": [
+        "p_action",
+        "p_organisation",
+        "p_parametres",
+        "p_requete"
+      ],
+      "sites": [
+        "supabase.js:6921"
+      ],
+      "declarations": [
+        "migrations/20261031113602_organisations_adhesions_grades.sql",
+        "migrations/20261031113603_organisations_progression_elections.sql"
+      ],
+      "dans_lot_219": [],
+      "statut_apres_installation_locale": "non_resolu",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Contrat organisations hors lot #219 ; ne pas importer les 65 preparations historiques",
+      "entrees_client": [
+        {
+          "site": "supabase.js:6921",
+          "fonctions_englobantes": [
+            "sbOrganisationCommande"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "organisation_equipement_acheter",
+      "parametres": [
+        "p_fonds",
+        "p_organisation",
+        "p_quantite",
+        "p_reference",
+        "p_requete"
+      ],
+      "sites": [
+        "plateau-commerce-pj.js:2150"
+      ],
+      "declarations": [
+        "migrations/20261031113559_achat_equipements_collectifs.sql"
+      ],
+      "dans_lot_219": [],
+      "statut_apres_installation_locale": "non_resolu",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Contrat organisations hors lot #219 ; ne pas importer les 65 preparations historiques",
+      "entrees_client": [
+        {
+          "site": "plateau-commerce-pj.js:2150",
+          "fonctions_englobantes": [
+            "commercePjAcheter"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "organisation_equipement_deplacer",
+      "parametres": [
+        "p_action",
+        "p_destination",
+        "p_objet",
+        "p_organisation",
+        "p_requete"
+      ],
+      "sites": [
+        "plateau-equipements-collectifs.js:36"
+      ],
+      "declarations": [
+        "migrations/20261031113558_organisations_equipements_collectifs.sql"
+      ],
+      "dans_lot_219": [],
+      "statut_apres_installation_locale": "non_resolu",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Contrat organisations hors lot #219 ; ne pas importer les 65 preparations historiques",
+      "entrees_client": [
+        {
+          "site": "plateau-equipements-collectifs.js:36",
+          "fonctions_englobantes": [
+            "equipementsCollectifsOuvrir"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "organisation_equipements_etat",
+      "parametres": [
+        "p_organisation"
+      ],
+      "sites": [
+        "plateau-equipements-collectifs.js:19"
+      ],
+      "declarations": [
+        "migrations/20261031113558_organisations_equipements_collectifs.sql"
+      ],
+      "dans_lot_219": [],
+      "statut_apres_installation_locale": "non_resolu",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Contrat organisations hors lot #219 ; ne pas importer les 65 preparations historiques",
+      "entrees_client": [
+        {
+          "site": "plateau-equipements-collectifs.js:19",
+          "fonctions_englobantes": [
+            "equipementsCollectifsOuvrir"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "organisation_equipements_payeurs",
+      "parametres": [],
+      "sites": [
+        "plateau-equipements-collectifs.js:62"
+      ],
+      "declarations": [
+        "migrations/20261031113558_organisations_equipements_collectifs.sql"
+      ],
+      "dans_lot_219": [],
+      "statut_apres_installation_locale": "non_resolu",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Contrat organisations hors lot #219 ; ne pas importer les 65 preparations historiques",
+      "entrees_client": [
+        {
+          "site": "plateau-equipements-collectifs.js:62",
+          "fonctions_englobantes": [
+            "equipementsCollectifsProposerPayeur"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "pnj_deployer_unite",
+      "parametres": [
+        "p_groupe",
+        "p_pnj_ids"
+      ],
+      "sites": [
+        "plateau-justice-economie.js:14820"
+      ],
+      "declarations": [
+        "migrations/20261031115734_securite_privee_socle_policier.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115734_securite_privee_socle_policier.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "plateau-justice-economie.js:14820",
+          "fonctions_englobantes": [
+            "commanderPoliceGroupe"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "pnj_rappeler_radio",
+      "parametres": [
+        "p_ancre"
+      ],
+      "sites": [
+        "supabase.js:6608"
+      ],
+      "declarations": [
+        "migrations/20261031115740_pnj_rappel_radio_universel.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115740_pnj_rappel_radio_universel.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "supabase.js:6608",
+          "fonctions_englobantes": [
+            "sbPnjRappelerRadio"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "pnj_unites_administrables_lire",
+      "parametres": [],
+      "sites": [
+        "supabase.js:6624"
+      ],
+      "declarations": [
+        "migrations/20261031115751_groupes_force_publique_portes.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115751_groupes_force_publique_portes.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "supabase.js:6624",
+          "fonctions_englobantes": [
+            "sbPnjUnitesAdministrablesLire"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    },
+    {
+      "fonction": "transport_effectuer",
+      "parametres": [
+        "p_mode",
+        "p_pays",
+        "p_requete",
+        "p_ville"
+      ],
+      "sites": [
+        "plateau-navigation.js:2717"
+      ],
+      "declarations": [
+        "migrations/20261031115806_transport_intra_atomique.sql"
+      ],
+      "dans_lot_219": [
+        "migrations/20261031115806_transport_intra_atomique.sql"
+      ],
+      "statut_apres_installation_locale": "signature_et_EXECUTE_authenticated_valides",
+      "visibilite": "appel present dans le code livre ; pas considere mort sans preuve de routage",
+      "reserve": "Preuve locale apres installation ; pas une preuve de deploiement",
+      "entrees_client": [
+        {
+          "site": "plateau-navigation.js:2717",
+          "fonctions_englobantes": [
+            "commanderTransportServeur"
+          ],
+          "limite": "Fonction du code navigateur livrée ; le parcours authentifié reste à vérifier."
+        }
+      ]
+    }
+  ],
+  "autres_verifications_strictes_apres_lot": [
+    {
+      "fonction": "tournee_creer",
+      "parametres": [
+        "p_id"
+      ],
+      "sites": [
+        "plateau-actions-illegales-rumeurs.js:4987"
+      ]
+    },
+    {
+      "fonction": "organisation_equipement_acheter",
+      "parametres": [
+        "p_fonds",
+        "p_organisation",
+        "p_quantite",
+        "p_reference",
+        "p_requete"
+      ],
+      "sites": [
+        "plateau-commerce-pj.js:2150"
+      ]
+    },
+    {
+      "fonction": "organisation_equipements_etat",
+      "parametres": [
+        "p_organisation"
+      ],
+      "sites": [
+        "plateau-equipements-collectifs.js:19"
+      ]
+    },
+    {
+      "fonction": "organisation_equipement_deplacer",
+      "parametres": [
+        "p_action",
+        "p_destination",
+        "p_objet",
+        "p_organisation",
+        "p_requete"
+      ],
+      "sites": [
+        "plateau-equipements-collectifs.js:36"
+      ]
+    },
+    {
+      "fonction": "organisation_equipements_payeurs",
+      "parametres": [],
+      "sites": [
+        "plateau-equipements-collectifs.js:62"
+      ]
+    },
+    {
+      "fonction": "chantier_travailler",
+      "parametres": [
+        "p_acteur",
+        "p_batiment",
+        "p_heures",
+        "p_pays"
+      ],
+      "sites": [
+        "plateau-justice-economie.js:12155"
+      ]
+    },
+    {
+      "fonction": "vendre_materiaux_chantier",
+      "parametres": [
+        "p_building_id",
+        "p_country",
+        "p_matiere",
+        "p_prix",
+        "p_quantite",
+        "p_vendeur"
+      ],
+      "sites": [
+        "supabase.js:5644"
+      ]
+    },
+    {
+      "fonction": "taux_imposition_fixer",
+      "parametres": [
+        "p_cost",
+        "p_pa",
+        "p_portee",
+        "p_taux"
+      ],
+      "sites": [
+        "plateau-justice-economie.js:12737"
+      ]
+    },
+    {
+      "fonction": "vendre_fonds_commerce",
+      "parametres": [
+        "p_acheteur",
+        "p_fonds_id",
+        "p_prix",
+        "p_vendeur"
+      ],
+      "sites": [
+        "supabase.js:2971"
+      ]
+    },
+    {
+      "fonction": "tracts_appliquer_effet_pop",
+      "parametres": [
+        "p_cible",
+        "p_delta"
+      ],
+      "sites": [
+        "supabase.js:4454"
+      ]
+    },
+    {
+      "fonction": "batiment_caisse_mouvement",
+      "parametres": [
+        "p_building",
+        "p_delta",
+        "p_exiger_existant",
+        "p_pays",
+        "p_souscle",
+        "p_stock",
+        "p_stock_cle",
+        "p_stock_max",
+        "p_ville"
+      ],
+      "sites": [
+        "supabase.js:4493"
+      ]
+    },
+    {
+      "fonction": "militaire_subtiliser",
+      "parametres": [
+        "p_joueur",
+        "p_pays"
+      ],
+      "sites": [
+        "supabase.js:4576"
+      ]
+    },
+    {
+      "fonction": "tracts_reclamer_don",
+      "parametres": [
+        "p_destinataire",
+        "p_id"
+      ],
+      "sites": [
+        "supabase.js:4844"
+      ]
+    },
+    {
+      "fonction": "creer_placement_national",
+      "parametres": [
+        "p_int_snapshot",
+        "p_montant",
+        "p_personnage",
+        "p_ville"
+      ],
+      "sites": [
+        "supabase.js:5538"
+      ]
+    },
+    {
+      "fonction": "organisation_commande_evenement",
+      "parametres": [
+        "p_action",
+        "p_organisation",
+        "p_parametres",
+        "p_requete"
+      ],
+      "sites": [
+        "supabase.js:6919"
+      ]
+    },
+    {
+      "fonction": "organisation_commande_membres",
+      "parametres": [
+        "p_action",
+        "p_organisation",
+        "p_parametres",
+        "p_requete"
+      ],
+      "sites": [
+        "supabase.js:6921"
+      ]
+    },
+    {
+      "fonction": "organisation_commande_administrative",
+      "parametres": [
+        "p_action",
+        "p_organisation",
+        "p_parametres",
+        "p_requete"
+      ],
+      "sites": [
+        "supabase.js:6923"
+      ]
+    }
+  ],
+  "limite": "Inventaire statique : ne prouve pas une recette authentifiee ni une execution de chaque branche UI. Les 17 formes strictes incluent des appels historiques et des arguments spread a verifier, pas 17 fonctions serveur manquantes."
+}

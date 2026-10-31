@@ -1,0 +1,14 @@
+{
+  "gotrue": {
+    "image": "supabase/gotrue:v2.177.0",
+    "image_sha256": "6a916b47af0386b7e0152ca84f3d45d050bf056e449a75a5460b48742fd67822",
+    "binaire_sha256": "bde91101eb64db8dbbbd1489ae005bf9f8d54bcd47753d04e811779e30cfcd5a"
+  },
+  "postgrest": {
+    "image": "postgrest/postgrest:v12.2.12",
+    "image_sha256": "5f4ce744539bbba786b4e24dbbd95bdb2a956dcf568c5374995a0ff4a68f5bd2",
+    "binaire_sha256": "16dbc82fd830db6a28a03231ec99fcd28139fd4558bebe402586d9534376cec1"
+  },
+  "mode": "binaires extraits de conteneurs arr\u00eat\u00e9s sans r\u00e9seau ; conteneurs supprim\u00e9s ; services natifs loopback arr\u00eat\u00e9s en finally",
+  "production": false
+}

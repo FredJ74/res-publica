@@ -1,0 +1,65 @@
+
+1. L INVENTAIRE DES PNJ VISIBLES DE REPUBLIA
+  ok  les trois villes de Republia sont lues
+  ok  l inventaire n est pas vide
+      221 presences, 180 PNJ distincts
+
+2. CHAQUE PNJ VISIBLE A-T-IL UN PROFIL SERVEUR ?
+  ok  le PNJ bernard_piluler a une fiche de personnalite
+  ok  le PNJ marcel_silo a une fiche de personnalite
+  ok  le PNJ jean_bonde a une fiche de personnalite
+  ok  aucun PNJ visible n est muet EN DEHORS des muets declares
+  ok  aucun muet declare n a ete raccorde sans qu on retire sa ligne
+      4 muet(s), tous declares et en attente d un arbitrage
+
+3. LES PNJ QUE LA QUETE D ACCUEIL ET LES MECANIQUES INJECTENT
+  ok    Jérémy a un profil serveur (quete d accueil — compagnon du joueur)
+  ok    Maxence Monfils a un profil serveur (parc botanique / serre)
+  ok  aucun depute PNJ n est muet en dehors des huit declares
+  ok  et aucun des huit n a ete raccorde sans qu on retire sa ligne
+  ok  President Laroche, lui, repond -- il est referent
+  ok  les douze candidats de Grobras sont declares muets, et le restent
+
+4. LE CHEMIN NAVIGATEUR ABOUTIT POUR CHACUN
+  ok  aucun PNJ ne leve une exception dans le chemin de dialogue
+  ok  aucun PNJ ne laisse le joueur bloque sur « En train de repondre... »
+  ok  chaque PNJ rend soit un appel serveur, soit une reponse ecrite d avance
+
+5. CE QUI PART SUR LE RESEAU NE PORTE NI CLE NI PROMPT
+  ok  la requete part vers /api/chat
+  ok  elle ne porte QUE profil, lang, message et historique
+  ok  elle ne contient aucun prompt systeme et aucune cle
+  ok  le jeton du joueur voyage dans l en-tete Authorization, pas dans le corps
+  ok  un seul appel reseau par replique -- jamais deux
+
+6. UNE PANNE SE DIT, ET ELLE NE SE DEGUISE PAS EN PNJ
+  ok  un 502 du serveur donne un message technique clair, jamais une replique de PNJ
+  ok  un 400 ne promet PAS de reessayer -- ce PNJ n a pas de dialogue, et ca ne changera pas
+  ok  les deux messages de panne sont DIFFERENTS
+  ok  un refus DEFINITIF retire la boite de question -- on n invite plus a ecrire pour rien
+  ok  aucun des deux ne nomme un detail technique
+  ok  une panne PASSAGERE laisse la boite de question en place
+
+7. LE MIROIR DES OBJECTIFS DE LA VISITE D ACCUEIL
+  ok  les deux tables sont lisibles
+  ok    les memes etapes, dans les deux tables
+  ok    et la MEME phrase pour chacune
+
+8. LE SIXIEME CANAL N APPARTIENT QU A JEREMY
+  ok  la porte quete_accueil_contexte est declaree sans parametre
+  ok  elle n est demandee que pour le profil jeremy
+  ok  elle part avec les autres lectures, pas en serie apres elles
+  ok  le prompt systeme sait placer ce bloc
+
+9. LE PROMPT DE JEREMY EST REELLEMENT ASSEMBLE, AVEC L ETAPE
+  ok  le prompt de Jeremy existe
+  ok    il le nomme et dit son role de guide
+  ok    il impose le vouvoiement, comme le texte d origine
+  ok    il lui interdit de dire ou l on se trouve
+  ok    il porte l ETAPE en cours et la consigne exacte de cette etape
+  ok    et il lui interdit d inventer une autre destination
+  ok  la visite terminee est DITE, et il ne guide plus
+  ok  un PNJ ordinaire n a aucun bloc de visite d accueil
+  ok  et Maxence porte sa consigne de brievete d origine
+
+LES 43 EPREUVES SONT VERTES.

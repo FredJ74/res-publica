@@ -1,0 +1,8 @@
+SQL analysé migrations/20261027222500_securite_privee_socle_policier.sql 9421
+SQL analysé migrations/20261028074754_securite_privee_combat_pa_et_registre.sql 5955
+SQL analysé migrations/20261028074753_securite_privee_detection_unites.sql 5406
+SQL analysé outils/bancs/PREFLIGHT-AUDIT-SECURITE-135.sql 3671
+SQL analysé outils/bancs/banc-securite-privee-priorites-135.sql 2839
+SQL analysé outils/bancs/banc-securite-privee-socle-135.sql 15149
+SQL analysé outils/bancs/banc-securite-privee-issues-135.sql 2837
+YAML analysé .github/workflows/coherence-client.yml

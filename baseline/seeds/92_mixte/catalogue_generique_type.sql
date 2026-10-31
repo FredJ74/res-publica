@@ -17,6 +17,25 @@
 -- Voir catalogue_types.
 -- ============================================================================
 
+-- SEED -- catalogue_generique_type
+-- ============================================================================
+-- Table      : public.catalogue_generique_type
+-- Domaine    : economie
+-- Categorie  : D (mixte)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 88
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 88 rattachements generique-type.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Voir catalogue_types.
+-- ============================================================================
+
 INSERT INTO public.catalogue_generique_type (generique_id, type_id) VALUES ('accessoire-automobile', 'garage-automobile');
 INSERT INTO public.catalogue_generique_type (generique_id, type_id) VALUES ('accessoire-d-arme', 'armurerie');
 INSERT INTO public.catalogue_generique_type (generique_id, type_id) VALUES ('accessoire-de-mode', 'bien-etre-mode');

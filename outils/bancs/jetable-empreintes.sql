@@ -1,5 +1,6 @@
 -- Empreintes md5 des fonctions du parcours d achat : a executer sur la production ET sur la base jetable, puis comparer.
 BEGIN;
+SET TRANSACTION READ ONLY;
 SELECT string_agg(x, ' ' ORDER BY x) FROM (
  SELECT p.proname||'('||pg_get_function_identity_arguments(p.oid)||')='||left(md5(rtrim(pg_get_functiondef(p.oid),E'\n')),8) x
  FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace

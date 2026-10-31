@@ -130,16 +130,15 @@ att('procederArrestation est async',
 att('tenterResistance est async',
     SRC['plateau-justice-economie.js'].indexOf('async function tenterResistance(') >= 0);
 
-// ET L'ORDRE COMPTE : dans procederArrestation, l'attente est en DERNIER. Deux de ses onze
-// appelants lisent `state.estEmprisonne` juste apres leur appel ; une attente placee avant leur
-// rendrait la main sur un etat incomplet.
+// Le retrait suit désormais la confirmation et la relecture : aucun motif ne
+// disparaît à partir d'une détention anticipée dans le navigateur.
 var bArr = bloc('plateau-justice-economie.js', 'procederArrestation');
-att("dans procederArrestation, l'attente de la porte est la DERNIERE instruction",
-    bArr.lastIndexOf('await retirerRecherche(') > bArr.lastIndexOf('state.estEmprisonne.motifDesertionSeul')
-    && bArr.lastIndexOf('await retirerRecherche(') > bArr.lastIndexOf('teleporterVersCellule('),
+att("dans procederArrestation, le retrait suit la détention confirmée et son rendu",
+    bArr.lastIndexOf('await retirerRecherche(') > bArr.lastIndexOf('state.estEmprisonne = frais.estEmprisonne')
+    && bArr.lastIndexOf('await retirerRecherche(') > bArr.lastIndexOf('afficherPositionNavigationConfirmee(frais)'),
     'retrait a ' + bArr.lastIndexOf('await retirerRecherche(')
-    + ', drapeau a ' + bArr.lastIndexOf('state.estEmprisonne.motifDesertionSeul')
-    + ', teleportation a ' + bArr.lastIndexOf('teleporterVersCellule('));
+    + ', drapeau a ' + bArr.lastIndexOf('state.estEmprisonne = frais.estEmprisonne')
+    + ', teleportation a ' + bArr.lastIndexOf('afficherPositionNavigationConfirmee(frais)'));
 att("une seule attente de retrait dans procederArrestation",
     compte(sansCommentaires(bArr), /await retirerRecherche\(/g) === 1,
     compte(sansCommentaires(bArr), /await retirerRecherche\(/g) + ' occurrence(s)');

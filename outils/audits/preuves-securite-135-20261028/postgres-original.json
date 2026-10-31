@@ -1,0 +1,96 @@
+{
+  "source": "PR212-originale",
+  "tests": [
+    {
+      "cas": "registre_prive",
+      "ok": false,
+      "preuve": "combat privé a supprimé des policiers non intervenants"
+    },
+    {
+      "cas": "registre_police",
+      "ok": false,
+      "preuve": "registre policier tronqué après filtrage du seul intervenant"
+    },
+    {
+      "cas": "rejeu_pa",
+      "ok": true
+    },
+    {
+      "cas": "gardes_communes",
+      "ok": false,
+      "preuve": "nouvelle dépose contourne les gardes du socle"
+    },
+    {
+      "cas": "reprise_separation",
+      "ok": false,
+      "preuve": "ancien marqueur de déploiement regroupe des unités désormais séparées"
+    },
+    {
+      "cas": "priorites",
+      "ok": true
+    },
+    {
+      "cas": "droits_auxiliaires",
+      "ok": true
+    },
+    {
+      "cas": "autre_chef",
+      "ok": true
+    },
+    {
+      "cas": "intervenant_absent",
+      "ok": true
+    },
+    {
+      "cas": "employeur_exempte",
+      "ok": true
+    },
+    {
+      "cas": "panne_recu",
+      "ok": true
+    },
+    {
+      "cas": "detecteur_absent_refuse",
+      "ok": true
+    },
+    {
+      "cas": "reddition_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "fuite_deux_issues_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "position_rue",
+      "ok": false,
+      "preuve": "la position commune perd la rue du chef suivi"
+    },
+    {
+      "cas": "deploiement_reprise_rue",
+      "ok": false,
+      "preuve": "le garde de co-présence refuse une reprise réelle dans la rue"
+    },
+    {
+      "cas": "identites_unites",
+      "ok": false,
+      "preuve": "des entrées sans identité ont constitué un groupe par seule co-présence"
+    },
+    {
+      "cas": "ancienne_preparation_compatibilite",
+      "ok": true
+    },
+    {
+      "cas": "concurrence_lecture_pa",
+      "ok": false,
+      "lectures_avant_liberation": 2
+    }
+  ],
+  "production": false,
+  "role": "authenticated",
+  "rollback": true,
+  "detecteur_vivant_teste": false,
+  "coups_et_justice": "simules",
+  "decor_fictif_committe": true,
+  "acl_portes_preservees": true
+}

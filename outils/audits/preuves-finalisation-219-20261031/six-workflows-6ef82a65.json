@@ -1,0 +1,55 @@
+{
+  "sha": "6ef82a65dc3f8ecb5a18a874194109626ea85188",
+  "source": "https://github.com/FredJ74/res-publica/pull/219/checks",
+  "lecture": "HTML public, API Actions refusée",
+  "workflows": [
+    {
+      "workflow": "Cohérence client et transactions locales",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41214656628",
+      "jobs": [
+        "succeeded"
+      ],
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Parcours immobilier cinq terrains - PostgreSQL jetable",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41214656592",
+      "jobs": [
+        "succeeded"
+      ],
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Placement national transactionnel",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41214656596",
+      "jobs": [
+        "succeeded"
+      ],
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Tests détention calendrier universel",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41214656597",
+      "jobs": [
+        "succeeded"
+      ],
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Tests fermetures calendrier universel",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41214656611",
+      "jobs": [
+        "succeeded"
+      ],
+      "conclusion": "success"
+    },
+    {
+      "workflow": "Garde du payload Vercel",
+      "url": "https://github.com/FredJ74/res-publica/actions/runs/41214656642",
+      "jobs": [
+        "succeeded"
+      ],
+      "conclusion": "success"
+    }
+  ]
+}

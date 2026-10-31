@@ -92,6 +92,8 @@ var RECHERCHES = [];
 function ajouterCondamnationRecherche(nom, entree) { RECHERCHES.push(entree); return Promise.resolve(true); }
 
 // Les cinq fonctions eprouvees, extraites telles quelles.
+eval(bloc('contexteInterceptionJudiciaire'));
+eval(bloc('contexteInterceptionJudiciaireValide'));
 eval(bloc('enregistrerDetention'));
 eval(bloc('verifierLiberationPrisonniers'));
 eval(bloc('doSeRebeller'));

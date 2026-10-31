@@ -1,0 +1,205 @@
+{
+  "tests": [
+    {
+      "cas": "rappel_collectif_et_reponse_perdue",
+      "ok": true
+    },
+    {
+      "cas": "radio_pj_absente",
+      "ok": true
+    },
+    {
+      "cas": "radio_unite_absente",
+      "ok": true
+    },
+    {
+      "cas": "radio_pj_quantite_nulle",
+      "ok": true
+    },
+    {
+      "cas": "radio_pnj_quantite_nulle",
+      "ok": true
+    },
+    {
+      "cas": "radio_autre_ville",
+      "ok": true
+    },
+    {
+      "cas": "radio_autre_pays",
+      "ok": true
+    },
+    {
+      "cas": "radio_autorites_reparties_aucun_mouvement",
+      "ok": true
+    },
+    {
+      "cas": "radio_axe_institution_preserve",
+      "ok": true
+    },
+    {
+      "cas": "radio_regle_metier_preservee",
+      "ok": true
+    },
+    {
+      "cas": "radio_membre_inactif",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_volontaire",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_non_authentifiee",
+      "ok": true
+    },
+    {
+      "cas": "auto_adhesion_interdite",
+      "ok": true
+    },
+    {
+      "cas": "chef_absent",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_autre_piece",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_interieur_ignore_ancienne_rue",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_rue_ignore_ancienne_piece",
+      "ok": true
+    },
+    {
+      "cas": "adhesion_position_absente",
+      "ok": true
+    },
+    {
+      "cas": "lecture_reconnexion_et_depart",
+      "ok": true
+    },
+    {
+      "cas": "chef_separe_sans_mouvement",
+      "ok": true
+    },
+    {
+      "cas": "cycle_refuse",
+      "ok": true
+    },
+    {
+      "cas": "aucune_adhesion_imposee_ni_fuite_table",
+      "ok": true
+    },
+    {
+      "cas": "adhesions_concurrentes_sans_deadlock",
+      "ok": true
+    },
+    {
+      "cas": "prise_liste_incomplete_aucune_mutation",
+      "ok": true
+    },
+    {
+      "cas": "pret_conduite_sans_transfert_autorite_et_reprise",
+      "ok": true
+    },
+    {
+      "cas": "pret_refus_second_membre_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "depose_refus_second_membre_sans_mutation",
+      "ok": true
+    },
+    {
+      "cas": "suivi_pnj_et_depose_rue_reelle",
+      "ok": true
+    },
+    {
+      "cas": "pret_autre_rue_refuse",
+      "ok": true
+    },
+    {
+      "cas": "ordre_radio_militaire_hors_ville_refuse_avant_effet",
+      "ok": true
+    },
+    {
+      "cas": "ordre_radio_meme_ville_conserve_garde_equipement",
+      "ok": true
+    },
+    {
+      "cas": "projection_employes_position_effective",
+      "ok": true
+    },
+    {
+      "cas": "prives_suiveurs_meme_groupe_reel",
+      "ok": true
+    },
+    {
+      "cas": "prives_copresence_distincte_puis_adhesion_reelle",
+      "ok": true
+    },
+    {
+      "cas": "vrais_soldats_section_pret_depose_reprise_autorite",
+      "ok": true
+    },
+    {
+      "cas": "vrais_soldats_groupe_detache_rue_et_projection",
+      "ok": true
+    },
+    {
+      "cas": "vrais_soldats_radio_collective_et_rejeu",
+      "ok": true
+    },
+    {
+      "cas": "ordres_historiques_par_nombre_deleguent_aux_portes_communes",
+      "ok": true
+    },
+    {
+      "cas": "ordre_par_nombre_reprend_unite_liee_sans_violer_hierarchie",
+      "ok": true
+    },
+    {
+      "cas": "panne_projecteur_annule_prise_soldat",
+      "ok": true
+    },
+    {
+      "cas": "adaptateurs_projection_injoignables_du_reseau",
+      "ok": true
+    },
+    {
+      "cas": "capacite_soldat_confirmee_par_les_gardes_serveur",
+      "ok": true
+    },
+    {
+      "cas": "compagnie_verrouillee_avant_acteur_commun",
+      "ok": true
+    },
+    {
+      "cas": "vrais_policiers_autorite_commissariat_territoriale",
+      "ok": true
+    },
+    {
+      "cas": "blocage_reproduit_miroir_police_et_groupe_ne_sont_pas_raccordes",
+      "ok": true
+    },
+    {
+      "cas": "porte_bataille_sans_ennemi_refuse_sans_erreur_alias_ni_mutation",
+      "ok": true
+    },
+    {
+      "cas": "porte_bataille_conserve_refus_non_militaire",
+      "ok": true
+    },
+    {
+      "cas": "migration_refuse_porte_militaire_vivante_differente",
+      "ok": true
+    }
+  ],
+  "production": false,
+  "authentification": "identite JWT de fixture, role authenticated",
+  "rollback": true,
+  "migrations_appliquees": [],
+  "original217": false
+}

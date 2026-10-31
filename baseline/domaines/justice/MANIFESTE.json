@@ -519,10 +519,22 @@
  ],
  "contraintes": [
   {
+   "empreinte": "3372b7ab2b29eade94093a2a29624351",
+   "genre": "p",
+   "nom": "actes_illegaux_pkey",
+   "tbl": "actes_illegaux"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "actions_tracables_pkey",
    "tbl": "actions_tracables"
+  },
+  {
+   "empreinte": "cb4e7bee3359051a96d94932c4fecb82",
+   "genre": "p",
+   "nom": "amendes_tresor_pkey",
+   "tbl": "amendes_tresor"
   },
   {
    "empreinte": "12ceaed22c8d5b170ea81a1217c166da",
@@ -657,6 +669,30 @@
    "tbl": "plaintes_en_cours"
   },
   {
+   "empreinte": "3735862afd9161efaa30aea1914bb216",
+   "genre": "p",
+   "nom": "police_action_receipts_pkey",
+   "tbl": "police_action_receipts"
+  },
+  {
+   "empreinte": "05a81ef7377b78784c634d3fac33a06c",
+   "genre": "p",
+   "nom": "police_combat_rounds_pkey",
+   "tbl": "police_combat_rounds"
+  },
+  {
+   "empreinte": "a655893754ff2d2ff8abcf72041326f1",
+   "genre": "p",
+   "nom": "police_detection_attempts_pkey",
+   "tbl": "police_detection_attempts"
+  },
+  {
+   "empreinte": "e767effcedfddb3621cc99c415a1899a",
+   "genre": "p",
+   "nom": "police_interceptions_pkey",
+   "tbl": "police_interceptions"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "prisonniers_qhs_pkey",
@@ -709,6 +745,30 @@
    "genre": "u",
    "nom": "temoins_citations_une_par_affaire",
    "tbl": "temoins_citations"
+  },
+  {
+   "empreinte": "2bbb66b4ddad99056d4e5f9e78ebcc33",
+   "genre": "c",
+   "nom": "amendes_tresor_destinataire_valide",
+   "tbl": "amendes_tresor"
+  },
+  {
+   "empreinte": "0bd5479e6e51d9dd6210e408b77a1af2",
+   "genre": "c",
+   "nom": "amendes_tresor_montant_check",
+   "tbl": "amendes_tresor"
+  },
+  {
+   "empreinte": "891cac18c6574f4df0b649eccb94b379",
+   "genre": "c",
+   "nom": "amendes_tresor_paye_check",
+   "tbl": "amendes_tresor"
+  },
+  {
+   "empreinte": "f0bb8ce08b6bac92f4bc259d2780f2a4",
+   "genre": "c",
+   "nom": "amendes_tresor_statut_check",
+   "tbl": "amendes_tresor"
   },
   {
    "empreinte": "ec9fdc6a3715ce36bd91565899b5c838",
@@ -883,6 +943,18 @@
    "genre": "c",
    "nom": "justice_indemnites_porteur_connu",
    "tbl": "justice_indemnites"
+  },
+  {
+   "empreinte": "f8f82f140315f2b6863ff1bb9c6ebfae",
+   "genre": "c",
+   "nom": "police_action_receipts_action_check",
+   "tbl": "police_action_receipts"
+  },
+  {
+   "empreinte": "92330b4d8f84ab6212631d36c51ee14d",
+   "genre": "c",
+   "nom": "police_action_receipts_round_valid",
+   "tbl": "police_action_receipts"
   },
   {
    "empreinte": "06e4e2ed105501e0fe32c13e34abc785",
@@ -1104,6 +1176,42 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "amende_imposer_interne(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "amende_imposer_interne(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "amende_jugement_enregistrer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "amende_jugement_enregistrer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "amende_prelever_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "amende_prelever_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "arrestation_urgence(text,text)",
@@ -1317,6 +1425,396 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "commissaire_enqueter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "convocation_detention_interne(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "convocation_detention_interne(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "convocation_echue_interne(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "convocation_echue_interne(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "convocation_marquer_interne(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "convocation_marquer_interne(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "convocation_se_justifier(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "convocation_se_justifier(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "convocation_se_justifier(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_acheter_arme_noire(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_acheter_arme_noire(text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_acheter_arme_noire(uuid,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_acheter_arme_noire(uuid,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_acheter_arme_noire(uuid,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_acheter_explosifs(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_acheter_explosifs(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_acheter_explosifs(uuid,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_acheter_explosifs(uuid,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_acheter_explosifs(uuid,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_contrebande(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_contrebande(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_contrebande(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_corrompre(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_corrompre(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_corrompre(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_corrompre_douanier(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_corrompre_douanier(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_corrompre_douanier(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_detecter_interne(text,text,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_detecter_interne(text,text,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_dis_ajuster_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_dis_ajuster_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_empoisonner(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_empoisonner(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_empoisonner(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_etat_acteur_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_etat_acteur_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_explosifs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_explosifs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_explosifs(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_falsifier(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_falsifier(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_falsifier(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_incendier(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_incendier(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_incendier(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_malus_isn_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_malus_isn_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_neutraliser(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_neutraliser(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_neutraliser(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_peine_interne(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_peine_interne(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_rechercher_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_rechercher_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_trace_rumeur_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_trace_rumeur_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_tracer_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_tracer_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_voler(text,text,boolean,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_voler(text,text,boolean,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_voler(text,text,boolean,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "crime_voler_materiaux(text,text,integer,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "crime_voler_materiaux(text,text,integer,integer,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "crime_voler_materiaux(text,text,integer,integer,boolean)",
    "privileges": "EXECUTE"
   },
   {
@@ -1674,12 +2172,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "enquete_garde_a_vue(text,text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "enquete_garde_a_vue(text,text,text)",
@@ -1689,6 +2181,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "enquete_garde_a_vue(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "enquete_ouvrir(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "enquete_ouvrir(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "enquete_ouvrir(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1710,12 +2220,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "fraude_electorale_sanctionner(text,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "fraude_electorale_sanctionner(text,text)",
@@ -1725,6 +2229,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "fraude_electorale_sanctionner(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fraude_electorale_tenter(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fraude_electorale_tenter(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fraude_electorale_tenter(text,text,text,text,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -2328,6 +2850,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "justice_executer_condamnation_soi(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "justice_executer_condamnation_soi(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "justice_executer_condamnation_soi(text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "justice_fenetre_appel_jours()",
@@ -2598,6 +3138,54 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "minuit_amendes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "minuit_amendes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "minuit_convocations()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "minuit_convocations()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "minuit_couvre_feu_recherche(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "minuit_couvre_feu_recherche(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "minuit_decouverte_crimes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "minuit_decouverte_crimes()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "organisation_extrait_duplicata(text)",
@@ -2856,6 +3444,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "police_action_resultat_lire(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_action_resultat_lire(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_action_resultat_lire(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "police_autorite_de_perimetre(text,text)",
@@ -2880,6 +3486,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "police_combat_resoudre(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_combat_resoudre(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_combat_resoudre(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "police_delai_intervention_secondes()",
@@ -2889,6 +3513,42 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "police_delai_intervention_secondes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "police_detection_verifier(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_detection_verifier(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_detection_verifier(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "police_fuite_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_fuite_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_fuite_resoudre(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -2919,6 +3579,42 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "police_pnj_id(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "police_reddition_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_reddition_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_reddition_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "police_reprise_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "police_reprise_lire(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "police_reprise_lire(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -3220,6 +3916,18 @@
    "genre": "SEQUENCE",
    "objet": "temoins_citations_rang_seq",
    "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "actes_illegaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "actes_illegaux",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
    "beneficiaire": "anon",
@@ -3246,6 +3954,24 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "amendes_tresor",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "amendes_tresor",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "amendes_tresor",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "audience_messages",
@@ -3552,6 +4278,54 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "police_action_receipts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "police_action_receipts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "police_combat_rounds",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "police_combat_rounds",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "police_detection_attempts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "police_detection_attempts",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "police_interceptions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "police_interceptions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "prisonniers_qhs",
@@ -3573,7 +4347,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "rumeurs_actives",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -3621,7 +4395,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "vols_en_attente",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -3750,18 +4524,25 @@
    "colonne": "ville_condamnation",
    "privileges": "SELECT",
    "tbl": "detentions"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "colonne": "traite",
+   "privileges": "UPDATE",
+   "tbl": "vols_en_attente"
   }
  ],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "355a36005e950095b38b66467bf1648c",
-  "20_fonctions-1.sql": "1e9815aef05e944b7d07e67a7f31db03",
-  "20_fonctions-2.sql": "fb046a1e2d9b2677a98451c8796f0374",
-  "30_contraintes.sql": "955e6d98714a4cc23ca1e0bea63a2bc9",
-  "35_index.sql": "ddf668c66a955d8d1d54097d50e35dec",
-  "50_triggers.sql": "a31312c6ab15296c804223bd8ae9bdb3",
-  "60_rls-policies.sql": "6a3eed79e8ded7fe554f5acdafba64cf",
-  "70_droits.sql": "8722246515ed63b141e4937302a108be",
+  "10_tables.sql": "41b138c2837d0c554809671a00a18966",
+  "20_fonctions-1.sql": "8fcf3992346e9fcd086ddcbfdb4fab7a",
+  "20_fonctions-2.sql": "1ac3a0184dfac9b40cf5be2322058cf4",
+  "20_fonctions-3.sql": "42f7d87bb6b576d227a5bcd08c7eb0cb",
+  "30_contraintes.sql": "a33324c2935548134f6ac094bd06ac3f",
+  "35_index.sql": "5728a1fd750f6693f1a792f362360ce2",
+  "50_triggers.sql": "cc24ce7d2beb15ac27ddc1e53f22ab7d",
+  "60_rls-policies.sql": "50014185e07fc72e0766bd0986de1840",
+  "70_droits.sql": "ac4e929c47ac09ad7256dddf081d492d",
   "80_commentaires.sql": "faef69cd0d3a669ecc48b14715089795"
  },
  "fonctions": [
@@ -3804,6 +4585,21 @@
    "empreinte": "3d21a30fa12b39af3e5b5318ed9727f1",
    "security_definer": true,
    "signature": "affaire_transmettre(text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "2bc94692c49778685c81d51c8925b207",
+   "security_definer": true,
+   "signature": "amende_imposer_interne(text,text,text,integer)"
+  },
+  {
+   "empreinte": "27aca2bbf1c48c4bb1afe5eee6d68d95",
+   "security_definer": true,
+   "signature": "amende_jugement_enregistrer()"
+  },
+  {
+   "empreinte": "e68455ef21a697edd77f00fd8ffd1c85",
+   "security_definer": true,
+   "signature": "amende_prelever_interne(text)"
   },
   {
    "empreinte": "6b17ab43f171bc4f493ec29555d2199e",
@@ -3876,6 +4672,136 @@
    "signature": "commissaire_enqueter(text)"
   },
   {
+   "empreinte": "85d1902e22c523b2dd65ee7a38b0b736",
+   "security_definer": true,
+   "signature": "convocation_detention_interne(text,text,integer)"
+  },
+  {
+   "empreinte": "3eccf21c44c47a813f9b713299b5726e",
+   "security_definer": false,
+   "signature": "convocation_echue_interne(jsonb)"
+  },
+  {
+   "empreinte": "8de2ed0175bbe2f14f7af636603c87e4",
+   "security_definer": true,
+   "signature": "convocation_marquer_interne(text,jsonb)"
+  },
+  {
+   "empreinte": "ecc6726e5d5a2f4e43c67941405d07a3",
+   "security_definer": true,
+   "signature": "convocation_se_justifier(integer,integer)"
+  },
+  {
+   "empreinte": "a0d9e603f638e966de13a4cafe3a72b5",
+   "security_definer": true,
+   "signature": "crime_acheter_arme_noire(text,text,boolean)"
+  },
+  {
+   "empreinte": "b58f549451d8928056de5a3381b9ec5f",
+   "security_definer": true,
+   "signature": "crime_acheter_arme_noire(uuid,text,text,boolean)"
+  },
+  {
+   "empreinte": "f08721ecfef194c85e557f196759c680",
+   "security_definer": true,
+   "signature": "crime_acheter_explosifs(integer,integer)"
+  },
+  {
+   "empreinte": "1d3c83849b5473af45ddf009d9c6a482",
+   "security_definer": true,
+   "signature": "crime_acheter_explosifs(uuid,integer,integer)"
+  },
+  {
+   "empreinte": "3ad41e641fff72cd62979384c7cc0dd5",
+   "security_definer": true,
+   "signature": "crime_contrebande(integer,integer)"
+  },
+  {
+   "empreinte": "6a1eba0eea06c5e6de2a44145309a0fc",
+   "security_definer": true,
+   "signature": "crime_corrompre(text,integer,integer)"
+  },
+  {
+   "empreinte": "6bf28ee733727c61356545964e9426da",
+   "security_definer": true,
+   "signature": "crime_corrompre_douanier(integer,integer)"
+  },
+  {
+   "empreinte": "32f0a5c63169aa984fe74fe9252e5402",
+   "security_definer": true,
+   "signature": "crime_detecter_interne(text,text,boolean,text)"
+  },
+  {
+   "empreinte": "14d256fb465d517a958c60c78d313c1d",
+   "security_definer": true,
+   "signature": "crime_dis_ajuster_interne(text,integer)"
+  },
+  {
+   "empreinte": "a37aaec5047ecca9b7837f08c8835dbc",
+   "security_definer": true,
+   "signature": "crime_empoisonner(text)"
+  },
+  {
+   "empreinte": "c35ffe70b0d6070dbe84764c69d6753c",
+   "security_definer": true,
+   "signature": "crime_etat_acteur_interne(text)"
+  },
+  {
+   "empreinte": "f9b062c547bbd61da17f82c81ad0229e",
+   "security_definer": true,
+   "signature": "crime_explosifs(text)"
+  },
+  {
+   "empreinte": "baf355d657dcf60149342af26e2690c4",
+   "security_definer": true,
+   "signature": "crime_falsifier(text,integer,integer)"
+  },
+  {
+   "empreinte": "a02d062c0034c4d3c8a5a455a69a293f",
+   "security_definer": true,
+   "signature": "crime_incendier(text)"
+  },
+  {
+   "empreinte": "cc9f0e786115ef46544080c76891287b",
+   "security_definer": true,
+   "signature": "crime_malus_isn_interne(text,text)"
+  },
+  {
+   "empreinte": "6eca5b091cb6418568aaee4bfe544ac2",
+   "security_definer": true,
+   "signature": "crime_neutraliser(text,text,integer)"
+  },
+  {
+   "empreinte": "c9082566ab11df487443d14760485b5d",
+   "security_definer": true,
+   "signature": "crime_peine_interne(text,boolean)"
+  },
+  {
+   "empreinte": "b8d1a7263eafa8e2251c7377355b3143",
+   "security_definer": true,
+   "signature": "crime_rechercher_interne(text,text,text)"
+  },
+  {
+   "empreinte": "cc3be592bbcd97aa5f846a279d0b48ae",
+   "security_definer": true,
+   "signature": "crime_trace_rumeur_interne(text,text,text)"
+  },
+  {
+   "empreinte": "9ceec1bedd2f58ce8107a8289cef94cb",
+   "security_definer": true,
+   "signature": "crime_tracer_interne(text,text,text)"
+  },
+  {
+   "empreinte": "109d1ad0fd3e55525a391ec6adb69255",
+   "security_definer": true,
+   "signature": "crime_voler(text,text,boolean,integer,integer)"
+  },
+  {
+   "empreinte": "61a36890c9eaf6f3a047036f0693cb0d",
+   "security_definer": true,
+   "signature": "crime_voler_materiaux(text,text,integer,integer,boolean)"
+  },
+  {
    "empreinte": "0662671af5e504baeade3cb7bd70bf97",
    "security_definer": true,
    "signature": "defense_avocat_de(text)"
@@ -3926,12 +4852,12 @@
    "signature": "detention_clore_motif_eteint(text)"
   },
   {
-   "empreinte": "343ab20990ee0713541578ece8115b6c",
+   "empreinte": "0eb92f03a565b7494a9d34c3849d41dd",
    "security_definer": true,
    "signature": "detention_clore_purgee()"
   },
   {
-   "empreinte": "b1ba30d418cf84bfe2533d3371349f36",
+   "empreinte": "beb44561e5bfec9108cf3fda1c743790",
    "security_definer": true,
    "signature": "detention_ouvrir_interne(text,text,integer,text,text,jsonb,text,text,jsonb)"
   },
@@ -4001,14 +4927,24 @@
    "signature": "enquete_garde_a_vue(text,text,text)"
   },
   {
+   "empreinte": "78ddaeedc134183277a043af96c41a1e",
+   "security_definer": true,
+   "signature": "enquete_ouvrir(text,text,text)"
+  },
+  {
    "empreinte": "e2b3ee6905cef1ba2e72088f27a58e80",
    "security_definer": true,
    "signature": "fait_judiciaire_declare(text)"
   },
   {
-   "empreinte": "e96c4c3eb069ad29770cc8ecc260b210",
+   "empreinte": "348c83fb6f5fbe135b20d612a5d1b26c",
    "security_definer": true,
    "signature": "fraude_electorale_sanctionner(text,text)"
+  },
+  {
+   "empreinte": "c6a3c60b7d65b4febe90c532cd574819",
+   "security_definer": true,
+   "signature": "fraude_electorale_tenter(text,text,text,text,integer)"
   },
   {
    "empreinte": "d1c6c848e3a0bbb837184613bbcde731",
@@ -4036,7 +4972,7 @@
    "signature": "greffe_signataire(text,text)"
   },
   {
-   "empreinte": "71193ca2b2d52b47f7b2b5f15a8a7df4",
+   "empreinte": "34bd6a5107eb0a4f02a13d3faa3d8c8c",
    "security_definer": true,
    "signature": "impact_deposer(text,text,text,integer,text)"
   },
@@ -4201,6 +5137,11 @@
    "signature": "justice_executer_condamnation(text,text)"
   },
   {
+   "empreinte": "b5a3971f5990b6eb68058a93e61abd8d",
+   "security_definer": true,
+   "signature": "justice_executer_condamnation_soi(text)"
+  },
+  {
    "empreinte": "83433abd500de0c01d5bc7000e1b3d21",
    "security_definer": false,
    "signature": "justice_fenetre_appel_jours()"
@@ -4296,6 +5237,26 @@
    "signature": "justice_statuts_publics()"
   },
   {
+   "empreinte": "3f67b53d923ed835c1543ee3bd0a8095",
+   "security_definer": true,
+   "signature": "minuit_amendes()"
+  },
+  {
+   "empreinte": "590e28cbda2979fc5457166ff8a0f8d7",
+   "security_definer": true,
+   "signature": "minuit_convocations()"
+  },
+  {
+   "empreinte": "4275cc97f6dbb67ecfd3a682516d9035",
+   "security_definer": true,
+   "signature": "minuit_couvre_feu_recherche(text)"
+  },
+  {
+   "empreinte": "ec4b133cf6e6f3a91a2f0b5e14b6f7e3",
+   "security_definer": true,
+   "signature": "minuit_decouverte_crimes()"
+  },
+  {
    "empreinte": "4fa5a93aff1fb10a1dd247c64504d084",
    "security_definer": true,
    "signature": "organisation_extrait_duplicata(text)"
@@ -4376,6 +5337,11 @@
    "signature": "plaintes_temoins_sur_cloture()"
   },
   {
+   "empreinte": "d6288f19525c61265c78b834b9075c80",
+   "security_definer": true,
+   "signature": "police_action_resultat_lire(text,text,integer)"
+  },
+  {
    "empreinte": "59dba7065321f51fca9e31e64b85d91e",
    "security_definer": true,
    "signature": "police_autorite_de_perimetre(text,text)"
@@ -4386,9 +5352,24 @@
    "signature": "police_caracteristiques_metier()"
   },
   {
+   "empreinte": "732cef606f706a89db9811c0daf542f5",
+   "security_definer": true,
+   "signature": "police_combat_resoudre(text,text,text,text,integer)"
+  },
+  {
    "empreinte": "a73be198ef0e99e860f6922269aa850c",
    "security_definer": false,
    "signature": "police_delai_intervention_secondes()"
+  },
+  {
+   "empreinte": "0b08bd0be584be4bf0d63373a304f05c",
+   "security_definer": true,
+   "signature": "police_detection_verifier(text,text,text)"
+  },
+  {
+   "empreinte": "38c9fa4ee7bb97c1769eeb485366a0be",
+   "security_definer": true,
+   "signature": "police_fuite_resoudre(text)"
   },
   {
    "empreinte": "f23ea592fbfbf2bc1a0d4b7cad5015c0",
@@ -4399,6 +5380,16 @@
    "empreinte": "1045e4d36763a9eea9030e321803f6fc",
    "security_definer": false,
    "signature": "police_pnj_id(text,text,text)"
+  },
+  {
+   "empreinte": "ee57e57f505edde2c589612c2e84ec25",
+   "security_definer": true,
+   "signature": "police_reddition_resoudre(text)"
+  },
+  {
+   "empreinte": "599ee5bb8261d9ffe7ac681b51f8097e",
+   "security_definer": true,
+   "signature": "police_reprise_lire(text)"
   },
   {
    "empreinte": "0821964cde4c9fc2b5d75d265211c5e9",
@@ -4421,7 +5412,7 @@
    "signature": "pv_audition_realiser(text,text,boolean)"
   },
   {
-   "empreinte": "cf977591cd94943b952f3356d6d702a1",
+   "empreinte": "5435e5c0517fdc733fd6209b2aee0292",
    "security_definer": true,
    "signature": "qhs_pouvoir(text,text)"
   },
@@ -4431,7 +5422,7 @@
    "signature": "recherche_inscrire(jsonb,text)"
   },
   {
-   "empreinte": "7bc90e8afcfb7f0f01ac9a12faacfd74",
+   "empreinte": "7ffcaa441dab3923c22ac264450b7b07",
    "security_definer": true,
    "signature": "recherche_retirer(text[],text,text)"
   },
@@ -4523,7 +5514,9 @@
   }
  ],
  "index_portes": [
+  "actes_illegaux_pkey",
   "actions_tracables_pkey",
+  "amendes_tresor_pkey",
   "audience_messages_pkey",
   "audience_paroles_pk",
   "avocats_barreau_pk",
@@ -4549,6 +5542,10 @@
   "justice_indemnites_pkey",
   "niveaux_prison_pkey",
   "plaintes_en_cours_pkey",
+  "police_action_receipts_pkey",
+  "police_combat_rounds_pkey",
+  "police_detection_attempts_pkey",
+  "police_interceptions_pkey",
   "prisonniers_qhs_pkey",
   "rumeurs_actives_pkey",
   "signalements_police_pkey",
@@ -4560,6 +5557,7 @@
   "10_tables.sql",
   "20_fonctions-1.sql",
   "20_fonctions-2.sql",
+  "20_fonctions-3.sql",
   "30_contraintes.sql",
   "35_index.sql",
   "50_triggers.sql",
@@ -4585,6 +5583,12 @@
    "empreinte_avec_roles": "2d37c5c57fb726ddbbb8cbbee0762773",
    "nom": "traces lecture",
    "tbl": "actions_tracables"
+  },
+  {
+   "empreinte": "b4bc2a0ee8cfcd435d27947eb0d8ceb8",
+   "empreinte_avec_roles": "0dd463ffa2ce38b0dd9440acfc442398",
+   "nom": "amendes_tresor_lecture_condamne",
+   "tbl": "amendes_tresor"
   },
   {
    "empreinte": "9f38733f3846bc6faddbb488e6fe7ca0",
@@ -4677,33 +5681,15 @@
    "tbl": "prisonniers_qhs"
   },
   {
-   "empreinte": "6f816f197538c4270266f341fcb118d3",
-   "empreinte_avec_roles": "3c5a95fe5f20592057cca6e63728d8a6",
-   "nom": "dementi par un membre du gouvernement",
-   "tbl": "rumeurs_actives"
-  },
-  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "631869588a92ac28670e5e510650de2c",
    "nom": "les rumeurs courent entre joueurs",
    "tbl": "rumeurs_actives"
   },
   {
-   "empreinte": "20ecaf141e5d52f256059bc5b18ccc14",
-   "empreinte_avec_roles": "0f415552e263483bdb5a7838849a2b0d",
-   "nom": "rumeur creee sur soi-meme",
-   "tbl": "rumeurs_actives"
-  },
-  {
    "empreinte": "8eb62364273b207e464675ef2531b0e7",
    "empreinte_avec_roles": "4c6b9079ca0284217c93eb6803d242ed",
    "nom": "vols consommation victime",
-   "tbl": "vols_en_attente"
-  },
-  {
-   "empreinte": "fc944d85b5bb6606d0b7db41602a1f2e",
-   "empreinte_avec_roles": "010fe51f2f58537fac0af70b34ca7824",
-   "nom": "vols depot par le voleur",
    "tbl": "vols_en_attente"
   },
   {
@@ -4717,7 +5703,17 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "actes_illegaux"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "actions_tracables"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "amendes_tresor"
   },
   {
    "active": true,
@@ -4832,6 +5828,26 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "police_action_receipts"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "police_combat_rounds"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "police_detection_attempts"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "police_interceptions"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "prisonniers_qhs"
   },
   {
@@ -4880,15 +5896,27 @@
  "sequences_autonomes": [],
  "tables": [
   {
+   "colonnes": 7,
+   "empreinte_catalogue": "1ba81e571f6169477cb4a3730cb16bfd",
+   "empreinte_texte": "11d374854ea4669f5e778c8c7f71483a",
+   "nom": "actes_illegaux"
+  },
+  {
    "colonnes": 10,
    "empreinte_catalogue": "0e8f08f4bed76cc2942577db82ecd7fa",
    "empreinte_texte": "cf447b3b26bf88d48707eedb61d0b084",
    "nom": "actions_tracables"
   },
   {
+   "colonnes": 14,
+   "empreinte_catalogue": "2c418c0615662cbd5425a2d5cd529446",
+   "empreinte_texte": "814823d3e83256e3f09c3497f142d42c",
+   "nom": "amendes_tresor"
+  },
+  {
    "colonnes": 8,
    "empreinte_catalogue": "7813e0aa1512b595f404cf3349af804b",
-   "empreinte_texte": "a74ba4abfe9062e1d6323b57666a2540",
+   "empreinte_texte": "3566e3bf8c51eb73e82d4a8d227ca0ce",
    "nom": "audience_messages"
   },
   {
@@ -4906,7 +5934,7 @@
   {
    "colonnes": 8,
    "empreinte_catalogue": "177fb2b9739365181accaa52d805156a",
-   "empreinte_texte": "98df61ee04e58d33486e43dd378b57eb",
+   "empreinte_texte": "35abdb71d16f3f657df0bd3525de3704",
    "nom": "defenses_demandes"
   },
   {
@@ -4918,7 +5946,7 @@
   {
    "colonnes": 20,
    "empreinte_catalogue": "74ad8d1e6030262d78b7b6cf9c13f33b",
-   "empreinte_texte": "d0788d27d5b90830503a8c1cd04ffa24",
+   "empreinte_texte": "ddb29eec3b16629f8b16347e215aa9dd",
    "nom": "detentions"
   },
   {
@@ -4952,9 +5980,9 @@
    "nom": "greffes_tribunaux"
   },
   {
-   "colonnes": 8,
-   "empreinte_catalogue": "2dc8d53d5fa5425bfd33967073789fdf",
-   "empreinte_texte": "e3c1fb371af0fd280ffba1ceea48b26d",
+   "colonnes": 9,
+   "empreinte_catalogue": "69fa75d4584edbb111254cf9e9b29fbe",
+   "empreinte_texte": "3397073646363c9225e0187c48757115",
    "nom": "impacts_indices_attente"
   },
   {
@@ -5002,7 +6030,7 @@
   {
    "colonnes": 13,
    "empreinte_catalogue": "578c4bb2114383bb32f0366a26b6461f",
-   "empreinte_texte": "53b69f49987a74383aeb7ab618d8d428",
+   "empreinte_texte": "c4a0af2fcab420e17b7fb59b2be94c09",
    "nom": "justice_indemnites"
   },
   {
@@ -5016,6 +6044,30 @@
    "empreinte_catalogue": "cec2a81437df38f1df50f18288335dd7",
    "empreinte_texte": "b5eb668a99685928bf92e17105193114",
    "nom": "plaintes_en_cours"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "186f6afbf3ae9d9803dac2d34de323e0",
+   "empreinte_texte": "14fe8e02695c336f1e8c88b761095504",
+   "nom": "police_action_receipts"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "ce49928e4f7d809034adf1e11c7ea1ba",
+   "empreinte_texte": "0c9a5944b5fdc0b628b79ea4bbab5caf",
+   "nom": "police_combat_rounds"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "37883568dd5656fe7329ff8688b6d4c9",
+   "empreinte_texte": "a0c0174099b719f51824d0fb3ce16cf5",
+   "nom": "police_detection_attempts"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "aa555e7a12788ed7f9046f758ef73be2",
+   "empreinte_texte": "4b9dace0807e183d2ef381a135ce73af",
+   "nom": "police_interceptions"
   },
   {
    "colonnes": 4,
@@ -5038,7 +6090,7 @@
   {
    "colonnes": 13,
    "empreinte_catalogue": "f8bfb531abe44b883d9ff79f26237044",
-   "empreinte_texte": "03d37ef0fdff0ebd2a4148df35fe571f",
+   "empreinte_texte": "84ef5c176ae41cdc037b66b1fc05b53b",
    "nom": "temoins_citations"
   },
   {
@@ -5072,6 +6124,12 @@
    "fonction": "dossiers_actes_publier_au_journal()",
    "nom": "trg_dossiers_actes_chronique",
    "tbl": "dossiers_judiciaires_actes"
+  },
+  {
+   "empreinte": "68db90fdb601b9e830ce98053c91a960",
+   "fonction": "amende_jugement_enregistrer()",
+   "nom": "amende_jugement_enregistrer",
+   "tbl": "jugements"
   },
   {
    "empreinte": "3668193290c443c692f7d8d7a6bbb223",

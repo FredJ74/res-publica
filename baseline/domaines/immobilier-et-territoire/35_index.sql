@@ -10,27 +10,39 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 18 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 29 index sont portes par une contrainte et NE SONT PAS recrees ici.
+--   acquisitions_transactions_internes_pkey  (contrainte acquisitions_transactions_internes_pkey)
 --   batiments_etat_pkey  (contrainte batiments_etat_pkey)
 --   batiments_fermes_pkey  (contrainte batiments_fermes_pkey)
+--   bne_annonces_pkey  (contrainte bne_annonces_pkey)
 --   dossiers_urbanisme_pkey  (contrainte dossiers_urbanisme_pkey)
 --   locations_actives_pkey  (contrainte locations_actives_pkey)
 --   locations_archives_pkey  (contrainte locations_archives_pkey)
+--   locations_recus_pkey  (contrainte locations_recus_pkey)
+--   locaux_loyers_referentiel_pkey  (contrainte locaux_loyers_referentiel_pkey)
 --   logements_attributions_historique_pkey  (contrainte logements_attributions_historique_pkey)
 --   logements_demandes_pkey  (contrainte logements_demandes_pkey)
+--   logements_loyers_historique_pkey  (contrainte logements_loyers_historique_pkey)
+--   logements_sociaux_historiques_pkey  (contrainte logements_sociaux_historiques_pkey)
+--   logements_sociaux_internes_pkey  (contrainte logements_sociaux_internes_pkey)
 --   permis_depots_recus_archive_key  (contrainte permis_depots_recus_archive_key)
 --   permis_depots_recus_pkey  (contrainte permis_depots_recus_pkey)
 --   permis_transactions_internes_pkey  (contrainte permis_transactions_internes_pkey)
 --   reservations_salle_reception_pkey  (contrainte reservations_salle_reception_pkey)
+--   terrain_acquisitions_recus_pkey  (contrainte terrain_acquisitions_recus_pkey)
+--   terrain_actions_recus_pkey  (contrainte terrain_actions_recus_pkey)
+--   terrain_actions_regles_pkey  (contrainte terrain_actions_regles_pkey)
 --   terrain_negociations_recus_pkey  (contrainte terrain_negociations_recus_pkey)
 --   terrain_negociations_refus_pkey  (contrainte terrain_negociations_refus_pkey)
 --   terrain_visites_actives_pkey  (contrainte terrain_visites_actives_pkey)
 --   terrains_etat_pkey  (contrainte terrains_etat_pkey)
 --   terrains_historique_ventes_pkey  (contrainte terrains_historique_ventes_pkey)
+--   terrains_referentiel_pkey  (contrainte terrains_referentiel_pkey)
 --   villes_empreinte_pkey  (contrainte villes_empreinte_pkey)
 --   villes_pkey  (contrainte villes_pkey)
 
 -- Index autonomes :
+CREATE INDEX bne_annonces_actives ON public.bne_annonces USING btree (pays, expire_le) WHERE (statut = 'active'::text);
 CREATE INDEX dossiers_urbanisme_commune_idx ON public.dossiers_urbanisme USING btree (country, city, created_at);
 CREATE INDEX dossiers_urbanisme_numero_idx ON public.dossiers_urbanisme USING btree (numero_dossier);
 CREATE INDEX dossiers_urbanisme_terrain_idx ON public.dossiers_urbanisme USING btree (country, building_id);

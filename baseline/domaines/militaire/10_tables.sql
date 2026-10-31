@@ -10,6 +10,20 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."batailles_engagements_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."batailles_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."batailles_rounds_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."contacts_militaires_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."decorations_militaires_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."retraits_materiel_militaire_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."services_militaires_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
 CREATE TABLE public.armureries_dotations (
   pays text NOT NULL,
   caisse numeric DEFAULT 0 NOT NULL,
@@ -18,7 +32,7 @@ CREATE TABLE public.armureries_dotations (
 );
 
 CREATE TABLE public.batailles (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('batailles_id_seq'::regclass) NOT NULL,
   pays text NOT NULL,
   ville text,
   batiment text,
@@ -48,7 +62,7 @@ CREATE TABLE public.batailles (
 );
 
 CREATE TABLE public.batailles_engagements (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('batailles_engagements_id_seq'::regclass) NOT NULL,
   bataille_id bigint NOT NULL,
   camp text NOT NULL,
   personnage text,
@@ -78,7 +92,7 @@ CREATE TABLE public.batailles_groupes (
 );
 
 CREATE TABLE public.batailles_rounds (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('batailles_rounds_id_seq'::regclass) NOT NULL,
   bataille_id bigint NOT NULL,
   numero integer NOT NULL,
   camp text NOT NULL,
@@ -167,7 +181,7 @@ CREATE TABLE public.compagnies_militaires (
 );
 
 CREATE TABLE public.contacts_militaires (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('contacts_militaires_id_seq'::regclass) NOT NULL,
   pays_a text NOT NULL,
   pays_b text NOT NULL,
   ville text,
@@ -181,7 +195,7 @@ CREATE TABLE public.contacts_militaires (
 );
 
 CREATE TABLE public.decorations_militaires (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('decorations_militaires_id_seq'::regclass) NOT NULL,
   decore text NOT NULL,
   pays text NOT NULL,
   niveau text NOT NULL,
@@ -302,7 +316,7 @@ CREATE TABLE public.recettes_militaires_empreinte (
 );
 
 CREATE TABLE public.retraits_materiel_militaire (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('retraits_materiel_militaire_id_seq'::regclass) NOT NULL,
   pays text NOT NULL,
   materiel text NOT NULL,
   lot text,
@@ -314,7 +328,7 @@ CREATE TABLE public.retraits_materiel_militaire (
 );
 
 CREATE TABLE public.services_militaires (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('services_militaires_id_seq'::regclass) NOT NULL,
   personnage text NOT NULL,
   pays text NOT NULL,
   grade text NOT NULL,
@@ -336,3 +350,17 @@ CREATE TABLE public.soldes_militaires (
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   regle_le timestamp with time zone
 );
+
+ALTER SEQUENCE public."batailles_engagements_id_seq" OWNED BY public."batailles_engagements"."id";
+
+ALTER SEQUENCE public."batailles_id_seq" OWNED BY public."batailles"."id";
+
+ALTER SEQUENCE public."batailles_rounds_id_seq" OWNED BY public."batailles_rounds"."id";
+
+ALTER SEQUENCE public."contacts_militaires_id_seq" OWNED BY public."contacts_militaires"."id";
+
+ALTER SEQUENCE public."decorations_militaires_id_seq" OWNED BY public."decorations_militaires"."id";
+
+ALTER SEQUENCE public."retraits_materiel_militaire_id_seq" OWNED BY public."retraits_materiel_militaire"."id";
+
+ALTER SEQUENCE public."services_militaires_id_seq" OWNED BY public."services_militaires"."id";

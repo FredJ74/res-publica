@@ -10,8 +10,10 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 32 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 38 index sont portes par une contrainte et NE SONT PAS recrees ici.
+--   actes_illegaux_pkey  (contrainte actes_illegaux_pkey)
 --   actions_tracables_pkey  (contrainte actions_tracables_pkey)
+--   amendes_tresor_pkey  (contrainte amendes_tresor_pkey)
 --   audience_messages_pkey  (contrainte audience_messages_pkey)
 --   audience_paroles_pk  (contrainte audience_paroles_pk)
 --   avocats_barreau_pk  (contrainte avocats_barreau_pk)
@@ -37,6 +39,10 @@
 --   justice_indemnites_pkey  (contrainte justice_indemnites_pkey)
 --   niveaux_prison_pkey  (contrainte niveaux_prison_pkey)
 --   plaintes_en_cours_pkey  (contrainte plaintes_en_cours_pkey)
+--   police_action_receipts_pkey  (contrainte police_action_receipts_pkey)
+--   police_combat_rounds_pkey  (contrainte police_combat_rounds_pkey)
+--   police_detection_attempts_pkey  (contrainte police_detection_attempts_pkey)
+--   police_interceptions_pkey  (contrainte police_interceptions_pkey)
 --   prisonniers_qhs_pkey  (contrainte prisonniers_qhs_pkey)
 --   rumeurs_actives_pkey  (contrainte rumeurs_actives_pkey)
 --   signalements_police_pkey  (contrainte signalements_police_pkey)

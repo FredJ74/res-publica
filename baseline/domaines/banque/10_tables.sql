@@ -92,7 +92,8 @@ CREATE TABLE public.placements_bancaires (
   rendement_pct numeric,
   montant_final numeric,
   date_resolution timestamp with time zone,
-  ville text
+  ville text,
+  source_fonds text
 );
 
 CREATE TABLE public.prets (
@@ -116,7 +117,8 @@ CREATE TABLE public.prets (
   accord_avertissement_envoye boolean DEFAULT false NOT NULL,
   proposition_en_attente boolean DEFAULT false NOT NULL,
   saisie_financiere_faite boolean DEFAULT false NOT NULL,
-  fraude_affaire_id text
+  fraude_affaire_id text,
+  contrat_version integer
 );
 
 CREATE TABLE public.prets_bancaires (
@@ -133,4 +135,28 @@ CREATE TABLE public.prets_bancaires (
   statut text DEFAULT 'en_cours'::text NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
   type_banque text DEFAULT 'nationale'::text NOT NULL
+);
+
+CREATE TABLE public.prets_ecritures_internes (
+  transaction_id bigint NOT NULL
+);
+
+CREATE TABLE public.prets_nationaux_demandes (
+  acteur text NOT NULL,
+  requete uuid NOT NULL,
+  parametres jsonb NOT NULL,
+  resultat jsonb NOT NULL
+);
+
+CREATE TABLE public.virements_automatiques (
+  id uuid DEFAULT gen_random_uuid() NOT NULL,
+  emetteur text NOT NULL,
+  beneficiaire text NOT NULL,
+  montant integer NOT NULL,
+  frequence text NOT NULL,
+  actif boolean DEFAULT true NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL,
+  prochain_le date NOT NULL,
+  dernier_le date,
+  arrete_le timestamp with time zone
 );

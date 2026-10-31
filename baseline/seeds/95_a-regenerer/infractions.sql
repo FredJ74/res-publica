@@ -1,38 +1,43 @@
--- SEED A REGENERER -- infractions
--- ============================================================================
--- Table   : public.infractions
--- Domaine : justice
--- Source canonique : plateau-core.js (PEINES, PEINES_ACTES, ACTES_ILLEGAUX)
--- Generateur       : outils/generateurs/generer_infractions.py (EXISTE ET MARCHE)
---
--- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
--- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
--- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
---
--- CE QUE LA TABLE PORTE
--- Le CODE PENAL du jeu : 39 infractions canoniques, chacune avec sa peine de
--- reference en jours et son amende. Aucune fonction ne l'ecrit. C'est elle
--- que `infraction_peine_bornes` lit pour borner la peine du juge a la
--- reference +/- 50 %, et c'est donc la table sans laquelle la porte du
--- jugement refuse tout.
---
--- POURQUOI PAS UNE COPIE DE LA BASE
--- La source de verite est dans plateau-core.js, et le generateur n'en
--- REIMPLEMENTE pas la regle de resolution : il EXTRAIT la fonction
--- `getPeineParActe` du fichier de production et l'appelle. Une copie depuis
--- la base figerait toute derive entre les deux au lieu de la detecter --
--- c'est exactement ce qui est arrive au miroir des couts d'ordre, qui porte
--- 24 lignes mortes. Le generateur REFUSE par ailleurs d'emettre si une
--- infraction n'a pas de duree de reference utilisable ou porte une categorie
--- inconnue.
---
--- CE QU'IL RESTE A FAIRE
--- Le generateur existe, extrait la vraie fonction et rend les VALUES (--sql)
--- ainsi que l'empreinte (--empreinte). Reste a le faire ecrire directement
--- ici. ATTENTION : tant que ce fichier est vide, un monde reconstruit
--- naitrait SANS CODE PENAL, et la porte du jugement refuserait toute
--- qualification -- fail closed, donc sans danger, mais aucune condamnation
--- ne serait possible.
--- ============================================================================
-
--- Rien a appliquer tant que le generateur n'a pas ecrit ici.
+-- Généré depuis data.js par outils/generateurs/generer_infractions.py --sql.
+-- Ne pas retoucher ; régénérer avec outils/baseline/regenerer-seeds-miroirs.py.
+INSERT INTO public.infractions (id,libelle,categorie,jours_reference,amende_reference,detect_rate,bareme_propre,detectable) VALUES
+('achat_arme_illegal', 'Achat d''arme non enregistree', 'delit', 1, 500, NULL, true, false),
+  ('acheter_arme_illegale', 'Delit mineur', 'delit_mineur', 2, 500, 20, false, true),
+  ('acheter_bombe_illegale', 'Achat d''explosifs non enregistres', 'crime', 2, 2000, 55, true, true),
+  ('arreter', 'Delit grave', 'delit_grave', 4, 1500, 40, false, true),
+  ('assassinat', 'Assassinat', 'crime', 2, 1500, NULL, true, false),
+  ('assassiner_arme', 'Crime', 'crime', 8, 5000, 40, false, true),
+  ('assassiner_feu', 'Crime', 'crime', 8, 5000, 60, false, true),
+  ('assassiner_mains', 'Crime', 'crime', 8, 5000, 30, false, true),
+  ('blanchiment', 'Delit grave', 'delit_grave', 4, 1500, 35, false, true),
+  ('contrebande_port', 'Delit mineur', 'delit_mineur', 2, 500, 20, false, true),
+  ('corrompre_douanier', 'Delit mineur', 'delit_mineur', 2, 500, 35, false, true),
+  ('corrompre_fonct', 'Delit mineur', 'delit_mineur', 2, 500, 30, false, true),
+  ('corrompre_gardien', 'Delit mineur', 'delit_mineur', 2, 500, 35, false, true),
+  ('corrompre_journaliste', 'Delit mineur', 'delit_mineur', 2, 500, 25, false, true),
+  ('corrompre_juge', 'Delit grave', 'delit_grave', 4, 1500, 40, false, true),
+  ('corrompre_police', 'Delit mineur', 'delit_mineur', 2, 500, 35, false, true),
+  ('corruption_fonctionnaire', 'Corruption de fonctionnaire', 'delit', 1, 1000, NULL, true, false),
+  ('diffamation', 'Diffamation', 'delit', 1, 500, NULL, true, false),
+  ('empoisonnement', 'Empoisonnement', 'crime', 2, 2000, 25, true, true),
+  ('fabriquer_bombe', 'Crime', 'crime', 8, 5000, 60, false, true),
+  ('fabriquer_scandale', 'Delit grave', 'delit_grave', 4, 1500, 45, false, true),
+  ('falsifier_document', 'Delit grave', 'delit_grave', 4, 1500, 40, false, true),
+  ('fausse_rumeur', 'Delit mineur', 'delit_mineur', 2, 500, 35, false, true),
+  ('fuite_info', 'Delit grave', 'delit_grave', 4, 1500, 40, false, true),
+  ('hooliganisme', 'Trouble a l''ordre public (hooliganisme)', 'delit', 1, 500, NULL, true, false),
+  ('imprimer_tracts_calomnieux', 'Delit mineur', 'delit_mineur', 2, 500, 30, false, true),
+  ('incendier', 'Incendie volontaire', 'crime', 2, 2000, 70, true, true),
+  ('justification_rejetee', 'Justification rejetée (marchandise interdite)', NULL, 1, 0, NULL, true, false),
+  ('non_presentation_convocation', 'Non-présentation à convocation', 'delit', 2, 0, NULL, true, false),
+  ('possession_illegale_douane', 'Possession d''objets prohibes au controle douanier', 'delit', 1, 500, NULL, true, false),
+  ('se_rebeller', 'Delit mineur', 'delit_mineur', 2, 500, 60, false, true),
+  ('societe_ecran', 'Delit mineur', 'delit_mineur', 2, 500, 25, false, true),
+  ('tentative_assassinat', 'Tentative d''assassinat', 'crime', 2, 1500, NULL, true, false),
+  ('tentative_empoisonnement', 'Tentative d''empoisonnement', 'crime', 2, 2000, NULL, true, false),
+  ('tentative_evasion', 'Crime', 'crime', 8, 5000, 90, false, true),
+  ('utiliser_explosifs', 'Usage d''explosifs', 'crime', 2, 2000, 65, true, true),
+  ('violation_couvre_feu', 'Violation du couvre-feu', 'delit', 1, 200, NULL, true, false),
+  ('vol', 'Vol', 'delit_mineur', 1, 500, 30, true, true),
+  ('vol_materiel_chantier', 'Delit mineur', 'delit_mineur', 2, 500, 30, false, true)
+ON CONFLICT DO NOTHING;

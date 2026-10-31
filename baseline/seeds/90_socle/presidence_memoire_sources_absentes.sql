@@ -27,6 +27,35 @@
 -- migration.
 -- ============================================================================
 
+-- SEED -- presidence_memoire_sources_absentes
+-- ============================================================================
+-- Table      : public.presidence_memoire_sources_absentes
+-- Domaine    : politique et elections
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 12
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- CE QUI N'EST PAS ENCORE RACCORDABLE A LA MEMOIRE, et pourquoi -- greve et
+-- manifestation (tables ecrites depuis le navigateur), sous-actions du
+-- Bureau presidentiel (declarees a 0 PA, donc sans porte serveur), ouverture
+-- du mandat par le depouillement (postes_attribues n'est pas encore a jour
+-- quand il s'execute). Ce n'est pas de la documentation : le banc la lit
+-- pour verifier qu'aucune de ces sources n'a ete branchee en cachette. DOUZE
+-- LIGNES depuis le 11 octobre 2026 : la chronique nationale et l'election
+-- presidentielle y sont entrees avec leur obstacle reel, apres avoir ete
+-- branchees puis retirees le meme jour.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- SEED INDISPENSABLE : un monde neuf doit savoir ce qui reste a faire. Une
+-- source quitte cette table le jour ou elle obtient une porte serveur, par
+-- migration.
+-- ============================================================================
+
 INSERT INTO public.presidence_memoire_sources_absentes (sujet, genre, obstacle) VALUES ('chronique nationale', 'contexte', 'ECARTEE LE 11 OCTOBRE 2026 APRES AVOIR ETE BRANCHEE LE MATIN MEME. La table porte une policy INSERT ouverte a authenticated (WITH CHECK acteur_identifie()) et elle est ecrite depuis le navigateur par sbEnregistrerEvenementPublic : un joueur pouvait donc fabriquer un fait national et le faire entrer dans la memoire presidentielle. La fermer au client casserait une dizaine de hooks legitimes -- organisations, elections, lobbying, immobilier, Tribune -- donc c est la memoire qui cesse de la croire. A raccorder le jour ou les ecritures publiques de la chronique passeront par des portes serveur.');
 INSERT INTO public.presidence_memoire_sources_absentes (sujet, genre, obstacle) VALUES ('decret presidentiel', 'reaction', 'Sous-action de adresse_a_la_nation (1 PA), ambigue avec le deuil national.');
 INSERT INTO public.presidence_memoire_sources_absentes (sujet, genre, obstacle) VALUES ('deuil national', 'reaction', 'Sous-action de adresse_a_la_nation (1 PA), ambigue avec le decret presidentiel. On ne nomme pas un acte qu on ne peut pas distinguer.');

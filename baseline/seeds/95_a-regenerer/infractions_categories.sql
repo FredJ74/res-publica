@@ -1,28 +1,9 @@
--- SEED A REGENERER -- infractions_categories
--- ============================================================================
--- Table   : public.infractions_categories
--- Domaine : justice
--- Source canonique : plateau-core.js (constante PEINES)
--- Generateur       : outils/generateurs/generer_infractions.py --sql-categories (EXISTE)
---
--- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
--- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
--- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
---
--- CE QUE LA TABLE PORTE
--- Les quatre categories generiques -- delit_mineur 2 j, delit_grave 4 j,
--- crime 8 j, crime_etat 30 j. Elles portent la peine HERITEE par les 23
--- infractions qui n'ont pas de bareme propre, et `infractions.categorie` les
--- reference.
---
--- POURQUOI PAS UNE COPIE DE LA BASE
--- Meme raison que `infractions`, dont elle est la table de reference : la
--- source vit dans le depot. A noter qu'une categorie n'est jamais une charge
--- -- infraction_canonique() refuse un nom de categorie comme qualification.
---
--- CE QU'IL RESTE A FAIRE
--- Meme generateur, option --sql-categories. Elle doit etre semee AVANT
--- `infractions`, qui la reference par cle etrangere.
--- ============================================================================
-
--- Rien a appliquer tant que le generateur n'a pas ecrit ici.
+-- Généré depuis data.js par outils/generateurs/generer_infractions.py --sql-categories.
+-- Ne pas retoucher ; régénérer avec outils/baseline/regenerer-seeds-miroirs.py.
+INSERT INTO public.infractions_categories (id,libelle,jours_reference,amende_reference) VALUES
+('crime', 'Crime', 8, 5000),
+  ('crime_etat', 'Crime d''Etat', 30, 0),
+  ('delit', 'Delit', 2, 500),
+  ('delit_grave', 'Delit grave', 4, 1500),
+  ('delit_mineur', 'Delit mineur', 2, 500)
+ON CONFLICT DO NOTHING;

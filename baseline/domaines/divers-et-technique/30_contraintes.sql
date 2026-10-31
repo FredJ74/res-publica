@@ -29,6 +29,8 @@ ALTER TABLE public.habilitations_postes ADD CONSTRAINT habilitations_postes_pkey
 ALTER TABLE public.propositions_diplomatiques ADD CONSTRAINT propositions_diplomatiques_pkey PRIMARY KEY (id);
 ALTER TABLE public.purges_residus_bancs ADD CONSTRAINT purges_residus_bancs_pkey PRIMARY KEY (id);
 ALTER TABLE public.registre_ventes_armes ADD CONSTRAINT registre_ventes_armes_pkey PRIMARY KEY (id);
+ALTER TABLE public.visuels_moderation ADD CONSTRAINT visuels_moderation_pkey PRIMARY KEY (id);
+ALTER TABLE public.visuels_versions ADD CONSTRAINT visuels_versions_pkey PRIMARY KEY (id);
 
 -- CONTRAINTES DE VALIDATION
 ALTER TABLE public.actes_nocturnes ADD CONSTRAINT actes_nocturnes_pays_non_vide CHECK ((btrim(pays) <> ''::text));
@@ -39,6 +41,7 @@ ALTER TABLE public.administrateurs_invitations ADD CONSTRAINT administrateurs_in
 ALTER TABLE public.administrateurs_invitations ADD CONSTRAINT administrateurs_invitations_minuscules CHECK ((email = lower(email)));
 ALTER TABLE public.carrieres_acquises ADD CONSTRAINT carrieres_acquises_source_check CHECK ((source = 'universite'::text));
 ALTER TABLE public.cron_journal ADD CONSTRAINT cron_journal_statut_check CHECK ((statut = ANY (ARRAY['demarree'::text, 'ok'::text, 'echec'::text, 'ignoree'::text])));
+ALTER TABLE public.visuels_versions ADD CONSTRAINT visuels_versions_type_visuel_check CHECK ((type_visuel = ANY (ARRAY['publicite'::text, 'commerce'::text])));
 
 -- CLES ETRANGERES
 ALTER TABLE public.actes_nocturnes ADD CONSTRAINT actes_nocturnes_mecanisme_fkey FOREIGN KEY (mecanisme) REFERENCES actes_nocturnes_mecanismes(mecanisme);
@@ -46,3 +49,5 @@ ALTER TABLE public.carrieres_acquises ADD CONSTRAINT carrieres_acquises_carriere
 ALTER TABLE public.habilitations_carrieres ADD CONSTRAINT habilitations_carrieres_carriere_fkey FOREIGN KEY (carriere) REFERENCES carrieres(id);
 ALTER TABLE public.habilitations_carrieres ADD CONSTRAINT habilitations_carrieres_habilitation_fkey FOREIGN KEY (habilitation) REFERENCES habilitations(id);
 ALTER TABLE public.habilitations_postes ADD CONSTRAINT habilitations_postes_habilitation_fkey FOREIGN KEY (habilitation) REFERENCES habilitations(id);
+ALTER TABLE public.visuels_moderation ADD CONSTRAINT visuels_moderation_administrateur_user_id_fkey FOREIGN KEY (administrateur_user_id) REFERENCES auth.users(id);
+ALTER TABLE public.visuels_versions ADD CONSTRAINT visuels_versions_auteur_user_id_fkey FOREIGN KEY (auteur_user_id) REFERENCES auth.users(id);

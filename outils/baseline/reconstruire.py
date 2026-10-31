@@ -18,12 +18,10 @@ que l'on peut passer SANS creer de base :
      la table avant sa policy. Un ordre qui arrive trop tot est signale avec son
      rang exact.
 
-CE QUE CET OUTIL NE FAIT PAS, ET C'EST A SAVOIR : il n'execute rien. Aucun
-moteur PostgreSQL n'est joignable depuis cette machine -- ni local, ni conteneur,
-ni second projet -- et la base de production est interdite en ecriture. Une
-reconstruction REELLE reste donc a faire le jour ou un projet jetable sera
-disponible. Les deux epreuves ci-dessus couvrent la syntaxe et l'ordre des
-dependances, pas le comportement du moteur a l'execution.
+CE QUE CET OUTIL NE FAIT PAS : il n'exécute rien. L'épreuve réelle, distincte,
+est outils/baseline/epreuve-postgresql.py sur PostgreSQL 17.6 local jetable.
+Le présent contrôle couvre syntaxe et dépendances, jamais l'exécution ni
+une connexion à la production.
 
 Usage :
     python3 outils/baseline/reconstruire.py            # assemble, valide, simule
@@ -57,7 +55,7 @@ SEEDS = os.path.join(BASE, "seeds")
 PHASES = ["10_tables", "20_fonctions", "30_contraintes", "35_index", "40_vues",
           "50_triggers", "60_rls-policies", "70_droits", "80_commentaires",
           "85_default-privileges"]
-LOTS_SEEDS = ["90_socle", "91_empire", "92_mixte"]
+LOTS_SEEDS = ["90_socle", "91_empire", "92_mixte", "95_a-regenerer"]
 
 # Objets que le baseline ne cree pas et suppose presents : ils sont fournis par
 # Supabase. Declares, jamais absorbes.
@@ -81,19 +79,71 @@ def assembler():
         d = os.path.basename(os.path.dirname(chemin))
         mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
 
-    morceaux = []
+    morceaux, fk_differees = [], []
     for phase in PHASES:
         for d in sorted(mans):
             man, rep = mans[d]
             for nom in man["ordre"]:
                 if nom.startswith(phase):
                     chemin = os.path.join(rep, nom)
-                    morceaux.append(("%s/%s" % (d, nom), open(chemin, encoding="utf-8").read()))
+                    texte = open(chemin, encoding="utf-8").read()
+                    origine = "%s/%s" % (d, nom)
+                    if phase == '30_contraintes':
+                        # Une FK peut viser un index UNIQUE autonome (phase 35),
+                        # pas seulement une contrainte UNIQUE/PK de phase 30.
+                        for stmt, sql in decouper(texte):
+                            fk = type(stmt).__name__ == 'AlterTableStmt' and any(getattr(getattr(c, 'def_', None), 'pktable', None) is not None for c in stmt.cmds)
+                            (fk_differees if fk else morceaux).append((origine, sql))
+                    else:
+                        morceaux.append((origine, texte))
+        if phase == '35_index':
+            morceaux.extend(fk_differees)
+    graines = []
     for lot in LOTS_SEEDS:
         for chemin in sorted(glob.glob(os.path.join(SEEDS, lot, "*.sql"))):
-            morceaux.append(("seeds/%s/%s" % (lot, os.path.basename(chemin)),
-                             open(chemin, encoding="utf-8").read()))
-    return morceaux, mans
+            graines.append(("seeds/%s/%s" % (lot, os.path.basename(chemin)),
+                            open(chemin, encoding="utf-8").read()))
+    return morceaux + ordonner_seeds(morceaux, graines), mans
+
+
+def ordonner_seeds(schema, graines):
+    """Les catégories rangent le contenu, les FK déterminent son ordre réel.
+
+    Exemple constaté #219 : objets_achetables (A) référence objets_modeles (D).
+    Le tri des répertoires placerait l'achat avant son modèle. Aucun contenu,
+    contrainte ou ordre interne d'un fichier n'est changé ; un cycle inter-
+    fichiers est refusé, jamais résolu en désactivant les contraintes.
+    """
+    parents, fournisseurs = {}, {}
+    for origine, texte in schema:
+        if not os.path.basename(origine).startswith('30_contraintes'):
+            continue
+        for raw in parse_sql(texte):
+            stmt = raw.stmt
+            if type(stmt).__name__ != 'AlterTableStmt':
+                continue
+            for cmd in stmt.cmds:
+                fk = getattr(getattr(cmd, 'def_', None), 'pktable', None)
+                if fk is not None and fk.schemaname in (None, 'public'):
+                    parents.setdefault(stmt.relation.relname, set()).add(fk.relname)
+    for i, (_, texte) in enumerate(graines):
+        for raw in parse_sql(texte):
+            stmt = raw.stmt
+            if type(stmt).__name__ == 'InsertStmt' and stmt.relation.schemaname in (None, 'public'):
+                fournisseurs.setdefault(stmt.relation.relname, set()).add(i)
+    deps = {i:set() for i in range(len(graines))}
+    for table, fichiers in fournisseurs.items():
+        for i in fichiers:
+            for parent in parents.get(table, ()):
+                if parent != table:
+                    deps[i].update(j for j in fournisseurs.get(parent, ()) if j != i)
+    faits, ordre = set(), []
+    while len(ordre) < len(graines):
+        disponible = next((i for i in range(len(graines)) if i not in faits and deps[i] <= faits), None)
+        if disponible is None:
+            raise ValueError('Cycle de dépendances des seeds : ' + ', '.join(graines[i][0] for i in deps if i not in faits))
+        faits.add(disponible);ordre.append(graines[disponible])
+    return ordre
 
 
 def decouper(sql):
@@ -296,6 +346,14 @@ def simuler(morceaux):
                         if tn.endswith("serial") or tn.endswith("serial4") \
                            or tn.endswith("serial8"):
                             cat.sequences.add("%s_%s_seq" % (t, el.colname))
+                # GENERATED AS IDENTITY crée aussi sa séquence. Son nom
+                # explicite vient des options rendues du catalogue.
+                for el in (stmt.tableElts or ()):
+                    for k in getattr(el,'constraints',()) or ():
+                        if getattr(getattr(k,'contype',None),'name','')=='CONSTR_IDENTITY':
+                            for opt in k.options or ():
+                                if opt.defname=='sequence_name':
+                                    cat.sequences.add(opt.arg[-1].sval)
                 for (sch, fn) in noms_appeles(stmt):
                     if sch in SCHEMAS_EXTERNES:
                         externes_vues.setdefault("%s.%s" % (sch, fn), set()).add(origine)
@@ -321,7 +379,7 @@ def simuler(morceaux):
                     # ADD COLUMN / DROP COLUMN : le baseline n'en contient pas aujourd'hui,
                     # mais une migration future assemblee ici en contiendrait, et le
                     # catalogue simule doit suivre.
-                    sous = str(getattr(cmd, "subtype", ""))
+                    sous = getattr(getattr(cmd, "subtype", None), "name", "")
                     d = getattr(cmd, "def_", None)
                     if sous.endswith("AT_AddColumn") and d is not None \
                        and type(d).__name__ == "ColumnDef" and d.colname:
@@ -473,6 +531,12 @@ def controles_du_monde(cat):
     """Verifie que le monde obtenu est celui qu'on attend -- pas seulement que
     le script passe. Chaque attente vient d'un arbitrage de game design ecrit."""
     r = []
+    # Les attentes structurelles viennent de la capture indépendante, pas du
+    # nombre de CREATE que l'assembleur vient de lire. Les attentes métier
+    # ci-dessous (monde neuf sans joueurs, caisses initiales...) restent fixes.
+    observation=json.load(open(os.path.join(BASE,'CONTROLE-GLOBAL.json'),encoding='utf-8'))
+    attendu=observation['attendu_dans_le_baseline']
+    details=json.load(open(os.path.join(BASE,'ATTENTES-RECONSTRUCTION.json'),encoding='utf-8'))
 
     def att(libelle, obtenu, attendu, note=""):
         r.append((libelle, obtenu, attendu, obtenu == attendu, note))
@@ -630,8 +694,8 @@ def controles_du_monde(cat):
     # peut pas produire l'identifiant. `greffes_tribunaux` nomme le greffier de chacun des
     # trois tribunaux, et c'est un PNJ PERMANENT : la contrainte
     # `postes_attribues_jamais_greffier` interdit en base d'en faire un poste de PJ.
-    att("tables creees", len(cat.tables), 314)
-    att("vues creees", len(cat.vues), 2)
+    att("tables creees", len(cat.tables), attendu['tables'])
+    att("vues creees", len(cat.vues), attendu['vues'])
     # 657 : +4 au chantier 4E (villes_empreinte_reelle, ville_est_reelle, caisse_territoire,
     # caisse_refus_autorite) et +5 au chantier 4F (budget_repartir, budget_cascade_quotidienne,
     # budget_repartition_fixer, budget_repartition_lire, budget_coherence).
@@ -831,9 +895,9 @@ def controles_du_monde(cat):
     # dialogue l'etape de la visite d'accueil du joueur connecte -- le sixieme canal de contexte
     # de /api/chat, et le seul qui dise OU EN EST CE JOUEUR-CI. Sans elle, Jeremy guidait une
     # visite dont il ne connaissait pas l'etape ; avec elle, il la redit sans l'inventer.
-    att("signatures de fonction creees", cat.n_fonctions, 906)
-    att("noms de fonction distincts", len(cat.fonctions), 902,
-        "4 fonctions sont surchargees : moins de noms que de signatures")
+    att("signatures de fonction creees", cat.n_fonctions, attendu['fonctions'])
+    att("noms de fonction distincts", len(cat.fonctions), details['noms_fonctions'],
+        "Les noms distincts sont comptés dans les exports canoniques.")
     # 433 : +2 cles primaires et +1 CHECK (villes, villes_empreinte et son CHECK (seul)) au
     # chantier 4E, +2 cles primaires et +1 CHECK au 4F, puis +2 nets quand la part est devenue
     # une FRACTION -- trois CHECK (couple entier, denominateur positif, numerateur borne par le
@@ -953,7 +1017,7 @@ def controles_du_monde(cat):
     # faux ; `postes_attribues_jamais_greffier` interdit au greffe d'etre un poste de PJ ; et
     # `locations_actives_salle_reunion_non_louable` interdit de relouer la salle de reunion de
     # l'universite -- la regle n'est pas « le bouton est parti », elle est en base.
-    att("contraintes posees", len(cat.contraintes), 613)
+    att("contraintes posees", len(cat.contraintes), attendu['contraintes'])
     # 149 le 10 octobre 2026 : +2 index UNIQUE, ceux du registre 601 --
     # compromis_historique_un_resultat_par_bien_et_par_jour et
     # chronique_nationale_une_proclamation_par_scrutin. Ce sont les deux contraintes que le §5 de
@@ -1021,7 +1085,7 @@ def controles_du_monde(cat):
     # 187 le 13 octobre 2026 : +1, `documents_officiels_porteur` -- l'inventaire d'un
     # personnage se relit par son porteur, et cette lecture a lieu a chaque ouverture de fiche
     # d'objet.
-    att("index autonomes crees", len(cat.index), 187)
+    att("index autonomes crees", len(cat.index), attendu['index_autonomes'])
     # 41 le 8 octobre 2026 au soir : +1 au chantier 4G -- trg_personnage_pays_declare, pose
     # BEFORE INSERT OR UPDATE OF country sur la TABLE personnages_donnees et non sur la vue,
     # pour couvrir aussi service_role et les fonctions SECURITY DEFINER.
@@ -1072,7 +1136,7 @@ def controles_du_monde(cat):
     # judiciaires au Journal : il surveille les ACTES, et non chacune des huit portes qui les
     # posent, donc une neuvieme porte publiera sans qu'on y pense -- et un acte non declare au
     # registre `justice_faits_publics` ne publiera rien, ce qui est le defaut sur.
-    att("declencheurs crees", len(cat.triggers), 51)
+    att("declencheurs crees", len(cat.triggers), attendu['triggers'])
     # 284 : +1 pour la lecture publique de villes_empreinte. repartitions_budgetaires,
     # repartitions_versements et villes ont la RLS active SANS AUCUNE POLICY -- fail closed :
     # elles ne sont lisibles que par le serveur et par les RPC attestees.
@@ -1112,7 +1176,7 @@ def controles_du_monde(cat):
     # est la seule chose qu'un faux ne puisse pas fabriquer, et une policy de lecture, meme
     # etroite, en ferait un oracle d'authenticite. S'il remontait a 282 sans migration, ce
     # serait l'ecriture directe des jugements qui serait revenue.
-    att("policies creees", len(cat.policies), 281)
+    att("policies creees", len(cat.policies), attendu['policies'])
     # 32 le 10 octobre 2026 : +1, purges_residus_bancs_id_seq -- la cle bigserial de l'archive
     # des purges.
     # 34 l'apres-midi du 12 octobre 2026 : +1, la sequence de `justice_indemnites.rang`. Elle
@@ -1129,7 +1193,7 @@ def controles_du_monde(cat):
     # 38 la nuit du 12 octobre 2026 : +1, `audience_messages_rang_seq`. Revoquee aux roles clients
     # comme sa table : une sequence oubliee laisserait un client COMPTER les paroles d'une audience
     # sans en lire une seule.
-    att("sequences disponibles", len(cat.sequences), 38)
+    att("sequences disponibles", len(cat.sequences), details['sequences'])
 
     att("indices de ville seedes", cat.lignes.get("indices_villes", 0), 3,
         "les 3 villes de Republia, 5 indices chacune")

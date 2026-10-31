@@ -20,6 +20,28 @@
 -- casquette_montrouge).
 -- ============================================================================
 
+-- SEED -- catalogue_types
+-- ============================================================================
+-- Table      : public.catalogue_types
+-- Domaine    : economie
+-- Categorie  : D (mixte)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 14
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 14 types de commerce. Forme generique, mais AUCUNE colonne pays dans les 6
+-- tables du catalogue.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Separation moteur/contenu : le catalogue est partage par les 4 empires
+-- alors que son seed porte des identifiants Republia (menu_psm, tshirt_psm,
+-- casquette_montrouge).
+-- ============================================================================
+
 INSERT INTO public.catalogue_types (id, libelle, ordre) VALUES ('armurerie', 'Armurerie', '1');
 INSERT INTO public.catalogue_types (id, libelle, ordre) VALUES ('arts-culture', 'Arts & culture', '2');
 INSERT INTO public.catalogue_types (id, libelle, ordre) VALUES ('bar-restauration', 'Bar & restauration', '3');

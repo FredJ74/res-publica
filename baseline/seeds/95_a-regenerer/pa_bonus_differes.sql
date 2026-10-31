@@ -1,26 +1,14 @@
--- SEED A REGENERER -- pa_bonus_differes
--- ============================================================================
--- Table   : public.pa_bonus_differes
--- Domaine : finances publiques
--- Source canonique : data.js
--- Generateur       : outils/generateurs/generer_pa_bonus_differes.py (EXISTE)
---
--- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
--- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
--- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
---
--- CE QUE LA TABLE PORTE
--- 10 bonus de PA differes declares dans data.js.
---
--- POURQUOI PAS UNE COPIE DE LA BASE
--- Meme raison. La table porte deja une table d'empreinte jumelle
--- (pa_bonus_differes_empreinte) dont le role est precisement de detecter la
--- derive entre data.js et la base : preuve que la source est data.js.
---
--- CE QU'IL RESTE A FAIRE
--- Le generateur existe et charge le VRAI data.js dans JavaScriptCore. Il a
--- quitte .scratch/ au chantier 2H. Reste a le faire ecrire directement ici,
--- empreinte comprise.
--- ============================================================================
-
--- Rien a appliquer tant que le generateur n'a pas ecrit ici.
+-- Généré depuis data.js par outils/generateurs/generer_pa_bonus_differes.py --sql.
+-- Ne pas retoucher ; régénérer avec outils/baseline/regenerer-seeds-miroirs.py.
+INSERT INTO public.pa_bonus_differes (source,montant) VALUES
+('diner_affaires', 3),
+  ('menu_gastronomique_1', 3),
+  ('menu_gastronomique_2', 3),
+  ('menu_gastronomique_3', 3),
+  ('menu_psm_1', 3),
+  ('menu_psm_2', 3),
+  ('menu_psm_3', 3),
+  ('repas_gastronomique', 1),
+  ('sandwich', 1),
+  ('service_etage_hotel', 1)
+ON CONFLICT DO NOTHING;

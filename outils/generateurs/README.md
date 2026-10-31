@@ -10,7 +10,7 @@ par le même moteur.
 
 | Générateur | Table(s) miroir |
 |---|---|
-| `generer_ordres_couts.py` | `ordres_couts` — 405 coûts en PA et en argent |
+| `generer_ordres_couts.py` | `ordres_couts` — coûts déclarés en PA et en argent |
 | `generer_pa_bonus_differes.py` | `pa_bonus_differes` |
 | `generer_postes_nommes.py` | `postes_nommes_regles` |
 | `generer_postes_electifs.py` | `postes_electifs_regles` |
@@ -47,3 +47,5 @@ Le processus qui les encadre est dans `../../WORKFLOW-SUPABASE.md`.
 ## Organisations : adhésions et grades
 
 `node outils/generateurs/generer_organisations_regles.cjs` charge le vrai `data.js` dans Node et produit le bloc SQL privé des neuf types (grades et limite d’adhésion). `--check` compare ce bloc à la migration préparée `20261019130213`. Le banc client exécute cette comparaison ; une dérive fait échouer la CI. Il ne modifie pas le baseline et ne mesure pas la base vivante.
+
+Les tarifs d’ordre incluent les déclarations littérales des écrans (analyse Acorn, sans exécuter les effets), les tarifs désormais serveur tirés de leurs migrations authored identifiées, et les projections tentative/réussite. Les variables inconnues ne deviennent jamais des zéros. Les coûts de catalogue et de l’achat final restent distincts. `outils/e2e` fournit la dépendance Acorn existante. Le générateur ne lit aucune capture de table de production.

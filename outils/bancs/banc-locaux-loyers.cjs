@@ -29,7 +29,7 @@ for (const [r, R] of Object.entries(postes)) {
   const l = R.locationData; attendus['centre-affaires|' + r + '|capitale'] = [l.prix, l.bonusPOP, l.bonusINF, l.bonusDIS].join(',');
 }
 
-const sql = lire('migrations/20261029184321_location_locaux_par_serveur.sql');
+const sql = lire('historique/migrations-appliquees/20261029184321_location_locaux_par_serveur.sql');
 const serveur = {}; const nonLouables = [];
 for (const m of sql.matchAll(/\('([a-z-]+)','([a-z_-]+)','([*a-z_]+)',(\d+),(\d+),(\d+),(\d+),'[^']*',(true|false)\)/g)) {
   if (m[8] === 'false') { nonLouables.push(m[1] + '|' + m[2] + '|' + m[3]); continue; }

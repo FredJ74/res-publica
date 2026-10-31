@@ -1,0 +1,12 @@
+✔ Authority recense les helpers historiques et Verdict sans confondre les paramètres imbriqués (44.317097ms)
+✔ une declaration preparee est localisee sans devenir une preuve de deploiement (68.036898ms)
+✔ Authority reconnaît CREATE FUNCTION sans déclarer sa livraison en production (92.636459ms)
+✔ commentaires et accolades citées ne retirent ni ne fabriquent de paramètres RPC (35.918078ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 247.429371

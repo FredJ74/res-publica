@@ -6,7 +6,7 @@ Identite JWT, schema minimal et lois (sans loi/avec loi) sont des fixtures expli
 from pathlib import Path
 import importlib.util,json,re,tempfile
 R=Path(__file__).resolve().parents[2]
-MIGS=['20261027210800_inventaire_depot_piles_historiques.sql','20261027210810_inventaire_sels_objets_trouves.sql']
+MIGS=['../historique/migrations-appliquees/20261027210800_inventaire_depot_piles_historiques.sql','../historique/migrations-appliquees/20261027210810_inventaire_sels_objets_trouves.sql']
 def fonction(path,name):
  s=(R/path).read_text(); a=re.search(r'CREATE OR REPLACE FUNCTION public\.'+name+r'\(',s).start()
  m=re.search(r'AS\s+(\$\w*\$).*?\1;',s[a:],re.S)
@@ -18,7 +18,7 @@ def initialiser(q):
  for fn in ['est_appel_serveur','est_mon_personnage','exiger_acteur','mon_personnage']:
   q.execute(fonction('baseline/domaines/socle/20_fonctions.sql',fn))
  q.execute(fonction('baseline/domaines/banque/20_fonctions.sql','helvetia_debiter_fonds_ordinaires'))
- q.execute(fonction('migrations/20261027180000_inventaire_achats_serveur.sql','inventaire_deposer_interne'))
+ q.execute(fonction('historique/migrations-appliquees/20261027180000_inventaire_achats_serveur.sql','inventaire_deposer_interne'))
  q.execute('''CREATE TABLE objets_modeles(id text PRIMARY KEY,objet jsonb NOT NULL); ALTER TABLE objets_modeles ENABLE ROW LEVEL SECURITY;
   CREATE TABLE caisses_batiments(id text PRIMARY KEY,data jsonb,updated_at timestamptz);
   CREATE TABLE souvenirs_accueil(id text PRIMARY KEY,pj_nom text,objet_nom text,jour_creation integer,jour_expiration integer,revele boolean);
@@ -30,6 +30,13 @@ def initialiser(q):
   UPDATE personnages_donnees SET current_building='usine-pharmaceutique-luthecia',current_room='salle_ventes';
   INSERT INTO rp_epoques VALUES('republic','2026-09-13');''')
  q.execute(fonction('baseline/domaines/finances-publiques/20_fonctions-1.sql','caisse_institution_mouvement'))
+ # Le paiement canonique conserve désormais les attestations des acquisitions
+ # et permis. Même dans ce décor partiel, leurs vraies tables doivent exister.
+ for nom in ['permis_transactions_internes','acquisitions_transactions_internes']:
+  sources=[p.read_text() for p in (R/'baseline/domaines').glob('*/10_tables.sql')]
+  declarations=[m[0] for src in sources for m in re.finditer(r'CREATE TABLE public\.'+nom+r' \(.*?\n\);',src,re.S)]
+  assert len(declarations)==1,nom
+  q.execute(declarations[0])
  for _ in range(2):
   for m in MIGS:q.execute((R/'migrations'/m).read_text())
 def main(extra=None):

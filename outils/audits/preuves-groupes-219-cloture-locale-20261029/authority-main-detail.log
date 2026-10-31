@@ -1,0 +1,136 @@
+CONTROLE DE L'ARCHITECTURE D'AUTORITE
+  76 fichiers de navigateur, 48 tables mutees, 3 acces PostgREST bruts
+  322 relations et 915 fonctions portant un droit, 281 policies, 911 definitions
+  declaration : 73 tables, 0 invariants en attente d'application
+
+FAMILLE 1 -- LE CODE DU NAVIGATEUR
+  ----------------------------------------------------------------------
+   1. aucune mutation cliente hors surface declaree        0 ecarts OK 
+   2. aucun acces PostgREST brut non recense               0 ecarts OK 
+   3. identite passee a une RPC toujours verifiee au serveur 1 ecart ECHEC
+      - resilier_bail_volontaire recoit p_acteur et ne verifie aucun acteur
+
+FAMILLE 2 -- L'ETAT DE LA BASE, LU DANS LE BASELINE
+  ----------------------------------------------------------------------
+   4. aucun privilege de maintenance aux roles clients     0 ecarts OK 
+   5. anon n'ecrit nulle part, aucun setval pour un client 0 ecarts OK 
+   6. aucun droit d'ecriture hors surface declaree         0 ecarts OK 
+   7. aucune policy d'ecriture totalement permissive       0 ecarts OK 
+   8. aucune table du baseline sans RLS                    0 ecarts OK 
+   9. aucune fonction de declencheur appelable par un client 0 ecarts OK 
+  10. aucune fonction mutante client-appelable sans garde  0 ecarts OK 
+  11. aucune fonction mutante appelable par anon           0 ecarts OK 
+
+FAMILLE 3 -- LES PORTES SERVEUR ET LES MIGRATIONS PREPAREES
+  ----------------------------------------------------------------------
+  12. les migrations en attente ne nomment rien d'inconnu  4 ecarts ECHEC
+      - 20261023000000_fontaine_exclusivite_sur_place.sql : signature inconnue « acheter_produit_commerce_interne(text,text,text,text,integer) »
+      - 20261027070100_election_contester.sql : signature inconnue « cycle_electoral_frais_interne(text,text,timestamptz) »
+      - 20261027070100_election_contester.sql : signature inconnue « cycle_electoral_initialiser(text,text) »
+      - 20261027070100_election_contester.sql : signature inconnue « cycle_electoral_initialiser(text,text) »
+  13. toute RPC appelee par le navigateur existe           99 ecarts ECHEC
+      - ambassade_acces_bureau : aucune fonction de ce nom dans le baseline — plateau-politique.js:9149 ; declaration SQL : migrations/20261024184600_ambassades_audiences_acces.sql, migrations/20261025020100_ambassades_asile_acces.sql ; registre vivant et extraction a verifier
+      - ambassade_acces_bureaux : aucune fonction de ce nom dans le baseline — plateau-politique.js:9197 ; declaration SQL : migrations/20261025010000_ambassades_acces_bureaux.sql, migrations/20261025020100_ambassades_asile_acces.sql ; registre vivant et extraction a verifier
+      - ambassade_accorder_audience : aucune fonction de ce nom dans le baseline — plateau-politique.js:9282 ; declaration SQL : migrations/20261024184600_ambassades_audiences_acces.sql ; registre vivant et extraction a verifier
+      - ambassade_demander_asile : aucune fonction de ce nom dans le baseline — plateau-politique.js:9367 ; declaration SQL : migrations/20261025020000_ambassades_asile.sql, migrations/20261025110200_ambassades_ambassadeur_joueur.sql ; registre vivant et extraction a verifier
+      - ambassade_demander_audience : aucune fonction de ce nom dans le baseline — plateau-politique.js:9110 ; declaration SQL : migrations/20261024184500_ambassades_audiences.sql ; registre vivant et extraction a verifier
+      - ambassade_demettre : aucune fonction de ce nom dans le baseline — plateau-politique.js:9486 ; declaration SQL : migrations/20261025110000_ambassades_ordres_ministre.sql ; registre vivant et extraction a verifier
+      - ambassade_expulser : aucune fonction de ce nom dans le baseline — plateau-politique.js:9525 ; declaration SQL : migrations/20261025110000_ambassades_ordres_ministre.sql ; registre vivant et extraction a verifier
+      - ambassade_mecenat : aucune fonction de ce nom dans le baseline — plateau-politique.js:9050 ; declaration SQL : migrations/20261025120000_indice_diplomatique_serveur.sql ; registre vivant et extraction a verifier
+      - ambassade_mes_audiences : aucune fonction de ce nom dans le baseline — plateau-politique.js:9137 ; declaration SQL : migrations/20261024184600_ambassades_audiences_acces.sql, migrations/20261025020100_ambassades_asile_acces.sql ; registre vivant et extraction a verifier
+      - ambassade_mon_statut : aucune fonction de ce nom dans le baseline — plateau-navigation.js:1391 ; declaration SQL : migrations/20261025110200_ambassades_ambassadeur_joueur.sql ; registre vivant et extraction a verifier
+      - ambassade_nommer : aucune fonction de ce nom dans le baseline — plateau-politique.js:9436 ; declaration SQL : migrations/20261025110000_ambassades_ordres_ministre.sql ; registre vivant et extraction a verifier
+      - ambassade_ouvrir : aucune fonction de ce nom dans le baseline — plateau-politique.js:7093 ; declaration SQL : migrations/20261025110000_ambassades_ordres_ministre.sql, migrations/20261025120000_indice_diplomatique_serveur.sql ; registre vivant et extraction a verifier
+      - ambassade_reception_organiser : aucune fonction de ce nom dans le baseline — plateau-politique.js:9011 ; declaration SQL : migrations/20261025120000_indice_diplomatique_serveur.sql ; registre vivant et extraction a verifier
+      - ambassade_reserver_salle : aucune fonction de ce nom dans le baseline — plateau-politique.js:9031 ; declaration SQL : migrations/20261025120000_indice_diplomatique_serveur.sql ; registre vivant et extraction a verifier
+      - ambassade_trancher_asile : aucune fonction de ce nom dans le baseline — plateau-politique.js:9300 ; declaration SQL : migrations/20261025110200_ambassades_ambassadeur_joueur.sql ; registre vivant et extraction a verifier
+      - arme_acheter : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:1325 ; declaration SQL : migrations/20261027180000_inventaire_achats_serveur.sql ; registre vivant et extraction a verifier
+      - banque_virement : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13567 ; declaration SQL : migrations/20261025080000_virements_joueurs.sql ; registre vivant et extraction a verifier
+      - banque_virement_automatique_creer : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13565 ; declaration SQL : migrations/20261025080000_virements_joueurs.sql ; registre vivant et extraction a verifier
+      - batiment_caisse_client_crediter : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13160, plateau-justice-economie.js:13185 ; declaration SQL : migrations/20261026020100_caisses_primitives_usines.sql ; registre vivant et extraction a verifier
+      - bne_annonce_publier : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13770 ; declaration SQL : migrations/20261025060000_bne_annonces.sql ; registre vivant et extraction a verifier
+      - bne_annonce_retirer : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13728 ; declaration SQL : migrations/20261025060000_bne_annonces.sql ; registre vivant et extraction a verifier
+      - bne_annonces_lister : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13635 ; declaration SQL : migrations/20261025060000_bne_annonces.sql ; registre vivant et extraction a verifier
+      - bne_caisse_lire : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13467 ; declaration SQL : migrations/20261025120200_bne_caisse_ministre.sql ; registre vivant et extraction a verifier
+      - bne_caisse_prelever : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13488 ; declaration SQL : migrations/20261025120200_bne_caisse_ministre.sql ; registre vivant et extraction a verifier
+      - bne_heures_chantiers : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13439 ; declaration SQL : migrations/20261025100100_bne_heures_chantiers.sql ; registre vivant et extraction a verifier
+      - bne_postes_a_pourvoir : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13634 ; declaration SQL : migrations/20261025040000_bne_postes_a_pourvoir.sql ; registre vivant et extraction a verifier
+      - chantier_commande : aucune fonction de ce nom dans le baseline — plateau-construction-commandes.js:25 ; declaration SQL : migrations/20261022124056_chantier_commandes_et_reception.sql ; registre vivant et extraction a verifier
+      - chantier_commande_recu : aucune fonction de ce nom dans le baseline — plateau-construction-commandes.js:61 ; declaration SQL : migrations/20261022125121_chantier_recu_relecture.sql ; registre vivant et extraction a verifier
+      - consommer_sur_place_commerce : aucune fonction de ce nom dans le baseline — plateau-commerce-pj.js:2179 ; aucune declaration statique dans migrations/
+      - convocation_se_justifier : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:1068 ; declaration SQL : migrations/20261027100100_convocations_serveur.sql ; registre vivant et extraction a verifier
+      - creer_placement_national_securise : aucune fonction de ce nom dans le baseline — supabase.js:5345 ; declaration SQL : migrations/20261022211000_placement_national_idempotent.sql ; registre vivant et extraction a verifier
+      - crime_acheter_arme_noire : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:1435 ; declaration SQL : migrations/20261027160000_marche_noir_serveur.sql ; registre vivant et extraction a verifier
+      - crime_acheter_explosifs : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:1819 ; declaration SQL : migrations/20261027160000_marche_noir_serveur.sql ; registre vivant et extraction a verifier
+      - crime_empoisonner : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:2101 ; declaration SQL : migrations/20261027120100_empoisonnement_serveur.sql ; registre vivant et extraction a verifier
+      - crime_explosifs : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:1915 ; declaration SQL : migrations/20261027110100_crimes_actes_serveur.sql ; registre vivant et extraction a verifier
+      - crime_incendier : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:1865 ; declaration SQL : migrations/20261027110100_crimes_actes_serveur.sql ; registre vivant et extraction a verifier
+      - crime_neutraliser : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:296 ; declaration SQL : migrations/20261027110100_crimes_actes_serveur.sql ; registre vivant et extraction a verifier
+      - crime_voler : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:103 ; declaration SQL : migrations/20261027120000_vol_empoisonnement_serveur.sql ; registre vivant et extraction a verifier
+      - cycle_electoral_initialiser : aucune fonction de ce nom dans le baseline — plateau-politique.js:1236 ; declaration SQL : migrations/20261027070000_elections_fermees_aux_joueurs.sql ; registre vivant et extraction a verifier
+      - dementi_executer : aucune fonction de ce nom dans le baseline — plateau-politique.js:9941 ; declaration SQL : migrations/20261027060000_dementi_et_rumeurs_serveur.sql ; registre vivant et extraction a verifier
+      - diplomatie_repondre : aucune fonction de ce nom dans le baseline — plateau-politique.js:7012 ; declaration SQL : migrations/20261025120100_indice_diplomatique_actions_nationales.sql ; registre vivant et extraction a verifier
+      - diplomatie_traites_lire : aucune fonction de ce nom dans le baseline — plateau-politique.js:8948 ; declaration SQL : migrations/20261026010000_ambassades_annonces_traites_serveur.sql ; registre vivant et extraction a verifier
+      - election_contester : aucune fonction de ce nom dans le baseline — plateau-politique.js:2705 ; declaration SQL : migrations/20261027070100_election_contester.sql ; registre vivant et extraction a verifier
+      - enquete_ouvrir : aucune fonction de ce nom dans le baseline — plateau-politique.js:7557 ; declaration SQL : migrations/20261027100000_recherche_et_enquetes_serveur.sql ; registre vivant et extraction a verifier
+      - finance_terrain_banque_recu : aucune fonction de ce nom dans le baseline — plateau-terrain-banque.js:55 ; declaration SQL : migrations/20261024123800_terrain_banque_relecture_recus.sql ; registre vivant et extraction a verifier
+      - fraude_electorale_tenter : aucune fonction de ce nom dans le baseline — plateau-politique.js:2405 ; declaration SQL : migrations/20261027080000_fraudes_electorales_serveur.sql ; registre vivant et extraction a verifier
+      - hotel_reservations_lire : aucune fonction de ce nom dans le baseline — plateau-personnage.js:28, plateau-personnage.js:3173 ; declaration SQL : migrations/20261027193000_hotels_nuitees_cumulables.sql ; registre vivant et extraction a verifier
+      - imprimerie_acheter_bois : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:5961 ; declaration SQL : migrations/20261026020100_caisses_primitives_usines.sql ; registre vivant et extraction a verifier
+      - indice_diplomatique_ordre : aucune fonction de ce nom dans le baseline — plateau-politique.js:12436, plateau-politique.js:9558 ; declaration SQL : migrations/20261025120100_indice_diplomatique_actions_nationales.sql ; registre vivant et extraction a verifier
+      - indices_diplomatiques_lire : aucune fonction de ce nom dans le baseline — plateau-politique.js:8974 ; declaration SQL : migrations/20261025120000_indice_diplomatique_serveur.sql ; registre vivant et extraction a verifier
+      - informateur_congedier : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:2266 ; declaration SQL : migrations/20261027150000_informateurs_serveur.sql ; registre vivant et extraction a verifier
+      - informateur_interroger : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:2278 ; declaration SQL : migrations/20261027150000_informateurs_serveur.sql ; registre vivant et extraction a verifier
+      - informateur_recruter : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:2214 ; declaration SQL : migrations/20261027150000_informateurs_serveur.sql ; registre vivant et extraction a verifier
+      - inventaire_reception_etat : aucune fonction de ce nom dans le baseline — plateau-ced.js:67, supabase.js:3189 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier
+      - inventaire_reclamer_livraison : aucune fonction de ce nom dans le baseline — supabase.js:3197 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier
+      - inventaire_sauver_revision : aucune fonction de ce nom dans le baseline — supabase.js:3192 ; declaration SQL : migrations/20261016131932_reception_objets_atomique.sql ; registre vivant et extraction a verifier
+      - journal_ventes_lire : aucune fonction de ce nom dans le baseline — plateau-journal-ventes.js:21 ; declaration SQL : migrations/20261022203000_journal_ventes_commerces.sql ; registre vivant et extraction a verifier
+      - justice_executer_condamnation_soi : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:12109 ; aucune declaration statique dans migrations/
+      - ministere_virer_vers_usine : aucune fonction de ce nom dans le baseline — plateau-politique.js:7830 ; declaration SQL : migrations/20261026020100_caisses_primitives_usines.sql ; registre vivant et extraction a verifier
+      - objet_abandonne_ramasser : aucune fonction de ce nom dans le baseline — plateau-personnage.js:3878 ; declaration SQL : migrations/20261027030000_objets_abandonnes_et_suppressions.sql ; registre vivant et extraction a verifier
+      - objet_acheter : aucune fonction de ce nom dans le baseline — plateau-divers.js:955 ; declaration SQL : migrations/20261027180000_inventaire_achats_serveur.sql ; registre vivant et extraction a verifier
+      - ordre_generique_executer : aucune fonction de ce nom dans le baseline — plateau-router.js:845 ; declaration SQL : migrations/20261027010000_ordre_generique_serveur.sql ; registre vivant et extraction a verifier
+      - organisation_commande_administrative : aucune fonction de ce nom dans le baseline — supabase.js:6710 ; declaration SQL : migrations/20261019094425_organisations_commandes_administratives.sql ; registre vivant et extraction a verifier
+      - organisation_commande_evenement : aucune fonction de ce nom dans le baseline — supabase.js:6706 ; declaration SQL : migrations/20261019132431_organisations_invitations_elections_atomiques.sql ; registre vivant et extraction a verifier
+      - organisation_commande_membres : aucune fonction de ce nom dans le baseline — supabase.js:6708 ; declaration SQL : migrations/20261019130213_organisations_adhesions_grades.sql, migrations/20261019130951_organisations_progression_elections.sql ; registre vivant et extraction a verifier
+      - organisation_equipement_acheter : aucune fonction de ce nom dans le baseline — plateau-commerce-pj.js:2150 ; declaration SQL : migrations/20261019064500_achat_equipements_collectifs.sql ; registre vivant et extraction a verifier
+      - organisation_equipement_deplacer : aucune fonction de ce nom dans le baseline — plateau-equipements-collectifs.js:36 ; declaration SQL : migrations/20261019064000_organisations_equipements_collectifs.sql ; registre vivant et extraction a verifier
+      - organisation_equipements_etat : aucune fonction de ce nom dans le baseline — plateau-equipements-collectifs.js:19 ; declaration SQL : migrations/20261019064000_organisations_equipements_collectifs.sql ; registre vivant et extraction a verifier
+      - organisation_equipements_payeurs : aucune fonction de ce nom dans le baseline — plateau-equipements-collectifs.js:62 ; declaration SQL : migrations/20261019064000_organisations_equipements_collectifs.sql ; registre vivant et extraction a verifier
+      - piete_villes_actualiser : aucune fonction de ce nom dans le baseline — plateau-divers.js:184 ; declaration SQL : migrations/20261027040000_religion_par_le_serveur.sql ; registre vivant et extraction a verifier
+      - police_action_resultat_lire : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:12344 ; declaration SQL : migrations/20261018093000_police_interception_reprise_transactionnelle.sql ; registre vivant et extraction a verifier
+      - police_detection_verifier : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:11103 ; aucune declaration statique dans migrations/
+      - police_reprise_lire : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:12284 ; declaration SQL : migrations/20261018093000_police_interception_reprise_transactionnelle.sql ; registre vivant et extraction a verifier
+      - poste_candidature_transmettre : aucune fonction de ce nom dans le baseline — plateau-politique.js:393 ; declaration SQL : migrations/20261025050000_candidatures_un_pa.sql, migrations/20261025100200_candidature_dossier_serveur.sql ; registre vivant et extraction a verifier
+      - pret_national_contracter : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:8226 ; declaration SQL : migrations/20261024121400_prets_nationaux_moteur_credit_commun.sql ; registre vivant et extraction a verifier
+      - pret_national_contracter_versionne : aucune fonction de ce nom dans le baseline — plateau-terrain-banque.js:25 ; declaration SQL : migrations/20261024121900_prets_nationaux_commandes_versionnees.sql ; registre vivant et extraction a verifier
+      - recolte_effectuer : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:6474 ; declaration SQL : migrations/20261027180100_inventaire_recolte_commerce.sql ; registre vivant et extraction a verifier
+      - religion_agir : aucune fonction de ce nom dans le baseline — plateau-divers.js:418 ; declaration SQL : migrations/20261027040100_religion_agir.sql ; registre vivant et extraction a verifier
+      - restaurant_diner_acquitter : aucune fonction de ce nom dans le baseline — plateau-restaurant-luthecia.js:77 ; declaration SQL : migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - restaurant_diner_creer : aucune fonction de ce nom dans le baseline — plateau-restaurant-luthecia.js:36 ; declaration SQL : migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - restaurant_diner_repondre : aucune fonction de ce nom dans le baseline — plateau-restaurant-luthecia.js:50 ; declaration SQL : migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - restaurant_diner_servir : aucune fonction de ce nom dans le baseline — plateau-restaurant-luthecia.js:68 ; declaration SQL : migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - restaurant_diner_suivre : aucune fonction de ce nom dans le baseline — plateau-restaurant-luthecia.js:63 ; declaration SQL : migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - rue_position_enregistrer : aucune fonction de ce nom dans le baseline — plateau-rue-centrale.js:1182 ; aucune declaration statique dans migrations/
+      - rue_position_lire : aucune fonction de ce nom dans le baseline — plateau-rue-centrale.js:1129 ; aucune declaration statique dans migrations/
+      - rumeur_lancer : aucune fonction de ce nom dans le baseline — plateau-pnj.js:2365 ; declaration SQL : migrations/20261027170000_rumeur_lancer_serveur.sql ; registre vivant et extraction a verifier
+      - subvention_entreprise_verser : aucune fonction de ce nom dans le baseline — plateau-politique.js:7711 ; aucune declaration statique dans migrations/
+      - terrain_acquisition_commande : aucune fonction de ce nom dans le baseline — plateau-terrain-banque.js:28 ; declaration SQL : migrations/20261024123700_terrain_acquisition_commandes.sql ; registre vivant et extraction a verifier
+      - tournee_contrat_lire : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:4933 ; declaration SQL : migrations/20261019213444_catalogue_et_offrir_a_boire.sql ; registre vivant et extraction a verifier
+      - tournee_creer : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:4983 ; declaration SQL : migrations/20261019213444_catalogue_et_offrir_a_boire.sql, migrations/20261019221500_luthecia_cartes_et_diners.sql ; registre vivant et extraction a verifier
+      - tournee_repondre : aucune fonction de ce nom dans le baseline — plateau-actions-illegales-rumeurs.js:5230, plateau-actions-illegales-rumeurs.js:5262 ; declaration SQL : migrations/20261019213444_catalogue_et_offrir_a_boire.sql ; registre vivant et extraction a verifier
+      - tracts_electoraux_distribuer_collectif : aucune fonction de ce nom dans le baseline — supabase.js:4344 ; aucune declaration statique dans migrations/
+      - tracts_imprimer : aucune fonction de ce nom dans le baseline — plateau-communication.js:343 ; declaration SQL : migrations/20261027180300_inventaire_tracts.sql ; registre vivant et extraction a verifier
+      - usine_virer_vers_ministere : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:6896 ; declaration SQL : migrations/20261026020100_caisses_primitives_usines.sql ; registre vivant et extraction a verifier
+      - vendre_materiaux_chantier : parametres (p_building_id, p_country, p_matiere, p_prix, p_quantite, p_requete, p_vendeur) ne correspondent a aucune surcharge — plateau-justice-economie.js:12805
+      - virement_automatique_arreter : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13611 ; declaration SQL : migrations/20261025080100_virements_automatiques.sql ; registre vivant et extraction a verifier
+      - virements_automatiques_mes : aucune fonction de ce nom dans le baseline — plateau-justice-economie.js:13591 ; declaration SQL : migrations/20261025080100_virements_automatiques.sql ; registre vivant et extraction a verifier
+      - vote_confiance_declencher : aucune fonction de ce nom dans le baseline — plateau-politique.js:10125 ; declaration SQL : migrations/20261027090000_vote_confiance_serveur.sql ; registre vivant et extraction a verifier
+      - vote_confiance_voter : aucune fonction de ce nom dans le baseline — plateau-politique.js:10151 ; declaration SQL : migrations/20261027090000_vote_confiance_serveur.sql ; registre vivant et extraction a verifier
+
+========================================================================
+ECHEC : 3 invariant(s) en ecart sans migration declaree
+  - invariant 3 : identite passee a une RPC toujours verifiee au serveur (1 ecarts)
+  - invariant 12 : les migrations en attente ne nomment rien d'inconnu (4 ecarts)
+  - invariant 13 : toute RPC appelee par le navigateur existe (99 ecarts)

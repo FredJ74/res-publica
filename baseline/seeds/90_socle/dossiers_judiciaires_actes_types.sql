@@ -34,6 +34,42 @@
 -- fait partie du socle d'un monde neuf.
 -- ============================================================================
 
+-- SEED -- dossiers_judiciaires_actes_types
+-- ============================================================================
+-- Table      : public.dossiers_judiciaires_actes_types
+-- Domaine    : justice
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 31
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- LISTE BLANCHE des actes qu'une chronologie judiciaire peut porter, avec
+-- QUI les pose (plaignant, police, parquet, juge, serveur). TABLE ET NON
+-- CONTRAINTE CHECK, et c'est le point : les couches futures -- temoignages,
+-- audience, appel, execution de peine -- s'y ajoutent par une LIGNE au lieu
+-- d'une migration de contrainte. Registre d'autorite du meme genre que
+-- actes_nocturnes_mecanismes : aucune fonction ne l'ecrit, chaque entree est
+-- une migration. `dossier_acte_consigner` LEVE sur un type absent -- le
+-- refus propre qu'elle rendait avant etait jete par ses onze appelants, tous
+-- en PERFORM, et creusait un trou silencieux dans la chronologie. TRENTE
+-- types au 12 octobre 2026 -- les trois derniers sont l'appel interjete, le
+-- jugement d'appel et l'indemnisation pour detention executee a tort. SEIZE
+-- types : les treize du parquet, plus le PV d'audition, l'abandon des
+-- charges pour delai expire et la defense en procedure simplifiee --
+-- l'ACCUSE est devenu un auteur d'acte ce jour-la, et le CHECK de `pose_par`
+-- a du s'ouvrir pour l'accueillir. Compte RELEVE EN BASE.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- SEED INDISPENSABLE, et pas par confort : sans ses lignes, chaque acte de
+-- la chaine judiciaire fait LEVER la transaction qui le pose -- donc plus
+-- aucune plainte, aucun non-lieu, aucun jugement. Le contenu du registre
+-- fait partie du socle d'un monde neuf.
+-- ============================================================================
+
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('abandon_poursuites', 'Abandon des poursuites par le parquet', 'parquet', NULL);
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('affaire_transmise_police', 'Affaire transmise par la police', 'police', 'Un acte illegal decouvert et transmis au parquet par l''autorite judiciaire de la ville.');
 INSERT INTO public.dossiers_judiciaires_actes_types (type, libelle, pose_par, note) VALUES ('appel_ouvert', 'Appel interjete', 'accuse', 'Le condamne ou le Procureur a interjete appel dans la fenetre de deux jours. Un seul appel par affaire : le premier qui le declenche l''ouvre. L''acte nomme QUI l''a declenche, et rien de plus -- ni motif, ni qualite de la demande.');

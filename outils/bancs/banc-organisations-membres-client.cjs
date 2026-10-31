@@ -2,7 +2,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const racine=path.resolve(__dirname,'../..'),{bloc,regles}=require('../generateurs/generer_organisations_regles.cjs');
 const source=fs.readFileSync(path.join(racine,'plateau-organisations-quetes.js'),'utf8'),ast=acorn.parse(source,{ecmaVersion:'latest'});
 function fonction(nom){const n=ast.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name===nom);return source.slice(n.start,n.end);}
-test('miroir SQL complet regenere depuis les neuf types reels',()=>{assert.equal(Object.keys(regles()).length,9);assert.ok(fs.readFileSync(path.join(racine,'migrations/20261019130213_organisations_adhesions_grades.sql'),'utf8').includes(bloc()));});
+test('miroir SQL complet regenere depuis les neuf types reels',()=>{assert.equal(Object.keys(regles()).length,9);assert.ok(fs.readFileSync(path.join(racine,'migrations/20261031113602_organisations_adhesions_grades.sql'),'utf8').includes(bloc()));});
 const parcours=[['monterGrade','promouvoir','Bob'],['descendreGrade','retrograder','Bob'],['demanderAdhesion','demander'],['accepterAdhesion','admettre','Bob'],['refuserAdhesion','refuser_demande','Bob'],['accepterInvitationOrga','accepter_invitation'],['refuserInvitationOrga','refuser_invitation']];
 for(const [nom,action,cible] of parcours)for(const verdict of [false,true,null])test(`${nom} : ${verdict===null?'ancien contrat absent':verdict?'confirme':'refuse'}`,async()=>{
  const orga={id:'o',nom:'Structure',chef:'Alice',type:'politique',visible:true,caisse:2500.5,membres:[{nom:'Bob',gradeIdx:1,grade:'Militant'}],demandesAdhesion:[{nom:'Bob'}],invitationsEnvoyees:[{nom:'Alice'}]};

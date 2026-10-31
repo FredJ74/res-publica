@@ -29,6 +29,37 @@
 -- appel -- redevient invisible au pays.
 -- ============================================================================
 
+-- SEED -- justice_faits_publics
+-- ============================================================================
+-- Table      : public.justice_faits_publics
+-- Domaine    : justice
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 13
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- QUELS ACTES DE PROCEDURE SONT DES FAITS PUBLICS, et avec quelle PHRASE
+-- EXACTE. Treize lignes -- la treizieme, `juge_enquete_ouverte`, est posee
+-- le 13 octobre 2026 avec la decision du juge qui ouvre l'enquete malgre le
+-- non-lieu du parquet --, lues par le declencheur
+-- `dossiers_actes_publier_au_journal` qui depose la chronique. CHAQUE LIGNE
+-- DOIT AVOIR SON PENDANT dans TYPES_CHRONIQUE (api/_journal-collecte.js),
+-- sans quoi la collecte de presse JETTE la publication en silence : c'est ce
+-- que verifie verifier-faits-publics.py. Le PV d'audition, la deposition
+-- d'un temoin, le depot de plainte et la constitution de defense n'y sont
+-- PAS : ce qui s'y dit appartient au dossier, pas au Journal. Le silence est
+-- le defaut -- un acte non declare ne publie rien.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- SEED INDISPENSABLE : sans ces lignes, aucun fait judiciaire n'atteint le
+-- Journal, et toute la chaine -- non-lieu, poursuites, jugement, relaxe,
+-- appel -- redevient invisible au pays.
+-- ============================================================================
+
 INSERT INTO public.justice_faits_publics (type_acte, chronique_type, phrase, note) VALUES ('abandon_poursuites', 'justice_abandon_parquet', 'Le parquet a abandonne les poursuites contre %s', NULL);
 INSERT INTO public.justice_faits_publics (type_acte, chronique_type, phrase, note) VALUES ('appel_ouvert', 'justice_appel', 'Appel a ete interjete dans l''affaire visant %s', NULL);
 INSERT INTO public.justice_faits_publics (type_acte, chronique_type, phrase, note) VALUES ('audience_fixee', 'justice_audience_fixee', 'Le jour du proces de %s a ete fixe', NULL);

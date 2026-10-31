@@ -1,0 +1,1 @@
+Archive intermédiaire avant rapprochement du main cbae23ff. Ne pas utiliser ses empreintes de sources comme preuve du SHA final : des fichiers ont ensuite été renommés/scindés et le contrat de Claude a évolué. Les résultats bruts antérieurs sont conservés. Voir le dossier preuves-groupes-219-main-cbae-20261029 pour la validation après rapprochement.

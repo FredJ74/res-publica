@@ -1,0 +1,68 @@
+{
+  "code_commit": "657709a174252b27472715a0d9643507f8664a73",
+  "main_compare": "416f275b",
+  "postgres": {
+    "postgres-291.log": {
+      "cas": 291,
+      "echecs": 0,
+      "cas_en_echec": []
+    },
+    "postgres-291-repetition.log": {
+      "cas": 291,
+      "echecs": 0,
+      "cas_en_echec": []
+    },
+    "contre-recu.log": {
+      "cas": 291,
+      "echecs": 3,
+      "cas_en_echec": [
+        "controle_soumission_saisie_convocation_rejeu_sans_double_effet",
+        "controle_fuite_vrais_jets_peine_plus_un_atomique_et_rejeu",
+        "controle_deux_sessions_concurrentes_une_seule_saisie_et_convocation"
+      ]
+    },
+    "contre-militaire.log": {
+      "cas": 291,
+      "echecs": 9,
+      "cas_en_echec": [
+        "bataille_recrutement_reel_quatre_metiers_sans_carriere_fictive_et_rejeu",
+        "bataille_round_reel_et_rapports_mixtes_persistes",
+        "bataille_mort_au_socle_ancre",
+        "bataille_mort_au_socle_douane-republic-ville_a-D1",
+        "bataille_mort_au_socle_police-republic-capitale-P1",
+        "bataille_repli_meme_groupe_PJ_PNJ_sans_entrainer_autre_camp",
+        "bataille_repli_refus_detenu_annule_positions_et_sorties",
+        "bataille_decision_reservee_chef_reel_pas_grade_ou_employeur",
+        "bataille_rounds_reels_jusqua_resolution_republic"
+      ]
+    },
+    "contre-round.log": {
+      "cas": 291,
+      "echecs": 2,
+      "cas_en_echec": [
+        "bataille_reponse_perdue_meme_recu_pas_de_second_round",
+        "bataille_deux_commandes_concurrentes_un_round_et_deux_rapports"
+      ]
+    }
+  },
+  "clients": {
+    "reussis": 126,
+    "total": 127,
+    "echec": "banc-workflow-rangement.cjs : doublon 20261029190000 déjà sur main"
+  },
+  "cibles_clients": {
+    "arrestation": 10,
+    "controle": 8
+  },
+  "globaux_branche": {
+    "reussis": 4,
+    "total": 12
+  },
+  "globaux_main": {
+    "reussis": 4,
+    "total": 12
+  },
+  "supabase_reel": false,
+  "migrations_production": [],
+  "donnees_reelles_modifiees": false
+}

@@ -32,6 +32,40 @@
 -- jour ou le monde est ne. Omettre la colonne laisse le defaut jouer.
 -- ============================================================================
 
+-- SEED -- titulaires_pnj
+-- ============================================================================
+-- Table      : public.titulaires_pnj
+-- Domaine    : postes et institutions
+-- Categorie  : B (contenu initial d'empire)
+-- Strategie  : seed_filtre (classification du chantier 2C)
+-- Lignes     : 18
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 18 titulaires. DECISION GD ACQUISE : les postes institutionnels destines a
+-- des PNJ sont occupes par ces PNJ dans un monde neuf. LE COMPTE EST RELEVE,
+-- PAS DECIDE, et il bouge tout seul : aucune ligne de cette table n'a jamais
+-- ete ecrite a la main. Les douze premieres viennent de la passe de minuit
+-- du 14 septembre 2026, les deux juges de province de celle du 21, et le
+-- commissaire de la capitale (Raoul Toufaud) et le directeur d'entrepot de
+-- la capitale (Marcel Silo) de celle du 12 octobre a 01 h 59, qui a trouve
+-- ces deux postes vacants. La dix-huitieme est la seule posee par une
+-- migration : le Procureur de la Republique (20261012091457). Chaque fois
+-- que la cascade nocturne pourvoit un poste de plus, ce seed grossit -- et
+-- c'est pour cela que le compte est tenu ici et non suppose.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Filtrer : ne garder que les lignes PNJ, jamais un titulaire PJ herite de
+-- la beta.
+--
+-- COLONNES OMISES (defaut now()) : updated_at
+-- La date de creation d'une ligne n'est pas du contenu authored : c'est le
+-- jour ou le monde est ne. Omettre la colonne laisse le defaut jouer.
+-- ============================================================================
+
 INSERT INTO public.titulaires_pnj (id, country, poste_id, city, nom_pnj) VALUES ('republic_capitaine_port_national', 'republic', 'capitaine_port', NULL, 'Marcel Ancre (PNJ)');
 INSERT INTO public.titulaires_pnj (id, country, poste_id, city, nom_pnj) VALUES ('republic_chef_douanes_national', 'republic', 'chef_douanes', NULL, 'Pascal Paguevite (PNJ)');
 INSERT INTO public.titulaires_pnj (id, country, poste_id, city, nom_pnj) VALUES ('republic_commandant_national', 'republic', 'commandant', NULL, 'Commandant Tom Hawak');

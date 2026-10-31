@@ -1,0 +1,1378 @@
+{
+  "registre_source_sha256": "06eb96d755bdd57f0f45190ec038384885aa92e1a955bdbc0d9110157fe43444",
+  "regle": "Nom exact unique au registre ; sinon aucune application supposée. Le préfixe original et les anciennes preuves sont conservés.",
+  "fichiers": [
+    {
+      "ancien": "migrations/20261016070541_achat_commerce_debit_avant_livraison.sql",
+      "nouveau": "historique/migrations-appliquees/20261016070541_achat_commerce_debit_avant_livraison.sql",
+      "sha256_avant": "93b418890070a7015dfad1d9c2798d36d8094d896e15967c09303549667eaf19",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261016130320"
+    },
+    {
+      "ancien": "migrations/20261016131932_reception_objets_atomique.sql",
+      "nouveau": "migrations/20261031113546_reception_objets_atomique.sql",
+      "sha256_avant": "188aa2dbaf27b1255d04e3c328ad0a57bfeff28b93b6e9b521847d44261686c2",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113546"
+    },
+    {
+      "ancien": "migrations/20261017180000_detention_jours_civils_universels.sql",
+      "nouveau": "migrations/20261031113547_detention_jours_civils_universels.sql",
+      "sha256_avant": "90f712b7f59b5fe29ddc12b0462310a0cc7c0173f1f6c3a3a8a9b6991da7c5c9",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113547"
+    },
+    {
+      "ancien": "migrations/20261017190000_fermetures_date_universelle.sql",
+      "nouveau": "migrations/20261031113548_fermetures_date_universelle.sql",
+      "sha256_avant": "4f4bed6a80c2f84f5675fb2fb57ec3f3ecf7a2dae7e4c798d68f56846ad4b9d5",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113548"
+    },
+    {
+      "ancien": "migrations/20261018093000_police_interception_reprise_transactionnelle.sql",
+      "nouveau": "migrations/20261031113549_police_interception_reprise_transactionnelle.sql",
+      "sha256_avant": "2f20e45b800c516fadce6cc1665dc173387ffc8a97b4d2cc78f2004ec4b8f234",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113549"
+    },
+    {
+      "ancien": "migrations/20261018210000_rue_sortie_batiment_autorite.sql",
+      "nouveau": "migrations/20261031113550_rue_sortie_batiment_autorite.sql",
+      "sha256_avant": "2cb95205148b4c979ce619bc98fad5871468720c193af8a2b8afc485e1b09df9",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113550"
+    },
+    {
+      "ancien": "migrations/20261018230000_composants_electroniques_catalogue.sql",
+      "nouveau": "migrations/20261031113551_composants_electroniques_catalogue.sql",
+      "sha256_avant": "57be18a665738d33485d7be55519b3a113875d5ba916f75549077cc0d221089b",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113551"
+    },
+    {
+      "ancien": "migrations/20261018231225_assemblage_composants_stocks_reels.sql",
+      "nouveau": "migrations/20261031113552_assemblage_composants_stocks_reels.sql",
+      "sha256_avant": "db46a834636202cf93eda06095c70b11375d796375990a1bcf17959af7aae96c",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113552"
+    },
+    {
+      "ancien": "migrations/20261018231849_jodie_interview_forum_atomique.sql",
+      "nouveau": "migrations/20261031113553_jodie_interview_forum_atomique.sql",
+      "sha256_avant": "05924ec78d3e071781f7ad92cbb69ef0d4cd4f2d19f53ba6bf3e81db8aff0d9d",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113553"
+    },
+    {
+      "ancien": "migrations/20261018234500_assemblage_electronique.sql",
+      "nouveau": "migrations/20261031113554_assemblage_electronique.sql",
+      "sha256_avant": "a7e68bd194c47cadd344f7874f00216bca794e608194ea42b5c321877b095cc6",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113554"
+    },
+    {
+      "ancien": "migrations/20261019001000_catalogue_informatique_dix_articles.sql",
+      "nouveau": "migrations/20261031113555_catalogue_informatique_dix_articles.sql",
+      "sha256_avant": "5c121f03657ccad97e7d80869bc6622a75a73859712dff07bdb7f228a969bcba",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113555"
+    },
+    {
+      "ancien": "migrations/20261019002000_jodie_portraits_forum_journal.sql",
+      "nouveau": "migrations/20261031113556_jodie_portraits_forum_journal.sql",
+      "sha256_avant": "2ed64ef18630714793e2704a7a7241aba454d0b52d179bb7e2f8824538ba9028",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113556"
+    },
+    {
+      "ancien": "migrations/20261019003000_fortune_serveur_diagnostic.sql",
+      "nouveau": "migrations/20261031113557_fortune_serveur_diagnostic.sql",
+      "sha256_avant": "5d3a1291aad358a8a02ed4634c2d178e2ee9891509881ec53beb88489ce080b5",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113557"
+    },
+    {
+      "ancien": "migrations/20261019012000_rue_terrains_lots_liaisons_bidirectionnelles.sql",
+      "nouveau": "historique/migrations-appliquees/20261019012000_rue_terrains_lots_liaisons_bidirectionnelles.sql",
+      "sha256_avant": "7414cf4b6f0e18ae02b8cf279010453fac4fc6fba789de9adc32dca2d77e31b4",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261018232338"
+    },
+    {
+      "ancien": "migrations/20261019064000_organisations_equipements_collectifs.sql",
+      "nouveau": "migrations/20261031113558_organisations_equipements_collectifs.sql",
+      "sha256_avant": "386f3085f5835801362c9192ca6efa65d6bbeaeeac0b308b530e53042a770040",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113558"
+    },
+    {
+      "ancien": "migrations/20261019064500_achat_equipements_collectifs.sql",
+      "nouveau": "migrations/20261031113559_achat_equipements_collectifs.sql",
+      "sha256_avant": "5487b370e79c83705ffc6bb92d6c97e07e2389afe8d28d5f6c579e227714fb76",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113559"
+    },
+    {
+      "ancien": "migrations/20261019094425_organisations_commandes_administratives.sql",
+      "nouveau": "migrations/20261031113600_organisations_commandes_administratives.sql",
+      "sha256_avant": "4d5a9093c558d7d0ca2e3727e0fd7d9a91151df846707e6fc5f55d1b6534221e",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113600"
+    },
+    {
+      "ancien": "migrations/20261019115000_psm_aller_retour_rues_serveur.sql",
+      "nouveau": "migrations/20261031113601_psm_aller_retour_rues_serveur.sql",
+      "sha256_avant": "dd6f27d5a53f039014a67a2b4960b60ad6473457188d16e4e791817157d5ab13",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113601"
+    },
+    {
+      "ancien": "migrations/20261019130213_organisations_adhesions_grades.sql",
+      "nouveau": "migrations/20261031113602_organisations_adhesions_grades.sql",
+      "sha256_avant": "ba4a30345dba8a6950276da145ee1432058b80c6c3a2b53e7b95f8a443654aae",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113602"
+    },
+    {
+      "ancien": "migrations/20261019130951_organisations_progression_elections.sql",
+      "nouveau": "migrations/20261031113603_organisations_progression_elections.sql",
+      "sha256_avant": "7393967b662db8d08a9f6e49b56edc9577890ea0e1139400e567e5ccf1f8cc31",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113603"
+    },
+    {
+      "ancien": "migrations/20261019132431_organisations_invitations_elections_atomiques.sql",
+      "nouveau": "migrations/20261031113604_organisations_invitations_elections_atomiques.sql",
+      "sha256_avant": "4acdc5094595d7242e5ae8db98e3c9fbc8bbc9a0c3a28a21cbdca98f8a23ea9b",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113604"
+    },
+    {
+      "ancien": "migrations/20261019132908_organisations_refus_silencieux.sql",
+      "nouveau": "migrations/20261031113605_organisations_refus_silencieux.sql",
+      "sha256_avant": "8deae09d54c20198b03edf24f8237bb00185a9729d18949e100ab7c8b9e11fc4",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113605"
+    },
+    {
+      "ancien": "migrations/20261019162000_psm_supprimer_autoliaison_carrefour.sql",
+      "nouveau": "migrations/20261031113606_psm_supprimer_autoliaison_carrefour.sql",
+      "sha256_avant": "9cb24f2c719a6eb83ddc84c906fcb978b0127df24c4f2969b8734bb1dc68817c",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113606"
+    },
+    {
+      "ancien": "migrations/20261019213444_catalogue_et_offrir_a_boire.sql",
+      "nouveau": "migrations/20261031113607_catalogue_et_offrir_a_boire.sql",
+      "sha256_avant": "327305cb5c5d1987487547bd7c8420d3c3b8a9aeb4fd2dcb90111eee92705000",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113607"
+    },
+    {
+      "ancien": "migrations/20261019221500_luthecia_cartes_et_diners.sql",
+      "nouveau": "migrations/20261031113608_luthecia_cartes_et_diners.sql",
+      "sha256_avant": "b03402a619edf77501deb424a4c235e82486c7a118275880dc19dfb134fedfea",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113608"
+    },
+    {
+      "ancien": "migrations/20261020114246_reservation_republica_accueil.sql",
+      "nouveau": "migrations/20261031113609_reservation_republica_accueil.sql",
+      "sha256_avant": "9d1d90fafb1f80b2e0f1d64757a0d6109165a8e20fbabe1d5891f952fba92e45",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113609"
+    },
+    {
+      "ancien": "migrations/20261020214955_construction_materiaux_prix_et_dons.sql",
+      "nouveau": "migrations/20261031113610_construction_materiaux_prix_et_dons.sql",
+      "sha256_avant": "8d5f3ba0bc995ce3c22a9c8d4767d0b8fcc54184e51ecb550c52e7f5db0b7440",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113610"
+    },
+    {
+      "ancien": "migrations/20261020222029_construction_lancement_priorite_bancaire.sql",
+      "nouveau": "migrations/20261031113611_construction_lancement_priorite_bancaire.sql",
+      "sha256_avant": "9fee6458f54cf44cf8c0649fce181745afca78120b2bf04077fad04ccb2a91c7",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113611"
+    },
+    {
+      "ancien": "migrations/20261022123319_chantier_financeurs_et_appels.sql",
+      "nouveau": "migrations/20261031113612_chantier_financeurs_et_appels.sql",
+      "sha256_avant": "5f464ba292b5883ac25cff8d8e4eebf087562a44a08024c4cb3d62c9609f13ae",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113612"
+    },
+    {
+      "ancien": "migrations/20261022123320_chantier_jour_transactionnel.sql",
+      "nouveau": "migrations/20261031113613_chantier_jour_transactionnel.sql",
+      "sha256_avant": "63779b3660905fc022e62a9f3fbf8aa3a9b6a2d980ff41d5902f6a3646e18ec3",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113613"
+    },
+    {
+      "ancien": "migrations/20261022123321_chantier_approvisionnement_caisse_unique.sql",
+      "nouveau": "migrations/20261031113614_chantier_approvisionnement_caisse_unique.sql",
+      "sha256_avant": "edb2ee6ed8c8d7d67dfae819cc1caac4efc341038dcbdcc67b8507305151d40a",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113614"
+    },
+    {
+      "ancien": "migrations/20261022124055_chantier_autorite_et_recus.sql",
+      "nouveau": "migrations/20261031113615_chantier_autorite_et_recus.sql",
+      "sha256_avant": "f03e7508c5bcdb0d1760cd2b4a7852133325e4fd495131e592ea61357bd2bbdf",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113615"
+    },
+    {
+      "ancien": "migrations/20261022124056_chantier_commandes_et_reception.sql",
+      "nouveau": "migrations/20261031113616_chantier_commandes_et_reception.sql",
+      "sha256_avant": "94108557a274ccaebe2cb31cf5bdc74a1fa3a523bce9e5d88d23d4449a4053c6",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113616"
+    },
+    {
+      "ancien": "migrations/20261022125121_chantier_recu_relecture.sql",
+      "nouveau": "migrations/20261031113617_chantier_recu_relecture.sql",
+      "sha256_avant": "f9fcc9a1790b9adddba9737a87a4f3725f426b2ac92191391be9e03a52338c2f",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113617"
+    },
+    {
+      "ancien": "migrations/20261022125728_chantier_fermer_commandes_non_versionnees.sql",
+      "nouveau": "migrations/20261031113618_chantier_fermer_commandes_non_versionnees.sql",
+      "sha256_avant": "f48bba26a5a0a387183cfbe0525e38961ebd783e2d492bdc388203d3dcf1fdd3",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113618"
+    },
+    {
+      "ancien": "migrations/20261022125942_chantier_plan_initial.sql",
+      "nouveau": "migrations/20261031113619_chantier_plan_initial.sql",
+      "sha256_avant": "9918f34c474e86ece28244491833ac632eb59cb70008d607efb0fbaa2cb55a08",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113619"
+    },
+    {
+      "ancien": "migrations/20261022125943_chantier_plan_raccordement.sql",
+      "nouveau": "migrations/20261031113620_chantier_plan_raccordement.sql",
+      "sha256_avant": "a45d39f6ba478f1858adaab1e07edd94531469ff512916c50e23236004cf3493",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113620"
+    },
+    {
+      "ancien": "migrations/20261022130417_chantier_gardes_legacy_et_travail.sql",
+      "nouveau": "migrations/20261031113621_chantier_gardes_legacy_et_travail.sql",
+      "sha256_avant": "0d869d577ce80159e80449ab0b895c552127223649467d38894d37237f572cf2",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113621"
+    },
+    {
+      "ancien": "migrations/20261022130418_chantier_travail_versionne.sql",
+      "nouveau": "migrations/20261031113622_chantier_travail_versionne.sql",
+      "sha256_avant": "a1c2b84bd23494be5803c9f02bc9f4f9f8c812839cfe8f2548db8007199e5510",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113622"
+    },
+    {
+      "ancien": "migrations/20261022130419_chantier_prix_representants.sql",
+      "nouveau": "migrations/20261031113623_chantier_prix_representants.sql",
+      "sha256_avant": "9bd9691fabd44689e9bb7d802bc5b5292aeb9a508a7bb3d040d7bb1e997bebb4",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113623"
+    },
+    {
+      "ancien": "migrations/20261022143001_construction_delais_quatre_empires.sql",
+      "nouveau": "migrations/20261031113624_construction_delais_quatre_empires.sql",
+      "sha256_avant": "f43dcf2a8d043485455917846d5363c9234ff7999421337280e2a5d4db0a105b",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113624"
+    },
+    {
+      "ancien": "migrations/20261022203000_journal_ventes_commerces.sql",
+      "nouveau": "historique/migrations-appliquees/20261022203000_journal_ventes_commerces.sql",
+      "sha256_avant": "20ecbaaacec26f2557ebbf57048b8287911f524ce922e46fd0431588913684b7",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261023072924"
+    },
+    {
+      "ancien": "migrations/20261022211000_placement_national_idempotent.sql",
+      "nouveau": "migrations/20261031113625_placement_national_idempotent.sql",
+      "sha256_avant": "2ffa74e61ed541c9612c628787617ad0421f0edc2b0d4f12f30145508d66f319",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113625"
+    },
+    {
+      "ancien": "migrations/20261022220516_permis_depot_transactionnel.sql",
+      "nouveau": "migrations/20261031113626_permis_depot_transactionnel.sql",
+      "sha256_avant": "0185890743eb67a40becc433880c2a5420486abb0fb9033ec8687caceb6a2ddf",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113626"
+    },
+    {
+      "ancien": "migrations/20261022222907_terrain_occupation_visites.sql",
+      "nouveau": "migrations/20261031113627_terrain_occupation_visites.sql",
+      "sha256_avant": "69d1bede4473651d906e371f67371c25e07d1b1dd4f35cf98371c669a70713dc",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113627"
+    },
+    {
+      "ancien": "migrations/20261023000000_fontaine_exclusivite_sur_place.sql",
+      "nouveau": "historique/migrations-appliquees/20261023000000_fontaine_exclusivite_sur_place.sql",
+      "sha256_avant": "4bfc3ed1f1e541c8ab44eadd6e036fc9bb87e906091f61d5ea68756311fcc1d3",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261022222011"
+    },
+    {
+      "ancien": "migrations/20261023231127_squatteurs_negociation_transactionnelle.sql",
+      "nouveau": "historique/migrations-appliquees/20261023231127_squatteurs_negociation_transactionnelle.sql",
+      "sha256_avant": "95271cb0ac6f4f4836a0eee51d64c233925922504f5bad4608df9c88cec749f0",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261023231127"
+    },
+    {
+      "ancien": "migrations/20261024074120_centre_artisanal_achat_ced.sql",
+      "nouveau": "historique/migrations-appliquees/20261024074120_centre_artisanal_achat_ced.sql",
+      "sha256_avant": "ce1603c4353d656b1207c6f3212f6dbf7504df1a2fae5197c3cb17c91300a6b8",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261024074120"
+    },
+    {
+      "ancien": "migrations/20261024074129_football_quota_jour_commun.sql",
+      "nouveau": "historique/migrations-appliquees/20261024074129_football_quota_jour_commun.sql",
+      "sha256_avant": "fe1627f7b17d01723cd167b2b1edb194078e6b92a4afd96faf8654379d5f7995",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261024074129"
+    },
+    {
+      "ancien": "migrations/20261024121400_prets_nationaux_moteur_credit_commun.sql",
+      "nouveau": "migrations/20261031113628_prets_nationaux_moteur_credit_commun.sql",
+      "sha256_avant": "369360e2298c26b9f1a22d2e2b1a895b3ecf666c3b1e27b6212aa82c25ff7a02",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113628"
+    },
+    {
+      "ancien": "migrations/20261024121900_prets_nationaux_commandes_versionnees.sql",
+      "nouveau": "migrations/20261031113629_prets_nationaux_commandes_versionnees.sql",
+      "sha256_avant": "a86f637af5372ca24c2c964dcd6da1e7f7bce65d61930539be6a1e3909e1c1f4",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113629"
+    },
+    {
+      "ancien": "migrations/20261024122600_acquisitions_capacites_et_gardes.sql",
+      "nouveau": "migrations/20261031113630_acquisitions_capacites_et_gardes.sql",
+      "sha256_avant": "f81296e6ec74b5a386a757630e3be5c56aa3aaae452830aa1de023798e8bcec5",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113630"
+    },
+    {
+      "ancien": "migrations/20261024123500_compromis_financement_reel.sql",
+      "nouveau": "migrations/20261031113631_compromis_financement_reel.sql",
+      "sha256_avant": "1bbf2c07a1454c74d6e9d0365bda0cf96a0b8afb9779fbfe0913dc0aa1258bef",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113631"
+    },
+    {
+      "ancien": "migrations/20261024123600_terrains_referentiel_acquisition.sql",
+      "nouveau": "migrations/20261031113632_terrains_referentiel_acquisition.sql",
+      "sha256_avant": "59c5d84e548c6653b99089e9c70a140cea2110f4e923e0e8583768ae8a409a47",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113632"
+    },
+    {
+      "ancien": "migrations/20261024123700_terrain_acquisition_commandes.sql",
+      "nouveau": "migrations/20261031113633_terrain_acquisition_commandes.sql",
+      "sha256_avant": "4a268fb912d73ea039c602cc70060d0b2c7060e0f3af2afa17e336b5a598f5e8",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113633"
+    },
+    {
+      "ancien": "migrations/20261024123800_terrain_banque_relecture_recus.sql",
+      "nouveau": "migrations/20261031113634_terrain_banque_relecture_recus.sql",
+      "sha256_avant": "140e88a410727e534ddfaf6daea3e52c0ecfc951f6aec90189580e44430f4a02",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113634"
+    },
+    {
+      "ancien": "migrations/20261024124000_prets_nationaux_echeances_atomiques.sql",
+      "nouveau": "migrations/20261031113635_prets_nationaux_echeances_atomiques.sql",
+      "sha256_avant": "36f6f1077e59d2cf3dd3212ec26292ed60dbabcddf4f7ba2f7010b0158127891",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113635"
+    },
+    {
+      "ancien": "migrations/20261024124100_prets_versionnes_fermer_ecritures_directes.sql",
+      "nouveau": "migrations/20261031113636_prets_versionnes_fermer_ecritures_directes.sql",
+      "sha256_avant": "f5146ea90f03ce1de54cd54f9dcec388e3199cefd1bd8e763a0fd3ac20a66218",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113636"
+    },
+    {
+      "ancien": "migrations/20261024131720_acquisitions_depots_attestes.sql",
+      "nouveau": "migrations/20261031113637_acquisitions_depots_attestes.sql",
+      "sha256_avant": "e4054cfbf7c8f7260fd7d14e4e9fe618a9af3a6a9beb05972a9f1b8c8a782d48",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113637"
+    },
+    {
+      "ancien": "migrations/20261024132140_financement_compromis_termes_attestes.sql",
+      "nouveau": "migrations/20261031113638_financement_compromis_termes_attestes.sql",
+      "sha256_avant": "c1d003c4d59782b2f34b0a2d800166635e22509f1c8e9510b9162b4cfc921ee2",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113638"
+    },
+    {
+      "ancien": "migrations/20261024133310_terrain_vente_archive_reference_acte.sql",
+      "nouveau": "migrations/20261031113639_terrain_vente_archive_reference_acte.sql",
+      "sha256_avant": "7d133aaa5a6d52fa1245cad65040d738099e6a37331b4c280d6bdaa2b71fc85b",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113639"
+    },
+    {
+      "ancien": "migrations/20261024134528_permis_instruction_transactionnelle_acquisitions.sql",
+      "nouveau": "migrations/20261031113640_permis_instruction_transactionnelle_acquisitions.sql",
+      "sha256_avant": "8b1010a9c7023db5bb5f41b406a7c862e983400ca90b10abe9206fffa97cc857",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113640"
+    },
+    {
+      "ancien": "migrations/20261024135353_acquisition_refus_rollback_financement.sql",
+      "nouveau": "migrations/20261031113641_acquisition_refus_rollback_financement.sql",
+      "sha256_avant": "264bc0a3e17fb5ce731079dde46873781bce9927b466534d129c9a0f50f7fec8",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113641"
+    },
+    {
+      "ancien": "migrations/20261024140140_permis_instruction_compatibilite_archives.sql",
+      "nouveau": "migrations/20261031113642_permis_instruction_compatibilite_archives.sql",
+      "sha256_avant": "3d8da54b244d46b190ffea5265e5800449ba288e66831cbd07e144377cddc293",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113642"
+    },
+    {
+      "ancien": "migrations/20261024184500_ambassades_audiences.sql",
+      "nouveau": "historique/migrations-appliquees/20261024184500_ambassades_audiences.sql",
+      "sha256_avant": "56123852706c25bd63c16ca41df1e7dbba55d056d56f11f30bfe9c16be08ecda",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261024185323"
+    },
+    {
+      "ancien": "migrations/20261024184600_ambassades_audiences_acces.sql",
+      "nouveau": "historique/migrations-appliquees/20261024184600_ambassades_audiences_acces.sql",
+      "sha256_avant": "b8939e983a65c94f590d4e1cefce476c07c709174c7e048c286c2ee1a515b2a7",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261024185346"
+    },
+    {
+      "ancien": "migrations/20261025010000_ambassades_acces_bureaux.sql",
+      "nouveau": "historique/migrations-appliquees/20261025010000_ambassades_acces_bureaux.sql",
+      "sha256_avant": "9279b7ea1937be40c566b6c4ec7c9db5bd190602edf457667dc1772da2c145f0",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025002311"
+    },
+    {
+      "ancien": "migrations/20261025020000_ambassades_asile.sql",
+      "nouveau": "historique/migrations-appliquees/20261025020000_ambassades_asile.sql",
+      "sha256_avant": "6cbebc39d544dbf7e4bb27b0f2abb7df21f4f5deedff3878285c731708ddbddd",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025004912"
+    },
+    {
+      "ancien": "migrations/20261025020100_ambassades_asile_acces.sql",
+      "nouveau": "historique/migrations-appliquees/20261025020100_ambassades_asile_acces.sql",
+      "sha256_avant": "9306c3625e71f9b1e7becd137cdc18a9c0510930431683a6fea3c19f37bbaf88",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025004941"
+    },
+    {
+      "ancien": "migrations/20261025020200_ambassades_asile_protection.sql",
+      "nouveau": "historique/migrations-appliquees/20261025020200_ambassades_asile_protection.sql",
+      "sha256_avant": "5b90b4e1cf3f354811fa5613bee8486825b1452371ae82e00c258ddedcb5992d",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025005227"
+    },
+    {
+      "ancien": "migrations/20261025030000_bne_corrections.sql",
+      "nouveau": "historique/migrations-appliquees/20261025030000_bne_corrections.sql",
+      "sha256_avant": "ae37362a10ef03f2c384c170f5a6325bb3fd458710531567709c6153f5cced8b",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025010423"
+    },
+    {
+      "ancien": "migrations/20261025040000_bne_postes_a_pourvoir.sql",
+      "nouveau": "historique/migrations-appliquees/20261025040000_bne_postes_a_pourvoir.sql",
+      "sha256_avant": "e09b2beb03b93403bdfdc8665207ac658d74ee12b9c1591e10ad0766b3e47fb7",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025181516"
+    },
+    {
+      "ancien": "migrations/20261025050000_candidatures_un_pa.sql",
+      "nouveau": "historique/migrations-appliquees/20261025050000_candidatures_un_pa.sql",
+      "sha256_avant": "0fab56ad2a4dca20164f99bb33e66f39b313deb6af67a7f5fcbda17cf88e8721",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025182135"
+    },
+    {
+      "ancien": "migrations/20261025060000_bne_annonces.sql",
+      "nouveau": "historique/migrations-appliquees/20261025060000_bne_annonces.sql",
+      "sha256_avant": "7026bd21e0d997e1c4e6dbaad1a4a1733bb5c2c40d4c651c60e4e31d0fe4ca4e",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025183757"
+    },
+    {
+      "ancien": "migrations/20261025070000_chantier_taux_horaire.sql",
+      "nouveau": "historique/migrations-appliquees/20261025070000_chantier_taux_horaire.sql",
+      "sha256_avant": "f68c5584ed35f38dec2f64f9139ac6ebb3c88d551c64a354329f16546a7bc5e8",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025193111"
+    },
+    {
+      "ancien": "migrations/20261025080000_virements_joueurs.sql",
+      "nouveau": "historique/migrations-appliquees/20261025080000_virements_joueurs.sql",
+      "sha256_avant": "43648ea6fc388afaaff16c4dab1276a01eb46300685a067763447bfeaab96a35",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025194235"
+    },
+    {
+      "ancien": "migrations/20261025080100_virements_automatiques.sql",
+      "nouveau": "historique/migrations-appliquees/20261025080100_virements_automatiques.sql",
+      "sha256_avant": "56dc6161ff298a950abc6987bee4208a1086a5da25f3204a38ee10e641a0e9ed",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025194255"
+    },
+    {
+      "ancien": "migrations/20261025090000_bne_referentes_emploi.sql",
+      "nouveau": "historique/migrations-appliquees/20261025090000_bne_referentes_emploi.sql",
+      "sha256_avant": "1fa499469cafca5011733a0c5d6f06084c9a752509ebcd0352c7982a5f07ead7",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025201502"
+    },
+    {
+      "ancien": "migrations/20261025100000_bne_retrait_ancienne_formule.sql",
+      "nouveau": "historique/migrations-appliquees/20261025100000_bne_retrait_ancienne_formule.sql",
+      "sha256_avant": "486773084db25d5f0fea0764481bd867f313c189c494d7530f2dba1e70f05996",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025204304"
+    },
+    {
+      "ancien": "migrations/20261025100100_bne_heures_chantiers.sql",
+      "nouveau": "historique/migrations-appliquees/20261025100100_bne_heures_chantiers.sql",
+      "sha256_avant": "5d6d2abc97ec8e4b5d1295a823d3b691af281ec73cfc113d791c4c5d87d8b8be",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025204410"
+    },
+    {
+      "ancien": "migrations/20261025100200_candidature_dossier_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261025100200_candidature_dossier_serveur.sql",
+      "sha256_avant": "34b6995a4b13d304f7b32e5f4db8d1bc15a8e80214417e61d03c59ec836455c3",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025204601"
+    },
+    {
+      "ancien": "migrations/20261025110000_ambassades_ordres_ministre.sql",
+      "nouveau": "historique/migrations-appliquees/20261025110000_ambassades_ordres_ministre.sql",
+      "sha256_avant": "0dc9dd0b5b5285f7ff7658e3c36df7212ae8c36349847e9863921f92bf5c9cde",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025210049"
+    },
+    {
+      "ancien": "migrations/20261025110100_ambassades_ouvertes_lecture_seule.sql",
+      "nouveau": "historique/migrations-appliquees/20261025110100_ambassades_ouvertes_lecture_seule.sql",
+      "sha256_avant": "7696019be3ca2b45ff9fb7cc7c0c13a398cf69fcddeceec61aa11694fb964c35",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025210208"
+    },
+    {
+      "ancien": "migrations/20261025110200_ambassades_ambassadeur_joueur.sql",
+      "nouveau": "historique/migrations-appliquees/20261025110200_ambassades_ambassadeur_joueur.sql",
+      "sha256_avant": "18705b5990c247a127a920be3285bfb86944a7e08d5d63fd8ae8fe3b75dd0353",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025210344"
+    },
+    {
+      "ancien": "migrations/20261025120000_indice_diplomatique_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261025120000_indice_diplomatique_serveur.sql",
+      "sha256_avant": "d665e5e879f45d93cb51466585b7944a203e6cff682c7637492a085b7e93a340",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025220648"
+    },
+    {
+      "ancien": "migrations/20261025120100_indice_diplomatique_actions_nationales.sql",
+      "nouveau": "historique/migrations-appliquees/20261025120100_indice_diplomatique_actions_nationales.sql",
+      "sha256_avant": "20b05fe58db7da687546dfd4f57b79b3e68c2f74680d8b73502a6d906e0a6e4d",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025220806"
+    },
+    {
+      "ancien": "migrations/20261025120200_bne_caisse_ministre.sql",
+      "nouveau": "historique/migrations-appliquees/20261025120200_bne_caisse_ministre.sql",
+      "sha256_avant": "14abb78cfba256f136893181b1af269d702ff4a402b9e6b81203f382e65e2dfa",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025221942"
+    },
+    {
+      "ancien": "migrations/20261026010000_ambassades_annonces_traites_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261026010000_ambassades_annonces_traites_serveur.sql",
+      "sha256_avant": "6e82794d854785189d96554536609c2a40c1ac31231ce8c6459db806f311ae50",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261025223724"
+    },
+    {
+      "ancien": "migrations/20261026020000_caisses_fin_creation_argent.sql",
+      "nouveau": "historique/migrations-appliquees/20261026020000_caisses_fin_creation_argent.sql",
+      "sha256_avant": "579d43469c468dddf425e578578a0b0b3b2d772c6906b46191aa1f08d507c093",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261026221753"
+    },
+    {
+      "ancien": "migrations/20261026020100_caisses_primitives_usines.sql",
+      "nouveau": "historique/migrations-appliquees/20261026020100_caisses_primitives_usines.sql",
+      "sha256_avant": "310e80e687e752cf1bd8c98b58747e985be73f0f59357bc25e8b363ed8e1908b",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261026221837"
+    },
+    {
+      "ancien": "migrations/20261026030000_fonds_transit_debit_ordinaire.sql",
+      "nouveau": "historique/migrations-appliquees/20261026030000_fonds_transit_debit_ordinaire.sql",
+      "sha256_avant": "2dedd0cb4f0c671f5d781b1c67682ed2bf980290b975c27f24430035837ca7fa",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261026222518"
+    },
+    {
+      "ancien": "migrations/20261027010000_ordre_generique_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027010000_ordre_generique_serveur.sql",
+      "sha256_avant": "2c256a1304c1678993785e3ed1397bcd7399b9dc2a7e7245a34f7b2bf6b24e37",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261026230447"
+    },
+    {
+      "ancien": "migrations/20261027020000_minuit_couvre_feu_recherche_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027020000_minuit_couvre_feu_recherche_serveur.sql",
+      "sha256_avant": "996c581f391daf18d06d985f1a65d60781b5c93dae16153d148b57e00e71a185",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261026231435"
+    },
+    {
+      "ancien": "migrations/20261027030000_objets_abandonnes_et_suppressions.sql",
+      "nouveau": "historique/migrations-appliquees/20261027030000_objets_abandonnes_et_suppressions.sql",
+      "sha256_avant": "8c986a7db31640681d3e56706f5bf2bbb9765f943fbc298a4390c2e3b760993a",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027094104"
+    },
+    {
+      "ancien": "migrations/20261027040000_religion_par_le_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027040000_religion_par_le_serveur.sql",
+      "sha256_avant": "81049d784ef3677dd3288f4503f6073bb3c5060b71746888556c1d42ee0a9f1b",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027101811"
+    },
+    {
+      "ancien": "migrations/20261027040100_religion_agir.sql",
+      "nouveau": "historique/migrations-appliquees/20261027040100_religion_agir.sql",
+      "sha256_avant": "0c0aa2ebabd28f280de28f879f059145f0a40284e331860d2e1c41389630e445",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027101940"
+    },
+    {
+      "ancien": "migrations/20261027050000_jauges_ecrites_par_le_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027050000_jauges_ecrites_par_le_serveur.sql",
+      "sha256_avant": "3023ecb531a2643118a611c94e59ba40781a1ec550fded08b6cf1bdac9d9b5cf",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027102605"
+    },
+    {
+      "ancien": "migrations/20261027060000_dementi_et_rumeurs_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027060000_dementi_et_rumeurs_serveur.sql",
+      "sha256_avant": "1b5081694a5f7185bffde0df474e3e75649a144d8293580b115eebb0b1aa6dd8",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027102825"
+    },
+    {
+      "ancien": "migrations/20261027070000_elections_fermees_aux_joueurs.sql",
+      "nouveau": "historique/migrations-appliquees/20261027070000_elections_fermees_aux_joueurs.sql",
+      "sha256_avant": "d1cea201352534ea9c3fe5d5bb4a7ec61e0dcd170aaf43e274f2ec690d0dc786",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027103804"
+    },
+    {
+      "ancien": "migrations/20261027070100_election_contester.sql",
+      "nouveau": "historique/migrations-appliquees/20261027070100_election_contester.sql",
+      "sha256_avant": "73b1a1143a145a30fade3b5f13aa68f77036ca864e5da9bc7c340214fd7e6a50",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027104731"
+    },
+    {
+      "ancien": "migrations/20261027080000_fraudes_electorales_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027080000_fraudes_electorales_serveur.sql",
+      "sha256_avant": "862fbadc1aec2b692abb753167fae3daf421a0a841c86a9e23d531af4b7587f1",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027105430"
+    },
+    {
+      "ancien": "migrations/20261027090000_vote_confiance_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027090000_vote_confiance_serveur.sql",
+      "sha256_avant": "4dfb9b29fddfa4ac07e3f63ce667982681dd9142fcdcc49d947c1a61ac66e252",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027110207"
+    },
+    {
+      "ancien": "migrations/20261027100000_recherche_et_enquetes_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027100000_recherche_et_enquetes_serveur.sql",
+      "sha256_avant": "cd055a157b3851e2ac3c4dad69bd90e915c67b5f267bbdb58b3cc5370756662b",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027112035"
+    },
+    {
+      "ancien": "migrations/20261027100100_convocations_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027100100_convocations_serveur.sql",
+      "sha256_avant": "bdd46ddc2f61f28c56e91c07701f2fc946a13534237219eba922ce9e699d2c3d",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027112114"
+    },
+    {
+      "ancien": "migrations/20261027100200_justifier_rend_recherche.sql",
+      "nouveau": "historique/migrations-appliquees/20261027100200_justifier_rend_recherche.sql",
+      "sha256_avant": "cebf29910525b8f3dd47ff6ec20be37229bad0d220ef7f2146f64461b77ef608",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027112350"
+    },
+    {
+      "ancien": "migrations/20261027104800_terrain_visites_fermeture_changement_ville.sql",
+      "nouveau": "migrations/20261031113643_terrain_visites_fermeture_changement_ville.sql",
+      "sha256_avant": "0bd634bea48d68fb655bfbb42b28ae0341a44b4aa75fdc0911b7449ee7acf740",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113643"
+    },
+    {
+      "ancien": "migrations/20261027110000_crimes_socle_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027110000_crimes_socle_serveur.sql",
+      "sha256_avant": "65428469947d614a8b4b83dd6ae3e0aa21e5a5207cf3c14356cef4f38e8baa5f",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027113102"
+    },
+    {
+      "ancien": "migrations/20261027110100_crimes_actes_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027110100_crimes_actes_serveur.sql",
+      "sha256_avant": "c0cd745dcc6d71b8b296e00749b933c4027da92dafb7ac656c6bde3e06841fca",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027145732"
+    },
+    {
+      "ancien": "migrations/20261027120000_vol_empoisonnement_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027120000_vol_empoisonnement_serveur.sql",
+      "sha256_avant": "80c056f7b7a3b56829773fd05c7d9b0a88b76728cd0a2871963124ca53d9d5f5",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027183208"
+    },
+    {
+      "ancien": "migrations/20261027120100_empoisonnement_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027120100_empoisonnement_serveur.sql",
+      "sha256_avant": "51f1c174431f6cffb0b7954864c175301b2db894d2fb6844f59b48b9b9c87a64",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027183230"
+    },
+    {
+      "ancien": "migrations/20261027130000_crimes_ordres_detection.sql",
+      "nouveau": "historique/migrations-appliquees/20261027130000_crimes_ordres_detection.sql",
+      "sha256_avant": "aff5bc1d3d2ce385e011ca74f69d1840dc19b099fa7486d636dfe890d6ab41b3",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027183729"
+    },
+    {
+      "ancien": "migrations/20261027130100_crimes_inventaire_rendu.sql",
+      "nouveau": "historique/migrations-appliquees/20261027130100_crimes_inventaire_rendu.sql",
+      "sha256_avant": "90812f6d3a5eaae2cb7f91f3efdb6a3b605b73e6bae9aa0761e5077bb49e973f",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027184053"
+    },
+    {
+      "ancien": "migrations/20261027140000_scandales_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027140000_scandales_serveur.sql",
+      "sha256_avant": "5274b1a76795795802973e4b84993bd9266c99ec1f0443e79b686425e909ed40",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027184213"
+    },
+    {
+      "ancien": "migrations/20261027150000_informateurs_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027150000_informateurs_serveur.sql",
+      "sha256_avant": "9526e1e95c3f8bfac5136757d7ace9a9efe095431d3a508c32e037baf09d5aeb",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027185556"
+    },
+    {
+      "ancien": "migrations/20261027150100_informateurs_salaire_une_fois.sql",
+      "nouveau": "historique/migrations-appliquees/20261027150100_informateurs_salaire_une_fois.sql",
+      "sha256_avant": "b20aa0e367e0b61df65d38c2d09fcb5feb4308127a06cf1ab696339fbab1fd0c",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027185704"
+    },
+    {
+      "ancien": "migrations/20261027160000_marche_noir_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027160000_marche_noir_serveur.sql",
+      "sha256_avant": "13df83a5d86a3ac5d8b8dfdd2c0c3fb7f38843f1818dec4a60c5f7c8c13a4a8f",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027190040"
+    },
+    {
+      "ancien": "migrations/20261027160100_neutraliser_depute_suites.sql",
+      "nouveau": "historique/migrations-appliquees/20261027160100_neutraliser_depute_suites.sql",
+      "sha256_avant": "caf707a5f922da7423b99229a9996e050850a54ab0eb03277e69a774728de1fa",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027190142"
+    },
+    {
+      "ancien": "migrations/20261027170000_rumeur_lancer_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027170000_rumeur_lancer_serveur.sql",
+      "sha256_avant": "78721a01e1bfaeb2fe3ae09402003049db402dc8bbdc167726aa4e5d23d22bfc",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027190521"
+    },
+    {
+      "ancien": "migrations/20261027180000_inventaire_achats_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261027180000_inventaire_achats_serveur.sql",
+      "sha256_avant": "2dd8fe6bc3985a2108756ed6f4a4a9e8f90de653274147ff674f1c11e0ac6195",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027192040"
+    },
+    {
+      "ancien": "migrations/20261027180100_inventaire_recolte_commerce.sql",
+      "nouveau": "historique/migrations-appliquees/20261027180100_inventaire_recolte_commerce.sql",
+      "sha256_avant": "6bed12c698416203f1758eaeb9d441e1c672c5ea7e5106ebd10285ad6459540e",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027192416"
+    },
+    {
+      "ancien": "migrations/20261027180200_inventaire_marche_metadonnees.sql",
+      "nouveau": "historique/migrations-appliquees/20261027180200_inventaire_marche_metadonnees.sql",
+      "sha256_avant": "460f433d202b82a6a7f6b85573bab367e3ba90beff8fd628b9bfdd2eb32c0374",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027192446"
+    },
+    {
+      "ancien": "migrations/20261027180300_inventaire_tracts.sql",
+      "nouveau": "historique/migrations-appliquees/20261027180300_inventaire_tracts.sql",
+      "sha256_avant": "d4832a9f1969cb35fdb7f67e9d1bce5853fc1988450ccded6fea8f3f3ffc9ed2",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261027192719"
+    },
+    {
+      "ancien": "migrations/20261027193000_hotels_nuitees_cumulables.sql",
+      "nouveau": "migrations/20261031113644_hotels_nuitees_cumulables.sql",
+      "sha256_avant": "0573c841d19fdf71ebf20acdfd986ef6407984d9398c78e402235ac29da99e74",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113644"
+    },
+    {
+      "ancien": "migrations/20261027200500_hotels_encaissement_et_nuitees.sql",
+      "nouveau": "migrations/20261031113645_hotels_encaissement_et_nuitees.sql",
+      "sha256_avant": "afe7a6c950261b840b0e58a6048dc54463d99d826967422e41b09ad220ada603",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113645"
+    },
+    {
+      "ancien": "migrations/20261027200600_hotels_republica_nuitees.sql",
+      "nouveau": "migrations/20261031113646_hotels_republica_nuitees.sql",
+      "sha256_avant": "e3878f904fbaf61dfbe478614d2a748bbbcb8d4545f73d2516cdfea998e7981c",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113646"
+    },
+    {
+      "ancien": "migrations/20261027200700_hotels_bonus_nuitee.sql",
+      "nouveau": "migrations/20261031113647_hotels_bonus_nuitee.sql",
+      "sha256_avant": "c99cda00c574c3fe3826948043c1876aa96fefd15a096d34718c070916f5a805",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113647"
+    },
+    {
+      "ancien": "migrations/20261027210800_inventaire_depot_piles_historiques.sql",
+      "nouveau": "historique/migrations-appliquees/20261027210800_inventaire_depot_piles_historiques.sql",
+      "sha256_avant": "516ed1230df442758d8ec423f5d4fc2f742bc5f7449697ad1b91c983772a1668",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028204032"
+    },
+    {
+      "ancien": "migrations/20261027210810_inventaire_sels_objets_trouves.sql",
+      "nouveau": "historique/migrations-appliquees/20261027210810_inventaire_sels_objets_trouves.sql",
+      "sha256_avant": "b8da07901bda46c3a84b0ac1c93ea3ea2e5ea0f535c087ad4ab17e1268092ea1",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028204248"
+    },
+    {
+      "ancien": "migrations/20261027213520_inventaire_fret_transactionnel.sql",
+      "nouveau": "historique/migrations-appliquees/20261027213520_inventaire_fret_transactionnel.sql",
+      "sha256_avant": "bc7ce888a0ecfcb47a366e3fd88313bd7341985b2772a25d05182437c9f8c207",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028204832"
+    },
+    {
+      "ancien": "migrations/20261027213521_inventaire_employes_socle.sql",
+      "nouveau": "historique/migrations-appliquees/20261027213521_inventaire_employes_socle.sql",
+      "sha256_avant": "02bcab783c46b4bf3c3c85316e4d2d3056c916b4de1091c8d8a0656f2228f90c",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028204929"
+    },
+    {
+      "ancien": "migrations/20261027213522_inventaire_accessoires_club.sql",
+      "nouveau": "historique/migrations-appliquees/20261027213522_inventaire_accessoires_club.sql",
+      "sha256_avant": "e0d5c6933478fa18757e70c7606d1bcd621881c856d03663056ee2c1652d971d",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028205033"
+    },
+    {
+      "ancien": "migrations/20261027214000_inventaire_etat_civil_catalogue.sql",
+      "nouveau": "historique/migrations-appliquees/20261027214000_inventaire_etat_civil_catalogue.sql",
+      "sha256_avant": "50593ac85bf3b7e787e3dbae3276f1acbcf5cc1760151a22a0d4365aa1b2aacd",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028205106"
+    },
+    {
+      "ancien": "migrations/20261027214001_inventaire_etat_civil_documents.sql",
+      "nouveau": "historique/migrations-appliquees/20261027214001_inventaire_etat_civil_documents.sql",
+      "sha256_avant": "7eb4e50dc199a9e711248f020420db789e62f95cd4f5fb04868b27458c4c3831",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028205154"
+    },
+    {
+      "ancien": "migrations/20261027214213_inventaire_missions_et_enigme.sql",
+      "nouveau": "historique/migrations-appliquees/20261027214213_inventaire_missions_et_enigme.sql",
+      "sha256_avant": "718f715b4a31e1371ebd9ae24e0a25bd7c767b9a7fbcb4e7480b347f723e1fc0",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028205241"
+    },
+    {
+      "ancien": "migrations/20261027215214_inventaire_recompenses_objets.sql",
+      "nouveau": "historique/migrations-appliquees/20261027215214_inventaire_recompenses_objets.sql",
+      "sha256_avant": "9ec6c3f62f06203bc1b20b051eccd0661f0aa0d108f660c99212491068874dba",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028205306"
+    },
+    {
+      "ancien": "migrations/20261027215539_inventaire_dons_tracts.sql",
+      "nouveau": "historique/migrations-appliquees/20261027215539_inventaire_dons_tracts.sql",
+      "sha256_avant": "5eef84932df41c2faa982f72aaccc9bd0b7340428218ae61715312c8402137e6",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028205317"
+    },
+    {
+      "ancien": "migrations/20261028210000_inventaire_anciens_contrats_fermes.sql",
+      "nouveau": "historique/migrations-appliquees/20261028210000_inventaire_anciens_contrats_fermes.sql",
+      "sha256_avant": "5d025f871e2475656a2dba9d09f904f9a3069352c66fbd4f4be6c2f2c1e92261",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029210306"
+    },
+    {
+      "ancien": "migrations/20261028210452_inventaire_fret_garde_suspendue.sql",
+      "nouveau": "historique/migrations-appliquees/20261028210452_inventaire_fret_garde_suspendue.sql",
+      "sha256_avant": "d977238b1fc82a454d648218e95c379e7666eca7ac54a0ff56a744fae39c323d",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028210452"
+    },
+    {
+      "ancien": "migrations/20261028210500_inventaire_fret_garde_reactivee.sql",
+      "nouveau": "historique/migrations-appliquees/20261028210500_inventaire_fret_garde_reactivee.sql",
+      "sha256_avant": "04561332d36870442876d2e3820acf54fc28d4ee2c077f5db60bb5109e8e0278",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029210309"
+    },
+    {
+      "ancien": "migrations/20261028210600_inventaire_vol_materiaux_ancien_acte_ferme.sql",
+      "nouveau": "historique/migrations-appliquees/20261028210600_inventaire_vol_materiaux_ancien_acte_ferme.sql",
+      "sha256_avant": "da1f1aef525d86c7303e0f8bd5e879236f78bc4972a8db1ecccda75b8fcd0f89",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029210313"
+    },
+    {
+      "ancien": "migrations/20261028210700_inventaire_calomnie_ancienne_entree_fermee.sql",
+      "nouveau": "historique/migrations-appliquees/20261028210700_inventaire_calomnie_ancienne_entree_fermee.sql",
+      "sha256_avant": "b90a8cd9772c6d2dbbc7c3ee48f85e4363c9861ae5779326d85bd34032f5d7ee",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029210319"
+    },
+    {
+      "ancien": "migrations/20261028210800_jean_lou_canal_reserve_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261028210800_jean_lou_canal_reserve_serveur.sql",
+      "sha256_avant": "aab0dc542512e23e7de8d4b0aa13832c399ed0c75b81106d34b2cf2040418aa2",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029210322"
+    },
+    {
+      "ancien": "migrations/20261028210900_conference_canal_reserve_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261028210900_conference_canal_reserve_serveur.sql",
+      "sha256_avant": "eff7288dbd4cbe7b9080612761e77f34d84db4c72c9d59d5f3ae9ea32aeab40f",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029210325"
+    },
+    {
+      "ancien": "migrations/20261028220000_inventaire_kompromats_vol_materiaux.sql",
+      "nouveau": "migrations/20261031113648_inventaire_kompromats_vol_materiaux.sql",
+      "sha256_avant": "17f1413d949fe33aff3a90dab09469251ce5870b826854317c4fb66458497d40",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113648"
+    },
+    {
+      "ancien": "migrations/20261028223000_vol_transfert_immediat.sql",
+      "nouveau": "historique/migrations-appliquees/20261028223000_vol_transfert_immediat.sql",
+      "sha256_avant": "574e5e7e62d3e650d1f960478b00d58cfd2ef88c1d452957b52bc788a17b0429",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028212358"
+    },
+    {
+      "ancien": "migrations/20261028224000_tracts_calomnieux_consommes_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261028224000_tracts_calomnieux_consommes_serveur.sql",
+      "sha256_avant": "118578c0e3b83414509b4b117e500b0dee7e14a2c812bfb021beb34cea5af4b2",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028212558"
+    },
+    {
+      "ancien": "migrations/20261028225000_jean_lou_tracts_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261028225000_jean_lou_tracts_serveur.sql",
+      "sha256_avant": "5823ba7623710a5dca1fd59a12f7cb66e6c3772f9c3810281d54c564949485eb",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028213307"
+    },
+    {
+      "ancien": "migrations/20261028226000_conference_soutien_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261028226000_conference_soutien_serveur.sql",
+      "sha256_avant": "f9eddfa7d1c182e89d973bd3ed08cccea7f3437064c16d9c096e988510d8794e",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261028214335"
+    },
+    {
+      "ancien": "migrations/20261028230000_inventaire_verrou_observation.sql",
+      "nouveau": "historique/migrations-appliquees/20261028230000_inventaire_verrou_observation.sql",
+      "sha256_avant": "819062d9db628105afc3c480994ebb37ab58dea8e66b973e864f392e1f9f126a",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029210356"
+    },
+    {
+      "ancien": "migrations/20261028230100_inventaire_verrou_final.sql",
+      "nouveau": "migrations/20261031113649_inventaire_verrou_final.sql",
+      "sha256_avant": "0f1b3b8149e5ba77ba8969dcad6df1212b9e198832494d54dfa8f8215af05b16",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113649"
+    },
+    {
+      "ancien": "migrations/20261029094119_terrains_permis_loyers.sql",
+      "nouveau": "historique/migrations-appliquees/20261029094119_terrains_permis_loyers.sql",
+      "sha256_avant": "272d93ffc705a5a34e15af2fc65a3559d4842a2f06d3f1abd6565492336bbc9c",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029094119"
+    },
+    {
+      "ancien": "migrations/20261029094135_placement_national_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261029094135_placement_national_serveur.sql",
+      "sha256_avant": "dcf92e1bb8c1fa5366a20b11ddde5d334d2d1c0d24bf1b652f305fac8328c453",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029094135"
+    },
+    {
+      "ancien": "migrations/20261029094215_placements_nationaux_multiples.sql",
+      "nouveau": "historique/migrations-appliquees/20261029094215_placements_nationaux_multiples.sql",
+      "sha256_avant": "9f1469b4adbb4cf2480ef6a404a3e20a36a24b67fdc81d3a8246f18336fc4860",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029094215"
+    },
+    {
+      "ancien": "migrations/20261029095142_rdv_notaire_accelerer_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261029095142_rdv_notaire_accelerer_serveur.sql",
+      "sha256_avant": "785484d9bd5f335d8b6d474bb4bbd6cc3fdd95249748bf77f0b67609ee1c8871",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029095142"
+    },
+    {
+      "ancien": "migrations/20261029095808_repas_boissons_sur_place.sql",
+      "nouveau": "historique/migrations-appliquees/20261029095808_repas_boissons_sur_place.sql",
+      "sha256_avant": "df22cf0ad0957260e68480d1b15822da77115f8523eaae3a2e3204059f95a32d",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029095808"
+    },
+    {
+      "ancien": "migrations/20261029121752_pret_immobilier_verse_a_la_signature.sql",
+      "nouveau": "historique/migrations-appliquees/20261029121752_pret_immobilier_verse_a_la_signature.sql",
+      "sha256_avant": "225e91669313baf920da9dd60ac825b006829a7884982c6847c77b8e5362cea9",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029121752"
+    },
+    {
+      "ancien": "migrations/20261029122005_chantier_alerte_materiaux.sql",
+      "nouveau": "historique/migrations-appliquees/20261029122005_chantier_alerte_materiaux.sql",
+      "sha256_avant": "461ae53a1857d4018120fa65d91a0cf05e17c8b7bcfbc97ffca38435c78ce9f3",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029122005"
+    },
+    {
+      "ancien": "migrations/20261029122342_permis_corruption_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261029122342_permis_corruption_serveur.sql",
+      "sha256_avant": "67d041a7bec9d5969aea2d03a0ffa4bb52c8847ab6694646207445499e670eeb",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029122342"
+    },
+    {
+      "ancien": "migrations/20261029122748_permis_decision_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261029122748_permis_decision_serveur.sql",
+      "sha256_avant": "426226aec6b38ae4f45c8fb3a3ef4c3a039be63f57c7d0011273db4f0aa69c5c",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029122748"
+    },
+    {
+      "ancien": "migrations/20261029160000_fermer_ancien_acte_rdv_notaire.sql",
+      "nouveau": "historique/migrations-appliquees/20261029160000_fermer_ancien_acte_rdv_notaire.sql",
+      "sha256_avant": "d2ef0fe47d1d799086bd85d0152a5cb91ab80a63e51c17813a6fb68edc015fdc",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029191757"
+    },
+    {
+      "ancien": "migrations/20261029180000_anciens_actes_acceleration_neutralises.sql",
+      "nouveau": "historique/migrations-appliquees/20261029180000_anciens_actes_acceleration_neutralises.sql",
+      "sha256_avant": "b573a2b38e8e1035e1b8842316c6210d65c29214a8c229b70b6bfd103777300c",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029184313"
+    },
+    {
+      "ancien": "migrations/20261029181000_squatteurs_issue_combat.sql",
+      "nouveau": "migrations/20261031113650_squatteurs_issue_combat.sql",
+      "sha256_avant": "a949885e3ae62b4480a42dc35464091dd66d3c26648c248358724e6f1f92cfab",
+      "statut": "preparation_sans_application_attestee_rehorodatee",
+      "version_preparee": "20261031113650"
+    },
+    {
+      "ancien": "migrations/20261029184321_location_locaux_par_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261029184321_location_locaux_par_serveur.sql",
+      "sha256_avant": "2e95480fa2b9c1e62bf293f12962e9979a87c5857dde71caa276170912854266",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029184321"
+    },
+    {
+      "ancien": "migrations/20261029184923_rumeurs_organisations_confidentialite.sql",
+      "nouveau": "historique/migrations-appliquees/20261029184923_rumeurs_organisations_confidentialite.sql",
+      "sha256_avant": "471bab60a920ca169243a80c8892924e9619b834f01ea8703737cc316f09bb18",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029184923"
+    },
+    {
+      "ancien": "migrations/20261029190100_location_locaux_fermer_ecran.sql",
+      "nouveau": "historique/migrations-appliquees/20261029190100_location_locaux_fermer_ecran.sql",
+      "sha256_avant": "2e754a4e8af8e9f72a05e6f118e5d12dc47fea0ff3cf904c5b81bae90f7749aa",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029191759"
+    },
+    {
+      "ancien": "migrations/20261029194500_location_box_portuaire_signature_corriger.sql",
+      "nouveau": "historique/migrations-appliquees/20261029194500_location_box_portuaire_signature_corriger.sql",
+      "sha256_avant": "065d78839037615175f73693c6f442a032d8da067a3fd6bd37eabe3878b7a784",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029184442"
+    },
+    {
+      "ancien": "migrations/20261029200000_prets_budgets_municipaux_gardes.sql",
+      "nouveau": "historique/migrations-appliquees/20261029200000_prets_budgets_municipaux_gardes.sql",
+      "sha256_avant": "df1b4372b6755a76ba00a8349a9a91c0ccd375ca3bf4a7b18ec54770f01cd145",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029182603"
+    },
+    {
+      "ancien": "migrations/20261029201000_mariage_par_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261029201000_mariage_par_serveur.sql",
+      "sha256_avant": "64ec0e58627cbba214b19b800230c93d3d3c64961fd4c40861b52af79397e9b7",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029182611"
+    },
+    {
+      "ancien": "migrations/20261029201100_mariage_fermer_ecran.sql",
+      "nouveau": "historique/migrations-appliquees/20261029201100_mariage_fermer_ecran.sql",
+      "sha256_avant": "7f94598850885b980bdb6141bf39eef6c49823159163de29f1b279b7af703631",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029191802"
+    },
+    {
+      "ancien": "migrations/20261029203000_mariage_presence_piece_et_veuvage.sql",
+      "nouveau": "historique/migrations-appliquees/20261029203000_mariage_presence_piece_et_veuvage.sql",
+      "sha256_avant": "6909eb53528b467488d447c968f882840ebe55a87bf1fb67003d2b80d359354f",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029184631"
+    },
+    {
+      "ancien": "migrations/20261029203500_crimes_batiments_sensibles_toutes_villes.sql",
+      "nouveau": "historique/migrations-appliquees/20261029203500_crimes_batiments_sensibles_toutes_villes.sql",
+      "sha256_avant": "2f06cd657a4fafd98213253aceac84aba4c92cbf37e3755d47394682cb7cb9e2",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030115923"
+    },
+    {
+      "ancien": "migrations/20261029210000_mairie_acquereur_terrain.sql",
+      "nouveau": "historique/migrations-appliquees/20261029210000_mairie_acquereur_terrain.sql",
+      "sha256_avant": "9dc33f2a805b6714147dd96158a0d2dbf73a147b04cef85c3aaa73e694002dff",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030115926"
+    },
+    {
+      "ancien": "migrations/20261029213000_fermer_branche_morte_acceleration_notaire.sql",
+      "nouveau": "historique/migrations-appliquees/20261029213000_fermer_branche_morte_acceleration_notaire.sql",
+      "sha256_avant": "2a2a6f3d823d02d8c1a61c8a39d536117e5574cd738b404ddb8b527ccbdfca79",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029192243"
+    },
+    {
+      "ancien": "migrations/20261029220000_logements_sociaux_communaux.sql",
+      "nouveau": "historique/migrations-appliquees/20261029220000_logements_sociaux_communaux.sql",
+      "sha256_avant": "b553e45aa20d677e53a26ace734e1004a7229709f645fd85101c8e2a943cd538",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030115932"
+    },
+    {
+      "ancien": "migrations/20261029222000_permis_commune_par_caisse.sql",
+      "nouveau": "historique/migrations-appliquees/20261029222000_permis_commune_par_caisse.sql",
+      "sha256_avant": "8eb8f42f215b6482765c371d564ac36785b314019705d33f648fc1293d9ee922",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030115940"
+    },
+    {
+      "ancien": "migrations/20261029223000_logements_sociaux_resiliation_domicile.sql",
+      "nouveau": "historique/migrations-appliquees/20261029223000_logements_sociaux_resiliation_domicile.sql",
+      "sha256_avant": "b20739ba3f12e7c5f5fd532354f9e7b1ad639e62179d8cfaa5c892df955b4cea",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030115944"
+    },
+    {
+      "ancien": "migrations/20261029224000_logements_historiques_montrouge.sql",
+      "nouveau": "historique/migrations-appliquees/20261029224000_logements_historiques_montrouge.sql",
+      "sha256_avant": "23813f1e832db08da02841ca8fe687ded2b95759263d18c8b72afc53d7bea6f7",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030115952"
+    },
+    {
+      "ancien": "migrations/20261029234500_retirer_enquetes_aleatoires.sql",
+      "nouveau": "historique/migrations-appliquees/20261029234500_retirer_enquetes_aleatoires.sql",
+      "sha256_avant": "8de904cac5b092629306f47f83a8384d5d5fa3006032eb682452139265a621b6",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029222851"
+    },
+    {
+      "ancien": "migrations/20261029234600_interdire_terrain_par_quete.sql",
+      "nouveau": "historique/migrations-appliquees/20261029234600_interdire_terrain_par_quete.sql",
+      "sha256_avant": "0c901c783faa2ccf34b3bfa886c60a7e38587ce77564a92d62eee864cdb065d5",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261029222857"
+    },
+    {
+      "ancien": "migrations/20261030100000_amendes_tresor_national.sql",
+      "nouveau": "historique/migrations-appliquees/20261030100000_amendes_tresor_national.sql",
+      "sha256_avant": "0665f576d1001c4337e60230d13e5a89629e6a6c1a21386db5f6c8025e3c274a",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030115956"
+    },
+    {
+      "ancien": "migrations/20261030102500_fermer_recompense_quete_ancienne.sql",
+      "nouveau": "historique/migrations-appliquees/20261030102500_fermer_recompense_quete_ancienne.sql",
+      "sha256_avant": "1150a0bc01fc72d700a39dace671d7aa55e1dc9f4ee48a3fa3010ecc1e98d41d",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030085322"
+    },
+    {
+      "ancien": "migrations/20261030110000_budget_national_et_fraude.sql",
+      "nouveau": "historique/migrations-appliquees/20261030110000_budget_national_et_fraude.sql",
+      "sha256_avant": "57870c3f237a6f8e9d594be6945730a68315b1234a4f7354b11b54315695267f",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030115959"
+    },
+    {
+      "ancien": "migrations/20261030113000_budget_national_fusion_rls_correctif.sql",
+      "nouveau": "historique/migrations-appliquees/20261030113000_budget_national_fusion_rls_correctif.sql",
+      "sha256_avant": "e62d4644256f931022c37d953a5c28fb681b9be8bc98e299f75536d0592f523c",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030120511"
+    },
+    {
+      "ancien": "migrations/20261030135000_budget_national_credits_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261030135000_budget_national_credits_serveur.sql",
+      "sha256_avant": "6d6a2fd2ed14e6ba9f4445cec1f2f452755711787241ba1810636726b6f0bff8",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030122900"
+    },
+    {
+      "ancien": "migrations/20261030140000_sanctions_financieres_communes.sql",
+      "nouveau": "historique/migrations-appliquees/20261030140000_sanctions_financieres_communes.sql",
+      "sha256_avant": "9180a40ded6dcd93355b268e778ecbf87ff4135299a87b996ba7b6561d5460fd",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030122905"
+    },
+    {
+      "ancien": "migrations/20261030160000_fiche_fusion_trois_voies.sql",
+      "nouveau": "historique/migrations-appliquees/20261030160000_fiche_fusion_trois_voies.sql",
+      "sha256_avant": "205ef32fcd812c88d68818deaedc24d38fa2467e5d71c6441dc006eeb16bbb6f",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030162931"
+    },
+    {
+      "ancien": "migrations/20261030161000_fermetures_fret_historique_terrains.sql",
+      "nouveau": "historique/migrations-appliquees/20261030161000_fermetures_fret_historique_terrains.sql",
+      "sha256_avant": "5e624aa2336f14ac5705cf90a7e93c0f2dda1c9589d6a733af930e25b886bd44",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030162939"
+    },
+    {
+      "ancien": "migrations/20261030180000_achats_cle_unicite.sql",
+      "nouveau": "historique/migrations-appliquees/20261030180000_achats_cle_unicite.sql",
+      "sha256_avant": "70ada995fcbb755df963c2ffe72021f9ae34335813dc25a9c5fed4d3536acde9",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030182403"
+    },
+    {
+      "ancien": "migrations/20261030180100_achats_anciennes_portes_fermees.sql",
+      "nouveau": "historique/migrations-appliquees/20261030180100_achats_anciennes_portes_fermees.sql",
+      "sha256_avant": "2ab20c6372a28c38a54030ee2f8cdae72d3f328707be9471ec271fb2a41c2494",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030182449"
+    },
+    {
+      "ancien": "migrations/20261030200000_entrepot_capacite_universelle.sql",
+      "nouveau": "historique/migrations-appliquees/20261030200000_entrepot_capacite_universelle.sql",
+      "sha256_avant": "1e15a7064229291ec96d23367734bdd9c4e69799c538909dc95baea0a40aede3",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030184130"
+    },
+    {
+      "ancien": "migrations/20261030210000_argent_fonctions_serveur_table.sql",
+      "nouveau": "historique/migrations-appliquees/20261030210000_argent_fonctions_serveur_table.sql",
+      "sha256_avant": "f91cc69e8f5abbeecf85fa9e1d17970e4ddece14ef3239fb46e08d3fbf31a90b",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030192140"
+    },
+    {
+      "ancien": "migrations/20261030211000_fiche_vue_refus_bruyant.sql",
+      "nouveau": "historique/migrations-appliquees/20261030211000_fiche_vue_refus_bruyant.sql",
+      "sha256_avant": "958b191fbeac809c497dd5550da3e5328db4e93579ac9905f5a6f1d6c10519de",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030192146"
+    },
+    {
+      "ancien": "migrations/20261030212000_regularisation_jaaj_helvetia.sql",
+      "nouveau": "historique/migrations-appliquees/20261030212000_regularisation_jaaj_helvetia.sql",
+      "sha256_avant": "c6f687bf3530eba712e70e18ad547b5e57dd63eea8e6c7ed4218d17dfd89bd1d",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030192157"
+    },
+    {
+      "ancien": "migrations/20261030220000_sceller_occupation_achat_direct.sql",
+      "nouveau": "historique/migrations-appliquees/20261030220000_sceller_occupation_achat_direct.sql",
+      "sha256_avant": "176b2323f1854b6bf6c7924872a9e05f57711583dbebf7842655203418c4c4df",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030193535"
+    },
+    {
+      "ancien": "migrations/20261030220100_reparer_occupation_apres_achat_jaaj.sql",
+      "nouveau": "historique/migrations-appliquees/20261030220100_reparer_occupation_apres_achat_jaaj.sql",
+      "sha256_avant": "6e93d6cda7cb9fa64762d587c4f159e1b1a2e4006d4a6a5559ae4b5bebbf14b0",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261030193635"
+    },
+    {
+      "ancien": "migrations/20261031100000_genre_personnage_serveur.sql",
+      "nouveau": "historique/migrations-appliquees/20261031100000_genre_personnage_serveur.sql",
+      "sha256_avant": "148fc34874e41edf1fa52802a8d9e8242d7979e9e4479696d0627facb9d39927",
+      "statut": "appliquee_registre_nom_exact_unique",
+      "version_registre": "20261031113025"
+    }
+  ]
+}

@@ -283,6 +283,16 @@ def main():
             notes.append("seed de %s : cle etrangere vers %s, qui n'est pas peuplee. "
                          "L'INSERT ne passera que si la colonne est nulle sur toutes "
                          "les lignes seedees." % (p, c))
+        # La reconstruction est l'unique ordonnanceur : éprouver son ordre ici
+        # aussi, plutôt que déclarer cohérent un cycle qu'elle refuserait ensuite.
+        from reconstruire import ordonner_seeds
+        schema_fk = [(d + '/30_contraintes.sql', phase(man, rep, '30_contraintes'))
+                     for d, (man, rep) in mans.items()]
+        graines = [(os.path.relpath(p, BASE), lire(p)) for p in sorted(glob.glob(os.path.join(rep_seeds, '*', '*.sql')))]
+        try:
+            ordonner_seeds(schema_fk, graines)
+        except ValueError as e:
+            pbs.append(str(e))
         boucles = sorted(p for p, cs in liens.items() if p in cs)
         print("   tables a cle etrangere sur elles-memes : %d" % len(boucles))
         for b in boucles:

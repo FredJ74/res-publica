@@ -1,0 +1,19 @@
+✔ doRecruterPolicier utilise un ordre entier et les PA relus (155.40212ms)
+✔ doRecruterPolicierCynophile utilise un ordre entier et les PA relus (58.954782ms)
+✔ doRecruterDouanier utilise un ordre entier et les PA relus (52.501608ms)
+✔ doRecruterDouanierCynophile utilise un ordre entier et les PA relus (47.437457ms)
+✔ réponse perdue : même reçu au second essai, aucun effet local (49.046204ms)
+✔ double clic : un seul envoi (44.896744ms)
+✔ réponse tardive : autre personnage préservé (47.769307ms)
+✔ autre session : pas de PA repris (52.21182ms)
+✔ relecture impossible après succès : conserver reçu (45.532243ms)
+✔ pas de stockage durable : aucun ordre envoyé (43.746585ms)
+✔ licenciement : réutilise même porte, puis relit interface (44.037655ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 652.955454

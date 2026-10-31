@@ -10,6 +10,14 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."caisses_mouvements_clients_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."contributions_piete_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."fonds_credits_uniques_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."fonds_en_transit_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
 CREATE TABLE public.budget_national_champs_regles (
   champ text NOT NULL,
   poste_id text NOT NULL,
@@ -51,7 +59,7 @@ CREATE TABLE public.caisses_batiments (
 );
 
 CREATE TABLE public.caisses_mouvements_clients (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('caisses_mouvements_clients_id_seq'::regclass) NOT NULL,
   acteur text,
   caisse text NOT NULL,
   delta numeric NOT NULL,
@@ -62,7 +70,7 @@ CREATE TABLE public.caisses_mouvements_clients (
 );
 
 CREATE TABLE public.contributions_piete (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('contributions_piete_id_seq'::regclass) NOT NULL,
   pays text NOT NULL,
   ville text NOT NULL,
   auteur text NOT NULL,
@@ -111,7 +119,7 @@ CREATE TABLE public.fonds_credits_sources (
 );
 
 CREATE TABLE public.fonds_credits_uniques (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('fonds_credits_uniques_id_seq'::regclass) NOT NULL,
   acteur text NOT NULL,
   source text NOT NULL,
   reference text NOT NULL,
@@ -130,6 +138,14 @@ CREATE TABLE public.fonds_debits (
   rembourse_le timestamp with time zone,
   montant_rembourse numeric,
   source_remb text
+);
+
+CREATE TABLE public.fonds_en_transit (
+  id bigint DEFAULT nextval('fonds_en_transit_id_seq'::regclass) NOT NULL,
+  acteur text NOT NULL,
+  montant numeric NOT NULL,
+  origine text NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE TABLE public.pa_bonus_differes (
@@ -174,6 +190,7 @@ CREATE TABLE public.repartitions_budgetaires (
   pays text NOT NULL,
   source text NOT NULL,
   beneficiaire text NOT NULL,
+  "__baseline_attribut_supprime_4" integer,
   poste_autorite text NOT NULL,
   rang integer NOT NULL,
   libelle text NOT NULL,
@@ -182,18 +199,23 @@ CREATE TABLE public.repartitions_budgetaires (
   part_denominateur numeric
 );
 
+ALTER TABLE public."repartitions_budgetaires" DROP COLUMN "__baseline_attribut_supprime_4";
+
 CREATE TABLE public.repartitions_versements (
   pays text NOT NULL,
   source text NOT NULL,
   beneficiaire text NOT NULL,
   jour date NOT NULL,
   base numeric NOT NULL,
+  "__baseline_attribut_supprime_6" integer,
   montant numeric NOT NULL,
   transfere boolean DEFAULT true NOT NULL,
   verse_le timestamp with time zone DEFAULT now() NOT NULL,
   part_numerateur numeric,
   part_denominateur numeric
 );
+
+ALTER TABLE public."repartitions_versements" DROP COLUMN "__baseline_attribut_supprime_6";
 
 CREATE TABLE public.salaires_caisses (
   poste_id text NOT NULL,
@@ -237,6 +259,17 @@ CREATE TABLE public.salaires_religieux_verses (
   verse_le timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.subventions_entreprises_traces (
+  requete text NOT NULL,
+  acteur text NOT NULL,
+  beneficiaire text NOT NULL,
+  proprietaire text,
+  montant numeric NOT NULL,
+  conflit_interets boolean DEFAULT false NOT NULL,
+  pays text NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.subventions_familles (
   famille text NOT NULL,
   libelle text NOT NULL,
@@ -262,3 +295,11 @@ CREATE TABLE public.subventions_municipales (
   clos_le timestamp with time zone,
   created_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
+ALTER SEQUENCE public."caisses_mouvements_clients_id_seq" OWNED BY public."caisses_mouvements_clients"."id";
+
+ALTER SEQUENCE public."contributions_piete_id_seq" OWNED BY public."contributions_piete"."id";
+
+ALTER SEQUENCE public."fonds_credits_uniques_id_seq" OWNED BY public."fonds_credits_uniques"."id";
+
+ALTER SEQUENCE public."fonds_en_transit_id_seq" OWNED BY public."fonds_en_transit"."id";

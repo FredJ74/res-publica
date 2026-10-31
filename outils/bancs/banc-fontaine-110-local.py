@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile,re
 import pgserver,psycopg2
 R=Path(__file__).resolve().parents[2]
-sql=(R/'migrations/20261023000000_fontaine_exclusivite_sur_place.sql').read_text()
+sql=(R/'historique/migrations-appliquees/20261023000000_fontaine_exclusivite_sur_place.sql').read_text()
 assert "1c5e04f8c73e2ddb64f0b14686b4a931" in sql
 assert "a2fa09c304ac4090945db10959719b48" in sql
 # Sur ce moteur de test, seuls les deux corps fictifs remplacent les deux corps

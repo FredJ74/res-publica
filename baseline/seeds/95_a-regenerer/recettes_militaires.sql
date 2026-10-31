@@ -1,34 +1,12 @@
--- SEED A REGENERER -- recettes_militaires
--- ============================================================================
--- Table   : public.recettes_militaires
--- Domaine : militaire
--- Source canonique : RECETTES_MILITAIRES, plateau-effort-guerre.js
--- Generateur       : outils/generateurs/generer_recettes_militaires.py (EXISTE ET MARCHE)
---
--- CE FICHIER NE CONTIENT AUCUNE DONNEE, ET C'EST VOLONTAIRE.
--- Cette table est un MIROIR d'une source qui vit dans le depot. Son seed se
--- REGENERE depuis cette source ; il ne se copie jamais depuis la base.
---
--- CE QUE LA TABLE PORTE
--- 8 recettes de production militaire, miroir de RECETTES_MILITAIRES. Aucune
--- fonction ne l'ecrit : le serveur ne fait que la lire pour valider qu'un
--- produit commande existe.
---
--- POURQUOI PAS UNE COPIE DE LA BASE
--- La source de verite vit dans le depot. Copier la base figerait toute
--- derive entre les deux, et recettes_militaires_empreinte existe precisement
--- pour surveiller cette derive.
---
--- CE QU'IL RESTE A FAIRE
--- CE FICHIER ETAIT ECRIT A LA MAIN, hors de tout registre : seeds.py ne le
--- connaissait pas, l'INVENTAIRE ne le hachait pas, et le controle de
--- couverture du 7 octobre 2026 l'a decouvert en meme temps que l'oubli de
--- `villes`. Il est desormais declare ici. Son generateur, lui, existe deja
--- et tourne : `generer_recettes_militaires.py --sql` rend un SQL
--- deterministe, empreinte 6162d0e5d809630e au 6 octobre 2026, et c'est lui
--- qui a produit le seed de la migration
--- 20261006213114_effort_commande_autorite. Reste a le faire ecrire
--- directement ici, empreinte comprise.
--- ============================================================================
-
--- Rien a appliquer tant que le generateur n'a pas ecrit ici.
+-- Généré depuis data.js par outils/generateurs/generer_recettes_militaires.py --sql.
+-- Ne pas retoucher ; régénérer avec outils/baseline/regenerer-seeds-miroirs.py.
+INSERT INTO public.recettes_militaires (produit,label,materiaux,pa,produit_par_lot,type_objet,sous_type,prix_pnj,capacite) VALUES
+('arme_de_poing', 'Pistolet militaire', '{"bois":1,"metal":2}'::jsonb, NULL, 1, 'arme', 'militaire', NULL, NULL),
+  ('explosif_militaire', 'Explosifs militaires', '{"metal":2,"minerai":3}'::jsonb, 1, 3, 'explosif', 'militaire', NULL, NULL),
+  ('gilet_pare_balles', 'Gilet pare-balles', '{"metal":2,"textile":2}'::jsonb, 3, 1, 'equipement', 'militaire', 380, NULL),
+  ('jumelles', 'Jumelles', '{"metal":1,"minerai":1,"textile":1}'::jsonb, 2, 1, 'equipement', 'militaire', 260, NULL),
+  ('mitraillette', 'Mitraillette', '{"bois":2,"metal":2}'::jsonb, NULL, 1, 'arme', 'militaire', NULL, NULL),
+  ('radio', 'Radio de campagne', '{"metal":1,"minerai":1,"textile":1}'::jsonb, 3, 1, 'equipement', 'militaire', 360, NULL),
+  ('tente', 'Tente de campagne', '{"metal":1,"textile":1}'::jsonb, 2, 1, 'equipement', 'militaire', 240, 13),
+  ('tenue_camouflage', 'Tenue de camouflage', '{"charbon":1,"fruits_legumes":1,"textile":1}'::jsonb, 2, 1, 'equipement', 'militaire', 230, NULL)
+ON CONFLICT DO NOTHING;

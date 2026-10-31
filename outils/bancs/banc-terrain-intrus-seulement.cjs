@@ -13,7 +13,9 @@ test('ancien point entree : aucun tirage client ni profil supprime',()=>{
  const a=p.indexOf('function genererPnjTerrain('),b=p.indexOf('async function interagirPnjTerrain',a);
  for(const pays of Object.keys(catalogue.profils))for(const occupation of [null,'vide','agent','promoteur','gardien','inspecteur','cadavre','squatter_cool','squatter_agr']){
   const ctx={state:{country:pays},getTerrainState:()=>({pnj:occupation}),TERRAIN_PNJ_PROFILES:catalogue.profils,Math:{random(){throw Error('tirage client interdit')}}};
-  vm.createContext(ctx);vm.runInContext(p.slice(a,b),ctx);const v=ctx.genererPnjTerrain('terrain-a-batir-1');
+  const c=p.indexOf('function profilOccupationTerrain('),d=p.indexOf('function terrainOrdreDisponible',c);
+  vm.createContext(ctx);vm.runInContext(p.slice(c,d)+p.slice(a,b),ctx);const v=ctx.genererPnjTerrain('terrain-a-batir-1');
   assert.equal(!!v,['cadavre','squatter_cool','squatter_agr'].includes(occupation));
+  if (['squatter_cool','squatter_agr'].includes(occupation))assert.equal(v.name,'squatteurs');
  }
 });

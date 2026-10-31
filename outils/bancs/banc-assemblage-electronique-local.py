@@ -24,7 +24,7 @@ def main():
  serveur=pgserver.get_server(tempfile.mkdtemp(prefix='hg-electronique-'),cleanup_mode='delete');uri=serveur.get_uri()
  c=psycopg2.connect(uri);c.autocommit=True;q=c.cursor();q.execute(SCHEMA)
  for nom,pa,rendement,mat,comps in RECETTES:q.execute('INSERT INTO recettes_commerce VALUES (%s,%s,%s,%s,%s,%s)',(nom,nom,pa,rendement,json.dumps(mat),json.dumps({'composants-electroniques':comps} if comps else {})))
- original=(R/'migrations/20261018234500_assemblage_electronique.sql').read_text();original=original[original.index('CREATE OR REPLACE FUNCTION'):];q.execute(original)
+ original=(R/'migrations/20261031113554_assemblage_electronique.sql').read_text();original=original[original.index('CREATE OR REPLACE FUNCTION'):];q.execute(original)
  def reset(split=False,comps=10,caisse=1000,pa=100):
   q.execute('TRUNCATE entreprises,personnages_donnees,productions_references');refs={n:{'generique_id':n,'recette_id':n} for n,*_ in RECETTES};refs['comp-a']={'generique_id':'composants-electroniques'};refs['comp-b']={'generique_id':'composants-electroniques'}
   d={'version':2,'statut':'actif','implantation':{},'references':refs,'stockReferences':{'comp-a':1 if split else comps,'comp-b':1 if split else 0},'stockMatieres':{'metal':100,'produits_exotiques':100},'coutMoyenMatieres':{'metal':3,'produits_exotiques':7},'coutMoyenReferences':{'comp-a':5.5,'comp-b':6.5},'caisse':caisse}
@@ -69,9 +69,9 @@ def main():
  for id in ['ordinateur-complet','telephone-cellulaire','camera-de-surveillance','jeu-video','appareil-electronique']:
   q.execute('INSERT INTO catalogue_generiques(id) VALUES (%s)',(id,));q.execute("INSERT INTO catalogue_generique_type VALUES (%s,'electronique-informatique')",(id,))
  for id,gen in [('ordinateur_complet_commerce','ordinateur-complet'),('telephone_cellulaire_commerce','telephone-cellulaire')]:q.execute("INSERT INTO recettes_commerce(id,generique_id) VALUES (%s,%s)",(id,gen))
- q.execute((R/'migrations/20261018230000_composants_electroniques_catalogue.sql').read_text())
- q.execute((R/'migrations/20261018234500_assemblage_electronique.sql').read_text())
- q.execute((R/'migrations/20261019001000_catalogue_informatique_dix_articles.sql').read_text())
+ q.execute((R/'migrations/20261031113551_composants_electroniques_catalogue.sql').read_text())
+ q.execute((R/'migrations/20261031113554_assemblage_electronique.sql').read_text())
+ q.execute((R/'migrations/20261031113555_catalogue_informatique_dix_articles.sql').read_text())
  q.execute("SELECT count(*) FROM catalogue_generique_type WHERE type_id='electronique-informatique'");assert q.fetchone()[0]==10
  q.execute("SELECT pa,portions,materiaux,intermediaires FROM recettes_commerce WHERE id='ordinateur_complet_commerce'");assert q.fetchone()==(2,1,{'metal':1},{'composants-electroniques':2})
  n+=1

@@ -6,6 +6,8 @@ import argparse, tempfile
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 ROOT=Path(__file__).resolve().parents[2]
+import runpy
+_sources=runpy.run_path(str(ROOT/'outils/bancs/banc-audit-securite-135-local.py'))
 SCHEMA="""
 CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
 CREATE TABLE entreprises(id text PRIMARY KEY,data jsonb,updated_at timestamptz);
@@ -31,7 +33,8 @@ INSERT INTO entreprises_constantes VALUES('pa_tournee',1);
 INSERT INTO recettes_commerce VALUES('biere','boisson','Biere','{}',NULL,NULL,NULL,NULL,NULL);
 """
 def extraire(nom,fichier):
- s=(ROOT/fichier).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');b=s.index('$function$;',a)+len('$function$;');return s[a:b]
+ if fichier.startswith('baseline/') and nom in ('commerce_vendre_produit','commerce_produire','tournee_cloturer'):return _sources['entree_historique'](nom)
+ return _sources['fonction'](fichier,nom)
 def main():
  p=argparse.ArgumentParser();p.add_argument('--local-jetable',action='store_true',required=True);p.parse_args()
  import pgserver,psycopg2
@@ -41,8 +44,8 @@ def main():
   s=(ROOT/f).read_text();a=s.index('CREATE TABLE public.'+nom+' (');b=s.index('\n);',a)+3;c.execute(s[a:b]);c.execute('ALTER TABLE '+nom+' ADD PRIMARY KEY(id)')
  for nom,f in [('commerce_vendre_produit','baseline/domaines/economie/20_fonctions-1.sql'),('commerce_produire','baseline/domaines/economie/20_fonctions-1.sql'),('fonds_reference_produire_lots','baseline/domaines/finances-publiques/20_fonctions-1.sql'),('tournee_cloturer','baseline/domaines/personnage-et-presence/20_fonctions.sql')]:c.execute(extraire(nom,f))
  # Le prevol exige le moteur electronique reel deja installe en production, non le baseline ancien.
- c.execute(extraire('fonds_reference_produire_lots','migrations/20261018231225_assemblage_composants_stocks_reels.sql'))
- migration=(ROOT/'migrations/20261019213444_catalogue_et_offrir_a_boire.sql').read_text()
+ c.execute(extraire('fonds_reference_produire_lots','migrations/20261031113552_assemblage_composants_stocks_reels.sql'))
+ migration=(ROOT/'migrations/20261031113607_catalogue_et_offrir_a_boire.sql').read_text()
  c.execute(migration)
  c.execute(migration)  # Meme migration rejouee : idempotence structurelle obligatoire.
  c.execute("SELECT set_config('test.acteur','Alice',false)")

@@ -10,6 +10,30 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+REVOKE ALL ON FUNCTION public.championnat_date_sportive(timestamp with time zone) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.championnat_echeance(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.championnat_matchs(jsonb) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.championnat_publier_journee(integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.championnat_publier_sacre() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.championnat_publier_tour(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.championnat_rang_etape(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.championnat_verrou_calendrier() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_accessoire_acheter(uuid,text,integer,integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_capitaine(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_electeurs(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_president_cloturer(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_president_postuler(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_president_voter(text,boolean) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.football_entrainement_consommer(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.football_entrainements_compter_interne(text,date) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.football_entrainements_du_jour() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.football_noms_composition(jsonb) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.football_pari_engager(text,text,integer,text,integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.football_paris_resoudre(integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.football_primes_journee(integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.football_primes_match(integer,text,jsonb) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.football_primes_tour(text) FROM PUBLIC;
+
 -- DROITS SUR LES FUNCTIONS
 GRANT EXECUTE ON FUNCTION public.championnat_date_sportive(timestamp with time zone) TO PUBLIC;
 GRANT EXECUTE ON FUNCTION public.championnat_date_sportive(timestamp with time zone) TO anon;
@@ -42,6 +66,9 @@ GRANT EXECUTE ON FUNCTION public.championnat_rang_etape(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.championnat_rang_etape(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO postgres;
 GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO service_role;
+GRANT EXECUTE ON FUNCTION public.club_accessoire_acheter(uuid,text,integer,integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.club_accessoire_acheter(uuid,text,integer,integer) TO postgres;
+GRANT EXECUTE ON FUNCTION public.club_accessoire_acheter(uuid,text,integer,integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.club_capitaine(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.club_capitaine(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.club_capitaine(text) TO service_role;

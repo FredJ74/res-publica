@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 const core = readFileSync(new URL('../../plateau-core.js', import.meta.url), 'utf8');
 const db = readFileSync(new URL('../../supabase.js', import.meta.url), 'utf8');
-const sql = readFileSync(new URL('../../migrations/20261017190000_fermetures_date_universelle.sql', import.meta.url), 'utf8');
+const sql = readFileSync(new URL('../../migrations/20261031113548_fermetures_date_universelle.sql', import.meta.url), 'utf8');
 
 test('une fermeture datée ne dépend pas du jour personnel', () => {
   const start = core.indexOf('function fermetureEncoreActive(r)');

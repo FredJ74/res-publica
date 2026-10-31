@@ -17,6 +17,25 @@
 -- Table de transition : a-t-elle encore un sens dans un monde neuf ?
 -- ============================================================================
 
+-- SEED -- catalogue_correspondance_legacy
+-- ============================================================================
+-- Table      : public.catalogue_correspondance_legacy
+-- Domaine    : economie
+-- Categorie  : D (mixte)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 58
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 58 correspondances vers les anciens identifiants.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Table de transition : a-t-elle encore un sens dans un monde neuf ?
+-- ============================================================================
+
 INSERT INTO public.catalogue_correspondance_legacy (id, motif, valeur, generique_id, variante_id, priorite, effets_effectifs, source_audit, note) VALUES ('1', 'type_soustype', 'arme|blanche', 'arme-blanche', NULL, '100', NULL, 'plateau-actions-illegales-rumeurs.js:1478 (affichage seul) ; getStatEffective ne lit jamais item.bonus', 'bonus {VOL,5} declare, affiche, JAMAIS applique : absent des effets effectifs.');
 INSERT INTO public.catalogue_correspondance_legacy (id, motif, valeur, generique_id, variante_id, priorite, effets_effectifs, source_audit, note) VALUES ('2', 'type_soustype', 'arme|poing', 'arme-de-poing', NULL, '100', NULL, 'plateau-actions-illegales-rumeurs.js:1478 ; getStatEffective', 'bonus {PER,8} declare, jamais applique.');
 INSERT INTO public.catalogue_correspondance_legacy (id, motif, valeur, generique_id, variante_id, priorite, effets_effectifs, source_audit, note) VALUES ('3', 'type_soustype', 'arme|carabine', 'arme-longue', NULL, '100', NULL, 'plateau-actions-illegales-rumeurs.js:1478 ; getStatEffective', 'bonus {PER,15} declare, jamais applique.');
@@ -76,6 +95,5 @@ INSERT INTO public.catalogue_correspondance_legacy (id, motif, valeur, generique
 INSERT INTO public.catalogue_correspondance_legacy (id, motif, valeur, generique_id, variante_id, priorite, effets_effectifs, source_audit, note) VALUES ('57', 'ordre', 'hebergement|palais-presidentiel', 'hebergement-prestige', NULL, '100', '{"moral": 8, "pa_lendemain": 8}', 'pa_bonus_hotel = 8 ; confortMap plateau-personnage.js:2947', NULL);
 INSERT INTO public.catalogue_correspondance_legacy (id, motif, valeur, generique_id, variante_id, priorite, effets_effectifs, source_audit, note) VALUES ('58', 'type', 'armoire_souvenirs', 'meuble-de-rangement', NULL, '100', NULL, 'creerExemplaireArmoireSouvenirs, plateau-justice-economie.js:5512-5528 ; seuls lecteurs : plateau-personnage.js:3338 et :3373 (affichage)', 'Aucun effet mecanique hormis encombrement 3. contenu et verrouillee ne sont ni lus ni ecrits. AUCUN bonus de sommeil. Actuellement IMPOSSIBLE A OBTENIR : la ligne batiments_etat[republic_ville_a_zone-production] n''existe pas.');
 
--- Recalage de la sequence : sans lui, le premier INSERT applicatif
--- entrerait en collision avec un identifiant seede.
-select setval('catalogue_correspondance_legacy_id_seq', (select coalesce(max(id), 0) + 1 from public.catalogue_correspondance_legacy), false);
+-- Recalage depuis les identifiants initiaux, jamais le compteur de bêta.
+select setval('public."catalogue_correspondance_legacy_id_seq"', (select coalesce(max("id"), 0) + (1) from public."catalogue_correspondance_legacy"), false);

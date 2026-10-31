@@ -8,7 +8,7 @@ R=Path(__file__).resolve().parents[2]
 def scenario(q,own,call,check,uid,snapshot,Json):
  import psycopg2
  src=(R/'baseline/domaines/personnage-et-presence/10_tables.sql').read_text();own(re.search(r'CREATE TABLE public.quetes_actives \([\s\S]*?\n\);',src)[0]);own('ALTER TABLE quetes_actives ADD PRIMARY KEY(id)')
- for _ in range(2):own((R/'migrations/20261027215214_inventaire_recompenses_objets.sql').read_text())
+ for _ in range(2):own((R/'historique/migrations-appliquees/20261027215214_inventaire_recompenses_objets.sql').read_text())
  own("UPDATE personnages_donnees SET current_building='mairie-capitale',current_room='hall_mairie',inventory='[]' WHERE name='Fixture'")
  own("INSERT INTO quetes_actives(id,country,titre,description,etape_actuelle,nb_etapes_total,building_id,room_id,recompense_type,jour_creation) VALUES('q1','republic','Titre fictif','Description fictive',2,3,'mairie-capitale','hall_mairie','objet',1)")
  def cadeau(k):return call('quete_objet_reclamer',[uid(k),'q1'])

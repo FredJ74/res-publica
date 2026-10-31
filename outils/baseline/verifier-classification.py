@@ -172,8 +172,11 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # un PNJ PERMANENT -- `postes_attribues_jamais_greffier` interdit en base d'en faire un poste de
 # PJ. Sans ces trois lignes, `greffe_signataire` ne trouve rien a signer et aucun document ne
 # peut etre emis dans un monde neuf.
-TABLES_ATTENDUES = 319
-EMPREINTE_LISTE = "bc283117c2e555ce1b0e40a6e35f6a68"   # md5(string_agg(relname,',' order by relname collate "C"))
+# Observation indépendante du CSV : noms relkind=r issus de l'export canonique
+# vérifié du 31/10/2026 ; total 376 confirmé par controle_global. Aucun nombre
+# de lignes de seed n'est déduit de ces métadonnées (ils restent non_releve).
+TABLES_ATTENDUES = 376
+EMPREINTE_LISTE = "3ba4144a790ba04feefee669d01e60aa"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",
@@ -236,8 +239,14 @@ def main():
     for l in lignes:
         repartition[l["categorie"]] = repartition.get(l["categorie"], 0) + 1
     print("Repartition  " + "  ".join("%s=%d" % (k, repartition.get(k, 0)) for k in "ABCD"))
-    print("Tables entrant dans le seed : %d  (%d lignes actuelles cumulees)"
-          % (len(seeds), sum(int(l["lignes_actuelles"]) for l in seeds)))
+    non_releves = [l["table"] for l in seeds if not l["lignes_actuelles"].isdigit()]
+    if non_releves:
+        pbs.append("nombre de lignes de seed non relevé : " + ", ".join(non_releves))
+        print("Tables entrant dans le seed : %d ; total non certifiable (%d relevés manquants)"
+              % (len(seeds), len(non_releves)))
+    else:
+        print("Tables entrant dans le seed : %d  (%d lignes actuelles cumulees)"
+              % (len(seeds), sum(int(l["lignes_actuelles"]) for l in seeds)))
 
     print()
     if pbs:

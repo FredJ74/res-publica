@@ -1,0 +1,34 @@
+✔ round attendu lu avant commande et reçu durable avant envoi (154.958327ms)
+✔ réponse perdue : conserve aussi ancien round, ne relit pas un round neuf (83.216586ms)
+✔ round obsolète refusé : le prochain ordre peut obtenir un nouveau reçu (89.106008ms)
+✔ double clic pendant la lecture : une seule commande (58.823285ms)
+✔ session changée pendant la lecture : aucun coup envoyé (63.16121ms)
+✔ réponse tardive pour ancien personnage : ignorée et reçu conservé (71.813432ms)
+✔ engagement : reçu même sans bataille existante (71.684402ms)
+✔ décision : même porte avec round et reçu (69.591745ms)
+✔ stockage impossible : aucun ordre envoyé (60.711503ms)
+✔ après round : PA réels et réponse inventaire exacte, aucun objet recomposé (61.258842ms)
+✔ rafraîchissement tardif : ne touche pas le nouveau personnage (67.561758ms)
+✔ position relue après évacuation : même rendu confirmé, pas de nouvelle commande (64.382173ms)
+✔ réponse incertaine : le texte ne prétend pas que le round a échoué (63.155863ms)
+✔ repli de rue à rue : relit et rend la rue même si ville et bâtiment ne changent pas (77.782942ms)
+✔ rendu confirmé extérieur : utilise la rue existante, jamais enterBuilding(null) (10.47646ms)
+✔ ouverture civile : reçu conservé après perte de réponse, aucun round lu (57.046681ms)
+✔ reddition : décision explicite transmise, même contrat de reçu (63.857408ms)
+✔ ouverture depuis fiche : PJ identifié par nom serveur (80.825976ms)
+✔ ouverture depuis fiche : squatteurs par occupation courante (69.115173ms)
+✔ ouverture depuis fiche : PNJ par identité canonique (70.309305ms)
+✔ ouverture depuis fiche : PNJ présenté par nom officiel (74.834788ms)
+✔ après combat : occupation exacte relue sans génération ni ordre immobilier (62.96101ms)
+✔ occupation tardive : jamais appliquée à un autre personnage (63.001173ms)
+✔ interaction après attaque : même panneau confirmé, aucun ordre automatique (108.948635ms)
+✔ reprise tardive après changement de session : aucun panneau étranger (93.507988ms)
+✔ journal : historique commun et accès aux vrais rounds sans ordre de combat (95.854599ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2015.2532

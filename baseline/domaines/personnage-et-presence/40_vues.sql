@@ -120,5 +120,6 @@ CREATE OR REPLACE VIEW public.personnages AS
     user_id,
     created_at,
     updated_at,
-    quete_carriere
+    quete_carriere,
+    NULL::jsonb AS fiche_base
    FROM personnages_donnees d;

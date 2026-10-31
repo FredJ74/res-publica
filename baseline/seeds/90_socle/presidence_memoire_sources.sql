@@ -27,6 +27,35 @@
 -- cette table. Sans ses lignes, aucune ecriture n'est possible du tout.
 -- ============================================================================
 
+-- SEED -- presidence_memoire_sources
+-- ============================================================================
+-- Table      : public.presidence_memoire_sources
+-- Domaine    : politique et elections
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 3
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- LISTE FERMEE DES PROVENANCES admises dans la memoire des mandats, avec le
+-- genre (contexte ou reaction) de chacune. C'est ce qui rend la fabrication
+-- d'un fait impossible : une source non declaree ne s'enregistre pas, et un
+-- genre qui contredit sa source est refuse. TROIS LIGNES depuis le 11
+-- octobre 2026 (registre 20261011111516), et non cinq :
+-- `chronique_nationale` et `election_presidentielle` ont ete RETIREES le
+-- jour meme ou elles avaient ete ajoutees. La chronique porte une policy
+-- INSERT ouverte a authenticated et elle est ecrite depuis le navigateur --
+-- un joueur pouvait donc fabriquer un fait national et le faire entrer dans
+-- la memoire presidentielle. Compte RELEVE EN BASE.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- SEED INDISPENSABLE : la cle etrangere de presidence_memoire pointe sur
+-- cette table. Sans ses lignes, aucune ecriture n'est possible du tout.
+-- ============================================================================
+
 INSERT INTO public.presidence_memoire_sources (source, genre, note) VALUES ('guerre_declaree', 'reaction', 'Notre President a declare la guerre. Atteste par guerre_declarer, qui est deja reservee au poste president et ecrit la ligne de guerres dans la meme transaction.');
 INSERT INTO public.presidence_memoire_sources (source, genre, note) VALUES ('guerre_subie', 'contexte', 'Un autre empire nous a declare la guerre. C est le contexte national majeur le plus durement atteste du jeu : il ne peut pas etre produit par un navigateur.');
 INSERT INTO public.presidence_memoire_sources (source, genre, note) VALUES ('ordre_presidentiel', 'reaction', 'Un ordre REELLEMENT paye par le President en exercice, franchi par payer_ordre et pris dans le registre ferme presidence_memoire_ordres. L acteur est relu en base : un ministre qui tient une conference de presse n entre pas dans la memoire presidentielle, meme si l ordre porte le meme nom.');

@@ -4,6 +4,8 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import json,re,tempfile
 R=Path(__file__).resolve().parents[2]
+import runpy
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 def main():
  import pgserver,psycopg2
  serveur=pgserver.get_server(tempfile.mkdtemp(prefix='hg-construction-'),cleanup_mode='delete')
@@ -22,11 +24,11 @@ def main():
   INSERT INTO ressources_economie VALUES('bois',5),('minerai',10),('metal',15);
   INSERT INTO personnages_donnees VALUES('Fixture','republic','capitale','terrain',100,100,'[{"stackKey":"bois","stackable":true,"qty":20}]',1,now());
   INSERT INTO terrains_etat VALUES('republic_terrain','{"city":"capitale","proprietaire":"Fixture","chantier":{"dureeJours":6,"progressionJours":1,"tresorerie":100,"stockMateriaux":{}}}',now());''')
-  src=(R/'baseline/domaines/economie/20_fonctions-2.sql').read_text();a=src.index('CREATE OR REPLACE FUNCTION public.vendre_materiaux_chantier(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[a:],re.S);q.execute(src[a:a+m.end()])
+  q.execute(_sources['entree_historique']('vendre_materiaux_chantier'))
   q.execute("CREATE TABLE chantiers_paliers(palier text PRIMARY KEY,apport_minimal numeric,cout_total numeric,gabarit jsonb)")
   q.execute("INSERT INTO chantiers_paliers VALUES('hangar',10500,30000,'{\"niveau\":\"hangar\",\"dureeJours\":6,\"progressionJours\":0}')")
-  src=(R/'baseline/domaines/banque/20_fonctions.sql').read_text();a=src.index('CREATE OR REPLACE FUNCTION public.helvetia_debiter_fonds_ordinaires(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[a:],re.S);q.execute(src[a:a+m.end()])
-  src=(R/'baseline/domaines/economie/20_fonctions-1.sql').read_text();a=src.index('CREATE OR REPLACE FUNCTION public.chantier_lancer(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[a:],re.S);q.execute(src[a:a+m.end()])
+  q.execute(_sources['entree_historique']('helvetia_debiter_fonds_ordinaires'))
+  q.execute(_sources['entree_historique']('chantier_lancer'))
   migration=next((R/'migrations').glob('*_construction_materiaux_prix_et_dons.sql')).read_text();q.execute(migration);q.execute(migration)
   q.execute("INSERT INTO terrains_etat VALUES('republic_nouveau','{\"city\":\"capitale\",\"proprietaire\":\"Fixture\",\"constructionAutorisee\":true,\"permis\":{\"palierDemande\":\"hangar\"}}',now())")
   q.execute("UPDATE personnages_donnees SET arg=20000,liquide=20000")

@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Dépendances du PostgreSQL jetable
+        run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
       - name: Syntaxe des fonctions API, sans appel distant
         run: python3 outils/bancs/verifier-syntaxe-api.py
       - name: "Portraits Jodie dans le journal quotidien"
@@ -77,14 +79,32 @@ jobs:
         run: node outils/bancs/banc-verrou-inventaire-client-20261031.cjs
       - name: Pilote joueur, fixtures locales sans compte ni Supabase
         run: npm test --prefix outils/e2e
-      - name: Dépendances du PostgreSQL jetable
-        run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - name: Exports canoniques complets et reconstruction des séquences, PostgreSQL jetable
+        run: python3 outils/bancs/test-catalogue-reconstruction.py
+      - name: Cinq commandes organisations, paiements protégés et rollback indivisible
+        run: python3 outils/bancs/banc-organisations-paquet-219-local.py
+      - name: Réconciliation des tarifs et refus du gilet sans PA, données fictives
+        run: python3 outils/bancs/banc-couts-reconciliation-219-local.py
+      - name: Relais canonique exact, snapshot et exclusion des fichiers privés
+        run: python3 outils/bancs/test-relais-canonique-219.py
       - name: Caisses collectives sur PostgreSQL jetable, contre-épreuve et fermeture (#295)
         run: python3 outils/bancs/banc-caisses-collectives-local.py --local-jetable
       - name: Verrou final inventaire sur PostgreSQL jetable, données fictives
         run: python3 outils/bancs/banc-verrou-inventaire-local.py
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
+      - name: Groupes et batailles mixtes sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-groupes-squatteurs-contrat-local.py
+      - name: Contrôles policiers ordinaires et sanctions atomiques sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-groupes-controles-ordinaires-local.py
+      - name: Cinq rounds, commandement et fuites directionnelles sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-groupes-fuite-directions-local.py
+      - name: Replis, calendrier et anciens camions sur les corps SQL communiqués
+        run: python3 outils/bancs/banc-groupes-camions-local.py --catalogue-20261029
+      - name: Combats civils et squatteurs dans les mêmes rounds, PostgreSQL jetable
+        run: python3 outils/bancs/banc-combat-civil-universel-local.py --catalogue-20261029
+      - name: Audit securite privee et groupes sur PostgreSQL jetable
+        run: python3 outils/bancs/banc-audit-securite-135-local.py
       - name: Achat sur PostgreSQL local, sans identifiant Supabase
         run: python3 outils/bancs/banc-achat-commerce-local.py --local-jetable
       - name: Restaurant gastronomique sur PostgreSQL local, sans identifiant Supabase

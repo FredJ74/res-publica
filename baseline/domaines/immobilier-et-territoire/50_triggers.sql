@@ -14,4 +14,7 @@ CREATE TRIGGER trg_pnj_miroir_douane AFTER INSERT OR UPDATE ON batiments_etat FO
 CREATE TRIGGER trg_pnj_miroir_police AFTER INSERT OR UPDATE ON batiments_etat FOR EACH ROW EXECUTE FUNCTION pnj_miroir_police_declencheur();
 CREATE TRIGGER trg_fermeture_date_universelle BEFORE INSERT ON batiments_fermes FOR EACH ROW EXECUTE FUNCTION fermeture_definir_date_universelle();
 CREATE TRIGGER permis_depot_archive_versionnee BEFORE INSERT ON dossiers_urbanisme FOR EACH ROW EXECUTE FUNCTION permis_depot_archive_proteger();
+CREATE TRIGGER location_local_creation_serveur BEFORE INSERT ON locations_actives FOR EACH ROW EXECUTE FUNCTION location_local_creation_serveur();
+CREATE TRIGGER location_local_tarif_attester BEFORE INSERT OR UPDATE ON locations_actives FOR EACH ROW EXECUTE FUNCTION location_local_tarif_attester();
+CREATE TRIGGER location_lot_ecriture_attestee BEFORE INSERT OR UPDATE ON locations_actives FOR EACH ROW EXECUTE FUNCTION location_lot_ecriture_attester();
 CREATE TRIGGER trg_bail_cle_coherente BEFORE INSERT OR UPDATE ON locations_actives FOR EACH ROW EXECUTE FUNCTION bail_cle_coherente();

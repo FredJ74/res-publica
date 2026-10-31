@@ -1,0 +1,47 @@
+{
+  "main_integre": "3aa6ceef21d93653c55bc82bcc623db9a6e36937",
+  "production_modifiee": false,
+  "authentification_reelle_effectuee": false,
+  "controles_globaux": {
+    "passes": 10,
+    "total": 12,
+    "rouges": [
+      "Authority",
+      "Referential"
+    ]
+  },
+  "postgres_exact": 170006,
+  "migrations_lot_installees_localement": 88,
+  "prerequis_233_installe_separement_localement": true,
+  "recette_catalogue_entier": 30,
+  "sql_decors": 379,
+  "contre_epreuves_detectees": 6,
+  "clients": 149,
+  "chromium_local": 105,
+  "catalogue_outillage": 35,
+  "relais": 19,
+  "regressions_4_bancs": [
+    {
+      "banc": "banc-achat-commerce-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-reception-atomique-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-inventaire-concurrence-local.py",
+      "code": 0
+    },
+    {
+      "banc": "banc-inventaire-fret-local.py",
+      "code": 0
+    }
+  ],
+  "rpc_avant_apres": {
+    "corriges": 12,
+    "nouveaux": 0,
+    "preexistants_restants": 17
+  },
+  "verrou_inventaire_main_283": 8
+}

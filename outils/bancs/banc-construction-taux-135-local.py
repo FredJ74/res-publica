@@ -15,7 +15,7 @@ def suite(db,c,serveur):
   assert v,message;n+=1;print('OK salaire commun',message,flush=True)
  def lire(sql,args=(),cur=c):cur.execute(sql,args);return cur.fetchone()[0]
  # Migration actuelle de Claude, non remplacée et exécutée uniquement dans la base jetable.
- sql=(R/'migrations/20261025070000_chantier_taux_horaire.sql').read_text();c.execute(sql);c.execute(sql)
+ sql=(R/'historique/migrations-appliquees/20261025070000_chantier_taux_horaire.sql').read_text();c.execute(sql);c.execute(sql)
  c.execute("SET test.acteur='Alice';SET test.serveur='off';UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='salaire135',pa=50,hp=100 WHERE name='Alice'")
  chantier={'type':'construction','niveau':'hangar','dureeJours':6,'progressionJours':0,'coutTotal':30000,'coutTravail':21000,'totalVerse':30000,'tresorerie':5000,'heuresFaites':0,'stockMateriaux':{'bois':1000,'minerai':1000,'metal':1000}}
  etat={'city':'capitale','proprietaire':'Alice','surface':2150,'chantier':chantier}

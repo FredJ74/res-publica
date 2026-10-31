@@ -21,6 +21,9 @@ ALTER TABLE public.obligations_helvetia ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.placements_bancaires ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.prets_bancaires ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.prets_ecritures_internes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.prets_nationaux_demandes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.virements_automatiques ENABLE ROW LEVEL SECURITY;
 
 -- comptes_bancaires
 CREATE POLICY "comptes_bancaires lecture proprietaire" ON public.comptes_bancaires FOR SELECT TO PUBLIC

@@ -1134,6 +1134,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "pnj_pa_crediter(text[],integer)",
@@ -1707,13 +1725,13 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "6ece659d1b664d32909a3b6238bf50ee",
-  "20_fonctions.sql": "118fdc2d0e71df13245ea29a77e53a6b",
+  "10_tables.sql": "8218687e4283289bda5d1f84da647653",
+  "20_fonctions.sql": "608607e86dd427dff0821ca0beaea8d0",
   "30_contraintes.sql": "a80a59d8e15945808a288ab72e08baa0",
   "35_index.sql": "f75665219d9bf3ae2c569159b44ea10a",
   "50_triggers.sql": "98f9d5e8dafb390316f722536ecd0637",
   "60_rls-policies.sql": "e87735ea78f461fc533f79b099ffce6c",
-  "70_droits.sql": "79dfe12a99d3ed912166cc00660728d3",
+  "70_droits.sql": "e50942cbbc198f608690bfbc0090e9c8",
   "80_commentaires.sql": "6a7651b26866914a22bb5df2e7b5c2cc"
  },
  "fonctions": [
@@ -1808,7 +1826,7 @@
    "signature": "pnj_comparer_soldats(text)"
   },
   {
-   "empreinte": "7e237302e02b3a6f36b3aad329ded509",
+   "empreinte": "7ddfc44444ce9f60b3d84cccd814897c",
    "security_definer": true,
    "signature": "pnj_contexte_public()"
   },
@@ -1913,9 +1931,14 @@
    "signature": "pnj_mouvement_individuel_refus(text[])"
   },
   {
-   "empreinte": "e478373492c1777c35d3291ad4ad7788",
+   "empreinte": "2b9dde06c7a0e3e89ebf8d0599ab99c8",
    "security_definer": true,
    "signature": "pnj_objet_transferer(text,integer,text)"
+  },
+  {
+   "empreinte": "836f27c5620d21e6a1854f8cb83de42f",
+   "security_definer": true,
+   "signature": "pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid)"
   },
   {
    "empreinte": "604d0d02d4f243b9c2f26dd497bf032c",
@@ -1963,7 +1986,7 @@
    "signature": "pnj_position_effective(text)"
   },
   {
-   "empreinte": "dee89b968bdf934812e603eaf9fd7072",
+   "empreinte": "5b9cf02f41d32d51b6840f1bc1d1fd5c",
    "security_definer": true,
    "signature": "pnj_possessions_lire(text)"
   },
@@ -2261,7 +2284,7 @@
   {
    "colonnes": 17,
    "empreinte_catalogue": "052393a577979f75315dfd6099b35bc1",
-   "empreinte_texte": "0994dbfb61e7e530e55a0e35ceedff89",
+   "empreinte_texte": "c5191a4185d8973deadc0daf57d60448",
    "nom": "pnj_evenements"
   },
   {
@@ -2291,7 +2314,7 @@
   {
    "colonnes": 25,
    "empreinte_catalogue": "e9e3a4cafb020e61b99024a0a802c4cc",
-   "empreinte_texte": "a4800ff6d3ab9debe7f09a90a4bac1c5",
+   "empreinte_texte": "f43d63ddc97c7c5a13f5919a7ba22729",
    "nom": "pnj_membres"
   },
   {
@@ -2315,7 +2338,7 @@
   {
    "colonnes": 6,
    "empreinte_catalogue": "19c33dcc049a018a6aea1f7944f117ed",
-   "empreinte_texte": "13811fe0c8d83eb8c199d6ce2ec08059",
+   "empreinte_texte": "6333cda45d36ce3f2d82d1ad8b5d6b9d",
    "nom": "pnj_possessions"
   },
   {

@@ -15,6 +15,23 @@
 -- entier.
 -- ============================================================================
 
+-- SEED -- pnj_axes_autorite
+-- ============================================================================
+-- Table      : public.pnj_axes_autorite
+-- Domaine    : socle PNJ
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 45
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Matrice « ou vit la verite » axe par axe. Regle du socle, renseignee en
+-- entier.
+-- ============================================================================
+
 INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('agent', 'argent', 'blob', 'Magasin historique : agents_renseignement, qui porte deja position, leader_courant et detention_id. 13 fonctions les ecrivent ou les lisent. Basculer cet axe est une refonte : voir la note de pnj_familles_classes pour la liste et les trois bloquants.');
 INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('agent', 'pa', 'socle', 'Au socle depuis le 27/09/2026 : 12 PA jamais consommes (classe beta), et propriete institutionnelle `renseignement` avec le pays pour perimetre.');
 INSERT INTO public.pnj_axes_autorite (famille, axe, autorite, note) VALUES ('agent', 'position_leader', 'blob', 'RESTE AU METIER, volontairement. agents_renseignement porte la position et le leader de chaque OCCURRENCE DE MISSION. Or le jeu autorise plusieurs cellules simultanees (aucune garde de quota ; pool de 6 couvertures par sexe et par pays cible pour 3 H + 1 F par cellule, donc 2 cellules par pays et 4 pays = jusqu''a 8), et les 12 lignes historiques en portent la trace : deux cellules ont coexiste 13 h les 21-22/09, la meme identite y etant engagee deux fois, a deux positions. Une identite unique au socle ne peut avoir qu''UNE position : basculer exige un arbitrage.');

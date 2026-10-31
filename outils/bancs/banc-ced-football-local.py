@@ -4,22 +4,21 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import json, re, tempfile
 R=Path(__file__).resolve().parents[2]
-M1='migrations/20261024074120_centre_artisanal_achat_ced.sql'
-M2='migrations/20261024074129_football_quota_jour_commun.sql'
+import runpy
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
+M1='historique/migrations-appliquees/20261024074120_centre_artisanal_achat_ced.sql'
+M2='historique/migrations-appliquees/20261024074129_football_quota_jour_commun.sql'
 SOURCES=[
- ('migrations/20261020222029_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires'),
+ ('migrations/20261031113611_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires'),
  ('baseline/domaines/socle/20_fonctions.sql','inventaire_place_restante'),
  ('baseline/domaines/socle/20_fonctions.sql','jour_de_jeu_pays'),
- ('migrations/20261016131932_reception_objets_atomique.sql','inventaire_revision_garder'),
- ('migrations/20261016131932_reception_objets_atomique.sql','inventaire_reception_etat'),
+ ('migrations/20261031113546_reception_objets_atomique.sql','inventaire_revision_garder'),
+ ('migrations/20261031113546_reception_objets_atomique.sql','inventaire_reception_etat'),
  ('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')]
 def setup_sql():
  s=(R/'historique/fixtures-bancs/ced-football-schema.sql').read_text()
  for path,fn in SOURCES:
-  src=(R/path).read_text()
-  for x in re.finditer(r'CREATE OR REPLACE FUNCTION public\.'+fn+r'\(',src):
-   m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[x.start():],re.S)
-   s+='\n'+src[x.start():x.start()+m.end()]
+  for texte in [_sources['entree_historique'](fn)] if fn=='payer_ordre' else _sources['fonctions'](path,fn):s+='\n'+texte
  s+='\nCREATE TRIGGER zzzz_hg_inventory_revision BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION inventaire_revision_garder();'
  return s
 def main():

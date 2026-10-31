@@ -674,7 +674,7 @@ CREATE OR REPLACE FUNCTION public.pnj_contexte_public()
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_moi text; f record; v_fonctions jsonb := '[]'::jsonb;
+DECLARE v_moi text; f record; v_fonctions jsonb := '[]'::jsonb; v_genre text;
 BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN
@@ -685,7 +685,16 @@ BEGIN
   -- personnages_attester_poste refuse tout poste qui ne vient pas du depouillement, du registre
   -- des nominations ou de la compagnie. On ne peut donc pas se declarer ministre pour impressionner
   -- un PNJ.
-  SELECT poste, poste_depute INTO f FROM public.personnages_donnees WHERE name = v_moi;
+  SELECT poste, poste_depute, stats INTO f FROM public.personnages_donnees WHERE name = v_moi;
+
+  -- LE GENRE EST LU SUR LA FICHE, jamais reçu du navigateur (31/10/2026, demande de Fred).
+  -- Normalisé : 'H' et 'F' choisissent la civilité ; toute autre valeur déclarée ('NB', texte
+  -- libre de « autre ») devient 'neutre' et n'est jamais recopiée ; une fiche sans genre rend
+  -- null, et le PNJ ne suppose rien.
+  v_genre := nullif(btrim(coalesce(f.stats->>'genre', '')), '');
+  v_genre := CASE WHEN v_genre IS NULL THEN NULL
+                  WHEN v_genre IN ('H', 'F') THEN v_genre
+                  ELSE 'neutre' END;
 
   IF f.poste IS NOT NULL AND jsonb_typeof(f.poste) = 'object'
      AND coalesce(f.poste->>'name', '') <> '' THEN
@@ -699,7 +708,7 @@ BEGIN
   -- CE QUE CETTE FONCTION NE RENDRA JAMAIS SANS UN ARBITRAGE EXPLICITE : la ville ou l on habite,
   -- la carriere, l influence, la popularite, les condamnations, l histoire personnelle, l argent
   -- et les possessions. La liste est ecrite ici pour qu'un ajout se voie dans un diff.
-  RETURN jsonb_build_object('ok', true, 'nom', v_moi, 'fonctions', v_fonctions);
+  RETURN jsonb_build_object('ok', true, 'nom', v_moi, 'fonctions', v_fonctions, 'genre', v_genre);
 END;
 $function$;
 
@@ -1405,53 +1414,77 @@ AS $function$
    LIMIT 1;
 $function$;
 
--- pnj_objet_transferer(text,integer,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+-- pnj_objet_transferer(text,integer,text) -> jsonb | sql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.pnj_objet_transferer(p_pnj text, p_index integer, p_sens text)
+ RETURNS jsonb
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+ SELECT jsonb_build_object('ok',false,'raison','contrat_versionne_requis'); $function$;
+
+-- pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.pnj_objet_transferer(p_pnj text, p_index integer, p_sens text, p_quantite integer, p_revision bigint, p_possession bigint, p_requete uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
-DECLARE v_moi text; v_inv jsonb; v_objet jsonb; v_poss record;
+DECLARE a public.personnages_donnees; m public.pnj_membres; p public.pnj_possessions;
+ o jsonb; inv jsonb; d jsonb; v jsonb; params jsonb; q integer; disponible integer; porte integer;
 BEGIN
-  v_moi := public.mon_personnage();
-  IF v_moi IS NULL THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
-  IF NOT public.pnj_peut_administrer(v_moi, p_pnj) THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'autorite_insuffisante'); END IF;
-  IF NOT public.pnj_co_present(v_moi, p_pnj) THEN
-    RETURN jsonb_build_object('ok', false, 'raison', 'pas_co_presents'); END IF;
-
-  IF p_sens = 'donner' THEN
-    SELECT COALESCE(inventory, '[]'::jsonb) INTO v_inv
-      FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
-    IF p_index IS NULL OR p_index < 0 OR p_index >= jsonb_array_length(v_inv) THEN
-      RETURN jsonb_build_object('ok', false, 'raison', 'index_invalide'); END IF;
-    v_objet := v_inv -> p_index;
-    UPDATE public.personnages_donnees
-       SET inventory = (v_inv - p_index) WHERE name = v_moi;
-    INSERT INTO public.pnj_possessions (pnj_id, objet) VALUES (p_pnj, v_objet);
-    RETURN jsonb_build_object('ok', true, 'sens', 'donner', 'objet', v_objet);
-
-  ELSIF p_sens = 'retirer' THEN
-    -- Meme ordonnancement que pnj_possessions_lire : l'index reste l'index affiche.
-    SELECT * INTO v_poss FROM public.pnj_possessions
-     WHERE pnj_id = p_pnj ORDER BY id OFFSET p_index LIMIT 1 FOR UPDATE;
-    IF v_poss.id IS NULL THEN
-      RETURN jsonb_build_object('ok', false, 'raison', 'index_invalide'); END IF;
-    IF v_poss.origine <> 'socle' THEN
-      RETURN jsonb_build_object('ok', false, 'raison', 'objet_non_cessible',
-        'origine', v_poss.origine,
-        'explication', 'Cet objet est le miroir d une possession que le metier detient encore. '
-                    || 'Le reprendre le dupliquerait. Il faut passer par l action metier.'); END IF;
-    SELECT COALESCE(inventory, '[]'::jsonb) INTO v_inv
-      FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
-    UPDATE public.personnages_donnees
-       SET inventory = v_inv || jsonb_build_array(v_poss.objet) WHERE name = v_moi;
-    DELETE FROM public.pnj_possessions WHERE id = v_poss.id;
-    RETURN jsonb_build_object('ok', true, 'sens', 'retirer', 'objet', v_poss.objet);
+ SELECT * INTO a FROM public.personnages_donnees WHERE name=public.mon_personnage() FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
+ IF p_requete IS NULL OR p_sens IS NULL OR p_sens NOT IN('donner','retirer') THEN RETURN jsonb_build_object('ok',false,'raison','commande_invalide'); END IF;
+ params:=jsonb_build_object('pnj',p_pnj,'index',p_index,'sens',p_sens,'quantite',p_quantite,'revision',p_revision,'possession',p_possession);
+ v:=public.inventaire_action_rejouer_interne(a.name,p_requete,'pnj_objet',params);IF v IS NOT NULL THEN RETURN v; END IF;
+ SELECT * INTO m FROM public.pnj_membres WHERE id=p_pnj FOR UPDATE;
+ IF NOT FOUND OR m.statut<>'actif' OR NOT public.pnj_peut_administrer(a.name,p_pnj) THEN RETURN jsonb_build_object('ok',false,'raison','autorite_insuffisante'); END IF;
+ IF NOT public.pnj_co_present(a.name,p_pnj) THEN RETURN jsonb_build_object('ok',false,'raison','pas_co_presents'); END IF;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(a.employes,'[]')) e
+  WHERE (e->>'pnjId'=p_pnj OR (e->>'nom'=m.nom AND m.proprietaire_pj=a.name))
+   AND (coalesce(e->'charge','{}')<>'{}'::jsonb OR coalesce(e->'chargeUnique','[]')<>'[]'::jsonb)) THEN
+  RETURN jsonb_build_object('ok',false,'raison','charge_historique_a_reconcilier'); END IF;
+ PERFORM 1 FROM public.pnj_possessions WHERE pnj_id=p_pnj ORDER BY id FOR UPDATE;
+ IF p_sens='donner' THEN
+  IF p_revision IS DISTINCT FROM a.inventory_revision THEN RETURN jsonb_build_object('ok',false,'raison','inventaire_perime'); END IF;
+  IF p_index IS NULL OR p_index<0 OR p_index>=jsonb_array_length(a.inventory) THEN RETURN jsonb_build_object('ok',false,'raison','index_invalide'); END IF;
+  o:=a.inventory->p_index;
+  IF public.inventaire_objet_protege(a.quete_carriere,o) THEN RETURN jsonb_build_object('ok',false,'raison','objet_protege'); END IF;
+ ELSE
+  IF p_possession IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','possession_requise'); END IF;
+  SELECT * INTO p FROM public.pnj_possessions WHERE id=p_possession AND pnj_id=p_pnj;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','index_invalide'); END IF;
+  IF p.origine<>'socle' THEN RETURN jsonb_build_object('ok',false,'raison','objet_non_cessible'); END IF;
+  o:=p.objet;
+ END IF;
+ IF coalesce((o->>'stackable')::boolean,false) THEN
+  IF coalesce((o->>'qty')::numeric,1)<=0 OR coalesce((o->>'qty')::numeric,1)<>trunc(coalesce((o->>'qty')::numeric,1)) THEN
+   RETURN jsonb_build_object('ok',false,'raison','quantite_historique_invalide'); END IF;
+  disponible:=coalesce((o->>'qty')::numeric,1)::integer;
+ ELSE disponible:=1; END IF;
+ q:=coalesce(p_quantite,disponible);
+ IF q<=0 OR q>disponible THEN RETURN jsonb_build_object('ok',false,'raison','quantite_invalide'); END IF;
+ IF p_sens='donner' THEN
+  IF m.famille='employe' THEN
+   SELECT coalesce(sum(CASE WHEN (objet->>'stackable')::boolean THEN coalesce((objet->>'qty')::numeric,1) ELSE 1 END),0) INTO porte FROM public.pnj_possessions WHERE pnj_id=p_pnj;
+   q:=least(q,greatest(0,100-porte));IF q=0 THEN RETURN jsonb_build_object('ok',false,'raison','charge_maximale'); END IF;
   END IF;
-  RETURN jsonb_build_object('ok', false, 'raison', 'sens_invalide');
+  inv:=CASE WHEN q=disponible THEN a.inventory-p_index ELSE jsonb_set(a.inventory,ARRAY[p_index::text,'qty'],to_jsonb(disponible-q)) END;
+  IF coalesce((o->>'stackable')::boolean,false) THEN o:=o||jsonb_build_object('qty',q);END IF;
+  INSERT INTO public.pnj_possessions(pnj_id,objet,origine) VALUES(p_pnj,o,'socle');
+  UPDATE public.personnages_donnees SET inventory=inv WHERE name=a.name;
+ ELSE
+  q:=least(q,public.inventaire_place_restante(a.inventory));
+  IF q=0 THEN RETURN jsonb_build_object('ok',false,'raison','inventaire_plein'); END IF;
+  IF coalesce((o->>'stackable')::boolean,false) THEN o:=o||jsonb_build_object('qty',q);END IF;
+  d:=public.inventaire_deposer_interne(a.name,o);
+  IF (d->>'ok')::boolean IS DISTINCT FROM true OR (d->>'qte')::integer<>q THEN RAISE EXCEPTION 'pnj: depot incomplet'; END IF;
+  IF q=disponible THEN DELETE FROM public.pnj_possessions WHERE id=p.id;
+  ELSE UPDATE public.pnj_possessions SET objet=jsonb_set(objet,'{qty}',to_jsonb(disponible-q)) WHERE id=p.id;END IF;
+ END IF;
+ SELECT jsonb_build_object('ok',true,'inventory',inventory,'revision',inventory_revision,'objet',o,'qte',q,'sens',p_sens) INTO v FROM public.personnages_donnees WHERE name=a.name;
+ INSERT INTO public.inventaire_actions_recus VALUES(a.name,p_requete,'pnj_objet',params,v,now());RETURN v;
 END; $function$;
 
 -- pnj_pa_crediter(text[],integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
@@ -1638,9 +1671,9 @@ BEGIN
   RETURN jsonb_build_object('ok', true,
     'liquide', (SELECT liquide FROM public.pnj_membres WHERE id = p_pnj),
     'possessions', COALESCE((
-      SELECT jsonb_agg(jsonb_build_object('index', t.rang, 'objet', t.objet,
+      SELECT jsonb_agg(jsonb_build_object('possession_id', t.id::text, 'index', t.rang, 'objet', t.objet,
                'origine', t.origine, 'cessible', t.origine = 'socle') ORDER BY t.rang)
-        FROM (SELECT (row_number() OVER (ORDER BY p.id)) - 1 AS rang, p.objet, p.origine
+        FROM (SELECT (row_number() OVER (ORDER BY p.id)) - 1 AS rang, p.id, p.objet, p.origine
                 FROM public.pnj_possessions p WHERE p.pnj_id = p_pnj) t
     ), '[]'::jsonb));
 END; $function$;

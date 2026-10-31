@@ -4,10 +4,14 @@ import argparse,importlib.util,re,tempfile,json
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 ROOT=Path(__file__).resolve().parents[2]
-PARENT=ROOT/'migrations/20261019213444_catalogue_et_offrir_a_boire.sql'
-MIGRATION=ROOT/'migrations/20261019221500_luthecia_cartes_et_diners.sql'
+_sources_spec=importlib.util.spec_from_file_location('sources_sql_bancs',ROOT/'outils/bancs/banc-audit-securite-135-local.py')
+_sources=importlib.util.module_from_spec(_sources_spec);_sources_spec.loader.exec_module(_sources)
+PARENT=ROOT/'migrations/20261031113607_catalogue_et_offrir_a_boire.sql'
+MIGRATION=ROOT/'migrations/20261031113608_luthecia_cartes_et_diners.sql'
 def definition(nom,f):
- s=f.read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',s[a:],re.S);return s[a:a+m.end()]
+ if 'baseline' in f.relative_to(ROOT).parts and nom in ('commerce_vendre_produit','commerce_produire','commerce_cout_revient_portion','tournee_cloturer'):return _sources.entree_historique(nom)
+ return _sources.fonction(str(f.relative_to(ROOT)),nom)
+
 def table(nom,f):
  s=f.read_text();a=s.index('CREATE TABLE public.'+nom+' (');b=s.index('\n);',a)+3;return s[a:b]
 def main():
@@ -26,7 +30,7 @@ def main():
  c.execute("CREATE TABLE agents_renseignement(id text,nom_couverture text,role text,pays_couverture text,cellule_id text,leader_courant text,statut text); CREATE TABLE cellules_renseignement(id text,statut text); CREATE FUNCTION agent_portrait_chemin(text,text) RETURNS text LANGUAGE sql AS $$ SELECT NULL::text $$")
  c.execute(definition('agents_couverture_de_mon_groupe',ROOT/'baseline/domaines/renseignement/20_fonctions.sql'))
 
- for n,f in [('commerce_produire','baseline/domaines/economie/20_fonctions-1.sql'),('commerce_vendre_produit','baseline/domaines/economie/20_fonctions-1.sql'),('fonds_reference_produire_lots','migrations/20261018231225_assemblage_composants_stocks_reels.sql'),('tournee_cloturer','baseline/domaines/personnage-et-presence/20_fonctions.sql'),('commerce_cout_revient_portion','baseline/domaines/economie/20_fonctions-1.sql')]:c.execute(definition(n,ROOT/f))
+ for n,f in [('commerce_produire','baseline/domaines/economie/20_fonctions-1.sql'),('commerce_vendre_produit','baseline/domaines/economie/20_fonctions-1.sql'),('fonds_reference_produire_lots','migrations/20261031113552_assemblage_composants_stocks_reels.sql'),('tournee_cloturer','baseline/domaines/personnage-et-presence/20_fonctions.sql'),('commerce_cout_revient_portion','baseline/domaines/economie/20_fonctions-1.sql')]:c.execute(definition(n,ROOT/f))
  c.execute(PARENT.read_text())
  c.execute("INSERT INTO entreprises_constantes VALUES('cout_main_oeuvre_pa_alimentaire',50),('stock_max_commerce',20); INSERT INTO pa_bonus_differes VALUES('diner_affaires',3)")
  # Recettes reelles du baseline, sans modifier les fichiers generes.
@@ -52,7 +56,7 @@ def main():
  c.execute("INSERT INTO entreprises VALUES('autre','{\"type\":\"brasserie\",\"country\":\"republic\",\"city\":\"ville_a\",\"buildingId\":\"capitaine-sauvage\",\"carte\":[]}',now())")
  ancien=q("SELECT data FROM entreprises WHERE id='autre'");avant=q("SELECT data FROM entreprises WHERE id='restaurant'")
  c.execute(MIGRATION.read_text());premier=q("SELECT data FROM entreprises WHERE id='restaurant'");c.execute(MIGRATION.read_text());check(q("SELECT data FROM entreprises WHERE id='restaurant'")==premier,'migration rejouee sans reinitialisation');check(q("SELECT data FROM entreprises WHERE id='autre'")==ancien,'autre commerce intact')
- if args.correctif_reservation:c.execute((ROOT/'migrations/20261020114246_reservation_republica_accueil.sql').read_text())
+ if args.correctif_reservation:c.execute((ROOT/'migrations/20261031113609_reservation_republica_accueil.sql').read_text())
  check(premier['stockProduits']['snack_buvette']==7 and premier['stockProduits']['vin']==8,'stocks historiques conserves');check(premier['caisse']==avant['caisse'],'caisse non dupliquee');check(premier['stockProduits']['champagne_luthecia']==0,'aucune boisson fictive');check(not any(x.startswith('menu_') for x in premier['cartesParPiece']['bar']),'aucun repas au bar');check('snack_buvette' in premier['cartesParPiece']['bar'] and 'snack_buvette' not in premier['cartesParPiece']['restaurant'],'cacahuetes uniquement bar');check('amuse_bouche_luthecia' in premier['cartesParPiece']['restaurant'],'amuse bouche');check('cocktail_luthecia' not in premier['cartesParPiece']['restaurant'],'pas cocktail restaurant');check(q("SELECT pa FROM recettes_commerce WHERE id='menu_psm_1'")==1,'autre restaurant PA intact')
  def reset():
   c.execute('DELETE FROM invitations_diner; DELETE FROM personnages_donnees; DELETE FROM taxes; UPDATE reglages SET refus=false,erreur=false')

@@ -14,6 +14,22 @@
 -- Champs du budget national et leur autorite.
 -- ============================================================================
 
+-- SEED -- budget_national_champs_regles
+-- ============================================================================
+-- Table      : public.budget_national_champs_regles
+-- Domaine    : finances publiques
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 20
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Champs du budget national et leur autorite.
+-- ============================================================================
+
 INSERT INTO public.budget_national_champs_regles (champ, poste_id, ordre_fn, note, sous_champ, valeur_ouverture) VALUES ('coefficientsArmesAcquis', 'commandant', 'recherche_militaire', 'Resultat de la meme recherche : meme autorite que le champ qui la porte', NULL, NULL);
 INSERT INTO public.budget_national_champs_regles (champ, poste_id, ordre_fn, note, sous_champ, valeur_ouverture) VALUES ('couvreFeu', 'min_int', 'gerer_couvre_feu', 'Instaurer un couvre-feu — requiresPost declare sur l''ordre', NULL, NULL);
 INSERT INTO public.budget_national_champs_regles (champ, poste_id, ordre_fn, note, sous_champ, valeur_ouverture) VALUES ('effortGuerre', 'min_def', 'tableau_effort_guerre', 'Pilotage operationnel : curseur du ministre de la Defense', 'prioriteProductionMilitaire', '50');

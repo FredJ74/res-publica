@@ -4,8 +4,10 @@ from pathlib import Path
 import re,tempfile,json,sys
 from concurrent.futures import ThreadPoolExecutor
 R=Path(__file__).resolve().parents[2]
+import runpy
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 def fn(f,nom):
- s=(R/f).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',s[a:],re.S);return s[a:a+m.end()]
+ return _sources['entree_historique'](nom) if f.startswith('baseline/') and nom in ('chantier_lancer','chantier_verser','chantier_travailler') else _sources['fonction'](f,nom)
 def main(suite_supplementaire=None):
  import pgserver,psycopg2
  from psycopg2.extras import Json
@@ -31,40 +33,40 @@ def main(suite_supplementaire=None):
    CREATE TABLE notifications(destinataire text,sujet text,corps text);
    CREATE FUNCTION mail_systeme_poser_interne(text,text,text,text,text DEFAULT NULL) RETURNS jsonb LANGUAGE plpgsql AS $$BEGIN INSERT INTO notifications VALUES($2,$3,$4);RETURN '{"ok":true}';END$$;
    SET test.serveur='on';""")
-   for f,nom in [('migrations/20261020222029_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires'),('baseline/domaines/finances-publiques/20_fonctions-1.sql','caisse_institution_mouvement'),('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','batiment_etat_lire'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_id'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_mouvement'),('baseline/domaines/economie/20_fonctions-1.sql','approvisionner_chantier')]:c.execute(fn(f,nom))
+   for f,nom in [('migrations/20261031113611_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires'),('baseline/domaines/finances-publiques/20_fonctions-1.sql','caisse_institution_mouvement'),('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','batiment_etat_lire'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_id'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_mouvement'),('baseline/domaines/economie/20_fonctions-1.sql','approvisionner_chantier')]:c.execute(fn(f,nom))
    for f in ['chantiers_besoins_jour']:
     s=(R/f'baseline/seeds/90_socle/{f}.sql').read_text();c.execute(s)
-   for f in sorted((R/'migrations').glob('202610221233*.sql')):c.execute(f.read_text());c.execute(f.read_text())
+   for f in [_sources['chemin_source'](f) for f in ['migrations/20261022123319_chantier_financeurs_et_appels.sql', 'migrations/20261022123320_chantier_jour_transactionnel.sql', 'migrations/20261022123321_chantier_approvisionnement_caisse_unique.sql']]:c.execute(f.read_text());c.execute(f.read_text())
    c.execute("INSERT INTO personnages_donnees VALUES('Alice','republic',60000,30000,now());INSERT INTO comptes_bancaires VALUES('Alice','nationale',30000,now());INSERT INTO caisses_batiments VALUES('republic_gouvernement-min_fin','{\"solde\":0}',now()),('republic_entrepot_capitale','{\"solde\":0}',now()),('republic_mairie_capitale','{\"solde\":60000}',now());INSERT INTO organisations VALUES('orga','{\"chef\":\"Chef\",\"caisse\":60000}');INSERT INTO cycles_electoraux VALUES('republic','maire','capitale','{\"eluId\":\"Maire1\"}');INSERT INTO batiments_etat VALUES('republic_capitale_entrepot','republic','capitale','{\"entrepot\":{\"stock\":{\"bois\":10000,\"minerai\":10000,\"metal\":10000}}}',now())")
    c.execute("ALTER TABLE personnages_donnees ADD COLUMN id uuid DEFAULT gen_random_uuid(),ADD COLUMN pa integer DEFAULT 50,ADD COLUMN hp integer DEFAULT 100,ADD COLUMN hospitalisation jsonb,ADD COLUMN current_city text DEFAULT 'capitale',ADD COLUMN current_building text,ADD COLUMN day integer DEFAULT 1,ADD COLUMN poste jsonb")
    c.execute("CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$SELECT nullif(current_setting('test.acteur',true),'')$$;CREATE FUNCTION acteur_poste_courant() RETURNS TABLE(nom text,poste_id text,poste_city text,pays text) LANGUAGE sql AS $$SELECT name,poste->>'id',poste->>'city',country FROM personnages_donnees WHERE name=mon_personnage()$$")
    src=(R/'baseline/domaines/justice/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public.detentions \(.*?\n\);',src,re.S)[0])
    c.execute(fn('baseline/domaines/justice/20_fonctions-1.sql','detention_active'))
-   c.execute(fn('migrations/20261019064000_organisations_equipements_collectifs.sql','organisation_equipement_exiger'))
+   c.execute(fn('migrations/20261031113558_organisations_equipements_collectifs.sql','organisation_equipement_exiger'))
    c.execute(fn('baseline/domaines/politique-et-elections/20_fonctions.sql','poste_est_atteste'))
    src=(R/'baseline/domaines/economie/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public.chantiers_paliers \(.*?\n\);',src,re.S)[0])
    c.execute((R/'baseline/seeds/90_socle/chantiers_paliers.sql').read_text())
-   for migration in sorted((R/'migrations').glob('202610221240*.sql')):c.execute(migration.read_text());c.execute(migration.read_text())
-   c.execute((R/'migrations/20261022125121_chantier_recu_relecture.sql').read_text())
+   for migration in [_sources['chemin_source'](f) for f in ['migrations/20261022124055_chantier_autorite_et_recus.sql', 'migrations/20261022124056_chantier_commandes_et_reception.sql']]:c.execute(migration.read_text());c.execute(migration.read_text())
+   c.execute((R/'migrations/20261031113617_chantier_recu_relecture.sql').read_text())
    for nom in ['chantier_lancer','chantier_verser']:c.execute(fn('baseline/domaines/economie/20_fonctions-1.sql',nom))
-   c.execute((R/'migrations/20261022125728_chantier_fermer_commandes_non_versionnees.sql').read_text());c.execute((R/'migrations/20261022125728_chantier_fermer_commandes_non_versionnees.sql').read_text())
+   c.execute((R/'migrations/20261031113618_chantier_fermer_commandes_non_versionnees.sql').read_text());c.execute((R/'migrations/20261031113618_chantier_fermer_commandes_non_versionnees.sql').read_text())
    for domaine,table in [('immobilier-et-territoire','dossiers_urbanisme'),('personnage-et-presence','objets_recus'),('immobilier-et-territoire','locations_actives')]:
     src=(R/f'baseline/domaines/{domaine}/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public\.'+table+r' \(.*?\n\);',src,re.S)[0])
    c.execute(fn('baseline/domaines/socle/20_fonctions.sql','objet_sas_deposer'))
-   for migration in sorted((R/'migrations').glob('202610221259*.sql')):c.execute(migration.read_text());c.execute(migration.read_text())
+   for migration in [_sources['chemin_source'](f) for f in ['migrations/20261022125942_chantier_plan_initial.sql', 'migrations/20261022125943_chantier_plan_raccordement.sql']]:c.execute(migration.read_text());c.execute(migration.read_text())
    # Etat reel AVANT les migrations testees, independant du baseline vivant.
    for nom,fixture in [('terrain_permis_acte','terrain-permis-acte-avant-depot.sql'),('terrain_chantier_acte','terrain-chantier-acte-avant-commandes.sql')]:
     c.execute(fn('outils/bancs/banc-fixture-'+fixture,nom))
    c.execute(fn('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','terrain_etat_lire'))
    c.execute(fn('baseline/domaines/economie/20_fonctions-1.sql','chantier_travailler'))
-   c.execute(fn('migrations/20261020214955_construction_materiaux_prix_et_dons.sql','chantier_prix_definir'))
+   c.execute(fn('migrations/20261031113610_construction_materiaux_prix_et_dons.sql','chantier_prix_definir'))
    if '--permis112' in sys.argv:
     # Definition exacte du garde #112, sans embarquer sa migration ni ses paiements.
     definition=fn('outils/bancs/banc-fixture-terrain-permis-acte-avant-depot.sql','terrain_permis_acte')
     garde="  IF p_acte = 'permis_deposer' THEN\n    RETURN jsonb_build_object('ok',false,'raison','commande_versionnee_requise');\n  END IF;\n"
     c.execute(definition.replace('  v_moi := public.mon_personnage();',garde+'  v_moi := public.mon_personnage();'))
-   for migration in sorted((R/'migrations').glob('202610221304*.sql')):c.execute(migration.read_text());c.execute(migration.read_text())
-   c.execute((R/'migrations/20261022143001_construction_delais_quatre_empires.sql').read_text());c.execute((R/'migrations/20261022143001_construction_delais_quatre_empires.sql').read_text())
+   for migration in [_sources['chemin_source'](f) for f in ['migrations/20261022130417_chantier_gardes_legacy_et_travail.sql', 'migrations/20261022130418_chantier_travail_versionne.sql', 'migrations/20261022130419_chantier_prix_representants.sql']]:c.execute(migration.read_text());c.execute(migration.read_text())
+   c.execute((R/'migrations/20261031113624_construction_delais_quatre_empires.sql').read_text());c.execute((R/'migrations/20261031113624_construction_delais_quatre_empires.sql').read_text())
    def ok(v,t):
     nonlocal n
     assert v,t;n+=1;print('OK',t,flush=True)

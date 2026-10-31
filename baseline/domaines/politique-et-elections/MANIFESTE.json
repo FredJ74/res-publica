@@ -99,6 +99,12 @@
    "tbl": "communications_salles"
   },
   {
+   "empreinte": "41a1ce32476f5313d2b702b6707278d9",
+   "genre": "p",
+   "nom": "conferences_jours_pkey",
+   "tbl": "conferences_jours"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "conferences_presse_pkey",
@@ -312,6 +318,30 @@
  "domaine": "politique et elections",
  "droits": [
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "annonce_publique_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "annonce_publique_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "candidature_autre_scrutin_actif(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "candidature_autre_scrutin_actif(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "candidature_deposer(text,text,numeric,jsonb)",
@@ -327,6 +357,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "candidature_deposer(text,text,numeric,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "candidature_entrepot_modification_autorisee(text,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "candidature_entrepot_modification_autorisee(text,jsonb,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -369,6 +411,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "candidatures_cloture()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "candidatures_unicite_scrutin_actif()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "candidatures_unicite_scrutin_actif()",
    "privileges": "EXECUTE"
   },
   {
@@ -510,6 +564,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "conference_soutenir(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "conference_soutenir(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "conference_soutenir(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone)",
@@ -524,6 +596,36 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "cycle_electoral_frais_interne(text,text,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cycle_electoral_frais_interne(text,text,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "cycle_electoral_initialiser(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "cycle_electoral_initialiser(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "cycle_electoral_initialiser(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "cycles_electoraux_dimanche()",
    "privileges": "EXECUTE"
   },
@@ -531,6 +633,36 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "cycles_electoraux_dimanche()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "election_contester(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "election_contester(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "election_contester(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "election_recompter_interne(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "election_recompter_interne(text,text,text,text,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -678,6 +810,48 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_candidature_dossier_ajouter_interne(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_candidature_dossier_ajouter_interne(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_candidature_dossier_solder_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_candidature_dossier_solder_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "poste_candidature_transmettre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_candidature_transmettre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_candidature_transmettre(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "poste_est_atteste(text,jsonb,text)",
@@ -747,6 +921,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "poste_quitter()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "poste_recruteur_joueur(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "poste_recruteur_joueur(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -846,6 +1032,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "vote_confiance_declencher(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vote_confiance_declencher(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "vote_confiance_declencher(integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "vote_confiance_resoudre(text)",
@@ -855,6 +1059,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "vote_confiance_resoudre(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "vote_confiance_voter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vote_confiance_voter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "vote_confiance_voter(text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -954,6 +1176,18 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "conferences_jours",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "conferences_jours",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "conferences_presse",
@@ -1011,7 +1245,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "cycles_electoraux",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1083,7 +1317,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "fraudes_electorales",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1317,7 +1551,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "votes_confiance",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1365,7 +1599,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "votes_electoraux",
-   "privileges": "DELETE, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -1383,20 +1617,35 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "9e5586c55ff9850b2a012d474c2e3db7",
-  "20_fonctions.sql": "51e03240db4373d8b0396d927898a31e",
-  "30_contraintes.sql": "f08030c1f90cdfee82e8afc0ebf5be37",
-  "35_index.sql": "0f1869e8333a025c32406fbe98d4db1b",
-  "50_triggers.sql": "493e681ca040900902c7d1dd0956e5a6",
-  "60_rls-policies.sql": "67200350cc8cb641dfe7b0f332761451",
-  "70_droits.sql": "d80e4bd074ebf5db8750850370cb1299",
+  "10_tables.sql": "5a6b42474befde1662675e916d329177",
+  "20_fonctions.sql": "eefb89416ae73eaa6ddf0cea7d19dd55",
+  "30_contraintes.sql": "77bf54a82d18d8324d8f953096057a14",
+  "35_index.sql": "f82fb4c89217268dd893c66c5939df53",
+  "50_triggers.sql": "f39201f186a0bd88cd5f20ac5164ca92",
+  "60_rls-policies.sql": "0a4ecc5f24789503c199af9478c4d3c9",
+  "70_droits.sql": "5f11ec957b632687943601c434ed7927",
   "80_commentaires.sql": "a3b1993fbdacedc039598f4c464c200a"
  },
  "fonctions": [
   {
-   "empreinte": "d9b9339f214858347eabb2f48d7d16e2",
+   "empreinte": "9cc0b47b4ac92db80fefa5f8aab948b1",
+   "security_definer": true,
+   "signature": "annonce_publique_interne(text,text)"
+  },
+  {
+   "empreinte": "bb0977fdc2a6f4a64db2cc28ad01862f",
+   "security_definer": true,
+   "signature": "candidature_autre_scrutin_actif(text,text,text)"
+  },
+  {
+   "empreinte": "c1600380fc290a29137fa5d11b73bb2e",
    "security_definer": true,
    "signature": "candidature_deposer(text,text,numeric,jsonb)"
+  },
+  {
+   "empreinte": "e059e49fb968018ad772a92d3ef867c7",
+   "security_definer": true,
+   "signature": "candidature_entrepot_modification_autorisee(text,jsonb,jsonb)"
   },
   {
    "empreinte": "bb9dccbde8ee3b6728ede8534bf61b19",
@@ -1404,7 +1653,7 @@
    "signature": "candidature_poste_tirage_appliquer(text,text,text,text,text[],text)"
   },
   {
-   "empreinte": "9e14d069bcafcd6b2c3de632a7d3d469",
+   "empreinte": "ef57ee85994ef2f2f00138c3d33400e3",
    "security_definer": true,
    "signature": "candidature_publier(text,text,numeric,text,text)"
   },
@@ -1414,12 +1663,17 @@
    "signature": "candidatures_cloture()"
   },
   {
+   "empreinte": "0213c606851063cc65695450d3cd4840",
+   "security_definer": true,
+   "signature": "candidatures_unicite_scrutin_actif()"
+  },
+  {
    "empreinte": "bcb1f919f1887ca2e07fc82e38987876",
    "security_definer": true,
    "signature": "communication_financement(text,text,numeric)"
   },
   {
-   "empreinte": "7c658e54ea101d648a60046bc77f9919",
+   "empreinte": "bdf7f043943d3b369d69912ec0cee5c9",
    "security_definer": true,
    "signature": "communication_officielle_publier(text,text,text,integer,integer,text,text,jsonb,boolean)"
   },
@@ -1454,14 +1708,39 @@
    "signature": "conference_repondre(text,integer,text,boolean)"
   },
   {
+   "empreinte": "0904c8946e160fd0e740de7569e7c2d3",
+   "security_definer": true,
+   "signature": "conference_soutenir(text,text,integer,integer)"
+  },
+  {
    "empreinte": "f0f2529b29d5de2f52c960d78141aa0c",
    "security_definer": false,
    "signature": "cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone)"
   },
   {
+   "empreinte": "ceb86eb939e53cf8ec4353c5ca91a2e6",
+   "security_definer": false,
+   "signature": "cycle_electoral_frais_interne(text,text,timestamp with time zone)"
+  },
+  {
+   "empreinte": "d29d8463db6520da75aa726e149f91d8",
+   "security_definer": true,
+   "signature": "cycle_electoral_initialiser(text,text)"
+  },
+  {
    "empreinte": "19fc5dd0f693ad27a99e6e09ee380ffa",
    "security_definer": true,
    "signature": "cycles_electoraux_dimanche()"
+  },
+  {
+   "empreinte": "bc4598fc03007a497d220ee9599ee639",
+   "security_definer": true,
+   "signature": "election_contester(text,text,integer,integer)"
+  },
+  {
+   "empreinte": "410e624bba0c69f84010d36abc5e01fb",
+   "security_definer": true,
+   "signature": "election_recompter_interne(text,text,text,text,jsonb)"
   },
   {
    "empreinte": "adeb8346107f942fdfe5ac1668c01a3d",
@@ -1474,7 +1753,7 @@
    "signature": "election_voter(text,text,text,text)"
   },
   {
-   "empreinte": "2f8c202825d834fd8e72fd7248c166e1",
+   "empreinte": "4e7db28638156bb19fda25c11409282d",
    "security_definer": true,
    "signature": "elections_voix_pnj_enregistrer(text,text,text,text,text,text,text)"
   },
@@ -1499,7 +1778,7 @@
    "signature": "poste_attribuer_candidature(text,text,text)"
   },
   {
-   "empreinte": "8ed49f96d67fefcda72a279e4b8e2273",
+   "empreinte": "5bddeee562503e81f4cb0ea97fc4ac9c",
    "security_definer": true,
    "signature": "poste_attribuer_interne(text,text,text,text,text)"
   },
@@ -1507,6 +1786,21 @@
    "empreinte": "0942efb117ce9b10a8ea4b58fe1b7f3b",
    "security_definer": true,
    "signature": "poste_autorite_de(text,text)"
+  },
+  {
+   "empreinte": "c7a928dbd06adbb42e3550987f54f5c3",
+   "security_definer": true,
+   "signature": "poste_candidature_dossier_ajouter_interne(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "c9c2722b9257fa32f6cf8871dae1b47a",
+   "security_definer": true,
+   "signature": "poste_candidature_dossier_solder_interne(text,text,text)"
+  },
+  {
+   "empreinte": "49902a3ebae3665a27dd2aa9b55e97e4",
+   "security_definer": true,
+   "signature": "poste_candidature_transmettre(text,text)"
   },
   {
    "empreinte": "38a39a690dcfc9934aa9fac4e2e5b515",
@@ -1519,7 +1813,7 @@
    "signature": "poste_nommer(text,text,text)"
   },
   {
-   "empreinte": "92fefcf58dd73d2b46e06475b7f7f6b0",
+   "empreinte": "907a39ce173fc117599a3a2de5e3fb67",
    "security_definer": true,
    "signature": "poste_postuler(text,text)"
   },
@@ -1527,6 +1821,11 @@
    "empreinte": "245d8d8a66d61e53ad351da27d1529fa",
    "security_definer": true,
    "signature": "poste_quitter()"
+  },
+  {
+   "empreinte": "6cd8c414745e536507fb04b70da16df5",
+   "security_definer": true,
+   "signature": "poste_recruteur_joueur(text,text,text)"
   },
   {
    "empreinte": "47d1231420f15bebf2618bb2da563023",
@@ -1559,9 +1858,19 @@
    "signature": "presidence_memoire_noter(text,text,text,text,jsonb,text)"
   },
   {
+   "empreinte": "037a1ca51a5e3675fc3ab23e0564cc14",
+   "security_definer": true,
+   "signature": "vote_confiance_declencher(integer,integer)"
+  },
+  {
    "empreinte": "a853d25f8e73abf480bb069ffa5479bc",
    "security_definer": true,
    "signature": "vote_confiance_resoudre(text)"
+  },
+  {
+   "empreinte": "7aae7643d991eee5432b8afb99d7f3c4",
+   "security_definer": true,
+   "signature": "vote_confiance_voter(text,text)"
   }
  ],
  "index_autonomes": [
@@ -1613,6 +1922,7 @@
  "index_portes": [
   "candidatures_pkey",
   "communications_salles_pkey",
+  "conferences_jours_pkey",
   "conferences_presse_echanges_pkey",
   "conferences_presse_pkey",
   "cycles_electoraux_pkey",
@@ -1664,21 +1974,9 @@
    "tbl": "candidatures"
   },
   {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "0e1a89747eed288bbc01f52ef80a417e",
-   "nom": "cycles_electoraux_ecriture_acteur",
-   "tbl": "cycles_electoraux"
-  },
-  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "993e544275b868a7b2367cb90aa1b651",
    "nom": "cycles_electoraux_lecture",
-   "tbl": "cycles_electoraux"
-  },
-  {
-   "empreinte": "e3ea344f347685a7896295df58bef6aa",
-   "empreinte_avec_roles": "65068289bd6fb04480df7159f609de89",
-   "nom": "cycles_electoraux_maj_acteur",
    "tbl": "cycles_electoraux"
   },
   {
@@ -1706,21 +2004,9 @@
    "tbl": "elections_tracts_pnj"
   },
   {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "4a3cd5218a47223f30ef240103f89a13",
-   "nom": "fraudes_electorales_ecriture_acteur",
-   "tbl": "fraudes_electorales"
-  },
-  {
-   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
-   "empreinte_avec_roles": "c9a181ed3426ae2963a66dd3fd4902f0",
-   "nom": "fraudes_electorales_lecture_publique",
-   "tbl": "fraudes_electorales"
-  },
-  {
-   "empreinte": "e3ea344f347685a7896295df58bef6aa",
-   "empreinte_avec_roles": "ce42f6188a2845df2b4291dad4a775de",
-   "nom": "fraudes_electorales_maj_acteur",
+   "empreinte": "6538e2be23db04230866d938aa61f249",
+   "empreinte_avec_roles": "e284e35710e6b1ffd7f32b4deccdd0f6",
+   "nom": "fraudes_electorales_lecture",
    "tbl": "fraudes_electorales"
   },
   {
@@ -1778,21 +2064,9 @@
    "tbl": "militants_recrutes"
   },
   {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "d8c96e0d4ceb5bba55799406404da111",
-   "nom": "votes_confiance_ecriture_acteur",
-   "tbl": "votes_confiance"
-  },
-  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "dc6490d2688f7df0363d3266b0b3f116",
    "nom": "votes_confiance_lecture_publique",
-   "tbl": "votes_confiance"
-  },
-  {
-   "empreinte": "e3ea344f347685a7896295df58bef6aa",
-   "empreinte_avec_roles": "ef4fcaa8ff98d106124a4b5cd11b1822",
-   "nom": "votes_confiance_maj_acteur",
    "tbl": "votes_confiance"
   },
   {
@@ -1805,12 +2079,6 @@
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "11d5f05cf85f6281e449443b24801a34",
    "nom": "votes_electoraux_lecture",
-   "tbl": "votes_electoraux"
-  },
-  {
-   "empreinte": "ccfe96b9ad415942836be4b667d03f72",
-   "empreinte_avec_roles": "ca5ba37ac8048ca2d107b96ca7e8e9a3",
-   "nom": "votes_electoraux_suppression_acteur",
    "tbl": "votes_electoraux"
   },
   {
@@ -1830,6 +2098,11 @@
    "active": true,
    "forcee": false,
    "tbl": "communications_salles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "conferences_jours"
   },
   {
    "active": true,
@@ -1954,6 +2227,12 @@
    "nom": "communications_salles"
   },
   {
+   "colonnes": 2,
+   "empreinte_catalogue": "9b75e4c8c068ec6b95f04a602096a89c",
+   "empreinte_texte": "cefd159169f2237727f11b423abe4c6b",
+   "nom": "conferences_jours"
+  },
+  {
    "colonnes": 16,
    "empreinte_catalogue": "f9d99f4502de401cf641645f2bfea39d",
    "empreinte_texte": "871e7192f6c837b8080e7d55a0f64358",
@@ -1980,7 +2259,7 @@
   {
    "colonnes": 11,
    "empreinte_catalogue": "203bcb3d3491e88b288f305d7db663d1",
-   "empreinte_texte": "62750033e075ab04508ebd2795175e86",
+   "empreinte_texte": "377c4865eae87510bd2122c5d97cb0eb",
    "nom": "elections_tracts_pnj"
   },
   {
@@ -2016,7 +2295,7 @@
   {
    "colonnes": 10,
    "empreinte_catalogue": "4a5d40984727866bcfa230ae911bdc4b",
-   "empreinte_texte": "856b43dfcd6e922dea837e5cbf13ba81",
+   "empreinte_texte": "88ab4083b89ab3490a5025d6828dff1d",
    "nom": "presidence_memoire"
   },
   {
@@ -2070,6 +2349,12 @@
  ],
  "triggers": [
   {
+   "empreinte": "9fb37e9fd759203e3a94c2b75c45acb5",
+   "fonction": "candidatures_unicite_scrutin_actif()",
+   "nom": "candidatures_unicite_scrutin_actif",
+   "tbl": "candidatures"
+  },
+  {
    "empreinte": "4f2434a129a187e951e4b1fce630a038",
    "fonction": "candidatures_cloture()",
    "nom": "trg_candidatures_cloture",
@@ -2080,6 +2365,12 @@
    "fonction": "cycles_electoraux_dimanche()",
    "nom": "trg_cycles_electoraux_dimanche",
    "tbl": "cycles_electoraux"
+  },
+  {
+   "empreinte": "8acbfe09bca35df4737c809001277a1c",
+   "fonction": "indices_villes_piete_du_registre()",
+   "nom": "indices_villes_piete_du_registre",
+   "tbl": "indices_villes"
   }
  ],
  "vues": []

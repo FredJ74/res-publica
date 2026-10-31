@@ -1,0 +1,18 @@
+[
+  {
+    "banc": "banc-achat-commerce-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-reception-atomique-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-inventaire-concurrence-local.py",
+    "code": 0
+  },
+  {
+    "banc": "banc-inventaire-fret-local.py",
+    "code": 0
+  }
+]

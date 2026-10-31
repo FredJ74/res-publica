@@ -30,7 +30,11 @@ Usage :  python3 outils/generateurs/generer_ordres_couts.py            -> resume
 """
 import hashlib, json, os, re, subprocess, sys, tempfile
 
-JSC = "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc"
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from moteur_javascript import choisir_moteur, commande_moteur
+JSC = choisir_moteur(['/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc'])
+if not JSC:
+    raise SystemExit('Aucun moteur JavaScript réel disponible (JavaScriptCore ou Node).')
 def _racine():
     """La racine du depot, trouvee en REMONTANT jusqu'a data.js, et non en
     comptant des niveaux de repertoire. Le comptage a casse les HUIT generateurs
@@ -107,7 +111,7 @@ def executer_jsc(script):
         f.write(script)
         chemin = f.name
     try:
-        r = subprocess.run([JSC, chemin], capture_output=True, text=True, cwd=RACINE, timeout=120)
+        r = subprocess.run(commande_moteur(JSC, chemin), capture_output=True, text=True, cwd=RACINE, timeout=120)
     finally:
         os.unlink(chemin)
     if r.returncode != 0 or not r.stdout.strip():
@@ -143,32 +147,61 @@ def empreinte_ressources(rs):
     return hashlib.md5(brut.encode("utf-8")).hexdigest()[:16]
 
 
+DECLARATIONS_SERVEUR = (
+    '20261027110100_crimes_actes_serveur.sql',
+    '20261027120000_vol_empoisonnement_serveur.sql',
+    '20261027150000_informateurs_serveur.sql',
+    '20261027160000_marche_noir_serveur.sql',
+    '20261025060000_bne_annonces.sql',
+    '20261025120100_indice_diplomatique_actions_nationales.sql',
+    '20261027180000_inventaire_achats_serveur.sql',
+)
+
+def diagnostic_modules():
+    return json.loads(subprocess.check_output(['node',os.path.join(RACINE,'outils/generateurs/extraire-ordres-modules.cjs')],cwd=RACINE,text=True))
+
 def ordres_hors_data():
-    """Ordres declares en dur dans un module, hors data.js. Ils portent toujours un
-    `label` : c'est ce qui les distingue d'une comparaison `fn === '...'` ou d'une
-    simple mention. Expression reguliere assumee ici -- ces fichiers ne sont pas
-    chargeables isolement, et la forme est stable."""
-    trouves = set()
-    for f in sorted(os.listdir(RACINE)):
-        if not f.endswith(".js") or f == "data.js":
-            continue
-        chemin = os.path.join(RACINE, f)
-        if not os.path.isfile(chemin):
-            continue
-        src = open(chemin, encoding="utf-8", errors="replace").read()
-        for m in re.finditer(r"\{\s*fn\s*:\s*'([a-z0-9_]+)'\s*,([^{}]{0,400}?)\}", src):
-            fn, corps = m.group(1), m.group(2)
-            if "label" not in corps:
-                continue
-            pa = re.search(r"\bpa\s*:\s*(-?\d+)", corps)
-            co = re.search(r"\bcost\s*:\s*(-?\d+)", corps)
-            trouves.add((fn, int(pa.group(1)) if pa else 0, int(co.group(1)) if co else 0))
+    """Déclarations réelles des modules et tarifs authored désormais serveur.
+
+    Un paramètre dynamique n'est jamais transformé implicitement en zéro.
+    Les entrées SQL proviennent de déclarations appliquées identifiées ; pas
+    d'un export de table ni d'un parcours indistinct de toutes les migrations.
+    """
+    trouves={(x['fn'],x['pa'],x['cost']) for x in diagnostic_modules()['litteraux']}
+    for nom in DECLARATIONS_SERVEUR:
+        texte=open(os.path.join(RACINE,'historique/migrations-appliquees',nom),encoding='utf-8').read()
+        blocs=re.findall(r'INSERT INTO public\.ordres_couts \(fn, pa, cost\) VALUES(.*?)ON CONFLICT DO NOTHING;',texte,re.S)
+        if len(blocs)!=1:raise ValueError('Déclaration coûts serveur absente ou ambiguë : '+nom)
+        motif=r"\('([a-z0-9_#]+)',\s*(\d+),\s*(\d+)\)"
+        valeurs=re.findall(motif,blocs[0])
+        if not valeurs or re.sub(motif,'',blocs[0]).strip(' ,\n\r\t'):
+            raise ValueError('Déclaration de coûts non littérale : '+nom)
+        trouves.update((fn,int(pa),int(cout)) for fn,pa,cout in valeurs)
+        # Une ouverture gratuite de catalogue n'est pas le coût de son achat.
+        # Les deux moteurs d'armes appellent explicitement la vente avec 1 PA.
+        appels=re.findall(r"public\.commerce_vendre_produit_interne\([^;]{0,1600}?'(?:comptoir|marche_noir)',\s*'([a-z0-9_]+)',\s*(\d+),\s*(\d+),\s*NULL,\s*NULL\)",texte,re.S)
+        trouves.update((fn,int(pa),int(cout)) for fn,pa,cout in appels)
     return trouves
+
+def ordres_fractionnes(t):
+    """Même projection que la migration de corruption : PA puis coût au succès."""
+    nom='20261027130000_crimes_ordres_detection.sql'
+    texte=open(os.path.join(RACINE,'historique/migrations-appliquees',nom),encoding='utf-8').read()
+    morceaux=[]
+    for suffixe,colonnes in [('tentative','pa, 0'),('reussite','0, cost')]:
+        motif=r"SELECT DISTINCT fn \|\| '#"+suffixe+"', "+colonnes+r" FROM public\.ordres_couts\s+WHERE fn IN \(([^)]*)\)"
+        m=re.findall(motif,texte)
+        if len(m)!=1:raise ValueError('Projection de coûts absente ou ambiguë : '+suffixe)
+        noms=re.findall(r"'([a-z0-9_]+)'",m[0]);reste=re.sub(r"'([a-z0-9_]+)'",'',m[0]).strip(' ,')
+        if not noms or reste:raise ValueError('Liste des ordres fractionnés non littérale')
+        morceaux.extend((fn+'#'+suffixe,pa if suffixe=='tentative' else 0,cost if suffixe=='reussite' else 0) for fn,pa,cost in t if fn in noms)
+    return set(morceaux)
 
 
 def triples(brut):
     t = {(o["fn"], int(o["pa"]), int(o["cost"])) for o in brut}
     t |= ordres_hors_data()
+    t |= ordres_fractionnes(t)
     return sorted(t)
 
 

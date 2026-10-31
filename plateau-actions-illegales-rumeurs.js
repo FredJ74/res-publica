@@ -241,6 +241,20 @@ function ouvrirModalAssassinat(encodedCible) {
 
   const siegeDepute = neutraliserCibleEstDepute(cible);
   const estDepute = !!siegeDepute;
+  if (!estDepute) {
+    document.getElementById('postes-modal-title').textContent = 'Affronter — ' + cible.name;
+    let choix = '<div class="cpj-dialogue"><p class="cpj-note">Le serveur ouvre un affrontement par rounds. Les conséquences dépendent de son issue réelle. Aucun taux de réussite instantanée ne s’applique.</p>';
+    for (const [cle, m] of Object.entries(NEUTRALISER_MODES)) {
+      const dispo = neutraliserPossedeArme(cle);
+      choix += '<button class="cpj-touche" ' + (dispo ? '' : 'disabled ') +
+        'onclick="confirmerAssassinatArme(\'' + encodedCible + '\',\'' + cle + '\')">' +
+        m.label + ' — ouverture : ' + m.paPJ + ' PA' +
+        (cle === 'feu' ? ' · -20 DIS' : '') + (dispo ? '' : ' (arme absente)') + '</button>';
+    }
+    document.getElementById('postes-body').innerHTML = choix + '</div>';
+    document.getElementById('modal-postes').classList.add('open');
+    return;
+  }
 
   document.getElementById('postes-modal-title').textContent = 'Neutraliser — ' + cible.name;
   let html = '<div style="padding:1rem">';
@@ -296,40 +310,19 @@ async function confirmerAssassinatArme(encodedCible, mode) {
     return;
   }
 
-  // PAR LE SERVEUR (27 octobre 2026) : PA, arme, jet, palier, PV de la victime, trace du crime,
-  // detection et avis de recherche sont decides par crime_neutraliser. L'ecran deposait lui-meme
-  // les degats chez la victime (impact « hp_set »), porte desormais fermee.
-  const brut = (typeof sbRpc === 'function')
-    ? await sbRpc('crime_neutraliser', { p_cible: cible.name, p_mode: mode, p_per_pnj: neutraliserPerCible(cible) }).catch(() => null) : null;
-  const v = Array.isArray(brut) ? brut[0] : brut;
-  if (!v || v.ok !== true) {
-    const motifs = { arme_manquante: 'Vous n\'avez pas l\'arme nécessaire dans votre inventaire.',
-                     pas_au_meme_endroit: 'Votre cible n\'est plus là.', cible_invalide: 'Cible invalide.' };
-    if (v && motifs[v.raison]) showToast('Impossible', motifs[v.raison], false);
-    else signalerRefusCout(v || { raison: 'paiement_indisponible' });
+  const contexte = contexteGroupePj();
+  const identifiant = cible.isPJ ? cible.name : /^squatter_/.test(cible.terrainPnjId || cible.id || '')
+    ? state.currentBuilding : (cible.socleId || cible.pnjSocleId || (cible.name ? cible.name.replace(/ \(PNJ\)$/, '') : cible.id));
+  const v = await sbCombatOuvrir(identifiant, mode);
+  if (!contexteGroupePjValide(contexte)) return;
+  if (v?.ok !== true || !Number.isSafeInteger(Number(v.bataille))) {
+    showToast('Affrontement non ouvert', v?.raison || 'Réponse serveur non confirmée. Reprenez la même commande.', false);
     return;
   }
   if (v.paie && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(v.paie);
-  if (typeof v.dis === 'number') state.dis = v.dis;
-  const palier = v.palier;
-  if (v.reussi) {
-    if (!state.assassinats) state.assassinats = [];
-    state.assassinats.push({ cible: cible.name, jour: state.day, mode, palier, decouvert: false });
-    if (!cible.isPJ) {
-      const pop = CITY_POPULATION[state.country]?.[state.currentCity];
-      if (pop) pop.total = Math.max(0, pop.total - 1);
-    }
-    const messagePalier = palier === 'totale'
-      ? cible.name + ' s\'effondre, hors de combat.' : cible.name + ' est touché(e) mais reste conscient(e).';
-    showToast('Acte commis', messagePalier + (v.repere ? ' Un témoin vous a reconnu.' : ' Vous n\'êtes pas identifié(e).'), false);
-    addJournalEntry('Vous avez neutralisé ' + cible.name + ' (' + mode + ', réussite ' + palier + ').'
-      + (v.repere ? ' Vous êtes recherché(e).' : ' Non identifié(e) pour l\'instant.'), 'event-bad');
-    tracerActionPourRumeur('assassinat', cible.name.replace(' (PNJ)',''));
-  } else {
-    addJournalEntry('Tentative de neutralisation sur ' + cible.name + ' : vous avez été identifié(e).', 'event-bad');
-    setTimeout(() => ouvrirModalArrestation('tentative_assassinat'), 800);
-  }
-  updateUI();
+  if (typeof v.dis === 'number') state.dis=v.dis;
+  await ouvrirPanneauCombat(Number(v.bataille));
+
 }
 
 

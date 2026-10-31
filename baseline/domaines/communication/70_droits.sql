@@ -10,6 +10,23 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+REVOKE ALL ON FUNCTION public.chat_est_membre_salon(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.chat_participe(text,boolean) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.forum_verrou_compte_rendu_journee() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.forum_verrou_local_territorial() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.forum_verrou_message_ligue() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.forum_verrou_programme_officiel() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.mail_destinataire_est_conjoint(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.mail_destinataire_est_fret(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.mail_destinataire_est_titulaire(text,text[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.mail_expediteur_autorise(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.mail_expediteur_autorise_strict(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.mail_expediteur_organisation(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.mail_expediteur_systeme(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.mail_systeme_envoyer(text,text,text,text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.mail_systeme_poser_interne(text,text,text,text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.mails_journaliser_envoi_systeme() FROM PUBLIC;
+
 -- DROITS SUR LES FUNCTIONS
 GRANT EXECUTE ON FUNCTION public.chat_est_membre_salon(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.chat_est_membre_salon(text) TO postgres;

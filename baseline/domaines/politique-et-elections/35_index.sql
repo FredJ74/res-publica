@@ -10,9 +10,10 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 22 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 23 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   candidatures_pkey  (contrainte candidatures_pkey)
 --   communications_salles_pkey  (contrainte communications_salles_pkey)
+--   conferences_jours_pkey  (contrainte conferences_jours_pkey)
 --   conferences_presse_echanges_pkey  (contrainte conferences_presse_echanges_pkey)
 --   conferences_presse_pkey  (contrainte conferences_presse_pkey)
 --   cycles_electoraux_pkey  (contrainte cycles_electoraux_pkey)

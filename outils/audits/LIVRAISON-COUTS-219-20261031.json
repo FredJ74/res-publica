@@ -1,0 +1,339 @@
+{
+  "production_appliquee": false,
+  "migration": "migrations/20261031185432_ordres_couts_reconciliation_sources.sql",
+  "version": "20261031185432",
+  "sha256": "34a86944e88ce3bb527671af6b97a35fdd621930cd55ca48b357c5a5f335730a",
+  "capture_commit": "4ec07923aa00b9be5ad20a27950ef19cb27385ed",
+  "avant": {
+    "lignes": 438,
+    "md5": "176fd337ce3a3d1a325c96cff154af62"
+  },
+  "apres": {
+    "lignes": 452,
+    "md5": "c1cd651d3e9518be008797abdd9c9054"
+  },
+  "retirer": [
+    {
+      "fn": "acheter_criee",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "acheter_ghb",
+      "pa": 1,
+      "cost": 300
+    },
+    {
+      "fn": "acheter_gilet",
+      "pa": 0,
+      "cost": 600
+    },
+    {
+      "fn": "acheter_relique",
+      "pa": 1,
+      "cost": 500
+    },
+    {
+      "fn": "acheter_ressources_entrepot",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "acheter_vipere",
+      "pa": 1,
+      "cost": 350
+    },
+    {
+      "fn": "boire_verre",
+      "pa": 0,
+      "cost": 50
+    },
+    {
+      "fn": "choisir_accessoire_club",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "consulter_indices_locaux",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "corrompre_fonct",
+      "pa": 2,
+      "cost": 200
+    },
+    {
+      "fn": "corrompre_fonct#reussite",
+      "pa": 0,
+      "cost": 200
+    },
+    {
+      "fn": "corrompre_fonct#tentative",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "demettre_lieutenant",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "entrainer_section",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_finances",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "investir",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_capitaine",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "nommer_lieutenant",
+      "pa": 2,
+      "cost": 0
+    },
+    {
+      "fn": "plainte",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "plainte",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "proposer_abrogation",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "renseignement",
+      "pa": 3,
+      "cost": 500
+    },
+    {
+      "fn": "renseignement_transport_intl",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "requete_avocat",
+      "pa": 1,
+      "cost": 0
+    },
+    {
+      "fn": "se_porter_candidat",
+      "pa": 0,
+      "cost": 0
+    }
+  ],
+  "ajouter": [
+    {
+      "fn": "acheter_entreprise",
+      "pa": 3,
+      "cost": 8000
+    },
+    {
+      "fn": "audience_juge",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "audience_salle",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "avocat_barreau",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "avocat_dossiers",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "caisse_caserne",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "calepin_campagne",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "camion_a_vide",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "camion_conduire",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "camion_descendre",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "camion_militaire",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "commerce_personnaliser",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "commerce_pj",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "declencher_mutinerie",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "decorer_militaire",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "garde_republicaine",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_budget_interieur",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gerer_budget_justice",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "gestion_caserne",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "greffe_affaires",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "greffe_archives",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "installer_equipements",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "lois_votees_an",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "nominations_municipales",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "parquet",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "prix_chantier",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "publicite_premium",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "receptionner_chantier",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "renseignement_militaire",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "reposer_section",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "retirer_equipement_militaire",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "retirer_rations",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "retirer_trousse",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "seance_parlementaire",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "suivre_formation",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "syndicat_etudiant_gerer",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "taux_chantier",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "temoin_deposition",
+      "pa": 0,
+      "cost": 0
+    },
+    {
+      "fn": "temoins_mes_convocations",
+      "pa": 0,
+      "cost": 0
+    }
+  ]
+}

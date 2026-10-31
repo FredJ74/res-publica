@@ -27,6 +27,10 @@ Règles : voir `AGENTS.md`.
 
 Rubrique nettoyée le 31/10 (Claude) : les chantiers livrés sont passés dans « Derniers chantiers » ; l'ancien texte détaillé reste dans l'historique Git de ce fichier (`git log -p RELAIS.md`).
 
+### Codex — #219 : reconstruction réussie, livraison retenue
+
+Branche `codex/groupes-universels-20261028`, PR #219, main intégré jusqu’à `3aa6ceef` (#290). Rapport de reprise : `outils/audits/RECONSTRUCTION-CANONIQUE-GROUPES-219-20261031.md`, preuves sous `preuves-canonique-219-20261031/`. PostgreSQL 17.6 natif, 88 migrations atomiques et 30 parcours sur catalogue entier validés ; 149 bancs clients et 105 Chromium passent. **Global 10/12, prérequis #233 et recette authentifiée isolée encore à valider : ne pas fusionner ni déployer.** Aucun nouvel export canonique à demander, aucune production modifiée par cette intervention. Ne pas ouvrir le chantier suivant.
+
 ### Migrations fusionnées, en attente d'application (ChatGPT)
 
 **Prises en charge par ChatGPT (Fred, 31/10)** : `20261031130000` et `20261031140000`.
@@ -36,7 +40,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - `20261031130000_reliquats_immobilier_accord_tacite_succession` (PR #284, fusionnée) : accord tacite de nuit (aujourd'hui toujours en échec : le permis de Jean Jaaj, terrain 5, en dépend dans environ 6 jours) et colonnes `proprietaire` / `coproprietaire` à la succession. Indépendante de l'écran. Banc : `outils/bancs/banc-reliquats-immobilier.sql`.
 - `20261031140000_helvetia_caisse_argent_detenu` (PR #285, fusionnée, #267) : la caisse d'Helvetia représente l'argent détenu (prêt sans débit de caisse, sommes prises sur le compte Helvetia sans recrédit, dépôt d'ouverture crédité). Indépendante de l'écran. Banc : `outils/bancs/banc-caisse-helvetia.sql`.
 - `20261031151000_placement_helvetia_gain_unique` (Claude, 31/10, suite de #267) : à la résolution d'un placement Helvetia, le gain net n'est plus ajouté à `arg` (argent total liquide + Banque nationale, où il apparaissait en double) et entre dans la caisse avec les frais. Indépendante de l'écran ; **déjà appliquée en production** sous le nom de registre `placement_helvetia_gain_unique_20261031151000` (version `20261031131427`, prévol Supabase du 31/10) ; ne pas réappliquer avant l'échéance du 6/11. Banc : `outils/bancs/banc-placement-helvetia.sql` (attendu sur ce placement : caisse +6 314, compte +83 340, `arg` +0).
-- `20261029181000_squatteurs_issue_combat` : **attend le combat de groupe de Codex (#219)** ; ne pas appliquer avant.
+- `20261031113650_squatteurs_issue_combat` (ancien préfixe `20261029181000`, rehorodatage #219) : **attend le combat de groupe de Codex (#219)** ; ne pas appliquer avant.
 - ~~`20261031190000_avis_personnels_expediteurs_declares`~~ **appliquée par Claude le 31/10 vers 20 h, registre `avis_personnels_expediteurs_declares_20261031190000`** (PR #297, fusionnée `c44f5c40`, Vercel READY) : neuf identités d'avis personnels (expulsion, libération, candidature, convocation douanière…) déclarées pour l'envoi **à soi seulement** ; sans elle ces courriers sont refusés en silence. Indépendante de l'écran. Banc annulé : `outils/bancs/banc-avis-personnels-expediteurs.sql` (joué le 31/10 : avant refus, après accepté pour soi, refusé vers un tiers).
 
 ### Caisses des clubs et organisations (#295, Claude, PR #300)
@@ -114,3 +118,138 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - PR #249 : branche dédiée, issue du `main` 27198955, sans importer les groupes inachevés #219. Les raccordements d'inventaire de #213 sont réconciliés avec le code récent des écrans. Aucun déploiement, aucune migration de fermeture à cette étape.
 - Dix migrations métier déjà installées en base ; six fermetures différées au déploiement d'un client compatible : `20261028210000`, `20261028210500`, `20261028210600`, `20261028210700`, `20261028210800`, `20261028210900`. Ne pas activer le verrou final sans observation et accord du game designer.
 - CI au SHA de la PR #249 et validation des chemins d'inventaire impératives avant fusion. La garde fret `hg_fret_contenu_source` demeure désactivée en attendant le nouveau client.
+
+
+### #219 — relais canonique complet reçu, #281 conservée (31/10)
+
+Reprise sur `13bd120a`. Commentaire de relais 6542866046 lu ; quatorze fragments récupérés hors Git, sans publier leurs identifiants. Snapshot annoncé 345374:345374:, coupe UTC 2026-10-31 11:35:45.899473 et registre 1003 à vérifier intégralement. Main #281 intégré, y compris genre contrôlé serveur à la création, contexte PNJ et conférence, sans recréer la migration appliquée. Plus aucun export demandé à Fred ; poursuivre reconstruction, réconciliation et tests. Aucune production ni fusion de #219.
+
+### #219 — reconstruction canonique et première installation réelle locale (31/10, EN COURS)
+
+Relais complet validé hors dépôt (14 fragments, snapshot UTC 11:35:45, registre 1003), main #281 intégré dans 2175f16a. PostgreSQL **17.6 natif** : baseline rendu par les générateurs, 1199 fonctions recompilées, 10913 ordres avec seeds, comparaison sans écart dans le périmètre déclaré (371 tables publiques, cinq exclues documentées ; plateforme hors périmètre). Dix captures de seeds ajoutées ; provenance des 82 tables anciennes conservée, aucune prétendue réextraction. 33 tests outillage passent, dont rangs des colonnes supprimées, fermeture PUBLIC EXECUTE et contre-épreuve sur les bornes CHECK.
+
+Les 88 préparations non appliquées sont rehorodatées après la nouvelle coupe, correspondance versionnée. Défaut réel de paiement corrigé : adaptation du corps examiné actuel, préservant les verrous acquisitions/permis et les fonds en transit. **Première installation atomique des 88 réussie sur cette copie locale**, après installation EXPLICITE du prérequis #233 (présent sur main, mais absent du registre et du catalogue reçus). Ce prérequis n'est pas déclaré déployé. Rapport local /tmp/hg219-lot-fidele-nouveau.json.
+
+Ce n'est PAS la clôture : poursuivre recette sur schéma complet, bancs/contre-épreuves, classement des migrations déjà appliquées, contrôles globaux et cohérence des référentiels. Pas de production, pas de fusion, pas de Vercel, pas de compte réel utilisé. Les exports et identifiants des fragments restent privés hors Git.
+
+### #219 — suite locale complète éprouvée, contrôles 10/12 (31/10, EN COURS)
+
+379/379 scénarios de décors repassés, six mutations détectées (379 cas chacune), 105/105 tests Chromium, 147/147 bancs clients avant l'ultime raccord des coûts. Nouveau décor du catalogue entier : 29/29 scénarios sous les véritables fonctions, dont combats PJ/PJ et PJ/PNJ, rounds, rejeux, refus, radio, détecteur et écrou ; JWT SQL locaux, jamais GoTrue ni joueur réel. Avant/après installation : 12 incompatibilités RPC corrigées, zéro nouvelle ; 17 autres appels historiques/non déployés restent distingués dans le rapport, sans les effacer.
+
+131 migrations attestées archivées avec leur version réelle du registre ; 65 autres conservées comme préparations non attestées et rehorodatées après la coupe, avant les 88 de #219. Aucun changement de leurs règles. Pré-requis #233 désormais `migrations/20261031113650_squatteurs_issue_combat.sql`, non appliqué en production. Workflow, Baseline, Assemblage, Reconstruction et pilote passent. Authority et Referential restent rouges, pas de faux 12/12. Référentiels du monde neuf raccordés aux huit générateurs existants ; les tarifs serveur de crimes sont relus de leur déclaration authored, pas réinventés.
+
+Poursuivre les vérifications finales et l'enregistrement des preuves avant rapport. Production, fusion et Vercel toujours interdits.
+
+### #219 — preuves finales sur main #286, livraison retenue (31/10)
+
+Rapport courant : `outils/audits/RECONSTRUCTION-CANONIQUE-GROUPES-219-20261031.md`. Main intégré `9a821b1b` (#281/#284/#285/#286), sans perdre les adaptations des groupes. La reconstruction native 17.6 et l'installation atomique des 88 ne sont plus bloquées. **30/30 cas sur le catalogue entier** sans remplacement de moteurs, avec fiche fictive préexistante ; une panne après les 88 inscriptions annule les quatre catalogues, le registre et préserve la fiche. 379/379 cas de décors et six contre-épreuves, 148/148 bancs clients, 105/105 Chromium, 35/35 outillage, 19/19 relais et quatre régressions SQL passent. Preuves détaillées dans `preuves-canonique-219-20261031/`.
+
+**NON LIVRABLE en production : global 10/12 (Authority, Referential rouges)** ; prérequis #233 absent du registre/capture, installé uniquement sur le décor ; aucun compte isolé de recette GoTrue. RPC : 29 incompatibilités statiques avant, 17 après, 12 corrigées et zéro nouvelle ; ne pas présenter les autres chemins historiques/non activés comme corrigés. Générateur des coûts 427 triples contre 438 mesurés en base : ne pas régénérer en production pour verdir la référence. Les mesures fraîches sont dans le rapport sans falsifier les anciennes observations. Aucune migration/fusion/commande Vercel de production. API GitHub GraphQL refusée ; Git push reste possible. **Ne pas redemander les exports canoniques, déjà complets et privés.** Ne pas ouvrir un autre chantier.
+
+### #219 — intégration finale de main #290 (31/10)
+
+Main `3aa6ceef` intégré dans `c129bc6c`, après sauvegarde des preuves dans `3e963bcd`. Les protections #283 du refus d'ajout inventaire et les suppressions d'écritures mortes de quêtes #290 sont préservées, ainsi que les changements bancaires #287–#289 (aucune migration appliquée par Codex). Les nouvelles étapes CI sont conservées avec celles de #219 ; caches index/plateau distincts, préfixés par `verrou-inventaire-20261031`. Sur cet arbre : **149/149 bancs clients, 105/105 Chromium, 30/30 sur catalogue entier, huit assertions du verrou #283**. Les 88 sources SQL restent identiques à celles de la dernière passe 379/379 + six mutants ; empreintes vérifiées. Global toujours **10/12**, jamais un feu vert de production. Rapport et preuves actualisés ; aucun nouveau chantier ouvert.
+
+### #219 — nouvelle mission de clôture technique, CI et diagnostic Authority (31/10)
+
+Reprise du vrai HEAD `1be8991b` (les dix fichiers annoncés sont déjà poussés), main #291/#292 intégré. Correction du lecteur SQL de bancs : morceaux générés, sources archivées, surcharges et séquences explicites ; réutilisé par immobilier et restaurant. Leurs anciennes transformations prennent des entrées historiques explicitement épinglées à `13bd120a`, pas un faux catalogue actuel ; gardes et assertions non retouchées. Résultats : **324 assertions immobilier, 94 restaurant**, tant sur 17.6 natif que sur le 16.2 du gestionnaire CI. Le rejet initial des définitions actuelles reste une limite de déploiement des anciens préparatifs, pas une compatibilité affirmée. 379 scénarios groupes repassés après changement du lecteur commun.
+
+Authority : les cinq faux signalements de fonctions créées par CREATE FUNCTION/dans un DO sont corrigés par analyse PostgreSQL des déclarations et des listes VALUES reliées à EXECUTE format. Commentaires et fonctions simplement mentionnées ne comptent pas. Trois bancs de détecteur passent avec contre-exemples. Le parseur existant est installé avant les bancs clients dans la CI, sans second pipeline. Invariant 12 conforme ; **invariant 13 reste rouge (19 formes absentes ou incompatibles dans le catalogue capturé)**. Aucune migration, fusion ou production. Poursuivre Referential, raccordements et inventaire de clôture sans masquer ces écarts.
+
+### #219 — paquet complet atomique et preuves après #292 (31/10, EN COURS)
+
+Prérequis #233 et 88 migrations désormais préparables dans **une seule transaction** (`preparer-groupes-219.py --inclure-prerequis-233`). Épreuve native PostgreSQL 17.6 avec `--lot-219 --paquet-complet-219 --recette-219` : reconstruction fidèle dans le périmètre déclaré, 89 installations, 30 cas réels ; panne tardive annule aussi le prérequis, registre reste à 1003 et fiche fictive préservée. Aucun déploiement réel. 38 tests de l’outillage passent, dont refus de prérequis omis et de SHA altéré. Ne pas activer #233 séparément sur la production. Le canal distant capable d’exécuter cette transaction complète reste à valider ; la limite par appel MCP n’est pas une preuve de livraison possible.
+
+Le diagnostic des cinq mesures est STRICTEMENT en lecture seule (`diagnostiquer-mesures-referentiels.py`) ; aucun changement de baseline, d’attentes ni d’observations. Une tentative d’actualisation a été refusée par la revue automatique pour risque de masquer Referential ; changements retirés, pas de contournement. Coûts : 427 générés contre 438 capturés ; postes et ressources concordent avec le contenu capturé, mais leurs sentinelles sont périmées. Global toujours **10/12**, Authority (19 formes RPC) et Referential rouges.
+
+Mails : défilement déjà présent, testé dans Chromium avec rendu/CSS réels, deux largeurs et contre-épreuve de l’ancien défaut (3/3) ; aucun écran recodé. Caisses à l’accueil déjà intégrées #275 ; fonds/murs #71 non intégrés selon le relais actuel. API Actions refusée et ressources Vercel refusées (403) depuis cet environnement : aucun statut distant vert ni recette authentifiée revendiqué. Les exports restent privés hors Git.
+
+Dernière passe complète après ces corrections : **150/150 bancs clients**, zéro échec, sockets locaux autorisés. Une première exécution confinée avait neuf échecs d’infrastructure navigateur/HTTP ; elle ne constitue pas le verdict fonctionnel. Preuves clients et complément du rapport enregistrés.
+
+### #219 — correction de la CI réservation et inventaire des 19 écarts (31/10, EN COURS)
+
+Le lecteur de la fixture restaurant substituait l’entrée historique `commerce_vendre_produit` même lorsqu’une migration explicite était demandée : contre-épreuve exécutée contre le mauvais moteur, retour sans `raison`. Substitution limitée au baseline ; versions historiques des deux fonctions de bonus épinglées au même commit public que le décor. **49/49 réservation** sur PostgreSQL 17.6 et sur le moteur 16.2 de CI, **94/94 restaurant**, **40/40 outillage** dont contre-épreuve de non-substitution. Aucun affaiblissement d’assertion.
+
+`AUTHORITY-19-219-20261031.json` détaille les 19 : **12 résolus après installation locale des 89**, sept contrats d’organisations restent hors lot. Ne pas les masquer ni importer les 65 préparations. L’inventaire plus strict du catalogue après lot conserve 17 formes à examiner (dont arguments spread et anciens appels), distinctes de ces 19.
+
+Le relais canonique contient cinq nombres/empreintes et dix tables de seeds, mais **aucun contenu des 438 triples `ordres_couts`**. Impossible d’attribuer les onze de différence nette à des clés sans ces lignes. `comparer-couts-captures.py` compare les ensembles réels, refuse doublons/types invalides, et fournit la requête strictement en lecture seule ; ne touche à aucun vérificateur ni référence. Contre-épreuve : +11 peut signifier +12/-1, pas forcément onze absences.
+
+Main relu via le credential helper GitHub CLI existant : toujours `59ea6d90`, déjà intégré. API Actions encore Forbidden, pas de conclusion distante revendiquée. Aucun accès Supabase vivant exposé, aucune production modifiée. Continuer contrôles et preuves, puis pousser par le même helper ; pas de fusion.
+
+### #219 — suite du workflow au-delà du premier arrêt (31/10)
+
+La passe intégrale des commandes Python du workflow a trouvé 13 autres bancs bloqués par découpage/archives, séquences explicites et entrées de transformations devenues différentes. Lecteur existant réutilisé, chemins de migrations résolus par le classement, listes de versions explicites à la place des anciens globs vides. Les décors des transformations historiques épinglent leurs entrées publiques d’origine (SHA256), sans modifier une garde ni le SQL de production. Les assertions et contre-épreuves d’inventaire sont conservées ; aucun verrou d’inventaire modifié.
+
+Les équipements collectifs restent incompatibles avec le payeur entier du catalogue capturé : refus des 5,50 FR vérifié sans débit dans le banc, avant chargement des entrées historiques cohérentes. Cette préparation d’organisations n’entre PAS dans les 89 migrations #219 ; son succès historique ne vaut pas feu vert de production. Continuer la passe complète du workflow et publier les résultats, sans prétendre 6/6 distants tant que l’API refuse l’accès.
+
+### #219 — CI distante vérifiée par la page publique (31/10)
+
+Alternative autorisée à l’API refusée : `https://github.com/FredJ74/res-publica/pull/219/checks`. **Six workflows réussis sur `6ef82a65dc3f8ecb5a18a874194109626ea85188`**, dont Cohérence client (run 41214656628). Les 43 commandes Python passent localement sur le moteur de CI ; 150 bancs clients et 105 tests Chromium repassés. Cette preuve ne vaut pas une livraison en production. PR toujours en brouillon.
+
+Détecteur RPC ajusté pour les commentaires/accolades citées à l’intérieur des objets ; quatre tests et contre-exemples, notamment conservation des gestionnaires embarqués en HTML. Les 496 fonctions recensées sont conservées ; le paramètre `p_fn` des impôts est désormais correctement lu. Aucun appel propagé par spread n’est faussement déclaré complètement résolu. Les 19 écarts capture persistent (12 résolus après lot, sept organisations hors lot).
+
+Les six mutations sont détectées, chacune sur 379 cas ; comparaison historique exacte : cinq listes identiques, une liste différente parce qu’un scénario additionnel dépend de l’issue du vrai combat. Le cas obligatoire `squatteurs_issue_reelle_obligatoire_tues` échoue toujours sous mutation. Le contrôle strict de listes a échoué et cette réserve est conservée, sans retirer ni modifier un scénario.
+
+Rapport de reprise/livraison courant : `outils/audits/FINALISATION-LIVRAISON-219-20261031.md`. CI distante six succès confirmés sur 6ef82a65, reconstruction non recommencée, paquet inchangé, ordre de livraison suspendu pour les blocages détaillés. Ne pas redemander les quatre exports ; les contenus de coûts et des trois miroirs restent à lire par le connecteur disponible chez ChatGPT.
+
+### #219 — capture 438 récupérée, premières causes corrigées (31/10, EN COURS)
+
+Reprise de `4a8990a5`, main toujours `59ea6d90`. Deux derniers commentaires de ChatGPT lus sur la page publique. Capture publique des 438 tarifs récupérée du commit `4ec07923`, snapshot `346064:346064:` ; ne pas la redemander. Diff initial exhaustif : **388 communs, 50 seulement en base, 39 seulement générés**, pas onze simples absences.
+
+Générateur raccordé à sept déclarations SQL authored appliquées et à leur projection tentative/réussite ; extraction AST des modules (ordre des propriétés, constantes locales, appel d’achat réel), aucun zéro fabriqué pour coût dynamique. Quatre contre-épreuves passent. **450 triples source, 411 communs avec la capture, 27 anciens couples restants, 39 nouvelles déclarations**. Aucune valeur de gameplay changée dans les écrans, aucun tarif copié depuis la capture comme canon. Seeds régénérés par l’outil existant. Diff individuel et origines dans `RECONCILIATION-COUTS-219-20261031.json`.
+
+Poursuivre le nettoyage contrôlé des tarifs et les sept contrats : trois commandes actives ont leurs cinq migrations existantes sélectionnables ; quatre fonctions d’équipements doivent rester inaccessibles tant que leurs dépendances financières ne sont pas compatibles. Ne pas importer les 65 préparations en bloc, ne pas fusionner ni appliquer en production.
+
+### #219 — trois commandes requises, quatre contrats futurs réellement désactivés (31/10)
+
+Les trois RPC de commandes actives gardent leur moteur existant ; contrat absent = refus explicite, sans repli vers une sauvegarde générale (y compris dissolution). Sélection des cinq migrations existantes seulement dans `LIVRAISON-ORGANISATIONS-219-20261031.json`, pas d’import des 65 préparations. Installation encore à éprouver comme lot et à prévoler en production.
+
+Équipements collectifs : les quatre appels absents ont été retirés des scripts chargés, bouton désactivé avec explication, aucun sondage automatique de contrat. Paiement collectif forgé refusé avant lecture du contexte ou paiement ; achat personnel inchangé. Code préparé original conservé hors chargement dans `historique/clients-prepares/`, ses anciens tests continuent ; quatre nouveaux tests protègent le client actif. Caches plateau et index montés. Authority passe de 19 à **15 écarts de capture** : douze du lot universel et trois de commandes à installer. Aucun écart supprimé par exception de vérificateur.
+
+### #219 — compléments organisations et tarifs éprouvés (31/10, EN COURS)
+
+Cinq migrations organisations sélectionnées et installées atomiquement sur PostgreSQL 17.6 jetable : **36 assertions**, dont rôle authenticated, rejeu, refus, rollback tardif et compatibilité du payeur protégé. Corps ou droits internes inconnus refusés ; aucune fonction financière remplacée.
+
+Tarifs : 452 déclarations source, 413 communes avec les 438 capturées ; **25 anciens couples retirables, 39 ajouts justifiés**. Les couples gilet 0 PA/380 FR et 1 PA/600 FR restent distincts ; seul le mélange non déclaré 0 PA/600 FR est retiré. Migration préparée avec verrou, empreintes complètes avant/après et refus de dérive ; **29 assertions PostgreSQL 17.6**, aucun joueur réel. Seeds régénérés par l’outil existant ; export brut hors Git.
+
+Composition **95 versions (5 + prérequis et 88 + tarifs)** préparée dans une transaction, mais NON exécutée intégralement ni validée contre les 1008 migrations désormais annoncées. Outillage **44/44**. Demande ciblée de métadonnées pour l’intégrateur dans `outils/audits/DEMANDE-PREVOL-ACTUALISE-219-20261031.md` : aucune donnée joueur ni nouveau compte demandé. Les garanties du catalogue 1003 ne prouvent pas celles du 1008. Pas de fusion, de migration réelle ou de déploiement. Poursuivre les bancs complets et la vérification Actions sur le SHA final.
+
+### #219 — main #297 intégré, garde de rejeu corrigée (31/10)
+
+Main `c44f5c40` intégré sans perdre les publications de Claude ni les étapes CI. La passe des 45 commandes Python a détecté un refus du propre rejeu de la migration événements après modification de sa garde de paiement. Garde limitée aux deux corps examinés (ancien et nouveau), corps tiers toujours refusé ; contre-épreuve ajoutée. Les 27 scénarios événements, 36 du paquet organisations et 44 d’outillage passent après correction sur PostgreSQL 17.6. Pas de modification de référence pour masquer Authority ou Referential ; prévol 1008 toujours nécessaire.
+
+### #219 — preuves complémentaires et garde financière à transmettre (31/10)
+
+Rapport courant : `outils/audits/COMPLEMENTS-LIVRAISON-219-20261031.md`. **45/45 commandes Python, 154/154 bancs clients, 105/105 pilote, 379/379 groupes, six mutants détectés**. Globaux **10/12**. Garde Node de push exécutée explicitement : **13/14** après réparation des chemins archivés ; deux préparations immobilières hors des 95 contiennent encore des écritures par la vue protégée (113610 et 113631), à reprendre avec Claude avant activation ; test non désactivé. Prévol actualisé 1008 et recette authentifiée toujours absents. Ne pas déclarer le lot prêt en production sur la seule CI de PR. Aucune production modifiée.
+
+Précision de preuve : sortie détaillée des 14 assertions Node obtenue avec les sous-processus locaux autorisés (13 réussies, 1 refus de sécurité conservé). Sur le SHA `971cf43e`, cinq workflows distants déjà réussis, Cohérence encore en cours lors de la lecture ; ne pas convertir cette attente en succès. La preuve CI du dernier SHA doit être relue après ce complément documentaire.
+
+### #219 — prévol 1009 reçu, incompatibilité réelle établie
+
+Commentaires PR relus ; relevé ChatGPT `26a10c3b` récupéré de sa branche d’audit. Registre **1009** ; les 95 versions/noms absents, Helvetia et avis déjà enregistrés ailleurs. **Payeur vivant MD5 37eca91d6eb08c2a6ea97cbe717a216a, différent des corps examinés** : refus volontaire par le prévol organisations et l’adaptateur transport. Ne pas élargir la liste sans définition complète et test. Demande ciblée de catalogue existante désormais à exécuter contre 1009 (ou plus récent). Preuve dérivée `PREVOL-1009-BLOCAGE-219-20261031.json`. Blocage extérieur précis, aucune modification réelle ni ancien moteur imposé.
+
+### #219 — rectification du prévol payeur (preuve ChatGPT 6548347589)
+
+**Le blocage payeur annoncé ci-dessus est retiré.** La première capture donnait `md5(pg_get_functiondef)`, pas `md5(prosrc)` ; le corps vivant est bien `5cf45c19e4b9559f6b29e2b9207d3969`, déjà autorisé. Les internes 4/5 arguments sont absentes, état initial attendu. Aucune empreinte autorisée ni fonction financière modifiée. La preuve JSON conserve le diagnostic initial comme rétracté et distingue explicitement les deux objets hachés. Poursuite de l’épreuve intégrée des 95 et de la compatibilité #300, sans prétendre que ces seules métadonnées forment un export complet 1009.
+
+### #219 — 95 migrations installées ensemble, compatibilité #300 éprouvée
+
+Rapport : `outils/audits/INTEGRATION95-ET-CAISSES300-219-20261031.md`. PostgreSQL 17.6 : **95 versions en une transaction**, rollback tardif des quatre catalogues/registre/fiche, second passage refusé sans mutation, 30/30 recette catalogue + 3/3 commandes organisations. Après les deux migrations #300 : mêmes 30 + 3 réussites ; quatre bancs clients passent sur fusion simulée. Seul conflit textuel #300 : workflow CI (conserver les étapes des deux branches). Outillage **46/46**.
+
+**Ne pas présenter ce décor comme 1009** : schéma privé 1003 + capture réelle tarifs 438, provenance explicite. Payeur inchangé et compatible, deux types d'empreintes reproduits. Pas de blocage payeur restant ; manquent catalogue/delta complets 1009 et référentiels statiques, recette GoTrue isolée, résolution #299 par Claude. Pas de production modifiée.
+
+### #219 — vraie recette GoTrue/PostgREST locale, 26/26
+
+Le banc intégré peut démarrer les binaires GoTrue v2.177.0 et PostgREST v12.2.12 sur loopback/socket Unix. Trois comptes entièrement fictifs créés/connectés dans la base jetable ; **26/26 scénarios HTTP réels** : identité/reconnexion, groupes/PNJ, radio même ville/hors ville, double clic concurrent/reçu unique, combat mixte/round/rejeux, refus fonds/coma/prison. Après 95 + #300, pas de moteur métier remplacé. Processus et bases nettoyés, aucun compte ni secret réel. Ce n'est ni une recette UI Chromium du jeu ni une validation production. Preuves et limites dans `INTEGRATION95-ET-CAISSES300-219-20261031.md`.
+
+Nouvelle passe : 45/45 Python, 154/154 clients, 105/105 pilote, 48/48 outillage, six mutants détectés. Diagnostic strict post-95 : zéro fonction absente, huit chemins sans droit client et un spread incomplet conservés dans le rapport. Reste catalogue/delta 1009 complet et référentiels statiques, 12/12 non atteint ; #299 à Claude. Pas de fusion/déploiement.
+
+### #219 — main #300 intégré réellement
+
+Main `586ae9ea` intégré dans `ba4d0843`. Conflits CI/relais résolus en conservant tous les bancs, une seule installation des dépendances et les statuts réels Helvetia/courriers/caisses signalés par Claude. Les trois scripts partagés sont fusionnés sans retour des anciennes sauvegardes de secours ; caches index/plateau montés avec suffixe caisses300. #300 est déjà sur main, étape 1 annoncée appliquée par Claude : le prochain prévol doit viser l'état vivant **après cette étape**, pas supposer que la dernière coupe reste 1009. Pas d'application par Codex. Nouvelle passe en cours sur cet arbre combiné.
+
+### #219 — garde finale des effectifs et relais réparés
+
+L'élection ajoutée au catalogue intégré révèle le wrapper final du payeur après 115831 (protection recrutements) : `d5c9f4e8…`. La commande événement le reconnaît seulement avec ses deux internes exactes/fermées ; la garde initiale transport et le payeur ne changent pas. Origine dérivée des sources publiques, mutation tierce refusée. **30+5 cas avant et après #300, 26 HTTP authentifiés**, rollback tardif 95 et rejeu sans mutation.
+
+Le banc des caisses passe 46/46 ; l'échec de workflow était le relais, trompé par les `.git` vides d'environnement. Détection des vrais dépôts/worktrees/liens conservée, **21/21 relais**, **49/49 outillage**, **155/155 bancs clients** après main #300. Relance complète des 46 commandes en cours, aucune référence falsifiée. Reste prévol complet après #300/données référentielles, #299 réservé à Claude, pas de certification production.

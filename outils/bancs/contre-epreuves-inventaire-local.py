@@ -5,6 +5,8 @@ Ne se connecte jamais a Supabase ; exige un echec d'assertion precis pour chaque
 from pathlib import Path
 import subprocess,sys,tempfile,json
 R=Path(__file__).resolve().parents[2]
+import runpy
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 M='migrations/'
 CAS=[
  ('piles_dupliquees',M+'20261027210800_inventaire_depot_piles_historiques.sql','CASE WHEN o=v_pile',"CASE WHEN coalesce((e->>'stackable')::boolean,false) AND e->>'stackKey'=v_cle",'banc-inventaire-receptions-local.py','piles historiques : une seule unite ajoutee'),
@@ -19,7 +21,7 @@ CAS=[
 def main():
  out=Path(tempfile.mkdtemp(prefix='hg-contre-inventaire-'));resultats=[]
  for nom,file,avant,apres,banc,message in CAS:
-  p=R/file;initial=p.read_bytes();src=initial.decode()
+  p=_sources['chemin_source'](file);initial=p.read_bytes();src=initial.decode()
   if src.count(avant)!=1:raise AssertionError((nom,'ancrage',src.count(avant)))
   try:
    p.write_text(src.replace(avant,apres));r=subprocess.run([sys.executable,str(R/'outils/bancs'/banc)],cwd=R,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=60)

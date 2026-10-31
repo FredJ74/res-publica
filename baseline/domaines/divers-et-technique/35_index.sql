@@ -10,7 +10,7 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 18 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 20 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   actes_nocturnes_mecanismes_pkey  (contrainte actes_nocturnes_mecanismes_pkey)
 --   actes_nocturnes_pkey  (contrainte actes_nocturnes_pkey)
 --   admin_actions_tribunal_pk  (contrainte admin_actions_tribunal_pk)
@@ -29,6 +29,8 @@
 --   propositions_diplomatiques_pkey  (contrainte propositions_diplomatiques_pkey)
 --   purges_residus_bancs_pkey  (contrainte purges_residus_bancs_pkey)
 --   registre_ventes_armes_pkey  (contrainte registre_ventes_armes_pkey)
+--   visuels_moderation_pkey  (contrainte visuels_moderation_pkey)
+--   visuels_versions_pkey  (contrainte visuels_versions_pkey)
 
 -- Index autonomes :
 CREATE INDEX cron_journal_jour_idx ON public.cron_journal USING btree (jour DESC);

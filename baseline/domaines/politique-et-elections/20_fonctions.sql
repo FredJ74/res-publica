@@ -10,6 +10,41 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- annonce_publique_interne(text,text) -> void | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.annonce_publique_interne(p_pays text, p_texte text)
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  INSERT INTO public.evenements_globaux (country, city, texte, jour)
+  VALUES (p_pays, NULL, p_texte, public.jour_de_jeu_pays(CASE WHEN p_pays = 'global' THEN 'republic' ELSE p_pays END));
+$function$;
+
+-- candidature_autre_scrutin_actif(text,text,text) -> boolean | sql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.candidature_autre_scrutin_actif(p_pays text, p_nom text, p_cycle_id text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+SELECT EXISTS(
+ SELECT 1 FROM public.cycles_electoraux ce
+ WHERE ce.country=p_pays AND ce.id<>p_cycle_id
+ AND coalesce((ce.data::jsonb->>'resultatsTraites')::boolean,false)=false
+ AND coalesce(ce.data::jsonb->>'phase','') NOT IN ('termine','terminee','resultats','clos')
+ AND EXISTS (
+  SELECT 1 FROM jsonb_array_elements(
+   CASE WHEN jsonb_typeof(ce.data::jsonb->'candidats')='array' THEN ce.data::jsonb->'candidats' ELSE '[]'::jsonb END
+  ) c WHERE c->>'nom'=p_nom
+  AND NOT (coalesce((ce.data::jsonb->>'tour')::int,1)>1
+           AND jsonb_typeof(ce.data::jsonb->'finalistes')='array'
+           AND NOT EXISTS (SELECT 1 FROM jsonb_array_elements(ce.data::jsonb->'finalistes') f
+             WHERE f->>'nom'=p_nom OR f#>>'{}'=p_nom))
+ )
+);
+$function$;
+
 -- candidature_deposer(text,text,numeric,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.candidature_deposer(p_poste text, p_city text, p_cle_scrutin numeric, p_candidat jsonb)
  RETURNS jsonb
@@ -84,6 +119,12 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'deja_candidat');
   END IF;
 
+
+  PERFORM pg_advisory_xact_lock(hashtext('candidature_unique|' || v_moi));
+  IF public.candidature_autre_scrutin_actif(v_pays,v_moi,v_id_cycle) THEN
+    RETURN jsonb_build_object('ok',false,'raison','candidature_simultanee_interdite');
+  END IF;
+
   v_id_cand := v_pays || '_' || v_cle || '_' || v_moi
     || CASE WHEN p_cle_scrutin IS NOT NULL THEN '_' || trim(to_char(p_cle_scrutin, 'FM999999999999999'))
             ELSE '' END;
@@ -103,6 +144,88 @@ BEGIN
    WHERE id = v_id_cycle;
 
   RETURN jsonb_build_object('ok', true, 'id', v_id_cand, 'cycle', v_data);
+END;
+$function$;
+
+-- candidature_entrepot_modification_autorisee(text,jsonb,jsonb) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.candidature_entrepot_modification_autorisee(p_pays text, p_ancien jsonb, p_nouveau jsonb)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_cle text; v_ancien jsonb; v_nouveau jsonb; v_ville text;
+  v_nom text; v_pays text; v_maire text; v_ajout jsonb; v_liste jsonb;
+  v_maintenant numeric := extract(epoch FROM now()) * 1000;
+BEGIN
+  FOR v_cle IN
+    SELECT key FROM jsonb_each(coalesce(p_ancien, '{}'::jsonb))
+    UNION SELECT key FROM jsonb_each(coalesce(p_nouveau, '{}'::jsonb))
+  LOOP
+    v_ancien := p_ancien -> v_cle;
+    v_nouveau := p_nouveau -> v_cle;
+    IF v_ancien IS NOT DISTINCT FROM v_nouveau THEN CONTINUE; END IF;
+    IF split_part(v_cle, '|', 1) <> 'directeur_entrepot'
+       AND coalesce(v_ancien ->> 'posteId', '') <> 'directeur_entrepot'
+       AND coalesce(v_nouveau ->> 'posteId', '') <> 'directeur_entrepot' THEN
+      CONTINUE;
+    END IF;
+
+    v_ville := split_part(v_cle, '|', 2);
+    IF v_ville = '' OR v_ville = 'national'
+       OR v_cle <> 'directeur_entrepot|' || v_ville THEN RETURN false; END IF;
+    IF EXISTS (SELECT 1 FROM public.poste_autorite_de('directeur_entrepot', v_ville) a
+                WHERE a.pays = p_pays) THEN CONTINUE; END IF;
+
+    SELECT d.name, d.country INTO v_nom, v_pays
+      FROM public.personnages_donnees d WHERE d.user_id = auth.uid() LIMIT 1;
+    IF v_nom IS NULL OR v_pays IS DISTINCT FROM p_pays THEN RETURN false; END IF;
+    IF jsonb_typeof(v_nouveau) IS DISTINCT FROM 'object'
+       OR v_nouveau ->> 'posteId' IS DISTINCT FROM 'directeur_entrepot'
+       OR v_nouveau ->> 'city' IS DISTINCT FROM v_ville
+       OR jsonb_typeof(v_nouveau -> 'candidats') IS DISTINCT FROM 'array' THEN
+      RETURN false;
+    END IF;
+
+    IF v_ancien IS NULL OR v_ancien -> 'traitee' = 'true'::jsonb THEN
+      -- Nouveau dossier : meme fenetre de 48h et meme maire PJ que le client.
+      SELECT d.name INTO v_maire FROM public.personnages_donnees d
+       WHERE d.country = p_pays AND d.poste ->> 'id' = 'maire'
+         AND d.poste ->> 'city' = v_ville LIMIT 1;
+      IF v_maire IS NULL
+         OR public.jsonb_cles_hors_liste(v_nouveau,
+              ARRAY['posteId','city','candidats','echeanceTs','autoriteNom','traitee']) IS NOT NULL
+         OR v_nouveau -> 'traitee' IS DISTINCT FROM 'false'::jsonb
+         OR v_nouveau ->> 'autoriteNom' IS DISTINCT FROM v_maire
+         OR jsonb_typeof(v_nouveau -> 'echeanceTs') IS DISTINCT FROM 'number' THEN
+        RETURN false;
+      END IF;
+      IF abs((v_nouveau ->> 'echeanceTs')::numeric - v_maintenant - 172800000) > 60000 THEN
+        RETURN false;
+      END IF;
+      v_liste := '[]'::jsonb;
+    ELSE
+      IF (v_nouveau - 'candidats') IS DISTINCT FROM (v_ancien - 'candidats') THEN RETURN false; END IF;
+      v_liste := coalesce(v_ancien -> 'candidats', '[]'::jsonb);
+      IF jsonb_typeof(v_liste) IS DISTINCT FROM 'array' THEN RETURN false; END IF;
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_liste) c
+                WHERE c ->> 'nom' = v_nom AND coalesce(c ->> 'retiree', 'false') <> 'true') THEN
+      RETURN false;
+    END IF;
+    v_ajout := v_nouveau -> 'candidats' -> -1;
+    IF jsonb_typeof(v_ajout) IS DISTINCT FROM 'object'
+       OR v_ajout ->> 'nom' IS DISTINCT FROM v_nom
+       OR public.jsonb_cles_hors_liste(v_ajout, ARRAY['nom','depuisTs']) IS NOT NULL
+       OR jsonb_typeof(v_ajout -> 'depuisTs') IS DISTINCT FROM 'number'
+       OR (v_nouveau -> 'candidats') IS DISTINCT FROM (v_liste || jsonb_build_array(v_ajout)) THEN
+      RETURN false;
+    END IF;
+    IF abs((v_ajout ->> 'depuisTs')::numeric - v_maintenant) > 60000 THEN RETURN false; END IF;
+  END LOOP;
+  RETURN true;
 END;
 $function$;
 
@@ -248,6 +371,11 @@ BEGIN
                               'topic_id', (SELECT topic_id FROM public.candidatures WHERE id = v_id));
   END IF;
 
+
+  PERFORM pg_advisory_xact_lock(hashtext('candidature_unique|'||v_nom));
+  IF public.candidature_autre_scrutin_actif(v_pays,v_nom,v_pays||'_'||v_cle) THEN
+    RETURN jsonb_build_object('ok',false,'raison','candidature_simultanee_interdite');
+  END IF;
   v_paiement := public.payer_ordre(v_nom, 'deposer_candidature', 2, 0);
   IF NOT coalesce((v_paiement->>'ok')::boolean, false) THEN
     RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paiement->>'raison', 'paiement_refuse'));
@@ -317,6 +445,23 @@ BEGIN
   RETURN NEW;
 END;
 $function$;
+
+-- candidatures_unicite_scrutin_actif() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.candidatures_unicite_scrutin_actif()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_cycle text;
+BEGIN
+ v_cycle:=NEW.country||'_'||NEW.poste_id||CASE WHEN NEW.city IS NOT NULL THEN '_'||NEW.city ELSE '' END;
+ PERFORM pg_advisory_xact_lock(hashtext('candidature_unique|'||NEW.nom));
+ IF public.candidature_autre_scrutin_actif(NEW.country,NEW.nom,v_cycle) THEN
+  RAISE EXCEPTION 'candidature_simultanee_interdite' USING ERRCODE='23514';
+ END IF;
+ RETURN NEW;
+END;$function$;
 
 -- communication_financement(text,text,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.communication_financement(p_pays text, p_poste_id text, p_cout numeric)
@@ -509,6 +654,11 @@ BEGIN
           jsonb_build_object('conference', v_conf, 'ordre', p_fn, 'tribune', sa.libelle,
                              'topic', v_topic),
           v_conf);
+
+  -- Indice Diplomatique (25/10/2026) : la propagande d'Etat coute 5 points au pays.
+  IF p_fn = 'propagande_etat' THEN
+    PERFORM public.indice_diplomatique_varier_interne(a.pays, -5, 'propagande_etat', v_moi);
+  END IF;
 
   RETURN jsonb_build_object('ok', true, 'topic', v_topic, 'post', v_post,
                             'conference', v_conf, 'chronique', v_chron,
@@ -761,6 +911,47 @@ BEGIN
 END;
 $function$;
 
+-- conference_soutenir(text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.conference_soutenir(p_cycle text, p_candidat text, p_pa integer, p_cost integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a public.personnages_donnees; v_cycle text; v_jour date := (now() AT TIME ZONE 'Europe/Paris')::date;
+  v_paie jsonb; r jsonb; v_d jsonb; v_conv integer := 0; v_base text := replace(gen_random_uuid()::text, '-', '');
+BEGIN
+  SELECT * INTO a FROM public.personnages_donnees WHERE name = public.mon_personnage() FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF a.current_building IS DISTINCT FROM 'universite' OR a.current_room IS DISTINCT FROM 'amphi' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  IF coalesce(btrim(p_cycle), '') = '' OR coalesce(btrim(p_candidat), '') = '' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'parametres_invalides'); END IF;
+  v_cycle := a.country || '_' || p_cycle;
+  SELECT data::jsonb INTO v_d FROM public.cycles_electoraux WHERE id = v_cycle;
+  IF v_d IS NULL OR jsonb_typeof(v_d) <> 'object' THEN RETURN jsonb_build_object('ok', false, 'raison', 'scrutin_introuvable'); END IF;
+  IF coalesce((v_d ->> 'resultatsTraites')::boolean, false) OR jsonb_typeof(v_d -> 'dateResultats') <> 'number'
+     OR floor(extract(epoch FROM now()) * 1000) >= (v_d ->> 'dateResultats')::numeric OR jsonb_typeof(v_d -> 'dateVote') <> 'number' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'scrutin_clos'); END IF;
+  IF NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_d -> 'candidats', '[]'::jsonb)) c WHERE c ->> 'nom' = p_candidat) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'candidat_hors_scrutin'); END IF;
+  IF EXISTS (SELECT 1 FROM public.conferences_jours WHERE acteur = a.name AND jour = v_jour) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_fait_aujourdhui'); END IF;
+  IF EXISTS (SELECT 1 FROM public.elections_tracts_pnj WHERE cycle_id = v_cycle AND canal = 'conference' AND candidat = p_candidat) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_soutenu'); END IF;
+  v_paie := public.payer_ordre(a.name, 'donner_conf', p_pa, p_cost);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+  INSERT INTO public.conferences_jours VALUES (a.name, v_jour);
+  PERFORM set_config('rp.conference_interne', 'on', true);
+  FOR i IN 0..2 LOOP
+    r := public.elections_voix_pnj_enregistrer('conf-' || v_base || '-' || i, a.name, v_cycle, p_candidat,
+           'Un auditeur de la conférence', 'conference', 'conference:' || a.name || ':' || p_candidat || ':' || i);
+    IF coalesce((r ->> 'ok')::boolean, false) THEN v_conv := v_conv + 1; END IF;
+  END LOOP;
+  PERFORM set_config('rp.conference_interne', '', true);
+  RETURN jsonb_build_object('ok', true, 'convertis', v_conv, 'tour', r -> 'tour') || jsonb_build_object('paie', v_paie);
+END; $function$;
+
 -- cycle_electoral_aligne_dimanche(jsonb,timestamp with time zone) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cycle_electoral_aligne_dimanche(p_d jsonb, p_maintenant timestamp with time zone)
  RETURNS jsonb
@@ -807,6 +998,55 @@ BEGIN
 END;
 $function$;
 
+-- cycle_electoral_frais_interne(text,text,timestamp with time zone) -> jsonb | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.cycle_electoral_frais_interne(p_poste text, p_city text, p_now timestamp with time zone)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_jour date := (p_now AT TIME ZONE 'Europe/Paris')::date; v_lundi date; v_camp timestamptz;
+BEGIN
+  v_lundi := date_trunc('week', v_jour)::date + 7;
+  v_camp := (v_lundi + time '00:01') AT TIME ZONE 'Europe/Paris';
+  IF v_camp - p_now < interval '6 days' THEN v_lundi := v_lundi + 7; END IF;
+  RETURN jsonb_build_object(
+    'posteId', p_poste,
+    'city', CASE WHEN p_poste IN ('maire', 'depute') THEN p_city END,
+    'phase', 'candidatures',
+    'dateDebutCandidatures', (extract(epoch FROM p_now) * 1000)::bigint,
+    'dateDebutCampagne', (extract(epoch FROM (v_lundi + time '00:01') AT TIME ZONE 'Europe/Paris') * 1000)::bigint,
+    'dateVote', (extract(epoch FROM (v_lundi + 6 + time '00:01') AT TIME ZONE 'Europe/Paris') * 1000)::bigint,
+    'dateResultats', (extract(epoch FROM (v_lundi + 7 + time '00:00') AT TIME ZONE 'Europe/Paris') * 1000)::bigint,
+    'candidats', '[]'::jsonb, 'votes', '{}'::jsonb, 'votesPNJ', '{}'::jsonb,
+    'tour', 1, 'eluId', NULL, 'resultatsTraites', false);
+END; $function$;
+
+-- cycle_electoral_initialiser(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.cycle_electoral_initialiser(p_poste text, p_city text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_city text; v_id text; v_data text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_poste NOT IN ('president', 'chef_syndicat', 'maire', 'depute') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_non_electif'); END IF;
+  SELECT country INTO v_pays FROM public.personnages_donnees WHERE name = v_moi;
+  v_city := CASE WHEN p_poste IN ('maire', 'depute') THEN nullif(p_city, '') END;
+  IF p_poste IN ('maire', 'depute') AND (v_city IS NULL OR v_city NOT IN ('capitale', 'ville_a', 'ville_b')) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'ville_invalide'); END IF;
+  v_id := v_pays || '_' || p_poste || coalesce('_' || v_city, '');
+  INSERT INTO public.cycles_electoraux (id, country, poste_id, city, data, updated_at)
+    VALUES (v_id, v_pays, p_poste, v_city, public.cycle_electoral_frais_interne(p_poste, v_city, now())::text, now())
+    ON CONFLICT (id) DO NOTHING;
+  SELECT data INTO v_data FROM public.cycles_electoraux WHERE id = v_id;
+  RETURN jsonb_build_object('ok', true, 'id', v_id, 'cycle', v_data::jsonb);
+END; $function$;
+
 -- cycles_electoraux_dimanche() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.cycles_electoraux_dimanche()
  RETURNS trigger
@@ -824,6 +1064,117 @@ BEGIN
   RETURN NEW;
 END;
 $function$;
+
+-- election_contester(text,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.election_contester(p_poste text, p_city text, p_pa integer, p_cost integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_int numeric; v_city text; v_row record; v_cycle jsonb; v_scrutin jsonb;
+  v_paie jsonb; v_taux integer; v_roll integer; v_f record; v_sanction jsonb; v_recompte jsonb;
+  v_ancien jsonb; v_nouveau jsonb; v_change boolean := false;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country, coalesce(CASE WHEN jsonb_typeof(stats -> 'INT') = 'number' THEN (stats ->> 'INT')::numeric END, 8)
+    INTO v_pays, v_int FROM public.personnages_donnees WHERE name = v_moi;
+  v_city := CASE WHEN p_poste IN ('maire', 'depute') THEN nullif(p_city, '') END;
+  SELECT * INTO v_row FROM public.cycles_electoraux
+   WHERE country = v_pays AND poste_id = p_poste AND city IS NOT DISTINCT FROM v_city FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'scrutin_introuvable'); END IF;
+  v_cycle := v_row.data::jsonb;
+  IF (v_cycle ->> 'dernierResultatTs') IS NULL
+     OR (extract(epoch FROM now()) * 1000) - (v_cycle ->> 'dernierResultatTs')::numeric NOT BETWEEN 0 AND 86400000 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'hors_delai'); END IF;
+  v_scrutin := v_cycle -> 'dernierScrutin';
+  IF jsonb_typeof(v_scrutin) <> 'object' THEN RETURN jsonb_build_object('ok', false, 'raison', 'scrutin_non_consultable'); END IF;
+  v_paie := public.payer_ordre(v_moi, 'contester_resultats', p_pa, p_cost);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+  v_taux := greatest(5, least(95, round(60 + 5 * (v_int - 13))::integer));
+  v_roll := floor(random() * 100)::integer + 1;
+  IF v_roll > v_taux THEN
+    RETURN jsonb_build_object('ok', true, 'issue', 'rejetee', 'jet', v_roll, 'taux', v_taux) || jsonb_build_object('paie', v_paie);
+  END IF;
+  SELECT * INTO v_f FROM public.fraudes_electorales
+   WHERE country = v_pays AND poste_id = p_poste AND city IS NOT DISTINCT FROM v_city
+     AND cycle_debut = (v_scrutin ->> 'debut')::bigint AND etat = 'non_revelee'
+   ORDER BY random() LIMIT 1;
+  IF NOT FOUND OR random() * 100 >= coalesce(v_f.detectabilite_pct, 0) THEN
+    RETURN jsonb_build_object('ok', true, 'issue', 'aucune_fraude') || jsonb_build_object('paie', v_paie);
+  END IF;
+  v_sanction := public.fraude_electorale_sanctionner(v_f.id, v_city);
+  IF coalesce((v_sanction ->> 'ok')::boolean, false) IS NOT TRUE THEN
+    RETURN jsonb_build_object('ok', true, 'issue', 'sans_suite', 'raison', v_sanction ->> 'raison') || jsonb_build_object('paie', v_paie);
+  END IF;
+  v_recompte := public.election_recompter_interne(v_row.id, v_pays, p_poste, v_city, v_scrutin);
+  IF p_poste = 'depute' THEN
+    v_ancien := coalesce(v_cycle -> 'elus', '[]'::jsonb);
+    v_nouveau := v_recompte -> 'elus';
+    IF jsonb_typeof(v_nouveau) = 'array' AND jsonb_array_length(v_nouveau) = 3
+       AND (SELECT array_agg(x ORDER BY x) FROM jsonb_array_elements_text(v_nouveau) x)
+           IS DISTINCT FROM (SELECT array_agg(x ORDER BY x) FROM jsonb_array_elements_text(v_ancien) x) THEN
+      v_cycle := jsonb_set(v_cycle, '{elus}', v_nouveau); v_change := true;
+    END IF;
+  ELSE
+    v_ancien := v_cycle -> 'eluId';
+    v_nouveau := v_recompte -> 'elu';
+    IF jsonb_typeof(v_nouveau) = 'string' AND v_nouveau IS DISTINCT FROM v_ancien THEN
+      v_cycle := jsonb_set(v_cycle, '{eluId}', v_nouveau); v_change := true;
+    END IF;
+  END IF;
+  IF v_change THEN
+    UPDATE public.cycles_electoraux SET data = v_cycle::text, updated_at = now() WHERE id = v_row.id;
+  END IF;
+  RETURN jsonb_build_object('ok', true, 'issue', 'fraude_revelee', 'fraudeur', v_sanction ->> 'fraudeur',
+    'type', v_sanction ->> 'type', 'recompense', v_sanction -> 'recompense', 'arg', v_sanction -> 'arg_contestataire',
+    'issue_changee', v_change, 'ancienne_issue', v_ancien, 'nouvelle_issue', CASE WHEN v_change THEN v_nouveau END)
+    || jsonb_build_object('paie', v_paie);
+END; $function$;
+
+-- election_recompter_interne(text,text,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.election_recompter_interne(p_cycle_id text, p_pays text, p_poste text, p_city text, p_scrutin jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_scores jsonb := '{}'::jsonb; v_blancs integer := 0; v_total integer; v_nb integer; v_nom text; r record;
+  v_premier text; v_premier_voix integer;
+BEGIN
+  SELECT count(*) INTO v_nb FROM jsonb_array_elements(coalesce(p_scrutin -> 'candidats', '[]'::jsonb));
+  IF v_nb = 0 THEN RETURN NULL; END IF;
+  SELECT jsonb_object_agg(c ->> 'nom', 0) INTO v_scores FROM jsonb_array_elements(p_scrutin -> 'candidats') c;
+  FOR v_nom IN SELECT value FROM jsonb_each_text(coalesce(p_scrutin -> 'votes', '{}'::jsonb))
+               UNION ALL SELECT value FROM jsonb_each_text(coalesce(p_scrutin -> 'votesPNJ', '{}'::jsonb)) LOOP
+    IF v_nom = 'BLANC' THEN v_blancs := v_blancs + 1;
+    ELSIF v_scores ? v_nom THEN v_scores := jsonb_set(v_scores, ARRAY[v_nom], to_jsonb((v_scores ->> v_nom)::int + 1)); END IF;
+  END LOOP;
+  FOR r IN SELECT candidat, sum(effet)::int AS e FROM public.elections_tracts_pnj
+            WHERE cycle_id = p_cycle_id AND tour = coalesce((p_scrutin ->> 'dateVote')::bigint, 0) GROUP BY candidat LOOP
+    IF v_scores ? r.candidat THEN v_scores := jsonb_set(v_scores, ARRAY[r.candidat], to_jsonb(greatest(0, (v_scores ->> r.candidat)::int + r.e))); END IF;
+  END LOOP;
+  FOR r IN SELECT candidat, delta_voix FROM public.fraudes_electorales
+            WHERE country = p_pays AND poste_id = p_poste AND city IS NOT DISTINCT FROM p_city
+              AND cycle_debut = (p_scrutin ->> 'debut')::bigint AND etat = 'non_revelee' LOOP
+    IF v_scores ? r.candidat THEN v_scores := jsonb_set(v_scores, ARRAY[r.candidat], to_jsonb(greatest(0, (v_scores ->> r.candidat)::int + r.delta_voix))); END IF;
+  END LOOP;
+  SELECT coalesce(sum(value::int), 0) + v_blancs INTO v_total FROM jsonb_each_text(v_scores);
+  IF v_total = 0 OR v_blancs > v_total / 2.0 THEN RETURN jsonb_build_object('elu', NULL, 'elus', '[]'::jsonb); END IF;
+  IF p_poste = 'depute' THEN
+    RETURN jsonb_build_object('elus', (SELECT jsonb_agg(nom) FROM (
+      SELECT s.key AS nom FROM jsonb_each_text(v_scores) s
+        LEFT JOIN LATERAL (SELECT nullif(c ->> 'dateInscription', '')::numeric AS d
+                             FROM jsonb_array_elements(p_scrutin -> 'candidats') c WHERE c ->> 'nom' = s.key LIMIT 1) i ON true
+       ORDER BY s.value::int DESC, coalesce(i.d, 'Infinity'::numeric), s.key LIMIT 3) t));
+  END IF;
+  SELECT key, value::int INTO v_premier, v_premier_voix FROM jsonb_each_text(v_scores) ORDER BY value::int DESC LIMIT 1;
+  IF v_nb = 1 THEN
+    RETURN jsonb_build_object('elu', CASE WHEN v_premier_voix >= v_blancs THEN v_premier END);
+  END IF;
+  RETURN jsonb_build_object('elu', CASE WHEN v_premier_voix > v_total / 2.0 THEN v_premier END);
+END; $function$;
 
 -- election_resultats_consigner(text,jsonb,jsonb,jsonb,numeric) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.election_resultats_consigner(p_cycle_id text, p_data jsonb, p_evenement jsonb DEFAULT NULL::jsonb, p_chronique jsonb DEFAULT NULL::jsonb, p_si_date_resultats numeric DEFAULT NULL::numeric)
@@ -1022,6 +1373,12 @@ BEGIN
   PERFORM public.exiger_acteur(p_joueur);
   IF p_canal NOT IN ('conference', 'jean_lou') THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'canal_invalide');
+  END IF;
+  IF p_canal = 'conference' AND coalesce(current_setting('rp.conference_interne', true), '') <> 'on' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'canal_reserve_serveur');
+  END IF;
+  IF p_canal = 'jean_lou' AND coalesce(current_setting('rp.jean_lou_interne', true), '') <> 'on' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'canal_reserve_serveur');
   END IF;
   v_rej := public.assemblee_requete_ouvrir(p_requete, p_joueur, 'voix_pnj');
   IF v_rej IS NOT NULL THEN RETURN v_rej; END IF;
@@ -1316,6 +1673,8 @@ BEGIN
 
   DELETE FROM public.titulaires_pnj
    WHERE country = p_pays AND poste_id = p_poste AND city IS NOT DISTINCT FROM p_city;
+  -- Le dossier de candidature du poste est solde (25/10/2026) : le poste est pourvu.
+  PERFORM public.poste_candidature_dossier_solder_interne(p_pays, p_poste, p_city);
 
   UPDATE public.personnages_donnees
      SET poste = jsonb_build_object('id', p_poste, 'name', v_label, 'city', p_city,
@@ -1357,6 +1716,100 @@ BEGIN
   RETURN QUERY SELECT v_nom, v_pays, v_regle.nomme_par, v_regle.scope;
 END;
 $function$;
+
+-- poste_candidature_dossier_ajouter_interne(text,text,text,text,text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.poste_candidature_dossier_ajouter_interne(p_pays text, p_poste text, p_city text, p_candidat text, p_autorite text)
+ RETURNS text
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_id text := p_pays || '_national_candidatures_postes'; v_etat jsonb; v_cands jsonb; v_cle text;
+        v_dossier jsonb; v_maintenant bigint := (extract(epoch from clock_timestamp()) * 1000)::bigint;
+BEGIN
+  INSERT INTO public.batiments_etat (id, country, city, building_id, data, updated_at)
+  VALUES (v_id, p_pays, 'national', 'candidatures_postes', to_jsonb('{"candidatures":{}}'::text), now())
+  ON CONFLICT (id) DO NOTHING;
+  SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
+  v_cands := CASE WHEN jsonb_typeof(v_etat -> 'candidatures') = 'object' THEN v_etat -> 'candidatures' ELSE '{}'::jsonb END;
+  v_cle := p_poste || '|' || coalesce(p_city, 'national');
+  v_dossier := v_cands -> v_cle;
+  IF v_dossier IS NULL OR coalesce((v_dossier ->> 'traitee')::boolean, false) THEN
+    v_dossier := jsonb_build_object('posteId', p_poste, 'city', p_city,
+      'candidats', jsonb_build_array(jsonb_build_object('nom', p_candidat, 'depuisTs', v_maintenant)),
+      'echeanceTs', v_maintenant + 48 * 3600 * 1000, 'autoriteNom', p_autorite, 'traitee', false);
+  ELSIF EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_dossier -> 'candidats', '[]'::jsonb)) c
+                 WHERE c ->> 'nom' = p_candidat AND NOT coalesce((c ->> 'retiree')::boolean, false)) THEN
+    RETURN 'deja_candidat';
+  ELSE
+    v_dossier := jsonb_set(v_dossier, '{candidats}', coalesce(v_dossier -> 'candidats', '[]'::jsonb)
+                   || jsonb_build_array(jsonb_build_object('nom', p_candidat, 'depuisTs', v_maintenant)));
+    IF v_dossier ->> 'autoriteNom' IS DISTINCT FROM p_autorite THEN
+      v_dossier := v_dossier || jsonb_build_object('autoriteNom', p_autorite, 'echeanceTs', v_maintenant + 48 * 3600 * 1000);
+    END IF;
+  END IF;
+  v_etat := coalesce(v_etat, '{}'::jsonb) || jsonb_build_object('candidatures', v_cands || jsonb_build_object(v_cle, v_dossier));
+  UPDATE public.batiments_etat SET data = to_jsonb(v_etat::text), updated_at = now() WHERE id = v_id;
+  RETURN 'ajoute';
+END; $function$;
+
+-- poste_candidature_dossier_solder_interne(text,text,text) -> void | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.poste_candidature_dossier_solder_interne(p_pays text, p_poste text, p_city text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_id text := p_pays || '_national_candidatures_postes'; v_etat jsonb; v_cle text := p_poste || '|' || coalesce(p_city, 'national');
+BEGIN
+  SELECT public.batiment_etat_lire(data) INTO v_etat FROM public.batiments_etat WHERE id = v_id FOR UPDATE;
+  IF v_etat IS NULL OR jsonb_typeof(v_etat #> ARRAY['candidatures', v_cle]) IS DISTINCT FROM 'object'
+     OR coalesce((v_etat #>> ARRAY['candidatures', v_cle, 'traitee'])::boolean, false) THEN RETURN; END IF;
+  v_etat := jsonb_set(v_etat, ARRAY['candidatures', v_cle, 'traitee'], 'true'::jsonb);
+  UPDATE public.batiments_etat SET data = to_jsonb(v_etat::text), updated_at = now() WHERE id = v_id;
+END; $function$;
+
+-- poste_candidature_transmettre(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.poste_candidature_transmettre(p_poste text, p_city text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_nom text; v_pays text; v_regle record; v_paie jsonb; v_autorite text; v_city text; v_res text;
+BEGIN
+  v_nom := public.mon_personnage();
+  IF v_nom IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT coalesce(country, 'republic') INTO v_pays FROM public.personnages_donnees WHERE name = v_nom;
+  SELECT * INTO v_regle FROM public.postes_nommes_regles r WHERE r.poste_id = p_poste;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'poste_inconnu'); END IF;
+  v_city := CASE WHEN v_regle.scope = 'ville' THEN p_city END;
+  IF EXISTS (SELECT 1 FROM public.postes_attribues a
+              WHERE a.id = v_pays || '_' || p_poste || '_' || coalesce(v_city, 'national')
+                AND EXISTS (SELECT 1 FROM public.personnages_donnees d WHERE d.name = a.titulaire)) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'poste_deja_occupe_par_un_joueur');
+  END IF;
+  v_autorite := public.poste_recruteur_joueur(v_pays, p_poste, v_city);
+  IF v_autorite IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'recruteur_pnj'); END IF;
+  IF v_autorite = v_nom THEN RETURN jsonb_build_object('ok', false, 'raison', 'recruteur_soi_meme'); END IF;
+  IF EXISTS (SELECT 1 FROM public.batiments_etat b,
+                    jsonb_array_elements(coalesce(public.batiment_etat_lire(b.data)
+                       #> ARRAY['candidatures', p_poste || '|' || coalesce(v_city, 'national'), 'candidats'], '[]'::jsonb)) c
+              WHERE b.id = v_pays || '_national_candidatures_postes'
+                AND NOT coalesce((public.batiment_etat_lire(b.data)
+                       #>> ARRAY['candidatures', p_poste || '|' || coalesce(v_city, 'national'), 'traitee'])::boolean, false)
+                AND c ->> 'nom' = v_nom AND NOT coalesce((c ->> 'retiree')::boolean, false)) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_candidat');
+  END IF;
+  v_paie := public.payer_ordre(v_nom, 'postuler', 1, 0);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+  v_res := public.poste_candidature_dossier_ajouter_interne(v_pays, p_poste, v_city, v_nom, v_autorite);
+  PERFORM public.mail_systeme_poser_interne(v_nom, v_autorite, 'Candidature au poste de ' || v_regle.label,
+    v_nom || ' postule au poste de <strong>' || v_regle.label || '</strong>. Vous disposez de 48h pour choisir un candidat depuis la fenêtre de gestion des candidatures, sans quoi le système tranchera automatiquement.<br><br>'
+    || '[[act:candidature|' || p_poste || '|' || replace(replace(replace(v_regle.label, '|', ''), '[', ''), ']', '')
+    || '|' || replace(replace(replace(v_nom, '|', ''), '[', ''), ']', '') || ']]');
+  RETURN jsonb_build_object('ok', true, 'pa', v_paie -> 'pa', 'recruteur', v_autorite, 'dossier', v_res);
+END; $function$;
 
 -- poste_est_atteste(text,jsonb,text) -> boolean | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_est_atteste(p_nom text, p_poste jsonb, p_pays text)
@@ -1508,7 +1961,21 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'raison', 'autorite_joueur_doit_decider');
   END IF;
 
-  RETURN public.poste_attribuer_interne(v_pays, p_poste, p_city, v_nom, 'candidature_autorite_pnj');
+  -- 1 PA par candidature (Fred, 25/10/2026). Preleve avec la nomination ; une nomination
+  -- refusee annule le prelevement (sous-bloc = point de sauvegarde).
+  DECLARE v_paie jsonb; v_res jsonb;
+  BEGIN
+    v_paie := public.payer_ordre(v_nom, 'postuler', 1, 0);
+    IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+    v_res := public.poste_attribuer_interne(v_pays, p_poste, p_city, v_nom, 'candidature_autorite_pnj');
+    IF coalesce((v_res ->> 'ok')::boolean, false) IS NOT TRUE THEN
+      RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'hg_candidature_refusee', DETAIL = v_res::text;
+    END IF;
+    RETURN v_res || jsonb_build_object('pa', v_paie -> 'pa');
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM = 'hg_candidature_refusee' THEN RETURN v_res; END IF;
+    RAISE;
+  END;
 END;
 $function$;
 
@@ -1530,6 +1997,33 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'decision', 'demission');
 END;
 $function$;
+
+-- poste_recruteur_joueur(text,text,text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.poste_recruteur_joueur(p_pays text, p_poste text, p_city text)
+ RETURNS text
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_regle record; v_nom text; v_ville_autorite text;
+BEGIN
+  SELECT * INTO v_regle FROM public.postes_nommes_regles WHERE poste_id = p_poste;
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  v_ville_autorite := CASE WHEN coalesce(v_regle.autorite_scope, v_regle.scope) = 'ville' THEN p_city END;
+  SELECT a.titulaire INTO v_nom FROM public.postes_attribues a
+   WHERE a.country = p_pays AND a.poste_id = v_regle.nomme_par
+     AND (v_ville_autorite IS NULL OR a.city IS NOT DISTINCT FROM v_ville_autorite)
+     AND EXISTS (SELECT 1 FROM public.personnages_donnees d WHERE d.name = a.titulaire)
+   LIMIT 1;
+  IF v_nom IS NOT NULL THEN RETURN v_nom; END IF;
+  SELECT c.data::jsonb ->> 'eluId' INTO v_nom FROM public.cycles_electoraux c
+   WHERE c.country = p_pays AND c.poste_id = v_regle.nomme_par
+     AND (v_ville_autorite IS NULL OR c.city IS NOT DISTINCT FROM v_ville_autorite)
+     AND left(btrim(c.data), 1) = '{'
+     AND EXISTS (SELECT 1 FROM public.personnages_donnees d WHERE d.name = c.data::jsonb ->> 'eluId')
+   LIMIT 1;
+  RETURN v_nom;
+END; $function$;
 
 -- poste_revoquer(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.poste_revoquer(p_poste text, p_city text)
@@ -1700,6 +2194,42 @@ BEGIN
 END;
 $function$;
 
+-- vote_confiance_declencher(integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.vote_confiance_declencher(p_pa integer, p_cost integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_poste text; v_paie jsonb; v_id text; v_cloture timestamptz := now() + interval '48 hours';
+  v_dep record; v_n integer := 0;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country, poste ->> 'id' INTO v_pays, v_poste FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_poste IS DISTINCT FROM 'pm' THEN RETURN jsonb_build_object('ok', false, 'raison', 'reserve_pm'); END IF;
+  PERFORM pg_advisory_xact_lock(hashtext('vote_confiance_' || v_pays));
+  IF EXISTS (SELECT 1 FROM public.votes_confiance WHERE country = v_pays AND statut = 'en_cours') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'vote_deja_en_cours'); END IF;
+  v_paie := public.payer_ordre(v_moi, 'declencher_vote_confiance', p_pa, p_cost);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+  v_id := 'voteconf-' || (extract(epoch FROM now()) * 1000)::bigint;
+  INSERT INTO public.votes_confiance (id, country, pm_nom, cloture_ts, statut, resultat, bulletins,
+                                      demission_limite_ts, demission_ts, consequence_appliquee, created_at)
+  VALUES (v_id, v_pays, v_moi, v_cloture, 'en_cours', NULL, '{}'::jsonb, NULL, NULL, false, now());
+  FOR v_dep IN SELECT name FROM public.personnages_donnees WHERE country = v_pays AND (poste_depute ->> 'id') = 'depute' LOOP
+    PERFORM public.mail_systeme_poser_interne('Assemblée Nationale', v_dep.name, 'Vote de confiance — Assemblée Nationale',
+      'Le Premier Ministre ' || v_moi || ' engage la responsabilité de son gouvernement. Votez avant 48h.<br><br>'
+      || '[[act:confiance_pour|' || v_id || ']][[act:confiance_contre|' || v_id || ']]',
+      to_char(now() AT TIME ZONE 'Europe/Paris', 'DD/MM/YYYY HH24:MI'));
+    v_n := v_n + 1;
+  END LOOP;
+  PERFORM public.annonce_publique_interne(v_pays, '🏛 Le Premier Ministre ' || v_moi
+    || ' engage la responsabilité de son gouvernement devant l''Assemblée Nationale.');
+  RETURN jsonb_build_object('ok', true, 'vote_id', v_id, 'cloture_ts', v_cloture, 'deputes_prevenus', v_n)
+    || jsonb_build_object('paie', v_paie);
+END; $function$;
+
 -- vote_confiance_resoudre(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.vote_confiance_resoudre(p_vote_id text)
  RETURNS jsonb
@@ -1778,4 +2308,27 @@ BEGIN
   RETURN jsonb_build_object('ok',true,'vote_id',p_vote_id,'country',v_vote.country,
                             'resultat',v_resultat,'pour',v_pour,'contre',v_contre,
                             'sieges_tires',v_sieges);
+END; $function$;
+
+-- vote_confiance_voter(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.vote_confiance_voter(p_vote_id text, p_choix text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_pays text; v_depute text; v_vote record;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_choix NOT IN ('pour', 'contre') THEN RETURN jsonb_build_object('ok', false, 'raison', 'choix_invalide'); END IF;
+  SELECT country, poste_depute ->> 'id' INTO v_pays, v_depute FROM public.personnages_donnees WHERE name = v_moi;
+  IF v_depute IS DISTINCT FROM 'depute' THEN RETURN jsonb_build_object('ok', false, 'raison', 'reserve_deputes'); END IF;
+  SELECT * INTO v_vote FROM public.votes_confiance WHERE id = p_vote_id FOR UPDATE;
+  IF NOT FOUND OR v_vote.country IS DISTINCT FROM v_pays OR v_vote.statut <> 'en_cours' OR now() >= v_vote.cloture_ts THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'vote_ferme'); END IF;
+  IF coalesce(v_vote.bulletins, '{}'::jsonb) ? v_moi THEN RETURN jsonb_build_object('ok', false, 'raison', 'deja_vote'); END IF;
+  UPDATE public.votes_confiance SET bulletins = coalesce(bulletins, '{}'::jsonb) || jsonb_build_object(v_moi, p_choix)
+   WHERE id = p_vote_id;
+  RETURN jsonb_build_object('ok', true, 'choix', p_choix);
 END; $function$;

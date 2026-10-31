@@ -7,6 +7,12 @@
    "sous": ""
   },
   {
+   "empreinte": "8dfecfcc116d94ac7d83317fdd0d93e0",
+   "genre": "FUNCTION",
+   "objet": "acteur_est_moi(text)",
+   "sous": ""
+  },
+  {
    "empreinte": "506c3f2fc9673142c2e9dbe854e4a8aa",
    "genre": "FUNCTION",
    "objet": "acteur_identifie()",
@@ -34,6 +40,12 @@
    "empreinte": "39e027f2a19e99fb11fa95d5cdf16bcf",
    "genre": "FUNCTION",
    "objet": "admin_pnj_titulaire(text,text,text)",
+   "sous": ""
+  },
+  {
+   "empreinte": "3aa5d82c2e27399e67150de7322c5826",
+   "genre": "FUNCTION",
+   "objet": "combat_coup_resoudre(numeric,numeric,numeric,integer,integer)",
    "sous": ""
   },
   {
@@ -65,11 +77,108 @@
    "genre": "FUNCTION",
    "objet": "objet_fiche_officielle(jsonb)",
    "sous": ""
+  },
+  {
+   "empreinte": "946c2a4c30c2c34527e83a9ca46b07a1",
+   "genre": "TABLE",
+   "objet": "inventaire_livraisons_recues",
+   "sous": ""
   }
  ],
- "contraintes": [],
+ "contraintes": [
+  {
+   "empreinte": "5ee40fb12a73c9c3db1a3d175a94fed8",
+   "genre": "p",
+   "nom": "inventaire_actions_recus_pkey",
+   "tbl": "inventaire_actions_recus"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "inventaire_ecarts_observes_pkey",
+   "tbl": "inventaire_ecarts_observes"
+  },
+  {
+   "empreinte": "c09e80a922ab1529f78fc45ce8c6e99c",
+   "genre": "p",
+   "nom": "inventaire_livraisons_recues_pkey",
+   "tbl": "inventaire_livraisons_recues"
+  },
+  {
+   "empreinte": "ce01520149a731f63d1f3cc3f6add7c3",
+   "genre": "p",
+   "nom": "objets_achetables_pkey",
+   "tbl": "objets_achetables"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "objets_modeles_pkey",
+   "tbl": "objets_modeles"
+  },
+  {
+   "empreinte": "41a1ce32476f5313d2b702b6707278d9",
+   "genre": "p",
+   "nom": "objets_trouves_jours_pkey",
+   "tbl": "objets_trouves_jours"
+  },
+  {
+   "empreinte": "3372b7ab2b29eade94093a2a29624351",
+   "genre": "p",
+   "nom": "ordres_generiques_pkey",
+   "tbl": "ordres_generiques"
+  },
+  {
+   "empreinte": "1bffaf8bbbe5fa6b62693813e1b37670",
+   "genre": "p",
+   "nom": "rue_noeuds_serveur_pkey",
+   "tbl": "rue_noeuds_serveur"
+  },
+  {
+   "empreinte": "54a3e5714a76306964e933c915c914fe",
+   "genre": "p",
+   "nom": "rue_sorties_batiments_pkey",
+   "tbl": "rue_sorties_batiments"
+  },
+  {
+   "empreinte": "e2a4d855c8d573f1ab09925910b13c2b",
+   "genre": "c",
+   "nom": "ordres_generiques_taux_reussite_check",
+   "tbl": "ordres_generiques"
+  },
+  {
+   "empreinte": "46c78547e6bc96c2b8a4d516f72ea7c5",
+   "genre": "f",
+   "nom": "objets_achetables_modele_fkey",
+   "tbl": "objets_achetables"
+  }
+ ],
  "domaine": "socle",
  "droits": [
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "achat_requete_clore_interne(text,uuid,text,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "achat_requete_clore_interne(text,uuid,text,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "achat_requete_ouvrir_interne(text,uuid,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "achat_requete_ouvrir_interne(text,uuid,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
@@ -77,6 +186,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acteur_est_moi(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acteur_est_moi(text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "PUBLIC",
    "genre": "FUNCTION",
    "objet": "acteur_identifie()",
@@ -287,6 +408,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "combat_coup_resoudre(numeric,numeric,numeric,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "combat_coup_resoudre(numeric,numeric,numeric,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "deplacement_enregistrer(text,text,text,text)",
@@ -386,6 +519,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "embargo_actif(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "enigme_objet_recevoir(uuid,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "enigme_objet_recevoir(uuid,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "enigme_objet_recevoir(uuid,text,integer,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -509,6 +660,48 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fiche_fusionner_ecran(jsonb,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fiche_fusionner_ecran(jsonb,jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fiche_valeur_normalisee(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fiche_valeur_normalisee(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fortune_serveur_diagnostic()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fortune_serveur_diagnostic()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fortune_serveur_diagnostic()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "PUBLIC",
    "genre": "FUNCTION",
    "objet": "generique_de_objet(jsonb)",
@@ -629,6 +822,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_action_rejouer_interne(text,uuid,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_action_rejouer_interne(text,uuid,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "inventaire_ajouter(jsonb,text,integer,text)",
@@ -644,6 +849,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "inventaire_ajouter(jsonb,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_ajouts_interdits(jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_ajouts_interdits(jsonb,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -680,6 +897,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "inventaire_consommer(text,integer,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_deposer_interne(text,jsonb,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_deposer_interne(text,jsonb,boolean)",
    "privileges": "EXECUTE"
   },
   {
@@ -793,6 +1022,42 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "inventaire_reception_etat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_reception_etat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_reception_etat(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_reclamer_livraison(text,text,uuid,bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_reclamer_livraison(text,text,uuid,bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_reclamer_livraison(text,text,uuid,bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "inventaire_remettre(text,integer,jsonb,text)",
    "privileges": "EXECUTE"
   },
@@ -842,6 +1107,36 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "inventaire_retirer_position(jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_revision_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_revision_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "inventaire_sauver_revision(text,bigint,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "inventaire_sauver_revision(text,bigint,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "inventaire_sauver_revision(text,bigint,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -947,6 +1242,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "mission_carriere_recevoir(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "mission_carriere_recevoir(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "mission_carriere_recevoir(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "PUBLIC",
    "genre": "FUNCTION",
    "objet": "mon_personnage()",
@@ -1049,6 +1362,54 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "objet_abandonne_ramasser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "objet_abandonne_ramasser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "objet_abandonne_ramasser(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "objet_acheter(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "objet_acheter(text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "objet_acheter(uuid,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "objet_acheter(uuid,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "objet_acheter(uuid,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "PUBLIC",
    "genre": "FUNCTION",
    "objet": "objet_fiche_officielle(jsonb)",
@@ -1099,6 +1460,42 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "objet_trouve_reclamer(uuid,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "objet_trouve_reclamer(uuid,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "objet_trouve_reclamer(uuid,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ordre_generique_executer(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ordre_generique_executer(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ordre_generique_executer(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "personnage_fantome_declarer(text,jsonb)",
    "privileges": "EXECUTE"
   },
@@ -1112,6 +1509,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "personnage_fantome_declarer(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "quete_objet_reclamer(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "quete_objet_reclamer(uuid,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1147,6 +1556,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "ressource_ajuster_interne(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ressource_ajuster_interne(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "restaurer_personnage_sauvegarde(text,text)",
    "privileges": "EXECUTE"
   },
@@ -1172,6 +1593,60 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "rp_transition_active(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "rue_position_enregistrer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "rue_position_enregistrer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "rue_position_enregistrer(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "rue_position_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "rue_position_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "rue_position_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "rue_sortie_batiment_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "rue_sortie_batiment_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "rue_sortie_batiment_lire()",
    "privileges": "EXECUTE"
   },
   {
@@ -1203,6 +1678,162 @@
    "genre": "FUNCTION",
    "objet": "titulaire_est_moi(text)",
    "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "inventaire_ecarts_observes_id_seq",
+   "privileges": "SELECT, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "inventaire_ecarts_observes_id_seq",
+   "privileges": "SELECT, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "inventaire_ecarts_observes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "inventaire_ecarts_observes_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "inventaire_actions_recus",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "inventaire_actions_recus",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "inventaire_actions_recus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "inventaire_actions_recus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "inventaire_ecarts_observes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "inventaire_ecarts_observes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "inventaire_livraisons_recues",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "inventaire_livraisons_recues",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "objets_achetables",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "objets_achetables",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "objets_modeles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "objets_modeles",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "objets_trouves_jours",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "objets_trouves_jours",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "objets_trouves_jours",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "objets_trouves_jours",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "ordres_generiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "ordres_generiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "rue_noeuds_serveur",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "rue_noeuds_serveur",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "rue_sorties_batiments",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "rue_sorties_batiments",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   }
  ],
  "droits_colonnes": [],
@@ -1386,18 +2017,35 @@
   }
  ],
  "fichiers": {
-  "20_fonctions.sql": "b5bde8ce81e1a8b9d412a7cf8c0c292f",
-  "35_index.sql": "979e289e07e5c9a8d148804a11565bb4",
-  "60_rls-policies.sql": "beda15c776207e86bb1413175c09e63c",
-  "70_droits.sql": "0e703ebe648f02451d7100244ea67b92",
-  "80_commentaires.sql": "dfca656c92b7194fa01929c7547f4b71",
+  "10_tables.sql": "49d7d3f9cbbe28c776660902675a4d98",
+  "20_fonctions.sql": "a13147fdb10eb3ccb8913d6d894d6e90",
+  "30_contraintes.sql": "799840ecb021ef4973bcaa5e9f3ae37b",
+  "35_index.sql": "52b739a4ab0df173345bc9d4ac1e72b6",
+  "60_rls-policies.sql": "906cb5ec88485e29587265870e7909f7",
+  "70_droits.sql": "56895e4063398910df05f8d7a2e5ea66",
+  "80_commentaires.sql": "8b63848eb9b5db1f22ba86c42fba63fe",
   "85_default-privileges.sql": "08c91ea43f00d793104cf8fd36a10cd6"
  },
  "fonctions": [
   {
+   "empreinte": "c777d5502a21974ec53366b88db306db",
+   "security_definer": true,
+   "signature": "achat_requete_clore_interne(text,uuid,text,jsonb,jsonb)"
+  },
+  {
+   "empreinte": "88a8cb7d73dc88fb05222558a0c67665",
+   "security_definer": true,
+   "signature": "achat_requete_ouvrir_interne(text,uuid,text,jsonb)"
+  },
+  {
    "empreinte": "6033771d8c51487c9d5718674b9867b6",
    "security_definer": true,
    "signature": "acte_nocturne_revendiquer(text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "655cb07c937ecc18646fb7f4623c3464",
+   "security_definer": true,
+   "signature": "acteur_est_moi(text)"
   },
   {
    "empreinte": "087e7a2283b98e2fd03ec492ef170afd",
@@ -1465,6 +2113,11 @@
    "signature": "carrieres_de(text)"
   },
   {
+   "empreinte": "8549f152867cb6c15238bd2a0a45dd07",
+   "security_definer": false,
+   "signature": "combat_coup_resoudre(numeric,numeric,numeric,integer,integer)"
+  },
+  {
    "empreinte": "fb8970ea456e901651db6d8bb6cc98eb",
    "security_definer": true,
    "signature": "deplacement_enregistrer(text,text,text,text)"
@@ -1483,6 +2136,11 @@
    "empreinte": "f386e93c0d1b759c24ec687bb07d6eaf",
    "security_definer": false,
    "signature": "embargo_actif(text,text)"
+  },
+  {
+   "empreinte": "48cb88ed4658362f9d8824d13bf6dc2a",
+   "security_definer": true,
+   "signature": "enigme_objet_recevoir(uuid,text,integer,integer)"
   },
   {
    "empreinte": "67b67f984fd3c8fe066d9682f5269b81",
@@ -1508,6 +2166,21 @@
    "empreinte": "1b85bf8eeaf1e88ea0a8c46b32a20c9d",
    "security_definer": true,
    "signature": "exiger_poste(text)"
+  },
+  {
+   "empreinte": "61e2e525076eefaca0b217e7fd25e295",
+   "security_definer": false,
+   "signature": "fiche_fusionner_ecran(jsonb,jsonb,jsonb)"
+  },
+  {
+   "empreinte": "e30aedbb84ac77b380a73508d1b510c6",
+   "security_definer": false,
+   "signature": "fiche_valeur_normalisee(jsonb)"
+  },
+  {
+   "empreinte": "57abf44d3f0c5603f8d20dd19b6aabc9",
+   "security_definer": true,
+   "signature": "fortune_serveur_diagnostic()"
   },
   {
    "empreinte": "b87da8e30f772415ef6890ab13ae118e",
@@ -1545,9 +2218,19 @@
    "signature": "inventaire_abandonner(text,integer,jsonb,text,text,text,text)"
   },
   {
+   "empreinte": "b4364b45fce2fdac7a8054c5353efce3",
+   "security_definer": true,
+   "signature": "inventaire_action_rejouer_interne(text,uuid,text,jsonb)"
+  },
+  {
    "empreinte": "001c4d7482c320f26fb4c729856129cb",
    "security_definer": false,
    "signature": "inventaire_ajouter(jsonb,text,integer,text)"
+  },
+  {
+   "empreinte": "31404031300a966d429de045e2f45b89",
+   "security_definer": false,
+   "signature": "inventaire_ajouts_interdits(jsonb,jsonb)"
   },
   {
    "empreinte": "2fb83e9531178236d183d36a78abaab5",
@@ -1555,9 +2238,14 @@
    "signature": "inventaire_confisquer(text)"
   },
   {
-   "empreinte": "3507c88c0dfeebd88f9d9379a91616b4",
+   "empreinte": "572a748b304801f4fb12d415257ddbdc",
    "security_definer": true,
    "signature": "inventaire_consommer(text,integer,jsonb)"
+  },
+  {
+   "empreinte": "9eb4435180b43d43786de9674260ebfb",
+   "security_definer": true,
+   "signature": "inventaire_deposer_interne(text,jsonb,boolean)"
   },
   {
    "empreinte": "a5c76a121b09572405e344540c8947d7",
@@ -1580,7 +2268,7 @@
    "signature": "inventaire_objet_protege(jsonb,jsonb)"
   },
   {
-   "empreinte": "d6813ae539722073a631bf35cc7e5876",
+   "empreinte": "1cf40d9f88626c8bdc6bf0eb22356ac7",
    "security_definer": false,
    "signature": "inventaire_place_restante(jsonb)"
   },
@@ -1588,6 +2276,16 @@
    "empreinte": "13d02f674eea13f30d0af2c79e46ad3d",
    "security_definer": false,
    "signature": "inventaire_quantite(jsonb,text)"
+  },
+  {
+   "empreinte": "5e2ed2c8874d3c1838c62e88d3459af3",
+   "security_definer": true,
+   "signature": "inventaire_reception_etat(text)"
+  },
+  {
+   "empreinte": "02c0f2bc94a17aef310b752b3365e0cd",
+   "security_definer": true,
+   "signature": "inventaire_reclamer_livraison(text,text,uuid,bigint)"
   },
   {
    "empreinte": "d21e9a0066ee1ebfb4b01ffb112baf1f",
@@ -1603,6 +2301,16 @@
    "empreinte": "47d4a064eb5ebc1b8f9165c4aad63472",
    "security_definer": false,
    "signature": "inventaire_retirer_position(jsonb,integer)"
+  },
+  {
+   "empreinte": "ae07f3fceeb6efcc61f79554523cb1f1",
+   "security_definer": true,
+   "signature": "inventaire_revision_garder()"
+  },
+  {
+   "empreinte": "57e01e4f842ef10ea8dd01dc99b3de9a",
+   "security_definer": true,
+   "signature": "inventaire_sauver_revision(text,bigint,jsonb)"
   },
   {
    "empreinte": "d9dc41f518b06a8499418945eeb467d7",
@@ -1640,6 +2348,11 @@
    "signature": "mes_carrieres()"
   },
   {
+   "empreinte": "10109eb1a2149a4e8e27139518a9211f",
+   "security_definer": true,
+   "signature": "mission_carriere_recevoir(uuid,text)"
+  },
+  {
    "empreinte": "cc744c8aa93d6aab5edd1c0ba9d1efc1",
    "security_definer": true,
    "signature": "mon_personnage()"
@@ -1655,9 +2368,24 @@
    "signature": "mon_poste_est_dans(text,text)"
   },
   {
-   "empreinte": "05bafe0652dc5373d8bb5030580f8280",
+   "empreinte": "bf39b8dbdd7380b3cbe4d5852b30a76b",
    "security_definer": true,
    "signature": "mouvement_titulaire(text,numeric)"
+  },
+  {
+   "empreinte": "0916921787663c54db13a6f35859f556",
+   "security_definer": true,
+   "signature": "objet_abandonne_ramasser(text)"
+  },
+  {
+   "empreinte": "43ac7d1859f752f4ec5482fd8e3355a7",
+   "security_definer": true,
+   "signature": "objet_acheter(text,text,integer,integer)"
+  },
+  {
+   "empreinte": "a65d908197e25055f4f6b6f967f09c33",
+   "security_definer": true,
+   "signature": "objet_acheter(uuid,text,text,integer,integer)"
   },
   {
    "empreinte": "170f5f34f7a4291ed9f34015d8ebffaa",
@@ -1670,9 +2398,24 @@
    "signature": "objet_sas_deposer(text,text,jsonb,text)"
   },
   {
+   "empreinte": "c18ca5aa04697dbe436aa6ec00755a37",
+   "security_definer": true,
+   "signature": "objet_trouve_reclamer(uuid,integer,integer)"
+  },
+  {
+   "empreinte": "a8a792d4de008f8e16273c77cb7f65f5",
+   "security_definer": true,
+   "signature": "ordre_generique_executer(text,integer,integer)"
+  },
+  {
    "empreinte": "c2c5809d360256e2e713bdfa52a2c218",
    "security_definer": true,
    "signature": "personnage_fantome_declarer(text,jsonb)"
+  },
+  {
+   "empreinte": "5c8c4fabdd5864bf215ee9663cbc0ddf",
+   "security_definer": true,
+   "signature": "quete_objet_reclamer(uuid,text)"
   },
   {
    "empreinte": "1d0f64093f4b01279288b764c5f3d749",
@@ -1685,6 +2428,11 @@
    "signature": "ref_patrimoine_existe(text)"
   },
   {
+   "empreinte": "6cd903e6226df36005c1ead5a1c3d5aa",
+   "security_definer": true,
+   "signature": "ressource_ajuster_interne(text,text,integer)"
+  },
+  {
    "empreinte": "4cba98e71622db5f6fa5e9fafd540391",
    "security_definer": true,
    "signature": "restaurer_personnage_sauvegarde(text,text)"
@@ -1693,6 +2441,21 @@
    "empreinte": "9092282e55d36158a68382defe744a17",
    "security_definer": true,
    "signature": "rp_transition_active(text)"
+  },
+  {
+   "empreinte": "5e819694359c4bf2f11470c7f9f95ad8",
+   "security_definer": true,
+   "signature": "rue_position_enregistrer(text)"
+  },
+  {
+   "empreinte": "b29601c30d176fb210fdd5fde7d17cc1",
+   "security_definer": true,
+   "signature": "rue_position_lire()"
+  },
+  {
+   "empreinte": "7c3cd2d3e6626534593ea3744973a74a",
+   "security_definer": true,
+   "signature": "rue_sortie_batiment_lire()"
   },
   {
    "empreinte": "9b47ad812b9b43dab197cbb1f4dd743f",
@@ -1706,9 +2469,21 @@
   }
  ],
  "index_autonomes": [],
- "index_portes": [],
+ "index_portes": [
+  "inventaire_actions_recus_pkey",
+  "inventaire_ecarts_observes_pkey",
+  "inventaire_livraisons_recues_pkey",
+  "objets_achetables_pkey",
+  "objets_modeles_pkey",
+  "objets_trouves_jours_pkey",
+  "ordres_generiques_pkey",
+  "rue_noeuds_serveur_pkey",
+  "rue_sorties_batiments_pkey"
+ ],
  "ordre": [
+  "10_tables.sql",
   "20_fonctions.sql",
+  "30_contraintes.sql",
   "35_index.sql",
   "60_rls-policies.sql",
   "70_droits.sql",
@@ -1716,10 +2491,117 @@
   "85_default-privileges.sql"
  ],
  "policies": [],
- "rls": [],
- "sequences": [],
+ "rls": [
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "inventaire_actions_recus"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "inventaire_ecarts_observes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "inventaire_livraisons_recues"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "objets_achetables"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "objets_modeles"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "objets_trouves_jours"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "ordres_generiques"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "rue_noeuds_serveur"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "rue_sorties_batiments"
+  }
+ ],
+ "sequences": [
+  {
+   "nom": "inventaire_ecarts_observes_id_seq",
+   "possedee": true,
+   "tbl": "inventaire_ecarts_observes"
+  }
+ ],
  "sequences_autonomes": [],
- "tables": [],
+ "tables": [
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "0699a470f56286abc85a742dc5c20da8",
+   "empreinte_texte": "4de8a176e241091cd0b2677a70807e06",
+   "nom": "inventaire_actions_recus"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "da4bd0cf1ff79db8d330474696cb77b6",
+   "empreinte_texte": "3fe19248316d58c8bd73ff0444d7d116",
+   "nom": "inventaire_ecarts_observes"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "6e1d6b7c5600f97c8cdf75da4ace5355",
+   "empreinte_texte": "add8f9902f8aabf4a886928f6562205c",
+   "nom": "inventaire_livraisons_recues"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "3aebcb9218a2a8bdf6ccff033b35e198",
+   "empreinte_texte": "dfd64ff7f6c694ad7003a1d169d1d55c",
+   "nom": "objets_achetables"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "d79961c63832f83d89b63da586661040",
+   "empreinte_texte": "a8657c93e01e59325b72eb6f924f3fcf",
+   "nom": "objets_modeles"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "9b75e4c8c068ec6b95f04a602096a89c",
+   "empreinte_texte": "cefd159169f2237727f11b423abe4c6b",
+   "nom": "objets_trouves_jours"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "11b32e938c3a3eca2060fbe570ece6e3",
+   "empreinte_texte": "7c8fefe778b096bf2d11b8469e148e8a",
+   "nom": "ordres_generiques"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "f3e4f2818a65981bcb40f32e82c8e016",
+   "empreinte_texte": "229bdc284c932e98cbf05e6f33bac410",
+   "nom": "rue_noeuds_serveur"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "34d9556d9e956dcba2d6b42635f5a9b2",
+   "empreinte_texte": "49683189a71bab5dd7f9535bc6117e3e",
+   "nom": "rue_sorties_batiments"
+  }
+ ],
  "triggers": [],
  "vues": []
 }

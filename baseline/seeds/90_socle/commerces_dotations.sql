@@ -23,6 +23,31 @@
 -- data.js, et la table doit rejoindre 95_a-regenerer.
 -- ============================================================================
 
+-- SEED -- commerces_dotations
+-- ============================================================================
+-- Table      : public.commerces_dotations
+-- Domaine    : economie
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 11
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Dotation initiale de stock par type de commerce.
+--
+-- AVERTISSEMENT : CETTE TABLE EST UN MIROIR DE data.js
+-- Un generateur existe deja :
+-- outils/generateurs/generer_miroirs_entreprises.py. Les lignes ci-dessous
+-- sont copiees depuis la base, conformement a la strategie seed_complet du
+-- chantier 2C -- mais copier un miroir fige sa derive. Celui des couts
+-- d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits non
+-- declares. A terme, ce fichier doit etre ecrit par son generateur depuis
+-- data.js, et la table doit rejoindre 95_a-regenerer.
+-- ============================================================================
+
 INSERT INTO public.commerces_dotations (cle, type, caisse, stock_matieres, cout_moyen_matieres, carte, parametres) VALUES ('bar-des-pecheurs|salle_bar', 'bar', '2000', '{"cereales": 10, "fruits_legumes": 10, "produits_exotiques": 10}', '{"cereales": 3, "fruits_legumes": 4, "produits_exotiques": 6}', '["biere_pression", "vin", "cafe_boisson", "boisson_sans_alcool", "snack_buvette"]', '{"stockMax": {"vin": 20, "cafe_boisson": 20, "snack_buvette": 20, "biere_pression": 20, "boisson_sans_alcool": 20}, "prixVente": {"vin": 7, "cafe_boisson": 7, "snack_buvette": 7, "biere_pression": 7, "boisson_sans_alcool": 10}}');
 INSERT INTO public.commerces_dotations (cle, type, caisse, stock_matieres, cout_moyen_matieres, carte, parametres) VALUES ('brasserie-voyageurs-montrouge', 'brasserie', '3000', '{"viande": 15, "poisson": 10, "cereales": 15}', '{"viande": 5, "poisson": 4, "cereales": 3}', '["carbonade_frites", "plat_de_poisson", "saucisse_puree"]', '{"stockMax": {"saucisse_puree": 20, "plat_de_poisson": 20, "carbonade_frites": 20}, "prixVente": {"saucisse_puree": 23, "plat_de_poisson": 23, "carbonade_frites": 23}}');
 INSERT INTO public.commerces_dotations (cle, type, caisse, stock_matieres, cout_moyen_matieres, carte, parametres) VALUES ('cafe-gare-montrouge', 'cafe', '2000', '{"viande": 10, "cereales": 10, "fruits_legumes": 10, "produits_exotiques": 10}', '{"viande": 5, "cereales": 3, "fruits_legumes": 4, "produits_exotiques": 6}', '["boeuf_bourguignon", "cafe_boisson", "jus_de_fruits", "vin", "biere_pression"]', '{"stockMax": {"vin": 20, "cafe_boisson": 20, "jus_de_fruits": 20, "biere_pression": 20, "boeuf_bourguignon": 20}, "prixVente": {"vin": 7, "cafe_boisson": 7, "jus_de_fruits": 7, "biere_pression": 7, "boeuf_bourguignon": 23}}');

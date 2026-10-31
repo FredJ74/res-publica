@@ -15,6 +15,23 @@
 -- ne l'ecrit.
 -- ============================================================================
 
+-- SEED -- pnj_familles_classes
+-- ============================================================================
+-- Table      : public.pnj_familles_classes
+-- Domaine    : socle PNJ
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 9
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Classe par defaut d'une famille de PNJ. Regle du moteur, aucune fonction
+-- ne l'ecrit.
+-- ============================================================================
+
 INSERT INTO public.pnj_familles_classes (famille, classe, note) VALUES ('agent', 'beta', 'Agent de renseignement. Famille 100 % SERVEUR et PLEINEMENT ACTIVE : 12 agents, 3 cellules, convoques par quatre par le Ministre de la Defense (3 PA du ministre + 500 FR sur la caisse min_def). Aucun PA d''agent, aucun salaire recurrent : une echeance a J+10 balayee par le cron. NON CONVERGEE, VOLONTAIREMENT : 24 fonctions touchent agents_renseignement, dont 13 ecrivent sa position ou son leader_courant, plus le cycle carceral et le contre-espionnage. C''est une refonte, pas une bascule d''axe. BLOQUANTS : (a) aucun profil de caracteristiques arbitre -- seule DUP existe, fixee par role (garde 10, coordinateur 12, conseillere 13, traducteur 15) ; (b) sa table porte deja position/leader/detention, donc un miroir creerait la duplication que l''architecture combat ; (c) l''identite de COUVERTURE, propre a cette famille, n''a aucun equivalent au socle.');
 INSERT INTO public.pnj_familles_classes (famille, classe, note) VALUES ('depute', 'gamma', 'Depute PNJ siegeant a l''Assemblee. Donnees : assemblee_sieges (9 lignes, 3 par ville). Vote, son intention se marchande (assemblee_marchander), et un joueur peut l''endormir (assemblee_neutraliser_depute) jusqu''a assemblee_reveil_minuit. Cette entrave est METIER : elle ne tue pas, ne deplace pas, n''approprie pas. Aucun PA : aucune fonction de l''Assemblee n''en touche. Pas inscrit dans pnj_membres, pour la meme raison que le titulaire de poste.');
 INSERT INTO public.pnj_familles_classes (famille, classe, note) VALUES ('douanier', 'beta', 'Raccordee au lot 2. 12 PA presents, jamais debites : pnj_pa_garde refuse toute variation de PA hors classe alpha. Un ordre a 0 PA est donc COHERENT avec Beta et ne doit pas etre "corrige". Six caracteristiques renseignees : INT 10 CHA 8 VOL 12 PER 12 DUP 8 ENT 10. Autorite = Chef des Douanes du perimetre, et "personne" est un etat valide. Reste au blob : position_leader.');

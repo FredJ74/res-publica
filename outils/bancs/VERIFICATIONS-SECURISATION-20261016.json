@@ -431,7 +431,7 @@
     "github_actions_distant": "non observe"
   },
   "migration": {
-    "fichier": "migrations/20261016070541_achat_commerce_debit_avant_livraison.sql",
+    "fichier": "historique/migrations-appliquees/20261016070541_achat_commerce_debit_avant_livraison.sql",
     "statut": "NON APPLIQUEE ; corps reel complet et ACL a relire avant toute application",
     "md5_transmis_par_proprietaire": "19a5c3c718d4109b98fe94a8eb5ebf30",
     "md5_reobserve_par_cette_session": null,
