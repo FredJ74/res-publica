@@ -4976,26 +4976,10 @@ async function sbGetQueteActive(country) {
   return (rows && rows.length > 0) ? rows[0] : null;
 }
 
-async function sbCreerQuete(quete) {
-  return sbInsert('quetes_actives', quete);
-}
-
-async function sbMettreAJourQuete(queteId, data) {
-  return sbUpdate('quetes_actives', `id=eq.${encodeURIComponent(queteId)}`, data);
-}
-
-// RECLAMATION EXCLUSIVE D'UNE QUETE (17 septembre 2026, audit des frontieres d'autorite).
-// Mise a jour CONDITIONNELLE au statut 'active' : PostgREST applique le filtre cote serveur et,
-// grace a Prefer:return=representation (voir sbUpdate), ne renvoie que les lignes REELLEMENT
-// modifiees. Zero ligne = la quete etait deja resolue, ou un autre joueur vient de la prendre.
-// C'est un compare-and-swap, pas une simple ecriture : c'est ce qui empeche de remettre deux fois
-// la meme recompense. Renvoie la ligne reclamee, ou null.
-async function sbReclamerQuete(queteId, resolveur) {
-  const rows = await sbUpdate('quetes_actives',
-    `id=eq.${encodeURIComponent(queteId)}&statut=eq.active`,
-    { statut: 'resolue', resolu_par: resolveur });
-  return (Array.isArray(rows) && rows.length > 0) ? rows[0] : null;
-}
+// sbCreerQuete, sbMettreAJourQuete et sbReclamerQuete ONT ETE SUPPRIMEES (31 octobre 2026) :
+// plus aucun ecran ne les appelait et la base ne donne au navigateur que le droit de LIRE
+// quetes_actives. La reclamation d'une quete et sa recompense passent par le serveur
+// (quete_objet_reclamer). Ne pas reintroduire d'ecriture de cette table depuis l'ecran.
 
 async function sbGetDerniereQueteResolue(country) {
   const rows = await sbGet('quetes_actives', `country=eq.${encodeURIComponent(country)}&statut=eq.resolue&order=created_at.desc&limit=1`);
