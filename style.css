@@ -1080,6 +1080,55 @@ textarea.finp{resize:vertical;min-height:90px;line-height:1.6}
 .pnj-action-btn{padding:.5rem .8rem;border:1px solid var(--border);background:var(--bg3);color:var(--text3);cursor:pointer;font-family:'Crimson Pro',serif;font-size:.82rem;text-align:left;transition:all .2s}
 .pnj-action-btn:hover{border-color:var(--gold-dark);color:#c0b090;background:var(--bg4)}
 
+/* Lisibilite des dialogues PNJ : meme corps de lecture pour reponses, choix et saisie.
+   Garde l'en-tete plus grand et conserve les icones, sans grossir les portraits. */
+#modal-pnj .pnj-speech,
+#modal-pnj .pnj-action-btn,
+#modal-pnj #pnj-trait-display,
+#modal-pnj #pnj-statut-marital,
+#modal-pnj textarea,
+#modal-pnj input {
+  font-size: .95rem !important;
+  line-height: 1.6;
+}
+#modal-pnj #pnj-role-display { font-size: .9rem !important; }
+#modal-pnj .pnj-loading { font-size: .95rem; }
+
+/* Lisibilite du plateau : augmenter les libelles utiles visibles sur la capture.
+   Le minimum ne s'applique pas aux pictogrammes, cartes tactiques et animations. */
+body.plateau-body .forum-btn,
+body.plateau-body .world-btn,
+body.plateau-body .person-name,
+body.plateau-body .person-role,
+body.plateau-body .persons-title,
+body.plateau-body .piece-desc,
+body.plateau-body .person-empty,
+body.plateau-body .piece-ambiance .piece-desc {
+  font-size: .95rem !important;
+  line-height: 1.45;
+}
+body.plateau-body .person-card { flex-wrap: wrap; }
+/* Actions de piece et informations : taille de lecture alignée sur les réponses PNJ. */
+body.plateau-body .panel-title,
+body.plateau-body .batiment-cat,
+body.plateau-body .action-context,
+body.plateau-body .action-btn,
+body.plateau-body .piece-tab,
+body.plateau-body .loc-city,
+body.plateau-body .loc-name,
+body.plateau-body .emp-name,
+body.plateau-body .emp-role {
+  font-size: .95rem !important;
+  line-height: 1.4;
+}
+/* La barre supérieure reste accessible si ses boutons agrandis ne tiennent plus. */
+body.plateau-body .top-right {
+  max-width: calc(100vw - 170px);
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
 /* CHAR SHEET */
 .char-sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;padding:1rem}
 .cs-section{background:var(--bg3);border:1px solid var(--border);padding:.8rem}

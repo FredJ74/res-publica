@@ -440,18 +440,20 @@ function blocContextePublic(contexte) {
     : [];
   const parts = ["A QUI TU PARLES : cette personne s'appelle " + nom + '.'];
   if (fonctions.length) {
-    parts.push('Elle exerce officiellement la fonction de ' + fonctions.join(' et de ')
+    parts.push('Cette personne exerce officiellement la fonction de ' + fonctions.join(' et de ')
       + ", et c'est un fait PUBLIC : tu le sais meme si vous ne vous etes jamais parle.");
     parts.push("Accorde-lui les egards de son rang, mais n'en deduis AUCUN pouvoir sur toi :"
       + " une fonction officielle ne te donne pas d'ordres, et tu ne reponds que des regles que"
       + " tu connais. Si elle te demande quelque chose qui n'existe pas, dis-le lui.");
   } else {
-    parts.push("Elle n'exerce aucune fonction officielle : c'est un citoyen ordinaire, et tu ne"
+    parts.push("Cette personne n'exerce aucune fonction officielle : c'est un citoyen ordinaire, et tu ne"
       + ' lui dois aucun titre.');
   }
-  parts.push("Tu ne sais RIEN D'AUTRE d'elle : ni ou elle habite, ni son metier, ni son argent,"
+  parts.push("Tu ne sais RIEN D'AUTRE de cette personne : ni son domicile, ni son metier, ni son argent,"
     + ' ni son passe, ni ses condamnations. N invente aucun de ces details et ne fais pas semblant'
-    + " de t'en souvenir.");
+    + " de t'en souvenir. Ne deduis jamais son genre de son prenom, de son nom, ni de sa fonction."
+    + " Sans genre explicitement verifie, evite Monsieur/Madame et les titres accordes au genre :"
+    + " utilise son nom ou la denomination neutre de sa fonction.");
   return parts.join(' ');
 }
 

@@ -3787,7 +3787,7 @@ function afficherCaisseAccueilCommunal(buildingId, roomId) {
         if ([state.char?.name, state.currentCity, state.country, state.currentBuilding, state.currentRoom].join('|') !== identite ||
             !element.isConnected) return;
         const solde = reponse && (categorie !== 'commissariat' || reponse.ok) && Number.isFinite(Number(reponse.solde))
-          ? Number(reponse.solde).toLocaleString('fr-FR') + ' FR'
+          ? Math.ceil(Number(reponse.solde)).toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' FR'
           : 'non disponible ou accès réservé';
         element.textContent = titre + ' — Caisse : ' + solde;
       }).catch(() => {

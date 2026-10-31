@@ -1,6 +1,6 @@
 {
   "branche": "codex/groupes-universels-20261028",
-  "main": "ecedfd978401bf2078a3cb9132d546bd8e76f842",
+  "main": "5082d6e44f2bfca8b37e528b227c1a83e2f57705",
   "production_appliquee": false,
   "perimetre": "Ajouts SQL propres à #219, dont dépendances #212/#217 ; main #255 à #260 exclu.",
   "registre_vivant": "1002 versions récupérées dans le relais privé, dernière 20261030193635. Les noms/versions sont lisibles par lire_registre ; catalogue canonique exact et réhorodatage des 88 après nouveau point de coupe encore requis.",
