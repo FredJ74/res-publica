@@ -13,6 +13,14 @@ def chemin_source(f):
  p=R/f
  if p.exists():return p
  import json
+ # Les copies rehorodatees deja appliquees ne font plus partie du dossier
+ # migrations/ : les bancs historiques les lisent dans l'archive explicite.
+ classement=R/'outils/audits/catalogue-1012/REHORODATEES-219-STATUT-REEL.json'
+ if classement.exists():
+  for entree in json.loads(classement.read_text())['fichiers']:
+   if entree.get('statut_reel')=='appliquee_sous_nom_suffixe' and f in (entree['ancien'],entree['fichier_219']):
+    archive=R/'historique/migrations-appliquees/rehorodatees-219'/Path(entree['fichier_219']).name
+    if archive.is_file():return archive
  for nom in ['CLASSEMENT-MIGRATIONS-219-20261031.json','REHORODATAGE-GROUPES-219-20261031.json']:
   plan=json.loads((R/'outils/audits'/nom).read_text())
   for e in plan['fichiers']:
