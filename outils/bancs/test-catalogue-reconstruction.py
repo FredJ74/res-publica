@@ -69,6 +69,8 @@ class Exports(unittest.TestCase):
   self.assertEqual(len([n for n in parse_sql(sql) if type(n.stmt).__name__=='TransactionStmt']),2)
   self.assertEqual(sql.count('INSERT INTO supabase_migrations.schema_migrations'),95)
   self.assertNotIn('achat_equipements_collectifs.sql',sql)
+  for nom in ['20261031113610_construction_materiaux_prix_et_dons.sql','20261031113631_compromis_financement_reel.sql']:
+   self.assertNotIn(nom,{Path(e['fichier']).name for e in entrees})
  def test_prevol_actualise_ne_produit_que_des_SELECT(self):
   sp=importlib.util.spec_from_file_location('prevol219',R/'outils/livraison/requetes-prevol-actualise-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
   from pglast import parse_sql

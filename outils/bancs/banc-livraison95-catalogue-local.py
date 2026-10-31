@@ -74,7 +74,7 @@ def main():
     for entree in provenance['migrations']:
      p=o.caisses_source/entree['fichier'];assert hashlib.sha256(p.read_bytes()).hexdigest()==entree['sha256'];q.execute(p.read_text())
     q.execute('BEGIN');rapport['pr300']={'source':provenance,'organisations':org.recette(q),'groupes':rec.recette(q)}
-    assert all(x['ok'] for x in rapport['pr300']['groupes']);c.rollback()
+    assert all(x['ok'] for x in rapport['pr300']['groupes']);rapport['pr300']['rpc_clients']=e.verifier_rpc_clients(q);c.rollback()
    if services:
     services.demarrer_rest(q);rapport['recette_authentifiee_isolee']=services.recette(q);rapport['binaires_auth_sha256']={str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [o.gotrue_bin,o.postgrest_bin]}
   except Exception as ex:

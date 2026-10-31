@@ -377,3 +377,20 @@ mairies appliquées : correspondance dans
 `20261030202300` à `20261030202700`. Avant activation : prévol réel des corps,
 triggers, droits et registre, et recette authentifiée autorisée. Les bancs
 PostgreSQL jetables ne démontrent pas le fonctionnement en production.
+
+### #219 — preuve intégrée du 31 octobre, production non livrée
+
+Les 95 versions sélectionnées (5 contrats organisations, prérequis et 88 versions
+universelles, rapprochement des tarifs) ont été exécutées ensemble sur PostgreSQL
+17.6 jetable : rollback tardif complet, rejeu refusé sans mutation, 30 scénarios
+catalogue et trois commandes d'organisations. Après les deux migrations de caisses
+#300, ces scénarios passent encore. Le décor reste explicitement le schéma privé
+1003 plus les tarifs capturés ; il ne certifie pas la coupe vivante plus récente.
+
+La recette supplémentaire utilise GoTrue et PostgREST natifs sur loopback/socket
+Unix, avec trois comptes créés uniquement dans cette base jetable : 26 scénarios
+HTTP authentifiés (groupes, PNJ, radio, combat mixte, concurrence/rejeu, fonds et
+indisponibilités). Ce n'est pas une recette de l'interface du jeu en production.
+Aucun moteur métier remplacé ; aucun joueur réel utilisé. État et limites :
+`outils/audits/INTEGRATION95-ET-CAISSES300-219-20261031.md`. Le payeur est compatible :
+ne pas confondre l'empreinte de son corps et celle de sa définition complète.
