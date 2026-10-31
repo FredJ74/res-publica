@@ -15,6 +15,18 @@ class Exports(unittest.TestCase):
    row={cle:v}
    if mode=='mcp':row={'result':'<untrusted-data-0000-1111>\n'+json.dumps([row])+'\n</untrusted-data-0000-1111>'}
    (self.rep/(cle+('.txt' if mode=='mcp' else '.json'))).write_text(json.dumps(row))
+ def test_referentiel_refuse_un_seul_ecart(self):
+  spec=importlib.util.spec_from_file_location('livraison95',R/'outils/bancs/banc-livraison95-catalogue-local.py')
+  m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+  class Cursor:
+   def execute(self,sql):self.nom=sql.split('FROM public.')[1].split()[0]
+   def fetchone(self):return (0,'e3b0')
+  q=Cursor()
+  reference={'referentiels':{nom:{'lignes':0,'empreinte':'e3b0'} for nom in m.REFERENTIELS_1012}}
+  self.assertTrue(m.verifier_referentiels(q,reference)['conformes'])
+  reference['referentiels']['recettes_commerce']['lignes']=1
+  with self.assertRaises(AssertionError):m.verifier_referentiels(q,reference)
+
  def test_empreinte_complete_refuse_un_seul_seau_different(self):
   spec=importlib.util.spec_from_file_location('livraison95',R/'outils/bancs/banc-livraison95-catalogue-local.py')
   m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
