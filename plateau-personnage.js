@@ -3200,9 +3200,13 @@ async function doServiceEtage(pa) {
   }
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'service_etage');
-  const cout = ordre?.cost || 150;
-  const r = await deduireCoutOrdre({ pa, cost: cout });
-  if (!r.ok) { showToast('Fonds insuffisants', cout + ' FR requis.', false); return; }
+  if (!ordre || Number(ordre.cost) !== 150) {
+    showToast('Service indisponible', 'Le tarif du service d’étage n’est pas reconnu dans cette chambre.', false);
+    return;
+  }
+  const cout = Number(ordre.cost);
+  const r = await deduireCoutOrdre({ fn: 'service_etage', pa, cost: cout });
+  if (!r.ok) { showToast('Service d’étage refusé', 'Le serveur a refusé le paiement : ' + (r.raison || 'indisponible') + '. Aucun service accordé.', false); return; }
   state.hp = Math.min(100, (state.hp || 0) + 10);
   state.moral = Math.min(100, (state.moral || 0) + 1);
   // Bonus differe atteste : le serveur tient le compteur et connait le montant de la source.
