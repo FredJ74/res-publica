@@ -758,6 +758,28 @@ function sbEnfilerEcriturePersonnage(charState, data) {
     if (Number.isSafeInteger(revisionInventaire)) {
       const v = await sbInventaireSauverRevision(data.name, revisionInventaire, data.inventory);
       if (!contexteActif()) return null;
+      if (v?.raison === 'ajout_inventaire_interdit') {
+        // Le serveur refuse un inventaire fabriqué côté navigateur. Récupérer la vérité
+        // serveur sans rejouer l'écriture ni écraser une modification locale plus récente.
+        charState._inventaireConflit = true;
+        charState._inventaireRefusAjout = true;
+        const generationAvantLecture = charState._inventaireGeneration || 0;
+        const actuel = await sbInventaireReceptionEtat(data.name).catch(() => null);
+        if (contexteActif() && actuel?.ok && Array.isArray(actuel.inventory)
+            && Number.isSafeInteger(actuel.revision)
+            && (charState._inventaireGeneration || 0) === generationAvantLecture
+            && JSON.stringify(charState.inventory) === JSON.stringify(data.inventory)) {
+          charState.inventory = actuel.inventory;
+          charState._inventaireRevision = actuel.revision;
+          charState._inventaireBase = sbEmpreinteInventaire(actuel.inventory);
+          charState._inventaireGeneration = generationAvantLecture + 1;
+          charState._inventaireConflit = false;
+          if (typeof updateUI === 'function') { try { updateUI(); } catch (e) {} }
+        }
+        if (typeof rpDiagId === 'function')
+          rpDiagId('inventaire', 'ajout navigateur refusé : inventaire relu sur le serveur');
+        return null; // ne jamais poursuivre le PATCH de fiche après un refus d'inventaire
+      }
       if (!v?.ok || !Array.isArray(v.inventory) || !Number.isSafeInteger(v.revision)) {
         charState._inventaireConflit = true;
         return null;
