@@ -183,27 +183,39 @@ def surface_du_navigateur():
     return par_table, sites, bruts
 
 
+def positions_structure_js(texte, debut=0):
+    """Parcourt un objet RPC en ignorant ses valeurs citées et commentaires.
+
+    Ne sert pas à retirer des appels du recensement : celui-ci reste conservateur,
+    notamment pour les gestionnaires embarqués dans des chaînes HTML.
+    """
+    i=debut
+    while i<len(texte):
+        if texte.startswith('//',i):
+            fin=texte.find('\n',i);i=len(texte) if fin<0 else fin
+        elif texte.startswith('/*',i):
+            fin=texte.find('*/',i+2);i=len(texte) if fin<0 else fin+2
+        elif texte[i] in "\"'`":
+            quote=texte[i];i+=1
+            while i<len(texte):
+                if texte[i]=='\\':i+=2;continue
+                if texte[i]==quote:i+=1;break
+                i+=1
+        else:
+            yield i,texte[i];i+=1
+
+
+def masque_structure_js(texte):
+    sortie=[' ']*len(texte)
+    for i,ch in positions_structure_js(texte):sortie[i]=ch
+    return ''.join(sortie)
+
+
 def cles_de_premier_niveau(bloc):
-    """Les cles du PREMIER niveau de l'objet litteral `bloc`, qui commence par
-    son accolade ouvrante et finit par la fermante correspondante.
-
-    LES CLES D'UN OBJET IMBRIQUE NE SONT PAS DES PARAMETRES (9 octobre 2026).
-    Jusqu'a ce jour, aucun appel sbRpc ne construisait un objet sur place dans
-    sa charge : un `re.findall` a plat suffisait. Les deux appels de detention
-    du chantier justice en passent desormais un -- `p_extras: { ... }` et
-    `p_motifs: [{ ... }]` -- et la lecture a plat presentait alors treize
-    « parametres » (autorite, jour_affaire, reliquat_jours...) a une fonction
-    qui en a six. L'invariant 13 rougissait sur deux appels rigoureusement
-    conformes a leur signature.
-
-    Le comptage de profondeur est volontairement aussi naif que la recherche de
-    l'accolade fermante de l'appelant : il ignore chaines et commentaires. Les
-    deux lectures restent ainsi coherentes entre elles -- une divergence de
-    finesse entre le decoupage du bloc et sa lecture serait pire qu'une
-    naivete partagee."""
+    """Clés explicites du premier niveau, sans commentaires ni valeurs citées."""
     masque = []
     prof = 0
-    for ch in bloc:
+    for ch in masque_structure_js(bloc):
         if ch in "{[(":
             prof += 1
             masque.append(ch if prof == 1 else " ")
@@ -230,14 +242,11 @@ def rpc_du_navigateur():
         for m in re.finditer(r"\bsbRpc(?:Verdict)?\s*\(\s*['\"]([a-z_0-9]+)['\"]\s*,\s*\{", texte):
             i = m.end() - 1
             prof, j = 0, i
-            while j < len(texte):
-                if texte[j] == "{":
-                    prof += 1
-                elif texte[j] == "}":
+            for j,ch in positions_structure_js(texte,i):
+                if ch == "{":prof += 1
+                elif ch == "}":
                     prof -= 1
-                    if prof == 0:
-                        break
-                j += 1
+                    if prof == 0:break
             passes = cles_de_premier_niveau(texte[i:j + 1])
             formes[m.group(1)][passes].append(
                 "%s:%d" % (court, texte[:m.start()].count("\n") + 1))

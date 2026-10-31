@@ -70,3 +70,22 @@ assert 'porte' not in m['parametres_du_baseline']()
  const p=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8'});
  assert.equal(p.status,0,p.stdout+p.stderr);
 });
+
+test('commentaires et accolades citées ne retirent ni ne fabriquent de paramètres RPC',()=>{
+ const script=String.raw`
+import runpy,tempfile
+from pathlib import Path
+m=runpy.run_path('outils/baseline/verifier-autorite.py',run_name='controle_importe')
+with tempfile.TemporaryDirectory() as dossier:
+ p=Path(dossier)/'appel.js'
+ p.write_text("sbRpc('taux_imposition_fixer', {p_portee:'local', /* } ] ) fausse: */ p_taux:5, // commentaires ( ]\np_fn:'impots',p_pa:0,p_cost:0,p_details:{texte:'} ) ] p_faux:1'}});")
+ m['rpc_du_navigateur'].__globals__['fichiers_du_navigateur']=lambda:[str(p)]
+ r=m['rpc_du_navigateur']();assert set(r)=={'taux_imposition_fixer'},r
+ assert set(r['taux_imposition_fixer'])=={frozenset({'p_portee','p_taux','p_fn','p_pa','p_cost','p_details'})},r
+ # Ne pas masquer les gestionnaires exécutables embarqués dans du HTML.
+ p.write_text("const html=\"<button onclick=\\\"sbRpc('embarquee',{p_id:1})\\\">X</button>\";")
+ assert 'embarquee' in m['rpc_du_navigateur']()
+`;
+ const p=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8'});
+ assert.equal(p.status,0,p.stdout+p.stderr);
+});
