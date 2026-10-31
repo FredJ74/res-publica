@@ -6,7 +6,7 @@ import argparse,json,re,tempfile,threading,time
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 ROOT=Path(__file__).resolve().parents[2]
-MIG=ROOT/'migrations/20261031113546_reception_objets_atomique.sql'
+MIG=ROOT/'historique/migrations-appliquees/rehorodatees-219/20261031113546_reception_objets_atomique.sql'
 UID='11111111-1111-1111-1111-111111111111'
 SCHEMA='''
 CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN;
