@@ -761,6 +761,28 @@ function sbEnfilerEcriturePersonnage(charState, data) {
     if (Number.isSafeInteger(revisionInventaire)) {
       const v = await sbInventaireSauverRevision(data.name, revisionInventaire, data.inventory);
       if (!contexteActif()) return null;
+      if (v?.raison === 'ajout_inventaire_interdit') {
+        // Le serveur refuse un inventaire fabriqué côté navigateur. Récupérer la vérité
+        // serveur sans rejouer l'écriture ni écraser une modification locale plus récente.
+        charState._inventaireConflit = true;
+        charState._inventaireRefusAjout = true;
+        const generationAvantLecture = charState._inventaireGeneration || 0;
+        const actuel = await sbInventaireReceptionEtat(data.name).catch(() => null);
+        if (contexteActif() && actuel?.ok && Array.isArray(actuel.inventory)
+            && Number.isSafeInteger(actuel.revision)
+            && (charState._inventaireGeneration || 0) === generationAvantLecture
+            && JSON.stringify(charState.inventory) === JSON.stringify(data.inventory)) {
+          charState.inventory = actuel.inventory;
+          charState._inventaireRevision = actuel.revision;
+          charState._inventaireBase = sbEmpreinteInventaire(actuel.inventory);
+          charState._inventaireGeneration = generationAvantLecture + 1;
+          charState._inventaireConflit = false;
+          if (typeof updateUI === 'function') { try { updateUI(); } catch (e) {} }
+        }
+        if (typeof rpDiagId === 'function')
+          rpDiagId('inventaire', 'ajout navigateur refusé : inventaire relu sur le serveur');
+        return null; // ne jamais poursuivre le PATCH de fiche après un refus d'inventaire
+      }
       if (!v?.ok || !Array.isArray(v.inventory) || !Number.isSafeInteger(v.revision)) {
         charState._inventaireConflit = true;
         return null;
@@ -770,6 +792,7 @@ function sbEnfilerEcriturePersonnage(charState, data) {
         charState._inventaireRevision = v.revision;
         charState._inventaireBase = sbEmpreinteInventaire(v.inventory);
         charState._inventaireConflit = false;
+        charState._inventaireRefusAjout = false;
       }
       delete data.inventory; // le PATCH de fiche ne possede plus l'inventaire
     } else if (charState._inventaireVersionne) {
@@ -5007,26 +5030,10 @@ async function sbGetQueteActive(country) {
   return (rows && rows.length > 0) ? rows[0] : null;
 }
 
-async function sbCreerQuete(quete) {
-  return sbInsert('quetes_actives', quete);
-}
-
-async function sbMettreAJourQuete(queteId, data) {
-  return sbUpdate('quetes_actives', `id=eq.${encodeURIComponent(queteId)}`, data);
-}
-
-// RECLAMATION EXCLUSIVE D'UNE QUETE (17 septembre 2026, audit des frontieres d'autorite).
-// Mise a jour CONDITIONNELLE au statut 'active' : PostgREST applique le filtre cote serveur et,
-// grace a Prefer:return=representation (voir sbUpdate), ne renvoie que les lignes REELLEMENT
-// modifiees. Zero ligne = la quete etait deja resolue, ou un autre joueur vient de la prendre.
-// C'est un compare-and-swap, pas une simple ecriture : c'est ce qui empeche de remettre deux fois
-// la meme recompense. Renvoie la ligne reclamee, ou null.
-async function sbReclamerQuete(queteId, resolveur) {
-  const rows = await sbUpdate('quetes_actives',
-    `id=eq.${encodeURIComponent(queteId)}&statut=eq.active`,
-    { statut: 'resolue', resolu_par: resolveur });
-  return (Array.isArray(rows) && rows.length > 0) ? rows[0] : null;
-}
+// sbCreerQuete, sbMettreAJourQuete et sbReclamerQuete ONT ETE SUPPRIMEES (31 octobre 2026) :
+// plus aucun ecran ne les appelait et la base ne donne au navigateur que le droit de LIRE
+// quetes_actives. La reclamation d'une quete et sa recompense passent par le serveur
+// (quete_objet_reclamer). Ne pas reintroduire d'ecriture de cette table depuis l'ecran.
 
 async function sbGetDerniereQueteResolue(country) {
   const rows = await sbGet('quetes_actives', `country=eq.${encodeURIComponent(country)}&statut=eq.resolue&order=created_at.desc&limit=1`);

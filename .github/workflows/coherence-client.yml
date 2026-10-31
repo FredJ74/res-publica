@@ -67,6 +67,8 @@ jobs:
         run: node --test outils/bancs/banc-genre-pnj-dialogue.mjs
       - name: Régression de sortie de bâtiment avec réponse perdue
         run: node outils/bancs/banc-sortie-reponse-perdue-20261028.cjs
+      - name: Refus serveur des ajouts d'inventaire et reprise client sans écrasement
+        run: node outils/bancs/banc-verrou-inventaire-client-20261031.cjs
       - name: Pilote joueur, fixtures locales sans compte ni Supabase
         run: npm test --prefix outils/e2e
       - name: Dépendances du PostgreSQL jetable
@@ -75,6 +77,8 @@ jobs:
         run: python3 outils/bancs/test-catalogue-reconstruction.py
       - name: Relais canonique exact, snapshot et exclusion des fichiers privés
         run: python3 outils/bancs/test-relais-canonique-219.py
+      - name: Verrou final inventaire sur PostgreSQL jetable, données fictives
+        run: python3 outils/bancs/banc-verrou-inventaire-local.py
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
       - name: Groupes et batailles mixtes sur PostgreSQL jetable
