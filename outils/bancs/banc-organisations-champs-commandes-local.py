@@ -75,12 +75,20 @@ def main():
 
     refus = lambda r: isinstance(r, str) and r.startswith('ERR:')
 
+    def appliquer_refusee():
+        """La migration ouvre sa propre transaction (BEGIN) : après son refus, la session reste en
+        transaction avortée avec psycopg2 ; ROLLBACK la referme (sans effet avec psql)."""
+        r = essai(MA.read_text())
+        try: q.execute('ROLLBACK')
+        except Erreur: pass
+        return r
+
     serveur(); q.execute(B.DECOR); q.execute(B.M1.read_text()); q.execute(B.M2.read_text())
 
     # ================================== P. LA MIGRATION SE REFUSE AVANT SES CONDITIONS
-    verifie('P1 refusée sans les contrats #219', essai(MA.read_text()), lambda r: refus(r) and 'contrats_219_absents' in r)
+    verifie('P1 refusée sans les contrats #219', appliquer_refusee(), lambda r: refus(r) and 'contrats_219_absents' in r)
     serveur(); q.execute(DOUBLURES_219)
-    verifie('P2 refusée sans feu vert explicite', essai(MA.read_text()), lambda r: refus(r) and 'feu_vert_requis' in r)
+    verifie('P2 refusée sans feu vert explicite', appliquer_refusee(), lambda r: refus(r) and 'feu_vert_requis' in r)
 
     # ================================== A. CONTRE-ÉPREUVE (avant l'étape A)
     qui('Jean Jaaj')
