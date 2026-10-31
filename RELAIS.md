@@ -53,10 +53,9 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 - **Helvetia, même famille que #267 (examiné le 31/10)** : `finaliser_achat_bien_helvetia` est juste (acompte et solde viennent du liquide ou de la Banque nationale, jamais du compte Helvetia). `resoudre_placement_helvetia` corrigé par `20261031151000`. Le seul placement déjà résolu (Jean Jaaj, 25/10) a ajouté 3 920 FR fantômes à son `arg` ; non régularisé, car son `arg` s'écarte déjà de liquide + Banque nationale de bien plus (≈ 47 000 FR ; Angie aussi, en sens inverse) : écart général de `arg` à examiner côté fiche (ChatGPT).
 - **Codex** : `minuit_decouverte_crimes` (police) retire des amendes de `arg` sans les verser nulle part ; il peut appeler `amende_imposer_interne`. Le hooliganisme (organisations) écrit encore sa trace de crime à l'écran (à passer par `crime_tracer_interne`). Écritures de l'écran encore ouvertes : `budgets_clubs`, `organisations.caisse` (bilan `outils/bancs/ECRITURES-ECRAN-20261029.md`).
-- **Écriture encore ouverte côté Claude** : `quetes_actives`.
-- **Budget national** : répéter en production une écriture légitime par un titulaire de poste (garde `20261030110000` appliquée ; la répétition avait été interrompue).
+- **Budget national (répété le 31/10, annulé)** : Jean Jaaj (min_fin) change le taux national 5 → 6, sa fausse réserve du Trésor glissée dans la même écriture est ignorée ; Arnie (min_def) ne change rien. La garde fonctionne ; seul bémol, le refus d'un non-titulaire est silencieux (valeur conservée), pas nommé.
 - **Baseline (ChatGPT, #262)** : `payer_ordre`, `inventaire_place_restante` et `personnages_convocations_garder` diffèrent en production des migrations du dépôt (copie dans `jetable-ecarts-production-20261030.sql`) ; `acquisitions_transactions_internes` n'est créée par aucune migration rejouable.
-- **PNJ sans profil de dialogue** : Yvon Paletier et Norbert Charton (directeurs d'entrepôt hors Luthécia).
+- **PNJ encore muets (déclarés dans `banc-dialogue-pnj-republia.js`)** : Maître Ali Bihanbeton et Maître Henri Nossant (avocats commis d'office de PSM et Montrouge), huit députés.
 - **Sécurité privée #135** : PR #196, #212, #216, #217 ouvertes ; décision de Fred du 27/10 dans `AGENTS.md` (deux socles seulement, aucune affectation au chantier). Le raccordement reste à tester en production.
 - **Issue #143** : passer toutes les fenêtres à la charte ardoise et or.
 
@@ -79,6 +78,9 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - Louer un local dans les centres de Montrouge et de PSM ; acheter un terrain pour la commune en tant que maire ; attribuer un logement social en tant qu'adjoint.
 
 ## Derniers chantiers
+- 31/10/2026 — **Placement Helvetia (PR #289, fusionnée)** : gain net versé une seule fois, caisse créditée frais + gain ; migration `20261031151000` en attente d'application (avant le 6/11). Annulation BNR de #288 conservée (choix délégué par Fred).
+- 31/10/2026 — **Quêtes (PR #290, fusionnée)** : écritures mortes de `quetes_actives` retirées de l'écran (déjà en lecture seule en base), baseline réaligné.
+- 31/10/2026 — **PNJ Norbert Charton et Yvon Paletier (PR #291, fusionnée)** : fiches de personnalité écrites sur délégation, à la relecture de Fred.
 - 31/10/2026 — **Reliquats immobiliers (PR #284, fusionnée `88a317b8`)** : revue des vieilles PR #139, #123, #118, #114, #113, #112, #71, #58 (49 de leurs 53 migrations en production ; sept PR fermées avec justification, #71 laissée ouverte). Police, corruption de l'inspecteur, expulsion légale et dissimulation d'un cadavre décidées par le serveur ; interventions échues traitées la nuit. Migration `20261031130000` en attente d'application.
 - 31/10/2026 — **Caisse d'Helvetia = argent détenu (PR #285, fusionnée `05bbe5e4`, #267)** : migration `20261031140000` en attente d'application ; refinancement BNR en trop laissé à la décision de Fred.
 - 31/10/2026 — **Genre du personnage dans les dialogues PNJ (PR #281, fusionnée, migration appliquée sous le nom `genre_personnage_serveur_20261031100000`)** : création refusée sans genre, civilité « Monsieur / Madame le ministre » dans les dialogues et la conférence de presse.

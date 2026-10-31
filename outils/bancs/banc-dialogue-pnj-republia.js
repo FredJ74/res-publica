@@ -190,9 +190,8 @@ print('2. CHAQUE PNJ VISIBLE A-T-IL UN PROFIL SERVEUR ?');
 // s'allume -- se reproduise a la prochaine piece ajoutee. Raccorder l'un d'eux, c'est retirer sa
 // ligne d'ici le meme jour.
 var MUETS_DECLARES = {
-  // bernard_piluler et marcel_silo raccordes le 29/10/2026 (fiches dans _pnj-personnalites.js).
-  'yvon_paletier':         "Directeur de l'Entrepot de Port-Sainte-Marie — titulaire_poste, aucune personnalite ecrite",
-  'norbert_charton':       "Directeur de l'Entrepot de Montrouge — idem",
+  // bernard_piluler et marcel_silo raccordes le 29/10/2026, yvon_paletier et norbert_charton le
+  // 31/10/2026 (fiches dans _pnj-personnalites.js).
   'maitre_ali_bihanbeton': "Avocat commis d'office de Port-Sainte-Marie — aucune personnalite ecrite",
   'maitre_henri_nossant':  "Avocat commis d'office de Montrouge — idem"
 };
