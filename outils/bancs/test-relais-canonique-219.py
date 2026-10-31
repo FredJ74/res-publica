@@ -29,6 +29,14 @@ class Relais(unittest.TestCase):
  def test_fichier_annule_identique_aux_generateurs(self):
   attendu='-- Généré par outils/livraison/relais-canonique-219.py : aucune donnée privée.\nBEGIN;\nSET TRANSACTION READ ONLY;\n'+m.requete()+'ROLLBACK;\n'
   self.assertEqual((R/'outils/bancs/RELAIS-CANONIQUE-219.sql').read_text(),attendu)
+ def test_requete_executee_en_transaction_read_only_et_ecriture_refusee(self):
+  import psycopg2
+  try:
+   self.q.execute('SET TRANSACTION READ ONLY')
+   self.q.execute(m.requete());m.valider(self.q.fetchone()[0])
+   self.q.execute('SHOW transaction_read_only');self.assertEqual(self.q.fetchone()[0],'on')
+   with self.assertRaises(psycopg2.errors.ReadOnlySqlTransaction):self.q.execute('UPDATE public.joueur_prive SET secret=secret')
+  finally:self.c.rollback()
  def test_select_unique_sans_mutation_meme_dans_CTE(self):
   from pglast import parse_sql
   from pglast.visitors import Visitor

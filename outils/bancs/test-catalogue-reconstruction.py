@@ -114,6 +114,35 @@ class PostgreSQL(unittest.TestCase):
    if int(self.q.fetchone()[0])//10000 != 17:args.append('--diagnostic-version-differente')
    with patch.object(m,'assembler',return_value=([('fixture','CREATE TABLE public.fixture_ecart(id integer);')],None)),patch.object(sys,'argv',args),contextlib.redirect_stdout(io.StringIO()):self.assertEqual(m.main(),1)
    v=json.loads(rapport.read_text());self.assertTrue(v['reconstruction']);self.assertFalse(v['fidelite_catalogue_vivant']);self.assertIn('erreur',v)
+ def test_modele_mixte_avant_achat_socle_vraie_cle_etrangere(self):
+  from reconstruire import ordonner_seeds
+  import psycopg2
+  ddl="CREATE TABLE public.objets_modeles(id text PRIMARY KEY,objet jsonb NOT NULL);CREATE TABLE public.objets_achetables(ordre text,modele text);ALTER TABLE public.objets_achetables ADD CONSTRAINT modele_fk FOREIGN KEY(modele) REFERENCES public.objets_modeles(id);"
+  self.q.execute(ddl)
+  graines=[('seeds/90_socle/objets_achetables.sql',"INSERT INTO public.objets_achetables VALUES('fixture','modele');"),('seeds/92_mixte/objets_modeles.sql',"INSERT INTO public.objets_modeles VALUES('modele','{}');")]
+  self.q.execute('SAVEPOINT ordre_historique')
+  with self.assertRaises(psycopg2.errors.ForeignKeyViolation):self.q.execute(graines[0][1])
+  self.q.execute('ROLLBACK TO SAVEPOINT ordre_historique')
+  ordre=ordonner_seeds([('30_contraintes.sql',ddl)],graines)
+  self.assertEqual(ordre,[graines[1],graines[0]]);self.assertCountEqual(ordre,graines)
+  for _,sql in ordre:self.q.execute(sql)
+  self.q.execute('SELECT count(*) FROM objets_achetables');self.assertEqual(self.q.fetchone()[0],1)
+ def test_cycle_de_seeds_refuse_sans_differer_les_contraintes(self):
+  from reconstruire import ordonner_seeds
+  schema=[('30_contraintes.sql','ALTER TABLE public.a ADD CONSTRAINT a_fk FOREIGN KEY(id) REFERENCES public.b(id);ALTER TABLE public.b ADD CONSTRAINT b_fk FOREIGN KEY(id) REFERENCES public.a(id);')]
+  graines=[('a.sql','INSERT INTO public.a VALUES(1);'),('b.sql','INSERT INTO public.b VALUES(1);')]
+  with self.assertRaisesRegex(ValueError,'Cycle'):ordonner_seeds(schema,graines)
+ def test_commentaire_ne_cree_pas_de_dependance_de_seed(self):
+  from reconstruire import ordonner_seeds
+  graines=[('a.sql','INSERT INTO public.a VALUES(1);'),('b.sql','INSERT INTO public.b VALUES(1);')]
+  self.assertEqual(ordonner_seeds([('30_contraintes.sql','-- ALTER TABLE public.a ADD CONSTRAINT fk FOREIGN KEY(id) REFERENCES public.b(id);')],graines),graines)
+ def test_parent_sans_seed_reste_un_refus_PostgreSQL_reel(self):
+  from reconstruire import ordonner_seeds
+  import psycopg2
+  ddl='CREATE TABLE public.parent(id integer PRIMARY KEY);CREATE TABLE public.enfant(id integer);ALTER TABLE public.enfant ADD CONSTRAINT fk FOREIGN KEY(id) REFERENCES public.parent(id);'
+  self.q.execute(ddl)
+  ordre=ordonner_seeds([('30_contraintes.sql',ddl)],[('enfant.sql','INSERT INTO public.enfant VALUES(1);')])
+  with self.assertRaises(psycopg2.errors.ForeignKeyViolation):self.q.execute(ordre[0][1])
  def test_controle_global_contient_les_champs_lus_par_le_verificateur(self):
   self.q.execute('CREATE SCHEMA supabase_migrations;CREATE TABLE supabase_migrations.schema_migrations(version text,name text)')
   self.q.execute(requetes.requete_controle_global());v=self.q.fetchone()[0]

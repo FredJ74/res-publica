@@ -580,3 +580,14 @@ toutes les migrations, puis les écarts relevés en production
 (photographie `historique/photographies/20261030-fonctions-achat-communiquees.sql`). La base n'est pas une copie exacte (PG16 contre
 PG17, quelques erreurs d'ordre) : avant de conclure, comparer les empreintes des
 fonctions concernées avec `jetable-empreintes.sql`, sur les deux bases.
+
+**Précision #219 du 31/10/2026 :** PostgreSQL **17.6 natif** est maintenant
+installé dans l'environnement de reprise. Le lanceur canonique est
+`outils/baseline/epreuve-postgresql.py --postgres-bin <binaires-17-locaux>` ;
+il utilise uniquement le baseline généré et peut ensuite éprouver le bundle
+#219, jamais rejouer l'historique archivé. Le verrou actuel est l'absence des
+nouveaux exports cohérents et des seeds autorisés, pas l'absence du moteur.
+Le décor PostgreSQL 16.2 fourni par pgserver en CI permet des tests unitaires,
+**pas** une certification de fidélité à la production 17.6. Les catégories de
+seeds n'imposent pas leur ordre d'exécution : celui-ci suit les clés étrangères
+sans modifier les données ni différer les contraintes.

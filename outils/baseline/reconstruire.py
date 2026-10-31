@@ -89,11 +89,52 @@ def assembler():
                 if nom.startswith(phase):
                     chemin = os.path.join(rep, nom)
                     morceaux.append(("%s/%s" % (d, nom), open(chemin, encoding="utf-8").read()))
+    graines = []
     for lot in LOTS_SEEDS:
         for chemin in sorted(glob.glob(os.path.join(SEEDS, lot, "*.sql"))):
-            morceaux.append(("seeds/%s/%s" % (lot, os.path.basename(chemin)),
-                             open(chemin, encoding="utf-8").read()))
-    return morceaux, mans
+            graines.append(("seeds/%s/%s" % (lot, os.path.basename(chemin)),
+                            open(chemin, encoding="utf-8").read()))
+    return morceaux + ordonner_seeds(morceaux, graines), mans
+
+
+def ordonner_seeds(schema, graines):
+    """Les catégories rangent le contenu, les FK déterminent son ordre réel.
+
+    Exemple constaté #219 : objets_achetables (A) référence objets_modeles (D).
+    Le tri des répertoires placerait l'achat avant son modèle. Aucun contenu,
+    contrainte ou ordre interne d'un fichier n'est changé ; un cycle inter-
+    fichiers est refusé, jamais résolu en désactivant les contraintes.
+    """
+    parents, fournisseurs = {}, {}
+    for origine, texte in schema:
+        if not os.path.basename(origine).startswith('30_contraintes'):
+            continue
+        for raw in parse_sql(texte):
+            stmt = raw.stmt
+            if type(stmt).__name__ != 'AlterTableStmt':
+                continue
+            for cmd in stmt.cmds:
+                fk = getattr(getattr(cmd, 'def_', None), 'pktable', None)
+                if fk is not None and fk.schemaname in (None, 'public'):
+                    parents.setdefault(stmt.relation.relname, set()).add(fk.relname)
+    for i, (_, texte) in enumerate(graines):
+        for raw in parse_sql(texte):
+            stmt = raw.stmt
+            if type(stmt).__name__ == 'InsertStmt' and stmt.relation.schemaname in (None, 'public'):
+                fournisseurs.setdefault(stmt.relation.relname, set()).add(i)
+    deps = {i:set() for i in range(len(graines))}
+    for table, fichiers in fournisseurs.items():
+        for i in fichiers:
+            for parent in parents.get(table, ()):
+                if parent != table:
+                    deps[i].update(j for j in fournisseurs.get(parent, ()) if j != i)
+    faits, ordre = set(), []
+    while len(ordre) < len(graines):
+        disponible = next((i for i in range(len(graines)) if i not in faits and deps[i] <= faits), None)
+        if disponible is None:
+            raise ValueError('Cycle de dépendances des seeds : ' + ', '.join(graines[i][0] for i in deps if i not in faits))
+        faits.add(disponible);ordre.append(graines[disponible])
+    return ordre
 
 
 def decouper(sql):

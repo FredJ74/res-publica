@@ -801,3 +801,7 @@ Intégration de `5082d6e4` : caisses affichées en francs entiers sans changer l
 ### #219 — compatibilité du cache après #280 (31/10)
 
 Le nouveau contenu de `plateau-politique.js` conserve les caisses entières de #280 et les raccordements groupes. Clé de cache distincte de main, préfixée par la version des caisses et suffixée `groupes-219-main280` ; le banc de #280 est conservé inchangé. Résultats sur l'arbre intégré : 146/146 bancs clients, 105/105 Chromium, 379/379 SQL de décors ; aucun compte réel ni production. Les neuf cas caisses et les trois cas genre/lisibilité passent. Le blocage reste l'absence de l'extraction canonique complète, pas le cache.
+
+### #219 — dépendances des seeds éprouvées (31/10)
+
+Défaut réel préparant la reconstruction : `objets_achetables` (A) référence `objets_modeles` (D), mais l'ancien assemblage chargeait 90_socle avant 92_mixte. Ancien ordre : vraie erreur PostgreSQL 23503 ; ordre corrigé dans `reconstruire.assembler`, réutilisé par le contrôleur statique, sans changer un seul INSERT ni désactiver de FK. Cycles refusés ; parent manquant reste un refus réel. 30 tests de générateurs/reconstruction et 19 tests de relais passent sur 17.6 natif ; mêmes 49 cas sur le décor 16.2 CI, sans homologation du schéma. Aucun nouveau contenu de production reçu ni généré par supposition ; les 88 migrations ne sont toujours pas installées sur copie fidèle.

@@ -376,3 +376,20 @@ coupe. Aucun SQL généré du baseline n'est modifié tant que les nouveaux expo
 cohérents ne sont pas reçus. Le rendu refuse dorénavant toute table reclassée
 privée/hors surface avant de créer le moindre fichier, même si un ancien export
 la contenait encore.
+
+Le relais comprend aussi la requête de remesure de `referentiels.json`, réutilisée
+sans changer sa formule. Ses cinq observations sont conservées dans
+`referentiels_controle.json` ; elles ne remplacent les anciennes références
+qu'après comparaison et revue. Une empreinte de seed recalculée ne suffit pas :
+le récepteur analyse le SQL et n'accepte qu'un INSERT de littéraux, dans la table
+et les colonnes prévues. Le banc l'exécute réellement en READ ONLY et vérifie
+qu'une écriture est refusée.
+
+L'assemblage du baseline ordonne désormais les fichiers de seeds selon les FK
+réellement parsées, en conservant autant que possible l'ordre antérieur. Les
+catégories A/B/D restent des catégories de contenu, pas une raison de charger
+une relation avant sa cible. Le cas réel `objets_achetables` → `objets_modeles`
+est reproduit sur PostgreSQL ; la cible D est chargée avant la relation A.
+Les cycles sont signalés, les contraintes ne sont pas désactivées, un parent
+absent n'est jamais créé artificiellement. L'analyseur statique et l'épreuve
+réelle réutilisent le même ordonnanceur.
