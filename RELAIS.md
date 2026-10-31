@@ -45,7 +45,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ### Points ouverts transmis (non bloquants)
 
-- **Décidé (Fred, 31/10)** : le refinancement BNR en trop d'Helvetia (~150 000 FR, #267) se rembourse normalement, rien à annuler. Consigné dans `GAME-DESIGN-BANQUES.md`.
+- **Refinancement BNR en trop d'Helvetia (#267)** : annulé par `20261031150000_helvetia_bnr_excedent_regulariser` (PR #288, appliquée) ; Fred a laissé le choix à Claude, qui garde l'annulation (la première note « remboursement normal » est caduque). Voir `GAME-DESIGN-BANQUES.md`.
 
 - **Helvetia, même famille que #267 (examiné le 31/10)** : `finaliser_achat_bien_helvetia` est juste (acompte et solde viennent du liquide ou de la Banque nationale, jamais du compte Helvetia). `resoudre_placement_helvetia` corrigé par `20261031151000`. Le seul placement déjà résolu (Jean Jaaj, 25/10) a ajouté 3 920 FR fantômes à son `arg` ; non régularisé, car son `arg` s'écarte déjà de liquide + Banque nationale de bien plus (≈ 47 000 FR ; Angie aussi, en sens inverse) : écart général de `arg` à examiner côté fiche (ChatGPT).
 - **Codex** : `minuit_decouverte_crimes` (police) retire des amendes de `arg` sans les verser nulle part ; il peut appeler `amende_imposer_interne`. Le hooliganisme (organisations) écrit encore sa trace de crime à l'écran (à passer par `crime_tracer_interne`). Écritures de l'écran encore ouvertes : `budgets_clubs`, `organisations.caisse` (bilan `outils/bancs/ECRITURES-ECRAN-20261029.md`).
