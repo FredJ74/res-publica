@@ -27,6 +27,34 @@ class Exports(unittest.TestCase):
   self.assertTrue(m.comparer(b,list(reversed(b)))['coherents'])
   with self.assertRaises(ValueError):m.comparer(a,a+a)
   with self.assertRaises(ValueError):m.comparer(a,[{'fn':'x','pa':True,'cost':2}])
+ def test_lot_organisations_selectionne_cinq_sources_sans_transactions_internes(self):
+  sp=importlib.util.spec_from_file_location('lotorg',R/'outils/livraison/preparer-organisations-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  from pglast import parse_sql
+  sql=m.preparer();transactions=[n for n in parse_sql(sql) if type(n.stmt).__name__=='TransactionStmt']
+  self.assertEqual(len(transactions),2);self.assertEqual(sql.count('INSERT INTO supabase_migrations.schema_migrations'),5)
+  self.assertNotIn('CREATE OR REPLACE FUNCTION public.organisation_equipement_acheter',sql)
+  self.assertIn('organisations219_paiement_non_examine',sql)
+ def test_lot_organisations_refuse_empreinte_ou_selection_alteree(self):
+  sp=importlib.util.spec_from_file_location('lotorg',R/'outils/livraison/preparer-organisations-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  data=json.loads(m.MAN.read_text());p=self.rep/'manifeste.json';sortie=self.rep/'interdit.sql'
+  data['migrations'][0]['sha256']='0'*64;p.write_text(json.dumps(data))
+  with self.assertRaisesRegex(ValueError,'Empreinte'):m.preparer(sortie,p)
+  self.assertFalse(sortie.exists());data['migrations'].append(data['migrations'][0]);p.write_text(json.dumps(data))
+  with self.assertRaisesRegex(ValueError,'cinq'):m.preparer(sortie,p)
+  self.assertFalse(sortie.exists())
+ def test_livraison_complete_garde_95_versions_et_une_transaction(self):
+  sp=importlib.util.spec_from_file_location('complet219',R/'outils/livraison/preparer-livraison-complete-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  from pglast import parse_sql
+  sql,entrees=m.preparer();self.assertEqual(len(entrees),95);self.assertEqual(len({e['version'] for e in entrees}),95)
+  self.assertEqual(len([n for n in parse_sql(sql) if type(n.stmt).__name__=='TransactionStmt']),2)
+  self.assertEqual(sql.count('INSERT INTO supabase_migrations.schema_migrations'),95)
+  self.assertNotIn('achat_equipements_collectifs.sql',sql)
+ def test_prevol_actualise_ne_produit_que_des_SELECT(self):
+  sp=importlib.util.spec_from_file_location('prevol219',R/'outils/livraison/requetes-prevol-actualise-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  from pglast import parse_sql
+  for nom,sql in m.requetes():
+   ns=parse_sql(sql);self.assertEqual(len(ns),1,nom);self.assertEqual(type(ns[0].stmt).__name__,'SelectStmt',nom);self.assertLess(len(sql),12500)
+  self.assertNotIn('auth.users',''.join(sql for _,sql in m.requetes()))
  def test_json_et_mcp_meme_resultat_schema_et_seeds(self):
   self.ecrire();exp,_=rendre.charger_exports(str(self.rep));self.assertEqual(exp,seeds.charger_exports(str(self.rep)))
   for p in self.rep.iterdir():p.unlink()

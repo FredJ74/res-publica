@@ -49,7 +49,16 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'courrier_non_insere'; END IF;
   d:=jsonb_set(d,'{invitationsEnvoyees}',coalesce(d->'invitationsEnvoyees','[]')||jsonb_build_array(jsonb_build_object('nom',cible,'date',jour)));
  ELSIF p_action='declencher_election' THEN
- IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre(text,text,integer,integer)') AND md5(prosrc)='92234a6b14ff176d2c2c2236f705683e') THEN RAISE EXCEPTION 'paiement_definition_a_reexaminer'; END IF;
+ -- Corps examinés : historique, fiche protégée actuelle, ou adaptateur #219
+ -- avec SES DEUX fonctions internes strictement attestées. Rien n'est remplacé.
+ IF NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre(text,text,integer,integer)') AND md5(prosrc) IN ('92234a6b14ff176d2c2c2236f705683e','5cf45c19e4b9559f6b29e2b9207d3969'))
+ AND NOT (coalesce((SELECT md5(prosrc)='ca7abc6ac27e864f723b25e73dacd665' FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre(text,text,integer,integer)')),false)
+ AND coalesce((SELECT md5(prosrc)='f315b77059d65b1ccd1879e800d18c22' FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)')),false)
+ AND coalesce((SELECT md5(prosrc)='716e233a2b71a4c7be1d1227200765e6' FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)')),false)
+ AND NOT coalesce(has_function_privilege('authenticated',to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)'),'EXECUTE'),false)
+ AND NOT coalesce(has_function_privilege('anon',to_regprocedure('public.payer_ordre_interne(text,text,integer,integer)'),'EXECUTE'),false)
+ AND NOT coalesce(has_function_privilege('authenticated',to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)'),'EXECUTE'),false)
+ AND NOT coalesce(has_function_privilege('anon',to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)'),'EXECUTE'),false)) THEN RAISE EXCEPTION 'paiement_definition_a_reexaminer';END IF;
 
   IF p_parametres-ARRAY['motivation']<>'{}' OR jsonb_typeof(p_parametres->'motivation') IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'motivation_requise'; END IF;
   motivation:=btrim(p_parametres->>'motivation');IF motivation='' THEN RAISE EXCEPTION 'motivation_requise'; END IF;

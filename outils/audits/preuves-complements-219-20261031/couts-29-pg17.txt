@@ -1,0 +1,12 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+postgres (PostgreSQL) 17.6
+{
+  "ok": true,
+  "assertions": 29,
+  "source_lignes": 452,
+  "ancien_miroir": 438,
+  "production": false,
+  "role_achats": "authenticated",
+  "limite": "Décor de test reconstitué du diff publié ; aucun nouvel export ni contrôle vivant."
+}

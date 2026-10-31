@@ -36,7 +36,7 @@ function extraire(source,fichier='<fixture>'){
 }
 if(require.main===module){
  const root=path.resolve(__dirname,'../..'),sortie={litteraux:[],dynamiques:[]};
- for(const f of fs.readdirSync(root).sort())if(f.endsWith('.js')&&f!=='data.js'&&fs.statSync(path.join(root,f)).isFile()){
+ for(const f of fs.readdirSync(root).sort())if(f.endsWith('.js')&&fs.statSync(path.join(root,f)).isFile()){
   const r=extraire(fs.readFileSync(path.join(root,f),'utf8'),f);sortie.litteraux.push(...r.litteraux);sortie.dynamiques.push(...r.dynamiques);
  }
  process.stdout.write(JSON.stringify(sortie));

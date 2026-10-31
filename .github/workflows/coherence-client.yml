@@ -75,6 +75,10 @@ jobs:
         run: npm test --prefix outils/e2e
       - name: Exports canoniques complets et reconstruction des séquences, PostgreSQL jetable
         run: python3 outils/bancs/test-catalogue-reconstruction.py
+      - name: Cinq commandes organisations, paiements protégés et rollback indivisible
+        run: python3 outils/bancs/banc-organisations-paquet-219-local.py
+      - name: Réconciliation des tarifs et refus du gilet sans PA, données fictives
+        run: python3 outils/bancs/banc-couts-reconciliation-219-local.py
       - name: Relais canonique exact, snapshot et exclusion des fichiers privés
         run: python3 outils/bancs/test-relais-canonique-219.py
       - name: Verrou final inventaire sur PostgreSQL jetable, données fictives

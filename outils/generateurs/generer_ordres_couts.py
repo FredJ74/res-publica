@@ -177,6 +177,10 @@ def ordres_hors_data():
         if not valeurs or re.sub(motif,'',blocs[0]).strip(' ,\n\r\t'):
             raise ValueError('Déclaration de coûts non littérale : '+nom)
         trouves.update((fn,int(pa),int(cout)) for fn,pa,cout in valeurs)
+        # Une ouverture gratuite de catalogue n'est pas le coût de son achat.
+        # Les deux moteurs d'armes appellent explicitement la vente avec 1 PA.
+        appels=re.findall(r"public\.commerce_vendre_produit_interne\([^;]{0,1600}?'(?:comptoir|marche_noir)',\s*'([a-z0-9_]+)',\s*(\d+),\s*(\d+),\s*NULL,\s*NULL\)",texte,re.S)
+        trouves.update((fn,int(pa),int(cout)) for fn,pa,cout in appels)
     return trouves
 
 def ordres_fractionnes(t):
