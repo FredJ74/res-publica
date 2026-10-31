@@ -230,3 +230,9 @@ Commentaires PR relus ; relevé ChatGPT `26a10c3b` récupéré de sa branche d�
 Rapport : `outils/audits/INTEGRATION95-ET-CAISSES300-219-20261031.md`. PostgreSQL 17.6 : **95 versions en une transaction**, rollback tardif des quatre catalogues/registre/fiche, second passage refusé sans mutation, 30/30 recette catalogue + 3/3 commandes organisations. Après les deux migrations #300 : mêmes 30 + 3 réussites ; quatre bancs clients passent sur fusion simulée. Seul conflit textuel #300 : workflow CI (conserver les étapes des deux branches). Outillage **46/46**.
 
 **Ne pas présenter ce décor comme 1009** : schéma privé 1003 + capture réelle tarifs 438, provenance explicite. Payeur inchangé et compatible, deux types d'empreintes reproduits. Pas de blocage payeur restant ; manquent catalogue/delta complets 1009 et référentiels statiques, recette GoTrue isolée, résolution #299 par Claude. Pas de production modifiée.
+
+### #219 — vraie recette GoTrue/PostgREST locale, 26/26
+
+Le banc intégré peut démarrer les binaires GoTrue v2.177.0 et PostgREST v12.2.12 sur loopback/socket Unix. Trois comptes entièrement fictifs créés/connectés dans la base jetable ; **26/26 scénarios HTTP réels** : identité/reconnexion, groupes/PNJ, radio même ville/hors ville, double clic concurrent/reçu unique, combat mixte/round/rejeux, refus fonds/coma/prison. Après 95 + #300, pas de moteur métier remplacé. Processus et bases nettoyés, aucun compte ni secret réel. Ce n'est ni une recette UI Chromium du jeu ni une validation production. Preuves et limites dans `INTEGRATION95-ET-CAISSES300-219-20261031.md`.
+
+Nouvelle passe : 45/45 Python, 154/154 clients, 105/105 pilote, 48/48 outillage, six mutants détectés. Diagnostic strict post-95 : zéro fonction absente, huit chemins sans droit client et un spread incomplet conservés dans le rapport. Reste catalogue/delta 1009 complet et référentiels statiques, 12/12 non atteint ; #299 à Claude. Pas de fusion/déploiement.

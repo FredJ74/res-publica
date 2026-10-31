@@ -37,3 +37,19 @@ Issue #299 relue : les deux préparations immobilières 113610/113631 hors des 9
 Recette GoTrue réelle encore absente. Les scénarios SQL isolés utilisent les rôles et les JWT locaux, pas un login. Aucun mot de passe récupéré, aucun compte réel modifié. Une recette authentifiée demande une plateforme isolée autorisée et ses comptes de test ; Arnie reste en consultation seule et n'a pas été utilisé pour payer/combattre.
 
 **Pas de fusion ni déploiement.** Installation intégrée et compatibilité #300 prouvées dans le décor déclaré ; catalogue 1009 fidèle, 12/12 globaux et recette GoTrue restent non certifiés.
+
+## Complément : vraie authentification isolée exécutée, 26/26
+
+Le manque de plateforme locale a été traité : Docker disponible, images GoTrue v2.177.0 et PostgREST v12.2.12 téléchargées, binaires statiques extraits de conteneurs **arrêtés sans réseau**, conteneurs supprimés. Les services natifs ne servent que sur 127.0.0.1 et se connectent par socket Unix au PostgreSQL jetable. Secrets de test générés en mémoire, aucun secret ou identifiant réel lu. Provenance des images et SHA256 binaires enregistrés.
+
+GoTrue utilise son vrai schéma auth et son rôle local dédié (search_path auth,public). Les helpers de plateforme auth.jwt/uid/role sont initialisés par le bootstrap SQL standard déjà utilisé par l'outil ; aucun moteur métier public n'est substitué. Les premières tentatives ont trouvé les préconditions de schéma/search_path de GoTrue, corrigées uniquement dans le bootstrap local.
+
+**Trois inscriptions et logins GoTrue locaux réels**, nouveaux UID fictifs, puis JWT signés vérifiés par PostgREST et changement de rôle authenticated : **26 scénarios HTTP réussis** après installation des 95 et de #300. Identité exacte, anonyme refusé, adhésion et départ, reconnexion même UID/groupe conservé, PNJ réservé à l'employeur, radio absente puis hors ville refusée et rappel/rejeu même ville, combat mixte réel, deux clics HTTP concurrents même bataille et reçu unique, ouverture/round rejoués sans double effet, tiers non engagé refusé, fonds insuffisants nommés sans PA ni mutation, coma et prison refusant la sortie avec le bon motif. L'écrou est créé par le vrai moteur interne SQL local, pas par une simulation de détenu.
+
+Limites conservées : **pas une recette Chromium de l'interface du jeu ni de production** ; réponse d'ouverture ignorée puis rejouée, pas une panne réseau physiquement injectée ; interpellation policière complète couverte par les scénarios SQL, pas par une interface policière HTTP ici. Les scénarios avancés de soldats restent dans le banc SQL 379. Tous les services/processus sont arrêtés et les bases supprimées en finally ; journaux de services privés jamais committés.
+
+Déclenchement technique reproductible : le même banc intégré accepte `--gotrue-bin` et `--postgrest-bin` ensemble, avec ses exports/registre/tarifs privés habituels. Aucun DSN distant accepté. Deux contre-épreuves unitaires refusent une base distante et une origine HTTP extérieure avant tout appel.
+
+Nouvelle passe : **48/48 outillage, 45/45 commandes Python, 154/154 bancs clients, 105/105 pilote Chromium**, six mutations réexécutées et détectées sur 379 cas chacune. Les contrôles globaux restent à **10/12**, et la garde immobilière #299 n'a pas été neutralisée. Le diagnostic strict des neuf formes montre huit chemins sans droit client (dont des helpers délibérément morts) et un spread incomplet (`tournee_creer`), **zéro nom de fonction absent** dans cet inventaire post-95 ; signatures et droits publiés sans supprimer d'écart. Le travail immobilier reste à Claude.
+
+Le blocage réel restant est la fidélité au **catalogue 1009/delta complet et ses référentiels statiques**, non celle du payeur et non l'impossibilité d'un login isolé. Sans ces données, ne pas transformer les 66 scénarios SQL combinés et les 26 HTTP en certification de la production.

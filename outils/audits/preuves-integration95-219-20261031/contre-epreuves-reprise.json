@@ -1,0 +1,143 @@
+[
+  {
+    "mutation": "PNJ-immobile",
+    "cas": 379,
+    "echecs_detectes": [
+      {
+        "cas": "squatteurs_fuite_automate_deplacement_reel_pas_une_mort",
+        "ok": false,
+        "erreur": "(None, 'terrain-a-batir')"
+      }
+    ]
+  },
+  {
+    "mutation": "camion-solo",
+    "cas": 379,
+    "echecs_detectes": [
+      {
+        "cas": "camion_ancien_acte_embarque_et_debarque_groupe_PJ_entier_rejeu",
+        "ok": false,
+        "erreur": ""
+      },
+      {
+        "cas": "camion_voyage_reel_cout_historique_2PA_par_PJ_et_rejeu_sans_double_debit",
+        "ok": false,
+        "erreur": "{'ok': False, 'raison': 'groupe_disperse'}"
+      },
+      {
+        "cas": "camion_section_epuisee_refuse_sans_debit_ni_deplacement",
+        "ok": false,
+        "erreur": "{'ok': False, 'raison': 'groupe_disperse'}"
+      },
+      {
+        "cas": "camion_deux_sessions_du_chef_un_embarquement_et_un_recu",
+        "ok": false,
+        "erreur": ""
+      },
+      {
+        "cas": "civil_cibler_un_accompagnant_engage_le_groupe_reel_et_son_chef",
+        "ok": false,
+        "erreur": "new row for relation \"pnj_membres\" violates check constraint \"pnj_mort_sans_leader\"\nDETAIL:  Failing row contains (ancre, employe, Un, republic, C, null, null, C, null, null, null, null, null, mort, 2026-10-31 20:06:21.099103+00, 0, 0, null, null, 16, 12, 8, null, null, republic, null).\n"
+      },
+      {
+        "cas": "civil_PNJ_gamma_protege_meme_par_appel_direct",
+        "ok": false,
+        "erreur": "{'ok': False, 'raison': 'cible_non_referencee'}"
+      },
+      {
+        "cas": "civil_nom_PNJ_unique_resolu_vers_identite_canonique",
+        "ok": false,
+        "erreur": "{'ok': False, 'raison': 'cible_non_referencee'}"
+      }
+    ]
+  },
+  {
+    "mutation": "double-paiement",
+    "cas": 379,
+    "echecs_detectes": [
+      {
+        "cas": "civil_ouverture_reelle_choix_paiement_unique_rejeu",
+        "ok": false,
+        "erreur": ""
+      },
+      {
+        "cas": "civil_mode_mains_borne_arme_et_paiement_sans_modifier_defenseur",
+        "ok": false,
+        "erreur": ""
+      },
+      {
+        "cas": "civil_mode_arme_borne_arme_et_paiement_sans_modifier_defenseur",
+        "ok": false,
+        "erreur": ""
+      },
+      {
+        "cas": "civil_mode_feu_borne_arme_et_paiement_sans_modifier_defenseur",
+        "ok": false,
+        "erreur": "there is no unique or exclusion constraint matching the ON CONFLICT specification\nCONTEXT:  SQL statement \"INSERT INTO public.ordres_couts_ecarts (fn, pa, cost)\n    VALUES (v_fn, coalesce(p_pa,0), coalesce(p_cost,0))\n    ON CONFLICT (fn, pa, cost)\n      DO UPDATE SET occurrences = public.ordres_couts_ecarts.occurrences + 1, vu_le = now()\"\nPL/pgSQL "
+      },
+      {
+        "cas": "civil_deux_connexions_un_combat_un_paiement_un_recu",
+        "ok": false,
+        "erreur": ""
+      }
+    ]
+  },
+  {
+    "mutation": "issue-fausse",
+    "cas": 379,
+    "echecs_detectes": [
+      {
+        "cas": "squatteurs_rounds_reels_issue_et_unique_trace_squatter_cool",
+        "ok": false,
+        "erreur": "terrain_issue_non_confirmee:{\"ok\": false, \"raison\": \"issue_non_constatee\"}\nCONTEXT:  PL/pgSQL function combat_finaliser_interne(bigint) line 12 at RAISE\nSQL statement \"SELECT public.combat_finaliser_interne(p_bataille_id)\"\nPL/pgSQL function militaire_bataille_round(bigint) line 95 at PERFORM\nPL/pgSQL function militaire_bataille_avancer(bigint) line"
+      },
+      {
+        "cas": "squatteurs_issue_reelle_obligatoire_tues",
+        "ok": false,
+        "erreur": "terrain_issue_non_confirmee:{\"ok\": false, \"raison\": \"issue_non_constatee\"}\nCONTEXT:  PL/pgSQL function combat_finaliser_interne(bigint) line 12 at RAISE\nSQL statement \"SELECT public.combat_finaliser_interne(p_bataille_id)\"\nPL/pgSQL function militaire_bataille_round(bigint) line 95 at PERFORM\nSQL expression \"public.militaire_bataille_round(p_bataill"
+      }
+    ]
+  },
+  {
+    "mutation": "repli-provenance-oubliee",
+    "cas": 379,
+    "echecs_detectes": [
+      {
+        "cas": "repli_PNJ_PSM_vraie_gauche_selon_provenance_serveur",
+        "ok": false,
+        "erreur": "repli_destination_PNJ_refusee\nDETAIL:  {\"ok\": false, \"raison\": \"provenance_non_referencee\"}\nCONTEXT:  PL/pgSQL function militaire_repli_pnj_interne(bigint,text,integer) line 21 at RAISE\nPL/pgSQL function militaire_bataille_decrocher_groupe(bigint,text,integer) line 10 at RETURN\n"
+      }
+    ]
+  },
+  {
+    "mutation": "repli-sans-mouvement",
+    "cas": 379,
+    "echecs_detectes": [
+      {
+        "cas": "repli_militaire_meme_navigation_PJ_PNJ_sortie_reelle_et_rejeu",
+        "ok": false,
+        "erreur": ""
+      },
+      {
+        "cas": "repli_militaire_refus_individuel_annule_sortie_et_tous_mouvements",
+        "ok": false,
+        "erreur": "{'ok': True, 'terminee': True, 'mon_groupe': 'republic|pj:A', 'ma_decision': 'replier', 'camps_debout': 1}"
+      },
+      {
+        "cas": "civil_fuite_initiale_deplacement_reel",
+        "ok": false,
+        "erreur": ""
+      },
+      {
+        "cas": "civil_cinq_vrais_rounds_puis_replier",
+        "ok": false,
+        "erreur": ""
+      },
+      {
+        "cas": "civil_defenseur_connecte_decision_initiale_replier",
+        "ok": false,
+        "erreur": ""
+      }
+    ]
+  }
+]

@@ -204,7 +204,9 @@ def verifier_rpc_clients(q):
         for passes,sites in variantes.items():
             n+=1
             if not any(passes<=attendus and requis<=passes and droit for attendus,requis,droit in formes.get(nom,[])):
-                ecarts.append({'fonction':nom,'parametres':sorted(passes),'sites':sites})
+                ecarts.append({'fonction':nom,'parametres':sorted(passes),'sites':sites,
+                               'signatures_connues':[{'parametres':sorted(attendus),'obligatoires':sorted(requis),'authenticated_execute':droit} for attendus,requis,droit in formes.get(nom,[])],
+                               'diagnostic':'fonction_absente' if nom not in formes else ('execution_client_refusee' if any(passes<=attendus and requis<=passes for attendus,requis,droit in formes[nom]) else 'parametres_incompatibles_ou_spread_non_resolu')})
     return {'fonctions':len(appels),'formes':n,'ecarts':ecarts,'portee':'Catalogue local APRÈS lot ; ne remplace pas Authority sur le catalogue de production.'}
 
 

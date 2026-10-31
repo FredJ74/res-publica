@@ -20,19 +20,28 @@ def main():
  a=argparse.ArgumentParser(description=__doc__)
  for x in ['exports','registre','capture-couts','postgres-bin','rapport']:a.add_argument('--'+x,type=Path,required=True)
  a.add_argument('--caisses-source',type=Path,help='Répertoire privé des deux sources exactes PR300, aucune application distante.')
- o=a.parse_args();e=charger('epreuve95','outils/baseline/epreuve-postgresql.py');lot=charger('lot95','outils/livraison/preparer-livraison-complete-219.py')
+ a.add_argument('--gotrue-bin',type=Path)
+ a.add_argument('--postgrest-bin',type=Path)
+ o=a.parse_args()
+ if bool(o.gotrue_bin)!=bool(o.postgrest_bin):a.error('GoTrue et PostgREST doivent être fournis ensemble')
+ e=charger('epreuve95','outils/baseline/epreuve-postgresql.py');lot=charger('lot95','outils/livraison/preparer-livraison-complete-219.py')
  registre=e.lire_registre(o.registre);capture=json.loads(o.capture_couts.read_text());plan=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text())
  triples=sorted((x['fn'],x['pa'],x['cost']) for x in capture['ordres_couts'])
  if len(triples)!=len(set(triples)) or len(triples)!=plan['avant']['lignes'] or hashlib.md5('\n'.join('%s|%d|%d'%t for t in triples).encode()).hexdigest()!=plan['avant']['md5']:raise ValueError('Capture des tarifs différente du prévol examiné')
  e.configurer_binaires(o.postgres_bin)
  import pgserver,psycopg2
- rapport={'production':False,'registre_source_versions':len(registre),'catalogue_1009_certifie':False,'authentification':'JWT SQL locaux, pas GoTrue','tarifs_snapshot':capture['snapshot'],'cas':[]}
+ rapport={'production':False,'registre_source_versions':len(registre),'catalogue_1009_certifie':False,'authentification':'JWT SQL pour les scénarios de catalogue ; recette GoTrue HTTP séparée si présente','tarifs_snapshot':capture['snapshot'],'cas':[]}
  with tempfile.TemporaryDirectory(prefix='hg95-catalogue-') as d:
-  srv=pgserver.get_server(Path(d)/'data',cleanup_mode='delete');c=psycopg2.connect(srv.get_uri());q=c.cursor()
+  srv=pgserver.get_server(Path(d)/'data',cleanup_mode='delete');c=psycopg2.connect(srv.get_uri());q=c.cursor();services=None
   try:
    q.execute('SHOW server_version_num');assert q.fetchone()[0]=='170006'
    for role in ['anon','authenticated','service_role','authenticator','supabase_auth_admin','supabase_admin','dashboard_user','supabase_read_only_user']:q.execute('CREATE ROLE '+role)
-   q.execute(e.PLATEFORME);morceaux,_=e.assembler();rapport.update(e.installer(q,morceaux))
+   if o.gotrue_bin:
+    q.execute('CREATE SCHEMA auth AUTHORIZATION supabase_auth_admin;ALTER ROLE supabase_auth_admin LOGIN;ALTER ROLE supabase_auth_admin SET search_path=auth,public');c.commit();auth=charger('authlocale95','outils/bancs/auth-locale-groupes-219.py');services=auth.Services(srv.get_uri(),d,o.gotrue_bin,o.postgrest_bin);services.demarrer_auth()
+    # auth.users vient du vrai service GoTrue, aucune table d'authentification simulée.
+    q.execute(('CREATE FUNCTION auth.jwt()'+e.PLATEFORME.split('CREATE FUNCTION auth.jwt()',1)[1]).replace('CREATE FUNCTION auth.','CREATE OR REPLACE FUNCTION auth.'))
+   else:q.execute(e.PLATEFORME)
+   morceaux,_=e.assembler();rapport.update(e.installer(q,morceaux))
    ecarts=e.comparer_catalogues(q,o.exports);assert not ecarts,ecarts
    rapport['schema_conforme_aux_exports_fournis']=True
    q.execute("SELECT md5(prosrc),md5(pg_get_functiondef(oid)) FROM pg_proc WHERE oid='public.payer_ordre(text,text,integer,integer)'::regprocedure");source_md5,definition_md5=q.fetchone();assert source_md5=='5cf45c19e4b9559f6b29e2b9207d3969' and source_md5!=definition_md5;rapport['payeur_avant']={'source_md5':source_md5,'definition_md5':definition_md5,'garde_source_satisfaite':True}
@@ -66,7 +75,16 @@ def main():
      p=o.caisses_source/entree['fichier'];assert hashlib.sha256(p.read_bytes()).hexdigest()==entree['sha256'];q.execute(p.read_text())
     q.execute('BEGIN');rapport['pr300']={'source':provenance,'organisations':org.recette(q),'groupes':rec.recette(q)}
     assert all(x['ok'] for x in rapport['pr300']['groupes']);c.rollback()
-  except Exception as ex:rapport['erreur']=str(ex);rapport['trace']=traceback.format_exc();c.rollback()
-  finally:c.close();srv._cleanup()
+   if services:
+    services.demarrer_rest(q);rapport['recette_authentifiee_isolee']=services.recette(q);rapport['binaires_auth_sha256']={str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [o.gotrue_bin,o.postgrest_bin]}
+  except Exception as ex:
+   rapport['erreur']=str(ex);rapport['trace']=traceback.format_exc();c.rollback()
+   if services:
+    prive=Path(str(o.rapport)+'.services-privees');prive.mkdir(mode=0o700,exist_ok=True)
+    for f in Path(d).glob('*.log'):
+     dest=prive/f.name;dest.write_bytes(f.read_bytes());dest.chmod(0o600)
+  finally:
+   if services:services.fermer()
+   c.close();srv._cleanup()
  o.rapport.write_text(json.dumps(rapport,ensure_ascii=False,indent=2)+'\n');print(json.dumps(rapport,ensure_ascii=False,indent=2));return int('erreur' in rapport)
 if __name__=='__main__':raise SystemExit(main())

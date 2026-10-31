@@ -38,6 +38,15 @@ class Exports(unittest.TestCase):
   self.assertNotEqual(d['source_md5'],d['definition_md5']);self.assertTrue(d['prevol_payeur_satisfait'])
   s=(R/'migrations/20261031115805_transport_encaissement_existant.sql').read_text()
   self.assertIn(d['source_md5'],s);self.assertNotIn(d['definition_md5'],s)
+ def test_auth_locale_refuse_toute_base_distante(self):
+  sp=importlib.util.spec_from_file_location('auth219',R/'outils/bancs/auth-locale-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  for uri in ['postgresql://p@production/db','postgresql://p@/db?host=production']:
+   with self.assertRaisesRegex(ValueError,'local'):m.Services(uri,self.rep,Path('/absent'),Path('/absent'))
+ def test_auth_locale_refuse_toute_origine_http_exterieure(self):
+  sp=importlib.util.spec_from_file_location('auth219',R/'outils/bancs/auth-locale-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  service=m.Services('postgresql://p@/db?host=/tmp/socket',self.rep,Path('/absent'),Path('/absent'))
+  with self.assertRaisesRegex(ValueError,'Origine'):service.http('https://production.invalid/rpc/payer_ordre',{})
+  self.assertEqual(service.processus,[]);service.fermer()
  def test_lot_organisations_selectionne_cinq_sources_sans_transactions_internes(self):
   sp=importlib.util.spec_from_file_location('lotorg',R/'outils/livraison/preparer-organisations-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
   from pglast import parse_sql
