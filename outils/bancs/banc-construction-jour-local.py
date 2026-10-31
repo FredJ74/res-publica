@@ -47,9 +47,9 @@ def main(suite_supplementaire=None):
    src=(R/'baseline/domaines/economie/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public.chantiers_paliers \(.*?\n\);',src,re.S)[0])
    c.execute((R/'baseline/seeds/90_socle/chantiers_paliers.sql').read_text())
    for migration in [_sources['chemin_source'](f) for f in ['migrations/20261022124055_chantier_autorite_et_recus.sql', 'migrations/20261022124056_chantier_commandes_et_reception.sql']]:c.execute(migration.read_text());c.execute(migration.read_text())
-   c.execute((R/'migrations/20261031113617_chantier_recu_relecture.sql').read_text())
+   c.execute(_sources['chemin_source']('migrations/20261031113617_chantier_recu_relecture.sql').read_text())
    for nom in ['chantier_lancer','chantier_verser']:c.execute(fn('baseline/domaines/economie/20_fonctions-1.sql',nom))
-   c.execute((R/'migrations/20261031113618_chantier_fermer_commandes_non_versionnees.sql').read_text());c.execute((R/'migrations/20261031113618_chantier_fermer_commandes_non_versionnees.sql').read_text())
+   c.execute(_sources['chemin_source']('migrations/20261031113618_chantier_fermer_commandes_non_versionnees.sql').read_text());c.execute(_sources['chemin_source']('migrations/20261031113618_chantier_fermer_commandes_non_versionnees.sql').read_text())
    for domaine,table in [('immobilier-et-territoire','dossiers_urbanisme'),('personnage-et-presence','objets_recus'),('immobilier-et-territoire','locations_actives')]:
     src=(R/f'baseline/domaines/{domaine}/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public\.'+table+r' \(.*?\n\);',src,re.S)[0])
    c.execute(fn('baseline/domaines/socle/20_fonctions.sql','objet_sas_deposer'))
@@ -66,7 +66,7 @@ def main(suite_supplementaire=None):
     garde="  IF p_acte = 'permis_deposer' THEN\n    RETURN jsonb_build_object('ok',false,'raison','commande_versionnee_requise');\n  END IF;\n"
     c.execute(definition.replace('  v_moi := public.mon_personnage();',garde+'  v_moi := public.mon_personnage();'))
    for migration in [_sources['chemin_source'](f) for f in ['migrations/20261022130417_chantier_gardes_legacy_et_travail.sql', 'migrations/20261022130418_chantier_travail_versionne.sql', 'migrations/20261022130419_chantier_prix_representants.sql']]:c.execute(migration.read_text());c.execute(migration.read_text())
-   c.execute((R/'migrations/20261031113624_construction_delais_quatre_empires.sql').read_text());c.execute((R/'migrations/20261031113624_construction_delais_quatre_empires.sql').read_text())
+   c.execute(_sources['chemin_source']('migrations/20261031113624_construction_delais_quatre_empires.sql').read_text());c.execute(_sources['chemin_source']('migrations/20261031113624_construction_delais_quatre_empires.sql').read_text())
    def ok(v,t):
     nonlocal n
     assert v,t;n+=1;print('OK',t,flush=True)
