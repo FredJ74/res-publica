@@ -8899,16 +8899,31 @@ async function repondreTransfertJoueur(transfertId, accepte) {
   // REGLEMENT PAR LE SERVEUR D'ABORD (31/10/2026, #295) : le club d'arrivee paie le club de depart
   // et le transfert est clos dans club_transfert_conclure. Rien ne bascule a l'ecran sans lui ;
   // un club d'arrivee sans fonds voit le transfert refuse (il creait de l'argent auparavant).
-  const reglement = typeof sbRpc === 'function'
-    ? await sbRpc('club_transfert_conclure', { p_transfert: transfertId }).then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
-    : null;
+  // PRIME DE SIGNATURE PAR LE SERVEUR (31/10/2026, 20261031220000) : le club d'arrivee paie prix ET
+  // prime dans la meme transaction ; la prime est creditee au joueur en base, une seule fois
+  // (rejeu sans mouvement apres double clic, reponse perdue ou reconnexion). L'ecran n'ajoute plus
+  // rien lui-meme : il adopte la fiche rendue par le serveur.
+  if (repondreTransfertJoueur._enCours) return;
+  repondreTransfertJoueur._enCours = true;
+  let reglement = null;
+  try {
+    reglement = typeof sbRpc === 'function'
+      ? await sbRpc('club_transfert_conclure', { p_transfert: transfertId }).then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
+      : null;
+  } finally { repondreTransfertJoueur._enCours = false; }
   if (!reglement || reglement.ok !== true) {
-    const motifs = { caisse_club_insuffisante: 'Le club d\'arrivée n\'a pas les fonds pour payer ce transfert.',
-      transfert_non_ouvert: 'Ce transfert n\'est plus ouvert.', pas_le_joueur: 'Ce transfert ne vous concerne pas.' };
+    const motifs = { caisse_club_insuffisante: 'Le club d\'arrivée n\'a pas les fonds pour payer ce transfert et la prime de signature.',
+      transfert_non_ouvert: 'Ce transfert n\'est plus ouvert.', pas_le_joueur: 'Ce transfert ne vous concerne pas.',
+      prime_invalide: 'La prime de signature de cette offre est invalide.' };
     showToast('Transfert non conclu', (reglement && motifs[reglement.raison]) || "Le serveur n'a pas confirmé le transfert. Réessayez.", false);
     return;
   }
-  if (reglement.rejeu) { showToast('Transfert déjà conclu', '', true); return; }
+  if (reglement.fiche && reglement.fiche.liquide != null) {
+    state.liquide = Number(reglement.fiche.liquide); state.arg = Number(reglement.fiche.arg);
+    if (state.char) state.char.arg = state.arg;
+  }
+  const primeVersee = Number(reglement.prime || 0);
+  if (reglement.rejeu) { updateUI(); showToast('Transfert déjà conclu', '', true); return; }
 
   // Le joueur accepte : licence basculee, points d'entrainement conserves, argent reparti.
   // nonRenouvellement repart a false par construction (nouvel objet) -- un transfert accepte
@@ -8920,11 +8935,12 @@ async function repondreTransfertJoueur(transfertId, accepte) {
   if (state.char?.name === t.joueur) {
     const saison = await chargerOuInitialiserSaison();
     state.char.licenceSportive = { clubId: t.clubArriveeId, dateAchat: state.day || 1, statut: 'active', derniereSaisonTraitee: saison?.numero || 1, nonRenouvellement: false };
-    crediterFondsOrdinaires(t.prixJoueur || 0);
     updateUI();
   }
-  showToast('Transfert accepté !', 'Vous jouez désormais pour ' + getClub(t.clubArriveeId).nom + '.', true, true);
-  addJournalEntry('Transfert accepté vers ' + getClub(t.clubArriveeId).nom + '.', 'event-good');
+  showToast('Transfert accepté !', 'Vous jouez désormais pour ' + getClub(t.clubArriveeId).nom + '.'
+    + (primeVersee > 0 ? ' Prime de signature reçue : ' + primeVersee.toLocaleString('fr-FR') + ' FR.' : ''), true, true);
+  addJournalEntry('Transfert accepté vers ' + getClub(t.clubArriveeId).nom + '.'
+    + (primeVersee > 0 ? ' Prime de signature : ' + primeVersee.toLocaleString('fr-FR') + ' FR.' : ''), 'event-good');
   // Meme correctif que doPrendreLicenceSportive/doDemanderNonRenouvellementLicence : rafraichit
   // les ordres de la piece courante (le joueur peut avoir accepte ce transfert depuis n'importe
   // ou, y compris depuis le stade d'un club) pour que "Prendre sa licence sportive" (et les
