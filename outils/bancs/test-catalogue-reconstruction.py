@@ -15,6 +15,16 @@ class Exports(unittest.TestCase):
    row={cle:v}
    if mode=='mcp':row={'result':'<untrusted-data-0000-1111>\n'+json.dumps([row])+'\n</untrusted-data-0000-1111>'}
    (self.rep/(cle+('.txt' if mode=='mcp' else '.json'))).write_text(json.dumps(row))
+ def test_empreinte_complete_refuse_un_seul_seau_different(self):
+  spec=importlib.util.spec_from_file_location('livraison95',R/'outils/bancs/banc-livraison95-catalogue-local.py')
+  m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+  identique={'version_serveur':'17.6','registre':{'lignes':1012,'derniere':'20261031211256'},
+             'categories':{'fonctions':{'objets':1213,'racine':'a','seaux':{'0':'10:aaaa'}}}}
+  self.assertTrue(m.verifier_empreinte_complete(identique,{'empreinte':identique})['conforme'])
+  change=json.loads(json.dumps(identique));change['categories']['fonctions']['seaux']['0']='10:bbbb'
+  with self.assertRaises(AssertionError):m.verifier_empreinte_complete(change,{'empreinte':identique})
+  change=json.loads(json.dumps(identique));change['registre']['lignes']=1011
+  with self.assertRaises(AssertionError):m.verifier_empreinte_complete(change,{'empreinte':identique})
  def test_lecteur_migration_ne_substitue_pas_une_entree_baseline(self):
   spec=importlib.util.spec_from_file_location('restaurant_fixture',R/'outils/bancs/banc-restaurant-luthecia-local.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
   n='commerce_vendre_produit';f=R/'historique/migrations-appliquees/rehorodatees-219/20261031113607_catalogue_et_offrir_a_boire.sql'
