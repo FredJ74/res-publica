@@ -1738,8 +1738,34 @@ async function sbGetBudgetClub(clubId) {
   return rows[0].data;
 }
 
-async function sbSaveBudgetClub(clubId, data) {
-  return sbUpsert('budgets_clubs', { id: clubId, data, updated_at: new Date().toISOString() });
+// sbSaveBudgetClub SUPPRIMEE (31/10/2026, #295) : l'ecran ne reecrit plus jamais la caisse d'un
+// club. Chaque mouvement passe par une porte serveur (sbCaisseCollective ci-dessous).
+
+// PORTE UNIQUE DES CAISSES COLLECTIVES (clubs et organisations, #295). `intention` identifie le
+// geste du joueur : tant que le serveur n'a pas donne de reponse definitive, le meme identifiant
+// de requete est reemploye, si bien qu'une reponse perdue puis un nouveau clic rejouent la meme
+// operation (le serveur rend alors son recu) au lieu d'en creer une seconde. Rend toujours un
+// objet { ok, raison, ... } ; `ok` n'est vrai que si le serveur l'a dit.
+async function sbCaisseCollective(rpc, params, intention) {
+  const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+  const nom = typeof state !== 'undefined' ? state.char?.name : null;
+  if (!uid || !nom) return { ok: false, raison: 'session_perdue' };
+  let cle = null, appel = { ...params };
+  if (intention != null) {
+    cle = 'rp_caisse:' + JSON.stringify([uid, nom, rpc, intention]);
+    let requete = null;
+    try { requete = localStorage.getItem(cle); } catch (_) {}
+    if (!requete || !/^caisse-[A-Za-z0-9-]{8,100}$/.test(requete)) {
+      requete = 'caisse-' + (crypto.randomUUID ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2, 12)));
+      try { localStorage.setItem(cle, requete); } catch (_) {}
+    }
+    appel = { p_requete: requete, ...params };
+  }
+  const rows = await sbRpc(rpc, appel).catch(() => null);
+  const r = Array.isArray(rows) ? rows[0] : rows;
+  if (!r || typeof r !== 'object') return { ok: false, raison: 'reponse_absente', indetermine: true };
+  if (cle) { try { localStorage.removeItem(cle); } catch (_) {} }
+  return r;
 }
 
 async function sbGetCaisseBatiment(key) {
@@ -2693,9 +2719,16 @@ async function sbMarquerSouvenirRevele(souvenirId) {
 // =====================
 // ORGANISATIONS (structure plate, prepare le multi-empire)
 // =====================
+// Le motif d'un refus serveur est conserve (RP_DERNIER_REFUS_ORGA) pour que l'ecran le nomme :
+// organisations_finances_garder (#295) refuse par exemple un changement de direction non autorise.
+var RP_DERNIER_REFUS_ORGA = null;
 async function sbSaveOrganisation(orga) {
-  return sbUpsert('organisations',
-    { id: orga.id, country_origine: orga.country_origine || orga.country, data: JSON.stringify(orga) });
+  const env = await sbTransportRest('POST', 'organisations', null,
+    { id: orga.id, country_origine: orga.country_origine || orga.country, data: JSON.stringify(orga) },
+    'merge-duplicates');
+  if (env && env.etat === 'ok') { RP_DERNIER_REFUS_ORGA = null; return env.donnees || true; }
+  RP_DERNIER_REFUS_ORGA = (env && (env.message || env.raison)) || 'transport_indisponible';
+  return null;
 }
 
 async function sbLoadOrganisations() {

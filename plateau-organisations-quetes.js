@@ -201,10 +201,27 @@ function getOrgaById(orgaId) {
   return (state.organisations || []).find(o => o.id === orgaId);
 }
 
-// Sauvegarde une organisation modifiee vers Supabase (appelee apres chaque action qui change son etat)
-function sauvegarderOrga(orga) {
-  if (!orga) return;
-  if (typeof sbSaveOrganisation === 'function') sbSaveOrganisation(orga).catch(() => {});
+// Sauvegarde une organisation modifiee vers Supabase (appelee apres chaque action qui change son etat).
+// PLUS DE SAUVEGARDE SILENCIEUSE (31/10/2026, #295). Le serveur garde la caisse, le tresorier, la
+// direction et les grades (organisations_finances_garder) : il peut donc refuser l'ecriture, ou la
+// corriger. Dans les deux cas l'ecran relit l'organisation canonique au lieu de garder sa copie, et
+// un refus est annonce. Rend une promesse : true si la base a enregistre, false sinon.
+const RP_ORGA_REFUS = { organisation_direction_non_autorisee: 'Seul le chef peut transmettre la direction.',
+  organisation_grade_non_autorise: 'Vous ne pouvez pas vous attribuer ce grade.',
+  organisation_adhesion_non_autorisee: 'Seul le chef peut faire entrer un autre joueur.',
+  organisation_vote_pour_autrui: 'Vous ne pouvez voter que pour vous-même.',
+  organisation_caisse_initiale_interdite: 'Une organisation naît avec une caisse vide.',
+  organisation_fondateur_usurpe: 'On ne fonde une organisation qu\'en son propre nom.' };
+async function sauvegarderOrga(orga) {
+  if (!orga || typeof sbSaveOrganisation !== 'function') return false;
+  const ecrit = await sbSaveOrganisation(orga).catch(() => null);
+  if (!ecrit) {
+    const motif = Object.keys(RP_ORGA_REFUS).find(k => String(RP_DERNIER_REFUS_ORGA || '').includes(k));
+    if (typeof showToast === 'function') showToast('Organisation non enregistrée',
+      motif ? RP_ORGA_REFUS[motif] : "Le serveur n'a pas enregistré la modification. L'organisation est rechargée.", false);
+  }
+  if (typeof chargerOrganisations === 'function') chargerOrganisations();
+  return !!ecrit;
 }
 
 // Retourne null uniquement si le serveur confirme que le contrat n'est pas encore installe.
@@ -385,7 +402,7 @@ function ouvrirFormulaireOrga(type) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
-function confirmerCreationOrga(type) {
+async function confirmerCreationOrga(type) {
   const def = TYPES_ORGANISATIONS[type];
   if (!def) return;
   const nom = document.getElementById('orga-nom-input')?.value?.trim();
@@ -434,8 +451,13 @@ function confirmerCreationOrga(type) {
     if (corpsMetier) nouvelleOrga.corpsMetier = corpsMetier;
   }
 
+  // Creation CONFIRMEE par la base avant toute suite (31/10/2026, #295) : un refus serveur
+  // (fondateur usurpe, caisse initiale) ne laisse plus d'organisation fantome a l'ecran.
+  if (typeof sbSaveOrganisation !== 'function' || !(await sbSaveOrganisation(nouvelleOrga))) {
+    showToast('Organisation non créée', "Le serveur n'a pas enregistré la création. Rien n'a été fondé.", false);
+    return;
+  }
   state.organisations.push(nouvelleOrga);
-  if (typeof sbSaveOrganisation === 'function') sbSaveOrganisation(nouvelleOrga).catch(() => {});
 
   // Lier au local en cours si on vient de gerer_local (scope ville ajoute le 2026-08-16 ;
   // les 7 locations sans city ont ete migrees, plus de repli de compatibilite necessaire).
@@ -940,6 +962,45 @@ function ouvrirOrdresOrga(orgaId) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Ordres financiers d'organisation par le serveur (#295). Le montant, la caisse et la fiche
+// affiches sont ceux que le serveur rend ; un refus est nomme, une reponse perdue l'est aussi.
+async function executerOrdreOrgaFinancier(orga, fn, ordre) {
+  const cur = COUNTRIES[state.country]?.cur || 'FR';
+  const r = typeof sbCaisseCollective === 'function'
+    ? await sbCaisseCollective('organisation_ordre_financier', { p_orga: orga.id, p_fn: fn }, [orga.id, fn])
+    : { ok: false, raison: 'reponse_absente' };
+  if (!r.ok) {
+    const motifs = {
+      pas_gestionnaire_caisse: 'Vous ne gérez pas la caisse de cette organisation.',
+      caisse_vide: 'Pas assez de fonds à distribuer.',
+      ordre_hors_type: "Cet ordre n'existe pas pour ce type d'organisation.",
+      pa_insuffisants: ordre.pa + ' PA requis.',
+      fonds_insuffisants: ordre.cost + ' ' + cur + ' requis.',
+      reponse_absente: "Le serveur n'a pas confirmé l'opération. Réessayez : elle ne sera jamais comptée deux fois."
+    };
+    showToast(r.raison === 'caisse_vide' ? 'Caisse vide' : 'Opération refusée',
+      motifs[r.raison] || "L'opération n'a pas été enregistrée.", false);
+    return;
+  }
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  if (r.fiche && typeof r.fiche.liquide === 'number') {
+    state.liquide = Number(r.fiche.liquide); state.arg = Number(r.fiche.arg);
+    if (state.char) state.char.arg = state.arg;
+  }
+  orga.caisse = Number(r.caisse);
+  const montant = Number(r.montant || 0);
+  if (fn === 'orga_collecte') {
+    showToast('Collecte réussie !', '+' + montant + ' ' + cur + ' dans la caisse.', true);
+    addJournalEntry('Collecte "' + orga.nom + '". +' + montant + ' ' + cur + '.', 'event-good');
+  } else {
+    showToast('Dividendes versés !', '+' + montant + ' ' + cur + '.', true);
+    addJournalEntry('Dividendes reçus de "' + orga.nom + '". +' + montant + ' ' + cur + '.', 'event-good');
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (typeof chargerOrganisations === 'function') chargerOrganisations();
+  updateUI();
+}
+
 async function executerOrdreOrga(orgaId, fn) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
@@ -974,6 +1035,11 @@ async function executerOrdreOrga(orgaId, fn) {
       showToast('Accès refusé', v.message || 'Vous ne gérez pas la caisse de cette organisation.', false);
       return;
     }
+    // LA CAISSE EST TENUE PAR LE SERVEUR (31/10/2026, #295). Collecte et dividendes : autorite,
+    // PA, tirage, debit de la caisse et versement au joueur dans organisation_ordre_financier,
+    // une seule fois par geste. Plus de Math.random ni de sauvegarde du blob ici.
+    await executerOrdreOrgaFinancier(orga, fn, ordre);
+    return;
   }
 
   // Vérif coût financier (garde metier/financiere conservee). La disponibilite des PA est
@@ -988,8 +1054,7 @@ async function executerOrdreOrga(orgaId, fn) {
   const effets = {
     orga_petition:       () => { const gain = Math.floor(Math.random()*8)+3; state.pop = Math.min(100,(state.pop||0)+gain); showToast('Pétition lancée !','+'+gain+' POP.',true); addJournalEntry('Pétition de "'+orga.nom+'". +'+gain+' POP.','event-good'); addExternalEvent('📋 "'+orga.nom+'" lance une pétition publique.'); },
     orga_meeting:        () => { state.pop=Math.min(100,(state.pop||0)+5); state.inf=Math.min(100,(state.inf||0)+3); showToast('Meeting !','+5 POP +3 INF.',true,true); addJournalEntry('Meeting de "'+orga.nom+'".','event-good'); addExternalEvent('📢 "'+orga.nom+'" organise un meeting.'); },
-    orga_collecte:       () => { const don=Math.floor(Math.random()*500)+200; orga.caisse=(orga.caisse||0)+don; showToast('Collecte réussie !','+'+don+' '+cur+' dans la caisse.',true); addJournalEntry('Collecte "'+orga.nom+'". +'+don+' '+cur+'.','event-good'); },
-    orga_dividendes:     () => { const part=Math.floor((orga.caisse||0)*0.3); if(part<10){showToast('Caisse vide','Pas assez de fonds à distribuer.',false);return;} orga.caisse-=part; crediterFondsOrdinaires(part); showToast('Dividendes versés !','+'+part+' '+cur+'.',true); addJournalEntry('Dividendes reçus de "'+orga.nom+'". +'+part+' '+cur+'.','event-good'); },
+    // orga_collecte / orga_dividendes : executerOrdreOrgaFinancier (serveur), plus d'effet local.
     orga_benediction:    () => { state.moral=Math.min(100,(state.moral||50)+10); state.pop=Math.min(100,(state.pop||0)+5); showToast('Bénédiction !','Cérémonie en votre honneur. +10 Moral +5 POP.',true,true); addJournalEntry('Bénédiction de "'+orga.nom+'".','event-good'); addExternalEvent('✨ "'+orga.nom+'" organise une cérémonie de bénédiction.'); },
     orga_anatheme:       () => { state.moral=Math.max(0,(state.moral||50)-15); state.pop=Math.max(0,(state.pop||0)-10); showToast('Anathème !','Cérémonie contre un PJ. -15 Moral -10 POP à la cible.',false); addJournalEntry('Anathème prononcé par "'+orga.nom+'".','event-bad'); addExternalEvent('⛧ "'+orga.nom+'" prononce un anathème public.'); },
     orga_pelerinage:     () => { state.pop=Math.min(100,(state.pop||0)+8); showToast('Pèlerinage !','+8 POP. Grand rassemblement.',true,true); addExternalEvent('🕊 "'+orga.nom+'" organise un grand pèlerinage.'); },
@@ -7529,8 +7594,20 @@ async function doRejoindreClubSupporters(pa, cost) {
   // a 50 FR le 25 aout 2026 (lot logistique portuaire, §13, "cotisations non eternelles") pour
   // s'aligner sur le meme principe d'adhesion que le Syndicat des Dockers de PSM -- desormais
   // jamais eternelle, voir renouvellerCotisationsOrganisations (api/cron-minuit.js).
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '50 FR requis pour l\'adhésion.', false); return; }
+  // COTISATION PAR LE SERVEUR (31/10/2026, #295) : 1 PA + 50 FR preleves et verses a la caisse du
+  // club dans club_supporters_cotiser, une seule fois par geste. L'inscription au club de
+  // supporters ne suit qu'une cotisation confirmee.
+  const r = typeof sbCaisseCollective === 'function'
+    ? await sbCaisseCollective('club_supporters_cotiser', { p_club: clubLocal.id }, [clubLocal.id, 'supporter'])
+    : { ok: false, raison: 'reponse_absente' };
+  if (!r.ok) {
+    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : r.raison === 'reponse_absente' ? 'Cotisation non confirmée' : 'Fonds insuffisants',
+      r.raison === 'pa_insuffisants' ? '1 PA requis.'
+        : r.raison === 'reponse_absente' ? "Le serveur n'a pas confirmé la cotisation. Réessayez : elle ne sera jamais payée deux fois."
+        : '50 FR requis pour l\'adhésion.', false);
+    return;
+  }
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
 
   const def = TYPES_ORGANISATIONS.supporters;
   const grades = def?.grades?.[pays] || ['Sympathisant', 'Membre', 'Ultra', 'Meneur'];
@@ -7565,7 +7642,7 @@ async function doRejoindreClubSupporters(pa, cost) {
   updateUI();
   showToast('Bienvenue !', 'Vous êtes désormais ' + grades[0] + ' du club de supporters — ' + clubLocal.nom + '.', true, true);
   addJournalEntry('Adhésion au club de supporters du ' + clubLocal.nom + ' (-50 FR).', 'event-good');
-  await crediterBudgetClub(clubLocal.id, cost, 'Cotisation supporter');
+  // Cotisation deja versee au club par le serveur (club_supporters_cotiser).
 
   // Rafraichir immediatement l'onglet Organisations si la fiche est deja ouverte dessus
   if (document.getElementById('vue-self')?.classList.contains('active')) {
@@ -7635,8 +7712,9 @@ async function chargerOuCreerSyndicatDockersPSM() {
     visible: true
   };
   state.organisations.push(orga);
-  if (typeof sauvegarderOrga === 'function') sauvegarderOrga(orga);
-  return orga;
+  // Attendue : l'adhesion qui suit (porte serveur) a besoin que la ligne existe en base.
+  if (typeof sauvegarderOrga === 'function' && !(await sauvegarderOrga(orga))) return null;
+  return getSyndicatDockersPSM() || orga;
 }
 
 // ---- ADHÉSION (lot logistique portuaire, 25 aout 2026, §12) ----
@@ -7650,17 +7728,22 @@ async function doRejoindreSyndicatDockers(pa, cost) {
   const dejaMembre = orga.membres?.some(m => m.nom === state.char?.name);
   if (dejaMembre) { showToast('Déjà syndiqué', 'Vous êtes déjà membre du Syndicat des Dockers de Port-Sainte-Marie.', false); return; }
 
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '50 FR requis pour l\'adhésion.', false); return; }
-
+  // ADHESION PAR LE SERVEUR (31/10/2026, #295) : 1 PA + 50 FR preleves, membre ajoute au grade 0
+  // et cotisation versee a la caisse du syndicat dans organisation_adhesion_payante, une fois.
   const def = TYPES_ORGANISATIONS.syndicale;
   const grades = def?.grades?.[orga.country] || ['Adherent', 'Delegue', 'Secretaire Adjoint', 'Secretaire General'];
-  // derniereCotisationDate (pas state.day, compteur propre a chaque personnage cote client, voir
-  // renouvellerCotisationsOrganisations/api/cron-minuit.js) : date reelle, base du renouvellement
-  // tous les 3 mois calendaires.
-  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1, derniereCotisationDate: new Date().toISOString() });
-  orga.caisse = (orga.caisse || 0) + cost;
-  sauvegarderOrga(orga);
+  const r = typeof sbCaisseCollective === 'function'
+    ? await sbCaisseCollective('organisation_adhesion_payante', { p_orga: orga.id, p_grade: grades[0] }, [orga.id, 'adhesion'])
+    : { ok: false, raison: 'reponse_absente' };
+  if (!r.ok) {
+    const motifs = { fonds_insuffisants: '50 FR requis pour l\'adhésion.', pa_insuffisants: '1 PA requis.',
+      deja_membre: 'Vous êtes déjà membre du Syndicat des Dockers de Port-Sainte-Marie.',
+      reponse_absente: "Le serveur n'a pas confirmé l'adhésion. Réessayez : elle ne sera jamais payée deux fois." };
+    showToast(r.raison === 'deja_membre' ? 'Déjà syndiqué' : 'Adhésion refusée', motifs[r.raison] || "L'adhésion n'a pas été enregistrée.", false);
+    return;
+  }
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  if (typeof chargerOrganisations === 'function') await chargerOrganisations();
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -8030,23 +8113,17 @@ async function chargerBudgetClub(clubId) {
   if (typeof sbGetBudgetClub !== 'function') return null;
   let data = await sbGetBudgetClub(clubId).catch(() => null);
   if (!data) {
+    // Lecture seule : un club sans ligne s'affiche avec les valeurs par defaut ; la ligne est creee
+    // par le serveur au premier mouvement (club_caisse_ajuster_interne, #295).
     data = { clubId, caisse: 0, historique: [], salaires: { titulaire: 100, remplacant: 50, primeVictoire: 150 } };
-    if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(clubId, data).catch(() => {});
   }
   if (!data.salaires) data.salaires = { titulaire: 100, remplacant: 50, primeVictoire: 150 };
   return data;
 }
 
-async function crediterBudgetClub(clubId, montant, motif) {
-  const data = await chargerBudgetClub(clubId);
-  if (!data) return;
-  data.caisse = Math.max(0, (data.caisse || 0) + montant);
-  data.historique = data.historique || [];
-  data.historique.push({ jour: state.day || 1, montant, motif });
-  if (data.historique.length > 50) data.historique = data.historique.slice(-50); // on garde un historique recent, pas infini
-  if (typeof sbSaveBudgetClub === 'function') await sbSaveBudgetClub(clubId, data).catch(() => {});
-  return data;
-}
+// crediterBudgetClub SUPPRIMEE (31/10/2026, #295) : la caisse d'un club n'est plus jamais calculee
+// ni reecrite par l'ecran. Cotisation, sponsoring, transfert, subvention, redressement et primes de
+// match passent chacun par leur fonction serveur.
 
 // LA SUBVENTION MUNICIPALE A CHANGE D'ETAGE (10 octobre 2026) -- L'ANCIENNE CHAINE EST RESORBEE.
 //
@@ -8211,17 +8288,24 @@ function doSponsoriserClub(pa, cost) {
 async function confirmerSponsoring(montant, label, inf, pa, cost) {
   const clubLocal = getClubLocal();
   document.getElementById('modal-postes')?.classList.remove('open');
-  if (getFondsDisponiblesOrdinaires() < montant) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-  const debitSponsoring = await debiterFondsOrdinaires(montant);
-  if (!debitSponsoring.ok) { showToast('Fonds insuffisants', montant + ' FR requis.', false); return; }
-  state.inf = Math.min(100, (state.inf || 0) + inf);
+  // SPONSORING PAR LE SERVEUR (31/10/2026, #295) : PA, prelevement du montant, influence et credit
+  // de la caisse du club dans club_sponsoriser, une seule fois par geste ; l'ecran recopie.
+  const r = typeof sbCaisseCollective === 'function'
+    ? await sbCaisseCollective('club_sponsoriser', { p_club: clubLocal.id, p_montant: montant }, [clubLocal.id, 'sponsor', montant])
+    : { ok: false, raison: 'reponse_absente' };
+  if (!r.ok) {
+    if (r.raison === 'fonds_insuffisants') showToast('Fonds insuffisants', montant + ' FR requis.', false);
+    else if (r.raison === 'reponse_absente') showToast('Sponsoring non confirmé', "Le serveur n'a pas confirmé le versement. Réessayez : il ne sera jamais payé deux fois.", false);
+    else if (typeof signalerRefusCout === 'function') signalerRefusCout(r.paiement || r);
+    return;
+  }
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ liquide: r.liquide, arg: r.arg, solde_national: r.solde_national });
+  if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('inf', r.inf);
   clubLocal.sponsorActuel = state.char?.name || null;
   updateUI();
   showToast(label + ' !', 'Votre nom est désormais associé à ' + clubLocal.nom + '. +' + inf + ' INF.', true, true);
   addJournalEntry(label + ' de ' + clubLocal.nom + ' (-' + montant + ' FR, +' + inf + ' INF).', 'event-good');
-  await crediterBudgetClub(clubLocal.id, montant, label + ' — ' + (state.char?.name || 'Anonyme'));
 }
 
 // =====================
@@ -8812,6 +8896,20 @@ async function repondreTransfertJoueur(transfertId, accepte) {
     return;
   }
 
+  // REGLEMENT PAR LE SERVEUR D'ABORD (31/10/2026, #295) : le club d'arrivee paie le club de depart
+  // et le transfert est clos dans club_transfert_conclure. Rien ne bascule a l'ecran sans lui ;
+  // un club d'arrivee sans fonds voit le transfert refuse (il creait de l'argent auparavant).
+  const reglement = typeof sbRpc === 'function'
+    ? await sbRpc('club_transfert_conclure', { p_transfert: transfertId }).then(x => Array.isArray(x) ? x[0] : x).catch(() => null)
+    : null;
+  if (!reglement || reglement.ok !== true) {
+    const motifs = { caisse_club_insuffisante: 'Le club d\'arrivée n\'a pas les fonds pour payer ce transfert.',
+      transfert_non_ouvert: 'Ce transfert n\'est plus ouvert.', pas_le_joueur: 'Ce transfert ne vous concerne pas.' };
+    showToast('Transfert non conclu', (reglement && motifs[reglement.raison]) || "Le serveur n'a pas confirmé le transfert. Réessayez.", false);
+    return;
+  }
+  if (reglement.rejeu) { showToast('Transfert déjà conclu', '', true); return; }
+
   // Le joueur accepte : licence basculee, points d'entrainement conserves, argent reparti.
   // nonRenouvellement repart a false par construction (nouvel objet) -- un transfert accepte
   // annule donc automatiquement toute demande de non-renouvellement en cours (§3 : le joueur
@@ -8825,10 +8923,6 @@ async function repondreTransfertJoueur(transfertId, accepte) {
     crediterFondsOrdinaires(t.prixJoueur || 0);
     updateUI();
   }
-  await crediterBudgetClub(t.clubDepartId, t.prixClub, 'Transfert de ' + t.joueur);
-  await crediterBudgetClub(t.clubArriveeId, -(t.prixClub), 'Transfert de ' + t.joueur);
-  t.statut = 'termine';
-  await sbMajTransfert(transfertId, t);
   showToast('Transfert accepté !', 'Vous jouez désormais pour ' + getClub(t.clubArriveeId).nom + '.', true, true);
   addJournalEntry('Transfert accepté vers ' + getClub(t.clubArriveeId).nom + '.', 'event-good');
   // Meme correctif que doPrendreLicenceSportive/doDemanderNonRenouvellementLicence : rafraichit
@@ -8866,8 +8960,16 @@ async function confirmerSalairesClub(clubId) {
   budget.salaires.titulaire = Math.max(0, parseInt(document.getElementById('sal-titulaire')?.value || '0'));
   budget.salaires.remplacant = Math.max(0, parseInt(document.getElementById('sal-remplacant')?.value || '0'));
   budget.salaires.primeVictoire = Math.max(0, parseInt(document.getElementById('sal-prime')?.value || '0'));
-  await sbSaveBudgetClub(clubId, budget);
+  // Reserve au president, verifie par le serveur (club_salaires_fixer, #295).
+  const r = await sbRpc('club_salaires_fixer', { p_club: clubId, p_titulaire: budget.salaires.titulaire,
+    p_remplacant: budget.salaires.remplacant, p_prime: budget.salaires.primeVictoire })
+    .then(x => Array.isArray(x) ? x[0] : x).catch(() => null);
   document.getElementById('modal-postes')?.classList.remove('open');
+  if (!r || r.ok !== true) {
+    showToast('Salaires non modifiés', r && r.raison === 'reserve_au_president' ? 'Réservé au président du club.'
+      : r && r.raison === 'montant_invalide' ? 'Montants entre 0 et 100 000 FR.' : "Le serveur n'a pas enregistré les salaires.", false);
+    return;
+  }
   showToast('Salaires mis à jour', '', true, true);
 }
 
