@@ -12385,7 +12385,7 @@ async function lireCaisseCommissariat(pays, buildingId) {
 // doConsulterCaisseCommissariat a ete RETIRE le 16 septembre 2026 avec son ordre : le solde
 // s'affiche desormais dans l'en-tete du batiment (plateau-navigation.js), et uniquement pour le
 // commissaire. lireCaisseCommissariat, elle, reste : c'est le seul acces au solde, et elle sert
-// a l'en-tete, a l'ecran des caisses communales et a l'ecran du ministre de l'Interieur.
+// a l'en-tete, a l'accueil du commissariat et a l'ecran du ministre de l'Interieur.
 
 // A3 (lot caisses locales, 16 aout 2026) : identifiant de caisse LOCALE, distinct du buildingId
 // de navigation qui peut etre partage entre plusieurs villes (meme principe que l'armurerie :

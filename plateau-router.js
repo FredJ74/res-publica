@@ -456,7 +456,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   // La porte des subventions facture ses 2 PA elle-meme : on ne lui passe donc NI pa NI cost, et
   // l'ecran n'appelle pas deduireCoutOrdre. Patron de employeur_embaucher.
   if (fn === 'subvention_proposer'){ doProposerSubvention(); return; }
-  if (fn === 'consulter_indices_locaux'){ doConsulterIndicesLocaux(); return; }
   if (fn === 'campagne_securite')      { doCampagneSecurite(); return; }
   if (fn === 'acte_officiel_mairie')   { ouvrirActeOfficielMairie(pa, cost); return; }
   if (fn === 'calendrier_elections')   { ouvrirCalendrierElectoral(); return; }
