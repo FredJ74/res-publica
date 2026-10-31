@@ -34,3 +34,17 @@ test('la lecture seule et les ecritures sans cible ne sont pas bloquees',()=>{
  assert.equal(result.status,0,result.stderr);
  assert.equal(JSON.parse(result.stdout).occurrences.length,0);
 });
+
+test('signale les acces REST et from sur les tables financieres sans les classer a tort comme ecriture',()=>{
+ const result=invoke("fetch('/rest/v1/organisations'); client.from('budgets_clubs').select('*');",true);
+ assert.equal(result.status,0,result.stderr);
+ const rows=JSON.parse(result.stdout).occurrences;
+ assert.equal(rows.length,2);
+ assert.deepEqual(rows.map(x=>x.table).sort(),['budgets_clubs','organisations']);
+});
+test('une reference alternative ne duplique pas les vrais appels sbUpsert',()=>{
+ const result=invoke("sbUpsert('organisations',{id:'x'}); fetch('/rest/v1/organisations');",false);
+ assert.equal(result.status,0,result.stderr);
+ const rows=JSON.parse(result.stdout).occurrences;
+ assert.equal(rows.filter(x=>x.symbol==="sbUpsert('organisations'").length,1);
+});
