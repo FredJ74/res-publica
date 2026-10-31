@@ -20,6 +20,7 @@ def main():
  a=argparse.ArgumentParser(description=__doc__)
  for x in ['exports','registre','capture-couts','postgres-bin','rapport']:a.add_argument('--'+x,type=Path,required=True)
  a.add_argument('--caisses-source',type=Path,help='Répertoire privé des deux sources exactes PR300, aucune application distante.')
+ a.add_argument('--delta-candidat',type=Path,help='Deltas documentés par sources publiques, sans certifier un export canonique frais.')
  a.add_argument('--gotrue-bin',type=Path)
  a.add_argument('--postgrest-bin',type=Path)
  o=a.parse_args()
@@ -47,10 +48,27 @@ def main():
    q.execute("SELECT md5(prosrc),md5(pg_get_functiondef(oid)) FROM pg_proc WHERE oid='public.payer_ordre(text,text,integer,integer)'::regprocedure");source_md5,definition_md5=q.fetchone();assert source_md5=='5cf45c19e4b9559f6b29e2b9207d3969' and source_md5!=definition_md5;rapport['payeur_avant']={'source_md5':source_md5,'definition_md5':definition_md5,'garde_source_satisfaite':True}
    q.execute('CREATE SCHEMA supabase_migrations;CREATE TABLE supabase_migrations.schema_migrations(version text PRIMARY KEY,name text,statements text[])')
    q.executemany('INSERT INTO supabase_migrations.schema_migrations(version,name) VALUES(%s,%s)',[(x['version'],x.get('name')) for x in registre])
+   if o.delta_candidat:
+    delta=json.loads(o.delta_candidat.read_text());assert delta['registre_base']==len(registre);c.commit()
+    for entree in delta['migrations']:
+     if entree['fichier']:
+      p=R/entree['fichier'];assert hashlib.sha256(p.read_bytes()).hexdigest()==entree['sha256']
+      # Une session distincte comme pour les opérations d'origine : pg_temp ne fuit pas.
+      autre=psycopg2.connect(srv.get_uri())
+      try:
+       with autre:
+        with autre.cursor() as cq:cq.execute(p.read_text())
+      finally:autre.close()
+     else:assert entree['statut']=='donnees_uniquement_non_rejouees'
+     # Métadonnées rapportées, jamais prétendues extraites par ce banc.
+     q.execute('INSERT INTO supabase_migrations.schema_migrations(version,name) VALUES(%s,%s)',(entree['version_observee'],entree['nom_rapporte']));c.commit()
+    rapport['delta_candidat']=delta;rapport['catalogue_candidat_non_certifie']=True;rapport['comparaison_exports']='avant_delta_candidat_uniquement'
+    attendus={'organisation_ordre_financier':'73b9d936361d5c158b0bdfae44cf0db8','organisation_adhesion_payante':'f47b4e550f62fe6e1cfbf6c1d0c10cb7','club_supporters_cotiser':'b9324e4f910534fa6f03056bf91da5a7','club_sponsoriser':'d5a1250fbf53e53a32169bbbc8245b12','club_transfert_conclure':'057d4b8e51e41eae3bc59d615a4df391'}
+    q.execute("SELECT proname,md5(prosrc),has_function_privilege('authenticated',oid,'EXECUTE') FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=ANY(%s)",(list(attendus),));finances=q.fetchall();rapport['contrats_financiers_candidat']=finances;rapport['contrats_financiers_attendus_releve']=attendus;q.execute("SELECT proname,md5(prosrc),md5(pg_get_functiondef(oid)) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=ANY(%s)",(list(attendus),));rapport['objets_haches_distincts_candidat']=q.fetchall();assert len(finances)==5 and all(h==attendus[n] and droit for n,h,droit in finances),finances
    # Référentiel réellement capturé, pas un catalogue 1009 inventé.
    q.execute('DELETE FROM ordres_couts');q.executemany('INSERT INTO ordres_couts(fn,pa,cost) VALUES(%s,%s,%s)',triples)
    q.execute("INSERT INTO ordres_couts_empreinte(seul,empreinte) VALUES(true,'6de4a84c58ed9b2b') ON CONFLICT(seul) DO UPDATE SET empreinte=excluded.empreinte")
-   e.temoin_integrite_local(q);q.execute("SELECT to_jsonb(p) FROM personnages_donnees p WHERE name='__hg219_canari_avant'");temoin=q.fetchone()[0];c.commit();avant=e.empreinte_installation(q);c.commit()
+   e.temoin_integrite_local(q);q.execute("SELECT to_jsonb(p) FROM personnages_donnees p WHERE name='__hg219_canari_avant'");temoin=q.fetchone()[0];c.commit();avant=e.empreinte_installation(q);rapport['registre_local_avant95']=avant['registre'];c.commit()
    sql,entrees=lot.preparer();assert len(entrees)==95
    contre=sql.rsplit('COMMIT;',1)[0]+"DO $$ BEGIN RAISE EXCEPTION 'panne_apres_95';END $$;COMMIT;"
    try:q.execute(contre);raise AssertionError('panne tardive ignorée')
@@ -60,17 +78,20 @@ def main():
    assert e.empreinte_installation(q)==avant,'installation partielle après panne';c.commit();rapport['rollback_95']=True
    q.execute(sql);rapport['95_installees']=True;c.commit()
    q.execute("SELECT md5(prosrc) FROM pg_proc WHERE oid='public.payer_ordre(text,text,integer,integer)'::regprocedure");rapport['payeur_final_md5_corps']=q.fetchone()[0];assert rapport['payeur_final_md5_corps']=='d5c9f4e8bdbdc2858c8b908fd6c460c5'
-   apres=e.empreinte_installation(q);assert apres['registre']==len(registre)+95;q.execute("SELECT to_jsonb(p) FROM personnages_donnees p WHERE name='__hg219_canari_avant'");temoin_apres=q.fetchone()[0];rapport.update(verifier_temoin(temoin,temoin_apres));c.commit()
+   apres=e.empreinte_installation(q);rapport['registre_local_apres95']=apres['registre'];assert apres['registre']==avant['registre']+95;q.execute("SELECT to_jsonb(p) FROM personnages_donnees p WHERE name='__hg219_canari_avant'");temoin_apres=q.fetchone()[0];rapport.update(verifier_temoin(temoin,temoin_apres));c.commit()
    try:q.execute(sql);raise AssertionError('rejeu du paquet non refusé')
    except psycopg2.Error as ex:
     if 'versions_presentes_prevol_frais_requis' not in str(ex):raise
     c.rollback()
    assert e.empreinte_installation(q)==apres;c.commit();rapport['rejeu_sans_mutation']=True
+
+   if o.delta_candidat:
+    q.execute("SELECT proname,md5(prosrc),has_function_privilege('authenticated',oid,'EXECUTE') FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=ANY(%s)",(list(attendus),));assert sorted(q.fetchall())==sorted(finances),'contrats financiers modifiés par le lot';c.commit()
    q.execute('BEGIN');rec=charger('recette95','outils/bancs/recette-groupes-catalogue-219.py');rapport['cas']=rec.recette(q)
    assert all(x['ok'] for x in rapport['cas']),rapport['cas']
    org=charger('recetteorg95','outils/bancs/recette-organisations-catalogue-219.py');rapport['organisations']=org.recette(q)
    rapport['rpc_clients']=e.verifier_rpc_clients(q);c.rollback()
-   if o.caisses_source:
+   if o.caisses_source and not o.delta_candidat:
     provenance=json.loads((o.caisses_source/'provenance.json').read_text())
     for entree in provenance['migrations']:
      p=o.caisses_source/entree['fichier'];assert hashlib.sha256(p.read_bytes()).hexdigest()==entree['sha256'];q.execute(p.read_text())

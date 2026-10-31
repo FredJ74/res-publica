@@ -490,5 +490,13 @@
     "compatible_payeur": true
   },
   "preuve_integration": "outils/audits/preuves-integration95-219-20261031/hg219-validation-auth27.json.gz",
-  "recette_authentifiee_locale": 27
+  "recette_authentifiee_locale": 27,
+  "dernier_releve_rapporte": {
+    "registre": 1011,
+    "derniere_version": "20261031200630",
+    "type": "commentaires publics ChatGPT, pas export complet",
+    "candidat_conforme": false,
+    "motif": "club_transfert_conclure_empreinte_differente",
+    "preuve": "outils/audits/preuves-integration95-219-20261031/hg219-candidat1011-diagnostic.json.gz"
+  }
 }

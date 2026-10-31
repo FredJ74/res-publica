@@ -1,6 +1,6 @@
 # #219 — épreuve intégrée des 95 et compatibilité #300
 
-**État final de cette reprise :** main #300 (`586ae9ea`) intégré ; 95 versions installées atomiquement sur le décor privé explicitement daté, 70 scénarios de catalogue combinés réussis et **27/27 vrais scénarios GoTrue/PostgREST locaux**. **46/46 commandes Python, 155/155 bancs clients, 105/105 pilote, 49/49 outillage, 21/21 relais**. Globaux **10/12**, garde immobilière #299 **13/14**, sans neutralisation. Ni catalogue vivant actualisé certifié, ni fusion de #219, ni production modifiée. Les sections suivantes conservent la progression et ses rectifications ; cet encadré et les dernières preuves font foi.
+**État de la passe fonctionnelle (voir le refus 1011 en fin de rapport) :** main #300 (`586ae9ea`) intégré ; 95 versions installées atomiquement sur le décor privé explicitement daté, 70 scénarios de catalogue combinés réussis et **27/27 vrais scénarios GoTrue/PostgREST locaux**. **46/46 commandes Python, 155/155 bancs clients, 105/105 pilote, 49/49 outillage, 21/21 relais**. Globaux **10/12**, garde immobilière #299 **13/14**, sans neutralisation. Ni catalogue vivant actualisé certifié, ni fusion de #219, ni production modifiée. Les sections suivantes conservent la progression et ses rectifications ; cet encadré et les dernières preuves font foi.
 
 
 ## Rectification du payeur
@@ -76,3 +76,23 @@ La signature JWT falsifiée est rejetée avec HTTP 401 ; le refus anonyme doit �
 La passe complète du workflow combiné passe désormais **46/46** (dont le relais réparé), résultats bruts conservés sans modifier un ancien échec. Le manifeste donne le SHA256 actualisé des 95 sources, l'empreinte du paquet et la référence à la preuve finale. #299 reste isolée par une assertion d'absence des deux préparations dans ces 95, tout en gardant le test global qui les signale.
 
 **Action technique restante pour l'intégrateur :** fournir hors Git les résultats complets de `DEMANDE-PREVOL-ACTUALISE-219-20261031.md`, contre l'état vivant **après les opérations #300** (registre complet et définitions/contraintes/ACL/RLS/triggers, plus référentiels statiques). L'accès connecteur et les variables Supabase ne sont pas disponibles dans ce processus ; les seuls quatre exports locaux sont toujours ceux de la coupe 1003. Sans ces résultats, aucune certification de fidélité 1009 ou plus récente, aucun 12/12 fabriqué. La suite sera une comparaison du delta, reconstruction fidèle par les outils existants, nouvelle passe atomique et autorisation de livraison ; pas un nouveau diagnostic du payeur.
+
+## Prévol nouveau relevé 1011 : candidat refusé, écart conservé
+
+Derniers commentaires de ChatGPT récupérés : registre **1011**, dernière `20261031200630`, deux étapes #300 appliquées (`20261031195210` et `20261031200630`). La liste des neuf versions après `20261030193635` inclut le genre `20261031113025` **déjà dans les 1003 privés** : il reste donc huit entrées supplémentaires, pas neuf à ajouter. Le manifeste `DELTA-CANDIDAT-1011-219-20261031.json` trace cette distinction et les SHA256 de leurs sources publiques. La régularisation BNR est seulement une métadonnée de registre rapportée : **aucune régularisation de données ni aucun compte réel copié/rejoué**. Sept deltas de schéma sont testés dans des sessions locales distinctes (pg_temp nettoyé). Ce n'est pas un export canonique 1011.
+
+Un premier essai sur ces sources publiques a passé l'installation atomique des 95 et les 27 HTTP, tout en restant explicitement non certifié. La comparaison indépendante ajoutée ensuite aux cinq empreintes vivantes communiquées est **NON CONFORME** :
+
+| Contrat | Corps source testé | Corps annoncé par le relevé vivant | Résultat |
+|---|---|---|---|
+| organisation_ordre_financier | 73b9d936361d5c158b0bdfae44cf0db8 | identique | concorde |
+| organisation_adhesion_payante | f47b4e550f62fe6e1cfbf6c1d0c10cb7 | identique | concorde |
+| club_supporters_cotiser | b9324e4f910534fa6f03056bf91da5a7 | identique | concorde |
+| club_sponsoriser | d5a1250fbf53e53a32169bbbc8245b12 | identique | concorde |
+| club_transfert_conclure | **ab4cb70edaa9676296c513e8eb553422** | **057d4b8e51e41eae3bc59d615a4df391** | bloque |
+
+La définition complète du transfert local donne `4db41e502b92bcdf924b1af86774c643` : l'empreinte annoncée ne correspond à **aucun des deux objets hachés locaux**. Cela ne prouve pas une panne du transfert en production ; il faut la définition vivante typée pour déterminer si le relevé ou la source diffère. **Aucune attente remplacée, aucun cinquième contrôle ignoré.** Le mode `--delta-candidat` refuse désormais ce prévol AVANT le paquet 95. L'échec est publié, pas transformé en succès.
+
+La demande technique de prévol inclut maintenant ces cinq fonctions, les caisses/clubs/transferts/reçus, les corps complets et **md5_corps/md5_definition séparés**. Il faut transmettre ces métadonnées privées à l'intégrateur, puis comparer le transfert avant toute substitution. Pour certifier la reconstruction entière, réutiliser les quatre requêtes canoniques et les générateurs sur une extraction du nouvel état 1011 ou plus récent, ou fournir un delta structure/fonctions/logique/droits complet vérifiable ; **ne pas redemander ni rebaptiser les exports 1003 déjà disponibles**. Les comptes/empreintes seuls ne suffisent pas. Les contenus des autres référentiels statiques restent nécessaires à Referential.
+
+Les tests de fonctionnement réussis sur le décor déclaré restent valides et utiles, mais ils ne lèvent pas ce nouveau refus de fidélité au vivant. **Aucune certification 1011, aucun 12/12, aucune fusion #219 et aucune migration de production.**
