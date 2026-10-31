@@ -50,7 +50,8 @@ const QUESTIONS_MAXIMUM = 5;
 // soit. Deterministes par rang : la meme panne, au meme moment, pose la meme question -- on ne
 // tire pas au sort le contenu d'une transcription officielle.
 const REPLI = [
-  'Monsieur le Ministre, pouvez-vous préciser ce que cette annonce change concrètement, et à partir de quand ?',
+  // Sans civilité (31/10/2026) : « Monsieur le Ministre » supposait à la fois le genre et la fonction.
+  'Pouvez-vous préciser ce que cette annonce change concrètement, et à partir de quand ?',
   'Qui est chargé de l\'application de ce que vous venez d\'annoncer ?',
   'Quels moyens avez-vous prévus pour cela ?',
   'Un calendrier a-t-il été arrêté ?',
@@ -90,9 +91,20 @@ const SYSTEME = [
   'SI PLUS AUCUN ANGLE PERTINENT NE RESTE, réponds exactement : FIN'
 ].join('\n');
 
-function construireMessage(conf, echanges, contexte) {
+// LA CIVILITE (31/10/2026). Le genre vient de pnj_contexte_public(), lu sur la fiche du personnage
+// authentifie (l'auteur de la conference) et normalise : 'H', 'F', 'neutre' ou null. Il n'est
+// jamais recu du navigateur, et sans genre verifie le journaliste ne suppose rien.
+function ligneCivilite(genre) {
+  if (genre === 'H') return 'CIVILITÉ (fiche vérifiée) : masculin. « Monsieur », titres et accords au masculin (« Monsieur le ministre »…), jamais « Madame ».';
+  if (genre === 'F') return 'CIVILITÉ (fiche vérifiée) : féminin. « Madame », titres et accords au féminin (« Madame la ministre »…), jamais « Monsieur ».';
+  if (genre === 'neutre') return 'CIVILITÉ (fiche vérifiée) : ni « Monsieur » ni « Madame » ; aucune civilité genrée, tournures sans accord de genre.';
+  return 'CIVILITÉ : genre non vérifié. N\'emploie ni « Monsieur » ni « Madame » ni titre accordé au genre ; ne le déduis ni du nom ni de la fonction.';
+}
+
+function construireMessage(conf, echanges, contexte, genre) {
   const l = [];
   l.push('QUI PARLE : ' + (conf.fonction || conf.auteur || 'un responsable du gouvernement') + '.');
+  l.push(ligneCivilite(genre));
   l.push('');
   l.push('COMMUNICATION OFFICIELLE — « ' + (conf.titre || '') + ' »');
   l.push(texteSeul(conf.communication).slice(0, 4000));
@@ -127,6 +139,14 @@ function construireMessage(conf, echanges, contexte) {
 //
 // UNE PANNE DE LECTURE NE CASSE RIEN : le contexte est un PLUS, pas une condition. Sans lui, le
 // journaliste s'en tient a la communication -- ce qui reste une conference valide.
+// Le genre de l'auteur, lu par le canal commun des PNJ (pnj_contexte_public, jeton du joueur).
+// Une panne de lecture rend null : la question reste posée, sans civilité genrée.
+async function genreDeLAuteur(jeton) {
+  const r = await sbRpcVerdict('pnj_contexte_public', {}, { jeton }).catch(() => null);
+  const d = r && r.ok ? (Array.isArray(r.donnees) ? r.donnees[0] : r.donnees) : null;
+  return d && d.ok === true && ['H', 'F', 'neutre'].includes(d.genre) ? d.genre : null;
+}
+
 async function contextePublicRecent(pays, exclureId) {
   const depuis = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
   const r = await sbGetVerdict('chronique_nationale',
@@ -215,10 +235,13 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, fin: true, statut: 'terminee', echanges });
   }
 
-  const contexte = await contextePublicRecent(conf.pays, conf.chronique_id || null);
+  const [contexte, genre] = await Promise.all([
+    contextePublicRecent(conf.pays, conf.chronique_id || null),
+    genreDeLAuteur(utilisateur.jeton)
+  ]);
   const ia = await appelDeepSeek({
     systeme: SYSTEME,
-    messages: [{ role: 'user', content: construireMessage(conf, echanges, contexte) }],
+    messages: [{ role: 'user', content: construireMessage(conf, echanges, contexte, genre) }],
     maxTokens: JETONS_QUESTION,
     timeoutMs: DELAI_FOURNISSEUR_MS
   });
@@ -273,3 +296,6 @@ export default async function handler(req, res) {
     echanges
   });
 }
+
+// Exposés pour les bancs (aucun effet sur le point d'entrée).
+export { construireMessage, ligneCivilite, REPLI };

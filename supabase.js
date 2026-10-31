@@ -502,6 +502,9 @@ async function sbCreerPersonnageUnique(data, dejaRejoue) {
     return { ok: false, raison: 'nom_deja_pris' };
   }
   // 23505 sans nom de contrainte identifiable : on ne devine pas laquelle, on reste prudent.
+  // GENRE OBLIGATOIRE COTE SERVEUR (31/10/2026) : personnages_vue_inserer refuse une creation
+  // sans genre. L'ecran l'exige deja ; ce refus ne survient que si l'ecran a ete contourne.
+  if (detail.indexOf('genre_requis') !== -1) return { ok: false, raison: 'genre_requis' };
   if (code === '23505') {
     console.error('sbCreerPersonnageUnique : conflit d\'unicite non identifie', texte);
     return { ok: false, raison: 'conflit_inconnu', detail: detail };
