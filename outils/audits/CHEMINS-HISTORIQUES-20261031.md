@@ -38,3 +38,15 @@ Preuves et empreintes : `preuves-chemins-historiques-20261031/`.
 - Contrôle Workflow conforme. Aucun résultat Authority/Referential présenté comme vert : leur clôture nécessite toujours la reconstruction canonique de #219.
 
 Aucune migration créée ou appliquée, aucune donnée de production consultée ou modifiée, aucun déploiement. Les risques serveur du tableau restent ouverts. Prochaine étape : exploiter le relais privé, reconstruire #219, puis poursuivre cet audit à partir des véritables contrats.
+
+## Complément après récupération du catalogue privé
+
+La reprise de #219 a pu récupérer les quatre exports et le registre. Les 1 199 définitions correspondent à leurs empreintes internes. La reconstruction complète reste bloquée par des bornes de séquences impossibles déjà présentes dans le fichier transféré ; voir `RELAIS-PRIVE-RECONSTRUCTION-219-20261031.md` sur la branche #219, commit `a0a465c1`.
+
+Les corps exportés confirment `militaire_subtiliser_tenter(text)` : débit serveur de 2 PA et concaténation directe d'inventaire ; la consommation canonique met bien à jour l'inventaire, mais n'applique pas à elle seule le soin de santé du client. `inventaire_sauver_revision` possède encore le chemin d'observation des ajouts interdit, conformément au verrou final différé. Aucune de ces portes n'est fermée aveuglément ici : leurs remplaçants et conséquences doivent être validés sur la reconstruction et coordonnés avec #219/Claude.
+
+Un autre défaut démontré est corrigé : après une réponse bancaire absente ou perdue, `confirmerVirementJoueur` affirmait qu'aucun prélèvement n'avait eu lieu. Le client ne peut pas le savoir. Il annonce maintenant une confirmation indisponible et demande de consulter le compte avant de renouveler la demande. Aucun nouvel appel, mouvement financier ou mécanisme de reprise ajouté. La règle et le moteur bancaires restent inchangés. Cinq tests couvrent réponse perdue, erreur de transport, exception, refus métier et succès confirmé ; le cache du script est monté. Cette correction ne garantit pas l'idempotence d'un virement renouvelé manuellement.
+
+Les tests ciblés comprennent désormais 14 cas de chemins historiques et les 16 cas organisations conservés. Le lot est sauvegardé sur sa branche ; la création de PR par `gh pr create` a été refusée par l'API GraphQL (`Forbidden`). Aucun contournement des permissions tenté. L'audit serveur global reste ouvert et n'est pas livré en production.
+
+Après le complément : 131/131 bancs clients repassés. Contrôleur global de cette branche : 5/12 ; six axes de baseline restent rouges et le contrôle fonctions ne peut pas mesurer sans JavaScriptCore. Cette limite environnementale est distincte du 6/12 de #219, qui contient déjà son lanceur JavaScript portable. Aucun contrôle supprimé.

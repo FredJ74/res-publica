@@ -13184,7 +13184,7 @@ async function confirmerVirementJoueur(automatique) {
     const m = v && REFUS_VIREMENT[v.raison];
     if (m) { showToast(m[0], m[1], false); return; }
     if (v && v.raison && !v.transport && typeof signalerRefusCout === 'function') { signalerRefusCout(v); return; }
-    showToast('Virement non effectué', "L'opération n'a pas abouti : rien n'a été prélevé ni versé.", false);
+    showToast('Confirmation du virement indisponible', "Le résultat n'est pas confirmé. Consultez votre compte avant de renouveler la demande.", false);
     return;
   }
   if (typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur({ pa: v.pa, arg: v.arg, solde_national: v.solde_national });

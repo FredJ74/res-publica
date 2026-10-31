@@ -13,3 +13,13 @@ test('contrat organisation absent : aucun repli ni faux vote réussi',()=>{const
 test('contre-épreuve : le vrai bulletin historique est refusé par la même vérification',()=>{const code=fs.readFileSync(path.join(__dirname,'fixtures/vote-local-historique.cjs'),'utf8');const c=jeu(code);assert.throws(()=>verifierAncienBulletin(c),/Jet local interdit|voix locales/);verifierAncienBulletin(jeu());});
 test('contre-épreuve : réintroduire un ancien global rétablit un doublon détecté',()=>{const fichiers=[{nom:'canon.js',texte:'function ouvrir(){return 1;}'},{nom:'historique.js',texte:'function ouvrir(){return 2;}'}];const unique=r=>assert.equal(r.doublons.length,0);unique(analyser(fichiers.slice(0,1)));assert.throws(()=>unique(analyser(fichiers)),assert.AssertionError);});
 test('le graphe reconnaît un bouton construit par le code, pas un commentaire',()=>{const r=analyser([{nom:'a.js',texte:'function ouvrir(){return `<button onclick="confirmer()">OK</button>`;} function confirmer(){state.arg-=1;} // imaginaire()\n'}],'<button onclick="ouvrir()">');const f=r.operations.find(x=>x.nom==='confirmer');assert.equal(f.appelsEntrants.length,1);assert.equal(f.appelsEntrants[0].type,'interface');assert.ok(f.cheminPotentiel);assert.equal(r.operations.some(x=>x.nom==='imaginaire'),false);});
+
+const virement=selection('plateau-justice-economie.js',['confirmerVirementJoueur']);
+for(const mode of ['reponse_perdue','transport','exception','refus','succes'])test('virement : '+mode+' ne fabrique aucun résultat bancaire',async()=>{
+ const c=vm.createContext({VIREMENT_DESTINATAIRE:'B',REFUS_VIREMENT:{solde_insuffisant:['Solde insuffisant','Refus confirmé']},toasts:[],paiements:[],journal:[],appels:[],document:{getElementById:()=>({value:'25',classList:{remove(){}}})}});
+ c.showToast=(...a)=>c.toasts.push(a);c.appliquerPaiementServeur=v=>c.paiements.push(v);c.addJournalEntry=v=>c.journal.push(v);
+ c.sbRpcVerdict=async(...a)=>{c.appels.push(a);if(mode==='exception')throw Error('Réponse perdue');return mode==='reponse_perdue'?null:mode==='transport'?{ok:false,transport:true}:mode==='refus'?{ok:false,raison:'solde_insuffisant'}:{ok:true,pa:8,arg:25,solde_national:75};};
+ vm.runInContext(virement,c);await c.confirmerVirementJoueur(false);assert.equal(c.appels.length,1);
+ if(mode==='succes'){assert.equal(c.paiements.length,1);assert.equal(c.journal.length,1);assert.equal(c.toasts[0][2],true);}
+ else {assert.equal(c.paiements.length,0);assert.equal(c.journal.length,0);assert.equal(c.toasts[0][2],false);if(mode!=='refus'){assert.match(c.toasts[0][0],/Confirmation/);assert.match(c.toasts[0][1],/avant de renouveler/);assert.doesNotMatch(c.toasts[0][1],/rien n.a été prélevé/);}}
+});
