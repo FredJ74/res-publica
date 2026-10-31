@@ -180,3 +180,11 @@ Détecteur RPC ajusté pour les commentaires/accolades citées à l’intérieur
 Les six mutations sont détectées, chacune sur 379 cas ; comparaison historique exacte : cinq listes identiques, une liste différente parce qu’un scénario additionnel dépend de l’issue du vrai combat. Le cas obligatoire `squatteurs_issue_reelle_obligatoire_tues` échoue toujours sous mutation. Le contrôle strict de listes a échoué et cette réserve est conservée, sans retirer ni modifier un scénario.
 
 Rapport de reprise/livraison courant : `outils/audits/FINALISATION-LIVRAISON-219-20261031.md`. CI distante six succès confirmés sur 6ef82a65, reconstruction non recommencée, paquet inchangé, ordre de livraison suspendu pour les blocages détaillés. Ne pas redemander les quatre exports ; les contenus de coûts et des trois miroirs restent à lire par le connecteur disponible chez ChatGPT.
+
+### #219 — capture 438 récupérée, premières causes corrigées (31/10, EN COURS)
+
+Reprise de `4a8990a5`, main toujours `59ea6d90`. Deux derniers commentaires de ChatGPT lus sur la page publique. Capture publique des 438 tarifs récupérée du commit `4ec07923`, snapshot `346064:346064:` ; ne pas la redemander. Diff initial exhaustif : **388 communs, 50 seulement en base, 39 seulement générés**, pas onze simples absences.
+
+Générateur raccordé à sept déclarations SQL authored appliquées et à leur projection tentative/réussite ; extraction AST des modules (ordre des propriétés, constantes locales, appel d’achat réel), aucun zéro fabriqué pour coût dynamique. Quatre contre-épreuves passent. **450 triples source, 411 communs avec la capture, 27 anciens couples restants, 39 nouvelles déclarations**. Aucune valeur de gameplay changée dans les écrans, aucun tarif copié depuis la capture comme canon. Seeds régénérés par l’outil existant. Diff individuel et origines dans `RECONCILIATION-COUTS-219-20261031.json`.
+
+Poursuivre le nettoyage contrôlé des tarifs et les sept contrats : trois commandes actives ont leurs cinq migrations existantes sélectionnables ; quatre fonctions d’équipements doivent rester inaccessibles tant que leurs dépendances financières ne sont pas compatibles. Ne pas importer les 65 préparations en bloc, ne pas fusionner ni appliquer en production.

@@ -1,0 +1,3679 @@
+{
+  "provenance_capture": {
+    "commit": "4ec07923aa00b9be5ad20a27950ef19cb27385ed",
+    "snapshot": "346064:346064:",
+    "sha256": "7a68fd5dc6d9dabf1e51ea3f6cadbd6d4074f93f2014ab028909fa5dab002575"
+  },
+  "avant": {
+    "lecture_seule": true,
+    "source_lignes": 427,
+    "capture_lignes": 438,
+    "difference_nette": 11,
+    "communs": 388,
+    "capture_seulement": [
+      {
+        "fn": "acheter_bombe_illegale#reussite",
+        "pa": 0,
+        "cost": 1200
+      },
+      {
+        "fn": "acheter_criee",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "acheter_ghb",
+        "pa": 1,
+        "cost": 300
+      },
+      {
+        "fn": "acheter_gilet",
+        "pa": 0,
+        "cost": 600
+      },
+      {
+        "fn": "acheter_gilet",
+        "pa": 1,
+        "cost": 600
+      },
+      {
+        "fn": "acheter_parapluie",
+        "pa": 0,
+        "cost": 400
+      },
+      {
+        "fn": "acheter_relique",
+        "pa": 1,
+        "cost": 500
+      },
+      {
+        "fn": "acheter_ressources_entrepot",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "acheter_vipere",
+        "pa": 1,
+        "cost": 350
+      },
+      {
+        "fn": "banquet_diplo",
+        "pa": 3,
+        "cost": 0
+      },
+      {
+        "fn": "bne_passer_annonce_presse",
+        "pa": 1,
+        "cost": 30
+      },
+      {
+        "fn": "boire_verre",
+        "pa": 0,
+        "cost": 50
+      },
+      {
+        "fn": "choisir_accessoire_club",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "choisir_arme",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "consulter_indices_locaux",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "corrompre_fonct",
+        "pa": 2,
+        "cost": 200
+      },
+      {
+        "fn": "corrompre_fonct#reussite",
+        "pa": 0,
+        "cost": 200
+      },
+      {
+        "fn": "corrompre_fonct#reussite",
+        "pa": 0,
+        "cost": 500
+      },
+      {
+        "fn": "corrompre_fonct#reussite",
+        "pa": 0,
+        "cost": 1500
+      },
+      {
+        "fn": "corrompre_fonct#tentative",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "corrompre_fonct#tentative",
+        "pa": 3,
+        "cost": 0
+      },
+      {
+        "fn": "corrompre_gardien#reussite",
+        "pa": 0,
+        "cost": 800
+      },
+      {
+        "fn": "corrompre_gardien#tentative",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "demettre_lieutenant",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "diplomatie_bilaterale",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "diplomatie_bilaterale",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "diplomatie_bilaterale",
+        "pa": 3,
+        "cost": 0
+      },
+      {
+        "fn": "donner_argent_pnj",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "entrainer_section",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "falsifier_document#reussite",
+        "pa": 0,
+        "cost": 300
+      },
+      {
+        "fn": "falsifier_document#tentative",
+        "pa": 3,
+        "cost": 0
+      },
+      {
+        "fn": "gerer_commandement",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "gerer_finances",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "informateur_salaire_1",
+        "pa": 0,
+        "cost": 150
+      },
+      {
+        "fn": "informateur_salaire_2",
+        "pa": 0,
+        "cost": 400
+      },
+      {
+        "fn": "informateur_salaire_3",
+        "pa": 0,
+        "cost": 700
+      },
+      {
+        "fn": "informateur_salaire_4",
+        "pa": 0,
+        "cost": 1500
+      },
+      {
+        "fn": "interroger_informateur",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "investir",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "nommer_capitaine",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "nommer_lieutenant",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "plainte",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "plainte",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "proposer_abrogation",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "reception_etat",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "renseignement",
+        "pa": 3,
+        "cost": 500
+      },
+      {
+        "fn": "renseignement_transport_intl",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "requete_avocat",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "se_porter_candidat",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "voler",
+        "pa": 2,
+        "cost": 0
+      }
+    ],
+    "source_seulement": [
+      {
+        "fn": "acheter_entreprise",
+        "pa": 3,
+        "cost": 8000
+      },
+      {
+        "fn": "audience_juge",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "audience_salle",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "avocat_barreau",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "avocat_dossiers",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "caisse_caserne",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "calepin_campagne",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "camion_a_vide",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "camion_conduire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "camion_descendre",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "camion_militaire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "commerce_personnaliser",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "commerce_pj",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "declencher_mutinerie",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "decorer_militaire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "garde_republicaine",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "gerer_budget_interieur",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "gerer_budget_justice",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "gestion_caserne",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "greffe_affaires",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "greffe_archives",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "installer_equipements",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "lois_votees_an",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "nominations_municipales",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "parquet",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "prix_chantier",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "publicite_premium",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "receptionner_chantier",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "renseignement_militaire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "reposer_section",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "retirer_equipement_militaire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "retirer_rations",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "retirer_trousse",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "seance_parlementaire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "suivre_formation",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "syndicat_etudiant_gerer",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "taux_chantier",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "temoin_deposition",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "temoins_mes_convocations",
+        "pa": 0,
+        "cost": 0
+      }
+    ],
+    "coherents": false,
+    "limite": "Les écarts nets ne prouvent ni onze lignes manquantes ni une décision de gameplay. Chaque différence exige sa provenance.",
+    "snapshot": "346064:346064:",
+    "releve_utc": "2026-10-31T17:18:48.876502+00:00"
+  },
+  "apres_generateur": {
+    "lecture_seule": true,
+    "source_lignes": 450,
+    "capture_lignes": 438,
+    "difference_nette": -12,
+    "communs": 411,
+    "capture_seulement": [
+      {
+        "fn": "acheter_criee",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "acheter_ghb",
+        "pa": 1,
+        "cost": 300
+      },
+      {
+        "fn": "acheter_gilet",
+        "pa": 0,
+        "cost": 600
+      },
+      {
+        "fn": "acheter_relique",
+        "pa": 1,
+        "cost": 500
+      },
+      {
+        "fn": "acheter_ressources_entrepot",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "acheter_vipere",
+        "pa": 1,
+        "cost": 350
+      },
+      {
+        "fn": "boire_verre",
+        "pa": 0,
+        "cost": 50
+      },
+      {
+        "fn": "choisir_accessoire_club",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "choisir_arme",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "consulter_indices_locaux",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "corrompre_fonct",
+        "pa": 2,
+        "cost": 200
+      },
+      {
+        "fn": "corrompre_fonct#reussite",
+        "pa": 0,
+        "cost": 200
+      },
+      {
+        "fn": "corrompre_fonct#tentative",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "demettre_lieutenant",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "donner_argent_pnj",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "entrainer_section",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "gerer_finances",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "investir",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "nommer_capitaine",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "nommer_lieutenant",
+        "pa": 2,
+        "cost": 0
+      },
+      {
+        "fn": "plainte",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "plainte",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "proposer_abrogation",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "renseignement",
+        "pa": 3,
+        "cost": 500
+      },
+      {
+        "fn": "renseignement_transport_intl",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "requete_avocat",
+        "pa": 1,
+        "cost": 0
+      },
+      {
+        "fn": "se_porter_candidat",
+        "pa": 0,
+        "cost": 0
+      }
+    ],
+    "source_seulement": [
+      {
+        "fn": "acheter_entreprise",
+        "pa": 3,
+        "cost": 8000
+      },
+      {
+        "fn": "audience_juge",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "audience_salle",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "avocat_barreau",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "avocat_dossiers",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "caisse_caserne",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "calepin_campagne",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "camion_a_vide",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "camion_conduire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "camion_descendre",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "camion_militaire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "commerce_personnaliser",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "commerce_pj",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "declencher_mutinerie",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "decorer_militaire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "garde_republicaine",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "gerer_budget_interieur",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "gerer_budget_justice",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "gestion_caserne",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "greffe_affaires",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "greffe_archives",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "installer_equipements",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "lois_votees_an",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "nominations_municipales",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "parquet",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "prix_chantier",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "publicite_premium",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "receptionner_chantier",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "renseignement_militaire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "reposer_section",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "retirer_equipement_militaire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "retirer_rations",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "retirer_trousse",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "seance_parlementaire",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "suivre_formation",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "syndicat_etudiant_gerer",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "taux_chantier",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "temoin_deposition",
+        "pa": 0,
+        "cost": 0
+      },
+      {
+        "fn": "temoins_mes_convocations",
+        "pa": 0,
+        "cost": 0
+      }
+    ],
+    "coherents": false,
+    "limite": "Les écarts nets ne prouvent ni onze lignes manquantes ni une décision de gameplay. Chaque différence exige sa provenance.",
+    "snapshot": "346064:346064:",
+    "releve_utc": "2026-10-31T17:18:48.876502+00:00"
+  },
+  "ecarts_initiaux": [
+    {
+      "fn": "acheter_bombe_illegale#reussite",
+      "pa": 0,
+      "cost": 1200,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "acheter_bombe_illegale#reussite",
+          "pa": 0,
+          "cost": 1200
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 182,
+          "extrait": "if (fn === 'acheter_bombe_illegale') { doSubtiliserExplosifsMilitaires(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5609,
+          "extrait": "{fn:'acheter_bombe_illegale',       label:'Subtiliser des explosifs', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:35,  desc:'Voler un explosif dans le stock de la caserne. 35% de base, module par la discretion, l\\'ISN et la reputation criminelle. Echec detecte : QHS.'}"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027160000_marche_noir_serveur.sql",
+          "ligne": 22,
+          "extrait": "INSERT INTO public.ordres_couts (fn, pa, cost) VALUES ('acheter_bombe_illegale#reussite', 0, 1200)"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027160000_marche_noir_serveur.sql",
+          "ligne": 93,
+          "extrait": "v_paie := public.payer_ordre(v_moi, 'acheter_bombe_illegale#reussite', 0, 1200);"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "acheter_criee",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "acheter_criee",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 627,
+          "extrait": "if (fn === 'acheter_criee') { ouvrirAcheterCriee(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6895,
+          "extrait": "{fn:'acheter_criee', label:'Acheter à la Criée', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Poisson pêché quotidiennement, vendu directement aux joueurs (4 FR/unité).'}"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261030180000_achats_cle_unicite.sql",
+          "ligne": 90,
+          "extrait": "v := public.payer_ordre(p_acteur, 'acheter_criee', p_pa, p_cost);"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "acheter_ghb",
+      "pa": 1,
+      "cost": 300,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "acheter_ghb",
+          "pa": 0,
+          "cost": 300
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 445,
+          "extrait": "if (fn === 'acheter_ghb')            { doAcheterPoisonObjet('ghb', pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 7074,
+          "extrait": "{fn:'acheter_ghb', label:'Acheter du GHB', pa: 0, cost:300, type:'illegal', icon:'ti-flask', successRate:80, desc:'Objet poison El Estado. Usage unique. DIS/10. Disponible uniquement ici.'},"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027180000_inventaire_achats_serveur.sql",
+          "ligne": 63,
+          "extrait": "('acheter_parapluie', 'poison:parapluie'), ('acheter_ghb', 'poison:ghb'),"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "acheter_gilet",
+      "pa": 0,
+      "cost": 600,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "acheter_gilet",
+          "pa": 0,
+          "cost": 380
+        },
+        {
+          "fn": "acheter_gilet",
+          "pa": 1,
+          "cost": 600
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 176,
+          "extrait": "if (fn === 'acheter_gilet') { doAcheterGilet(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3772,
+          "extrait": "fn:'acheter_gilet',"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5043,
+          "extrait": "fn:'acheter_gilet',"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027180000_inventaire_achats_serveur.sql",
+          "ligne": 62,
+          "extrait": "('acheter_gilet', 'gilet'), ('acheter_relique', 'relique_loukoum'),"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "acheter_gilet",
+      "pa": 1,
+      "cost": 600,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "acheter_gilet",
+          "pa": 0,
+          "cost": 380
+        },
+        {
+          "fn": "acheter_gilet",
+          "pa": 1,
+          "cost": 600
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 176,
+          "extrait": "if (fn === 'acheter_gilet') { doAcheterGilet(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3772,
+          "extrait": "fn:'acheter_gilet',"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5043,
+          "extrait": "fn:'acheter_gilet',"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027180000_inventaire_achats_serveur.sql",
+          "ligne": 62,
+          "extrait": "('acheter_gilet', 'gilet'), ('acheter_relique', 'relique_loukoum'),"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "acheter_parapluie",
+      "pa": 0,
+      "cost": 400,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "acheter_parapluie",
+          "pa": 0,
+          "cost": 400
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 444,
+          "extrait": "if (fn === 'acheter_parapluie')      { doAcheterPoisonObjet('parapluie'); return; }"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027180000_inventaire_achats_serveur.sql",
+          "ligne": 63,
+          "extrait": "('acheter_parapluie', 'poison:parapluie'), ('acheter_ghb', 'poison:ghb'),"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027180000_inventaire_achats_serveur.sql",
+          "ligne": 67,
+          "extrait": "INSERT INTO public.ordres_couts (fn, pa, cost) VALUES ('acheter_parapluie', 0, 400) ON CONFLICT DO NOTHING;"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "acheter_relique",
+      "pa": 1,
+      "cost": 500,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "acheter_relique",
+          "pa": 0,
+          "cost": 500
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 561,
+          "extrait": "if (fn === 'acheter_relique')      { doAcheterRelique(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6244,
+          "extrait": "{fn:'acheter_relique', label:'Acheter une relique du Loukoum',pa: 0, cost:500, type:'legal', icon:'ti-package',  successRate:100, desc:'Objet rare. +10 IP. Accès facilité aux zones réservées Al-Khalija.'}"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027180000_inventaire_achats_serveur.sql",
+          "ligne": 62,
+          "extrait": "('acheter_gilet', 'gilet'), ('acheter_relique', 'relique_loukoum'),"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "acheter_ressources_entrepot",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "acheter_ressources_entrepot",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 276,
+          "extrait": "if (fn === 'acheter_ressources_entrepot') { doOuvrirAchatEntrepot(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6266,
+          "extrait": "orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6419,
+          "extrait": "orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6449,
+          "extrait": "orders: [{fn:'acheter_ressources_entrepot', label:'Acheter des ressources', pa: 0, cost:0, type:'legal', icon:'ti-shopping-cart', successRate:100, desc:'Choisir les ressources et quantités à acheter, selon le stock et le prix du moment.'}]"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261030180000_achats_cle_unicite.sql",
+          "ligne": 72,
+          "extrait": "v := public.payer_ordre(p_acteur, 'acheter_ressources_entrepot', p_pa, p_cost);"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "acheter_vipere",
+      "pa": 1,
+      "cost": 350,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "acheter_vipere",
+          "pa": 0,
+          "cost": 350
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 447,
+          "extrait": "if (fn === 'acheter_vipere')         { doAcheterPoisonObjet('vipere', pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 7103,
+          "extrait": "{fn:'acheter_vipere', label:'Acheter une Vipère des sables', pa: 0, cost:350, type:'grey', icon:'ti-bug', successRate:85, desc:'Objet poison Al-Khalija. Usage unique. Disponible uniquement ici.'},"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027180000_inventaire_achats_serveur.sql",
+          "ligne": 64,
+          "extrait": "('acheter_polonium', 'poison:polonium'), ('acheter_vipere', 'poison:vipere')"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "banquet_diplo",
+      "pa": 3,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "banquet_diplo",
+          "pa": 3,
+          "cost": 0
+        },
+        {
+          "fn": "banquet_diplo",
+          "pa": 3,
+          "cost": 2000
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 9705,
+          "extrait": "? await sbRpcVerdict('indice_diplomatique_ordre', { p_fn: 'banquet_diplo', p_pa: pa, p_invites: invites.length }).catch(() => null) : null;"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 815,
+          "extrait": "if (fn === 'banquet_diplo') { ouvrirBanquetDiplomatique(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2465,
+          "extrait": "{fn:'banquet_diplo',     label:'Banquet diplomatique',      pa:3, cost:2000, type:'legal', icon:'ti-wine',       successRate:100, requiresPost:'president', desc:'Inviter des representants etrangers. Ameliore les relations inter-empires.'}"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261011004500_presidence_memoire_des_mandats.sql",
+          "ligne": 153,
+          "extrait": "('banquet_diplo',    3, 2000, 'un banquet diplomatique')"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261025120100_indice_diplomatique_actions_nationales.sql",
+          "ligne": 29,
+          "extrait": "('banquet_diplo', 3, 0), ('reception_etat', 2, 0),"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261025120100_indice_diplomatique_actions_nationales.sql",
+          "ligne": 77,
+          "extrait": "ELSIF p_fn IN ('banquet_diplo', 'reception_etat') THEN"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "bne_passer_annonce_presse",
+      "pa": 1,
+      "cost": 30,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "bne_passer_annonce_presse",
+          "pa": 1,
+          "cost": 30
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "historique/migrations-appliquees/20261025060000_bne_annonces.sql",
+          "ligne": 42,
+          "extrait": "('bne_passer_annonce', 1, 0), ('bne_passer_annonce_presse', 1, 30)"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "boire_verre",
+      "pa": 0,
+      "cost": 50,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 141,
+          "extrait": "if (fn === 'boire_verre') { ouvrirModalInvitationSociale('boire_verre', pa, cost, successRate); return; }"
+        },
+        {
+          "fichier": "plateau-quete-accueil.js",
+          "ligne": 421,
+          "extrait": "if (etape === 'attente_offre_verre' && fn === 'boire_verre') {"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "choisir_accessoire_club",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "choisir_accessoire_club",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 225,
+          "extrait": "if (fn === 'choisir_accessoire_club') { doChoisirAccessoireClub(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3072,
+          "extrait": "{fn:'choisir_accessoire_club', label:'Acheter un accessoire', pa: 0, cost:0, type:'legal', icon:'ti-shirt', successRate:100, desc:'Echarpe, casquette ou maillot du club — a choisir.'},"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027213522_inventaire_accessoires_club.sql",
+          "ligne": 36,
+          "extrait": "paiement:=public.payer_ordre(a.name,'choisir_accessoire_club',p_pa,p_cost);"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "choisir_arme",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "choisir_arme",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 161,
+          "extrait": "if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3766,
+          "extrait": "fn:'choisir_arme',"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5037,
+          "extrait": "fn:'choisir_arme',"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "consulter_indices_locaux",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "corrompre_fonct",
+      "pa": 2,
+      "cost": 200,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "corrompre_fonct",
+          "pa": 3,
+          "cost": 500
+        },
+        {
+          "fn": "corrompre_fonct",
+          "pa": 3,
+          "cost": 1500
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 578,
+          "extrait": "if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6065,
+          "extrait": "{fn:'corrompre_fonct',   label:'Corrompre le directeur',      pa:3, cost:1500, type:'illegal', icon:'ti-coins',    successRate:25,  desc:'Taux tres faible. Consequence severe si echec.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6092,
+          "extrait": "{fn:'corrompre_fonct',   label:'Falsifier un proces-verbal',  pa:3, cost:500,  type:'illegal', icon:'ti-file-x',         successRate:35, desc:'Modifier les declarations. Tres risque.'}"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027130000_crimes_ordres_detection.sql",
+          "ligne": 30,
+          "extrait": "WHERE fn IN ('corrompre_fonct', 'corrompre_police', 'corrompre_gardien', 'falsifier_document')"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027130000_crimes_ordres_detection.sql",
+          "ligne": 34,
+          "extrait": "WHERE fn IN ('corrompre_fonct', 'corrompre_police', 'corrompre_gardien', 'falsifier_document')"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027130000_crimes_ordres_detection.sql",
+          "ligne": 81,
+          "extrait": "IF p_fn NOT IN ('corrompre_fonct', 'corrompre_police', 'corrompre_gardien')"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261011233747_justice_bareme_canonique_et_bornes_de_peine.sql",
+          "ligne": 175,
+          "extrait": "('corrompre_fonct', 'Delit mineur', 'delit_mineur', 2, 500, 30, false, true),"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027110000_crimes_socle_serveur.sql",
+          "ligne": 38,
+          "extrait": "('corrompre_fonct','delit_mineur',30,NULL,NULL,false), ('corrompre_police','delit_mineur',35,NULL,NULL,false),"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "corrompre_fonct#reussite",
+      "pa": 0,
+      "cost": 200,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "corrompre_fonct#reussite",
+          "pa": 0,
+          "cost": 500
+        },
+        {
+          "fn": "corrompre_fonct#reussite",
+          "pa": 0,
+          "cost": 1500
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 578,
+          "extrait": "if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6065,
+          "extrait": "{fn:'corrompre_fonct',   label:'Corrompre le directeur',      pa:3, cost:1500, type:'illegal', icon:'ti-coins',    successRate:25,  desc:'Taux tres faible. Consequence severe si echec.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6092,
+          "extrait": "{fn:'corrompre_fonct',   label:'Falsifier un proces-verbal',  pa:3, cost:500,  type:'illegal', icon:'ti-file-x',         successRate:35, desc:'Modifier les declarations. Tres risque.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "corrompre_fonct#reussite",
+      "pa": 0,
+      "cost": 500,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "corrompre_fonct#reussite",
+          "pa": 0,
+          "cost": 500
+        },
+        {
+          "fn": "corrompre_fonct#reussite",
+          "pa": 0,
+          "cost": 1500
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 578,
+          "extrait": "if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6065,
+          "extrait": "{fn:'corrompre_fonct',   label:'Corrompre le directeur',      pa:3, cost:1500, type:'illegal', icon:'ti-coins',    successRate:25,  desc:'Taux tres faible. Consequence severe si echec.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6092,
+          "extrait": "{fn:'corrompre_fonct',   label:'Falsifier un proces-verbal',  pa:3, cost:500,  type:'illegal', icon:'ti-file-x',         successRate:35, desc:'Modifier les declarations. Tres risque.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "corrompre_fonct#reussite",
+      "pa": 0,
+      "cost": 1500,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "corrompre_fonct#reussite",
+          "pa": 0,
+          "cost": 500
+        },
+        {
+          "fn": "corrompre_fonct#reussite",
+          "pa": 0,
+          "cost": 1500
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 578,
+          "extrait": "if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6065,
+          "extrait": "{fn:'corrompre_fonct',   label:'Corrompre le directeur',      pa:3, cost:1500, type:'illegal', icon:'ti-coins',    successRate:25,  desc:'Taux tres faible. Consequence severe si echec.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6092,
+          "extrait": "{fn:'corrompre_fonct',   label:'Falsifier un proces-verbal',  pa:3, cost:500,  type:'illegal', icon:'ti-file-x',         successRate:35, desc:'Modifier les declarations. Tres risque.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "corrompre_fonct#tentative",
+      "pa": 2,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "corrompre_fonct#tentative",
+          "pa": 3,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 578,
+          "extrait": "if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6065,
+          "extrait": "{fn:'corrompre_fonct',   label:'Corrompre le directeur',      pa:3, cost:1500, type:'illegal', icon:'ti-coins',    successRate:25,  desc:'Taux tres faible. Consequence severe si echec.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6092,
+          "extrait": "{fn:'corrompre_fonct',   label:'Falsifier un proces-verbal',  pa:3, cost:500,  type:'illegal', icon:'ti-file-x',         successRate:35, desc:'Modifier les declarations. Tres risque.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "corrompre_fonct#tentative",
+      "pa": 3,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "corrompre_fonct#tentative",
+          "pa": 3,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 578,
+          "extrait": "if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6065,
+          "extrait": "{fn:'corrompre_fonct',   label:'Corrompre le directeur',      pa:3, cost:1500, type:'illegal', icon:'ti-coins',    successRate:25,  desc:'Taux tres faible. Consequence severe si echec.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6092,
+          "extrait": "{fn:'corrompre_fonct',   label:'Falsifier un proces-verbal',  pa:3, cost:500,  type:'illegal', icon:'ti-file-x',         successRate:35, desc:'Modifier les declarations. Tres risque.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "corrompre_gardien#reussite",
+      "pa": 0,
+      "cost": 800,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "corrompre_gardien#reussite",
+          "pa": 0,
+          "cost": 800
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 578,
+          "extrait": "if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6080,
+          "extrait": "{fn:'corrompre_gardien',  label:'Corrompre un gardien',        pa:2, cost:800,  type:'illegal', icon:'ti-coins',    successRate:20,  desc:'Tres difficile. Obtenir des privileges ou informations.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "corrompre_gardien#tentative",
+      "pa": 2,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "corrompre_gardien#tentative",
+          "pa": 2,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 578,
+          "extrait": "if (fn === 'corrompre_fonct' || fn === 'corrompre_police' || fn === 'corrompre_gardien') { doCorruption(fn, pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 6080,
+          "extrait": "{fn:'corrompre_gardien',  label:'Corrompre un gardien',        pa:2, cost:800,  type:'illegal', icon:'ti-coins',    successRate:20,  desc:'Tres difficile. Obtenir des privileges ou informations.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "demettre_lieutenant",
+      "pa": 2,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "demettre_lieutenant",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 697,
+          "extrait": "if (fn === 'demettre_lieutenant') { doDemettreLieutenant(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5450,
+          "extrait": "{fn:'demettre_lieutenant', label:'Démettre un Lieutenant', pa:0, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Retirer un lieutenant juge responsable d\\'un echec.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "diplomatie_bilaterale",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 0,
+          "cost": 0
+        },
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 1,
+          "cost": 0
+        },
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 2,
+          "cost": 0
+        },
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 3,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 644,
+          "extrait": "if (fn === 'diplomatie_bilaterale')       { ouvrirDiplomatieBilaterale(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2825,
+          "extrait": "{fn:'diplomatie_bilaterale', label:'Diplomatie bilaterale',     pa:0, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_ae', desc:'Ouvrir des negociations, proposer un traite, repondre aux propositions recues.'},"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261025120100_indice_diplomatique_actions_nationales.sql",
+          "ligne": 30,
+          "extrait": "('diplomatie_bilaterale', 1, 0), ('diplomatie_bilaterale', 2, 0), ('diplomatie_bilaterale', 3, 0)"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261025120100_indice_diplomatique_actions_nationales.sql",
+          "ligne": 131,
+          "extrait": "v_paie := public.payer_ordre(v_moi, 'diplomatie_bilaterale', 1, 0);"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "diplomatie_bilaterale",
+      "pa": 2,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 0,
+          "cost": 0
+        },
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 1,
+          "cost": 0
+        },
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 2,
+          "cost": 0
+        },
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 3,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 644,
+          "extrait": "if (fn === 'diplomatie_bilaterale')       { ouvrirDiplomatieBilaterale(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2825,
+          "extrait": "{fn:'diplomatie_bilaterale', label:'Diplomatie bilaterale',     pa:0, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_ae', desc:'Ouvrir des negociations, proposer un traite, repondre aux propositions recues.'},"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261025120100_indice_diplomatique_actions_nationales.sql",
+          "ligne": 30,
+          "extrait": "('diplomatie_bilaterale', 1, 0), ('diplomatie_bilaterale', 2, 0), ('diplomatie_bilaterale', 3, 0)"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261025120100_indice_diplomatique_actions_nationales.sql",
+          "ligne": 131,
+          "extrait": "v_paie := public.payer_ordre(v_moi, 'diplomatie_bilaterale', 1, 0);"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "diplomatie_bilaterale",
+      "pa": 3,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 0,
+          "cost": 0
+        },
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 1,
+          "cost": 0
+        },
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 2,
+          "cost": 0
+        },
+        {
+          "fn": "diplomatie_bilaterale",
+          "pa": 3,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 644,
+          "extrait": "if (fn === 'diplomatie_bilaterale')       { ouvrirDiplomatieBilaterale(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2825,
+          "extrait": "{fn:'diplomatie_bilaterale', label:'Diplomatie bilaterale',     pa:0, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_ae', desc:'Ouvrir des negociations, proposer un traite, repondre aux propositions recues.'},"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261025120100_indice_diplomatique_actions_nationales.sql",
+          "ligne": 30,
+          "extrait": "('diplomatie_bilaterale', 1, 0), ('diplomatie_bilaterale', 2, 0), ('diplomatie_bilaterale', 3, 0)"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261025120100_indice_diplomatique_actions_nationales.sql",
+          "ligne": 131,
+          "extrait": "v_paie := public.payer_ordre(v_moi, 'diplomatie_bilaterale', 1, 0);"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "donner_argent_pnj",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 396,
+          "extrait": "if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(pa, cost); return; }"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 399,
+          "extrait": "if (fn === 'donner_argent_pnj')       { doDonnerArgentPnj(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4374,
+          "extrait": "{fn:'donner_argent_pnj', label:'Donner de l\\'argent', pa:1, cost:0, type:'legal', icon:'ti-coins', successRate:0, desc:'Offrir une somme a un PNJ present. Effet immediat selon sa personnalite.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "entrainer_section",
+      "pa": 2,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "entrainer_section",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 692,
+          "extrait": "if (fn === 'entrainer_section') { doEntrainerSection(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5555,
+          "extrait": "{fn:'entrainer_section',   label:'Entrainer la section',       pa:0, cost:0,    type:'legal',   icon:'ti-barbell',       successRate:100, requiresPost:'lieutenant', desc:'Combat rapproche, Tir, Reconnaissance ou Secourisme. 12 soldats max par seance. 6 PA pour vous et 6 PA par soldat, preleves par le serveur.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "falsifier_document#reussite",
+      "pa": 0,
+      "cost": 300,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "falsifier_document#reussite",
+          "pa": 0,
+          "cost": 300
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 532,
+          "extrait": "if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3224,
+          "extrait": "{fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Liste : fausse identite, faux casier vierge, faux permis construire, faux contrat. Cree un objet en inventaire.'},"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027130000_crimes_ordres_detection.sql",
+          "ligne": 183,
+          "extrait": "v_paie := public.payer_ordre(v_moi, 'falsifier_document#reussite', 0, p_cost);"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "falsifier_document#tentative",
+      "pa": 3,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "falsifier_document#tentative",
+          "pa": 3,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 532,
+          "extrait": "if (fn === 'falsifier_document')      { ouvrirFalsifierDocument(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3224,
+          "extrait": "{fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Liste : fausse identite, faux casier vierge, faux permis construire, faux contrat. Cree un objet en inventaire.'},"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027130000_crimes_ordres_detection.sql",
+          "ligne": 175,
+          "extrait": "v_paie := public.payer_ordre(v_moi, 'falsifier_document#tentative', p_pa, 0);"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "gerer_commandement",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "gerer_commandement",
+          "pa": 1,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 656,
+          "extrait": "if (fn === 'gerer_commandement')          { ouvrirGestionCommandement(); return; }"
+        },
+        {
+          "fichier": "plateau-gouvernement.js",
+          "ligne": 266,
+          "extrait": "// (deduireCoutOrdre -> payer_ordre, avec fn='gerer_commandement', deja declare dans le miroir des"
+        },
+        {
+          "fichier": "plateau-gouvernement.js",
+          "ligne": 290,
+          "extrait": "const r = await deduireCoutOrdre({ pa: COUT_PA_OUVERTURE_COMMANDEMENT, cost: 0, fn: 'gerer_commandement' });"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "gerer_finances",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "gerer_finances",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 4259,
+          "extrait": "} else if (o.fn === 'gerer_finances') {"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 106,
+          "extrait": "if (fn === 'gerer_finances') {"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3267,
+          "extrait": "{fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3309,
+          "extrait": "{fn:'gerer_finances',    label:'Ouvrir / gérer mon compte', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Ouverture : versement de 10 000 FR conservé sur le compte ; solde minimum 10 000 FR. Dépôts, retraits et placements.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4670,
+          "extrait": "{fn:'gerer_finances', label:'Gerer mon compte', pa:0, cost:0,   type:'legal', icon:'ti-chart-bar',   successRate:100},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "informateur_salaire_1",
+      "pa": 0,
+      "cost": 150,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "informateur_salaire_1",
+          "pa": 0,
+          "cost": 150
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "historique/migrations-appliquees/20261027150000_informateurs_serveur.sql",
+          "ligne": 24,
+          "extrait": "('interroger_informateur', 1, 0), ('informateur_salaire_1', 0, 150), ('informateur_salaire_2', 0, 400),"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "informateur_salaire_2",
+      "pa": 0,
+      "cost": 400,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "informateur_salaire_2",
+          "pa": 0,
+          "cost": 400
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "historique/migrations-appliquees/20261027150000_informateurs_serveur.sql",
+          "ligne": 24,
+          "extrait": "('interroger_informateur', 1, 0), ('informateur_salaire_1', 0, 150), ('informateur_salaire_2', 0, 400),"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "informateur_salaire_3",
+      "pa": 0,
+      "cost": 700,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "informateur_salaire_3",
+          "pa": 0,
+          "cost": 700
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "historique/migrations-appliquees/20261027150000_informateurs_serveur.sql",
+          "ligne": 25,
+          "extrait": "('informateur_salaire_3', 0, 700), ('informateur_salaire_4', 0, 1500)"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "informateur_salaire_4",
+      "pa": 0,
+      "cost": 1500,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "informateur_salaire_4",
+          "pa": 0,
+          "cost": 1500
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "historique/migrations-appliquees/20261027150000_informateurs_serveur.sql",
+          "ligne": 25,
+          "extrait": "('informateur_salaire_3', 0, 700), ('informateur_salaire_4', 0, 1500)"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "interroger_informateur",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "interroger_informateur",
+          "pa": 1,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "historique/migrations-appliquees/20261027150000_informateurs_serveur.sql",
+          "ligne": 24,
+          "extrait": "('interroger_informateur', 1, 0), ('informateur_salaire_1', 0, 150), ('informateur_salaire_2', 0, 400),"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "investir",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 126,
+          "extrait": "if (fn === 'investir') { ouvrirInvestir(pa, cost); return; }"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "nommer_capitaine",
+      "pa": 2,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "nommer_capitaine",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 678,
+          "extrait": "if (fn === 'nommer_capitaine') { ouvrirNommerCapitaine(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5529,
+          "extrait": "{fn:'nommer_capitaine',    label:'Nommer un Capitaine',        pa:0, cost:0,    type:'legal',   icon:'ti-star',          successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Designer un capitaine pour une compagnie.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "nommer_lieutenant",
+      "pa": 2,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [
+        {
+          "fn": "nommer_lieutenant",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 679,
+          "extrait": "if (fn === 'nommer_lieutenant') { ouvrirNommerLieutenant(pa, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5421,
+          "extrait": "{fn:'nommer_lieutenant', label:'Nommer un Lieutenant', pa:0, cost:0, type:'legal', icon:'ti-star', successRate:100, requiresPost:'capitaine', desc:'Reserve aux Capitaines. Designer un lieutenant pour une section de sa compagnie.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "plainte",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 753,
+          "extrait": "// Route 'plainte' SUPPRIMEE le 13 octobre 2026 avec son ecran. Elle servait « Consulter les"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "plainte",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 753,
+          "extrait": "// Route 'plainte' SUPPRIMEE le 13 octobre 2026 avec son ecran. Elle servait « Consulter les"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "proposer_abrogation",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [
+        {
+          "fichier": "data.js",
+          "ligne": 2905,
+          "extrait": "// 'proposer_abrogation' RETIRE le 30 septembre 2026. Le joueur ne choisit"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "reception_etat",
+      "pa": 2,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "reception_etat",
+          "pa": 2,
+          "cost": 0
+        },
+        {
+          "fn": "reception_etat",
+          "pa": 2,
+          "cost": 1000
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 9758,
+          "extrait": "? await sbRpcVerdict('indice_diplomatique_ordre', { p_fn: 'reception_etat', p_pa: 2 }).catch(() => null) : null;"
+        },
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 9770,
+          "extrait": "showToast(fn === 'reception_etat' ? 'Reception reussie !' : 'Banquet reussi !', '+10 POP +8 INF +5 Moral +5 ID.', true, true);"
+        },
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 9771,
+          "extrait": "addJournalEntry(fn === 'reception_etat' ? 'Reception d\\'Etat reussie.' : 'Banquet diplomatique reussi.', 'event-good');"
+        },
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 9777,
+          "extrait": "showToast('Echec !', 'Les invites ont boude votre ' + (fn === 'reception_etat' ? 'reception' : 'banquet') + '. -30 POP -30 INF -10 Moral.', false);"
+        },
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 9778,
+          "extrait": "addExternalEvent('HUMILIATION : La ' + (fn === 'reception_etat' ? 'reception' : 'banquet diplomatique') + ' du President s\\'est soldee par un echec cuisant. -30 POP -30 INF -10 Moral.');"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 814,
+          "extrait": "if (fn === 'reception_etat') { doReceptionAvecBonus(fn, cost); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2464,
+          "extrait": "{fn:'reception_etat',    label:'Organiser une reception',  pa:2, cost:1000, type:'legal', icon:'ti-confetti',   successRate:100, requiresPost:'president', desc:'Reception officielle. +INF +POP +relations diplomatiques.'},"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261011004500_presidence_memoire_des_mandats.sql",
+          "ligne": 152,
+          "extrait": "('reception_etat',   2, 1000, 'une reception d Etat'),"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261025120100_indice_diplomatique_actions_nationales.sql",
+          "ligne": 29,
+          "extrait": "('banquet_diplo', 3, 0), ('reception_etat', 2, 0),"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "renseignement",
+      "pa": 3,
+      "cost": 500,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 746,
+          "extrait": "if (fn === 'renseignement') { ouvrirModalRenseignement(pa, cost); return; }"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "renseignement_transport_intl",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 431,
+          "extrait": "if (fn === 'renseignement_transport_intl') { ouvrirRenseignementMireilleGuichet(); return; }"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "requete_avocat",
+      "pa": 1,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 580,
+          "extrait": "// Route 'requete_avocat' SUPPRIMEE le 13 octobre 2026 (arbitrage valide). La requete"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "se_porter_candidat",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": false,
+      "qualification": "ancien_couple_non_emis_par_source_actuelle_a_reconcilier",
+      "autres_couples_source": [],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 475,
+          "extrait": "if (fn === 'se_porter_candidat')      { ouvrirSePorterCandidat(); return; }"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "voler",
+      "pa": 2,
+      "cost": 0,
+      "difference_initiale": "capture_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "omission_generateur_corrigee",
+      "autres_couples_source": [
+        {
+          "fn": "voler",
+          "pa": 2,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "historique/migrations-appliquees/20261027120000_vol_empoisonnement_serveur.sql",
+          "ligne": 33,
+          "extrait": "INSERT INTO public.ordres_couts (fn, pa, cost) VALUES ('voler', 2, 0) ON CONFLICT DO NOTHING;"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261027120000_vol_empoisonnement_serveur.sql",
+          "ligne": 93,
+          "extrait": "v_paie := public.payer_ordre(v_moi, 'voler', 2, 0);"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "acheter_entreprise",
+      "pa": 3,
+      "cost": 8000,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "acheter_entreprise",
+          "pa": 3,
+          "cost": 8000
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "data.js",
+          "ligne": 4603,
+          "extrait": "{fn:'acheter_entreprise', label:'Racheter l\\'usine', pa:3, cost:8000, type:'legal', icon:'ti-building-factory', successRate:80, bientot:'Bientôt disponible : le rachat de cette usine n\\'est pas encore en place.', desc:'Bientôt disponible : le rachat de cette usine n\\'est pas encore en place.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "audience_juge",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "audience_juge",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 767,
+          "extrait": "if (fn === 'audience_juge') { ouvrirAudienceJuge(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3209,
+          "extrait": "{fn:'audience_juge', label:'Tenir l\\'audience', pa:0, cost:0, type:'legal', icon:'ti-podium', successRate:100, requiresPost:'juge', desc:'Ouvrir l\\'audience d\\'une affaire dont vous etes saisi, citer un temoin, et donner ou retirer la parole. L\\'ouverture verrouille la defense : plus de revocation ni de changement d\\'avocat.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4833,
+          "extrait": "{fn:'audience_juge', label:'Tenir l\\'audience', pa:0, cost:0, type:'legal', icon:'ti-podium', successRate:100, requiresPost:'juge', desc:'Ouvrir l\\'audience d\\'une affaire dont vous etes saisi, citer un temoin, et donner ou retirer la parole. L\\'ouverture verrouille la defense : plus de revocation ni de changement d\\'avocat.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "audience_salle",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "audience_salle",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 768,
+          "extrait": "if (fn === 'audience_salle') { ouvrirAudienceDepuisLaSalle(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3184,
+          "extrait": "{fn:'audience_salle', label:'Assister a l\\'audience', pa:0, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Entrer dans l\\'audience qui se tient ici. Vous y lisez les debats ; vous n\\'y parlez que si vous etes partie a l\\'affaire, ou si le juge vous donne la parole.'}"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4817,
+          "extrait": "{fn:'audience_salle', label:'Assister a l\\'audience', pa:0, cost:0, type:'legal', icon:'ti-gavel', successRate:100, desc:'Entrer dans l\\'audience qui se tient ici. Vous y lisez les debats ; vous n\\'y parlez que si vous etes partie a l\\'affaire, ou si le juge vous donne la parole.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "avocat_barreau",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "avocat_barreau",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 763,
+          "extrait": "if (fn === 'avocat_barreau') { ouvrirAvocatBarreau(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3230,
+          "extrait": "{fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\\'on vous propose.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4853,
+          "extrait": "{fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\\'on vous propose.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "avocat_dossiers",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "avocat_dossiers",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 764,
+          "extrait": "if (fn === 'avocat_dossiers') { ouvrirAvocatDossiers(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3229,
+          "extrait": "{fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\\'avocat dont la defense a ete acceptee. Le dossier complet de l\\'affaire, et la citation de temoins jusqu\\'a l\\'ouverture de l\\'audience.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4852,
+          "extrait": "{fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\\'avocat dont la defense a ete acceptee. Le dossier complet de l\\'affaire, et la citation de temoins jusqu\\'a l\\'ouverture de l\\'audience.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "caisse_caserne",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "caisse_caserne",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 720,
+          "extrait": "if (fn === 'caisse_caserne') { ouvrirCaisseCaserne(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5542,
+          "extrait": "{fn:'caisse_caserne', label:'Gérer la caisse de la caserne', pa:0, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'commandant', desc:'Reserve au Commandant. Solde de la caserne et reversement au Ministere de la Defense.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "calepin_campagne",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "calepin_campagne",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 716,
+          "extrait": "if (fn === 'calepin_campagne') { ouvrirCalepinCampagne(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5441,
+          "extrait": "{fn:'calepin_campagne',   label:'Consulter son calepin de campagne', pa:0, cost:0, type:'legal', icon:'ti-notebook', successRate:100, desc:'Etat de service, temps passe sous les drapeaux, competences militaires.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "camion_a_vide",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "camion_a_vide",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-camion-militaire.js",
+          "ligne": 148,
+          "extrait": "fn: 'camion_a_vide', icon: 'ti-truck-return',"
+        },
+        {
+          "fichier": "plateau-camion-militaire.js",
+          "ligne": 154,
+          "extrait": "fn: 'camion_a_vide', icon: 'ti-truck-delivery',"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 391,
+          "extrait": "if (fn === 'camion_a_vide')            { doCamionAVide(); return; }"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "camion_conduire",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "camion_conduire",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-camion-militaire.js",
+          "ligne": 142,
+          "extrait": "fn: 'camion_conduire', icon: 'ti-steering-wheel',"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 390,
+          "extrait": "if (fn === 'camion_conduire')          { doCamionConduire(); return; }"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "camion_descendre",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "camion_descendre",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-camion-militaire.js",
+          "ligne": 133,
+          "extrait": "fn: 'camion_descendre', icon: 'ti-arrow-down-circle',"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 389,
+          "extrait": "if (fn === 'camion_descendre')         { doCamionDescendre().catch(function () {}); return; }"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "camion_militaire",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "camion_militaire",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-camion-militaire.js",
+          "ligne": 165,
+          "extrait": "fn: 'camion_militaire', icon: 'ti-truck',"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 388,
+          "extrait": "if (fn === 'camion_militaire')         { doCamionMilitaire(); return; }"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "commerce_personnaliser",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "commerce_personnaliser",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 378,
+          "extrait": "if (fn === 'commerce_personnaliser') { commercePjOuvrirAtelier(); return; }"
+        },
+        {
+          "fichier": "plateau-commerce-pj.js",
+          "ligne": 726,
+          "extrait": "fn: 'commerce_personnaliser', icon: 'ti-sparkles',"
+        },
+        {
+          "fichier": "plateau-commerce-pj.js",
+          "ligne": 772,
+          "extrait": "fn: 'commerce_personnaliser', icon: 'ti-sparkles',"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "commerce_pj",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "commerce_pj",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 377,
+          "extrait": "if (fn === 'commerce_pj')              { ouvrirCommercePJ(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4080,
+          "extrait": "{fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4094,
+          "extrait": "{fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4108,
+          "extrait": "{fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4122,
+          "extrait": "{fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4166,
+          "extrait": "{fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4180,
+          "extrait": "{fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4194,
+          "extrait": "{fn:'commerce_pj', label:'Ce commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Gérer votre commerce, ou visiter la boutique du commerçant.'},"
+        },
+        {
+          "fichier": "plateau-commerce-pj.js",
+          "ligne": 721,
+          "extrait": "fn: 'commerce_pj', icon: 'ti-building-store',"
+        },
+        {
+          "fichier": "plateau-commerce-pj.js",
+          "ligne": 765,
+          "extrait": "fn: 'commerce_pj', icon: 'ti-device-desktop-analytics',"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "declencher_mutinerie",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "declencher_mutinerie",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 694,
+          "extrait": "if (fn === 'declencher_mutinerie') { doDeclencherMutinerie(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5567,
+          "extrait": "{fn:'declencher_mutinerie', label:'Declencher une mutinerie',   pa:0, cost:0,    type:'illegal', icon:'ti-flame',        successRate:100, requiresPost:'lieutenant', desc:'Retourner votre section contre l\\'armee reguliere. Acte grave et irreversible : la capture vaut 7 jours de prison.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "decorer_militaire",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "decorer_militaire",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 717,
+          "extrait": "if (fn === 'decorer_militaire') { ouvrirDecorerMilitaire(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5448,
+          "extrait": "{fn:'decorer_militaire',  label:'Decerner une decoration', pa:0, cost:0, type:'legal', icon:'ti-medal', successRate:100, desc:'Reserve au Commandant de la Caserne, au Ministre de la Defense et au chef de l\\'Etat.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "garde_republicaine",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "garde_republicaine",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 723,
+          "extrait": "if (fn === 'garde_republicaine') { ouvrirGardeRepublicaine(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2746,
+          "extrait": "{fn:'garde_republicaine', label:'Garde republicaine',           pa:0, cost:0,   type:'legal',   icon:'ti-shield-lock',    successRate:100, requiresPost:'min_def', desc:'Renforcer la Garde des trois palais nationaux pendant 24 h : x2 a x5, 50 FR par garde supplementaire sur la caisse du Ministere.'},"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261010234412_garde_republicaine.sql",
+          "ligne": 156,
+          "extrait": "('garde_republicaine', 'garde_republicaine_autorite_de_perimetre',"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "gerer_budget_interieur",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "gerer_budget_interieur",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 733,
+          "extrait": "if (fn === 'gerer_budget_interieur') { ouvrirBudgetInterieur(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2625,
+          "extrait": "{fn:'gerer_budget_interieur', label:\"Gérer le budget de l'Intérieur\", pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_int', desc:'Part de votre budget versee chaque nuit aux Douanes et au QHS, et virements ponctuels. Le QHS est a 0 % par defaut : beneficiaire reconnu, sans financement recurrent au demarrage.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "gerer_budget_justice",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "gerer_budget_justice",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 736,
+          "extrait": "if (fn === 'gerer_budget_justice') { ouvrirBudgetJustice(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2702,
+          "extrait": "{fn:'gerer_budget_justice', label:'Gérer le budget de la Justice', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, requiresPost:'min_just', desc:'Part de votre budget versee chaque nuit aux trois tribunaux territoriaux, et virements ponctuels. Les trois sont a parts egales au demarrage : un tiers chacun.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "gestion_caserne",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "gestion_caserne",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 657,
+          "extrait": "if (fn === 'gestion_caserne')             { ouvrirGestionCaserne(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2767,
+          "extrait": "{fn:'gestion_caserne', label:'Gestion de la caserne', pa:0, cost:0, type:'legal', icon:'ti-building-fortress', successRate:100, requiresPost:'min_def', desc:'Commandement de la caserne (candidatures, nomination, révocation) et budget militaire.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "greffe_affaires",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "greffe_affaires",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 769,
+          "extrait": "if (fn === 'greffe_affaires') { ouvrirAffairesPubliques(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3231,
+          "extrait": "{fn:'greffe_affaires', label:'Affaires en cours', pa:0, cost:0, type:'legal', icon:'ti-folders', successRate:100, desc:'Le registre public : qui est poursuivi, pour quelle categorie d\\'infraction, ou en est la procedure, et quels temoins sont cites. Le contenu des dossiers n\\'est pas public.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4854,
+          "extrait": "{fn:'greffe_affaires', label:'Affaires en cours', pa:0, cost:0, type:'legal', icon:'ti-folders', successRate:100, desc:'Le registre public : qui est poursuivi, pour quelle categorie d\\'infraction, ou en est la procedure, et quels temoins sont cites. Le contenu des dossiers n\\'est pas public.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "greffe_archives",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "greffe_archives",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 770,
+          "extrait": "if (fn === 'greffe_archives') { ouvrirArchivesGreffe(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3232,
+          "extrait": "{fn:'greffe_archives', label:'Archives du greffe', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'L\\'histoire procedurale des affaires closes : la suite des actes, du depot au jugement.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4855,
+          "extrait": "{fn:'greffe_archives', label:'Archives du greffe', pa:0, cost:0, type:'legal', icon:'ti-archive', successRate:100, desc:'L\\'histoire procedurale des affaires closes : la suite des actes, du depot au jugement.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "installer_equipements",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "installer_equipements",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 382,
+          "extrait": "if (fn === 'installer_equipements')    { ouvrirModalEquipements(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 312,
+          "extrait": "fn: 'installer_equipements',"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "lois_votees_an",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "lois_votees_an",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 530,
+          "extrait": "if (fn === 'lois_votees_an')     { ouvrirLoisVoteesAN(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2633,
+          "extrait": "{fn:'lois_votees_an',       label:'Lois votées par l\\'AN',      pa:0, cost:0, type:'legal', icon:'ti-gavel', successRate:100, requiresPost:'min_int', desc:'Lois adoptées par l\\'Assemblée en attente de mise en application, et lois déjà appliquées. Délai de 36 h avant sanctions gouvernementales.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "nominations_municipales",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "nominations_municipales",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 465,
+          "extrait": "if (fn === 'nominations_municipales') { ouvrirNominationsMunicipales(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3871,
+          "extrait": "{fn:'nominations_municipales', label:'Nominations', pa:0, cost:0, type:'legal', icon:'ti-user-cog', successRate:100, requiresPost:'maire', desc:'Commissaire de police, maire adjoint et directeur de l’entrepôt logistique : titulaires, candidatures, nominations et révocations.'}"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4434,
+          "extrait": "{fn:'nominations_municipales', label:'Nominations', pa:0, cost:0, type:'legal', icon:'ti-user-cog', successRate:100, requiresPost:'maire', desc:'Commissaire de police, maire adjoint et directeur de l’entrepôt logistique : titulaires, candidatures, nominations et révocations.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "parquet",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "parquet",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 520,
+          "extrait": "if (fn === 'parquet')                 { ouvrirParquet(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3207,
+          "extrait": "{fn:'parquet',   label:'Dossiers du parquet',   pa:0, cost:0,   type:'legal',   icon:'ti-scale-outline', successRate:100, requiresPost:'procureur', desc:'Reserve au Procureur de la Republique. Diligenter une enquete, prononcer un non-lieu, engager ou abandonner les poursuites, saisir le juge, citer un temoin. Chaque acte exige votre presence dans le tribunal de la ville de l\\'affaire.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4831,
+          "extrait": "{fn:'parquet',   label:'Dossiers du parquet',   pa:0, cost:0,   type:'legal',   icon:'ti-scale-outline', successRate:100, requiresPost:'procureur', desc:'Reserve au Procureur de la Republique. Diligenter une enquete, prononcer un non-lieu, engager ou abandonner les poursuites, saisir le juge, citer un temoin. Chaque acte exige votre presence dans le tribunal de la ville de l\\'affaire.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "prix_chantier",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "prix_chantier",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 4287,
+          "extrait": "{ titre: 'Information et approvisionnement du chantier', fns: ['payer_versement_chantier','vendre_materiaux_chantier','donner_materiaux_chantier','prix_chantier'] },"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 272,
+          "extrait": "if (fn === 'prix_chantier') { ouvrirPrixChantier(); return; }"
+        },
+        {
+          "fichier": "plateau-construction-commandes.js",
+          "ligne": 83,
+          "extrait": "const ordres=[{fn:'prix_chantier',label:'Prix d’achat des matériaux',icon:'ti-coins',pa:0,cost:0,type:'legal',successRate:100},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "publicite_premium",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "publicite_premium",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 4336,
+          "extrait": "{ titre: 'Petites annonces/Publicité', icon: 'ti-ad', fns: ['deposer_petite_annonce','publicite_premium'] },"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 17,
+          "extrait": "if (fn === 'publicite_premium') { ouvrirPublicitePremium(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 875,
+          "extrait": "{fn:'publicite_premium', label:'Publicité premium', pa:0, cost:0, type:'legal', icon:'ti-speakerphone', successRate:100, desc:'Créer une pleine page publicitaire gratuite en bêta pour 5 ou 10 éditions.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 1233,
+          "extrait": "{fn:'publicite_premium', label:'Publicité premium', pa:0, cost:0, type:'legal', icon:'ti-speakerphone', successRate:100, desc:'Créer une pleine page publicitaire gratuite en bêta pour 5 ou 10 éditions.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3588,
+          "extrait": "{fn:'publicite_premium', label:'Publicité premium', pa:0, cost:0, type:'legal', icon:'ti-speakerphone', successRate:100, desc:'Créer gratuitement pendant la bêta une pleine page publicitaire pour 5 ou 10 éditions.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "receptionner_chantier",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "receptionner_chantier",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 3945,
+          "extrait": "if (o.fn === 'receptionner_chantier') {"
+        },
+        {
+          "fichier": "plateau-politique.js",
+          "ligne": 4289,
+          "extrait": "{ titre: 'Fin du chantier', fns: ['receptionner_chantier'] },"
+        },
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 274,
+          "extrait": "if (fn === 'receptionner_chantier') { return receptionnerChantier(); }"
+        },
+        {
+          "fichier": "plateau-construction-commandes.js",
+          "ligne": 89,
+          "extrait": "return [{fn:'receptionner_chantier',label:'Réceptionner le bâtiment',icon:'ti-key',pa:0,cost:0,type:'legal',successRate:100}];"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "renseignement_militaire",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "renseignement_militaire",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 747,
+          "extrait": "if (fn === 'renseignement_militaire') { ouvrirRenseignementMilitaire(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2760,
+          "extrait": "{fn:'renseignement_militaire', label:'Renseignement militaire', pa:0, cost:0, type:'grey', icon:'ti-spy', successRate:100, requiresPost:'min_def', desc:'Convoquer une equipe sous couverture, ou suivre une operation en cours.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "reposer_section",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "reposer_section",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 693,
+          "extrait": "if (fn === 'reposer_section') { doReposerSection(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5561,
+          "extrait": "{fn:'reposer_section',     label:'Faire reposer la section',   pa:0, cost:0,    type:'legal',   icon:'ti-zzz',           successRate:100, requiresPost:'lieutenant', desc:'Repos quotidien de toute la section, ou qu\\'elle soit. A la caserne : retour a 12 PA. Sur le terrain : +8 PA, ou +10 sous la tente du chef de groupe. Une seule fois par jour et par soldat.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "retirer_equipement_militaire",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "retirer_equipement_militaire",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 190,
+          "extrait": "if (fn === 'retirer_equipement_militaire') { doRetirerEquipementsMilitaires(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5608,
+          "extrait": "{fn:'retirer_equipement_militaire', label:'Retirer de l\\'équipement',  pa:0, cost:0, type:'legal',   icon:'ti-backpack', successRate:100, requiresPost:'lieutenant', desc:'Reserve au chef de section. Gilets, radios, tentes, jumelles et tenues de camouflage, sur le stock reel de l\\'armurerie. Inscrit au registre.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "retirer_rations",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "retirer_rations",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 715,
+          "extrait": "if (fn === 'retirer_rations') { ouvrirRetraitRations(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5636,
+          "extrait": "{fn:'retirer_rations', label:'Emporter des rations de combat', pa:0, cost:0, type:'legal', icon:'ti-package', successRate:100, desc:'Prend des rations sur le stock du refectoire et les place dans votre inventaire. Une ration nourrit un soldat pour la journee.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "retirer_trousse",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "retirer_trousse",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 714,
+          "extrait": "if (fn === 'retirer_trousse') { doRetirerTrousse(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 5474,
+          "extrait": "{fn:'retirer_trousse', label:'Retirer une trousse de premiers secours', pa:0, cost:0, type:'legal', icon:'ti-first-aid-kit', successRate:100, desc:'Fabriquee a la demande : 1 textile + 1 medicament + 1 desinfectant pris sur le stock de l\\'infirmerie. Usage unique.'}"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "seance_parlementaire",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "seance_parlementaire",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 485,
+          "extrait": "if (fn === 'seance_parlementaire')   { ouvrirSeanceParlementaire(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2875,
+          "extrait": "{fn:'seance_parlementaire', label:'Séance parlementaire', pa:0, cost:0, type:'legal', icon:'ti-microphone', successRate:100, desc:'Suivre la séance depuis le hall. Un député sorti en signe de protestation y revient par cet écran.'}"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 2900,
+          "extrait": "{fn:'seance_parlementaire', label:'Séance parlementaire',  pa:0, cost:0,   type:'legal', icon:'ti-microphone',      successRate:100, desc:'Le débat en cours, la file des demandes de parole, et les prérogatives du Président. Les députés peuvent demander la parole, intervenir, ou quitter l\\'hémicycle en signe de protestation.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "suivre_formation",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "suivre_formation",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "data.js",
+          "ligne": 3713,
+          "extrait": "{fn:'suivre_formation', label:'Suivre une formation', pa:0, cost:0, type:'legal', icon:'ti-school', successRate:100,"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "syndicat_etudiant_gerer",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "syndicat_etudiant_gerer",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 546,
+          "extrait": "if (fn === 'syndicat_etudiant_gerer')      { ouvrirSyndicatsEtudiants(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3740,
+          "extrait": "{fn:'syndicat_etudiant_gerer', label:'Gérer un syndicat étudiant', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Les syndicats etudiants domicilies ici : adherer, gerer les membres, demander un duplicata de l\\'extrait de domiciliation.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "taux_chantier",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "taux_chantier",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 273,
+          "extrait": "if (fn === 'taux_chantier') { ouvrirTauxChantier(); return; }"
+        },
+        {
+          "fichier": "plateau-construction-commandes.js",
+          "ligne": 85,
+          "extrait": "{fn:'taux_chantier',label:'Salaire horaire des ouvriers',icon:'ti-cash',pa:0,cost:0,type:'legal',successRate:100}];"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "temoin_deposition",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "temoin_deposition",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 766,
+          "extrait": "if (fn === 'temoin_deposition') { ouvrirTemoinDepositionDepuisCommissariat(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3503,
+          "extrait": "{fn:'temoin_deposition', label:'Temoigner (convocation)', pa:0, cost:0, type:'legal', icon:'ti-message-2', successRate:100, desc:'Vous avez ete cite comme temoin : deposer librement, ou refuser de temoigner. Le refus est une reponse valide, enregistree comme telle. Votre texte est consigne mot pour mot.'}"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4745,
+          "extrait": "{fn:'temoin_deposition', label:'Temoigner (convocation)', pa:0, cost:0, type:'legal', icon:'ti-message-2', successRate:100, desc:'Vous avez ete cite comme temoin : deposer librement, ou refuser de temoigner. Le refus est une reponse valide, enregistree comme telle. Votre texte est consigne mot pour mot.'}"
+        },
+        {
+          "fichier": "historique/migrations-appliquees/20261012192823_tribunal_temoins_citations_convocations_et_racine_commune.sql",
+          "ligne": 639,
+          "extrait": "('temoin_deposition', 'Deposition de temoin', 'temoin',"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    },
+    {
+      "fn": "temoins_mes_convocations",
+      "pa": 0,
+      "cost": 0,
+      "difference_initiale": "source_seulement",
+      "present_dans_source_corrigee": true,
+      "qualification": "declaration_source_actuelle_non_presente_dans_capture",
+      "autres_couples_source": [
+        {
+          "fn": "temoins_mes_convocations",
+          "pa": 0,
+          "cost": 0
+        }
+      ],
+      "origines": [
+        {
+          "fichier": "plateau-router.js",
+          "ligne": 765,
+          "extrait": "if (fn === 'temoins_mes_convocations') { ouvrirTemoinsConvocations(); return; }"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 3183,
+          "extrait": "{fn:'temoins_mes_convocations', label:'Mes convocations de temoin', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, desc:'Les affaires ou vous avez ete cite comme temoin : le commissariat ou vous presenter, et l\\'echeance.'},"
+        },
+        {
+          "fichier": "data.js",
+          "ligne": 4816,
+          "extrait": "{fn:'temoins_mes_convocations', label:'Mes convocations de temoin', pa:0, cost:0, type:'legal', icon:'ti-user-check', successRate:100, desc:'Les affaires ou vous avez ete cite comme temoin : le commissariat ou vous presenter, et l\\'echeance.'},"
+        }
+      ],
+      "reserve": "Le nettoyage serveur doit être préparé et testé séparément ; aucune suppression de tarif effectuée en production."
+    }
+  ],
+  "extraction_dynamique_non_convertie_en_zero": [
+    {
+      "fn": "arreter",
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 334,
+      "raison": "Coût non littéral : aucun zéro fabriqué"
+    },
+    {
+      "fn": "fixer_prix_achat_entrepot",
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 5894,
+      "raison": "Coût non littéral : aucun zéro fabriqué"
+    },
+    {
+      "fn": "fixer_prix_vente_directe",
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 6797,
+      "raison": "Coût non littéral : aucun zéro fabriqué"
+    },
+    {
+      "fn": "fixer_repartition_production",
+      "fichier": "plateau-justice-economie.js",
+      "ligne": 6846,
+      "raison": "Coût non littéral : aucun zéro fabriqué"
+    },
+    {
+      "fn": "soin_public",
+      "fichier": "plateau-personnage.js",
+      "ligne": 2835,
+      "raison": "Coût non littéral : aucun zéro fabriqué"
+    },
+    {
+      "fn": "soins",
+      "fichier": "plateau-personnage.js",
+      "ligne": 2881,
+      "raison": "Coût non littéral : aucun zéro fabriqué"
+    },
+    {
+      "fn": "mobilisation_nationale",
+      "fichier": "plateau-politique.js",
+      "ligne": 13731,
+      "raison": "Coût non littéral : aucun zéro fabriqué"
+    }
+  ],
+  "production_modifiee": false
+}
