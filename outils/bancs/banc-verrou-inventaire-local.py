@@ -55,6 +55,7 @@ def main():
         assert "ajout_inventaire_interdit" in new_body
         assert "INSERT INTO public.inventaire_ecarts_observes" not in new_body
         cur.execute("GRANT USAGE ON SCHEMA public TO authenticated")
+        cur.execute("GRANT SELECT ON public.personnages_donnees, public.inventaire_ecarts_observes TO authenticated")
         cur.execute("GRANT EXECUTE ON FUNCTION public.inventaire_sauver_revision(text,bigint,jsonb) TO authenticated")
         ancien=[{"id":"bois","qty":3},{"id":"ticket"}]
         cur.execute("INSERT INTO personnages_donnees(name,user_id,inventory,inventory_revision) VALUES ('Fixture','uid-fictif',%s,5)",(Json(ancien),))
