@@ -30,12 +30,26 @@ def verifier_empreinte_complete(observe,reference):
  assert not ecarts,ecarts
  return {'conforme':True,'familles':sorted(attendu['categories'])}
 
+REFERENTIELS_1012=['postes_nommes_regles','ressources_economie','chantiers_paliers','chantiers_besoins_jour','entreprises_constantes','recettes_production','recettes_commerce','commerces_types','commerces_dotations','armureries_dotations','entreprises_prix_rachat','offres_emploi_bne']
+def verifier_referentiels(q,reference):
+ """Écarte tout clone dont un des 12 référentiels diffère du vivant."""
+ attendu=reference['referentiels']
+ assert set(attendu)==set(REFERENTIELS_1012), 'référentiel manquant ou inconnu'
+ ecarts={}
+ for nom in REFERENTIELS_1012:
+  q.execute("SELECT count(*),md5(COALESCE(jsonb_agg(to_jsonb(x) ORDER BY to_jsonb(x)::text)::text,'[]')) FROM public."+nom+" x")
+  n,h=q.fetchone();present={'lignes':int(n),'empreinte':h}
+  if present!=attendu[nom]:ecarts[nom]={'local':present,'vivant':attendu[nom]}
+ assert not ecarts,ecarts
+ return {'conformes':True,'tables':len(REFERENTIELS_1012)}
+
 def main():
  a=argparse.ArgumentParser(description=__doc__)
  for x in ['exports','registre','capture-couts','postgres-bin','rapport']:a.add_argument('--'+x,type=Path,required=True)
  a.add_argument('--caisses-source',type=Path,help='Répertoire privé des deux sources exactes PR300, aucune application distante.')
  a.add_argument('--delta-candidat',type=Path,help='Deltas documentés par sources publiques, sans certifier un export canonique frais.')
  a.add_argument('--empreinte-reference',type=Path,help='Empreinte exhaustive du catalogue vivant avant le paquet 95. Rejette la moindre différence.')
+ a.add_argument('--referentiels-reference',type=Path,help='Empreintes et cardinalités des 12 référentiels statiques du vivant.')
  a.add_argument('--gotrue-bin',type=Path)
  a.add_argument('--postgrest-bin',type=Path)
  o=a.parse_args()
@@ -89,6 +103,11 @@ def main():
     rapport['empreinte_complete_avant95']=verifier_empreinte_complete(q.fetchone()[0],reference)
     rapport['catalogue_1012_certifie']=(reference.get('empreinte',reference).get('registre',{}).get('lignes')==1012)
     assert rapport['catalogue_1012_certifie'],'La référence doit concerner le catalogue vivant 1012'
+    c.commit()
+   if o.referentiels_reference:
+    reference=json.loads(o.referentiels_reference.read_text(encoding='utf-8'))
+    assert reference.get('registre')==1012,'Référence statique de mauvaise version'
+    rapport['referentiels_1012']=verifier_referentiels(q,reference)
     c.commit()
    # Prix capturés contrôlés séparément, jamais générés depuis des données de joueur.
    q.execute('DELETE FROM ordres_couts');q.executemany('INSERT INTO ordres_couts(fn,pa,cost) VALUES(%s,%s,%s)',triples)
