@@ -12,6 +12,9 @@ ETAPES=[M,'migrations/20261031115735_securite_privee_detection_unites.sql','migr
 def chemin_source(f):
  p=R/f
  if p.exists():return p
+ # Bancs d'historique : jamais de réinstallation des copies dupliquées.
+ archive=R/'historique/migrations-appliquees/rehorodatees-219'/Path(f).name
+ if archive.is_file():return archive
  import json
  # Les copies rehorodatees deja appliquees ne font plus partie du dossier
  # migrations/ : les bancs historiques les lisent dans l'archive explicite.
