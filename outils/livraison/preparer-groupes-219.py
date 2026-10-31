@@ -5,13 +5,19 @@ from datetime import datetime
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 MAN=R/'outils/audits/LIVRAISON-GROUPES-219-20261030.json'
-def preparer(destination=None):
+def preparer(destination=None, inclure_prerequis=False):
  m=json.loads(MAN.read_text());versions=set();blocs=[]
  assert len(m['migrations'])==88, 'Le lot #219 doit conserver ses 88 migrations ; aucune omission silencieuse'
  assert [e['version'] for e in m['migrations']]==sorted(e['version'] for e in m['migrations']), 'Ordre des migrations incohérent'
  coupe=datetime.fromisoformat(json.loads((R/'baseline/CONTROLE-GLOBAL.json').read_text())['releve_le']).strftime('%Y%m%d%H%M%S')
- assert all(e['version']>coupe for e in m['migrations']), 'Versions préparées antérieures au nouveau baseline : rehorodater le lot, jamais reculer le point de coupe'
- for e in m['migrations']:
+ entrees=list(m['migrations'])
+ if inclure_prerequis:
+  prerequis=m.get('prerequis',[])
+  assert len(prerequis)==1 and prerequis[0]['fichier'].endswith('_squatteurs_issue_combat.sql'), 'Prérequis #233 exact requis, aucun glob de migrations'
+  assert prerequis[0]['version']<entrees[0]['version'],'Prérequis #233 avant le lot'
+  entrees=prerequis+entrees
+ assert all(e['version']>coupe for e in entrees), 'Versions préparées antérieures au nouveau baseline : rehorodater le lot, jamais reculer le point de coupe'
+ for e in entrees:
   p=R/e['fichier'];s=p.read_text()
   assert re.fullmatch(r'\d{14}',e['version']) and e['version'] not in versions,e
   assert p.name.startswith(e['version']+'_') and p.parent==R/'migrations',p
@@ -45,6 +51,13 @@ CREATE TEMP TABLE hg219_integrite ON COMMIT DROP AS
  SELECT (SELECT array_agg(attname::text) FROM pg_attribute WHERE attrelid='public.personnages_donnees'::regclass AND attnum>0 AND NOT attisdropped) AS champs,
  md5(coalesce(string_agg(md5(to_jsonb(d)::text),'' ORDER BY d.name),'')) AS empreinte FROM public.personnages_donnees d;
 """
+  if inclure_prerequis:
+   # Le prérequis ne doit pas être activé isolément. Il rejoint la même
+   # transaction, le même contrôle d'intégrité et le même registre que le lot.
+   sql=sql.replace(" IF to_regprocedure('public.terrain_squatteurs_issue_interne(text,text,text,uuid)') IS NULL\n OR", " IF")
+   point="END $prevol$;"
+   garde=" IF to_regprocedure('public.terrain_squatteurs_issue_interne(text,text,text,uuid)') IS NOT NULL THEN RAISE EXCEPTION '219_prerequis_233_preexistant_reconcilier';END IF;\n"
+   sql=sql.replace(point,garde+point,1)
   for e,s in blocs:sql+='\n-- FICHIER '+e['fichier']+' SHA256 '+e['sha256']+'\n'+s+'\n'
   sql+="""
 DO $integrite$
@@ -65,4 +78,4 @@ END $integrite$;
   Path(destination).write_text(sql)
  return len(blocs)
 if __name__=='__main__':
- a=argparse.ArgumentParser(description=__doc__);a.add_argument('--sortie');o=a.parse_args();print(str(preparer(o.sortie))+' migrations vérifiées ; aucune connexion ni exécution SQL.')
+ a=argparse.ArgumentParser(description=__doc__);a.add_argument('--sortie');a.add_argument('--inclure-prerequis-233',action='store_true');o=a.parse_args();print(str(preparer(o.sortie,o.inclure_prerequis_233))+' migrations vérifiées ; aucune connexion ni exécution SQL.')

@@ -243,6 +243,7 @@ def main():
     a.add_argument('--lot-219',action='store_true',help='Après reconstruction et compilation réussies seulement.')
     a.add_argument('--recette-219',action='store_true',help='Recette isolée sur le catalogue entier, sans remplacer de fonction.')
     a.add_argument('--prerequis-233',action='store_true',help='Installer explicitement la dépendance #233 manquante sur le décor local, sans la déclarer en production.')
+    a.add_argument('--paquet-complet-219',action='store_true',help='Prérequis #233 et 88 migrations dans UNE transaction, aucune activation préalable.')
     a.add_argument('--schema-seul',action='store_true',help='Épreuve explicite du catalogue, sans prétendre avoir installé les seeds du monde.')
     a.add_argument('--registre',type=Path,help='Export JSON du registre vivant complet, métadonnées seulement, requis avec --lot-219.')
     a.add_argument('--exports',type=Path,help='Quatre exports complets servant à comparer le catalogue reconstruit.')
@@ -250,6 +251,7 @@ def main():
     args=a.parse_args()
     if args.schema_seul and (args.lot_219 or args.recette_219):a.error('--schema-seul exclut installation et recette du lot')
     if (args.prerequis_233 or args.recette_219) and not args.lot_219:a.error('Pré-requis et recette exigent --lot-219')
+    if args.paquet_complet_219 and (not args.lot_219 or args.prerequis_233):a.error('Le paquet complet exige --lot-219 et exclut --prerequis-233 isolé')
     import pgserver,psycopg2
     if args.postgres_bin:
         configurer_binaires(args.postgres_bin)
@@ -285,7 +287,8 @@ def main():
                     q.execute('CREATE SCHEMA supabase_migrations;CREATE TABLE supabase_migrations.schema_migrations(version text PRIMARY KEY,name text,statements text[])')
                     q.executemany('INSERT INTO supabase_migrations.schema_migrations(version,name) VALUES(%s,%s)',[(x['version'],x.get('name')) for x in registre])
                     spec=importlib.util.spec_from_file_location('lot219',ICI.parent/'livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-                    f=Path(d)/'lot.sql';rapport['migrations_preparees']=m.preparer(str(f))
+                    f=Path(d)/'lot.sql';rapport['migrations_preparees']=m.preparer(str(f),inclure_prerequis=args.paquet_complet_219)
+                    rapport['prerequis_233_dans_transaction']=args.paquet_complet_219
                     rapport['rpc_clients_avant_lot']=verifier_rpc_clients(q)
                     if args.recette_219:temoin_integrite_local(q)
                     # Métadonnées du registre réel, pas une liste vide inventée.

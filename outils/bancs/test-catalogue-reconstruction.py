@@ -51,6 +51,26 @@ class Exports(unittest.TestCase):
   sp=importlib.util.spec_from_file_location('lot',R/'outils/livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
   d=json.loads(m.MAN.read_text());d['migrations'].pop();p=self.rep/'manifeste.json';p.write_text(json.dumps(d))
   with patch.object(m,'MAN',p),self.assertRaisesRegex(AssertionError,'88 migrations'):m.preparer()
+ def test_paquet_233_et_88_garde_un_unique_BEGIN_COMMIT(self):
+  from pglast import parse_sql
+  sp=importlib.util.spec_from_file_location('lot',R/'outils/livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  p=self.rep/'paquet.sql';self.assertEqual(m.preparer(str(p),inclure_prerequis=True),89)
+  texte=p.read_text();transactions=[x.stmt.kind.name for x in parse_sql(texte) if type(x.stmt).__name__=='TransactionStmt']
+  self.assertEqual(transactions,['TRANS_STMT_BEGIN','TRANS_STMT_COMMIT'])
+  self.assertEqual(texte.count('INSERT INTO supabase_migrations.schema_migrations'),89)
+  self.assertLess(texte.index('squatteurs_issue_combat.sql SHA256'),texte.index('securite_privee_socle_policier.sql SHA256'))
+ def test_prerequis_non_atteste_refuse_avant_ecriture(self):
+  from unittest.mock import patch
+  sp=importlib.util.spec_from_file_location('lot',R/'outils/livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  d=json.loads(m.MAN.read_text());d.pop('prerequis');p=self.rep/'manifeste.json';p.write_text(json.dumps(d));sortie=self.rep/'ne_pas_creer.sql'
+  with patch.object(m,'MAN',p),self.assertRaisesRegex(AssertionError,'Prérequis #233 exact'):m.preparer(str(sortie),inclure_prerequis=True)
+  self.assertFalse(sortie.exists())
+ def test_prerequis_retouche_refuse_avant_ecriture(self):
+  from unittest.mock import patch
+  sp=importlib.util.spec_from_file_location('lot',R/'outils/livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  d=json.loads(m.MAN.read_text());d['prerequis'][0]['sha256']='0'*64;p=self.rep/'manifeste.json';p.write_text(json.dumps(d));sortie=self.rep/'ne_pas_creer.sql'
+  with patch.object(m,'MAN',p),self.assertRaisesRegex(AssertionError,'Contenu changé'):m.preparer(str(sortie),inclure_prerequis=True)
+  self.assertFalse(sortie.exists())
  def test_nouveau_point_de_coupe_refuse_anciennes_preparations(self):
   sp=importlib.util.spec_from_file_location('lot',R/'outils/livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
   m.R=self.rep;(self.rep/'baseline').mkdir();(self.rep/'baseline/CONTROLE-GLOBAL.json').write_text('{"releve_le":"2099-01-01T00:00:00"}')

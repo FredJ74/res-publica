@@ -449,5 +449,12 @@
       "fichier": "migrations/20261031115901_combat_cibles_presence_canonique.sql",
       "sha256": "a2517d762941e8f6b2502cdb8c713b82058a69432958312c95b9ecac8d8a5407"
     }
+  ],
+  "prerequis": [
+    {
+      "version": "20261031113650",
+      "fichier": "migrations/20261031113650_squatteurs_issue_combat.sql",
+      "sha256": "ba0d95b00bb19bdf8e285debeafb17870ec0ff4b5579b6556239bbbde861116f"
+    }
   ]
 }

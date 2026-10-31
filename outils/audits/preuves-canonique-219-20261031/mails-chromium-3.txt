@@ -1,0 +1,11 @@
+✔ courrier long, réponse et Envoyer accessibles — 390 (1452.170391ms)
+✔ courrier long, réponse et Envoyer accessibles — 1280 (1480.225485ms)
+✔ contre-épreuve : ancien défilement bloqué détecté (1084.807335ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4419.102422
