@@ -60,7 +60,7 @@ de province doivent les offrir aussi. Rien n'a été ajouté sans décision.
 | Bâtiment (PSM et Montrouge) | Absent par rapport à Luthécia |
 |---|---|
 | Banque locale / Banque cheminote | **tranché le 01/11** : guichets de la Banque Nationale, mêmes procédures (compte, placements, prêt, virements ponctuels et automatiques) ; Helvetia seule garde un fonctionnement unique. Corrigé dans ce chantier (écran + migration `20261031235500`). Restent à Luthécia : coffre à louer et autorisation judiciaire (énigme du musée) |
-| Dispensaire / Hôpital | centre antipoison, transfert vers la clinique privée |
+| Dispensaire / Hôpital | **tranché le 01/11** : centre antipoison et transfert vers la clinique privée ajoutés, mêmes coûts et taux qu'à Luthécia (le transfert emmène le patient à la clinique de Luthécia). Dette commune aux trois villes : le jet de l'antipoison est encore tiré par l'écran (`Math.random`), à passer au serveur |
 | Tribunal municipal | falsifier un document, demander un juge d'instruction |
 | Hôtel du Port / Hôtel de la Victoire | suite, dîner d'affaires, rumeurs, informateur, escort, tournée, service d'étage, local à louer |
 | Centre multimodal / Gare | avion, douanes de l'aéroport, taxis caserne et QHS (sans doute voulu : l'aéroport est à la capitale) |

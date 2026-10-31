@@ -4696,6 +4696,9 @@ const BUILDINGS = {
         persons: [{name:'Infirmiere (PNJ)', role:'Soignante', rel:'neutral', job:'infirmier'}],
         orders: [
           {fn:'soin_public', label:'Soin standard', pa:0, cost:25, type:'legal', icon:'ti-bandage', successRate:100, desc:'+10 Sante, +1 PA immediat. 1 fois par jour (commun aux 3 dispensaires publics de Republia). Consomme 1 desinfectant du stock local.'},
+          // Decision de Fred (01/11/2026, audit PSM/Montrouge) : memes soins qu'au dispensaire de Luthecia.
+          {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:60, type:'legal', icon:'ti-vaccine', successRate:65, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
+          {fn:'transfert_clinique_privee', label:'Être transféré en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Meilleure prise en charge, convalescence plus rapide. 1000 FR.'},
           {fn:'vendre_ressource_medicale', label:'Fournir des ressources médicales', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre au dispensaire, depuis votre inventaire, du desinfectant.'}
         ]
       },
