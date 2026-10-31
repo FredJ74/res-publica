@@ -4,10 +4,14 @@ import argparse,importlib.util,re,tempfile,json
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 ROOT=Path(__file__).resolve().parents[2]
+_sources_spec=importlib.util.spec_from_file_location('sources_sql_bancs',ROOT/'outils/bancs/banc-audit-securite-135-local.py')
+_sources=importlib.util.module_from_spec(_sources_spec);_sources_spec.loader.exec_module(_sources)
 PARENT=ROOT/'migrations/20261031113607_catalogue_et_offrir_a_boire.sql'
 MIGRATION=ROOT/'migrations/20261031113608_luthecia_cartes_et_diners.sql'
 def definition(nom,f):
- s=f.read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',s[a:],re.S);return s[a:a+m.end()]
+ if nom in ('commerce_vendre_produit','commerce_produire','commerce_cout_revient_portion','tournee_cloturer'):return _sources.entree_historique(nom)
+ return _sources.fonction(str(f.relative_to(ROOT)),nom)
+
 def table(nom,f):
  s=f.read_text();a=s.index('CREATE TABLE public.'+nom+' (');b=s.index('\n);',a)+3;return s[a:b]
 def main():

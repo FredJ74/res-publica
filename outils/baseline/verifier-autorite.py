@@ -327,6 +327,54 @@ def fonctions_du_baseline():
     return {nom: "\n".join(v) for nom, v in defs.items()}
 
 
+def fonctions_creees_migration(texte):
+    """Déclarations immédiates ou en-têtes constants des blocs DO.
+
+    Une chaîne dans un commentaire ou une fonction non exécutée ne crée rien.
+    Les listes VALUES des adaptateurs sont lues par le parser PostgreSQL, et
+    seulement si EXECUTE format utilise bien leurs colonnes nom/arguments.
+    Aucune expression ni SQL de migration n'est exécuté par ce contrôle.
+    """
+    from pglast import parse_sql, scan
+    noms=set()
+    for raw in parse_sql(texte):
+        stmt=raw.stmt
+        if type(stmt).__name__=='CreateFunctionStmt':
+            noms.add(stmt.funcname[-1].sval)
+        if type(stmt).__name__!='DoStmt':continue
+        corps=next(x.arg.sval for x in stmt.args if x.defname=='as')
+        # Les clonages existants construisent aussi l'en-tête par replace(),
+        # puis EXECUTE s. Scanner les littéraux du DO (pas ses commentaires),
+        # sans prétendre interpréter tout PL/pgSQL ni certifier son exécution.
+        if re.search(r'\bEXECUTE\b',corps,re.I):
+            for jeton in scan(corps):
+                if jeton.name!='SCONST':continue
+                litteral=corps[jeton.start:jeton.end+1]
+                valeur=parse_sql('SELECT '+litteral)[0].stmt.targetList[0].val.val.sval
+                fixe=re.match(r'CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.([a-z_0-9]+)\s*\(',valeur,re.I)
+                if fixe:noms.add(fixe[1])
+        for m in re.finditer(r"EXECUTE\s+format\(\s*'((?:[^']|'')*)'\s*,([^;]+);",corps,re.I):
+            modele=m[1].replace("''", "'")
+            fixe=re.match(r'CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.([a-z_0-9]+)\s*\(',modele,re.I)
+            if fixe:noms.add(fixe[1]);continue
+            if not re.match(r'CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.%I\(%s\)',modele,re.I):continue
+            champs=re.match(r'\s*(\w+)\.(\w+)\s*,\s*\1\.(\w+)\s*,',m[2])
+            if not champs:continue
+            variable,champ_nom,champ_args=champs.groups()
+            boucle=re.search(r'FOR\s+'+re.escape(variable)+r'\s+IN\s+SELECT\s+\*\s+FROM\s*\(VALUES\s+(.*?)\)\s+\w+\(([^)]+)\)\s+LOOP',corps[:m.start()],re.I|re.S)
+            if not boucle:continue
+            colonnes=[x.strip() for x in boucle[2].split(',')]
+            if champ_nom not in colonnes or champ_args not in colonnes:continue
+            valeurs=parse_sql('VALUES '+boucle[1])[0].stmt.valuesLists
+            for ligne in valeurs:
+                nom=ligne[colonnes.index(champ_nom)].val.sval
+                args=ligne[colonnes.index(champ_args)].val.sval
+                if not re.fullmatch(r'[a-z_0-9]+',nom):continue
+                declaration=parse_sql('CREATE FUNCTION public.'+nom+'('+args+") RETURNS jsonb LANGUAGE plpgsql AS '';")
+                if len(declaration)==1 and type(declaration[0].stmt).__name__=='CreateFunctionStmt':noms.add(nom)
+    return noms
+
+
 def declarations_rpc_migrations():
     """Localiser une declaration sans la presenter comme une fonction deployee.
 
@@ -619,7 +667,11 @@ def main():
         # acteur_identifie » qui a vecu ici depuis le chantier 3. Une exception
         # qui nomme un objet est le symptome d'une regle manquante : on ecrit la
         # regle, et l'exception s'en va.
-        creees = set(re.findall(r"CREATE OR REPLACE FUNCTION public\.([a-z_0-9]+)\(", texte))
+        # CREATE FUNCTION et CREATE OR REPLACE ont le même effet déclaratif.
+        # Les adaptateurs privés créés par EXECUTE format('CREATE FUNCTION ...')
+        # figurent aussi ici ; cela ne constitue toujours pas une preuve de
+        # déploiement (invariant 13), seulement la déclaration dans CE fichier.
+        creees = fonctions_creees_migration(texte)
         for m in re.finditer(r"ON FUNCTION public\.([a-z_0-9]+)\(([^)]*)\)", texte):
             # LES ESPACES NE FONT PAS LA SIGNATURE. Le catalogue rend
             # « ville_est_reelle(text,text) » ; un auteur de migration ecrit

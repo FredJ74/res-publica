@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Dépendances du PostgreSQL jetable
+        run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
       - name: Syntaxe des fonctions API, sans appel distant
         run: python3 outils/bancs/verifier-syntaxe-api.py
       - name: "Portraits Jodie dans le journal quotidien"
@@ -71,8 +73,6 @@ jobs:
         run: node outils/bancs/banc-verrou-inventaire-client-20261031.cjs
       - name: Pilote joueur, fixtures locales sans compte ni Supabase
         run: npm test --prefix outils/e2e
-      - name: Dépendances du PostgreSQL jetable
-        run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
       - name: Exports canoniques complets et reconstruction des séquences, PostgreSQL jetable
         run: python3 outils/bancs/test-catalogue-reconstruction.py
       - name: Relais canonique exact, snapshot et exclusion des fichiers privés

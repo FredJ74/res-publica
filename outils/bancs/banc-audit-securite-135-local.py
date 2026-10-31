@@ -36,17 +36,30 @@ def creer_table(q,source,nom):
    q.execute(definitions[0])
  q.execute(s)
 
-def fonction(f,nom):
+def fonctions(f,nom):
  p=chemin_source(f);marque='CREATE OR REPLACE FUNCTION public.'+nom+'('
- # Le générateur découpe automatiquement les gros domaines. Le banc doit
- # retrouver la définition réelle, sans dépendre du numéro de morceau.
  candidats=sorted(p.parent.glob('20_fonctions*.sql')) if p.name.startswith('20_fonctions') else [p]
- sources=[x.read_text() for x in candidats if x.is_file() and marque in x.read_text()]
- assert len(sources)==1,(f,nom,'définition absente ou ambiguë')
- s=sources[0];a=s.index(marque)
- m=re.search(r'AS (\$\w*\$).*?\1\s*;',s[a:],re.S)
- assert m,nom
- return s[a:a+m.end()]
+ sorties=[]
+ for candidat in candidats:
+  if not candidat.is_file():continue
+  texte=candidat.read_text()
+  for position in re.finditer(re.escape(marque),texte):
+   debut=position.start();m=re.search(r'AS (\$\w*\$).*?\1\s*;',texte[debut:],re.S)
+   assert m,(f,nom,'corps SQL incomplet')
+   sorties.append(texte[debut:debut+m.end()])
+ assert sorties,(f,nom,'définition absente')
+ return sorties
+
+def fonction(f,nom):
+ return fonctions(f,nom)[0]
+
+def entree_historique(nom):
+ """Entrée épinglée d'un transformateur ancien, jamais un catalogue actuel."""
+ import json,hashlib
+ x=json.loads((R/'outils/bancs/fixtures/entrees-migrations-historiques-20261031.json').read_text())['fonctions'][nom]
+ assert hashlib.sha256(x['sql'].encode()).hexdigest()==x['sha256'],nom
+ return x['sql']
+
 
 def main():
  import pgserver,psycopg2

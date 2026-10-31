@@ -51,3 +51,22 @@ with tempfile.TemporaryDirectory() as dossier:
  const proc=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8',timeout:15000});
  assert.equal(proc.status,0,`${proc.stdout}\n${proc.stderr}`);
 });
+
+test('Authority reconnaît CREATE FUNCTION sans déclarer sa livraison en production',()=>{
+ const script=String.raw`
+import runpy
+m=runpy.run_path('outils/baseline/verifier-autorite.py',run_name='controle_importe')
+f=m['fonctions_creees_migration']
+assert f('CREATE FUNCTION public.porte(p_id text) RETURNS int LANGUAGE sql AS $$SELECT 1$$;')=={'porte'}
+assert f("DO $$ BEGIN EXECUTE format('CREATE FUNCTION public.privee(p_id text) RETURNS int LANGUAGE sql AS %L', corps);END $$;")=={'privee'}
+assert f('CREATE OR REPLACE FUNCTION public.autre() RETURNS int LANGUAGE sql AS $$SELECT 1$$;')=={'autre'}
+assert not f('REVOKE ALL ON FUNCTION public.absente(text) FROM PUBLIC;')
+dynamique="DO $$ DECLARE f record;BEGIN FOR f IN SELECT * FROM (VALUES ('ancien(text)','copie_privee','p_id text')) t(sig,prive,args) LOOP EXECUTE format('CREATE FUNCTION public.%I(%s) RETURNS jsonb LANGUAGE plpgsql AS %L',f.prive,f.args,corps);END LOOP;END $$;"
+assert f(dynamique)=={'copie_privee'}
+assert not f(dynamique.replace('f.prive,f.args','f.autre,f.args'))
+assert not f('-- CREATE FUNCTION public.faussedeclaration() RETURNS int;')
+assert 'porte' not in m['parametres_du_baseline']()
+`;
+ const p=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8'});
+ assert.equal(p.status,0,p.stdout+p.stderr);
+});
