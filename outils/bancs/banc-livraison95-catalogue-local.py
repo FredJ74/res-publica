@@ -78,10 +78,22 @@ def main():
    q.execute('CREATE SCHEMA supabase_migrations;CREATE TABLE supabase_migrations.schema_migrations(version text PRIMARY KEY,name text,statements text[])')
    q.executemany('INSERT INTO supabase_migrations.schema_migrations(version,name) VALUES(%s,%s)',[(x['version'],x.get('name')) for x in registre])
    if o.delta_candidat:
-    delta=json.loads(o.delta_candidat.read_text());assert delta['registre_base']==len(registre);c.commit()
+    delta=json.loads(o.delta_candidat.read_text())
+    if 'registre_base' not in delta:
+     # Format certifié de Claude #302 : 10 lignes, dont « genre » déjà dans le registre 1003.
+     assert len(registre)==1003 and len(delta['migrations'])==10,'Delta 1012 réservé au registre privé 1003'
+     assert all(x['concorde'] and x['md5_normalise_registre']==(x['md5_normalise_fichier_sans_enveloppe'] if x['enveloppe_retiree_par_supabase'] else x['md5_normalise_fichier']) for x in delta['migrations']),'Delta non certifié'
+     versions_base={x['version'] for x in registre}
+     delta={**delta,'registre_base':1003,'migrations':[{'fichier':x['fichier'],'sha256':x['sha256_fichier'],'version_observee':x['version_registre'],'nom_rapporte':x['nom_registre'],'statut':'deja_dans_1003' if x['version_registre'] in versions_base else 'appliquee'} for x in delta['migrations']]}
+     assert sum(x['statut']=='deja_dans_1003' for x in delta['migrations'])==1,'Une seule migration préexistante attendue'
+    assert delta['registre_base']==len(registre);c.commit()
     for entree in delta['migrations']:
      if entree['fichier']:
       p=R/entree['fichier'];assert hashlib.sha256(p.read_bytes()).hexdigest()==entree['sha256']
+     if entree['statut']=='deja_dans_1003':
+      assert entree['version_observee'] in {x['version'] for x in registre}
+      continue
+     if entree['fichier']:
       # Une session distincte comme pour les opérations d'origine : pg_temp ne fuit pas.
       autre=psycopg2.connect(srv.get_uri())
       try:
@@ -91,6 +103,8 @@ def main():
      else:assert entree['statut']=='donnees_uniquement_non_rejouees'
      # Métadonnées rapportées, jamais prétendues extraites par ce banc.
      q.execute('INSERT INTO supabase_migrations.schema_migrations(version,name) VALUES(%s,%s)',(entree['version_observee'],entree['nom_rapporte']));c.commit()
+    q.execute('SELECT count(*) FROM supabase_migrations.schema_migrations')
+    assert q.fetchone()[0]==1012,'Registre local non 1012 après le delta certifié'
     rapport['delta_candidat']=delta;rapport['catalogue_candidat_non_certifie']=True;rapport['comparaison_exports']='avant_delta_candidat_uniquement'
     attendus={'organisation_ordre_financier':'73b9d936361d5c158b0bdfae44cf0db8','organisation_adhesion_payante':'f47b4e550f62fe6e1cfbf6c1d0c10cb7','club_supporters_cotiser':'b9324e4f910534fa6f03056bf91da5a7','club_sponsoriser':'d5a1250fbf53e53a32169bbbc8245b12','club_transfert_conclure':'fe760fbedd1bd7cafbf691bdccc45481'}
     q.execute("SELECT proname,md5(regexp_replace(prosrc,E'\\n[ \\t]*--[^\\n]*','','g')),has_function_privilege('authenticated',oid,'EXECUTE') FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=ANY(%s)",(list(attendus),));finances=q.fetchall();rapport['contrats_financiers_candidat']=finances;rapport['contrats_financiers_attendus_releve']=attendus;q.execute("SELECT proname,md5(prosrc),md5(pg_get_functiondef(oid)) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=ANY(%s)",(list(attendus),));rapport['objets_haches_distincts_candidat']=q.fetchall();assert len(finances)==5 and all(h==attendus[n] and droit for n,h,droit in finances),finances
