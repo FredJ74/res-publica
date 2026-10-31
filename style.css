@@ -2195,7 +2195,9 @@ body.plateau-body .top-right {
 .modal-body{overflow-wrap:anywhere}
 .modal-box :is(input:not([type=checkbox]):not([type=radio]),select,textarea){box-sizing:border-box;max-width:100%}
 .cpj-dialogue{padding:.8rem;box-sizing:border-box;max-width:100%;overflow-wrap:anywhere}
-.cpj-dialogue :is(button,input,select,textarea){font-size:max(.85rem,13px)!important;line-height:1.45;min-height:36px}
+/* Lisibilite des pop-up d'interaction PJ : corps de texte et controles lisibles sans toucher aux autres modales. */
+.cpj-dialogue{font-size:1rem;line-height:1.55}
+.cpj-dialogue :is(button,input,select,textarea){font-size:1rem!important;line-height:1.5;min-height:36px}
 .cpj-dialogue :is(button,input,select,textarea):focus-visible{outline:2px solid #e5c477;outline-offset:2px}
 .compte-mot-de-passe{display:grid;gap:.65rem;margin-top:.7rem}
 .compte-mot-de-passe label{display:grid;gap:.3rem}
