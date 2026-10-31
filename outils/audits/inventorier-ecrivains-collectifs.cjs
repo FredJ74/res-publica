@@ -12,13 +12,21 @@ const targets = [
   { table: 'budgets_clubs', facade: 'sbSaveBudgetClub' }
 ];
 const js = fs.readdirSync(root).filter(x => x.endsWith('.js')).sort();
+const extraPatterns = [
+  {table:'organisations', symbol:'rest/v1/organisations'},
+  {table:'budgets_clubs', symbol:'rest/v1/budgets_clubs'},
+  {table:'organisations', symbol:"from('organisations')"},
+  {table:'organisations', symbol:'from("organisations")'},
+  {table:'budgets_clubs', symbol:"from('budgets_clubs')"},
+  {table:'budgets_clubs', symbol:'from("budgets_clubs")'}
+];
 const lines = [];
 for (const file of js) {
   const text = fs.readFileSync(path.join(root, file), 'utf8');
-  for (const t of targets) {
-    for (const symbol of [t.facade, ...['sbUpsert', 'sbPatch', 'sbPost', 'sbDelete'].flatMap(fn => [
+  for (const t of [...targets, ...extraPatterns.map(p => ({table:p.table, facade:p.symbol}))]) {
+    for (const symbol of [...new Set([t.facade, ...['sbUpsert', 'sbPatch', 'sbPost', 'sbDelete'].flatMap(fn => [
       `${fn}('${t.table}'`, `${fn}(\"${t.table}\"`, `${fn}(\x60${t.table}\x60`
-    ])]) {
+    ])])] ) {
       let offset = 0;
       while ((offset = text.indexOf(symbol, offset)) !== -1) {
         const line = text.slice(0, offset).split('\n').length;
