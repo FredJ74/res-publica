@@ -3,6 +3,8 @@
 from pathlib import Path
 import importlib.util,re
 R=Path(__file__).resolve().parents[2]
+import runpy
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 def scenario(q,own,call,check,uid,snapshot,Json):
  spec=importlib.util.spec_from_file_location('base2',R/'outils/bancs/banc-inventaire-receptions-local.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
  for table,domain in [('mariages','personnage-et-presence'),('etat_civil_naissances','personnage-et-presence'),('etat_civil_deces','personnage-et-presence'),('successions','personnage-et-presence'),('villes','immobilier-et-territoire'),('postes_attribues','postes-et-institutions')]:
@@ -10,7 +12,7 @@ def scenario(q,own,call,check,uid,snapshot,Json):
  own("ALTER TABLE personnages_donnees ADD COLUMN created_at timestamp without time zone DEFAULT now();ALTER TABLE personnages_donnees ADD COLUMN poste jsonb;")
  own(m.fonction('baseline/domaines/politique-et-elections/20_fonctions.sql','poste_est_atteste'))
  for _ in range(2):
-  for file in ['20261027214000_inventaire_etat_civil_catalogue.sql','20261027214001_inventaire_etat_civil_documents.sql']:own((R/'migrations'/file).read_text())
+  for file in ['20261027214000_inventaire_etat_civil_catalogue.sql','20261027214001_inventaire_etat_civil_documents.sql']:own(_sources['chemin_source']('migrations/'+file).read_text())
  own("INSERT INTO ordres_couts VALUES('acte_officiel_notaire',1,100),('acte_officiel_mairie',1,0),('acte_officiel_juge',1,0),('acte_officiel',1,50)")
  own("INSERT INTO villes VALUES('republic','capitale','Luthécia',true,1);INSERT INTO etat_civil_naissances VALUES('n1','Fixture','republic','capitale','2020-01-02T12:00:00Z')")
  own("UPDATE personnages_donnees SET current_building='office-notarial',current_room='bureau_contrats',inventory='[]',liquide=100,arg=300,pa=30 WHERE name='Fixture'")

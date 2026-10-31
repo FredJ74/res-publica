@@ -4,6 +4,8 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import re,tempfile,json
 R=Path(__file__).resolve().parents[2]
+import runpy
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 def main():
  import pgserver,psycopg2
  srv=pgserver.get_server(tempfile.mkdtemp(prefix='hg-terrain-'),cleanup_mode='delete')
@@ -16,9 +18,9 @@ def main():
   INSERT INTO personnages_donnees VALUES('Fixture','republic','capitale','terrain-a-batir-1'),('Autre','republic','capitale','terrain-a-batir-1');
   INSERT INTO terrains_etat VALUES('republic_terrain-a-batir-1','republic','terrain-a-batir-1',NULL,'{"city":"capitale","surface":1234,"prix":5678}',now());''')
   q.execute('ALTER TABLE personnages_donnees ADD COLUMN id uuid DEFAULT gen_random_uuid() NOT NULL UNIQUE')
-  source=(R/'baseline/domaines/immobilier-et-territoire/20_fonctions.sql').read_text()
+  # Découpage du catalogue résolu par le lecteur commun.
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:
-   a=source.index('CREATE OR REPLACE FUNCTION public.'+fn+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',source[a:],re.S);q.execute(source[a:a+m.end()])
+   q.execute(_sources['fonction']('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn))
   sql=(R/'migrations/20261031113627_terrain_occupation_visites.sql').read_text();q.execute(sql)
   q.execute((R/'migrations/20261031113643_terrain_visites_fermeture_changement_ville.sql').read_text())
   n=0

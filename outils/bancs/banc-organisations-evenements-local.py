@@ -2,7 +2,9 @@
 """SQL, payer_ordre et triggers archives reels ; identite/banque de fixture, jamais Supabase."""
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
-import tempfile,json,re
+import tempfile,json,re,runpy
+R=Path(__file__).resolve().parents[2]
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 
 def main():
  import pgserver,psycopg2
@@ -12,14 +14,14 @@ def main():
  q.execute("INSERT INTO personnages_donnees VALUES ('Alice','republic',10,10,2000,2500),('Bob','republic',10,0,100,100),('Charlie','narco',10,3,0,0)")
  q.execute("CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$SELECT nullif(current_setting('hg.acteur',true),'')$$;CREATE FUNCTION est_appel_serveur() RETURNS boolean LANGUAGE sql AS $$SELECT false$$;CREATE FUNCTION exiger_acteur(text) RETURNS void LANGUAGE plpgsql AS $$BEGIN IF $1 IS DISTINCT FROM mon_personnage() THEN RAISE EXCEPTION 'acteur_refuse'; END IF;END$$")
  def table(domaine,nom):
-  s=(r/f'baseline/domaines/{domaine}/10_tables.sql').read_text();a=s.index('CREATE TABLE public.'+nom+' (');b=s.index('\n);',a)+3;q.execute(s[a:b])
+  _sources['creer_table'](q,(r/f'baseline/domaines/{domaine}/10_tables.sql').read_text(),nom)
  for nom in ['mails','mails_envois_systeme','forum_topics','forum_posts']:table('communication',nom)
  for nom in ['ordres_couts','ordres_couts_inconnus','ordres_couts_ecarts']:table('economie',nom)
  table('politique-et-elections','presidence_memoire_ordres')
  for nom in ['mails','forum_topics','forum_posts']:q.execute(f'ALTER TABLE {nom} ADD PRIMARY KEY(id)')
  q.execute("INSERT INTO ordres_couts VALUES ('declencher_election_club',1,0),('declencher_election_syndicat',1,0)")
  def fonction(fichier,nom):
-  s=(r/fichier).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');b=s.index('$function$;',a)+len('$function$;');q.execute(s[a:b])
+  q.execute(_sources['entree_historique'](nom) if nom=='payer_ordre' else _sources['fonction'](fichier,nom))
  fonction('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
  for nom in ['mails_journaliser_envoi_systeme','forum_verrou_compte_rendu_journee','forum_verrou_local_territorial','forum_verrou_message_ligue','forum_verrou_programme_officiel']:
   fonction('baseline/domaines/communication/20_fonctions.sql',nom)

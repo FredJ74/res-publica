@@ -36,7 +36,7 @@ def main(suite_callback=None):
   INSERT INTO ordres_couts VALUES('negocier_squatteurs',1,0);
   INSERT INTO indices_villes VALUES('republic_capitale','{"social":50}');''')
   def charger(path,fn,tous=False):
-   definitions=_sources.fonctions(path,fn)
+   definitions=[_sources.entree_historique(fn)] if fn=='payer_ordre' else _sources.fonctions(path,fn)
    for texte in definitions if tous else definitions[:1]:q.execute(texte)
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:charger('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn)
   charger('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')

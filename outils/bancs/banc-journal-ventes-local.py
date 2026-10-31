@@ -3,6 +3,8 @@
 from pathlib import Path
 import re,tempfile,json
 R=Path(__file__).resolve().parents[2]
+import runpy
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 def main():
  import pgserver,psycopg2
  s=pgserver.get_server(tempfile.mkdtemp(prefix='hg-ventes96-'),cleanup_mode='delete');db=psycopg2.connect(s.get_uri());db.autocommit=True;c=db.cursor();n=0
@@ -14,7 +16,7 @@ def main():
   for dom,tab in [('economie','ventes_snapshots'),('economie','entreprises'),('personnage-et-presence','personnages_donnees')]:
    src=(R/f'baseline/domaines/{dom}/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public\.'+tab+r' \(.*?\n\);',src,re.S)[0])
   c.execute("ALTER TABLE ventes_snapshots ADD PRIMARY KEY(id);ALTER TABLE ventes_snapshots ADD UNIQUE(requete);ALTER TABLE personnages_donnees ADD PRIMARY KEY(name)")
-  src=(R/'baseline/domaines/economie/20_fonctions-2.sql').read_text();a=src.index('CREATE OR REPLACE FUNCTION public.ventes_snapshots_append_only()');b=src.index('$function$;',src.index('AS $function$',a))+len('$function$;');c.execute(src[a:b]);c.execute('CREATE TRIGGER vente_immuable BEFORE UPDATE OR DELETE ON ventes_snapshots FOR EACH ROW EXECUTE FUNCTION ventes_snapshots_append_only()')
+  c.execute(_sources['fonction']('baseline/domaines/economie/20_fonctions-2.sql','ventes_snapshots_append_only'));c.execute('CREATE TRIGGER vente_immuable BEFORE UPDATE OR DELETE ON ventes_snapshots FOR EACH ROW EXECUTE FUNCTION ventes_snapshots_append_only()')
   sql=(R/'historique/migrations-appliquees/20261022203000_journal_ventes_commerces.sql').read_text();c.execute(sql);c.execute(sql)
   c.execute("INSERT INTO personnages_donnees(name,country,user_id,id) VALUES('Proprio','republic','00000000-0000-4000-8000-000000000096','00000000-0000-4000-8000-000000000196'),('Tiers','republic','00000000-0000-4000-8000-000000000097','00000000-0000-4000-8000-000000000197');INSERT INTO entreprises(id,data) VALUES('fonds','{\"proprietaire\":\"Proprio\",\"enseigne\":\"Slava Chocolaterie\"}')")
   def vente(req):c.execute("INSERT INTO ventes_snapshots(requete,jour_paris,acheteur,vendeur,fonds_id,reference_id,nom_commercial,generique_id,quantite,prix_unitaire,montant_total,fiche_officielle) VALUES(%s,'2026-10-22','Arnie','Proprio','fonds','chocolat','Chocolat chaud','chocolat',1,20,20,'{}') ON CONFLICT(requete) DO NOTHING",(req,))

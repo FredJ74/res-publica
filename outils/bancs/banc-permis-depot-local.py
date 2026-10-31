@@ -4,6 +4,8 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import re,tempfile,json
 R=Path(__file__).resolve().parents[2]
+import runpy
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 def main():
  import pgserver,psycopg2
  serveur=pgserver.get_server(tempfile.mkdtemp(prefix='hg-permis-'),cleanup_mode='delete')
@@ -30,7 +32,7 @@ def main():
   INSERT INTO ordres_couts VALUES('deposer_demande_permis',2,0);
   INSERT INTO terrains_etat VALUES('republic_terrain','republic','terrain','Fixture','{"city":"capitale","proprietaire":"Fixture","surface":900}',now());''')
   def charger(path,fn):
-   src=(R/path).read_text();a=src.index('CREATE OR REPLACE FUNCTION public.'+fn+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',src[a:],re.S);q.execute(src[a:a+m.end()])
+   q.execute(_sources['entree_historique'](fn) if fn=='payer_ordre' else _sources['fonction'](path,fn))
   for fn in ['terrain_etat_verrouiller_interne','terrain_etat_fusionner_interne']:
    charger('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn)
   charger('outils/bancs/banc-fixture-terrain-permis-acte-avant-depot.sql','terrain_permis_acte')

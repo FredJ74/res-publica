@@ -6,6 +6,8 @@ import argparse, tempfile
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 ROOT=Path(__file__).resolve().parents[2]
+import runpy
+_sources=runpy.run_path(str(ROOT/'outils/bancs/banc-audit-securite-135-local.py'))
 SCHEMA="""
 CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
 CREATE TABLE entreprises(id text PRIMARY KEY,data jsonb,updated_at timestamptz);
@@ -31,7 +33,8 @@ INSERT INTO entreprises_constantes VALUES('pa_tournee',1);
 INSERT INTO recettes_commerce VALUES('biere','boisson','Biere','{}',NULL,NULL,NULL,NULL,NULL);
 """
 def extraire(nom,fichier):
- s=(ROOT/fichier).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');b=s.index('$function$;',a)+len('$function$;');return s[a:b]
+ if fichier.startswith('baseline/') and nom in ('commerce_vendre_produit','commerce_produire','tournee_cloturer'):return _sources['entree_historique'](nom)
+ return _sources['fonction'](fichier,nom)
 def main():
  p=argparse.ArgumentParser();p.add_argument('--local-jetable',action='store_true',required=True);p.parse_args()
  import pgserver,psycopg2

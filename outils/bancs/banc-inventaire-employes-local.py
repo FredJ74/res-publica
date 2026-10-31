@@ -5,11 +5,14 @@ Aucune conversion des anciennes charges ni aucun acces distant.
 from pathlib import Path
 import importlib.util,re
 R=Path(__file__).resolve().parents[2]
+import runpy
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 def scenario(q,own,call,check,uid,snapshot,Json):
  import psycopg2
  spec=importlib.util.spec_from_file_location('base2',R/'outils/bancs/banc-inventaire-receptions-local.py');mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
  s=(R/'baseline/domaines/socle-PNJ/10_tables.sql').read_text()
- for table in ['pnj_membres','pnj_possessions','pnj_institutions']:own(re.search(r'CREATE TABLE public\.'+table+r' \([\s\S]*?\n\);',s)[0])
+ q.execute('RESET ROLE')
+ for table in ['pnj_membres','pnj_possessions','pnj_institutions']:_sources['creer_table'](q,s,table)
  own('ALTER TABLE pnj_membres ADD PRIMARY KEY(id);ALTER TABLE pnj_possessions ADD PRIMARY KEY(id);ALTER TABLE pnj_possessions ENABLE ROW LEVEL SECURITY;ALTER TABLE personnages_donnees ADD COLUMN employes jsonb DEFAULT \'[]\';ALTER TABLE personnages_donnees ADD COLUMN quete_carriere jsonb;')
  for fn in ['pnj_autorite_de_perimetre','pnj_autorite_de','pnj_peut_administrer','pnj_position_effective','pnj_co_present','pnj_possessions_lire']:
   own(mod.fonction('baseline/domaines/socle-PNJ/20_fonctions.sql',fn))

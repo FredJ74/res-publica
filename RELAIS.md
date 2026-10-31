@@ -164,3 +164,9 @@ Le lecteur de la fixture restaurant substituait l’entrée historique `commerce
 Le relais canonique contient cinq nombres/empreintes et dix tables de seeds, mais **aucun contenu des 438 triples `ordres_couts`**. Impossible d’attribuer les onze de différence nette à des clés sans ces lignes. `comparer-couts-captures.py` compare les ensembles réels, refuse doublons/types invalides, et fournit la requête strictement en lecture seule ; ne touche à aucun vérificateur ni référence. Contre-épreuve : +11 peut signifier +12/-1, pas forcément onze absences.
 
 Main relu via le credential helper GitHub CLI existant : toujours `59ea6d90`, déjà intégré. API Actions encore Forbidden, pas de conclusion distante revendiquée. Aucun accès Supabase vivant exposé, aucune production modifiée. Continuer contrôles et preuves, puis pousser par le même helper ; pas de fusion.
+
+### #219 — suite du workflow au-delà du premier arrêt (31/10)
+
+La passe intégrale des commandes Python du workflow a trouvé 13 autres bancs bloqués par découpage/archives, séquences explicites et entrées de transformations devenues différentes. Lecteur existant réutilisé, chemins de migrations résolus par le classement, listes de versions explicites à la place des anciens globs vides. Les décors des transformations historiques épinglent leurs entrées publiques d’origine (SHA256), sans modifier une garde ni le SQL de production. Les assertions et contre-épreuves d’inventaire sont conservées ; aucun verrou d’inventaire modifié.
+
+Les équipements collectifs restent incompatibles avec le payeur entier du catalogue capturé : refus des 5,50 FR vérifié sans débit dans le banc, avant chargement des entrées historiques cohérentes. Cette préparation d’organisations n’entre PAS dans les 89 migrations #219 ; son succès historique ne vaut pas feu vert de production. Continuer la passe complète du workflow et publier les résultats, sans prétendre 6/6 distants tant que l’API refuse l’accès.
