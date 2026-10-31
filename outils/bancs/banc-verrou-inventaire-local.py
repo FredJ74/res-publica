@@ -45,7 +45,7 @@ def main():
               ON public.personnages_donnees FOR EACH ROW
               EXECUTE FUNCTION public.fixture_inventaire_revision();
         """)
-        cur.execute((ROOT / "outils/bancs/fixtures/inventaire-sauver-revision-production-20261031.sql").read_text())
+        cur.execute((ROOT / "historique/fixtures-bancs/inventaire-sauver-revision-production-20261031.sql").read_text())
         cur.execute("SELECT md5(pg_get_functiondef('public.inventaire_sauver_revision(text,bigint,jsonb)'::regprocedure))")
         hash_before=cur.fetchone()[0]
         assert hash_before=="57e01e4f842ef10ea8dd01dc99b3de9a", ("empreinte PG differente",hash_before)
