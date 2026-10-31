@@ -3045,6 +3045,8 @@ async function confirmerVendreRessourceMedicaleUI(buildingId, ressource) {
 // client envoie un lieu qui n'est pas celui ou le serveur croit le joueur. Nommer le motif rendra
 // donc aussi visible la divergence de position, si c'est elle qui a frappe.
 const MOTIFS_REFUS_CHAMBRE = {
+  tarif_local_introuvable: ['Tarif indisponible', 'Le prix de la chambre n\'a pas ete retrouve pour cette piece. Rechargez la page ; aucun paiement n\'a ete tente.'],
+  paiement_indisponible: ['Paiement indisponible', 'Le service de paiement n\'a pas confirme la transaction. Aucun achat n\'est confirme ; verifiez vos reservations avant de reessayer.'],
   pa_insuffisants: ['PA insuffisants', 'Vous n\'avez pas assez de points d\'action.'],
   fonds_insuffisants: ['Fonds insuffisants', 'Le montant requis dépasse vos fonds disponibles.'],
   introuvable: ['Hôtel indisponible', 'Le commerce de cet établissement est introuvable côté serveur.'],
@@ -3096,7 +3098,13 @@ async function doReserverChambreHotel(pa) {
   const bonus = confortMap[state.currentBuilding] || { moral: 2, paBonus: 1 };
   const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
   const ordre = room?.orders?.find(o => o.fn === 'reserver_chambre_hotel');
-  const cout = ordre?.cost || 60;
+  // Le prix doit etre celui de l'ordre affiche, jamais un repli arbitraire (60 FR).
+  // En cas de decalage de piece/chargement, refuser avant tout paiement.
+  if (!ordre || !Number.isFinite(Number(ordre.cost)) || Number(ordre.cost) <= 0) {
+    signalerRefusReservationChambre({ raison: 'tarif_local_introuvable' }, 0);
+    return;
+  }
+  const cout = Number(ordre.cost);
   // CHANTIER C / PHASE 3. Le Republica encaisse dans SA caisse d'entreprise : prelevement et
   // credit doivent alors se faire dans la MEME transaction serveur, sinon l'un peut aboutir
   // sans l'autre. Les autres hotels versent dans une caisse institutionnelle et gardent le
