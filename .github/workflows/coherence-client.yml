@@ -53,6 +53,8 @@ jobs:
         run: node outils/bancs/banc-destinations-multimodal-20261028.cjs
       - name: Signature chez le notaire, solde encaissé par le serveur seul
         run: node outils/bancs/banc-acte-notaire-solde.cjs
+      - name: Caisses communales à l'accueil, ordre de l'Hôtel de Ville retiré
+        run: node outils/bancs/banc-caisses-accueil-communal.cjs
       - name: Fiche PJ jamais autoritaire (fusion à trois voies, double clic, réponse perdue)
         run: node outils/bancs/banc-fiche-verite-serveur-20261030.cjs
       - name: Création de personnage après réponse réseau perdue

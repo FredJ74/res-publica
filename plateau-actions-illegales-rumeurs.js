@@ -3717,7 +3717,7 @@ const BUILDING_COMMERCE_TYPE = {
 // caisse INSTITUTIONNELLE du batiment dont ils dependent, jamais data.caisse) -- generalise le
 // cas pionnier de la buvette du stade (lot 5) au marche (lot Marche de Luthecia, 21 aout 2026).
 // Cle = data.type, valeur = categorie passee a getCaisseLocaleId(categorie, ville). La caisse
-// "Marche" existe deja independamment de ce lot (Consulter les caisses communales / Repartir le
+// "Marche" existe deja independamment de ce lot (caisse affichée à l'accueil du marché / Repartir le
 // budget municipal, mairie-capitale la suivent depuis le lot des caisses locales, 16 aout 2026) --
 // ce lot ne fait qu'y raccorder une vraie vente, il ne cree aucune nouvelle caisse.
 const COMMERCE_SANS_CAISSE_AUTONOME = { buvette: 'stade', marche: 'marche' };
