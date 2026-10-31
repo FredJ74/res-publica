@@ -59,6 +59,10 @@ jobs:
         run: node --test outils/bancs/banc-occupation-actions-client.cjs
       - name: Caisses communales à l'accueil, ordre de l'Hôtel de Ville retiré
         run: node outils/bancs/banc-caisses-accueil-communal.cjs
+      - name: Publications forum institutionnelles acceptées par la base (sondage, affaire, retrait)
+        run: node outils/bancs/banc-forum-auteur-institutionnel.cjs
+      - name: Avis personnels signés d'expéditeurs déclarés
+        run: node --test outils/bancs/banc-avis-personnels-expediteurs.mjs
       - name: Caisses entières, dialogues lisibles et genre non supposé
         run: node outils/bancs/banc-caisses-dialogue-lisibilite-20261031.cjs
       - name: Fiche PJ jamais autoritaire (fusion à trois voies, double clic, réponse perdue)

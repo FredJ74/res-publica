@@ -1407,8 +1407,11 @@ async function confirmerRetraitProposition(propId) {
   const prop = res.proposition || {};
   if (prop.forum_topic_id && typeof sbCreatePost === 'function') {
     const time = (typeof formatDateHeureJeu === 'function') ? formatDateHeureJeu() : new Date().toLocaleString('fr-FR');
+    // Signe par le Secretariat, porte par l'auteur du retrait (author_real) : sans ce lien la
+    // politique RLS de forum_posts refusait l'insertion et le retrait n'etait jamais annonce.
     await sbCreatePost(prop.forum_topic_id, 'Secrétariat de l\'Assemblée',
-      '— — — PROJET RETIRÉ PAR SON AUTEUR — — —', time).catch(() => {});
+      '— — — PROJET RETIRÉ PAR SON AUTEUR — — —', time, true, false, [], null,
+      state.char?.name || null, null, '🏛️').catch(() => {});
   }
   showToast('Projet retiré', (prop.titre || 'Le projet') + ' est retiré de l\'ordre du jour.', true);
   addJournalEntry('Retrait du projet « ' + (prop.titre || '') + ' ».', 'event-info');
