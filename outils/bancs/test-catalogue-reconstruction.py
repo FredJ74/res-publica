@@ -60,6 +60,27 @@ class Exports(unittest.TestCase):
  def test_sequence_incomplete_refusee_sans_valeur_inventee(self):
   with self.assertRaisesRegex(ValueError,'réextraire'):rendre.options_sequence({'sequence':'x','start':1})
 
+ def test_classification_non_relevee_reste_un_echec_explicitement(self):
+  import io,contextlib
+  from unittest.mock import patch
+  sp=importlib.util.spec_from_file_location('classification',R/'outils/baseline/verifier-classification.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  p=self.rep/'classification.csv';p.write_text('table;domaine;categorie;strategie;lignes_actuelles;justification;arbitrage\nfixture;socle;A;seed_complet;non_releve;Référentiel indispensable au moteur serveur;\n')
+  sortie=io.StringIO()
+  with patch.object(m,'CSV',str(p)),contextlib.redirect_stdout(sortie):self.assertEqual(m.main(),1)
+  self.assertIn('relevé',sortie.getvalue())
+ def test_options_bigint_en_texte_sans_perte(self):
+  seq={'sequence':'fixture','type':'bigint','start':'1','increment':'1','min':'1','max':'9223372036854775807','cache':'1','cycle':False}
+  self.assertIn('MAXVALUE 9223372036854775807',rendre.options_sequence(seq))
+  self.assertEqual(seq['max'],'9223372036854775807')
+ def test_arrondi_transport_bigint_refuse_avant_rendu(self):
+  seq={'sequence':'fixture','type':'bigint','start':1,'increment':1,'min':1,'max':9223372036854776000,'cache':1,'cycle':False}
+  self.valeurs['export_structure']['sequences']=[seq];self.ecrire()
+  with self.assertRaisesRegex(ValueError,'sans arrondi'):rendre.charger_exports(str(self.rep))
+ def test_options_invalides_ne_sont_pas_corrigees_silencieusement(self):
+  seq={'sequence':'fixture','type':'integer','start':1,'increment':1,'min':1,'max':900,'cache':1,'cycle':False}
+  for cle,val in [('start',901),('increment',0),('cache',0),('max','1.5'),('min',True),('max',2147483648)]:
+   with self.subTest(cle=cle,val=val),self.assertRaises(ValueError):rendre.options_sequence(dict(seq,**{cle:val}))
+
 class PostgreSQL(unittest.TestCase):
  @classmethod
  def setUpClass(cls):
@@ -68,6 +89,22 @@ class PostgreSQL(unittest.TestCase):
  @classmethod
  def tearDownClass(cls):cls.c.close();cls.s._cleanup();cls.tmp.cleanup()
  def tearDown(self):self.c.rollback()
+ def test_comparaison_echouee_ne_retourne_pas_un_code_de_succes(self):
+  import io,contextlib
+  from unittest.mock import patch
+  sp=importlib.util.spec_from_file_location('epreuve',R/'outils/baseline/epreuve-postgresql.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  with tempfile.TemporaryDirectory() as d:
+   rep=Path(d);rapport=rep/'rapport.json';exp=rep/'exports';exp.mkdir()
+   for cle,keys in rendre.EXPORTS_ATTENDUS.items():(exp/(cle+'.json')).write_text(json.dumps({cle:{k:[] for k in keys}}))
+   args=['epreuve','--rapport',str(rapport),'--exports',str(exp)]
+   with patch.object(m,'assembler',return_value=([('fixture','CREATE TABLE public.fixture_ecart(id integer);')],None)),patch.object(sys,'argv',args),contextlib.redirect_stdout(io.StringIO()):self.assertEqual(m.main(),1)
+   v=json.loads(rapport.read_text());self.assertTrue(v['reconstruction']);self.assertFalse(v['fidelite_catalogue_vivant']);self.assertIn('erreur',v)
+ def test_controle_global_contient_les_champs_lus_par_le_verificateur(self):
+  self.q.execute('CREATE SCHEMA supabase_migrations;CREATE TABLE supabase_migrations.schema_migrations(version text,name text)')
+  self.q.execute(requetes.requete_controle_global());v=self.q.fetchone()[0]
+  self.assertIn('colonnes_de_vues',v['totaux'])
+  self.assertIn('fonctions_security_invoker',v['securite'])
+  self.assertIn('tables_sans_rls',v['securite'])
  def test_identite_serial_et_sequence_autonome_reconstruits_depuis_vrais_exports(self):
   self.q.execute('''CREATE TABLE public.fixture_catalogue(id bigint GENERATED ALWAYS AS IDENTITY(START WITH 7 INCREMENT BY 3 MINVALUE 4 MAXVALUE 900 CACHE 4 CYCLE),n serial,double_n integer GENERATED ALWAYS AS (n * 2) STORED);
 CREATE SEQUENCE public.sequence_sans_proprietaire AS integer START WITH 17 INCREMENT BY -2 MINVALUE -999 MAXVALUE 999 CACHE 3 CYCLE;

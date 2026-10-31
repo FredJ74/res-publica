@@ -148,6 +148,7 @@ def main():
                 if args.exports:
                     rapport['ecarts_catalogue']=comparer_catalogues(q,args.exports)
                     if rapport['ecarts_catalogue']:raise RuntimeError('Catalogue reconstruit différent des exports : lot interdit')
+                    rapport['fidelite_catalogue_vivant']=True
                 if args.lot_219:
                     if not args.exports:raise RuntimeError('Quatre exports complets requis avant installation du lot')
                     if not args.registre:raise RuntimeError('Export du registre vivant requis ; aucun faux registre vide créé')
@@ -171,6 +172,6 @@ def main():
     args.rapport.write_text(json.dumps(rapport,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps(rapport,ensure_ascii=False,indent=2))
     # Une reconstruction n'est pas une homologation du catalogue externe.
-    return 0 if rapport['reconstruction'] and rapport.get('version_moteur',0)//10000==17 and (not args.lot_219 or rapport['lot_219_installe']) else 1
+    return 0 if 'erreur' not in rapport and rapport['reconstruction'] and rapport.get('version_moteur',0)//10000==17 and (not args.lot_219 or rapport['lot_219_installe']) else 1
 
 if __name__=='__main__':sys.exit(main())

@@ -748,6 +748,8 @@ def recalage_sequence(col, exp):
             raise ValueError('Séquence sans propriétaire canonique : '+col['tbl']+'.'+col['attname'])
         return ''
     inc,start=seq.get('increment'),seq.get('start')
+    inc = int(inc) if isinstance(inc, str) and re.fullmatch(r'-?(?:0|[1-9][0-9]*)', inc) else inc
+    start = int(start) if isinstance(start, str) and re.fullmatch(r'-?(?:0|[1-9][0-9]*)', start) else start
     if not isinstance(inc,int) or not inc or not isinstance(start,int):
         raise ValueError('Options de recalage manquantes : '+seq['sequence'])
     ident=lambda x:'"'+x.replace('"','""')+'"'

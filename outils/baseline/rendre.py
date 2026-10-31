@@ -40,7 +40,7 @@ CIBLE = os.path.join(RACINE, "baseline", "domaines")
 
 # Les vues ne figurent pas dans la classification 2C (qui porte sur les 252
 # tables). Leur domaine est declare ici, explicitement.
-DOMAINE_DES_VUES = {
+DOMAINE_DES_VUES = {"archives_tribune_index": "presse",
     "personnages": "personnage et presence",
     "catalogue_generiques_raccordes": "economie",
 }
@@ -199,12 +199,26 @@ def options_sequence(seq):
         raise ValueError("Options de séquence incomplètes : réextraire export_structure avec requetes.py : " + seq["sequence"])
     if seq["type"] not in SERIALS:
         raise ValueError("Type de séquence non pris en charge : " + str(seq["type"]))
+    # Le transport JSON/MCP peut passer par un nombre IEEE-754 et arrondir
+    # silencieusement bigint. La requête canonique émet désormais du texte.
+    valeurs = dict(seq)
     for k in ["start", "increment", "min", "max", "cache"]:
-        if not isinstance(seq[k], int) or isinstance(seq[k], bool):
+        v = seq[k]
+        if isinstance(v, str) and re.fullmatch(r"-?(?:0|[1-9][0-9]*)", v):
+            v = int(v)
+        if not isinstance(v, int) or isinstance(v, bool):
             raise ValueError("Option de séquence non entière : " + k)
+        valeurs[k] = v
+    bits = {"smallint": 16, "integer": 32, "bigint": 64}[seq["type"]]
+    bas, haut = -(2 ** (bits - 1)), 2 ** (bits - 1) - 1
+    if any(not bas <= valeurs[k] <= haut for k in ["start", "increment", "min", "max"]):
+        raise ValueError("Option de séquence hors domaine " + seq["type"] +
+                         " : réextraire export_structure avec les options en texte, sans arrondi : " + seq["sequence"])
+    if not valeurs["min"] <= valeurs["start"] <= valeurs["max"] or valeurs["min"] >= valeurs["max"] or valeurs["increment"] == 0 or not 1 <= valeurs["cache"] <= 2 ** 63 - 1:
+        raise ValueError("Options de séquence incohérentes : " + seq["sequence"])
     if not isinstance(seq["cycle"], bool):
         raise ValueError("Option cycle invalide")
-    return "START WITH {start} INCREMENT BY {increment} MINVALUE {min} MAXVALUE {max} CACHE {cache} ".format(**seq) + ("CYCLE" if seq["cycle"] else "NO CYCLE")
+    return "START WITH {start} INCREMENT BY {increment} MINVALUE {min} MAXVALUE {max} CACHE {cache} ".format(**valeurs) + ("CYCLE" if seq["cycle"] else "NO CYCLE")
 
 
 def phase_tables(objets, man, exp):

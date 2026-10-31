@@ -450,6 +450,7 @@ select jsonb_build_object(
    'vues', (select count(*) from rel where relkind = 'v'),
    'sequences', (select count(*) from rel where relkind = 'S'),
    'colonnes', (select count(*) from col),
+   'colonnes_de_vues', (select count(*) from col where relkind = 'v'),
    'contraintes', (select count(*) from kon),
    'index', (select count(*) from idx),
    'index_portes', (select count(*) from idx where portee),
@@ -565,6 +566,10 @@ select jsonb_build_object(
    'fonctions_security_definer', (select count(*) from pg_proc p
       join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'public' and p.prokind in ('f','p') and p.prosecdef),
+   'fonctions_security_invoker', (select count(*) from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public' and p.prokind in ('f','p') and not p.prosecdef),
+   'tables_sans_rls', (select count(*) from gard g where not g.relrowsecurity),
    'tables_rls_active_sans_policy', (select count(*) from gard g
       where g.relrowsecurity and not exists(select 1 from pol p where p.tbl = g.relname)),
    'tables_rls_active_sans_policy_liste', (select jsonb_agg(g.relname order by g.relname)
@@ -652,8 +657,8 @@ EXPORTS = {
    join pg_namespace n on n.oid=ic.relnamespace and n.nspname='public'
    left join pg_constraint co on co.conindid=ic.oid and co.contype in ('p','u','x')),
  'sequences', (select jsonb_agg(jsonb_build_object('sequence',s.relname,'tbl',tc.relname,'colonne',a.attname,'lien',d.deftype,
-      'start',sq.seqstart,'increment',sq.seqincrement,'cache',sq.seqcache,'cycle',sq.seqcycle,
-      'type',format_type(sq.seqtypid,NULL),'min',sq.seqmin,'max',sq.seqmax) order by s.relname collate "C")
+      'start',sq.seqstart::text,'increment',sq.seqincrement::text,'cache',sq.seqcache::text,'cycle',sq.seqcycle,
+      'type',format_type(sq.seqtypid,NULL),'min',sq.seqmin::text,'max',sq.seqmax::text) order by s.relname collate "C")
    from pg_class s join pg_namespace n on n.oid=s.relnamespace and n.nspname='public' and s.relkind='S'
    join pg_sequence sq on sq.seqrelid=s.oid
    left join lateral (select dep.deptype as deftype, dep.refobjid, dep.refobjsubid from pg_depend dep
