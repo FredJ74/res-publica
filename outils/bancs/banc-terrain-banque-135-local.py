@@ -25,7 +25,7 @@ def suite(db,q,srv):
  for nom in ['pret_national_contracter(numeric,integer,text,text)','payer_ordre(text,text,integer,integer)','terrain_compromis_acte(text,text,jsonb)','terrain_proprietaire_muter(text,text,jsonb,text)','compromis_expire_resoudre(text,text)']:q.execute(catalogue[nom]['definition'])
  q.execute("CREATE FUNCTION titulaire_est_moi(text) RETURNS boolean LANGUAGE sql AS $$SELECT $1 IN(mon_personnage(),'pj:'||mon_personnage())$$;INSERT INTO ordres_couts VALUES('deposer_demande_permis',1,100),('emprunter',1,0)")
  q.execute(fn('outils/bancs/banc-fixture-terrain-permis-acte-avant-depot.sql','terrain_permis_acte'))
- q.execute((R/'migrations/20261031113626_permis_depot_transactionnel.sql').read_text())
+ q.execute(_sources.chemin_source('migrations/20261031113626_permis_depot_transactionnel.sql').read_text())
  q.execute(catalogue['payer_ordre(text,text,integer,integer)']['definition'])
  q.execute((R/'historique/fixtures-bancs/historique-135/20261024072349_occupation_actions_et_echeances.sql').read_text())
  if '--apres-location' in __import__('sys').argv:q.execute((R/'historique/fixtures-bancs/historique-135/20261023090017_location_lot_legacy_avant_paiement.sql').read_text())
