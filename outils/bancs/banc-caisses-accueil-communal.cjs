@@ -100,7 +100,7 @@ for (const [ville, batiments] of Object.entries(ATTENDU)) {
 test('la propre caisse des mairies est affichée sans restaurer la consultation centralisée', () => {
   const mairies = { capitale: ['mairie-capitale', 'mairie-capitale'],
     ville_a: ['mairie', 'mairie_ville_a'], ville_b: ['mairie', 'mairie_ville_b'] };
-  const bloc = extraire(politique, 'function renderRoomActions(');
+  const bloc = extraire(politique, 'function afficherCaisseAccueilCommunal(');
   assert.match(bloc, /categorie === 'mairie'/);
   assert.match(bloc, /caisseTerritorialeId\('mairie', state\.currentCity\)/);
   for (const [ville, [batiment, caisseId]] of Object.entries(mairies)) {
@@ -127,7 +127,7 @@ test("les 21 accueils publics affichent leur caisse, les salles intérieures non
   for (const [bid, salle] of [['mairie-capitale', 'bureau_maire'], ['mairie', 'bureau_maire_local'],
     ['commissariat', 'bureau_commissaire'], ['tribunal', 'greffe'], ['stade', 'vestiaires']])
     assert.strictEqual(ctx.accueil(bid, salle), false, bid + '/' + salle);
-  const bloc = extraire(politique, 'function renderRoomActions(');
+  const bloc = extraire(politique, 'function afficherCaisseAccueilCommunal(');
   assert.match(bloc, /state\.country === 'republic' && estAccueilBatiment\(buildingId, roomId\)/);
 });
 
@@ -143,11 +143,11 @@ test('bâtiments sans caisse communale : rien affiché', () => {
 });
 
 test('la lecture passe par la source existante, sans écriture ni droit de gestion', () => {
-  const bloc = extraire(politique, 'function renderRoomActions(');
-  const debut = bloc.indexOf('categorieCaisseAccueilCommunal(');
-  const fin = bloc.indexOf('// Fusionner avec les ordres du buildingContext');
-  assert.ok(debut > 0 && fin > debut);
-  const affichage = bloc.slice(debut, fin);
+  const bloc = extraire(politique, 'function afficherCaisseAccueilCommunal(');
+  const affichage = bloc;
+  const render = extraire(politique, 'function renderRoomActions(');
+  assert.match(render, /typeof afficherCaisseAccueilCommunal === 'function'\) afficherCaisseAccueilCommunal\(buildingId, roomId\)/);
+  assert.doesNotMatch(render, /sbGetCaisseBatiment|lireCaisseCommissariat/, "la lecture ne vit qu'à un endroit");
   assert.match(affichage, /lireCaisseCommissariat\(state\.country, caisseId\)/);
   assert.match(affichage, /sbGetCaisseBatiment\(state\.country \+ '_' \+ caisseId\)/);
   assert.doesNotMatch(affichage, /sbSave|Mouvement|upsert|onclick|<button/i);

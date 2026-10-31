@@ -3765,34 +3765,8 @@ function categorieCaisseAccueilCommunal(buildingId, ville, pays) {
     getBuildingIdPourCategorieBudget(cat, ville, pays) === buildingId) || null;
 }
 
-function renderRoomActions(room, buildingId, roomId) {
-  // La liste des PNJ et l'interdiction d'achat doivent refléter le même état confirmé.
-  // Le chargement d'occupation, auparavant déclenché seulement par « Vérifier le terrain »,
-  // est désormais déclenché automatiquement à l'entrée. La garde évite une boucle
-  // enterRoom -> renderRoomActions -> chargerPnjTerrain -> enterRoom.
-  if (/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain' &&
-      typeof chargerPnjTerrain === 'function') {
-    const cle = [state.country, state.currentCity, buildingId].join('/');
-    const maintenant = Date.now();
-    const memo = window._terrainOccupationSynchro;
-    if (!memo || memo.cle !== cle || maintenant - memo.depuis > 5000) {
-      window._terrainOccupationSynchro = { cle, depuis: maintenant };
-      Promise.resolve().then(() => chargerPnjTerrain(buildingId)).then(ok => {
-        if (ok && state.currentBuilding === buildingId && state.currentRoom === roomId &&
-            [state.country, state.currentCity, buildingId].join('/') === cle) {
-          enterRoom(buildingId, roomId);
-        }
-      }).catch(() => {
-        // Le lecteur serveur a déjà son message « Terrain non vérifié » ;
-        // jamais de création ou suppression locale d'occupant en cas d'échec.
-      });
-    }
-  }
-  const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
-
-  document.getElementById('action-context-bat').textContent =
-    room.name.toUpperCase() + ' — ACTIONS DISPONIBLES';
-
+// Affiche, dans le titre des actions, le solde de la caisse du bâtiment communal (lecture seule).
+function afficherCaisseAccueilCommunal(buildingId, roomId) {
   // Solde visible à l'accueil de chaque bâtiment communal, mairie comprise, et plus jamais par un
   // écran centralisé. Le commissariat conserve impérativement son contrôle de lecture côté serveur.
   // Aucune caisse n'est créée ni créditée pour afficher une information.
@@ -3822,6 +3796,39 @@ function renderRoomActions(room, buildingId, roomId) {
       });
     }
   }
+}
+
+function renderRoomActions(room, buildingId, roomId) {
+  // La liste des PNJ et l'interdiction d'achat doivent refléter le même état confirmé.
+  // Le chargement d'occupation, auparavant déclenché seulement par « Vérifier le terrain »,
+  // est désormais déclenché automatiquement à l'entrée. La garde évite une boucle
+  // enterRoom -> renderRoomActions -> chargerPnjTerrain -> enterRoom.
+  if (/^terrain-a-batir-[1-5]$/.test(buildingId) && roomId === 'terrain' &&
+      typeof chargerPnjTerrain === 'function') {
+    const cle = [state.country, state.currentCity, buildingId].join('/');
+    const maintenant = Date.now();
+    const memo = window._terrainOccupationSynchro;
+    if (!memo || memo.cle !== cle || maintenant - memo.depuis > 5000) {
+      window._terrainOccupationSynchro = { cle, depuis: maintenant };
+      Promise.resolve().then(() => chargerPnjTerrain(buildingId)).then(ok => {
+        if (ok && state.currentBuilding === buildingId && state.currentRoom === roomId &&
+            [state.country, state.currentCity, buildingId].join('/') === cle) {
+          enterRoom(buildingId, roomId);
+        }
+      }).catch(() => {
+        // Le lecteur serveur a déjà son message « Terrain non vérifié » ;
+        // jamais de création ou suppression locale d'occupant en cas d'échec.
+      });
+    }
+  }
+  const cur = COUNTRIES[state.char?.country || 'republic']?.cur || 'FR';
+
+  document.getElementById('action-context-bat').textContent =
+    room.name.toUpperCase() + ' — ACTIONS DISPONIBLES';
+
+  // Caisse du bâtiment communal à l'accueil (fonction séparée : un incident de lecture de la
+  // caisse ne doit jamais empêcher l'affichage des ordres).
+  if (typeof afficherCaisseAccueilCommunal === 'function') afficherCaisseAccueilCommunal(buildingId, roomId);
 
   // Fusionner avec les ordres du buildingContext (specifiques a l'empire courant)
   const world = WORLD[state.country];
