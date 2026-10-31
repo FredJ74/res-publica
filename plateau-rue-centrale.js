@@ -1470,9 +1470,8 @@ function entrerDansBatimentRue(buildingId, nom) {
 // ailleurs, sur un vrai buildingId independant, aucun etat immobilier n'est duplique ni partage
 // entre les 6 terrains. Liste des terrains ET superficies issues de TERRAINS_PAR_VILLE.ville_b /
 // SURFACE_TERRAINS (plateau-justice-economie.js / plateau-pnj.js), sources uniques de verite,
-// jamais dupliquees ici. Le lot 6 n'a volontairement aucune entree dans SURFACE_TERRAINS (sa
-// superficie n'a jamais ete officiellement fixee) : son onglet affiche donc juste "Lot 6", sans
-// "m²" invente.
+// jamais dupliquees ici. Le lot 6 a recu sa superficie le 01/11/2026 (2100 m², decision de Fred) ;
+// un terrain sans entree dans SURFACE_TERRAINS afficherait juste "Lot N", sans "m²" invente.
 function ouvrirTerrainsMontrouge() {
   const ids = (typeof TERRAINS_PAR_VILLE !== 'undefined') ? TERRAINS_PAR_VILLE.ville_b : [];
 

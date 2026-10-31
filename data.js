@@ -4303,8 +4303,8 @@ const BUILDINGS = {
   'terrain-a-batir-6': {
     name: "Terrain a batir - Lot 6", shortName: "Terrain Lot 6", cat: "Immobilier", icon: "ti-fence", bgColor: "#0a0a05",
     desc: "Terrain disponible. Quartier Sud.",
-    rooms: { terrain: { name: "Terrain vague", imageBg: "linear-gradient(135deg,#0a0a05,#12120a)", desc: "Terrain en friche.", imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80", persons: [], orders: [{fn:'appeler_police_terrain', label:'Appeler la police', pa:1, cost:0, type:'legal', icon:'ti-shield', successRate:100},{fn:'faire_disparaitre_cadavre', label:'Faire disparaitre le corps', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:0, requiresCadavre:true},{fn:'negocier_squatteurs', label:'Negocier le depart', pa:1, cost:0, type:'legal', icon:'ti-messages', successRate:0, requiresSquatteurs:true},{fn:'signer_compromis', label:'Signer un compromis', pa:2, cost:1000, type:'legal', icon:'ti-file-certificate', successRate:100},
-          {fn:'acheter_terrain', label:'Acheter ce terrain', pa:2, cost:25000, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'construire_sur_terrain', label:'Construire', pa:0, cost:0, type:'legal', icon:'ti-building', successRate:100},{fn:'corrompre_rdv_notaire', label:'Accélérer le rendez-vous (corruption)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Réduit de moitié le délai restant avant le rendez-vous notarial d\'un achat direct.'},{fn:'payer_versement_chantier', label:'Payer le versement du chantier', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Régler le versement en attente pour que le chantier reprenne.'},{fn:'travailler_chantier', label:'Travailler sur le chantier', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Une heure de travail = 1 PA, payee par la tresorerie du chantier au taux fixe par le proprietaire (50 FR de l heure au minimum, 70 FR s il n a rien fixe). Vous devez etre sur place.'},{fn:'vendre_materiaux_chantier', label:'Fournir le chantier', pa:0, cost:0, type:'legal', icon:'ti-truck-delivery', successRate:100, desc:'Vendre vos bois, minerai ou metal au chantier, au prix que vous fixez. Vous devez etre sur place.'},{fn:'modifier_plan_chantier', label:'Modifier le plan de decoupage', pa:0, cost:0, type:'legal', icon:'ti-layout-grid', successRate:100, desc:'Remanier gratuitement le decoupage en lots tant que le chantier n a pas atteint les deux tiers. Reserve au proprietaire.'},{fn:'corrompre_chantier', label:'Accélérer le chantier (corruption)', pa:2, cost:1500, type:'illegal', icon:'ti-coins', successRate:100, desc:'Réduit de moitié le délai restant du chantier.'},{fn:'voler_materiel_chantier', label:'Voler du matériel de chantier', pa:2, cost:0, type:'illegal', icon:'ti-truck', successRate:0, desc:'Même le propriétaire peut se voler lui-même — mise en scène parodique, bonus de sympathie publique.'},{fn:'diviser_construction', label:'Diviser / gérer les lots', pa:0, cost:0, type:'legal', icon:'ti-grid-dots', successRate:100, desc:'Réservé aux Commerces Premium et Buildings construits.'},{fn:'reconfigurer_lots', label:'Reconfigurer les lots (chantier)', pa:0, cost:0, type:'legal', icon:'ti-layout-board', successRate:100, desc:'Redecouper un batiment livre : 10 FR par m2 reellement concerne, paye en totalite au lancement. Aucun local sous bail ne peut etre touche.'},{fn:'louer_lot_ici', label:'Louer un lot ici', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Louer un lot disponible, si ce terrain a été divisé par son propriétaire.'},{fn:'gerer_lot_loue', label:'Gérer mon local loué', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:'Voir/accepter les propositions du propriétaire concernant votre lot loué ici.'},{fn:'gerer_fonds_commerce', label:'Mon fonds de commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Creer un fonds de commerce dans ce local, ou gerer sa caisse. Reserve au titulaire du bail.'},{fn:'emprunter_construction', label:'Faire un prêt (Banque Nationale)', pa:0, cost:0, type:'legal', icon:'ti-bank', successRate:100},{fn:'racheter_terrain', label:'Offre de rachat', pa:2, cost:0, type:'legal', icon:'ti-arrows-exchange', successRate:100}] } }
+    rooms: { terrain: { name: "Terrain vague", imageBg: "linear-gradient(135deg,#0a0a05,#12120a)", desc: "Terrain en friche (2100 m²).", imageUrl: "https://images.unsplash.com/photo-1590496793929-36417d3117de?w=1200&q=80", persons: [], orders: [{fn:'appeler_police_terrain', label:'Appeler la police', pa:1, cost:0, type:'legal', icon:'ti-shield', successRate:100},{fn:'faire_disparaitre_cadavre', label:'Faire disparaitre le corps', pa:2, cost:0, type:'illegal', icon:'ti-eye-off', successRate:0, requiresCadavre:true},{fn:'negocier_squatteurs', label:'Negocier le depart', pa:1, cost:0, type:'legal', icon:'ti-messages', successRate:0, requiresSquatteurs:true},{fn:'signer_compromis', label:'Signer un compromis', pa:2, cost:1000, type:'legal', icon:'ti-file-certificate', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (2100 m² — 25 200 FR)', pa:2, cost:25200, type:'legal', icon:'ti-home-plus', successRate:100},{fn:'construire_sur_terrain', label:'Construire', pa:0, cost:0, type:'legal', icon:'ti-building', successRate:100},{fn:'corrompre_rdv_notaire', label:'Accélérer le rendez-vous (corruption)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Réduit de moitié le délai restant avant le rendez-vous notarial d\'un achat direct.'},{fn:'payer_versement_chantier', label:'Payer le versement du chantier', pa:0, cost:0, type:'legal', icon:'ti-cash', successRate:100, desc:'Régler le versement en attente pour que le chantier reprenne.'},{fn:'travailler_chantier', label:'Travailler sur le chantier', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Une heure de travail = 1 PA, payee par la tresorerie du chantier au taux fixe par le proprietaire (50 FR de l heure au minimum, 70 FR s il n a rien fixe). Vous devez etre sur place.'},{fn:'vendre_materiaux_chantier', label:'Fournir le chantier', pa:0, cost:0, type:'legal', icon:'ti-truck-delivery', successRate:100, desc:'Vendre vos bois, minerai ou metal au chantier, au prix que vous fixez. Vous devez etre sur place.'},{fn:'modifier_plan_chantier', label:'Modifier le plan de decoupage', pa:0, cost:0, type:'legal', icon:'ti-layout-grid', successRate:100, desc:'Remanier gratuitement le decoupage en lots tant que le chantier n a pas atteint les deux tiers. Reserve au proprietaire.'},{fn:'corrompre_chantier', label:'Accélérer le chantier (corruption)', pa:2, cost:1500, type:'illegal', icon:'ti-coins', successRate:100, desc:'Réduit de moitié le délai restant du chantier.'},{fn:'voler_materiel_chantier', label:'Voler du matériel de chantier', pa:2, cost:0, type:'illegal', icon:'ti-truck', successRate:0, desc:'Même le propriétaire peut se voler lui-même — mise en scène parodique, bonus de sympathie publique.'},{fn:'diviser_construction', label:'Diviser / gérer les lots', pa:0, cost:0, type:'legal', icon:'ti-grid-dots', successRate:100, desc:'Réservé aux Commerces Premium et Buildings construits.'},{fn:'reconfigurer_lots', label:'Reconfigurer les lots (chantier)', pa:0, cost:0, type:'legal', icon:'ti-layout-board', successRate:100, desc:'Redecouper un batiment livre : 10 FR par m2 reellement concerne, paye en totalite au lancement. Aucun local sous bail ne peut etre touche.'},{fn:'louer_lot_ici', label:'Louer un lot ici', pa:1, cost:0, type:'legal', icon:'ti-key', successRate:100, desc:'Louer un lot disponible, si ce terrain a été divisé par son propriétaire.'},{fn:'gerer_lot_loue', label:'Gérer mon local loué', pa:0, cost:0, type:'legal', icon:'ti-home-cog', successRate:100, desc:'Voir/accepter les propositions du propriétaire concernant votre lot loué ici.'},{fn:'gerer_fonds_commerce', label:'Mon fonds de commerce', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Creer un fonds de commerce dans ce local, ou gerer sa caisse. Reserve au titulaire du bail.'},{fn:'emprunter_construction', label:'Faire un prêt (Banque Nationale)', pa:0, cost:0, type:'legal', icon:'ti-bank', successRate:100},{fn:'racheter_terrain', label:'Offre de rachat', pa:2, cost:0, type:'legal', icon:'ti-arrows-exchange', successRate:100}] } }
   },
   'terrain-a-batir-7': {
     name: "Terrain a batir - Lot 7", shortName: "Terrain Lot 7", cat: "Immobilier", icon: "ti-fence", bgColor: "#0a0a05",
@@ -5260,10 +5260,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5282,10 +5283,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5304,10 +5306,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5326,10 +5329,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -6316,7 +6320,10 @@ const BUILDINGS = {
         desc: "Les installations de raffinage. Le pétrole brut livré y est transformé en carburant.",
         persons: [],
         orders: [
-          {fn:'produire_carburant', label:'Produire du carburant', pa:1, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 70 FR. Consomme 5 pétrole du stock de matières de l\'usine, produit 10 carburants.'}
+          {fn:'produire_carburant', label:'Produire du carburant', pa:1, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 70 FR. Consomme 5 pétrole du stock de matières de l\'usine, produit 10 carburants.'},
+          // Audit PSM/Montrouge (01/11/2026) : sans cet ordre, aucune matiere ne pouvait entrer
+          // dans cette usine (vendre_matiere_a_usine accepte deja ses chaines cote serveur).
+          {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
         ]
       }
     }
@@ -6386,7 +6393,10 @@ const BUILDINGS = {
         desc: "Les alambics. Céréales et fruits livrés y sont distillés en alcool.",
         persons: [],
         orders: [
-          {fn:'produire_alcool', label:"Produire de l'alcool", pa:1, cost:0, type:'legal', icon:'ti-glass-full', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 55 FR. Consomme 5 céréales du stock de matières de l\'usine, produit 10 alcools.'}
+          {fn:'produire_alcool', label:"Produire de l'alcool", pa:1, cost:0, type:'legal', icon:'ti-glass-full', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 55 FR. Consomme 5 céréales du stock de matières de l\'usine, produit 10 alcools.'},
+          // Audit PSM/Montrouge (01/11/2026) : sans cet ordre, aucune matiere ne pouvait entrer
+          // dans cette usine (vendre_matiere_a_usine accepte deja ses chaines cote serveur).
+          {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
         ]
       },
       manufacture_tabac: {
@@ -6396,7 +6406,10 @@ const BUILDINGS = {
         desc: "Les lignes de manufacture. Les plantes livrées y sont transformées en tabac.",
         persons: [],
         orders: [
-          {fn:'produire_tabac', label:'Produire du tabac', pa:1, cost:0, type:'legal', icon:'ti-cigarette', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 66 FR. Consomme 5 plantes du stock de matières de l\'usine, produit 10 tabacs.'}
+          {fn:'produire_tabac', label:'Produire du tabac', pa:1, cost:0, type:'legal', icon:'ti-cigarette', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 66 FR. Consomme 5 plantes du stock de matières de l\'usine, produit 10 tabacs.'},
+          // Audit PSM/Montrouge (01/11/2026) : sans cet ordre, aucune matiere ne pouvait entrer
+          // dans cette usine (vendre_matiere_a_usine accepte deja ses chaines cote serveur).
+          {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
         ]
       }
     }
@@ -8683,14 +8696,29 @@ const OBJETS_SPECIAUX = [
 // SCANDALES_PREDEFINIS : deplacee le 27/10/2026 dans la table serveur scandales_predefinis
 // (tirage de la nuit par minuit_scandale).
 
-// #135 : meme gabarit de commandes pour les cinq parcelles de La Chataigneraie.
+// #135 : meme gabarit de commandes pour toutes les parcelles a batir.
 // Les prix/labels d'achat, superficies, descriptions et images restent propres a chaque parcelle.
+// Etendu le 01/11/2026 (audit des batiments de Montrouge et PSM par rapport au socle de
+// Luthecia) : les quatre lots de Port-Sainte-Marie n'avaient que trois ordres anciens (achat,
+// permis depose sur le terrain, corruption du fonctionnaire) et ignoraient tout le parcours
+// immobilier ; les six lots de Montrouge affichaient encore « Accelerer le chantier », bouton mort
+// (doCorrompreChantier refuse toujours dans les empires actuels). Une seule boucle, aucune liste
+// de parcelles recopiee : chaque gabarit 'terrain-a-batir*' recoit le meme parcours.
 {
   const modele = BUILDINGS['terrain-a-batir-4'].rooms.terrain.orders
     .filter(o => o.fn !== 'corrompre_chantier'); // Quatre pays non P2W : aucun raccourcissement.
-  for (let numero = 1; numero <= 5; numero++) {
-    const piece = BUILDINGS['terrain-a-batir-' + numero].rooms.terrain;
-    const achat = piece.orders.find(o => o.fn === 'acheter_terrain');
+  // « Corrompre un fonctionnaire » (terrain_permis_corrompre, serveur) n'avait de bouton que sur
+  // les lots de PSM : la recette du 29/10 l'attend sur toutes les parcelles. Il rejoint le gabarit
+  // apres l'acceleration du rendez-vous notarial, l'autre corruption admise du parcours.
+  const rangNotaire = modele.findIndex(o => o.fn === 'corrompre_rdv_notaire');
+  modele.splice(rangNotaire + 1, 0,
+    {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer le permis)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Réduit de moitié la durée d\'instruction restante du permis. Risque de découverte.'});
+  for (const id of Object.keys(BUILDINGS)) {
+    if (!id.startsWith('terrain-a-batir')) continue;
+    const pieces = BUILDINGS[id].rooms || {};
+    const piece = pieces[Object.keys(pieces)[0]];
+    const achat = piece && (piece.orders || []).find(o => o.fn === 'acheter_terrain');
+    if (!achat) continue;
     piece.orders = modele.map(o => ({...o, ...(o.fn === 'acheter_terrain' ? achat : {})}));
   }
 }

@@ -446,9 +446,9 @@ function surfaceMinimaleLot(niveauConstruction, destination) {
   return (typeof min === 'number') ? min : null;
 }
 
-// SURFACE INCONNUE. Certains terrains n'ont pas de surface : terrain-a-batir-6 n'a
-// volontairement aucune entree dans SURFACE_TERRAINS (sa superficie n'a jamais ete fixee), et
-// terrain-a-batir-4 existe en base sans ce champ. On ne leur en invente pas une : la surface
+// SURFACE INCONNUE. Un terrain peut n'avoir aucune surface connue (aucune entree dans
+// SURFACE_TERRAINS, ou un etat en base sans ce champ ; le lot 6 de Montrouge n'en a eu une que
+// le 01/11/2026). On ne leur en invente pas une : la surface
 // vaut null, et toutes les grandeurs derivees valent null a leur tour. C'est aux appelants de
 // refuser explicitement l'operation, jamais de traiter l'inconnu comme un zero -- un zero
 // laisserait croire que le terrain est plein alors qu'on ignore simplement sa taille.

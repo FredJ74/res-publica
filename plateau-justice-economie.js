@@ -7432,7 +7432,7 @@ async function ouvrirModalConstruire() {
 
   if (!ts.constructionAutorisee) {
     // Sans permis joint, ouvrir le dossier existant, sans débiter à l'ouverture.
-    return doDeposerDemandePermis(1, 100);
+    return doDeposerDemandePermis(ORDRE_DEPOSER_PERMIS.pa, ORDRE_DEPOSER_PERMIS.cost);
   }
 
   document.getElementById('postes-modal-title').textContent = 'Construire sur ce terrain';
@@ -8153,6 +8153,11 @@ const DUREE_INSTRUCTION_PERMIS = {
   logements_moyen: 6,
   logements_barre: 7
 };
+
+// Le depot de permis n'a plus de bouton propre sur les parcelles (01/11/2026) : il s'ouvre par
+// « Construire ». Son cout reste declare ici, la ou il est employe, pour que le miroir
+// ordres_couts (payer_ordre, appele par terrain_permis_deposer) le connaisse toujours.
+const ORDRE_DEPOSER_PERMIS = {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100};
 
 async function doDeposerDemandePermis(pa, cost) {
   const id = state.currentBuilding;
