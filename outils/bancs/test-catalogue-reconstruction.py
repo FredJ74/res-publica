@@ -110,6 +110,8 @@ class PostgreSQL(unittest.TestCase):
    rep=Path(d);rapport=rep/'rapport.json';exp=rep/'exports';exp.mkdir()
    for cle,keys in rendre.EXPORTS_ATTENDUS.items():(exp/(cle+'.json')).write_text(json.dumps({cle:{k:[] for k in keys}}))
    args=['epreuve','--rapport',str(rapport),'--exports',str(exp)]
+   self.q.execute('SHOW server_version_num')
+   if int(self.q.fetchone()[0])//10000 != 17:args.append('--diagnostic-version-differente')
    with patch.object(m,'assembler',return_value=([('fixture','CREATE TABLE public.fixture_ecart(id integer);')],None)),patch.object(sys,'argv',args),contextlib.redirect_stdout(io.StringIO()):self.assertEqual(m.main(),1)
    v=json.loads(rapport.read_text());self.assertTrue(v['reconstruction']);self.assertFalse(v['fidelite_catalogue_vivant']);self.assertIn('erreur',v)
  def test_controle_global_contient_les_champs_lus_par_le_verificateur(self):

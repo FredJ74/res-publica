@@ -368,6 +368,7 @@ select jsonb_build_object(
    from supabase_migrations.schema_migrations),
  'releve_le', now() at time zone 'UTC'
 ) as controle_global),
+mesures_referentiels(table_name,lignes,posee,reelle) AS (SELECT 'ordres_couts', (SELECT count(*) FROM public.ordres_couts), (SELECT empreinte FROM public.ordres_couts_empreinte LIMIT 1), public.ordres_couts_empreinte_reelle() UNION ALL SELECT 'ressources_economie', (SELECT count(*) FROM public.ressources_economie), (SELECT empreinte FROM public.ressources_economie_empreinte LIMIT 1), public.ressources_economie_empreinte_reelle() UNION ALL SELECT 'pa_bonus_differes', (SELECT count(*) FROM public.pa_bonus_differes), (SELECT empreinte FROM public.pa_bonus_differes_empreinte LIMIT 1), public.pa_bonus_differes_empreinte_reelle() UNION ALL SELECT 'postes_nommes_regles', (SELECT count(*) FROM public.postes_nommes_regles), (SELECT empreinte FROM public.postes_nommes_regles_empreinte LIMIT 1), public.postes_nommes_regles_empreinte_reelle() UNION ALL SELECT 'villes', (SELECT count(*) FROM public.villes), (SELECT empreinte FROM public.villes_empreinte LIMIT 1), public.villes_empreinte_reelle()),
 graines AS (select jsonb_build_object('export_seeds', jsonb_agg(jsonb_build_object('tbl', tbl, 'rang', rang, 'ligne', ligne) order by tbl, rang)) as export_seeds
 from (
 select 'locaux_loyers_referentiel' as tbl, row_number() over (order by z.batiment, z.piece, z.ville, z.prix, z.bonus_pop, z.bonus_inf, z.bonus_dis, z.label, z.louable, z.signature_serveur) as rang, 'INSERT INTO public.locaux_loyers_referentiel (batiment, piece, ville, prix, bonus_pop, bonus_inf, bonus_dis, label, louable, signature_serveur) VALUES (' || array_to_string(array[quote_nullable(z.batiment::text), quote_nullable(z.piece::text), quote_nullable(z.ville::text), quote_nullable(z.prix::text), quote_nullable(z.bonus_pop::text), quote_nullable(z.bonus_inf::text), quote_nullable(z.bonus_dis::text), quote_nullable(z.label::text), quote_nullable(z.louable::text), quote_nullable(z.signature_serveur::text)], ', ') || ');' as ligne
@@ -412,6 +413,7 @@ SELECT jsonb_build_object('format','HG_RELAIS_CANONIQUE_219_V1',
 'export_droits',export_droits.export_droits,
 'controle_global',controle.controle_global,
 'registre',registre.lignes,
+'referentiels_controle',(SELECT jsonb_agg(to_jsonb(m) ORDER BY table_name) FROM mesures_referentiels m),
 'export_seeds',coalesce(graines.export_seeds->'export_seeds','[]'::jsonb),
 'seeds_controle',(SELECT jsonb_agg(jsonb_build_object('table',c.tbl,'lignes',(SELECT count(*) FROM lignes l WHERE l.tbl=c.tbl),'empreinte',(SELECT md5(coalesce(string_agg(l.ligne,'|' ORDER BY l.rang),'')) FROM lignes l WHERE l.tbl=c.tbl)) ORDER BY c.tbl) FROM cibles c)) AS relais_canonique_219
 FROM export_structure,export_fonctions,export_logique,export_droits,controle,graines,registre;

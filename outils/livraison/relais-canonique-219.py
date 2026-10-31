@@ -51,6 +51,7 @@ def requete():
     extraction = seeds.requete({'colonnes':colonnes, 'contraintes':[]}, sorted(REFERENCES))
     ctes = [nom + ' AS (' + sql.strip().rstrip(';') + ')' for nom, sql in requetes.EXPORTS.items()]
     ctes += ['controle AS (' + requetes.requete_controle_global().rstrip(';') + ')',
+             'mesures_referentiels(table_name,lignes,posee,reelle) AS (' + json.loads((R/'outils/baseline/referentiels.json').read_text())['empreintes']['_requete_de_mesure'].strip().rstrip(';') + ')',
              'graines AS (' + extraction + ')',
              "registre AS (SELECT coalesce(jsonb_agg(jsonb_build_object('version',version,'name',name) ORDER BY version),'[]'::jsonb) AS lignes FROM supabase_migrations.schema_migrations)",
              "lignes AS (SELECT x.* FROM graines, jsonb_to_recordset(coalesce(export_seeds->'export_seeds','[]'::jsonb)) AS x(tbl text,rang bigint,ligne text))",
@@ -58,11 +59,32 @@ def requete():
     champs = ["'format','" + FORMAT + "'", "'snapshot',pg_current_snapshot()::text", "'releve_utc',timezone('UTC',now())::text"]
     champs += ["'" + n + "'," + n + '.' + n for n in requetes.EXPORTS]
     champs += ["'controle_global',controle.controle_global", "'registre',registre.lignes",
+               "'referentiels_controle',(SELECT jsonb_agg(to_jsonb(m) ORDER BY table_name) FROM mesures_referentiels m)",
                "'export_seeds',coalesce(graines.export_seeds->'export_seeds','[]'::jsonb)",
                "'seeds_controle',(SELECT jsonb_agg(jsonb_build_object('table',c.tbl,'lignes',(SELECT count(*) FROM lignes l WHERE l.tbl=c.tbl),'empreinte',(SELECT md5(coalesce(string_agg(l.ligne,'|' ORDER BY l.rang),'')) FROM lignes l WHERE l.tbl=c.tbl)) ORDER BY c.tbl) FROM cibles c)"]
     return ('-- Lecture seule : une instruction, un snapshot, aucune donnée PJ.\nWITH ' + ',\n'.join(ctes) +
             '\nSELECT jsonb_build_object(' + ',\n'.join(champs) + ') AS relais_canonique_219\nFROM ' +
             ','.join(list(requetes.EXPORTS) + ['controle','graines','registre']) + ';\n')
+
+
+def verifier_ligne_seed(ligne):
+    # Une empreinte de transport n'autorise jamais à exécuter un autre ordre.
+    # Seuls les INSERT de littéraux émis par seeds.requete sont admissibles.
+    from pglast import parse_sql, ast
+    try:
+        arbres = parse_sql(ligne['ligne'])
+    except Exception:
+        raise ValueError('Ligne de seed SQL invalide') from None
+    if len(arbres) != 1 or not isinstance(arbres[0].stmt, ast.InsertStmt):
+        raise ValueError('Ligne de seed hors contrat INSERT')
+    q = arbres[0].stmt
+    attendues = [x.split(':')[0] for x in REFERENCES[ligne['tbl']].split()]
+    if q.relation.schemaname != 'public' or q.relation.relname != ligne['tbl'] or [x.name for x in (q.cols or ())] != attendues:
+        raise ValueError('Cible ou colonnes de seed hors liste blanche')
+    valeurs = q.selectStmt.valuesLists if q.selectStmt else None
+    extras = any(getattr(q.selectStmt, k, None) for k in ['withClause','sortClause','lockingClause','limitOffset','limitCount','fromClause','whereClause','op']) if q.selectStmt else True
+    if q.withClause or q.onConflictClause or q.returningList or extras or not valeurs or len(valeurs) != 1 or len(valeurs[0]) != len(attendues) or any(not isinstance(x, ast.A_Const) for x in valeurs[0]):
+        raise ValueError('Seed non littéral ou commande supplémentaire')
 
 
 def valider(document):
@@ -101,6 +123,10 @@ def valider(document):
         raise ValueError('Comptes structure/contrôle global contradictoires')
     if datetime.fromisoformat(document['releve_utc']) != datetime.fromisoformat(ctl['releve_le']):
         raise ValueError('Relevés non simultanés : aucune promotion du baseline')
+    refs = document.get('referentiels_controle', [])
+    noms_refs = {'ordres_couts','ressources_economie','pa_bonus_differes','postes_nommes_regles','villes'}
+    if len(refs) != len(noms_refs) or {x.get('table_name') for x in refs} != noms_refs:
+        raise ValueError('Mesure des référentiels incomplète')
     registre = document['registre']
     versions = [x['version'] for x in registre]
     if len(versions) != len(set(versions)) or len(versions) != ctl['registre']['entrees']:
@@ -113,6 +139,7 @@ def valider(document):
     lignes = document['export_seeds']
     if any(x['tbl'] not in REFERENCES for x in lignes):
         raise ValueError('Ligne hors liste blanche de seeds')
+    for ligne in lignes:verifier_ligne_seed(ligne)
     for c in controles:
         ls = sorted((x for x in lignes if x['tbl'] == c['table']),key=lambda x:x['rang'])
         if len(ls) != c['lignes'] or len({x['rang'] for x in ls}) != len(ls):
@@ -135,6 +162,7 @@ def materialiser(document, destination):
     fichiers = {canon/(n+'.json'):{n:d[n]} for n in rendre.EXPORTS_ATTENDUS}
     fichiers.update({destination/'controle_global.json':[{'controle_global':d['controle_global']}],
                      destination/'registre.json':d['registre'],
+                     destination/'referentiels_controle.json':d['referentiels_controle'],
                      destination/'seeds.json':{'export_seeds':d['export_seeds'],'seeds_controle':d['seeds_controle']},
                      destination/'provenance.json':{k:d[k] for k in ['format','snapshot','releve_utc']}})
     for p,valeur in fichiers.items():

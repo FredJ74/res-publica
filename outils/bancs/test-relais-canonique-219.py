@@ -21,6 +21,8 @@ class Relais(unittest.TestCase):
   for table,spec in m.REFERENCES.items():
    cls.q.execute('CREATE TABLE public.'+table+'('+','.join(n+' '+t for n,t in [p.split(':') for p in spec.split()])+')')
   cls.q.execute("CREATE TABLE public.joueur_prive(secret text);INSERT INTO joueur_prive VALUES('NE_PAS_COPIER_LE_JOUEUR');CREATE TABLE public.commerce_decors_sources(proprietaire_user_id uuid,chemin text);INSERT INTO commerce_decors_sources VALUES('00000000-0000-4000-8000-000000000001','NE_PAS_COPIER_LE_FICHIER');CREATE TABLE public.publicites_premium_sources(proprietaire_user_id uuid);CREATE SEQUENCE public.seq_fixture AS bigint;INSERT INTO terrains_referentiel VALUES('republic','capitale','terrain',100,5.50)")
+  for table in ['ordres_couts','ressources_economie','pa_bonus_differes','postes_nommes_regles','villes']:
+   cls.q.execute('CREATE TABLE public.'+table+'(id integer);CREATE TABLE public.'+table+"_empreinte(empreinte text);CREATE FUNCTION public."+table+"_empreinte_reelle() RETURNS text LANGUAGE sql STABLE AS $$SELECT 'fixture'::text$$")
   cls.q.execute(m.requete());cls.d=cls.q.fetchone()[0];cls.c.commit()
  @classmethod
  def tearDownClass(cls):cls.c.close();cls.s._cleanup();cls.tmp.cleanup()
@@ -39,6 +41,7 @@ class Relais(unittest.TestCase):
   self.assertEqual(m.valider(copy.deepcopy(self.d))['format'],self.d['format'])
   self.assertEqual(self.d['export_structure']['sequences'][0]['max'],'9223372036854775807')
   self.assertEqual(len(self.d['seeds_controle']),10)
+  self.assertEqual(len(self.d['referentiels_controle']),5)
   self.assertTrue(any(c['lignes']==0 for c in self.d['seeds_controle']))
   self.assertIn("'5.50'",self.d['export_seeds'][0]['ligne'])
  def test_aucune_ligne_joueur_ou_source_privee_extraite(self):
@@ -50,6 +53,9 @@ class Relais(unittest.TestCase):
    if champ=='releve_utc':d[champ]='2099-01-01 00:00:00'
    else:d['controle_global']['totaux']['tables']+=1
    with self.subTest(champ=champ),self.assertRaises(ValueError):m.valider(d)
+ def test_mesure_de_referentiels_absente_n_est_pas_remplacee_par_ancienne(self):
+  d=copy.deepcopy(self.d);d['referentiels_controle']=[]
+  with self.assertRaisesRegex(ValueError,'Mesure'):m.valider(d)
  def test_ancienne_borne_arrondie_refusee(self):
   d=copy.deepcopy(self.d);d['export_structure']['sequences'][0]['max']=9223372036854776000
   with self.assertRaisesRegex(ValueError,'sans arrondi'):m.valider(d)
@@ -62,6 +68,13 @@ class Relais(unittest.TestCase):
  def test_aucun_zero_invente_si_manifeste_absent(self):
   d=copy.deepcopy(self.d);d['seeds_controle']=[]
   with self.assertRaisesRegex(ValueError,'incomplet'):m.valider(d)
+ def test_empreinte_recalculee_n_autorise_pas_une_commande_ou_une_autre_table(self):
+  import hashlib
+  for sql in ['SELECT 1; DELETE FROM public.terrains_referentiel', 'DELETE FROM public.terrains_referentiel', 'INSERT INTO public.personnages(name) VALUES(\'X\')', "INSERT INTO public.terrains_referentiel(pays,ville,batiment,surface,prix_achat) VALUES(current_user,'capitale','terrain',100,5.50)"]:
+   d=copy.deepcopy(self.d);d['export_seeds'][0]['ligne']=sql
+   for c in d['seeds_controle']:
+    if c['table']=='terrains_referentiel':c['empreinte']=hashlib.md5(sql.encode()).hexdigest()
+   with self.subTest(sql=sql),self.assertRaises(ValueError):m.valider(d)
  def test_ligne_de_table_privee_refusee(self):
   d=copy.deepcopy(self.d);d['export_seeds'].append({'tbl':'commerce_decors_sources','rang':1,'ligne':'non exécutée'})
   with self.assertRaisesRegex(ValueError,'hors liste'):m.valider(d)
@@ -84,7 +97,7 @@ class Relais(unittest.TestCase):
  def test_materialisation_hors_git_reutilise_le_chargeur_sans_remplacer_de_valeurs(self):
   with tempfile.TemporaryDirectory() as d:
    destination=Path(d)/'prive'
-   self.assertEqual(m.materialiser(copy.deepcopy(self.d),destination),8)
+   self.assertEqual(m.materialiser(copy.deepcopy(self.d),destination),9)
    exp,_=m.rendre.charger_exports(str(destination/'canoniques'))
    self.assertEqual(exp['sequences'][0]['max'],'9223372036854775807')
    self.assertEqual(destination.stat().st_mode & 0o777,0o700)
@@ -93,6 +106,10 @@ class Relais(unittest.TestCase):
  def test_publication_des_exports_dans_git_refusee(self):
   with self.assertRaisesRegex(ValueError,'Git'):m.materialiser(self.d,R/'ne-jamais-creer-ce-dossier')
   self.assertFalse((R/'ne-jamais-creer-ce-dossier').exists())
+ def test_contenus_territoriaux_ne_sont_pas_classes_socle_commun(self):
+  cls=m.seeds.classification()
+  for t in ['locaux_loyers_referentiel','rue_noeuds_serveur','rue_sorties_batiments','scandales_predefinis','terrains_referentiel','tracts_pnj_catalogue']:self.assertEqual(cls[t]['categorie'],'B')
+  for t in ['objets_modeles','terrain_actions_regles']:self.assertEqual(cls[t]['categorie'],'D')
  def test_source_privee_ne_redevient_pas_un_seed(self):
   cls=m.seeds.classification()
   for t in ['commerce_decors_sources','publicites_premium_sources']:
