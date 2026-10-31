@@ -9,7 +9,7 @@ _sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 M1='historique/migrations-appliquees/20261024074120_centre_artisanal_achat_ced.sql'
 M2='historique/migrations-appliquees/20261024074129_football_quota_jour_commun.sql'
 SOURCES=[
- ('migrations/20261031113611_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires'),
+ ('historique/migrations-appliquees/rehorodatees-219/20261031113611_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires'),
  ('baseline/domaines/socle/20_fonctions.sql','inventaire_place_restante'),
  ('baseline/domaines/socle/20_fonctions.sql','jour_de_jeu_pays'),
  ('migrations/20261031113546_reception_objets_atomique.sql','inventaire_revision_garder'),
