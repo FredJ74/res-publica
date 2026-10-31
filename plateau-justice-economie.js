@@ -168,47 +168,7 @@ async function confirmerDonArgent(pa, cost) {
   (effets[pnj?.id] || effets.default)();
 }
 
-function doExpulsionLegale() {
-  const id = state.currentBuilding;
-  const ts = getTerrainState(id);
-  const indices = INDICES_NATIONAUX?.[state.country] || { ISN:30 };
-  const isn = indices.ISN || 30;
-
-  // Délai selon ISN — plus ISN est élevé, plus c'est rapide
-  const delaiH = Math.max(6, Math.round(96 - isn * 0.6));
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  // Ajouter l'inspecteur de police comme PNJ visible
-  const pnjPolice = (TERRAIN_POLICE_PROFILES?.[state.country] || TERRAIN_POLICE_PROFILES?.republic) || {
-      name: 'L\'Inspecteur', role: 'Inspecteur de police', job: 'commissaire',
-      rel: 'neutral', trait: 'Arrive quand on l\'appelle. Prend note. Repart.'
-    };
-
-  // Stocker la demande d'expulsion
-  setTerrainState(id, {
-    expulsionDemandeeAt: Date.now(),
-    expulsionAt: Date.now() + delaiH * 3600000,
-    pnjPolice: pnjPolice
-  });
-
-  // Afficher l'inspecteur de police dans la pièce temporairement
-  const pnjPoliceSession = {
-    name: pnjPolice.name + ' (PNJ)',
-    role: pnjPolice.role,
-    job: pnjPolice.job,
-    rel: pnjPolice.rel,
-    trait: pnjPolice.trait,
-    photoUrl: pnjPolice.photoUrl,
-    photoPos: pnjPolice.photoPos,
-    terrainPnjId: 'inspecteur_police'
-  };
-  sessionStorage.setItem('terrain_pnj_police_' + id, JSON.stringify(pnjPoliceSession));
-
-  addJournalEntry('Expulsion légale demandée. L\'inspecteur est sur place. Résolution dans ' + delaiH + 'h.', 'event-info');
-  showToast('Police sur place', 'Expulsion dans ' + delaiH + 'h. Soudoyez l\'inspecteur pour accélérer.', true);
-
-  if (state.currentRoom) enterRoom(state.currentBuilding, state.currentRoom);
-}
+function doExpulsionLegale(){ return occupationExecuterPolice("police"); }
 
 function doRacheterTerrain(pa, cost) {
   const building = state.currentBuilding;
