@@ -43,6 +43,11 @@ def verifier_referentiels(q,reference):
  assert not ecarts,ecarts
  return {'conformes':True,'tables':len(REFERENTIELS_1012)}
 
+def verifier_http_27(preuve):
+ cas=preuve.get('cas',[])
+ assert len(cas)==27 and len({x['cas'] for x in cas})==27 and all(x.get('ok') is True for x in cas), 'Les 27 cas HTTP authentifies distincts sont obligatoires'
+ return {'cas':27,'conformes':True}
+
 def main():
  a=argparse.ArgumentParser(description=__doc__)
  for x in ['exports','registre','capture-couts','postgres-bin','rapport']:a.add_argument('--'+x,type=Path,required=True)
@@ -53,7 +58,7 @@ def main():
  a.add_argument('--gotrue-bin',type=Path)
  a.add_argument('--postgrest-bin',type=Path)
  o=a.parse_args()
- if bool(o.gotrue_bin)!=bool(o.postgrest_bin):a.error('GoTrue et PostgREST doivent être fournis ensemble')
+ if not (o.gotrue_bin and o.postgrest_bin):a.error('GoTrue et PostgREST obligatoires pour certifier les 27 cas HTTP authentifies')
  e=charger('epreuve95','outils/baseline/epreuve-postgresql.py');lot=charger('lot95','outils/livraison/preparer-livraison-complete-219.py')
  registre=e.lire_registre(o.registre);capture=json.loads(o.capture_couts.read_text());plan=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text())
  triples=sorted((x['fn'],x['pa'],x['cost']) for x in capture['ordres_couts'])
@@ -157,7 +162,7 @@ def main():
     q.execute('BEGIN');rapport['pr300']={'source':provenance,'organisations':org.recette(q),'groupes':rec.recette(q)}
     assert all(x['ok'] for x in rapport['pr300']['groupes']);rapport['pr300']['rpc_clients']=e.verifier_rpc_clients(q);c.rollback()
    if services:
-    services.demarrer_rest(q);rapport['recette_authentifiee_isolee']=services.recette(q);rapport['binaires_auth_sha256']={str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [o.gotrue_bin,o.postgrest_bin]}
+    services.demarrer_rest(q);preuve_http=services.recette(q);rapport['http_27']=verifier_http_27(preuve_http);rapport['recette_authentifiee_isolee']=preuve_http;rapport['binaires_auth_sha256']={str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [o.gotrue_bin,o.postgrest_bin]}
   except Exception as ex:
    rapport['erreur']=str(ex);rapport['trace']=traceback.format_exc();c.rollback()
    if services:
