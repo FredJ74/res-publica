@@ -41,7 +41,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - `20261031230000_organisations_champs_commandes_serveur` : **préparée, ne pas appliquer** avant #219 installé et recetté (feu vert requis dans la transaction).
 - ~~`20261031190000_avis_personnels_expediteurs_declares`~~ **appliquée par Claude le 31/10 vers 20 h, registre `avis_personnels_expediteurs_declares_20261031190000`** (PR #297, fusionnée `c44f5c40`, Vercel READY) : neuf identités d'avis personnels (expulsion, libération, candidature, convocation douanière…) déclarées pour l'envoi **à soi seulement** ; sans elle ces courriers sont refusés en silence. Indépendante de l'écran. Banc annulé : `outils/bancs/banc-avis-personnels-expediteurs.sql` (joué le 31/10 : avant refus, après accepté pour soi, refusé vers un tiers).
 
-### Audit des bâtiments de PSM et Montrouge (Claude, branche `claude/audit-psm-montrouge-20261101`)
+### Audit des bâtiments de PSM et Montrouge (Claude, branche `claude/audit-psm-montrouge-20261101`, PR #304 ouverte, prête)
 
 - Rapport : `outils/audits/AUDIT-BATIMENTS-PSM-MONTROUGE-20261101.md` ; outil `outils/audits/auditer-socle-villes-republia.cjs` ; garde `outils/bancs/test-parcelles-republia-socle.mjs`.
 - **Corrigé côté écran** : gabarit #135 sur toutes les parcelles (PSM avait 3 ordres anciens ; « Accélérer le chantier » mort retiré de Montrouge ; « Corrompre un fonctionnaire » sur toutes les parcelles) ; surfaces et prix décidés par Fred le 01/11 (PSM 1 500 m² à 18 000 FR ; lot 6 de Montrouge 2 100 m² à 25 200 FR) ; « Vendre des matières à l'usine » au pôle tabac-alcools et à la raffinerie.
