@@ -71,6 +71,8 @@ jobs:
         run: npm test --prefix outils/e2e
       - name: Dépendances du PostgreSQL jetable
         run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
+      - name: Verrou final inventaire sur PostgreSQL jetable, données fictives
+        run: python3 outils/bancs/banc-verrou-inventaire-local.py
       - name: Audit Arnie sur PostgreSQL jetable, aucune identite reelle
         run: python3 outils/e2e/test-prevol-arnie-local.py --local-jetable
       - name: Achat sur PostgreSQL local, sans identifiant Supabase
