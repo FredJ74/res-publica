@@ -1108,6 +1108,26 @@ body.plateau-body .piece-ambiance .piece-desc {
   line-height: 1.45;
 }
 body.plateau-body .person-card { flex-wrap: wrap; }
+/* Actions de piece et informations : taille de lecture alignée sur les réponses PNJ. */
+body.plateau-body .panel-title,
+body.plateau-body .batiment-cat,
+body.plateau-body .action-context,
+body.plateau-body .action-btn,
+body.plateau-body .piece-tab,
+body.plateau-body .loc-city,
+body.plateau-body .loc-name,
+body.plateau-body .emp-name,
+body.plateau-body .emp-role {
+  font-size: .95rem !important;
+  line-height: 1.4;
+}
+/* La barre supérieure reste accessible si ses boutons agrandis ne tiennent plus. */
+body.plateau-body .top-right {
+  max-width: calc(100vw - 170px);
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
 
 /* CHAR SHEET */
 .char-sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;padding:1rem}
