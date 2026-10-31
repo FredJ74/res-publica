@@ -1,0 +1,70 @@
+{
+  "capture_date": "2026-10-31",
+  "scope": "prevol lecture seule Supabase",
+  "project": "jxpwoosmmhohoihxpbuc",
+  "registre": {
+    "total": 1009,
+    "dernier": "20261031190352"
+  },
+  "couts": {
+    "total": 438,
+    "distincts": 438
+  },
+  "migrations": {
+    "helvetia": "20261031131427",
+    "avis": "20261031190352",
+    "squatteurs": null
+  },
+  "fonctions": [
+    {
+      "nom": "banque_nationale_mouvement",
+      "signature": "p_acteur text, p_sens text, p_montant numeric",
+      "auth": true,
+      "md5": "4cc9a26d654edbe795c818cd96dd74ea"
+    },
+    {
+      "nom": "inventaire_sauver_revision",
+      "signature": "p_acteur text, p_revision bigint, p_inventory jsonb",
+      "auth": true,
+      "md5": "d666ac810c9a0e13be3131fbdf7bcac5"
+    },
+    {
+      "nom": "payer_ordre",
+      "signature": "p_acteur text, p_fn text, p_pa integer, p_cost integer",
+      "auth": true,
+      "md5": "37eca91d6eb08c2a6ea97cbe717a216a"
+    },
+    {
+      "nom": "resoudre_placement_helvetia",
+      "signature": "p_placement_id text",
+      "auth": false,
+      "md5": "c030f53c6c8b36b0ef9a80944642d981"
+    }
+  ],
+  "contrats_organisations_presents": 0,
+  "triggers_personnages_donnees": {
+    "nombre": 17,
+    "actifs": 17
+  },
+  "acl": {
+    "budgets_clubs": {
+      "rls": true,
+      "insert": true,
+      "update": true,
+      "delete": false
+    },
+    "organisations": {
+      "rls": true,
+      "insert": true,
+      "update": true,
+      "delete": true
+    },
+    "comptes_bancaires": {
+      "rls": true,
+      "insert": false,
+      "update": false,
+      "delete": false
+    }
+  },
+  "note": "Capture de catalogue non substituable à une recette authentifiée ou une comparaison exhaustive des définitions des 89 migrations. Aucune mutation de production."
+}
