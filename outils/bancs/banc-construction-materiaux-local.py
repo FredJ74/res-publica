@@ -29,7 +29,7 @@ def main():
   q.execute("INSERT INTO chantiers_paliers VALUES('hangar',10500,30000,'{\"niveau\":\"hangar\",\"dureeJours\":6,\"progressionJours\":0}')")
   q.execute(_sources['entree_historique']('helvetia_debiter_fonds_ordinaires'))
   q.execute(_sources['entree_historique']('chantier_lancer'))
-  migration=next((R/'migrations').glob('*_construction_materiaux_prix_et_dons.sql')).read_text();q.execute(migration);q.execute(migration)
+  migration=_sources['chemin_source']('migrations/20261031113610_construction_materiaux_prix_et_dons.sql').read_text();q.execute(migration);q.execute(migration)
   q.execute("INSERT INTO terrains_etat VALUES('republic_nouveau','{\"city\":\"capitale\",\"proprietaire\":\"Fixture\",\"constructionAutorisee\":true,\"permis\":{\"palierDemande\":\"hangar\"}}',now())")
   q.execute("UPDATE personnages_donnees SET arg=20000,liquide=20000")
   q.execute("SELECT chantier_lancer('Fixture','republic','nouveau','hangar',10500)");lancement=q.fetchone()[0]
@@ -91,7 +91,7 @@ def main():
   references=[]
   for liq,banque,montant in cas:
    configurer(liq,banque);q.execute("SELECT helvetia_debiter_fonds_ordinaires('Fixture',%s)",(montant,));references.append((q.fetchone()[0],soldes()))
-  financement=next((R/'migrations').glob('*_construction_lancement_priorite_bancaire.sql')).read_text();q.execute(financement);q.execute(financement)
+  financement=_sources['chemin_source']('migrations/20261031113611_construction_lancement_priorite_bancaire.sql').read_text();q.execute(financement);q.execute(financement)
   for (liq,banque,montant),reference in zip(cas,references):
    configurer(liq,banque);q.execute("SELECT helvetia_debiter_fonds_ordinaires('Fixture',%s)",(montant,));assert (q.fetchone()[0],soldes())==reference
   for liq,banque,montant,attendu in [(100,100,40,(160,100,60)),(50,80,100,(30,30,0)),(20,80,101,(100,20,80)),(100,0,40,(60,60,0))]:
