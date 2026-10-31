@@ -15,7 +15,7 @@ def main():
     a=src.index('CREATE TABLE public.'+table+' (');b=src.index('\n);',a)+3;q.execute(src[a:b]);q.execute(f'ALTER TABLE {table} ADD PRIMARY KEY (id)')
   q.execute('ALTER TABLE interviews_jodie ENABLE ROW LEVEL SECURITY')
   migration=next((R/'migrations').glob('*_jodie_interview_forum_atomique.sql'));q.execute(migration.read_text());q.execute(migration.read_text())
-  q.execute((R/'migrations/20261019002000_jodie_portraits_forum_journal.sql').read_text())
+  q.execute((R/'migrations/20261031113556_jodie_portraits_forum_journal.sql').read_text())
   q.execute("INSERT INTO interviews_jodie(id,personnage,country) VALUES ('banc','Alice','republic')")
   q.execute('SELECT count(*) FROM forum_topics');assert q.fetchone()[0]==0
   q.execute("UPDATE interviews_jodie SET publie=true,article_titre='Entretien',article_texte='<script>texte du joueur</script>',publie_le=now() WHERE id='banc'")

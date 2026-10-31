@@ -2,7 +2,7 @@
 // Répétition serveur en transaction annulée (terrain 4 de Luthécia) : voir RELAIS.md.
 const vm = require('vm'), fs = require('fs'), path = require('path');
 const R = path.join(__dirname, '..', '..'), lire = f => fs.readFileSync(path.join(R, f), 'utf8');
-const m = lire('migrations/20261029220000_logements_sociaux_communaux.sql');
+const m = lire('historique/migrations-appliquees/20261029220000_logements_sociaux_communaux.sql');
 const je = lire('plateau-justice-economie.js'), ch = lire('plateau-chantiers.js'), ls = lire('plateau-logements-sociaux.js'), rt = lire('plateau-router.js');
 let n = 0, ko = 0; const t = (nom, ok) => { n++; if (!ok) ko++; console.log((ok ? 'ok   ' : 'ECHEC') + ' ' + nom); };
 t('trois paliers au bareme commun (12/18/24 jours, 5 000 FR/jour)', /'logements_petit','Logements sociaux — petit bâtiment',12/.test(m) && /'logements_moyen',[^)]*,18\)/.test(m) && /'logements_barre',[^)]*,24\)/.test(m) && /v\.j\*5000/.test(m));
@@ -16,14 +16,14 @@ t('attribution, loyer et tableau reserves a l adjoint atteste', (m.match(/public
 t('chaque changement de loyer est historise', /'acte','loyer_social','acteur',moi,'lot',p_lot,'ancien',ancien,'nouveau',p_loyer/.test(m));
 t('demande : residence, une seule en attente, 1 PA', /residence_requise/.test(m) && /demande_deja_en_cours/.test(m) && /payer_ordre\(moi, 'demander_logement_social', 1, 0\)/.test(m));
 t('fragments remplaces une seule fois', (m.match(/fragment_introuvable_/g) || []).length >= 7);
-const pc = lire('migrations/20261029222000_permis_commune_par_caisse.sql');
+const pc = lire('historique/migrations-appliquees/20261029222000_permis_commune_par_caisse.sql');
 t('permis d un terrain de la commune paye par la caisse de la mairie, PA du maire', /ELSIF etat->>''proprietaire''=''ville:''\|\|pays\|\|'':''\|\|ville THEN paiement:=public\.permis_commune_payer_interne/.test(pc) && /caisse_institution_mouvement\(caisse, -100, true\)/.test(pc) && /SET pa = pa - 1/.test(pc));
 t('caisse insuffisante : rien n est preleve', /IF coalesce\(solde,0\) < 100 THEN RETURN jsonb_build_object\('ok',false,'raison','caisse_communale_insuffisante'\); END IF;\s*UPDATE public\.personnages_donnees SET pa/.test(pc));
-const rd = lire('migrations/20261029223000_logements_sociaux_resiliation_domicile.sql');
+const rd = lire('historique/migrations-appliquees/20261029223000_logements_sociaux_resiliation_domicile.sql');
 t('depart de la ville : baux sociaux hors nouvelle ville resilies, appartement libere', /AFTER UPDATE OF domicile ON public\.personnages_donnees/.test(rd) && /data->>'logementSocial' = 'true'/.test(rd) && /'acte','resiliation_depart'/.test(rd));
 t('attribution refusee a un demandeur qui n habite plus la ville', /demandeur_non_resident/.test(rd)
   && m.includes("  idb := t.country||':'||t.building_id||':lot_dyn_'||regexp_replace(p_lot,'[^A-Za-z0-9_-]','_','g')||':'||ville;\n  SELECT coalesce(day,1) INTO jour"));
-const hm = lire('migrations/20261029224000_logements_historiques_montrouge.sql');
+const hm = lire('historique/migrations-appliquees/20261029224000_logements_historiques_montrouge.sql');
 t('Montrouge historique : 4 fiches au serveur (30/30/60/60)', (hm.match(/'logements-montrouge','(petit|grand)_appartement_[12]'/g) || []).length === 4);
 t('Montrouge historique : attribution et loyer par les memes portes, residents seulement', /logement_historique_attribuer_interne\(moi, ville, p_terrain, p_lot, p_demande\)/.test(hm) && /logement_historique_loyer_fixer_interne\(moi, ville, p_terrain, p_lot, p_loyer\)/.test(hm) && /demandeur_non_resident/.test(hm));
 t('Montrouge historique : changements de loyer historises', /INSERT INTO public\.logements_loyers_historique/.test(hm));

@@ -114,7 +114,7 @@ def expression_check(definition):
     return normaliser(arbre)
 
 
-def comparer_catalogues(q, repertoire):
+def comparer_catalogues(q, repertoire, normalisations=None):
     # Les mêmes requêtes, jamais une photographie SQL reconstruite de mémoire.
     from rendre import charger_exports
     from requetes import EXPORTS
@@ -141,6 +141,12 @@ def comparer_catalogues(q, repertoire):
         for categorie,lignes in obtenu.items():
             source=[x for x in (attendu[categorie] or []) if dans_perimetre(categorie,x)]
             cible=[x for x in (lignes or []) if dans_perimetre(categorie,x)]
+            if categorie=='contraintes' and normalisations is not None:
+                for a,b in zip(source,cible):
+                    if a!=b and comparable(categorie,a)==comparable(categorie,b):
+                        normalisations.append({'table':a['tbl'],'contrainte':a['nom'],
+                                               'empreinte_source':a['empreinte'],'empreinte_locale':b['empreinte'],
+                                               'preuve':'AST CHECK identique après associativité AND/OR ; empreintes textuelles conservées distinctes.'})
             if [comparable(categorie,x) for x in source]!=[comparable(categorie,x) for x in cible]:
                 exemples=[]
                 for i in range(max(len(source),len(cible))):
@@ -169,7 +175,7 @@ def installer_prerequis_233(q):
     Absente des 1003 versions et du catalogue : ni présumée appliquée, ni
     confondue avec les 88 migrations #219. Installée uniquement sur base jetable.
     """
-    p=ICI.parents[1]/'migrations/20261029181000_squatteurs_issue_combat.sql'
+    p=ICI.parents[1]/'migrations/20261031113650_squatteurs_issue_combat.sql'
     texte=p.read_text()
     if q.execute("SELECT to_regprocedure('public.terrain_squatteurs_issue_interne(text,text,text,uuid)')") is not None:
         raise RuntimeError('Erreur de lecture du prérequis')
@@ -179,11 +185,35 @@ def installer_prerequis_233(q):
             'portee':'Dépendance préparée #233 distincte des 88 migrations, installée seulement en local.'}
 
 
+def verifier_rpc_clients(q):
+    """Même inventaire d'appels que Authority, contre les routines installées.
+
+    Ne remplace ni le baseline source ni son verdict de production. Vérifie
+    aussi les paramètres obligatoires et EXECUTE au rôle du navigateur.
+    """
+    spec=importlib.util.spec_from_file_location('autorite219',ICI/'verifier-autorite.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+    appels=m.rpc_du_navigateur()
+    q.execute("SELECT p.proname,p.proargnames,p.proargmodes,p.pronargs-p.pronargdefaults,has_function_privilege('authenticated',p.oid,'EXECUTE') FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public'")
+    formes={}
+    for nom,noms,modes,obligatoires,droit in q.fetchall():
+        noms=noms or []
+        if modes:noms=[v for v,mode in zip(noms,modes) if mode in ('i','b','v')]
+        formes.setdefault(nom,[]).append((set(noms),set(noms[:obligatoires]),droit))
+    ecarts=[];n=0
+    for nom,variantes in appels.items():
+        for passes,sites in variantes.items():
+            n+=1
+            if not any(passes<=attendus and requis<=passes and droit for attendus,requis,droit in formes.get(nom,[])):
+                ecarts.append({'fonction':nom,'parametres':sorted(passes),'sites':sites})
+    return {'fonctions':len(appels),'formes':n,'ecarts':ecarts,'portee':'Catalogue local APRÈS lot ; ne remplace pas Authority sur le catalogue de production.'}
+
+
 def main():
     a=argparse.ArgumentParser(description=__doc__)
     a.add_argument('--rapport',type=Path,required=True)
     a.add_argument('--diagnostic-version-differente',action='store_true',help='Ne certifie jamais la fidélité si le moteur diffère de PG17.')
     a.add_argument('--lot-219',action='store_true',help='Après reconstruction et compilation réussies seulement.')
+    a.add_argument('--recette-219',action='store_true',help='Recette isolée sur le catalogue entier, sans remplacer de fonction.')
     a.add_argument('--prerequis-233',action='store_true',help='Installer explicitement la dépendance #233 manquante sur le décor local, sans la déclarer en production.')
     a.add_argument('--schema-seul',action='store_true',help='Épreuve explicite du catalogue, sans prétendre avoir installé les seeds du monde.')
     a.add_argument('--registre',type=Path,help='Export JSON du registre vivant complet, métadonnées seulement, requis avec --lot-219.')
@@ -211,7 +241,8 @@ def main():
                 rapport['seeds_installes']=not args.schema_seul
                 rapport.update(installer(q,morceaux));rapport['reconstruction']=True
                 if args.exports:
-                    rapport['ecarts_catalogue']=comparer_catalogues(q,args.exports)
+                    rapport['normalisations_checks']=[]
+                    rapport['ecarts_catalogue']=comparer_catalogues(q,args.exports,rapport['normalisations_checks'])
                     if rapport['ecarts_catalogue']:raise RuntimeError('Catalogue reconstruit différent des exports : lot interdit')
                     rapport['fidelite_catalogue_vivant']=True
                 if args.lot_219:
@@ -225,8 +256,21 @@ def main():
                     q.executemany('INSERT INTO supabase_migrations.schema_migrations(version,name) VALUES(%s,%s)',[(x['version'],x.get('name')) for x in registre])
                     spec=importlib.util.spec_from_file_location('lot219',ICI.parent/'livraison/preparer-groupes-219.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
                     f=Path(d)/'lot.sql';rapport['migrations_preparees']=m.preparer(str(f))
+                    rapport['rpc_clients_avant_lot']=verifier_rpc_clients(q)
                     # Métadonnées du registre réel, pas une liste vide inventée.
                     c.commit();q.execute(f.read_text());rapport['lot_219_installe']=True
+                    q.execute('BEGIN')
+                    rapport['rpc_clients_catalogue_local']=verifier_rpc_clients(q)
+                    cle=lambda x:(x['fonction'],tuple(x['parametres']))
+                    avant={cle(x) for x in rapport['rpc_clients_avant_lot']['ecarts']}
+                    apres={cle(x) for x in rapport['rpc_clients_catalogue_local']['ecarts']}
+                    rapport['rpc_clients_catalogue_local']['ecarts_nouveaux']=[x for x in rapport['rpc_clients_catalogue_local']['ecarts'] if cle(x) not in avant]
+                    rapport['rpc_clients_catalogue_local']['ecarts_corriges']=[x for x in rapport['rpc_clients_avant_lot']['ecarts'] if cle(x) not in apres]
+                    if apres-avant:raise RuntimeError('Nouvelle régression de raccordement RPC après installation du lot')
+                    if args.recette_219:
+                        spec=importlib.util.spec_from_file_location('recette219',ICI.parent/'bancs/recette-groupes-catalogue-219.py');r=importlib.util.module_from_spec(spec);spec.loader.exec_module(r)
+                        rapport['recette_catalogue']=r.recette(q)
+                        if any(not x['ok'] for x in rapport['recette_catalogue']):raise RuntimeError('Recette sur catalogue entier en échec')
                 c.commit()
                 rapport['limite']='Catalogue public comparé dans le périmètre déclaré du baseline (hors cinq tables exclues et services plateforme). Auth SQL locale : aucune recette GoTrue authentifiée réelle.'
             finally:

@@ -4,7 +4,7 @@
 const fs = require('fs'), path = require('path');
 const R = path.join(__dirname, '..', '..');
 const lire = f => fs.readFileSync(path.join(R, f), 'utf8');
-const mig = lire('migrations/20261029200000_prets_budgets_municipaux_gardes.sql');
+const mig = lire('historique/migrations-appliquees/20261029200000_prets_budgets_municipaux_gardes.sql');
 const perso = lire('plateau-personnage.js'), poli = lire('plateau-politique.js'), sb = lire('supabase.js');
 const tous = fs.readdirSync(R).filter(f => f.endsWith('.js')).map(f => lire(f)).join('\n');
 let ko = 0, n = 0;
@@ -28,7 +28,7 @@ t('ecran : sbSaveBudgetMunicipal a exactement 3 appelants', (tous.match(/await s
 t('ecran : les taux du maire passent par taux_imposition_fixer', /taux_imposition_fixer/.test(tous));
 
 // Mariage (décision de Fred : pas de mariage contre son gré)
-const mm = lire('migrations/20261029201000_mariage_par_serveur.sql'), mf = lire('migrations/20261029201100_mariage_fermer_ecran.sql');
+const mm = lire('historique/migrations-appliquees/20261029201000_mariage_par_serveur.sql'), mf = lire('historique/migrations-appliquees/20261029201100_mariage_fermer_ecran.sql');
 t('mariage : officialiser exige une demande acceptee entre les deux', /statut = 'acceptee'[\s\S]{0,200}demandeur = moi AND destinataire = p_conjoint\) OR \(demandeur = p_conjoint AND destinataire = moi/.test(mm) && /'consentement_absent'/.test(mm));
 t('mariage : seul le destinataire repond', /dm\.destinataire IS DISTINCT FROM moi/.test(mm));
 t('mariage : presence dans la meme piece verifiee au serveur', /p\.current_room IS DISTINCT FROM c\.current_room/.test(mm));

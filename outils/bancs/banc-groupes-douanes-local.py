@@ -17,15 +17,15 @@ def suite(ctx,suivante=None):
  for nom in ['justice_recherches','inventaire_confisquer','detention_active','detention_qhs_poser_interne','detention_transferer_qhs','detention_ouvrir_soi','pnj_miroir_possessions_si_axe_blob']:installer(nom)
  source=json.loads((R/'outils/bancs/fixtures/groupes-justice-corps-git-20261028.json').read_text())
  assert hashlib.sha256(source['sql'].encode()).hexdigest()==source['sha256'];q.execute(source['sql'])
- q.execute(a.fonction('migrations/20261016131932_reception_objets_atomique.sql','inventaire_revision_garder'))
+ q.execute(a.fonction('migrations/20261031113546_reception_objets_atomique.sql','inventaire_revision_garder'))
  q.execute('CREATE TRIGGER zzzz_hg_inventory_revision BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION inventaire_revision_garder()')
  q.execute("SELECT to_regclass('public.indices_villes')")
  if q.fetchone()[0] is None:
   for p in (R/'baseline/domaines').glob('*/10_tables.sql'):
    m=re.search(r'CREATE TABLE public.indices_villes \(.*?\n\);',p.read_text(),re.S)
    if m:q.execute(m[0]);break
- q.execute(a.fonction('migrations/20261027110100_crimes_actes_serveur.sql','crime_malus_isn_interne'))
- src=(R/'migrations/20261027110000_crimes_socle_serveur.sql').read_text()
+ q.execute(a.fonction('historique/migrations-appliquees/20261027110100_crimes_actes_serveur.sql','crime_malus_isn_interne'))
+ src=(R/'historique/migrations-appliquees/20261027110000_crimes_socle_serveur.sql').read_text()
  q.execute(re.search(r'CREATE TABLE IF NOT EXISTS public.actes_illegaux \(.*?\n\);',src,re.S)[0])
  q.execute(re.search(r'INSERT INTO public.actes_illegaux .*?maj_le = now\(\);',src,re.S)[0])
  for nom,fichier in [('crime_rechercher_interne','20261027110000_crimes_socle_serveur.sql'),('crime_detecter_interne','20261027110000_crimes_socle_serveur.sql'),('crime_dis_ajuster_interne','20261027130000_crimes_ordres_detection.sql'),('crime_etat_acteur_interne','20261027130000_crimes_ordres_detection.sql'),('crime_corrompre_douanier','20261027130000_crimes_ordres_detection.sql')]:

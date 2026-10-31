@@ -4,8 +4,8 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import json,tempfile,runpy
 R=Path(__file__).resolve().parents[2]
-M1=R/'migrations/20261019064000_organisations_equipements_collectifs.sql'
-M2=R/'migrations/20261019064500_achat_equipements_collectifs.sql'
+M1=R/'migrations/20261031113558_organisations_equipements_collectifs.sql'
+M2=R/'migrations/20261031113559_achat_equipements_collectifs.sql'
 def main():
  import pgserver,psycopg2
  serveur=pgserver.get_server(tempfile.mkdtemp(prefix='hg-equipements-'),cleanup_mode='delete');uri=serveur.get_uri();c=psycopg2.connect(uri);c.autocommit=True;q=c.cursor()
@@ -148,14 +148,14 @@ def main():
  fail(M1.read_text(),motif='autorite_generale_a_migrer');q.execute('ROLLBACK')
  q.execute('REVOKE UPDATE ON organisations FROM authenticated');n+=1
  # Le nouveau contrat de dissolution respecte la FK du socle reel.
- q.execute((R/'migrations/20261019094425_organisations_commandes_administratives.sql').read_text())
+ q.execute((R/'migrations/20261031113600_organisations_commandes_administratives.sql').read_text())
  q.execute("SELECT set_config('hg.acteur','Bob',false)")
  fail("SELECT organisation_commande_administrative('orgcmd-dissolution-000001','o1','dissoudre','{}')",motif='foreign key')
  assert len(etat()['objets'])>0
  assert call("SELECT count(*) FROM organisation_commandes_recus WHERE requete='orgcmd-dissolution-000001'")==0;n+=1
  # Progression atomique compatible avec la garde municipale/organisation et les biens persistants.
- q.execute((R/'migrations/20261019130213_organisations_adhesions_grades.sql').read_text())
- q.execute((R/'migrations/20261019130951_organisations_progression_elections.sql').read_text())
+ q.execute((R/'migrations/20261031113602_organisations_adhesions_grades.sql').read_text())
+ q.execute((R/'migrations/20261031113603_organisations_progression_elections.sql').read_text())
  q.execute("SELECT set_config('hg.acteur','Alice',false)")
  election={'enCours':True,'phase':'candidatures','dateFinCandidatures':5,'dateFinVote':6,'candidats':[{'nom':'Alice'},{'nom':'Bob'}],'votes':{'Bob':'Alice'}}
  q.execute("UPDATE organisations SET data=jsonb_set(data::jsonb,'{election}',%s::jsonb)::text WHERE id='o1'",(json.dumps(election),))

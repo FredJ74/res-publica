@@ -54,11 +54,12 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
   for nom in ['20261031115738_reprise_pnj_autorite_administrative.sql','20261031115739_groupe_pj_adhesion_volontaire.sql','20261031115740_pnj_rappel_radio_universel.sql','20261031115741_transfert_pnj_autorite_origine.sql']:
    if original:
     import subprocess
-    sql=subprocess.check_output(['git','show','c85d36d5:migrations/'+nom],cwd=R,text=True)
+    ancien=next((Path(x['ancien']).name for x in json.loads((R/'outils/audits/REHORODATAGE-GROUPES-219-20261031.json').read_text())['fichiers'] if Path(x['nouveau']).name==nom),nom)
+    sql=subprocess.check_output(['git','show','c85d36d5:migrations/'+ancien],cwd=R,text=True)
    else:sql=(R/'migrations'/nom).read_text()
    q.execute(sql)
    q.execute(sql) # Rejeu structurel.
-  for p in sorted((R/'migrations').glob('2026102813*_groupes_*.sql')):
+  for p in [R/x['nouveau'] for x in json.loads((R/'outils/audits/REHORODATAGE-GROUPES-219-20261031.json').read_text())['fichiers'] if Path(x['ancien']).match('2026102813*_groupes_*.sql')]:
    if not original:q.execute(p.read_text());q.execute(p.read_text())
   q.execute('REVOKE ALL ON ALL TABLES IN SCHEMA public FROM authenticated,anon,service_role')
   q.execute('GRANT EXECUTE ON FUNCTION pnj_prendre(text[]),pnj_quitter_groupe(text[]),pnj_transferer(text[],text,boolean) TO authenticated')

@@ -831,3 +831,11 @@ Relais complet validé hors dépôt (14 fragments, snapshot UTC 11:35:45, regist
 Les 88 préparations non appliquées sont rehorodatées après la nouvelle coupe, correspondance versionnée. Défaut réel de paiement corrigé : adaptation du corps examiné actuel, préservant les verrous acquisitions/permis et les fonds en transit. **Première installation atomique des 88 réussie sur cette copie locale**, après installation EXPLICITE du prérequis #233 (présent sur main, mais absent du registre et du catalogue reçus). Ce prérequis n'est pas déclaré déployé. Rapport local /tmp/hg219-lot-fidele-nouveau.json.
 
 Ce n'est PAS la clôture : poursuivre recette sur schéma complet, bancs/contre-épreuves, classement des migrations déjà appliquées, contrôles globaux et cohérence des référentiels. Pas de production, pas de fusion, pas de Vercel, pas de compte réel utilisé. Les exports et identifiants des fragments restent privés hors Git.
+
+### #219 — suite locale complète éprouvée, contrôles 10/12 (31/10, EN COURS)
+
+379/379 scénarios de décors repassés, six mutations détectées (379 cas chacune), 105/105 tests Chromium, 147/147 bancs clients avant l'ultime raccord des coûts. Nouveau décor du catalogue entier : 29/29 scénarios sous les véritables fonctions, dont combats PJ/PJ et PJ/PNJ, rounds, rejeux, refus, radio, détecteur et écrou ; JWT SQL locaux, jamais GoTrue ni joueur réel. Avant/après installation : 12 incompatibilités RPC corrigées, zéro nouvelle ; 17 autres appels historiques/non déployés restent distingués dans le rapport, sans les effacer.
+
+131 migrations attestées archivées avec leur version réelle du registre ; 65 autres conservées comme préparations non attestées et rehorodatées après la coupe, avant les 88 de #219. Aucun changement de leurs règles. Pré-requis #233 désormais `migrations/20261031113650_squatteurs_issue_combat.sql`, non appliqué en production. Workflow, Baseline, Assemblage, Reconstruction et pilote passent. Authority et Referential restent rouges, pas de faux 12/12. Référentiels du monde neuf raccordés aux huit générateurs existants ; les tarifs serveur de crimes sont relus de leur déclaration authored, pas réinventés.
+
+Poursuivre les vérifications finales et l'enregistrement des preuves avant rapport. Production, fusion et Vercel toujours interdits.

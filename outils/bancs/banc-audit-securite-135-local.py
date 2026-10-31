@@ -9,8 +9,41 @@ R=Path(__file__).resolve().parents[2]
 M='migrations/20261031115734_securite_privee_socle_policier.sql'
 ETAPES=[M,'migrations/20261031115735_securite_privee_detection_unites.sql','migrations/20261031115736_securite_privee_combat_pa_et_registre.sql']
 
+def chemin_source(f):
+ p=R/f
+ if p.exists():return p
+ import json
+ for nom in ['CLASSEMENT-MIGRATIONS-219-20261031.json','REHORODATAGE-GROUPES-219-20261031.json']:
+  plan=json.loads((R/'outils/audits'/nom).read_text())
+  for e in plan['fichiers']:
+   if e['ancien']==f:return R/e['nouveau']
+ return p
+
+def creer_table(q,source,nom):
+ """Déclare les séquences nécessaires à UNE table canonique du décor.
+
+ Le rendu n'emploie plus serial pour les séquences ordinaires : les anciens
+ décors partiels doivent donc reprendre leur déclaration explicite également.
+ """
+ s=re.search(r'CREATE TABLE public\.'+re.escape(nom)+r' \(.*?\n\);',source,re.S)[0]
+ for seq in re.findall(r"nextval\('(?:public\.)?([\w]+)'::regclass\)",s):
+  q.execute('SELECT to_regclass(%s)',('public.'+seq,))
+  if q.fetchone()[0] is None:
+   definitions=[]
+   for p in (R/'baseline/domaines').glob('*/10_tables.sql'):
+    definitions+=re.findall(r'CREATE SEQUENCE public\."'+re.escape(seq)+r'" AS .*?;',p.read_text())
+   assert len(definitions)==1,(seq,'déclaration canonique absente ou ambiguë')
+   q.execute(definitions[0])
+ q.execute(s)
+
 def fonction(f,nom):
- s=(R/f).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(')
+ p=chemin_source(f);marque='CREATE OR REPLACE FUNCTION public.'+nom+'('
+ # Le générateur découpe automatiquement les gros domaines. Le banc doit
+ # retrouver la définition réelle, sans dépendre du numéro de morceau.
+ candidats=sorted(p.parent.glob('20_fonctions*.sql')) if p.name.startswith('20_fonctions') else [p]
+ sources=[x.read_text() for x in candidats if x.is_file() and marque in x.read_text()]
+ assert len(sources)==1,(f,nom,'définition absente ou ambiguë')
+ s=sources[0];a=s.index(marque)
  m=re.search(r'AS (\$\w*\$).*?\1\s*;',s[a:],re.S)
  assert m,nom
  return s[a:a+m.end()]
@@ -61,7 +94,7 @@ INSERT INTO police_interceptions(personnage,rencontre,country,city,building,room
    q.execute(re.search(r'ALTER TABLE public.pnj_membres ADD CONSTRAINT '+nom+r' .*?;',contraintes,re.S)[0])
   q.execute('CREATE TRIGGER sous_hierarchie BEFORE INSERT OR UPDATE ON pnj_membres FOR EACH ROW EXECUTE FUNCTION pnj_pas_de_sous_hierarchie()')
   for nom in ['police_reddition_resoudre','police_fuite_resoudre','police_combat_resoudre']:
-   q.execute(fonction('migrations/20261018093000_police_interception_reprise_transactionnelle.sql',nom))
+   q.execute(fonction('migrations/20261031113549_police_interception_reprise_transactionnelle.sql',nom))
   signatures=['police_fuite_resoudre(text)','police_reddition_resoudre(text)','police_combat_resoudre(text,text,text,text,integer)']
   for sig in signatures:
    q.execute('REVOKE ALL ON FUNCTION '+sig+' FROM PUBLIC,anon,authenticated,service_role;GRANT EXECUTE ON FUNCTION '+sig+' TO authenticated')

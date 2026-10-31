@@ -8,7 +8,7 @@ def suite(ctx,suivante=None):
  q,cas,rpc,exige,sql=[ctx[x] for x in ['q','cas','rpc','exige','sql']];a=rondes.interieur.natif.rue.force.corps.g.audit
  # Tables et corps effectivement présents dans les migrations de Claude.
  for f,nom in [('20261024184500_ambassades_audiences.sql','ambassades_audiences'),('20261025020000_ambassades_asile.sql','ambassades_asiles')]:
-  s=(R/'migrations'/f).read_text();q.execute(re.search(r'CREATE TABLE IF NOT EXISTS public\.'+nom+r' \(.*?\n\);',s,re.S)[0])
+  s=a.chemin_source('migrations/'+f).read_text();q.execute(re.search(r'CREATE TABLE IF NOT EXISTS public\.'+nom+r' \(.*?\n\);',s,re.S)[0])
  # La table des ambassades ouvertes est déjà dans le baseline (aucune donnée réelle).
  for f in (R/'baseline/domaines').glob('*/10_tables.sql'):
   m=re.search(r'CREATE TABLE public\.ambassades_ouvertes \(.*?\n\);',f.read_text(),re.S)

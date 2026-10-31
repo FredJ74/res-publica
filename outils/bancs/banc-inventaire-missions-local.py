@@ -7,7 +7,7 @@ import importlib.util
 R=Path(__file__).resolve().parents[2]
 def scenario(q,own,call,check,uid,snapshot,Json):
  own("ALTER TABLE personnages_donnees ADD COLUMN quete_carriere jsonb;ALTER TABLE personnages_donnees ADD COLUMN enigme1 jsonb;ALTER TABLE personnages_donnees ADD COLUMN created_at timestamp without time zone DEFAULT now();INSERT INTO ordres_couts VALUES('presenter_autorisation_coffre',1,0)")
- for _ in range(2):own((R/'migrations/20261027214213_inventaire_missions_et_enigme.sql').read_text())
+ for _ in range(2):own((R/'historique/migrations-appliquees/20261027214213_inventaire_missions_et_enigme.sql').read_text())
  def mission(k,typ='pat'):return call('mission_carriere_recevoir',[uid(k),typ])
  def enigme(k,action='verifier',pa=0):return call('enigme_objet_recevoir',[uid(k),action,pa,0])
  def snap():return own("SELECT jsonb_build_array((SELECT to_jsonb(d) FROM personnages_donnees d WHERE name='Fixture'),(SELECT jsonb_agg(to_jsonb(r)) FROM inventaire_actions_recus r),(SELECT jsonb_agg(to_jsonb(t)) FROM actions_tracables t))")

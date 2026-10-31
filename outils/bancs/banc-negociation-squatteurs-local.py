@@ -39,8 +39,8 @@ def main(suite_callback=None):
     m=re.search(r'AS (\$\w*\$)(.*?)\1;',s[x.start():],re.S);q.execute(s[x.start():x.start()+m.end()])
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:charger('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn)
   charger('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
-  charger('migrations/20261020222029_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires',True)
-  sql=(R/'migrations/20261023231127_squatteurs_negociation_transactionnelle.sql').read_text();q.execute(sql);q.execute(sql)
+  charger('migrations/20261031113611_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires',True)
+  sql=(R/'historique/migrations-appliquees/20261023231127_squatteurs_negociation_transactionnelle.sql').read_text();q.execute(sql);q.execute(sql)
   if suite_callback is not None:
    suite_callback(c,q,srv)
    return

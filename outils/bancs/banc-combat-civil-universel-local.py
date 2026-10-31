@@ -17,7 +17,7 @@ def suite(ctx):
  # Fonctions pures réelles #258 : compatibilité avec les soldes/positions
  # confirmés, sans rejouer la migration déjà appliquée ni toucher un joueur.
  for nom in ['fiche_valeur_normalisee','fiche_fusionner_ecran']:
-  q.execute(re.search(r'CREATE OR REPLACE FUNCTION public\.'+nom+r'\(.*?\$function\$;',(R/'migrations/20261030160000_fiche_fusion_trois_voies.sql').read_text(),re.S)[0])
+  q.execute(re.search(r'CREATE OR REPLACE FUNCTION public\.'+nom+r'\(.*?\$function\$;',(R/'historique/migrations-appliquees/20261030160000_fiche_fusion_trois_voies.sql').read_text(),re.S)[0])
  # Contre-épreuves : mutations de la base jetable seulement.
  if '--contre-issue-fausse' in sys.argv:
   q.execute("SELECT pg_get_functiondef('combat_finaliser_interne(bigint)'::regprocedure)");source=q.fetchone()[0];assert "issue:='tues'" in source;q.execute(source.replace("issue:='tues'","issue:='neutralises'"))
@@ -25,11 +25,11 @@ def suite(ctx):
   q.execute("SELECT pg_get_functiondef('combat_ouvrir_interne(text,text,uuid)'::regprocedure)");source=q.fetchone()[0];a='IF FOUND THEN RETURN v;END IF;';assert a in source;q.execute(source.replace(a,"IF FOUND THEN PERFORM public.payer_ordre(moi,'neutraliser_'||p_mode,2,0);RETURN v;END IF;"))
  if '--contre-PNJ-immobile' in sys.argv:
   q.execute("SELECT pg_get_functiondef('militaire_repli_pnj_interne(bigint,text,integer)'::regprocedure)");source=q.fetchone()[0];a=' PERFORM public.pnj_positions_separer_interne(positions);';assert a in source;q.execute(source.replace(a,' -- mouvement omis par la contre-épreuve'))
- q.execute(re.search(r'INSERT INTO public.ordres_couts .*?ON CONFLICT DO NOTHING;', (R/'migrations/20261027110100_crimes_actes_serveur.sql').read_text(),re.S)[0])
+ q.execute(re.search(r'INSERT INTO public.ordres_couts .*?ON CONFLICT DO NOTHING;', (R/'historique/migrations-appliquees/20261027110100_crimes_actes_serveur.sql').read_text(),re.S)[0])
  # Le vrai détecteur de crime remplace le substitut du vieux banc de contrat.
  q.execute("SELECT to_regprocedure('public.crime_detecter_interne(text,text,boolean)')")
  if q.fetchone()[0] is not None:q.execute('ALTER FUNCTION crime_detecter_interne(text,text,boolean) RENAME TO crime_detecter_fixture_ancienne')
- source=(R/'migrations/20261027110000_crimes_socle_serveur.sql').read_text()
+ source=(R/'historique/migrations-appliquees/20261027110000_crimes_socle_serveur.sql').read_text()
  for nom in ['crime_rechercher_interne','crime_detecter_interne']:
   q.execute(re.search(r'CREATE OR REPLACE FUNCTION public\.'+nom+r'\(.*?\$function\$;',source,re.S)[0])
  q.execute('ALTER TABLE terrains_etat ADD CONSTRAINT terrains_etat_pkey PRIMARY KEY(id)')

@@ -113,7 +113,7 @@ def main():
     cur.execute('SELECT data FROM objets_recus ORDER BY id');livraisons_avant=cur.fetchall()
     cur.execute("SELECT data FROM entreprises WHERE id='fonds-a'");fonds_avant=cur.fetchone()[0]
     reset()
-    migration=(RACINE/'migrations/20261016070541_achat_commerce_debit_avant_livraison.sql').read_text()
+    migration=(RACINE/'historique/migrations-appliquees/20261016070541_achat_commerce_debit_avant_livraison.sql').read_text()
     # Aucun coefficient, filtre ni effet n'a change : seul ce bloc est deplace.
     bloc = "IF NOT public.mouvement_titulaire(p_acheteur, -v_montant) THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants');\n  END IF;"
     def normaliser(corps):

@@ -113,14 +113,14 @@
   "92_mixte/recettes_commerce.sql": "e5937d0ae99ae7e7ea25396d914733ee",
   "92_mixte/structures_medicales.sql": "fb3d7b14e6f8a533091600befebee392",
   "92_mixte/terrain_actions_regles.sql": "bd3e29b312e5567dd007e2f7ef44f205",
-  "95_a-regenerer/infractions.sql": "2720e1871ed9ad7434af4e25d4790599",
-  "95_a-regenerer/infractions_categories.sql": "c556a29391711d324433909ae84d8b82",
-  "95_a-regenerer/ordres_couts.sql": "189ccbec46088d0c5965bd6a917b3c68",
-  "95_a-regenerer/pa_bonus_differes.sql": "73f02ba3c64afdd361bd443a440decca",
-  "95_a-regenerer/postes_nommes_regles.sql": "0c8e872cf4914e3dabdfb10a35fbdfc3",
-  "95_a-regenerer/recettes_militaires.sql": "a59df37f7e40bde60cb8627123bdda00",
-  "95_a-regenerer/ressources_economie.sql": "3f3d22f39b51900ff8998703f47ca22d",
-  "95_a-regenerer/villes.sql": "f02827b7316f08cbd45706a880ab4e4a",
+  "95_a-regenerer/infractions.sql": "e2f494a25fbcb78e8967398e34848e13",
+  "95_a-regenerer/infractions_categories.sql": "510e1a113f0a5fa0b94b80edc1fc2475",
+  "95_a-regenerer/ordres_couts.sql": "6448a3d83f5512846e09e20e021f3bf9",
+  "95_a-regenerer/pa_bonus_differes.sql": "159469ebf21308ffaa0116cfa28bcb9d",
+  "95_a-regenerer/postes_nommes_regles.sql": "1b3a8d6fe0959f39715b9cc368bca25c",
+  "95_a-regenerer/recettes_militaires.sql": "a68fda228421664955cb79f62256dbd9",
+  "95_a-regenerer/ressources_economie.sql": "83c07dccf9d83de64a13f84173ce9599",
+  "95_a-regenerer/villes.sql": "e2411559c7cef592a54e0ef6a006651b",
   "99_a-construire/budgets_clubs.sql": "dafa7d98f8fbd9a2a1beb14a695ac4ba",
   "99_a-construire/budgets_municipaux.sql": "64236258bcb722d74fc19cda84a7091c",
   "99_a-construire/budgets_nationaux.sql": "d141bf5cea9107edc8a850918719fe5c",
@@ -224,5 +224,39 @@
   "titulaires_pnj": 18,
   "tracts_pnj_catalogue": 189,
   "usines_rachat_config": 1
+ },
+ "miroirs_generes": {
+  "infractions": {
+   "generateur": "generer_infractions.py",
+   "option": "--sql"
+  },
+  "infractions_categories": {
+   "generateur": "generer_infractions.py",
+   "option": "--sql-categories"
+  },
+  "ordres_couts": {
+   "generateur": "generer_ordres_couts.py",
+   "option": "--sql"
+  },
+  "pa_bonus_differes": {
+   "generateur": "generer_pa_bonus_differes.py",
+   "option": "--sql"
+  },
+  "postes_nommes_regles": {
+   "generateur": "generer_postes_nommes.py",
+   "option": "--sql"
+  },
+  "recettes_militaires": {
+   "generateur": "generer_recettes_militaires.py",
+   "option": "--sql"
+  },
+  "ressources_economie": {
+   "generateur": "generer_ordres_couts.py",
+   "option": "--ressources-sql"
+  },
+  "villes": {
+   "generateur": "generer_villes.py",
+   "option": "--sql"
+  }
  }
 }

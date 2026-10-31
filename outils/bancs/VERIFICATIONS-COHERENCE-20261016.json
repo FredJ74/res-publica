@@ -349,7 +349,7 @@
     "raison": "29 diagnostics, canon/artefact 18 ressources, ordre du generateur 17 ; aucune observation de base remesuree."
   },
   "supabase_reel": "Aucun acces disponible, aucun test authentifie ni migration appliquee.",
-  "migration_preparee": "migrations/20261016070541_achat_commerce_debit_avant_livraison.sql",
+  "migration_preparee": "historique/migrations-appliquees/20261016070541_achat_commerce_debit_avant_livraison.sql",
   "etat_migration": "NON APPLIQUEE",
   "ci": "Workflow ajoute ; commandes eprouvees localement, execution GitHub non observee."
 }

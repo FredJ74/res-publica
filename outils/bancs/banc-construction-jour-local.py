@@ -31,7 +31,7 @@ def main(suite_supplementaire=None):
    CREATE TABLE notifications(destinataire text,sujet text,corps text);
    CREATE FUNCTION mail_systeme_poser_interne(text,text,text,text,text DEFAULT NULL) RETURNS jsonb LANGUAGE plpgsql AS $$BEGIN INSERT INTO notifications VALUES($2,$3,$4);RETURN '{"ok":true}';END$$;
    SET test.serveur='on';""")
-   for f,nom in [('migrations/20261020222029_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires'),('baseline/domaines/finances-publiques/20_fonctions-1.sql','caisse_institution_mouvement'),('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','batiment_etat_lire'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_id'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_mouvement'),('baseline/domaines/economie/20_fonctions-1.sql','approvisionner_chantier')]:c.execute(fn(f,nom))
+   for f,nom in [('migrations/20261031113611_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires'),('baseline/domaines/finances-publiques/20_fonctions-1.sql','caisse_institution_mouvement'),('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','batiment_etat_lire'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_id'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_mouvement'),('baseline/domaines/economie/20_fonctions-1.sql','approvisionner_chantier')]:c.execute(fn(f,nom))
    for f in ['chantiers_besoins_jour']:
     s=(R/f'baseline/seeds/90_socle/{f}.sql').read_text();c.execute(s)
    for f in sorted((R/'migrations').glob('202610221233*.sql')):c.execute(f.read_text());c.execute(f.read_text())
@@ -40,14 +40,14 @@ def main(suite_supplementaire=None):
    c.execute("CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$SELECT nullif(current_setting('test.acteur',true),'')$$;CREATE FUNCTION acteur_poste_courant() RETURNS TABLE(nom text,poste_id text,poste_city text,pays text) LANGUAGE sql AS $$SELECT name,poste->>'id',poste->>'city',country FROM personnages_donnees WHERE name=mon_personnage()$$")
    src=(R/'baseline/domaines/justice/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public.detentions \(.*?\n\);',src,re.S)[0])
    c.execute(fn('baseline/domaines/justice/20_fonctions-1.sql','detention_active'))
-   c.execute(fn('migrations/20261019064000_organisations_equipements_collectifs.sql','organisation_equipement_exiger'))
+   c.execute(fn('migrations/20261031113558_organisations_equipements_collectifs.sql','organisation_equipement_exiger'))
    c.execute(fn('baseline/domaines/politique-et-elections/20_fonctions.sql','poste_est_atteste'))
    src=(R/'baseline/domaines/economie/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public.chantiers_paliers \(.*?\n\);',src,re.S)[0])
    c.execute((R/'baseline/seeds/90_socle/chantiers_paliers.sql').read_text())
    for migration in sorted((R/'migrations').glob('202610221240*.sql')):c.execute(migration.read_text());c.execute(migration.read_text())
-   c.execute((R/'migrations/20261022125121_chantier_recu_relecture.sql').read_text())
+   c.execute((R/'migrations/20261031113617_chantier_recu_relecture.sql').read_text())
    for nom in ['chantier_lancer','chantier_verser']:c.execute(fn('baseline/domaines/economie/20_fonctions-1.sql',nom))
-   c.execute((R/'migrations/20261022125728_chantier_fermer_commandes_non_versionnees.sql').read_text());c.execute((R/'migrations/20261022125728_chantier_fermer_commandes_non_versionnees.sql').read_text())
+   c.execute((R/'migrations/20261031113618_chantier_fermer_commandes_non_versionnees.sql').read_text());c.execute((R/'migrations/20261031113618_chantier_fermer_commandes_non_versionnees.sql').read_text())
    for domaine,table in [('immobilier-et-territoire','dossiers_urbanisme'),('personnage-et-presence','objets_recus'),('immobilier-et-territoire','locations_actives')]:
     src=(R/f'baseline/domaines/{domaine}/10_tables.sql').read_text();c.execute(re.search(r'CREATE TABLE public\.'+table+r' \(.*?\n\);',src,re.S)[0])
    c.execute(fn('baseline/domaines/socle/20_fonctions.sql','objet_sas_deposer'))
@@ -57,14 +57,14 @@ def main(suite_supplementaire=None):
     c.execute(fn('outils/bancs/banc-fixture-'+fixture,nom))
    c.execute(fn('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','terrain_etat_lire'))
    c.execute(fn('baseline/domaines/economie/20_fonctions-1.sql','chantier_travailler'))
-   c.execute(fn('migrations/20261020214955_construction_materiaux_prix_et_dons.sql','chantier_prix_definir'))
+   c.execute(fn('migrations/20261031113610_construction_materiaux_prix_et_dons.sql','chantier_prix_definir'))
    if '--permis112' in sys.argv:
     # Definition exacte du garde #112, sans embarquer sa migration ni ses paiements.
     definition=fn('outils/bancs/banc-fixture-terrain-permis-acte-avant-depot.sql','terrain_permis_acte')
     garde="  IF p_acte = 'permis_deposer' THEN\n    RETURN jsonb_build_object('ok',false,'raison','commande_versionnee_requise');\n  END IF;\n"
     c.execute(definition.replace('  v_moi := public.mon_personnage();',garde+'  v_moi := public.mon_personnage();'))
    for migration in sorted((R/'migrations').glob('202610221304*.sql')):c.execute(migration.read_text());c.execute(migration.read_text())
-   c.execute((R/'migrations/20261022143001_construction_delais_quatre_empires.sql').read_text());c.execute((R/'migrations/20261022143001_construction_delais_quatre_empires.sql').read_text())
+   c.execute((R/'migrations/20261031113624_construction_delais_quatre_empires.sql').read_text());c.execute((R/'migrations/20261031113624_construction_delais_quatre_empires.sql').read_text())
    def ok(v,t):
     nonlocal n
     assert v,t;n+=1;print('OK',t,flush=True)

@@ -14,7 +14,7 @@ def scenario(q,own,call,check,uid,snapshot,Json):
  for fn in ['pnj_autorite_de_perimetre','pnj_autorite_de','pnj_peut_administrer','pnj_position_effective','pnj_co_present','pnj_possessions_lire']:
   own(mod.fonction('baseline/domaines/socle-PNJ/20_fonctions.sql',fn))
  own(mod.fonction('baseline/domaines/socle/20_fonctions.sql','inventaire_objet_protege'))
- for _ in range(2):own((R/'migrations/20261027213521_inventaire_employes_socle.sql').read_text());own((R/'migrations/20261028210000_inventaire_anciens_contrats_fermes.sql').read_text())
+ for _ in range(2):own((R/'historique/migrations-appliquees/20261027213521_inventaire_employes_socle.sql').read_text());own((R/'historique/migrations-appliquees/20261028210000_inventaire_anciens_contrats_fermes.sql').read_text())
  own("UPDATE personnages_donnees SET current_building='mairie-capitale',current_room='hall_mairie',inventory='[]' WHERE name='Fixture'")
  own("INSERT INTO pnj_membres(id,famille,nom,pays,proprietaire_pj,ville,building_id,room_id) VALUES('emp-fixture','employe','Porteur fictif','republic','Fixture','capitale','mairie-capitale','hall_mairie')")
  def transfert(k,sens,idx=0,qty=None,rev=None,pos=None):return call('pnj_objet_transferer',['emp-fixture',idx,sens,qty,rev,pos,uid(k)])

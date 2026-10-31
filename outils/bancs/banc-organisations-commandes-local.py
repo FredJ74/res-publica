@@ -12,7 +12,7 @@ def main():
  q.execute('CREATE ROLE anon; CREATE ROLE authenticated; CREATE TABLE organisations(id text PRIMARY KEY,data text);')
  q.execute("CREATE TABLE personnages_donnees(name text PRIMARY KEY,day integer);INSERT INTO personnages_donnees VALUES ('Alice',2),('Bob',2),('Charlie',2)")
  q.execute("CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$ SELECT nullif(current_setting('hg.acteur',true),'') $$")
- migration=(root/'migrations/20261019094425_organisations_commandes_administratives.sql').read_text()
+ migration=(root/'migrations/20261031113600_organisations_commandes_administratives.sql').read_text()
  q.execute(migration);q.execute(migration)
  initial={'chef':'Alice','type':'criminelle','caisse':100.5,'election':{'votes':{'Bob':'Alice'}},'membres':[{'nom':'Alice'},{'nom':'Bob'},{'nom':'Charlie'}],'inconnu':{'ancien':True}}
  q.execute('INSERT INTO organisations VALUES (%s,%s)',('o',json.dumps(initial)))

@@ -11,9 +11,9 @@ def main():
  q.execute('CREATE ROLE anon;CREATE ROLE authenticated;CREATE TABLE organisations(id text PRIMARY KEY,data text);CREATE TABLE personnages_donnees(name text PRIMARY KEY,day integer);')
  q.execute("INSERT INTO personnages_donnees VALUES ('Alice',4),('Bob',5),('Charlie',6)")
  q.execute("CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$SELECT nullif(current_setting('hg.acteur',true),'')$$")
- q.execute((r/'migrations/20261019094425_organisations_commandes_administratives.sql').read_text())
- m=(r/'migrations/20261019130213_organisations_adhesions_grades.sql').read_text();q.execute(m);q.execute(m)
- election_sql=(r/'migrations/20261019130951_organisations_progression_elections.sql').read_text();q.execute(election_sql);q.execute(election_sql)
+ q.execute((r/'migrations/20261031113600_organisations_commandes_administratives.sql').read_text())
+ m=(r/'migrations/20261031113602_organisations_adhesions_grades.sql').read_text();q.execute(m);q.execute(m)
+ election_sql=(r/'migrations/20261031113603_organisations_progression_elections.sql').read_text();q.execute(election_sql);q.execute(election_sql)
  regles=json.loads(subprocess.check_output(['node','-e',"console.log(JSON.stringify(require('./outils/generateurs/generer_organisations_regles.cjs').regles()))"],cwd=r))
  def acteur(nom):q.execute("SELECT set_config('hg.acteur',%s,false)",(nom,))
  def creer(id,typ='politique',pays='republic',secret=False):
@@ -108,7 +108,7 @@ def main():
  except psycopg2.Error as e:assert 'definition_a_reexaminer' in str(e),str(e)
  q.execute('ROLLBACK');q.execute(definition);n+=1
  # Les triggers qui ignorent une ligne ne peuvent annoncer une mutation ou un recu fictifs.
- garde=(r/'migrations/20261019132908_organisations_refus_silencieux.sql').read_text();q.execute(garde);q.execute(garde)
+ garde=(r/'migrations/20261031113605_organisations_refus_silencieux.sql').read_text();q.execute(garde);q.execute(garde)
  acteur('Alice');creer('silencieux','syndicale')
  q.execute("UPDATE organisations SET data=jsonb_set(data::jsonb,'{membres,0,gradeIdx}','1')::text WHERE id='silencieux'")
  q.execute("CREATE FUNCTION ignorer() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RETURN NULL;END$$")

@@ -13,11 +13,15 @@ def suite(ctx,suivante=None):
  import re
  for domaine,nom in [('personnage-et-presence','organisations'),('immobilier-et-territoire','locations_actives')]:
   src=(R/f'baseline/domaines/{domaine}/10_tables.sql').read_text();q.execute(re.search(r'CREATE TABLE public\.'+nom+r' \(.*?\n\);',src,re.S)[0])
- source=(R/'baseline/domaines/militaire/10_tables.sql').read_text();q.execute(re.search(r'CREATE TABLE public\.batailles_engagements \(.*?\n\);',source,re.S)[0])
+ source=(R/'baseline/domaines/militaire/10_tables.sql').read_text();audit.creer_table(q,source,'batailles_engagements')
  q.execute('''CREATE TABLE batiments_fermes(pays text,ville text,batiment_id text,date_fin_universelle date,jour_fin integer);
  INSERT INTO rue_sorties_batiments VALUES('republic','capitale','hotel-republica','rue-1');''')
- for p in sorted((R/'migrations').glob('20261028185*.sql')):
-  if '185800_' not in p.name and not ('--contre-interieurs' in sys.argv and ('185500_' in p.name or '185600_' in p.name)):q.execute(p.read_text());q.execute(p.read_text())
+ import json
+ for e in json.loads((R/'outils/audits/REHORODATAGE-GROUPES-219-20261031.json').read_text())['fichiers']:
+  ancien=Path(e['ancien']).name
+  if not Path(ancien).match('20261028185*.sql'):continue
+  p=R/e['nouveau']
+  if '185800_' not in ancien and not ('--contre-interieurs' in sys.argv and ('185500_' in ancien or '185600_' in ancien)):q.execute(p.read_text());q.execute(p.read_text())
  if '--contre-interieurs' not in sys.argv:
   q.execute((R/'migrations/20261031115801_navigation_positions_sauvegardes.sql').read_text());q.execute((R/'migrations/20261031115801_navigation_positions_sauvegardes.sql').read_text())
  q.execute("""CREATE VIEW sauvegarde_fixture AS SELECT name,country,current_city,current_building,current_room,current_street FROM personnages_donnees;

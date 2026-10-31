@@ -13,7 +13,7 @@ def suite(ctx,suivante=None):
  src=(R/'baseline/domaines/militaire/10_tables.sql').read_text()
  for m in re.finditer(r'CREATE TABLE public\.(\w+) \((.*?)\n\);',src,re.S):
   nom,body=m.groups();q.execute('SELECT to_regclass(%s)',('public.'+nom,))
-  if q.fetchone()[0] is None:q.execute(m[0])
+  if q.fetchone()[0] is None:a.creer_table(q,src,nom)
   elif nom=='batailles_engagements':
    for ligne in body.splitlines():
     ligne=ligne.strip().rstrip(',')
@@ -34,7 +34,7 @@ def suite(ctx,suivante=None):
  def assurer_table(nom):
   if nom not in tables_def:return
   q.execute('SELECT to_regclass(%s)',('public.'+nom,))
-  if q.fetchone()[0] is None:q.execute(tables_def[nom])
+  if q.fetchone()[0] is None:a.creer_table(q,tables_def[nom],nom)
  definitions={}
  for f in (R/'baseline/domaines').glob('*/20_fonctions*.sql'):
   for m in re.finditer(r'CREATE OR REPLACE FUNCTION public\.(\w+)\(',f.read_text()):definitions[m[1]]=str(f.relative_to(R))

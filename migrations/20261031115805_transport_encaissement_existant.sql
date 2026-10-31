@@ -10,7 +10,7 @@ BEGIN
  NOT IN ('f9cbbdfce4b37082483b496298419df6','f315b77059d65b1ccd1879e800d18c22') THEN
  RAISE EXCEPTION 'payer_ordre_interne_non_examine';END IF;
  IF to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)') IS NOT NULL AND
- (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)'))<>'2e69447a8e911756d2223414327db42b' THEN
+ (SELECT md5(prosrc) FROM pg_proc WHERE oid=to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)')) NOT IN ('2e69447a8e911756d2223414327db42b','716e233a2b71a4c7be1d1227200765e6') THEN
  RAISE EXCEPTION 'payer_quantite_interne_non_examine';END IF;
 END $prevol$;
 -- Adapter le corps EXAMINÉ, plutôt que réintroduire une ancienne copie.
@@ -19,6 +19,8 @@ END $prevol$;
 DO $adapter$
 DECLARE v_corps text;v_point text := '  SELECT pa, liquide, arg INTO v_pa, v_liquide, v_arg';
 BEGIN
+ -- Le prévol a contrôlé le corps adapté : un rejeu conserve la même fonction.
+ IF to_regprocedure('public.payer_ordre_interne(text,text,integer,integer,integer)') IS NOT NULL THEN RETURN;END IF;
  SELECT prosrc INTO STRICT v_corps FROM pg_proc
  WHERE oid='public.payer_ordre(text,text,integer,integer)'::regprocedure;
  IF (length(v_corps)-length(replace(v_corps,v_point,'')))/length(v_point) <> 1 THEN

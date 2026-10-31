@@ -167,6 +167,18 @@ def ordres_hors_data():
             pa = re.search(r"\bpa\s*:\s*(-?\d+)", corps)
             co = re.search(r"\bcost\s*:\s*(-?\d+)", corps)
             trouves.add((fn, int(pa.group(1)) if pa else 0, int(co.group(1)) if co else 0))
+    # Ces ordres sont désormais entièrement serveur : ils n'ont plus de
+    # panneau portant un coût dans le navigateur. Leur déclaration initiale
+    # reste la source de leurs tarifs, pas une seconde liste numérique ici.
+    source=os.path.join(RACINE,'historique/migrations-appliquees/20261027110100_crimes_actes_serveur.sql')
+    texte=open(source,encoding='utf-8').read()
+    blocs=re.findall(r'INSERT INTO public\.ordres_couts \(fn, pa, cost\) VALUES(.*?)ON CONFLICT DO NOTHING;',texte,re.S)
+    if len(blocs)!=1:raise ValueError('Déclaration des coûts crimes absente ou ambiguë')
+    motif=r"\('([a-z0-9_]+)',\s*(\d+),\s*(\d+)\)"
+    valeurs=re.findall(motif,blocs[0])
+    if not valeurs or re.sub(motif,'',blocs[0]).strip(' ,\n\r\t'):
+        raise ValueError('Déclaration des coûts crimes non littérale')
+    trouves.update((fn,int(pa),int(cout)) for fn,pa,cout in valeurs)
     return trouves
 
 

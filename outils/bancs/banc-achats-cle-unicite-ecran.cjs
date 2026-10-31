@@ -72,6 +72,6 @@ test('PA de l’Entrepôt, de la Criée et de l’usine payés dans la même op�
   const s = lire('plateau-justice-economie.js');
   for (const o of ['acheter_ressources_entrepot', 'acheter_criee', 'vente_directe_usine'])
     assert.ok(!s.includes("deduireCoutOrdre({ pa, cost, fn: '" + o + "' })"), o);
-  const mig = lire('migrations/20261030180000_achats_cle_unicite.sql');
+  const mig = lire('historique/migrations-appliquees/20261030180000_achats_cle_unicite.sql');
   for (const o of ['acheter_ressources_entrepot', 'acheter_criee', 'vente_directe_usine']) assert.ok(mig.includes("payer_ordre(p_acteur, '" + o + "'"), o);
 });

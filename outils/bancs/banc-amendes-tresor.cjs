@@ -2,7 +2,7 @@
 // Répétition serveur en transaction annulée : voir RELAIS.md.
 const fs = require('fs'), path = require('path');
 const R = path.join(__dirname, '..', '..'), lire = f => fs.readFileSync(path.join(R, f), 'utf8');
-const m = lire('migrations/20261030100000_amendes_tresor_national.sql'), c = lire('api/cron-minuit.js');
+const m = lire('historique/migrations-appliquees/20261030100000_amendes_tresor_national.sql'), c = lire('api/cron-minuit.js');
 let n = 0, ko = 0; const t = (nom, ok) => { n++; if (!ok) ko++; console.log((ok ? 'ok   ' : 'ECHEC') + ' ' + nom); };
 t('une ligne par jugement (cle = jugement), jamais deux amendes', /jugement_id text PRIMARY KEY/.test(m) && /ON CONFLICT \(jugement_id\) DO NOTHING/.test(m));
 t('verse au Tresor national par le canal de la taxe nationale (reserveJour)', /'\{reserveJour\}'/.test(m));
@@ -13,7 +13,7 @@ t('appel suspensif : premiere instance suspendue, appel ouvert = rien preleve', 
 t('la decision d appel remplace la premiere instance', /statut = 'remplacee_appel'/.test(m));
 t('relaxe : aucune amende', /IN \('relaxe','acquittement','annulation'\) THEN RETURN NEW/.test(m));
 t('minuit_amendes reserve au serveur, appelee une fois par passe', /IF NOT public\.est_appel_serveur\(\)/.test(m) && /sbRpc\('minuit_amendes'/.test(c) && /await traiterAmendesServeur\(\);/.test(c));
-const g = lire('migrations/20261030110000_budget_national_et_fraude.sql');
+const g = lire('historique/migrations-appliquees/20261030110000_budget_national_et_fraude.sql');
 t('sanction hors tribunal : meme dette et meme canal', /amende_imposer_interne\(p_id text/.test(m) && /'due'\) ON CONFLICT \(jugement_id\) DO NOTHING/.test(m));
 t('fraude electorale : amende au Tresor (plus de retrait sec de arg)', /amende_imposer_interne\(''fraude-''\|\|p_fraude_id/.test(g));
 t('budget national : l ecran ne garde que les rubriques du registre d autorite', /FROM public\.budget_national_champs_regles r/.test(g) && /base := coalesce\(OLD\.data/.test(g));

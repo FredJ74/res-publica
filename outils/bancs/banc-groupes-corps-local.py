@@ -167,7 +167,7 @@ def extension(ctx, suite=None):
  # Porte de combat originale, sans round simulé ni faux helper de combat.
  mt=(R/'baseline/domaines/militaire/10_tables.sql').read_text()
  for nom in ['services_militaires','batailles','guerres','mutineries','mutineries_membres']:
-  q.execute(re.search(r'CREATE TABLE public\.'+nom+r' \(.*?\n\);',mt,re.S)[0])
+  a.creer_table(q,mt,nom)
  q.execute('ALTER TABLE personnages_donnees ADD COLUMN pa integer DEFAULT 12')
  q.execute("INSERT INTO services_militaires(personnage,pays,grade,compagnie_id,section_id) VALUES('A','republic','lieutenant','cie','cie-s1')")
  for nom in ['mutinerie_camp_de','mutinerie_est_camp','mutinerie_camps_presents']:
