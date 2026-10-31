@@ -6,8 +6,8 @@ import json,tempfile,runpy
 R=Path(__file__).resolve().parents[2]
 import runpy
 _sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
-M1=R/'migrations/20261031113558_organisations_equipements_collectifs.sql'
-M2=R/'migrations/20261031113559_achat_equipements_collectifs.sql'
+M1=R/'historique/preparations-hors-paquet-219/20261031113558_organisations_equipements_collectifs.sql'
+M2=R/'historique/preparations-hors-paquet-219/20261031113559_achat_equipements_collectifs.sql'
 def main():
  import pgserver,psycopg2
  serveur=pgserver.get_server(tempfile.mkdtemp(prefix='hg-equipements-'),cleanup_mode='delete');uri=serveur.get_uri();c=psycopg2.connect(uri);c.autocommit=True;q=c.cursor()
