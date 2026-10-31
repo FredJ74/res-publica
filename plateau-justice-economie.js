@@ -841,10 +841,16 @@ async function transmettreAffaireAuTribunal(cible, motif, city, factRef) {
     const auteur = 'Brigade Criminelle';
     const heure = timeAffaire;
     const textePost = '**AFFAIRE TRANSMISE AU TRIBUNAL**\n\nMis en cause : ' + cible + '\n\nMotif :\n' + motif + '\n\n_En attente de jugement par un magistrat._';
-    sbCreateTopic(forumKey, '⚖️ [AFFAIRE] ' + cible, auteur, state.country, heure)
+    // PUBLIEE AU NOM D'UNE INSTITUTION, SIGNEE PAR SON AGENT (31/10/2026). La politique RLS de
+    // forum_topics/forum_posts n'accepte un auteur qui n'est pas le personnage que s'il porte
+    // author_real = ce personnage. Signee « Brigade Criminelle » seule, l'insertion etait refusee
+    // (403) : aucune affaire transmise n'apparaissait sur le forum du tribunal. Meme canal que les
+    // publications d'organisation (authorIsOrg), sans organisation rattachee.
+    const agent = state.char?.name || null;
+    sbCreateTopic(forumKey, '⚖️ [AFFAIRE] ' + cible, auteur, state.country, heure, true, false, agent, null, '⚖️')
       .then(topicId => {
         if (topicId && typeof sbCreatePost === 'function') {
-          sbCreatePost(topicId, auteur, textePost, heure);
+          sbCreatePost(topicId, auteur, textePost, heure, true, false, [], null, agent, null, '⚖️');
         }
       }).catch(e => console.warn('Erreur transmission tribunal:', e));
   }

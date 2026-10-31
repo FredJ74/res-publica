@@ -37,6 +37,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - `20261031140000_helvetia_caisse_argent_detenu` (PR #285, fusionnée, #267) : la caisse d'Helvetia représente l'argent détenu (prêt sans débit de caisse, sommes prises sur le compte Helvetia sans recrédit, dépôt d'ouverture crédité). Indépendante de l'écran. Banc : `outils/bancs/banc-caisse-helvetia.sql`.
 - `20261031151000_placement_helvetia_gain_unique` (Claude, 31/10, suite de #267) : à la résolution d'un placement Helvetia, le gain net n'est plus ajouté à `arg` (argent total liquide + Banque nationale, où il apparaissait en double) et entre dans la caisse avec les frais. Indépendante de l'écran ; **à appliquer avant le 6/11** (échéance du placement actif de Jean Jaaj). Banc : `outils/bancs/banc-placement-helvetia.sql` (attendu sur ce placement : caisse +6 314, compte +83 340, `arg` +0).
 - `20261029181000_squatteurs_issue_combat` : **attend le combat de groupe de Codex (#219)** ; ne pas appliquer avant.
+- `20261031190000_avis_personnels_expediteurs_declares` (Claude, 31/10, PR #297) : neuf identités d'avis personnels (expulsion, libération, candidature, convocation douanière…) déclarées pour l'envoi **à soi seulement** ; sans elle ces courriers sont refusés en silence. Indépendante de l'écran. Banc annulé : `outils/bancs/banc-avis-personnels-expediteurs.sql` (joué le 31/10 : avant refus, après accepté pour soi, refusé vers un tiers).
 
 ### Décisions attendues de Fred
 
@@ -44,6 +45,8 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - **Ambassades** : griser « Bientôt disponible » les ordres non raccordables tant que le voyage entre empires n'existe pas (immunité, arrestation de l'expulsé, transfert de détenus, naturalisation). Référence : `GAME-DESIGN-AMBASSADES.md`.
 
 ### Points ouverts transmis (non bloquants)
+
+- **Codex (signalé par Claude, 31/10)** : `militaire_entree_zone` a répondu 404 une fois à 17 h 24 (fonction présente en base : probable cache de schéma pendant une migration ; à surveiller). `sbMarquerVolTraite` écrit `vols_en_attente` sans droit UPDATE (table vide, vols désormais immédiats : branche morte à retirer).
 
 - **Refinancement BNR en trop d'Helvetia (#267)** : annulé par `20261031150000_helvetia_bnr_excedent_regulariser` (PR #288, appliquée) ; Fred a laissé le choix à Claude, qui garde l'annulation (la première note « remboursement normal » est caduque). Voir `GAME-DESIGN-BANQUES.md`.
 
@@ -74,6 +77,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - Louer un local dans les centres de Montrouge et de PSM ; acheter un terrain pour la commune en tant que maire ; attribuer un logement social en tant qu'adjoint.
 
 ## Derniers chantiers
+- 31/10/2026 — **Clôture Luthécia, forum et messagerie (PR #297)** : sondage commandé jamais publié (arguments décalés, 403), affaire transmise au tribunal et retrait de projet refusés (signature institutionnelle sans `author_real`) ; avis personnels refusés faute d'expéditeur déclaré (migration `20261031190000`). Bancs `banc-forum-auteur-institutionnel.cjs`, `banc-avis-personnels-expediteurs.mjs`. Audit du même jour, sans défaut : routage des 266 ordres de Luthécia (aucun ne tombe sur un refus serveur), coûts des ordres payants identiques au miroir `ordres_couts`, écritures directes de l'écran toutes couvertes par une politique (sauf deux branches mortes), recettes électroniques et chocolat cohérentes, terrains 1-5 cohérents.
 - 31/10/2026 — **Placement Helvetia (PR #289, fusionnée)** : gain net versé une seule fois, caisse créditée frais + gain ; migration `20261031151000` en attente d'application (avant le 6/11). Annulation BNR de #288 conservée (choix délégué par Fred).
 - 31/10/2026 — **Quêtes (PR #290, fusionnée)** : écritures mortes de `quetes_actives` retirées de l'écran (déjà en lecture seule en base), baseline réaligné.
 - 31/10/2026 — **PNJ Norbert Charton et Yvon Paletier (PR #291, fusionnée)** : fiches de personnalité écrites sur délégation, à la relecture de Fred.
