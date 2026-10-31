@@ -15,6 +15,9 @@ def chemin_source(f):
  # Bancs d'historique : jamais de réinstallation des copies dupliquées.
  archive=R/'historique/migrations-appliquees/rehorodatees-219'/Path(f).name
  if archive.is_file():return archive
+ # Préparations hors paquet: utilisables uniquement comme fixtures des bancs.
+ preparation=R/'historique/preparations-hors-paquet-219'/Path(f).name
+ if preparation.is_file():return preparation
  import json
  # Les copies rehorodatees deja appliquees ne font plus partie du dossier
  # migrations/ : les bancs historiques les lisent dans l'archive explicite.
