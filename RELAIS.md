@@ -41,6 +41,15 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - `20261031230000_organisations_champs_commandes_serveur` : **préparée, ne pas appliquer** avant #219 installé et recetté (feu vert requis dans la transaction).
 - ~~`20261031190000_avis_personnels_expediteurs_declares`~~ **appliquée par Claude le 31/10 vers 20 h, registre `avis_personnels_expediteurs_declares_20261031190000`** (PR #297, fusionnée `c44f5c40`, Vercel READY) : neuf identités d'avis personnels (expulsion, libération, candidature, convocation douanière…) déclarées pour l'envoi **à soi seulement** ; sans elle ces courriers sont refusés en silence. Indépendante de l'écran. Banc annulé : `outils/bancs/banc-avis-personnels-expediteurs.sql` (joué le 31/10 : avant refus, après accepté pour soi, refusé vers un tiers).
 
+### Catalogue 1012 et prévol #219 (Claude, branche `claude/catalogue-1012-integration-219-20261031`, PR non fusionnée : aucun code client, pas de déploiement inutile)
+
+- **Production relue en lecture seule (31/10, 22 h 30 – 23 h 45)** : registre 1012, prime appliquée (`20261031211256`). Delta 1003 → 1012 : **10/10** migrations dont le SQL appliqué est identique aux fichiers de `main` (commentaires et enveloppe BEGIN/COMMIT retirés par Supabase) ; **14/14** corps de fonctions du delta identiques. Gardes des 95 sur fonctions vivantes : **toutes concordent**.
+- **Empreinte arborescente du catalogue entier** (1 213 fonctions, 422 relations, 262 politiques, 81 déclencheurs, 732 contraintes, 592 index) : `outils/bancs/empreinte-catalogue-racine.sql` / `-detail.sql`, référence `outils/audits/catalogue-1012/EMPREINTE-PRODUCTION-1012.json`, comparateur `outils/bancs/comparer-empreinte-catalogue.py`. **Codex : reconstruire 1003 + delta, exiger CONFORME, puis installer les 95.**
+- `--delta-candidat` de Codex doit comparer le corps **normalisé** (le refus 1011 venait des commentaires retirés par Supabase).
+- **Classement #219 faux sur 56 fichiers** : 50 copies rehorodatées « sans application » sont appliquées sous nom suffixé (`_94`, `_135`, `_AAAAMMJJ`…), 6 probablement sous un autre nom ; à écarter de `migrations/` à l'intégration (`REHORODATEES-219-STATUT-REEL.json`). Les 6 copies présentes dans les 95 sont réellement en attente.
+- Authority qualifiée : 108/115 RPC « absentes » existent en production (baseline du 13/10 périmé), 3 installées par les 95, **4 d'équipements collectifs absentes et hors paquet** (fonction dormante, refus nommé à l'écran). Deux migrations appliquées déplacées vers `historique/migrations-appliquees/`. Remède : réextraction du baseline après les 95.
+- Rapport et plan de livraison : `outils/audits/catalogue-1012/CERTIFICATION-1012-ET-PREVOL-95-20261031.md`.
+
 ### Purge finale Luthécia (Claude, branche `claude/purge-luthecia-20261031`)
 
 - **Caisses collectives #295 (PR #300)** : étapes 1 et 2 **appliquées par ChatGPT le 31/10** (registre `20261031195210` et `20261031200630`). Ne pas les rejouer.
