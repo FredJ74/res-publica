@@ -1,0 +1,22 @@
+{
+  "source_commit": "26a10c3b",
+  "registre_rapporte": {
+    "total": 1009,
+    "dernier": "20261031190352"
+  },
+  "preuve_distante": "releve_par_ChatGPT_pas_un_acces_Supabase_Codex",
+  "payer_ordre_rapporte": {
+    "nom": "payer_ordre",
+    "signature": "p_acteur text, p_fn text, p_pa integer, p_cost integer",
+    "auth": true,
+    "md5": "37eca91d6eb08c2a6ea97cbe717a216a"
+  },
+  "garde_transport_source": "migrations/20261031115805_transport_encaissement_existant.sql",
+  "corps_acceptes": [
+    "ca7abc6ac27e864f723b25e73dacd665",
+    "5cf45c19e4b9559f6b29e2b9207d3969"
+  ],
+  "compatible": false,
+  "motif": "Corps vivant non examine : définition complète et dépendances nécessaires, aucun ajout du hash à la liste sans examen.",
+  "production_modifiee": false
+}

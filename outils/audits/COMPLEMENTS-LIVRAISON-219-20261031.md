@@ -42,3 +42,11 @@ Aucune exécution sensible avant autorisation et prévol conformes. Le paquet co
 Recette GoTrue isolée à réaliser ensuite : groupes mixtes, leader payeur, fonds insuffisants sans déplacement partiel, perte de réponse et rejeu, détection avant intervention, remise à la police/prison, rounds, fuite et radio. Arnie demeure en consultation seule.
 
 **CHANTIER NON TERMINÉ.** Code et preuves sauvegardés, production intacte. Blocages : prévol vivant actualisé, exécution intégrée des 95, deux contrôles globaux rouges, préparation immobilière signalée par la garde, recette authentifiée isolée. Aucun feu vert de fusion ou déploiement.
+
+## Dernier prévol reçu dans les commentaires : 1009, blocage confirmé
+
+Les derniers commentaires publics ont été relus après rédaction : relevé de ChatGPT au commit `26a10c3b`, registre **1009**, dernier `20261031190352`. Avis #297 et placement Helvetia déjà appliqués sous leurs versions réelles : ne pas les rejouer (ils ne sont pas dans les 95). ChatGPT a aussi confirmé zéro correspondance des 95 versions et noms ; cela ne vaut pas contrôle des corps.
+
+**Incompatibilité concrète : `payer_ordre` vivant porte le MD5 `37eca91d6eb08c2a6ea97cbe717a216a`.** Il diffère du corps protégé 1003 `5cf45c19e4b9559f6b29e2b9207d3969` et de l’adaptateur examiné. Le prévol organisations du nouveau paquet et la migration de transport 115805 le refusent volontairement. Ne pas simplement ajouter cette empreinte aux acceptations : obtenir sa définition complète et les dépendances/ACL actuelles avec la demande ciblée existante, examiner le changement et éprouver l’adaptation. Cette preuve suffit déjà à interdire une installation aveugle ; les corps manquants empêchent de la corriger sûrement ici.
+
+Banque nationale et inventaire répertoriés avec signatures/empreintes, 17 triggers actifs, sept contrats organisations absents : ces nombres ne fournissent pas leurs définitions. La capture publique de prévol n’est donc pas un nouvel export canonique. Preuve dérivée : `PREVOL-1009-BLOCAGE-219-20261031.json`. **Le prévol requis porte désormais sur 1009 ou l’état plus récent, jamais 1008.**
