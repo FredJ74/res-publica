@@ -17,7 +17,7 @@ class Exports(unittest.TestCase):
    (self.rep/(cle+('.txt' if mode=='mcp' else '.json'))).write_text(json.dumps(row))
  def test_lecteur_migration_ne_substitue_pas_une_entree_baseline(self):
   spec=importlib.util.spec_from_file_location('restaurant_fixture',R/'outils/bancs/banc-restaurant-luthecia-local.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-  n='commerce_vendre_produit';f=R/'migrations/20261031113607_catalogue_et_offrir_a_boire.sql'
+  n='commerce_vendre_produit';f=R/'historique/migrations-appliquees/rehorodatees-219/20261031113607_catalogue_et_offrir_a_boire.sql'
   self.assertEqual(m.definition(n,f),m._sources.fonction(str(f.relative_to(R)),n))
   self.assertNotEqual(m.definition(n,f),m._sources.entree_historique(n))
  def test_ecart_net_onze_ne_prouve_pas_onze_lignes_manquantes(self):
