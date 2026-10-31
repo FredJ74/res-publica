@@ -161,6 +161,12 @@ jobs:
           python3 outils/bancs/banc-construction-materiaux-local.py
       - name: Chaîne immobilière complète sur PostgreSQL jetable, cinq terrains
         run: python3 outils/bancs/banc-parcours-terrain-construction-135-local.py
+      - name: Prime de signature adoptée du serveur (écran, double clic, réponse perdue)
+        run: node outils/bancs/banc-prime-signature-client.cjs
+      - name: Prime de signature sur PostgreSQL jetable, contre-épreuve (20261031220000)
+        run: python3 outils/bancs/banc-prime-signature-local.py --local-jetable
+      - name: Organisations, étape A préparée sur PostgreSQL jetable (20261031230000, non appliquée)
+        run: python3 outils/bancs/banc-organisations-champs-commandes-local.py --local-jetable
       - name: Conserver les résultats des bancs
         if: always()
         uses: actions/upload-artifact@v4
