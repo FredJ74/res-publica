@@ -220,3 +220,13 @@ Précision de preuve : sortie détaillée des 14 assertions Node obtenue avec le
 ### #219 — prévol 1009 reçu, incompatibilité réelle établie
 
 Commentaires PR relus ; relevé ChatGPT `26a10c3b` récupéré de sa branche d’audit. Registre **1009** ; les 95 versions/noms absents, Helvetia et avis déjà enregistrés ailleurs. **Payeur vivant MD5 37eca91d6eb08c2a6ea97cbe717a216a, différent des corps examinés** : refus volontaire par le prévol organisations et l’adaptateur transport. Ne pas élargir la liste sans définition complète et test. Demande ciblée de catalogue existante désormais à exécuter contre 1009 (ou plus récent). Preuve dérivée `PREVOL-1009-BLOCAGE-219-20261031.json`. Blocage extérieur précis, aucune modification réelle ni ancien moteur imposé.
+
+### #219 — rectification du prévol payeur (preuve ChatGPT 6548347589)
+
+**Le blocage payeur annoncé ci-dessus est retiré.** La première capture donnait `md5(pg_get_functiondef)`, pas `md5(prosrc)` ; le corps vivant est bien `5cf45c19e4b9559f6b29e2b9207d3969`, déjà autorisé. Les internes 4/5 arguments sont absentes, état initial attendu. Aucune empreinte autorisée ni fonction financière modifiée. La preuve JSON conserve le diagnostic initial comme rétracté et distingue explicitement les deux objets hachés. Poursuite de l’épreuve intégrée des 95 et de la compatibilité #300, sans prétendre que ces seules métadonnées forment un export complet 1009.
+
+### #219 — 95 migrations installées ensemble, compatibilité #300 éprouvée
+
+Rapport : `outils/audits/INTEGRATION95-ET-CAISSES300-219-20261031.md`. PostgreSQL 17.6 : **95 versions en une transaction**, rollback tardif des quatre catalogues/registre/fiche, second passage refusé sans mutation, 30/30 recette catalogue + 3/3 commandes organisations. Après les deux migrations #300 : mêmes 30 + 3 réussites ; quatre bancs clients passent sur fusion simulée. Seul conflit textuel #300 : workflow CI (conserver les étapes des deux branches). Outillage **46/46**.
+
+**Ne pas présenter ce décor comme 1009** : schéma privé 1003 + capture réelle tarifs 438, provenance explicite. Payeur inchangé et compatible, deux types d'empreintes reproduits. Pas de blocage payeur restant ; manquent catalogue/delta complets 1009 et référentiels statiques, recette GoTrue isolée, résolution #299 par Claude. Pas de production modifiée.

@@ -6,7 +6,7 @@ R=Path(__file__).resolve().parents[2]
 def requetes():
  sp=importlib.util.spec_from_file_location('autorite219',R/'outils/baseline/verifier-autorite.py');a=importlib.util.module_from_spec(sp);sp.loader.exec_module(a)
  gm=json.loads((R/'outils/audits/LIVRAISON-GROUPES-219-20261030.json').read_text());om=json.loads((R/'outils/audits/LIVRAISON-ORGANISATIONS-219-20261031.json').read_text())
- noms={'payer_ordre','payer_ordre_interne','helvetia_debiter_fonds_ordinaires','inventaire_sauver_revision','inventaire_revision_garder','inventaire_deposer_interne','mon_personnage','est_mon_personnage','exiger_acteur','est_appel_serveur','sb_save_personnage','banque_nationale_operation','objet_acheter','fonds_transit_deposer_interne','fonds_transit_consommer_interne'}
+ noms={'payer_ordre','payer_ordre_interne','helvetia_debiter_fonds_ordinaires','inventaire_sauver_revision','inventaire_revision_garder','inventaire_deposer_interne','mon_personnage','est_mon_personnage','exiger_acteur','est_appel_serveur','sb_save_personnage','banque_nationale_operation','resoudre_placement_helvetia','helvetia_crediter_destination','helvetia_debiter_source','objet_acheter','fonds_transit_deposer_interne','fonds_transit_consommer_interne'}
  for e in gm['prerequis']+gm['migrations']+om['migrations']:
   s=(R/e['fichier']).read_text();noms|=a.fonctions_creees_migration(s);noms|=set(re.findall(r"public\.([a-z_][a-z_0-9]*)\(",s))
  if any(not re.fullmatch('[a-z_][a-z_0-9]*',n) for n in noms):raise ValueError('Nom de fonction non littéral')
@@ -34,6 +34,6 @@ def requetes():
  return resultats
 if __name__=='__main__':
  print('# #219 — demande technique de prévol actualisé à ChatGPT\n')
- print('Ces requêtes ne font que lire. Aucun ordre métier, aucun inventaire, aucun solde ni aucun enregistrement auth.users n’est extrait. Ne pas appliquer le paquet. Les sorties de catalogue doivent rester privées hors Git ; transmettre les JSON complets par un canal privé. Les nombres 1 008 / 1 199 / 17 ne remplacent pas ces définitions et droits.\n')
+ print('Ces requêtes ne font que lire. Aucun ordre métier, aucun inventaire, aucun solde ni aucun enregistrement auth.users n’est extrait. Ne pas appliquer le paquet. Les sorties de catalogue doivent rester privées hors Git ; transmettre les JSON complets par un canal privé. Les nombres 1 009 / 1 199 / 17 ne remplacent pas ces définitions et droits.\n')
  print('La capture des 438 coûts est déjà reçue : seule son empreinte courante est demandée pour détecter une évolution. Les autres lignes sont des référentiels de configuration, jamais les entreprises ou personnages des joueurs. Chaque sortie porte sa provenance ; recouper les versions si le catalogue change entre les lectures.\n')
  for nom,s in requetes():print('## '+nom+'\n\n```sql\n'+s+'\n```\n')

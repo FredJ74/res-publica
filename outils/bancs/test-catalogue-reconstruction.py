@@ -27,6 +27,17 @@ class Exports(unittest.TestCase):
   self.assertTrue(m.comparer(b,list(reversed(b)))['coherents'])
   with self.assertRaises(ValueError):m.comparer(a,a+a)
   with self.assertRaises(ValueError):m.comparer(a,[{'fn':'x','pa':True,'cost':2}])
+ def test_temoin_conserve_champs_sans_confondre_extension_ddl(self):
+  sp=importlib.util.spec_from_file_location('integre95',R/'outils/bancs/banc-livraison95-catalogue-local.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  avant={'liquide':83,'pa':17,'inventory':[{'id':'unique','qty':1}]}
+  self.assertEqual(m.verifier_temoin(avant,{**avant,'current_street_from':None})['colonnes_ajoutees_temoin'],['current_street_from'])
+  for apres in [{**avant,'liquide':84},{**avant,'inventory':[]},{**avant,'current_street_from':'rue'},{**avant,'inconnu':None},{'liquide':83}]:
+   with self.assertRaises(AssertionError):m.verifier_temoin(avant,apres)
+ def test_rectification_payeur_n_elargit_pas_la_garde(self):
+  d=json.loads((R/'outils/audits/PREVOL-1009-BLOCAGE-219-20261031.json').read_text())['rectification']
+  self.assertNotEqual(d['source_md5'],d['definition_md5']);self.assertTrue(d['prevol_payeur_satisfait'])
+  s=(R/'migrations/20261031115805_transport_encaissement_existant.sql').read_text()
+  self.assertIn(d['source_md5'],s);self.assertNotIn(d['definition_md5'],s)
  def test_lot_organisations_selectionne_cinq_sources_sans_transactions_internes(self):
   sp=importlib.util.spec_from_file_location('lotorg',R/'outils/livraison/preparer-organisations-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
   from pglast import parse_sql

@@ -485,7 +485,8 @@
     "registre": 1009,
     "source_commit": "26a10c3b",
     "compatible": false,
-    "blocage": "payer_ordre_corps_non_examine",
-    "voir": "PREVOL-1009-BLOCAGE-219-20261031.json"
+    "blocage": "catalogue1009_complet_non_recu",
+    "voir": "PREVOL-1009-BLOCAGE-219-20261031.json",
+    "compatible_payeur": true
   }
 }
