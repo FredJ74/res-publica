@@ -160,6 +160,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'imprimer_tracts_calomnieux') { ouvrirModalImprimerTractsCalomnieux(pa, cost); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
+  // Ordre visible (02/11/2026, Fred) : jusqu'ici seul un clic sur « Stock matières » y menait.
+  if (fn === 'vendre_matiere_armurerie') { doVendreMatiereArmurerie(); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(pa, cost); return; }
   // Jardins ouvriers de Montrouge (01/11/2026) : plateau-logements-montrouge.js.
