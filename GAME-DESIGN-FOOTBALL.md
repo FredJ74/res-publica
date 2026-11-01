@@ -14,3 +14,6 @@ club, dans la même transaction, à l'acceptation du joueur :
 
 C'est un ordre ancien, conservé tel quel (Fred, 01/11 : « laisser la prime de signature », réponse
 « garder comme aujourd'hui »). Côté serveur : migration `20261031220000`, appliquée le 31/10.
+
+Écran (01/11/2026, demande de Fred) : l'offre « Proposer un transfert » comporte le champ « Prime de
+signature au joueur », facultatif ; la prime est annoncée au président du club de départ et au joueur.

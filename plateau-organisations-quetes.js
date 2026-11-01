@@ -8731,7 +8731,12 @@ async function doProposerTransfert(pa, cost) {
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Nom du joueur ciblé</label>';
   html += '<input id="transfert-joueur" type="text" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
   html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Prix proposé au club (FR)</label>';
-  html += '<input id="transfert-prix" type="number" value="1000" min="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.8rem"/>';
+  html += '<input id="transfert-prix" type="number" value="1000" min="0" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.6rem"/>';
+  // Prime de signature (GAME-DESIGN-FOOTBALL.md, Fred 01/11/2026) : facultative, versee au joueur
+  // par la caisse du club qui recrute, avec le prix, quand le joueur accepte (club_transfert_conclure).
+  html += '<label style="font-size:.72rem;color:#8a8060;display:block;margin-bottom:.3rem">Prime de signature au joueur (FR, facultative)</label>';
+  html += '<input id="transfert-prime" type="number" value="0" min="0" step="1" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none;box-sizing:border-box;margin-bottom:.3rem"/>';
+  html += '<div style="font-size:.7rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">Le prix va au club du joueur, la prime au joueur. Les deux sont payés par la caisse de votre club quand le joueur accepte ; si elle ne couvre pas le total, le transfert est refusé.</div>';
   html += '<button onclick="confirmerPropositionTransfert(\'' + clubLocal.id + '\',' + pa + ',' + cost + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.1em;padding:.55rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Envoyer l\'offre</button>';
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
@@ -8742,6 +8747,11 @@ async function confirmerPropositionTransfert(clubAchatId, pa, cost) {
   const nomJoueur = document.getElementById('transfert-joueur')?.value?.trim();
   const prix = parseInt(document.getElementById('transfert-prix')?.value || '0');
   if (!nomJoueur || prix <= 0) { showToast('Champs requis', '', false); return; }
+  const primeSaisie = String(document.getElementById('transfert-prime')?.value ?? '').trim();
+  const prime = primeSaisie === '' ? 0 : Number(primeSaisie);
+  if (!Number.isInteger(prime) || prime < 0) {
+    showToast('Prime invalide', 'La prime de signature doit être un nombre entier de FR, 0 ou plus.', false); return;
+  }
 
   const joueur = await sbGetJoueurClub(nomJoueur);
   if (!joueur?.licence_sportive?.clubId) { showToast('Joueur introuvable', 'Ce joueur n\'a pas de licence sportive active.', false); return; }
@@ -8769,7 +8779,7 @@ async function confirmerPropositionTransfert(clubAchatId, pa, cost) {
   // une offre qui n'a pas ete enregistree.
   const transfertId = await sbCreerTransfert({
     joueur: nomJoueur, clubDepartId: clubVenteId, clubArriveeId: clubAchatId,
-    prixClub: prix, statut: 'propose', proposePar: state.char?.name
+    prixClub: prix, prixJoueur: prime, statut: 'propose', proposePar: state.char?.name
   }).catch(() => null);
   if (!transfertId) {
     document.getElementById('modal-postes')?.classList.remove('open');
@@ -8786,10 +8796,12 @@ async function confirmerPropositionTransfert(clubAchatId, pa, cost) {
   const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
   if (typeof sbSendMail === 'function') {
     await sbSendMail('Ligue Officielle', dataVente.president, 'Offre de transfert — ' + nomJoueur,
-      clubAchat.nom + ' propose ' + prix.toLocaleString('fr-FR') + ' FR pour ' + nomJoueur + '. Rendez-vous au bureau du président de ' + clubVente.nom + ' pour répondre.', time).catch(() => {});
+      clubAchat.nom + ' propose ' + prix.toLocaleString('fr-FR') + ' FR pour ' + nomJoueur
+      + (prime > 0 ? ' (et une prime de signature de ' + prime.toLocaleString('fr-FR') + ' FR au joueur)' : '') + '. Rendez-vous au bureau du président de ' + clubVente.nom + ' pour répondre.', time).catch(() => {});
   }
   showToast('Offre envoyée', 'Le président de ' + clubVente.nom + ' a été notifié.', true, true);
-  addJournalEntry('Offre de transfert envoyée pour ' + nomJoueur + ' (' + prix + ' FR).', 'event-good');
+  addJournalEntry('Offre de transfert envoyée pour ' + nomJoueur + ' (' + prix.toLocaleString('fr-FR') + ' FR'
+    + (prime > 0 ? ', prime de signature ' + prime.toLocaleString('fr-FR') + ' FR' : '') + ').', 'event-good');
 }
 
 async function doGererOffresTransfert() {
@@ -8810,7 +8822,7 @@ async function doGererOffresTransfert() {
     offres.forEach(o => {
       const clubAchat = getClub(o.clubArriveeId);
       html += '<div style="border:1px solid #2a2010;padding:.6rem;margin-bottom:.6rem">';
-      html += '<div style="font-size:.8rem;color:#c0b090">' + o.joueur + ' — ' + clubAchat.nom + ' propose ' + o.prixClub.toLocaleString('fr-FR') + ' FR' + (o.statut==='contre_offre'?' (votre contre-offre en attente)':'') + '</div>';
+      html += '<div style="font-size:.8rem;color:#c0b090">' + o.joueur + ' — ' + clubAchat.nom + ' propose ' + o.prixClub.toLocaleString('fr-FR') + ' FR' + (Number(o.prixJoueur) > 0 ? ' (prime de signature au joueur : ' + Number(o.prixJoueur).toLocaleString('fr-FR') + ' FR)' : '') + (o.statut==='contre_offre'?' (votre contre-offre en attente)':'') + '</div>';
       if (o.statut === 'propose') {
         html += '<div style="display:flex;gap:.4rem;margin-top:.4rem">';
         html += '<button onclick="repondreOffreTransfert(\'' + o.id + '\',\'accepte\')" style="flex:1;padding:.35rem;border:1px solid #4a8a4a;background:transparent;color:#6ab858;cursor:pointer;font-size:.7rem">Accepter</button>';
@@ -8851,7 +8863,7 @@ async function repondreOffreTransfert(transfertId, action) {
     await sbMajTransfert(transfertId, t);
     if (typeof sbSendMail === 'function') {
       await sbSendMail('Ligue Officielle', t.joueur, 'Offre de transfert vous concernant',
-        clubAchat.nom + ' souhaite vous recruter (accord trouvé avec ' + clubVente.nom + ' : ' + t.prixClub.toLocaleString('fr-FR') + ' FR). Consultez vos offres de transfert dans votre fiche personnage.', time).catch(() => {});
+        clubAchat.nom + ' souhaite vous recruter (accord trouvé avec ' + clubVente.nom + ' : ' + t.prixClub.toLocaleString('fr-FR') + ' FR)' + (Number(t.prixJoueur) > 0 ? ', avec une prime de signature de ' + Number(t.prixJoueur).toLocaleString('fr-FR') + ' FR pour vous' : '') + '. Consultez vos offres de transfert dans votre fiche personnage.', time).catch(() => {});
     }
     showToast('Accord entre clubs !', 'Le joueur va maintenant être consulté.', true, true);
   }
