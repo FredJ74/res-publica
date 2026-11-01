@@ -17,12 +17,20 @@
 --   5. Transfert en clinique (dès J0) et SORTIE : par la porte hospitalisation_lieu_rejoindre de #318,
 --      étendue (p_lieu = 'sortie'), jamais par une mécanique parallèle. Sortie : J2 au plus tôt et 20 PA.
 --   6. Mails et forums refusés à J0 (écrits par le PJ lui-même, y compris au nom d'une organisation).
+--   7. Rébellion (Fred, 01/11) : un suspect arrêté au terme d'un combat qui l'a laissé à 0 PA passe J0 à
+--      l'hôpital ; au Dormir de J1 il récupère 2 PA puis est reconduit dans sa cellule ; en détention,
+--      chaque Dormir ne lui rend que 4 PA (sanction de la rébellion, marquée rebellion:true).
+--   8. Repas : 1 PA à l'hôpital public (+2 PA), 1 PA et 30 FR à la clinique (+4 PA).
 -- L'empoisonnement garde son propre fonctionnement (dates par palier posées par l'écran) : non touché.
 
 -- 0. Coût de l'ordre « repas_hopital » au miroir (data.js : 1 PA, 0 FR).
 INSERT INTO public.ordres_couts (fn, pa, cost)
 SELECT 'repas_hopital', 1, 0
 WHERE NOT EXISTS (SELECT 1 FROM public.ordres_couts WHERE fn = 'repas_hopital' AND pa = 1 AND cost = 0);
+-- Repas de la clinique (data.js : 1 PA, 30 FR ; remplace l'ancien « Manger » des chambres).
+INSERT INTO public.ordres_couts (fn, pa, cost)
+SELECT 'repas_clinique', 1, 30
+WHERE NOT EXISTS (SELECT 1 FROM public.ordres_couts WHERE fn = 'repas_clinique' AND pa = 1 AND cost = 30);
 
 -- 1. Jour d'hospitalisation du régime pa0 (0 = jour du transfert). NULL hors de ce régime
 --    (aucune hospitalisation, ou empoisonnement et anciens paliers).
@@ -43,7 +51,7 @@ CREATE OR REPLACE FUNCTION public.hospitalisation_lieu_rejoindre_interne(
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $h$
 DECLARE p public.personnages_donnees%ROWTYPE; dispo jsonb; v_ville text; v_bat text;
  v_piece text; paiement jsonb; aujourdhui text; v_pa integer; v_cost integer;
- v_jour integer; v_noeud text; v_rue jsonb;
+ v_jour integer; v_noeud text; v_rue jsonb; v_rebelle boolean;
 BEGIN
  -- hospitalisation_porte_interne_v1
  IF p_lieu IS NULL OR p_lieu NOT IN ('dispensaire','clinique','sortie') THEN
@@ -55,9 +63,13 @@ BEGIN
  ELSE PERFORM pg_advisory_xact_lock(hashtextextended('groupe_pj:graphe',0)); END IF;
  -- Mêmes interdits que la navigation commune, sauf l'hospitalisation elle-même. L'ambulance du
  -- transfert automatique emporte aussi un PJ intercepté ou sorti d'un combat (jamais un détenu).
+ -- Le suspect arrêté au terme du combat (rébellion) est conduit à l'hôpital sous écrou.
+ SELECT coalesce((hospitalisation->>'detention')::boolean,false) INTO v_rebelle
+   FROM public.personnages_donnees WHERE name = p_nom;
  dispo := public.navigation_disponibilite_interne(p_nom);
  IF NOT coalesce((dispo->>'ok')::boolean,false) AND dispo->>'raison' IS DISTINCT FROM 'acteur_incapacite'
- AND NOT (p_automatique AND dispo->>'raison' IN ('interception_en_cours','combat_en_cours')) THEN
+ AND NOT (p_automatique AND dispo->>'raison' IN ('interception_en_cours','combat_en_cours'))
+ AND NOT (p_automatique AND v_rebelle AND dispo->>'raison' = 'personnage_indisponible') THEN
   RETURN dispo; END IF;
  SELECT * INTO p FROM public.personnages_donnees WHERE name = p_nom;
  aujourdhui := (statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text;
@@ -158,15 +170,19 @@ GRANT EXECUTE ON FUNCTION public.hospitalisation_lieu_rejoindre(text,text,boolea
 --    posée après le combat). Ne fait jamais échouer l'ordre ou le combat qui l'a provoqué.
 CREATE OR REPLACE FUNCTION public.hospitalisation_pa_epuises_declencheur()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $t$
-DECLARE p public.personnages_donnees%ROWTYPE; r jsonb; aujourdhui date;
+DECLARE p public.personnages_donnees%ROWTYPE; r jsonb; aujourdhui date; v_rebelle boolean;
 BEGIN
  BEGIN
   SELECT * INTO p FROM public.personnages_donnees WHERE id = NEW.id FOR UPDATE;
   IF NOT FOUND OR coalesce(p.pa,0) <> 0 THEN RETURN NULL; END IF;
-  -- La détention l'emporte : un PJ arrêté (même au terme du combat) reste sous écrou.
-  IF (p.est_emprisonne IS NOT NULL AND p.est_emprisonne <> 'null'::jsonb)
-  OR (jsonb_typeof(p.detention_qhs) = 'object' AND (p.detention_qhs->>'enQHS')::boolean IS TRUE) THEN
+  -- QHS : régime propre, rien ici. Détenu AVANT la chute de ses PA : il reste dans sa cellule.
+  IF (jsonb_typeof(p.detention_qhs) = 'object' AND (p.detention_qhs->>'enQHS')::boolean IS TRUE)
+  OR (OLD.est_emprisonne IS NOT NULL AND OLD.est_emprisonne <> 'null'::jsonb
+      AND p.est_emprisonne IS NOT NULL AND p.est_emprisonne <> 'null'::jsonb) THEN
    RETURN NULL; END IF;
+  -- Arrêté dans la même transaction que sa chute à 0 PA (combat perdu contre la police) : rébellion.
+  -- Il passe J0 à l'hôpital sous écrou ; sa cellule est retenue pour le retour (Fred, 01/11).
+  v_rebelle := p.est_emprisonne IS NOT NULL AND p.est_emprisonne <> 'null'::jsonb;
   aujourdhui := (statement_timestamp() AT TIME ZONE 'Europe/Paris')::date;
   -- Déjà hospitalisé (régime pa0, empoisonnement, ancien palier) : rien de plus.
   IF coalesce(p.hospitalisation->>'dateFinParis','') > aujourdhui::text
@@ -174,7 +190,10 @@ BEGIN
       THEN (p.hospitalisation->>'jourFin')::numeric > coalesce(p.day,1) ELSE false END) THEN
    RETURN NULL; END IF;
   UPDATE public.personnages_donnees SET hospitalisation = jsonb_build_object(
-     'regime','pa0','lieu','dispensaire','dateDebutParis',aujourdhui::text,'dateFinParis','9999-12-31'),
+     'regime','pa0','lieu','dispensaire','dateDebutParis',aujourdhui::text,'dateFinParis','9999-12-31')
+     || CASE WHEN v_rebelle THEN jsonb_build_object('detention', true, 'cellule', jsonb_build_object(
+          'country',p.country,'city',p.current_city,'building',p.current_building,'room',p.current_room))
+        ELSE '{}'::jsonb END,
      updated_at = clock_timestamp()
    WHERE id = p.id;
   r := public.hospitalisation_lieu_rejoindre_interne(p.name, 'dispensaire', NULL, false, true);
@@ -198,20 +217,23 @@ CREATE CONSTRAINT TRIGGER trg_hospitalisation_pa_epuises
  FOR EACH ROW WHEN (NEW.pa = 0 AND coalesce(OLD.pa,0) > 0)
  EXECUTE FUNCTION public.hospitalisation_pa_epuises_declencheur();
 
--- 4. Dormir à l'hôpital (patch en place de pa_repos_nocturne, fragments exacts, idempotent).
+-- 4. Dormir à l'hôpital, et en détention après une rébellion (patch en place de pa_repos_nocturne,
+--    fragments exacts, idempotent).
 DO $repos$
 DECLARE s text; a text; b text;
 BEGIN
  s := pg_get_functiondef('public.pa_repos_nocturne(text)'::regprocedure);
- IF position('-- hospitalisation_pa0_repos_v1' IN s) > 0 THEN RETURN; END IF;
+ IF position('-- hospitalisation_pa0_repos_v2' IN s) > 0 THEN RETURN; END IF;
+ IF position('-- hospitalisation_pa0_repos_v1' IN s) > 0 THEN
+  RAISE EXCEPTION 'pa_repos_nocturne: version préparatoire v1 présente, réinstaller la fonction d''origine'; END IF;
  a := '  v_caserne boolean; v_tente boolean; v_grade text; v_gain integer;';
- b := a || chr(10) || '  v_hosp jsonb; v_j integer; v_repas integer;';
+ b := a || chr(10) || '  v_hosp jsonb; v_j integer; v_repas integer; v_detenu jsonb; v_prison boolean := false;';
  IF position(a IN s) = 0 THEN RAISE EXCEPTION 'pa_repos_nocturne: fragment DECLARE introuvable'; END IF;
  s := replace(s, a, b);
  a := '  IF v_qhs IS NOT NULL AND jsonb_typeof(v_qhs) = ''object'' AND (v_qhs ->> ''enQHS'')::boolean IS TRUE THEN';
  IF position(a IN s) = 0 THEN RAISE EXCEPTION 'pa_repos_nocturne: fragment QHS introuvable'; END IF;
- b := '  -- hospitalisation_pa0_repos_v1 (GAME-DESIGN-HOSPITALISATION.md, Fred 01/11/2026)' || chr(10)
-   || '  SELECT hospitalisation INTO v_hosp FROM public.personnages_donnees WHERE name = p_acteur;' || chr(10)
+ b := '  -- hospitalisation_pa0_repos_v2 (GAME-DESIGN-HOSPITALISATION.md, Fred 01/11/2026)' || chr(10)
+   || '  SELECT hospitalisation, est_emprisonne INTO v_hosp, v_detenu FROM public.personnages_donnees WHERE name = p_acteur;' || chr(10)
    || '  v_j := public.hospitalisation_jour_pa0(v_hosp);' || chr(10)
    || '  IF v_j IS NOT NULL THEN' || chr(10)
    || '    IF v_j <= 0 THEN' || chr(10)
@@ -219,44 +241,75 @@ BEGIN
    || '    END IF;' || chr(10)
    || '    v_gain := (CASE v_j WHEN 1 THEN 2 WHEN 2 THEN 6 ELSE 12 END)' || chr(10)
    || '            * (CASE WHEN v_hosp ->> ''lieu'' = ''clinique'' THEN 3 ELSE 1 END);' || chr(10)
-   || '    v_repas := CASE WHEN v_hosp ->> ''repasLe'' = (v_jour - 1)::text THEN 2 ELSE 0 END;' || chr(10)
+   || '    v_repas := CASE WHEN v_hosp ->> ''repasLe'' = (v_jour - 1)::text' || chr(10)
+   || '               THEN coalesce((v_hosp ->> ''repasBonus'')::integer, 2) ELSE 0 END;' || chr(10)
    || '    v_nouveau := least(c_pa_max, greatest(0, v_pa + v_gain + v_repas + v_bonus));' || chr(10)
    || '    UPDATE public.personnages_donnees' || chr(10)
    || '       SET pa = v_nouveau, bonus_pa_differe = 0, pa_repos_le = v_jour' || chr(10)
    || '     WHERE name = p_acteur;' || chr(10)
+   || '    -- Rébellion : après ce premier sommeil, retour dans la cellule retenue à l''arrestation.' || chr(10)
+   || '    IF (v_hosp ->> ''detention'')::boolean IS TRUE THEN' || chr(10)
+   || '      IF v_detenu IS NOT NULL AND v_detenu <> ''null''::jsonb AND jsonb_typeof(v_hosp -> ''cellule'') = ''object'' THEN' || chr(10)
+   || '        UPDATE public.personnages_donnees' || chr(10)
+   || '           SET country = v_hosp #>> ''{cellule,country}'', current_city = v_hosp #>> ''{cellule,city}'',' || chr(10)
+   || '               current_building = v_hosp #>> ''{cellule,building}'', current_room = v_hosp #>> ''{cellule,room}'',' || chr(10)
+   || '               current_street = NULL, hospitalisation = NULL,' || chr(10)
+   || '               est_emprisonne = est_emprisonne || jsonb_build_object(''rebellion'', true),' || chr(10)
+   || '               updated_at = clock_timestamp()' || chr(10)
+   || '         WHERE name = p_acteur;' || chr(10)
+   || '        v_prison := true;' || chr(10)
+   || '      ELSE' || chr(10)
+   || '        -- Libéré entre-temps : il reste un patient ordinaire.' || chr(10)
+   || '        UPDATE public.personnages_donnees SET hospitalisation = hospitalisation - ''detention'' - ''cellule''' || chr(10)
+   || '         WHERE name = p_acteur;' || chr(10)
+   || '      END IF;' || chr(10)
+   || '    END IF;' || chr(10)
    || '    RETURN jsonb_build_object(''ok'', true, ''pa'', v_nouveau, ''bonus_consomme'', v_bonus,' || chr(10)
    || '      ''qhs'', false, ''hospitalisation'', true, ''jour_hospitalisation'', v_j,' || chr(10)
    || '      ''lieu'', v_hosp ->> ''lieu'', ''gain'', v_gain, ''repas'', v_repas,' || chr(10)
-   || '      ''sortie_possible'', v_j >= 2 AND v_nouveau >= 20);' || chr(10)
+   || '      ''transfert_prison'', v_prison,' || chr(10)
+   || '      ''sortie_possible'', NOT v_prison AND v_j >= 2 AND v_nouveau >= 20);' || chr(10)
    || '  END IF;' || chr(10) || chr(10) || a;
+ s := replace(s, a, b);
+ -- En détention après une rébellion : 4 PA par sommeil, quel que soit le reste (sanction).
+ a := '    v_nouveau := least(c_pa_max, greatest(0, v_pa + v_gain + v_bonus));';
+ IF position(a IN s) = 0 THEN RAISE EXCEPTION 'pa_repos_nocturne: fragment du gain ordinaire introuvable'; END IF;
+ b := '    -- detention_rebellion_repos_v1' || chr(10)
+   || '    IF v_detenu IS NOT NULL AND v_detenu <> ''null''::jsonb AND (v_detenu ->> ''rebellion'')::boolean IS TRUE THEN' || chr(10)
+   || '      v_gain := 4;' || chr(10)
+   || '    END IF;' || chr(10) || a;
  s := replace(s, a, b);
  EXECUTE s;
 END $repos$;
 
--- 5. Repas de l'hôpital : 1 PA (miroir), une fois par jour, au dispensaire ou à la clinique ;
---    +2 PA au Dormir du lendemain (lu par pa_repos_nocturne).
+-- 5. Repas : 1 PA à l'hôpital public (+2 PA), 1 PA et 30 FR à la clinique (+4 PA), une fois par jour ;
+--    le bonus est versé au Dormir du lendemain (lu par pa_repos_nocturne). Tarifs lus au miroir.
 CREATE OR REPLACE FUNCTION public.hospitalisation_repas_prendre()
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public','pg_temp' AS $r$
 DECLARE moi text; p public.personnages_donnees%ROWTYPE; v_j integer; aujourdhui text;
- v_pa integer; v_cost integer; paiement jsonb;
+ v_pa integer; v_cost integer; paiement jsonb; v_fn text; v_bonus integer;
 BEGIN
  moi := public.mon_personnage();
  IF moi IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_authentifie'); END IF;
  SELECT * INTO p FROM public.personnages_donnees WHERE name = moi FOR UPDATE;
  v_j := public.hospitalisation_jour_pa0(p.hospitalisation);
  IF v_j IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','non_hospitalise'); END IF;
- IF coalesce(p.current_building,'') NOT LIKE 'dispensaire-public%' AND p.current_building IS DISTINCT FROM 'clinique-privee' THEN
-  RETURN jsonb_build_object('ok',false,'raison','pas_a_l_hopital'); END IF;
+ IF p.current_building = 'clinique-privee' THEN v_fn := 'repas_clinique'; v_bonus := 4;
+ ELSIF coalesce(p.current_building,'') LIKE 'dispensaire-public%' THEN v_fn := 'repas_hopital'; v_bonus := 2;
+ ELSE RETURN jsonb_build_object('ok',false,'raison','pas_a_l_hopital'); END IF;
  aujourdhui := (statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text;
  IF p.hospitalisation->>'repasLe' = aujourdhui THEN
   RETURN jsonb_build_object('ok',false,'raison','repas_deja_pris'); END IF;
- SELECT pa, cost INTO v_pa, v_cost FROM public.ordres_couts WHERE fn = 'repas_hopital' ORDER BY pa DESC LIMIT 1;
- paiement := public.payer_ordre_interne(moi, 'repas_hopital', coalesce(v_pa,1), coalesce(v_cost,0));
+ SELECT pa, cost INTO v_pa, v_cost FROM public.ordres_couts WHERE fn = v_fn ORDER BY cost DESC LIMIT 1;
+ IF v_pa IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','cout_non_declare','fn',v_fn); END IF;
+ paiement := public.payer_ordre_interne(moi, v_fn, v_pa, v_cost);
  IF NOT coalesce((paiement->>'ok')::boolean,false) THEN RETURN paiement; END IF;
  UPDATE public.personnages_donnees
-    SET hospitalisation = hospitalisation || jsonb_build_object('repasLe', aujourdhui)
+    SET hospitalisation = hospitalisation || jsonb_build_object('repasLe', aujourdhui, 'repasBonus', v_bonus)
   WHERE name = moi RETURNING pa INTO v_pa;
- RETURN jsonb_build_object('ok',true,'pa',v_pa,'bonus_lendemain',2,'jour',v_j);
+ RETURN jsonb_build_object('ok',true,'pa',v_pa,'cout',v_cost,'bonus_lendemain',v_bonus,'jour',v_j,
+   'liquide',(SELECT liquide FROM public.personnages_donnees WHERE name = moi),
+   'arg',(SELECT arg FROM public.personnages_donnees WHERE name = moi));
 END $r$;
 REVOKE ALL ON FUNCTION public.hospitalisation_repas_prendre() FROM PUBLIC, anon, service_role;
 GRANT EXECUTE ON FUNCTION public.hospitalisation_repas_prendre() TO authenticated;
@@ -296,7 +349,8 @@ CREATE TRIGGER trg_hospitalisation_ecriture_j0 BEFORE INSERT ON public.forum_pos
 
 DO $verification$
 BEGIN
- IF position('-- hospitalisation_pa0_repos_v1' IN pg_get_functiondef('public.pa_repos_nocturne(text)'::regprocedure)) = 0
+ IF position('-- hospitalisation_pa0_repos_v2' IN pg_get_functiondef('public.pa_repos_nocturne(text)'::regprocedure)) = 0
+ OR position('-- detention_rebellion_repos_v1' IN pg_get_functiondef('public.pa_repos_nocturne(text)'::regprocedure)) = 0
  OR position('-- hospitalisation_porte_sortie_v1' IN pg_get_functiondef('public.hospitalisation_lieu_rejoindre(text,text,boolean)'::regprocedure)) = 0
  OR NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_hospitalisation_pa_epuises'
                 AND tgrelid = 'public.personnages_donnees'::regclass)

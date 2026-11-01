@@ -20,6 +20,8 @@ certifié de #219 n'est pas modifié) : à placer **après** le correctif de #31
 | Mails et forums interdits à J0 | `hospitalisation_ecriture_j0_garder()` sur `mails`, `forum_topics`, `forum_posts` (refus nommé `hospitalise_j0`) |
 | Transfert en clinique dès J0 (ambulance) | porte `hospitalisation_lieu_rejoindre` de #318, inchangée pour ce cas |
 | Sortie à partir de J2 et de 20 PA | **même porte**, `p_lieu = 'sortie'` : lève l'hospitalisation, rend la chambre de clinique, sort par la porte du bâtiment (`rue_position_personnage_interne`) |
+| Rébellion : arrêté au terme du combat qui l'a mis à 0 PA → J0 à l'hôpital sous écrou, 2 PA au Dormir de J1 puis retour en cellule ; 4 PA par Dormir en détention | déclencheur (cellule retenue, `detention:true`), porte en mode automatique, `pa_repos_nocturne` (marqueurs `hospitalisation_pa0_repos_v2`, `detention_rebellion_repos_v1`, `est_emprisonne.rebellion`) |
+| Repas de la clinique 1 PA + 30 FR, +4 PA (« Manger » supprimé) | `hospitalisation_repas_prendre()` choisit le repas selon le lieu ; miroir (`repas_clinique`, 1, 30) |
 | Empoisonnement inchangé | aucune de ces règles ne s'applique hors du régime `pa0` |
 
 La porte de #318 devient `hospitalisation_lieu_rejoindre_interne(p_nom, …, p_automatique)` ; la porte
@@ -43,11 +45,11 @@ tient déjà la fiche).
 
 ## Preuves
 
-- `preuve-sql.log` : **25/25** sur PostgreSQL 16 jetable (baseline + 95 migrations #219 + correctif #318
+- `preuve-sql.log` : **30/30** sur PostgreSQL 16 jetable (baseline + 95 migrations #219 + correctif #318
   + ce correctif, appliqué deux fois).
-- `preuve-sql-contre-epreuve.log` : sans ce correctif, **18 défauts dénoncés** ; les 7 cas verts décrivent
+- `preuve-sql-contre-epreuve.log` : sans ce correctif, **22 défauts dénoncés** ; les 8 cas verts décrivent
   des comportements qui ne doivent pas changer (détention, PA rendus, empoisonnement, sommeil ordinaire…).
-- `preuve-client.log` : **10/10** ; contre-épreuve sur la tête de #318 : **9 échecs** (seul reste vert
+- `preuve-client.log` : **12/12** ; contre-épreuve sur la tête de #318 : **11 échecs** (seul reste vert
   l'empoisonnement, inchangé par conception).
 - Non-régression : banc SQL de #318 **14/14** sur la base avec ce correctif ; banc client de #318
   **12/12** (son cas 6 décrivait l'ancien circuit écran → porte ; il est scindé : 0 PA → serveur seul,

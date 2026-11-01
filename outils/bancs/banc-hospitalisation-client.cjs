@@ -104,9 +104,31 @@ test('sortie : refus nommé sous 20 PA ; acceptée, l’hospitalisation est lev�
 test('catalogue : ordres présents aux trois lieux de soins, coût du repas identique au miroir serveur, routage',()=>{
  const data=lire('data.js'),routeur=lire('plateau-router.js'),sql=lire('outils/audits/hospitalisation-20261101/migration-a-integrer-hospitalisation.sql');
  const repas=[...data.matchAll(/\{fn:'repas_hopital'[^}]*\}/g)].map(m=>m[0]);
- assert.equal(repas.length,12,'salle d’attente de Luthécia, gabarit de province, 10 chambres');
+ assert.equal(repas.length,2,'salle d’attente de Luthécia, gabarit de province');
  for(const r of repas)assert.match(r,/pa:1, cost:0/);
+ const clinique=[...data.matchAll(/\{fn:'repas_clinique'[^}]*\}/g)].map(m=>m[0]);
+ assert.equal(clinique.length,10,'les 10 chambres de la clinique');
+ for(const r of clinique)assert.match(r,/pa:1, cost:30/);
+ assert.equal((data.match(/fn:'se_nourrir', label:'Manger'/g)||[]).length,0,'ancien « Manger » retiré des chambres (Fred, 01/11)');
  assert.match(sql,/SELECT 'repas_hopital', 1, 0/);
+ assert.match(sql,/SELECT 'repas_clinique', 1, 30/);
+ assert.match(routeur,/fn === 'repas_hopital' \|\| fn === 'repas_clinique'\) \{ doRepasHopital\(\)/);
  assert.equal([...data.matchAll(/\{fn:'sortie_hopital'/g)].length,13,'+ la réception de la clinique');
- assert.match(routeur,/fn === 'repas_hopital'\) \{ doRepasHopital\(\)/);
  assert.match(routeur,/fn === 'sortie_hopital'\) \{ doSortieHopital\(\)/);});
+
+test('rébellion : après le sommeil de J1, le retour en cellule décidé par le serveur est adopté',async()=>{
+ const c=jeu({pa_repos_nocturne:()=>({ok:true,pa:2,hospitalisation:true,jour_hospitalisation:1,gain:2,repas:0,transfert_prison:true,sortie_possible:false,bonus_consomme:0}),
+  salaire_civil_percevoir:()=>({ok:false,raison:'bareme_absent'})});
+ c.state.pa=0;c.state.hospitalisation=PA0(1,{detention:true});
+ await c.doDormir();
+ assert.equal(c.state.pa,2);assert.equal(c.state.hospitalisation,null);
+ assert.ok(c.positions.some(p=>p[0]==='relue'));
+ assert.ok(c.toasts.some(t=>t[0]==='Retour en cellule'));
+ assert.ok(!c.toasts.some(t=>t[0]==='Sortie autorisée'));});
+
+test('repas de la clinique : coût et bonus arrêtés par le serveur, adoptés tels quels',async()=>{
+ const c=jeu({hospitalisation_repas_prendre:()=>({ok:true,pa:5,cout:30,bonus_lendemain:4,jour:1,liquide:1970,arg:1970})});
+ c.state.pa=6;c.state.liquide=2000;c.state.arg=2000;c.state.hospitalisation=PA0(1,{lieu:'clinique'});
+ await c.doRepasHopital();
+ assert.equal(c.state.pa,5);assert.equal(c.state.liquide,1970);assert.equal(c.state.hospitalisation.repasBonus,4);
+ assert.match(c.toasts[0][1],/-30 FR.*\+4 PA/);});

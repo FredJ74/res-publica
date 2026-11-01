@@ -1,4 +1,4 @@
-# node --test outils/bancs/banc-hospitalisation-client.cjs (234ee8c + modifications du chantier)
+# node --test outils/bancs/banc-hospitalisation-client.cjs (branche claude/hospitalisation-20261101, décisions de Fred du 01/11 16 h 50 incluses)
 ok 1 - agression / combat perdu : l’écran enregistre seulement les PA à 0, puis adopte l’hospitalisation du serveur
 ok 2 - empoisonnement : garde son propre fonctionnement (durée par palier posée comme avant)
 ok 3 - PA à 0 sans hospitalisation connue : la fiche est relue (ordre payé jusqu’au dernier PA)
@@ -9,7 +9,9 @@ ok 7 - mails et forums : interdits à J0 seulement
 ok 8 - repas de l’hôpital : payé par le serveur, l’écran adopte ses PA
 ok 9 - sortie : refus nommé sous 20 PA ; acceptée, l’hospitalisation est levée et la position relue
 ok 10 - catalogue : ordres présents aux trois lieux de soins, coût du repas identique au miroir serveur, routage
-# pass 10
+ok 11 - rébellion : après le sommeil de J1, le retour en cellule décidé par le serveur est adopté
+ok 12 - repas de la clinique : coût et bonus arrêtés par le serveur, adoptés tels quels
+# pass 12
 # fail 0
 
 # Contre-épreuve : CONTRE=origin/claude/circuits-residuels-219-20261101 (tête de #318)
@@ -23,5 +25,7 @@ not ok 7 - mails et forums : interdits à J0 seulement
 not ok 8 - repas de l’hôpital : payé par le serveur, l’écran adopte ses PA
 not ok 9 - sortie : refus nommé sous 20 PA ; acceptée, l’hospitalisation est levée et la position relue
 not ok 10 - catalogue : ordres présents aux trois lieux de soins, coût du repas identique au miroir serveur, routage
+not ok 11 - rébellion : après le sommeil de J1, le retour en cellule décidé par le serveur est adopté
+not ok 12 - repas de la clinique : coût et bonus arrêtés par le serveur, adoptés tels quels
 # pass 1
-# fail 9
+# fail 11

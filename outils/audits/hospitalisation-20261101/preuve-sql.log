@@ -1,8 +1,13 @@
-# Banc SQL, base PostgreSQL 16 jetable : baseline + 95 migrations #219 + correctif #318 + correctif hospitalisation (appliqué deux fois)
+# Banc SQL, base PostgreSQL 16 jetable : baseline + 95 migrations #219 + correctif #318 + correctif hospitalisation (appliqué deux fois). Décisions de Fred du 01/11 16 h 50 incluses.
 sed: can't read migrations/20261024122600_acquisitions_capacites_et_gardes.sql: No such file or directory
 OK      ordre_dernier_pa_hospitalise_au_dispensaire_de_la_ville
 OK      combat_perdu_pa_a_zero_hospitalise_a_la_capitale
-OK      arrete_au_terme_du_combat_reste_en_detention
+OK      rebellion_arrete_a_zero_pa_passe_j0_a_l_hopital_sous_ecrou
+OK      rebellion_j1_dormir_2_pa_puis_retour_en_cellule
+OK      rebellion_en_prison_dormir_ne_rend_que_4_pa
+OK      detenu_ordinaire_dormir_inchange
+OK      deja_detenu_tombe_a_zero_reste_en_cellule
+OK      rebelle_libere_avant_j1_reste_patient_ordinaire
 OK      pa_rendus_dans_la_meme_transaction_pas_d_hospitalisation
 OK      empoisonnement_garde_son_propre_fonctionnement
 OK      sans_dispensaire_hospitalise_sur_place_et_immobilise
@@ -20,9 +25,9 @@ OK      repas_refuse_hors_de_l_hopital
 OK      repas_refuse_sans_hospitalisation
 OK      j2_dormir_6_plus_repas_2_sortie_refusee_sous_20
 OK      j3_dormir_12_puis_sortie_par_la_porte_du_dispensaire
-OK      clinique_x3_sortie_a_j2
+OK      clinique_x3_repas_30_fr_plus_4_sortie_a_j2
 OK      sortie_refusee_a_j1_meme_avec_20_pa
 OK      sortie_sans_objet_pour_l_empoisonnement
 OK      hors_hopital_dormir_inchange_12_pa
 OK      droits_des_portes
----- 25 OK, 0 échec(s)
+---- 30 OK, 0 échec(s)

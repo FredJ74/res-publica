@@ -2375,6 +2375,13 @@ async function doDormir() {
     if (vRepos.hospitalisation === true && typeof vRepos.gain === 'number') {
       addJournalEntry('Nuit à l\'hôpital (jour ' + vRepos.jour_hospitalisation + ') : +' + vRepos.gain + ' PA'
         + (vRepos.repas ? ', +' + vRepos.repas + ' PA du repas de la veille' : '') + '.', 'event-info');
+      // Rébellion (Fred, 01/11) : après ce premier sommeil, le serveur reconduit le suspect en cellule.
+      if (vRepos.transfert_prison) {
+        state.hospitalisation = null;
+        showToast('Retour en cellule', 'Les policiers vous reconduisent en cellule pour purger votre peine. Rébellion : 4 PA seulement par nuit en détention.', false, true);
+        addJournalEntry('Reconduit(e) en cellule après l\'hôpital (rébellion : 4 PA par nuit en détention).', 'event-bad');
+        if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
+      }
       if (vRepos.sortie_possible) {
         showToast('Sortie autorisée', 'Vous avez assez récupéré : l\'ordre « Sortir de l\'hôpital » vous rend votre liberté.', true, true);
       }
@@ -2531,7 +2538,7 @@ function trouverChambreLibreClinique() {
 // needsSuiteIndisponible) et par doOrder (plateau-router.js, blocage reel avant tout debit) :
 // aucune duplication de la logique medicale elle-meme (doSoinCliniquePrivee/doCentreAntiPoison/
 // executerOrdreGenerique restent intacts).
-const ORDRES_MEDICAUX_CHAMBRE_CLINIQUE = ['soins', 'soins_urgence', 'soins_discrets', 'centre_anti_poison', 'se_nourrir', 'repas_hopital', 'sortie_hopital'];
+const ORDRES_MEDICAUX_CHAMBRE_CLINIQUE = ['soins', 'soins_urgence', 'soins_discrets', 'centre_anti_poison', 'se_nourrir', 'repas_hopital', 'repas_clinique', 'sortie_hopital'];
 
 function estOrdreMedicalReserveAuPatient(buildingId, roomId, fn) {
   if (buildingId !== 'clinique-privee' || !/^chambre_(?:[1-9]|10)$/.test(roomId || '')) return false;
@@ -2697,10 +2704,13 @@ async function doRepasHopital() {
   if (!r || r.transport) { showToast('Repas non confirmé', 'La réponse du serveur est incertaine. Rechargez votre fiche.', false); return; }
   if (r.ok !== true) { showToast('Repas refusé', HOSPITALISATION_REFUS[r.raison] || r.raison || 'Refus du serveur.', false); return; }
   if (Number.isInteger(r.pa)) state.pa = r.pa;
-  if (state.hospitalisation) state.hospitalisation.repasLe = dateCivileParisMedicale();
+  // Montants arrêtés par le serveur (repas de la clinique payant), jamais calculés ici.
+  if (typeof r.liquide === 'number') state.liquide = r.liquide;
+  if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }
+  if (state.hospitalisation) { state.hospitalisation.repasLe = dateCivileParisMedicale(); state.hospitalisation.repasBonus = r.bonus_lendemain; }
   if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ pa: r.pa, hospitalisation: state.hospitalisation });
   updateUI();
-  showToast('Repas de l’hôpital', '-1 PA. +' + (r.bonus_lendemain || 0) + ' PA à votre prochain sommeil.', true);
+  showToast('Repas servi', '-1 PA' + (r.cout ? ', -' + r.cout + ' FR' : '') + '. +' + (r.bonus_lendemain || 0) + ' PA à votre prochain sommeil.', true);
   addJournalEntry('Repas de l’hôpital (-1 PA, +' + (r.bonus_lendemain || 0) + ' PA demain).', 'event-info');
 }
 

@@ -36,6 +36,7 @@ INSERT INTO groupes_pj_adhesions(membre,chef) VALUES ('B','A');
 INSERT INTO ordres_couts(fn,pa,cost) SELECT 'banc_ordre',3,0 WHERE NOT EXISTS(SELECT 1 FROM ordres_couts WHERE fn='banc_ordre');
 INSERT INTO ordres_couts(fn,pa,cost) SELECT 'transfert_clinique_privee',0,1000 WHERE NOT EXISTS(SELECT 1 FROM ordres_couts WHERE fn='transfert_clinique_privee');
 INSERT INTO ordres_couts(fn,pa,cost) SELECT 'repas_hopital',1,0 WHERE NOT EXISTS(SELECT 1 FROM ordres_couts WHERE fn='repas_hopital');
+INSERT INTO ordres_couts(fn,pa,cost) SELECT 'repas_clinique',1,30 WHERE NOT EXISTS(SELECT 1 FROM ordres_couts WHERE fn='repas_clinique');
 "
 COMME_A="SET LOCAL ROLE authenticated; SET LOCAL request.jwt.claims = '{\"sub\":\"00000000-0000-4000-8000-00000000000a\",\"role\":\"authenticated\"}';"
 AUJ="(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date"
@@ -78,11 +79,48 @@ UPDATE personnages_donnees SET pa=0 WHERE name='A'; $FIN
 $(EXIGE "$H->>'regime'='pa0'")
 $(EXIGE "$POS='capitale|dispensaire-public|salle_attente'")"
 
-cas "arrete_au_terme_du_combat_reste_en_detention" "
+# ---- Rébellion (Fred, 01/11) : arrêté au terme du combat qui l'a mis à 0 PA ----
+cas "rebellion_arrete_a_zero_pa_passe_j0_a_l_hopital_sous_ecrou" "
 UPDATE personnages_donnees SET pa=0 WHERE name='A';
-UPDATE personnages_donnees SET est_emprisonne='{\"raison\":\"banc\"}' WHERE name='A'; $FIN
+UPDATE personnages_donnees SET est_emprisonne='{\"raison\":\"banc\",\"jours\":3}', current_building='commissariat', current_room='prison' WHERE name='A'; $FIN
+$(EXIGE "$H->>'regime'='pa0' AND ($H->>'detention')::boolean")
+$(EXIGE "$H->'cellule'->>'building'='commissariat' AND $H->'cellule'->>'room'='prison'")
+$(EXIGE "$POS='capitale|dispensaire-public|salle_attente'")
+$(EXIGE "(SELECT est_emprisonne->>'raison' FROM personnages_donnees WHERE name='A')='banc'")"
+
+cas "rebellion_j1_dormir_2_pa_puis_retour_en_cellule" "
+$(HOSPI 1 dispensaire dispensaire-public salle_attente 0)
+UPDATE personnages_donnees SET est_emprisonne='{\"raison\":\"banc\",\"jours\":3}',
+ hospitalisation=hospitalisation||'{\"detention\":true,\"cellule\":{\"country\":\"republic\",\"city\":\"capitale\",\"building\":\"commissariat\",\"room\":\"prison\"}}' WHERE name='A';
+$COMME_A SELECT set_config('banc.v',(pa_repos_nocturne('A'))::text,true); RESET ROLE;
+$(EXIGE "$PA=2 AND (current_setting('banc.v')::jsonb->>'transfert_prison')::boolean")
+$(EXIGE "$POS='capitale|commissariat|prison' AND $H IS NULL")
+$(EXIGE "(SELECT (est_emprisonne->>'rebellion')::boolean FROM personnages_donnees WHERE name='A')")"
+
+cas "rebellion_en_prison_dormir_ne_rend_que_4_pa" "
+UPDATE personnages_donnees SET pa=2, current_building='commissariat', current_room='prison',
+ est_emprisonne='{\"raison\":\"banc\",\"jours\":3,\"rebellion\":true}' WHERE name='A';
+$COMME_A SELECT pa_repos_nocturne('A'); RESET ROLE;
+$(EXIGE "$PA=6")"
+
+cas "detenu_ordinaire_dormir_inchange" "
+UPDATE personnages_donnees SET pa=2, current_building='commissariat', current_room='prison',
+ est_emprisonne='{\"raison\":\"banc\",\"jours\":3}' WHERE name='A';
+$COMME_A SELECT pa_repos_nocturne('A'); RESET ROLE;
+$(EXIGE "$PA=14")"
+
+cas "deja_detenu_tombe_a_zero_reste_en_cellule" "
+UPDATE personnages_donnees SET est_emprisonne='{\"raison\":\"banc\",\"jours\":3}', current_building='commissariat', current_room='prison' WHERE name='A';
+UPDATE personnages_donnees SET pa=0 WHERE name='A'; $FIN
 $(EXIGE "$H IS NULL")
-$(EXIGE "$POS='capitale|assemblee|hemicycle'")"
+$(EXIGE "$POS='capitale|commissariat|prison'")"
+
+cas "rebelle_libere_avant_j1_reste_patient_ordinaire" "
+$(HOSPI 1 dispensaire dispensaire-public salle_attente 0)
+UPDATE personnages_donnees SET hospitalisation=hospitalisation||'{\"detention\":true,\"cellule\":{\"country\":\"republic\",\"city\":\"capitale\",\"building\":\"commissariat\",\"room\":\"prison\"}}' WHERE name='A';
+$COMME_A SELECT pa_repos_nocturne('A'); RESET ROLE;
+$(EXIGE "$PA=2 AND $H->>'regime'='pa0' AND NOT ($H ? 'detention')")
+$(EXIGE "$POS='capitale|dispensaire-public|salle_attente'")"
 
 cas "pa_rendus_dans_la_meme_transaction_pas_d_hospitalisation" "
 UPDATE personnages_donnees SET pa=0 WHERE name='A';
@@ -157,6 +195,7 @@ $(HOSPI 1 dispensaire dispensaire-public salle_attente 2)
 $COMME_A SELECT set_config('banc.v',(hospitalisation_repas_prendre())::text,true);
 SELECT set_config('banc.v2',(hospitalisation_repas_prendre())::text,true); RESET ROLE;
 $(EXIGE "current_setting('banc.v')::jsonb->>'ok'='true' AND $PA=1 AND $H->>'repasLe'=$AUJ::text")
+$(EXIGE "($H->>'repasBonus')::int=2 AND (SELECT liquide FROM personnages_donnees WHERE name='A')=2000")
 $(EXIGE "current_setting('banc.v2')::jsonb->>'raison'='repas_deja_pris'")"
 
 cas "repas_refuse_hors_de_l_hopital" "
@@ -185,18 +224,18 @@ $(EXIGE "current_setting('banc.s')::jsonb->>'ok'='true'")
 $(EXIGE "$H IS NULL")
 $(EXIGE "(SELECT current_building IS NULL AND current_street='luthecia-imprimerie' FROM personnages_donnees WHERE name='A')")"
 
-cas "clinique_x3_sortie_a_j2" "
+cas "clinique_x3_repas_30_fr_plus_4_sortie_a_j2" "
 $(HOSPI 1 clinique clinique-privee chambre_3 0)
 INSERT INTO locations_actives(id,country,data) VALUES ('loc-a','republic','{\"buildingId\":\"clinique-privee\",\"roomId\":\"chambre_3\",\"city\":\"capitale\",\"locataire\":\"A\",\"chambreClinique\":true}');
 $COMME_A SELECT set_config('banc.v1',(pa_repos_nocturne('A'))::text,true);
 SELECT hospitalisation_repas_prendre(); RESET ROLE;
-$(EXIGE "$PA=5")
+$(EXIGE "$PA=5 AND (SELECT liquide FROM personnages_donnees WHERE name='A')=1970 AND ($H->>'repasBonus')::int=4")
 UPDATE personnages_donnees SET pa_repos_le=NULL,
   hospitalisation=hospitalisation||jsonb_build_object('dateDebutParis',($AUJ - 2)::text,'repasLe',($AUJ - 1)::text) WHERE name='A';
 $COMME_A SELECT set_config('banc.v2',(pa_repos_nocturne('A'))::text,true);
 SELECT set_config('banc.s',(hospitalisation_lieu_rejoindre('sortie'))::text,true); RESET ROLE;
 $(EXIGE "(current_setting('banc.v1')::jsonb->>'gain')::int=6 AND (current_setting('banc.v2')::jsonb->>'gain')::int=18")
-$(EXIGE "$PA=25 AND current_setting('banc.s')::jsonb->>'ok'='true' AND $H IS NULL")
+$(EXIGE "$PA=27 AND current_setting('banc.s')::jsonb->>'ok'='true' AND $H IS NULL")
 $(EXIGE "NOT EXISTS(SELECT 1 FROM locations_actives WHERE id='loc-a')")"
 
 cas "sortie_refusee_a_j1_meme_avec_20_pa" "
