@@ -6,8 +6,20 @@
 - Fabrication : **2 unités de métal + 1 PA => 2 serrures** (un lot indivisible).
 - Prix de vente dans un commerce PNJ : **60 FR / serrure** dans Républia.
 - Commercialisation : armureries et armureries-quincailleries de Républia, dont Montrouge ; pas de marché noir, pas de registre de vente d'armes.
-- Objet physique destiné à l'inventaire, avec capacité future d'installation sur armoire à souvenirs, appartement ou local loué.
+- Objet physique destiné à l'inventaire, avec capacité future d'installation sur armoire à souvenirs, appartement, local loué ou suite d'hôtel louée dans la durée.
 - **La pose et le contrôle d'accès ne sont pas dans cette livraison.** Pas d'effet fictif de fermeture ; aucune mécanique de crochetage pour l'instant.
+
+## Règles d'installation confirmées (01/11/2026)
+
+- La vente porte sur **un bloc serrure accompagné d'une clé** ; les deux sont associés à une serrure donnée.
+- Le PJ clique sur le bloc dans son inventaire : une pop-up dédiée avec **illustration du bloc** présente l'ordre **Installer**.
+- La sélection des cibles est calculée sur la **position effective côté serveur** : uniquement les objets et espaces physiquement accessibles là où se trouve le PJ ; jamais d'installation à distance.
+- Cibles actuellement éligibles : **armoire à souvenirs**, **appartement** et **local** dont le PJ détient la jouissance, **suite d'hôtel louée dans la durée** si le droit d'usage est confirmé. La propriété ou le bail / droit d'usage doit être vérifié côté serveur avant installation.
+- Les **chambres d'hôtel ordinaires** sont **exclues**, même si le PJ occupe temporairement la chambre.
+- **Autre** n'est qu'une réserve d'extension de game design (éventuellement un coffre-fort un jour) : **aucune cible « autre » actuellement**, et aucune option vide ou action fictive à afficher dans le sélecteur.
+- Si aucune cible éligible n'est accessible, l'installation est indisponible et le bloc reste dans l'inventaire.
+- Ne jamais consommer ni poser une serrure avant confirmation transactionnelle serveur ; les interactions redoublées ne doivent pas dupliquer l'installation.
+- Le crochetage, la duplication des clés et les cibles supplémentaires ne sont pas définis pour cette livraison.
 
 ## Contraintes techniques constatées
 
