@@ -6803,7 +6803,8 @@ const BUILDINGS = {
     icon: "ti-plant-2",
     bgColor: "#0a1008",
     desc: "Des parcelles cultivées par les ouvriers de Montrouge.",
-    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", imageUrl: "images/montrouge/montrouge-jardins-ouvriers-interieur.jpg", persons: [],
+    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", imageUrl: "images/montrouge/montrouge-jardins-ouvriers-interieur.jpg",
+      persons: [{name:'Marcel Demine (PNJ)', role:'Cheminot retraité, jardinier', rel:'neutral', job:'citoyen'}],
       // Decision de Fred (01/11/2026, recette M-06) : 1 PA = 5 fruits et legumes, une fois par jour ;
       // don volontaire dans une reserve reelle ou tout PJ present peut se servir. Tout par le serveur.
       orders: [
