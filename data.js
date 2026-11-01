@@ -1201,6 +1201,7 @@ const WORLD = {
           // Bureau du commissaire (29/10/2026) : ordres du gabarit commun ; aucun PNJ tant qu'il n'a pas de profil de dialogue.
           roomOverrides: { bureau_commissaire: {
             desc: "Le bureau du commissaire de Montrouge, en tension permanente avec le syndicat local.",
+            imageUrl: "images/montrouge/montrouge-commissariat-bureau.jpg.png",
             // Le PJ nommé occupe le poste de commissaire ; Gabriel demeure le référent PNJ,
             // en qualité d'adjoint, sans accès aux ordres réservés au titulaire du poste.
             persons: [{name:'Gabriel Pelletier (PNJ)', role:'Commissaire adjoint — référent police', rel:'neutral', job:'commissaire'}]
