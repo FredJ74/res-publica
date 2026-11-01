@@ -17,6 +17,9 @@ tranché ici.
 
 - **On ne peut pas sortir de l'hôpital tant qu'on n'a pas atteint 20 PA.** À l'hôpital public,
   cela ajoute une nuit de plus ; en clinique (24 PA à J2), la sortie reste à J2.
+- **À partir de J3, le Dormir rend la récupération classique : 12 PA** (plus le repas de la
+  veille s'il a été pris). Exemple à l'hôpital public : J1 2 PA (repas −1), J2 +6 +2 ≈ 9,
+  J3 +12 (+2) ≈ 21 à 23 → sortie à J3.
 
 ## Hôpital public (dispensaire de la ville)
 
