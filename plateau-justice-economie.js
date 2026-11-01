@@ -5115,6 +5115,177 @@ function ouvrirMenuOfficialiserTransaction(pa, cost) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// =====================================================================
+// FONDS ET MURS DES COMMERCES (#66, 01/11/2026) — GAME-DESIGN-FONDS-MURS.md
+// =====================================================================
+// L'écran n'affiche que ce que rend le serveur : prix, propriétaires, priorité de l'exploitant
+// et son échéance. Aucun montant n'est calculé ici ; l'acte envoie le prix affiché, que le
+// serveur compare au sien (refus « prix_change » s'il a bougé entre-temps).
+const FM_VILLES = { capitale: 'Luthécia', ville_a: 'Port-Sainte-Marie', ville_b: 'Montrouge' };
+const FM_MOTIFS = {
+  prix_change: 'Le prix a changé entre-temps : le catalogue est mis à jour.',
+  fonds_insuffisants: 'Vos fonds (liquide et Banque nationale) ne suffisent pas.',
+  priorite_exploitant: 'L\'exploitant du commerce a encore la priorité sur ces murs.',
+  murs_pas_en_vente: 'Ces murs ne sont pas en vente.',
+  fonds_pas_en_vente: 'Ce fonds n\'est pas en vente.',
+  fonds_sous_compromis: 'Ce fonds est réservé par un compromis en cours.',
+  fonds_pnj_par_compromis: 'Un fonds tenu par un PNJ se rachète seul par compromis (« Racheter une entreprise »).',
+  deja_proprietaire: 'Vous possédez déjà ce titre.',
+  pas_proprietaire: 'Vous n\'êtes pas propriétaire de ce titre.',
+  deja_en_vente: 'Ce titre est déjà en vente : retirez d\'abord l\'offre.',
+  prix_invalide: 'Prix invalide.',
+  pa_insuffisants: 'Points d\'action insuffisants.',
+  pas_prioritaire: 'Vous n\'avez pas de priorité sur ces murs.',
+  aucune_priorite: 'Aucune priorité en cours.'
+};
+let fmTitres = [];
+
+function fmEchapper(t) {
+  return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function fmFr(n) { return (n == null ? '—' : Number(n).toLocaleString('fr-FR') + ' ' + (COUNTRIES[state.country]?.cur || 'FR')); }
+function fmProprio(p) { return p === 'commune' ? 'la commune' : (p === 'PNJ' ? 'un PNJ' : fmEchapper(p)); }
+function fmRefus(r) {
+  const motif = (r && r.raison) || '';
+  return FM_MOTIFS[motif] || (r && r.transport ? 'Le serveur n\'a pas répondu ; rien n\'a été modifié.' : 'Refusé (' + fmEchapper(motif || 'inconnu') + ').');
+}
+
+async function ouvrirCatalogueFondsMurs() {
+  document.getElementById('postes-modal-title').textContent = 'Fonds et murs des commerces';
+  document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue"><p class="cpj-note" style="font-style:italic">Chargement…</p></div>';
+  document.getElementById('modal-postes').classList.add('open');
+  const r = await sbRpcVerdict('immobilier_catalogue', {});
+  if (!r || r.ok !== true) {
+    document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue"><p class="cpj-note">' +
+      (r && r.raison === 'acteur_non_authentifie' ? 'Session expirée : reconnectez-vous.' : 'Le catalogue n\'est pas encore disponible.') + '</p></div>';
+    return;
+  }
+  fmTitres = Array.isArray(r.titres) ? r.titres : [];
+  afficherCatalogueFondsMurs(r.maintenant);
+}
+
+function afficherCatalogueFondsMurs(maintenant) {
+  let html = '<div class="cpj-dialogue">';
+  html += '<p class="cpj-note">Murs et fonds sont deux titres distincts. Murs de la commune : surface × prix au m² ; ' +
+          'fonds d\'un PNJ : prix de référence ; titres d\'un joueur : prix fixé par lui. Un acte coûte 1 PA.</p>';
+  let villeCourante = null;
+  fmTitres.forEach((t, i) => {
+    if (t.ville !== villeCourante) {
+      villeCourante = t.ville;
+      html += '<h4 style="margin:.9rem 0 .3rem">' + fmEchapper(FM_VILLES[t.ville] || t.ville) + '</h4>';
+    }
+    const m = t.murs || {}, f = t.fonds || {}, ens = t.ensemble || {}, moi = t.moi || {};
+    html += '<div style="border:1px solid var(--bordure, #3a3020);padding:.6rem;margin-bottom:.5rem">';
+    html += '<div><strong>' + fmEchapper(t.libelle) + '</strong> <span class="cpj-note">— ' + Number(t.surface).toLocaleString('fr-FR') + ' m²</span></div>';
+    // Murs
+    let murs = 'Murs : ' + fmProprio(m.proprietaire) + ' — ';
+    if (m.vendable) {
+      murs += fmFr(m.prix) + (m.regime === 'reference' ? ' (prix de référence)' : ' (prix demandé par le propriétaire)');
+      if (m.statut === 'priorite') {
+        const fin = m.prioriteJusque ? new Date(m.prioriteJusque).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+        murs += ' · priorité de ' + fmProprio(m.prioritaire) + ' jusqu\'au ' + fin;
+      }
+    } else murs += 'pas en vente';
+    html += '<div class="cpj-note">' + murs + '</div>';
+    // Fonds
+    let fonds = 'Fonds : ' + fmProprio(f.proprietaire) + ' — ';
+    if (f.sousCompromis) fonds += 'réservé par un compromis';
+    else if (f.vendable) fonds += fmFr(f.prix) + (f.regime === 'reference' ? ' (prix de référence)' : ' (prix demandé par le propriétaire)');
+    else fonds += 'pas en vente';
+    html += '<div class="cpj-note">' + fonds + '</div>';
+    if (ens.vendable) html += '<div class="cpj-note">Fonds + murs : ' + fmFr(ens.prix) + ' (un seul acte)</div>';
+    // Actions
+    const b = [];
+    const prioBloque = m.statut === 'priorite' && !moi.prioritaire;
+    if (m.vendable && !moi.proprioMurs && !prioBloque) b.push(['acheter', 'murs', moi.prioritaire ? 'Exercer ma priorité (' + fmFr(m.prix) + ')' : 'Acheter les murs']);
+    if (f.vendable && !moi.proprioFonds && f.proprietaire !== 'PNJ') b.push(['acheter', 'fonds', 'Acheter le fonds']);
+    if (ens.vendable && !moi.proprioMurs && !moi.proprioFonds && !prioBloque) b.push(['acheter', 'ensemble', 'Acheter fonds + murs']);
+    if (moi.prioritaire) b.push(['renoncer', 'murs', 'Renoncer à ma priorité']);
+    if (moi.proprioMurs) b.push(m.vendable ? ['retirer', 'murs', 'Retirer les murs de la vente'] : ['vendre', 'murs', 'Mettre les murs en vente']);
+    if (moi.proprioFonds) b.push(f.vendable ? ['retirer', 'fonds', 'Retirer le fonds de la vente'] : ['vendre', 'fonds', 'Mettre le fonds en vente']);
+    if (b.length) {
+      html += '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem">';
+      b.forEach(([action, objet, label]) => {
+        html += '<button class="cpj-touche' + (action === 'acheter' ? ' cpj-primaire' : '') + '" onclick="fmAction(' + i + ',\'' + action + '\',\'' + objet + '\')">' + fmEchapper(label) + '</button>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  if (!fmTitres.length) html += '<p class="cpj-note">Aucun commerce référencé dans ce pays.</p>';
+  html += '</div>';
+  document.getElementById('postes-body').innerHTML = html;
+}
+
+function fmAction(i, action, objet) {
+  const t = fmTitres[i]; if (!t) return;
+  if (action === 'acheter') return fmConfirmerAchat(i, objet);
+  if (action === 'vendre') return fmSaisirPrix(i, objet);
+  if (action === 'retirer') return fmEnvoyer('immobilier_retirer_vente', { p_acteur: state.char?.name, p_titre: t.id, p_objet: objet }, 'Offre retirée.');
+  if (action === 'renoncer') return fmEnvoyer('immobilier_priorite_renoncer', { p_acteur: state.char?.name, p_titre: t.id }, 'Vous avez renoncé à votre priorité : la vente est ouverte à tous.');
+}
+
+function fmConfirmerAchat(i, objet) {
+  const t = fmTitres[i];
+  const prix = objet === 'murs' ? t.murs.prix : (objet === 'fonds' ? t.fonds.prix : t.ensemble.prix);
+  const quoi = objet === 'murs' ? 'les murs' : (objet === 'fonds' ? 'le fonds' : 'le fonds et les murs');
+  window._fmAchat = { titre: t.id, objet, prix, requete: crypto.randomUUID(), libelle: t.libelle, quoi };
+  document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue">' +
+    '<p>Acheter ' + quoi + ' de <strong>' + fmEchapper(t.libelle) + '</strong> pour <strong>' + fmFr(prix) + '</strong> (1 PA) ?</p>' +
+    '<p class="cpj-note">Le paiement est prélevé sur votre liquide puis votre compte à la Banque nationale. ' +
+    (objet === 'ensemble' ? 'Les deux titres changent de main dans le même acte, ou aucun.' : 'L\'autre titre ne change pas de propriétaire.') + '</p>' +
+    '<div style="display:flex;gap:.5rem"><button class="cpj-touche cpj-primaire" onclick="fmAcheterConfirme()">Signer l\'acte</button>' +
+    '<button class="cpj-touche" onclick="afficherCatalogueFondsMurs()">Retour</button></div></div>';
+}
+
+async function fmAcheterConfirme() {
+  const a = window._fmAchat; if (!a || a.enCours) return;
+  a.enCours = true; // double clic : la même requête est rejouée au plus une fois, sans double acte
+  const r = await sbRpcVerdict('immobilier_acheter', {
+    p_acteur: state.char?.name, p_titre: a.titre, p_objet: a.objet, p_prix_annonce: a.prix, p_requete: a.requete });
+  a.enCours = false;
+  if (!r || r.ok !== true) {
+    showToast('Acte refusé', fmRefus(r), false);
+    if (r && (r.raison === 'prix_change' || r.raison === 'priorite_exploitant')) ouvrirCatalogueFondsMurs();
+    return;
+  }
+  if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }
+  if (typeof r.liquide === 'number') state.liquide = r.liquide;
+  if (typeof r.pa === 'number') state.pa = r.pa;
+  updateUI();
+  window._fmAchat = null;
+  showToast('Acte signé !', 'Vous avez acquis ' + a.quoi + ' de ' + a.libelle + ' pour ' + fmFr(r.total) + '.', true, true);
+  addJournalEntry('Office notarial : achat de ' + a.quoi + ' de ' + a.libelle + ' (' + fmFr(r.total) + ').', 'event-good');
+  ouvrirCatalogueFondsMurs();
+}
+
+function fmSaisirPrix(i, objet) {
+  const t = fmTitres[i];
+  window._fmVente = { titre: t.id, objet };
+  const exploitantPJ = objet === 'murs' && t.fonds && t.fonds.proprietaire !== 'PNJ' && !(t.moi && t.moi.proprioFonds);
+  document.getElementById('postes-body').innerHTML = '<div class="cpj-dialogue">' +
+    '<p>Mettre ' + (objet === 'murs' ? 'les murs' : 'le fonds') + ' de <strong>' + fmEchapper(t.libelle) + '</strong> en vente.</p>' +
+    (objet === 'murs' ? '<p class="cpj-note">Prix de référence des murs : ' + fmFr(t.prixReferenceMurs) + ' (indicatif, votre prix est libre).</p>' : '') +
+    (exploitantPJ ? '<p class="cpj-note">L\'exploitant du fonds sera prévenu par courrier et aura 3 jours de priorité pour acheter à ce prix.</p>' : '') +
+    '<input id="fm-prix" class="cpj-champ" type="number" min="1" step="1" placeholder="Prix en FR" />' +
+    '<div style="display:flex;gap:.5rem;margin-top:.5rem"><button class="cpj-touche cpj-primaire" onclick="fmVendreConfirme()">Mettre en vente</button>' +
+    '<button class="cpj-touche" onclick="afficherCatalogueFondsMurs()">Retour</button></div></div>';
+}
+
+function fmVendreConfirme() {
+  const v = window._fmVente; if (!v) return;
+  const prix = parseInt(document.getElementById('fm-prix')?.value, 10);
+  if (!Number.isInteger(prix) || prix <= 0) { showToast('Prix invalide', 'Indiquez un montant entier positif.', false); return; }
+  fmEnvoyer('immobilier_mettre_en_vente', { p_acteur: state.char?.name, p_titre: v.titre, p_objet: v.objet, p_prix: prix }, 'Mise en vente enregistrée chez le notaire.');
+}
+
+async function fmEnvoyer(rpc, params, succes) {
+  const r = await sbRpcVerdict(rpc, params);
+  if (!r || r.ok !== true) { showToast('Refusé', fmRefus(r), false); return; }
+  showToast('Office notarial', succes, true);
+  ouvrirCatalogueFondsMurs();
+}
+
 async function doActeVenteTerrain() {
   if(typeof finance135Reconcilier==='function')await finance135Reconcilier();
   const cur = COUNTRIES[state.country]?.cur || 'FR';

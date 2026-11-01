@@ -3036,6 +3036,7 @@ const BUILDINGS = {
         ],
         orders: [
           {fn:'officialiser_transaction', label:'Officialiser une transaction', pa:1, cost:0, type:'legal', icon:'ti-home-check', successRate:100, desc:'Finaliser une vente de terrain ou un rachat d\'entreprise avec compromis actif. Le notaire authentifie la transaction.'},
+          {fn:'commerces_fonds_murs', label:'Fonds et murs des commerces', pa:0, cost:0, type:'legal', icon:'ti-building-community', successRate:100, desc:'Consulter les fonds de commerce et les murs à vendre (commune ou propriétaires), acheter l\'un, l\'autre ou les deux, ou mettre en vente vos propres titres. Un acte coûte 1 PA.'},
           {fn:'racheter_entreprise', label:'Racheter une entreprise', pa:0, cost:0, type:'legal', icon:'ti-building-store', successRate:100, desc:'Signer un compromis (1000 FR d\'acompte, 7 jours) sur une entreprise encore tenue par un PNJ (Armurerie, et d\'autres a l\'avenir).'},
           {fn:'acte_rachat_entreprise_preemption', label:'Officialiser une preemption d\'Etat', pa:1, cost:0, type:'legal', icon:'ti-building-bank', successRate:100, requiresPost:'min_fin', desc:'Finalise une preemption en attente : transfert de propriete a l\'Etat. Aucun paiement ici, deja couvert par le pret.'},
           {fn:'transfert_compromis', label:'Transfert de compromis', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, desc:'Céder un compromis en cours à un autre joueur, ou accepter un transfert qui vous est proposé.'},

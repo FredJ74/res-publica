@@ -264,6 +264,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'acte_vente_terrain') { doActeVenteTerrain(); return; }
   if (fn === 'acte_rachat_entreprise') { doActeRachatEntreprise(pa, cost); return; }
   if (fn === 'officialiser_transaction') { ouvrirMenuOfficialiserTransaction(pa, cost); return; }
+  if (fn === 'commerces_fonds_murs')     { ouvrirCatalogueFondsMurs(); return; }
   if (fn === 'corrompre_rdv_notaire') { doCorrompreRdvNotaire(pa, cost); return; }
   if (fn === 'transferer_compromis') { doOuvrirTransfertCompromis(pa, cost); return; }
   if (fn === 'valider_transfert_compromis') { doValiderTransfertCompromis(pa, cost); return; }
