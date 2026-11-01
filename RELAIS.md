@@ -52,7 +52,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - **Juge de l'énigme du musée** (décision de Fred, 01/11) : « Demander à parler à un juge » masqué hors enquête et après l'autorisation du coffre, refusé avant coût ; reste propre à Luthécia. Garde `test-juge-enigme-musee.mjs`.
 - **Falsifier un document** (décision de Fred, 01/11) : au greffe des tribunaux municipaux de PSM et Montrouge, comme à Luthécia ; aucune migration.
 - **Hôtels de province** (décision de Fred, 01/11) : rumeurs, informateur et tournée au hall ; service d'étage à 50 FR. Le triplet (service_etage, 0, 50) est ajouté par la migration `20261031234500` : sans elle, le service d'étage de province est refusé (coût non déclaré).
-- **Dîner d'affaires** : pas dans les hôtels de province, ils ne font pas restaurant (décision de Fred, 01/11).
+- **Hôtellerie et restauration séparées** (règle de Fred, 01/11) : dans chaque ville ce sont deux établissements distincts (PSM : Hôtel du Port / Capitaine Sauvage) ; seul La Républia (Luthécia) est hôtel et restaurant. Donc pas de dîner d'affaires dans les hôtels de province.
 - **Décisions attendues de Fred** (une question à la fois, liste dans le rapport, rubrique « Restent à poser ») : marché noir en province, pouls populaire au marché de PSM, personnalités des musées, rachat du Capitaine Sauvage et de l'Hôtel du Port, sécurité privée en province.
 
 ### Purge finale Luthécia (Claude, branche `claude/purge-luthecia-20261031`)
