@@ -411,6 +411,12 @@
    "tbl": "caisses_batiments"
   },
   {
+   "empreinte": "3409944dcd69fc7297d59dc8e62d7971",
+   "genre": "p",
+   "nom": "caisses_collectives_operations_pkey",
+   "tbl": "caisses_collectives_operations"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "caisses_mouvements_clients_pkey",
@@ -969,6 +975,30 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "caisse_client_mouvement(text,numeric,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_collective_recu_interne(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_collective_recu_interne(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_collective_recu_noter_interne(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_collective_recu_noter_interne(text,text,text,text,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -1902,6 +1932,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "subvention_collective_verser(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_collective_verser(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_collective_verser(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "subvention_entites(text)",
@@ -2253,7 +2301,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "budgets_clubs",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2349,6 +2397,18 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "caisses_batiments",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "caisses_collectives_operations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "caisses_collectives_operations",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -2775,14 +2835,14 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "e247b9a364feb271442e076f3aaa8a9b",
-  "20_fonctions-1.sql": "8da2a4bc7c973a47def6718dee4683ec",
-  "20_fonctions-2.sql": "d290a48e4f4e86fb576f2fcf1df4d798",
-  "30_contraintes.sql": "c2adcc12eb3cddcb2d9135954e84ec7a",
-  "35_index.sql": "9f93b0fa4fc8e0376030433d2b4fb357",
+  "10_tables.sql": "8d85f05fc5c521c631e769220c5ea225",
+  "20_fonctions-1.sql": "606f56b0da5e024dc88a85666d6f0b01",
+  "20_fonctions-2.sql": "5d1228f579d8dbbd167b991455781d59",
+  "30_contraintes.sql": "bb7120aa145033317d5f0d982d2f7409",
+  "35_index.sql": "b0a8947d99292eb3323266643fb62488",
   "50_triggers.sql": "f04619734af5b6a943ff16a8330b2fbc",
-  "60_rls-policies.sql": "9936dc95c429eec323115b85c2a28cb1",
-  "70_droits.sql": "94bcb11aafc79b04092514a16a1ae0aa",
+  "60_rls-policies.sql": "a5f28278c6939967b78803620a578a33",
+  "70_droits.sql": "d030051923c85084b27b7eefd707a2f5",
   "80_commentaires.sql": "40027cc68bacaa3769170558b5f69599"
  },
  "fonctions": [
@@ -2865,6 +2925,16 @@
    "empreinte": "63b15d6f70896257265b23cbf323d979",
    "security_definer": true,
    "signature": "caisse_client_mouvement(text,numeric,text,boolean)"
+  },
+  {
+   "empreinte": "4a94cdb54be577395fa3db1ef5759503",
+   "security_definer": true,
+   "signature": "caisse_collective_recu_interne(text,text,text,text)"
+  },
+  {
+   "empreinte": "f3289926408d286f162364814f754bf8",
+   "security_definer": true,
+   "signature": "caisse_collective_recu_noter_interne(text,text,text,text,jsonb)"
   },
   {
    "empreinte": "656e7f43d0026371c10d2fa28ef14333",
@@ -3137,6 +3207,11 @@
    "signature": "subvention_citoyen_verser(text,integer)"
   },
   {
+   "empreinte": "9784be3bff61a5831e1067d1b82e5a4b",
+   "security_definer": true,
+   "signature": "subvention_collective_verser(text,text,text,integer)"
+  },
+  {
    "empreinte": "3f313fcb6ec31fe1838fa35c7896e482",
    "security_definer": true,
    "signature": "subvention_entites(text)"
@@ -3257,6 +3332,7 @@
   "budgets_nationaux_pkey",
   "caisses_autorites_pkey",
   "caisses_batiments_pkey",
+  "caisses_collectives_operations_pkey",
   "caisses_mouvements_clients_pkey",
   "contributions_piete_pkey",
   "directions_etablissements_pkey",
@@ -3300,18 +3376,6 @@
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "b73a67119e71d32b20b2e6b1577dd84a",
    "nom": "Lecture publique du budget club",
-   "tbl": "budgets_clubs"
-  },
-  {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "d5f954759ffea722d74d53a19e5b9742",
-   "nom": "budgets_clubs_ecriture_acteur",
-   "tbl": "budgets_clubs"
-  },
-  {
-   "empreinte": "e3ea344f347685a7896295df58bef6aa",
-   "empreinte_avec_roles": "92b671f36e8c48f9bff2a5ec80f6f410",
-   "nom": "budgets_clubs_maj_acteur",
    "tbl": "budgets_clubs"
   },
   {
@@ -3429,6 +3493,11 @@
    "active": true,
    "forcee": false,
    "tbl": "caisses_batiments"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "caisses_collectives_operations"
   },
   {
    "active": true,
@@ -3615,6 +3684,12 @@
    "empreinte_catalogue": "f61a4d868cbbe4895eb1e818a5e1e5ca",
    "empreinte_texte": "ee2d309e7c425ff4aa2ba5ec782bcbef",
    "nom": "caisses_batiments"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "18d99a1950f0b4a0bae8db8c69b5fac5",
+   "empreinte_texte": "c39aafaf85d61ca02227d811adaf2a5a",
+   "nom": "caisses_collectives_operations"
   },
   {
    "colonnes": 8,

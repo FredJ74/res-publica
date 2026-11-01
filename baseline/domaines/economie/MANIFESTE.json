@@ -339,6 +339,18 @@
    "tbl": "investissements"
   },
   {
+   "empreinte": "ddffd24f170056733318cd26b5f045fd",
+   "genre": "p",
+   "nom": "jardins_ouvriers_reserve_pkey",
+   "tbl": "jardins_ouvriers_reserve"
+  },
+  {
+   "empreinte": "ddc817a48c481da54eae02137872537e",
+   "genre": "p",
+   "nom": "jardins_ouvriers_travail_pkey",
+   "tbl": "jardins_ouvriers_travail"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "oeuvres_pkey",
@@ -541,6 +553,12 @@
    "genre": "c",
    "nom": "hotel_nuitees_pa_bonus_check",
    "tbl": "hotel_nuitees"
+  },
+  {
+   "empreinte": "d1cd991c346ab923836270fa501a433c",
+   "genre": "c",
+   "nom": "jardins_ouvriers_reserve_qte_check",
+   "tbl": "jardins_ouvriers_reserve"
   },
   {
    "empreinte": "e0e59ca442af10caaab454dfa94013bf",
@@ -1824,6 +1842,120 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_laisser_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_laisser_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "jardins_laisser_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_laisser_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_laisser_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_ouvriers_acteur_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_ouvriers_acteur_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_ouvriers_ligne_legumes(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_ouvriers_ligne_legumes(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_prendre_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_prendre_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "jardins_prendre_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_prendre_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_prendre_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "jardins_travailler(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_travailler(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_travailler(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_travailler_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_travailler_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "FUNCTION",
    "objet": "local_vocation_commerciale(text)",
@@ -2796,6 +2928,12 @@
    "privileges": "SELECT"
   },
   {
+   "beneficiaire": "hg219_cert_ro_20261101",
+   "genre": "TABLE",
+   "objet": "chantiers_besoins_jour",
+   "privileges": "SELECT"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "chantiers_besoins_jour",
@@ -2815,6 +2953,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "chantiers_paliers",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "chantiers_paliers",
    "privileges": "SELECT"
@@ -2887,6 +3031,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "commerces_dotations",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "commerces_dotations",
    "privileges": "SELECT"
@@ -2911,6 +3061,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "commerces_types",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "commerces_types",
    "privileges": "SELECT"
@@ -3108,6 +3264,12 @@
    "privileges": "SELECT"
   },
   {
+   "beneficiaire": "hg219_cert_ro_20261101",
+   "genre": "TABLE",
+   "objet": "entreprises_constantes",
+   "privileges": "SELECT"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "entreprises_constantes",
@@ -3127,6 +3289,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "entreprises_prix_rachat",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "entreprises_prix_rachat",
    "privileges": "SELECT"
@@ -3201,6 +3369,36 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "investissements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "jardins_ouvriers_reserve",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "jardins_ouvriers_reserve",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "jardins_ouvriers_reserve",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "jardins_ouvriers_travail",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "jardins_ouvriers_travail",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -3259,6 +3457,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "offres_emploi_bne",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "offres_emploi_bne",
    "privileges": "SELECT"
@@ -3283,6 +3487,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ordres_couts",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "ordres_couts",
    "privileges": "SELECT"
@@ -3319,6 +3529,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ordres_couts_empreinte",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "ordres_couts_empreinte",
    "privileges": "SELECT"
@@ -3403,6 +3619,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "recettes_commerce",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "recettes_commerce",
    "privileges": "SELECT"
@@ -3427,6 +3649,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "recettes_production",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "recettes_production",
    "privileges": "SELECT"
@@ -3463,6 +3691,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ressources_economie",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "ressources_economie",
    "privileges": "SELECT"
@@ -3567,16 +3801,16 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "078b95a23a4b2e65318d5581b2d7b669",
-  "20_fonctions-1.sql": "31ddf369cf0126a13b7a016e667d47af",
-  "20_fonctions-2.sql": "b1abcb10c4389d9613fb983ce3babbde",
-  "20_fonctions-3.sql": "0ccdc33ac9dde943660e898d585d6723",
-  "30_contraintes.sql": "2b21ae8e7cf9072dd86dafa3b9e2a860",
-  "35_index.sql": "c7b9142ecc50a9210c4112cf6fad724b",
+  "10_tables.sql": "94335a65b8424976f8e8c399f3f0f802",
+  "20_fonctions-1.sql": "7a39650132c6429c03f3f81a6a78c737",
+  "20_fonctions-2.sql": "6237e4df4089ccc39eeb172c8f2c4145",
+  "20_fonctions-3.sql": "2a28f25472e7a32b9a5e0439ae725af2",
+  "30_contraintes.sql": "da7fddc031ebd4814c9053e03fbc717c",
+  "35_index.sql": "2dd82cfd6f5124fd0242847d3fe341f0",
   "40_vues.sql": "01bd762acf63b663d56e70c65f065976",
   "50_triggers.sql": "26247641c15df4eadd1bc5ddae57b6e8",
-  "60_rls-policies.sql": "bc443f8fac55559fea4a518a55b5af58",
-  "70_droits.sql": "38ec83b422437c2c0a790cb3dbd65b9a",
+  "60_rls-policies.sql": "d3a4e9a7f4f50f0b6b38a56c61cd2240",
+  "70_droits.sql": "b783b354e1da6124a295a25f6bd7ced1",
   "80_commentaires.sql": "2ad0b373893d0935abf186ae546cfc8b"
  },
  "fonctions": [
@@ -3771,7 +4005,7 @@
    "signature": "commerce_fixer_parametres(text,text,jsonb,jsonb,jsonb)"
   },
   {
-   "empreinte": "69e4b2f4638e8efcc1b24c301a54c6c2",
+   "empreinte": "bfa1c939f1b3d9ddc50cbbf451e1f13e",
    "security_definer": false,
    "signature": "commerce_production_autorisee(jsonb,text)"
   },
@@ -3886,7 +4120,7 @@
    "signature": "entreprise_ajouter_historique(jsonb,numeric,text,integer)"
   },
   {
-   "empreinte": "586612a11e1019a092a292fa89e9c333",
+   "empreinte": "1f66813ac32e214774e216d9f47e02d7",
    "security_definer": true,
    "signature": "entreprise_assurer_existence(text,text,text,text,text,text)"
   },
@@ -3989,6 +4223,46 @@
    "empreinte": "486da9124e971562b9a9383b10ed3dc0",
    "security_definer": true,
    "signature": "hotel_reservations_lire()"
+  },
+  {
+   "empreinte": "bfb6130d7dd04c849f7fdab00c5f4f14",
+   "security_definer": true,
+   "signature": "jardins_laisser_interne(text,integer)"
+  },
+  {
+   "empreinte": "f491fd56d610407769af479011e2cad4",
+   "security_definer": true,
+   "signature": "jardins_laisser_legumes(uuid,integer)"
+  },
+  {
+   "empreinte": "f3344941f412595e848f48d73e394fb9",
+   "security_definer": true,
+   "signature": "jardins_ouvriers_acteur_interne(text)"
+  },
+  {
+   "empreinte": "bfd2a439a11149cf42054e9933330a86",
+   "security_definer": false,
+   "signature": "jardins_ouvriers_ligne_legumes(jsonb)"
+  },
+  {
+   "empreinte": "75c4a0ce933d9102b3979a2737d65998",
+   "security_definer": true,
+   "signature": "jardins_prendre_interne(text,integer)"
+  },
+  {
+   "empreinte": "c8e44e477adbdec4872ba8155dc2a50f",
+   "security_definer": true,
+   "signature": "jardins_prendre_legumes(uuid,integer)"
+  },
+  {
+   "empreinte": "865156ca7faf435e568d7b8b7d498c0f",
+   "security_definer": true,
+   "signature": "jardins_travailler(uuid)"
+  },
+  {
+   "empreinte": "681f97955812bc4d02f09154c24e173a",
+   "security_definer": true,
+   "signature": "jardins_travailler_interne(text)"
   },
   {
    "empreinte": "531c06069bcc7419ee378674d994f686",
@@ -4333,6 +4607,8 @@
   "hotel_nuitees_pkey",
   "imprimeries_declarees_pkey",
   "investissements_pkey",
+  "jardins_ouvriers_reserve_pkey",
+  "jardins_ouvriers_travail_pkey",
   "oeuvres_pkey",
   "offres_emploi_bne_pkey",
   "offres_pkey",
@@ -4533,6 +4809,12 @@
    "empreinte_avec_roles": "19064c2d9e2c12a179d5e35bb4f12175",
    "nom": "investissements_lecture",
    "tbl": "investissements"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "22adf07937746f15e4d858d5c70c27c1",
+   "nom": "reserve jardins lecture",
+   "tbl": "jardins_ouvriers_reserve"
   },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
@@ -4739,6 +5021,16 @@
    "active": true,
    "forcee": false,
    "tbl": "investissements"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "jardins_ouvriers_reserve"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "jardins_ouvriers_travail"
   },
   {
    "active": true,
@@ -5019,6 +5311,18 @@
    "empreinte_catalogue": "6c6b8b592ea3432d2d15bb795df21266",
    "empreinte_texte": "b43f3d9682b320e09cdc790e21890d9a",
    "nom": "investissements"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "23cf0d0db718291eca2293c32ba8aca5",
+   "empreinte_texte": "ebc5d963e3be232dc4003b775e19bac7",
+   "nom": "jardins_ouvriers_reserve"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "1b2d323629c837178ec23739f64b7ff6",
+   "empreinte_texte": "33f4ed4f58ba630e38e69e4946fb2c4a",
+   "nom": "jardins_ouvriers_travail"
   },
   {
    "colonnes": 10,

@@ -10,6 +10,88 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- restaurant_luthecia_pnj_chance(text,text) -> integer | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.restaurant_luthecia_pnj_chance(acteur text, invite text)
+ RETURNS integer
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE p public.personnages_donnees; chance integer;
+BEGIN
+ SELECT * INTO p FROM public.personnages_donnees WHERE name=acteur;
+ IF NOT FOUND THEN RETURN NULL; END IF;
+ chance:=CASE invite WHEN 'Gaston Sauceblanche' THEN 60 WHEN 'Régis Gondasse' THEN 60 WHEN 'Yvette Gratinée' THEN 60 WHEN 'Jean Dupont' THEN 60 WHEN 'Marie Leblanc' THEN 20 ELSE NULL END;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(p.employes)='array' THEN p.employes ELSE '[]' END) e WHERE e->>'nom'=invite AND e->'inGroupe'='true'::jsonb)
+  OR EXISTS(SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(p.escort_active)='array' THEN p.escort_active ELSE '[]' END) e WHERE e->>'nom'=invite)
+  OR EXISTS(SELECT 1 FROM public.pnj_membres WHERE nom=invite AND leader_pj IN(acteur,'pj:'||acteur) AND statut='actif') THEN chance:=95; END IF;
+ -- Reutiliser la projection serveur des agents, jamais les vrais noms ni un cache de presence.
+ IF acteur=public.mon_personnage() AND EXISTS(
+  SELECT 1 FROM jsonb_array_elements(coalesce(public.agents_couverture_de_mon_groupe()->'agents','[]'::jsonb)) a WHERE a->>'nom'=invite
+ ) THEN chance:=95; END IF;
+ RETURN chance;
+END $function$;
+
+-- restaurant_luthecia_production_verifier(jsonb,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.restaurant_luthecia_production_verifier(d jsonb, acteur text, recette text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE c numeric;
+BEGIN
+ IF NOT public.restaurant_luthecia_est_commerce(d) THEN RETURN '{"ok":true}'; END IF;
+ PERFORM 1 FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
+ IF NOT EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=acteur AND country='republic' AND current_city='capitale' AND current_building='hotel-republica') OR NOT(public.restaurant_luthecia_carte(d,acteur) @> jsonb_build_array(recette)) THEN RETURN '{"ok":false,"raison":"hors_carte_piece"}'; END IF;
+ IF coalesce(d->>'proprietaire','PNJ')='PNJ' AND recette IN('champagne_luthecia','cocktail_luthecia') THEN
+  IF d->'coutMoyenMatieres'->>'fruits_legumes' IS NULL THEN RETURN '{"ok":false,"raison":"cout_matiere_inconnu"}'; END IF;
+  c:=public.commerce_cout_revient_portion(d,recette);
+  IF c IS NULL OR c*2>25 THEN RETURN jsonb_build_object('ok',false,'raison','marge_pnj_insuffisante','coutUnitaire',c); END IF;
+ END IF;
+ RETURN '{"ok":true}';
+END $function$;
+
+-- restaurant_luthecia_vente_verifier(jsonb,text,jsonb,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.restaurant_luthecia_vente_verifier(d jsonb, acteur text, produits jsonb, mode_vente text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+ -- Compatibilite des appels historiques : aucune reservation deduite d'un panier vide.
+ RETURN public.restaurant_luthecia_vente_verifier(d,acteur,produits,mode_vente,NULL);
+END $function$;
+
+-- restaurant_luthecia_vente_verifier(jsonb,text,jsonb,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.restaurant_luthecia_vente_verifier(d jsonb, acteur text, produits jsonb, mode_vente text, ordre text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+ IF NOT public.restaurant_luthecia_est_commerce(d) THEN RETURN '{"ok":true}'; END IF;
+ PERFORM 1 FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
+ IF NOT EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=acteur AND country='republic' AND current_city='capitale' AND current_building='hotel-republica'
+  AND CASE WHEN ordre='reserver_chambre_hotel' THEN current_room='accueil' ELSE current_room IN('bar','restaurant') END)
+ THEN RETURN '{"ok":false,"raison":"pas_sur_place"}'; END IF;
+ IF d->>'versionGastronomieLuthecia' IS DISTINCT FROM '1' THEN RETURN '{"ok":false,"raison":"carte_non_installee"}'; END IF;
+ IF ordre='reserver_chambre_hotel' THEN
+  -- Une prestation exacte, sans articles ni autre mode, a l'accueil uniquement.
+  IF mode_vente IS DISTINCT FROM 'service' OR produits IS DISTINCT FROM '[]'::jsonb THEN
+   RETURN '{"ok":false,"raison":"reservation_invalide"}';
+  END IF;
+ ELSE
+  -- Le service des diners reste reserve a sa porte atomique existante.
+  IF mode_vente='service' AND current_setting('rp.diner_luthecia',true) IS DISTINCT FROM 'on' THEN
+   RETURN '{"ok":false,"raison":"service_par_invitation_requis"}';
+  END IF;
+ END IF;
+ RETURN '{"ok":true}';
+END $function$;
+
 -- restituer_reliquats_chantier(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.restituer_reliquats_chantier(p_beneficiaire text, p_terrain_id text)
  RETURNS jsonb

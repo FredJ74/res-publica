@@ -16,6 +16,7 @@ ALTER TABLE public.budgets_municipaux ADD CONSTRAINT budgets_municipaux_pkey PRI
 ALTER TABLE public.budgets_nationaux ADD CONSTRAINT budgets_nationaux_pkey PRIMARY KEY (id);
 ALTER TABLE public.caisses_autorites ADD CONSTRAINT caisses_autorites_pkey PRIMARY KEY (motif);
 ALTER TABLE public.caisses_batiments ADD CONSTRAINT caisses_batiments_pkey PRIMARY KEY (id);
+ALTER TABLE public.caisses_collectives_operations ADD CONSTRAINT caisses_collectives_operations_pkey PRIMARY KEY (requete);
 ALTER TABLE public.caisses_mouvements_clients ADD CONSTRAINT caisses_mouvements_clients_pkey PRIMARY KEY (id);
 ALTER TABLE public.contributions_piete ADD CONSTRAINT contributions_piete_pkey PRIMARY KEY (id);
 ALTER TABLE public.directions_etablissements ADD CONSTRAINT directions_etablissements_pkey PRIMARY KEY (pays, poste_id, ville);

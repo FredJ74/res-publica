@@ -20,8 +20,10 @@ function identitesAcceptees() {
     const [, nom, prefixe, soi, libre] = m;
     if (prefixe === 'false' && (soi === 'true' || libre === 'true')) ok.add(nom.replace(/''/g, "'"));
   }
-  for (const f of fs.readdirSync(path.join(racine, 'migrations')).filter(f => f.endsWith('.sql')).sort()) {
-    const sql = lire('migrations/' + f);
+  const archives = JSON.parse(lire('baseline/REGISTRE-OBSERVE.json')).archives.map(x => x.fichier);
+  const sources = [...archives, ...fs.readdirSync(path.join(racine, 'migrations')).filter(f => f.endsWith('.sql')).map(f => 'migrations/' + f)].sort();
+  for (const f of sources) {
+    const sql = lire(f);
     if (!/mails_expediteurs_systeme/.test(sql)) continue;
     // Lignes d'INSERT « ('Nom', 'note', false, '{}', true|false, true|false, ... »
     for (const m of sql.matchAll(/\(\s*'((?:[^']|'')*)',\s*'(?:[^']|'')*',\s*false,\s*'\{\}',\s*(true|false),\s*(true|false)/g)) {
@@ -60,7 +62,7 @@ test('chaque avis personnel est signé d’une identité acceptée par la base',
 });
 
 test('les identités ajoutées n’écrivent qu’au joueur lui-même', () => {
-  const sql = lire('migrations/20261031190000_avis_personnels_expediteurs_declares.sql');
+  const sql = lire('historique/migrations-appliquees/20261031190000_avis_personnels_expediteurs_declares.sql');
   for (const m of sql.matchAll(/\(\s*'((?:[^']|'')*)',\s*'(?:[^']|'')*',\s*(true|false),\s*'(\{[^}]*\})',\s*(true|false),\s*(true|false),\s*(true|false),\s*(true|false),\s*(true|false)\)/g)) {
     const [, nom, prefixe, postes, soi, libre, titulaire, conjoint, fret] = m;
     assert.equal(prefixe, 'false', nom);

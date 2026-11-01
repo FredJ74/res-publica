@@ -288,6 +288,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_caisse_ajuster_interne(text,numeric,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_caisse_ajuster_interne(text,numeric,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "club_capitaine(text)",
@@ -375,6 +387,78 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "club_president_voter(text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "club_salaires_fixer(text,integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_salaires_fixer(text,integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_salaires_fixer(text,integer,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "club_sponsoriser(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_sponsoriser(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_sponsoriser(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "club_supporters_cotiser(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_supporters_cotiser(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_supporters_cotiser(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "club_transfert_conclure(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "club_transfert_conclure(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "club_transfert_conclure(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -537,6 +621,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "football_primes_tour(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "transferts_clubs_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "transferts_clubs_garder()",
    "privileges": "EXECUTE"
   },
   {
@@ -712,12 +808,12 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "dc5fc3716a3b0fc24be7dc83a690809d",
-  "20_fonctions.sql": "c55be5a29eca6c8131dcf3f871b1a489",
+  "20_fonctions.sql": "5f084faa2c1f272353f9baad83c2bf6e",
   "30_contraintes.sql": "a945d6b8dc14bd0b29fb832a4652cdec",
   "35_index.sql": "ccff8c87f33b369e4ac2e7f4cf4b1ac0",
-  "50_triggers.sql": "a28e75c4ebe093dff38fb2bdd3abf71a",
+  "50_triggers.sql": "cbffdb20a9849356cf97484946e04506",
   "60_rls-policies.sql": "8be2fd6b8c93f9b08a9302d92cdf68b3",
-  "70_droits.sql": "a87ec1f1d3ec553cee2f59fb6ed6b52d",
+  "70_droits.sql": "6cde655f3bb82949fa132fe692bff056",
   "80_commentaires.sql": "7e25fdd2e2677d8b23473fbea48f1be6"
  },
  "fonctions": [
@@ -767,6 +863,11 @@
    "signature": "club_accessoire_acheter(uuid,text,integer,integer)"
   },
   {
+   "empreinte": "5455f85a642a7d97b391190ad0e1c880",
+   "security_definer": true,
+   "signature": "club_caisse_ajuster_interne(text,numeric,text,integer)"
+  },
+  {
    "empreinte": "d5c744e01b9318cc8493b4ac509efb24",
    "security_definer": true,
    "signature": "club_capitaine(text)"
@@ -790,6 +891,26 @@
    "empreinte": "c35bb8e7210d60f26f996157913924ee",
    "security_definer": true,
    "signature": "club_president_voter(text,boolean)"
+  },
+  {
+   "empreinte": "919709e51aba076b706a8074e65be4db",
+   "security_definer": true,
+   "signature": "club_salaires_fixer(text,integer,integer,integer)"
+  },
+  {
+   "empreinte": "313adb5895df39a4f24763db7a052209",
+   "security_definer": true,
+   "signature": "club_sponsoriser(text,text,integer)"
+  },
+  {
+   "empreinte": "9944ee570f07cea5b752ea92d6f03aa2",
+   "security_definer": true,
+   "signature": "club_supporters_cotiser(text,text)"
+  },
+  {
+   "empreinte": "cd337e6d0eddac348f37f48a43028d40",
+   "security_definer": true,
+   "signature": "club_transfert_conclure(text)"
   },
   {
    "empreinte": "6f38f51267e215dcd40a6aa177faf02c",
@@ -835,6 +956,11 @@
    "empreinte": "5c6315d013ba0b6aae79c59fe135a9de",
    "security_definer": true,
    "signature": "football_primes_tour(text)"
+  },
+  {
+   "empreinte": "e8c46a375b08ede5eeae1ffeccafd6eb",
+   "security_definer": false,
+   "signature": "transferts_clubs_garder()"
   }
  ],
  "index_autonomes": [
@@ -1035,6 +1161,12 @@
    "fonction": "championnat_verrou_calendrier()",
    "nom": "trg_championnat_verrou_calendrier",
    "tbl": "championnat"
+  },
+  {
+   "empreinte": "c20514e61e78bf2e943266090c43af6c",
+   "fonction": "transferts_clubs_garder()",
+   "nom": "trg_transferts_clubs_garder",
+   "tbl": "transferts_clubs"
   }
  ],
  "vues": []

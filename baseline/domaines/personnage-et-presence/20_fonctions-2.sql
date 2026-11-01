@@ -10,6 +10,256 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- personnages_borner_jour() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.personnages_borner_jour()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  -- Le serveur (cron, RPC, service_role) n'est pas concerne : lui peut corriger, reparer,
+  -- rattraper un retard. La borne ne vise que ce qui vient d'un navigateur.
+  IF public.est_appel_serveur() THEN RETURN NEW; END IF;
+
+  IF NEW.day IS DISTINCT FROM OLD.day AND coalesce(NEW.day, 0) > coalesce(OLD.day, 0) + 1 THEN
+    NEW.day := coalesce(OLD.day, 0) + 1;
+  END IF;
+
+  -- Le jour ne recule pas non plus : une peine ne s'annule pas en revenant en arriere.
+  IF coalesce(NEW.day, 0) < coalesce(OLD.day, 0) THEN
+    NEW.day := OLD.day;
+  END IF;
+
+  RETURN NEW;
+END;
+$function$;
+
+-- personnages_convocations_garder() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.personnages_convocations_garder()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_elem jsonb; v_old jsonb; v_out jsonb := '[]'::jsonb;
+BEGIN
+  IF NEW.convocations IS NOT DISTINCT FROM OLD.convocations THEN RETURN NEW; END IF;
+  IF public.est_appel_serveur() OR coalesce(current_setting('request.path', true), '') LIKE '/rpc/%' THEN RETURN NEW; END IF;
+  FOR v_elem IN SELECT value FROM jsonb_array_elements(coalesce(NEW.convocations, '[]'::jsonb)) LOOP
+    SELECT o.value INTO v_old FROM jsonb_array_elements(coalesce(OLD.convocations, '[]'::jsonb)) o
+     WHERE public.assemblee_cle_convocation(o.value) = public.assemblee_cle_convocation(v_elem) LIMIT 1;
+    IF v_old IS NOT NULL THEN
+      v_elem := v_elem || jsonb_build_object('traitee', coalesce(v_old -> 'traitee', 'false'::jsonb));
+      IF v_old ? 'limiteTs' THEN v_elem := v_elem || jsonb_build_object('limiteTs', v_old -> 'limiteTs'); END IF;
+    ELSE
+      v_elem := v_elem || jsonb_build_object('traitee', false,
+        'limiteTs', to_char((now() + interval '24 hours') AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'));
+    END IF;
+    v_out := v_out || jsonb_build_array(v_elem);
+    v_old := NULL;
+  END LOOP;
+  NEW.convocations := v_out;
+  RETURN NEW;
+END; $function$;
+
+-- personnages_fusionner_pop() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.personnages_fusionner_pop()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  v_base numeric;
+  v_old  numeric;
+  v_client boolean := NOT public.est_appel_serveur()
+                       AND coalesce(current_setting('request.path', true), '') NOT LIKE '/rpc/%';
+BEGIN
+  IF jsonb_typeof(NEW.resources) = 'object' AND NEW.resources ? 'popBase' THEN
+    v_base := CASE WHEN jsonb_typeof(NEW.resources -> 'popBase') = 'number' THEN (NEW.resources ->> 'popBase')::numeric END;
+    NEW.resources := NEW.resources - 'popBase';
+    IF TG_OP = 'UPDATE' AND v_base IS NOT NULL AND jsonb_typeof(NEW.resources -> 'pop') = 'number' THEN
+      v_old := CASE WHEN jsonb_typeof(OLD.resources -> 'pop') = 'number' THEN (OLD.resources ->> 'pop')::numeric ELSE v_base END;
+      NEW.resources := jsonb_set(NEW.resources, '{pop}',
+        to_jsonb(GREATEST(0, LEAST(100, v_old + ((NEW.resources ->> 'pop')::numeric - v_base)))));
+    END IF;
+  ELSIF TG_OP = 'UPDATE' AND v_client AND jsonb_typeof(NEW.resources) = 'object' THEN
+    -- Pas de base annoncee : le navigateur ne decide pas d'une valeur absolue.
+    IF jsonb_typeof(OLD.resources -> 'pop') = 'number' THEN
+      NEW.resources := jsonb_set(NEW.resources, '{pop}', OLD.resources -> 'pop');
+    ELSE
+      NEW.resources := NEW.resources - 'pop';
+    END IF;
+  END IF;
+
+  IF jsonb_typeof(NEW.resources) = 'object' AND NEW.resources ? 'infBase' THEN
+    v_base := CASE WHEN jsonb_typeof(NEW.resources -> 'infBase') = 'number' THEN (NEW.resources ->> 'infBase')::numeric END;
+    NEW.resources := NEW.resources - 'infBase';
+    IF TG_OP = 'UPDATE' AND v_base IS NOT NULL AND jsonb_typeof(NEW.resources -> 'inf') = 'number' THEN
+      v_old := CASE WHEN jsonb_typeof(OLD.resources -> 'inf') = 'number' THEN (OLD.resources ->> 'inf')::numeric ELSE v_base END;
+      NEW.resources := jsonb_set(NEW.resources, '{inf}',
+        to_jsonb(GREATEST(0, LEAST(100, v_old + ((NEW.resources ->> 'inf')::numeric - v_base)))));
+    END IF;
+  ELSIF TG_OP = 'UPDATE' AND v_client AND jsonb_typeof(NEW.resources) = 'object' THEN
+    IF jsonb_typeof(OLD.resources -> 'inf') = 'number' THEN
+      NEW.resources := jsonb_set(NEW.resources, '{inf}', OLD.resources -> 'inf');
+    ELSE
+      NEW.resources := NEW.resources - 'inf';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$function$;
+
+-- personnages_informateurs_garder() -> trigger | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.personnages_informateurs_garder()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF NEW.informateurs IS DISTINCT FROM OLD.informateurs
+     AND coalesce(current_setting('rp.informateurs_interne', true), '') <> 'on'
+     AND coalesce(nullif(current_setting('role', true), 'none'), session_user) IN ('anon', 'authenticated') THEN
+    NEW.informateurs := OLD.informateurs;
+  END IF;
+  RETURN NEW;
+END; $function$;
+
+-- personnages_lien_militaire_rompu() -> trigger | plpgsql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.personnages_lien_militaire_rompu()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE v_ancien text; v_nouveau text;
+BEGIN
+  v_ancien  := coalesce(OLD.poste->>'id', '');
+  v_nouveau := coalesce(NEW.poste->>'id', '');
+
+  IF v_ancien = 'lieutenant' AND v_nouveau IS DISTINCT FROM 'lieutenant' THEN
+    -- OLD porte la DERNIERE position canonique connue du chef : c'est la que ses hommes restent.
+    PERFORM public.militaire_lien_operationnel_rompre(
+      OLD.name, OLD.current_city, OLD.current_building, OLD.current_room);
+  END IF;
+
+  IF v_ancien IN ('lieutenant','capitaine','commandant') AND v_nouveau IS DISTINCT FROM v_ancien THEN
+    PERFORM public.militaire_service_fermer(OLD.name, v_ancien);
+  END IF;
+
+  -- Prise de fonction : la periode s'ouvre au moment ou le poste est reellement porte par la
+  -- fiche, quel que soit le chemin (RPC de nomination, tirage au sort, cron).
+  IF v_nouveau IN ('lieutenant','capitaine','commandant') AND v_nouveau IS DISTINCT FROM v_ancien THEN
+    PERFORM public.militaire_service_ouvrir(NEW.name, coalesce(NEW.country,'republic'), v_nouveau,
+              NEW.poste->>'compagnieId', NEW.poste->>'sectionId');
+  END IF;
+
+  RETURN NEW;
+END;
+$function$;
+
+-- personnages_lien_militaire_supprime() -> trigger | plpgsql | SECURITY DEFINER | search_path=public
+CREATE OR REPLACE FUNCTION public.personnages_lien_militaire_supprime()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+BEGIN
+  PERFORM public.militaire_lien_operationnel_rompre(
+    OLD.name, OLD.current_city, OLD.current_building, OLD.current_room);
+  RETURN OLD;
+END;
+$function$;
+
+-- personnages_lier_proprietaire() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.personnages_lier_proprietaire()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    -- L'autorite est auth.uid(), jamais NEW.user_id fourni par l'appelant.
+    IF auth.uid() IS NOT NULL THEN
+      NEW.user_id := auth.uid();
+    ELSE
+      NEW.user_id := NULL;
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  -- 2) A la mise a jour : user_id est IMMUABLE cote client. Seul le serveur
+  --    (service_role) peut le changer -- transfert de personnage, reparation.
+  --    Sans ca, un joueur pourrait s'attribuer le personnage d'un autre d'un
+  --    simple PATCH, ce qui reduirait a neant tout le reste du chantier.
+  IF NEW.user_id IS DISTINCT FROM OLD.user_id AND NOT public.est_appel_serveur() THEN
+    NEW.user_id := OLD.user_id;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+-- personnages_observer_inventaire() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.personnages_observer_inventaire()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_avant int; v_apres int; v_ajoutes jsonb;
+BEGIN
+  IF public.est_appel_serveur() THEN RETURN NEW; END IF;
+  IF NEW.inventory IS NOT DISTINCT FROM OLD.inventory THEN RETURN NEW; END IF;
+
+  v_avant := CASE WHEN jsonb_typeof(OLD.inventory)='array' THEN jsonb_array_length(OLD.inventory) ELSE 0 END;
+  v_apres := CASE WHEN jsonb_typeof(NEW.inventory)='array' THEN jsonb_array_length(NEW.inventory) ELSE 0 END;
+  IF v_apres <= v_avant THEN RETURN NEW; END IF;   -- retrait ou remplacement : hors sujet
+
+  -- Les identifiants apparus, sans le reste de l'objet (les images base64 n'ont rien a faire ici).
+  SELECT coalesce(jsonb_agg(jsonb_build_object('id', o->>'id', 'name', o->>'name',
+                                               'type', o->>'type', 'pm', o->>'produitMilitaire')), '[]'::jsonb)
+    INTO v_ajoutes
+    FROM jsonb_array_elements(NEW.inventory) o
+   WHERE NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(OLD.inventory,'[]'::jsonb)) a
+                      WHERE a->>'id' = o->>'id');
+
+  INSERT INTO public.fiche_inventaire_observe
+         (personnage, avant, apres, delta, objets_ajoutes, role_sql, requete)
+  VALUES (NEW.name, v_avant, v_apres, v_apres - v_avant, left(v_ajoutes::text, 2000)::jsonb,
+          coalesce(nullif(current_setting('role', true), 'none'), session_user),
+          left(coalesce(current_query(), ''), 300));
+
+  RETURN NEW;
+END;
+$function$;
+
+-- personnages_poste_perdu() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.personnages_poste_perdu()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  IF OLD.poste IS NOT NULL AND jsonb_typeof(OLD.poste) = 'object'
+     AND (NEW.poste IS NULL OR jsonb_typeof(NEW.poste) = 'null'
+          OR (NEW.poste ->> 'id') IS DISTINCT FROM (OLD.poste ->> 'id')
+          OR (NEW.poste ->> 'city') IS DISTINCT FROM (OLD.poste ->> 'city')) THEN
+    DELETE FROM public.postes_attribues
+     WHERE titulaire = OLD.name
+       AND poste_id = (OLD.poste ->> 'id')
+       AND country = OLD.country
+       AND city IS NOT DISTINCT FROM nullif(OLD.poste ->> 'city', '');
+  END IF;
+  RETURN NULL;
+END;
+$function$;
+
 -- personnages_preserver_judiciaire() -> trigger | plpgsql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.personnages_preserver_judiciaire()
  RETURNS trigger
@@ -731,7 +981,7 @@ BEGIN
                             coalesce(to_jsonb(v_benef), 'null'::jsonb), true);
         v_etat := jsonb_set(v_etat, '{coproprietaire}', 'null'::jsonb, true);
         v_etat := jsonb_set(v_etat, '{succession_gel}', 'null'::jsonb, true);
-        UPDATE public.terrains_etat SET data = v_etat::text, updated_at = now() WHERE id = v_tid;
+        UPDATE public.terrains_etat SET proprietaire = v_benef, coproprietaire = NULL, data = v_etat::text, updated_at = now() WHERE id = v_tid;
 
       ELSIF (v_d ->> 'type') = 'entreprise' THEN
         SELECT e.data INTO v_etat FROM public.entreprises e

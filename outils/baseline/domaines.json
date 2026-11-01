@@ -90,7 +90,7 @@
       ],
       [
         "sport",
-        "^(championnat_|club_|football_)"
+        "^(championnat_|club_|football_|transferts_clubs_)"
       ],
       [
         "banque",
@@ -102,7 +102,7 @@
       ],
       [
         "economie",
-        "^(commerce_|entreprise_|entreprises_|entrepot_|entrepots_|acheter_|vendre_|produire_|fabriquer_|recette|chantier_|restituer_reliquats|creer_fonds_commerce|employer_fonds|creer_offre|repondre_offre|creer_oeuvre|fixer_prix|fixer_repartition|prix_ressource|coef_prix_max_pj|capacite_entrepot|fournisseurs_etrangers|matiere_|local_vocation|ressources_economie|ordres_couts|payer_ordre|fret_|recevoir_soin|refectoire_repas)"
+        "^(jardins_|commerce_|entreprise_|entreprises_|entrepot_|entrepots_|acheter_|vendre_|produire_|fabriquer_|recette|chantier_|restituer_reliquats|creer_fonds_commerce|employer_fonds|creer_offre|repondre_offre|creer_oeuvre|fixer_prix|fixer_repartition|prix_ressource|coef_prix_max_pj|capacite_entrepot|fournisseurs_etrangers|matiere_|local_vocation|ressources_economie|ordres_couts|payer_ordre|fret_|recevoir_soin|refectoire_repas)"
       ],
       [
         "immobilier et territoire",
@@ -118,7 +118,7 @@
       ],
       [
         "personnage et presence",
-        "^(personnage_|personnages_|escort_|escorts_|contact_organisation|organisations_|referent_pedagogie|naturalisation_|don_argent|employe_|employeur_|cron_journal|universite_)"
+        "^(personnage_|personnages_|escort_|escorts_|contact_organisation|organisation_|organisations_|referent_pedagogie|naturalisation_|don_argent|employe_|employeur_|cron_journal|universite_)"
       ]
     ],
     "surcharges": {
@@ -1001,6 +1001,9 @@
     }
   },
   "_domaine_des_tables": {
-    "_commentaire": "Le domaine d'une table n'est PAS redefini ici : il est lu dans baseline/classification-donnees.csv, colonne `domaine`, produite et relue au chantier 2C. Source unique, pas de copie."
+    "_commentaire": "Le domaine d'une table n'est PAS redefini ici : il est lu dans baseline/classification-donnees.csv, colonne `domaine`, produite et relue au chantier 2C. Source unique, pas de copie.",
+    "caisses_collectives_operations": "finances publiques",
+    "jardins_ouvriers_reserve": "economie",
+    "jardins_ouvriers_travail": "economie"
   }
 }

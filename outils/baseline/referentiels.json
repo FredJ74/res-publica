@@ -138,9 +138,10 @@
  "_couverture_croisee": "La surveillance est CROISEE, et c'est le defaut de fond : 7 generateurs savent calculer une empreinte, mais seules 4 tables <miroir>_empreinte existent, et elles ne recouvrent pas le meme ensemble. Les quatre miroirs surveilles ont desormais TOUS leur fonction _empreinte_reelle (chantier 4C) ; ce qui reste croise, c'est le peuplement de ces quatre. ressources_economie est surveillee sans etre generee (aucun generateur ne sait la recalculer : son empreinte ne peut donc PAS etre reverifiee hors ligne). clubs_football, miroirs_chantiers, miroirs_entreprises et postes_electifs sont generees sans etre surveillees. Ces cinq trous sont declares ci-dessous pour qu'ils cessent d'etre invisibles ; les combler demande du SQL que le chantier 4C n'autorise pas.",
  "empreintes": {
   "_mesure": {
-   "le": "2026-10-08",
-   "comment": "lecture seule via MCP execute_sql sur le projet jxpwoosmmhohoihxpbuc. Les CINQ valeurs 'reelle' sont rendues par les cinq fonctions <miroir>_empreinte_reelle. Remesure du 7 octobre 2026, apres l'application de 20261008000000_villes_referentiel_et_caisses_fail_closed : les quatre miroirs anterieurs sont INCHANGES -- ce qui prouve que la migration n'a touche aucune de leurs donnees -- et le cinquieme, villes, est desormais mesurable.",
-   "avertissement": "Ces valeurs decrivent la base A CETTE DATE. Le controle ne s'y connecte pas : il verifie que les generateurs rendent toujours la colonne 'data_js', et rapporte la comparaison datee. Une mesure fraiche se reprend avec la requete de _requete_de_mesure."
+   "le": "2026-11-01 17:55:21.375915",
+   "comment": "Mesures des cinq miroirs directement issues de la capture atomique1022 ; aucune empreinte observée recomposée.",
+   "avertissement": "Infractions non remesurées par ce collecteur : valeur antérieure conservée. Les divergences source/base et sentinelles restent visibles.",
+   "source_sha256_manifeste": "02927d497b41f76fadc50cea25bed0d7c5e24fbb325baf2b69a33e82ef99f75b"
   },
   "_requete_de_mesure": "SELECT 'ordres_couts', (SELECT count(*) FROM public.ordres_couts), (SELECT empreinte FROM public.ordres_couts_empreinte LIMIT 1), public.ordres_couts_empreinte_reelle() UNION ALL SELECT 'ressources_economie', (SELECT count(*) FROM public.ressources_economie), (SELECT empreinte FROM public.ressources_economie_empreinte LIMIT 1), public.ressources_economie_empreinte_reelle() UNION ALL SELECT 'pa_bonus_differes', (SELECT count(*) FROM public.pa_bonus_differes), (SELECT empreinte FROM public.pa_bonus_differes_empreinte LIMIT 1), public.pa_bonus_differes_empreinte_reelle() UNION ALL SELECT 'postes_nommes_regles', (SELECT count(*) FROM public.postes_nommes_regles), (SELECT empreinte FROM public.postes_nommes_regles_empreinte LIMIT 1), public.postes_nommes_regles_empreinte_reelle() UNION ALL SELECT 'villes', (SELECT count(*) FROM public.villes), (SELECT empreinte FROM public.villes_empreinte LIMIT 1), public.villes_empreinte_reelle();",
   "miroirs": {
@@ -160,35 +161,41 @@
     "table_empreinte": "postes_nommes_regles_empreinte",
     "fonction_reelle": "postes_nommes_regles_empreinte_reelle",
     "fonction_reelle_en_base": true,
-    "data_js": "6c0c7aa0d29bf852",
+    "data_js": "694f117ace57b0b1",
     "lignes": 18,
     "posee": "a2993a8bc519ea01",
-    "reelle": "6c0c7aa0d29bf852",
+    "reelle": "694f117ace57b0b1",
     "verdict": "data.js et la base concordent ; la valeur POSEE est perimee",
-    "_remesure_du_12_octobre_2026_parquet": "UNE REGLE A ETE AJOUTEE, ET ELLE EXISTE AUSSI EN BASE : `procureur` (nomme par min_just, scope pays, autorite pays), posee par la migration 20261012...parquet_identites_et_poste_procureur. L'empreinte data.js passe donc de 73985f702ae09796 a 6c0c7aa0d29bf852 et le compte de 17 a 18 regles. CE N'EST PAS UNE REGENERATION DU MIROIR, et l'interdit du lot 4D est respecte a la lettre : aucune des 17 lignes existantes n'est modifiee. Declarer un poste NEUF n'est pas reparer la derive d'une sentinelle -- meme raisonnement que l'insertion de `subvention_proposer` dans `ordres_couts` le 10 octobre 2026. La valeur POSEE (a2993a8bc519ea01) ne bouge pas et reste perimee : elle n'a jamais correspondu a aucune formule, et la reposer est le travail du lot 4D."
+    "_remesure_du_12_octobre_2026_parquet": "UNE REGLE A ETE AJOUTEE, ET ELLE EXISTE AUSSI EN BASE : `procureur` (nomme par min_just, scope pays, autorite pays), posee par la migration 20261012...parquet_identites_et_poste_procureur. L'empreinte data.js passe donc de 73985f702ae09796 a 6c0c7aa0d29bf852 et le compte de 17 a 18 regles. CE N'EST PAS UNE REGENERATION DU MIROIR, et l'interdit du lot 4D est respecte a la lettre : aucune des 17 lignes existantes n'est modifiee. Declarer un poste NEUF n'est pas reparer la derive d'une sentinelle -- meme raisonnement que l'insertion de `subvention_proposer` dans `ordres_couts` le 10 octobre 2026. La valeur POSEE (a2993a8bc519ea01) ne bouge pas et reste perimee : elle n'a jamais correspondu a aucune formule, et la reposer est le travail du lot 4D.",
+    "_data_js_precedent_219": "6c0c7aa0d29bf852"
    },
    "ressources_economie": {
-    "generateur": null,
-    "_pas_de_generateur": "Aucun des 8 generateurs ne sait recalculer ce miroir. Son empreinte ne peut donc pas etre reverifiee hors ligne : le controle la rapporte, il ne la recalcule pas. C'est le seul miroir surveille sans etre generable.",
+    "generateur": {
+     "fichier": "outils/generateurs/generer_ordres_couts.py",
+     "arguments": [
+      "--ressources-empreinte"
+     ]
+    },
     "table_empreinte": "ressources_economie_empreinte",
     "fonction_reelle": "ressources_economie_empreinte_reelle",
     "fonction_reelle_en_base": true,
-    "data_js": "2c2a88b3833ca978",
-    "lignes": 17,
+    "data_js": "d65ae14b210eaac4",
+    "lignes": 18,
     "posee": "2c2a88b3833ca978",
-    "reelle": "2c2a88b3833ca978",
-    "verdict": "les trois concordent"
+    "reelle": "d65ae14b210eaac4",
+    "verdict": "Projection des18 ressources égale au générateur existant ; sentinelle réelle périmée conservée et signalée.",
+    "_data_js_precedent_219": "2c2a88b3833ca978"
    },
    "ordres_couts": {
     "generateur": "outils/generateurs/generer_ordres_couts.py",
     "table_empreinte": "ordres_couts_empreinte",
     "fonction_reelle": "ordres_couts_empreinte_reelle",
     "fonction_reelle_en_base": true,
-    "data_js": "e51340fd668f014e",
+    "data_js": "1e69581b8020f737",
     "_remesure_du_1er_novembre_2026_parcelles": "Audit PSM/Montrouge (Claude). La valeur posee ici (20e52d8f9bbe8e3f) etait deja perimee : le generateur rendait 08caa3915b4ffb03 sur main avant ce chantier. Apres lui : 346c0950a876de3d. Trois triples changent, tous de parcelles : (acheter_terrain,2,25200) apparait (lot 6 de Montrouge, 2 100 m2, decision de Fred) ; (acheter_terrain,2,3500) disparait (lots de PSM passes a 18 000 FR, decision de Fred) ; (corrompre_chantier,2,1500) disparait (plus aucune parcelle ne l affiche, empires non P2W). La migration 20261031234500 fait les memes trois changements en base. deposer_demande_permis et corrompre_fonctionnaire_permis restent declares (ORDRE_DEPOSER_PERMIS dans plateau-justice-economie.js ; gabarit des parcelles). Le generateur tourne desormais aussi par Node quand JavaScriptCore est absent. Puis 346c0950a876de3d -> e51340fd668f014e : (service_etage,0,50) apparait (hotels de province, decision de Fred du 01/11), ajoute en base par la meme migration.",
-    "lignes": 410,
+    "lignes": 439,
     "posee": "6de4a84c58ed9b2b",
-    "reelle": "24c71501fd7ba3d9",
+    "reelle": "870e48d44fcaeabd",
     "verdict": "TROIS valeurs differentes",
     "_mesure_du_7_octobre_2026": "data.js a change DEUX fois ce jour-la, et l'empreinte du miroir avec : l'arbitrage du QHS a ajoute l'ordre `gerer_budget_interieur`, puis celui de la Justice l'ordre `gerer_budget_justice`. 55038ed4d716d140 -> 5f16f8865fca8827 -> 7c3a0e66846fb92b. Le generateur compte 402 triples pour 378 ordres distincts, contre 405 lignes et 368 fn en base. LA DIVERGENCE S'AGGRANDIT DE DEUX LIGNES, et c'est connu : l'audit du 5 octobre 2026 avait deja releve 24 lignes mortes en base et 19 ordres gratuits non declares. Les deux nouveaux sont le vingtieme et le vingt-et-unieme. SANS EFFET A L'EXECUTION, verifie ligne par ligne : deduireCoutOrdre n'appelle payer_ordre que si `pa > 0 || cost > 0` (plateau-core.js). Un ordre a 0 PA et 0 FR ne traverse donc jamais la verification du miroir, et ne peut pas etre refuse pour `ordre_inconnu`. Reparer le miroir reste le travail du lot 4D -- le faire a la piece ici reviendrait a entamer un autre chantier.",
     "_remesure_du_10_octobre_2026": "UNE LIGNE A ETE INSEREE, ET UNE SEULE : (subvention_proposer, 2, 0), registre 631. Les trois valeurs sont donc remesurees -- data.js 7c3a0e66846fb92b -> 00be684a051abdb9, reelle a9ee71d9294ffaa8 -> 4551755be51a72a4, lignes 405 -> 406 ; la posee ne bouge pas, et ne DOIT pas bouger. CE N'EST PAS UNE REGENERATION, et l'interdit du lot 4D est respecte a la lettre : aucune des 405 lignes existantes n'a ete modifiee, ce que la preuve P3 du registre 631 verifie par le compte exact. Inserer un ordre NEUF n'est pas reparer le miroir : c'est declarer le cout d'un acte qui n'avait pas de cout parce qu'il n'existait pas. Et il FALLAIT le declarer : subvention_proposer coute 2 PA, donc deduireCoutOrdre l'envoie a payer_ordre, qui refuse ordre_inconnu -- contrairement aux 21 ordres gratuits non declares, qui ne traversent jamais cette verification. Le generateur compte desormais 403 triples pour 379 ordres distincts, contre 406 lignes en base.",
@@ -200,7 +207,8 @@
     "_remesure_du_12_octobre_2026_barreau_et_temoins": "CINQ ORDRES NEUFS DANS data.js, AUCUNE LIGNE AJOUTEE EN BASE, ET UN COUT INVENTE RETIRE AVANT QU'IL NE MENTE. Les cinq : `avocat_barreau` et `avocat_dossiers` (au greffe des deux tribunaux), `temoins_mes_convocations` (dans les deux salles d'audience), `temoin_deposition` (dans les deux commissariats) et `audience_juge` (dans les deux bureaux des magistrats). Le generateur dedoublonne, donc dix declarations ne font que cinq triples : 405 -> 410, et 381 -> 386 ordres distincts. L'empreinte data.js est remesuree a 00b0b981822fb2b0.\nLE COUT RETIRE, ET C'EST LE POINT. `temoin_deposition` etait declare a 1 PA. Il ne les aurait JAMAIS preleves : la route rend la main au bloc des ordres speciaux de plateau-router.js (ligne 734), donc bien avant l'appel a `deduireCoutOrdre` (ligne 817) -- le bouton aurait affiche « 1 PA » et rien n'aurait ete debite. Et s'il les avait preleves, il aurait fallu le declarer au miroir, sans quoi `payer_ordre` aurait refuse `ordre_inconnu` et la deposition aurait ete impossible. Le cout est donc passe a 0, comme les quatre autres ecrans de cette tranche : un temoin est CONTRAINT de comparaitre, et lui facturer sa comparution serait une sanction que le cahier des charges interdit d'inventer (§K : pas d'amende automatique, pas de perte de POP, pas de sanction morale).\nAUCUNE LIGNE N'EST AJOUTEE A public.ordres_couts : les cinq ordres sont a 0 PA et 0 FR, donc ils ne consultent jamais le miroir -- meme raison que `caisse_caserne`, `garde_republicaine` et `seance_parlementaire`. `reelle`, `posee` et `lignes` ne bougent pas, et ne DOIVENT pas bouger : reparer ce miroir reste le travail du lot 4D.",
     "_remesure_du_13_octobre_2026_greffe_et_audience": "TROIS ORDRES NEUFS DANS data.js, ET AUCUNE LIGNE AJOUTEE EN BASE : `audience_salle` (assister a l'audience, dans les deux salles), `greffe_affaires` (le registre public des affaires en cours) et `greffe_archives` (l'histoire procedurale des affaires closes, dans les deux greffes). Six declarations, trois triples -- le generateur dedoublonne : 410 -> 413, et 386 -> 389 ordres distincts. L'empreinte data.js est remesuree a 86c2fa31a3ea5842.\nLES TROIS SONT A 0 PA ET 0 FR, donc ils ne consultent jamais le miroir : `deduireCoutOrdre` n'appelle `payer_ordre` que si `pa > 0 || cost > 0`. Declarer leur cout en base serait declarer un cout qui n'existe pas. Ils rejoignent les ordres gratuits non declares, pour la meme raison que `caisse_caserne`, `garde_republicaine` et `seance_parlementaire`.\n`reelle`, `posee` et `lignes` ne bougent pas, et ne DOIVENT pas bouger : reparer ce miroir reste le travail du lot 4D.",
     "_remesure_du_13_octobre_2026_requete_avocat": "UN ORDRE A QUITTE data.js : `requete_avocat` (1 PA, 0 FR), la requete d'avocat en cellule, supprimee le 13 octobre 2026 par arbitrage valide -- elle reduisait la peine sur un d100 contre `Math.min(85, 40 + DUP*1.5)`, donc un de decidait si une plaidoirie avait convaincu un juge. Elle etait declaree TROIS fois (prison de Luthecia, geoles de Montrouge, geoles de Port-Sainte-Marie) pour UN seul triple, le generateur dedoublonnant : 410 -> 409 triples, 386 -> 385 ordres distincts. SEULE la valeur data.js est remesuree : 00b0b981822fb2b0 -> 02aaee23d21bfccd. (La valeur declaree avant cette passe etait 86c2fa31a3ea5842 et non 00b0b981822fb2b0 : la note du 12 octobre annoncait une empreinte qui n'a jamais ete reportee dans le champ. L'ecart est purement redactionnel, et le champ est desormais celui que le generateur rend.)\\nEN BASE, RIEN A RETIRER : l'ordre etait a 1 PA mais sa route rendait la main avant `deduireCoutOrdre`, donc il n'a jamais consulte le miroir et n'y a jamais eu de ligne. `posee`, `reelle` et `lignes` ne bougent pas, et la divergence a trois valeurs de ce miroir reste celle du lot 4D.\nDEUX AUTRES ORDRES ONT QUITTE data.js LE MEME JOUR, et l'empreinte est remesuree une seconde fois : 02aaee23d21bfccd -> 4f2ed41257bfb24a. Ce sont les deux declarations de `plainte` (« Consulter les affaires en cours », 1 PA dans la salle d'audience de Luthecia, 0 PA dans celle des deux tribunaux locaux) : un doublon du registre public du GREFFE qui disait, lui, le TEXTE LIBRE du plaignant sans l'echapper, et qui etait accessoirement la seule source de `state.plaintesEnCours`. Deux declarations, DEUX triples distincts (les couts differaient) : 409 -> 407 triples, 385 -> 384 ordres distincts. En base, aucune ligne a retirer : `ordres_couts` n'en portait aucune pour `plainte`.",
-    "_remesure_du_13_octobre_2026_greffe_et_universite": "SIX ORDRES NEUFS DANS data.js, ET SIX LIGNES INSEREES EN BASE -- la premiere fois depuis le 10 octobre que les deux cotes bougent ENSEMBLE, et c'est normal : les six COUTENT quelque chose, donc les six traversent `deduireCoutOrdre` puis `payer_ordre`, qui aurait refuse `ordre_inconnu` si le triple n'etait pas declare. Les six triples, exactement : (casier_mon_extrait, 1, 100), (casier_extrait_enquete, 1, 0), (orga_extrait_duplicata, 1, 75), (greffe_corrompre_dossier, 3, 300), (greffe_corrompre_faux_casier, 3, 300) et (syndicat_etudiant_creer, 2, 150). `casier_extrait_enquete` est a 0 FR et pourtant DECLARE : il coute 1 PA, et c'est le PA qui fait consulter le miroir.\ndata.js est remesure 4f2ed41257bfb24a -> 20e52d8f9bbe8e3f, `reelle` 8abe78729ce9928b -> 24c71501fd7ba3d9, et `lignes` 404 -> 410. `posee` NE BOUGE PAS et reste perimee : la reposer graverait la derive du miroir, et c'est le travail du lot 4D -- pas celui de cette tranche. Un septieme ordre neuf de la meme tranche n'est PAS declare, et c'est voulu : `suivre_formation` est a 0 PA et 0 FR, il ne consulte donc jamais le miroir -- et son ABSENCE du miroir est le troisieme de ses trois verrous, celui qui ferait refuser `ordre_inconnu` meme a un appel force. Les ordres `syndicat_etudiant_gerer` et `recruter_etud` ne sont pas davantage declares, pour la meme raison de gratuite."
+    "_remesure_du_13_octobre_2026_greffe_et_universite": "SIX ORDRES NEUFS DANS data.js, ET SIX LIGNES INSEREES EN BASE -- la premiere fois depuis le 10 octobre que les deux cotes bougent ENSEMBLE, et c'est normal : les six COUTENT quelque chose, donc les six traversent `deduireCoutOrdre` puis `payer_ordre`, qui aurait refuse `ordre_inconnu` si le triple n'etait pas declare. Les six triples, exactement : (casier_mon_extrait, 1, 100), (casier_extrait_enquete, 1, 0), (orga_extrait_duplicata, 1, 75), (greffe_corrompre_dossier, 3, 300), (greffe_corrompre_faux_casier, 3, 300) et (syndicat_etudiant_creer, 2, 150). `casier_extrait_enquete` est a 0 FR et pourtant DECLARE : il coute 1 PA, et c'est le PA qui fait consulter le miroir.\ndata.js est remesure 4f2ed41257bfb24a -> 20e52d8f9bbe8e3f, `reelle` 8abe78729ce9928b -> 24c71501fd7ba3d9, et `lignes` 404 -> 410. `posee` NE BOUGE PAS et reste perimee : la reposer graverait la derive du miroir, et c'est le travail du lot 4D -- pas celui de cette tranche. Un septieme ordre neuf de la meme tranche n'est PAS declare, et c'est voulu : `suivre_formation` est a 0 PA et 0 FR, il ne consulte donc jamais le miroir -- et son ABSENCE du miroir est le troisieme de ses trois verrous, celui qui ferait refuser `ordre_inconnu` meme a un appel force. Les ordres `syndicat_etudiant_gerer` et `recruter_etud` ne sont pas davantage declares, pour la meme raison de gratuite.",
+    "_data_js_precedent_219": "e51340fd668f014e"
    },
    "villes": {
     "generateur": "outils/generateurs/generer_villes.py",
@@ -239,6 +247,11 @@
    "miroirs_entreprises": "e2b15dda50c9a640",
    "offres_emploi_bne": "2cf0edcba2fa05fc",
    "postes_electifs": "2390eb52a42ae6a6"
+  },
+  "_mesure_precedente_219": {
+   "le": "2026-10-08",
+   "comment": "lecture seule via MCP execute_sql sur le projet jxpwoosmmhohoihxpbuc. Les CINQ valeurs 'reelle' sont rendues par les cinq fonctions <miroir>_empreinte_reelle. Remesure du 7 octobre 2026, apres l'application de 20261008000000_villes_referentiel_et_caisses_fail_closed : les quatre miroirs anterieurs sont INCHANGES -- ce qui prouve que la migration n'a touche aucune de leurs donnees -- et le cinquieme, villes, est desormais mesurable.",
+   "avertissement": "Ces valeurs decrivent la base A CETTE DATE. Le controle ne s'y connecte pas : il verifie que les generateurs rendent toujours la colonne 'data_js', et rapporte la comparaison datee. Une mesure fraiche se reprend avec la requete de _requete_de_mesure."
   }
  },
  "_cles_de_divergence": "Deux axes, donc deux familles de cles, et le controle les verifie separement. « <miroir>/base » declare que data.js ne dit pas la meme chose que le contenu reel de la table -- le miroir est perime. « <miroir>/posee » declare que la valeur inscrite dans <miroir>_empreinte ne correspond pas au contenu reel -- la sentinelle elle-meme est fausse. Un miroir peut avoir les deux, et ordres_couts les a.",
@@ -314,5 +327,6 @@
     ]
    }
   }
- }
+ },
+ "_actualisation_219": "Les observations posee/reelle proviennent du CSV1022. Cible ordres459 validée sur clone en transaction, pas prétendue déployée ; projection postes égale à la mesure réelle. Autres écarts laissés en échec, aucune référence changée à l’aveugle."
 }

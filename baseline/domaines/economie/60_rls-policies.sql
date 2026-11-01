@@ -43,6 +43,8 @@ ALTER TABLE public.entreprises_prix_rachat ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.hotel_nuitees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.imprimeries_declarees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.investissements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.jardins_ouvriers_reserve ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.jardins_ouvriers_travail ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.oeuvres ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.offres ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.offres_emploi_bne ENABLE ROW LEVEL SECURITY;
@@ -163,6 +165,10 @@ CREATE POLICY "imprimeries lecture" ON public.imprimeries_declarees FOR SELECT T
 
 -- investissements
 CREATE POLICY investissements_lecture ON public.investissements FOR SELECT TO anon, authenticated
+  USING (true);
+
+-- jardins_ouvriers_reserve
+CREATE POLICY "reserve jardins lecture" ON public.jardins_ouvriers_reserve FOR SELECT TO authenticated
   USING (true);
 
 -- oeuvres

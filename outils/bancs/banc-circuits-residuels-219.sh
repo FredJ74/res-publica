@@ -8,7 +8,13 @@ set -eu
 cd "$(dirname "$0")/../.."
 MODE="${1:-}"
 [ "${GARDER_BASE:-0}" = 1 ] || EXCLURE_MIGRATIONS="20261101170000_circuits_residuels_positions_219.sql 20261101171000_hospitalisation_pa0.sql" bash outils/bancs/monter-base-jetable.sh >/dev/null
-P="psql -h /tmp/pgjet -p 54329 -U postgres -d jet -X -q -At -v ON_ERROR_STOP=0"
+# Réutilisation uniquement d'un socket local de clone, jamais d'une URL distante.
+HG219_SOCKET_CIBLE="${HG219_PG_SOCKET:-/tmp/pgjet}"
+HG219_PORT_CIBLE="${HG219_PG_PORT:-54329}"
+HG219_BASE_CIBLE="${HG219_PG_BASE:-jet}"
+[[ "$HG219_SOCKET_CIBLE" =~ ^/(tmp|workspace)/[A-Za-z0-9_./-]+$ ]] || { echo 'Socket local invalide' >&2; exit 2; }
+[[ "$HG219_PORT_CIBLE" =~ ^[0-9]+$ && "$HG219_BASE_CIBLE" =~ ^[a-zA-Z0-9_]+$ ]] || { echo 'Cible locale invalide' >&2; exit 2; }
+P="psql -h $HG219_SOCKET_CIBLE -p $HG219_PORT_CIBLE -U postgres -d $HG219_BASE_CIBLE -X -q -At -v ON_ERROR_STOP=0"
 # Référentiel des villes du dépôt (seed généré depuis data.js), exigé par la fiche.
 [ "${GARDER_BASE:-0}" = 1 ] || $P -v ON_ERROR_STOP=1 -f baseline/seeds/95_a-regenerer/villes.sql >/dev/null
 if [ "$MODE" != "--contre" ]; then

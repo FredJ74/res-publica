@@ -1036,7 +1036,7 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "894798f443e4eddc1876632decb9b835",
-  "20_fonctions.sql": "5c9ecb8dca864c6140a6b95baa6385af",
+  "20_fonctions.sql": "b79adaf3a0c3085baff2e0b83dfe0b7f",
   "30_contraintes.sql": "0c4944bb0d5019ca48473149b9ea375d",
   "35_index.sql": "dc3d43a81d4da8d9ae6dbbaf2b5e789c",
   "50_triggers.sql": "b8761100d8c908ff28499243c2e67f1e",
@@ -1056,12 +1056,12 @@
    "signature": "banque_nationale_mouvement(text,text,numeric)"
   },
   {
-   "empreinte": "7cd0cef291d7a55006a47583a19412e6",
+   "empreinte": "c380a5420140abac0c51fdac8a49250f",
    "security_definer": true,
    "signature": "banque_virement(text,integer)"
   },
   {
-   "empreinte": "d0d053a18a2e364388a7cc6b1a967cbb",
+   "empreinte": "186916d558cf7605a7e7ba077903bc4f",
    "security_definer": true,
    "signature": "banque_virement_automatique_creer(text,integer,text)"
   },
@@ -1091,7 +1091,7 @@
    "signature": "creer_placement_national_securise(text,numeric,integer,text,text,uuid)"
   },
   {
-   "empreinte": "6b27417e612e7cbc8febe992245bbe21",
+   "empreinte": "fb3e4b620110233587e91483867ec3dc",
    "security_definer": true,
    "signature": "creer_pret_helvetia(text,numeric,integer)"
   },
@@ -1106,7 +1106,7 @@
    "signature": "deposer_helvetia(text,numeric,text)"
   },
   {
-   "empreinte": "c7679714eb70eb0c5efe79f40d84703e",
+   "empreinte": "70b0537c1e8d36b927c5085f624266af",
    "security_definer": true,
    "signature": "fermer_compte_helvetia(text,text)"
   },
@@ -1161,7 +1161,7 @@
    "signature": "helvetia_taux_refinancement_bnr(text)"
   },
   {
-   "empreinte": "31d7055fdb4fbaf30a748f016fae581d",
+   "empreinte": "0ce20c78c7a839aa2330447b67e49730",
    "security_definer": true,
    "signature": "ouvrir_compte_helvetia(text)"
   },
@@ -1171,7 +1171,7 @@
    "signature": "pret_national_contracter(numeric,integer,text,text)"
   },
   {
-   "empreinte": "6f0f73c163c838fd9e2fb69d4c2964dc",
+   "empreinte": "aa9672f43c809d87eac92179b41467bd",
    "security_definer": true,
    "signature": "pret_national_contracter_versionne(numeric,integer,text,text,uuid)"
   },
@@ -1201,7 +1201,7 @@
    "signature": "regler_creances_helvetia_quotidien(text)"
   },
   {
-   "empreinte": "2b0fe8df863017060a41daf103f7f509",
+   "empreinte": "2540b8f9fc596676ea18959acb251d5c",
    "security_definer": true,
    "signature": "rembourser_pret_helvetia_integral(text,text,jsonb)"
   },
@@ -1211,7 +1211,7 @@
    "signature": "resoudre_compromis_helvetia_expire(text)"
   },
   {
-   "empreinte": "0b9991f77d269a59d451796c1a76e6f2",
+   "empreinte": "c030f53c6c8b36b0ef9a80944642d981",
    "security_definer": true,
    "signature": "resoudre_placement_helvetia(text)"
   },
@@ -1241,7 +1241,7 @@
    "signature": "taux_pret_nationale(text)"
   },
   {
-   "empreinte": "05de33609eaacb91f66100c564c496e8",
+   "empreinte": "0d9867864b85465e0798ffaacbd95055",
    "security_definer": true,
    "signature": "traiter_prets_helvetia_quotidien()"
   },

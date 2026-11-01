@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location('banc_caisses', ROOT / 'outils/bancs/banc-caisses-collectives-local.py')
 B = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(B)
-M3 = ROOT / 'migrations/20261031220000_transfert_prime_signature_serveur.sql'
+M3 = ROOT / 'historique/migrations-appliquees/20261031220000_transfert_prime_signature_serveur.sql'
 EMPREINTES_PRODUCTION = {'club_transfert_conclure(text)': '057d4b8e51e41eae3bc59d615a4df391',
                          'transferts_clubs_garder()': '57b1fac354c1140d9644954909424b1f'}
 

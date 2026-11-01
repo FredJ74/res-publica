@@ -173,10 +173,10 @@ CSV = os.path.join(RACINE, "baseline", "classification-donnees.csv")
 # PJ. Sans ces trois lignes, `greffe_signataire` ne trouve rien a signer et aucun document ne
 # peut etre emis dans un monde neuf.
 # Observation indépendante du CSV : noms relkind=r issus de l'export canonique
-# vérifié du 31/10/2026 ; total 376 confirmé par controle_global. Aucun nombre
+# vérifié du 01/11/2026 ; total379 confirmé par la capture atomique1022, par controle_global. Aucun nombre
 # de lignes de seed n'est déduit de ces métadonnées (ils restent non_releve).
-TABLES_ATTENDUES = 376
-EMPREINTE_LISTE = "3ba4144a790ba04feefee669d01e60aa"   # md5(string_agg(relname,',' order by relname collate "C"))
+TABLES_ATTENDUES = 379
+EMPREINTE_LISTE = "6ae52667234e838a1edb4b06d9632faf"   # md5(string_agg(relname,',' order by relname collate "C"))
 
 CATEGORIES = {"A", "B", "C", "D"}
 STRATEGIES = {"seed_complet", "seed_filtre", "reconstruction_explicite",

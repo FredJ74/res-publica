@@ -37,6 +37,7 @@ def main():
    charger('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn)
   charger('outils/bancs/banc-fixture-terrain-permis-acte-avant-depot.sql','terrain_permis_acte')
   charger('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
+  charger('baseline/domaines/socle/20_fonctions.sql','est_appel_serveur')
   charger('baseline/domaines/socle/20_fonctions.sql','objet_sas_deposer')
   charger('baseline/domaines/socle/20_fonctions.sql','titulaire_est_moi')
   sql=(R/'historique/migrations-appliquees/rehorodatees-219/20261031113626_permis_depot_transactionnel.sql').read_text();q.execute(sql)  # une reinstallation volontaire est refusee par l'empreinte de la RPC modifiee

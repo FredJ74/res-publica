@@ -1602,6 +1602,78 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "organisation_adhesion_payante(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "organisation_adhesion_payante(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "organisation_adhesion_payante(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "organisation_caisse_ajuster_interne(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "organisation_caisse_ajuster_interne(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "organisation_ordre_financier(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "organisation_ordre_financier(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "organisation_ordre_financier(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "organisation_vainqueur_election(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "organisation_vainqueur_election(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "organisations_finances_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "organisations_finances_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "organisations_politique_autorite()",
@@ -3058,14 +3130,14 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "2603b2905f4b6cb9292ba73f4a1f4fff",
-  "20_fonctions-1.sql": "203536df5c6dab39a8d8acf76106aba6",
-  "20_fonctions-2.sql": "f7eee1d9f84f1eed8ddcb133d83d52f9",
+  "20_fonctions-1.sql": "6c4bb65c49de990d6153f0d0111750b3",
+  "20_fonctions-2.sql": "7b97901a69510b31b66a7a24b53cfc32",
   "30_contraintes.sql": "e92a70b014c89e27d3455829a3229772",
   "35_index.sql": "dc8c6ef0bb82245f0eb1367d75ba5588",
   "40_vues.sql": "70c1cbc0ae3b307eb2a5ebaab01cffb4",
-  "50_triggers.sql": "9e09fa9a555f8529b2268cc221ee45f0",
-  "60_rls-policies.sql": "88559a9cced73dc7a7d6f14fdf889196",
-  "70_droits.sql": "b36770672bd4afb8ed1e25194c57f5b4",
+  "50_triggers.sql": "03bef4c69f927508a5c2b2a7d9e98a4d",
+  "60_rls-policies.sql": "95d25431437a96f6e89cf65ecf7bd7ef",
+  "70_droits.sql": "ddb7c98079ad1eedf495f9bf151f3c62",
   "80_commentaires.sql": "bf627de04b639cc6344db7fb713bc234"
  },
  "fonctions": [
@@ -3370,6 +3442,31 @@
    "signature": "naturalisation_traiter(text,boolean)"
   },
   {
+   "empreinte": "6a978e6fa0af83c23d777f44380c7cfe",
+   "security_definer": true,
+   "signature": "organisation_adhesion_payante(text,text,text)"
+  },
+  {
+   "empreinte": "7f9c436afa84f949a4c96d68a050b8de",
+   "security_definer": true,
+   "signature": "organisation_caisse_ajuster_interne(text,numeric)"
+  },
+  {
+   "empreinte": "993e2a2117b97710567b5ba9a2ecf933",
+   "security_definer": true,
+   "signature": "organisation_ordre_financier(text,text,text)"
+  },
+  {
+   "empreinte": "f2629572e725c5f3b0483a09b77d9736",
+   "security_definer": false,
+   "signature": "organisation_vainqueur_election(jsonb)"
+  },
+  {
+   "empreinte": "dba7beca98814cfe709e77bd67e189bb",
+   "security_definer": false,
+   "signature": "organisations_finances_garder()"
+  },
+  {
    "empreinte": "c1865fb9d4792bdff9ea8ca68bb8b08d",
    "security_definer": true,
    "signature": "organisations_politique_autorite()"
@@ -3535,7 +3632,7 @@
    "signature": "souvenir_accueil_tirer(text,date)"
   },
   {
-   "empreinte": "c08f88f92c6e003ca04143f4427c8d91",
+   "empreinte": "d3b24ada04d4a667538eafc1b7612e55",
    "security_definer": true,
    "signature": "succession_regler(text)"
   },
@@ -3913,9 +4010,9 @@
    "tbl": "organisations"
   },
   {
-   "empreinte": "ccfe96b9ad415942836be4b667d03f72",
-   "empreinte_avec_roles": "ca8f3cda1bf2bf0533278e7f5f6953cb",
-   "nom": "organisations_suppression_acteur",
+   "empreinte": "685cf37b8736029451ae89f7c195757b",
+   "empreinte_avec_roles": "8f59f05667c0338885ca3a3b778e57c5",
+   "nom": "organisations_suppression_chef",
    "tbl": "organisations"
   },
   {
@@ -4552,6 +4649,12 @@
    "fonction": "mariage_ecriture_ecran_refuser()",
    "nom": "mariages_ecran_refuser",
    "tbl": "mariages"
+  },
+  {
+   "empreinte": "c6e8a293adc3c95a3cebc3c7c60051e3",
+   "fonction": "organisations_finances_garder()",
+   "nom": "trg_organisations_finances_garder",
+   "tbl": "organisations"
   },
   {
    "empreinte": "89b48cd6d2c10348d295a7994f31e7bf",

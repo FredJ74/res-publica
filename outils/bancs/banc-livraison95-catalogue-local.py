@@ -86,6 +86,10 @@ def main():
  a.add_argument('--referentiels-reference',type=Path,required=True,help='Empreintes et cardinalités des 12 référentiels statiques du vivant.')
  a.add_argument('--gotrue-bin',type=Path)
  a.add_argument('--postgrest-bin',type=Path)
+ a.add_argument('--bancs-318-324',action='store_true',help='Scénarios SQL existants de Claude sur les étapes successives du clone, pas de production.')
+ a.add_argument('--complements-318-324',action='store_true',help='Certifier les deux compléments après les95 et avant les27HTTP.')
+ a.add_argument('--referentiels-complets',type=Path,help='Les douze contenus du même SELECT atomique, hors Git.')
+ a.add_argument('--referentiels-complets-sha256',help='SHA-256 du contenu complet vérifié par le transport.')
  a.add_argument('--referentiels-sha256',help='SHA-256 transmis indépendamment du fichier privé, obligatoire avec sa capture.')
  a.add_argument('--referentiels-capture',type=Path,help='Capture privée complète des quatre tables statiques et locale ; hors Git, vérifiée avant 95.')
  a.add_argument('--locale-reference',type=Path,default=R/'outils/audits/catalogue-1012/LOCALE-PRODUCTION-1012.json',help='Relevé externe de locale de la même coupe que les empreintes et référentiels.')
@@ -93,6 +97,8 @@ def main():
  a.add_argument('--icu-locale',help='Locale ICU exacte relevée dans pg_database.datlocale, jamais déduite du nom libc.')
  a.add_argument('--locale-clone',help='Locale explicite du seul PostgreSQL jetable ; enregistrée dans le rapport.')
  o=a.parse_args()
+ if o.bancs_318_324 and not o.complements_318_324:a.error('--bancs-318-324 exige les compléments')
+ if bool(o.referentiels_complets)!=bool(o.referentiels_complets_sha256):a.error('--referentiels-complets et leur SHA-256 sont requis ensemble')
  if bool(o.referentiels_capture)!=bool(o.referentiels_sha256):a.error('--referentiels-capture et --referentiels-sha256 sont requis ensemble')
  if o.referentiels_sha256 and not re.fullmatch('[a-f0-9]{64}',o.referentiels_sha256):a.error('SHA-256 privé invalide')
  if o.locale_provider=='icu' and not (o.locale_clone and o.icu_locale):a.error('ICU exige --locale-clone et --icu-locale relevés, sans valeur inventée')
@@ -127,6 +133,7 @@ def main():
     q.execute(('CREATE FUNCTION auth.jwt()'+e.PLATEFORME.split('CREATE FUNCTION auth.jwt()',1)[1]).replace('CREATE FUNCTION auth.','CREATE OR REPLACE FUNCTION auth.'))
    else:q.execute(e.PLATEFORME)
    complement=charger('schema_complet219','outils/bancs/completer-schema-clone-219.py');avant_schema,apres_schema,preuve_schema=complement.preparer(o.exports)
+   rapport['roles_catalogue']=complement.creer_roles_catalogue(q,o.exports)
    q.execute(avant_schema)
    morceaux,_=e.assembler();rapport.update(e.installer(q,morceaux))
    q.execute(apres_schema);rapport['complement_hors_monde_neuf']=preuve_schema
@@ -203,11 +210,11 @@ def main():
     c.commit()
    if o.referentiels_reference:
     reference=dict(references['donnees'])
-    if o.referentiels_capture:
+    if o.referentiels_capture or o.referentiels_complets:
      lieu=references['locale']
      reference['locale']=lieu['locale']
      prive=charger('references_privees219','outils/bancs/referentiels-prives-clone-219.py')
-     rapport['capture_referentiels_privee']=prive.charger(q,o.referentiels_capture,reference,o.referentiels_sha256)
+     rapport['capture_referentiels_privee']=prive.charger(q,o.referentiels_complets or o.referentiels_capture,reference,o.referentiels_complets_sha256 or o.referentiels_sha256,complet=bool(o.referentiels_complets))
     rapport['diagnostic_archives_refs_non_certifiant']=complement.diagnostic_archives_statiques(q,e.decouper,reference['referentiels'])
     rapport['paliers_reconstitues_conformes']=complement.restaurer_paliers_attestes(q,e.decouper,reference)
     assert reference['referentiels']['offres_emploi_bne']=={'lignes':0,'empreinte':'d751713988987e9331980363e24189ce'},'Vide BNE non attesté'
@@ -253,6 +260,43 @@ def main():
      p=o.caisses_source/entree['fichier'];assert hashlib.sha256(p.read_bytes()).hexdigest()==entree['sha256'];q.execute(p.read_text())
     q.execute('BEGIN');rapport['pr300']={'source':provenance,'organisations':org.recette(q),'groupes':rec.recette(q)}
     assert all(x['ok'] for x in rapport['pr300']['groupes']);rapport['pr300']['rpc_clients']=e.verifier_rpc_clients(q);c.rollback()
+   if o.complements_318_324:
+    plan97=charger('plan_complements219','outils/livraison/preparer-recette97-219.py').preparer()
+    complements=plan97['migrations'][-2:]
+    from psycopg2.extensions import adapt
+    def citer(x):
+     valeur=adapt(x);valeur.prepare(c);return valeur.getquoted().decode(c.encoding)
+    bundle="BEGIN;DO $$BEGIN IF EXISTS(SELECT 1 FROM supabase_migrations.schema_migrations WHERE version IN ("+','.join(citer(x['version']) for x in complements)+")) THEN RAISE EXCEPTION 'complements219_deja_installes';END IF;END$$;"
+    for x in complements:
+     texte=(R/x['fichier']).read_text();bundle+=texte+"\nINSERT INTO supabase_migrations.schema_migrations(version,name,statements) VALUES("+citer(x['version'])+','+citer(Path(x['fichier']).stem[15:])+',ARRAY['+citer(texte)+']);'
+    bundle+='COMMIT;'
+    initial=e.empreinte_installation(q);c.commit()
+    try:q.execute(bundle.rsplit('COMMIT;',1)[0]+"DO $$BEGIN RAISE EXCEPTION 'panne_complements219';END$$;COMMIT;");raise AssertionError('panne compléments ignorée')
+    except psycopg2.Error as ex:
+     if 'panne_complements219' not in str(ex):raise
+     c.rollback()
+    assert e.empreinte_installation(q)==initial,'compléments partiels après rollback';c.commit()
+    if o.bancs_318_324:
+     import subprocess,os
+     rapport['bancs_complements']=[]
+     for x,script in zip(complements,('banc-circuits-residuels-219.sh','banc-hospitalisation.sh')):
+      texte=(R/x['fichier']).read_text()
+      q.execute('BEGIN;'+texte+"\nINSERT INTO supabase_migrations.schema_migrations(version,name,statements) VALUES("+citer(x['version'])+','+citer(Path(x['fichier']).stem[15:])+',ARRAY['+citer(texte)+']);COMMIT;');c.commit()
+      env={**os.environ,'GARDER_BASE':'1','HG219_PG_SOCKET':c.info.host,'HG219_PG_PORT':str(c.info.port),'HG219_PG_BASE':c.info.dbname,'PATH':str(o.postgres_bin)+os.pathsep+os.environ.get('PATH','/usr/bin:/bin')}
+      v=subprocess.run(['bash',str(R/'outils/bancs'/script)],cwd=R,env=env,text=True,capture_output=True,timeout=180)
+      trace=Path(str(o.rapport)+'.'+script+'.prive.log');trace.write_text(v.stdout+v.stderr);trace.chmod(0o600)
+      rapport['bancs_complements'].append({'script':script,'code':v.returncode})
+      assert v.returncode==0,'Banc complément refusé : '+script+' ; consulter le journal privé'
+    else:q.execute(bundle);c.commit()
+    final=e.empreinte_installation(q);assert final['registre']==initial['registre']+2;c.commit()
+    try:q.execute(bundle);raise AssertionError('rejeu compléments accepté')
+    except psycopg2.Error as ex:
+     if 'complements219_deja_installes' not in str(ex):raise
+     c.rollback()
+    assert e.empreinte_installation(q)==final;c.commit()
+    q.execute("SELECT to_jsonb(p) FROM personnages_donnees p WHERE name='__hg219_canari_avant'");rapport['temoin_apres97']=verifier_temoin(temoin,q.fetchone()[0]);c.commit()
+    rapport['complements_318_324']={'installees':True,'rollback':True,'rejeu_sans_mutation':True,'versions':[x['version'] for x in complements]}
+   rapport['rpc_clients_etat_final']=e.verifier_rpc_clients(q);c.commit()
    if services:
     services.demarrer_rest(q);preuve_http=services.recette(q);rapport['http_27']=verifier_http_27(preuve_http);rapport['recette_authentifiee_isolee']=preuve_http;rapport['binaires_auth_sha256']={str(p.name):hashlib.sha256(p.read_bytes()).hexdigest() for p in [o.gotrue_bin,o.postgrest_bin]}
   except Exception as ex:

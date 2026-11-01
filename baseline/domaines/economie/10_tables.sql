@@ -325,6 +325,17 @@ CREATE TABLE public.investissements (
   created_at timestamp with time zone DEFAULT now()
 );
 
+CREATE TABLE public.jardins_ouvriers_reserve (
+  pays text NOT NULL,
+  ville text NOT NULL,
+  qte integer DEFAULT 0 NOT NULL
+);
+
+CREATE TABLE public.jardins_ouvriers_travail (
+  nom text NOT NULL,
+  jour date NOT NULL
+);
+
 CREATE TABLE public.oeuvres (
   id text NOT NULL,
   type text NOT NULL,

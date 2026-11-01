@@ -173,6 +173,12 @@
    "privileges": "SELECT"
   },
   {
+   "beneficiaire": "hg219_cert_ro_20261101",
+   "genre": "TABLE",
+   "objet": "postes_nommes_regles",
+   "privileges": "SELECT"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "postes_nommes_regles",
@@ -240,7 +246,7 @@
   "30_contraintes.sql": "2d7853d3e9bb36989fc3eeea010a2904",
   "35_index.sql": "39735b93f3a42d8625f32f9d3554ff53",
   "60_rls-policies.sql": "894ccf9e25be05e81ce22a0cad386798",
-  "70_droits.sql": "814fea266cf67752b5a1b8048963260e",
+  "70_droits.sql": "aa4747c4d188ee792a16784f3796dc23",
   "80_commentaires.sql": "5e35abad14624c873750d2bccfb548d6"
  },
  "fonctions": [],

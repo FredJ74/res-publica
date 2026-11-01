@@ -11,3 +11,4 @@
 -- ============================================================================
 
 CREATE TRIGGER trg_championnat_verrou_calendrier BEFORE UPDATE ON championnat FOR EACH ROW EXECUTE FUNCTION championnat_verrou_calendrier();
+CREATE TRIGGER trg_transferts_clubs_garder BEFORE INSERT OR UPDATE ON transferts_clubs FOR EACH ROW EXECUTE FUNCTION transferts_clubs_garder();

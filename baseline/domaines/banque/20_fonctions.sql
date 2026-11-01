@@ -119,7 +119,7 @@ BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
   SELECT current_building INTO v_bat FROM public.personnages_donnees WHERE name = v_moi;
-  IF v_bat IS DISTINCT FROM 'banque-nationale' THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  IF v_bat IS NULL OR v_bat NOT IN ('banque-nationale','banque-locale') THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
   IF v_b = v_moi THEN RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_invalide'); END IF;
   IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = v_b) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_introuvable'); END IF;
@@ -155,7 +155,7 @@ BEGIN
   v_moi := public.mon_personnage();
   IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
   SELECT current_building INTO v_bat FROM public.personnages_donnees WHERE name = v_moi;
-  IF v_bat IS DISTINCT FROM 'banque-nationale' THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  IF v_bat IS NULL OR v_bat NOT IN ('banque-nationale','banque-locale') THEN RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
   IF v_b = v_moi THEN RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_invalide'); END IF;
   IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = v_b) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_introuvable'); END IF;
@@ -675,13 +675,7 @@ BEGIN
   IF FOUND THEN RAISE EXCEPTION 'Un pret Helvetia est deja actif'; END IF;
 
   v_caisse_id := v_perso.country || '_banque-privee';
-  IF NOT public.helvetia_assurer_liquidite(v_perso.country, p_montant, 'pret_client') THEN
-    RAISE EXCEPTION 'Helvetia ne peut pas financer ce pret actuellement';
-  END IF;
-
-  UPDATE public.caisses_batiments
-    SET data = jsonb_set(data, '{solde}', to_jsonb(COALESCE((data->>'solde')::numeric,0) - p_montant)), updated_at = now()
-    WHERE id = v_caisse_id;
+  -- #267 : l'argent prêté reste sur le compte Helvetia du client ; la caisse ne bouge qu'au retrait.
 
   v_montant_du := ROUND(p_montant * 1.12);
   v_mensualite := ROUND(v_montant_du / p_duree_jours);
@@ -886,12 +880,12 @@ BEGIN
 
   UPDATE public.caisses_batiments
     SET data = jsonb_set(data, '{solde}',
-        to_jsonb(GREATEST(0, COALESCE((data->>'solde')::numeric,0) + v_applique_a_la_dette - v_restitution))),
+        to_jsonb(GREATEST(0, COALESCE((data->>'solde')::numeric,0) - v_restitution))),
         updated_at = now()
     WHERE id = v_caisse_id;
   IF NOT FOUND THEN
     INSERT INTO public.caisses_batiments (id, data, updated_at)
-    VALUES (v_caisse_id, jsonb_build_object('solde', GREATEST(0, v_applique_a_la_dette - v_restitution)), now());
+    VALUES (v_caisse_id, jsonb_build_object('solde', 0), now());
   END IF;
 
   IF v_pret_existe THEN
@@ -1382,6 +1376,14 @@ begin
   )
   returning * into v_nouveau_compte;
 
+  -- #267 : le dépôt d'ouverture entre dans la caisse d'Helvetia (argent détenu par la banque).
+  UPDATE public.caisses_batiments
+    SET data = jsonb_set(data, '{solde}', to_jsonb(COALESCE((data->>'solde')::numeric,0) + 10000)), updated_at = now()
+    WHERE id = v_perso.country || '_banque-privee';
+  IF NOT FOUND THEN
+    INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_perso.country || '_banque-privee', jsonb_build_object('solde', 10000), now());
+  END IF;
+
   return v_nouveau_compte;
 end;
 $function$;
@@ -1431,14 +1433,14 @@ BEGIN
   IF ancien.parametres IS DISTINCT FROM param THEN RETURN jsonb_build_object('ok',false,'raison','requete_reutilisee');END IF;
   r:=ancien.resultat||'{"rejeu":true}';
  ELSE
-  IF p.country IS DISTINCT FROM 'republic' OR p.current_building IS DISTINCT FROM 'banque-nationale' OR p_building_id IS DISTINCT FROM p.current_building
+  IF p.country IS DISTINCT FROM 'republic' OR p.current_building IS NULL OR p.current_building NOT IN ('banque-nationale','banque-locale') OR p_building_id IS DISTINCT FROM p.current_building
    OR coalesce(p.hp,0)<=0 OR EXISTS(SELECT 1 FROM public.detention_active(moi))
    OR coalesce(p.hospitalisation->>'dateFinParis','')>(statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text THEN RETURN jsonb_build_object('ok',false,'raison','pas_sur_place_ou_indisponible');END IF;
   IF p_type_pret IS NULL OR p_type_pret NOT IN('travaux','consommation') THEN RETURN jsonb_build_object('ok',false,'raison','produit_invalide');END IF;
   -- La creation souleve en cas de refus : la sous-transaction annule aussi le PA.
   BEGIN
    INSERT INTO public.acquisitions_transactions_internes VALUES(txid_current(),moi,p.country||'_banque-nationale','emprunter',1,0);
-   r:=public.pret_national_creer_interne(moi,p_montant,p_duree_jours,p_type_pret,p.current_building,p_requete::text);
+   r:=public.pret_national_creer_interne(moi,p_montant,p_duree_jours,p_type_pret,'banque-nationale',p_requete::text);
    cout:=public.payer_ordre(moi,'emprunter',1,0);
    IF cout->>'ok' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION USING MESSAGE=coalesce(cout->>'raison','paiement_refuse');END IF;
    DELETE FROM public.acquisitions_transactions_internes WHERE transaction_id=txid_current() AND acteur=moi;
@@ -1735,10 +1737,10 @@ BEGIN
 
   v_caisse_id := v_pret.country || '_banque-privee';
   UPDATE public.caisses_batiments
-    SET data = jsonb_set(data,'{solde}', to_jsonb(COALESCE((data->>'solde')::numeric,0)+v_total)), updated_at = now()
+    SET data = jsonb_set(data,'{solde}', to_jsonb(COALESCE((data->>'solde')::numeric,0)+v_total-v_helvetia_requis)), updated_at = now()
     WHERE id = v_caisse_id;
   IF NOT FOUND THEN
-    INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_caisse_id, jsonb_build_object('solde', v_total), now());
+    INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_caisse_id, jsonb_build_object('solde', v_total-v_helvetia_requis), now());
   END IF;
 
   UPDATE public.personnages_donnees SET arg = GREATEST(0, COALESCE(arg,0) - v_total) WHERE name = p_personnage;
@@ -1897,7 +1899,7 @@ begin
   set data = jsonb_set(
         data,
         '{solde}',
-        to_jsonb(coalesce((data->>'solde')::numeric, 0) + v_frais)
+        to_jsonb(coalesce((data->>'solde')::numeric, 0) + v_frais + v_gain_net)
       ),
       updated_at = now()
   where id = v_caisse_helvetia_id;
@@ -1906,7 +1908,7 @@ begin
     insert into public.caisses_batiments (id, data, updated_at)
     values (
       v_caisse_helvetia_id,
-      jsonb_build_object('solde', v_frais),
+      jsonb_build_object('solde', v_frais + v_gain_net),
       now()
     );
   end if;
@@ -1934,10 +1936,7 @@ begin
   set solde = solde + v_montant_final,
       updated_at = now()
   where id = v_compte.id;
-
-  UPDATE public.personnages_donnees
-  set arg = coalesce(arg, 0) + v_gain_net
-  where name = v_placement.personnage;
+  -- Le gain net va sur le compte Helvetia seul : `arg` (liquide + Banque nationale) ne bouge pas.
 
   update public.placements_bancaires
   set statut = 'resolu',
@@ -2320,10 +2319,10 @@ BEGIN
         UPDATE public.comptes_bancaires SET solde = solde - v_a_prelever, updated_at = now()
           WHERE personnage = v_pret.emprunteur AND banque = 'helvetia';
         UPDATE public.caisses_batiments
-          SET data = jsonb_set(data,'{solde}', to_jsonb(COALESCE((data->>'solde')::numeric,0)+v_a_prelever)), updated_at = now()
+          SET data = jsonb_set(data,'{solde}', to_jsonb(COALESCE((data->>'solde')::numeric,0))), updated_at = now()
           WHERE id = v_caisse_id;
         IF NOT FOUND THEN
-          INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_caisse_id, jsonb_build_object('solde', v_a_prelever), now());
+          INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_caisse_id, jsonb_build_object('solde', 0), now());
         END IF;
         UPDATE public.personnages_donnees SET arg = GREATEST(0, COALESCE(arg,0) - v_a_prelever) WHERE name = v_pret.emprunteur;
 
@@ -2361,10 +2360,10 @@ BEGIN
         UPDATE public.comptes_bancaires SET solde = solde - v_seize, updated_at = now()
           WHERE personnage = v_pret.emprunteur AND banque = 'helvetia';
         UPDATE public.caisses_batiments
-          SET data = jsonb_set(data,'{solde}', to_jsonb(COALESCE((data->>'solde')::numeric,0)+v_seize)), updated_at = now()
+          SET data = jsonb_set(data,'{solde}', to_jsonb(COALESCE((data->>'solde')::numeric,0))), updated_at = now()
           WHERE id = v_caisse_id;
         IF NOT FOUND THEN
-          INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_caisse_id, jsonb_build_object('solde', v_seize), now());
+          INSERT INTO public.caisses_batiments (id, data, updated_at) VALUES (v_caisse_id, jsonb_build_object('solde', 0), now());
         END IF;
         UPDATE public.personnages_donnees SET arg = GREATEST(0, COALESCE(arg,0) - v_seize) WHERE name = v_pret.emprunteur;
         v_du := v_du - v_seize;

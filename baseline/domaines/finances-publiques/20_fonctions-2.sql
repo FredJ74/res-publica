@@ -437,6 +437,50 @@ BEGIN
                             'acteur', v_acteur, 'caisse', v_caisse);
 END; $function$;
 
+-- subvention_collective_verser(text,text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.subvention_collective_verser(p_requete text, p_type text, p_id text, p_montant integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_recu jsonb; v_pays text; v_jour integer; v_caisse text; v_data jsonb;
+        v_solde numeric; v_verse numeric; v_nouveau numeric; v_res jsonb;
+BEGIN
+  v_moi := public.exiger_poste('min_fin');
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_type NOT IN ('club_sportif', 'organisation') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'type_non_couvert');
+  END IF;
+  IF p_montant IS NULL OR p_montant < 1 OR p_montant > 5000 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'montant_invalide');
+  END IF;
+  IF (p_type = 'club_sportif' AND NOT EXISTS (SELECT 1 FROM public.clubs_football WHERE id = p_id))
+     OR (p_type = 'organisation' AND NOT EXISTS (SELECT 1 FROM public.organisations WHERE id = p_id)) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'beneficiaire_introuvable');
+  END IF;
+  v_recu := public.caisse_collective_recu_interne(p_requete, v_moi, 'subvention_' || p_type, p_id);
+  IF v_recu IS NOT NULL THEN RETURN v_recu; END IF;
+
+  SELECT country, coalesce(day, 1) INTO v_pays, v_jour FROM public.personnages_donnees WHERE name = v_moi;
+  v_caisse := v_pays || '_gouvernement-min_fin';
+  SELECT data INTO v_data FROM public.caisses_batiments WHERE id = v_caisse FOR UPDATE;
+  v_solde := CASE WHEN jsonb_typeof(v_data->'solde') = 'number' THEN (v_data->>'solde')::numeric ELSE 0 END;
+  v_verse := least(greatest(coalesce(v_solde, 0), 0), p_montant);
+  IF v_verse <= 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'caisse_insuffisante', 'verse', 0); END IF;
+  UPDATE public.caisses_batiments
+     SET data = coalesce(v_data, '{}'::jsonb) || jsonb_build_object('solde', v_solde - v_verse), updated_at = now()
+   WHERE id = v_caisse;
+
+  IF p_type = 'club_sportif' THEN
+    v_nouveau := public.club_caisse_ajuster_interne(p_id, v_verse, 'Subvention ministérielle', v_jour);
+  ELSE
+    v_nouveau := public.organisation_caisse_ajuster_interne(p_id, v_verse);
+  END IF;
+  v_res := jsonb_build_object('ok', true, 'verse', v_verse, 'caisse', v_nouveau, 'beneficiaire', p_id);
+  RETURN public.caisse_collective_recu_noter_interne(p_requete, v_moi, 'subvention_' || p_type, p_id, v_res);
+END $function$;
+
 -- subvention_entites(text) -> TABLE(id text, nom text, pays text, ville text) | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.subvention_entites(p_famille text)
  RETURNS TABLE(id text, nom text, pays text, ville text)

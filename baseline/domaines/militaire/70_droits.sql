@@ -594,6 +594,7 @@ GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.services_militaires_id_seq TO ser
 -- DROITS SUR LES TABLES
 GRANT SELECT ON TABLE public.armureries_dotations TO anon;
 GRANT SELECT ON TABLE public.armureries_dotations TO authenticated;
+GRANT SELECT ON TABLE public.armureries_dotations TO hg219_cert_ro_20261101;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.armureries_dotations TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.armureries_dotations TO service_role;
 GRANT SELECT ON TABLE public.batailles TO authenticated;

@@ -3090,6 +3090,12 @@
    "privileges": "SELECT"
   },
   {
+   "beneficiaire": "hg219_cert_ro_20261101",
+   "genre": "TABLE",
+   "objet": "armureries_dotations",
+   "privileges": "SELECT"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "armureries_dotations",
@@ -3623,7 +3629,7 @@
   "35_index.sql": "545b5f4baa12c175154d5ae47ac10bc6",
   "50_triggers.sql": "916fb06290aa12025efd0636f448d615",
   "60_rls-policies.sql": "292f9ec56a5bf0112ac043201c3f487a",
-  "70_droits.sql": "a62c328b0d075ffb4e699a3b587a0bb6",
+  "70_droits.sql": "5f7642ef835a526c7a879741b949a66c",
   "80_commentaires.sql": "47496a878ebeb558e76456ca2f5eda2c"
  },
  "fonctions": [

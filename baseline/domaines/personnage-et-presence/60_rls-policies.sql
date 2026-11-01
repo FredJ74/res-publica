@@ -134,8 +134,8 @@ CREATE POLICY organisations_lecture_publique ON public.organisations FOR SELECT 
 CREATE POLICY organisations_maj_acteur ON public.organisations FOR UPDATE TO authenticated
   USING (acteur_identifie())
   WITH CHECK (acteur_identifie());
-CREATE POLICY organisations_suppression_acteur ON public.organisations FOR DELETE TO authenticated
-  USING (acteur_identifie());
+CREATE POLICY organisations_suppression_chef ON public.organisations FOR DELETE TO authenticated
+  USING (mon_personnage() IS NOT NULL AND data IS JSON OBJECT AND (mon_personnage() = (data::jsonb ->> 'chef'::text) OR mon_personnage() = (data::jsonb ->> 'fondateur'::text)));
 
 -- personnages_donnees
 CREATE POLICY personnages_creation_soi ON public.personnages_donnees FOR INSERT TO authenticated

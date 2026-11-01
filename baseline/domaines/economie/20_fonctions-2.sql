@@ -872,7 +872,10 @@ BEGIN
       RETURN jsonb_build_object('ok', true, 'data', v_data, 'cree', false);
     END IF;
     v_cle := CASE WHEN COALESCE(p_room,'') <> '' THEN p_batiment || '|' || p_room ELSE p_batiment END;
-    SELECT * INTO v_dot FROM public.commerces_dotations WHERE cle = v_cle;
+    SELECT * INTO v_dot FROM public.commerces_dotations WHERE cle = v_cle || '@' || p_ville;
+    IF NOT FOUND THEN
+      SELECT * INTO v_dot FROM public.commerces_dotations WHERE cle = v_cle;
+    END IF;
     IF NOT FOUND THEN
       SELECT * INTO v_dot FROM public.commerces_dotations WHERE cle = p_batiment;
     END IF;
@@ -964,7 +967,10 @@ BEGIN
     IF p_id <> v_id_attendu THEN
       RETURN jsonb_build_object('ok', false, 'raison', 'identifiant_non_conforme', 'attendu', v_id_attendu);
     END IF;
-    SELECT * INTO v_dot FROM public.commerces_dotations WHERE cle = v_cle;
+    SELECT * INTO v_dot FROM public.commerces_dotations WHERE cle = v_cle || '@' || p_ville;
+    IF NOT FOUND THEN
+      SELECT * INTO v_dot FROM public.commerces_dotations WHERE cle = v_cle;
+    END IF;
     v_data := jsonb_build_object(
       'id', p_id, 'type', p_type, 'country', p_pays, 'city', p_ville,
       'buildingId', p_batiment, 'roomId', NULLIF(COALESCE(p_room,''), ''),
@@ -1739,6 +1745,178 @@ BEGIN
  FROM public.hotel_nuitees n WHERE n.personnage_id=p.id AND n.consommee_le IS NULL;
  RETURN r;
 END;$function$;
+
+-- jardins_laisser_interne(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.jardins_laisser_interne(p_acteur text, p_qte integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v jsonb; v_inv jsonb; l integer[]; v_reste integer;
+BEGIN
+  IF coalesce(p_qte, 0) <= 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'quantite_invalide'); END IF;
+  v := public.jardins_ouvriers_acteur_interne(p_acteur);
+  IF (v->>'ok')::boolean IS NOT TRUE THEN RETURN v; END IF;
+  SELECT coalesce(inventory, '[]'::jsonb) INTO v_inv FROM public.personnages_donnees WHERE name = p_acteur;
+  l := public.jardins_ouvriers_ligne_legumes(v_inv);
+  IF l[1] < 0 OR l[2] < p_qte THEN RETURN jsonb_build_object('ok', false, 'raison', 'stock_insuffisant', 'possede', l[2]); END IF;
+  IF l[2] = p_qte THEN v_inv := v_inv - l[1];
+  ELSE v_inv := jsonb_set(v_inv, ARRAY[l[1]::text, 'qty'], to_jsonb(l[2] - p_qte)); END IF;
+  UPDATE public.personnages_donnees SET inventory = v_inv WHERE name = p_acteur;
+  IF (SELECT inventory FROM public.personnages_donnees WHERE name = p_acteur) IS DISTINCT FROM v_inv THEN
+    RAISE EXCEPTION 'inventaire_non_applique'; END IF;
+  INSERT INTO public.jardins_ouvriers_reserve AS r (pays, ville, qte) VALUES ('republic', 'ville_b', p_qte)
+  ON CONFLICT (pays, ville) DO UPDATE SET qte = r.qte + EXCLUDED.qte RETURNING qte INTO v_reste;
+  RETURN jsonb_build_object('ok', true, 'quantite', p_qte, 'reserve', v_reste);
+END; $function$;
+
+-- jardins_laisser_legumes(uuid,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.jardins_laisser_legumes(p_requete uuid, p_qte integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); prm jsonb := jsonb_build_object('qte', p_qte); v jsonb; d text;
+BEGIN
+  v := public.achat_requete_ouvrir_interne(a, p_requete, 'jardins_laisser_legumes', prm);
+  IF v IS NOT NULL THEN RETURN v; END IF;
+  BEGIN
+    v := public.jardins_laisser_interne(a, p_qte);
+    IF (v->>'ok')::boolean IS DISTINCT FROM true THEN RAISE EXCEPTION 'refus' USING ERRCODE = 'HG001', DETAIL = coalesce(v, '{"ok":false}')::text; END IF;
+  EXCEPTION WHEN SQLSTATE 'HG001' THEN GET STACKED DIAGNOSTICS d = PG_EXCEPTION_DETAIL; RETURN d::jsonb;
+  END;
+  RETURN public.achat_requete_clore_interne(a, p_requete, 'jardins_laisser_legumes', prm, v);
+END; $function$;
+
+-- jardins_ouvriers_acteur_interne(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.jardins_ouvriers_acteur_interne(p_acteur text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE m record;
+BEGIN
+  IF p_acteur IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT country, current_city, current_building, hp, hospitalisation INTO m
+    FROM public.personnages_donnees WHERE name = p_acteur FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF coalesce(m.hp, 0) <= 0
+     OR coalesce(m.hospitalisation->>'dateFinParis', '') > (statement_timestamp() AT TIME ZONE 'Europe/Paris')::date::text
+     OR EXISTS (SELECT 1 FROM public.detention_active(p_acteur)) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'acteur_indisponible'); END IF;
+  IF m.country IS DISTINCT FROM 'republic' OR m.current_city IS DISTINCT FROM 'ville_b'
+     OR m.current_building IS DISTINCT FROM 'jardins-ouvriers-montrouge' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_sur_place'); END IF;
+  RETURN jsonb_build_object('ok', true);
+END; $function$;
+
+-- jardins_ouvriers_ligne_legumes(jsonb) -> integer[] | plpgsql | SECURITY INVOKER
+CREATE OR REPLACE FUNCTION public.jardins_ouvriers_ligne_legumes(p_inv jsonb)
+ RETURNS integer[]
+ LANGUAGE plpgsql
+ IMMUTABLE
+AS $function$
+DECLARE i integer;
+BEGIN
+  IF jsonb_typeof(p_inv) = 'array' THEN
+    FOR i IN 0 .. jsonb_array_length(p_inv) - 1 LOOP
+      IF (p_inv -> i ->> 'stackKey') = 'fruits_legumes' AND coalesce((p_inv -> i ->> 'stackable')::boolean, false) THEN
+        RETURN ARRAY[i, greatest(0, floor(coalesce((p_inv -> i ->> 'qty')::numeric, 0))::integer)];
+      END IF;
+    END LOOP;
+  END IF;
+  RETURN ARRAY[-1, 0];
+END; $function$;
+
+-- jardins_prendre_interne(text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.jardins_prendre_interne(p_acteur text, p_qte integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v jsonb; v_stock integer; v_dep jsonb;
+BEGIN
+  IF coalesce(p_qte, 0) <= 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'quantite_invalide'); END IF;
+  v := public.jardins_ouvriers_acteur_interne(p_acteur);
+  IF (v->>'ok')::boolean IS NOT TRUE THEN RETURN v; END IF;
+  SELECT qte INTO v_stock FROM public.jardins_ouvriers_reserve WHERE pays = 'republic' AND ville = 'ville_b' FOR UPDATE;
+  IF coalesce(v_stock, 0) < p_qte THEN RETURN jsonb_build_object('ok', false, 'raison', 'reserve_insuffisante', 'reserve', coalesce(v_stock, 0)); END IF;
+  IF (SELECT public.inventaire_place_restante(inventory) FROM public.personnages_donnees WHERE name = p_acteur) < p_qte THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'inventaire_plein'); END IF;
+  UPDATE public.jardins_ouvriers_reserve SET qte = qte - p_qte WHERE pays = 'republic' AND ville = 'ville_b';
+  v_dep := public.inventaire_deposer_interne(p_acteur, jsonb_build_object('name', 'Fruits & légumes',
+    'icon', 'ti-apple', 'stackable', true, 'stackKey', 'fruits_legumes', 'qty', p_qte,
+    'desc', 'Laissés aux jardins ouvriers de Montrouge pour qui en a besoin.'));
+  IF coalesce((v_dep->>'ok')::boolean, false) IS NOT TRUE THEN RAISE EXCEPTION 'jardins_prendre: depot refuse %', v_dep; END IF;
+  RETURN jsonb_build_object('ok', true, 'quantite', p_qte, 'reserve', v_stock - p_qte);
+END; $function$;
+
+-- jardins_prendre_legumes(uuid,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.jardins_prendre_legumes(p_requete uuid, p_qte integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); prm jsonb := jsonb_build_object('qte', p_qte); v jsonb; d text;
+BEGIN
+  v := public.achat_requete_ouvrir_interne(a, p_requete, 'jardins_prendre_legumes', prm);
+  IF v IS NOT NULL THEN RETURN v; END IF;
+  BEGIN
+    v := public.jardins_prendre_interne(a, p_qte);
+    IF (v->>'ok')::boolean IS DISTINCT FROM true THEN RAISE EXCEPTION 'refus' USING ERRCODE = 'HG001', DETAIL = coalesce(v, '{"ok":false}')::text; END IF;
+  EXCEPTION WHEN SQLSTATE 'HG001' THEN GET STACKED DIAGNOSTICS d = PG_EXCEPTION_DETAIL; RETURN d::jsonb;
+  END;
+  RETURN public.achat_requete_clore_interne(a, p_requete, 'jardins_prendre_legumes', prm, v);
+END; $function$;
+
+-- jardins_travailler(uuid) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.jardins_travailler(p_requete uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a text := public.mon_personnage(); prm jsonb := '{}'::jsonb; v jsonb; d text;
+BEGIN
+  v := public.achat_requete_ouvrir_interne(a, p_requete, 'jardins_travailler', prm);
+  IF v IS NOT NULL THEN RETURN v; END IF;
+  BEGIN
+    v := public.jardins_travailler_interne(a);
+    IF (v->>'ok')::boolean IS DISTINCT FROM true THEN RAISE EXCEPTION 'refus' USING ERRCODE = 'HG001', DETAIL = coalesce(v, '{"ok":false}')::text; END IF;
+  EXCEPTION WHEN SQLSTATE 'HG001' THEN GET STACKED DIAGNOSTICS d = PG_EXCEPTION_DETAIL; RETURN d::jsonb;
+  END;
+  RETURN public.achat_requete_clore_interne(a, p_requete, 'jardins_travailler', prm, v);
+END; $function$;
+
+-- jardins_travailler_interne(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.jardins_travailler_interne(p_acteur text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v jsonb; v_jour date := (statement_timestamp() AT TIME ZONE 'Europe/Paris')::date; v_dep jsonb;
+BEGIN
+  v := public.jardins_ouvriers_acteur_interne(p_acteur);
+  IF (v->>'ok')::boolean IS NOT TRUE THEN RETURN v; END IF;
+  IF EXISTS (SELECT 1 FROM public.jardins_ouvriers_travail WHERE nom = p_acteur AND jour = v_jour) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_fait_aujourdhui'); END IF;
+  IF (SELECT public.inventaire_place_restante(inventory) FROM public.personnages_donnees WHERE name = p_acteur) < 5 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'inventaire_plein'); END IF;
+  v := public.payer_ordre(p_acteur, 'travailler_jardins', 1, 0);
+  IF coalesce((v->>'ok')::boolean, false) IS NOT TRUE THEN RETURN v; END IF;
+  INSERT INTO public.jardins_ouvriers_travail (nom, jour) VALUES (p_acteur, v_jour);
+  v_dep := public.inventaire_deposer_interne(p_acteur, jsonb_build_object('name', 'Fruits & légumes',
+    'icon', 'ti-apple', 'stackable', true, 'stackKey', 'fruits_legumes', 'qty', 5,
+    'desc', 'Cultivés aux jardins ouvriers de Montrouge.'));
+  IF coalesce((v_dep->>'ok')::boolean, false) IS NOT TRUE THEN RAISE EXCEPTION 'jardins_travailler: depot refuse %', v_dep; END IF;
+  RETURN jsonb_build_object('ok', true, 'quantite', 5, 'pa', v->'pa');
+END; $function$;
 
 -- local_vocation_commerciale(text) -> text | sql | SECURITY INVOKER
 CREATE OR REPLACE FUNCTION public.local_vocation_commerciale(p_building_id text)
@@ -2565,85 +2743,3 @@ CREATE OR REPLACE FUNCTION public.restaurant_luthecia_initialiser()
  SET search_path TO 'public', 'pg_temp'
 AS $function$
 BEGIN NEW.data:=public.restaurant_luthecia_configurer(NEW.data); RETURN NEW; END $function$;
-
--- restaurant_luthecia_pnj_chance(text,text) -> integer | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.restaurant_luthecia_pnj_chance(acteur text, invite text)
- RETURNS integer
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE p public.personnages_donnees; chance integer;
-BEGIN
- SELECT * INTO p FROM public.personnages_donnees WHERE name=acteur;
- IF NOT FOUND THEN RETURN NULL; END IF;
- chance:=CASE invite WHEN 'Gaston Sauceblanche' THEN 60 WHEN 'Régis Gondasse' THEN 60 WHEN 'Yvette Gratinée' THEN 60 WHEN 'Jean Dupont' THEN 60 WHEN 'Marie Leblanc' THEN 20 ELSE NULL END;
- IF EXISTS(SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(p.employes)='array' THEN p.employes ELSE '[]' END) e WHERE e->>'nom'=invite AND e->'inGroupe'='true'::jsonb)
-  OR EXISTS(SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(p.escort_active)='array' THEN p.escort_active ELSE '[]' END) e WHERE e->>'nom'=invite)
-  OR EXISTS(SELECT 1 FROM public.pnj_membres WHERE nom=invite AND leader_pj IN(acteur,'pj:'||acteur) AND statut='actif') THEN chance:=95; END IF;
- -- Reutiliser la projection serveur des agents, jamais les vrais noms ni un cache de presence.
- IF acteur=public.mon_personnage() AND EXISTS(
-  SELECT 1 FROM jsonb_array_elements(coalesce(public.agents_couverture_de_mon_groupe()->'agents','[]'::jsonb)) a WHERE a->>'nom'=invite
- ) THEN chance:=95; END IF;
- RETURN chance;
-END $function$;
-
--- restaurant_luthecia_production_verifier(jsonb,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.restaurant_luthecia_production_verifier(d jsonb, acteur text, recette text)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE c numeric;
-BEGIN
- IF NOT public.restaurant_luthecia_est_commerce(d) THEN RETURN '{"ok":true}'; END IF;
- PERFORM 1 FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
- IF NOT EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=acteur AND country='republic' AND current_city='capitale' AND current_building='hotel-republica') OR NOT(public.restaurant_luthecia_carte(d,acteur) @> jsonb_build_array(recette)) THEN RETURN '{"ok":false,"raison":"hors_carte_piece"}'; END IF;
- IF coalesce(d->>'proprietaire','PNJ')='PNJ' AND recette IN('champagne_luthecia','cocktail_luthecia') THEN
-  IF d->'coutMoyenMatieres'->>'fruits_legumes' IS NULL THEN RETURN '{"ok":false,"raison":"cout_matiere_inconnu"}'; END IF;
-  c:=public.commerce_cout_revient_portion(d,recette);
-  IF c IS NULL OR c*2>25 THEN RETURN jsonb_build_object('ok',false,'raison','marge_pnj_insuffisante','coutUnitaire',c); END IF;
- END IF;
- RETURN '{"ok":true}';
-END $function$;
-
--- restaurant_luthecia_vente_verifier(jsonb,text,jsonb,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.restaurant_luthecia_vente_verifier(d jsonb, acteur text, produits jsonb, mode_vente text)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-BEGIN
- -- Compatibilite des appels historiques : aucune reservation deduite d'un panier vide.
- RETURN public.restaurant_luthecia_vente_verifier(d,acteur,produits,mode_vente,NULL);
-END $function$;
-
--- restaurant_luthecia_vente_verifier(jsonb,text,jsonb,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.restaurant_luthecia_vente_verifier(d jsonb, acteur text, produits jsonb, mode_vente text, ordre text)
- RETURNS jsonb
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-BEGIN
- IF NOT public.restaurant_luthecia_est_commerce(d) THEN RETURN '{"ok":true}'; END IF;
- PERFORM 1 FROM public.personnages_donnees WHERE name=acteur FOR UPDATE;
- IF NOT EXISTS(SELECT 1 FROM public.personnages_donnees WHERE name=acteur AND country='republic' AND current_city='capitale' AND current_building='hotel-republica'
-  AND CASE WHEN ordre='reserver_chambre_hotel' THEN current_room='accueil' ELSE current_room IN('bar','restaurant') END)
- THEN RETURN '{"ok":false,"raison":"pas_sur_place"}'; END IF;
- IF d->>'versionGastronomieLuthecia' IS DISTINCT FROM '1' THEN RETURN '{"ok":false,"raison":"carte_non_installee"}'; END IF;
- IF ordre='reserver_chambre_hotel' THEN
-  -- Une prestation exacte, sans articles ni autre mode, a l'accueil uniquement.
-  IF mode_vente IS DISTINCT FROM 'service' OR produits IS DISTINCT FROM '[]'::jsonb THEN
-   RETURN '{"ok":false,"raison":"reservation_invalide"}';
-  END IF;
- ELSE
-  -- Le service des diners reste reserve a sa porte atomique existante.
-  IF mode_vente='service' AND current_setting('rp.diner_luthecia',true) IS DISTINCT FROM 'on' THEN
-   RETURN '{"ok":false,"raison":"service_par_invitation_requis"}';
-  END IF;
- END IF;
- RETURN '{"ok":true}';
-END $function$;

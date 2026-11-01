@@ -19,6 +19,7 @@ ALTER TABLE public.budgets_municipaux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.budgets_nationaux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.caisses_autorites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.caisses_batiments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.caisses_collectives_operations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.caisses_mouvements_clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contributions_piete ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.directions_etablissements ENABLE ROW LEVEL SECURITY;
@@ -48,11 +49,6 @@ ALTER TABLE public.subventions_municipales ENABLE ROW LEVEL SECURITY;
 -- budgets_clubs
 CREATE POLICY "Lecture publique du budget club" ON public.budgets_clubs FOR SELECT TO PUBLIC
   USING (true);
-CREATE POLICY budgets_clubs_ecriture_acteur ON public.budgets_clubs FOR INSERT TO authenticated
-  WITH CHECK (acteur_identifie());
-CREATE POLICY budgets_clubs_maj_acteur ON public.budgets_clubs FOR UPDATE TO authenticated
-  USING (acteur_identifie())
-  WITH CHECK (acteur_identifie());
 
 -- budgets_municipaux
 CREATE POLICY "Lecture publique du budget municipal" ON public.budgets_municipaux FOR SELECT TO PUBLIC

@@ -14,6 +14,7 @@ CREATE TRIGGER demandes_mariage_ecran_refuser BEFORE INSERT OR DELETE OR UPDATE 
 CREATE TRIGGER invitation_tournee_contrat_protege BEFORE INSERT OR DELETE OR UPDATE ON invitations_diner FOR EACH ROW EXECUTE FUNCTION tournee_proteger_contrat();
 CREATE TRIGGER invitations_restaurant_protege BEFORE INSERT OR DELETE OR UPDATE ON invitations_diner FOR EACH ROW EXECUTE FUNCTION restaurant_diner_proteger();
 CREATE TRIGGER mariages_ecran_refuser BEFORE INSERT OR DELETE OR UPDATE ON mariages FOR EACH ROW EXECUTE FUNCTION mariage_ecriture_ecran_refuser();
+CREATE TRIGGER trg_organisations_finances_garder BEFORE INSERT OR UPDATE ON organisations FOR EACH ROW EXECUTE FUNCTION organisations_finances_garder();
 CREATE TRIGGER trg_organisations_politique_autorite BEFORE INSERT OR DELETE OR UPDATE ON organisations FOR EACH ROW EXECUTE FUNCTION organisations_politique_autorite();
 CREATE TRIGGER trg_personnages_vue_inserer INSTEAD OF INSERT ON personnages FOR EACH ROW EXECUTE FUNCTION personnages_vue_inserer();
 CREATE TRIGGER trg_personnages_vue_modifier INSTEAD OF UPDATE ON personnages FOR EACH ROW EXECUTE FUNCTION personnages_vue_modifier();

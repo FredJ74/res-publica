@@ -475,7 +475,7 @@
     {
       "version": "20261031185432",
       "fichier": "migrations/20261031185432_ordres_couts_reconciliation_sources.sql",
-      "sha256": "34a86944e88ce3bb527671af6b97a35fdd621930cd55ca48b357c5a5f335730a"
+      "sha256": "a9f22988ccbf07d8bee5ce9ca1abdee1a6d7d081b37f85a5b9131c3deced17de"
     },
     {
       "version": "20261101170000",
@@ -493,7 +493,7 @@
     "lignes": 459,
     "md5": "1e69581b8020f7375f95d7cdf5dd6c39"
   },
-  "ancien_plan_tarifaire_conforme_source": false,
+  "ancien_plan_tarifaire_conforme_source": true,
   "etapes": [
     "valider paquet atomique et SHA indépendants",
     "rendre et seeds depuis les exports ; comparer six racines, douze référentiels et locale",

@@ -10,12 +10,13 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 31 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 32 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   budgets_clubs_pkey  (contrainte budgets_clubs_pkey)
 --   budgets_municipaux_pkey  (contrainte budgets_municipaux_pkey)
 --   budgets_nationaux_pkey  (contrainte budgets_nationaux_pkey)
 --   caisses_autorites_pkey  (contrainte caisses_autorites_pkey)
 --   caisses_batiments_pkey  (contrainte caisses_batiments_pkey)
+--   caisses_collectives_operations_pkey  (contrainte caisses_collectives_operations_pkey)
 --   caisses_mouvements_clients_pkey  (contrainte caisses_mouvements_clients_pkey)
 --   contributions_piete_pkey  (contrainte contributions_piete_pkey)
 --   directions_etablissements_pkey  (contrainte directions_etablissements_pkey)

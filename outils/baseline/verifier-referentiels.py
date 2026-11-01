@@ -265,10 +265,15 @@ def empreinte_du_generateur(chemin_relatif):
     sur une mesure datee de la base, mais celle-ci est recalculee a chaque
     passage. Si data.js bouge, elle bouge, et le controle rougit en disant quel
     miroir est devenu perime."""
+    arguments = ['--empreinte']
+    if isinstance(chemin_relatif, dict):
+        if set(chemin_relatif) != {'fichier','arguments'} or not isinstance(chemin_relatif['arguments'],list) or not all(isinstance(x,str) for x in chemin_relatif['arguments']):return None,'specification de generateur invalide'
+        arguments=chemin_relatif['arguments'];chemin_relatif=chemin_relatif['fichier']
+    if not isinstance(chemin_relatif,str):return None,'chemin de generateur invalide'
     chemin = os.path.join(RACINE, chemin_relatif)
     if not os.path.exists(chemin):
         return None, "generateur absent : " + chemin_relatif
-    p = subprocess.run([sys.executable, chemin, "--empreinte"],
+    p = subprocess.run([sys.executable, chemin, *arguments],
                        capture_output=True, text=True, timeout=600)
     sortie = (p.stdout or "").strip().splitlines()
     if p.returncode != 0 or not sortie:

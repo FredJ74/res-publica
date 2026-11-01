@@ -2018,7 +2018,7 @@
  ],
  "fichiers": {
   "10_tables.sql": "49d7d3f9cbbe28c776660902675a4d98",
-  "20_fonctions.sql": "a13147fdb10eb3ccb8913d6d894d6e90",
+  "20_fonctions.sql": "8d2571fe6febe260f90729dfb06c0676",
   "30_contraintes.sql": "799840ecb021ef4973bcaa5e9f3ae37b",
   "35_index.sql": "52b739a4ab0df173345bc9d4ac1e72b6",
   "60_rls-policies.sql": "906cb5ec88485e29587265870e7909f7",
@@ -2308,7 +2308,7 @@
    "signature": "inventaire_revision_garder()"
   },
   {
-   "empreinte": "57e01e4f842ef10ea8dd01dc99b3de9a",
+   "empreinte": "d666ac810c9a0e13be3131fbdf7bcac5",
    "security_definer": true,
    "signature": "inventaire_sauver_revision(text,bigint,jsonb)"
   },
@@ -2393,7 +2393,7 @@
    "signature": "objet_fiche_officielle(jsonb)"
   },
   {
-   "empreinte": "4567a50bfe52496abdd6cb404deedde4",
+   "empreinte": "c9e397bdfeb909f65b646ebcdd6bea91",
    "security_definer": true,
    "signature": "objet_sas_deposer(text,text,jsonb,text)"
   },

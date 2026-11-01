@@ -89,6 +89,28 @@ def restituer_checks(q,exports,equivalentes):
    assert apres==source,'L’arbre CHECK reconstitué ne reproduit pas la source exacte'
    preuves.append({'table':c['tbl'],'contrainte':c['nom'],'avant':hashlib.md5(actuelle.encode()).hexdigest(),'source_et_apres':hashlib.md5(apres.encode()).hexdigest(),'regle':'BETWEEN déplié après analyse des AND ; définition source exacte retrouvée'})
  return preuves
+def creer_roles_catalogue(q,exports):
+ """Identités ACL seulement, dans le clone local ; jamais mots de passe/login."""
+ if q.connection.info.host and not q.connection.info.host.startswith('/'):raise ValueError('Socket local requis')
+ from psycopg2 import sql
+ from pglast import parse_sql
+ exp,_=rendre.charger_exports(str(exports));noms=set()
+ for cle in ('droits_relations','droits_fonctions','droits_colonnes'):
+  noms.update(x['beneficiaire'] for x in exp[cle])
+ for x in exp.get('droits_par_defaut',[]):
+  noms.add(x['proprietaire'])
+  for cle in ('accorde','revoque_du_natif'):noms.update(y['beneficiaire'] for y in x[cle])
+ for x in exp['policies']:
+  for raw in parse_sql(x['definition']):
+   if type(raw.stmt).__name__=='CreatePolicyStmt':noms.update(r.rolename for r in raw.stmt.roles if r.rolename)
+ cree=[]
+ for nom in sorted(noms-{'PUBLIC'}):
+  if not isinstance(nom,str) or not nom or '\x00' in nom:raise ValueError('Nom de rôle invalide')
+  q.execute('SELECT 1 FROM pg_roles WHERE rolname=%s',(nom,))
+  if q.fetchone():continue
+  q.execute(sql.SQL('CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS').format(sql.Identifier(nom)));cree.append(nom)
+ return {'roles_acl_crees':cree,'login_cree':False,'mot_de_passe_copie':False}
+
 def preparer(exports):
  exp,_=rendre.charger_exports(str(exports))
  with (R/'baseline/classification-donnees.csv').open() as f:

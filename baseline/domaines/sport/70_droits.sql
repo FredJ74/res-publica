@@ -19,11 +19,16 @@ REVOKE ALL ON FUNCTION public.championnat_publier_tour(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.championnat_rang_etape(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.championnat_verrou_calendrier() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.club_accessoire_acheter(uuid,text,integer,integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_caisse_ajuster_interne(text,numeric,text,integer) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.club_capitaine(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.club_electeurs(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.club_president_cloturer(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.club_president_postuler(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.club_president_voter(text,boolean) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_salaires_fixer(text,integer,integer,integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_sponsoriser(text,text,integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_supporters_cotiser(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.club_transfert_conclure(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.football_entrainement_consommer(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.football_entrainements_compter_interne(text,date) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.football_entrainements_du_jour() FROM PUBLIC;
@@ -33,6 +38,7 @@ REVOKE ALL ON FUNCTION public.football_paris_resoudre(integer) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.football_primes_journee(integer) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.football_primes_match(integer,text,jsonb) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.football_primes_tour(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.transferts_clubs_garder() FROM PUBLIC;
 
 -- DROITS SUR LES FUNCTIONS
 GRANT EXECUTE ON FUNCTION public.championnat_date_sportive(timestamp with time zone) TO PUBLIC;
@@ -69,6 +75,8 @@ GRANT EXECUTE ON FUNCTION public.championnat_verrou_calendrier() TO service_role
 GRANT EXECUTE ON FUNCTION public.club_accessoire_acheter(uuid,text,integer,integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.club_accessoire_acheter(uuid,text,integer,integer) TO postgres;
 GRANT EXECUTE ON FUNCTION public.club_accessoire_acheter(uuid,text,integer,integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.club_caisse_ajuster_interne(text,numeric,text,integer) TO postgres;
+GRANT EXECUTE ON FUNCTION public.club_caisse_ajuster_interne(text,numeric,text,integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.club_capitaine(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.club_capitaine(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.club_capitaine(text) TO service_role;
@@ -84,6 +92,18 @@ GRANT EXECUTE ON FUNCTION public.club_president_postuler(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.club_president_voter(text,boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.club_president_voter(text,boolean) TO postgres;
 GRANT EXECUTE ON FUNCTION public.club_president_voter(text,boolean) TO service_role;
+GRANT EXECUTE ON FUNCTION public.club_salaires_fixer(text,integer,integer,integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.club_salaires_fixer(text,integer,integer,integer) TO postgres;
+GRANT EXECUTE ON FUNCTION public.club_salaires_fixer(text,integer,integer,integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.club_sponsoriser(text,text,integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.club_sponsoriser(text,text,integer) TO postgres;
+GRANT EXECUTE ON FUNCTION public.club_sponsoriser(text,text,integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.club_supporters_cotiser(text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.club_supporters_cotiser(text,text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.club_supporters_cotiser(text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.club_transfert_conclure(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.club_transfert_conclure(text) TO postgres;
+GRANT EXECUTE ON FUNCTION public.club_transfert_conclure(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.football_entrainement_consommer(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.football_entrainement_consommer(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.football_entrainement_consommer(text) TO service_role;
@@ -111,6 +131,8 @@ GRANT EXECUTE ON FUNCTION public.football_primes_match(integer,text,jsonb) TO se
 GRANT EXECUTE ON FUNCTION public.football_primes_tour(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.football_primes_tour(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.football_primes_tour(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.transferts_clubs_garder() TO postgres;
+GRANT EXECUTE ON FUNCTION public.transferts_clubs_garder() TO service_role;
 
 -- DROITS SUR LES SEQUENCES
 GRANT SELECT, UPDATE, USAGE ON SEQUENCE public.championnat_tentatives_id_seq TO postgres;

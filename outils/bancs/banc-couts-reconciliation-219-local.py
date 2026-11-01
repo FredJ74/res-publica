@@ -13,7 +13,7 @@ def main():
  # pour reconstituer ce décor de TEST à partir du générateur (pas une preuve vivante).
  plan=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text());source=json.loads(subprocess.check_output(['python3',str(R/'outils/generateurs/generer_ordres_couts.py'),'--json'],text=True,cwd=R));canon={(x['fn'],x['pa'],x['cost']) for x in source}
  retire={(x['fn'],x['pa'],x['cost']) for x in plan['retirer']};ajoute={(x['fn'],x['pa'],x['cost']) for x in plan['ajouter']};capture=sorted((canon-ajoute)|retire)
- assert len(capture)==438
+ assert len(capture)==plan['avant']['lignes']
  base=charger('base','outils/bancs/banc-inventaire-receptions-local.py');a=charger('sources','outils/bancs/banc-audit-securite-135-local.py')
  srv=pgserver.get_server(tempfile.mkdtemp(prefix='hg-couts219-'),cleanup_mode='delete');c=psycopg2.connect(srv.get_uri());c.autocommit=True;q=c.cursor();base.initialiser(q)
  q.execute(a.fonction('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre'))
@@ -40,11 +40,11 @@ def main():
  try:q.execute(sql);raise AssertionError('miroir inconnu accepté')
  except psycopg2.Error as e:check('capture_ou_sentinelle_modifiee' in str(e),'prévol refuse une nouvelle réalité')
  check(matrice()==inconnue and photo()==avant,'refus sans écrasement de tarif ni fiche');q.execute("DELETE FROM ordres_couts WHERE fn='ordre_ajoute_depuis_capture'")
- panne=sql.replace(' -- Les 39 déclarations'," RAISE EXCEPTION 'panne_apres_suppression_fixture';\n -- Les 39 déclarations")
+ panne=sql.replace(' -- Les déclarations'," RAISE EXCEPTION 'panne_apres_suppression_fixture';\n -- Les déclarations")
  try:q.execute(panne);raise AssertionError('panne ignorée')
  except psycopg2.Error as e:check('panne_apres_suppression_fixture' in str(e),'panne réellement après les retraits')
  check(matrice()==set(capture) and photo()==avant,'annulation entière après retraits')
- q.execute(sql);check(matrice()==canon,'452 triplets exacts, pas seulement le nombre');check(photo()==avant,'réconciliation sans modification de fiche ou banque');q.execute('SELECT empreinte FROM ordres_couts_empreinte WHERE seul');check(q.fetchone()[0]==plan['apres']['md5'][:16],'sentinelle du contenu réellement installé')
+ q.execute(sql);check(matrice()==canon,'triplets exacts du générateur, pas seulement le nombre');check(photo()==avant,'réconciliation sans modification de fiche ou banque');q.execute('SELECT empreinte FROM ordres_couts_empreinte WHERE seul');check(q.fetchone()[0]==plan['apres']['md5'][:16],'sentinelle du contenu réellement installé')
  q.execute(sql);check(matrice()==canon and photo()==avant,'migration rejouable sans second effet')
  q.execute('BEGIN');v=achat(0);check(not v['ok'],'ancien coût zéro PA désormais refusé');q.execute('RESET ROLE');check(photo()==avant,'refus sans dépense ni objet');q.execute('ROLLBACK')
  q.execute('BEGIN');v=achat(0,0);check(not v['ok'],'la consultation gratuite ne peut pas acheter un objet payant');q.execute('ROLLBACK');check(photo()==avant,'gratuité détournée sans effet')

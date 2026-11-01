@@ -872,6 +872,40 @@ BEGIN
   RETURN v_res;
 END; $function$;
 
+-- caisse_collective_recu_interne(text,text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.caisse_collective_recu_interne(p_requete text, p_acteur text, p_operation text, p_cible text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE r record;
+BEGIN
+  IF p_requete IS NULL OR p_requete !~ '^[a-z]+-[A-Za-z0-9-]{8,100}$' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_invalide');
+  END IF;
+  PERFORM pg_advisory_xact_lock(hashtext('caisse_collective:' || p_requete));
+  SELECT * INTO r FROM public.caisses_collectives_operations WHERE requete = p_requete;
+  IF NOT FOUND THEN RETURN NULL; END IF;
+  IF r.acteur <> p_acteur OR r.operation <> p_operation OR r.cible <> p_cible THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'requete_deja_utilisee');
+  END IF;
+  RETURN r.resultat || jsonb_build_object('rejeu', true);
+END $function$;
+
+-- caisse_collective_recu_noter_interne(text,text,text,text,jsonb) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.caisse_collective_recu_noter_interne(p_requete text, p_acteur text, p_operation text, p_cible text, p_resultat jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+BEGIN
+  INSERT INTO public.caisses_collectives_operations(requete, acteur, operation, cible, resultat)
+  VALUES (p_requete, p_acteur, p_operation, p_cible, p_resultat);
+  RETURN p_resultat;
+END $function$;
+
 -- caisse_commissariat_lire(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.caisse_commissariat_lire(p_id text)
  RETURNS jsonb

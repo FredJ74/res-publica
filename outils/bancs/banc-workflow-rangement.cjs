@@ -49,3 +49,21 @@ for (const [nom, fichier, sql, attendu] of [
     else assert.deepEqual(erreurs, []);
   });
 }
+
+test('la capture du registre distingue âge du fichier, version et nom réellement appliqués', () => {
+ const script=String.raw`
+import runpy,hashlib,copy
+m=runpy.run_path('outils/baseline/verifier-workflow.py',run_name='importe')
+vs=['20261101000000','20261102000000'];reg={'versions':vs,'lignes':2,'derniere':vs[-1],'sha256_versions':hashlib.sha256('\n'.join(vs).encode()).hexdigest(),'noms_sha256':[hashlib.sha256(b'deja_fait').hexdigest()]};ctl={'entrees':2,'derniere_version':vs[-1]}
+m['verifier_registre_observe'](reg,ctl)
+f=m['migration_presente_au_registre']
+assert f('20261101000000_autre_nom.sql',reg)
+assert f('20261001000000_deja_fait.sql',reg)
+assert not f('20260901000000_encore_a_livrer.sql',reg)
+for key,value in [('lignes',3),('sha256_versions','0'*64),('derniere','20260101000000'),('noms_sha256',[])]:
+ d=copy.deepcopy(reg);d[key]=value
+ try:m['verifier_registre_observe'](d,ctl);raise AssertionError('capture falsifiée acceptée')
+ except ValueError:pass
+`;
+ const r=spawnSync('python3',['-c',script],{cwd:root,encoding:'utf8'});assert.equal(r.status,0,r.stderr||r.stdout);
+});

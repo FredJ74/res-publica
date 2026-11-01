@@ -42,10 +42,10 @@
  "_correction_chantier_5": "Releve une troisieme fois le 9 octobre 2026, apres la migration 20261009132222 (notification_ne_casse_plus_l_acte). DEUX valeurs bougent, et les deux pour la meme raison : colonnes 83 -> 84 -- mails_envois_systeme recoit `echec`, qui distingue un refus d'autorite (NULL) d'un envoi techniquement impossible (SQLSTATE + message) ; empreinte_fonctions aae9cafe... -> 0910cfbd... -- mail_systeme_envoyer enferme desormais son INSERT dans un bloc d'exception, pour qu'un courrier perdu n'annule plus l'acte metier de l'appelant. LES DEUX VALEURS SONT RELEVEES DANS LA BASE, par la requete de la formule ci-dessus, et non recopiees depuis le baseline : les poser depuis le rendu rendrait ce controle circulaire.",
  "source_actualisation": {
   "exports_sha256": {
-   "export_droits.json": "6da9b8dd2b9ce48f9fe94fc5a52f596b3bfb44be3d4c1230c157a3fc700207a7",
-   "export_fonctions.json": "f8018e6f2dcaa369191f2bc456783290ec25478c125e363f3df82ef1a51fa86e",
-   "export_logique.json": "1aadfcbaeec10d8bd6c6e66cd9f5a38809600790b4db662d7d90136e2061c307",
-   "export_structure.json": "4da4c76297bc0997578cd717229da6c23bc0f7f1bfdb077c3c1ef1e635abd3a5"
+   "export_droits.json": "ba6fa58633d6a6b0dc1a9c078150d41d6e592a58bf64f2ac737ee71ddd3efa3f",
+   "export_fonctions.json": "e75f71aa260f7b6c1fb336dcced5dd125c0e1e93ac7c2e7325802bd3919d5b39",
+   "export_logique.json": "520c4abd4309892b1a68a3a2a22e4a3017face90907aa0d56a31afa7c92e4746",
+   "export_structure.json": "511cbbc458f733fe6c4f209494cf3049c4f837c99de90c231f9f22cc40ecff68"
   },
   "methode": "Mesures des exports canoniques ; aucune attente déduite du MANIFESTE ou du rendu SQL."
  }

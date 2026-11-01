@@ -154,6 +154,21 @@ def select_catalogue_sans_ecriture(texte):
         return False
 
 
+def verifier_registre_observe(reg,controle):
+    import hashlib
+    vs=reg['versions']
+    if vs!=sorted(set(vs)) or not all(isinstance(v,str) and re.fullmatch(r'[0-9]{14}',v) for v in vs):raise ValueError('Versions invalides')
+    if not vs or len(vs)!=reg['lignes'] or len(vs)!=controle['entrees'] or max(vs)!=reg['derniere'] or max(vs)!=controle['derniere_version']:raise ValueError('Coupe incohérente')
+    if hashlib.sha256('\n'.join(vs).encode()).hexdigest()!=reg['sha256_versions']:raise ValueError('Empreinte des versions différente')
+    if not reg['noms_sha256'] or not all(isinstance(h,str) and re.fullmatch(r'[a-f0-9]{64}',h) for h in reg['noms_sha256']):raise ValueError('Noms de migration absents')
+    return reg
+
+def migration_presente_au_registre(fichier,registre):
+    import hashlib
+    nom=re.sub(r'(?:^[0-9]{14}_|_[0-9]{14}$)','',os.path.splitext(fichier)[0])
+    return fichier[:14] in registre['versions'] or hashlib.sha256(nom.encode()).hexdigest() in registre['noms_sha256']
+
+
 def main():
     r = Rapport()
     print("GARDE-FOU DU WORKFLOW SUPABASE")
@@ -210,8 +225,24 @@ def main():
     if coupe is None:
         r.anomalie("point de coupe illisible dans CONTROLE-GLOBAL.json")
     else:
-        anterieures = [f for f, h in zip(fichiers, horodatages) if h < coupe]
-        r.verif("migrations anterieures au point de coupe", len(anterieures), 0)
+        observation = os.path.join(BASELINE, "REGISTRE-OBSERVE.json")
+        registre = None
+        if os.path.isfile(observation):
+            try:
+                import hashlib
+                reg = json.load(open(observation, encoding="utf-8"))
+                ctl_reg = json.load(open(ctl, encoding="utf-8"))["registre"]
+                registre = verifier_registre_observe(reg,ctl_reg)
+            except Exception:
+                r.anomalie("registre observe incomplet ou contradictoire : aucune dispense de chronologie")
+        if registre is None:
+            anterieures = [f for f, h in zip(fichiers, horodatages) if h < coupe]
+        else:
+            # L'ancienneté d'un fichier de branche ne prouve PAS son application.
+            # Confronter version ET nom normalisé à la coupe réellement capturée.
+            anterieures = [f for f in fichiers if migration_presente_au_registre(f,registre)]
+            r.note("présence réelle au registre observé, versions et noms ; fichiers plus anciens absents autorisés")
+        r.verif("migrations deja couvertes par le point de coupe", len(anterieures), 0)
         for f in anterieures:
             r.anomalie("%s est anterieure au point de coupe : son effet est deja "
                        "dans le baseline, la rejouer est au mieux inutile" % f)

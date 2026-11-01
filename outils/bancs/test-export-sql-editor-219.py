@@ -62,6 +62,11 @@ class Collecte(unittest.TestCase):
    for f in dest.rglob('*'):self.assertEqual(f.stat().st_mode & 0o077,0)
    with tarfile.open(dest/'exports-certification-219.tar.gz') as t:self.assertIn('capture-couts.json',t.getnames());self.assertEqual(t.extractfile('REFERENTIELS-PRODUCTION.json').read(),self.files['REFERENTIELS-PRODUCTION.json'])
    with self.assertRaises(ValueError):m.assembler([p],dest,self.sha)
+ def test_CSV_transmis_comme_texte_colle_est_reconnu(self):
+  with tempfile.TemporaryDirectory(prefix='hg219-colle-') as d:
+   p=Path(d)/'Texte collé.txt'
+   with p.open('w',newline='') as f:w=csv.DictWriter(f,fieldnames=m.COLONNES);w.writeheader();w.writerows(self.rows)
+   self.assertEqual(m.decoder(m.charger_lignes([p]))[0],self.files)
  def test_JSON_transport_et_rejet_destination_Git(self):
   with tempfile.TemporaryDirectory(prefix='hg219-json-editor-') as d:
    p=Path(d)/'rows.json';p.write_text(json.dumps(self.rows));self.assertEqual(m.charger_lignes([p]),self.rows)
@@ -73,6 +78,31 @@ class Collecte(unittest.TestCase):
  def test_limite_SQL_Editor_cent_lignes_refusee(self):
   self.assertGreater(len(self.rows),100)
   with self.assertRaises(ValueError):m.decoder(self.rows[:100])
+ def test_import_douze_tables_et_rollback_sur_empreinte_fausse(self):
+  prive=m.module('prive_test_complet219','outils/bancs/referentiels-prives-clone-219.py')
+  ref=m.lire_json(self.files['REFERENTIELS-PRODUCTION.json'])
+  with tempfile.TemporaryDirectory(prefix='hg219-douze-prives-') as d:
+   p=Path(d)/'complets.json';p.write_bytes(self.files['referentiels.json'])
+   self.c.rollback();self.c.set_session(readonly=False);q=self.c.cursor()
+   try:
+    v=prive.charger(q,p,ref,m.h(p.read_bytes()),complet=True);self.assertEqual(len(v['tables']),12)
+    self.c.rollback()
+    obj=m.lire_json(p.read_bytes());obj['referentiels']['chantiers_paliers'][0]['valeur']=m.Decimal('6.51');p.write_bytes(m.json_exact(obj).encode())
+    with self.assertRaisesRegex(ValueError,'Empreinte privée différente'):prive.charger(q,p,ref,m.h(p.read_bytes()),complet=True)
+    q.execute('SELECT valeur FROM chantiers_paliers WHERE id=1');self.assertEqual(q.fetchone()[0],m.Decimal('5.50'))
+    with self.assertRaisesRegex(ValueError,'SHA-256'):prive.charger(q,p,ref,'0'*64,complet=True)
+   finally:self.c.rollback();self.c.set_session(readonly=True)
+ def test_roles_ACL_copies_sans_droit_de_connexion(self):
+  helper=m.module('roles_test219','outils/bancs/completer-schema-clone-219.py')
+  raw=m.lire_json(self.files['relais-canonique.json']);raw['export_droits']['droits_relations']=raw['export_droits']['droits_relations'] or [];raw['export_droits']['droits_relations'].append({'genre':'TABLE','objet':'fixture_privee','beneficiaire':'hg219_role_fixture_sans_secret','privileges':['SELECT']})
+  with tempfile.TemporaryDirectory(prefix='hg219-roles-export-') as d:
+   for k in ('export_structure','export_fonctions','export_logique','export_droits'):(Path(d)/(k+'.json')).write_text(m.json_exact({k:raw[k]}))
+   self.c.rollback();self.c.set_session(readonly=False);q=self.c.cursor()
+   try:
+    v=helper.creer_roles_catalogue(q,d);self.assertIn('hg219_role_fixture_sans_secret',v['roles_acl_crees'])
+    q.execute("SELECT rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls FROM pg_roles WHERE rolname='hg219_role_fixture_sans_secret'");self.assertEqual(q.fetchone(),(False,False,False,False,False,False))
+    self.assertEqual(helper.creer_roles_catalogue(q,d)['roles_acl_crees'],[])
+   finally:self.c.rollback();self.c.set_session(readonly=True)
  def test_capture_incomplete_ne_cree_aucune_sortie(self):
   with tempfile.TemporaryDirectory(prefix='hg219-tronque-editor-') as d:
    p=Path(d)/'rows.json';p.write_text(json.dumps(self.rows[:-1]));dest=Path(d)/'sortie'

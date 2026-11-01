@@ -2125,6 +2125,247 @@ BEGIN
 END;
 $function$;
 
+-- organisation_adhesion_payante(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.organisation_adhesion_payante(p_requete text, p_orga text, p_grade text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_recu jsonb; v_json jsonb; v_paie jsonb; v_cout record; v_nouveau numeric; v_res jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_orga IS DISTINCT FROM 'orga_syndicat_dockers_republic_ville_a' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'adhesion_payante_inconnue');
+  END IF;
+  v_recu := public.caisse_collective_recu_interne(p_requete, v_moi, 'se_syndiquer', p_orga);
+  IF v_recu IS NOT NULL THEN RETURN v_recu; END IF;
+
+  SELECT data::jsonb INTO v_json FROM public.organisations WHERE id = p_orga FOR UPDATE;
+  IF v_json IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'organisation_introuvable'); END IF;
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_json->'membres', '[]'::jsonb)) m WHERE m->>'nom' = v_moi) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_membre');
+  END IF;
+
+  SELECT pa, cost INTO v_cout FROM public.ordres_couts WHERE fn = 'se_syndiquer' ORDER BY pa, cost LIMIT 1;
+  v_paie := public.payer_ordre(v_moi, 'se_syndiquer', v_cout.pa, v_cout.cost);
+  IF NOT coalesce((v_paie->>'ok')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paie->>'raison', 'paiement_refuse'), 'paiement', v_paie);
+  END IF;
+
+  v_json := jsonb_set(v_json, '{membres}', coalesce(v_json->'membres', '[]'::jsonb) || jsonb_build_array(
+    jsonb_build_object('nom', v_moi, 'grade', left(coalesce(nullif(btrim(coalesce(p_grade, '')), ''), 'Adherent'), 60),
+                       'gradeIdx', 0, 'rejointLe', coalesce((SELECT day FROM public.personnages_donnees WHERE name = v_moi), 1),
+                       'derniereCotisationDate', to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'))));
+  UPDATE public.organisations SET data = v_json::text WHERE id = p_orga;
+  v_nouveau := public.organisation_caisse_ajuster_interne(p_orga, v_cout.cost);
+
+  v_res := jsonb_build_object('ok', true, 'caisse', v_nouveau, 'paiement', v_paie);
+  RETURN public.caisse_collective_recu_noter_interne(p_requete, v_moi, 'se_syndiquer', p_orga, v_res);
+END $function$;
+
+-- organisation_caisse_ajuster_interne(text,numeric) -> numeric | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.organisation_caisse_ajuster_interne(p_orga text, p_delta numeric)
+ RETURNS numeric
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_txt text; v_json jsonb; v_solde numeric;
+BEGIN
+  SELECT data INTO v_txt FROM public.organisations WHERE id = p_orga FOR UPDATE;
+  IF NOT FOUND OR v_txt IS NULL OR NOT (v_txt IS JSON OBJECT) THEN
+    RAISE EXCEPTION 'organisation_introuvable: %', p_orga;
+  END IF;
+  v_json := v_txt::jsonb;
+  v_solde := CASE WHEN jsonb_typeof(v_json->'caisse') = 'number' THEN (v_json->>'caisse')::numeric ELSE 0 END;
+  IF v_solde + p_delta < 0 THEN RETURN NULL; END IF;
+  UPDATE public.organisations
+     SET data = jsonb_set(v_json, '{caisse}', to_jsonb(v_solde + p_delta))::text
+   WHERE id = p_orga;
+  RETURN v_solde + p_delta;
+END $function$;
+
+-- organisation_ordre_financier(text,text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.organisation_ordre_financier(p_requete text, p_orga text, p_fn text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_recu jsonb; v_json jsonb; v_type text; v_gest text; v_cout record;
+        v_paie jsonb; v_solde numeric; v_montant numeric; v_nouveau numeric; v_res jsonb; v_fiche jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF p_fn NOT IN ('orga_collecte', 'orga_dividendes') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'ordre_inconnu');
+  END IF;
+  v_recu := public.caisse_collective_recu_interne(p_requete, v_moi, p_fn, coalesce(p_orga, ''));
+  IF v_recu IS NOT NULL THEN RETURN v_recu; END IF;
+
+  SELECT data::jsonb INTO v_json FROM public.organisations WHERE id = p_orga FOR UPDATE;
+  IF v_json IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'organisation_introuvable'); END IF;
+  v_type := v_json->>'type';
+  IF (p_fn = 'orga_collecte' AND v_type IS DISTINCT FROM 'religieuse')
+     OR (p_fn = 'orga_dividendes' AND v_type IS DISTINCT FROM 'economique') THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'ordre_hors_type');
+  END IF;
+  v_gest := coalesce(nullif(btrim(coalesce(v_json->>'tresorier', '')), ''), v_json->>'chef');
+  IF v_gest IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'organisation_sans_responsable'); END IF;
+  IF v_gest <> v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_gestionnaire_caisse', 'gestionnaire', v_gest);
+  END IF;
+
+  v_solde := CASE WHEN jsonb_typeof(v_json->'caisse') = 'number' THEN (v_json->>'caisse')::numeric ELSE 0 END;
+  IF p_fn = 'orga_dividendes' AND floor(v_solde * 0.3) < 10 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_vide', 'solde', v_solde);
+  END IF;
+
+  SELECT pa, cost INTO v_cout FROM public.ordres_couts WHERE fn = p_fn ORDER BY pa, cost LIMIT 1;
+  v_paie := public.payer_ordre(v_moi, p_fn, v_cout.pa, v_cout.cost);
+  IF NOT coalesce((v_paie->>'ok')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paie->>'raison', 'paiement_refuse'), 'paiement', v_paie);
+  END IF;
+
+  IF p_fn = 'orga_collecte' THEN
+    v_montant := 200 + floor(random() * 500);
+    v_nouveau := public.organisation_caisse_ajuster_interne(p_orga, v_montant);
+  ELSE
+    v_montant := floor(v_solde * 0.3);
+    v_nouveau := public.organisation_caisse_ajuster_interne(p_orga, -v_montant);
+    IF v_nouveau IS NULL THEN RAISE EXCEPTION 'dividendes: caisse insuffisante'; END IF;
+    v_fiche := public.assemblee_crediter_joueur(v_moi, v_montant::integer);
+  END IF;
+
+  v_res := jsonb_build_object('ok', true, 'ordre', p_fn, 'montant', v_montant, 'caisse', v_nouveau,
+                              'paiement', v_paie, 'fiche', v_fiche);
+  RETURN public.caisse_collective_recu_noter_interne(p_requete, v_moi, p_fn, p_orga, v_res);
+END $function$;
+
+-- organisation_vainqueur_election(jsonb) -> text | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.organisation_vainqueur_election(p_election jsonb)
+ RETURNS text
+ LANGUAGE plpgsql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+-- Même décompte que verifierElectionsOrganisations : candidats dans l'ordre, le premier qui
+-- dépasse strictement le maximum courant l'emporte.
+DECLARE c jsonb; v_voix integer; v_max integer := -1; v_vainqueur text;
+BEGIN
+  FOR c IN SELECT e FROM jsonb_array_elements(coalesce(p_election->'candidats', '[]'::jsonb)) e LOOP
+    SELECT count(*) INTO v_voix FROM jsonb_each_text(coalesce(p_election->'votes', '{}'::jsonb)) v
+     WHERE v.value = c->>'nom';
+    IF v_voix > v_max THEN v_max := v_voix; v_vainqueur := c->>'nom'; END IF;
+  END LOOP;
+  RETURN v_vainqueur;
+END $function$;
+
+-- organisations_finances_garder() -> trigger | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.organisations_finances_garder()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_av jsonb; v_ap jsonb; v_chef_av text; v_est_chef boolean; v_election boolean := false;
+        v_vainqueur text; m jsonb; a jsonb; v_membres jsonb := '[]'::jsonb; v_cle text;
+BEGIN
+  IF current_user NOT IN ('anon', 'authenticated') THEN RETURN NEW; END IF;
+  IF NEW.data IS NULL OR NOT (NEW.data IS JSON OBJECT) THEN
+    RAISE EXCEPTION 'organisation_donnees_illisibles' USING ERRCODE = '42501';
+  END IF;
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RAISE EXCEPTION 'organisation_acteur_non_authentifie' USING ERRCODE = '42501'; END IF;
+  v_ap := NEW.data::jsonb;
+
+  IF TG_OP = 'INSERT' THEN
+    IF coalesce((v_ap->>'caisse')::numeric, 0) <> 0 THEN
+      RAISE EXCEPTION 'organisation_caisse_initiale_interdite' USING ERRCODE = '42501';
+    END IF;
+    IF nullif(btrim(coalesce(v_ap->>'tresorier', '')), '') IS NOT NULL THEN
+      RAISE EXCEPTION 'organisation_tresorier_initial_interdit' USING ERRCODE = '42501';
+    END IF;
+    IF NOT ((v_ap->>'fondateur') = v_moi AND (v_ap->>'chef') = v_moi)
+       AND NOT (coalesce((v_ap->>'chefEstPnj')::boolean, false)
+                AND NOT EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = v_ap->>'chef')) THEN
+      RAISE EXCEPTION 'organisation_fondateur_usurpe' USING ERRCODE = '42501';
+    END IF;
+    IF EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_ap->'membres', '[]'::jsonb)) x
+                WHERE x->>'nom' IS DISTINCT FROM v_moi) THEN
+      RAISE EXCEPTION 'organisation_fondee_avec_des_membres' USING ERRCODE = '42501';
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  v_av := CASE WHEN OLD.data IS JSON OBJECT THEN OLD.data::jsonb ELSE '{}'::jsonb END;
+  v_chef_av := v_av->>'chef';
+  v_est_chef := v_chef_av IS NOT NULL AND v_chef_av = v_moi;
+
+  -- La caisse est TOUJOURS celle du serveur.
+  v_ap := jsonb_set(v_ap, '{caisse}', coalesce(v_av->'caisse', '0'::jsonb));
+
+  -- Clôture d'élection : seule voie de changement de direction sans le chef.
+  IF (v_ap->>'chef') IS DISTINCT FROM v_chef_av AND NOT v_est_chef THEN
+    v_vainqueur := public.organisation_vainqueur_election(v_av->'election');
+    v_election := coalesce((v_av->'election'->>'enCours')::boolean, false)
+                  AND (v_av->'election'->>'phase') = 'vote'
+                  AND v_vainqueur IS NOT NULL AND (v_ap->>'chef') = v_vainqueur
+                  AND EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(v_av->'membres', '[]'::jsonb)) x
+                               WHERE x->>'nom' = v_vainqueur);
+    IF NOT v_election THEN
+      RAISE EXCEPTION 'organisation_direction_non_autorisee' USING ERRCODE = '42501';
+    END IF;
+  END IF;
+
+  IF NOT v_est_chef THEN
+    FOREACH v_cle IN ARRAY ARRAY['tresorier', 'fondateur'] LOOP
+      IF v_av ? v_cle THEN v_ap := jsonb_set(v_ap, ARRAY[v_cle], v_av->v_cle); ELSE v_ap := v_ap - v_cle; END IF;
+    END LOOP;
+    IF NOT v_election THEN
+      IF v_av ? 'chefEstPnj' THEN v_ap := jsonb_set(v_ap, '{chefEstPnj}', v_av->'chefEstPnj'); END IF;
+    END IF;
+
+    -- Membres : grades conservés, entrée au grade 0 pour soi seulement, aucun retrait d'autrui.
+    FOR m IN SELECT e FROM jsonb_array_elements(coalesce(v_ap->'membres', '[]'::jsonb)) e LOOP
+      SELECT e INTO a FROM jsonb_array_elements(coalesce(v_av->'membres', '[]'::jsonb)) e WHERE e->>'nom' = m->>'nom' LIMIT 1;
+      IF a IS NOT NULL THEN
+        IF NOT (v_election AND m->>'nom' = v_vainqueur) THEN
+          m := m || jsonb_build_object('grade', a->'grade', 'gradeIdx', a->'gradeIdx');
+        END IF;
+      ELSIF m->>'nom' = v_moi THEN
+        IF coalesce((m->>'gradeIdx')::integer, 0) <> 0 THEN
+          RAISE EXCEPTION 'organisation_grade_non_autorise' USING ERRCODE = '42501';
+        END IF;
+      ELSIF EXISTS (SELECT 1 FROM public.personnages_donnees WHERE name = m->>'nom') THEN
+        RAISE EXCEPTION 'organisation_adhesion_non_autorisee' USING ERRCODE = '42501';
+      END IF;
+      v_membres := v_membres || jsonb_build_array(m);
+      a := NULL;
+    END LOOP;
+    FOR a IN SELECT e FROM jsonb_array_elements(coalesce(v_av->'membres', '[]'::jsonb)) e LOOP
+      IF a->>'nom' IS DISTINCT FROM v_moi
+         AND NOT EXISTS (SELECT 1 FROM jsonb_array_elements(v_membres) x WHERE x->>'nom' = a->>'nom') THEN
+        v_membres := v_membres || jsonb_build_array(a);   -- blob périmé : le membre reste
+      END IF;
+    END LOOP;
+    v_ap := jsonb_set(v_ap, '{membres}', v_membres);
+
+    -- Votes : chacun le sien.
+    IF jsonb_typeof(v_ap->'election'->'votes') = 'object' THEN
+      IF EXISTS (SELECT 1 FROM jsonb_each(v_ap->'election'->'votes') n
+                  WHERE n.key <> v_moi AND (v_av->'election'->'votes'->n.key) IS DISTINCT FROM n.value)
+         AND NOT v_election THEN
+        RAISE EXCEPTION 'organisation_vote_pour_autrui' USING ERRCODE = '42501';
+      END IF;
+    END IF;
+  END IF;
+
+  NEW.data := v_ap::text;
+  RETURN NEW;
+END $function$;
+
 -- organisations_politique_autorite() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.organisations_politique_autorite()
  RETURNS trigger
@@ -2620,255 +2861,5 @@ BEGIN
     NEW.poste_depute := OLD.poste_depute;
   END IF;
   RETURN NEW;
-END;
-$function$;
-
--- personnages_borner_jour() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.personnages_borner_jour()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-BEGIN
-  -- Le serveur (cron, RPC, service_role) n'est pas concerne : lui peut corriger, reparer,
-  -- rattraper un retard. La borne ne vise que ce qui vient d'un navigateur.
-  IF public.est_appel_serveur() THEN RETURN NEW; END IF;
-
-  IF NEW.day IS DISTINCT FROM OLD.day AND coalesce(NEW.day, 0) > coalesce(OLD.day, 0) + 1 THEN
-    NEW.day := coalesce(OLD.day, 0) + 1;
-  END IF;
-
-  -- Le jour ne recule pas non plus : une peine ne s'annule pas en revenant en arriere.
-  IF coalesce(NEW.day, 0) < coalesce(OLD.day, 0) THEN
-    NEW.day := OLD.day;
-  END IF;
-
-  RETURN NEW;
-END;
-$function$;
-
--- personnages_convocations_garder() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.personnages_convocations_garder()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE v_elem jsonb; v_old jsonb; v_out jsonb := '[]'::jsonb;
-BEGIN
-  IF NEW.convocations IS NOT DISTINCT FROM OLD.convocations THEN RETURN NEW; END IF;
-  IF public.est_appel_serveur() OR coalesce(current_setting('request.path', true), '') LIKE '/rpc/%' THEN RETURN NEW; END IF;
-  FOR v_elem IN SELECT value FROM jsonb_array_elements(coalesce(NEW.convocations, '[]'::jsonb)) LOOP
-    SELECT o.value INTO v_old FROM jsonb_array_elements(coalesce(OLD.convocations, '[]'::jsonb)) o
-     WHERE public.assemblee_cle_convocation(o.value) = public.assemblee_cle_convocation(v_elem) LIMIT 1;
-    IF v_old IS NOT NULL THEN
-      v_elem := v_elem || jsonb_build_object('traitee', coalesce(v_old -> 'traitee', 'false'::jsonb));
-      IF v_old ? 'limiteTs' THEN v_elem := v_elem || jsonb_build_object('limiteTs', v_old -> 'limiteTs'); END IF;
-    ELSE
-      v_elem := v_elem || jsonb_build_object('traitee', false,
-        'limiteTs', to_char((now() + interval '24 hours') AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'));
-    END IF;
-    v_out := v_out || jsonb_build_array(v_elem);
-    v_old := NULL;
-  END LOOP;
-  NEW.convocations := v_out;
-  RETURN NEW;
-END; $function$;
-
--- personnages_fusionner_pop() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.personnages_fusionner_pop()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE
-  v_base numeric;
-  v_old  numeric;
-  v_client boolean := NOT public.est_appel_serveur()
-                       AND coalesce(current_setting('request.path', true), '') NOT LIKE '/rpc/%';
-BEGIN
-  IF jsonb_typeof(NEW.resources) = 'object' AND NEW.resources ? 'popBase' THEN
-    v_base := CASE WHEN jsonb_typeof(NEW.resources -> 'popBase') = 'number' THEN (NEW.resources ->> 'popBase')::numeric END;
-    NEW.resources := NEW.resources - 'popBase';
-    IF TG_OP = 'UPDATE' AND v_base IS NOT NULL AND jsonb_typeof(NEW.resources -> 'pop') = 'number' THEN
-      v_old := CASE WHEN jsonb_typeof(OLD.resources -> 'pop') = 'number' THEN (OLD.resources ->> 'pop')::numeric ELSE v_base END;
-      NEW.resources := jsonb_set(NEW.resources, '{pop}',
-        to_jsonb(GREATEST(0, LEAST(100, v_old + ((NEW.resources ->> 'pop')::numeric - v_base)))));
-    END IF;
-  ELSIF TG_OP = 'UPDATE' AND v_client AND jsonb_typeof(NEW.resources) = 'object' THEN
-    -- Pas de base annoncee : le navigateur ne decide pas d'une valeur absolue.
-    IF jsonb_typeof(OLD.resources -> 'pop') = 'number' THEN
-      NEW.resources := jsonb_set(NEW.resources, '{pop}', OLD.resources -> 'pop');
-    ELSE
-      NEW.resources := NEW.resources - 'pop';
-    END IF;
-  END IF;
-
-  IF jsonb_typeof(NEW.resources) = 'object' AND NEW.resources ? 'infBase' THEN
-    v_base := CASE WHEN jsonb_typeof(NEW.resources -> 'infBase') = 'number' THEN (NEW.resources ->> 'infBase')::numeric END;
-    NEW.resources := NEW.resources - 'infBase';
-    IF TG_OP = 'UPDATE' AND v_base IS NOT NULL AND jsonb_typeof(NEW.resources -> 'inf') = 'number' THEN
-      v_old := CASE WHEN jsonb_typeof(OLD.resources -> 'inf') = 'number' THEN (OLD.resources ->> 'inf')::numeric ELSE v_base END;
-      NEW.resources := jsonb_set(NEW.resources, '{inf}',
-        to_jsonb(GREATEST(0, LEAST(100, v_old + ((NEW.resources ->> 'inf')::numeric - v_base)))));
-    END IF;
-  ELSIF TG_OP = 'UPDATE' AND v_client AND jsonb_typeof(NEW.resources) = 'object' THEN
-    IF jsonb_typeof(OLD.resources -> 'inf') = 'number' THEN
-      NEW.resources := jsonb_set(NEW.resources, '{inf}', OLD.resources -> 'inf');
-    ELSE
-      NEW.resources := NEW.resources - 'inf';
-    END IF;
-  END IF;
-
-  RETURN NEW;
-END;
-$function$;
-
--- personnages_informateurs_garder() -> trigger | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.personnages_informateurs_garder()
- RETURNS trigger
- LANGUAGE plpgsql
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-BEGIN
-  IF NEW.informateurs IS DISTINCT FROM OLD.informateurs
-     AND coalesce(current_setting('rp.informateurs_interne', true), '') <> 'on'
-     AND coalesce(nullif(current_setting('role', true), 'none'), session_user) IN ('anon', 'authenticated') THEN
-    NEW.informateurs := OLD.informateurs;
-  END IF;
-  RETURN NEW;
-END; $function$;
-
--- personnages_lien_militaire_rompu() -> trigger | plpgsql | SECURITY DEFINER | search_path=public
-CREATE OR REPLACE FUNCTION public.personnages_lien_militaire_rompu()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE v_ancien text; v_nouveau text;
-BEGIN
-  v_ancien  := coalesce(OLD.poste->>'id', '');
-  v_nouveau := coalesce(NEW.poste->>'id', '');
-
-  IF v_ancien = 'lieutenant' AND v_nouveau IS DISTINCT FROM 'lieutenant' THEN
-    -- OLD porte la DERNIERE position canonique connue du chef : c'est la que ses hommes restent.
-    PERFORM public.militaire_lien_operationnel_rompre(
-      OLD.name, OLD.current_city, OLD.current_building, OLD.current_room);
-  END IF;
-
-  IF v_ancien IN ('lieutenant','capitaine','commandant') AND v_nouveau IS DISTINCT FROM v_ancien THEN
-    PERFORM public.militaire_service_fermer(OLD.name, v_ancien);
-  END IF;
-
-  -- Prise de fonction : la periode s'ouvre au moment ou le poste est reellement porte par la
-  -- fiche, quel que soit le chemin (RPC de nomination, tirage au sort, cron).
-  IF v_nouveau IN ('lieutenant','capitaine','commandant') AND v_nouveau IS DISTINCT FROM v_ancien THEN
-    PERFORM public.militaire_service_ouvrir(NEW.name, coalesce(NEW.country,'republic'), v_nouveau,
-              NEW.poste->>'compagnieId', NEW.poste->>'sectionId');
-  END IF;
-
-  RETURN NEW;
-END;
-$function$;
-
--- personnages_lien_militaire_supprime() -> trigger | plpgsql | SECURITY DEFINER | search_path=public
-CREATE OR REPLACE FUNCTION public.personnages_lien_militaire_supprime()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-BEGIN
-  PERFORM public.militaire_lien_operationnel_rompre(
-    OLD.name, OLD.current_city, OLD.current_building, OLD.current_room);
-  RETURN OLD;
-END;
-$function$;
-
--- personnages_lier_proprietaire() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.personnages_lier_proprietaire()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-BEGIN
-  IF TG_OP = 'INSERT' THEN
-    -- L'autorite est auth.uid(), jamais NEW.user_id fourni par l'appelant.
-    IF auth.uid() IS NOT NULL THEN
-      NEW.user_id := auth.uid();
-    ELSE
-      NEW.user_id := NULL;
-    END IF;
-    RETURN NEW;
-  END IF;
-
-  -- 2) A la mise a jour : user_id est IMMUABLE cote client. Seul le serveur
-  --    (service_role) peut le changer -- transfert de personnage, reparation.
-  --    Sans ca, un joueur pourrait s'attribuer le personnage d'un autre d'un
-  --    simple PATCH, ce qui reduirait a neant tout le reste du chantier.
-  IF NEW.user_id IS DISTINCT FROM OLD.user_id AND NOT public.est_appel_serveur() THEN
-    NEW.user_id := OLD.user_id;
-  END IF;
-  RETURN NEW;
-END;
-$function$;
-
--- personnages_observer_inventaire() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.personnages_observer_inventaire()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE v_avant int; v_apres int; v_ajoutes jsonb;
-BEGIN
-  IF public.est_appel_serveur() THEN RETURN NEW; END IF;
-  IF NEW.inventory IS NOT DISTINCT FROM OLD.inventory THEN RETURN NEW; END IF;
-
-  v_avant := CASE WHEN jsonb_typeof(OLD.inventory)='array' THEN jsonb_array_length(OLD.inventory) ELSE 0 END;
-  v_apres := CASE WHEN jsonb_typeof(NEW.inventory)='array' THEN jsonb_array_length(NEW.inventory) ELSE 0 END;
-  IF v_apres <= v_avant THEN RETURN NEW; END IF;   -- retrait ou remplacement : hors sujet
-
-  -- Les identifiants apparus, sans le reste de l'objet (les images base64 n'ont rien a faire ici).
-  SELECT coalesce(jsonb_agg(jsonb_build_object('id', o->>'id', 'name', o->>'name',
-                                               'type', o->>'type', 'pm', o->>'produitMilitaire')), '[]'::jsonb)
-    INTO v_ajoutes
-    FROM jsonb_array_elements(NEW.inventory) o
-   WHERE NOT EXISTS (SELECT 1 FROM jsonb_array_elements(coalesce(OLD.inventory,'[]'::jsonb)) a
-                      WHERE a->>'id' = o->>'id');
-
-  INSERT INTO public.fiche_inventaire_observe
-         (personnage, avant, apres, delta, objets_ajoutes, role_sql, requete)
-  VALUES (NEW.name, v_avant, v_apres, v_apres - v_avant, left(v_ajoutes::text, 2000)::jsonb,
-          coalesce(nullif(current_setting('role', true), 'none'), session_user),
-          left(coalesce(current_query(), ''), 300));
-
-  RETURN NEW;
-END;
-$function$;
-
--- personnages_poste_perdu() -> trigger | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
-CREATE OR REPLACE FUNCTION public.personnages_poste_perdu()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-BEGIN
-  IF OLD.poste IS NOT NULL AND jsonb_typeof(OLD.poste) = 'object'
-     AND (NEW.poste IS NULL OR jsonb_typeof(NEW.poste) = 'null'
-          OR (NEW.poste ->> 'id') IS DISTINCT FROM (OLD.poste ->> 'id')
-          OR (NEW.poste ->> 'city') IS DISTINCT FROM (OLD.poste ->> 'city')) THEN
-    DELETE FROM public.postes_attribues
-     WHERE titulaire = OLD.name
-       AND poste_id = (OLD.poste ->> 'id')
-       AND country = OLD.country
-       AND city IS NOT DISTINCT FROM nullif(OLD.poste ->> 'city', '');
-  END IF;
-  RETURN NULL;
 END;
 $function$;

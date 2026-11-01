@@ -16,7 +16,8 @@ def preparer(destination=None, inclure_prerequis=False):
   assert len(prerequis)==1 and prerequis[0]['fichier'].endswith('_squatteurs_issue_combat.sql'), 'Prérequis #233 exact requis, aucun glob de migrations'
   assert prerequis[0]['version']<entrees[0]['version'],'Prérequis #233 avant le lot'
   entrees=prerequis+entrees
- assert all(e['version']>coupe for e in entrees), 'Versions préparées antérieures au nouveau baseline : rehorodater le lot, jamais reculer le point de coupe'
+ if not all(e['version']>coupe for e in entrees) and not (R/'baseline/REGISTRE-OBSERVE.json').is_file():
+  raise AssertionError('Versions anciennes sans registre observé : rehorodater ou fournir le prévol réel, jamais reculer la coupe')
  for e in entrees:
   p=R/e['fichier'];s=p.read_text()
   assert re.fullmatch(r'\d{14}',e['version']) and e['version'] not in versions,e
@@ -26,6 +27,12 @@ def preparer(destination=None, inclure_prerequis=False):
   assert len(s)<=12500,p
   assert not re.search(r'^\s*(BEGIN|COMMIT|ROLLBACK)\s*;',s,re.M|re.I),'transaction interne : '+str(p)
   versions.add(e['version']);blocs.append((e,s))
+ if not all(e['version']>coupe for e in entrees):
+  import importlib.util
+  spec=importlib.util.spec_from_file_location('registre_garde219',R/'outils/baseline/verifier-workflow.py');garde=importlib.util.module_from_spec(spec);spec.loader.exec_module(garde)
+  ctl=json.loads((R/'baseline/CONTROLE-GLOBAL.json').read_text())
+  observation=garde.verifier_registre_observe(json.loads((R/'baseline/REGISTRE-OBSERVE.json').read_text()),ctl['registre'])
+  assert all(not garde.migration_presente_au_registre(Path(e['fichier']).name,observation) for e in entrees),'Version ou nom déjà appliqué : prévol frais requis'
  if destination:
   citer=lambda s:"'"+s.replace("'","''")+"'"
   liste=','.join(citer(x) for x in sorted(versions))

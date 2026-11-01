@@ -1502,9 +1502,13 @@ BEGIN
     IF p_revision IS DISTINCT FROM v.inventory_revision THEN
       RETURN jsonb_build_object('ok',false,'raison','inventaire_perime','revision',v.inventory_revision);
     END IF;
-    -- VERROU, ETAPE 1 (observation) : un objet qui n'etait pas deja possede est inscrit.
-    INSERT INTO public.inventaire_ecarts_observes (acteur, objet)
-    SELECT p_acteur, x FROM jsonb_array_elements(public.inventaire_ajouts_interdits(v.inventory, p_inventory)) x;
+    -- VERROU, ETAPE 2 : le navigateur ne peut pas fabriquer de nouveaux objets.
+    -- Les producteurs autorisés utilisent inventaire_deposer_interne et les RPC métier.
+    -- Refus AVANT toute écriture, sans modification ni incrément de révision.
+    IF jsonb_array_length(public.inventaire_ajouts_interdits(v.inventory, p_inventory)) > 0 THEN
+      RETURN jsonb_build_object('ok',false,'raison','ajout_inventaire_interdit',
+                                'revision',v.inventory_revision);
+    END IF;
     UPDATE public.personnages_donnees SET inventory=p_inventory WHERE name=p_acteur
       RETURNING * INTO v;
     SELECT * INTO v FROM public.personnages_donnees WHERE name=p_acteur;
@@ -1923,7 +1927,7 @@ DECLARE
   v_id text;
 BEGIN
   v_acteur := public.mon_personnage();
-  IF v_acteur IS NULL THEN
+  IF v_acteur IS NULL AND NOT (coalesce(p_motif='document_urbanisme',false) AND coalesce(public.est_appel_serveur(),false)) THEN
     RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie');
   END IF;
   IF coalesce(btrim(coalesce(p_destinataire, '')), '') = '' THEN

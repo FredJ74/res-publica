@@ -17,3 +17,16 @@ test('une mention ou une action de messagerie ne devient pas un ordre payable',(
  const r=extraire("// {fn:'faux',label:'Faux',pa:2,cost:99}\nconst mail={fn:'accepterInvitationOrga',label:'Accepter'};const texte=\"{fn:'faux',label:'Faux',pa:2,cost:99}\";");
  assert.equal(r.litteraux.length,0);
 });
+
+test('le contrôle des ressources emploie sa projection réelle et refuse une sentinelle fausse',()=>{
+ const {spawnSync}=require('node:child_process');
+ const code=String.raw`
+import runpy,json,copy,contextlib,io
+m=runpy.run_path('outils/baseline/verifier-referentiels.py',run_name='importe');cfg=json.load(open('outils/baseline/referentiels.json'))['empreintes']['miroirs']['ressources_economie']
+h,err=m['empreinte_du_generateur'](cfg['generateur']);assert not err and h==cfg['data_js']==cfg['reelle']
+faux=copy.deepcopy(cfg);faux['posee']='0'*16;erreurs=[]
+with contextlib.redirect_stdout(io.StringIO()):m['axe_empreintes']({'empreintes':{'miroirs':{'ressources_economie':faux}}},erreurs)
+assert any('ressources_economie/posee' in x for x in erreurs),erreurs
+`;
+ const p=spawnSync('python3',['-c',code],{cwd:require('node:path').resolve(__dirname,'../..'),encoding:'utf8'});assert.equal(p.status,0,p.stderr||p.stdout);
+});

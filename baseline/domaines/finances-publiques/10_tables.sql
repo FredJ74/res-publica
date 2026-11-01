@@ -58,6 +58,15 @@ CREATE TABLE public.caisses_batiments (
   updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE public.caisses_collectives_operations (
+  requete text NOT NULL,
+  acteur text NOT NULL,
+  operation text NOT NULL,
+  cible text NOT NULL,
+  resultat jsonb NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.caisses_mouvements_clients (
   id bigint DEFAULT nextval('caisses_mouvements_clients_id_seq'::regclass) NOT NULL,
   acteur text,

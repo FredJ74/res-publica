@@ -1,0 +1,60 @@
+{
+  "registre_reference": {
+    "lignes": 1022,
+    "derniere": "20261101164231"
+  },
+  "schema_reference_certifie": true,
+  "locale_conforme_production": {
+    "conforme": true,
+    "locale": {
+      "collate": "en_US.UTF-8",
+      "ctype": "en_US.UTF-8",
+      "provider": "i",
+      "datlocale": "en-US",
+      "version": "153.121",
+      "version_actuelle": "153.121"
+    }
+  },
+  "referentiels_reference": {
+    "conformes": true,
+    "tables": 12
+  },
+  "registre_local_avant95": 1022,
+  "registre_local_apres95": 1117,
+  "rollback_95": true,
+  "95_installees": true,
+  "rejeu_sans_mutation": true,
+  "complements_318_324": {
+    "installees": true,
+    "rollback": true,
+    "rejeu_sans_mutation": true,
+    "versions": [
+      "20261101170000",
+      "20261101171000"
+    ]
+  },
+  "http_27": {
+    "cas": 27,
+    "conformes": true
+  },
+  "bancs_complements": [
+    {
+      "script": "banc-circuits-residuels-219.sh",
+      "code": 0
+    },
+    {
+      "script": "banc-hospitalisation.sh",
+      "code": 0
+    }
+  ],
+  "production": false,
+  "capture_sha256": "8f44694a96a689b960e9c7f659361cadf57d29129c75c1995d0304c3b9d26c00",
+  "snapshot": "351194:351194:",
+  "sql_95_sha256": "43ecdaae32a3352d183f3745cdadc482cee36bab120b54e08092ef79f59eb0df",
+  "limites": [
+    "aucune connexion de joueur reel",
+    "aucun deploiement",
+    "Authority et Referential restent bloquants",
+    "coupe capturee, non relue en ligne apres reception"
+  ]
+}

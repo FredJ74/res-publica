@@ -41,6 +41,8 @@ ALTER TABLE public.entreprises_prix_rachat ADD CONSTRAINT entreprises_prix_racha
 ALTER TABLE public.hotel_nuitees ADD CONSTRAINT hotel_nuitees_pkey PRIMARY KEY (id);
 ALTER TABLE public.imprimeries_declarees ADD CONSTRAINT imprimeries_declarees_pkey PRIMARY KEY (pays, ville, batiment);
 ALTER TABLE public.investissements ADD CONSTRAINT investissements_pkey PRIMARY KEY (id);
+ALTER TABLE public.jardins_ouvriers_reserve ADD CONSTRAINT jardins_ouvriers_reserve_pkey PRIMARY KEY (pays, ville);
+ALTER TABLE public.jardins_ouvriers_travail ADD CONSTRAINT jardins_ouvriers_travail_pkey PRIMARY KEY (nom, jour);
 ALTER TABLE public.oeuvres ADD CONSTRAINT oeuvres_pkey PRIMARY KEY (id);
 ALTER TABLE public.offres ADD CONSTRAINT offres_pkey PRIMARY KEY (id);
 ALTER TABLE public.offres_emploi_bne ADD CONSTRAINT offres_emploi_bne_pkey PRIMARY KEY (id);
@@ -79,6 +81,7 @@ ALTER TABLE public.entrepot_transits ADD CONSTRAINT entrepot_transits_quantite_c
 ALTER TABLE public.entrepots_reversements ADD CONSTRAINT entrepots_reversements_mode_check CHECK ((mode = ANY (ARRAY['automatique'::text, 'volontaire'::text])));
 ALTER TABLE public.hotel_nuitees ADD CONSTRAINT hotel_nuitees_moral_bonus_check CHECK (((moral_bonus >= 0) AND (moral_bonus <= 100)));
 ALTER TABLE public.hotel_nuitees ADD CONSTRAINT hotel_nuitees_pa_bonus_check CHECK (((pa_bonus >= 0) AND (pa_bonus <= 30)));
+ALTER TABLE public.jardins_ouvriers_reserve ADD CONSTRAINT jardins_ouvriers_reserve_qte_check CHECK ((qte >= 0));
 ALTER TABLE public.offres ADD CONSTRAINT offres_parties CHECK ((emetteur <> destinataire));
 ALTER TABLE public.offres ADD CONSTRAINT offres_statut_valide CHECK ((statut = ANY (ARRAY['ouverte'::text, 'acceptee'::text, 'refusee'::text, 'expiree'::text, 'annulee'::text])));
 ALTER TABLE public.offres ADD CONSTRAINT offres_type_valide CHECK ((type = ANY (ARRAY['vente_objet'::text, 'vente_fonds'::text, 'resiliation_amiable'::text, 'prestation'::text])));

@@ -149,7 +149,8 @@ def charger_lignes(paths):
  for p in paths:
   if p.stat().st_size>MAX_OCTETS*2:raise ValueError('Fichier de transport excessif')
   with p.open(encoding='utf-8-sig',newline='') as f:
-   if p.suffix.lower()=='.csv':
+   debut=f.read(256);f.seek(0)
+   if p.suffix.lower()=='.csv' or debut.startswith('capture_sha256,') or debut.startswith('"capture_sha256",'):
     csv.field_size_limit(MAX_OCTETS);reader=csv.DictReader(f)
     if len(reader.fieldnames or [])!=len(COLONNES) or set(reader.fieldnames)!=set(COLONNES):raise ValueError('En-têtes CSV invalides')
     lignes.extend(reader)

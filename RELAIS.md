@@ -419,3 +419,15 @@ Fichier privé toujours absent : recherche du SHA-256 attendu `b8998d8b97ff3709e
 Rapport final de cette intervention : `CI-COMBATS-41304385900-219-20261101.{md,json}`. **61/61 étapes exécutables du workflow de PR réussies localement**, dont la suite civile avec roster mort et toutes les étapes auparavant ignorées. Installation/setup/actions GitHub non présentés comme exécutés ici. **380/380 sur 16.2 et 17.6**, **75/75 outillage**, reset retiré = mêmes quatre erreurs, trois mutants moteur toujours détectés, code 1 réellement conservé. Globaux réexécutés **10/12**, références non modifiées. Aucune modification de moteur métier ; correction limitée à la préparation de deux PNJ fictifs et aux diagnostics.
 
 CI distante après push non observée : API toujours Forbidden. Hash privé attendu b8998d8b…325adad0 contrôlé par recherche sur 62 fichiers accessibles, aucun correspondant ; fichier 1015 toujours non reçu. SHA obligatoire ajouté au pilote avant import. Aucun 95/27 sur un clone 1015 prétendu conforme, aucune donnée PJ réelle touchée. Poursuite de la certification strictement conditionnée au transfert privé et aux métadonnées de la bonne coupe, pas à un nouveau compte ou une manipulation SQL de Fred.
+
+### #219 — capture 1022 reçue, reconstruction réelle réussie (1er novembre)
+
+Branche `codex/certification-219-1021-20261101` (nom historique conservé).
+La capture privée SQL Editor est maintenant reçue : plus aucun blocage de
+transfert. PostgreSQL 17.6 / ICU en-US 153.121 : six racines et douze référentiels
+conformes ; 95 migrations puis #318/#324, rollback/rejeu et 27 HTTP authentifiés
+locaux réussis. Bancs complémentaires 14 + 30 réussis. Exports privés hors Git.
+Rapport : `outils/audits/CERTIFICATION-1022-219-20261101.md` et preuve JSON.
+**Ne pas fusionner/déployer : Authority et Referential restent bloquants.**
+Aucune migration de production ni donnée réelle modifiée. Les anciens relais
+« capture manquante » sont historiques, remplacés par cette entrée.

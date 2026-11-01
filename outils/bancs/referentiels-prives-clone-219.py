@@ -39,6 +39,20 @@ def lire_capture(chemin,reference,sha256_attendu=None):
   if not all(isinstance(ligne,dict) for ligne in lignes):raise ValueError('Lignes privées invalides : '+table)
  return brut,obj,chemin_json,empreinte
 
+TABLES_COMPLETES=('postes_nommes_regles','ressources_economie','chantiers_paliers','chantiers_besoins_jour','entreprises_constantes','recettes_production','recettes_commerce','commerces_types','commerces_dotations','armureries_dotations','entreprises_prix_rachat','offres_emploi_bne')
+def lire_capture_complete(chemin,reference,sha256_attendu):
+ p=Path(chemin).resolve()
+ if p.is_relative_to(R):raise ValueError('Capture privée interdite dans le dépôt')
+ octets=p.read_bytes();h=hashlib.sha256(octets).hexdigest()
+ if not sha256_attendu or h!=sha256_attendu:raise ValueError('SHA-256 privé différent de l’empreinte attendue')
+ brut=octets.decode('utf-8');obj=json.loads(brut,parse_float=Decimal)
+ if obj.get('snapshot')!=reference.get('snapshot') or obj.get('releve_utc')!=reference.get('releve_utc'):raise ValueError('Capture complète de coupe différente')
+ refs=obj.get('referentiels',{})
+ if set(refs)!=set(TABLES_COMPLETES):raise ValueError('Douze tables statiques exactes requises')
+ for t in TABLES_COMPLETES:
+  if not isinstance(refs[t],list) or len(refs[t])!=reference['referentiels'][t]['lignes'] or not all(isinstance(x,dict) for x in refs[t]):raise ValueError('Cardinalité complète différente : '+t)
+ return brut,{'locale':reference['locale'],'referentiels':refs},[],h
+
 def verifier_locale(q,capture):
  q.execute("SELECT datcollate,datctype,datlocprovider,COALESCE(to_jsonb(d)->>'datlocale',to_jsonb(d)->>'daticulocale'),datcollversion,pg_database_collation_actual_version(oid) FROM pg_database d WHERE datname=current_database()")
  observe=dict(zip(('collate','ctype','provider','datlocale','version','version_actuelle'),q.fetchone()))
@@ -49,14 +63,15 @@ def verifier_locale(q,capture):
  if ecarts:raise ValueError('Locale du clone différente : '+','.join(ecarts))
  return {'conforme':True,'locale':observe}
 
-def charger(q,chemin,reference,sha256_attendu=None):
+def charger(q,chemin,reference,sha256_attendu=None,complet=False):
  if q.connection.info.host and not q.connection.info.host.startswith('/'):raise ValueError('Socket PostgreSQL local requis pour les captures')
  # Les schémas déjà reconstruits doivent précéder cette étape.
- brut,capture,racine,h=lire_capture(chemin,reference,sha256_attendu)
+ brut,capture,racine,h=(lire_capture_complete if complet else lire_capture)(chemin,reference,sha256_attendu)
+ tables=TABLES_COMPLETES if complet else TABLES
  locale=verifier_locale(q,capture)
  q.execute('SAVEPOINT capture_refs219')
  try:
-  for table in TABLES:
+  for table in tables:
    q.execute("SELECT a.attname FROM pg_attribute a WHERE a.attrelid=%s::regclass AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attnum",('public.'+table,));colonnes={x[0] for x in q.fetchall()}
    if not all(set(x)==colonnes for x in capture['referentiels'][table]):raise ValueError('Capture de ligne incomplète : '+table)
    # Préserver les clés encore référencées par d'autres graines : aucun
@@ -74,7 +89,7 @@ def charger(q,chemin,reference,sha256_attendu=None):
   if vide!={'lignes':0,'empreinte':'d751713988987e9331980363e24189ce'}:raise ValueError('BNE vide non attesté par la référence')
   q.execute('DELETE FROM public.offres_emploi_bne')
   mesures={}
-  for table in (*TABLES,'offres_emploi_bne'):
+  for table in dict.fromkeys((*tables,'offres_emploi_bne')):
    q.execute("SELECT count(*),md5(COALESCE(jsonb_agg(to_jsonb(x) ORDER BY to_jsonb(x)::text)::text,'[]')) FROM public."+table+' x');n,empreinte=q.fetchone()
    mesures[table]={'lignes':n,'empreinte':empreinte}
    if mesures[table]!=reference['referentiels'][table]:raise ValueError('Empreinte privée différente : '+table)
