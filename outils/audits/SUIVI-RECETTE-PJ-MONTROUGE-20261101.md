@@ -88,3 +88,10 @@ Historique des signalements : commentaires PR #304, dont les relais techniques s
 ## PNJ jardins — nom validé
 
 **Marcel Demine** est le nom définitif donné par le game designer au retraité cheminot des jardins ouvriers. Sa réplique rappelle le don volontaire des légumes, oriente vers le musée et présente les trois premières de Montrouge (cinéma, logements sociaux, jardins ouvriers).
+
+### M-08 — correctif de production préparé (01/11/2026)
+
+- Cause confirmée par lecture de `commerce_produire` et `commerce_production_autorisee` en production : la règle actuelle n'autorise que le propriétaire ou un salarié actif ; la Brasserie des Voyageurs appartient au PNJ et ne possède pas de salariés actifs déclarés, donc aucun PJ visiteur ne peut produire, bien que les stocks soient disponibles. La garde spéciale du restaurant de Luthécia ne concerne pas cette brasserie.
+- Correctif ciblé sur branche #304 : `plateau-commerce-pj.js` autorise la production ponctuelle pour les PJ **présents** à la brasserie PNJ de Montrouge ; migration `20261101123000_brasserie_voyageurs_travail_ponctuel.sql` reproduit côté serveur le contrôle de ville/bâtiment/propriétaire et position officielle. Les autres commerces conservent la règle propriétaire/salarié. La RPC `commerce_produire` conserve ses vérifications d'identité, PA, carte, matières, plafond et caisse, et verse le salaire de production selon la règle commune.
+- Commits : `af25107d` (écran) et `ebdc6e90` (garde serveur). **Non appliqué en production**, pas de résultat de production authentifiée en conditions réelles. Livraison conditionnée au banc SQL transactionnel annulé, vérification de la cohérence avec les migrations Claude, puis déploiement groupé.
+- Cas à tester : PJ physiquement dans la brasserie avec 1 PA, +5 plats et consommation 1 poisson + 1 céréale, salaire 50 FR, caisse -50 ; PJ depuis la rue et autres commerces refusés, double clic et stock plein, refus sans mutation, réglementation des matières.
