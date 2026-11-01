@@ -24,9 +24,10 @@
 ## Fin du bail, cession et irréversibilité d'usage (décision du 01/11)
 
 - Quand le locataire quitte un appartement ou un local, son droit d'usage de la serrure installée prend fin. Les clés et doubles existants ne peuvent plus lui donner accès à l'ancien emplacement.
-- La serrure ainsi désactivée ne peut jamais être réutilisée, réinstallée ni réactivée, y compris après vente du local, changement de propriétaire ou arrivée d'un autre locataire. Toute nouvelle fermeture nécessite une nouvelle serrure.
+- **Décision définitive du game designer : au départ du locataire, la serrure installée est détruite pour tout le monde**, et pas seulement rendue inutilisable pour son ancien détenteur. Elle ne peut jamais être récupérée, réutilisée, réinstallée ou réactivée, même après vente du local, changement de propriétaire ou arrivée d'un autre locataire. Le local est alors **sans serrure** ; le nouveau locataire ou propriétaire devra en installer une nouvelle s'il souhaite le sécuriser.
 - Le changement de propriétaire ne doit jamais hériter automatiquement d'un droit d'ouverture sur une serrure désactivée. Le serveur porte un identifiant d'installation et un état irréversible, et vérifie la validité du droit d'occupation lors de chaque tentative d'accès.
-- Les clés et doubles de l'ancienne installation ne doivent jamais être rattachés à une nouvelle installation par un changement de propriétaire ou d'occupant.
+- Toutes les clés et tous les doubles de l'installation détruite perdent définitivement leur capacité d'ouverture. Aucun ne peut être rattaché à une nouvelle installation par un changement de propriétaire ou d'occupant.
+- La destruction et la révocation des clés sont une seule opération serveur transactionnelle, déclenchée par la fin effective de la jouissance locative ; les accès doivent consulter l'état serveur et non la seule présence d'une clé dans l'inventaire.
 
 ## Clés vierges et duplication (décision du 01/11)
 
