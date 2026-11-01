@@ -1197,7 +1197,16 @@ const WORLD = {
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
         'dispensaire-public-v':         { name: "Hôpital de Montrouge", persons: [{name:'Agnès Thésie (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}] },
-        'centre-commercial':            { name: "Centre commercial de Montrouge", roomOverrides: { hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg" } } },
+        'centre-commercial': {
+          name: "Centre commercial de Montrouge",
+          roomOverrides: {
+            hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg" },
+            vitrine_principale: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-grand.jpg" },
+            boutique_milieu: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-moyen.jpg" },
+            arriere_boutique: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-petit.jpg" },
+            cave_reserve: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-tres-petit.jpg" }
+          }
+        },
         // Le BNE de Montrouge est une annexe du Centre d'Affaires, sur le meme modele que
         // PSM (ville_a.buildingContext['centre-affaires'].roomsExtra.bureau_emploi_annexe) :
         // memes 3 ordres generiques (aucune mecanique/PNJ invente), image propre a Montrouge.
