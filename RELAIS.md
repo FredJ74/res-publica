@@ -27,8 +27,8 @@ Règles : voir `AGENTS.md`.
 
 ### Reste de la clôture de Luthécia (Claude, après #340)
 
-- **Extension `http`** : installée le temps de l'application du lot ; sa suppression (`DROP EXTENSION http;`) attend une confirmation humaine dans le canal Supabase. Elle est dans le schéma `extensions`, non exposé par PostgREST.
-- **Contrôles SQL après déploiement à jouer** (lecture seule) : présence des RPC du lot, `chantier_commande` ouvert / `chantier_travailler` fermé aux clients, plus aucune image `.png` en `recettes_commerce`, aucune fonction mutante du lot exécutable par `anon`.
+- ~~Extension `http`~~ **retirée le 01/11 à 23 h 58** (registre `retirer_extension_http_20261101235500`, feu vert de Fred) ; aucun appelant ni dépendance au contrôle préalable.
+- **Contrôles après déploiement joués le 01/11 (23 h 55, lecture seule) : conformes.** RPC du lot présentes (seule absente `organisations_champs_commandes_garder`, de `20261031230000` non appliquée) ; aucune fonction mutante du lot exécutable par `anon` ; `chantier_commande` ouvert, `chantier_travailler` fermé aux clients ; 0 image `.png` dans `recettes_commerce`.
 - **Non appliquées volontairement** : `20261031230000` (organisations : feu vert explicite de Fred requis), `20261031124000` (verrou d'inventaire : recette d'intégration requise).
 - **Baseline à réextraire** (ChatGPT, #262) : la production contient désormais le lot ; les fichiers appliqués restent dans `migrations/` jusqu'au relevé.
 
