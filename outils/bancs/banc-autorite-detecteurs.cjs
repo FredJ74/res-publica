@@ -89,3 +89,21 @@ with tempfile.TemporaryDirectory() as dossier:
  const p=spawnSync('python3',['-c',script],{cwd:path.resolve(__dirname,'../..'),encoding:'utf8'});
  assert.equal(p.status,0,p.stdout+p.stderr);
 });
+
+test('Authority reconnaît une policy citée uniquement sur sa propre table', () => {
+  const script = String.raw`
+import runpy
+m = runpy.run_path('outils/baseline/verifier-autorite.py', run_name='controle_importe')
+f=m['policies_creees_migration']
+s='CREATE POLICY "reserve jardins lecture" ON public.jardins_ouvriers_reserve FOR SELECT TO authenticated USING (true);'
+assert f(s)=={('jardins_ouvriers_reserve','reserve jardins lecture')}
+assert ('autre_table','reserve jardins lecture') not in f(s)
+assert f('DROP POLICY IF EXISTS "reserve jardins lecture" ON public.jardins_ouvriers_reserve;')==set()
+assert f('create policy simple on public.fixture for select using(true);')=={('fixture','simple')}
+assert f('-- CREATE POLICY "reserve jardins lecture" ON public.fixture FOR SELECT USING(true);\nSELECT 1;')==set()
+assert f("SELECT 'CREATE POLICY faux ON public.fixture FOR SELECT USING(true);';")==set()
+assert f('CREATE POLICY "nom""cite" ON public."MaTable" FOR SELECT USING(true);')=={('MaTable','nom"cite')}
+`;
+  const proc = spawnSync('python3', ['-c', script], {cwd:path.resolve(__dirname,'../..'),encoding:'utf8'});
+  assert.equal(proc.status,0,proc.stderr||proc.stdout);
+});

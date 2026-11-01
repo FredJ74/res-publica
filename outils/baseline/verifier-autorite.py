@@ -336,6 +336,20 @@ def fonctions_du_baseline():
     return {nom: "\n".join(v) for nom, v in defs.items()}
 
 
+def policies_creees_migration(texte):
+    """Identités table/nom déclarées, y compris noms SQL entre guillemets.
+
+    Ne prouve aucun déploiement ; évite seulement le faux inconnu d'un DROP
+    idempotent suivi du CREATE correspondant dans le même fichier.
+    """
+    from pglast import parse_sql
+    return {(stmt.table.relname, stmt.policy_name)
+            for raw in parse_sql(texte)
+            for stmt in (raw.stmt,)
+            if type(stmt).__name__ == 'CreatePolicyStmt'
+            and stmt.table.schemaname == 'public'}
+
+
 def fonctions_creees_migration(texte):
     """Déclarations immédiates ou en-têtes constants des blocs DO.
 
@@ -698,7 +712,7 @@ def main():
             # un DROP ... IF EXISTS sur une policy que la migration vient de
             # creer est l'idempotence, pas une erreur : on ne reclame que les
             # noms qui n'existent ni en base ni dans la migration.
-            if (m.group(2), nom) not in noms_policies and ("CREATE POLICY %s " % nom) not in texte:
+            if (m.group(2), nom) not in noms_policies and (m.group(2), nom) not in policies_creees_migration(texte):
                 ecarts.append("%s : policy inconnue « %s » sur %s"
                               % (court, nom, m.group(2)))
         # Les tables mises sous RLS.
