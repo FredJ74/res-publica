@@ -149,4 +149,13 @@ décidé et que les autres empires seront codés.
 ## Questions encore ouvertes
 
 - À quoi sert concrètement l'Indice Diplomatique (Fred : « plus tard »).
-- Les ordres d'ambassade non raccordables : les passer en « Bientôt disponible ».
+
+## Décidé le 01/11/2026 — ordres non raccordables
+
+Décision de Fred (01/11) : les ordres qui attendent le voyage entre empires restent **visibles
+et grisés** avec la mention « Bientôt disponible », plutôt que masqués. Implémenté par le
+drapeau `bientot` : « Demander la naturalisation » (mairies), « Demandes de naturalisation »
+(ministre de l'Intérieur), « Demander le transfert d'un détenu » (bureaux des trois
+ambassadeurs). L'immunité et l'arrestation de l'expulsé ne sont pas des ordres mais des
+règles automatiques : rien à griser, elles seront branchées avec le voyage.
+Banc : `outils/bancs/banc-ambassades-bientot-20261101.cjs`.

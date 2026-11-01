@@ -29,6 +29,14 @@ Règles : voir `AGENTS.md`.
 
 Issue de `main` `df67186`. **Corrigé** : interview de Jodie (un double clic sur Envoyer ne lance plus deux rédactions ; une réponse tardive n'écrase plus l'écran ; les réponses survivent à une réouverture). **Déjà conformes, preuves à l'appui** : caisses à l'accueil des bâtiments communaux (#275), fontaine de SLAVA sur place uniquement (serveur + écran), journal des ventes (#96 ; les trois ventes de SLAVA antérieures au 23/10 n'y figurent pas et restent inchangées, décision de Fred du 01/11), multimodal de PSM (destinations nommées, plus d'ordre de Mireille). **F5** : non reproductible sur `main` ; dépendance #219/#318 inscrite comme test en attente. Aucune migration. Nouveaux bancs : `banc-jodie-interview-navigateur.cjs` (5/5, contre-épreuve), `banc-multimodal-psm-20261101.cjs` (4/4), `banc-position-f5-luthecia-20261101.cjs` (4/4 + 1 en attente). Rapport : `outils/audits/CLOTURE-FONCTIONNELLE-LUTHECIA-20261101.md`. Déploiement : écran seul (`plateau-communication.js`).
 
+### Claude — ambassades « Bientôt disponible » (branche `claude/ambassades-bientot-disponible-20261101`)
+
+Décision de Fred (01/11, 19 h 40) : ordres non raccordables visibles et grisés. Naturalisation (mairies, pop-up État civil qui sait désormais lire `bientot`), examen des naturalisations (ministre de l'Intérieur), nouveau « Demander le transfert d'un détenu » grisé dans les trois bureaux d'ambassadeur. Aucune migration, écran seul (`plateau-politique.js`, `data.js`). Banc `banc-ambassades-bientot-20261101.cjs` 4/4 (contre-épreuve 4 échecs). **À tester** : mairie → État civil → « Demander la naturalisation » grisé, un clic n'enlève ni PA ni FR.
+
+### Claude — fonds et murs des commerces (#66), à suivre
+
+Fred (01/11, 19 h 39) : reconstruire #66 depuis `main` (règles du 21/10, PR #71 périmée). Chantier suivant, branche à créer.
+
 ### PR #325 — quatre PNG des locaux commerciaux de Port-Sainte-Marie
 
 Branche `fix/psm-quatre-images-commerces-20261101`. Les quatre PNG du ZIP fourni par Fred sont ajoutés sans transformation ; égalité octet pour octet vérifiée après extraction. Les quatre chemins déjà préparés dans `data.js` correspondent aux fichiers grand, moyen, petit et micro. Aucun moteur, prix, superficie ou autre fonctionnalité modifié. Syntaxe de `data.js`, décodage des quatre PNG et raccordements effectifs dans WORLD vérifiés. Contrôleur client : **139/139 bancs réussis**, après mise à disposition des dépendances déjà installées (premier essai incomplet : dépendances absentes). Fusion simulée avec le main récupéré : sans conflit. Contrôles GitHub et fusion encore à vérifier : accès API refusé dans cette session ; requête Vercel également bloquée par le proxy (403), aucun statut de déploiement déduit. Ne pas déclarer la production livrée avant fusion et vérification des ressources Vercel.
@@ -83,10 +91,8 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ### Décisions attendues de Fred
 
-- **Hospitalisation (décision de Fred, 01/11)** : règles complètes dans `GAME-DESIGN-HOSPITALISATION.md` (déclencheur à 0 PA, J0/J1/J2, repas de l'hôpital, clinique ×3, transfert en ambulance dès J0). À implémenter ; une précision en attente sur le remplacement des anciennes durées par palier.
 
-- **Fonds et murs des commerces (#66)** : règles décidées le 21/10 (murs à 150 FR/m², La Republica 1 200 m², fonds et murs indépendants, achat conjoint atomique, murs des commerces PNJ à la commune), **rien n'est en production**. La PR #71 qui les implémentait est périmée (laissée ouverte, commentaire du 31/10) : à reconstruire depuis main si Fred en fait une priorité.
-- **Ambassades** : griser « Bientôt disponible » les ordres non raccordables tant que le voyage entre empires n'existe pas (immunité, arrestation de l'expulsé, transfert de détenus, naturalisation). Référence : `GAME-DESIGN-AMBASSADES.md`.
+- Aucune décision en attente au 01/11 au soir (hospitalisation déjà tranchée dans `GAME-DESIGN-HOSPITALISATION.md` ; ambassades et #66 tranchées le 01/11).
 
 ### Points ouverts transmis (non bloquants)
 
