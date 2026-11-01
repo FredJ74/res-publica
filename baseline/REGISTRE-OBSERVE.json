@@ -2092,7 +2092,9 @@
       "ancien": "migrations/20261031220000_transfert_prime_signature_serveur.sql",
       "fichier": "historique/migrations-appliquees/20261031220000_transfert_prime_signature_serveur.sql",
       "version_registre": "20261031211256",
-      "sha256": "6dfab7cfc2b34dcbf649703b40a77558cf29174e3bd6767c4f30a8105fcdb015"
+      "sha256": "ec10c3001da9e3a83c10929dfd4419536af13955dd25a4234ee8dd0067f1ea7b",
+      "sha256_avant_annotation_main": "6dfab7cfc2b34dcbf649703b40a77558cf29174e3bd6767c4f30a8105fcdb015",
+      "annotation_main": "Trois lignes de commentaires ajoutées par main 9ce70b64 ; SQL exécuté inchangé."
     },
     {
       "ancien": "migrations/20261031234500_terrains_psm_montrouge_socle.sql",

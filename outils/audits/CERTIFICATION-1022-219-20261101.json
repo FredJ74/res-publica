@@ -50,11 +50,33 @@
   "production": false,
   "capture_sha256": "8f44694a96a689b960e9c7f659361cadf57d29129c75c1995d0304c3b9d26c00",
   "snapshot": "351194:351194:",
-  "sql_95_sha256": "43ecdaae32a3352d183f3745cdadc482cee36bab120b54e08092ef79f59eb0df",
+  "sql_95_sha256": "5ff357b7c23524f888b0a98e081d0e3d6a6bbdaf0bead3dfa2da6f63f2396d05",
   "limites": [
     "aucune connexion de joueur reel",
     "aucun deploiement",
     "Authority et Referential restent bloquants",
     "coupe capturee, non relue en ligne apres reception"
-  ]
+  ],
+  "main_integre": "9ce70b64",
+  "tarifs_sources": {
+    "lignes": 460,
+    "md5": "e4f22df47ad847b9b8cf263459ed4fbd"
+  },
+  "regressions_finales": {
+    "clients": {
+      "reussis": 163,
+      "total": 163
+    },
+    "finances_assertions": 29,
+    "plan_97_tests": 2,
+    "controles_globaux": {
+      "reussis": 10,
+      "total": 12,
+      "echecs": [
+        "Authority",
+        "Referential"
+      ]
+    },
+    "github_actions_distants": "non_observes_API_Forbidden"
+  }
 }

@@ -5,7 +5,7 @@ R=Path(__file__).resolve().parents[2]
 s=importlib.util.spec_from_file_location('plan97',R/'outils/livraison/preparer-recette97-219.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
 class Plan(unittest.TestCase):
  def test_ordre_exact_et_sources_verifiees(self):
-  v=m.preparer();self.assertEqual(v['nombre'],97);self.assertEqual(v['tarifs_source'],{'lignes':459,'md5':'1e69581b8020f7375f95d7cdf5dd6c39'});self.assertFalse(v['execution_autorisee']);self.assertTrue(v['ancien_plan_tarifaire_conforme_source']);self.assertEqual([x['version'] for x in v['migrations'][-2:]],['20261101170000','20261101171000'])
+  v=m.preparer();self.assertEqual(v['nombre'],97);self.assertEqual(v['tarifs_source'],{'lignes':460,'md5':'e4f22df47ad847b9b8cf263459ed4fbd'});self.assertFalse(v['execution_autorisee']);self.assertTrue(v['ancien_plan_tarifaire_conforme_source']);self.assertEqual([x['version'] for x in v['migrations'][-2:]],['20261101170000','20261101171000'])
  def test_omission_inversion_et_source_alteree_refusees(self):
   es=m.preparer()['migrations']
   for modif in ('omission','inversion','empreinte'):

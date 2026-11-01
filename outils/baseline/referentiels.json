@@ -191,7 +191,7 @@
     "table_empreinte": "ordres_couts_empreinte",
     "fonction_reelle": "ordres_couts_empreinte_reelle",
     "fonction_reelle_en_base": true,
-    "data_js": "1e69581b8020f737",
+    "data_js": "e4f22df47ad847b9",
     "_remesure_du_1er_novembre_2026_parcelles": "Audit PSM/Montrouge (Claude). La valeur posee ici (20e52d8f9bbe8e3f) etait deja perimee : le generateur rendait 08caa3915b4ffb03 sur main avant ce chantier. Apres lui : 346c0950a876de3d. Trois triples changent, tous de parcelles : (acheter_terrain,2,25200) apparait (lot 6 de Montrouge, 2 100 m2, decision de Fred) ; (acheter_terrain,2,3500) disparait (lots de PSM passes a 18 000 FR, decision de Fred) ; (corrompre_chantier,2,1500) disparait (plus aucune parcelle ne l affiche, empires non P2W). La migration 20261031234500 fait les memes trois changements en base. deposer_demande_permis et corrompre_fonctionnaire_permis restent declares (ORDRE_DEPOSER_PERMIS dans plateau-justice-economie.js ; gabarit des parcelles). Le generateur tourne desormais aussi par Node quand JavaScriptCore est absent. Puis 346c0950a876de3d -> e51340fd668f014e : (service_etage,0,50) apparait (hotels de province, decision de Fred du 01/11), ajoute en base par la meme migration.",
     "lignes": 439,
     "posee": "6de4a84c58ed9b2b",

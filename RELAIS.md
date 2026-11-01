@@ -438,3 +438,17 @@ Rapport : `outils/audits/CERTIFICATION-1022-219-20261101.md` et preuve JSON.
 **Ne pas fusionner/déployer : Authority et Referential restent bloquants.**
 Aucune migration de production ni donnée réelle modifiée. Les anciens relais
 « capture manquante » sont historiques, remplacés par cette entrée.
+
+
+Suite : `main` **9ce70b64** intégré, protections et changements Claude conservés.
+Tarifs source désormais **460** (ajout public `demander_transfert_detenu`, 1 PA,
+0 FR). Ancien plan refusé par son garde, delta régénéré puis certification entière
+réexécutée avec succès (97 migrations et 27 HTTP). Globaux **10/12**, Authority et
+Referential toujours rouges et détaillés dans le rapport ; pas de livraison
+production autorisée. L'API GitHub répond toujours Forbidden, résultats distants
+non observés ; sauvegarde par Git disponible.
+
+Dernière régression intégrée : **163/163 bancs clients**, 29 assertions financières
+sur cible 460 et 2 tests de plan ; aucune assertion neutralisée. Preuves et
+limites dans le rapport de certification 1022. La branche de #219 peut recevoir
+cette avance sans force ; aucune fusion main ni livraison production.

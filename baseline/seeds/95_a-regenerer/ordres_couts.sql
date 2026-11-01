@@ -142,6 +142,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('demander_naturalisation',2,0),
   ('demander_non_renouvellement_licence',1,0),
   ('demander_parler_loge',1,0),
+  ('demander_transfert_detenu',1,0),
   ('demandes_naturalisation',0,0),
   ('dementi',2,0),
   ('demettre_lieutenant',0,0),

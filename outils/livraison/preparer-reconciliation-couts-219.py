@@ -8,7 +8,7 @@ def preparer(capture,sortie=None):
  empreinte_capture=hashlib.sha256(p.read_bytes()).hexdigest()
  captures={
   '7a68fd5dc6d9dabf1e51ea3f6cadbd6d4074f93f2014ab028909fa5dab002575':('346064:346064:',438,452,25,39),
-  'fcb2d4d2c27026597de9dc2fb1a1545db001a7ba0cfcf305cfea49f5b4ac3aee':('351194:351194:',439,459,26,46),
+  'fcb2d4d2c27026597de9dc2fb1a1545db001a7ba0cfcf305cfea49f5b4ac3aee':('351194:351194:',439,460,26,47),
  }
  if empreinte_capture not in captures:raise ValueError('Capture indépendante examinée exacte requise')
  snapshot,n_avant,n_apres,n_retirer,n_ajouter=captures[empreinte_capture]
