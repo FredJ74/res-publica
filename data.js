@@ -921,7 +921,11 @@ const WORLD = {
         // arriere_boutique/cave_reserve) restent sur les visuels de la base partagee.
         'centre-commercial': {
           roomOverrides: {
-            hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.webp" }
+            hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.webp" },
+            vitrine_principale: { imageUrl: "images/port-sainte-marie-centre-commercial-local-grand.png" },
+            boutique_milieu: { imageUrl: "images/port-sainte-marie-centre-commercial-local-moyen.png" },
+            arriere_boutique: { imageUrl: "images/port-sainte-marie-centre-commercial-local-petit.png" },
+            cave_reserve: { imageUrl: "images/port-sainte-marie-centre-commercial-local-micro.png" }
           }
         },
         'stade': {
