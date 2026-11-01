@@ -28,3 +28,9 @@ de Montrouge. Lecture seule (code et production) ; aucune donnée modifiée.
 1. **L'église de Montrouge n'a pas de nom propre** (« Église ») alors que les deux autres en ont un : question de ton pour Fred.
 2. **Accueil de Notre-Dame de la Mer vide** (ni PNJ ni ordre) : pièce de passage vers la nef et la tombe, sans défaut.
 3. **Caisses très basses** : 200 FR par église pour un salaire de 100 FR/jour ; aucun salaire religieux n'a encore été versé (aucun PJ prêtre), mais un PJ prêtre viderait la caisse en deux jours si les dons ne suivent pas. Commun aux trois villes.
+
+## Décisions de Fred (01/11/2026)
+
+- Nom : **Église Progressiste de Montrouge** (écran, vue de rue, fiche de l'Abbé Tonnière, libellé du salaire).
+- **+500 FR** dans la caisse de chaque église : migration `20261101060000` **appliquée par Claude le 01/11** (caisses à 700 FR, marque `dotation_20261101`).
+- Salaire religieux jugé trop élevé : montant à fixer par Fred. Rappel : il rémunère la charge (prêtre, Grand Prêtre), versé une fois par jour, sans tâche ; « Prier le Formulaire Sacré » ne rapporte rien en FR (moral et piété seulement).

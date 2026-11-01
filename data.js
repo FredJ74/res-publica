@@ -6749,8 +6749,9 @@ const BUILDINGS = {
     }
   },
   'eglise-montrouge': {
-    name: "Église",
-    shortName: "Église",
+    // Nom donne par Fred le 01/11/2026.
+    name: "Église Progressiste de Montrouge",
+    shortName: "Église Progressiste",
     cat: "Cultes",
     icon: "ti-cross",
     bgColor: "#0c0a06",

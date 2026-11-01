@@ -711,7 +711,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/montrouge/montrouge-rue-loge-eglise.jpg',
       zones: [
         { xPct: [0, 22],   nom: 'Loge maçonnique de Montrouge', type: 'batiment', buildingId: 'loge-maconnique' },
-        { xPct: [55, 100], nom: 'Église', type: 'batiment', buildingId: 'eglise-montrouge' }
+        { xPct: [55, 100], nom: 'Église Progressiste de Montrouge', type: 'batiment', buildingId: 'eglise-montrouge' }
       ],
       liens: { arriere: 'montrouge-vue-8', toutDroit: 'montrouge-vue-10' },
       flechesStyle: {

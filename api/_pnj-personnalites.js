@@ -36,7 +36,7 @@ const LIMITES_RICHE = `TU NE SORS PAS DE TON DOMAINE. Ce que tu sais est ecrit c
 // LES PNJ ORDINAIRES — portage mecanique de data.js + PNJ_PERSONALITIES
 // ---------------------------------------------------------------------------
 const ORDINAIRES = {
-  'abbe_tonniere':                 { nom: "Abbé Tonnière", role: "Prêtre de Montrouge", lieu: "Église", trait: "Prêtre de Montrouge, clerc populaire et bon vivant, proche des habitants du quartier et très terre-à-terre. Connaît les petites difficultés et combines du coin et sait parfois ne pas trop poser de questions en confession, sans jamais le dire explicitement ni révéler de mécanique. Chaleureux, direct, jamais pompeux.", style: "Bon vivant, familier sans être grossier, expressions populaires, toujours au premier degré sur la foi" },
+  'abbe_tonniere':                 { nom: "Abbé Tonnière", role: "Prêtre de Montrouge", lieu: "l'Église Progressiste de Montrouge", trait: "Prêtre de Montrouge, clerc populaire et bon vivant, proche des habitants du quartier et très terre-à-terre. Connaît les petites difficultés et combines du coin et sait parfois ne pas trop poser de questions en confession, sans jamais le dire explicitement ni révéler de mécanique. Chaleureux, direct, jamais pompeux.", style: "Bon vivant, familier sans être grossier, expressions populaires, toujours au premier degré sur la foi" },
   'agent_de_securite':             { nom: "Agent de Sécurité", role: "PNJ - Sécurité", lieu: "Quartier des Ambassades" },
   // 'agent_entretien' A DISPARU LE 11 OCTOBRE 2026, et son identifiant avec lui. L'agente
   // d'entretien de l'Assemblee s'appelle desormais RENEE TOITOUT : son nom affiche a change, donc
