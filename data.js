@@ -921,7 +921,11 @@ const WORLD = {
         // arriere_boutique/cave_reserve) restent sur les visuels de la base partagee.
         'centre-commercial': {
           roomOverrides: {
-            hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.webp" }
+            // 1er novembre 2026 (decision de Fred) : les PNJ du hall de Luthecia (Francisca Brel,
+            // Edgar Simore) n'apparaissent pas a PSM -- aucune connexion entre les villes. Un seul
+            // PNJ, l'agent de securite privee du centre.
+            hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.webp",
+              persons: [{name:'Cédric Legoff (PNJ)', role:'Agent de sécurité privée', rel:'neutral', job:'agent_securite'}] }
           }
         },
         'stade': {
@@ -1197,7 +1201,10 @@ const WORLD = {
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
         'dispensaire-public-v':         { name: "Hôpital de Montrouge", persons: [{name:'Agnès Thésie (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}] },
-        'centre-commercial':            { name: "Centre commercial de Montrouge", roomOverrides: { hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg" } } },
+        // 1er novembre 2026 (decision de Fred) : pas les PNJ du hall de Luthecia, un seul PNJ propre
+        // a Montrouge, l'agent de securite privee du centre.
+        'centre-commercial':            { name: "Centre commercial de Montrouge", roomOverrides: { hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg",
+          persons: [{name:'Bastien Jacquemont (PNJ)', role:'Agent de sécurité privée', rel:'neutral', job:'agent_securite'}] } } },
         // Le BNE de Montrouge est une annexe du Centre d'Affaires, sur le meme modele que
         // PSM (ville_a.buildingContext['centre-affaires'].roomsExtra.bureau_emploi_annexe) :
         // memes 3 ordres generiques (aucune mecanique/PNJ invente), image propre a Montrouge.
