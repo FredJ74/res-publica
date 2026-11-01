@@ -1,0 +1,877 @@
+{
+  "production": false,
+  "schema_1012_certifie": true,
+  "catalogue_1012_certifie": false,
+  "locale_conforme_production": {
+    "conforme": true,
+    "locale": {
+      "collate": "en_US.utf8",
+      "ctype": "en_US.utf8",
+      "provider": "i",
+      "datlocale": "en-US",
+      "version": "153.121",
+      "version_actuelle": "153.121"
+    }
+  },
+  "empreinte_complete_avant95": {
+    "conforme": true,
+    "familles": [
+      "contraintes",
+      "declencheurs",
+      "fonctions",
+      "index",
+      "politiques",
+      "relations"
+    ]
+  },
+  "empreinte_locale_avant95": {
+    "registre": {
+      "lignes": 1012,
+      "derniere": "20261031211256"
+    },
+    "categories": {
+      "index": {
+        "seaux": {
+          "0": "32:d221df2dbe23",
+          "1": "27:3ba5ae12af70",
+          "2": "40:37eb39c76cbd",
+          "3": "38:8f5ef0c87a6c",
+          "4": "44:7d2d573c0911",
+          "5": "49:cfefadcab4ff",
+          "6": "42:d389fe0da6d5",
+          "7": "39:f16b1126ac43",
+          "8": "25:048422d47073",
+          "9": "37:aa5325903b4f",
+          "a": "37:9eece1ae094d",
+          "b": "41:0a9e862ca2b5",
+          "c": "40:e96c631b01e0",
+          "d": "33:6741d54b284f",
+          "e": "37:2157679de204",
+          "f": "31:8ec3b1726148"
+        },
+        "objets": 592,
+        "racine": "ec116cc04c15ae9d3d37ae98f46c5596"
+      },
+      "fonctions": {
+        "seaux": {
+          "0": "67:b1ac0e4b9fd3",
+          "1": "60:819ae437da04",
+          "2": "68:9cc52320e8a9",
+          "3": "85:33ea9d34f1e2",
+          "4": "71:3d667a38a705",
+          "5": "94:20ff323395f2",
+          "6": "82:74d433880d96",
+          "7": "72:e01fb1feea16",
+          "8": "63:8014005c6dd5",
+          "9": "78:bf35b120b5f4",
+          "a": "77:b1c4c9eb4eb9",
+          "b": "73:67a59c9a65ca",
+          "c": "75:578fd5f815c3",
+          "d": "82:8070ead6a90d",
+          "e": "82:734cf26aad2b",
+          "f": "84:52af3b75a1e1"
+        },
+        "objets": 1213,
+        "racine": "c889615fe91f3e1ad83a088a9e2a730d"
+      },
+      "relations": {
+        "seaux": {
+          "0": "16:e89d74d01a94",
+          "1": "29:2108a2a4496a",
+          "2": "24:eca2670707bc",
+          "3": "34:8a69ba5239d7",
+          "4": "27:9ae8a584dbaa",
+          "5": "23:af3295e892eb",
+          "6": "24:263b4db03de2",
+          "7": "23:0b5e51955ddb",
+          "8": "32:f92028808570",
+          "9": "23:59a7caefe468",
+          "a": "31:17c55f182138",
+          "b": "22:1f4cef66bdea",
+          "c": "23:4a97fd36414d",
+          "d": "32:a81f0abf1f06",
+          "e": "30:805a7d0099d2",
+          "f": "29:3727f2621f44"
+        },
+        "objets": 422,
+        "racine": "96b225a4290472df7c1cd2a491447556"
+      },
+      "politiques": {
+        "seaux": {
+          "0": "13:e8fa65fa70ee",
+          "1": "23:30a8b2252e58",
+          "2": "12:b8758f20281a",
+          "3": "10:3fc26e06aa7c",
+          "4": "14:7817cc5a72ef",
+          "5": "17:46d40a826de4",
+          "6": "20:695fd1635715",
+          "7": "19:c0f69221d4c5",
+          "8": "12:ce141bb240e8",
+          "9": "19:f57f3004fb88",
+          "a": "22:9432887a9918",
+          "b": "11:5a49826a6584",
+          "c": "20:35dee3f7f475",
+          "d": "16:f1e875b59ae0",
+          "e": "19:c87de81cb5e4",
+          "f": "15:960fe39957c4"
+        },
+        "objets": 262,
+        "racine": "c38d4564e631703a7257cb1c11fc1462"
+      },
+      "contraintes": {
+        "seaux": {
+          "0": "49:ddf6938ce64a",
+          "1": "45:09a38d0cbefc",
+          "2": "62:83bb4ad74763",
+          "3": "51:0f88b14bb5c4",
+          "4": "47:f6ea8ddcac67",
+          "5": "42:26a41a8c0950",
+          "6": "40:b7b92998d275",
+          "7": "43:c09cc966c66f",
+          "8": "43:f1966ded9695",
+          "9": "46:eb1d2cc06b6b",
+          "a": "38:5ea093f11af8",
+          "b": "43:4bdeebc95301",
+          "c": "43:90d91a28d4b9",
+          "d": "42:d3b044db1371",
+          "e": "49:7d55530e35d8",
+          "f": "49:943916fb1420"
+        },
+        "objets": 732,
+        "racine": "e254d8183b997913eb8974f3e665f426"
+      },
+      "declencheurs": {
+        "seaux": {
+          "0": "10:de22080d6e73",
+          "1": "8:faad1056a13e",
+          "2": "7:e547cebc18e0",
+          "3": "5:7231486e7fc1",
+          "4": "3:7a02325540d7",
+          "5": "6:37c5b9a3e0bc",
+          "6": "2:4134aae565fa",
+          "7": "3:9375cc4fbd99",
+          "8": "5:b9ad68b241f6",
+          "9": "3:a6bdf37b017d",
+          "a": "3:15ee2a5dfc7e",
+          "b": "7:7031918c9ef8",
+          "c": "5:799b5df96ea5",
+          "d": "6:a1daac52d291",
+          "e": "6:3cad659f9280",
+          "f": "2:f2b14567b86b"
+        },
+        "objets": 81,
+        "racine": "147bf68b89af02871d6b52cd8d774dab"
+      }
+    },
+    "version_serveur": "17.6"
+  },
+  "rpc_clients_avant95": {
+    "fonctions": 494,
+    "formes": 496,
+    "ecarts": [
+      {
+        "fonction": "tournee_creer",
+        "parametres": [
+          "p_id"
+        ],
+        "sites": [
+          "plateau-actions-illegales-rumeurs.js:4987"
+        ],
+        "signatures_connues": [
+          {
+            "parametres": [
+              "p_entreprise",
+              "p_id",
+              "p_invites",
+              "p_recette"
+            ],
+            "obligatoires": [
+              "p_entreprise",
+              "p_id",
+              "p_invites",
+              "p_recette"
+            ],
+            "authenticated_execute": true
+          }
+        ],
+        "diagnostic": "parametres_incompatibles_ou_spread_non_resolu"
+      },
+      {
+        "fonction": "force_publique_effectif_acte",
+        "parametres": [
+          "p_action",
+          "p_matricule",
+          "p_requete",
+          "p_service",
+          "p_type"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:8724"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "chantier_travailler",
+        "parametres": [
+          "p_acteur",
+          "p_batiment",
+          "p_heures",
+          "p_pays"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:12161"
+        ],
+        "signatures_connues": [
+          {
+            "parametres": [
+              "p_acteur",
+              "p_batiment",
+              "p_heures",
+              "p_pays"
+            ],
+            "obligatoires": [
+              "p_acteur",
+              "p_batiment",
+              "p_heures",
+              "p_pays"
+            ],
+            "authenticated_execute": false
+          }
+        ],
+        "diagnostic": "execution_client_refusee"
+      },
+      {
+        "fonction": "vendre_materiaux_chantier",
+        "parametres": [
+          "p_building_id",
+          "p_country",
+          "p_matiere",
+          "p_prix",
+          "p_quantite",
+          "p_vendeur"
+        ],
+        "sites": [
+          "supabase.js:5675"
+        ],
+        "signatures_connues": [
+          {
+            "parametres": [
+              "p_building_id",
+              "p_country",
+              "p_matiere",
+              "p_prix",
+              "p_quantite",
+              "p_requete",
+              "p_vendeur"
+            ],
+            "obligatoires": [
+              "p_building_id",
+              "p_country",
+              "p_matiere",
+              "p_prix",
+              "p_quantite",
+              "p_requete",
+              "p_vendeur"
+            ],
+            "authenticated_execute": true
+          },
+          {
+            "parametres": [
+              "p_building_id",
+              "p_country",
+              "p_matiere",
+              "p_prix",
+              "p_quantite",
+              "p_vendeur"
+            ],
+            "obligatoires": [
+              "p_building_id",
+              "p_country",
+              "p_matiere",
+              "p_prix",
+              "p_quantite",
+              "p_vendeur"
+            ],
+            "authenticated_execute": false
+          }
+        ],
+        "diagnostic": "execution_client_refusee"
+      },
+      {
+        "fonction": "pnj_deployer_unite",
+        "parametres": [
+          "p_groupe",
+          "p_pnj_ids"
+        ],
+        "sites": [
+          "plateau-justice-economie.js:14826"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "groupe_pj_rejoindre",
+        "parametres": [
+          "p_chef"
+        ],
+        "sites": [
+          "plateau-multijoueur.js:1993"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "groupe_pj_quitter",
+        "parametres": [],
+        "sites": [
+          "plateau-multijoueur.js:1996"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "navigation_interieure",
+        "parametres": [
+          "p_batiment",
+          "p_piece"
+        ],
+        "sites": [
+          "plateau-navigation.js:292"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "douane_controle_groupe",
+        "parametres": [
+          "p_mode",
+          "p_requete"
+        ],
+        "sites": [
+          "plateau-navigation.js:2688"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "transport_effectuer",
+        "parametres": [
+          "p_mode",
+          "p_pays",
+          "p_requete",
+          "p_ville"
+        ],
+        "sites": [
+          "plateau-navigation.js:2717"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "crime_corrompre_douanier",
+        "parametres": [
+          "p_cost",
+          "p_pa",
+          "p_requete"
+        ],
+        "sites": [
+          "plateau-navigation.js:3048"
+        ],
+        "signatures_connues": [
+          {
+            "parametres": [
+              "p_cost",
+              "p_pa"
+            ],
+            "obligatoires": [
+              "p_cost",
+              "p_pa"
+            ],
+            "authenticated_execute": true
+          }
+        ],
+        "diagnostic": "parametres_incompatibles_ou_spread_non_resolu"
+      },
+      {
+        "fonction": "combat_cibles_lire",
+        "parametres": [],
+        "sites": [
+          "plateau-pnj.js:722"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "vendre_fonds_commerce",
+        "parametres": [
+          "p_acheteur",
+          "p_fonds_id",
+          "p_prix",
+          "p_vendeur"
+        ],
+        "sites": [
+          "supabase.js:3002"
+        ],
+        "signatures_connues": [
+          {
+            "parametres": [
+              "p_acheteur",
+              "p_fonds_id",
+              "p_prix",
+              "p_vendeur"
+            ],
+            "obligatoires": [
+              "p_acheteur",
+              "p_fonds_id",
+              "p_prix",
+              "p_vendeur"
+            ],
+            "authenticated_execute": false
+          }
+        ],
+        "diagnostic": "execution_client_refusee"
+      },
+      {
+        "fonction": "tracts_appliquer_effet_pop",
+        "parametres": [
+          "p_cible",
+          "p_delta"
+        ],
+        "sites": [
+          "supabase.js:4485"
+        ],
+        "signatures_connues": [
+          {
+            "parametres": [
+              "p_cible",
+              "p_delta"
+            ],
+            "obligatoires": [
+              "p_cible",
+              "p_delta"
+            ],
+            "authenticated_execute": false
+          }
+        ],
+        "diagnostic": "execution_client_refusee"
+      },
+      {
+        "fonction": "batiment_caisse_mouvement",
+        "parametres": [
+          "p_building",
+          "p_delta",
+          "p_exiger_existant",
+          "p_pays",
+          "p_souscle",
+          "p_stock",
+          "p_stock_cle",
+          "p_stock_max",
+          "p_ville"
+        ],
+        "sites": [
+          "supabase.js:4524"
+        ],
+        "signatures_connues": [
+          {
+            "parametres": [
+              "p_building",
+              "p_delta",
+              "p_exiger_existant",
+              "p_pays",
+              "p_souscle",
+              "p_stock",
+              "p_stock_cle",
+              "p_stock_max",
+              "p_ville"
+            ],
+            "obligatoires": [
+              "p_building",
+              "p_delta",
+              "p_pays",
+              "p_souscle",
+              "p_ville"
+            ],
+            "authenticated_execute": false
+          }
+        ],
+        "diagnostic": "execution_client_refusee"
+      },
+      {
+        "fonction": "militaire_subtiliser",
+        "parametres": [
+          "p_joueur",
+          "p_pays"
+        ],
+        "sites": [
+          "supabase.js:4607"
+        ],
+        "signatures_connues": [
+          {
+            "parametres": [
+              "p_joueur",
+              "p_pays"
+            ],
+            "obligatoires": [
+              "p_joueur",
+              "p_pays"
+            ],
+            "authenticated_execute": false
+          }
+        ],
+        "diagnostic": "execution_client_refusee"
+      },
+      {
+        "fonction": "tracts_reclamer_don",
+        "parametres": [
+          "p_destinataire",
+          "p_id"
+        ],
+        "sites": [
+          "supabase.js:4875"
+        ],
+        "signatures_connues": [
+          {
+            "parametres": [
+              "p_destinataire",
+              "p_id"
+            ],
+            "obligatoires": [
+              "p_destinataire",
+              "p_id"
+            ],
+            "authenticated_execute": false
+          }
+        ],
+        "diagnostic": "execution_client_refusee"
+      },
+      {
+        "fonction": "creer_placement_national",
+        "parametres": [
+          "p_int_snapshot",
+          "p_montant",
+          "p_personnage",
+          "p_ville"
+        ],
+        "sites": [
+          "supabase.js:5569"
+        ],
+        "signatures_connues": [
+          {
+            "parametres": [
+              "p_int_snapshot",
+              "p_montant",
+              "p_personnage",
+              "p_ville"
+            ],
+            "obligatoires": [
+              "p_int_snapshot",
+              "p_montant",
+              "p_personnage",
+              "p_ville"
+            ],
+            "authenticated_execute": false
+          }
+        ],
+        "diagnostic": "execution_client_refusee"
+      },
+      {
+        "fonction": "pnj_rappeler_radio",
+        "parametres": [
+          "p_ancre"
+        ],
+        "sites": [
+          "supabase.js:6639"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "pnj_unites_administrables_lire",
+        "parametres": [],
+        "sites": [
+          "supabase.js:6655"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "groupe_pj_lire",
+        "parametres": [],
+        "sites": [
+          "supabase.js:6659"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "organisation_commande_evenement",
+        "parametres": [
+          "p_action",
+          "p_organisation",
+          "p_parametres",
+          "p_requete"
+        ],
+        "sites": [
+          "supabase.js:6950"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "organisation_commande_membres",
+        "parametres": [
+          "p_action",
+          "p_organisation",
+          "p_parametres",
+          "p_requete"
+        ],
+        "sites": [
+          "supabase.js:6952"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      },
+      {
+        "fonction": "organisation_commande_administrative",
+        "parametres": [
+          "p_action",
+          "p_organisation",
+          "p_parametres",
+          "p_requete"
+        ],
+        "sites": [
+          "supabase.js:6954"
+        ],
+        "signatures_connues": [],
+        "diagnostic": "fonction_absente"
+      }
+    ],
+    "portee": "Schéma du clone conforme aux six empreintes 1012, avant 95 ; pas un verdict de données ni de production"
+  },
+  "equipements_collectifs_avant95": {
+    "organisation_equipement_acheter": [],
+    "organisation_equipement_deplacer": [],
+    "organisation_equipements_etat": [],
+    "organisation_equipements_payeurs": []
+  },
+  "diagnostic_archives_refs_non_certifiant": {
+    "essai_annule": true,
+    "migrations_rejouees": false,
+    "sources": [
+      {
+        "fichier": "historique/migrations-appliquees/20261025070000_chantier_taux_horaire.sql",
+        "sha256": "39efc4de1e48837a62b12ea62e05c250da3f0be2e96e5d0d93e8a159bf968d64",
+        "version_registre": "20261025193111",
+        "table": "entreprises_constantes",
+        "instructions": 1
+      },
+      {
+        "fichier": "historique/migrations-appliquees/20261029220000_logements_sociaux_communaux.sql",
+        "sha256": "a38681fb48532979f7e687f2c7576fd86886df36455329be0890368f1ef330bf",
+        "version_registre": "20261030115932",
+        "table": "chantiers_paliers",
+        "instructions": 1
+      }
+    ],
+    "mesures": {
+      "entreprises_constantes": {
+        "lignes": 23,
+        "empreinte": "c2238a95f3c248a23953e2e205bcdbec",
+        "concorde_reference": false
+      },
+      "chantiers_paliers": {
+        "lignes": 7,
+        "empreinte": "f9ebb4e7734e75b4672df82ed2c9a5b2",
+        "concorde_reference": true
+      }
+    }
+  },
+  "paliers_reconstitues_conformes": {
+    "fichier": "historique/migrations-appliquees/20261029220000_logements_sociaux_communaux.sql",
+    "sha256_source": "a38681fb48532979f7e687f2c7576fd86886df36455329be0890368f1ef330bf",
+    "version_registre": "20261030115932",
+    "mesure": {
+      "lignes": 7,
+      "empreinte": "f9ebb4e7734e75b4672df82ed2c9a5b2"
+    },
+    "migration_historique_rejouee": false,
+    "reference_modifiee": false
+  },
+  "bne_vide_reconstitue_conforme": true,
+  "base_main": "ddb72dbdcaf6e868a903e478e985e559d961c6ed",
+  "source_reconstruction": "exports privés 1003 + delta public 1012, comparé strictement au relevé 1012",
+  "referentiels": {
+    "conformes_par_comparaison_complete": [
+      "armureries_dotations",
+      "chantiers_besoins_jour",
+      "chantiers_paliers",
+      "commerces_dotations",
+      "commerces_types",
+      "entreprises_prix_rachat",
+      "offres_emploi_bne",
+      "recettes_production",
+      "ressources_economie"
+    ],
+    "ecarts_observes": {
+      "postes_nommes_regles": {
+        "local": {
+          "lignes": 18,
+          "empreinte": "09b1bf63ec1bbeab1e380638aa7ce162"
+        },
+        "vivant": {
+          "lignes": 18,
+          "empreinte": "3722333b757343fa8c4c35cecc97b64e"
+        }
+      },
+      "entreprises_constantes": {
+        "local": {
+          "lignes": 22,
+          "empreinte": "0be4cd8dcc6cf2522e897fb9d3102ebf"
+        },
+        "vivant": {
+          "lignes": 23,
+          "empreinte": "4d5359e1969ba4ade6a16b7100f88ce0"
+        }
+      },
+      "recettes_commerce": {
+        "local": {
+          "lignes": 37,
+          "empreinte": "c89454c538df8c76ca98a541912a090a"
+        },
+        "vivant": {
+          "lignes": 52,
+          "empreinte": "37e08c3c82b5da742e132a52ff500c35"
+        }
+      }
+    },
+    "total": 12,
+    "conformes": 9,
+    "capture_privee_recue": false
+  },
+  "moteur": {
+    "postgresql_commit": "7885b94dd81b98bbab9ed878680d156df7bf857f",
+    "icu_source_tag": "release-74-2",
+    "icu_commit": "2d029329c82c7792b985024b2bdab5fc7278fbc8",
+    "ucol_getVersion_en_US": {
+      "icu": "74.2, sources officielles",
+      "locale": "en-US",
+      "ucol_getVersion": [
+        153,
+        121,
+        0,
+        0
+      ],
+      "statut_icu": -127
+    },
+    "postgres_binaire_sha256": "31ccc7dc4959c2edf69218bb65544b96dbb57f35c80d07990f89332410207f13",
+    "icui18n_binaire_sha256": "4f87299bdc5a78555ab72940118c80cc88fb20d4541a1fa1400a9def80efadc4",
+    "version_catalogue_falsifiee": false
+  },
+  "tests": {
+    "outillage": {
+      "reussis": 66,
+      "total": 66,
+      "postgresql": "17.6, ICU 153.121"
+    },
+    "equipements_client": {
+      "reussis": 14,
+      "total": 14,
+      "portee": "scripts de branche et fixtures, pas Vercel"
+    },
+    "equipements_sql": {
+      "reussis": 33,
+      "total": 33,
+      "portee": "préparations sur décor fictif ; pas activation réelle"
+    },
+    "mixtes": {
+      "reussis": 379,
+      "total": 379,
+      "moteur": {
+        "server_version_num": "170006",
+        "icu_en_US_stockee_et_actuelle": [
+          "153.121",
+          "153.121"
+        ],
+        "binaires_explicites": true
+      },
+      "catalogue_1012_plus95": false
+    },
+    "contre_epreuves": [
+      {
+        "mutation": "issue-fausse",
+        "code_sortie": 1,
+        "moteur": {
+          "server_version_num": "170006",
+          "icu_en_US_stockee_et_actuelle": [
+            "153.121",
+            "153.121"
+          ],
+          "binaires_explicites": true
+        },
+        "cas_detecteurs": [
+          "squatteurs_issue_reelle_obligatoire_tues"
+        ]
+      },
+      {
+        "mutation": "double-paiement",
+        "code_sortie": 1,
+        "moteur": {
+          "server_version_num": "170006",
+          "icu_en_US_stockee_et_actuelle": [
+            "153.121",
+            "153.121"
+          ],
+          "binaires_explicites": true
+        },
+        "cas_detecteurs": [
+          "civil_ouverture_reelle_choix_paiement_unique_rejeu",
+          "civil_mode_mains_borne_arme_et_paiement_sans_modifier_defenseur",
+          "civil_mode_arme_borne_arme_et_paiement_sans_modifier_defenseur",
+          "civil_mode_feu_borne_arme_et_paiement_sans_modifier_defenseur",
+          "civil_deux_connexions_un_combat_un_paiement_un_recu"
+        ]
+      },
+      {
+        "mutation": "PNJ-immobile",
+        "code_sortie": 1,
+        "moteur": {
+          "server_version_num": "170006",
+          "icu_en_US_stockee_et_actuelle": [
+            "153.121",
+            "153.121"
+          ],
+          "binaires_explicites": true
+        },
+        "cas_detecteurs": [
+          "squatteurs_fuite_automate_deplacement_reel_pas_une_mort"
+        ]
+      }
+    ],
+    "compatibilite_ci_par_defaut": {
+      "reussis": 66,
+      "total": 66,
+      "postgresql": "16.2 fourni par pgserver",
+      "certification_production": false
+    }
+  },
+  "globaux": {
+    "reussis": 10,
+    "total": 12,
+    "echecs": [
+      "Authority",
+      "Referential"
+    ]
+  },
+  "composition95": {
+    "migrations": 95,
+    "sha256": "9c1fcc067da5eb6846052bcd564052608cb10679cdb8b47337c645cff5775c58",
+    "transaction_unique": true,
+    "production_executee": false,
+    "compatibilite_catalogue1008": "non_verifiee"
+  },
+  "installation95_sur_clone_fidele_executee": false,
+  "http27_sur_clone_fidele_execute": false,
+  "fusion": false,
+  "deploiement_manuel": false
+}
