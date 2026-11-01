@@ -160,8 +160,6 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'imprimer_tracts_calomnieux') { ouvrirModalImprimerTractsCalomnieux(pa, cost); return; }
   if (fn === 'choisir_arme') { ouvrirModalAcheterArme(); return; }
   if (fn === 'produire_arme') { doProduireArme(); return; }
-  // Ordre visible (02/11/2026, Fred) : jusqu'ici seul un clic sur « Stock matières » y menait.
-  if (fn === 'vendre_matiere_armurerie') { doVendreMatiereArmurerie(); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(pa, cost); return; }
   // Jardins ouvriers de Montrouge (01/11/2026) : plateau-logements-montrouge.js.
@@ -368,6 +366,14 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     if (fn === 'produire_commerce')        { commercePjEcranTravail(); return; }
     if (fn === 'vendre_matiere_commerce')  { commercePjEcranMatieresPubliques(); return; }
     if (fn === 'gerer_commerce')           { ouvrirCommercePJ(); return; }
+  }
+  // Armureries (02/11/2026, Fred) : « Vendre des matières au commerce » visible, servi par le
+  // moteur propre a l'armurerie (jusqu'ici seul un clic sur « Stock matières » y menait). Meme
+  // fn que les autres commerces : aucun nouveau tarif au miroir ordres_couts.
+  if (fn === 'vendre_matiere_commerce' && (state.currentBuilding === 'armurerie'
+      || (typeof BUILDING_ID_ARMURERIE_PAR_VILLE_ALT !== 'undefined'
+          && BUILDING_ID_ARMURERIE_PAR_VILLE_ALT[state.currentCity] === state.currentBuilding))) {
+    doVendreMatiereArmurerie(); return;
   }
   if (fn === 'produire_commerce') { doProduireCommerceGenerique(pa, cost); return; }
   if (fn === 'consulter_carte_commerce') { doConsulterCarteCommerceGenerique(pa, cost); return; }

@@ -3840,7 +3840,7 @@ const BUILDINGS = {
             desc:'Acces libre : Commissaire, Juge. Sinon : soudoyer l\'armurier (30%, 100 FR, +/-5 INF et POP). Ventes des 6 derniers mois.'
           },
           {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'},
-          {fn:'vendre_matiere_armurerie', label:'Vendre des matières premières', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'armurerie, depuis votre inventaire, les matières de sa production d\'armes, au prix d\'achat fixé par le propriétaire.'}
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'armurerie, depuis votre inventaire, les matières de sa production d\'armes, au prix d\'achat fixé par le propriétaire.'}
         ]
       }
     }
@@ -5148,7 +5148,7 @@ const BUILDINGS = {
             desc:'Acces libre : Commissaire, Juge. Sinon : soudoyer l\'armurier (30%, 100 FR, +/-5 INF et POP). Ventes des 6 derniers mois.'
           },
           {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'},
-          {fn:'vendre_matiere_armurerie', label:'Vendre des matières premières', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'armurerie, depuis votre inventaire, les matières de sa production d\'armes, au prix d\'achat fixé par le propriétaire.'},
+          {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'armurerie, depuis votre inventaire, les matières de sa production d\'armes, au prix d\'achat fixé par le propriétaire.'},
           {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Victor Legall, entre deux boîtes d\'appâts. Rien de tout cela n\'est enregistré.'}
         ]
       }
