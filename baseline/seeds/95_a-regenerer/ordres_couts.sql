@@ -75,6 +75,7 @@ INSERT INTO public.ordres_couts (fn,pa,cost) VALUES
   ('commanditer_sondage',1,200),
   ('commerce_personnaliser',0,0),
   ('commerce_pj',0,0),
+  ('commerces_fonds_murs',0,0),
   ('compte_offshore',0,0),
   ('conference_presse',2,0),
   ('conseil_entraineur_adjoint',0,0),
