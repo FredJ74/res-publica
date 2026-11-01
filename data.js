@@ -3970,7 +3970,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-criminels-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-criminels-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_maires: {
         name: "Salle des Maires de Port-Sainte-Marie",
@@ -3979,7 +3981,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-maires-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-maires-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_personnalites: {
         name: "Salle des Personnalites Mariannaises",
@@ -3988,7 +3992,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-personnalites-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-personnalites-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_entrepreneurs: {
         name: "Salle des Grands Entrepreneurs Mariannais",
@@ -3997,7 +4003,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-entrepreneurs-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-entrepreneurs-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_organisations: {
         name: "Salle des Organisations Mariannaises",
@@ -4006,7 +4014,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-organisations-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-organisations-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_plumes: {
         name: "Salle des Plumes Mariannaises",
@@ -4027,7 +4037,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-honneur-militaire-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-honneur-militaire-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_unions: {
         name: "Salle des Unions Celebres",
@@ -4036,7 +4048,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-unions-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-unions-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       // salle_dynasties retiree du parcours (commit b202acd, 30 aout 2026, decision de game
       // design de Fred) : le theme Le Gall/Le Roux est deja suffisamment present ailleurs.
@@ -4047,7 +4061,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-scandales-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-scandales-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       }
     }
   },
@@ -4993,6 +5009,8 @@ const BUILDINGS = {
         orders: [
           {fn:'produire_commerce', label:'Produire les articles du march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au march\u00e9 (consomme les mati\u00e8res en stock, r\u00e9mun\u00e9r\u00e9 en FR).'},
           {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Nourriture \u00e0 emporter, souvenir local, cartes postales.'},
+          // Pouls populaire (01/11/2026) : ordre du socle commun, deja present a Luthecia et Montrouge.
+          {fn:'pouls_populaire', label:'Prendre le pouls', pa:0, cost:0, type:'legal', icon:'ti-ear', successRate:100, desc:'Sondage sur l\'election locale en cours dans cette ville (maire/depute), a partir des votes reellement enregistres.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des mati\u00e8res au march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les mati\u00e8res premi\u00e8res de votre inventaire \u00e0 ce march\u00e9.'},
           // distribuer_tract retire (11 septembre 2026) : les tracts ordinaires ne changent plus la POP et
           // ne votent qu'aupres d'un PNJ electeur identifie (dialogue PNJ, distribuerTractElectoralPNJ).
@@ -6722,12 +6740,12 @@ const BUILDINGS = {
     desc: "Musée consacré à l'histoire cheminote de Montrouge.",
     rooms: {
       accueil: { name: "Accueil", desc: "L'accueil du musée, consacré à l'histoire cheminote de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-accueil.jpg", persons: [], orders: [] },
-      salle_terre: { name: "Salle 1 — La terre", desc: "Montrouge avant l'Homme : géologie du bassin, charbon, roche ferrugineuse, origine du nom de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-prehistoire.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-terre.mp3", persons: [], orders: [] },
-      salle_industrie: { name: "Salle 2 — L'industrie", desc: "Le fer et le charbon, matières premières de l'essor industriel de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-fer-charbon.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-fer-charbon.mp3", persons: [], orders: [] },
-      salle_rail: { name: "Salle 3 — Le rail", desc: "Le train et le rail : du fer et du charbon au chemin de fer, moteur du développement de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-train-rail.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-rail.mp3", persons: [], orders: [] },
-      salle_ville: { name: "Salle 4 — La ville et ses habitants", desc: "Urbanisation et vie ouvrière : cités ouvrières, quotidien des travailleurs, travail à l'usine.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-urbanisation.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-habitants.mp3", persons: [], orders: [] },
-      salle_luttes: { name: "Salle 5 — Les luttes", desc: "Montrouge en lutte : syndicalisme, grèves, solidarité ouvrière et conquêtes sociales.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-luttes.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-luttes.mp3", persons: [], orders: [] },
-      salle_loisirs: { name: "Salle 6 — Les loisirs", desc: "La détente des ouvriers : cafés, vie associative, et une large place donnée au football et à l'UCM.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-detente.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-loisirs.mp3", persons: [], orders: [] }
+      salle_terre: { name: "Salle 1 — La terre", desc: "Montrouge avant l'Homme : géologie du bassin, charbon, roche ferrugineuse, origine du nom de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-prehistoire.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-terre.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] },
+      salle_industrie: { name: "Salle 2 — L'industrie", desc: "Le fer et le charbon, matières premières de l'essor industriel de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-fer-charbon.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-fer-charbon.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] },
+      salle_rail: { name: "Salle 3 — Le rail", desc: "Le train et le rail : du fer et du charbon au chemin de fer, moteur du développement de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-train-rail.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-rail.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] },
+      salle_ville: { name: "Salle 4 — La ville et ses habitants", desc: "Urbanisation et vie ouvrière : cités ouvrières, quotidien des travailleurs, travail à l'usine.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-urbanisation.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-habitants.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] },
+      salle_luttes: { name: "Salle 5 — Les luttes", desc: "Montrouge en lutte : syndicalisme, grèves, solidarité ouvrière et conquêtes sociales.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-luttes.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-luttes.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] },
+      salle_loisirs: { name: "Salle 6 — Les loisirs", desc: "La détente des ouvriers : cafés, vie associative, et une large place donnée au football et à l'UCM.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-detente.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-loisirs.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] }
     }
   },
   'eglise-montrouge': {

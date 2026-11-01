@@ -64,18 +64,16 @@ de province doivent les offrir aussi. Rien n'a été ajouté sans décision.
 | Tribunal municipal | « Demander à parler à un juge » : **tranché le 01/11**, propre à l'énigme du musée de Luthécia, donc absent des autres villes ; à Luthécia il est désormais masqué hors enquête (et après l'autorisation du coffre), comme l'autorisation du coffre. « Falsifier un document » : **tranché le 01/11**, partout en Républia, ajouté au greffe des tribunaux municipaux (même définition ; le serveur `crime_falsifier` applique l'ISN de la ville) |
 | Hôtel du Port / Hôtel de la Victoire | **tranché le 01/11** : écouter et lancer des rumeurs, informateur, offrir à boire ajoutés au hall ; service d'étage en chambre à **50 FR** (150 à La Républia). Pas de suite, d'escort ni de local. Dîner d'affaires : **pas dans ces hôtels**. Règle de Fred (01/11) : dans chaque ville, hôtellerie et restauration sont des activités séparées (à PSM, le restaurant est le Capitaine Sauvage) ; seul La Républia, à Luthécia, réunit hôtel et restaurant |
 | Centre multimodal / Gare | avion, douanes de l'aéroport, taxis caserne et QHS (sans doute voulu : l'aéroport est à la capitale) |
-| Marché de PSM | pouls populaire |
-| Musées | consulter les personnalités |
+| Marché de PSM | pouls populaire : **ajouté le 01/11** (ordre du socle commun, déjà présent à Luthécia et Montrouge) |
+| Musées | consulter les personnalités : **tranché le 01/11**, Claude écrit les figures à la relecture de Fred ; 8 salles de PSM (pas la Salle des Plumes, laissée aux joueurs) et les 6 salles de Montrouge, 3 à 5 figures chacune (`MUSEE_PROVINCE_PERSONNALITES`, `plateau-musee-personnalites.js`) ; rien sur Yann Le Goff ni les fondateurs (énigme premium). Garde `test-musees-province-personnalites.mjs` |
 | Armurerie de Montrouge, Chasse et Pêche de PSM | marché noir : **tranché le 01/11**, partout en Républia ; ordre « Marché Noir » (explosifs 1 200 FR + poison local) ajouté aux deux armureries, même définition qu'à Luthécia. Aucune migration : `crime_acheter_explosifs` et l'achat du poison ne dépendent pas de la ville |
 | Centre d'affaires | embauche d'agents de sécurité privée (périmètre Codex, #135) |
 | Rachat d'entreprise | Capitaine Sauvage et Hôtel du Port ne sont pas rachetables (pas de prix) |
 
 ## Restent à poser à Fred (une question à la fois)
 
-1. « Prendre le pouls populaire » au marché de PSM.
-2. « Consulter les personnalités » dans les musées de PSM et Montrouge.
-3. Rachat du Capitaine Sauvage et de l'Hôtel du Port (prix).
-4. Embauche de sécurité privée dans les centres d'affaires de province (raccordement Codex, #135).
+1. Rachat du Capitaine Sauvage et de l'Hôtel du Port (prix).
+2. Embauche de sécurité privée dans les centres d'affaires de province (raccordement Codex, #135).
 
 ## Autres constats
 
