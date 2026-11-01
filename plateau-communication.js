@@ -2913,3 +2913,127 @@ async function retirerArgent(pa, cost) {
   addJournalEntry(`Retrait bancaire : ${amount.toLocaleString('fr-FR')}.`, '');
 }
 
+
+// =====================
+// MANIFESTATION SPONTANEE (places des villes, decision de Fred du 1er novembre 2026)
+// =====================
+// Tout est decide par le serveur (manif_spontanee_organiser) : chef d'un groupe d'au moins
+// 10 PJ presents sur la place, une par jour et par ville, POP de la cible +/- 1 par
+// participant au clic, avis de recherche des manifestants le temps de la manifestation
+// (1 h au plus, fin des que le chef quitte le groupe), trace pour les rumeurs.
+// L'ecran choisit le sens et la cible, puis affiche ce que le serveur a decide.
+const PLACES_MANIF_SPONTANEE = ['place-formulaire-liberte', 'place-armes-psm', 'place-du-rail-montrouge'];
+const RAISONS_MANIF_SPONTANEE = {
+  hors_place: 'Une manifestation spontanée se lance sur la place de la ville.',
+  pas_chef: 'Seul le chef du groupe peut lancer la manifestation.',
+  deja_aujourdhui: 'Une manifestation spontanée a déjà eu lieu aujourd\'hui dans cette ville.',
+  cible_invalide: 'Choisissez un personnage existant.',
+  sens_invalide: 'Choisissez « en faveur » ou « hostile ».',
+  non_authentifie: 'Session expirée : reconnectez-vous.'
+};
+let _manifSpontaneeSens = 'pour';
+let _manifSpontaneeEnvoi = false;
+
+async function ouvrirManifestationSpontanee() {
+  let cibles = [];
+  if (typeof sbListPersonnages === 'function') {
+    try { cibles = ((await sbListPersonnages()) || []).map(j => j && j.name).filter(Boolean); } catch (e) { cibles = []; }
+  }
+  cibles = Array.from(new Set(cibles)).sort((a, b) => a.localeCompare(b, 'fr'));
+  _manifSpontaneeSens = 'pour';
+  let html = '<div class="cpj-dialogue">';
+  html += '<p class="cpj-note" style="margin:0 0 .8rem">Sans déclaration préalable. Il faut être le chef d\'un groupe d\'au moins 10 PJ présents sur la place. '
+       + 'Chaque participant fait gagner (ou perdre) 1 POP à la cible, tout de suite. Pendant la manifestation (1 h au plus, fin dès que vous quittez le groupe), '
+       + 'tous les manifestants sont hors-la-loi : la police présente peut les interpeller. Une seule manifestation spontanée par jour et par ville. 1 PA.</p>';
+  if (cibles.length === 0) {
+    html += '<p class="cpj-note">Aucun personnage à viser n\'est accessible pour l\'instant.</p></div>';
+  } else {
+    html += '<div style="display:flex;gap:.5rem;margin-bottom:.7rem">';
+    html += '<button id="manif-sp-pour" class="cpj-touche cpj-primaire" style="flex:1" onclick="choisirSensManifSpontanee(\'pour\')">En faveur</button>';
+    html += '<button id="manif-sp-contre" class="cpj-touche" style="flex:1" onclick="choisirSensManifSpontanee(\'contre\')">Hostile</button>';
+    html += '</div>';
+    html += '<p class="cpj-note" style="margin:0 0 .3rem">Personne visée</p>';
+    html += '<select id="manif-sp-cible" class="cpj-champ" style="width:100%;margin-bottom:.8rem">';
+    cibles.forEach(n => { const e = echapperTexteTract(n); html += '<option value="' + e + '">' + e + '</option>'; });
+    html += '</select>';
+    html += '<button id="manif-sp-valider" class="cpj-touche cpj-primaire" onclick="confirmerManifestationSpontanee()">Lancer la manifestation</button>';
+    html += '</div>';
+  }
+  document.getElementById('postes-modal-title').textContent = 'Manifestation spontanée';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+function choisirSensManifSpontanee(sens) {
+  _manifSpontaneeSens = sens === 'contre' ? 'contre' : 'pour';
+  const pour = document.getElementById('manif-sp-pour');
+  const contre = document.getElementById('manif-sp-contre');
+  if (pour) pour.classList.toggle('cpj-primaire', _manifSpontaneeSens === 'pour');
+  if (contre) contre.classList.toggle('cpj-primaire', _manifSpontaneeSens === 'contre');
+}
+
+async function confirmerManifestationSpontanee() {
+  if (_manifSpontaneeEnvoi) return;
+  const cible = document.getElementById('manif-sp-cible')?.value;
+  if (!cible) { showToast('Aucune cible', 'Choisissez la personne visée.', false); return; }
+  _manifSpontaneeEnvoi = true;
+  const btn = document.getElementById('manif-sp-valider');
+  if (btn) { btn.disabled = true; btn.textContent = 'Rassemblement...'; }
+  const brut = (typeof sbRpc === 'function')
+    ? await sbRpc('manif_spontanee_organiser', { p_sens: _manifSpontaneeSens, p_cible: cible }).catch(() => null) : null;
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  _manifSpontaneeEnvoi = false;
+  if (!v || v.ok !== true) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Lancer la manifestation'; }
+    const raison = v && v.raison;
+    if (raison === 'groupe_insuffisant') {
+      showToast('Pas assez de manifestants', 'Votre groupe compte ' + (v.presents || 0) + ' PJ présents sur la place : il en faut au moins ' + (v.minimum || 10) + '.', false);
+    } else if (RAISONS_MANIF_SPONTANEE[raison]) {
+      showToast('Manifestation impossible', RAISONS_MANIF_SPONTANEE[raison], false);
+    } else if (!v) {
+      showToast('Manifestation non confirmée', 'Le serveur n\'a pas répondu, ou la manifestation n\'est pas encore installée (elle attend les groupes de joueurs). Rien n\'a été prélevé.', false);
+    } else if (typeof signalerRefusCout === 'function') {
+      signalerRefusCout(v);
+    }
+    return;
+  }
+  if (typeof v.pa === 'number') state.pa = v.pa;
+  if (typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.pop);
+  if (Array.isArray(v.recherche)) state.recherche = v.recherche;
+  document.getElementById('modal-postes').classList.remove('open');
+  const m = v.manif || {};
+  const n = Array.isArray(m.participants) ? m.participants.length : 0;
+  const effet = (m.effet_pop > 0 ? '+' : '') + m.effet_pop + ' POP';
+  const sensTxt = m.sens === 'contre' ? 'contre ' : 'en faveur de ';
+  showToast('Manifestation lancée !', n + ' manifestants ' + sensTxt + m.cible + ' (' + effet + '). Vous êtes hors-la-loi jusqu\'à la fin.', true, true);
+  addJournalEntry('Manifestation spontanée ' + sensTxt + escapeHtmlText(m.cible || '') + ' : ' + n + ' manifestants, ' + effet + ' pour la cible. Hors-la-loi jusqu\'à la fin (1 h au plus).', 'event-info');
+  state._manifSpontaneeActive = true;
+  if (typeof updateUI === 'function') updateUI();
+}
+
+// Suivi : tant que le joueur est sur une place ou participe, le serveur est relu chaque minute.
+// Cette lecture clot les manifestations echues et rend l'avis de recherche a jour (un membre du
+// groupe apprend ainsi qu'il est hors-la-loi, puis qu'il ne l'est plus).
+async function suivreManifestationSpontanee() {
+  if (typeof state === 'undefined' || !state.char || typeof sbRpc !== 'function') return;
+  const surPlace = PLACES_MANIF_SPONTANEE.indexOf(state.currentBuilding) !== -1;
+  if (!surPlace && !state._manifSpontaneeActive) return;
+  const brut = await sbRpc('manif_spontanee_lire', {}).catch(() => null);
+  const v = Array.isArray(brut) ? brut[0] : brut;
+  if (!v || v.ok !== true) return;
+  const etaitActive = !!state._manifSpontaneeActive;
+  if (Array.isArray(v.recherche)) state.recherche = v.recherche;
+  if (typeof v.pop === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', v.pop);
+  state._manifSpontaneeActive = !!v.participe;
+  if (v.participe && !etaitActive) {
+    showToast('Vous manifestez', 'Vous êtes hors-la-loi jusqu\'à la fin de la manifestation.', false, true);
+  } else if (etaitActive && !v.participe) {
+    const motif = v.manif && v.manif.motif_fin === 'chef_parti' ? 'le chef a quitté le groupe' : 'l\'heure est écoulée';
+    showToast('Manifestation terminée', 'Fin de la manifestation (' + motif + ') : vous n\'êtes plus hors-la-loi pour ce motif.', true);
+    addJournalEntry('Fin de la manifestation spontanée (' + motif + ').', '');
+  }
+  if (typeof updateUI === 'function') updateUI();
+}
+if (typeof window !== 'undefined' && !window._suiviManifSpontanee) {
+  window._suiviManifSpontanee = setInterval(() => { suivreManifestationSpontanee().catch(() => {}); }, 60000);
+}
