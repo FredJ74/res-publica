@@ -6803,7 +6803,14 @@ const BUILDINGS = {
     icon: "ti-plant-2",
     bgColor: "#0a1008",
     desc: "Des parcelles cultivées par les ouvriers de Montrouge.",
-    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", imageUrl: "images/montrouge/montrouge-jardins-ouvriers-interieur.jpg", persons: [], orders: [] } }
+    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", imageUrl: "images/montrouge/montrouge-jardins-ouvriers-interieur.jpg", persons: [],
+      // Decision de Fred (01/11/2026, recette M-06) : 1 PA = 5 fruits et legumes, une fois par jour ;
+      // don volontaire dans une reserve reelle ou tout PJ present peut se servir. Tout par le serveur.
+      orders: [
+        {fn:'travailler_jardins', label:'Travailler aux jardins', pa:1, cost:0, type:'legal', icon:'ti-plant-2', successRate:100, desc:'Une journée de travail aux parcelles : 5 fruits et légumes pour vous. Une fois par jour.'},
+        {fn:'laisser_legumes_jardins', label:'Laisser des légumes', pa:0, cost:0, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Laisser aux jardins la quantité que vous voulez de vos fruits et légumes, pour ceux qui en ont besoin.'},
+        {fn:'prendre_legumes_jardins', label:'Se servir dans la réserve', pa:0, cost:0, type:'legal', icon:'ti-basket', successRate:100, desc:'Prendre des fruits et légumes laissés par les jardiniers.'}
+      ] } }
   },
   'logements-montrouge': {
     name: "Logements",

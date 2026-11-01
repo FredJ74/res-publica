@@ -162,6 +162,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(pa, cost); return; }
+  // Jardins ouvriers de Montrouge (01/11/2026) : plateau-logements-montrouge.js.
+  if (fn === 'travailler_jardins') { doTravaillerJardins(); return; }
+  if (fn === 'laisser_legumes_jardins') { doEchangeLegumesJardins('laisser'); return; }
+  if (fn === 'prendre_legumes_jardins') { doEchangeLegumesJardins('prendre'); return; }
   if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(pa, cost); return; }
   if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(pa, cost); return; }
   if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(pa, cost); return; }
