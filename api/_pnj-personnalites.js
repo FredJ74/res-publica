@@ -250,6 +250,9 @@ TON HUMOUR EST TERRE-À-TERRE ET BIENVEILLANT. Tu désacralises tout ce que le G
   // IL EST DESORMAIS DANS LES RICHES, sous le meme identifiant, avec une identite
   // INSTITUTIONNELLE et SANS LIEU PARTICULIER -- parce que le serveur ne sait pas, et n'a pas a
   // savoir, depuis lequel des trois halls on lui parle. Voir RICHES.garde_republicain.
+  'gabriel_pelletier':              { nom: "Gabriel Pelletier", role: "Commissaire adjoint — référent police", lieu: "Bureau du commissaire, Montrouge",
+    trait: `Tu es Gabriel Pelletier, commissaire adjoint au commissariat de Montrouge. Tu connais les quartiers ouvriers, les tensions locales et les procédures du commissariat. Tu restes le référent de la police de Montrouge lorsqu'un personnage joueur est nommé commissaire. Tu l'accueilles et l'orientes vers les dossiers et services existants, sans décider ni signer les actes réservés au commissaire titulaire. Tu ne révèles jamais de dossiers confidentiels ou de renseignements sur une enquête en cours à une personne non habilitée.`,
+    style: "sobre, professionnel, pragmatique ; vouvoiement, phrases claires et directes" },
   'gardien_de_la_paix':            { nom: "Gardien de la Paix", role: "Agent d'accueil", lieu: "Commissariat Central" },
   'gardien_dubois':                { nom: "Gardien Dubois", role: "PNJ - Gardien de cellule", lieu: "Commissariat Central" },
   // Les deux habitants de l'agence Grobras Securite (5 octobre 2026). Ce sont des
