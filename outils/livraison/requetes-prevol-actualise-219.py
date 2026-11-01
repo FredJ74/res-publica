@@ -26,6 +26,7 @@ def requetes():
  contenus=','.join(citer(t)+",(SELECT coalesce(jsonb_agg(to_jsonb(x) ORDER BY to_jsonb(x)::text),'[]'::jsonb) FROM public."+t+' x)' for t in refs)
  referentiels="""SELECT jsonb_build_object('snapshot',pg_current_snapshot()::text,'releve_utc',now(),
  'couts_controle',(SELECT jsonb_build_object('lignes',count(*),'md5',md5(string_agg(fn||'|'||pa||'|'||cost,E'\\n' ORDER BY fn COLLATE "C",pa,cost))) FROM public.ordres_couts),
+ 'ordres_couts',(SELECT coalesce(jsonb_agg(to_jsonb(x) ORDER BY x.fn COLLATE "C",x.pa,x.cost),'[]'::jsonb) FROM public.ordres_couts x),
  'couts_sentinelle',(SELECT jsonb_agg(to_jsonb(e)) FROM public.ordres_couts_empreinte e),
  'referentiels',jsonb_build_object("""+contenus+"""));"""
  resultats=[('registre',registre),('catalogue_cible',catalogue),('referentiels',referentiels)]
@@ -34,6 +35,6 @@ def requetes():
  return resultats
 if __name__=='__main__':
  print('# #219 — demande technique de prévol actualisé à ChatGPT\n')
- print('Ces requêtes ne font que lire. Aucun ordre métier, aucun inventaire, aucun solde ni aucun enregistrement auth.users n’est extrait. Ne pas appliquer le paquet. Les sorties de catalogue doivent rester privées hors Git ; transmettre les JSON complets par un canal privé. Le dernier compte rapporté 1 011 et les nombres de fonctions/déclencheurs ne remplacent pas ces définitions et droits.\n')
- print('La capture des 438 coûts est déjà reçue : seule son empreinte courante est demandée pour détecter une évolution. Les autres lignes sont des référentiels de configuration, jamais les entreprises ou personnages des joueurs. Chaque sortie porte sa provenance ; recouper les versions si le catalogue change entre les lectures.\n')
+ print('Ces requêtes ne font que lire. Aucun ordre métier, aucun inventaire, aucun solde ni aucun enregistrement auth.users n’est extrait. Ne pas appliquer le paquet. Les sorties de catalogue doivent rester privées hors Git ; transmettre les JSON complets par un canal privé. Le dernier compte rapporté 1 021 (dernière version 20261101134313) reste une indication externe : seul le registre retourné établit la coupe. Les nombres seuls ne remplacent pas les définitions et droits.\n')
+ print('La capture historique des 438 coûts ne doit pas être réinjectée : exporter les coûts complets actuels avec leur empreinte et leur sentinelle (439 lignes annoncées, à vérifier). Les autres lignes sont des référentiels de configuration, jamais les entreprises ou personnages des joueurs. Chaque sortie porte sa provenance ; recouper les versions si le catalogue change entre les lectures.\n')
  for nom,s in requetes():print('## '+nom+'\n\n```sql\n'+s+'\n```\n')

@@ -25,6 +25,10 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### #219 — certification 1021, reprise Codex
+
+Branche `codex/certification-219-1021-20261101`, résolution Claude conservée, main `df67186a` intégré. Prévol lecture seule complété avec les tarifs courants complets ; test ciblé réussi. Outillage 74/75 (plan tarifaire périmé refusé), globaux 9/12, détails dans `outils/audits/CERTIFICATION-1021-219-20261101.md`. Environnement disponible ; aucune source privée actuelle ni connecteur Supabase accessibles, API GitHub Forbidden. Aucun clone 1021 certifié, 95/rollback/rejeu/27 HTTP non exécutés sur cette coupe ; aucune migration, fusion ou livraison de production. Branche d’origine #219 préservée. Reprise conditionnée au paquet privé courant, jamais à une renumérotation des relevés 1015.
+
 ### PR #325 — quatre PNG des locaux commerciaux de Port-Sainte-Marie
 
 Branche `fix/psm-quatre-images-commerces-20261101`. Les quatre PNG du ZIP fourni par Fred sont ajoutés sans transformation ; égalité octet pour octet vérifiée après extraction. Les quatre chemins déjà préparés dans `data.js` correspondent aux fichiers grand, moyen, petit et micro. Aucun moteur, prix, superficie ou autre fonctionnalité modifié. Syntaxe de `data.js`, décodage des quatre PNG et raccordements effectifs dans WORLD vérifiés. Contrôleur client : **139/139 bancs réussis**, après mise à disposition des dépendances déjà installées (premier essai incomplet : dépendances absentes). Fusion simulée avec le main récupéré : sans conflit. Contrôles GitHub et fusion encore à vérifier : accès API refusé dans cette session ; requête Vercel également bloquée par le proxy (403), aucun statut de déploiement déduit. Ne pas déclarer la production livrée avant fusion et vérification des ressources Vercel.

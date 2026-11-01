@@ -206,6 +206,11 @@ class Exports(unittest.TestCase):
   for nom,sql in m.requetes():
    ns=parse_sql(sql);self.assertEqual(len(ns),1,nom);self.assertEqual(type(ns[0].stmt).__name__,'SelectStmt',nom);self.assertLess(len(sql),12500)
   self.assertNotIn('auth.users',''.join(sql for _,sql in m.requetes()))
+  refs=dict(m.requetes())['referentiels']
+  self.assertIn("'ordres_couts',",refs)
+  self.assertIn('FROM public.ordres_couts x',refs)
+  self.assertIn("'couts_controle'",refs)
+  self.assertIn("'couts_sentinelle'",refs)
  def test_json_et_mcp_meme_resultat_schema_et_seeds(self):
   self.ecrire();exp,_=rendre.charger_exports(str(self.rep));self.assertEqual(exp,seeds.charger_exports(str(self.rep)))
   for p in self.rep.iterdir():p.unlink()
