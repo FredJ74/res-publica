@@ -77,3 +77,14 @@ Historique des signalements : commentaires PR #304, dont les relais techniques s
 - **M-02** : migration `20261101030000` (à appliquer après Vercel READY) : dotation propre à une ville (`marche@ville_b`), carte de Montrouge réduite à ses 6 produits dont la **barquette de carbonade-frites** (aliment du marché, la carbonade de la brasserie reste un plat servi à table). Banc annulé joué : rattrapage sans réintroduction, Luthécia intacte.
 - **M-03** : même migration, bœuf bourguignon retiré de la carte du Café des Cheminots (stock et historique conservés). **Reconnaissance comme commerce (M-01, M-03)** : raccordement confirmé par Fred le 01/11, point clos.
 - **M-06** : ordres et fonctions serveur écrits (`20261101040000`, non appliquée) ; plafond retenu : une fois par jour (5 légumes/jour) ; la réserve n'a pas de plafond de prise par PJ (à décider si besoin). PNJ : **Marcel Demine** (nom de Fred, 01/11), placé aux parcelles, fiche de dialogue écrite.
+
+## M-08 — Brasserie des Voyageurs : plat de poisson impossible à produire (signalé PJ)
+
+- **Recette réelle** `plat_de_poisson` : 1 poisson + 1 céréale, 1 PA, 5 portions, type `brasserie` autorisé. Référentiel production `recettes_commerce` vérifié : conforme.
+- **Stock réel lu en production** pour `brasserie-republic-ville_b-brasserie-voyageurs-montrouge` : **11 poissons et 14 céréales**, donc matières théoriquement suffisantes ; carte contient `plat_de_poisson`, stock de plat préparé nul, stock maximum 20, caisse 2938,50 FR. Historique montre achats effectifs du PJ (poisson x1, céréales x1). Cela écarte l'hypothèse simpliste d'une vente non créditée.
+- **À diagnostiquer sur serveur** : retour exact de `commerce_produire`, notamment `marge_pnj_insuffisante` (contrainte métier indiquée dans UI), `production_non_autorisee`, garde de lieu et coût de production. Vérifier le calcul de marge PNJ avec prix de vente de 22,8 FR/portion, 5 portions et salaire de 50 FR, coûts moyens poisson 3,8182 et céréales 2,8929. Ne pas modifier de données PJ, de caisse ou de stock en production pour tester ; utiliser une transaction annulée si autorisée.
+- **Statut** : cause définitive non prouvée ; reproduire, corriger, contre-éprouver et inclure dans livraison groupée. Confirmation du game designer : brasserie et café sont bien raccordés comme commerces, ne plus conserver M-01/M-03 comme défaut de raccordement.
+
+## PNJ jardins — nom validé
+
+**Marcel Demine** est le nom définitif donné par le game designer au retraité cheminot des jardins ouvriers. Sa réplique rappelle le don volontaire des légumes, oriente vers le musée et présente les trois premières de Montrouge (cinéma, logements sociaux, jardins ouvriers).
