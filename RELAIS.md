@@ -74,6 +74,8 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ### Décisions attendues de Fred
 
+- **Hospitalisation (décision de Fred, 01/11)** : règles complètes dans `GAME-DESIGN-HOSPITALISATION.md` (déclencheur à 0 PA, J0/J1/J2, repas de l'hôpital, clinique ×3, transfert en ambulance dès J0). À implémenter ; une précision en attente sur le remplacement des anciennes durées par palier.
+
 - **Fonds et murs des commerces (#66)** : règles décidées le 21/10 (murs à 150 FR/m², La Republica 1 200 m², fonds et murs indépendants, achat conjoint atomique, murs des commerces PNJ à la commune), **rien n'est en production**. La PR #71 qui les implémentait est périmée (laissée ouverte, commentaire du 31/10) : à reconstruire depuis main si Fred en fait une priorité.
 - **Ambassades** : griser « Bientôt disponible » les ordres non raccordables tant que le voyage entre empires n'existe pas (immunité, arrestation de l'expulsé, transfert de détenus, naturalisation). Référence : `GAME-DESIGN-AMBASSADES.md`.
 
