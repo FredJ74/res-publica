@@ -860,12 +860,24 @@ const WORLD = {
           // batiment partage -- uniquement imageUrl, aucune mecanique de location/presse/economie
           // touchee, aucun PNJ ajoute/modifie.
           roomOverrides: {
-            hall: { imageUrl: "images/port-sainte-marie-centre-affaires-accueil.webp" },
+            // 1er novembre 2026 (decision de Fred) : le trio de Luthecia du gabarit partage
+            // (Gretta, Moshe, Harry) ne doit pas apparaitre a PSM. Une seule hotesse, propre a PSM.
+            hall: {
+              imageUrl: "images/port-sainte-marie-centre-affaires-accueil.webp",
+              persons: [
+                {name:'Edith Legall (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse'}
+              ]
+            },
             bureau_prestige: { imageUrl: "images/port-sainte-marie-centre-affaires-bureau-prestige.webp" },
             bureau_standard: { imageUrl: "images/port-sainte-marie-centre-affaires-bureau-standard.webp" },
             open_space:      { imageUrl: "images/port-sainte-marie-centre-affaires-open-space.webp" },
             tribune_republia: {
               imageUrl: "images/port-sainte-marie-centre-affaires-tribune-republia.webp",
+              // 1er novembre 2026 (decision de Fred) : un journaliste propre a chaque ville, a la
+              // place du « Correspondant Local » generique du gabarit partage.
+              persons: [
+                {name:'Annie Houininon (PNJ)', role:'Journaliste — correspondant de La Tribune de Républia', rel:'neutral', job:'journaliste'}
+              ],
               // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : additif au
               // template partage BUILDINGS['centre-affaires'].rooms.tribune_republia (produire_fuite/
               // interview, inchanges) -- scope Republic uniquement (WORLD.republic.ville_a),
@@ -1213,10 +1225,11 @@ const WORLD = {
             // la seule ville a ignorer leur metier.
             hall: {
               imageUrl: "images/montrouge/montrouge-centre-affaires-accueil.jpg",
+              // 1er novembre 2026 (decision de Fred) : le trio de Luthecia (Gretta, Moshe, Harry)
+              // ne doit pas apparaitre a Montrouge -- aucune connexion entre les villes. Une
+              // seule hotesse, propre a Montrouge.
               persons: [
-                {name:'Gretta Délieu (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/hall-centre-affaires-luthecia.webp', photoPos:'38% 45%'},
-                {name:'Moshe Maychan (PNJ)', role:'Assassin', rel:'neutral', job:'criminel'},
-                {name:'Harry Cover (PNJ)', role:'Détective privé', rel:'neutral', job:'inspecteur'}
+                {name:'Jeanne Terril (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse'}
               ]
             },
             bureau_prestige: { imageUrl: "images/montrouge/montrouge-centre-affaires-grand-bureau.jpg" },
@@ -1227,6 +1240,11 @@ const WORLD = {
             // et unique dans tout le depot (seul le template generique le definit).
             tribune_republia: {
               imageUrl: "images/montrouge/tribune-redaction.jpg",
+              // 1er novembre 2026 (decision de Fred) : un journaliste propre a chaque ville, a la
+              // place du « Correspondant Local » generique du gabarit partage.
+              persons: [
+                {name:'Arthur Lutte (PNJ)', role:'Journaliste — correspondant de La Tribune de Républia', rel:'neutral', job:'journaliste'}
+              ],
               // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : meme ajout
               // additif que PSM ci-dessus (WORLD.republic.ville_b), meme raison.
               // article/etouffer (chantier "lobbying presse", 4 septembre 2026) : voir commentaire
