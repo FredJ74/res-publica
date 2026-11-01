@@ -1,0 +1,11 @@
+{
+  "_provenance": "Relevé Supabase lecture seule du 01/11/2026 transmis par l'intégrateur dans la mission jointe ; pas de consultation directe de Codex.",
+  "registre": 1012,
+  "derniere_version": "20261031211256",
+  "locale": {
+    "collate": "en_US.UTF-8",
+    "ctype": "en_US.UTF-8",
+    "provider": "i"
+  },
+  "champs_encore_non_transmis": ["datlocale", "version", "version_actuelle"]
+}

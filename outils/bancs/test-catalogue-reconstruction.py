@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Chargeur strict + véritable extraction/rendu de séquences sur PostgreSQL jetable."""
-import importlib.util,json,subprocess,sys,tempfile,unittest
+import importlib.util,json,subprocess,sys,tempfile,unittest,os
 from pathlib import Path
 R=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(R/'outils/baseline'))
@@ -31,6 +31,12 @@ class Exports(unittest.TestCase):
   self.assertIn('GoTrue et PostgREST obligatoires',p.stderr)
   self.assertFalse((self.rep/'rapport.json').exists())
 
+ def test_capture_privee_dans_le_depot_refusee_avant_lecture(self):
+  sp=importlib.util.spec_from_file_location('prive219',R/'outils/bancs/referentiels-prives-clone-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  with self.assertRaisesRegex(ValueError,'interdite dans le dépôt'):m.lire_capture(R/'fichier-prive-inexistant.json',{})
+ def test_locale_icu_incomplete_refusee_avant_reconstruction(self):
+  p=subprocess.run([sys.executable,str(R/'outils/bancs/banc-livraison95-catalogue-local.py'),'--exports','/fixture','--registre','/fixture','--capture-couts','/fixture','--postgres-bin','/fixture','--rapport','/fixture','--empreinte-reference','/fixture','--referentiels-reference','/fixture','--locale-provider','icu'],text=True,capture_output=True)
+  self.assertNotEqual(p.returncode,0);self.assertIn('ICU exige',p.stderr)
  def test_livraison95_exige_27_http_distincts(self):
   spec=importlib.util.spec_from_file_location('livraison95',R/'outils/bancs/banc-livraison95-catalogue-local.py')
   m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -236,8 +242,11 @@ class Exports(unittest.TestCase):
 class PostgreSQL(unittest.TestCase):
  @classmethod
  def setUpClass(cls):
+  if os.environ.get('HG219_POSTGRES_BIN'):
+   sp=importlib.util.spec_from_file_location('pg_config219',R/'outils/baseline/epreuve-postgresql.py');e=importlib.util.module_from_spec(sp);sp.loader.exec_module(e);e.configurer_binaires(Path(os.environ['HG219_POSTGRES_BIN']))
   import pgserver,psycopg2
   cls.tmp=tempfile.TemporaryDirectory(prefix='hg-catalogue-fixture-');cls.s=pgserver.get_server(Path(cls.tmp.name)/'data',cleanup_mode='delete');cls.c=psycopg2.connect(cls.s.get_uri());cls.q=cls.c.cursor()
+  cls.q.execute('SHOW server_version');print('PostgreSQL outillage réel : '+cls.q.fetchone()[0],file=sys.stderr)
  @classmethod
  def tearDownClass(cls):cls.c.close();cls.s._cleanup();cls.tmp.cleanup()
  def tearDown(self):self.c.rollback()
@@ -275,6 +284,60 @@ class PostgreSQL(unittest.TestCase):
   from reconstruire import ordonner_seeds
   graines=[('a.sql','INSERT INTO public.a VALUES(1);'),('b.sql','INSERT INTO public.b VALUES(1);')]
   self.assertEqual(ordonner_seeds([('30_contraintes.sql','-- ALTER TABLE public.a ADD CONSTRAINT fk FOREIGN KEY(id) REFERENCES public.b(id);')],graines),graines)
+ def fixture_capture_referentiels(self):
+  sp=importlib.util.spec_from_file_location('prive219',R/'outils/bancs/referentiels-prives-clone-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  for t in (*m.TABLES,'offres_emploi_bne'):
+   self.q.execute('CREATE TABLE '+t+'(id text PRIMARY KEY,objet jsonb NOT NULL);INSERT INTO '+t+" VALUES('ancien','{}')")
+  self.q.execute("SELECT datcollate,datctype,datlocprovider,COALESCE(to_jsonb(d)->>'datlocale',to_jsonb(d)->>'daticulocale'),datcollversion,pg_database_collation_actual_version(oid) FROM pg_database d WHERE datname=current_database()")
+  locale=dict(zip(('collate','ctype','provider','datlocale','version','version_actuelle'),self.q.fetchone()))
+  capture={'releve_le':'fixture isolée','registre':{'lignes':1012,'derniere':'20261031211256'},'locale':locale,'referentiels':{t:[{'id':'nouveau','objet':{'montant':5.5}}] for t in m.TABLES}}
+  ref={'registre':1012,'derniere_version':'20261031211256','locale':{k:locale[k] for k in ('collate','ctype','provider')},'referentiels':{'offres_emploi_bne':{'lignes':0,'empreinte':'d751713988987e9331980363e24189ce'}}}
+  self.q.execute("SELECT md5(jsonb_agg(x)::text) FROM (SELECT jsonb_build_object('id','nouveau','objet',jsonb_build_object('montant',5.5)) AS x) t")
+  h=self.q.fetchone()[0]
+  for t in m.TABLES:ref['referentiels'][t]={'lignes':1,'empreinte':h}
+  return m,capture,ref
+ def test_capture_privee_typed_json_exact_et_bne_vide(self):
+  m,capture,ref=self.fixture_capture_referentiels()
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d)/'capture.json';p.write_text(json.dumps([{'export_referentiels_manquants_219':capture}]))
+   preuve=m.charger(self.q,p,ref)
+  self.assertEqual(preuve['lignes'],4);self.assertTrue(preuve['locale']['conforme']);self.assertFalse(preuve['donnees_joueurs_importees'])
+  self.q.execute("SELECT objet->>'montant' FROM recettes_commerce");self.assertEqual(self.q.fetchone()[0],'5.5')
+  self.q.execute('SELECT count(*) FROM offres_emploi_bne');self.assertEqual(self.q.fetchone()[0],0)
+ def test_capture_privee_incomplete_locale_registre_et_empreinte_refuses_sans_mutation(self):
+  import copy
+  m,original,ref=self.fixture_capture_referentiels()
+  variantes=[]
+  x=copy.deepcopy(original);x['registre']['lignes']=1013;variantes.append(x)
+  x=copy.deepcopy(original);x['locale']['provider']='inconnu';variantes.append(x)
+  x=copy.deepcopy(original);del x['locale']['datlocale'];variantes.append(x)
+  x=copy.deepcopy(original);x['referentiels']['personnages_donnees']=[];variantes.append(x)
+  x=copy.deepcopy(original);del x['referentiels']['recettes_commerce'][0]['objet'];variantes.append(x)
+  x=copy.deepcopy(original);x['referentiels']['recettes_commerce'][0]['objet']={'montant':5.6};variantes.append(x)
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d)/'capture.json'
+   for v in variantes:
+    p.write_text(json.dumps(v))
+    with self.assertRaises(ValueError):m.charger(self.q,p,ref)
+    for t in (*m.TABLES,'offres_emploi_bne'):
+     self.q.execute('SELECT * FROM '+t);self.assertEqual(self.q.fetchall(),[('ancien',{})])
+ def test_capture_privee_preserve_les_cles_referencees_sans_relacher_les_fk(self):
+  m,capture,ref=self.fixture_capture_referentiels()
+  self.q.execute("CREATE TABLE enfant_reference(cle text REFERENCES recettes_commerce(id));INSERT INTO enfant_reference VALUES('ancien')")
+  capture['referentiels']['recettes_commerce'][0]['id']='ancien'
+  self.q.execute("SELECT md5(jsonb_agg(x)::text) FROM (SELECT jsonb_build_object('id','ancien','objet',jsonb_build_object('montant',5.5)) AS x) t");ref['referentiels']['recettes_commerce']['empreinte']=self.q.fetchone()[0]
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d)/'capture.json';p.write_text(json.dumps(capture));m.charger(self.q,p,ref)
+  self.q.execute('SELECT cle FROM enfant_reference');self.assertEqual(self.q.fetchone(),('ancien',))
+ def test_capture_privee_erreur_sql_ne_divulgue_pas_la_ligne_et_annule_les_tables(self):
+  m,capture,ref=self.fixture_capture_referentiels()
+  capture['referentiels']['recettes_commerce'][0]['objet']=None
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d)/'capture.json';p.write_text(json.dumps(capture))
+   with self.assertRaisesRegex(ValueError,'Chargement privé annulé : NotNullViolation') as ex:m.charger(self.q,p,ref)
+  self.assertNotIn('nouveau',str(ex.exception))
+  for t in m.TABLES:
+   self.q.execute('SELECT * FROM '+t);self.assertEqual(self.q.fetchall(),[('ancien',{})])
  def test_generateur_recettes_insere_dans_le_schema_capture(self):
   sp=importlib.util.spec_from_file_location('epreuve_recettes219',R/'outils/baseline/epreuve-postgresql.py');e=importlib.util.module_from_spec(sp);sp.loader.exec_module(e)
   ddl=(R/'baseline/domaines/economie/10_tables.sql').read_text()

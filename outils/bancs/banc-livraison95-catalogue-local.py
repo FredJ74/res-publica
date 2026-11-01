@@ -57,8 +57,13 @@ def main():
  a.add_argument('--referentiels-reference',type=Path,required=True,help='Empreintes et cardinalités des 12 référentiels statiques du vivant.')
  a.add_argument('--gotrue-bin',type=Path)
  a.add_argument('--postgrest-bin',type=Path)
+ a.add_argument('--referentiels-capture',type=Path,help='Capture privée complète des quatre tables statiques et locale ; hors Git, vérifiée avant 95.')
+ a.add_argument('--locale-provider',choices=['libc','icu'],default='libc')
+ a.add_argument('--icu-locale',help='Locale ICU exacte relevée dans pg_database.datlocale, jamais déduite du nom libc.')
  a.add_argument('--locale-clone',help='Locale explicite du seul PostgreSQL jetable ; enregistrée dans le rapport.')
  o=a.parse_args()
+ if o.locale_provider=='icu' and not (o.locale_clone and o.icu_locale):a.error('ICU exige --locale-clone et --icu-locale relevés, sans valeur inventée')
+ if o.icu_locale and o.locale_provider!='icu':a.error('--icu-locale exige --locale-provider icu')
  if not (o.gotrue_bin and o.postgrest_bin):a.error('GoTrue et PostgREST obligatoires pour certifier les 27 cas HTTP authentifies')
  e=charger('epreuve95','outils/baseline/epreuve-postgresql.py');lot=charger('lot95','outils/livraison/preparer-livraison-complete-219.py')
  registre=e.lire_registre(o.registre);capture=json.loads(o.capture_couts.read_text());plan=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text())
@@ -72,7 +77,11 @@ def main():
   try:
    if o.locale_clone:
     from psycopg2 import sql as sql_pg
-    c.autocommit=True;q.execute(sql_pg.SQL('CREATE DATABASE hg219_clone TEMPLATE template0 LC_COLLATE {} LC_CTYPE {}').format(sql_pg.Literal(o.locale_clone),sql_pg.Literal(o.locale_clone)));q.close();c.close()
+    c.autocommit=True
+    creation=sql_pg.SQL('CREATE DATABASE hg219_clone TEMPLATE template0 LC_COLLATE {} LC_CTYPE {}').format(sql_pg.Literal(o.locale_clone),sql_pg.Literal(o.locale_clone))
+    if o.locale_provider=='icu':creation+=sql_pg.SQL(' LOCALE_PROVIDER icu ICU_LOCALE {}').format(sql_pg.Literal(o.icu_locale))
+    else:creation+=sql_pg.SQL(' LOCALE_PROVIDER libc')
+    q.execute(creation);q.close();c.close()
     uri_locale=srv.get_uri(database='hg219_clone');c=psycopg2.connect(uri_locale);q=c.cursor();rapport['locale_demandee']=o.locale_clone
    q.execute('SHOW server_version_num');assert q.fetchone()[0]=='170006'
    for role in ['anon','authenticated','service_role','authenticator','supabase_auth_admin','supabase_admin','dashboard_user','supabase_read_only_user']:q.execute('CREATE ROLE '+role)
@@ -145,9 +154,16 @@ def main():
    if o.referentiels_reference:
     reference=json.loads(o.referentiels_reference.read_text(encoding='utf-8'))
     assert reference.get('registre')==1012,'Référence statique de mauvaise version'
+    if o.referentiels_capture:
+     lieu=json.loads((R/'outils/audits/catalogue-1012/LOCALE-PRODUCTION-1012.json').read_text())
+     assert (lieu['registre'],lieu['derniere_version'])==(reference['registre'],reference['derniere_version']),'Relevé de locale périmé'
+     reference['locale']=lieu['locale']
+     prive=charger('references_privees219','outils/bancs/referentiels-prives-clone-219.py')
+     rapport['capture_referentiels_privee']=prive.charger(q,o.referentiels_capture,reference)
     rapport['diagnostic_sources_refs_non_certifiant']=complement.diagnostic_generateurs(q,e.decouper,reference['referentiels'])
     rapport['referentiels_1012']=verifier_referentiels(q,reference)
     c.commit()
+   assert rapport.get('capture_referentiels_privee',{}).get('locale',{}).get('conforme') is True, 'Locale réelle complète et capture privée certifiées obligatoires avant 95'
    assert rapport.get('catalogue_1012_certifie') is True and rapport.get('referentiels_1012',{}).get('conformes') is True, 'Certification complète 1012 et 12 référentiels obligatoire avant installation 95'
    # Prix capturés contrôlés séparément, jamais générés depuis des données de joueur.
    q.execute('DELETE FROM ordres_couts');q.executemany('INSERT INTO ordres_couts(fn,pa,cost) VALUES(%s,%s,%s)',triples)

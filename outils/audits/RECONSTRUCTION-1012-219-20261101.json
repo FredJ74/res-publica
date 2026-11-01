@@ -274,7 +274,8 @@
   "tests_outillage": {
     "executes": 57,
     "reussis": 57,
-    "postgresql": "17.6"
+    "postgresql": "16.2 (premier passage)",
+    "rectification_20261101": "Premier passage des 57 tests avec pgserver fourni (PostgreSQL 16.2) ; la reconstruction intégrée des racines utilisait bien 17.6. Nouvelle suite 63/63 réellement exécutée sur 17.6 avec sélection explicite des binaires."
   },
   "controle_global": {
     "reussis": 10,
