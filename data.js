@@ -870,6 +870,11 @@ const WORLD = {
             open_space:      { imageUrl: "images/port-sainte-marie-centre-affaires-open-space.webp" },
             tribune_republia: {
               imageUrl: "images/port-sainte-marie-centre-affaires-tribune-republia.webp",
+              // 1er novembre 2026 (decision de Fred) : un journaliste propre a chaque ville, a la
+              // place du « Correspondant Local » generique du gabarit partage.
+              persons: [
+                {name:'Annie Houininon (PNJ)', role:'Journaliste — correspondant de La Tribune de Républia', rel:'neutral', job:'journaliste'}
+              ],
               // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : additif au
               // template partage BUILDINGS['centre-affaires'].rooms.tribune_republia (produire_fuite/
               // interview, inchanges) -- scope Republic uniquement (WORLD.republic.ville_a),
@@ -1230,6 +1235,11 @@ const WORLD = {
             // et unique dans tout le depot (seul le template generique le definit).
             tribune_republia: {
               imageUrl: "images/montrouge/tribune-redaction.jpg",
+              // 1er novembre 2026 (decision de Fred) : un journaliste propre a chaque ville, a la
+              // place du « Correspondant Local » generique du gabarit partage.
+              persons: [
+                {name:'Arthur Lutte (PNJ)', role:'Journaliste — correspondant de La Tribune de Républia', rel:'neutral', job:'journaliste'}
+              ],
               // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : meme ajout
               // additif que PSM ci-dessus (WORLD.republic.ville_b), meme raison.
               // article/etouffer (chantier "lobbying presse", 4 septembre 2026) : voir commentaire
