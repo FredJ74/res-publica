@@ -296,6 +296,18 @@ class PostgreSQL(unittest.TestCase):
   h=self.q.fetchone()[0]
   for t in m.TABLES:ref['referentiels'][t]={'lignes':1,'empreinte':h}
   return m,capture,ref
+ def test_requete_documentaire_produit_le_format_prive_attendu_sans_mutation(self):
+  m,capture,ref=self.fixture_capture_referentiels()
+  self.q.execute("CREATE SCHEMA supabase_migrations;CREATE TABLE supabase_migrations.schema_migrations(version text);INSERT INTO supabase_migrations.schema_migrations SELECT 'v'||i FROM generate_series(1,1012) i")
+  sp=importlib.util.spec_from_file_location('requete_privee219',R/'outils/baseline/epreuve-postgresql.py');e=importlib.util.module_from_spec(sp);sp.loader.exec_module(e)
+  doc=(R/'outils/audits/EXPORT-REFERENTIELS-MANQUANTS-219-20261101.md').read_text().split('```sql\n',1)[1].split('```',1)[0]
+  selects=0
+  for ast,ordre in e.decouper(doc):
+   self.assertIn(type(ast).__name__,('SelectStmt','TransactionStmt','VariableSetStmt'))
+   if type(ast).__name__=='SelectStmt':self.q.execute(ordre);resultat=self.q.fetchone()[0];selects+=1
+  self.assertEqual(selects,1);self.assertEqual(resultat['registre']['lignes'],1012)
+  self.assertEqual(set(resultat['referentiels']),set(m.TABLES));self.assertEqual(set(resultat['locale']),set(capture['locale']))
+  for t in m.TABLES:self.assertEqual(resultat['referentiels'][t],[{'id':'ancien','objet':{}}])
  def test_capture_privee_typed_json_exact_et_bne_vide(self):
   m,capture,ref=self.fixture_capture_referentiels()
   with tempfile.TemporaryDirectory() as d:

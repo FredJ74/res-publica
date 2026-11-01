@@ -140,6 +140,7 @@ def main():
     reference=json.loads(o.empreinte_reference.read_text(encoding='utf-8'))
     observe=q.fetchone()[0];rapport['empreinte_locale_avant95']=observe
     q.execute("SELECT datcollate,datctype,datlocprovider FROM pg_database WHERE datname=current_database()");rapport['locale_clone']=q.fetchone()
+    q.execute('SELECT datlocale,datcollversion,pg_database_collation_actual_version(oid) FROM pg_database WHERE datname=current_database()');rapport['locale_clone_interne_et_versions']=q.fetchone()
     q.execute("SELECT EXISTS(SELECT 1 FROM pg_collation WHERE collname='en_US.utf8')")
     if q.fetchone()[0]:
      # Diagnostic de portabilité du collecteur seulement. Ce résultat alternatif
@@ -148,8 +149,8 @@ def main():
      assert diagnostic!=racines;q.execute(diagnostic);autre_tri=q.fetchone()[0]
      rapport['diagnostic_tri_acl_non_certifiant']={'seule_modification':'tri des bénéficiaires ACL avec COLLATE en_US.utf8','racine_fonctions':autre_tri['categories']['fonctions']['racine'],'reference':reference.get('empreinte',reference)['categories']['fonctions']['racine'],'certification':False}
     rapport['empreinte_complete_avant95']=verifier_empreinte_complete(observe,reference)
-    rapport['catalogue_1012_certifie']=(reference.get('empreinte',reference).get('registre',{}).get('lignes')==1012)
-    assert rapport['catalogue_1012_certifie'],'La référence doit concerner le catalogue vivant 1012'
+    rapport['schema_1012_certifie']=(reference.get('empreinte',reference).get('registre',{}).get('lignes')==1012)
+    assert rapport['schema_1012_certifie'],'La référence doit concerner le catalogue vivant 1012'
     c.commit()
    if o.referentiels_reference:
     reference=json.loads(o.referentiels_reference.read_text(encoding='utf-8'))
@@ -164,7 +165,8 @@ def main():
     rapport['referentiels_1012']=verifier_referentiels(q,reference)
     c.commit()
    assert rapport.get('capture_referentiels_privee',{}).get('locale',{}).get('conforme') is True, 'Locale réelle complète et capture privée certifiées obligatoires avant 95'
-   assert rapport.get('catalogue_1012_certifie') is True and rapport.get('referentiels_1012',{}).get('conformes') is True, 'Certification complète 1012 et 12 référentiels obligatoire avant installation 95'
+   assert rapport.get('schema_1012_certifie') is True and rapport.get('referentiels_1012',{}).get('conformes') is True, 'Certification complète 1012 et 12 référentiels obligatoire avant installation 95'
+   rapport['catalogue_1012_certifie']=True
    # Prix capturés contrôlés séparément, jamais générés depuis des données de joueur.
    q.execute('DELETE FROM ordres_couts');q.executemany('INSERT INTO ordres_couts(fn,pa,cost) VALUES(%s,%s,%s)',triples)
    q.execute("INSERT INTO ordres_couts_empreinte(seul,empreinte) VALUES(true,'6de4a84c58ed9b2b') ON CONFLICT(seul) DO UPDATE SET empreinte=excluded.empreinte")
