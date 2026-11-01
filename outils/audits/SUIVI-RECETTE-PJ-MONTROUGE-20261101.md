@@ -63,3 +63,10 @@ Historique des signalements : commentaires PR #304, dont les relais techniques s
 ### Complément PNJ jardins ouvriers — décision game design du 01/11/2026
 
 **Le retraité cheminot doit également orienter le PJ vers le musée de Montrouge.** Il évoque fièrement l'histoire pionnière de la ville : **Montrouge a été la première à avoir un cinéma, des logements sociaux et des jardins ouvriers** (fait **canonique de l'univers du jeu** tel que fixé par le game designer ; ne pas présenter comme une affirmation historique réelle). Ce dialogue est additionnel à l'explication du don volontaire des légumes. Prévoir une invitation à visiter le musée de Montrouge, sans déplacement forcé ni nouvelle mécanique. Exemple de ton, à adapter au PNJ : « Vous savez, ici, on a toujours été en avance : Montrouge a eu le premier cinéma, les premiers logements sociaux et les premiers jardins ouvriers ! Vous devriez aller voir notre musée, ils racontent tout ça bien mieux que moi. Et si vous récoltez davantage de légumes que nécessaire, laissez-en pour ceux qui en ont besoin : c'est l'esprit du quartier. » Éviter d'inventer son nom, son portrait ou d'autres faits non validés.
+
+## M-07 — Hall LCI : « Se renseigner » inutile
+
+- **Observé PJ (01/11/2026) :** l'ordre « Se renseigner » dans le hall du Cheminot informé semble ne rien apporter.
+- **Diagnostic :** `se_renseigner` appelle `doSeRenseigner()` pour lister des locaux à louer. Le hall LCI utilise le template partagé `la-tribune` et hérite de cet ordre ; l'Autruche Entravée de Luthécia le masque déjà dans son propre `roomOverrides` pour la même raison.
+- **Correction codée sur la branche de la PR #304 :** `data.js` masque uniquement `se_renseigner` dans `WORLD.republic.ville_b.buildingContext['la-tribune'].roomOverrides.accueil_tribune.excludeOrders` (commit `d8e42b46`). Les autres ordres et villes restent inchangés.
+- **Validation :** définition vérifiée dans le code ; recette en jeu, fusion et déploiement non encore exécutés.
