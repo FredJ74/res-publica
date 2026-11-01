@@ -5538,6 +5538,10 @@ const PRIX_RACHAT_COMMERCE = {
   'hotel-mineur': 80000,
   'cafe-tabac-cheminots-montrouge': 180000,
   'bar-des-pecheurs': 180000,
+  // PSM, decision de Fred (01/11/2026) : memes prix que les equivalents de Montrouge.
+  // Miroir serveur : migration 20261101010000.
+  'capitaine-sauvage': 120000,
+  'hotel-port': 80000,
   'hotel-republica': 380000
 };
 

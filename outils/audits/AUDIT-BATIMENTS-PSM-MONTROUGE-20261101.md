@@ -68,12 +68,11 @@ de province doivent les offrir aussi. Rien n'a été ajouté sans décision.
 | Musées | consulter les personnalités : **tranché le 01/11**, Claude écrit les figures à la relecture de Fred ; 8 salles de PSM (pas la Salle des Plumes, laissée aux joueurs) et les 6 salles de Montrouge, 3 à 5 figures chacune (`MUSEE_PROVINCE_PERSONNALITES`, `plateau-musee-personnalites.js`) ; rien sur Yann Le Goff ni les fondateurs (énigme premium). Garde `test-musees-province-personnalites.mjs` |
 | Armurerie de Montrouge, Chasse et Pêche de PSM | marché noir : **tranché le 01/11**, partout en Républia ; ordre « Marché Noir » (explosifs 1 200 FR + poison local) ajouté aux deux armureries, même définition qu'à Luthécia. Aucune migration : `crime_acheter_explosifs` et l'achat du poison ne dépendent pas de la ville |
 | Centre d'affaires | embauche d'agents de sécurité privée (périmètre Codex, #135) |
-| Rachat d'entreprise | Capitaine Sauvage et Hôtel du Port ne sont pas rachetables (pas de prix) |
+| Rachat d'entreprise | **tranché le 01/11** : Capitaine Sauvage 120 000 FR et Hôtel du Port 80 000 FR (comme la Brasserie des Voyageurs et l'Hôtel de la Victoire) ; écran + miroir serveur, migration `20261101010000` (non appliquée, indépendante de l'écran ; sans elle l'acte de rachat est refusé faute de prix) |
 
 ## Restent à poser à Fred (une question à la fois)
 
-1. Rachat du Capitaine Sauvage et de l'Hôtel du Port (prix).
-2. Embauche de sécurité privée dans les centres d'affaires de province (raccordement Codex, #135).
+1. Embauche de sécurité privée dans les centres d'affaires de province (raccordement Codex, #135).
 
 ## Autres constats
 

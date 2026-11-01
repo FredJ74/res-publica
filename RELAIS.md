@@ -55,7 +55,8 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - **Hôtellerie et restauration séparées** (règle de Fred, 01/11) : dans chaque ville ce sont deux établissements distincts (PSM : Hôtel du Port / Capitaine Sauvage) ; seul La Républia (Luthécia) est hôtel et restaurant. Donc pas de dîner d'affaires dans les hôtels de province.
 - **Marché noir** (décision de Fred, 01/11) : ordre « Marché Noir » (explosifs + poison local) dans toute la Républia, ajouté à l'armurerie de Montrouge et chez Chasse et Pêche (PSM) ; aucune migration (serveur indépendant de la ville).
 - **Pouls populaire** ajouté au marché de PSM (socle commun, 01/11). **Personnalités des musées de province** (Fred, 01/11 : écrites par Claude, à sa relecture) : 8 salles de PSM, 6 de Montrouge ; rien sur l'énigme Le Goff ; audioguides de Montrouge non transcrits, cohérence à vérifier à l'écoute.
-- **Décisions attendues de Fred** (une question à la fois, liste dans le rapport, rubrique « Restent à poser ») : rachat du Capitaine Sauvage et de l'Hôtel du Port, sécurité privée en province.
+- **Rachat à PSM** (Fred, 01/11) : Capitaine Sauvage 120 000 FR, Hôtel du Port 80 000 FR ; **migration `20261101010000_rachat_capitaine_sauvage_hotel_port` (non appliquée, indépendante de l'écran)**, sans elle l'acte de rachat est refusé faute de prix.
+- **Décisions attendues de Fred** (une question à la fois, liste dans le rapport, rubrique « Restent à poser ») : sécurité privée en province.
 
 ### Purge finale Luthécia (Claude, branche `claude/purge-luthecia-20261031`)
 
