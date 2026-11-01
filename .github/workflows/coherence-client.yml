@@ -83,6 +83,8 @@ jobs:
         run: npm test --prefix outils/e2e
       - name: Exports canoniques complets et reconstruction des séquences, PostgreSQL jetable
         run: python3 outils/bancs/test-catalogue-reconstruction.py
+      - name: Manifeste de collecte privé, SELECT et contre-épreuves
+        run: python3 outils/bancs/test-manifeste-collecte-219.py
       - name: Cinq commandes organisations, paiements protégés et rollback indivisible
         run: python3 outils/bancs/banc-organisations-paquet-219-local.py
       - name: Réconciliation des tarifs et refus du couple gilet 0 PA/600 FR

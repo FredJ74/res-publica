@@ -27,6 +27,8 @@ Règles : voir `AGENTS.md`.
 
 ### #219 — certification 1021, reprise Codex
 
+Suite : `RECONCILIATION-PARTIELLE-1021-219-20261101.md` classe les huit observations tarifaires sans déduire les439 lignes. Manifeste unique `outils/livraison/manifeste-collecte-certification-219.py` prêt pour l’intégrateur : sept SELECT existants/composés, formats exacts et protocole de snapshot privé. Tests + contre-épreuves **2/2**, raccordés à la CI. Pas de modification des seeds/empreintes/plan95 faute de capture complète, aucune action demandée à Fred.
+
 Branche `codex/certification-219-1021-20261101`, résolution Claude conservée, main `df67186a` intégré. Prévol lecture seule complété avec les tarifs courants complets ; test ciblé réussi. Outillage 74/75 (plan tarifaire périmé refusé), globaux 9/12, détails dans `outils/audits/CERTIFICATION-1021-219-20261101.md`. Environnement disponible ; aucune source privée actuelle ni connecteur Supabase accessibles, API GitHub Forbidden. Aucun clone 1021 certifié, 95/rollback/rejeu/27 HTTP non exécutés sur cette coupe ; aucune migration, fusion ou livraison de production. Branche d’origine #219 préservée. Reprise conditionnée au paquet privé courant, jamais à une renumérotation des relevés 1015.
 
 ### PR #325 — quatre PNG des locaux commerciaux de Port-Sainte-Marie
