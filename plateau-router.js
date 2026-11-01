@@ -367,6 +367,14 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     if (fn === 'vendre_matiere_commerce')  { commercePjEcranMatieresPubliques(); return; }
     if (fn === 'gerer_commerce')           { ouvrirCommercePJ(); return; }
   }
+  // Armureries (02/11/2026, Fred) : « Vendre des matières au commerce » visible, servi par le
+  // moteur propre a l'armurerie (jusqu'ici seul un clic sur « Stock matières » y menait). Meme
+  // fn que les autres commerces : aucun nouveau tarif au miroir ordres_couts.
+  if (fn === 'vendre_matiere_commerce' && (state.currentBuilding === 'armurerie'
+      || (typeof BUILDING_ID_ARMURERIE_PAR_VILLE_ALT !== 'undefined'
+          && BUILDING_ID_ARMURERIE_PAR_VILLE_ALT[state.currentCity] === state.currentBuilding))) {
+    doVendreMatiereArmurerie(); return;
+  }
   if (fn === 'produire_commerce') { doProduireCommerceGenerique(pa, cost); return; }
   if (fn === 'consulter_carte_commerce') { doConsulterCarteCommerceGenerique(pa, cost); return; }
   if (fn === 'faire_achats_marche') { doFaireAchatsCommerceGenerique(pa, cost); return; }
