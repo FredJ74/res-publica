@@ -12764,7 +12764,8 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
         const palier = roll <= chance * 0.5 ? 'totale' : 'partielle';
         const pv = palier === 'totale' ? 0 : 25;
         state.hp = pv;
-        state.hospitalisation = { jourDebut: state.day, palier, lieu: 'dispensaire', jourFin: state.day + (palier === 'totale' ? 3 : 2) };
+        // Combat perdu : PA à 0, le serveur hospitalise (règle de Fred, 01/11/2026).
+        if (typeof declencherHospitalisation === 'function') declencherHospitalisation(palier);
         updateUI();
         showToast('Neutralisé(e) !', 'Le détachement militaire vous a pris pour cible. PV : ' + pv + '.', false);
       } else if (det.mission === 'arreter' && typeof procederArrestation === 'function') {

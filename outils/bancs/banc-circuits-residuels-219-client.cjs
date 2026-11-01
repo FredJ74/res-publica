@@ -91,9 +91,18 @@ function jeuHospitalisation(reponses){
  vm.runInContext(fonctions('plateau-personnage.js',['declencherHospitalisation','doTransfertCliniquePrivee','HOSPITALISATION_REFUS','hospitalisationRejoindreServeur','conduireHospitalisationServeur','transfertCliniqueServeur']),c);
  return c;}
 
-test('hospitalisation : fiche enregistrée puis porte serveur, aucune navigation écran',async()=>{
- const c=jeuHospitalisation([{ok:true,city:'capitale',building:'dispensaire-public',room:'salle_attente'}]);
+// Mis à jour par le chantier hospitalisation (01/11/2026, GAME-DESIGN-HOSPITALISATION.md) : hors
+// empoisonnement, l'écran n'enregistre que les PA à 0 et le SERVEUR hospitalise et transfère
+// (déclencheur à 0 PA, même porte). L'empoisonnement garde la porte appelée depuis l'écran.
+test('hospitalisation à 0 PA : seule la chute des PA est enregistrée, le serveur transfère ; aucune navigation écran',async()=>{
+ const c=jeuHospitalisation([]);
  c.declencherHospitalisation('partielle');await new Promise(setImmediate);await new Promise(setImmediate);
+ assert.deepEqual(c.appels.map(a=>a[0]),['sauvegarde'],JSON.stringify(c.appels));
+ assert.equal(c.state.pa,0);assert.equal(commandes(c).length,0);});
+
+test('hospitalisation par empoisonnement : fiche enregistrée puis porte serveur, aucune navigation écran',async()=>{
+ const c=jeuHospitalisation([{ok:true,city:'capitale',building:'dispensaire-public',room:'salle_attente'}]);
+ c.declencherHospitalisation('partielle',{poison:true});await new Promise(setImmediate);await new Promise(setImmediate);
  assert.deepEqual(c.appels.map(a=>a[0]),['sauvegarde','hospitalisation_lieu_rejoindre'],JSON.stringify(c.appels));
  assert.equal(c.appels[1][1].p_lieu,'dispensaire');assert.equal(commandes(c).length,0);
  assert.ok(c.journal.some(e=>e[0]==='position-serveur'));});

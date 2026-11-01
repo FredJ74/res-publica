@@ -1,0 +1,27 @@
+# node --test outils/bancs/banc-hospitalisation-client.cjs (234ee8c + modifications du chantier)
+ok 1 - agression / combat perdu : l’écran enregistre seulement les PA à 0, puis adopte l’hospitalisation du serveur
+ok 2 - empoisonnement : garde son propre fonctionnement (durée par palier posée comme avant)
+ok 3 - PA à 0 sans hospitalisation connue : la fiche est relue (ordre payé jusqu’au dernier PA)
+ok 4 - J0 : Dormir refusé et nommé, aucun salaire ni effet du sommeil
+ok 5 - J2 : le sommeil à l’hôpital est relaté avec les montants du serveur et la sortie annoncée
+ok 6 - progression nocturne : le régime pa0 ne touche ni aux PA ni à l’hospitalisation
+ok 7 - mails et forums : interdits à J0 seulement
+ok 8 - repas de l’hôpital : payé par le serveur, l’écran adopte ses PA
+ok 9 - sortie : refus nommé sous 20 PA ; acceptée, l’hospitalisation est levée et la position relue
+ok 10 - catalogue : ordres présents aux trois lieux de soins, coût du repas identique au miroir serveur, routage
+# pass 10
+# fail 0
+
+# Contre-épreuve : CONTRE=origin/claude/circuits-residuels-219-20261101 (tête de #318)
+not ok 1 - agression / combat perdu : l’écran enregistre seulement les PA à 0, puis adopte l’hospitalisation du serveur
+ok 2 - empoisonnement : garde son propre fonctionnement (durée par palier posée comme avant)
+not ok 3 - PA à 0 sans hospitalisation connue : la fiche est relue (ordre payé jusqu’au dernier PA)
+not ok 4 - J0 : Dormir refusé et nommé, aucun salaire ni effet du sommeil
+not ok 5 - J2 : le sommeil à l’hôpital est relaté avec les montants du serveur et la sortie annoncée
+not ok 6 - progression nocturne : le régime pa0 ne touche ni aux PA ni à l’hospitalisation
+not ok 7 - mails et forums : interdits à J0 seulement
+not ok 8 - repas de l’hôpital : payé par le serveur, l’écran adopte ses PA
+not ok 9 - sortie : refus nommé sous 20 PA ; acceptée, l’hospitalisation est levée et la position relue
+not ok 10 - catalogue : ordres présents aux trois lieux de soins, coût du repas identique au miroir serveur, routage
+# pass 1
+# fail 9

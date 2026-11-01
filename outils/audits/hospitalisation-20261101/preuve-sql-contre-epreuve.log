@@ -1,0 +1,27 @@
+# Contre-épreuve SQL : même base SANS le correctif hospitalisation. Les 7 cas verts décrivent des comportements qui ne doivent pas changer.
+ECHEC   ordre_dernier_pa_hospitalise_au_dispensaire_de_la_ville :: ERROR:  attendu : (SELECT hospitalisation FROM personnages_donnees WHERE name='A')->>'regime'='pa0' AND (SELECT hospitalisation FROM personnages_donnees WHERE name='A')->>'lieu'='dispensaire' AND (SELECT hospitalisation 
+ECHEC   combat_perdu_pa_a_zero_hospitalise_a_la_capitale :: ERROR:  attendu : (SELECT hospitalisation FROM personnages_donnees WHERE name='A')->>'regime'='pa0'
+OK      arrete_au_terme_du_combat_reste_en_detention
+OK      pa_rendus_dans_la_meme_transaction_pas_d_hospitalisation
+OK      empoisonnement_garde_son_propre_fonctionnement
+ECHEC   sans_dispensaire_hospitalise_sur_place_et_immobilise :: ERROR:  attendu : (SELECT hospitalisation FROM personnages_donnees WHERE name='A')->>'regime'='pa0' AND (SELECT hospitalisation FROM personnages_donnees WHERE name='A')->>'transfert'='lieu_non_reference'
+ECHEC   j0_dormir_refuse_sans_rien_consommer :: ERROR:  attendu : current_setting('banc.v')::jsonb->>'raison'='hospitalise_j0'
+OK      j0_immobilise_par_la_navigation_commune
+ECHEC   j0_mail_personnel_refuse :: ERROR:  attendu : current_setting('banc.err') LIKE 'hospitalise_j0%'
+ECHEC   j0_mail_au_nom_d_une_organisation_refuse :: ERROR:  attendu : current_setting('banc.err') LIKE 'hospitalise_j0%'
+ECHEC   j0_sujet_de_forum_refuse :: ERROR:  attendu : current_setting('banc.err') LIKE 'hospitalise_j0%'
+ECHEC   j0_message_de_forum_refuse :: ERROR:  attendu : current_setting('banc.err') LIKE 'hospitalise_j0%'
+OK      j1_mail_permis
+OK      transfert_clinique_par_ambulance_des_j0
+ECHEC   j1_dormir_rend_2_pa_au_dispensaire :: ERROR:  attendu : (SELECT pa FROM personnages_donnees WHERE name='A')=2 AND (current_setting('banc.v')::jsonb->>'gain')::int=2
+ECHEC   j1_repas_1_pa_une_fois_par_jour :: ERROR:  function hospitalisation_repas_prendre() does not exist
+ECHEC   repas_refuse_hors_de_l_hopital :: ERROR:  function hospitalisation_repas_prendre() does not exist
+ECHEC   repas_refuse_sans_hospitalisation :: ERROR:  function hospitalisation_repas_prendre() does not exist
+ECHEC   j2_dormir_6_plus_repas_2_sortie_refusee_sous_20 :: ERROR:  attendu : (SELECT pa FROM personnages_donnees WHERE name='A')=9
+ECHEC   j3_dormir_12_puis_sortie_par_la_porte_du_dispensaire :: ERROR:  attendu : (SELECT pa FROM personnages_donnees WHERE name='A')=23 AND (current_setting('banc.v')::jsonb->>'sortie_possible')::boolean
+ECHEC   clinique_x3_sortie_a_j2 :: ERROR:  function hospitalisation_repas_prendre() does not exist
+ECHEC   sortie_refusee_a_j1_meme_avec_20_pa :: ERROR:  attendu : current_setting('banc.s')::jsonb->>'raison'='sortie_trop_tot' AND (SELECT hospitalisation FROM personnages_donnees WHERE name='A') IS NOT NULL
+ECHEC   sortie_sans_objet_pour_l_empoisonnement :: ERROR:  attendu : current_setting('banc.s')::jsonb->>'raison'='sortie_par_date'
+OK      hors_hopital_dormir_inchange_12_pa
+ECHEC   droits_des_portes :: ERROR:  function "public.hospitalisation_repas_prendre()" does not exist
+---- 7 OK, 18 échec(s)

@@ -271,6 +271,7 @@ function joursRestantsPeine() {
 
 function joursEcoulesHospitalisation() {
   if (!state.hospitalisation) return 0;
+  if (state.hospitalisation.regime === 'pa0' && typeof hospitalisationJourPa0 === 'function') return hospitalisationJourPa0();
   return (state.day || 1) - state.hospitalisation.jourDebut;
 }
 
@@ -1057,9 +1058,17 @@ function enterRoom(buildingId, roomId, tabEl) {
     const joursRestants = Math.max(0, state.estEmprisonne.jourFin - (state.day || 1));
     displayDesc += ' — Peine : ' + state.estEmprisonne.raison + '. Temps restant : ' + joursRestants + ' jour(s) (libération au Jour ' + state.estEmprisonne.jourFin + ').';
   }
-  if (state.hospitalisation && buildingId === batimentHospitalisation()) {
-    const joursRestants = Math.max(0, state.hospitalisation.jourFin - (state.day || 1));
-    displayDesc += ' — En convalescence. Temps restant estimé : ' + joursRestants + ' jour(s).';
+  if (state.hospitalisation && (buildingId === batimentHospitalisation() || (state.hospitalisation.regime === 'pa0' && buildingId === state.currentBuilding))) {
+    if (state.hospitalisation.regime === 'pa0' && typeof hospitalisationJourPa0 === 'function') {
+      // Régime à 0 PA (Fred, 01/11/2026) : pas de durée fixe, la sortie dépend du jour et des PA.
+      displayDesc += ' — Hospitalisé(e), jour ' + hospitalisationJourPa0() + '. Sortie possible à partir du jour 2, avec 20 PA.';
+    } else {
+      const fin = state.hospitalisation.dateFinParis;
+      const joursRestants = fin && typeof dateCivileParisMedicale === 'function'
+        ? Math.max(0, Math.round((Date.parse(fin + 'T00:00:00Z') - Date.parse(dateCivileParisMedicale() + 'T00:00:00Z')) / 86400000))
+        : Math.max(0, (state.hospitalisation.jourFin || 0) - (state.day || 1));
+      displayDesc += ' — En convalescence. Temps restant estimé : ' + joursRestants + ' jour(s).';
+    }
   }
   document.getElementById('piece-desc').textContent = displayDesc;
   const ROOMS_AVEC_CAISSE_SPECIFIQUE = {

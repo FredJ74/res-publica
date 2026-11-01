@@ -1338,8 +1338,8 @@ function openMailbox() {
 // FORUM EN VUE CENTRALE
 // =====================
 function openForumView(forumId) {
-  if (state.hospitalisation && joursEcoulesHospitalisation() === 0) {
-    showToast('Inconscient(e)', 'Vous venez d\'être agressé(e) et n\'êtes pas en état d\'accéder au forum.', false);
+  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) {
+    showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous n\'êtes pas en état d\'accéder au forum.', false);
     return;
   }
   // Le vrai systeme de forum (sujets, editeur riche, mail) vit dans forum.js (openForum_module).

@@ -207,6 +207,8 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
   if (fn === 'organiser_boycott') { doOrganiserBoycott(pa, cost); return; }
   if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(pa, cost); return; }
+  if (fn === 'repas_hopital') { doRepasHopital(); return; }
+  if (fn === 'sortie_hopital') { doSortieHopital(); return; }
   if (fn === 'centre_anti_poison') { doCentreAntiPoison(pa); return; }
   if (fn === 'soin_public') { doSoinPublic(pa, cost); return; }
   if (fn === 'soins') { doSoinCliniquePrivee(pa, cost); return; }

@@ -2711,6 +2711,8 @@ function updateUI() {
   document.getElementById('inv-liquide').textContent = state.liquide.toLocaleString('fr-FR') + ' ' + cur;
   document.getElementById('inv-banque').textContent  = totalComptesBancaires().toLocaleString('fr-FR') + ' ' + cur;
   if (typeof renderInventory === 'function') renderInventory();
+  // Hospitalisation à 0 PA (01/11/2026) : décidée par le serveur ; l'écran va la relire.
+  if (typeof surveillerHospitalisationServeur === 'function') surveillerHospitalisationServeur();
 }
 
 function updateLocationDisplay() {
