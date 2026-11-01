@@ -19,7 +19,24 @@
 - **Autre** n'est qu'une réserve d'extension de game design (éventuellement un coffre-fort un jour) : **aucune cible « autre » actuellement**, et aucune option vide ou action fictive à afficher dans le sélecteur.
 - Si aucune cible éligible n'est accessible, l'installation est indisponible et le bloc reste dans l'inventaire.
 - Ne jamais consommer ni poser une serrure avant confirmation transactionnelle serveur ; les interactions redoublées ne doivent pas dupliquer l'installation.
-- Le crochetage, la duplication des clés et les cibles supplémentaires ne sont pas définis pour cette livraison.
+- Le crochetage et les cibles supplémentaires ne sont pas définis pour cette livraison. La duplication des clés est désormais spécifiée ci-dessous.
+
+## Fin du bail, cession et irréversibilité d'usage (décision du 01/11)
+
+- Quand le locataire quitte un appartement ou un local, son droit d'usage de la serrure installée prend fin. Les clés et doubles existants ne peuvent plus lui donner accès à l'ancien emplacement.
+- La serrure ainsi désactivée ne peut jamais être réutilisée, réinstallée ni réactivée, y compris après vente du local, changement de propriétaire ou arrivée d'un autre locataire. Toute nouvelle fermeture nécessite une nouvelle serrure.
+- Le changement de propriétaire ne doit jamais hériter automatiquement d'un droit d'ouverture sur une serrure désactivée. Le serveur porte un identifiant d'installation et un état irréversible, et vérifie la validité du droit d'occupation lors de chaque tentative d'accès.
+- Les clés et doubles de l'ancienne installation ne doivent jamais être rattachés à une nouvelle installation par un changement de propriétaire ou d'occupant.
+
+## Clés vierges et duplication (décision du 01/11)
+
+- Fabrication en armurerie/quincaillerie : **1 unité de métal + 1 PA = 5 clés vierges** (lot de cinq).
+- Vente PNJ des clés vierges : **prix cible d'environ 10 FR/unité**, à confirmer comme tarif définitif avant codage tarifaire.
+- La clé vierge est un objet d'inventaire non lié à une serrure. L'achat précède toute duplication.
+- Depuis l'inventaire, cliquer sur une clé vierge ouvre une **pop-up de duplication dédiée**. Le PJ y choisit la clé/serrure à reproduire parmi celles pour lesquelles il dispose d'une clé valide ; aucune serrure arbitraire ne doit être proposée.
+- Une duplication réussie transforme transactionnellement **une clé vierge** en **un double de clé** lié à l'identifiant unique de la serrure. Pas de clonage d'objets ni de double débit en cas de rejeu/double clic.
+- Un double ne confère aucun droit supérieur à la clé source. Toute clé d'une serrure désactivée demeure inutilisable pour l'accès, malgré sa présence éventuelle en inventaire.
+- Le nombre maximal de doubles, la transmissibilité de clés et un coût éventuel de duplication au-delà de la clé vierge ne sont pas encore spécifiés ; ne pas inventer de restriction ou de frais.
 
 ## Contraintes techniques constatées
 
@@ -36,4 +53,4 @@ Le socle doit inclure :
 
 ## Statut
 
-Spécification verrouillée et constat d'architecture seulement ; fabrication, achat et visibilité **non encore implémentés**. Aucune donnée en production modifiée.
+Règles de fabrication, vente, installation et duplication documentées ; fabrication, achat et visibilité **non encore implémentés**. Aucune donnée en production modifiée.
