@@ -626,8 +626,13 @@ function commerceEstProprietaire(data, nom = state.char?.name) {
 // Un intitule de role libre, un bail ou un emploi ailleurs n'accordent aucun droit.
 // Règle commune : tout PJ présent dans le commerce peut produire. Le serveur décide
 // des matières, de la caisse, du salaire, des PA et du plafond réglé par le propriétaire.
+// La présence s'ajoute aux droits du propriétaire et des salariés, elle ne les remplace pas :
+// boutiques de PJ et armurerie n'ont pas d'adresse dans leurs données.
 function commercePeutProduire(data, nom = state.char?.name) {
-  return !!nom && !!data && state.country === data.country &&
+  if (!nom || !data) return false;
+  if (commerceEstProprietaire(data, nom) || (Array.isArray(data.salaries) &&
+    data.salaries.some(s => s.actif === true && [nom, 'pj:' + nom].includes(s.ref)))) return true;
+  return !!data.buildingId && state.country === data.country &&
     state.currentCity === data.city && state.currentBuilding === data.buildingId &&
     (!data.roomId || state.currentRoom === data.roomId);
 }
