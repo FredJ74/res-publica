@@ -62,13 +62,21 @@ de province doivent les offrir aussi. Rien n'a été ajouté sans décision.
 | Banque locale / Banque cheminote | **tranché le 01/11** : guichets de la Banque Nationale, mêmes procédures (compte, placements, prêt, virements ponctuels et automatiques) ; Helvetia seule garde un fonctionnement unique. Corrigé dans ce chantier (écran + migration `20261031235500`). Restent à Luthécia : coffre à louer et autorisation judiciaire (énigme du musée) |
 | Dispensaire / Hôpital | **tranché le 01/11** : centre antipoison et transfert vers la clinique privée ajoutés, mêmes coûts et taux qu'à Luthécia (le transfert emmène le patient à la clinique de Luthécia). Dette commune aux trois villes : le jet de l'antipoison est encore tiré par l'écran (`Math.random`), à passer au serveur |
 | Tribunal municipal | « Demander à parler à un juge » : **tranché le 01/11**, propre à l'énigme du musée de Luthécia, donc absent des autres villes ; à Luthécia il est désormais masqué hors enquête (et après l'autorisation du coffre), comme l'autorisation du coffre. « Falsifier un document » : **tranché le 01/11**, partout en Républia, ajouté au greffe des tribunaux municipaux (même définition ; le serveur `crime_falsifier` applique l'ISN de la ville) |
-| Hôtel du Port / Hôtel de la Victoire | **tranché le 01/11** : écouter et lancer des rumeurs, informateur, offrir à boire ajoutés au hall ; service d'étage en chambre à **50 FR** (150 à La Républia). Pas de suite, d'escort ni de local. Dîner d'affaires : en attente, il exige un menu à la carte de l'hôtel (aucun aujourd'hui) |
+| Hôtel du Port / Hôtel de la Victoire | **tranché le 01/11** : écouter et lancer des rumeurs, informateur, offrir à boire ajoutés au hall ; service d'étage en chambre à **50 FR** (150 à La Républia). Pas de suite, d'escort ni de local. Dîner d'affaires : **pas dans ces hôtels**, ils ne font pas restaurant (décision de Fred, 01/11) ; à PSM, le Capitaine Sauvage le propose |
 | Centre multimodal / Gare | avion, douanes de l'aéroport, taxis caserne et QHS (sans doute voulu : l'aéroport est à la capitale) |
 | Marché de PSM | pouls populaire |
 | Musées | consulter les personnalités |
 | Armurerie de Montrouge, Chasse et Pêche de PSM | marché noir |
 | Centre d'affaires | embauche d'agents de sécurité privée (périmètre Codex, #135) |
 | Rachat d'entreprise | Capitaine Sauvage et Hôtel du Port ne sont pas rachetables (pas de prix) |
+
+## Restent à poser à Fred (une question à la fois)
+
+1. Marché noir à l'armurerie de Montrouge et chez Chasse et Pêche (PSM).
+2. « Prendre le pouls populaire » au marché de PSM.
+3. « Consulter les personnalités » dans les musées de PSM et Montrouge.
+4. Rachat du Capitaine Sauvage et de l'Hôtel du Port (prix).
+5. Embauche de sécurité privée dans les centres d'affaires de province (raccordement Codex, #135).
 
 ## Autres constats
 
