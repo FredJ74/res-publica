@@ -591,3 +591,17 @@ Le décor PostgreSQL 16.2 fourni par pgserver en CI permet des tests unitaires,
 **pas** une certification de fidélité à la production 17.6. Les catégories de
 seeds n'imposent pas leur ordre d'exécution : celui-ci suit les clés étrangères
 sans modifier les données ni différer les contraintes.
+
+### Collecte atomique en lecture seule — #219
+
+Le SQL Editor peut utiliser `outils/bancs/COLLECTE-ATOMIQUE-219.sql` : un seul
+SELECT d'introspection matérialise les sept ensembles du manifeste dans le même
+instantané et restitue des fragments avec longueurs et SHA-256. Aucun ordre
+métier n'est exécuté. Le vérificateur Workflow reconnaît ce cas par l'AST et une
+liste fermée d'appels d'introspection ; il refuse toujours les CTE mutantes,
+SELECT INTO, verrous, fonctions inconnues et changements de configuration. Ce
+cas n'exempte aucun banc d'écriture de son annulation.
+
+Mode d'emploi : `outils/livraison/COLLECTE-SQL-EDITOR-219.md`. L'assemblage et
+l'archive restent hors Git ; ils ne certifient pas le clone et ne dispensent
+pas des six racines, douze référentiels, contrôle de locale et tests atomiques.

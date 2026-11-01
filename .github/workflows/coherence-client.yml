@@ -81,6 +81,10 @@ jobs:
         run: node outils/bancs/banc-verrou-inventaire-client-20261031.cjs
       - name: Pilote joueur, fixtures locales sans compte ni Supabase
         run: npm test --prefix outils/e2e
+      - name: Collecte SQL Editor identique et plan 95 puis 318 et 324
+        run: |
+          python3 outils/livraison/export-sql-editor-219.py --verifier-sql
+          python3 outils/bancs/test-plan-recette97-219.py
       - name: Exports canoniques complets et reconstruction des séquences, PostgreSQL jetable
         run: python3 outils/bancs/test-catalogue-reconstruction.py
       - name: Manifeste de collecte privé, SELECT et contre-épreuves

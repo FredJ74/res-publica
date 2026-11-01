@@ -54,13 +54,13 @@ def requete():
              'mesures_referentiels(table_name,lignes,posee,reelle) AS (' + json.loads((R/'outils/baseline/referentiels.json').read_text())['empreintes']['_requete_de_mesure'].strip().rstrip(';') + ')',
              'graines AS (' + extraction + ')',
              "registre AS (SELECT coalesce(jsonb_agg(jsonb_build_object('version',version,'name',name) ORDER BY version),'[]'::jsonb) AS lignes FROM supabase_migrations.schema_migrations)",
-             "lignes AS (SELECT x.* FROM graines, jsonb_to_recordset(coalesce(export_seeds->'export_seeds','[]'::jsonb)) AS x(tbl text,rang bigint,ligne text))",
+             "lignes AS (SELECT x.* FROM graines, jsonb_to_recordset(coalesce(nullif(export_seeds->'export_seeds','null'::jsonb),'[]'::jsonb)) AS x(tbl text,rang bigint,ligne text))",
              'cibles(tbl) AS (VALUES ' + requetes.litteral(REFERENCES) + ')']
     champs = ["'format','" + FORMAT + "'", "'snapshot',pg_current_snapshot()::text", "'releve_utc',timezone('UTC',now())::text"]
     champs += ["'" + n + "'," + n + '.' + n for n in requetes.EXPORTS]
     champs += ["'controle_global',controle.controle_global", "'registre',registre.lignes",
                "'referentiels_controle',(SELECT jsonb_agg(to_jsonb(m) ORDER BY table_name) FROM mesures_referentiels m)",
-               "'export_seeds',coalesce(graines.export_seeds->'export_seeds','[]'::jsonb)",
+               "'export_seeds',coalesce(nullif(graines.export_seeds->'export_seeds','null'::jsonb),'[]'::jsonb)",
                "'seeds_controle',(SELECT jsonb_agg(jsonb_build_object('table',c.tbl,'lignes',(SELECT count(*) FROM lignes l WHERE l.tbl=c.tbl),'empreinte',(SELECT md5(coalesce(string_agg(l.ligne,'|' ORDER BY l.rang),'')) FROM lignes l WHERE l.tbl=c.tbl)) ORDER BY c.tbl) FROM cibles c)"]
     return ('-- Lecture seule : une instruction, un snapshot, aucune donnée PJ.\nWITH ' + ',\n'.join(ctes) +
             '\nSELECT jsonb_build_object(' + ',\n'.join(champs) + ') AS relais_canonique_219\nFROM ' +

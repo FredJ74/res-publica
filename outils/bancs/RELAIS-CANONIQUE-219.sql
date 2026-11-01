@@ -402,7 +402,7 @@ select 'tracts_pnj_catalogue' as tbl, row_number() over (order by z.pays, z.vill
 from public.tracts_pnj_catalogue z
 ) tout),
 registre AS (SELECT coalesce(jsonb_agg(jsonb_build_object('version',version,'name',name) ORDER BY version),'[]'::jsonb) AS lignes FROM supabase_migrations.schema_migrations),
-lignes AS (SELECT x.* FROM graines, jsonb_to_recordset(coalesce(export_seeds->'export_seeds','[]'::jsonb)) AS x(tbl text,rang bigint,ligne text)),
+lignes AS (SELECT x.* FROM graines, jsonb_to_recordset(coalesce(nullif(export_seeds->'export_seeds','null'::jsonb),'[]'::jsonb)) AS x(tbl text,rang bigint,ligne text)),
 cibles(tbl) AS (VALUES ('locaux_loyers_referentiel'), ('objets_achetables'), ('objets_modeles'), ('ordres_generiques'), ('rue_noeuds_serveur'), ('rue_sorties_batiments'), ('scandales_predefinis'), ('terrain_actions_regles'), ('terrains_referentiel'), ('tracts_pnj_catalogue'))
 SELECT jsonb_build_object('format','HG_RELAIS_CANONIQUE_219_V1',
 'snapshot',pg_current_snapshot()::text,
@@ -414,7 +414,7 @@ SELECT jsonb_build_object('format','HG_RELAIS_CANONIQUE_219_V1',
 'controle_global',controle.controle_global,
 'registre',registre.lignes,
 'referentiels_controle',(SELECT jsonb_agg(to_jsonb(m) ORDER BY table_name) FROM mesures_referentiels m),
-'export_seeds',coalesce(graines.export_seeds->'export_seeds','[]'::jsonb),
+'export_seeds',coalesce(nullif(graines.export_seeds->'export_seeds','null'::jsonb),'[]'::jsonb),
 'seeds_controle',(SELECT jsonb_agg(jsonb_build_object('table',c.tbl,'lignes',(SELECT count(*) FROM lignes l WHERE l.tbl=c.tbl),'empreinte',(SELECT md5(coalesce(string_agg(l.ligne,'|' ORDER BY l.rang),'')) FROM lignes l WHERE l.tbl=c.tbl)) ORDER BY c.tbl) FROM cibles c)) AS relais_canonique_219
 FROM export_structure,export_fonctions,export_logique,export_droits,controle,graines,registre;
 ROLLBACK;

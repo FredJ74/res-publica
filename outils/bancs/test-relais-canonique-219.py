@@ -26,6 +26,12 @@ class Relais(unittest.TestCase):
   cls.q.execute(m.requete());cls.d=cls.q.fetchone()[0];cls.c.commit()
  @classmethod
  def tearDownClass(cls):cls.c.close();cls.s._cleanup();cls.tmp.cleanup()
+ def test_tables_de_seeds_toutes_vides_restent_un_export_valide(self):
+  try:
+   self.q.execute('DELETE FROM public.terrains_referentiel')
+   self.q.execute(m.requete());d=self.q.fetchone()[0]
+   self.assertEqual(d['export_seeds'],[]);m.valider(d)
+  finally:self.c.rollback()
  def test_fichier_annule_identique_aux_generateurs(self):
   attendu='-- Généré par outils/livraison/relais-canonique-219.py : aucune donnée privée.\nBEGIN;\nSET TRANSACTION READ ONLY;\n'+m.requete()+'ROLLBACK;\n'
   self.assertEqual((R/'outils/bancs/RELAIS-CANONIQUE-219.sql').read_text(),attendu)

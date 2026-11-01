@@ -25,6 +25,10 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### #219 — export SQL Editor atomique prêt
+
+Branche `codex/certification-219-1021-20261101`, intégration Claude `16093f4d` + main `df612780` (#327) conservés. SQL prêt : `outils/bancs/COLLECTE-ATOMIQUE-219.sql`, générateur/assembleur `outils/livraison/export-sql-editor-219.py`, mode d'emploi `COLLECTE-SQL-EDITOR-219.md`. Un SELECT pour les sept ensembles, fragments numérotés/longueurs/SHA, refus des mélanges/troncatures, CSV/JSON privé -> fichiers attendus + archive hors Git. Native17.6/ICU : collecte11/11, relais22/22 ; plan95+#318+#324 et459sources2/2 ; client161/161. Workflow13/13, y compris refus des CTE mutantes et appels inconnus ; seul le SELECT pur d'introspection est admis sans rollback. Le relais a aussi été corrigé pour les graines toutes vides (JSONnull). Aucun contenu réel reçu ni publié. Plan97 : `outils/audits/PLAN-97-EDITOR-219-20261101.json`, non exécutable tant que le delta réel n'est pas revu. Rapports finaux dans `EXPORT-ATOMIQUE-EDITOR-219-20261101.{md,json}`. Ni fusion ni production. À réception du CSV complet : assembler, vérifier la coupe actuelle >=1022, reconstruire, comparer, réconcilier459, puis95/rollback/rejeu/#318/#324/27HTTP.
+
 ### #219 — certification 1021, reprise Codex
 
 Suite des verrous : faux positif policy jardins corrigé par AST PostgreSQL, paire table/nom stricte ; **5/5 Authority** avec négatifs, invariant12 conforme, 19écarts RPC toujours bloquants. **10/10 tests services réels** sur cluster jetable17.6/ICU en-US153.121, GoTrue/PostgREST, compte fictif, JWT/ACL/reconnexion ; ce ne sont PAS les27HTTP métier. **21/21 imports/relais** sur17.6, manifeste2/2. Globaux9/12, outillage74/75 conservés honnêtement. Rapport `PREPARATION-SERVICES-AUTHORITY-219-20261101.md`, nouveau banc `test-services-certification-219.py`. Paquet cohérent1021 toujours nécessaire ; aucune production touchée.

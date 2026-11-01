@@ -26,6 +26,13 @@ for (const [nom, fichier, sql, attendu] of [
   ['fixture SQL nue dans un sous-dossier refusée', 'outils/bancs/fixtures/egare.sql', 'CREATE TABLE egare(id int);', /fichier .sql egare/],
   ['sous-dossier refusé même avec rollback', 'outils/bancs/fixtures/egare.sql', 'BEGIN;\nCREATE TABLE egare(id int);\nROLLBACK;', /fichier .sql egare/],
   ['banc sans annulation refusé', 'outils/bancs/banc-test.sql', 'CREATE TABLE egare(id int);', /sans bloc DO ni enveloppe/],
+  ['SELECT pur accepté sans transaction', 'outils/bancs/banc-test.sql', 'SELECT count(*) FROM pg_class;', null],
+  ['CTE de suppression refusée', 'outils/bancs/banc-test.sql', 'WITH x AS (DELETE FROM t RETURNING *) SELECT * FROM x;', /sans bloc DO ni enveloppe/],
+  ['SELECT INTO refusé', 'outils/bancs/banc-test.sql', 'SELECT * INTO nouveau FROM ancien;', /sans bloc DO ni enveloppe/],
+  ['fonction mutante ou inconnue refusée', 'outils/bancs/banc-test.sql', 'SELECT public.payer_ordre(1);', /sans bloc DO ni enveloppe/],
+  ['configuration transactionnelle refusée', 'outils/bancs/banc-test.sql', "SELECT set_config('transaction_read_only','off',true);", /sans bloc DO ni enveloppe/],
+  ['fonction publique homonyme refusée', 'outils/bancs/banc-test.sql', 'SELECT public.count(1);', /sans bloc DO ni enveloppe/],
+  ['SELECT verrouillant refusé', 'outils/bancs/banc-test.sql', 'SELECT * FROM t FOR UPDATE;', /sans bloc DO ni enveloppe/],
   ['banc transactionnel direct accepté', 'outils/bancs/banc-test.sql', 'BEGIN;\nCREATE TABLE jetable(id int);\nROLLBACK;', null],
   ['source documentaire dans historique acceptée', 'historique/fixtures-bancs/source.sql', 'CREATE TABLE historique(id int);', null],
 ]) {
