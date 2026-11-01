@@ -3970,7 +3970,9 @@ const SURFACE_TERRAINS = {
   // Audit PSM/Montrouge (01/11/2026), decisions de Fred : le lot 6 de Montrouge recoit enfin sa
   // superficie (2100 m², 25 200 FR) ; les quatre lots de Port-Sainte-Marie gardent leurs 1500 m²
   // deja annonces en jeu et passent a la regle des 12 FR/m² (18 000 FR au lieu de 3 500).
-  'terrain-a-batir-6': 2100,
+  // Cle portee par pays et ville : l'identifiant 'terrain-a-batir-6' est partage avec les
+  // capitales des autres empires, qui ne changent pas.
+  'republic|ville_b|terrain-a-batir-6': 2100,
   'terrain-a-batir-8': 1500,
   'terrain-a-batir-9': 1500,
   'terrain-a-batir-10': 1500,

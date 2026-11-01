@@ -8,8 +8,8 @@
 -- de PSM ni pour le lot 6 de Montrouge (« prix_ou_surface_non_reference »).
 --
 -- Décisions de Fred (01/11/2026) : lots 8 à 11 de PSM à 1 500 m² et 12 FR/m² (18 000 FR) ;
--- lot 6 de Montrouge à 2 100 m² (25 200 FR). Le gabarit lot 6 est partagé : le référentiel
--- des trois autres empires suit data.js, comme le générateur generer_terrains_occupation.cjs.
+-- lot 6 de Montrouge à 2 100 m² (25 200 FR). Républia seulement : le lot 6 des capitales des
+-- autres empires (même gabarit) ne change pas, ni dans data.js ni ici (prévol ChatGPT du 01/11).
 --
 -- 1. référentiel aligné sur le générateur ; 2. état initial vierge des dix parcelles, au format
 -- des lots de Luthécia (ville, surface, valeur, constructionAutorisee=false ; l'occupation est
@@ -24,10 +24,7 @@ FROM (VALUES
  ('republic','ville_a','terrain-a-batir-9',1500,18000),
  ('republic','ville_a','terrain-a-batir-10',1500,18000),
  ('republic','ville_a','terrain-a-batir-11',1500,18000),
- ('republic','ville_b','terrain-a-batir-6',2100,25200),
- ('khalija','capitale','terrain-a-batir-6',2100,25200),
- ('narco','capitale','terrain-a-batir-6',2100,25200),
- ('soviet','capitale','terrain-a-batir-6',2100,25200)
+ ('republic','ville_b','terrain-a-batir-6',2100,25200)
 ) AS v(pays,ville,batiment,surface,prix)
 WHERE r.pays=v.pays AND r.ville=v.ville AND r.batiment=v.batiment;
 

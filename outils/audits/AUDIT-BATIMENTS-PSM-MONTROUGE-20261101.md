@@ -37,7 +37,7 @@ complet des écarts, lecture seule). **Garde** : `outils/bancs/test-parcelles-re
 2. **Cinq parcelles sans surface** (les quatre de PSM, le lot 6 de Montrouge) : le serveur
    refusait l'achat (`prix_ou_surface_non_reference`). Décisions de Fred du 1er novembre :
    PSM à 1 500 m² et **12 FR/m², soit 18 000 FR** (au lieu de 3 500) ; lot 6 de Montrouge à
-   **2 100 m², 25 200 FR**. `SURFACE_TERRAINS`, data.js et le référentiel sont alignés.
+   **2 100 m², 25 200 FR**. `SURFACE_TERRAINS`, data.js et le référentiel sont alignés, **pour la Républia seulement** : le lot 6 de Montrouge reçoit une surcharge locale (le gabarit `terrain-a-batir-6`, partagé avec les capitales des autres empires, garde 25 000 FR et sa surface inconnue ; prévol ChatGPT du 01/11). Pour cela, une surcharge de pièce peut désormais remplacer un ordre hérité (`excludeOrders` ne retire plus les ordres que la surcharge ajoute elle-même ; aucune autre pièce du jeu n'en est affectée, vérifié sur les douze villes).
 3. **Les lots de PSM ignoraient le parcours immobilier** : trois ordres anciens (achat, dépôt
    de permis, corruption du fonctionnaire), ni compromis, ni construction, ni lots, ni squatteurs.
    Toutes les parcelles reçoivent désormais le gabarit #135 de Luthécia, par une seule boucle.

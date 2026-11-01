@@ -25,10 +25,10 @@ function charger() {
     for (const ville of Object.keys(WORLD.republic)) {
       for (const id of WORLD.republic[ville].buildings || []) {
         if (!id.startsWith('terrain-a-batir')) continue;
-        const pieces = BUILDINGS[id].rooms;
-        const piece = pieces[Object.keys(pieces)[0]];
-        sortie.push({ ville, id, surface: SURFACE_TERRAINS[id], prixM2: PRIX_AU_M2_TERRAIN,
-          ordres: piece.orders.map(o => o.fn), achat: piece.orders.find(o => o.fn === 'acheter_terrain') });
+        const pieces = BUILDINGS[id].rooms, pieceId = Object.keys(pieces)[0];
+        const ordres = ordresDeclaresDeLaPiece(pieces[pieceId], WORLD.republic[ville].buildingContext?.[id], pieceId);
+        sortie.push({ ville, id, surface: SURFACE_TERRAINS['republic|' + ville + '|' + id] ?? SURFACE_TERRAINS[id],
+          prixM2: PRIX_AU_M2_TERRAIN, ordres: ordres.map(o => o.fn).sort(), achat: ordres.find(o => o.fn === 'acheter_terrain') });
       }
     }
     return JSON.parse(JSON.stringify(sortie));
@@ -48,6 +48,14 @@ test('les quinze parcelles de Républia : surface connue, prix à 12 FR/m², mê
   assert.ok(!reference.includes('corrompre_chantier'), 'aucun raccourcissement payant de chantier');
   for (const fn of ['signer_compromis', 'construire_sur_terrain', 'corrompre_fonctionnaire_permis', 'racheter_terrain'])
     assert.ok(reference.includes(fn), 'ordre du parcours absent : ' + fn);
+});
+
+test('hors Républia, le lot 6 partagé garde son prix et sa surface inconnue', () => {
+  const ctx = vm.createContext({ console });
+  vm.runInContext(lire('data.js'), ctx);
+  const achat = vm.runInContext("BUILDINGS['terrain-a-batir-6'].rooms.terrain.orders.find(o => o.fn === 'acheter_terrain').cost", ctx);
+  assert.equal(achat, 25000);
+  assert.ok(!/'terrain-a-batir-6':/.test(lire('plateau-pnj.js').split('const SURFACE_TERRAINS')[1].split('};')[0]));
 });
 
 test('le dépôt de permis reste déclaré au miroir des coûts sans bouton propre', () => {

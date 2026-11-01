@@ -1491,7 +1491,7 @@ function ouvrirTerrainsMontrouge() {
 
   document.getElementById('pieces-tabs').innerHTML = ids.map(id => {
     const numero = id.split('-').pop();
-    const surface = (typeof SURFACE_TERRAINS !== 'undefined') ? SURFACE_TERRAINS[id] : null;
+    const surface = (typeof SURFACE_TERRAINS !== 'undefined') ? (SURFACE_TERRAINS['republic|ville_b|' + id] ?? SURFACE_TERRAINS[id]) : null;
     const label = 'Lot ' + numero + (surface ? ' — ' + surface.toLocaleString('fr-FR') + ' m²' : '');
     return '<div class="piece-tab" onclick="enterBuilding(\'' + id + '\')">' + label + '</div>';
   }).join('');
