@@ -38,15 +38,15 @@ Rubrique nettoyée le 31/10 (Claude) : les chantiers livrés sont passés dans �
 
 ### Migrations fusionnées, en attente d'application (ChatGPT)
 
-**Prises en charge par ChatGPT (Fred, 31/10)** : `20261031130000` et `20261031140000`.
+**Vérification du registre par Fred (01/11, 18 h 50)** : `20261031130000`, `20261031140000` et `20261031220000` sont **déjà appliquées** ; ne jamais les rejouer. Parcours en jeu encore à constater.
 
 Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schema_migrations`, jamais par son numéro.
 
-- `20261031130000_reliquats_immobilier_accord_tacite_succession` (PR #284, fusionnée) : accord tacite de nuit (aujourd'hui toujours en échec : le permis de Jean Jaaj, terrain 5, en dépend dans environ 6 jours) et colonnes `proprietaire` / `coproprietaire` à la succession. Indépendante de l'écran. Banc : `outils/bancs/banc-reliquats-immobilier.sql`.
-- `20261031140000_helvetia_caisse_argent_detenu` (PR #285, fusionnée, #267) : la caisse d'Helvetia représente l'argent détenu (prêt sans débit de caisse, sommes prises sur le compte Helvetia sans recrédit, dépôt d'ouverture crédité). Indépendante de l'écran. Banc : `outils/bancs/banc-caisse-helvetia.sql`.
+- ~~`20261031130000_reliquats_immobilier_accord_tacite_succession`~~ **appliquée** (registre `reliquats_immobilier_accord_tacite_succession_20261031130000`, version `20261031124014`) : accord tacite de nuit (permis de Jean Jaaj, terrain 5) et colonnes `proprietaire` / `coproprietaire` à la succession. Banc : `outils/bancs/banc-reliquats-immobilier.sql`.
+- ~~`20261031140000_helvetia_caisse_argent_detenu`~~ **appliquée** (registre `helvetia_caisse_argent_detenu_20261031140000`, version `20261031124019`, #267) : la caisse d'Helvetia représente l'argent détenu. Banc : `outils/bancs/banc-caisse-helvetia.sql`.
 - `20261031151000_placement_helvetia_gain_unique` (Claude, 31/10, suite de #267) : à la résolution d'un placement Helvetia, le gain net n'est plus ajouté à `arg` (argent total liquide + Banque nationale, où il apparaissait en double) et entre dans la caisse avec les frais. Indépendante de l'écran ; **déjà appliquée en production** sous le nom de registre `placement_helvetia_gain_unique_20261031151000` (version `20261031131427`, prévol Supabase du 31/10) ; ne pas réappliquer avant l'échéance du 6/11. Banc : `outils/bancs/banc-placement-helvetia.sql` (attendu sur ce placement : caisse +6 314, compte +83 340, `arg` +0).
 - `20261029181000_squatteurs_issue_combat` : **attend le combat de groupe de Codex (#219)** ; ne pas appliquer avant.
-- ~~`20261031220000_transfert_prime_signature_serveur`~~ **abandonnée et retirée (décision de Fred, 01/11)** : pas de prime de signature dans le moteur de transfert ; une somme versée au joueur pour signer se règle entre PJ. Ne pas la réintroduire.
+- ~~`20261031220000_transfert_prime_signature_serveur`~~ **appliquée** (registre `transfert_prime_signature_serveur_20261031220000`, version `20261031211256`). Règle confirmée par Fred le 01/11 (`GAME-DESIGN-FOOTBALL.md`) : prix du transfert au club de départ, prime de signature facultative au joueur, les deux payés par le club qui recrute.
 - `20261101121000_manifestation_spontanee` (Claude, 1/11) : **attend #219 installé** (la migration se refuse sans `groupes_pj_adhesions`). Banc : `bash outils/bancs/banc-manifestation-spontanee.sh` (base jetable, 29 épreuves). Règles : `GAME-DESIGN-MANIFESTATIONS.md`. Après application, l'ordre « Organiser une manifestation spontanée » des trois places fonctionne ; avant, il répond « pas encore installée », sans rien prélever.
 - `20261031230000_organisations_champs_commandes_serveur` : **préparée, ne pas appliquer** avant #219 installé et recetté (feu vert requis dans la transaction).
 - ~~`20261031190000_avis_personnels_expediteurs_declares`~~ **appliquée par Claude le 31/10 vers 20 h, registre `avis_personnels_expediteurs_declares_20261031190000`** (PR #297, fusionnée `c44f5c40`, Vercel READY) : neuf identités d'avis personnels (expulsion, libération, candidature, convocation douanière…) déclarées pour l'envoi **à soi seulement** ; sans elle ces courriers sont refusés en silence. Indépendante de l'écran. Banc annulé : `outils/bancs/banc-avis-personnels-expediteurs.sql` (joué le 31/10 : avant refus, après accepté pour soi, refusé vers un tiers).
@@ -77,7 +77,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 ### Purge finale Luthécia (Claude, branche `claude/purge-luthecia-20261031`)
 
 - **Caisses collectives #295 (PR #300)** : étapes 1 et 2 **appliquées par ChatGPT le 31/10** (registre `20261031195210` et `20261031200630`). Ne pas les rejouer.
-- **Prime de signature** : abandonnée (décision de Fred, 01/11) : question entre PJ, pas de prime dans le transfert. Migration, bancs et affichage « Prime de signature proposée » retirés (PR dédiée) ; le montant `prixJoueur` n'est versé par personne.
+- **Prime de signature** : appliquée et confirmée par Fred (01/11, `GAME-DESIGN-FOOTBALL.md`). Aucun écran ne permet encore au président de saisir une prime (toujours 0) : non bloquant, à proposer si Fred le souhaite.
 - **#299 (garde 13/14 de #219)** : les deux préparations immobilières sont **déjà en production** sous `construction_materiaux_prix_et_dons_94` et `compromis_financement_reel_135`, puis réécrites par `20261030210000` ; leurs gardes d'empreinte échouent contre la production. **Action Codex : supprimer `20261031113610_…` et `20261031113631_…` de #219.** Preuve : `outils/audits/CLASSEMENT-299-20261031.md` ; test `test-preparations-deja-appliquees.mjs` (la garde de la vue n'est pas touchée).
 - **Organisations, fin de la double autorité** : inventaire figé par `test-organisations-ecritures-inventaire.mjs` (17 chemins avec commande #219 et repli, 16 sans commande). Étape A **préparée, non appliquée** : `20261031230000_organisations_champs_commandes_serveur` (se refuse sans les contrats #219 et sans feu vert explicite). Étape B (REVOKE INSERT/UPDATE) seulement après portage des 16 chemins. Détail : `outils/audits/ORGANISATIONS-ECRITURES-20261031.md`.
 
@@ -115,7 +115,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 ### À vérifier en jeu (Fred, Angie, Vince)
 
 - Terrain occupé par des squatteurs : « Appeler la police » propose l'intervention légale (1 PA, sans paiement) et la corruption (coût et taux annoncés par le serveur) ; « Faire disparaître le corps » sur un cadavre.
-- Après application de `20261031130000` : le permis de Jean Jaaj (terrain 5) est accordé tacitement à la fin de l'instruction, attestation et courrier reçus.
+- `20261031130000` appliquée : à constater, le permis de Jean Jaaj (terrain 5) accordé tacitement à la fin de l'instruction, attestation et courrier reçus.
 - Chez Petit : « Monsieur le ministre » / « Madame la ministre » selon le genre du personnage (#281).
 - Chez le notaire : « Officialiser une transaction » → « Vente de terrain » → « Confirmer » (#269).
 - Louer un local dans les centres de Montrouge et de PSM ; acheter un terrain pour la commune en tant que maire ; attribuer un logement social en tant qu'adjoint.
