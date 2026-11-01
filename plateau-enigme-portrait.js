@@ -731,6 +731,11 @@ function enigme1AfficherArticlePresse(idx) {
 // et elle est SIGNALEE au rapport plutot que prise ici.
 
 async function doDemanderJugeInstruction(pa, cost) {
+  // Hors enquete (ou autorisation deja obtenue), le juge ne recoit pas : refus avant tout cout.
+  if (!enigme1EtapeActive() || state.char.enigme1.autorisationCoffre) {
+    showToast('Le juge ne vous recevra pas', "Vous n'avez aucun dossier en cours à lui présenter.", false);
+    return;
+  }
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { signalerRefusCout(r); return; }
   const dossier = (state.char && state.char.enigme1 && state.char.enigme1.dossier) || {};
