@@ -69,9 +69,9 @@ Un commerce sans surface validée ne peut pas voir ses murs vendus : ne jamais i
 - **Pas de loyer quand le fonds est tenu par un PNJ** : les PNJ ne fixent pas leurs prix (marge
   contrainte à ×2), il n'y a pas assez de clients pour les faire tourner, et un PNJ ne gagne pas
   d'argent : il serait vite exproprié. Le loyer est fixé mais pas appliqué.
-- Montant de départ (murs communaux) : barème proportionnel à la surface proposé par Claude
-  (option A 1 FR/m²/jour ou B 0,5 FR/m²/jour — choix confirmé par Fred à consigner ici), à
-  recalibrer en jeu si besoin.
+- Montant de départ (murs communaux) : **1 FR/m²/jour** (option A, choix de Fred du 01/11 à 21 h 05) :
+  550 FR/j pour les cafés et armureries, 700 FR/j pour les imprimeries, 800 FR/j pour les hôtels,
+  1 200 FR/j pour La Républia. À recalibrer en jeu si besoin.
 - Le bail survit à la vente des murs : le nouveau propriétaire touche le loyer.
 
 ## Non arbitré (ne pas inventer)

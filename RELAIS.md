@@ -84,7 +84,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 ### Décisions attendues de Fred
 
 
-- **Loyer murs / fonds (#66)** : décidé par Fred le 01/11 (`GAME-DESIGN-FONDS-MURS.md`) : loyer quotidien exploitant → propriétaire des murs, **non prélevé quand le fonds est tenu par un PNJ**. Reste à confirmer : option A (1 FR/m²/jour) ou B (0,5). Puis à implémenter en réutilisant les baux existants (`locations_actives`, prélèvement de nuit, destination « titulaire des murs »).
+- **Loyer murs / fonds (#66)** : décidé par Fred le 01/11 (`GAME-DESIGN-FONDS-MURS.md`) : loyer quotidien exploitant → propriétaire des murs, **non prélevé quand le fonds est tenu par un PNJ**. Montant : **1 FR/m²/jour** (option A, Fred, 01/11 21 h 05). **Prochain chantier Claude, à implémenter** en réutilisant les baux existants (`locations_actives`, prélèvement de nuit, destination « titulaire des murs »).
 
 ### Points ouverts transmis (non bloquants)
 
