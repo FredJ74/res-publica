@@ -1175,7 +1175,9 @@ const WORLD = {
         // (nom uniquement), aucune mecanique/PNJ/desc ajoutee pour ce lot. Les buildingId
         // techniques ne sont pas touches.
         'hotel-mineur':                 { name: "Hôtel de la Victoire" },
-        'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge", roomOverrides: { magasin: { imageUrl: "images/montrouge/montrouge-armurerie-interieur.jpg" } } },
+        // Marche noir (explosifs + poison local) dans toute la Republia (decision de Fred, 01/11/2026).
+        'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge", roomOverrides: { magasin: { imageUrl: "images/montrouge/montrouge-armurerie-interieur.jpg" } },
+          orders: [{fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local, sous le comptoir de la quincaillerie. Rien de tout cela n\'est enregistré.'}] },
         'commissariat-local':           { name: "Commissariat de Montrouge",
           // Bureau du commissaire (29/10/2026) : ordres du gabarit commun ; aucun PNJ tant qu'il n'a pas de profil de dialogue.
           roomOverrides: { bureau_commissaire: { desc: "Le bureau du commissaire de Montrouge, en tension permanente avec le syndicat local." } } },
@@ -5060,8 +5062,8 @@ const BUILDINGS = {
         // Raccordement au moteur armurerie generique existant (audit dedie du 24 aout 2026,
         // confirme : entreprise/caisse/stock/registre 'armurerie-republic-ville_a' deja isoles
         // par ville, aucune migration necessaire). 4 ordres standards, memes libelles/PA/couts
-        // que BUILDINGS['armurerie'] -- jamais marche_noir, reste specifique a Luthecia
-        // (buildingContext.armurerie.orders, capitale uniquement). Personnalisation d'affichage
+        // que BUILDINGS['armurerie'], plus l'ordre marche_noir (explosifs + poison local), etendu a
+        // toute la Republia par decision de Fred (01/11/2026). Personnalisation d'affichage
         // des armes (nom/image locale) geree par ARMES_OVERRIDES_VILLE/resoudreArmeAffichage,
         // plateau-actions-illegales-rumeurs.js -- jamais par un nouvel ordre ici.
         orders: [
@@ -5084,7 +5086,8 @@ const BUILDINGS = {
             pa:1, cost:0, type:'legal', icon:'ti-book', successRate:100,
             desc:'Acces libre : Commissaire, Juge. Sinon : soudoyer l\'armurier (30%, 100 FR, +/-5 INF et POP). Ventes des 6 derniers mois.'
           },
-          {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'}
+          {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'},
+          {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Victor Legall, entre deux boîtes d\'appâts. Rien de tout cela n\'est enregistré.'}
         ]
       }
     }

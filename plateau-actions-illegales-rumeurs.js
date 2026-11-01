@@ -1413,7 +1413,7 @@ async function confirmerAchatArmeIllegal(armeId) {
   if (!arme) return;
   // Personnalisation d'affichage locale (complement Lot armurerie PSM, 24 aout 2026) : ce chemin
   // (marche noir) est atteignable depuis le meme modal choisir_arme que l'achat legal, y compris
-  // a PSM, independamment de l'ordre marche_noir (specifique a Luthecia, sans rapport). Meme
+  // a PSM, independamment de l'ordre marche_noir (explosifs + poison, sans rapport). Meme
   // principe que confirmerAchatArme() : uniquement pour l'objet pousse en inventaire (name/desc/
   // imageUrl) -- stock/prix/PA/legal/bonus/registre (absence d'inscription, deja le comportement
   // actuel) restent inchanges, utilisent toujours `arme` (generique).

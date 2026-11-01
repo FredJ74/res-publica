@@ -66,17 +66,16 @@ de province doivent les offrir aussi. Rien n'a été ajouté sans décision.
 | Centre multimodal / Gare | avion, douanes de l'aéroport, taxis caserne et QHS (sans doute voulu : l'aéroport est à la capitale) |
 | Marché de PSM | pouls populaire |
 | Musées | consulter les personnalités |
-| Armurerie de Montrouge, Chasse et Pêche de PSM | marché noir |
+| Armurerie de Montrouge, Chasse et Pêche de PSM | marché noir : **tranché le 01/11**, partout en Républia ; ordre « Marché Noir » (explosifs 1 200 FR + poison local) ajouté aux deux armureries, même définition qu'à Luthécia. Aucune migration : `crime_acheter_explosifs` et l'achat du poison ne dépendent pas de la ville |
 | Centre d'affaires | embauche d'agents de sécurité privée (périmètre Codex, #135) |
 | Rachat d'entreprise | Capitaine Sauvage et Hôtel du Port ne sont pas rachetables (pas de prix) |
 
 ## Restent à poser à Fred (une question à la fois)
 
-1. Marché noir à l'armurerie de Montrouge et chez Chasse et Pêche (PSM).
-2. « Prendre le pouls populaire » au marché de PSM.
-3. « Consulter les personnalités » dans les musées de PSM et Montrouge.
-4. Rachat du Capitaine Sauvage et de l'Hôtel du Port (prix).
-5. Embauche de sécurité privée dans les centres d'affaires de province (raccordement Codex, #135).
+1. « Prendre le pouls populaire » au marché de PSM.
+2. « Consulter les personnalités » dans les musées de PSM et Montrouge.
+3. Rachat du Capitaine Sauvage et de l'Hôtel du Port (prix).
+4. Embauche de sécurité privée dans les centres d'affaires de province (raccordement Codex, #135).
 
 ## Autres constats
 
