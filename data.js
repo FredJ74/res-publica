@@ -921,7 +921,7 @@ const WORLD = {
         // arriere_boutique/cave_reserve) restent sur les visuels de la base partagee.
         'centre-commercial': {
           roomOverrides: {
-            hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.webp" },
+            hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.webp", persons: [{name:'Cédric Legoff (PNJ)', role:'Agent de sécurité privée', rel:'neutral', job:'agent_securite'}] },
             vitrine_principale: { imageUrl: "images/port-sainte-marie-centre-commercial-local-grand.png" },
             boutique_milieu: { imageUrl: "images/port-sainte-marie-centre-commercial-local-moyen.png" },
             arriere_boutique: { imageUrl: "images/port-sainte-marie-centre-commercial-local-petit.png" },
@@ -1204,7 +1204,7 @@ const WORLD = {
         'centre-commercial': {
           name: "Centre commercial de Montrouge",
           roomOverrides: {
-            hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg" },
+            hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg", persons: [{name:'Bastien Jacquemont (PNJ)', role:'Agent de sécurité privée', rel:'neutral', job:'agent_securite'}] },
             vitrine_principale: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-grand.jpg" },
             boutique_milieu: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-moyen.jpg" },
             arriere_boutique: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-petit.jpg" },
