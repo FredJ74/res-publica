@@ -626,7 +626,13 @@ function commerceEstProprietaire(data, nom = state.char?.name) {
 // Un intitule de role libre, un bail ou un emploi ailleurs n'accordent aucun droit.
 function commercePeutProduire(data, nom = state.char?.name) {
   return commerceEstProprietaire(data, nom) || (!!nom && Array.isArray(data?.salaries) &&
-    data.salaries.some(s => s.actif === true && [nom, 'pj:' + nom].includes(s.ref)));
+    data.salaries.some(s => s.actif === true && [nom, 'pj:' + nom].includes(s.ref))) ||
+    // Brasserie municipale PNJ : travail ponctuel ouvert aux PJ présents sur place.
+    // Le serveur revalide la localisation, les PA, les matières et la caisse.
+    (!!nom && data?.country === 'republic' && data?.city === 'ville_b' &&
+      data?.buildingId === 'brasserie-voyageurs-montrouge' && data?.proprietaire === 'PNJ' &&
+      state.country === 'republic' && state.currentCity === 'ville_b' &&
+      state.currentBuilding === 'brasserie-voyageurs-montrouge');
 }
 function commerceLibelleCatalogue(data) {
   return (data?.typesAutorises||[]).includes('bar-restauration') ? 'Consulter la carte' : 'Consulter les produits';
