@@ -1359,7 +1359,10 @@ async function verifierLiberationPrisonniers() {
       state.detentionQHS = null;
       // Retour au lieu d'origine quand il a ete memorise (sortie de QHS apres un vol a la
       // caserne) : sans cela le joueur serait relache dans une zone speciale sans domicile.
-      if (retourVille) {
+      if (retourVille && state._navigationServeur === true && typeof adopterPositionServeurRelue === 'function') {
+        // #219 : detention_clore_purgee a déposé le PJ au terminal de sa ville de retour.
+        await adopterPositionServeurRelue();
+      } else if (retourVille) {
         state.currentCity = retourVille;
         const batiments = (typeof WORLD !== 'undefined' && WORLD[state.country]?.[retourVille]?.buildings) || [];
         if (batiments.length && typeof enterBuilding === 'function') {

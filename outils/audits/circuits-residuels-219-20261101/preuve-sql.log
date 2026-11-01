@@ -1,0 +1,15 @@
+# SHA b623b7d3aceebe0ef18226c9e18484c8f0d7cc25 — 2026-11-01T14:08:33Z — correctif appliqué deux fois (rejeu)
+OK      assemblee_chef_proteste_quitte_son_groupe
+OK      assemblee_membre_proteste_le_chef_reste_mobile
+OK      assemblee_revenir_seul_ne_disperse_pas
+OK      liberation_qhs_purgee_depose_au_terminal_de_retour
+OK      liberation_qhs_par_grace_ne_deplace_pas
+OK      incorporation_depose_au_corps_de_garde
+OK      ancien_circuit_hospitalise_refuse_par_la_navigation
+OK      hospitalisation_dispensaire_capitale_et_sortie_du_groupe
+OK      hospitalisation_dispensaire_de_province
+OK      hospitalisation_refusee_sans_hospitalisation_ni_ecriture
+OK      clinique_depuis_province_payee_et_deplacee_atomiquement
+OK      clinique_fonds_insuffisants_rien_ne_bouge
+OK      clinique_chambre_d_un_autre_refusee
+OK      porte_hospitalisation_fermee_a_anon

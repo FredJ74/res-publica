@@ -1782,8 +1782,10 @@ function restaurerPositionApresChargement(char) {
       // Le drapeau est pose autour des seuls appels de restauration, qui sont synchrones pour
       // les hooks concernes, et retire dans le finally quoi qu'il arrive.
       window._restaurationPositionEnCours = true;
-      enterBuilding(buildingCible, true);
-      enterRoom(buildingCible, roomCible, null);
+      // #219 : la position vient du serveur. La REPRÉSENTER, jamais la recommander :
+      // sans cela, enterBuilding envoyait navigation_interieure vers la première pièce
+      // du bâtiment (un F5 déplaçait le PJ, et tout son groupe s'il en est le chef).
+      representerPositionServeur(buildingCible, roomCible);
     } catch(e) { console.warn('Erreur restauration position', e); }
     finally { window._restaurationPositionEnCours = false; }
   }, 300);
@@ -2709,6 +2711,8 @@ function updateUI() {
   document.getElementById('inv-liquide').textContent = state.liquide.toLocaleString('fr-FR') + ' ' + cur;
   document.getElementById('inv-banque').textContent  = totalComptesBancaires().toLocaleString('fr-FR') + ' ' + cur;
   if (typeof renderInventory === 'function') renderInventory();
+  // Hospitalisation à 0 PA (01/11/2026) : décidée par le serveur ; l'écran va la relire.
+  if (typeof surveillerHospitalisationServeur === 'function') surveillerHospitalisationServeur();
 }
 
 function updateLocationDisplay() {
