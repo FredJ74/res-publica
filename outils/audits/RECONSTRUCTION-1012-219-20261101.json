@@ -288,5 +288,55 @@
     "github_api": "Forbidden (lecture commentaires)",
     "supabase_direct": "CONNECT proxy HTTP 403 ; aucun verdict RLS déduit",
     "connecteur_supabase_expose": false
-  }
+  },
+  "bancs_clients": {
+    "reussis": 156,
+    "total": 156,
+    "premier_passage": {
+      "reussis": 155,
+      "total": 156,
+      "cause": "pglast absent du PYTHONPATH des sous-processus ; second passage complet avec la dépendance exposée, aucun test modifié"
+    }
+  },
+  "pilote_local": {
+    "reussis": 105,
+    "total": 105,
+    "production": false
+  },
+  "combat_catalogue_declare": {
+    "reussis": 379,
+    "total": 379,
+    "production": false,
+    "preuve_95_sur_catalogue1012": false
+  },
+  "contre_epreuves_combat": [
+    {
+      "mutation": "issue-fausse",
+      "code_sortie": 1,
+      "detectee": true,
+      "tests_refusant_la_mutation": [
+        "squatteurs_issue_reelle_obligatoire_tues"
+      ]
+    },
+    {
+      "mutation": "double-paiement",
+      "code_sortie": 1,
+      "detectee": true,
+      "tests_refusant_la_mutation": [
+        "civil_ouverture_reelle_choix_paiement_unique_rejeu",
+        "civil_mode_mains_borne_arme_et_paiement_sans_modifier_defenseur",
+        "civil_mode_arme_borne_arme_et_paiement_sans_modifier_defenseur",
+        "civil_mode_feu_borne_arme_et_paiement_sans_modifier_defenseur",
+        "civil_deux_connexions_un_combat_un_paiement_un_recu"
+      ]
+    },
+    {
+      "mutation": "PNJ-immobile",
+      "code_sortie": 1,
+      "detectee": true,
+      "tests_refusant_la_mutation": [
+        "squatteurs_fuite_automate_deplacement_reel_pas_une_mort"
+      ]
+    }
+  ]
 }
