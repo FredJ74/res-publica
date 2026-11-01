@@ -10,6 +10,13 @@ tranché ici.
   - il a consommé tous ses PA en passant des ordres ;
   - il a perdu un combat.
 - **L'empoisonnement fonctionne différemment** : il n'entre pas dans cette règle.
+- Cette règle **remplace les anciennes durées par palier** de l'agression et de l'assassinat
+  (dispensaire 6/4/2 jours, clinique 3/2/1 jour) — précision de Fred, 01/11.
+
+## Condition de sortie (modification de Fred, 01/11)
+
+- **On ne peut pas sortir de l'hôpital tant qu'on n'a pas atteint 20 PA.** À l'hôpital public,
+  cela ajoute une nuit de plus ; en clinique (24 PA à J2), la sortie reste à J2.
 
 ## Hôpital public (dispensaire de la ville)
 
@@ -17,7 +24,7 @@ tranché ici.
 |---|---|
 | J0 (jour du transfert) | Ne peut pas bouger de la journée. Ne peut pas passer l'ordre Dormir. Ne peut ni écrire de mail ni poster sur les forums. |
 | J1 | En passant Dormir, ne récupère que **2 PA** : très faible. Peut consommer **un repas servi par l'hôpital (1 PA)**, qui donne **+2 PA le lendemain**. Ne peut pas sortir de l'hôpital, mais peut écrire des mails et sur les forums. |
-| J2 | En passant Dormir, récupère **6 PA**, plus les **2 PA du repas** de la veille s'il l'a pris. Peut sortir. |
+| J2 | En passant Dormir, récupère **6 PA**, plus les **2 PA du repas** de la veille s'il l'a pris. Sortie seulement à partir de 20 PA (voir plus bas). |
 
 ## Clinique privée
 
