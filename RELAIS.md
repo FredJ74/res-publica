@@ -84,7 +84,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 ### Décisions attendues de Fred
 
 
-- **Loyer murs / fonds (#66)** : quand un PJ possède les murs et qu'un autre exploite le fonds, un loyer est-il dû ? Question posée à Fred le 01/11 ; aucun loyer n'existe aujourd'hui (`GAME-DESIGN-FONDS-MURS.md`, « Non arbitré »).
+- **Loyer murs / fonds (#66)** : décidé par Fred le 01/11 (`GAME-DESIGN-FONDS-MURS.md`) : loyer quotidien exploitant → propriétaire des murs, **non prélevé quand le fonds est tenu par un PNJ**. Reste à confirmer : option A (1 FR/m²/jour) ou B (0,5). Puis à implémenter en réutilisant les baux existants (`locations_actives`, prélèvement de nuit, destination « titulaire des murs »).
 
 ### Points ouverts transmis (non bloquants)
 

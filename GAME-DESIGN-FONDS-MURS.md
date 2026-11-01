@@ -62,10 +62,20 @@ Un commerce sans surface validée ne peut pas voir ses murs vendus : ne jamais i
   fonds PNJ comme le rachat existant.
 - Acte : 1 PA (ordre `officialiser_transaction`). Mise en vente, retrait et renoncement : gratuits.
 
+## Loyer entre murs et fonds (décision de Fred, 01/11/2026, 20 h 57)
+
+- Chaque commerce a un **loyer quotidien**, payé par l'exploitant du fonds au propriétaire des murs
+  (commune ou PJ), sur le modèle des baux existants (locaux des centres, lots des immeubles).
+- **Pas de loyer quand le fonds est tenu par un PNJ** : les PNJ ne fixent pas leurs prix (marge
+  contrainte à ×2), il n'y a pas assez de clients pour les faire tourner, et un PNJ ne gagne pas
+  d'argent : il serait vite exproprié. Le loyer est fixé mais pas appliqué.
+- Montant de départ (murs communaux) : barème proportionnel à la surface proposé par Claude
+  (option A 1 FR/m²/jour ou B 0,5 FR/m²/jour — choix confirmé par Fred à consigner ici), à
+  recalibrer en jeu si besoin.
+- Le bail survit à la vente des murs : le nouveau propriétaire touche le loyer.
+
 ## Non arbitré (ne pas inventer)
 
-- Loyer dû par l'exploitant du fonds au propriétaire des murs quand ce ne sont pas les mêmes :
-  aucun bail n'existe aujourd'hui entre murs et fonds des commerces.
 - Changement de prix pendant la priorité : interdit techniquement (retirer puis remettre en vente,
   ce qui rouvre une priorité et renvoie le courrier).
 - Règles de revente dans les autres empires.
