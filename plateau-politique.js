@@ -9566,7 +9566,12 @@ function ouvrirModalNommerAmbassadeur(pa, cost) {
     html += '<div style="font-size:.85rem;color:#8a8060;font-style:italic">Repertoire vide.</div>';
   } else {
     html += '<select id="amb-contact" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;margin-bottom:.7rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none">';
-    contacts.forEach(c => { html += '<option value="' + c.name + '">' + c.name + '</option>'; });
+    // Le repertoire peut contenir des noms avec guillemets ou chevrons :
+    // proteger l'attribut value et le libelle avant insertion dans innerHTML.
+    const echapperOption = value => String(value ?? '').replace(/[&<>"']/g, caractere => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[caractere]));
+    contacts.forEach(c => { const nom = echapperOption(c.name); html += '<option value="' + nom + '">' + nom + '</option>'; });
     html += '</select>';
     html += '<select id="amb-empire" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;margin-bottom:.7rem;font-family:Crimson Pro,serif;font-size:.85rem;outline:none">';
     empires.forEach(([k,co]) => { html += '<option value="' + k + '">' + co.n + '</option>'; });
