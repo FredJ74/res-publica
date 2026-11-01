@@ -14,7 +14,7 @@
 -- 1. référentiel aligné sur le générateur ; 2. état initial vierge des dix parcelles, au format
 -- des lots de Luthécia (ville, surface, valeur, constructionAutorisee=false ; l'occupation est
 -- tirée par le serveur à la première visite) ; 3. miroir des coûts : (acheter_terrain, 2, 25200)
--- déclaré, (acheter_terrain, 2, 3500) et (corrompre_chantier, 2, 1500) retirés, plus aucun
+-- et (service_etage, 0, 50) déclarés, (acheter_terrain, 2, 3500) et (corrompre_chantier, 2, 1500) retirés, plus aucun
 -- ordre ne les déclare.
 BEGIN;
 
@@ -40,7 +40,8 @@ FROM public.terrains_referentiel r
 WHERE r.pays='republic' AND r.ville IN ('ville_a','ville_b')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.ordres_couts(fn,pa,cost) VALUES ('acheter_terrain',2,25200)
+-- Service d'étage des hôtels de province à 50 FR (décision de Fred, 01/11/2026), même audit.
+INSERT INTO public.ordres_couts(fn,pa,cost) VALUES ('acheter_terrain',2,25200),('service_etage',0,50)
 ON CONFLICT DO NOTHING;
 DELETE FROM public.ordres_couts WHERE (fn,pa,cost) IN (('acheter_terrain',2,3500),('corrompre_chantier',2,1500));
 
@@ -56,6 +57,7 @@ BEGIN
   RAISE EXCEPTION 'parcelles_republia_sans_etat';
  END IF;
  IF NOT EXISTS (SELECT 1 FROM public.ordres_couts WHERE fn='acheter_terrain' AND pa=2 AND cost=25200)
+    OR NOT EXISTS (SELECT 1 FROM public.ordres_couts WHERE fn='service_etage' AND pa=0 AND cost=50)
     OR EXISTS (SELECT 1 FROM public.ordres_couts WHERE (fn,pa,cost) IN (('acheter_terrain',2,3500),('corrompre_chantier',2,1500))) THEN
   RAISE EXCEPTION 'miroir_couts_terrains_divergent';
  END IF;
