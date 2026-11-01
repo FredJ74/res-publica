@@ -1208,10 +1208,11 @@ const WORLD = {
             // la seule ville a ignorer leur metier.
             hall: {
               imageUrl: "images/montrouge/montrouge-centre-affaires-accueil.jpg",
+              // 1er novembre 2026 (decision de Fred) : le trio de Luthecia (Gretta, Moshe, Harry)
+              // ne doit pas apparaitre a Montrouge -- aucune connexion entre les villes. Une
+              // seule hotesse, propre a Montrouge.
               persons: [
-                {name:'Gretta Délieu (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/hall-centre-affaires-luthecia.webp', photoPos:'38% 45%'},
-                {name:'Moshe Maychan (PNJ)', role:'Assassin', rel:'neutral', job:'criminel'},
-                {name:'Harry Cover (PNJ)', role:'Détective privé', rel:'neutral', job:'inspecteur'}
+                {name:'Jeanne Terril (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse'}
               ]
             },
             bureau_prestige: { imageUrl: "images/montrouge/montrouge-centre-affaires-grand-bureau.jpg" },
