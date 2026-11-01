@@ -73,6 +73,15 @@ Un commerce sans surface validée ne peut pas voir ses murs vendus : ne jamais i
   550 FR/j pour les cafés et armureries, 700 FR/j pour les imprimeries, 800 FR/j pour les hôtels,
   1 200 FR/j pour La Républia. À recalibrer en jeu si besoin.
 - Le bail survit à la vente des murs : le nouveau propriétaire touche le loyer.
+- **Payeur** (Fred, 01/11, 23 h 30) : la **caisse du commerce d'abord**, le complément sur les avoirs
+  de l'exploitant (liquide puis comptes ; caisse de l'organisation si le fonds lui appartient).
+- Pas de loyer non plus quand le même titulaire tient murs et fonds.
+- **Impayé** : règle des baux (arbitrage du 8 septembre 2026) — avertissement la première nuit, puis
+  dette inscrite et conservée, un seul avis à l'exploitant et au propriétaire PJ des murs ; jamais
+  d'expulsion automatique. Un nouvel exploitant n'hérite pas de la dette du précédent (archivée).
+- Choix techniques : `immobilier_baremes.loyer_m2_jour`, état par titre dans `murs_loyers`,
+  prélèvement `murs_loyer_prelever` / passe `murs_loyers_nuit` (cron de minuit, identité serveur),
+  loyer et ardoise (visible des deux parties) rendus par `immobilier_catalogue`.
 
 ## Non arbitré (ne pas inventer)
 
