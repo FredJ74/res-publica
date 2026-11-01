@@ -151,6 +151,13 @@ def main():
     rapport['empreinte_complete_avant95']=verifier_empreinte_complete(observe,reference)
     rapport['schema_1012_certifie']=(reference.get('empreinte',reference).get('registre',{}).get('lignes')==1012)
     assert rapport['schema_1012_certifie'],'La référence doit concerner le catalogue vivant 1012'
+    rapport['rpc_clients_avant95']=e.verifier_rpc_clients(q)
+    rapport['rpc_clients_avant95']['portee']='Schéma du clone conforme aux six empreintes 1012, avant 95 ; pas un verdict de données ni de production'
+    equipements=['organisation_equipement_acheter','organisation_equipement_deplacer','organisation_equipements_etat','organisation_equipements_payeurs']
+    rapport['equipements_collectifs_avant95']={}
+    for nom in equipements:
+     q.execute("SELECT pg_get_function_identity_arguments(p.oid),p.prosecdef,has_function_privilege('authenticated',p.oid,'EXECUTE'),has_function_privilege('anon',p.oid,'EXECUTE') FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname=%s",(nom,))
+     rapport['equipements_collectifs_avant95'][nom]=[{'arguments':args,'security_definer':sd,'authenticated_execute':au,'anon_execute':an} for args,sd,au,an in q.fetchall()]
     c.commit()
    if o.referentiels_reference:
     reference=json.loads(o.referentiels_reference.read_text(encoding='utf-8'))

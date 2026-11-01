@@ -333,6 +333,16 @@ class PostgreSQL(unittest.TestCase):
     with self.assertRaises(ValueError):m.charger(self.q,p,ref)
     for t in (*m.TABLES,'offres_emploi_bne'):
      self.q.execute('SELECT * FROM '+t);self.assertEqual(self.q.fetchall(),[('ancien',{})])
+ def test_locale_locale_ne_remplace_pas_la_version_attendue_de_production(self):
+  import copy
+  m,capture,ref=self.fixture_capture_referentiels()
+  # La capture concorde avec le moteur LOCAL, mais pas avec le relevé externe.
+  ref=copy.deepcopy(ref);ref['locale']=dict(capture['locale']);ref['locale']['version']='autre-version-externe'
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d)/'capture.json';p.write_text(json.dumps(capture))
+   with self.assertRaisesRegex(ValueError,'contraire au relevé externe'):m.charger(self.q,p,ref)
+  for t in m.TABLES:
+   self.q.execute('SELECT * FROM '+t);self.assertEqual(self.q.fetchall(),[('ancien',{})])
  def test_capture_privee_preserve_les_cles_referencees_sans_relacher_les_fk(self):
   m,capture,ref=self.fixture_capture_referentiels()
   self.q.execute("CREATE TABLE enfant_reference(cle text REFERENCES recettes_commerce(id));INSERT INTO enfant_reference VALUES('ancien')")

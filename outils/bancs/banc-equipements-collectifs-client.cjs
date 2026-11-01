@@ -34,3 +34,14 @@ for(const confirme of [false,true])test(`dissolution ${confirme?'confirmee':'non
  const c=contexte();c.state.organisations=[{id:'o1',nom:'Test',chef:'Alice',visible:true}];c.getOrgaById=()=>c.state.organisations[0];const traces=[];c.sbDeleteOrganisation=async()=>{traces.push('serveur');return confirme;};c.sbEnregistrerEvenementPublic=async()=>traces.push('evenement');c.showToast=()=>{};c.addJournalEntry=()=>traces.push('journal');c.switchSelfTab=()=>{};c.document.getElementById=()=>({classList:{remove(){}}});vm.runInContext('const dissolutionsOrganisationsEnCours=new Set();'+extraireFichier('plateau-organisations-quetes.js','dissoudreOrga'),c);
  await c.dissoudreOrga('o1');assert.equal(c.state.organisations.length,confirme?0:1);assert.equal(traces[0],'serveur');assert.equal(traces.includes('journal'),confirme);assert.equal(traces.includes('evenement'),confirme);
 });
+
+test('écran chargé en production : équipements dormants sans RPC, paiement ni inventaire modifié',async()=>{
+ const messages=[],state={char:{name:'Alice'},arg:500,liquide:120,pa:20,inventory:[{id:'temoin',qty:1}]};
+ const avant=JSON.stringify(state),interdit=()=>assert.fail('aucun appel serveur tant que les quatre contrats ne sont pas activés');
+ const c=vm.createContext({state,showToast:(...args)=>messages.push(args),sbRpcVerdict:interdit,sbRpc:interdit,sbGet:interdit,fetch:interdit});
+ vm.runInContext(fs.readFileSync(path.join(root,'plateau-equipements-collectifs.js'),'utf8'),c);
+ const r=await c.equipementsCollectifsOuvrir('o1');assert.equal(r.ok,false);assert.equal(r.raison,'service_non_active');
+ const cible=new Element();cible.appendChild(new Element('select'));
+ assert.equal(await c.equipementsCollectifsProposerPayeur(cible),false);assert.equal(cible.children.length,0);
+ assert.equal(JSON.stringify(state),avant);assert.equal(messages.length,1);assert.equal(messages[0][2],false);
+});
