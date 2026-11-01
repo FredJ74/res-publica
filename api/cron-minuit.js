@@ -6337,6 +6337,18 @@ export default async function handler(req, res) {
       loyersLots.erreurs > 0 ? loyersLots.erreurs + ' bail(s) en erreur' : null,
       resumeContexte(loyersLots), Date.now() - debutLoyers);
 
+    // 5 a. #66 : loyer des murs des commerces exploites par un PJ (caisse du commerce, puis
+    //    exploitant ; murs de la commune ou d'un PJ). Toute la regle est dans murs_loyers_nuit,
+    //    rejouable sans double effet le meme jour. Avant la migration 20261101233000, la RPC est
+    //    absente : sbRpc rend null, rien ne bouge, l'etape est journalisee en echec.
+    const debutLoyersMurs = Date.now();
+    const loyersMursRows = SUPABASE_SERVICE_ROLE ? await sbRpc('murs_loyers_nuit', {}, HEADERS_SERVICE) : null;
+    const loyersMurs = Array.isArray(loyersMursRows) ? loyersMursRows[0] : loyersMursRows;
+    const loyersMursOk = !!(loyersMurs && loyersMurs.ok === true && !(loyersMurs.erreurs || []).length);
+    await journaliserCron('loyers_murs_fonds', jourParisISO(), loyersMursOk ? 'ok' : 'echec',
+      loyersMursOk ? null : (loyersMurs ? (loyersMurs.erreurs || []).length + ' titre(s) en erreur' : 'RPC murs_loyers_nuit indisponible'),
+      resumeContexte(loyersMurs ? loyersMurs.verdicts || {} : {}), Date.now() - debutLoyersMurs);
+
     // 5 bis. TRAITEMENTS NATIONAUX QUOTIDIENS (Lot 4.3) : redistribution fiscale, virement vers la
     //    caserne, solde des soldats. Ils ne tournaient que si un joueur passait minuit connecte --
     //    sans quoi aucune institution n'etait financee et aucun soldat paye. Idempotence partagee

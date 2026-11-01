@@ -5194,6 +5194,21 @@ function afficherCatalogueFondsMurs(maintenant) {
     else fonds += 'pas en vente';
     html += '<div class="cpj-note">' + fonds + '</div>';
     if (ens.vendable) html += '<div class="cpj-note">Fonds + murs : ' + fmFr(ens.prix) + ' (un seul acte)</div>';
+    // Loyer des murs (#66) : décidé et rendu par le serveur ; ardoise visible des deux parties seulement.
+    const ly = t.loyer;
+    if (ly && typeof ly.montantJour === 'number') {
+      let loyer = 'Loyer des murs : ' + fmFr(ly.montantJour) + ' par jour';
+      if (ly.applique) loyer += ', payé chaque nuit par l\'exploitant (caisse du commerce, puis ses avoirs)';
+      else if (ly.motif === 'fonds_pnj') loyer += ' (non perçu : fonds tenu par un PNJ)';
+      else if (ly.motif === 'meme_titulaire') loyer += ' (non perçu : murs et fonds au même titulaire)';
+      html += '<div class="cpj-note">' + loyer + '</div>';
+      if (ly.impaye && ly.impaye.montantDu > 0) {
+        html += '<div class="cpj-note" style="color:#c0392b">Impayé inscrit : ' + fmFr(ly.impaye.montantDu) +
+                ' (' + ly.impaye.jours + ' nuit' + (ly.impaye.jours > 1 ? 's' : '') + ')</div>';
+      } else if (ly.avertissement) {
+        html += '<div class="cpj-note" style="color:#c0392b">Dernier loyer non prélevé : avertissement en cours.</div>';
+      }
+    }
     // Actions
     const b = [];
     const prioBloque = m.statut === 'priorite' && !moi.prioritaire;
