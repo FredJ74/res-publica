@@ -57,6 +57,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - **Pouls populaire** ajouté au marché de PSM (socle commun, 01/11). **Personnalités des musées de province** (Fred, 01/11 : écrites par Claude, à sa relecture) : 8 salles de PSM, 6 de Montrouge ; rien sur l'énigme Le Goff ; audioguides de Montrouge non transcrits, cohérence à vérifier à l'écoute.
 - **Rachat à PSM** (Fred, 01/11) : Capitaine Sauvage 120 000 FR, Hôtel du Port 80 000 FR ; **migration `20261101010000_rachat_capitaine_sauvage_hotel_port` (non appliquée, indépendante de l'écran)**, sans elle l'acte de rachat est refusé faute de prix.
 - **Sécurité privée en province** (Fred, 01/11) : pas de duplication de Grobras Sécurité ; Grobras est l'exemple d'un commerce que les PJ pourront ouvrir : les PJ créeront leur propre agence de sécurité privée (à concevoir dans le socle #135, Codex).
+- **Sorties de bâtiment de Montrouge** : migration `20261101020000_sorties_batiments_montrouge` **appliquée par Claude le 01/11 (registre `sorties_batiments_montrouge_20261101020000`)** : pérennise les six terrains insérés en urgence par ChatGPT et ajoute siège syndical, usine principale, zone de production (vers `montrouge-vue-2`) et tribunal municipal (vers `montrouge-vue-7`), qui n'avaient aucune sortie. PSM : tous ses bâtiments ont une sortie.
 - Toutes les questions de l'audit sont tranchées. Restent à appliquer : `20261031234500`, `20261031235500` (après Vercel READY), `20261101010000`.
 
 ### Purge finale Luthécia (Claude, branche `claude/purge-luthecia-20261031`)
