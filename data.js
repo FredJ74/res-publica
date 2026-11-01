@@ -5072,7 +5072,9 @@ const BUILDINGS = {
         desc: "Le vent souffle sur les remparts. Vue degagee sur la mer.",
         imageUrl: "images/port-sainte-marie-place.webp",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'organiser_manifestation_spontanee', label:'Organiser une manifestation spontanée', pa:1, cost:0, type:'grey', icon:'ti-speakerphone', successRate:100, desc:'Réservé au chef d\'un groupe d\'au moins 10 PJ présents sur la place. Sans déclaration : en faveur ou hostile à un personnage, +1 ou -1 POP à la cible par participant, immédiatement. Les manifestants sont hors-la-loi pendant la manifestation (1 h au plus, fin dès que le chef quitte le groupe). Une seule par jour et par ville.'}
+        ]
       }
     }
   },
@@ -5972,7 +5974,9 @@ const BUILDINGS = {
           // et s'en servir aurait donne ce pouvoir a quatre personnages qui ne l'ont pas.
           {name:'Pat Hounette', role:'Dealer', rel:'neutral', job:'criminel', contactOrga:'pat_hounette', photoUrl:'images/pat-hounette.webp', photoPos:'45% 30%'}
         ],
-        orders: []
+        orders: [
+          {fn:'organiser_manifestation_spontanee', label:'Organiser une manifestation spontanée', pa:1, cost:0, type:'grey', icon:'ti-speakerphone', successRate:100, desc:'Réservé au chef d\'un groupe d\'au moins 10 PJ présents sur la place. Sans déclaration : en faveur ou hostile à un personnage, +1 ou -1 POP à la cible par participant, immédiatement. Les manifestants sont hors-la-loi pendant la manifestation (1 h au plus, fin dès que le chef quitte le groupe). Une seule par jour et par ville.'}
+        ]
       }
     }
   },
@@ -6711,7 +6715,7 @@ const BUILDINGS = {
     icon: "ti-train",
     bgColor: "#0c0c0e",
     desc: "La place centrale de Montrouge, dominee par la locomotive-monument.",
-    rooms: { place: { name: "Place du Rail", desc: "La locomotive-monument trone au centre de la place.", imageBg: "linear-gradient(135deg,#0c0c0e,#141418)", imageUrl: "images/montrouge/montrouge-place-du-rail.jpg", persons: [], orders: [] } }
+    rooms: { place: { name: "Place du Rail", desc: "La locomotive-monument trone au centre de la place.", imageBg: "linear-gradient(135deg,#0c0c0e,#141418)", imageUrl: "images/montrouge/montrouge-place-du-rail.jpg", persons: [], orders: [{fn:'organiser_manifestation_spontanee', label:'Organiser une manifestation spontanée', pa:1, cost:0, type:'grey', icon:'ti-speakerphone', successRate:100, desc:'Réservé au chef d\'un groupe d\'au moins 10 PJ présents sur la place. Sans déclaration : en faveur ou hostile à un personnage, +1 ou -1 POP à la cible par participant, immédiatement. Les manifestants sont hors-la-loi pendant la manifestation (1 h au plus, fin dès que le chef quitte le groupe). Une seule par jour et par ville.'}] } }
   },
   // Salle 1/Salle 2 ajoutees (17 aout 2026, implantation des images preparees) -- le Hall
   // existant (accueil/guichet) est conserve tel quel, roomId 'salle' inchange (verifie sans

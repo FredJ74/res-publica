@@ -205,6 +205,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_budget_club') { doConsulterBudgetClub(); return; }
   if (fn === 'gerer_salaires_club') { doGererSalairesClub(); return; }
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
+  if (fn === 'organiser_manifestation_spontanee') { ouvrirManifestationSpontanee(); return; }
   if (fn === 'organiser_boycott') { doOrganiserBoycott(pa, cost); return; }
   if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(pa, cost); return; }
   if (fn === 'centre_anti_poison') { doCentreAntiPoison(pa); return; }
