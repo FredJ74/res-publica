@@ -40,3 +40,13 @@
 6. Chaque point reste **OUVERT** jusqu'à preuve de correction, déploiement et recette.
 
 Historique des signalements : commentaires PR #304, dont les relais techniques sur la brasserie, le marché et le café. Ce document fait office de liste de contrôle de la visite.
+
+## M-05 — EHPAD : PNJ volontairement reportés
+
+- **Décision du game designer, 01/11/2026 :** aucun PNJ à l'EHPAD de Montrouge pour le moment ; les créer ultérieurement **au moment de finaliser Républia**. Ne pas classer l'absence de PNJ comme anomalie bloquante de ce lot et ne pas en inventer maintenant.
+
+## M-06 — Jardins ouvriers : lieu sans ordres ; game design en discussion
+
+- **Observé PJ :** aucun ordre dans le bâtiment. **Confirmé dans `data.js`** : `BUILDINGS['jardins-ouvriers-montrouge'].rooms.salle.orders` est vide.
+- **Propositions non encore validées :** récolter des fruits/légumes via `recolter_matiere` (contrôler le filtrage par lieu et les plafonds), donner une récolte via une transaction existante, discuter/écouter les rumeurs via ordres existants, consulter les parcelles. N'introduire aucun moteur de culture parallèle, aucune propriété parcellaire ou chronologie agricole sans décision.
+- **Statut :** à arbitrer par le game designer AVANT toute implémentation. Ne pas traiter comme une fonctionnalité validée.
