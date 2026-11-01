@@ -2993,17 +2993,6 @@ async function sbRetirerCaisseFonds(acteurRef, fondsId, montant) {
   });
 }
 
-// NON APPELABLE AUJOURD'HUI, et c'est voulu. vendre_fonds_commerce est reservee au service_role :
-// le vendeur y est bien verifie, mais l'ACHETEUR ne l'est pas, et la vente lui transfererait un
-// fonds ET son bail sans qu'il ait rien accepte. Tant que le canal d'offre/acceptation n'existe
-// pas, cet appel recoit un 403 et sbRpc renvoie null -- fail-closed, aucun transfert non consenti.
-// Le helper est conserve pret a l'emploi pour le jour ou cette preuve d'acceptation existera.
-async function sbVendreFondsCommerce(vendeurRef, acheteurRef, fondsId, prix) {
-  return sbRpcVerdict('vendre_fonds_commerce', {
-    p_vendeur: vendeurRef, p_acheteur: acheteurRef, p_fonds_id: fondsId, p_prix: prix
-  });
-}
-
 // SEULE FIN DE BAIL ACCESSIBLE AU NAVIGATEUR. La primitive generique terminer_bail accepte quatre
 // causes, dont trois -- eviction judiciaire, accord amiable, succession -- ne sont legitimes que si
 // une decision exterieure les fonde. Aucune de ces preuves ne peut etre etablie a partir d'un
@@ -4479,12 +4468,6 @@ async function sbAjusterPopJoueur(nomJoueur, delta, cause) {
 }
 
 // ---- TRACTS (11 septembre 2026, migration_autruche_tracts_securisation.sql) ----
-// Effet POP d'un tract : RPC atomique (un seul UPDATE sous verrou), ne touche que resources.pop.
-// Remplace, pour les tracts seulement, la relecture/reecriture de resources ci-dessus.
-async function sbTractAppliquerEffetPop(cible, delta) {
-  const rows = await sbRpc('tracts_appliquer_effet_pop', { p_cible: cible, p_delta: delta });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
 
 // Don de tracts a un vrai PJ : destinataire verifie, idempotent sur l'id de requete (rejeu sans
 // doublon). Le destinataire le recoit par verifierObjetsRecus, via tracts_reclamer_don.
@@ -4514,24 +4497,8 @@ async function sbTractsElectorauxDistribuerCollectif(requete, joueur, cycleId, c
   return rows == null ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
-// Mouvement atomique d'une caisse de batiments_etat (12 septembre 2026,
-// migration_caisses_batiments_etat.sql) : lecture, calcul et ecriture en une seule instruction sous
-// verrou de ligne. Remplace le couple sbGetBatimentEtat/sbSetBatimentEtat pour les mouvements
-// d'argent, ou deux operations simultanees s'ecrasaient (caisse payant deux fois, ne baissant
-// qu'une). Tout-ou-rien : un debit qui mettrait la caisse en negatif n'est pas applique et renvoie
-// le solde reel. stockCle/stock deplacent en meme temps un compteur voisin (ex. stockBois).
-async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta, stockCle, stock, stockMax, exigerExistant) {
-  const rows = await sbRpc('batiment_caisse_mouvement', {
-    p_pays: pays, p_ville: ville, p_building: buildingId, p_souscle: sousCle,
-    p_delta: delta, p_stock_cle: stockCle || null, p_stock: stock || 0,
-    p_stock_max: (typeof stockMax === 'number') ? stockMax : null,
-    p_exiger_existant: exigerExistant === true
-  });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
-
 // Mouvement atomique d'une caisse institutionnelle de caisses_batiments (12 septembre 2026,
-// migration_caisse_institution.sql) : meme semantique tout-ou-rien que sbBatimentMouvementCaisse
+// migration_caisse_institution.sql) : meme semantique tout-ou-rien que l'ancien mouvement de caisse de batiment
 // ci-dessus, mais pour les caisses du systeme "classique" (ministeres, mairies, commissariats...).
 // exigerExistant refuse de creer une caisse fantome quand l'appelant sait qu'elle doit deja exister.
 // FAIL-CLOSED : renvoie null si la RPC est absente ou injoignable -- aucun repli non atomique.
@@ -4597,14 +4564,6 @@ async function sbMilitaireRetrait(pays, produit, quantite, lieutenant, section, 
     p_lieutenant: lieutenant, p_section: section || null,
     p_jour: (typeof jour === 'number') ? jour : null
   });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
-
-// MORTE depuis le 18 septembre 2026, et revoquee cote base. Elle decrementait le stock SANS
-// aucun jet : le navigateur decidait seul de la reussite puis appelait ceci. Conservee comme
-// trace le temps que tous les caches clients aient tourne. Ne pas rebrancher.
-async function sbMilitaireSubtiliser(pays, joueur) {
-  const rows = await sbRpc('militaire_subtiliser', { p_pays: pays, p_joueur: joueur });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
@@ -4868,16 +4827,6 @@ async function sbChargerEffetsTractsPNJ(country) {
 // portee : les couts, jets, phases et geographies restent decides par l'appelant.
 // sbEnregistrerVoixPnj SUPPRIME (28/10/2026) : les voix d'electeurs PNJ ne sont plus ecrites
 // que par le serveur (conference_soutenir, jean_lou_tract_distribuer).
-
-// Reception exclusive d'un don de tracts : supprime ET renvoie la ligne en une instruction. null si
-// deja recue (autre onglet) ou absente -- ne rien ajouter a l'inventaire dans ce cas.
-async function sbTractsReclamerDon(id, destinataire) {
-  const rows = await sbRpc('tracts_reclamer_don', { p_id: id, p_destinataire: destinataire });
-  const r = rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-  if (!r || !r.data) return null;
-  try { return { id: r.id, expediteur: r.expediteur, objet: typeof r.data === 'string' ? JSON.parse(r.data) : r.data }; }
-  catch (e) { return null; }
-}
 
 // =====================
 // INVITATIONS A DINER (diner d'affaires entre PJ presents dans la meme piece)
@@ -5565,9 +5514,6 @@ async function sbCreerPlacementNationalSecurise(personnage, montant, intSnapshot
     p_ville: ville, p_source: source, p_intention: intention
   });
 }
-function sbCreerPlacementNational(personnage, montant, intSnapshot, ville) {
-  return sbRpc('creer_placement_national', { p_personnage: personnage, p_montant: montant, p_int_snapshot: intSnapshot, p_ville: ville });
-}
 
 // RPC Helvetia H1 (chantier Banque Privee) -- signatures confirmees par sondage en lecture
 // seule contre les RPC reelles avant integration : ouvrir_compte_helvetia(text),
@@ -5665,19 +5611,6 @@ async function sbEnregistrerEvenementPublic(country, type, options) {
 // valeur de retour est CONTRACTUELLE : l'appelant doit la tester, l'archivage etant bloquant.
 async function sbArchiverEvenementUrbanisme(ligne) {
   return sbInsert('dossiers_urbanisme', ligne);
-}
-
-// VENTE DE MATERIAUX A UN CHANTIER (Lot 1.5.10). Autorite transactionnelle unique : la RPC relit
-// tout sous verrou et recalcule la quantite transferable -- rien de ce que le client annonce n'est
-// cru. Renvoie l'objet verdict, ou null si l'appel a echoue (RPC absente, reseau) : dans ce cas
-// AUCUNE ecriture n'a eu lieu, la transaction serveur ayant ete annulee en bloc.
-async function sbVendreMateriauxChantier(vendeur, country, buildingId, matiere, quantite, prix) {
-  const rows = await sbRpc('vendre_materiaux_chantier', {
-    p_vendeur: vendeur, p_country: country, p_building_id: buildingId,
-    p_matiere: matiere, p_quantite: quantite, p_prix: prix
-  });
-  if (!rows) return null;
-  return Array.isArray(rows) ? rows[0] : rows;
 }
 
 async function sbGetEvenementsUrbanisme(country, city, types) {

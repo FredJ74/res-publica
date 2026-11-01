@@ -301,16 +301,6 @@ async function stockBoisAtelier() {
   return etat?.imprimerie?.stockBois || 0;
 }
 
-// Reserve (nbLots < 0) ou rend (nbLots > 0) du bois de l'atelier, de facon atomique : la lecture, le
-// controle et l'ecriture ont lieu dans une seule instruction SQL sous verrou de ligne. Deux
-// commandes simultanees ne peuvent donc pas consommer le meme bois.
-async function mouvementBoisAtelier(deltaBois) {
-  if (typeof sbBatimentMouvementCaisse !== 'function') return null;
-  const a = atelierImprimerieCourant();
-  return await sbBatimentMouvementCaisse(a.pays, a.ville, a.building, 'imprimerie', 0, 'stockBois', deltaBois)
-    .catch(() => null);
-}
-
 // Nombre de lots de 10 tracts realisables ici, et ce qui l'y limite. Trois bornes, exactement
 // celles que imprimerie_produire_tracts revalidera cote serveur : le bois du stock de l'atelier
 // (1 par lot), les PA du producteur (1 par lot) et ses fonds ordinaires (prixLotTractsAtelier()

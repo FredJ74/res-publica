@@ -4994,7 +4994,7 @@ async function confirmerOffrirTourneeUI() {
   try { sessionStorage.setItem(cleCache,JSON.stringify({signature,id})); } catch (_) {}
   intention.enCours=true;
   try {
-    const v=await sbRpcVerdict('tournee_creer',{p_id:id,...charge},{encoreValide:()=>contexteNavigationRueValide(intention.contexte)});
+    const v=await sbRpcVerdict('tournee_creer',{p_id:id,p_entreprise:charge.p_entreprise,p_recette:charge.p_recette,p_invites:charge.p_invites},{encoreValide:()=>contexteNavigationRueValide(intention.contexte)});
     if (!contexteNavigationRueValide(intention.contexte)) return;
     if (v?.ok !== true) { showToast('Invitation non confirmée', 'Aucun succès confirmé. Réessayez la même sélection pour vérifier cet ordre sans le doubler.', false); return; }
     try { sessionStorage.removeItem(cleCache); } catch (_) {}

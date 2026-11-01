@@ -12333,36 +12333,23 @@ async function confirmerTravailChantier() {
   const voulues = parseInt(document.getElementById('chantier-heures')?.value || 0);
   if (voulues <= 0) { showToast('Impossible', "Indiquez un nombre d'heures.", false); return; }
 
-  // CHANTIER C (14 septembre 2026). Les PA demandes sont un NOMBRE D'HEURES choisi par le joueur :
-  // l'ordre travailler_chantier declare 0 PA, payer_ordre refusait donc ('cout_non_declare') et
-  // travailler sur un chantier etait impossible en production. Le navigateur bornait en outre
-  // lui-meme les heures, puis se creditait le salaire.
-  // chantier_travailler recalcule les QUATRE bornes du jeu : heures demandees, heures encore
-  // utiles (capacite du jour ramenee a la fraction de materiaux reellement en stock, moins ce qui
-  // est deja fait), PA reels, et ce que la tresorerie peut payer. Puis il preleve les PA et verse
-  // le salaire dans la meme transaction.
-  const rTravail = await sbRpc('chantier_travailler', {
-    p_acteur: state.char?.name, p_pays: state.country, p_batiment: id, p_heures: voulues
-  }).then(function (rows) { return Array.isArray(rows) ? rows[0] : rows; }).catch(function () { return null; });
-  if (!rTravail || rTravail.ok !== true) {
-    const messages = {
-      chantier_absent: "Aucun chantier en cours ici.",
-      aucune_heure_travaillable: "Aucune heure ne peut être travaillée maintenant.",
-      type_non_couvert: "Ce type de chantier n'accepte pas encore le travail à l'heure.",
-      terrain_gele: 'Ce terrain est gelé par une succession.'
-    };
-    showToast('Impossible', messages[(rTravail && rTravail.raison) || ''] || '', false);
-    return;
+  // CHANTIER C (14 septembre 2026), raccordé à la porte versionnée le 01/11/2026 (#219, contrôle
+  // Authority) : chantier_travailler est fermé aux clients depuis la garde #57 ; le travail passe par
+  // chantier_commande('travailler', {heures}), qui exige la présence sur place, recalcule les quatre
+  // bornes (heures utiles, PA, trésorerie), prélève les PA et verse le salaire dans une seule
+  // transaction, avec reçu de requête (double clic et réponse perdue sans second paiement).
+  // L'écran n'affiche que le montant rendu par le serveur.
+  if (typeof constructionExecuterCommande !== 'function') {
+    showToast('Impossible', 'Le travail sur chantier est indisponible.', false); return;
   }
-  state.pa = rTravail.pa; state.arg = rTravail.arg; state.liquide = rTravail.liquide;
-  if (state.char) state.char.arg = state.arg;
-  setTerrainState(id, { chantier: rTravail.chantier });
-  const res = { heures: rTravail.heures, montant: Number(rTravail.montant) };
+  const rTravail = await constructionExecuterCommande('travailler', { heures: voulues });
+  if (!rTravail || rTravail.ok !== true) return;
+  const res = { montant: Number(rTravail.montant) || 0 };
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
-  showToast('Journée de travail', '+' + res.montant.toLocaleString('fr-FR') + ' ' + cur + ' pour ' + res.heures + ' heure(s).', true, true);
-  addJournalEntry('Vous avez travaillé ' + res.heures + ' heure(s) sur un chantier. +'
+  showToast('Journée de travail', '+' + res.montant.toLocaleString('fr-FR') + ' ' + cur + ' versés par le chantier.', true, true);
+  addJournalEntry('Vous avez travaillé sur un chantier. +'
     + res.montant.toLocaleString('fr-FR') + ' ' + cur + '.', 'event-good');
 }
 
@@ -12707,7 +12694,7 @@ const CAISSE_REDACTION = 'redaction';
 // et l'appelant doit rembourser le joueur plutot que de crediter la mauvaise caisse.
 async function crediterCaisseRedaction(pays, ville, buildingId, montant) {
   if (!(montant > 0)) return { ok: true, caisse: null };
-  if (typeof sbBatimentMouvementCaisse !== 'function') return { ok: false, raison: 'indisponible' };
+  if (typeof sbRpcVerdict !== 'function') return { ok: false, raison: 'indisponible' };
   // Credit ADOSSE (26/10/2026) : le serveur ne verse que ce que le joueur vient reellement de payer.
   const r = await sbRpcVerdict('batiment_caisse_client_crediter', { p_pays: pays, p_ville: ville, p_building: buildingId,
     p_souscle: CAISSE_REDACTION, p_montant: Math.abs(montant) }).catch(() => null);

@@ -741,8 +741,34 @@ def main():
     # resolvant la surcharge par les NOMS des parametres, pas par leur ordre.
     formes_baseline = parametres_du_baseline()
     declarations_preparees = declarations_rpc_migrations()
-    ecarts = []
+    # ATTENTE RPC PAR RPC (01/11/2026, intégration #219). Une RPC absente du baseline, ou
+    # appelée avec une forme qu'il ne connaît pas, n'est « en attente » que si elle est
+    # REDÉFINIE par une migration de migrations/ ET que l'inventaire rejoué sur
+    # baseline + migrations (simuler-rpc-apres-lot.py : signatures, DROP, GRANT/REVOKE
+    # EXECUTE au rôle authenticated) la trouve appelable avec ces paramètres-là. Tout
+    # écart encore présent APRÈS le lot reste un ECHEC : rien n'est excusé par nom, et
+    # une fois le lot appliqué et le baseline réextrait, la liste d'attente se vide seule.
+    import importlib.util as _iu
+    _spec = _iu.spec_from_file_location('simuler_rpc_apres_lot', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'simuler-rpc-apres-lot.py'))
+    _sim = _iu.module_from_spec(_spec); _spec.loader.exec_module(_sim)
+    apres_lot = _sim.ecarts_apres_lot(appels_rpc)
+    for e in apres_lot:
+        ecarts_lot = "%s : %s APRES le lot de migrations/ (parametres %s) — %s" % (
+            e['fonction'], e['diagnostic'], ", ".join(e['parametres']) or "aucun", e['sites'][0])
+        print("      [apres lot] " + ecarts_lot) if detail else None
+    restent_apres_lot = {e['fonction'] for e in apres_lot}
+    attendues = []
+    ecarts = ["%s : %s APRES le lot de migrations/ (parametres %s) — %s" % (
+        e['fonction'], e['diagnostic'], ", ".join(e['parametres']) or "aucun", e['sites'][0]) for e in apres_lot]
     for fn in sorted(appels_rpc):
+        if fn not in restent_apres_lot and fn in declarations_preparees:
+            if fn not in formes_baseline or not all(
+                    any(passes <= attendus for attendus in formes_baseline[fn])
+                    for passes in appels_rpc[fn]):
+                attendues.append("%s (redefinie par %s)" % (fn, ", ".join(declarations_preparees[fn])))
+            continue
+        if fn in restent_apres_lot:
+            continue
         if fn not in formes_baseline:
             sites = sorted({s for v in appels_rpc[fn].values() for s in v})[:2]
             origine = declarations_preparees.get(fn, [])
@@ -758,6 +784,12 @@ def main():
                               "surcharge — %s"
                               % (fn, ", ".join(sorted(passes)) or "aucun", sites[0]))
     r.invariant(13, "toute RPC appelee par le navigateur existe", ecarts, detail)
+    if attendues:
+        print("      %d RPC en attente d'application de migrations/, appelables apres le lot :" % len(attendues))
+        for a_ in (attendues if detail else attendues[:6]):
+            print("        . " + a_)
+        if not detail and len(attendues) > 6:
+            print("        ... et %d autre(s) (--detail)" % (len(attendues) - 6))
 
     return r.verdict()
 
