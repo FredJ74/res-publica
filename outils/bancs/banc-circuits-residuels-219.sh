@@ -7,14 +7,14 @@
 set -eu
 cd "$(dirname "$0")/../.."
 MODE="${1:-}"
-[ "${GARDER_BASE:-0}" = 1 ] || bash outils/bancs/monter-base-jetable.sh >/dev/null
+[ "${GARDER_BASE:-0}" = 1 ] || EXCLURE_MIGRATIONS="20261101170000_circuits_residuels_positions_219.sql 20261101171000_hospitalisation_pa0.sql" bash outils/bancs/monter-base-jetable.sh >/dev/null
 P="psql -h /tmp/pgjet -p 54329 -U postgres -d jet -X -q -At -v ON_ERROR_STOP=0"
 # Référentiel des villes du dépôt (seed généré depuis data.js), exigé par la fiche.
 [ "${GARDER_BASE:-0}" = 1 ] || $P -v ON_ERROR_STOP=1 -f baseline/seeds/95_a-regenerer/villes.sql >/dev/null
 if [ "$MODE" != "--contre" ]; then
-  $P -v ON_ERROR_STOP=1 -f outils/audits/circuits-residuels-219-20261101/migration-a-integrer-circuits-residuels-positions.sql >/dev/null
+  $P -v ON_ERROR_STOP=1 -f migrations/20261101170000_circuits_residuels_positions_219.sql >/dev/null
   # Rejeu : le correctif est idempotent.
-  $P -v ON_ERROR_STOP=1 -f outils/audits/circuits-residuels-219-20261101/migration-a-integrer-circuits-residuels-positions.sql >/dev/null
+  $P -v ON_ERROR_STOP=1 -f migrations/20261101170000_circuits_residuels_positions_219.sql >/dev/null
 fi
 
 # Décor commun : deux PJ fictifs (A chef, B membre), un député reconnu pour le cas.

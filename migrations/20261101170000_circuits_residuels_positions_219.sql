@@ -1,8 +1,11 @@
 -- #219 — circuits résiduels de déplacement (Claude, 01/11/2026).
--- À INTÉGRER par l'intégrateur APRÈS les 95 migrations de #219 (dépend de
--- groupes_pj_adhesions, navigation_lieux_regles, groupe_pj_quitter et du garde
--- navigation_positions_garder). Fichier volontairement hors de migrations/ pour ne
--- pas modifier le lot certifié de Codex. Patch en place (doctrine WORKFLOW-SUPABASE :
+-- À APPLIQUER APRÈS les 95 migrations de #219 (dépend de groupes_pj_adhesions,
+-- navigation_lieux_regles, groupe_pj_quitter et du garde navigation_positions_garder).
+-- Placée dans migrations/ par l'intégration du 01/11 (branche
+-- claude/integration-219-main-20261101) : version 20261101170000, postérieure au lot
+-- certifié (dernière version du lot : 20261031185432) et au dernier fichier de main
+-- (20261101123000). Le lot des 95 est défini par ses manifestes, il n'est pas modifié.
+-- Se refuse tant que #219 n'est pas installé (garde ci-dessous). Patch en place (doctrine WORKFLOW-SUPABASE :
 -- fragments exacts, échec bruyant si le corps diffère), aucune donnée de joueur.
 --
 -- Défauts corrigés (preuves : banc-circuits-residuels-219.sh) :
@@ -23,6 +26,15 @@
 --     ce refus. Porte unique hospitalisation_lieu_rejoindre : lieu lu dans la
 --     référence de navigation, paiement par payer_ordre_interne dans la même
 --     transaction, sortie du groupe comme en 1.
+
+-- 0. Garde : rien sans #219 installé.
+DO $garde_219$
+BEGIN
+  IF to_regclass('public.groupes_pj_adhesions') IS NULL
+     OR to_regproc('public.groupe_pj_quitter') IS NULL THEN
+    RAISE EXCEPTION 'circuits résiduels #318 : #219 non installé (groupes_pj_adhesions, groupe_pj_quitter), migration refusée';
+  END IF;
+END $garde_219$;
 
 -- 1. Assemblée : l'acteur quitte son groupe avant son déplacement individuel.
 DO $assemblee$

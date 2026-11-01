@@ -39,7 +39,7 @@ tranché ici.
 
 ## Implémentation (Claude, 01/11/2026 — chantier hospitalisation, PR dédiée vers #318)
 
-Correctif serveur : `outils/audits/hospitalisation-20261101/migration-a-integrer-hospitalisation.sql`
+Correctif serveur : `migrations/20261101171000_hospitalisation_pa0.sql`
 (à placer après celui de #318). Bancs : `outils/bancs/banc-hospitalisation.sh` (30 cas, contre-épreuve
 `--contre`), `outils/bancs/banc-hospitalisation-client.cjs` (12 cas, contre-épreuve `CONTRE=<ref>`).
 

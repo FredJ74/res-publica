@@ -1,7 +1,8 @@
 -- Hospitalisation à 0 PA (Claude, 01/11/2026) — règles de Fred : GAME-DESIGN-HOSPITALISATION.md.
--- À PLACER APRÈS outils/audits/circuits-residuels-219-20261101/migration-a-integrer-circuits-residuels-positions.sql
--- (#318, elle-même après les 95 migrations de #219). Hors de migrations/ pour la même raison que #318 :
--- ne pas modifier le lot certifié de #219. Idempotente (rejouable).
+-- À APPLIQUER APRÈS migrations/20261101170000_circuits_residuels_positions_219.sql (#318, elle-même après
+-- les 95 migrations de #219) : version 20261101171000. Placée dans migrations/ par l'intégration du 01/11
+-- (branche claude/integration-219-main-20261101) ; le lot des 95 n'est pas modifié. Idempotente (rejouable).
+-- Se refuse tant que la porte hospitalisation_lieu_rejoindre de #318 n'est pas installée (garde ci-dessous).
 --
 -- Ce que fait ce correctif :
 --   1. Déclenchement automatique : tout PJ dont les PA tombent à 0 (ordre payé, combat perdu, peu importe
@@ -23,7 +24,16 @@
 --   8. Repas : 1 PA à l'hôpital public (+2 PA), 1 PA et 30 FR à la clinique (+4 PA).
 -- L'empoisonnement garde son propre fonctionnement (dates par palier posées par l'écran) : non touché.
 
+DO $garde_318$
+BEGIN
+  IF to_regclass('public.groupes_pj_adhesions') IS NULL
+     OR to_regprocedure('public.hospitalisation_lieu_rejoindre(text,text,boolean)') IS NULL THEN
+    RAISE EXCEPTION 'hospitalisation à 0 PA : #219 et #318 (porte hospitalisation_lieu_rejoindre) non installés, migration refusée';
+  END IF;
+END $garde_318$;
+
 -- 0. Coût de l'ordre « repas_hopital » au miroir (data.js : 1 PA, 0 FR).
+
 INSERT INTO public.ordres_couts (fn, pa, cost)
 SELECT 'repas_hopital', 1, 0
 WHERE NOT EXISTS (SELECT 1 FROM public.ordres_couts WHERE fn = 'repas_hopital' AND pa = 1 AND cost = 0);

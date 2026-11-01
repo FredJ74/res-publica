@@ -1,5 +1,7 @@
 # #219 — Circuits résiduels de déplacement (Claude, 01/11/2026)
 
+> **Intégration du 01/11 (branche `claude/integration-219-main-20261101`)** : le correctif est désormais `migrations/20261101170000_circuits_residuels_positions_219.sql`, placé après le lot des 95 et après le dernier fichier de `main` ; le contrôle « SQL dans ses trois maisons » refusait un `.sql` sous `outils/audits/`. Garde ajoutée : refus tant que ses dépendances ne sont pas installées.
+
 Base : tête `bf06a27` de `codex/groupes-universels-20261028`. Branche indépendante
 `claude/circuits-residuels-219-20261101`, PR dédiée vers la branche de #219. **Aucune fusion,
 aucune migration appliquée, aucun déploiement, aucune donnée de production modifiée** (production

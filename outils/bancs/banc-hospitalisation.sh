@@ -11,15 +11,15 @@ cd "$(dirname "$0")/../.."
 MODE="${1:-}"
 P="psql -h /tmp/pgjet -p 54329 -U postgres -d jet -X -q -At -v ON_ERROR_STOP=0"
 if [ "${GARDER_BASE:-0}" != 1 ]; then
-  bash outils/bancs/monter-base-jetable.sh >/dev/null
+  EXCLURE_MIGRATIONS="20261101170000_circuits_residuels_positions_219.sql 20261101171000_hospitalisation_pa0.sql" bash outils/bancs/monter-base-jetable.sh >/dev/null
   for f in baseline/seeds/95_a-regenerer/villes.sql baseline/seeds/91_empire/rue_noeuds_serveur.sql \
            baseline/seeds/91_empire/rue_sorties_batiments.sql \
-           outils/audits/circuits-residuels-219-20261101/migration-a-integrer-circuits-residuels-positions.sql; do
+           migrations/20261101170000_circuits_residuels_positions_219.sql; do
     $P -v ON_ERROR_STOP=1 -f "$f" >/dev/null
   done
 fi
 if [ "$MODE" != "--contre" ]; then
-  $P -v ON_ERROR_STOP=1 -f outils/audits/hospitalisation-20261101/migration-a-integrer-hospitalisation.sql >/dev/null 2>&1
+  $P -v ON_ERROR_STOP=1 -f migrations/20261101171000_hospitalisation_pa0.sql >/dev/null 2>&1
 fi
 
 DECOR="

@@ -60,3 +60,46 @@ L'intégrateur devra relever la coupe **actuelle**, pas 1015.
 3. Pousser `claude/integration-219-main-20261101` sur la branche de #219, obtenir la CI.
 4. Banc de livraison complet sur PostgreSQL 17.6 + GoTrue/PostgREST, puis certification.
 5. Ensuite seulement : #318, puis #324, placés après les 95 (leurs SQL sont hors de `migrations/`).
+
+## 5. Intégration finale #318 + #324 (Claude, 01/11/2026, 17 h)
+
+Têtes relevées sur GitHub : #219 `bf06a27` (inchangée), #318 `234ee8c`, #324 `8bdc7cb` (version définitive,
+précisions rébellion et repas de clinique comprises), `main` `df67186` (#325, images seules).
+
+- **Fusions** : `main` `df67186` (sans conflit), puis #324 (qui contient #318). Trois conflits d'ajout pur,
+  résolus par union : `data.js` (dispensaire de province : antipoison et clinique de `main` + repas et sortie
+  de #324), `GAME-DESIGN-HOSPITALISATION.md` (section « Implémentation » de #324 conservée telle quelle),
+  `RELAIS.md`. Contrôle ligne à ligne : toutes les lignes ajoutées par `main` depuis la base commune sont
+  présentes, sauf les 7 du repli Node de `generer_ordres_couts.py` (résolution du §1, voulue).
+- **Défaut d'intégration corrigé** : les deux correctifs SQL sous `outils/audits/` faisaient échouer le contrôle
+  CI « SQL dans ses trois maisons » (`banc-workflow-rangement.cjs`, 3 régressions ; la CI de #318/#324 ne
+  l'avait pas vu, elle ne tourne que vers `main`). Ils deviennent :
+  - `migrations/20261101170000_circuits_residuels_positions_219.sql` (#318) ;
+  - `migrations/20261101171000_hospitalisation_pa0.sql` (#324).
+  Ordre justifié : après la dernière version du lot (`20261031185432`), après le dernier fichier de `main`
+  (`20261101123000`), hospitalisation après circuits (elle étend la porte `hospitalisation_lieu_rejoindre`).
+  Contenu inchangé, sauf une garde en tête : refus tant que #219 (et, pour l'hospitalisation, la porte de
+  #318) n'est pas installé. **Le lot des 95 n'est pas modifié** (il est défini par ses manifestes).
+  `monter-base-jetable.sh` accepte `EXCLURE_MIGRATIONS` pour que les contre-épreuves restent possibles.
+- **Écart de tarifs supplémentaire, pour Codex** : sources 457 → **459** avec #324 (décisions de Fred du 01/11,
+  16 h 50) : ajouts `repas_hopital 1/0`, `repas_clinique 1/30`, `sortie_hopital 0/0` ; retrait
+  `se_nourrir 1/30` (ancien « Manger » des chambres de la clinique). md5 des 459 :
+  `1e69581b8020f7375f95d7cdf5dd6c39`. Le plan de tarifs doit partir de ces 459, pas de 457.
+
+### Tests exécutés (PostgreSQL 16 jetable, non certifiant)
+
+| Banc | Résultat |
+|---|---|
+| `banc-circuits-residuels-219.sh` | 14/14 ; contre-épreuve 12 défauts dénoncés |
+| `banc-hospitalisation.sh` | 30/30 ; contre-épreuve 22 défauts dénoncés |
+| Base jetable complète, les deux migrations jouées dans `migrations/` | aucune erreur nouvelle (14 erreurs attendues, identiques sans elles) |
+| `banc-hospitalisation-client.cjs`, `banc-circuits-residuels-219-client.cjs` | 12/12, 12/12 |
+| `controler-client.py` (158 bancs, dont 17 bancs groupes/transports/police/douanes, F5, sauvegarde, rues, détention) | 156/158 ; les 2 échecs sont d'environnement : `pglast` absent, `@vercel/node` absent |
+| `banc-workflow-rangement.cjs` | rétabli (échouait avant le déplacement des deux SQL) |
+
+### Non exécutés (environnement)
+
+Les 29 bancs Python `*-local.py` de la CI (dont groupes, camions, combat civil, squatteurs, organisations,
+réconciliation des coûts), `test-catalogue-reconstruction.py`, `test-relais-canonique-219.py` : `pgserver`,
+`psycopg2` et `pglast` absents, PyPI injoignable. Certification 17.6, 95 atomiques, rollback/rejeu, 27 HTTP,
+Authority/Referential : mission Codex, non dupliquée.

@@ -1,5 +1,7 @@
 # Hospitalisation à 0 PA (Claude, 01/11/2026)
 
+> **Intégration du 01/11 (branche `claude/integration-219-main-20261101`)** : le correctif est désormais `migrations/20261101171000_hospitalisation_pa0.sql`, placé après le lot des 95 et après le dernier fichier de `main` ; le contrôle « SQL dans ses trois maisons » refusait un `.sql` sous `outils/audits/`. Garde ajoutée : refus tant que ses dépendances ne sont pas installées.
+
 Règles : `GAME-DESIGN-HOSPITALISATION.md` (décisions de Fred du 01/11, non redemandées).
 Base : tête de `claude/circuits-residuels-219-20261101` (#318, elle-même sur la branche de #219).
 Branche `claude/hospitalisation-20261101`, PR dédiée vers #318. **Aucune fusion, aucune migration
