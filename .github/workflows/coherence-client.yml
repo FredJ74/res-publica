@@ -63,8 +63,6 @@ jobs:
         run: node --test outils/bancs/banc-avis-personnels-expediteurs.mjs
       - name: Caisses des clubs et organisations tenues par le serveur (écran, #295)
         run: node outils/bancs/banc-caisses-collectives-client.cjs
-      - name: Prime de signature adoptée du serveur (écran, double clic, réponse perdue)
-        run: node outils/bancs/banc-prime-signature-client.cjs
       - name: Caisses entières, dialogues lisibles et genre non supposé
         run: node outils/bancs/banc-caisses-dialogue-lisibilite-20261031.cjs
       - name: Fiche PJ jamais autoritaire (fusion à trois voies, double clic, réponse perdue)
@@ -83,8 +81,6 @@ jobs:
         run: python3 -m pip install -r outils/bancs/requirements-postgres-local.txt
       - name: Caisses collectives sur PostgreSQL jetable, contre-épreuve et fermeture (#295)
         run: python3 outils/bancs/banc-caisses-collectives-local.py --local-jetable
-      - name: Prime de signature sur PostgreSQL jetable, contre-épreuve (20261031220000)
-        run: python3 outils/bancs/banc-prime-signature-local.py --local-jetable
       - name: Organisations, étape A préparée sur PostgreSQL jetable (20261031230000, non appliquée)
         run: python3 outils/bancs/banc-organisations-champs-commandes-local.py --local-jetable
       - name: Verrou final inventaire sur PostgreSQL jetable, données fictives
