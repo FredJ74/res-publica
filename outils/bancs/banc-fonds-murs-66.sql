@@ -34,7 +34,9 @@ BEGIN
   v := v || 'catalogue 14 titres, La Républia 180 000 + 380 000 = 560 000';
 
   -- 2. Jean achète les murs du Café de la Gare à la commune
+  EXECUTE 'RESET ROLE';
   SELECT arg, pa INTO a0, pa0 FROM personnages_donnees WHERE name = jean;
+  PERFORM set_config('role', 'authenticated', true);
   r := immobilier_acheter(jean, cafe, 'murs', 80000, gen_random_uuid());
   IF r->>'raison' <> 'prix_change' OR (r->>'prix')::numeric <> 82500 THEN RAISE EXCEPTION 'E2 prix faux : %', r; END IF;
   r := immobilier_acheter(jean, cafe, 'murs', 82500, q);
