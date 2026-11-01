@@ -151,6 +151,10 @@ def main():
     rapport['empreinte_complete_avant95']=verifier_empreinte_complete(observe,reference)
     rapport['schema_1012_certifie']=(reference.get('empreinte',reference).get('registre',{}).get('lignes')==1012)
     assert rapport['schema_1012_certifie'],'La référence doit concerner le catalogue vivant 1012'
+    locale_source=json.loads((R/'outils/audits/catalogue-1012/LOCALE-PRODUCTION-1012.json').read_text())
+    assert (locale_source['registre'],locale_source['derniere_version'])==(1012,'20261031211256'),'Relevé de locale périmé'
+    prive=charger('references_privees219','outils/bancs/referentiels-prives-clone-219.py')
+    rapport['locale_conforme_production']=prive.verifier_locale(q,locale_source)
     rapport['rpc_clients_avant95']=e.verifier_rpc_clients(q)
     rapport['rpc_clients_avant95']['portee']='Schéma du clone conforme aux six empreintes 1012, avant 95 ; pas un verdict de données ni de production'
     equipements=['organisation_equipement_acheter','organisation_equipement_deplacer','organisation_equipements_etat','organisation_equipements_payeurs']
@@ -168,6 +172,11 @@ def main():
      reference['locale']=lieu['locale']
      prive=charger('references_privees219','outils/bancs/referentiels-prives-clone-219.py')
      rapport['capture_referentiels_privee']=prive.charger(q,o.referentiels_capture,reference)
+    rapport['diagnostic_archives_refs_non_certifiant']=complement.diagnostic_archives_statiques(q,e.decouper,reference['referentiels'])
+    rapport['paliers_reconstitues_conformes']=complement.restaurer_paliers_attestes(q,e.decouper,reference)
+    assert reference['referentiels']['offres_emploi_bne']=={'lignes':0,'empreinte':'d751713988987e9331980363e24189ce'},'Vide BNE non attesté'
+    q.execute('DELETE FROM public.offres_emploi_bne')
+    rapport['bne_vide_reconstitue_conforme']=True
     rapport['diagnostic_sources_refs_non_certifiant']=complement.diagnostic_generateurs(q,e.decouper,reference['referentiels'])
     rapport['referentiels_1012']=verifier_referentiels(q,reference)
     c.commit()

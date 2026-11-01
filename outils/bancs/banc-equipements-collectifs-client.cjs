@@ -35,7 +35,7 @@ for(const confirme of [false,true])test(`dissolution ${confirme?'confirmee':'non
  await c.dissoudreOrga('o1');assert.equal(c.state.organisations.length,confirme?0:1);assert.equal(traces[0],'serveur');assert.equal(traces.includes('journal'),confirme);assert.equal(traces.includes('evenement'),confirme);
 });
 
-test('écran chargé en production : équipements dormants sans RPC, paiement ni inventaire modifié',async()=>{
+test('fichier actif du jeu : équipements dormants sans RPC, paiement ni inventaire modifié',async()=>{
  const messages=[],state={char:{name:'Alice'},arg:500,liquide:120,pa:20,inventory:[{id:'temoin',qty:1}]};
  const avant=JSON.stringify(state),interdit=()=>assert.fail('aucun appel serveur tant que les quatre contrats ne sont pas activés');
  const c=vm.createContext({state,showToast:(...args)=>messages.push(args),sbRpcVerdict:interdit,sbRpc:interdit,sbGet:interdit,fetch:interdit});

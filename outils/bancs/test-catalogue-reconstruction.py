@@ -375,6 +375,34 @@ class PostgreSQL(unittest.TestCase):
    if type(ast).__name__=='InsertStmt' and ast.relation.relname=='recettes_commerce':self.q.execute(ordre)
   self.q.execute("SELECT count(*),bool_and(intermediaires='{}'::jsonb) FROM recettes_commerce")
   n,defaut=self.q.fetchone();self.assertGreater(n,0);self.assertTrue(defaut)
+ def test_diagnostic_archives_ne_rejoue_que_deux_insert_statiques_et_annule(self):
+  sp=importlib.util.spec_from_file_location('archives219',R/'outils/bancs/completer-schema-clone-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  sp=importlib.util.spec_from_file_location('archives_epreuve219',R/'outils/baseline/epreuve-postgresql.py');e=importlib.util.module_from_spec(sp);sp.loader.exec_module(e)
+  self.q.execute("CREATE SCHEMA supabase_migrations;CREATE TABLE supabase_migrations.schema_migrations(version text,name text);INSERT INTO supabase_migrations.schema_migrations VALUES('20261025193111','chantier_taux_horaire'),('20261030115932','logements_sociaux_communaux');CREATE TABLE entreprises_constantes(cle text PRIMARY KEY,valeur numeric);INSERT INTO entreprises_constantes VALUES('temoin',70)")
+  for ast,ordre in e.decouper((R/'baseline/domaines/economie/10_tables.sql').read_text()):
+   if type(ast).__name__=='CreateStmt' and ast.relation.relname=='chantiers_paliers':self.q.execute(ordre)
+  self.q.execute("INSERT INTO chantiers_paliers(palier,label,duree_jours,cout_total,cout_materiaux,cout_travail,heures_totales,apport_minimal,gabarit) VALUES('commerce_standard','fixture',1,10,3,7,1,3,'{}')")
+  attendu={t:{'lignes':0,'empreinte':'fixture_non_conforme'} for t in ['entreprises_constantes','chantiers_paliers']}
+  r=m.diagnostic_archives_statiques(self.q,e.decouper,attendu)
+  self.assertNotIn('erreur',r);self.assertTrue(r['essai_annule']);self.assertFalse(r['migrations_rejouees']);self.assertEqual(len(r['sources']),2)
+  self.assertEqual(r['mesures']['entreprises_constantes']['lignes'],2);self.assertEqual(r['mesures']['chantiers_paliers']['lignes'],4)
+  self.assertFalse(any(x['concorde_reference'] for x in r['mesures'].values()))
+  self.q.execute('SELECT * FROM entreprises_constantes');self.assertEqual(self.q.fetchall(),[('temoin',70)])
+  self.q.execute('SELECT count(*) FROM chantiers_paliers');self.assertEqual(self.q.fetchone()[0],1)
+  # Référence du seul décor fictif, mesurée ci-dessus, jamais référence de production.
+  mesure={k:v for k,v in r['mesures']['chantiers_paliers'].items() if k!='concorde_reference'}
+  ref={'referentiels':{'chantiers_paliers':mesure}}
+  preuve=m.restaurer_paliers_attestes(self.q,e.decouper,ref)
+  self.assertFalse(preuve['reference_modifiee']);self.assertFalse(preuve['migration_historique_rejouee'])
+  self.q.execute('SELECT count(*) FROM chantiers_paliers');self.assertEqual(self.q.fetchone()[0],4)
+  self.q.execute('SELECT * FROM entreprises_constantes');self.assertEqual(self.q.fetchall(),[('temoin',70)])
+  ref['referentiels']['chantiers_paliers']['empreinte']='0'*32
+  with self.assertRaisesRegex(ValueError,'différents de la référence'):m.restaurer_paliers_attestes(self.q,e.decouper,ref)
+  self.q.execute('SELECT count(*) FROM chantiers_paliers');self.assertEqual(self.q.fetchone()[0],4)
+  from unittest.mock import patch
+  with patch.object(m.hashlib,'sha256') as h:
+   h.return_value.hexdigest.return_value='0'*64
+   with self.assertRaisesRegex(ValueError,'Source des paliers modifiée'):m.restaurer_paliers_attestes(self.q,e.decouper,ref)
  def test_diagnostic_generateurs_annule_toutes_les_modifications_meme_en_cas_erreur(self):
   from unittest.mock import patch
   sp=importlib.util.spec_from_file_location('schema_diagnostic219',R/'outils/bancs/completer-schema-clone-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)

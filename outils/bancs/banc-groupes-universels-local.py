@@ -3,17 +3,23 @@
 Identité JWT de fixture ; aucune authentification Supabase ni écriture distante.
 Chaque scénario est annulé ; le décor fictif seul est committé pour la concurrence.
 """
-import importlib.util,json,re,sys,tempfile
+import importlib.util,json,re,sys,tempfile,os
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 R=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('audit',R/'outils/bancs/banc-audit-securite-135-local.py')
 audit=importlib.util.module_from_spec(spec);spec.loader.exec_module(audit)
 def main(extension=None):
+ if os.environ.get('HG219_POSTGRES_BIN'):
+  sp=importlib.util.spec_from_file_location('pg17_groupes219',R/'outils/baseline/epreuve-postgresql.py');e=importlib.util.module_from_spec(sp);sp.loader.exec_module(e);e.configurer_binaires(Path(os.environ['HG219_POSTGRES_BIN']))
  import pgserver,psycopg2
  serveur=pgserver.get_server(tempfile.mkdtemp(prefix='hg-groupes-'),cleanup_mode='delete')
  c=psycopg2.connect(serveur.get_uri());q=c.cursor();tests=[]
  try:
+  q.execute('SHOW server_version_num');version_moteur=q.fetchone()[0]
+  if os.environ.get('HG219_POSTGRES_BIN'):assert version_moteur=='170006','Version PostgreSQL explicite différente de 17.6'
+  q.execute("SELECT collversion,pg_collation_actual_version(oid) FROM pg_collation WHERE collname='en-US-x-icu'");icu_moteur=q.fetchone()
+  moteur={'server_version_num':version_moteur,'icu_en_US_stockee_et_actuelle':icu_moteur,'binaires_explicites':bool(os.environ.get('HG219_POSTGRES_BIN'))}
   q.execute('''CREATE ROLE authenticated; CREATE ROLE anon; CREATE ROLE service_role;
 CREATE TABLE personnages_donnees(name text PRIMARY KEY,user_id uuid,country text,current_city text,current_building text,current_room text,current_street text,inventory jsonb DEFAULT '[]');
 CREATE TABLE pnj_membres(id text PRIMARY KEY,famille text,nom text,pays text,proprietaire_pj text,proprietaire_institution text,proprietaire_perimetre text,leader_pj text,leader_pnj_id text,ville text,building_id text,room_id text,rue_noeud_id text,statut text DEFAULT 'actif',maj_le timestamptz DEFAULT now());
@@ -232,7 +238,7 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
   preuves_extension={}
   if extension is not None:extension(locals())
   c.rollback()
-  print(json.dumps({'tests':tests,'production':False,'authentification':'identite JWT de fixture, role authenticated','rollback':not preuves_extension.get('action_fictive_committee',False),'preuves_extension':preuves_extension,'migrations_appliquees':[],'original217':original},ensure_ascii=False,indent=2))
+  print(json.dumps({'tests':tests,'moteur':moteur,'production':False,'authentification':'identite JWT de fixture, role authenticated','rollback':not preuves_extension.get('action_fictive_committee',False),'preuves_extension':preuves_extension,'migrations_appliquees':[],'original217':original},ensure_ascii=False,indent=2))
   return int(any(not x['ok'] for x in tests))
  finally:c.close();serveur.cleanup()
 if __name__=='__main__':sys.exit(main())

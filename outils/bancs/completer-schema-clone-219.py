@@ -42,6 +42,32 @@ def diagnostic_generateurs(q,decouper,attendus):
  except Exception as ex:
   return {'essai_annule':True,'erreur':str(ex)}
  finally:q.execute('ROLLBACK TO SAVEPOINT diagnostic_sources_refs')
+def diagnostic_archives_statiques(q,decouper,attendus):
+ """Deux INSERT de référentiels identifiés, jamais les migrations historiques.
+
+ N'exécute aucun DDL, aucune fonction métier ni écriture de personnage.
+ Les sources sont des candidats publics ; seule l'empreinte complète observée
+ peut établir leur conformité. L'essai entier est toujours annulé.
+ """
+ sources=[
+  ('historique/migrations-appliquees/20261025070000_chantier_taux_horaire.sql','20261025193111','chantier_taux_horaire','entreprises_constantes'),
+  ('historique/migrations-appliquees/20261029220000_logements_sociaux_communaux.sql','20261030115932','logements_sociaux_communaux','chantiers_paliers')]
+ q.execute('SAVEPOINT diagnostic_archives_refs')
+ preuves=[]
+ try:
+  for fichier,version,nom,table in sources:
+   q.execute('SELECT name FROM supabase_migrations.schema_migrations WHERE version=%s',(version,));ligne=q.fetchone()
+   if not ligne or ligne[0]!=nom:raise ValueError('Application de référence non attestée : '+nom)
+   p=R/fichier;ordres=[sql for ast,sql in decouper(p.read_text()) if type(ast).__name__=='InsertStmt' and ast.relation.relname==table]
+   if len(ordres)!=1:raise ValueError('INSERT statique ambigu : '+table)
+   q.execute(ordres[0]);preuves.append({'fichier':fichier,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'version_registre':version,'table':table,'instructions':1})
+  mesures={}
+  for table in ['entreprises_constantes','chantiers_paliers']:
+   q.execute("SELECT count(*),md5(COALESCE(jsonb_agg(to_jsonb(x) ORDER BY to_jsonb(x)::text)::text,'[]')) FROM public."+table+' x');n,h=q.fetchone()
+   mesures[table]={'lignes':n,'empreinte':h,'concorde_reference':{'lignes':n,'empreinte':h}==attendus[table]}
+  return {'essai_annule':True,'migrations_rejouees':False,'sources':preuves,'mesures':mesures}
+ except Exception as ex:return {'essai_annule':True,'erreur':str(ex)}
+ finally:q.execute('ROLLBACK TO SAVEPOINT diagnostic_archives_refs')
 def restituer_bornes(definition):
  # BETWEEN est décomposé APRÈS l'analyse des AND. Le déparseur perd cette
  # origine : rejouer ses comparaisons aplatit autrement l'arbre booléen.
@@ -80,3 +106,26 @@ def preparer(exports):
  for fn in [rendre.phase_contraintes,rendre.phase_index,rendre.phase_triggers,rendre.phase_rls,rendre.phase_droits,rendre.phase_commentaires]:
   apres.extend(fn(obj,man,exp))
  return avant,'\n'.join(apres),{'tables_metadata_seules':sorted(exclues),'lignes_copiees':0,'colonnes':len(obj['colonnes'])}
+
+def restaurer_paliers_attestes(q,decouper,reference):
+ """Reconstitue les sept lignes, uniquement si leur empreinte exacte concorde.
+
+ Une seule instruction statique d'une source identifiée ; aucun autre morceau
+ de la migration historique n'est exécuté. Aucune référence n'est modifiée.
+ """
+ p=R/'historique/migrations-appliquees/20261029220000_logements_sociaux_communaux.sql'
+ h=hashlib.sha256(p.read_bytes()).hexdigest()
+ if h!='a38681fb48532979f7e687f2c7576fd86886df36455329be0890368f1ef330bf':raise ValueError('Source des paliers modifiée, prévol requis')
+ q.execute('SAVEPOINT paliers_attestes219')
+ try:
+  q.execute("SELECT name FROM supabase_migrations.schema_migrations WHERE version='20261030115932'")
+  if q.fetchone()!=('logements_sociaux_communaux',):raise ValueError('Source des paliers non attestée au registre')
+  ordres=[sql for ast,sql in decouper(p.read_text()) if type(ast).__name__=='InsertStmt' and ast.relation.relname=='chantiers_paliers']
+  if len(ordres)!=1:raise ValueError('INSERT des paliers ambigu')
+  q.execute(ordres[0])
+  q.execute("SELECT count(*),md5(COALESCE(jsonb_agg(to_jsonb(x) ORDER BY to_jsonb(x)::text)::text,'[]')) FROM public.chantiers_paliers x");n,h_reel=q.fetchone();mesure={'lignes':n,'empreinte':h_reel}
+  if mesure!=reference['referentiels']['chantiers_paliers']:raise ValueError('Paliers reconstitués différents de la référence')
+  q.execute('RELEASE SAVEPOINT paliers_attestes219')
+  return {'fichier':str(p.relative_to(R)),'sha256_source':h,'version_registre':'20261030115932','mesure':mesure,'migration_historique_rejouee':False,'reference_modifiee':False}
+ except Exception:
+  q.execute('ROLLBACK TO SAVEPOINT paliers_attestes219');q.execute('RELEASE SAVEPOINT paliers_attestes219');raise
