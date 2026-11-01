@@ -1,0 +1,28 @@
+# SHA b623b7d3aceebe0ef18226c9e18484c8f0d7cc25
+ok 1 - garde réelle de enterBuilding : sans marqueur, la navigation serveur est recommandée (ancien circuit)
+ok 2 - F5 : la position serveur est représentée, aucune navigation recommandée
+ok 3 - camion : monter représente la pièce posée par le serveur, sans redescendre
+ok 4 - libération purgée au QHS : position relue sur le serveur, jamais posée par l’écran
+ok 5 - incorporation : position relue sur le serveur (corps de garde)
+ok 6 - hospitalisation : fiche enregistrée puis porte serveur, aucune navigation écran
+ok 7 - transfert clinique : vérification, chambre, puis paiement et déplacement serveur
+ok 8 - transfert clinique refusé à la vérification : ni chambre ni paiement
+ok 9 - transfert clinique refusé à l’exécution : la chambre réservée est rendue
+ok 10 - relecture d’une autre identité : rien n’est représenté
+ok 11 - hors navigation serveur (avant activation) : les anciens chemins restent inchangés
+# pass 11
+# fail 0
+# CONTRE=origin/G avant correctif (bf06a27)
+ok 1 - garde réelle de enterBuilding : sans marqueur, la navigation serveur est recommandée (ancien circuit)
+not ok 2 - F5 : la position serveur est représentée, aucune navigation recommandée
+not ok 3 - camion : monter représente la pièce posée par le serveur, sans redescendre
+not ok 4 - libération purgée au QHS : position relue sur le serveur, jamais posée par l’écran
+not ok 5 - incorporation : position relue sur le serveur (corps de garde)
+not ok 6 - hospitalisation : fiche enregistrée puis porte serveur, aucune navigation écran
+not ok 7 - transfert clinique : vérification, chambre, puis paiement et déplacement serveur
+not ok 8 - transfert clinique refusé à la vérification : ni chambre ni paiement
+not ok 9 - transfert clinique refusé à l’exécution : la chambre réservée est rendue
+not ok 10 - relecture d’une autre identité : rien n’est représenté
+ok 11 - hors navigation serveur (avant activation) : les anciens chemins restent inchangés
+# pass 2
+# fail 9

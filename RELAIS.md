@@ -31,6 +31,10 @@ Rubrique nettoyée le 31/10 (Claude) : les chantiers livrés sont passés dans �
 
 Branche `codex/groupes-universels-20261028`, PR #219, main intégré jusqu’à `3aa6ceef` (#290). Rapport de reprise : `outils/audits/RECONSTRUCTION-CANONIQUE-GROUPES-219-20261031.md`, preuves sous `preuves-canonique-219-20261031/`. PostgreSQL 17.6 natif, 88 migrations atomiques et 30 parcours sur catalogue entier validés ; 149 bancs clients et 105 Chromium passent. **Global 10/12, prérequis #233 et recette authentifiée isolée encore à valider : ne pas fusionner ni déployer.** Aucun nouvel export canonique à demander, aucune production modifiée par cette intervention. Ne pas ouvrir le chantier suivant.
 
+### Claude — #219 : circuits résiduels de déplacement (branche `claude/circuits-residuels-219-20261101`, PR vers la branche de #219)
+
+Sept anciens circuits encore actifs corrigés (F5, camion, assemblée, libération QHS, incorporation, hospitalisation, transfert clinique), conformes listés. Correctif serveur **hors de `migrations/`** (`outils/audits/circuits-residuels-219-20261101/migration-a-integrer-circuits-residuels-positions.sql`), à placer par l'intégrateur **après** les 95. Preuves : SQL jetable 14/14 (contre-épreuve 12 défauts), client 11/11 (contre-épreuve 9). Rapport : `outils/audits/circuits-residuels-219-20261101/RAPPORT.md`. Aucune fusion, migration ni déploiement.
+
 ### Migrations fusionnées, en attente d'application (ChatGPT)
 
 **Prises en charge par ChatGPT (Fred, 31/10)** : `20261031130000` et `20261031140000`.
