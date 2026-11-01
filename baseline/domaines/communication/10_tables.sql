@@ -10,6 +10,8 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."mails_envois_systeme_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
 CREATE TABLE public.chat_piece (
   id text NOT NULL,
   country text NOT NULL,
@@ -81,7 +83,7 @@ CREATE TABLE public.mails (
 );
 
 CREATE TABLE public.mails_envois_systeme (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('mails_envois_systeme_id_seq'::regclass) NOT NULL,
   auteur_reel text,
   expediteur text NOT NULL,
   destinataire text,
@@ -123,3 +125,5 @@ CREATE TABLE public.salons_membres (
   salon_id text NOT NULL,
   membre text NOT NULL
 );
+
+ALTER SEQUENCE public."mails_envois_systeme_id_seq" OWNED BY public."mails_envois_systeme"."id";

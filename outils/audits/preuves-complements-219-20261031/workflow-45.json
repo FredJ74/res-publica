@@ -1,0 +1,227 @@
+[
+  {
+    "commande": "python3 outils/bancs/verifier-syntaxe-api.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-verifier-syntaxe-api.log"
+  },
+  {
+    "commande": "python3 outils/bancs/test-catalogue-reconstruction.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-test-catalogue-reconstruction.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-organisations-paquet-219-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-organisations-paquet-219-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-couts-reconciliation-219-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-couts-reconciliation-219-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/test-relais-canonique-219.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-test-relais-canonique-219.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-verrou-inventaire-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-verrou-inventaire-local.log"
+  },
+  {
+    "commande": "python3 outils/e2e/test-prevol-arnie-local.py --local-jetable",
+    "code": 0,
+    "log": "/tmp/hg219-valide-test-prevol-arnie-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-groupes-squatteurs-contrat-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-groupes-squatteurs-contrat-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-groupes-controles-ordinaires-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-groupes-controles-ordinaires-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-groupes-fuite-directions-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-groupes-fuite-directions-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-groupes-camions-local.py --catalogue-20261029",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-groupes-camions-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-combat-civil-universel-local.py --catalogue-20261029",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-combat-civil-universel-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-audit-securite-135-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-audit-securite-135-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-achat-commerce-local.py --local-jetable",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-achat-commerce-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-restaurant-luthecia-local.py --local-jetable --correctif-reservation",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-restaurant-luthecia-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-reservation-republica-local.py --local-jetable",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-reservation-republica-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-offrir-boire-local.py --local-jetable",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-offrir-boire-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-reception-atomique-local.py --local-jetable",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-reception-atomique-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-inventaire-receptions-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-inventaire-receptions-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-inventaire-fret-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-inventaire-fret-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-inventaire-employes-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-inventaire-employes-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-inventaire-club-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-inventaire-club-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-inventaire-etat-civil-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-inventaire-etat-civil-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-inventaire-missions-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-inventaire-missions-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-inventaire-quetes-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-inventaire-quetes-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-inventaire-tracts-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-inventaire-tracts-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-inventaire-concurrence-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-inventaire-concurrence-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/contre-epreuves-inventaire-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-contre-epreuves-inventaire-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-assemblage-electronique-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-assemblage-electronique-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-jodie-publications-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-jodie-publications-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-organisations-commandes-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-organisations-commandes-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-organisations-membres-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-organisations-membres-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-organisations-evenements-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-organisations-evenements-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-coherence-rues-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-coherence-rues-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-equipements-collectifs-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-equipements-collectifs-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-fontaine-110-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-fontaine-110-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-placement-national-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-placement-national-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-journal-ventes-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-journal-ventes-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-permis-depot-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-permis-depot-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-negociation-squatteurs-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-negociation-squatteurs-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-ced-football-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-ced-football-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-terrain-occupation-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-terrain-occupation-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-construction-taux-135-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-construction-taux-135-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-construction-materiaux-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-construction-materiaux-local.log"
+  },
+  {
+    "commande": "python3 outils/bancs/banc-parcours-terrain-construction-135-local.py",
+    "code": 0,
+    "log": "/tmp/hg219-valide-banc-parcours-terrain-construction-135-local.log"
+  }
+]

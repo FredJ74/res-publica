@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""SQL reel sur PostgreSQL jetable ; JWT/presence/taxes simules, jamais Supabase."""
+"""Transformation historique épinglée sur PostgreSQL jetable ; pas une compatibilité avec le catalogue actuel."""
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import json,tempfile,runpy
 R=Path(__file__).resolve().parents[2]
-M1=R/'migrations/20261019064000_organisations_equipements_collectifs.sql'
-M2=R/'migrations/20261019064500_achat_equipements_collectifs.sql'
+import runpy
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
+M1=R/'historique/preparations-hors-paquet-219/20261031113558_organisations_equipements_collectifs.sql'
+M2=R/'historique/preparations-hors-paquet-219/20261031113559_achat_equipements_collectifs.sql'
 def main():
  import pgserver,psycopg2
  serveur=pgserver.get_server(tempfile.mkdtemp(prefix='hg-equipements-'),cleanup_mode='delete');uri=serveur.get_uri();c=psycopg2.connect(uri);c.autocommit=True;q=c.cursor()
@@ -17,7 +19,7 @@ def main():
  q.execute("CREATE OR REPLACE FUNCTION fonds_generiques_accessibles(text) RETURNS TABLE(generique_id text,famille text) LANGUAGE sql AS $$SELECT id,'informatique' FROM catalogue_generiques$$")
  q.execute("CREATE FUNCTION appliquer_taxe_transaction(text,text,numeric) RETURNS jsonb LANGUAGE sql AS $$SELECT jsonb_build_object('net',$3,'taxeLocale',0,'taxeNationale',0)$$")
  def charger(nom,fichier):
-  s=(R/fichier).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');b=s.index('$function$;',a)+len('$function$;');q.execute(s[a:b])
+  q.execute(_sources['entree_historique'](nom) if nom in ('acheter_produit_commerce','mouvement_titulaire') else _sources['fonction'](fichier,nom))
  charger('mouvement_titulaire','baseline/domaines/socle/20_fonctions.sql')
  charger('acheter_produit_commerce','baseline/domaines/economie/20_fonctions-1.sql')
  ids=['ordinateur-complet','box-internet','camera-de-surveillance','imprimante-papier','imprimante-3d','peripherique-stockage','peripherique-reseau-intranet','jeu-video']
@@ -27,6 +29,13 @@ def main():
  fonds={'version':2,'statut':'actif','proprietaire':'Alice','implantation':{'country':'republic','city':'capitale'},'references':refs,'stockReferences':{g:50 for g in ids},'coutMoyenReferences':{g:2 for g in ids},'caisse':0}
  q.execute('INSERT INTO entreprises VALUES (%s,%s,now())',('fonds',json.dumps(fonds)))
  q.execute("SELECT set_config('hg.acteur','Alice',false)")
+ # Incompatibilité du catalogue actuel explicitement éprouvée, jamais masquée :
+ # le payeur canonique refuse encore les fractions. Ce lot historique ne doit
+ # pas être déployé sur ce catalogue pour autant. Aucun hash de garde élargi.
+ q.execute(_sources['fonction']('baseline/domaines/socle/20_fonctions.sql','mouvement_titulaire'))
+ q.execute("SELECT mouvement_titulaire('orga:o1',-5.5)");assert q.fetchone()[0] is False
+ q.execute("SELECT (data::jsonb->>'caisse')::numeric FROM organisations WHERE id='o1'");assert q.fetchone()[0]==1000
+ q.execute(_sources['entree_historique']('mouvement_titulaire'))
  q.execute("ALTER TABLE ventes_snapshots ALTER COLUMN prix_unitaire TYPE integer; ALTER TABLE ventes_snapshots ALTER COLUMN montant_total TYPE integer")
  q.execute("INSERT INTO ventes_snapshots(requete,acheteur,prix_unitaire,montant_total) VALUES ('achat-historique','Alice',10,20)")
  q.execute(M1.read_text());q.execute(M1.read_text());q.execute(M2.read_text());q.execute(M2.read_text())
@@ -148,14 +157,14 @@ def main():
  fail(M1.read_text(),motif='autorite_generale_a_migrer');q.execute('ROLLBACK')
  q.execute('REVOKE UPDATE ON organisations FROM authenticated');n+=1
  # Le nouveau contrat de dissolution respecte la FK du socle reel.
- q.execute((R/'migrations/20261019094425_organisations_commandes_administratives.sql').read_text())
+ q.execute((R/'migrations/20261031113600_organisations_commandes_administratives.sql').read_text())
  q.execute("SELECT set_config('hg.acteur','Bob',false)")
  fail("SELECT organisation_commande_administrative('orgcmd-dissolution-000001','o1','dissoudre','{}')",motif='foreign key')
  assert len(etat()['objets'])>0
  assert call("SELECT count(*) FROM organisation_commandes_recus WHERE requete='orgcmd-dissolution-000001'")==0;n+=1
  # Progression atomique compatible avec la garde municipale/organisation et les biens persistants.
- q.execute((R/'migrations/20261019130213_organisations_adhesions_grades.sql').read_text())
- q.execute((R/'migrations/20261019130951_organisations_progression_elections.sql').read_text())
+ q.execute((R/'migrations/20261031113602_organisations_adhesions_grades.sql').read_text())
+ q.execute((R/'migrations/20261031113603_organisations_progression_elections.sql').read_text())
  q.execute("SELECT set_config('hg.acteur','Alice',false)")
  election={'enCours':True,'phase':'candidatures','dateFinCandidatures':5,'dateFinVote':6,'candidats':[{'nom':'Alice'},{'nom':'Bob'}],'votes':{'Bob':'Alice'}}
  q.execute("UPDATE organisations SET data=jsonb_set(data::jsonb,'{election}',%s::jsonb)::text WHERE id='o1'",(json.dumps(election),))

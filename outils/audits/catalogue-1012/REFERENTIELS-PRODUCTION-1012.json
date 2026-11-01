@@ -1,0 +1,55 @@
+{
+  "_provenance": "supabase execute_sql lecture seule - production 1012 - 2026-10-31",
+  "registre": 1012,
+  "derniere_version": "20261031211256",
+  "referentiels": {
+    "commerces_types": {
+      "lignes": 11,
+      "empreinte": "84d48b51e74eb9aa9281f8e467e395a6"
+    },
+    "chantiers_paliers": {
+      "lignes": 7,
+      "empreinte": "f9ebb4e7734e75b4672df82ed2c9a5b2"
+    },
+    "offres_emploi_bne": {
+      "lignes": 0,
+      "empreinte": "d751713988987e9331980363e24189ce"
+    },
+    "recettes_commerce": {
+      "lignes": 52,
+      "empreinte": "37e08c3c82b5da742e132a52ff500c35"
+    },
+    "commerces_dotations": {
+      "lignes": 11,
+      "empreinte": "67cd592497a4aea4cfa0053536de750d"
+    },
+    "recettes_production": {
+      "lignes": 12,
+      "empreinte": "d61c1663108c9b824f2cbc7407b8b60c"
+    },
+    "ressources_economie": {
+      "lignes": 18,
+      "empreinte": "4a603b672c4604703c373f54c10d3c8f"
+    },
+    "armureries_dotations": {
+      "lignes": 3,
+      "empreinte": "c97589d7f42a9c0b1b792412303074fe"
+    },
+    "postes_nommes_regles": {
+      "lignes": 18,
+      "empreinte": "3722333b757343fa8c4c35cecc97b64e"
+    },
+    "chantiers_besoins_jour": {
+      "lignes": 3,
+      "empreinte": "77de24f3cb9e0f14d72632e9739e944a"
+    },
+    "entreprises_constantes": {
+      "lignes": 23,
+      "empreinte": "4d5359e1969ba4ade6a16b7100f88ce0"
+    },
+    "entreprises_prix_rachat": {
+      "lignes": 6,
+      "empreinte": "4373af3f9e999b2ccb4ea51d7018aaad"
+    }
+  }
+}

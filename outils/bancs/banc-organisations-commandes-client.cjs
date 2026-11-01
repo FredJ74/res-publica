@@ -12,9 +12,9 @@ function jeu(stock=new Map()){
  c.getOrgaById=id=>c.state.organisations.find(o=>o.id===id);c.sauvegarderOrga=o=>c.sauvegardes.push(o);
  return c;
 }
-test('absence du contrat confirmee : ancien chemin transitoire, sans fausse activation',async()=>{
+test('absence du contrat confirmée : aucun repli vers une sauvegarde générale',async()=>{
  const c=jeu();c.sbRpcVerdict=async()=>({ok:false,transport:{http:404,code:'PGRST202'}});
- await c.renommerOrga('o');assert.equal(c.sauvegardes.length,1);assert.equal(c.state.organisations[0].nom,'Apres');
+ await c.renommerOrga('o');assert.equal(c.sauvegardes.length,0);assert.equal(c.state.organisations[0].nom,'Avant');assert.ok(c.toasts.some(t=>t[0]==='Service indisponible'));
 });
 for(const r of [{ok:false,transport:{http:403,code:'42501'}},{ok:false,transport:{http:503}},{ok:false,transport:{http:404,code:'autre'}},{ok:false,raison:'transport_indisponible'}])test('refus/panne ne declenche aucune sauvegarde legacy '+JSON.stringify(r),async()=>{
  const c=jeu();c.sbRpcVerdict=async()=>r;await c.renommerOrga('o');assert.equal(c.sauvegardes.length,0);assert.equal(c.state.organisations[0].nom,'Avant');assert.ok(c.toasts.every(t=>t[2]===false));

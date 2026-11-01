@@ -90,7 +90,7 @@
       ],
       [
         "sport",
-        "^(championnat_|club_|football_)"
+        "^(championnat_|club_|football_|transferts_clubs_)"
       ],
       [
         "banque",
@@ -102,7 +102,7 @@
       ],
       [
         "economie",
-        "^(commerce_|entreprise_|entreprises_|entrepot_|entrepots_|acheter_|vendre_|produire_|fabriquer_|recette|chantier_|restituer_reliquats|creer_fonds_commerce|employer_fonds|creer_offre|repondre_offre|creer_oeuvre|fixer_prix|fixer_repartition|prix_ressource|coef_prix_max_pj|capacite_entrepot|fournisseurs_etrangers|matiere_|local_vocation|ressources_economie|ordres_couts|payer_ordre|fret_|recevoir_soin|refectoire_repas)"
+        "^(jardins_|commerce_|entreprise_|entreprises_|entrepot_|entrepots_|acheter_|vendre_|produire_|fabriquer_|recette|chantier_|restituer_reliquats|creer_fonds_commerce|employer_fonds|creer_offre|repondre_offre|creer_oeuvre|fixer_prix|fixer_repartition|prix_ressource|coef_prix_max_pj|capacite_entrepot|fournisseurs_etrangers|matiere_|local_vocation|ressources_economie|ordres_couts|payer_ordre|fret_|recevoir_soin|refectoire_repas)"
       ],
       [
         "immobilier et territoire",
@@ -118,14 +118,22 @@
       ],
       [
         "personnage et presence",
-        "^(personnage_|personnages_|escort_|escorts_|contact_organisation|organisations_|referent_pedagogie|naturalisation_|don_argent|employe_|employeur_|cron_journal|universite_)"
+        "^(personnage_|personnages_|escort_|escorts_|contact_organisation|organisation_|organisations_|referent_pedagogie|naturalisation_|don_argent|employe_|employeur_|cron_journal|universite_)"
       ]
     ],
     "surcharges": {
-    "quete_accueil_contexte": ["personnage et presence", "rend au serveur de dialogue l'etape de la visite d'accueil du joueur connecte. Sa table est `personnages_donnees` -- la colonne `quete_accueil` --, que la classification range en « personnage et presence » : la fonction suit sa table. Aucun prefixe ne l'attrape, et `quete_` serait un mauvais prefixe a creer : les quetes ordinaires vivent ailleurs"],
-       "organisation_extrait_duplicata": ["justice", "emet un duplicata d'extrait de domiciliation : sa table est documents_officiels, classee justice. Le prefixe `organisations_` du domaine « personnage et presence » ne l'attrape pas -- il porte un s"],
-    "syndicat_etudiant_domicilier": ["personnage et presence", "ecrit une ligne d'organisations, table classee « personnage et presence » : la fonction suit sa table, meme si les 150 FR qu'elle encaisse vont a la caisse du Tribunal"],
-   
+      "quete_accueil_contexte": [
+        "personnage et presence",
+        "rend au serveur de dialogue l'etape de la visite d'accueil du joueur connecte. Sa table est `personnages_donnees` -- la colonne `quete_accueil` --, que la classification range en « personnage et presence » : la fonction suit sa table. Aucun prefixe ne l'attrape, et `quete_` serait un mauvais prefixe a creer : les quetes ordinaires vivent ailleurs"
+      ],
+      "organisation_extrait_duplicata": [
+        "justice",
+        "emet un duplicata d'extrait de domiciliation : sa table est documents_officiels, classee justice. Le prefixe `organisations_` du domaine « personnage et presence » ne l'attrape pas -- il porte un s"
+      ],
+      "syndicat_etudiant_domicilier": [
+        "personnage et presence",
+        "ecrit une ligne d'organisations, table classee « personnage et presence » : la fonction suit sa table, meme si les 150 FR qu'elle encaisse vont a la caisse du Tribunal"
+      ],
       "approvisionner_chantier": [
         "economie",
         "approvisionne un chantier : le prefixe chantier_ ne l'attrape pas"
@@ -221,10 +229,781 @@
       "candidature_entrepot_modification_autorisee": [
         "politique et elections",
         "Protège les candidatures de direction d'entrepôt : les dossiers municipaux relèvent du domaine politique et élections."
+      ],
+      "achat_requete_clore_interne": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "achat_requete_ouvrir_interne": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "acteur_est_moi": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_acces_bureau": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_acces_bureaux": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_accorder_audience": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_ambassadeur_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_demander_asile": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_demander_audience": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_demettre": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_dossier_menace": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_expulser": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_identite": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_mecenat": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_mes_audiences": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_ministre_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_mon_statut": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_nommer": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_ouvrir": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_reception_organiser": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_refuge_de": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_refugie_protege": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_reserver_salle": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassade_trancher_asile": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassades_asiles_echoir": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassades_audiences_echoir": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ambassades_audiences_echoir_toutes": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "amende_imposer_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "amende_jugement_enregistrer": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "amende_prelever_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "annonce_publique_interne": [
+        "politique et elections",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "arme_acheter": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "arme_modele_interne": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "bne_annonce_publier": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "bne_annonce_retirer": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "bne_annonces_lister": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "bne_caisse_lire": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "bne_caisse_prelever": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "bne_heures_chantiers": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "bne_postes_a_pourvoir": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "combat_coup_resoudre": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "consommer_sur_place_commerce": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "convocation_detention_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "convocation_echue_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "convocation_marquer_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "convocation_se_justifier": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_acheter_arme_noire": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_acheter_explosifs": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_contrebande": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_corrompre": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_corrompre_douanier": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_detecter_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_dis_ajuster_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_empoisonner": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_etat_acteur_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_explosifs": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_falsifier": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_incendier": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_malus_isn_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_neutraliser": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_peine_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_rechercher_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_trace_rumeur_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_tracer_interne": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_voler": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "crime_voler_materiaux": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "dementi_executer": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "diplomatie_repondre": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "diplomatie_traites_lire": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "election_contester": [
+        "politique et elections",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "election_recompter_interne": [
+        "politique et elections",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "empire_nom_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "enigme_objet_recevoir": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "etat_civil_date_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "etat_civil_document_recevoir": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "etat_civil_ville_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "fermeture_definir_date_universelle": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "fiche_fusionner_ecran": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "fiche_valeur_normalisee": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "finance_terrain_banque_recu": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "fortune_serveur_diagnostic": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "hotel_nuitee_ajouter_interne": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "hotel_nuitee_consommation_interne": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "hotel_reservations_lire": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "indice_diplomatique_ordre": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "indice_diplomatique_varier_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "indices_diplomatiques_lire": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "indices_villes_piete_du_registre": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "informateur_congedier": [
+        "renseignement",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "informateur_inf_ajouter_interne": [
+        "renseignement",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "informateur_interroger": [
+        "renseignement",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "informateur_niveau_interne": [
+        "renseignement",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "informateur_recruter": [
+        "renseignement",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "jean_lou_tract_distribuer": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "jodie_interview_vers_forum": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "jodie_portrait_vers_journal": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "kompromat_fabriquer": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "kompromat_objet_interne": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "kompromat_rediger": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "local_louer": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "local_referentiel_interne": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "location_local_creation_serveur": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "location_local_tarif_attester": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "location_lot_ecriture_attester": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "location_lot_enregistrer_interne": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logement_historique_attribuer_interne": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logement_historique_loyer_fixer_interne": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logement_social_attribuer": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logement_social_demander": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logement_social_loyer_fixer": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logements_historiques_liste_interne": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logements_sociaux_domicile_resilier": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logements_sociaux_lots_interne": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logements_sociaux_offre": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logements_sociaux_tableau": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logements_sociaux_terrain_communal": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logements_sociaux_ville_a_offre": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "logements_sociaux_ville_adjoint": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "mariage_actif_de": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "mariage_demander": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "mariage_dissoudre": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "mariage_ecriture_ecran_refuser": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "mariage_officialiser": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "mariage_repondre": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ministere_virer_vers_usine": [
+        "finances publiques",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "minuit_amendes": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "minuit_convocations": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "minuit_couvre_feu_recherche": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "minuit_decouverte_crimes": [
+        "justice",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "minuit_informateurs": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "minuit_scandale": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "mission_carriere_recevoir": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "objet_abandonne_ramasser": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "objet_acheter": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "objet_trouve_reclamer": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ordre_generique_executer": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "permis_commune_payer_interne": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "permis_depot_archive_proteger": [
+        "immobilier et territoire",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "piete_score_actif_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "piete_ville_calculee_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "piete_villes_actualiser": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "pret_national_contracter": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "pret_national_contracter_versionne": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "pret_national_creer_interne": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "pret_national_jour_traiter": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "pret_versionne_ecriture_proteger": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "prets_ecriture_ecran_garder": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "publicite_premium_creer_beta": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "publicites_premium_pages_edition": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "quete_objet_reclamer": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "recolte_effectuer": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "religion_agir": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "religion_grade_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "religion_titulaire_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "religion_titulaire_poser_interne": [
+        "personnage et presence",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "ressource_ajuster_interne": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_diner_acquitter": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_diner_creer": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_diner_proteger": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_diner_repondre": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_diner_servir": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_diner_suivre": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_luthecia_carte": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_luthecia_configurer": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_luthecia_est_commerce": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_luthecia_initialiser": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_luthecia_pnj_chance": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_luthecia_production_verifier": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "restaurant_luthecia_vente_verifier": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "rue_position_enregistrer": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "rue_position_lire": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "rue_sortie_batiment_lire": [
+        "socle",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "rumeur_lancer": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "rumeur_pop_retirer_interne": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "rumeurs_organisations_cibles": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "sanction_financiere_imposer_interne": [
+        "finances publiques",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "sels_ammoniaque_acheter": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "tournee_cloturer_boire": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "tournee_contrat_lire": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "tournee_creer": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "tournee_proteger_contrat": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "tournee_repondre": [
+        "economie",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "tractage_collectif_identifiant": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "usine_du_directeur_interne": [
+        "finances publiques",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "usine_virer_vers_ministere": [
+        "finances publiques",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "vente_journal_preparer": [
+        "presse",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "virement_automatique_arreter": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "virement_executer_interne": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "virements_automatiques_executer": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "virements_automatiques_mes": [
+        "banque",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "vote_confiance_declencher": [
+        "politique et elections",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
+      ],
+      "vote_confiance_voter": [
+        "politique et elections",
+        "Catalogue canonique 31/10/2026 : fonction du domaine indiqué, nouvelle depuis le relevé du 13 octobre ; affectation explicite sans modification de son corps."
       ]
     }
   },
   "_domaine_des_tables": {
-    "_commentaire": "Le domaine d'une table n'est PAS redefini ici : il est lu dans baseline/classification-donnees.csv, colonne `domaine`, produite et relue au chantier 2C. Source unique, pas de copie."
+    "_commentaire": "Le domaine d'une table n'est PAS redefini ici : il est lu dans baseline/classification-donnees.csv, colonne `domaine`, produite et relue au chantier 2C. Source unique, pas de copie.",
+    "caisses_collectives_operations": "finances publiques",
+    "jardins_ouvriers_reserve": "economie",
+    "jardins_ouvriers_travail": "economie"
   }
 }

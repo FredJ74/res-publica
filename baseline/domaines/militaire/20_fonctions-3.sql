@@ -10,6 +10,40 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+-- militaire_soldat_supprimer(text,text,text) -> void | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.militaire_soldat_supprimer(p_compagnie_id text, p_section_id text, p_matricule text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_data jsonb; v_sec jsonb; v_sols jsonb; v_pnj text;
+BEGIN
+  SELECT data INTO v_data FROM public.compagnies_militaires WHERE id = p_compagnie_id FOR UPDATE;
+  IF v_data IS NULL THEN RETURN; END IF;
+  SELECT s INTO v_sec FROM jsonb_array_elements(coalesce(v_data->'sections','[]'::jsonb)) s
+   WHERE s->>'id' = p_section_id;
+  IF v_sec IS NULL THEN RETURN; END IF;
+
+  -- LE CYCLE DE MORT D'ABORD, LE RETRAIT DU BLOB ENSUITE. Dans cet ordre seulement : apres le
+  -- retrait, le declencheur miroir aurait deja supprime la ligne du socle et il n'y aurait plus
+  -- ni possessions a poser au sol ni proprietaire a prevenir.
+  v_pnj := p_compagnie_id || '-' || p_matricule;
+  IF EXISTS (SELECT 1 FROM public.pnj_membres WHERE id = v_pnj) THEN
+    PERFORM public.pnj_mourir(v_pnj, 'degats');
+  END IF;
+
+  SELECT coalesce(jsonb_agg(sol ORDER BY pos), '[]'::jsonb) INTO v_sols
+    FROM jsonb_array_elements(
+      CASE WHEN jsonb_typeof(v_sec->'soldats')='array' THEN v_sec->'soldats' ELSE '[]'::jsonb END)
+      WITH ORDINALITY AS t(sol, pos)
+   WHERE sol->>'matricule' IS DISTINCT FROM p_matricule;
+  UPDATE public.compagnies_militaires
+     SET data = public.militaire_sections_remplacer(v_data, p_section_id,
+                  v_sec || jsonb_build_object('soldats', v_sols))
+   WHERE id = p_compagnie_id;
+END; $function$;
+
 -- militaire_solde_percevoir() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.militaire_solde_percevoir()
  RETURNS jsonb

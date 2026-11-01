@@ -11,7 +11,7 @@ def scenario(q,own,call,check,uid,snapshot,Json):
  for table in ['caisses_fret','contenu_caisses_fret']:
   own(re.search(r'CREATE TABLE public\.'+table+r' \([\s\S]*?\n\);',src)[0])
  own('ALTER TABLE caisses_fret ADD PRIMARY KEY(id);ALTER TABLE contenu_caisses_fret ADD PRIMARY KEY(id);ALTER TABLE contenu_caisses_fret ADD FOREIGN KEY(caisse_id) REFERENCES caisses_fret(id);')
- for _ in range(2):own((R/'migrations/20261027213520_inventaire_fret_transactionnel.sql').read_text())
+ for _ in range(2):own((R/'historique/migrations-appliquees/20261027213520_inventaire_fret_transactionnel.sql').read_text())
  own("INSERT INTO ordres_couts VALUES('receptionner_commande',1,0)")
  crate=uid(1000);line=uid(1001)
  own("INSERT INTO caisses_fret(id,leader,pays_origine,ville_origine,building_origine,destinataire,pays_destination,ville_destination,building_destination) VALUES(%s,'Fixture','republic','capitale','centre-multinodal-luthecia','Fixture','republic','capitale','centre-multinodal-luthecia')",(crate,))

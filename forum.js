@@ -1945,6 +1945,7 @@ function parseGameTime(str) {
 }
 
 async function submitNewTopic() {
+  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); return; }
   if (currentForumId === 'presidence' && state.poste?.id !== 'president') {
     showToast('Accès restreint', 'Seul le Président peut ouvrir un sujet ici.', false);
     return;
@@ -2012,6 +2013,7 @@ async function submitNewTopic() {
 }
 
 async function submitReply() {
+  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); return; }
   const contentEl = document.getElementById('reply-content');
   let content = sanitizeRichHtml(contentEl?.innerHTML?.trim());
   if (!content) { showToast('Message vide','Écrivez votre réponse avant de publier.',false); return; }
@@ -2117,6 +2119,7 @@ async function submitEditComposedPost(layout, content) {
 // création de sujet. Rien de local n'est modifié si la sauvegarde échoue, même principe que
 // submitEditComposedPost et submitComposeCanvas (branche nouveau sujet).
 async function submitReplyComposed(layout, content) {
+  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); return; }
   const topic = (FORUM_TOPICS[currentForumId] || []).find(t => t.id === currentTopicId);
   if (!topic) { showToast('Sujet introuvable', 'Impossible de retrouver le sujet.', false); return; }
 
@@ -2775,6 +2778,7 @@ function renderMailCompose(defaultTo = '', defaultSubject = '', defaultOrgaId = 
 
 let _mailEnvoiEnCours = false;
 function submitMail() {
+  if (typeof hospitalisationEcritureInterdite === 'function' && hospitalisationEcritureInterdite()) { showToast('Hospitalisé(e)', 'Le jour de votre hospitalisation, vous ne pouvez ni écrire de mail ni publier sur les forums.', false); return; }
   // Verrou anti-double-envoi : quelle que soit la cause (double-clic, doublon DOM du
   // formulaire), on ignore tout appel suivant tant que le premier n'est pas termine.
   if (_mailEnvoiEnCours) return;

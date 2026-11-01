@@ -2,7 +2,7 @@
 // Répétition serveur en transaction annulée (Luthécia, terrain 4) : voir RELAIS.md.
 const fs = require('fs'), path = require('path');
 const R = path.join(__dirname, '..', '..'), lire = f => fs.readFileSync(path.join(R, f), 'utf8');
-const m = lire('migrations/20261029210000_mairie_acquereur_terrain.sql'), c = lire('plateau-terrain-banque.js');
+const m = lire('historique/migrations-appliquees/20261029210000_mairie_acquereur_terrain.sql'), c = lire('plateau-terrain-banque.js');
 let n = 0, ko = 0; const t = (nom, ok) => { n++; if (!ok) ko++; console.log((ok ? 'ok   ' : 'ECHEC') + ' ' + nom); };
 t('serveur : seul le maire elu de la ville du terrain achete pour la commune', (m.match(/poste_id=''maire'' AND c\.city=e->>''city''\) IS DISTINCT FROM moi/g) || []).length === 2);
 t('serveur : une commune n emprunte pas', /commune_sans_pret/.test(m));

@@ -262,8 +262,8 @@ att('un depute ne traverse JAMAIS l ordre generique : la branche retourne avant'
     (function () {
       var i = codeIll.indexOf('if (siegeDepute) {');
       if (i < 0) return false;
-      // 27/10/2026 : le cas general passe par crime_neutraliser (serveur), juste apres la branche depute.
-      var j = codeIll.indexOf("sbRpc('crime_neutraliser'", i);
+      // #219 : le cas général ouvre les rounds serveur après la branche institutionnelle.
+      var j = codeIll.indexOf("sbCombatOuvrir(identifiant, mode)", i);
       if (j < 0) return false;
       var entre = codeIll.slice(i, j);
       return entre.indexOf('await neutraliserDeputePnj(cible, mode, taux, siegeDepute);') >= 0

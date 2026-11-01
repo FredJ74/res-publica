@@ -18,6 +18,26 @@
 -- source avant 2E.
 -- ============================================================================
 
+-- SEED -- pnj_candidats_catalogue
+-- ============================================================================
+-- Table      : public.pnj_candidats_catalogue
+-- Domaine    : socle PNJ
+-- Categorie  : B (contenu initial d'empire)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 12
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 12 identites de candidats a l'embauche (Grobras). Contenu authored.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- Seedee par un fichier du depot ABSENT du registre Supabase : verifier la
+-- source avant 2E.
+-- ============================================================================
+
 INSERT INTO public.pnj_candidats_catalogue (candidat_id, employeur_id, metier, nom, genre, accroche, portrait, vignette, cadrage, rang, actif) VALUES ('grobras-ag-01', 'grobras-securite', 'agent_securite', 'Gérard Menvussa', 'H', 'Quinze ans de faction. N''a jamais rien vu, et le dit avec aplomb.', NULL, NULL, NULL, '1', 'true');
 INSERT INTO public.pnj_candidats_catalogue (candidat_id, employeur_id, metier, nom, genre, accroche, portrait, vignette, cadrage, rang, actif) VALUES ('grobras-ag-02', 'grobras-securite', 'agent_securite', 'Albert Hagarde', 'H', 'Ancien veilleur de nuit à la raffinerie. Dort les yeux ouverts, prétend-il.', NULL, NULL, NULL, '2', 'true');
 INSERT INTO public.pnj_candidats_catalogue (candidat_id, employeur_id, metier, nom, genre, accroche, portrait, vignette, cadrage, rang, actif) VALUES ('grobras-ag-03', 'grobras-securite', 'agent_securite', 'Firmin Poigné', 'H', 'Poignée de main qui laisse une trace. Peu de mots, jamais deux fois le même.', NULL, NULL, NULL, '3', 'true');

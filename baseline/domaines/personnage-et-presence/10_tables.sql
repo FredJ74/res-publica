@@ -10,6 +10,43 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."dons_en_attente_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."fiche_hausses_observees_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."fiche_inventaire_observe_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."historique_deplacements_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."indices_diplomatiques_journal_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."personnages_supprimes_archive_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE TABLE public.ambassades_asiles (
+  id uuid DEFAULT gen_random_uuid() NOT NULL,
+  demandeur text NOT NULL,
+  pays_hote text NOT NULL,
+  empire text NOT NULL,
+  statut text DEFAULT 'demandee'::text NOT NULL,
+  demandee_le timestamp with time zone DEFAULT now() NOT NULL,
+  decision_prevue_le timestamp with time zone NOT NULL,
+  decide_le timestamp with time zone,
+  ambassadeur_pj text
+);
+
+CREATE TABLE public.ambassades_audiences (
+  id uuid DEFAULT gen_random_uuid() NOT NULL,
+  demandeur text NOT NULL,
+  pays_hote text NOT NULL,
+  empire text NOT NULL,
+  ambassadeur_pj text,
+  statut text DEFAULT 'demandee'::text NOT NULL,
+  demandee_le timestamp with time zone DEFAULT now() NOT NULL,
+  accord_prevu_le timestamp with time zone,
+  accordee_le timestamp with time zone,
+  expire_le timestamp with time zone
+);
+
 CREATE TABLE public.contacts_organisations (
   joueur text NOT NULL,
   passeur text NOT NULL,
@@ -47,7 +84,7 @@ CREATE TABLE public.demandes_naturalisation (
 );
 
 CREATE TABLE public.dons_en_attente (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('dons_en_attente_id_seq'::regclass) NOT NULL,
   destinataire text NOT NULL,
   montant integer NOT NULL,
   expediteur text,
@@ -108,7 +145,7 @@ CREATE TABLE public.etat_civil_naissances (
 );
 
 CREATE TABLE public.fiche_hausses_observees (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('fiche_hausses_observees_id_seq'::regclass) NOT NULL,
   personnage text NOT NULL,
   colonne text NOT NULL,
   ancienne numeric,
@@ -120,7 +157,7 @@ CREATE TABLE public.fiche_hausses_observees (
 );
 
 CREATE TABLE public.fiche_inventaire_observe (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('fiche_inventaire_observe_id_seq'::regclass) NOT NULL,
   personnage text,
   avant integer,
   apres integer,
@@ -132,7 +169,7 @@ CREATE TABLE public.fiche_inventaire_observe (
 );
 
 CREATE TABLE public.historique_deplacements (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('historique_deplacements_id_seq'::regclass) NOT NULL,
   name text,
   country text,
   city text,
@@ -143,8 +180,24 @@ CREATE TABLE public.historique_deplacements (
   created_at timestamp with time zone DEFAULT now()
 );
 
+CREATE TABLE public.indices_diplomatiques (
+  pays text NOT NULL,
+  valeur integer NOT NULL,
+  maj_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE public.indices_diplomatiques_journal (
+  id bigint DEFAULT nextval('indices_diplomatiques_journal_id_seq'::regclass) NOT NULL,
+  pays text NOT NULL,
+  delta integer NOT NULL,
+  valeur_apres integer NOT NULL,
+  cause text NOT NULL,
+  acteur text,
+  le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.invitations_diner (
-  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  id bigint GENERATED ALWAYS AS IDENTITY (SEQUENCE NAME public."invitations_diner_id_seq" START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE) NOT NULL,
   inviteur text NOT NULL,
   invite text NOT NULL,
   country text NOT NULL,
@@ -157,7 +210,13 @@ CREATE TABLE public.invitations_diner (
   type text DEFAULT 'diner_affaires'::text NOT NULL,
   message text,
   reponse text,
-  tournee_id text
+  tournee_id text,
+  contrat_restaurant text,
+  requete_restaurant text,
+  invite_pnj boolean DEFAULT false NOT NULL,
+  resultat_service jsonb,
+  lecture_inviteur boolean DEFAULT false NOT NULL,
+  lecture_invite boolean DEFAULT false NOT NULL
 );
 
 CREATE TABLE public.mariages (
@@ -169,7 +228,8 @@ CREATE TABLE public.mariages (
   jour_union integer NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
   city text,
-  dissous_at timestamp with time zone
+  dissous_at timestamp with time zone,
+  raison_dissolution text
 );
 
 CREATE TABLE public.objets_abandonnes (
@@ -187,7 +247,8 @@ CREATE TABLE public.objets_recus (
   destinataire text NOT NULL,
   expediteur text NOT NULL,
   data jsonb NOT NULL,
-  created_at timestamp with time zone DEFAULT now()
+  created_at timestamp with time zone DEFAULT now(),
+  reception_token uuid DEFAULT gen_random_uuid() NOT NULL
 );
 
 CREATE TABLE public.organisations (
@@ -271,7 +332,9 @@ CREATE TABLE public.personnages_donnees (
   quete_carriere jsonb,
   bonus_pa_differe integer DEFAULT 0 NOT NULL,
   pa_repos_le date,
-  competences_militaires jsonb DEFAULT '{}'::jsonb NOT NULL
+  competences_militaires jsonb DEFAULT '{}'::jsonb NOT NULL,
+  current_street text,
+  inventory_revision bigint DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE public.personnages_qualifications (
@@ -283,7 +346,7 @@ CREATE TABLE public.personnages_qualifications (
 );
 
 CREATE TABLE public.personnages_supprimes (
-  archive_id bigserial NOT NULL,
+  archive_id bigint DEFAULT nextval('personnages_supprimes_archive_id_seq'::regclass) NOT NULL,
   personnage_id uuid,
   nom text,
   user_id uuid,
@@ -345,6 +408,16 @@ CREATE TABLE public.reconciliation_fantomes (
   traite boolean DEFAULT false NOT NULL
 );
 
+CREATE TABLE public.regularisations_fiche (
+  reference text NOT NULL,
+  personnage text NOT NULL,
+  liquide numeric DEFAULT 0 NOT NULL,
+  arg numeric DEFAULT 0 NOT NULL,
+  motif text NOT NULL,
+  decide_par text NOT NULL,
+  applique_le timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE public.souvenirs_accueil (
   id text NOT NULL,
   pj_nom text NOT NULL,
@@ -400,7 +473,11 @@ CREATE TABLE public.tournees (
   pa_debite boolean DEFAULT false NOT NULL,
   resolution_started_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now() NOT NULL,
-  expires_at timestamp with time zone NOT NULL
+  expires_at timestamp with time zone NOT NULL,
+  contrat text,
+  entreprise_id text,
+  invites_initiales text[],
+  resultat jsonb
 );
 
 CREATE TABLE public.universite_cursus (
@@ -446,7 +523,14 @@ CREATE TABLE public.universite_jalons_accomplis (
   requete text
 );
 
+ALTER SEQUENCE public."dons_en_attente_id_seq" OWNED BY public."dons_en_attente"."id";
 
--- Sequences autonomes (non possedees par une colonne)
+ALTER SEQUENCE public."fiche_hausses_observees_id_seq" OWNED BY public."fiche_hausses_observees"."id";
 
-CREATE SEQUENCE public.invitations_diner_id_seq;
+ALTER SEQUENCE public."fiche_inventaire_observe_id_seq" OWNED BY public."fiche_inventaire_observe"."id";
+
+ALTER SEQUENCE public."historique_deplacements_id_seq" OWNED BY public."historique_deplacements"."id";
+
+ALTER SEQUENCE public."indices_diplomatiques_journal_id_seq" OWNED BY public."indices_diplomatiques_journal"."id";
+
+ALTER SEQUENCE public."personnages_supprimes_archive_id_seq" OWNED BY public."personnages_supprimes"."archive_id";

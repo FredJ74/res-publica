@@ -29,6 +29,7 @@ GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.postes_electifs_regles TO service_role;
 GRANT SELECT ON TABLE public.postes_nommes_regles TO anon;
 GRANT SELECT ON TABLE public.postes_nommes_regles TO authenticated;
+GRANT SELECT ON TABLE public.postes_nommes_regles TO hg219_cert_ro_20261101;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.postes_nommes_regles TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.postes_nommes_regles TO service_role;
 GRANT SELECT ON TABLE public.postes_nommes_regles_empreinte TO anon;
@@ -36,6 +37,6 @@ GRANT SELECT ON TABLE public.postes_nommes_regles_empreinte TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.postes_nommes_regles_empreinte TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.postes_nommes_regles_empreinte TO service_role;
 GRANT SELECT ON TABLE public.titulaires_pnj TO anon;
-GRANT DELETE, INSERT, SELECT, UPDATE ON TABLE public.titulaires_pnj TO authenticated;
+GRANT SELECT ON TABLE public.titulaires_pnj TO authenticated;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.titulaires_pnj TO postgres;
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.titulaires_pnj TO service_role;

@@ -653,24 +653,11 @@ def plier(texte, largeur=74, prefixe="-- "):
 
 
 def charger_exports(rep):
-    exp = {}
-    for f in sorted(glob.glob(os.path.join(rep, "*.txt"))):
-        try:
-            externe = json.loads(open(f, encoding="utf-8").read())["result"]
-        except Exception:
-            continue
-        m = re.search(r"<untrusted-data-[0-9a-f-]+>\n(.*)\n</untrusted-data-", externe, re.S)
-        if not m:
-            continue
-        try:
-            lignes = json.loads(m.group(1))
-        except Exception:
-            continue
-        if lignes and isinstance(lignes[0], dict):
-            cle = next(iter(lignes[0]))
-            if cle.startswith("export_"):
-                exp.update(lignes[0][cle] or {})
-    return exp
+    # Même acquisition stricte que le schéma : pas de deuxième interprétation
+    # des quatre exports ni de droits silencieusement absents.
+    sys.path.insert(0, ICI)
+    from rendre import charger_exports as charger_schema
+    return charger_schema(rep)[0]
 
 
 def classification():
@@ -692,6 +679,8 @@ def colonnes_a_seeder(exp, tbl):
     gardees, omises = [], []
     for c in sorted([x for x in exp["colonnes"] if x["tbl"] == tbl], key=lambda x: x["attnum"]):
         defaut = (c.get("defaut") or "")
+        if c.get("generee"):
+            omises.append(c["attname"]); continue
         if "timestamp" in c["type"] and defaut.startswith("now()"):
             omises.append(c["attname"]); continue
         gardees.append(c)
@@ -739,23 +728,42 @@ def requete(exp, tables):
                 valeurs.append("quote_nullable(z.%s::text)" % n)
         pk = cles_primaires(exp, tbl) or noms
         ou = filtres_dynamiques().get(tbl, {}).get("ou")
+        surcharge = " OVERRIDING SYSTEM VALUE" if any(c.get("identity")=="a" for c in cols) else ""
         branches.append(
-            "select %s as tbl, %s as rang, 'INSERT INTO public.%s (%s) VALUES (' || "
+            "select %s as tbl, %s as rang, 'INSERT INTO public.%s (%s)%s VALUES (' || "
             "array_to_string(array[%s], ', ') || ');' as ligne\nfrom public.%s z%s"
             % ("'" + tbl + "'",
                "row_number() over (order by %s)" % ", ".join("z." + c for c in pk),
-               tbl, ", ".join(noms), ", ".join(valeurs), tbl,
+               tbl, ", ".join(noms), surcharge, ", ".join(valeurs), tbl,
                ("\nwhere " + ou) if ou else ""))
     return ("select jsonb_build_object('export_seeds', jsonb_agg(jsonb_build_object("
             "'tbl', tbl, 'rang', rang, 'ligne', ligne) order by tbl, rang)) as export_seeds\n"
             "from (\n" + "\nunion all\n".join(branches) + "\n) tout")
 
 
+def recalage_sequence(col, exp):
+    seq=next((x for x in exp.get('sequences',[]) if x.get('tbl')==col['tbl'] and x.get('colonne')==col['attname'] and x.get('lien') in ('a','i')),None)
+    if seq is None:
+        if (col.get('defaut') or '').startswith('nextval(') or col.get('identity'):
+            raise ValueError('Séquence sans propriétaire canonique : '+col['tbl']+'.'+col['attname'])
+        return ''
+    inc,start=seq.get('increment'),seq.get('start')
+    inc = int(inc) if isinstance(inc, str) and re.fullmatch(r'-?(?:0|[1-9][0-9]*)', inc) else inc
+    start = int(start) if isinstance(start, str) and re.fullmatch(r'-?(?:0|[1-9][0-9]*)', start) else start
+    if not isinstance(inc,int) or not inc or not isinstance(start,int):
+        raise ValueError('Options de recalage manquantes : '+seq['sequence'])
+    ident=lambda x:'"'+x.replace('"','""')+'"'
+    nom=('public.'+ident(seq['sequence'])).replace("'","''")
+    borne='max' if inc>0 else 'min'
+    return "select setval('"+nom+"', (select coalesce("+borne+"("+ident(col['attname'])+"), "+str(start-inc)+") + ("+str(inc)+") from public."+ident(col['tbl'])+"), false);\n"
+
+
 def rendre(exp, resultat):
     cls = classification()
     libelles = {"A": "socle generique", "B": "contenu initial d'empire",
                 "C": "etat vivant", "D": "mixte"}
-    brut = open(resultat, encoding="utf-8").read()
+    with open(resultat, encoding="utf-8") as fh:
+        brut = fh.read()
     try:
         externe = json.loads(brut)["result"]
     except Exception:
@@ -769,6 +777,13 @@ def rendre(exp, resultat):
         donnees = donnees[0]["export_seeds"] if isinstance(donnees, list) else donnees["export_seeds"]
     lignes = donnees
 
+    # Contrôler toute la livraison avant le PREMIER fichier. Un export ancien
+    # peut encore contenir une table reclassée privée/état vivant depuis sa
+    # capture : ni ses lignes ni un rendu partiel ne doivent être publiés.
+    for x in lignes:
+        l = cls.get(x.get("tbl")) if isinstance(x, dict) else None
+        if not l or l["categorie"] == "C" or l["strategie"] not in ("seed_complet", "seed_filtre"):
+            raise ValueError("Table de seed hors surface autorisée ; aucun rendu effectué")
     par_table = {}
     for x in lignes:
         par_table.setdefault(x["tbl"], []).append(x["ligne"])
@@ -827,13 +842,9 @@ def rendre(exp, resultat):
         # Une sequence possedee par une colonne seedee doit etre recalee, sinon
         # le premier INSERT applicatif entre en collision avec un id seede.
         for c in sorted([x for x in exp["colonnes"] if x["tbl"] == tbl], key=lambda x: x["attnum"]):
-            d = c.get("defaut") or ""
-            if d.startswith("nextval("):
-                seq = re.search(r"nextval\('([^']+)'", d).group(1)
-                corps += ("\n-- Recalage de la sequence : sans lui, le premier INSERT "
-                          "applicatif\n-- entrerait en collision avec un identifiant seede.\n"
-                          "select setval('%s', (select coalesce(max(%s), 0) + 1 "
-                          "from public.%s), false);\n" % (seq, c["attname"], tbl))
+            recalage=recalage_sequence(c,exp)
+            if recalage:
+                corps += "\n-- Recalage depuis les identifiants initiaux, jamais le compteur de bêta.\n" + recalage
         chemin = os.path.join(rep, tbl + ".sql")
         with open(chemin, "w", encoding="utf-8", newline="") as fh:
             fh.write(tete + corps)

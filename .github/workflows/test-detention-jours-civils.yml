@@ -4,7 +4,7 @@ on:
     paths:
       - 'api/cron-minuit.js'
       - 'plateau-justice-economie.js'
-      - 'migrations/20261017180000_detention_jours_civils_universels.sql'
+      - 'migrations/20261031113547_detention_jours_civils_universels.sql'
       - 'outils/bancs/test-detention-jours-civils.mjs'
       - '.github/workflows/test-detention-jours-civils.yml'
   push:

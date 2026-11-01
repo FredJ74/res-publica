@@ -577,6 +577,31 @@ projet jetable sera disponible.
 **Levé en partie le 30/10/2026** : un PostgreSQL 16 local suffit pour les bancs à
 plusieurs sessions. `outils/bancs/monter-base-jetable.sh` applique le baseline puis
 toutes les migrations, puis les écarts relevés en production
-(`jetable-ecarts-production-*.sql`). La base n'est pas une copie exacte (PG16 contre
+(photographie `historique/photographies/20261030-fonctions-achat-communiquees.sql`). La base n'est pas une copie exacte (PG16 contre
 PG17, quelques erreurs d'ordre) : avant de conclure, comparer les empreintes des
 fonctions concernées avec `jetable-empreintes.sql`, sur les deux bases.
+
+**Précision #219 du 31/10/2026 :** PostgreSQL **17.6 natif** est maintenant
+installé dans l'environnement de reprise. Le lanceur canonique est
+`outils/baseline/epreuve-postgresql.py --postgres-bin <binaires-17-locaux>` ;
+il utilise uniquement le baseline généré et peut ensuite éprouver le bundle
+#219, jamais rejouer l'historique archivé. Le verrou actuel est l'absence des
+nouveaux exports cohérents et des seeds autorisés, pas l'absence du moteur.
+Le décor PostgreSQL 16.2 fourni par pgserver en CI permet des tests unitaires,
+**pas** une certification de fidélité à la production 17.6. Les catégories de
+seeds n'imposent pas leur ordre d'exécution : celui-ci suit les clés étrangères
+sans modifier les données ni différer les contraintes.
+
+### Collecte atomique en lecture seule — #219
+
+Le SQL Editor peut utiliser `outils/bancs/COLLECTE-ATOMIQUE-219.sql` : un seul
+SELECT d'introspection matérialise les sept ensembles du manifeste dans le même
+instantané et restitue des fragments avec longueurs et SHA-256. Aucun ordre
+métier n'est exécuté. Le vérificateur Workflow reconnaît ce cas par l'AST et une
+liste fermée d'appels d'introspection ; il refuse toujours les CTE mutantes,
+SELECT INTO, verrous, fonctions inconnues et changements de configuration. Ce
+cas n'exempte aucun banc d'écriture de son annulation.
+
+Mode d'emploi : `outils/livraison/COLLECTE-SQL-EDITOR-219.md`. L'assemblage et
+l'archive restent hors Git ; ils ne certifient pas le clone et ne dispensent
+pas des six racines, douze référentiels, contrôle de locale et tests atomiques.

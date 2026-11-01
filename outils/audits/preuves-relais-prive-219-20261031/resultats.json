@@ -1,0 +1,70 @@
+{
+  "main": "9f6deee541ae5bfbc4083a7a7951e2743e75e5a7",
+  "production": false,
+  "exports_prives": "Six objets récupérés par Git ; empreintes Git et JSON vérifiés ; aucun contenu publié.",
+  "registre_versions": 1002,
+  "registre_derniere_version": "20261030193635",
+  "catalogue": {
+    "tables": 376,
+    "fonctions": 1199,
+    "policies": 264,
+    "sequences": 42
+  },
+  "reconstruction": false,
+  "migrations_219_installees": 0,
+  "cause": "42 valeurs max de séquences bigint hors domaine (9223372036854776000). Aucune valeur remplacée par une hypothèse.",
+  "catalogue_tests": 24,
+  "sql_fixtures": 379,
+  "clients": 144,
+  "contre_epreuves": [
+    {
+      "mutation": "issue-fausse",
+      "tests": 379,
+      "echecs_detectes": 2
+    },
+    {
+      "mutation": "double-paiement",
+      "tests": 379,
+      "echecs_detectes": 5
+    },
+    {
+      "mutation": "PNJ-immobile",
+      "tests": 379,
+      "echecs_detectes": 1
+    },
+    {
+      "mutation": "repli-sans-mouvement",
+      "tests": 379,
+      "echecs_detectes": 5
+    },
+    {
+      "mutation": "camion-solo",
+      "tests": 379,
+      "echecs_detectes": 4
+    },
+    {
+      "mutation": "repli-provenance-oubliee",
+      "tests": 379,
+      "echecs_detectes": 1
+    }
+  ],
+  "classification": "376 noms de tables concordants ; 12 relevés de seeds absents ; contrôle toujours rouge.",
+  "limites": [
+    "Pas de copie fidèle PostgreSQL encore obtenue",
+    "Pas de recette authentifiée",
+    "Pas de déploiement ni fusion",
+    "Pas de données de joueurs exportées ou modifiées"
+  ],
+  "chromium_local": 105,
+  "fonctions_empreintes_verifiees": 1199,
+  "global": {
+    "reussis": 6,
+    "total": 12,
+    "classification": "12 comptes de lignes non relevés",
+    "baseline": "Ancienne photographie conservée, pas de promotion partielle",
+    "authority": "Signatures et invariants non réconciliés",
+    "referential": "5 écarts signalés",
+    "assemblage": "2 dépendances",
+    "reconstruction": "2 dépendances et 6 attentes du monde ; export réel bloqué avant installation"
+  }
+}

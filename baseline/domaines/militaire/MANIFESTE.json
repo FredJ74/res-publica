@@ -3090,6 +3090,12 @@
    "privileges": "SELECT"
   },
   {
+   "beneficiaire": "hg219_cert_ro_20261101",
+   "genre": "TABLE",
+   "objet": "armureries_dotations",
+   "privileges": "SELECT"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "armureries_dotations",
@@ -3615,15 +3621,15 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "f0826587b8ceda2bf9a1a78465ec42e6",
-  "20_fonctions-1.sql": "b1912e9d55b12ecb966adc439b883f5c",
-  "20_fonctions-2.sql": "1b831c47296388297fc0062259d05f30",
-  "20_fonctions-3.sql": "dd057e37516a988b2fc89b27cf09b263",
+  "10_tables.sql": "e6e59c3c5fc562df8f17494f1a420926",
+  "20_fonctions-1.sql": "f2aa841fa882d74288dcbcee8d554bed",
+  "20_fonctions-2.sql": "4ee0f909c55256bf8859b7936a9f286b",
+  "20_fonctions-3.sql": "e37baac5c82749395104c62e5d9b59d4",
   "30_contraintes.sql": "12c7981d11e5cddf78c717465e397d80",
   "35_index.sql": "545b5f4baa12c175154d5ae47ac10bc6",
   "50_triggers.sql": "916fb06290aa12025efd0636f448d615",
   "60_rls-policies.sql": "292f9ec56a5bf0112ac043201c3f487a",
-  "70_droits.sql": "3a924b796659bb5c0ed25a916017f90b",
+  "70_droits.sql": "5f7642ef835a526c7a879741b949a66c",
   "80_commentaires.sql": "47496a878ebeb558e76456ca2f5eda2c"
  },
  "fonctions": [
@@ -3753,12 +3759,12 @@
    "signature": "guerre_acteur_poste(text)"
   },
   {
-   "empreinte": "53beaa5c7950200b5c0c9db6bccabd96",
+   "empreinte": "eb2bf01be0b8247a57e581c452136e2d",
    "security_definer": true,
    "signature": "guerre_cessez_le_feu_activer(text)"
   },
   {
-   "empreinte": "42b6f6891e08985b7aba0b0066ce85c2",
+   "empreinte": "2dd97ef90ef65a4a4615776484e0aa74",
    "security_definer": true,
    "signature": "guerre_declarer(text)"
   },
@@ -3943,7 +3949,7 @@
    "signature": "militaire_camps_hostiles(bigint,text)"
   },
   {
-   "empreinte": "eb438fcc837bc5cfea32000adb117c1f",
+   "empreinte": "b051efc02461a306caaaf5a7a57d4470",
    "security_definer": true,
    "signature": "militaire_candidater_soldat(text,text)"
   },
@@ -3953,7 +3959,7 @@
    "signature": "militaire_candidature_accepter(text,text,text)"
   },
   {
-   "empreinte": "ee6396a2ce5159feedfd89f70ec0b5a9",
+   "empreinte": "c6b8854a04020ed5aa5d8771e440976d",
    "security_definer": true,
    "signature": "militaire_candidature_deposer(text)"
   },
@@ -4808,13 +4814,13 @@
   {
    "colonnes": 27,
    "empreinte_catalogue": "a5e179fe9d53615f647467529a710d6f",
-   "empreinte_texte": "5eaed878d6d77b03bdf1f9cd0f9344fd",
+   "empreinte_texte": "01552e34549e5fff51ed23e8ea286749",
    "nom": "batailles"
   },
   {
    "colonnes": 13,
    "empreinte_catalogue": "968fb6dbac16ff1b09024c6e8b4c42e1",
-   "empreinte_texte": "78ab946f91dd01966c73e58be2256290",
+   "empreinte_texte": "448f738442a7b572d4797f52557007d2",
    "nom": "batailles_engagements"
   },
   {
@@ -4826,7 +4832,7 @@
   {
    "colonnes": 6,
    "empreinte_catalogue": "6bcb4eb40169069014133e10b98ba585",
-   "empreinte_texte": "ef5f54d8aa8fc28386e82a9fc65c8bba",
+   "empreinte_texte": "62db573506a434e39a51d9f127d55cc5",
    "nom": "batailles_rounds"
   },
   {
@@ -4874,13 +4880,13 @@
   {
    "colonnes": 11,
    "empreinte_catalogue": "be3ef0673f1775618d370a06267f84f8",
-   "empreinte_texte": "a2a18529da16df0b220cb0abb1447609",
+   "empreinte_texte": "660f26d555d9060d2518e144a3438b1d",
    "nom": "contacts_militaires"
   },
   {
    "colonnes": 9,
    "empreinte_catalogue": "6eecc424b81d057bc8d3c89f1d2843ea",
-   "empreinte_texte": "c9882b0fe06c9c6db4bf5e4aa6916391",
+   "empreinte_texte": "4ad3f3fb9c79c6c75cfcc7bf7cfb5eb9",
    "nom": "decorations_militaires"
   },
   {
@@ -4964,13 +4970,13 @@
   {
    "colonnes": 9,
    "empreinte_catalogue": "555bd7adcdf824224d8803120f8d47b3",
-   "empreinte_texte": "3baf918fae6a6d8a2b2a707a4c5192d0",
+   "empreinte_texte": "4c7c10573f4e4b1a6aeaf048350949e9",
    "nom": "retraits_materiel_militaire"
   },
   {
    "colonnes": 9,
    "empreinte_catalogue": "54804f96e1897d6611324b87b35210e1",
-   "empreinte_texte": "3f7587de6c27e7cd70ba8a2f3176a5cb",
+   "empreinte_texte": "8861e638ad5ad973c53a9d2f2f159117",
    "nom": "services_militaires"
   },
   {

@@ -10,6 +10,8 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."championnat_tentatives_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
 CREATE TABLE public.championnat (
   id bigint NOT NULL,
   data jsonb NOT NULL,
@@ -17,7 +19,7 @@ CREATE TABLE public.championnat (
 );
 
 CREATE TABLE public.championnat_tentatives (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('championnat_tentatives_id_seq'::regclass) NOT NULL,
   au timestamp with time zone DEFAULT now() NOT NULL,
   acteur uuid,
   ligne integer,
@@ -83,3 +85,5 @@ CREATE TABLE public.transferts_clubs (
   data jsonb NOT NULL,
   updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
+
+ALTER SEQUENCE public."championnat_tentatives_id_seq" OWNED BY public."championnat_tentatives"."id";

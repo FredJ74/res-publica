@@ -2524,13 +2524,13 @@
  "droits_par_defaut": [],
  "fichiers": {
   "10_tables.sql": "210b098ed9c8eb086162776e72bd4b7f",
-  "20_fonctions-1.sql": "3c1277b9b22572594019e30d1d281e7a",
+  "20_fonctions-1.sql": "335937b077af97fc679bea854fe2035a",
   "20_fonctions-2.sql": "1cee53c5dd2007506e6e59a4336551cd",
   "30_contraintes.sql": "be556b5e9133d3e45cb4472c98189a67",
   "35_index.sql": "87cd93c64d8b58a384bdb826a85d5c93",
   "50_triggers.sql": "6a90794e510352aaca1e8d5c2cdbea41",
   "60_rls-policies.sql": "bf2be17809004ec98efe6efc686501c9",
-  "70_droits.sql": "7b38e30428a7ae824b2e1836765f701b",
+  "70_droits.sql": "4b49bbef89a18d85a49024f9a465a4b4",
   "80_commentaires.sql": "adf3e715781480324e1b340231c459bb"
  },
  "fonctions": [
@@ -2580,7 +2580,7 @@
    "signature": "assemblee_crediter_caisse(text,integer)"
   },
   {
-   "empreinte": "f6b050f1db9f4d8a82cfb1060d4d8dec",
+   "empreinte": "055806618b25ae2c9235f611bf325cc1",
    "security_definer": false,
    "signature": "assemblee_crediter_joueur(text,integer)"
   },
@@ -2600,7 +2600,7 @@
    "signature": "assemblee_debiter_caisse_plafonne(text,integer)"
   },
   {
-   "empreinte": "f5b03c64c215507809518855f726fd2a",
+   "empreinte": "96cb8cf658650831294f26e434ededf1",
    "security_definer": false,
    "signature": "assemblee_debiter_joueur(text,integer,integer)"
   },
@@ -2625,7 +2625,7 @@
    "signature": "assemblee_discipline_matiere(integer)"
   },
   {
-   "empreinte": "2d06f96c4a8dc28c81af917e05e0a10c",
+   "empreinte": "c42dd07c8353d1f16a1cffcb9ba9a2bd",
    "security_definer": true,
    "signature": "assemblee_dissoudre(text)"
   },
@@ -2695,7 +2695,7 @@
    "signature": "assemblee_mettre_en_application(text,text,text)"
   },
   {
-   "empreinte": "ee972c671a6c1d1502b1940865e33c4d",
+   "empreinte": "ff70ac042b6174929983ba7f78061725",
    "security_definer": true,
    "signature": "assemblee_neutraliser_depute(text,text,text,text)"
   },

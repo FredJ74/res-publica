@@ -268,3 +268,145 @@ cette colonne (`pg_depend.deptype = 'a'`) et que le type est entier, le rendu
 écrit `bigserial` plutôt que `bigint DEFAULT nextval(...)`. C'est strictement
 équivalent — PostgreSQL recrée la séquence, le défaut et le lien de propriété —
 et c'est lisible. Une séquence autonome, elle, serait émise séparément.
+
+## Épreuve PostgreSQL isolée et acquisition stricte — #219, 30/10/2026
+
+`rendre.py` et `seeds.py` partagent désormais le même chargeur des quatre exports.
+Il accepte les JSON natifs (objet ou ligne unique), ainsi que les anciennes
+réponses MCP dans leur enveloppe `untrusted-data`. Il refuse un export absent,
+tronqué, contradictoire ou privé de ses catégories de droits, avant tout rendu.
+Ne jamais remplacer un export manquant par une liste vide. Une catégorie
+réellement vide (`null` renvoyé par `jsonb_agg`) est normalisée en liste vide.
+
+La requête `export_structure` de `requetes.py` extrait aussi le type, le minimum
+et le maximum des séquences. **Réexécuter cette requête** pour un ancien export
+qui ne porte pas ces trois champs : les deviner serait perdre la fidélité.
+Le rendu conserve séquences ordinaires/serial/IDENTITY, propriété, nom et options ;
+une IDENTITY n'est jamais créée deux fois. Les colonnes calculées STORED restent
+calculées et sont omises des INSERT de seed. Les identités ALWAYS sont importées
+avec `OVERRIDING SYSTEM VALUE`, puis les séquences possédées sont recalées depuis
+les seuls identifiants initiaux, selon leur vrai incrément, jamais depuis le
+compteur de la bêta. Une séquence partagée sans propriétaire nécessite une
+stratégie explicite ; elle n'est pas recalée arbitrairement.
+
+`epreuve-postgresql.py` réutilise `reconstruire.assembler()` et son découpage par
+l'analyseur PostgreSQL. Il ne rejoue aucun SQL de `historique/` ou de `migrations/`.
+Il n'accepte **aucune adresse de base distante** : seulement un serveur local
+éphémère, détruit après l'épreuve. `--postgres-bin` sélectionne des binaires locaux
+PostgreSQL 17, sans créer de ressource Supabase. Le moteur livré par pgserver
+0.1.4 est PostgreSQL 16.2 : il est refusé en mode strict ; le mode
+`--diagnostic-version-differente` ne certifie jamais une reconstruction fidèle.
+Aucun privilège MAINTAIN n'est retiré et aucune erreur SQL n'est ignorée.
+
+Les fonctions sont déclarées avant les vues selon les phases du baseline, puis
+**toutes** sont recompilées avec `check_function_bodies=on`. L'assouplissement
+initial ne sert qu'à l'ordre de déclaration, pas à accepter un corps invalide.
+Les primitives `auth.*` du décor sont explicites : ce n'est pas une copie de
+GoTrue ni une preuve d'authentification réelle.
+
+`--exports` confronte le schéma reconstruit aux quatre exports, en retirant
+uniquement les exclusions `hors_baseline` explicitement classées. Tout écart
+bloque l'installation. `--lot-219` exige en plus `--registre` (JSON natif du
+prévol avec `registre`, éventuellement sous `prevol_219`), complet et non vide.
+Il génère puis installe le manifeste dans une transaction. Un faux registre
+vide n'est jamais créé pour éviter une collision. Le rapport distingue schéma
+local, concordance d'exports, installation du lot et absence de recette réelle.
+
+Exécution par l'intégrateur technique, après acquisition et génération conformes :
+
+```
+python3 outils/baseline/epreuve-postgresql.py \
+  --postgres-bin <binaires-PG17-locaux> --exports <exports-complets> \
+  --registre <registre-vivant.json> --lot-219 --rapport <rapport-local.json>
+```
+
+Les préparations doivent rester postérieures au **vrai** point de coupe du
+nouveau baseline : si l'extraction actuelle les dépasse, rehorodater tout le lot
+avec une correspondance explicite et mettre ses références à jour. Ne jamais
+reculer `releve_le` pour faire passer Workflow. Le générateur du lot refuse ce cas.
+
+`outils/bancs/test-catalogue-reconstruction.py` exerce l'acquisition, les deux
+rendus et les séquences sur PostgreSQL jetable. Les dépendances épinglées sont
+dans `outils/bancs/requirements-postgres-local.txt` ; pglast 7.21 utilise réellement
+la grammaire PostgreSQL 17.7. Cet analyseur n'est pas le moteur PostgreSQL 17.
+
+Le verrou de moteur local a été levé durant cette reprise : PostgreSQL **17.6**
+a été compilé depuis le tag officiel `REL_17_6` (commit épinglé), puis utilisé
+pour les 16 tests canoniques et les 379 scénarios de groupes/combats. La recette
+reproductible sans sudo est `outils/bancs/installer-postgresql17-local.sh` ; elle
+réutilise un préfixe déjà installé à cette version et ne crée aucun service.
+Le téléchargement source direct refusé HTTP403 a été remplacé par le miroir
+officiel GitHub, GNU m4 provenant du paquet officiel Debian vérifié par SHA-256.
+
+`outils/bancs/lancer-postgresql-local.py --postgres-bin <binaires> <banc.py> ...`
+réutilise le même gestionnaire jetable `pgserver` en sélectionnant ses binaires.
+Il ne modifie ni les fixtures, ni les assertions, ni les codes de sortie. Les
+contre-épreuves doivent toujours échouer pour être considérées comme détectées.
+Cette réussite du moteur et des tests de fixtures n'est **pas** la reconstruction
+du catalogue vivant : sans ses exports complets, le vieux baseline reste refusé.
+
+## Relais cohérent de #219 — 31 octobre 2026
+
+`outils/livraison/relais-canonique-219.py --sql` assemble les quatre requêtes
+canoniques, le contrôle global et le registre dans **un seul SELECT**, donc un
+seul snapshot PostgreSQL. Les options des séquences restent des chaînes décimales
+exactes ; le point de coupe est exprimé en UTC, comme les noms des migrations.
+Il ajoute les dix référentiels authored relus pour #219, avec comptes et
+empreintes des lignes d'INSERT produites par le moteur existant `seeds.requete`.
+Les deux tables `commerce_decors_sources` et `publicites_premium_sources` sont
+**C / structure seule** : références de téléversements rattachés à des comptes,
+jamais seeds, y compris lorsque leur compte réel est nul.
+
+Le banc `outils/bancs/RELAIS-CANONIQUE-219.sql` contient exactement ce SELECT sous
+`BEGIN; SET TRANSACTION READ ONLY; ... ROLLBACK;`. Il ne contient aucun export.
+L'intégrateur connecté exécute cette extraction en lecture seule et remet le
+résultat complet par fichier privé ; aucune manipulation n'est demandée à Fred.
+
+Le mode `--verifier <fichier-prive>` refuse export absent, borne invalide,
+comptes/empreintes contradictoires, relevés non simultanés, registre incomplet
+et lignes hors liste blanche. Avec `--sortie-privee <dossier-neuf>`, il produit
+les quatre JSON sous `canoniques/`, plus contrôle, registre, seeds et provenance,
+hors de **tout** dépôt Git, dossiers 0700/fichiers 0600, sans écrasement. Il
+n'applique ni SQL ni migration. Le validateur utilise les dépendances de
+`outils/bancs/requirements-postgres-local.txt`.
+
+Ce transfert ne constitue ni une revue du contenu reçu, ni un rendu complet des
+seeds : les autres seeds existants restent à confronter au nouveau point de
+coupe. Aucun SQL généré du baseline n'est modifié tant que les nouveaux exports
+cohérents ne sont pas reçus. Le rendu refuse dorénavant toute table reclassée
+privée/hors surface avant de créer le moindre fichier, même si un ancien export
+la contenait encore.
+
+Le relais comprend aussi la requête de remesure de `referentiels.json`, réutilisée
+sans changer sa formule. Ses cinq observations sont conservées dans
+`referentiels_controle.json` ; elles ne remplacent les anciennes références
+qu'après comparaison et revue. Une empreinte de seed recalculée ne suffit pas :
+le récepteur analyse le SQL et n'accepte qu'un INSERT de littéraux, dans la table
+et les colonnes prévues. Le banc l'exécute réellement en READ ONLY et vérifie
+qu'une écriture est refusée.
+
+L'assemblage du baseline ordonne désormais les fichiers de seeds selon les FK
+réellement parsées, en conservant autant que possible l'ordre antérieur. Les
+catégories A/B/D restent des catégories de contenu, pas une raison de charger
+une relation avant sa cible. Le cas réel `objets_achetables` → `objets_modeles`
+est reproduit sur PostgreSQL ; la cible D est chargée avant la relation A.
+Les cycles sont signalés, les contraintes ne sont pas désactivées, un parent
+absent n'est jamais créé artificiellement. L'analyseur statique et l'épreuve
+réelle réutilisent le même ordonnanceur.
+
+
+## Reconstruction canonique #219 — 31 octobre 2026
+
+`epreuve-postgresql.py` utilise désormais un **moteur PostgreSQL 17.6 réel et jetable**. Il ne prend aucune URL distante. L'option de diagnostic d'une autre version ne donne jamais une certification. `--schema-seul` exclut installation et recette du lot.
+
+La chaîne reproductible est : valider le relais privé avec `outils/livraison/relais-canonique-219.py`, rendre les quatre exports avec `rendre.py`, préparer l'entrée complète de seeds avec `fusionner-seeds-captures.py`, la rendre avec `seeds.py --rendre`, puis exécuter `regenerer-seeds-miroirs.py`. Ce dernier réutilise les générateurs existants ; `--verifier` les réexécute sans écrire et compare leurs sorties intégrales. Les 82 anciens seeds ne deviennent pas des captures fraîches : la provenance reste distincte des dix tables réextraites. Les deux sources privées restent exclues.
+
+`actualiser-attentes-catalogue.py` calcule les attentes depuis les exports, indépendamment du SQL rendu : il ne retouche aucune observation pour suivre les résultats du simulateur. Les constantes métier du monde neuf ne sont pas remplacées par les comptes de la bêta.
+
+L'ordre réel est : tables/séquences, fonctions, contraintes hors FK, index autonomes UNIQUE, FK, vues, triggers, RLS, droits, commentaires, privilèges par défaut, puis seeds triés par dépendances (y compris les miroirs régénérés). Les trous visibles de `attnum` sont conservés par création/suppression d'emplacements sans contenu ; aucun attribut supprimé n'est recopié. Les fonctions à ACL explicite perdent d'abord le droit natif PUBLIC avant leurs GRANT capturés.
+
+La comparaison porte sur le périmètre déclaré : 371 tables publiques et trois vues ; cinq tables explicitement hors baseline et les services Supabase ne sont pas recréés. Les ACL par défaut de `storage` et des autres propriétaires restent inventoriées mais hors rendu. Deux CHECK changent de parenthésage au retour DDL/catalogue : seules les associations AND/OR sont normalisées par AST ; leurs deux empreintes textuelles demeurent consignées, et des bornes ou opérateurs différents sont refusés.
+
+`--lot-219 --prerequis-233 --recette-219` ajoute explicitement le prérequis préparé #233, absent du registre reçu, puis installe les 88 migrations dans une transaction. Il vérifie les appels RPC avant/après et conserve les écarts préexistants ; une nouvelle incompatibilité échoue. Une fiche **fictive** préexiste à l'installation pour éprouver la garde d'intégrité. Une panne injectée après les 88 inscriptions de registre doit annuler les quatre catalogues, les inscriptions et la fiche ; l'installation nominale suit sur la même base. Les scénarios de recette ne remplacent aucune fonction serveur et sont annulés. L'authentification SQL de fixture n'est pas une connexion GoTrue.
+
+Ne jamais rejouer `migrations/*.sql` en bloc : les 65 préparations non attestées restent distinctes du manifeste #219. Le classement du 31/10 est documenté dans `outils/audits/CLASSEMENT-MIGRATIONS-219-20261031.json` ; seules 131 correspondances attestées ont été archivées avec leur version réelle. Voir le rapport courant #219 pour les conditions de livraison.

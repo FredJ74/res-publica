@@ -1,0 +1,82 @@
+[
+  {
+    "mutant": "nominal",
+    "cas": 379,
+    "code": 0,
+    "echecs": [],
+    "liste_historique_exacte": true,
+    "detecte": true
+  },
+  {
+    "mutant": "issue-fausse",
+    "cas": 379,
+    "code": 1,
+    "echecs": [
+      "squatteurs_issue_reelle_obligatoire_tues"
+    ],
+    "liste_historique_exacte": false,
+    "detecte": true,
+    "reserve": "Un cas additionnel de combat à issue variable échouait dans la preuve historique. La comparaison stricte des listes a échoué ; le cas obligatoire détecte toujours la mutation. Aucun test modifié ni retiré."
+  },
+  {
+    "mutant": "double-paiement",
+    "cas": 379,
+    "code": 1,
+    "echecs": [
+      "civil_ouverture_reelle_choix_paiement_unique_rejeu",
+      "civil_mode_mains_borne_arme_et_paiement_sans_modifier_defenseur",
+      "civil_mode_arme_borne_arme_et_paiement_sans_modifier_defenseur",
+      "civil_mode_feu_borne_arme_et_paiement_sans_modifier_defenseur",
+      "civil_deux_connexions_un_combat_un_paiement_un_recu"
+    ],
+    "liste_historique_exacte": true,
+    "detecte": true
+  },
+  {
+    "mutant": "PNJ-immobile",
+    "cas": 379,
+    "code": 1,
+    "echecs": [
+      "squatteurs_fuite_automate_deplacement_reel_pas_une_mort"
+    ],
+    "liste_historique_exacte": true,
+    "detecte": true
+  },
+  {
+    "mutant": "camion-solo",
+    "cas": 379,
+    "code": 1,
+    "echecs": [
+      "camion_ancien_acte_embarque_et_debarque_groupe_PJ_entier_rejeu",
+      "camion_voyage_reel_cout_historique_2PA_par_PJ_et_rejeu_sans_double_debit",
+      "camion_section_epuisee_refuse_sans_debit_ni_deplacement",
+      "camion_deux_sessions_du_chef_un_embarquement_et_un_recu"
+    ],
+    "liste_historique_exacte": true,
+    "detecte": true
+  },
+  {
+    "mutant": "repli-sans-mouvement",
+    "cas": 379,
+    "code": 1,
+    "echecs": [
+      "repli_militaire_meme_navigation_PJ_PNJ_sortie_reelle_et_rejeu",
+      "repli_militaire_refus_individuel_annule_sortie_et_tous_mouvements",
+      "civil_fuite_initiale_deplacement_reel",
+      "civil_cinq_vrais_rounds_puis_replier",
+      "civil_defenseur_connecte_decision_initiale_replier"
+    ],
+    "liste_historique_exacte": true,
+    "detecte": true
+  },
+  {
+    "mutant": "repli-provenance-oubliee",
+    "cas": 379,
+    "code": 1,
+    "echecs": [
+      "repli_PNJ_PSM_vraie_gauche_selon_provenance_serveur"
+    ],
+    "liste_historique_exacte": true,
+    "detecte": true
+  }
+]

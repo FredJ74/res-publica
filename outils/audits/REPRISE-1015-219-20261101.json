@@ -1,0 +1,97 @@
+{
+  "production_modifiee": false,
+  "main_verifie": "ddb72dbdcaf6e868a903e478e985e559d961c6ed",
+  "registre_annonce_dans_mission": {
+    "lignes": 1015,
+    "derniere": "20261101113411"
+  },
+  "fichier_annonce": "referentiels-prives-hg219-1015.json",
+  "fichier_json_recu": false,
+  "piece_recue": {
+    "nom": "Texte collé.txt",
+    "octets": 8121
+  },
+  "api_commentaires": "Forbidden",
+  "tests_outillage_pg17": {
+    "reussis": 71,
+    "total": 71,
+    "postgresql": "17.6",
+    "icu": "153.121"
+  },
+  "non_regression_coupe1012": {
+    "registre_reference": {
+      "lignes": 1012,
+      "derniere": "20261031211256"
+    },
+    "schema_reference_certifie": true,
+    "catalogue_reference_certifie": false,
+    "locale_conforme_production": {
+      "conforme": true,
+      "locale": {
+        "collate": "en_US.utf8",
+        "ctype": "en_US.utf8",
+        "provider": "i",
+        "datlocale": "en-US",
+        "version": "153.121",
+        "version_actuelle": "153.121"
+      }
+    }
+  },
+  "non_regression_1012_refus_referentiels": {
+    "postes_nommes_regles": {
+      "local": {
+        "lignes": 18,
+        "empreinte": "09b1bf63ec1bbeab1e380638aa7ce162"
+      },
+      "vivant": {
+        "lignes": 18,
+        "empreinte": "3722333b757343fa8c4c35cecc97b64e"
+      }
+    },
+    "entreprises_constantes": {
+      "local": {
+        "lignes": 22,
+        "empreinte": "0be4cd8dcc6cf2522e897fb9d3102ebf"
+      },
+      "vivant": {
+        "lignes": 23,
+        "empreinte": "4d5359e1969ba4ade6a16b7100f88ce0"
+      }
+    },
+    "recettes_commerce": {
+      "local": {
+        "lignes": 37,
+        "empreinte": "c89454c538df8c76ca98a541912a090a"
+      },
+      "vivant": {
+        "lignes": 52,
+        "empreinte": "37e08c3c82b5da742e132a52ff500c35"
+      }
+    }
+  },
+  "certification1015": {
+    "schema": "non executee",
+    "referentiels": "non executee",
+    "migrations95": "non executees",
+    "rollback_rejeu95": "non executes",
+    "http27": "non executes"
+  },
+  "donnees_privees_publiees": false,
+  "fusion": false,
+  "deploiement_manuel": false,
+  "protection_tarifs_nouvelle_coupe": "prévol de contenu et sentinelle frais requis, différence avec le plan ancien refusée",
+  "tests_compatibilite_ci_par_defaut": {
+    "reussis": 71,
+    "total": 71,
+    "postgresql": "16.2 fourni par pgserver",
+    "certification1015": false
+  },
+  "globaux_depot_reexecutes": {
+    "reussis": 10,
+    "total": 12,
+    "echecs": [
+      "Authority",
+      "Referential"
+    ]
+  }
+}

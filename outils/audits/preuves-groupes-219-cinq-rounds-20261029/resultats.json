@@ -1,0 +1,39 @@
+{
+  "code_teste": "e52f4adef8c5d016d7d77a17017aab5fe4b1d029",
+  "main_compare": "85999f29",
+  "sql": {
+    "cas": 317,
+    "reussis": 317
+  },
+  "clients": {
+    "bancs": 130,
+    "reussis": 130
+  },
+  "globaux": {
+    "branche": "5/12",
+    "main": "5/12",
+    "rpc_absentes_baseline_branche": 123,
+    "rpc_absentes_baseline_main": 112
+  },
+  "production": false,
+  "migrations_appliquees": [],
+  "pr_fusionnee": false,
+  "empreintes_sources": {
+    "migrations/20261029223000_combats_cinq_rounds_et_commandement.sql": "38a24619c8556452ec8dfe64c75cbca3e6779a1d4c101be5d9ca4ec8e5cad675",
+    "migrations/20261029223100_combats_chef_neutralise_effets_differes.sql": "b15334fb9ce661fcb0473971457b47aea7e128557c54a99fd5f22d1774effac7",
+    "migrations/20261029223200_police_commandement_et_cinq_rounds.sql": "b8704a357ca1be9768ef79c3b4ee7daf37346725b8f1dce56239383f554c7a73",
+    "migrations/20261029223300_navigation_provenance_et_destination_fuite.sql": "982b9b17afbd59523b1a5729f121ba4f3524965cdce5f1eb4af029bec41ba877",
+    "migrations/20261029223400_navigation_directions_reference.sql": "790030c2cd28e4d85508e53aa494eff4c7bb46c7685734d70fcd4b5c221ade93",
+    "migrations/20261029223401_navigation_directions_reference.sql": "da3f9257a256835baf8b2b460794edfed80da073dec2549e7fb959115e68d07f",
+    "migrations/20261029223402_navigation_directions_reference.sql": "599727205bd330064373dabefa2d5ff0b3a0833a235a8c0fb978747765d83527",
+    "migrations/20261029223403_navigation_directions_reference.sql": "2b8e6e9de478c73354843041c630bf292e68bfc6773c1f6e6e9f0e8d5e9abb0e",
+    "migrations/20261029223404_navigation_directions_reference.sql": "6bdd09d6496165a91322363e8b335e3d683d2028783f804b1270c9a1b22d6e35",
+    "migrations/20261029223405_navigation_directions_reference.sql": "7d30d19915dd9836c28ab427da70b74b67670588e43085c98b10e89ef0ebfb76",
+    "migrations/20261029223500_police_fuite_direction_commune.sql": "eb0eaaee680a81ee09eca6354ebf56180ff1328ac8664a2c283f08315448408e",
+    "migrations/20261029223600_police_controles_chef_et_fuite_reelle.sql": "ce4ba2a24b86049045deb3d630cc16d0be2aa20251a12c63792759ca0dcef14d",
+    "outils/bancs/banc-groupes-fuite-directions-local.py": "b278c1fa8e2a554ac530bbb7fb080bbb2de281055381cd91057f0a24c20b0d21",
+    "plateau-justice-economie.js": "13137734c25a1cc1d27390d19ebfa6303c13b78b85e71ef29b511b6ec52f9e8a",
+    "plateau-politique.js": "1d71169c6ba30146f8247f61aabf0cac8c35dd144518fc02c4319fde8dfc2713",
+    "plateau.html": "01f3056dcdc79764580c24a8fc546d7c541d18154f1df1345d8bddf472f16f20"
+  }
+}

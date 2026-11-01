@@ -22,8 +22,12 @@ ALTER TABLE public.catalogue_generiques ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.catalogue_types ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.catalogue_variantes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chaines_production_usine ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chantier_commandes_recus ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chantier_requetes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chantiers_besoins_jour ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chantiers_paliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.commerce_decors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.commerce_decors_sources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.commerces_dotations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.commerces_types ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.confiscations_douanieres ENABLE ROW LEVEL SECURITY;
@@ -36,8 +40,11 @@ ALTER TABLE public.entrepots_reversements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.entreprises ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.entreprises_constantes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.entreprises_prix_rachat ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.hotel_nuitees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.imprimeries_declarees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.investissements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.jardins_ouvriers_reserve ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.jardins_ouvriers_travail ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.oeuvres ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.offres ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.offres_emploi_bne ENABLE ROW LEVEL SECURITY;
@@ -49,6 +56,7 @@ ALTER TABLE public.productions_references ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.produits_manufactures ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recettes_commerce ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recettes_production ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recoltes_journalieres ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ressources_economie ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ressources_economie_empreinte ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.structures_medicales ENABLE ROW LEVEL SECURITY;
@@ -57,12 +65,12 @@ ALTER TABLE public.ventes_snapshots ENABLE ROW LEVEL SECURITY;
 
 -- caisses_fret
 CREATE POLICY caisses_fret_ecriture_acteur ON public.caisses_fret FOR INSERT TO authenticated
-  WITH CHECK (acteur_identifie());
+  WITH CHECK (leader = mon_personnage());
 CREATE POLICY caisses_fret_lecture_publique ON public.caisses_fret FOR SELECT TO anon, authenticated
   USING (true);
 CREATE POLICY caisses_fret_maj_acteur ON public.caisses_fret FOR UPDATE TO authenticated
-  USING (acteur_identifie())
-  WITH CHECK (acteur_identifie());
+  USING (leader = mon_personnage() OR destinataire = mon_personnage())
+  WITH CHECK (leader = mon_personnage() OR destinataire = mon_personnage());
 
 -- catalogue_correspondance_legacy
 CREATE POLICY "catalogue_correspondance_legacy lecture" ON public.catalogue_correspondance_legacy FOR SELECT TO anon, authenticated
@@ -98,6 +106,12 @@ CREATE POLICY "chantiers_besoins_jour lecture" ON public.chantiers_besoins_jour 
 
 -- chantiers_paliers
 CREATE POLICY "chantiers_paliers lecture" ON public.chantiers_paliers FOR SELECT TO PUBLIC
+  USING (true);
+
+-- commerce_decors
+CREATE POLICY "Aucune ecriture directe des decors" ON public.commerce_decors FOR INSERT TO authenticated
+  WITH CHECK (false);
+CREATE POLICY "Lecture publique des decors" ON public.commerce_decors FOR SELECT TO anon, authenticated
   USING (true);
 
 -- commerces_dotations
@@ -151,6 +165,10 @@ CREATE POLICY "imprimeries lecture" ON public.imprimeries_declarees FOR SELECT T
 
 -- investissements
 CREATE POLICY investissements_lecture ON public.investissements FOR SELECT TO anon, authenticated
+  USING (true);
+
+-- jardins_ouvriers_reserve
+CREATE POLICY "reserve jardins lecture" ON public.jardins_ouvriers_reserve FOR SELECT TO authenticated
   USING (true);
 
 -- oeuvres

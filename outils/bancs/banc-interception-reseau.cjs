@@ -9,7 +9,7 @@ function contexte(){
  teleporterVersCellule:d=>{c.transfert=d;},afficherNoeudRue:async(...args)=>{c.navigation=args;}});
  vm.runInContext('let interceptionJudiciaire=null,interceptionJudiciaireOccupee=false;'+fonctions('plateau-justice-economie.js',[
  'contexteInterceptionJudiciaire','contexteInterceptionJudiciaireValide','interceptionJudiciaireBloqueDeplacement','marquerInterceptionIncertaine',
- 'afficherInterceptionJudiciaire','reprendreInterceptionJudiciaireServeur','recupererVerdictInterception','ordreInterceptionAvecReprise','conclureArrestationJudiciaire','choisirInterceptionJudiciaire','verifierArrestationRecherchePolice',
+ 'justiceEch','synchroniserInterceptionCollectiveServeur','afficherInterceptionJudiciaire','reprendreInterceptionJudiciaireServeur','recupererVerdictInterception','ordreInterceptionAvecReprise','conclureArrestationJudiciaire','choisirInterceptionJudiciaire','verifierArrestationRecherchePolice',
  'verifierSurveillancePolicePJUnique','calculerPerGroupePolice','calculerVolGroupePolice']),c);
  vm.runInContext(`interceptionJudiciaire={rencontreId:'police-rencontre',ville:'capitale',eligible:{},policiers:[{},{}],zone:{batiment:'mairie',piece:'accueil'}};`,c);
  c.dossier=()=>vm.runInContext('interceptionJudiciaire',c);c.html=()=>elements.get('postes-body').innerHTML;return c;
@@ -64,8 +64,16 @@ for(const cas of ['non_recherche','non_detecte','detecte','absent','sans_pa'])te
  c.calculerPerGroupePolice=()=>12;c.calculerVolGroupePolice=()=>12;c.calculerDisEffective=()=>8;c.calculerChancePJ=()=>90;c.resoudreControlePoliceAutomatique=()=>{};
  c.sbRpc=async(f)=>{appels.push(f);if(f==='justice_recherches')return [{id:'j',country:'republic',data:{motifs:[]}}];return cas==='non_recherche'?{ok:false,raison:'non_recherche'}:{ok:true,detecte:cas==='detecte',rencontre:'police-rencontre'};};
  await c.verifierSurveillancePolicePJUnique('mairie','accueil');assert.equal(!!c.dossier(),cas==='detecte');
- if(cas==='absent'||cas==='sans_pa')assert.deepEqual(appels,['police_reprise_lire']);
+ if(cas==='absent'||cas==='sans_pa')assert.deepEqual(appels,['police_reprise_lire','police_detection_verifier']);
  if(cas==='detecte')assert.deepEqual(appels,['police_reprise_lire','police_detection_verifier','justice_recherches']);
+});
+test('un agent privé peut déclencher une rencontre sans policier présent, sur décision serveur seule',async()=>{
+ const c=contexte();vm.runInContext('interceptionJudiciaire=null',c);const appels=[];
+ c.chargerEffectifsPolice=async()=>({policiers:[]});
+ c.sbRpc=async nom=>{appels.push(nom);if(nom==='police_reprise_lire')return {ok:true,active:false};if(nom==='police_detection_verifier')return {ok:true,detecte:true,rencontre:'prive-test-135',effectif:1};if(nom==='justice_recherches')return [{id:'j',country:'republic',data:{motifs:[]}}];throw Error(nom);};
+ await c.verifierSurveillancePolicePJUnique('mairie','accueil');
+ assert.deepEqual(appels,['police_reprise_lire','police_detection_verifier','justice_recherches']);
+ assert.equal(c.dossier()?.rencontreId,'prive-test-135');assert.match(c.html(),/INTERPELLATION|Vous avez été reconnu/);
 });
 test('restauration de rue : lecture de position seule, aucun ordre de mouvement',async()=>{
  const c=contexte();let appels=[];c.sbRpc=async(f)=>{appels.push(f);return {ok:true,country:'republic',city:'capitale',street:'destination',building:null};};
@@ -73,3 +81,51 @@ test('restauration de rue : lecture de position seule, aucun ordre de mouvement'
  await c.initialiserRueCentrale('republic','destination',null);assert.deepEqual(appels,['rue_position_lire']);assert.equal(c.navigation[3],true);
 });
 test('un dossier appartient a sa connexion, pas au personnage suivant',()=>{const c=contexte();vm.runInContext('interceptionJudiciaire.contexte=contexteInterceptionJudiciaire()',c);c.state.char={name:'Bob'};assert.equal(c.interceptionJudiciaireBloqueDeplacement(),false);assert.equal(c.dossier(),null);});
+
+test('la rencontre affiche uniquement l effectif confirme, pas tous les policiers co presents',async()=>{
+ const c=contexte();vm.runInContext('interceptionJudiciaire=null; const PER_GROUPE_BONUS_PAR_MEMBRE=1;',c);
+ c.chargerEffectifsPolice=async()=>({policiers:Array.from({length:3},()=>({buildingId:'mairie',roomId:'accueil',pa:12}))});
+ c.sbRpc=async nom=>nom==='police_reprise_lire'?{ok:true,active:false}:nom==='police_detection_verifier'?{ok:true,detecte:true,rencontre:'police-test-unite',effectif:1}:[{id:'j',country:'republic',data:{motifs:[]}}];
+ await c.verifierSurveillancePolicePJUnique('mairie','accueil');
+ assert.equal(c.dossier().policiers.length,1);
+});
+
+test('collectif : le chef innocent conserve sa liberté et ses PA frais après écrou du compagnon',async()=>{
+ const c=contexte();vm.runInContext("interceptionJudiciaire.cible='Bob';interceptionJudiciaire.peutSeRendre=false;interceptionJudiciaire.peutCommander=true",c);
+ c.sbRpc=async()=>({ok:true,contrat_groupes:1,personnage_intercepte:'Bob',pa:1,policiers_restants:4,arrestation:true,detention_id:'d'});
+ c.sbLoadPersonnage=async()=>({pa:7,estEmprisonne:null,group:[],_groupeConfirme:true});
+ await c.choisirInterceptionJudiciaire('combattre');
+ assert.equal(c.state.pa,7);assert.equal(c.state.estEmprisonne,null);assert.equal(c.transfert,undefined);assert.equal(c.dossier(),null);
+});
+test('collectif : réponse de synchronisation tardive ne modifie pas un autre personnage',async()=>{
+ const c=contexte();let finir;c.sbRpc=async()=>({ok:true,contrat_groupes:1,pa:1,policiers_restants:4,arrestation:false});
+ c.sbLoadPersonnage=()=>new Promise(r=>finir=r);
+ const attente=c.choisirInterceptionJudiciaire('combattre');await new Promise(setImmediate);
+ c.state.char={name:'Bob'};finir({pa:0,estEmprisonne:{detentionId:'d'}});await attente;
+ assert.equal(c.state.pa,12);assert.equal(c.state.estEmprisonne,undefined);assert.equal(c.transfert,undefined);
+});
+test('collectif : la reddition adopte la peine exacte relue, sans recalcul local de durée',async()=>{
+ const c=contexte();vm.runInContext('interceptionJudiciaire.contratGroupes=1',c);
+ const frais={pa:0,estEmprisonne:{detentionId:'d',jourFin:999},group:[]};
+ c.sbRpc=async()=>({ok:true,detention_id:'d',jours:2});c.sbLoadPersonnage=async()=>frais;
+ c.afficherPositionNavigationConfirmee=x=>c.rendu=x;
+ await c.conclureArrestationJudiciaire();assert.equal(c.state.estEmprisonne,frais.estEmprisonne);assert.equal(c.rendu,frais);assert.equal(c.transfert,undefined);
+});
+test('collectif : les commandes de combat/fuite ne sont pas attribuées au membre',async()=>{
+ const c=contexte();vm.runInContext('interceptionJudiciaire.peutCommander=false;interceptionJudiciaire.peutSeRendre=true',c);
+ c.sbRpc=async()=>assert.fail('aucune commande du membre');
+ await c.choisirInterceptionJudiciaire('combattre');await c.choisirInterceptionJudiciaire('fuir');
+ c.afficherInterceptionJudiciaire();assert.doesNotMatch(c.html(),/quot;combattre|quot;fuir/);assert.match(c.html(),/Se rendre/);
+});
+test('fuite collective : relit la position par le moteur de rue sans nouvelle mutation',async()=>{
+ const c=contexte();c.sbRpc=async()=>({ok:true,contrat_groupes:1,reussite:true,destination:'destination'});
+ c.sbLoadPersonnage=async()=>({pa:7,estEmprisonne:null,country:'republic',currentCity:'capitale',currentBuilding:null,currentRoom:null});
+ c.initialiserRueCentrale=async(...args)=>c.relecture=args;
+ await c.choisirInterceptionJudiciaire('fuir');assert.equal(c.relecture[1],'destination');assert.equal(c.state.currentBuilding,null);assert.equal(c.dossier(),null);assert.equal(c.state.pa,7);
+});
+test('taxi spécial : utilise le transport commun et ignore les coûts transmis par écran',async()=>{
+ const c=contexte();c.state._navigationServeur=true;let appel;
+ c.commanderTransportServeur=async(...args)=>{appel=args;return true;};c.deduireCoutOrdre=async()=>assert.fail('pas de paiement séparé');
+ vm.runInContext(fonctions('plateau-justice-economie.js',['doTaxiSpecial']),c);
+ assert.equal(await c.doTaxiSpecial('caserne',99,999),true);assert.deepEqual(appel,['taxi_caserne','republic','caserne']);
+});

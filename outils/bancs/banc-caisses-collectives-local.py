@@ -12,8 +12,8 @@ import argparse, json, tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-M1 = ROOT / 'migrations/20261031200000_caisses_collectives_portes_serveur.sql'
-M2 = ROOT / 'migrations/20261031201000_caisses_collectives_fermer_ecran.sql'
+M1 = ROOT / 'historique/migrations-appliquees/20261031200000_caisses_collectives_portes_serveur.sql'
+M2 = ROOT / 'historique/migrations-appliquees/20261031201000_caisses_collectives_fermer_ecran.sql'
 UID = {'Jean Jaaj': '11111111-1111-1111-1111-111111111111',
        'Vince Kubrick': '22222222-2222-2222-2222-222222222222',
        'Angie Porcelana': '33333333-3333-3333-3333-333333333333',

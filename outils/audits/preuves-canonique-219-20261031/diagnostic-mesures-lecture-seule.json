@@ -1,0 +1,72 @@
+{
+  "lecture_seule": true,
+  "controle_global_non_modifie": true,
+  "provenance": {
+    "format": "HG_RELAIS_CANONIQUE_219_V1",
+    "snapshot": "345374:345374:",
+    "releve_utc": "2026-10-31 11:35:45.899473"
+  },
+  "mesures_source_sha256": "0de796db1a7f64da511ce845e75dd9217cda731f68b855043970a7b172e4ff81",
+  "resultats": [
+    {
+      "table": "ordres_couts",
+      "lignes_capturees": 438,
+      "generateur_actuel": "edec84347c32daed",
+      "contenu_capture": "176fd337ce3a3d1a",
+      "sentinelle_capturee": "6de4a84c58ed9b2b",
+      "attente_historique": "20e52d8f9bbe8e3f",
+      "ancienne_mesure_contenu": "24c71501fd7ba3d9",
+      "contenu_concordant": false,
+      "sentinelle_concordante": false,
+      "mesure_versionnee_perimee": true
+    },
+    {
+      "table": "pa_bonus_differes",
+      "lignes_capturees": 10,
+      "generateur_actuel": "1c02ca809fdb9b8b",
+      "contenu_capture": "1c02ca809fdb9b8b",
+      "sentinelle_capturee": "1c02ca809fdb9b8b",
+      "attente_historique": "1c02ca809fdb9b8b",
+      "ancienne_mesure_contenu": "1c02ca809fdb9b8b",
+      "contenu_concordant": true,
+      "sentinelle_concordante": true,
+      "mesure_versionnee_perimee": false
+    },
+    {
+      "table": "postes_nommes_regles",
+      "lignes_capturees": 18,
+      "generateur_actuel": "694f117ace57b0b1",
+      "contenu_capture": "694f117ace57b0b1",
+      "sentinelle_capturee": "a2993a8bc519ea01",
+      "attente_historique": "6c0c7aa0d29bf852",
+      "ancienne_mesure_contenu": "6c0c7aa0d29bf852",
+      "contenu_concordant": true,
+      "sentinelle_concordante": false,
+      "mesure_versionnee_perimee": true
+    },
+    {
+      "table": "ressources_economie",
+      "lignes_capturees": 18,
+      "generateur_actuel": "d65ae14b210eaac4",
+      "contenu_capture": "d65ae14b210eaac4",
+      "sentinelle_capturee": "2c2a88b3833ca978",
+      "attente_historique": "2c2a88b3833ca978",
+      "ancienne_mesure_contenu": "2c2a88b3833ca978",
+      "contenu_concordant": true,
+      "sentinelle_concordante": false,
+      "mesure_versionnee_perimee": true
+    },
+    {
+      "table": "villes",
+      "lignes_capturees": 12,
+      "generateur_actuel": "d41051aa8bcafadd",
+      "contenu_capture": "d41051aa8bcafadd",
+      "sentinelle_capturee": "d41051aa8bcafadd",
+      "attente_historique": "d41051aa8bcafadd",
+      "ancienne_mesure_contenu": "d41051aa8bcafadd",
+      "contenu_concordant": true,
+      "sentinelle_concordante": true,
+      "mesure_versionnee_perimee": false
+    }
+  ]
+}

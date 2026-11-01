@@ -31,13 +31,10 @@ ALTER TABLE public.habilitations_postes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.propositions_diplomatiques ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.purges_residus_bancs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.registre_ventes_armes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.visuels_moderation ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.visuels_versions ENABLE ROW LEVEL SECURITY;
 
 -- ambassades_ouvertes
-CREATE POLICY "ambassade geree par l empire ou par l hote" ON public.ambassades_ouvertes FOR UPDATE TO authenticated
-  USING (mon_poste_est_dans('min_ae'::text, empire) OR mon_poste_est_dans('min_ae'::text, pays_hote))
-  WITH CHECK (mon_poste_est_dans('min_ae'::text, empire) OR mon_poste_est_dans('min_ae'::text, pays_hote));
-CREATE POLICY "ambassade ouverte par les affaires etrangeres" ON public.ambassades_ouvertes FOR INSERT TO authenticated
-  WITH CHECK (mon_poste_est_dans('min_ae'::text, empire));
 CREATE POLICY "ambassades visibles des joueurs" ON public.ambassades_ouvertes FOR SELECT TO authenticated
   USING (true);
 

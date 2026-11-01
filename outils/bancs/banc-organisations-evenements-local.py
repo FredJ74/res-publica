@@ -2,7 +2,9 @@
 """SQL, payer_ordre et triggers archives reels ; identite/banque de fixture, jamais Supabase."""
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
-import tempfile,json,re
+import tempfile,json,re,runpy
+R=Path(__file__).resolve().parents[2]
+_sources=runpy.run_path(str(R/'outils/bancs/banc-audit-securite-135-local.py'))
 
 def main():
  import pgserver,psycopg2
@@ -12,20 +14,27 @@ def main():
  q.execute("INSERT INTO personnages_donnees VALUES ('Alice','republic',10,10,2000,2500),('Bob','republic',10,0,100,100),('Charlie','narco',10,3,0,0)")
  q.execute("CREATE FUNCTION mon_personnage() RETURNS text LANGUAGE sql AS $$SELECT nullif(current_setting('hg.acteur',true),'')$$;CREATE FUNCTION est_appel_serveur() RETURNS boolean LANGUAGE sql AS $$SELECT false$$;CREATE FUNCTION exiger_acteur(text) RETURNS void LANGUAGE plpgsql AS $$BEGIN IF $1 IS DISTINCT FROM mon_personnage() THEN RAISE EXCEPTION 'acteur_refuse'; END IF;END$$")
  def table(domaine,nom):
-  s=(r/f'baseline/domaines/{domaine}/10_tables.sql').read_text();a=s.index('CREATE TABLE public.'+nom+' (');b=s.index('\n);',a)+3;q.execute(s[a:b])
+  _sources['creer_table'](q,(r/f'baseline/domaines/{domaine}/10_tables.sql').read_text(),nom)
  for nom in ['mails','mails_envois_systeme','forum_topics','forum_posts']:table('communication',nom)
  for nom in ['ordres_couts','ordres_couts_inconnus','ordres_couts_ecarts']:table('economie',nom)
  table('politique-et-elections','presidence_memoire_ordres')
  for nom in ['mails','forum_topics','forum_posts']:q.execute(f'ALTER TABLE {nom} ADD PRIMARY KEY(id)')
  q.execute("INSERT INTO ordres_couts VALUES ('declencher_election_club',1,0),('declencher_election_syndicat',1,0)")
  def fonction(fichier,nom):
-  s=(r/fichier).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');b=s.index('$function$;',a)+len('$function$;');q.execute(s[a:b])
+  q.execute(_sources['entree_historique'](nom) if nom=='payer_ordre' else _sources['fonction'](fichier,nom))
  fonction('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
  for nom in ['mails_journaliser_envoi_systeme','forum_verrou_compte_rendu_journee','forum_verrou_local_territorial','forum_verrou_message_ligue','forum_verrou_programme_officiel']:
   fonction('baseline/domaines/communication/20_fonctions.sql',nom)
  q.execute("CREATE TRIGGER audit BEFORE INSERT ON mails FOR EACH ROW EXECUTE FUNCTION mails_journaliser_envoi_systeme();CREATE TRIGGER territorial BEFORE INSERT ON forum_topics FOR EACH ROW EXECUTE FUNCTION forum_verrou_local_territorial();CREATE TRIGGER compte_rendu BEFORE INSERT ON forum_topics FOR EACH ROW EXECUTE FUNCTION forum_verrou_compte_rendu_journee();CREATE TRIGGER programme BEFORE INSERT ON forum_topics FOR EACH ROW EXECUTE FUNCTION forum_verrou_programme_officiel();CREATE TRIGGER message_ligue BEFORE INSERT ON forum_posts FOR EACH ROW EXECUTE FUNCTION forum_verrou_message_ligue()")
- q.execute((r/'migrations/20261019094425_organisations_commandes_administratives.sql').read_text())
- sql=(r/'migrations/20261019132431_organisations_invitations_elections_atomiques.sql').read_text();q.execute(sql);q.execute(sql)
+ q.execute((r/'migrations/20261031113600_organisations_commandes_administratives.sql').read_text())
+ sql=(r/'migrations/20261031113604_organisations_invitations_elections_atomiques.sql').read_text();q.execute(sql);q.execute(sql)
+ # Le rejeu accepte le corps exact produit, mais jamais une definition tierce.
+ q.execute("SELECT pg_get_functiondef('organisation_commande_evenement(text,text,text,jsonb)'::regprocedure)");definition_evenement=q.fetchone()[0]
+ q.execute(definition_evenement.replace('DECLARE acteur text;', 'DECLARE acteur text; /* corps non examine */',1))
+ try:q.execute(sql);raise AssertionError('definition evenement inconnue acceptee')
+ except psycopg2.Error as e:
+  assert 'evenement_definition_a_reexaminer' in str(e),str(e);q.execute('ROLLBACK')
+ q.execute(definition_evenement);q.execute(sql)
  def acteur(nom):q.execute("SELECT set_config('hg.acteur',%s,false)",(nom,))
  def creer(id,type='supporters',visible=True):
   q.execute('INSERT INTO organisations VALUES(%s,%s)',(id,json.dumps({'id':id,'chef':'Alice','nom':'<Club>','country_origine':'republic','type':type,'visible':visible,'caisse':1050.5,'membres':[{'nom':'Alice'},{'nom':'Bob'}]})))

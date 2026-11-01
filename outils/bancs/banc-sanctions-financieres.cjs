@@ -2,9 +2,9 @@
 // Les essais PostgreSQL jetables (transactions annulées) sont consignés dans RELAIS.md.
 const fs = require('fs'), path = require('path');
 const R = path.join(__dirname, '..', '..'), lire = f => fs.readFileSync(path.join(R, f), 'utf8');
-const s = lire('migrations/20261030140000_sanctions_financieres_communes.sql');
-const b = lire('migrations/20261030135000_budget_national_credits_serveur.sql');
-const g = lire('migrations/20261030110000_budget_national_et_fraude.sql');
+const s = lire('historique/migrations-appliquees/20261030140000_sanctions_financieres_communes.sql');
+const b = lire('historique/migrations-appliquees/20261030135000_budget_national_credits_serveur.sql');
+const g = lire('historique/migrations-appliquees/20261030110000_budget_national_et_fraude.sql');
 const c = lire('api/cron-minuit.js');
 let n = 0, ko = 0; const t = (nom, ok) => { n++; if (!ok) ko++; console.log((ok ? 'ok   ' : 'ECHEC') + ' ' + nom); };
 

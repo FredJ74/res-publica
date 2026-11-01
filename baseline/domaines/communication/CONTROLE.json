@@ -10,7 +10,7 @@
   "index": 11,
   "index_autonomes": 1,
   "fonctions": 16,
-  "triggers": 5,
+  "triggers": 6,
   "policies": 24,
   "rls_actives": 10,
   "droits_colonnes": 0,
@@ -39,5 +39,14 @@
  },
  "_correction_chantier_3": "Releve deux fois le 6 octobre 2026, apres les quatre migrations d'autorite. policies : 23 -> 24 -- la migration 2 a retire allow_all_chat_piece (FOR ALL, sans condition) et pose a la place chat_piece_lecture_publique et chat_piece_ecriture_acteur : une de moins, deux de plus. lignes_droits : 93 -> 82 -> 77. Les 11 premieres lignes disparues ne portaient que des privileges de maintenance (MAINTAIN, REFERENCES, TRIGGER) ou un UPDATE de sequence, et ne contenaient plus rien apres revocation ; les 5 suivantes sont les GRANT EXECUTE a PUBLIC des 5 fonctions de declencheur du domaine (forum_verrou_compte_rendu_journee, forum_verrou_local_territorial, forum_verrou_message_ligue, forum_verrou_programme_officiel, mails_journaliser_envoi_systeme), fermes par la migration 4. L'empreinte des 15 fonctions du domaine est INCHANGEE (aae9cafeca0f3af9c827a5b260e75bf9) : aucune definition n'a ete touchee, seuls leurs droits. Mesure independamment en base, pas deduit du rendu.",
  "_correction_chantier_5_bis": "Releve une QUATRIEME fois le 9 octobre 2026 a 18 h 00, apres les quinze migrations du lot justice-notification (registre 569 a 583). QUATRE valeurs bougent, toutes pour la meme cause : la migration 20261009152949 (mail_systeme_un_seul_ecrivain_et_son_poseur_interne) scinde l'ecriture d'un courrier en deux -- mail_systeme_envoyer reste la SEULE porte publique, et mail_systeme_poser_interne(text,text,text,text,text) porte desormais l'INSERT, appelee par les dix fonctions serveur qui notifiaient en direct. fonctions 15 -> 16 ; fonctions_security_definer 15 -> 16 (la nouvelle en est une, comme les quinze autres) ; lignes_droits 77 -> 78 (une seule ligne d'ACL pour la nouvelle : son EXECUTE a ete retire a service_role par la meme migration, elle n'est joignable que depuis une fonction SECURITY DEFINER du serveur) ; empreinte_fonctions 0910cfbd... -> 8fb07ae0... (la nouvelle fonction entre dans l'empreinte, et mail_systeme_envoyer est remplacee pour deleguer son INSERT). LA SIGNATURE A ETE AJOUTEE A LA LISTE GELEE de outils/baseline/domaines.json, sans quoi la requete d'inventaire du pilote 2B aurait continue de mesurer quinze fonctions. LES QUATRE VALEURS SONT RELEVEES DANS LA BASE par la requete d'inventaire du depot, portee a seize signatures, et non recopiees depuis le rendu.",
- "_correction_chantier_5": "Releve une troisieme fois le 9 octobre 2026, apres la migration 20261009132222 (notification_ne_casse_plus_l_acte). DEUX valeurs bougent, et les deux pour la meme raison : colonnes 83 -> 84 -- mails_envois_systeme recoit `echec`, qui distingue un refus d'autorite (NULL) d'un envoi techniquement impossible (SQLSTATE + message) ; empreinte_fonctions aae9cafe... -> 0910cfbd... -- mail_systeme_envoyer enferme desormais son INSERT dans un bloc d'exception, pour qu'un courrier perdu n'annule plus l'acte metier de l'appelant. LES DEUX VALEURS SONT RELEVEES DANS LA BASE, par la requete de la formule ci-dessus, et non recopiees depuis le baseline : les poser depuis le rendu rendrait ce controle circulaire."
+ "_correction_chantier_5": "Releve une troisieme fois le 9 octobre 2026, apres la migration 20261009132222 (notification_ne_casse_plus_l_acte). DEUX valeurs bougent, et les deux pour la meme raison : colonnes 83 -> 84 -- mails_envois_systeme recoit `echec`, qui distingue un refus d'autorite (NULL) d'un envoi techniquement impossible (SQLSTATE + message) ; empreinte_fonctions aae9cafe... -> 0910cfbd... -- mail_systeme_envoyer enferme desormais son INSERT dans un bloc d'exception, pour qu'un courrier perdu n'annule plus l'acte metier de l'appelant. LES DEUX VALEURS SONT RELEVEES DANS LA BASE, par la requete de la formule ci-dessus, et non recopiees depuis le baseline : les poser depuis le rendu rendrait ce controle circulaire.",
+ "source_actualisation": {
+  "exports_sha256": {
+   "export_droits.json": "ba6fa58633d6a6b0dc1a9c078150d41d6e592a58bf64f2ac737ee71ddd3efa3f",
+   "export_fonctions.json": "e75f71aa260f7b6c1fb336dcced5dd125c0e1e93ac7c2e7325802bd3919d5b39",
+   "export_logique.json": "520c4abd4309892b1a68a3a2a22e4a3017face90907aa0d56a31afa7c92e4746",
+   "export_structure.json": "511cbbc458f733fe6c4f209494cf3049c4f837c99de90c231f9f22cc40ecff68"
+  },
+  "methode": "Mesures des exports canoniques ; aucune attente déduite du MANIFESTE ou du rendu SQL."
+ }
 }

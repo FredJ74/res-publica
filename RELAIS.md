@@ -25,13 +25,13 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Décision de Fred du 01/11 (21 h 07) — Claude intégrateur unique de la clôture de Luthécia
+### Clôture de Luthécia — intégration #219 + #318 + #324 (Claude intégrateur, PR #340, branche `claude/integration-219-main-20261101`)
 
-Claude remplace ChatGPT comme intégrateur et reprend la PR #219 de Codex (avec #318 et #324). Ne pas renvoyer le chantier à Codex. Mandat complet : prompt de Fred conservé dans `outils/audits/MANDAT-CLOTURE-LUTHECIA-CLAUDE-20261101.md`. Point de départ : certification Codex au SHA `57f4ede9` (`outils/audits/CERTIFICATION-1022-219-20261101.md` sur `codex/groupes-universels-20261028`), 10/12 contrôles (Authority et Referential rouges) ; branche de reprise `claude/integration-219-main-20261101` (`16093f4d`). La capture privée 1022 (CSV) n'est pas dans le dépôt : la redemander à Fred en pièce jointe si le clone est nécessaire, sinon faire le prévol en lecture seule contre la production. Le loyer murs/fonds (#66) passe après ce chantier.
-
-### Claude — clôture fonctionnelle de Luthécia, cinq anomalies (branche `claude/cloture-fonctionnelle-luthecia-20261101`, PR #327 vers `main`, CI 142/142 au SHA `dc06b42`, NE PAS FUSIONNER sans l'intégrateur)
-
-Issue de `main` `df67186`. **Corrigé** : interview de Jodie (un double clic sur Envoyer ne lance plus deux rédactions ; une réponse tardive n'écrase plus l'écran ; les réponses survivent à une réouverture). **Déjà conformes, preuves à l'appui** : caisses à l'accueil des bâtiments communaux (#275), fontaine de SLAVA sur place uniquement (serveur + écran), journal des ventes (#96 ; les trois ventes de SLAVA antérieures au 23/10 n'y figurent pas et restent inchangées, décision de Fred du 01/11), multimodal de PSM (destinations nommées, plus d'ordre de Mireille). **F5** : non reproductible sur `main` ; dépendance #219/#318 inscrite comme test en attente. Aucune migration. Nouveaux bancs : `banc-jodie-interview-navigateur.cjs` (5/5, contre-épreuve), `banc-multimodal-psm-20261101.cjs` (4/4), `banc-position-f5-luthecia-20261101.cjs` (4/4 + 1 en attente). Rapport : `outils/audits/CLOTURE-FONCTIONNELLE-LUTHECIA-20261101.md`. Déploiement : écran seul (`plateau-communication.js`).
+Mandat : `outils/audits/MANDAT-CLOTURE-LUTHECIA-CLAUDE-20261101.md`. Base : certification Codex `57f4ede9` + `main` `446a65d7`.
+- **12/12 contrôles globaux** (`python3 outils/baseline/controler-tout.py`). Authority : travail sur chantier par `chantier_commande('travailler')`, `tournee_creer` sans spread, sept helpers morts retirés, invariant 13 jugé RPC par RPC après lot (`outils/baseline/simuler-rpc-apres-lot.py`, contre-épreuve `test-rpc-apres-lot-219.mjs`). Referential : tarifs à **461** (`commerces_fonds_murs`), production relue = data.js pour chantiers, BNE, entreprises ; migration `20261101220000` (18 images WebP + sentinelle des ressources).
+- **Prévol réel en production (01/11, ~22 h)** : les 99 migrations (95 + #318 + #324 + manifestation spontanée + `20261101220000`) exécutées dans une transaction puis annulées par exception : aucune garde en échec ; registre inchangé (1023). Outil : `outils/livraison/preparer-application-http-219.py` (lecture des fichiers par la base au SHA épinglé, SHA-256 contrôlé, registre `<sujet>_<version>`, tout ou rien ; verrou de la fiche pris d'emblée après un interblocage au premier essai).
+- **Non appliquées volontairement** : `20261031230000` (organisations, feu vert explicite de Fred requis dans la transaction), `20261031124000` (verrou d'inventaire, recette d'intégration requise).
+- Environnement d'agent sans PyPI : `pglast` et `psycopg2` compilés depuis GitHub, `pgserver` remplacé par un shim local (PostgreSQL 16) ; à refaire dans une nouvelle session si besoin.
 
 ### PR #325 — quatre PNG des locaux commerciaux de Port-Sainte-Marie
 

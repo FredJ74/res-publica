@@ -15,6 +15,23 @@
 -- du moteur.
 -- ============================================================================
 
+-- SEED -- mails_expediteurs_systeme
+-- ============================================================================
+-- Table      : public.mails_expediteurs_systeme
+-- Domaine    : communication
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 28
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 28 expediteurs systeme autorises et leurs droits de saisine. Liste blanche
+-- du moteur.
+-- ============================================================================
+
 INSERT INTO public.mails_expediteurs_systeme (expediteur, note, est_prefixe, postes, autorise_soi, libre, autorise_vers_titulaire, autorise_vers_conjoint, autorise_vers_destinataire_fret) VALUES ('Administration Portuaire', 'port', 'false', '{capitaine_port}', 'false', 'false', 'false', 'false', 'true');
 INSERT INTO public.mails_expediteurs_systeme (expediteur, note, est_prefixe, postes, autorise_soi, libre, autorise_vers_titulaire, autorise_vers_conjoint, autorise_vers_destinataire_fret) VALUES ('Alerte confidentielle', 'renseignement', 'false', '{juge,min_just,min_int}', 'false', 'false', 'false', 'false', 'false');
 INSERT INTO public.mails_expediteurs_systeme (expediteur, note, est_prefixe, postes, autorise_soi, libre, autorise_vers_titulaire, autorise_vers_conjoint, autorise_vers_destinataire_fret) VALUES ('Anonyme', 'repli quand le nom du joueur manque', 'false', '{}', 'false', 'true', 'false', 'false', 'false');

@@ -46,20 +46,5 @@ CREATE POLICY postes_nommes_regles_empreinte_lecture_publique ON public.postes_n
   USING (true);
 
 -- titulaires_pnj
-CREATE POLICY titulaires_pnj_ecriture_non_politique ON public.titulaires_pnj FOR INSERT TO authenticated
-  WITH CHECK (NOT (EXISTS ( SELECT 1
-   FROM postes_nommes_regles r
-  WHERE r.poste_id = titulaires_pnj.poste_id)));
 CREATE POLICY titulaires_pnj_lecture ON public.titulaires_pnj FOR SELECT TO anon, authenticated
   USING (true);
-CREATE POLICY titulaires_pnj_maj_non_politique ON public.titulaires_pnj FOR UPDATE TO authenticated
-  USING (NOT (EXISTS ( SELECT 1
-   FROM postes_nommes_regles r
-  WHERE r.poste_id = titulaires_pnj.poste_id)))
-  WITH CHECK (NOT (EXISTS ( SELECT 1
-   FROM postes_nommes_regles r
-  WHERE r.poste_id = titulaires_pnj.poste_id)));
-CREATE POLICY titulaires_pnj_suppression_non_politique ON public.titulaires_pnj FOR DELETE TO authenticated
-  USING (NOT (EXISTS ( SELECT 1
-   FROM postes_nommes_regles r
-  WHERE r.poste_id = titulaires_pnj.poste_id)));

@@ -287,3 +287,31 @@ git show HEAD:api/cron-minuit.js > /tmp/avant.js
 python3 outils/bancs/lancer-banc.py outils/bancs/banc-compromis-nocturnes.js \
         outils/bancs/decor-env-serveur.js api/_referentiels-generes.js /tmp/avant.js
 ```
+
+## Catalogue entier #219 et authentification locale
+
+`banc-livraison95-catalogue-local.py` réutilise l'assembleur, les quatre exports
+privés et `preparer-livraison-complete-219.py`. Paramètres nécessaires :
+`--exports`, `--registre`, `--capture-couts`, `--postgres-bin`, `--rapport`.
+Aucun DSN distant : le serveur PostgreSQL est créé et supprimé par le banc.
+La provenance du registre et de la capture reste visible dans le rapport ;
+le banc ne transforme jamais un export 1003 en certification 1009.
+
+Option `--caisses-source` : dossier privé contenant les deux sources #300 et
+`provenance.json` (commit, liste migrations avec fichier et SHA256). Elles
+sont testées après le paquet #219, sans entrer dans ses 95 versions.
+
+Options `--gotrue-bin` et `--postgrest-bin`, ensemble : exécutables Linux natifs
+provenant des images GoTrue v2.177.0 et PostgREST v12.2.12, références et SHA256
+dans les preuves #219. Aucun conteneur connecté à la production. Le banc
+initialise le rôle d'authentification et son search_path, laisse GoTrue migrer
+son schéma auth, puis installe les helpers JWT standard de plateforme et le
+vrai catalogue public. Trois comptes aléatoires sont inscrits puis connectés
+par mot de passe au GoTrue local ; leurs JWT sont vérifiés par PostgREST.
+Les secrets restent en mémoire et les journaux de service restent privés.
+Ne jamais publier les exports ni ces journaux.
+
+Tous les services HTTP se lient à 127.0.0.1 et la base est jointe par socket Unix.
+Les origines et DSN extérieurs sont refusés avant toute requête. Nettoyage en
+finally, y compris échec d'initialisation. Les 26 scénarios HTTP ne constituent
+ni une recette Chromium du jeu ni une validation de Supabase production.

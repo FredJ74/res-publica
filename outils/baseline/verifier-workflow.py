@@ -124,6 +124,51 @@ class Rapport:
         print("  %s" % texte)
 
 
+def select_catalogue_sans_ecriture(texte):
+    """SELECT d'introspection pur : AST + liste fermée d'appels sans effet.
+
+    Pas d'exception par nom de fichier : CTE mutante, SELECT INTO, fonction
+    inconnue, set_config ou autre ordre restent interdits sans rollback.
+    """
+    try:
+        from pglast import parse_sql
+        from pglast.visitors import Visitor
+        arbres = parse_sql(texte)
+        if len(arbres) != 1 or type(arbres[0].stmt).__name__ != 'SelectStmt':
+            return False
+        purs = set("acldefault aclexplode array_to_string col_description concat_ws convert_to count current_database current_setting encode format format_type generate_series has_function_privilege jsonb_agg jsonb_build_object jsonb_object_agg jsonb_to_recordset left max md5 now obj_description octet_length pg_current_snapshot pg_database_collation_actual_version pg_get_constraintdef pg_get_expr pg_get_function_arguments pg_get_function_result pg_get_functiondef pg_get_indexdef pg_get_triggerdef pg_get_userbyid pg_get_viewdef quote_ident quote_nullable regexp_replace replace row_number sha256 string_agg substring sum timezone to_jsonb".split())
+        mesures = {t + '_empreinte_reelle' for t in ('ordres_couts', 'ressources_economie', 'pa_bonus_differes', 'postes_nommes_regles', 'villes')}
+        class Lecture(Visitor):
+            def visit(self, ancestors, node):
+                if type(node).__name__ in ('InsertStmt', 'UpdateStmt', 'DeleteStmt', 'MergeStmt', 'CopyStmt', 'CallStmt', 'DoStmt', 'CreateStmt', 'DropStmt', 'AlterTableStmt'):
+                    raise ValueError('ordre modifiant')
+                if type(node).__name__ == 'SelectStmt' and (node.intoClause or node.lockingClause):
+                    raise ValueError('SELECT modifiant ou verrouillant')
+                if type(node).__name__ == 'FuncCall':
+                    nom = tuple(x.sval for x in node.funcname)
+                    if not ((len(nom) == 1 and nom[0] in purs) or (len(nom) == 2 and nom[0] == 'pg_catalog' and nom[1] in purs) or (len(nom) == 2 and nom[0] == 'public' and nom[1] in mesures and not node.args)):
+                        raise ValueError('appel hors introspection')
+        Lecture()(arbres)
+        return True
+    except Exception:
+        return False
+
+
+def verifier_registre_observe(reg,controle):
+    import hashlib
+    vs=reg['versions']
+    if vs!=sorted(set(vs)) or not all(isinstance(v,str) and re.fullmatch(r'[0-9]{14}',v) for v in vs):raise ValueError('Versions invalides')
+    if not vs or len(vs)!=reg['lignes'] or len(vs)!=controle['entrees'] or max(vs)!=reg['derniere'] or max(vs)!=controle['derniere_version']:raise ValueError('Coupe incohérente')
+    if hashlib.sha256('\n'.join(vs).encode()).hexdigest()!=reg['sha256_versions']:raise ValueError('Empreinte des versions différente')
+    if not reg['noms_sha256'] or not all(isinstance(h,str) and re.fullmatch(r'[a-f0-9]{64}',h) for h in reg['noms_sha256']):raise ValueError('Noms de migration absents')
+    return reg
+
+def migration_presente_au_registre(fichier,registre):
+    import hashlib
+    nom=re.sub(r'(?:^[0-9]{14}_|_[0-9]{14}$)','',os.path.splitext(fichier)[0])
+    return fichier[:14] in registre['versions'] or hashlib.sha256(nom.encode()).hexdigest() in registre['noms_sha256']
+
+
 def main():
     r = Rapport()
     print("GARDE-FOU DU WORKFLOW SUPABASE")
@@ -180,8 +225,24 @@ def main():
     if coupe is None:
         r.anomalie("point de coupe illisible dans CONTROLE-GLOBAL.json")
     else:
-        anterieures = [f for f, h in zip(fichiers, horodatages) if h < coupe]
-        r.verif("migrations anterieures au point de coupe", len(anterieures), 0)
+        observation = os.path.join(BASELINE, "REGISTRE-OBSERVE.json")
+        registre = None
+        if os.path.isfile(observation):
+            try:
+                import hashlib
+                reg = json.load(open(observation, encoding="utf-8"))
+                ctl_reg = json.load(open(ctl, encoding="utf-8"))["registre"]
+                registre = verifier_registre_observe(reg,ctl_reg)
+            except Exception:
+                r.anomalie("registre observe incomplet ou contradictoire : aucune dispense de chronologie")
+        if registre is None:
+            anterieures = [f for f, h in zip(fichiers, horodatages) if h < coupe]
+        else:
+            # L'ancienneté d'un fichier de branche ne prouve PAS son application.
+            # Confronter version ET nom normalisé à la coupe réellement capturée.
+            anterieures = [f for f in fichiers if migration_presente_au_registre(f,registre)]
+            r.note("présence réelle au registre observé, versions et noms ; fichiers plus anciens absents autorisés")
+        r.verif("migrations deja couvertes par le point de coupe", len(anterieures), 0)
         for f in anterieures:
             r.anomalie("%s est anterieure au point de coupe : son effet est deja "
                        "dans le baseline, la rejouer est au mieux inutile" % f)
@@ -231,6 +292,9 @@ def main():
             dehors = re.sub(r"(?si)\bDO\s*(\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$).*?\1\s*;", "", nu)
             hors = [m.group(1) for m in
                     re.finditer(r"(?mi)^\s*(INSERT|UPDATE|DELETE|TRUNCATE|DROP|ALTER|GRANT|REVOKE|CREATE)\b", dehors)]
+            if blocs == 0 and not enveloppe and select_catalogue_sans_ecriture(texte):
+                print("  %-14s SELECT d'introspection sans ecriture  %s" % (bancs + "/", os.path.basename(rel)))
+                continue
             if blocs == 0 and not enveloppe:
                 r.anomalie("banc sans bloc DO ni enveloppe BEGIN/ROLLBACK, donc applicable tel "
                            "quel : " + rel)

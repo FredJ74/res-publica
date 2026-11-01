@@ -10,6 +10,65 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+REVOKE ALL ON FUNCTION public.pnj_administrateur(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_argent_transferer(text,numeric,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_autorite_de(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_autorite_de_perimetre(text,text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_axe_au_socle(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_axe_position_refus(text[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_axe_verrouille(text[],text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_caracteristique_base(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_caracteristiques_base(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_caracteristiques_cles() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_ced_acheter(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_classe_de(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_classe_decor(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_co_present(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_comparer_agents() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_comparer_douaniers(text,text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_comparer_policiers(text,text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_comparer_soldats(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_contexte_public() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_copier_soldats(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_employe_debaucher(text,text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_evenements_lire(integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_fonction_recrutable(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_garde_dissolution_compagnie() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_garde_suppression() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_membres_ici(text,text,text,text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_metier_de(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_metier_profil(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_miroir_compagnie(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_miroir_compagnie_trg() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_miroir_douane(text,text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_miroir_douane_declencheur() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_miroir_police(text,text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_miroir_police_declencheur() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_miroir_possessions(text,jsonb) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_miroir_possessions_si_axe_blob(text,jsonb) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_mon_inventaire() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_mourir(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_mouvement_individuel_refus(text[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_objet_transferer(text,integer,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_pa_crediter(text[],integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_pa_debiter(text[],integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_pa_fixer(text[],integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_pa_garde(text[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_pa_max() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_pas_de_sous_hierarchie() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_peut_administrer(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_peut_conduire(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_position_effective(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_possessions_lire(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_prendre(text[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_quitter_groupe(text[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_rollback_soldats(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_social_contexte(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_social_entrer(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_social_noter(text,text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.pnj_transferer(text[],text,boolean) FROM PUBLIC;
+
 -- DROITS SUR LES FUNCTIONS
 GRANT EXECUTE ON FUNCTION public.pnj_administrateur(text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.pnj_administrateur(text) TO service_role;
@@ -99,6 +158,9 @@ GRANT EXECUTE ON FUNCTION public.pnj_mouvement_individuel_refus(text[]) TO servi
 GRANT EXECUTE ON FUNCTION public.pnj_objet_transferer(text,integer,text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.pnj_objet_transferer(text,integer,text) TO postgres;
 GRANT EXECUTE ON FUNCTION public.pnj_objet_transferer(text,integer,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid) TO postgres;
+GRANT EXECUTE ON FUNCTION public.pnj_objet_transferer(text,integer,text,integer,bigint,bigint,uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.pnj_pa_crediter(text[],integer) TO postgres;
 GRANT EXECUTE ON FUNCTION public.pnj_pa_crediter(text[],integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.pnj_pa_debiter(text[],integer) TO postgres;

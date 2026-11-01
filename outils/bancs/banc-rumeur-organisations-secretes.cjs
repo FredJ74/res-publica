@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),assert=require('node:assert/strict'),vm=require('node:vm'),path=require('node:path');
 const source=fs.readFileSync(path.join(__dirname,'../../plateau-pnj.js'),'utf8');
-const sql=fs.readFileSync(path.join(__dirname,'../../migrations/20261029184923_rumeurs_organisations_confidentialite.sql'),'utf8');
+const sql=fs.readFileSync(path.join(__dirname,'../../historique/migrations-appliquees/20261029184923_rumeurs_organisations_confidentialite.sql'),'utf8');
 const begin=source.indexOf('async function chargerOrganisationsPourRumeur()');
 const end=source.indexOf('\n}',begin)+2;
 assert.ok(begin>=0&&end>begin);

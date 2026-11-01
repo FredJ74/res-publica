@@ -15,6 +15,23 @@
 -- tirage aleatoire.
 -- ============================================================================
 
+-- SEED -- pnj_metiers_profils
+-- ============================================================================
+-- Table      : public.pnj_metiers_profils
+-- Domaine    : socle PNJ
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 11
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Caracteristiques FIXES par metier. Source unique du recrutement, aucun
+-- tirage aleatoire.
+-- ============================================================================
+
 INSERT INTO public.pnj_metiers_profils (metier, car_int, car_cha, car_vol, car_per, car_dup, car_ent, note, pa_initial, cout_initial, cout_jour, quota_note, classe, role_libelle, recrutable, quota_par_joueur, ordre_fn) VALUES ('agent', '13', '12', '12', '13', '13', '10', 'Metier de la famille agent, classe beta. Profil UNIQUE pour les quatre identites reelles : le role est une specialisation de CAPACITES, pas un profil de caracteristiques. Seule DUP est mecaniquement lue (risque de trace, contre-espionnage) ; INT, CHA, VOL, PER et ENT sont presentes sans mecanique -- aucun effet ne leur est cree.', '0', '0', NULL, 'Quatre identites, une par role. Convoquees par quatre par le Ministre de la Defense : 3 PA du MINISTRE et 500 FR sur la caisse min_def, jamais un cout de l''agent.', NULL, 'Agent de renseignement', 'false', NULL, NULL);
 INSERT INTO public.pnj_metiers_profils (metier, car_int, car_cha, car_vol, car_per, car_dup, car_ent, note, pa_initial, cout_initial, cout_jour, quota_note, classe, role_libelle, recrutable, quota_par_joueur, ordre_fn) VALUES ('agent_securite', '10', '8', '16', '12', '8', '10', 'Metier de la famille employe, destine a la classe ALPHA (posee sur l''individu a sa creation, pas ici). Agent de securite prive de l''agence Grobras Securite, Luthecia. VOL 16 et PER 12 arbitres par le GD le 5 octobre 2026 ; INT/CHA/DUP/ENT recopies du profil policier, le metier deja arbitre le plus proche. Aucune valeur inventee.', '1', '500', '0', 'Quota 4 par joueur (arbitrage GD du 5 octobre 2026), porte par quota_par_joueur et applique par employeur_embaucher. Le plafond commun de 10 employes s''applique en plus, pas a la place.', 'alpha', 'Agent de sécurité', 'true', '4', 'embaucher_agent_securite');
 INSERT INTO public.pnj_metiers_profils (metier, car_int, car_cha, car_vol, car_per, car_dup, car_ent, note, pa_initial, cout_initial, cout_jour, quota_note, classe, role_libelle, recrutable, quota_par_joueur, ordre_fn) VALUES ('codetenu', '10', '10', '10', '12', '12', '10', 'Metier de la famille employe, classe beta. Profil conserve pour le futur : le metier n''est PAS active, aucun PNJ du jeu ne porte job=codetenu.', '0', '100', '100', 'Un seul. METIER NON ACTIVE : aucun PNJ du jeu ne porte job=codetenu.', 'beta', 'Codétenu', 'false', NULL, NULL);

@@ -1,0 +1,21 @@
+✔ entrée : aucun rendu avant le verdict puis bâtiment et pièce confirmés (70.588702ms)
+✔ double clic : une seule mutation (26.335344ms)
+✔ réponse tardive après changement personnage (18.774555ms)
+✔ réponse tardive après changement session (14.221833ms)
+✔ réponse tardive après changement piece (16.406281ms)
+✔ réponse perdue : lecture seulement, concordance true (13.552036ms)
+✔ réponse perdue : lecture seulement, concordance false (15.751832ms)
+✔ refus métier : aucune relecture ni fausse réussite (13.653865ms)
+✔ payload général : positions absentes uniquement après capacité serveur (19.517845ms)
+✔ contrat incomplet : un seul chef confirmé pour deux membres ne permet aucun rendu (13.982747ms)
+✔ création initiale : conserve la position de départ malgré une ancienne capacité de session (29.527021ms)
+✔ portier conservé seulement pour le demandeur non membre A (17.822579ms)
+✔ portier conservé seulement pour le demandeur non membre B (18.378634ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 306.598502

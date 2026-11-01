@@ -72,6 +72,9 @@ test('Chromium local : le vrai callback de restauration de 300 ms précède la v
    window.enterRoom=(id,piece)=>{if(!window._restaurationPositionEnCours)throw Error('RESTaURATION_ATTENDUE');state.currentRoom=piece;document.getElementById('piece-image').textContent='Accueil';appels.push('affichage-piece');};
   },origine);
   await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../data.js'),'utf8')});
+  const navigationSource=fs.readFileSync(path.join(__dirname,'../../plateau-navigation.js'),'utf8');
+  const representation=acorn.parse(navigationSource,{ecmaVersion:'latest'}).body.find(n=>n.type==='FunctionDeclaration'&&n.id.name==='representerPositionServeur');assert.ok(representation);
+  await page.addScriptTag({content:navigationSource.slice(representation.start,representation.end)});
   await page.addScriptTag({content:source.slice(noeud.start,noeud.end)});
   // Même couple de lieux que le diagnostic distant, avec un personnage de fixture.
   const cible={batiment:'quartier-ambassades',piece:'accueil_ambassades'};

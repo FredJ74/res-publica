@@ -664,6 +664,9 @@ function sbPayloadPersonnage(charState) {
   if (charState.ficheFusion === true && charState._ficheBase && typeof charState._ficheBase === 'object') {
     data.fiche_base = charState._ficheBase;
   }
+  if (charState._navigationServeur === true) {
+    for (const cle of ['country','current_city','current_building','current_room','current_street']) delete data[cle];
+  }
   return data;
 }
 
@@ -799,12 +802,15 @@ function sbEnfilerEcriturePersonnage(charState, data) {
     // Les autres champs restent le snapshot original (notamment les deltas de POP).
     // La position est lue au MOMENT de l'ecriture, apres les taches precedentes.
     // On ne la prend que si ce personnage est toujours le personnage actif.
-    if (typeof state !== 'undefined' && state.char?.name === data.name
+    if (charState._navigationServeur !== true && typeof state !== 'undefined' && state.char?.name === data.name
         && state.personnageChargeDepuisServeur !== false) {
       data.country = state.country || data.country;
       data.current_city = state.currentCity || data.current_city;
       data.current_building = state.currentBuilding || null;
       data.current_room = state.currentRoom || null;
+    }
+    if (charState._navigationServeur === true) {
+      for (const cle of ['country','current_city','current_building','current_room','current_street']) delete data[cle];
     }
     return sbEcrirePersonnage(data);
   }).then((resultat) => {
@@ -841,7 +847,8 @@ async function sbCreerPersonnageInitial(charState) {
   // On emprunte le constructeur de payload de sbSavePersonnage en neutralisant son ecriture :
   // la garde de bootstrap est inoperante ici (personnage tout neuf), on passe donc par une
   // capture directe du meme objet.
-  const data = sbPayloadPersonnage(charState);
+  // Une création reste un INSERT initial, pas une sauvegarde de position.
+  const data = sbPayloadPersonnage({...charState, _navigationServeur:false});
   if (!data || !data.name) return { ok: false, raison: 'nom_manquant' };
   return await sbCreerPersonnageUnique(data);
 }
@@ -949,16 +956,34 @@ async function sbEtatIdentitePersonnage(nomLocal) {
   return rows.length > 0 ? { etat: 'appartient_a_autrui' } : { etat: 'orphelin' };
 }
 
+// La lecture commune rend la position personnelle du compte, jamais celle du chef.
+function sbPositionNavigationConfirmee(groupe, nom) {
+  const p=groupe?.position_personnelle;
+  if(typeof nom!=='string' || !nom || groupe?.ok!==true || groupe.contrat!==1 || p?.ok!==true || p.personnage!==nom ||
+     typeof p.country!=='string' || typeof p.city!=='string' ||
+     !['building','room','street','depuis'].every(k=>p[k]===null || typeof p[k]==='string')) return null;
+  return p;
+}
+
 async function sbLoadPersonnage(name) {
   const rows = await sbGet('personnages', `name=eq.${encodeURIComponent(name)}`);
   if (!rows || rows.length === 0) return null;
   const r = rows[0];
+  // Appartenance PJ relue au chargement/reconnexion, jamais depuis une sauvegarde locale.
+  // Aucun groupe d'autrui consulté, aucun minuteur ajouté.
+  const groupePj = r.user_id && typeof rpAuthUid === 'function' && rpAuthUid() === r.user_id
+    ? await sbGroupePjLire().catch(() => null) : null;
   const inventaire = r.user_id && typeof rpAuthUid === 'function' && rpAuthUid() === r.user_id
     ? await sbInventaireReceptionEtat(name).catch(() => null) : null;
+  const positionGroupe = sbPositionNavigationConfirmee(groupePj, r.name);
   const inventaireVersionne = inventaire?.ok && inventaire.contrat === 1
     && Array.isArray(inventaire.inventory) && Number.isSafeInteger(inventaire.revision);
   return {
     updatedAt: r.updated_at || null,
+    group: sbGroupePjNormaliser(groupePj, r.name),
+    _groupeConfirme: sbGroupePjValide(groupePj, r.name),
+    _navigationServeur: groupePj?.navigation_serveur === true,
+    _positionNavigationServeur: positionGroupe,
     // Fusion à trois voies (30/10/2026) : le serveur l'accepte dès que la vue expose `fiche_base`.
     // Tant que la migration 20261030160000 n'est pas appliquée, rien n'est envoyé (aucun PATCH
     // refusé pour colonne inconnue).
@@ -982,14 +1007,14 @@ async function sbLoadPersonnage(name) {
              // etatCivilChargerJoueurs, plateau-etat-civil.js).
              createdAt: r.created_at || null,
              photoUrl: r.photo_url || null, bio: r.bio || null, poste: r.poste || null, posteDepute: r.poste_depute || null,
-             country: r.country, currentCity: r.current_city, currentBuilding: r.current_building,
-             currentRoom: r.current_room || null, motto: r.motto || null,
+             country: positionGroupe ? positionGroupe.country : r.country, currentCity: positionGroupe ? positionGroupe.city : r.current_city, currentBuilding: positionGroupe ? positionGroupe.building : r.current_building,
+             currentRoom: positionGroupe ? positionGroupe.room : (r.current_room || null), motto: r.motto || null,
              licenceSportive: r.licence_sportive || null, performance: r.performance_sportive || null, blessureSportive: r.blessure_sportive || null,
              signatureHtml: r.signature_html || null, signatureBlocks: r.signature_blocks || [],
              queteAccueil: r.quete_accueil || null, queteCarriere: r.quete_carriere || null,
              enigme1: r.enigme1 || null, maxence: r.maxence || null, succesMaxence: r.succes_maxence || null,
              journal: r.journal || [], excommunie: r.excommunie || null, reservationHotel: r.reservation_hotel || null },
-    country:       r.country,
+    country:       positionGroupe ? positionGroupe.country : r.country,
     inf:           r.resources?.inf || 0,
     pop:           r.resources?.pop || 0,
     dis:           r.resources?.dis ?? 50,
@@ -1001,9 +1026,9 @@ async function sbLoadPersonnage(name) {
     moral:         r.moral,
     poste:         r.poste,
     posteDepute:   r.poste_depute || null,
-    currentCity:   r.current_city,
-    currentBuilding: r.current_building,
-    currentRoom:   r.current_room || null,
+    currentCity:   positionGroupe ? positionGroupe.city : r.current_city,
+    currentBuilding: positionGroupe ? positionGroupe.building : r.current_building,
+    currentRoom:   positionGroupe ? positionGroupe.room : (r.current_room || null),
     inventory:     inventaireVersionne ? inventaire.inventory : (r.inventory || []),
     _inventaireBase: sbEmpreinteInventaire(inventaireVersionne ? inventaire.inventory : (r.inventory || [])),
     _inventaireRevision: inventaireVersionne ? inventaire.revision : null,
@@ -2138,11 +2163,10 @@ function sbSauvegardeUrgenceDechargement() {
     hp: state.hp ?? 100,
     moral: state.moral ?? 75,
     resources: ressourcesAvecBasePop(state, { inf: state.inf ?? 0, pop: state.pop ?? 0, dis: state.dis ?? 50 }),
-    country: state.country || 'republic',
-    current_city: state.currentCity || 'capitale',
-    current_building: state.currentBuilding || null,
-    current_room: state.currentRoom || null,
-    // Même fusion que la sauvegarde ordinaire : sans base, le serveur garde ses propres valeurs.
+    country: state._navigationServeur === true ? undefined : (state.country || 'republic'),
+    current_city: state._navigationServeur === true ? undefined : (state.currentCity || 'capitale'),
+    current_building: state._navigationServeur === true ? undefined : (state.currentBuilding || null),
+    current_room: state._navigationServeur === true ? undefined : (state.currentRoom || null),
     fiche_base: state.ficheFusion === true && state._ficheBase ? state._ficheBase : undefined
   });
   try {
@@ -2760,9 +2784,7 @@ async function sbGetOrganisationParId(orgaId) {
 
 async function sbDeleteOrganisation(orgaId) {
   const commande=await sbOrganisationCommande(orgaId,'dissoudre',{});
-  if(commande.disponible!==false)return commande.ok===true&&commande.dissoute===orgaId;
-  const r=await sbDeleteVerdict('organisations', `id=eq.${encodeURIComponent(orgaId)}`);
-  return r.ok===true && Array.isArray(r.donnees) && r.donnees.some(o=>o.id===orgaId);
+  return commande.disponible!==false&&commande.ok===true&&commande.dissoute===orgaId;
 }
 
 // =====================
@@ -2968,17 +2990,6 @@ async function sbAlimenterCaisseFonds(acteurRef, fondsId, montant) {
 async function sbRetirerCaisseFonds(acteurRef, fondsId, montant) {
   return sbRpcVerdict('retirer_caisse_fonds', {
     p_acteur: acteurRef, p_fonds_id: fondsId, p_montant: montant
-  });
-}
-
-// NON APPELABLE AUJOURD'HUI, et c'est voulu. vendre_fonds_commerce est reservee au service_role :
-// le vendeur y est bien verifie, mais l'ACHETEUR ne l'est pas, et la vente lui transfererait un
-// fonds ET son bail sans qu'il ait rien accepte. Tant que le canal d'offre/acceptation n'existe
-// pas, cet appel recoit un 403 et sbRpc renvoie null -- fail-closed, aucun transfert non consenti.
-// Le helper est conserve pret a l'emploi pour le jour ou cette preuve d'acceptation existera.
-async function sbVendreFondsCommerce(vendeurRef, acheteurRef, fondsId, prix) {
-  return sbRpcVerdict('vendre_fonds_commerce', {
-    p_vendeur: vendeurRef, p_acheteur: acheteurRef, p_fonds_id: fondsId, p_prix: prix
   });
 }
 
@@ -4457,12 +4468,6 @@ async function sbAjusterPopJoueur(nomJoueur, delta, cause) {
 }
 
 // ---- TRACTS (11 septembre 2026, migration_autruche_tracts_securisation.sql) ----
-// Effet POP d'un tract : RPC atomique (un seul UPDATE sous verrou), ne touche que resources.pop.
-// Remplace, pour les tracts seulement, la relecture/reecriture de resources ci-dessus.
-async function sbTractAppliquerEffetPop(cible, delta) {
-  const rows = await sbRpc('tracts_appliquer_effet_pop', { p_cible: cible, p_delta: delta });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
 
 // Don de tracts a un vrai PJ : destinataire verifie, idempotent sur l'id de requete (rejeu sans
 // doublon). Le destinataire le recoit par verifierObjetsRecus, via tracts_reclamer_don.
@@ -4492,24 +4497,8 @@ async function sbTractsElectorauxDistribuerCollectif(requete, joueur, cycleId, c
   return rows == null ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
-// Mouvement atomique d'une caisse de batiments_etat (12 septembre 2026,
-// migration_caisses_batiments_etat.sql) : lecture, calcul et ecriture en une seule instruction sous
-// verrou de ligne. Remplace le couple sbGetBatimentEtat/sbSetBatimentEtat pour les mouvements
-// d'argent, ou deux operations simultanees s'ecrasaient (caisse payant deux fois, ne baissant
-// qu'une). Tout-ou-rien : un debit qui mettrait la caisse en negatif n'est pas applique et renvoie
-// le solde reel. stockCle/stock deplacent en meme temps un compteur voisin (ex. stockBois).
-async function sbBatimentMouvementCaisse(pays, ville, buildingId, sousCle, delta, stockCle, stock, stockMax, exigerExistant) {
-  const rows = await sbRpc('batiment_caisse_mouvement', {
-    p_pays: pays, p_ville: ville, p_building: buildingId, p_souscle: sousCle,
-    p_delta: delta, p_stock_cle: stockCle || null, p_stock: stock || 0,
-    p_stock_max: (typeof stockMax === 'number') ? stockMax : null,
-    p_exiger_existant: exigerExistant === true
-  });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
-
 // Mouvement atomique d'une caisse institutionnelle de caisses_batiments (12 septembre 2026,
-// migration_caisse_institution.sql) : meme semantique tout-ou-rien que sbBatimentMouvementCaisse
+// migration_caisse_institution.sql) : meme semantique tout-ou-rien que l'ancien mouvement de caisse de batiment
 // ci-dessus, mais pour les caisses du systeme "classique" (ministeres, mairies, commissariats...).
 // exigerExistant refuse de creer une caisse fantome quand l'appelant sait qu'elle doit deja exister.
 // FAIL-CLOSED : renvoie null si la RPC est absente ou injoignable -- aucun repli non atomique.
@@ -4578,14 +4567,6 @@ async function sbMilitaireRetrait(pays, produit, quantite, lieutenant, section, 
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
-// MORTE depuis le 18 septembre 2026, et revoquee cote base. Elle decrementait le stock SANS
-// aucun jet : le navigateur decidait seul de la reussite puis appelait ceci. Conservee comme
-// trace le temps que tous les caches clients aient tourne. Ne pas rebrancher.
-async function sbMilitaireSubtiliser(pays, joueur) {
-  const rows = await sbRpc('militaire_subtiliser', { p_pays: pays, p_joueur: joueur });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
-
 // Fixe le virement quotidien Ministere de la Defense -> caserne. Le PAYS n'est pas un parametre :
 // la RPC le deduit du poste atteste de l'acteur, donc un Ministre ne peut pas toucher au budget
 // d'un autre empire. L'ecriture se fait par SOUS-CLE, jamais en reecrivant le blob.
@@ -4619,24 +4600,54 @@ async function sbMilitaireBatailleEtat(batailleId) {
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
-async function sbMilitaireBatailleEngager() {
-  const rows = await sbRpc('militaire_bataille_engager', {});
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
+// Les commandes de bataille réutilisent le transport conservant les erreurs.
+// Le reçu et le round initial restent ensemble après une réponse perdue.
+let SB_BATAILLE_COMMANDE_EN_COURS = null;
+async function sbMilitaireCommande(batailleId, action, ouverture = null) {
+  const c = contexteGroupePj();
+  if (!contexteGroupePjValide(c)) return null;
+  if (SB_BATAILLE_COMMANDE_EN_COURS && contexteGroupePjValide(SB_BATAILLE_COMMANDE_EN_COURS))
+    return {ok:false,raison:'commande_en_cours'};
+  SB_BATAILLE_COMMANDE_EN_COURS = c;
+  const cle = 'hg-bataille:' + JSON.stringify(ouverture ? [c.uid,c.nom,batailleId,action,ouverture] : [c.uid,c.nom,batailleId,action]);
+  try {
+    let pending;
+    try {
+      const conserve = localStorage.getItem(cle);
+      if (conserve) pending = JSON.parse(conserve);
+      if (!pending) {
+        let round = null;
+        if (action !== 'engager' && action !== 'ouvrir') {
+          const etat = await sbMilitaireBatailleEtat(batailleId);
+          if (!contexteGroupePjValide(c)) return null;
+          if (!etat?.ok || !Number.isInteger(etat.bataille?.round_courant)) return {ok:false,raison:'etat_non_confirme'};
+          round = etat.bataille.round_courant;
+        }
+        pending = {requete:crypto.randomUUID(),round};
+        localStorage.setItem(cle,JSON.stringify(pending));
+      }
+      if (typeof pending.requete !== 'string' || (action !== 'engager' && action !== 'ouvrir' && !Number.isInteger(pending.round)))
+        return {ok:false,raison:'recu_invalide'};
+    } catch (_) { return {ok:false,raison:'recu_non_conserve'}; }
+    if (!contexteGroupePjValide(c)) return null;
+    const fn = action === 'ouvrir' ? 'combat_ouvrir' : action === 'engager' ? 'militaire_bataille_engager' :
+      action === 'continuer' ? 'militaire_bataille_poursuivre' : 'militaire_bataille_decider';
+    const params = {p_requete:pending.requete};
+    if (action === 'ouvrir') { params.p_cible=ouverture.cible;params.p_mode=ouverture.mode; }
+    else if (action !== 'engager') { params.p_bataille_id=batailleId; params.p_round_attendu=pending.round; }
+    if (['tenir','replier','rendre'].includes(action)) params.p_decision=action;
+    const v = await sbRpcVerdict(fn,params,{encoreValide:()=>contexteGroupePjValide(c)}).catch(()=>null);
+    if (!contexteGroupePjValide(c)) return null;
+    if (v?.ok === true || v?.raison === 'round_obsolete') localStorage.removeItem(cle);
+    return v || {ok:false,raison:'reponse_incertaine'};
+  } finally { if (SB_BATAILLE_COMMANDE_EN_COURS === c) SB_BATAILLE_COMMANDE_EN_COURS = null; }
 }
-
-// Reserve au leader du camp : sa decision est ECRITE avant que le serveur ne regarde, et c'est
-// ainsi qu'elle prime sur la doctrine.
-async function sbMilitaireBatailleDecider(batailleId, decision) {
-  const rows = await sbRpc('militaire_bataille_decider', { p_bataille_id: batailleId, p_decision: decision });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
-
-// Ouvert a tout participant engage : une bataille ne doit jamais s'arreter parce que le chef
-// d'en face n'est pas connecte. La doctrine du camp absent repond a sa place.
-async function sbMilitaireBataillePoursuivre(batailleId) {
-  const rows = await sbRpc('militaire_bataille_poursuivre', { p_bataille_id: batailleId });
-  return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-}
+async function sbCombatOuvrir(cible, mode) { return sbMilitaireCommande(null,'ouvrir',{cible,mode}); }
+async function sbMilitaireBatailleEngager() { return sbMilitaireCommande(null,'engager'); }
+// La décision reste réservée au chef réel ; le serveur vérifie ses droits.
+async function sbMilitaireBatailleDecider(batailleId, decision) { return sbMilitaireCommande(batailleId,decision); }
+// Tout participant disponible peut faire avancer le round (règle existante).
+async function sbMilitaireBataillePoursuivre(batailleId) { return sbMilitaireCommande(batailleId,'continuer'); }
 
 async function sbMilitaireBatailleDoctrine(batailleId, doctrine) {
   const rows = await sbRpc('militaire_bataille_doctrine', { p_bataille_id: batailleId, p_doctrine: doctrine });
@@ -4816,16 +4827,6 @@ async function sbChargerEffetsTractsPNJ(country) {
 // portee : les couts, jets, phases et geographies restent decides par l'appelant.
 // sbEnregistrerVoixPnj SUPPRIME (28/10/2026) : les voix d'electeurs PNJ ne sont plus ecrites
 // que par le serveur (conference_soutenir, jean_lou_tract_distribuer).
-
-// Reception exclusive d'un don de tracts : supprime ET renvoie la ligne en une instruction. null si
-// deja recue (autre onglet) ou absente -- ne rien ajouter a l'inventaire dans ce cas.
-async function sbTractsReclamerDon(id, destinataire) {
-  const rows = await sbRpc('tracts_reclamer_don', { p_id: id, p_destinataire: destinataire });
-  const r = rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
-  if (!r || !r.data) return null;
-  try { return { id: r.id, expediteur: r.expediteur, objet: typeof r.data === 'string' ? JSON.parse(r.data) : r.data }; }
-  catch (e) { return null; }
-}
 
 // =====================
 // INVITATIONS A DINER (diner d'affaires entre PJ presents dans la meme piece)
@@ -5259,7 +5260,7 @@ function sbResynchroniserApresIncertitude() {
 
 async function sbTransportRpc(fn, params, options) {
   let cle = null;
-  try { cle = fn + '|' + JSON.stringify(params ?? null); } catch (e) { cle = null; }
+  try { cle = JSON.stringify([typeof rpAuthUid==='function'?rpAuthUid():null,typeof rpAuthSessionIdentifiant==='function'?rpAuthSessionIdentifiant():null,fn,params ?? null]); } catch (e) { cle = null; }
   if (cle && SB_RPC_EN_VOL.has(cle)) return SB_RPC_EN_VOL.get(cle);
   const appel = sbTransportRpcBrut(fn, params, options).then(env => {
     if (env && env.envoyee && (env.etat === 'reseau' || (Number(env.http) >= 500))) sbResynchroniserApresIncertitude();
@@ -5513,9 +5514,6 @@ async function sbCreerPlacementNationalSecurise(personnage, montant, intSnapshot
     p_ville: ville, p_source: source, p_intention: intention
   });
 }
-function sbCreerPlacementNational(personnage, montant, intSnapshot, ville) {
-  return sbRpc('creer_placement_national', { p_personnage: personnage, p_montant: montant, p_int_snapshot: intSnapshot, p_ville: ville });
-}
 
 // RPC Helvetia H1 (chantier Banque Privee) -- signatures confirmees par sondage en lecture
 // seule contre les RPC reelles avant integration : ouvrir_compte_helvetia(text),
@@ -5613,19 +5611,6 @@ async function sbEnregistrerEvenementPublic(country, type, options) {
 // valeur de retour est CONTRACTUELLE : l'appelant doit la tester, l'archivage etant bloquant.
 async function sbArchiverEvenementUrbanisme(ligne) {
   return sbInsert('dossiers_urbanisme', ligne);
-}
-
-// VENTE DE MATERIAUX A UN CHANTIER (Lot 1.5.10). Autorite transactionnelle unique : la RPC relit
-// tout sous verrou et recalcule la quantite transferable -- rien de ce que le client annonce n'est
-// cru. Renvoie l'objet verdict, ou null si l'appel a echoue (RPC absente, reseau) : dans ce cas
-// AUCUNE ecriture n'a eu lieu, la transaction serveur ayant ete annulee en bloc.
-async function sbVendreMateriauxChantier(vendeur, country, buildingId, matiere, quantite, prix) {
-  const rows = await sbRpc('vendre_materiaux_chantier', {
-    p_vendeur: vendeur, p_country: country, p_building_id: buildingId,
-    p_matiere: matiere, p_quantite: quantite, p_prix: prix
-  });
-  if (!rows) return null;
-  return Array.isArray(rows) ? rows[0] : rows;
 }
 
 async function sbGetEvenementsUrbanisme(country, city, types) {
@@ -6492,8 +6477,8 @@ async function sbPnjMembresIci(pays, ville, building, room, rueNoeud) {
 
 // Quitter le groupe : la position est MATERIALISEE avant que le lien soit rompu, donc le PNJ
 // reste exactement la ou il etait. La propriete ne change pas.
-async function sbPnjQuitterGroupe(pnjIds) {
-  return await sbRpc('pnj_quitter_groupe', { p_ids: pnjIds });
+async function sbPnjQuitterGroupe(pnjIds, options) {
+  return await sbRpc('pnj_quitter_groupe', { p_ids: pnjIds }, options);
 }
 
 // =====================================================================
@@ -6570,15 +6555,41 @@ async function sbEmployeMesEmployes() {
 
 // Transferer la conduite a un autre leader. Co-presence exigee par le serveur, AUCUNE
 // acceptation du nouveau leader, et le PROPRIETAIRE NE CHANGE PAS.
-async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj) {
+async function sbPnjTransferer(pnjIds, destinataire, destinataireEstPnj, options) {
   return await sbRpc('pnj_transferer', {
     p_ids: pnjIds, p_dest: destinataire, p_dest_est_pnj: !!destinataireEstPnj
-  });
+  }, options);
 }
 
 // Reprendre dans son groupe des PNJ laisses sur place (co-presence exigee).
-async function sbPnjPrendre(pnjIds) {
-  return await sbRpc('pnj_prendre', { p_ids: pnjIds });
+async function sbPnjPrendre(pnjIds, options) {
+  return await sbRpc('pnj_prendre', { p_ids: pnjIds }, options);
+}
+
+// Rappel radio : même ville, autorité administrative et radios des deux côtés.
+// Le serveur recompose le groupe ; ne jamais simuler son déplacement côté client.
+async function sbPnjRappelerRadio(ancreId, options) {
+  return await sbRpc('pnj_rappeler_radio', { p_ancre: ancreId }, options);
+}
+
+function sbGroupePjValide(v, nom) {
+  return !!(v && v.ok === true && v.contrat === 1 && typeof v.chef === 'string'
+    && Array.isArray(v.membres) && v.membres.includes(nom) && v.membres.includes(v.chef)
+    && v.membres.every(n => typeof n === 'string' && n)
+    && new Set(v.membres).size === v.membres.length);
+}
+function sbGroupePjNormaliser(v, nom) {
+  if (!sbGroupePjValide(v, nom)) return null;
+  return v.membres.length > 1 ? { leader: v.chef, members: v.membres.slice() } : null;
+}
+
+// Projection d'autorité/commandement pour les consultations et rappels explicites.
+async function sbPnjUnitesAdministrablesLire() {
+  return await sbRpc('pnj_unites_administrables_lire', {});
+}
+
+async function sbGroupePjLire() {
+  return await sbRpc('groupe_pj_lire', {});
 }
 
 // DONNER / RETIRER de l'argent. 'donner' va du PJ vers le PNJ. Atomique cote serveur.

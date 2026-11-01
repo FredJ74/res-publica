@@ -159,6 +159,18 @@
    "tbl": "registre_ventes_armes"
   },
   {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "visuels_moderation_pkey",
+   "tbl": "visuels_moderation"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "visuels_versions_pkey",
+   "tbl": "visuels_versions"
+  },
+  {
    "empreinte": "95e5b16cd1aecbc59c3cb50441bee12a",
    "genre": "c",
    "nom": "actes_nocturnes_pays_non_vide",
@@ -207,6 +219,12 @@
    "tbl": "cron_journal"
   },
   {
+   "empreinte": "0a713b568deeb1db2127daa5fef4894e",
+   "genre": "c",
+   "nom": "visuels_versions_type_visuel_check",
+   "tbl": "visuels_versions"
+  },
+  {
    "empreinte": "aba4c51219e690d2aae1d555f907e3e6",
    "genre": "f",
    "nom": "actes_nocturnes_mecanisme_fkey",
@@ -235,6 +253,18 @@
    "genre": "f",
    "nom": "habilitations_postes_habilitation_fkey",
    "tbl": "habilitations_postes"
+  },
+  {
+   "empreinte": "5629fa2953aee69414510bffa5ee2d37",
+   "genre": "f",
+   "nom": "visuels_moderation_administrateur_user_id_fkey",
+   "tbl": "visuels_moderation"
+  },
+  {
+   "empreinte": "6d0b067fa2e346b7bc07e14d5f609f8e",
+   "genre": "f",
+   "nom": "visuels_versions_auteur_user_id_fkey",
+   "tbl": "visuels_versions"
   }
  ],
  "domaine": "divers et technique",
@@ -399,7 +429,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "ambassades_ouvertes",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -585,18 +615,66 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "registre_ventes_armes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "visuels_moderation",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "visuels_moderation",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "visuels_moderation",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "visuels_moderation",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "visuels_versions",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "visuels_versions",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "visuels_versions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "visuels_versions",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   }
  ],
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "d08d1587128034fefd4c380ad3644b0e",
-  "30_contraintes.sql": "a1bcad5766881a04982790a547bba5a2",
-  "35_index.sql": "766c84c5e94f0283f7998dfdddb0c794",
+  "10_tables.sql": "21d2c61967385a931bf1e2d619864b47",
+  "30_contraintes.sql": "8b08e509702af9e7fb44339d083ce1d2",
+  "35_index.sql": "f73a13b0976aab5382fc1be449dd9dc3",
   "50_triggers.sql": "f193002b8e488dd94777990af0582f7e",
-  "60_rls-policies.sql": "65a3ef5526d9033752ae50c83dd44ebb",
-  "70_droits.sql": "d651b7360912e90bff80acc35c014820",
+  "60_rls-policies.sql": "f16b8a0aeb9082a4d05505c1b5913531",
+  "70_droits.sql": "9a21a34a914e9950933f7ee451fe8728",
   "80_commentaires.sql": "959279d927075057f92d423016b18182"
  },
  "fonctions": [],
@@ -644,7 +722,9 @@
   "habilitations_postes_pkey",
   "propositions_diplomatiques_pkey",
   "purges_residus_bancs_pkey",
-  "registre_ventes_armes_pkey"
+  "registre_ventes_armes_pkey",
+  "visuels_moderation_pkey",
+  "visuels_versions_pkey"
  ],
  "ordre": [
   "10_tables.sql",
@@ -656,18 +736,6 @@
   "80_commentaires.sql"
  ],
  "policies": [
-  {
-   "empreinte": "38f1b924a9f12da38903efb17135ebab",
-   "empreinte_avec_roles": "b5e670f24eddbb9653475046661fbfb6",
-   "nom": "ambassade geree par l empire ou par l hote",
-   "tbl": "ambassades_ouvertes"
-  },
-  {
-   "empreinte": "f8aeec6ecdb2f58d7920ab3df39a2c6d",
-   "empreinte_avec_roles": "7c621c1cf8fa4d5161dcdc06f043cead",
-   "nom": "ambassade ouverte par les affaires etrangeres",
-   "tbl": "ambassades_ouvertes"
-  },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "3cd4e4ab9adc42b4c9dbaac201adabe3",
@@ -825,6 +893,16 @@
    "active": true,
    "forcee": false,
    "tbl": "registre_ventes_armes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "visuels_moderation"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "visuels_versions"
   }
  ],
  "sequences": [
@@ -845,13 +923,11 @@
   },
   {
    "nom": "registre_ventes_armes_id_seq",
-   "possedee": false,
+   "possedee": true,
    "tbl": "registre_ventes_armes"
   }
  ],
- "sequences_autonomes": [
-  "registre_ventes_armes_id_seq"
- ],
+ "sequences_autonomes": [],
  "tables": [
   {
    "colonnes": 6,
@@ -874,7 +950,7 @@
   {
    "colonnes": 11,
    "empreinte_catalogue": "026d8d6ff38340411ded12872e64b565",
-   "empreinte_texte": "993b87e7205821e32d9a88dccaf25abf",
+   "empreinte_texte": "23bcc791bdb994589315175951670839",
    "nom": "admin_journal"
   },
   {
@@ -922,7 +998,7 @@
   {
    "colonnes": 6,
    "empreinte_catalogue": "3d633b74ed458af8ff3f85cbd623ea00",
-   "empreinte_texte": "bca8391fd4ccac7e185544f29b16ed9e",
+   "empreinte_texte": "b8678ce7e5662595bf8f2084eac81e12",
    "nom": "evenements_globaux"
   },
   {
@@ -952,14 +1028,26 @@
   {
    "colonnes": 6,
    "empreinte_catalogue": "2bfc2450ffd4abb9703263d910f7edfa",
-   "empreinte_texte": "b08ff57fa55dcd8443e386f29dc068e0",
+   "empreinte_texte": "bd9c16856d234f985c9e87887d8202c4",
    "nom": "purges_residus_bancs"
   },
   {
    "colonnes": 9,
    "empreinte_catalogue": "04966b565f672cf506320dc085aa1b24",
-   "empreinte_texte": "1f74f5626b65fafd1e7653514fb26087",
+   "empreinte_texte": "37dcaa821c5af6c9adfe5727b0a278e3",
    "nom": "registre_ventes_armes"
+  },
+  {
+   "colonnes": 8,
+   "empreinte_catalogue": "6bbcde86b7f52386eeb4ffc2769924f8",
+   "empreinte_texte": "86c68f9334c060930d1052847e6bd0cc",
+   "nom": "visuels_moderation"
+  },
+  {
+   "colonnes": 7,
+   "empreinte_catalogue": "002cef9a22dd68cb422f2abd3ded2f15",
+   "empreinte_texte": "abd94be1b3f9e68a4479a1ccb2bfb9c0",
+   "nom": "visuels_versions"
   }
  ],
  "triggers": [

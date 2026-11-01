@@ -1,0 +1,14 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+postgres (PostgreSQL) 17.6
+{
+  "assertions": 36,
+  "ok": true,
+  "role_actions": "authenticated",
+  "production": false,
+  "limite": "Paiement protégé de la capture 1003 testé ; catalogue 1008 non reçu. Aucune conformité de production revendiquée.",
+  "diagnostic": {
+    "org_caisse": 700,
+    "fonction_paiement_md5": "ca7abc6ac27e864f723b25e73dacd665"
+  }
+}

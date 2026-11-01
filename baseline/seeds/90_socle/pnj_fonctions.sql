@@ -14,6 +14,22 @@
 -- Nature des PNJ du decor, fonction par fonction. Ne contient aucun PNJ.
 -- ============================================================================
 
+-- SEED -- pnj_fonctions
+-- ============================================================================
+-- Table      : public.pnj_fonctions
+-- Domaine    : socle PNJ
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 42
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Nature des PNJ du decor, fonction par fonction. Ne contient aucun PNJ.
+-- ============================================================================
+
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('avocat', 'gamma', 'false', 'false', 'decor', 'AUCUN PNJ ne porte cette fonction.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('banquier', 'gamma', 'false', 'false', 'dialogue', 'Decor bancaire.');
 INSERT INTO public.pnj_fonctions (fonction, classe_decor, metier_beta, recrutable, role_fonctionnel, note) VALUES ('barman', 'gamma', 'false', 'false', 'referent', 'Marin Dulac, au Bar des Pecheurs, est la source de l''ecoute de rumeurs.');

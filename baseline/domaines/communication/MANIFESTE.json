@@ -567,13 +567,13 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "df63a8ee1cf6eba96116250c1f3df90f",
+  "10_tables.sql": "149088c710d69fe9f8138686b5b07185",
   "20_fonctions.sql": "72f497d5fb029bb62565e11360bb7529",
   "30_contraintes.sql": "ffb3cb7d3394aec0ce27100db5a00323",
   "35_index.sql": "b559c9228e86ca7adf8f1da94fa01f5a",
-  "50_triggers.sql": "c5cf681c1026e8216ef862b99fa3f01b",
+  "50_triggers.sql": "3255365a6265f1e3ce450c5a2c7684b0",
   "60_rls-policies.sql": "7b2500087e51a183ef6bd439f4474a9b",
-  "70_droits.sql": "e2373296b26179a6d73ebb63b32af663",
+  "70_droits.sql": "5df8ddb476e21de9fc8f34ba02d19c38",
   "80_commentaires.sql": "0204fa2a12a22705ee75d1a4c021a4ea"
  },
  "fonctions": [
@@ -926,7 +926,7 @@
   {
    "colonnes": 7,
    "empreinte_catalogue": "0288a9cb536d8e9760223e0b405b0a13",
-   "empreinte_texte": "9e31d53b0648b9d5f557f673ab6f31c0",
+   "empreinte_texte": "aa67b50f31c4bca136a09d5bc0d73119",
    "nom": "mails_envois_systeme"
   },
   {
@@ -959,6 +959,12 @@
    "empreinte": "64d1d890b799c626d05a6a3cfe3be3f0",
    "fonction": "forum_verrou_message_ligue()",
    "nom": "trg_forum_verrou_message_ligue",
+   "tbl": "forum_posts"
+  },
+  {
+   "empreinte": "41284746117502a8d933237373d5561c",
+   "fonction": "jodie_portrait_vers_journal()",
+   "nom": "trg_jodie_portrait_vers_journal",
    "tbl": "forum_posts"
   },
   {

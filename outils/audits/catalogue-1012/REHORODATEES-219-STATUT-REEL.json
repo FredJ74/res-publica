@@ -1,0 +1,460 @@
+{
+ "_lisezmoi": "Statut RÉEL des 65 fichiers que CLASSEMENT-MIGRATIONS-219-20261031.json range en « preparation_sans_application_attestee_rehorodatee » : la règle « nom exact unique » manque les noms suffixés au registre (_94, _135, _AAAAMMJJ…). Relevé Claude 31/10/2026, lecture seule : name = base OR name LIKE base||'\\_%'. Les 6 fichiers de ce lot présents dans les 95 sont réellement non appliqués. Les copies « appliquee_sous_nom_suffixe » ne doivent PAS entrer dans migrations/ de main (cf. #299).",
+ "fichiers": [
+  {
+   "fichier_219": "migrations/20261031113546_reception_objets_atomique.sql",
+   "ancien": "migrations/20261016131932_reception_objets_atomique.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261019173918 reception_objets_atomique_20261019"
+  },
+  {
+   "fichier_219": "migrations/20261031113547_detention_jours_civils_universels.sql",
+   "ancien": "migrations/20261017180000_detention_jours_civils_universels.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261017155936 detention_jours_civils_universels_20261017"
+  },
+  {
+   "fichier_219": "migrations/20261031113548_fermetures_date_universelle.sql",
+   "ancien": "migrations/20261017190000_fermetures_date_universelle.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261017171648 fermetures_date_universelle_20261017"
+  },
+  {
+   "fichier_219": "migrations/20261031113549_police_interception_reprise_transactionnelle.sql",
+   "ancien": "migrations/20261018093000_police_interception_reprise_transactionnelle.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261018132701 police_interception_reprise_transactionnelle_20261018"
+  },
+  {
+   "fichier_219": "migrations/20261031113550_rue_sortie_batiment_autorite.sql",
+   "ancien": "migrations/20261018210000_rue_sortie_batiment_autorite.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261018190903 rue_sortie_batiment_autorite_20261018"
+  },
+  {
+   "fichier_219": "migrations/20261031113551_composants_electroniques_catalogue.sql",
+   "ancien": "migrations/20261018230000_composants_electroniques_catalogue.sql",
+   "dans_les_95": false,
+   "statut_reel": "probablement_appliquee_sous_autre_nom",
+   "registre": "20261018204909 catalogue_ordinateurs_telephones_commerce_20261018 ? (à confirmer)"
+  },
+  {
+   "fichier_219": "migrations/20261031113552_assemblage_composants_stocks_reels.sql",
+   "ancien": "migrations/20261018231225_assemblage_composants_stocks_reels.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261019202034 assemblage_composants_stocks_reels_20261019"
+  },
+  {
+   "fichier_219": "migrations/20261031113553_jodie_interview_forum_atomique.sql",
+   "ancien": "migrations/20261018231849_jodie_interview_forum_atomique.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261019190701 jodie_interview_forum_atomique_20261019"
+  },
+  {
+   "fichier_219": "migrations/20261031113554_assemblage_electronique.sql",
+   "ancien": "migrations/20261018234500_assemblage_electronique.sql",
+   "dans_les_95": false,
+   "statut_reel": "probablement_appliquee_sous_autre_nom",
+   "registre": "20261018214911 assemblage_informatique_composants_intermediaires ? (à confirmer)"
+  },
+  {
+   "fichier_219": "migrations/20261031113555_catalogue_informatique_dix_articles.sql",
+   "ancien": "migrations/20261019001000_catalogue_informatique_dix_articles.sql",
+   "dans_les_95": false,
+   "statut_reel": "probablement_appliquee_sous_autre_nom",
+   "registre": "20261018221908 catalogue_dix_articles_informatique_20261019 (nom réordonné, à confirmer par corps)"
+  },
+  {
+   "fichier_219": "migrations/20261031113556_jodie_portraits_forum_journal.sql",
+   "ancien": "migrations/20261019002000_jodie_portraits_forum_journal.sql",
+   "dans_les_95": false,
+   "statut_reel": "probablement_appliquee_sous_autre_nom",
+   "registre": "20261018223916 portrait_jodie_forum_et_journal (à confirmer)"
+  },
+  {
+   "fichier_219": "migrations/20261031113557_fortune_serveur_diagnostic.sql",
+   "ancien": "migrations/20261019003000_fortune_serveur_diagnostic.sql",
+   "dans_les_95": false,
+   "statut_reel": "probablement_appliquee_sous_autre_nom",
+   "registre": "20261018224645 diagnostic_fortune_serveur_seul (à confirmer)"
+  },
+  {
+   "fichier_219": "migrations/20261031113558_organisations_equipements_collectifs.sql",
+   "ancien": "migrations/20261019064000_organisations_equipements_collectifs.sql",
+   "dans_les_95": false,
+   "statut_reel": "non_appliquee",
+   "registre": null
+  },
+  {
+   "fichier_219": "migrations/20261031113559_achat_equipements_collectifs.sql",
+   "ancien": "migrations/20261019064500_achat_equipements_collectifs.sql",
+   "dans_les_95": false,
+   "statut_reel": "non_appliquee",
+   "registre": null
+  },
+  {
+   "fichier_219": "migrations/20261031113600_organisations_commandes_administratives.sql",
+   "ancien": "migrations/20261019094425_organisations_commandes_administratives.sql",
+   "dans_les_95": true,
+   "statut_reel": "non_appliquee",
+   "registre": null
+  },
+  {
+   "fichier_219": "migrations/20261031113601_psm_aller_retour_rues_serveur.sql",
+   "ancien": "migrations/20261019115000_psm_aller_retour_rues_serveur.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261019094621 psm_aller_retour_rues_serveur_20261019"
+  },
+  {
+   "fichier_219": "migrations/20261031113602_organisations_adhesions_grades.sql",
+   "ancien": "migrations/20261019130213_organisations_adhesions_grades.sql",
+   "dans_les_95": true,
+   "statut_reel": "non_appliquee",
+   "registre": null
+  },
+  {
+   "fichier_219": "migrations/20261031113603_organisations_progression_elections.sql",
+   "ancien": "migrations/20261019130951_organisations_progression_elections.sql",
+   "dans_les_95": true,
+   "statut_reel": "non_appliquee",
+   "registre": null
+  },
+  {
+   "fichier_219": "migrations/20261031113604_organisations_invitations_elections_atomiques.sql",
+   "ancien": "migrations/20261019132431_organisations_invitations_elections_atomiques.sql",
+   "dans_les_95": true,
+   "statut_reel": "non_appliquee",
+   "registre": null
+  },
+  {
+   "fichier_219": "migrations/20261031113605_organisations_refus_silencieux.sql",
+   "ancien": "migrations/20261019132908_organisations_refus_silencieux.sql",
+   "dans_les_95": true,
+   "statut_reel": "non_appliquee",
+   "registre": null
+  },
+  {
+   "fichier_219": "migrations/20261031113606_psm_supprimer_autoliaison_carrefour.sql",
+   "ancien": "migrations/20261019162000_psm_supprimer_autoliaison_carrefour.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261019132604 psm_supprimer_autoliaison_carrefour_artisanal_20261019"
+  },
+  {
+   "fichier_219": "migrations/20261031113607_catalogue_et_offrir_a_boire.sql",
+   "ancien": "migrations/20261019213444_catalogue_et_offrir_a_boire.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261019215702 catalogue_et_offrir_a_boire_fusion_20261019"
+  },
+  {
+   "fichier_219": "migrations/20261031113608_luthecia_cartes_et_diners.sql",
+   "ancien": "migrations/20261019221500_luthecia_cartes_et_diners.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261019223039 luthecia_cartes_et_diners_20261020"
+  },
+  {
+   "fichier_219": "migrations/20261031113609_reservation_republica_accueil.sql",
+   "ancien": "migrations/20261020114246_reservation_republica_accueil.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261020150443 reservation_republica_accueil_20261020"
+  },
+  {
+   "fichier_219": "migrations/20261031113610_construction_materiaux_prix_et_dons.sql",
+   "ancien": "migrations/20261020214955_construction_materiaux_prix_et_dons.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164824 construction_materiaux_prix_et_dons_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113611_construction_lancement_priorite_bancaire.sql",
+   "ancien": "migrations/20261020222029_construction_lancement_priorite_bancaire.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164839 construction_lancement_priorite_bancaire_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113612_chantier_financeurs_et_appels.sql",
+   "ancien": "migrations/20261022123319_chantier_financeurs_et_appels.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164844 chantier_financeurs_et_appels_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113613_chantier_jour_transactionnel.sql",
+   "ancien": "migrations/20261022123320_chantier_jour_transactionnel.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164848 chantier_jour_transactionnel_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113614_chantier_approvisionnement_caisse_unique.sql",
+   "ancien": "migrations/20261022123321_chantier_approvisionnement_caisse_unique.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164853 chantier_approvisionnement_caisse_unique_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113615_chantier_autorite_et_recus.sql",
+   "ancien": "migrations/20261022124055_chantier_autorite_et_recus.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164857 chantier_autorite_et_recus_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113616_chantier_commandes_et_reception.sql",
+   "ancien": "migrations/20261022124056_chantier_commandes_et_reception.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164901 chantier_commandes_et_reception_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113617_chantier_recu_relecture.sql",
+   "ancien": "migrations/20261022125121_chantier_recu_relecture.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164905 chantier_recu_relecture_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113618_chantier_fermer_commandes_non_versionnees.sql",
+   "ancien": "migrations/20261022125728_chantier_fermer_commandes_non_versionnees.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164911 chantier_fermer_commandes_non_versionnees_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113619_chantier_plan_initial.sql",
+   "ancien": "migrations/20261022125942_chantier_plan_initial.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164915 chantier_plan_initial_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113620_chantier_plan_raccordement.sql",
+   "ancien": "migrations/20261022125943_chantier_plan_raccordement.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164919 chantier_plan_raccordement_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113621_chantier_gardes_legacy_et_travail.sql",
+   "ancien": "migrations/20261022130417_chantier_gardes_legacy_et_travail.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164934 chantier_gardes_legacy_et_travail_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113622_chantier_travail_versionne.sql",
+   "ancien": "migrations/20261022130418_chantier_travail_versionne.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164938 chantier_travail_versionne_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113623_chantier_prix_representants.sql",
+   "ancien": "migrations/20261022130419_chantier_prix_representants.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164942 chantier_prix_representants_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113624_construction_delais_quatre_empires.sql",
+   "ancien": "migrations/20261022143001_construction_delais_quatre_empires.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164946 construction_delais_quatre_empires_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113625_placement_national_idempotent.sql",
+   "ancien": "migrations/20261022211000_placement_national_idempotent.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261022182154 placement_national_idempotent_sources"
+  },
+  {
+   "fichier_219": "migrations/20261031113626_permis_depot_transactionnel.sql",
+   "ancien": "migrations/20261022220516_permis_depot_transactionnel.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164319 permis_depot_transactionnel_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113627_terrain_occupation_visites.sql",
+   "ancien": "migrations/20261022222907_terrain_occupation_visites.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261023164414 terrain_occupation_visites_94"
+  },
+  {
+   "fichier_219": "migrations/20261031113628_prets_nationaux_moteur_credit_commun.sql",
+   "ancien": "migrations/20261024121400_prets_nationaux_moteur_credit_commun.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190147 prets_nationaux_moteur_credit_commun_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113629_prets_nationaux_commandes_versionnees.sql",
+   "ancien": "migrations/20261024121900_prets_nationaux_commandes_versionnees.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190202 prets_nationaux_commandes_versionnees_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113630_acquisitions_capacites_et_gardes.sql",
+   "ancien": "migrations/20261024122600_acquisitions_capacites_et_gardes.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190205 acquisitions_capacites_et_gardes_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113631_compromis_financement_reel.sql",
+   "ancien": "migrations/20261024123500_compromis_financement_reel.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190210 compromis_financement_reel_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113632_terrains_referentiel_acquisition.sql",
+   "ancien": "migrations/20261024123600_terrains_referentiel_acquisition.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190214 terrains_referentiel_acquisition_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113633_terrain_acquisition_commandes.sql",
+   "ancien": "migrations/20261024123700_terrain_acquisition_commandes.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190218 terrain_acquisition_commandes_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113634_terrain_banque_relecture_recus.sql",
+   "ancien": "migrations/20261024123800_terrain_banque_relecture_recus.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190221 terrain_banque_relecture_recus_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113635_prets_nationaux_echeances_atomiques.sql",
+   "ancien": "migrations/20261024124000_prets_nationaux_echeances_atomiques.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190225 prets_nationaux_echeances_atomiques_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113636_prets_versionnes_fermer_ecritures_directes.sql",
+   "ancien": "migrations/20261024124100_prets_versionnes_fermer_ecritures_directes.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190239 prets_versionnes_fermer_ecritures_directes_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113637_acquisitions_depots_attestes.sql",
+   "ancien": "migrations/20261024131720_acquisitions_depots_attestes.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190243 acquisitions_depots_attestes_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113638_financement_compromis_termes_attestes.sql",
+   "ancien": "migrations/20261024132140_financement_compromis_termes_attestes.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190246 financement_compromis_termes_attestes_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113639_terrain_vente_archive_reference_acte.sql",
+   "ancien": "migrations/20261024133310_terrain_vente_archive_reference_acte.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190250 terrain_vente_archive_reference_acte_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113640_permis_instruction_transactionnelle_acquisitions.sql",
+   "ancien": "migrations/20261024134528_permis_instruction_transactionnelle_acquisitions.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190254 permis_instruction_transactionnelle_acquisitions_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113641_acquisition_refus_rollback_financement.sql",
+   "ancien": "migrations/20261024135353_acquisition_refus_rollback_financement.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190258 acquisition_refus_rollback_financement_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113642_permis_instruction_compatibilite_archives.sql",
+   "ancien": "migrations/20261024140140_permis_instruction_compatibilite_archives.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261025190302 permis_instruction_compatibilite_archives_135"
+  },
+  {
+   "fichier_219": "migrations/20261031113643_terrain_visites_fermeture_changement_ville.sql",
+   "ancien": "migrations/20261027104800_terrain_visites_fermeture_changement_ville.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261027105903 terrain_visites_fermeture_changement_ville_20261027"
+  },
+  {
+   "fichier_219": "migrations/20261031113644_hotels_nuitees_cumulables.sql",
+   "ancien": "migrations/20261027193000_hotels_nuitees_cumulables.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261027192130 hotels_nuitees_cumulables_20261027"
+  },
+  {
+   "fichier_219": "migrations/20261031113645_hotels_encaissement_et_nuitees.sql",
+   "ancien": "migrations/20261027200500_hotels_encaissement_et_nuitees.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261027202859 hotels_encaissement_et_nuitees_20261027"
+  },
+  {
+   "fichier_219": "migrations/20261031113646_hotels_republica_nuitees.sql",
+   "ancien": "migrations/20261027200600_hotels_republica_nuitees.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261027202908 hotels_republica_nuitees_20261027"
+  },
+  {
+   "fichier_219": "migrations/20261031113647_hotels_bonus_nuitee.sql",
+   "ancien": "migrations/20261027200700_hotels_bonus_nuitee.sql",
+   "dans_les_95": false,
+   "statut_reel": "appliquee_sous_nom_suffixe",
+   "registre": "20261027202913 hotels_bonus_nuitee_20261027"
+  },
+  {
+   "fichier_219": "migrations/20261031113648_inventaire_kompromats_vol_materiaux.sql",
+   "ancien": "migrations/20261028220000_inventaire_kompromats_vol_materiaux.sql",
+   "dans_les_95": false,
+   "statut_reel": "probablement_appliquee_sous_autre_nom",
+   "registre": "20261028211659 inventaire_kompromats + 20261028211725 inventaire_vol_materiaux_et_redaction (à confirmer)"
+  },
+  {
+   "fichier_219": "migrations/20261031113649_inventaire_verrou_final.sql",
+   "ancien": "migrations/20261028230100_inventaire_verrou_final.sql",
+   "dans_les_95": false,
+   "statut_reel": "non_appliquee",
+   "registre": null
+  },
+  {
+   "fichier_219": "migrations/20261031113650_squatteurs_issue_combat.sql",
+   "ancien": "migrations/20261029181000_squatteurs_issue_combat.sql",
+   "dans_les_95": true,
+   "statut_reel": "non_appliquee",
+   "registre": null
+  }
+ ]
+}

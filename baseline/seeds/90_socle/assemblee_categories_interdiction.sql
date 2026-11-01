@@ -14,6 +14,22 @@
 -- 22 categories d'interdiction legislative.
 -- ============================================================================
 
+-- SEED -- assemblee_categories_interdiction
+-- ============================================================================
+-- Table      : public.assemblee_categories_interdiction
+-- Domaine    : assemblee
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 22
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 22 categories d'interdiction legislative.
+-- ============================================================================
+
 INSERT INTO public.assemblee_categories_interdiction (categorie, label, matieres, types_objet, sous_types) VALUES ('alcools', 'Alcools', '{alcool}', '{}', '{}');
 INSERT INTO public.assemblee_categories_interdiction (categorie, label, matieres, types_objet, sous_types) VALUES ('armes', 'Armes (large)', '{}', '{arme}', '{}');
 INSERT INTO public.assemblee_categories_interdiction (categorie, label, matieres, types_objet, sous_types) VALUES ('armes_a_feu', 'Armes à feu', '{}', '{arme}', '{poing,carabine}');

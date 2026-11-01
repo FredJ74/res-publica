@@ -10,6 +10,12 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."admin_journal_rang_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."evenements_globaux_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."purges_residus_bancs_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
 CREATE TABLE public.actes_nocturnes (
   pays text NOT NULL,
   mecanisme text NOT NULL,
@@ -36,7 +42,7 @@ CREATE TABLE public.admin_actions_tribunal (
 );
 
 CREATE TABLE public.admin_journal (
-  rang bigserial NOT NULL,
+  rang bigint DEFAULT nextval('admin_journal_rang_seq'::regclass) NOT NULL,
   admin_user_id uuid NOT NULL,
   admin_libelle text,
   pnj text,
@@ -107,7 +113,7 @@ CREATE TABLE public.etats_urgence (
 );
 
 CREATE TABLE public.evenements_globaux (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('evenements_globaux_id_seq'::regclass) NOT NULL,
   country text NOT NULL,
   city text,
   texte text NOT NULL,
@@ -139,7 +145,7 @@ CREATE TABLE public.propositions_diplomatiques (
 );
 
 CREATE TABLE public.purges_residus_bancs (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('purges_residus_bancs_id_seq'::regclass) NOT NULL,
   table_source text NOT NULL,
   cle text,
   contenu jsonb NOT NULL,
@@ -148,7 +154,7 @@ CREATE TABLE public.purges_residus_bancs (
 );
 
 CREATE TABLE public.registre_ventes_armes (
-  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  id bigint GENERATED ALWAYS AS IDENTITY (SEQUENCE NAME public."registre_ventes_armes_id_seq" START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE) NOT NULL,
   joueur text NOT NULL,
   arme text NOT NULL,
   prix integer NOT NULL,
@@ -159,7 +165,29 @@ CREATE TABLE public.registre_ventes_armes (
   city text
 );
 
+CREATE TABLE public.visuels_moderation (
+  id uuid DEFAULT gen_random_uuid() NOT NULL,
+  type_visuel text NOT NULL,
+  objet_id text NOT NULL,
+  chemin_original text NOT NULL,
+  chemin_archive text,
+  motif text NOT NULL,
+  administrateur_user_id uuid NOT NULL,
+  retire_le timestamp with time zone DEFAULT now() NOT NULL
+);
 
--- Sequences autonomes (non possedees par une colonne)
+CREATE TABLE public.visuels_versions (
+  id uuid DEFAULT gen_random_uuid() NOT NULL,
+  type_visuel text NOT NULL,
+  objet_id text NOT NULL,
+  image_path text NOT NULL,
+  auteur_user_id uuid,
+  action text NOT NULL,
+  cree_le timestamp with time zone DEFAULT now() NOT NULL
+);
 
-CREATE SEQUENCE public.registre_ventes_armes_id_seq;
+ALTER SEQUENCE public."admin_journal_rang_seq" OWNED BY public."admin_journal"."rang";
+
+ALTER SEQUENCE public."evenements_globaux_id_seq" OWNED BY public."evenements_globaux"."id";
+
+ALTER SEQUENCE public."purges_residus_bancs_id_seq" OWNED BY public."purges_residus_bancs"."id";

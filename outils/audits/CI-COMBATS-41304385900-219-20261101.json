@@ -1,0 +1,675 @@
+{
+  "source_ci_signalee": {
+    "run": 41304385900,
+    "job": 124841689748,
+    "sha": "85396976",
+    "etape": 43,
+    "journaux": "extraits fournis par l’intégrateur, accès API direct refusé"
+  },
+  "correction": "isolation des deux PNJ fictifs au début de chaque scène civile ; aucune contrainte ni logique métier serveur modifiée",
+  "reproduction_avant": {
+    "tests": 379,
+    "reussis": 375,
+    "moteur": {
+      "server_version_num": "160002",
+      "icu_en_US_stockee_et_actuelle": null,
+      "binaires_explicites": false
+    },
+    "echecs": [
+      {
+        "cas": "civil_cibler_un_accompagnant_engage_le_groupe_reel_et_son_chef",
+        "type": "CheckViolation",
+        "fichier": "outils/bancs/banc-groupes-universels-local.py",
+        "ligne": 112,
+        "message": "new row for relation \"pnj_membres\" violates check constraint \"pnj_mort_sans_leader\""
+      },
+      {
+        "cas": "civil_PNJ_gamma_protege_meme_par_appel_direct",
+        "type": "AssertionError",
+        "fichier": "outils/bancs/banc-groupes-universels-local.py",
+        "ligne": 119,
+        "message": "{'ok': False, 'raison': 'cible_non_referencee'}"
+      },
+      {
+        "cas": "armee_recrutement_et_round_mixte_preserves_apres_extraction_commune",
+        "type": "AssertionError",
+        "fichier": "outils/bancs/banc-combat-civil-universel-local.py",
+        "ligne": 242,
+        "message": "AssertionError à outils/bancs/banc-combat-civil-universel-local.py:242"
+      },
+      {
+        "cas": "civil_nom_PNJ_unique_resolu_vers_identite_canonique",
+        "type": "AssertionError",
+        "fichier": "outils/bancs/banc-groupes-universels-local.py",
+        "ligne": 118,
+        "message": "{'ok': False, 'raison': 'cible_non_referencee'}"
+      }
+    ]
+  },
+  "apres_pg16": {
+    "tests": 380,
+    "reussis": 380,
+    "moteur": {
+      "server_version_num": "160002",
+      "icu_en_US_stockee_et_actuelle": null,
+      "binaires_explicites": false
+    },
+    "echecs": []
+  },
+  "apres_pg17": {
+    "tests": 380,
+    "reussis": 380,
+    "moteur": {
+      "server_version_num": "170006",
+      "icu_en_US_stockee_et_actuelle": [
+        "153.121",
+        "153.121"
+      ],
+      "binaires_explicites": true
+    },
+    "echecs": []
+  },
+  "contre_retrait_correction_pg17": {
+    "tests": 380,
+    "reussis": 376,
+    "moteur": {
+      "server_version_num": "170006",
+      "icu_en_US_stockee_et_actuelle": [
+        "153.121",
+        "153.121"
+      ],
+      "binaires_explicites": true
+    },
+    "echecs": [
+      {
+        "cas": "civil_cibler_un_accompagnant_engage_le_groupe_reel_et_son_chef",
+        "type": "CheckViolation",
+        "fichier": "outils/bancs/banc-groupes-universels-local.py",
+        "ligne": 112,
+        "message": "new row for relation \"pnj_membres\" violates check constraint \"pnj_mort_sans_leader\""
+      },
+      {
+        "cas": "civil_PNJ_gamma_protege_meme_par_appel_direct",
+        "type": "AssertionError",
+        "fichier": "outils/bancs/banc-groupes-universels-local.py",
+        "ligne": 119,
+        "message": "{'ok': False, 'raison': 'cible_non_referencee'}"
+      },
+      {
+        "cas": "armee_recrutement_et_round_mixte_preserves_apres_extraction_commune",
+        "type": "AssertionError",
+        "fichier": "outils/bancs/banc-combat-civil-universel-local.py",
+        "ligne": 260,
+        "message": "AssertionError à outils/bancs/banc-combat-civil-universel-local.py:260"
+      },
+      {
+        "cas": "civil_nom_PNJ_unique_resolu_vers_identite_canonique",
+        "type": "AssertionError",
+        "fichier": "outils/bancs/banc-groupes-universels-local.py",
+        "ligne": 118,
+        "message": "{'ok': False, 'raison': 'cible_non_referencee'}"
+      }
+    ]
+  },
+  "chaine_locale": {
+    "etapes": [
+      {
+        "etape": 5,
+        "nom": "Syntaxe des fonctions API, sans appel distant",
+        "code": 0,
+        "secondes": 0.874,
+        "journal": "05-Syntaxe-des-fonctions-API-sans-appel-distant.log"
+      },
+      {
+        "etape": 6,
+        "nom": "Portraits Jodie dans le journal quotidien",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "06-Portraits-Jodie-dans-le-journal-quotidien.log"
+      },
+      {
+        "etape": 7,
+        "nom": "Portrait Jodie — autorisation, contenu signé, anti-doublons",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "07-Portrait-Jodie-autorisation-contenu-sign-anti-doublons.log"
+      },
+      {
+        "etape": 11,
+        "nom": "Commerce Premium PSM après lecture des baux",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "11-Commerce-Premium-PSM-apr-s-lecture-des-baux.log"
+      },
+      {
+        "etape": 12,
+        "nom": "Boutiques PSM — mêmes ordres et variantes que Luthécia",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "12-Boutiques-PSM-m-mes-ordres-et-variantes-que-Luth-cia.log"
+      },
+      {
+        "etape": 13,
+        "nom": "Garde du pays et de la ville serveur après F5",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "13-Garde-du-pays-et-de-la-ville-serveur-apr-s-F5.log"
+      },
+      {
+        "etape": 14,
+        "nom": "Rumeurs contre organisations secrètes — confidentialité",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "14-Rumeurs-contre-organisations-secr-tes-confidentialit-.log"
+      },
+      {
+        "etape": 15,
+        "nom": "Bancs JavaScript, transports simulés",
+        "code": 0,
+        "secondes": 87.297,
+        "journal": "15-Bancs-JavaScript-transports-simul-s.log"
+      },
+      {
+        "etape": 16,
+        "nom": "Destinations du centre multimodal",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "16-Destinations-du-centre-multimodal.log"
+      },
+      {
+        "etape": 17,
+        "nom": "Signature chez le notaire, solde encaissé par le serveur seul",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "17-Signature-chez-le-notaire-solde-encaiss-par-le-serveur-seul.log"
+      },
+      {
+        "etape": 18,
+        "nom": "Squatteurs et cadavres, police et dissimulation décidées par le serveur",
+        "code": 0,
+        "secondes": 0.315,
+        "journal": "18-Squatteurs-et-cadavres-police-et-dissimulation-d-cid-es-par-le-serveur.log"
+      },
+      {
+        "etape": 19,
+        "nom": "Caisses communales à l'accueil, ordre de l'Hôtel de Ville retiré",
+        "code": 0,
+        "secondes": 0.115,
+        "journal": "19-Caisses-communales-l-accueil-ordre-de-l-H-tel-de-Ville-retir-.log"
+      },
+      {
+        "etape": 20,
+        "nom": "Publications forum institutionnelles acceptées par la base (sondage, affaire, retrait)",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "20-Publications-forum-institutionnelles-accept-es-par-la-base-sondage-affaire-retrait-.log"
+      },
+      {
+        "etape": 21,
+        "nom": "Avis personnels signés d'expéditeurs déclarés",
+        "code": 0,
+        "secondes": 0.165,
+        "journal": "21-Avis-personnels-sign-s-d-exp-diteurs-d-clar-s.log"
+      },
+      {
+        "etape": 22,
+        "nom": "Purge certifiée et manifeste 95 migrations avant livraison",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "22-Purge-certifi-e-et-manifeste-95-migrations-avant-livraison.log"
+      },
+      {
+        "etape": 23,
+        "nom": "Caisses des clubs et organisations tenues par le serveur (écran,",
+        "code": 0,
+        "secondes": 0.114,
+        "journal": "23-Caisses-des-clubs-et-organisations-tenues-par-le-serveur-cran-.log"
+      },
+      {
+        "etape": 24,
+        "nom": "Caisses entières, dialogues lisibles et genre non supposé",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "24-Caisses-enti-res-dialogues-lisibles-et-genre-non-suppos-.log"
+      },
+      {
+        "etape": 25,
+        "nom": "Fiche PJ jamais autoritaire (fusion à trois voies, double clic, réponse perdue)",
+        "code": 0,
+        "secondes": 15.622,
+        "journal": "25-Fiche-PJ-jamais-autoritaire-fusion-trois-voies-double-clic-r-ponse-perdue-.log"
+      },
+      {
+        "etape": 26,
+        "nom": "Création de personnage après réponse réseau perdue",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "26-Cr-ation-de-personnage-apr-s-r-ponse-r-seau-perdue.log"
+      },
+      {
+        "etape": 27,
+        "nom": "Genre du personnage dans les dialogues PNJ (handler réel, IA simulée)",
+        "code": 0,
+        "secondes": 0.215,
+        "journal": "27-Genre-du-personnage-dans-les-dialogues-PNJ-handler-r-el-IA-simul-e-.log"
+      },
+      {
+        "etape": 28,
+        "nom": "Régression de sortie de bâtiment avec réponse perdue",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "28-R-gression-de-sortie-de-b-timent-avec-r-ponse-perdue.log"
+      },
+      {
+        "etape": 29,
+        "nom": "Refus serveur des ajouts d'inventaire et reprise client sans écrasement",
+        "code": 0,
+        "secondes": 0.064,
+        "journal": "29-Refus-serveur-des-ajouts-d-inventaire-et-reprise-client-sans-crasement.log"
+      },
+      {
+        "etape": 30,
+        "nom": "Pilote joueur, fixtures locales sans compte ni Supabase",
+        "code": 0,
+        "secondes": 19.032,
+        "journal": "30-Pilote-joueur-fixtures-locales-sans-compte-ni-Supabase.log"
+      },
+      {
+        "etape": 31,
+        "nom": "Exports canoniques complets et reconstruction des séquences, PostgreSQL jetable",
+        "code": 0,
+        "secondes": 5.907,
+        "journal": "31-Exports-canoniques-complets-et-reconstruction-des-s-quences-PostgreSQL-jetable.log"
+      },
+      {
+        "etape": 32,
+        "nom": "Cinq commandes organisations, paiements protégés et rollback indivisible",
+        "code": 0,
+        "secondes": 1.523,
+        "journal": "32-Cinq-commandes-organisations-paiements-prot-g-s-et-rollback-indivisible.log"
+      },
+      {
+        "etape": 33,
+        "nom": "Réconciliation des tarifs et refus du couple gilet 0 PA/600 FR",
+        "code": 0,
+        "secondes": 2.579,
+        "journal": "33-R-conciliation-des-tarifs-et-refus-du-couple-gilet-0-PA-600-FR.log"
+      },
+      {
+        "etape": 34,
+        "nom": "Relais canonique exact, snapshot et exclusion des fichiers privés",
+        "code": 0,
+        "secondes": 1.574,
+        "journal": "34-Relais-canonique-exact-snapshot-et-exclusion-des-fichiers-priv-s.log"
+      },
+      {
+        "etape": 35,
+        "nom": "Caisses collectives sur PostgreSQL jetable, contre-épreuve et fermeture (#295)",
+        "code": 0,
+        "secondes": 1.368,
+        "journal": "35-Caisses-collectives-sur-PostgreSQL-jetable-contre--preuve-et-fermeture-295-.log"
+      },
+      {
+        "etape": 36,
+        "nom": "Verrou final inventaire sur PostgreSQL jetable, données fictives",
+        "code": 0,
+        "secondes": 1.471,
+        "journal": "36-Verrou-final-inventaire-sur-PostgreSQL-jetable-donn-es-fictives.log"
+      },
+      {
+        "etape": 37,
+        "nom": "Audit Arnie sur PostgreSQL jetable, aucune identite reelle",
+        "code": 0,
+        "secondes": 1.473,
+        "journal": "37-Audit-Arnie-sur-PostgreSQL-jetable-aucune-identite-reelle.log"
+      },
+      {
+        "etape": 38,
+        "nom": "Groupes et batailles mixtes sur PostgreSQL jetable",
+        "code": 0,
+        "secondes": 8.751,
+        "journal": "38-Groupes-et-batailles-mixtes-sur-PostgreSQL-jetable.log"
+      },
+      {
+        "etape": 39,
+        "nom": "Contrôles policiers ordinaires et sanctions atomiques sur PostgreSQL jetable",
+        "code": 0,
+        "secondes": 9.207,
+        "journal": "39-Contr-les-policiers-ordinaires-et-sanctions-atomiques-sur-PostgreSQL-jetable.log"
+      },
+      {
+        "etape": 40,
+        "nom": "Cinq rounds, commandement et fuites directionnelles sur PostgreSQL jetable",
+        "code": 0,
+        "secondes": 10.275,
+        "journal": "40-Cinq-rounds-commandement-et-fuites-directionnelles-sur-PostgreSQL-jetable.log"
+      },
+      {
+        "etape": 41,
+        "nom": "Replis, calendrier et anciens camions sur les corps SQL communiqués",
+        "code": 0,
+        "secondes": 10.956,
+        "journal": "41-Replis-calendrier-et-anciens-camions-sur-les-corps-SQL-communiqu-s.log"
+      },
+      {
+        "etape": 42,
+        "nom": "Combats civils et squatteurs dans les mêmes rounds, PostgreSQL jetable",
+        "code": 0,
+        "secondes": 12.307,
+        "journal": "42-Combats-civils-et-squatteurs-dans-les-m-mes-rounds-PostgreSQL-jetable.log"
+      },
+      {
+        "etape": 43,
+        "nom": "Audit securite privee et groupes sur PostgreSQL jetable",
+        "code": 0,
+        "secondes": 1.368,
+        "journal": "43-Audit-securite-privee-et-groupes-sur-PostgreSQL-jetable.log"
+      },
+      {
+        "etape": 44,
+        "nom": "Achat sur PostgreSQL local, sans identifiant Supabase",
+        "code": 0,
+        "secondes": 1.518,
+        "journal": "44-Achat-sur-PostgreSQL-local-sans-identifiant-Supabase.log"
+      },
+      {
+        "etape": 45,
+        "nom": "Restaurant gastronomique sur PostgreSQL local, sans identifiant Supabase",
+        "code": 0,
+        "secondes": 1.418,
+        "journal": "45-Restaurant-gastronomique-sur-PostgreSQL-local-sans-identifiant-Supabase.log"
+      },
+      {
+        "etape": 46,
+        "nom": "Reservation Republica, accueil et persistance atomique hors production",
+        "code": 0,
+        "secondes": 1.288,
+        "journal": "46-Reservation-Republica-accueil-et-persistance-atomique-hors-production.log"
+      },
+      {
+        "etape": 47,
+        "nom": "Catalogue et tournée sur PostgreSQL local, sans identifiant Supabase",
+        "code": 0,
+        "secondes": 1.423,
+        "journal": "47-Catalogue-et-tourn-e-sur-PostgreSQL-local-sans-identifiant-Supabase.log"
+      },
+      {
+        "etape": 48,
+        "nom": "Réception atomique sur PostgreSQL local, sans identifiant Supabase",
+        "code": 0,
+        "secondes": 1.418,
+        "journal": "48-R-ception-atomique-sur-PostgreSQL-local-sans-identifiant-Supabase.log"
+      },
+      {
+        "etape": 49,
+        "nom": "Receptions inventaire au role authenticated, PostgreSQL jetable",
+        "code": 0,
+        "secondes": 24.406,
+        "journal": "49-Receptions-inventaire-au-role-authenticated-PostgreSQL-jetable.log"
+      },
+      {
+        "etape": 50,
+        "nom": "Assemblage electronique sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.471,
+        "journal": "50-Assemblage-electronique-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 51,
+        "nom": "Publications Jodie sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.427,
+        "journal": "51-Publications-Jodie-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 52,
+        "nom": "Commandes administratives organisations sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.418,
+        "journal": "52-Commandes-administratives-organisations-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 53,
+        "nom": "Adhesions et grades organisations sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.471,
+        "journal": "53-Adhesions-et-grades-organisations-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 54,
+        "nom": "Invitations et elections avec paiement reel sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.42,
+        "journal": "54-Invitations-et-elections-avec-paiement-reel-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 55,
+        "nom": "Coherence rues et sorties sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.272,
+        "journal": "55-Coherence-rues-et-sorties-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 56,
+        "nom": "Equipements collectifs sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.419,
+        "journal": "56-Equipements-collectifs-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 57,
+        "nom": "Fontaine de chocolat, garde serveur sur PostgreSQL jetable",
+        "code": 0,
+        "secondes": 1.271,
+        "journal": "57-Fontaine-de-chocolat-garde-serveur-sur-PostgreSQL-jetable.log"
+      },
+      {
+        "etape": 58,
+        "nom": "Placements nationaux atomiques et idempotents sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.269,
+        "journal": "58-Placements-nationaux-atomiques-et-idempotents-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 59,
+        "nom": "Journal des ventes prive, PostgreSQL jetable",
+        "code": 0,
+        "secondes": 1.268,
+        "journal": "59-Journal-des-ventes-prive-PostgreSQL-jetable.log"
+      },
+      {
+        "etape": 60,
+        "nom": "Depot de permis indivisible sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.319,
+        "journal": "60-Depot-de-permis-indivisible-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 61,
+        "nom": "Negociation des squatteurs atomique sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.422,
+        "journal": "61-Negociation-des-squatteurs-atomique-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 62,
+        "nom": "Achat Ced atomique et quota football au jour commun sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.369,
+        "journal": "62-Achat-Ced-atomique-et-quota-football-au-jour-commun-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 63,
+        "nom": "Occupation persistante des terrains sur PostgreSQL local",
+        "code": 0,
+        "secondes": 1.268,
+        "journal": "63-Occupation-persistante-des-terrains-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 64,
+        "nom": "Construction et materiaux atomiques sur PostgreSQL local",
+        "code": 0,
+        "secondes": 2.894,
+        "journal": "64-Construction-et-materiaux-atomiques-sur-PostgreSQL-local.log"
+      },
+      {
+        "etape": 65,
+        "nom": "Chaîne immobilière complète sur PostgreSQL jetable, cinq terrains",
+        "code": 0,
+        "secondes": 2.121,
+        "journal": "65-Cha-ne-immobili-re-compl-te-sur-PostgreSQL-jetable-cinq-terrains.log"
+      },
+      {
+        "etape": 66,
+        "nom": "Prime de signature adoptée du serveur (écran, double clic, réponse perdue)",
+        "code": 0,
+        "secondes": 0.115,
+        "journal": "66-Prime-de-signature-adopt-e-du-serveur-cran-double-clic-r-ponse-perdue-.log"
+      },
+      {
+        "etape": 67,
+        "nom": "Prime de signature sur PostgreSQL jetable, contre-épreuve (20261031220000)",
+        "code": 0,
+        "secondes": 1.368,
+        "journal": "67-Prime-de-signature-sur-PostgreSQL-jetable-contre--preuve-20261031220000-.log"
+      },
+      {
+        "etape": 68,
+        "nom": "Organisations, étape A préparée sur PostgreSQL jetable (20261031230000, non appliquée)",
+        "code": 0,
+        "secondes": 1.423,
+        "journal": "68-Organisations-tape-A-pr-par-e-sur-PostgreSQL-jetable-20261031230000-non-appliqu-e-.log"
+      }
+    ],
+    "ci_distante": false,
+    "actions_setup_checkout_installation": "non rejouées ; dépendances déjà présentes et versions contrôlées",
+    "commande_workflow_sha256": "8b7afc165149597109d107c7464b2aac774091327af632bd97d37ed8dac79237",
+    "executees": 61,
+    "reussies": 61
+  },
+  "outillage": {
+    "reussis": 75,
+    "total": 75,
+    "moteur": "PostgreSQL 17.6 / ICU 153.121"
+  },
+  "globaux": {
+    "reussis": 10,
+    "total": 12,
+    "echecs": [
+      "Authority",
+      "Referential"
+    ]
+  },
+  "fichier_prive": {
+    "nom": "referentiels-prives-hg219-1015.json",
+    "sha256_attendu": "b8998d8b97ff3709ecf5a2df48b7373052a5c5f1d8f61bef4d4cb0ae325adad0",
+    "recu": false,
+    "sha256_observe": null,
+    "fichiers_accessibles_comparés_par_sha256": 62,
+    "correspondances": 0
+  },
+  "certification1015": {
+    "schema6": "non exécutée",
+    "referentiels12": "non exécutée",
+    "installation95": "non exécutée",
+    "rollback_rejeu95": "non exécutés",
+    "http27": "non exécutés"
+  },
+  "ci_distante_apres_correction": "non observée ; API Forbidden",
+  "production_modifiee": false,
+  "fusion": false,
+  "deploiement_manuel": false,
+  "mutants_combat": {
+    "issue-fausse": {
+      "tests": 380,
+      "reussis": 379,
+      "moteur": {
+        "server_version_num": "170006",
+        "icu_en_US_stockee_et_actuelle": [
+          "153.121",
+          "153.121"
+        ],
+        "binaires_explicites": true
+      },
+      "echecs": [
+        {
+          "cas": "squatteurs_issue_reelle_obligatoire_tues",
+          "type": "RaiseException",
+          "fichier": "outils/bancs/banc-groupes-universels-local.py",
+          "ligne": 116,
+          "message": "terrain_issue_non_confirmee:{\"ok\": false, \"raison\": \"issue_non_constatee\"}"
+        }
+      ]
+    },
+    "double-paiement": {
+      "tests": 380,
+      "reussis": 375,
+      "moteur": {
+        "server_version_num": "170006",
+        "icu_en_US_stockee_et_actuelle": [
+          "153.121",
+          "153.121"
+        ],
+        "binaires_explicites": true
+      },
+      "echecs": [
+        {
+          "cas": "civil_ouverture_reelle_choix_paiement_unique_rejeu",
+          "type": "AssertionError",
+          "fichier": "outils/bancs/banc-combat-civil-universel-local.py",
+          "ligne": 74,
+          "message": "AssertionError à outils/bancs/banc-combat-civil-universel-local.py:74"
+        },
+        {
+          "cas": "civil_mode_mains_borne_arme_et_paiement_sans_modifier_defenseur",
+          "type": "AssertionError",
+          "fichier": "outils/bancs/banc-combat-civil-universel-local.py",
+          "ligne": 216,
+          "message": "AssertionError à outils/bancs/banc-combat-civil-universel-local.py:216"
+        },
+        {
+          "cas": "civil_mode_arme_borne_arme_et_paiement_sans_modifier_defenseur",
+          "type": "AssertionError",
+          "fichier": "outils/bancs/banc-combat-civil-universel-local.py",
+          "ligne": 216,
+          "message": "AssertionError à outils/bancs/banc-combat-civil-universel-local.py:216"
+        },
+        {
+          "cas": "civil_mode_feu_borne_arme_et_paiement_sans_modifier_defenseur",
+          "type": "InvalidColumnReference",
+          "fichier": "outils/bancs/banc-groupes-universels-local.py",
+          "ligne": 116,
+          "message": "there is no unique or exclusion constraint matching the ON CONFLICT specification"
+        },
+        {
+          "cas": "civil_deux_connexions_un_combat_un_paiement_un_recu",
+          "type": "AssertionError",
+          "fichier": "outils/bancs/banc-combat-civil-universel-local.py",
+          "ligne": 373,
+          "message": "AssertionError à outils/bancs/banc-combat-civil-universel-local.py:373"
+        }
+      ]
+    },
+    "PNJ-immobile": {
+      "tests": 380,
+      "reussis": 379,
+      "moteur": {
+        "server_version_num": "170006",
+        "icu_en_US_stockee_et_actuelle": [
+          "153.121",
+          "153.121"
+        ],
+        "binaires_explicites": true
+      },
+      "echecs": [
+        {
+          "cas": "squatteurs_fuite_automate_deplacement_reel_pas_une_mort",
+          "type": "AssertionError",
+          "fichier": "outils/bancs/banc-combat-civil-universel-local.py",
+          "ligne": 154,
+          "message": "(None, 'terrain-a-batir')"
+        }
+      ]
+    }
+  }
+}

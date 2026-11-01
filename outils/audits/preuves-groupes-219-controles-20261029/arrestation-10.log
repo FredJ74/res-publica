@@ -1,0 +1,18 @@
+✔ aucune détention ni débit avant réponse serveur (2.791522ms)
+✔ refus serveur : aucune arrestation annoncée ou simulée (0.778817ms)
+✔ réponse perdue après commit : relecture seule retrouve la détention (0.743365ms)
+✔ réponse perdue et relecture indisponible : aucune fausse réussite (0.784135ms)
+✔ double clic : une seule ouverture de détention (0.811465ms)
+✔ changement de personnage pendant ouverture : aucune adoption tardive (0.652972ms)
+✔ changement de session pendant relecture : aucun rendu tardif (1.031129ms)
+✔ identité incorrecte de la fiche : aucune adoption de position (1.01819ms)
+✔ pas de transport depuis un identifiant de détention incohérent (0.764907ms)
+✔ retrait de recherche tardif : ne touche pas la nouvelle session (1.630131ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19.734924

@@ -30,6 +30,38 @@
 -- data.js, et la table doit rejoindre 95_a-regenerer.
 -- ============================================================================
 
+-- SEED -- recettes_commerce
+-- ============================================================================
+-- Table      : public.recettes_commerce
+-- Domaine    : economie
+-- Categorie  : D (mixte)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 37
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- 37 recettes. Contrairement a recettes_production, la table PORTE deja la
+-- dimension : pays_autorises, villes_autorisees et buildings_autorises. 26
+-- recettes sont restreintes a des villes, 24 a des pays, 11 sont sans
+-- restriction.
+--
+-- ARBITRAGE DE GAME DESIGN
+-- La structure sait exprimer la granularite ville ; le melange est dans le
+-- contenu du seed (identifiants psm/montrouge), pas dans le schema.
+--
+-- AVERTISSEMENT : CETTE TABLE EST UN MIROIR DE data.js
+-- Un generateur existe deja :
+-- outils/generateurs/generer_miroirs_entreprises.py. Les lignes ci-dessous
+-- sont copiees depuis la base, conformement a la strategie seed_complet du
+-- chantier 2C -- mais copier un miroir fige sa derive. Celui des couts
+-- d'ordre avait derive de 24 lignes mortes et 19 ordres gratuits non
+-- declares. A terme, ce fichier doit etre ecrit par son generateur depuis
+-- data.js, et la table doit rejoindre 95_a-regenerer.
+-- ============================================================================
+
 INSERT INTO public.recettes_commerce (id, source, label, pa, portions, materiaux, prix_fixe, categorie, types_autorises, pays_autorises, villes_autorisees, buildings_autorises, effets, stack_key, sous_type, icone, image, description, famille_produit_marche, bonus_integration_ville, generique_id, label_forme) VALUES ('biere_pression', 'alimentaire', 'Bière', '1', '15', '{"cereales": 1}', NULL, 'boisson', '["buvette", "bar", "cafe", "brasserie"]', NULL, NULL, NULL, '{"moral": 2}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.recettes_commerce (id, source, label, pa, portions, materiaux, prix_fixe, categorie, types_autorises, pays_autorises, villes_autorisees, buildings_autorises, effets, stack_key, sous_type, icone, image, description, famille_produit_marche, bonus_integration_ville, generique_id, label_forme) VALUES ('boeuf_bourguignon', 'alimentaire', 'Bœuf bourguignon — plat du jour', '1', '5', '{"viande": 1, "cereales": 1}', NULL, 'plat', '["cafe", "brasserie"]', NULL, NULL, NULL, '{"hp": 8, "moral": 2}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 INSERT INTO public.recettes_commerce (id, source, label, pa, portions, materiaux, prix_fixe, categorie, types_autorises, pays_autorises, villes_autorisees, buildings_autorises, effets, stack_key, sous_type, icone, image, description, famille_produit_marche, bonus_integration_ville, generique_id, label_forme) VALUES ('boisson_sans_alcool', 'alimentaire', 'Boisson sans alcool', '1', '10', '{}', NULL, 'boisson', '["buvette", "bar", "cafe"]', NULL, NULL, NULL, '{"moral": 1}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);

@@ -45,7 +45,7 @@
   {
    "empreinte": "e228781af42422c9c937ef1dbc2a8f0e",
    "genre": "FUNCTION",
-   "objet": "acheter_produit_commerce(text,text,text,text,integer)",
+   "objet": "acheter_produit_commerce_interne(text,text,text,text,integer)",
    "sous": ""
   },
   {
@@ -124,6 +124,12 @@
    "empreinte": "4641616d9a0fa7484367ecb292e9ec93",
    "genre": "TABLE",
    "objet": "catalogue_types",
+   "sous": ""
+  },
+  {
+   "empreinte": "3f5ee1e0ab9d580d831e536bec935964",
+   "genre": "TABLE",
+   "objet": "chantier_requetes",
    "sous": ""
   },
   {
@@ -207,6 +213,18 @@
    "tbl": "chaines_production_usine"
   },
   {
+   "empreinte": "5ee40fb12a73c9c3db1a3d175a94fed8",
+   "genre": "p",
+   "nom": "chantier_commandes_recus_pkey",
+   "tbl": "chantier_commandes_recus"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "chantier_requetes_pkey",
+   "tbl": "chantier_requetes"
+  },
+  {
    "empreinte": "24bf8bc569c357ad668fe0a4d0e4b8b2",
    "genre": "p",
    "nom": "chantiers_besoins_jour_pkey",
@@ -217,6 +235,18 @@
    "genre": "p",
    "nom": "chantiers_paliers_pkey",
    "tbl": "chantiers_paliers"
+  },
+  {
+   "empreinte": "0dbfb590b68e36a0e97b4403b097dde8",
+   "genre": "p",
+   "nom": "commerce_decors_pkey",
+   "tbl": "commerce_decors"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "commerce_decors_sources_pkey",
+   "tbl": "commerce_decors_sources"
   },
   {
    "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
@@ -291,6 +321,12 @@
    "tbl": "entreprises_prix_rachat"
   },
   {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "hotel_nuitees_pkey",
+   "tbl": "hotel_nuitees"
+  },
+  {
    "empreinte": "adbce386ad7859d6c686661758b9d267",
    "genre": "p",
    "nom": "imprimeries_declarees_pkey",
@@ -301,6 +337,18 @@
    "genre": "p",
    "nom": "investissements_pkey",
    "tbl": "investissements"
+  },
+  {
+   "empreinte": "ddffd24f170056733318cd26b5f045fd",
+   "genre": "p",
+   "nom": "jardins_ouvriers_reserve_pkey",
+   "tbl": "jardins_ouvriers_reserve"
+  },
+  {
+   "empreinte": "ddc817a48c481da54eae02137872537e",
+   "genre": "p",
+   "nom": "jardins_ouvriers_travail_pkey",
+   "tbl": "jardins_ouvriers_travail"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -369,6 +417,12 @@
    "tbl": "recettes_production"
   },
   {
+   "empreinte": "ddc817a48c481da54eae02137872537e",
+   "genre": "p",
+   "nom": "recoltes_journalieres_pkey",
+   "tbl": "recoltes_journalieres"
+  },
+  {
    "empreinte": "f09d06b0c3c82a99fa3b3587d02ffdf1",
    "genre": "p",
    "nom": "ressources_economie_pkey",
@@ -409,6 +463,12 @@
    "genre": "u",
    "nom": "catalogue_variantes_generique_id_cle_key",
    "tbl": "catalogue_variantes"
+  },
+  {
+   "empreinte": "004c526c629a50c0af6055b6a69a68e2",
+   "genre": "u",
+   "nom": "hotel_nuitees_personnage_id_reference_key",
+   "tbl": "hotel_nuitees"
   },
   {
    "empreinte": "842b542de83ed21ef7c735858278a15d",
@@ -481,6 +541,24 @@
    "genre": "c",
    "nom": "entrepots_reversements_mode_check",
    "tbl": "entrepots_reversements"
+  },
+  {
+   "empreinte": "ce88b6477678aeaa50db7ac2c71d9afb",
+   "genre": "c",
+   "nom": "hotel_nuitees_moral_bonus_check",
+   "tbl": "hotel_nuitees"
+  },
+  {
+   "empreinte": "96b750f38da13d5ac204d4b252dff119",
+   "genre": "c",
+   "nom": "hotel_nuitees_pa_bonus_check",
+   "tbl": "hotel_nuitees"
+  },
+  {
+   "empreinte": "d1cd991c346ab923836270fa501a433c",
+   "genre": "c",
+   "nom": "jardins_ouvriers_reserve_qte_check",
+   "tbl": "jardins_ouvriers_reserve"
   },
   {
    "empreinte": "e0e59ca442af10caaab454dfa94013bf",
@@ -567,21 +645,39 @@
    "tbl": "catalogue_variantes"
   },
   {
+   "empreinte": "d6b60d9e7f9bc3f64290a507f15932bd",
+   "genre": "f",
+   "nom": "commerce_decors_fonds_id_fkey",
+   "tbl": "commerce_decors"
+  },
+  {
+   "empreinte": "7057c0107225a0582d64dc6f36793dc7",
+   "genre": "f",
+   "nom": "commerce_decors_owner_user_id_fkey",
+   "tbl": "commerce_decors"
+  },
+  {
+   "empreinte": "2603539a8920d1e7fc37c7675495b836",
+   "genre": "f",
+   "nom": "commerce_decors_sources_proprietaire_user_id_fkey",
+   "tbl": "commerce_decors_sources"
+  },
+  {
    "empreinte": "775278b937679f97be053ff321a74a13",
    "genre": "f",
    "nom": "contenu_caisses_fret_caisse_id_fkey",
    "tbl": "contenu_caisses_fret"
+  },
+  {
+   "empreinte": "6d5590bc026d77673bc9898fc5804ddd",
+   "genre": "f",
+   "nom": "hotel_nuitees_personnage_id_fkey",
+   "tbl": "hotel_nuitees"
   }
  ],
  "domaine": "economie",
  "droits": [
   {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "acheter_a_entrepot(text,text,text,text,jsonb)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "acheter_a_entrepot(text,text,text,text,jsonb)",
@@ -596,7 +692,19 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "acheter_a_la_criee(text,text,text,text,jsonb)",
+   "objet": "acheter_a_entrepot(uuid,text,text,text,text,jsonb,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_entrepot(uuid,text,text,text,text,jsonb,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_entrepot(uuid,text,text,text,text,jsonb,integer,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -609,6 +717,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "acheter_a_la_criee(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_la_criee(uuid,text,text,text,text,jsonb,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_la_criee(uuid,text,text,text,text,jsonb,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acheter_a_la_criee(uuid,text,text,text,text,jsonb,integer,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -630,9 +756,15 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "authenticated",
+   "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "acheter_produit_manufacture(text,text,text)",
+   "objet": "acheter_produit_commerce_interne(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acheter_produit_commerce_interne(text,text,text,text,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -650,7 +782,19 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "acheter_vente_directe_usine(text,text,text,text,jsonb)",
+   "objet": "acheter_produit_manufacture(uuid,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acheter_produit_manufacture(uuid,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acheter_produit_manufacture(uuid,text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -663,6 +807,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "acheter_vente_directe_usine(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "acheter_vente_directe_usine(uuid,text,text,text,text,jsonb,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "acheter_vente_directe_usine(uuid,text,text,text,text,jsonb,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "acheter_vente_directe_usine(uuid,text,text,text,text,jsonb,integer,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -672,9 +834,45 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "arme_acheter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
-   "objet": "approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric)",
+   "objet": "arme_acheter(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "arme_acheter(uuid,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "arme_acheter(uuid,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "arme_acheter(uuid,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "arme_modele_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "arme_modele_interne(text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -696,6 +894,12 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_appel_fonds_interne(jsonb,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "chantier_approvisionner(text,text,text,jsonb,integer)",
@@ -714,9 +918,75 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_autorite_exiger_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_besoin_jour_interne(jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "chantier_lancer(text,text,text,text,numeric)",
+   "objet": "chantier_commande(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_commande(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "chantier_commande(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "chantier_commande_recu(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_commande_recu(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "chantier_commande_recu(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_financeur_debiter_interne(jsonb,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_financeur_verrouiller_interne(text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_jour_traiter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "chantier_jour_traiter(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -726,15 +996,39 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "service_role",
+   "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "chantier_lancer(text,text,text,text,numeric)",
+   "objet": "chantier_plan_enregistrer_interne(jsonb,jsonb,boolean,text,text,text,text,integer)",
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "authenticated",
+   "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "chantier_travailler(text,text,text,integer)",
+   "objet": "chantier_plan_normaliser_interne(jsonb,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_prix_definir(text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_reamenagement_livrer_plan_interne(jsonb,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_reamenagement_preparer_interne(jsonb,jsonb,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "chantier_taux_definir(text,jsonb)",
    "privileges": "EXECUTE"
   },
   {
@@ -744,25 +1038,7 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "service_role",
-   "genre": "FUNCTION",
-   "objet": "chantier_travailler(text,text,text,integer)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "chantier_verser(text,text,text,numeric)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
-   "genre": "FUNCTION",
-   "objet": "chantier_verser(text,text,text,numeric)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "chantier_verser(text,text,text,numeric)",
    "privileges": "EXECUTE"
@@ -792,12 +1068,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "commerce_acheter_matiere(text,text,text,integer)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "commerce_acheter_matiere(text,text,text,integer)",
@@ -858,6 +1128,12 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "commerce_production_autorisee(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "commerce_produire(text,text,text,text)",
@@ -891,6 +1167,30 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "commerce_vendre_produit(text,text,jsonb,text,text,integer,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "commerce_vendre_produit_interne(text,text,jsonb,text,text,integer,integer,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "consommer_sur_place_commerce(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "consommer_sur_place_commerce(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "consommer_sur_place_commerce(text,text,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1416,6 +1716,18 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fret_contenu_source_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fret_contenu_source_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "fret_dedouaner(uuid)",
@@ -1431,6 +1743,36 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "fret_dedouaner(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fret_deposer_objet_interne(text,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fret_deposer_objet_interne(text,jsonb,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "fret_objet_agir(uuid,uuid,text,uuid,integer,integer,bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fret_objet_agir(uuid,uuid,text,uuid,integer,integer,bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fret_objet_agir(uuid,uuid,text,uuid,integer,integer,bigint)",
    "privileges": "EXECUTE"
   },
   {
@@ -1455,6 +1797,162 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "fret_unitaire_international()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "hotel_nuitee_ajouter_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "hotel_nuitee_ajouter_interne(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "hotel_nuitee_consommation_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "hotel_nuitee_consommation_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "hotel_reservations_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "hotel_reservations_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "hotel_reservations_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_laisser_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_laisser_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "jardins_laisser_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_laisser_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_laisser_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_ouvriers_acteur_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_ouvriers_acteur_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_ouvriers_ligne_legumes(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_ouvriers_ligne_legumes(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_prendre_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_prendre_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "jardins_prendre_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_prendre_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_prendre_legumes(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "jardins_travailler(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_travailler(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_travailler(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jardins_travailler_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jardins_travailler_interne(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1676,6 +2174,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "recolte_effectuer(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "recolte_effectuer(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "recolte_effectuer(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "refectoire_repas(text,text,integer,integer,integer)",
    "privileges": "EXECUTE"
   },
@@ -1767,6 +2283,156 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "ressources_economie_nombre(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_acquitter(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_acquitter(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_acquitter(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_creer(text,text,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_creer(text,text,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_creer(text,text,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_proteger()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_repondre(bigint,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_repondre(bigint,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_repondre(bigint,boolean,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_servir(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_servir(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_servir(bigint)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_suivre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_suivre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "restaurant_diner_suivre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_luthecia_carte(jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_luthecia_configurer(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_luthecia_est_commerce(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "restaurant_luthecia_est_commerce(jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_luthecia_initialiser()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_luthecia_pnj_chance(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_luthecia_production_verifier(jsonb,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_luthecia_vente_verifier(jsonb,text,jsonb,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "restaurant_luthecia_vente_verifier(jsonb,text,jsonb,text,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1782,21 +2448,99 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "sels_ammoniaque_acheter(uuid,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
-   "objet": "vendre_fonds_commerce(text,text,text,integer)",
+   "objet": "sels_ammoniaque_acheter(uuid,integer,integer)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
-   "objet": "vendre_fonds_commerce(text,text,text,integer)",
+   "objet": "sels_ammoniaque_acheter(uuid,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tournee_cloturer_boire(text)",
    "privileges": "EXECUTE"
   },
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer)",
+   "objet": "tournee_contrat_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tournee_contrat_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tournee_contrat_lire()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "tournee_creer(text,text,text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tournee_creer(text,text,text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tournee_creer(text,text,text,text[])",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tournee_proteger_contrat()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "tournee_repondre(bigint,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tournee_repondre(bigint,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tournee_repondre(bigint,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vendre_fonds_commerce(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "vendre_fonds_commerce(text,text,text,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -1809,6 +2553,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "vendre_materiaux_chantier(text,text,text,text,integer,integer,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -2136,6 +2898,24 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "chantier_commandes_recus",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "chantier_requetes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "chantier_requetes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "chantiers_besoins_jour",
@@ -2143,6 +2923,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "chantiers_besoins_jour",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "chantiers_besoins_jour",
    "privileges": "SELECT"
@@ -2172,6 +2958,12 @@
    "privileges": "SELECT"
   },
   {
+   "beneficiaire": "hg219_cert_ro_20261101",
+   "genre": "TABLE",
+   "objet": "chantiers_paliers",
+   "privileges": "SELECT"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "chantiers_paliers",
@@ -2181,6 +2973,54 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "chantiers_paliers",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "commerce_decors",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "commerce_decors",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "commerce_decors",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "commerce_decors",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "commerce_decors_sources",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "commerce_decors_sources",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "commerce_decors_sources",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "commerce_decors_sources",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -2191,6 +3031,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "commerces_dotations",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "commerces_dotations",
    "privileges": "SELECT"
@@ -2215,6 +3061,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "commerces_types",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "commerces_types",
    "privileges": "SELECT"
@@ -2412,6 +3264,12 @@
    "privileges": "SELECT"
   },
   {
+   "beneficiaire": "hg219_cert_ro_20261101",
+   "genre": "TABLE",
+   "objet": "entreprises_constantes",
+   "privileges": "SELECT"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "entreprises_constantes",
@@ -2436,6 +3294,12 @@
    "privileges": "SELECT"
   },
   {
+   "beneficiaire": "hg219_cert_ro_20261101",
+   "genre": "TABLE",
+   "objet": "entreprises_prix_rachat",
+   "privileges": "SELECT"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "entreprises_prix_rachat",
@@ -2445,6 +3309,18 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "entreprises_prix_rachat",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "hotel_nuitees",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "hotel_nuitees",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -2493,6 +3369,36 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "investissements",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "jardins_ouvriers_reserve",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "jardins_ouvriers_reserve",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "jardins_ouvriers_reserve",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "jardins_ouvriers_travail",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "jardins_ouvriers_travail",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -2551,6 +3457,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "offres_emploi_bne",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "offres_emploi_bne",
    "privileges": "SELECT"
@@ -2575,6 +3487,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ordres_couts",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "ordres_couts",
    "privileges": "SELECT"
@@ -2611,6 +3529,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ordres_couts_empreinte",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "ordres_couts_empreinte",
    "privileges": "SELECT"
@@ -2700,6 +3624,12 @@
    "privileges": "SELECT"
   },
   {
+   "beneficiaire": "hg219_cert_ro_20261101",
+   "genre": "TABLE",
+   "objet": "recettes_commerce",
+   "privileges": "SELECT"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "recettes_commerce",
@@ -2724,6 +3654,12 @@
    "privileges": "SELECT"
   },
   {
+   "beneficiaire": "hg219_cert_ro_20261101",
+   "genre": "TABLE",
+   "objet": "recettes_production",
+   "privileges": "SELECT"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "TABLE",
    "objet": "recettes_production",
@@ -2733,6 +3669,18 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "recettes_production",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "recoltes_journalieres",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "recoltes_journalieres",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -2743,6 +3691,12 @@
   },
   {
    "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "ressources_economie",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "hg219_cert_ro_20261101",
    "genre": "TABLE",
    "objet": "ressources_economie",
    "privileges": "SELECT"
@@ -2847,22 +3801,28 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "8728043945f6448240dab36618099f83",
-  "20_fonctions-1.sql": "58426ee698fdbbf24e01444c3558e56b",
-  "20_fonctions-2.sql": "803fa6d68cd08a135b3584ed5cead212",
-  "30_contraintes.sql": "b6b99c95edac5201152c00687c51c1e1",
-  "35_index.sql": "cc2024c4ff4fe07a94fb9c546826186e",
+  "10_tables.sql": "94335a65b8424976f8e8c399f3f0f802",
+  "20_fonctions-1.sql": "7a39650132c6429c03f3f81a6a78c737",
+  "20_fonctions-2.sql": "6237e4df4089ccc39eeb172c8f2c4145",
+  "20_fonctions-3.sql": "2a28f25472e7a32b9a5e0439ae725af2",
+  "30_contraintes.sql": "da7fddc031ebd4814c9053e03fbc717c",
+  "35_index.sql": "2dd82cfd6f5124fd0242847d3fe341f0",
   "40_vues.sql": "01bd762acf63b663d56e70c65f065976",
-  "50_triggers.sql": "9f30c6a502ac80ae89e88f9d5dfbd21a",
-  "60_rls-policies.sql": "ce2f1a6be3bc5b2cccb452e6dd9ea2db",
-  "70_droits.sql": "be12a7ec838a672c15a1173b7a7ef2f2",
-  "80_commentaires.sql": "c247518ae114ab3f7d49f3c948d17bcc"
+  "50_triggers.sql": "26247641c15df4eadd1bc5ddae57b6e8",
+  "60_rls-policies.sql": "d3a4e9a7f4f50f0b6b38a56c61cd2240",
+  "70_droits.sql": "b783b354e1da6124a295a25f6bd7ced1",
+  "80_commentaires.sql": "2ad0b373893d0935abf186ae546cfc8b"
  },
  "fonctions": [
   {
-   "empreinte": "8ec91e0d618f2a7ac23e792dcc9f3147",
+   "empreinte": "1d05733c127130c2f17dda7bdbfaf444",
    "security_definer": true,
    "signature": "acheter_a_entrepot(text,text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "925a0879409a35306fac9a830358e25b",
+   "security_definer": true,
+   "signature": "acheter_a_entrepot(uuid,text,text,text,text,jsonb,integer,integer)"
   },
   {
    "empreinte": "cb35b27a78a0153913bc2f538f84ec4d",
@@ -2870,9 +3830,19 @@
    "signature": "acheter_a_la_criee(text,text,text,text,jsonb)"
   },
   {
-   "empreinte": "86c672088148f040220237a323e721cf",
+   "empreinte": "8d12e257eaf8825d8821a5871c701531",
+   "security_definer": true,
+   "signature": "acheter_a_la_criee(uuid,text,text,text,text,jsonb,integer,integer)"
+  },
+  {
+   "empreinte": "77c17b0b0b50fe3b16db10f476a14734",
    "security_definer": true,
    "signature": "acheter_produit_commerce(text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "516a7a38df5bb8aa554de4121eeb2be7",
+   "security_definer": true,
+   "signature": "acheter_produit_commerce_interne(text,text,text,text,integer)"
   },
   {
    "empreinte": "7f44a23bad6f107ca656823f6cb31a4e",
@@ -2880,14 +3850,39 @@
    "signature": "acheter_produit_manufacture(text,text,text)"
   },
   {
+   "empreinte": "2fb4de5b7ff551a30195b33ab38eda0c",
+   "security_definer": true,
+   "signature": "acheter_produit_manufacture(uuid,text,text,text)"
+  },
+  {
    "empreinte": "e626686e10a0cd74c89b5dd4a410060a",
    "security_definer": true,
    "signature": "acheter_vente_directe_usine(text,text,text,text,jsonb)"
   },
   {
-   "empreinte": "99eb840172009eeaeaf941ae33a70a8a",
+   "empreinte": "35ee6d58290113d928510525b70f794e",
+   "security_definer": true,
+   "signature": "acheter_vente_directe_usine(uuid,text,text,text,text,jsonb,integer,integer)"
+  },
+  {
+   "empreinte": "cdafca4ec869dc6dc390465be880f36b",
    "security_definer": true,
    "signature": "approvisionner_chantier(text,text,text,text,jsonb,jsonb,numeric)"
+  },
+  {
+   "empreinte": "a43f57c6888b3ee8374916dd413ab23c",
+   "security_definer": true,
+   "signature": "arme_acheter(text,text)"
+  },
+  {
+   "empreinte": "21ac040c4640f50f81419523e607ca00",
+   "security_definer": true,
+   "signature": "arme_acheter(uuid,text,text)"
+  },
+  {
+   "empreinte": "797c6bad0e24e3a4cc00a512dd05e525",
+   "security_definer": true,
+   "signature": "arme_modele_interne(text,text,text)"
   },
   {
    "empreinte": "5f93b70bb06bf0020825f54abf2cb9f1",
@@ -2895,17 +3890,87 @@
    "signature": "capacite_entrepot()"
   },
   {
+   "empreinte": "566c329f9cc77f927cba40193f8dd7c9",
+   "security_definer": true,
+   "signature": "chantier_appel_fonds_interne(jsonb,jsonb)"
+  },
+  {
    "empreinte": "e69efed544d50410f7dd7f045a73f3ac",
    "security_definer": true,
    "signature": "chantier_approvisionner(text,text,text,jsonb,integer)"
   },
   {
-   "empreinte": "9e4dfd4ad3606590b08ab22c24a774da",
+   "empreinte": "aefeb6b0e1b471983b69d320f5620bfb",
+   "security_definer": true,
+   "signature": "chantier_autorite_exiger_interne(text,text,text)"
+  },
+  {
+   "empreinte": "e4ae0c5b3fc258f95b72f5d15907e11a",
+   "security_definer": false,
+   "signature": "chantier_besoin_jour_interne(jsonb,integer)"
+  },
+  {
+   "empreinte": "d39fe7ab4158e35ffefd16834d3e37a0",
+   "security_definer": true,
+   "signature": "chantier_commande(text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "20bcf04b21f3e373dacc11dba019c5a8",
+   "security_definer": true,
+   "signature": "chantier_commande_recu(text)"
+  },
+  {
+   "empreinte": "8a9d822a54f0d557281763d901798cea",
+   "security_definer": true,
+   "signature": "chantier_financeur_debiter_interne(jsonb,numeric)"
+  },
+  {
+   "empreinte": "111e265868032b042a3fcdf6010b566d",
+   "security_definer": true,
+   "signature": "chantier_financeur_verrouiller_interne(text,text,text)"
+  },
+  {
+   "empreinte": "b9ca5d563d3b15d8f2416a8c80de6bc1",
+   "security_definer": true,
+   "signature": "chantier_jour_traiter(text)"
+  },
+  {
+   "empreinte": "56e3be43cf62c6993ef7ddee809e9fd1",
    "security_definer": true,
    "signature": "chantier_lancer(text,text,text,text,numeric)"
   },
   {
-   "empreinte": "97bc24182eeefe271402a3470bfde245",
+   "empreinte": "bd9cc26fc7921397ff643c6fd912eb16",
+   "security_definer": true,
+   "signature": "chantier_plan_enregistrer_interne(jsonb,jsonb,boolean,text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "bbe15bdc6460dbd8b2f5e6e3e1c1a350",
+   "security_definer": false,
+   "signature": "chantier_plan_normaliser_interne(jsonb,text,jsonb)"
+  },
+  {
+   "empreinte": "0d9a093d59cee57d0ce95eb045489fdf",
+   "security_definer": true,
+   "signature": "chantier_prix_definir(text,jsonb)"
+  },
+  {
+   "empreinte": "ad56be4fb9f5818d2dd6c84473a3f50c",
+   "security_definer": true,
+   "signature": "chantier_reamenagement_livrer_plan_interne(jsonb,text,text)"
+  },
+  {
+   "empreinte": "e0d8ad5b7bd0bacd142dd122b13a522e",
+   "security_definer": true,
+   "signature": "chantier_reamenagement_preparer_interne(jsonb,jsonb,text,text,integer)"
+  },
+  {
+   "empreinte": "46bf93eb9f04d8265e2090158165b8cd",
+   "security_definer": true,
+   "signature": "chantier_taux_definir(text,jsonb)"
+  },
+  {
+   "empreinte": "f74329051dcc88f724b8f5b355444d3d",
    "security_definer": true,
    "signature": "chantier_travailler(text,text,text,integer)"
   },
@@ -2940,17 +4005,32 @@
    "signature": "commerce_fixer_parametres(text,text,jsonb,jsonb,jsonb)"
   },
   {
-   "empreinte": "88d0d44c68f9e6a6d9f1a8b5ce77ee4a",
+   "empreinte": "bfa1c939f1b3d9ddc50cbbf451e1f13e",
+   "security_definer": false,
+   "signature": "commerce_production_autorisee(jsonb,text)"
+  },
+  {
+   "empreinte": "da8048ac1fd8787dc68b9dfaa3ff805b",
    "security_definer": true,
    "signature": "commerce_produire(text,text,text,text)"
   },
   {
-   "empreinte": "898557ee0fc72e48c98c4a885e16242d",
+   "empreinte": "e151c0fbf9011dd50f000870c21f2652",
    "security_definer": true,
    "signature": "commerce_vendre_produit(text,text,jsonb,text,text,integer,integer,text)"
   },
   {
-   "empreinte": "731deadcab58fbc0f7f5d7a75da446a4",
+   "empreinte": "a98b5a3359ea31b8aa82a12db2e828bb",
+   "security_definer": true,
+   "signature": "commerce_vendre_produit_interne(text,text,jsonb,text,text,integer,integer,text,numeric)"
+  },
+  {
+   "empreinte": "1ec23dcf8e73d3fad267cf7865a3929e",
+   "security_definer": true,
+   "signature": "consommer_sur_place_commerce(text,text,text,text)"
+  },
+  {
+   "empreinte": "cfd3d55888da236299e10a2cb70c004b",
    "security_definer": true,
    "signature": "creer_fonds_commerce(text,text,text,integer,text)"
   },
@@ -3040,7 +4120,7 @@
    "signature": "entreprise_ajouter_historique(jsonb,numeric,text,integer)"
   },
   {
-   "empreinte": "586612a11e1019a092a292fa89e9c333",
+   "empreinte": "1f66813ac32e214774e216d9f47e02d7",
    "security_definer": true,
    "signature": "entreprise_assurer_existence(text,text,text,text,text,text)"
   },
@@ -3105,14 +4185,84 @@
    "signature": "fournisseurs_etrangers()"
   },
   {
+   "empreinte": "d6d66e8ef44a82f67a0044ba6e030694",
+   "security_definer": true,
+   "signature": "fret_contenu_source_garder()"
+  },
+  {
    "empreinte": "95695f13239a05d1a59061d61f1bc7d5",
    "security_definer": true,
    "signature": "fret_dedouaner(uuid)"
   },
   {
+   "empreinte": "06fbed495611491ac5ee48ab6103d68a",
+   "security_definer": true,
+   "signature": "fret_deposer_objet_interne(text,jsonb,integer)"
+  },
+  {
+   "empreinte": "c5d005c8d80d5ed848372a253980e1d6",
+   "security_definer": true,
+   "signature": "fret_objet_agir(uuid,uuid,text,uuid,integer,integer,bigint)"
+  },
+  {
    "empreinte": "3418e59b632f50e181d084774b6dde32",
    "security_definer": false,
    "signature": "fret_unitaire_international()"
+  },
+  {
+   "empreinte": "8843705046e079f02e2b7a70be0236d6",
+   "security_definer": true,
+   "signature": "hotel_nuitee_ajouter_interne(text,text)"
+  },
+  {
+   "empreinte": "d0d68989155a049967ead449280f98ca",
+   "security_definer": true,
+   "signature": "hotel_nuitee_consommation_interne(text)"
+  },
+  {
+   "empreinte": "486da9124e971562b9a9383b10ed3dc0",
+   "security_definer": true,
+   "signature": "hotel_reservations_lire()"
+  },
+  {
+   "empreinte": "bfb6130d7dd04c849f7fdab00c5f4f14",
+   "security_definer": true,
+   "signature": "jardins_laisser_interne(text,integer)"
+  },
+  {
+   "empreinte": "f491fd56d610407769af479011e2cad4",
+   "security_definer": true,
+   "signature": "jardins_laisser_legumes(uuid,integer)"
+  },
+  {
+   "empreinte": "f3344941f412595e848f48d73e394fb9",
+   "security_definer": true,
+   "signature": "jardins_ouvriers_acteur_interne(text)"
+  },
+  {
+   "empreinte": "bfd2a439a11149cf42054e9933330a86",
+   "security_definer": false,
+   "signature": "jardins_ouvriers_ligne_legumes(jsonb)"
+  },
+  {
+   "empreinte": "75c4a0ce933d9102b3979a2737d65998",
+   "security_definer": true,
+   "signature": "jardins_prendre_interne(text,integer)"
+  },
+  {
+   "empreinte": "c8e44e477adbdec4872ba8155dc2a50f",
+   "security_definer": true,
+   "signature": "jardins_prendre_legumes(uuid,integer)"
+  },
+  {
+   "empreinte": "865156ca7faf435e568d7b8b7d498c0f",
+   "security_definer": true,
+   "signature": "jardins_travailler(uuid)"
+  },
+  {
+   "empreinte": "681f97955812bc4d02f09154c24e173a",
+   "security_definer": true,
+   "signature": "jardins_travailler_interne(text)"
   },
   {
    "empreinte": "531c06069bcc7419ee378674d994f686",
@@ -3140,7 +4290,7 @@
    "signature": "ordres_couts_empreinte_reelle()"
   },
   {
-   "empreinte": "b1cf7801adbc3c06cc7afb47e9abe62c",
+   "empreinte": "37eca91d6eb08c2a6ea97cbe717a216a",
    "security_definer": true,
    "signature": "payer_ordre(text,text,integer,integer)"
   },
@@ -3165,6 +4315,11 @@
    "signature": "recevoir_soin(text,text,text,text,text,integer)"
   },
   {
+   "empreinte": "1b9c14c1d55fd10b13343d76766596a3",
+   "security_definer": true,
+   "signature": "recolte_effectuer(text,integer,integer)"
+  },
+  {
    "empreinte": "7d651540b7ababf332d901c5d26b9754",
    "security_definer": true,
    "signature": "refectoire_repas(text,text,integer,integer,integer)"
@@ -3185,9 +4340,109 @@
    "signature": "ressources_economie_nombre(numeric)"
   },
   {
-   "empreinte": "17fbaf9f5c57464d21909617ce9a83ac",
+   "empreinte": "44e025a7eaf2dcdf2a4b3474037148ff",
+   "security_definer": true,
+   "signature": "restaurant_diner_acquitter(bigint)"
+  },
+  {
+   "empreinte": "14efe4fb35ae8ede5bc1dc1bd8511931",
+   "security_definer": true,
+   "signature": "restaurant_diner_creer(text,text,boolean,text)"
+  },
+  {
+   "empreinte": "abd7c0424abda20e61d25113035a8fff",
+   "security_definer": false,
+   "signature": "restaurant_diner_proteger()"
+  },
+  {
+   "empreinte": "f7b12c18dc1b11dd119c00d830680148",
+   "security_definer": true,
+   "signature": "restaurant_diner_repondre(bigint,boolean,text)"
+  },
+  {
+   "empreinte": "92cecc1b5f25b265eccda308302c1147",
+   "security_definer": true,
+   "signature": "restaurant_diner_servir(bigint)"
+  },
+  {
+   "empreinte": "35e02c7635d8031bdbed36446a7a9906",
+   "security_definer": true,
+   "signature": "restaurant_diner_suivre()"
+  },
+  {
+   "empreinte": "3408079367603e091144a6093082d352",
+   "security_definer": true,
+   "signature": "restaurant_luthecia_carte(jsonb,text)"
+  },
+  {
+   "empreinte": "da6a7aafc24816a7bbe4378cda9d37f7",
+   "security_definer": false,
+   "signature": "restaurant_luthecia_configurer(jsonb)"
+  },
+  {
+   "empreinte": "b11d7963f0e38a4af646ff93e2726b8c",
+   "security_definer": false,
+   "signature": "restaurant_luthecia_est_commerce(jsonb)"
+  },
+  {
+   "empreinte": "5343b2b6cb6225788bdcd8a76003b9e5",
+   "security_definer": true,
+   "signature": "restaurant_luthecia_initialiser()"
+  },
+  {
+   "empreinte": "8bcdf63c06225e73acb96d769b7af620",
+   "security_definer": true,
+   "signature": "restaurant_luthecia_pnj_chance(text,text)"
+  },
+  {
+   "empreinte": "f82b06ac7c87be94365e6e46edfbcae7",
+   "security_definer": true,
+   "signature": "restaurant_luthecia_production_verifier(jsonb,text,text)"
+  },
+  {
+   "empreinte": "88c0234ca4994358d26a9befc6efbb05",
+   "security_definer": true,
+   "signature": "restaurant_luthecia_vente_verifier(jsonb,text,jsonb,text)"
+  },
+  {
+   "empreinte": "f8256f58f10a13f025333a3460d293a4",
+   "security_definer": true,
+   "signature": "restaurant_luthecia_vente_verifier(jsonb,text,jsonb,text,text)"
+  },
+  {
+   "empreinte": "9bc862bafded8d7a6e68f367f9452ecf",
    "security_definer": true,
    "signature": "restituer_reliquats_chantier(text,text)"
+  },
+  {
+   "empreinte": "b316c5576f8cebe2e04db5f17bf2115e",
+   "security_definer": true,
+   "signature": "sels_ammoniaque_acheter(uuid,integer,integer)"
+  },
+  {
+   "empreinte": "a71c2d2c17d5988cfd4fe01212282e1c",
+   "security_definer": true,
+   "signature": "tournee_cloturer_boire(text)"
+  },
+  {
+   "empreinte": "db408a516ba9dd53c37434c36c1192bb",
+   "security_definer": true,
+   "signature": "tournee_contrat_lire()"
+  },
+  {
+   "empreinte": "17696f81bf47c4e7bd0662cfcc56cc56",
+   "security_definer": true,
+   "signature": "tournee_creer(text,text,text,text[])"
+  },
+  {
+   "empreinte": "8b41a188aadb9f501f557a32b06ce0e8",
+   "security_definer": false,
+   "signature": "tournee_proteger_contrat()"
+  },
+  {
+   "empreinte": "49d9045b89c7a19678123b4555637787",
+   "security_definer": true,
+   "signature": "tournee_repondre(bigint,boolean)"
   },
   {
    "empreinte": "4a45e56511637cde92975e551f3ba955",
@@ -3195,9 +4450,14 @@
    "signature": "vendre_fonds_commerce(text,text,text,integer)"
   },
   {
-   "empreinte": "35eec42c21370d6ce498b77b4de752d0",
+   "empreinte": "5935976269c6a9e3badcacf1c691b0cd",
    "security_definer": true,
    "signature": "vendre_materiaux_chantier(text,text,text,text,integer,integer)"
+  },
+  {
+   "empreinte": "d98ce3849851c55cf1732c557f7574f9",
+   "security_definer": true,
+   "signature": "vendre_materiaux_chantier(text,text,text,text,integer,integer,text)"
   },
   {
    "empreinte": "9d39e80b5c0b488706fc4079c70831c8",
@@ -3205,7 +4465,7 @@
    "signature": "vendre_matiere_a_usine(text,text,text,text,text,integer)"
   },
   {
-   "empreinte": "f9ce10e140a2a19b08c063dbe39e187a",
+   "empreinte": "f75e227070140ef0573fbcfa27bc1fae",
    "security_definer": true,
    "signature": "vendre_ressource_medicale(text,text,text,text,text,integer)"
   },
@@ -3219,6 +4479,10 @@
   {
    "empreinte": "b1a8b8ff94c94748859865e9ee8dfd98",
    "nom": "apports_matieres_fonds_idx"
+  },
+  {
+   "empreinte": "12261a7371f728b242e7835831597f2b",
+   "nom": "entreprise_luthecia_unifiee"
   },
   {
    "empreinte": "14e56cb3c46f1a542c89372db3860845",
@@ -3251,6 +4515,14 @@
   {
    "empreinte": "8189b15950413ea3228dee289622ca9e",
    "nom": "idx_corresp_legacy_generique"
+  },
+  {
+   "empreinte": "bd9ddeb9526aa340b3ba75b3dee13ad1",
+   "nom": "idx_hotel_nuitees_disponibles"
+  },
+  {
+   "empreinte": "7982f80521c6785062f42c43f3b49666",
+   "nom": "idx_hotel_nuitees_repos_journalier"
   },
   {
    "empreinte": "e95d38fd31dccf76ed3fdbf5d083d14d",
@@ -3295,6 +4567,10 @@
   {
    "empreinte": "7d3d354debfc589db7947a478642b6ca",
    "nom": "recettes_commerce_forme_unique"
+  },
+  {
+   "empreinte": "c9c81ec9e863652f45622554bd044fdc",
+   "nom": "ventes_journal_titulaire"
   }
  ],
  "index_portes": [
@@ -3309,8 +4585,12 @@
   "catalogue_variantes_generique_id_cle_key",
   "catalogue_variantes_pkey",
   "chaines_production_usine_pkey",
+  "chantier_commandes_recus_pkey",
+  "chantier_requetes_pkey",
   "chantiers_besoins_jour_pkey",
   "chantiers_paliers_pkey",
+  "commerce_decors_pkey",
+  "commerce_decors_sources_pkey",
   "commerces_dotations_pkey",
   "commerces_types_pkey",
   "confiscations_douanieres_pkey",
@@ -3323,8 +4603,12 @@
   "entreprises_constantes_pkey",
   "entreprises_pkey",
   "entreprises_prix_rachat_pkey",
+  "hotel_nuitees_personnage_id_reference_key",
+  "hotel_nuitees_pkey",
   "imprimeries_declarees_pkey",
   "investissements_pkey",
+  "jardins_ouvriers_reserve_pkey",
+  "jardins_ouvriers_travail_pkey",
   "oeuvres_pkey",
   "offres_emploi_bne_pkey",
   "offres_pkey",
@@ -3336,6 +4620,7 @@
   "produits_manufactures_pkey",
   "recettes_commerce_pkey",
   "recettes_production_pkey",
+  "recoltes_journalieres_pkey",
   "ressources_economie_empreinte_pkey",
   "ressources_economie_pkey",
   "structures_medicales_pkey",
@@ -3347,6 +4632,7 @@
   "10_tables.sql",
   "20_fonctions-1.sql",
   "20_fonctions-2.sql",
+  "20_fonctions-3.sql",
   "30_contraintes.sql",
   "35_index.sql",
   "40_vues.sql",
@@ -3357,8 +4643,8 @@
  ],
  "policies": [
   {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "8ac4ab0cc6c3cb6d31c0cd8988acca22",
+   "empreinte": "e2abe239c6cecd2123b145ec8e4641c1",
+   "empreinte_avec_roles": "a8841b8b798f9083d0491432a9f81f4d",
    "nom": "caisses_fret_ecriture_acteur",
    "tbl": "caisses_fret"
   },
@@ -3369,8 +4655,8 @@
    "tbl": "caisses_fret"
   },
   {
-   "empreinte": "e3ea344f347685a7896295df58bef6aa",
-   "empreinte_avec_roles": "625062ee82f3b3838602fd226775e1b0",
+   "empreinte": "168f6cb02078a6d799fe6b88b1553329",
+   "empreinte_avec_roles": "6b7261ff6a85213c16f62ebcc0722d59",
    "nom": "caisses_fret_maj_acteur",
    "tbl": "caisses_fret"
   },
@@ -3427,6 +4713,18 @@
    "empreinte_avec_roles": "165207b5962980cb344332a9840127e2",
    "nom": "chantiers_paliers lecture",
    "tbl": "chantiers_paliers"
+  },
+  {
+   "empreinte": "2bd74d76e4444e16c9dbf47982799900",
+   "empreinte_avec_roles": "3392beab140652cafabc6eb46086efcb",
+   "nom": "Aucune ecriture directe des decors",
+   "tbl": "commerce_decors"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "c5384119f9ff4faa778c43ba0cddcce6",
+   "nom": "Lecture publique des decors",
+   "tbl": "commerce_decors"
   },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
@@ -3511,6 +4809,12 @@
    "empreinte_avec_roles": "19064c2d9e2c12a179d5e35bb4f12175",
    "nom": "investissements_lecture",
    "tbl": "investissements"
+  },
+  {
+   "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
+   "empreinte_avec_roles": "22adf07937746f15e4d858d5c70c27c1",
+   "nom": "reserve jardins lecture",
+   "tbl": "jardins_ouvriers_reserve"
   },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
@@ -3616,12 +4920,32 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "chantier_commandes_recus"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "chantier_requetes"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "chantiers_besoins_jour"
   },
   {
    "active": true,
    "forcee": false,
    "tbl": "chantiers_paliers"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "commerce_decors"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "commerce_decors_sources"
   },
   {
    "active": true,
@@ -3686,12 +5010,27 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "hotel_nuitees"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "imprimeries_declarees"
   },
   {
    "active": true,
    "forcee": false,
    "tbl": "investissements"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "jardins_ouvriers_reserve"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "jardins_ouvriers_travail"
   },
   {
    "active": true,
@@ -3751,6 +5090,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "recoltes_journalieres"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "ressources_economie"
   },
   {
@@ -3803,7 +5147,7 @@
   {
    "colonnes": 9,
    "empreinte_catalogue": "53bc88dd922289c406f3cb14627a8073",
-   "empreinte_texte": "372a628abe33e2affa5b7ab64cbee15f",
+   "empreinte_texte": "cba29b5cb2ed3dae5b94b0ffef61067b",
    "nom": "catalogue_correspondance_legacy"
   },
   {
@@ -3843,6 +5187,18 @@
    "nom": "chaines_production_usine"
   },
   {
+   "colonnes": 7,
+   "empreinte_catalogue": "ca1fae1d7bd9e57c4b4ca29a0ec4459c",
+   "empreinte_texte": "3c058bf5ea5402912185fd73334b0a51",
+   "nom": "chantier_commandes_recus"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "4167a8cd3232ba7d12c6b57afc54fc5d",
+   "empreinte_texte": "2d9028a18d1f520f9205b26e269fa3c4",
+   "nom": "chantier_requetes"
+  },
+  {
    "colonnes": 4,
    "empreinte_catalogue": "4dd06215e512f4347e60adc8d772da0b",
    "empreinte_texte": "ef7bc2799485b13f11558eed46590e0b",
@@ -3853,6 +5209,18 @@
    "empreinte_catalogue": "9613396b64a760d832be28ed19e48422",
    "empreinte_texte": "022c3bd850f8e2a99c1604e55ada9f9e",
    "nom": "chantiers_paliers"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "cb2f79069ca9caad015c1e946ae233f1",
+   "empreinte_texte": "74d7383b77319810b80bff869d410c68",
+   "nom": "commerce_decors"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "8e1916ca3b6183aa87fc4d5797400b28",
+   "empreinte_texte": "a61f0041d9eb3ae9bab0053038aa8ad2",
+   "nom": "commerce_decors_sources"
   },
   {
    "colonnes": 7,
@@ -3887,7 +5255,7 @@
   {
    "colonnes": 15,
    "empreinte_catalogue": "93c6c3ce92709e526d44d545bd5618d6",
-   "empreinte_texte": "9666b9accde0a03bdb6e961cb4488e0d",
+   "empreinte_texte": "abad9edc5ac72d4df204309069bab4d1",
    "nom": "entrepot_journal"
   },
   {
@@ -3927,6 +5295,12 @@
    "nom": "entreprises_prix_rachat"
   },
   {
+   "colonnes": 10,
+   "empreinte_catalogue": "6d81b340ee78976ec339d5e55a4e4131",
+   "empreinte_texte": "45a242732ab4bcea6396f48b33467b54",
+   "nom": "hotel_nuitees"
+  },
+  {
    "colonnes": 3,
    "empreinte_catalogue": "7fe4a8f7e342cc8a7af81362b6cfe1be",
    "empreinte_texte": "d2b7828a4b6fed334698c481e4c099b6",
@@ -3937,6 +5311,18 @@
    "empreinte_catalogue": "6c6b8b592ea3432d2d15bb795df21266",
    "empreinte_texte": "b43f3d9682b320e09cdc790e21890d9a",
    "nom": "investissements"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "23cf0d0db718291eca2293c32ba8aca5",
+   "empreinte_texte": "ebc5d963e3be232dc4003b775e19bac7",
+   "nom": "jardins_ouvriers_reserve"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "1b2d323629c837178ec23739f64b7ff6",
+   "empreinte_texte": "33f4ed4f58ba630e38e69e4946fb2c4a",
+   "nom": "jardins_ouvriers_travail"
   },
   {
    "colonnes": 10,
@@ -3993,9 +5379,9 @@
    "nom": "produits_manufactures"
   },
   {
-   "colonnes": 22,
-   "empreinte_catalogue": "b317d3c840f5651a18591de71f3e3d67",
-   "empreinte_texte": "27cc9a35206317efb3dc2d93a9b732ee",
+   "colonnes": 23,
+   "empreinte_catalogue": "8d0e4ef6f052a903bc6a92aa9e16199f",
+   "empreinte_texte": "341734526f7ab3bef434ff520536ddda",
    "nom": "recettes_commerce"
   },
   {
@@ -4003,6 +5389,12 @@
    "empreinte_catalogue": "1ad29e7952837c24a3506c9795486ed2",
    "empreinte_texte": "d20a5803fcbc0b468b97b036c3981a68",
    "nom": "recettes_production"
+  },
+  {
+   "colonnes": 3,
+   "empreinte_catalogue": "08f89e4119ae508ffa2915d43763198a",
+   "empreinte_texte": "46553b90cd6a28466d77f66159a9a072",
+   "nom": "recoltes_journalieres"
   },
   {
    "colonnes": 5,
@@ -4029,9 +5421,9 @@
    "nom": "usines_rachat_config"
   },
   {
-   "colonnes": 20,
-   "empreinte_catalogue": "39d6cd07ca96ce8827394995cdff117b",
-   "empreinte_texte": "d28abebbeabe91b87ee82762e49bd2ba",
+   "colonnes": 22,
+   "empreinte_catalogue": "1c067d4a356269342c9bcaf6e07c9d79",
+   "empreinte_texte": "75a7e72f8333b55793c77bd0de204897",
    "nom": "ventes_snapshots"
   }
  ],
@@ -4043,9 +5435,27 @@
    "tbl": "caisses_fret"
   },
   {
+   "empreinte": "337080c57ab15538d7bf1d6c04756fc8",
+   "fonction": "fret_contenu_source_garder()",
+   "nom": "hg_fret_contenu_source",
+   "tbl": "contenu_caisses_fret"
+  },
+  {
+   "empreinte": "80226f458ed922d5a95de3de11c43321",
+   "fonction": "restaurant_luthecia_initialiser()",
+   "nom": "entreprise_restaurant_luthecia_initialiser",
+   "tbl": "entreprises"
+  },
+  {
    "empreinte": "1a23c855d46c375934379cdbc824cbf4",
    "fonction": "ventes_snapshots_append_only()",
    "nom": "trg_ventes_snapshots_append_only",
+   "tbl": "ventes_snapshots"
+  },
+  {
+   "empreinte": "830d640dd02bbabc96a4ee8a2a78eb90",
+   "fonction": "vente_journal_preparer()",
+   "nom": "vente_journal_snapshot",
    "tbl": "ventes_snapshots"
   }
  ],

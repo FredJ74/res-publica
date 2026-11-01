@@ -16,6 +16,7 @@ ALTER TABLE public.budgets_municipaux ADD CONSTRAINT budgets_municipaux_pkey PRI
 ALTER TABLE public.budgets_nationaux ADD CONSTRAINT budgets_nationaux_pkey PRIMARY KEY (id);
 ALTER TABLE public.caisses_autorites ADD CONSTRAINT caisses_autorites_pkey PRIMARY KEY (motif);
 ALTER TABLE public.caisses_batiments ADD CONSTRAINT caisses_batiments_pkey PRIMARY KEY (id);
+ALTER TABLE public.caisses_collectives_operations ADD CONSTRAINT caisses_collectives_operations_pkey PRIMARY KEY (requete);
 ALTER TABLE public.caisses_mouvements_clients ADD CONSTRAINT caisses_mouvements_clients_pkey PRIMARY KEY (id);
 ALTER TABLE public.contributions_piete ADD CONSTRAINT contributions_piete_pkey PRIMARY KEY (id);
 ALTER TABLE public.directions_etablissements ADD CONSTRAINT directions_etablissements_pkey PRIMARY KEY (pays, poste_id, ville);
@@ -24,6 +25,7 @@ ALTER TABLE public.fiscalite_journal ADD CONSTRAINT fiscalite_journal_pkey PRIMA
 ALTER TABLE public.fonds_credits_sources ADD CONSTRAINT fonds_credits_sources_pkey PRIMARY KEY (source);
 ALTER TABLE public.fonds_credits_uniques ADD CONSTRAINT fonds_credits_uniques_pkey PRIMARY KEY (id);
 ALTER TABLE public.fonds_debits ADD CONSTRAINT fonds_debits_pkey PRIMARY KEY (id);
+ALTER TABLE public.fonds_en_transit ADD CONSTRAINT fonds_en_transit_pkey PRIMARY KEY (id);
 ALTER TABLE public.pa_bonus_differes ADD CONSTRAINT pa_bonus_differes_pkey PRIMARY KEY (source);
 ALTER TABLE public.pa_bonus_differes_empreinte ADD CONSTRAINT pa_bonus_differes_empreinte_pkey PRIMARY KEY (seul);
 ALTER TABLE public.pa_bonus_hotel ADD CONSTRAINT pa_bonus_hotel_pkey PRIMARY KEY (building_id);
@@ -37,6 +39,7 @@ ALTER TABLE public.salaires_civils_declares ADD CONSTRAINT salaires_civils_decla
 ALTER TABLE public.salaires_civils_verses ADD CONSTRAINT salaires_civils_verses_pkey PRIMARY KEY (id);
 ALTER TABLE public.salaires_religieux_declares ADD CONSTRAINT salaires_religieux_declares_pkey PRIMARY KEY (cle);
 ALTER TABLE public.salaires_religieux_verses ADD CONSTRAINT salaires_religieux_verses_pkey PRIMARY KEY (id);
+ALTER TABLE public.subventions_entreprises_traces ADD CONSTRAINT subventions_entreprises_traces_pkey PRIMARY KEY (requete);
 ALTER TABLE public.subventions_familles ADD CONSTRAINT subventions_familles_pkey PRIMARY KEY (famille);
 ALTER TABLE public.subventions_municipales ADD CONSTRAINT subventions_municipales_pkey PRIMARY KEY (id);
 
@@ -52,6 +55,7 @@ ALTER TABLE public.fiscalite_journal ADD CONSTRAINT fiscalite_journal_pays_check
 ALTER TABLE public.fiscalite_journal ADD CONSTRAINT fiscalite_journal_personnage_check CHECK ((personnage <> ''::text));
 ALTER TABLE public.fiscalite_journal ADD CONSTRAINT fiscalite_journal_type_check CHECK ((type <> ''::text));
 ALTER TABLE public.fonds_debits ADD CONSTRAINT fonds_debits_montant_check CHECK ((montant > (0)::numeric));
+ALTER TABLE public.fonds_en_transit ADD CONSTRAINT fonds_en_transit_montant_check CHECK ((montant >= (0)::numeric));
 ALTER TABLE public.pa_bonus_differes ADD CONSTRAINT pa_bonus_differes_montant_check CHECK (((montant > 0) AND (montant <= 10)));
 ALTER TABLE public.pa_bonus_differes_empreinte ADD CONSTRAINT pa_bonus_differes_empreinte_seul_check CHECK (seul);
 ALTER TABLE public.pa_bonus_hotel ADD CONSTRAINT pa_bonus_hotel_montant_check CHECK (((montant > 0) AND (montant <= 10)));
@@ -66,6 +70,7 @@ ALTER TABLE public.repartitions_budgetaires ADD CONSTRAINT repartitions_budgetai
 ALTER TABLE public.salaires_civils_declares ADD CONSTRAINT salaires_civils_declares_categorie_check CHECK ((categorie = ANY (ARRAY['poste'::text, 'emploi'::text, 'universel'::text])));
 ALTER TABLE public.salaires_civils_declares ADD CONSTRAINT salaires_civils_declares_montant_check CHECK ((montant >= 0));
 ALTER TABLE public.salaires_religieux_declares ADD CONSTRAINT salaires_religieux_declares_montant_check CHECK ((montant > 0));
+ALTER TABLE public.subventions_entreprises_traces ADD CONSTRAINT subventions_entreprises_traces_montant_check CHECK ((montant > (0)::numeric));
 ALTER TABLE public.subventions_familles ADD CONSTRAINT subventions_familles_registre_check CHECK ((registre = ANY (ARRAY['organisation'::text, 'club_football'::text])));
 ALTER TABLE public.subventions_municipales ADD CONSTRAINT subventions_cloture_coherente CHECK ((((statut = 'proposee'::text) AND (clos_par IS NULL) AND (clos_le IS NULL)) OR ((statut = ANY (ARRAY['acceptee'::text, 'refusee'::text])) AND (clos_par IS NOT NULL) AND (clos_le IS NOT NULL)) OR ((statut = 'expiree'::text) AND (clos_par IS NULL) AND (clos_le IS NOT NULL))));
 ALTER TABLE public.subventions_municipales ADD CONSTRAINT subventions_delai_de_trois_jours CHECK ((jour_echeance = (jour + 3)));

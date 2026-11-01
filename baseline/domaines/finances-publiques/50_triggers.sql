@@ -10,7 +10,9 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE TRIGGER budgets_municipaux_ecran_garder BEFORE INSERT OR UPDATE ON budgets_municipaux FOR EACH ROW EXECUTE FUNCTION budgets_municipaux_ecran_garder();
 CREATE TRIGGER budgets_armurerie_verrou BEFORE UPDATE ON budgets_nationaux FOR EACH ROW EXECUTE FUNCTION budgets_armurerie_verrou();
+CREATE TRIGGER budgets_nationaux_ecran_fusionner BEFORE INSERT OR DELETE OR UPDATE ON budgets_nationaux FOR EACH ROW EXECUTE FUNCTION budgets_nationaux_ecran_fusionner();
 CREATE TRIGGER budgets_virement_caserne_verrou BEFORE UPDATE ON budgets_nationaux FOR EACH ROW EXECUTE FUNCTION budgets_virement_caserne_verrou();
 CREATE TRIGGER trg_budget_national_epingler BEFORE UPDATE ON budgets_nationaux FOR EACH ROW EXECUTE FUNCTION budget_national_epingler();
 CREATE TRIGGER trg_justice_indemnites_sur_alimentation AFTER UPDATE OF data ON caisses_batiments FOR EACH ROW EXECUTE FUNCTION justice_indemnites_sur_alimentation();

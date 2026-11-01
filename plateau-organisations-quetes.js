@@ -224,13 +224,13 @@ async function sauvegarderOrga(orga) {
   return !!ecrit;
 }
 
-// Retourne null uniquement si le serveur confirme que le contrat n'est pas encore installe.
-// Le repli transitoire disparaitra avec la fermeture globale des anciennes ecritures.
+// Toute commande doit être confirmée par son serveur. Un contrat absent refuse
+// l’action ; il ne rouvre jamais une sauvegarde générale de remplacement.
 async function organisationEssayerCommande(orgaId, action, parametres) {
   const contexte=equipementsCollectifsContexte();
   const r=await sbOrganisationCommande(orgaId,action,parametres);
   if(!equipementsCollectifsContexteValide(contexte))return false;
-  if(r?.disponible===false)return null;
+  if(r?.disponible===false){showToast('Service indisponible','La commande serveur de cette organisation n’est pas encore activée. Aucune sauvegarde générale ne sera utilisée.',false);return false;}
   if(!r?.ok){showToast('Opération non confirmée','Actualisez avant de recommencer. Aucun repli vers une sauvegarde générale.',false);return false;}
   // Un recu rejoue ne contient pas d'ancien solde : relire la ligne courante.
   const fraiche=await sbGetOrganisationParId(orgaId).catch(()=>null);
@@ -549,7 +549,7 @@ function renderOngletOrgas() {
 
       (estChef ?
         '<div style="padding:.5rem .8rem;display:flex;flex-wrap:wrap;gap:.35rem;border-bottom:1px solid #1a1208">' +
-          '<button type="button" data-organisation="' + commercePjEchapper(orga.id) + '" onclick="equipementsCollectifsOuvrir(this.dataset.organisation)">Équipements</button>' +
+          '<button type="button" data-organisation="' + commercePjEchapper(orga.id) + '" disabled title="Service serveur non activé">Équipements — indisponibles</button>' +
           '<button onclick="ouvrirGestionMembres(\'' + orga.id + '\')" style="font-family:Bebas Neue,sans-serif;font-size:.85rem;letter-spacing:.06em;padding:.3rem .6rem;border:1px solid #2a3a2a;background:transparent;color:#6a9a6a;cursor:pointer">👥 Membres</button>' +
           (!orga.visible ?
             // Organisation secrete : adhesion uniquement sur invitation, pas de candidature publique.

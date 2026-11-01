@@ -394,6 +394,85 @@ BEGIN
   RETURN NEW;
 END; $function$;
 
+-- club_accessoire_acheter(uuid,text,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.club_accessoire_acheter(p_requete uuid, p_accessoire text, p_pa integer, p_cost integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE a public.personnages_donnees; c public.clubs_sportifs_regles; o jsonb; prix integer; v jsonb; d jsonb; paiement jsonb; params jsonb; budget jsonb;
+BEGIN
+ SELECT * INTO a FROM public.personnages_donnees WHERE name=public.mon_personnage() FOR UPDATE;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','acteur_non_authentifie'); END IF;
+ IF p_requete IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','requete_invalide'); END IF;
+ params:=jsonb_build_object('accessoire',p_accessoire,'pa',p_pa,'cost',p_cost);
+ v:=public.inventaire_action_rejouer_interne(a.name,p_requete,'club_accessoire',params);IF v IS NOT NULL THEN RETURN v;END IF;
+ IF a.current_building IS DISTINCT FROM 'stade' OR a.current_room IS DISTINCT FROM 'buvette' THEN RETURN jsonb_build_object('ok',false,'raison','pas_sur_place');END IF;
+ SELECT * INTO c FROM public.clubs_sportifs_regles WHERE country=a.country AND city=a.current_city;
+ IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'raison','club_local_introuvable');END IF;
+ prix:=CASE p_accessoire WHEN 'echarpe' THEN 80 WHEN 'casquette' THEN 60 WHEN 'maillot' THEN 150 END;
+ IF prix IS NULL THEN RETURN jsonb_build_object('ok',false,'raison','accessoire_inconnu');END IF;
+ SELECT objet INTO STRICT o FROM public.objets_modeles WHERE id='accessoire:'||p_accessoire;
+ o:=o||jsonb_build_object('name',(o->>'name')||' — '||c.nom);
+ v:=public.assemblee_verifier_vente(jsonb_build_array(o),a.country);
+ IF (v->>'ok')::boolean IS DISTINCT FROM true THEN RETURN v;END IF;
+ IF public.inventaire_place_restante(a.inventory)<1 THEN RETURN jsonb_build_object('ok',false,'raison','inventaire_plein');END IF;
+ PERFORM 1 FROM public.comptes_bancaires WHERE personnage=a.name AND banque='nationale' FOR UPDATE;
+ IF coalesce(a.liquide,0)+coalesce((SELECT solde FROM public.comptes_bancaires WHERE personnage=a.name AND banque='nationale'),0)<prix THEN
+ RETURN jsonb_build_object('ok',false,'raison','fonds_insuffisants');END IF;
+ paiement:=public.payer_ordre(a.name,'choisir_accessoire_club',p_pa,p_cost);
+ IF (paiement->>'ok')::boolean IS DISTINCT FROM true THEN RETURN paiement;END IF;
+ IF NOT public.helvetia_debiter_fonds_ordinaires(a.name,prix) THEN RAISE EXCEPTION 'club: debit non confirme';END IF;
+ INSERT INTO public.budgets_clubs(id,data) VALUES(c.club_id,jsonb_build_object('clubId',c.club_id,'caisse',0,'historique','[]'::jsonb,
+  'salaires',jsonb_build_object('titulaire',100,'remplacant',50,'primeVictoire',150))) ON CONFLICT(id) DO NOTHING;
+ SELECT data INTO STRICT budget FROM public.budgets_clubs WHERE id=c.club_id FOR UPDATE;
+ IF jsonb_typeof(budget) IS DISTINCT FROM 'object' OR (budget?'historique' AND jsonb_typeof(budget->'historique') IS DISTINCT FROM 'array') THEN RAISE EXCEPTION 'club: budget historique invalide';END IF;
+ budget:=budget||jsonb_build_object('caisse',coalesce((budget->>'caisse')::numeric,0)+prix,
+  'historique',coalesce(budget->'historique','[]')||jsonb_build_array(jsonb_build_object('jour',public.jour_de_jeu_pays(a.country),'montant',prix,'motif','Vente boutique : '||split_part(o->>'name',' — ',1))));
+ SELECT jsonb_set(budget,'{historique}',coalesce(jsonb_agg(e ORDER BY n),'[]')) INTO budget
+ FROM jsonb_array_elements(budget->'historique') WITH ORDINALITY x(e,n) WHERE n>jsonb_array_length(budget->'historique')-50;
+ UPDATE public.budgets_clubs SET data=budget,updated_at=now() WHERE id=c.club_id;
+ d:=public.inventaire_deposer_interne(a.name,o);
+ IF (d->>'ok')::boolean IS DISTINCT FROM true THEN RAISE EXCEPTION 'club: depot refuse';END IF;
+ SELECT jsonb_build_object('pa',pa,'liquide',liquide,'arg',arg,'solde_national',coalesce((SELECT solde FROM public.comptes_bancaires WHERE personnage=a.name AND banque='nationale'),0)) INTO paiement FROM public.personnages_donnees WHERE name=a.name;
+ v:=d||jsonb_build_object('paie',paiement,'prix',prix,'objet',o->>'name');
+ INSERT INTO public.inventaire_actions_recus VALUES(a.name,p_requete,'club_accessoire',params,v,now());RETURN v;
+END; $function$;
+
+-- club_caisse_ajuster_interne(text,numeric,text,integer) -> numeric | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.club_caisse_ajuster_interne(p_club text, p_delta numeric, p_motif text, p_jour integer)
+ RETURNS numeric
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_data jsonb; v_solde numeric; v_hist jsonb; v_n integer;
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.clubs_football WHERE id = p_club) THEN
+    RAISE EXCEPTION 'club_introuvable: %', p_club;
+  END IF;
+  INSERT INTO public.budgets_clubs(id, data, updated_at)
+  VALUES (p_club, jsonb_build_object('clubId', p_club, 'caisse', 0, 'historique', '[]'::jsonb,
+          'salaires', jsonb_build_object('titulaire', 100, 'remplacant', 50, 'primeVictoire', 150)), now())
+  ON CONFLICT (id) DO NOTHING;
+  SELECT data INTO v_data FROM public.budgets_clubs WHERE id = p_club FOR UPDATE;
+  v_solde := CASE WHEN jsonb_typeof(v_data->'caisse') = 'number' THEN (v_data->>'caisse')::numeric ELSE 0 END;
+  IF v_solde + p_delta < 0 THEN RETURN NULL; END IF;
+  v_hist := coalesce(CASE WHEN jsonb_typeof(v_data->'historique') = 'array' THEN v_data->'historique' END, '[]'::jsonb)
+            || jsonb_build_array(jsonb_build_object('jour', p_jour, 'montant', p_delta, 'motif', p_motif));
+  v_n := jsonb_array_length(v_hist);
+  IF v_n > 50 THEN
+    SELECT jsonb_agg(e ORDER BY n) INTO v_hist
+      FROM jsonb_array_elements(v_hist) WITH ORDINALITY t(e, n) WHERE n > v_n - 50;
+  END IF;
+  UPDATE public.budgets_clubs
+     SET data = jsonb_set(jsonb_set(v_data, '{caisse}', to_jsonb(v_solde + p_delta)), '{historique}', v_hist),
+         updated_at = now()
+   WHERE id = p_club;
+  RETURN v_solde + p_delta;
+END $function$;
+
 -- club_capitaine(text) -> text | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.club_capitaine(p_club text)
  RETURNS text
@@ -628,6 +707,175 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'vote', coalesce(p_vote, false));
 END;
 $function$;
+
+-- club_salaires_fixer(text,integer,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.club_salaires_fixer(p_club text, p_titulaire integer, p_remplacant integer, p_prime integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_data jsonb; v_sal jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF (SELECT data->>'president' FROM public.presidents_clubs WHERE id = p_club) IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'reserve_au_president');
+  END IF;
+  IF least(p_titulaire, p_remplacant, p_prime) < 0 OR greatest(p_titulaire, p_remplacant, p_prime) > 100000 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'montant_invalide');
+  END IF;
+  PERFORM public.club_caisse_ajuster_interne(p_club, 0, 'Salaires mis à jour',
+            coalesce((SELECT day FROM public.personnages_donnees WHERE name = v_moi), 1));
+  v_sal := jsonb_build_object('titulaire', p_titulaire, 'remplacant', p_remplacant, 'primeVictoire', p_prime);
+  UPDATE public.budgets_clubs SET data = jsonb_set(data, '{salaires}', v_sal), updated_at = now()
+   WHERE id = p_club RETURNING data INTO v_data;
+  RETURN jsonb_build_object('ok', true, 'salaires', v_sal, 'caisse', v_data->'caisse');
+END $function$;
+
+-- club_sponsoriser(text,text,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.club_sponsoriser(p_requete text, p_club text, p_montant integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_recu jsonb; v_inf integer; v_label text; v_cout record; v_paie jsonb;
+        v_dispo numeric; v_nouveau numeric; v_res_j jsonb; v_res jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  v_inf := CASE p_montant WHEN 500 THEN 2 WHEN 1500 THEN 5 WHEN 3000 THEN 10 END;
+  v_label := CASE p_montant WHEN 500 THEN 'Sponsor bronze' WHEN 1500 THEN 'Sponsor argent' WHEN 3000 THEN 'Sponsor officiel' END;
+  IF v_inf IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'palier_inconnu'); END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.clubs_football WHERE id = p_club) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'club_introuvable');
+  END IF;
+  v_recu := public.caisse_collective_recu_interne(p_requete, v_moi, 'sponsoriser_club', p_club);
+  IF v_recu IS NOT NULL THEN RETURN v_recu; END IF;
+
+  SELECT coalesce(pd.liquide, 0) + coalesce((SELECT solde FROM public.comptes_bancaires c
+           WHERE c.personnage = v_moi AND c.banque = 'nationale'), 0)
+    INTO v_dispo FROM public.personnages_donnees pd WHERE pd.name = v_moi;
+  IF coalesce(v_dispo, 0) < p_montant THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants', 'disponible', coalesce(v_dispo, 0));
+  END IF;
+
+  SELECT pa, cost INTO v_cout FROM public.ordres_couts WHERE fn = 'sponsoriser_club' ORDER BY pa, cost LIMIT 1;
+  v_paie := public.payer_ordre(v_moi, 'sponsoriser_club', v_cout.pa, v_cout.cost);
+  IF NOT coalesce((v_paie->>'ok')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paie->>'raison', 'paiement_refuse'), 'paiement', v_paie);
+  END IF;
+  IF NOT public.helvetia_debiter_fonds_ordinaires(v_moi, p_montant) THEN
+    RAISE EXCEPTION 'sponsoring: fonds insuffisants apres controle';
+  END IF;
+
+  SELECT CASE WHEN jsonb_typeof(resources) = 'object' THEN resources ELSE '{}'::jsonb END
+    INTO v_res_j FROM public.personnages_donnees WHERE name = v_moi FOR UPDATE;
+  v_res_j := jsonb_set(v_res_j, '{inf}', to_jsonb(least(100, coalesce((v_res_j->>'inf')::numeric, 0) + v_inf)));
+  UPDATE public.personnages_donnees SET resources = v_res_j WHERE name = v_moi;
+
+  v_nouveau := public.club_caisse_ajuster_interne(p_club, p_montant, v_label || ' — ' || v_moi,
+                 coalesce((SELECT day FROM public.personnages_donnees WHERE name = v_moi), 1));
+  v_res := jsonb_build_object('ok', true, 'caisse', v_nouveau, 'inf', v_res_j->'inf', 'paiement', v_paie,
+    'liquide', (SELECT liquide FROM public.personnages_donnees WHERE name = v_moi),
+    'arg', (SELECT arg FROM public.personnages_donnees WHERE name = v_moi),
+    'solde_national', coalesce((SELECT solde FROM public.comptes_bancaires WHERE personnage = v_moi AND banque = 'nationale'), 0));
+  RETURN public.caisse_collective_recu_noter_interne(p_requete, v_moi, 'sponsoriser_club', p_club, v_res);
+END $function$;
+
+-- club_supporters_cotiser(text,text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.club_supporters_cotiser(p_requete text, p_club text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_recu jsonb; v_cout record; v_paie jsonb; v_nouveau numeric; v_res jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.clubs_football WHERE id = p_club) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'club_introuvable');
+  END IF;
+  v_recu := public.caisse_collective_recu_interne(p_requete, v_moi, 'rejoindre_club_supporters', p_club);
+  IF v_recu IS NOT NULL THEN RETURN v_recu; END IF;
+
+  SELECT pa, cost INTO v_cout FROM public.ordres_couts WHERE fn = 'rejoindre_club_supporters' ORDER BY pa, cost LIMIT 1;
+  v_paie := public.payer_ordre(v_moi, 'rejoindre_club_supporters', v_cout.pa, v_cout.cost);
+  IF NOT coalesce((v_paie->>'ok')::boolean, false) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', coalesce(v_paie->>'raison', 'paiement_refuse'), 'paiement', v_paie);
+  END IF;
+  v_nouveau := public.club_caisse_ajuster_interne(p_club, v_cout.cost, 'Cotisation supporter',
+                 coalesce((SELECT day FROM public.personnages_donnees WHERE name = v_moi), 1));
+  v_res := jsonb_build_object('ok', true, 'caisse', v_nouveau, 'paiement', v_paie);
+  RETURN public.caisse_collective_recu_noter_interne(p_requete, v_moi, 'rejoindre_club_supporters', p_club, v_res);
+END $function$;
+
+-- club_transfert_conclure(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.club_transfert_conclure(p_transfert text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_row record; v_t jsonb; v_prix numeric; v_prime numeric; v_jour integer;
+        v_solde numeric; v_arr numeric; v_dep numeric; v_fiche jsonb;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  SELECT * INTO v_row FROM public.transferts_clubs WHERE id = p_transfert FOR UPDATE;
+  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false, 'raison', 'transfert_introuvable'); END IF;
+  v_t := v_row.data;
+  IF v_t->>'joueur' IS DISTINCT FROM v_moi THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_le_joueur');
+  END IF;
+  IF v_row.statut = 'termine' AND v_t->>'concluPar' = v_moi THEN
+    SELECT jsonb_build_object('liquide', liquide, 'arg', arg) INTO v_fiche
+      FROM public.personnages_donnees WHERE name = v_moi;
+    RETURN jsonb_build_object('ok', true, 'rejeu', true, 'transfert', v_t,
+                              'prime', coalesce(v_t->'primeVersee', '0'::jsonb), 'fiche', v_fiche);
+  END IF;
+  IF v_row.statut IS DISTINCT FROM 'attente_joueur' OR v_t->>'statut' IS DISTINCT FROM 'attente_joueur' THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'transfert_non_ouvert', 'statut', v_row.statut);
+  END IF;
+  v_prix := CASE WHEN jsonb_typeof(v_t->'prixClub') = 'number' THEN (v_t->>'prixClub')::numeric END;
+  IF v_prix IS NULL OR v_prix < 0 THEN RETURN jsonb_build_object('ok', false, 'raison', 'prix_invalide'); END IF;
+  -- Prime : celle inscrite dans l'offre du club d'arrivée (immuable depuis), 0 si absente.
+  v_prime := CASE WHEN NOT v_t ? 'prixJoueur' OR jsonb_typeof(v_t->'prixJoueur') = 'null' THEN 0
+                  WHEN jsonb_typeof(v_t->'prixJoueur') = 'number' THEN (v_t->>'prixJoueur')::numeric END;
+  IF v_prime IS NULL OR v_prime < 0 OR v_prime <> trunc(v_prime) OR v_prime > 2147483647 THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'prime_invalide');
+  END IF;
+  v_jour := coalesce((SELECT day FROM public.personnages_donnees WHERE name = v_moi), 1);
+
+  -- Ordre des verrous stable (identifiant croissant) pour éviter l'interblocage entre deux transferts.
+  PERFORM 1 FROM public.budgets_clubs WHERE id IN (v_t->>'clubDepartId', v_t->>'clubArriveeId') ORDER BY id FOR UPDATE;
+  -- Le club d'arrivée couvre prix ET prime, sinon rien ne bouge (ni club de départ, ni joueur).
+  v_solde := (SELECT CASE WHEN jsonb_typeof(data->'caisse') = 'number' THEN (data->>'caisse')::numeric ELSE 0 END
+                FROM public.budgets_clubs WHERE id = v_t->>'clubArriveeId');
+  IF coalesce(v_solde, 0) < v_prix + v_prime THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_club_insuffisante');
+  END IF;
+  v_arr := public.club_caisse_ajuster_interne(v_t->>'clubArriveeId', -v_prix, 'Transfert de ' || v_moi, v_jour);
+  IF v_arr IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'caisse_club_insuffisante');
+  END IF;
+  v_dep := public.club_caisse_ajuster_interne(v_t->>'clubDepartId', v_prix, 'Transfert de ' || v_moi, v_jour);
+  IF v_prime > 0 THEN
+    v_arr := public.club_caisse_ajuster_interne(v_t->>'clubArriveeId', -v_prime, 'Prime de signature de ' || v_moi, v_jour);
+    IF v_arr IS NULL THEN RAISE EXCEPTION 'transfert: caisse insuffisante pour la prime'; END IF;
+    v_fiche := public.assemblee_crediter_joueur(v_moi, v_prime::integer);
+  ELSE
+    SELECT jsonb_build_object('liquide', liquide, 'arg', arg) INTO v_fiche
+      FROM public.personnages_donnees WHERE name = v_moi;
+  END IF;
+
+  v_t := v_t || jsonb_build_object('statut', 'termine', 'concluPar', v_moi, 'concluLe', now(), 'primeVersee', v_prime);
+  UPDATE public.transferts_clubs SET statut = 'termine', data = v_t, updated_at = now() WHERE id = p_transfert;
+  RETURN jsonb_build_object('ok', true, 'transfert', v_t, 'caisseArrivee', v_arr, 'caisseDepart', v_dep,
+                            'prime', v_prime, 'fiche', v_fiche);
+END $function$;
 
 -- football_entrainement_consommer(text) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public
 CREATE OR REPLACE FUNCTION public.football_entrainement_consommer(p_stat text)
@@ -1052,3 +1300,60 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'manche', p_manche, 'verses', v_verses,
                             'total', v_somme, 'deja_versees', v_ignores, 'detail', v_detail);
 END; $function$;
+
+-- transferts_clubs_garder() -> trigger | plpgsql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.transferts_clubs_garder()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_n jsonb; v_o jsonb; v_pres_arr text; v_pres_dep text;
+BEGIN
+  IF current_user NOT IN ('anon', 'authenticated') THEN RETURN NEW; END IF;
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RAISE EXCEPTION 'transfert_acteur_non_authentifie' USING ERRCODE = '42501'; END IF;
+  v_n := NEW.data;
+  IF NEW.statut IS DISTINCT FROM v_n->>'statut' THEN
+    RAISE EXCEPTION 'transfert_statut_incoherent' USING ERRCODE = '42501';
+  END IF;
+  IF NEW.statut = 'termine' AND (v_n ? 'concluPar' OR v_n ? 'primeVersee')
+     AND (TG_OP = 'INSERT' OR NOT (OLD.data ? 'concluPar' OR OLD.data ? 'primeVersee')) THEN
+    RAISE EXCEPTION 'transfert_reglement_reserve_au_serveur' USING ERRCODE = '42501';
+  END IF;
+  v_pres_arr := (SELECT data->>'president' FROM public.presidents_clubs WHERE id = v_n->>'clubArriveeId');
+
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.statut <> 'propose' OR v_n->>'proposePar' IS DISTINCT FROM v_moi OR v_pres_arr IS DISTINCT FROM v_moi
+       OR jsonb_typeof(v_n->'prixClub') <> 'number' OR (v_n->>'prixClub')::numeric <= 0 THEN
+      RAISE EXCEPTION 'transfert_offre_non_autorisee' USING ERRCODE = '42501';
+    END IF;
+    IF v_n ? 'prixJoueur' AND (jsonb_typeof(v_n->'prixJoueur') <> 'number'
+         OR (v_n->>'prixJoueur')::numeric < 0 OR (v_n->>'prixJoueur')::numeric <> trunc((v_n->>'prixJoueur')::numeric)) THEN
+      RAISE EXCEPTION 'transfert_prime_invalide' USING ERRCODE = '42501';
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  v_o := OLD.data;
+  IF (v_n->>'joueur', v_n->>'clubDepartId', v_n->>'clubArriveeId', v_n->>'proposePar', v_n->'prixJoueur')
+     IS DISTINCT FROM (v_o->>'joueur', v_o->>'clubDepartId', v_o->>'clubArriveeId', v_o->>'proposePar', v_o->'prixJoueur') THEN
+    RAISE EXCEPTION 'transfert_termes_immuables' USING ERRCODE = '42501';
+  END IF;
+  v_pres_dep := (SELECT data->>'president' FROM public.presidents_clubs WHERE id = v_o->>'clubDepartId');
+
+  IF OLD.statut = 'propose' AND v_pres_dep = v_moi
+     AND NEW.statut IN ('termine', 'contre_offre', 'attente_joueur')
+     AND ((v_n->'prixClub') = (v_o->'prixClub')
+          OR (NEW.statut = 'contre_offre' AND jsonb_typeof(v_n->'prixClub') = 'number' AND (v_n->>'prixClub')::numeric > 0)) THEN
+    RETURN NEW;
+  END IF;
+  IF OLD.statut = 'contre_offre' AND v_pres_arr = v_moi AND NEW.statut IN ('termine', 'attente_joueur')
+     AND (v_n->'prixClub') = (v_o->'prixClub') THEN
+    RETURN NEW;
+  END IF;
+  IF OLD.statut = 'attente_joueur' AND v_o->>'joueur' = v_moi AND NEW.statut = 'termine'
+     AND (v_n->'prixClub') = (v_o->'prixClub') AND NOT v_n ? 'concluPar' AND NOT v_n ? 'primeVersee' THEN
+    RETURN NEW;
+  END IF;
+  RAISE EXCEPTION 'transfert_etape_non_autorisee' USING ERRCODE = '42501';
+END $function$;

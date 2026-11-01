@@ -1,0 +1,16 @@
+✔ transport : rendu seulement après verdict et relecture officielle, pas les anciens soldes du reçu (64.455859ms)
+✔ réponse perdue : même reçu au clic suivant, pas de rendu avant confirmation (27.249366ms)
+✔ double clic : une seule requête (19.425049ms)
+✔ confirmation tardive ou incomplète : personnage (15.514828ms)
+✔ confirmation tardive ou incomplète : session (14.369124ms)
+✔ confirmation tardive ou incomplète : comptes (15.120715ms)
+✔ confirmation tardive ou incomplète : position (14.260774ms)
+✔ mémoire de reçu indisponible : aucun paiement envoyé (15.268424ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 196.292742

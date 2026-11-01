@@ -183,27 +183,39 @@ def surface_du_navigateur():
     return par_table, sites, bruts
 
 
+def positions_structure_js(texte, debut=0):
+    """Parcourt un objet RPC en ignorant ses valeurs citées et commentaires.
+
+    Ne sert pas à retirer des appels du recensement : celui-ci reste conservateur,
+    notamment pour les gestionnaires embarqués dans des chaînes HTML.
+    """
+    i=debut
+    while i<len(texte):
+        if texte.startswith('//',i):
+            fin=texte.find('\n',i);i=len(texte) if fin<0 else fin
+        elif texte.startswith('/*',i):
+            fin=texte.find('*/',i+2);i=len(texte) if fin<0 else fin+2
+        elif texte[i] in "\"'`":
+            quote=texte[i];i+=1
+            while i<len(texte):
+                if texte[i]=='\\':i+=2;continue
+                if texte[i]==quote:i+=1;break
+                i+=1
+        else:
+            yield i,texte[i];i+=1
+
+
+def masque_structure_js(texte):
+    sortie=[' ']*len(texte)
+    for i,ch in positions_structure_js(texte):sortie[i]=ch
+    return ''.join(sortie)
+
+
 def cles_de_premier_niveau(bloc):
-    """Les cles du PREMIER niveau de l'objet litteral `bloc`, qui commence par
-    son accolade ouvrante et finit par la fermante correspondante.
-
-    LES CLES D'UN OBJET IMBRIQUE NE SONT PAS DES PARAMETRES (9 octobre 2026).
-    Jusqu'a ce jour, aucun appel sbRpc ne construisait un objet sur place dans
-    sa charge : un `re.findall` a plat suffisait. Les deux appels de detention
-    du chantier justice en passent desormais un -- `p_extras: { ... }` et
-    `p_motifs: [{ ... }]` -- et la lecture a plat presentait alors treize
-    « parametres » (autorite, jour_affaire, reliquat_jours...) a une fonction
-    qui en a six. L'invariant 13 rougissait sur deux appels rigoureusement
-    conformes a leur signature.
-
-    Le comptage de profondeur est volontairement aussi naif que la recherche de
-    l'accolade fermante de l'appelant : il ignore chaines et commentaires. Les
-    deux lectures restent ainsi coherentes entre elles -- une divergence de
-    finesse entre le decoupage du bloc et sa lecture serait pire qu'une
-    naivete partagee."""
+    """Clés explicites du premier niveau, sans commentaires ni valeurs citées."""
     masque = []
     prof = 0
-    for ch in bloc:
+    for ch in masque_structure_js(bloc):
         if ch in "{[(":
             prof += 1
             masque.append(ch if prof == 1 else " ")
@@ -230,14 +242,11 @@ def rpc_du_navigateur():
         for m in re.finditer(r"\bsbRpc(?:Verdict)?\s*\(\s*['\"]([a-z_0-9]+)['\"]\s*,\s*\{", texte):
             i = m.end() - 1
             prof, j = 0, i
-            while j < len(texte):
-                if texte[j] == "{":
-                    prof += 1
-                elif texte[j] == "}":
+            for j,ch in positions_structure_js(texte,i):
+                if ch == "{":prof += 1
+                elif ch == "}":
                     prof -= 1
-                    if prof == 0:
-                        break
-                j += 1
+                    if prof == 0:break
             passes = cles_de_premier_niveau(texte[i:j + 1])
             formes[m.group(1)][passes].append(
                 "%s:%d" % (court, texte[:m.start()].count("\n") + 1))
@@ -325,6 +334,68 @@ def fonctions_du_baseline():
             if nom:
                 defs[nom.group(1)].append(morceau)
     return {nom: "\n".join(v) for nom, v in defs.items()}
+
+
+def policies_creees_migration(texte):
+    """Identités table/nom déclarées, y compris noms SQL entre guillemets.
+
+    Ne prouve aucun déploiement ; évite seulement le faux inconnu d'un DROP
+    idempotent suivi du CREATE correspondant dans le même fichier.
+    """
+    from pglast import parse_sql
+    return {(stmt.table.relname, stmt.policy_name)
+            for raw in parse_sql(texte)
+            for stmt in (raw.stmt,)
+            if type(stmt).__name__ == 'CreatePolicyStmt'
+            and stmt.table.schemaname == 'public'}
+
+
+def fonctions_creees_migration(texte):
+    """Déclarations immédiates ou en-têtes constants des blocs DO.
+
+    Une chaîne dans un commentaire ou une fonction non exécutée ne crée rien.
+    Les listes VALUES des adaptateurs sont lues par le parser PostgreSQL, et
+    seulement si EXECUTE format utilise bien leurs colonnes nom/arguments.
+    Aucune expression ni SQL de migration n'est exécuté par ce contrôle.
+    """
+    from pglast import parse_sql, scan
+    noms=set()
+    for raw in parse_sql(texte):
+        stmt=raw.stmt
+        if type(stmt).__name__=='CreateFunctionStmt':
+            noms.add(stmt.funcname[-1].sval)
+        if type(stmt).__name__!='DoStmt':continue
+        corps=next(x.arg.sval for x in stmt.args if x.defname=='as')
+        # Les clonages existants construisent aussi l'en-tête par replace(),
+        # puis EXECUTE s. Scanner les littéraux du DO (pas ses commentaires),
+        # sans prétendre interpréter tout PL/pgSQL ni certifier son exécution.
+        if re.search(r'\bEXECUTE\b',corps,re.I):
+            for jeton in scan(corps):
+                if jeton.name!='SCONST':continue
+                litteral=corps[jeton.start:jeton.end+1]
+                valeur=parse_sql('SELECT '+litteral)[0].stmt.targetList[0].val.val.sval
+                fixe=re.match(r'CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.([a-z_0-9]+)\s*\(',valeur,re.I)
+                if fixe:noms.add(fixe[1])
+        for m in re.finditer(r"EXECUTE\s+format\(\s*'((?:[^']|'')*)'\s*,([^;]+);",corps,re.I):
+            modele=m[1].replace("''", "'")
+            fixe=re.match(r'CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.([a-z_0-9]+)\s*\(',modele,re.I)
+            if fixe:noms.add(fixe[1]);continue
+            if not re.match(r'CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+public\.%I\(%s\)',modele,re.I):continue
+            champs=re.match(r'\s*(\w+)\.(\w+)\s*,\s*\1\.(\w+)\s*,',m[2])
+            if not champs:continue
+            variable,champ_nom,champ_args=champs.groups()
+            boucle=re.search(r'FOR\s+'+re.escape(variable)+r'\s+IN\s+SELECT\s+\*\s+FROM\s*\(VALUES\s+(.*?)\)\s+\w+\(([^)]+)\)\s+LOOP',corps[:m.start()],re.I|re.S)
+            if not boucle:continue
+            colonnes=[x.strip() for x in boucle[2].split(',')]
+            if champ_nom not in colonnes or champ_args not in colonnes:continue
+            valeurs=parse_sql('VALUES '+boucle[1])[0].stmt.valuesLists
+            for ligne in valeurs:
+                nom=ligne[colonnes.index(champ_nom)].val.sval
+                args=ligne[colonnes.index(champ_args)].val.sval
+                if not re.fullmatch(r'[a-z_0-9]+',nom):continue
+                declaration=parse_sql('CREATE FUNCTION public.'+nom+'('+args+") RETURNS jsonb LANGUAGE plpgsql AS '';")
+                if len(declaration)==1 and type(declaration[0].stmt).__name__=='CreateFunctionStmt':noms.add(nom)
+    return noms
 
 
 def declarations_rpc_migrations():
@@ -619,7 +690,11 @@ def main():
         # acteur_identifie » qui a vecu ici depuis le chantier 3. Une exception
         # qui nomme un objet est le symptome d'une regle manquante : on ecrit la
         # regle, et l'exception s'en va.
-        creees = set(re.findall(r"CREATE OR REPLACE FUNCTION public\.([a-z_0-9]+)\(", texte))
+        # CREATE FUNCTION et CREATE OR REPLACE ont le même effet déclaratif.
+        # Les adaptateurs privés créés par EXECUTE format('CREATE FUNCTION ...')
+        # figurent aussi ici ; cela ne constitue toujours pas une preuve de
+        # déploiement (invariant 13), seulement la déclaration dans CE fichier.
+        creees = fonctions_creees_migration(texte)
         for m in re.finditer(r"ON FUNCTION public\.([a-z_0-9]+)\(([^)]*)\)", texte):
             # LES ESPACES NE FONT PAS LA SIGNATURE. Le catalogue rend
             # « ville_est_reelle(text,text) » ; un auteur de migration ecrit
@@ -637,7 +712,7 @@ def main():
             # un DROP ... IF EXISTS sur une policy que la migration vient de
             # creer est l'idempotence, pas une erreur : on ne reclame que les
             # noms qui n'existent ni en base ni dans la migration.
-            if (m.group(2), nom) not in noms_policies and ("CREATE POLICY %s " % nom) not in texte:
+            if (m.group(2), nom) not in noms_policies and (m.group(2), nom) not in policies_creees_migration(texte):
                 ecarts.append("%s : policy inconnue « %s » sur %s"
                               % (court, nom, m.group(2)))
         # Les tables mises sous RLS.
@@ -666,8 +741,34 @@ def main():
     # resolvant la surcharge par les NOMS des parametres, pas par leur ordre.
     formes_baseline = parametres_du_baseline()
     declarations_preparees = declarations_rpc_migrations()
-    ecarts = []
+    # ATTENTE RPC PAR RPC (01/11/2026, intégration #219). Une RPC absente du baseline, ou
+    # appelée avec une forme qu'il ne connaît pas, n'est « en attente » que si elle est
+    # REDÉFINIE par une migration de migrations/ ET que l'inventaire rejoué sur
+    # baseline + migrations (simuler-rpc-apres-lot.py : signatures, DROP, GRANT/REVOKE
+    # EXECUTE au rôle authenticated) la trouve appelable avec ces paramètres-là. Tout
+    # écart encore présent APRÈS le lot reste un ECHEC : rien n'est excusé par nom, et
+    # une fois le lot appliqué et le baseline réextrait, la liste d'attente se vide seule.
+    import importlib.util as _iu
+    _spec = _iu.spec_from_file_location('simuler_rpc_apres_lot', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'simuler-rpc-apres-lot.py'))
+    _sim = _iu.module_from_spec(_spec); _spec.loader.exec_module(_sim)
+    apres_lot = _sim.ecarts_apres_lot(appels_rpc)
+    for e in apres_lot:
+        ecarts_lot = "%s : %s APRES le lot de migrations/ (parametres %s) — %s" % (
+            e['fonction'], e['diagnostic'], ", ".join(e['parametres']) or "aucun", e['sites'][0])
+        print("      [apres lot] " + ecarts_lot) if detail else None
+    restent_apres_lot = {e['fonction'] for e in apres_lot}
+    attendues = []
+    ecarts = ["%s : %s APRES le lot de migrations/ (parametres %s) — %s" % (
+        e['fonction'], e['diagnostic'], ", ".join(e['parametres']) or "aucun", e['sites'][0]) for e in apres_lot]
     for fn in sorted(appels_rpc):
+        if fn not in restent_apres_lot and fn in declarations_preparees:
+            if fn not in formes_baseline or not all(
+                    any(passes <= attendus for attendus in formes_baseline[fn])
+                    for passes in appels_rpc[fn]):
+                attendues.append("%s (redefinie par %s)" % (fn, ", ".join(declarations_preparees[fn])))
+            continue
+        if fn in restent_apres_lot:
+            continue
         if fn not in formes_baseline:
             sites = sorted({s for v in appels_rpc[fn].values() for s in v})[:2]
             origine = declarations_preparees.get(fn, [])
@@ -683,6 +784,12 @@ def main():
                               "surcharge — %s"
                               % (fn, ", ".join(sorted(passes)) or "aucun", sites[0]))
     r.invariant(13, "toute RPC appelee par le navigateur existe", ecarts, detail)
+    if attendues:
+        print("      %d RPC en attente d'application de migrations/, appelables apres le lot :" % len(attendues))
+        for a_ in (attendues if detail else attendues[:6]):
+            print("        . " + a_)
+        if not detail and len(attendues) > 6:
+            print("        ... et %d autre(s) (--detail)" % (len(attendues) - 6))
 
     return r.verdict()
 

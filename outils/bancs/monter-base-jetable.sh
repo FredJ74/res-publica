@@ -7,6 +7,8 @@
 # Ecarts connus : PG16 local contre PG17 en production (droit MAINTAIN retire des GRANT) ;
 # fonctions SQL creees sans verification de corps (ordre de creation) ; quelques erreurs
 # d'ordre de contraintes et de migrations gardees par empreinte, sans effet sur l'achat.
+# EXCLURE_MIGRATIONS="a.sql b.sql" : noms de fichiers de migrations/ a ne pas jouer (contre-epreuves
+# des bancs qui appliquent eux-memes une migration, ex. banc-hospitalisation.sh).
 # Toujours comparer les empreintes (jetable-empreintes.sql) avec la production avant de conclure.
 set -eu
 cd "$(dirname "$0")/../.."
@@ -39,8 +41,8 @@ s=re.sub(r'\bMAINTAIN\s*,\s*','',re.sub(r',\s*MAINTAIN\b','',s))
 open('/tmp/pgjet/baseline.sql','w').write('SET check_function_bodies = off;\n'+s)
 PY
 $P -d jet -f $D/baseline.sql > $D/baseline.log 2>&1
-for f in $(ls migrations/*.sql | sort); do (echo "SET check_function_bodies = off;"; sed -E 's/,\s*MAINTAIN\b//g' "$f") | $P -d jet >> $D/migrations.log 2>&1; done
+for f in $(ls migrations/*.sql | sort); do case " ${EXCLURE_MIGRATIONS:-} " in *" $(basename "$f") "*) continue;; esac; (echo "SET check_function_bodies = off;"; sed -E 's/,\s*MAINTAIN\b//g' "$f") | $P -d jet >> $D/migrations.log 2>&1; done
 sed -n 3,5p migrations/20261024122600_acquisitions_capacites_et_gardes.sql | $P -d jet
-sed 's/^ROLLBACK;$/COMMIT;/' outils/bancs/jetable-ecarts-production-20261030.sql | $P -d jet -v ON_ERROR_STOP=1 >/dev/null
+sed 's/^ROLLBACK;$/COMMIT;/' historique/photographies/20261030-fonctions-achat-communiquees.sql | $P -d jet -v ON_ERROR_STOP=1 >/dev/null
 echo "baseline : $(grep -c ERROR $D/baseline.log) erreur(s) ; migrations : $(grep -c ERROR $D/migrations.log) erreur(s) (attendues, voir en-tete)"
 psql -h $D -p 54329 -U postgres -d jet -X -q -At -f outils/bancs/jetable-empreintes.sql | sed 's/=\([0-9a-f]\{8\}\) /=\1\n/g'

@@ -74,7 +74,13 @@ def main():
     connexion.autocommit = True
     cur = connexion.cursor()
     cur.execute(SCHEMA)
-    source = (RACINE/'baseline/domaines/economie/20_fonctions-1.sql').read_text()
+    # Ce banc doit REPRODUIRE l'ancien défaut : le catalogue actuel contient
+    # désormais une porte versionnée et un noyau séparé. Ne pas confondre ce
+    # décor historique avec la recette du catalogue actuel.
+    fixture=json.loads((RACINE/'outils/bancs/fixtures/achat-commerce-historique-20261016.json').read_text())
+    import hashlib
+    assert hashlib.sha256(fixture['sql'].encode()).hexdigest()==fixture['sha256']
+    source=fixture['sql']
     debut = source.index('CREATE OR REPLACE FUNCTION public.acheter_produit_commerce(')
     fin = source.index('$function$;', debut) + len('$function$;')
     cur.execute(source[debut:fin])
@@ -113,7 +119,7 @@ def main():
     cur.execute('SELECT data FROM objets_recus ORDER BY id');livraisons_avant=cur.fetchall()
     cur.execute("SELECT data FROM entreprises WHERE id='fonds-a'");fonds_avant=cur.fetchone()[0]
     reset()
-    migration=(RACINE/'migrations/20261016070541_achat_commerce_debit_avant_livraison.sql').read_text()
+    migration=(RACINE/'historique/migrations-appliquees/20261016070541_achat_commerce_debit_avant_livraison.sql').read_text()
     # Aucun coefficient, filtre ni effet n'a change : seul ce bloc est deplace.
     bloc = "IF NOT public.mouvement_titulaire(p_acheteur, -v_montant) THEN\n    RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants');\n  END IF;"
     def normaliser(corps):

@@ -19,6 +19,7 @@ ALTER TABLE public.budgets_municipaux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.budgets_nationaux ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.caisses_autorites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.caisses_batiments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.caisses_collectives_operations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.caisses_mouvements_clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contributions_piete ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.directions_etablissements ENABLE ROW LEVEL SECURITY;
@@ -27,6 +28,7 @@ ALTER TABLE public.fiscalite_journal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fonds_credits_sources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fonds_credits_uniques ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fonds_debits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fonds_en_transit ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pa_bonus_differes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pa_bonus_differes_empreinte ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pa_bonus_hotel ENABLE ROW LEVEL SECURITY;
@@ -40,17 +42,13 @@ ALTER TABLE public.salaires_civils_declares ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salaires_civils_verses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salaires_religieux_declares ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.salaires_religieux_verses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subventions_entreprises_traces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subventions_familles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subventions_municipales ENABLE ROW LEVEL SECURITY;
 
 -- budgets_clubs
 CREATE POLICY "Lecture publique du budget club" ON public.budgets_clubs FOR SELECT TO PUBLIC
   USING (true);
-CREATE POLICY budgets_clubs_ecriture_acteur ON public.budgets_clubs FOR INSERT TO authenticated
-  WITH CHECK (acteur_identifie());
-CREATE POLICY budgets_clubs_maj_acteur ON public.budgets_clubs FOR UPDATE TO authenticated
-  USING (acteur_identifie())
-  WITH CHECK (acteur_identifie());
 
 -- budgets_municipaux
 CREATE POLICY "Lecture publique du budget municipal" ON public.budgets_municipaux FOR SELECT TO PUBLIC
@@ -75,8 +73,6 @@ CREATE POLICY "caisses_batiments lecture publique hors commissariat" ON public.c
   USING (id !~~ '%commissariat%'::text);
 
 -- contributions_piete
-CREATE POLICY contributions_piete_ecriture_acteur ON public.contributions_piete FOR INSERT TO authenticated
-  WITH CHECK (acteur_identifie());
 CREATE POLICY contributions_piete_lecture_publique ON public.contributions_piete FOR SELECT TO anon, authenticated
   USING (true);
 

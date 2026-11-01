@@ -1,0 +1,10 @@
+{
+ "noms_fonctions": 1203,
+ "sequences": 42,
+ "origine_exports_sha256": {
+  "export_droits.json": "ba6fa58633d6a6b0dc1a9c078150d41d6e592a58bf64f2ac737ee71ddd3efa3f",
+  "export_fonctions.json": "e75f71aa260f7b6c1fb336dcced5dd125c0e1e93ac7c2e7325802bd3919d5b39",
+  "export_logique.json": "520c4abd4309892b1a68a3a2a22e4a3017face90907aa0d56a31afa7c92e4746",
+  "export_structure.json": "511cbbc458f733fe6c4f209494cf3049c4f837c99de90c231f9f22cc40ecff68"
+ }
+}

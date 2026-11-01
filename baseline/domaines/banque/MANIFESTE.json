@@ -63,6 +63,24 @@
    "tbl": "prets_bancaires"
   },
   {
+   "empreinte": "767cb9e1f3413c5bf5554528dffeb305",
+   "genre": "p",
+   "nom": "prets_ecritures_internes_pkey",
+   "tbl": "prets_ecritures_internes"
+  },
+  {
+   "empreinte": "5ee40fb12a73c9c3db1a3d175a94fed8",
+   "genre": "p",
+   "nom": "prets_nationaux_demandes_pkey",
+   "tbl": "prets_nationaux_demandes"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "virements_automatiques_pkey",
+   "tbl": "virements_automatiques"
+  },
+  {
    "empreinte": "e1f36e258cc138729be619037ded136f",
    "genre": "c",
    "nom": "comptes_bancaires_banque_check",
@@ -139,6 +157,24 @@
    "genre": "c",
    "nom": "placements_montant_final_check",
    "tbl": "placements_bancaires"
+  },
+  {
+   "empreinte": "143f978e5596ab3bf9006fda9971b12e",
+   "genre": "c",
+   "nom": "virements_automatiques_check",
+   "tbl": "virements_automatiques"
+  },
+  {
+   "empreinte": "7fc60445e5f4b1d32a14dcb941950b91",
+   "genre": "c",
+   "nom": "virements_automatiques_frequence_check",
+   "tbl": "virements_automatiques"
+  },
+  {
+   "empreinte": "cb4fff7dfd3ae9b5a9e8d7efb85facd9",
+   "genre": "c",
+   "nom": "virements_automatiques_montant_check",
+   "tbl": "virements_automatiques"
   }
  ],
  "domaine": "banque",
@@ -180,6 +216,42 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "banque_virement(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "banque_virement(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "banque_virement(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "banque_virement_automatique_creer(text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "banque_virement_automatique_creer(text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "banque_virement_automatique_creer(text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "compromis_expire_resoudre(text,text)",
@@ -228,12 +300,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "creer_placement_national(text,numeric,integer,text)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "creer_placement_national(text,numeric,integer,text)",
@@ -248,6 +314,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "creer_placement_national_securise(text,numeric,integer,text,text,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "creer_placement_national_securise(text,numeric,integer,text,text,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "creer_placement_national_securise(text,numeric,integer,text,text,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "creer_pret_helvetia(text,numeric,integer)",
    "privileges": "EXECUTE"
   },
@@ -261,12 +345,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "creer_pret_helvetia(text,numeric,integer)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "deposer_helvetia(text,numeric)",
    "privileges": "EXECUTE"
   },
   {
@@ -333,6 +411,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "finaliser_achat_bien_helvetia(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "finance_terrain_banque_recu(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "finance_terrain_banque_recu(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "finance_terrain_banque_recu(uuid,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -369,6 +465,18 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "helvetia_debiter_fonds_ordinaires(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "helvetia_debiter_fonds_ordinaires(text,numeric,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "helvetia_debiter_fonds_ordinaires(text,numeric,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -438,6 +546,78 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pret_national_contracter(numeric,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pret_national_contracter(numeric,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pret_national_contracter(numeric,integer,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "pret_national_contracter_versionne(numeric,integer,text,text,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pret_national_contracter_versionne(numeric,integer,text,text,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pret_national_contracter_versionne(numeric,integer,text,text,uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pret_national_creer_interne(text,numeric,integer,text,text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pret_national_jour_traiter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "pret_national_jour_traiter(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "pret_versionne_ecriture_proteger()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "prets_ecriture_ecran_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "prets_ecriture_ecran_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "regler_creances_helvetia_quotidien(text)",
@@ -501,12 +681,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "resoudre_placement_national(text,numeric)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "retirer_helvetia(text,numeric)",
    "privileges": "EXECUTE"
   },
   {
@@ -579,6 +753,66 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "traiter_prets_helvetia_quotidien()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "virement_automatique_arreter(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "virement_automatique_arreter(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "virement_automatique_arreter(uuid)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "virement_executer_interne(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "virement_executer_interne(text,text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "virements_automatiques_executer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "virements_automatiques_executer()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "virements_automatiques_mes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "virements_automatiques_mes()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "virements_automatiques_mes()",
    "privileges": "EXECUTE"
   },
   {
@@ -772,17 +1006,42 @@
    "genre": "TABLE",
    "objet": "prets_bancaires",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "prets_ecritures_internes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "prets_nationaux_demandes",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "virements_automatiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "virements_automatiques",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   }
  ],
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "e0be54159d7a10d40060f7bfb9423a5e",
-  "20_fonctions.sql": "457fc9818970c26eb5edf7d981170fd0",
-  "30_contraintes.sql": "16f370b26bf38130a78dd4af8487a945",
-  "35_index.sql": "186dcb1c0d4e9d8184540b1331b403a8",
-  "60_rls-policies.sql": "3efa36f89a0761577f70f9c94e86502e",
-  "70_droits.sql": "60133b44e1daa48f4dfe14726043a8af",
+  "10_tables.sql": "894798f443e4eddc1876632decb9b835",
+  "20_fonctions.sql": "b79adaf3a0c3085baff2e0b83dfe0b7f",
+  "30_contraintes.sql": "0c4944bb0d5019ca48473149b9ea375d",
+  "35_index.sql": "dc3d43a81d4da8d9ae6dbbaf2b5e789c",
+  "50_triggers.sql": "b8761100d8c908ff28499243c2e67f1e",
+  "60_rls-policies.sql": "66599cf467a9351574d4c065165b987e",
+  "70_droits.sql": "62823672a256b7fb2e86f5bd4f60ee55",
   "80_commentaires.sql": "6aa5de153f880a28fcce44054b116eb0"
  },
  "fonctions": [
@@ -797,7 +1056,17 @@
    "signature": "banque_nationale_mouvement(text,text,numeric)"
   },
   {
-   "empreinte": "22371209f6649745186653365f9eaa28",
+   "empreinte": "c380a5420140abac0c51fdac8a49250f",
+   "security_definer": true,
+   "signature": "banque_virement(text,integer)"
+  },
+  {
+   "empreinte": "186916d558cf7605a7e7ba077903bc4f",
+   "security_definer": true,
+   "signature": "banque_virement_automatique_creer(text,integer,text)"
+  },
+  {
+   "empreinte": "e353ec1ca46e951645b6f5d018f3a6a8",
    "security_definer": true,
    "signature": "compromis_expire_resoudre(text,text)"
   },
@@ -817,7 +1086,12 @@
    "signature": "creer_placement_national(text,numeric,integer,text)"
   },
   {
-   "empreinte": "37f86e6e9f01eed02bdef23f44e17f8c",
+   "empreinte": "b8cab2b5da4050afa3d536445e857bfc",
+   "security_definer": true,
+   "signature": "creer_placement_national_securise(text,numeric,integer,text,text,uuid)"
+  },
+  {
+   "empreinte": "fb3e4b620110233587e91483867ec3dc",
    "security_definer": true,
    "signature": "creer_pret_helvetia(text,numeric,integer)"
   },
@@ -832,7 +1106,7 @@
    "signature": "deposer_helvetia(text,numeric,text)"
   },
   {
-   "empreinte": "d5f33bb8f583238455cc9be8d1fd0c1f",
+   "empreinte": "70b0537c1e8d36b927c5085f624266af",
    "security_definer": true,
    "signature": "fermer_compte_helvetia(text,text)"
   },
@@ -842,22 +1116,32 @@
    "signature": "finaliser_achat_bien_helvetia(text,text)"
   },
   {
+   "empreinte": "2fa3740d601d70eb9b85b57825d5e4b8",
+   "security_definer": true,
+   "signature": "finance_terrain_banque_recu(uuid,text)"
+  },
+  {
    "empreinte": "c912a21fa14b9d1c21fb148cb7fc60bc",
    "security_definer": true,
    "signature": "helvetia_assurer_liquidite(text,numeric,text)"
   },
   {
-   "empreinte": "689ade4b40dc76b4f14a347a2d6dccc6",
+   "empreinte": "9c4aed87475892f4bf4bac98c7d669b0",
    "security_definer": true,
    "signature": "helvetia_crediter_destination(text,numeric,text)"
   },
   {
-   "empreinte": "21a2b00739cb9bd2f2e93ba5fbd1dbcd",
+   "empreinte": "9e9755275001ebcad99b7859d146037a",
    "security_definer": true,
    "signature": "helvetia_debiter_fonds_ordinaires(text,numeric)"
   },
   {
-   "empreinte": "a2f2e2d5161edde4082fc2620082d878",
+   "empreinte": "46a8a0264715fdc22136f7aa098577a3",
+   "security_definer": true,
+   "signature": "helvetia_debiter_fonds_ordinaires(text,numeric,text)"
+  },
+  {
+   "empreinte": "8518cb0d1742433ec6212a3218589cb8",
    "security_definer": true,
    "signature": "helvetia_debiter_source(text,numeric,text)"
   },
@@ -877,32 +1161,62 @@
    "signature": "helvetia_taux_refinancement_bnr(text)"
   },
   {
-   "empreinte": "066a5d34a72798900294675c6677d03c",
+   "empreinte": "0ce20c78c7a839aa2330447b67e49730",
    "security_definer": true,
    "signature": "ouvrir_compte_helvetia(text)"
   },
   {
-   "empreinte": "b0b0cf7d8b36a563fa3a07b4cf475c65",
+   "empreinte": "50d868755580f63e415a7a5d451195b4",
+   "security_definer": true,
+   "signature": "pret_national_contracter(numeric,integer,text,text)"
+  },
+  {
+   "empreinte": "aa9672f43c809d87eac92179b41467bd",
+   "security_definer": true,
+   "signature": "pret_national_contracter_versionne(numeric,integer,text,text,uuid)"
+  },
+  {
+   "empreinte": "3f6bd25af41dc730fdea95bd3a59e59d",
+   "security_definer": true,
+   "signature": "pret_national_creer_interne(text,numeric,integer,text,text,text,numeric)"
+  },
+  {
+   "empreinte": "a58b0532ea62afcce9cc7cab34442dad",
+   "security_definer": true,
+   "signature": "pret_national_jour_traiter(text)"
+  },
+  {
+   "empreinte": "972ada8c321d49031b615c245501f018",
+   "security_definer": true,
+   "signature": "pret_versionne_ecriture_proteger()"
+  },
+  {
+   "empreinte": "a179f4d5fc7bf5b0bbeb1c520c025d6b",
+   "security_definer": false,
+   "signature": "prets_ecriture_ecran_garder()"
+  },
+  {
+   "empreinte": "902ada3c97eab6bf3a9f08da1fd08ceb",
    "security_definer": true,
    "signature": "regler_creances_helvetia_quotidien(text)"
   },
   {
-   "empreinte": "33fb77998d878a4fe8be4dfbb73a82cc",
+   "empreinte": "2540b8f9fc596676ea18959acb251d5c",
    "security_definer": true,
    "signature": "rembourser_pret_helvetia_integral(text,text,jsonb)"
   },
   {
-   "empreinte": "0a222d11bc2adfb8e2fd5349ad080174",
+   "empreinte": "95057ea540152f80ec5ee93a37984668",
    "security_definer": true,
    "signature": "resoudre_compromis_helvetia_expire(text)"
   },
   {
-   "empreinte": "fb15c0a29344914ca918b23795304c37",
+   "empreinte": "c030f53c6c8b36b0ef9a80944642d981",
    "security_definer": true,
    "signature": "resoudre_placement_helvetia(text)"
   },
   {
-   "empreinte": "912a72c669e721eb8dbd50eb7978071d",
+   "empreinte": "a6a564937b3d9f23ef47cabf886c0a10",
    "security_definer": true,
    "signature": "resoudre_placement_national(text,numeric)"
   },
@@ -927,9 +1241,29 @@
    "signature": "taux_pret_nationale(text)"
   },
   {
-   "empreinte": "b2bbd5cd3f17ac8ada786e62e7b0c357",
+   "empreinte": "0d9867864b85465e0798ffaacbd95055",
    "security_definer": true,
    "signature": "traiter_prets_helvetia_quotidien()"
+  },
+  {
+   "empreinte": "675d1185f35fbde161a4dcaa1d181d5d",
+   "security_definer": true,
+   "signature": "virement_automatique_arreter(uuid)"
+  },
+  {
+   "empreinte": "df234dfad5f3a4c80da0f41aecb9ad70",
+   "security_definer": true,
+   "signature": "virement_executer_interne(text,text,numeric)"
+  },
+  {
+   "empreinte": "12232258ab7bb0ce941c6ff968c53fa9",
+   "security_definer": true,
+   "signature": "virements_automatiques_executer()"
+  },
+  {
+   "empreinte": "6f11444621c92ed04ceef61ab5149fd4",
+   "security_definer": true,
+   "signature": "virements_automatiques_mes()"
   }
  ],
  "index_autonomes": [
@@ -962,12 +1296,12 @@
    "nom": "placements_bancaires_personnage"
   },
   {
-   "empreinte": "e5386bbf222d82166f4e9cfa3c19784a",
-   "nom": "placements_bancaires_un_terme_national_actif"
-  },
-  {
    "empreinte": "618bf7e4f618fac5db5256635daaec49",
    "nom": "placements_bancaires_visibilite"
+  },
+  {
+   "empreinte": "8f9f2329775ce49514f3d38dce7357d6",
+   "nom": "virements_automatiques_echeances"
   }
  ],
  "index_portes": [
@@ -978,13 +1312,17 @@
   "obligations_helvetia_pkey",
   "placements_bancaires_pkey",
   "prets_bancaires_pkey",
-  "prets_pkey"
+  "prets_ecritures_internes_pkey",
+  "prets_nationaux_demandes_pkey",
+  "prets_pkey",
+  "virements_automatiques_pkey"
  ],
  "ordre": [
   "10_tables.sql",
   "20_fonctions.sql",
   "30_contraintes.sql",
   "35_index.sql",
+  "50_triggers.sql",
   "60_rls-policies.sql",
   "70_droits.sql",
   "80_commentaires.sql"
@@ -1061,6 +1399,21 @@
    "active": true,
    "forcee": false,
    "tbl": "prets_bancaires"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "prets_ecritures_internes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "prets_nationaux_demandes"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "virements_automatiques"
   }
  ],
  "sequences": [],
@@ -1097,15 +1450,15 @@
    "nom": "obligations_helvetia"
   },
   {
-   "colonnes": 17,
-   "empreinte_catalogue": "2f474f2a175f2879684a1512a60fcff5",
-   "empreinte_texte": "6c7a3f98d39f3f281dc6981159b1ecac",
+   "colonnes": 18,
+   "empreinte_catalogue": "88fd0825fc6387f3b3437fc1fac834fd",
+   "empreinte_texte": "dbc5cd7c49099ca233a34b0ff47197e6",
    "nom": "placements_bancaires"
   },
   {
-   "colonnes": 21,
-   "empreinte_catalogue": "8921ce39e771fc914c3661aef04716ad",
-   "empreinte_texte": "7c37ecea7fe55dba28f064799b8e5494",
+   "colonnes": 22,
+   "empreinte_catalogue": "a8dc125ff9230c1f54f255c47db22fc7",
+   "empreinte_texte": "f4bd2366ebf13212840f3db0d8ce7cc0",
    "nom": "prets"
   },
   {
@@ -1113,8 +1466,39 @@
    "empreinte_catalogue": "aa2f91ec19822f65363b68a5adf2ff43",
    "empreinte_texte": "65c1ea9910cef5b82f9d13b5d7a11b9c",
    "nom": "prets_bancaires"
+  },
+  {
+   "colonnes": 1,
+   "empreinte_catalogue": "2491df255b957e5f6cc86188dcbdde76",
+   "empreinte_texte": "28fcc926860f158502d658362ede39fc",
+   "nom": "prets_ecritures_internes"
+  },
+  {
+   "colonnes": 4,
+   "empreinte_catalogue": "eabb5640a7a1cbc9c9d2cc210f0120c4",
+   "empreinte_texte": "a099ef4f161b8053f05cf1a40c0d6159",
+   "nom": "prets_nationaux_demandes"
+  },
+  {
+   "colonnes": 10,
+   "empreinte_catalogue": "48c307cc6d8adab45a50606f0f6be021",
+   "empreinte_texte": "1cd6e7a1bb1672c7b1bd45e00cfa7ba7",
+   "nom": "virements_automatiques"
   }
  ],
- "triggers": [],
+ "triggers": [
+  {
+   "empreinte": "fff82c4f20ebde0e97da276b54d179b9",
+   "fonction": "pret_versionne_ecriture_proteger()",
+   "nom": "pret_versionne_ecriture",
+   "tbl": "prets"
+  },
+  {
+   "empreinte": "3cee5fd31a5eb97daacbf4046731dfb6",
+   "fonction": "prets_ecriture_ecran_garder()",
+   "nom": "prets_ecriture_ecran_garder",
+   "tbl": "prets"
+  }
+ ],
  "vues": []
 }

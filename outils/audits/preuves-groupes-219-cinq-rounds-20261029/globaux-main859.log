@@ -1,0 +1,154 @@
+CONTROLE D'ENSEMBLE DU BASELINE -- 12 controles
+========================================================================
+  le processus tient                     verifier-workflow.py           OK 
+  la classification est entiere          verifier-classification.py     ECHEC
+      | 1. nombre de tables classees        : 325 / 319  NON
+      | 2. tables classees deux fois        : 0  OK
+      | 3. empreinte de la liste des tables : 0f1008a03fb2aac1146558c6d7103e9b  NON
+      | 4. tables D sans justification de separation : 0 / 21  OK
+      | 5. tables en seed sans justification : 0 / 99  OK
+      | 6. tables d'etat vivant en seed complet : 0  OK
+      | 7. categories/strategies hors vocabulaire : 0  OK
+      | 
+      | Repartition  A=66  B=22  C=216  D=21
+      | Tables entrant dans le seed : 99  (1954 lignes actuelles cumulees)
+      | 
+      | ECHEC : 2 anomalie(s)
+      |   - nombre de tables classees incorrect
+      |   - la liste des tables classees ne correspond pas au catalogue releve
+
+  le baseline est fidele au catalogue    verifier-baseline.py           ECHEC
+      |   INTEGRITE DES FICHIERS                               CONFORME
+      | 
+      | ECHEC : 21 anomalie(s)
+      |   - [1] tables : baseline 320, base 314
+      |   - [1] colonnes : baseline 2461, base 2437
+      |   - [1] contraintes : baseline 625, base 613
+      |   - [1] index autonomes : baseline 188, base 187
+      |   - [1] index portes par une contrainte : baseline 335, base 328
+      |   - [1] empreinte empreinte des colonnes non conforme
+      |   - [1] empreinte empreinte des contraintes non conforme
+      |   - [1] empreinte empreinte des index autonomes non conforme
+      |   - [2] fonctions : baseline 915, base 906
+      |   - [2] declencheurs : baseline 53, base 51
+      |   - [2] empreinte empreinte des fonctions non conforme
+      |   - [2] empreinte empreinte des declencheurs non conforme
+      |   - [2] definitions relues depuis les fichiers : baseline 915, base 906
+      |   - [2] corps de table relus depuis les fichiers : baseline 320, base 314
+      |   - [3] fonctions SECURITY DEFINER : baseline 783, base 777
+      |   - [3] fonctions SECURITY INVOKER : baseline 123, base 129
+      |   - [3] tables avec RLS active : baseline 320, base 314
+      |   - [3] lignes de droits : baseline 3604, base 3574
+      |   - [3] tables RLS active sans policy : baseline 166, base 160
+      |   - [3] empreinte empreinte des droits non conforme
+      |   - [3] empreinte empreinte des commentaires non conforme
+
+  l'autorite tient                       verifier-autorite.py           ECHEC
+      |   10. aucune fonction mutante client-appelable sans garde  0 ecarts OK 
+      |   11. aucune fonction mutante appelable par anon           0 ecarts OK 
+      | 
+      | FAMILLE 3 -- LES PORTES SERVEUR ET LES MIGRATIONS PREPAREES
+      |   ----------------------------------------------------------------------
+      |   12. les migrations en attente ne nomment rien d'inconnu  4 ecarts ECHEC
+      |       - 20261023000000_fontaine_exclusivite_sur_place.sql : signature inconnue « acheter_produit_commerce_interne(text,text,text,text,integer) »
+      |       - 20261027070100_election_contester.sql : signature inconnue « cycle_electoral_frais_interne(text,text,timestamptz) »
+      |       - 20261027070100_election_contester.sql : signature inconnue « cycle_electoral_initialiser(text,text) »
+      |       - 20261027070100_election_contester.sql : signature inconnue « cycle_electoral_initialiser(text,text) »
+      |   13. toute RPC appelee par le navigateur existe           112 ecarts ECHEC
+      |       - ambassade_acces_bureau : aucune fonction de ce nom dans le baseline — plateau-politique.js:9182 ; declaration SQL : migrations/20261024184600_ambassades_audiences_acces.sql, migrations/20261025020100_ambassades_asile_acces.sql ; registre vivant et extraction a verifier
+      |       - ambassade_acces_bureaux : aucune fonction de ce nom dans le baseline — plateau-politique.js:9230 ; declaration SQL : migrations/20261025010000_ambassades_acces_bureaux.sql, migrations/20261025020100_ambassades_asile_acces.sql ; registre vivant et extraction a verifier
+      |       - ambassade_accorder_audience : aucune fonction de ce nom dans le baseline — plateau-politique.js:9315 ; declaration SQL : migrations/20261024184600_ambassades_audiences_acces.sql ; registre vivant et extraction a verifier
+      |       - ambassade_demander_asile : aucune fonction de ce nom dans le baseline — plateau-politique.js:9400 ; declaration SQL : migrations/20261025020000_ambassades_asile.sql, migrations/20261025110200_ambassades_ambassadeur_joueur.sql ; registre vivant et extraction a verifier
+      |       - ambassade_demander_audience : aucune fonction de ce nom dans le baseline — plateau-politique.js:9143 ; declaration SQL : migrations/20261024184500_ambassades_audiences.sql ; registre vivant et extraction a verifier
+      |       - ambassade_demettre : aucune fonction de ce nom dans le baseline — plateau-politique.js:9519 ; declaration SQL : migrations/20261025110000_ambassades_ordres_ministre.sql ; registre vivant et extraction a verifier
+      |       ... et 106 autre(s)
+      | 
+      | ========================================================================
+      | ECHEC : 3 invariant(s) en ecart sans migration declaree
+      |   - invariant 3 : identite passee a une RPC toujours verifiee au serveur (1 ecarts)
+      |   - invariant 12 : les migrations en attente ne nomment rien d'inconnu (4 ecarts)
+      |   - invariant 13 : toute RPC appelee par le navigateur existe (112 ecarts)
+
+  les referentiels concordent            verifier-referentiels.py       ECHEC
+      | CONTROLE DES REFERENTIELS RECOPIES  (axe data.js / navigateur  ->  api/)
+      | 
+      |   JavaScriptCore est introuvable sur cette machine.
+      |   Ce controle CHARGE le vrai code plutot que de deviner ses valeurs ;
+      |   sans moteur il ne peut rien affirmer. Il s'abstient, et ne se
+      |   declare pas vert : un controle qui mentirait faute d'outil serait
+      |   pire qu'un controle manquant.
+
+  les faits publics atteignent le Journal verifier-faits-publics.py      OK 
+  les fonctions concordent               verifier-fonctions.py          ECHEC
+      | CONCORDANCE DES FONCTIONS RECOPIEES -- chantier 7
+      | ========================================================================
+      | JavaScriptCore est introuvable : ce controle S'ABSTIENT.
+      | ECHEC : sans moteur, la concordance n'est pas mesuree.
+
+  le monde neuf est propre               verifier-monde-neuf.py         OK 
+  l'assemblage se tient                  assembler.py                   ECHEC
+      |    fonction     (20) avant policy       (60) OK 
+      |    table        (10) avant policy       (60) OK 
+      |    sequence     (10) avant table        (10) OK 
+      | 
+      | 8. dependances vers un autre schema (declarees, non recreees) : 2
+      |    auth.uid                           utilise par personnage-et-presence
+      |    auth.users                         utilise par personnage-et-presence
+      | 
+      | 9. assemblage des seeds
+      |    tables peuplees par un seed         : 82
+      |    tables en attente (TODO, sans donnee) : 17
+      |    seeds dont une cle etrangere vise une table non peuplee : 1 A SIGNALER
+      |    tables a cle etrangere sur elles-memes : 2
+      | 
+      | ============================================================================
+      | A SIGNALER (non bloquant pour l'assemblage) : 2
+      |   . socle/20_fonctions.sql : reference a sauvegarde_beta_20260913 (schema de sauvegarde de la beta)
+      |   . seed de journaux : cle etrangere vers personnages_donnees, qui n'est pas peuplee. L'INSERT ne passera que si la colonne est nulle sur toutes les lignes seedees.
+      | 
+      | ECHEC : 2 anomalie(s) d'assemblage
+      |   - immobilier-et-territoire : declencheur trg_fermeture_date_universelle appelle fermeture_definir_date_universelle, absente du baseline
+      |   - immobilier-et-territoire : declencheur permis_depot_archive_versionnee appelle permis_depot_archive_proteger, absente du baseline
+      | 
+      | Aucun objet n'a ete supprime pour faire passer ce test.
+
+  la reconstruction passe                reconstruire.py                ECHEC
+      |   noms de fonction distincts            911 / 902    NON  4 fonctions sont surchargees : moins de noms que de signatures
+      |   contraintes posees                    625 / 613    NON  
+      |   index autonomes crees                 188 / 187    NON  
+      |   declencheurs crees                     53 / 51     NON  
+      |   policies creees                       281 / 281    OK   
+      |   sequences disponibles                  38 / 38     OK   
+      |   indices de ville seedes                 3 / 3      OK   les 3 villes de Republia, 5 indices chacune
+      |   titulaires PNJ seedes                  18 / 18     OK   18 titulaires : 3 juges municipaux distincts, le Procureur national, et les deux postes pourvus par la passe de minuit du 12 octobre
+      |   entrepots seedes                        3 / 3      OK   les 3 entrepots logistiques, 17 matieres chacun -- leur tresorerie a quitte le blob le 8 octobre 2026 pour une vraie caisse, seedee avec les autres
+      |   PNJ de socle seedes                     0 / 0      OK   un monde neuf n'herite d'aucun PNJ : ils naissent des mecanismes
+      |   soldats seedes                          0 / 0      OK   aucun soldat au premier jour
+      |   possessions de PNJ seedees              0 / 0      OK   aucune possession heritee
+      |   compagnies militaires seedees           0 / 0      OK   0 compagnie et 0 section au premier jour -- arbitrage du 5 octobre 2026
+      |   organisations seedees                   0 / 0      OK   les loges attendent le mecanisme de rattachement du chef
+      |   lignes de rp_transitions                0 / 0      OK   table volontairement vide : rp_transition_active() rend FALSE sur cle absente
+      |   caisses de batiment seedees            44 / 44     OK   les 44 dotations financieres arbitrees, ecrites depuis le tableau
+      |   lignes de repartition budgetaire seedees     28 / 28     OK   10 nationales (9/100 x 9 + Assemblee 19/100), Caserne 65/100, Douanes 35/100, QHS 0/100, 3 tribunaux a 1/3, 3 x 3 municipales a 40/40/20, et 3 subventions a 0/100
+      |   versements budgetaires seedes           0 / 0      OK   journal des versements reels : un monde neuf nait sans historique, sinon le premier minuit croirait avoir deja verse
+      |   compteur de recettes municipales seede      0 / 0      OK   mesure du jour, jamais une tresorerie : un monde neuf nait sans recette percue
+      | 
+      |   1097 lignes seedees au total, dans 82 tables
+      | 
+      | ==========================================================================
+      | ECHEC : 0 refus de grammaire, 2 dependance(s) manquante(s), 6 attente(s) du monde non tenue(s)
+
+  non-regression du pilote 2B            verifier.py                    OK 
+  non-regression de l'archive 2D         verifier-archive-registre.py   OK 
+========================================================================
+ECHEC : 7 controle(s) sur 12
+  - la classification est entiere (verifier-classification.py)
+  - le baseline est fidele au catalogue (verifier-baseline.py)
+  - l'autorite tient (verifier-autorite.py)
+  - les referentiels concordent (verifier-referentiels.py)
+  - les fonctions concordent (verifier-fonctions.py)
+  - l'assemblage se tient (assembler.py)
+  - la reconstruction passe (reconstruire.py)
+
+Le detail de chaque echec est au-dessus. Rien n'a ete corrige :
+ces outils rapportent, ils ne reparent pas.

@@ -10,6 +10,15 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 0 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 9 index sont portes par une contrainte et NE SONT PAS recrees ici.
+--   inventaire_actions_recus_pkey  (contrainte inventaire_actions_recus_pkey)
+--   inventaire_ecarts_observes_pkey  (contrainte inventaire_ecarts_observes_pkey)
+--   inventaire_livraisons_recues_pkey  (contrainte inventaire_livraisons_recues_pkey)
+--   objets_achetables_pkey  (contrainte objets_achetables_pkey)
+--   objets_modeles_pkey  (contrainte objets_modeles_pkey)
+--   objets_trouves_jours_pkey  (contrainte objets_trouves_jours_pkey)
+--   ordres_generiques_pkey  (contrainte ordres_generiques_pkey)
+--   rue_noeuds_serveur_pkey  (contrainte rue_noeuds_serveur_pkey)
+--   rue_sorties_batiments_pkey  (contrainte rue_sorties_batiments_pkey)
 
 -- Aucun index autonome dans ce domaine.

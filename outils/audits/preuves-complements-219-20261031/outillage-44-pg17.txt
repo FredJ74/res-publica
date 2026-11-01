@@ -1,0 +1,70 @@
+/workspace/hg-venv/lib/python3.12/site-packages/platformdirs/api.py:459: RuntimeDirWarning: XDG_RUNTIME_DIR is not set, falling back to /tmp/runtime-1000
+  return Path(self.user_runtime_dir)
+postgres (PostgreSQL) 17.6
+test_ancien_export_sequence_refuse_avant_rendu (__main__.Exports.test_ancien_export_sequence_refuse_avant_rendu) ... ok
+test_arrondi_transport_bigint_refuse_avant_rendu (__main__.Exports.test_arrondi_transport_bigint_refuse_avant_rendu) ... ok
+test_classification_non_relevee_reste_un_echec_explicitement (__main__.Exports.test_classification_non_relevee_reste_un_echec_explicitement) ... /workspace/res-publica-groupes/outils/baseline/verifier-classification.py:189: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpa_2uu24q/classification.csv' mode='r' encoding='utf-8'>
+  lignes = list(csv.DictReader(open(CSV, encoding="utf-8"), delimiter=";"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_double_export_contradictoire_refuse (__main__.Exports.test_double_export_contradictoire_refuse) ... ok
+test_droits_absents_refuses (__main__.Exports.test_droits_absents_refuses) ... ok
+test_droits_colonnes_manquants_refuses (__main__.Exports.test_droits_colonnes_manquants_refuses) ... ok
+test_ecart_net_onze_ne_prouve_pas_onze_lignes_manquantes (__main__.Exports.test_ecart_net_onze_ne_prouve_pas_onze_lignes_manquantes) ... ok
+test_homonyme_local_ne_devient_pas_canon_global (__main__.Exports.test_homonyme_local_ne_devient_pas_canon_global) ... ok
+test_json_et_mcp_meme_resultat_schema_et_seeds (__main__.Exports.test_json_et_mcp_meme_resultat_schema_et_seeds) ... ok
+test_json_tronque_refuse_sans_log_du_contenu (__main__.Exports.test_json_tronque_refuse_sans_log_du_contenu) ... ok
+test_lecteur_migration_ne_substitue_pas_une_entree_baseline (__main__.Exports.test_lecteur_migration_ne_substitue_pas_une_entree_baseline) ... ok
+test_livraison_complete_garde_95_versions_et_une_transaction (__main__.Exports.test_livraison_complete_garde_95_versions_et_une_transaction) ... ok
+test_lot_organisations_refuse_empreinte_ou_selection_alteree (__main__.Exports.test_lot_organisations_refuse_empreinte_ou_selection_alteree) ... ok
+test_lot_organisations_selectionne_cinq_sources_sans_transactions_internes (__main__.Exports.test_lot_organisations_selectionne_cinq_sources_sans_transactions_internes) ... ok
+test_nouveau_point_de_coupe_refuse_anciennes_preparations (__main__.Exports.test_nouveau_point_de_coupe_refuse_anciennes_preparations) ... ok
+test_omission_d_une_migration_du_manifeste_refusee (__main__.Exports.test_omission_d_une_migration_du_manifeste_refusee) ... ok
+test_options_bigint_en_texte_sans_perte (__main__.Exports.test_options_bigint_en_texte_sans_perte) ... ok
+test_options_invalides_ne_sont_pas_corrigees_silencieusement (__main__.Exports.test_options_invalides_ne_sont_pas_corrigees_silencieusement) ... ok
+test_paquet_233_et_88_garde_un_unique_BEGIN_COMMIT (__main__.Exports.test_paquet_233_et_88_garde_un_unique_BEGIN_COMMIT) ... ok
+test_prerequis_non_atteste_refuse_avant_ecriture (__main__.Exports.test_prerequis_non_atteste_refuse_avant_ecriture) ... ok
+test_prerequis_retouche_refuse_avant_ecriture (__main__.Exports.test_prerequis_retouche_refuse_avant_ecriture) ... ok
+test_prevol_actualise_ne_produit_que_des_SELECT (__main__.Exports.test_prevol_actualise_ne_produit_que_des_SELECT) ... ok
+test_registre_tableau_brut_du_relais_et_enveloppes_compatibles (__main__.Exports.test_registre_tableau_brut_du_relais_et_enveloppes_compatibles) ... ok
+test_registre_vivant_absent_ou_duplique_refuse (__main__.Exports.test_registre_vivant_absent_ou_duplique_refuse) ... ok
+test_retrait_client_verifie_par_AST_et_reintroduction_refusee (__main__.Exports.test_retrait_client_verifie_par_AST_et_reintroduction_refusee) ... ok
+test_sequence_incomplete_refusee_sans_valeur_inventee (__main__.Exports.test_sequence_incomplete_refusee_sans_valeur_inventee) ... ok
+test_CHECK_associatif_ne_masque_pas_une_borne_modifiee (__main__.PostgreSQL.test_CHECK_associatif_ne_masque_pas_une_borne_modifiee) ... ok
+test_FK_attend_un_index_UNIQUE_autonome (__main__.PostgreSQL.test_FK_attend_un_index_UNIQUE_autonome) ... /workspace/res-publica-groupes/outils/baseline/reconstruire.py:80: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpjsjoj575/domaines/fixture/MANIFESTE.json' mode='r' encoding='utf-8'>
+  mans[d] = (json.load(open(chemin, encoding="utf-8")), os.path.dirname(chemin))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica-groupes/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpjsjoj575/domaines/fixture/10_tables.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica-groupes/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpjsjoj575/domaines/fixture/30_contraintes.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/workspace/res-publica-groupes/outils/baseline/reconstruire.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpjsjoj575/domaines/fixture/35_index.sql' mode='r' encoding='utf-8'>
+  texte = open(chemin, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_attribut_supprime_conserve_les_rangs_reels (__main__.PostgreSQL.test_attribut_supprime_conserve_les_rangs_reels) ... ok
+test_commentaire_ne_cree_pas_de_dependance_de_seed (__main__.PostgreSQL.test_commentaire_ne_cree_pas_de_dependance_de_seed) ... ok
+test_comparaison_catalogue_detecte_un_ecart_reel (__main__.PostgreSQL.test_comparaison_catalogue_detecte_un_ecart_reel) ... ok
+test_comparaison_echouee_ne_retourne_pas_un_code_de_succes (__main__.PostgreSQL.test_comparaison_echouee_ne_retourne_pas_un_code_de_succes) ... ok
+test_compilation_finale_refuse_un_corps_SQL_invalide (__main__.PostgreSQL.test_compilation_finale_refuse_un_corps_SQL_invalide) ... ok
+test_controle_global_contient_les_champs_lus_par_le_verificateur (__main__.PostgreSQL.test_controle_global_contient_les_champs_lus_par_le_verificateur) ... ok
+test_cycle_de_seeds_refuse_sans_differer_les_contraintes (__main__.PostgreSQL.test_cycle_de_seeds_refuse_sans_differer_les_contraintes) ... ok
+test_extraction_seed_identite_et_colonne_calculee_preservees (__main__.PostgreSQL.test_extraction_seed_identite_et_colonne_calculee_preservees) ... ok
+test_fonction_SQL_dependant_vue_recompilee_apres_creation (__main__.PostgreSQL.test_fonction_SQL_dependant_vue_recompilee_apres_creation) ... ok
+test_generateurs_schema_et_seeds_sur_exports_reels_sans_lignes_privees (__main__.PostgreSQL.test_generateurs_schema_et_seeds_sur_exports_reels_sans_lignes_privees) ... /workspace/res-publica-groupes/outils/baseline/rendre.py:600: ResourceWarning: unclosed file <_io.TextIOWrapper name='/workspace/res-publica-groupes/outils/baseline/domaines.json' mode='r' encoding='utf-8'>
+  conf = json.load(open(CONF, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_grant_ne_laisse_pas_PUBLIC_EXECUTE_sur_RPC_fermee (__main__.PostgreSQL.test_grant_ne_laisse_pas_PUBLIC_EXECUTE_sur_RPC_fermee) ... ok
+test_identite_serial_et_sequence_autonome_reconstruits_depuis_vrais_exports (__main__.PostgreSQL.test_identite_serial_et_sequence_autonome_reconstruits_depuis_vrais_exports) ... ok
+test_modele_mixte_avant_achat_socle_vraie_cle_etrangere (__main__.PostgreSQL.test_modele_mixte_avant_achat_socle_vraie_cle_etrangere) ... ok
+test_parent_sans_seed_reste_un_refus_PostgreSQL_reel (__main__.PostgreSQL.test_parent_sans_seed_reste_un_refus_PostgreSQL_reel) ... ok
+test_recalage_respecte_increment_positif_et_negatif (__main__.PostgreSQL.test_recalage_respecte_increment_positif_et_negatif) ... ok
+test_simulateur_compte_les_sequences_IDENTITY_du_catalogue (__main__.PostgreSQL.test_simulateur_compte_les_sequences_IDENTITY_du_catalogue) ... ok
+
+----------------------------------------------------------------------
+Ran 44 tests in 4.547s
+
+OK

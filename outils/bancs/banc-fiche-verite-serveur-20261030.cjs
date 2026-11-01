@@ -10,7 +10,7 @@ const R = path.join(__dirname, '..', '..');
 const SB = fs.readFileSync(path.join(R, 'supabase.js'), 'utf8');
 const CORE = fs.readFileSync(path.join(R, 'plateau-core.js'), 'utf8');
 const RUE = fs.readFileSync(path.join(R, 'plateau-rue-centrale.js'), 'utf8');
-const MIG = fs.readFileSync(path.join(R, 'migrations/20261030160000_fiche_fusion_trois_voies.sql'), 'utf8');
+const MIG = fs.readFileSync(path.join(R, 'historique/migrations-appliquees/20261030160000_fiche_fusion_trois_voies.sql'), 'utf8');
 
 function bac(source, reponses) {
   const appels = [];

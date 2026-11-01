@@ -1722,6 +1722,118 @@ BEGIN
 END;
 $function$;
 
+-- informateur_congedier(integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.informateur_congedier(p_niveau integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  PERFORM set_config('rp.informateurs_interne', 'on', true);
+  UPDATE public.personnages_donnees
+     SET informateurs = coalesce((SELECT jsonb_agg(i) FROM jsonb_array_elements(CASE WHEN jsonb_typeof(informateurs) = 'array'
+                                   THEN informateurs ELSE '[]'::jsonb END) i WHERE (i ->> 'niveau')::integer <> p_niveau), '[]'::jsonb)
+   WHERE name = v_moi;
+  PERFORM set_config('rp.informateurs_interne', '', true);
+  RETURN jsonb_build_object('ok', true, 'informateurs', (SELECT informateurs FROM public.personnages_donnees WHERE name = v_moi));
+END; $function$;
+
+-- informateur_inf_ajouter_interne(text,integer) -> numeric | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.informateur_inf_ajouter_interne(p_nom text, p_delta integer)
+ RETURNS numeric
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v numeric;
+BEGIN
+  UPDATE public.personnages_donnees
+     SET resources = jsonb_set(CASE WHEN jsonb_typeof(resources) = 'object' THEN resources ELSE '{}'::jsonb END, '{inf}',
+           to_jsonb(least(100, greatest(0, coalesce(CASE WHEN jsonb_typeof(resources -> 'inf') = 'number'
+                                                          THEN (resources ->> 'inf')::numeric END, 0) + p_delta))))
+   WHERE name = p_nom
+  RETURNING (resources ->> 'inf')::numeric INTO v;
+  RETURN v;
+END; $function$;
+
+-- informateur_interroger(integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.informateur_interroger(p_niveau integer, p_pa integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_paie jsonb; v_inf numeric; v_fn text;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.personnages_donnees d, jsonb_array_elements(CASE WHEN jsonb_typeof(d.informateurs) = 'array'
+                   THEN d.informateurs ELSE '[]'::jsonb END) i WHERE d.name = v_moi AND (i ->> 'niveau')::integer = p_niveau) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'pas_d_informateur'); END IF;
+  v_fn := CASE WHEN p_niveau = 4 THEN 'consulter_info_4' ELSE 'interroger_informateur' END;
+  v_paie := public.payer_ordre(v_moi, v_fn, p_pa, 0);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+  v_inf := public.informateur_inf_ajouter_interne(v_moi, ceil(p_niveau / 2.0)::integer);
+  RETURN jsonb_build_object('ok', true, 'inf', v_inf, 'gain', ceil(p_niveau / 2.0)::integer, 'pa', v_paie -> 'pa');
+END; $function$;
+
+-- informateur_niveau_interne(integer) -> jsonb | sql | SECURITY INVOKER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.informateur_niveau_interne(p_niveau integer)
+ RETURNS jsonb
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$ SELECT CASE p_niveau
+    WHEN 1 THEN '{"label":"Informateur de rue","cout":150}'::jsonb
+    WHEN 2 THEN '{"label":"Informateur politique","cout":400}'::jsonb
+    WHEN 3 THEN '{"label":"Informateur criminel","cout":700}'::jsonb
+    WHEN 4 THEN '{"label":"Taupe","cout":1500}'::jsonb END $function$;
+
+-- informateur_recruter(integer,integer,integer) -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
+CREATE OR REPLACE FUNCTION public.informateur_recruter(p_niveau integer, p_pa integer, p_cost integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE v_moi text; v_cfg jsonb; v_fn text; v_liste jsonb; v_fonds numeric; v_paie jsonb; v_inf numeric; v_cout integer;
+BEGIN
+  v_moi := public.mon_personnage();
+  IF v_moi IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'acteur_non_authentifie'); END IF;
+  v_cfg := public.informateur_niveau_interne(p_niveau);
+  v_fn := CASE p_niveau WHEN 2 THEN 'recruter_informateur_2' WHEN 4 THEN 'recruter_info_4' END;
+  IF v_cfg IS NULL OR v_fn IS NULL THEN RETURN jsonb_build_object('ok', false, 'raison', 'niveau_indisponible'); END IF;
+  v_cout := (v_cfg ->> 'cout')::integer;
+  SELECT CASE WHEN jsonb_typeof(d.informateurs) = 'array' THEN d.informateurs ELSE '[]'::jsonb END,
+         coalesce(d.liquide, 0) + coalesce((SELECT solde FROM public.comptes_bancaires b WHERE b.personnage = d.name AND b.banque = 'nationale'), 0)
+    INTO v_liste, v_fonds FROM public.personnages_donnees d WHERE d.name = v_moi FOR UPDATE;
+  IF jsonb_array_length(v_liste) >= 2 THEN RETURN jsonb_build_object('ok', false, 'raison', 'maximum_atteint'); END IF;
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_liste) i WHERE (i ->> 'niveau')::integer = p_niveau) THEN
+    RETURN jsonb_build_object('ok', false, 'raison', 'deja_actif'); END IF;
+  IF v_fonds < greatest(p_cost, v_cout) THEN RETURN jsonb_build_object('ok', false, 'raison', 'fonds_insuffisants'); END IF;
+  v_paie := public.payer_ordre(v_moi, v_fn, p_pa, p_cost);
+  IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RETURN v_paie; END IF;
+  -- Premier jour de salaire : compris dans le prix de l'ordre quand il le couvre, preleve sinon.
+  IF p_cost < v_cout THEN
+    v_paie := public.payer_ordre(v_moi, 'informateur_salaire_' || p_niveau, 0, v_cout);
+    IF coalesce((v_paie ->> 'ok')::boolean, false) IS NOT TRUE THEN RAISE EXCEPTION 'informateur_recruter: salaire refuse'; END IF;
+  END IF;
+  PERFORM set_config('rp.informateurs_interne', 'on', true);
+  UPDATE public.personnages_donnees
+     SET informateurs = v_liste || jsonb_build_array(jsonb_build_object('niveau', p_niveau, 'label', v_cfg ->> 'label',
+           'cout', v_cout, 'joursActif', 0, 'depuis', to_char(now() AT TIME ZONE 'Europe/Paris', 'YYYY-MM-DD')))
+   WHERE name = v_moi;
+  PERFORM set_config('rp.informateurs_interne', '', true);
+  v_inf := public.informateur_inf_ajouter_interne(v_moi, p_niveau);
+  RETURN jsonb_build_object('ok', true, 'inf', v_inf, 'cout', v_cout)
+    || (SELECT jsonb_build_object('informateurs', informateurs, 'pa', pa, 'arg', arg, 'liquide', liquide)
+          FROM public.personnages_donnees WHERE name = v_moi);
+END; $function$;
+
 -- renseignement_agents_disponibles() -> jsonb | plpgsql | SECURITY DEFINER | search_path=public, pg_temp
 CREATE OR REPLACE FUNCTION public.renseignement_agents_disponibles()
  RETURNS jsonb

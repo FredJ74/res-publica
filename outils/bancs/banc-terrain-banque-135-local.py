@@ -4,6 +4,8 @@ from pathlib import Path
 import importlib.util,json,re
 from concurrent.futures import ThreadPoolExecutor
 R=Path(__file__).resolve().parents[2]
+_sources_spec=importlib.util.spec_from_file_location('sources_sql_bancs',R/'outils/bancs/banc-audit-securite-135-local.py')
+_sources=importlib.util.module_from_spec(_sources_spec);_sources_spec.loader.exec_module(_sources)
 spec=importlib.util.spec_from_file_location('nego',R/'outils/bancs/banc-negociation-squatteurs-local.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 def suite(db,q,srv):
  import psycopg2
@@ -12,10 +14,9 @@ def suite(db,q,srv):
  def check(v,t):
   nonlocal n
   assert v,t;n+=1;print('OK terrain banque',t,flush=True)
- def fn(path,nom):
-  s=(R/path).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');x=re.search(r'AS (\$\w*\$)(.*?)\1;',s[a:],re.S);return s[a:a+x.end()]
+ def fn(path,nom):return _sources.fonction(path,nom)
  def table(dom,nom):
-  s=(R/f'baseline/domaines/{dom}/10_tables.sql').read_text();q.execute(re.search(r'CREATE TABLE public\.'+nom+r' \(.*?\n\);',s,re.S)[0])
+  s=(R/f'baseline/domaines/{dom}/10_tables.sql').read_text();_sources.creer_table(q,s,nom)
  q.execute("CREATE ROLE service_role;CREATE SCHEMA auth;CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$SELECT id FROM personnages_donnees WHERE name=mon_personnage()$$;ALTER TABLE personnages_donnees ADD COLUMN hospitalisation jsonb,ADD COLUMN day integer DEFAULT 1;CREATE VIEW personnages AS SELECT * FROM personnages_donnees")
  for dom,nom in [('banque','prets'),('finances-publiques','fonds_credits_uniques'),('personnage-et-presence','mariages'),('immobilier-et-territoire','terrains_historique_ventes'),('banque','compromis_historique'),('immobilier-et-territoire','dossiers_urbanisme'),('personnage-et-presence','objets_recus'),('justice','detentions')]:table(dom,nom)
  q.execute("CREATE FUNCTION est_appel_serveur() RETURNS boolean LANGUAGE sql AS $$SELECT current_setting('hg.serveur',true)='on'$$;CREATE TABLE courrier_fixture(expediteur text,destinataire text,sujet text,corps text);CREATE FUNCTION mail_systeme_poser_interne(text,text,text,text,text DEFAULT NULL) RETURNS jsonb LANGUAGE sql AS $$INSERT INTO courrier_fixture VALUES($1,$2,$3,$4);SELECT '{\"ok\":true}'::jsonb$$")
@@ -24,12 +25,12 @@ def suite(db,q,srv):
  for nom in ['pret_national_contracter(numeric,integer,text,text)','payer_ordre(text,text,integer,integer)','terrain_compromis_acte(text,text,jsonb)','terrain_proprietaire_muter(text,text,jsonb,text)','compromis_expire_resoudre(text,text)']:q.execute(catalogue[nom]['definition'])
  q.execute("CREATE FUNCTION titulaire_est_moi(text) RETURNS boolean LANGUAGE sql AS $$SELECT $1 IN(mon_personnage(),'pj:'||mon_personnage())$$;INSERT INTO ordres_couts VALUES('deposer_demande_permis',1,100),('emprunter',1,0)")
  q.execute(fn('outils/bancs/banc-fixture-terrain-permis-acte-avant-depot.sql','terrain_permis_acte'))
- q.execute((R/'migrations/20261022220516_permis_depot_transactionnel.sql').read_text())
+ q.execute(_sources.chemin_source('migrations/20261031113626_permis_depot_transactionnel.sql').read_text())
  q.execute(catalogue['payer_ordre(text,text,integer,integer)']['definition'])
  q.execute((R/'historique/fixtures-bancs/historique-135/20261024072349_occupation_actions_et_echeances.sql').read_text())
  if '--apres-location' in __import__('sys').argv:q.execute((R/'historique/fixtures-bancs/historique-135/20261023090017_location_lot_legacy_avant_paiement.sql').read_text())
- for f in ['20261024121400_prets_nationaux_moteur_credit_commun.sql','20261024121900_prets_nationaux_commandes_versionnees.sql','20261024122600_acquisitions_capacites_et_gardes.sql','20261024123500_compromis_financement_reel.sql','20261024123600_terrains_referentiel_acquisition.sql','20261024123700_terrain_acquisition_commandes.sql','20261024123800_terrain_banque_relecture_recus.sql','20261024124000_prets_nationaux_echeances_atomiques.sql','20261024124100_prets_versionnes_fermer_ecritures_directes.sql','20261024131720_acquisitions_depots_attestes.sql','20261024132140_financement_compromis_termes_attestes.sql','20261024133310_terrain_vente_archive_reference_acte.sql','20261024134528_permis_instruction_transactionnelle_acquisitions.sql','20261024135353_acquisition_refus_rollback_financement.sql','20261024140140_permis_instruction_compatibilite_archives.sql']:
-  sql=(R/'migrations'/f).read_text();q.execute(sql);q.execute(sql)
+ for f in ['20261031113628_prets_nationaux_moteur_credit_commun.sql','20261031113629_prets_nationaux_commandes_versionnees.sql','20261031113630_acquisitions_capacites_et_gardes.sql','20261031113631_compromis_financement_reel.sql','20261031113632_terrains_referentiel_acquisition.sql','20261031113633_terrain_acquisition_commandes.sql','20261031113634_terrain_banque_relecture_recus.sql','20261031113635_prets_nationaux_echeances_atomiques.sql','20261031113636_prets_versionnes_fermer_ecritures_directes.sql','20261031113637_acquisitions_depots_attestes.sql','20261031113638_financement_compromis_termes_attestes.sql','20261031113639_terrain_vente_archive_reference_acte.sql','20261031113640_permis_instruction_transactionnelle_acquisitions.sql','20261031113641_acquisition_refus_rollback_financement.sql','20261031113642_permis_instruction_compatibilite_archives.sql']:
+  sql=_sources.chemin_source('migrations/'+f).read_text();q.execute(sql);q.execute(sql)
  # Mutations de contre-épreuve : seulement après installation, dans la base jetable.
  mutant=next((x.split('=',1)[1] for x in __import__('sys').argv if x.startswith('--mutant=')),None)
  if mutant:

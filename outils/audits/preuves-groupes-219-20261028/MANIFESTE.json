@@ -1,0 +1,75 @@
+{
+  "branche": "codex/groupes-universels-20261028",
+  "pr": 219,
+  "depart": "cb3957fe00494917432ee537387d8314537e595d",
+  "main_integre": "c10c10832b5bf6a7ee90895bc4160e2591782190",
+  "parent_avant_preuves": "3c464794ece7e37a5a9d267b39b8784c6c22942a",
+  "sources_sha256": {
+    "plateau-multijoueur.js": "eab3faa541bfb22b464e506bc838c16a56b6dff2c8289121d4ee16a895a49bbc",
+    "plateau.html": "3a0a2e1d2f6415c6e7e03c450fc4fb98a51642551c4c6c25bb4a94a62eb58be8",
+    "supabase.js": "2f5a789ceb942d698e8915a222e850deb1a2728655f2451babbb93ab756b80ff",
+    ".github/workflows/coherence-client.yml": "f8bc31a59f825a16362b82a33b120c1c0013b42bbc8bcbe495084751e3156475",
+    "outils/bancs/banc-groupes-corps-local.py": "c34e8af0147e240c6df20731e7905933eba67a89e10efe7c83a6b8fee50131fa",
+    "outils/bancs/banc-groupes-universels-local.py": "cb10a1788910208666b38ee48936adb0e8a034cd556e376ff912e5f4b05bc2e8",
+    "outils/bancs/banc-groupes-universels.cjs": "397738d298a0bc4363e361054350aa152c921fa76a5e1677b7d5844101e39cbd",
+    "outils/bancs/PREFLIGHT-GROUPES-UNIVERSELS-20261028.sql": "6a1637e5c514249b70b3e6d5d870c6ffb610a64503578759bd7bc7cbd2e53c0b",
+    "baseline/domaines/socle-PNJ/20_fonctions.sql": "630afa3b5bb185e04055731a0e1bbac8774b2b54c19604dd111b2c10751f6bed",
+    "baseline/domaines/socle-PNJ/30_contraintes.sql": "4b76f23d1e4c38baa14b519fabd379b480eb0bb9d06dcb8ddf9b94596b105499",
+    "baseline/domaines/socle-PNJ/10_tables.sql": "9fadd817a6bb91abf4f261981a17279f9178e24e730551ce752869a91ff7b76c",
+    "baseline/domaines/militaire/20_fonctions-1.sql": "0244d676ff69a9a7ddd28ad5df52f199ae6cd49ee729acbcccab127b657ad9c5",
+    "baseline/domaines/militaire/20_fonctions-2.sql": "eb8de0fce0eca051a711669d25e5b46960e046f9f3da112a03567878468a7623",
+    "baseline/domaines/militaire/20_fonctions-3.sql": "56f0c25823940cbb6180cc689c69cd149e5e37dbf9bae419e749c48eaaf32d04",
+    "baseline/domaines/justice/20_fonctions-2.sql": "5c4f06054770a20bf21bf3ce42d7c4ba0c5085f5e8125104662e43ed71ba6600",
+    "migrations/20261028161732_groupes_soldats_projection_commune.sql": "2d0a981c6312057e73df31cc3d912e1eb58eb59228feed0d7fab68212f55cc07",
+    "migrations/20261028163800_groupes_capacite_conduite_serveur.sql": "d2f87a2614623d79519b72f6aa458882d18c3e2f86027988166a6167b99d0d24",
+    "migrations/20261028164500_groupes_ordres_militaires_adaptateurs.sql": "f2cec9e4f69b636cc5a57733fedf630ac9d4e7624f17024912cb0b4d5b5fb1ef",
+    "migrations/20261028165000_groupes_bataille_pays_adverse.sql": "829689674e844e205fbe63428c63d14ee2aaaa4f27750b8a1e3c7633e6caa0dd"
+  },
+  "preuves_sha256": {
+    "api-syntaxe.log": "2c5defa5f188881887498e17220ff476bb24d48fd139f80c6a8a662d81f507d2",
+    "audit216-19.json": "1fa236a64eac23621c26aa979f834f33b3a03787ac868c03432eccc487f98d35",
+    "audit216-snapshot-20.json": "95bcb2e1ca58825fb9f3153a965be55ae2846a052febcb63c6d9a1d3023fa3d2",
+    "banc-creation-personnage-reseau-20261028.cjs.log": "b5a460121d23d5a6094dc515feec3ff7661cb3750acf812cb88f44ba0196bce0",
+    "banc-reception-rest-20261028.cjs.log": "c4626c78811446ba92c6b94bdd54c819156a83ebd1001ddb58306f37626030c0",
+    "banc-sortie-reponse-perdue-20261028.cjs.log": "e45db851810ee99364d8d44e7c0e4b0da7cae55921850139030b9d34a4b1c399",
+    "clients-111.json": "bdf2acbd19b6690e1037db8703214eefad7b20a58dc7f6eb6452997d5f3014c0",
+    "clients-cibles.log": "d1f835fe6fa3182f6142c124602b48476f2d4c7cb8a2732c78753753bae8e654",
+    "clients-execution.json": "d61b4e5ddc4d63ebaecddaa7087c2019c9a25702617004911cdde36da15ed9a5",
+    "contre-militaire.json": "172a00a24d5f11524a22d9e246c9b97a557ed05c3c657f58e9831ce2da6a3e50",
+    "globaux.log": "d580dec31406edb10c87fe4e3004443b12f5479d53bf9632dad188a27b646b75",
+    "interception-35.log": "9db9225ad0d7db20ebcd9e096249137ead924d9016410129286911fad7c3a84d",
+    "pilote-105.log": "875b973b8f85479e7d0a4849acf8fbc255567f2eb68d9110ffe452a1463fb4f3",
+    "postgres-49.json": "244ddb0d6a0953bf6d240bf25ae1686a0f3620670cd03f78b74f0861bb303a3f"
+  },
+  "verifications": {
+    "postgres": 49,
+    "anciens_cas_inclus": 35,
+    "diagnostics_police_non_raccordee": 2,
+    "client_cibles": 27,
+    "bancs_clients": 111,
+    "pilote": 105,
+    "interception_client": 35,
+    "audit216": 19,
+    "snapshot216": 20,
+    "contre_militaire_echecs": 10,
+    "globaux": {
+      "reussis": 5,
+      "total": 12
+    }
+  },
+  "production": {
+    "donnees_modifiees": false,
+    "migrations_appliquees": [],
+    "recette_authentifiee": false,
+    "deploiement_effectue_par_codex": false,
+    "preview_observee": false
+  },
+  "limites": [
+    "JWT de fixture au role authenticated : pas un compte Supabase",
+    "Decor fictif commite, actions de scenario annulees ; variante snapshot216 commet un acte fictif uniquement local",
+    "Deux tests policiers prouvent autorite et blocage de miroir, pas le parcours de sept PNJ",
+    "Porte de combat testee sans ennemi et non-militaire : aucun round collectif valide",
+    "Nouvelle presence des corps et droits vivants a exporter avant activation",
+    "Baselines et verificateurs globaux inchanges"
+  ]
+}

@@ -4,8 +4,8 @@ import argparse, importlib.util, json, tempfile
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 ROOT=Path(__file__).resolve().parents[2]
-ORIGINAL=ROOT/'migrations/20261019221500_luthecia_cartes_et_diners.sql'
-CORRECTIF=ROOT/'migrations/20261020114246_reservation_republica_accueil.sql'
+ORIGINAL=ROOT/'historique/migrations-appliquees/rehorodatees-219/20261031113608_luthecia_cartes_et_diners.sql'
+CORRECTIF=ROOT/'historique/migrations-appliquees/rehorodatees-219/20261031113609_reservation_republica_accueil.sql'
 def charger(nom,f):
  spec=importlib.util.spec_from_file_location(nom,ROOT/f);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 
@@ -17,9 +17,9 @@ def main():
  db=psycopg2.connect(uri);db.autocommit=True;c=db.cursor();c.execute(fixture.SCHEMA)
  c.execute("ALTER TABLE personnages_donnees ADD COLUMN reservation_hotel jsonb; CREATE TABLE pa_bonus_hotel(building_id text PRIMARY KEY,montant integer); INSERT INTO pa_bonus_hotel VALUES('hotel-republica',2)")
  for nom in ['restaurant_luthecia_est_commerce','restaurant_luthecia_carte','restaurant_luthecia_vente_verifier','commerce_vendre_produit_interne']:c.execute(restaurant.definition(nom,ORIGINAL))
- c.execute(restaurant.definition('commerce_vendre_produit',ROOT/'migrations/20261019213444_catalogue_et_offrir_a_boire.sql'))
+ c.execute(restaurant.definition('commerce_vendre_produit',ROOT/'historique/migrations-appliquees/rehorodatees-219/20261031113607_catalogue_et_offrir_a_boire.sql'))
  c.execute('REVOKE ALL ON FUNCTION commerce_vendre_produit_interne(text,text,jsonb,text,text,integer,integer,text,numeric) FROM PUBLIC,anon,authenticated,service_role')
- for nom in ['pa_bonus_chambre','pa_crediter_interne']:c.execute(restaurant.definition(nom,ROOT/'baseline/domaines/finances-publiques/20_fonctions-1.sql'))
+ for nom in ['pa_bonus_chambre','pa_crediter_interne']:c.execute(restaurant._sources.entree_historique(nom))
  # Le moteur appelle une fois le paiement, qui refuse sans mutation si le tarif/fonds sont invalides.
  c.execute('''CREATE TABLE paiements(acteur text,montant integer);
  CREATE OR REPLACE FUNCTION payer_ordre(text,text,integer,integer) RETURNS jsonb LANGUAGE plpgsql AS $$ BEGIN

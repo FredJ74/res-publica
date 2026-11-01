@@ -20,8 +20,12 @@ ALTER TABLE public.catalogue_generiques ADD CONSTRAINT catalogue_generiques_pkey
 ALTER TABLE public.catalogue_types ADD CONSTRAINT catalogue_types_pkey PRIMARY KEY (id);
 ALTER TABLE public.catalogue_variantes ADD CONSTRAINT catalogue_variantes_pkey PRIMARY KEY (id);
 ALTER TABLE public.chaines_production_usine ADD CONSTRAINT chaines_production_usine_pkey PRIMARY KEY (produit);
+ALTER TABLE public.chantier_commandes_recus ADD CONSTRAINT chantier_commandes_recus_pkey PRIMARY KEY (acteur, requete);
+ALTER TABLE public.chantier_requetes ADD CONSTRAINT chantier_requetes_pkey PRIMARY KEY (id);
 ALTER TABLE public.chantiers_besoins_jour ADD CONSTRAINT chantiers_besoins_jour_pkey PRIMARY KEY (position_cycle);
 ALTER TABLE public.chantiers_paliers ADD CONSTRAINT chantiers_paliers_pkey PRIMARY KEY (palier);
+ALTER TABLE public.commerce_decors ADD CONSTRAINT commerce_decors_pkey PRIMARY KEY (fonds_id);
+ALTER TABLE public.commerce_decors_sources ADD CONSTRAINT commerce_decors_sources_pkey PRIMARY KEY (id);
 ALTER TABLE public.commerces_dotations ADD CONSTRAINT commerces_dotations_pkey PRIMARY KEY (cle);
 ALTER TABLE public.commerces_types ADD CONSTRAINT commerces_types_pkey PRIMARY KEY (cle);
 ALTER TABLE public.confiscations_douanieres ADD CONSTRAINT confiscations_douanieres_pkey PRIMARY KEY (id);
@@ -34,8 +38,11 @@ ALTER TABLE public.entrepots_reversements ADD CONSTRAINT entrepots_reversements_
 ALTER TABLE public.entreprises ADD CONSTRAINT entreprises_pkey PRIMARY KEY (id);
 ALTER TABLE public.entreprises_constantes ADD CONSTRAINT entreprises_constantes_pkey PRIMARY KEY (cle);
 ALTER TABLE public.entreprises_prix_rachat ADD CONSTRAINT entreprises_prix_rachat_pkey PRIMARY KEY (batiment);
+ALTER TABLE public.hotel_nuitees ADD CONSTRAINT hotel_nuitees_pkey PRIMARY KEY (id);
 ALTER TABLE public.imprimeries_declarees ADD CONSTRAINT imprimeries_declarees_pkey PRIMARY KEY (pays, ville, batiment);
 ALTER TABLE public.investissements ADD CONSTRAINT investissements_pkey PRIMARY KEY (id);
+ALTER TABLE public.jardins_ouvriers_reserve ADD CONSTRAINT jardins_ouvriers_reserve_pkey PRIMARY KEY (pays, ville);
+ALTER TABLE public.jardins_ouvriers_travail ADD CONSTRAINT jardins_ouvriers_travail_pkey PRIMARY KEY (nom, jour);
 ALTER TABLE public.oeuvres ADD CONSTRAINT oeuvres_pkey PRIMARY KEY (id);
 ALTER TABLE public.offres ADD CONSTRAINT offres_pkey PRIMARY KEY (id);
 ALTER TABLE public.offres_emploi_bne ADD CONSTRAINT offres_emploi_bne_pkey PRIMARY KEY (id);
@@ -47,6 +54,7 @@ ALTER TABLE public.productions_references ADD CONSTRAINT productions_references_
 ALTER TABLE public.produits_manufactures ADD CONSTRAINT produits_manufactures_pkey PRIMARY KEY (produit);
 ALTER TABLE public.recettes_commerce ADD CONSTRAINT recettes_commerce_pkey PRIMARY KEY (id);
 ALTER TABLE public.recettes_production ADD CONSTRAINT recettes_production_pkey PRIMARY KEY (id);
+ALTER TABLE public.recoltes_journalieres ADD CONSTRAINT recoltes_journalieres_pkey PRIMARY KEY (nom, jour);
 ALTER TABLE public.ressources_economie ADD CONSTRAINT ressources_economie_pkey PRIMARY KEY (cle);
 ALTER TABLE public.ressources_economie_empreinte ADD CONSTRAINT ressources_economie_empreinte_pkey PRIMARY KEY (seul);
 ALTER TABLE public.structures_medicales ADD CONSTRAINT structures_medicales_pkey PRIMARY KEY (building_id);
@@ -56,6 +64,7 @@ ALTER TABLE public.ventes_snapshots ADD CONSTRAINT ventes_snapshots_pkey PRIMARY
 -- CONTRAINTES D'UNICITE
 ALTER TABLE public.catalogue_correspondance_legacy ADD CONSTRAINT catalogue_correspondance_legacy_motif_valeur_key UNIQUE (motif, valeur);
 ALTER TABLE public.catalogue_variantes ADD CONSTRAINT catalogue_variantes_generique_id_cle_key UNIQUE (generique_id, cle);
+ALTER TABLE public.hotel_nuitees ADD CONSTRAINT hotel_nuitees_personnage_id_reference_key UNIQUE (personnage_id, reference);
 ALTER TABLE public.ventes_snapshots ADD CONSTRAINT ventes_snapshots_requete_key UNIQUE (requete);
 
 -- CONTRAINTES DE VALIDATION
@@ -70,6 +79,9 @@ ALTER TABLE public.entrepot_transits ADD CONSTRAINT entrepot_transits_montant_to
 ALTER TABLE public.entrepot_transits ADD CONSTRAINT entrepot_transits_prix_unitaire_check CHECK ((prix_unitaire >= (0)::numeric));
 ALTER TABLE public.entrepot_transits ADD CONSTRAINT entrepot_transits_quantite_check CHECK ((quantite > 0));
 ALTER TABLE public.entrepots_reversements ADD CONSTRAINT entrepots_reversements_mode_check CHECK ((mode = ANY (ARRAY['automatique'::text, 'volontaire'::text])));
+ALTER TABLE public.hotel_nuitees ADD CONSTRAINT hotel_nuitees_moral_bonus_check CHECK (((moral_bonus >= 0) AND (moral_bonus <= 100)));
+ALTER TABLE public.hotel_nuitees ADD CONSTRAINT hotel_nuitees_pa_bonus_check CHECK (((pa_bonus >= 0) AND (pa_bonus <= 30)));
+ALTER TABLE public.jardins_ouvriers_reserve ADD CONSTRAINT jardins_ouvriers_reserve_qte_check CHECK ((qte >= 0));
 ALTER TABLE public.offres ADD CONSTRAINT offres_parties CHECK ((emetteur <> destinataire));
 ALTER TABLE public.offres ADD CONSTRAINT offres_statut_valide CHECK ((statut = ANY (ARRAY['ouverte'::text, 'acceptee'::text, 'refusee'::text, 'expiree'::text, 'annulee'::text])));
 ALTER TABLE public.offres ADD CONSTRAINT offres_type_valide CHECK ((type = ANY (ARRAY['vente_objet'::text, 'vente_fonds'::text, 'resiliation_amiable'::text, 'prestation'::text])));
@@ -86,4 +98,8 @@ ALTER TABLE public.catalogue_generique_type ADD CONSTRAINT catalogue_generique_t
 ALTER TABLE public.catalogue_generique_type ADD CONSTRAINT catalogue_generique_type_type_id_fkey FOREIGN KEY (type_id) REFERENCES catalogue_types(id);
 ALTER TABLE public.catalogue_generiques ADD CONSTRAINT catalogue_generiques_famille_id_fkey FOREIGN KEY (famille_id) REFERENCES catalogue_familles(id);
 ALTER TABLE public.catalogue_variantes ADD CONSTRAINT catalogue_variantes_generique_id_fkey FOREIGN KEY (generique_id) REFERENCES catalogue_generiques(id);
+ALTER TABLE public.commerce_decors ADD CONSTRAINT commerce_decors_fonds_id_fkey FOREIGN KEY (fonds_id) REFERENCES entreprises(id) ON DELETE CASCADE;
+ALTER TABLE public.commerce_decors ADD CONSTRAINT commerce_decors_owner_user_id_fkey FOREIGN KEY (owner_user_id) REFERENCES auth.users(id);
+ALTER TABLE public.commerce_decors_sources ADD CONSTRAINT commerce_decors_sources_proprietaire_user_id_fkey FOREIGN KEY (proprietaire_user_id) REFERENCES auth.users(id);
 ALTER TABLE public.contenu_caisses_fret ADD CONSTRAINT contenu_caisses_fret_caisse_id_fkey FOREIGN KEY (caisse_id) REFERENCES caisses_fret(id);
+ALTER TABLE public.hotel_nuitees ADD CONSTRAINT hotel_nuitees_personnage_id_fkey FOREIGN KEY (personnage_id) REFERENCES personnages_donnees(id);

@@ -18,6 +18,26 @@
 -- universel compris. Les 17 lignes sont toutes en 'republic'.
 -- ============================================================================
 
+-- SEED -- salaires_civils_declares
+-- ============================================================================
+-- Table      : public.salaires_civils_declares
+-- Domaine    : finances publiques
+-- Categorie  : A (socle generique)
+-- Strategie  : seed_complet (classification du chantier 2C)
+-- Lignes     : 17
+--
+-- Fichier GENERE par outils/baseline/seeds.py. Ne pas editer a la main.
+-- Les litteraux sont ceux que PostgreSQL lui-meme a produits (quote_nullable) :
+-- aucune regle d'echappement n'a ete reimplementee.
+--
+-- JUSTIFICATION DU SEED (chantier 2C)
+-- Bareme des salaires civils. La colonne pays a ete ajoutee le 7 octobre
+-- 2026 et la cle primaire est devenue (pays, cle) : la table n'avait aucune
+-- dimension d'empire, et salaire_civil_percevoir y lisait sans filtre -- les
+-- trois autres empires heritaient donc du bareme de Republia, revenu
+-- universel compris. Les 17 lignes sont toutes en 'republic'.
+-- ============================================================================
+
 INSERT INTO public.salaires_civils_declares (cle, categorie, montant, pays) VALUES ('commissaire', 'poste', '1000', 'republic');
 INSERT INTO public.salaires_civils_declares (cle, categorie, montant, pays) VALUES ('default', 'universel', '150', 'republic');
 INSERT INTO public.salaires_civils_declares (cle, categorie, montant, pays) VALUES ('depute', 'poste', '1200', 'republic');

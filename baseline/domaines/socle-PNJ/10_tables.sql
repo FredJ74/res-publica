@@ -10,6 +10,10 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
+CREATE SEQUENCE public."pnj_evenements_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
+CREATE SEQUENCE public."pnj_possessions_id_seq" AS bigint START WITH 1 INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 NO CYCLE;
+
 CREATE TABLE public.pnj_axes_autorite (
   famille text NOT NULL,
   axe text NOT NULL,
@@ -64,13 +68,15 @@ CREATE TABLE public.pnj_employeurs (
 );
 
 CREATE TABLE public.pnj_evenements (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('pnj_evenements_id_seq'::regclass) NOT NULL,
   pnj_id text NOT NULL,
   pnj_nom text NOT NULL,
   famille text NOT NULL,
   type text NOT NULL,
   pays text NOT NULL,
   proprietaire_pj text,
+  "__baseline_attribut_supprime_8" integer,
+  "__baseline_attribut_supprime_9" integer,
   ville text,
   building_id text,
   room_id text,
@@ -82,6 +88,10 @@ CREATE TABLE public.pnj_evenements (
   objets_deposes integer DEFAULT 0 NOT NULL,
   argent_du_defunt numeric DEFAULT 0 NOT NULL
 );
+
+ALTER TABLE public."pnj_evenements" DROP COLUMN "__baseline_attribut_supprime_8";
+
+ALTER TABLE public."pnj_evenements" DROP COLUMN "__baseline_attribut_supprime_9";
 
 CREATE TABLE public.pnj_familles_classes (
   famille text NOT NULL,
@@ -119,6 +129,8 @@ CREATE TABLE public.pnj_membres (
   nom text NOT NULL,
   pays text NOT NULL,
   proprietaire_pj text,
+  "__baseline_attribut_supprime_6" integer,
+  "__baseline_attribut_supprime_7" integer,
   leader_pj text,
   leader_pnj_id text,
   ville text,
@@ -140,6 +152,10 @@ CREATE TABLE public.pnj_membres (
   proprietaire_perimetre text,
   classe text
 );
+
+ALTER TABLE public."pnj_membres" DROP COLUMN "__baseline_attribut_supprime_6";
+
+ALTER TABLE public."pnj_membres" DROP COLUMN "__baseline_attribut_supprime_7";
 
 CREATE TABLE public.pnj_metiers_profils (
   metier text NOT NULL,
@@ -176,7 +192,7 @@ CREATE TABLE public.pnj_mouvement_individuel (
 );
 
 CREATE TABLE public.pnj_possessions (
-  id bigserial NOT NULL,
+  id bigint DEFAULT nextval('pnj_possessions_id_seq'::regclass) NOT NULL,
   pnj_id text NOT NULL,
   objet jsonb NOT NULL,
   exemplaire_unique boolean DEFAULT false NOT NULL,
@@ -252,3 +268,7 @@ CREATE TABLE public.pnj_transitions (
   actif boolean NOT NULL,
   note text
 );
+
+ALTER SEQUENCE public."pnj_evenements_id_seq" OWNED BY public."pnj_evenements"."id";
+
+ALTER SEQUENCE public."pnj_possessions_id_seq" OWNED BY public."pnj_possessions"."id";

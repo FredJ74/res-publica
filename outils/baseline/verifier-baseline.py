@@ -164,8 +164,15 @@ def famille_seeds(r, rendues):
 
     # Les fichiers « a construire » et « a regenerer » ne doivent porter aucune
     # donnee : c'est tout leur propos.
+    # Les miroirs raccordés ne sont plus des TODO : leur contenu doit être
+    # STRICTEMENT celui des générateurs réexécutés, pas seulement un hash édité.
+    import subprocess
+    verification=subprocess.run([sys.executable,os.path.join(ICI,'regenerer-seeds-miroirs.py'),'--verifier'],capture_output=True,text=True)
+    r.verif('miroirs conformes aux generateurs reels',verification.returncode,0)
+    if verification.returncode:r.anomalie(verification.stdout+verification.stderr)
+    generes=inv.get('miroirs_generes',{})
     fautifs = [t for t, (rep, n, _) in par_table.items()
-               if rep in ("95_a-regenerer", "99_a-construire") and n > 0]
+               if n > 0 and (rep=='99_a-construire' or rep=='95_a-regenerer' and t not in generes)]
     r.verif("fichiers TODO contenant des donnees", len(fautifs), 0)
     for t in fautifs:
         r.anomalie("le fichier TODO de %s contient des INSERT" % t)

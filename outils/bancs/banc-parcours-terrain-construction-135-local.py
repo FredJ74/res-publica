@@ -6,6 +6,8 @@ from pathlib import Path
 import importlib.util,re,json,uuid,subprocess,sys
 from concurrent.futures import ThreadPoolExecutor
 R=Path(__file__).resolve().parents[2]
+_sources_spec=importlib.util.spec_from_file_location('sources_sql_bancs',R/'outils/bancs/banc-audit-securite-135-local.py')
+_sources=importlib.util.module_from_spec(_sources_spec);_sources_spec.loader.exec_module(_sources)
 MUTANT=next((x.split('=',1)[1] for x in sys.argv if x.startswith('--mutant=')),None)
 sys.argv[:]=[x for x in sys.argv if not x.startswith('--mutant=')]
 spec=importlib.util.spec_from_file_location('banque',R/'outils/bancs/banc-terrain-banque-135-local.py');banque=importlib.util.module_from_spec(spec);spec.loader.exec_module(banque)
@@ -17,11 +19,10 @@ def suite(db,q,srv):
   nonlocal n
   assert v,msg;n+=1;print('OK parcours terrain',msg,flush=True)
  def lire(sql,args=()):q.execute(sql,args);return q.fetchone()[0]
- def fn(path,nom):
-  s=(R/path).read_text();a=s.index('CREATE OR REPLACE FUNCTION public.'+nom+'(');m=re.search(r'AS (\$\w*\$)(.*?)\1;',s[a:],re.S);return s[a:a+m.end()]
+ def fn(path,nom):return _sources.fonction(path,nom)
  def table(domaine,nom,pk=None):
   if lire('SELECT to_regclass(%s)',('public.'+nom,)):return
-  s=(R/f'baseline/domaines/{domaine}/10_tables.sql').read_text();q.execute(re.search(r'CREATE TABLE public\.'+nom+r' \(.*?\n\);',s,re.S)[0])
+  s=(R/f'baseline/domaines/{domaine}/10_tables.sql').read_text();_sources.creer_table(q,s,nom)
   if pk:q.execute(f'ALTER TABLE {nom} ADD PRIMARY KEY({pk})')
  q.execute('ALTER TABLE personnages_donnees ADD COLUMN poste jsonb,ADD COLUMN user_id uuid;UPDATE personnages_donnees SET user_id=id;ALTER TABLE terrains_etat ADD COLUMN niveau_construction text')
  for d,t,p in [('immobilier-et-territoire','villes',None),('finances-publiques','caisses_batiments','id'),('finances-publiques','caisses_autorites',None),('finances-publiques','caisses_mouvements_clients',None),('politique-et-elections','cycles_electoraux',None),('immobilier-et-territoire','batiments_etat','id'),('economie','chantiers_besoins_jour',None),('economie','entrepots_par_ville',None),('economie','ressources_economie','cle'),('economie','entreprises_constantes','cle'),('economie','chantiers_paliers','palier'),('immobilier-et-territoire','locations_actives','id')]:table(d,t,p)
@@ -30,11 +31,12 @@ def suite(db,q,srv):
  q.execute((R/'baseline/seeds/92_mixte/entrepots_par_ville.sql').read_text())
  tarifs=json.loads(subprocess.check_output(['node','-e',"const fs=require('fs'),vm=require('vm'),c=vm.createContext({window:{},console});vm.runInContext(fs.readFileSync('data.js','utf8'),c);console.log(vm.runInContext('JSON.stringify(RESSOURCES_ECONOMIE)',c))"],cwd=R,text=True))
  for cle in ['bois','minerai','metal']:q.execute('INSERT INTO ressources_economie(cle,prix_base) VALUES(%s,%s)',(cle,tarifs[cle]['prixBase']))
- for f,nom in [('baseline/domaines/socle/20_fonctions.sql','acteur_poste_courant'),('baseline/domaines/socle/20_fonctions.sql','exiger_poste'),('baseline/domaines/finances-publiques/20_fonctions-1.sql','caisse_institution_mouvement'),('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','batiment_etat_lire'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_id'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_mouvement'),('baseline/domaines/economie/20_fonctions-1.sql','approvisionner_chantier'),('migrations/20261019064000_organisations_equipements_collectifs.sql','organisation_equipement_exiger'),('baseline/domaines/politique-et-elections/20_fonctions.sql','poste_est_atteste')]:q.execute(fn(f,nom))
- for nom in ['chantier_lancer','chantier_verser','chantier_travailler']:q.execute(fn('baseline/domaines/economie/20_fonctions-1.sql',nom))
+ for f,nom in [('baseline/domaines/socle/20_fonctions.sql','acteur_poste_courant'),('baseline/domaines/socle/20_fonctions.sql','exiger_poste'),('baseline/domaines/finances-publiques/20_fonctions-1.sql','caisse_institution_mouvement'),('baseline/domaines/immobilier-et-territoire/20_fonctions.sql','batiment_etat_lire'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_id'),('baseline/domaines/economie/20_fonctions-1.sql','entrepot_caisse_mouvement'),('baseline/domaines/economie/20_fonctions-1.sql','approvisionner_chantier'),('migrations/20261031113558_organisations_equipements_collectifs.sql','organisation_equipement_exiger'),('baseline/domaines/politique-et-elections/20_fonctions.sql','poste_est_atteste')]:q.execute(fn(f,nom))
+ # Entrées historiques du transformateur ; ses gardes restent intactes.
+ for nom in ['chantier_lancer','chantier_verser','chantier_travailler']:q.execute(_sources.entree_historique(nom))
  q.execute(fn('outils/bancs/banc-fixture-terrain-chantier-acte-avant-commandes.sql','terrain_chantier_acte'))
- migrations=['20261022123319_chantier_financeurs_et_appels.sql','20261022123320_chantier_jour_transactionnel.sql','20261022123321_chantier_approvisionnement_caisse_unique.sql','20261022124055_chantier_autorite_et_recus.sql','20261022124056_chantier_commandes_et_reception.sql','20261022125121_chantier_recu_relecture.sql','20261022125728_chantier_fermer_commandes_non_versionnees.sql','20261022125942_chantier_plan_initial.sql','20261022125943_chantier_plan_raccordement.sql','20261022130417_chantier_gardes_legacy_et_travail.sql','20261022143001_construction_delais_quatre_empires.sql','20261025070000_chantier_taux_horaire.sql']
- for nom in migrations:q.execute((R/'migrations'/nom).read_text());q.execute((R/'migrations'/nom).read_text())
+ migrations=['20261031113612_chantier_financeurs_et_appels.sql','20261031113613_chantier_jour_transactionnel.sql','20261031113614_chantier_approvisionnement_caisse_unique.sql','20261031113615_chantier_autorite_et_recus.sql','20261031113616_chantier_commandes_et_reception.sql','20261031113617_chantier_recu_relecture.sql','20261031113618_chantier_fermer_commandes_non_versionnees.sql','20261031113619_chantier_plan_initial.sql','20261031113620_chantier_plan_raccordement.sql','20261031113621_chantier_gardes_legacy_et_travail.sql','20261031113624_construction_delais_quatre_empires.sql','20261025070000_chantier_taux_horaire.sql']
+ for nom in migrations:q.execute(_sources.chemin_source('migrations/'+nom).read_text());q.execute(_sources.chemin_source('migrations/'+nom).read_text())
  if MUTANT:
   nom,avant,apres={
    'jour_rejoue':('chantier_jour_traiter(text)',"IF ch->>'jourTraite'=jour THEN",'IF false THEN'),

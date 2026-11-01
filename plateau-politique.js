@@ -11984,12 +11984,24 @@ async function recupererSoldats(compagnieId, sectionId) {
 // chef PJ, repli automatique pour un groupe mene par des PNJ. Un groupe allie
 // peut donc decrocher pendant qu'un autre tient la position.
 
+// Même reprise à l'entrée et après refus de déplacement : aucune commande de
+// combat ni dépense. Un joueur attaqué retrouve ses choix à son interaction.
+async function reprendreCombatConfirme() {
+  const c=contexteGroupePj();
+  const e=await sbMilitaireBatailleEtat(null).catch(()=>null);
+  if (!contexteGroupePjValide(c) || e?.ok!==true || e.bataille?.statut!=='en_cours') return false;
+  await ouvrirPanneauCombat(e.bataille.id);
+  return true;
+}
+
 async function ouvrirPanneauCombat(batailleId) {
+  const contexte = contexteGroupePj();
   const e = await sbMilitaireBatailleEtat(batailleId || null);
+  if (!contexteGroupePjValide(contexte)) return;
   if (!e || e.ok !== true) { showToast('Combat indisponible', 'Le serveur n\'a pas répondu.', false); return; }
   const b = e.bataille;
 
-  document.getElementById('postes-modal-title').textContent = b ? 'Combat en cours' : 'Engagement';
+  document.getElementById('postes-modal-title').textContent = b ? (b.statut==='en_cours' ? 'Combat en cours' : 'Rapport de combat') : 'Engagement';
   let html = '<div style="padding:1rem">';
 
   if (!b) {
@@ -12016,37 +12028,15 @@ async function ouvrirPanneauCombat(batailleId) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.78rem;color:#e0d5b8;margin-bottom:.4rem">BILAN DU ROUND ' + dernier.round + '</div>';
     html += '<div style="font-size:.76rem;color:#c0b090">Vos pertes : ' + (dernier.mes_pa_perdus || 0) +
             ' PA sur ' + (dernier.mes_combattants_touches || 0) + ' combattant(s) touché(s).</div>';
-    if (dernier.mes_morts_pnj > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_morts_pnj + ' soldat(s) tué(s).</div>';
-    if (dernier.mes_pj_neutralises > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_pj_neutralises + ' des vôtres évacué(s) à l\'infirmerie.</div>';
+    if (dernier.mes_morts_pnj > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_morts_pnj + ' PNJ tué(s).</div>';
+    if (dernier.mes_pj_neutralises > 0) html += '<div style="font-size:.76rem;color:#cc4444">' + dernier.mes_pj_neutralises + ' des vôtres hors de combat ; leur situation est confirmée par le serveur.</div>';
     html += '<div style="font-size:.76rem;color:#8ac05a;margin-top:.3rem">En face : ' + (dernier.adversaires_tombes || 0) + ' adversaire(s) tombé(s) sous vos yeux.</div>';
     html += '<div style="font-size:.74rem;color:#8a8060">Encore debout : ' + escapeHtmlText(dernier.adversaire_estime?.libelle || '—') + '.</div>';
     html += '</div>';
   }
 
   if (!fini) {
-    if (b.mon_groupe_replie) {
-      html += '<div style="font-size:.76rem;color:#C9A84C;padding:.5rem;border:1px solid #6a5420;margin-bottom:.6rem">Votre groupe a décroché. Le combat continue sans vous.</div>';
-    } else if (b.decision_attendue && b.je_suis_leader) {
-      // Seuil des 50 % de pertes atteint : le chef a 90 secondes pour trancher,
-      // et AUCUN round ne part tant qu'il n'a pas repondu. Passe ce delai, son
-      // groupe -- et lui seul -- se replie automatiquement.
-      html += '<div style="border:1px solid #8a2f2f;background:rgba(138,47,47,.12);padding:.6rem;margin-bottom:.7rem">';
-      html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.9rem;color:#e08a8a;margin-bottom:.25rem">Votre groupe a perdu la moitié de son effectif</div>';
-      html += '<div style="font-size:.74rem;color:#a89870;margin-bottom:.5rem">' + (b.mon_groupe_restants || 0) + ' sur ' + (b.mon_groupe_effectif_initial || 0) + ' encore debout. Sans réponse de votre part, le repli est ordonné automatiquement.</div>';
-      if (typeof b.secondes_restantes === 'number') {
-        html += '<div style="font-family:Bebas Neue,sans-serif;font-size:1.1rem;color:#C9A84C;margin-bottom:.5rem">' + b.secondes_restantes + ' s</div>';
-      }
-      html += '<div style="display:flex;gap:.4rem">';
-      html += '<button onclick="deciderCombat(' + b.id + ',\'tenir\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Tenir la position</button>';
-      html += '<button onclick="deciderCombat(' + b.id + ',\'replier\')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #8a6a20;background:transparent;color:#C9A84C;cursor:pointer">Ordonner le repli</button>';
-      html += '</div></div>';
-    } else if (b.je_suis_leader) {
-      html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem">Vous commandez ce groupe. Tant qu\'il n\'a pas perdu la moitié de son effectif, le combat suit son cours.</div>';
-      html += '<button onclick="poursuivreCombat(' + b.id + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Passer au round suivant</button>';
-    } else {
-      html += '<div style="font-size:.74rem;color:#8a8060;margin-bottom:.6rem">Vous ne commandez pas ce groupe' + (b.mon_chef ? ' — ' + escapeHtmlText(b.mon_chef) + ' en décide' : ', et aucun officier ne le mène : il se repliera de lui-même à la moitié de ses pertes') + '.</div>';
-      html += '<button onclick="poursuivreCombat(' + b.id + ')" style="width:100%;font-family:Bebas Neue,sans-serif;font-size:.76rem;padding:.5rem;border:1px solid #6a8a4a;background:transparent;color:#8ac05a;cursor:pointer">Passer au round suivant</button>';
-    }
+    html += htmlDecisionsCombat(b);
   } else if (b.issue) {
     html += '<div style="font-size:.8rem;color:#C9A84C;text-align:center;padding:.5rem">Issue : ' + escapeHtmlText(b.issue) + '</div>';
   }
@@ -12056,9 +12046,36 @@ async function ouvrirPanneauCombat(batailleId) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+// Le contrat serveur décide des commandes affichées ; aucun membre ne reçoit
+// un pouvoir de chef à partir de son statut d'employeur ou de son grade.
+function htmlDecisionsCombat(b) {
+  if (b.contrat_combat !== 2) return '<p class="cpj-note">Contrat de combat à synchroniser. Aucune décision envoyée.</p>';
+  if (b.mon_groupe_replie) return '<p class="cpj-note">Votre groupe a quitté l’affrontement.</p>';
+  const bouton = (action,label) => '<button class="cpj-touche" onclick="' + action + '">' + label + '</button>';
+  if (b.peut_decider !== true) {
+    return '<p class="cpj-note">Le chef conserve le commandement.</p>' +
+      (b.resolution_automatique === true
+       ? bouton('poursuivreCombat('+b.id+')','Constater la résolution automatique')
+       : bouton('ouvrirPanneauCombat('+b.id+')','Consulter le combat'));
+  }
+  let h = '<div class="cpj-dialogue">';
+  if (b.phase_initiale === true) return h + bouton('poursuivreCombat('+b.id+')','Combattre') + bouton('deciderCombat('+b.id+',&quot;replier&quot;)','Fuir') + bouton('deciderCombat('+b.id+',&quot;rendre&quot;)','Se rendre') + '</div>';
+  h += Number(b.round_courant)<5
+    ? '<p>Les cinq premiers rounds se poursuivent sans désengagement volontaire.</p>'
+    : '<p>Vous pouvez continuer, tenter la fuite ou vous rendre.</p>';
+  h += bouton('poursuivreCombat('+b.id+')','Continuer le combat');
+  if (Number(b.round_courant)>=5) {
+    h += bouton('deciderCombat('+b.id+',&quot;replier&quot;)','Fuir');
+    h += bouton('deciderCombat('+b.id+',&quot;rendre&quot;)','Se rendre');
+  }
+  return h+'</div>';
+}
+
 async function confirmerEngagementCombat() {
+  const contexte = contexteGroupePj();
   document.getElementById('modal-postes')?.classList.remove('open');
   const r = await sbMilitaireBatailleEngager();
+  if (!contexteGroupePjValide(contexte)) return;
   if (!r || r.ok !== true) {
     const motifs = { pas_militaire: 'Seul un militaire en service peut engager le combat.',
                      aucun_ennemi_ici: 'Aucune force ennemie ici, ou vos deux pays ne sont pas en guerre.',
@@ -12069,45 +12086,95 @@ async function confirmerEngagementCombat() {
   }
   showToast('Combat engagé', r.mon_effectif + ' contre ' + r.effectif_adverse +
     (r.initiative === 'a' ? ' — vous ouvrez le feu sans avoir été repéré(e).' : ' — vous vous êtes vus.'), false, true);
-  addJournalEntry('Combat engagé contre les troupes de ' + r.camp_adverse + '.', 'event-bad');
+  addJournalEntry('Combat engagé contre les troupes de ' + (r.camps_adverses?.join(' / ') || r.camp_adverse || 'vos adversaires') + '.', 'event-bad');
   await ouvrirPanneauCombat(r.bataille_id);
 }
 
+function messageRefusCombat(r) {
+  const raisons = {
+    reponse_incertaine:'La réponse a été perdue. Réessayez : le même reçu empêchera de rejouer le round.',
+    round_obsolete:'Le combat a déjà progressé. Son état vient d’être relu.',
+    pas_chef_de_groupe:'Vous ne commandez pas ce groupe.',
+    acteur_indisponible:'Votre état actuel ne permet pas de donner cet ordre.',
+    commande_en_cours:'Une commande est déjà en cours.',
+    requete_requise:'Cette page doit être actualisée pour utiliser les reçus de combat.',
+    recu_non_conserve:'Aucun ordre envoyé : le reçu ne peut pas être conservé.',
+    etat_non_confirme:'Le combat doit être relu avant de poursuivre.',
+    cinq_rounds_obligatoires:'Les cinq premiers rounds ne permettent aucun désengagement volontaire.'
+  };
+  return raisons[r?.raison] || 'Le résultat reste à confirmer. Réessayez avec le même reçu.';
+}
+
 async function deciderCombat(batailleId, decision) {
+  const contexte = contexteGroupePj();
   const r = await sbMilitaireBatailleDecider(batailleId, decision);
+  if (!contexteGroupePjValide(contexte)) return;
   if (!r || r.ok !== true) {
-    showToast('Décision refusée', (r && r.raison === 'pas_leader_de_ce_camp')
-      ? 'Vous ne commandez pas ce groupe.' : 'Opération refusée.', false);
+    if (r?.raison === 'round_obsolete') await rafraichirApresRound(batailleId);
+    if (!contexteGroupePjValide(contexte)) return;
+    showToast('Décision non confirmée', messageRefusCombat(r), false);
     return;
   }
   await rafraichirApresRound(batailleId);
 }
 
 async function poursuivreCombat(batailleId) {
+  const contexte = contexteGroupePj();
   const r = await sbMilitaireBataillePoursuivre(batailleId);
-  if (!r || r.ok !== true) { showToast('Impossible', 'Le round n\'a pas pu être résolu.', false); return; }
+  if (!contexteGroupePjValide(contexte)) return;
+  if (!r || r.ok !== true) {
+    if (r?.raison === 'round_obsolete') await rafraichirApresRound(batailleId);
+    if (!contexteGroupePjValide(contexte)) return;
+    showToast('Round non confirmé', messageRefusCombat(r), false); return;
+  }
   await rafraichirApresRound(batailleId);
 }
 
 // Les PA et la position du joueur ont pu changer cote SERVEUR pendant le round : on les relit au
 // lieu de les deviner. Un PJ neutralise se retrouve a l'infirmerie de sa caserne.
 async function rafraichirApresRound(batailleId) {
-  if (typeof sbGet === 'function' && state.char?.name) {
-    const l = await sbGet('personnages', 'name=eq.' + encodeURIComponent(state.char.name) +
-      '&select=pa,current_city,current_building,current_room,inventory').catch(() => null);
-    if (l && l[0]) {
-      state.pa = l[0].pa;
-      if (Array.isArray(l[0].inventory)) { { if (typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(l[0]); else state.inventory = l[0].inventory; } if (state.char) state.char.inventory = state.inventory; }
-      if (l[0].current_room !== state.currentRoom || l[0].current_building !== state.currentBuilding) {
-        state.currentCity = l[0].current_city;
-        if (typeof enterBuilding === 'function') enterBuilding(l[0].current_building, true);
-        if (typeof enterRoom === 'function') enterRoom(l[0].current_building, l[0].current_room, null);
-        showToast('Hors de combat', 'Vous avez été évacué(e) à l\'infirmerie de votre caserne.', false, true);
-      }
-      updateUI();
-    }
+  const c = contexteGroupePj();
+  const terrain = /^terrain-a-batir/.test(state.currentBuilding || '')
+    ? {id:state.currentBuilding,pays:state.country,ville:state.currentCity,piece:state.currentRoom} : null;
+  const [frais, inventaire, occupation] = await Promise.all([
+    sbLoadPersonnage(c.nom).catch(()=>null),
+    typeof sbInventaireReceptionEtat === 'function' ? sbInventaireReceptionEtat(c.nom).catch(()=>null) : null,
+    terrain && typeof sbGetTerrainState === 'function' ? sbGetTerrainState(terrain.pays,terrain.id).catch(()=>null) : null
+  ]);
+  if (!contexteGroupePjValide(c)) return false;
+  if (!frais || frais.userId !== c.uid || !Number.isInteger(frais.pa) || frais.pa < 0) {
+    showToast('État non confirmé','Le résultat du combat doit encore être relu.',false); return false;
   }
+  state.pa = frais.pa;
+  if (typeof sbFicheBaseAdopter==='function') {
+    const base={pa:frais.pa};
+    for (const [source,cle] of [['hp','hp'],['hospitalisation','hospitalisation'],['estEmprisonne','est_emprisonne']]) if(Object.prototype.hasOwnProperty.call(frais,source))base[cle]=frais[source];
+    sbFicheBaseAdopter(base);
+  }
+  if (Number.isFinite(frais.hp)) state.hp = frais.hp;
+  if (Object.prototype.hasOwnProperty.call(frais,'hospitalisation')) state.hospitalisation = frais.hospitalisation;
+  state.group = frais.group;
+  state._groupeConfirme = frais._groupeConfirme;
+  if (Object.prototype.hasOwnProperty.call(frais,'estEmprisonne')) state.estEmprisonne = frais.estEmprisonne;
+  if (inventaire?.ok === true && typeof sbAdopterInventaireServeur === 'function') sbAdopterInventaireServeur(inventaire);
+  if (!frais.currentBuilding || frais.country !== state.country || frais.currentCity !== state.currentCity ||
+      frais.currentBuilding !== state.currentBuilding || frais.currentRoom !== state.currentRoom) {
+    afficherPositionNavigationConfirmee(frais);
+  }
+  if (terrain && state.country===terrain.pays && state.currentCity===terrain.ville &&
+      state.currentBuilding===terrain.id && state.currentRoom===terrain.piece) {
+    // Lecture seule de l'occupation effective, sans rouvrir une visite ni rejouer
+    // une commande immobilière. Le moteur de combat a déjà décidé son issue.
+    if (occupation && typeof remplacerTerrainState==='function') {
+      remplacerTerrainState(terrain.id,occupation);
+      const room=typeof BUILDINGS!=='undefined' ? BUILDINGS[terrain.id]?.rooms?.[terrain.piece] : null;
+      if (room && typeof renderPersonsList==='function') renderPersonsList(room.persons || []);
+      if (room && typeof renderRoomActions==='function') renderRoomActions(room,terrain.id,terrain.piece);
+    } else if (typeof sbGetTerrainState==='function') showToast('Occupation non confirmée','Le combat est enregistré ; la situation du terrain doit encore être relue.',false);
+  }
+  updateUI();
   await ouvrirPanneauCombat(batailleId);
+  return true;
 }
 
 // changerDoctrineCombat a ete retiree avec la doctrine de camp : le seuil de
@@ -12179,7 +12246,9 @@ async function confirmerDecoration() {
 }
 
 async function ouvrirCalepinCampagne() {
+  const contexteCombat=contexteGroupePj();
   const c = await sbMilitaireCalepin();
+  if (!contexteGroupePjValide(contexteCombat)) return;
   if (!c || c.ok !== true) { showToast('Calepin indisponible', 'Le serveur n\'a pas répondu.', false); return; }
 
   document.getElementById('postes-modal-title').textContent = 'Calepin de campagne';
@@ -12220,6 +12289,7 @@ async function ouvrirCalepinCampagne() {
   // apres un combat resolu en son absence le relit ici -- l'evenement est canonique et unique, il
   // n'en existe pas une copie par participant.
   const hb = await sbMilitaireMesBatailles(10);
+  if (!contexteGroupePjValide(contexteCombat)) return;
   const batailles = (hb && hb.ok === true && Array.isArray(hb.batailles)) ? hb.batailles : [];
   if (batailles.length) {
     html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.8rem;color:#e0d5b8;margin-bottom:.4rem">BATAILLES</div>';
@@ -12233,7 +12303,8 @@ async function ouvrirCalepinCampagne() {
       html += '<div style="font-size:.7rem;color:#8a8060">' + String(bt.debut || '').slice(0, 10) +
               ' · ' + rds.length + ' round(s) · ' + (bt.issue ? escapeHtmlText(bt.issue) : 'en cours') + '</div>';
       html += '<div style="font-size:.72rem;color:#c0b090;margin-top:.2rem">' + paPerdus + ' PA perdus par votre camp, ' +
-              morts + ' soldat(s) tué(s)' + (bt.mon_etat ? ' · vous : ' + escapeHtmlText(bt.mon_etat) : '') + '.</div>';
+              morts + ' PNJ tué(s)' + (bt.mon_etat ? ' · vous : ' + escapeHtmlText(bt.mon_etat) : '') + '.</div>';
+      if (Number.isSafeInteger(Number(bt.id))) html += '<button class="cpj-touche" onclick="ouvrirPanneauCombat('+Number(bt.id)+')">Lire les rounds</button>';
       html += '</div>';
     }
     html += '<div style="height:.5rem"></div>';
@@ -12312,6 +12383,7 @@ async function confirmerOrdreCollectif(compagnieId, sectionId, chef, action) {
     const motifs = {
       autorite_insuffisante: 'Vous ne commandez pas ce groupe.',
       radio_manquante: 'Commander à distance exige que vous et le chef du groupe portiez chacun une radio.',
+      radio_hors_ville: 'La liaison radio ne fonctionne que dans la même ville. Rapprochez-vous du groupe.',
       aucun_soldat_concerne: 'Aucun soldat de ce groupe n\'a besoin de cet ordre aujourd\'hui.',
       rations_insuffisantes: 'Rations insuffisantes : il en faut une par soldat (' + ((r && r.requis) || '?') + ' requises, ' + ((r && r.disponibles) || 0) + ' disponibles).',
       tentes_insuffisantes: 'Tentes insuffisantes : ' + ((r && r.requis) || '?') + ' requise(s) pour ce groupe, ' + ((r && r.disponibles) || 0) + ' disponible(s).',
@@ -12710,7 +12782,8 @@ async function verifierMissionMilitaireEntree(buildingId, roomId) {
         const palier = roll <= chance * 0.5 ? 'totale' : 'partielle';
         const pv = palier === 'totale' ? 0 : 25;
         state.hp = pv;
-        state.hospitalisation = { jourDebut: state.day, palier, lieu: 'dispensaire', jourFin: state.day + (palier === 'totale' ? 3 : 2) };
+        // Combat perdu : PA à 0, le serveur hospitalise (règle de Fred, 01/11/2026).
+        if (typeof declencherHospitalisation === 'function') declencherHospitalisation(palier);
         updateUI();
         showToast('Neutralisé(e) !', 'Le détachement militaire vous a pris pour cible. PV : ' + pv + '.', false);
       } else if (det.mission === 'arreter' && typeof procederArrestation === 'function') {
@@ -13877,12 +13950,17 @@ async function doAccepterIncorporation() {
       return;
     }
     state.estEmprisonne = null;
+    if (state._navigationServeur === true && typeof adopterPositionServeurRelue === 'function') {
+      // #219 : detention_clore_motif_eteint a conduit le PJ au corps de garde.
+      await adopterPositionServeurRelue();
+    } else {
     state.currentCity = 'caserne';
     state.currentBuilding = 'caserne-militaire';
     state.currentRoom = 'corps_garde';
     if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
       enterBuilding('caserne-militaire', true);
       if (typeof enterRoom === 'function') enterRoom('caserne-militaire', 'corps_garde', null);
+    }
     }
     showToast('Transfert accepté', 'Vous êtes conduit(e) à la caserne et incorporé(e).', true, true);
   } else {

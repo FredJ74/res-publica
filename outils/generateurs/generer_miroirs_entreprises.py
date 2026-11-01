@@ -26,7 +26,11 @@ commerce legitime (miroir fail-closed).
 """
 import hashlib, json, os, subprocess, sys
 
-JSC = "/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc"
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from moteur_javascript import choisir_moteur, commande_moteur
+JSC = choisir_moteur(['/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc'])
+if not JSC:
+    raise SystemExit('Aucun moteur JavaScript réel disponible (JavaScriptCore ou Node).')
 def _racine():
     """La racine du depot, trouvee en REMONTANT jusqu'a data.js, et non en
     comptant des niveaux de repertoire. Le comptage a casse les HUIT generateurs
@@ -157,10 +161,7 @@ print(JSON.stringify(out));
 
 
 def extraire():
-    if not os.path.exists(JSC):
-        print("JavaScriptCore introuvable : %s" % JSC, file=sys.stderr)
-        sys.exit(2)
-    p = subprocess.run([JSC, "-e", EXTRACTEUR], cwd=RACINE,
+    p = subprocess.run(commande_moteur(JSC, "-e") + [EXTRACTEUR], cwd=RACINE,
                        capture_output=True, text=True, timeout=120)
     if p.returncode != 0 or not p.stdout.strip():
         print("Extraction impossible :\n%s\n%s" % (p.stdout[-3000:], p.stderr[-3000:]),
@@ -196,8 +197,10 @@ def sql(d):
              for r in d["recettes_production"]) + ";")
 
     L.append("\nDELETE FROM public.recettes_commerce;")
+    # Le catalogue SQL ne possède pas type_objet : cette information client
+    # reste dans le JSON diagnostique, sans inventer une colonne serveur.
     COLS = ["id", "source", "label", "pa", "portions", "materiaux", "prix_fixe", "categorie",
-            "effets", "stack_key", "type_objet", "sous_type", "icone", "image", "description",
+            "effets", "stack_key", "sous_type", "icone", "image", "description",
             "famille_produit_marche", "bonus_integration_ville",
             "types_autorises", "pays_autorises", "villes_autorisees", "buildings_autorises"]
     L.append("INSERT INTO public.recettes_commerce (%s) VALUES" % ", ".join(COLS))

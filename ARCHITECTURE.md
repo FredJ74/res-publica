@@ -75,6 +75,7 @@ ligne trouvée fausse se corrige ici.
 |---|---|---|---|
 | Création | Origine, école, archétype, carrière, caractéristiques. | Mixte | Origines et écoles du pays. |
 | Santé, moral, popularité | Points de vie, moral, popularité, influence, discrétion. | Écran | Rien : commun. |
+| Hospitalisation à 0 PA | PA tombés à 0 (ordres ou combat perdu) : hospitalisation automatique au dispensaire de la ville (déclencheur différé, détention prioritaire) ; J0 sans déplacement, Dormir, mail ni forum ; Dormir 2 / 6 puis 12 PA, ×3 en clinique ; repas de l'hôpital 1 PA (+2 au Dormir suivant), de la clinique 1 PA + 30 FR (+4) ; rébellion (arrêté au terme du combat) : J0 à l'hôpital sous écrou, 2 PA à J1 puis cellule, 4 PA par Dormir en détention ; transfert en clinique dès J0 et sortie (J2, 20 PA) par la porte `hospitalisation_lieu_rejoindre`. L'empoisonnement garde ses durées par palier. Règles : `GAME-DESIGN-HOSPITALISATION.md`. Préparé le 01/11 (correctif à intégrer après #318), non déployé. | Serveur | Un dispensaire référencé par ville (`navigation_lieux_regles`, `dispensaire-public%`) et sa sortie de rue. |
 | Université | Inscription à un cursus, jalons, seconde carrière ; syndicats étudiants, conférences. Le bouton « Suivre une formation » est en « bientôt ». | Serveur | Établissements et cursus. |
 | État civil | Demande en mariage (depuis la fiche d'un joueur), divorce, testament, héritage, actes à la mairie. | Mixte | Rien : commun. |
 | Quêtes et énigmes | Quête d'accueil, quête de carrière, énigmes de ville. | Mixte | Énigmes et référents propres. |
@@ -211,3 +212,186 @@ Al-Khalija) ; la structure à huit empires (quatre non payants, quatre pay-to-wi
 Fred n'y figure pas encore.
 
 *Tenir ce fichier à jour à chaque mécanique ajoutée, retirée ou passée au serveur.*
+
+
+### Note d'audit #135 — 28 octobre 2026, non déployée
+
+Les liens de suivi `pnj_membres.leader_pj/leader_pnj_id`, la position effective,
+la dépose/reprise commune et les commandes militaires existent déjà. Les groupes
+`batailles_engagements.groupe_id` sont propres à une bataille. `state.group` possède
+ses ordres clients, mais aucun raccordement serveur complet du groupe universel
+PJ+PNJ n'a été retrouvé dans les sources auditées : ne pas le présenter comme livré.
+L'audit retire l'identifiant de détachement supplémentaire proposé dans #212 et
+réutilise les liens PNJ existants. Ce correctif préparé n'est pas une migration
+appliquée ; voir `outils/audits/AUDIT-CRITIQUE-SECURITE-GROUPES-135-20261028.md`.
+
+### Préparation des groupes universels — Codex, 28 octobre 2026
+
+La reprise #217 sur `codex/groupes-universels-20261028` prépare l'adhésion PJ
+persistée et son hydratation, durcit les portes PNJ communes (prêt, prise,
+séparation), le rappel radio et les projections de présence. Aucun moteur de
+combat ou de déplacement supplémentaire. **Non déployé et non terminé** :
+déplacement collectif PJ, projections police/douanes et recrutement du groupe
+mixte dans les rounds restent à raccorder ; catalogue vivant et recette
+authentifiée indispensables. Rapport et résultats :
+`outils/audits/FINALISATION-GROUPES-UNIVERSELS-20261028.md`.
+
+### Reprise #219 — pont militaire préparé, 28 octobre 2026
+
+Les soldats rejoignent les portes communes de prise, séparation, prêt et radio
+dans les tests PostgreSQL jetables, avec l'autorité de section et le miroir
+militaire existants. Les trois ordres historiques par nombre délèguent à ces
+portes ; les capacités serveur pilotent le menu. **Préparé, non déployé** :
+le déplacement collectif PJ, les policiers/douaniers et le recrutement des
+groupes mixtes en combat/interception restent ouverts. Les corrections de main
+`c10c1083` (transport, création et sorties) sont conservées. État et limites :
+`outils/audits/FINALISATION-GROUPES-UNIVERSELS-20261028.md`, section reprise #219.
+
+### Reprise #219 — projections publiques et rue collective préparées
+
+Les policiers et douaniers utilisent les portes communes de conduite, avec
+projection transactionnelle dans leurs registres métier et droit administratif
+séparé du commandement. Le menu commun propose aussi la consultation des unités
+à distance, sans reconstruire leur bourse ni leur inventaire. Tous ces ordres
+transmettent au transport existant leur garde de session/personnage.
+Le corps historique du moteur de rue, dont le MD5 de définition reproduit le
+relevé communiqué, est factorisé en moteur privé et porte collective : contrôle
+de tous les membres avant toute mutation, projections et rollback communs.
+**Préparation non déployée :** entrées/pièces, autres écrivains de position,
+rounds mixtes et interception du groupe recherché restent à terminer. Les essais
+de détecteur historique et du calcul de coup ne prouvent pas leur branchement
+complet ni le catalogue vivant. Voir le rapport de finalisation #219.
+
+### #219 — intérieurs et positions, préparation du 28/10
+
+Le même moteur de composition/verrous sert désormais à la rue et aux pièces,
+avec la référence des bâtiments issue de WORLD/BUILDINGS et un lecteur privé
+commun des participants (identités PJ/PNJ explicites). Les sauvegardes générales
+ne sont plus autorité de position dans la préparation ; un garde de table les
+neutralise, les autres champs de fiche ne sont pas réécrits. Le client attend
+le verdict avant rendu et n'active ce contrat que sur capacité serveur.
+**Non déployable :** embarquement, bureaux d'ambassades par membre, locaux
+dynamiques et transports restent à raccorder ; recrutement/rounds et interception
+universels restent ouverts. Des rounds militaires complets ont tourné sur des
+identités fictives : ce n'est pas une preuve de combat universel ni de production.
+
+### #219 — transports et accès particuliers, préparation non déployée
+
+Train/bus réutilisent l'encaissement existant avec tarif unitaire validé puis
+quantité des participants serveur : le leader paie tous les PJ/PNJ, PA de l'ordre
+inchangés (Fred, 28/10). Reçu technique dans la transaction des positions et des
+projections ; rejeu sans second débit. Bureaux d'ambassades : contrôle audience/
+asile existant par identité, sans substitution JWT. Lots dynamiques : lecture de
+`terrain_etat_lire`, pas un catalogue parallèle. 141 scénarios locaux éprouvent
+la chaîne ; aucune production. Douanes/international, déplacements spéciaux,
+combats et interceptions universels restent inachevés : ne pas activer la garde
+des positions isolément. Voir RELAIS et le rapport #219 pour l'état le plus récent.
+
+### #219 — transport international, préparation du 29/10
+
+Le même `transport_effectuer` couvre désormais train/bus/avion/bateau dans la
+préparation. Contrôle de tous les voyageurs, attestation serveur par PJ, saisie
+existante et exécution judiciaire réutilisées derrière des adaptateurs privés ;
+convocations uniquement aux PJ. Le passage expire en quittant le terminal.
+Corruption individuelle avec reçu, coût/jets existants ; ancien appel sans reçu
+refusé avant paiement. L'écrou et le QHS enregistrent aussi leur position réelle,
+les sauvegardes clientes ne terminent plus ce déplacement. 167 scénarios locaux,
+aucun déploiement ; recrutement/combats et interception universels restent ouverts.
+Le 29/10, Fred transfère tout l'immobilier à Claude ; références dans la transmission
+versionnée, Codex poursuit seulement les socles et ChatGPT orchestre l'intégration #230.
+
+Préparation #219 du 29/10 : miroirs police/douane conservant morts/détenus et PA canoniques ; import historique unique, dégâts des rounds policiers préexistants écrits au socle avant projection. 173 scénarios PostgreSQL jetable ; non installé, comparaison des corps vivants et fermeture des anciens écrivains encore nécessaires. Référence : `FINALISATION-GROUPES-UNIVERSELS-20261028.md`.
+
+Préparation #219, sélection/composition du 29/10 : `groupe_combattants_interne` réutilise le groupe canonique et ses lieux/états ; gardes de recomposition pendant une confrontation ; recrutement militaire distinguant camp national et pays physique ; round policier gardé par l'état réel. 200 cas natifs locaux, sans déploiement ni clôture des rounds universels.
+
+Préparation #219 29/10, non appliquée : écrou et séparation partagent la primitive de position PNJ existante extraite ; le même round policier recrute les deux groupes réels (PJ/policiers/soldats/agents) avec composition figée et PA individuels, sans deuxième combat. Les compagnons non condamnés ne sont pas emprisonnés. 209 cas SQL jetables ; autres raccordements de l'interception encore en cours.
+
+Préparation #219 29/10, non appliquée : détection/round/reprise distinguent cible judiciaire et commandeur du groupe, reçus conservés après séparation. Fuite par le moteur de navigation commun ; taxis spéciaux par transport_effectuer, tarifs d'ordres existants multipliés par voyageurs, zones spéciales et entrées/sorties publiques conservées. 224 scénarios locaux, clôture des anciens écrivains encore en cours.
+
+Préparation #219 du 29/10, complément : les rounds policiers utilisent les deux groupes canoniques, les sanctions et l'écrou restent personnels, la séparation conserve les autres positions, la fuite/taxis réutilisent la navigation transactionnelle. Recrutement/licenciement police/douane passent par `force_publique_effectif_acte` (mandat officiel, paiement et miroir, reçu), les anciennes écritures de listes sont fermées. Les gardes ne réactivent plus un soldat mort/détenu et conservent son identité. Toujours non déployé ; 243 scénarios SQL et 121 bancs clients après intégration de main 4648840e. Les batailles militaires restent à généraliser à tous les types de compagnons ; prévol vivant et protections générales de fiche à ChatGPT.
+
+Complément #219 du 29/10 : batailles militaires mixtes raccordées aux identités PNJ réelles (sans créer une carrière militaire), mêmes coups/gilets/décès/replis et rapports. Portes existantes à reçus et round attendu, exclusion des indisponibles à chaque round, observation/poursuite historique distincte du commandement. 272 scénarios SQL jetables et 122 bancs clients ; non déployé. Adaptateur d'issue réelle de squatteurs préparé avec dépendance #233, sans score final ; leur amorçage/profils et les contrôles policiers ordinaires restent à terminer. Rapport de finalisation et prévol listent les blocages, pas d'activation globale.
+
+État #219 faisant foi après main cbae23ff (29/10) : dix-sept migrations préparées, 273 scénarios SQL jetables réussis deux fois, 124 bancs clients ; contres neuf et deux échecs attendus. Installation partielle des batailles verrouillée jusqu'au contrat à reçus. Contrat textuel squatteurs de Claude repris depuis main. Aucun déploiement ; amorçage de leur combat et contrôle policier ordinaire incomplets. Globaux 5/12 sur branche et main ; preuves finales dans `outils/audits/preuves-groupes-219-main-cbae-20261029/`. PR #219 non prête.
+
+Préparation #219, reprise après main 416f275b : contrôle ordinaire raccordé au détecteur commun et aux dossiers/reçus policiers existants. Détection puis DUP/PER, choix soumission/fuite, saisie avec convocation ou peine avec le jour supplémentaire atomiques ; disparition des décisions locales de ce contrôle. Arrestation historique : attente de confirmation et relecture, plus de téléportation ni conséquence anticipée. Deux migrations 20261029220000/220100 non appliquées ; 291 cas SQL jetables, 18 cas clients ciblés. Squatteurs toujours incomplets, prévol vivant et articulation #213/#235 non réalisés ; PR #219 non prête.
+
+### Groupes et combats — complément #219 préparé le 29/10, non déployé
+
+Les compléments `20261029223000` à `20261029223200` réutilisent les rounds militaires,
+les reçus et l’écrou existants pour la règle des cinq rounds et du chef unique.
+La neutralisation du chef n’emporte plus immédiatement ses compagnons à l’infirmerie.
+La fuite géographique et le PNJ unique squatteurs restent à raccorder : ce lot ne
+constitue pas une activation du combat universel en production. État actuel dans `RELAIS.md`.
+
+Le complément `20261029223300` étend la table existante `rue_noeuds_serveur`
+avec les directions dérivées du même catalogue que l’écran. Le générateur
+`outils/generateurs/navigation-directions.cjs --verifier` en contrôle la fidélité.
+La provenance est conservée sur le personnage par un trigger serveur, après la
+garde de sauvegarde des positions. `223500/223600` réutilisent cette lecture pour
+la fuite policière, les contrôles collectifs et leur reprise. Aucun nouveau moteur
+ni déplacement de fuite militaire ajouté par ce complément.
+
+Compléments #219 préparés `20261029223700/223800` : les replis militaires suivent
+la navigation et la géométrie communes, y compris les unités PNJ autonomes.
+Les trois corps vivants communiqués le 29/10 sont conservés en fixture attribuée,
+avec leurs empreintes exactes ; ils ne remplacent pas un prévol d’installation.
+
+Complément #219 préparé `20261029223900` : même doctrine pour les choix automatiques
+adverses, rattrapage par le calendrier quotidien existant, sans nouveau polling.
+Ne pas assimiler ce passage quotidien à une garantie de traitement à 90 secondes.
+Le rendu des replis reprend la vue de rue existante, pas un faux bâtiment nul.
+
+Complément #219 préparé `20261030001000` : les actes historiques des camions
+utilisent la composition canonique pour embarquer, débarquer et évincer les groupes.
+Les coûts, priorités et grades du moteur camion restent inchangés ; ses refus tardifs
+annulent aussi les positions et embarquements. Aucun nouveau moteur de transport.
+
+Complément #219 préparé `20261030001100` : provenance des PNJ sur leur ligne existante,
+conservée lors d’une dépose ; position personnelle ajoutée à la lecture commune déjà
+utilisée. La restauration des rues réemploie cette lecture et garde les quatre vues PSM,
+sans nouvelle interrogation périodique. Les valeurs nulles de bâtiment restent nulles.
+
+### #219 — ouverture civile commune préparée le 30 octobre, non déployée
+
+`combat_ouvrir` ouvre les mêmes batailles/engagements que l'armée, avec son reçu
+par acteur et paramètres dans `navigation_requetes`. La préparation de
+`crime_neutraliser` fournit seulement ses préconditions, coût PA et bruit ; son
+ancien jet final est fermé. `combat_bataille_completer_groupes_interne` contient
+l'unique parcours d'accompagnement extrait du recrutement militaire, désormais
+appelé par les deux contextes. Les profils validés des squatteurs alimentent un
+PNJ bêta unique par occupation ; famille technique employé sans poste, contrat,
+salaire ou propriétaire fictif. END utilise ENT. Les mêmes rounds constatent
+fuite, reddition, neutralisation et décès ; l'adaptateur du terrain n'effectue
+ni second jet ni second paiement. Les sanctions financières restent les
+contrats de Claude, jamais un nouveau circuit de caisse.
+
+Le courrier système et l'historique existant rendent les affrontements
+consultables depuis le journal. Aucun minuteur navigateur. La reprise d'un
+combat à une interaction et les relectures après round restent liées au
+personnage/session. Le calendrier nocturne rattrape les batailles ; il ne
+promet pas une tâche exécutée exactement à la 90e seconde.
+
+Versions préparées renumérotées uniquement pour éviter les collisions avec les
+mairies appliquées : correspondance dans
+`outils/audits/VERSIONS-GROUPES-219-20261030.json`, puis compléments civils
+`20261030202300` à `20261030202700`. Avant activation : prévol réel des corps,
+triggers, droits et registre, et recette authentifiée autorisée. Les bancs
+PostgreSQL jetables ne démontrent pas le fonctionnement en production.
+
+### #219 — preuve intégrée du 31 octobre, production non livrée
+
+Les 95 versions sélectionnées (5 contrats organisations, prérequis et 88 versions
+universelles, rapprochement des tarifs) ont été exécutées ensemble sur PostgreSQL
+17.6 jetable : rollback tardif complet, rejeu refusé sans mutation, 30 scénarios
+catalogue et trois commandes d'organisations. Après les deux migrations de caisses
+#300, ces scénarios passent encore. Le décor reste explicitement le schéma privé
+1003 plus les tarifs capturés ; il ne certifie pas la coupe vivante plus récente.
+
+La recette supplémentaire utilise GoTrue et PostgREST natifs sur loopback/socket
+Unix, avec trois comptes créés uniquement dans cette base jetable : 26 scénarios
+HTTP authentifiés (groupes, PNJ, radio, combat mixte, concurrence/rejeu, fonds et
+indisponibilités). Ce n'est pas une recette de l'interface du jeu en production.
+Aucun moteur métier remplacé ; aucun joueur réel utilisé. État et limites :
+`outils/audits/INTEGRATION95-ET-CAISSES300-219-20261031.md`. Le payeur est compatible :
+ne pas confondre l'empreinte de son corps et celle de sa définition complète.

@@ -412,7 +412,7 @@ DECLARE
   v_liquide integer;
   v_arg     integer;
 BEGIN
-  UPDATE public.personnages
+  UPDATE public.personnages_donnees
      SET liquide = COALESCE(liquide, 0) + GREATEST(0, p_montant),
          arg     = COALESCE(arg, 0) + GREATEST(0, p_montant)
    WHERE name = p_nom
@@ -565,7 +565,7 @@ BEGIN
     v_pn := p_fr - v_pl;
   END IF;
 
-  UPDATE public.personnages
+  UPDATE public.personnages_donnees
      SET pa      = GREATEST(0, COALESCE(pa, 0) - p_pa),
          liquide = COALESCE(liquide, 0) - v_pl,
          arg     = COALESCE(arg, 0) - p_fr
@@ -883,7 +883,12 @@ BEGIN
      AND (poste_depute ->> 'id') = 'depute';
   GET DIAGNOSTICS v_revoques = ROW_COUNT;
 
-  RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'revoques', v_revoques,
+  -- TROISIEME VAGUE (27/10/2026) : chaque circonscription repart sur un scrutin neuf.
+  UPDATE public.cycles_electoraux c
+     SET data = public.cycle_electoral_frais_interne('depute', c.city, now())::text, updated_at = now()
+   WHERE c.country = v_pays AND c.poste_id = 'depute';
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  RETURN jsonb_build_object('ok', true, 'pays', v_pays, 'revoques', v_revoques, 'circonscriptions_relancees', v_n,
     'cycle_president', jsonb_set(v_data, '{dissolutionUtilisee}', 'true'::jsonb, true));
 END; $function$;
 
@@ -1306,6 +1311,7 @@ DECLARE
   v_taux    integer;
   v_jet     integer;
   v_reussi  boolean;
+  v_repere  boolean := false;
 BEGIN
   PERFORM public.exiger_acteur(p_nom);
   IF p_mode = 'mains' THEN v_pa := 1; v_sous := NULL;
@@ -1375,8 +1381,18 @@ BEGIN
      WHERE id = p_siege_id AND endormi = false;
   END IF;
 
+  -- SUITES PAR LE SERVEUR (27/10/2026) : trace, detection et avis de recherche.
+  IF v_reussi THEN
+    PERFORM public.crime_tracer_interne(p_nom, 'assassinat', coalesce(to_jsonb(v_siege) ->> 'nom', p_siege_id));
+    PERFORM public.crime_trace_rumeur_interne(p_nom, 'assassinat', coalesce(to_jsonb(v_siege) ->> 'nom', p_siege_id));
+    v_repere := public.crime_detecter_interne(p_nom, 'assassiner_' || p_mode, true);
+  ELSE
+    PERFORM public.crime_rechercher_interne(p_nom, 'tentative_assassinat', 'crime');
+    v_repere := true;
+  END IF;
   RETURN public.assemblee_requete_clore(p_requete, v_debit || jsonb_build_object(
-    'ok', true, 'reussi', v_reussi, 'endormi', v_reussi, 'mode', p_mode,
+    'ok', true, 'reussi', v_reussi, 'repere', v_repere,
+    'recherche', (SELECT recherche FROM public.personnages_donnees WHERE name = p_nom), 'endormi', v_reussi, 'mode', p_mode,
     'taux', v_taux, 'jet', v_jet, 'dis', v_dis));
 END;
 $function$;

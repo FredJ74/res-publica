@@ -27,7 +27,7 @@ def main():
  THEN RAISE EXCEPTION 'acteur_refuse'; END IF; END $$;
  INSERT INTO personnages_donnees VALUES ('Alice','republic',800,1800,now()),('Bob','republic',700,700,now()),('Charlie','republic',800,800,now());
  INSERT INTO comptes_bancaires VALUES('a','Alice','republic','nationale',1000,now());""")
- sql=(root/'migrations/20261022211000_placement_national_idempotent.sql').read_text()
+ sql=(root/'historique/migrations-appliquees/rehorodatees-219/20261031113625_placement_national_idempotent.sql').read_text()
  q.execute(sql)
  q.execute("select set_config('hg.acteur','Alice',false)")
  def faire(ident, montant=500, source='liquide', acteur='Alice', ville='capitale'):

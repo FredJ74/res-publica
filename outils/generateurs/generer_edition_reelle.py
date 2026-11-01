@@ -21,7 +21,11 @@ import sys
 import urllib.parse
 import urllib.request
 
-JSC = '/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc'
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from moteur_javascript import choisir_moteur, commande_moteur
+JSC = choisir_moteur(['/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc'])
+if not JSC:
+    raise SystemExit('Aucun moteur JavaScript réel disponible (JavaScriptCore ou Node).')
 def _racine():
     """La racine du depot, trouvee en REMONTANT jusqu'a data.js, et non en
     comptant des niveaux de repertoire. Le comptage a casse les HUIT generateurs
@@ -95,7 +99,7 @@ def lancer(script, reponses):
     tmp = os.path.join(os.environ.get('TMPDIR', '/tmp'), 'journal_edition_tmp.js')
     with open(tmp, 'w', encoding='utf-8') as f:
         f.write(prog)
-    r = subprocess.run([JSC, tmp], capture_output=True, text=True)
+    r = subprocess.run(commande_moteur(JSC, tmp), capture_output=True, text=True)
     if r.returncode != 0 or r.stderr.strip():
         sys.stderr.write((r.stderr or '')[:3000] + '\n')
         sys.exit(2)

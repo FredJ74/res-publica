@@ -50,6 +50,12 @@
    "tbl": "journal_editions"
   },
   {
+   "empreinte": "17122e9e7a84ee2828301e08bf80f433",
+   "genre": "p",
+   "nom": "journal_ventes_lectures_pkey",
+   "tbl": "journal_ventes_lectures"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "journaux_pkey",
@@ -76,6 +82,24 @@
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
+   "nom": "publicites_premium_presse_pkey",
+   "tbl": "publicites_premium_presse"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "publicites_premium_sources_pkey",
+   "tbl": "publicites_premium_sources"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "scandales_predefinis_pkey",
+   "tbl": "scandales_predefinis"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
    "nom": "scandales_presse_pkey",
    "tbl": "scandales_presse"
   },
@@ -84,6 +108,18 @@
    "genre": "p",
    "nom": "scandales_tentatives_pkey",
    "tbl": "scandales_tentatives"
+  },
+  {
+   "empreinte": "0fdea42e05b0052a5d4fab71a5f6520b",
+   "genre": "p",
+   "nom": "scandales_tirages_pkey",
+   "tbl": "scandales_tirages"
+  },
+  {
+   "empreinte": "bc8a3541dea6fb621e924844268a0136",
+   "genre": "p",
+   "nom": "tracts_pnj_catalogue_pkey",
+   "tbl": "tracts_pnj_catalogue"
   },
   {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
@@ -114,6 +150,12 @@
    "genre": "u",
    "nom": "journal_editions_journal_date_unique",
    "tbl": "journal_editions"
+  },
+  {
+   "empreinte": "19fff84204f5e842267b41db6a115e7d",
+   "genre": "u",
+   "nom": "publicites_premium_presse_paiement_reference_key",
+   "tbl": "publicites_premium_presse"
   },
   {
    "empreinte": "c9e9f051160f1e886d82edba5c716af7",
@@ -158,10 +200,58 @@
    "tbl": "presse_membres"
   },
   {
+   "empreinte": "64e4c577043d528544b73fa0fe04b10b",
+   "genre": "c",
+   "nom": "diffusion_autorisee",
+   "tbl": "publicites_premium_presse"
+  },
+  {
+   "empreinte": "51214a1f9644081b3400e2ebdb642235",
+   "genre": "c",
+   "nom": "programmation_payee",
+   "tbl": "publicites_premium_presse"
+  },
+  {
+   "empreinte": "12a9ebf7c7885638ec881e596b9f3591",
+   "genre": "c",
+   "nom": "publicites_premium_presse_check",
+   "tbl": "publicites_premium_presse"
+  },
+  {
+   "empreinte": "0b65a3d5346a45121d4e7f31ca047486",
+   "genre": "c",
+   "nom": "publicites_premium_presse_etat_check",
+   "tbl": "publicites_premium_presse"
+  },
+  {
+   "empreinte": "9bc3ed46e99a104f76091704d8e29315",
+   "genre": "c",
+   "nom": "publicites_premium_presse_formule_check",
+   "tbl": "publicites_premium_presse"
+  },
+  {
+   "empreinte": "1ad835a1c11d8b2501dc061c021a0b39",
+   "genre": "c",
+   "nom": "publicites_premium_presse_retouches_check",
+   "tbl": "publicites_premium_presse"
+  },
+  {
+   "empreinte": "e15453f3b3ff6a7f86aab58f619d61c2",
+   "genre": "c",
+   "nom": "tracts_pnj_catalogue_car_vol_check",
+   "tbl": "tracts_pnj_catalogue"
+  },
+  {
    "empreinte": "44f1b8bf413768bd81c96e4a2792244a",
    "genre": "f",
    "nom": "journal_editions_journal_id_fkey",
    "tbl": "journal_editions"
+  },
+  {
+   "empreinte": "e5f5c8ecc795c151df191965cbc19aa1",
+   "genre": "f",
+   "nom": "journal_ventes_lectures_vente_fkey",
+   "tbl": "journal_ventes_lectures"
   },
   {
    "empreinte": "22ada0dc771dfdfb581d6faba455cd05",
@@ -198,6 +288,24 @@
    "genre": "f",
    "nom": "presse_membres_personnage_fkey",
    "tbl": "presse_membres"
+  },
+  {
+   "empreinte": "8f83d112bef771fbe5682eeac0360f6f",
+   "genre": "f",
+   "nom": "publicites_premium_presse_acheteur_user_id_fkey",
+   "tbl": "publicites_premium_presse"
+  },
+  {
+   "empreinte": "2603539a8920d1e7fc37c7675495b836",
+   "genre": "f",
+   "nom": "publicites_premium_sources_proprietaire_user_id_fkey",
+   "tbl": "publicites_premium_sources"
+  },
+  {
+   "empreinte": "eb4d9d602c53eda95dd2a3b0a462e80c",
+   "genre": "f",
+   "nom": "publicites_premium_sources_publicite_id_fkey",
+   "tbl": "publicites_premium_sources"
   }
  ],
  "domaine": "presse",
@@ -239,6 +347,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "calomnie_distribuer_consommer(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "calomnie_distribuer_consommer(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "calomnie_distribuer_consommer(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "calomnie_distribuer_interne(text,text,text,text,integer,timestamp with time zone)",
@@ -331,6 +457,24 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "dementi_executer(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "dementi_executer(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "dementi_executer(text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "fuite_publier(bigint,text)",
    "privileges": "EXECUTE"
   },
@@ -377,6 +521,36 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_acheter_bois(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_acheter_bois(integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_acheter_bois(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_acheter_bois(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "imprimerie_acheter_bois(uuid,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "imprimerie_cession_finaliser(text,text,text,numeric,integer)",
@@ -410,6 +584,48 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "imprimerie_produire_tracts(text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "jean_lou_tract_distribuer(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jean_lou_tract_distribuer(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jean_lou_tract_distribuer(uuid,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jodie_interview_vers_forum()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jodie_interview_vers_forum()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "jodie_portrait_vers_journal()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "jodie_portrait_vers_journal()",
    "privileges": "EXECUTE"
   },
   {
@@ -446,6 +662,96 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "journal_edition_rattacher_au_titre()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "journal_ventes_lire(boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "journal_ventes_lire(boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "journal_ventes_lire(boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "kompromat_fabriquer(uuid,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "kompromat_fabriquer(uuid,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "kompromat_fabriquer(uuid,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "kompromat_objet_interne(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "kompromat_objet_interne(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "kompromat_rediger(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "kompromat_rediger(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "kompromat_rediger(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "minuit_informateurs()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "minuit_informateurs()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "minuit_scandale(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "minuit_scandale(text)",
    "privileges": "EXECUTE"
   },
   {
@@ -631,6 +937,96 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
+   "objet": "publicite_premium_creer_beta(text,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "publicite_premium_creer_beta(text,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "publicite_premium_creer_beta(text,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "publicites_premium_pages_edition(text,text,date)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "publicites_premium_pages_edition(text,text,date)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "publicites_premium_pages_edition(text,text,date)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "rumeur_lancer(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "rumeur_lancer(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "rumeur_lancer(text,text,text,text,integer,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "rumeur_pop_retirer_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "rumeur_pop_retirer_interne(text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "FUNCTION",
+   "objet": "rumeurs_organisations_cibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "rumeurs_organisations_cibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "rumeurs_organisations_cibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "rumeurs_organisations_cibles()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
    "objet": "scandale_publier(bigint,text)",
    "privileges": "EXECUTE"
   },
@@ -679,6 +1075,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "tractage_collectif_identifiant(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tractage_collectif_identifiant(text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "tracts_appliquer_effet_pop(text,integer)",
    "privileges": "EXECUTE"
   },
@@ -704,6 +1112,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "tracts_donner_joueur(text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "tracts_donner_joueur(uuid,integer,bigint,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_donner_joueur(uuid,integer,bigint,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_donner_joueur(uuid,integer,bigint,text,integer)",
    "privileges": "EXECUTE"
   },
   {
@@ -728,6 +1154,36 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "tracts_electoraux_distribuer(text,text,text,text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer_collectif(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer_collectif(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer_collectif(text,text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer_collectif_interne(text,text,text,text,text,text,integer,timestamp with time zone)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_electoraux_distribuer_collectif_interne(text,text,text,text,text,text,integer,timestamp with time zone)",
    "privileges": "EXECUTE"
   },
   {
@@ -781,7 +1237,19 @@
   {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
-   "objet": "tracts_reclamer_don(text,text)",
+   "objet": "tracts_imprimer(text,text,text,integer,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "tracts_imprimer(text,text,text,integer,text,text,boolean)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "tracts_imprimer(text,text,text,integer,text,text,boolean)",
    "privileges": "EXECUTE"
   },
   {
@@ -794,6 +1262,12 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "tracts_reclamer_don(text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "vente_journal_preparer()",
    "privileges": "EXECUTE"
   },
   {
@@ -903,6 +1377,30 @@
    "genre": "SEQUENCE",
    "objet": "scandales_presse_id_seq",
    "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "archives_tribune_index",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "archives_tribune_index",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "archives_tribune_index",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "archives_tribune_index",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
    "beneficiaire": "anon",
@@ -1094,6 +1592,12 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "journal_editions",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "journal_ventes_lectures",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -1193,6 +1697,60 @@
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "publicites_premium_presse",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "publicites_premium_presse",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "publicites_premium_presse",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "TABLE",
+   "objet": "publicites_premium_sources",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "TABLE",
+   "objet": "publicites_premium_sources",
+   "privileges": "SELECT"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "publicites_premium_sources",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "publicites_premium_sources",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "scandales_predefinis",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "scandales_predefinis",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "TABLE",
    "objet": "scandales_presse",
@@ -1238,6 +1796,30 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "scandales_tentatives",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "scandales_tirages",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "scandales_tirages",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "tracts_pnj_catalogue",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "tracts_pnj_catalogue",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -1268,25 +1850,31 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "f18a7d7e7abfcdf6b8eade3bf2954db3",
-  "20_fonctions.sql": "8e535e1f198e7ceaddf0fca661f6df32",
-  "30_contraintes.sql": "e245cb94106514a1015a47ad452a509d",
-  "35_index.sql": "6d12103196b5434748c11d96cbbb7e4b",
-  "50_triggers.sql": "2a891665182eb72f051767fa755e8cc2",
-  "60_rls-policies.sql": "f15135372ac8a04b832678d3f1a4cd72",
-  "70_droits.sql": "03da62361d2622b3db06212cce3049de",
+  "10_tables.sql": "cb251684756f98c50602118a34cf8df9",
+  "20_fonctions.sql": "aa5652404d33b993556929be604cd359",
+  "30_contraintes.sql": "9c7e46c0af526f004de24a71c83b2a5c",
+  "35_index.sql": "dcd1ceef004a549f8b199fd28dac2232",
+  "40_vues.sql": "89deb2e080aa68acc45a86d26baf60b7",
+  "50_triggers.sql": "ddc9cb10be99eb0c341b1910c3d067c3",
+  "60_rls-policies.sql": "fa058ea0531b3feb8086acd0d2dea989",
+  "70_droits.sql": "7c5a59adc7f3bae8728f71b0d20a2a9d",
   "80_commentaires.sql": "cb9314670b33b7585e440be9ef6e1f84"
  },
  "fonctions": [
   {
-   "empreinte": "2d37205980fc7d7fa624fd38951d819b",
+   "empreinte": "0060a309e30d3eb3b48b4cc10686b52e",
    "security_definer": true,
    "signature": "calomnie_appliquer_effet(text,integer,integer)"
   },
   {
-   "empreinte": "7b9166b4b4f8b67c36ebce3c1e6ccd74",
+   "empreinte": "143fa4ee2bd0aa3c3d3e3d3445c867b6",
    "security_definer": true,
    "signature": "calomnie_distribuer(text,text,text,text,integer)"
+  },
+  {
+   "empreinte": "61d0a2d54063e76bbbd9930dd9cc4b78",
+   "security_definer": true,
+   "signature": "calomnie_distribuer_consommer(text,text,text,integer)"
   },
   {
    "empreinte": "52843fe5eb18d98f11fbf30d394f7d35",
@@ -1314,6 +1902,11 @@
    "signature": "corruption_presse_tenter(text,text,text,text,integer,timestamp with time zone)"
   },
   {
+   "empreinte": "d55056c063fa0c8224ea0d3e9c94c87b",
+   "security_definer": true,
+   "signature": "dementi_executer(text,integer,integer)"
+  },
+  {
    "empreinte": "6de581856c8472476c21c3bce82c248c",
    "security_definer": true,
    "signature": "fuite_publier(bigint,text)"
@@ -1329,6 +1922,16 @@
    "signature": "fuite_traces_eligibles(text)"
   },
   {
+   "empreinte": "ffa7664db867690d6b3de81bc7e71c93",
+   "security_definer": true,
+   "signature": "imprimerie_acheter_bois(integer)"
+  },
+  {
+   "empreinte": "5dd5c067d744b39e6ecc93d0860aef01",
+   "security_definer": true,
+   "signature": "imprimerie_acheter_bois(uuid,integer)"
+  },
+  {
    "empreinte": "8480b1f37216aeb6d58eb8f972b6b4ce",
    "security_definer": true,
    "signature": "imprimerie_cession_finaliser(text,text,text,numeric,integer)"
@@ -1339,6 +1942,21 @@
    "signature": "imprimerie_produire_tracts(text,text,text,text,integer)"
   },
   {
+   "empreinte": "1187dd639443b5e3d6475f93e30640d2",
+   "security_definer": true,
+   "signature": "jean_lou_tract_distribuer(uuid,text)"
+  },
+  {
+   "empreinte": "66bf052ca8d8e9ba771f8d336644562b",
+   "security_definer": true,
+   "signature": "jodie_interview_vers_forum()"
+  },
+  {
+   "empreinte": "46ce2286accfa2e1dcc4103234f498b5",
+   "security_definer": true,
+   "signature": "jodie_portrait_vers_journal()"
+  },
+  {
    "empreinte": "67503a7c0fe864fae983ea2f270ca2d8",
    "security_definer": true,
    "signature": "journal_edition_lire(text)"
@@ -1347,6 +1965,36 @@
    "empreinte": "fb49ba7e7baeaf335949f16e4e02b02f",
    "security_definer": true,
    "signature": "journal_edition_rattacher_au_titre()"
+  },
+  {
+   "empreinte": "8b09feb0b44d5d03fe9ca2970e4ba1a7",
+   "security_definer": true,
+   "signature": "journal_ventes_lire(boolean)"
+  },
+  {
+   "empreinte": "6c21bfbca68d0cf64622f410b395e5e7",
+   "security_definer": true,
+   "signature": "kompromat_fabriquer(uuid,text,text)"
+  },
+  {
+   "empreinte": "3024affb33587933096ec12949da7fdf",
+   "security_definer": false,
+   "signature": "kompromat_objet_interne(text,text,integer)"
+  },
+  {
+   "empreinte": "c8608387ab485fdd44300e21ba2fbd6c",
+   "security_definer": true,
+   "signature": "kompromat_rediger(text,text)"
+  },
+  {
+   "empreinte": "1a5f09b64de30ddf3dacfa4c2bf73d9a",
+   "security_definer": true,
+   "signature": "minuit_informateurs()"
+  },
+  {
+   "empreinte": "a785c142284f2085a1e0bd027e6df432",
+   "security_definer": true,
+   "signature": "minuit_scandale(text)"
   },
   {
    "empreinte": "ef8f04d93d7cc88150ee75f613214e8e",
@@ -1409,6 +2057,31 @@
    "signature": "presse_succession_apres_depart()"
   },
   {
+   "empreinte": "8a46c1bfa8696e549cbba0473d7d2e56",
+   "security_definer": true,
+   "signature": "publicite_premium_creer_beta(text,text,text,boolean)"
+  },
+  {
+   "empreinte": "7c28d7b83922bdeaab5dd35b19a61ef1",
+   "security_definer": true,
+   "signature": "publicites_premium_pages_edition(text,text,date)"
+  },
+  {
+   "empreinte": "6d0410d329a63a052e54e1bf5ed3fed4",
+   "security_definer": true,
+   "signature": "rumeur_lancer(text,text,text,text,integer,integer)"
+  },
+  {
+   "empreinte": "eeb2f916606877e0edf94f7710643922",
+   "security_definer": true,
+   "signature": "rumeur_pop_retirer_interne(text,integer)"
+  },
+  {
+   "empreinte": "4bcb7f6f6dd3fcb394dd316bfc4c3af4",
+   "security_definer": true,
+   "signature": "rumeurs_organisations_cibles()"
+  },
+  {
    "empreinte": "7f56131385e3c682661c958916ec14cb",
    "security_definer": true,
    "signature": "scandale_publier(bigint,text)"
@@ -1424,14 +2097,24 @@
    "signature": "scandale_tenter(text,text,text,text,integer,timestamp with time zone)"
   },
   {
+   "empreinte": "8cbc241069e4f69a00240a8233b117cf",
+   "security_definer": false,
+   "signature": "tractage_collectif_identifiant(text,text,integer)"
+  },
+  {
    "empreinte": "b7646693bcb321d8f9ccb1241acf4bda",
    "security_definer": true,
    "signature": "tracts_appliquer_effet_pop(text,integer)"
   },
   {
-   "empreinte": "caba346c782ad226e5857ccf77c4da8d",
+   "empreinte": "bb52e7ea2d8c9e2a3baf4ecaf69f5e59",
    "security_definer": true,
    "signature": "tracts_donner_joueur(text,text,text,jsonb)"
+  },
+  {
+   "empreinte": "d1b39a737f404f07f7b845c509a12fd8",
+   "security_definer": true,
+   "signature": "tracts_donner_joueur(uuid,integer,bigint,text,integer)"
   },
   {
    "empreinte": "95e7a5a0faa6aaa929c6f2c976928174",
@@ -1439,7 +2122,17 @@
    "signature": "tracts_electoraux_distribuer(text,text,text,text,text,text,integer)"
   },
   {
-   "empreinte": "2085513e4a077edce057e881fb188af1",
+   "empreinte": "03d6bf60c9c74e50b713060e50aaeccb",
+   "security_definer": true,
+   "signature": "tracts_electoraux_distribuer_collectif(text,text,text,text,text)"
+  },
+  {
+   "empreinte": "eff61a6fb642fdbee946d685bf6357c8",
+   "security_definer": false,
+   "signature": "tracts_electoraux_distribuer_collectif_interne(text,text,text,text,text,text,integer,timestamp with time zone)"
+  },
+  {
+   "empreinte": "0bd76309e497bc3ac86a4b69fafcd2bf",
    "security_definer": false,
    "signature": "tracts_electoraux_distribuer_interne(text,text,text,text,text,text,integer,timestamp with time zone)"
   },
@@ -1454,9 +2147,19 @@
    "signature": "tracts_electoraux_taux(numeric,numeric,numeric)"
   },
   {
+   "empreinte": "900ac20f81f40b5f14fadc12de33de47",
+   "security_definer": true,
+   "signature": "tracts_imprimer(text,text,text,integer,text,text,boolean)"
+  },
+  {
    "empreinte": "91d3f536ff35a7651890b7bdb9b73c8d",
    "security_definer": true,
    "signature": "tracts_reclamer_don(text,text)"
+  },
+  {
+   "empreinte": "07c5bbc159c740bb986b9e4153b26cd8",
+   "security_definer": true,
+   "signature": "vente_journal_preparer()"
   }
  ],
  "index_autonomes": [
@@ -1483,6 +2186,14 @@
   {
    "empreinte": "cfd3043de5d0767f5073dc1e167e2822",
    "nom": "idx_journal_articles_en_attente_country"
+  },
+  {
+   "empreinte": "d6a31308c2dc94c34de441b6c2a1c077",
+   "nom": "idx_publicites_premium_acheteur"
+  },
+  {
+   "empreinte": "786672e268a0a2b815959fa6fc440dd9",
+   "nom": "idx_publicites_premium_parution"
   },
   {
    "empreinte": "d3b2ceeae9f353816e2eba71aee09a07",
@@ -1542,12 +2253,19 @@
   "journal_articles_en_attente_pkey",
   "journal_editions_journal_date_unique",
   "journal_editions_pkey",
+  "journal_ventes_lectures_pkey",
   "journaux_pkey",
   "journaux_redacteurs_pkey",
   "petites_annonces_pkey",
   "presse_membres_pkey",
+  "publicites_premium_presse_paiement_reference_key",
+  "publicites_premium_presse_pkey",
+  "publicites_premium_sources_pkey",
+  "scandales_predefinis_pkey",
   "scandales_presse_pkey",
   "scandales_tentatives_pkey",
+  "scandales_tirages_pkey",
+  "tracts_pnj_catalogue_pkey",
   "tribune_articles_etouffes_pkey"
  ],
  "ordre": [
@@ -1555,6 +2273,7 @@
   "20_fonctions.sql",
   "30_contraintes.sql",
   "35_index.sql",
+  "40_vues.sql",
   "50_triggers.sql",
   "60_rls-policies.sql",
   "70_droits.sql",
@@ -1640,6 +2359,12 @@
    "tbl": "presse_membres"
   },
   {
+   "empreinte": "b60e782a86964904425195352a691063",
+   "empreinte_avec_roles": "8b2e7159b504a397b986123ca9ab92da",
+   "nom": "publicites_premium_mes_commandes",
+   "tbl": "publicites_premium_presse"
+  },
+  {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "546840c1f4d66deb36d9d972397b5524",
    "nom": "scandales_presse_lecture",
@@ -1708,6 +2433,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "journal_ventes_lectures"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "journaux"
   },
   {
@@ -1728,12 +2458,37 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "publicites_premium_presse"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "publicites_premium_sources"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "scandales_predefinis"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "scandales_presse"
   },
   {
    "active": true,
    "forcee": false,
    "tbl": "scandales_tentatives"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "scandales_tirages"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "tracts_pnj_catalogue"
   },
   {
    "active": true,
@@ -1773,7 +2528,7 @@
   {
    "colonnes": 13,
    "empreinte_catalogue": "e7f6959be3197b2a1ed98b8571a4b2cb",
-   "empreinte_texte": "366cdb80ca506400a925af90e30ad7d8",
+   "empreinte_texte": "22f68deef361dd0a668d15e56a2e3255",
    "nom": "calomnies_actes"
   },
   {
@@ -1785,13 +2540,13 @@
   {
    "colonnes": 12,
    "empreinte_catalogue": "95073a5b292a8ca38a625a41db530ef0",
-   "empreinte_texte": "afe87a4d5ca041814ab61f6e8c665573",
+   "empreinte_texte": "37f948ca1b403f81d7dbaed84f94867a",
    "nom": "corruptions_presse"
   },
   {
    "colonnes": 11,
    "empreinte_catalogue": "5a41b77b0ea0ed10eefb74f81edb29db",
-   "empreinte_texte": "5cbd539a73e5e706a1508decf6e90483",
+   "empreinte_texte": "e92c8d14e63110bc7fe4315f3bbf9428",
    "nom": "fuites_journalistiques"
   },
   {
@@ -1819,6 +2574,12 @@
    "nom": "journal_editions"
   },
   {
+   "colonnes": 3,
+   "empreinte_catalogue": "c2b779d1bd49001134a26acb4b5c1318",
+   "empreinte_texte": "c2fa5a51ec8a9dc09dcc821ed6bf5bb0",
+   "nom": "journal_ventes_lectures"
+  },
+  {
    "colonnes": 8,
    "empreinte_catalogue": "4e8b18f4aa2e4ee54ff0f376062e056f",
    "empreinte_texte": "2e87a3a811581e5952a3d9416e075b7c",
@@ -1839,13 +2600,31 @@
   {
    "colonnes": 7,
    "empreinte_catalogue": "86b4441171aab021982b92ff151de869",
-   "empreinte_texte": "2adf45e506889457e883fb3ed60049a4",
+   "empreinte_texte": "7f9bec7a77f8590b38e44fce87824580",
    "nom": "presse_membres"
+  },
+  {
+   "colonnes": 26,
+   "empreinte_catalogue": "99ce91be4bf47066d57717a8005d5ec9",
+   "empreinte_texte": "111a6ec88559f1e48ebd2ac5475af561",
+   "nom": "publicites_premium_presse"
+  },
+  {
+   "colonnes": 9,
+   "empreinte_catalogue": "8a3f622a9a5870598eda978364618687",
+   "empreinte_texte": "bf29790523ec5e4f2b6f8439673af5a1",
+   "nom": "publicites_premium_sources"
+  },
+  {
+   "colonnes": 2,
+   "empreinte_catalogue": "3d17ae83fcc35b409204c6bf941ccd78",
+   "empreinte_texte": "7a1c405f47e5e42954b08544dd6a509c",
+   "nom": "scandales_predefinis"
   },
   {
    "colonnes": 14,
    "empreinte_catalogue": "9e3cb90f44d5afab6bf7c294d806ea3f",
-   "empreinte_texte": "73ad67c0d7d17f7f01431c6bf7f038dc",
+   "empreinte_texte": "07aafd51c1091a6d21882d1bc1a589b1",
    "nom": "scandales_presse"
   },
   {
@@ -1855,6 +2634,18 @@
    "nom": "scandales_tentatives"
   },
   {
+   "colonnes": 4,
+   "empreinte_catalogue": "de5b6c847c18faf4b75a75f5d1a8f8b8",
+   "empreinte_texte": "f3a5cbe2c5da6a05f96acc7cf9e7733d",
+   "nom": "scandales_tirages"
+  },
+  {
+   "colonnes": 6,
+   "empreinte_catalogue": "71cd51908a461eb55d041c389be55d28",
+   "empreinte_texte": "516a8d574c242667b7b5f151a02455df",
+   "nom": "tracts_pnj_catalogue"
+  },
+  {
    "colonnes": 7,
    "empreinte_catalogue": "91138e0828d75d4059668abc0d4e48e9",
    "empreinte_texte": "de2ef92491a594697fed18bcb108b4de",
@@ -1862,6 +2653,12 @@
   }
  ],
  "triggers": [
+  {
+   "empreinte": "6798a3c597fa57fc7fb4e4b500f29fb1",
+   "fonction": "jodie_interview_vers_forum()",
+   "nom": "trg_jodie_interview_vers_forum",
+   "tbl": "interviews_jodie"
+  },
   {
    "empreinte": "ae07b7663c4b92a73d65896626623a34",
    "fonction": "journal_edition_rattacher_au_titre()",
@@ -1887,5 +2684,11 @@
    "tbl": "presse_membres"
   }
  ],
- "vues": []
+ "vues": [
+  {
+   "empreinte": "aefae4ecb9377b671d90a3d6e979ba1a",
+   "nom": "archives_tribune_index",
+   "reloptions": null
+  }
+ ]
 }

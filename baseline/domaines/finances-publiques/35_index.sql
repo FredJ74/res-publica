@@ -10,12 +10,13 @@
 -- domaine par domaine. Voir baseline/README.md.
 -- ============================================================================
 
--- 29 index sont portes par une contrainte et NE SONT PAS recrees ici.
+-- 32 index sont portes par une contrainte et NE SONT PAS recrees ici.
 --   budgets_clubs_pkey  (contrainte budgets_clubs_pkey)
 --   budgets_municipaux_pkey  (contrainte budgets_municipaux_pkey)
 --   budgets_nationaux_pkey  (contrainte budgets_nationaux_pkey)
 --   caisses_autorites_pkey  (contrainte caisses_autorites_pkey)
 --   caisses_batiments_pkey  (contrainte caisses_batiments_pkey)
+--   caisses_collectives_operations_pkey  (contrainte caisses_collectives_operations_pkey)
 --   caisses_mouvements_clients_pkey  (contrainte caisses_mouvements_clients_pkey)
 --   contributions_piete_pkey  (contrainte contributions_piete_pkey)
 --   directions_etablissements_pkey  (contrainte directions_etablissements_pkey)
@@ -25,6 +26,7 @@
 --   fonds_credits_uniques_pkey  (contrainte fonds_credits_uniques_pkey)
 --   fonds_credits_uniques_ref  (contrainte fonds_credits_uniques_ref)
 --   fonds_debits_pkey  (contrainte fonds_debits_pkey)
+--   fonds_en_transit_pkey  (contrainte fonds_en_transit_pkey)
 --   pa_bonus_differes_empreinte_pkey  (contrainte pa_bonus_differes_empreinte_pkey)
 --   pa_bonus_differes_pkey  (contrainte pa_bonus_differes_pkey)
 --   pa_bonus_hotel_pkey  (contrainte pa_bonus_hotel_pkey)
@@ -38,6 +40,7 @@
 --   salaires_civils_verses_pkey  (contrainte salaires_civils_verses_pkey)
 --   salaires_religieux_declares_pkey  (contrainte salaires_religieux_declares_pkey)
 --   salaires_religieux_verses_pkey  (contrainte salaires_religieux_verses_pkey)
+--   subventions_entreprises_traces_pkey  (contrainte subventions_entreprises_traces_pkey)
 --   subventions_familles_pkey  (contrainte subventions_familles_pkey)
 --   subventions_municipales_pkey  (contrainte subventions_municipales_pkey)
 
@@ -46,6 +49,7 @@ CREATE UNIQUE INDEX budget_national_champs_regles_cle ON public.budget_national_
 CREATE INDEX caisses_mouvements_clients_idx ON public.caisses_mouvements_clients USING btree (caisse, vu_le DESC);
 CREATE UNIQUE INDEX fiscalite_journal_idempotence ON public.fiscalite_journal USING btree (personnage, type, jour);
 CREATE INDEX fonds_debits_acteur_idx ON public.fonds_debits USING btree (acteur, debite_le DESC);
+CREATE INDEX fonds_en_transit_acteur ON public.fonds_en_transit USING btree (acteur, cree_le);
 CREATE INDEX idx_contributions_piete_auteur ON public.contributions_piete USING btree (pays, auteur, created_at);
 CREATE INDEX subventions_enveloppe_en_attente ON public.subventions_municipales USING btree (pays, ville) WHERE (statut = 'proposee'::text);
 CREATE UNIQUE INDEX subventions_une_proposition_identique_en_attente ON public.subventions_municipales USING btree (pays, ville, famille, beneficiaire, montant, jour) WHERE (statut = 'proposee'::text);

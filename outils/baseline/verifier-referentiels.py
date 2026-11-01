@@ -83,6 +83,8 @@ import tempfile
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(os.path.dirname(ICI))
+sys.path.insert(0, os.path.join(RACINE, 'outils'))
+from moteur_javascript import choisir_moteur, commande_moteur
 DECLARATION = os.path.join(ICI, "referentiels.json")
 
 JSC_CANDIDATS = [
@@ -92,10 +94,7 @@ JSC_CANDIDATS = [
 
 
 def jsc():
-    for c in JSC_CANDIDATS:
-        if os.path.exists(c):
-            return c
-    return None
+    return choisir_moteur(JSC_CANDIDATS)
 
 
 def evaluer(script, moteur):
@@ -104,7 +103,7 @@ def evaluer(script, moteur):
     f.write(script)
     f.close()
     try:
-        p = subprocess.run([moteur, f.name], capture_output=True, text=True, timeout=120)
+        p = subprocess.run(commande_moteur(moteur, f.name), capture_output=True, text=True, timeout=120)
     finally:
         os.unlink(f.name)
     if p.returncode != 0 or not p.stdout.strip():
@@ -266,10 +265,15 @@ def empreinte_du_generateur(chemin_relatif):
     sur une mesure datee de la base, mais celle-ci est recalculee a chaque
     passage. Si data.js bouge, elle bouge, et le controle rougit en disant quel
     miroir est devenu perime."""
+    arguments = ['--empreinte']
+    if isinstance(chemin_relatif, dict):
+        if set(chemin_relatif) != {'fichier','arguments'} or not isinstance(chemin_relatif['arguments'],list) or not all(isinstance(x,str) for x in chemin_relatif['arguments']):return None,'specification de generateur invalide'
+        arguments=chemin_relatif['arguments'];chemin_relatif=chemin_relatif['fichier']
+    if not isinstance(chemin_relatif,str):return None,'chemin de generateur invalide'
     chemin = os.path.join(RACINE, chemin_relatif)
     if not os.path.exists(chemin):
         return None, "generateur absent : " + chemin_relatif
-    p = subprocess.run([sys.executable, chemin, "--empreinte"],
+    p = subprocess.run([sys.executable, chemin, *arguments],
                        capture_output=True, text=True, timeout=600)
     sortie = (p.stdout or "").strip().splitlines()
     if p.returncode != 0 or not sortie:

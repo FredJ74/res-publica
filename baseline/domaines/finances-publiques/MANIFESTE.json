@@ -411,6 +411,12 @@
    "tbl": "caisses_batiments"
   },
   {
+   "empreinte": "3409944dcd69fc7297d59dc8e62d7971",
+   "genre": "p",
+   "nom": "caisses_collectives_operations_pkey",
+   "tbl": "caisses_collectives_operations"
+  },
+  {
    "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
    "genre": "p",
    "nom": "caisses_mouvements_clients_pkey",
@@ -457,6 +463,12 @@
    "genre": "p",
    "nom": "fonds_debits_pkey",
    "tbl": "fonds_debits"
+  },
+  {
+   "empreinte": "4c6419b3704337bbfe50f018842a9ad3",
+   "genre": "p",
+   "nom": "fonds_en_transit_pkey",
+   "tbl": "fonds_en_transit"
   },
   {
    "empreinte": "58d4ca0b2c7a70fe9413c735af3f8f15",
@@ -537,6 +549,12 @@
    "tbl": "salaires_religieux_verses"
   },
   {
+   "empreinte": "3409944dcd69fc7297d59dc8e62d7971",
+   "genre": "p",
+   "nom": "subventions_entreprises_traces_pkey",
+   "tbl": "subventions_entreprises_traces"
+  },
+  {
    "empreinte": "2ca0fb5e194d15e120e00cb315f1555e",
    "genre": "p",
    "nom": "subventions_familles_pkey",
@@ -601,6 +619,12 @@
    "genre": "c",
    "nom": "fonds_debits_montant_check",
    "tbl": "fonds_debits"
+  },
+  {
+   "empreinte": "a466137117bc193c42f6f0c4e0ecad9f",
+   "genre": "c",
+   "nom": "fonds_en_transit_montant_check",
+   "tbl": "fonds_en_transit"
   },
   {
    "empreinte": "5d1bfe4bdefe11393cf1a2cf687040d7",
@@ -685,6 +709,12 @@
    "genre": "c",
    "nom": "salaires_religieux_declares_montant_check",
    "tbl": "salaires_religieux_declares"
+  },
+  {
+   "empreinte": "be4d4ba601a38d2bada98be5ff699225",
+   "genre": "c",
+   "nom": "subventions_entreprises_traces_montant_check",
+   "tbl": "subventions_entreprises_traces"
   },
   {
    "empreinte": "20b63e29c862ba0fc50de867505dc44e",
@@ -804,6 +834,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "budget_national_rubriques_ecran()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "budget_national_rubriques_ecran()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budget_national_rubriques_ecran()",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "budget_part_totale(text,text)",
@@ -878,6 +926,30 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "budgets_municipaux_ecran_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budgets_municipaux_ecran_garder()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "budgets_nationaux_ecran_fusionner()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "budgets_nationaux_ecran_fusionner()",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "budgets_virement_caserne_verrou()",
    "privileges": "EXECUTE"
   },
@@ -906,6 +978,30 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_collective_recu_interne(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_collective_recu_interne(text,text,text,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "caisse_collective_recu_noter_interne(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "caisse_collective_recu_noter_interne(text,text,text,text,jsonb)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "caisse_commissariat_lire(text)",
@@ -924,12 +1020,6 @@
    "privileges": "EXECUTE"
   },
   {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "caisse_institution_mouvement(text,numeric,boolean)",
-   "privileges": "EXECUTE"
-  },
-  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "caisse_institution_mouvement(text,numeric,boolean)",
@@ -939,12 +1029,6 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "caisse_institution_mouvement(text,numeric,boolean)",
-   "privileges": "EXECUTE"
-  },
-  {
-   "beneficiaire": "authenticated",
-   "genre": "FUNCTION",
-   "objet": "caisse_institution_mouvement_plafonne(text,numeric)",
    "privileges": "EXECUTE"
   },
   {
@@ -1440,6 +1524,30 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_transit_consommer_interne(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_transit_consommer_interne(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "fonds_transit_deposer_interne(text,numeric,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "fonds_transit_deposer_interne(text,numeric,text)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "anon",
    "genre": "FUNCTION",
    "objet": "fonds_types_max(text)",
@@ -1479,6 +1587,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "mairie_virement_batiment(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "ministere_virer_vers_usine(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "ministere_virer_vers_usine(text,numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "ministere_virer_vers_usine(text,numeric)",
    "privileges": "EXECUTE"
   },
   {
@@ -1754,6 +1880,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
+   "objet": "sanction_financiere_imposer_interne(text,text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "sanction_financiere_imposer_interne(text,text,text,text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
    "objet": "subvention_beneficiaire_verdict(text,text,text,text)",
    "privileges": "EXECUTE"
   },
@@ -1794,6 +1932,24 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "subvention_collective_verser(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_collective_verser(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_collective_verser(text,text,text,integer)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "postgres",
    "genre": "FUNCTION",
    "objet": "subvention_entites(text)",
@@ -1803,6 +1959,24 @@
    "beneficiaire": "service_role",
    "genre": "FUNCTION",
    "objet": "subvention_entites(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "subvention_entreprise_verser(text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "subvention_entreprise_verser(text,integer,text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "subvention_entreprise_verser(text,integer,text)",
    "privileges": "EXECUTE"
   },
   {
@@ -1974,6 +2148,36 @@
    "privileges": "EXECUTE"
   },
   {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "usine_du_directeur_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "usine_du_directeur_interne(text)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "FUNCTION",
+   "objet": "usine_virer_vers_ministere(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "FUNCTION",
+   "objet": "usine_virer_vers_ministere(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "FUNCTION",
+   "objet": "usine_virer_vers_ministere(numeric)",
+   "privileges": "EXECUTE"
+  },
+  {
    "beneficiaire": "authenticated",
    "genre": "FUNCTION",
    "objet": "vente_structure_encaisser(text,integer,integer,text,text)",
@@ -2049,6 +2253,30 @@
    "beneficiaire": "service_role",
    "genre": "SEQUENCE",
    "objet": "fonds_credits_uniques_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "anon",
+   "genre": "SEQUENCE",
+   "objet": "fonds_en_transit_id_seq",
+   "privileges": "SELECT, USAGE"
+  },
+  {
+   "beneficiaire": "authenticated",
+   "genre": "SEQUENCE",
+   "objet": "fonds_en_transit_id_seq",
+   "privileges": "SELECT, USAGE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "SEQUENCE",
+   "objet": "fonds_en_transit_id_seq",
+   "privileges": "SELECT, UPDATE, USAGE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "SEQUENCE",
+   "objet": "fonds_en_transit_id_seq",
    "privileges": "SELECT, UPDATE, USAGE"
   },
   {
@@ -2073,7 +2301,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "budgets_clubs",
-   "privileges": "INSERT, SELECT, UPDATE"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2174,6 +2402,18 @@
   {
    "beneficiaire": "postgres",
    "genre": "TABLE",
+   "objet": "caisses_collectives_operations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "caisses_collectives_operations",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
    "objet": "caisses_mouvements_clients",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
@@ -2193,7 +2433,7 @@
    "beneficiaire": "authenticated",
    "genre": "TABLE",
    "objet": "contributions_piete",
-   "privileges": "INSERT, SELECT"
+   "privileges": "SELECT"
   },
   {
    "beneficiaire": "postgres",
@@ -2313,6 +2553,18 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "fonds_debits",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "fonds_en_transit",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "fonds_en_transit",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -2529,6 +2781,18 @@
    "beneficiaire": "service_role",
    "genre": "TABLE",
    "objet": "salaires_religieux_verses",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "postgres",
+   "genre": "TABLE",
+   "objet": "subventions_entreprises_traces",
+   "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
+  },
+  {
+   "beneficiaire": "service_role",
+   "genre": "TABLE",
+   "objet": "subventions_entreprises_traces",
    "privileges": "DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE"
   },
   {
@@ -2571,14 +2835,14 @@
  "droits_colonnes": [],
  "droits_par_defaut": [],
  "fichiers": {
-  "10_tables.sql": "2484574e0d00ddf54b889a87850e608d",
-  "20_fonctions-1.sql": "393bd2ccd607b059fbcbc370536bd8a2",
-  "20_fonctions-2.sql": "6ffd456c4d5a870bd29bd75a42d10f88",
-  "30_contraintes.sql": "b5daf5cc5116df9311bd8f2bdce48602",
-  "35_index.sql": "9920e25ca29d18a076739a73eaec212d",
-  "50_triggers.sql": "dd3cb01a536c6e16185fe92596008219",
-  "60_rls-policies.sql": "f7e1c4f40f9a46f18cb02b2cae03c160",
-  "70_droits.sql": "f611bf0cb65c541af7c74cc347e91c16",
+  "10_tables.sql": "8d85f05fc5c521c631e769220c5ea225",
+  "20_fonctions-1.sql": "606f56b0da5e024dc88a85666d6f0b01",
+  "20_fonctions-2.sql": "5d1228f579d8dbbd167b991455781d59",
+  "30_contraintes.sql": "bb7120aa145033317d5f0d982d2f7409",
+  "35_index.sql": "b0a8947d99292eb3323266643fb62488",
+  "50_triggers.sql": "f04619734af5b6a943ff16a8330b2fbc",
+  "60_rls-policies.sql": "a5f28278c6939967b78803620a578a33",
+  "70_droits.sql": "d030051923c85084b27b7eefd707a2f5",
   "80_commentaires.sql": "40027cc68bacaa3769170558b5f69599"
  },
  "fonctions": [
@@ -2613,6 +2877,11 @@
    "signature": "budget_national_epingler()"
   },
   {
+   "empreinte": "861cce34b25d5a295dc800f9c59b54c6",
+   "security_definer": true,
+   "signature": "budget_national_rubriques_ecran()"
+  },
+  {
    "empreinte": "7a0ec6d105b7f1f3223faa8096858d4d",
    "security_definer": true,
    "signature": "budget_part_totale(text,text)"
@@ -2638,14 +2907,34 @@
    "signature": "budgets_armurerie_verrou()"
   },
   {
+   "empreinte": "dcd24f65d258671cd4480249ef752569",
+   "security_definer": false,
+   "signature": "budgets_municipaux_ecran_garder()"
+  },
+  {
+   "empreinte": "58f5a597d118161ab8c31f99c473dbe7",
+   "security_definer": false,
+   "signature": "budgets_nationaux_ecran_fusionner()"
+  },
+  {
    "empreinte": "7cd81bb9ee19394afd496043a3a86074",
    "security_definer": true,
    "signature": "budgets_virement_caserne_verrou()"
   },
   {
-   "empreinte": "a907d7ae22029193cdec6d4ea33b4ab5",
+   "empreinte": "63b15d6f70896257265b23cbf323d979",
    "security_definer": true,
    "signature": "caisse_client_mouvement(text,numeric,text,boolean)"
+  },
+  {
+   "empreinte": "4a94cdb54be577395fa3db1ef5759503",
+   "security_definer": true,
+   "signature": "caisse_collective_recu_interne(text,text,text,text)"
+  },
+  {
+   "empreinte": "f3289926408d286f162364814f754bf8",
+   "security_definer": true,
+   "signature": "caisse_collective_recu_noter_interne(text,text,text,text,jsonb)"
   },
   {
    "empreinte": "656e7f43d0026371c10d2fa28ef14333",
@@ -2688,7 +2977,7 @@
    "signature": "caisse_ville_de(text,text)"
   },
   {
-   "empreinte": "c6df5582eef00bb5811631149fec3211",
+   "empreinte": "21a1127d661a8212cec2c4800375c218",
    "security_definer": true,
    "signature": "debiter_fonds_ordinaires(text,numeric)"
   },
@@ -2763,7 +3052,7 @@
    "signature": "fonds_reference_modifier(text,text,text,text,text)"
   },
   {
-   "empreinte": "61c45da6db51497af71b65ea30667b15",
+   "empreinte": "64633cce1de23881bc38c9cf512cab41",
    "security_definer": true,
    "signature": "fonds_reference_prix(text,text,text,integer)"
   },
@@ -2773,7 +3062,7 @@
    "signature": "fonds_reference_produire(text,text,text,text)"
   },
   {
-   "empreinte": "872a2446916b958feaf986311ffb554b",
+   "empreinte": "c88507823890e36ee423994a2ec805d0",
    "security_definer": true,
    "signature": "fonds_reference_produire_lots(text,text,text,text,integer)"
   },
@@ -2793,6 +3082,16 @@
    "signature": "fonds_rembourser(uuid,text)"
   },
   {
+   "empreinte": "6396d4001df970505aebe6b7c13dd401",
+   "security_definer": true,
+   "signature": "fonds_transit_consommer_interne(text,numeric)"
+  },
+  {
+   "empreinte": "7b09f983a532ef488735f0602c0d4472",
+   "security_definer": true,
+   "signature": "fonds_transit_deposer_interne(text,numeric,text)"
+  },
+  {
    "empreinte": "a1bfaf4bdaa79ee0c4b6945cb717ab99",
    "security_definer": false,
    "signature": "fonds_types_max(text)"
@@ -2803,7 +3102,12 @@
    "signature": "mairie_virement_batiment(text,numeric)"
   },
   {
-   "empreinte": "5a28aa9a1e100aef2c4a2c1f501c2ede",
+   "empreinte": "a2cc2db19979460315ea7a1588d6763c",
+   "security_definer": true,
+   "signature": "ministere_virer_vers_usine(text,numeric)"
+  },
+  {
+   "empreinte": "c68260fbc322478acae62d6afa9ed4da",
    "security_definer": true,
    "signature": "pa_bonus_chambre(text,text)"
   },
@@ -2863,7 +3167,7 @@
    "signature": "salaire_caisse_de(text,text,text)"
   },
   {
-   "empreinte": "4690d41f1c9f2812dcf6aad96f92593a",
+   "empreinte": "ae05ff4621186e341f42b43f1a711b2a",
    "security_definer": true,
    "signature": "salaire_civil_percevoir()"
   },
@@ -2883,6 +3187,11 @@
    "signature": "salaires_coherence()"
   },
   {
+   "empreinte": "4f3dd08869cfcac79cd8c0774ed71934",
+   "security_definer": true,
+   "signature": "sanction_financiere_imposer_interne(text,text,text,text,integer,text)"
+  },
+  {
    "empreinte": "5016c47395fe54702d7606368641ff9d",
    "security_definer": true,
    "signature": "subvention_beneficiaire_verdict(text,text,text,text)"
@@ -2898,9 +3207,19 @@
    "signature": "subvention_citoyen_verser(text,integer)"
   },
   {
+   "empreinte": "9784be3bff61a5831e1067d1b82e5a4b",
+   "security_definer": true,
+   "signature": "subvention_collective_verser(text,text,text,integer)"
+  },
+  {
    "empreinte": "3f313fcb6ec31fe1838fa35c7896e482",
    "security_definer": true,
    "signature": "subvention_entites(text)"
+  },
+  {
+   "empreinte": "779e3d58c42fdea32ab4e857259faa09",
+   "security_definer": true,
+   "signature": "subvention_entreprise_verser(text,integer,text)"
   },
   {
    "empreinte": "6ae882b3ba5720999f09093ee845e87c",
@@ -2953,12 +3272,22 @@
    "signature": "taux_imposition_fixer(text,integer,text,integer,integer)"
   },
   {
-   "empreinte": "d42145292864a17d8254b50f9f840969",
+   "empreinte": "edfa1a7a9a6fc11be64ece87557076f8",
    "security_definer": true,
    "signature": "taxe_fonciere_prelever(text)"
   },
   {
-   "empreinte": "50cbd75871b9bb5b447895a52455c465",
+   "empreinte": "574126a55acbb0b33902e3c2172ea458",
+   "security_definer": false,
+   "signature": "usine_du_directeur_interne(text)"
+  },
+  {
+   "empreinte": "114de5895eb6fd673c28942a7fdb571e",
+   "security_definer": true,
+   "signature": "usine_virer_vers_ministere(numeric)"
+  },
+  {
+   "empreinte": "83f42f80761af685e96d24c0e1b46823",
    "security_definer": true,
    "signature": "vente_structure_encaisser(text,integer,integer,text,text)"
   }
@@ -2981,6 +3310,10 @@
    "nom": "fonds_debits_acteur_idx"
   },
   {
+   "empreinte": "664cea99f9ae25c4d375f579f3605806",
+   "nom": "fonds_en_transit_acteur"
+  },
+  {
    "empreinte": "acf4423fbca7c16ff2b9aafb8480e676",
    "nom": "idx_contributions_piete_auteur"
   },
@@ -2999,6 +3332,7 @@
   "budgets_nationaux_pkey",
   "caisses_autorites_pkey",
   "caisses_batiments_pkey",
+  "caisses_collectives_operations_pkey",
   "caisses_mouvements_clients_pkey",
   "contributions_piete_pkey",
   "directions_etablissements_pkey",
@@ -3008,6 +3342,7 @@
   "fonds_credits_uniques_pkey",
   "fonds_credits_uniques_ref",
   "fonds_debits_pkey",
+  "fonds_en_transit_pkey",
   "pa_bonus_differes_empreinte_pkey",
   "pa_bonus_differes_pkey",
   "pa_bonus_hotel_pkey",
@@ -3021,6 +3356,7 @@
   "salaires_civils_verses_pkey",
   "salaires_religieux_declares_pkey",
   "salaires_religieux_verses_pkey",
+  "subventions_entreprises_traces_pkey",
   "subventions_familles_pkey",
   "subventions_municipales_pkey"
  ],
@@ -3040,18 +3376,6 @@
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
    "empreinte_avec_roles": "b73a67119e71d32b20b2e6b1577dd84a",
    "nom": "Lecture publique du budget club",
-   "tbl": "budgets_clubs"
-  },
-  {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "d5f954759ffea722d74d53a19e5b9742",
-   "nom": "budgets_clubs_ecriture_acteur",
-   "tbl": "budgets_clubs"
-  },
-  {
-   "empreinte": "e3ea344f347685a7896295df58bef6aa",
-   "empreinte_avec_roles": "92b671f36e8c48f9bff2a5ec80f6f410",
-   "nom": "budgets_clubs_maj_acteur",
    "tbl": "budgets_clubs"
   },
   {
@@ -3095,12 +3419,6 @@
    "empreinte_avec_roles": "473ad6192c03429f6f401fa00f1198bd",
    "nom": "caisses_batiments lecture publique hors commissariat",
    "tbl": "caisses_batiments"
-  },
-  {
-   "empreinte": "432a56bb2dba3c4bf1cf21822973aa10",
-   "empreinte_avec_roles": "603d8ffa2eeedcfbcb36bb952552d0f4",
-   "nom": "contributions_piete_ecriture_acteur",
-   "tbl": "contributions_piete"
   },
   {
    "empreinte": "0cc0a461e76be6b8adf5f3b59ed96a28",
@@ -3179,6 +3497,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "caisses_collectives_operations"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "caisses_mouvements_clients"
   },
   {
@@ -3215,6 +3538,11 @@
    "active": true,
    "forcee": false,
    "tbl": "fonds_debits"
+  },
+  {
+   "active": true,
+   "forcee": false,
+   "tbl": "fonds_en_transit"
   },
   {
    "active": true,
@@ -3284,6 +3612,11 @@
   {
    "active": true,
    "forcee": false,
+   "tbl": "subventions_entreprises_traces"
+  },
+  {
+   "active": true,
+   "forcee": false,
    "tbl": "subventions_familles"
   },
   {
@@ -3307,6 +3640,11 @@
    "nom": "fonds_credits_uniques_id_seq",
    "possedee": true,
    "tbl": "fonds_credits_uniques"
+  },
+  {
+   "nom": "fonds_en_transit_id_seq",
+   "possedee": true,
+   "tbl": "fonds_en_transit"
   }
  ],
  "sequences_autonomes": [],
@@ -3348,15 +3686,21 @@
    "nom": "caisses_batiments"
   },
   {
+   "colonnes": 6,
+   "empreinte_catalogue": "18d99a1950f0b4a0bae8db8c69b5fac5",
+   "empreinte_texte": "c39aafaf85d61ca02227d811adaf2a5a",
+   "nom": "caisses_collectives_operations"
+  },
+  {
    "colonnes": 8,
    "empreinte_catalogue": "cede0a5c15f4a52eba32a8a27a9d3d5f",
-   "empreinte_texte": "984cc607f997103a473fdcd654934bcc",
+   "empreinte_texte": "fe3b1667c68718fe14a4af067f6113c4",
    "nom": "caisses_mouvements_clients"
   },
   {
    "colonnes": 6,
    "empreinte_catalogue": "0cdaa7f0f599506c4fd3413c561f5230",
-   "empreinte_texte": "931d6d8a01ea1eea0a52edbc95314af7",
+   "empreinte_texte": "b7d2b1dc70968b9cde6fa7d26cecbed8",
    "nom": "contributions_piete"
   },
   {
@@ -3386,7 +3730,7 @@
   {
    "colonnes": 7,
    "empreinte_catalogue": "093f22f22b79d742b54763fd20e635c7",
-   "empreinte_texte": "f17e31d27f52643ccbb26950de127863",
+   "empreinte_texte": "455101930ad8833b5cd27b5396037e83",
    "nom": "fonds_credits_uniques"
   },
   {
@@ -3394,6 +3738,12 @@
    "empreinte_catalogue": "7b1e2e34167c13abe3207648d996b10c",
    "empreinte_texte": "58d5a3bebeca6c2e2e1b1d68f90b7bb9",
    "nom": "fonds_debits"
+  },
+  {
+   "colonnes": 5,
+   "empreinte_catalogue": "885e1657f6cb81fd1277ecec7c0531f3",
+   "empreinte_texte": "041fe5c058e5440a50678e9c3e97ad50",
+   "nom": "fonds_en_transit"
   },
   {
    "colonnes": 2,
@@ -3434,13 +3784,13 @@
   {
    "colonnes": 9,
    "empreinte_catalogue": "7e8d6cd6db34907e34872fc9f7715cf7",
-   "empreinte_texte": "751715099c95e22c8a5e5dedf51efeac",
+   "empreinte_texte": "b293632a0947f9be61a75323157ab1cd",
    "nom": "repartitions_budgetaires"
   },
   {
    "colonnes": 10,
    "empreinte_catalogue": "f3995dd1306cd3f5bc4b08ccb82fd57e",
-   "empreinte_texte": "b1a18e33894461a44541d6a3f1297639",
+   "empreinte_texte": "38322a0e29ba95c4f648f577331ea5d6",
    "nom": "repartitions_versements"
   },
   {
@@ -3474,6 +3824,12 @@
    "nom": "salaires_religieux_verses"
   },
   {
+   "colonnes": 8,
+   "empreinte_catalogue": "dbd122f282e706623c9cf3ac08f48f08",
+   "empreinte_texte": "481a6d7662a396a3f2c441cfad14fc00",
+   "nom": "subventions_entreprises_traces"
+  },
+  {
    "colonnes": 6,
    "empreinte_catalogue": "f6ee9f6197946020110d35f8f4d5c449",
    "empreinte_texte": "8ebcb6f6127a1ffab6392eb0bc053988",
@@ -3488,9 +3844,21 @@
  ],
  "triggers": [
   {
+   "empreinte": "f9d97c0d331037648cebf8dcbb003870",
+   "fonction": "budgets_municipaux_ecran_garder()",
+   "nom": "budgets_municipaux_ecran_garder",
+   "tbl": "budgets_municipaux"
+  },
+  {
    "empreinte": "9a2d3d4a06bb45cb324be46b0def9f3e",
    "fonction": "budgets_armurerie_verrou()",
    "nom": "budgets_armurerie_verrou",
+   "tbl": "budgets_nationaux"
+  },
+  {
+   "empreinte": "45fb0236895fa9dfefdcfde69bf209fb",
+   "fonction": "budgets_nationaux_ecran_fusionner()",
+   "nom": "budgets_nationaux_ecran_fusionner",
    "tbl": "budgets_nationaux"
   },
   {

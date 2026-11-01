@@ -2,8 +2,10 @@
 """Negociation #94 : vrais verrous PostgreSQL et payeurs communs, identites fictives."""
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
-import re, tempfile, json
+import re, tempfile, json, importlib.util
 R=Path(__file__).resolve().parents[2]
+_spec=importlib.util.spec_from_file_location('sources_sql',R/'outils/bancs/banc-audit-securite-135-local.py')
+_sources=importlib.util.module_from_spec(_spec);_spec.loader.exec_module(_sources)
 def main(suite_callback=None):
  import pgserver, psycopg2
  srv=pgserver.get_server(tempfile.mkdtemp(prefix='hg-nego-'),cleanup_mode='delete')
@@ -34,13 +36,12 @@ def main(suite_callback=None):
   INSERT INTO ordres_couts VALUES('negocier_squatteurs',1,0);
   INSERT INTO indices_villes VALUES('republic_capitale','{"social":50}');''')
   def charger(path,fn,tous=False):
-   s=(R/path).read_text();matches=list(re.finditer(r'CREATE OR REPLACE FUNCTION public\.'+fn+r'\(',s))
-   for x in matches if tous else matches[:1]:
-    m=re.search(r'AS (\$\w*\$)(.*?)\1;',s[x.start():],re.S);q.execute(s[x.start():x.start()+m.end()])
+   definitions=[_sources.entree_historique(fn)] if fn=='payer_ordre' else _sources.fonctions(path,fn)
+   for texte in definitions if tous else definitions[:1]:q.execute(texte)
   for fn in ['terrain_etat_lire','terrain_etat_fusionner_interne']:charger('baseline/domaines/immobilier-et-territoire/20_fonctions.sql',fn)
   charger('baseline/domaines/economie/20_fonctions-2.sql','payer_ordre')
-  charger('migrations/20261020222029_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires',True)
-  sql=(R/'migrations/20261023231127_squatteurs_negociation_transactionnelle.sql').read_text();q.execute(sql);q.execute(sql)
+  charger('historique/migrations-appliquees/rehorodatees-219/20261031113611_construction_lancement_priorite_bancaire.sql','helvetia_debiter_fonds_ordinaires',True)
+  sql=(R/'historique/migrations-appliquees/20261023231127_squatteurs_negociation_transactionnelle.sql').read_text();q.execute(sql);q.execute(sql)
   if suite_callback is not None:
    suite_callback(c,q,srv)
    return

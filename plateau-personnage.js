@@ -2072,11 +2072,22 @@ async function confirmerDestructionPersonnage() {
   setTimeout(() => { window.location.href = 'index.html'; }, 2000);
 }
 
-// Declenche l'hospitalisation automatique (dispensaire ou clinique selon le poste),
-// dans la ville OU SE TROUVE ACTUELLEMENT le joueur — utilisee par l'empoisonnement
-// (cote victime, meme session) et par l'assassinat (impact differe, plateau-communication.js).
-// Durees doublees : dispensaire 6/4/2 jours, clinique 3/2/1 jours selon le palier.
-function declencherHospitalisation(palier) {
+// HOSPITALISATION A 0 PA (regle de Fred, 01/11/2026, GAME-DESIGN-HOSPITALISATION.md).
+// Agression, assassinat, combat perdu : l'ecran ne pose plus d'hospitalisation lui-meme. Il
+// enregistre la chute des PA a 0 ; le SERVEUR hospitalise alors au dispensaire de la ville
+// (regime « pa0 » : J0, J1, J2, sortie a 20 PA) et deplace le patient. L'ecran relit ensuite.
+// Seul l'empoisonnement garde son propre fonctionnement (durees par palier, plus bas).
+function declencherHospitalisation(palier, options) {
+  if (!(options && options.poison)) {
+    state.pa = 0;
+    // La sauvegarde porte la chute des PA (la fiche accepte une baisse de PA venue de l'ecran) ;
+    // la relecture suit sa reponse, jamais un delai suppose.
+    const enregistrer = typeof sbSavePersonnage === 'function' ? sbSavePersonnage(state).catch(() => null) : Promise.resolve(null);
+    enregistrer.then(() => { if (typeof relireHospitalisationServeur === 'function') relireHospitalisationServeur(true); });
+    return;
+  }
+  // Empoisonnement (dispensaire ou clinique selon le poste), dans la ville ou se trouve le joueur.
+  // Durees doublees : dispensaire 6/4/2 jours, clinique 3/2/1 jours selon le palier.
   const estHautPlace = state.poste && ['president','pm','min_int','min_fin','min_just','min_def','min_info','min_ae'].includes(state.poste.id);
   const lieu = estHautPlace ? 'clinique' : 'dispensaire';
   const dureeParPalier = lieu === 'clinique'
@@ -2093,6 +2104,7 @@ function declencherHospitalisation(palier) {
   // deplacements et ses deux statistiques affaiblies -- toute la sanction d'une agression etait
   // annulable gratuitement. Sauvegarde immediate, pas au prochain cycle : la victime peut
   // rafraichir dans la seconde.
+  if (state._navigationServeur === true) { conduireHospitalisationServeur(lieu); return; }
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   const batimentCible = lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
   const pieceCible = lieu === 'clinique' ? 'reception_clinique' : 'salle_attente';
@@ -2165,6 +2177,10 @@ async function doDormir() {
     // false interdit notamment un second bonus de chambre dans doDormirChambreClinique.
     return false;
   }
+  if (vRepos?.raison === 'hospitalise_j0') {
+    showToast('Repos impossible', 'Le jour de votre hospitalisation, on vous garde éveillé(e) en observation. Vous pourrez dormir demain.', false);
+    return false;
+  }
   if (!vRepos || vRepos.ok === false || typeof vRepos.pa !== 'number') {
     const deja = reposDejaEnregistre;
     showToast(deja ? 'Deja dormi' : 'Sommeil indisponible',
@@ -2185,7 +2201,7 @@ async function doDormir() {
     if (state.hp === 0) {
       const palierPoison = state.empoisonnement.palier || 'partielle';
       state.empoisonnement = null;
-      declencherHospitalisation(palierPoison);
+      declencherHospitalisation(palierPoison, { poison: true });
       showToast('Empoisonnement fatal', 'Vos PV sont tombes a 0. Hospitalisation d\'urgence.', false, true);
       addJournalEntry('L\'empoisonnement a eu raison de vous. Hospitalisation d\'urgence.', 'event-bad');
       updateUI();
@@ -2355,6 +2371,21 @@ async function doDormir() {
     // rien de nouveau, et le montant affiche est celui arrete par le serveur, jamais un calcul
     // local. Le plafond general des joueurs (30 PA) est inchange, et le plafond de 12 PA des
     // soldats PNJ ne s'applique pas a un PJ.
+    // Sommeil à l'hôpital (régime pa0) : montants arrêtés par le serveur, simplement relatés.
+    if (vRepos.hospitalisation === true && typeof vRepos.gain === 'number') {
+      addJournalEntry('Nuit à l\'hôpital (jour ' + vRepos.jour_hospitalisation + ') : +' + vRepos.gain + ' PA'
+        + (vRepos.repas ? ', +' + vRepos.repas + ' PA du repas de la veille' : '') + '.', 'event-info');
+      // Rébellion (Fred, 01/11) : après ce premier sommeil, le serveur reconduit le suspect en cellule.
+      if (vRepos.transfert_prison) {
+        state.hospitalisation = null;
+        showToast('Retour en cellule', 'Les policiers vous reconduisent en cellule pour purger votre peine. Rébellion : 4 PA seulement par nuit en détention.', false, true);
+        addJournalEntry('Reconduit(e) en cellule après l\'hôpital (rébellion : 4 PA par nuit en détention).', 'event-bad');
+        if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
+      }
+      if (vRepos.sortie_possible) {
+        showToast('Sortie autorisée', 'Vous avez assez récupéré : l\'ordre « Sortir de l\'hôpital » vous rend votre liberté.', true, true);
+      }
+    }
     if (vRepos.grade_militaire && typeof vRepos.gain === 'number') {
       addJournalEntry(
         vRepos.caserne ? 'Repos a la caserne : +' + vRepos.gain + ' PA.'
@@ -2507,7 +2538,7 @@ function trouverChambreLibreClinique() {
 // needsSuiteIndisponible) et par doOrder (plateau-router.js, blocage reel avant tout debit) :
 // aucune duplication de la logique medicale elle-meme (doSoinCliniquePrivee/doCentreAntiPoison/
 // executerOrdreGenerique restent intacts).
-const ORDRES_MEDICAUX_CHAMBRE_CLINIQUE = ['soins', 'soins_urgence', 'soins_discrets', 'centre_anti_poison', 'se_nourrir'];
+const ORDRES_MEDICAUX_CHAMBRE_CLINIQUE = ['soins', 'soins_urgence', 'soins_discrets', 'centre_anti_poison', 'se_nourrir', 'repas_hopital', 'repas_clinique', 'sortie_hopital'];
 
 function estOrdreMedicalReserveAuPatient(buildingId, roomId, fn) {
   if (buildingId !== 'clinique-privee' || !/^chambre_(?:[1-9]|10)$/.test(roomId || '')) return false;
@@ -2546,6 +2577,8 @@ async function doTransfertCliniquePrivee(pa, cost) {
     return;
   }
 
+  if (state._navigationServeur === true) return transfertCliniqueServeur(patient, roomIdCible, dejaAttribuee);
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('Fonds insuffisants', '1000 FR requis pour le transfert.', false); return; }
 
@@ -2583,6 +2616,158 @@ async function doTransfertCliniquePrivee(pa, cost) {
   // plateau-navigation.js) -- aucune teleportation parallele.
   if (typeof enterBuilding === 'function') enterBuilding('clinique-privee', true);
   if (typeof enterRoom === 'function') enterRoom('clinique-privee', roomIdCible, null);
+  showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true);
+  addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
+}
+
+// #219 — HOSPITALISATION PAR LE SERVEUR. La navigation commune refuse tout déplacement à
+// un PJ hospitalisé (« acteur_incapacite ») et toute entrée hors de la rue : l'écran ne peut
+// plus conduire lui-même au dispensaire ni à la clinique. hospitalisation_lieu_rejoindre lit
+// le lieu dans la référence de navigation (dispensaire de la ville réelle), sort le patient
+// de son groupe et, pour la clinique, paie le transfert dans la même transaction.
+const HOSPITALISATION_REFUS = {
+  non_hospitalise: 'Aucune hospitalisation en cours n’est enregistrée.',
+  lieu_non_prescrit: 'Ce lieu de soins ne vous est pas prescrit.',
+  chambre_non_attribuee: 'Cette chambre ne vous est pas attribuée.',
+  lieu_non_reference: 'Aucun lieu de soins n’est référencé ici.',
+  fonds_insuffisants: '1000 FR requis pour le transfert.',
+  pa_insuffisants: 'PA insuffisants.',
+  personnage_indisponible: 'Votre situation interdit ce déplacement.',
+  interception_en_cours: 'Une interception doit être résolue avant de partir.',
+  combat_en_cours: 'Vous êtes engagé(e) dans un combat.'
+};
+async function hospitalisationRejoindreServeur(lieu, chambre, verifier) {
+  if (typeof sbRpcVerdict !== 'function') return null;
+  const v = await sbRpcVerdict('hospitalisation_lieu_rejoindre',
+    { p_lieu: lieu, p_chambre: chambre || null, p_verifier: verifier === true }).catch(() => null);
+  const r = Array.isArray(v) ? v[0] : v;
+  if (!r || r.transport) {
+    showToast('Déplacement non confirmé', 'La réponse du serveur est incertaine. Rechargez la position.', false);
+    return null;
+  }
+  if (r.ok !== true) {
+    showToast('Déplacement refusé', HOSPITALISATION_REFUS[r.raison] || r.raison || 'Refus du serveur.', false);
+    return null;
+  }
+  return r;
+}
+// ---- Régime « pa0 » (règle de Fred, 01/11/2026) : tout est décidé par le serveur ----
+// Jour d'hospitalisation pour l'AFFICHAGE seulement (0 = jour du transfert). Le serveur refait
+// toujours ce calcul lui-même (hospitalisation_jour_pa0) avant d'accepter ou de refuser.
+function hospitalisationJourPa0() {
+  const h = state.hospitalisation;
+  if (!h || h.regime !== 'pa0' || !/^\d{4}-\d{2}-\d{2}$/.test(h.dateDebutParis || '')) return null;
+  const auj = dateCivileParisMedicale();
+  return Math.round((Date.parse(auj + 'T00:00:00Z') - Date.parse(h.dateDebutParis + 'T00:00:00Z')) / 86400000);
+}
+function hospitalisationEcritureInterdite() { return hospitalisationJourPa0() === 0; }
+Object.assign(HOSPITALISATION_REFUS, {
+  sortie_trop_tot: 'Le médecin ne signe aucune sortie avant le deuxième jour.',
+  pa_insuffisants_sortie: 'Il vous faut au moins 20 PA pour quitter l’hôpital.',
+  sortie_par_date: 'Votre convalescence prendra fin d’elle-même à la date prévue.',
+  sortie_invalide: 'Aucune sortie n’est référencée pour ce bâtiment.',
+  repas_deja_pris: 'Vous avez déjà pris le repas de l’hôpital aujourd’hui.',
+  pas_a_l_hopital: 'Le repas n’est servi qu’aux patients, à l’hôpital.'
+});
+
+// Relit la fiche quand les PA sont tombés à 0 : si le serveur a hospitalisé le PJ, l'écran adopte
+// l'hospitalisation, les PA et la position qu'il a arrêtés (aucune écriture ici).
+let relectureHospitalisationEnCours = false, derniereRelectureHospitalisation = 0;
+async function relireHospitalisationServeur(force) {
+  if (relectureHospitalisationEnCours || typeof sbLoadPersonnage !== 'function' || !state.char?.name) return false;
+  if (!force && Date.now() - derniereRelectureHospitalisation < 15000) return false;
+  relectureHospitalisationEnCours = true; derniereRelectureHospitalisation = Date.now();
+  try {
+    const nom = state.char.name;
+    const frais = await sbLoadPersonnage(nom).catch(() => null);
+    if (!frais || state.char?.name !== nom) return false;
+    const h = frais.hospitalisation;
+    if (!h || h.regime !== 'pa0' || state.hospitalisation?.regime === 'pa0') return false;
+    state.hospitalisation = h;
+    if (Number.isInteger(frais.pa)) state.pa = frais.pa;
+    if (typeof afficherPositionNavigationConfirmee === 'function') afficherPositionNavigationConfirmee(frais);
+    showToast('Hospitalisé(e)', 'À bout de forces, vous êtes conduit(e) à l’hôpital. Aujourd’hui : ni déplacement, ni sommeil, ni mail, ni forum.', false, true);
+    addJournalEntry('Vous vous effondrez : hospitalisation d’urgence.', 'event-bad');
+    updateUI();
+    return true;
+  } finally { relectureHospitalisationEnCours = false; }
+}
+// Appelée par updateUI : PA à 0 sans hospitalisation connue → le serveur a pu hospitaliser.
+function surveillerHospitalisationServeur() {
+  if (state.pa === 0 && !state.hospitalisation && !state.estEmprisonne && state.char?.name) relireHospitalisationServeur(false);
+}
+
+async function doRepasHopital() {
+  if (typeof sbRpcVerdict !== 'function') return;
+  const v = await sbRpcVerdict('hospitalisation_repas_prendre', {}).catch(() => null);
+  const r = Array.isArray(v) ? v[0] : v;
+  if (!r || r.transport) { showToast('Repas non confirmé', 'La réponse du serveur est incertaine. Rechargez votre fiche.', false); return; }
+  if (r.ok !== true) { showToast('Repas refusé', HOSPITALISATION_REFUS[r.raison] || r.raison || 'Refus du serveur.', false); return; }
+  if (Number.isInteger(r.pa)) state.pa = r.pa;
+  // Montants arrêtés par le serveur (repas de la clinique payant), jamais calculés ici.
+  if (typeof r.liquide === 'number') state.liquide = r.liquide;
+  if (typeof r.arg === 'number') { state.arg = r.arg; if (state.char) state.char.arg = r.arg; }
+  if (state.hospitalisation) { state.hospitalisation.repasLe = dateCivileParisMedicale(); state.hospitalisation.repasBonus = r.bonus_lendemain; }
+  if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter({ pa: r.pa, hospitalisation: state.hospitalisation });
+  updateUI();
+  showToast('Repas servi', '-1 PA' + (r.cout ? ', -' + r.cout + ' FR' : '') + '. +' + (r.bonus_lendemain || 0) + ' PA à votre prochain sommeil.', true);
+  addJournalEntry('Repas de l’hôpital (-1 PA, +' + (r.bonus_lendemain || 0) + ' PA demain).', 'event-info');
+}
+
+async function doSortieHopital() {
+  const r = await hospitalisationRejoindreServeur('sortie', null, false);
+  if (!r) return;
+  const etaitClinique = state.hospitalisation?.lieu === 'clinique';
+  state.hospitalisation = null;
+  state.statsAffaiblies = {};
+  state.regenJour = null;
+  if (etaitClinique && Array.isArray(state.locationsActives)) {
+    state.locationsActives = state.locationsActives.filter(l => !(l.buildingId === 'clinique-privee' && l.chambreClinique === true && l.locataire === state.char?.name));
+  }
+  if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
+  showToast('Sortie de l’hôpital', 'Vous quittez l’hôpital, rétabli(e).', true, true);
+  addJournalEntry('Sortie de l’hôpital.', 'event-good');
+  updateUI();
+}
+
+async function conduireHospitalisationServeur(lieu) {
+  // La fiche (hospitalisation comprise) doit être enregistrée avant la porte, qui la relit.
+  if (typeof sbSavePersonnage === 'function') {
+    const ok = await sbSavePersonnage(state).then(() => true).catch(() => false);
+    if (!ok) { showToast('Hospitalisation non enregistrée', 'Rechargez le jeu avant de poursuivre.', false); return false; }
+  }
+  const r = await hospitalisationRejoindreServeur(lieu, null, false);
+  if (!r) return false;
+  if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
+  return true;
+}
+async function transfertCliniqueServeur(patient, roomIdCible, dejaAttribuee) {
+  // 1. Vérification sans écriture ni dépense.
+  if (!await hospitalisationRejoindreServeur('clinique', null, true)) return;
+  // 2. La chambre attribuée (si nouvelle) est déclarée avant la porte, qui la contrôle.
+  let entree = null;
+  if (!dejaAttribuee) {
+    entree = { buildingId: 'clinique-privee', roomId: roomIdCible, city: 'capitale',
+      country: state.country || 'republic', locataire: patient, depuis: dateCivileParisMedicale(),
+      visible: true, prix: 0, chambreClinique: true, visitesAutorisees: true };
+    const ok = typeof sbSaveLocation === 'function' && await sbSaveLocation(entree).then(() => true).catch(() => false);
+    if (!ok) { showToast('Chambre non réservée', 'La réservation n’a pas été enregistrée. Aucun paiement.', false); return; }
+    if (!state.locationsActives) state.locationsActives = [];
+    state.locationsActives.push(entree);
+  }
+  // 3. Paiement et déplacement dans la même transaction serveur.
+  const r = await hospitalisationRejoindreServeur('clinique', roomIdCible, false);
+  if (!r) {
+    if (entree) {
+      const i = state.locationsActives.indexOf(entree);
+      if (i >= 0) state.locationsActives.splice(i, 1);
+      if (typeof sbSupprimerLocation === 'function')
+        await sbSupprimerLocation(entree.country, entree.buildingId, entree.roomId, entree.city).catch(() => {});
+    }
+    return;
+  }
+  state.hospitalisation.lieu = 'clinique';
+  if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
   showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true);
   addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
 }
@@ -3253,6 +3438,12 @@ async function doDormirChambre() {
 
 function verifierProgressionHospitalisation() {
   if (!state.hospitalisation) return;
+  // Régime pa0 : ni date de fin ni PA écrits par l'écran ; la sortie est un ordre (20 PA, dès J2).
+  if (state.hospitalisation.regime === 'pa0') {
+    const j = hospitalisationJourPa0();
+    addJournalEntry('Hospitalisation, jour ' + j + ' (' + state.hospitalisation.lieu + '). Sortie possible à partir du jour 2, avec 20 PA.', 'event-info');
+    return;
+  }
   const dateFinParis = state.hospitalisation.dateFinParis;
   const aujourdhuiParis = dateCivileParisMedicale();
   // Une hospitalisation dépourvue de date civile n'est pas levée sur un compteur privé.
