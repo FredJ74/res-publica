@@ -2191,6 +2191,7 @@ async function jodiePortraitRefuser() {
   if (idMail && typeof sbSetMailArchived === 'function') await sbSetMailArchived(idMail, true).catch(() => {});
   window._jodieInterviewReponses = null;
   window._jodiePortraitTexte = null;
+  window._jodiePortraitJeton = null;
   showToast('Proposition déclinée', "Vous avez décliné l'interview de Jodie Moitout.", true);
   if (typeof renderForumContent === 'function') {
     mailView = 'inbox';
@@ -2216,8 +2217,17 @@ async function jodiePortraitOuvrirInterview() {
     showToast('Déjà publié', 'Jodie a déjà publié votre portrait dans Presse & Médias.', false);
     return;
   }
-  window._jodieInterviewReponses = ['', '', '', '', ''];
-  window._jodieInterviewPage = 0;
+  // Reprise : les reponses deja saisies et un apercu deja redige (reponse arrivee apres que le
+  // joueur a quitte l'ecran) sont conserves, jamais effaces par une reouverture.
+  if (window._jodiePortraitTexte && window._jodiePortraitJeton) {
+    mailView = 'jodie-preview';
+    document.getElementById('forum-main').innerHTML = renderForumContent();
+    return;
+  }
+  if (!Array.isArray(window._jodieInterviewReponses) || window._jodieInterviewReponses.length !== 5) {
+    window._jodieInterviewReponses = ['', '', '', '', ''];
+    window._jodieInterviewPage = 0;
+  }
   mailView = 'jodie-interview';
   document.getElementById('forum-main').innerHTML = renderForumContent();
 }
@@ -2311,18 +2321,32 @@ async function jodiePortraitGenererApercu() {
     showToast('Réponses incomplètes', 'Merci de répondre à chacune des 5 questions.', false);
     return;
   }
+  // Cloture Luthecia (01/11) : un double clic ne lance qu'une redaction ; une reponse tardive
+  // n'ecrase pas l'ecran si le joueur a quitte l'interview entre-temps (ses reponses restent).
+  if (window._jodieApercuEnCours) return;
+  window._jodieApercuEnCours = true;
   const nom = state.char?.name || '';
   document.getElementById('forum-main').innerHTML = '<div style="padding:2rem;text-align:center;color:#8a8060">Jodie rédige...</div>';
-  // L'IA et la preuve de publication sont générées par le serveur authentifié.
-  const resultat = await jodiePortraitAppelApi({action:'apercu',personnage:nom,reponses});
-  if (!resultat.ok || !resultat.texte || !resultat.jeton) {
-    showToast('Indisponible', resultat.error || "Jodie n'arrive pas à rédiger.", false);
-    mailView = 'jodie-interview';
+  let resultat;
+  try {
+    // L'IA et la preuve de publication sont générées par le serveur authentifié.
+    resultat = await jodiePortraitAppelApi({action:'apercu',personnage:nom,reponses});
+  } finally {
+    window._jodieApercuEnCours = false;
+  }
+  const toujoursIci = mailView === 'jodie-interview' && (state.char?.name || '') === nom;
+  if (!resultat || !resultat.ok || !resultat.texte || !resultat.jeton) {
+    showToast('Indisponible', (resultat && resultat.error) || "Jodie n'arrive pas à rédiger.", false);
+    if (!toujoursIci) return;
     document.getElementById('forum-main').innerHTML = renderForumContent();
     return;
   }
   window._jodiePortraitTexte = resultat.texte;
   window._jodiePortraitJeton = resultat.jeton;
+  if (!toujoursIci) {
+    showToast('Portrait prêt', "Jodie a rédigé votre portrait : rouvrez sa proposition (« Accepter l'interview ») pour le relire avant publication.", true);
+    return;
+  }
   mailView = 'jodie-preview';
   document.getElementById('forum-main').innerHTML = renderForumContent();
 }
