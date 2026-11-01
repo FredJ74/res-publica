@@ -57,6 +57,7 @@ def main():
  a.add_argument('--referentiels-reference',type=Path,required=True,help='Empreintes et cardinalités des 12 référentiels statiques du vivant.')
  a.add_argument('--gotrue-bin',type=Path)
  a.add_argument('--postgrest-bin',type=Path)
+ a.add_argument('--locale-clone',help='Locale explicite du seul PostgreSQL jetable ; enregistrée dans le rapport.')
  o=a.parse_args()
  if not (o.gotrue_bin and o.postgrest_bin):a.error('GoTrue et PostgREST obligatoires pour certifier les 27 cas HTTP authentifies')
  e=charger('epreuve95','outils/baseline/epreuve-postgresql.py');lot=charger('lot95','outils/livraison/preparer-livraison-complete-219.py')
@@ -67,17 +68,26 @@ def main():
  import pgserver,psycopg2
  rapport={'production':False,'registre_source_versions':len(registre),'catalogue_1009_certifie':False,'catalogue_1012_certifie':False,'authentification':'JWT SQL pour les scénarios de catalogue ; recette GoTrue HTTP séparée si présente','tarifs_snapshot':capture['snapshot'],'cas':[]}
  with tempfile.TemporaryDirectory(prefix='hg95-catalogue-') as d:
-  srv=pgserver.get_server(Path(d)/'data',cleanup_mode='delete');c=psycopg2.connect(srv.get_uri());q=c.cursor();services=None
+  srv=pgserver.get_server(Path(d)/'data',cleanup_mode='delete');uri_locale=srv.get_uri();c=psycopg2.connect(uri_locale);q=c.cursor();services=None
   try:
+   if o.locale_clone:
+    from psycopg2 import sql as sql_pg
+    c.autocommit=True;q.execute(sql_pg.SQL('CREATE DATABASE hg219_clone TEMPLATE template0 LC_COLLATE {} LC_CTYPE {}').format(sql_pg.Literal(o.locale_clone),sql_pg.Literal(o.locale_clone)));q.close();c.close()
+    uri_locale=srv.get_uri(database='hg219_clone');c=psycopg2.connect(uri_locale);q=c.cursor();rapport['locale_demandee']=o.locale_clone
    q.execute('SHOW server_version_num');assert q.fetchone()[0]=='170006'
    for role in ['anon','authenticated','service_role','authenticator','supabase_auth_admin','supabase_admin','dashboard_user','supabase_read_only_user']:q.execute('CREATE ROLE '+role)
    if o.gotrue_bin:
-    q.execute('CREATE SCHEMA auth AUTHORIZATION supabase_auth_admin;ALTER ROLE supabase_auth_admin LOGIN;ALTER ROLE supabase_auth_admin SET search_path=auth,public');c.commit();auth=charger('authlocale95','outils/bancs/auth-locale-groupes-219.py');services=auth.Services(srv.get_uri(),d,o.gotrue_bin,o.postgrest_bin);services.demarrer_auth()
+    q.execute('CREATE SCHEMA auth AUTHORIZATION supabase_auth_admin;ALTER ROLE supabase_auth_admin LOGIN;ALTER ROLE supabase_auth_admin SET search_path=auth,public');c.commit();auth=charger('authlocale95','outils/bancs/auth-locale-groupes-219.py');services=auth.Services(uri_locale,d,o.gotrue_bin,o.postgrest_bin);services.demarrer_auth()
     # auth.users vient du vrai service GoTrue, aucune table d'authentification simulée.
     q.execute(('CREATE FUNCTION auth.jwt()'+e.PLATEFORME.split('CREATE FUNCTION auth.jwt()',1)[1]).replace('CREATE FUNCTION auth.','CREATE OR REPLACE FUNCTION auth.'))
    else:q.execute(e.PLATEFORME)
+   complement=charger('schema_complet219','outils/bancs/completer-schema-clone-219.py');avant_schema,apres_schema,preuve_schema=complement.preparer(o.exports)
+   q.execute(avant_schema)
    morceaux,_=e.assembler();rapport.update(e.installer(q,morceaux))
-   ecarts=e.comparer_catalogues(q,o.exports);assert not ecarts,ecarts
+   q.execute(apres_schema);rapport['complement_hors_monde_neuf']=preuve_schema
+   rapport['checks_restitues']=complement.restituer_checks(q,o.exports,e.expression_check)
+   rapport['normalisations_checks']=[]
+   ecarts=e.comparer_catalogues(q,o.exports,rapport['normalisations_checks']);assert not ecarts,ecarts
    rapport['schema_conforme_aux_exports_fournis']=True
    q.execute("SELECT md5(prosrc),md5(pg_get_functiondef(oid)) FROM pg_proc WHERE oid='public.payer_ordre(text,text,integer,integer)'::regprocedure");source_md5,definition_md5=q.fetchone();assert source_md5=='5cf45c19e4b9559f6b29e2b9207d3969' and source_md5!=definition_md5;rapport['payeur_avant']={'source_md5':source_md5,'definition_md5':definition_md5,'garde_source_satisfaite':True}
    q.execute('CREATE SCHEMA supabase_migrations;CREATE TABLE supabase_migrations.schema_migrations(version text PRIMARY KEY,name text,statements text[])')
@@ -100,7 +110,7 @@ def main():
       continue
      if entree['fichier']:
       # Une session distincte comme pour les opérations d'origine : pg_temp ne fuit pas.
-      autre=psycopg2.connect(srv.get_uri())
+      autre=psycopg2.connect(uri_locale)
       try:
        with autre:
         with autre.cursor() as cq:cq.execute(p.read_text())
@@ -119,13 +129,23 @@ def main():
     racines=re.sub(r'(?im)^\s*(?:BEGIN;|ROLLBACK;|SET TRANSACTION READ ONLY;)\s*$', '', racines)
     c.commit();q.execute(racines)
     reference=json.loads(o.empreinte_reference.read_text(encoding='utf-8'))
-    rapport['empreinte_complete_avant95']=verifier_empreinte_complete(q.fetchone()[0],reference)
+    observe=q.fetchone()[0];rapport['empreinte_locale_avant95']=observe
+    q.execute("SELECT datcollate,datctype,datlocprovider FROM pg_database WHERE datname=current_database()");rapport['locale_clone']=q.fetchone()
+    q.execute("SELECT EXISTS(SELECT 1 FROM pg_collation WHERE collname='en_US.utf8')")
+    if q.fetchone()[0]:
+     # Diagnostic de portabilité du collecteur seulement. Ce résultat alternatif
+     # n'est JAMAIS fourni au garde de certification, qui reçoit observe intact.
+     diagnostic=racines.replace('ORDER BY x.r)', 'ORDER BY x.r COLLATE "en_US.utf8")')
+     assert diagnostic!=racines;q.execute(diagnostic);autre_tri=q.fetchone()[0]
+     rapport['diagnostic_tri_acl_non_certifiant']={'seule_modification':'tri des bénéficiaires ACL avec COLLATE en_US.utf8','racine_fonctions':autre_tri['categories']['fonctions']['racine'],'reference':reference.get('empreinte',reference)['categories']['fonctions']['racine'],'certification':False}
+    rapport['empreinte_complete_avant95']=verifier_empreinte_complete(observe,reference)
     rapport['catalogue_1012_certifie']=(reference.get('empreinte',reference).get('registre',{}).get('lignes')==1012)
     assert rapport['catalogue_1012_certifie'],'La référence doit concerner le catalogue vivant 1012'
     c.commit()
    if o.referentiels_reference:
     reference=json.loads(o.referentiels_reference.read_text(encoding='utf-8'))
     assert reference.get('registre')==1012,'Référence statique de mauvaise version'
+    rapport['diagnostic_sources_refs_non_certifiant']=complement.diagnostic_generateurs(q,e.decouper,reference['referentiels'])
     rapport['referentiels_1012']=verifier_referentiels(q,reference)
     c.commit()
    assert rapport.get('catalogue_1012_certifie') is True and rapport.get('referentiels_1012',{}).get('conformes') is True, 'Certification complète 1012 et 12 référentiels obligatoire avant installation 95'

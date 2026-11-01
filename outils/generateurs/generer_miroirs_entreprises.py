@@ -197,8 +197,10 @@ def sql(d):
              for r in d["recettes_production"]) + ";")
 
     L.append("\nDELETE FROM public.recettes_commerce;")
+    # Le catalogue SQL ne possède pas type_objet : cette information client
+    # reste dans le JSON diagnostique, sans inventer une colonne serveur.
     COLS = ["id", "source", "label", "pa", "portions", "materiaux", "prix_fixe", "categorie",
-            "effets", "stack_key", "type_objet", "sous_type", "icone", "image", "description",
+            "effets", "stack_key", "sous_type", "icone", "image", "description",
             "famille_produit_marche", "bonus_integration_ville",
             "types_autorises", "pays_autorises", "villes_autorisees", "buildings_autorises"]
     L.append("INSERT INTO public.recettes_commerce (%s) VALUES" % ", ".join(COLS))

@@ -275,6 +275,54 @@ class PostgreSQL(unittest.TestCase):
   from reconstruire import ordonner_seeds
   graines=[('a.sql','INSERT INTO public.a VALUES(1);'),('b.sql','INSERT INTO public.b VALUES(1);')]
   self.assertEqual(ordonner_seeds([('30_contraintes.sql','-- ALTER TABLE public.a ADD CONSTRAINT fk FOREIGN KEY(id) REFERENCES public.b(id);')],graines),graines)
+ def test_generateur_recettes_insere_dans_le_schema_capture(self):
+  sp=importlib.util.spec_from_file_location('epreuve_recettes219',R/'outils/baseline/epreuve-postgresql.py');e=importlib.util.module_from_spec(sp);sp.loader.exec_module(e)
+  ddl=(R/'baseline/domaines/economie/10_tables.sql').read_text()
+  for ast,ordre in e.decouper(ddl):
+   if type(ast).__name__=='CreateStmt' and ast.relation.relname=='recettes_commerce':self.q.execute(ordre);break
+  else:self.fail('table recettes_commerce absente du schéma capturé')
+  self.q.execute("SAVEPOINT ancien_generateur")
+  import psycopg2
+  with self.assertRaises(psycopg2.errors.UndefinedColumn):self.q.execute("INSERT INTO recettes_commerce(id,type_objet) VALUES('fixture','aliment')")
+  self.q.execute('ROLLBACK TO SAVEPOINT ancien_generateur')
+  sql=subprocess.check_output([sys.executable,str(R/'outils/generateurs/generer_miroirs_entreprises.py'),'--sql'],text=True,cwd=R)
+  for ast,ordre in e.decouper(sql):
+   if type(ast).__name__=='InsertStmt' and ast.relation.relname=='recettes_commerce':self.q.execute(ordre)
+  self.q.execute("SELECT count(*),bool_and(intermediaires='{}'::jsonb) FROM recettes_commerce")
+  n,defaut=self.q.fetchone();self.assertGreater(n,0);self.assertTrue(defaut)
+ def test_diagnostic_generateurs_annule_toutes_les_modifications_meme_en_cas_erreur(self):
+  from unittest.mock import patch
+  sp=importlib.util.spec_from_file_location('schema_diagnostic219',R/'outils/bancs/completer-schema-clone-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  sp=importlib.util.spec_from_file_location('epreuve_diagnostic219',R/'outils/baseline/epreuve-postgresql.py');e=importlib.util.module_from_spec(sp);sp.loader.exec_module(e)
+  tables={'postes_nommes_regles':'poste_id','chantiers_paliers':'palier','entreprises_constantes':'cle','recettes_commerce':'id'}
+  for table,pk in tables.items():self.q.execute('CREATE TABLE '+table+'('+pk+' text PRIMARY KEY,valeur integer);INSERT INTO '+table+" VALUES('temoin',1)")
+  def source(args,**kwargs):
+   if 'entreprises' in args[1]:return "INSERT INTO recettes_commerce(id,colonne_inexistante) VALUES('erreur',2);"
+   if 'postes' in args[1]:return "('poste','label','maire','ville','ville')"
+   return "INSERT INTO chantiers_paliers(palier,valeur) VALUES('temoin',2),('nouveau',3);"
+  attendus={t:{'lignes':0,'empreinte':'inconnue'} for t in tables}
+  with patch.object(m.subprocess,'check_output',side_effect=source):r=m.diagnostic_generateurs(self.q,e.decouper,attendus)
+  self.assertTrue(r['essai_annule']);self.assertFalse(r['modification_des_attentes']);self.assertEqual(r['mesures']['chantiers_paliers']['lignes'],2)
+  self.assertIn('generer_miroirs_entreprises.py',r['erreurs_generateurs'])
+  self.assertFalse(any(x['concorde_reference'] for x in r['mesures'].values()))
+  for table in tables:
+   self.q.execute('SELECT * FROM '+table);self.assertEqual(self.q.fetchall(),[('temoin',1)])
+ def test_between_retablit_la_definition_catalogue_sans_relacher_la_contrainte(self):
+  from unittest.mock import patch
+  import psycopg2
+  sp=importlib.util.spec_from_file_location('schema_clone219',R/'outils/bancs/completer-schema-clone-219.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  sp=importlib.util.spec_from_file_location('epreuve_clone219',R/'outils/baseline/epreuve-postgresql.py');e=importlib.util.module_from_spec(sp);sp.loader.exec_module(e)
+  self.q.execute('CREATE TABLE bornes_clone(a integer,b integer,CONSTRAINT bornes CHECK (a BETWEEN 0 AND 100 AND b BETWEEN 0 AND 100))')
+  self.q.execute("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname='bornes'");source=self.q.fetchone()[0]
+  self.q.execute('ALTER TABLE bornes_clone DROP CONSTRAINT bornes;ALTER TABLE bornes_clone ADD CONSTRAINT bornes '+source)
+  self.q.execute("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname='bornes'");self.assertNotEqual(self.q.fetchone()[0],source)
+  exp={'contraintes':[{'tbl':'bornes_clone','nom':'bornes','genre':'c','definition':source}]}
+  with patch.object(m.rendre,'charger_exports',return_value=(exp,[])):
+   preuve=m.restituer_checks(self.q,Path('/fixture'),e.expression_check);self.assertEqual(len(preuve),1)
+  self.q.execute("SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname='bornes'");self.assertEqual(self.q.fetchone()[0],source)
+  self.q.execute('INSERT INTO bornes_clone VALUES(0,100),(NULL,50);SAVEPOINT borne_refusee')
+  with self.assertRaises(psycopg2.errors.CheckViolation):self.q.execute('INSERT INTO bornes_clone VALUES(-1,50)')
+  self.q.execute('ROLLBACK TO SAVEPOINT borne_refusee')
  def test_parent_sans_seed_reste_un_refus_PostgreSQL_reel(self):
   from reconstruire import ordonner_seeds
   import psycopg2

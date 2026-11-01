@@ -1,0 +1,292 @@
+{
+  "production": false,
+  "registre_source_versions": 1003,
+  "catalogue_1012_certifie": true,
+  "schema_conforme_aux_exports_fournis": true,
+  "complement_hors_monde_neuf": {
+    "tables_metadata_seules": [
+      "compagnies_militaires_snapshot_20260926",
+      "lois_assemblee",
+      "rapports_cellules_artefacts_20260926",
+      "zz_snap_cka_blob",
+      "zz_snap_cka_metier"
+    ],
+    "lignes_copiees": 0,
+    "colonnes": 31
+  },
+  "checks_restitues": [
+    {
+      "table": "pnj_membres",
+      "contrainte": "pnj_car_bornes",
+      "avant": "3abdf97f799cca567d21ace6e9696c0d",
+      "source_et_apres": "e415c8f7b6264c59364bb00e5e214d7a",
+      "regle": "BETWEEN déplié après analyse des AND ; définition source exacte retrouvée"
+    },
+    {
+      "table": "pnj_metiers_profils",
+      "contrainte": "pnj_metiers_profils_bornes",
+      "avant": "984e7924bc1fec72a97657edf11aaff2",
+      "source_et_apres": "aa95261334d357880d36cdd2314d5159",
+      "regle": "BETWEEN déplié après analyse des AND ; définition source exacte retrouvée"
+    }
+  ],
+  "locale_clone": [
+    "en_US.utf8",
+    "en_US.utf8",
+    "c"
+  ],
+  "empreinte_locale_avant95": {
+    "registre": {
+      "lignes": 1012,
+      "derniere": "20261031211256"
+    },
+    "categories": {
+      "index": {
+        "seaux": {
+          "0": "32:d221df2dbe23",
+          "1": "27:3ba5ae12af70",
+          "2": "40:37eb39c76cbd",
+          "3": "38:8f5ef0c87a6c",
+          "4": "44:7d2d573c0911",
+          "5": "49:cfefadcab4ff",
+          "6": "42:d389fe0da6d5",
+          "7": "39:f16b1126ac43",
+          "8": "25:048422d47073",
+          "9": "37:aa5325903b4f",
+          "a": "37:9eece1ae094d",
+          "b": "41:0a9e862ca2b5",
+          "c": "40:e96c631b01e0",
+          "d": "33:6741d54b284f",
+          "e": "37:2157679de204",
+          "f": "31:8ec3b1726148"
+        },
+        "objets": 592,
+        "racine": "ec116cc04c15ae9d3d37ae98f46c5596"
+      },
+      "fonctions": {
+        "seaux": {
+          "0": "67:b1ac0e4b9fd3",
+          "1": "60:819ae437da04",
+          "2": "68:9cc52320e8a9",
+          "3": "85:33ea9d34f1e2",
+          "4": "71:3d667a38a705",
+          "5": "94:20ff323395f2",
+          "6": "82:74d433880d96",
+          "7": "72:e01fb1feea16",
+          "8": "63:8014005c6dd5",
+          "9": "78:bf35b120b5f4",
+          "a": "77:b1c4c9eb4eb9",
+          "b": "73:67a59c9a65ca",
+          "c": "75:578fd5f815c3",
+          "d": "82:8070ead6a90d",
+          "e": "82:734cf26aad2b",
+          "f": "84:52af3b75a1e1"
+        },
+        "objets": 1213,
+        "racine": "c889615fe91f3e1ad83a088a9e2a730d"
+      },
+      "relations": {
+        "seaux": {
+          "0": "16:e89d74d01a94",
+          "1": "29:2108a2a4496a",
+          "2": "24:eca2670707bc",
+          "3": "34:8a69ba5239d7",
+          "4": "27:9ae8a584dbaa",
+          "5": "23:af3295e892eb",
+          "6": "24:263b4db03de2",
+          "7": "23:0b5e51955ddb",
+          "8": "32:f92028808570",
+          "9": "23:59a7caefe468",
+          "a": "31:17c55f182138",
+          "b": "22:1f4cef66bdea",
+          "c": "23:4a97fd36414d",
+          "d": "32:a81f0abf1f06",
+          "e": "30:805a7d0099d2",
+          "f": "29:3727f2621f44"
+        },
+        "objets": 422,
+        "racine": "96b225a4290472df7c1cd2a491447556"
+      },
+      "politiques": {
+        "seaux": {
+          "0": "13:e8fa65fa70ee",
+          "1": "23:30a8b2252e58",
+          "2": "12:b8758f20281a",
+          "3": "10:3fc26e06aa7c",
+          "4": "14:7817cc5a72ef",
+          "5": "17:46d40a826de4",
+          "6": "20:695fd1635715",
+          "7": "19:c0f69221d4c5",
+          "8": "12:ce141bb240e8",
+          "9": "19:f57f3004fb88",
+          "a": "22:9432887a9918",
+          "b": "11:5a49826a6584",
+          "c": "20:35dee3f7f475",
+          "d": "16:f1e875b59ae0",
+          "e": "19:c87de81cb5e4",
+          "f": "15:960fe39957c4"
+        },
+        "objets": 262,
+        "racine": "c38d4564e631703a7257cb1c11fc1462"
+      },
+      "contraintes": {
+        "seaux": {
+          "0": "49:ddf6938ce64a",
+          "1": "45:09a38d0cbefc",
+          "2": "62:83bb4ad74763",
+          "3": "51:0f88b14bb5c4",
+          "4": "47:f6ea8ddcac67",
+          "5": "42:26a41a8c0950",
+          "6": "40:b7b92998d275",
+          "7": "43:c09cc966c66f",
+          "8": "43:f1966ded9695",
+          "9": "46:eb1d2cc06b6b",
+          "a": "38:5ea093f11af8",
+          "b": "43:4bdeebc95301",
+          "c": "43:90d91a28d4b9",
+          "d": "42:d3b044db1371",
+          "e": "49:7d55530e35d8",
+          "f": "49:943916fb1420"
+        },
+        "objets": 732,
+        "racine": "e254d8183b997913eb8974f3e665f426"
+      },
+      "declencheurs": {
+        "seaux": {
+          "0": "10:de22080d6e73",
+          "1": "8:faad1056a13e",
+          "2": "7:e547cebc18e0",
+          "3": "5:7231486e7fc1",
+          "4": "3:7a02325540d7",
+          "5": "6:37c5b9a3e0bc",
+          "6": "2:4134aae565fa",
+          "7": "3:9375cc4fbd99",
+          "8": "5:b9ad68b241f6",
+          "9": "3:a6bdf37b017d",
+          "a": "3:15ee2a5dfc7e",
+          "b": "7:7031918c9ef8",
+          "c": "5:799b5df96ea5",
+          "d": "6:a1daac52d291",
+          "e": "6:3cad659f9280",
+          "f": "2:f2b14567b86b"
+        },
+        "objets": 81,
+        "racine": "147bf68b89af02871d6b52cd8d774dab"
+      }
+    },
+    "version_serveur": "17.6"
+  },
+  "empreinte_complete_avant95": {
+    "conforme": true,
+    "familles": [
+      "contraintes",
+      "declencheurs",
+      "fonctions",
+      "index",
+      "politiques",
+      "relations"
+    ]
+  },
+  "diagnostic_sources_refs_non_certifiant": {
+    "essai_annule": true,
+    "modification_des_attentes": false,
+    "erreurs_generateurs": {},
+    "mesures": {
+      "postes_nommes_regles": {
+        "lignes": 18,
+        "empreinte": "672e64597802b51031ccca01ed1b1228",
+        "concorde_reference": false
+      },
+      "chantiers_paliers": {
+        "lignes": 7,
+        "empreinte": "f83683e209b6f0d98bac4731b6d17891",
+        "concorde_reference": false
+      },
+      "entreprises_constantes": {
+        "lignes": 22,
+        "empreinte": "0be4cd8dcc6cf2522e897fb9d3102ebf",
+        "concorde_reference": false
+      },
+      "recettes_commerce": {
+        "lignes": 40,
+        "empreinte": "6581717b039095c401cf60e553f56639",
+        "concorde_reference": false
+      }
+    }
+  },
+  "date": "2026-11-01",
+  "base_branche": "4dfeda89b8b42b460e74645009ce55fc1eed1b71",
+  "base_main": "ddb72dbdcaf6e868a903e478e985e559d961c6ed",
+  "referentiels_non_conformes": {
+    "postes_nommes_regles": {
+      "local": {
+        "lignes": 18,
+        "empreinte": "672e64597802b51031ccca01ed1b1228"
+      },
+      "vivant": {
+        "lignes": 18,
+        "empreinte": "3722333b757343fa8c4c35cecc97b64e"
+      }
+    },
+    "chantiers_paliers": {
+      "local": {
+        "lignes": 4,
+        "empreinte": "e83c72e7f134c7cb932936fe46db1dfa"
+      },
+      "vivant": {
+        "lignes": 7,
+        "empreinte": "f9ebb4e7734e75b4672df82ed2c9a5b2"
+      }
+    },
+    "entreprises_constantes": {
+      "local": {
+        "lignes": 22,
+        "empreinte": "0be4cd8dcc6cf2522e897fb9d3102ebf"
+      },
+      "vivant": {
+        "lignes": 23,
+        "empreinte": "4d5359e1969ba4ade6a16b7100f88ce0"
+      }
+    },
+    "recettes_commerce": {
+      "local": {
+        "lignes": 37,
+        "empreinte": "c89454c538df8c76ca98a541912a090a"
+      },
+      "vivant": {
+        "lignes": 52,
+        "empreinte": "37e08c3c82b5da742e132a52ff500c35"
+      }
+    },
+    "offres_emploi_bne": {
+      "local": {
+        "lignes": 7,
+        "empreinte": "4cd3cbe33c753445f652c29d04d9c682"
+      },
+      "vivant": {
+        "lignes": 0,
+        "empreinte": "d751713988987e9331980363e24189ce"
+      }
+    }
+  },
+  "installation95_executee": false,
+  "raison_arret": "Les 12 référentiels statiques doivent concorder avant installation. Ni les diagnostics ni le succès des six racines ne remplacent ce garde.",
+  "tests_outillage": {
+    "executes": 57,
+    "reussis": 57,
+    "postgresql": "17.6"
+  },
+  "controle_global": {
+    "reussis": 10,
+    "total": 12,
+    "echecs": [
+      "Authority : 17 contrats clients absents/incompatibles dans le baseline",
+      "Referential : 5 déclarations d’empreintes en écart"
+    ]
+  },
+  "acces": {
+    "github_api": "Forbidden (lecture commentaires)",
+    "supabase_direct": "CONNECT proxy HTTP 403 ; aucun verdict RLS déduit",
+    "connecteur_supabase_expose": false
+  }
+}
