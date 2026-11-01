@@ -50,8 +50,8 @@ budgétaire ni permission changée.
   (`ventes_snapshots_requete_key`).
 - **Constat** : les trois ventes de SLAVA en production (dont Arnie, 22/10) datent d'avant l'installation du
   journal ; la migration a choisi de ne pas les reprendre. Aucune vente depuis, dans tout le jeu. L'exemple cité
-  n'apparaîtra donc pas chez Angie ; la prochaine vente réelle, oui. Une reprise de ces trois reçus (même règle
-  vendeur = propriétaire) est possible mais n'a pas été préparée : à décider.
+  n'apparaîtra donc pas chez Angie ; la prochaine vente réelle, oui. **Décision de Fred (01/11, 17 h 53) : ces trois
+  ventes restent inchangées**, aucune reprise.
 
 ## 4. Centre multimodal de Port-Sainte-Marie
 
