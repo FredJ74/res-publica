@@ -1117,7 +1117,7 @@ const WORLD = {
           desc: "Le journal syndical de Montrouge.",
           persons: [{"name": "Rédacteur Calame (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}],
           roomOverrides: {
-            accueil_tribune: { imageUrl: "images/montrouge/montrouge-lci-accueil.jpg" },
+            accueil_tribune: { imageUrl: "images/montrouge/montrouge-lci-accueil.jpg", excludeOrders: ['se_renseigner'] },
             // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : "Le Cheminot
             // Informe (LCI)" est un journal local DISTINCT de La Tribune de Republia (voir desc
             // ci-dessus, "journal syndical de Montrouge") -- ces deux ordres n'ont de sens qu'aupres
