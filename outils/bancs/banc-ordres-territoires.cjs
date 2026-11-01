@@ -27,8 +27,8 @@ test('toutes les pieces declarees des douze villes gardent leurs ordres, couts, 
     const local=cite.buildingContext?.[id];
     for(const [pieceId,piece] of Object.entries({...b.rooms,...local?.roomsExtra})){
      const surcharge=local?.roomOverrides?.[pieceId];
-     const historique=[...(piece.orders||[]),...(local?.orders||[]),...(surcharge?.orders||[])]
-       .filter(o=>!(surcharge?.excludeOrders||[]).includes(o.fn));
+     const historique=[...(piece.orders||[]),...(local?.orders||[])]
+       .filter(o=>!(surcharge?.excludeOrders||[]).includes(o.fn)).concat(surcharge?.orders||[]);
      const actuel=ordresDeclaresDeLaPiece(piece,local,pieceId);
      if(JSON.stringify(actuel)!==JSON.stringify(historique))throw Error('Divergence '+pays+'/'+ville+'/'+id+'/'+pieceId);
      for(const o of actuel){
@@ -45,6 +45,11 @@ test('toutes les pieces declarees des douze villes gardent leurs ordres, couts, 
  })()`,ctx);
  assert.ok(resultat.pieces>100);assert.ok(resultat.ordres>100);
  console.log('Conservation : '+JSON.stringify(resultat));
+});
+test('une surcharge remplace un ordre herite sans etre exclue elle-meme',()=>{
+ const ctx=contexte();const piece={orders:[{fn:'acheter',cost:1},{fn:'autre'}]};
+ const local={roomOverrides:{p:{excludeOrders:['acheter'],orders:[{fn:'acheter',cost:2}]}}};
+ assert.deepEqual(JSON.parse(JSON.stringify(ctx.ordresDeclaresDeLaPiece(piece,local,'p'))),[{fn:'autre'},{fn:'acheter',cost:2}]);
 });
 test('ajout et exclusion locaux ne contaminent ni une autre piece ni le gabarit',()=>{
  const ctx=contexte();const piece={orders:[{fn:'commun',pa:2,successRate:37}]};

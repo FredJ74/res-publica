@@ -9,7 +9,7 @@ if(!noeud)throw Error('referentiel_surfaces_absent');vm.runInContext(pnj.slice(n
 const lignes=vm.runInContext(`Object.entries(WORLD).flatMap(([pays,villes])=>Object.entries(villes).flatMap(([ville,v])=>(v.buildings||[]).filter(id=>id.startsWith('terrain-a-batir')).map(id=>{
  const b=BUILDINGS[id],pieceId=Object.keys(b?.rooms||{})[0],piece=b?.rooms?.[pieceId];
  const ordre=ordresDeclaresDeLaPiece(piece||{},v.buildingContext?.[id],pieceId).find(o=>o.fn==='acheter_terrain');
- const surface=SURFACE_TERRAINS[id],prix=ordre?.cost;
+ const surface=SURFACE_TERRAINS[pays+'|'+ville+'|'+id]??SURFACE_TERRAINS[id],prix=ordre?.cost; // cle portee d'abord
  return {pays,ville,id,surface:typeof surface==='number'&&Number.isFinite(surface)&&surface>0?surface:null,
  prix:typeof prix==='number'&&Number.isSafeInteger(prix)&&prix>=0?prix:null};
 }))).sort((a,b)=>[a.pays,a.ville,a.id].join('/').localeCompare([b.pays,b.ville,b.id].join('/')))`,c);

@@ -162,6 +162,10 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'produire_arme') { doProduireArme(); return; }
   if (fn === 'racheter_entreprise') { doRachatEntreprise(); return; }
   if (fn === 'recolter_matiere') { doRecolterMatiere(pa, cost); return; }
+  // Jardins ouvriers de Montrouge (01/11/2026) : plateau-logements-montrouge.js.
+  if (fn === 'travailler_jardins') { doTravaillerJardins(); return; }
+  if (fn === 'laisser_legumes_jardins') { doEchangeLegumesJardins('laisser'); return; }
+  if (fn === 'prendre_legumes_jardins') { doEchangeLegumesJardins('prendre'); return; }
   if (fn === 'deposer_demande_permis') { doDeposerDemandePermis(pa, cost); return; }
   if (fn === 'corrompre_fonctionnaire_permis') { doCorrompreFonctionnairePermis(pa, cost); return; }
   if (fn === 'traiter_demandes_permis') { doTraiterDemandesPermis(pa, cost); return; }
@@ -205,6 +209,7 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
   if (fn === 'consulter_budget_club') { doConsulterBudgetClub(); return; }
   if (fn === 'gerer_salaires_club') { doGererSalairesClub(); return; }
   if (fn === 'organiser_manifestation') { doOrganiserManifestation(); return; }
+  if (fn === 'organiser_manifestation_spontanee') { ouvrirManifestationSpontanee(); return; }
   if (fn === 'organiser_boycott') { doOrganiserBoycott(pa, cost); return; }
   if (fn === 'transfert_clinique_privee') { doTransfertCliniquePrivee(pa, cost); return; }
   if (fn === 'centre_anti_poison') { doCentreAntiPoison(pa); return; }

@@ -711,7 +711,7 @@ const RUE_CENTRALE_NOEUDS = {
       image: 'images/montrouge/montrouge-rue-loge-eglise.jpg',
       zones: [
         { xPct: [0, 22],   nom: 'Loge maçonnique de Montrouge', type: 'batiment', buildingId: 'loge-maconnique' },
-        { xPct: [55, 100], nom: 'Église', type: 'batiment', buildingId: 'eglise-montrouge' }
+        { xPct: [55, 100], nom: 'Église Progressiste de Montrouge', type: 'batiment', buildingId: 'eglise-montrouge' }
       ],
       liens: { arriere: 'montrouge-vue-8', toutDroit: 'montrouge-vue-10' },
       flechesStyle: {
@@ -1478,9 +1478,8 @@ function entrerDansBatimentRue(buildingId, nom) {
 // ailleurs, sur un vrai buildingId independant, aucun etat immobilier n'est duplique ni partage
 // entre les 6 terrains. Liste des terrains ET superficies issues de TERRAINS_PAR_VILLE.ville_b /
 // SURFACE_TERRAINS (plateau-justice-economie.js / plateau-pnj.js), sources uniques de verite,
-// jamais dupliquees ici. Le lot 6 n'a volontairement aucune entree dans SURFACE_TERRAINS (sa
-// superficie n'a jamais ete officiellement fixee) : son onglet affiche donc juste "Lot 6", sans
-// "m²" invente.
+// jamais dupliquees ici. Le lot 6 a recu sa superficie le 01/11/2026 (2100 m², decision de Fred) ;
+// un terrain sans entree dans SURFACE_TERRAINS afficherait juste "Lot N", sans "m²" invente.
 function ouvrirTerrainsMontrouge() {
   const ids = (typeof TERRAINS_PAR_VILLE !== 'undefined') ? TERRAINS_PAR_VILLE.ville_b : [];
 
@@ -1500,7 +1499,7 @@ function ouvrirTerrainsMontrouge() {
 
   document.getElementById('pieces-tabs').innerHTML = ids.map(id => {
     const numero = id.split('-').pop();
-    const surface = (typeof SURFACE_TERRAINS !== 'undefined') ? SURFACE_TERRAINS[id] : null;
+    const surface = (typeof SURFACE_TERRAINS !== 'undefined') ? (SURFACE_TERRAINS['republic|ville_b|' + id] ?? SURFACE_TERRAINS[id]) : null;
     const label = 'Lot ' + numero + (surface ? ' — ' + surface.toLocaleString('fr-FR') + ' m²' : '');
     return '<div class="piece-tab" onclick="enterBuilding(\'' + id + '\')">' + label + '</div>';
   }).join('');

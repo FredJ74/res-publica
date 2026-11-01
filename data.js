@@ -177,8 +177,11 @@ function villesDe(pays) {
 function ordresDeclaresDeLaPiece(piece, contexte, pieceId) {
   const surcharge = contexte?.roomOverrides?.[pieceId];
   const exclus = surcharge?.excludeOrders || [];
-  return [].concat(piece?.orders || [], contexte?.orders || [], surcharge?.orders || [])
-    .filter(ordre => ordre && !exclus.includes(ordre.fn));
+  // L'exclusion porte sur les ordres herites (gabarit, batiment), jamais sur ceux que la surcharge
+  // ajoute elle-meme : une piece peut ainsi remplacer un ordre (01/11/2026, lot 6 de Montrouge).
+  return [].concat(piece?.orders || [], contexte?.orders || [])
+    .filter(ordre => ordre && !exclus.includes(ordre.fn))
+    .concat((surcharge?.orders || []).filter(Boolean));
 }
 
 // Rééquilibrage (bêta) : la richesse et la puissance statistique ne progressent plus
@@ -857,12 +860,24 @@ const WORLD = {
           // batiment partage -- uniquement imageUrl, aucune mecanique de location/presse/economie
           // touchee, aucun PNJ ajoute/modifie.
           roomOverrides: {
-            hall: { imageUrl: "images/port-sainte-marie-centre-affaires-accueil.webp" },
+            // 1er novembre 2026 (decision de Fred) : le trio de Luthecia du gabarit partage
+            // (Gretta, Moshe, Harry) ne doit pas apparaitre a PSM. Une seule hotesse, propre a PSM.
+            hall: {
+              imageUrl: "images/port-sainte-marie-centre-affaires-accueil.webp",
+              persons: [
+                {name:'Edith Legall (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse'}
+              ]
+            },
             bureau_prestige: { imageUrl: "images/port-sainte-marie-centre-affaires-bureau-prestige.webp" },
             bureau_standard: { imageUrl: "images/port-sainte-marie-centre-affaires-bureau-standard.webp" },
             open_space:      { imageUrl: "images/port-sainte-marie-centre-affaires-open-space.webp" },
             tribune_republia: {
               imageUrl: "images/port-sainte-marie-centre-affaires-tribune-republia.webp",
+              // 1er novembre 2026 (decision de Fred) : un journaliste propre a chaque ville, a la
+              // place du « Correspondant Local » generique du gabarit partage.
+              persons: [
+                {name:'Annie Houininon (PNJ)', role:'Journaliste — correspondant de La Tribune de Républia', rel:'neutral', job:'journaliste'}
+              ],
               // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : additif au
               // template partage BUILDINGS['centre-affaires'].rooms.tribune_republia (produire_fuite/
               // interview, inchanges) -- scope Republic uniquement (WORLD.republic.ville_a),
@@ -1114,7 +1129,7 @@ const WORLD = {
           desc: "Le journal syndical de Montrouge.",
           persons: [{"name": "Rédacteur Calame (PNJ)", "role": "Rédacteur en chef", "rel": "neutral", "job": "journaliste"}],
           roomOverrides: {
-            accueil_tribune: { imageUrl: "images/montrouge/montrouge-lci-accueil.jpg" },
+            accueil_tribune: { imageUrl: "images/montrouge/montrouge-lci-accueil.jpg", excludeOrders: ['se_renseigner'] },
             // article/etouffer exclus (chantier "lobbying presse", 4 septembre 2026) : "Le Cheminot
             // Informe (LCI)" est un journal local DISTINCT de La Tribune de Republia (voir desc
             // ci-dessus, "journal syndical de Montrouge") -- ces deux ordres n'ont de sens qu'aupres
@@ -1172,7 +1187,9 @@ const WORLD = {
         // (nom uniquement), aucune mecanique/PNJ/desc ajoutee pour ce lot. Les buildingId
         // techniques ne sont pas touches.
         'hotel-mineur':                 { name: "Hôtel de la Victoire" },
-        'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge", roomOverrides: { magasin: { imageUrl: "images/montrouge/montrouge-armurerie-interieur.jpg" } } },
+        // Marche noir (explosifs + poison local) dans toute la Republia (decision de Fred, 01/11/2026).
+        'armurerie':                    { name: "Armurerie-Quincaillerie de Montrouge", roomOverrides: { magasin: { imageUrl: "images/montrouge/montrouge-armurerie-interieur.jpg" } },
+          orders: [{fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local, sous le comptoir de la quincaillerie. Rien de tout cela n\'est enregistré.'}] },
         'commissariat-local':           { name: "Commissariat de Montrouge",
           // Bureau du commissaire (29/10/2026) : ordres du gabarit commun ; aucun PNJ tant qu'il n'a pas de profil de dialogue.
           roomOverrides: { bureau_commissaire: { desc: "Le bureau du commissaire de Montrouge, en tension permanente avec le syndicat local." } } },
@@ -1180,7 +1197,16 @@ const WORLD = {
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },
         'dispensaire-public-v':         { name: "Hôpital de Montrouge", persons: [{name:'Agnès Thésie (PNJ)', role:'Infirmière', rel:'neutral', job:'infirmier'}] },
-        'centre-commercial':            { name: "Centre commercial de Montrouge", roomOverrides: { hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg" } } },
+        'centre-commercial': {
+          name: "Centre commercial de Montrouge",
+          roomOverrides: {
+            hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg" },
+            vitrine_principale: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-grand.jpg" },
+            boutique_milieu: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-moyen.jpg" },
+            arriere_boutique: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-petit.jpg" },
+            cave_reserve: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-tres-petit.jpg" }
+          }
+        },
         // Le BNE de Montrouge est une annexe du Centre d'Affaires, sur le meme modele que
         // PSM (ville_a.buildingContext['centre-affaires'].roomsExtra.bureau_emploi_annexe) :
         // memes 3 ordres generiques (aucune mecanique/PNJ invente), image propre a Montrouge.
@@ -1208,10 +1234,11 @@ const WORLD = {
             // la seule ville a ignorer leur metier.
             hall: {
               imageUrl: "images/montrouge/montrouge-centre-affaires-accueil.jpg",
+              // 1er novembre 2026 (decision de Fred) : le trio de Luthecia (Gretta, Moshe, Harry)
+              // ne doit pas apparaitre a Montrouge -- aucune connexion entre les villes. Une
+              // seule hotesse, propre a Montrouge.
               persons: [
-                {name:'Gretta Délieu (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse', photoUrl:'images/hall-centre-affaires-luthecia.webp', photoPos:'38% 45%'},
-                {name:'Moshe Maychan (PNJ)', role:'Assassin', rel:'neutral', job:'criminel'},
-                {name:'Harry Cover (PNJ)', role:'Détective privé', rel:'neutral', job:'inspecteur'}
+                {name:'Jeanne Terril (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse'}
               ]
             },
             bureau_prestige: { imageUrl: "images/montrouge/montrouge-centre-affaires-grand-bureau.jpg" },
@@ -1222,6 +1249,11 @@ const WORLD = {
             // et unique dans tout le depot (seul le template generique le definit).
             tribune_republia: {
               imageUrl: "images/montrouge/tribune-redaction.jpg",
+              // 1er novembre 2026 (decision de Fred) : un journaliste propre a chaque ville, a la
+              // place du « Correspondant Local » generique du gabarit partage.
+              persons: [
+                {name:'Arthur Lutte (PNJ)', role:'Journaliste — correspondant de La Tribune de Républia', rel:'neutral', job:'journaliste'}
+              ],
               // Petites annonces (chantier "La Tribune de Republia", 31 aout 2026) : meme ajout
               // additif que PSM ci-dessus (WORLD.republic.ville_b), meme raison.
               // article/etouffer (chantier "lobbying presse", 4 septembre 2026) : voir commentaire
@@ -1390,7 +1422,12 @@ const WORLD = {
             reserve_arriere: { imageUrl: "images/montrouge/montrouge-centre-artisanal-box-petit.jpg" }
           }
         },
-        'terrain-a-batir-6':            { name: "Terrains à vendre" }
+        // Lot 6 de Montrouge : superficie et prix decides par Fred le 01/11/2026 (2100 m², 25 200 FR,
+        // regle des 12 FR/m²). Surcharge locale : le gabarit 'terrain-a-batir-6', partage avec les
+        // capitales des autres empires, garde son prix (aucun changement hors Republia).
+        'terrain-a-batir-6':            { name: "Terrains à vendre",
+          roomOverrides: { terrain: { desc: "Terrain en friche (2100 m²).", excludeOrders: ['acheter_terrain'],
+            orders: [{fn:'acheter_terrain', label:'Acheter ce terrain (2100 m² — 25 200 FR)', pa:2, cost:25200, type:'legal', icon:'ti-home-plus', successRate:100}] } } }
       }
     },
     caserne: {
@@ -3960,7 +3997,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-criminels-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-criminels-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_maires: {
         name: "Salle des Maires de Port-Sainte-Marie",
@@ -3969,7 +4008,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-maires-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-maires-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_personnalites: {
         name: "Salle des Personnalites Mariannaises",
@@ -3978,7 +4019,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-personnalites-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-personnalites-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_entrepreneurs: {
         name: "Salle des Grands Entrepreneurs Mariannais",
@@ -3987,7 +4030,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-entrepreneurs-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-entrepreneurs-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_organisations: {
         name: "Salle des Organisations Mariannaises",
@@ -3996,7 +4041,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-organisations-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-organisations-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_plumes: {
         name: "Salle des Plumes Mariannaises",
@@ -4017,7 +4064,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-honneur-militaire-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-honneur-militaire-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       salle_unions: {
         name: "Salle des Unions Celebres",
@@ -4026,7 +4075,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-unions-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-unions-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       },
       // salle_dynasties retiree du parcours (commit b202acd, 30 aout 2026, decision de game
       // design de Fred) : le theme Le Gall/Le Roux est deja suffisamment present ailleurs.
@@ -4037,7 +4088,9 @@ const BUILDINGS = {
         imageUrl: "images/salle-scandales-musee-psm.webp",
         audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/port-sainte-marie/salle-scandales-musee-psm-audio.mp3",
         persons: [ {name:'Marcel Kermeur (PNJ)', role:'PNJ - Guide benevole du musee', rel:'neutral', job:'guide', photoUrl:'images/marcel-kermeur-guide-musee.webp', photoPos:'50% 25%'} ],
-        orders: []
+        orders: [
+          {fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}
+        ]
       }
     }
   },
@@ -4483,7 +4536,12 @@ const BUILDINGS = {
           {fn:'consulter_carte_commerce', label:'Petit-déjeuner', pa:1, cost:0, type:'legal', icon:'ti-coffee', successRate:100, desc:'Voir l\'offre de petit-déjeuner et commander.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
-          {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'}
+          {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
+          // Decision de Fred (01/11/2026) : vie sociale et renseignement, comme a La Republia.
+          {fn:'ecouter_rumeurs', label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
+          {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
+          {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'}
         ]
       },
       chambre_port: {
@@ -4493,7 +4551,9 @@ const BUILDINGS = {
         imageUrl: "images/hotel-du-port-chambre.webp",
         persons: [],
         orders: [
-          {fn:'dormir_chambre', label:'Dormir',       pa:0, cost:0,  type:'legal', icon:'ti-moon',  successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'}
+          {fn:'dormir_chambre', label:'Dormir',       pa:0, cost:0,  type:'legal', icon:'ti-moon',  successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'},
+          // Decision de Fred (01/11/2026) : seul luxe de province, 50 FR (150 FR a La Republia).
+          {fn:'service_etage',  label:'Faire appel au service d\'etage', pa:0, cost:50, type:'legal', icon:'ti-soup', successRate:100, desc:'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.'}
         ]
       }
     }
@@ -4631,7 +4691,12 @@ const BUILDINGS = {
           {fn:'consulter_carte_commerce', label:'Petit-déjeuner', pa:1, cost:0, type:'legal', icon:'ti-coffee', successRate:100, desc:'Voir l\'offre de petit-déjeuner et commander.'},
           {fn:'gerer_commerce', label:'Gérer mon commerce', pa:0, cost:0, type:'legal', icon:'ti-settings', successRate:100, desc:'Réservé au propriétaire : coûts de revient, fourchette de prix autorisée, ajustement.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des matières au commerce', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les matières premières de votre inventaire à ce commerce.'},
-          {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'}
+          {fn:'reserver_chambre_hotel', label:'Réserver une chambre d\'hôtel', pa:0, cost:60, type:'legal', icon:'ti-key', successRate:100, desc:'Bonus de +2 PA et +3 Moral au prochain Dormir passe dans cette chambre.'},
+          // Decision de Fred (01/11/2026) : vie sociale et renseignement, comme a La Republia.
+          {fn:'ecouter_rumeurs', label:'Ecouter les tables',  pa:0, cost:0,   type:'grey',   icon:'ti-ear',      successRate:95,  desc:'Revele une rumeur vraie (action recente tracee) ou, a defaut, une information generee selon le contexte.'},
+          {fn:'lancer_rumeur_cible', label:'Lancer une rumeur', pa:1, cost:0, type:'grey', icon:'ti-messages', successRate:75, desc:'Rediger une rumeur visant un PJ, une organisation, un local, un gouvernement ou un pays. Succes (75%) : effet selon la cible. Echec : retour de bâton limite + risque de detection.'},
+          {fn:'recruter_informateur_pnj', label:'Recruter un informateur', pa:1, cost:150, type:'grey', icon:'ti-user-plus', successRate:100, desc:'1 PA, 150 FR puis 150 FR/jour. Un PNJ (PER 12-18) rejoint votre groupe en permanence tant que vous le payez : sa PER s\'ajoute a celle du groupe pour les recherches, enquetes et localisations.'},
+          {fn:'offrir_tournee', label:'Offrir à boire', pa:1, cost:0, type:'legal', icon:'ti-glass-cocktail', successRate:100, desc:'Invitez un ou plusieurs PJ présents. Chacun accepte ou refuse. Vous buvez aussi : 1 PA par ordre, 25 FR par verre servi. Avec des acceptants : +5 Santé, +2 INF, +2 ENT une seule fois par participant. Sans acceptant : vous seul buvez et perdez 5 Moral.'}
         ]
       },
       // Salle ajoutee le 2026-08-16 pour aligner l'Hotel de la Victoire sur l'architecture
@@ -4645,7 +4710,9 @@ const BUILDINGS = {
         imageUrl: "images/montrouge/montrouge-hotel-victoire-chambre.jpg",
         persons: [],
         orders: [
-          {fn:'dormir_chambre', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'}
+          {fn:'dormir_chambre', label:'Dormir', pa:0, cost:0, type:'legal', icon:'ti-moon', successRate:100, desc:'Necessite une chambre reservee a l\'accueil pour beneficier du bonus.'},
+          // Decision de Fred (01/11/2026) : seul luxe de province, 50 FR (150 FR a La Republia).
+          {fn:'service_etage',  label:'Faire appel au service d\'etage', pa:0, cost:50, type:'legal', icon:'ti-soup', successRate:100, desc:'Dejeuner servi en chambre. +10 Sante, +1 Moral immediats. +1 PA au prochain Dormir.'}
         ]
       }
     }
@@ -4666,9 +4733,14 @@ const BUILDINGS = {
         desc: "Guichet unique. Files d'attente raisonnables.",
         imageUrl: "https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?w=1200&q=80",
         persons: [{name:'Guichetier (PNJ)', role:'Employe bancaire', rel:'neutral', job:'banquier'}],
+        // Decision de Fred (01/11/2026) : les banques locales de province sont des guichets de la
+        // Banque Nationale, memes procedures (compte, placements, pret, virements) ; seule la Banque
+        // privee Helvetia garde un fonctionnement unique. Le coffre privatif reste a Luthecia.
         orders: [
-          {fn:'gerer_finances', label:'Gerer mon compte', pa:0, cost:0,   type:'legal', icon:'ti-chart-bar',   successRate:100},
-          {fn:'emprunter',      label:'Emprunter',        pa:1, cost:0,   type:'legal', icon:'ti-credit-card', successRate:65}
+          {fn:'gerer_finances', label:'Gérer mon compte / mes placements', pa:0, cost:0, type:'legal', icon:'ti-chart-bar', successRate:100, desc:'Solde, dépôts, retraits, placements (min. 500 FR), échéances et emprunts dans un seul écran.'},
+          {fn:'emprunter',      label:'Emprunter',           pa:1, cost:0,    type:'legal', icon:'ti-credit-card', successRate:70,  desc:'Contracter un pret. Taux selon dossier.'},
+          {fn:'virement_joueur', label:'Faire un virement', pa:1, cost:0, type:'legal', icon:'ti-arrows-right-left', successRate:100, desc:"Virer de l'argent de votre compte vers celui d'un autre joueur, en une fois."},
+          {fn:'virement_automatique', label:'Mettre en place un virement automatique', pa:1, cost:0, type:'legal', icon:'ti-repeat', successRate:100, desc:"Verser chaque jour ou chaque semaine une somme à un autre joueur (un salaire, par exemple). Il s'arrête à tout moment depuis votre fiche."}
         ]
       }
     }
@@ -4691,6 +4763,9 @@ const BUILDINGS = {
         persons: [{name:'Infirmiere (PNJ)', role:'Soignante', rel:'neutral', job:'infirmier'}],
         orders: [
           {fn:'soin_public', label:'Soin standard', pa:0, cost:25, type:'legal', icon:'ti-bandage', successRate:100, desc:'+10 Sante, +1 PA immediat. 1 fois par jour (commun aux 3 dispensaires publics de Republia). Consomme 1 desinfectant du stock local.'},
+          // Decision de Fred (01/11/2026, audit PSM/Montrouge) : memes soins qu'au dispensaire de Luthecia.
+          {fn:'centre_anti_poison', label:'Centre anti-poison', pa:1, cost:60, type:'legal', icon:'ti-vaccine', successRate:65, desc:'Guerit un empoisonnement en cours. Limite a 2 tentatives par jour.'},
+          {fn:'transfert_clinique_privee', label:'Être transféré en clinique privée', pa:0, cost:1000, type:'legal', icon:'ti-ambulance', successRate:100, desc:'Meilleure prise en charge, convalescence plus rapide. 1000 FR.'},
           {fn:'vendre_ressource_medicale', label:'Fournir des ressources médicales', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre au dispensaire, depuis votre inventaire, du desinfectant.'}
         ]
       },
@@ -4849,6 +4924,8 @@ const BUILDINGS = {
         persons: [],
         orders: [
           {fn:'archives',       label:'Consulter les archives', pa:1, cost:0,   type:'legal',   icon:'ti-archive', successRate:100},
+          // Decision de Fred (01/11/2026) : la falsification se pratique dans toute la Republia.
+          {fn:'falsifier_document', label:'Falsifier un document', pa:3, cost:300, type:'illegal', icon:'ti-file-x', successRate:45, desc:'Liste : fausse identite, faux casier vierge, faux permis construire, faux contrat. Cree un objet en inventaire.'},
           {fn:'avocat_dossiers', label:'Dossiers de mes clients', pa:0, cost:0, type:'legal', icon:'ti-folder-open', successRate:100, desc:'Reserve a l\'avocat dont la defense a ete acceptee. Le dossier complet de l\'affaire, et la citation de temoins jusqu\'a l\'ouverture de l\'audience.'},
           {fn:'avocat_barreau', label:'Mon inscription au barreau', pa:0, cost:0, type:'legal', icon:'ti-briefcase', successRate:100, desc:'Publier votre tarification -- champ libre : un prix, « gratuit », « selon affaire », « a negocier ». C\'est elle qui vous fait apparaitre dans la liste des avocats. Et repondre aux defenses qu\'on vous propose.'},
           {fn:'greffe_affaires', label:'Affaires en cours', pa:0, cost:0, type:'legal', icon:'ti-folders', successRate:100, desc:'Le registre public : qui est poursuivi, pour quelle categorie d\'infraction, ou en est la procedure, et quels temoins sont cites. Le contenu des dossiers n\'est pas public.'},
@@ -4959,6 +5036,8 @@ const BUILDINGS = {
         orders: [
           {fn:'produire_commerce', label:'Produire les articles du march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-tools-kitchen-2', successRate:100, desc:'Produire les articles en vente au march\u00e9 (consomme les mati\u00e8res en stock, r\u00e9mun\u00e9r\u00e9 en FR).'},
           {fn:'faire_achats_marche', label:'Faire des achats', pa:0, cost:0, type:'legal', icon:'ti-shopping-bag', successRate:100, desc:'Nourriture \u00e0 emporter, souvenir local, cartes postales.'},
+          // Pouls populaire (01/11/2026) : ordre du socle commun, deja present a Luthecia et Montrouge.
+          {fn:'pouls_populaire', label:'Prendre le pouls', pa:0, cost:0, type:'legal', icon:'ti-ear', successRate:100, desc:'Sondage sur l\'election locale en cours dans cette ville (maire/depute), a partir des votes reellement enregistres.'},
           {fn:'vendre_matiere_commerce', label:'Vendre des mati\u00e8res au march\u00e9', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre les mati\u00e8res premi\u00e8res de votre inventaire \u00e0 ce march\u00e9.'},
           // distribuer_tract retire (11 septembre 2026) : les tracts ordinaires ne changent plus la POP et
           // ne votent qu'aupres d'un PNJ electeur identifie (dialogue PNJ, distribuerTractElectoralPNJ).
@@ -5028,8 +5107,8 @@ const BUILDINGS = {
         // Raccordement au moteur armurerie generique existant (audit dedie du 24 aout 2026,
         // confirme : entreprise/caisse/stock/registre 'armurerie-republic-ville_a' deja isoles
         // par ville, aucune migration necessaire). 4 ordres standards, memes libelles/PA/couts
-        // que BUILDINGS['armurerie'] -- jamais marche_noir, reste specifique a Luthecia
-        // (buildingContext.armurerie.orders, capitale uniquement). Personnalisation d'affichage
+        // que BUILDINGS['armurerie'], plus l'ordre marche_noir (explosifs + poison local), etendu a
+        // toute la Republia par decision de Fred (01/11/2026). Personnalisation d'affichage
         // des armes (nom/image locale) geree par ARMES_OVERRIDES_VILLE/resoudreArmeAffichage,
         // plateau-actions-illegales-rumeurs.js -- jamais par un nouvel ordre ici.
         orders: [
@@ -5052,7 +5131,8 @@ const BUILDINGS = {
             pa:1, cost:0, type:'legal', icon:'ti-book', successRate:100,
             desc:'Acces libre : Commissaire, Juge. Sinon : soudoyer l\'armurier (30%, 100 FR, +/-5 INF et POP). Ventes des 6 derniers mois.'
           },
-          {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'}
+          {fn:'produire_arme', label:'Produire une arme', pa:0, cost:0, type:'legal', icon:'ti-hammer', successRate:100, desc:'Fabrication contre salaire fixe : 2 PA, 100 FR par arme. Necessite des matieres en stock et une caisse suffisante.'},
+          {fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local de Victor Legall, entre deux boîtes d\'appâts. Rien de tout cela n\'est enregistré.'}
         ]
       }
     }
@@ -5072,7 +5152,9 @@ const BUILDINGS = {
         desc: "Le vent souffle sur les remparts. Vue degagee sur la mer.",
         imageUrl: "images/port-sainte-marie-place.webp",
         persons: [],
-        orders: []
+        orders: [
+          {fn:'organiser_manifestation_spontanee', label:'Organiser une manifestation spontanée', pa:1, cost:0, type:'grey', icon:'ti-speakerphone', successRate:100, desc:'Réservé au chef d\'un groupe d\'au moins 10 PJ présents sur la place. Sans déclaration : en faveur ou hostile à un personnage, +1 ou -1 POP à la cible par participant, immédiatement. Les manifestants sont hors-la-loi pendant la manifestation (1 h au plus, fin dès que le chef quitte le groupe). Une seule par jour et par ville.'}
+        ]
       }
     }
   },
@@ -5260,10 +5342,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5282,10 +5365,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5304,10 +5388,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5326,10 +5411,11 @@ const BUILDINGS = {
         name: "Terrain",
         image: "\ud83c\udfd7\ufe0f",
         imageBg: "linear-gradient(135deg,#0a0a05,#12120a)",
-        desc: "Terrain de 1500m2 a Port-Sainte-Marie.",
+        desc: "Terrain de 1500 m² a Port-Sainte-Marie.",
+        imageUrl: "images/terrain-a-vendre-republic.webp",
         persons: [],
         orders: [
-          {fn:'acheter_terrain',  label:'Acheter ce terrain',       pa:2, cost:3500, type:'legal',   icon:'ti-home-plus', successRate:100},
+          {fn:'acheter_terrain', label:'Acheter ce terrain (1500 m² — 18 000 FR)', pa:2, cost:18000, type:'legal', icon:'ti-home-plus', successRate:100},
           {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100, type:'legal', icon:'ti-file-text', successRate:100, desc:'Toujours obtenu a terme -- seule la duree d\'instruction varie selon le palier choisi.'},
           {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Reduit de moitie la duree d\'instruction restante. Risque de decouverte.'}
         ]
@@ -5972,7 +6058,9 @@ const BUILDINGS = {
           // et s'en servir aurait donne ce pouvoir a quatre personnages qui ne l'ont pas.
           {name:'Pat Hounette', role:'Dealer', rel:'neutral', job:'criminel', contactOrga:'pat_hounette', photoUrl:'images/pat-hounette.webp', photoPos:'45% 30%'}
         ],
-        orders: []
+        orders: [
+          {fn:'organiser_manifestation_spontanee', label:'Organiser une manifestation spontanée', pa:1, cost:0, type:'grey', icon:'ti-speakerphone', successRate:100, desc:'Réservé au chef d\'un groupe d\'au moins 10 PJ présents sur la place. Sans déclaration : en faveur ou hostile à un personnage, +1 ou -1 POP à la cible par participant, immédiatement. Les manifestants sont hors-la-loi pendant la manifestation (1 h au plus, fin dès que le chef quitte le groupe). Une seule par jour et par ville.'}
+        ]
       }
     }
   },
@@ -6316,7 +6404,10 @@ const BUILDINGS = {
         desc: "Les installations de raffinage. Le pétrole brut livré y est transformé en carburant.",
         persons: [],
         orders: [
-          {fn:'produire_carburant', label:'Produire du carburant', pa:1, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 70 FR. Consomme 5 pétrole du stock de matières de l\'usine, produit 10 carburants.'}
+          {fn:'produire_carburant', label:'Produire du carburant', pa:1, cost:0, type:'legal', icon:'ti-gas-station', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 70 FR. Consomme 5 pétrole du stock de matières de l\'usine, produit 10 carburants.'},
+          // Audit PSM/Montrouge (01/11/2026) : sans cet ordre, aucune matiere ne pouvait entrer
+          // dans cette usine (vendre_matiere_a_usine accepte deja ses chaines cote serveur).
+          {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
         ]
       }
     }
@@ -6386,7 +6477,10 @@ const BUILDINGS = {
         desc: "Les alambics. Céréales et fruits livrés y sont distillés en alcool.",
         persons: [],
         orders: [
-          {fn:'produire_alcool', label:"Produire de l'alcool", pa:1, cost:0, type:'legal', icon:'ti-glass-full', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 55 FR. Consomme 5 céréales du stock de matières de l\'usine, produit 10 alcools.'}
+          {fn:'produire_alcool', label:"Produire de l'alcool", pa:1, cost:0, type:'legal', icon:'ti-glass-full', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 55 FR. Consomme 5 céréales du stock de matières de l\'usine, produit 10 alcools.'},
+          // Audit PSM/Montrouge (01/11/2026) : sans cet ordre, aucune matiere ne pouvait entrer
+          // dans cette usine (vendre_matiere_a_usine accepte deja ses chaines cote serveur).
+          {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
         ]
       },
       manufacture_tabac: {
@@ -6396,7 +6490,10 @@ const BUILDINGS = {
         desc: "Les lignes de manufacture. Les plantes livrées y sont transformées en tabac.",
         persons: [],
         orders: [
-          {fn:'produire_tabac', label:'Produire du tabac', pa:1, cost:0, type:'legal', icon:'ti-cigarette', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 66 FR. Consomme 5 plantes du stock de matières de l\'usine, produit 10 tabacs.'}
+          {fn:'produire_tabac', label:'Produire du tabac', pa:1, cost:0, type:'legal', icon:'ti-cigarette', successRate:100, desc:'Fabrication contre salaire fixe : 1 PA, 66 FR. Consomme 5 plantes du stock de matières de l\'usine, produit 10 tabacs.'},
+          // Audit PSM/Montrouge (01/11/2026) : sans cet ordre, aucune matiere ne pouvait entrer
+          // dans cette usine (vendre_matiere_a_usine accepte deja ses chaines cote serveur).
+          {fn:'vendre_matiere_usine', label:'Vendre des matières à l\'usine', pa:0, cost:0, type:'legal', icon:'ti-package-export', successRate:100, desc:'Vendre à l\'usine, depuis votre inventaire, les matières premières dont ses chaînes de production ont besoin.'}
         ]
       }
     }
@@ -6673,18 +6770,21 @@ const BUILDINGS = {
     bgColor: "#0c0a06",
     desc: "Musée consacré à l'histoire cheminote de Montrouge.",
     rooms: {
-      accueil: { name: "Accueil", desc: "L'accueil du musée, consacré à l'histoire cheminote de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-accueil.jpg", persons: [], orders: [] },
-      salle_terre: { name: "Salle 1 — La terre", desc: "Montrouge avant l'Homme : géologie du bassin, charbon, roche ferrugineuse, origine du nom de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-prehistoire.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-terre.mp3", persons: [], orders: [] },
-      salle_industrie: { name: "Salle 2 — L'industrie", desc: "Le fer et le charbon, matières premières de l'essor industriel de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-fer-charbon.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-fer-charbon.mp3", persons: [], orders: [] },
-      salle_rail: { name: "Salle 3 — Le rail", desc: "Le train et le rail : du fer et du charbon au chemin de fer, moteur du développement de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-train-rail.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-rail.mp3", persons: [], orders: [] },
-      salle_ville: { name: "Salle 4 — La ville et ses habitants", desc: "Urbanisation et vie ouvrière : cités ouvrières, quotidien des travailleurs, travail à l'usine.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-urbanisation.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-habitants.mp3", persons: [], orders: [] },
-      salle_luttes: { name: "Salle 5 — Les luttes", desc: "Montrouge en lutte : syndicalisme, grèves, solidarité ouvrière et conquêtes sociales.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-luttes.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-luttes.mp3", persons: [], orders: [] },
-      salle_loisirs: { name: "Salle 6 — Les loisirs", desc: "La détente des ouvriers : cafés, vie associative, et une large place donnée au football et à l'UCM.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-detente.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-loisirs.mp3", persons: [], orders: [] }
+      accueil: { name: "Accueil", desc: "L'accueil du musée, consacré à l'histoire cheminote de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-accueil.jpg",
+        // Elsa Montbaron, hotesse d'accueil (nom donne par Fred le 01/11/2026), portrait tire de l'image de l'accueil.
+        persons: [{name:'Elsa Montbaron (PNJ)', role:'PNJ - Accueil du musée', rel:'neutral', job:'hotesse', photoUrl:'images/montrouge/montrouge-musee-accueil.jpg', photoPos:'63% 52%'}], orders: [] },
+      salle_terre: { name: "Salle 1 — La terre", desc: "Montrouge avant l'Homme : géologie du bassin, charbon, roche ferrugineuse, origine du nom de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-prehistoire.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-terre.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] },
+      salle_industrie: { name: "Salle 2 — L'industrie", desc: "Le fer et le charbon, matières premières de l'essor industriel de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-fer-charbon.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-fer-charbon.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] },
+      salle_rail: { name: "Salle 3 — Le rail", desc: "Le train et le rail : du fer et du charbon au chemin de fer, moteur du développement de Montrouge.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-train-rail.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-rail.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] },
+      salle_ville: { name: "Salle 4 — La ville et ses habitants", desc: "Urbanisation et vie ouvrière : cités ouvrières, quotidien des travailleurs, travail à l'usine.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-urbanisation.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-habitants.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] },
+      salle_luttes: { name: "Salle 5 — Les luttes", desc: "Montrouge en lutte : syndicalisme, grèves, solidarité ouvrière et conquêtes sociales.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-luttes.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-luttes.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] },
+      salle_loisirs: { name: "Salle 6 — Les loisirs", desc: "La détente des ouvriers : cafés, vie associative, et une large place donnée au football et à l'UCM.", imageBg: "linear-gradient(135deg,#0c0a06,#14100a)", imageUrl: "images/montrouge/montrouge-musee-detente.jpg", audioUrl: "https://raw.githubusercontent.com/FredJ74/res-publica/main/audio/montrouge/montrouge-musee-loisirs.mp3", persons: [], orders: [{fn:'consulter_personnalites_musee', label:'Consulter les personnalités', pa:0, cost:0, type:'legal', icon:'ti-users', successRate:100, desc:'Voir les figures marquantes de cette salle.'}] }
     }
   },
   'eglise-montrouge': {
-    name: "Église",
-    shortName: "Église",
+    // Nom donne par Fred le 01/11/2026.
+    name: "Église Progressiste de Montrouge",
+    shortName: "Église Progressiste",
     cat: "Cultes",
     icon: "ti-cross",
     bgColor: "#0c0a06",
@@ -6711,7 +6811,7 @@ const BUILDINGS = {
     icon: "ti-train",
     bgColor: "#0c0c0e",
     desc: "La place centrale de Montrouge, dominee par la locomotive-monument.",
-    rooms: { place: { name: "Place du Rail", desc: "La locomotive-monument trone au centre de la place.", imageBg: "linear-gradient(135deg,#0c0c0e,#141418)", imageUrl: "images/montrouge/montrouge-place-du-rail.jpg", persons: [], orders: [] } }
+    rooms: { place: { name: "Place du Rail", desc: "La locomotive-monument trone au centre de la place.", imageBg: "linear-gradient(135deg,#0c0c0e,#141418)", imageUrl: "images/montrouge/montrouge-place-du-rail.jpg", persons: [], orders: [{fn:'organiser_manifestation_spontanee', label:'Organiser une manifestation spontanée', pa:1, cost:0, type:'grey', icon:'ti-speakerphone', successRate:100, desc:'Réservé au chef d\'un groupe d\'au moins 10 PJ présents sur la place. Sans déclaration : en faveur ou hostile à un personnage, +1 ou -1 POP à la cible par participant, immédiatement. Les manifestants sont hors-la-loi pendant la manifestation (1 h au plus, fin dès que le chef quitte le groupe). Une seule par jour et par ville.'}] } }
   },
   // Salle 1/Salle 2 ajoutees (17 aout 2026, implantation des images preparees) -- le Hall
   // existant (accueil/guichet) est conserve tel quel, roomId 'salle' inchange (verifie sans
@@ -6737,7 +6837,15 @@ const BUILDINGS = {
     icon: "ti-plant-2",
     bgColor: "#0a1008",
     desc: "Des parcelles cultivées par les ouvriers de Montrouge.",
-    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", imageUrl: "images/montrouge/montrouge-jardins-ouvriers-interieur.jpg", persons: [], orders: [] } }
+    rooms: { salle: { name: "Parcelles", desc: "Rangs de légumes et cabanons.", imageBg: "linear-gradient(135deg,#0a1008,#0e1810)", imageUrl: "images/montrouge/montrouge-jardins-ouvriers-interieur.jpg",
+      persons: [{name:'Marcel Demine (PNJ)', role:'Cheminot retraité, jardinier', rel:'neutral', job:'citoyen'}],
+      // Decision de Fred (01/11/2026, recette M-06) : 1 PA = 5 fruits et legumes, une fois par jour ;
+      // don volontaire dans une reserve reelle ou tout PJ present peut se servir. Tout par le serveur.
+      orders: [
+        {fn:'travailler_jardins', label:'Travailler aux jardins', pa:1, cost:0, type:'legal', icon:'ti-plant-2', successRate:100, desc:'Une journée de travail aux parcelles : 5 fruits et légumes pour vous. Une fois par jour.'},
+        {fn:'laisser_legumes_jardins', label:'Laisser des légumes', pa:0, cost:0, type:'legal', icon:'ti-heart-handshake', successRate:100, desc:'Laisser aux jardins la quantité que vous voulez de vos fruits et légumes, pour ceux qui en ont besoin.'},
+        {fn:'prendre_legumes_jardins', label:'Se servir dans la réserve', pa:0, cost:0, type:'legal', icon:'ti-basket', successRate:100, desc:'Prendre des fruits et légumes laissés par les jardiniers.'}
+      ] } }
   },
   'logements-montrouge': {
     name: "Logements",
@@ -8683,14 +8791,29 @@ const OBJETS_SPECIAUX = [
 // SCANDALES_PREDEFINIS : deplacee le 27/10/2026 dans la table serveur scandales_predefinis
 // (tirage de la nuit par minuit_scandale).
 
-// #135 : meme gabarit de commandes pour les cinq parcelles de La Chataigneraie.
+// #135 : meme gabarit de commandes pour toutes les parcelles a batir.
 // Les prix/labels d'achat, superficies, descriptions et images restent propres a chaque parcelle.
+// Etendu le 01/11/2026 (audit des batiments de Montrouge et PSM par rapport au socle de
+// Luthecia) : les quatre lots de Port-Sainte-Marie n'avaient que trois ordres anciens (achat,
+// permis depose sur le terrain, corruption du fonctionnaire) et ignoraient tout le parcours
+// immobilier ; les six lots de Montrouge affichaient encore « Accelerer le chantier », bouton mort
+// (doCorrompreChantier refuse toujours dans les empires actuels). Une seule boucle, aucune liste
+// de parcelles recopiee : chaque gabarit 'terrain-a-batir*' recoit le meme parcours.
 {
   const modele = BUILDINGS['terrain-a-batir-4'].rooms.terrain.orders
     .filter(o => o.fn !== 'corrompre_chantier'); // Quatre pays non P2W : aucun raccourcissement.
-  for (let numero = 1; numero <= 5; numero++) {
-    const piece = BUILDINGS['terrain-a-batir-' + numero].rooms.terrain;
-    const achat = piece.orders.find(o => o.fn === 'acheter_terrain');
+  // « Corrompre un fonctionnaire » (terrain_permis_corrompre, serveur) n'avait de bouton que sur
+  // les lots de PSM : la recette du 29/10 l'attend sur toutes les parcelles. Il rejoint le gabarit
+  // apres l'acceleration du rendez-vous notarial, l'autre corruption admise du parcours.
+  const rangNotaire = modele.findIndex(o => o.fn === 'corrompre_rdv_notaire');
+  modele.splice(rangNotaire + 1, 0,
+    {fn:'corrompre_fonctionnaire_permis', label:'Corrompre un fonctionnaire (accélérer le permis)', pa:2, cost:800, type:'illegal', icon:'ti-coins', successRate:100, desc:'Réduit de moitié la durée d\'instruction restante du permis. Risque de découverte.'});
+  for (const id of Object.keys(BUILDINGS)) {
+    if (!id.startsWith('terrain-a-batir')) continue;
+    const pieces = BUILDINGS[id].rooms || {};
+    const piece = pieces[Object.keys(pieces)[0]];
+    const achat = piece && (piece.orders || []).find(o => o.fn === 'acheter_terrain');
+    if (!achat) continue;
     piece.orders = modele.map(o => ({...o, ...(o.fn === 'acheter_terrain' ? achat : {})}));
   }
 }

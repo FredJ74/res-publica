@@ -1406,7 +1406,7 @@ async function confirmerAchatArmeIllegal(armeId) {
   if (!arme) return;
   // Personnalisation d'affichage locale (complement Lot armurerie PSM, 24 aout 2026) : ce chemin
   // (marche noir) est atteignable depuis le meme modal choisir_arme que l'achat legal, y compris
-  // a PSM, independamment de l'ordre marche_noir (specifique a Luthecia, sans rapport). Meme
+  // a PSM, independamment de l'ordre marche_noir (explosifs + poison, sans rapport). Meme
   // principe que confirmerAchatArme() : uniquement pour l'objet pousse en inventaire (name/desc/
   // imageUrl) -- stock/prix/PA/legal/bonus/registre (absence d'inscription, deja le comportement
   // actuel) restent inchanges, utilisent toujours `arme` (generique).
@@ -3511,6 +3511,16 @@ const PRODUITS_MARCHE = {
     materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 8,
     typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
   },
+  // Carbonade-frites au marche de Montrouge (demande de Fred, 01/11/2026, recette M-02) : la
+  // specialite de la Brasserie des Voyageurs reste un plat servi a table (RECETTES_ALIMENTAIRES,
+  // type brasserie) ; le marche vend sa version a emporter, aliment du marche comme le
+  // casse-croute du cheminot ou le cornet de friture de PSM. Meme matieres que le plat.
+  carbonade_frites_marche: {
+    id: 'carbonade_frites_marche', label: 'Barquette de carbonade-frites', familleProduitMarche: 'aliment',
+    categorie: 'objet', image: 'images/montrouge/montrouge-plat-carbonade.jpg', icon: 'ti-bowl',
+    materiaux: { cereales: 1, viande: 1 }, pa: 1, portions: 6,
+    typesAutorises: ['marche'], paysAutorises: ['republic'], villesAutorisees: ['ville_b'], buildingsAutorises: ['marche']
+  },
   cornet_friture_psm: {
     id: 'cornet_friture_psm', label: 'Cornet de friture de poissons', familleProduitMarche: 'aliment',
     categorie: 'objet', image: 'images/port-sainte-marie-marche-friture.webp', icon: 'ti-fish',
@@ -4153,7 +4163,7 @@ const DOTATIONS_COMMERCE_PILOTE = {
       // Montrouge
       data.stockMatieres = { cereales: 10, viande: 10, textile: 10, bois: 10 };
       data.coutMoyenMatieres = { cereales: 3, viande: 5, textile: 5, bois: 5 };
-      data.carte = ['casse_croute_cheminot', 'casquette_montrouge', 'carte_montrouge_place_rail', 'carte_montrouge_touristique', 'carte_montrouge_musee_rail'];
+      data.carte = ['casse_croute_cheminot', 'casquette_montrouge', 'carte_montrouge_place_rail', 'carte_montrouge_touristique', 'carte_montrouge_musee_rail', 'carbonade_frites_marche'];
     } else {
       // Luthecia (capitale) -- comportement par defaut historique de cette cle
       // metal ajoute (chantier souvenirs Luthecia, 4 septembre 2026) : seule nouvelle matiere
@@ -5531,6 +5541,10 @@ const PRIX_RACHAT_COMMERCE = {
   'hotel-mineur': 80000,
   'cafe-tabac-cheminots-montrouge': 180000,
   'bar-des-pecheurs': 180000,
+  // PSM, decision de Fred (01/11/2026) : memes prix que les equivalents de Montrouge.
+  // Miroir serveur : migration 20261101010000.
+  'capitaine-sauvage': 120000,
+  'hotel-port': 80000,
   'hotel-republica': 380000
 };
 

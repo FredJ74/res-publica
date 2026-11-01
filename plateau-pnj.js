@@ -3993,13 +3993,21 @@ const SURFACE_TERRAINS = {
   'terrain-a-batir-4': 1850,
   'terrain-a-batir-5': 2750,
   // Lot 2D (19 aout 2026) -- 5 nouveaux terrains de Montrouge, prix a 12 FR/m² valide par Fred.
-  // Le lot 6 existant n'a volontairement AUCUNE entree ici (sa superficie n'a jamais ete
-  // officiellement fixee) : ne pas lui en ajouter une dans ce lot, cf. plateau-rue-centrale.js.
   'terrain-a-batir-montrouge-3': 1500,
   'terrain-a-batir-montrouge-7': 1800,
   'terrain-a-batir-montrouge-8': 2200,
   'terrain-a-batir-montrouge-9': 2500,
-  'terrain-a-batir-montrouge-12': 3000
+  'terrain-a-batir-montrouge-12': 3000,
+  // Audit PSM/Montrouge (01/11/2026), decisions de Fred : le lot 6 de Montrouge recoit enfin sa
+  // superficie (2100 m², 25 200 FR) ; les quatre lots de Port-Sainte-Marie gardent leurs 1500 m²
+  // deja annonces en jeu et passent a la regle des 12 FR/m² (18 000 FR au lieu de 3 500).
+  // Cle portee par pays et ville : l'identifiant 'terrain-a-batir-6' est partage avec les
+  // capitales des autres empires, qui ne changent pas.
+  'republic|ville_b|terrain-a-batir-6': 2100,
+  'terrain-a-batir-8': 1500,
+  'terrain-a-batir-9': 1500,
+  'terrain-a-batir-10': 1500,
+  'terrain-a-batir-11': 1500
 };
 const PRIX_AU_M2_TERRAIN = 12;
 

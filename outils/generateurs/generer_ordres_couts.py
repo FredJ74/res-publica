@@ -107,6 +107,7 @@ print(JSON.stringify(out));
 
 
 def executer_jsc(script):
+    # Hors macOS : repli Node par outils/moteur_javascript.py (shell-node.cjs fournit readFile/print).
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as f:
         f.write(script)
         chemin = f.name
