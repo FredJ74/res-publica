@@ -427,13 +427,13 @@ async function demanderNominationPoste(posteId, posteName, villeCible) {
 const DEMARCHES_ETAT_CIVIL_PAR_BATIMENT = {
   'mairie-capitale': [
     { fn:'acte_officiel', label:'Demander un acte officiel', pa:1, cost:50, icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.' },
-    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.' },
+    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.', bientot:'Bientôt disponible : la naturalisation ouvrira avec le voyage entre empires.' },
     { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
     { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
   ],
   'mairie': [
     { fn:'acte_officiel', label:'Demander un acte officiel', pa:1, cost:50, icon:'ti-file-certificate', successRate:100, desc:'Naissance, mariage, document administratif.' },
-    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.' },
+    { fn:'demander_naturalisation', label:'Demander la naturalisation', pa:2, cost:0, icon:'ti-passport', successRate:100, desc:'Deposer une demande de naturalisation vers un autre empire. Validee par le Ministre de l\'Interieur concerne.', bientot:'Bientôt disponible : la naturalisation ouvrira avec le voyage entre empires.' },
     { fn:'demander_mariage', label:'Demander en mariage', pa:1, cost:0, icon:'ti-heart', successRate:100, desc:'Envoyer une demande en mariage a un autre PJ. Necessitera une ceremonie a la mairie pour officialiser.' },
     { fn:'officialiser_mariage', label:'Officialiser un mariage', pa:2, cost:200, icon:'ti-heart-handshake', successRate:100, desc:'Celebrer le mariage. Les deux futurs epoux doivent etre presents.' }
   ]
@@ -455,6 +455,18 @@ function ouvrirEtatCivil() {
     const coutParts = [];
     if (d.cost) coutParts.push(d.cost.toLocaleString('fr-FR') + ' ' + cur);
     coutParts.push((d.pa || 0) + ' PA');
+    // `bientot` : meme drapeau declaratif que les ordres des salles (voir plus bas). Bouton visible
+    // et grise, infobulle explicative, et le clic n'appelle AUCUNE porte : ni doOrder, ni PA, ni FR.
+    if (d.bientot) {
+      const motif = (typeof d.bientot === 'string' ? d.bientot : 'Bientôt disponible.');
+      const motifAttr = motif.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+      const toast = JSON.stringify(motif).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+      html += '<button onclick="showToast(\'Bientôt disponible\', ' + toast + ', false)" title="' + motifAttr + '" style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.7rem 1rem;border:1px solid #4a3a20;background:transparent;color:#c0b090;cursor:not-allowed;opacity:.45;font-size:.85rem;text-align:left">' +
+        '<span><i class="ti ' + (d.icon || 'ti-file-certificate') + '" style="font-size:1rem;margin-right:.5rem"></i> ' + d.label + '</span>' +
+        '<span style="font-size:.75rem;color:#8a8060;white-space:nowrap">Bientôt disponible</span>' +
+      '</button>';
+      return;
+    }
     html += '<button onclick="doOrder(\'' + d.fn + '\',' + d.pa + ',' + d.cost + ",'" + safeLabel + "','" + safeDesc + "'," + rate + ')" style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.7rem 1rem;border:1px solid #4a3a20;background:transparent;color:#c0b090;cursor:pointer;font-size:.85rem;text-align:left">' +
       '<span><i class="ti ' + (d.icon || 'ti-file-certificate') + '" style="font-size:1rem;margin-right:.5rem"></i> ' + d.label + '</span>' +
       '<span style="font-size:.75rem;color:#8a8060;white-space:nowrap">' + coutParts.join(' · ') + '</span>' +

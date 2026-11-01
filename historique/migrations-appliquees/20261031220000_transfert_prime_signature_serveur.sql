@@ -1,3 +1,6 @@
+-- APPLIQUÉE EN PRODUCTION le 31/10/2026 (registre `transfert_prime_signature_serveur_20261031220000`,
+-- version 20261031211256, vérifiée par Fred le 01/11). Règle confirmée par Fred le 01/11 :
+-- GAME-DESIGN-FOOTBALL.md. Ne pas la rejouer.
 -- PRIME DE SIGNATURE D'UN TRANSFERT PAR LE SERVEUR (31/10/2026, suite de #295 / PR #300).
 --
 -- Avant : quand le joueur acceptait un transfert, `club_transfert_conclure` réglait le prix entre

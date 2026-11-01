@@ -921,7 +921,7 @@ const WORLD = {
         // arriere_boutique/cave_reserve) restent sur les visuels de la base partagee.
         'centre-commercial': {
           roomOverrides: {
-            hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.webp" },
+            hall: { imageUrl: "images/port-sainte-marie-centre-commercial-hall.webp", persons: [{name:'Cédric Legoff (PNJ)', role:'Agent de sécurité privée', rel:'neutral', job:'agent_securite'}] },
             vitrine_principale: { imageUrl: "images/port-sainte-marie-centre-commercial-local-grand.png" },
             boutique_milieu: { imageUrl: "images/port-sainte-marie-centre-commercial-local-moyen.png" },
             arriere_boutique: { imageUrl: "images/port-sainte-marie-centre-commercial-local-petit.png" },
@@ -1204,7 +1204,7 @@ const WORLD = {
         'centre-commercial': {
           name: "Centre commercial de Montrouge",
           roomOverrides: {
-            hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg" },
+            hall: { imageUrl: "images/montrouge/montrouge-centre-commercial-hall.jpg", persons: [{name:'Bastien Jacquemont (PNJ)', role:'Agent de sécurité privée', rel:'neutral', job:'agent_securite'}] },
             vitrine_principale: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-grand.jpg" },
             boutique_milieu: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-moyen.jpg" },
             arriere_boutique: { imageUrl: "images/montrouge/montrouge-centre-commercial-local-petit.jpg" },
@@ -2650,7 +2650,7 @@ const BUILDINGS = {
           // Aucune logique metier n'est fusionnee -- les trois handlers restent distincts et
           // conservent leurs couts (1, 2 et 3 PA), leurs conditions et leurs effets.
           {fn:'gestion_manifestations', label:'Gerer les manifestations',       pa:0, cost:0,    type:'legal',   icon:'ti-users-group',  successRate:100, requiresPost:'min_int', desc:'Traiter les demandes (1 PA), interdire (2 PA) ou reprimer une manifestation (3 PA).'},
-          {fn:'demandes_naturalisation', label:'Demandes de naturalisation', pa:0, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_int', desc:'Examiner les demandes de naturalisation en attente (delai 48h avant traitement possible).'},
+          {fn:'demandes_naturalisation', label:'Demandes de naturalisation', pa:0, cost:0, type:'legal', icon:'ti-passport', successRate:100, requiresPost:'min_int', bientot:'Bientôt disponible : les demandes de naturalisation arriveront avec le voyage entre empires.', desc:'Examiner les demandes de naturalisation en attente (delai 48h avant traitement possible).'},
           {fn:'gerer_couvre_feu',    label:'Instaurer un couvre-feu',     pa:2, cost:0, type:'legal', icon:'ti-moon', successRate:100, requiresPost:'min_int', desc:'20h-6h, 2 jours maximum. Degrade IS et POP du gouvernement tant qu\'il dure.'},
           {fn:'gerer_chef_douanes',   label:'Gérer le Chef des Douanes',  pa:1, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_int', desc:'Titulaire en fonction, candidatures reçues, nomination et révocation.'},
           // Ecran ARME le 15 septembre 2026. Le moteur (ouvrirModalFinancerMinInt /
@@ -6122,7 +6122,8 @@ const BUILDINGS = {
         orders: [
           {fn:'relations_bilaterales',            label:'Consulter les relations bilatérales', pa:0, cost:0,    type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'Etat des relations avec Al-Khalija.'},
           {fn:'organiser_reception_diplomatique',  label:'Organiser une réception diplomatique',pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Reserver la Salle de Reception commune.'},
-          {fn:'financer_oeuvre_culturelle',        label:'Financer une œuvre culturelle',        pa:1, cost:600,  type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'}
+          {fn:'financer_oeuvre_culturelle',        label:'Financer une œuvre culturelle',        pa:1, cost:600,  type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'},
+          {fn:'demander_transfert_detenu',          label:'Demander le transfert d\'un détenu',  pa:1, cost:0,    type:'legal', icon:'ti-lock-open', successRate:100, requiresPost:'ambassadeur_local', desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : le transfert des détenus ouvrira avec le voyage entre empires.'}
         ]
       },
       bureau_sovarka: {
@@ -6133,7 +6134,8 @@ const BUILDINGS = {
         orders: [
           {fn:'relations_bilaterales',            label:'Consulter les relations bilatérales', pa:0, cost:0,    type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'Etat des relations avec Sovarka.'},
           {fn:'organiser_reception_diplomatique',  label:'Organiser une réception diplomatique',pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Reserver la Salle de Reception commune.'},
-          {fn:'financer_oeuvre_culturelle',        label:'Financer une œuvre culturelle',        pa:1, cost:600,  type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'}
+          {fn:'financer_oeuvre_culturelle',        label:'Financer une œuvre culturelle',        pa:1, cost:600,  type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'},
+          {fn:'demander_transfert_detenu',          label:'Demander le transfert d\'un détenu',  pa:1, cost:0,    type:'legal', icon:'ti-lock-open', successRate:100, requiresPost:'ambassadeur_local', desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : le transfert des détenus ouvrira avec le voyage entre empires.'}
         ]
       },
       bureau_el_estado: {
@@ -6144,7 +6146,8 @@ const BUILDINGS = {
         orders: [
           {fn:'relations_bilaterales',            label:'Consulter les relations bilatérales', pa:0, cost:0,    type:'legal', icon:'ti-file-analytics', successRate:100, requiresPost:'ambassadeur_local', desc:'Etat des relations avec El Estado.'},
           {fn:'organiser_reception_diplomatique',  label:'Organiser une réception diplomatique',pa:2, cost:1200, type:'legal', icon:'ti-glass-champagne', successRate:100, requiresPost:'ambassadeur_local', desc:'Reserver la Salle de Reception commune.'},
-          {fn:'financer_oeuvre_culturelle',        label:'Financer une œuvre culturelle',        pa:1, cost:600,  type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'}
+          {fn:'financer_oeuvre_culturelle',        label:'Financer une œuvre culturelle',        pa:1, cost:600,  type:'legal', icon:'ti-palette', successRate:100, requiresPost:'ambassadeur_local', desc:'Soft power local.'},
+          {fn:'demander_transfert_detenu',          label:'Demander le transfert d\'un détenu',  pa:1, cost:0,    type:'legal', icon:'ti-lock-open', successRate:100, requiresPost:'ambassadeur_local', desc:'Demander au ministre des Affaires étrangères de votre pays le transfert d\'un ressortissant détenu ici vers la prison de sa ville de domiciliation.', bientot:'Bientôt disponible : le transfert des détenus ouvrira avec le voyage entre empires.'}
         ]
       }
     }

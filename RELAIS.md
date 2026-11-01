@@ -39,7 +39,15 @@ Branche `codex/certification-219-1021-20261101`, résolution Claude conservée, 
 
 ### Claude — clôture fonctionnelle de Luthécia, cinq anomalies (branche `claude/cloture-fonctionnelle-luthecia-20261101`, PR #327 vers `main`, CI 142/142 au SHA `dc06b42`, NE PAS FUSIONNER sans l'intégrateur)
 
-Issue de `main` `df67186`. **Corrigé** : interview de Jodie (un double clic sur Envoyer ne lance plus deux rédactions ; une réponse tardive n'écrase plus l'écran ; les réponses survivent à une réouverture). **Déjà conformes, preuves à l'appui** : caisses à l'accueil des bâtiments communaux (#275), fontaine de SLAVA sur place uniquement (serveur + écran), journal des ventes (#96 ; les trois ventes de SLAVA antérieures au 23/10 n'y figurent pas, reprise non préparée, à décider), multimodal de PSM (destinations nommées, plus d'ordre de Mireille). **F5** : non reproductible sur `main` ; dépendance #219/#318 inscrite comme test en attente. Aucune migration. Nouveaux bancs : `banc-jodie-interview-navigateur.cjs` (5/5, contre-épreuve), `banc-multimodal-psm-20261101.cjs` (4/4), `banc-position-f5-luthecia-20261101.cjs` (4/4 + 1 en attente). Rapport : `outils/audits/CLOTURE-FONCTIONNELLE-LUTHECIA-20261101.md`. Déploiement : écran seul (`plateau-communication.js`).
+Issue de `main` `df67186`. **Corrigé** : interview de Jodie (un double clic sur Envoyer ne lance plus deux rédactions ; une réponse tardive n'écrase plus l'écran ; les réponses survivent à une réouverture). **Déjà conformes, preuves à l'appui** : caisses à l'accueil des bâtiments communaux (#275), fontaine de SLAVA sur place uniquement (serveur + écran), journal des ventes (#96 ; les trois ventes de SLAVA antérieures au 23/10 n'y figurent pas et restent inchangées, décision de Fred du 01/11), multimodal de PSM (destinations nommées, plus d'ordre de Mireille). **F5** : non reproductible sur `main` ; dépendance #219/#318 inscrite comme test en attente. Aucune migration. Nouveaux bancs : `banc-jodie-interview-navigateur.cjs` (5/5, contre-épreuve), `banc-multimodal-psm-20261101.cjs` (4/4), `banc-position-f5-luthecia-20261101.cjs` (4/4 + 1 en attente). Rapport : `outils/audits/CLOTURE-FONCTIONNELLE-LUTHECIA-20261101.md`. Déploiement : écran seul (`plateau-communication.js`).
+
+### Claude — ambassades « Bientôt disponible » (branche `claude/ambassades-bientot-disponible-20261101`)
+
+Décision de Fred (01/11, 19 h 40) : ordres non raccordables visibles et grisés. Naturalisation (mairies, pop-up État civil qui sait désormais lire `bientot`), examen des naturalisations (ministre de l'Intérieur), nouveau « Demander le transfert d'un détenu » grisé dans les trois bureaux d'ambassadeur. Aucune migration, écran seul (`plateau-politique.js`, `data.js`). Banc `banc-ambassades-bientot-20261101.cjs` 4/4 (contre-épreuve 4 échecs). **À tester** : mairie → État civil → « Demander la naturalisation » grisé, un clic n'enlève ni PA ni FR.
+
+### Claude — fonds et murs des commerces (#66), à suivre
+
+Fred (01/11, 19 h 39) : reconstruire #66 depuis `main` (règles du 21/10, PR #71 périmée). Chantier suivant, branche à créer.
 
 ### PR #325 — quatre PNG des locaux commerciaux de Port-Sainte-Marie
 
@@ -68,15 +76,15 @@ Sept anciens circuits encore actifs corrigés (F5, camion, assemblée, libérati
 
 ### Migrations fusionnées, en attente d'application (ChatGPT)
 
-**Prises en charge par ChatGPT (Fred, 31/10)** : `20261031130000` et `20261031140000`.
+**Vérification du registre par Fred (01/11, 18 h 50)** : `20261031130000`, `20261031140000` et `20261031220000` sont **déjà appliquées** ; ne jamais les rejouer. Parcours en jeu encore à constater.
 
 Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schema_migrations`, jamais par son numéro.
 
-- `20261031130000_reliquats_immobilier_accord_tacite_succession` (PR #284, fusionnée) : accord tacite de nuit (aujourd'hui toujours en échec : le permis de Jean Jaaj, terrain 5, en dépend dans environ 6 jours) et colonnes `proprietaire` / `coproprietaire` à la succession. Indépendante de l'écran. Banc : `outils/bancs/banc-reliquats-immobilier.sql`.
-- `20261031140000_helvetia_caisse_argent_detenu` (PR #285, fusionnée, #267) : la caisse d'Helvetia représente l'argent détenu (prêt sans débit de caisse, sommes prises sur le compte Helvetia sans recrédit, dépôt d'ouverture crédité). Indépendante de l'écran. Banc : `outils/bancs/banc-caisse-helvetia.sql`.
+- ~~`20261031130000_reliquats_immobilier_accord_tacite_succession`~~ **appliquée** (registre `reliquats_immobilier_accord_tacite_succession_20261031130000`, version `20261031124014`) : accord tacite de nuit (permis de Jean Jaaj, terrain 5) et colonnes `proprietaire` / `coproprietaire` à la succession. Banc : `outils/bancs/banc-reliquats-immobilier.sql`.
+- ~~`20261031140000_helvetia_caisse_argent_detenu`~~ **appliquée** (registre `helvetia_caisse_argent_detenu_20261031140000`, version `20261031124019`, #267) : la caisse d'Helvetia représente l'argent détenu. Banc : `outils/bancs/banc-caisse-helvetia.sql`.
 - `20261031151000_placement_helvetia_gain_unique` (Claude, 31/10, suite de #267) : à la résolution d'un placement Helvetia, le gain net n'est plus ajouté à `arg` (argent total liquide + Banque nationale, où il apparaissait en double) et entre dans la caisse avec les frais. Indépendante de l'écran ; **déjà appliquée en production** sous le nom de registre `placement_helvetia_gain_unique_20261031151000` (version `20261031131427`, prévol Supabase du 31/10) ; ne pas réappliquer avant l'échéance du 6/11. Banc : `outils/bancs/banc-placement-helvetia.sql` (attendu sur ce placement : caisse +6 314, compte +83 340, `arg` +0).
 - `20261031113650_squatteurs_issue_combat` (ancien préfixe `20261029181000`, rehorodatage #219) : **attend le combat de groupe de Codex (#219)** ; ne pas appliquer avant.
-- `20261031220000_transfert_prime_signature_serveur` (Claude, purge Luthécia) : après Vercel READY ; préconditions d'empreinte dans la migration et dans `outils/bancs/prevol-299-prime-signature.sql`.
+- ~~`20261031220000_transfert_prime_signature_serveur`~~ **appliquée** (registre `transfert_prime_signature_serveur_20261031220000`, version `20261031211256`). Règle confirmée par Fred le 01/11 (`GAME-DESIGN-FOOTBALL.md`) : prix du transfert au club de départ, prime de signature facultative au joueur, les deux payés par le club qui recrute.
 - `20261101121000_manifestation_spontanee` (Claude, 1/11) : **attend #219 installé** (la migration se refuse sans `groupes_pj_adhesions`). Banc : `bash outils/bancs/banc-manifestation-spontanee.sh` (base jetable, 29 épreuves). Règles : `GAME-DESIGN-MANIFESTATIONS.md`. Après application, l'ordre « Organiser une manifestation spontanée » des trois places fonctionne ; avant, il répond « pas encore installée », sans rien prélever.
 - `20261031230000_organisations_champs_commandes_serveur` : **préparée, ne pas appliquer** avant #219 installé et recetté (feu vert requis dans la transaction).
 - ~~`20261031190000_avis_personnels_expediteurs_declares`~~ **appliquée par Claude le 31/10 vers 20 h, registre `avis_personnels_expediteurs_declares_20261031190000`** (PR #297, fusionnée `c44f5c40`, Vercel READY) : neuf identités d'avis personnels (expulsion, libération, candidature, convocation douanière…) déclarées pour l'envoi **à soi seulement** ; sans elle ces courriers sont refusés en silence. Indépendante de l'écran. Banc annulé : `outils/bancs/banc-avis-personnels-expediteurs.sql` (joué le 31/10 : avant refus, après accepté pour soi, refusé vers un tiers).
@@ -107,7 +115,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 ### Purge finale Luthécia (Claude, branche `claude/purge-luthecia-20261031`)
 
 - **Caisses collectives #295 (PR #300)** : étapes 1 et 2 **appliquées par ChatGPT le 31/10** (registre `20261031195210` et `20261031200630`). Ne pas les rejouer.
-- **Prime de signature** : migration `20261031220000_transfert_prime_signature_serveur` (**non appliquée**, indépendante de l'écran : l'ancien écran reste compatible). La prime `prixJoueur` de l'offre est payée par la caisse du club d'arrivée avec le prix, dans la même transaction, créditée au joueur dans `personnages_donnees`, une seule fois ; l'offre refuse une prime non entière ou négative. Écran : adopte la fiche rendue, verrou de double clic. Bancs : `banc-prime-signature-local.py --local-jetable` (21/21, contre-épreuve), `banc-prime-signature-client.cjs` (6/6 ; ancien code : 4 échecs). Prévol : `outils/bancs/prevol-299-prime-signature.sql` (section 3). **À appliquer après Vercel READY de la fusion.** Aucun écran ne propose de prime aujourd'hui (toujours 0) : question de design pour Fred, non bloquante.
+- **Prime de signature** : appliquée et confirmée par Fred (01/11, `GAME-DESIGN-FOOTBALL.md`). Saisie ajoutée à l'offre de transfert (01/11, demande de Fred) : champ « Prime de signature au joueur », entier ≥ 0, annoncé au président vendeur et au joueur ; banc `banc-prime-signature-saisie.cjs` 7/7 (contre-épreuve 7 échecs).
 - **#299 (garde 13/14 de #219)** : les deux préparations immobilières sont **déjà en production** sous `construction_materiaux_prix_et_dons_94` et `compromis_financement_reel_135`, puis réécrites par `20261030210000` ; leurs gardes d'empreinte échouent contre la production. **Action Codex : supprimer `20261031113610_…` et `20261031113631_…` de #219.** Preuve : `outils/audits/CLASSEMENT-299-20261031.md` ; test `test-preparations-deja-appliquees.mjs` (la garde de la vue n'est pas touchée).
 - **Organisations, fin de la double autorité** : inventaire figé par `test-organisations-ecritures-inventaire.mjs` (17 chemins avec commande #219 et repli, 16 sans commande). Étape A **préparée, non appliquée** : `20261031230000_organisations_champs_commandes_serveur` (se refuse sans les contrats #219 et sans feu vert explicite). Étape B (REVOKE INSERT/UPDATE) seulement après portage des 16 chemins. Détail : `outils/audits/ORGANISATIONS-ECRITURES-20261031.md`.
 
@@ -115,8 +123,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 - **Hospitalisation (décision de Fred, 01/11)** : règles complètes dans `GAME-DESIGN-HOSPITALISATION.md` (déclencheur à 0 PA, J0/J1/J2, repas de l'hôpital, clinique ×3, transfert en ambulance dès J0). Implémentées (PR #324, précisions du 01/11 comprises) et intégrées à la branche `claude/integration-219-main-20261101` ; plus aucune décision attendue.
 
-- **Fonds et murs des commerces (#66)** : règles décidées le 21/10 (murs à 150 FR/m², La Republica 1 200 m², fonds et murs indépendants, achat conjoint atomique, murs des commerces PNJ à la commune), **rien n'est en production**. La PR #71 qui les implémentait est périmée (laissée ouverte, commentaire du 31/10) : à reconstruire depuis main si Fred en fait une priorité.
-- **Ambassades** : griser « Bientôt disponible » les ordres non raccordables tant que le voyage entre empires n'existe pas (immunité, arrestation de l'expulsé, transfert de détenus, naturalisation). Référence : `GAME-DESIGN-AMBASSADES.md`.
+- Aucune décision en attente au 01/11 au soir (hospitalisation déjà tranchée dans `GAME-DESIGN-HOSPITALISATION.md` ; ambassades et #66 tranchées le 01/11).
 
 ### Points ouverts transmis (non bloquants)
 
@@ -145,7 +152,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 ### À vérifier en jeu (Fred, Angie, Vince)
 
 - Terrain occupé par des squatteurs : « Appeler la police » propose l'intervention légale (1 PA, sans paiement) et la corruption (coût et taux annoncés par le serveur) ; « Faire disparaître le corps » sur un cadavre.
-- Après application de `20261031130000` : le permis de Jean Jaaj (terrain 5) est accordé tacitement à la fin de l'instruction, attestation et courrier reçus.
+- `20261031130000` appliquée : à constater, le permis de Jean Jaaj (terrain 5) accordé tacitement à la fin de l'instruction, attestation et courrier reçus.
 - Chez Petit : « Monsieur le ministre » / « Madame la ministre » selon le genre du personnage (#281).
 - Chez le notaire : « Officialiser une transaction » → « Vente de terrain » → « Confirmer » (#269).
 - Louer un local dans les centres de Montrouge et de PSM ; acheter un terrain pour la commune en tant que maire ; attribuer un logement social en tant qu'adjoint.
