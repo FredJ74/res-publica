@@ -25,6 +25,11 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### PR #325 — quatre PNG des locaux commerciaux de Port-Sainte-Marie
+
+Branche `fix/psm-quatre-images-commerces-20261101`. Les quatre PNG du ZIP fourni par Fred sont ajoutés sans transformation ; égalité octet pour octet vérifiée après extraction. Les quatre chemins déjà préparés dans `data.js` correspondent aux fichiers grand, moyen, petit et micro. Aucun moteur, prix, superficie ou autre fonctionnalité modifié. Syntaxe de `data.js` vérifiée. Contrôles GitHub et fusion encore à vérifier : accès API refusé dans cette session. Ne pas déclarer la production livrée avant fusion et vérification des ressources Vercel.
+
+
 Rubrique nettoyée le 31/10 (Claude) : les chantiers livrés sont passés dans « Derniers chantiers » ; l'ancien texte détaillé reste dans l'historique Git de ce fichier (`git log -p RELAIS.md`).
 
 ### Migrations fusionnées, en attente d'application (ChatGPT)
