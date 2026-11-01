@@ -2,7 +2,7 @@
   "production_appliquee": false,
   "migration": "migrations/20261031185432_ordres_couts_reconciliation_sources.sql",
   "version": "20261031185432",
-  "sha256": "cbc36ea0fa90d4d3e15fe84353b8ff01a35ef0d969b3a5b6d54204732e916572",
+  "sha256": "0a5576fcfec59c2b06cd36967a93bef54dc6cba8241dd72a72bca1f3ece10818",
   "capture_sha256": "fcb2d4d2c27026597de9dc2fb1a1545db001a7ba0cfcf305cfea49f5b4ac3aee",
   "capture_snapshot": "351194:351194:",
   "capture_registre": 1022,
@@ -12,8 +12,8 @@
     "md5": "870e48d44fcaeabdbadbac31060570ce"
   },
   "apres": {
-    "lignes": 460,
-    "md5": "e4f22df47ad847b9b8cf263459ed4fbd"
+    "lignes": 461,
+    "md5": "0ffc6e1caad1f58114eeba150d3d5f48"
   },
   "retirer": [
     {
@@ -214,6 +214,11 @@
       "cost": 0
     },
     {
+      "fn": "commerces_fonds_murs",
+      "pa": 0,
+      "cost": 0
+    },
+    {
       "fn": "corrompre_chantier",
       "pa": 2,
       "cost": 1500
@@ -383,5 +388,6 @@
       "pa": 0,
       "cost": 0
     }
-  ]
+  ],
+  "_actualisation_335": "01/11/2026 (Claude, intégrateur) : main #335 déclare l'ordre commerces_fonds_murs (0 PA, 0 FR) dans data.js ; cible portée de 460 à 461 triples. État avant (439, 870e48d4…) inchangé, reconstruit et vérifié depuis la migration elle-même."
 }

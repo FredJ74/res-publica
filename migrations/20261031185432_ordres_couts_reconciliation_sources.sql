@@ -8,7 +8,7 @@ BEGIN
  SELECT count(*) INTO n FROM public.ordres_couts;
  h:=(SELECT md5(string_agg(fn||'|'||pa||'|'||cost,E'\n' ORDER BY fn COLLATE "C",pa,cost)) FROM public.ordres_couts);
  SELECT empreinte INTO STRICT sentinelle FROM public.ordres_couts_empreinte WHERE seul;
- IF h='e4f22df47ad847b9b8cf263459ed4fbd' AND n=460 THEN
+ IF h='0ffc6e1caad1f58114eeba150d3d5f48' AND n=461 THEN
   IF sentinelle<>left(h,16) THEN RAISE EXCEPTION 'couts219_sentinelle_incoherente_apres_installation';END IF;
   RETURN;
  END IF;
@@ -55,6 +55,7 @@ BEGIN
 ('camion_militaire',0,0),
 ('commerce_personnaliser',0,0),
 ('commerce_pj',0,0),
+('commerces_fonds_murs',0,0),
 ('corrompre_chantier',2,1500),
 ('declencher_mutinerie',0,0),
 ('decorer_militaire',0,0),
@@ -90,7 +91,7 @@ BEGIN
 ('temoin_deposition',0,0),
 ('temoins_mes_convocations',0,0) ON CONFLICT DO NOTHING;
  apres:=(SELECT md5(string_agg(fn||'|'||pa||'|'||cost,E'\n' ORDER BY fn COLLATE "C",pa,cost)) FROM public.ordres_couts);
- IF apres IS DISTINCT FROM 'e4f22df47ad847b9b8cf263459ed4fbd' OR (SELECT count(*) FROM public.ordres_couts)<>460 THEN RAISE EXCEPTION 'couts219_resultat_different_source';END IF;
+ IF apres IS DISTINCT FROM '0ffc6e1caad1f58114eeba150d3d5f48' OR (SELECT count(*) FROM public.ordres_couts)<>461 THEN RAISE EXCEPTION 'couts219_resultat_different_source';END IF;
  -- Sentinelle posée SEULEMENT après modification réelle et comparaison complète.
  UPDATE public.ordres_couts_empreinte SET empreinte=left(apres,16),pose_le=now() WHERE seul;
  IF NOT FOUND THEN RAISE EXCEPTION 'couts219_sentinelle_absente';END IF;
