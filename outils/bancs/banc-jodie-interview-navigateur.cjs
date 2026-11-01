@@ -28,7 +28,9 @@ function code(ref){
 }
 async function ouvrir(largeur,ref){
  const profil=fs.mkdtempSync(path.join(os.tmpdir(),'hg-jodie-'));
- const chrome=await lancerChromium({executable:process.env.HG_CHROMIUM||'/usr/bin/chromium',profil});
+ const executable=process.env.HG_CHROMIUM||['/usr/bin/chromium','/usr/bin/google-chrome','/usr/bin/google-chrome-stable'].find(p=>fs.existsSync(p));
+ assert.ok(executable,'Chromium requis');
+ const chrome=await lancerChromium({executable,profil});
  const navigateur=await chromium.connectOverCDP('http://127.0.0.1:'+chrome.port);
  const page=await navigateur.contexts()[0].newPage();await page.setViewportSize({width:largeur,height:720});
  await page.route('**/*',r=>r.abort());
