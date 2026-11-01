@@ -31,6 +31,10 @@ Rubrique nettoyée le 31/10 (Claude) : les chantiers livrés sont passés dans �
 
 Branche `codex/groupes-universels-20261028`, PR #219, main intégré jusqu’à `3aa6ceef` (#290). Rapport de reprise : `outils/audits/RECONSTRUCTION-CANONIQUE-GROUPES-219-20261031.md`, preuves sous `preuves-canonique-219-20261031/`. PostgreSQL 17.6 natif, 88 migrations atomiques et 30 parcours sur catalogue entier validés ; 149 bancs clients et 105 Chromium passent. **Global 10/12, prérequis #233 et recette authentifiée isolée encore à valider : ne pas fusionner ni déployer.** Aucun nouvel export canonique à demander, aucune production modifiée par cette intervention. Ne pas ouvrir le chantier suivant.
 
+### Claude — reprise #219 (Codex en panne), 01/11 : BLOQUÉ, paquet privé requis
+
+Branche `claude/integration-219-main-20261101` (= `bf06a27` + `main` `b69be61b`, deux conflits résolus, **non poussée sur #219**). Défaut réel : sources de tarifs 452 → 457 (7 écarts, tous décisions de Fred du 01/11), le plan de tarifs du lot 95 doit être réexaminé contre un relevé frais de production. Blocages : JSON privé et SHA-256 non reçus ; PostgreSQL 17.6, GoTrue, PostgREST et pglast indisponibles ici. Pile #219+main+#318+#324 éprouvée sur PostgreSQL 16 (non certifiant) : #318 14/14, hospitalisation 25/25. Rapport : `outils/audits/REPRISE-CLAUDE-219-20261101.md`. Aucune fusion, aucun déploiement, aucune écriture en production.
+
 ### Migrations fusionnées, en attente d'application (ChatGPT)
 
 **Prises en charge par ChatGPT (Fred, 31/10)** : `20261031130000` et `20261031140000`.
