@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Vrais corps SQL proposés + gardes/contraintes PNJ du dépôt, PostgreSQL jetable.
 Identité JWT de fixture ; aucune authentification Supabase ni écriture distante.
-Chaque scénario est annulé ; le décor fictif seul est committé pour la concurrence.
+Les savepoints annulent les actes de la session principale, pas les commits
+des connexions concurrentes. Chaque nouvelle scène prépare ses propres fixtures ;
+le cluster entièrement fictif est supprimé à la fin.
 """
 import importlib.util,json,re,sys,tempfile,os,traceback
 from pathlib import Path
