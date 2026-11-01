@@ -857,7 +857,14 @@ const WORLD = {
           // batiment partage -- uniquement imageUrl, aucune mecanique de location/presse/economie
           // touchee, aucun PNJ ajoute/modifie.
           roomOverrides: {
-            hall: { imageUrl: "images/port-sainte-marie-centre-affaires-accueil.webp" },
+            // 1er novembre 2026 (decision de Fred) : le trio de Luthecia du gabarit partage
+            // (Gretta, Moshe, Harry) ne doit pas apparaitre a PSM. Une seule hotesse, propre a PSM.
+            hall: {
+              imageUrl: "images/port-sainte-marie-centre-affaires-accueil.webp",
+              persons: [
+                {name:'Edith Legall (PNJ)', role:'Hôtesse d\'accueil', rel:'neutral', job:'hotesse'}
+              ]
+            },
             bureau_prestige: { imageUrl: "images/port-sainte-marie-centre-affaires-bureau-prestige.webp" },
             bureau_standard: { imageUrl: "images/port-sainte-marie-centre-affaires-bureau-standard.webp" },
             open_space:      { imageUrl: "images/port-sainte-marie-centre-affaires-open-space.webp" },
