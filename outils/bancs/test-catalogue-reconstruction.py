@@ -37,6 +37,52 @@ class Exports(unittest.TestCase):
  def test_locale_icu_incomplete_refusee_avant_reconstruction(self):
   p=subprocess.run([sys.executable,str(R/'outils/bancs/banc-livraison95-catalogue-local.py'),'--exports','/fixture','--registre','/fixture','--capture-couts','/fixture','--postgres-bin','/fixture','--rapport','/fixture','--empreinte-reference','/fixture','--referentiels-reference','/fixture','--locale-provider','icu'],text=True,capture_output=True)
   self.assertNotEqual(p.returncode,0);self.assertIn('ICU exige',p.stderr)
+ def fixture_profils_coupe(self):
+  # Métadonnées synthétiques de test, jamais empreintes réelles de production.
+  sp=importlib.util.spec_from_file_location('coupes219',R/'outils/bancs/banc-livraison95-catalogue-local.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  reg={'lignes':1015,'derniere':'20261101113411'}
+  schema={'version_serveur':'17.6','registre':reg,'categories':{k:{'objets':0,'racine':'0'*32,'seaux':{}} for k in ['relations','fonctions','index','politiques','contraintes','declencheurs']}}
+  donnees={'registre':1015,'derniere_version':reg['derniere'],'ordres_couts':{'lignes':0,'md5':'0'*32,'sentinelle':'0'*16},'referentiels':{t:{'lignes':0,'empreinte':'d751713988987e9331980363e24189ce'} for t in m.REFERENTIELS_1012}}
+  locale={'registre':1015,'derniere_version':reg['derniere'],'locale':{'collate':'en_US.UTF-8','ctype':'en_US.UTF-8','provider':'i','datlocale':'en-US','version':'153.121','version_actuelle':'153.121'}}
+  return m,[schema,donnees,locale]
+ def test_references_nouvelle_coupe_sans_certification_implicite(self):
+  m,profils=self.fixture_profils_coupe();paths=[self.rep/str(i) for i in range(3)]
+  for p,v in zip(paths,profils):p.write_text(json.dumps(v))
+  r=m.charger_references(*paths);self.assertEqual(r['registre'],{'lignes':1015,'derniere':'20261101113411'})
+  self.assertNotIn('catalogue_reference_certifie',r)
+  ancien=json.loads(json.dumps(profils[0]));ancien['registre']={'lignes':1012,'derniere':'20261031211256'}
+  with self.assertRaises(AssertionError):m.verifier_empreinte_complete(ancien,profils[0])
+ def test_references_1015_refusent_un_releve_1012_ou_une_locale_perimee(self):
+  import copy
+  m,original=self.fixture_profils_coupe();paths=[self.rep/str(i) for i in range(3)]
+  variantes=[]
+  x=copy.deepcopy(original);x[1]['registre']=1012;variantes.append(x)
+  x=copy.deepcopy(original);x[2]['derniere_version']='20261031211256';variantes.append(x)
+  x=copy.deepcopy(original);x[2]['locale']['version_actuelle']='153.128';variantes.append(x)
+  for profils in variantes:
+   for p,v in zip(paths,profils):p.write_text(json.dumps(v))
+   with self.assertRaises(ValueError):m.charger_references(*paths)
+ def test_references_coupe_incomplete_refusee_avant_postgresql(self):
+  import copy
+  m,original=self.fixture_profils_coupe();paths=[self.rep/str(i) for i in range(3)]
+  variantes=[]
+  x=copy.deepcopy(original);del x[0]['categories']['index'];variantes.append(x)
+  x=copy.deepcopy(original);del x[1]['referentiels'][m.REFERENTIELS_1012[0]];variantes.append(x)
+  x=copy.deepcopy(original);del x[2]['locale']['datlocale'];variantes.append(x)
+  x=copy.deepcopy(original);x[0]['version_serveur']='16.2';variantes.append(x)
+  x=copy.deepcopy(original);del x[1]['ordres_couts'];variantes.append(x)
+  x=copy.deepcopy(original);x[1]['ordres_couts']['md5']='tronque';variantes.append(x)
+  for profils in variantes:
+   for p,v in zip(paths,profils):p.write_text(json.dumps(v))
+   with self.assertRaises(ValueError):m.charger_references(*paths)
+ def test_nouvelle_coupe_ne_reinjecte_pas_des_tarifs_perimes(self):
+  m,_=self.fixture_profils_coupe()
+  # Contrat synthétique de test : aucune nouvelle mesure de production.
+  plan={'avant':{'md5':'a'*32}}
+  bon={'ordres_couts':{'lignes':438,'md5':'a'*32,'sentinelle':'6de4a84c58ed9b2b'}}
+  m.verifier_couts_coupe(1015,bon,plan,438)
+  for mauvais in [{},{'ordres_couts':{**bon['ordres_couts'],'md5':'b'*32}},{'ordres_couts':{**bon['ordres_couts'],'lignes':441}}]:
+   with self.assertRaisesRegex(ValueError,'ne pas restaurer une ancienne capture'):m.verifier_couts_coupe(1015,mauvais,plan,438)
  def test_livraison95_exige_27_http_distincts(self):
   spec=importlib.util.spec_from_file_location('livraison95',R/'outils/bancs/banc-livraison95-catalogue-local.py')
   m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -316,6 +362,15 @@ class PostgreSQL(unittest.TestCase):
   self.assertEqual(preuve['lignes'],4);self.assertTrue(preuve['locale']['conforme']);self.assertFalse(preuve['donnees_joueurs_importees'])
   self.q.execute("SELECT objet->>'montant' FROM recettes_commerce");self.assertEqual(self.q.fetchone()[0],'5.5')
   self.q.execute('SELECT count(*) FROM offres_emploi_bne');self.assertEqual(self.q.fetchone()[0],0)
+ def test_capture_nouvelle_coupe_refuse_ancien_profil_sans_renumeroter(self):
+  import copy
+  m,capture,ancien=self.fixture_capture_referentiels();nouveau=copy.deepcopy(ancien)
+  nouveau.update({'registre':1015,'derniere_version':'20261101113411'});capture['registre']={'lignes':1015,'derniere':'20261101113411'}
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d)/'capture.json';p.write_text(json.dumps(capture))
+   with self.assertRaisesRegex(ValueError,'Registre privé différent'):m.charger(self.q,p,ancien)
+   preuve=m.charger(self.q,p,nouveau)
+  self.assertEqual(preuve['lignes'],4);self.assertEqual(ancien['registre'],1012)
  def test_capture_privee_incomplete_locale_registre_et_empreinte_refuses_sans_mutation(self):
   import copy
   m,original,ref=self.fixture_capture_referentiels()

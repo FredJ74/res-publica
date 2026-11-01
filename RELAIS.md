@@ -326,3 +326,15 @@ Rapport et preuve finale : `ICU-153121-ET-REFERENTIELS-219-20261101.{md,json}`. 
 Le verrou de version ICU est levé, **9/12 référentiels** conformes, seules trois tables divergent. Les sept paliers archivés et BNE vide sont maintenant restaurés dans le clone sous empreintes inchangées. Le fichier privé convenu reste l'unique transfert nécessaire pour poursuivre ; garder son format quatre tables/100 lignes, pas de nouveau compte ni secret ni manipulation SQL de Fred. Les réserves de contrats ne sont pas réputées résolues par sa simple réception. Installation 95 et 27 HTTP sur le clone fidèle **non exécutés**. Pas de fusion, migration réelle, données joueur ni déploiement.
 
 Complément final : la suite d’outillage passe aussi **66/66 sur le PostgreSQL 16.2 fourni par défaut en CI**, en plus de la passe native 17.6/ICU exact. Ces deux preuves sont distinctes. Workflow final conforme ; références générées et critères inchangés.
+
+### #219 — mission 1015 reçue, mais pas la pièce JSON annoncée
+
+Reprise `ce0ab297`, main toujours `ddb72dbd`. La nouvelle pièce contient uniquement la mission (`Texte collé.txt`, 8 121 octets) ; **`referentiels-prives-hg219-1015.json` n'est pas joint ni présent dans l'environnement**. Ne pas prétendre l'avoir lu. Registre 1015 / dernière `20261101113411` annoncé mais trois versions/noms et empreintes fraîches non transmis. Lecture API commentaires : Forbidden. Recherche des branches autorisées en lecture (dont dépendances Claude) : préparations et mentions d'applications, pas de registre 1015 certifié ; aucune intégration de PSM/Montrouge.
+
+Banc adapté aux coupes nouvelles **sans renuméroter 1012** : concordance stricte des trois profils externes schéma/référentiels/locale et du registre local, six familles et douze tables obligatoires, option `--locale-reference`. Compteurs anciens ne deviennent vrais que pour 1012. **71/71 outillage natif 17.6/ICU 153.121** ; contre-épreuves du mélange de coupes et d'une référence incomplète, chargeur privé versionné sur fixtures. Non-régression 1012 : schéma/locale et neuf référentiels toujours conformes, certification complète toujours refusée. Aucun nouveau test de 1015 ni import des 100 lignes annoncé, pas de 95 ou 27 HTTP sur ce nouveau catalogue. Rapport et demande groupée à l'intégrateur : `REPRISE-1015-219-20261101.{md,json}`.
+
+Aucune donnée réelle, migration de production, fusion ou déploiement. Ne pas faire passer les anciens relevés 1012 pour des observations 1015. Pour poursuivre : joindre réellement le JSON et transmettre les métadonnées de la coupe 1015 dans le même paquet privé, sans manipulation SQL de Fred.
+
+Protection de reprise ajoutée : une coupe >1012 doit fournir un prévol frais des tarifs (`lignes`, MD5 complet, sentinelle) ; si le contenu a changé, la réconciliation reste refusée plutôt que de réinjecter silencieusement l’ancienne capture. Tests synthétiques explicites, aucune mesure 1015 inventée.
+
+Vérifications finales de cette adaptation : **71/71** également sur le moteur CI fourni (16.2), Workflow conforme, globaux réexécutés **10/12**, sans mise à jour d’empreinte ni fausse coupe 1015.

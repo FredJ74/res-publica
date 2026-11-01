@@ -43,6 +43,35 @@ def verifier_referentiels(q,reference):
  assert not ecarts,ecarts
  return {'conformes':True,'tables':len(REFERENTIELS_1012)}
 
+def charger_references(schema_path,donnees_path,locale_path):
+ """Une seule coupe externe pour schéma, données et locale ; jamais de renumérotation."""
+ schema=json.loads(Path(schema_path).read_text(encoding='utf-8'))
+ donnees=json.loads(Path(donnees_path).read_text(encoding='utf-8'))
+ locale=json.loads(Path(locale_path).read_text(encoding='utf-8'))
+ empreinte=schema.get('empreinte',schema);registre=empreinte.get('registre',{})
+ nombre=registre.get('lignes');derniere=registre.get('derniere')
+ if type(nombre) is not int or nombre<1 or not isinstance(derniere,str) or not re.fullmatch(r'[0-9]{14}',derniere):raise ValueError('Registre de référence incomplet')
+ if empreinte.get('version_serveur')!='17.6':raise ValueError('Référence PostgreSQL différente de 17.6')
+ familles={'relations','fonctions','index','politiques','contraintes','declencheurs'}
+ if set(empreinte.get('categories',{}))!=familles:raise ValueError('Les six familles de schéma sont obligatoires')
+ for source in (donnees,locale):
+  if (source.get('registre'),source.get('derniere_version'))!=(nombre,derniere):raise ValueError('Références de coupes différentes : schéma, données et locale doivent correspondre')
+ if set(donnees.get('referentiels',{}))!=set(REFERENTIELS_1012):raise ValueError('Les douze référentiels sont obligatoires')
+ for table,v in donnees['referentiels'].items():
+  if type(v.get('lignes')) is not int or v['lignes']<0 or not re.fullmatch(r'[a-f0-9]{32}',v.get('empreinte','')):raise ValueError('Référence de données incomplète : '+table)
+ if nombre>1012:
+  couts=donnees.get('ordres_couts',{})
+  if type(couts.get('lignes')) is not int or couts['lignes']<0 or not re.fullmatch(r'[a-f0-9]{32}',couts.get('md5','')) or not re.fullmatch(r'[a-f0-9]{16}',couts.get('sentinelle','')):raise ValueError('Prévol frais des tarifs requis pour la nouvelle coupe')
+ if set(locale.get('locale',{}))!={'collate','ctype','provider','datlocale','version','version_actuelle'}:raise ValueError('Locale de référence incomplète')
+ if locale['locale']['version']!=locale['locale']['version_actuelle']:raise ValueError('Collation de référence périmée')
+ return {'schema':schema,'donnees':donnees,'locale':locale,'registre':registre}
+
+def verifier_couts_coupe(nombre_reference,donnees,plan,nombre_capture):
+ """Ne pas effacer de nouvelles règles par réinjection de la capture ancienne."""
+ attendu={'lignes':nombre_capture,'md5':plan['avant']['md5'],'sentinelle':'6de4a84c58ed9b2b'}
+ if nombre_reference>1012 and donnees.get('ordres_couts')!=attendu:
+  raise ValueError('Tarifs de la nouvelle coupe différents : réexaminer le plan, ne pas restaurer une ancienne capture')
+
 def verifier_http_27(preuve):
  cas=preuve.get('cas',[])
  assert len(cas)==27 and len({x['cas'] for x in cas})==27 and all(x.get('ok') is True for x in cas), 'Les 27 cas HTTP authentifies distincts sont obligatoires'
@@ -58,6 +87,7 @@ def main():
  a.add_argument('--gotrue-bin',type=Path)
  a.add_argument('--postgrest-bin',type=Path)
  a.add_argument('--referentiels-capture',type=Path,help='Capture privée complète des quatre tables statiques et locale ; hors Git, vérifiée avant 95.')
+ a.add_argument('--locale-reference',type=Path,default=R/'outils/audits/catalogue-1012/LOCALE-PRODUCTION-1012.json',help='Relevé externe de locale de la même coupe que les empreintes et référentiels.')
  a.add_argument('--locale-provider',choices=['libc','icu'],default='libc')
  a.add_argument('--icu-locale',help='Locale ICU exacte relevée dans pg_database.datlocale, jamais déduite du nom libc.')
  a.add_argument('--locale-clone',help='Locale explicite du seul PostgreSQL jetable ; enregistrée dans le rapport.')
@@ -65,13 +95,16 @@ def main():
  if o.locale_provider=='icu' and not (o.locale_clone and o.icu_locale):a.error('ICU exige --locale-clone et --icu-locale relevés, sans valeur inventée')
  if o.icu_locale and o.locale_provider!='icu':a.error('--icu-locale exige --locale-provider icu')
  if not (o.gotrue_bin and o.postgrest_bin):a.error('GoTrue et PostgREST obligatoires pour certifier les 27 cas HTTP authentifies')
+ references=charger_references(o.empreinte_reference,o.referentiels_reference,o.locale_reference)
+ nombre_reference=references['registre']['lignes'];derniere_reference=references['registre']['derniere']
  e=charger('epreuve95','outils/baseline/epreuve-postgresql.py');lot=charger('lot95','outils/livraison/preparer-livraison-complete-219.py')
  registre=e.lire_registre(o.registre);capture=json.loads(o.capture_couts.read_text());plan=json.loads((R/'outils/audits/LIVRAISON-COUTS-219-20261031.json').read_text())
  triples=sorted((x['fn'],x['pa'],x['cost']) for x in capture['ordres_couts'])
  if len(triples)!=len(set(triples)) or len(triples)!=plan['avant']['lignes'] or hashlib.md5('\n'.join('%s|%d|%d'%t for t in triples).encode()).hexdigest()!=plan['avant']['md5']:raise ValueError('Capture des tarifs différente du prévol examiné')
+ verifier_couts_coupe(nombre_reference,references['donnees'],plan,len(triples))
  e.configurer_binaires(o.postgres_bin)
  import pgserver,psycopg2
- rapport={'production':False,'registre_source_versions':len(registre),'catalogue_1009_certifie':False,'catalogue_1012_certifie':False,'authentification':'JWT SQL pour les scénarios de catalogue ; recette GoTrue HTTP séparée si présente','tarifs_snapshot':capture['snapshot'],'cas':[]}
+ rapport={'production':False,'registre_source_versions':len(registre),'catalogue_1009_certifie':False,'catalogue_1012_certifie':False,'catalogue_reference_certifie':False,'registre_reference':references['registre'],'authentification':'JWT SQL pour les scénarios de catalogue ; recette GoTrue HTTP séparée si présente','tarifs_snapshot':capture['snapshot'],'cas':[]}
  with tempfile.TemporaryDirectory(prefix='hg95-catalogue-') as d:
   srv=pgserver.get_server(Path(d)/'data',cleanup_mode='delete');uri_locale=srv.get_uri();c=psycopg2.connect(uri_locale);q=c.cursor();services=None
   try:
@@ -104,13 +137,16 @@ def main():
    if o.delta_candidat:
     delta=json.loads(o.delta_candidat.read_text())
     if 'registre_base' not in delta:
+     assert nombre_reference==1012,'Le delta historique 1012 ne certifie pas une coupe ultérieure'
      # Format certifié de Claude #302 : 10 lignes, « genre » déjà présent seulement si base 1003.
      assert len(registre) in (1002,1003) and len(delta['migrations'])==10,'Delta 1012 réservé aux registres privés 1002/1003'
      assert all(x['concorde'] and x['md5_normalise_registre']==(x['md5_normalise_fichier_sans_enveloppe'] if x['enveloppe_retiree_par_supabase'] else x['md5_normalise_fichier']) for x in delta['migrations']),'Delta non certifié'
      versions_base={x['version'] for x in registre}
      delta={**delta,'registre_base':len(registre),'migrations':[{'fichier':x['fichier'],'sha256':x['sha256_fichier'],'version_observee':x['version_registre'],'nom_rapporte':x['nom_registre'],'statut':'deja_dans_1003' if x['version_registre'] in versions_base else 'appliquee'} for x in delta['migrations']]}
      assert {x['version_observee'] for x in delta['migrations'] if x['statut']=='deja_dans_1003'}==({'20261031113025'} if len(registre)==1003 else set()),'Delta privé : migration préexistante inattendue'
-    assert delta['registre_base']==len(registre);c.commit()
+    assert delta['registre_base']==len(registre)
+    if 'registre_candidat' in delta:assert delta['registre_candidat']==nombre_reference,'Delta et référence de versions différentes'
+    c.commit()
     for entree in delta['migrations']:
      if entree['fichier']:
       p=R/entree['fichier'];assert hashlib.sha256(p.read_bytes()).hexdigest()==entree['sha256']
@@ -127,8 +163,8 @@ def main():
      else:assert entree['statut']=='donnees_uniquement_non_rejouees'
      # Métadonnées rapportées, jamais prétendues extraites par ce banc.
      q.execute('INSERT INTO supabase_migrations.schema_migrations(version,name) VALUES(%s,%s)',(entree['version_observee'],entree['nom_rapporte']));c.commit()
-    q.execute('SELECT count(*) FROM supabase_migrations.schema_migrations')
-    assert q.fetchone()[0]==1012,'Registre local non 1012 après le delta certifié'
+    q.execute('SELECT count(*),max(version) FROM supabase_migrations.schema_migrations')
+    assert q.fetchone()==(nombre_reference,derniere_reference),'Registre local différent de la référence après le delta'
     rapport['delta_candidat']=delta;rapport['catalogue_candidat_non_certifie']=True;rapport['comparaison_exports']='avant_delta_candidat_uniquement'
     attendus={'organisation_ordre_financier':'73b9d936361d5c158b0bdfae44cf0db8','organisation_adhesion_payante':'f47b4e550f62fe6e1cfbf6c1d0c10cb7','club_supporters_cotiser':'b9324e4f910534fa6f03056bf91da5a7','club_sponsoriser':'d5a1250fbf53e53a32169bbbc8245b12','club_transfert_conclure':'fe760fbedd1bd7cafbf691bdccc45481'}
     q.execute("SELECT proname,md5(regexp_replace(prosrc,E'\\n[ \\t]*--[^\\n]*','','g')),has_function_privilege('authenticated',oid,'EXECUTE') FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=ANY(%s)",(list(attendus),));finances=q.fetchall();rapport['contrats_financiers_candidat']=finances;rapport['contrats_financiers_attendus_releve']=attendus;q.execute("SELECT proname,md5(prosrc),md5(pg_get_functiondef(oid)) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=ANY(%s)",(list(attendus),));rapport['objets_haches_distincts_candidat']=q.fetchall();assert len(finances)==5 and all(h==attendus[n] and droit for n,h,droit in finances),finances
@@ -137,7 +173,7 @@ def main():
     racines=(R/'outils/bancs/empreinte-catalogue-racine.sql').read_text()
     racines=re.sub(r'(?im)^\s*(?:BEGIN;|ROLLBACK;|SET TRANSACTION READ ONLY;)\s*$', '', racines)
     c.commit();q.execute(racines)
-    reference=json.loads(o.empreinte_reference.read_text(encoding='utf-8'))
+    reference=references['schema']
     observe=q.fetchone()[0];rapport['empreinte_locale_avant95']=observe
     q.execute("SELECT datcollate,datctype,datlocprovider FROM pg_database WHERE datname=current_database()");rapport['locale_clone']=q.fetchone()
     q.execute('SELECT datlocale,datcollversion,pg_database_collation_actual_version(oid) FROM pg_database WHERE datname=current_database()');rapport['locale_clone_interne_et_versions']=q.fetchone()
@@ -149,14 +185,13 @@ def main():
      assert diagnostic!=racines;q.execute(diagnostic);autre_tri=q.fetchone()[0]
      rapport['diagnostic_tri_acl_non_certifiant']={'seule_modification':'tri des bénéficiaires ACL avec COLLATE en_US.utf8','racine_fonctions':autre_tri['categories']['fonctions']['racine'],'reference':reference.get('empreinte',reference)['categories']['fonctions']['racine'],'certification':False}
     rapport['empreinte_complete_avant95']=verifier_empreinte_complete(observe,reference)
-    rapport['schema_1012_certifie']=(reference.get('empreinte',reference).get('registre',{}).get('lignes')==1012)
-    assert rapport['schema_1012_certifie'],'La référence doit concerner le catalogue vivant 1012'
-    locale_source=json.loads((R/'outils/audits/catalogue-1012/LOCALE-PRODUCTION-1012.json').read_text())
-    assert (locale_source['registre'],locale_source['derniere_version'])==(1012,'20261031211256'),'Relevé de locale périmé'
+    rapport['schema_reference_certifie']=True
+    rapport['schema_1012_certifie']=(nombre_reference==1012)
+    locale_source=references['locale']
     prive=charger('references_privees219','outils/bancs/referentiels-prives-clone-219.py')
     rapport['locale_conforme_production']=prive.verifier_locale(q,locale_source)
     rapport['rpc_clients_avant95']=e.verifier_rpc_clients(q)
-    rapport['rpc_clients_avant95']['portee']='Schéma du clone conforme aux six empreintes 1012, avant 95 ; pas un verdict de données ni de production'
+    rapport['rpc_clients_avant95']['portee']='Schéma du clone conforme aux six empreintes de la coupe '+str(nombre_reference)+', avant 95 ; pas un verdict de données ni de production'
     equipements=['organisation_equipement_acheter','organisation_equipement_deplacer','organisation_equipements_etat','organisation_equipements_payeurs']
     rapport['equipements_collectifs_avant95']={}
     for nom in equipements:
@@ -164,11 +199,9 @@ def main():
      rapport['equipements_collectifs_avant95'][nom]=[{'arguments':args,'security_definer':sd,'authenticated_execute':au,'anon_execute':an} for args,sd,au,an in q.fetchall()]
     c.commit()
    if o.referentiels_reference:
-    reference=json.loads(o.referentiels_reference.read_text(encoding='utf-8'))
-    assert reference.get('registre')==1012,'Référence statique de mauvaise version'
+    reference=dict(references['donnees'])
     if o.referentiels_capture:
-     lieu=json.loads((R/'outils/audits/catalogue-1012/LOCALE-PRODUCTION-1012.json').read_text())
-     assert (lieu['registre'],lieu['derniere_version'])==(reference['registre'],reference['derniere_version']),'Relevé de locale périmé'
+     lieu=references['locale']
      reference['locale']=lieu['locale']
      prive=charger('references_privees219','outils/bancs/referentiels-prives-clone-219.py')
      rapport['capture_referentiels_privee']=prive.charger(q,o.referentiels_capture,reference)
@@ -178,11 +211,13 @@ def main():
     q.execute('DELETE FROM public.offres_emploi_bne')
     rapport['bne_vide_reconstitue_conforme']=True
     rapport['diagnostic_sources_refs_non_certifiant']=complement.diagnostic_generateurs(q,e.decouper,reference['referentiels'])
-    rapport['referentiels_1012']=verifier_referentiels(q,reference)
+    rapport['referentiels_reference']=verifier_referentiels(q,reference)
+    if nombre_reference==1012:rapport['referentiels_1012']=rapport['referentiels_reference']
     c.commit()
    assert rapport.get('capture_referentiels_privee',{}).get('locale',{}).get('conforme') is True, 'Locale réelle complète et capture privée certifiées obligatoires avant 95'
-   assert rapport.get('schema_1012_certifie') is True and rapport.get('referentiels_1012',{}).get('conformes') is True, 'Certification complète 1012 et 12 référentiels obligatoire avant installation 95'
-   rapport['catalogue_1012_certifie']=True
+   assert rapport.get('schema_reference_certifie') is True and rapport.get('referentiels_reference',{}).get('conformes') is True, 'Certification complète de la coupe et des 12 référentiels obligatoire avant installation 95'
+   rapport['catalogue_reference_certifie']=True
+   rapport['catalogue_1012_certifie']=(nombre_reference==1012)
    # Prix capturés contrôlés séparément, jamais générés depuis des données de joueur.
    q.execute('DELETE FROM ordres_couts');q.executemany('INSERT INTO ordres_couts(fn,pa,cost) VALUES(%s,%s,%s)',triples)
    q.execute("INSERT INTO ordres_couts_empreinte(seul,empreinte) VALUES(true,'6de4a84c58ed9b2b') ON CONFLICT(seul) DO UPDATE SET empreinte=excluded.empreinte")
