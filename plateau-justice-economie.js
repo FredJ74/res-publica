@@ -12862,8 +12862,8 @@ async function encaisserVenteStructure(fn, pa, cost, caisseId, ville) {
 // La source du titulaire n'est PAS state.poste -- celui-ci est exclusif avec les autres postes
 // nommes, une charge religieuse ne doit jamais l'etre (voir getTitulaireReligieux,
 // plateau-divers.js), donc on interroge titulaires_pnj directement pour les 3 villes plutot que
-// de lire state.poste. 100 FR/jour de la charge locale de Pretre (caisse de SON eglise) ;
-// +100 FR/jour supplementaires pour le Grand Pretre national, TOUJOURS payes par la caisse du
+// de lire state.poste. 50 FR/jour (Fred, 01/11/2026 ; 100 auparavant) de la charge locale de Pretre (caisse de SON eglise) ;
+// +50 FR/jour supplementaires pour le Grand Pretre national, TOUJOURS payes par la caisse du
 // Grand Tabernacle de Luthecia (tabernacle-impots), meme si le Grand Pretre est Pretre de PSM ou
 // Montrouge. Silencieux (aucun toast) si le joueur ne detient aucune charge religieuse -- ce sera
 // le cas de l'immense majorite des joueurs, contrairement au salaire politique qui a toujours un

@@ -33,4 +33,4 @@ de Montrouge. Lecture seule (code et production) ; aucune donnée modifiée.
 
 - Nom : **Église Progressiste de Montrouge** (écran, vue de rue, fiche de l'Abbé Tonnière, libellé du salaire).
 - **+500 FR** dans la caisse de chaque église : migration `20261101060000` **appliquée par Claude le 01/11** (caisses à 700 FR, marque `dotation_20261101`).
-- Salaire religieux jugé trop élevé : montant à fixer par Fred. Rappel : il rémunère la charge (prêtre, Grand Prêtre), versé une fois par jour, sans tâche ; « Prier le Formulaire Sacré » ne rapporte rien en FR (moral et piété seulement).
+- Salaire religieux ramené à **50 FR/jour** (prêtre et supplément du Grand Prêtre) : migration `20261101061000` **appliquée par Claude le 01/11** ; texte des règles mis à jour. Rappel : il rémunère la charge (prêtre, Grand Prêtre), versé une fois par jour, sans tâche ; « Prier le Formulaire Sacré » ne rapporte rien en FR (moral et piété seulement).
