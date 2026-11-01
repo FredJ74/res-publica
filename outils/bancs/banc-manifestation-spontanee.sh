@@ -90,6 +90,7 @@ UPDATE manifestations_spontanees SET fin_max = now() - interval '1 second';
 SELECT ok((manif_spontanee_lire() ->> 'participe')::boolean IS FALSE, 'apres 1 h : lecture clot');
 SELECT ok((SELECT motif_fin = 'duree_ecoulee' FROM manifestations_spontanees), 'motif duree ecoulee');
 SELECT ok((SELECT recherche = '[{"acte":"vol","type":"delit_mineur"}]' FROM personnages_donnees WHERE name = 'pj3'), 'autre motif de recherche preserve');
+SELECT ok((SELECT peine_jours = 1 AND amende = 500 FROM actes_illegaux WHERE fn = 'manifestation_spontanee'), 'peine 1 jour 500 FR');
 -- hors place
 UPDATE personnages_donnees SET current_building = 'gare' WHERE name = 'pj1';
 DELETE FROM manifestations_spontanees;

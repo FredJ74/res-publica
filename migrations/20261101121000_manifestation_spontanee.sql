@@ -32,11 +32,12 @@ BEGIN
   END IF;
 END $garde$;
 
--- Bareme penal d'une interpellation pendant la manifestation : delit mineur ordinaire.
+-- Bareme penal d'une interpellation pendant la manifestation : 1 jour et 500 FR (Fred, 1/11/2026).
 -- Non decouvrable : apres la manifestation, la trace ne vaut aucune arrestation de nuit.
 INSERT INTO public.actes_illegaux (fn, type, detect_rate, peine_jours, amende, decouvrable)
-VALUES ('manifestation_spontanee', 'delit_mineur', 25, NULL, NULL, false)
-ON CONFLICT (fn) DO UPDATE SET type = EXCLUDED.type, decouvrable = EXCLUDED.decouvrable, maj_le = now();
+VALUES ('manifestation_spontanee', 'delit_mineur', 25, 1, 500, false)
+ON CONFLICT (fn) DO UPDATE SET type = EXCLUDED.type, peine_jours = EXCLUDED.peine_jours, amende = EXCLUDED.amende,
+  decouvrable = EXCLUDED.decouvrable, maj_le = now();
 
 -- Cout de l'ordre (miroir de data.js : 1 PA, 0 FR).
 INSERT INTO public.ordres_couts (fn, pa, cost) VALUES ('organiser_manifestation_spontanee', 1, 0)

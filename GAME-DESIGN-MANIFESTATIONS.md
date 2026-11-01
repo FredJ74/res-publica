@@ -23,8 +23,9 @@ Place d'Armes (Port-Sainte-Marie), Place du Rail (Montrouge).
 - Cible : un personnage joueur (seuls les PJ ont une POP enregistrée), de n'importe quel empire,
   soi-même compris. POP bornée entre 0 et 100.
 - Coût : 1 PA pour le chef.
-- Hors-la-loi : avis de recherche « manifestation spontanée » (délit mineur, barème ordinaire
-  en cas d'interpellation : 2 jours, 500 FR). La police physiquement présente peut interpeller.
+- Hors-la-loi : avis de recherche « manifestation spontanée » (délit mineur). La police
+  physiquement présente peut interpeller.
+- Peine en cas d'interpellation : **1 jour et 500 FR** (décision de Fred, 1er novembre 2026).
 - Fin : à l'heure, ou dès que le groupe du chef est dissous (le chef le quitte ou le dernier
   membre part). Le départ d'un simple membre ne lève pas son avis avant la fin.
 - La trace n'est jamais découverte la nuit (pas d'arrestation après coup) ; elle nourrit les
