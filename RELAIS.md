@@ -41,7 +41,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - `20261031230000_organisations_champs_commandes_serveur` : **préparée, ne pas appliquer** avant #219 installé et recetté (feu vert requis dans la transaction).
 - ~~`20261031190000_avis_personnels_expediteurs_declares`~~ **appliquée par Claude le 31/10 vers 20 h, registre `avis_personnels_expediteurs_declares_20261031190000`** (PR #297, fusionnée `c44f5c40`, Vercel READY) : neuf identités d'avis personnels (expulsion, libération, candidature, convocation douanière…) déclarées pour l'envoi **à soi seulement** ; sans elle ces courriers sont refusés en silence. Indépendante de l'écran. Banc annulé : `outils/bancs/banc-avis-personnels-expediteurs.sql` (joué le 31/10 : avant refus, après accepté pour soi, refusé vers un tiers).
 
-### Audit des bâtiments de PSM et Montrouge (Claude, branche `claude/audit-psm-montrouge-20261101`, PR #304 ouverte, prête)
+### Audit des bâtiments de PSM et Montrouge (Claude, branche `claude/audit-psm-montrouge-20261101`, PR #304 ouverte, prête, à intégrer à la livraison groupée)
 
 - Rapport : `outils/audits/AUDIT-BATIMENTS-PSM-MONTROUGE-20261101.md` ; outil `outils/audits/auditer-socle-villes-republia.cjs` ; garde `outils/bancs/test-parcelles-republia-socle.mjs`.
 - **Corrigé côté écran** : gabarit #135 sur toutes les parcelles (PSM avait 3 ordres anciens ; « Accélérer le chantier » mort retiré de Montrouge ; « Corrompre un fonctionnaire » sur toutes les parcelles) ; surfaces et prix décidés par Fred le 01/11 (PSM 1 500 m² à 18 000 FR ; lot 6 de Montrouge 2 100 m² à 25 200 FR) ; « Vendre des matières à l'usine » au pôle tabac-alcools et à la raffinerie.
@@ -56,7 +56,8 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - **Marché noir** (décision de Fred, 01/11) : ordre « Marché Noir » (explosifs + poison local) dans toute la Républia, ajouté à l'armurerie de Montrouge et chez Chasse et Pêche (PSM) ; aucune migration (serveur indépendant de la ville).
 - **Pouls populaire** ajouté au marché de PSM (socle commun, 01/11). **Personnalités des musées de province** (Fred, 01/11 : écrites par Claude, à sa relecture) : 8 salles de PSM, 6 de Montrouge ; rien sur l'énigme Le Goff ; audioguides de Montrouge non transcrits, cohérence à vérifier à l'écoute.
 - **Rachat à PSM** (Fred, 01/11) : Capitaine Sauvage 120 000 FR, Hôtel du Port 80 000 FR ; **migration `20261101010000_rachat_capitaine_sauvage_hotel_port` (non appliquée, indépendante de l'écran)**, sans elle l'acte de rachat est refusé faute de prix.
-- **Décisions attendues de Fred** (une question à la fois, liste dans le rapport, rubrique « Restent à poser ») : sécurité privée en province.
+- **Sécurité privée en province** (Fred, 01/11) : pas de duplication de Grobras Sécurité ; Grobras est l'exemple d'un commerce que les PJ pourront ouvrir : les PJ créeront leur propre agence de sécurité privée (à concevoir dans le socle #135, Codex).
+- Toutes les questions de l'audit sont tranchées. Restent à appliquer : `20261031234500`, `20261031235500` (après Vercel READY), `20261101010000`.
 
 ### Purge finale Luthécia (Claude, branche `claude/purge-luthecia-20261031`)
 

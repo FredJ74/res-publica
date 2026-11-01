@@ -67,12 +67,12 @@ de province doivent les offrir aussi. Rien n'a été ajouté sans décision.
 | Marché de PSM | pouls populaire : **ajouté le 01/11** (ordre du socle commun, déjà présent à Luthécia et Montrouge) |
 | Musées | consulter les personnalités : **tranché le 01/11**, Claude écrit les figures à la relecture de Fred ; 8 salles de PSM (pas la Salle des Plumes, laissée aux joueurs) et les 6 salles de Montrouge, 3 à 5 figures chacune (`MUSEE_PROVINCE_PERSONNALITES`, `plateau-musee-personnalites.js`) ; rien sur Yann Le Goff ni les fondateurs (énigme premium). Garde `test-musees-province-personnalites.mjs` |
 | Armurerie de Montrouge, Chasse et Pêche de PSM | marché noir : **tranché le 01/11**, partout en Républia ; ordre « Marché Noir » (explosifs 1 200 FR + poison local) ajouté aux deux armureries, même définition qu'à Luthécia. Aucune migration : `crime_acheter_explosifs` et l'achat du poison ne dépendent pas de la ville |
-| Centre d'affaires | embauche d'agents de sécurité privée (périmètre Codex, #135) |
+| Centre d'affaires | sécurité privée : **tranché le 01/11**, on ne duplique pas Grobras Sécurité. Grobras est l'exemple d'un commerce que les PJ pourront ouvrir ailleurs : ce sont les PJ qui créeront leur propre agence de sécurité privée en province (fonctionnalité à venir, socle #135 de Codex). Rien à coder dans ce chantier |
 | Rachat d'entreprise | **tranché le 01/11** : Capitaine Sauvage 120 000 FR et Hôtel du Port 80 000 FR (comme la Brasserie des Voyageurs et l'Hôtel de la Victoire) ; écran + miroir serveur, migration `20261101010000` (non appliquée, indépendante de l'écran ; sans elle l'acte de rachat est refusé faute de prix) |
 
-## Restent à poser à Fred (une question à la fois)
+## Restent à poser à Fred
 
-1. Embauche de sécurité privée dans les centres d'affaires de province (raccordement Codex, #135).
+Aucune : les cinq questions de l'audit sont tranchées (01/11).
 
 ## Autres constats
 
