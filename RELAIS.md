@@ -39,6 +39,15 @@ Branche `codex/groupes-universels-20261028`, PR #219, main intégré jusqu’à 
 ### Claude — reprise #219 (Codex en panne), 01/11 : BLOQUÉ, paquet privé requis
 
 Branche `claude/integration-219-main-20261101` (= `bf06a27` + `main` `b69be61b`, deux conflits résolus, **non poussée sur #219**). Défaut réel : sources de tarifs 452 → 457 (7 écarts, tous décisions de Fred du 01/11), le plan de tarifs du lot 95 doit être réexaminé contre un relevé frais de production. Blocages : JSON privé et SHA-256 non reçus ; PostgreSQL 17.6, GoTrue, PostgREST et pglast indisponibles ici. Pile #219+main+#318+#324 éprouvée sur PostgreSQL 16 (non certifiant) : #318 14/14, hospitalisation 25/25. Rapport : `outils/audits/REPRISE-CLAUDE-219-20261101.md`. Aucune fusion, aucun déploiement, aucune écriture en production.
+### Claude — Hospitalisation à 0 PA (branche `claude/hospitalisation-20261101`, PR #324 empilée sur #318) — NE PAS FUSIONNER sans l'intégrateur
+
+Règles de Fred du 01/11 (`GAME-DESIGN-HOSPITALISATION.md`, repris de `main` avec une section « Implémentation ») implémentées côté serveur : hospitalisation automatique à 0 PA (ordres ou combat perdu, détention prioritaire), immobilisation jusqu'à la sortie, Dormir refusé à J0 puis 2 / 6 / 12 PA (×3 en clinique), repas de l'hôpital 1 PA (+2 au Dormir suivant), mails et forums refusés à J0, transfert en clinique dès J0 et sortie (J2, 20 PA) par la porte `hospitalisation_lieu_rejoindre` de #318 étendue (`p_lieu='sortie'`). Empoisonnement inchangé. Correctif **hors de `migrations/`** : `outils/audits/hospitalisation-20261101/migration-a-integrer-hospitalisation.sql`, à placer **après** celui de #318. Preuves : SQL jetable 30/30 (contre-épreuve 22 défauts), client 12/12 (contre-épreuve 11), non-régression #318 et #219 verte. Rapport : `outils/audits/hospitalisation-20261101/RAPPORT.md`. Précisions de Fred (01/11, 16 h 50) intégrées : clinique conforme ; rébellion (J0 à l'hôpital sous écrou, 2 PA à J1 puis retour en cellule, 4 PA par Dormir en détention) ; « Manger » supprimé, repas de clinique 1 PA + 30 FR pour +4 PA. Aucune fusion, migration ni déploiement.
+
+**Tester en jeu (après intégration)** : dépenser son dernier PA → arrivée au dispensaire de sa ville, ni sommeil ni mail ce jour-là ; le lendemain Dormir +2, repas de l'hôpital ; le surlendemain +6 (+2) ; sortie refusée sous 20 PA, acceptée ensuite (on se retrouve dans la rue devant l'hôpital).
+
+### Claude — #219 : circuits résiduels de déplacement (branche `claude/circuits-residuels-219-20261101`, PR vers la branche de #219)
+
+Sept anciens circuits encore actifs corrigés (F5, camion, assemblée, libération QHS, incorporation, hospitalisation, transfert clinique), conformes listés. Correctif serveur **hors de `migrations/`** (`outils/audits/circuits-residuels-219-20261101/migration-a-integrer-circuits-residuels-positions.sql`), à placer par l'intégrateur **après** les 95. Preuves : SQL jetable 14/14 (contre-épreuve 12 défauts), client 11/11 (contre-épreuve 9). Rapport : `outils/audits/circuits-residuels-219-20261101/RAPPORT.md`. Aucune fusion, migration ni déploiement.
 
 ### Migrations fusionnées, en attente d'application (ChatGPT)
 

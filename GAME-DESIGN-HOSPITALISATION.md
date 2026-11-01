@@ -37,6 +37,33 @@ tranché ici.
 - Le transfert est possible **dès J0** : c'est une ambulance qui transporte le patient (RP), pas
   le patient qui se déplace par l'interface. Il n'est donc pas soumis à l'immobilisation.
 
+## Implémentation (Claude, 01/11/2026 — chantier hospitalisation, PR dédiée vers #318)
+
+Correctif serveur : `outils/audits/hospitalisation-20261101/migration-a-integrer-hospitalisation.sql`
+(à placer après celui de #318). Bancs : `outils/bancs/banc-hospitalisation.sh` (30 cas, contre-épreuve
+`--contre`), `outils/bancs/banc-hospitalisation-client.cjs` (12 cas, contre-épreuve `CONTRE=<ref>`).
+
+- **Règle décidée → implémentée** : chaque point des tableaux ci-dessus, côté serveur ; l'écran ne fait
+  qu'afficher et relayer les refus nommés. Non déployé, non testé en jeu.
+- **Précisions de Fred (01/11, 16 h 50)** :
+  - Clinique : la sortie intervient après deux ordres Dormir (6 puis 18 PA, ×3 à chaque nuit) : conforme.
+  - **Rébellion** : un suspect tombé à 0 PA au terme d'un combat contre les policiers, et arrêté, passe J0
+    à l'hôpital (sous écrou). Le lendemain, son Dormir lui rend 2 PA, puis il est reconduit dans la foulée
+    dans sa cellule pour purger sa peine. **Pendant toute cette détention, chaque Dormir ne lui rend que
+    4 PA** : sanction de la rébellion.
+  - **Repas** : l'ancien « Manger » des chambres de la clinique est supprimé. À la clinique, le repas est
+    plus cher et rapporte **4 PA** au lieu de 2 (repas de la clinique : 1 PA et 30 FR, le prix de l'ancien
+    « Manger » ; hôpital public : 1 PA, gratuit, +2 PA).
+- **Lectures techniques de l'agent** (sans incidence de game design) :
+  - La sortie est un ordre (« Sortir de l'hôpital ») ; le patient sort dans la rue, par la porte du bâtiment.
+  - Le repas est possible chaque jour d'hospitalisation à partir de J1 (à J0, le patient n'a aucun PA).
+  - Mails et forums : refusés à J0 pour tout ce que le PJ écrit lui-même, y compris au nom d'une
+    organisation ; lire le forum reste bloqué à J0 comme avant.
+  - Ville sans dispensaire référencé : hospitalisé sur place, immobilisé.
+  - Un PJ **déjà détenu** dont les PA tombent à 0 dans sa cellule y reste (la règle de rébellion ne vise que
+    l'arrestation au terme du combat) ; un rebelle libéré avant J1 reste un patient ordinaire.
+  - L'ancienne règle « haut placé → clinique d'office » ne s'applique plus qu'à l'empoisonnement.
+
 ## Conséquences techniques retenues (choix techniques de l'agent)
 
 - Le transfert à l'hôpital et en clinique est un déplacement **décidé par le serveur**

@@ -75,6 +75,7 @@ ligne trouvée fausse se corrige ici.
 |---|---|---|---|
 | Création | Origine, école, archétype, carrière, caractéristiques. | Mixte | Origines et écoles du pays. |
 | Santé, moral, popularité | Points de vie, moral, popularité, influence, discrétion. | Écran | Rien : commun. |
+| Hospitalisation à 0 PA | PA tombés à 0 (ordres ou combat perdu) : hospitalisation automatique au dispensaire de la ville (déclencheur différé, détention prioritaire) ; J0 sans déplacement, Dormir, mail ni forum ; Dormir 2 / 6 puis 12 PA, ×3 en clinique ; repas de l'hôpital 1 PA (+2 au Dormir suivant), de la clinique 1 PA + 30 FR (+4) ; rébellion (arrêté au terme du combat) : J0 à l'hôpital sous écrou, 2 PA à J1 puis cellule, 4 PA par Dormir en détention ; transfert en clinique dès J0 et sortie (J2, 20 PA) par la porte `hospitalisation_lieu_rejoindre`. L'empoisonnement garde ses durées par palier. Règles : `GAME-DESIGN-HOSPITALISATION.md`. Préparé le 01/11 (correctif à intégrer après #318), non déployé. | Serveur | Un dispensaire référencé par ville (`navigation_lieux_regles`, `dispensaire-public%`) et sa sortie de rue. |
 | Université | Inscription à un cursus, jalons, seconde carrière ; syndicats étudiants, conférences. Le bouton « Suivre une formation » est en « bientôt ». | Serveur | Établissements et cursus. |
 | État civil | Demande en mariage (depuis la fiche d'un joueur), divorce, testament, héritage, actes à la mairie. | Mixte | Rien : commun. |
 | Quêtes et énigmes | Quête d'accueil, quête de carrière, énigmes de ville. | Mixte | Énigmes et référents propres. |

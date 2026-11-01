@@ -302,8 +302,9 @@ function camionNaviguerVers(villeId, buildingId, roomId) {
     if (state.char) state.char.currentCity = villeId;
     if (typeof buildCityTabs === 'function') buildCityTabs();
   }
-  if (typeof enterBuilding === 'function') enterBuilding(buildingId, true);
-  if (typeof enterRoom === 'function') enterRoom(buildingId, roomId, null);
+  // Tous les appelants passent une position rendue par le serveur : représentée, jamais
+  // recommandée (#219 ; sinon navigation_interieure serait renvoyée et refusée).
+  if (typeof representerPositionServeur === 'function') representerPositionServeur(buildingId, roomId);
   if (typeof updateUI === 'function') updateUI();
 }
 
@@ -371,8 +372,8 @@ async function camionEntrerDansLaPiece(camionId) {
     state.currentCity = e.camion.ville;
     if (state.char) state.char.currentCity = e.camion.ville;
   }
-  if (typeof enterBuilding === 'function') enterBuilding(RP_CAMION_BATIMENT, true);
-  if (typeof enterRoom === 'function') enterRoom(RP_CAMION_BATIMENT, camionId, null);
+  // camion_monter a déjà posé la position : représentée, jamais recommandée (#219).
+  if (typeof representerPositionServeur === 'function') representerPositionServeur(RP_CAMION_BATIMENT, camionId);
 
   // RECONCILIATION. enterBuilding porte des verrous d'etat qui lui sont propres
   // -- detention, hospitalisation, surcharge d'inventaire -- et peut donc
