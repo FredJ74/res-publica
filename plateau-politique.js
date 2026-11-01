@@ -13931,12 +13931,17 @@ async function doAccepterIncorporation() {
       return;
     }
     state.estEmprisonne = null;
+    if (state._navigationServeur === true && typeof adopterPositionServeurRelue === 'function') {
+      // #219 : detention_clore_motif_eteint a conduit le PJ au corps de garde.
+      await adopterPositionServeurRelue();
+    } else {
     state.currentCity = 'caserne';
     state.currentBuilding = 'caserne-militaire';
     state.currentRoom = 'corps_garde';
     if (typeof enterBuilding === 'function' && document.getElementById('vue-batiment')) {
       enterBuilding('caserne-militaire', true);
       if (typeof enterRoom === 'function') enterRoom('caserne-militaire', 'corps_garde', null);
+    }
     }
     showToast('Transfert accepté', 'Vous êtes conduit(e) à la caserne et incorporé(e).', true, true);
   } else {

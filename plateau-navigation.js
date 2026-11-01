@@ -2675,6 +2675,28 @@ function afficherPositionNavigationConfirmee(frais) {
  try{applyEmpireTheme(state.country);buildCityTabs();if(!state.currentBuilding){showVueRue(null,frais._positionNavigationServeur||null);return;}enterBuilding(state.currentBuilding,true);enterRoom(state.currentBuilding,state.currentRoom,null);}
  finally{navigationInterieureRendu=null;}
 }
+// Représenter une position QUE LE SERVEUR A DÉJÀ ARRÊTÉE (restauration après F5, camion,
+// lot dynamique) : même marqueur que afficherPositionNavigationConfirmee, pour que
+// enterBuilding/enterRoom affichent sans renvoyer navigation_interieure (sinon : refus
+// « destination_inconnue » pour le camion, ou déplacement vers la première pièce).
+function representerPositionServeur(buildingId, roomId) {
+ const serveur=state._navigationServeur===true;
+ if(serveur)navigationInterieureRendu={buildingId,roomId};
+ try{enterBuilding(buildingId,true);if(roomId)enterRoom(buildingId,roomId,null);}
+ finally{if(serveur)navigationInterieureRendu=null;}
+}
+// Une porte serveur a DÉJÀ déplacé le PJ (libération, incorporation, hospitalisation) :
+// l'écran relit la fiche et représente cette position, sans rien écrire lui-même.
+async function adopterPositionServeurRelue() {
+ if(typeof sbLoadPersonnage!=='function'||!state.char?.name)return false;
+ const c=contexteNavigationRue();
+ const frais=await sbLoadPersonnage(c.nom).catch(()=>null);
+ if(!contexteNavigationRueValide(c))return false;
+ if(!frais||(c.uid&&frais.userId!==c.uid)){
+  showToast('Position à resynchroniser','Le déplacement est enregistré ; rechargez la position serveur.',false);return false;}
+ afficherPositionNavigationConfirmee(frais);
+ return true;
+}
 let douanesServeurEnCours=null;
 async function commanderDouanesServeur() {
  const c=contexteNavigationRue();

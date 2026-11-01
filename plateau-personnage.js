@@ -2093,6 +2093,7 @@ function declencherHospitalisation(palier) {
   // deplacements et ses deux statistiques affaiblies -- toute la sanction d'une agression etait
   // annulable gratuitement. Sauvegarde immediate, pas au prochain cycle : la victime peut
   // rafraichir dans la seconde.
+  if (state._navigationServeur === true) { conduireHospitalisationServeur(lieu); return; }
   if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
   const batimentCible = lieu === 'clinique' ? 'clinique-privee' : 'dispensaire-public';
   const pieceCible = lieu === 'clinique' ? 'reception_clinique' : 'salle_attente';
@@ -2546,6 +2547,8 @@ async function doTransfertCliniquePrivee(pa, cost) {
     return;
   }
 
+  if (state._navigationServeur === true) return transfertCliniqueServeur(patient, roomIdCible, dejaAttribuee);
+
   const r = await deduireCoutOrdre({ pa, cost });
   if (!r.ok) { showToast('Fonds insuffisants', '1000 FR requis pour le transfert.', false); return; }
 
@@ -2583,6 +2586,79 @@ async function doTransfertCliniquePrivee(pa, cost) {
   // plateau-navigation.js) -- aucune teleportation parallele.
   if (typeof enterBuilding === 'function') enterBuilding('clinique-privee', true);
   if (typeof enterRoom === 'function') enterRoom('clinique-privee', roomIdCible, null);
+  showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true);
+  addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
+}
+
+// #219 — HOSPITALISATION PAR LE SERVEUR. La navigation commune refuse tout déplacement à
+// un PJ hospitalisé (« acteur_incapacite ») et toute entrée hors de la rue : l'écran ne peut
+// plus conduire lui-même au dispensaire ni à la clinique. hospitalisation_lieu_rejoindre lit
+// le lieu dans la référence de navigation (dispensaire de la ville réelle), sort le patient
+// de son groupe et, pour la clinique, paie le transfert dans la même transaction.
+const HOSPITALISATION_REFUS = {
+  non_hospitalise: 'Aucune hospitalisation en cours n’est enregistrée.',
+  lieu_non_prescrit: 'Ce lieu de soins ne vous est pas prescrit.',
+  chambre_non_attribuee: 'Cette chambre ne vous est pas attribuée.',
+  lieu_non_reference: 'Aucun lieu de soins n’est référencé ici.',
+  fonds_insuffisants: '1000 FR requis pour le transfert.',
+  pa_insuffisants: 'PA insuffisants.',
+  personnage_indisponible: 'Votre situation interdit ce déplacement.',
+  interception_en_cours: 'Une interception doit être résolue avant de partir.',
+  combat_en_cours: 'Vous êtes engagé(e) dans un combat.'
+};
+async function hospitalisationRejoindreServeur(lieu, chambre, verifier) {
+  if (typeof sbRpcVerdict !== 'function') return null;
+  const v = await sbRpcVerdict('hospitalisation_lieu_rejoindre',
+    { p_lieu: lieu, p_chambre: chambre || null, p_verifier: verifier === true }).catch(() => null);
+  const r = Array.isArray(v) ? v[0] : v;
+  if (!r || r.transport) {
+    showToast('Déplacement non confirmé', 'La réponse du serveur est incertaine. Rechargez la position.', false);
+    return null;
+  }
+  if (r.ok !== true) {
+    showToast('Déplacement refusé', HOSPITALISATION_REFUS[r.raison] || r.raison || 'Refus du serveur.', false);
+    return null;
+  }
+  return r;
+}
+async function conduireHospitalisationServeur(lieu) {
+  // La fiche (hospitalisation comprise) doit être enregistrée avant la porte, qui la relit.
+  if (typeof sbSavePersonnage === 'function') {
+    const ok = await sbSavePersonnage(state).then(() => true).catch(() => false);
+    if (!ok) { showToast('Hospitalisation non enregistrée', 'Rechargez le jeu avant de poursuivre.', false); return false; }
+  }
+  const r = await hospitalisationRejoindreServeur(lieu, null, false);
+  if (!r) return false;
+  if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
+  return true;
+}
+async function transfertCliniqueServeur(patient, roomIdCible, dejaAttribuee) {
+  // 1. Vérification sans écriture ni dépense.
+  if (!await hospitalisationRejoindreServeur('clinique', null, true)) return;
+  // 2. La chambre attribuée (si nouvelle) est déclarée avant la porte, qui la contrôle.
+  let entree = null;
+  if (!dejaAttribuee) {
+    entree = { buildingId: 'clinique-privee', roomId: roomIdCible, city: 'capitale',
+      country: state.country || 'republic', locataire: patient, depuis: dateCivileParisMedicale(),
+      visible: true, prix: 0, chambreClinique: true, visitesAutorisees: true };
+    const ok = typeof sbSaveLocation === 'function' && await sbSaveLocation(entree).then(() => true).catch(() => false);
+    if (!ok) { showToast('Chambre non réservée', 'La réservation n’a pas été enregistrée. Aucun paiement.', false); return; }
+    if (!state.locationsActives) state.locationsActives = [];
+    state.locationsActives.push(entree);
+  }
+  // 3. Paiement et déplacement dans la même transaction serveur.
+  const r = await hospitalisationRejoindreServeur('clinique', roomIdCible, false);
+  if (!r) {
+    if (entree) {
+      const i = state.locationsActives.indexOf(entree);
+      if (i >= 0) state.locationsActives.splice(i, 1);
+      if (typeof sbSupprimerLocation === 'function')
+        await sbSupprimerLocation(entree.country, entree.buildingId, entree.roomId, entree.city).catch(() => {});
+    }
+    return;
+  }
+  state.hospitalisation.lieu = 'clinique';
+  if (typeof adopterPositionServeurRelue === 'function') await adopterPositionServeurRelue();
   showToast('Transfert effectué', 'Vous êtes désormais pris(e) en charge en clinique privée. Convalescence plus rapide.', true, true);
   addJournalEntry('Transfert vers une clinique privée (-1000 FR).', 'event-good');
 }

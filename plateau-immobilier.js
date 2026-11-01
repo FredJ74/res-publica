@@ -177,8 +177,8 @@ async function restaurerPieceDynamiqueDifferee(buildingId, roomId) {
   const existe = !!(typeof BUILDINGS !== 'undefined' && BUILDINGS[buildingId] && BUILDINGS[buildingId].rooms
     && BUILDINGS[buildingId].rooms[roomId]);
   if (!existe) return false;
-  if (typeof enterBuilding === 'function') enterBuilding(buildingId, true);
-  if (typeof enterRoom === 'function') enterRoom(buildingId, roomId, null);
+  // Position arrêtée par le serveur : représentée, jamais recommandée (#219).
+  if (typeof representerPositionServeur === 'function') representerPositionServeur(buildingId, roomId);
   return true;
 }
 
