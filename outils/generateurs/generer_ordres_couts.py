@@ -103,11 +103,17 @@ print(JSON.stringify(out));
 
 
 def executer_jsc(script):
+    # Hors macOS (agents en conteneur Linux), JavaScriptCore est absent : meme script,
+    # rejoue par Node avec les deux primitives de jsc (readFile, print).
+    commande = [JSC] if os.path.exists(JSC) else ["node"]
+    if commande == ["node"]:
+        script = ("const readFile=f=>require('fs').readFileSync(f,'utf8');"
+                  "const print=s=>process.stdout.write(String(s)+'\\n');\n") + script
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as f:
         f.write(script)
         chemin = f.name
     try:
-        r = subprocess.run([JSC, chemin], capture_output=True, text=True, cwd=RACINE, timeout=120)
+        r = subprocess.run(commande + [chemin], capture_output=True, text=True, cwd=RACINE, timeout=120)
     finally:
         os.unlink(chemin)
     if r.returncode != 0 or not r.stdout.strip():

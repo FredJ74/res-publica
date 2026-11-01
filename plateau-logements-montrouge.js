@@ -302,3 +302,74 @@ function resilierLogementSocialSiDepartMontrouge(ancienDomicile, nouveauCountry,
   }
   addJournalEntry('Départ de Montrouge : bail du logement social résilié automatiquement (' + bail.localLabel + ').', 'event-info');
 }
+
+// =====================================================================
+// JARDINS OUVRIERS DE MONTROUGE (decision de Fred, 01/11/2026, recette M-06)
+// =====================================================================
+// Tout est decide par le serveur (jardins_travailler, jardins_laisser_legumes,
+// jardins_prendre_legumes) : presence, PA, plafond d'une journee, stock de la reserve, place dans
+// l'inventaire. L'ecran adopte l'inventaire rendu ; aucun chiffre n'est calcule ici.
+const MOTIFS_JARDINS = {
+  deja_fait_aujourdhui: 'Vous avez déjà travaillé aux jardins aujourd\'hui. Revenez demain.',
+  stock_insuffisant: 'Vous n\'avez pas autant de fruits et légumes.',
+  reserve_insuffisante: 'La réserve des jardins n\'en contient pas autant.',
+  quantite_invalide: 'Indiquez une quantité entière, au moins 1.',
+  acteur_indisponible: 'Vous n\'êtes pas en état de le faire.'
+};
+
+function refusJardins(v) {
+  const m = MOTIFS_JARDINS[v?.raison];
+  if (!m) return false;
+  showToast('Action refusée', m + (v?.raison === 'reserve_insuffisante' ? ' (réserve : ' + (v.reserve || 0) + ')' : ''), false);
+  return true;
+}
+
+async function doTravaillerJardins() {
+  const v = await executerReceptionInventaire('jardins_travailler', {}, { surRefus: refusJardins });
+  if (!v) return;
+  addJournalEntry('Une journée aux jardins ouvriers : ' + v.quantite + ' fruits et légumes récoltés.', 'event-good');
+  showToast('Jardins ouvriers', v.quantite + ' fruits et légumes rejoignent votre inventaire.', true);
+  if (typeof renderRoom === 'function') renderRoom();
+}
+
+async function doEchangeLegumesJardins(sens) {
+  let reserve = null;
+  try {
+    const rows = await sbGet('jardins_ouvriers_reserve', 'pays=eq.republic&ville=eq.ville_b');
+    reserve = rows?.[0]?.qte ?? null;
+  } catch (_) {}
+  const titre = sens === 'laisser' ? 'Laisser des légumes' : 'Se servir dans la réserve';
+  document.getElementById('postes-modal-title').textContent = titre;
+  let html = '<div class="cpj-dialogue" style="padding:1rem">';
+  html += '<div class="cpj-note" style="margin-bottom:.8rem">' + (sens === 'laisser'
+    ? 'Ce que vous laissez ici reste aux jardins pour ceux qui en ont besoin.'
+    : 'Les jardiniers laissent ici ce qu\'ils ont en trop. Servez-vous selon vos besoins.') + '</div>';
+  html += '<div class="cpj-note" style="margin-bottom:.8rem">Réserve des jardins : ' + (reserve === null ? 'inconnue' : reserve) + '</div>';
+  html += '<input id="jardins-qte" class="cpj-champ" type="number" min="1" step="1" value="1" style="width:100%;margin-bottom:.8rem">';
+  html += '<div style="display:flex;gap:.5rem">';
+  html += '<button class="cpj-touche cpj-primaire" style="flex:1" onclick="confirmerEchangeLegumesJardins(\'' + sens + '\')">Confirmer</button>';
+  html += '<button class="cpj-touche" style="flex:1" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">Annuler</button>';
+  html += '</div></div>';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+let echangeJardinsEnCours = false;
+async function confirmerEchangeLegumesJardins(sens) {
+  if (echangeJardinsEnCours) return;
+  const qte = Number(document.getElementById('jardins-qte')?.value);
+  if (!Number.isSafeInteger(qte) || qte < 1) { refusJardins({ raison: 'quantite_invalide' }); return; }
+  echangeJardinsEnCours = true;
+  try {
+    const fn = sens === 'laisser' ? 'jardins_laisser_legumes' : 'jardins_prendre_legumes';
+    const v = await executerReceptionInventaire(fn, { p_qte: qte }, { surRefus: refusJardins });
+    if (!v) return;
+    document.getElementById('modal-postes').classList.remove('open');
+    if (sens === 'laisser') {
+      addJournalEntry('Vous avez laissé ' + v.quantite + ' fruits et légumes aux jardins ouvriers.', 'event-good');
+      showToast('Merci pour eux', v.quantite + ' fruits et légumes laissés. Réserve : ' + v.reserve + '.', true);
+    } else {
+      showToast('Jardins ouvriers', v.quantite + ' fruits et légumes pris dans la réserve. Il en reste ' + v.reserve + '.', true);
+    }
+  } finally { echangeJardinsEnCours = false; }
+}

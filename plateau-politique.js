@@ -3889,6 +3889,12 @@ function renderRoomActions(room, buildingId, roomId) {
       buildingId === 'banque-nationale' && roomId === 'accueil_banque' &&
       !!state.char?.enigme1?.autorisationCoffre && !state.char?.enigme1?.coffreOuvert
     ))
+    // Meme principe pour le juge de l'enigme du musee (decision de Fred, 01/11/2026) : visible
+    // seulement pendant l'enquete, tant que l'autorisation du coffre n'est pas obtenue.
+    .filter(o => o.fn !== 'demander_juge_instruction' || (
+      ['declenchee', 'relancee'].includes(state.char?.enigme1?.etape) &&
+      !state.char?.enigme1?.autorisationCoffre
+    ))
     .filter(o => !['produire_commerce','produire_arme'].includes(o.fn))
     .filter(o => o.fn !== 'gerer_commerce' || (typeof commerceDroitsPiece === 'function' && commerceDroitsPiece(buildingId, roomId)))
     .filter(o => !dynOrders.some(d => d.fn === o.fn))

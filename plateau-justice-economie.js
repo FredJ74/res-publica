@@ -7432,7 +7432,7 @@ async function ouvrirModalConstruire() {
 
   if (!ts.constructionAutorisee) {
     // Sans permis joint, ouvrir le dossier existant, sans débiter à l'ouverture.
-    return doDeposerDemandePermis(1, 100);
+    return doDeposerDemandePermis(1, 100); // cout declare par ORDRE_DEPOSER_PERMIS
   }
 
   document.getElementById('postes-modal-title').textContent = 'Construire sur ce terrain';
@@ -7982,9 +7982,12 @@ const TYPES_PRET = {
   consommation: { label: 'Consommation', desc: 'Petite somme, remboursement rapide, taux élevé.', montantMax: 10000, tauxFixe: 12, dureeMax: 30 }
 };
 
+// Guichets de la Banque Nationale (decision de Fred, 01/11/2026) : la banque locale de chaque ville
+// de province applique les memes procedures. Le serveur tient la meme liste (pret, virements).
+// Liste ecrite dans la fonction : les bancs la chargent seule.
 function pretBancaireDisponibilite(typeBanque, typePret) {
   if ((typeBanque || 'nationale') !== 'nationale') return {ok:true};
-  if (state.currentBuilding !== 'banque-nationale') return {ok:false,raison:'Rendez-vous à la Banque Nationale pour demander votre prêt travaux. Aucun financement n’est prélevé ici.'};
+  if (!['banque-nationale', 'banque-locale'].includes(state.currentBuilding)) return {ok:false,raison:'Rendez-vous à la Banque Nationale ou à la banque locale de votre ville pour demander votre prêt. Aucun financement n’est prélevé ici.'};
   if (typePret && !['travaux','consommation'].includes(typePret)) return {ok:false,raison:'Le prêt consommation n’est pas actuellement disponible à ce guichet. Aucun montant ni PA ne sera prélevé.'};
   return {ok:true};
 }
@@ -8153,6 +8156,12 @@ const DUREE_INSTRUCTION_PERMIS = {
   logements_moyen: 6,
   logements_barre: 7
 };
+
+// Le depot de permis n'a plus de bouton propre sur les parcelles (01/11/2026) : il s'ouvre par
+// « Construire ». Son cout reste declare ici, la ou il est employe, pour que le miroir
+// ordres_couts (payer_ordre, appele par terrain_permis_deposer) le connaisse toujours. Les
+// bancs e2e chargent ouvrirModalConstruire seule : l'appel y garde donc les valeurs litterales.
+const ORDRE_DEPOSER_PERMIS = {fn:'deposer_demande_permis', label:'Déposer une demande de permis', pa:1, cost:100};
 
 async function doDeposerDemandePermis(pa, cost) {
   const id = state.currentBuilding;
@@ -12853,8 +12862,8 @@ async function encaisserVenteStructure(fn, pa, cost, caisseId, ville) {
 // La source du titulaire n'est PAS state.poste -- celui-ci est exclusif avec les autres postes
 // nommes, une charge religieuse ne doit jamais l'etre (voir getTitulaireReligieux,
 // plateau-divers.js), donc on interroge titulaires_pnj directement pour les 3 villes plutot que
-// de lire state.poste. 100 FR/jour de la charge locale de Pretre (caisse de SON eglise) ;
-// +100 FR/jour supplementaires pour le Grand Pretre national, TOUJOURS payes par la caisse du
+// de lire state.poste. 50 FR/jour (Fred, 01/11/2026 ; 100 auparavant) de la charge locale de Pretre (caisse de SON eglise) ;
+// +50 FR/jour supplementaires pour le Grand Pretre national, TOUJOURS payes par la caisse du
 // Grand Tabernacle de Luthecia (tabernacle-impots), meme si le Grand Pretre est Pretre de PSM ou
 // Montrouge. Silencieux (aucun toast) si le joueur ne detient aucune charge religieuse -- ce sera
 // le cas de l'immense majorite des joueurs, contrairement au salaire politique qui a toujours un
@@ -13129,7 +13138,7 @@ function choisirVirementJoueur(i) {
 }
 
 const REFUS_VIREMENT = {
-  pas_sur_place: ['À la banque', 'Les virements se font à la Banque Nationale.'],
+  pas_sur_place: ['À la banque', 'Les virements se font à la Banque Nationale ou à la banque locale de votre ville.'],
   beneficiaire_introuvable: ['Destinataire introuvable', 'Choisissez un joueur dans la recherche.'],
   beneficiaire_invalide: ['Destinataire invalide', 'Vous ne pouvez pas vous virer de l\'argent à vous-même.'],
   montant_invalide: ['Montant invalide', 'Indiquez un nombre entier de francs, positif.'],
