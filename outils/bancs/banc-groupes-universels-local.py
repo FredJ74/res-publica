@@ -3,12 +3,38 @@
 Identité JWT de fixture ; aucune authentification Supabase ni écriture distante.
 Chaque scénario est annulé ; le décor fictif seul est committé pour la concurrence.
 """
-import importlib.util,json,re,sys,tempfile,os
+import importlib.util,json,re,sys,tempfile,os,traceback
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 R=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('audit',R/'outils/bancs/banc-audit-securite-135-local.py')
 audit=importlib.util.module_from_spec(spec);spec.loader.exec_module(audit)
+def decrire_echec(exc):
+ """Préserve le lieu et la trace d'une assertion vide ; ne change pas le verdict."""
+ cadres=traceback.extract_tb(exc.__traceback__)
+ dernier=cadres[-1] if cadres else None
+ fichier=None
+ if dernier:
+  p=Path(dernier.filename).resolve()
+  fichier=str(p.relative_to(R)) if p.is_relative_to(R) else p.name
+ message=str(exc)
+ if not message:message=type(exc).__name__+(' à '+str(fichier)+':'+str(dernier.lineno) if dernier else '')
+ return {'erreur':message[:350],'type_erreur':type(exc).__name__,'fichier':fichier,'ligne':dernier.lineno if dernier else None,'trace':''.join(traceback.format_exception(type(exc),exc,exc.__traceback__,limit=10))[-12000:]}
+
+def enregistrer_rapport(rapport,chemin):
+ """Artefact des seuls scénarios fictifs, écrit atomiquement, sans verdict modifié."""
+ p=Path(chemin).resolve()
+ if p.is_relative_to(R):raise ValueError('Rapport de banc hors dépôt requis')
+ texte=json.dumps(rapport,ensure_ascii=False,indent=2)+'\n'
+ p.parent.mkdir(parents=True,exist_ok=True)
+ temporaire=None
+ try:
+  with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=p.parent,prefix=p.name+'.',delete=False) as f:
+   temporaire=Path(f.name);f.write(texte)
+  os.replace(temporaire,p)
+ finally:
+  if temporaire and temporaire.exists():temporaire.unlink()
+
 def main(extension=None):
  if os.environ.get('HG219_POSTGRES_BIN'):
   sp=importlib.util.spec_from_file_location('pg17_groupes219',R/'outils/baseline/epreuve-postgresql.py');e=importlib.util.module_from_spec(sp);sp.loader.exec_module(e);e.configurer_binaires(Path(os.environ['HG219_POSTGRES_BIN']))
@@ -98,7 +124,7 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
   def cas(nom,fn):
    q.execute('SAVEPOINT cas')
    try:fn();tests.append({'cas':nom,'ok':True})
-   except Exception as e:tests.append({'cas':nom,'ok':False,'erreur':str(e)[:350]})
+   except Exception as e:tests.append({'cas':nom,'ok':False,**decrire_echec(e)})
    finally:q.execute('ROLLBACK TO SAVEPOINT cas')
   def refus_radio(raison,pre=''):
    if pre:sql(pre)
@@ -238,7 +264,9 @@ INSERT INTO pnj_possessions(pnj_id,objet) VALUES('autre','{"produitMilitaire":"r
   preuves_extension={}
   if extension is not None:extension(locals())
   c.rollback()
-  print(json.dumps({'tests':tests,'moteur':moteur,'production':False,'authentification':'identite JWT de fixture, role authenticated','rollback':not preuves_extension.get('action_fictive_committee',False),'preuves_extension':preuves_extension,'migrations_appliquees':[],'original217':original},ensure_ascii=False,indent=2))
+  rapport={'tests':tests,'moteur':moteur,'production':False,'authentification':'identite JWT de fixture, role authenticated','rollback':not preuves_extension.get('action_fictive_committee',False),'preuves_extension':preuves_extension,'migrations_appliquees':[],'original217':original}
+  if os.environ.get('HG219_RAPPORT_JSON'):enregistrer_rapport(rapport,os.environ['HG219_RAPPORT_JSON'])
+  print(json.dumps(rapport,ensure_ascii=False,indent=2))
   return int(any(not x['ok'] for x in tests))
  finally:c.close();serveur.cleanup()
 if __name__=='__main__':sys.exit(main())

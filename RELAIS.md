@@ -338,3 +338,13 @@ Aucune donnée réelle, migration de production, fusion ou déploiement. Ne pas 
 Protection de reprise ajoutée : une coupe >1012 doit fournir un prévol frais des tarifs (`lignes`, MD5 complet, sentinelle) ; si le contenu a changé, la réconciliation reste refusée plutôt que de réinjecter silencieusement l’ancienne capture. Tests synthétiques explicites, aucune mesure 1015 inventée.
 
 Vérifications finales de cette adaptation : **71/71** également sur le moteur CI fourni (16.2), Workflow conforme, globaux réexécutés **10/12**, sans mise à jour d’empreinte ni fausse coupe 1015.
+
+### #219 — échec CI 41304385900 reproduit et corrigé localement
+
+Journaux transmis par l'intégrateur après refus de l'API : les quatre cas civils échouaient sur un PNJ de fixture déjà mort ; le cas militaire avait perdu son effectif mixte. Reproduction déterministe obtenue avec le vrai `pnj_mourir` sur le roster fictif avant la suite civile : exactement les quatre échecs signalés, dont `pnj_mort_sans_leader` et `cible_non_referencee`. Trois erreurs reproduites aussi sur 17.6 : ce n'est pas une incompatibilité spécifique au 16.2 du runner. Le round concurrent parent committe des dégâts, alors que `pret` ne préparait pas à nouveau le statut de ses deux propres PNJ.
+
+Correction limitée au banc : nouveau scénario civil = `ancre` et `autre` fictifs vivants/PA réinitialisés ; aucun métier, propriétaire, moteur ou contrainte de production modifié. Les 379 assertions/scénarios existants restent conservés et un 380e vérifie qu'une vraie mort rend toujours le PNJ non ciblable, sans débit, et interdit un leader. **380/380 sur 16.2 et 17.6 ICU 153.121**, même après mort de tout le roster parent. La contre-épreuve `--contre-reset-fixture` réintroduit exactement les quatre échecs sous 17.6. CI exécutera désormais cette précondition défavorable (`--fixture-roster-mort`), pas un scénario simplifié.
+
+Diagnostics renforcés : trace/fichier/ligne des assertions vides, artefact JSON atomique dans l'artefact CI existant, code de sortie en échec conservé. **75/75 outillage natif** ; chaîne locale complète du workflow en cours, étapes après 43 incluses si réalisables.
+
+Fichier privé toujours absent : recherche du SHA-256 attendu `b8998d8b97ff3709ecf5a2df48b7373052a5c5f1d8f61bef4d4cb0ae325adad0` parmi 62 fichiers de pièces/captures accessibles, aucune correspondance. Contrôle SHA obligatoire raccordé au pilote avant import, contre-épreuves sur fixtures. Aucun contenu 1015 reçu ou certifié, aucune des 95 installée sur ce catalogue, aucun 27 HTTP sur ce catalogue. Aucune donnée réelle, fusion ou livraison de production.

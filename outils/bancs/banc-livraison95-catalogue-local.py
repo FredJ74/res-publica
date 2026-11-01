@@ -86,12 +86,15 @@ def main():
  a.add_argument('--referentiels-reference',type=Path,required=True,help='Empreintes et cardinalités des 12 référentiels statiques du vivant.')
  a.add_argument('--gotrue-bin',type=Path)
  a.add_argument('--postgrest-bin',type=Path)
+ a.add_argument('--referentiels-sha256',help='SHA-256 transmis indépendamment du fichier privé, obligatoire avec sa capture.')
  a.add_argument('--referentiels-capture',type=Path,help='Capture privée complète des quatre tables statiques et locale ; hors Git, vérifiée avant 95.')
  a.add_argument('--locale-reference',type=Path,default=R/'outils/audits/catalogue-1012/LOCALE-PRODUCTION-1012.json',help='Relevé externe de locale de la même coupe que les empreintes et référentiels.')
  a.add_argument('--locale-provider',choices=['libc','icu'],default='libc')
  a.add_argument('--icu-locale',help='Locale ICU exacte relevée dans pg_database.datlocale, jamais déduite du nom libc.')
  a.add_argument('--locale-clone',help='Locale explicite du seul PostgreSQL jetable ; enregistrée dans le rapport.')
  o=a.parse_args()
+ if bool(o.referentiels_capture)!=bool(o.referentiels_sha256):a.error('--referentiels-capture et --referentiels-sha256 sont requis ensemble')
+ if o.referentiels_sha256 and not re.fullmatch('[a-f0-9]{64}',o.referentiels_sha256):a.error('SHA-256 privé invalide')
  if o.locale_provider=='icu' and not (o.locale_clone and o.icu_locale):a.error('ICU exige --locale-clone et --icu-locale relevés, sans valeur inventée')
  if o.icu_locale and o.locale_provider!='icu':a.error('--icu-locale exige --locale-provider icu')
  if not (o.gotrue_bin and o.postgrest_bin):a.error('GoTrue et PostgREST obligatoires pour certifier les 27 cas HTTP authentifies')
@@ -204,7 +207,7 @@ def main():
      lieu=references['locale']
      reference['locale']=lieu['locale']
      prive=charger('references_privees219','outils/bancs/referentiels-prives-clone-219.py')
-     rapport['capture_referentiels_privee']=prive.charger(q,o.referentiels_capture,reference)
+     rapport['capture_referentiels_privee']=prive.charger(q,o.referentiels_capture,reference,o.referentiels_sha256)
     rapport['diagnostic_archives_refs_non_certifiant']=complement.diagnostic_archives_statiques(q,e.decouper,reference['referentiels'])
     rapport['paliers_reconstitues_conformes']=complement.restaurer_paliers_attestes(q,e.decouper,reference)
     assert reference['referentiels']['offres_emploi_bne']=={'lignes':0,'empreinte':'d751713988987e9331980363e24189ce'},'Vide BNE non attesté'

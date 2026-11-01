@@ -13,10 +13,12 @@ R=Path(__file__).resolve().parents[2]
 def normaliser_locale(cle,v):
  return v.lower().replace('-','').replace('_','') if cle in ('collate','ctype') and isinstance(v,str) else v
 
-def lire_capture(chemin,reference):
+def lire_capture(chemin,reference,sha256_attendu=None):
  p=Path(chemin).resolve()
  if p.is_relative_to(R):raise ValueError('Capture privée interdite dans le dépôt')
- brut=p.read_text(encoding='utf-8')
+ octets=p.read_bytes();empreinte=hashlib.sha256(octets).hexdigest()
+ if sha256_attendu is not None and empreinte!=sha256_attendu:raise ValueError('SHA-256 privé différent de l’empreinte attendue')
+ brut=octets.decode('utf-8')
  try:obj=json.loads(brut,parse_float=Decimal)
  except (ValueError,TypeError):raise ValueError('Capture privée JSON invalide') from None
  chemin_json=[]
@@ -35,7 +37,7 @@ def lire_capture(chemin,reference):
   lignes=refs[table]
   if not isinstance(lignes,list) or len(lignes)!=reference['referentiels'][table]['lignes']:raise ValueError('Cardinalité privée différente : '+table)
   if not all(isinstance(ligne,dict) for ligne in lignes):raise ValueError('Lignes privées invalides : '+table)
- return brut,obj,chemin_json,hashlib.sha256(p.read_bytes()).hexdigest()
+ return brut,obj,chemin_json,empreinte
 
 def verifier_locale(q,capture):
  q.execute("SELECT datcollate,datctype,datlocprovider,COALESCE(to_jsonb(d)->>'datlocale',to_jsonb(d)->>'daticulocale'),datcollversion,pg_database_collation_actual_version(oid) FROM pg_database d WHERE datname=current_database()")
@@ -47,10 +49,10 @@ def verifier_locale(q,capture):
  if ecarts:raise ValueError('Locale du clone différente : '+','.join(ecarts))
  return {'conforme':True,'locale':observe}
 
-def charger(q,chemin,reference):
+def charger(q,chemin,reference,sha256_attendu=None):
  if q.connection.info.host and not q.connection.info.host.startswith('/'):raise ValueError('Socket PostgreSQL local requis pour les captures')
  # Les schémas déjà reconstruits doivent précéder cette étape.
- brut,capture,racine,h=lire_capture(chemin,reference)
+ brut,capture,racine,h=lire_capture(chemin,reference,sha256_attendu)
  locale=verifier_locale(q,capture)
  q.execute('SAVEPOINT capture_refs219')
  try:

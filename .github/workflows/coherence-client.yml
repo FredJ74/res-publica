@@ -104,7 +104,9 @@ jobs:
       - name: Replis, calendrier et anciens camions sur les corps SQL communiqués
         run: python3 outils/bancs/banc-groupes-camions-local.py --catalogue-20261029
       - name: Combats civils et squatteurs dans les mêmes rounds, PostgreSQL jetable
-        run: python3 outils/bancs/banc-combat-civil-universel-local.py --catalogue-20261029
+        env:
+          HG219_RAPPORT_JSON: /tmp/hg-bancs/combat-civil-squatteurs.json
+        run: python3 outils/bancs/banc-combat-civil-universel-local.py --catalogue-20261029 --fixture-roster-mort
       - name: Audit securite privee et groupes sur PostgreSQL jetable
         run: python3 outils/bancs/banc-audit-securite-135-local.py
       - name: Achat sur PostgreSQL local, sans identifiant Supabase

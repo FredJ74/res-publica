@@ -42,8 +42,21 @@ def suite(ctx):
  q.execute(re.search(r'CREATE OR REPLACE FUNCTION public\.mail_systeme_poser_interne\(.*?\$function\$;',(R/'baseline/domaines/communication/20_fonctions.sql').read_text(),re.S)[0])
  ctx['installer_fonction_canonique']('militaire_mes_batailles')
  ctx['c'].commit()
+ if '--fixture-ancre-morte' in sys.argv:
+  q.execute("SELECT pnj_mourir('ancre','regression_fixture_apres_concurrence')");exige(q.fetchone()[0])
+  ctx['preuves_extension']['fixture_ancre_morte_avant_civil']=True
+ if '--fixture-roster-mort' in sys.argv:
+  # Reproduit les pertes déjà committées d'une confrontation concurrente parente.
+  q.execute("SELECT id FROM pnj_membres WHERE id IN ('ancre','autre','cie-S1','cie-S2','cie-S3','cie-S4','police-republic-capitale-P1','police-republic-capitale-P2','police-republic-capitale-P3','douane-republic-ville_a-D1','douane-republic-ville_a-D2') ORDER BY id")
+  for (ident,) in q.fetchall():
+   q.execute("SELECT pnj_mourir(%s,'regression_fixture_apres_concurrence')",(ident,));exige(q.fetchone()[0])
+  ctx['preuves_extension']['fixture_roster_mort_avant_civil']=True
  req=lambda n:f'00000000-0000-4000-8000-{n:012d}'
  def pret(occupation=None):
+  # Nouveau scénario fictif : les pertes committées des tests concurrents
+  # parents ne sont pas ses conditions initiales. Aucun PNJ réel n'est lu.
+  if '--contre-reset-fixture' not in sys.argv:
+   sql("UPDATE pnj_membres SET statut='actif',pa=pnj_pa_max() WHERE id IN ('ancre','autre')")
   sql('DELETE FROM police_interceptions;DELETE FROM police_action_receipts;DELETE FROM batailles_rounds;DELETE FROM batailles_groupes;DELETE FROM batailles_engagements;DELETE FROM batailles;DELETE FROM groupes_pj_adhesions;DELETE FROM navigation_requetes')
   sql("UPDATE personnages_donnees SET country='republic',current_city='capitale',current_building='terrain-a-batir',current_room='terrain',current_street=NULL,pa=100,hp=100,hospitalisation=NULL,est_emprisonne=NULL,historique_crimes='[]',stats='{\"VOL\":10,\"PER\":10,\"DUP\":10}' WHERE name IN ('A','B','C','D')")
   sql("UPDATE pnj_membres SET leader_pj=NULL,leader_pnj_id=NULL,ville='capitale',building_id='ailleurs',room_id='ailleurs',rue_noeud_id=NULL WHERE statut='actif'")
@@ -227,6 +240,20 @@ def suite(ctx):
   exige(rpc('combat_ouvrir',('ancre','mains',req(167000))),'cible_protegee')
   q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==100
  cas('civil_PNJ_gamma_protege_meme_par_appel_direct',gamma)
+ def mort_non_contournee():
+  import psycopg2
+  pret();q.execute("SELECT pnj_mourir('ancre','regression_fixture')");exige(q.fetchone()[0])
+  q.execute("SELECT statut,leader_pj,leader_pnj_id FROM pnj_membres WHERE id='ancre'");assert q.fetchone()==('mort',None,None)
+  exige(rpc('combat_ouvrir',('ancre','mains',req(167500))),'cible_non_referencee')
+  q.execute("SELECT pa FROM personnages_donnees WHERE name='A'");assert q.fetchone()[0]==100
+  q.execute('SAVEPOINT mort_interdite')
+  try:q.execute("UPDATE pnj_membres SET leader_pj='C',leader_pnj_id=NULL,ville=NULL,building_id=NULL,room_id=NULL,rue_noeud_id=NULL WHERE id='ancre'")
+  except psycopg2.errors.CheckViolation as e:
+   assert e.diag.constraint_name=='pnj_mort_sans_leader';q.execute('ROLLBACK TO SAVEPOINT mort_interdite')
+  else:raise AssertionError('un PNJ mort a accepté un leader')
+  q.execute('RELEASE SAVEPOINT mort_interdite')
+  q.execute("SELECT statut,leader_pj,leader_pnj_id FROM pnj_membres WHERE id='ancre'");assert q.fetchone()==('mort',None,None)
+ cas('civil_mort_PNJ_non_referencee_sans_debit_et_contrainte_leader_conservee',mort_non_contournee)
  def historique():
   pret();sql("DELETE FROM services_militaires WHERE personnage='C';DELETE FROM guerres")
   ctx['bataille_mixte_decor']()

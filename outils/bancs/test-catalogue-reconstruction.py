@@ -37,6 +37,26 @@ class Exports(unittest.TestCase):
  def test_locale_icu_incomplete_refusee_avant_reconstruction(self):
   p=subprocess.run([sys.executable,str(R/'outils/bancs/banc-livraison95-catalogue-local.py'),'--exports','/fixture','--registre','/fixture','--capture-couts','/fixture','--postgres-bin','/fixture','--rapport','/fixture','--empreinte-reference','/fixture','--referentiels-reference','/fixture','--locale-provider','icu'],text=True,capture_output=True)
   self.assertNotEqual(p.returncode,0);self.assertIn('ICU exige',p.stderr)
+ def test_diagnostic_assertion_vide_conserve_le_lieu_et_la_trace(self):
+  sp=importlib.util.spec_from_file_location('diagnostic_banc219',R/'outils/bancs/banc-groupes-universels-local.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  def echouer():assert False
+  try:echouer()
+  except AssertionError as e:r=m.decrire_echec(e)
+  self.assertEqual(r['type_erreur'],'AssertionError');self.assertIn('test-catalogue-reconstruction.py',r['fichier']);self.assertIsInstance(r['ligne'],int)
+  self.assertTrue(r['erreur']);self.assertIn('echouer',r['trace']);self.assertIn('assert False',r['trace'])
+ def test_rapport_echec_atomique_sans_changer_le_verdict(self):
+  sp=importlib.util.spec_from_file_location('rapport_banc219',R/'outils/bancs/banc-groupes-universels-local.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
+  p=self.rep/'rapport.json';valeur={'tests':[{'cas':'fixture','ok':False,'erreur':'refus attendu'}]}
+  m.enregistrer_rapport(valeur,p);self.assertEqual(json.loads(p.read_text()),valeur)
+  self.assertEqual(p.stat().st_mode & 0o077,0)
+  with self.assertRaises(TypeError):m.enregistrer_rapport({'invalide':{1,2}},p)
+  self.assertEqual(json.loads(p.read_text()),valeur)
+  with self.assertRaisesRegex(ValueError,'hors dépôt'):m.enregistrer_rapport(valeur,R/'rapport_interdit.json')
+ def test_sha_capture_obligatoire_et_format_cli(self):
+  base=[sys.executable,str(R/'outils/bancs/banc-livraison95-catalogue-local.py')]
+  for arg in ['exports','registre','capture-couts','postgres-bin','rapport','empreinte-reference','referentiels-reference']:base+=['--'+arg,'/fixture']
+  for args,message in [(['--referentiels-capture','/prive.json'],'requis ensemble'),(['--referentiels-sha256','a'*64],'requis ensemble'),(['--referentiels-capture','/prive.json','--referentiels-sha256','tronque'],'invalide')]:
+   r=subprocess.run(base+args,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn(message,r.stderr)
  def fixture_profils_coupe(self):
   # Métadonnées synthétiques de test, jamais empreintes réelles de production.
   sp=importlib.util.spec_from_file_location('coupes219',R/'outils/bancs/banc-livraison95-catalogue-local.py');m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
@@ -362,6 +382,15 @@ class PostgreSQL(unittest.TestCase):
   self.assertEqual(preuve['lignes'],4);self.assertTrue(preuve['locale']['conforme']);self.assertFalse(preuve['donnees_joueurs_importees'])
   self.q.execute("SELECT objet->>'montant' FROM recettes_commerce");self.assertEqual(self.q.fetchone()[0],'5.5')
   self.q.execute('SELECT count(*) FROM offres_emploi_bne');self.assertEqual(self.q.fetchone()[0],0)
+ def test_sha_capture_verifie_avant_import_et_sans_recomposer_json(self):
+  import hashlib
+  m,capture,ref=self.fixture_capture_referentiels()
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d)/'capture.json';p.write_text(json.dumps(capture,indent=3)+'\n');h=hashlib.sha256(p.read_bytes()).hexdigest()
+   with self.assertRaisesRegex(ValueError,'SHA-256 privé différent'):m.charger(self.q,p,ref,'0'*64)
+   for t in m.TABLES:
+    self.q.execute('SELECT * FROM '+t);self.assertEqual(self.q.fetchall(),[('ancien',{})])
+   preuve=m.charger(self.q,p,ref,h);self.assertEqual(preuve['capture_sha256'],h)
  def test_capture_nouvelle_coupe_refuse_ancien_profil_sans_renumeroter(self):
   import copy
   m,capture,ancien=self.fixture_capture_referentiels();nouveau=copy.deepcopy(ancien)
