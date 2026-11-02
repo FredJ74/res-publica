@@ -27,7 +27,7 @@ test('PSM : quatre images locales libres, sans mutation des variantes Luthécia 
   c.piece=piece;
   // Interroge le vrai moteur pour chacun des deux états.
   vm.runInContext("PIECE_FAMILLES_ETAT.location.etat=()=> 'libre'",c);
-  assert.match(vm.runInContext("varianteImagePiece('centre-commercial',piece,'ville_a')",c),/^images\/port-sainte-marie-centre-commercial-local-.*\.png$/);
+  assert.match(vm.runInContext("varianteImagePiece('centre-commercial',piece,'ville_a')",c),/^images\/port-sainte-marie-centre-commercial-local-.*\.webp$/);
   assert.match(vm.runInContext("varianteImagePiece('centre-commercial',piece,'capitale')",c),/^images\/luthecia-/);
   vm.runInContext("PIECE_FAMILLES_ETAT.location.etat=()=> 'occupee'",c);
   assert.equal(vm.runInContext("varianteImagePiece('centre-commercial',piece,'ville_a')",c),vm.runInContext("varianteImagePiece('centre-commercial',piece,'capitale')",c));
@@ -61,7 +61,7 @@ test('directions d’usine #351 : les actes conservent leur ordre de paiement ho
 });
 test('#352 : la salle des ventes de la raffinerie conserve son image locale',()=>{
  const r=analyser().villes.find(v=>v.id==='ville_b').batiments.find(b=>b.id==='raffinerie-montrouge').pieces.find(r=>r.id==='salle_ventes');
- assert.equal(r.image,'images/montrouge/Montrouge_raffinerie_salle_ventes.png');
+ assert.equal(r.image,'images/montrouge/Montrouge_raffinerie_salle_ventes.webp');
 });
 
 test('les journalistes communs parlent depuis une rédaction, sans ancien hôtel ni fausse enseigne',()=>{
