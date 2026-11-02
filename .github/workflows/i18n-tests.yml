@@ -22,15 +22,9 @@ on:
       - 'outils/bancs/banc-i18n-catalogue-ordres.cjs'
       - 'outils/bancs/banc-i18n-traduction-sources.mjs'
       - 'api/_traduction-sources.js'
-  push:
-    branches: [main, chatgpt/accueil-9-langues-20261102]
-    paths:
-      - 'i18n/**'
-      - '.github/workflows/i18n-tests.yml'
-      - 'index.html'
-      - 'plateau.html'
-      - 'outils/bancs/banc-accueil-neuf-langues.cjs'
-      - 'outils/bancs/banc-i18n-couverture.cjs'
+concurrency:
+  group: i18n-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
