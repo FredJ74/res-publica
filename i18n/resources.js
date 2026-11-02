@@ -1487,6 +1487,18 @@ window.RP_I18N_RESOURCES = {
       reconnectTitle: "سجّل الدخول مجددًا",
       reconnectBody: "انتهت جلستك. سجّل الدخول لاستعادة شخصيتك.",
       reconnectButton: "إعادة تسجيل الدخول"
+    },
+    creation: {
+      nav: { back: "رجوع", next: "التالي", seeSheet: "عرض بطاقتي", edit: "تعديل", validate: "تأكيد والدخول إلى اللعبة", enter: "الدخول إلى اللعبة" },
+      steps: {
+        country: { step: "الخطوة 1 من 7", title: "اختر إمبراطوريتك" },
+        origin: { step: "الخطوة 2 من 7", title: "الخلفية الاجتماعية" },
+        school: { step: "الخطوة 3 من 7", title: "التعليم" },
+        archetype: { step: "الخطوة 4 من 7", title: "الطبيعة الحقيقية" },
+        career: { step: "الخطوة 5 من 7", title: "المهنة" },
+        stats: { step: "الخطوة 6 من 7", title: "السمات" },
+        identity: { step: "الخطوة 7 من 7", title: "هوية الشخصية" }
+      }
     }
   } },
   'pt-BR': { translation: { home: {
@@ -1518,6 +1530,18 @@ window.RP_I18N_RESOURCES = {
       reconnectTitle: "Entre novamente",
       reconnectBody: "Sua sessão expirou. Entre com seu e-mail e senha para recuperar seu personagem.",
       reconnectButton: "Entrar novamente"
+    },
+    creation: {
+      nav: { back: "Voltar", next: "Próximo", seeSheet: "Ver minha ficha", edit: "Editar", validate: "Confirmar e entrar no jogo", enter: "Entrar no jogo" },
+      steps: {
+        country: { step: "Etapa 1 de 7", title: "Escolha seu império" },
+        origin: { step: "Etapa 2 de 7", title: "Origem social" },
+        school: { step: "Etapa 3 de 7", title: "Educação" },
+        archetype: { step: "Etapa 4 de 7", title: "Natureza profunda" },
+        career: { step: "Etapa 5 de 7", title: "Carreira" },
+        stats: { step: "Etapa 6 de 7", title: "Atributos" },
+        identity: { step: "Etapa 7 de 7", title: "Identidade do personagem" }
+      }
     }
   } },
   'de': { translation: { home: {
@@ -1549,6 +1573,18 @@ window.RP_I18N_RESOURCES = {
       reconnectTitle: "Erneut anmelden",
       reconnectBody: "Deine Sitzung ist abgelaufen. Melde dich mit E-Mail und Passwort an, um deinen Charakter wiederzufinden.",
       reconnectButton: "Erneut anmelden"
+    },
+    creation: {
+      nav: { back: "Zurück", next: "Weiter", seeSheet: "Charakterbogen ansehen", edit: "Bearbeiten", validate: "Bestätigen und Spiel betreten", enter: "Spiel betreten" },
+      steps: {
+        country: { step: "Schritt 1 von 7", title: "Wähle dein Imperium" },
+        origin: { step: "Schritt 2 von 7", title: "Soziale Herkunft" },
+        school: { step: "Schritt 3 von 7", title: "Bildung" },
+        archetype: { step: "Schritt 4 von 7", title: "Wahres Wesen" },
+        career: { step: "Schritt 5 von 7", title: "Laufbahn" },
+        stats: { step: "Schritt 6 von 7", title: "Eigenschaften" },
+        identity: { step: "Schritt 7 von 7", title: "Charakteridentität" }
+      }
     }
   } }
 };
