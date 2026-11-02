@@ -115,6 +115,10 @@ candidat sur le bulletin, et un INSERT direct de bulletin bloque ensuite le vrai
 - Les sièges de député du cycle sont vides (`elus` absent) ; les 9 PNJ siègent par
   `assemblee_sieges`, ce qui est le fonctionnement prévu.
 
+## Corrections (02/11/2026)
+
+E1, E2 et E3 corrigés par la migration `20261102222500_chaine_elective_bulletin_fraudes_mairie` (appliquée) et `api/cron-minuit.js` ; règle E3 dans `GAME-DESIGN-ELECTIONS.md`. E4 à E8 restent ouverts.
+
 ## Ordre de correction proposé
 
 E1 et E2 d'abord (sans eux, aucune élection ne peut aboutir), puis E3-E6, puis E7-E8.
