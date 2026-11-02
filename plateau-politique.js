@@ -818,8 +818,10 @@ function messageRefusCandidature(r) {
   if (raison === 'non_domicilie') return 'Vous devez etre domicilie dans cet empire pour vous y presenter.';
   if (raison === 'cumul_interdit') return 'Ce poste est incompatible avec celui que vous occupez deja.';
   if (raison === 'deja_depute') return 'Vous etes deja depute.';
-  if (raison === 'pa_insuffisants') return 'Il vous faut 1 PA pour deposer une candidature.';
-  if (raison === 'poste_inconnu') return 'Ce scrutin n\'existe pas.';
+  if (raison === 'pa_insuffisants') return 'Il vous faut 2 PA pour deposer une candidature.';
+  if (raison === 'poste_inconnu' || raison === 'cycle_introuvable') return 'Ce scrutin n\'existe pas.';
+  if (raison === 'deja_candidat') return 'Vous etes deja candidat a ce scrutin. Rien n\'a ete debite.';
+  if (raison === 'candidature_simultanee_interdite') return 'Vous etes deja candidat a un autre scrutin en cours.';
   return 'Les candidatures a ce scrutin sont closes, ou la candidature n\'a pas pu etre enregistree. Rien n\'a ete debite.';
 }
 

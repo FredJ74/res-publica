@@ -507,6 +507,7 @@ function ouvrirSuccessionSurCycle(cycle, debutMandat, semaines) {
   delete cycle.relancePossibleApres;   // la relance n'existe plus : le scrutin suivant est deja pose
   delete cycle.egalite3eSiege;
   delete cycle.realigneDimancheTs;
+  delete cycle.debutTour;              // premier tour : il commence avec les candidatures
   return cycle;
 }
 
@@ -641,10 +642,14 @@ function appliquerEffetsTracts(scores, cycle) {
   });
 }
 
-async function chargerFraudesActivesServer(country, posteId, city, cycleDebut) {
+// UNE FRAUDE NE VAUT QUE POUR LE TOUR OU ELLE A ETE COMMISE (decision de Fred, 02/11/2026).
+// `cycle_debut` identifie le scrutin, pas le tour : au second tour, on ne garde que les fraudes
+// posees depuis `debutTour` (instant du resultat du premier tour, pose par la passe de nuit).
+async function chargerFraudesActivesServer(country, posteId, city, cycleDebut, debutTour) {
   const filtreCity = city ? `&city=eq.${encodeURIComponent(city)}` : '&city=is.null';
+  const filtreTour = Number(debutTour) > 0 ? `&created_at=gte.${encodeURIComponent(new Date(Number(debutTour)).toISOString())}` : '';
   const rows = await sbGet('fraudes_electorales',
-    `country=eq.${encodeURIComponent(country)}&poste_id=eq.${encodeURIComponent(posteId)}${filtreCity}&cycle_debut=eq.${cycleDebut}&etat=eq.non_revelee`
+    `country=eq.${encodeURIComponent(country)}&poste_id=eq.${encodeURIComponent(posteId)}${filtreCity}&cycle_debut=eq.${cycleDebut}&etat=eq.non_revelee${filtreTour}`
   ).catch(() => []);
   return rows || [];
 }
@@ -5925,7 +5930,7 @@ export default async function handler(req, res) {
       // remplacement, et la variable n'avait plus d'affectation.
       let evenementAPoser = null, chroniqueAPoser = null;
       const cycleDebutCle = cycle.dateDebutCandidatures || row.id;
-      const fraudesActives = await chargerFraudesActivesServer(country, posteId, ville, cycleDebutCle);
+      const fraudesActives = await chargerFraudesActivesServer(country, posteId, ville, cycleDebutCle, cycle.debutTour);
       await attacherEffetsTractsServer(row.id, cycle);
 
       // LE TITULAIRE EN EXERCICE, AVANT TOUT DEPOUILLEMENT. C'est lui qui reste atteste tant
@@ -5944,6 +5949,9 @@ export default async function handler(req, res) {
       // y lit les candidats, les bulletins, le tour des tracts et la cle des fraudes.
       cycle.dernierScrutin = JSON.parse(JSON.stringify({
         debut: cycleDebutCle, dateVote: cycle.dateVote || null,
+        // Bornes du TOUR proclame (02/11/2026) : la contestation ne recompte et ne revele que
+        // les fraudes de ce tour-la, jamais celles du tour suivant ni du precedent.
+        debutTour: cycle.debutTour || null, finTour: dateResultats,
         candidats: cycle.candidats || [], votes: cycle.votes || {}, votesPNJ: cycle.votesPNJ || {}
       }));
 
@@ -6079,7 +6087,8 @@ export default async function handler(req, res) {
           const candidatsExistantsSimple = cycle.candidats || [];
           const calST = calendrierTourSuivant(cycle.dateVote);
           cycle.tour = 2;
-          cycle.candidats = resultatSimple.secondTour.map(nom => ({ nom, voix: 0, programme: (candidatsExistantsSimple.find(c => c.nom === nom) || {}).programme || '' }));
+          cycle.debutTour = dateResultats;   // les fraudes du premier tour ne comptent pas ici
+          cycle.candidats =resultatSimple.secondTour.map(nom => ({ nom, voix: 0, programme: (candidatsExistantsSimple.find(c => c.nom === nom) || {}).programme || '' }));
           cycle.votes = {};
           cycle.votesPNJ = {};
           cycle.dateDebutCampagne = calST.dateDebutCampagne;
