@@ -1,0 +1,35 @@
+name: Internationalisation — catalogues et accueil
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'i18n/**'
+      - 'index.html'
+      - 'outils/bancs/banc-accueil-neuf-langues.cjs'
+      - 'outils/bancs/banc-i18n-couverture.cjs'
+  push:
+    branches: [main]
+    paths:
+      - 'i18n/**'
+      - 'index.html'
+      - 'outils/bancs/banc-accueil-neuf-langues.cjs'
+      - 'outils/bancs/banc-i18n-couverture.cjs'
+permissions:
+  contents: read
+jobs:
+  coherence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Neuf langues et repli français
+        run: node --test outils/bancs/banc-accueil-neuf-langues.cjs
+      - name: Couverture réelle des ressources et variables
+        run: node --test outils/bancs/banc-i18n-couverture.cjs
+      - name: Syntaxe du moteur et des ressources
+        run: |
+          node --check i18n/resources.js
+          node --check i18n/i18n-init.js
