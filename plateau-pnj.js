@@ -1096,7 +1096,7 @@ function openPnjModal(encodedPnj) {
 
   if (!isPJ && typeof cedSurPlace === 'function' && cedSurPlace()
       && pnj.name?.replace(' (PNJ)', '').trim() === cedNomDealer()) {
-    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirAchatCed()">Acheter une boulette — 50 FR</button>';
+    actionBtns += '<button class="pnj-action-btn" onclick="ouvrirAchatCed()">Voir la marchandise</button>';
   }
   actionBtns += '<div id="quete-action-zone"></div>';
   // Verifier de facon non bloquante si ce PNJ correspond a une quete active

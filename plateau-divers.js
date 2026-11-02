@@ -1142,8 +1142,9 @@ async function removeFromInventory(idx, motif, options) {
   return { ok: true, objet: r.objet || item, inventory: state.inventory, objetId: r.objet_id || null,
            pa: (typeof r.pa === 'number') ? r.pa : undefined,
            aliment_frais: (typeof r.aliment_frais === 'boolean') ? r.aliment_frais : undefined,
-           // Boulette (2 novembre 2026) : moral, sante et effets temporaires poses par le serveur.
+           // Drogues Brume et Estadine (2 novembre 2026) : moral, sante et effets temporaires poses par le serveur.
            drogue: r.drogue === true,
+           produit: r.produit || (r.drogue === true ? 'brume' : undefined),
            hp: (typeof r.hp === 'number') ? r.hp : undefined,
            moral: (typeof r.moral === 'number') ? r.moral : undefined,
            effets_actifs: Array.isArray(r.effets_actifs) ? r.effets_actifs : undefined,

@@ -3577,9 +3577,9 @@ async function ouvrirDetailObjetInventaire(idx) {
   // de la protection "objet de quete" (manger son propre repas n'est jamais un transfert).
   // AUCUN indice de fraicheur/age ici (peremption volontairement invisible avant consommation,
   // regle de design validee) -- le libelle reste neutre, identique quel que soit l'etat reel.
-  // Boulette (2 novembre 2026) : la fumer est legal ; seuls l'achat et le transport ne le sont pas.
+  // Brume et Estadine (2 novembre 2026) : consommer est legal ; seuls l'achat et le transport ne le sont pas.
   if (item.type === 'drogue') {
-    html += '<button onclick="consommerDrogue(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-leaf"></i> Fumer</button>';
+    html += '<button onclick="consommerDrogue(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ' + (item.drogue === 'estadine' ? 'ti-snowflake' : 'ti-cloud') + '"></i> ' + (item.drogue === 'estadine' ? 'Consommer' : 'Fumer') + '</button>';
   }
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> Consommer</button>';
@@ -3684,7 +3684,7 @@ async function consommerAliment(idx) {
   }
 }
 
-// FUMER UNE BOULETTE (2 novembre 2026, decisions de Fred). Tout est tranche par le serveur
+// CONSOMMER BRUME OU ESTADINE (2 novembre 2026, decisions de Fred). Tout est tranche par le serveur
 // (inventaire_consommer) : moral +10, ENT +2 jusqu'a minuit sans cumul, PA -1, sante -5, et une
 // trace consommation_drogue pour les rumeurs et enquetes. L'ecran n'affiche que ce qu'il recoit.
 let consommationDrogueEnCours = false;
@@ -3708,8 +3708,16 @@ async function consommerDrogue(idx) {
       if (typeof r.hp === 'number') state.hp = r.hp;
       if (typeof r.moral === 'number') state.moral = r.moral;
       if (r.effets_actifs) state.effetsActifs = r.effets_actifs;
+      if (r.produit === 'estadine') {
+        const cha = r.montee_nouvelle ? 'CHA +2 pendant 6 h' : 'montée déjà en cours';
+        showToast('La montée', 'PA +3, moral +15, ' + cha + '. Descente dans 6 h : moral −25, santé −10, −3 PA. INT −0,1 pour 15 jours.', true);
+        addJournalEntry('Vous avez consommé "' + item.name + '" : PA +3, moral +15, ' + cha + '. Descente attendue dans 6 h.', 'event-info');
+        updateUI();
+        if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+        return;
+      }
       const ent = r.bonus_ent ? 'ENT +2 jusqu\'à minuit' : 'ENT déjà au maximum de l\'effet';
-      showToast('Ça détend', 'Moral +10, ' + ent + '. −1 PA, santé −5.', true);
+      showToast('La Brume', 'Moral +10, ' + ent + '. −1 PA, santé −5.', true);
       addJournalEntry('Vous avez fumé "' + item.name + '" : moral +10, ' + ent + ', −1 PA, santé −5.', 'event-info');
     }
     updateUI();
@@ -4221,7 +4229,7 @@ function ouvrirDetailObjet(idx) {
   html += '</div>';
   html += '<div style="display:flex;gap:.5rem">';
   if (item.type === 'drogue') {
-    html += '<button onclick="consommerDrogue(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Fumer</button>';
+    html += '<button onclick="consommerDrogue(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">' + (item.drogue === 'estadine' ? 'Consommer' : 'Fumer') + '</button>';
   }
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Consommer</button>';
