@@ -130,7 +130,7 @@ ligne trouvée fausse se corrige ici.
 
 | Mécanique | Ce qu'elle fait | État | Pour un nouvel empire |
 |---|---|---|---|
-| Actes illégaux | Vol, neutralisation, empoisonnement, incendie, explosifs, falsification, contrebande (jet, effets, détection et découverte de nuit par le serveur depuis le 27/10 ; restent à l'écran « Se cacher », la neutralisation d'un député, tracts calomnieux et fausse rumeur). Achat de poisons et contrebande : seulement dans les ports des autres empires. | Mixte | Objets et lieux du marché noir. |
+| Actes illégaux | Vol, neutralisation, empoisonnement, incendie, explosifs, falsification, contrebande (jet, effets, détection et découverte de nuit par le serveur depuis le 27/10 ; restent à l'écran « Se cacher », la neutralisation d'un député, tracts calomnieux et fausse rumeur). Achat de poisons et contrebande : seulement dans les ports des autres empires. Dissuasion (03/11, #135) : hommes armés présents (agents privés hors ceux de l'auteur, soldats en mission `securiser`, Garde républicaine) → malus min(40, 10 + hommes) au jet de réussite et au taux de détection, par `securite_malus_lieu_interne`. | Mixte | Objets et lieux du marché noir. |
 | Corruption | Douaniers, fonctionnaires, presse, greffe (douanier et fonctionnaires par le serveur depuis le 27/10). | Mixte | Rien : commun. |
 | Organisations criminelles | Mise en relation, recrutement. | Serveur | Organisations du pays. |
 
