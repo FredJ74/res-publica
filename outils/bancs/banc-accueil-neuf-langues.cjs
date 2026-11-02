@@ -144,3 +144,15 @@ test('catalogues des neuf langues entièrement couverts pour accueil et créatio
   assert.deepEqual(missing,[],lang+' missing translations');
  }
 });
+
+test('le formulaire de connexion préexistant est localisé en neuf langues sans changer les handlers',()=>{
+ const w=load();
+ const index=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ for(const key of ['signIn','signInEmailPlaceholder','signInPasswordPlaceholder','signInSubmit','cancel']) {
+  for(const lang of Object.keys(w.RP_I18N_LANGUAGES)) assert.ok(w.RP_I18N_RESOURCES[lang].translation.auth[key],lang+':'+key);
+  const attr=key.endsWith('Placeholder')?'data-i18n-placeholder':'data-i18n';
+  assert.ok(index.includes(attr+'="auth.'+key+'"'),key);
+ }
+ assert.match(index,/onclick="connecterAvecMotDePasse\(\)"/);
+ assert.match(index,/onclick="ouvrirConnexionCompte\(\)"/);
+});
