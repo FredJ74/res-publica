@@ -33,8 +33,10 @@ test('aucune interpolation ne diverge du français', () => {
   for (const lang of Object.keys(langs)) {
     const translations = flatten(data[lang].translation);
     for (const [key, value] of Object.entries(translations)) {
-      assert.ok(Object.hasOwn(canonical, key), lang + ': clé non canonique ' + key);
-      assert.equal(vars(value), vars(canonical[key]), lang + ': interpolation ' + key);
+      const source = canonical[key] !== undefined ? canonical[key] :
+        /_(few|many|zero)$/.test(key) ? canonical[key.replace(/_(few|many|zero)$/, '_other')] : undefined;
+      assert.ok(source !== undefined, lang + ': clé non canonique ' + key);
+      assert.equal(vars(value), vars(source), lang + ': interpolation ' + key);
     }
   }
 });
