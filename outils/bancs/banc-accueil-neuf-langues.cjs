@@ -72,6 +72,6 @@ test('attributs et identité traduits sans perdre les paramètres de pluriel', (
    const steps = w.RP_I18N_RESOURCES[lang].translation.creation.steps;
    for (const key of ['pointsLabel','info','warning_one','warning_other']) assert.ok(steps.stats[key],lang+':stats.'+key);
    for (const key of ['photoLabel','photoHint','nameLabel','namePlaceholder','bioLabel','bioPlaceholder','mottoLabel','mottoOptional','mottoPlaceholder']) assert.ok(steps.identity[key],lang+':identity.'+key);
-   assert.match(steps.stats.warning_other,/\\{\\{count\\}\\}/);
+   assert.ok(steps.stats.warning_other.includes('{{count}}'));
  }
 });
