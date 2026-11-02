@@ -2,8 +2,14 @@
 function cedContexteValide(c) {
   return !!c && state.char === c.personnage && c.uid === rpAuthUid();
 }
+// 2 novembre 2026 (decision de Fred) : les dealers vendent tous la meme chose. Un dealer par
+// centre artisanal de Republia, meme prix et meme objet (pnj_ced_acheter, migration 20261102183000).
+const DEALERS_REPUBLIA = { capitale: "Céd' Labone", ville_a: 'Ronan Lafourgue', ville_b: 'Jojo Laferraille' };
+function cedNomDealer() {
+  return state.country === 'republic' ? (DEALERS_REPUBLIA[state.currentCity] || null) : null;
+}
 function cedSurPlace() {
-  return state.country === 'republic' && state.currentCity === 'capitale'
+  return !!cedNomDealer()
     && state.currentBuilding === 'centre-artisanal' && state.currentRoom === 'travees';
 }
 function cedCleReprise() {
@@ -20,7 +26,7 @@ function ouvrirAchatCed() {
     state._achatCed = c;
   }
   document.getElementById('modal-pnj')?.classList.remove('open');
-  document.getElementById('postes-modal-title').textContent = "Céd' Labone";
+  document.getElementById('postes-modal-title').textContent = cedNomDealer();
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:1rem;display:grid;gap:1rem"><p>Une boulette de shit — résine de cannabis.</p>' +
     '<p><b>50 FR</b> · 1 place dans l’inventaire</p><p>Marchandise illégale. Cet échange peut laisser des traces.</p>' +
@@ -70,7 +76,7 @@ async function confirmerAchatCed() {
   }
   if (!cedContexteValide(c)) return;
   if (document.getElementById('ced-acheter')) document.getElementById('modal-postes')?.classList.remove('open');
-  if (!r.rejeu) addJournalEntry("Achat auprès de Céd' Labone : une boulette de shit, 50 FR.", 'event-info');
+  if (!r.rejeu) addJournalEntry('Achat auprès de ' + (cedNomDealer() || 'un dealer') + ' : une boulette de shit, 50 FR.', 'event-info');
   updateUI();
   showToast('Achat enregistré', adopte ? 'Une boulette de shit est dans votre inventaire. −50 FR.'
     : 'La livraison est enregistrée. Actualisez pour relire votre inventaire.', true);

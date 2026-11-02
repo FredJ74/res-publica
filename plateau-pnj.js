@@ -1094,9 +1094,8 @@ function openPnjModal(encodedPnj) {
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirNegociationDepuisPnj(\'' + cible + '\')">Faire une proposition</button>';
   }
 
-  if (!isPJ && pnj.name?.replace(' (PNJ)', '').trim() === "Céd' Labone"
-      && state.country === 'republic' && state.currentCity === 'capitale'
-      && state.currentBuilding === 'centre-artisanal' && state.currentRoom === 'travees') {
+  if (!isPJ && typeof cedSurPlace === 'function' && cedSurPlace()
+      && pnj.name?.replace(' (PNJ)', '').trim() === cedNomDealer()) {
     actionBtns += '<button class="pnj-action-btn" onclick="ouvrirAchatCed()">Acheter une boulette — 50 FR</button>';
   }
   actionBtns += '<div id="quete-action-zone"></div>';
