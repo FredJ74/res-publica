@@ -6299,6 +6299,16 @@ export default async function handler(req, res) {
       loyersMursOk ? null : (loyersMurs ? (loyersMurs.erreurs || []).length + ' titre(s) en erreur' : 'RPC murs_loyers_nuit indisponible'),
       resumeContexte(loyersMurs ? loyersMurs.verdicts || {} : {}), Date.now() - debutLoyersMurs);
 
+    // 5 b. Descentes d'Estadine echues (2 novembre 2026) : appliquees par le serveur pour les
+    //    joueurs hors ligne ; rejouable sans double effet (chaque descente est marquee).
+    const debutDescentes = Date.now();
+    const descentesRows = SUPABASE_SERVICE_ROLE ? await sbRpc('drogues_descentes_nuit', {}, HEADERS_SERVICE) : null;
+    const descentes = Array.isArray(descentesRows) ? descentesRows[0] : descentesRows;
+    const descentesOk = !!(descentes && descentes.ok === true && !(descentes.erreurs || []).length);
+    await journaliserCron('drogues_descentes', jourParisISO(), descentesOk ? 'ok' : 'echec',
+      descentesOk ? null : (descentes ? (descentes.erreurs || []).length + ' personnage(s) en erreur' : 'RPC drogues_descentes_nuit indisponible'),
+      resumeContexte({ appliquees: descentes ? descentes.appliquees : 0 }), Date.now() - debutDescentes);
+
     // 5 bis. TRAITEMENTS NATIONAUX QUOTIDIENS (Lot 4.3) : redistribution fiscale, virement vers la
     //    caserne, solde des soldats. Ils ne tournaient que si un joueur passait minuit connecte --
     //    sans quoi aucune institution n'etait financee et aucun soldat paye. Idempotence partagee

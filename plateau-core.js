@@ -1907,7 +1907,8 @@ function applyCharToState(char) {
       const brut = char.stats[k] || 8;
       const bonusAffiche = (k === 'ENT' && typeof bonusEntIntegrationLocale === 'function' ? bonusEntIntegrationLocale() : 0)
         + (typeof bonusTemporaire === 'function' ? bonusTemporaire(state.effetsActifs, k, Date.now()) : 0);
-      const suffixeEnt = bonusAffiche ? ' <span style="color:#6ab858">(+' + bonusAffiche + ')</span>' : '';
+      const arrondi = Math.round(bonusAffiche * 10) / 10;
+      const suffixeEnt = arrondi ? ' <span style="color:' + (arrondi > 0 ? '#6ab858' : '#c8604a') + '">(' + (arrondi > 0 ? '+' : '−') + String(Math.abs(arrondi)).replace('.', ',') + ')</span>' : '';
       return `
       <div class="stat-mini">
         <div class="stat-mini-name">${k}</div>
