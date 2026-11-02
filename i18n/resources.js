@@ -1528,7 +1528,8 @@ window.RP_I18N_RESOURCES = {
       review: {"lifePath":"مسار الحياة","characteristics":"السمات","startingResources":"الموارد الأولية","biography":"السيرة الذاتية","money":"المال","influence":"النفوذ","popularity":"الشعبية","discretion":"التكتم","tier":"المستوى {{tier}}","maxInGame":"الحد الأقصى 100","wealthTier1":"1 - معدم","wealthTier2":"2 - متواضع","wealthTier3":"3 - ميسور","wealthTier4":"4 - غني","wealthTier5":"5 - ثري جدًا"},
       success: {"title":"مرحبًا بك في اللعبة الكبرى","ready":"شخصيتك جاهزة.","text":"يدخل {{name}} ساحة {{country}}. تبدأ اللعبة الكبرى: تحالفات وخيانات وفساد وأسرار.","fallbackCountry":"هذا العالم"},
       genders: {"male":"رجل","female":"امرأة","nonbinary":"غير ثنائي","other":"أخرى"},
-      career: {"info":"المهن المتاحة بحسب مستوى تعليمك ({{school}}).","locked":"غير متاح بمستوى تعليمك","consequence":"تحدد مهنتك الاختصاصات المتاحة لشخصيتك. يمكنك اكتساب مهنة إضافية واحدة فقط خلال حياتها."}
+      career: {"info":"المهن المتاحة بحسب مستوى تعليمك ({{school}}).","locked":"غير متاح بمستوى تعليمك","consequence":"تحدد مهنتك الاختصاصات المتاحة لشخصيتك. يمكنك اكتساب مهنة إضافية واحدة فقط خلال حياتها."},
+      conseiller: { title: "أي شخصية ترغب في تجسيدها؟", intro: "صف بحرية من تريد أن تصبح أو ما تريد تحقيقه أو الشخصية التي تتخيلها. إذا كنت لا تعرف بعد، فهذا جواب مقبول أيضًا.", placeholder: "مثلاً: أريد الدفاع عن الناس في المحكمة، أو إنشاء مشروع، أو ما زلت أكتشف اللعبة...", ask: "اقترح مساري", skip: "أفضل الاختيار بنفسي", pending: "لحظة من فضلك...", unavailable: "المستشار غير متاح حاليًا. يمكنك متابعة إنشاء الشخصية بشكل طبيعي.", libre: "هذا مجرد اقتراح، والقرار لك في كل مرحلة.", hint: "المسار المقترح" }
     }
   } },
   'pt-BR': { translation: { home: {
@@ -1577,7 +1578,8 @@ window.RP_I18N_RESOURCES = {
       review: {"lifePath":"Trajetória de vida","characteristics":"Atributos","startingResources":"Recursos iniciais","biography":"Biografia","money":"Dinheiro","influence":"Influência","popularity":"Popularidade","discretion":"Discrição","tier":"Faixa {{tier}}","maxInGame":"Máximo 100 no jogo","wealthTier1":"1 - Miséria","wealthTier2":"2 - Modesto","wealthTier3":"3 - Confortável","wealthTier4":"4 - Rico","wealthTier5":"5 - Oligarca"},
       success: {"title":"Bem-vindo ao Grande Jogo","ready":"Seu personagem está pronto.","text":"{{name}} entra na arena de {{country}}. Começa o Grande Jogo: alianças, traições e corrupção.","fallbackCountry":"este mundo"},
       genders: {"male":"Homem","female":"Mulher","nonbinary":"Não binário","other":"Outro"},
-      career: {"info":"Carreiras disponíveis conforme sua escolaridade ({{school}}).","locked":"Indisponível com sua escolaridade","consequence":"Sua carreira determina as profissões especializadas às quais seu personagem pode ter acesso. Você poderá adquirir apenas uma outra carreira durante sua vida."}
+      career: {"info":"Carreiras disponíveis conforme sua escolaridade ({{school}}).","locked":"Indisponível com sua escolaridade","consequence":"Sua carreira determina as profissões especializadas às quais seu personagem pode ter acesso. Você poderá adquirir apenas uma outra carreira durante sua vida."},
+      conseiller: { title: "Que personagem você gostaria de interpretar?", intro: "Descreva livremente quem gostaria de se tornar, o que pretende conquistar ou que tipo de personagem imagina. Se ainda não sabe, tudo bem.", placeholder: "Por exemplo: quero defender pessoas no tribunal, abrir um negócio ou ainda estou conhecendo o jogo...", ask: "Sugerir meu percurso", skip: "Prefiro escolher sozinho", pending: "Só um momento...", unavailable: "O conselheiro está indisponível no momento. Você pode continuar a criação normalmente.", libre: "É apenas uma sugestão: você decide em cada etapa.", hint: "Percurso sugerido" }
     }
   } },
   'de': { translation: { home: {
@@ -1626,7 +1628,8 @@ window.RP_I18N_RESOURCES = {
       review: {"lifePath":"Lebensweg","characteristics":"Eigenschaften","startingResources":"Startressourcen","biography":"Biografie","money":"Geld","influence":"Einfluss","popularity":"Beliebtheit","discretion":"Diskretion","tier":"Stufe {{tier}}","maxInGame":"Maximal 100 im Spiel","wealthTier1":"1 - Mittellos","wealthTier2":"2 - Bescheiden","wealthTier3":"3 - Wohlhabend","wealthTier4":"4 - Reich","wealthTier5":"5 - Oligarch"},
       success: {"title":"Willkommen im Großen Spiel","ready":"Dein Charakter ist bereit.","text":"{{name}} betritt die Arena von {{country}}. Das Große Spiel beginnt mit Bündnissen, Verrat und Korruption.","fallbackCountry":"diese Welt"},
       genders: {"male":"Mann","female":"Frau","nonbinary":"Nichtbinär","other":"Andere"},
-      career: {"info":"Verfügbare Laufbahnen mit deiner Ausbildung ({{school}}).","locked":"Mit deiner Ausbildung nicht verfügbar","consequence":"Deine Laufbahn bestimmt, welche Fachberufe dein Charakter ausüben kann. Im weiteren Leben kannst du nur eine zusätzliche Laufbahn erwerben."}
+      career: {"info":"Verfügbare Laufbahnen mit deiner Ausbildung ({{school}}).","locked":"Mit deiner Ausbildung nicht verfügbar","consequence":"Deine Laufbahn bestimmt, welche Fachberufe dein Charakter ausüben kann. Im weiteren Leben kannst du nur eine zusätzliche Laufbahn erwerben."},
+      conseiller: { title: "Welche Figur möchtest du spielen?", intro: "Beschreibe frei, wer du werden möchtest, was du erreichen willst oder welche Figur du dir vorstellst. Wenn du es noch nicht weißt, ist das ebenfalls eine Antwort.", placeholder: "Zum Beispiel: Ich möchte Menschen vor Gericht verteidigen, ein Geschäft aufbauen oder das Spiel erst kennenlernen...", ask: "Laufbahn vorschlagen", skip: "Ich entscheide lieber selbst", pending: "Einen Augenblick...", unavailable: "Der Berater ist derzeit nicht erreichbar. Du kannst deinen Charakter normal weiter erstellen.", libre: "Das ist nur ein Vorschlag. Du entscheidest selbst in jedem Schritt.", hint: "Empfohlener Weg" }
     }
   } }
 };
