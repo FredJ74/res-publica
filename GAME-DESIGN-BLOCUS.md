@@ -73,8 +73,11 @@ production le 02/11 ; banc annulé `outils/bancs/banc-blocus-syndical.sql`).
 
 ## Points ouverts (à trancher par Fred)
 
-- Conséquence littérale de la décision 2 : dans un commissariat bloqué, les détenus ne peuvent plus
-  tenter de s'évader (le commissaire, lui, intervient depuis son menu : décision 8).
+Aucun.
+
+9. **Commissariat bloquable** (Fred, 02/11/2026) : le blocus du commissariat est maintenu, même si les
+   détenus ne peuvent alors plus tenter de s'évader. Le commissaire disperse ou réprime depuis son
+   interface personnelle (décision 8), y compris quand son propre commissariat est bloqué.
 
 ## Règle « une seule réalité » (tenue)
 
