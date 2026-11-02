@@ -75,3 +75,14 @@ test('attributs et identité traduits sans perdre les paramètres de pluriel', (
    assert.ok(steps.stats.warning_other.includes('{{count}}'));
  }
 });
+
+test('texte de bienvenue et conseiller complets pour les trois langues supplémentaires', () => {
+  const w=load();
+  const names=['title','intro','placeholder','ask','skip','pending','unavailable','libre','hint'];
+  for (const lang of ['ar','pt-BR','de']) {
+    const tr=w.RP_I18N_RESOURCES[lang].translation;
+    assert.ok(tr.home.beta.title,lang+':beta title');
+    assert.ok(tr.home.beta.body,lang+':beta body');
+    for (const key of names) assert.ok(tr.creation.conseiller[key],lang+':conseiller.'+key);
+  }
+});
