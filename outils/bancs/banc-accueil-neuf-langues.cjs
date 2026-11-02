@@ -125,3 +125,22 @@ test('carrières, archétypes et caractéristiques restent alignés avec les ide
   }
  }
 });
+
+test('catalogues des neuf langues entièrement couverts pour accueil et création', () => {
+ const w=load();
+ function flatten(o,p='',out={}) {
+  for(const [key,value] of Object.entries(o||{})) {
+   const k=p?p+'.'+key:key;
+   if(typeof value==='string') out[k]=value;
+   else if(Array.isArray(value)) value.forEach((v,i)=>{if(typeof v==='string')out[k+'.'+i]=v});
+   else if(value && typeof value==='object') flatten(value,k,out);
+  }
+  return out;
+ }
+ const reference=flatten(w.RP_I18N_RESOURCES.fr.translation);
+ for(const lang of Object.keys(w.RP_I18N_LANGUAGES)) {
+  const locale=flatten(w.RP_I18N_RESOURCES[lang].translation);
+  const missing=Object.keys(reference).filter(k=>!Object.hasOwn(locale,k));
+  assert.deepEqual(missing,[],lang+' missing translations');
+ }
+});
