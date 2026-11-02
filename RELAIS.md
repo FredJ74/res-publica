@@ -41,6 +41,12 @@ changer leurs références. 8 tests ciblés, Chromium 2/2, 164 bancs clients, gl
 Métadonnées des deux journalistes corrigées (lieu de rédaction, pas d’identité).
 Aucun chantier #219 ni immobilier repris.
 
+### Organisations, étape B : fin de la double autorité (Claude, branche `claude/organisations-etape-b-20261102`, PR #350)
+
+- **Fait (02/11)** : les 16 chemins sans commande portés (détail et table : `outils/audits/ORGANISATIONS-ECRITURES-20261031.md`, section « Étape B ») ; `sauvegarderOrga` / `sbSaveOrganisation` et les replis morts retirés de l'écran ; tests `test-organisations-ecritures-inventaire.mjs` (zéro écriture de l'écran) et `test-organisations-vie-referentiel.mjs` (grades recopiés = data.js).
+- **Migrations** : `20261102000900`, `001000`, `001100` **appliquées le 02/11 vers 01 h 10** (additives : `organisation_vie_referentiel`, `organisation_vie_commande`, `greve_generale_synchroniser`, `club_supporters_adherer`). Restent, **après Vercel READY de l'écran** et dans cet ordre : `001200` (patchs `militant_recruter`, `rumeur_lancer`, `organisations_politique_autorite`), puis `001300` (REVOKE INSERT/UPDATE, politiques d'écriture retirées). Banc annulé joué contre la production : `outils/bancs/banc-organisations-etape-b.sql` (tout conforme, rien conservé).
+- **Défaut ancien corrigé** : aucun club de supporters ni syndicat des dockers ne pouvait être créé (garde des partis appliquée à toute création) ; `001200` le corrige.
+- **Non porté, signalé à Fred** : le blocus syndical et le palmarès de répression sont inaccessibles depuis longtemps (`state.orgas` / `chargerOrgas` absents) ; à porter au serveur s'il est remis en service. `greves_generales` reste écrite par l'écran.
 
 ### Reste de la clôture de Luthécia (Claude, après #340)
 

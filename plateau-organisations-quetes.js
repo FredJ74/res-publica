@@ -201,27 +201,26 @@ function getOrgaById(orgaId) {
   return (state.organisations || []).find(o => o.id === orgaId);
 }
 
-// Sauvegarde une organisation modifiee vers Supabase (appelee apres chaque action qui change son etat).
-// PLUS DE SAUVEGARDE SILENCIEUSE (31/10/2026, #295). Le serveur garde la caisse, le tresorier, la
-// direction et les grades (organisations_finances_garder) : il peut donc refuser l'ecriture, ou la
-// corriger. Dans les deux cas l'ecran relit l'organisation canonique au lieu de garder sa copie, et
-// un refus est annonce. Rend une promesse : true si la base a enregistre, false sinon.
-const RP_ORGA_REFUS = { organisation_direction_non_autorisee: 'Seul le chef peut transmettre la direction.',
-  organisation_grade_non_autorise: 'Vous ne pouvez pas vous attribuer ce grade.',
-  organisation_adhesion_non_autorisee: 'Seul le chef peut faire entrer un autre joueur.',
-  organisation_vote_pour_autrui: 'Vous ne pouvez voter que pour vous-même.',
-  organisation_caisse_initiale_interdite: 'Une organisation naît avec une caisse vide.',
-  organisation_fondateur_usurpe: 'On ne fonde une organisation qu\'en son propre nom.' };
-async function sauvegarderOrga(orga) {
-  if (!orga || typeof sbSaveOrganisation !== 'function') return false;
-  const ecrit = await sbSaveOrganisation(orga).catch(() => null);
-  if (!ecrit) {
-    const motif = Object.keys(RP_ORGA_REFUS).find(k => String(RP_DERNIER_REFUS_ORGA || '').includes(k));
-    if (typeof showToast === 'function') showToast('Organisation non enregistrée',
-      motif ? RP_ORGA_REFUS[motif] : "Le serveur n'a pas enregistré la modification. L'organisation est rechargée.", false);
-  }
-  if (typeof chargerOrganisations === 'function') chargerOrganisations();
-  return !!ecrit;
+// PLUS AUCUNE SAUVEGARDE GENERALE (02/11/2026, etape B). L'ecran n'a plus le droit d'ecrire la
+// table `organisations` : chaque acte passe par une fonction serveur, puis l'ecran relit.
+// Motifs de refus des actes de la vie d'une organisation (organisation_vie_commande).
+const RP_ORGA_VIE_REFUS = {
+  type_non_fondable_ici: "Ce type d'organisation ne se fonde pas dans un local loué.",
+  prerequis_insuffisant: "Vous ne remplissez pas les conditions de fondation.",
+  type_deja_fonde: "Vous avez déjà fondé une organisation de ce type.",
+  local_loue_requis: "Il faut se trouver dans un local loué à votre nom, ouvert aux organisations.",
+  local_deja_occupe: "Une organisation est déjà établie dans ce local.",
+  nom_requis: "Donnez un nom à votre organisation.",
+  texte_trop_long: "Texte trop long.",
+  reserve_au_chef: "Réservé au chef du syndicat.",
+  syndicat_trop_petit: "Au moins " + (typeof GREVE_MEMBRES_MIN !== 'undefined' ? GREVE_MEMBRES_MIN : 5) + " membres sont nécessaires.",
+  greve_deja_en_cours: "Une grève est déjà en cours.",
+  aucune_greve: "Aucune grève en cours.",
+  pa_insuffisants: "PA insuffisants.",
+  commande_en_cours: "Opération déjà en cours.",
+};
+function motifRefusOrgaVie(r) {
+  return RP_ORGA_VIE_REFUS[r?.raison] || "Le serveur n'a pas confirmé l'opération. Rien n'a été modifié.";
 }
 
 // Toute commande doit être confirmée par son serveur. Un contrat absent refuse
@@ -417,47 +416,26 @@ async function confirmerCreationOrga(type) {
     return;
   }
 
-  const id = 'orga_' + Date.now();
-  const grades = def.grades?.[state.country] || ['Membre', 'Cadre', 'Dirigeant', 'Chef'];
-  const monGrade = grades[grades.length - 1]; // Fondateur = grade max
-
-  if (!state.organisations) state.organisations = [];
-
-  const nouvelleOrga = {
-    id, type, nom, desc,
-    fondateur: state.char?.name,
-    chef: state.char?.name,
-    country: state.country,
-    country_origine: state.country,
-    creeLe: state.day || 1,
-    membres: [{ nom: state.char?.name, grade: monGrade, gradeIdx: grades.length - 1, rejointLe: state.day || 1 }],
-    demandesAdhesion: [],
-    bonusLocaux: { pop: 0, inf: 0, dis: 0 },
-    caisse: 0,
-    // Jauge officielle d'influence de l'organisation (0-100, confirmee le 2 septembre 2026,
-    // chantier "refonte Lancer une rumeur") -- valeur neutre de depart, jamais undefined/NaN.
-    influence: 50,
-    localId: state.currentBuilding + ':' + state.currentRoom,
-    // Confidentialite entierement determinee par le type (def.secret), plus de choix joueur
-    // dans ce parcours (game design arrete le 26 aout 2026) : les 6 types publics restent
-    // toujours publics ici, seule "criminelle" (Organisation Secrete) est automatiquement visible:false.
-    visible: !def.secret,
-  };
-
-  // corpsMetier (greves, 3 septembre 2026) : uniquement propose/lu pour un syndicat -- absent
-  // (undefined) pour tout autre type, jamais une chaine vide ecrite en base par defaut.
+  // FONDATION PAR LE SERVEUR (02/11/2026, etape B). organisation_vie_commande('fonder') verifie
+  // le type, la fondation unique par type, les prerequis, le local loue ou l'on se trouve et sa
+  // disponibilite, puis ecrit l'organisation (identifiant, grade du fondateur, confidentialite).
+  // corpsMetier (greves, 3 septembre 2026) : uniquement pour un syndicat.
+  const parametres = { type, nom, desc };
   if (type === 'syndicale') {
     const corpsMetier = document.getElementById('orga-corps-metier-select')?.value || '';
-    if (corpsMetier) nouvelleOrga.corpsMetier = corpsMetier;
+    if (corpsMetier) parametres.corpsMetier = corpsMetier;
   }
-
-  // Creation CONFIRMEE par la base avant toute suite (31/10/2026, #295) : un refus serveur
-  // (fondateur usurpe, caisse initiale) ne laisse plus d'organisation fantome a l'ecran.
-  if (typeof sbSaveOrganisation !== 'function' || !(await sbSaveOrganisation(nouvelleOrga))) {
-    showToast('Organisation non créée', "Le serveur n'a pas enregistré la création. Rien n'a été fondé.", false);
+  const verdict = typeof sbOrganisationVie === 'function' ? await sbOrganisationVie(null, 'fonder', parametres) : null;
+  if (!verdict || verdict.ok !== true || !verdict.organisation) {
+    showToast('Organisation non créée', motifRefusOrgaVie(verdict), false);
     return;
   }
-  state.organisations.push(nouvelleOrga);
+  const id = verdict.organisation;
+  const nouvelleOrga = (typeof sbGetOrganisationParId === 'function' ? await sbGetOrganisationParId(id).catch(() => null) : null)
+    || { id, type, nom, visible: !def.secret };
+  if (!state.organisations) state.organisations = [];
+  state.organisations = state.organisations.filter(o => o.id !== id).concat([nouvelleOrga]);
+  const monGrade = nouvelleOrga.membres?.find(m => m.nom === state.char?.name)?.grade || 'fondateur';
 
   // Lier au local en cours si on vient de gerer_local (scope ville ajoute le 2026-08-16 ;
   // les 7 locations sans city ont ete migrees, plus de repli de compatibilite necessaire).
@@ -476,7 +454,7 @@ async function confirmerCreationOrga(type) {
     location.orgaId = id;
     // Persistance reelle (Lot 1.0) : sans cet appel, orgaId ne vivait qu'en memoire et
     // disparaissait au prochain chargerLocations(). Fire-and-forget assume, comme
-    // sbSaveOrganisation juste au-dessus : confirmerCreationOrga reste synchrone (son unique
+    // la fondation juste au-dessus : confirmerCreationOrga reste synchrone (son unique
     // appelant est un onclick inline), l'organisation elle-meme est deja creee et valide, et un
     // echec d'ecriture du bail ne doit jamais annuler la fondation. En cas d'echec on restaure
     // la valeur precedente en memoire et on dit exactement au joueur quoi faire.
@@ -632,11 +610,6 @@ async function monterGrade(orgaId, nomMembre) {
   if (!membre || membre.gradeIdx >= grades.length - 1) return;
   const serveur=await organisationEssayerCommande(orgaId,'promouvoir',{nom:nomMembre});
   if(serveur===false)return;
-  if(serveur===null){
-  membre.gradeIdx++;
-  membre.grade = grades[membre.gradeIdx];
-  sauvegarderOrga(orga);
-  }
   showToast('Grade attribué', nomMembre + ' est maintenant ' + getOrgaById(orgaId).membres.find(m=>m.nom===nomMembre).grade + '.', true);
   ouvrirGestionMembres(orgaId);
 }
@@ -650,11 +623,6 @@ async function descendreGrade(orgaId, nomMembre) {
   if (!membre || membre.gradeIdx <= 0) return;
   const serveur=await organisationEssayerCommande(orgaId,'retrograder',{nom:nomMembre});
   if(serveur===false)return;
-  if(serveur===null){
-  membre.gradeIdx--;
-  membre.grade = grades[membre.gradeIdx];
-  sauvegarderOrga(orga);
-  }
   showToast('Grade retiré', nomMembre + ' est maintenant ' + getOrgaById(orgaId).membres.find(m=>m.nom===nomMembre).grade + '.', false);
   ouvrirGestionMembres(orgaId);
 }
@@ -664,7 +632,6 @@ async function exclureMembre(orgaId, nomMembre) {
   if (!orga) return;
   const serveur=await organisationEssayerCommande(orgaId,'exclure',{nom:nomMembre});
   if(serveur===false)return;
-  if(serveur===null){orga.membres = orga.membres.filter(m => m.nom !== nomMembre);sauvegarderOrga(orga);}
   showToast('Membre exclu', nomMembre + ' a été exclu de ' + orga.nom + '.', false);
   addJournalEntry(nomMembre + ' exclu de "' + orga.nom + '".', 'event-bad');
   ouvrirGestionMembres(orgaId);
@@ -702,11 +669,6 @@ async function demanderAdhesion(orgaId) {
 
   const serveur=await organisationEssayerCommande(orgaId,'demander',{});
   if(serveur===false)return;
-  if(serveur===null){
-  if (!orga.demandesAdhesion) orga.demandesAdhesion = [];
-  orga.demandesAdhesion.push({ nom: state.char?.name, date: state.day || 1 });
-  sauvegarderOrga(orga);
-  }
 
   showToast('Demande envoyée', 'Votre demande d\'adhésion à "' + orga.nom + '" a été envoyée.', true);
   addJournalEntry('Demande d\'adhésion à "' + orga.nom + '".', '');
@@ -744,11 +706,6 @@ async function accepterAdhesion(orgaId, nomCandidat) {
 
   const serveur=await organisationEssayerCommande(orgaId,'admettre',{nom:nomCandidat});
   if(serveur===false)return;
-  if(serveur===null){
-  orga.demandesAdhesion = (orga.demandesAdhesion || []).filter(d => d.nom !== nomCandidat);
-  orga.membres.push({ nom: nomCandidat, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1 });
-  sauvegarderOrga(orga);
-  }
   showToast('Membre accepté', nomCandidat + ' rejoint "' + orga.nom + '" comme ' + grades[0] + '.', true);
   addJournalEntry(nomCandidat + ' accepté dans "' + orga.nom + '".', 'event-good');
   ouvrirDemandesAdhesion(orgaId);
@@ -759,10 +716,6 @@ async function refuserAdhesion(orgaId, nomCandidat) {
   if (!orga) return;
   const serveur=await organisationEssayerCommande(orgaId,'refuser_demande',{nom:nomCandidat});
   if(serveur===false)return;
-  if(serveur===null){
-  orga.demandesAdhesion = (orga.demandesAdhesion || []).filter(d => d.nom !== nomCandidat);
-  sauvegarderOrga(orga);
-  }
   showToast('Demande refusée', nomCandidat + ' a été refusé.', false);
   ouvrirDemandesAdhesion(orgaId);
 }
@@ -832,28 +785,6 @@ async function envoyerInvitationOrga(orgaId) {
     document.getElementById('modal-postes').classList.remove('open');
     showToast('Invitation envoyée',destinataire+' a reçu votre invitation.',true);
     addJournalEntry('Invitation envoyée à '+destinataire+' pour "'+orga.nom+'".','');
-    return;
-  }
-
-  document.getElementById('modal-postes').classList.remove('open');
-
-  const nomInvitant = state.char?.name || 'Anonyme';
-  const nomInvitantEchap = nomInvitant.replace(/'/g,"\\'");
-  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : 'Jour ' + (state.day || 1);
-  const sujet = 'Invitation — ' + orga.nom;
-  const corps = 'L\'organisation <strong>' + orga.nom + '</strong> vous invite à la rejoindre.<br><br>' +
-    '<em>Cette invitation est privée : personne d\'autre n\'en a connaissance.</em><br><br>' +
-    marqueurActionMail('orga_oui', orgaId, nomInvitantEchap) + marqueurActionMail('orga_non', orgaId, nomInvitantEchap);
-
-  if (typeof sbSendMail === 'function') {
-    await sbSendMail(orga.nom, destinataire, sujet, corps, time).catch(() => {});
-    if (!orga.invitationsEnvoyees) orga.invitationsEnvoyees = [];
-    orga.invitationsEnvoyees.push({ nom: destinataire, date: state.day || 1 });
-    sauvegarderOrga(orga);
-    showToast('Invitation envoyée', destinataire + ' a reçu votre invitation.', true);
-    addJournalEntry('Invitation envoyée à ' + destinataire + ' pour "' + orga.nom + '".', '');
-  } else {
-    showToast('Erreur', 'Système de mail indisponible.', false);
   }
 }
 
@@ -876,13 +807,6 @@ async function accepterInvitationOrga(orgaId, nomInvitant) {
 
   const serveur=await organisationEssayerCommande(orgaId,'accepter_invitation',{});
   if(serveur===false)return;
-  if(serveur===null){
-  orga.invitationsEnvoyees = (orga.invitationsEnvoyees || []).filter(i => i.nom !== state.char?.name);
-  const grades = def.grades?.[state.country] || ['Membre'];
-  if (!orga.membres) orga.membres = [];
-  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1 });
-  sauvegarderOrga(orga);
-  }
 
   showToast('Invitation acceptée', 'Vous rejoignez "' + orga.nom + '" comme ' + getOrgaById(orgaId).membres.find(m=>m.nom===state.char.name).grade + '.', true);
   addJournalEntry('Invitation acceptée : membre de "' + orga.nom + '".', 'event-good');
@@ -904,10 +828,6 @@ async function refuserInvitationOrga(orgaId, nomInvitant) {
 
   const serveur=await organisationEssayerCommande(orgaId,'refuser_invitation',{});
   if(serveur===false)return;
-  if(serveur===null){
-  orga.invitationsEnvoyees = (orga.invitationsEnvoyees || []).filter(i => i.nom !== state.char?.name);
-  sauvegarderOrga(orga);
-  }
 
   showToast('Invitation refusée', '', false);
   addJournalEntry('Invitation refusée : "' + orga.nom + '".', '');
@@ -1127,8 +1047,8 @@ async function executerOrdreOrga(orgaId, fn) {
   const effet = effets[fn];
   if (effet) { effet(); }
   else { console.error('[orga] ordre sans effet parvenu apres paiement : ' + fn); }
-
-  sauvegarderOrga(orga);
+  // Aucun de ces effets ne touche l'organisation elle-meme : l'ancienne sauvegarde generale qui
+  // suivait reecrivait un blob inchange. Retiree avec l'etape B (02/11/2026).
   document.getElementById('modal-postes').classList.remove('open');
   updateUI();
 }
@@ -1272,7 +1192,6 @@ async function sauvegarderOptionsOrga(orgaId) {
   if(newNom&&newNom.length>=2)params.nom=newNom;
   const serveur=await organisationEssayerCommande(orgaId,'informations',params);
   if(serveur===false)return;
-  if(serveur===null){Object.assign(orga,params);sauvegarderOrga(orga);}
 
   _orgaAvatarFileTemp = null;
   showToast('Paramètres enregistrés', '"' + getOrgaById(orgaId).nom + '"', true);
@@ -1287,7 +1206,6 @@ async function renommerOrga(orgaId) {
   if (!newNom || newNom.length < 2) return;
   const serveur=await organisationEssayerCommande(orgaId,'informations',{nom:newNom});
   if(serveur===false)return;
-  if(serveur===null){orga.nom=newNom;sauvegarderOrga(orga);}
   showToast('Organisation renommée', '"' + newNom + '"', true);
   document.getElementById('modal-postes').classList.remove('open');
   switchSelfTab('orgas', null);
@@ -1302,7 +1220,6 @@ async function toggleVisibiliteOrga(orgaId) {
   const visible=!orga.visible;
   const serveur=await organisationEssayerCommande(orgaId,'visibilite',{visible});
   if(serveur===false)return;
-  if(serveur===null){orga.visible=visible;sauvegarderOrga(orga);}
   showToast(visible ? 'Organisation visible' : 'Organisation secrète', '', true);
   document.getElementById('modal-postes').classList.remove('open');
 }
@@ -1343,7 +1260,6 @@ async function quitterOrga(orgaId) {
   if (orga.chef === state.char?.name) { showToast('Impossible', 'Dissolvez l\'organisation ou transmettez la direction avant de partir.', false); return; }
   const serveur=await organisationEssayerCommande(orgaId,'quitter',{nom:state.char.name});
   if(serveur===false)return;
-  if(serveur===null){orga.membres=orga.membres.filter(m=>m.nom!==state.char.name);sauvegarderOrga(orga);}
   showToast('Vous avez quitté', '"' + orga.nom + '"', false);
   addJournalEntry('Départ de "' + orga.nom + '".', '');
   switchSelfTab('orgas', null);
@@ -3339,10 +3255,9 @@ async function doRecruterMilitants(pa, cost) {
 
   state.char.dernierRecrutementMilitant = state.day;
   sauvegarderPersonnageImmediat();
-  // Comptabiliser le militant comme adherent du syndicat
-  if (!syndicat.membres) syndicat.membres = [];
-  syndicat.membres.push({ nom: nomPnj, grade: 'Militant (PNJ)', rejointLe: state.day || 1, estPnj: true, recruteur: state.char?.name });
-  sauvegarderOrga(syndicat);
+  // Le militant est compte comme adherent du syndicat PAR LE SERVEUR, dans la meme transaction que
+  // son recrutement (militant_recruter, 02/11/2026) : l'ecran relit simplement les organisations.
+  if (typeof chargerOrganisations === 'function') await chargerOrganisations();
   updateUI();
   // Compteur pris sur la reponse du SERVEUR, qui vient de compter le plafond, plutot que sur la
   // lecture cliente faite avant l'appel : c'est lui qui fait autorite.
@@ -3451,9 +3366,11 @@ async function confirmerOrganiserBlocus(syndicatId) {
     return;
   }
 
-  // Palmares : chaque blocus reussi renforce durablement la puissance syndicale
-  syndicat.blocusReussis = (syndicat.blocusReussis || 0) + 1;
-  if (typeof sauvegarderOrga === 'function') sauvegarderOrga(syndicat);
+  // Palmares (blocusReussis) : regle conservee, mais l'ecran ne peut plus ecrire l'organisation
+  // (etape B, 02/11/2026). CE PARCOURS EST INACCESSIBLE AUJOURD'HUI : getMonSyndicatEtGrade lit
+  // state.orgas / chargerOrgas, qui n'existent pas, donc « Organiser un blocus » refuse toujours.
+  // Le jour ou le blocus est remis en service, son tirage, son etat de batiment et ce palmares
+  // devront passer ensemble par une fonction serveur (voir ORGANISATIONS-ECRITURES-20261031.md).
 
   const patch = {
     blocus: {
@@ -7594,49 +7511,24 @@ async function doRejoindreClubSupporters(pa, cost) {
   // a 50 FR le 25 aout 2026 (lot logistique portuaire, §13, "cotisations non eternelles") pour
   // s'aligner sur le meme principe d'adhesion que le Syndicat des Dockers de PSM -- desormais
   // jamais eternelle, voir renouvellerCotisationsOrganisations (api/cron-minuit.js).
-  // COTISATION PAR LE SERVEUR (31/10/2026, #295) : 1 PA + 50 FR preleves et verses a la caisse du
-  // club dans club_supporters_cotiser, une seule fois par geste. L'inscription au club de
-  // supporters ne suit qu'une cotisation confirmee.
+  // ADHESION PAR LE SERVEUR (02/11/2026, etape B) : club_supporters_adherer preleve la cotisation
+  // (1 PA + 50 FR versees au club, club_supporters_cotiser), cree le club de supporters s'il
+  // n'existe pas encore (chef : le meneur PNJ affiche au siege) et inscrit le joueur au premier
+  // grade avec la saison en cours, en une seule transaction. Jamais paye deux fois.
   const r = typeof sbCaisseCollective === 'function'
-    ? await sbCaisseCollective('club_supporters_cotiser', { p_club: clubLocal.id }, [clubLocal.id, 'supporter'])
+    ? await sbCaisseCollective('club_supporters_adherer', { p_club: clubLocal.id, p_meneur: getMeneurSupportersLocal() }, [clubLocal.id, 'supporter'])
     : { ok: false, raison: 'reponse_absente' };
   if (!r.ok) {
-    showToast(r.raison === 'pa_insuffisants' ? 'PA insuffisants' : r.raison === 'reponse_absente' ? 'Cotisation non confirmée' : 'Fonds insuffisants',
-      r.raison === 'pa_insuffisants' ? '1 PA requis.'
-        : r.raison === 'reponse_absente' ? "Le serveur n'a pas confirmé la cotisation. Réessayez : elle ne sera jamais payée deux fois."
-        : '50 FR requis pour l\'adhésion.', false);
+    const motifs = { pa_insuffisants: '1 PA requis.', fonds_insuffisants: '50 FR requis pour l\'adhésion.',
+      deja_membre: 'Vous êtes déjà membre du club de supporters de ' + clubLocal.nom + '.',
+      reponse_absente: "Le serveur n'a pas confirmé l'adhésion. Réessayez : elle ne sera jamais payée deux fois." };
+    showToast(r.raison === 'deja_membre' ? 'Déjà membre' : 'Adhésion refusée', motifs[r.raison] || "L'adhésion n'a pas été enregistrée.", false);
     return;
   }
   if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
-
+  if (typeof chargerOrganisations === 'function') await chargerOrganisations();
   const def = TYPES_ORGANISATIONS.supporters;
-  const grades = def?.grades?.[pays] || ['Sympathisant', 'Membre', 'Ultra', 'Meneur'];
-  const saison = await chargerOuInitialiserSaison();
-
-  if (!orga) {
-    const meneurLocal = getMeneurSupportersLocal();
-    orga = {
-      id: 'orga_supporters_' + pays + '_' + ville,
-      type: 'supporters',
-      nom: 'Club de Supporters — ' + clubLocal.nom,
-      desc: 'Les fidèles du ' + clubLocal.nom + '.',
-      fondateur: meneurLocal, chef: meneurLocal, chefEstPnj: true,
-      country: pays, city: ville, country_origine: pays,
-      creeLe: state.day || 1,
-      membres: [], demandesAdhesion: [],
-      bonusLocaux: { pop:0, inf:0, dis:0 }, caisse: 0,
-      influence: 50, // jauge officielle d'influence, valeur neutre de depart (2 septembre 2026)
-      election: null,
-      visible: true
-    };
-    state.organisations.push(orga);
-  }
-
-  // saison peut etre null si la lecture Supabase a echoue (C1) -- les PA ont deja ete debites
-  // ici, on ne bloque donc pas l'adhesion : repli sur la saison 1, meme convention que
-  // doPrendreLicenceSportive/accepterTransfert.
-  orga.membres.push({ nom: state.char?.name, grade: grades[0], gradeIdx: 0, rejointLe: state.day || 1, derniereCotisationSaison: saison?.numero || 1 });
-  sauvegarderOrga(orga);
+  const grades = [r.grade || def?.grades?.[pays]?.[0] || 'Sympathisant'];
 
   document.getElementById('modal-postes')?.classList.remove('open');
   updateUI();
@@ -7662,7 +7554,7 @@ function getClubSupportersLocal() {
 // PJ ne pouvait donc jamais en etre reellement "le chef". Cree paresseusement selon exactement
 // le meme principe que le club de supporters ci-dessus (doRejoindreClubSupporters, id
 // deterministe, chef PNJ par defaut) au lieu d'une nouvelle organisation permanente pre-semee :
-// meme table state.organisations, meme sauvegarderOrga(), meme mecanisme d'election generique
+// meme table state.organisations, creation par le serveur (dockers_assurer), meme mecanisme d'election generique
 // et deja type-agnostique (verifierElectionsOrganisations) -- aucun nouveau systeme de
 // permission. Seule vraie difference avec le club de supporters : la creation est declenchee par
 // une simple visite de la room (voir enterRoom, plateau-navigation.js), pas par un order
@@ -7694,27 +7586,15 @@ function getChefSyndicatDockersPSM() {
 }
 
 async function chargerOuCreerSyndicatDockersPSM() {
-  let orga = getSyndicatDockersPSM();
-  if (orga) return orga;
-  if (!state.organisations) state.organisations = [];
-  orga = {
-    id: 'orga_syndicat_dockers_republic_ville_a',
-    type: 'syndicale',
-    nom: 'Syndicat des Dockers de Port-Sainte-Marie',
-    desc: 'Le syndicat des dockers du Port industriel de Port-Sainte-Marie.',
-    fondateur: 'Étienne Dantafasse (PNJ)', chef: 'Étienne Dantafasse (PNJ)', chefEstPnj: true,
-    country: 'republic', city: 'ville_a', country_origine: 'republic',
-    creeLe: state.day || 1,
-    membres: [], demandesAdhesion: [],
-    bonusLocaux: { pop:0, inf:0, dis:0 }, caisse: 0,
-    influence: 50, // jauge officielle d'influence, valeur neutre de depart (2 septembre 2026)
-    election: null,
-    visible: true
-  };
-  state.organisations.push(orga);
-  // Attendue : l'adhesion qui suit (porte serveur) a besoin que la ligne existe en base.
-  if (typeof sauvegarderOrga === 'function' && !(await sauvegarderOrga(orga))) return null;
-  return getSyndicatDockersPSM() || orga;
+  const existant = getSyndicatDockersPSM();
+  if (existant) return existant;
+  // CREE PAR LE SERVEUR (02/11/2026, etape B) : contenu fixe (chef PNJ Etienne Dantafasse), acte
+  // idempotent. L'adhesion qui suit (organisation_adhesion_payante) a besoin que la ligne existe.
+  const r = typeof sbOrganisationVie === 'function'
+    ? await sbOrganisationVie('orga_syndicat_dockers_republic_ville_a', 'dockers_assurer', {}) : null;
+  if (!r || r.ok !== true) return null;
+  if (typeof chargerOrganisations === 'function') await chargerOrganisations();
+  return getSyndicatDockersPSM();
 }
 
 // ---- ADHÉSION (lot logistique portuaire, 25 aout 2026, §12) ----
@@ -7827,33 +7707,6 @@ async function confirmerDeclenchementElection(orgaId, pa, cost) {
     if(document.getElementById('vue-self')?.classList.contains('active'))switchSelfTab('orgas',null);
     return;
   }
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const jour = state.day || 1;
-  const time = typeof formatDateHeureJeu === 'function' ? formatDateHeureJeu() : '';
-  orga.election = {
-    enCours: true, phase: 'candidatures',
-    motivateur: state.char?.name, motivation,
-    dateDeclenchement: jour, dateFinCandidatures: jour + 3, dateFinVote: jour + 6,
-    candidats: [], votes: {},
-    derniereElection: orga.election?.derniereElection || null
-  };
-  sauvegarderOrga(orga);
-
-  if (typeof sbCreateTopic === 'function') {
-    const titre = '🗳 Élection déclenchée — ' + orga.nom;
-    const contenu = (state.char?.name || 'Un membre') + ' déclenche une élection pour la présidence de "' + orga.nom + '" :<br><br><em>' + motivation + '</em><br><br>Les candidatures sont ouvertes pendant 3 jours, suivies de 3 jours de vote.';
-    const topicId = await sbCreateTopic('sport', titre, state.char?.name || 'Anonyme', state.country, time).catch(() => null);
-    if (topicId && typeof sbCreatePost === 'function') await sbCreatePost(topicId, state.char?.name || 'Anonyme', contenu, time).catch(() => {});
-    if (!FORUM_TOPICS['sport']) FORUM_TOPICS['sport'] = [];
-    FORUM_TOPICS['sport'].unshift({ id: topicId || 'election-' + Date.now(), title: titre, author: state.char?.name, time, views: 1, replies: 0, lastPostAuthor: state.char?.name, lastPostTime: time, posts: [{ author: state.char?.name, time, content: contenu }] });
-  }
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-  updateUI();
-  showToast('Élection déclenchée !', 'Les candidatures sont ouvertes pour 3 jours.', true, true);
-  if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
 }
 
 async function seProsenterCandidat(orgaId) {
@@ -7864,7 +7717,6 @@ async function seProsenterCandidat(orgaId) {
   if (orga.election.candidats.some(c => c.nom === state.char?.name)) { showToast('Déjà candidat', '', false); return; }
   const serveur=await organisationEssayerCommande(orgaId,'candidature',{});
   if(serveur===false)return;
-  if(serveur===null){orga.election.candidats.push({nom:state.char?.name});sauvegarderOrga(orga);}
   updateUI();
   showToast('Candidature enregistrée !', 'Vous êtes candidat à la présidence de "' + orga.nom + '".', true, true);
   if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
@@ -7877,7 +7729,6 @@ async function voterElection(orgaId, candidatNom) {
   if (!estMembre) { showToast('Réservé aux membres', '', false); return; }
   const serveur=await organisationEssayerCommande(orgaId,'vote',{nom:candidatNom});
   if(serveur===false)return;
-  if(serveur===null){orga.election.votes[state.char?.name]=candidatNom;sauvegarderOrga(orga);}
   updateUI();
   showToast('Vote enregistré', 'Vous votez pour ' + candidatNom + '.', true);
   if (document.getElementById('vue-self')?.classList.contains('active')) switchSelfTab('orgas', null);
@@ -7906,37 +7757,6 @@ async function verifierElectionsOrganisations() {
     if(serveur!==null){
       const fraiche=getOrgaById(orga.id);
       if(serveur&&fraiche?.chef&&fraiche.chef!==orga.chef)annoncerDirectionElection(fraiche,fraiche.chef,orga.chef);
-      continue;
-    }
-    const jour = state.day || 1;
-
-    if (orga.election.phase === 'candidatures' && jour >= orga.election.dateFinCandidatures) {
-      orga.election.phase = 'vote';
-      sauvegarderOrga(orga);
-    }
-
-    if (orga.election.phase === 'vote' && jour >= orga.election.dateFinVote) {
-      const decompte = {};
-      Object.values(orga.election.votes).forEach(nom => { decompte[nom] = (decompte[nom] || 0) + 1; });
-      let vainqueur = null, maxVoix = -1;
-      orga.election.candidats.forEach(c => {
-        const voix = decompte[c.nom] || 0;
-        if (voix > maxVoix) { maxVoix = voix; vainqueur = c.nom; }
-      });
-
-      if (vainqueur) {
-        const ancienChef = orga.chef;
-        orga.chef = vainqueur;
-        orga.chefEstPnj = false;
-        const def = TYPES_ORGANISATIONS[orga.type];
-        const grades = def?.grades?.[orga.country] || [];
-        const membre = orga.membres.find(m => m.nom === vainqueur);
-        if (membre && grades.length) { membre.grade = grades[grades.length - 1]; membre.gradeIdx = grades.length - 1; }
-        annoncerDirectionElection(orga,vainqueur,ancienChef);
-      }
-
-      orga.election = { enCours: false, phase: null, derniereElection: jour, candidats: [], votes: {} };
-      sauvegarderOrga(orga);
     }
   }
 }
@@ -9430,20 +9250,19 @@ async function validerLancementGreve() {
   if (orga.greve?.actif) { showToast('Grève déjà en cours', '', false); return; }
 
   _greve.soumission = true;
-  const r = await deduireCoutOrdre({ pa: 1, cost: 0 });
-  if (!r.ok) { signalerRefusCout(r); _greve.soumission = false; return; }
-
-  orga.greve = {
-    actif: true,
-    type: _greve.type,
-    cibleValue: _greve.cibleValue,
-    cibleLabel: _greve.cibleLabel,
-    revendications,
-    dateDebut: new Date().toISOString(),
-    joursActifs: 0,
-    derniereApplicationJour: null
-  };
-  sauvegarderOrga(orga);
+  // LANCEMENT PAR LE SERVEUR (02/11/2026, etape B) : chef, effectif minimal, grève unique et 1 PA
+  // (payer_ordre, tarif greve_lancer) dans organisation_vie_commande, en une transaction.
+  const r = typeof sbOrganisationVie === 'function'
+    ? await sbOrganisationVie(orga.id, 'greve_lancer', { type: _greve.type, cibleValue: _greve.cibleValue,
+        cibleLabel: _greve.cibleLabel, revendications }) : null;
+  if (!r || r.ok !== true) {
+    showToast('Grève non lancée', motifRefusOrgaVie(r), false);
+    _greve.soumission = false;
+    return;
+  }
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  orga.greve = r.greve;
+  if (typeof chargerOrganisations === 'function') chargerOrganisations();
 
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Grève lancée !', '"' + orga.nom + '" est en grève contre ' + _greve.cibleLabel + '.', true, true);
@@ -9461,23 +9280,23 @@ async function validerLancementGreve() {
   updateUI();
 }
 
-function confirmerTerminerGreve(orgaId) {
+async function confirmerTerminerGreve(orgaId) {
   const orga = getOrgaById(orgaId);
   if (!orga) return;
   if (orga.chef !== state.char?.name) { showToast('Accès refusé', 'Réservé au chef du syndicat.', false); return; }
   if (!orga.greve?.actif) { showToast('Aucune grève en cours', '', false); return; }
 
-  const cibleLabel = orga.greve.cibleLabel;
-  const revendicationsFin = orga.greve.revendications;
-  // orga.greve est ECRASE par null juste apres : la duree reelle de la mobilisation (parfois
-  // plusieurs dizaines de jours) etait detruite avec lui, et la chronique nationale ne gardait que
-  // « une greve a commence » / « une greve s'est terminee », sans moyen de reconstituer combien de
-  // temps elle avait dure. On capture les deux valeurs, comme le code capture deja cibleLabel et
-  // revendications pour exactement cette raison.
-  const dateDebutGreve = orga.greve.dateDebut || null;
-  const joursActifsGreve = orga.greve.joursActifs || 0;
+  // FIN PAR LE SERVEUR (02/11/2026, etape B) : il rend la grève qui s'achève, pour la chronique
+  // (cible, revendications, date de début et jours actifs, que l'écrasement faisait perdre).
+  const r = typeof sbOrganisationVie === 'function' ? await sbOrganisationVie(orga.id, 'greve_terminer', {}) : null;
+  if (!r || r.ok !== true) { showToast('Grève non terminée', motifRefusOrgaVie(r), false); return; }
+  const finie = r.greve || orga.greve || {};
+  const cibleLabel = finie.cibleLabel;
+  const revendicationsFin = finie.revendications;
+  const dateDebutGreve = finie.dateDebut || null;
+  const joursActifsGreve = finie.joursActifs || 0;
   orga.greve = null;
-  sauvegarderOrga(orga);
+  if (typeof chargerOrganisations === 'function') chargerOrganisations();
 
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Grève terminée', 'La grève de "' + orga.nom + '" contre ' + cibleLabel + ' a pris fin.', true);
@@ -9609,9 +9428,10 @@ async function confirmerAppelGreveGenerale(orgaId) {
   }).catch(() => null) : null;
   if (!inserted) { showToast('Erreur', "La consultation n'a pas pu être lancée.", false); return; }
 
-  orga.greveGeneraleEnCoursId = ggId;
-  orga.greveGeneraleStatut = 'actif'; // l'initiateur soutient d'office son propre appel
-  sauvegarderOrga(orga);
+  // L'initiateur soutient d'office son propre appel : rattachement recopie par le serveur depuis la
+  // ligne greves_generales (etape B, 02/11/2026), jamais ecrit par l'ecran.
+  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
+  if (typeof chargerOrganisations === 'function') chargerOrganisations();
 
   // Mail a chaque chef eligible SAUF l'initiateur (deja acquis) -- boutons Accepter/Refuser en
   // ligne, meme pattern que le vote de confiance (notifierDeputesPourVoteConfiance,
@@ -9673,8 +9493,8 @@ async function repondreAppelGreveGenerale(ggId, orgaId, reponse) {
   }
   if (!ggFinal) { showToast('Réponse non enregistrée', 'Une autre réponse a été traitée au même moment, réessayez.', false); return; }
 
-  orga.greveGeneraleStatut = reponse;
-  sauvegarderOrga(orga);
+  // Reponse recopiee sur le syndicat par le serveur (etape B, 02/11/2026).
+  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
 
   showToast(reponse === 'accepte' ? 'Grève générale acceptée' : 'Grève générale refusée', 'Votre syndicat "' + orga.nom + '" a répondu.', true);
   addJournalEntry('"' + orga.nom + '" a ' + (reponse === 'accepte' ? 'accepté' : 'refusé') + ' l\'appel à la grève générale.', 'event-info');
@@ -9714,17 +9534,10 @@ async function verifierAdoptionGreveGenerale(ggId) {
 
   // Syndicats non-acceptants : "ne sont associes a rien" (§5) -- detaches de la consultation.
   // Syndicats acceptants : passent en participation active (visibleSi de greve_generale_retirer).
-  for (const p of participants) {
-    const orgaLive = toutesOrgas.find(o => o.id === p.orgaId);
-    if (!orgaLive) continue;
-    if (p.statut === 'accepte') {
-      orgaLive.greveGeneraleStatut = 'actif';
-    } else {
-      orgaLive.greveGeneraleEnCoursId = null;
-      orgaLive.greveGeneraleStatut = null;
-    }
-    if (typeof sbSaveOrganisation === 'function') await sbSaveOrganisation(orgaLive).catch(() => {});
-  }
+  // Recopie par le serveur (etape B, 02/11/2026) : l'ecran d'un chef ne reecrit plus les
+  // syndicats des autres. Les acceptants sont aussi rattaches, et peuvent donc se retirer.
+  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
+  if (typeof chargerOrganisations === 'function') chargerOrganisations();
 
   showToast('Grève générale adoptée !', 'Niveau ' + (palier ? palier.niveau : 1) + ' — ' + adherentsUniques + ' adhérents mobilisés.', true, true);
   addJournalEntry('La grève générale est entrée en vigueur (niveau ' + (palier ? palier.niveau : 1) + ').', 'event-info');
@@ -9748,7 +9561,8 @@ async function confirmerRetraitGreveGenerale(orgaId) {
     const rows = await sbGet('greves_generales', `id=eq.${encodeURIComponent(ggId)}`).catch(() => null);
     const gg = rows?.[0];
     if (!gg || gg.statut !== 'active') {
-      orga.greveGeneraleEnCoursId = null; orga.greveGeneraleStatut = null; sauvegarderOrga(orga);
+      if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
+      if (typeof chargerOrganisations === 'function') chargerOrganisations();
       showToast('Grève générale déjà terminée', '', false);
       return;
     }
@@ -9762,9 +9576,8 @@ async function confirmerRetraitGreveGenerale(orgaId) {
   }
   if (!retireOk) { showToast('Retrait non enregistré', 'Réessayez.', false); return; }
 
-  orga.greveGeneraleEnCoursId = null;
-  orga.greveGeneraleStatut = null;
-  sauvegarderOrga(orga);
+  if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
+  if (typeof chargerOrganisations === 'function') chargerOrganisations();
 
   document.getElementById('modal-postes').classList.remove('open');
   showToast('Syndicat retiré', '"' + orga.nom + '" ne participe plus à la grève générale.', true);
@@ -9792,11 +9605,8 @@ async function recalculerPuissanceApresRetraitGreveGenerale(ggId) {
 
   if (adherentsUniques < GREVE_GENERALE_ADHERENTS_MIN) {
     await sbUpdate('greves_generales', `id=eq.${encodeURIComponent(ggId)}`, { statut: 'terminee' }).catch(() => {});
-    for (const orgaLive of orgasRestantes) {
-      orgaLive.greveGeneraleEnCoursId = null;
-      orgaLive.greveGeneraleStatut = null;
-      if (typeof sbSaveOrganisation === 'function') await sbSaveOrganisation(orgaLive).catch(() => {});
-    }
+    if (typeof sbGreveGeneraleSynchroniser === 'function') await sbGreveGeneraleSynchroniser(ggId);
+    if (typeof chargerOrganisations === 'function') chargerOrganisations();
     addExternalEvent('🏳 La grève générale s\'effondre : moins de ' + GREVE_GENERALE_ADHERENTS_MIN + ' adhérents mobilisés.');
     addJournalEntry('La grève générale a pris fin (effondrement de la mobilisation).', 'event-info');
     return;

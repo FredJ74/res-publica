@@ -100,26 +100,9 @@ function contexte(reponses) {
     assert.deepEqual(toasts, [['Opération refusée', 'Vous ne gérez pas la caisse de cette organisation.', false]]);
   });
 
-  await cas('sauvegarde d’organisation refusée : annoncée, état serveur rechargé', async () => {
-    const { ctx, toasts } = contexte([]);
-    ctx.RP_DERNIER_REFUS_ORGA = '{"message":"organisation_direction_non_autorisee"}';
-    ctx.sbSaveOrganisation = async () => null;
-    vm.runInContext(ORG.match(/const RP_ORGA_REFUS = \{[\s\S]*?\};/)[0].replace('const ', 'var '), ctx);
-    vm.runInContext(extraire(ORG, 'sauvegarderOrga'), ctx);
-    const ok = await vm.runInContext("sauvegarderOrga({id:'o1'})", ctx);
-    assert.equal(ok, false);
-    assert.deepEqual(toasts, [['Organisation non enregistrée', 'Seul le chef peut transmettre la direction.', false]]);
-    assert.equal(ctx._recharge, 1);
-  });
-
-  await cas('sauvegarde acceptée : relecture de l’organisation corrigée par le serveur', async () => {
-    const { ctx, toasts } = contexte([]);
-    ctx.sbSaveOrganisation = async () => [{ id: 'o1' }];
-    vm.runInContext(ORG.match(/const RP_ORGA_REFUS = \{[\s\S]*?\};/)[0].replace('const ', 'var '), ctx);
-    vm.runInContext(extraire(ORG, 'sauvegarderOrga'), ctx);
-    assert.equal(await vm.runInContext("sauvegarderOrga({id:'o1'})", ctx), true);
-    assert.deepEqual(toasts, []);
-    assert.equal(ctx._recharge, 1);
+  await cas('étape B : plus aucune sauvegarde générale d’organisation dans l’écran', async () => {
+    assert.equal(/function sauvegarderOrga\b/.test(ORG), false);
+    assert.equal(/\bsauvegarderOrga\(|\bsbSaveOrganisation\(/.test(ORG), false);
   });
 
   await cas('transfert : le règlement serveur précède toute bascule de licence', async () => {
