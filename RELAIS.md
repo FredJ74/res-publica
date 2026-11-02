@@ -36,10 +36,15 @@ muets par le banc historique : aucun profil ajouté après relecture.
 Moteurs et état occupé existants conservés ; aucune personnalité inventée.
 Raccordement #351 complété dans le moteur de coûts des postes nommés (six tarifs
 existants, aucun prix changé) : Baseline et Referential redevenus verts sans
-changer leurs références. 8 tests ciblés, Chromium 2/2, 164 bancs clients, globaux
+changer leurs références. 9 tests ciblés, Chromium 2/2, 164 bancs clients, globaux
 12/12 ; dix défauts reproduits sur main. Rapport : `outils/audits/AUDIT-GLOBAL-REPUBLIA-20261102.md` et inventaire JSON.
 Métadonnées des deux journalistes corrigées (lieu de rédaction, pas d’identité).
 Aucun chantier #219 ni immobilier repris.
+Main `791ab6c4` (#350) intégré sans changer ses cinq migrations ; exception de
+copie devenue périmée retirée du contrôle (fonction autonome du cron conservée).
+Globaux 12/12, tests étape B 4+2 ; PR tentée, API GraphQL Forbidden. Branche
+poussée ; pas de fusion ni déploiement. Rapport distingue 25 besoins graphiques,
+quatre accès sans zone à Montrouge, muets volontaires et tests sans production.
 
 ### Organisations, étape B : fin de la double autorité (Claude, branche `claude/organisations-etape-b-20261102`, PR #350)
 

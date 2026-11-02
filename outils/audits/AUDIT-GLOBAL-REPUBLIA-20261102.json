@@ -36182,5 +36182,6 @@
     "Contrôle des chemins et formats ; pas revue visuelle exhaustive de chaque composition",
     "Les images PJ de images/personnages sont comptées mais leurs chemins ne sont pas recopiés ici",
     "Les images non référencées littéralement peuvent être lues depuis SQL, un chemin construit ou la base"
-  ]
+  ],
+  "main_reconcilie": "791ab6c4"
 }

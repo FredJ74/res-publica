@@ -69,3 +69,9 @@ test('les journalistes communs parlent depuis une rédaction, sans ancien hôtel
   assert.doesNotMatch(prompt,/Hotel-Restaurant La Republica|La Tribune de Republia/);
  }
 });
+test('étape B #350 : aucune ancienne exemption de copie pour la sauvegarde organisations',()=>{
+ assert.doesNotMatch(lire('supabase.js'),/async function sbSaveOrganisation\(/);
+ assert.match(lire('api/cron-minuit.js'),/async function sbSaveOrganisationServeur\(/,'le traitement serveur autonome est conservé');
+ const config=JSON.parse(lire('outils/baseline/fonctions.json'));
+ assert.ok(!config.hors_perimetre.some(([f,n])=>f==='api/cron-minuit.js'&&n==='sbSaveOrganisationServeur'),'plus de copie navigateur à exempter');
+});

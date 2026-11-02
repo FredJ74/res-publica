@@ -3,7 +3,8 @@
 ## A. Synthèse générale et méthode
 
 Branche : `codex/audit-global-republia-20261102`. Base réellement auditée :
-`a99c406928ec7449f7dc11f5a447177c59b5452b` (`main`, #351 et #352 incluses).
+`a99c406928ec7449f7dc11f5a447177c59b5452b` (`main`, #351 et #352 incluses),
+puis réconciliation avec **`main` `791ab6c4` (#350, organisations étape B)**.
 `AGENTS.md`, `RELAIS.md`, `ARCHITECTURE.md`, `CONSTITUTION.md`, les audits PSM/Montrouge,
 églises, clôture fonctionnelle et rapports de livraison ont été lus. Les travaux #219
 sont conservés ; aucune migration, aucun changement d'un joueur, aucune fusion ni
@@ -124,6 +125,8 @@ une conclusion générale sur les risques de production.
 | C03 | P2 | Les profils de Marie Leblanc et Romain Castel nommaient respectivement l'hôtel La Républia et l'ancienne enseigne La Tribune ; leurs occurrences sont dans des rédactions. | **Corrigé** : « la rédaction du journal local », identité et profil existants conservés. Aucun personnage ni personnalité inventé. |
 | C04 | P1 à confirmer en jeu | À Montrouge, aucune zone de scène ne mène à `tribunal-local`, `siege-syndical`, `usine-principale`, `zone-production`. La minimap est masquée lorsque les scènes sont actives. | Le raccordement de rue paraît incomplet. Confirmer sur serveur la liste des accès et arrêter les scènes/positions graphiques ; ne pas placer de zones au hasard ni contourner le déplacement serveur. |
 | C05 | P1, préexistant | Le centre antipoison tire encore la réussite avec `Math.random` dans `doCentreAntiPoison` puis supprime l'empoisonnement à l'écran, après paiement. Déjà signalé par l'audit PSM/Montrouge. | À porter dans l'acte médical serveur existant et tester paiement/guérison/rejeu ensemble, avec le responsable santé/fiche. Aucune réécriture médicale improvisée dans cet audit. |
+| C07 | P3 | Après #350, le contrôle des fonctions conservait une exemption pour une copie navigateur `sbSaveOrganisation` qui a été supprimée. La fonction autonome du cron existe toujours. | **Corrigé** : seule l’exemption périmée est retirée, pas le test ni la fonction serveur. |
+| C08 | P1, préexistant | Le relais #350 signale le blocus syndical et le palmarès de répression inaccessibles (`state.orgas` / `chargerOrgas` absents). | Préserver les portages de Claude ; raccorder ces parcours à leurs lectures/commandes serveur avant de les annoncer fonctionnels. Pas de nouveau moteur dans l’audit. |
 | C06 | P2 | 19 fonds web et six fonds CSS, inventaire B. | Préparer les illustrations réellement souhaitées, puis raccorder et vérifier le cadrage. Pas de génération approximative. |
 
 ### Constatations qui ne sont pas des suppressions à faire
@@ -163,6 +166,8 @@ Corrections de jeu limitées à :
   des contrats municipaux et du coût de consultation des candidatures.
 - `api/_pnj-personnalites.js` : lieu des deux journalistes, aucune identité changée.
 - `plateau.html` : versions de cache des deux scripts JS modifiés montées.
+- `outils/baseline/fonctions.json` : exemption de copie périmée après #350 retirée ;
+  `sbSaveOrganisationServeur` et ses appels du cron restent inchangés.
 
 Outils et preuves :
 
@@ -193,9 +198,9 @@ notamment le retrait des profils d'avocats provisoirement ajoutés.
 | Chromium réel, environnement local | 2/2 (1280 et 390 px) : retours Luthécia/PSM, quatre arrivées PSM, décodage des quatre locaux dans leurs deux états |
 | Banc locations PSM | Réussi : mêmes pièces, ordres, loyers et enseignes ; vérification de l'image effectivement sélectionnée |
 | Dialogue PNJ historique | 43/43 ; secrets/auth/prompts protégés, muets déclarés conservés |
-| Tests ciblés de cet audit | 8/8 sur le code final |
+| Tests ciblés de cet audit | 9/9 sur le code final |
 | Contre-épreuves | Dix défauts du main initial effectivement reproduits |
-| Contrôles globaux | **12/12 sur la branche** ; main initial **10/12**, échecs Baseline/Referential expliqués par les six tarifs supprimés de la source. Ni baseline, ni référence, ni mesure modifiés pour obtenir ce résultat |
+| Contrôles globaux | **12/12 sur la branche, y compris après #350** ; main initial **10/12**, échecs Baseline/Referential expliqués par les six tarifs supprimés de la source. Ni baseline, ni référence, ni mesure modifiés pour obtenir ce résultat |
 
 Le contrôleur client a été exécuté plusieurs fois : une première erreur a détecté
 le raccordement non autorisé des avocats ; il a été annulé. Un autre passage a
@@ -216,6 +221,8 @@ final de la chaîne et les contrôles distants sont consignés à la fin du rapp
    un PNJ existant. Personnalités des deux avocats et des autres muets déclarés à
    valider avant implantation. Les icônes ne sont pas des erreurs de fichier.
 4. **Antipoison** : reprise coordonnée du traitement serveur, sans nouveau moteur.
+   Blocus syndical/palmarès : conserver les 16 portages de #350 et préparer leur
+   raccordement propre ; limite déjà signalée par Claude, non résolue ici.
 5. **Lecture réelle Supabase / sessions** : aucun outil Supabase exposé ici ; aucune
    nouvelle lecture des titulaires, PNJ vivants, stocks, catalogues ou droits/RLS.
    Les quatre routes génériques sont attestées dans le seed, pas recertifiées sur
@@ -376,3 +383,21 @@ et fichiers déjà présents dans le dépôt.
 | Montrouge | `logements-montrouge` — Logements | 5 | Zone de rue déclarée |
 | Montrouge | `cafe-tabac-cheminots-montrouge` — Café des Cheminots — Bar-Tabac | 1 | Zone de rue déclarée |
 | Montrouge | `place-du-rail-montrouge` — Place du Rail | 1 | Zone de rue déclarée |
+
+## Réconciliation finale et publication
+
+`main` **791ab6c4** intégré sans changement de ses cinq migrations ni de ses moteurs
+d'organisations. Conflit limité au relais : les deux rubriques sont conservées.
+Les tests de l'étape B restent **4/4 + 2/2**. Une exemption devenue périmée dans le
+contrôle des copies a été retirée après preuve que la copie navigateur n'existe
+plus ; le traitement autonome serveur n'est pas supprimé. Contrôles globaux
+finals : **12/12**, sans changement d'empreinte, de mesure, de baseline ou de seed.
+
+Création de PR tentée avec `gh pr create --draft` : **API GraphQL Forbidden**.
+La sauvegarde des commits par Git fonctionne ; aucun numéro de PR n'est inventé.
+Comparaison prête :
+https://github.com/FredJ74/res-publica/compare/main...codex/audit-global-republia-20261102
+
+Les ressources publiques Vercel ont donné un refus du tunnel (403) ; ni déploiement
+ni recette authentifiée de production ne sont donc certifiés. Aucune donnée joueur,
+financière ou d'inventaire, aucune identité ou mémoire de PNJ réelle modifiée.
