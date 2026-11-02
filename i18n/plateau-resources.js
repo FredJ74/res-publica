@@ -151,6 +151,135 @@
     "description": "Beschreibung"
   }
 };
+  const extendedLabels={
+  "fr": {
+    "personalActions": "Actions personnelles",
+    "organizations": "Organisations",
+    "identity": "Identité",
+    "statistics": "Statistiques",
+    "rules": "Règles du jeu",
+    "localForum": "Forum local",
+    "mailbox": "Boîte mail",
+    "receivedMessages": "Messages reçus",
+    "financeManagement": "Gestion des finances",
+    "characterSheet": "Fiche de personnage",
+    "conversation": "Conversation",
+    "forum": "Forum"
+  },
+  "en": {
+    "personalActions": "Personal actions",
+    "organizations": "Organizations",
+    "identity": "Identity",
+    "statistics": "Statistics",
+    "rules": "Game rules",
+    "localForum": "Local forum",
+    "mailbox": "Mailbox",
+    "receivedMessages": "Received messages",
+    "financeManagement": "Financial management",
+    "characterSheet": "Character sheet",
+    "conversation": "Conversation",
+    "forum": "Forum"
+  },
+  "es": {
+    "personalActions": "Acciones personales",
+    "organizations": "Organizaciones",
+    "identity": "Identidad",
+    "statistics": "Estadísticas",
+    "rules": "Reglas del juego",
+    "localForum": "Foro local",
+    "mailbox": "Buzón",
+    "receivedMessages": "Mensajes recibidos",
+    "financeManagement": "Gestión financiera",
+    "characterSheet": "Ficha de personaje",
+    "conversation": "Conversación",
+    "forum": "Foro"
+  },
+  "zh-TW": {
+    "personalActions": "個人行動",
+    "organizations": "組織",
+    "identity": "身分",
+    "statistics": "統計",
+    "rules": "遊戲規則",
+    "localForum": "本地論壇",
+    "mailbox": "信箱",
+    "receivedMessages": "收到的訊息",
+    "financeManagement": "財務管理",
+    "characterSheet": "角色資料",
+    "conversation": "對話",
+    "forum": "論壇"
+  },
+  "ru": {
+    "personalActions": "Личные действия",
+    "organizations": "Организации",
+    "identity": "Личность",
+    "statistics": "Характеристики",
+    "rules": "Правила игры",
+    "localForum": "Местный форум",
+    "mailbox": "Почта",
+    "receivedMessages": "Входящие сообщения",
+    "financeManagement": "Управление финансами",
+    "characterSheet": "Карточка персонажа",
+    "conversation": "Разговор",
+    "forum": "Форум"
+  },
+  "ko": {
+    "personalActions": "개인 행동",
+    "organizations": "조직",
+    "identity": "신원",
+    "statistics": "능력치",
+    "rules": "게임 규칙",
+    "localForum": "지역 게시판",
+    "mailbox": "우편함",
+    "receivedMessages": "받은 메시지",
+    "financeManagement": "재정 관리",
+    "characterSheet": "캐릭터 정보",
+    "conversation": "대화",
+    "forum": "게시판"
+  },
+  "ar": {
+    "personalActions": "الأفعال الشخصية",
+    "organizations": "المنظمات",
+    "identity": "الهوية",
+    "statistics": "الإحصاءات",
+    "rules": "قواعد اللعبة",
+    "localForum": "المنتدى المحلي",
+    "mailbox": "صندوق البريد",
+    "receivedMessages": "الرسائل الواردة",
+    "financeManagement": "الإدارة المالية",
+    "characterSheet": "بطاقة الشخصية",
+    "conversation": "المحادثة",
+    "forum": "المنتدى"
+  },
+  "pt-BR": {
+    "personalActions": "Ações pessoais",
+    "organizations": "Organizações",
+    "identity": "Identidade",
+    "statistics": "Estatísticas",
+    "rules": "Regras do jogo",
+    "localForum": "Fórum local",
+    "mailbox": "Caixa de correio",
+    "receivedMessages": "Mensagens recebidas",
+    "financeManagement": "Gestão financeira",
+    "characterSheet": "Ficha de personagem",
+    "conversation": "Conversa",
+    "forum": "Fórum"
+  },
+  "de": {
+    "personalActions": "Persönliche Aktionen",
+    "organizations": "Organisationen",
+    "identity": "Identität",
+    "statistics": "Statistiken",
+    "rules": "Spielregeln",
+    "localForum": "Lokales Forum",
+    "mailbox": "Postfach",
+    "receivedMessages": "Eingegangene Nachrichten",
+    "financeManagement": "Finanzverwaltung",
+    "characterSheet": "Charakterbogen",
+    "conversation": "Gespräch",
+    "forum": "Forum"
+  }
+};
+  for(const [locale,labels] of Object.entries(extendedLabels)) Object.assign(translations[locale],labels);
   for(const [locale,labels] of Object.entries(translations)) {
     if(resources[locale]?.translation) resources[locale].translation.plateau={...labels};
   }
