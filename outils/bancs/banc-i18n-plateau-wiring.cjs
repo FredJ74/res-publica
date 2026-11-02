@@ -20,3 +20,11 @@ test('les en-têtes de plateau ont un fallback français sans modifier leurs com
   assert.match(plateau,new RegExp('data-i18n="plateau\\.'+key+'"[^>]*>'+text));
  }
 });
+
+test('les panneaux statiques portent des clés de localisation sans modifier les handlers',()=>{
+ for(const key of ['money','cash','bank','cityMap','peoplePresent','availableActions','combatReports','newMessage','description']) {
+  assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),'clé absente '+key);
+ }
+ assert.match(plateau,/onclick="ouvrirCalepinCampagne\(\)"/);
+ assert.match(plateau,/id="action-context-bat"/);
+});
