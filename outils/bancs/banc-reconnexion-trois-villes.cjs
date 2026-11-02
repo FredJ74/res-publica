@@ -37,3 +37,30 @@ for(const ville of ['capitale','ville_a','ville_b'])for(const sort of ['ok','pan
   assert.deepEqual(f.ecritures,[],'aucune sauvegarde du cache ou de la position');
  });
 }
+
+// #366 corrige aussi la lecture de rue APRÈS le chargement : un cache de ville
+// erroné ne doit pas faire refuser la vraie position. Ce corps, distinct du
+// chargement de fiche ci-dessus, doit être exécuté, pas seulement recherché par regex.
+function rue(ville,groupes){
+ const c=vm.createContext({console,state:{char:{name:'FixtureRue',currentCity:'ancienne'},country:'republic',currentCity:ville==='capitale'?'ville_a':'capitale',currentBuilding:null,currentRoom:null,_navigationServeur:groupes},session:'S',appels:[],affichages:[],toasts:[]});
+ c.rpAuthUid=()=> 'uid-fixture';c.rpAuthSessionIdentifiant=()=>c.session;
+ const texte=process.env.HG135_CONTRE_RUE?require('node:child_process').execFileSync('git',['show',process.env.HG135_CONTRE_RUE+':plateau-rue-centrale.js'],{cwd:root,encoding:'utf8'}):fs.readFileSync(path.join(root,'plateau-rue-centrale.js'),'utf8');
+ vm.runInContext(texte,c);const noeud=vm.runInContext('RUE_CENTRALE_DEPART.republic['+JSON.stringify(ville)+']',c);
+ c.sbGroupePjLire=async()=>null;c.sbPositionNavigationConfirmee=()=>null;
+ c.sbRpc=(fn)=>{c.appels.push(fn);assert.equal(fn,'rue_position_lire','aucun ordre de déplacement au rechargement');return new Promise(r=>{c.finir=()=>r(c.reponse);});};
+ c.reponse={ok:true,country:'republic',city:ville,street:noeud,building:null,room:null};
+ c.afficherNoeudRue=async(...a)=>c.affichages.push(a);c.showToast=(...a)=>c.toasts.push(a);
+ return {c,noeud};
+}
+for(const ville of ['capitale','ville_a','ville_b'])for(const groupes of [false,true])test('rue #366 / '+ville+' / groupes '+groupes,async()=>{
+ const {c,noeud}=rue(ville,groupes),p=c.initialiserRueCentrale('republic','ancien-noeud',null);
+ await new Promise(r=>setImmediate(r));c.finir();await p;
+ assert.equal(c.state.currentCity,ville);assert.equal(c.state.char.currentCity,ville);
+ assert.deepEqual([...c.appels],['rue_position_lire']);assert.deepEqual(c.affichages,[['republic',noeud,null,true]]);assert.equal(c.toasts.length,0);
+});
+for(const changement of ['session','personnage','refus','rue-inconnue'])test('rue #366 : '+changement+' ne restaure pas de position inventée',async()=>{
+ const {c}=rue('ville_a',false),ancienne=c.state.currentCity,p=c.initialiserRueCentrale('republic','ancien-noeud',null);
+ if(changement==='session')c.session='autre';if(changement==='personnage')c.state.char={name:'AutreFixture'};
+ if(changement==='refus')c.reponse={ok:false,raison:'session_absente'};if(changement==='rue-inconnue')c.reponse.street='inconnue';
+ c.finir();await p;assert.deepEqual(c.affichages,[]);assert.equal(c.state.currentCity,ancienne);
+});

@@ -58,6 +58,14 @@ Quatrième défaut reproduit : le GET partiel du greffe effaçait la révision d
 l’inventaire. Le lecteur commun reprend inventaire_reception_etat et adopte sa
 réponse exacte, provenance incluse ; 10 tests (4 échecs sur le corps ancien).
 Prévol ciblé purement SELECT préparé, pas exécuté en production.
+Recette rue #366 exécutée (pas seulement regex) : 6 combinaisons villes/groupes
+et 4 refus tardifs/invalides ; 19/19 avec le chargement. Avant #366, six cas
+rue échouent. Combat civil/squatteurs PostgreSQL 17.6 : 379/379. Contre-épreuve
+tarif collectif : cinq cas dénoncent la réintroduction du sous-paiement.
+CI main 2c60bb3 : étape Calendrier rouge, checkout propre sans npm = module
+Acorn absent ; installation des dépendances replacée avant ce contrôle, sans
+supprimer de tests. Prévol rangé dans outils/bancs, enveloppe transactionnelle
+conforme. Rapport de preuves et synthèse différentielle en cours.
 GitHub public HTTPS lisible ; API GraphQL/REST refusée. Aucune donnée joueur ni
 production modifiée ; aucune fusion/migration autorisée par cette mission.
 

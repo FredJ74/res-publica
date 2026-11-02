@@ -2,7 +2,8 @@
 -- Pas un export canonique ; pour celui-ci réutiliser outils/baseline/requetes.py.
 -- Aucune ligne de personnage, aucun nom de joueur, aucun compte auth lu.
 -- Ne pas transformer ces droits déclarés en preuve d'exécution métier authentifiée.
-BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY;
+BEGIN;
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
 
 SELECT current_timestamp AS observe_le, current_setting('server_version') AS postgres,
        count(*) AS migrations, max(version) AS derniere_version

@@ -34,13 +34,13 @@ jobs:
         run: node outils/bancs/banc-jodie-portraits-journal.cjs
       - name: "Portrait Jodie — autorisation, contenu signé, anti-doublons"
         run: node outils/bancs/banc-jodie-portrait-api.cjs
-      - name: Calendrier sur main (PR couvertes par les controles dedies)
-        if: github.event_name == 'push'
-        run: node --test outils/bancs/test-*.mjs
       - name: Constructeur Vercel épinglé pour la régression de chargement
         run: npm ci --prefix outils/vercel --no-audit --no-fund
       - name: Installer les dépendances du pilote navigateur avant les bancs client
         run: npm ci --prefix outils/e2e --ignore-scripts --no-audit --no-fund
+      - name: Calendrier sur main (PR couvertes par les controles dedies)
+        if: github.event_name == 'push'
+        run: node --test outils/bancs/test-*.mjs
       - name: Commerce Premium PSM après lecture des baux
         run: node outils/bancs/banc-psm-premium-bail.cjs
       - name: Boutiques PSM — mêmes ordres et variantes que Luthécia
