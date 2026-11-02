@@ -18,6 +18,7 @@ on:
       - 'outils/bancs/banc-i18n-selecteur-interactif.cjs'
       - 'outils/audits/inventaire-i18n-ordres.cjs'
       - 'outils/bancs/banc-i18n-ordres.cjs'
+      - 'outils/bancs/banc-i18n-catalogue-ordres.cjs'
   push:
     branches: [main]
     paths:
@@ -67,6 +68,8 @@ jobs:
           retention-days: 7
       - name: Libellés d'ordres : contexte et autorité préservés
         run: node --test outils/bancs/banc-i18n-ordres.cjs
+      - name: Quinze ordres canoniques traduits et droits préservés
+        run: node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
       - name: Syntaxe du moteur et des ressources
         run: |
           node --check i18n/resources.js
@@ -77,3 +80,4 @@ jobs:
           node --check i18n/texte-joueur.js
           node --check api/_traduction.js
           node --check i18n/ordres.js
+          node --check i18n/orders-resources.js
