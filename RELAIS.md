@@ -25,7 +25,7 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Audit technique transversal de clôture #135 — Codex, 02/11/2026
+### Audit technique transversal de clôture #135 — revue prête, accès livraison incomplets (Codex, 02/11/2026)
 
 Mission : commentaire `6585083787` du ticket #135 (18 h 32 UTC).
 Branche `codex/audit-transversal-cloture-135-20261102`, base main `9e105f08`.
@@ -65,7 +65,21 @@ tarif collectif : cinq cas dénoncent la réintroduction du sous-paiement.
 CI main 2c60bb3 : étape Calendrier rouge, checkout propre sans npm = module
 Acorn absent ; installation des dépendances replacée avant ce contrôle, sans
 supprimer de tests. Prévol rangé dans outils/bancs, enveloppe transactionnelle
-conforme. Rapport de preuves et synthèse différentielle en cours.
+conforme. Dernier main #378 a52e1a00 intégré par d7654c75 (conflits limités
+aux caches, nouveaux préfixes de Claude conservés). Nouvelle validation complète :
+169/169 bancs clients, 118/118 pilote/Chromium, 53/53 transversaux, 379/379 PG17.6,
+12/12 globaux hors ligne. Les 141 transports sont inclus dans les 379, pas à additionner.
+Rapport : outils/audits/CLOTURE-TRANSVERSALE-135-20261102.md ; inventaire AST
+942 fonctions, 59 scripts, zéro doublon ; preuves et empreintes versionnées.
+Création PR tentée : POST api.github.com/graphql Forbidden. Corps PR prêt dans
+outils/audits/PR-CLOTURE-TRANSVERSALE-135-20261102.md, branche poussée.
+Prévol vivant non exécuté (aucun outil Supabase exposé) ; Vercel statique bloqué
+par proxy 403 ; aucune connexion PJ réelle. Ne pas considérer la production certifiée.
+Reliquats précis : ancien consommateur vols (null sauvegarde traité comme succès),
+PA/inventaire subtilisation encore miroirs locaux, recrutement codétenu local
+(à coordonner avec Claude), anciens impacts. Diagnostic fixtures code 2 et
+prévol READ ONLY prêts ; aucune donnée purgée ni droit réouvert. Ne pas refaire
+#219/#349/#366/#371 ; reprendre uniquement ces vérifications et reliquats identifiés.
 GitHub public HTTPS lisible ; API GraphQL/REST refusée. Aucune donnée joueur ni
 production modifiée ; aucune fusion/migration autorisée par cette mission.
 
