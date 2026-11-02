@@ -710,8 +710,10 @@ async function ouvrirCalendrierElectoral() {
   document.getElementById('postes-modal-title').textContent = '📅 Calendrier Électoral — ' + (co?.n || country);
   document.getElementById('postes-body').innerHTML =
     '<div style="padding:.2rem .4rem;min-width:540px;max-width:680px">' +
-    '<div style="font-size:.72rem;color:#8a8060;padding:.3rem .4rem;margin-bottom:.3rem;font-style:italic">' +
-      'Candidatures : 7 jours · Campagne : 7 jours · Vote : 24h · Second tour ou départage (si nécessaire) : campagne 7 jours + vote 24h' +
+    // Regle du calendrier de succession (audit E7, 02/11/2026) : l'ancien bandeau annoncait
+    // encore « Candidatures : 7 jours · Campagne : 7 jours ».
+    '<div class="cpj-note" style="font-size:.72rem;padding:.3rem .4rem;margin-bottom:.3rem;font-style:italic">' +
+      'Mandat de 5 semaines · Candidatures pendant les 4 premières semaines · Gel et campagne la 5e · Vote le dernier dimanche, résultat à minuit · Second tour (si nécessaire) le dimanche suivant · Après une prolongation : 1 semaine de candidatures' +
     '</div>' +
     lignes +
     '</div>';
@@ -2732,7 +2734,8 @@ async function confirmerContesterResultats(posteId, city) {
     }).catch(() => {});
   }
   updateUI();
-  showToast('Fraude révélée !', 'Une fraude électorale a été démasquée. +200 FR. ' + (issueChangee ? 'Le résultat officiel a changé.' : 'Le résultat officiel reste inchangé.'), true, true);
+  // Le texte du resultat corrige est celui que le serveur a annonce (audit E5, 02/11/2026).
+  showToast('Fraude révélée !', 'Une fraude électorale a été démasquée. +200 FR. ' + (issueChangee ? (v.annonce ? v.annonce.charAt(0).toUpperCase() + v.annonce.slice(1) : 'Le résultat officiel a changé.') : 'Le résultat officiel reste inchangé.'), true, true);
   addJournalEntry('⚖️ Fraude électorale révélée (' + typeFraude + ', ' + v.fraudeur + '). +200 FR.' + (issueChangee ? ' Résultat corrigé.' : ''), 'event-good');
 }
 

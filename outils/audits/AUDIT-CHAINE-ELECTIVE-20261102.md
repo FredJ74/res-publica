@@ -117,7 +117,26 @@ candidat sur le bulletin, et un INSERT direct de bulletin bloque ensuite le vrai
 
 ## Corrections (02/11/2026)
 
-E1, E2 et E3 corrigés par la migration `20261102222500_chaine_elective_bulletin_fraudes_mairie` (appliquée) et `api/cron-minuit.js` ; règle E3 dans `GAME-DESIGN-ELECTIONS.md`. E4 à E8 restent ouverts.
+E1, E2 et E3 corrigés par la migration `20261102222500_chaine_elective_bulletin_fraudes_mairie` (appliquée) et `api/cron-minuit.js` ; règle E3 dans `GAME-DESIGN-ELECTIONS.md`.
+
+E4 à E8 (02-03/11/2026, branche `claude/chaine-elective-e4-e8-20261102`) :
+- **E4/E5** : décision de Fred « le recompte s'impose » (`GAME-DESIGN-ELECTIONS.md`).
+  `election_contester` délègue à `election_contestation_appliquer` (interne) : prise de fonctions,
+  second tour relancé ou annulé, prolongation, retour du titulaire précédent, annonce publique et
+  chronique. `election_recompter_interne` rend aussi les qualifiés du second tour. La passe de nuit
+  garde dans `dernierScrutin` le titulaire d'avant la proclamation et les noms affichés.
+- **E6** : le secours PNJ du lundi n'efface plus un scrutin engagé (candidats ou bulletins, résultat
+  à venir) ; le PNJ assure l'intérim jusqu'à ce résultat.
+- **E7** : annonces de la passe de nuit avec le nom de la ville (`VILLES_SERVEUR`) ; bandeau du
+  calendrier électoral aligné sur la règle de succession. Deux anciens écrans de calendrier aux
+  textes périmés (`ouvrirCalendrierElections`, `openElectionsModal`) n'ont plus aucun appelant :
+  laissés en l'état.
+- **E8** : INSERT retiré à `authenticated` sur `candidatures` ; DELETE de soi gardé (suppression du
+  personnage) et un déclencheur retire désormais le nom du bulletin du scrutin ouvert.
+  `votes_electoraux` : aucun droit d'INSERT en production (déjà fermé), la policy « vote de soi »
+  reste en garde-fou.
+Migration `20261103001000_chaine_elective_contestation_portes` ; banc annulé
+`outils/bancs/banc-contestation-e4-e8.sql`.
 
 ## Ordre de correction proposé
 
