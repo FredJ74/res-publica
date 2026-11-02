@@ -34,3 +34,20 @@ Ces fichiers ne sont pas inclus dans `plateau.html`, et ne sont donc pas exécut
 - Les pluriels, genre et variation grammaticale demanderont une extension documentée avant conversion massive.
 - Vérifier toute traduction de PA et FR selon le design, ne pas changer leur sémantique.
 - Ne pas modifier les chantiers #219 et #275.
+
+## Extension multicouche du 2 novembre 2026 — décision validée
+
+Architecture unique et monde partagé ; traduction comme couche de présentation, jamais comme moteur de jeu. Les catalogues pilotes ajoutés sont `es`, `de`, `pt-BR`, `pt-PT` et `ar`, en plus de `fr` et `en`. Le moteur existant accepte les variantes régionales et conserve `fr` par défaut.
+
+**Ces catalogues sont des démonstrateurs de 15 clés, pas des traductions exhaustives ni validées éditorialement.** Aucun de ces scripts n'est raccordé à la page de jeu. Ne pas introduire de sélecteur de langue ou de persistance avant validation d'un parcours complet et du mécanisme d'activation explicite. Exécuter `node --test outils/bancs/banc-i18n.cjs outils/bancs/banc-i18n-langues.cjs`.
+
+### Contrats de la prochaine intégration
+
+- Générer l'inventaire des libellés réellement servis depuis le main courant, avec attribution par domaine (UI, serveur, RP, PNJ, contenu joueur) ; ne pas compter les 15 clés pilotes comme couverture du jeu.
+- Convertir par composants/écrans, et mesurer la couverture des clés françaises + chaque langue ; conserver les noms propres et la sémantique des ordres côté serveur.
+- Tous les retours serveur doivent exposer des codes stables + paramètres ; ne pas interpréter automatiquement des textes français comme des identifiants de logique.
+- Les contenus joueurs conservent la langue source et une option « voir l'original » ; prévoir une traduction à la lecture et un cache versionné, sans jamais remplacer la source ni faire de traduction silencieuse des ordres.
+- Tester l'interface de droite à gauche pour l'arabe (direction du texte, pas inversion des cartes, images ou contrôles géographiques).
+- Prévoir un commutateur de fonctionnalité désactivé par défaut pour chaque langue, indépendant de la présence du fichier de traduction ; seules les langues explicitement validées pourront être activées ultérieurement.
+- Les couches linguistiques restent hors des fichiers et migrations PNJ/DeepSeek confiés à Claude et de l'audit transverse Codex. Les nouveaux textes de ces chantiers seront inventoriés à leur fusion.
+- Aucune migration Supabase, aucun changement du gameplay, aucune activation publique sur cette PR.
