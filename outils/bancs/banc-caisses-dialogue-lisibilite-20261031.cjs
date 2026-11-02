@@ -40,6 +40,6 @@ test('lisibilité des conversations et rafraîchissement du cache',()=>{
   assert.match(css,/#modal-pnj \.pnj-speech/);
   assert.match(css,/body\.plateau-body \.person-role/);
   assert.match(plateau,/style\.css\?v=lisibilite-pnj-20261031/);
-  assert.match(index,/style\.css\?v=lisibilite-pnj-20261031/);
+  assert.match(index,/style\.css\?v=(?:lisibilite-pnj-20261031|accueil-9-langues-20261102)/);
   assert.match(plateau,/plateau-politique\.js\?v=caisses-entieres-20261031/);
 });
