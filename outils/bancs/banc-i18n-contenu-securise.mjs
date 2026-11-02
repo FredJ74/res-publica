@@ -43,3 +43,14 @@ test('clé de cache dépend de la version du message et de la langue',async()=>{
  await traduireContenu(input,deps);deps.readUnderRls=async()=>({text:'Salut {{name}}',language:'fr',version:'revision-2'});
  await traduireContenu(input,deps);assert.notEqual(keys[0],keys[1]);
 });
+
+test('langue cible non prise en charge : ni lecture privée ni appel payant',async()=>{
+ const {calls,deps}=fixtures();
+ const r=await traduireContenu({...input,langueCible:'xx'},deps);
+ assert.equal(r.ok,false);assert.deepEqual(calls,[]);
+});
+test('source sans version : aucun cache partagé, aucun appel payant',async()=>{
+ const {calls,deps}=fixtures();deps.readUnderRls=async()=>{calls.push('rls');return {text:'Bonjour',language:'fr'}};
+ const r=await traduireContenu(input,deps);
+ assert.equal(r.raison,'version_absente');assert.deepEqual(calls,['auth','rls']);
+});
