@@ -1,0 +1,166 @@
+/* Libellés canoniques pilotes des ordres, non encore raccordés au renderer.
+ * Les variantes contextuelles (prix, lieux, verbes) gardent leur texte source.
+ */
+(function(global) {
+  'use strict';
+  const resources=global.RP_I18N_RESOURCES;
+  if(!resources)return;
+  const words={
+  "fr": {
+    "installer_equipements": "Installer des équipements",
+    "imprimer_tracts_choix": "Imprimer des tracts",
+    "imprimer_tracts_calomnieux": "Imprimer des tracts calomnieux",
+    "deposer_petite_annonce": "Déposer une petite annonce",
+    "marche_noir": "Marché noir",
+    "faire_achats_marche": "Faire des achats",
+    "embaucher_agent_securite": "Embaucher un agent de sécurité",
+    "embaucher_maitre_chien": "Embaucher un maître-chien",
+    "consulter_elections": "Voir les candidats",
+    "voter_election": "Voter",
+    "consulter_stock_usine": "Consulter le stock",
+    "consulter_caisse_usine": "Consulter la caisse",
+    "fabriquer_scandale": "Fabriquer un scandale",
+    "corrompre_journaliste": "Corrompre un journaliste",
+    "publicite_premium": "Publicité premium"
+  },
+  "en": {
+    "installer_equipements": "Install equipment",
+    "imprimer_tracts_choix": "Print leaflets",
+    "imprimer_tracts_calomnieux": "Print defamatory leaflets",
+    "deposer_petite_annonce": "Post a classified ad",
+    "marche_noir": "Black market",
+    "faire_achats_marche": "Go shopping",
+    "embaucher_agent_securite": "Hire a security guard",
+    "embaucher_maitre_chien": "Hire a dog handler",
+    "consulter_elections": "View candidates",
+    "voter_election": "Vote",
+    "consulter_stock_usine": "Check inventory",
+    "consulter_caisse_usine": "Check cash balance",
+    "fabriquer_scandale": "Fabricate a scandal",
+    "corrompre_journaliste": "Bribe a journalist",
+    "publicite_premium": "Premium advertising"
+  },
+  "es": {
+    "installer_equipements": "Instalar equipos",
+    "imprimer_tracts_choix": "Imprimir panfletos",
+    "imprimer_tracts_calomnieux": "Imprimir panfletos difamatorios",
+    "deposer_petite_annonce": "Publicar un anuncio clasificado",
+    "marche_noir": "Mercado negro",
+    "faire_achats_marche": "Hacer compras",
+    "embaucher_agent_securite": "Contratar a un guardia de seguridad",
+    "embaucher_maitre_chien": "Contratar a un guía canino",
+    "consulter_elections": "Ver candidatos",
+    "voter_election": "Votar",
+    "consulter_stock_usine": "Consultar existencias",
+    "consulter_caisse_usine": "Consultar la caja",
+    "fabriquer_scandale": "Fabricar un escándalo",
+    "corrompre_journaliste": "Sobornar a un periodista",
+    "publicite_premium": "Publicidad prémium"
+  },
+  "zh-TW": {
+    "installer_equipements": "安裝設備",
+    "imprimer_tracts_choix": "印製傳單",
+    "imprimer_tracts_calomnieux": "印製誹謗傳單",
+    "deposer_petite_annonce": "刊登分類廣告",
+    "marche_noir": "黑市",
+    "faire_achats_marche": "購物",
+    "embaucher_agent_securite": "聘請保全人員",
+    "embaucher_maitre_chien": "聘請警犬訓練員",
+    "consulter_elections": "查看候選人",
+    "voter_election": "投票",
+    "consulter_stock_usine": "查看庫存",
+    "consulter_caisse_usine": "查看現金餘額",
+    "fabriquer_scandale": "製造醜聞",
+    "corrompre_journaliste": "賄賂記者",
+    "publicite_premium": "高級廣告"
+  },
+  "ru": {
+    "installer_equipements": "Установить оборудование",
+    "imprimer_tracts_choix": "Напечатать листовки",
+    "imprimer_tracts_calomnieux": "Напечатать клеветнические листовки",
+    "deposer_petite_annonce": "Разместить объявление",
+    "marche_noir": "Чёрный рынок",
+    "faire_achats_marche": "Сделать покупки",
+    "embaucher_agent_securite": "Нанять охранника",
+    "embaucher_maitre_chien": "Нанять кинолога",
+    "consulter_elections": "Посмотреть кандидатов",
+    "voter_election": "Голосовать",
+    "consulter_stock_usine": "Проверить запасы",
+    "consulter_caisse_usine": "Проверить кассу",
+    "fabriquer_scandale": "Сфабриковать скандал",
+    "corrompre_journaliste": "Подкупить журналиста",
+    "publicite_premium": "Премиальная реклама"
+  },
+  "ko": {
+    "installer_equipements": "장비 설치",
+    "imprimer_tracts_choix": "전단 인쇄",
+    "imprimer_tracts_calomnieux": "비방 전단 인쇄",
+    "deposer_petite_annonce": "구인·광고 게시",
+    "marche_noir": "암시장",
+    "faire_achats_marche": "물품 구매",
+    "embaucher_agent_securite": "경비원 고용",
+    "embaucher_maitre_chien": "견공 조련사 고용",
+    "consulter_elections": "후보자 보기",
+    "voter_election": "투표",
+    "consulter_stock_usine": "재고 확인",
+    "consulter_caisse_usine": "금고 확인",
+    "fabriquer_scandale": "스캔들 조작",
+    "corrompre_journaliste": "기자 매수",
+    "publicite_premium": "프리미엄 광고"
+  },
+  "ar": {
+    "installer_equipements": "تركيب المعدات",
+    "imprimer_tracts_choix": "طباعة المنشورات",
+    "imprimer_tracts_calomnieux": "طباعة منشورات تشهيرية",
+    "deposer_petite_annonce": "نشر إعلان صغير",
+    "marche_noir": "السوق السوداء",
+    "faire_achats_marche": "التسوق",
+    "embaucher_agent_securite": "توظيف حارس أمن",
+    "embaucher_maitre_chien": "توظيف مدرب كلاب",
+    "consulter_elections": "عرض المرشحين",
+    "voter_election": "التصويت",
+    "consulter_stock_usine": "عرض المخزون",
+    "consulter_caisse_usine": "عرض الصندوق",
+    "fabriquer_scandale": "افتعال فضيحة",
+    "corrompre_journaliste": "رشوة صحفي",
+    "publicite_premium": "إعلان متميز"
+  },
+  "pt-BR": {
+    "installer_equipements": "Instalar equipamentos",
+    "imprimer_tracts_choix": "Imprimir panfletos",
+    "imprimer_tracts_calomnieux": "Imprimir panfletos difamatórios",
+    "deposer_petite_annonce": "Publicar anúncio classificado",
+    "marche_noir": "Mercado negro",
+    "faire_achats_marche": "Fazer compras",
+    "embaucher_agent_securite": "Contratar segurança",
+    "embaucher_maitre_chien": "Contratar adestrador de cães",
+    "consulter_elections": "Ver candidatos",
+    "voter_election": "Votar",
+    "consulter_stock_usine": "Consultar estoque",
+    "consulter_caisse_usine": "Consultar caixa",
+    "fabriquer_scandale": "Fabricar escândalo",
+    "corrompre_journaliste": "Subornar jornalista",
+    "publicite_premium": "Publicidade premium"
+  },
+  "de": {
+    "installer_equipements": "Ausrüstung installieren",
+    "imprimer_tracts_choix": "Flugblätter drucken",
+    "imprimer_tracts_calomnieux": "Verleumderische Flugblätter drucken",
+    "deposer_petite_annonce": "Kleinanzeige aufgeben",
+    "marche_noir": "Schwarzmarkt",
+    "faire_achats_marche": "Einkaufen",
+    "embaucher_agent_securite": "Sicherheitskraft einstellen",
+    "embaucher_maitre_chien": "Hundeführer einstellen",
+    "consulter_elections": "Kandidaten ansehen",
+    "voter_election": "Abstimmen",
+    "consulter_stock_usine": "Lagerbestand prüfen",
+    "consulter_caisse_usine": "Kassenstand prüfen",
+    "fabriquer_scandale": "Skandal inszenieren",
+    "corrompre_journaliste": "Journalisten bestechen",
+    "publicite_premium": "Premium-Werbung"
+  }
+};
+  for(const [locale,labels] of Object.entries(words)) {
+    if(resources[locale]?.translation) resources[locale].translation.orders={...labels};
+  }
+})(window);
