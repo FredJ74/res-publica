@@ -54,3 +54,17 @@ test('source sans version : aucun cache partagé, aucun appel payant',async()=>{
  const r=await traduireContenu(input,deps);
  assert.equal(r.raison,'version_absente');assert.deepEqual(calls,['auth','rls']);
 });
+
+test('un cache corrompu avec des variables changées ne peut pas être servi',async()=>{
+ const {calls,deps}=fixtures();deps.readCache=async()=>{calls.push('cache');return 'Hello {{wrong}}'};
+ const result=await traduireContenu(input,deps);
+ assert.equal(result.ok,true);assert.equal(result.fromCache,false);
+ assert.deepEqual(calls,['auth','rls','cache','quota','provider','write']);
+});
+test('cache invalidé lorsque le contenu change sans changement de version',async()=>{
+ const keys=[],{deps}=fixtures();deps.readCache=async key=>{keys.push(key);return null};
+ await traduireContenu(input,deps);
+ deps.readUnderRls=async()=>({text:'Salut modifié {{name}}',language:'fr',version:'revision-1'});
+ await traduireContenu(input,deps);
+ assert.notEqual(keys[0],keys[1]);
+});
