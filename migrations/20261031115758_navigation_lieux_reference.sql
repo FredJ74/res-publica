@@ -1,7 +1,5 @@
 -- Généré par outils/generateurs/navigation-lieux.cjs depuis data.js.
 INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,membership) VALUES
-('khalija','capitale','marche','["marche_ext"]'::jsonb,false,NULL),
-('khalija','capitale','mairie-capitale','["hall_mairie","bureau_maire","bureau_maire_adjoint","salle_elections","salle_archives"]'::jsonb,false,NULL),
 ('khalija','capitale','patisserie-sacree','["salle_degustation"]'::jsonb,false,NULL),
 ('khalija','capitale','centre-multinodal-luthecia','["hall_gare","hall_douanes","zone_embarquement"]'::jsonb,false,NULL),
 ('khalija','capitale','centre-commercial','["hall","vitrine_principale","boutique_milieu","arriere_boutique","cave_reserve"]'::jsonb,false,NULL),
