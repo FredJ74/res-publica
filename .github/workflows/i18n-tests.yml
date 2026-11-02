@@ -20,6 +20,8 @@ on:
       - 'outils/audits/inventaire-i18n-ordres.cjs'
       - 'outils/bancs/banc-i18n-ordres.cjs'
       - 'outils/bancs/banc-i18n-catalogue-ordres.cjs'
+      - 'outils/bancs/banc-i18n-traduction-sources.mjs'
+      - 'api/_traduction-sources.js'
   push:
     branches: [main, chatgpt/accueil-9-langues-20261102]
     paths:
@@ -72,6 +74,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-ordres.cjs
       - name: Quinze ordres canoniques traduits et droits préservés
         run: node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
+      - name: Sources privées : seules les colonnes de contenu autorisées
+        run: node --test outils/bancs/banc-i18n-traduction-sources.mjs
       - name: Syntaxe du moteur et des ressources
         run: |
           node --check i18n/resources.js
@@ -81,5 +85,6 @@ jobs:
           node --check i18n/plateau-init.js
           node --check i18n/texte-joueur.js
           node --check api/_traduction.js
+          node --check api/_traduction-sources.js
           node --check i18n/ordres.js
           node --check i18n/orders-resources.js
