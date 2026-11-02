@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '../..');
 const rue = fs.readFileSync(path.join(root, 'plateau-rue-centrale.js'), 'utf8');
 const data = fs.readFileSync(path.join(root, 'data.js'), 'utf8');
 test('image et aller-retour de la rue du tribunal de Montrouge', () => {
-  const image = path.join(root, 'images/montrouge/montrouge-rue-tribunal-ssm.png');
+  const image = path.join(root, 'images/montrouge/montrouge-rue-tribunal-ssm.webp');
   assert.ok(fs.existsSync(image), 'illustration de la rue absente');
   const marche = rue.slice(rue.indexOf("'montrouge-vue-13':"), rue.indexOf("'montrouge-tribunal-ssm':"));
   assert.match(marche, /arriere: 'montrouge-tribunal-ssm'/);
