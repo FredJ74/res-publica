@@ -232,7 +232,7 @@
 
   <!-- LEFT PANEL -->
   <div id="left">
-    <div class="panel-title">MON PERSONNAGE</div>
+    <div class="panel-title" data-i18n="plateau.character" data-i18n-uppercase>MON PERSONNAGE</div>
     <div class="char-card" onclick="openCharSheet()" style="cursor:pointer">
       <div class="char-photo" id="char-photo-left"><i class="ti ti-user" style="font-size:1.4rem"></i></div>
       <div class="char-fullname" id="char-fullname-left">Mon Personnage</div>
@@ -472,7 +472,7 @@
 <!-- Panneau store journal -->
 <div id="journal-store" style="display:none;position:fixed;top:0;right:0;width:300px;height:100vh;z-index:996;background:#0d0b05;border-left:1px solid #2a2010;box-shadow:-4px 0 20px rgba(0,0,0,.7);flex-direction:column;animation:slideInRight .25s ease">
   <div style="padding:.5rem .7rem;border-bottom:1px solid #1a1810;background:#0a0805;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
-    <span style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.2em;color:#9a8a50">JOURNAL DES ÉVÉNEMENTS</span>
+    <span style="font-family:'Bebas Neue',sans-serif;font-size:.72rem;letter-spacing:.2em;color:#9a8a50" data-i18n="plateau.eventJournal" data-i18n-uppercase>JOURNAL DES ÉVÉNEMENTS</span>
     <button onclick="toggleJournalStore()" style="background:none;border:none;color:#6a5a30;cursor:pointer;font-size:1rem;padding:.2rem;transition:color .2s" onmouseover="this.style.color='#C9A84C'" onmouseout="this.style.color='#6a5a30'">
       <i class="ti ti-x"></i>
     </button>
@@ -857,7 +857,7 @@
 
 <div id="chat-piece-panel" style="display:none;position:fixed;bottom:80px;left:20px;z-index:999;width:300px;height:380px;background:#0a0805;border:1px solid #2a2010;border-radius:8px;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,.6)">
   <div style="padding:.5rem .7rem;border-bottom:1px solid #2a2010;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
-    <span style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.08em;color:#C9A84C">MESSAGES</span>
+    <span style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.08em;color:#C9A84C" data-i18n="plateau.messages" data-i18n-uppercase>MESSAGES</span>
     <button onclick="toggleChatPiece()" style="background:none;border:none;color:#8a8060;cursor:pointer;font-size:.9rem">✕</button>
   </div>
   <div id="chat-piece-body" style="flex:1;display:flex;flex-direction:column;overflow:hidden"></div>
@@ -895,6 +895,12 @@ function signalerEvenementJournal() {
   to   { transform: translateX(0);    opacity: 1; }
 }
 </style>
+<!-- Localisation des libellés statiques du plateau, sans changer les ordres serveur. -->
+<script src="i18n/i18next.min.js"></script>
+<script src="i18n/resources.js?v=9-langues-20261102"></script>
+<script src="i18n/plateau-resources.js?v=1"></script>
+<script src="i18n/plateau-bridge.js?v=1"></script>
+<script src="i18n/plateau-init.js?v=1"></script>
 </body>
 </html>
 
