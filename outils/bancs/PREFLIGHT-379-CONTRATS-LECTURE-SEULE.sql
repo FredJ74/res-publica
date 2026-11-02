@@ -1,5 +1,7 @@
 -- #379, intégrateur : lecture seule, aucun acteur/compte privé extrait.
 -- Ce relevé complète celui communiqué (1137 migrations, 20261102191015), sans le remplacer.
+-- #385 / 20261103003000 modifie légitimement crime_voler (score de dissuasion), pas son transfert immédiat.
+-- Confronter le corps vivant à cette dépendance : ne pas restaurer le baseline ni ajuster une empreinte pour passer.
 -- Un MD5 différent exige la relecture privée du corps réel, jamais une empreinte ajustée pour passer.
 BEGIN;
 SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;

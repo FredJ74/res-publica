@@ -126,3 +126,21 @@ authentifié PJ, migration, fusion ou déploiement de production effectué.
 d'ancien cache ne sont pas levés et les contrôles CI de la tête finale vérifiés.**
 Après intégration autorisée seulement : constater la version servie et recetter
 les chemins concernés avec des comptes/fixtures isolés autorisés.
+
+## Main arrivé pendant la validation
+
+Nouvelle coupe intégrée : `e3729066`, fusion de travail `7a821d67` (#382–#385).
+Les élections, le cron et la dissuasion restent ceux de main. Le renderer conserve
+notre échappement d’attributs ; aucun ancien écran n’est réintroduit. Les bancs
+ciblés du vote, des adaptateurs historiques, des organisations et du catalogue
+public passent, ainsi que les 12 contrôles globaux relancés. Les suites complètes
+ci-dessus précèdent cette seconde intégration ; elles ne sont pas redatées.
+La CI de la tête finale couvre à nouveau l’ensemble des suites du workflow.
+
+**Attention au prévol :** #385 change légitimement le score de `crime_voler`
+pour la dissuasion des hommes armés. Son empreinte ne doit plus être supposée
+identique à l’ancien baseline. La migration `20261103003000` documente ce
+changement ; elle ne change ni le transfert immédiat ni `traite=true`. Vérifier
+le corps vivant avec cette dépendance, sans restaurer l’ancien score. Les deux
+migrations propres à #379 ne remplacent ni `crime_voler` ni `crime_detecter_interne`.
+Le constat initial de 1137 versions est donc historique et doit être rafraîchi.
