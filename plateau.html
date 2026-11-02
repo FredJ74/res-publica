@@ -249,7 +249,7 @@
         </div>
       </div>
       <div style="flex:1;background:#0a0a07;border:1px solid #2a1a08;border-radius:3px;padding:.3rem .5rem;text-align:center">
-        <div style="font-size:.58rem;color:#C9A84C;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em">ARGENT</div>
+        <div style="font-size:.58rem;color:#C9A84C;font-family:'Bebas Neue',sans-serif;letter-spacing:.08em" data-i18n="plateau.money" data-i18n-uppercase>ARGENT</div>
         <div style="font-size:.75rem;color:#C9A84C;font-family:'Bebas Neue',sans-serif" id="r-arg">4 250 FR</div>
       </div>
     </div>
@@ -281,11 +281,11 @@
     </div>
     <div id="inventaire-panel" style="display:none">
       <div class="inv-section">
-        <div class="inv-label">Argent liquide</div>
+        <div class="inv-label" data-i18n="plateau.cash">Argent liquide</div>
         <div class="inv-val" id="inv-liquide">500 FR</div>
       </div>
       <div class="inv-section">
-        <div class="inv-label">En banque</div>
+        <div class="inv-label" data-i18n="plateau.bank">En banque</div>
         <div class="inv-val" id="inv-banque">3 750 FR</div>
       </div>
       <div class="inv-items" id="inv-items">
@@ -321,13 +321,13 @@
 
         <!-- MINI-CARTE des batiments -->
         <div class="minimap" id="minimap">
-          <div class="minimap-title">PLAN DE LA VILLE</div>
+          <div class="minimap-title" data-i18n="plateau.cityMap" data-i18n-uppercase>PLAN DE LA VILLE</div>
           <div class="minimap-grid" id="minimap-grid"></div>
         </div>
 
         <!-- Personnes presentes (rue centrale) — utilise l'espace libere quand la minimap est masquee -->
         <div class="persons-sidebar" id="persons-sidebar-rue" style="display:none">
-          <div class="persons-title">PERSONNES PRESENTES</div>
+          <div class="persons-title" data-i18n="plateau.peoplePresent" data-i18n-uppercase>PERSONNES PRESENTES</div>
           <div id="persons-list-rue"></div>
         </div>
       </div>
@@ -438,20 +438,20 @@
         <div class="piece-image" id="piece-image">
           <div class="piece-ambiance">
             <div class="piece-nom" id="piece-nom">Piece</div>
-            <div class="piece-desc" id="piece-desc">Description</div>
+            <div class="piece-desc" id="piece-desc" data-i18n="plateau.description">Description</div>
           </div>
         </div>
 
         <!-- Personnes presentes -->
         <div class="persons-sidebar">
-          <div class="persons-title">PERSONNES PRESENTES</div>
+          <div class="persons-title" data-i18n="plateau.peoplePresent" data-i18n-uppercase>PERSONNES PRESENTES</div>
           <div id="persons-list"></div>
         </div>
       </div>
 
       <!-- Actions de la piece -->
       <div id="actionbar-batiment">
-        <div class="action-context" id="action-context-bat">ACTIONS DISPONIBLES</div>
+        <div class="action-context" id="action-context-bat" data-i18n="plateau.availableActions" data-i18n-uppercase>ACTIONS DISPONIBLES</div>
         <div class="actions-row" id="actions-row-bat"></div>
       </div>
     </div>
@@ -477,7 +477,7 @@
       <i class="ti ti-x"></i>
     </button>
   </div>
-  <button class="cpj-touche" onclick="ouvrirCalepinCampagne()">Rapports de combat</button>
+  <button class="cpj-touche" onclick="ouvrirCalepinCampagne()" data-i18n="plateau.combatReports">Rapports de combat</button>
   <div class="journal" id="journal" style="flex:1;overflow-y:auto;padding:.4rem">
     <div class="journal-entry">
       <span class="journal-time">--/--/---- &middot; --h--</span>
@@ -612,7 +612,7 @@
 <div id="modal-compose-mail" class="modal-overlay">
   <div class="modal-box" style="max-width:520px">
     <div class="modal-header">
-      <div class="modal-title">Nouveau message</div>
+      <div class="modal-title" data-i18n="plateau.newMessage">Nouveau message</div>
       <button class="modal-close" onclick="fermerComposeMail()"><i class="ti ti-x"></i></button>
     </div>
     <div style="padding:.8rem 1rem;display:flex;flex-direction:column;gap:.6rem">
