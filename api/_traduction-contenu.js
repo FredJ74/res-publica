@@ -3,7 +3,7 @@
  * Le quota atomique persistant est requis, y compris pour des traitements simultanés.
  */
 import { validerSource } from './_traduction-sources.js';
-import { traduireTexte } from './_traduction.js';
+import { traduireTexte, langueAdmise } from './_traduction.js';
 
 function refuse(raison='indisponible') {
  return Object.freeze({ok:false,raison,original:null,traduit:null});
@@ -15,7 +15,7 @@ function validateDependencies(deps) {
 async function traduireContenu({type,id,field,langueCible},deps) {
  if(!validateDependencies(deps))return refuse('non_configure');
  const source=validerSource(type,id,field);
- if(!source || typeof langueCible!=='string')return refuse('requete_invalide');
+ if(!source || !langueAdmise(langueCible))return refuse('requete_invalide');
  let auth;
  try { auth=await deps.authenticate(); } catch { return refuse(); }
  if(!auth?.userId || !auth?.readerToken)return refuse();
@@ -29,6 +29,7 @@ async function traduireContenu({type,id,field,langueCible},deps) {
  // La dépense ne doit pas être engagée sur du texte vide, illisible ou déjà localisé.
  if(!original.trim() || original.length>1800)return refuse('texte_invalide');
  if(typeof record.version!=='string' || !record.version || record.version.length>128)return refuse('version_absente');
+ if(!langueAdmise(record.language))return refuse('langue_source_invalide');
  if(record.language===langueCible) return Object.freeze({ok:true,original,traduit:original,fromCache:true});
  const key=JSON.stringify([auth.userId,type,source.id,field,record.version,record.language,langueCible]);
  // Même un résultat déjà en cache a été précédé de la lecture autorisée sous RLS.
