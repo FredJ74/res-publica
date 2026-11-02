@@ -51,3 +51,17 @@ test('index et script i18n conservent la generation dynamique du selecteur', () 
   assert.match(init, /Object\.keys\(window\.RP_I18N_LANGUAGES/);
   assert.match(init, /genererSelecteurLangueRP\(\)/);
 });
+
+test('résumé, ville et succès sont traduits dans les trois langues supplémentaires', () => {
+  const w = load();
+  for (const lang of ['ar', 'pt-BR', 'de']) {
+    const t = w.RP_I18N_RESOURCES[lang].translation.creation;
+    assert.ok(t.city.modalTitle, lang + ':ville');
+    assert.ok(t.steps.review.title, lang + ':récapitulatif');
+    assert.ok(t.review.lifePath, lang + ':fiche');
+    assert.ok(t.success.title, lang + ':succès');
+    assert.ok(t.success.text.includes('{{name}}'), lang + ':nom');
+    assert.ok(t.success.text.includes('{{country}}'), lang + ':empire');
+    assert.ok(t.genders.nonbinary, lang + ':genre');
+  }
+});
