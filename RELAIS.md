@@ -25,21 +25,12 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
-### Organisations, étape B : fin de la double autorité (Claude, branche `claude/organisations-etape-b-20261102`, demandé par Fred le 02/11)
+### Organisations, étape B : fin de la double autorité (Claude, branche `claude/organisations-etape-b-20261102`, PR #350)
 
-But : retirer à `authenticated` INSERT/UPDATE sur `organisations`, après avoir porté au serveur les **16 chemins sans commande** (≈ 1 100 lignes d'écran, liste figée par `outils/bancs/test-organisations-ecritures-inventaire.mjs`). **Pas de simple RPC « sauvegarder » qui accepterait l'objet de l'écran** : ce serait une actualisation cosmétique (consigne P0). Chaque action est décidée par une fonction serveur SECURITY DEFINER qui relit l'organisation, vérifie l'acteur (`auth.uid()` → personnage), calcule l'effet, écrit, et rend l'organisation ; l'écran adopte la réponse.
-
-Lots, dans cet ordre (un commit et un banc par lot ; l'écran garde la sauvegarde générale en repli « contrat absent » comme pour #219, jusqu'à l'étape B) :
-1. **Créations** : `confirmerCreationOrga`, `chargerOuCreerSyndicatDockersPSM`, `getClubSupportersLocal` + `doRejoindreClubSupporters` (plateau-organisations-quetes.js l. 405, 7580-7725).
-2. **Grèves** (7 fonctions, l. 9420-9842) : lancer, terminer, appel à la grève générale, réponse, adoption, retrait, recalcul de puissance.
-3. **Blocus et répression** : `confirmerOrganiserBlocus` (l. 3435), `confirmerMobilisationPolice` (plateau-politique.js l. 9872).
-4. **Militants PNJ** : `doRecruterMilitants` (l. 3286).
-5. **Ordres génériques** : `executerOrdreOrga` (l. 1004).
-6. **Influence après rumeur** : à verser dans `rumeur_lancer` lui-même (plateau-pnj.js l. 2240).
-7. **Étape B** : migration REVOKE INSERT, UPDATE ON organisations FROM anon, authenticated (DELETE déjà réservé au chef) ; prévol annulé ; test d'inventaire réduit à zéro chemin sans commande ; à appliquer après Vercel READY du nouvel écran.
-
-Fait : rien encore (plan seul, 02/11 01 h). Démarrer une session neuve sur cette branche.
-
+- **Fait (02/11)** : les 16 chemins sans commande portés (détail et table : `outils/audits/ORGANISATIONS-ECRITURES-20261031.md`, section « Étape B ») ; `sauvegarderOrga` / `sbSaveOrganisation` et les replis morts retirés de l'écran ; tests `test-organisations-ecritures-inventaire.mjs` (zéro écriture de l'écran) et `test-organisations-vie-referentiel.mjs` (grades recopiés = data.js).
+- **Migrations** : `20261102000900`, `001000`, `001100` **appliquées le 02/11 vers 01 h 10** (additives : `organisation_vie_referentiel`, `organisation_vie_commande`, `greve_generale_synchroniser`, `club_supporters_adherer`). Restent, **après Vercel READY de l'écran** et dans cet ordre : `001200` (patchs `militant_recruter`, `rumeur_lancer`, `organisations_politique_autorite`), puis `001300` (REVOKE INSERT/UPDATE, politiques d'écriture retirées). Banc annulé joué contre la production : `outils/bancs/banc-organisations-etape-b.sql` (tout conforme, rien conservé).
+- **Défaut ancien corrigé** : aucun club de supporters ni syndicat des dockers ne pouvait être créé (garde des partis appliquée à toute création) ; `001200` le corrige.
+- **Non porté, signalé à Fred** : le blocus syndical et le palmarès de répression sont inaccessibles depuis longtemps (`state.orgas` / `chargerOrgas` absents) ; à porter au serveur s'il est remis en service. `greves_generales` reste écrite par l'écran.
 
 ### Reste de la clôture de Luthécia (Claude, après #340)
 
