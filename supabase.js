@@ -2743,16 +2743,39 @@ async function sbMarquerSouvenirRevele(souvenirId) {
 // =====================
 // ORGANISATIONS (structure plate, prepare le multi-empire)
 // =====================
-// Le motif d'un refus serveur est conserve (RP_DERNIER_REFUS_ORGA) pour que l'ecran le nomme :
-// organisations_finances_garder (#295) refuse par exemple un changement de direction non autorise.
-var RP_DERNIER_REFUS_ORGA = null;
-async function sbSaveOrganisation(orga) {
-  const env = await sbTransportRest('POST', 'organisations', null,
-    { id: orga.id, country_origine: orga.country_origine || orga.country, data: JSON.stringify(orga) },
-    'merge-duplicates');
-  if (env && env.etat === 'ok') { RP_DERNIER_REFUS_ORGA = null; return env.donnees || true; }
-  RP_DERNIER_REFUS_ORGA = (env && (env.message || env.raison)) || 'transport_indisponible';
-  return null;
+// ÉTAPE B (02/11/2026) : l'écran n'a plus le droit d'écrire la table `organisations`
+// (20261102001300). La sauvegarde générale sbSaveOrganisation a disparu ; toute écriture passe
+// par une fonction serveur. Les actes de la vie d'une organisation qui n'avaient pas de commande
+// #219 passent par organisation_vie_commande : fonder, dockers_assurer, greve_lancer, greve_terminer.
+const RP_ORGA_VIE_EN_COURS = new Set();
+async function sbOrganisationVie(orgaId, action, parametres) {
+  const verrou = (orgaId || '') + ':' + action;
+  if (RP_ORGA_VIE_EN_COURS.has(verrou)) return { ok: false, raison: 'commande_en_cours' };
+  RP_ORGA_VIE_EN_COURS.add(verrou);
+  let cle, requete;
+  try {
+    const uid = typeof rpAuthUid === 'function' ? rpAuthUid() : null;
+    const nom = typeof state !== 'undefined' ? state.char?.name : null;
+    if (!uid || !nom) return { ok: false, raison: 'session_perdue' };
+    const params = JSON.parse(JSON.stringify(parametres || {}));
+    cle = 'rp_orgvie:' + JSON.stringify([uid, nom, orgaId, action, params]);
+    requete = localStorage.getItem(cle) || 'orgcmd-' + crypto.randomUUID();
+    if (!/^orgcmd-[A-Za-z0-9-]{6,80}$/.test(requete)) throw Error('reprise_invalide');
+    localStorage.setItem(cle, requete);
+    const r = await sbRpcVerdict('organisation_vie_commande',
+      { p_requete: requete, p_organisation: orgaId || null, p_action: action, p_parametres: params });
+    // Un refus metier est definitif pour ce geste ; seul un transport incertain garde la cle.
+    if (r && (r.ok === true || (r.raison && !r.transport))) { try { localStorage.removeItem(cle); } catch (_) {} }
+    return r || { ok: false, raison: 'reponse_absente' };
+  } catch (_) { return { ok: false, raison: 'commande_non_confirmee' }; }
+  finally { RP_ORGA_VIE_EN_COURS.delete(verrou); }
+}
+
+// Grève générale : l'état des syndicats engagés est le reflet de la ligne greves_generales,
+// recopié par le serveur (y compris pour les syndicats des autres chefs).
+async function sbGreveGeneraleSynchroniser(ggId) {
+  if (!ggId) return { ok: false, raison: 'greve_generale_absente' };
+  return sbRpcVerdict('greve_generale_synchroniser', { p_gg: ggId });
 }
 
 async function sbLoadOrganisations() {

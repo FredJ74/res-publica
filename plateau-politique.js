@@ -9971,12 +9971,10 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
     }
     const etatBatiment = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, state.currentCity, state.currentBuilding) : null;
     if (etatBatiment?.blocus) {
-      const orgas = (typeof chargerOrgas === 'function') ? chargerOrgas() : (state.orgas || []);
-      const syndicat = orgas.find(o => o.id === etatBatiment.blocus.syndicatId);
-      if (syndicat) {
-        syndicat.repressionsSubies = (syndicat.repressionsSubies || 0) + 1;
-        if (typeof sauvegarderOrga === 'function') sauvegarderOrga(syndicat);
-      }
+      // repressionsSubies (le syndicat reprime en sort renforce) : regle conservee, mais l'ecran ne
+      // peut plus ecrire l'organisation (etape B, 02/11/2026). Ce compteur n'etait jamais ecrit :
+      // il lisait state.orgas / chargerOrgas, qui n'existent pas. A porter cote serveur avec le
+      // blocus lui-meme quand celui-ci sera remis en service (ORGANISATIONS-ECRITURES-20261031.md).
       if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + isn);
       state.pop = Math.max(0, Math.min(100, state.pop + pop));
       updateUI();

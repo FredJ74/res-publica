@@ -4,7 +4,8 @@ const source=fs.readFileSync(path.join(racine,'plateau-organisations-quetes.js')
 function fonction(nom){const n=ast.body.find(n=>n.type==='FunctionDeclaration'&&n.id.name===nom);return source.slice(n.start,n.end);}
 test('miroir SQL complet regenere depuis les neuf types reels',()=>{assert.equal(Object.keys(regles()).length,9);assert.ok(fs.readFileSync(path.join(racine,'migrations/20261031113602_organisations_adhesions_grades.sql'),'utf8').includes(bloc()));});
 const parcours=[['monterGrade','promouvoir','Bob'],['descendreGrade','retrograder','Bob'],['demanderAdhesion','demander'],['accepterAdhesion','admettre','Bob'],['refuserAdhesion','refuser_demande','Bob'],['accepterInvitationOrga','accepter_invitation'],['refuserInvitationOrga','refuser_invitation']];
-for(const [nom,action,cible] of parcours)for(const verdict of [false,true,null])test(`${nom} : ${verdict===null?'ancien contrat absent':verdict?'confirme':'refuse'}`,async()=>{
+// Etape B (02/11/2026) : organisationEssayerCommande ne rend plus que true/false, aucun repli.
+for(const [nom,action,cible] of parcours)for(const verdict of [false,true])test(`${nom} : ${verdict===null?'ancien contrat absent':verdict?'confirme':'refuse'}`,async()=>{
  const orga={id:'o',nom:'Structure',chef:'Alice',type:'politique',visible:true,caisse:2500.5,membres:[{nom:'Bob',gradeIdx:1,grade:'Militant'}],demandesAdhesion:[{nom:'Bob'}],invitationsEnvoyees:[{nom:'Alice'}]};
  const c=vm.createContext({state:{char:{name:'Alice'},country:'republic',day:4,organisations:[orga]},TYPES_ORGANISATIONS:regles(),saves:[],messages:[],courriers:[]});
  c.getOrgaById=()=>c.state.organisations[0];c.getMesOrgasPays=()=>[];c.showToast=(...args)=>c.messages.push(args);c.addJournalEntry=()=>{};c.updateUI=()=>{};c.ouvrirGestionMembres=()=>{};c.ouvrirDemandesAdhesion=()=>{};
@@ -12,7 +13,7 @@ for(const [nom,action,cible] of parcours)for(const verdict of [false,true,null])
  c.organisationEssayerCommande=async(id,a,p)=>{assert.equal(a,action);assert.equal(id,'o');assert.deepEqual(Object.keys(p),cible?['nom']:[]);
   if(verdict===true)c.state.organisations=[{...orga,caisse:4500.5,membres:[{nom:'Bob',gradeIdx:2,grade:'Cadre'},{nom:'Alice',gradeIdx:0,grade:'Sympathisant'}]}];return verdict;};
  vm.runInContext(fonction(nom),c);await c[nom]('o',cible);
- assert.equal(c.saves.length,verdict===null?1:0);
+ assert.equal(c.saves.length,0);
  if(verdict===false){assert.equal(c.messages.length,0);assert.equal(c.courriers.length,0);assert.equal(c.state.organisations[0].caisse,2500.5);}
  if(verdict===true)assert.equal(c.state.organisations[0].caisse,4500.5);
 });
@@ -21,7 +22,7 @@ test('transport membres : garde de rejeu commune, nom de RPC explicite',async()=
  vm.runInContext(fs.readFileSync(path.join(racine,'supabase.js'),'utf8'),c);c.rpAuthUid=()=> 'u';
  for(const [,action,cible] of parcours){c.sbRpcVerdict=async(fn,p)=>{assert.equal(fn,'organisation_commande_membres');assert.equal(p.p_action,action);return {ok:true};};assert.equal((await c.sbOrganisationCommande('o',action,cible?{nom:cible}:{})).ok,true);}
 });
-for(const verdict of [false,true,null])test(`progression electorale : ${verdict}`,async()=>{
+for(const verdict of [false,true])test(`progression electorale : ${verdict}`,async()=>{
  const initial={id:'o',chef:'Alice',nom:'Structure',country:'republic',type:'politique',visible:true,caisse:25,election:{enCours:true,phase:'candidatures',dateFinCandidatures:4,dateFinVote:7,candidats:[{nom:'Bob'},{nom:'Alice'}],votes:{Alice:'Bob',Bob:'Alice'}},membres:[{nom:'Alice'},{nom:'Bob'}]};
  const c=vm.createContext({state:{char:{name:'Alice'},day:7,organisations:[initial]},TYPES_ORGANISATIONS:regles(),evenements:[],saves:[]});
  c.equipementsCollectifsContexte=()=>c.state.char;c.equipementsCollectifsContexteValide=x=>x===c.state.char;
@@ -31,7 +32,6 @@ for(const verdict of [false,true,null])test(`progression electorale : ${verdict}
  await c.verifierElectionsOrganisations();
  if(verdict===false){assert.equal(c.evenements.length,0);assert.equal(initial.chef,'Alice');assert.equal(c.saves.length,0);}
  if(verdict===true){assert.equal(c.state.organisations[0].chef,'Bob');assert.equal(c.state.organisations[0].caisse,2025);assert.equal(c.evenements.length,1);assert.equal(c.saves.length,0);}
- if(verdict===null){assert.equal(initial.chef,'Bob');assert.equal(c.saves.length,2);assert.equal(c.evenements.length,1);}
 });
 test('progression : changer de personnage interrompt toute la boucle, sans agir sur les structures suivantes',async()=>{
  const c=vm.createContext({state:{char:{name:'Alice'},organisations:[{id:'a',election:{enCours:true}},{id:'b',election:{enCours:true}}]},appels:0});
