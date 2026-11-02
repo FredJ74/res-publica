@@ -6,6 +6,12 @@ Départ : `main` `9e105f08bb5797c24b18c6d927bdf6cca0a6dd67`.
 Dernier main intégré : `a52e1a009b74c88de55a289732b2c945554f02b9` (#378).
 Code de recette : `d7654c7536e2e4ab46fe3c118e44bd183ab98aa3`.
 
+> **Reprise du 3 novembre :** les quatre reliquats ont été traités dans le code et
+> deux migrations gardées sont préparées. Lire [le rapport de reprise](LIVRAISON-RELIQUATS-379-20261103.md)
+> et ses preuves : un diagnostic d'ancien cache reste rouge et bloque la promotion.
+> Les constats et nombres ci-dessous restent ceux de la première livraison ; ils
+> ne remplacent pas la nouvelle recette et ne valent pas validation de production.
+
 **Verdict : correctifs locaux préparés et éprouvés ; clôture de production non certifiée.**
 Les limitations d'accès ne sont pas des anomalies du jeu. Aucune fusion, migration
 ou écriture de production effectuée par cette mission. Aucune campagne avec un PJ réel.

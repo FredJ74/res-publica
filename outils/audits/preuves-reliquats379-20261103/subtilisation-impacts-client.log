@@ -1,0 +1,39 @@
+✔ subtilisation succes : PA officiels, inventaire et révision originaux (127.19954ms)
+✔ subtilisation echec : PA officiels, inventaire et révision originaux (46.952774ms)
+✔ subtilisation detecte : PA officiels, inventaire et révision originaux (39.068013ms)
+✔ subtilisation stock : PA officiels, inventaire et révision originaux (42.988758ms)
+✔ subtilisation : réponse absente/incomplète ne recalcule aucun PA null (44.497166ms)
+✔ subtilisation : réponse absente/incomplète ne recalcule aucun PA {"ok":false} (33.488328ms)
+✔ subtilisation : réponse absente/incomplète ne recalcule aucun PA {"ok":true} (35.037287ms)
+✔ subtilisation : réponse absente/incomplète ne recalcule aucun PA {"ok":true,"contrat":1,"pa":8,"inventory":[]} (34.032682ms)
+✔ subtilisation : double clic et réponse tardive / personnage (34.717799ms)
+✔ subtilisation : double clic et réponse tardive / uid (40.370043ms)
+✔ subtilisation : double clic et réponse tardive / session (32.73949ms)
+✔ subtilisation : provenance rejetée, aucun autre miroir appliqué (41.197951ms)
+✔ subtilisation : réponse perdue, état relu sans seconde tentative (46.484858ms)
+✔ subtilisation : un refus versionné actualise les PA sans dépense locale (34.15268ms)
+✔ impact pop : seul l’état serveur relu est adopté, zéro conservé (43.055105ms)
+✔ impact inf : seul l’état serveur relu est adopté, zéro conservé (44.763058ms)
+✔ impact dis : seul l’état serveur relu est adopté, zéro conservé (42.881161ms)
+✔ impact moral_carte_postale : seul l’état serveur relu est adopté, zéro conservé (54.895114ms)
+✔ impact hp_set : seul l’état serveur relu est adopté, zéro conservé (49.934788ms)
+✔ impact poison_start : seul l’état serveur relu est adopté, zéro conservé (47.612514ms)
+✔ impact : réponse perdue après effet, relecture sans appliquer une seconde fois (49.155237ms)
+✔ impact : refus ou ancien contrat ne permet aucun effet local {"ok":false,"raison":"indice_non_pris_en_charge"} (51.124184ms)
+✔ impact : refus ou ancien contrat ne permet aucun effet local {"ok":true,"marques":1} (48.765822ms)
+✔ impact : refus ou ancien contrat ne permet aucun effet local {"ok":false,"raison":"client_obsolete"} (48.834063ms)
+✔ impact : réponse tardive / personnage (44.729702ms)
+✔ impact : réponse tardive / uid (34.685825ms)
+✔ impact : réponse tardive / session (34.288554ms)
+✔ impact : plafond quotidien déjà atteint, aucune annonce de gain (47.490824ms)
+✔ impact : échec de relecture ou mauvais propriétaire, aucune projection inventée (81.582944ms)
+✔ impact : double clic ne crée pas deux consommations (39.875073ms)
+✔ les helpers demandent le contrat avant tout acte : aucun repli sur une surcharge historique (26.983937ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1432.255614

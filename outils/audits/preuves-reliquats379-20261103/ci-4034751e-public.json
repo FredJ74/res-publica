@@ -1,0 +1,38 @@
+{
+  "url": "https://github.com/FredJ74/res-publica/pull/379/checks?lecture=4034751e",
+  "releve_utc": "2026-11-02T23:51:50.648105+00:00",
+  "source": "pages publiques GitHub",
+  "aucun_secret": true,
+  "headSha": "4034751e6e6cfbe4524ae9fc97d1786d990d4ce5",
+  "baseSha": "6256929cbdb4906732f698671558d391e17641c8",
+  "state": "DRAFT",
+  "favicon": [
+    "success"
+  ],
+  "jobs": [
+    {
+      "url": "https://github.com/actions/runs/41547781879/job/125627497486",
+      "erreur": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "url": "https://github.com/actions/runs/41547781882/job/125627497951",
+      "erreur": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "url": "https://github.com/actions/runs/41547781896/job/125627497740",
+      "erreur": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "url": "https://github.com/actions/runs/41547781912/job/125627497644",
+      "erreur": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "url": "https://github.com/actions/runs/41547781915/job/125627498300",
+      "erreur": "HTTPError: HTTP Error 404: Not Found"
+    },
+    {
+      "url": "https://github.com/actions/runs/41547782141/job/125627498506",
+      "erreur": "HTTPError: HTTP Error 404: Not Found"
+    }
+  ]
+}

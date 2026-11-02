@@ -29,3 +29,16 @@ codétenu) sont nommés dans le rapport, pas déclarés corrigés. Prévol SELEC
 Observer la CI sur le SHA exact et valider la livraison avant toute fusion.
 
 Refs #135, #250, #262, #282, #349, #366, #371. Ne ferme pas #135 automatiquement.
+
+## Reprise des reliquats — 3 novembre
+
+Main #380/#381 intégré (`6256929c`). Anciens vols locaux neutralisés ; codétenu
+raccordé à la commande canonique, sans activer le profil actuellement non recrutable.
+Explosifs : PA/inventaire/révision rendus par le serveur. Impacts : effets et
+acquittement dans une transaction, sans tirage ni delta à l'écran. Deux migrations
+versionnées préparées, non appliquées.
+
+**Ne pas fusionner :** diagnostic d'ancien cache POP rouge (15 attendu, 20 obtenu) ;
+contrats vivants à rapprocher du prévol strict. Les succès du nouveau protocole
+ne lèvent pas ce blocage. [Rapport, tests et conditions](LIVRAISON-RELIQUATS-379-20261103.md).
+Aucune écriture PJ, migration de production ni livraison Vercel.

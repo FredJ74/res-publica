@@ -25,4 +25,10 @@ SELECT metier,recrutable,cout_initial,cout_jour FROM public.pnj_metiers_profils 
 SELECT count(*)AS candidats_codetenu_actifs FROM public.pnj_candidats_catalogue WHERE metier='codetenu'AND actif;
 SELECT tgname,tgenabled,pg_get_triggerdef(oid,true)AS definition FROM pg_trigger
  WHERE tgrelid='public.personnages_donnees'::regclass AND tgname IN('trg_hospitalisation_pa_epuises','zzzz_hg_inventory_revision');
+-- Contrats de sauvegarde à rapprocher du diagnostic --ancien-cache, sans lignes PJ.
+SELECT p.oid::regprocedure::text AS signature,md5(p.prosrc)AS md5_vivant
+ FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+ WHERE n.nspname='public'AND p.proname IN('personnages_vue_modifier','personnages_fusionner_pop','fiche_fusionner_ecran','est_appel_serveur')ORDER BY p.oid::regprocedure::text;
+SELECT version,name FROM supabase_migrations.schema_migrations
+ WHERE version IN('20261102202046','20261102202047');
 ROLLBACK;

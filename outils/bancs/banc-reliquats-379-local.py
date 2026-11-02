@@ -159,19 +159,22 @@ def main():
     p=photo();assert rpc(fn,args)['raison']=='contrat_invalide'and photo()==p
    case('version_refusee_avant_mutation_'+fn,contrat)
 
-  # Diagnostic séparé, volontairement rouge si l'ancien navigateur peut rejouer
-  # son delta. Ne fait pas partie des succès du nouveau contrat. Le déclencheur
-  # est canonique ; le droit UPDATE ci-dessous est uniquement le décor jetable
-  # de l'écriture relayée par la vue, pas une affirmation des ACL de production.
+  # Diagnostic séparé : vraie vue et vrais corps de sauvegarde du baseline.
+  # Aucun droit direct sur la table de données n'est ajouté à authenticated.
   if '--ancien-cache' in sys.argv:
    def ancien_cache():
-    own(fonction('baseline/domaines/socle/20_fonctions.sql','est_appel_serveur'))
-    own(fonction('baseline/domaines/personnage-et-presence/20_fonctions-2.sql','personnages_fusionner_pop'))
-    own('CREATE TRIGGER trg_personnages_fusionner_pop BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_fusionner_pop()')
+    table(q,'baseline/domaines/politique-et-elections/10_tables.sql','rp_transitions')
+    own("CREATE SEQUENCE fiche_hausses_observees_id_seq")
+    table(q,'baseline/domaines/personnage-et-presence/10_tables.sql','fiche_hausses_observees')
+    for f,n in [('baseline/domaines/socle/20_fonctions.sql','est_appel_serveur'),('baseline/domaines/socle/20_fonctions.sql','rp_transition_active'),('baseline/domaines/socle/20_fonctions.sql','fiche_valeur_normalisee'),('baseline/domaines/socle/20_fonctions.sql','fiche_fusionner_ecran'),('baseline/domaines/personnage-et-presence/20_fonctions-2.sql','personnages_vue_modifier'),('baseline/domaines/personnage-et-presence/20_fonctions-2.sql','personnages_fusionner_pop')]:own(fonction(f,n))
+    vue=(R/'baseline/domaines/personnage-et-presence/40_vues.sql').read_text()
+    vue=vue[vue.index('CREATE OR REPLACE VIEW public.personnages AS'):].split(';',1)[0]+';'
+    own(vue.replace('VIEW public.personnages AS','VIEW public.fixture_personnages AS'))
+    own('CREATE TRIGGER fixture_vue_modifier INSTEAD OF UPDATE ON fixture_personnages FOR EACH ROW EXECUTE FUNCTION personnages_vue_modifier();CREATE TRIGGER trg_personnages_fusionner_pop BEFORE UPDATE ON personnages_donnees FOR EACH ROW EXECUTE FUNCTION personnages_fusionner_pop()')
     assert impact('pop',5)['ok']
-    own("GRANT SELECT,UPDATE ON personnages_donnees TO authenticated;CREATE POLICY fixture_vue_relais ON personnages_donnees TO authenticated USING(user_id=auth.uid())WITH CHECK(user_id=auth.uid())")
+    own("GRANT SELECT,UPDATE ON fixture_personnages TO authenticated")
     q.execute("SELECT set_config('role','authenticated',true),set_config('request.path','/personnages',true),set_config('request.jwt.claim.sub','00000000-0000-4000-9000-000000000001',true)")
-    q.execute("UPDATE personnages_donnees SET resources=resources||'{\"pop\":15,\"popBase\":10}'::jsonb WHERE name='Fixture'")
+    q.execute("UPDATE fixture_personnages SET resources=resources||'{\"pop\":15,\"popBase\":10}'::jsonb WHERE name='Fixture'")
     obtenu=own("SELECT (resources->>'pop')::numeric FROM personnages_donnees WHERE name='Fixture'")
     assert obtenu==15,f'ancien delta réappliqué : attendu 15, obtenu {obtenu}; compatibilité ancien cache non certifiée'
    case('ancien_cache_ne_doit_pas_reappliquer_delta_pop',ancien_cache)
