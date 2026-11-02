@@ -42,3 +42,26 @@ Banc : `outils/bancs/banc-organisations-champs-commandes-local.py --local-jetabl
 1. #219 installé et recetté (prévol sur le registre vivant ≥ 1011, cf. #295).
 2. Étape A avec feu vert, dans une transaction ; contrôle : renommer par la sauvegarde générale ne change rien, une grève s'enregistre.
 3. Portage des 16 chemins, puis étape B.
+
+## Étape B — portage des 16 chemins et fermeture (Claude, 02/11/2026)
+
+Étape A appliquée le 02/11 (00 h 49). Portage :
+
+| Chemin (écran) | Porte serveur | Note |
+|---|---|---|
+| confirmerCreationOrga | `organisation_vie_commande('fonder')` | type, fondation unique par type, prérequis, local loué où l'on se trouve, local libre, grade de fondateur et confidentialité décidés au serveur (référentiel `organisation_vie_referentiel`, gardé par `test-organisations-vie-referentiel.mjs`) |
+| chargerOuCreerSyndicatDockersPSM | `organisation_vie_commande('dockers_assurer')` | contenu fixe, idempotent |
+| validerLancementGreve / confirmerTerminerGreve | `organisation_vie_commande('greve_lancer' / 'greve_terminer')` | 1 PA payé dans la même transaction |
+| confirmerAppelGreveGenerale, repondreAppelGreveGenerale, verifierAdoptionGreveGenerale, confirmerRetraitGreveGenerale, recalculerPuissanceApresRetraitGreveGenerale | `greve_generale_synchroniser(gg)` | l'état des syndicats est recopié de `greves_generales` ; les acceptants sont désormais rattachés (ils peuvent se retirer) |
+| doRejoindreClubSupporters | `club_supporters_adherer` | cotisation + création du club + inscription, une transaction |
+| doRecruterMilitants | `militant_recruter` (patché) | militant inscrit dans SON syndicat, dans la transaction du recrutement |
+| validerLancementRumeur | `rumeur_lancer` (patché) | influence de l'organisation visée retirée au serveur |
+| executerOrdreOrga | — | les effets ne touchaient pas l'organisation : sauvegarde inutile retirée |
+| confirmerOrganiserBlocus, confirmerMobilisationPolice (répression) | — | **parcours inaccessibles** (`state.orgas` / `chargerOrgas` n'existent pas) : palmarès `blocusReussis` / `repressionsSubies` à porter au serveur avec le blocus s'il est remis en service |
+| getClubSupportersLocal | — | faux positif (commentaire) |
+
+Les replis morts `if(serveur===null){…}` des 17 chemins avec commande et `sauvegarderOrga` / `sbSaveOrganisation` ont disparu.
+
+Défaut trouvé : `organisations_politique_autorite` traitait toute création par un joueur comme un parti (OLD absent → test NULL) ; un club de supporters ou le syndicat des dockers (fondateur PNJ) ne pouvaient pas naître. Corrigé par `20261102001200`.
+
+Migrations : `20261102000900`, `001000`, `001100` (appliquées le 02/11, additives) ; `001200` (patchs, après Vercel READY) ; `001300` (fermeture : REVOKE INSERT/UPDATE, politiques d'écriture retirées). Banc annulé contre la production : `banc-organisations-etape-b.sql` (tout conforme, rien conservé). Reste hors périmètre : `greves_generales` est encore écrite par l'écran (statut, réponses) ; la synchronisation se borne aux syndicats du pays de la grève.

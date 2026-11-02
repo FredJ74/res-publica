@@ -2280,14 +2280,9 @@ async function validerLancementRumeur() {
       : ('aucun titulaire en poste actuellement dans le gouvernement de ' + cibleLabel);
     else if (type === 'pays') effetTexte = '-' + v.perte + ' IS sur ' + cibleLabel;
     else if (type === 'organisation') {
-      if (typeof sbGetOrganisationParId === 'function' && typeof sbSaveOrganisation === 'function') {
-        const orga = await sbGetOrganisationParId(cibleValue).catch(() => null);
-        if (orga) {
-          const influenceActuelle = Number.isFinite(orga.influence) ? orga.influence : 50;
-          orga.influence = Math.max(0, Math.min(100, influenceActuelle - v.perte));
-          await sbSaveOrganisation(orga).catch(() => {});
-        }
-      }
+      // L'influence de l'organisation visee est retiree par rumeur_lancer lui-meme (02/11/2026,
+      // etape B des organisations) : l'ecran ne fait qu'annoncer la perte tiree par le serveur.
+      if (typeof chargerOrganisations === 'function') chargerOrganisations();
       effetTexte = '-' + v.perte + ' INF sur l\'organisation « ' + cibleLabel + ' »';
     } else effetTexte = 'aucun effet statistique (rumeur purement RP)';
 
