@@ -109,3 +109,19 @@ test('les neuf archétypes gardent leurs identifiants', () => {
   for (const key of keys) assert.ok(values[key].name);
  }
 });
+
+test('carrières, archétypes et caractéristiques restent alignés avec les identifiants français', () => {
+ const w=load();
+ const fr=w.RP_I18N_RESOURCES.fr.translation.creation;
+ for(const lang of ['ar','pt-BR','de']) {
+  const c=w.RP_I18N_RESOURCES[lang].translation.creation;
+  for (const type of ['careers','archetypes','stats']) {
+   assert.deepEqual(Object.keys(c[type]),Object.keys(fr[type]),lang+':'+type);
+   for (const [id, value] of Object.entries(c[type])) {
+    assert.ok(value.name,lang+':'+id);
+    if(type==='careers') assert.ok(value.comp);
+    else assert.ok(value.description);
+   }
+  }
+ }
+});
