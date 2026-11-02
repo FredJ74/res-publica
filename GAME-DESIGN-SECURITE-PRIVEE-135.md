@@ -10,6 +10,14 @@
 6. En cas de reddition ou de défaite, même circuit judiciaire et pénitentiaire que la police. Lorsqu'il s'agit d'un agent privé, le récit précise sa remise du PJ à la police.
 7. Aucun statut ni placement « vigile de chantier » : la sécurité privée utilise les socles PNJ existants (embauche, groupe et déplacement) et police existants (détection, fuite, combat, détention).
 
+## Dissuasion — décision de Fred du 3 novembre 2026 (appliquée)
+
+8. Pour un acte illégal commis sous les yeux d'hommes armés, le malus de sécurité fait **les deux** : l'acte réussit moins souvent **et** l'auteur est plus souvent repéré.
+9. Le malus est la règle de groupe existante du jeu : **min(40, 10 + hommes)**, appliquée une seule fois (jamais empilée). Les hommes comptés : agents de sécurité privée présents (sauf ceux qui travaillent pour l'auteur), soldats d'une section en mission `securiser` dans la pièce (sauf ceux qui suivent l'auteur), gardes républicains du poste. En rue, seuls les agents privés présents dans la même rue comptent.
+10. Il n'y a plus de « vigiles du chantier » : le vol de matériaux tient compte des agents réellement présents sur le terrain, comme tout autre acte.
+
+Implémentation : `securite_malus_lieu_interne(acteur)` ; ajouté au taux de `crime_detecter_interne` (détection commune), au jet de contrebande, corruption, falsification, empoisonnement, explosifs, incendie, neutralisation d'un député, achats au marché noir (explosifs, arme), retiré du score de vol (PJ et matériaux). Migration `20261103003000_securite_dissuasion_hommes_armes`, **appliquée le 03/11** (registre `securite_dissuasion_hommes_armes_20261103003000`), banc annulé `outils/bancs/banc-securite-dissuasion.sql` joué juste avant en production.
+
 ## Historique de la proposition initiale — PR #212 (révisée par l’audit ci-dessous)
 
 - `securite_ordre_detection_interne` constitue les unités par appartenance explicite, puis les ordonne police avant privé, effectif décroissant et tirage aléatoire à égalité.
