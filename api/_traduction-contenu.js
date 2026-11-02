@@ -28,8 +28,9 @@ async function traduireContenu({type,id,field,langueCible},deps) {
  const original=record.text;
  // La dépense ne doit pas être engagée sur du texte vide, illisible ou déjà localisé.
  if(!original.trim() || original.length>1800)return refuse('texte_invalide');
+ if(typeof record.version!=='string' || !record.version || record.version.length>128)return refuse('version_absente');
  if(record.language===langueCible) return Object.freeze({ok:true,original,traduit:original,fromCache:true});
- const key=JSON.stringify([type,source.id,field,record.version,record.language,langueCible]);
+ const key=JSON.stringify([auth.userId,type,source.id,field,record.version,record.language,langueCible]);
  // Même un résultat déjà en cache a été précédé de la lecture autorisée sous RLS.
  let cached;
  try { cached=await deps.readCache(key); } catch { cached=null; }
