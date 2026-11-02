@@ -778,6 +778,12 @@ window.RP_I18N_RESOURCES = {
           DUP: { name: "Duplicidad", description: "Mentir, disimular, corromper: la especialidad de todos los que viven al margen de la ley." },
           ENT: { name: "Contactos", description: "Construir y mantener una red de contactos: poco vistoso en el momento, decisivo a largo plazo." }
         }
+      },
+      auth: {
+        title: "Antes de crear tu personaje",
+        intro: "Introduce tu correo electrónico y una contraseña para recuperar tu personaje desde cualquier dispositivo.",
+        submit: "Crear mi cuenta y continuar",
+        reconnectTitle: "Vuelve a iniciar sesión"
       }
     }
   },
@@ -997,6 +1003,12 @@ window.RP_I18N_RESOURCES = {
           DUP: { name: "詭詐", description: "說謊、隱瞞、收買人心：所有遊走法律邊緣者的看家本領。" },
           ENT: { name: "人脈手腕", description: "建立並維繫人脈網絡：當下不起眼，長遠卻是決定性的關鍵。" }
         }
+      },
+      auth: {
+        title: "建立角色之前",
+        intro: "輸入電子郵件地址及密碼，便能在不同裝置上找回角色。",
+        submit: "建立帳號並繼續",
+        reconnectTitle: "請重新登入"
       }
     }
   },
@@ -1228,6 +1240,12 @@ window.RP_I18N_RESOURCES = {
           DUP: { name: "Двуличие", description: "Лгать, скрывать, подкупать: специализация всех, кто живёт вне закона." },
           ENT: { name: "Связи", description: "Строить и поддерживать сеть контактов: незаметно в моменте, но решающе в долгосрочной перспективе." }
         }
+      },
+      auth: {
+        title: "Перед созданием персонажа",
+        intro: "Укажите электронную почту и пароль, чтобы восстановить персонажа с любого устройства.",
+        submit: "Создать учётную запись и продолжить",
+        reconnectTitle: "Войдите снова"
       }
     }
   },
@@ -1454,6 +1472,12 @@ window.RP_I18N_RESOURCES = {
           DUP: { name: "이중성", description: "거짓말하고 숨기고 매수하는 능력: 불법의 세계에서 살아가는 이들의 전문 분야입니다." },
           ENT: { name: "인맥", description: "인맥을 쌓고 유지하는 능력: 당장은 눈에 띄지 않지만, 장기적으로는 결정적입니다." }
         }
+      },
+      auth: {
+        title: "캐릭터를 만들기 전에",
+        intro: "이메일과 비밀번호를 입력하면 어느 기기에서든 캐릭터를 찾을 수 있습니다.",
+        submit: "계정을 만들고 계속하기",
+        reconnectTitle: "다시 로그인하세요"
       }
     }
   },
