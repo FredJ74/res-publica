@@ -16,6 +16,7 @@ on:
       - 'api/_traduction.js'
       - 'outils/bancs/banc-traduction-i18n.mjs'
       - 'outils/bancs/banc-i18n-selecteur-interactif.cjs'
+      - 'outils/audits/inventaire-i18n-ordres.cjs'
   push:
     branches: [main]
     paths:
@@ -53,6 +54,16 @@ jobs:
         run: node --test outils/bancs/banc-traduction-i18n.mjs
       - name: Sélecteur des neuf langues : simulation interactive
         run: node --test outils/bancs/banc-i18n-selecteur-interactif.cjs
+      - name: Inventaire des identifiants d'ordres, sans modifier les mécanismes
+        run: |
+          node outils/audits/inventaire-i18n-ordres.cjs > /tmp/i18n-ordres.json
+          node -e "const a=require('/tmp/i18n-ordres.json');console.log('Ordres identifiés:',a.uniqueIds,'ambiguïtés:',a.ambiguousIds);console.log(a.entries.slice(0,30).map(x=>x.fn+': '+x.labels.join(' / ')).join('\\n'))"
+      - name: Conserver l'inventaire des ordres pour traduction
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-ordres-inventaire
+          path: /tmp/i18n-ordres.json
+          retention-days: 7
       - name: Syntaxe du moteur et des ressources
         run: |
           node --check i18n/resources.js
