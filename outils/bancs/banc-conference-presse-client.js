@@ -182,7 +182,7 @@ att('un renoncement le dit clairement : rien n a ete preleve',
     contient(POL, "showToast('Communication annulée'")
     && contient(POL, 'Aucun franc et aucun PA n') && contient(POL, 'ont été prélevés.'));
 att('la fenetre dit qu il n y a pas de financement partage',
-    contient(POL, "Il n'y a pas de ")
+    (contient(POL, "Il n'y a pas de ") || contient(POL, "Il n\\'y a pas de "))
     && contient(POL, 'financement partagé'));
 att('elle nomme les deux soldes que le serveur vient de lire',
     contient(POL, "fr(refus.solde_information)") && contient(POL, 'fr(refus.solde_proposee)'));
