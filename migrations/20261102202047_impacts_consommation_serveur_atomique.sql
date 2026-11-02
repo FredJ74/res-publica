@@ -70,3 +70,6 @@ $ancien$;
 
 REVOKE ALL ON FUNCTION public.impact_marquer_traite(text,integer) FROM PUBLIC,anon,service_role;
 GRANT EXECUTE ON FUNCTION public.impact_marquer_traite(text,integer) TO authenticated;
+
+-- Publier les surcharges explicites après validation atomique de l'installation.
+NOTIFY pgrst,'reload schema';

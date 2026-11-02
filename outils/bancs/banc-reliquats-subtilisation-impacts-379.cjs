@@ -23,7 +23,7 @@ for(const v of [null,{ok:false},{ok:true},{ok:true,contrat:1,pa:8,inventory:[]}]
  const c=jeu();c.verdict=v;c.sbMilitaireSubtiliserTenter=async()=>v;await c.confirmerSubtilisationExplosif();assert.equal(c.state.pa,100);assert.equal(c.adoptions.length,0);assert.ok(c.toasts.every(x=>x[2]===false));
 });
 for(const changement of ['personnage','uid','session'])test('subtilisation : double clic et réponse tardive / '+changement,async()=>{
- const c=jeu();let finir,n=0;c.sbMilitaireSubtiliserTenter=()=>{n++;return new Promise(r=>finir=r);};const p=c.confirmerSubtilisationExplosif();await c.confirmerSubtilisationExplosif();assert.equal(n,1);
+ const c=jeu();let finir,n=0;c.sbMilitaireSubtiliserTenter=()=>{n++;return new Promise(r=>finir=r);};const p=c.confirmerSubtilisationExplosif(),deux=c.confirmerSubtilisationExplosif();assert.equal(n,1);await deux;
  if(changement==='personnage')c.state.char={name:'Autre'};if(changement==='uid')c.uid='autre';if(changement==='session')c.session='autre';
  finir({ok:true,contrat:1,pa:8,inventory:[],revision:4});await p;assert.equal(c.state.pa,100);assert.equal(c.adoptions.length,0);assert.equal(c.toasts.length,0);
 });
@@ -64,7 +64,7 @@ test('impact : échec de relecture ou mauvais propriétaire, aucune projection i
  for(const frais of [null,{userId:'Autre',hp:25}]){const c=impacts();c.frais=frais;const avant=JSON.stringify(c.state);assert.equal(await c.recupererImpactsEnAttente(),false);assert.equal(JSON.stringify(c.state),avant);assert.equal(c.toasts.length,0);}
 });
 test('impact : double clic ne crée pas deux consommations',async()=>{
- const c=impacts();let finir,n=0;c.sbRecupererImpactsEnAttente=()=>{n++;return new Promise(r=>finir=r);};const p=c.recupererImpactsEnAttente();await c.recupererImpactsEnAttente();assert.equal(n,1);finir([{id:'i'}]);await p;assert.equal(c.marques.length,1);
+ const c=impacts();let finir,n=0;c.sbRecupererImpactsEnAttente=()=>{n++;return new Promise(r=>finir=r);};const p=c.recupererImpactsEnAttente(),deux=c.recupererImpactsEnAttente();assert.equal(n,1);await deux;finir([{id:'i'}]);await p;assert.equal(c.marques.length,1);
 });
 test('les helpers demandent le contrat avant tout acte : aucun repli sur une surcharge historique',async()=>{
  const c=vm.createContext({appels:[]});c.sbRpc=async(...x)=>{c.appels.push(x);return null;};vm.runInContext(fonctions('supabase.js',['sbMilitaireSubtiliserTenter','sbMarquerImpactTraite']),c);
