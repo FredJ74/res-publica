@@ -19,7 +19,15 @@ for(const p of pieces){
     assert.ok(entry.includes("fn:'"+fn+"'"),p+': '+fn);
 }
 assert.ok(variants.includes("PIECE_VARIANTES.republic.ville_a = {"),'PSM déclare ses variantes');
-assert.ok(variants.includes("'centre-commercial': PIECE_VARIANTES.republic.capitale['centre-commercial']"),'même moteur 4 tailles, enseignes, états');
+const contexte=vm.createContext({});
+vm.runInContext(data+'\n'+variants,contexte);
+for(const piece of pieces){
+  contexte.piece=piece;
+  assert.equal(vm.runInContext("PIECE_VARIANTES.republic.ville_a['centre-commercial'][piece].famille",contexte),'location');
+  assert.ok(vm.runInContext("PIECE_VARIANTES.republic.ville_a['centre-commercial'][piece].enseigne === PIECE_VARIANTES.republic.capitale['centre-commercial'][piece].enseigne",contexte),'enseigne commune préservée');
+  assert.ok(vm.runInContext("PIECE_VARIANTES.republic.ville_a['centre-commercial'][piece].images.occupee === PIECE_VARIANTES.republic.capitale['centre-commercial'][piece].images.occupee",contexte),'état occupé commun préservé');
+  assert.ok(vm.runInContext("PIECE_VARIANTES.republic.ville_a['centre-commercial'][piece].images.libre === WORLD.republic.ville_a.buildingContext['centre-commercial'].roomOverrides[piece].imageUrl",contexte),'image locale libre réellement utilisée');
+}
 const psm=data.slice(data.indexOf('// Hall du Centre Commercial de PSM'),data.indexOf("        'stade': {",data.indexOf('// Hall du Centre Commercial de PSM')));
 assert.ok(!psm.includes('excludeOrders'), 'PSM ne masque pas les boutons');
 console.log('OK - 4 locaux PSM : mêmes 3 ordres, loyers, tailles et personnalisation que Luthécia');

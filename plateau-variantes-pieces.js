@@ -551,7 +551,13 @@ const PIECE_VARIANTES = {
 // avec les deux etats libre/loue et la personnalisation d'enseigne du socle.
 // La declaration reste une seule source ; aucune copie de mecanique ni de loyer.
 PIECE_VARIANTES.republic.ville_a = {
-  'centre-commercial': PIECE_VARIANTES.republic.capitale['centre-commercial']
+  'centre-commercial': Object.fromEntries(Object.entries(PIECE_VARIANTES.republic.capitale['centre-commercial']).map(([piece, declaration]) => [piece, {
+    ...declaration,
+    // Les quatre visuels locaux de #325 représentent le local libre. Ils doivent
+    // primer sur le visuel libre de Luthécia ; le moteur, l'état occupé et son
+    // enseigne restent communs tant qu'aucune illustration occupée locale n'existe.
+    images: { ...declaration.images, libre: WORLD.republic.ville_a.buildingContext['centre-commercial'].roomOverrides[piece].imageUrl }
+  }]))
 };
 
 /* ---------------------------------------------------------------------------

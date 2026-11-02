@@ -25,6 +25,18 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Audit global Républia — Codex, 02/11/2026
+
+Branche `codex/audit-global-republia-20261102`, issue du main `a99c4069`
+(#351/#352 conservées). Lecture du catalogue effectif : 102 bâtiments, 305 pièces,
+219 occurrences PNJ, 1 141 ordres. Audit en cours sans RPC ni production.
+Corrections démontrées : les quatre images de locaux libres PSM étaient masquées
+par les variantes Luthécia ; deux avocats de province sans profil serveur.
+Moteurs et état occupé existants conservés, profils ordinaires issus des identités
+déjà déclarées. Tests ciblés 4/4 + banc locations ; inventaire complet et recette
+locale navigateur en cours. Aucun chantier #219 ni immobilier repris.
+
+
 ### Reste de la clôture de Luthécia (Claude, après #340)
 
 - ~~Extension `http`~~ **retirée le 01/11 à 23 h 58** (registre `retirer_extension_http_20261101235500`, feu vert de Fred) ; aucun appelant ni dépendance au contrôle préalable.
