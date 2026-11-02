@@ -37,3 +37,12 @@ test('navigation principale, forum et courrier gardent leurs clés et événemen
  assert.match(plateau,/onclick="switchSelfTab\('inventaire',this\)"/);
  assert.match(plateau,/id="pnj-modal-title"/);
 });
+
+test('cartes, organigramme, courrier et guide utilisent des textes localisés statiques',()=>{
+ for(const key of ['worldMap','orgChart','postalCard','subject','messageLabel','gameGuide']) {
+  assert.ok(plateau.includes('data-i18n="plateau.'+key+'"'),key);
+ }
+ assert.match(plateau,/onclick="closeWorldMap\(\)"/);
+ assert.match(plateau,/id="compose-mail-subject"/);
+ assert.match(plateau,/id="compose-mail-body"/);
+});
