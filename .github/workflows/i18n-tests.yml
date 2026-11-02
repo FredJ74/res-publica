@@ -5,15 +5,18 @@ on:
     paths:
       - 'i18n/**'
       - 'index.html'
+      - 'plateau.html'
       - 'outils/bancs/banc-accueil-neuf-langues.cjs'
       - 'outils/bancs/banc-i18n-couverture.cjs'
       - 'outils/bancs/banc-i18n-pont-plateau.cjs'
       - 'outils/bancs/banc-i18n-plateau-ressources.cjs'
+      - 'outils/bancs/banc-i18n-plateau-wiring.cjs'
   push:
     branches: [main]
     paths:
       - 'i18n/**'
       - 'index.html'
+      - 'plateau.html'
       - 'outils/bancs/banc-accueil-neuf-langues.cjs'
       - 'outils/bancs/banc-i18n-couverture.cjs'
 permissions:
@@ -35,9 +38,12 @@ jobs:
         run: node --test outils/bancs/banc-i18n-pont-plateau.cjs
       - name: Ressources multilingues du plateau
         run: node --test outils/bancs/banc-i18n-plateau-ressources.cjs
+      - name: Raccordement des libellés du plateau
+        run: node --test outils/bancs/banc-i18n-plateau-wiring.cjs
       - name: Syntaxe du moteur et des ressources
         run: |
           node --check i18n/resources.js
           node --check i18n/i18n-init.js
           node --check i18n/plateau-bridge.js
           node --check i18n/plateau-resources.js
+          node --check i18n/plateau-init.js
