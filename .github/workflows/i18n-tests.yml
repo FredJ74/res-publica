@@ -12,6 +12,7 @@ on:
       - 'outils/bancs/banc-i18n-plateau-ressources.cjs'
       - 'outils/bancs/banc-i18n-plateau-wiring.cjs'
       - 'outils/bancs/banc-i18n-plateau-init.cjs'
+      - 'outils/bancs/banc-i18n-texte-joueur.cjs'
   push:
     branches: [main]
     paths:
@@ -43,6 +44,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-plateau-wiring.cjs
       - name: Initialisation du plateau et RTL
         run: node --test outils/bancs/banc-i18n-plateau-init.cjs
+      - name: Texte joueur et original préservés
+        run: node --test outils/bancs/banc-i18n-texte-joueur.cjs
       - name: Syntaxe du moteur et des ressources
         run: |
           node --check i18n/resources.js
@@ -50,3 +53,4 @@ jobs:
           node --check i18n/plateau-bridge.js
           node --check i18n/plateau-resources.js
           node --check i18n/plateau-init.js
+          node --check i18n/texte-joueur.js
