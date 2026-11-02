@@ -30,6 +30,19 @@ test('nouvelles langues : accueil traduit, suite du parcours avec repli FR', () 
   }
   assert.ok(w.RP_I18N_RESOURCES.fr.translation.creation.steps.country.title);
 });
+test('navigation dans la création présente dans les trois nouvelles langues', () => {
+  const w = load();
+  for (const lang of ['ar', 'pt-BR', 'de']) {
+    const creation = w.RP_I18N_RESOURCES[lang].translation.creation;
+    for (const key of ['back','next','seeSheet','edit','validate','enter']) {
+      assert.ok(creation.nav[key], lang + ':' + key);
+    }
+    for (const step of ['country','origin','school','archetype','career','stats','identity']) {
+      assert.ok(creation.steps[step].title, lang + ':' + step);
+      assert.ok(creation.steps[step].step, lang + ':' + step + ' number');
+    }
+  }
+});
 test('index et script i18n conservent la generation dynamique du selecteur', () => {
   const index = fs.readFileSync(path.join(root, 'index.html'),'utf8');
   const init = fs.readFileSync(path.join(root, 'i18n/i18n-init.js'),'utf8');
