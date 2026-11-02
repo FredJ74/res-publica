@@ -1150,6 +1150,15 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     } else position = await sbRpc('rue_position_lire', {})
       .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
     if(!contexteNavigationRueValide(contexte)||lecture!==rueCentraleLecturePosition)return;
+    // La ville mémorisée côté client ne fait pas autorité sur la position du PJ.
+    // Réalignement uniquement après réponse serveur authentifiée, sans téléportation.
+    if (position?.ok===true && position.country===pays &&
+        position.city!==state.currentCity &&
+        ['capitale','ville_a','ville_b','caserne','qhs'].includes(position.city) &&
+        (position.building || (position.street && RUE_CENTRALE_NOEUDS[pays]?.[position.street]))) {
+      state.currentCity=position.city;
+      if (state.char) state.char.currentCity=position.city;
+    }
     if (position?.ok !== true || position.country !== pays ||
         position.city !== state.currentCity) {
       if (typeof showToast === 'function') showToast('Position indisponible',
