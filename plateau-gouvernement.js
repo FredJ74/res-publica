@@ -1830,11 +1830,13 @@ function blocusActifsDepuisEtats(lignes) {
 
 // Libelle d'identification : ville, batiment, syndicat et intensite -- de quoi choisir sans se
 // tromper de blocus.
+// Accepte aussi une ligne de blocus_syndicaux_actifs (serveur, 02/11/2026), dont le taux s'appelle
+// tauxDispersion.
 function libelleBlocus(b) {
   const ville = villeNom(b.country, b.city) || b.city;
   const bat = (typeof BUILDINGS !== 'undefined' && BUILDINGS[b.buildingId] && BUILDINGS[b.buildingId].name) || b.buildingId;
   return ville + ' — ' + bat + (b.syndicatNom ? ' (' + b.syndicatNom + ')' : '') +
-         ' · intensité ' + b.intensite + ' · ' + Math.round(b.taux) + ' % de chances';
+         ' · intensité ' + b.intensite + ' · ' + Math.round(b.taux != null ? b.taux : b.tauxDispersion) + ' % de chances';
 }
 
 // ---------------------------------------------------------------------------

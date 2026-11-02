@@ -58,23 +58,17 @@ function doOrder(fn, pa, cost, label, desc, successRate) {
     return;
   }
 
-  // Blocus syndical : lecture SYNCHRONE d'un cache pose a l'entree dans la piece
-  // (verifierBlocusEntree, plateau-organisations-quetes.js) — doOrder ne peut pas attendre
-  // un appel reseau, donc on ne consulte jamais Supabase ici directement.
-  if (typeof state !== 'undefined' && state.blocusActifIci && state.currentBuilding) {
+  // Blocus syndical (decision de Fred, 02/11/2026) : les ordres du batiment bloque sont
+  // inaccessibles, legaux comme illegaux. Lecture SYNCHRONE du cache pose a l'entree
+  // (verifierBlocusEntree) pour un refus immediat ; le serveur refuse de toute facon l'ordre
+  // (payer_ordre_interne, motif blocus_syndical). « Faire intervenir les forces de l'ordre »
+  // releve du commissaire, pas du batiment : jamais bloque.
+  if (typeof state !== 'undefined' && state.blocusActifIci && state.currentBuilding
+      && state.blocusActifIciBatiment === state.currentBuilding && fn !== 'mobiliser_police') {
     const roomBlocus = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-    const ordreDefBlocus = roomBlocus?.orders?.find(o => o.fn === fn);
-    const entreeForceeBlocus = state.blocusEntreeResolueBuildingId === state.currentBuilding;
-
-    if (ordreDefBlocus?.type === 'legal' && !entreeForceeBlocus) {
-      showToast('Bloqué', 'Un blocus syndical empêche cette démarche ici. Forcez le passage pour continuer.', false);
+    if (roomBlocus?.orders?.some(o => o.fn === fn)) {
+      showToast('Bloqué', 'Un blocus syndical rend les démarches de ce bâtiment inaccessibles.', false);
       return;
-    }
-    if (ordreDefBlocus?.type === 'legal' && entreeForceeBlocus) {
-      successRate = Math.min(95, successRate + (state.blocusModificateurLegal || 0));
-    }
-    if (ordreDefBlocus?.type === 'illegal') {
-      successRate = Math.min(95, successRate + Math.round((state.blocusActifIci.intensite || 40) / 4));
     }
   }
 
