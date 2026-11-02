@@ -1842,6 +1842,9 @@ function personnesNormalesDeLaPiece(buildingId, roomId) {
   const ctx = (typeof getBuildingContext === 'function') ? getBuildingContext(buildingId) : null;
   const isFirstRoom = Object.keys(b?.rooms || {})[0] === roomId;
   const roomOverride = ctx?.roomOverrides?.[roomId];
+  // `personsVides: true` : piece volontairement sans PNJ dans cette ville (2 novembre 2026),
+  // une liste vide seule retomberait sur le gabarit, partage avec les autres villes.
+  if (roomOverride?.personsVides === true) return [];
   if (roomOverride?.persons?.length > 0) return roomOverride.persons;
   if (isFirstRoom && ctx?.persons?.length > 0) return ctx.persons;
   return room?.persons || [];
