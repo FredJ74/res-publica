@@ -370,7 +370,7 @@
         </button>
         <div class="batiment-header-info">
           <div class="batiment-nom" data-i18n="plateau.rules">Règles du jeu</div>
-          <div class="batiment-cat">Res Publica — Guide du joueur</div>
+          <div class="batiment-cat" data-i18n="plateau.gameGuide">Res Publica — Guide du joueur</div>
         </div>
         <div class="pieces-tabs">
           <div class="rules-tab piece-tab active" data-section="intro" onclick="renderRulesContent('intro');document.querySelectorAll('.rules-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">Le Grand Jeu</div>
@@ -546,7 +546,7 @@
 <div id="modal-world" class="modal-overlay">
   <div class="modal-box modal-large">
     <div class="modal-header">
-      <div class="modal-title">Carte du Monde</div>
+      <div class="modal-title" data-i18n="plateau.worldMap">Carte du Monde</div>
       <button class="modal-close" onclick="closeWorldMap()"><i class="ti ti-x"></i></button>
     </div>
     <div id="world-map-body"></div>
@@ -557,7 +557,7 @@
 <div id="modal-postes" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title" id="postes-modal-title">Organigramme</div>
+      <div class="modal-title" id="postes-modal-title" data-i18n="plateau.orgChart">Organigramme</div>
       <button class="modal-close" onclick="if (typeof arreterAudioguide === 'function') arreterAudioguide(); if (typeof desactiverDragJournal === 'function') desactiverDragJournal(); document.getElementById('modal-postes').classList.remove('open'); document.querySelector('#modal-postes .modal-box')?.classList.remove('modal-wide', 'journal-mode', 'cpj-machine', 'mil-machine')"><i class="ti ti-x"></i></button>
     </div>
     <div id="postes-body"></div>
@@ -621,11 +621,11 @@
         <input id="compose-mail-to" type="text" placeholder="Destinataire..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box"/>
       </div>
       <div>
-        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem">Sujet</label>
+        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem" data-i18n="plateau.subject">Sujet</label>
         <input id="compose-mail-subject" type="text" placeholder="Objet du message..." style="width:100%;padding:.4rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box"/>
       </div>
       <div>
-        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem">Message</label>
+        <label style="font-family:Bebas Neue,sans-serif;font-size:.65rem;letter-spacing:.1em;color:#8a6a20;display:block;margin-bottom:.2rem" data-i18n="plateau.messageLabel">Message</label>
         <textarea id="compose-mail-body" rows="6" placeholder="Votre message..." style="width:100%;padding:.5rem .6rem;background:#0a0a07;border:1px solid #3a2a10;color:#f0ead6;font-family:Crimson Pro,Georgia,serif;font-size:.85rem;box-sizing:border-box;resize:vertical"></textarea>
       </div>
       <button onclick="envoyerComposeMail()" style="font-family:Bebas Neue,sans-serif;font-size:.8rem;letter-spacing:.12em;padding:.5rem 1rem;border:1px solid #C9A84C;background:transparent;color:#C9A84C;cursor:pointer;align-self:flex-end">
@@ -639,7 +639,7 @@
 <div id="modal-carte-postale" class="modal-overlay">
   <div class="modal-box" style="max-width:640px">
     <div class="modal-header">
-      <div class="modal-title" id="carte-postale-modal-title">Carte postale</div>
+      <div class="modal-title" id="carte-postale-modal-title" data-i18n="plateau.postalCard">Carte postale</div>
       <button class="modal-close" onclick="fermerModalCartePostale()"><i class="ti ti-x"></i></button>
     </div>
     <div id="carte-postale-body"></div>
