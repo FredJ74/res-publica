@@ -13,6 +13,8 @@ on:
       - 'outils/bancs/banc-i18n-plateau-wiring.cjs'
       - 'outils/bancs/banc-i18n-plateau-init.cjs'
       - 'outils/bancs/banc-i18n-texte-joueur.cjs'
+      - 'api/_traduction.js'
+      - 'outils/bancs/banc-traduction-i18n.mjs'
   push:
     branches: [main]
     paths:
@@ -46,6 +48,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-plateau-init.cjs
       - name: Texte joueur et original préservés
         run: node --test outils/bancs/banc-i18n-texte-joueur.cjs
+      - name: Moteur de traduction interne (fournisseur simulé)
+        run: node --test outils/bancs/banc-traduction-i18n.mjs
       - name: Syntaxe du moteur et des ressources
         run: |
           node --check i18n/resources.js
@@ -54,3 +58,4 @@ jobs:
           node --check i18n/plateau-resources.js
           node --check i18n/plateau-init.js
           node --check i18n/texte-joueur.js
+          node --check api/_traduction.js
