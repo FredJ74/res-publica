@@ -11,6 +11,7 @@ on:
       - 'outils/bancs/banc-i18n-pont-plateau.cjs'
       - 'outils/bancs/banc-i18n-plateau-ressources.cjs'
       - 'outils/bancs/banc-i18n-plateau-wiring.cjs'
+      - 'outils/bancs/banc-i18n-plateau-init.cjs'
   push:
     branches: [main]
     paths:
@@ -40,6 +41,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-plateau-ressources.cjs
       - name: Raccordement des libellés du plateau
         run: node --test outils/bancs/banc-i18n-plateau-wiring.cjs
+      - name: Initialisation du plateau et RTL
+        run: node --test outils/bancs/banc-i18n-plateau-init.cjs
       - name: Syntaxe du moteur et des ressources
         run: |
           node --check i18n/resources.js
