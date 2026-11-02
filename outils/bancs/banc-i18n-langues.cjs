@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const test = require('node:test');
 
 const root = path.resolve(__dirname, '..', '..');
-const localeFiles = ['fr', 'en', 'es', 'de', 'pt-BR', 'pt-PT', 'ar'];
+const localeFiles = ['fr', 'en', 'es', 'zh-TW', 'ru', 'ko', 'ar', 'pt-BR', 'pt-PT', 'de'];
 const keyPattern = /\{([a-z][a-z0-9_]*)\}/g;
 function boot() {
   const sandbox = { Intl };
@@ -17,7 +17,7 @@ function boot() {
   }
   return sandbox.HGI18n;
 }
-test('les sept catalogues sont chargés sans activation', () => {
+test('les catalogues des neuf langues et deux variantes portugaises sont chargés sans activation', () => {
   const i = boot();
   assert.equal(i.getLocale(), 'fr');
   assert.deepEqual(Array.from(i.supported()).sort(), [...localeFiles].sort());
