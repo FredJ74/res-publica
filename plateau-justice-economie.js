@@ -2733,37 +2733,8 @@ async function soumettreConte(idx, pa, cost) {
 // nulle part dans le depot et faisaient planter systematiquement doTaxiSpecial des le premier
 // appel, pour taxi_caserne ET taxi_qhs (bug preexistant, sans rapport avec la migration Phase K).
 async function doTaxiSpecial(destination, pa, cost) {
-  if (state._navigationServeur && typeof commanderTransportServeur === 'function') {
-    if (!['caserne','qhs'].includes(destination)) return false;
-    return commanderTransportServeur('taxi_' + destination, state.country, destination);
-  }
-  // Surcharge (Lot 1.5.4) : le taxi vers la Caserne/le QHS est un vrai changement de ville.
-  if (typeof refuserSiSurcharge === 'function' && refuserSiSurcharge('Prendre un taxi')) return;
-  const label = destination === 'caserne' ? 'la Caserne' : 'le QHS';
-  const cityKey = destination === 'caserne' ? 'caserne' : 'qhs';
-
-  // Voyage OK
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { showToast('Fonds insuffisants', '', false); return; }
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-  state.currentCity = cityKey;
-  state.currentBuilding = null;
-  state.currentRoom = null;
-  if (state.char) {
-    state.char.currentCity = cityKey;
-    state.char.currentBuilding = null;
-    state.char.currentRoom = null;
-    try {
-      localStorage.setItem('respublica_char_' + (state.char?.name || 'default'), JSON.stringify(state.char));
-    } catch (e) {
-      console.warn('Cache local personnage non sauvegarde (quota depasse) :', e);
-    }
-  }
-  buildCityTabs();
-  updateUI();
-  forceRenderCity(cityKey);
-  showToast('En route !', 'Vous arrivez à ' + label + '. -' + cost + ' ' + cur, true);
-  addJournalEntry('Taxi vers ' + label, 'event-info');
+  if (!['caserne','qhs'].includes(destination)) return false;
+  return commanderTransportServeur('taxi_' + destination, state.country, destination);
 }
 
 function ouvrirFalsifierDocument(pa, cost) {

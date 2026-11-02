@@ -41,6 +41,11 @@ qui se masquaient identifiées ; copies identiques retirées, adaptateurs élect
 raccordés au tableau serveur et au vote organisation actuel (corps #350 conservé).
 Réponse bancaire perdue : plus d'affirmation « rien prélevé ». 14 tests ciblés
 réussis ; échecs initiaux reproduits. Aucun droit ni tarif changé.
+Second lot : les cinq entrées publiques transport/douane/taxi délèguent toujours
+aux commandes atomiques existantes ; plus de branche payante sélectionnée par
+un drapeau local absent. Contre-épreuve main : 11 échecs sur 16 cas ; code corrigé
+16/16, moteurs existants transports 8/8 et douanes 12/12. Le TODO F5 #219/#318
+est activé (dépendance désormais fusionnée) : 5/5. PostgreSQL ciblé en cours.
 GitHub public HTTPS lisible ; API GraphQL/REST refusée. Aucune donnée joueur ni
 production modifiée ; aucune fusion/migration autorisée par cette mission.
 
