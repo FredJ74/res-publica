@@ -65,3 +65,13 @@ test('résumé, ville et succès sont traduits dans les trois langues supplémen
     assert.ok(t.genders.nonbinary, lang + ':genre');
   }
 });
+
+test('attributs et identité traduits sans perdre les paramètres de pluriel', () => {
+ const w = load();
+ for (const lang of ['ar','pt-BR','de']) {
+   const steps = w.RP_I18N_RESOURCES[lang].translation.creation.steps;
+   for (const key of ['pointsLabel','info','warning_one','warning_other']) assert.ok(steps.stats[key],lang+':stats.'+key);
+   for (const key of ['photoLabel','photoHint','nameLabel','namePlaceholder','bioLabel','bioPlaceholder','mottoLabel','mottoOptional','mottoPlaceholder']) assert.ok(steps.identity[key],lang+':identity.'+key);
+   assert.match(steps.stats.warning_other,/\\{\\{count\\}\\}/);
+ }
+});
