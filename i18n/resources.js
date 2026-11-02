@@ -1466,8 +1466,8 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "العثور على شخصيتي",
     findCharacterPlaceholder: "اسم شخصيتك...",
     loadCharacter: "تحميل هذه الشخصية",
-    beta: { title: "تفتح Human Gambit نسختها التجريبية." },
-    auth: {
+    beta: { title: "تفتح Human Gambit نسختها التجريبية." }
+  }, auth: {
       title: "قبل إنشاء شخصيتك",
       intro: "أدخل عنوان بريد إلكتروني واختر كلمة مرور. ستساعدك هذه البيانات على استعادة شخصيتك وتسجيل الدخول من أي جهاز.",
       promise: "شخصيتك ترافقك أينما ذهبت.",
@@ -1488,7 +1488,7 @@ window.RP_I18N_RESOURCES = {
       reconnectBody: "انتهت جلستك. سجّل الدخول لاستعادة شخصيتك.",
       reconnectButton: "إعادة تسجيل الدخول"
     }
-  } } },
+  } },
   'pt-BR': { translation: { home: {
     brand: "Human Gambit",
     descriptor: "UM JOGO DE ESTRATÉGIA SOCIAL",
@@ -1497,8 +1497,8 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "Encontrar meu personagem",
     findCharacterPlaceholder: "Nome do personagem...",
     loadCharacter: "Carregar este personagem",
-    beta: { title: "Human Gambit abre sua versão beta." },
-    auth: {
+    beta: { title: "Human Gambit abre sua versão beta." }
+  }, auth: {
       title: "Antes de criar seu personagem",
       intro: "Informe seu e-mail e escolha uma senha. Assim você poderá recuperar seu personagem e entrar em Res Publica de qualquer dispositivo.",
       promise: "Seu personagem vai com você a qualquer lugar.",
@@ -1519,7 +1519,7 @@ window.RP_I18N_RESOURCES = {
       reconnectBody: "Sua sessão expirou. Entre com seu e-mail e senha para recuperar seu personagem.",
       reconnectButton: "Entrar novamente"
     }
-  } } },
+  } },
   'de': { translation: { home: {
     brand: "Human Gambit",
     descriptor: "EIN SOZIALES STRATEGIESPIEL",
@@ -1528,8 +1528,8 @@ window.RP_I18N_RESOURCES = {
     findCharacter: "Charakter wiederfinden",
     findCharacterPlaceholder: "Name deines Charakters...",
     loadCharacter: "Diesen Charakter laden",
-    beta: { title: "Human Gambit startet die Beta." },
-    auth: {
+    beta: { title: "Human Gambit startet die Beta." }
+  }, auth: {
       title: "Bevor du deinen Charakter erstellst",
       intro: "Gib deine E-Mail-Adresse ein und wähle ein Passwort. Damit kannst du deinen Charakter wiederfinden und dich von jedem Gerät bei Res Publica anmelden.",
       promise: "Dein Charakter begleitet dich überallhin.",
@@ -1550,5 +1550,5 @@ window.RP_I18N_RESOURCES = {
       reconnectBody: "Deine Sitzung ist abgelaufen. Melde dich mit E-Mail und Passwort an, um deinen Charakter wiederzufinden.",
       reconnectButton: "Erneut anmelden"
     }
-  } } }
+  } }
 };
