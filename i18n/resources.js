@@ -1520,8 +1520,8 @@ window.RP_I18N_RESOURCES = {
         school: { step: "الخطوة 3 من 7", title: "التعليم", subtitle: "يفتح التعليم بعض الفرص ويغلق فرصًا أخرى." },
         archetype: { step: "الخطوة 4 من 7", title: "الطبيعة الحقيقية", subtitle: "من أنت حقًا بعيدًا عن ماضيك؟" },
         career: { step: "الخطوة 5 من 7", title: "المهنة", subtitle: "مسارك المهني قبل دخول اللعبة الكبرى." },
-        stats: { step: "الخطوة 6 من 7", title: "السمات", subtitle: "وزّع نقاطك الحرة. أُضيفت المكافآت المكتسبة بالفعل." },
-        identity: { step: "الخطوة 7 من 7", title: "هوية الشخصية", subtitle: "امنح شخصيتك وجهًا واسمًا وقصة.", genderLabel: "جنس الشخصية", genderOtherPlaceholder: "كيف تعرّف شخصيتك نفسها؟" },
+        stats: { step: "الخطوة 6 من 7", title: "السمات", subtitle: "وزّع نقاطك الحرة. أُضيفت المكافآت المكتسبة بالفعل.", pointsLabel: "النقاط المتاحة للتوزيع", info: "بعد 12، تكلف كل نقطة نقطتين. الحد الأقصى عند إنشاء الشخصية هو 16، والمستويات 17–20 تُفتح داخل اللعبة.", warning_one: "تبقّت {{count}} نقطة غير موزعة. يمكنك توزيعها لاحقًا من بطاقة شخصيتك.", warning_other: "تبقّت {{count}} نقاط غير موزعة. يمكنك توزيعها لاحقًا من بطاقة شخصيتك." },
+        identity: { step: "الخطوة 7 من 7", title: "هوية الشخصية", subtitle: "امنح شخصيتك وجهًا واسمًا وقصة.", genderLabel: "جنس الشخصية", genderOtherPlaceholder: "كيف تعرّف شخصيتك نفسها؟", photoLabel: "صورة الملف الشخصي", photoHint: "ارفع صورة لشخصيتك", nameLabel: "اسم الشخصية", namePlaceholder: "مثال: أرنولد، جان دوبون...", bioLabel: "السيرة الذاتية", bioPlaceholder: "قصة شخصيتك وماضيها ودوافعها...", mottoLabel: "الشعار الشخصي", mottoOptional: "(اختياري)", mottoPlaceholder: "مثال: لا تُمنح السلطة مجانًا..." },
         review: {"step":"الملخص","title":"بطاقة شخصيتك"}
       },
       city: {"modalTitle":"اختر مدينة إقامتك","capitalBadge":"(العاصمة)"},
@@ -1569,8 +1569,8 @@ window.RP_I18N_RESOURCES = {
         school: { step: "Etapa 3 de 7", title: "Educação", subtitle: "A educação molda suas habilidades e abre ou fecha oportunidades." },
         archetype: { step: "Etapa 4 de 7", title: "Natureza profunda", subtitle: "Quem é você de verdade, independentemente do seu passado?" },
         career: { step: "Etapa 5 de 7", title: "Carreira", subtitle: "Sua trajetória profissional antes de entrar no grande jogo." },
-        stats: { step: "Etapa 6 de 7", title: "Atributos", subtitle: "Distribua seus pontos livres. Os bônus adquiridos já foram incluídos." },
-        identity: { step: "Etapa 7 de 7", title: "Identidade do personagem", subtitle: "Dê ao seu alter ego um rosto, um nome e uma história.", genderLabel: "Gênero do personagem", genderOtherPlaceholder: "Como seu personagem se identifica..." },
+        stats: { step: "Etapa 6 de 7", title: "Atributos", subtitle: "Distribua seus pontos livres. Os bônus adquiridos já foram incluídos.", pointsLabel: "Pontos para distribuir", info: "Acima de 12, cada ponto custa 2. Limite de 16 na criação; níveis 17 a 20 são liberados durante o jogo.", warning_one: "Resta {{count}} ponto não distribuído. Você poderá distribuí-lo depois na ficha do personagem.", warning_other: "Restam {{count}} pontos não distribuídos. Você poderá distribuí-los depois na ficha do personagem." },
+        identity: { step: "Etapa 7 de 7", title: "Identidade do personagem", subtitle: "Dê ao seu alter ego um rosto, um nome e uma história.", genderLabel: "Gênero do personagem", genderOtherPlaceholder: "Como seu personagem se identifica...", photoLabel: "Foto do perfil", photoHint: "Envie uma imagem do seu personagem", nameLabel: "Nome do personagem", namePlaceholder: "Ex.: Arnold, João da Silva...", bioLabel: "Biografia", bioPlaceholder: "História, passado e motivações do personagem...", mottoLabel: "Lema pessoal", mottoOptional: "(opcional)", mottoPlaceholder: "Ex.: O poder não se ganha de graça..." },
         review: {"step":"Resumo","title":"Sua ficha de personagem"}
       },
       city: {"modalTitle":"Escolha sua cidade de residência","capitalBadge":"(Capital)"},
@@ -1618,8 +1618,8 @@ window.RP_I18N_RESOURCES = {
         school: { step: "Schritt 3 von 7", title: "Bildung", subtitle: "Bildung prägt deine Fähigkeiten und eröffnet oder verschließt Wege." },
         archetype: { step: "Schritt 4 von 7", title: "Wahres Wesen", subtitle: "Wer bist du wirklich, unabhängig von deiner Vergangenheit?" },
         career: { step: "Schritt 5 von 7", title: "Laufbahn", subtitle: "Dein beruflicher Werdegang vor dem großen Spiel." },
-        stats: { step: "Schritt 6 von 7", title: "Eigenschaften", subtitle: "Verteile deine freien Punkte. Bereits erhaltene Boni sind eingerechnet." },
-        identity: { step: "Schritt 7 von 7", title: "Charakteridentität", subtitle: "Gib deinem Alter Ego ein Gesicht, einen Namen und eine Geschichte.", genderLabel: "Geschlecht des Charakters", genderOtherPlaceholder: "Wie beschreibt sich dein Charakter?" },
+        stats: { step: "Schritt 6 von 7", title: "Eigenschaften", subtitle: "Verteile deine freien Punkte. Bereits erhaltene Boni sind eingerechnet.", pointsLabel: "Punkte zum Verteilen", info: "Ab 12 kostet jeder weitere Punkt 2. Bei der Erstellung gilt die Grenze 16; Stufen 17–20 werden im Spiel freigeschaltet.", warning_one: "Noch {{count}} Punkt ist nicht verteilt. Du kannst ihn später auf dem Charakterbogen verteilen.", warning_other: "Noch {{count}} Punkte sind nicht verteilt. Du kannst sie später auf dem Charakterbogen verteilen." },
+        identity: { step: "Schritt 7 von 7", title: "Charakteridentität", subtitle: "Gib deinem Alter Ego ein Gesicht, einen Namen und eine Geschichte.", genderLabel: "Geschlecht des Charakters", genderOtherPlaceholder: "Wie beschreibt sich dein Charakter?", photoLabel: "Profilfoto", photoHint: "Lade ein Bild für deinen Charakter hoch", nameLabel: "Charaktername", namePlaceholder: "Zum Beispiel Arnold, Hans Müller...", bioLabel: "Biografie", bioPlaceholder: "Geschichte, Vergangenheit und Ziele deines Charakters...", mottoLabel: "Persönliches Motto", mottoOptional: "(optional)", mottoPlaceholder: "Zum Beispiel: Macht bekommt man nicht geschenkt..." },
         review: {"step":"Zusammenfassung","title":"Dein Charakterbogen"}
       },
       city: {"modalTitle":"Wähle deine Heimatstadt","capitalBadge":"(Hauptstadt)"},
