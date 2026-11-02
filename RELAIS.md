@@ -39,7 +39,15 @@ quatre reliquats. Premier lot : consommateur local des vols neutralisé (aucun
 producteur actif de ligne non traitée retrouvé), minuteur retiré ; codétenu
 délègue à employe_recruter sans prix/profil local et conserve le refus du métier
 non activé. 10/10 tests clients ciblés et contre-épreuve de l’ancien code.
-Tests réels jetables et suite en cours. Aucune fusion,
+Second lot : subtilisation et impacts utilisent des contrats explicites sur
+les commandes existantes ; ancien serveur refusé avant l’acte, jamais de repli.
+PA et révision viennent de la réponse originale ; réponse perdue relue sans
+rejouer. Effet et acquittement des impacts sont atomiques côté SQL, tous les
+types historiques documentés, plafond carte expéditeur Paris préservé, type
+inconnu non consommé. Deux migrations gardées par corps examinés, non appliquées.
+31 tests clients et 25 cas PostgreSQL17.6 réussis (géographie hospitalière
+simulée, vrai déclencheur pa0). Aucun profil PNJ activé/modifié.
+Tests globaux hors ligne 12/12 ; suite complète et contre-épreuves en cours. Aucune fusion,
 application SQL ou action sur PJ réel ; coordination/intégration à ChatGPT.
 
 ### Audit technique transversal de clôture #135 — revue prête, accès livraison incomplets (Codex, 02/11/2026)

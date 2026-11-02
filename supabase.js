@@ -3408,14 +3408,7 @@ async function sbTraiterDemandeNaturalisation(id, statut) {
 // =====================
 // Le depot d'un vol est fait par le serveur (crime_voler, 27/10/2026) : sbDeposerVol supprimee.
 
-async function sbRecupererVolsEnAttente(victime) {
-  const filtre = `victime=eq.${encodeURIComponent(victime)}&traite=eq.false`;
-  return sbGet('vols_en_attente', filtre) || [];
-}
-
-async function sbMarquerVolTraite(volId) {
-  return sbUpdate('vols_en_attente', `id=eq.${encodeURIComponent(volId)}`, { traite: true });
-}
+// Les transferts de crime_voler sont immédiats ; aucun consommateur/marqueur navigateur.
 
 // =====================
 // ACTIONS TRACABLES (pour le systeme de rumeurs vraies)
@@ -4710,7 +4703,7 @@ async function sbMilitaireDecorer(decore, intitule, citation) {
 // resultat. AUCUNE inscription au registre reglementaire : c'est toute la difference avec un
 // retrait d'armurerie, et elle reste portee par deux RPC distinctes plutot que par un drapeau.
 async function sbMilitaireSubtiliserTenter(pays) {
-  const rows = await sbRpc('militaire_subtiliser_tenter', { p_pays: pays });
+  const rows = await sbRpc('militaire_subtiliser_tenter', { p_pays: pays, p_contrat: 1 });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 
@@ -5003,7 +4996,7 @@ async function sbRecupererImpactsEnAttente(victime) {
 
 // Reserve a la VICTIME : la RPC ne marque que ses propres lignes. Un tiers obtient marques:0.
 async function sbMarquerImpactTraite(impactId) {
-  const rows = await sbRpc('impact_marquer_traite', { p_id: impactId });
+  const rows = await sbRpc('impact_marquer_traite', { p_id: impactId, p_contrat: 1 });
   return rows === null || rows === undefined ? null : (Array.isArray(rows) ? rows[0] : rows);
 }
 

@@ -1348,92 +1348,52 @@ async function recupererVolsEnAttente() {
   return false;
 }
 
-// Recupere et applique les impacts d'indices en attente (ex: consequence d'une fausse rumeur)
+// Les effets et l'acquittement des impacts sont un seul acte serveur versionné.
+let RP_IMPACTS_RECEPTION = null;
 async function recupererImpactsEnAttente() {
-  if (typeof sbRecupererImpactsEnAttente !== 'function') return;
-  const moi = state.char?.name;
-  if (!moi) return;
+  const c = contexteGroupePj();
+  if (!c.nom || (RP_IMPACTS_RECEPTION && contexteGroupePjValide(RP_IMPACTS_RECEPTION))) return false;
+  RP_IMPACTS_RECEPTION = c;
   try {
-    const impacts = await sbRecupererImpactsEnAttente(moi);
-    if (!impacts || impacts.length === 0) return;
-    let resume = [];
+    if (typeof sbRecupererImpactsEnAttente !== 'function' || typeof sbMarquerImpactTraite !== 'function' ||
+        typeof sbLoadPersonnage !== 'function') return false;
+    const impacts = await sbRecupererImpactsEnAttente(c.nom).catch(() => null);
+    if (!contexteGroupePjValide(c) || !Array.isArray(impacts)) return false;
+    if (!impacts.length) return true;
+    const confirmes = [];
+    let complet = true, relire = false;
     for (const imp of impacts) {
-      if (imp.indice === 'pop') { state.pop = Math.max(0, Math.min(100, (state.pop || 0) + imp.delta)); resume.push(imp.delta + ' POP'); }
-      if (imp.indice === 'inf') { state.inf = Math.max(0, Math.min(100, (state.inf || 0) + imp.delta)); resume.push(imp.delta + ' INF'); }
-      if (imp.indice === 'dis') { state.dis = Math.max(0, Math.min(100, (state.dis || 50) + imp.delta)); resume.push(imp.delta + ' DIS'); }
-      // Bonus Moral expediteur d'une carte postale lue pour la premiere fois (Lot 4, 23 aout
-      // 2026) : mecanisme deja generique reutilise tel quel (aucune deuxieme file d'attente).
-      // Plafond quotidien EXPEDITEUR (regle definitive de Fred) : au plus une seule occurrence de
-      // ce bonus par jour reel (Europe/Paris), tous destinataires/cartes confondus, meme si
-      // plusieurs cartes ont ete lues le meme jour -- verifie ICI, au moment ou l'expediteur
-      // recupere effectivement le credit (jamais au moment de la lecture par le destinataire, qui
-      // ignore tout de l'etat/l'horloge de l'expediteur, potentiellement hors-ligne). Une carte
-      // au-dela du plafond du jour est simplement consommee sans credit -- jamais retentee, la
-      // ligne est marquee traitee comme les autres ci-dessous.
-      if (imp.indice === 'moral_carte_postale') {
-        // cartePostaleMoralJour : colonne PERSISTEE (personnages.carte_postale_moral_jour,
-        // supabase.js), jamais un state.* suppose sauvegarde implicitement -- meme champ partage
-        // avec le plafond LECTEUR (lireCartePostale, plateau-personnage.js), sous-cles distinctes.
-        const jourDuJour = typeof dateReelleParisStr === 'function' ? dateReelleParisStr() : null;
-        if (!state.cartePostaleMoralJour) state.cartePostaleMoralJour = { lecteur: null, expediteur: null };
-        if (jourDuJour && state.cartePostaleMoralJour.expediteur !== jourDuJour) {
-          state.moral = Math.min(100, Math.max(0, (state.moral || 0) + imp.delta));
-          state.cartePostaleMoralJour.expediteur = jourDuJour;
-          resume.push(imp.delta + ' Moral (carte postale)');
-        }
-        // Que le plafond du jour soit deja atteint ou non, sbMarquerImpactTraite(imp.id) est
-        // TOUJOURS appele plus bas (hors de ce bloc, comme pour tous les indices) : une carte
-        // au-dela du plafond est consommee definitivement, jamais retentee un jour suivant.
-      }
-      if (imp.indice === 'hp_set') {
-        state.hp = Math.max(0, imp.delta);
-        state.regenJour = state.day;
-        resume.push('⚔️ Agression ! PV tombés à ' + imp.delta);
-
-        if (!state.statsAffaiblies) state.statsAffaiblies = {};
-        const STATS_POSSIBLES = ['INT','CHA','VOL','PER','DUP','ENT'];
-        const statsTouchees = STATS_POSSIBLES.slice().sort(() => Math.random() - 0.5).slice(0, 2);
-        statsTouchees.forEach(s => { state.statsAffaiblies[s] = true; });
-
-        if (typeof declencherHospitalisation === 'function') declencherHospitalisation(imp.palier);
-        // §19 : declencherHospitalisation sauvegarde deja, mais hp/statsAffaiblies/regenJour sont
-        // poses juste au-dessus, AVANT son appel -- ce filet garantit qu'ils partent en base meme
-        // si la fonction venait a manquer.
-        else if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-      }
-      if (imp.indice === 'poison_start') {
-        // Depose par crime_empoisonner (27/10/2026) : type de poison et statistiques touchees dans details.
-        const det = imp.details || {};
-        state.empoisonnement = { actif: true, palier: imp.palier, poisonType: det.poisonType || null };
-        if (!state.statsAffaiblies) state.statsAffaiblies = {};
-        (det.statsTouchees || []).forEach(s => { state.statsAffaiblies[s] = true; });
-        if (typeof sauvegarderPersonnageImmediat === 'function') sauvegarderPersonnageImmediat();
-        resume.push('☠️ Empoisonnement en cours...');
-      }
-      if (typeof sbMarquerImpactTraite === 'function') await sbMarquerImpactTraite(imp.id).catch(() => {});
+      if (!contexteGroupePjValide(c)) return false;
+      // Le contrat explicite est obligatoire : un ancien serveur refuse AVANT
+      // tout marquage, plutôt que de perdre un effet que l'écran n'applique plus.
+      const r = await sbMarquerImpactTraite(imp.id).catch(() => null);
+      if (!contexteGroupePjValide(c)) return false;
+      if (r?.ok !== true || r.contrat !== 1) { complet = false; if (!r) relire = true; continue; }
+      relire = true;
+      if (r.marques === 1 && r.applique === true) confirmes.push(r.indice);
     }
-    if (resume.length > 0) {
-      updateUI();
-      const agrappe = resume.some(r => r.includes('Agression'));
-      const empoisonne = resume.some(r => r.includes('Empoisonnement'));
-      if (agrappe) {
-        showToast('Agression !', 'Vous avez été attaqué(e). PV : ' + state.hp + '. Récupération : +10/jour.', false, true);
-        addJournalEntry('Vous avez été victime d\'une agression. Vos PV sont tombés à ' + state.hp + '.', 'event-bad');
-      } else if (empoisonne) {
-        showToast('Malaise suspect', 'Vous ne vous sentez pas bien... quelque chose ne va pas. Soignez-vous avant votre prochain sommeil.', false, true);
-        addJournalEntry('Un malaise suspect vous gagne. Vous pourriez avoir été empoisonné(e).', 'event-bad');
-      } else if (resume.some(r => r.includes('carte postale'))) {
-        // Branche dediee (Lot 4, 23 aout 2026) : une correspondance recue par un autre joueur,
-        // jamais un evenement negatif -- evite le libelle generique "affecte vos indices"/le
-        // toast "bad" ci-dessous, inadapte a un gain de Moral.
-        showToast('Correspondance lue', 'Une carte postale que vous avez envoyée a été lue. +10 Moral.', true, true);
-        addJournalEntry('Une carte postale que vous avez envoyée a été lue. +10 Moral.', 'event-good');
-      } else {
-        addJournalEntry('Des événements ont affecté vos indices : ' + resume.join(', ') + '.', 'event-bad');
-        showToast('Indices modifiés', resume.join(', '), false, true);
+    if (!relire) return false;
+    const frais = await sbLoadPersonnage(c.nom).catch(() => null);
+    if (!contexteGroupePjValide(c) || !frais || (c.uid && frais.userId !== c.uid)) return false;
+    for (const cle of ['pop','inf']) if (typeof frais[cle] === 'number') adopterJaugeServeur(cle, frais[cle]);
+    const base = {};
+    for (const [cle,colonne] of [['pa','pa'],['hp','hp'],['moral','moral'],['dis',null],
+      ['statsAffaiblies','stats_affaiblies'],['empoisonnement','poison_actif'],['regenJour','regen_jour'],
+      ['cartePostaleMoralJour','carte_postale_moral_jour'],['hospitalisation','hospitalisation']]) {
+      if (Object.prototype.hasOwnProperty.call(frais,cle)) {
+        state[cle] = frais[cle]; if (colonne) base[colonne] = frais[cle];
       }
     }
-  } catch(e) { console.warn('recupererImpactsEnAttente error', e); }
+    if (typeof sbFicheBaseAdopter === 'function') sbFicheBaseAdopter(base);
+    updateUI();
+    if (confirmes.length) {
+      const physique = confirmes.some(x => ['hp_set','poison_start'].includes(x));
+      showToast('Événements confirmés', 'Votre état a été relu sur le serveur. Consultez votre journal.', !physique, true);
+      const libelles = {pop:'popularité',inf:'influence',dis:'discrétion',moral_carte_postale:'correspondance lue',hp_set:'agression',poison_start:'malaise suspect'};
+      addJournalEntry('Événements confirmés par le serveur : ' + confirmes.map(x => libelles[x] || 'état personnel').join(', ') + '.', physique ? 'event-bad' : 'event-info');
+    }
+    return complet;
+  } finally { if (RP_IMPACTS_RECEPTION === c) RP_IMPACTS_RECEPTION = null; }
 }
 
 // Regeneration naturelle des PV (+10/jour) apres une agression — appelee a minuit dans runMidnightUpdate
