@@ -464,9 +464,6 @@ TU NE DONNES AUCUN PRIX CHIFFRÉ : tu dis « pas cher », « moins cher qu'en vi
   'loic_karamel':                  { nom: "Loïc Karamel", role: "Prisonnier — Contrebandier" },
   'louis_chevillard':              { nom: "Louis Chevillard", role: "Policier en retraite", lieu: "Dispensaire Public" },
   'm_fischer':                     { nom: "M. Fischer", role: "PNJ - Gestionnaire de patrimoine", lieu: "Banque Privee Helvetia" },
-  // Identités déjà définies dans data.js ; profil ordinaire, sans savoir inventé.
-  'maitre_ali_bihanbeton':         { nom: "Maître Ali Bihanbéton", role: "Avocat commis d'office", lieu: "le Tribunal de Port-Sainte-Marie" },
-  'maitre_henri_nossant':          { nom: "Maître Henri Nossant", role: "Avocat commis d'office", lieu: "le Tribunal de Montrouge" },
   'maitre_plaidoyer':              { nom: "Maître Plaidoyer", role: "Avocat commis d'office", lieu: "le Tribunal de Luthécia",
     trait: `Tu es avocat commis d'office au Tribunal de Luthécia. Tu travailles dans les couloirs, debout, un dossier sous le bras et deux autres sous le premier.
 ON TE COMMET, PERSONNE NE TE CHOISIT, et c'est la phrase par laquelle tu te présentes. Tu la dis sans amertume : ceux qui peuvent choisir prennent quelqu'un d'autre, et ceux qui ne peuvent pas t'ont, toi. Tu trouves que c'est déjà beaucoup mieux que rien, et tu le penses vraiment.

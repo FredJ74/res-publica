@@ -5912,6 +5912,20 @@ const ACTIONS_POSTE_NOMME = {
     candidatures: {fn:'gerer_candidature_directeur_entrepot', label:'Étudier les candidatures à la direction de l’entrepôt', pa:1, cost:0},
     nommer: {fn:'nommer_directeur_entrepot', label:'Nommer la direction de l’entrepôt', pa:3, cost:0},
     revoquer: {fn:'revoquer_directeur_entrepot', label:'Révoquer la direction de l’entrepôt', pa:1, cost:0}
+  },
+  // #351 : mêmes actes et coûts que dans les anciens bureaux d'usine. Le menu
+  // ministériel ne doit devenir ni le nom de l'ordre payé, ni son tarif.
+  directeur_pharma: {
+    nommer: {fn:'nommer_directeur_pharma', label:'Nommer le directeur pharmaceutique', pa:3, cost:0},
+    revoquer: {fn:'revoquer_directeur_pharma', label:'Révoquer le directeur pharmaceutique', pa:1, cost:0}
+  },
+  directeur_tabac_alcools: {
+    nommer: {fn:'nommer_directeur_tabac_alcools', label:'Nommer le directeur tabac et alcools', pa:3, cost:0},
+    revoquer: {fn:'revoquer_directeur_tabac_alcools', label:'Révoquer le directeur tabac et alcools', pa:1, cost:0}
+  },
+  directeur_raffinerie: {
+    nommer: {fn:'nommer_directeur_raffinerie', label:'Nommer le directeur de la raffinerie', pa:3, cost:0},
+    revoquer: {fn:'revoquer_directeur_raffinerie', label:'Révoquer le directeur de la raffinerie', pa:1, cost:0}
   }
 };
 
@@ -5919,7 +5933,7 @@ const ACTIONS_POSTE_NOMME = {
 // jamais le nom du menu de regroupement depose dans state._ordreEnCours.
 function coutActionPosteNomme(posteId, action, pa, cost) {
   const actions = ACTIONS_POSTE_NOMME[posteId];
-  const ordre = actions?.[action] || (action === 'candidatures' ? actions?.nommer : null);
+  const ordre = actions?.[action] || (action === 'candidatures' && actions?.candidatures === null ? actions?.nommer : null);
   return ordre ? { fn: ordre.fn, pa: ordre.pa, cost: ordre.cost } : { pa, cost };
 }
 

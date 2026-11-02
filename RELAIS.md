@@ -31,10 +31,14 @@ Branche `codex/audit-global-republia-20261102`, issue du main `a99c4069`
 (#351/#352 conservées). Lecture du catalogue effectif : 102 bâtiments, 305 pièces,
 219 occurrences PNJ, 1 141 ordres. Audit en cours sans RPC ni production.
 Corrections démontrées : les quatre images de locaux libres PSM étaient masquées
-par les variantes Luthécia ; deux avocats de province sans profil serveur.
-Moteurs et état occupé existants conservés, profils ordinaires issus des identités
-déjà déclarées. Tests ciblés 4/4 + banc locations ; inventaire complet et recette
-locale navigateur en cours. Aucun chantier #219 ni immobilier repris.
+par les variantes Luthécia. Deux avocats sans profil sont explicitement déclarés
+muets par le banc historique : aucun profil ajouté après relecture.
+Moteurs et état occupé existants conservés ; aucune personnalité inventée.
+Raccordement #351 complété dans le moteur de coûts des postes nommés (six tarifs
+existants, aucun prix changé) : Baseline et Referential redevenus verts sans
+changer leurs références. 7 tests ciblés, Chromium 2/2, 164 bancs clients, globaux
+12/12 ; dix défauts reproduits sur main. Rapport complet en préparation.
+Aucun chantier #219 ni immobilier repris.
 
 
 ### Reste de la clôture de Luthécia (Claude, après #340)

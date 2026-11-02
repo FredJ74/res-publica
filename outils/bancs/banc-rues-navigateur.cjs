@@ -27,14 +27,25 @@ for(const origine of ['psm-carrefour-artisanal-scierie','psm-ecole-phare','psm-t
  }
  exiger(document.querySelectorAll('.rc-fleche').length===4,'directions perdues '+origine);
 }
-exiger(images.size===4,'les quatre vues doivent rester distinctes');document.body.dataset.verdict='OK';
+exiger(images.size===4,'les quatre vues doivent rester distinctes');
+// Vrais fichiers et vrai sélecteur de variante ; seul l'état locatif est simulé.
+for(const piece of ['vitrine_principale','boutique_milieu','arriere_boutique','cave_reserve']){
+ for(const etat of ['libre','occupee']){
+  PIECE_FAMILLES_ETAT.location.etat=()=>etat;
+  const url=varianteImagePiece('centre-commercial',piece,'ville_a');
+  exiger(etat!=='libre'||url.startsWith('images/port-sainte-marie-'),'image libre PSM masquée '+piece);
+  const img=new Image();img.src=url;await img.decode();
+  exiger(img.naturalWidth>0&&img.naturalHeight>0,'illustration illisible '+piece+' '+etat);
+ }
+}
+document.body.dataset.verdict='OK';
 }catch(e){document.body.dataset.verdict='ECHEC';document.body.dataset.erreur=e.message;}})();`;
 async function verifier(largeur){
  const profil=fs.mkdtempSync(path.join(os.tmpdir(),'hg-rues-'));let chrome,ws,id=0;const pending=new Map();
- const page='<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/rue-centrale.css"><div id="rue-centrale-conteneur"></div><script>var state={char:{name:"Temoin"},country:"republic",currentCity:"capitale"};async function sbRpc(){return {ok:true};}</script><script src="/plateau-rue-centrale.js"></script><script>'+scenario+'</script>';
+ const page='<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/rue-centrale.css"><div id="rue-centrale-conteneur"></div><script>var state={char:{name:"Temoin"},country:"republic",currentCity:"capitale"};async function sbRpc(){return {ok:true};}</script><script src="/data.js"></script><script src="/plateau-variantes-pieces.js"></script><script src="/plateau-rue-centrale.js"></script><script>'+scenario+'</script>';
  const serveur=http.createServer((req,res)=>{const url=req.url.split('?')[0];if(url==='/'){res.setHeader('Content-Type','text/html');res.end(page);return;}
-  if(!['/rue-centrale.css','/plateau-rue-centrale.js'].includes(url)&&!/^\/images\/rue-[a-z-]+\.webp$/.test(url)){res.writeHead(404);res.end();return;}
-  try{res.setHeader('Content-Type',url.endsWith('.js')?'text/javascript':url.endsWith('.css')?'text/css':'image/webp');res.end(fs.readFileSync(path.join(racine,url.slice(1))));}catch(_){res.writeHead(404);res.end();}});
+  if(!['/rue-centrale.css','/data.js','/plateau-variantes-pieces.js','/plateau-rue-centrale.js'].includes(url)&&!/^\/images\/[a-z-]+\.(?:webp|png)$/.test(url)){res.writeHead(404);res.end();return;}
+  try{res.setHeader('Content-Type',url.endsWith('.js')?'text/javascript':url.endsWith('.css')?'text/css':url.endsWith('.png')?'image/png':'image/webp');res.end(fs.readFileSync(path.join(racine,url.slice(1))));}catch(_){res.writeHead(404);res.end();}});
  const pause=ms=>new Promise(r=>setTimeout(r,ms));
  try{
   await new Promise((r,j)=>{serveur.once('error',j);serveur.listen(0,'127.0.0.1',r);});
@@ -56,4 +67,4 @@ async function verifier(largeur){
   try{if(chrome)await chrome.arreter();}finally{serveur.closeAllConnections();try{await new Promise((r,j)=>serveur.close(e=>e&&e.code!=='ERR_SERVER_NOT_RUNNING'?j(e):r()));}finally{fs.rmSync(profil,{recursive:true,force:true,maxRetries:3});}}
  }
 }
-for(const largeur of [1280,390])test(`Chromium ${largeur}px : retours des lots et quatre vues PSM`,()=>verifier(largeur));
+for(const largeur of [1280,390])test(`Chromium ${largeur}px : retours des lots, quatre vues et huit états graphiques PSM`,()=>verifier(largeur));
