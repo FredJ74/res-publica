@@ -45,7 +45,15 @@ Second lot : les cinq entrées publiques transport/douane/taxi délèguent toujo
 aux commandes atomiques existantes ; plus de branche payante sélectionnée par
 un drapeau local absent. Contre-épreuve main : 11 échecs sur 16 cas ; code corrigé
 16/16, moteurs existants transports 8/8 et douanes 12/12. Le TODO F5 #219/#318
-est activé (dépendance désormais fusionnée) : 5/5. PostgreSQL ciblé en cours.
+est activé (dépendance désormais fusionnée) : 5/5. PostgreSQL natif 17.6/ICU 153.121 :
+141/141 cas ciblés réussis sur fixtures authenticated (pas une recertification #219).
+Main #375 et #376 intégré sans retoucher les PNJ/DeepSeek de Claude. Troisième lot :
+Chromium démontre les attributs onclick tronqués des boutons réservés à un poste ;
+échappement commun corrigé, pas de changement de droits. Rendu réel greffes et
+commissariats, 3 villes × 2 largeurs : 12 scénarios + parent réussis. Chargement réel
+avec cache périmé/panne/autre UID : 9 cas. Deux bancs historiques adaptés à la
+disparition des convocations locales et au nouveau nom du vote organisation.
+Contrôles globaux hors ligne 12/12 ; contrôleur clients relancé après ces corrections.
 GitHub public HTTPS lisible ; API GraphQL/REST refusée. Aucune donnée joueur ni
 production modifiée ; aucune fusion/migration autorisée par cette mission.
 
