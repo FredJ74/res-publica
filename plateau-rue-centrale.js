@@ -769,7 +769,7 @@ const RUE_CENTRALE_NOEUDS = {
 
     // La gare est dans le dos ; accès tribunal de face, SSM à gauche, parking à droite.
     'montrouge-tribunal-ssm': {
-      image: 'images/montrouge/montrouge-rue-tribunal-ssm.png',
+      image: 'images/montrouge/montrouge-rue-tribunal-ssm.webp',
       zones: [
         { xPct: [0, 24], nom: 'Services Sociaux de Montrouge', type: 'batiment', buildingId: 'services-sociaux-montrouge' },
         { xPct: [33, 72], nom: 'Tribunal de Montrouge', type: 'batiment', buildingId: 'tribunal-local' },
