@@ -1199,7 +1199,13 @@ const WORLD = {
           orders: [{fn:'marche_noir', label:'Marché Noir', pa:1, cost:0, type:'illegal', icon:'ti-alert-triangle', successRate:100, desc:'Explosifs et le poison local, sous le comptoir de la quincaillerie. Rien de tout cela n\'est enregistré.'}] },
         'commissariat-local':           { name: "Commissariat de Montrouge",
           // Bureau du commissaire (29/10/2026) : ordres du gabarit commun ; aucun PNJ tant qu'il n'a pas de profil de dialogue.
-          roomOverrides: { bureau_commissaire: { desc: "Le bureau du commissaire de Montrouge, en tension permanente avec le syndicat local." } } },
+          roomOverrides: { bureau_commissaire: {
+            desc: "Le bureau du commissaire de Montrouge, en tension permanente avec le syndicat local.",
+            imageUrl: "images/montrouge/montrouge-commissariat-bureau.jpg.png",
+            // Le PJ nommé occupe le poste de commissaire ; Gabriel demeure le référent PNJ,
+            // en qualité d'adjoint, sans accès aux ordres réservés au titulaire du poste.
+            persons: [{name:'Gabriel Pelletier (PNJ)', role:'Commissaire adjoint — référent police', rel:'neutral', job:'commissaire'}]
+          } } },
         'raffinerie-montrouge':         { name: "Raffinerie de Montrouge" },
         'centre-multinodal-montrouge':  { name: "Gare de Montrouge" },
         'entrepot-logistique-montrouge':{ name: "Entrepôt logistique de Montrouge" },

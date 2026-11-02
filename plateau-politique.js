@@ -4379,7 +4379,36 @@ function renderRoomActions(room, buildingId, roomId) {
     buttons.push('<button class="action-btn legal" onclick="ouvrirAudioguide(\'' + room.audioUrl + '\',\'' + safeNom + '\')" title="Ecouter l\'audioguide de cette salle"><i class="ti ti-headphones" style="font-size:.82rem"></i> Écouter l\'audioguide <span class="pa-cost">gratuit · 0 PA</span></button>');
   }
 
-  document.getElementById('actions-row-bat').innerHTML = buttons.join('') ||
+  // Bureau du commissaire : deux menus visuels communs aux trois villes.
+  // Les actions filles conservent leur definition, leurs couts et les gardes serveur
+  // identiques. Les en-tetes n'ont ni fn ni debit PA/FR.
+  let boutonsOrganises = buttons;
+  if (['commissariat', 'commissariat-local'].includes(buildingId) && roomId === 'bureau_commissaire') {
+    const enquete = new Set(['mener_enquete', 'organiser_filature', 'organiser_chasse_homme']);
+    const effectifs = new Set(['gerer_effectifs_police', 'recruter_policier', 'recruter_policier_cynophile']);
+    const sousMenu = (titre, icone, groupe) => {
+      const enfants = ordresTerrainLuthecia.map((o, index) => groupe.has(o.fn) ? buttons[index] : '').filter(Boolean);
+      return '<details class="commissariat-sous-menu" style="width:100%">' +
+        '<summary class="action-btn legal" style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:.5rem">' +
+        '<i class="ti ' + icone + '"></i> ' + titre + ' <i class="ti ti-chevron-down" style="margin-left:auto"></i></summary>' +
+        '<div style="display:flex;flex-direction:column;gap:.4rem;padding:.45rem 0 .45rem .8rem">' +
+        enfants.join('') + '</div></details>';
+    };
+    boutonsOrganises = [];
+    let enquetesInserees = false, effectifsInseres = false;
+    ordresTerrainLuthecia.forEach((o, index) => {
+      if (enquete.has(o.fn)) {
+        if (!enquetesInserees) { boutonsOrganises.push(sousMenu('Enquêtes', 'ti-search', enquete)); enquetesInserees = true; }
+      } else if (effectifs.has(o.fn)) {
+        if (!effectifsInseres) { boutonsOrganises.push(sousMenu('Gérer les effectifs', 'ti-users-group', effectifs)); effectifsInseres = true; }
+      } else {
+        boutonsOrganises.push(buttons[index]);
+      }
+    });
+    boutonsOrganises.push(...buttons.slice(ordresTerrainLuthecia.length));
+  }
+
+  document.getElementById('actions-row-bat').innerHTML = boutonsOrganises.join('') ||
     '<div style="font-size:.75rem;color:#9a8a68;font-style:italic;padding:.3rem">Aucune action disponible ici.</div>';
 }
 
