@@ -6416,8 +6416,6 @@ const BUILDINGS = {
         desc: "Le bureau du directeur de la raffinerie. Accès sur rendez-vous.",
         persons: [{name:'Gustave Baril (PNJ)', role:'Directeur de la Raffinerie', rel:'neutral', job:'directeur_raffinerie'}],
         orders: [
-          {fn:'nommer_directeur_raffinerie', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de la raffinerie. Poste exclusif (sauf député).'},
-          {fn:'revoquer_directeur_raffinerie', label:'Révoquer le directeur', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'min_fin', desc:'Retirer le poste au directeur de la raffinerie actuellement en fonction.'},
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_raffinerie', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
           {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_raffinerie', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
           {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_raffinerie', desc:'Verser un montant depuis la caisse de la raffinerie vers la caisse du Ministère des Finances.'}
@@ -6489,8 +6487,6 @@ const BUILDINGS = {
         desc: "Le bureau du directeur du pôle. Accès sur rendez-vous.",
         persons: [{name:'Fernand Cendrier (PNJ)', role:'Directeur du Pôle Tabac & Alcools', rel:'neutral', job:'directeur_tabac_alcools'}],
         orders: [
-          {fn:'nommer_directeur_tabac_alcools', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur du Pôle Tabac & Alcools. Poste exclusif (sauf député).'},
-          {fn:'revoquer_directeur_tabac_alcools', label:'Révoquer le directeur', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'min_fin', desc:'Retirer le poste au directeur du Pôle Tabac & Alcools actuellement en fonction.'},
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
           {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
           {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_tabac_alcools', desc:'Verser un montant depuis la caisse du pôle vers la caisse du Ministère des Finances.'}
@@ -6616,8 +6612,6 @@ const BUILDINGS = {
         desc: "Le bureau du directeur de l'usine. Accès sur rendez-vous.",
         persons: [{name:'Bernard Piluler (PNJ)', role:"Directeur de l'Usine Pharmaceutique", rel:'neutral', job:'directeur_pharma'}],
         orders: [
-          {fn:'nommer_directeur_pharma', label:'Nommer un directeur', pa:3, cost:0, type:'legal', icon:'ti-user-star', successRate:100, requiresPost:'min_fin', desc:'Nommer un PJ directeur de l\'Usine Pharmaceutique. Poste exclusif (sauf député).'},
-          {fn:'revoquer_directeur_pharma', label:'Révoquer le directeur', pa:1, cost:0, type:'legal', icon:'ti-user-x', successRate:100, requiresPost:'min_fin', desc:'Retirer le poste au directeur de l\'Usine Pharmaceutique actuellement en fonction.'},
           {fn:'fixer_prix_vente_directe', label:'Fixer les prix de vente', pa:1, cost:0, type:'legal', icon:'ti-tag', successRate:100, requiresPost:'directeur_pharma', desc:'Fixer le prix de chaque produit vendu en vente directe, dans la fourchette autorisée (±40% du prix de base).'},
           {fn:'fixer_repartition_production', label:'Répartir la production', pa:1, cost:0, type:'legal', icon:'ti-adjustments', successRate:100, requiresPost:'directeur_pharma', desc:'Choisir la part de la production quotidienne envoyée aux entrepôts publics (le reste part en vente directe sur place).'},
           {fn:'virement_usine_ministere', label:'Virement vers le Ministère', pa:1, cost:0, type:'legal', icon:'ti-transfer', successRate:100, requiresPost:'directeur_pharma', desc:"Verser un montant depuis la caisse de l'usine vers la caisse du Ministère des Finances."}
