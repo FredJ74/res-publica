@@ -156,3 +156,17 @@ test('le formulaire de connexion préexistant est localisé en neuf langues sans
  assert.match(index,/onclick="connecterAvecMotDePasse\(\)"/);
  assert.match(index,/onclick="ouvrirConnexionCompte\(\)"/);
 });
+
+test('chaque clé effectivement utilisée par les écrans de bienvenue existe dans les neuf langues',()=>{
+ const w=load();
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ const keys=[...html.matchAll(/data-i18n(?:-placeholder)?="([a-zA-Z0-9_.-]+)"/g)].map(x=>x[1]);
+ assert.ok(keys.length>20);
+ for(const lang of Object.keys(w.RP_I18N_LANGUAGES)){
+  const data=w.RP_I18N_RESOURCES[lang].translation;
+  for(const key of keys){
+   const value=key.split('.').reduce((node,part)=>node?.[part],data);
+   assert.equal(typeof value,'string',lang+':'+key);
+  }
+ }
+});
