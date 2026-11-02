@@ -199,3 +199,5 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - Contrat PNJ préparé dans `i18n/PLAN-PNJ-9-LANGUES.md`, sans modifier les profils ni l'API DeepSeek : attendre le socle stabilisé de Claude.
 - Ne pas fusionner ou déployer publiquement cette PR incomplète. Le jeu doit rester jouable en français tant que le plateau, les notifications et les textes joueurs n'ont pas leur recette complète.
 - Dernière série de tests CI à lire sur le SHA exact avant livraison ; ne pas confondre une parité des clés et une relecture éditoriale.
+
+- 03/11/2026 — i18n #377, contrôle de production **lecture seule** : SELECT RLS confirmé sur `forum_posts` et `forum_topics` (`true`), `messages_chat` (`chat_participe(conversation_id, salon)`). Absence de politique SELECT ordinaire vérifiée sur `audience_messages` et `journal_articles_en_attente` : ces deux types ont été exclus de `api/_traduction-sources.js`. Prévol reproductible : `outils/audits/PREFLIGHT-I18N-RLS-LECTURE-SEULE.sql`, **3/3 conformes**. Aucune API de traduction exposée, pas de migration. Ne jamais traduire un texte chat sur base d'un ID fourni sans lire sa ligne sous JWT lecteur et RLS. 
