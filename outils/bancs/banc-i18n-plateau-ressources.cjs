@@ -19,3 +19,13 @@ test('libellés du plateau complets et identiques dans neuf catalogues',()=>{
   for(const label of Object.values(labels)) assert.ok(typeof label==='string'&&label.trim().length>0);
  }
 });
+
+test('toutes les clés câblées au HTML du plateau existent dans les neuf langues',()=>{
+ const html=fs.readFileSync(path.join(root,'plateau.html'),'utf8');
+ const keys=[...html.matchAll(/data-i18n="plateau\.([a-zA-Z]+)"/g)].map(m=>m[1]);
+ assert.ok(keys.length>=20,'Trop peu de libellés câblés au plateau');
+ for(const lang of Object.keys(win.RP_I18N_LANGUAGES)) {
+  const catalog=win.RP_I18N_RESOURCES[lang].translation.plateau;
+  for(const key of keys) assert.ok(catalog[key],lang+':'+key);
+ }
+});
