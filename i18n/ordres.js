@@ -22,6 +22,14 @@
    key='orders.'+order.i18nKey;
   else if(validKey.test(code) && !ambiguities.has(code))key='orders.'+code;
   if(!key)return original;
+  // Un même fn peut changer de sens ou de prix selon la pièce / le fournisseur.
+  // Pour une traduction par ID implicite, accepter uniquement le libellé
+  // de référence réellement catalogué en français. Un i18nKey explicite
+  // porte sa propre variante et peut être affiché même pour les cas ambigus.
+  if(!order.i18nKey) {
+    const reference=engine.t(key,{lng:'fr',defaultValue:null});
+    if(typeof reference!=='string' || reference!==original)return original;
+  }
   const value=engine.t(key,{lng:locale,defaultValue:original});
   return typeof value==='string'&&value.length?value:original;
  }
