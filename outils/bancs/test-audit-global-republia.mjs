@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
-import { profilExiste } from '../../api/_pnj-profils.js';
+import { profilExiste, construirePromptSysteme } from '../../api/_pnj-profils.js';
 const require=createRequire(import.meta.url),{analyser,verifierImage}=require('../audits/auditer-republia-complet.cjs');
 const root=new URL('../../',import.meta.url),lire=f=>fs.readFileSync(new URL(f,root),'utf8');
 test('le catalogue réel des trois villes est examiné sans chemin cassé',()=>{
@@ -60,4 +60,12 @@ test('directions d’usine #351 : les actes conservent leur ordre de paiement ho
 test('#352 : la salle des ventes de la raffinerie conserve son image locale',()=>{
  const r=analyser().villes.find(v=>v.id==='ville_b').batiments.find(b=>b.id==='raffinerie-montrouge').pieces.find(r=>r.id==='salle_ventes');
  assert.equal(r.image,'images/montrouge/Montrouge_raffinerie_salle_ventes.png');
+});
+
+test('les journalistes communs parlent depuis une rédaction, sans ancien hôtel ni fausse enseigne',()=>{
+ for(const id of ['marie_leblanc','romain_castel']){
+  const prompt=construirePromptSysteme(id,'fr');
+  assert.match(prompt,/la rédaction du journal local/);
+  assert.doesNotMatch(prompt,/Hotel-Restaurant La Republica|La Tribune de Republia/);
+ }
 });
