@@ -20,7 +20,7 @@ on:
       - 'outils/bancs/banc-i18n-ordres.cjs'
       - 'outils/bancs/banc-i18n-catalogue-ordres.cjs'
   push:
-    branches: [main]
+    branches: [main, chatgpt/accueil-9-langues-20261102]
     paths:
       - 'i18n/**'
       - 'index.html'
