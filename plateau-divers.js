@@ -1141,7 +1141,13 @@ async function removeFromInventory(idx, motif, options) {
   // qui ne les lisent pas se comportent exactement comme avant.
   return { ok: true, objet: r.objet || item, inventory: state.inventory, objetId: r.objet_id || null,
            pa: (typeof r.pa === 'number') ? r.pa : undefined,
-           aliment_frais: (typeof r.aliment_frais === 'boolean') ? r.aliment_frais : undefined };
+           aliment_frais: (typeof r.aliment_frais === 'boolean') ? r.aliment_frais : undefined,
+           // Boulette (2 novembre 2026) : moral, sante et effets temporaires poses par le serveur.
+           drogue: r.drogue === true,
+           hp: (typeof r.hp === 'number') ? r.hp : undefined,
+           moral: (typeof r.moral === 'number') ? r.moral : undefined,
+           effets_actifs: Array.isArray(r.effets_actifs) ? r.effets_actifs : undefined,
+           bonus_ent: (typeof r.bonus_ent === 'boolean') ? r.bonus_ent : undefined };
 }
 
 // Message unique des refus de sortie, pour que les 32 anciens sites ne reinventent pas chacun
