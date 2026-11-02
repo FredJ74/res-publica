@@ -1065,6 +1065,20 @@ const WORLD = {
           desc: "Gustave Encre imprime n'importe quoi pour n'importe qui.",
           persons: [{"name": "Gustave Encre (PNJ)", "role": "Imprimeur", "rel": "neutral", "job": "journaliste"}]
         },
+        // 2 novembre 2026 (decision de Fred) : aucune connexion entre les villes. Les trois PNJ
+        // du gabarit (Sabri Coledur, Céd' Labone, Henrico Stot, de Luthecia) sont remplaces par
+        // des PNJ propres a PSM, memes roles et memes metiers (aucune mecanique ajoutee).
+        'centre-artisanal': {
+          roomOverrides: {
+            travees: {
+              persons: [
+                {name:'Erwan Kerdan', role:'Mécanicien', rel:'neutral', job:'commercant'},
+                {name:'Ronan Lafourgue', role:'Dealer', rel:'neutral', job:'criminel'},
+                {name:'Maël Strom', role:'Sécurité', rel:'neutral', job:'agent_securite'}
+              ]
+            }
+          }
+        },
         'marche': {
           name: "Marché du Port",
           desc: "Poissons frais, rumeurs fraîches.",
@@ -1140,7 +1154,9 @@ const WORLD = {
             // de La Tribune elle-meme (Luthecia) ou de sa propre antenne locale (buildingContext
             // ['centre-affaires'].roomOverrides.tribune_republia juste plus bas dans ce fichier).
             // produire_fuite/fabriquer_scandale/interview/corrompre_journaliste restent inchanges ici.
-            redaction:       { imageUrl: "images/montrouge/montrouge-lci-redaction.jpg", excludeOrders: ['article', 'etouffer'] }
+            // 2 novembre 2026 (decision de Fred) : Romain Castel et Marie Leblanc, de Luthecia, ne
+            // doivent pas apparaitre a Montrouge ; le redacteur Calame tient deja l'accueil du LCI.
+            redaction:       { imageUrl: "images/montrouge/montrouge-lci-redaction.jpg", excludeOrders: ['article', 'etouffer'], personsVides: true }
           },
           roomsExtra: {
             // Tracts calomnieux (24 aout 2026) : ajoute dans cette room (deja creee, jusqu'ici
@@ -1416,8 +1432,11 @@ const WORLD = {
         'loge-maconnique': {
           name: "Loge maçonnique de Montrouge",
           roomOverrides: {
-            hall_loge:          { imageUrl: "images/montrouge/montrouge-loge-entree.jpg" },
-            salle_reunion_loge: { imageUrl: "images/montrouge/montrouge-loge-salle-reunion.jpg" }
+            // 2 novembre 2026 (decision de Fred) : membres propres a la loge de Montrouge.
+            hall_loge:          { imageUrl: "images/montrouge/montrouge-loge-entree.jpg",
+                                  persons: [{name:'Frère Lampiste', role:'PNJ - Membre de la Loge', rel:'neutral', job:'membre_loge'}] },
+            salle_reunion_loge: { imageUrl: "images/montrouge/montrouge-loge-salle-reunion.jpg" },
+            bureau_venerable:   { persons: [{name:'Vénérable Maître Augustin Grisou', role:'PNJ - Chef de la Loge', rel:'neutral', job:'venerable'}] }
           }
         },
         // Correspondance par tier (18 aout 2026), meme logique deja validee pour centre-affaires
@@ -1429,7 +1448,15 @@ const WORLD = {
         'centre-artisanal': {
           name: "Centre artisanal de Montrouge",
           roomOverrides: {
-            travees:         { imageUrl: "images/montrouge/montrouge-centre-artisanal-accueil.jpg" },
+            // 2 novembre 2026 (decision de Fred) : PNJ propres a Montrouge, plus ceux de Luthecia.
+            travees: {
+              imageUrl: "images/montrouge/montrouge-centre-artisanal-accueil.jpg",
+                persons: [
+                  {name:'Gilles Bielle', role:'Mécanicien', rel:'neutral', job:'commercant'},
+                  {name:'Jojo Laferraille', role:'Dealer', rel:'neutral', job:'criminel'},
+                  {name:'Bruno Ducoron', role:'Sécurité', rel:'neutral', job:'agent_securite'}
+                ]
+            },
             echoppe_facade:  { imageUrl: "images/montrouge/montrouge-centre-artisanal-box-grand.jpg" },
             atelier_milieu:  { imageUrl: "images/montrouge/montrouge-centre-artisanal-box-moyen.jpg" },
             reserve_arriere: { imageUrl: "images/montrouge/montrouge-centre-artisanal-box-petit.jpg" }
