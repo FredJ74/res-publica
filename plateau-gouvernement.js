@@ -330,6 +330,10 @@ async function ouvrirGestionIndustriellePortuaire(pa, cost) {
   ouvrirPanneauFonction('Gestion industrielle et portuaire', [
     { label: 'Candidatures de directeurs', desc: 'Candidatures aux directions des trois usines nationales.',
       onclick: 'ouvrirGestionCandidatures([\'directeur_pharma\',\'directeur_tabac_alcools\',\'directeur_raffinerie\'],' + (pa || 0) + ',' + (cost || 0) + ')' },
+    { label: 'Nommer un directeur d’usine', desc: 'Choisir l’une des trois usines nationales et nommer son directeur (3 PA).',
+      onclick: 'ouvrirGestionNominationsUsines(\'nommer\')' },
+    { label: 'Révoquer un directeur d’usine', desc: 'Choisir l’une des trois usines nationales et révoquer son directeur (1 PA).',
+      onclick: 'ouvrirGestionNominationsUsines(\'revoquer\')' },
     { label: 'Virement vers une usine', desc: 'Verser des fonds du ministère à une usine nationale.',
       onclick: 'doOuvrirVirementMinistereUsine(' + (pa || 0) + ',' + (cost || 0) + ')' },
     { label: 'Nommer le Commandant du Port', desc: 'Désigner le Commandant du Port.',
@@ -337,6 +341,29 @@ async function ouvrirGestionIndustriellePortuaire(pa, cost) {
     { label: 'Révoquer le Commandant du Port', desc: 'Retirer le poste au titulaire en fonction.',
       onclick: 'ouvrirRevoquerPosteNomme(\'capitaine_port\',' + (pa || 0) + ',' + (cost || 0) + ')' }
   ], entete);
+}
+
+// Nomination et révocation centralisées au ministère (et non dans les usines).
+function ouvrirGestionNominationsUsines(action) {
+  if (state.poste?.id !== 'min_fin') {
+    showToast('Accès refusé', 'Réservé au Ministre des Finances.', false);
+    return;
+  }
+  const postes = [
+    { id: 'directeur_pharma', label: 'Luthécia — Usine pharmaceutique' },
+    { id: 'directeur_tabac_alcools', label: 'Port-Sainte-Marie — Pôle Tabac & Alcools' },
+    { id: 'directeur_raffinerie', label: 'Montrouge — Raffinerie' }
+  ];
+  const nommer = action === 'nommer';
+  if (!nommer && action !== 'revoquer') return;
+  const pa = nommer ? 3 : 1;
+  ouvrirPanneauFonction(nommer ? 'Nommer un directeur d’usine' : 'Révoquer un directeur d’usine',
+    postes.map(({ id, label }) => ({
+      label, pa,
+      desc: nommer ? 'Nommer le directeur de cette usine (3 PA).' : 'Révoquer le directeur de cette usine (1 PA).',
+      onclick: (nommer ? 'ouvrirNominerPosteNomme' : 'ouvrirRevoquerPosteNomme') +
+        "('" + id + "'," + pa + ',0)'
+    })));
 }
 
 // --- AFFAIRES ETRANGERES : Ambassades et ambassadeurs ------------------------
