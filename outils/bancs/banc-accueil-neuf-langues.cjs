@@ -26,7 +26,7 @@ test('nouvelles langues : accueil traduit, suite du parcours avec repli FR', () 
     assert.ok(t.home.descriptor);
     assert.ok(t.home.signature);
     assert.ok(t.home.findCharacter);
-    assert.equal(t.creation.countries, undefined, 'La suite ne doit pas etre annoncee comme integralement traduite');
+    assert.ok(t.creation.countries.republic.description, 'La création comporte désormais ses descriptions localisées');
   }
   assert.ok(w.RP_I18N_RESOURCES.fr.translation.creation.steps.country.title);
 });
