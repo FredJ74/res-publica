@@ -86,3 +86,16 @@ test('texte de bienvenue et conseiller complets pour les trois langues suppléme
     for (const key of names) assert.ok(tr.creation.conseiller[key],lang+':conseiller.'+key);
   }
 });
+
+test('origines et écoles possèdent leurs libellés dans les trois nouvelles langues', () => {
+ const w=load();
+ for (const lang of ['ar','pt-BR','de']) {
+   const c=w.RP_I18N_RESOURCES[lang].translation.creation;
+   for (const k of ['poor','worker','bourgeois','elite']) {
+     assert.ok(c.origins[k]?.name && c.origins[k]?.trait, lang+':origine '+k);
+   }
+   for (const k of ['none','basic','higher','elite']) {
+     assert.ok(c.schools[k]?.name && c.schools[k]?.blockLabel, lang+':école '+k);
+   }
+ }
+});
