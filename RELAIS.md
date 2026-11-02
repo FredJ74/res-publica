@@ -36,6 +36,11 @@ Relais et audits #250/#262/#282 réutilisés. Première lecture : #219/#349/#366
 fusionnées, mais livraison réelle à distinguer des rapports ; les bancs existants
 position, greffes et commissariats passent localement. Matrice de livraison,
 rendu navigateur et inventaire différentiel des anciennes routes en cours.
+Premier lot repris de l'audit historique non fusionné (8c559f71) : quatre fonctions
+qui se masquaient identifiées ; copies identiques retirées, adaptateurs électoraux
+raccordés au tableau serveur et au vote organisation actuel (corps #350 conservé).
+Réponse bancaire perdue : plus d'affirmation « rien prélevé ». 14 tests ciblés
+réussis ; échecs initiaux reproduits. Aucun droit ni tarif changé.
 GitHub public HTTPS lisible ; API GraphQL/REST refusée. Aucune donnée joueur ni
 production modifiée ; aucune fusion/migration autorisée par cette mission.
 
