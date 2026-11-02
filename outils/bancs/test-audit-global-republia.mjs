@@ -33,9 +33,9 @@ test('PSM : quatre images locales libres, sans mutation des variantes Luthécia 
   assert.equal(vm.runInContext("varianteImagePiece('centre-commercial',piece,'ville_a')",c),vm.runInContext("varianteImagePiece('centre-commercial',piece,'capitale')",c));
  }
 });
-test('les avocats volontairement non implantés ne reçoivent aucune personnalité inventée',()=>{
- assert.equal(profilExiste('maitre_ali_bihanbeton'),false);
- assert.equal(profilExiste('maitre_henri_nossant'),false);
+test('les avocats de PSM et Montrouge ont une fiche de dialogue (raccordés le 02/11, demande de Fred)',()=>{
+ assert.equal(profilExiste('maitre_ali_bihanbeton'),true);
+ assert.equal(profilExiste('maitre_henri_nossant'),true);
  assert.match(lire('outils/bancs/banc-dialogue-pnj-republia.js'),/var MUETS_DECLARES/);
 });
 test('raccordements : profils de dialogue, routes et liens déclaratifs',async()=>{
