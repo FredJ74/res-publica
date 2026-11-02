@@ -14,10 +14,10 @@ test('greffes republicains : regroupement commun sans retirer les ordres',()=>{
   assert.match(section,/buttons\[index\]/);
   assert.match(section,/buttons\.slice\(ordresTerrainLuthecia\.length\)/);
   assert.doesNotMatch(section, /<details/);
-  assert.match(section, /class=\\"action-btn legal\\"/);
+  assert.ok(section.includes('action-btn legal'));
   assert.match(section, /ouvrirMenuOrdresGreffe/);
-  assert.match(source, /function ouvrirMenuOrdresGreffe\\(index\\)/);
-  assert.match(source, /modal.classList.add\\('open'\\)/);
+  assert.ok(source.includes('function ouvrirMenuOrdresGreffe(index)'));
+  assert.ok(source.includes("modal.classList.add('open')"));
   assert.match(section,/nonClasses/);
   assert.match(data,/'tribunal-local': \{/);
   assert.match(data,/'tribunal': \{/);
