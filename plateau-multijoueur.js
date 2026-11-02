@@ -43,65 +43,31 @@ function ouvrirRecrutementCodetenu(nomCodetenu) {
   document.getElementById('modal-postes').classList.add('open');
 }
 
+let RP_CODETENU_RECRUTEMENT = null;
 async function confirmerRecrutementCodetenu(nomCodetenu, tarif) {
-  document.getElementById('modal-postes').classList.remove('open');
-  const cur = COUNTRIES[state.country]?.cur || 'FR';
-
-  if ((state.employes || []).some(e => e.job === 'codetenu')) {
-    showToast('Deja recrute', 'Vous avez deja un codetenu dans votre groupe.', false);
-    return;
-  }
-  if ((state.employes || []).length >= MAX_EMPLOYES) {
-    showToast('Limite atteinte', 'Maximum ' + MAX_EMPLOYES + ' employes.', false);
-    return;
-  }
-  if (state.arg < tarif) {
-    showToast('Fonds insuffisants', tarif + ' ' + cur + ' requis pour la premiere journee.', false);
-    return;
-  }
-  state.arg -= tarif;
-
-  const statsCodetenu = {
-    FOR: Math.floor(Math.random() * 5) + 8,
-    DUP: Math.floor(Math.random() * 5) + 8
-  };
-
-  const infoActuel = CODETENUS_CATALOGUE.find(c => c.nom === nomCodetenu) || CODETENUS_CATALOGUE[0];
-
-  if (!state.employes) state.employes = [];
-  state.employes.push({
-    nom: nomCodetenu, role: 'Codetenu', job: 'codetenu',
-    photoUrl: infoActuel.photoUrl, photoPos: '50% 15%',
-    cout: tarif, inGroupe: true,
-    buildingId: state.currentBuilding,
-    roomId: state.currentRoom,
-    city: state.currentCity,
-    depuis: state.day || 1,
-    stats: statsCodetenu
-  });
-  updateUI();
-  if (typeof renderEmployesPanel === 'function') renderEmployesPanel();
-
-  const restants = CODETENUS_CATALOGUE.filter(c => c.nom !== nomCodetenu);
-  const autre = restants[Math.floor(Math.random() * restants.length)] || CODETENUS_CATALOGUE[0];
-  if (!state.codetenuRemplacant) state.codetenuRemplacant = {};
-  const cleSlot = state.currentBuilding + '_' + state.currentRoom;
-  state.codetenuRemplacant[cleSlot] = {
-    name: autre.nom + ' (PNJ)',
-    role: 'Detenu',
-    job: 'codetenu',
-    rel: 'neutral',
-    photoUrl: autre.photoUrl,
-    photoPos: '50% 15%'
-  };
-
-  if (typeof renderPersonsList === 'function' && typeof BUILDINGS !== 'undefined') {
-    const room = BUILDINGS[state.currentBuilding]?.rooms?.[state.currentRoom];
-    if (room?.persons) renderPersonsList(room.persons);
-  }
-
-  showToast('Codetenu recrute !', nomCodetenu + ' rejoint votre groupe. -' + tarif + ' ' + cur + '/reveil.', true, true);
-  addJournalEntry('Recrutement codetenu : ' + nomCodetenu + '. -' + tarif + ' ' + cur + '/reveil.', 'event-info');
+  const c = contexteGroupePj();
+  if (!c.nom || (RP_CODETENU_RECRUTEMENT && contexteGroupePjValide(RP_CODETENU_RECRUTEMENT))) return false;
+  RP_CODETENU_RECRUTEMENT = c;
+  try {
+    document.getElementById('modal-postes')?.classList.remove('open');
+    // Métier prévu mais non activé au catalogue : le moteur commun prononce
+    // metier_non_recrutable. Ni le prix du bouton ni une liste locale ne font foi.
+    const r = typeof sbEmployeRecruter === 'function'
+      ? await sbEmployeRecruter('codetenu', nomCodetenu, null, null, null, null).catch(() => null) : null;
+    if (!contexteGroupePjValide(c)) return false;
+    if (r?.ok !== true) {
+      const motifs = { metier_non_recrutable: 'Ce poste n’est pas ouvert au recrutement.',
+        quota_metier_atteint: 'Vous employez déjà une personne à ce poste.',
+        plafond_employes: 'Le plafond d’accompagnants est atteint.',
+        acteur_non_authentifie: 'Votre session doit être rétablie.' };
+      showToast('Recrutement non confirmé', motifs[r?.raison] || 'Consultez vos accompagnants avant de renouveler la demande.', false);
+      return false;
+    }
+    // Un futur catalogue pourrait ouvrir ce métier : aucune reconstruction
+    // locale d'employé, de salaire ou de caractéristiques dans cet adaptateur.
+    showToast('Recrutement enregistré', 'Consultez vos accompagnants pour retrouver l’état confirmé par le serveur.', true);
+    return true;
+  } finally { if (RP_CODETENU_RECRUTEMENT === c) RP_CODETENU_RECRUTEMENT = null; }
 }
 
 // LA SUBSTITUTION ALEATOIRE A ETE SUPPRIMEE LE 1er OCTOBRE 2026.

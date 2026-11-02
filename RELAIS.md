@@ -25,6 +25,23 @@ Règles : voir `AGENTS.md`.
 
 ## En cours
 
+### Reprise PR #379 — Codex, reliquats (02/11/2026)
+
+Branche existante conservée, référence b6b00e97. Cinq contrôles verts lus sur
+cette tête exacte (PR brouillon #379). Main a52e1a00 toujours intégré ; #377 et
+PNJ/DeepSeek de Claude exclus. Prévol communiqué par Fred/ChatGPT : registre 1137,
+dernière version 20261102191015, aucun vol/impact en attente ; ce relevé n'est
+pas une recette et n'a pas été exécuté depuis cette session. Contrats examinés :
+crime_voler règle les contreparties et trace traite=true ; codétenu est prévu
+mais recrutable=false au catalogue, aucun PNJ de data.js ne porte ce métier.
+Commande canonique retrouvée : employe_recruter, pas pnj_recruter. Reprise des
+quatre reliquats. Premier lot : consommateur local des vols neutralisé (aucun
+producteur actif de ligne non traitée retrouvé), minuteur retiré ; codétenu
+délègue à employe_recruter sans prix/profil local et conserve le refus du métier
+non activé. 10/10 tests clients ciblés et contre-épreuve de l’ancien code.
+Tests réels jetables et suite en cours. Aucune fusion,
+application SQL ou action sur PJ réel ; coordination/intégration à ChatGPT.
+
 ### Audit technique transversal de clôture #135 — revue prête, accès livraison incomplets (Codex, 02/11/2026)
 
 Mission : commentaire `6585083787` du ticket #135 (18 h 32 UTC).
