@@ -1,9 +1,8 @@
 # Blocus syndical — règles décidées
 
-Décisions de Fred. Mécanique d'août 2026 déjà écrite dans le code, à remettre en service et à
-passer au serveur (chantier à ouvrir). État au 02/11/2026 : parcours inaccessible
-(`getMonSyndicatEtGrade` lit `state.orgas` / `chargerOrgas`, qui n'existent pas) ; dispersion par
-la police impossible (elle cherche le blocus dans le commissariat).
+Décisions de Fred. **Remis en service et passé au serveur le 02/11/2026** (Claude, branche
+`claude/blocus-syndical-20261102`, migration `20261102135437_blocus_syndical_serveur`, appliquée en
+production le 02/11 ; banc annulé `outils/bancs/banc-blocus-syndical.sql`).
 
 ## Décisions explicites de Fred (02/11/2026)
 
@@ -27,7 +26,42 @@ la police impossible (elle cherche le blocus dans le commissariat).
 - Répression violente : +1 `repressionsSubies` (puissance +8) ; chaque blocus réussi : +1 `blocusReussis` (puissance +5).
 - Interdit pendant une grève d'un syndicat de policiers (répression).
 
-## À faire au serveur (règle « une seule réalité »)
+## Ce qui est implémenté (02/11/2026)
+
+- **Organiser** (menu du personnage, dans le bâtiment où l'on se tient) : `blocus_syndical_organiser`
+  vérifie le grade (Secrétaire Général = rang le plus haut ou chef de l'organisation, Adjoint = rang
+  juste en dessous), compte les militants actifs du syndicat, tire le jet, pose le blocus et ajoute
+  +1 au palmarès. Aucun coût en PA : l'ancien parcours n'en avait pas.
+- **Renouveler** (menu du personnage, à distance) : choix parmi les blocus en cours du syndicat
+  (`blocus_syndical_renouveler`).
+- **Effet** : le serveur refuse toute pièce autre que la première (déplacement, motif
+  `blocus_syndical`) et tout ordre payant rattaché au bâtiment (porte commune des ordres). La liste
+  des ordres par bâtiment vient du catalogue effectif (table `blocus_ordres_batiments`, 961 ordres,
+  régénérable par `outils/generateurs/generer_blocus_ordres_batiments.py`). « Faire intervenir les
+  forces de l'ordre » n'y figure pas. Un joueur déjà dans une pièce intérieure quand le blocus tombe y
+  reste, mais ne peut ni passer d'ordre du bâtiment ni changer de pièce, sauf pour revenir à la première.
+- **Commissaire** (bureau du commissaire, ordre « Faire intervenir les forces de l'ordre », 2 PA) :
+  « Disperser un blocus syndical » ou « Réprimer un blocus syndical par la force », parmi les blocus
+  de sa ville (`blocus_syndical_intervenir`). Dispersion réussie : blocus levé, −8 POP au commissaire,
+  mail au dirigeant. Répression : le blocus tient, +1 répression subie au syndicat, −15 POP ; refusée
+  pendant une grève de policiers. L'indice national de sécurité reste tenu par l'écran, comme pour
+  toutes les interventions de police (pas de persistance serveur des indices nationaux).
+- **Nuit** : `blocus_nuit_expirer` (fin après 25 h sans renouvellement, mail) et `blocus_nuit_effets`
+  (le maire **de la ville** du blocus perd max(1, intensité/15) POP ; l'ancien cron prenait le premier
+  maire du pays).
+- **Retirés** : « Forcer le passage » et le bonus aux ordres illégaux (remplacés par la décision 2) ;
+  le volet « blocus » du ministre de l'Intérieur dans « Réprimer une manifestation » (décision 3 :
+  l'intervention relève du commissaire ; ce parcours était d'ailleurs injoignable). L'écran ne peut
+  plus écrire la sous-clé `blocus` (`commande_serveur_requise`).
+
+## Points ouverts (à trancher par Fred)
+
+- Organiser un blocus ne coûte rien : un échec peut être retenté aussitôt, sans limite.
+- Conséquences littérales de la décision 2 : dans un hôpital bloqué, « Sortir de l'hôpital » et le
+  repas sont refusés ; dans un commissariat bloqué, le commissaire ne peut plus rejoindre son bureau
+  pour intervenir, et les détenus ne peuvent plus tenter de s'évader.
+
+## Règle « une seule réalité » (tenue)
 
 Jet, écriture du blocus sur le bâtiment, palmarès du syndicat, renouvellement, dispersion et
 répression par des fonctions serveur ; refus d'entrer au-delà de la première pièce et refus des

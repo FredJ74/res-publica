@@ -155,6 +155,7 @@ ligne trouvée fausse se corrige ici.
 |---|---|---|---|
 | Organisations | Cinq types, grades, adhésion, puissance. | Mixte | Grades par empire. |
 | Grèves et manifestations | Grèves ordinaires et générales, manifestations, répression. | Mixte | Rien : commun. |
+| Blocus syndical | SG et Adjoint bloquent un bâtiment (première pièce seulement, ordres du bâtiment refusés) ; renouvellement à distance ; dispersion ou répression par le commissaire depuis son bureau ; levée et malus du maire la nuit. | Serveur (`blocus_syndical_*`, `blocus_nuit_*`, 02/11/2026) | Régénérer `blocus_ordres_batiments` (`outils/generateurs/generer_blocus_ordres_batiments.py`) avec les bâtiments de l'empire. |
 
 ### Foi
 

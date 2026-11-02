@@ -18,6 +18,7 @@ par le même moteur.
 | `generer_miroirs_entreprises.py` | `armureries_dotations`, `commerces_dotations`, `commerces_types`, `entreprises_constantes`, `entreprises_prix_rachat`, `recettes_commerce`, `recettes_production` |
 | `generer_miroirs_chantiers.py` | `chantiers_besoins_jour`, `chantiers_paliers`, `entreprises_constantes` |
 | `generer_edition_reelle.py` | l'édition du journal du jour |
+| `generer_blocus_ordres_batiments.py` | `blocus_ordres_batiments` — ordres rattachés à chaque bâtiment, refusés pendant un blocus syndical (lit l'inventaire de l'audit global) |
 
 La plupart offrent trois sorties : un résumé lisible, les `VALUES` SQL, et une
 **empreinte** — c'est elle qui permet de détecter qu'un miroir a dérivé de sa

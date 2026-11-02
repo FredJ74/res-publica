@@ -2202,46 +2202,12 @@ async function preleverPreemptionsServeur() {
   return resultats;
 }
 
-// Fin automatique d'un blocus syndical si aucun des deux leaders (Secretaire General ou
-// Adjoint) ne l'a renouvele depuis plus de 25h (marge de securite sur le cycle de 24h) —
-// evite qu'un blocus persiste indefiniment sans intervention. Concerne tous les bâtiments
-// (pas seulement les terrains), via la table generique batiments_etat.
-// Effet quotidien d'un blocus actif : malus sur la popularite du maire de la ville
-// concernee, proportionnel a l'intensite du blocus. NOTE : le malus prevu sur les indices
-// de ville n'est pas encore possible — INDICES_VILLES (cote client, plateau-divers.js) n'a
-// aucune persistance serveur ; c'est le futur chantier dedie deja identifie le 4 aout 2026.
+// Effet de nuit d'un blocus syndical actif : le maire DE LA VILLE du blocus perd
+// max(1, intensite/15) POP. Decide et ecrit par le serveur (blocus_nuit_effets, 02/11/2026) :
+// l'ancienne version prenait le premier maire du pays, quelle que soit la ville, et ecrivait par la vue.
 async function appliquerEffetsBlocusActifs() {
-  const resultats = { appliques: 0 };
-  try {
-    const batiments = await sbGet('batiments_etat', '');
-    if (!batiments) return resultats;
-
-    for (const row of batiments) {
-      let etat;
-      try { etat = JSON.parse(row.data); } catch(e) { continue; }
-      if (!etat.blocus) continue;
-
-      const malusPop = Math.max(1, Math.round((etat.blocus.intensite || 40) / 15));
-      const maireRows = await sbGet('personnages', `country=eq.${encodeURIComponent(row.country)}&poste->>id=like.maire*`);
-      const maire = maireRows && maireRows[0];
-      if (maire) {
-        // Correctif du 25 aout 2026 (audit signale au rapport v73) : le POP reel est stocke
-        // dans personnages.resources.pop (voir sbSavePersonnage, supabase.js : resources:
-        // {inf,pop,dis}), jamais dans une colonne racine 'pop' -- ce malus de blocus ecrivait
-        // (et lisait) le mauvais champ depuis toujours, sans jamais atteindre le POP reellement
-        // affiche au joueur. Meme precedent deja applique/verifie dans
-        // traiterCandidaturesPostesExpirees (sanction POP/2 du lot postes nommes) : lecture/
-        // ecriture via l'objet resources complet, jamais un champ racine isole. Aucun autre
-        // comportement du blocus modifie (malusPop, requete du maire, comptage inchanges).
-        const popActuelle = (maire.resources && maire.resources.pop) || 50;
-        const nouvellePop = Math.max(0, popActuelle - malusPop);
-        const resourcesMaj = { ...(maire.resources || {}), pop: nouvellePop };
-        await sbUpdate('personnages', `name=eq.${encodeURIComponent(maire.name)}`, { resources: resourcesMaj }).catch(() => {});
-        resultats.appliques++;
-      }
-    }
-  } catch(e) { console.error('appliquerEffetsBlocusActifs error', e); }
-  return resultats;
+  const v = await sbRpc('blocus_nuit_effets', {}, HEADERS_SERVICE).catch(() => null);
+  return { appliques: (v && v.appliques) || 0, ok: !!(v && v.ok) };
 }
 
 // =====================
@@ -3521,28 +3487,12 @@ async function traiterExportationsPortQuotidien() {
   return resultats;
 }
 
+// Fin automatique d'un blocus syndical non renouvele depuis 25 h (marge sur le cycle de 24 h),
+// avec un mail au dernier dirigeant qui l'a tenu. Au serveur (blocus_nuit_expirer, 02/11/2026),
+// meme seuil que celui qui decide si un blocus bloque encore l'acces.
 async function nettoyerBlocusExpires() {
-  const resultats = { leves: 0 };
-  try {
-    const batiments = await sbGet('batiments_etat', '');
-    if (!batiments) return resultats;
-
-    for (const row of batiments) {
-      let etat;
-      try { etat = JSON.parse(row.data); } catch(e) { continue; }
-      if (!etat.blocus) continue;
-
-      const dernierRenouvellement = etat.blocus.dernierRenouvellementTimestamp || etat.blocus.lanceLe;
-      if (Date.now() - dernierRenouvellement < 25 * 3600000) continue; // encore dans les temps
-
-      await envoyerMailSysteme(etat.blocus.leaderActuel, etat.blocus.syndicatNom || 'Syndicat', 'Blocus levé', 'Faute de renouvellement, le blocus a été levé.').catch(() => {});
-
-      delete etat.blocus;
-      await sbUpdate('batiments_etat', `id=eq.${encodeURIComponent(row.id)}`, { data: JSON.stringify(etat), updated_at: new Date().toISOString() }).catch(() => {});
-      resultats.leves++;
-    }
-  } catch(e) { console.error('nettoyerBlocusExpires error', e); }
-  return resultats;
+  const v = await sbRpc('blocus_nuit_expirer', {}, HEADERS_SERVICE).catch(() => null);
+  return { leves: (v && v.leves) || 0, ok: !!(v && v.ok) };
 }
 
 async function nettoyerAchatsDirectsManques() {

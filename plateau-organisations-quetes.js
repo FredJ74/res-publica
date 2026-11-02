@@ -3286,190 +3286,165 @@ async function doRecruterMilitants(pa, cost) {
 }
 
 // =====================
-// BLOCUS SYNDICAL — reserve au Secretaire General et au Secretaire General Adjoint
-// (gradeIdx 1 ou 2 sur la hierarchie syndicale republic ['Adherent','Secretaire General
-// Adjoint','Secretaire General','Confederal']). Cible n'importe quel batiment (pas
-// seulement les chantiers) : bloque les ordres legaux, favorise les illegaux, tant qu'un
-// des deux leaders le renouvelle chaque jour. Delogeable par la police (doMobiliserPolice).
+// BLOCUS SYNDICAL — TOUT AU SERVEUR (02/11/2026, decisions de Fred, GAME-DESIGN-BLOCUS.md).
+// Organiser et renouveler : Secretaire General et Secretaire General Adjoint seuls. Batiment
+// bloque : premiere piece seulement, ordres du batiment refuses (navigation et paiement tenus par
+// le serveur). Renouveler releve du syndicat (menu du personnage, a distance) ; faire intervenir
+// les forces de l'ordre releve du commissaire, depuis son bureau (plateau-politique.js).
+// L'ecran ne tire aucun de, ne calcule ni taux ni intensite, et n'ecrit plus le blocus : il appelle
+// blocus_syndical_organiser / blocus_syndical_renouveler et affiche ce qu'elles rendent.
 // =====================
 
-// Puissance syndicale (0-100) : militants recrutes + demonstration de force en cours +
-// palmares de blocus reussis + sympathie gagnee en cas de repression violente subie.
-// Utilisee pour ameliorer les futurs blocus, et pour peser sur les indices de ville et la
-// popularite du maire tant qu'un blocus est actif (voir cron serveur).
-function calculerPuissanceSyndicale(syndicat, blocusActifQuelquePart) {
-  if (!syndicat) return 0;
-  const militants = (syndicat.membres || []).filter(m => m.estPnj).length;
-  let puissance = militants * 3;
-  if (blocusActifQuelquePart) puissance += 15;
-  puissance += (syndicat.blocusReussis || 0) * 5;
-  puissance += (syndicat.repressionsSubies || 0) * 8;
-  return Math.max(0, Math.min(100, Math.round(puissance)));
+const RAISONS_BLOCUS = {
+  acteur_non_authentifie: "Votre personnage n'est pas identifié.",
+  hors_batiment: 'Placez-vous dans le bâtiment à bloquer.',
+  batiment_inconnu: 'Ce lieu ne peut pas être bloqué.',
+  syndicat_introuvable: 'Syndicat introuvable.',
+  reserve_secretaire_general: "Réservé au Secrétaire Général et au Secrétaire Général Adjoint du syndicat.",
+  militants_insuffisants: 'Il faut au moins 2 militants recrutés pour organiser un blocus.',
+  nombre_militants_invalide: 'Nombre de militants invalide (au moins 2, au plus vos militants recrutés).',
+  deja_bloque: 'Un blocus est déjà en cours ici.',
+  aucun_blocus: "Ce blocus n'est plus en cours.",
+  reserve_commissaire: 'Réservé au commissaire de la ville.',
+  depuis_bureau_commissaire: "L'intervention se commande depuis le bureau du commissaire.",
+  police_en_greve: "Un syndicat de policiers est en grève : la répression est impossible tant qu'il n'y met pas fin.",
+  mode_inconnu: 'Intervention inconnue.'
+};
+
+// Pre-controle d'affichage seulement (le serveur revalide) : mon syndicat et si j'en suis l'un
+// des deux dirigeants. Hierarchie effective : Adherent, Delegue, Secretaire Adjoint, Secretaire
+// General -- soit les rangs 2 et 3 -- ou le chef de l'organisation.
+function getMonSyndicatEtGrade() {
+  const moi = state.char?.name;
+  const syndicat = (state.organisations || []).find(o => o.type === 'syndicale' && o.membres?.some(m => m.nom === moi));
+  if (!syndicat) return null;
+  const membre = syndicat.membres.find(m => m.nom === moi);
+  const gradeIdx = Number.isInteger(membre?.gradeIdx) ? membre.gradeIdx : -1;
+  return { syndicat, gradeIdx, dirigeant: syndicat.chef === moi || gradeIdx === 2 || gradeIdx === 3 };
 }
 
-function getMonSyndicatEtGrade() {
-  const orgas = (typeof chargerOrgas === 'function') ? chargerOrgas() : (state.orgas || []);
-  const syndicat = orgas.find(o => o.type === 'syndicale' && o.membres?.some(m => m.nom === state.char?.name));
-  if (!syndicat) return null;
-  const membre = syndicat.membres.find(m => m.nom === state.char?.name);
-  return { syndicat, gradeIdx: membre?.gradeIdx ?? -1 };
+function blocusRefuser(r, titre) {
+  if (!r) { showToast(titre, "Le serveur n'a pas confirmé. Rien n'a été enregistré.", false); return; }
+  if (r.raison === 'paiement_refuse' && r.paiement && typeof signalerRefusCout === 'function') { signalerRefusCout(r.paiement); return; }
+  showToast(titre, RAISONS_BLOCUS[r.raison] || "Action refusée par le serveur.", false);
 }
 
 async function doOrganiserBlocusSyndical() {
   const infos = getMonSyndicatEtGrade();
-  if (!infos || infos.gradeIdx < 1 || infos.gradeIdx > 2) {
-    showToast('Accès refusé', "Réservé au Secrétaire Général et au Secrétaire Général Adjoint d'un syndicat.", false);
-    return;
-  }
+  if (!infos || !infos.dirigeant) { showToast('Accès refusé', RAISONS_BLOCUS.reserve_secretaire_general, false); return; }
+  if (!state.currentBuilding) { showToast('Blocus impossible', RAISONS_BLOCUS.hors_batiment, false); return; }
   const { syndicat } = infos;
-  const militants = (syndicat.membres || []).filter(m => m.estPnj);
-  if (militants.length < 2) {
-    showToast('Effectifs insuffisants', 'Il faut au moins 2 militants recrutés pour organiser un blocus.', false);
-    return;
-  }
+  const militants = (syndicat.membres || []).filter(m => m.estPnj).length;
+  if (militants < 2) { showToast('Effectifs insuffisants', RAISONS_BLOCUS.militants_insuffisants, false); return; }
 
-  const etatActuel = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, state.currentBuilding) : {};
-  if (etatActuel?.blocus) {
-    showToast('Déjà bloqué', 'Un blocus est déjà en cours ici.', false);
-    return;
-  }
-
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.78rem;color:#8a8060;margin-bottom:.6rem">Militants disponibles : ' + militants.length + '. Plus vous en mobilisez, plus le blocus a de chances de réussir et sera intense.</div>';
-  html += '<input id="blocus-nb-militants" type="number" min="2" max="' + militants.length + '" value="' + militants.length + '" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;margin-bottom:.6rem" />';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">REVENDICATION SYNDICALE</div>';
-  html += '<textarea id="blocus-revendication" rows="2" placeholder="Ex: Contre la précarité des travailleurs du bâtiment..." style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.82rem;box-sizing:border-box"></textarea>';
-  html += '<button class="pnj-action-btn" onclick="confirmerOrganiserBlocus(\'' + syndicat.id + '\')" style="margin-top:.6rem">Organiser le blocus</button>';
+  let html = '<div class="cpj-dialogue" style="padding:1rem">';
+  html += '<div class="cpj-note" style="margin-bottom:.6rem">Militants recrutés : ' + militants + '. Plus vous en mobilisez, plus le blocus a de chances de réussir et sera intense.</div>';
+  html += '<input id="blocus-nb-militants" class="cpj-champ" type="number" min="2" max="' + militants + '" value="' + militants + '" style="width:100%;margin-bottom:.6rem" />';
+  html += '<div class="cpj-note" style="margin-bottom:.3rem">Revendication syndicale</div>';
+  html += '<textarea id="blocus-revendication" class="cpj-champ" rows="2" maxlength="280" placeholder="Ex : Contre la précarité des travailleurs du bâtiment..." style="width:100%;box-sizing:border-box"></textarea>';
+  html += '<button class="cpj-touche cpj-primaire" onclick="confirmerOrganiserBlocus(\'' + syndicat.id + '\')" style="margin-top:.6rem">Organiser le blocus</button>';
   html += '</div>';
-
   document.getElementById('postes-modal-title').textContent = 'Organiser un blocus';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
 }
 
+let _blocusEnvoi = false;
 async function confirmerOrganiserBlocus(syndicatId) {
-  const nbMilitants = parseInt(document.getElementById('blocus-nb-militants')?.value || 2);
-  const revendication = (document.getElementById('blocus-revendication')?.value || 'Revendications non précisées.').trim();
-
-  const infos = getMonSyndicatEtGrade();
-  const syndicat = infos?.syndicat;
-  const puissance = calculerPuissanceSyndicale(syndicat, false);
-  const taux = Math.min(90, 10 + nbMilitants * 6 + Math.round(puissance / 5)); // la puissance du syndicat facilite les futurs blocus
-  const intensite = Math.min(90, 10 + nbMilitants * 6); // l'intensite reste liee aux seuls militants mobilises, pas au bonus de puissance
-
-  const roll = Math.floor(Math.random() * 100) + 1;
+  if (_blocusEnvoi) return;
+  const nbMilitants = parseInt(document.getElementById('blocus-nb-militants')?.value || '2', 10);
+  const revendication = (document.getElementById('blocus-revendication')?.value || '').trim();
+  _blocusEnvoi = true;
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('blocus_syndical_organiser', { p_organisation: syndicatId, p_militants: nbMilitants, p_revendication: revendication }).catch(() => null)
+    : null;
+  _blocusEnvoi = false;
+  if (!r || r.ok !== true) { blocusRefuser(r, 'Blocus impossible'); return; }
   document.getElementById('modal-postes')?.classList.remove('open');
-
-  if (roll > taux) {
-    showToast('Blocus raté', 'Les militants n\'ont pas réussi à s\'organiser cette fois-ci.', false);
+  if (r.reussi !== true) {
+    showToast('Blocus raté', "Les militants n'ont pas réussi à s'organiser cette fois-ci (" + r.taux + ' % de chances).', false);
     addJournalEntry('Tentative de blocus syndical ratée.', 'event-bad');
     return;
   }
-
-  // Palmares (blocusReussis) : regle conservee, mais l'ecran ne peut plus ecrire l'organisation
-  // (etape B, 02/11/2026). CE PARCOURS EST INACCESSIBLE AUJOURD'HUI : getMonSyndicatEtGrade lit
-  // state.orgas / chargerOrgas, qui n'existent pas, donc « Organiser un blocus » refuse toujours.
-  // Le jour ou le blocus est remis en service, son tirage, son etat de batiment et ce palmares
-  // devront passer ensemble par une fonction serveur (voir ORGANISATIONS-ECRITURES-20261031.md).
-
-  const patch = {
-    blocus: {
-      syndicatId: syndicatId,
-      syndicatNom: syndicat?.nom || 'Syndicat',
-      revendication: revendication,
-      nbMilitants: nbMilitants,
-      intensite: intensite,
-      leaderActuel: state.char?.name,
-      lanceLe: Date.now(),
-      dernierRenouvellementTimestamp: Date.now() // horodatage reel, verifie par le cron (pas un numero de jour, peu fiable pour un calcul de duree ecoulee)
-    }
-  };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, state.currentBuilding, patch).catch(() => {});
-
+  state.blocusActifIci = r.blocus || null;
+  state.blocusActifIciBatiment = r.buildingId || state.currentBuilding;
+  state.blocusPopupVueBatiment = state.blocusActifIciBatiment;
+  if (typeof chargerOrganisations === 'function') await chargerOrganisations();
   updateUI();
-  showToast('Blocus organisé !', 'Le bâtiment est maintenant bloqué. Renouvelez chaque jour pour le maintenir.', true, true);
-  addJournalEntry('Blocus syndical organisé (' + nbMilitants + ' militants) : "' + revendication + '"', 'event-good');
+  showToast('Blocus organisé !', 'Le bâtiment est bloqué (intensité ' + r.intensite + '). Renouvelez-le chaque jour depuis votre menu.', true, true);
+  addJournalEntry('Blocus syndical organisé (' + (r.blocus?.nbMilitants || nbMilitants) + ' militants) : "' + (r.blocus?.revendication || '') + '"', 'event-good');
   if (typeof addExternalEvent === 'function') {
-    addExternalEvent('✊ Un blocus syndical a été organisé dans un bâtiment de la ville : "' + revendication + '"', 'local');
+    addExternalEvent('✊ Un blocus syndical a été organisé dans un bâtiment de la ville : "' + (r.blocus?.revendication || '') + '"', 'local');
   }
 }
 
+// Renouveler : depuis le menu du personnage, sans etre sur place. Le serveur liste les blocus
+// actifs ; l'ecran ne garde que ceux de mon syndicat.
 async function doRenouvelerBlocusSyndical() {
   const infos = getMonSyndicatEtGrade();
-  if (!infos || infos.gradeIdx < 1 || infos.gradeIdx > 2) {
-    showToast('Accès refusé', "Réservé au Secrétaire Général et au Secrétaire Général Adjoint.", false);
-    return;
+  if (!infos || !infos.dirigeant) { showToast('Accès refusé', RAISONS_BLOCUS.reserve_secretaire_general, false); return; }
+  const liste = (typeof sbRpc === 'function') ? await sbRpc('blocus_syndicaux_actifs', { p_pays: state.country || 'republic' }).catch(() => null) : null;
+  if (!Array.isArray(liste)) { showToast('Liste indisponible', "Le serveur n'a pas répondu.", false); return; }
+  const miens = liste.filter(b => b.syndicatId === infos.syndicat.id);
+  let html = '<div class="cpj-dialogue" style="padding:1rem">';
+  if (miens.length === 0) {
+    html += '<div class="cpj-note">Aucun blocus de votre syndicat en cours.</div>';
+  } else {
+    html += '<div class="cpj-note" style="margin-bottom:.6rem">Sans renouvellement, un blocus est levé au bout de 25 heures.</div>';
+    miens.forEach(b => {
+      const lieu = (typeof libelleBlocus === 'function') ? libelleBlocus(b) : (b.buildingId + ' — ' + b.city);
+      html += '<button class="cpj-touche" style="display:block;width:100%;margin-bottom:.4rem;text-align:left" onclick="renouvelerBlocusSyndical(\'' + b.city + '\',\'' + b.buildingId + '\')">' + String(lieu).replace(/</g, '&lt;') + '</button>';
+    });
   }
-  const etatActuel = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(state.country, state.currentCity, state.currentBuilding) : {};
-  if (!etatActuel?.blocus) {
-    showToast('Rien à renouveler', "Aucun blocus en cours ici.", false);
-    return;
-  }
-  if (etatActuel.blocus.syndicatId !== infos.syndicat.id) {
-    showToast('Impossible', "Ce blocus n'est pas celui de votre syndicat.", false);
-    return;
-  }
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = 'Renouveler un blocus';
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
 
-  const patch = { blocus: { ...etatActuel.blocus, dernierRenouvellementTimestamp: Date.now(), leaderActuel: state.char?.name } };
-  if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(state.country, state.currentCity, state.currentBuilding, patch).catch(() => {});
-
+async function renouvelerBlocusSyndical(ville, batiment) {
+  const r = (typeof sbRpc === 'function') ? await sbRpc('blocus_syndical_renouveler', { p_ville: ville, p_batiment: batiment }).catch(() => null) : null;
+  if (!r || r.ok !== true) { blocusRefuser(r, 'Renouvellement refusé'); return; }
+  document.getElementById('modal-postes')?.classList.remove('open');
   showToast('Blocus renouvelé', 'Le blocus se poursuit pour au moins un jour de plus.', true);
   addJournalEntry('Blocus syndical renouvelé.', 'event-info');
 }
 
-// Verification a l'entree d'un batiment : met en cache l'etat du blocus (async, sur
-// state.blocusActifIci) pour une lecture synchrone ulterieure par doOrder(), et affiche la
-// popup si un blocus non encore tranche pour cette visite est actif.
+// A l'entree d'un batiment : met en cache le blocus (affichage et masquage des ordres) et informe
+// une fois par visite. Le serveur, lui, refuse de toute facon les autres pieces et les ordres.
+function blocusEncoreActif(b) {
+  const t = Number(b?.dernierRenouvellementTimestamp || b?.lanceLe || 0);
+  return !!b && typeof b === 'object' && t > Date.now() - 25 * 3600000;
+}
+
 async function verifierBlocusEntree(buildingId, roomId) {
   if (typeof sbGetBatimentEtat !== 'function') return;
   const etat = await sbGetBatimentEtat(state.country, state.currentCity, buildingId).catch(() => null);
-  state.blocusActifIci = etat?.blocus || null;
-
-  if (!state.blocusActifIci) return;
-  if (state.blocusEntreeResolueBuildingId === buildingId) return; // deja tranche pour cette visite
-  if (state.currentBuilding !== buildingId) return; // le joueur a change de piece entre temps
-
+  if (state.currentBuilding !== buildingId) return; // le joueur est reparti entre temps
+  const b = blocusEncoreActif(etat?.blocus) ? etat.blocus : null;
+  state.blocusActifIci = b;
+  state.blocusActifIciBatiment = b ? buildingId : null;
+  if (!b) { state.blocusPopupVueBatiment = null; return; }
+  if (state.blocusPopupVueBatiment === buildingId) return; // deja informe pour cette visite
+  state.blocusPopupVueBatiment = buildingId;
   afficherPopupBlocusEntree(buildingId);
 }
 
 function afficherPopupBlocusEntree(buildingId) {
   const b = state.blocusActifIci;
   if (!b) return;
-  let html = '<div style="padding:1rem">';
-  html += '<div style="font-size:.85rem;color:#c0b090;margin-bottom:.6rem"><strong>' + (b.syndicatNom || 'Un syndicat') + '</strong> bloque l\'accès à ce bâtiment.</div>';
-  html += '<div style="font-size:.82rem;color:#8a8060;font-style:italic;margin-bottom:.8rem">"' + b.revendication + '"</div>';
-  html += '<div style="font-size:.75rem;color:#6a5a30;margin-bottom:.8rem">Les démarches administratives sont bloquées ici. Les activités illégales y sont facilitées.</div>';
+  const esc = (t) => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let html = '<div class="cpj-dialogue" style="padding:1rem">';
+  html += '<div style="margin-bottom:.6rem"><strong>' + esc(b.syndicatNom || 'Un syndicat') + '</strong> bloque ce bâtiment.</div>';
+  html += '<div class="cpj-note" style="font-style:italic;margin-bottom:.8rem">« ' + esc(b.revendication) + ' »</div>';
+  html += '<div class="cpj-note" style="margin-bottom:.8rem">Vous pouvez rester dans cette première pièce, mais les autres pièces et les démarches du bâtiment sont inaccessibles tant que dure le blocus.</div>';
   html += '<div style="display:flex;gap:.5rem">';
-  html += '<button class="pnj-action-btn" onclick="doForcerBlocus(\'' + buildingId + '\')">Forcer le passage</button>';
-  html += '<button class="pnj-action-btn" onclick="sortirBatiment()" style="opacity:.8">Repartir</button>';
+  html += '<button class="cpj-touche cpj-primaire" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\')">Compris</button>';
+  html += '<button class="cpj-touche" onclick="document.getElementById(\'modal-postes\').classList.remove(\'open\');sortirBatiment()">Repartir</button>';
   html += '</div></div>';
   document.getElementById('postes-modal-title').textContent = 'Blocus en cours';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
-}
-
-async function doForcerBlocus(buildingId) {
-  document.getElementById('modal-postes')?.classList.remove('open');
-  // FOR fantome retire (bêta) : le joueur n'a jamais eu de FOR (toujours undefined, repli fixe
-  // a 8) -- (forStat-10)*3 valait donc TOUJOURS -6, un malus constant et silencieux applique a
-  // tous les joueurs sans exception. VOL est deja un second facteur reel de cette meme formule,
-  // pas besoin d'une seconde caracteristique pour ce jet.
-  const volStat = getStatEffective('VOL');
-  const intensite = state.blocusActifIci?.intensite || 40;
-  const taux = Math.max(5, Math.min(90, Math.round(40 + (volStat - 10) * 3 - intensite / 2)));
-  const roll = Math.floor(Math.random() * 100) + 1;
-
-  if (roll <= taux) {
-    state.blocusEntreeResolueBuildingId = buildingId;
-    state.blocusModificateurLegal = 20; // bonus applique aux ordres legaux pendant cette visite (compense en partie le malus du blocus)
-    showToast('Passage forcé !', 'Vous entrez malgré le blocus.', true);
-    addJournalEntry('Passage forcé à travers un blocus syndical.', 'event-good');
-    if (typeof updateUI === 'function') updateUI();
-  } else {
-    showToast('Refoulé', 'Les militants vous repoussent.', false);
-    addJournalEntry('Tentative de passage en force repoussée par des militants.', 'event-bad');
-    if (typeof sortirBatiment === 'function') sortirBatiment();
-  }
 }
 
 // SE RENSEIGNER (halls de Centre d'Affaires / Centre Commercial / Travées du Centre Artisanal)

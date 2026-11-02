@@ -8338,81 +8338,12 @@ async function ouvrirReprimerManif(pa, cost) {
   html += '</select>';
   html += '<button onclick="confirmerReprimerManif(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Reprimer</button>';
 
-  // BLOCUS — action nationale, sans deplacement (Lot 4.3). Le ministre choisit un blocus REELLEMENT
-  // actif dans la liste reconstruite depuis batiments_etat : il n'a pas a se rendre sur place.
-  // La dispersion elle-meme delegue au moteur historique, dont rien n'est recopie ici.
-  const blocus = (typeof sbListerBlocusActifs === 'function' && typeof blocusActifsDepuisEtats === 'function')
-    ? blocusActifsDepuisEtats(await sbListerBlocusActifs(pays).catch(() => []))
-    : [];
-  html += '<div style="margin-top:1.2rem;padding-top:.9rem;border-top:1px solid #2a2010">';
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:.1em;color:#8a6a20;margin-bottom:.4rem">BLOCUS SYNDICAL À LEVER</div>';
-  if (blocus.length === 0) {
-    html += '<div style="font-size:.78rem;color:#5a5040;font-style:italic">Aucun blocus syndical actif en Républia.</div>';
-  } else {
-    html += '<div style="font-size:.75rem;color:#8a8060;font-style:italic;margin-bottom:.5rem">La dispersion n\'est jamais acquise : plus le blocus est intense, plus il résiste.</div>';
-    html += '<select id="reprimer-blocus-cible" style="width:100%;background:#121005;border:1px solid #2a2010;color:#f0ead6;padding:.5rem;font-size:.85rem;outline:none;margin-bottom:.6rem">';
-    blocus.forEach(function (b) {
-      html += '<option value="' + b.cle + '">' + libelleBlocus(b).replace(/"/g, '') + '</option>';
-    });
-    html += '</select>';
-    html += '<button onclick="confirmerRepressionBlocus(' + pa + ',' + cost + ')" style="font-family:Bebas Neue,sans-serif;font-size:.78rem;letter-spacing:.1em;padding:.5rem 1.2rem;border:1px solid #8a2020;background:transparent;color:#cc4444;cursor:pointer">Tenter de lever le blocus</button>';
-  }
-  html += '</div>';
+  // Volet « blocus » retire le 02/11/2026 : faire intervenir les forces de l'ordre sur un blocus
+  // syndical releve du commissaire de la ville, depuis son bureau (decision de Fred,
+  // GAME-DESIGN-BLOCUS.md ; blocus_syndical_intervenir).
   html += '</div>';
   document.getElementById('postes-body').innerHTML = html;
   document.getElementById('modal-postes').classList.add('open');
-}
-
-// LEVEE D'UN BLOCUS PAR LE MINISTRE — DELEGATION, PAS DUPLICATION.
-//
-// Cette fonction ne contient AUCUNE regle de blocus : elle resout la cible choisie, puis reutilise
-// integralement le mecanisme historique (tauxDispersionBlocus pour la probabilite, sbSetBatimentEtat
-// pour la levee, les memes notifications, le meme mail au leader). Les consequences en cas de
-// reussite comme d'echec sont celles du moteur existant, y compris l'absence de consequence en cas
-// d'echec -- qui est le comportement constate, non une omission.
-//
-// La seule difference avec l'usage du commissaire est le CIBLAGE : le ministre agit a distance, sur
-// un blocus choisi dans la liste, sans etre present dans le batiment.
-async function confirmerRepressionBlocus(pa, cost) {
-  const pays = state.country || 'republic';
-  if (state.poste?.id !== 'min_int') { showToast('Accès refusé', 'Réservé au Ministre de l\'Intérieur.', false); return; }
-  if (typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(pays)) {
-    showToast('Répression impossible', 'Un syndicat de policiers est en grève.', false); return;
-  }
-  const cle = document.getElementById('reprimer-blocus-cible')?.value;
-  if (!cle) return;
-
-  // Relecture FRAICHE : le blocus a pu etre leve entre l'ouverture du modal et le clic. Verifiee
-  // AVANT toute deduction de PA, comme le fait deja le chemin du commissaire.
-  const actifs = (typeof sbListerBlocusActifs === 'function' && typeof blocusActifsDepuisEtats === 'function')
-    ? blocusActifsDepuisEtats(await sbListerBlocusActifs(pays).catch(() => []))
-    : [];
-  const cible = actifs.filter(function (b) { return b.cle === cle; })[0];
-  if (!cible) { showToast('Blocus levé', 'Ce blocus n\'est plus actif.', false); return; }
-
-  document.getElementById('modal-postes')?.classList.remove('open');
-  const r = await deduireCoutOrdre({ pa, cost });
-  if (!r.ok) { signalerRefusCout(r); return; }
-
-  const taux = tauxDispersionBlocus(cible.intensite);
-  const roll = Math.floor(Math.random() * 100) + 1;
-  const nomVilleB = villeNom(cible.country || pays, cible.city) || cible.city;
-
-  if (roll <= taux) {
-    if (typeof sbSetBatimentEtat === 'function') {
-      await sbSetBatimentEtat(pays, cible.city, cible.buildingId, { blocus: null }).catch(() => {});
-    }
-    showToast('Blocus dispersé !', 'Les forces de l\'ordre ont délogé les militants à ' + nomVilleB + '.', true, true);
-    addJournalEntry('Le blocus syndical de ' + nomVilleB + ' a été dispersé sur ordre du Ministère.', 'event-info');
-    addExternalEvent('🚔 Un blocus syndical a été dispersé par les forces de l\'ordre à ' + nomVilleB + '.');
-    if (typeof sendMail === 'function' && cible.leaderActuel) {
-      await sendMail(cible.leaderActuel, 'Ministère de l\'Intérieur', 'Blocus dispersé',
-        'Les forces de l\'ordre ont dispersé votre blocus. Vos militants restent employés, libre à vous de les renvoyer ou de retenter ailleurs.');
-    }
-  } else {
-    showToast('Échec', 'Les militants ont tenu bon face aux forces de l\'ordre.', false);
-    addJournalEntry('Tentative de dispersion du blocus de ' + nomVilleB + ' échouée.', 'event-bad');
-  }
 }
 
 async function confirmerReprimerManif(pa, cost) {
@@ -9885,7 +9816,8 @@ async function doConsulterDossiersGouv(pa, cost) {
 
 function doMobiliserPolice(fn) {
   const options = [
-    { id: 'blocus', label: 'Disperser un blocus routier', isn: 8, pop: -8 },
+    { id: 'blocus', label: 'Disperser un blocus syndical', isn: 8, pop: -8 },
+    { id: 'reprimer_blocus', label: 'Réprimer un blocus syndical par la force', isn: 10, pop: -15 },
     { id: 'encadrer', label: 'Encadrer un rassemblement (prévention)', isn: 3, pop: -2 },
     { id: 'quartier', label: 'Renforcer un quartier sensible', isn: 5, pop: 0 },
     { id: 'reprimer', label: 'Réprimer un rassemblement par la force', isn: 10, pop: -15 }
@@ -9898,7 +9830,7 @@ function doMobiliserPolice(fn) {
   let html = '<div style="padding:1rem">';
   html += '<div style="font-size:.72rem;color:#8a8060;margin-bottom:.7rem">Chaque type d\'intervention a un impact different sur la securite nationale et la popularite.</div>';
   options.forEach(o => {
-    const bloque = o.id === 'reprimer' && policeIndisponible;
+    const bloque = (o.id === 'reprimer' || o.id === 'reprimer_blocus') && policeIndisponible;
     if (bloque) {
       html += '<button disabled title="Un syndicat de policiers est en grève : la répression est impossible tant qu\'il n\'y met pas fin." style="display:flex;justify-content:space-between;width:100%;margin-bottom:.4rem;padding:.6rem .7rem;border:1px solid #2a2010;background:transparent;color:#5a4a3a;opacity:.4;cursor:not-allowed;font-size:.78rem">';
       html += '<span>' + o.label + '</span><span style="color:#5a4a3a">Indisponible (police en grève)</span></button>';
@@ -9916,87 +9848,26 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
   document.getElementById('modal-postes')?.classList.remove('open');
   const pays = state.country || 'republic';
 
-  // Cas special 'blocus' : verifier l'existence reelle du blocus AVANT toute deduction PA
-  // (correctif Lot 2C) -- sinon disperser un blocus inexistant coute des PA pour rien. Etat
-  // charge ici et reutilise plus bas, sans second appel Supabase. Ne touche pas aux autres
-  // branches (encadrer/reprimer/generique), qui n'ont pas de precondition de ce type.
-  let etatActuelBlocus = null;
-  if (id === 'blocus') {
-    etatActuelBlocus = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, state.currentCity, state.currentBuilding) : null;
-    if (!etatActuelBlocus?.blocus) {
-      showToast('Aucun blocus', "Il n'y a pas de blocus syndical en cours ici.", false);
-      return;
-    }
+  // BLOCUS SYNDICAL (02/11/2026) : le commissaire choisit, depuis son bureau, parmi les blocus en
+  // cours dans sa ville ; jet, 2 PA, levee, POP et palmares du syndicat sont decides par le
+  // serveur (blocus_syndical_intervenir). Aucun prelevement ici.
+  if (id === 'blocus' || id === 'reprimer_blocus') {
+    await ouvrirChoixBlocusCommissaire(id === 'blocus' ? 'disperser' : 'reprimer');
+    return;
+  }
+
+  if (id === 'reprimer' && typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(pays)) {
+    showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false);
+    return;
   }
 
   // Deduction PA centralisee (Lot 2C) -- uniquement pour mobiliser_police (ordre classe A par
   // l'audit). 'mobiliser' route vers ce meme handler partage (bug de routage distinct, classe
   // E, hors perimetre de ce lot) : aucune deduction pour ce cas, comportement inchange tant que
-  // l'arbitrage sur le routage n'a pas eu lieu. Placee avant toute mutation (y compris le cas
-  // special 'blocus' ci-dessous).
+  // l'arbitrage sur le routage n'a pas eu lieu. Placee avant toute mutation.
   if (fn === 'mobiliser_police') {
     const rPa = await deduireCoutOrdre({ pa: 2, cost: 0 });
     if (!rPa.ok) { signalerRefusCout(rPa); return; }
-  }
-
-  // Cas special : disperser un blocus reellement en cours dans le batiment ou l'on se trouve
-  // (pas seulement decoratif — voir plateau-organisations-quetes.js pour la creation du
-  // blocus). Les PNJ militants restent employes du syndicat quelle que soit l'issue.
-  if (id === 'blocus') {
-    const etatActuel = etatActuelBlocus;
-    const intensite = etatActuel.blocus.intensite || 40;
-    // Formule et bornes EXTRAITES dans tauxDispersionBlocus (plateau-gouvernement.js) pour qu'un
-    // second appelant -- la repression ministerielle -- les reutilise au lieu de les recopier.
-    // Repli local si le module n'est pas charge : le comportement reste strictement identique.
-    const taux = (typeof tauxDispersionBlocus === 'function')
-      ? tauxDispersionBlocus(intensite)
-      : Math.max(10, Math.min(90, 55 - intensite / 3));
-    const roll = Math.floor(Math.random() * 100) + 1;
-
-    if (roll <= taux) {
-      const patch = { blocus: null };
-      if (typeof sbSetBatimentEtat === 'function') await sbSetBatimentEtat(pays, state.currentCity, state.currentBuilding, patch).catch(() => {});
-      if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + isn);
-      state.pop = Math.max(0, Math.min(100, state.pop + pop));
-      updateUI();
-      showToast('Blocus dispersé !', 'Les forces de l\'ordre ont délogé les militants. +' + isn + ' ISN, ' + pop + ' POP.', true, true);
-      addJournalEntry('Le blocus syndical a été dispersé par la police.', 'event-info');
-      addExternalEvent('🚔 Un blocus syndical a été dispersé par les forces de l\'ordre.');
-      if (typeof sendMail === 'function' && etatActuel.blocus.leaderActuel) {
-        await sendMail(etatActuel.blocus.leaderActuel, 'Police', 'Blocus dispersé', 'Les forces de l\'ordre ont dispersé votre blocus. Vos militants restent employés, libre à vous de les renvoyer ou de retenter ailleurs.');
-      }
-    } else {
-      showToast('Échec', 'Les militants ont tenu bon face aux forces de l\'ordre.', false);
-      addJournalEntry('Tentative de dispersion du blocus syndical échouée.', 'event-bad');
-    }
-    return;
-  }
-
-  // Repression violente ('reprimer') sur un batiment en blocus syndical : la manière forte
-  // nourrit la cause plutot que de l'eteindre (sympathie pour les opprimes), sur demande
-  // explicite de Fred le 5 aout 2026.
-  if (id === 'reprimer') {
-    // §9 "Greves" : revalidation independante (un syndicat de policiers a pu se mettre en greve
-    // entre l'ouverture du modal et ce clic) -- preserve integralement le reste de cette branche
-    // (repressionsSubies/calculerPuissanceSyndicale), jamais touchee par ce lot.
-    if (typeof syndicatPoliceEnGreve === 'function' && syndicatPoliceEnGreve(pays)) {
-      showToast('Répression impossible', 'Un syndicat de policiers est en grève : la répression policière est impossible tant qu\'il n\'y met pas fin.', false);
-      return;
-    }
-    const etatBatiment = (typeof sbGetBatimentEtat === 'function') ? await sbGetBatimentEtat(pays, state.currentCity, state.currentBuilding) : null;
-    if (etatBatiment?.blocus) {
-      // repressionsSubies (le syndicat reprime en sort renforce) : regle conservee, mais l'ecran ne
-      // peut plus ecrire l'organisation (etape B, 02/11/2026). Ce compteur n'etait jamais ecrit :
-      // il lisait state.orgas / chargerOrgas, qui n'existent pas. A porter cote serveur avec le
-      // blocus lui-meme quand celui-ci sera remis en service (ORGANISATIONS-ECRITURES-20261031.md).
-      if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + isn);
-      state.pop = Math.max(0, Math.min(100, state.pop + pop));
-      updateUI();
-      showToast('Répression menée', 'La manière forte nourrit la cause syndicale plutôt que de l\'éteindre. +' + isn + ' ISN, ' + pop + ' POP — mais le syndicat en sort renforcé.', false, true);
-      addJournalEntry('Répression violente d\'un blocus syndical : la sympathie publique bascule en faveur des grévistes.', 'event-bad');
-      addExternalEvent('🚔 Répression violente d\'un blocus syndical — l\'opinion publique s\'émeut.');
-      return;
-    }
   }
 
   if (INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + isn);
@@ -10005,6 +9876,71 @@ async function confirmerMobilisationPolice(id, label, isn, pop, fn) {
   showToast('Intervention menée', label + ' — +' + isn + ' ISN, ' + (pop<=0?pop:'+'+pop) + ' POP.', pop >= 0, true);
   addJournalEntry('Intervention des forces de l\'ordre : ' + label + '.', pop < -5 ? 'event-bad' : 'event-info');
   addExternalEvent('🚔 Intervention des forces de l\'ordre : ' + label + '.');
+}
+
+// Choix du blocus par le commissaire : la liste vient du serveur (blocus actifs du pays), filtree
+// sur la ville du commissaire. Le serveur revalide poste, ville et bureau.
+async function ouvrirChoixBlocusCommissaire(mode) {
+  const ville = state.poste?.city || state.currentCity;
+  const liste = (typeof sbRpc === 'function') ? await sbRpc('blocus_syndicaux_actifs', { p_pays: state.country || 'republic' }).catch(() => null) : null;
+  if (!Array.isArray(liste)) { showToast('Liste indisponible', "Le serveur n'a pas répondu.", false); return; }
+  const blocus = liste.filter(b => b.city === ville);
+  const titre = mode === 'disperser' ? 'Disperser un blocus syndical' : 'Réprimer un blocus syndical';
+  let html = '<div class="cpj-dialogue" style="padding:1rem">';
+  if (blocus.length === 0) {
+    html += '<div class="cpj-note">Aucun blocus syndical en cours dans votre ville.</div>';
+  } else {
+    html += '<div class="cpj-note" style="margin-bottom:.6rem">' + (mode === 'disperser'
+      ? 'La dispersion n\'est jamais acquise : plus le blocus est intense, plus il résiste. 2 PA.'
+      : 'La manière forte ne lève pas le blocus et renforce le syndicat. 2 PA.') + '</div>';
+    html += '<select id="blocus-commissaire-cible" class="cpj-champ" style="width:100%;margin-bottom:.6rem">';
+    blocus.forEach(b => {
+      const lib = (typeof libelleBlocus === 'function') ? libelleBlocus(b) : (b.buildingId + ' — ' + b.city);
+      html += '<option value="' + b.buildingId + '">' + String(lib).replace(/[<"]/g, '') + '</option>';
+    });
+    html += '</select>';
+    html += '<button class="cpj-touche cpj-primaire" onclick="confirmerInterventionBlocus(\'' + mode + '\',\'' + ville + '\')">' + titre + '</button>';
+  }
+  html += '</div>';
+  document.getElementById('postes-modal-title').textContent = titre;
+  document.getElementById('postes-body').innerHTML = html;
+  document.getElementById('modal-postes').classList.add('open');
+}
+
+let _interventionBlocusEnvoi = false;
+async function confirmerInterventionBlocus(mode, ville) {
+  if (_interventionBlocusEnvoi) return;
+  const batiment = document.getElementById('blocus-commissaire-cible')?.value;
+  if (!batiment) return;
+  _interventionBlocusEnvoi = true;
+  const r = (typeof sbRpc === 'function')
+    ? await sbRpc('blocus_syndical_intervenir', { p_ville: ville, p_batiment: batiment, p_mode: mode }).catch(() => null) : null;
+  _interventionBlocusEnvoi = false;
+  if (!r || r.ok !== true) {
+    if (typeof blocusRefuser === 'function') blocusRefuser(r, 'Intervention refusée');
+    else showToast('Intervention refusée', "Le serveur n'a pas confirmé.", false);
+    return;
+  }
+  document.getElementById('modal-postes')?.classList.remove('open');
+  if (r.paiement && typeof appliquerPaiementServeur === 'function') appliquerPaiementServeur(r.paiement);
+  if (typeof r.pop === 'number' && typeof adopterJaugeServeur === 'function') adopterJaugeServeur('pop', r.pop);
+  // Indice national de securite : toujours tenu par l'ecran pour toutes les interventions de
+  // police (aucune persistance serveur des indices nationaux a ce jour) ; montant rendu par le serveur.
+  const pays = state.country || 'republic';
+  if (r.isn && INDICES_NATIONAUX[pays]) INDICES_NATIONAUX[pays].ISN = Math.min(100, INDICES_NATIONAUX[pays].ISN + r.isn);
+  updateUI();
+  if (r.mode === 'reprimer') {
+    showToast('Répression menée', 'La manière forte nourrit la cause syndicale plutôt que de l\'éteindre. +' + r.isn + ' ISN, ' + r.pop_delta + ' POP — le syndicat en sort renforcé.', false, true);
+    addJournalEntry('Répression violente d\'un blocus syndical : la sympathie publique bascule en faveur des grévistes.', 'event-bad');
+    addExternalEvent('🚔 Répression violente d\'un blocus syndical — l\'opinion publique s\'émeut.');
+  } else if (r.leve) {
+    showToast('Blocus dispersé !', 'Les forces de l\'ordre ont délogé les militants. +' + r.isn + ' ISN, ' + r.pop_delta + ' POP.', true, true);
+    addJournalEntry('Le blocus syndical a été dispersé par la police.', 'event-info');
+    addExternalEvent('🚔 Un blocus syndical a été dispersé par les forces de l\'ordre.');
+  } else {
+    showToast('Échec', 'Les militants ont tenu bon face aux forces de l\'ordre (' + r.taux + ' % de chances).', false);
+    addJournalEntry('Tentative de dispersion du blocus syndical échouée.', 'event-bad');
+  }
 }
 
 async function doTraiterManifestations(pa, cost) {

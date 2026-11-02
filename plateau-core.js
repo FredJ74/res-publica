@@ -2935,6 +2935,10 @@ function signalerRefusCout(resultat) {
       "Votre personnage n'est pas chargé : cette action n'a pas été enregistrée. Rechargez la page.", false);
     return;
   }
+  if (r.raison === 'blocus_syndical') {
+    showToast('Bloqué', 'Un blocus syndical rend les démarches de ce bâtiment inaccessibles.', false);
+    return;
+  }
   if (r.raison === 'fonds_insuffisants') {
     const dispo = (typeof r.fondsDisponibles === 'number') ? r.fondsDisponibles
       : (typeof getFondsDisponiblesOrdinaires === 'function' ? getFondsDisponiblesOrdinaires() : (state.arg || 0));
