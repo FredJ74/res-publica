@@ -352,11 +352,11 @@
           <div class="batiment-cat" id="self-view-role">Citoyen</div>
         </div>
         <div class="pieces-tabs">
-          <div class="piece-tab active" onclick="switchSelfTab('actions',this)">Actions personnelles</div>
-          <div class="piece-tab" onclick="switchSelfTab('inventaire',this)">Inventaire</div>
-          <div class="piece-tab" onclick="switchSelfTab('orgas',this)">Organisations</div>
-          <div class="piece-tab" onclick="switchSelfTab('identite',this)">Identité</div>
-          <div class="piece-tab" onclick="switchSelfTab('stats',this)">Statistiques</div>
+          <div class="piece-tab active" onclick="switchSelfTab('actions',this)" data-i18n="plateau.personalActions">Actions personnelles</div>
+          <div class="piece-tab" onclick="switchSelfTab('inventaire',this)" data-i18n="plateau.inventory">Inventaire</div>
+          <div class="piece-tab" onclick="switchSelfTab('orgas',this)" data-i18n="plateau.organizations">Organisations</div>
+          <div class="piece-tab" onclick="switchSelfTab('identite',this)" data-i18n="plateau.identity">Identité</div>
+          <div class="piece-tab" onclick="switchSelfTab('stats',this)" data-i18n="plateau.statistics">Statistiques</div>
         </div>
       </div>
       <div id="self-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
@@ -369,7 +369,7 @@
           <i class="ti ti-x"></i> Fermer
         </button>
         <div class="batiment-header-info">
-          <div class="batiment-nom">Règles du jeu</div>
+          <div class="batiment-nom" data-i18n="plateau.rules">Règles du jeu</div>
           <div class="batiment-cat">Res Publica — Guide du joueur</div>
         </div>
         <div class="pieces-tabs">
@@ -394,8 +394,8 @@
           <i class="ti ti-x"></i> Fermer
         </button>
         <div class="batiment-header-info">
-          <div class="batiment-nom">Forum</div>
-          <div class="batiment-cat" id="forum-view-subtitle">Forum Local</div>
+          <div class="batiment-nom" data-i18n="plateau.forum">Forum</div>
+          <div class="batiment-cat" id="forum-view-subtitle" data-i18n="plateau.localForum">Forum Local</div>
         </div>
       </div>
       <div id="forum-view-body" style="flex:1;overflow:hidden;display:flex"></div>
@@ -409,8 +409,8 @@
           <i class="ti ti-x"></i> Fermer
         </button>
         <div class="batiment-header-info">
-          <div class="batiment-nom">Boite Mail</div>
-          <div class="batiment-cat" id="mail-view-subtitle">Messages recus</div>
+          <div class="batiment-nom" data-i18n="plateau.mailbox">Boite Mail</div>
+          <div class="batiment-cat" id="mail-view-subtitle" data-i18n="plateau.receivedMessages">Messages recus</div>
         </div>
       </div>
       <div id="mail-content" style="flex:1;overflow-y:auto;background:#0a0805"></div>
@@ -494,7 +494,7 @@
 <div id="modal-pnj" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title" id="pnj-modal-title">Conversation</div>
+      <div class="modal-title" id="pnj-modal-title" data-i18n="plateau.conversation">Conversation</div>
       <button class="modal-close" onclick="closePnjModal()"><i class="ti ti-x"></i></button>
     </div>
     <div id="pnj-modal-body">
@@ -535,7 +535,7 @@
 <div id="modal-char" class="modal-overlay">
   <div class="modal-box modal-large">
     <div class="modal-header">
-      <div class="modal-title">Fiche de personnage</div>
+      <div class="modal-title" data-i18n="plateau.characterSheet">Fiche de personnage</div>
       <button class="modal-close" onclick="closeCharSheet()"><i class="ti ti-x"></i></button>
     </div>
     <div id="char-sheet-body"></div>
@@ -579,7 +579,7 @@
 <div id="modal-finances" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-title">Gestion des finances</div>
+      <div class="modal-title" data-i18n="plateau.financeManagement">Gestion des finances</div>
       <button class="modal-close" onclick="document.getElementById('modal-finances').classList.remove('open')"><i class="ti ti-x"></i></button>
     </div>
     <div id="finances-body"></div>
