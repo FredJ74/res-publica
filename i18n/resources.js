@@ -1527,7 +1527,9 @@ window.RP_I18N_RESOURCES = {
       city: {"modalTitle":"اختر مدينة إقامتك","capitalBadge":"(العاصمة)"},
       review: {"lifePath":"مسار الحياة","characteristics":"السمات","startingResources":"الموارد الأولية","biography":"السيرة الذاتية","money":"المال","influence":"النفوذ","popularity":"الشعبية","discretion":"التكتم","tier":"المستوى {{tier}}","maxInGame":"الحد الأقصى 100","wealthTier1":"1 - معدم","wealthTier2":"2 - متواضع","wealthTier3":"3 - ميسور","wealthTier4":"4 - غني","wealthTier5":"5 - ثري جدًا"},
       success: {"title":"مرحبًا بك في اللعبة الكبرى","ready":"شخصيتك جاهزة.","text":"يدخل {{name}} ساحة {{country}}. تبدأ اللعبة الكبرى: تحالفات وخيانات وفساد وأسرار.","fallbackCountry":"هذا العالم"},
-      genders: {"male":"رجل","female":"امرأة","nonbinary":"غير ثنائي","other":"أخرى"}
+      genders: {"male":"رجل","female":"امرأة","nonbinary":"غير ثنائي","other":"أخرى"},
+      identity: {"genderLabel":"جنس الشخصية","genderOtherPlaceholder":"كيف تعرّف شخصيتك نفسها؟"},
+      career: {"info":"المهن المتاحة بحسب مستوى تعليمك ({{school}}).","locked":"غير متاح بمستوى تعليمك","consequence":"تحدد مهنتك الاختصاصات المتاحة لشخصيتك. يمكنك اكتساب مهنة إضافية واحدة فقط خلال حياتها."}
     }
   } },
   'pt-BR': { translation: { home: {
@@ -1575,7 +1577,9 @@ window.RP_I18N_RESOURCES = {
       city: {"modalTitle":"Escolha sua cidade de residência","capitalBadge":"(Capital)"},
       review: {"lifePath":"Trajetória de vida","characteristics":"Atributos","startingResources":"Recursos iniciais","biography":"Biografia","money":"Dinheiro","influence":"Influência","popularity":"Popularidade","discretion":"Discrição","tier":"Faixa {{tier}}","maxInGame":"Máximo 100 no jogo","wealthTier1":"1 - Miséria","wealthTier2":"2 - Modesto","wealthTier3":"3 - Confortável","wealthTier4":"4 - Rico","wealthTier5":"5 - Oligarca"},
       success: {"title":"Bem-vindo ao Grande Jogo","ready":"Seu personagem está pronto.","text":"{{name}} entra na arena de {{country}}. Começa o Grande Jogo: alianças, traições e corrupção.","fallbackCountry":"este mundo"},
-      genders: {"male":"Homem","female":"Mulher","nonbinary":"Não binário","other":"Outro"}
+      genders: {"male":"Homem","female":"Mulher","nonbinary":"Não binário","other":"Outro"},
+      identity: {"genderLabel":"Gênero do personagem","genderOtherPlaceholder":"Como seu personagem se identifica..."},
+      career: {"info":"Carreiras disponíveis conforme sua escolaridade ({{school}}).","locked":"Indisponível com sua escolaridade","consequence":"Sua carreira determina as profissões especializadas às quais seu personagem pode ter acesso. Você poderá adquirir apenas uma outra carreira durante sua vida."}
     }
   } },
   'de': { translation: { home: {
@@ -1623,7 +1627,9 @@ window.RP_I18N_RESOURCES = {
       city: {"modalTitle":"Wähle deine Heimatstadt","capitalBadge":"(Hauptstadt)"},
       review: {"lifePath":"Lebensweg","characteristics":"Eigenschaften","startingResources":"Startressourcen","biography":"Biografie","money":"Geld","influence":"Einfluss","popularity":"Beliebtheit","discretion":"Diskretion","tier":"Stufe {{tier}}","maxInGame":"Maximal 100 im Spiel","wealthTier1":"1 - Mittellos","wealthTier2":"2 - Bescheiden","wealthTier3":"3 - Wohlhabend","wealthTier4":"4 - Reich","wealthTier5":"5 - Oligarch"},
       success: {"title":"Willkommen im Großen Spiel","ready":"Dein Charakter ist bereit.","text":"{{name}} betritt die Arena von {{country}}. Das Große Spiel beginnt mit Bündnissen, Verrat und Korruption.","fallbackCountry":"diese Welt"},
-      genders: {"male":"Mann","female":"Frau","nonbinary":"Nichtbinär","other":"Andere"}
+      genders: {"male":"Mann","female":"Frau","nonbinary":"Nichtbinär","other":"Andere"},
+      identity: {"genderLabel":"Geschlecht des Charakters","genderOtherPlaceholder":"Wie beschreibt sich dein Charakter?"},
+      career: {"info":"Verfügbare Laufbahnen mit deiner Ausbildung ({{school}}).","locked":"Mit deiner Ausbildung nicht verfügbar","consequence":"Deine Laufbahn bestimmt, welche Fachberufe dein Charakter ausüben kann. Im weiteren Leben kannst du nur eine zusätzliche Laufbahn erwerben."}
     }
   } }
 };
