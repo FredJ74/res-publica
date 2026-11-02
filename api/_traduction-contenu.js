@@ -2,8 +2,9 @@
  * Le lecteur est identifié et la lecture RLS doit précéder TOUT accès au cache.
  * Le quota atomique persistant est requis, y compris pour des traitements simultanés.
  */
+import { createHash } from 'node:crypto';
 import { validerSource } from './_traduction-sources.js';
-import { traduireTexte, langueAdmise } from './_traduction.js';
+import { traduireTexte, langueAdmise, placeholders } from './_traduction.js';
 
 function refuse(raison='indisponible') {
  return Object.freeze({ok:false,raison,original:null,traduit:null});
@@ -31,11 +32,14 @@ async function traduireContenu({type,id,field,langueCible},deps) {
  if(typeof record.version!=='string' || !record.version || record.version.length>128)return refuse('version_absente');
  if(!langueAdmise(record.language))return refuse('langue_source_invalide');
  if(record.language===langueCible) return Object.freeze({ok:true,original,traduit:original,fromCache:true});
- const key=JSON.stringify([auth.userId,type,source.id,field,record.version,record.language,langueCible]);
+ const fingerprint=createHash('sha256').update(original,'utf8').digest('hex');
+ const key=JSON.stringify([auth.userId,type,source.id,field,record.version,fingerprint,record.language,langueCible]);
  // Même un résultat déjà en cache a été précédé de la lecture autorisée sous RLS.
  let cached;
  try { cached=await deps.readCache(key); } catch { cached=null; }
- if(typeof cached==='string')return Object.freeze({ok:true,original,traduit:cached,fromCache:true});
+ const sameTokens=(left,right)=>JSON.stringify(placeholders(left))===JSON.stringify(placeholders(right));
+ if(typeof cached==='string' && cached && sameTokens(original,cached))
+  return Object.freeze({ok:true,original,traduit:cached,fromCache:true});
  // Quota persistant et atomique vérifié avant tout appel payant.
  let permit;
  try { permit=await deps.reserveBudget(auth.userId,key); } catch { return refuse('quota_indisponible'); }
