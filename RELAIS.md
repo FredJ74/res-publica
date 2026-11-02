@@ -105,7 +105,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 
 ### Décisions attendues de Fred
 
-- **Blocus syndical** (`GAME-DESIGN-BLOCUS.md`, « Points ouverts ») : commissariat bloqué (les détenus ne peuvent plus tenter de s'évader).
+- Aucune en cours.
 
 ### Points ouverts transmis (non bloquants)
 
@@ -140,6 +140,7 @@ Vérifier toujours une migration par son **NOM** dans `supabase_migrations.schem
 - Louer un local dans les centres de Montrouge et de PSM ; acheter un terrain pour la commune en tant que maire ; attribuer un logement social en tant qu'adjoint.
 
 ## Derniers chantiers
+- 02/11/2026 — **Blocus du commissariat maintenu (décision 9 de Fred)** : détenus sans tentative d'évasion pendant le blocus ; dispersion par le commissaire depuis son menu, déjà en service (`20261102152414`). Documents seuls, aucun code.
 - 02/11/2026 — **Blocus syndical : le commissaire intervient depuis son menu (Claude)** : décision 8 de Fred (`GAME-DESIGN-BLOCUS.md`). Boutons « Disperser / Réprimer un blocus syndical » dans le menu du personnage du commissaire ; le serveur n'exige plus le bureau. Migration `20261102152414_blocus_commissaire_depuis_son_menu` **appliquée le 02/11** (registre `blocus_commissaire_depuis_son_menu_20261102152414`), contrôlée en production (transaction annulée, intervention acceptée depuis la rue).
 - 02/11/2026 — **Blocus syndical : hôpitaux exclus (Claude)** : décision 7 de Fred (`GAME-DESIGN-BLOCUS.md`). Dispensaires et clinique privée ne peuvent pas être bloqués (refus `hopital_exclu`), leurs ordres retirés du catalogue. Migration `20261102151241_blocus_syndical_hopitaux_exclus` **appliquée le 02/11** (registre `blocus_syndical_hopitaux_exclus_20261102151241`), contrôlée en production (transaction annulée).
 - 02/11/2026 — **Blocus syndical : participants, coût, une tentative par jour (Claude, branche `claude/blocus-cout-20261102`)** : décisions de Fred du 02/11 (`GAME-DESIGN-BLOCUS.md`, décisions 4 à 6). Participants = organisateur + PJ de son groupe membres du syndicat dans la même pièce + militants mobilisés, minimum 2 ; 2 PA par PJ participant, tout ou rien ; une tentative par jour de jeu et par syndicat (`blocusDernierEssaiJour` dans l'organisation). Migration `20261102144753_blocus_syndical_participants_cout` **appliquée le 02/11** (registre `blocus_syndical_participants_cout_20261102144753`), contrôlée en production dans une transaction annulée : PJ sans PA → refus sans prélèvement, PJ hors syndicat ignoré, seconde tentative refusée. À constater : le SG groupé avec un syndiqué lance un blocus ; chacun perd 2 PA ; une seconde tentative le même jour est refusée.
