@@ -6,7 +6,7 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'../..');
 const plateau=fs.readFileSync(path.join(root,'plateau.html'),'utf8');
 test('le plateau charge le moteur i18next existant et conserve la même préférence',()=>{
- const scripts=['i18n/i18next.min.js','i18n/resources.js','i18n/plateau-resources.js','i18n/plateau-bridge.js','i18n/plateau-init.js'];
+ const scripts=['i18n/i18next.min.js','i18n/resources.js','i18n/plateau-resources.js','i18n/orders-resources.js','i18n/plateau-bridge.js','i18n/ordres.js','i18n/texte-joueur.js','i18n/plateau-init.js'];
  let last=-1;
  for(const script of scripts){
   const i=plateau.indexOf('src="'+script);
