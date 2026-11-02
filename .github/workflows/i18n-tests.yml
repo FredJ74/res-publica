@@ -22,6 +22,8 @@ on:
       - 'outils/bancs/banc-i18n-catalogue-ordres.cjs'
       - 'outils/bancs/banc-i18n-traduction-sources.mjs'
       - 'api/_traduction-sources.js'
+      - 'api/_traduction-contenu.js'
+      - 'outils/bancs/banc-i18n-contenu-securise.mjs'
 concurrency:
   group: i18n-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -70,6 +72,8 @@ jobs:
         run: node --test outils/bancs/banc-i18n-catalogue-ordres.cjs
       - name: Sources privées : seules les colonnes de contenu autorisées
         run: node --test outils/bancs/banc-i18n-traduction-sources.mjs
+      - name: Sécurité de lecture, cache et quota des traductions
+        run: node --test outils/bancs/banc-i18n-contenu-securise.mjs
       - name: Syntaxe du moteur et des ressources
         run: |
           node --check i18n/resources.js
@@ -80,5 +84,6 @@ jobs:
           node --check i18n/texte-joueur.js
           node --check api/_traduction.js
           node --check api/_traduction-sources.js
+          node --check api/_traduction-contenu.js
           node --check i18n/ordres.js
           node --check i18n/orders-resources.js
