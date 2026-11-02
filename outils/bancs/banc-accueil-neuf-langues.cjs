@@ -99,3 +99,13 @@ test('origines et écoles possèdent leurs libellés dans les trois nouvelles la
    }
  }
 });
+
+test('les neuf archétypes gardent leurs identifiants', () => {
+ const w=load();
+ const keys=['politician','authoritarian','oligarch','informer','legalist','believer','shadow','anticapitalist','criminal'];
+ for (const lang of ['ar','pt-BR','de']) {
+  const values=w.RP_I18N_RESOURCES[lang].translation.creation.archetypes;
+  assert.deepEqual(Object.keys(values),keys);
+  for (const key of keys) assert.ok(values[key].name);
+ }
+});
