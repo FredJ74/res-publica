@@ -1142,8 +1142,10 @@ async function initialiserRueCentrale(pays, noeudDepart, depuisNoeud) {
     if(state._navigationServeur===true && typeof sbGroupePjLire==='function' && typeof sbPositionNavigationConfirmee==='function') {
       const groupe=await sbGroupePjLire().catch(()=>null);
       position=sbPositionNavigationConfirmee(groupe,state.char?.name);
-      // Compatibilité avec le contrat préparé antérieur sans provenance.
-      if(groupe?.ok===true && !Object.prototype.hasOwnProperty.call(groupe,'position_personnelle'))
+      // La lecture du groupe peut être indisponible ou encore dépourvue de
+      // position_personnelle. Reprendre alors UNIQUEMENT la lecture canonique
+      // authentifiée du serveur, sans cache client ni déplacement automatique.
+      if(position?.ok!==true || position.country!==pays || position.city!==state.currentCity)
         position=await sbRpc('rue_position_lire',{}).then(rows=>Array.isArray(rows)?rows[0]:rows).catch(()=>null);
     } else position = await sbRpc('rue_position_lire', {})
       .then(rows => Array.isArray(rows) ? rows[0] : rows).catch(() => null);
