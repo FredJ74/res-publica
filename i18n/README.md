@@ -51,3 +51,7 @@ Architecture unique et monde partagé ; traduction comme couche de présentation
 - Prévoir un commutateur de fonctionnalité désactivé par défaut pour chaque langue, indépendant de la présence du fichier de traduction ; seules les langues explicitement validées pourront être activées ultérieurement.
 - Les couches linguistiques restent hors des fichiers et migrations PNJ/DeepSeek confiés à Claude et de l'audit transverse Codex. Les nouveaux textes de ces chantiers seront inventoriés à leur fusion.
 - Aucune migration Supabase, aucun changement du gameplay, aucune activation publique sur cette PR.
+
+## Découverte d'intégration du 02/11 — éviter deux moteurs i18n
+
+Le `main` effectif contient **déjà** `i18n/resources.js` (six langues et traductions d'accueil/création), `i18n/i18n-init.js` et i18next, câblés dans `index.html`. Le prototype `HGI18n` de cette PR #278 **ne doit pas être chargé en parallèle** sur l'accueil ni créer une seconde préférence de langue. PR #377 ajoute les trois langues restantes dans le moteur effectivement utilisé, sans fusion de #278. Les catalogues pilotes HGI18n peuvent servir de matériel de traduction/contrôle, mais les prochains travaux doivent **converger vers les catalogues i18next existants**, en préservant le choix déjà stocké sous `respublica_language`. Aucun double moteur en production.
