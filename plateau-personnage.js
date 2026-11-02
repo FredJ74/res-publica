@@ -3586,6 +3586,10 @@ async function ouvrirDetailObjetInventaire(idx) {
   // de la protection "objet de quete" (manger son propre repas n'est jamais un transfert).
   // AUCUN indice de fraicheur/age ici (peremption volontairement invisible avant consommation,
   // regle de design validee) -- le libelle reste neutre, identique quel que soit l'etat reel.
+  // Boulette (2 novembre 2026) : la fumer est legal ; seuls l'achat et le transport ne le sont pas.
+  if (item.type === 'drogue') {
+    html += '<button onclick="consommerDrogue(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-leaf"></i> Fumer</button>';
+  }
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="font-family:Bebas Neue,sans-serif;font-size:.72rem;letter-spacing:.08em;padding:.4rem .7rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer"><i class="ti ti-meat"></i> Consommer</button>';
   }
@@ -3686,6 +3690,41 @@ async function consommerAliment(idx) {
   if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
   } finally {
     consommationAlimentEnCours = false;
+  }
+}
+
+// FUMER UNE BOULETTE (2 novembre 2026, decisions de Fred). Tout est tranche par le serveur
+// (inventaire_consommer) : moral +10, ENT +2 jusqu'a minuit sans cumul, PA -1, sante -5, et une
+// trace consommation_drogue pour les rumeurs et enquetes. L'ecran n'affiche que ce qu'il recoit.
+let consommationDrogueEnCours = false;
+async function consommerDrogue(idx) {
+  if (consommationDrogueEnCours) return;
+  const item = state.inventory[idx];
+  if (!item || item.type !== 'drogue') return;
+  consommationDrogueEnCours = true;
+  try {
+    document.getElementById('modal-postes')?.classList.remove('open');
+    const r = await removeFromInventory(idx, 'consommer');
+    if (!r.ok) {
+      showToast('Impossible de fumer', messageRefusSortieInventaire(r.raison), false);
+      return;
+    }
+    if (!r.drogue) {
+      showToast('Consommation enregistrée', 'Effets non confirmés par le serveur.', true);
+      addJournalEntry('Vous avez fumé "' + item.name + '". Effets non confirmés.', 'event-info');
+    } else {
+      if (typeof r.pa === 'number') state.pa = r.pa;
+      if (typeof r.hp === 'number') state.hp = r.hp;
+      if (typeof r.moral === 'number') state.moral = r.moral;
+      if (r.effets_actifs) state.effetsActifs = r.effets_actifs;
+      const ent = r.bonus_ent ? 'ENT +2 jusqu\'à minuit' : 'ENT déjà au maximum de l\'effet';
+      showToast('Ça détend', 'Moral +10, ' + ent + '. −1 PA, santé −5.', true);
+      addJournalEntry('Vous avez fumé "' + item.name + '" : moral +10, ' + ent + ', −1 PA, santé −5.', 'event-info');
+    }
+    updateUI();
+    if (typeof switchSelfTab === 'function') switchSelfTab('inventaire', null);
+  } finally {
+    consommationDrogueEnCours = false;
   }
 }
 
@@ -4190,6 +4229,9 @@ function ouvrirDetailObjet(idx) {
   if (item.usageUnique) html += ' · Usage unique';
   html += '</div>';
   html += '<div style="display:flex;gap:.5rem">';
+  if (item.type === 'drogue') {
+    html += '<button onclick="consommerDrogue(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Fumer</button>';
+  }
   if (item.familleProduitMarche === 'aliment' || (item.generique_id === 'encas-a-emporter' && item.recette_id)) {
     html += '<button onclick="consommerAliment(' + idx + ')" style="flex:1;font-family:Bebas Neue,sans-serif;font-size:.85rem;padding:.5rem;border:1px solid #6a9a4a;background:transparent;color:#8aca6a;cursor:pointer">Consommer</button>';
   }
