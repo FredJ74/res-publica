@@ -13,6 +13,8 @@ INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,memb
 ('republic','ville_b','dispensaire-public-v','["attente","ehpad"]'::jsonb,false,NULL),
 ('republic','ville_b','commissariat-local','["accueil_loc","geoles","bureau_commissaire"]'::jsonb,false,NULL),
 ('republic','ville_b','tribunal-local','["salle_audience_locale","bureau_magistrats","greffe"]'::jsonb,false,NULL),
+('republic','ville_b','services-sociaux-montrouge','["accueil"]'::jsonb,false,NULL),
+('republic','ville_b','parking-tribunal-montrouge','["accueil"]'::jsonb,false,NULL),
 ('republic','ville_b','siege-syndical','["bureau_syndical"]'::jsonb,false,NULL),
 ('republic','ville_b','usine-principale','["direction_usine"]'::jsonb,false,NULL),
 ('republic','ville_b','centre-multinodal-montrouge','["hall_gare_montrouge"]'::jsonb,false,NULL),
@@ -57,7 +59,5 @@ INSERT INTO public.navigation_lieux_regles(pays,ville,batiment,pieces,ferme,memb
 ('narco','capitale','la-tribune','["accueil_tribune","redaction"]'::jsonb,false,NULL),
 ('narco','capitale','loge-maconnique','["portail","hall_loge","bureau_venerable","salle_reunion_loge"]'::jsonb,false,'loge'),
 ('narco','capitale','universite','["amphi","salle_reunion"]'::jsonb,false,NULL),
-('narco','capitale','armurerie','["magasin"]'::jsonb,false,NULL),
-('narco','capitale','marche','["marche_ext"]'::jsonb,false,NULL),
-('narco','capitale','mairie-capitale','["hall_mairie","bureau_maire","bureau_maire_adjoint","salle_elections","salle_archives"]'::jsonb,false,NULL)
+('narco','capitale','armurerie','["magasin"]'::jsonb,false,NULL)
 ON CONFLICT(pays,ville,batiment) DO UPDATE SET pieces=EXCLUDED.pieces,ferme=EXCLUDED.ferme,membership=EXCLUDED.membership;
