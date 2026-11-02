@@ -400,6 +400,45 @@
   }
 };
   for(const [locale,labels] of Object.entries(secondaryLabels)) Object.assign(translations[locale],labels);
+  const originalControls={
+  "fr": {
+    "showOriginal": "Voir l’original",
+    "showTranslation": "Voir la traduction"
+  },
+  "en": {
+    "showOriginal": "Show original",
+    "showTranslation": "Show translation"
+  },
+  "es": {
+    "showOriginal": "Ver original",
+    "showTranslation": "Ver traducción"
+  },
+  "zh-TW": {
+    "showOriginal": "查看原文",
+    "showTranslation": "查看翻譯"
+  },
+  "ru": {
+    "showOriginal": "Показать оригинал",
+    "showTranslation": "Показать перевод"
+  },
+  "ko": {
+    "showOriginal": "원문 보기",
+    "showTranslation": "번역 보기"
+  },
+  "ar": {
+    "showOriginal": "عرض النص الأصلي",
+    "showTranslation": "عرض الترجمة"
+  },
+  "pt-BR": {
+    "showOriginal": "Ver original",
+    "showTranslation": "Ver tradução"
+  },
+  "de": {
+    "showOriginal": "Original anzeigen",
+    "showTranslation": "Übersetzung anzeigen"
+  }
+};
+  for(const [locale,labels] of Object.entries(originalControls)) Object.assign(translations[locale],labels);
   for(const [locale,labels] of Object.entries(translations)) {
     if(resources[locale]?.translation) resources[locale].translation.plateau={...labels};
   }
