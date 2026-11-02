@@ -1077,7 +1077,7 @@ const WORLD = {
       imageUrl:'images/montrouge.webp',
       desc:'Ville industrielle au nord. Syndicats puissants, usines et tensions sociales.',
       isCapitale: false,
-      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-6','terrain-a-batir-montrouge-3','terrain-a-batir-montrouge-7','terrain-a-batir-montrouge-8','terrain-a-batir-montrouge-9','terrain-a-batir-montrouge-12','stade','zone-production','entrepot-logistique-montrouge','raffinerie-montrouge','armurerie','loge-maconnique','la-tribune','marche','cafe-gare-montrouge','brasserie-voyageurs-montrouge','musee-histoire-montrouge','eglise-montrouge','cinema-montrouge','jardins-ouvriers-montrouge','logements-montrouge','cafe-tabac-cheminots-montrouge','place-du-rail-montrouge'],
+      buildings: ['hotel-mineur','mairie','banque-locale','dispensaire-public-v','commissariat-local','tribunal-local','services-sociaux-montrouge','parking-tribunal-montrouge','siege-syndical','usine-principale','centre-multinodal-montrouge','centre-commercial','centre-artisanal','centre-affaires','terrain-a-batir-6','terrain-a-batir-montrouge-3','terrain-a-batir-montrouge-7','terrain-a-batir-montrouge-8','terrain-a-batir-montrouge-9','terrain-a-batir-montrouge-12','stade','zone-production','entrepot-logistique-montrouge','raffinerie-montrouge','armurerie','loge-maconnique','la-tribune','marche','cafe-gare-montrouge','brasserie-voyageurs-montrouge','musee-histoire-montrouge','eglise-montrouge','cinema-montrouge','jardins-ouvriers-montrouge','logements-montrouge','cafe-tabac-cheminots-montrouge','place-du-rail-montrouge'],
       buildingContext: {
         'stade': {
           name: "Stade Marcel Cazenave",
@@ -4644,6 +4644,20 @@ const BUILDINGS = {
         ]
       }
     }
+  },
+
+  // Locaux de façade visitables, sans mécanique métier avant arbitrage.
+  'services-sociaux-montrouge': {
+    name: 'Services Sociaux de Montrouge', shortName: 'S.S.M.', cat: 'Administration',
+    icon: 'ti-building-community', bgColor: '#16191c',
+    desc: 'Le service social municipal de Montrouge.',
+    rooms: { accueil: { name: 'Accueil', desc: 'Le hall des Services Sociaux de Montrouge. Les services seront détaillés ultérieurement.', imageBg: 'linear-gradient(135deg,#16191c,#25292e)', persons: [], orders: [] } }
+  },
+  'parking-tribunal-montrouge': {
+    name: 'Parking du tribunal', shortName: 'Parking', cat: 'Services',
+    icon: 'ti-parking', bgColor: '#181b20',
+    desc: 'Le parking couvert à droite du tribunal.',
+    rooms: { accueil: { name: 'Parking couvert', desc: 'Le parking du tribunal de Montrouge. Aucun service supplémentaire pour le moment.', imageBg: 'linear-gradient(135deg,#181b20,#30343a)', persons: [], orders: [] } }
   },
 
   'siege-syndical': {

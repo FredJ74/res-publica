@@ -763,8 +763,20 @@ const RUE_CENTRALE_NOEUDS = {
         { xPct: [0, 32],   nom: 'Marché de Montrouge', type: 'batiment', buildingId: 'marche' },
         { xPct: [75, 100], nom: 'Café des Cheminots — Bar-Tabac', type: 'batiment', buildingId: 'cafe-tabac-cheminots-montrouge' }
       ],
-      liens: { toutDroit: 'montrouge-vue-3' },
-      flechesStyle: { toutDroit: 'top:10px; left:50%; transform:translateX(-50%);' }
+      liens: { toutDroit: 'montrouge-vue-3', arriere: 'montrouge-tribunal-ssm' },
+      flechesStyle: { toutDroit: RC_FLECHE_HAUT, arriere: RC_FLECHE_BAS }
+    },
+
+    // La gare est dans le dos ; accès tribunal de face, SSM à gauche, parking à droite.
+    'montrouge-tribunal-ssm': {
+      image: 'images/montrouge/montrouge-rue-tribunal-ssm.png',
+      zones: [
+        { xPct: [0, 24], nom: 'Services Sociaux de Montrouge', type: 'batiment', buildingId: 'services-sociaux-montrouge' },
+        { xPct: [33, 72], nom: 'Tribunal de Montrouge', type: 'batiment', buildingId: 'tribunal-local' },
+        { xPct: [78, 100], nom: 'Parking du tribunal', type: 'batiment', buildingId: 'parking-tribunal-montrouge' }
+      ],
+      liens: { arriere: 'montrouge-vue-13' },
+      flechesStyle: { arriere: RC_FLECHE_BAS }
     }
   },
 
