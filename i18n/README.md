@@ -37,7 +37,7 @@ Ces fichiers ne sont pas inclus dans `plateau.html`, et ne sont donc pas exécut
 
 ## Extension multicouche du 2 novembre 2026 — décision validée
 
-Architecture unique et monde partagé ; traduction comme couche de présentation, jamais comme moteur de jeu. Les catalogues pilotes ajoutés sont `es`, `de`, `pt-BR`, `pt-PT` et `ar`, en plus de `fr` et `en`. Le moteur existant accepte les variantes régionales et conserve `fr` par défaut.
+Architecture unique et monde partagé ; traduction comme couche de présentation, jamais comme moteur de jeu. Les six langues initiales validées sont `fr`, `en`, `es`, `zh-TW`, `ru`, `ko`. Les trois langues supplémentaires sont `ar`, `pt-BR` (avec variante `pt-PT`) et `de`. Elles sont toutes préparées dès maintenant, mais leur activation reste indépendante. Le moteur existant accepte les variantes régionales et conserve `fr` par défaut.
 
 **Ces catalogues sont des démonstrateurs de 15 clés, pas des traductions exhaustives ni validées éditorialement.** Aucun de ces scripts n'est raccordé à la page de jeu. Ne pas introduire de sélecteur de langue ou de persistance avant validation d'un parcours complet et du mécanisme d'activation explicite. Exécuter `node --test outils/bancs/banc-i18n.cjs outils/bancs/banc-i18n-langues.cjs`.
 
